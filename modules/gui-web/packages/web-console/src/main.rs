@@ -6385,18 +6385,34 @@ fn tool_execution_policy() -> ToolExecutionPolicy {
     }
 }
 
-fn tool_timeout_ms_for(_tool_name: &str, input: &JsonValue) -> u64 {
-    let policy = tool_execution_policy();
+/// WebSearch 自己探测/降级多个后端，内部预算已含逐后端尝试；这里在预算之外再留一点
+/// 收尾余量（构造失败文案、进程回收）。
+const WEB_SEARCH_TIMEOUT_SLACK_MS: u64 = 5_000;
+
+fn tool_timeout_ms_for(tool_name: &str, input: &JsonValue) -> u64 {
     // timeout_ms 字段语义为毫秒；timeout 字段语义为秒（PowerShell/bash schema 已标 SECONDS），需 ×1000。
     // 否则模型传 timeout:10（秒）会被外层 tokio 超时当 10ms，几十毫秒内杀掉命令 → runtime-timeout。
     let requested = if let Some(ms) = input.get("timeout_ms").and_then(JsonValue::as_u64) {
         ms
     } else if let Some(secs) = input.get("timeout").and_then(JsonValue::as_u64) {
         secs.saturating_mul(1000)
+    } else if is_web_search_tool(tool_name) {
+        // 固定 30s 默认值小于"多后端探测"的真实耗时：工具还没跑出可读失败原因就被强杀，
+        // 模型只拿到 runtime-timeout、看不到哪个后端不可达。改为按工具声明的预算发时间。
+        // 取 max 而不是直接覆盖：用户把 default_timeout_ms 调大时不应被这里改小。
+        // 这里只读目标 workspace 的配置、不改全局 config root：设 root 是执行器（
+        // execute_runtime_tool_blocking）的职责，在这里改会覆盖调用方指定的 workspace。
+        let declared = tools::web_search_total_budget_ms_at(&active_workspace_path())
+            .saturating_add(WEB_SEARCH_TIMEOUT_SLACK_MS);
+        declared.max(tool_execution_policy().default_timeout_ms)
     } else {
-        policy.default_timeout_ms
+        tool_execution_policy().default_timeout_ms
     };
     requested.clamp(1, 600_000)
+}
+
+fn is_web_search_tool(tool_name: &str) -> bool {
+    tool_name.replace('-', "_").eq_ignore_ascii_case("websearch")
 }
 
 fn unwrap_raw_tool_input(input: &JsonValue) -> JsonValue {
@@ -6527,8 +6543,47 @@ fn save_workspace_config_at(workspace: &Path, config: &WorkspaceConfig) {
         let _ = std::fs::create_dir_all(parent);
     }
     if let Ok(content) = toml::to_string_pretty(config) {
+        let content = render_config_with_preserved_sections(&path, &content);
         let _ = std::fs::write(&path, content);
     }
+}
+
+/// `coolzhu.toml` 不只属于主控台：tool-registry 也从同一个文件读 `[web_search]`。
+/// `WorkspaceConfig` 不认识这些段，整体重写会把它们静默抹掉——用户手写的搜索后端会在
+/// 任意一次 dashboard 写入（加允许目录、改任务计划等）之后消失。
+/// 这里把不认识的顶层段原样带回，保证配置是"叠加"而不是"覆盖"。
+fn render_config_with_preserved_sections(path: &Path, serialized: &str) -> String {
+    let Ok(existing) = std::fs::read_to_string(path) else {
+        return serialized.to_string();
+    };
+    let Ok(existing_value) = toml::from_str::<toml::Value>(&existing) else {
+        return serialized.to_string();
+    };
+    let Ok(mut merged) = toml::from_str::<toml::Value>(serialized) else {
+        return serialized.to_string();
+    };
+    let (Some(existing_table), Some(merged_table)) =
+        (existing_value.as_table(), merged.as_table_mut())
+    else {
+        return serialized.to_string();
+    };
+    // WorkspaceConfig 的字段一律参与序列化（没有 skip_serializing_if），
+    // 所以"新版里没有的顶层段"就是本进程不认识的段。
+    let mut preserved = Vec::new();
+    for (key, value) in existing_table {
+        if !merged_table.contains_key(key) {
+            merged_table.insert(key.clone(), value.clone());
+            preserved.push(key.clone());
+        }
+    }
+    if preserved.is_empty() {
+        return serialized.to_string();
+    }
+    diag!(
+        "[CONFIG] save: preserved unknown section(s) {:?} from existing coolzhu.toml",
+        preserved
+    );
+    toml::to_string_pretty(&merged).unwrap_or_else(|_| serialized.to_string())
 }
 
 fn mutate_workspace_config(
@@ -27287,13 +27342,9 @@ fn context_build_options_for_agent_with_floor_and_room(
     let model_context = model_context_raw.max(1);
     if model_context > policy.model_budget_min_tokens {
         // 先为模型输出预留空间，再用"扣除预留后的可用上下文"算历史/记忆预算。
-        // 输出预留 = max(模型 max_output_tokens, 上下文 × output_reserve_percent)，
-        // 确保大输出模型（如 deepseek-reasoner 384K 输出）的回复空间不被历史挤占。max_output 含会话覆盖。
-        let reserve_by_pct = model_context.saturating_mul(policy.output_reserve_percent) / 100;
-        // 输出预留上限设为上下文的一半：避免某些模型（尤其 custom provider 落到默认表时
-        // max_output==context_tokens）预留吃满整个窗口、usable_context 退化为 1，
-        // 导致历史/记忆预算归零、local prompt budget 只剩 system+user。
-        let output_reserve = max_output.max(reserve_by_pct).min(model_context / 2).max(1);
+        // 同一个预留值也是请求体 `max_tokens` 的上界（见 `request_max_tokens_for_limit`），
+        // 两处共用 `output_reserve_tokens`，避免上下文预算与实际下发值漂移。
+        let output_reserve = output_reserve_tokens(model_context, max_output);
         let usable_context = model_context
             .saturating_sub(output_reserve)
             .saturating_sub(policy.prompt_safety_tokens)
@@ -27800,12 +27851,35 @@ fn render_handoff_attachment(
     }
 }
 
+/// 交接附件里单条消息的字符上限。原来的 1200 对"带 Markdown 表格的诊断报告"这类长回复太短，
+/// 截断处又不留标记，接收方读到的是"一句话写到一半"的残文。
+const HANDOFF_ATTACH_EXCERPT_LIMIT: usize = 6_000;
+
 fn render_handoff_message_excerpt(message: &PersistedChatMessage) -> String {
     format!(
         "[{}:{}] {}",
         message.author,
         message.role,
-        compact_message_snippet(&message.content, 1200)
+        render_handoff_excerpt(&message.content)
+    )
+}
+
+/// 与 `compact_message_snippet` 不同，这里保留换行与表格结构：交接附件往往是接收方唯一的
+/// 上下文来源，被压成一行会让 Markdown 表格和分点说明全部失去可读性。
+/// 截断处显式标注并说明如何取全文，避免接收方误以为这就是完整内容。
+fn render_handoff_excerpt(content: &str) -> String {
+    let text = content.trim();
+    let total = text.chars().count();
+    if total <= HANDOFF_ATTACH_EXCERPT_LIMIT {
+        return text.to_string();
+    }
+    let head = text
+        .chars()
+        .take(HANDOFF_ATTACH_EXCERPT_LIMIT)
+        .collect::<String>();
+    format!(
+        "{head}\n\n…[附加上下文超长，已截断：原文 {total} 字符，此处保留前 {HANDOFF_ATTACH_EXCERPT_LIMIT} 字符。\
+         需要全文请让发送方改用 `attach: message_ids` 或分段交接]"
     )
 }
 
@@ -31631,17 +31705,35 @@ fn agent_request_max_tokens(agent: &AgentSessionDto) -> u32 {
     request_max_tokens_for_limit(effective_model_limit_for_agent(agent))
 }
 
-fn request_max_tokens_for_limit(limit: (u32, u32)) -> u32 {
-    const MIN_TOOL_SAFE_OUTPUT_TOKENS: u32 = 4_096;
-    const MAX_TOOL_SAFE_OUTPUT_TOKENS: u32 = 16_384;
+/// 为一个模型的上下文窗口预留多少输出空间。
+///
+/// 预留 = `max(模型 max_output_tokens, 上下文 × output_reserve_percent)`，
+/// 保证大输出模型（如 deepseek-reasoner 384K 输出）的回复空间不被历史挤占；`max_output` 含会话覆盖。
+/// 上限取上下文的一半：某些模型（尤其 custom provider 落到默认表时 `max_output == context_tokens`）
+/// 不设上限会让预留吃满整个窗口、`usable_context` 退化为 1，历史/记忆预算归零。
+fn output_reserve_tokens(context_window: u32, model_max_output: u32) -> u32 {
+    let context_window = context_window.max(1);
+    let reserve_by_pct =
+        context_window.saturating_mul(context_lifecycle_policy().output_reserve_percent) / 100;
+    model_max_output
+        .max(reserve_by_pct)
+        .min(context_window / 2)
+        .max(1)
+}
 
-    let (context_window, configured_output) = limit;
-    let model_limit = configured_output.min(context_window.saturating_sub(1).max(1));
-    if model_limit < MIN_TOOL_SAFE_OUTPUT_TOKENS {
-        model_limit.max(1)
-    } else {
-        model_limit.min(MAX_TOOL_SAFE_OUTPUT_TOKENS)
-    }
+/// 请求体里的 `max_tokens`。
+///
+/// 取值只来自模型能力参数，不再有固定的 16_384 天花板：
+/// - 给低了：长回复（表格、多段报告）会被上游按 `finish_reason=length` 截断，用户看到"回复少了一半"；
+/// - 给高了：超过模型能力或窗口会被 provider 直接 400。
+///
+/// 上界用 `output_reserve_tokens`：上下文组装已保证 prompt ≤ 窗口 − 预留 − 安全余量，
+/// 因此 `prompt + max_tokens ≤ 窗口 − 安全余量` 恒成立，不会因为下发大值撑爆窗口。
+fn request_max_tokens_for_limit(limit: (u32, u32)) -> u32 {
+    let (context_window, model_max_output) = (limit.0.max(1), limit.1.max(1));
+    model_max_output
+        .min(output_reserve_tokens(context_window, model_max_output))
+        .max(1)
 }
 
 fn encode_attachment_images(attachments: &[ChatAttachmentDto]) -> Vec<String> {
@@ -59557,7 +59649,49 @@ mod tests {
         );
         assert_eq!(request.messages, assembly.messages);
         assert_eq!(request.reasoning_effort.as_deref(), Some("medium"));
-        assert_eq!(request.max_tokens, 16_384);
+        // max_tokens 按模型能力参数下发，不再固定在旧的 16_384 天花板上。
+        let model_limit = api::model_token_limit(&agent.model);
+        assert!(
+            request.max_tokens > 16_384,
+            "glm-4.6 支持更大的输出，实际下发 {}",
+            request.max_tokens
+        );
+        assert!(request.max_tokens <= model_limit.max_output_tokens);
+    }
+
+    /// 输出上限必须跟随模型能力参数：给低了会被上游按 length 截断，给高了会被 provider 400。
+    #[test]
+    fn request_max_tokens_matches_model_capability_instead_of_fixed_ceiling() {
+        let _guard = config_test_guard();
+
+        for model in ["glm-4.6", "claude-sonnet-4-6", "grok-3", "deepseek-chat", "qwen3-max"] {
+            let limit = api::model_token_limit(model);
+            let resolved = super::request_max_tokens_for_limit((
+                limit.context_tokens,
+                limit.max_output_tokens,
+            ));
+            assert!(
+                resolved > 16_384,
+                "{model} 不应被旧天花板砍到 16384，实际 {resolved}"
+            );
+            assert!(
+                resolved <= limit.max_output_tokens,
+                "{model} 不得超过模型能力 {}，实际 {resolved}",
+                limit.max_output_tokens
+            );
+            // 预留不超过窗口一半 ⇒ prompt + max_tokens 一定落回窗口内。
+            assert!(resolved <= limit.context_tokens / 2);
+        }
+
+        // 小输出模型仍按自身能力，不被抬高、也不被压到 1。
+        assert_eq!(super::request_max_tokens_for_limit((8_192, 2_048)), 2_048);
+        // session 覆盖（custom provider 常用）：max_output == context_tokens 时按窗口一半兜底。
+        assert_eq!(super::request_max_tokens_for_limit((64_000, 64_000)), 32_000);
+        // 上下文组装用的预留与请求下发值必须同源。
+        assert_eq!(
+            super::output_reserve_tokens(64_000, 64_000),
+            super::request_max_tokens_for_limit((64_000, 64_000))
+        );
     }
 
     #[test]
@@ -73516,6 +73650,85 @@ attach: last_assistant
         let Json(body) = response.expect("handler must return a structured outcome");
         assert_eq!(body.outcome.status, super::ToolOutcomeStatus::Failed);
         assert!(body.pending_call_id.is_none());
+    }
+
+    /// `coolzhu.toml` 里的 `[web_search]` 属于 tool-registry，主控台不认识它。
+    /// 整体重写必须原样带回，否则用户配好的搜索后端会在任意一次 dashboard 写入后消失。
+    #[test]
+    fn workspace_config_save_preserves_sections_owned_by_other_consumers() {
+        let _guard = config_test_guard();
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join(super::CONFIG_FILE_NAME);
+        std::fs::write(
+            &path,
+            concat!(
+                "[web_search]\n",
+                "base_url = \"https://cn.bing.com/search?mkt=zh-CN\"\n",
+                "total_budget_ms = 45000\n",
+                "fallback_urls = [\"https://html.duckduckgo.com/html/\"]\n",
+            ),
+        )
+        .expect("write coolzhu.toml");
+
+        super::save_workspace_config_at(temp.path(), &super::WorkspaceConfig::default());
+
+        let saved = std::fs::read_to_string(&path).expect("read coolzhu.toml");
+        assert!(saved.contains("[web_search]"), "section dropped: {saved}");
+        assert!(saved.contains("cn.bing.com"));
+        assert!(saved.contains("45000"));
+        assert!(saved.contains("duckduckgo"));
+        // 自己不认识的段要保留，自己认识的段仍必须按新值写出。
+        assert!(saved.contains("[tool.execution]"), "known sections still written");
+    }
+
+    /// 交接附件原来用 `compact_message_snippet` 压成单行并按 1200 字符硬切，
+    /// 截断处还补了一个引号：接收方看到的是"一句话写到一半"。
+    #[test]
+    fn handoff_excerpt_keeps_structure_and_marks_truncation() {
+        let table = "| 项 | 值 |\n|---|---|\n| a | 1 |";
+        assert_eq!(super::render_handoff_excerpt(table), table);
+
+        let total = super::HANDOFF_ATTACH_EXCERPT_LIMIT + 500;
+        let long = "行".repeat(total);
+        let rendered = super::render_handoff_excerpt(&long);
+        assert!(rendered.contains("已截断"), "truncation must be explicit");
+        assert!(rendered.contains(&format!("原文 {total} 字符")));
+        assert!(!rendered.ends_with('"'), "旧实现会在尾部留下多余引号");
+    }
+
+    /// WebSearch 自己声明内部预算（含多后端降级）。运行时必须按预算发时间，
+    /// 否则工具还没跑出可读失败原因就被 30s 默认 deadline 强杀。
+    #[test]
+    fn web_search_tool_timeout_follows_declared_budget() {
+        let _guard = config_test_guard();
+        let temp = tempfile::tempdir().expect("tempdir");
+        std::fs::write(
+            temp.path().join(super::CONFIG_FILE_NAME),
+            "[web_search]\ntotal_budget_ms = 45000\n",
+        )
+        .expect("write coolzhu.toml");
+        let prev_workspace = {
+            let mut guard = super::workspace_state()
+                .lock()
+                .expect("workspace state lock");
+            std::mem::replace(&mut guard.current, temp.path().to_path_buf())
+        };
+
+        let timeout = super::tool_timeout_ms_for("WebSearch", &serde_json::json!({ "query": "x" }));
+        let other = super::tool_timeout_ms_for("read_file", &serde_json::json!({ "path": "a" }));
+
+        {
+            let mut guard = super::workspace_state()
+                .lock()
+                .expect("workspace state lock");
+            guard.current = prev_workspace;
+        }
+
+        assert!(
+            timeout >= 50_000,
+            "WebSearch must get budget + slack, got {timeout}"
+        );
+        assert_eq!(other, super::tool_execution_policy().default_timeout_ms);
     }
 
     #[test]

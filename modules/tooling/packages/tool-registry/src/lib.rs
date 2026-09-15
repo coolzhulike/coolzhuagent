@@ -797,6 +797,16 @@ struct WebSearchConfig {
     base_url: String,
     transport: WebSearchTransport,
     force_powershell_fallback: bool,
+    /// 主后端失败后按顺序尝试的后端 URL。
+    fallback_urls: Vec<String>,
+    /// 单次 HTTP 尝试的总超时（毫秒），含连接与读体。
+    attempt_timeout_ms: u64,
+    /// 连接建立超时（毫秒）。被墙主机通常表现为 connect 挂死而不是立刻拒绝，
+    /// 没有这个上限时单次尝试会一直占住整个预算。
+    connect_timeout_ms: u64,
+    /// 整个 WebSearch 调用的内部总预算（毫秒）。必须显著小于调用方的工具 deadline，
+    /// 否则工具会被外层强制终止，模型只能看到 timeout 而拿不到失败原因。
+    total_budget_ms: u64,
 }
 
 impl WebSearchConfig {
@@ -807,16 +817,94 @@ impl WebSearchConfig {
             self.transport
         }
     }
+
+    /// 按顺序展开实际要尝试的后端 URL：主后端在前，其后是去重后的降级后端。
+    fn candidate_urls(&self) -> Vec<String> {
+        let primary = if self.base_url.trim().is_empty() {
+            DEFAULT_WEB_SEARCH_BASE_URL.to_string()
+        } else {
+            self.base_url.trim().to_string()
+        };
+        let mut candidates = vec![primary];
+        for fallback in &self.fallback_urls {
+            let trimmed = fallback.trim();
+            if !trimmed.is_empty() && !candidates.iter().any(|url| url == trimmed) {
+                candidates.push(trimmed.to_string());
+            }
+        }
+        candidates
+    }
+
+    fn effective_attempt_timeout_ms(&self) -> u64 {
+        self.attempt_timeout_ms
+            .clamp(MIN_SEARCH_ATTEMPT_TIMEOUT_MS, MAX_SEARCH_ATTEMPT_TIMEOUT_MS)
+    }
+
+    fn effective_connect_timeout_ms(&self) -> u64 {
+        self.connect_timeout_ms
+            .clamp(MIN_SEARCH_CONNECT_TIMEOUT_MS, MAX_SEARCH_CONNECT_TIMEOUT_MS)
+    }
+
+    fn effective_total_budget_ms(&self) -> u64 {
+        self.total_budget_ms.clamp(MIN_SEARCH_BUDGET_MS, MAX_SEARCH_BUDGET_MS)
+    }
 }
 
 impl Default for WebSearchConfig {
     fn default() -> Self {
         Self {
-            base_url: String::from("https://html.duckduckgo.com/html/"),
+            base_url: String::from(DEFAULT_WEB_SEARCH_BASE_URL),
             transport: WebSearchTransport::Auto,
             force_powershell_fallback: false,
+            // 默认只用一个后端：默认降级后端会隐式依赖另一个站点（境外可达性因网络而异），
+            // 既让"只配了 base_url"的场景意外多打一次网络，也让测试无法与网络解耦。
+            // 需要多后端降级时显式配置 `fallback_urls`。
+            fallback_urls: Vec::new(),
+            attempt_timeout_ms: DEFAULT_SEARCH_ATTEMPT_TIMEOUT_MS,
+            connect_timeout_ms: DEFAULT_SEARCH_CONNECT_TIMEOUT_MS,
+            total_budget_ms: DEFAULT_SEARCH_TOTAL_BUDGET_MS,
         }
     }
+}
+
+/// 默认搜索后端（Bing 国内站点）。历史默认是 `html.duckduckgo.com`，在部分网络下
+/// 该域名 TCP 连不通，工具会一直挂到上层 deadline 被强杀，对外只表现为 timeout。
+/// 需要多后端降级时在 `[web_search]` 里显式配置 `fallback_urls`。
+const DEFAULT_WEB_SEARCH_BASE_URL: &str =
+    "https://cn.bing.com/search?mkt=zh-CN&setlang=zh-CN";
+
+const DEFAULT_SEARCH_ATTEMPT_TIMEOUT_MS: u64 = 10_000;
+const DEFAULT_SEARCH_CONNECT_TIMEOUT_MS: u64 = 5_000;
+const DEFAULT_SEARCH_TOTAL_BUDGET_MS: u64 = 20_000;
+const MIN_SEARCH_ATTEMPT_TIMEOUT_MS: u64 = 1_000;
+const MAX_SEARCH_ATTEMPT_TIMEOUT_MS: u64 = 60_000;
+const MIN_SEARCH_CONNECT_TIMEOUT_MS: u64 = 500;
+const MAX_SEARCH_CONNECT_TIMEOUT_MS: u64 = 30_000;
+const MIN_SEARCH_BUDGET_MS: u64 = 2_000;
+const MAX_SEARCH_BUDGET_MS: u64 = 60_000;
+/// 剩余预算低于该值就不要再开新尝试：起一个必然超时的请求只会把终态拖成"无原因超时"。
+const MIN_SEARCH_ATTEMPT_MS: u64 = 1_500;
+
+/// `WebSearch` 自己声明的内部预算（毫秒），从当前 config root / 工作目录解析。
+///
+/// 调用方应当按"预算 + 少量收尾余量"来设定工具 deadline，否则工具的内部降级还没跑完
+/// 就会被外层强杀。见 `modules/gui-web/.../main.rs::tool_timeout_ms_for`。
+#[must_use]
+pub fn web_search_total_budget_ms() -> u64 {
+    load_web_search_config()
+        .map(|config| config.effective_total_budget_ms())
+        .unwrap_or(DEFAULT_SEARCH_TOTAL_BUDGET_MS)
+}
+
+/// 同上，但从指定 workspace 根读配置。
+///
+/// 供"只是想知道该给多少时间、并不属于本次工具执行"的调用方使用：这类调用方不该为了
+/// 取值去改全局 config root，否则会覆盖真正执行工具的 workspace。
+#[must_use]
+pub fn web_search_total_budget_ms_at(root: &Path) -> u64 {
+    load_web_search_config_from(root)
+        .map(|config| config.effective_total_budget_ms())
+        .unwrap_or(DEFAULT_SEARCH_TOTAL_BUDGET_MS)
 }
 
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
@@ -968,6 +1056,12 @@ struct WebFetchOutput {
 #[derive(Debug, Serialize)]
 struct WebSearchOutput {
     query: String,
+    /// 实际给出结果的后端 URL；全部失败时为 `null`。
+    #[serde(skip_serializing_if = "Option::is_none")]
+    backend: Option<String>,
+    /// 逐后端的尝试记录，用于区分"真的没有结果"和"后端不可达"。
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    notes: Vec<String>,
     results: Vec<WebSearchResultItem>,
     #[serde(rename = "durationSeconds")]
     duration_seconds: f64,
@@ -1152,14 +1246,71 @@ fn execute_web_fetch(input: &WebFetchInput) -> Result<WebFetchOutput, String> {
 
 fn execute_web_search(input: &WebSearchInput) -> Result<WebSearchOutput, String> {
     let started = Instant::now();
-    let client = build_http_client()?;
     let config = load_web_search_config()?;
-    let search_url = build_search_url(&input.query, &config)?;
-    let (final_url, html) = fetch_search_html(&client, &search_url, config.effective_transport())?;
-    let mut hits = extract_search_hits(&html);
+    let budget = Duration::from_millis(config.effective_total_budget_ms());
+    let deadline = started + budget;
 
-    if hits.is_empty() && final_url.host_str().is_some() {
-        hits = extract_search_hits_from_generic_links(&html);
+    let mut notes: Vec<String> = Vec::new();
+    let mut hits: Vec<SearchHit> = Vec::new();
+    let mut backend: Option<String> = None;
+    let mut fetched_any = false;
+
+    for (index, candidate) in config.candidate_urls().into_iter().enumerate() {
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining < Duration::from_millis(MIN_SEARCH_ATTEMPT_MS) {
+            notes.push(format!(
+                "{candidate}: skipped, remaining budget too small ({}ms left of {}ms)",
+                remaining.as_millis(),
+                budget.as_millis()
+            ));
+            break;
+        }
+
+        let search_url = match build_search_url(&input.query, &candidate) {
+            Ok(url) => url,
+            Err(error) => {
+                // 主后端 URL 非法属于配置错误，直接暴露原始解析错误，不要吞进降级记录。
+                if index == 0 {
+                    return Err(error);
+                }
+                notes.push(format!("{candidate}: {error}"));
+                continue;
+            }
+        };
+
+        match fetch_search_page(
+            &search_url,
+            config.effective_transport(),
+            config.effective_attempt_timeout_ms(),
+            config.effective_connect_timeout_ms(),
+            remaining,
+        ) {
+            Ok(html) => {
+                fetched_any = true;
+                let page_hits = extract_search_hits_for_page(&html);
+                if page_hits.is_empty() {
+                    notes.push(format!(
+                        "{search_url}: HTTP ok but no results parsed (captcha or anti-bot page?)"
+                    ));
+                    continue;
+                }
+                hits = page_hits;
+                backend = Some(search_url.to_string());
+                break;
+            }
+            Err(error) => notes.push(format!("{search_url}: {error}")),
+        }
+    }
+
+    if hits.is_empty() && !fetched_any {
+        return Err(format!(
+            "WebSearch could not reach any configured search backend within {}ms. \
+             Attempts: {}. Configure reachable backends via the [web_search] section of \
+             coolzhu.toml (base_url / fallback_urls / connect_timeout_ms), or use WebFetch \
+             to retrieve a search results page directly.",
+            budget.as_millis(),
+            render_attempt_notes(&notes)
+        ));
     }
 
     if let Some(allowed) = input.allowed_domains.as_ref() {
@@ -1173,7 +1324,11 @@ fn execute_web_search(input: &WebSearchInput) -> Result<WebSearchOutput, String>
     hits.truncate(8);
 
     let summary = if hits.is_empty() {
-        format!("No web search results matched the query {:?}.", input.query)
+        format!(
+            "No web search results matched the query {:?}. Attempts: {}",
+            input.query,
+            render_attempt_notes(&notes)
+        )
     } else {
         let rendered_hits = hits
             .iter()
@@ -1188,6 +1343,8 @@ fn execute_web_search(input: &WebSearchInput) -> Result<WebSearchOutput, String>
 
     Ok(WebSearchOutput {
         query: input.query.clone(),
+        backend,
+        notes,
         results: vec![
             WebSearchResultItem::Commentary(summary),
             WebSearchResultItem::SearchResult {
@@ -1199,26 +1356,35 @@ fn execute_web_search(input: &WebSearchInput) -> Result<WebSearchOutput, String>
     })
 }
 
-fn fetch_search_html(
-    client: &Client,
+fn render_attempt_notes(notes: &[String]) -> String {
+    if notes.is_empty() {
+        return String::from("none");
+    }
+    notes.join(" | ")
+}
+
+/// 抓取单个后端的搜索结果页。`remaining` 是本次调用的剩余总预算，
+/// PowerShell 降级会据此再收窄自身的超时，避免把终态拖成无原因超时。
+fn fetch_search_page(
     search_url: &reqwest::Url,
     transport: WebSearchTransport,
-) -> Result<(reqwest::Url, String), String> {
+    attempt_timeout_ms: u64,
+    connect_timeout_ms: u64,
+    remaining: Duration,
+) -> Result<String, String> {
     if transport == WebSearchTransport::Powershell {
-        return fetch_search_html_with_powershell(search_url)
-            .map(|html| (search_url.clone(), html));
+        return fetch_search_html_with_powershell(search_url, remaining);
     }
 
-    match fetch_search_html_with_reqwest(client, search_url) {
-        Ok(result) => Ok(result),
+    match fetch_search_html_with_reqwest(search_url, attempt_timeout_ms, connect_timeout_ms) {
+        Ok(html) => Ok(html),
         Err(error) => {
             if transport == WebSearchTransport::Reqwest {
                 return Err(error);
             }
             #[cfg(windows)]
             {
-                fetch_search_html_with_powershell(search_url)
-                    .map(|html| (search_url.clone(), html))
+                fetch_search_html_with_powershell(search_url, remaining)
                     .map_err(|fallback_error| {
                         format!(
                             "reqwest web search failed: {error}; PowerShell fallback failed: {fallback_error}"
@@ -1227,33 +1393,46 @@ fn fetch_search_html(
             }
             #[cfg(not(windows))]
             {
-                Err(error.to_string())
+                Err(error)
             }
         }
     }
 }
 
 fn fetch_search_html_with_reqwest(
-    client: &Client,
     search_url: &reqwest::Url,
-) -> Result<(reqwest::Url, String), String> {
+    attempt_timeout_ms: u64,
+    connect_timeout_ms: u64,
+) -> Result<String, String> {
+    let client = Client::builder()
+        .connect_timeout(Duration::from_millis(connect_timeout_ms))
+        .timeout(Duration::from_millis(attempt_timeout_ms))
+        .redirect(reqwest::redirect::Policy::limited(10))
+        .user_agent("claw-rust-tools/0.1")
+        .build()
+        .map_err(|error| error.to_string())?;
     let response = client
         .get(search_url.clone())
         .send()
         .map_err(|error| error.to_string())?;
-    let final_url = response.url().clone();
-    let html = response.text().map_err(|error| error.to_string())?;
-    Ok((final_url, html))
+    response.text().map_err(|error| error.to_string())
 }
 
 #[cfg(windows)]
-fn fetch_search_html_with_powershell(search_url: &reqwest::Url) -> Result<String, String> {
+fn fetch_search_html_with_powershell(
+    search_url: &reqwest::Url,
+    remaining: Duration,
+) -> Result<String, String> {
+    let timeout_secs = remaining
+        .as_secs()
+        .max(1)
+        .min(DEFAULT_SEARCH_ATTEMPT_TIMEOUT_MS.div_ceil(1000));
     let script = concat!(
         "& {",
-        "param([string]$SearchUrl);",
+        "param([string]$SearchUrl,[int]$TimeoutSecs);",
         "$ProgressPreference='SilentlyContinue';",
         "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);",
-        "$r=Invoke-WebRequest -Uri $SearchUrl -UseBasicParsing -TimeoutSec 30;",
+        "$r=Invoke-WebRequest -Uri $SearchUrl -UseBasicParsing -TimeoutSec $TimeoutSecs;",
         "[Console]::Out.Write($r.Content);",
         "}"
     );
@@ -1264,6 +1443,7 @@ fn fetch_search_html_with_powershell(search_url: &reqwest::Url) -> Result<String
         .arg("-Command")
         .arg(script)
         .arg(search_url.as_str())
+        .arg(timeout_secs.to_string())
         .output()
         .map_err(|error| error.to_string())?;
     if !output.status.success() {
@@ -1278,7 +1458,10 @@ fn fetch_search_html_with_powershell(search_url: &reqwest::Url) -> Result<String
 }
 
 #[cfg(not(windows))]
-fn fetch_search_html_with_powershell(_search_url: &reqwest::Url) -> Result<String, String> {
+fn fetch_search_html_with_powershell(
+    _search_url: &reqwest::Url,
+    _remaining: Duration,
+) -> Result<String, String> {
     Err(String::from(
         "PowerShell fallback is only available on Windows",
     ))
@@ -1286,6 +1469,7 @@ fn fetch_search_html_with_powershell(_search_url: &reqwest::Url) -> Result<Strin
 
 fn build_http_client() -> Result<Client, String> {
     Client::builder()
+        .connect_timeout(Duration::from_secs(5))
         .timeout(Duration::from_secs(20))
         .redirect(reqwest::redirect::Policy::limited(10))
         .user_agent("claw-rust-tools/0.1")
@@ -1318,6 +1502,18 @@ fn load_web_search_config() -> Result<WebSearchConfig, String> {
     Ok(config.web_search)
 }
 
+/// 只从给定的 workspace 根读 `coolzhu.toml`，不回落 cwd、不碰全局 config root。
+fn load_web_search_config_from(root: &Path) -> Result<WebSearchConfig, String> {
+    let path = root.join("coolzhu.toml");
+    if !path.exists() {
+        return Ok(WebSearchConfig::default());
+    }
+    let content = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+    let config = toml::from_str::<ToolingProjectConfig>(&content)
+        .map_err(|error| format!("failed to parse {}: {error}", path.display()))?;
+    Ok(config.web_search)
+}
+
 fn find_project_config_file() -> Result<Option<PathBuf>, String> {
     if let Ok(guard) = project_config_root().read() {
         if let Some(root) = guard.as_ref() {
@@ -1340,13 +1536,8 @@ fn find_project_config_file() -> Result<Option<PathBuf>, String> {
     }
 }
 
-fn build_search_url(query: &str, config: &WebSearchConfig) -> Result<reqwest::Url, String> {
-    let base_url = if config.base_url.trim().is_empty() {
-        WebSearchConfig::default().base_url
-    } else {
-        config.base_url.clone()
-    };
-    let mut url = reqwest::Url::parse(&base_url).map_err(|error| error.to_string())?;
+fn build_search_url(query: &str, base_url: &str) -> Result<reqwest::Url, String> {
+    let mut url = reqwest::Url::parse(base_url).map_err(|error| error.to_string())?;
     url.query_pairs_mut().append_pair("q", query);
     Ok(url)
 }
@@ -1458,6 +1649,155 @@ fn preview_text(input: &str, max_chars: usize) -> String {
     }
     let shortened = input.chars().take(max_chars).collect::<String>();
     format!("{}…", shortened.trim_end())
+}
+
+/// 按已知搜索引擎的 HTML 结构依次尝试解析，最后退到通用链接扫描。
+///
+/// 不同后端的结果页结构不同：DuckDuckGo 的 html 端点用 `result__a`，Bing 用 `b_algo`。
+/// 只认一种结构会让换后端后的解析静默退化成抓到一堆导航链接。
+fn extract_search_hits_for_page(html: &str) -> Vec<SearchHit> {
+    let mut hits = extract_search_hits(html);
+    if hits.is_empty() {
+        hits = extract_bing_search_hits(html);
+    }
+    if hits.is_empty() {
+        hits = extract_search_hits_from_generic_links(html);
+    }
+    hits
+}
+
+/// Bing 结果页：每条自然结果包在 `class="b_algo"` 的块里，
+/// 块内 `<h2 class=""><a href="...">标题</a></h2>` 是标题锚点，块首的 `tilk` 锚点通常指向同一 URL。
+fn extract_bing_search_hits(html: &str) -> Vec<SearchHit> {
+    const BLOCK_MARKER: &str = "class=\"b_algo\"";
+
+    let mut hits = Vec::new();
+    let mut cursor = 0usize;
+    while let Some(relative) = html[cursor..].find(BLOCK_MARKER) {
+        let start = cursor + relative;
+        let next = html[start + 1..]
+            .find(BLOCK_MARKER)
+            .map_or(html.len(), |offset| start + 1 + offset);
+        if let Some(hit) = extract_bing_block_hit(&html[start..next]) {
+            hits.push(hit);
+        }
+        if next >= html.len() {
+            break;
+        }
+        cursor = next;
+    }
+    hits
+}
+
+fn extract_bing_block_hit(block: &str) -> Option<SearchHit> {
+    block
+        .find("<h2")
+        .and_then(|index| extract_first_result_anchor(&block[index..]))
+        .or_else(|| extract_first_result_anchor(block))
+}
+
+/// 在片段里找到第一个"看起来是搜索结果"的锚点（跳过引擎自身的导航/翻页链接）。
+fn extract_first_result_anchor(region: &str) -> Option<SearchHit> {
+    let mut remaining = region;
+    while let Some(anchor_start) = remaining.find("<a") {
+        let after_anchor = &remaining[anchor_start..];
+        let Some(href_index) = after_anchor.find("href=") else {
+            return None;
+        };
+        let href_slice = &after_anchor[href_index + 5..];
+        let Some((url, rest)) = extract_quoted_value(href_slice) else {
+            remaining = &after_anchor[2..];
+            continue;
+        };
+        let Some(close_tag_index) = rest.find('>') else {
+            remaining = &after_anchor[2..];
+            continue;
+        };
+        let after_tag = &rest[close_tag_index + 1..];
+        let Some(end_anchor_index) = after_tag.find("</a>") else {
+            remaining = &after_anchor[2..];
+            continue;
+        };
+        let title = html_to_text(&after_tag[..end_anchor_index]);
+        if let Some(decoded) = decode_search_redirect(&url) {
+            if !title.trim().is_empty() && !is_search_engine_internal_url(&decoded) {
+                return Some(SearchHit {
+                    title: title.trim().to_string(),
+                    url: decoded,
+                });
+            }
+        }
+        remaining = &after_tag[end_anchor_index + 4..];
+    }
+    None
+}
+
+/// 搜索引擎自身的导航/翻页/同站查询链接不是搜索结果，会被下游当成有效命中污染来源列表。
+fn is_search_engine_internal_url(url: &str) -> bool {
+    let Ok(parsed) = reqwest::Url::parse(url) else {
+        return true;
+    };
+    let Some(host) = parsed.host_str() else {
+        return true;
+    };
+    let host = host.to_ascii_lowercase();
+    ["bing.com", "duckduckgo.com", "baidu.com", "sogou.com", "so.com"]
+        .iter()
+        .any(|engine| host == *engine || host.ends_with(&format!(".{engine}")))
+}
+
+/// 统一处理搜索后端的跳转包裹链接：DuckDuckGo 的 `/l/?uddg=` 与 Bing 的 `/ck/a?u=a1<base64url>`。
+fn decode_search_redirect(url: &str) -> Option<String> {
+    decode_bing_redirect(url).or_else(|| decode_duckduckgo_redirect(url))
+}
+
+fn decode_bing_redirect(url: &str) -> Option<String> {
+    let parsed = reqwest::Url::parse(url).ok()?;
+    if parsed.path() != "/ck/a" && parsed.path() != "/ck/a/" {
+        return None;
+    }
+    let encoded = parsed
+        .query_pairs()
+        .find(|(key, _)| key == "u")
+        .map(|(_, value)| value.into_owned())?;
+    let payload = encoded.strip_prefix("a1")?;
+    let decoded = String::from_utf8(base64url_decode(payload)?).ok()?;
+    if decoded.starts_with("http://") || decoded.starts_with("https://") {
+        return Some(html_entity_decode_url(&decoded));
+    }
+    None
+}
+
+/// 无填充 base64url 解码（Bing 跳转参数用这种编码，标准 base64 也一并容忍）。
+fn base64url_decode(input: &str) -> Option<Vec<u8>> {
+    fn sextet(byte: u8) -> Option<u32> {
+        match byte {
+            b'A'..=b'Z' => Some(u32::from(byte - b'A')),
+            b'a'..=b'z' => Some(u32::from(byte - b'a') + 26),
+            b'0'..=b'9' => Some(u32::from(byte - b'0') + 52),
+            b'-' | b'+' => Some(62),
+            b'_' | b'/' => Some(63),
+            _ => None,
+        }
+    }
+
+    let mut out = Vec::with_capacity(input.len() / 4 * 3);
+    let mut buffer = 0u32;
+    let mut bits = 0u32;
+    for byte in input.bytes() {
+        if byte == b'=' {
+            break;
+        }
+        let value = sextet(byte)?;
+        // 只保留最近 24 位：bits 最多 7+6=13，掩码后不会发生左移溢出。
+        buffer = ((buffer << 6) | value) & 0x00FF_FFFF;
+        bits += 6;
+        if bits >= 8 {
+            bits -= 8;
+            out.push(((buffer >> bits) & 0xFF) as u8);
+        }
+    }
+    Some(out)
 }
 
 fn extract_search_hits(html: &str) -> Vec<SearchHit> {
@@ -3391,9 +3731,11 @@ mod tests {
     use std::time::Duration;
 
     use super::{
-        agent_permission_policy, allowed_tools_for_subagent, execute_agent_with_spawn,
-        execute_tool, final_assistant_text, mvp_tool_specs, persist_agent_terminal_state,
-        push_output_block, AgentInput, AgentJob, SubagentToolExecutor,
+        agent_permission_policy, allowed_tools_for_subagent, base64url_decode, decode_bing_redirect,
+        execute_agent_with_spawn, execute_tool, final_assistant_text, mvp_tool_specs,
+        persist_agent_terminal_state, push_output_block, AgentInput, AgentJob, SubagentToolExecutor,
+        WebSearchConfig, DEFAULT_SEARCH_TOTAL_BUDGET_MS, DEFAULT_WEB_SEARCH_BASE_URL,
+        MAX_SEARCH_ATTEMPT_TIMEOUT_MS, MAX_SEARCH_BUDGET_MS, MAX_SEARCH_CONNECT_TIMEOUT_MS,
     };
     use api::OutputContentBlock;
     use runtime::{ApiRequest, AssistantEvent, ConversationRuntime, RuntimeError, Session};
@@ -3681,6 +4023,154 @@ mod tests {
         let error = execute_tool("WebSearch", &json!({ "query": "generic links" }))
             .expect_err("invalid base URL should fail");
         assert!(error.contains("relative URL without a base") || error.contains("empty host"));
+    }
+
+    /// 默认后端已从 DuckDuckGo 换成 Bing（前者在部分网络下 TCP 不通），
+    /// 解析器必须能读 Bing 的结果页，否则换后端后只会抓到一堆导航链接。
+    #[test]
+    fn web_search_parses_bing_result_pages() {
+        let _guard = process_state_lock()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let server = TestServer::spawn(Arc::new(|request_line: &str| {
+            assert!(request_line.contains("GET /search?q=bing+layout "));
+            HttpResponse::html(
+                200,
+                "OK",
+                r##"
+                <html><body>
+                  <a href="https://cn.bing.com/images/search?q=bing">Images</a>
+                  <li class="b_algo" data-id iid=SERP.1>
+                    <div class="b_tpcn"><a class="tilk" href="https://rust-lang.org/zh-CN/">rust-lang.org</a></div>
+                    <h2 class=""><a target="_blank" href="https://rust-lang.org/zh-CN/">Rust 程序设计语言</a></h2>
+                  </li>
+                  <li class="b_algo" data-id iid=SERP.2>
+                    <div class="b_tpcn"><a class="tilk" href="https://www.bing.com/ck/a?u=a1aHR0cHM6Ly9leGFtcGxlLmNvbS9kb2M&amp;ntb=1">example.com</a></div>
+                    <h2 class=""><a target="_blank" href="https://www.bing.com/ck/a?u=a1aHR0cHM6Ly9leGFtcGxlLmNvbS9kb2M&amp;ntb=1">Example Doc</a></h2>
+                  </li>
+                </body></html>
+                "##,
+            )
+        }));
+        let workspace = temp_path("web-search-bing-workspace");
+        fs::create_dir_all(&workspace).expect("workspace");
+        fs::write(
+            workspace.join("coolzhu.toml"),
+            web_search_config(format!("http://{}/search", server.addr()), None),
+        )
+        .expect("write coolzhu.toml");
+        let _cwd = ScopedCurrentDir::enter(workspace);
+
+        let result = execute_tool("WebSearch", &json!({ "query": "bing layout" }))
+            .expect("Bing result page should parse");
+
+        let output: serde_json::Value = serde_json::from_str(&result).expect("valid json");
+        let results = output["results"].as_array().expect("results array");
+        let search_result = results
+            .iter()
+            .find(|item| item.get("content").is_some())
+            .expect("search result block present");
+        let content = search_result["content"].as_array().expect("content array");
+        assert_eq!(content.len(), 2, "engine-internal nav link must be dropped");
+        assert_eq!(content[0]["title"], "Rust 程序设计语言");
+        assert_eq!(content[0]["url"], "https://rust-lang.org/zh-CN/");
+        // Bing 的 ck/a 跳转包裹必须还原成真实目标地址，否则模型拿到的是 bing.com 链接。
+        assert_eq!(content[1]["title"], "Example Doc");
+        assert_eq!(content[1]["url"], "https://example.com/doc");
+    }
+
+    /// 所有后端都不可达时，必须返回带逐后端原因的终态失败，
+    /// 而不是挂到调用方 deadline 被强杀（那样模型只看得到 timeout）。
+    #[test]
+    fn web_search_reports_unreachable_backends_instead_of_hanging() {
+        let _guard = process_state_lock()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let workspace = temp_path("web-search-unreachable-workspace");
+        fs::create_dir_all(&workspace).expect("workspace");
+        fs::write(
+            workspace.join("coolzhu.toml"),
+            concat!(
+                "[web_search]\n",
+                "base_url = \"http://127.0.0.1:9/search\"\n",
+                "transport = \"reqwest\"\n",
+                "connect_timeout_ms = 1000\n",
+                "attempt_timeout_ms = 1500\n",
+                "total_budget_ms = 3000\n",
+            ),
+        )
+        .expect("write coolzhu.toml");
+        let _cwd = ScopedCurrentDir::enter(workspace);
+
+        let started = std::time::Instant::now();
+        let error = execute_tool("WebSearch", &json!({ "query": "unreachable backend" }))
+            .expect_err("unreachable backend must fail");
+        let elapsed = started.elapsed();
+
+        assert!(
+            error.contains("could not reach any configured search backend"),
+            "unexpected error: {error}"
+        );
+        assert!(error.contains("127.0.0.1:9"), "error must name the backend: {error}");
+        assert!(
+            error.contains("coolzhu.toml"),
+            "error must point at the config knob: {error}"
+        );
+        assert!(
+            elapsed < std::time::Duration::from_secs(15),
+            "unreachable backends must fail inside the internal budget, took {elapsed:?}"
+        );
+    }
+
+    #[test]
+    fn web_search_default_backends_are_reachable_ordering_and_clamped() {
+        let config = WebSearchConfig::default();
+        let candidates = config.candidate_urls();
+        assert_eq!(candidates[0], DEFAULT_WEB_SEARCH_BASE_URL);
+        // 默认不带降级后端：默认降级会隐式依赖另一个站点，网络可达性因环境而异，
+        // 也会让"只配了 base_url"的调用意外多打一次网络。
+        assert_eq!(candidates.len(), 1);
+        assert_eq!(config.effective_total_budget_ms(), DEFAULT_SEARCH_TOTAL_BUDGET_MS);
+        // 预算/超时都必须被夹到安全区间，避免用户填出会被外层 deadline 强杀的值。
+        let huge = WebSearchConfig {
+            attempt_timeout_ms: u64::MAX,
+            connect_timeout_ms: u64::MAX,
+            total_budget_ms: u64::MAX,
+            ..WebSearchConfig::default()
+        };
+        assert_eq!(huge.effective_total_budget_ms(), MAX_SEARCH_BUDGET_MS);
+        assert_eq!(huge.effective_attempt_timeout_ms(), MAX_SEARCH_ATTEMPT_TIMEOUT_MS);
+        assert_eq!(huge.effective_connect_timeout_ms(), MAX_SEARCH_CONNECT_TIMEOUT_MS);
+        // 重复配置的降级后端只保留一次。
+        // 显式配置降级后端时：与主后端重复的项去重，其余按顺序保留。
+        let with_fallbacks = WebSearchConfig {
+            fallback_urls: vec![
+                DEFAULT_WEB_SEARCH_BASE_URL.to_string(),
+                "https://html.duckduckgo.com/html/".to_string(),
+            ],
+            ..WebSearchConfig::default()
+        };
+        let candidates = with_fallbacks.candidate_urls();
+        assert_eq!(candidates.len(), 2);
+        assert_eq!(candidates[1], "https://html.duckduckgo.com/html/");
+    }
+
+    #[test]
+    fn bing_redirect_payload_decodes_to_target_url() {
+        assert_eq!(
+            decode_bing_redirect("https://www.bing.com/ck/a?u=a1aHR0cHM6Ly9leGFtcGxlLmNvbS9kb2M&ntb=1"),
+            Some(String::from("https://example.com/doc"))
+        );
+        // 非跳转链接与损坏的载荷都必须被拒绝，不能把 bing.com 内部地址当结果返回。
+        assert_eq!(decode_bing_redirect("https://example.com/doc"), None);
+        assert_eq!(
+            decode_bing_redirect("https://www.bing.com/ck/a?u=not-base64!!"),
+            None
+        );
+        assert_eq!(base64url_decode("aHR0cHM6Ly9leGFtcGxlLmNvbS9kb2M"), {
+            Some(String::from("https://example.com/doc").into_bytes())
+        });
+        assert_eq!(base64url_decode("!!!"), None);
     }
 
     #[cfg(windows)]

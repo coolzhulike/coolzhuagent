@@ -354,11 +354,16 @@ fn build_console_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error
     .focused(true)
     .build()?;
 
-    let console_for_close = console.clone();
+    let app_for_close = app.clone();
     console.on_window_event(move |event| {
         if let WindowEvent::CloseRequested { api, .. } = event {
+            // 标题栏的关闭按钮必须真的退出。原实现是 prevent_close + hide：窗口消失了，
+            // 但 Tauri 进程、托盘和 8765 上的 agent 全部继续驻留，用户看到的就是
+            // "点了关闭却没退出"。隐藏到托盘仍可由托盘菜单「隐藏控制台」和托盘左键切换完成，
+            // 不再借用窗口关闭语义。
+            // 先 prevent_close 再回收：避免窗口关闭触发主循环退出、抢在回收 web-console 之前。
             api.prevent_close();
-            console_for_close.hide().ok();
+            quit_application(&app_for_close);
         }
     });
 
@@ -568,14 +573,20 @@ fn quit_app(app: tauri::AppHandle) {
     quit_application(&app);
 }
 
-/// 关闭桌宠时，同时回收由安装器 launcher 拉起的 Web Console。
+/// 退出应用：先回收由安装器 launcher 拉起的 Web Console，再结束 Tauri 进程。
 ///
-/// Tauri 与 web-console 是两个独立进程；仅调用 `app.exit` 会留下 8765
-/// 监听和后台 agent。PID 由 launcher 注入，且在 Windows 上先核对进程名，
-/// 防止陈旧/被复用的 PID 指向无关进程后被 taskkill 误伤。
+/// Tauri 与 web-console 是两个独立进程；只退出自己会留下 8765 监听和后台 agent。
+/// PID 由 launcher 注入，且在 Windows 上先核对进程名，防止陈旧/被复用的 PID
+/// 指向无关进程后被 taskkill 误伤。
+///
+/// `app.exit(0)` 只是把 `RequestExit` 投递给事件循环，实测在窗口事件回调里调用时
+/// 事件循环并不会因此退出：点标题栏关闭后 web-console 已被回收，但 Tauri 进程和
+/// 控制台窗口都还在，用户看到的就是"点了关闭却没退出"。这里再显式结束进程兜底，
+/// 让标题栏关闭 / 托盘退出 / 桌宠关闭三条路径都拿到确定的退出结果。
 fn quit_application(app: &tauri::AppHandle) {
     terminate_owned_web_console_process();
     app.exit(0);
+    std::process::exit(0);
 }
 
 fn owned_web_console_pid(args: &[String], current_pid: u32) -> Option<u32> {
@@ -2175,6 +2186,52 @@ mod tests {
         assert!(production.contains("quit_application(&app_for_close)"));
         assert!(production.contains("quit_application(app)"));
         assert!(production.contains("#[tauri::command]\nfn quit_app"));
+    }
+
+    /// 标题栏的关闭按钮必须真的退出。历史实现是 `prevent_close` + `hide()`，
+    /// 窗口消失但 Tauri 进程、托盘图标和 8765 上的 agent 全部继续驻留，
+    /// 用户看到的就是"点了关闭却没退出"。
+    #[test]
+    fn console_window_close_quits_instead_of_only_hiding() {
+        let source = normalized_main_source();
+        let production = source
+            .split("#[cfg(test)]")
+            .next()
+            .expect("production source should precede tests");
+        let build_console = production
+            .split("fn build_console_window(")
+            .nth(1)
+            .expect("build_console_window helper should exist")
+            .split("\nfn ")
+            .next()
+            .expect("build_console_window helper should have a bounded body");
+
+        assert!(
+            build_console.contains("api.prevent_close();")
+                && build_console.contains("quit_application(&app_for_close);"),
+            "closing the console window must reclaim the owned web console and exit the app"
+        );
+        assert!(
+            !build_console.contains(".hide()"),
+            "closing the console window must not degrade into hide-only, which leaves the agent running"
+        );
+
+        // app.exit 只投递 RequestExit，实测不足以结束进程；退出路径必须有兜底。
+        let quit = production
+            .find("fn quit_application(")
+            .expect("quit_application should exist");
+        let request_exit = production[quit..]
+            .find("app.exit(0);")
+            .map(|offset| quit + offset)
+            .expect("quit_application should request a graceful exit");
+        let hard_exit = production[quit..]
+            .find("std::process::exit(0);")
+            .map(|offset| quit + offset)
+            .expect("quit_application must guarantee the process actually exits");
+        assert!(
+            request_exit < hard_exit,
+            "the hard exit must be the last step of quit_application"
+        );
     }
 
     #[test]
