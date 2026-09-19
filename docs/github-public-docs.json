@@ -27,6 +27,9 @@
     "docs/testing/release-0.2.14/paint-r3.json",
     "docs/testing/release-0.2.14/paint-r4.json",
     "docs/testing/release-0.2.14/paint-r5.json",
-    "docs/testing/release-0.2.14/paint-r6.json"
+    "docs/testing/release-0.2.14/paint-r6.json",
+    "docs/testing/release-0.2.14/test-results.json",
+    "docs/testing/release-0.2.14/release-verification.json",
+    "docs/testing/release-0.2.14/installed-smoke.json"
   ]
 }

@@ -1,0 +1,103 @@
+{
+  "version": "0.2.14",
+  "source_commit": "e314500a34df0b39918371feb00fb65e7855874c",
+  "artifact": {
+    "name": "CoolzhuAgent-0.2.14.msi",
+    "bytes": 196786636,
+    "sha256": "9e13767643de983060d6c492008d98b9e0302dfb07d57959b55872ed328ee9db",
+    "signed": false
+  },
+  "installation": {
+    "success": true,
+    "msi_exit_code": 0,
+    "userdata_unchanged": true,
+    "registered_version": "0.2.14",
+    "userdata_files_before": 807,
+    "userdata_files_after": 807
+  },
+  "installed_binaries": [
+    {
+      "path": "bin\\coolzhu-browser-native-host.exe",
+      "expected_sha256": "FEBA6CF97E91A3D68749CAE654D2BCDD0D7887F6DAB3B097A1C447AF2F0DDC48",
+      "installed_sha256": "FEBA6CF97E91A3D68749CAE654D2BCDD0D7887F6DAB3B097A1C447AF2F0DDC48",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-clawbot-sidecar.exe",
+      "expected_sha256": "3406B140D1F6AB61BDBFD8ECF7D5992B77919CFFA387BE74F0AF1D053B30F369",
+      "installed_sha256": "3406B140D1F6AB61BDBFD8ECF7D5992B77919CFFA387BE74F0AF1D053B30F369",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-cli.exe",
+      "expected_sha256": "F29041FCCAF5C8923B42B07C8788CA0FA9BDCF263C5FE0619B2A769F82B24385",
+      "installed_sha256": "F29041FCCAF5C8923B42B07C8788CA0FA9BDCF263C5FE0619B2A769F82B24385",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-computer-use-check.exe",
+      "expected_sha256": "3B17389AA6E56BCDB40434AF7BE0D15F985C4E8222C72CDB492F6CA677FAA6F6",
+      "installed_sha256": "3B17389AA6E56BCDB40434AF7BE0D15F985C4E8222C72CDB492F6CA677FAA6F6",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-latest-desktop-vision.exe",
+      "expected_sha256": "4055F16BC1D8A253817F4E08CBFC6E19014EB2AAC452CC0AFBE62F2259B9A56D",
+      "installed_sha256": "4055F16BC1D8A253817F4E08CBFC6E19014EB2AAC452CC0AFBE62F2259B9A56D",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-tauri-shell.exe",
+      "expected_sha256": "74E9EA7F893E481C647EC00785DC418F05D5D0BCECCDE28FD13A183E96BEA72C",
+      "installed_sha256": "74E9EA7F893E481C647EC00785DC418F05D5D0BCECCDE28FD13A183E96BEA72C",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-vision-smoke.exe",
+      "expected_sha256": "F8AB2F8474480F53E26EB8C18607D7422FF8F38C5CF2105BD9D51E8C87CE36D4",
+      "installed_sha256": "F8AB2F8474480F53E26EB8C18607D7422FF8F38C5CF2105BD9D51E8C87CE36D4",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-web-console.exe",
+      "expected_sha256": "1AC0376DCFAD5EDABCFF833EA2FE921FA15DC59EA7EF5E01BF2DA4AA5994A27C",
+      "installed_sha256": "1AC0376DCFAD5EDABCFF833EA2FE921FA15DC59EA7EF5E01BF2DA4AA5994A27C",
+      "match": true
+    },
+    {
+      "path": "bin\\WebView2Loader.dll",
+      "expected_sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C",
+      "installed_sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C",
+      "match": true
+    },
+    {
+      "path": "COOLZHU-AGENT.exe",
+      "expected_sha256": "F51508AD0B5A35FEA5B5E1B799D2E78A1252358A45C4BDF348907B1F6947E936",
+      "installed_sha256": "F51508AD0B5A35FEA5B5E1B799D2E78A1252358A45C4BDF348907B1F6947E936",
+      "match": true
+    }
+  ],
+  "package": {
+    "files": 803,
+    "known_credential_scan_passed": true
+  },
+  "browser_settings": {
+    "passed": true,
+    "checks": {
+      "hasThreeStates": true,
+      "matchesSavedOverride": true,
+      "effectiveStrategyPresent": true,
+      "passwordNeverEchoed": true,
+      "draftStatesWork": true,
+      "modelTypeUnchanged": true,
+      "noHorizontalOverflow": true,
+      "noPageErrors": true,
+      "noChatRequests": true
+    }
+  },
+  "native_desktop_window_launch": {
+    "verified": false,
+    "reason": "automatic approval blocked by policy"
+  },
+  "paint_end_to_end_passed": false
+}
