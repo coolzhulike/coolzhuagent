@@ -12897,7 +12897,7 @@ fn clawbot_chat_response_text(response: &SendMessageResponse) -> String {
     }
     let body = parts.join("\n\n");
     if body.is_empty() {
-        "任务已完成，但模型未返回可见文本。".to_string()
+        "模型未返回可见文本，尚不能确认任务完成。".to_string()
     } else {
         clawbot_truncate_text(&body, 4_000)
     }
@@ -17114,7 +17114,7 @@ async fn api_chat_send_stream(
             .unwrap_or((true, true, true));
             let use_real_llm = real_llm_enabled() && room_caps.0;
             let mut assistant_started = false;
-            let mut tool_result_summaries: Vec<String> = Vec::new();
+            let mut tool_result_summaries: Vec<ToolFallbackSummary> = Vec::new();
             let mut context_footer: Option<String> = None;
             let mut context_usage: Option<ContextUsageSnapshot> = None;
             let mut best_remote_usage: Option<api::Usage> = None;
@@ -17512,7 +17512,7 @@ async fn api_chat_send_stream(
                 tool_result_summaries.extend(
                     dispatches
                         .iter()
-                        .map(|dispatch| dispatch.summary_text.clone()),
+                        .map(ToolFallbackSummary::from_dispatch),
                 );
                 let mut computer_use_terminal_failure = dispatches
                     .iter()
@@ -17773,7 +17773,7 @@ async fn api_chat_send_stream(
                     streamed_tool_write_executed |= dispatches
                         .iter()
                         .any(model_tool_dispatch_result_executed_file_write);
-                    tool_result_summaries.extend(dispatches.iter().map(|d| d.summary_text.clone()));
+                    tool_result_summaries.extend(dispatches.iter().map(ToolFallbackSummary::from_dispatch));
                     if computer_use_terminal_failure.is_none() {
                         computer_use_terminal_failure = dispatches
                             .iter()
@@ -17871,13 +17871,9 @@ async fn api_chat_send_stream(
                 } else if feedback_watchdog_hit {
                     assistant_message.content =
                         tool_feedback_watchdog_message(max_rounds as usize, 1);
-                } else if !tool_result_summaries.is_empty() {
-                    // 多轮后模型仍无文字总结：用工具结果摘要兜底（比单轮"未返回最终回复"信息更全）。
-                    assistant_message.content = format!(
-                        "已执行 {} 步工具操作完成本轮任务，但模型未返回最终文字总结。已完成的工具结果摘要：\n{}",
-                        tool_result_summaries.len(),
-                        tool_result_summaries.join("\n")
-                    );
+                } else if let Some(fallback) = tool_result_fallback_answer(&tool_result_summaries) {
+                    // 工具调用结束并不等于任务完成；状态来自执行结果，不能靠摘要措辞推测成功。
+                    assistant_message.content = fallback;
                 }
                 if cancellation.is_requested() {
                     terminal_status = ChatTurnStatus::Interrupted;
@@ -17984,7 +17980,7 @@ async fn api_chat_send_stream(
                             "summary": compact_message_snippet(&tool_message.content, 240)
                         }),
                     );
-                    tool_result_summaries.push(tool_message.content.clone());
+                    tool_result_summaries.push(ToolFallbackSummary::from_messages(&tool_message.content, &tool_messages));
                     for message in tool_messages {
                         if message.id != tool_message.id {
                             yield Ok(sse_json_event("message", &message));
@@ -18042,7 +18038,10 @@ async fn api_chat_send_stream(
                         }),
                     );
                     yield Ok(sse_json_event("message", &tool_message));
-                    tool_result_summaries.push(tool_message.content.clone());
+                    tool_result_summaries.push(ToolFallbackSummary {
+                        status: "unknown",
+                        summary: tool_message.content.clone(),
+                    });
                     messages.push(tool_message);
                 }
             }
@@ -26127,11 +26126,64 @@ fn agent_model_response_has_usable_output(response: &AgentModelResponse) -> bool
         || !response.tool_requests.is_empty()
 }
 
+#[derive(Debug, Clone)]
+struct ToolFallbackSummary {
+    status: &'static str,
+    summary: String,
+}
+
+impl ToolFallbackSummary {
+    fn from_dispatch(dispatch: &ModelToolDispatchResult) -> Self {
+        Self {
+            status: chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error),
+            summary: dispatch.summary_text.clone(),
+        }
+    }
+
+    fn from_messages(summary: &str, messages: &[ChatMessageDto]) -> Self {
+        // 兼容派发入口只能信任独立结果记录里的状态，不扫描模型/工具正文中的“成功”等字样。
+        let status = messages.iter().filter(|message| message.kind == "tool-result")
+            .flat_map(|message| message.content.lines())
+            .find_map(|line| line.strip_prefix("status: "))
+            .map(|status| match status.trim() {
+                "ok" | "completed" => "completed",
+                "failed" | "rejected" | "blocked" | "timeout" | "timed_out" => "failed",
+                "dry-run-only" | "not-executed" => "not-executed",
+                _ => "unknown",
+            }).unwrap_or("unknown");
+        Self { status, summary: summary.to_string() }
+    }
+}
+
+fn tool_result_fallback_answer(results: &[ToolFallbackSummary]) -> Option<String> {
+    if results.is_empty() { return None; }
+    let mut counts = [0usize; 4];
+    for result in results {
+        counts[match result.status {
+            "completed" => 0, "failed" => 1, "not-executed" => 2, _ => 3,
+        }] += 1;
+    }
+    let mut answer = format!(
+        "模型未返回最终文字总结，尚不能确认任务完成。工具调用记录：成功 {} 次，失败 {} 次，未执行 {} 次，结果未确认 {} 次。",
+        counts[0], counts[1], counts[2], counts[3],
+    );
+    let summaries = results.iter().map(|result| result.summary.trim())
+        .filter(|summary| !summary.is_empty()).take(3).collect::<Vec<_>>();
+    if !summaries.is_empty() {
+        answer.push_str("\n工具结果摘要：\n");
+        answer.push_str(&summaries.join("\n"));
+        if results.len() > summaries.len() {
+            answer.push_str("\n其余调用请查看工具记录。");
+        }
+    }
+    Some(answer)
+}
+
 fn ensure_assistant_message_visible_content(
     assistant_message: &mut ChatMessageDto,
     fallback_answer: String,
     reasoning_text: &str,
-    tool_result_summaries: &[String],
+    tool_result_summaries: &[ToolFallbackSummary],
     diagnostic_note: &mut Option<String>,
 ) {
     if !assistant_message.content.trim().is_empty() {
@@ -26141,16 +26193,8 @@ fn ensure_assistant_message_visible_content(
         "Model returned no final answer; using visible fallback content.".to_string()
     });
     assistant_message.kind = "assistant-fallback".to_string();
-    let tool_summary = tool_result_summaries
-        .iter()
-        .map(|summary| summary.trim())
-        .filter(|summary| !summary.is_empty())
-        .take(3)
-        .collect::<Vec<_>>()
-        .join("\n");
-    if !tool_summary.is_empty() {
-        assistant_message.content =
-            format!("模型未返回最终回复，以下为已执行工具结果摘要：\n{tool_summary}");
+    if let Some(fallback) = tool_result_fallback_answer(tool_result_summaries) {
+        assistant_message.content = fallback;
         return;
     }
     let reasoning_summary = reasoning_text
@@ -26473,6 +26517,7 @@ async fn call_agent_model_with_tool_loop(
     let base_history = assembly.messages.clone();
 
     let mut all_reasoning = String::new();
+    let mut tool_result_summaries = Vec::new();
     let mut tool_write_executed = false;
     let mut model_tool_calls_executed = false;
     let mut last_diagnostic = None;
@@ -26543,6 +26588,7 @@ async fn call_agent_model_with_tool_loop(
             )
             .await;
             model_tool_calls_executed = true;
+            tool_result_summaries.extend(dispatches.iter().map(ToolFallbackSummary::from_dispatch));
             tool_write_executed |= dispatches
                 .iter()
                 .any(model_tool_dispatch_result_executed_file_write);
@@ -26668,6 +26714,9 @@ async fn call_agent_model_with_tool_loop(
                 Err(_) => unfinished_tool_recovery_answer(prompt),
             };
         }
+        if final_answer.trim().is_empty() {
+            final_answer = tool_result_fallback_answer(&tool_result_summaries).unwrap_or_default();
+        }
         let policy = context_lifecycle_policy();
         let context_usage = context_usage_snapshot_for_assembly_with_usage(
             agent,
@@ -26702,7 +26751,8 @@ async fn call_agent_model_with_tool_loop(
         policy,
     );
     Ok(AgentModelResponse {
-        answer_text: terminal_supervisor_answer.unwrap_or_default(),
+        answer_text: terminal_supervisor_answer.filter(|answer| !answer.trim().is_empty())
+            .or_else(|| tool_result_fallback_answer(&tool_result_summaries)).unwrap_or_default(),
         reasoning_text: all_reasoning,
         tool_requests: Vec::new(),
         tool_write_executed,
@@ -63231,11 +63281,13 @@ attach: last_assistant
             &mut message,
             "local fallback answer".to_string(),
             "reasoning only",
-            &["write_file runtime-executed / ok".to_string()],
+            &[super::ToolFallbackSummary { status: "completed", summary: "write_file runtime-executed / ok".to_string() }],
             &mut diagnostic_note,
         );
 
         assert!(message.content.contains("write_file runtime-executed"));
+        assert!(message.content.contains("成功 1 次，失败 0 次"));
+        assert!(message.content.contains("尚不能确认任务完成"));
         assert!(diagnostic_note
             .as_deref()
             .is_some_and(|note| note.contains("no final answer")));
@@ -72969,6 +73021,106 @@ attach: last_assistant
             .collect::<Vec<_>>();
 
         assert_eq!(criteria, vec!["页面标题包含 Wikipedia"]);
+    }
+
+    #[test]
+    fn tool_result_fallback_reports_success_failure_mixed_and_unexecuted_without_task_completion() {
+        let dispatch = |route: &str, is_error, summary: &str| super::ModelToolDispatchResult {
+            tool_use_id: "call-test".into(), name: "read_file".into(), input: serde_json::json!({}),
+            route: route.into(), summary_text: summary.into(), tool_result_text: String::new(), is_error,
+        };
+        let success = super::ToolFallbackSummary::from_dispatch(&dispatch("runtime-executed", false, "已读取文件"));
+        let failure = super::ToolFallbackSummary::from_dispatch(&dispatch("computer-use-task-controller", true, "截图画布已变化，需重新观察后规划笔画；诊断中含成功一词"));
+        let preview = super::ToolFallbackSummary::from_dispatch(&dispatch("runtime-dry-run", false, "只生成预览"));
+        for (records, expected) in [
+            (vec![success.clone()], "成功 1 次，失败 0 次，未执行 0 次，结果未确认 0 次"),
+            (vec![failure.clone()], "成功 0 次，失败 1 次，未执行 0 次，结果未确认 0 次"),
+            (vec![success.clone(), failure.clone()], "成功 1 次，失败 1 次，未执行 0 次，结果未确认 0 次"),
+            (vec![preview], "成功 0 次，失败 0 次，未执行 1 次，结果未确认 0 次"),
+            (vec![super::ToolFallbackSummary { status: "unknown", summary: "任务已完成（未经验证的正文）".into() }], "成功 0 次，失败 0 次，未执行 0 次，结果未确认 1 次"),
+        ] {
+            let answer = super::tool_result_fallback_answer(&records).unwrap();
+            assert!(answer.contains(expected), "{answer}");
+            assert!(answer.starts_with("模型未返回最终文字总结，尚不能确认任务完成。"));
+            assert!(!answer.contains("完成本轮任务") && !answer.contains("已完成的工具结果摘要"));
+        }
+        assert!(super::tool_result_fallback_answer(&[failure]).unwrap().contains("截图画布已变化"));
+        assert!(super::tool_result_fallback_answer(&[]).is_none());
+    }
+
+    #[test]
+    fn tool_result_fallback_legacy_result_uses_recorded_status_and_keeps_existing_answer() {
+        let record = super::ChatMessageDto {
+            id: "tool-result-test".into(), author: "工具".into(), role: "assistant".into(), target: "test".into(),
+            content: "tool_call_id: test\nstatus: failed\nsummary: 成功（工具返回正文）".into(), kind: "tool-result".into(), attachments: Vec::new(),
+        };
+        let result = super::ToolFallbackSummary::from_messages("工具返回成功一词", &[record.clone()]);
+        assert_eq!(result.status, "failed");
+        assert_eq!(super::ToolFallbackSummary::from_messages("工具已执行", &[]).status, "unknown");
+        let mut answer = record;
+        answer.kind = "assistant-reply".into(); answer.content = "模型已明确报告任务未完成".into();
+        let mut note = None;
+        super::ensure_assistant_message_visible_content(&mut answer, String::new(), "", &[result], &mut note);
+        assert_eq!(answer.content, "模型已明确报告任务未完成");
+        assert!(note.is_none());
+        let empty_response = super::SendMessageResponse { accepted_agent_ids: Vec::new(), messages: Vec::new(), tasks: Vec::new(), notes: Vec::new() };
+        assert_eq!(super::clawbot_chat_response_text(&empty_response), "模型未返回可见文本，尚不能确认任务完成。");
+    }
+
+    #[tokio::test]
+    async fn tool_result_fallback_stream_and_nonstream_report_failed_tool_when_final_answer_empty() {
+        use http_body_util::BodyExt;
+        let _lock = config_test_guard();
+        let _permissions = DevOpenPermissionsTestGuard::enable();
+        let temp = tempfile::tempdir().unwrap();
+        let missing = temp.path().join("missing-file.txt").display().to_string();
+        let captures = std::sync::Arc::new(std::sync::Mutex::new(Vec::<serde_json::Value>::new()));
+        let seen = captures.clone();
+        let mock = axum::Router::new().route("/v1/chat/completions", axum::routing::post(move |axum::Json(request): axum::Json<serde_json::Value>| {
+            let seen = seen.clone(); let path = missing.clone();
+            async move {
+                seen.lock().unwrap().push(request.clone());
+                let feedback = request["messages"].as_array().unwrap().iter().any(|message| message["role"] == "tool");
+                let tool_calls = serde_json::json!([{"id":"call-missing","type":"function","function":{"name":"read_file","arguments":serde_json::json!({"path":path}).to_string()}}]);
+                if request["stream"] == true {
+                    let mut calls = tool_calls; calls[0]["index"] = serde_json::json!(0);
+                    let chunk = serde_json::json!({"id":"mock-empty","object":"chat.completion.chunk","created":1,"model":"target-text",
+                        "choices":[{"index":0,"delta":{"role":"assistant","tool_calls":calls},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":10,"completion_tokens":5}});
+                    return axum::response::IntoResponse::into_response(([(axum::http::header::CONTENT_TYPE,"text/event-stream")], format!("data: {chunk}\n\ndata: [DONE]\n\n")));
+                }
+                let message = if feedback { serde_json::json!({"role":"assistant","content":""}) }
+                    else { serde_json::json!({"role":"assistant","content":null,"tool_calls":tool_calls}) };
+                axum::response::IntoResponse::into_response(axum::Json(serde_json::json!({"id":"mock-empty","object":"chat.completion","model":"target-text",
+                    "choices":[{"index":0,"message":message,"finish_reason":if feedback {"stop"} else {"tool_calls"}}],"usage":{"prompt_tokens":10,"completion_tokens":5}})))
+            }
+        }));
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move { axum::serve(listener, mock).await.unwrap(); });
+        let isolated = crate::multimodal_input::tests::IsolatedState::install(&url);
+        {
+            let mut config = super::workspace_config().lock().unwrap();
+            config.model.enable_real_llm = true; config.model.enable_llm_tools = true;
+            config.model.llm_tool_exposure = Some("all".into()); config.tool.dev_open_permissions = true;
+            config.session_model_limits.entry("target-text".into()).or_default().tool_allowlist = Some(vec!["read_file".into()]);
+        }
+        {
+            let mut store = super::session_store().lock().unwrap();
+            store.state.chat_rooms.push(super::PersistedChatRoom { id:"room-empty-tool".into(), name:"空总结测试".into(), created_at:1, updated_at:1, messages:Vec::new() });
+            store.state.active_chat_room_id = Some("room-empty-tool".into()); store.save().unwrap();
+        }
+        let payload = serde_json::from_value(serde_json::json!({"target_agent_ids":["target-text"],"session_id":"target-text","chat_room_id":"room-empty-tool","text":"请调用 read_file 读取指定文件。"})).unwrap();
+        let response = axum::response::IntoResponse::into_response(super::api_chat_send_stream(axum::Json(payload)).await.unwrap());
+        let bytes = response.into_body().collect().await.unwrap().to_bytes();
+        let sse = String::from_utf8(bytes.to_vec()).unwrap();
+        assert!(sse.contains("成功 0 次，失败 1 次"), "{sse}");
+        assert!(sse.contains("尚不能确认任务完成"));
+        assert!(!sse.contains("完成本轮任务") && !sse.contains("已完成的工具结果摘要"));
+        let answer = super::call_agent_model_with_tool_loop(&isolated.agent("target-text"), "请调用 read_file 读取指定文件。", &[], &[], None, None).await.unwrap();
+        assert!(answer.answer_text.contains("成功 0 次，失败 1 次"), "{}", answer.answer_text);
+        assert!(answer.answer_text.contains("尚不能确认任务完成"));
+        assert_eq!(captures.lock().unwrap().len(), 4, "两个入口各一次工具请求和一次空总结响应，不能为生成文案重复执行工具");
+        server.abort();
     }
 
     #[test]
