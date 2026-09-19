@@ -36,6 +36,53 @@ pub enum ProviderClient {
 }
 
 impl ProviderClient {
+    /// 按显式协议构造会话连接，不要求模型提前进入内置目录。
+    pub fn from_session_endpoint(
+        model: &str,
+        endpoint: &str,
+        anthropic: bool,
+        legacy_provider: ProviderKind,
+        api_key: Option<String>,
+    ) -> Result<Self, ApiError> {
+        if anthropic {
+            let auth = api_key.filter(|value| !value.trim().is_empty())
+                .map(AuthSource::ApiKey).unwrap_or(AuthSource::None);
+            Ok(Self::Anthropic(ClawApiClient::from_auth(auth)
+                .with_endpoint(endpoint).with_model_alias(model, model)))
+        } else {
+            let config = match legacy_provider {
+                ProviderKind::OpenAi => OpenAiCompatConfig::openai(),
+                ProviderKind::Xai => OpenAiCompatConfig::xai(),
+                ProviderKind::ZhipuAi => OpenAiCompatConfig::zhipu(),
+                ProviderKind::DeepSeek => OpenAiCompatConfig::deepseek(),
+                ProviderKind::AlibabaBailian => OpenAiCompatConfig::alibaba_bailian(),
+                ProviderKind::BaiduQianfan => OpenAiCompatConfig::baidu(),
+                ProviderKind::ByteDanceArk => OpenAiCompatConfig::bytedance(),
+                _ => OpenAiCompatConfig::custom(),
+            };
+            Ok(Self::Custom(OpenAiCompatClient::new_optional(api_key, config)
+                .with_endpoint(endpoint).with_model_alias(model, model)))
+        }
+    }
+
+    #[must_use]
+    pub fn with_request_parameters(self, parameters: crate::RequestParameters) -> Self {
+        match self {
+            Self::ClawApi(client) => Self::ClawApi(client.with_request_parameters(parameters)),
+            Self::Anthropic(client) => Self::Anthropic(client.with_request_parameters(parameters)),
+            Self::Xai(client) => Self::Xai(client.with_request_parameters(parameters)),
+            Self::OpenAi(client) => Self::OpenAi(client.with_request_parameters(parameters)),
+            Self::ZhipuAi(client) => Self::ZhipuAi(client.with_request_parameters(parameters)),
+            Self::AlibabaBailian(client) => Self::AlibabaBailian(client.with_request_parameters(parameters)),
+            #[allow(deprecated)]
+            Self::AlibabaCloud(client) => Self::AlibabaCloud(client.with_request_parameters(parameters)),
+            Self::BaiduQianfan(client) => Self::BaiduQianfan(client.with_request_parameters(parameters)),
+            Self::ByteDanceArk(client) => Self::ByteDanceArk(client.with_request_parameters(parameters)),
+            Self::DeepSeek(client) => Self::DeepSeek(client.with_request_parameters(parameters)),
+            Self::Custom(client) => Self::Custom(client.with_request_parameters(parameters)),
+        }
+    }
+
     pub fn from_model(model: &str) -> Result<Self, ApiError> {
         Self::from_model_with_default_auth(model, None)
     }
@@ -520,6 +567,54 @@ mod tests {
         assert_eq!(response.model, "glm-api-id");
         server.await.expect("server task should finish");
         std::env::remove_var("ZAI_API_KEY");
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn unified_session_parameters_reach_both_native_endpoints() {
+        for anthropic in [false, true] {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let address = listener.local_addr().unwrap();
+            let server = tokio::spawn(async move {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let request = read_http_request(&mut socket).await;
+                let expected_path = "/custom/exact-endpoint";
+                assert!(request.starts_with(&format!("POST {expected_path} HTTP/1.1")));
+                let body: serde_json::Value = serde_json::from_str(request.split_once("\r\n\r\n").unwrap().1).unwrap();
+                assert_eq!(body["model"], "unregistered-model-2026");
+                if anthropic {
+                    assert_eq!(body["thinking"]["budget_tokens"], 2048);
+                    assert!(body.get("reasoning_effort").is_none());
+                    assert!(request.contains("x-api-key: test-secret"));
+                } else {
+                    assert_eq!(body["reasoning_effort"], "xhigh");
+                    assert_eq!(body["temperature"], 0.4);
+                    assert_eq!(body["top_p"], 0.8);
+                    assert!(request.contains("authorization: Bearer test-secret"));
+                }
+                let response_body = if anthropic {
+                    r#"{"id":"test","type":"message","role":"assistant","model":"unregistered-model-2026","content":[{"type":"text","text":"ok"}],"stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1}}"#
+                } else {
+                    r#"{"id":"test","model":"unregistered-model-2026","choices":[{"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1}}"#
+                };
+                socket.write_all(format!("HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: {}\r\n\r\n{}", response_body.len(), response_body).as_bytes()).await.unwrap();
+            });
+            let client = ProviderClient::from_session_endpoint(
+                "unregistered-model-2026", &format!("http://{address}/custom/exact-endpoint"), anthropic,
+                ProviderKind::Custom, Some("test-secret".into()),
+            ).unwrap().with_request_parameters(crate::RequestParameters {
+                temperature: (!anthropic).then_some(0.4), top_p: (!anthropic).then_some(0.8),
+                reasoning_mode: Some(if anthropic { "budget" } else { "effort" }.into()),
+                thinking_budget: anthropic.then_some(2048),
+            });
+            let request = MessageRequest {
+                model: "unregistered-model-2026".into(), max_tokens: 4096,
+                messages: vec![InputMessage::user_text("测试")], system: None,
+                tools: None, tool_choice: None, reasoning_effort: Some("xhigh".into()), stream: false,
+            };
+            let response = client.send_message(&request).await.unwrap();
+            assert_eq!(response.model, "unregistered-model-2026");
+            server.await.unwrap();
+        }
     }
 
     async fn read_http_request(socket: &mut tokio::net::TcpStream) -> String {

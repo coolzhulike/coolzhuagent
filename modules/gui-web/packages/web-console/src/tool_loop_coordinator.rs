@@ -104,7 +104,7 @@ mod tests {
     }
 
     #[test]
-    fn compact_context_keeps_only_computer_use_tool() {
+    fn compact_context_keeps_file_tools_alongside_computer_use() {
         let tools = Some(vec![
             crate::semantic_dispatch_tool_definition(),
             crate::computer_use_tool_definition(),
@@ -113,13 +113,22 @@ mod tests {
                 description: None,
                 input_schema: serde_json::json!({"type":"object"}),
             },
+            ToolDefinition {
+                name: "write_file".into(),
+                description: None,
+                input_schema: serde_json::json!({"type":"object"}),
+            },
         ]);
 
         let selected = crate::select_tools_for_request(tools, true, 8_192, true)
-            .expect("compact GUI tool remains available");
+            .expect("小上下文仍保留文件和 UI 的合法工具入口");
 
-        assert_eq!(selected.len(), 1);
-        assert_eq!(selected[0].name, crate::COMPUTER_USE_TOOL_NAME);
+        let names = selected.iter().map(|tool| tool.name.as_str()).collect::<Vec<_>>();
+        assert_eq!(names.len(), 4);
+        assert!(names.contains(&crate::COMPUTER_USE_TOOL_NAME));
+        assert!(names.contains(&"read_file"));
+        assert!(names.contains(&"write_file"));
+        assert!(names.contains(&"tools_semantic_dispatch"));
     }
 
     #[test]
@@ -135,6 +144,12 @@ mod tests {
 
     #[tokio::test(flavor = "current_thread")]
     async fn provider_identity_reaches_computer_use_tool_result() {
+        let _guard = crate::tests::config_test_guard();
+        let mut config = crate::WorkspaceConfig::default();
+        config.model.enable_llm_tools = true;
+        config.model.llm_tool_exposure = Some("all".to_string());
+        config.computer_use.enabled = true;
+        let previous = std::mem::replace(&mut *crate::workspace_config().lock().unwrap(), config);
         let response = crate::run_model_tool_dispatch_for_session_with_identity(
             "computer_use.perform",
             &serde_json::json!({
@@ -147,8 +162,9 @@ mod tests {
             Some("turn-1"),
             None,
         )
-        .await
-        .expect("formal computer-use dispatch path");
+        .await;
+        *crate::workspace_config().lock().unwrap() = previous;
+        let response = response.expect("已显式开放的 Computer Use 保留 provider 身份");
         let result: computer_use::ComputerUseResult = serde_json::from_str(
             response
                 .tool_result_text

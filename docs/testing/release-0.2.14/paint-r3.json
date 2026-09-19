@@ -1,0 +1,465 @@
+{
+  "format_version": 1,
+  "privacy": "public_allowlisted_summary",
+  "schema_version": 20,
+  "read_only": true,
+  "snapshot_consistency": "single SQLite read transaction including WAL",
+  "missing_schema_columns": {},
+  "notes": [
+    "step.started_at_ms 在 adapter.act 前持久化，completed_at_ms 在 act 返回时记录；它们含重新观察及后截图耗时，不是鼠标物理 down/up 精确时间。",
+    "visible_progress 与像素变化均不等同目标达成；以 terminal.goal_achieved 及验证状态共同判断。",
+    "usage 是服务端已返回的非零事实；失败请求可能已有用量，没有记录不表示请求免费或未发送。",
+    "没有 call/turn 的聊天用量单独归集，不推断归属某次 CU。",
+    "缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画；这里只报告记录的相对点。",
+    "不读取会话正文，不输出 thinking、原图 data_url、凭据；公开版身份为本报告内编号。"
+  ],
+  "runs": [
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "surface": "desktop",
+      "state": "blocked",
+      "timing": {
+        "started_offset_ms": 0,
+        "completed_offset_ms": 57916,
+        "elapsed_ms": 57916
+      },
+      "stored_action_count": 0,
+      "stored_replan_count": 0,
+      "terminal": {
+        "present": true,
+        "status": "blocked",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error_code": "no_progress",
+        "evidence": [
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-003",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-004",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-005",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-004",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-006",
+            "kind": "other_reference_or_semantic_text_redacted"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "index": 0,
+          "generation": 1,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "target_kind": "uia_element",
+          "target": "target-001",
+          "action": {
+            "valid_object": true,
+            "kind": "click",
+            "done": null,
+            "target_kind": "uia_element",
+            "redacted_fields": true,
+            "duration_ms": null
+          },
+          "timing": {
+            "started_offset_ms": 20327,
+            "completed_offset_ms": 22607,
+            "elapsed_ms": 2280
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 283
+            }
+          ],
+          "after_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 283
+            },
+            {
+              "reference": "evidence-005",
+              "kind": "other_reference_or_semantic_text_redacted"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "generation": 2,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "target_kind": "uia_element",
+          "target": "target-001",
+          "action": {
+            "valid_object": true,
+            "kind": "click",
+            "done": null,
+            "target_kind": "uia_element",
+            "redacted_fields": true,
+            "duration_ms": null
+          },
+          "timing": {
+            "started_offset_ms": 41253,
+            "completed_offset_ms": 43569,
+            "elapsed_ms": 2316
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 283
+            }
+          ],
+          "after_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 283
+            },
+            {
+              "reference": "evidence-006",
+              "kind": "other_reference_or_semantic_text_redacted"
+            }
+          ]
+        }
+      ],
+      "recorded_step_count": 2,
+      "recorded_action_types": {
+        "click": 2
+      },
+      "audit_flags": []
+    }
+  ],
+  "planner_diagnostics": [
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 1,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 4940,
+        "completed_offset_ms": 11882,
+        "elapsed_ms": 6942
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 1,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "click",
+        "done": false,
+        "target_kind": "uia_element",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 11936,
+        "completed_offset_ms": 20324,
+        "elapsed_ms": 8388
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 2,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 23816,
+        "completed_offset_ms": 34259,
+        "elapsed_ms": 10443
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 2,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "click",
+        "done": false,
+        "target_kind": "uia_element",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 34315,
+        "completed_offset_ms": 41251,
+        "elapsed_ms": 6936
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 3,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 44745,
+        "completed_offset_ms": 51752,
+        "elapsed_ms": 7007
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 3,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "click",
+        "done": false,
+        "target_kind": "uia_element",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 51808,
+        "completed_offset_ms": 57913,
+        "elapsed_ms": 6105
+      }
+    }
+  ],
+  "usage_groups": [
+    {
+      "scope": "chat_or_other_unattributed",
+      "request_kind": "unattributed",
+      "room": "room-001",
+      "turn": null,
+      "call": null,
+      "session": "session-001",
+      "recorded_requests": 2,
+      "input_tokens": 5858,
+      "output_tokens": 557,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "cu_linked",
+      "request_kind": "computer_use_verification",
+      "room": "room-001",
+      "turn": "turn-001",
+      "call": "call-001",
+      "session": "session-001",
+      "recorded_requests": 3,
+      "input_tokens": 75470,
+      "output_tokens": 756,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "cu_linked",
+      "request_kind": "computer_use_planning",
+      "room": "room-001",
+      "turn": "turn-001",
+      "call": "call-001",
+      "session": "session-001",
+      "recorded_requests": 3,
+      "input_tokens": 72894,
+      "output_tokens": 685,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  ],
+  "summary": {
+    "run_count": 1,
+    "run_states": {
+      "blocked": 1
+    },
+    "step_count": 2,
+    "diagnostic_count": 6,
+    "diagnostic_errors": {},
+    "usage_record_count": 8,
+    "usage_totals": {
+      "input_tokens": 154222,
+      "output_tokens": 1998,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "cu_usage_totals": {
+      "input_tokens": 148364,
+      "output_tokens": 1441,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  }
+}

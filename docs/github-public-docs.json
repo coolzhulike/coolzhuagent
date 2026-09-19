@@ -11,12 +11,25 @@
     "docs/user-guide/styles.css",
     "docs/user-guide/guide.js",
     "docs/testing/computer-use-evaluation-matrix.md",
+    "docs/testing/agent-runtime-regression-0.2.14.md",
+    "docs/testing/release-0.2.14-agent-fixes-report.md",
+    "docs/testing/release-0.2.14/audit-computer-use.py",
+    "docs/testing/release-0.2.14/test-audit-computer-use.py",
+    "docs/testing/release-0.2.14/paint-dpi-before-fix.json",
     "docs/superpowers/specs/2026-06-28-realtime-full-stream-design.md",
     "docs/superpowers/plans/2026-06-28-realtime-full-stream.md",
     "docs/superpowers/specs/2026-06-28-computer-use-evaluation-design.md",
     "docs/plans/2026-07-07-web-console-ui-redesign-execution-plan.md",
     "docs/superpowers/specs/2026-07-03-clawbot-provider-sidecar-design.md",
     "docs/superpowers/specs/2026-07-03-clawbot-http-provider-adapter-design.md",
-    "docs/superpowers/plans/2026-07-03-weixin-clawbot-channel-architecture.md"
+    "docs/superpowers/plans/2026-07-03-weixin-clawbot-channel-architecture.md",
+    "docs/testing/release-0.2.14/qwen-file-regression.json",
+    "docs/testing/release-0.2.14/paint-r3.json",
+    "docs/testing/release-0.2.14/paint-r4.json",
+    "docs/testing/release-0.2.14/paint-r5.json",
+    "docs/testing/release-0.2.14/paint-r6.json",
+    "docs/testing/release-0.2.14/test-results.json",
+    "docs/testing/release-0.2.14/release-verification.json",
+    "docs/testing/release-0.2.14/installed-smoke.json"
   ]
 }

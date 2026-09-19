@@ -10,6 +10,10 @@ use std::os::windows::process::CommandExt;
 
 use serde::Serialize;
 
+#[path = "input_stroke.rs"]
+mod stroke;
+pub use stroke::{capture_window_image, controlled_drag_path, validate_stroke, StrokeWindow};
+
 const ENV_INPUT_BACKEND: &str = "CLAW_MOUSE_BACKEND";
 const ENV_INTERCEPTION_DLL_PATH: &str = "CLAW_INTERCEPTION_DLL_PATH";
 const ENV_INTERCEPTION_MOUSE_DEVICE_ID: &str = "CLAW_INTERCEPTION_MOUSE_DEVICE_ID";
@@ -306,25 +310,50 @@ fn sendinput_mouse_button_action(
     action: MouseButtonAction,
     timeout: Duration,
 ) -> Result<(), String> {
-    run_powershell(
-        &format!(
-            "$signature = @'\nusing System;\nusing System.Runtime.InteropServices;\npublic struct INPUT {{ public uint type; public MOUSEINPUT mi; }}\npublic struct MOUSEINPUT {{ public int dx; public int dy; public uint mouseData; public uint dwFlags; public uint time; public UIntPtr dwExtraInfo; }}\npublic static class MouseOps {{\n    [DllImport(\"user32.dll\")] public static extern bool SetCursorPos(int x, int y);\n    [DllImport(\"user32.dll\")] public static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);\n}}\n'@; \
-             Add-Type $signature; \
-             [MouseOps]::SetCursorPos({x}, {y}) | Out-Null; \
-             Start-Sleep -Milliseconds 160; \
-             function Send-InputFlag([uint32]$flag) {{ \
-                 $input = New-Object INPUT; \
-                 $input.type = 0; \
-                 $input.mi = New-Object MOUSEINPUT; \
-                 $input.mi.dwFlags = $flag; \
-                 [void][MouseOps]::SendInput(1, @($input), [System.Runtime.InteropServices.Marshal]::SizeOf([type]'INPUT')); \
-             }} \
-             {sequence}",
-            sequence = sendinput_mouse_button_sequence(action),
-        ),
-        timeout,
-    )
-    .map(|_| ())
+    let script=format!("$ErrorActionPreference='Stop'; Add-Type -TypeDefinition @'\n{CLICK_NATIVE}\n'@\n{}",sendinput_click_body(x,y,action));
+    run_powershell(&script,timeout).map(|_| ())
+}
+
+const CLICK_NATIVE:&str=r#"using System;
+using System.Runtime.InteropServices;
+public struct INPUT { public uint type; public MOUSEINPUT mi; }
+public struct MOUSEINPUT { public int dx; public int dy; public uint mouseData; public uint dwFlags; public uint time; public UIntPtr dwExtraInfo; }
+public static class MouseOps {
+ [DllImport("user32.dll")] public static extern bool SetCursorPos(int x,int y);
+ [DllImport("user32.dll")] public static extern uint SendInput(uint count,INPUT[] inputs,int size);
+}"#;
+
+fn sendinput_click_body(x:i32,y:i32,action:MouseButtonAction)->String {
+    format!(r#"
+$ErrorActionPreference='Stop'
+if (-not [MouseOps]::SetCursorPos({x},{y})) {{ throw 'cursor_move_failed: SetCursorPos returned false' }}
+Start-Sleep -Milliseconds 160
+$script:clickLeftHeld=$false; $script:clickRightHeld=$false
+function Send-InputFlag([uint32]$flag) {{
+ if($flag -eq 2) {{ $script:clickLeftHeld=$true }}
+ if($flag -eq 8) {{ $script:clickRightHeld=$true }}
+ # PowerShell 读取嵌套值类型会得到副本，必须完整写回 mi，避免发送 flags=0 的空输入。
+ $packet=New-Object INPUT; $packet.type=0; $mousePacket=New-Object MOUSEINPUT; $mousePacket.dwFlags=$flag; $packet.mi=$mousePacket
+ $sent=[MouseOps]::SendInput(1,@($packet),[Runtime.InteropServices.Marshal]::SizeOf([type]'INPUT'))
+ if($sent -ne 1) {{ throw "send_input_failed: flag=$flag sent=$sent" }}
+ if($flag -eq 4) {{ $script:clickLeftHeld=$false }}
+ if($flag -eq 16) {{ $script:clickRightHeld=$false }}
+}}
+$clickFailure=$null; $releaseFailure=$false
+try {{ {sequence} }} catch {{ $clickFailure=$_ }}
+finally {{
+ foreach($releaseFlag in @(4,16)) {{
+  $held=if($releaseFlag -eq 4) {{$script:clickLeftHeld}} else {{$script:clickRightHeld}}
+  if($held) {{
+   $released=$false
+   for($retry=0;$retry -lt 3;$retry++) {{ try {{ Send-InputFlag $releaseFlag; $released=$true; break }} catch {{ Start-Sleep -Milliseconds 10 }} }}
+   if(-not $released) {{ $releaseFailure=$true }}
+  }}
+ }}
+}}
+if($releaseFailure) {{ throw 'mouse_release_failed: click could not release its pressed button' }}
+if($null -ne $clickFailure) {{ throw $clickFailure }}
+"#,sequence=sendinput_mouse_button_sequence(action))
 }
 
 fn sendinput_mouse_button_sequence(action: MouseButtonAction) -> &'static str {
@@ -1116,6 +1145,37 @@ mod tests {
         assert_eq!(path.first(), Some(&MousePoint { x: 10, y: 20 }));
         assert_eq!(path.last(), Some(&MousePoint { x: 30, y: 50 }));
         assert!(path.len() >= 2);
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn click_mock_reports_native_failures_and_finally_releases() {
+        use super::{sendinput_click_body,run_powershell,MouseButtonAction};
+        use std::time::Duration;
+        // 固定生产 PowerShell 点击体配纯内存 MouseOps，不导入 user32 或发送真实输入。
+        let mock=r#"using System; using System.Collections.Generic;
+public struct INPUT { public uint type; public MOUSEINPUT mi; }
+public struct MOUSEINPUT { public int dx,dy; public uint mouseData,dwFlags,time; public UIntPtr dwExtraInfo; }
+public static class MouseOps {
+ public static int Mode; public static List<uint> Flags=new List<uint>();
+ public static bool SetCursorPos(int x,int y){ return Mode!=1; }
+ public static uint SendInput(uint n,INPUT[] p,int size){uint f=p[0].mi.dwFlags;Flags.Add(f);if((Mode==2&&f==2)||(Mode==3&&f==4))return 0;return 1;}
+}"#;
+        let body=sendinput_click_body(10,20,MouseButtonAction::LeftClick);
+        let script=format!(r#"$ErrorActionPreference='Stop'; Add-Type -TypeDefinition @'
+{mock}
+'@
+foreach($mode in @(0,1,2,3)) {{
+ [MouseOps]::Mode=$mode; [MouseOps]::Flags.Clear(); $failure=''
+ try {{ {body} }} catch {{ $failure=$_.Exception.Message }}
+ if($mode -eq 0 -and ($failure -ne '' -or ([MouseOps]::Flags -join ',') -ne '2,4')) {{throw "successful input order: error=$failure flags=$([MouseOps]::Flags -join ',')"}}
+ if($mode -eq 1 -and ($failure -notmatch 'cursor_move_failed' -or [MouseOps]::Flags.Count -ne 0)) {{throw 'failed cursor must not click'}}
+ if($mode -eq 2 -and ($failure -notmatch 'send_input_failed' -or ([MouseOps]::Flags -join ',') -ne '2,4')) {{throw 'failed down must release and fail'}}
+ if($mode -eq 3 -and ($failure -notmatch 'mouse_release_failed' -or [MouseOps]::Flags.Count -lt 4)) {{throw 'failed release must remain failure'}}
+}}
+'click-native-checks:ok'
+"#);
+        assert_eq!(run_powershell(&script,Duration::from_secs(15)).unwrap().trim(),"click-native-checks:ok");
     }
 
     #[test]

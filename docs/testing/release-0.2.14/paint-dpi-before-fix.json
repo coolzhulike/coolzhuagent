@@ -1,0 +1,97 @@
+{
+  "format_version": 1,
+  "privacy": "public_allowlisted_summary",
+  "schema_version": 20,
+  "read_only": true,
+  "snapshot_consistency": "single SQLite read transaction including WAL",
+  "missing_schema_columns": {},
+  "notes": [
+    "step.started_at_ms 在 adapter.act 前持久化，completed_at_ms 在 act 返回时记录；它们含重新观察及后截图耗时，不是鼠标物理 down/up 精确时间。",
+    "visible_progress 与像素变化均不等同目标达成；以 terminal.goal_achieved 及验证状态共同判断。",
+    "usage 是服务端已返回的非零事实；失败请求可能已有用量，没有记录不表示请求免费或未发送。",
+    "没有 call/turn 的聊天用量单独归集，不推断归属某次 CU。",
+    "缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画；这里只报告记录的相对点。",
+    "不读取会话正文，不输出 thinking、原图 data_url、凭据；公开版身份为本报告内编号。"
+  ],
+  "runs": [
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "surface": "desktop",
+      "state": "failed",
+      "timing": {
+        "started_offset_ms": 0,
+        "completed_offset_ms": 3683,
+        "elapsed_ms": 3683
+      },
+      "stored_action_count": 0,
+      "stored_replan_count": 0,
+      "terminal": {
+        "present": true,
+        "status": "failed",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error_code": "input_failed",
+        "evidence": []
+      },
+      "steps": [],
+      "recorded_step_count": 0,
+      "recorded_action_types": {},
+      "audit_flags": []
+    }
+  ],
+  "planner_diagnostics": [],
+  "usage_groups": [
+    {
+      "scope": "chat_or_other_unattributed",
+      "request_kind": "unattributed",
+      "room": "room-002",
+      "turn": null,
+      "call": null,
+      "session": "session-001",
+      "recorded_requests": 7,
+      "input_tokens": 48629,
+      "output_tokens": 4021,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "chat_or_other_unattributed",
+      "request_kind": "unattributed",
+      "room": "room-001",
+      "turn": null,
+      "call": null,
+      "session": "session-001",
+      "recorded_requests": 2,
+      "input_tokens": 4613,
+      "output_tokens": 792,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  ],
+  "summary": {
+    "run_count": 1,
+    "run_states": {
+      "failed": 1
+    },
+    "step_count": 0,
+    "diagnostic_count": 0,
+    "diagnostic_errors": {},
+    "usage_record_count": 9,
+    "usage_totals": {
+      "input_tokens": 53242,
+      "output_tokens": 4813,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "cu_usage_totals": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  }
+}

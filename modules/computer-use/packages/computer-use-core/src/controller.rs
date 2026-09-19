@@ -21,6 +21,17 @@ pub trait ComputerUsePlanner: Send + Sync {
         observation: &'a Observation,
         step: usize,
     ) -> PlannerFuture<'a, Result<Option<ComputerUseAction>, ComputerUseError>>;
+
+    /// 宿主可用最新视觉证据复核适配器结果；默认保留已有纯 DOM/测试行为。
+    fn verify<'a>(
+        &'a self,
+        _request: &'a ComputerUseRequest,
+        _before: &'a Observation,
+        _after: &'a Observation,
+        verification: Verification,
+    ) -> PlannerFuture<'a, Result<Verification, ComputerUseError>> {
+        Box::pin(async move { Ok(verification) })
+    }
 }
 
 pub trait ComputerUseAdapter: Send + Sync {
@@ -435,10 +446,14 @@ where
         }
 
         self.events.state_changed(ComputerUseRunState::Verifying);
-        match self
+        let initial_verification = match self
             .adapter
             .verify(&request.success_criteria, &observation, &observation)
         {
+            Ok(verification) => self.planner.verify(request, &observation, &observation, verification).await,
+            Err(error) => Err(error),
+        };
+        match initial_verification {
             Ok(verification) => {
                 evidence.extend(verification.evidence.clone());
                 if verification.achieved {
@@ -676,11 +691,16 @@ where
             evidence.extend(next_observation.evidence.clone());
 
             self.events.state_changed(ComputerUseRunState::Verifying);
-            let verification = match self.adapter.verify(
+            let adapter_verification = self.adapter.verify(
                 &request.success_criteria,
                 &observation,
                 &next_observation,
-            ) {
+            );
+            let checked_verification = match adapter_verification {
+                Ok(verification) => self.planner.verify(request, &observation, &next_observation, verification).await,
+                Err(error) => Err(error),
+            };
+            let verification = match checked_verification {
                 Ok(verification) => verification,
                 Err(error) => {
                     return self.terminal(
@@ -724,7 +744,9 @@ where
         evidence: Vec<String>,
         supervisor: crate::SupervisorSnapshot,
     ) -> ComputerUseResult {
-        let status = if error.code == "deadline_exceeded" {
+        let status = if error.code == "cancelled" {
+            ComputerUseTerminalStatus::Cancelled
+        } else if error.code == "deadline_exceeded" {
             ComputerUseTerminalStatus::TimedOut
         } else if !error.retryable {
             ComputerUseTerminalStatus::Blocked

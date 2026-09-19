@@ -112,10 +112,12 @@ pub struct ClawApiClient {
     http: reqwest::Client,
     auth: AuthSource,
     base_url: String,
+    endpoint: Option<String>,
     model_aliases: HashMap<String, String>,
     max_retries: u32,
     initial_backoff: Duration,
     max_backoff: Duration,
+    request_parameters: crate::RequestParameters,
 }
 
 /// 带超时的 HTTP 客户端：避免上游挂起导致请求 await 无限期阻塞（与 openai_compat 一致，#6 根因之一）。
@@ -134,10 +136,12 @@ impl ClawApiClient {
             http: build_http_client(),
             auth: AuthSource::ApiKey(api_key.into()),
             base_url: DEFAULT_BASE_URL.to_string(),
+            endpoint: None,
             model_aliases: HashMap::new(),
             max_retries: DEFAULT_MAX_RETRIES,
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
+            request_parameters: crate::RequestParameters::default(),
         }
     }
 
@@ -147,10 +151,12 @@ impl ClawApiClient {
             http: build_http_client(),
             auth,
             base_url: DEFAULT_BASE_URL.to_string(),
+            endpoint: None,
             model_aliases: HashMap::new(),
             max_retries: DEFAULT_MAX_RETRIES,
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
+            request_parameters: crate::RequestParameters::default(),
         }
     }
 
@@ -192,6 +198,18 @@ impl ClawApiClient {
     #[must_use]
     pub fn with_base_url(mut self, base_url: impl Into<String>) -> Self {
         self.base_url = base_url.into();
+        self
+    }
+
+    #[must_use]
+    pub fn with_endpoint(mut self, endpoint: impl Into<String>) -> Self {
+        self.endpoint = Some(endpoint.into());
+        self
+    }
+
+    #[must_use]
+    pub fn with_request_parameters(mut self, parameters: crate::RequestParameters) -> Self {
+        self.request_parameters = parameters;
         self
     }
 
@@ -351,8 +369,10 @@ impl ClawApiClient {
         &self,
         request: &MessageRequest,
     ) -> Result<reqwest::Response, ApiError> {
-        let request_url =
-            EndpointResolver::resolve(&self.base_url, ProviderProtocol::AnthropicMessages, None)?;
+        let request_url = match &self.endpoint {
+            Some(endpoint) => endpoint.clone(),
+            None => EndpointResolver::resolve(&self.base_url, ProviderProtocol::AnthropicMessages, None)?,
+        };
         let request_builder = self
             .http
             .post(&request_url)
@@ -360,7 +380,10 @@ impl ClawApiClient {
             .header("content-type", "application/json");
         let mut request_builder = self.auth.apply(request_builder);
 
-        request_builder = request_builder.json(&build_anthropic_messages_request(request));
+        let mut payload = build_anthropic_messages_request(request);
+        self.request_parameters.apply(&mut payload, request.reasoning_effort.as_deref(), true);
+        validate_anthropic_image_sources(&payload)?;
+        request_builder = request_builder.json(&payload);
         request_builder.send().await.map_err(ApiError::from)
     }
 
@@ -378,7 +401,7 @@ impl ClawApiClient {
     }
 }
 
-/// 构造 Anthropic Messages payload，并将兼容字符串映射为 Anthropic 原生 thinking。
+/// 构造 Anthropic Messages payload，并映射原生 thinking 与 image/source 图片块。
 ///
 /// 特别重要的是移除旧的顶层 `reasoning_effort`：Anthropic Messages 不接受该
 /// OpenAI-compatible 字段。未知/不支持值由 resolver 安全回到 auto 并省略。
@@ -394,6 +417,29 @@ pub fn build_anthropic_messages_request(request: &MessageRequest) -> serde_json:
             object.insert("model".to_string(), serde_json::json!(model));
         }
     }
+    if let Some(messages) = payload.get_mut("messages").and_then(serde_json::Value::as_array_mut) {
+        for message in messages {
+            let Some(content) = message.get_mut("content").and_then(serde_json::Value::as_array_mut) else {
+                continue;
+            };
+            for block in content {
+                if block.get("type").and_then(serde_json::Value::as_str) != Some("image_url") {
+                    continue;
+                }
+                let url = block.get("url").and_then(serde_json::Value::as_str).unwrap_or("");
+                let source = if let Some((media_type, data)) = url
+                    .strip_prefix("data:")
+                    .and_then(|value| value.split_once(";base64,"))
+                {
+                    serde_json::json!({"type": "base64", "media_type": media_type, "data": data})
+                } else {
+                    serde_json::json!({"type": "url", "url": url})
+                };
+                // detail 是 OpenAI 专有字段，Anthropic 的 image 块不得透传它。
+                *block = serde_json::json!({"type": "image", "source": source});
+            }
+        }
+    }
     let wire = resolve_reasoning(
         "clawapi",
         &request.model,
@@ -403,6 +449,44 @@ pub fn build_anthropic_messages_request(request: &MessageRequest) -> serde_json:
     .unwrap_or(ReasoningWire::Omit);
     wire.apply_to_payload(&mut payload);
     payload
+}
+
+/// 发送前拒绝不能按原生协议表达的图片来源，不静默丢图，也不回显图片或URL内容。
+fn validate_anthropic_image_sources(payload: &serde_json::Value) -> Result<(), ApiError> {
+    let Some(messages) = payload.get("messages").and_then(serde_json::Value::as_array) else {
+        return Ok(());
+    };
+    for (message_index, message) in messages.iter().enumerate() {
+        let Some(content) = message.get("content").and_then(serde_json::Value::as_array) else {
+            continue;
+        };
+        for (block_index, block) in content.iter().enumerate() {
+            if block.get("type").and_then(serde_json::Value::as_str) != Some("image") {
+                continue;
+            }
+            let source = &block["source"];
+            let valid = match source.get("type").and_then(serde_json::Value::as_str) {
+                Some("base64") => {
+                    matches!(
+                        source.get("media_type").and_then(serde_json::Value::as_str),
+                        Some("image/jpeg" | "image/png" | "image/gif" | "image/webp")
+                    ) && source.get("data").and_then(serde_json::Value::as_str)
+                        .is_some_and(|data| !data.is_empty())
+                }
+                Some("url") => source.get("url").and_then(serde_json::Value::as_str)
+                    .and_then(|url| reqwest::Url::parse(url).ok())
+                    .is_some_and(|url| matches!(url.scheme(), "http" | "https") && url.has_host()),
+                _ => false,
+            };
+            if !valid {
+                return Err(ApiError::ConfigError {
+                    path: format!("messages[{message_index}].content[{block_index}].image.source"),
+                    message: "Anthropic 图片需要非空的 JPEG/PNG/GIF/WebP base64 data URI 或 HTTP(S) URL".to_string(),
+                });
+            }
+        }
+    }
+    Ok(())
 }
 
 impl AuthSource {
@@ -722,7 +806,7 @@ mod tests {
         resolve_saved_oauth_token, resolve_startup_auth_source, AuthSource, ClawApiClient,
         OAuthTokenSet,
     };
-    use crate::types::{ContentBlockDelta, InputMessage, MessageRequest};
+    use crate::types::{ContentBlockDelta, InputContentBlock, InputMessage, MessageRequest};
 
     fn env_lock() -> std::sync::MutexGuard<'static, ()> {
         static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -1111,6 +1195,149 @@ mod tests {
             headers.get("authorization").and_then(|v| v.to_str().ok()),
             Some("Bearer proxy-token")
         );
+    }
+
+    fn image_request(urls: &[&str]) -> MessageRequest {
+        MessageRequest {
+            model: "claude-sonnet-4-6".to_string(),
+            max_tokens: 64,
+            messages: vec![InputMessage::user_text_with_image_urls("比较这些图片", urls.iter().copied())],
+            system: None,
+            tools: None,
+            tool_choice: None,
+            reasoning_effort: None,
+            stream: false,
+        }
+    }
+
+    #[test]
+    fn anthropic_images_translate_data_uris_and_urls_without_openai_fields() {
+        let mut request = image_request(&[
+            "data:image/png;base64,aGVsbG8=",
+            "data:image/jpeg;base64,aGVsbG8=",
+            "data:image/gif;base64,aGVsbG8=",
+            "data:image/webp;base64,aGVsbG8=",
+            "https://example.test/reference.png?version=2",
+        ]);
+        if let InputContentBlock::ImageUrl { detail, .. } = &mut request.messages[0].content[1] {
+            *detail = Some("high".to_string());
+        }
+        request.messages.push(InputMessage {
+            role: "assistant".to_string(),
+            content: vec![InputContentBlock::ToolUse {
+                id: "call-image".to_string(),
+                name: "read_file".to_string(),
+                input: serde_json::json!({"path": "reference.txt"}),
+            }],
+        });
+        request.messages.push(InputMessage::user_tool_result("call-image", "读取完成", false));
+        let payload = build_anthropic_messages_request(&request);
+        super::validate_anthropic_image_sources(&payload).expect("图片来源应有效");
+        let content = payload["messages"][0]["content"].as_array().expect("图片内容数组");
+        assert_eq!(content.len(), 6);
+        assert_eq!(content[0], serde_json::json!({"type":"text","text":"比较这些图片"}));
+        for (index, media_type) in ["image/png", "image/jpeg", "image/gif", "image/webp"].iter().enumerate() {
+            assert_eq!(content[index + 1], serde_json::json!({
+                "type":"image", "source":{"type":"base64","media_type":media_type,"data":"aGVsbG8="}
+            }));
+        }
+        assert_eq!(content[5], serde_json::json!({
+            "type":"image", "source":{"type":"url","url":"https://example.test/reference.png?version=2"}
+        }));
+        assert_eq!(payload["messages"][1]["content"][0]["type"], "tool_use");
+        assert_eq!(payload["messages"][2]["content"][0]["tool_use_id"], "call-image");
+        assert!(!payload.to_string().contains("image_url"));
+        assert!(content[1].get("detail").is_none());
+    }
+
+    #[tokio::test]
+    async fn anthropic_invalid_image_sources_fail_before_network_send() {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("绑定本地测试端口");
+        listener.set_nonblocking(true).expect("非阻塞监听");
+        let client = ClawApiClient::from_auth(AuthSource::None)
+            .with_base_url(format!("http://{}", listener.local_addr().expect("本地端口")));
+        for invalid in [
+            "data:image/svg+xml;base64,PHN2Zz4=",
+            "data:image/png;base64,",
+            "data:image/png,not-base64",
+            "file:///C:/private.png",
+            "C:\\private.png",
+            "javascript:invalid",
+            "",
+        ] {
+            let error = client.send_raw_request(&image_request(&[invalid])).await
+                .expect_err("无效来源应在发送前失败");
+            assert!(matches!(error, crate::error::ApiError::ConfigError { .. }));
+            assert!(!error.is_retryable());
+        }
+        assert_eq!(listener.accept().expect_err("不应发出任何请求").kind(), std::io::ErrorKind::WouldBlock);
+    }
+
+    #[tokio::test]
+    async fn anthropic_http_send_uses_native_image_sources_for_stream_and_nonstream() {
+        // 只连接进程内本地接收端：验证真实发送路径，绝不使用真实鉴权或模型服务。
+        for streaming in [false, true] {
+            let listener = TcpListener::bind("127.0.0.1:0").expect("绑定本地测试端口");
+            listener.set_nonblocking(true).expect("非阻塞监听");
+            let address = listener.local_addr().expect("本地端口");
+            let receiver = thread::spawn(move || {
+                let started = std::time::Instant::now();
+                let mut stream = loop {
+                    match listener.accept() {
+                        Ok((stream, _)) => break stream,
+                        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock
+                            && started.elapsed() < Duration::from_secs(5) => {
+                            thread::sleep(Duration::from_millis(10));
+                        }
+                        Err(error) => panic!("等待本地协议请求失败: {error}"),
+                    }
+                };
+                stream.set_read_timeout(Some(Duration::from_secs(5))).expect("读取期限");
+                let mut bytes = Vec::new();
+                let (header_end, content_length) = loop {
+                    let mut chunk = [0_u8; 4096];
+                    let count = stream.read(&mut chunk).expect("读取HTTP请求");
+                    assert!(count > 0, "请求头未完成即断开");
+                    bytes.extend_from_slice(&chunk[..count]);
+                    assert!(bytes.len() < 1024 * 1024, "测试请求不应超限");
+                    if let Some(offset) = bytes.windows(4).position(|part| part == b"\r\n\r\n") {
+                        let headers = String::from_utf8_lossy(&bytes[..offset]);
+                        assert!(headers.starts_with("POST /v1/messages HTTP/1.1"));
+                        let length = headers.lines().find_map(|line| {
+                            let (name, value) = line.split_once(':')?;
+                            name.eq_ignore_ascii_case("content-length").then(|| value.trim().parse::<usize>().expect("内容长度"))
+                        }).expect("content-length");
+                        break (offset + 4, length);
+                    }
+                };
+                while bytes.len() < header_end + content_length {
+                    let mut chunk = [0_u8; 4096];
+                    let count = stream.read(&mut chunk).expect("读取HTTP正文");
+                    assert!(count > 0, "请求正文未完成即断开");
+                    bytes.extend_from_slice(&chunk[..count]);
+                }
+                let body: serde_json::Value = serde_json::from_slice(&bytes[header_end..header_end + content_length]).expect("请求JSON");
+                stream.write_all(b"HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: 2\r\nconnection: close\r\n\r\n{}").expect("回复本地请求");
+                body
+            });
+            let mut request = image_request(&[
+                "data:image/png;base64,aGVsbG8=",
+                "https://example.test/image.png",
+            ]);
+            request.stream = streaming;
+            let response = ClawApiClient::from_auth(AuthSource::None)
+                .with_base_url(format!("http://{address}"))
+                .send_raw_request(&request).await.expect("本地协议请求成功");
+            assert!(response.status().is_success());
+            let payload = receiver.join().expect("接收线程结束");
+            assert_eq!(payload["messages"][0]["content"][1], serde_json::json!({
+                "type":"image", "source":{"type":"base64","media_type":"image/png","data":"aGVsbG8="}
+            }));
+            assert_eq!(payload["messages"][0]["content"][2], serde_json::json!({
+                "type":"image", "source":{"type":"url","url":"https://example.test/image.png"}
+            }));
+            assert_eq!(payload.get("stream").and_then(serde_json::Value::as_bool).unwrap_or(false), streaming);
+        }
     }
 
     #[test]

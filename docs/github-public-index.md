@@ -20,6 +20,8 @@
 
 - [测评矩阵](testing/computer-use-evaluation-matrix.md)
 - [测评方案设计](superpowers/specs/2026-06-28-computer-use-evaluation-design.md)
+- [0.2.14 Agent 回归测试契约](testing/agent-runtime-regression-0.2.14.md)
+- [0.2.14 Agent 修复与验证报告](testing/release-0.2.14-agent-fixes-report.md)
 
 ## 控制台与微信连接
 

@@ -33,6 +33,8 @@
 - `POST /api/chat/rooms`
 - `POST /api/chat/rooms/{room_id}/activate`
 - `GET /api/chat/rooms/{room_id}/messages`
+- `GET /api/chat/rooms/{room_id}/search?q=&offset=0&limit=50`：全历史正文/作者搜索与稳定消息序号，排除思考及内部工具事件；`around={message_id}` 返回定位点前后各 20 条可见消息。
+- `GET /api/chat/rooms/{room_id}/insights`：当前工程聊天室的真实接口用量（按模型会话汇总）、消息索引和逐轮耗时。历史未记录用量不估算补齐；流式累计快照每次请求只计一次，缓存独立列出。
 - `GET /api/chat/rooms/{room_id}/attachments`
 - `GET /api/attachments/index`
 - `POST /api/attachments/upload`
@@ -80,6 +82,22 @@
 - `POST /api/computer-use/profile` 执行视觉键鼠链路耗时分析，默认 `execute=false`，返回截图、锚点映射、输入注入、后置截图、画面 diff 的分阶段毫秒耗时。
 
 ## 接口变更审查点
+
+### 会话图片输入策略（2026-09-19）
+
+- `GET/POST /api/sessions/{session_id}/model-settings` 的 `parameters.supports_multimodal` 是可空布尔值：`true` 按所选协议原生传图，`false` 先交系统明确选定的默认视觉会话转述，再将文字交给目标会话；省略或 `null` 沿用原有模型类型/能力判定，不改写 `model_type`。
+- 返回 `effective_supports_multimodal` 和 `image_input_strategy`（`native` / `vision-description`），便于前端显示实际策略。默认视觉身份仅取 `active_vision_session_id`，不按名称猜测；视觉调用复用该会话现有协议、Endpoint、采样与凭证解析，且不暴露工具。
+- 普通、流式、接力聊天逐个目标会话应用该策略。视觉 Agent 和目标会话的真实接口用量分别计入当前聊天室；未发生的调用不计数。
+- 图片缺失、默认视觉未配置/设为纯文本、视觉空答或工具调用答、图片/视觉描述被上下文预算裁掉，都明确失败，不以模拟图片结论补齐，也不自动转去桌面操作。视觉描述是附件资料，不参与用户工具意图授权。
+- 输入图片必须引用上传接口的受控本地地址，当前接受 PNG/JPEG/GIF/WebP 文件签名；每轮最多 8 张，单张最多 20 MiB、总计最多 32 MiB。目录外文件、不可读附件与不支持格式在派发前返回请求错误。
+
+### 会话工具策略与恢复（2026-09-19）
+
+- `tool.dev_open_permissions` 只决定执行授权。调试构建缺省为完全访问，发布构建缺省关闭；配置中的显式值优先。它不会覆盖模型工具开关或工具暴露范围。
+- 会话模型参数支持 `enable_llm_tools`、`llm_tool_exposure`（`all` / `whitelist` / `dispatch-only`）、`computer_use_enabled`、`tool_allowlist` 覆盖。聊天室关闭能力仍有优先权，执行入口也核对同一策略。
+- `dispatch-only` 只暴露语义调度；白名单统一过滤 Computer Use，普通文件或纯内容生成任务不获得 UI 工具。小上下文会话保留文件、搜索和命令工具，不能只留下 Computer Use。
+- UI 工具失败后的再次 UI 请求、正文伪工具调用、工具关闭后的调用请求和工具轮数上限，触发至多一次无工具回答恢复。原始请求及已执行结果保留，未执行调用不会重放；恢复仍失败时明确说明原任务未完成。
+- 真实模型回复不再触发旧的会话外 UI/语义补执行旁路。正文中的 `<tool_call>` 不作为授权或可执行协议。
 
 - API 字段变化必须更新前端 `src/app.js` 和根目录集成测试。
 - 真实输入 API 必须保持 `execute=false` 默认值。

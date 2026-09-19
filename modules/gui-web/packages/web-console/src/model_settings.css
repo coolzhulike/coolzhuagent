@@ -1,0 +1,122 @@
+.model-settings {
+  --ms-border: rgba(143, 190, 165, .4);
+  --ms-text: #f0f5ef;
+  --ms-muted: #bfd0c5;
+  --ms-accent: var(--control-jade, #9bd4b3);
+  --control-text: var(--ms-text);
+  --control-muted: var(--ms-muted);
+  --control-border: var(--ms-border);
+  --control-border-focus: #b3e2c6;
+  --control-surface: linear-gradient(180deg, rgba(20, 45, 36, .97), rgba(8, 27, 23, .98));
+  --control-surface-hover: linear-gradient(180deg, rgba(27, 57, 44, .98), rgba(12, 35, 28, .98));
+  color: var(--ms-text);
+  color-scheme: dark;
+  width: 100%;
+  min-width: 0;
+  padding: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  container: model-parameters / inline-size;
+}
+.model-settings * { box-sizing: border-box; }
+.model-settings .ms-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.model-settings .ms-intro > div { min-width: 0; }
+/* 右栏已有页面标题，去掉装饰性英文眉题，保留表单自身的语义标题。 */
+.model-settings .ms-eyebrow { display: none; }
+.model-settings h2 { margin: 0; color: var(--ms-text); font-size: 18px; line-height: 1.35; font-weight: 650; }
+.model-settings h3 { margin: 0; color: var(--ms-text); font-size: 14px; line-height: 1.5; font-weight: 650; }
+.model-settings p { margin: 4px 0 0; color: var(--ms-muted); }
+.model-settings .ms-intro p { font-size: 12px; line-height: 1.55; }
+.model-settings .ms-session-picker { display: grid; gap: 5px; margin: 0 0 12px; }
+.model-settings form { margin: 0; min-width: 0; }
+.model-settings fieldset { border: 0; padding: 0 0 12px; margin: 0; min-width: 0; }
+.model-settings .ms-section { border-top: 1px solid var(--ms-border); padding: 14px 0; }
+/* 旧设置工作台给 fieldset 叠了蓝灰背景；统一参数区沿用外层深竹绿背板。 */
+body.ui-3d .model-settings fieldset,
+body.ui-3d .model-settings .ms-section { background: transparent; box-shadow: none; }
+.model-settings .ms-section:last-child { padding-bottom: 6px; }
+.model-settings .ms-section-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.model-settings .ms-section-title > span { color: var(--ms-accent); font-size: 12px; font-variant-numeric: tabular-nums; }
+.model-settings .ms-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px 16px; }
+.model-settings label { color: var(--ms-text); font-size: 13px; font-weight: 500; }
+.model-settings .ms-grid > label { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.model-settings .ms-grid > label:has(.ms-optional) { display: block; }
+.model-settings .ms-grid > label:has(.ms-optional) > input { margin-top: 5px; }
+.model-settings .ms-wide { grid-column: 1 / -1; }
+.model-settings input:not([type=checkbox]), .model-settings select, .model-settings textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  margin: 0;
+  border: 1px solid var(--ms-border);
+  border-radius: 7px;
+  background: var(--control-surface);
+  color: var(--ms-text);
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  scroll-margin-block: 12px 100px;
+}
+/* 明确覆盖旧 ui-redesign 的输入主题，同时保留玉石按钮独立配色。 */
+body.ui-3d .ui-redesign .model-settings input:not([type=checkbox]):not([type=radio]):not([type=file]),
+body.ui-3d .ui-redesign .model-settings select,
+body.ui-3d .ui-redesign .model-settings textarea { background: var(--control-surface); }
+body.ui-3d .ui-redesign .model-settings input:not([type=checkbox]):not([type=radio]):not([type=file]):hover,
+body.ui-3d .ui-redesign .model-settings select:hover,
+body.ui-3d .ui-redesign .model-settings textarea:hover { background: var(--control-surface-hover); }
+.model-settings select { cursor: pointer; }
+.model-settings option { color: var(--ms-text); background: #102b23; }
+.model-settings textarea { min-height: 90px; resize: vertical; }
+.model-settings :is(input, select, textarea, button):focus-visible,
+body.ui-3d .ui-redesign .model-settings :is(input, select, textarea, button):focus-visible { outline: 2px solid var(--control-border-focus); outline-offset: 2px; }
+.model-settings input::placeholder, .model-settings textarea::placeholder,
+body.ui-3d .ui-redesign .model-settings input::placeholder,
+body.ui-3d .ui-redesign .model-settings textarea::placeholder { color: var(--ms-muted); opacity: 1; }
+.model-settings small, .model-settings .ms-hint, .model-settings .ms-optional { color: var(--ms-muted); font-size: 12px; font-weight: 400; line-height: 1.55; }
+.model-settings .ms-optional { margin-left: 5px; }
+.model-settings .ms-hint { margin-top: 8px; overflow-wrap: anywhere; }
+.model-settings label.ms-checkbox { flex-direction: row; align-items: center; gap: 8px; align-self: center; min-height: 32px; color: var(--ms-text); }
+.model-settings .ms-checkbox input { width: 16px; height: 16px; flex: 0 0 16px; margin: 0; accent-color: var(--ms-accent); scroll-margin-block-end: 100px; }
+.model-settings button { border: 1px solid var(--ms-border); min-height: 38px; padding: 8px 13px; border-radius: 7px; font: inherit; font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; }
+.model-settings .ms-secondary { color: var(--ms-text); background: var(--control-surface); }
+.model-settings .ms-primary,
+body.ui-3d .ui-redesign .model-settings .ms-primary { background: linear-gradient(180deg, #b8e2c4, #83ba99); color: #102b21; border-color: #b5ddc0; text-shadow: none; }
+.model-settings button:disabled { opacity: .65; cursor: wait; }
+/* Sticky 保留自身文档流高度；最后一项有额外留白，滚到底部可以完整看到。 */
+.model-settings .ms-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--ms-border);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(8, 27, 23, .97);
+  box-shadow: 0 -5px 14px rgba(2, 12, 9, .18), inset 0 1px 0 rgba(223, 250, 229, .07);
+  backdrop-filter: blur(12px);
+}
+.model-settings .ms-footer p { flex: 1 1 auto; min-width: 0; max-height: 5em; overflow: auto; margin: 0; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.model-settings .ms-footer button { flex: 0 0 auto; }
+.model-settings .ms-error { color: #ffc0b7; }
+.model-settings [hidden] { display: none !important; }
+@container model-parameters (min-width: 520px) {
+  .model-settings .ms-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .model-settings label.ms-checkbox { padding-top: 22px; }
+}
+@container model-parameters (max-width: 340px) {
+  .model-settings .ms-intro { flex-wrap: wrap; gap: 8px; }
+  .model-settings .ms-intro .ms-secondary { margin-left: auto; }
+  .model-settings .ms-footer { flex-wrap: wrap; gap: 8px; }
+  .model-settings .ms-footer p { flex-basis: 100%; }
+  .model-settings .ms-footer button { margin-left: auto; }
+}
+/* 低高度窗口优先让出阅读空间，保存操作随表单滚动。 */
+@media (max-height: 680px) {
+  .model-settings .ms-footer { position: static; }
+  .model-settings :is(input, select, textarea) { scroll-margin-block-end: 16px; }
+}

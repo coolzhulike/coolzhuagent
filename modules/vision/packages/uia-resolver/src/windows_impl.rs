@@ -10,7 +10,10 @@ use windows::Win32::UI::Accessibility::{
     CUIAutomation, IUIAutomation, IUIAutomationElement, IUIAutomationTextPattern,
     IUIAutomationValuePattern, TreeScope_Subtree, UIA_TextPatternId, UIA_ValuePatternId,
 };
-use windows::Win32::UI::HiDpi::GetDpiForWindow;
+use windows::Win32::UI::HiDpi::{
+    GetDpiForWindow, SetThreadDpiAwarenessContext, DPI_AWARENESS_CONTEXT,
+    DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
+};
 use windows::Win32::UI::WindowsAndMessaging::{
     BringWindowToTop, EnumWindows, GetClassNameW, GetForegroundWindow, GetWindowRect,
     GetWindowTextW, GetWindowThreadProcessId, IsWindowVisible, SetForegroundWindow, ShowWindow,
@@ -18,6 +21,37 @@ use windows::Win32::UI::WindowsAndMessaging::{
 };
 
 use super::{BBoxPx, UiaElementSnapshot, UiaError, UiaWindowSnapshot};
+
+/// GetWindowRect 在 unaware 线程上会返回逻辑坐标，UIA 和截图 helper 则使用物理坐标。
+/// guard 仅覆盖同步观察；不能跨线程转移，也不能改变进程内其它 GUI 线程的 DPI 模式。
+struct ThreadDpiGuard {
+    previous: DPI_AWARENESS_CONTEXT,
+    _thread_bound: std::marker::PhantomData<std::rc::Rc<()>>,
+}
+
+impl ThreadDpiGuard {
+    fn enter(context: DPI_AWARENESS_CONTEXT) -> Result<Self, UiaError> {
+        let previous = unsafe { SetThreadDpiAwarenessContext(context) };
+        if previous.0.is_null() {
+            return Err(UiaError::QueryError(format!(
+                "SetThreadDpiAwarenessContext: {}", windows::core::Error::from_win32()
+            )));
+        }
+        Ok(Self { previous, _thread_bound: std::marker::PhantomData })
+    }
+}
+
+impl Drop for ThreadDpiGuard {
+    fn drop(&mut self) {
+        // previous 是同一线程上设置成功时由 Windows 返回的有效上下文。
+        let _ = unsafe { SetThreadDpiAwarenessContext(self.previous) };
+    }
+}
+
+fn with_physical_coordinates<T>(operation: impl FnOnce() -> Result<T, UiaError>) -> Result<T, UiaError> {
+    let _dpi = ThreadDpiGuard::enter(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)?;
+    operation()
+}
 
 fn init_uia() -> Result<IUIAutomation, UiaError> {
     let _ = unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) }.ok();
@@ -312,6 +346,10 @@ fn window_class(hwnd: HWND) -> String {
 }
 
 pub(crate) fn snapshot_foreground_window_impl(limit: usize) -> Result<UiaWindowSnapshot, UiaError> {
+    with_physical_coordinates(|| snapshot_foreground_window_physical(limit))
+}
+
+fn snapshot_foreground_window_physical(limit: usize) -> Result<UiaWindowSnapshot, UiaError> {
     let limit = limit.clamp(1, 2_000);
     let hwnd: HWND = unsafe { GetForegroundWindow() };
     if hwnd.0.is_null() {
@@ -357,4 +395,50 @@ pub(crate) fn snapshot_foreground_window_impl(limit: usize) -> Result<UiaWindowS
         dpi,
         elements,
     })
+}
+
+#[cfg(test)]
+mod dpi_tests {
+    use super::*;
+    use windows::Win32::UI::HiDpi::{
+        AreDpiAwarenessContextsEqual, GetThreadDpiAwarenessContext, DPI_AWARENESS_CONTEXT_UNAWARE,
+    };
+
+    fn current_is(context: DPI_AWARENESS_CONTEXT) -> bool {
+        unsafe { AreDpiAwarenessContextsEqual(GetThreadDpiAwarenessContext(), context).as_bool() }
+    }
+
+    #[test]
+    fn physical_snapshot_scope_restores_original_thread_context_after_success() {
+        let _original = ThreadDpiGuard::enter(DPI_AWARENESS_CONTEXT_UNAWARE).unwrap();
+        assert!(current_is(DPI_AWARENESS_CONTEXT_UNAWARE));
+        let result = with_physical_coordinates(|| {
+            assert!(current_is(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2));
+            Ok(144u32)
+        }).unwrap();
+        assert_eq!(result, 144);
+        assert!(current_is(DPI_AWARENESS_CONTEXT_UNAWARE));
+    }
+
+    #[test]
+    fn physical_snapshot_scope_restores_original_thread_context_after_early_error() {
+        let _original = ThreadDpiGuard::enter(DPI_AWARENESS_CONTEXT_UNAWARE).unwrap();
+        let result: Result<(), UiaError> = with_physical_coordinates(|| {
+            assert!(current_is(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2));
+            // 用无效句柄模拟观察阶段提前失败，不查询或操作任何真实 GUI。
+            let mut rect = RECT::default();
+            unsafe { GetWindowRect(HWND::default(), &mut rect) }
+                .map_err(|error| UiaError::QueryError(format!("GetWindowRect: {error}")))?;
+            Ok(())
+        });
+        assert!(result.is_err());
+        assert!(current_is(DPI_AWARENESS_CONTEXT_UNAWARE));
+    }
+
+    #[test]
+    fn rejected_dpi_context_does_not_change_current_thread_context() {
+        let _original = ThreadDpiGuard::enter(DPI_AWARENESS_CONTEXT_UNAWARE).unwrap();
+        assert!(ThreadDpiGuard::enter(DPI_AWARENESS_CONTEXT::default()).is_err());
+        assert!(current_is(DPI_AWARENESS_CONTEXT_UNAWARE));
+    }
 }

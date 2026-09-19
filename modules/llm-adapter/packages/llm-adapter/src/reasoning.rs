@@ -186,6 +186,7 @@ pub enum ReasoningStrategy {
     AnthropicAdaptiveThinking,
     DeepSeekThinking,
     ZhipuThinking,
+    QwenThinking,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -289,6 +290,10 @@ pub enum ReasoningWire {
         thinking_type: String,
         reasoning_effort: Option<String>,
     },
+    Qwen {
+        enable_thinking: bool,
+        reasoning_effort: Option<String>,
+    },
 }
 
 impl ReasoningWire {
@@ -322,8 +327,29 @@ impl ReasoningWire {
                     payload["reasoning_effort"] = json!(effort);
                 }
             }
+            Self::Qwen { enable_thinking, reasoning_effort } => {
+                // Qwen3.8 的 effort 与 budget 互斥，也不接受通用 thinking 对象。
+                if let Some(object) = payload.as_object_mut() {
+                    object.remove("thinking");
+                    object.remove("thinking_budget");
+                    object.remove("output_config");
+                    object.remove("reasoning_effort");
+                }
+                payload["enable_thinking"] = json!(enable_thinking);
+                if let Some(effort) = reasoning_effort {
+                    payload["reasoning_effort"] = json!(effort);
+                }
+            }
         }
     }
+}
+
+/// 只匹配已核验的 Qwen3.8 模型，Omni 和未知后缀不继承此协议。
+/// 来源：https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions
+pub(crate) fn is_qwen38_reasoning_model(model: &str) -> bool {
+    matches!(model.trim().to_ascii_lowercase().as_str(),
+        "qwen3.8-flash" | "qwen3.8-max" | "qwen3.8-max-0902"
+        | "qwen3.8-2.4t-a95b" | "qwen3.8-27b")
 }
 
 fn normalized_provider_id(provider: &str) -> Option<ProviderKind> {
@@ -520,6 +546,15 @@ pub fn reasoning_capability_for_provider(
             ReasoningCapabilityStatus::Verified,
             false,
             "xAI Grok 4.3：支持 auto/关闭及 low/medium/high，wire 使用顶层 reasoning_effort。".to_string(),
+        ),
+        _ if protocol != ProviderProtocol::AnthropicMessages && is_qwen38_reasoning_model(model) => (
+            vec![ReasoningEffort::Auto, ReasoningEffort::None, ReasoningEffort::Low,
+                ReasoningEffort::Medium, ReasoningEffort::XHigh],
+            ReasoningEffort::Auto,
+            ReasoningStrategy::QwenThinking,
+            ReasoningCapabilityStatus::Verified,
+            false,
+            "Qwen3.8：auto 保留默认；none 发送 enable_thinking=false；low/medium/xhigh 使用 enable_thinking=true；minimal→low，high/max→xhigh。effort 与 thinking_budget 互斥。".to_string(),
         ),
         Some(ProviderKind::DeepSeek)
             if matches!(lower_model.as_str(), "deepseek-chat" | "deepseek-reasoner") => (
@@ -854,6 +889,30 @@ fn resolve_parsed_reasoning(
                     requested.as_str()
                 );
                 ReasoningWire::Omit
+            }
+        }
+        ReasoningStrategy::QwenThinking => {
+            match requested {
+                ReasoningEffort::Auto => ReasoningWire::Omit,
+                ReasoningEffort::None => ReasoningWire::Qwen {
+                    enable_thinking: false, reasoning_effort: None,
+                },
+                _ => {
+                    effective = match requested {
+                        ReasoningEffort::Minimal => ReasoningEffort::Low,
+                        ReasoningEffort::High | ReasoningEffort::Max => ReasoningEffort::XHigh,
+                        value => value,
+                    };
+                    if effective != requested {
+                        status = ReasoningResolutionStatus::Downgraded;
+                        reason = format!("Qwen3.8 原生支持 low/medium/xhigh，{} 已兼容映射为 {}",
+                            requested.as_str(), effective.as_str());
+                    }
+                    ReasoningWire::Qwen {
+                        enable_thinking: true,
+                        reasoning_effort: Some(effective.as_str().to_string()),
+                    }
+                }
             }
         }
         ReasoningStrategy::ProviderDefault => {

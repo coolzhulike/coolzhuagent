@@ -1,4 +1,6 @@
+use std::sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}};
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::hash::{Hash, Hasher};
 
 use computer_use::{
     ComputerUseAction, ComputerUseAdapter, ComputerUseApprovalPolicy, ComputerUseBudgets,
@@ -19,6 +21,9 @@ use crate::computer_use_desktop_bridge::DesktopNativeBridge;
 use crate::computer_use_planner::CurrentSessionComputerUsePlanner;
 use crate::computer_use_store::{ComputerUseRunStore, ComputerUseStepRecord, NewComputerUseRun};
 use crate::tool_loop_coordinator::ToolCallIdentity;
+
+// 参数尚未进入观察/规划时允许有限纠正；真实 CU 调用仍遵循配置的独立额度。
+const MAX_INVALID_INPUTS_PER_TURN: usize = 2;
 
 pub(crate) struct DynComputerUseAdapter(Box<dyn ComputerUseAdapter>);
 
@@ -59,6 +64,98 @@ impl ComputerUseAdapter for DynComputerUseAdapter {
     }
 }
 
+struct TraceState {
+    observation: Option<Observation>,
+    next_index: usize,
+    pending: Option<(ComputerUseStepRecord, String)>,
+}
+
+/// 外层聊天取消会丢弃 controller future；仍需将已创建的 CU run 收敛为终态。
+struct PendingRunGuard<'a> { store: &'a ComputerUseRunStore, identity: &'a ToolCallIdentity, surface: ComputerUseSurface }
+impl Drop for PendingRunGuard<'_> {
+    fn drop(&mut self) {
+        if let Ok(Some(run)) = self.store.load(&self.identity.call_id) {
+            if run.terminal_result.is_none() {
+                let mut result = terminal_result(self.identity,self.surface,ComputerUseStage::Supervisor,cancelled_error());
+                if let Ok((attempts,steps)) = self.store.action_counts(&self.identity.call_id) {
+                    result.attempts=attempts; result.steps_completed=steps; result.supervisor.action_count=attempts;
+                }
+                let _ = self.store.finish(&self.identity.call_id,run.state_version,&result);
+            }
+        }
+    }
+}
+
+struct TracingAdapter<'a> {
+    inner: DynComputerUseAdapter,
+    store: &'a ComputerUseRunStore,
+    call_id: String,
+    state: Mutex<TraceState>,
+    cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
+}
+
+impl ComputerUseAdapter for TracingAdapter<'_> {
+    fn surface(&self) -> ComputerUseSurface { self.inner.surface() }
+    fn capabilities(&self) -> ComputerUseCapabilities { self.inner.capabilities() }
+    fn observe(&self, request: &ComputerUseRequest) -> Result<Observation, ComputerUseError> {
+        if (self.cancelled)() { return Err(cancelled_error()); }
+        let outcome = self.inner.observe(request).map(|mut observation| {
+            if let Some(object) = observation.state.as_object_mut() {
+                object.insert("capabilities".into(), serde_json::to_value(self.inner.capabilities()).unwrap_or(JsonValue::Null));
+            }
+            observation
+        });
+        let mut state = self.state.lock().map_err(|_| persistence_error("step trace lock"))?;
+        if let Some((mut step, action)) = state.pending.take() {
+            match &outcome {
+                Ok(after) => {
+                    step.after_evidence_ref = Some(serde_json::to_string(&after.evidence).unwrap_or_default());
+                    // 新观察的时间、generation、截图路径变化不代表任务进展；由异步验收写入。
+                    step.visible_progress = false;
+                    step.status = "input_sent_observed".into();
+                }
+                Err(error) => { step.status = "observation_failed".into(); step.error_code = Some(error.code.clone()); }
+            }
+            self.store.record_step(&step, &action).map_err(persistence_error)?;
+        }
+        if let Ok(observation) = &outcome { state.observation = Some(observation.clone()); }
+        outcome
+    }
+    fn act(&self, action: &ComputerUseAction, expected_generation: u64) -> Result<StepExecution, ComputerUseError> {
+        if (self.cancelled)() { return Err(cancelled_error()); }
+        let mut state = self.state.lock().map_err(|_| persistence_error("step trace lock"))?;
+        let index = state.next_index;
+        state.next_index += 1;
+        let action_json = crate::computer_use_store::sanitized_action_json(&serde_json::to_string(action).unwrap_or_default());
+        let mut fingerprint = std::collections::hash_map::DefaultHasher::new();
+        (self.surface().as_str(), expected_generation, &action_json).hash(&mut fingerprint);
+        let mut step = ComputerUseStepRecord {
+            run_id: self.call_id.clone(), step_index: index, observation_generation: expected_generation,
+            action_type: serde_json::to_value(action.kind).ok().and_then(|v| v.as_str().map(str::to_string)).unwrap_or_else(|| format!("{:?}", action.kind)),
+            normalized_target: action.target.clone(), action_fingerprint: format!("{:016x}", fingerprint.finish()),
+            status: "executing".into(), error_code: None,
+            before_evidence_ref: state.observation.as_ref().map(|value| serde_json::to_string(&value.evidence).unwrap_or_default()),
+            after_evidence_ref: None, visible_progress: false, started_at_ms: now_ms(), completed_at_ms: None,
+        };
+        // 持久化失败时尚未发送输入，避免执行后没有对应审计记录。
+        self.store.record_step(&step, &action_json).map_err(persistence_error)?;
+        let result = self.inner.act(action, expected_generation);
+        step.completed_at_ms = Some(now_ms());
+        match &result {
+            Ok(execution) => {
+                step.status = if execution.input_sent { "input_sent" } else { "input_not_sent" }.into();
+                if execution.input_sent { state.pending = Some((step.clone(), action_json.clone())); }
+            }
+            Err(error) => { step.status = "failed".into(); step.error_code = Some(error.code.clone()); }
+        }
+        self.store.record_step(&step, &action_json).map_err(persistence_error)?;
+        result
+    }
+    fn verify(&self, criteria: &[String], before: &Observation, after: &Observation) -> Result<Verification, ComputerUseError> {
+        self.inner.verify(criteria, before, after)
+    }
+}
+
 pub(crate) trait ComputerUseAdapterFactory: Send + Sync {
     fn routing_context(&self) -> SurfaceRoutingContext;
 
@@ -66,7 +163,11 @@ pub(crate) trait ComputerUseAdapterFactory: Send + Sync {
         -> Result<DynComputerUseAdapter, ComputerUseError>;
 }
 
-struct PlannerRef<'a>(&'a dyn ComputerUsePlanner);
+struct PlannerRef<'a> {
+    planner: &'a dyn ComputerUsePlanner,
+    store: &'a ComputerUseRunStore,
+    call_id: &'a str,
+}
 
 impl ComputerUsePlanner for PlannerRef<'_> {
     fn classify<'a>(
@@ -74,7 +175,7 @@ impl ComputerUsePlanner for PlannerRef<'_> {
         request: &'a ComputerUseRequest,
         observation: &'a Observation,
     ) -> PlannerFuture<'a, Result<ComputerUseSurface, ComputerUseError>> {
-        self.0.classify(request, observation)
+        self.planner.classify(request, observation)
     }
 
     fn next_action<'a>(
@@ -83,7 +184,18 @@ impl ComputerUsePlanner for PlannerRef<'_> {
         observation: &'a Observation,
         step: usize,
     ) -> PlannerFuture<'a, Result<Option<ComputerUseAction>, ComputerUseError>> {
-        self.0.next_action(request, observation, step)
+        self.planner.next_action(request, observation, step)
+    }
+
+    fn verify<'a>(&'a self, request: &'a ComputerUseRequest, before: &'a Observation, after: &'a Observation,
+        verification: Verification) -> PlannerFuture<'a, Result<Verification, ComputerUseError>> {
+        Box::pin(async move {
+            let verification = self.planner.verify(request, before, after, verification).await?;
+            if before.generation != after.generation {
+                self.store.record_step_verification(self.call_id, before.generation, &verification).map_err(persistence_error)?;
+            }
+            Ok(verification)
+        })
     }
 }
 
@@ -164,6 +276,7 @@ pub(crate) struct ComputerUseExecutor<'a> {
     adapters: &'a dyn ComputerUseAdapterFactory,
     store: &'a ComputerUseRunStore,
     budgets: ComputerUseBudgets,
+    cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
 }
 
 impl<'a> ComputerUseExecutor<'a> {
@@ -178,7 +291,12 @@ impl<'a> ComputerUseExecutor<'a> {
             adapters,
             store,
             budgets,
+            cancelled: Arc::new(|| false),
         }
+    }
+
+    fn with_cancelled(mut self, cancelled: Arc<dyn Fn() -> bool + Send + Sync>) -> Self {
+        self.cancelled = cancelled; self
     }
 
     pub(crate) fn handles(&self, tool_name: &str) -> bool {
@@ -239,6 +357,16 @@ impl<'a> ComputerUseExecutor<'a> {
             );
         }
 
+        let (turn_count, invalid_inputs) = match self.store.turn_budget_counts(&identity.session_id, &identity.turn_id) {
+            Ok(counts) => counts,
+            Err(error) => return terminal_result(identity, ComputerUseSurface::Auto, ComputerUseStage::Supervisor, persistence_error(error)),
+        };
+        if invalid_inputs > MAX_INVALID_INPUTS_PER_TURN {
+            let result = terminal_result(identity, ComputerUseSurface::Auto, ComputerUseStage::IntentGuard,
+                limit_input_correction(ComputerUseError::blocked("invalid_tool_input", "input budget exhausted", ComputerUseRetryOwner::None), invalid_inputs));
+            self.create_and_finish(input, identity, ComputerUseSurface::Auto, chat_room_id, &result);
+            return result;
+        }
         let parsed = serde_json::from_value::<ComputerUseRequest>(input.clone());
         let requested_surface = parsed
             .as_ref()
@@ -251,11 +379,11 @@ impl<'a> ComputerUseExecutor<'a> {
                     identity,
                     ComputerUseSurface::Auto,
                     ComputerUseStage::IntentGuard,
-                    ComputerUseError::blocked(
+                    limit_input_correction(ComputerUseError::blocked(
                         "invalid_tool_input",
                         format!("invalid computer-use request: {error}"),
                         ComputerUseRetryOwner::Model,
-                    ),
+                    ), invalid_inputs),
                 );
                 self.create_and_finish(
                     input,
@@ -273,7 +401,7 @@ impl<'a> ComputerUseExecutor<'a> {
                 identity,
                 request.surface,
                 ComputerUseStage::IntentGuard,
-                error,
+                limit_input_correction(error, invalid_inputs),
             );
             self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
             return result;
@@ -284,20 +412,6 @@ impl<'a> ComputerUseExecutor<'a> {
                 .as_str()
                 .to_string();
 
-        let turn_count = match self
-            .store
-            .count_runs_for_turn(&identity.session_id, &identity.turn_id)
-        {
-            Ok(count) => count,
-            Err(error) => {
-                return terminal_result(
-                    identity,
-                    requested_surface,
-                    ComputerUseStage::Supervisor,
-                    persistence_error(error),
-                );
-            }
-        };
         if turn_count >= self.budgets.max_calls_per_turn {
             let result = terminal_result(
                 identity,
@@ -387,6 +501,7 @@ impl<'a> ComputerUseExecutor<'a> {
             );
         }
 
+        let _pending_run = PendingRunGuard { store: self.store, identity, surface };
         let adapter = match self.adapters.build(surface) {
             Ok(adapter) => adapter,
             Err(error) => {
@@ -397,9 +512,11 @@ impl<'a> ComputerUseExecutor<'a> {
             }
         };
 
+        let adapter = TracingAdapter { inner: adapter, store: self.store, call_id: identity.call_id.clone(),
+            state: Mutex::new(TraceState { observation: None, next_index: 0, pending: None }), cancelled: self.cancelled.clone() };
         let event_sink = PersistingEventSink::new(self.store, &identity.call_id);
         let mut controller = ComputerUseController::new(
-            PlannerRef(self.planner),
+            PlannerRef { planner: self.planner, store: self.store, call_id: &identity.call_id },
             adapter,
             event_sink,
             SystemClock,
@@ -433,7 +550,6 @@ impl<'a> ComputerUseExecutor<'a> {
             );
         }
 
-        self.persist_step_summaries(&result);
         self.finish_at_version(&result, state_version)
     }
 
@@ -487,31 +603,6 @@ impl<'a> ComputerUseExecutor<'a> {
             .unwrap_or(false)
     }
 
-    fn persist_step_summaries(&self, result: &ComputerUseResult) {
-        for step_index in 0..result.steps_completed {
-            let evidence = result.evidence.get(step_index).cloned();
-            let _ = self.store.append_step(&ComputerUseStepRecord {
-                run_id: result.call_id.clone(),
-                step_index,
-                observation_generation: (step_index + 1) as u64,
-                action_type: "controller_action".into(),
-                normalized_target: "task_objective".into(),
-                action_fingerprint: format!("{}:{step_index}", result.call_id),
-                status: if result.goal_achieved {
-                    "verified".into()
-                } else {
-                    "completed_unverified".into()
-                },
-                error_code: result.error.as_ref().map(|error| error.code.clone()),
-                before_evidence_ref: evidence.clone(),
-                after_evidence_ref: evidence,
-                visible_progress: result.goal_achieved,
-                started_at_ms: now_ms(),
-                completed_at_ms: Some(now_ms()),
-            });
-        }
-    }
-
     fn finish_at_version(
         &self,
         result: &ComputerUseResult,
@@ -547,6 +638,14 @@ impl<'a> ComputerUseExecutor<'a> {
     }
 }
 
+fn limit_input_correction(error: ComputerUseError, invalid_inputs: usize) -> ComputerUseError {
+    if invalid_inputs >= MAX_INVALID_INPUTS_PER_TURN {
+        ComputerUseError::blocked("input_correction_budget_exhausted",
+            "computer-use input correction budget is exhausted; no observation or UI input was performed for this request",
+            ComputerUseRetryOwner::None)
+    } else { error }
+}
+
 fn identity_from_result(result: &ComputerUseResult) -> ToolCallIdentity {
     ToolCallIdentity {
         call_id: result.call_id.clone(),
@@ -565,13 +664,19 @@ fn persistence_error(error: impl std::fmt::Display) -> ComputerUseError {
     )
 }
 
+fn cancelled_error() -> ComputerUseError {
+    ComputerUseError::blocked("cancelled", "originating chat turn was interrupted; no further input is allowed", ComputerUseRetryOwner::None)
+}
+
 fn terminal_result(
     identity: &ToolCallIdentity,
     surface: ComputerUseSurface,
     stage: ComputerUseStage,
     error: ComputerUseError,
 ) -> ComputerUseResult {
-    let status = if error.code == "deadline_exceeded" {
+    let status = if error.code == "cancelled" {
+        ComputerUseTerminalStatus::Cancelled
+    } else if error.code == "deadline_exceeded" {
         ComputerUseTerminalStatus::TimedOut
     } else if error.retryable {
         ComputerUseTerminalStatus::Failed
@@ -676,6 +781,7 @@ struct ProductionAdapterFactory {
     desktop_enabled: bool,
     browser_enabled: bool,
     browser_policy: BrowserComputerUsePolicy,
+    cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
 }
 
 impl ComputerUseAdapterFactory for ProductionAdapterFactory {
@@ -695,7 +801,7 @@ impl ComputerUseAdapterFactory for ProductionAdapterFactory {
             ComputerUseSurface::Desktop if self.desktop_enabled => {
                 DesktopNativeBridge::preflight()?;
                 Ok(DynComputerUseAdapter::new(DesktopComputerUseAdapter::new(
-                    DesktopNativeBridge,
+                    DesktopNativeBridge::with_cancelled(self.cancelled.clone()),
                 )))
             }
             ComputerUseSurface::Browser if self.browser_enabled => {
@@ -747,6 +853,12 @@ pub(crate) async fn execute_with_current_runtime(
             );
         }
     };
+    let host_cancelled = crate::tool_turn_cancellation_checker(&identity.turn_id);
+    let dropped = Arc::new(AtomicBool::new(false));
+    struct CancelOnDrop(Arc<AtomicBool>);
+    impl Drop for CancelOnDrop { fn drop(&mut self) { self.0.store(true, Ordering::SeqCst); } }
+    let _cancel_on_drop = CancelOnDrop(dropped.clone());
+    let cancelled: Arc<dyn Fn() -> bool + Send + Sync> = Arc::new(move || host_cancelled() || dropped.load(Ordering::SeqCst));
     let adapters = ProductionAdapterFactory {
         desktop_enabled: config.desktop.enabled,
         browser_enabled: config.browser.enabled,
@@ -755,9 +867,10 @@ pub(crate) async fn execute_with_current_runtime(
             allow_key_combinations: config.browser.allow_key_combinations,
             allow_multiple_tabs: config.browser.allow_multiple_tabs,
         },
+        cancelled: cancelled.clone(),
     };
-    let planner = CurrentSessionComputerUsePlanner::new(identity.session_id.clone());
-    let executor = ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets());
+    let planner = CurrentSessionComputerUsePlanner::with_context(identity, chat_room_id, &store).with_cancelled(cancelled.clone());
+    let executor = ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets()).with_cancelled(cancelled);
     let room_grant = crate::room_permission_grant_view_for_path(
         &crate::default_session_sqlite_path(),
         chat_room_id,
@@ -1058,6 +1171,60 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn step_trace_records_real_action_and_distinct_evidence_before_verified_progress() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("trace.sqlite3");
+        let store = ComputerUseRunStore::open(&path).unwrap();
+        let planner = FakePlanner::one_click(); let factory = factory(true);
+        let identity = identity("trace-check");
+        let result = ComputerUseExecutor::new(&planner,&factory,&store,ComputerUseBudgets::default())
+            .execute(&input("desktop"),&identity).await;
+        assert!(result.goal_achieved);
+        let connection = Connection::open(path).unwrap();
+        let trace:(String,String,String,String,bool,u64,u64) = connection.query_row(
+            "SELECT action_type,normalized_target,before_evidence_ref,after_evidence_ref,visible_progress,started_at_ms,completed_at_ms FROM computer_use_steps WHERE run_id=?1",
+            [&identity.call_id],|row|Ok((row.get(0)?,row.get(1)?,row.get(2)?,row.get(3)?,row.get(4)?,row.get(5)?,row.get(6)?))).unwrap();
+        assert_eq!(trace.0,"click"); assert_eq!(trace.1,"submit"); assert_ne!(trace.2,trace.3);
+        assert!(trace.2.contains("evidence-1")); assert!(trace.3.contains("verify-1")); assert!(trace.4);
+        assert!(trace.5 > 0 && trace.6 >= trace.5);
+        let action:String=connection.query_row("SELECT action_json FROM computer_use_step_details WHERE run_id=?1",[&identity.call_id],|row|row.get(0)).unwrap();
+        assert!(action.contains("click")); assert!(!action.contains("controller_action"));
+    }
+
+    #[tokio::test]
+    async fn host_cancellation_after_planning_prevents_input_and_persists_cancelled() {
+        struct CancellingPlanner(Arc<AtomicBool>);
+        impl ComputerUsePlanner for CancellingPlanner {
+            fn classify<'a>(&'a self, request:&'a ComputerUseRequest,_:&'a Observation)->PlannerFuture<'a,Result<ComputerUseSurface,ComputerUseError>> {Box::pin(async move {Ok(request.surface)})}
+            fn next_action<'a>(&'a self,_:&'a ComputerUseRequest,_:&'a Observation,_:usize)->PlannerFuture<'a,Result<Option<ComputerUseAction>,ComputerUseError>> {
+                Box::pin(async move { self.0.store(true,Ordering::SeqCst); Ok(Some(ComputerUseAction {kind:ComputerUseActionKind::Click,target:"submit".into(),arguments:json!({}),risk:ComputerUseRiskClass::ReversibleLocal})) })
+            }
+        }
+        let flag=Arc::new(AtomicBool::new(false)); let probe=flag.clone();
+        let planner=CancellingPlanner(flag); let store=store(); let factory=factory(false); let identity=identity("cancel-before-input");
+        let result=ComputerUseExecutor::new(&planner,&factory,&store,ComputerUseBudgets::default())
+            .with_cancelled(Arc::new(move||probe.load(Ordering::SeqCst))).execute(&input("desktop"),&identity).await;
+        assert_eq!(result.status,ComputerUseTerminalStatus::Cancelled);
+        assert_eq!(factory.action_count.load(Ordering::SeqCst),0);
+        assert_eq!(store.action_counts(&identity.call_id).unwrap(),(0,0));
+        assert_eq!(store.load(&identity.call_id).unwrap().unwrap().terminal_result.unwrap().status,ComputerUseTerminalStatus::Cancelled);
+    }
+
+    #[tokio::test]
+    async fn dropping_running_controller_persists_cancelled_instead_of_running_forever() {
+        struct WaitingPlanner;
+        impl ComputerUsePlanner for WaitingPlanner {
+            fn classify<'a>(&'a self,request:&'a ComputerUseRequest,_:&'a Observation)->PlannerFuture<'a,Result<ComputerUseSurface,ComputerUseError>> {Box::pin(async move {Ok(request.surface)})}
+            fn next_action<'a>(&'a self,_:&'a ComputerUseRequest,_:&'a Observation,_:usize)->PlannerFuture<'a,Result<Option<ComputerUseAction>,ComputerUseError>> {Box::pin(std::future::pending())}
+        }
+        let planner=WaitingPlanner; let store=store(); let factory=factory(false); let identity=identity("cancel-dropped-future");
+        let executor=ComputerUseExecutor::new(&planner,&factory,&store,ComputerUseBudgets::default());
+        assert!(tokio::time::timeout(std::time::Duration::from_millis(10),executor.execute(&input("desktop"),&identity)).await.is_err());
+        assert_eq!(store.load(&identity.call_id).unwrap().unwrap().terminal_result.unwrap().status,ComputerUseTerminalStatus::Cancelled);
+        assert_eq!(factory.action_count.load(Ordering::SeqCst),0);
+    }
+
+    #[tokio::test]
     async fn originating_chat_room_is_persisted_with_the_run() {
         let store = store();
         let planner = FakePlanner::one_click();
@@ -1267,6 +1434,57 @@ mod tests {
         ] {
             assert!(value.get(field).is_some(), "missing result field {field}");
         }
+    }
+
+    #[tokio::test]
+    async fn invalid_input_can_be_corrected_without_consuming_the_single_execution_budget() {
+        let store = store();
+        let factory = factory(true);
+        let planner = FakePlanner::one_click();
+        let budgets = ComputerUseBudgets { max_calls_per_turn:1, ..ComputerUseBudgets::default() };
+        let executor = ComputerUseExecutor::new(&planner,&factory,&store,budgets);
+        let malformed = json!({"objective":"click submit","surface":"desktop"});
+        let invalid_id = identity("tool-invalid-before-correction");
+        let first = executor.execute(&malformed,&invalid_id).await;
+        assert_eq!(first.error.as_ref().unwrap().code,"invalid_tool_input");
+        assert_eq!(first.attempts,0);
+        assert_eq!(factory.action_count.load(Ordering::SeqCst),0);
+        // 同一 provider call 重放仍命中缓存，不额外消耗纠错次数。
+        assert_eq!(executor.execute(&malformed,&invalid_id).await,first);
+        assert_eq!(store.turn_budget_counts(&invalid_id.session_id,&invalid_id.turn_id).unwrap(),(0,1));
+        let empty_objective = json!({"objective":"","surface":"desktop","success_criteria":["visible"]});
+        let second_invalid = executor.execute(&empty_objective,&identity("tool-empty-objective")).await;
+        assert_eq!(second_invalid.error.as_ref().unwrap().code,"invalid_objective");
+        assert_eq!(store.turn_budget_counts(&invalid_id.session_id,&invalid_id.turn_id).unwrap(),(0,2));
+        let corrected = executor.execute(&input("desktop"),&identity("tool-corrected")).await;
+        assert_eq!(corrected.status,ComputerUseTerminalStatus::Succeeded);
+        assert_eq!(factory.action_count.load(Ordering::SeqCst),1);
+        let mut next = input("desktop"); next["objective"] = json!("another independent UI task");
+        let exhausted = executor.execute(&next,&identity("tool-after-execution-budget")).await;
+        assert_eq!(exhausted.error.as_ref().unwrap().code,"recursive_call_blocked");
+        assert_eq!(factory.action_count.load(Ordering::SeqCst),1);
+    }
+
+    #[tokio::test]
+    async fn repeated_invalid_inputs_have_a_separate_finite_correction_budget() {
+        let store = store();
+        let factory = factory(true);
+        let planner = FakePlanner::one_click();
+        let budgets = ComputerUseBudgets { max_calls_per_turn:1, ..ComputerUseBudgets::default() };
+        let executor = ComputerUseExecutor::new(&planner,&factory,&store,budgets);
+        let malformed = json!({"objective":"draw","surface":"desktop"});
+        for index in 0..MAX_INVALID_INPUTS_PER_TURN {
+            let result = executor.execute(&malformed,&identity(&format!("tool-invalid-{index}"))).await;
+            assert_eq!(result.error.as_ref().unwrap().code,"invalid_tool_input");
+        }
+        let exhausted = executor.execute(&malformed,&identity("tool-too-many-invalid")).await;
+        assert_eq!(exhausted.error.as_ref().unwrap().code,"input_correction_budget_exhausted");
+        assert_eq!(exhausted.error.as_ref().unwrap().retry_owner,ComputerUseRetryOwner::None);
+        let stopped = executor.execute(&input("desktop"),&identity("tool-after-invalid-limit")).await;
+        assert_eq!(stopped.error.as_ref().unwrap().code,"input_correction_budget_exhausted");
+        let scope = identity("scope");
+        assert_eq!(store.turn_budget_counts(&scope.session_id, &scope.turn_id).unwrap(), (0,4));
+        assert_eq!(factory.action_count.load(Ordering::SeqCst),0);
     }
 
     #[tokio::test]

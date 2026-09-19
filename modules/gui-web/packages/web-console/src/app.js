@@ -192,6 +192,8 @@ let clawbotLoginPollTimer = null;
 let clawbotLoginPollInFlight = false;
 let handoffDrawerOpen = false;
 const CHAT_TOOL_WINDOW_META = Object.freeze({
+  history: Object.freeze({ label: "聊天记录", kicker: "搜索与定位", asset: "./assets/icons-wuxia/search.svg" }),
+  usage: Object.freeze({ label: "Token 用量", kicker: "使用统计", asset: "./assets/icons-wuxia/model-scroll.svg" }),
   project: Object.freeze({ label: "工程目录", kicker: "工程工具", asset: "./assets/icons-wuxia/project.svg" }),
   tasks: Object.freeze({ label: "任务中心", kicker: "任务工具", asset: "./assets/icons-wuxia/tasks.svg" }),
   terminal: Object.freeze({ label: "终端", kicker: "开发工具", asset: "./assets/icons-wuxia/terminal.svg" }),
@@ -345,7 +347,6 @@ document.addEventListener("DOMContentLoaded", () => {
   actionButtons.get("chat-permission-save")?.addEventListener("click", saveChatRoomPermission);
   actionButtons.get("chat-workspace-edit")?.addEventListener("click", () => beginWorkspaceEdit('[data-role="chat-workspace-path"]'));
   actionButtons.get("overview-agent-settings")?.addEventListener("click", focusChatAgentTargets);
-  actionButtons.get("overview-workspace-settings")?.addEventListener("click", focusChatWorkspaceSettings);
   actionButtons.get("project-refresh")?.addEventListener("click", () => loadProjectTree());
   actionButtons.get("project-save")?.addEventListener("click", () => saveActiveIdeFile());
   actionButtons.get("project-new-file")?.addEventListener("click", () => createProjectEntry("file"));
@@ -555,7 +556,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector('[data-role="project-tree"]')?.addEventListener("dblclick", onProjectTreeDblClick);
   document.querySelector('[data-role="project-tree"]')?.addEventListener("contextmenu", onProjectTreeContextMenu);
   document.querySelector('[data-bind="project.path"]')?.addEventListener("dblclick", beginWorkspaceEdit);
-  document.querySelector('[data-role="overview-workspace-name"]')?.addEventListener("click", copyOverviewWorkspacePath);
+  document.querySelector('[data-role="overview-workspace-name"]')?.addEventListener("click", focusChatWorkspaceSettings);
 
   window.addEventListener("resize", positionAvatarPicker);
   window.addEventListener("beforeunload", (event) => {
@@ -3434,6 +3435,7 @@ function chatMessageList() {
 
 // 流式通道异常或中止后，收口当前聊天室残留的视觉扫描标记。
 function clearChatStreamingMarkers() {
+  window.CoolzhuChatExperience?.finish();
   const list = chatMessageList();
   if (!list) {
     return;
@@ -3664,7 +3666,7 @@ function updateChatRailAccessibility(side, open, elements) {
   const rail = side === "left" ? elements.leftRail : elements.rightRail;
   const separator = side === "left" ? elements.leftSeparator : elements.rightSeparator;
   const toggles = chatLayoutActionNodes(`chat-${side}-rail-toggle`);
-  const label = side === "left" ? "聊天导航侧栏" : "协作与任务链侧栏";
+  const label = side === "left" ? "聊天导航侧栏" : "扩展栏";
   const separatorAvailable = open && (side === "left" ? !chatLayoutIsNarrow() : !chatLayoutIsCompact());
   const fallbackToggle = toggles.find((toggle) => !rail?.contains(toggle)) || toggles[0];
 
@@ -3704,7 +3706,7 @@ function syncChatLayoutControlIcons(leftOpen, rightOpen, focus) {
     {
       selector: '[data-role="chat-right-rail-toggle-icon"]',
       src: CHAT_LAYOUT_CONTROL_ICON_PATHS.right[rightOpen ? "close" : "open"],
-      label: rightOpen ? "隐藏协作与任务链侧栏" : "显示协作与任务链侧栏",
+      label: rightOpen ? "隐藏扩展栏" : "显示扩展栏",
     },
     {
       selector: '[data-role="chat-focus-layout-icon"]',
@@ -3790,6 +3792,8 @@ function scheduleChatMessageScrollRestore(anchor) {
 }
 
 function applyChatLayoutState(options = {}) {
+  chatLayoutState.left = "closed";
+  if (chatLayoutState.narrowOpen === "left") chatLayoutState.narrowOpen = null;
   const elements = chatLayoutElements();
   if (!elements.panel) {
     return;
@@ -3870,44 +3874,19 @@ function toggleChatFocusLayout() {
   applyChatLayoutState({ persist: true, preserveScroll: true });
 }
 
-// 顶栏入口只聚焦已有聊天室导航，不伪造新的选择器或后端动作。
+// 环境切换直接在顶栏下拉完成，右侧面板只承载工具页面。
 function focusChatRoomSelector() {
-  if (!chatLayoutRailOpen("left")) {
-    toggleChatLayoutRail("left");
-  }
-  const search = document.querySelector('[data-role="chat-room-search"]');
-  search?.focus({ preventScroll: true });
-  search?.select?.();
+  window.CoolzhuChatExperience?.popup("room");
 }
 
-// 顶栏 Agent 入口打开已有高级配置并聚焦真实发送对象控件。
+// 顶栏 Agent 入口直接切换当前会话环境。
 function focusChatAgentTargets() {
-  if (!chatLayoutRailOpen("left")) {
-    toggleChatLayoutRail("left");
-  }
-  const advanced = document.querySelector('[data-sidebar-group="advanced-config"]');
-  if (advanced) {
-    advanced.open = true;
-  }
-  const trigger = document.querySelector('[data-role="agent-trigger"]');
-  const wrap = trigger?.closest(".agent-dropdown-wrap");
-  if (trigger && wrap) {
-    wrap.classList.add("open");
-    trigger.setAttribute("aria-expanded", "true");
-  }
-  trigger?.focus({ preventScroll: true });
+  window.CoolzhuChatExperience?.popup("agent");
 }
 
-// 顶栏工作区设置入口聚焦左栏已有的工作目录编辑动作；工作区名称本身继续承担复制完整路径。
+// 顶栏工程目录入口直接打开目录切换下拉。
 function focusChatWorkspaceSettings() {
-  if (!chatLayoutRailOpen("left")) {
-    toggleChatLayoutRail("left");
-  }
-  const advanced = document.querySelector('[data-sidebar-group="advanced-config"]');
-  if (advanced) {
-    advanced.open = true;
-  }
-  document.querySelector('[data-action="chat-workspace-edit"]')?.focus({ preventScroll: true });
+  window.CoolzhuChatExperience?.popup("workspace");
 }
 
 function chatLayoutHandleEscape(event) {
@@ -4072,6 +4051,7 @@ function initializeChatLayout() {
     return;
   }
   chatLayoutInitialized = true;
+  window.CoolzhuChatExperience?.init();
   chatLayoutCompactQuery = window.matchMedia?.(CHAT_LAYOUT_COMPACT_MEDIA) ?? null;
   chatLayoutNarrowQuery = window.matchMedia?.(CHAT_LAYOUT_NARROW_MEDIA) ?? null;
 
@@ -5324,9 +5304,10 @@ async function refreshFullAccessStatus() {
 }
 
 function taskRenderFullAccessStatus(status = {}) {
-  const active = Boolean(status.full_access || status.permission_profile === "full-access");
+  const debugOpen = Boolean(status.dev_open_permissions);
+  const active = Boolean(debugOpen || status.effective_full_access || status.full_access || status.permission_profile === "full-access");
   const permissionProfile = status.permission_profile || (active ? "full-access" : "workspace-write");
-  setBindText("tasks.fullAccessStatus", active ? "已启用 · 当前聊天室" : "未启用 · 工作区范围");
+  setBindText("tasks.fullAccessStatus", debugOpen ? "已启用 · 调试完全访问" : active ? "已启用 · 当前聊天室" : "未启用 · 工作区范围");
   const permissionSelect = document.querySelector('[data-role="chat-permission-select"]');
   const permissionStatus = document.querySelector('[data-role="chat-permission-status"]');
   const permissionHint = document.querySelector('[data-role="chat-permission-hint"]');
@@ -5335,10 +5316,12 @@ function taskRenderFullAccessStatus(status = {}) {
     permissionSelect.disabled = !activeChatRoomId;
   }
   if (permissionStatus) {
-    permissionStatus.textContent = permissionProfile === "full-access" ? "完全访问" : "工作区写入";
+    permissionStatus.textContent = debugOpen ? "调试完全访问" : active ? "完全访问" : "工作区写入";
   }
   if (permissionHint) {
-    permissionHint.textContent = permissionProfile === "full-access"
+    permissionHint.textContent = debugOpen
+      ? "调试完全访问已开启；下方房间权限设置在关闭调试开放权限后生效。模型工具开关仍单独生效。"
+      : permissionProfile === "full-access"
       ? "当前聊天室已启用完全访问；撤销或切换权限需要经过安全确认。"
       : "权限只对当前聊天室生效；启用完全访问仍需双重确认。";
   }
@@ -5347,9 +5330,11 @@ function taskRenderFullAccessStatus(status = {}) {
   const scopeEl = document.querySelector('[data-role="authorization-scope"]');
   const riskEl = document.querySelector('[data-role="authorization-risk"]');
   if (roomEl) roomEl.textContent = roomName || "尚未选择聊天室";
-  if (scopeEl) scopeEl.textContent = active ? "当前聊天室可完全访问" : "当前聊天室限工作区访问";
+  if (scopeEl) scopeEl.textContent = debugOpen ? "当前工程调试完全访问" : active ? "当前聊天室可完全访问" : "当前聊天室限工作区访问";
   if (riskEl) {
-    riskEl.textContent = active
+    riskEl.textContent = debugOpen
+      ? "调试开放权限由工程配置 tool.dev_open_permissions 控制；撤销房间授权不会关闭调试开放权限。"
+      : active
       ? "此聊天室已启用完全访问；应用重启后再次选择该聊天室时会恢复该权限。"
       : "完全访问权限按聊天室分别保存；启用后，该聊天室可执行任意命令和文件写入。";
   }
@@ -5358,7 +5343,7 @@ function taskRenderFullAccessStatus(status = {}) {
   setWorkbenchMotionState("tasks", WORKBENCH_MOTION_STATES.tasks, active);
   const revoke = actionButtons.get("full-access-revoke");
   if (revoke) {
-    revoke.disabled = !active;
+    revoke.disabled = !(status.full_access || status.permission_profile === "full-access");
   }
   taskFullAccessStatus = status;
   renderChatRightRailStatus();
@@ -8015,7 +8000,7 @@ function setOverviewWorkspaceName(workspace) {
   }
   if (button) {
     button.dataset.workspacePath = full;
-    button.title = full ? `点击复制：${full}` : "工作区路径未就绪";
+    button.title = full ? `切换工程目录：${full}` : "工作区路径未就绪";
   }
 }
 
@@ -8647,6 +8632,7 @@ async function loadSessions() {
     });
   }
   renderChatRightRailStatus();
+  window.CoolzhuChatExperience?.syncModelSession(activeSessionId);
 }
 
 function syncActiveSessionSummary(session) {
@@ -10261,12 +10247,15 @@ function terminalWindowClear() {
 }
 
 async function loadChatRoomMessages(roomId, { before = null, appendOlder = false } = {}) {
+  const requestedWorkspace = activeWorkspaceKey;
+  window.CoolzhuChatExperience?.roomChanged(roomId);
   const url = new URL(`/api/chat/rooms/${encodeURIComponent(roomId)}/messages`, location.origin);
   url.searchParams.set("limit", "80");
   if (before) {
     url.searchParams.set("before", before);
   }
   const response = await requestJson(url.pathname + url.search);
+  if (roomId !== activeChatRoomId || requestedWorkspace !== activeWorkspaceKey) return;
   const list = chatMessageList();
   if (!list) {
     return;
@@ -10278,7 +10267,7 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
   }
 
   const visibleMessages = (response.messages || []).filter((message) => (
-    shouldRenderCompletedMessage(message, { includeReasoning: true })
+    shouldRenderCompletedMessage(message)
   ));
   const messages = appendOlder ? [...visibleMessages].reverse() : visibleMessages;
   messages.forEach((message) => {
@@ -10318,6 +10307,7 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
   if (!appendOlder) {
     await refreshChatCollaboration(roomId);
   }
+  void window.CoolzhuChatExperience?.refreshInsights();
 }
 
 async function refreshChatCollaboration(roomId = activeChatRoomId) {
@@ -10498,6 +10488,8 @@ function queueChatToolWindowRequest(windowId) {
 }
 
 function openChatToolWindow(windowId, options = {}) {
+  if (windowId === "usage") void window.CoolzhuChatExperience?.refreshInsights();
+  if (windowId === "history") void window.CoolzhuChatExperience?.search();
   if (!CHAT_TOOL_WINDOW_IDS.has(windowId)) {
     return false;
   }
@@ -12818,6 +12810,7 @@ async function openSelectedSession() {
   clearStaleApprovalForActiveScope();
   const result = await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}/activate`, { method: "POST" });
   activeSessionId = result.session.id;
+  window.CoolzhuChatExperience?.syncModelSession(activeSessionId);
   clearStaleApprovalForActiveScope();
   renderSessionList(sessionRegistry.sessions, activeSessionId);
   setSessionForm(result.session);
@@ -13555,6 +13548,7 @@ async function runComputerUseProfile() {
 }
 
 async function sendMessage({ replaceActive = false } = {}) {
+  if (window.CoolzhuChatExperience?.changingEnvironment) return;
   if (activeChatAbortController || activeServerTurnId) {
     const terminal = await interruptActiveChatTurn({
       reason: replaceActive ? "replace" : "user",
@@ -13655,6 +13649,7 @@ async function sendMessage({ replaceActive = false } = {}) {
     try {
       await sendMessageFallback(payload, text);
     } catch (fallbackError) {
+      window.CoolzhuChatExperience?.streamEvent("error", {});
       addMessage({
         author: "消息分发",
         text: `发送失败：${fallbackError.message || error.message}`,
@@ -13854,6 +13849,7 @@ function parseSseFrame(frame) {
 }
 
 function handleChatStreamEvent({ event, data }) {
+  if (window.CoolzhuChatExperience?.streamEvent(event, data)) return data;
   if (event === "started") {
     const turnId = String(data?.turn_id || "").trim();
     if (turnId) {
@@ -13939,9 +13935,10 @@ function shouldRenderCompletedMessage(message, { includeReasoning = false } = {}
   if (isGoalPhaseMessage(message)) {
     return false;
   }
-  const kind = message?.kind ?? kindForMessage(message || {});
-  const reasoning = message.kind === "reasoning" || kind === "reasoning";
-  const toolCall = message.kind === "tool-call" || kind === "tool-call";
+  const kind = String(message?.kind ?? kindForMessage(message || {})).trim().toLowerCase().replaceAll("_", "-");
+  const reasoning = kind === "reasoning";
+  const toolCall = ["tool-call", "tool-summary", "tool-result", "computer-use", "vision-computer-use"].includes(kind)
+    || String(message.role || "").trim().toLowerCase() === "tool";
   if (reasoning && !includeReasoning) {
     return false;
   }
@@ -13957,6 +13954,7 @@ function isSpeakableAssistantReplyForTts(message) {
     "reasoning",
     "tool-call",
     "tool-summary",
+    "tool-result",
     "computer-use",
     "vision-computer-use",
     "goal-phase",
@@ -14084,14 +14082,17 @@ function isGoalPhaseMessage(message) {
 }
 
 async function sendMessageFallback(payload, text) {
+  window.CoolzhuChatExperience?.streamEvent("started", {});
   const result = await requestJson("/api/chat/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  result.messages
-    .filter((message) => shouldRenderCompletedMessage(message, { includeReasoning: true }))
-    .forEach((message) => upsertMessage(message, { sessionId: activeSessionId }));
+  result.messages.forEach((message) => {
+    if (shouldRenderCompletedMessage(message)) upsertMessage(message, { sessionId: activeSessionId });
+    else window.CoolzhuChatExperience?.intercept(message);
+  });
+  window.CoolzhuChatExperience?.streamEvent("done", {status: "completed"});
   renderTaskList(result.tasks);
   await refreshGoals();
   await autoStartReadyGoalLoops();
@@ -17899,6 +17900,7 @@ function applyVideoToMessage(messageId, url) {
 }
 
 function upsertMessage(message, { streaming = false, sessionId = activeSessionId } = {}) {
+  if (window.CoolzhuChatExperience?.intercept(message, streaming)) return null;
   const list = chatMessageList();
   if (!list) {
     return null;
@@ -17951,10 +17953,12 @@ function upsertMessage(message, { streaming = false, sessionId = activeSessionId
     sessionId,
     streaming,
     role: message.role,
+    createdAt: message.created_at,
   });
 }
 
 function appendMessageText(id, delta) {
+  if (window.CoolzhuChatExperience?.prepareDelta(id, delta)) return;
   const list = chatMessageList();
   const article = list?.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
   const content = article?.querySelector('[data-role="message-content"]') || article?.querySelector("p");
@@ -17972,6 +17976,7 @@ function appendMessageText(id, delta) {
 }
 
 function addMessage({ id, author, text, kind, icon, attachments = [], createdAt = null, prepend = false, sessionId = null, streaming = false, goalId = null, goalTransient = false, role = null }) {
+  if (window.CoolzhuChatExperience?.intercept({ id, content: text, kind, role }, streaming)) return null;
   const list = chatMessageList();
   if (!list) {
     return;
