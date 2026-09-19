@@ -1,4 +1,6 @@
 use std::time::Duration;
+use std::sync::Arc;
+use base64::Engine;
 
 use computer_use::{
     ComputerUseAction, ComputerUseActionKind, ComputerUseError, ComputerUseRetryOwner, Observation,
@@ -12,10 +14,21 @@ use crate::computer_use_adapters::{DesktopBridge, DesktopSnapshot};
 const INPUT_TIMEOUT: Duration = Duration::from_secs(8);
 const UIA_ELEMENT_LIMIT: usize = 500;
 
-#[derive(Debug, Clone, Default)]
-pub(crate) struct DesktopNativeBridge;
+#[derive(Clone)]
+pub(crate) struct DesktopNativeBridge {
+    cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
+}
+
+impl Default for DesktopNativeBridge {
+    fn default() -> Self { Self { cancelled: Arc::new(|| false) } }
+}
+
+impl std::fmt::Debug for DesktopNativeBridge {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { f.debug_struct("DesktopNativeBridge").finish_non_exhaustive() }
+}
 
 impl DesktopNativeBridge {
+    pub(crate) fn with_cancelled(cancelled: Arc<dyn Fn() -> bool + Send + Sync>) -> Self { Self { cancelled } }
     pub(crate) fn preflight() -> Result<(), ComputerUseError> {
         let input = computer_use::input::preflight_report();
         if !input.ready {
@@ -57,6 +70,13 @@ impl DesktopBridge for DesktopNativeBridge {
             .map(element_json)
             .collect::<Vec<_>>();
         let window_id = format!("hwnd-{:x}", snapshot.native_window_handle);
+        let identity = computer_use::input::StrokeWindow {
+            handle: snapshot.native_window_handle, process_id: snapshot.process_id,
+            rect: [snapshot.bounding_rect.x, snapshot.bounding_rect.y, snapshot.bounding_rect.width, snapshot.bounding_rect.height], dpi: snapshot.dpi,
+        };
+        let image = capture_image(identity)?;
+        let canvas_rect = intersect_rect(rect_from_element(&json!({"rect":image["client_rect"]}))?, rect_from_element(&json!({"rect":image["screen_rect"]}))?)?;
+        let image_evidence = image_evidence(&image);
         Ok(DesktopSnapshot {
             window_id: window_id.clone(),
             process_id: snapshot.process_id,
@@ -76,8 +96,18 @@ impl DesktopBridge for DesktopNativeBridge {
                     "native_window_handle": snapshot.native_window_handle,
                 },
                 "elements": elements,
+                "image": image,
+                "canvas_target": format!("window-canvas:{:x}", snapshot.native_window_handle),
+                "canvas_rect": canvas_rect,
+                "drag_contract": {
+                    "kind": "drag", "target": "当前 UIA 画布 reference，或 canvas_target（相对 canvas_rect，不是整张截图）",
+                    "points": "2–256 个 [x,y]，坐标均为 0..1，相对目标 rect；使用当前截图，不猜测或复用旧位置",
+                    "coordinate_space": "所有 rect 是桌面物理像素 [x,y,width,height]；截图像素原点对应 image.screen_rect，归一化笔画相对目标 rect",
+                    "fallback_scope": "window-canvas 仅代表可见 client 区域，包含工具栏、菜单和状态区，不等于语义绘画画布；必须依据当前原图和 rect 找到其中实际可绘画区域，不能猜位置",
+                    "duration_ms": "0..5000", "button": "left", "cancel": "宿主取消或 Escape 中止笔画并尝试释放鼠标，释放失败明确报错",
+                },
             }),
-            evidence: vec![format!(
+            evidence: vec![image_evidence, format!(
                 "uia_snapshot:{window_id}:elements={}",
                 snapshot.elements.len()
             )],
@@ -89,7 +119,14 @@ impl DesktopBridge for DesktopNativeBridge {
         action: &ComputerUseAction,
         expected: &DesktopSnapshot,
     ) -> Result<StepExecution, ComputerUseError> {
-        let element = find_element(&expected.state, &action.target)?;
+        if (self.cancelled)() { return Err(cancelled_error()); }
+        let screenshot_target = action.kind == ComputerUseActionKind::Drag
+            && expected.state.get("canvas_target").and_then(JsonValue::as_str) == Some(action.target.as_str());
+        let fallback;
+        let element = if screenshot_target {
+            fallback = json!({"rect":expected.state["canvas_rect"],"enabled":true,"offscreen":false,"control_type":"ScreenshotCanvas"});
+            &fallback
+        } else { find_element(&expected.state, &action.target)? };
         if !element
             .get("enabled")
             .and_then(JsonValue::as_bool)
@@ -177,6 +214,27 @@ impl DesktopBridge for DesktopNativeBridge {
                 computer_use::input::send_virtual_key_combo(&virtual_keys, INPUT_TIMEOUT)
                     .map_err(input_error)?;
             }
+            ComputerUseActionKind::Drag => {
+                if !screenshot_target && !canvas_element(element) {
+                    return Err(blocked("target_not_canvas", "笔画目标应为 UIA 画布或当前截图的 canvas_target"));
+                }
+                let (points, duration_ms) = stroke_arguments(&action.arguments, rect)?;
+                let visible_rect = rect_from_element(&json!({"rect":expected.state["image"]["screen_rect"]}))?;
+                if intersect_rect(rect, visible_rect)? != rect { return Err(blocked("target_offscreen", "画布边界部分位于截图之外，需调整窗口后重新观察")); }
+                let identity = computer_use::input::StrokeWindow { handle: native_window_handle, process_id: expected.process_id, rect: expected.window_rect, dpi: expected.dpi };
+                computer_use::input::validate_stroke(identity, rect, &points, duration_ms).map_err(|error| blocked("invalid_stroke_path", error))?;
+                let result = computer_use::input::controlled_drag_path(identity, rect, &points, duration_ms, Duration::from_secs(10), &*self.cancelled);
+                // 成功和可恢复失败都尝试留后图；截图本身不会移动鼠标或改变画布。
+                let after = capture_image(identity);
+                if let Err(error) = result {
+                    let evidence = after.as_ref().map(image_evidence).unwrap_or_else(|error| format!("after_capture_failed:{error:?}"));
+                    return Err(if error.contains("mouse_release_failed") { ComputerUseError::new("mouse_release_failed", format!("无法确认鼠标释放：{error};{evidence}"), false, ComputerUseRetryOwner::None) }
+                        else if error.contains("stroke_cancelled") { ComputerUseError::new("cancelled", format!("笔画已取消；{evidence}"), false, ComputerUseRetryOwner::None) }
+                        else if error.contains("stale_observation") { stale(format!("{error};{evidence}")) }
+                        else { input_error(format!("{error};{evidence}")) });
+                }
+                return Ok(completed_stroke_execution(&action.target, points.len(), duration_ms, &expected.state["image"], after));
+            }
             _ => {
                 return Err(blocked(
                     "unsupported_action",
@@ -197,8 +255,12 @@ impl DesktopBridge for DesktopNativeBridge {
         before: &Observation,
         after: &Observation,
     ) -> Result<Verification, ComputerUseError> {
-        let visible_progress = before.state != after.state || before.evidence != after.evidence;
-        let corpus = after.state.to_string().to_lowercase();
+        let image_changed = before.state.pointer("/image/sha256").zip(after.state.pointer("/image/sha256")).is_some_and(|(a,b)| a != b);
+        // 截图路径、编码与时间戳不参与 UIA 文本成功匹配，避免证据元数据伪装成成功。
+        let before_desktop = before.state.get("desktop").unwrap_or(&before.state);
+        let after_desktop = after.state.get("desktop").unwrap_or(&after.state);
+        let visible_progress = image_changed || before_desktop.get("elements") != after_desktop.get("elements");
+        let corpus = after_desktop.get("elements").unwrap_or(&JsonValue::Null).to_string().to_lowercase();
         let achieved = !criteria.is_empty()
             && criteria
                 .iter()
@@ -213,9 +275,76 @@ impl DesktopBridge for DesktopNativeBridge {
             } else {
                 "desktop UIA snapshot shows no visible progress".to_string()
             },
-            evidence: after.evidence.clone(),
+            evidence: after.evidence.iter().cloned().chain(std::iter::once(format!("image_changed:{image_changed}"))).collect(),
         })
     }
+}
+
+fn cancelled_error() -> ComputerUseError { ComputerUseError::new("cancelled", "桌面输入开始前已取消", false, ComputerUseRetryOwner::None) }
+
+/// 原生输入已经成功后，后截图失败不能抹掉输入事实；控制器仍需重新观察和视觉验收。
+fn completed_stroke_execution(target: &str, count: usize, duration_ms: u64, before: &JsonValue, after: Result<JsonValue,ComputerUseError>) -> StepExecution {
+    let mut evidence = vec![format!("native_stroke:{target}:points={count}:duration_ms={duration_ms}:released"),format!("before:{}",image_evidence(before))];
+    let summary = match after {
+        Ok(image) => {
+            evidence.push(format!("after:{}",image_evidence(&image)));
+            evidence.push(format!("image_changed:{}",before["sha256"] != image["sha256"]));
+            format!("受控画布笔画输入完成：{count} 点，鼠标已释放；画布结果等待验收")
+        }
+        Err(error) => {
+            evidence.push(format!("after_capture_failed:{}",error.code));
+            format!("受控画布笔画输入完成：{count} 点，鼠标已释放；后截图失败，尚未确认画布结果")
+        }
+    };
+    StepExecution { input_sent:true,summary,evidence }
+}
+
+fn capture_image(identity: computer_use::input::StrokeWindow) -> Result<JsonValue, ComputerUseError> {
+    let mut image = computer_use::input::capture_window_image(identity, Duration::from_secs(10)).map_err(|error| {
+        if error.contains("stale_observation") { stale(error) }
+        else if error.contains("stroke_cancelled") { ComputerUseError::new("cancelled", error, false, ComputerUseRetryOwner::None) }
+        else { input_error(error) }
+    })?;
+    let data = image.get("data_url").and_then(JsonValue::as_str).and_then(|value| value.strip_prefix("data:image/png;base64,")).ok_or_else(|| backend_error("截图缺少 PNG 像素"))?;
+    let bytes = base64::engine::general_purpose::STANDARD.decode(data).map_err(|_| backend_error("截图 PNG 编码无效"))?;
+    let hash = image.get("sha256").and_then(JsonValue::as_str).filter(|value| value.len()==64 && value.bytes().all(|c|c.is_ascii_hexdigit())).ok_or_else(|| backend_error("截图 hash 无效"))?;
+    let directory = vision::default_latest_desktop_capture_dir().join("computer-use");
+    std::fs::create_dir_all(&directory).map_err(|error| backend_error(format!("截图证据目录不可用: {error}")))?;
+    let path = directory.join(format!("window-{}-{hash}.png",identity.process_id));
+    if !path.exists() { std::fs::write(&path,bytes).map_err(|error| backend_error(format!("截图证据写入失败: {error}")))?; }
+    image["path"] = json!(path.to_string_lossy());
+    Ok(image)
+}
+
+fn image_evidence(image: &JsonValue) -> String {
+    format!("screenshot:{}:sha256={}:{}x{}", image["path"].as_str().unwrap_or(""), image["sha256"].as_str().unwrap_or(""), image["width"], image["height"])
+}
+
+fn canvas_element(element: &JsonValue) -> bool {
+    matches!(element["control_type"].as_str(),Some("Document") | Some("Image"))
+        || ["name","class_name","automation_id"].iter().filter_map(|key|element[key].as_str()).any(|value| {
+            let value=value.to_lowercase();value.contains("canvas")||value.contains("画布")||value.contains("mspaintview")
+        })
+}
+
+fn stroke_arguments(arguments: &JsonValue, rect: [i32;4]) -> Result<(Vec<computer_use::input::MousePoint>,u64),ComputerUseError> {
+    if rect[2]<=0 || rect[3]<=0 || rect[0].checked_add(rect[2]).is_none() || rect[1].checked_add(rect[3]).is_none() { return Err(blocked("invalid_stroke_bounds", "画布边界无效或溢出")); }
+    let values=arguments["points"].as_array().filter(|p|(2..=256).contains(&p.len())).ok_or_else(||blocked("invalid_stroke_path","points 应为 2–256 个相对坐标点"))?;
+    let duration=arguments.get("duration_ms").map(|v|v.as_u64()).unwrap_or(Some(600)).filter(|v|*v<=5000).ok_or_else(||blocked("invalid_stroke_duration","duration_ms 应为 0–5000"))?;
+    let points=values.iter().map(|point| {
+        let point=point.as_array().filter(|p|p.len()==2).ok_or_else(||blocked("invalid_stroke_point","每个点应为 [x,y]"))?;
+        let axis=|i:usize|point[i].as_f64().filter(|v|v.is_finite()&&(0.0..=1.0).contains(v)).ok_or_else(||blocked("invalid_stroke_point","相对坐标必须在 0..1 内"));
+        Ok(computer_use::input::MousePoint {x:rect[0]+(axis(0)?*f64::from(rect[2]-1)).round() as i32,y:rect[1]+(axis(1)?*f64::from(rect[3]-1)).round() as i32})
+    }).collect::<Result<Vec<_>,ComputerUseError>>()?;
+    Ok((points,duration))
+}
+
+fn intersect_rect(a:[i32;4],b:[i32;4])->Result<[i32;4],ComputerUseError> {
+    let x=i64::from(a[0].max(b[0]));let y=i64::from(a[1].max(b[1]));
+    let right=(i64::from(a[0])+i64::from(a[2])).min(i64::from(b[0])+i64::from(b[2]));
+    let bottom=(i64::from(a[1])+i64::from(a[3])).min(i64::from(b[1])+i64::from(b[3]));
+    if right<=x || bottom<=y { return Err(blocked("target_offscreen", "目标没有可见屏幕区域")); }
+    Ok([x as i32,y as i32,i32::try_from(right-x).map_err(|_|stale("rectangle overflow"))?,i32::try_from(bottom-y).map_err(|_|stale("rectangle overflow"))?])
 }
 
 fn element_json(element: &UiaElementSnapshot) -> JsonValue {
@@ -399,6 +528,54 @@ mod tests {
     use super::*;
 
     #[test]
+    fn successful_stroke_keeps_input_fact_when_after_capture_fails() {
+        let before=json!({"sha256":"before","path":"before.png","width":10,"height":10});
+        let execution=completed_stroke_execution("window-canvas:1",3,600,&before,Err(input_error("capture unavailable".into())));
+        assert!(execution.input_sent);
+        assert!(execution.evidence.iter().any(|value|value.contains("native_stroke:")&&value.ends_with(":released")));
+        assert!(execution.evidence.iter().any(|value|value=="after_capture_failed:input_failed"));
+        assert!(!execution.evidence.iter().any(|value|value.starts_with("image_changed:")));
+        assert!(execution.summary.contains("尚未确认"));
+        // 缺后图不成为可见进展，更不能成为视觉目标成功证据。
+        let observation=Observation{generation:1,surface:computer_use::ComputerUseSurface::Desktop,surface_identity:"desktop:1".into(),state:json!({"desktop":{"elements":[]},"image":before}),evidence:execution.evidence};
+        let verified=DesktopNativeBridge::default().verify(&["two-new-strokes".into()],&observation,&observation).unwrap();
+        assert!(!verified.achieved);assert!(!verified.visible_progress);
+    }
+
+    #[test]
+    fn desktop_stroke_relative_points_stay_inside_physical_bounds() {
+        let (points,duration)=stroke_arguments(&json!({"points":[[0,0],[1,1],[0.5,0.5]]}),[-200,50,101,51]).unwrap();
+        assert_eq!(duration,600);
+        assert_eq!((points[0].x,points[0].y),(-200,50));
+        assert_eq!((points[1].x,points[1].y),(-100,100));
+        assert_eq!((points[2].x,points[2].y),(-150,75));
+        // rect 已是物理像素：150% DPI 不再次乘比例，左右端点也不越界。
+        let identity=computer_use::input::StrokeWindow{handle:1,process_id:2,rect:[-200,0,500,500],dpi:144};
+        assert!(computer_use::input::validate_stroke(identity,[-200,50,101,51],&points,duration).is_ok());
+    }
+
+    #[test]
+    fn desktop_stroke_rejects_invalid_points_duration_and_overflow() {
+        for args in [json!({"points":[[0,0]]}),json!({"points":[[0,0],[1.01,1]]}),json!({"points":[[0,0],[-0.1,1]]}),json!({"points":[[0,0],[1,1]],"duration_ms":5001}),json!({"points":[[0,0],[1,1]],"duration_ms":-1}),json!({"points":[[0,0],[null,1]]})] {
+            assert!(stroke_arguments(&args,[0,0,100,100]).is_err());
+        }
+        assert!(stroke_arguments(&json!({"points":[[0,0],[1,1]]}),[i32::MAX,0,2,100]).is_err());
+        assert_eq!(intersect_rect([-8,-8,1016,716],[0,0,1000,700]).unwrap(),[0,0,1000,700]);
+        assert!(intersect_rect([-100,-100,50,50],[0,0,1000,700]).is_err());
+    }
+
+    #[test]
+    fn desktop_verifier_ignores_capture_metadata_and_requires_goal_evidence() {
+        let before=Observation{generation:1,surface:computer_use::ComputerUseSurface::Desktop,surface_identity:"desktop:1".into(),state:json!({"desktop":{"elements":[]},"image":{"sha256":"before","path":"before.png"}}),evidence:vec![]};
+        let mut after=before.clone();after.generation=2;after.state["image"]=json!({"sha256":"before","path":"red-triangle.png","data_url":"red-triangle"});
+        let unchanged=DesktopNativeBridge::default().verify(&["red-triangle".into()],&before,&after).unwrap();
+        assert!(!unchanged.achieved);assert!(!unchanged.visible_progress);
+        after.state["image"]["sha256"]=json!("after");
+        let changed=DesktopNativeBridge::default().verify(&["red-triangle".into()],&before,&after).unwrap();
+        assert!(!changed.achieved);assert!(changed.visible_progress);
+    }
+
+    #[test]
     fn desktop_bridge_requires_one_enabled_visible_reference() {
         let state = json!({
             "elements": [{"reference":"uia-1","enabled":true,"offscreen":false,"rect":[1,2,30,40]}]
@@ -412,7 +589,7 @@ mod tests {
 
     #[test]
     fn desktop_verifier_uses_fresh_visible_value_evidence() {
-        let bridge = DesktopNativeBridge;
+        let bridge = DesktopNativeBridge::default();
         let before = Observation {
             generation: 1,
             surface: computer_use::ComputerUseSurface::Desktop,

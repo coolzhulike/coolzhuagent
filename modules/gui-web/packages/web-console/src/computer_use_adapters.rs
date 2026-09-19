@@ -367,7 +367,7 @@ impl<B: DesktopBridge> ComputerUseAdapter for DesktopComputerUseAdapter<B> {
             submit: false,
             scroll: true,
             history: false,
-            drag: false,
+            drag: true,
             slider_drag: false,
             key_combinations: true,
             multiple_tabs: false,
@@ -382,6 +382,8 @@ impl<B: DesktopBridge> ComputerUseAdapter for DesktopComputerUseAdapter<B> {
             ));
         }
         let generation = self.generation.fetch_add(1, Ordering::SeqCst) + 1;
+        let mut desktop_state = snapshot.state.clone();
+        let image = desktop_state.as_object_mut().and_then(|state| state.remove("image"));
         let observation = Observation {
             generation,
             surface: ComputerUseSurface::Desktop,
@@ -391,7 +393,8 @@ impl<B: DesktopBridge> ComputerUseAdapter for DesktopComputerUseAdapter<B> {
                 "process_id": snapshot.process_id,
                 "window_rect": snapshot.window_rect,
                 "dpi": snapshot.dpi,
-                "desktop": snapshot.state,
+                "desktop": desktop_state,
+                "image": image,
             }),
             evidence: snapshot.evidence.clone(),
         };
@@ -433,6 +436,21 @@ impl<B: DesktopBridge> ComputerUseAdapter for DesktopComputerUseAdapter<B> {
                 "foreground window, process, DPI, or window rectangle changed before input",
             ));
         }
+        if action.kind == computer_use::ComputerUseActionKind::Drag {
+            let screenshot_target = expected.1.state.get("canvas_target").and_then(JsonValue::as_str) == Some(action.target.as_str());
+            if screenshot_target {
+                if expected.1.state.pointer("/image/sha256").is_none() || expected.1.state.pointer("/image/sha256") != current.state.pointer("/image/sha256") {
+                    return Err(stale_observation("截图画布已变化，需重新观察后规划笔画"));
+                }
+            } else {
+                let target = |state:&JsonValue| state.get("elements").and_then(JsonValue::as_array).and_then(|elements|elements.iter().find(|element|element["reference"].as_str()==Some(action.target.as_str()))).cloned();
+                if target(&expected.1.state).is_none() || target(&expected.1.state) != target(&current.state) {
+                    return Err(stale_observation("UIA 画布的边界或身份已变化"));
+                }
+            }
+        }
+        // 一次观察只授权一次输入尝试；成功或失败后都需要重新观察。
+        *self.observed.lock().expect("desktop observation lock") = None;
         self.bridge.execute(action, &current)
     }
 
@@ -789,5 +807,36 @@ mod tests {
             assert_eq!(error.code, "stale_observation");
             assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 0);
         }
+    }
+
+    #[test]
+    fn desktop_canvas_requires_fresh_image_and_consumes_generation_once() {
+        let mut first = desktop_snapshot("window-1", 144);
+        first.state = json!({"canvas_target":"window-canvas:1","canvas_rect":[0,40,800,560],"image":{"data_url":"data:image/png;base64,mock","sha256":"same"}});
+        for changed in [false,true] {
+            let mut second=first.clone();
+            if changed { second.state["image"]["sha256"]=json!("changed"); }
+            let adapter=DesktopComputerUseAdapter::new(FakeDesktopBridge{snapshots:Mutex::new(vec![first.clone(),second].into()),action_count:AtomicUsize::new(0)});
+            assert!(adapter.capabilities().drag);
+            let observed=adapter.observe(&request("desktop",json!({"application":"paint"}))).unwrap();
+            assert_eq!(observed.state["image"]["sha256"],"same");
+            assert!(observed.state["desktop"].get("image").is_none());
+            let mut draw=action(ComputerUseActionKind::Drag);draw.target="window-canvas:1".into();draw.arguments=json!({"points":[[0.1,0.2],[0.8,0.9]],"duration_ms":100});
+            let result=adapter.act(&draw,observed.generation);
+            if changed { assert_eq!(result.unwrap_err().code,"stale_observation");assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst),0); }
+            else { assert!(result.is_ok());assert_eq!(adapter.act(&draw,observed.generation).unwrap_err().code,"stale_observation");assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst),1); }
+        }
+    }
+
+    #[test]
+    fn desktop_uia_canvas_bounds_change_blocks_before_input() {
+        let mut first=desktop_snapshot("window-1",96);
+        first.state=json!({"elements":[{"reference":"canvas-1","rect":[10,20,100,80],"control_type":"Image","enabled":true,"offscreen":false}]});
+        let mut second=first.clone();second.state["elements"][0]["rect"][0]=json!(11);
+        let adapter=DesktopComputerUseAdapter::new(FakeDesktopBridge{snapshots:Mutex::new(vec![first,second].into()),action_count:AtomicUsize::new(0)});
+        let observed=adapter.observe(&request("desktop",json!({"application":"paint"}))).unwrap();
+        let mut draw=action(ComputerUseActionKind::Drag);draw.target="canvas-1".into();
+        assert_eq!(adapter.act(&draw,observed.generation).unwrap_err().code,"stale_observation");
+        assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst),0);
     }
 }

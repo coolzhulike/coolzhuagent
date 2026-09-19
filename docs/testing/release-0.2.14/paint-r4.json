@@ -1,0 +1,781 @@
+{
+  "format_version": 1,
+  "privacy": "public_allowlisted_summary",
+  "schema_version": 20,
+  "read_only": true,
+  "snapshot_consistency": "single SQLite read transaction including WAL",
+  "missing_schema_columns": {},
+  "notes": [
+    "step.started_at_ms 在 adapter.act 前持久化，completed_at_ms 在 act 返回时记录；它们含重新观察及后截图耗时，不是鼠标物理 down/up 精确时间。",
+    "visible_progress 与像素变化均不等同目标达成；以 terminal.goal_achieved 及验证状态共同判断。",
+    "usage 是服务端已返回的非零事实；失败请求可能已有用量，没有记录不表示请求免费或未发送。",
+    "没有 call/turn 的聊天用量单独归集，不推断归属某次 CU。",
+    "缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画；这里只报告记录的相对点。",
+    "不读取会话正文，不输出 thinking、原图 data_url、凭据；公开版身份为本报告内编号。"
+  ],
+  "runs": [
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "surface": "desktop",
+      "state": "blocked",
+      "timing": {
+        "started_offset_ms": 0,
+        "completed_offset_ms": 91704,
+        "elapsed_ms": 91704
+      },
+      "stored_action_count": 0,
+      "stored_replan_count": 0,
+      "terminal": {
+        "present": true,
+        "status": "blocked",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error_code": "no_progress",
+        "evidence": [
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-003",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-004",
+            "kind": "native_stroke",
+            "points": 7,
+            "duration_ms": 800,
+            "release_confirmed": true
+          },
+          {
+            "reference": "evidence-005",
+            "kind": "screenshot",
+            "sha256": "8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-006",
+            "kind": "screenshot",
+            "sha256": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-007",
+            "kind": "pixel_change",
+            "changed": true
+          },
+          {
+            "reference": "evidence-008",
+            "kind": "screenshot",
+            "sha256": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-009",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 175
+          },
+          {
+            "reference": "evidence-008",
+            "kind": "screenshot",
+            "sha256": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-009",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 175
+          },
+          {
+            "reference": "evidence-010",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-011",
+            "kind": "native_stroke",
+            "points": 5,
+            "duration_ms": 2000,
+            "release_confirmed": true
+          },
+          {
+            "reference": "evidence-012",
+            "kind": "screenshot",
+            "sha256": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-013",
+            "kind": "screenshot",
+            "sha256": "6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-007",
+            "kind": "pixel_change",
+            "changed": true
+          },
+          {
+            "reference": "evidence-014",
+            "kind": "screenshot",
+            "sha256": "6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-015",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 173
+          },
+          {
+            "reference": "evidence-014",
+            "kind": "screenshot",
+            "sha256": "6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-015",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 173
+          },
+          {
+            "reference": "evidence-016",
+            "kind": "other_reference_or_semantic_text_redacted"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "index": 0,
+          "generation": 1,
+          "action_type": "drag",
+          "status": "completed_unverified",
+          "error_code": null,
+          "target_kind": "window_canvas",
+          "target": "target-001",
+          "action": {
+            "valid_object": true,
+            "kind": "drag",
+            "done": null,
+            "target_kind": "window_canvas",
+            "redacted_fields": true,
+            "duration_ms": 800,
+            "point_count": 7,
+            "points_numeric": true,
+            "points_in_unit_square": true,
+            "points": [
+              [
+                0.35,
+                0.2
+              ],
+              [
+                0.4,
+                0.2
+              ],
+              [
+                0.45,
+                0.2
+              ],
+              [
+                0.5,
+                0.2
+              ],
+              [
+                0.55,
+                0.2
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                0.65,
+                0.2
+              ]
+            ],
+            "relative_bounds": [
+              0.35,
+              0.2,
+              0.65,
+              0.2
+            ],
+            "closed_path": false
+          },
+          "timing": {
+            "started_offset_ms": 29437,
+            "completed_offset_ms": 32713,
+            "elapsed_ms": 3276
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 283
+            }
+          ],
+          "after_evidence": [
+            {
+              "reference": "evidence-008",
+              "kind": "screenshot",
+              "sha256": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-009",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 175
+            },
+            {
+              "reference": "evidence-010",
+              "kind": "other_reference_or_semantic_text_redacted"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "generation": 2,
+          "action_type": "drag",
+          "status": "completed_unverified",
+          "error_code": null,
+          "target_kind": "window_canvas",
+          "target": "target-001",
+          "action": {
+            "valid_object": true,
+            "kind": "drag",
+            "done": null,
+            "target_kind": "window_canvas",
+            "redacted_fields": true,
+            "duration_ms": 2000,
+            "point_count": 5,
+            "points_numeric": true,
+            "points_in_unit_square": true,
+            "points": [
+              [
+                0.35,
+                0.15
+              ],
+              [
+                0.65,
+                0.15
+              ],
+              [
+                0.65,
+                0.5
+              ],
+              [
+                0.35,
+                0.5
+              ],
+              [
+                0.35,
+                0.15
+              ]
+            ],
+            "relative_bounds": [
+              0.35,
+              0.15,
+              0.65,
+              0.5
+            ],
+            "closed_path": true
+          },
+          "timing": {
+            "started_offset_ms": 57312,
+            "completed_offset_ms": 62236,
+            "elapsed_ms": 4924
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-008",
+              "kind": "screenshot",
+              "sha256": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-009",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 175
+            }
+          ],
+          "after_evidence": [
+            {
+              "reference": "evidence-014",
+              "kind": "screenshot",
+              "sha256": "6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-015",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 173
+            },
+            {
+              "reference": "evidence-016",
+              "kind": "other_reference_or_semantic_text_redacted"
+            }
+          ]
+        }
+      ],
+      "recorded_step_count": 2,
+      "recorded_action_types": {
+        "drag": 2
+      },
+      "audit_flags": []
+    }
+  ],
+  "planner_diagnostics": [
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 1,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 2448,
+        "completed_offset_ms": 12649,
+        "elapsed_ms": 10201
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 1,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "drag",
+        "done": false,
+        "target_kind": "window_canvas",
+        "redacted_fields": false,
+        "duration_ms": 800,
+        "point_count": 7,
+        "points_numeric": true,
+        "points_in_unit_square": true,
+        "points": [
+          [
+            0.35,
+            0.2
+          ],
+          [
+            0.4,
+            0.2
+          ],
+          [
+            0.45,
+            0.2
+          ],
+          [
+            0.5,
+            0.2
+          ],
+          [
+            0.55,
+            0.2
+          ],
+          [
+            0.6,
+            0.2
+          ],
+          [
+            0.65,
+            0.2
+          ]
+        ],
+        "relative_bounds": [
+          0.35,
+          0.2,
+          0.65,
+          0.2
+        ],
+        "closed_path": false
+      },
+      "timing": {
+        "started_offset_ms": 12708,
+        "completed_offset_ms": 29433,
+        "elapsed_ms": 16725
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 2,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 33612,
+        "completed_offset_ms": 43124,
+        "elapsed_ms": 9512
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 2,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "drag",
+        "done": false,
+        "target_kind": "window_canvas",
+        "redacted_fields": false,
+        "duration_ms": 2000,
+        "point_count": 5,
+        "points_numeric": true,
+        "points_in_unit_square": true,
+        "points": [
+          [
+            0.35,
+            0.15
+          ],
+          [
+            0.65,
+            0.15
+          ],
+          [
+            0.65,
+            0.5
+          ],
+          [
+            0.35,
+            0.5
+          ],
+          [
+            0.35,
+            0.15
+          ]
+        ],
+        "relative_bounds": [
+          0.35,
+          0.15,
+          0.65,
+          0.5
+        ],
+        "closed_path": true
+      },
+      "timing": {
+        "started_offset_ms": 43169,
+        "completed_offset_ms": 57309,
+        "elapsed_ms": 14140
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 3,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 63079,
+        "completed_offset_ms": 72078,
+        "elapsed_ms": 8999
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 3,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "drag",
+        "done": false,
+        "target_kind": "window_canvas",
+        "redacted_fields": false,
+        "duration_ms": 2000,
+        "point_count": 29,
+        "points_numeric": true,
+        "points_in_unit_square": true,
+        "points": [
+          [
+            0.37,
+            0.2
+          ],
+          [
+            0.4,
+            0.2
+          ],
+          [
+            0.45,
+            0.2
+          ],
+          [
+            0.5,
+            0.2
+          ],
+          [
+            0.55,
+            0.2
+          ],
+          [
+            0.6,
+            0.2
+          ],
+          [
+            0.63,
+            0.2
+          ],
+          [
+            0.63,
+            0.25
+          ],
+          [
+            0.63,
+            0.3
+          ],
+          [
+            0.63,
+            0.35
+          ],
+          [
+            0.63,
+            0.4
+          ],
+          [
+            0.63,
+            0.45
+          ],
+          [
+            0.63,
+            0.5
+          ],
+          [
+            0.63,
+            0.55
+          ],
+          [
+            0.63,
+            0.6
+          ],
+          [
+            0.6,
+            0.6
+          ],
+          [
+            0.55,
+            0.6
+          ],
+          [
+            0.5,
+            0.6
+          ],
+          [
+            0.45,
+            0.6
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.37,
+            0.6
+          ],
+          [
+            0.37,
+            0.55
+          ],
+          [
+            0.37,
+            0.5
+          ],
+          [
+            0.37,
+            0.45
+          ],
+          [
+            0.37,
+            0.4
+          ],
+          [
+            0.37,
+            0.35
+          ],
+          [
+            0.37,
+            0.3
+          ],
+          [
+            0.37,
+            0.25
+          ],
+          [
+            0.37,
+            0.2
+          ]
+        ],
+        "relative_bounds": [
+          0.37,
+          0.2,
+          0.63,
+          0.6
+        ],
+        "closed_path": true
+      },
+      "timing": {
+        "started_offset_ms": 72122,
+        "completed_offset_ms": 91697,
+        "elapsed_ms": 19575
+      }
+    }
+  ],
+  "usage_groups": [
+    {
+      "scope": "chat_or_other_unattributed",
+      "request_kind": "unattributed",
+      "room": "room-001",
+      "turn": null,
+      "call": null,
+      "session": "session-001",
+      "recorded_requests": 2,
+      "input_tokens": 6762,
+      "output_tokens": 794,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "cu_linked",
+      "request_kind": "computer_use_verification",
+      "room": "room-001",
+      "turn": "turn-001",
+      "call": "call-001",
+      "session": "session-001",
+      "recorded_requests": 3,
+      "input_tokens": 60045,
+      "output_tokens": 1061,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "cu_linked",
+      "request_kind": "computer_use_planning",
+      "room": "room-001",
+      "turn": "turn-001",
+      "call": "call-001",
+      "session": "session-001",
+      "recorded_requests": 3,
+      "input_tokens": 57469,
+      "output_tokens": 3392,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  ],
+  "summary": {
+    "run_count": 1,
+    "run_states": {
+      "blocked": 1
+    },
+    "step_count": 2,
+    "diagnostic_count": 6,
+    "diagnostic_errors": {},
+    "usage_record_count": 8,
+    "usage_totals": {
+      "input_tokens": 124276,
+      "output_tokens": 5247,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "cu_usage_totals": {
+      "input_tokens": 117514,
+      "output_tokens": 4453,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  }
+}

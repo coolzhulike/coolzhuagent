@@ -63,6 +63,21 @@ pub(crate) fn apply_session_migration_v11(connection: &Connection) -> rusqlite::
             ON computer_use_steps(run_id, step_index);
         CREATE INDEX IF NOT EXISTS idx_computer_use_steps_status
             ON computer_use_steps(status);
+
+        CREATE TABLE IF NOT EXISTS computer_use_step_details (
+            run_id TEXT NOT NULL, step_index INTEGER NOT NULL, action_json TEXT NOT NULL,
+            PRIMARY KEY(run_id, step_index),
+            FOREIGN KEY(run_id) REFERENCES computer_use_runs(call_id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS computer_use_planner_diagnostics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, call_id TEXT NOT NULL,
+            turn_id TEXT NOT NULL, room_id TEXT, session_id TEXT NOT NULL,
+            request_kind TEXT NOT NULL, observation_generation INTEGER NOT NULL,
+            model TEXT NOT NULL, provider_response_id TEXT,
+            response_json TEXT NOT NULL, error_code TEXT,
+            started_at_ms INTEGER NOT NULL, completed_at_ms INTEGER NOT NULL,
+            FOREIGN KEY(call_id) REFERENCES computer_use_runs(call_id) ON DELETE CASCADE
+        );
         "#,
     )?;
     if current < 11 {
@@ -114,6 +129,53 @@ pub(crate) struct ComputerUseStepRecord {
     pub visible_progress: bool,
     pub started_at_ms: u64,
     pub completed_at_ms: Option<u64>,
+}
+
+pub(crate) struct PlannerDiagnostic<'a> {
+    pub call_id: &'a str, pub turn_id: &'a str, pub room_id: Option<&'a str>,
+    pub session_id: &'a str, pub request_kind: &'a str, pub observation_generation: u64,
+    pub model: &'a str, pub provider_response_id: Option<&'a str>,
+    pub response_json: &'a str, pub error_code: Option<&'a str>,
+    pub started_at_ms: u64, pub completed_at_ms: u64,
+}
+
+/// 诊断保留动作结构和几何，不记录输入正文、URL、未知字符串或模型思考。
+pub(crate) fn sanitized_action_json(raw: &str) -> String {
+    use serde_json::{json, Value};
+    fn clean(value: &Value, key: &str) -> Value {
+        match value {
+            Value::Object(object) => {
+                let allowed = ["done", "action", "kind", "target", "arguments", "points", "duration_ms",
+                    "x", "y", "button", "keys", "direction", "amount", "drop_target", "value", "checked", "activate", "tab_id"];
+                let mut result = serde_json::Map::new();
+                for (name, value) in object {
+                    if allowed.contains(&name.as_str()) { result.insert(name.clone(), clean(value, name)); }
+                    else { result.insert("redacted_fields".into(), Value::Bool(true)); }
+                }
+                Value::Object(result)
+            }
+            Value::Array(values) => Value::Array(values.iter().take(256).map(|value| clean(value, key)).collect()),
+            Value::String(text) => {
+                let safe = match key {
+                    "kind" | "action" => ["click","double_click","text_input","scroll","key_combination","drag","slider_drag","navigate","select","check","submit","history_back","history_forward","open_tab","close_tab","activate_tab"].contains(&text.as_str()),
+                    "target" | "drop_target" => text.len() <= 128 && (
+                        ((text.starts_with("uia-") || text.starts_with("dom-") || text == "browser-tabs") && text.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-'))
+                        || text.strip_prefix("window-canvas:").is_some_and(|handle| !handle.is_empty() && handle.chars().all(|ch| ch.is_ascii_hexdigit()))
+                    ),
+                    "direction" => ["up","down","left","right"].contains(&text.as_str()),
+                    "button" => ["left","right"].contains(&text.as_str()),
+                    "keys" => ["ctrl","shift","alt","enter","escape","tab","home","end","a","c","l","v","x","y","z"].contains(&text.as_str()),
+                    "tab_id" => text.len() <= 32 && text.chars().all(|ch| ch.is_ascii_digit()),
+                    _ => false,
+                };
+                if safe { value.clone() } else { Value::String("[redacted]".into()) }
+            }
+            _ => value.clone(),
+        }
+    }
+    if raw.len() > 16 * 1024 { return json!({"omitted":"response_too_large","bytes":raw.len()}).to_string(); }
+    let result = serde_json::from_str::<Value>(raw).map(|value| clean(&value, "")).unwrap_or_else(|_| json!({"omitted":"invalid_json","bytes":raw.len()})).to_string();
+    if result.len() > 16 * 1024 { json!({"omitted":"sanitized_response_too_large","bytes":raw.len()}).to_string() } else { result }
 }
 
 pub(crate) struct ComputerUseRunStore {
@@ -242,6 +304,49 @@ impl ComputerUseRunStore {
         Ok(changed == 1)
     }
 
+    /// 实际输入前写 executing，输入/观察后更新同一步；不事后伪造动作与时间。
+    pub(crate) fn record_step(&self, step: &ComputerUseStepRecord, action_json: &str) -> rusqlite::Result<()> {
+        let mut connection = self.connection.lock().expect("computer-use store lock");
+        let transaction = connection.transaction()?;
+        transaction.execute("INSERT INTO computer_use_steps
+            (run_id,step_index,observation_generation,action_type,normalized_target,action_fingerprint,status,error_code,before_evidence_ref,after_evidence_ref,visible_progress,started_at_ms,completed_at_ms)
+            VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)
+            ON CONFLICT(run_id,step_index) DO UPDATE SET status=excluded.status,error_code=excluded.error_code,
+            after_evidence_ref=excluded.after_evidence_ref,visible_progress=excluded.visible_progress,completed_at_ms=excluded.completed_at_ms",
+            params![step.run_id,step.step_index,step.observation_generation,step.action_type,step.normalized_target,
+                step.action_fingerprint,step.status,step.error_code,step.before_evidence_ref,step.after_evidence_ref,
+                step.visible_progress,step.started_at_ms,step.completed_at_ms])?;
+        transaction.execute("INSERT OR IGNORE INTO computer_use_step_details(run_id,step_index,action_json) VALUES(?1,?2,?3)",
+            params![step.run_id,step.step_index,action_json])?;
+        transaction.commit()
+    }
+
+    pub(crate) fn record_planner_diagnostic(&self, value: &PlannerDiagnostic<'_>) -> rusqlite::Result<()> {
+        self.connection.lock().expect("computer-use store lock").execute(
+            "INSERT INTO computer_use_planner_diagnostics(call_id,turn_id,room_id,session_id,request_kind,observation_generation,
+             model,provider_response_id,response_json,error_code,started_at_ms,completed_at_ms)
+             VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
+            params![value.call_id,value.turn_id,value.room_id,value.session_id,value.request_kind,value.observation_generation,
+                value.model,value.provider_response_id,value.response_json,value.error_code,value.started_at_ms,value.completed_at_ms])?;
+        Ok(())
+    }
+
+    pub(crate) fn record_step_verification(&self, call_id: &str, before_generation: u64, verification: &computer_use::Verification) -> rusqlite::Result<()> {
+        self.connection.lock().expect("computer-use store lock").execute(
+            "UPDATE computer_use_steps SET visible_progress=?1,status=?2,after_evidence_ref=?3
+             WHERE run_id=?4 AND step_index=(SELECT MAX(step_index) FROM computer_use_steps WHERE run_id=?4 AND observation_generation=?5)
+             AND status='input_sent_observed'",
+            params![verification.visible_progress,if verification.achieved {"verified"} else {"completed_unverified"},
+                serde_json::to_string(&verification.evidence).unwrap_or_default(),call_id,before_generation])?;
+        Ok(())
+    }
+
+    pub(crate) fn action_counts(&self, call_id: &str) -> rusqlite::Result<(usize, usize)> {
+        self.connection.lock().expect("computer-use store lock").query_row(
+            "SELECT COUNT(*),COALESCE(SUM(CASE WHEN status IN ('input_sent','input_sent_observed','verified','completed_unverified','observation_failed') THEN 1 ELSE 0 END),0) FROM computer_use_steps WHERE run_id=?1",
+            [call_id], |row| Ok((row.get(0)?,row.get(1)?)))
+    }
+
     pub(crate) fn load(&self, call_id: &str) -> rusqlite::Result<Option<StoredComputerUseRun>> {
         let connection = self.connection.lock().expect("computer-use store lock");
         connection
@@ -328,6 +433,23 @@ impl ComputerUseRunStore {
             |row| row.get(0),
         )?;
         Ok(count.max(0) as usize)
+    }
+
+    /// 只有确定在参数校验阶段、尚无输入的拒绝才使用独立纠错额度。
+    /// 观察/规划/执行失败和运行中的调用仍消耗原执行额度，不能藉改参数无限重入。
+    pub(crate) fn turn_budget_counts(&self, session_id: &str, turn_id: &str) -> rusqlite::Result<(usize, usize)> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let mut statement = connection.prepare("SELECT terminal_result_json FROM computer_use_runs WHERE session_id=?1 AND turn_id=?2")?;
+        let rows = statement.query_map(params![session_id,turn_id], |row| row.get::<_,Option<String>>(0))?;
+        let (mut execution,mut invalid) = (0,0);
+        for row in rows {
+            let result: Option<ComputerUseResult> = row?.map(|value| parse_json_column(&value)).transpose()?;
+            let is_invalid = result.as_ref().is_some_and(|result| result.stage == computer_use::ComputerUseStage::IntentGuard
+                && result.attempts == 0 && result.steps_completed == 0
+                && result.error.as_ref().is_some_and(|error| matches!(error.code.as_str(), "invalid_tool_input"|"invalid_objective"|"invalid_success_criteria"|"input_correction_budget_exhausted")));
+            if is_invalid { invalid += 1; } else { execution += 1; }
+        }
+        Ok((execution,invalid))
     }
 }
 
@@ -438,6 +560,21 @@ mod tests {
         let connection = Connection::open_in_memory().unwrap();
         apply_session_migration_v11(&connection).unwrap();
         ComputerUseRunStore::from_connection(connection)
+    }
+
+    #[test]
+    fn diagnostic_redaction_keeps_invalid_action_shape_without_credentials_images_or_text() {
+        let raw=r#"{"done":false,"action":"click","api_key":"SECRET","reasoning":"FULL-THOUGHT","image":{"data_url":"data:image/png;base64,IMAGE"},"arguments":{"text":"PRIVATE-TYPING","points":[[0,0],[1,1]]}}"#;
+        let redacted=sanitized_action_json(raw);
+        assert!(redacted.contains("\"action\":\"click\""));
+        for secret in ["SECRET","FULL-THOUGHT","IMAGE","PRIVATE-TYPING","data:image"] { assert!(!redacted.contains(secret)); }
+        assert!(serde_json::from_str::<serde_json::Value>(&redacted).is_ok());
+        let invalid=sanitized_action_json("not-json PASSWORD");
+        assert!(!invalid.contains("PASSWORD"));
+        assert!(sanitized_action_json(&"x".repeat(20_000)).len()<100);
+        assert!(sanitized_action_json(r#"{"target":"window-canvas:1234"}"#).contains("window-canvas:1234"));
+        assert!(sanitized_action_json(r#"{"target":"window-canvas:abc123"}"#).contains("window-canvas:abc123"));
+        assert!(!sanitized_action_json(r#"{"target":"window-canvas:SECRET"}"#).contains("SECRET"));
     }
 
     #[test]

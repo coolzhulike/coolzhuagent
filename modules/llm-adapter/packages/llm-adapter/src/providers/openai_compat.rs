@@ -214,10 +214,12 @@ pub struct OpenAiCompatClient {
     config: OpenAiCompatConfig,
     api_key: Option<String>,
     base_url: String,
+    endpoint: Option<String>,
     model_aliases: HashMap<String, String>,
     max_retries: u32,
     initial_backoff: Duration,
     max_backoff: Duration,
+    request_parameters: crate::RequestParameters,
 }
 
 impl OpenAiCompatClient {
@@ -233,10 +235,12 @@ impl OpenAiCompatClient {
             config,
             api_key: api_key.filter(|value| !value.trim().is_empty()),
             base_url: read_base_url(config),
+            endpoint: None,
             model_aliases: HashMap::new(),
             max_retries: DEFAULT_MAX_RETRIES,
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
+            request_parameters: crate::RequestParameters::default(),
         }
     }
 
@@ -253,6 +257,18 @@ impl OpenAiCompatClient {
     #[must_use]
     pub fn with_base_url(mut self, base_url: impl Into<String>) -> Self {
         self.base_url = base_url.into();
+        self
+    }
+
+    #[must_use]
+    pub fn with_endpoint(mut self, endpoint: impl Into<String>) -> Self {
+        self.endpoint = Some(endpoint.into());
+        self
+    }
+
+    #[must_use]
+    pub fn with_request_parameters(mut self, parameters: crate::RequestParameters) -> Self {
+        self.request_parameters = parameters;
         self
     }
 
@@ -361,7 +377,7 @@ impl OpenAiCompatClient {
         &self,
         request: &MessageRequest,
     ) -> Result<reqwest::Response, ApiError> {
-        let request_url = chat_completions_endpoint(&self.base_url);
+        let request_url = self.endpoint.clone().unwrap_or_else(|| chat_completions_endpoint(&self.base_url));
         diagnostics::debug(
             "api.openai_compat",
             "send_request",
@@ -372,11 +388,14 @@ impl OpenAiCompatClient {
                 ("url", request_url.clone()),
             ],
         );
+        self.request_parameters.validate_for_model(&request.model, request.reasoning_effort.as_deref(), false)?;
+        let mut payload = build_chat_completion_request_for(self.config.provider_id(), request);
+        self.request_parameters.apply(&mut payload, request.reasoning_effort.as_deref(), false);
         let mut request_builder = self
             .http
             .post(&request_url)
             .header("content-type", "application/json")
-            .json(&build_chat_completion_request_for(self.config.provider_id(), request));
+            .json(&payload);
         if let Some(api_key) = self
             .api_key
             .as_deref()

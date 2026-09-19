@@ -1,6 +1,9 @@
 mod audio;
 mod browser_bridge;
 mod browser_bridge_protocol;
+mod chat_insights;
+mod chat_tool_history;
+mod multimodal_input;
 mod clawbot_channel;
 mod clawbot_gateway;
 mod computer_use_adapters;
@@ -342,6 +345,35 @@ fn chat_turn_is_cancelled(turn_id: &str) -> bool {
                 .map(|entry| entry.cancellation.is_requested())
         })
         .unwrap_or(false)
+}
+
+// provider trace 与外部 chat-turn ID 不同；只通过实际 token 建立关联。
+fn tool_turn_cancellation_registry() -> &'static Mutex<HashMap<String, Arc<ChatTurnCancellation>>> {
+    static REGISTRY: OnceLock<Mutex<HashMap<String, Arc<ChatTurnCancellation>>>> = OnceLock::new();
+    REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+struct ToolTurnCancellationScope { trace: String, token: Arc<ChatTurnCancellation> }
+impl ToolTurnCancellationScope {
+    fn install(trace: &str, token: Arc<ChatTurnCancellation>) -> Self {
+        tool_turn_cancellation_registry().lock().unwrap().insert(trace.to_string(), token.clone());
+        Self { trace: trace.to_string(), token }
+    }
+}
+impl Drop for ToolTurnCancellationScope {
+    fn drop(&mut self) {
+        if let Ok(mut entries) = tool_turn_cancellation_registry().lock() {
+            if entries.get(&self.trace).is_some_and(|token| Arc::ptr_eq(token, &self.token)) {
+                entries.remove(&self.trace);
+            }
+        }
+    }
+}
+
+fn tool_turn_cancellation_checker(trace: &str) -> Arc<dyn Fn() -> bool + Send + Sync> {
+    let token = tool_turn_cancellation_registry().lock().ok().and_then(|entries| entries.get(trace).cloned());
+    // closure 持有 token，外层 future 丢弃清理映射后，同步输入仍能看到已发出的取消。
+    Arc::new(move || token.as_ref().is_some_and(|token| token.is_requested()))
 }
 
 /// 通用 run interrupt 成功后唤醒同进程聊天 worker；重启后的 run 没有 registry
@@ -1068,6 +1100,10 @@ fn app() -> Router {
             get(api_get_session_model_limit).post(api_set_session_model_limit),
         )
         .route(
+            "/api/sessions/{session_id}/model-settings",
+            get(api_get_session_model_settings).post(api_set_session_model_settings),
+        )
+        .route(
             "/api/sessions/{session_id}/beads/{bead_id}",
             patch(api_session_update_bead).delete(api_session_delete_bead),
         )
@@ -1224,6 +1260,8 @@ fn app() -> Router {
         .route("/api/goals/{goal_id}", get(api_goal_detail))
         .route("/api/goals/{goal_id}/status", get(api_goal_status))
         .route("/api/goals/{goal_id}/events", get(api_goal_events))
+        .route("/api/chat/rooms/{room_id}/search", get(chat_insights::search))
+        .route("/api/chat/rooms/{room_id}/insights", get(chat_insights::insights))
         .route("/api/runs/{run_id}", get(api_run_status))
         .route("/api/runs/{run_id}/events", get(api_run_events))
         .route("/api/runs/{run_id}/interrupt", post(api_run_interrupt))
@@ -4634,6 +4672,10 @@ struct ChatRoomPermissionStatus {
     room_name: String,
     permission_profile: String,
     full_access: bool,
+    /// 工程调试模式影响实际权限，但不改写聊天室保存的权限选择。
+    dev_open_permissions: bool,
+    effective_permission_profile: String,
+    effective_full_access: bool,
     warning: String,
     updated_at: Option<u64>,
 }
@@ -5108,12 +5150,40 @@ struct WorkspaceConfig {
 }
 
 /// custom provider 会话的 token 限制覆盖项（按会话 id 生效）。字段为 0 表示该项不覆盖、沿用默认表。
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct SessionModelLimitOverride {
     #[serde(default)]
     context_window: u32,
     #[serde(default)]
     max_output_tokens: u32,
+    #[serde(default)]
+    protocol: Option<String>,
+    #[serde(default)]
+    base_url: Option<String>,
+    #[serde(default)]
+    endpoint: Option<String>,
+    #[serde(default)]
+    temperature: Option<f64>,
+    #[serde(default)]
+    top_p: Option<f64>,
+    #[serde(default)]
+    reasoning_mode: Option<String>,
+    #[serde(default)]
+    thinking_budget: Option<u32>,
+    #[serde(default)]
+    supports_multimodal: Option<bool>,
+    #[serde(default)]
+    enable_llm_tools: Option<bool>,
+    #[serde(default)]
+    llm_tool_exposure: Option<String>,
+    #[serde(default)]
+    computer_use_enabled: Option<bool>,
+    #[serde(default)]
+    tool_allowlist: Option<Vec<String>>,
+}
+
+fn session_model_settings_for(session_id: &str) -> SessionModelLimitOverride {
+    read_config(|config| config.session_model_limits.get(session_id).cloned().unwrap_or_default())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -6247,16 +6317,32 @@ impl Default for WorkspaceConfig {
 ///   保证安全出口。默"false 以显式意图。
 /// - `protected_paths.extra_rules` "无论如何都追"的补充规则，等价于用。
 ///   在默认基础上加条目，比 `append_defaults` 更精确。
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ConfigTool {
     #[serde(default)]
     protected_paths: ConfigToolProtectedPaths,
     #[serde(default)]
     execution: ConfigToolExecution,
-    #[serde(default)]
+    #[serde(default = "default_dev_open_permissions")]
     dev_open_permissions: bool,
     #[serde(default)]
     permission_profile: String,
+}
+
+fn default_dev_open_permissions() -> bool {
+    // 调试构建默认完全访问；发布构建保持显式授权，已有配置值不被覆盖。
+    cfg!(debug_assertions)
+}
+
+impl Default for ConfigTool {
+    fn default() -> Self {
+        Self {
+            protected_paths: ConfigToolProtectedPaths::default(),
+            execution: ConfigToolExecution::default(),
+            dev_open_permissions: default_dev_open_permissions(),
+            permission_profile: String::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -10776,7 +10862,7 @@ async fn api_understanding_agents() -> ApiResult<Json<UnderstandingAgentListResp
         .state
         .sessions
         .iter()
-        .filter(|session| is_understanding_model_type(&session.model_type))
+        .filter(|session| multimodal_input::session_supports_images(session))
         .map(|session| understanding_agent_from_session(session, active_session_id.as_deref()))
         .collect::<Vec<_>>();
 
@@ -10914,10 +11000,15 @@ async fn api_config_set_vision_agent(
     }
     let session = session_by_id(session_id)
         .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "指定视觉会话不存"))?;
-    if !is_understanding_model_type(&session.model_type) {
+    let agent = {
+        let store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
+        store.find_session(session_id).map(|value| value.to_agent_session(false))
+            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "指定视觉会话不存在"))?
+    };
+    if !multimodal_input::supports_images(&agent, &session_model_settings_for(session_id)) {
         return Err(api_error(
             StatusCode::BAD_REQUEST,
-            "指定会话不是视觉/多模态类型 Agent",
+            "指定会话未启用图片输入能力，请先在模型参数中设置支持图片直传",
         ));
     }
     let mut store = session_store()
@@ -11092,17 +11183,10 @@ async fn api_set_session_model_limit(
     let ctx = payload.context_window.min(4_000_000);
     let out = payload.max_output_tokens.min(1_000_000);
     mutate_workspace_config(|config| {
-        if ctx == 0 && out == 0 {
-            config.session_model_limits.remove(&session_id);
-        } else {
-            config.session_model_limits.insert(
-                session_id.clone(),
-                SessionModelLimitOverride {
-                    context_window: ctx,
-                    max_output_tokens: out,
-                },
-            );
-        }
+        // 旧容量 API 只修改容量，不能丢弃同一会话的采样、协议和工具参数。
+        let settings = config.session_model_limits.entry(session_id.clone()).or_default();
+        settings.context_window = ctx;
+        settings.max_output_tokens = out;
         Ok(())
     })?;
     Ok(Json(session_model_limit_response(
@@ -11110,6 +11194,226 @@ async fn api_set_session_model_limit(
         model,
         ctx > 0 || out > 0,
     )))
+}
+
+#[derive(Debug, Deserialize)]
+struct SessionModelSettingsUpdateRequest {
+    parameters: SessionModelLimitOverride,
+    session: Option<UpsertSessionRequest>,
+}
+
+fn model_settings_protocol(agent: &AgentSessionDto, settings: &SessionModelLimitOverride) -> &'static str {
+    match settings.protocol.as_deref() {
+        Some("anthropic_messages") => "anthropic_messages",
+        Some("openai_chat_completions") => "openai_chat_completions",
+        _ => match api::provider_kind_from_name(&agent.provider) {
+            Some(ProviderKind::Anthropic | ProviderKind::ClawApi) => "anthropic_messages",
+            _ => "openai_chat_completions",
+        },
+    }
+}
+
+fn model_settings_base_url(agent: &AgentSessionDto, settings: &SessionModelLimitOverride) -> String {
+    settings.base_url.as_deref().filter(|value| !value.trim().is_empty())
+        .or(agent.base_url.as_deref().filter(|value| !value.trim().is_empty()))
+        .map(str::to_string)
+        .unwrap_or_else(|| {
+            let kind = api::provider_kind_from_name(&agent.provider)
+                .unwrap_or_else(|| api::detect_provider_kind(&agent.model));
+            api::ModelRegistry::global().resolve_model_for_provider(&agent.model, kind).base_url
+        })
+}
+
+fn validate_session_model_settings(settings: &SessionModelLimitOverride, agent: &AgentSessionDto) -> ApiResult<()> {
+    let invalid = |message: &str| api_error(StatusCode::BAD_REQUEST, message);
+    if !matches!(settings.protocol.as_deref(), None | Some("openai_chat_completions" | "anthropic_messages")) {
+        return Err(invalid("不支持该模型协议"));
+    }
+    let anthropic = model_settings_protocol(agent, settings) == "anthropic_messages";
+    let mode = settings.reasoning_mode.as_deref().unwrap_or("auto");
+    if !matches!(mode, "auto" | "effort" | "thinking" | "budget" | "adaptive")
+        || (anthropic && matches!(mode, "effort" | "thinking"))
+        || (!anthropic && matches!(mode, "budget" | "adaptive")) {
+        return Err(invalid("思考参数编码与选择的协议不匹配"));
+    }
+    if settings.context_window > 4_000_000 || settings.max_output_tokens > 1_000_000 {
+        return Err(invalid("上下文容量上限为 4000000，最大输出上限为 1000000"));
+    }
+    let defaults = api::model_token_limit(&agent.model);
+    let ctx = if settings.context_window > 0 { settings.context_window } else { defaults.context_tokens };
+    let out = if settings.max_output_tokens > 0 { settings.max_output_tokens } else { defaults.max_output_tokens };
+    if settings.max_output_tokens > 0 && out > ctx {
+        return Err(invalid("最大输出不能超过上下文容量"));
+    }
+    if settings.temperature.is_some_and(|value| !value.is_finite() || value < 0.0 || value > if anthropic { 1.0 } else { 2.0 }) {
+        return Err(invalid("温度必须在协议允许的范围内：OpenAI 0–2，Anthropic 0–1"));
+    }
+    if settings.top_p.is_some_and(|value| !value.is_finite() || value <= 0.0 || value > 1.0) {
+        return Err(invalid("Top P 必须大于 0 且不超过 1"));
+    }
+    if anthropic && settings.temperature.is_some() && settings.top_p.is_some() {
+        return Err(invalid("Anthropic 请只设置温度或 Top P 中的一项"));
+    }
+    let auto_anthropic_thinking = mode == "auto" && anthropic && matches!(
+        api::resolve_legacy_reasoning("clawapi", &agent.model, Some(&agent.reasoning_effort)).preflight_wire,
+        api::ReasoningWire::AnthropicAdaptive { .. }
+    );
+    if anthropic && ((matches!(mode, "budget" | "adaptive") && agent.reasoning_effort != "none") || auto_anthropic_thinking)
+        && (settings.temperature.is_some() || settings.top_p.is_some()) {
+        return Err(invalid("开启 Anthropic 思考时请将采样参数留空，使用模型默认值"));
+    }
+    if mode == "adaptive" && !matches!(agent.reasoning_effort.as_str(), "auto" | "none" | "low" | "medium" | "high" | "max") {
+        return Err(invalid("Adaptive 思考支持自动、关闭、低、中、高、最大"));
+    }
+    if mode == "budget" && agent.reasoning_effort != "none" {
+        let budget = settings.thinking_budget.unwrap_or_default();
+        if budget < 1024 || budget >= request_max_tokens_for_limit((ctx, out)) {
+            return Err(invalid("思考预算至少为 1024，并且必须小于本轮实际输出预算（受上下文预留限制）"));
+        }
+    }
+    if !matches!(settings.llm_tool_exposure.as_deref(), None | Some("all" | "whitelist" | "dispatch-only")) {
+        return Err(invalid("工具范围必须为 all、whitelist 或 dispatch-only"));
+    }
+    if let Some(list) = &settings.tool_allowlist {
+        if list.len() > 256 || list.iter().any(|name| name.trim().is_empty() || name.len() > 128) {
+            return Err(invalid("工具清单最多 256 项，工具名称不能为空且不能超过 128 字节"));
+        }
+    }
+    let base = model_settings_base_url(agent, settings);
+    let url = reqwest::Url::parse(&base).map_err(|_| invalid("接口地址必须是完整的 HTTP 或 HTTPS URL"))?;
+    if !matches!(url.scheme(), "http" | "https") || url.host_str().is_none() || !url.username().is_empty() || url.password().is_some() {
+        return Err(invalid("接口地址须使用 HTTP/HTTPS；密钥请填写在独立的 API Key 输入框中"));
+    }
+    if let Some(endpoint) = settings.endpoint.as_deref().filter(|value| !value.trim().is_empty()) {
+        if endpoint.contains("://") {
+            let endpoint_url = reqwest::Url::parse(endpoint).map_err(|_| invalid("Endpoint 地址无效"))?;
+            if !matches!(endpoint_url.scheme(), "http" | "https") || endpoint_url.host_str().is_none()
+                || !endpoint_url.username().is_empty() || endpoint_url.password().is_some() {
+                return Err(invalid("Endpoint 须使用 HTTP/HTTPS 且不能包含密钥"));
+            }
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod unified_model_settings_tests {
+    use super::*;
+
+    fn agent() -> AgentSessionDto {
+        AgentSessionDto {
+            id: "settings-validation".into(), name: "参数测试".into(), display_name: "参数测试".into(),
+            avatar: None, model: "future-model".into(), model_type: "text".into(), provider: "custom".into(),
+            base_url: Some("http://127.0.0.1:11434/v1".into()), endpoint: None,
+            reasoning_effort: "high".into(), api_key_status: "未配置".into(), selectable: true,
+            enabled: true, system: false, default_timeout_ms: 20_000, memory_beads: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn unified_settings_preserve_legacy_limit_documents() {
+        let old: SessionModelLimitOverride = serde_json::from_str(r#"{"context_window":8192,"max_output_tokens":2048}"#).unwrap();
+        assert_eq!(old.context_window, 8192);
+        assert_eq!(old.max_output_tokens, 2048);
+        assert!(old.protocol.is_none());
+        assert!(old.enable_llm_tools.is_none());
+    }
+
+    #[test]
+    fn unified_settings_reject_invalid_sampling_and_mixed_protocols() {
+        let mut settings = SessionModelLimitOverride {
+            protocol: Some("openai_chat_completions".into()), reasoning_mode: Some("effort".into()),
+            temperature: Some(0.4), top_p: Some(0.9), ..Default::default()
+        };
+        assert!(validate_session_model_settings(&settings, &agent()).is_ok());
+        settings.temperature = Some(2.1);
+        assert!(validate_session_model_settings(&settings, &agent()).is_err());
+        settings.temperature = None;
+        settings.reasoning_mode = Some("budget".into());
+        assert!(validate_session_model_settings(&settings, &agent()).is_err());
+        settings.protocol = Some("anthropic_messages".into());
+        settings.top_p = None;
+        settings.thinking_budget = Some(2048);
+        settings.context_window = 32768;
+        settings.max_output_tokens = 8192;
+        assert!(validate_session_model_settings(&settings, &agent()).is_ok());
+        settings.thinking_budget = Some(8192);
+        assert!(validate_session_model_settings(&settings, &agent()).is_err());
+    }
+
+    #[test]
+    fn unified_settings_keep_long_local_model_paths_and_reject_non_http_connections() {
+        let model = format!("C:/Users/example/models/{}/model.gguf", "local-model-".repeat(12));
+        assert_eq!(normalize_model(Some(&model)), model);
+        let settings = SessionModelLimitOverride { base_url: Some("file:///C:/secret".into()), ..Default::default() };
+        assert!(validate_session_model_settings(&settings, &agent()).is_err());
+    }
+
+    #[test]
+    fn unified_settings_respect_local_service_cap_and_smaller_user_budget() {
+        let mut settings = SessionModelLimitOverride { context_window: 32768, max_output_tokens: 1024, ..Default::default() };
+        assert_eq!(constrain_session_model_limit((8192, 4096), &settings), (8192, 1024));
+        settings.context_window = 4096;
+        settings.max_output_tokens = 0;
+        assert_eq!(constrain_session_model_limit((8192, 4096), &settings), (4096, 4096));
+    }
+}
+
+async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) -> ApiResult<Json<JsonValue>> {
+    let (session, agent) = {
+        let store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
+        let session = store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
+        (session.summary(store.is_active(&session_id)), session.to_agent_session(store.is_active(&session_id)))
+    };
+    let parameters = session_model_settings_for(&session_id);
+    let defaults = api::model_token_limit(&agent.model);
+    let effective = effective_model_limit_for_agent(&agent);
+    Ok(Json(json!({
+        "session": session,
+        "protocol": model_settings_protocol(&agent, &parameters),
+        "base_url": model_settings_base_url(&agent, &parameters),
+        "endpoint": parameters.endpoint.as_ref().or(agent.endpoint.as_ref()),
+        "default_context_window": defaults.context_tokens,
+        "default_max_output_tokens": defaults.max_output_tokens,
+        "effective_context_window": effective.0,
+        "effective_max_output_tokens": request_max_tokens_for_limit(effective),
+        "effective_supports_multimodal": multimodal_input::supports_images(&agent, &parameters),
+        "image_input_strategy": if multimodal_input::supports_images(&agent, &parameters) { "native" } else { "vision-description" },
+        "parameters": parameters
+    })))
+}
+
+async fn api_set_session_model_settings(
+    AxumPath(session_id): AxumPath<String>,
+    Json(payload): Json<SessionModelSettingsUpdateRequest>,
+) -> ApiResult<Json<JsonValue>> {
+    let mut agent = {
+        let store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
+        store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?
+            .to_agent_session(store.is_active(&session_id))
+    };
+    if let Some(session) = payload.session.as_ref() {
+        validate_reasoning_effort(session.reasoning_effort.as_deref())?;
+        if let Some(avatar) = session.avatar.as_deref() { normalize_session_avatar(Some(avatar))?; }
+        if let Some(model) = &session.model { agent.model = normalize_model(Some(model)); }
+        if let Some(effort) = &session.reasoning_effort { agent.reasoning_effort = effort.clone(); }
+    }
+    validate_session_model_settings(&payload.parameters, &agent)?;
+    let previous = session_model_settings_for(&session_id);
+    mutate_workspace_config(|config| {
+        config.session_model_limits.insert(session_id.clone(), payload.parameters.clone());
+        Ok(())
+    })?;
+    if let Some(session) = payload.session {
+        let result = session_store().lock()
+            .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?
+            .update_session(&session_id, session);
+        if let Err(error) = result {
+            let _ = mutate_workspace_config(|config| { config.session_model_limits.insert(session_id.clone(), previous); Ok(()) });
+            return Err(error);
+        }
+    }
+    api_get_session_model_settings(AxumPath(session_id)).await
 }
 
 async fn api_session_context_preview(
@@ -14525,11 +14829,21 @@ fn chat_room_permission_status(
     let (permission_profile, updated_at) =
         chat_room_permission_record_sqlite(&default_session_sqlite_path(), room_id)
             .map_err(sqlite_api_error)?;
+    let dev_open_permissions = dev_open_tool_permissions_enabled();
+    let effective_full_access = dev_open_permissions || permission_profile == ROOM_PERMISSION_FULL_ACCESS;
+    let effective_permission_profile = if dev_open_permissions {
+        ROOM_PERMISSION_FULL_ACCESS.to_string()
+    } else {
+        permission_profile.clone()
+    };
     Ok(ChatRoomPermissionStatus {
         room_id: room_id.to_string(),
         room_name,
         full_access: permission_profile == ROOM_PERMISSION_FULL_ACCESS,
         permission_profile,
+        dev_open_permissions,
+        effective_permission_profile,
+        effective_full_access,
         warning: FULL_ACCESS_WARNING.to_string(),
         updated_at,
     })
@@ -15948,14 +16262,14 @@ async fn relay_run_one_with_cancel(
     result: &PreparedChatDispatch,
     index: usize,
     accumulated: &[(String, usize, String)],
-    cancellation: &ChatTurnCancellation,
+    cancellation: &Arc<ChatTurnCancellation>,
 ) -> Result<RelayStepOutcome, ChatTurnCancelled> {
     if cancellation.is_requested() {
         return Err(ChatTurnCancelled);
     }
     await_chat_turn(
         cancellation,
-        relay_run_one(agent, result, index, accumulated),
+        CHAT_CANCELLATION.scope(Arc::clone(cancellation), relay_run_one(agent, result, index, accumulated)),
     )
     .await
 }
@@ -16121,6 +16435,7 @@ async fn relay_dispatch(
 async fn api_chat_send_relay(
     Json(payload): Json<SendMessageRequest>,
 ) -> ApiResult<Json<SendMessageResponse>> {
+    let turn_clock = Instant::now();
     let result = prepare_chat_dispatch(payload)?;
     emit_backend_pet_event("chat.started", Some("Relay chat accepted"), "chat");
     let mut messages = result.messages.clone();
@@ -16129,6 +16444,7 @@ async fn api_chat_send_relay(
     // relay_dispatch 内部按步增量持久化（含用户消息），此处不再全量 persist（避免重复 append）。
     relay_dispatch(&result, &mut messages, &mut tasks).await;
     persist_auto_memory_beads(&messages);
+    chat_insights::record_timing(&result.chat_room_id, &chat_insights::reply_ids(&messages), elapsed_millis(turn_clock));
     emit_backend_pet_event("chat.completed", Some("Relay chat completed"), "chat");
 
     Ok(Json(SendMessageResponse {
@@ -16149,6 +16465,7 @@ async fn api_chat_send_relay(
 async fn api_chat_send(
     Json(payload): Json<SendMessageRequest>,
 ) -> ApiResult<Json<SendMessageResponse>> {
+    let turn_clock = Instant::now();
     let result = prepare_chat_dispatch(payload)?;
     emit_backend_pet_event("chat.started", Some("Chat request accepted"), "chat");
     let mut messages = result.messages.clone();
@@ -16159,6 +16476,7 @@ async fn api_chat_send(
     if result.targets.len() > 1 {
         relay_dispatch(&result, &mut messages, &mut tasks).await;
         persist_auto_memory_beads(&messages);
+        chat_insights::record_timing(&result.chat_room_id, &chat_insights::reply_ids(&messages), elapsed_millis(turn_clock));
         emit_backend_pet_event("chat.completed", Some("Relay chat completed"), "chat");
         return Ok(Json(SendMessageResponse {
             accepted_agent_ids: result
@@ -16219,6 +16537,9 @@ async fn api_chat_send(
         if effective_tool_requests.is_empty()
             && formal_computer_use_intent
             && !response.model_tool_calls_executed
+            && !response.used_real_model
+            && llm_tool_definitions_for_session(&agent.id, Some(&result.chat_room_id))
+                .is_some_and(|defs| defs.iter().any(|def| def.name == COMPUTER_USE_TOOL_NAME))
         {
             if let Some(request) =
                 formal_computer_use_tool_request_from_intent(&result.user_content)
@@ -16326,11 +16647,14 @@ async fn api_chat_send(
         // 纯视觉理解（看 / 描述屏幕，无明确 GUI 操作意图）不执行 computer-use 动作，
         // 交给多模态会话看图理解；仅"视觉 + 动作意图"或工具意图才进 run_tool_intent_message。
         if semantic_tool_side_route
+            && result.image_urls.is_empty()
+            && !response.used_real_model
+            && llm_tool_definitions_for_session(&agent.id, Some(&result.chat_room_id)).is_some()
             && !model_tool_write_executed
             && !has_pending_model_tool_requests
             && !formal_computer_use_intent
         {
-            if let Some(tool_message) = run_tool_intent_message(agent, &result.user_content).await {
+            if let Some(tool_message) = run_tool_intent_message(agent, &result.user_content, Some(&result.chat_room_id)).await {
                 messages.push(tool_message);
             }
         }
@@ -16366,6 +16690,7 @@ async fn api_chat_send(
     persist_reference_forward_memory(&result.reference_context, &result.targets);
     persist_group_send_shared_memory(&result.reference_context, &result.targets);
     emit_backend_pet_event("chat.completed", Some("Chat response completed"), "chat");
+    chat_insights::record_timing(&result.chat_room_id, &chat_insights::reply_ids(&messages), elapsed_millis(turn_clock));
 
     Ok(Json(SendMessageResponse {
         accepted_agent_ids: result
@@ -16511,6 +16836,7 @@ async fn api_chat_turn_interrupt(
 async fn api_chat_send_stream(
     Json(payload): Json<SendMessageRequest>,
 ) -> ApiResult<Sse<impl futures_core::Stream<Item = Result<Event, std::convert::Infallible>>>> {
+    let turn_clock = Instant::now();
     let result = prepare_chat_dispatch(payload)?;
     let turn_id = new_chat_turn_id();
     let db_path = default_session_sqlite_path();
@@ -16542,6 +16868,7 @@ async fn api_chat_send_stream(
         );
         let mut terminal_status = ChatTurnStatus::Completed;
         let mut tasks = result.tasks.clone();
+        let mut turn_reply_ids = Vec::new();
         'chat_turn: {
         match start_chat_runtime_run_sqlite(&db_path, &run_id, &claim_token) {
             Ok(true) => {}
@@ -16568,6 +16895,7 @@ async fn api_chat_send_stream(
         );
         yield Ok(sse_json_event("started", &ChatStreamStarted {
             turn_id: turn_id.clone(),
+            chat_room_id: result.chat_room_id.clone(),
             run_id: Some(run_id.clone()),
         }));
         let mut messages = result.messages.clone();
@@ -16610,7 +16938,7 @@ async fn api_chat_send_stream(
                     &result,
                     index,
                     &accumulated,
-                    cancellation.as_ref(),
+                    &cancellation,
                 )
                 .await
                 {
@@ -16636,6 +16964,7 @@ async fn api_chat_send_stream(
                     break 'chat_turn;
                 }
                 persist_relay_step(&result, &step_msgs);
+                turn_reply_ids.extend(chat_insights::reply_ids(&step_msgs));
                 for m in &step_msgs { yield Ok(sse_json_event("message", m)); }
                 messages.extend(step_msgs);
                 tasks.extend(step_tasks);
@@ -16650,7 +16979,7 @@ async fn api_chat_send_stream(
                     &result,
                     index,
                     &accumulated,
-                    cancellation.as_ref(),
+                    &cancellation,
                 )
                 .await
                 {
@@ -16674,6 +17003,7 @@ async fn api_chat_send_stream(
                     break 'chat_turn;
                 }
                 persist_relay_step(&result, &step_msgs);
+                turn_reply_ids.extend(chat_insights::reply_ids(&step_msgs));
                 for m in &step_msgs { yield Ok(sse_json_event("message", m)); }
                 messages.extend(step_msgs);
                 tasks.extend(step_tasks);
@@ -16754,6 +17084,7 @@ async fn api_chat_send_stream(
             let reasoning_id = format!("{assistant_id}-thinking");
             let mut model_tool_calls: BTreeMap<u32, (String, String, String)> = BTreeMap::new();
             let mut streamed_tool_calls_dispatched = false;
+            let mut text_recovery_used = false;
             let mut streamed_tool_write_executed = false;
             let mut assistant_message = ChatMessageDto {
                 id: assistant_id.clone(),
@@ -16787,6 +17118,7 @@ async fn api_chat_send_stream(
             let mut context_footer: Option<String> = None;
             let mut context_usage: Option<ContextUsageSnapshot> = None;
             let mut best_remote_usage: Option<api::Usage> = None;
+            let mut first_stream_usage = chat_insights::StreamUsageRecorder::new(&agent.id, &result.chat_room_id);
             let mut stream_context_assembly: Option<ContextAssembly> = None;
             emit_active_realtime_session_event(
                 "assistant_started",
@@ -16810,6 +17142,9 @@ async fn api_chat_send_stream(
                     result.attachment_count,
                     "真实模型未启用 (coolzhu.toml model.enable_real_llm=false)",
                 );
+                if !result.image_urls.is_empty() {
+                    assistant_message.content = "本轮图片尚未处理：真实模型未启用，未生成图片结论。".to_string();
+                }
                 assistant_started = true;
                 if cancellation.is_requested() {
                     terminal_status = ChatTurnStatus::Interrupted;
@@ -16917,21 +17252,7 @@ async fn api_chat_send_stream(
                                                 {
                                                     arguments.push_str(&partial_json);
                                                 }
-                                                if !reasoning_started {
-                                                    reasoning_started = true;
-                                                    emit_backend_pet_event("chat.reasoning", Some("Agent is reasoning"), "chat");
-                                                    yield Ok(sse_json_event("message_start", &reasoning_message));
-                                                }
-                                                update_active_realtime_session_states(
-                                                    Some("thinking"),
-                                                    None,
-                                                );
-                                                reasoning_message.content.push_str(&partial_json);
-                                                yield Ok(sse_json_event("message_delta", &ChatStreamDelta {
-                                                    id: reasoning_id.clone(),
-                                                    kind: "reasoning".to_string(),
-                                                    delta: partial_json,
-                                                }));
+                                                // 工具参数只属于原生 ToolUse，不进入思考展示、Thinking 回放或历史。
                                             }
                                             ContentBlockDelta::SignatureDelta { .. } => {}
                                         },
@@ -16952,11 +17273,6 @@ async fn api_chat_send_stream(
                                                     start.index,
                                                     (id.clone(), name.clone(), initial_input),
                                                 );
-                                                if !reasoning_started {
-                                                    reasoning_started = true;
-                                                    emit_backend_pet_event("chat.reasoning", Some("Agent requested a tool"), "chat");
-                                                    yield Ok(sse_json_event("message_start", &reasoning_message));
-                                                }
                                                 update_active_realtime_session_states(
                                                     Some("tool_calling"),
                                                     None,
@@ -16973,20 +17289,19 @@ async fn api_chat_send_stream(
                                                         "input": input.clone()
                                                     }),
                                                 );
-                                                reasoning_message.content.push_str(&format!(
-                                                    "模型请求工具：{name} {input}\n"
-                                                ));
-                                                yield Ok(sse_json_event("message_delta", &ChatStreamDelta {
-                                                    id: reasoning_id.clone(),
-                                                    kind: "reasoning".to_string(),
-                                                    delta: format!("模型请求工具：{name} {input}\n"),
-                                                }));
+                                                let turn_key = result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn");
+                                                yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id,
+                                                    &agent.id, turn_key, &id, &name, "requested", "等待工具参数与执行授权检查",
+                                                )));
                                             }
                                         }
-                                        StreamEvent::MessageStart(_)
-                                        | StreamEvent::ContentBlockStop(_)
+                                        StreamEvent::MessageStart(start) => {
+                                            first_stream_usage.merge(&start.message.usage);
+                                        }
+                                        StreamEvent::ContentBlockStop(_)
                                         | StreamEvent::MessageStop(_) => {}
                                         StreamEvent::MessageDelta(delta) => {
+                                            first_stream_usage.merge(&delta.usage);
                                             remember_largest_remote_usage(
                                                 &mut best_remote_usage,
                                                 &delta.usage,
@@ -17000,6 +17315,7 @@ async fn api_chat_send_stream(
                                 }
                             }
                         }
+                        first_stream_usage.finish();
                         diag!(
                             "[LLM-TOOLS] stream_response agent={} answer_len={} reasoning_len={} tool_call_count={} tool_calls={} stale_hits={}",
                             agent.id,
@@ -17053,6 +17369,9 @@ async fn api_chat_send_stream(
                             result.attachment_count,
                             &hint,
                         );
+                        if !result.image_urls.is_empty() {
+                            assistant_message.content = format!("图片输入处理失败，本轮未生成图片结论：{hint}");
+                        }
                         assistant_started = true;
                         if cancellation.is_requested() {
                             terminal_status = ChatTurnStatus::Interrupted;
@@ -17068,10 +17387,42 @@ async fn api_chat_send_stream(
                 break 'chat_turn;
             }
 
+            // 正文伪工具调用不能成为最终答案，也不能进入可执行队列。
+            let streamed_request_tools = stream_context_assembly.as_ref().and_then(|assembly|
+                agent_message_request_with_context_for_room(agent, true, assembly, Some(&result.chat_room_id)).tools);
+            if model_text_requires_tool_recovery(&assistant_message.content, &result.user_content)
+                || model_tool_calls.values().any(|(_, name, _)|
+                    !tool_call_name_is_exposed(name, streamed_request_tools.as_deref())) {
+                text_recovery_used = true;
+                diagnostic_note = Some("模型返回未开放的工具调用，已拒绝执行并尝试无工具回答".to_string());
+                let turn_key = result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn");
+                for (id, name, _) in model_tool_calls.values() {
+                    yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key, id, name,
+                        "failed", "工具请求未执行，已进入无工具回答恢复")));
+                }
+                let (recovery_messages, recovery_system) = stream_context_assembly.as_ref()
+                    .map(|assembly| (assembly.messages.clone(), assembly.system_prompt.clone()))
+                    .unwrap_or_else(|| (vec![InputMessage::user_text(result.user_content.clone())], build_agent_system_prompt(agent)));
+                let recovered = await_chat_turn(cancellation.as_ref(), call_agent_model_text_recovery(
+                    agent, &recovery_system, &recovery_messages, &result.user_content,
+                    diagnostic_note.as_deref().unwrap_or_default(), Some(&result.chat_room_id))).await;
+                match recovered {
+                    Err(_) => { terminal_status = ChatTurnStatus::Interrupted; break 'chat_turn; }
+                    Ok(Ok(response)) => {
+                        remember_largest_remote_usage(&mut best_remote_usage, &response.usage);
+                        assistant_message.content = answer_text(&response.content);
+                    }
+                    Ok(Err(_)) => assistant_message.content = unfinished_tool_recovery_answer(&result.user_content),
+                }
+                model_tool_calls.clear();
+                assistant_started = true;
+                yield Ok(sse_json_event("message_replace", &assistant_message));
+            }
+
             // REQ-LLM-003 / Phase C-13: tool result feedback loop（流"ToolResult 版）
             diag!(
                 "[TOOL-LOOP-STREAM] gate: llm_tools_enabled={} tool_calls={} names=[{}] dispatched_already={}",
-                llm_tools_enabled() && room_caps.1,
+                llm_tools_enabled_for_session(&agent.id) && room_caps.1,
                 model_tool_calls.len(),
                 model_tool_calls
                     .values()
@@ -17080,7 +17431,7 @@ async fn api_chat_send_stream(
                     .join(","),
                 streamed_tool_calls_dispatched
             );
-            if llm_tools_enabled() && room_caps.1 && !model_tool_calls.is_empty() {
+            if llm_tools_enabled_for_session(&agent.id) && room_caps.1 && !model_tool_calls.is_empty() {
                 diag!(
                     "[TOOL-LOOP-STREAM] {} tool calls, round 2 (ToolResult blocks)...",
                     model_tool_calls.len()
@@ -17114,6 +17465,10 @@ async fn api_chat_send_stream(
                         "tool_call_count": parsed_tool_calls.len()
                     }),
                 );
+                let turn_key = result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn");
+                for (id, name, _) in &parsed_tool_calls {
+                    yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key, id, name, "running", "正在执行")));
+                }
                 let dispatches = match dispatch_model_tool_calls_parallel_with_cancel(
                     parsed_tool_calls,
                     "[TOOL-LOOP-STREAM]",
@@ -17133,6 +17488,10 @@ async fn api_chat_send_stream(
                 if cancellation.is_requested() {
                     terminal_status = ChatTurnStatus::Interrupted;
                     break 'chat_turn;
+                }
+                for dispatch in &dispatches {
+                    yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key,
+                        &dispatch.tool_use_id, &dispatch.name, chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error), &dispatch.summary_text)));
                 }
                 diag!(
                     "[TOOL-LOOP-STREAM] dispatch returned {} result(s): [{}]",
@@ -17187,22 +17546,8 @@ async fn api_chat_send_stream(
                 let persisted_tool_messages = dispatches
                     .iter()
                     .flat_map(|dispatch| {
-                        let status = if dispatch.is_error {
-                            "failed"
-                        } else {
-                            "completed"
-                        };
-                        let call_summary = if dispatch.is_error {
-                            format!(
-                                "工具 `{}` 失败：{}",
-                                dispatch.name, dispatch.summary_text
-                            )
-                        } else {
-                            format!(
-                                "工具 `{}` 已完成：{}",
-                                dispatch.name, dispatch.summary_text
-                            )
-                        };
+                        let status = chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error);
+                        let call_summary = chat_tool_history::dispatch_summary(dispatch);
                         tool_messages_from_summary(
                             agent,
                             &dispatch.tool_use_id,
@@ -17301,12 +17646,48 @@ async fn api_chat_send_stream(
                         }
                     };
                     used_real_model = true;
+                    // 已收到的真实响应先记账；紧接着取消不能抹掉上游已报告的用量。
+                    chat_insights::record_usage(&agent.id, Some(&result.chat_room_id), &response.usage);
                     if cancellation.is_requested() {
                         terminal_status = ChatTurnStatus::Interrupted;
                         break 'chat_turn;
                     }
                     remember_largest_remote_usage(&mut best_remote_usage, &response.usage);
                     let tool_requests = model_tool_requests_from_blocks(&response.content);
+                    // 不同反馈响应可能重复使用 provider call ID；加响应轮次，避免覆盖上次调用与审计。
+                    let feedback_turn_key = format!("{}:feedback-{round_no}", result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn"));
+                    for (id, name, _) in &tool_requests {
+                        yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, &feedback_turn_key, id, name, "requested", "正在校验工具请求")));
+                    }
+                    let recovery_reason = if model_text_requires_tool_recovery(&answer_text(&response.content), &result.user_content) {
+                        Some("模型在正文中输出了未执行的工具调用标记".to_string())
+                    } else if tool_requests.iter().any(|(_, name, _)| !tool_call_name_is_exposed(name, request.tools.as_deref())) {
+                        Some("模型请求了本次未开放的工具，调用未执行".to_string())
+                    } else if tool_requests.iter().any(|(_, name, input)| is_computer_use_tool_request(name, input))
+                        && computer_use_terminal_failure.is_some() {
+                        computer_use_terminal_failure.as_deref().map(computer_use_recursive_call_blocked_feedback)
+                    } else if !tool_requests.is_empty() && round_no > max_rounds {
+                        feedback_watchdog_hit = true;
+                        Some(tool_feedback_watchdog_message(max_rounds as usize, tool_requests.len()))
+                    } else { None };
+                    if let Some(reason) = recovery_reason {
+                        for (id, name, _) in &tool_requests {
+                            yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, &feedback_turn_key, id, name, "not-executed", &reason)));
+                        }
+                        text_recovery_used = true;
+                        diagnostic_note = Some(reason.clone());
+                        match await_chat_turn(cancellation.as_ref(), call_agent_model_text_recovery(
+                            agent, &loop_system_prompt, &loop_messages, &result.user_content,
+                            &reason, Some(&result.chat_room_id))).await {
+                            Err(_) => { terminal_status = ChatTurnStatus::Interrupted; break 'chat_turn; }
+                            Ok(Ok(recovered)) => {
+                                remember_largest_remote_usage(&mut best_remote_usage, &recovered.usage);
+                                multi_round_answer = answer_text(&recovered.content);
+                            }
+                            Ok(Err(_)) => multi_round_answer = unfinished_tool_recovery_answer(&result.user_content),
+                        }
+                        break;
+                    }
                     if tool_requests.is_empty() {
                         multi_round_answer = answer_text(&response.content);
                         diag!(
@@ -17314,18 +17695,6 @@ async fn api_chat_send_stream(
                             multi_round_answer.len()
                         );
                         break;
-                    }
-                    if let Some(last_summary) = computer_use_terminal_failure.as_deref() {
-                        if tool_requests.iter().any(|(_, name, _)| {
-                            is_computer_use_tool_family(name)
-                        }) {
-                            multi_round_answer =
-                                computer_use_recursive_call_blocked_feedback(last_summary);
-                            diag!(
-                                "[TOOL-LOOP-STREAM] round{round_no} blocked cross-tool computer-use retry after terminal error"
-                            );
-                            break;
-                        }
                     }
                     if round_no > max_rounds {
                         feedback_watchdog_hit = true;
@@ -17373,6 +17742,10 @@ async fn api_chat_send_stream(
                         loop_repeat = 0;
                         last_loop_sig = Some(sig);
                     }
+                    let turn_key = feedback_turn_key.as_str();
+                    for (id, name, _) in &tool_requests {
+                        yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key, id, name, "running", "正在执行")));
+                    }
                     let dispatches = match dispatch_model_tool_calls_parallel_with_cancel(
                         tool_requests.clone(),
                         "[TOOL-LOOP-STREAM]",
@@ -17393,6 +17766,10 @@ async fn api_chat_send_stream(
                         terminal_status = ChatTurnStatus::Interrupted;
                         break 'chat_turn;
                     }
+                    for dispatch in &dispatches {
+                        yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key,
+                            &dispatch.tool_use_id, &dispatch.name, chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error), &dispatch.summary_text)));
+                    }
                     streamed_tool_write_executed |= dispatches
                         .iter()
                         .any(model_tool_dispatch_result_executed_file_write);
@@ -17406,30 +17783,12 @@ async fn api_chat_send_stream(
                             })
                             .map(|dispatch| dispatch.summary_text.clone());
                     }
-                    let stream_turn_key = result
-                        .messages
-                        .first()
-                        .map(|message| message.id.as_str())
-                        .unwrap_or("stream-turn");
+                    let stream_turn_key = feedback_turn_key.as_str();
                     let persisted_tool_messages = dispatches
                         .iter()
                         .flat_map(|dispatch| {
-                            let status = if dispatch.is_error {
-                                "failed"
-                            } else {
-                                "completed"
-                            };
-                            let call_summary = if dispatch.is_error {
-                                format!(
-                                    "工具 `{}` 失败：{}",
-                                    dispatch.name, dispatch.summary_text
-                                )
-                            } else {
-                                format!(
-                                    "工具 `{}` 已完成：{}",
-                                    dispatch.name, dispatch.summary_text
-                                )
-                            };
+                            let status = chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error);
+                            let call_summary = chat_tool_history::dispatch_summary(dispatch);
                             tool_messages_from_summary(
                                 agent,
                                 &dispatch.tool_use_id,
@@ -17538,6 +17897,10 @@ async fn api_chat_send_stream(
             if !streamed_tool_calls_dispatched
                 && !has_pending_stream_model_tool_calls
                 && formal_computer_use_intent
+                && !text_recovery_used
+                && !used_real_model
+                && llm_tool_definitions_for_session(&agent.id, Some(&result.chat_room_id))
+                    .is_some_and(|defs| defs.iter().any(|def| def.name == COMPUTER_USE_TOOL_NAME))
             {
                 if let Some((tool_use_id, tool_name, tool_input)) =
                     formal_computer_use_tool_request_from_intent(&result.user_content)
@@ -17637,6 +18000,10 @@ async fn api_chat_send_stream(
                 &result.user_content,
             );
             if semantic_tool_side_route
+                && result.image_urls.is_empty()
+                && !used_real_model
+                && !text_recovery_used
+                && llm_tool_definitions_for_session(&agent.id, Some(&result.chat_room_id)).is_some()
                 && !streamed_tool_write_executed
                 && !has_pending_stream_model_tool_calls
                 && !formal_computer_use_intent
@@ -17647,7 +18014,7 @@ async fn api_chat_send_stream(
                 }
                 let semantic_tool_message = match await_chat_turn(
                     cancellation.as_ref(),
-                    run_tool_intent_message(agent, &result.user_content),
+                    run_tool_intent_message(agent, &result.user_content, Some(&result.chat_room_id)),
                 )
                 .await
                 {
@@ -17753,6 +18120,7 @@ async fn api_chat_send_stream(
                     "used_real_model": used_real_model
                 }),
             );
+            turn_reply_ids.push(assistant_message.id.clone());
             yield Ok(sse_json_event("message_done", &assistant_message));
             if cancellation.is_requested() {
                 terminal_status = ChatTurnStatus::Interrupted;
@@ -17914,6 +18282,7 @@ async fn api_chat_send_stream(
                 "chat",
             );
         }
+        chat_insights::record_timing(&result.chat_room_id, &turn_reply_ids, elapsed_millis(turn_clock));
         let mut chat_stream_done = chat_stream_done(&result, &turn_id, status, tasks);
         chat_stream_done.run_id = Some(run_id.clone());
         yield Ok(sse_json_event(
@@ -19045,7 +19414,7 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
 
     let attachment_count = payload.attachments.as_ref().map_or(0, Vec::len);
     let attachments = payload.attachments.unwrap_or_default();
-    let image_urls = encode_attachment_images(&attachments);
+    let image_urls = encode_attachment_images(&attachments)?;
     let semantic_action = semantic_action_from_intent(text);
     let calls_vision =
         should_route_to_vision_agent(text) || semantic_action.as_deref() == Some("visual_action");
@@ -22524,6 +22893,29 @@ async fn run_vision_describe_screen_model(
     screen: ScreenDimensions,
     prompt: &str,
 ) -> Result<VisionDescribeScreenModelResult, String> {
+    let use_selected_session = payload.base_url.as_deref().is_none_or(|v| v.trim().is_empty())
+        && payload.model.as_deref().is_none_or(|v| v.trim().is_empty())
+        && payload.api_key.as_deref().is_none_or(|v| v.trim().is_empty())
+        && session_store().lock().ok().is_some_and(|store| store.state.active_vision_session_id.is_some());
+    if use_selected_session {
+        // 系统默认视觉会话必须遵守其图片开关与协议，不能绕回固定 OpenAI 本地后端。
+        let agent = multimodal_input::configured_vision_agent().map_err(|error| error.to_string())?;
+        let bytes = tokio::fs::read(capture_path).await.map_err(|error| error.to_string())?;
+        let images = vec![format!("data:image/png;base64,{}", base64_encode(&bytes))];
+        let prompt = format!("{prompt}\n屏幕尺寸 {}x{}。请如实描述可见窗口、文字和目标；不要执行任何工具。", screen.width, screen.height);
+        let response = tokio::time::timeout(Duration::from_secs(payload.timeout_seconds.unwrap_or(20).clamp(5, 180)),
+            call_agent_model(&agent, &prompt, &images, &[], None)).await
+            .map_err(|_| "默认视觉会话描述屏幕超时".to_string())?.map_err(|error| error.to_string())?;
+        if response.answer_text.trim().is_empty() { return Err("默认视觉会话未返回屏幕描述".to_string()); }
+        return Ok(VisionDescribeScreenModelResult {
+            description: response.answer_text,
+            trace: VisionBackendTrace {
+                backend: "session-native-protocol".to_string(), model: agent.model.clone(),
+                base_url: Some(model_settings_base_url(&agent, &session_model_settings_for(&agent.id))),
+                request_id: None, total_tokens: None, error: None,
+            },
+        });
+    }
     let session_config = vision_session_config();
     let base_url = payload
         .base_url
@@ -24650,9 +25042,14 @@ fn embedded_static_file(relative: &Path) -> Option<&'static [u8]> {
         "index.html" => Some(include_bytes!("../index.html")),
         "src/app.js" => Some(include_bytes!("app.js")),
         "src/styles.css" => Some(include_bytes!("styles.css")),
+        "src/chat_experience.js" => Some(include_bytes!("chat_experience.js")),
+        "src/chat_experience.css" => Some(include_bytes!("chat_experience.css")),
+        "src/wuxia_layout.css" => Some(include_bytes!("wuxia_layout.css")),
         "src/realtime_voice_capture.js" => Some(include_bytes!("realtime_voice_capture.js")),
         "src/realtime_audio_output.js" => Some(include_bytes!("realtime_audio_output.js")),
         "src/stt_tail_capture.js" => Some(include_bytes!("stt_tail_capture.js")),
+        "src/model_settings.js" => Some(include_bytes!("model_settings.js")),
+        "src/model_settings.css" => Some(include_bytes!("model_settings.css")),
         "tests/fixtures/computer-use-browser.html" => Some(include_bytes!(
             "../tests/fixtures/computer-use-browser.html"
         )),
@@ -24877,6 +25274,8 @@ tokio::task_local! {
     static TURN_TRACE: String;
     /// P1.5：本回合真实语义召回命中的 bead id（按相似度降序）；sync 召回读取。
     static SEMANTIC_IDS: Vec<String>;
+    /// 接力的 provider trace 在内部生成，携带真正的 host 取消 token 建立精确映射。
+    static CHAT_CANCELLATION: Arc<ChatTurnCancellation>;
 }
 
 /// 读取当前回合 trace；不在回合作用域内返回 None。
@@ -25502,18 +25901,14 @@ async fn agent_chat_response(
         })
         .map(|(room_real_llm, _, _)| room_real_llm)
         .unwrap_or(true);
-    let room_llm_tools = chat_room_id
-        .and_then(|room_id| {
-            chat_room_capabilities_sqlite(&default_session_sqlite_path(), room_id).ok()
-        })
-        .map(|(_, room_llm_tools, _)| room_llm_tools)
-        .unwrap_or(true);
     let use_real_llm = real_llm_enabled() && room_real_llm;
     diag!("[LLM-CHAIN] agent_chat_response: real_llm_enabled={use_real_llm}, agent={}, provider={}, model={}",
         agent.name, agent.provider, agent.model);
     // 会话链路为 async：coolzhu-diagnostics 的 span 上下文是 thread-local、不跨 .await，
     // 故用显式 trace 字段 + 手测延迟，保证一次回合的事件可按 trace 归并。
     let turn_trace = diagnostics::TraceIdType::generate().to_hex();
+    let _tool_cancellation_scope = CHAT_CANCELLATION.try_with(Arc::clone).ok()
+        .map(|token| ToolTurnCancellationScope::install(&turn_trace, token));
     let turn_started = std::time::Instant::now();
     diagnostics::info(
         "session",
@@ -25528,14 +25923,13 @@ async fn agent_chat_response(
     );
     if use_real_llm {
         diag!("[LLM-CHAIN] calling call_agent_model...");
-        let use_tool_loop = llm_tools_enabled() && room_llm_tools;
-        diag!("[LLM-CHAIN] llm_tools_enabled={use_tool_loop}");
+        // 即使工具关闭也经过统一恢复链路，防止正文伪工具调用被当成最终答案。
         let semantic_ids = if semantic_memory_enabled() {
             compute_semantic_recall(agent, prompt).await
         } else {
             Vec::new()
         };
-        let result = if use_tool_loop {
+        let result = {
             TURN_TRACE
                 .scope(
                     turn_trace.clone(),
@@ -25548,22 +25942,6 @@ async fn agent_chat_response(
                             context_history,
                             collaboration_roster,
                             chat_room_id,
-                        ),
-                    ),
-                )
-                .await
-        } else {
-            TURN_TRACE
-                .scope(
-                    turn_trace.clone(),
-                    SEMANTIC_IDS.scope(
-                        semantic_ids,
-                        call_agent_model(
-                            agent,
-                            prompt,
-                            image_urls,
-                            context_history,
-                            collaboration_roster,
                         ),
                     ),
                 )
@@ -25604,7 +25982,8 @@ async fn agent_chat_response(
                     ],
                 );
                 return AgentModelResponse {
-                    answer_text: local_agent_response(agent, prompt, attachment_count, &hint),
+                    answer_text: if image_urls.is_empty() { local_agent_response(agent, prompt, attachment_count, &hint) }
+                        else { format!("图片输入处理失败，本轮未生成图片结论：{hint}") },
                     reasoning_text: String::new(),
                     tool_requests: Vec::new(),
                     tool_write_executed: false,
@@ -25644,7 +26023,8 @@ async fn agent_chat_response(
         "真实模型未启用 (coolzhu.toml model.enable_real_llm=false)"
     };
     AgentModelResponse {
-        answer_text: local_agent_response(agent, prompt, attachment_count, fallback_reason),
+        answer_text: if image_urls.is_empty() { local_agent_response(agent, prompt, attachment_count, fallback_reason) }
+            else { format!("本轮图片未完成处理，未生成图片结论：{fallback_reason}") },
         reasoning_text: String::new(),
         tool_requests: Vec::new(),
         tool_write_executed: false,
@@ -25669,13 +26049,14 @@ fn real_llm_enabled() -> bool {
 }
 
 fn llm_tools_enabled() -> bool {
-    if dev_open_tool_permissions_enabled() {
-        return true;
-    }
-    if read_config(|c| c.model.enable_llm_tools) {
-        return true;
-    }
-    false
+    // 完全访问只决定执行权限，不能重新开启用户关闭的工具能力。
+    read_config(|c| c.model.enable_llm_tools)
+}
+
+fn llm_tools_enabled_for_session(session_id: &str) -> bool {
+    session_model_settings_for(session_id)
+        .enable_llm_tools
+        .unwrap_or_else(llm_tools_enabled)
 }
 
 fn desktop_pet_disabled() -> bool {
@@ -25792,18 +26173,27 @@ async fn call_agent_model(
     context_history: &[PersistedChatMessage],
     collaboration_roster: Option<&ChatRosterResponse>,
 ) -> Result<AgentModelResponse, api::ApiError> {
+    let image_input = multimodal_input::prepare(agent, prompt, image_urls, None).await?;
     let assembly = build_context_assembly_with_roster(
         agent,
         context_history,
-        prompt,
-        image_urls,
+        &image_input.prompt,
+        &image_input.image_urls,
         context_build_options_for_agent(agent),
         collaboration_roster,
     );
-    let request = agent_message_request_with_context(agent, false, &assembly);
-    let response = provider_client_for_agent(agent)?
+    image_input.verify_assembly(&assembly)?;
+    // 单次视觉理解没有执行器反馈通道，因此请求本身不暴露可执行工具。
+    let request = agent_message_request_build_with_system(agent, assembly.messages.clone(), false, None, assembly.system_prompt.clone());
+    let mut response = provider_client_for_agent(agent)?
         .send_message(&request)
         .await?;
+    chat_insights::record_usage(&agent.id, None, &response.usage);
+    if model_text_requires_tool_recovery(&answer_text(&response.content), prompt)
+        || !model_tool_requests_from_blocks(&response.content).is_empty() {
+        response = call_agent_model_text_recovery(agent, &assembly.system_prompt, &assembly.messages,
+            prompt, "单次理解请求不允许执行工具，模型返回了未执行的工具调用", None).await?;
+    }
     let policy = context_lifecycle_policy();
     let context_usage = context_usage_snapshot_for_assembly_with_usage(
         agent,
@@ -25864,10 +26254,8 @@ fn reasoning_text(blocks: &[OutputContentBlock]) -> String {
         .iter()
         .filter_map(|block| match block {
             OutputContentBlock::Thinking { thinking, .. } => Some(thinking.clone()),
-            OutputContentBlock::ToolUse { name, input, .. } => {
-                Some(format!("工具调用请求：{name} {input}"))
-            }
-            OutputContentBlock::Text { .. } | OutputContentBlock::RedactedThinking { .. } => None,
+            OutputContentBlock::ToolUse { .. } | OutputContentBlock::Text { .. }
+            | OutputContentBlock::RedactedThinking { .. } => None,
         })
         .collect::<Vec<_>>()
         .join("\n")
@@ -26033,6 +26421,8 @@ async fn dispatch_model_tool_calls_parallel_with_cancel(
     if cancellation.is_requested() {
         return Err(ChatTurnCancelled);
     }
+    let _tool_cancellation_scope = turn_id.as_deref()
+        .map(|trace| ToolTurnCancellationScope::install(trace, Arc::clone(&cancellation)));
     await_chat_turn(
         cancellation.as_ref(),
         dispatch_model_tool_calls_parallel(
@@ -26066,11 +26456,12 @@ async fn call_agent_model_with_tool_loop(
     collaboration_roster: Option<&ChatRosterResponse>,
     chat_room_id: Option<&str>,
 ) -> Result<AgentModelResponse, api::ApiError> {
+    let image_input = multimodal_input::prepare(agent, prompt, image_urls, chat_room_id).await?;
     let assembly = build_context_assembly_with_roster(
         agent,
         context_history,
-        prompt,
-        image_urls,
+        &image_input.prompt,
+        &image_input.image_urls,
         context_build_options_for_agent_with_floor_and_room(
             agent,
             session_context_reset_floor(&agent.id),
@@ -26078,6 +26469,7 @@ async fn call_agent_model_with_tool_loop(
         ),
         collaboration_roster,
     );
+    image_input.verify_assembly(&assembly)?;
     let base_history = assembly.messages.clone();
 
     let mut all_reasoning = String::new();
@@ -26110,22 +26502,32 @@ async fn call_agent_model_with_tool_loop(
             .send_message(&request)
             .await?;
         used_real_model = true;
+        chat_insights::record_usage(&agent.id, chat_room_id, &response.usage);
         remember_largest_remote_usage(&mut best_remote_usage, &response.usage);
         last_diagnostic = model_diagnostic_note(response.request_id.as_deref(), &response.content);
 
         let tool_requests = model_tool_requests_from_blocks(&response.content);
-        if let Some(last_summary) = computer_use_terminal_failure.as_deref() {
-            if tool_requests
-                .iter()
-                .any(|(_, name, _)| is_computer_use_tool_family(name))
-            {
-                terminal_supervisor_answer =
-                    Some(computer_use_recursive_call_blocked_feedback(last_summary));
-                diag!(
-                    "[TOOL-LOOP] round {round}: blocked cross-tool computer-use retry after terminal error"
-                );
-                break;
+        let recovery_reason = if model_text_requires_tool_recovery(&answer_text(&response.content), prompt) {
+            Some("模型在正文中输出了未执行的工具调用标记".to_string())
+        } else if tool_requests.iter().any(|(_, name, _)| !tool_call_name_is_exposed(name, request.tools.as_deref())) {
+            Some("模型请求了本次未开放的工具，调用未执行".to_string())
+        } else if tool_requests.iter().any(|(_, name, input)| is_computer_use_tool_request(name, input)) {
+            computer_use_terminal_failure.as_deref().map(computer_use_recursive_call_blocked_feedback)
+        } else { None };
+        if let Some(reason) = recovery_reason {
+            last_diagnostic = Some(reason.clone());
+            match call_agent_model_text_recovery(agent, &assembly.system_prompt,
+                history.as_ref().unwrap_or(&base_history), prompt, &reason, chat_room_id).await {
+                Ok(recovered) => {
+                    remember_largest_remote_usage(&mut best_remote_usage, &recovered.usage);
+                    terminal_supervisor_answer = Some(answer_text(&recovered.content));
+                }
+                Err(error) => {
+                    diag!("[TOOL-LOOP] text recovery failed: {error}");
+                    terminal_supervisor_answer = Some(unfinished_tool_recovery_answer(prompt));
+                }
             }
+            break;
         }
         if !tool_requests.is_empty() && round < max_tool_feedback_rounds {
             diag!(
@@ -26255,8 +26657,16 @@ async fn call_agent_model_with_tool_loop(
             // 硬上限之后的 ToolUse 只能用于审计，绝不能再放回外层可执行列表。
             // 旧实现把它们写入 all_tool_requests，api_chat_send 随后又执行了一批，
             // 导致“提示未执行”与真实副作用相反，并且结果无法再反馈给模型。
-            final_answer =
-                tool_feedback_watchdog_message(max_tool_feedback_rounds, tool_requests.len());
+            let reason = tool_feedback_watchdog_message(max_tool_feedback_rounds, tool_requests.len());
+            last_diagnostic = Some(reason.clone());
+            final_answer = match call_agent_model_text_recovery(agent, &assembly.system_prompt,
+                history.as_ref().unwrap_or(&base_history), prompt, &reason, chat_room_id).await {
+                Ok(recovered) => {
+                    remember_largest_remote_usage(&mut best_remote_usage, &recovered.usage);
+                    answer_text(&recovered.content)
+                }
+                Err(_) => unfinished_tool_recovery_answer(prompt),
+            };
         }
         let policy = context_lifecycle_policy();
         let context_usage = context_usage_snapshot_for_assembly_with_usage(
@@ -26378,13 +26788,8 @@ fn computer_use_operation_constraints() -> &'static str {
 fn agent_tool_usage_instruction() -> String {
     let shell_guidance = host_shell_tool_guidance();
     let computer_use = computer_use_operation_constraints();
-    if dev_open_tool_permissions_enabled() {
-        return format!("Current tool policy: tool calling is ENABLED and every provided tool executes for real in development open-permissions mode; ignore any older memory or history suggesting tools cannot run. Before any tool call, follow the local AGENT.md tool calling guide and use exact top-level JSON parameters, never a raw wrapper unless the tool schema says so. Available direct tools include write_file, edit_file, PowerShell, bash, WebSearch, WebFetch, read_file, glob_search, grep_search, ToolSearch, Sleep, chat_handoff, and tools_semantic_dispatch. Only call a tool when the request needs an actual action (creating/editing files, running commands, web access, handoff, or finding a tool to perform a task); for purely informational, explanatory, or conversational questions, answer directly from your own knowledge WITHOUT any tool call — in particular do NOT call ToolSearch merely to explain or introduce a product, model, or concept. For filesystem writes, command execution, web access, or handoff, call the provided tools directly and then summarize the executed result. {shell_guidance}\n\n{computer_use}\n\n{guide}", guide = AGENT_GUIDE_INLINE);
-    }
-    if llm_tools_enabled() {
-        return format!("Reply directly to the chat-room user. Tool calling is enabled: follow the local AGENT.md tool calling guide, call the provided tools directly when they match the task, and use exact top-level JSON parameters. If a tool is gated, use the tool call so the system can surface the permission request instead of claiming the tool is unavailable. {shell_guidance}\n\n{computer_use}\n\n{guide}", guide = AGENT_GUIDE_INLINE);
-    }
-    format!("Reply directly to the chat-room user. If tools or vision are needed, describe the intent and let the system tool agent execute it.\n\n{computer_use}")
+    // 全局开关不能代表当前会话能力；具体开关与名单由请求构造器在末尾明确注入。
+    format!("Current tool policy: use only tools attached to the current request, following its final tool policy. If no tools are attached, answer directly and never output a fake <tool_call> or claim an external action was performed. For tools actually provided, ignore any older memory or history suggesting tools cannot run. Follow the local AGENT.md guide and use exact top-level JSON parameters. When the task requires an actual action, call the provided tools directly and summarize the verified result. For pure content generation, including HTML/SVG output, answer directly without tools or a planning preamble. Prefer write_file/edit_file only when the user requests saving or modifying an actual file. {shell_guidance}\n\n{computer_use}\n\n{guide}", guide = AGENT_GUIDE_INLINE)
 }
 
 fn host_shell_tool_guidance() -> &'static str {
@@ -26488,9 +26893,9 @@ fn context_compaction_memory_summary(
         .filter(|message| {
             !message.content.trim().is_empty() && !is_goal_temporary_persisted_message(message)
         })
+        .filter_map(chat_tool_history::project)
         .rev()
         .take(policy.compact_summary_max_messages)
-        .cloned()
         .collect::<Vec<_>>();
     selected.reverse();
     if selected.is_empty() {
@@ -26541,11 +26946,11 @@ fn context_compaction_item_from_history(
     let persisted = agent
         .memory_beads
         .iter()
-        .any(|bead| bead.source == "context:auto-compact" && bead.summary == summary);
+        .any(|bead| bead.source == "context:auto-compact:v2" && bead.summary == summary);
     Some(ContextCompactionItem {
         id,
         kind: "compaction".to_string(),
-        source: "context:auto-compact".to_string(),
+        source: "context:auto-compact:v2".to_string(),
         summary: summary.to_string(),
         message_count: dropped_history.len(),
         token_count: estimate_bead_tokens(summary),
@@ -26569,10 +26974,11 @@ fn is_goal_temporary_memory_bead(bead: &MemoryBeadDto) -> bool {
 }
 
 fn evaluate_auto_memory_candidate(message: &ChatMessageDto) -> Option<AutoMemoryDecision> {
+    let message = chat_tool_history::project_dto(message)?;
     if message.role != "assistant" || message.content.trim().is_empty() {
         return None;
     }
-    if is_goal_temporary_message(message) {
+    if is_goal_temporary_message(&message) {
         return None;
     }
     // 记忆只沉淀有效成功的执行流程：兜底消息（assistant-fallback）本质是失败 / 降级，永不沉淀；
@@ -26587,12 +26993,7 @@ fn evaluate_auto_memory_candidate(message: &ChatMessageDto) -> Option<AutoMemory
     }
 
     match message.kind.as_str() {
-        "reasoning" => Some(AutoMemoryDecision {
-            kind: "decision",
-            layer: "L2",
-            confidence: 0.7,
-        }),
-        "tool-summary" => Some(AutoMemoryDecision {
+        "tool-fact" => Some(AutoMemoryDecision {
             kind: "tool",
             layer: "L2",
             confidence: 0.78,
@@ -26801,8 +27202,8 @@ fn build_context_assembly_with_roster(
         if is_goal_temporary_persisted_message(message) {
             continue;
         }
-        let mut message_for_context = message.clone();
-        message_for_context.content = strip_context_usage_footer(&message.content);
+        let Some(mut message_for_context) = chat_tool_history::project(message) else { continue; };
+        message_for_context.content = strip_context_usage_footer(&message_for_context.content);
         if message_for_context.content.trim().is_empty() {
             continue;
         }
@@ -27136,12 +27537,13 @@ fn select_context_memory_beads(
         limit: options.max_memory_beads,
     };
     // P1.5：真实语义召回命中（task_local，由 async 层在启用时注入）优先；否则 keyword + hash 回退。
+    let memory_beads = agent.memory_beads.iter().filter_map(chat_tool_history::project_memory).collect::<Vec<_>>();
     let semantic_ids = current_semantic_ids();
     let (candidates, strategy) = if semantic_ids.is_empty() {
-        let query_hits = runtime::query_memory_beads(&agent.memory_beads, &query);
+        let query_hits = runtime::query_memory_beads(&memory_beads, &query);
         if query_hits.is_empty() {
             (
-                select_prompt_memory_beads(&agent.memory_beads, options.max_memory_beads),
+                select_prompt_memory_beads(&memory_beads, options.max_memory_beads),
                 "prompt_fallback",
             )
         } else {
@@ -27151,8 +27553,7 @@ fn select_context_memory_beads(
         let beads = semantic_ids
             .iter()
             .filter_map(|id| {
-                agent
-                    .memory_beads
+                memory_beads
                     .iter()
                     .find(|bead| &bead.id == id)
                     .cloned()
@@ -27271,7 +27672,7 @@ fn effective_model_limit_for(session_id: &str, model: &str) -> (u32, u32) {
     let default_limit = api::model_token_limit(model);
     let mut context_tokens = default_limit.context_tokens;
     let mut max_output_tokens = default_limit.max_output_tokens;
-    if let Some(ov) = read_config(|config| config.session_model_limits.get(session_id).copied()) {
+    if let Some(ov) = read_config(|config| config.session_model_limits.get(session_id).cloned()) {
         if ov.context_window > 0 {
             context_tokens = ov.context_window;
         }
@@ -27304,11 +27705,20 @@ fn effective_model_limit_for_agent_values(
 fn effective_model_limit_for_agent(agent: &AgentSessionDto) -> (u32, u32) {
     let session_limit = effective_model_limit_for(&agent.id, &agent.model);
     let local = local_chat_runtime_config();
-    effective_model_limit_for_agent_values(
+    let actual_limit = effective_model_limit_for_agent_values(
         agent,
         session_limit,
         local.port,
         (local.context_window, local.max_output_tokens),
+    );
+    constrain_session_model_limit(actual_limit, &session_model_settings_for(&agent.id))
+}
+
+fn constrain_session_model_limit(limit: (u32, u32), settings: &SessionModelLimitOverride) -> (u32, u32) {
+    // 本地服务上限优先，但用户选择更小的预算仍必须生效。
+    (
+        if settings.context_window > 0 { limit.0.min(settings.context_window) } else { limit.0 },
+        if settings.max_output_tokens > 0 { limit.1.min(settings.max_output_tokens) } else { limit.1 },
     )
 }
 
@@ -28470,6 +28880,7 @@ fn reasoning_strategy_id(strategy: api::ReasoningStrategy) -> &'static str {
     match strategy {
         api::ReasoningStrategy::ProviderDefault => "provider_default",
         api::ReasoningStrategy::OpenAiReasoningEffort => "openai_reasoning_effort",
+        api::ReasoningStrategy::QwenThinking => "qwen_thinking",
         api::ReasoningStrategy::AnthropicAdaptiveThinking => "anthropic_adaptive_thinking",
         api::ReasoningStrategy::DeepSeekThinking => "deepseek_thinking",
         api::ReasoningStrategy::ZhipuThinking => "zhipu_thinking",
@@ -29523,7 +29934,8 @@ fn persist_auto_memory_beads_at_path(expected_path: Option<&Path>, messages: &[C
         .collect::<Vec<_>>();
 
     for message in messages {
-        let Some(decision) = evaluate_auto_memory_candidate(message) else {
+        let Some(message) = chat_tool_history::project_dto(message) else { continue; };
+        let Some(decision) = evaluate_auto_memory_candidate(&message) else {
             continue;
         };
         let Some((target_id, _, _)) = session_targets.iter().find(|(_, name, display_name)| {
@@ -30198,11 +30610,12 @@ async fn stream_agent_model(
     turn_id: &str,
     chat_room_id: Option<&str>,
 ) -> Result<(api::MessageStream, ContextAssembly), api::ApiError> {
+    let image_input = multimodal_input::prepare(agent, prompt, image_urls, chat_room_id).await?;
     let mut assembly = build_context_assembly_with_roster(
         agent,
         context_history,
-        prompt,
-        image_urls,
+        &image_input.prompt,
+        &image_input.image_urls,
         context_build_options_for_agent_with_floor_and_room(
             agent,
             session_context_reset_floor(&agent.id),
@@ -30210,6 +30623,7 @@ async fn stream_agent_model(
         ),
         collaboration_roster,
     );
+    image_input.verify_assembly(&assembly)?;
     // 流式入口不经过 agent_chat_response 的 TURN_TRACE scope，显式回填真实回合 ID。
     assembly.turn_id = Some(turn_id.to_string());
     let request = agent_message_request_with_context_for_room(agent, true, &assembly, chat_room_id);
@@ -30223,20 +30637,45 @@ fn provider_client_for_agent(agent: &AgentSessionDto) -> Result<ProviderClient, 
     let provider_kind = api::provider_kind_from_name(&agent.provider)
         .unwrap_or_else(|| api::detect_provider_kind(&agent.model));
     let api_key = session_api_key(&agent.id);
+    let settings = session_model_settings_for(&agent.id);
+    let parameters = api::RequestParameters {
+        temperature: settings.temperature,
+        top_p: settings.top_p,
+        reasoning_mode: settings.reasoning_mode.clone(),
+        thinking_budget: settings.thinking_budget,
+    };
     diag!(
         "[PROVIDER] agent={}, provider={provider_kind:?}, has_key={}",
         agent.id,
         api_key.is_some()
     );
+    if settings.protocol.is_some() || settings.endpoint.is_some() || agent.endpoint.is_some() {
+        let anthropic = model_settings_protocol(agent, &settings) == "anthropic_messages";
+        let protocol = if anthropic { api::ProviderProtocol::AnthropicMessages } else { api::ProviderProtocol::OpenAiChatCompletions };
+        let endpoint = api::EndpointResolver::resolve(
+            &model_settings_base_url(agent, &settings), protocol,
+            settings.endpoint.as_deref().or(agent.endpoint.as_deref()),
+        )?;
+        // 旧会话切换至统一界面后仍可沿用原有环境变量密钥，无需回显明文。
+        let key = api_key.or_else(|| {
+            api::ModelRegistry::global().resolve_model_for_provider(&agent.model, provider_kind)
+                .env_keys.iter().find_map(|name| std::env::var(name).ok().filter(|value| !value.trim().is_empty()))
+        });
+        return ProviderClient::from_session_endpoint(&agent.model, &endpoint, anthropic, provider_kind, key)
+            .map(|client| client.with_request_parameters(parameters));
+    }
     if provider_kind == ProviderKind::Custom {
         let base_url = effective_custom_agent_base_url(agent)
             .unwrap_or_else(|| "http://127.0.0.1:11434/v1".to_string());
-        return ProviderClient::from_custom_openai_compatible(&agent.model, &base_url, api_key);
+        return ProviderClient::from_custom_openai_compatible(&agent.model, &base_url, api_key)
+            .map(|client| client.with_request_parameters(parameters));
     }
     if let Some(base_url) = effective_agent_base_url(agent) {
-        return ProviderClient::from_custom_openai_compatible(&agent.model, &base_url, api_key);
+        return ProviderClient::from_custom_openai_compatible(&agent.model, &base_url, api_key)
+            .map(|client| client.with_request_parameters(parameters));
     }
     ProviderClient::from_model_provider_and_key(&agent.model, provider_kind, api_key)
+        .map(|client| client.with_request_parameters(parameters))
 }
 
 /// 媒体生成会话类型：按 model_type 或 model 名识别 image / video；None=普通文本/对话会话。
@@ -30910,7 +31349,7 @@ fn agent_message_request_with_images(
     stream: bool,
     image_urls: &[String],
 ) -> MessageRequest {
-    let tools = llm_tool_definitions();
+    let tools = llm_tool_definitions_for_session(&agent.id, None);
     let message = if image_urls.is_empty() {
         InputMessage::user_text(prompt.to_string())
     } else {
@@ -30931,7 +31370,7 @@ fn agent_message_request_with_history(
     stream: bool,
     messages: Vec<InputMessage>,
 ) -> MessageRequest {
-    let tools = llm_tool_definitions();
+    let tools = llm_tool_definitions_for_session(&agent.id, None);
     agent_message_request_build(agent, messages, stream, tools)
 }
 
@@ -30980,7 +31419,7 @@ fn agent_message_request_with_context_messages_for_room(
     messages: Vec<InputMessage>,
     chat_room_id: Option<&str>,
 ) -> MessageRequest {
-    let tools = llm_tool_definitions_for_room(chat_room_id);
+    let tools = llm_tool_definitions_for_session(&agent.id, chat_room_id);
     agent_message_request_build_with_system(
         agent,
         messages,
@@ -31010,6 +31449,18 @@ fn agent_message_request_build(
 /// round1 仅当最后一条用户消息文本命中动作类关键词时才返回 true，
 /// 纯问答 / 介绍 / 解释类问题返回 false，从而对弱模型不暴露工具（杜绝无意图强行调用）。
 fn messages_have_tool_intent(messages: &[InputMessage]) -> bool {
+    // 新一条明确的“不要用工具”不能被历史工具往返重新开启。
+    let latest_user_text = messages.iter().rev().filter(|message| message.role == "user")
+        .find_map(|message| {
+            let text = message.content.iter().filter_map(|block| match block {
+                InputContentBlock::Text { text } => Some(multimodal_input::user_intent_text(text)),
+                _ => None,
+            }).collect::<Vec<_>>().join(" ");
+            (!text.trim().is_empty()).then_some(text)
+        });
+    if latest_user_text.as_deref().is_some_and(text_explicitly_disables_all_tools) {
+        return false;
+    }
     let has_tool_turn = messages.iter().any(|m| {
         m.content.iter().any(|b| {
             matches!(
@@ -31029,7 +31480,7 @@ fn messages_have_tool_intent(messages: &[InputMessage]) -> bool {
             m.content
                 .iter()
                 .filter_map(|b| match b {
-                    InputContentBlock::Text { text } => Some(text.as_str()),
+                    InputContentBlock::Text { text } => Some(multimodal_input::user_intent_text(text)),
                     _ => None,
                 })
                 .collect::<Vec<_>>()
@@ -31060,7 +31511,7 @@ fn messages_have_computer_use_intent(messages: &[InputMessage]) -> bool {
                 .content
                 .iter()
                 .filter_map(|block| match block {
-                    InputContentBlock::Text { text } => Some(text.as_str()),
+                    InputContentBlock::Text { text } => Some(multimodal_input::user_intent_text(text)),
                     _ => None,
                 })
                 .collect::<Vec<_>>()
@@ -31068,6 +31519,47 @@ fn messages_have_computer_use_intent(messages: &[InputMessage]) -> bool {
         })
         .unwrap_or_default();
     text_has_computer_use_intent(&last_user_text)
+}
+
+fn messages_allow_computer_use(messages: &[InputMessage]) -> bool {
+    let user_texts = messages.iter().filter(|message| message.role == "user")
+        .map(|message| message.content.iter().filter_map(|block| match block {
+            InputContentBlock::Text { text } => Some(multimodal_input::user_intent_text(text)),
+            _ => None,
+        }).collect::<Vec<_>>().join(" "))
+        .filter(|text| !text.trim().is_empty()).collect::<Vec<_>>();
+    let Some(latest) = user_texts.last() else { return false; };
+    if text_explicitly_disables_all_tools(latest)
+        || text_negates_computer_use_entry(&latest.to_ascii_lowercase()) {
+        return false;
+    }
+    if text_has_computer_use_intent(latest) { return true; }
+    let continuation = matches!(latest.trim().to_ascii_lowercase().as_str(),
+        "继续" | "继续执行" | "接着做" | "continue" | "go on" | "try again");
+    let in_tool_loop = messages.last().is_some_and(|message| message.content.iter()
+        .any(|block| matches!(block, InputContentBlock::ToolResult { .. })));
+    (continuation || in_tool_loop) && user_texts.iter().rev().skip(1)
+        .take(3).any(|text| text_has_computer_use_intent(text))
+}
+
+fn request_tool_policy_instruction(tools: Option<&[ToolDefinition]>) -> String {
+    match tools.filter(|definitions| !definitions.is_empty()) {
+        Some(definitions) => format!(
+            "当前请求可调用工具仅限：{}。权限开放不代表其它工具可用。纯生成文本、HTML、SVG 时直接输出内容；只有用户要求实际保存文件才调用写入工具。工具调用必须走结构化协议，禁止在正文伪造 <tool_call>。",
+            tool_definition_names(definitions)),
+        None => "当前请求禁止调用任何工具。直接用最终答案完成原始任务，禁止输出 <tool_call> 或声称文件已写入、命令已执行。若任务确需外部操作，说明尚未执行并提供可用的文本内容。".to_string(),
+    }
+}
+
+fn tool_call_name_is_exposed(name: &str, tools: Option<&[ToolDefinition]>) -> bool {
+    let normalized = name.replace('-', "_");
+    let canonical = match normalized.as_str() {
+        "computer_use.perform" => COMPUTER_USE_TOOL_NAME,
+        "tools.semantic_dispatch" => "tools_semantic_dispatch",
+        "chat.handoff" => "chat_handoff",
+        other => other,
+    };
+    tools.is_some_and(|definitions| definitions.iter().any(|definition| definition.name == canonical))
 }
 
 /// 用户文本是否显式点名了 computer-use 入口。
@@ -31247,7 +31739,7 @@ fn formal_computer_use_tool_request_from_intent(text: &str) -> Option<(String, S
             "success_criteria": success_criteria,
             "constraints": [
                 "Use computer_use_perform as the only execution path",
-                "Use DOM references for browser work and UIA references for desktop work",
+                "Use DOM references for browser work; for desktop work use current UIA references or the currently observed canvas_target for bounded relative drag paths",
                 "Do not use desktop coordinates for browser content",
                 "Report the terminal tool result exactly; do not invent success or failure"
             ]
@@ -31258,7 +31750,9 @@ fn formal_computer_use_tool_request_from_intent(text: &str) -> Option<(String, S
 fn formal_computer_use_success_criteria(text: &str) -> Vec<String> {
     for marker in [
         "success_criteria:",
+        "success_criteria：",
         "success criteria:",
+        "success criteria：",
         "成功条件：",
         "成功条件:",
     ] {
@@ -31606,6 +32100,25 @@ mod intent_gate_tests {
     }
 }
 
+/// 内部规划请求复用会话参数，但不注入聊天助手的禁工具/自然语言回答话术。
+fn agent_planner_message_request(
+    agent: &AgentSessionDto,
+    messages: Vec<InputMessage>,
+    system_prompt: String,
+    max_tokens: u32,
+) -> MessageRequest {
+    MessageRequest {
+        model: agent.model.clone(),
+        max_tokens: max_tokens.max(1).min(agent_request_max_tokens(agent)),
+        messages,
+        system: Some(system_prompt),
+        tools: None,
+        tool_choice: None,
+        reasoning_effort: Some(api::parse_legacy_reasoning_effort(Some(&agent.reasoning_effort)).value.as_str().to_string()),
+        stream: false,
+    }
+}
+
 fn agent_message_request_build_with_system(
     agent: &AgentSessionDto,
     messages: Vec<InputMessage>,
@@ -31614,21 +32127,32 @@ fn agent_message_request_build_with_system(
     system_prompt: String,
 ) -> MessageRequest {
     let max_tokens = agent_request_max_tokens(agent);
-    let tools_enabled = llm_tools_enabled();
+    let tools_enabled = llm_tools_enabled_for_session(&agent.id);
     // 小上下文窗口（典型为本地 llama.cpp 等端点）：成组工具 schema 动辄数千 token，会挤占本就紧张的
     // prompt 空间——连图片/历史都放不下，直接撞穿端点窗口被 400 拒绝，且弱模型常对纯问答消息反射性误调工具。
-    // 小窗口只保留紧凑的任务级 computer-use schema；云端大窗口会话（>16K）不受影响。
+    // 小窗口只保留常用文件/搜索/命令工具，UI 入口仍受任务意图约束。
     let (ctx_window, _) = effective_model_limit_for_agent(agent);
     // 意图门控：仅在确有动作意图（或已进入工具往返轮次）时才暴露工具，
     // 纯问答 / 介绍 / 解释类首轮消息不暴露工具，杜绝弱模型无意图强行调用 ToolSearch / WebSearch。
     let force_computer_use = messages_have_computer_use_intent(&messages);
-    let tools = select_tools_for_request(
+    let mut tools = select_tools_for_request(
         tools,
         tools_enabled,
         ctx_window,
         messages_have_tool_intent(&messages),
     );
+    // 不因上下文小就只给 UI 工具；普通文件/代码任务不暴露桌面入口。
+    // 工具往返或用户说“继续”时沿用之前明确的 UI 目标。
+    if !messages_allow_computer_use(&messages) {
+        if let Some(definitions) = tools.as_mut() {
+            definitions.retain(|definition| definition.name != COMPUTER_USE_TOOL_NAME);
+        }
+    }
+    if tools.as_ref().is_some_and(Vec::is_empty) {
+        tools = None;
+    }
     let tool_count = tools.as_ref().map_or(0, Vec::len);
+    let system_prompt = format!("{system_prompt}\n\n{}", request_tool_policy_instruction(tools.as_deref()));
     let tool_names = tools
         .as_ref()
         .map(|defs| tool_definition_names(defs))
@@ -31638,7 +32162,11 @@ fn agent_message_request_build_with_system(
             .iter()
             .any(|definition| definition.name == COMPUTER_USE_TOOL_NAME)
     });
-    let tool_choice = if force_computer_use && has_computer_use_tool {
+    let settings = session_model_settings_for(&agent.id);
+    let qwen_thinking_auto_only = agent.model.to_ascii_lowercase().starts_with("qwen3.8")
+        && settings.reasoning_mode.as_deref() != Some("disabled")
+        && !matches!(agent.reasoning_effort.as_str(), "none" | "off");
+    let tool_choice = if force_computer_use && has_computer_use_tool && !qwen_thinking_auto_only {
         Some(ToolChoice::Tool {
             name: COMPUTER_USE_TOOL_NAME.to_string(),
         })
@@ -31696,7 +32224,10 @@ fn select_tools_for_request(
     }
     let mut selected = tools?;
     if context_window > 0 && context_window <= SMALL_CONTEXT_TOOL_CUTOFF_TOKENS {
-        selected.retain(|tool| tool.name == COMPUTER_USE_TOOL_NAME);
+        selected.retain(|tool| matches!(tool.name.as_str(),
+            "read_file" | "write_file" | "edit_file" | "glob_search" | "grep_search"
+            | "PowerShell" | "bash" | "WebFetch" | "WebSearch" | "tools_semantic_dispatch"
+            | COMPUTER_USE_TOOL_NAME));
     }
     (!selected.is_empty()).then_some(selected)
 }
@@ -31736,33 +32267,8 @@ fn request_max_tokens_for_limit(limit: (u32, u32)) -> u32 {
         .max(1)
 }
 
-fn encode_attachment_images(attachments: &[ChatAttachmentDto]) -> Vec<String> {
-    use std::io::Read;
-    let store = attachment_store_dir();
-    attachments
-        .iter()
-        .filter_map(|att| {
-            let kind = att.kind.trim().to_ascii_lowercase();
-            if kind != "image" {
-                return None;
-            }
-            let file_name = att.url.rsplit('/').next()?;
-            let path = store.join(file_name);
-            let mut buf = Vec::new();
-            std::fs::File::open(&path)
-                .ok()?
-                .read_to_end(&mut buf)
-                .ok()?;
-            let mime = att.mime_type.as_deref().unwrap_or("image/png");
-            let data_uri = format!("data:{mime};base64,{}", base64_encode(&buf));
-            diag!(
-                "[IMAGE-ENCODE] encoded {} -> {} bytes base64",
-                file_name,
-                data_uri.len()
-            );
-            Some(data_uri)
-        })
-        .collect()
+fn encode_attachment_images(attachments: &[ChatAttachmentDto]) -> ApiResult<Vec<String>> {
+    multimodal_input::encode_images_from_store(attachments, &attachment_store_dir())
 }
 
 fn base64_encode(data: &[u8]) -> String {
@@ -31773,19 +32279,20 @@ fn base64_encode(data: &[u8]) -> String {
 /// REQ-TOOL-007 Phase C-10：LLM 工具暴露模式。
 ///
 /// "`coolzhu.toml [model] llm_tool_exposure` 读取，默"`"whitelist"`。
-/// 开发开放模式下强制 `"all"`，确保模型不会把写文"执行命令误判成不可用。
+/// 开发开放模式只影响权限；工具暴露范围始终尊重模型配置。
 /// 未知值降级为 `"whitelist"`（保守安全默认）。
 fn llm_tool_exposure_mode() -> &'static str {
-    if dev_open_tool_permissions_enabled() {
-        return "all";
-    }
     let raw = workspace_config()
         .lock()
         .ok()
         .and_then(|cfg| cfg.model.llm_tool_exposure.clone())
         .unwrap_or_default()
         .to_ascii_lowercase();
-    match raw.as_str() {
+    normalize_llm_tool_exposure(&raw)
+}
+
+fn normalize_llm_tool_exposure(raw: &str) -> &'static str {
+    match raw.trim().to_ascii_lowercase().as_str() {
         "all" => "all",
         "dispatch-only" | "dispatch_only" | "dispatch" => "dispatch-only",
         "whitelist" | "" => "whitelist",
@@ -31821,6 +32328,9 @@ fn default_llm_tool_allowlist() -> std::collections::BTreeSet<&'static str> {
 }
 
 fn llm_tool_permission_for_room(chat_room_id: Option<&str>) -> PermissionMode {
+    if dev_open_tool_permissions_enabled() {
+        return PermissionMode::DangerFullAccess;
+    }
     let Some(room_id) = chat_room_id else {
         return PermissionMode::ReadOnly;
     };
@@ -31864,7 +32374,7 @@ fn semantic_dispatch_tool_definition() -> ToolDefinition {
     ToolDefinition {
         name: "tools_semantic_dispatch".to_string(),
         description: Some(
-            "Route a user intent to computer-use and vision dry-run tool plans without executing real input. For UI work, declare surface=desktop|browser, ground on a fresh screenshot, and verify after every action."
+            "Route a concrete task to an available tool plan. For creating or editing files, prefer write_file/edit_file. Never use this tool to retry failed desktop/browser automation. Pure content generation should be answered directly without a tool."
                 .to_string(),
         ),
         input_schema: json!({
@@ -31986,7 +32496,7 @@ fn chat_handoff_tool_definition() -> ToolDefinition {
 }
 
 fn llm_tool_definitions() -> Option<Vec<ToolDefinition>> {
-    llm_tool_definitions_for_permission(PermissionMode::ReadOnly)
+    llm_tool_definitions_for_permission(llm_tool_permission_for_room(None))
 }
 
 fn llm_tool_definitions_for_room(chat_room_id: Option<&str>) -> Option<Vec<ToolDefinition>> {
@@ -31996,7 +32506,33 @@ fn llm_tool_definitions_for_room(chat_room_id: Option<&str>) -> Option<Vec<ToolD
 fn llm_tool_definitions_for_permission(
     granted_permission: PermissionMode,
 ) -> Option<Vec<ToolDefinition>> {
-    if !llm_tools_enabled() {
+    llm_tool_definitions_with_settings(granted_permission, None)
+}
+
+fn llm_tool_definitions_for_session(
+    session_id: &str,
+    chat_room_id: Option<&str>,
+) -> Option<Vec<ToolDefinition>> {
+    if chat_room_id.and_then(|room| {
+        chat_room_capabilities_sqlite(&default_session_sqlite_path(), room).ok()
+    }).is_some_and(|(_, enabled, _)| !enabled) {
+        return None;
+    }
+    let mut settings = session_model_settings_for(session_id);
+    if chat_room_id.and_then(|room| {
+        chat_room_capabilities_sqlite(&default_session_sqlite_path(), room).ok()
+    }).is_some_and(|(_, _, enabled)| !enabled) {
+        settings.computer_use_enabled = Some(false);
+    }
+    llm_tool_definitions_with_settings(llm_tool_permission_for_room(chat_room_id), Some(&settings))
+}
+
+fn llm_tool_definitions_with_settings(
+    granted_permission: PermissionMode,
+    settings: Option<&SessionModelLimitOverride>,
+) -> Option<Vec<ToolDefinition>> {
+    let enabled = settings.and_then(|value| value.enable_llm_tools).unwrap_or_else(llm_tools_enabled);
+    if !enabled {
         diag!(
             "[LLM-TOOLS] definitions disabled dev_open={} config_enable={}",
             dev_open_tool_permissions_enabled(),
@@ -32004,19 +32540,29 @@ fn llm_tool_definitions_for_permission(
         );
         return None;
     }
-    let mode = llm_tool_exposure_mode();
+    let mode = settings.and_then(|value| value.llm_tool_exposure.as_deref())
+        .map(normalize_llm_tool_exposure).unwrap_or_else(llm_tool_exposure_mode);
+    let explicit_allowlist = settings.and_then(|value| value.tool_allowlist.as_ref());
+    let name_allowed = |name: &str| explicit_allowlist
+        .map_or(true, |allowlist| allowlist.iter().any(|item| item == name));
     let mut defs: Vec<ToolDefinition> = vec![semantic_dispatch_tool_definition()];
-    if read_config(|config| config.computer_use.enabled) {
+    let computer_use_enabled = read_config(|config| config.computer_use.enabled)
+        && settings.and_then(|value| value.computer_use_enabled).unwrap_or(true);
+    if computer_use_enabled && mode != "dispatch-only"
+        && (mode == "all" || matches!(granted_permission,
+            PermissionMode::WorkspaceWrite | PermissionMode::DangerFullAccess | PermissionMode::Allow))
+        && name_allowed(COMPUTER_USE_TOOL_NAME) {
         defs.push(computer_use_tool_definition());
     }
 
     if mode == "dispatch-only" {
+        defs.retain(|definition| name_allowed(&definition.name));
         diag!(
             "[TOOL-REG] exposed {} tool(s) (dispatch-only): {}",
             defs.len(),
             tool_definition_names(&defs)
         );
-        return Some(defs);
+        return (!defs.is_empty()).then_some(defs);
     }
 
     defs.push(chat_handoff_tool_definition());
@@ -32049,7 +32595,8 @@ fn llm_tool_definitions_for_permission(
         dev_open_tool_permissions_enabled(),
         tool_definition_names(&defs)
     );
-    Some(defs)
+    defs.retain(|definition| name_allowed(&definition.name));
+    (!defs.is_empty()).then_some(defs)
 }
 
 fn tool_definition_names(defs: &[ToolDefinition]) -> String {
@@ -32655,57 +33202,21 @@ fn record_goal_trigger_consultation_event(
     );
 }
 
-async fn run_tool_intent_message(agent: &AgentSessionDto, prompt: &str) -> Option<ChatMessageDto> {
+async fn run_tool_intent_message(agent: &AgentSessionDto, prompt: &str, chat_room_id: Option<&str>) -> Option<ChatMessageDto> {
     let computer_use_execute = is_computer_use_execution_allowed();
-    let dispatch = if dev_open_tool_permissions_enabled() {
-        if let Some(input) = file_write_runtime_input_from_intent(prompt) {
-            diag!(
-                "[TOOL-CHAIN] run_tool_intent_message: dev-open file-write fallback -> runtime write_file"
-            );
-            execute_authorized_webui_runtime_dispatch("write_file", input).await
-        } else {
-            diag!(
-                "[TOOL-CHAIN] run_tool_intent_message: dev-open no direct runtime mapping, using semantic dispatch"
-            );
-            run_tool_dispatch(ToolDispatchRequest {
-                intent: prompt.to_string(),
-                execute: Some(computer_use_execute),
-                confirm_after: Some(!computer_use_execute),
-                roi_radius: Some(64),
-                text: None,
-                target: None,
-                menu_item: None,
-                raw_response: None,
-                capture_path: None,
-                use_latest_capture: None,
-                use_model: None,
-                system_control: None,
-            })
-            .await
-            .ok()?
-        }
+    let (name, input) = if let Some(input) = file_write_runtime_input_from_intent(prompt) {
+        ("write_file", input)
     } else {
-        run_tool_dispatch(ToolDispatchRequest {
-            intent: prompt.to_string(),
-            execute: Some(computer_use_execute),
-            confirm_after: if computer_use_execute {
-                None
-            } else {
-                Some(true)
-            },
-            roi_radius: Some(64),
-            text: None,
-            target: None,
-            menu_item: None,
-            raw_response: None,
-            capture_path: None,
-            use_latest_capture: None,
-            use_model: None,
-            system_control: None,
-        })
-        .await
-        .ok()?
+        ("tools_semantic_dispatch", json!({
+            "intent": prompt, "execute": computer_use_execute,
+            "confirm_after": !computer_use_execute, "roi_radius": 64
+        }))
     };
+    // 本地规则兜底与模型调用共用策略和权限入口，不能绕过房间/会话关闭的能力。
+    let turn_id = current_turn_trace();
+    let dispatch = run_model_tool_dispatch_for_session_with_identity(
+        name, &input, Some(&agent.id), None, turn_id.as_deref(), chat_room_id
+    ).await.ok()?;
 
     if dispatch.route == "none" && dispatch.dispatch_plan.is_none() {
         return None;
@@ -32734,16 +33245,7 @@ fn tool_messages_from_summary(
     status: &str,
     route: &str,
 ) -> Vec<ChatMessageDto> {
-    let tool_call_id = format!(
-        "tool-call-{:016x}",
-        hash_bytes(
-            format!(
-                "{}\u{1f}{}\u{1f}{}",
-                agent.id, dispatch_turn_id, tool_use_id
-            )
-            .as_bytes(),
-        )
-    );
+    let tool_call_id = chat_tool_history::call_id(&agent.id, dispatch_turn_id, tool_use_id);
     let result_id = tool_call_id.replacen("tool-call-", "tool-result-", 1);
     let result_content = format!(
         "tool_call_id: {tool_call_id}\ntool_name: {name}\nroute: {route}\nstatus: {status}\nsummary: {}",
@@ -32903,6 +33405,28 @@ async fn run_model_tool_dispatch_for_session_with_identity(
     diag!("[TOOL-CHAIN] run_model_tool_dispatch: name={name}, input={input}");
     let normalized = name.replace('-', "_");
 
+    // 模型可能无视 schema 返回结构化调用；执行入口再次核对会话/房间的显式策略。
+    if let Some(session_id) = caller_session_id {
+        let canonical = match normalized.as_str() {
+            "computer_use.perform" => COMPUTER_USE_TOOL_NAME,
+            "tools.semantic_dispatch" => "tools_semantic_dispatch",
+            "chat.handoff" => "chat_handoff",
+            other => other,
+        };
+        let definitions = llm_tool_definitions_for_session(session_id, chat_room_id);
+        if !definitions.as_ref().is_some_and(|definitions| definitions.iter()
+            .any(|definition| definition.name == canonical)) {
+            return Err(api_error(StatusCode::FORBIDDEN,
+                &format!("会话工具策略未开放 `{canonical}`，调用未执行")));
+        }
+        if is_computer_use_tool_request(name, input)
+            && !definitions.as_ref().is_some_and(|definitions| definitions.iter()
+                .any(|definition| definition.name == COMPUTER_USE_TOOL_NAME)) {
+            return Err(api_error(StatusCode::FORBIDDEN,
+                "本会话未开放 Computer Use，不能通过语义调度绕过该设置"));
+        }
+    }
+
     if normalized == "computer_use.perform" || normalized == "computer_use_perform" {
         let generated_turn_id;
         let effective_turn_id = match turn_id {
@@ -32926,11 +33450,10 @@ async fn run_model_tool_dispatch_for_session_with_identity(
     // 路径 A：元工具 `tools_semantic_dispatch` 默认保持 legacy 路径（computer-use dry-run plan）。
     // 但开发开放模式下，如果模型把文件写入请求包进语义入口，也要落到真"runtime。
     if normalized == "tools.semantic_dispatch" || normalized == "tools_semantic_dispatch" {
-        if dev_open_tool_permissions_enabled() {
-            if let Some(runtime_input) =
-                file_write_runtime_input_from_semantic_dispatch_input(input)
-            {
-                diag!("[TOOL-CHAIN] semantic_dispatch dev-open file-write -> runtime write_file");
+        if let Some(runtime_input) =
+            file_write_runtime_input_from_semantic_dispatch_input(input)
+        {
+                diag!("[TOOL-CHAIN] semantic_dispatch file-write -> permission-gated runtime write_file");
                 let outcome = invoke_through_runtime_for_session(
                     "write_file",
                     &runtime_input,
@@ -32943,7 +33466,6 @@ async fn run_model_tool_dispatch_for_session_with_identity(
                     &runtime_input,
                     outcome,
                 ));
-            }
         }
         return legacy_semantic_dispatch(input).await;
     }
@@ -32996,10 +33518,63 @@ fn is_computer_use_tool_family(name: &str) -> bool {
     let normalized = name.trim().to_ascii_lowercase().replace('-', "_");
     normalized == "computer_use.perform"
         || normalized == "computer_use_perform"
-        || normalized == "tools.semantic_dispatch"
-        || normalized == "tools_semantic_dispatch"
         || normalized.starts_with("computer.")
         || normalized.starts_with("computer_")
+}
+
+fn is_computer_use_tool_request(name: &str, input: &JsonValue) -> bool {
+    if is_computer_use_tool_family(name) { return true; }
+    let normalized = name.replace('-', "_");
+    if normalized != "tools_semantic_dispatch" && normalized != "tools.semantic_dispatch" {
+        return false;
+    }
+    // 语义文件写入是独立能力，不能被桌面熔断一并拦截。
+    file_write_runtime_input_from_semantic_dispatch_input(input).is_none()
+}
+
+fn model_text_contains_pseudo_tool_call(text: &str) -> bool {
+    let trimmed = text.trim_start().trim_start_matches("```xml").trim_start_matches("```json").trim_start();
+    trimmed.to_ascii_lowercase().starts_with("<tool_call")
+        || trimmed.to_ascii_lowercase().starts_with("<function_call")
+}
+
+fn model_text_requires_tool_recovery(text: &str, prompt: &str) -> bool {
+    let lower = prompt.to_ascii_lowercase();
+    // 协议教程或要求原样输出的代码示例可以展示标签；它们始终只是文本。
+    let requested_protocol_example = (lower.contains("<tool_call") || lower.contains("<function_call"))
+        && contains_any(&lower, &["示例", "解释", "展示", "原样", "文档", "example", "explain", "literal", "documentation"]);
+    model_text_contains_pseudo_tool_call(text) && !requested_protocol_example
+}
+
+fn unfinished_tool_recovery_answer(prompt: &str) -> String {
+    format!("本轮未能完成原请求：{}。模型未提供可用的最终答案；未执行的工具请求和正文中的工具调用标记均未执行。请调整会话模型的工具策略或重试。", compact_message_snippet(prompt, 360))
+}
+
+/// 工具协议错误或 UI 熔断只允许一次无工具恢复；保留原任务和已完成操作的结果。
+async fn call_agent_model_text_recovery(
+    agent: &AgentSessionDto,
+    system_prompt: &str,
+    messages: &[InputMessage],
+    prompt: &str,
+    reason: &str,
+    chat_room_id: Option<&str>,
+) -> Result<api::MessageResponse, api::ApiError> {
+    let mut recovery_messages = messages.to_vec();
+    recovery_messages.push(InputMessage::user_text(format!(
+        "运行时恢复提示：{}。原始请求仍需完成：{}。本次禁止调用工具或输出工具协议标记。直接给出用户要求的最终文本/代码；未成功执行的外部操作不得声称完成。不要重复规划。",
+        compact_message_snippet(reason, 480), prompt)));
+    let mut request = agent_message_request_build_with_system(
+        agent, recovery_messages, false, None, system_prompt.to_string());
+    request.tools = None;
+    request.tool_choice = None;
+    let mut response = provider_client_for_agent(agent)?.send_message(&request).await?;
+    chat_insights::record_usage(&agent.id, chat_room_id, &response.usage);
+    let text = answer_text(&response.content);
+    if text.trim().is_empty() || model_text_requires_tool_recovery(&text, prompt)
+        || !model_tool_requests_from_blocks(&response.content).is_empty() {
+        response.content = vec![OutputContentBlock::Text { text: unfinished_tool_recovery_answer(prompt) }];
+    }
+    Ok(response)
 }
 
 fn computer_use_recursive_call_blocked_feedback(last_summary: &str) -> String {
@@ -35398,7 +35973,7 @@ impl SessionStore {
         let mut added_memory_beads = 0usize;
         if let Some(summary) = summary {
             let signature =
-                memory_bead_signature("L2", "compaction", "context:auto-compact", &summary);
+                memory_bead_signature("L2", "compaction", "context:auto-compact:v2", &summary);
             if !session
                 .memory_beads
                 .iter()
@@ -35409,7 +35984,7 @@ impl SessionStore {
                     kind: "compaction".to_string(),
                     layer: "L2".to_string(),
                     summary: summary.clone(),
-                    source: "context:auto-compact".to_string(),
+                    source: "context:auto-compact:v2".to_string(),
                     pinned: false,
                     confidence: 0.82,
                     created_at: now,
@@ -37882,7 +38457,7 @@ impl SessionStore {
             .filter(|value| {
                 matches!(
                     value.as_str(),
-                    "text" | "vision" | "audio" | "video" | "embedding" | "multimodal"
+                    "text" | "vision" | "image" | "audio" | "video" | "embedding" | "multimodal"
                 )
             })
             .unwrap_or_else(|| resolve_model_type(&model));
@@ -38048,7 +38623,7 @@ impl SessionStore {
             session.reasoning_effort = reasoning_effort;
         }
         if let Some(api_key_ref) = payload.api_key_ref {
-            session.api_key_ref = api_key_ref.trim().chars().take(128).collect();
+            session.api_key_ref = api_key_ref.trim().chars().take(4096).collect();
         }
         session.updated_at = unix_timestamp_millis();
         let summary = session.summary(is_active);
@@ -47556,7 +48131,7 @@ fn normalize_model(model: Option<&str>) -> String {
         .filter(|value| !value.is_empty())
         .unwrap_or("glm-4.6")
         .chars()
-        .take(64)
+        .take(1024)
         .collect()
 }
 
@@ -48052,7 +48627,7 @@ fn build_overview_metrics() -> OverviewMetrics {
     let vision_agent = session_store().lock().ok().and_then(|store| {
         if let Some(active_id) = store.state.active_vision_session_id.as_deref() {
             if let Some(session) = store.state.sessions.iter().find(|session| {
-                session.id == active_id && is_understanding_model_type(&session.model_type)
+                session.id == active_id && multimodal_input::session_supports_images(session)
             }) {
                 return Some(overview_vision_agent_from_session(session));
             }
@@ -48061,7 +48636,7 @@ fn build_overview_metrics() -> OverviewMetrics {
             .state
             .sessions
             .iter()
-            .find(|session| is_understanding_model_type(&session.model_type))
+            .find(|session| multimodal_input::session_supports_images(session))
             .map(overview_vision_agent_from_session)
     });
     let chat_room_count = session_store()
@@ -48806,6 +49381,9 @@ struct PersistedSession {
 
 impl PersistedSession {
     fn summary(&self, active: bool) -> SessionSummaryDto {
+        let settings = session_model_settings_for(&self.id);
+        let base_url = settings.base_url.or_else(|| self.base_url.clone());
+        let endpoint = settings.endpoint.or_else(|| self.endpoint.clone());
         SessionSummaryDto {
             id: self.id.clone(),
             name: self.name.clone(),
@@ -48813,15 +49391,15 @@ impl PersistedSession {
                 &self.name,
                 &self.provider,
                 &self.model,
-                self.base_url.as_deref(),
-                self.endpoint.as_deref(),
+                base_url.as_deref(),
+                endpoint.as_deref(),
             ),
             avatar: self.avatar.clone(),
             provider: self.provider.clone(),
             model: self.model.clone(),
             model_type: self.model_type.clone(),
-            base_url: self.base_url.clone(),
-            endpoint: self.endpoint.clone(),
+            base_url,
+            endpoint,
             reasoning_effort: reasoning_resolution_for_session(
                 &self.provider,
                 &self.model,
@@ -48843,6 +49421,9 @@ impl PersistedSession {
     }
 
     fn to_agent_session(&self, _active: bool) -> AgentSessionDto {
+        let settings = session_model_settings_for(&self.id);
+        let base_url = settings.base_url.or_else(|| self.base_url.clone());
+        let endpoint = settings.endpoint.or_else(|| self.endpoint.clone());
         AgentSessionDto {
             id: self.id.clone(),
             name: self.name.clone(),
@@ -48850,15 +49431,15 @@ impl PersistedSession {
                 &self.name,
                 &self.provider,
                 &self.model,
-                self.base_url.as_deref(),
-                self.endpoint.as_deref(),
+                base_url.as_deref(),
+                endpoint.as_deref(),
             ),
             avatar: self.avatar.clone(),
             model: self.model.clone(),
             model_type: normalize_model_type(Some(&self.model_type)),
             provider: self.provider.clone(),
-            base_url: self.base_url.clone(),
-            endpoint: self.endpoint.clone(),
+            base_url,
+            endpoint,
             // Agent registry 需要保留持久层 raw 值，序列化时再由 legacy resolver
             // 给出 canonical requested 与 legacy_fallback 证据。
             reasoning_effort: self.reasoning_effort.clone(),
@@ -49962,7 +50543,7 @@ fn session_history_response(
     for bead in session
         .memory_beads
         .iter()
-        .filter(|bead| bead.source == "context:auto-compact")
+        .filter(|bead| bead.source.starts_with("context:auto-compact"))
     {
         let turn_id = history_compaction_turn_id(&bead.id);
         let item = SessionHistoryItemDto {
@@ -50756,6 +51337,7 @@ struct ChatStreamDelta {
 #[derive(Debug, Serialize)]
 struct ChatStreamStarted {
     turn_id: String,
+    chat_room_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     run_id: Option<String>,
 }
@@ -56123,6 +56705,7 @@ mod tests {
             "index.html",
             "src/app.js",
             "src/styles.css",
+            "src/wuxia_layout.css",
             "src/realtime_voice_capture.js",
             "src/realtime_audio_output.js",
             "src/stt_tail_capture.js",
@@ -56132,6 +56715,7 @@ mod tests {
                 .unwrap_or_else(|| panic!("missing embedded static file: {path}"));
             assert!(!content.is_empty(), "empty embedded static file: {path}");
         }
+        assert!(WEB_INDEX_HTML.contains("href=\"./src/wuxia_layout.css\""));
         assert!(super::embedded_static_file(Path::new("assets/icons/code.png")).is_none());
     }
 
@@ -56404,7 +56988,7 @@ mod tests {
         assert!(config.audio.realtime.auto_send_transcript);
         assert!(config.audio.realtime.auto_tts_reply);
         assert!(config.vision.router.as_ref().unwrap().cross_verify);
-        assert!(!config.tool.dev_open_permissions);
+        assert_eq!(config.tool.dev_open_permissions, cfg!(debug_assertions));
         assert!(config.tool.permission_profile.is_empty());
         assert!(config.tool.execution.command_gate_enabled);
 
@@ -56414,7 +56998,7 @@ mod tests {
         assert!(parsed.model.enable_real_llm);
         assert!(parsed.model.enable_llm_tools);
         assert!(parsed.model.enable_semantic_memory);
-        assert!(!parsed.tool.dev_open_permissions);
+        assert_eq!(parsed.tool.dev_open_permissions, cfg!(debug_assertions));
         assert!(
             !persisted.contains("api_key ="),
             "credentials must not be packaged"
@@ -56445,7 +57029,7 @@ mod tests {
         assert!(missing.model.enable_memory_decay_ordering);
         assert!(missing.audio.realtime.auto_send_transcript);
         assert!(missing.audio.realtime.auto_tts_reply);
-        assert!(!missing.tool.dev_open_permissions);
+        assert_eq!(missing.tool.dev_open_permissions, cfg!(debug_assertions));
 
         let explicit: super::WorkspaceConfig = toml::from_str(
             "[model]\nenable_real_llm = false\nenable_llm_tools = false\nenable_semantic_memory = false\nenable_memory_decay_ordering = false\n",
@@ -57193,6 +57777,8 @@ mod tests {
 
     #[test]
     fn overview_metrics_count_agent_sessions_chat_rooms_and_pick_vision_agent() {
+        // 两次读取必须避开其它测试临时替换全局 SessionStore 的窗口。
+        let _guard = config_test_guard();
         let overview = build_overview_metrics();
         let configured_agents = default_agent_sessions()
             .into_iter()
@@ -57752,10 +58338,23 @@ mod tests {
     #[test]
     fn chat_dispatch_routes_semantic_hotkey_to_tool_agent() {
         let _guard = config_test_guard();
+        // 测试使用自己的会话，不依赖开发机数据库仍保留旧 mario-demo 种子。
+        let mut session = super::seed_session();
+        session.id = "semantic-hotkey-fixture".to_string();
+        let _store_guard = SessionStoreTestGuard::install(super::PersistedSessionState {
+            sessions: vec![session],
+            active_session_id: Some("semantic-hotkey-fixture".to_string()),
+            active_vision_session_id: None,
+            chat_rooms: vec![super::PersistedChatRoom {
+                id: "semantic-hotkey-room".to_string(), name: "测试聊天室".to_string(),
+                created_at: 1, updated_at: 1, messages: Vec::new(),
+            }],
+            active_chat_room_id: Some("semantic-hotkey-room".to_string()),
+        });
         let dispatch = super::prepare_chat_dispatch(super::SendMessageRequest {
-            session_id: None,
-            chat_room_id: None,
-            target_agent_ids: vec!["mario-demo".to_string()],
+            session_id: Some("semantic-hotkey-fixture".to_string()),
+            chat_room_id: Some("semantic-hotkey-room".to_string()),
+            target_agent_ids: vec!["semantic-hotkey-fixture".to_string()],
             text: "使用 Ctrl+L 快捷键聚焦地址".to_string(),
             selected_message_ids: Some(Vec::new()),
             attachments: Some(Vec::new()),
@@ -59633,6 +60232,7 @@ mod tests {
 
     #[test]
     fn agent_message_request_with_context_uses_assembled_messages_and_system() {
+        let _guard = config_test_guard();
         let agent = context_test_agent();
         let assembly = super::build_context_assembly(
             &agent,
@@ -59645,7 +60245,8 @@ mod tests {
         let request = super::agent_message_request_with_context(&agent, false, &assembly);
         assert_eq!(
             request.system.as_deref(),
-            Some(assembly.system_prompt.as_str())
+            Some(format!("{}\n\n{}", assembly.system_prompt,
+                super::request_tool_policy_instruction(request.tools.as_deref())).as_str())
         );
         assert_eq!(request.messages, assembly.messages);
         assert_eq!(request.reasoning_effort.as_deref(), Some("medium"));
@@ -59755,7 +60356,7 @@ mod tests {
         );
         let system = assembly.system_prompt.as_str();
         let tool_instruction = system
-            .find("Current tool policy: tool calling is ENABLED")
+            .find("Current tool policy: use only tools attached to the current request")
             .expect("dev-open tool instruction");
         let memory_section = system.find("Memory beads").expect("memory section");
 
@@ -64174,7 +64775,7 @@ attach: last_assistant
 
     /// 所有需要临时替"`workspace_config()` "`COOLZHU_WEB_SESSION_DB` 。
     /// 测试共用一把串行化锁，避免并发跑时互相读到对方的配置。
-    fn config_test_guard() -> std::sync::MutexGuard<'static, ()> {
+    pub(crate) fn config_test_guard() -> std::sync::MutexGuard<'static, ()> {
         static LOCK: std::sync::OnceLock<std::sync::Mutex<()>> = std::sync::OnceLock::new();
         LOCK.get_or_init(|| std::sync::Mutex::new(()))
             .lock()
@@ -64293,6 +64894,7 @@ attach: last_assistant
 
     #[test]
     fn computer_use_prompt_requires_surface_grounding_and_post_action_verification() {
+        let _guard = config_test_guard();
         let constraints = super::computer_use_operation_constraints();
         for required in [
             "surface=desktop|browser",
@@ -64315,7 +64917,7 @@ attach: last_assistant
             .description
             .as_deref()
             .unwrap_or_default()
-            .contains("surface=desktop|browser"));
+            .contains("Never use this tool to retry failed desktop/browser automation"));
     }
 
     #[tokio::test(flavor = "current_thread")]
@@ -71924,6 +72526,7 @@ attach: last_assistant
     fn llm_tool_definitions_returns_none_when_disabled() {
         // REQ-TOOL-007 Phase C-10：enable_llm_tools=false 时不暴露任何工具。
         let _guard = config_test_guard();
+        let _dev_open = DevOpenPermissionsTestGuard::enable();
         let prev = {
             let mut guard = super::workspace_config().lock().expect("lock");
             let mut disabled = super::WorkspaceConfig::default();
@@ -71932,6 +72535,143 @@ attach: last_assistant
         };
         assert!(super::llm_tool_definitions().is_none());
         let _ = std::mem::replace(&mut *super::workspace_config().lock().expect("lock"), prev);
+    }
+
+    #[test]
+    fn tool_policy_session_overrides_do_not_inherit_dev_open_exposure() {
+        let _guard = config_test_guard();
+        let _dev_open = DevOpenPermissionsTestGuard::enable();
+        let old = {
+            let mut config = super::workspace_config().lock().unwrap();
+            std::mem::replace(&mut *config, super::WorkspaceConfig::default())
+        };
+        let settings = super::SessionModelLimitOverride {
+            enable_llm_tools: Some(true),
+            llm_tool_exposure: Some("dispatch-only".to_string()),
+            ..Default::default()
+        };
+        let defs = super::llm_tool_definitions_with_settings(super::PermissionMode::DangerFullAccess, Some(&settings)).unwrap();
+        assert_eq!(super::tool_definition_names(&defs), "tools_semantic_dispatch");
+        let settings = super::SessionModelLimitOverride {
+            llm_tool_exposure: Some("all".to_string()),
+            computer_use_enabled: Some(false),
+            tool_allowlist: Some(vec!["write_file".to_string(), super::COMPUTER_USE_TOOL_NAME.to_string()]),
+            ..settings
+        };
+        let defs = super::llm_tool_definitions_with_settings(super::PermissionMode::DangerFullAccess, Some(&settings)).unwrap();
+        assert_eq!(super::tool_definition_names(&defs), "write_file");
+        let disabled = super::SessionModelLimitOverride { enable_llm_tools: Some(false), ..settings };
+        assert!(super::llm_tool_definitions_with_settings(super::PermissionMode::DangerFullAccess, Some(&disabled)).is_none());
+        *super::workspace_config().lock().unwrap() = old;
+    }
+
+    #[test]
+    fn tool_policy_small_context_preserves_file_tools_and_ui_intent() {
+        let defs = vec![super::computer_use_tool_definition(), super::semantic_dispatch_tool_definition(),
+            api::ToolDefinition { name: "write_file".to_string(), description: None, input_schema: serde_json::json!({}) }];
+        let selected = super::select_tools_for_request(Some(defs.clone()), true, 8192, true).unwrap();
+        assert!(selected.iter().any(|tool| tool.name == "write_file"));
+        assert!(super::select_tools_for_request(Some(defs), false, 8192, true).is_none());
+        let html = vec![api::InputMessage::user_text("Write a single self-contained HTML file containing inline SVG. Output only the HTML.")];
+        assert!(!super::messages_allow_computer_use(&html));
+        let browser = api::InputMessage::user_text("请打开浏览器，点击页面上的搜索按钮");
+        assert!(super::messages_allow_computer_use(&[browser.clone()]));
+        assert!(super::messages_allow_computer_use(&[browser.clone(), api::InputMessage::user_text("继续")]));
+        assert!(!super::messages_allow_computer_use(&[browser, html[0].clone()]));
+        assert!(!super::messages_have_tool_intent(&[
+            api::InputMessage::user_tool_result("previous", "done", false),
+            api::InputMessage::user_text("Write HTML directly. Do not use tools."),
+        ]));
+        assert!(!super::tool_call_name_is_exposed(super::COMPUTER_USE_TOOL_NAME,
+            Some(&[api::ToolDefinition { name: "write_file".to_string(), description: None, input_schema: serde_json::json!({}) }])));
+    }
+
+    #[test]
+    fn tool_policy_pseudo_calls_are_detected_without_executing_or_rejecting_quotes() {
+        assert!(super::model_text_contains_pseudo_tool_call("<tool_call>{\"name\":\"write_file\",\"arguments\":{}"));
+        assert!(super::model_text_contains_pseudo_tool_call("```xml\n<tool_call>{}"));
+        assert!(!super::model_text_contains_pseudo_tool_call("文档中的 <tool_call> 标签代表工具调用"));
+        assert!(!super::model_text_contains_pseudo_tool_call("<!DOCTYPE html><html></html>"));
+        assert!(!super::model_text_requires_tool_recovery("```xml\n<tool_call>{\"name\":\"write_file\"}</tool_call>\n```", "解释 <tool_call> 协议并给出原样代码示例"));
+        assert!(super::model_text_requires_tool_recovery("```xml\n<tool_call>{\"name\":\"write_file\"}", "请生成 HTML，禁止调用工具"));
+        assert!(super::unfinished_tool_recovery_answer("生成 SVG").contains("生成 SVG"));
+        assert!(super::is_computer_use_tool_request("tools_semantic_dispatch", &serde_json::json!({"intent":"点击按钮"})));
+        assert!(!super::is_computer_use_tool_request("tools_semantic_dispatch", &serde_json::json!({"intent":"write file", "path":"tmp/demo.html", "content":"<html></html>"})));
+    }
+
+    #[tokio::test]
+    async fn tool_policy_disabled_model_recovers_once_without_executing_pseudo_calls() {
+        let _guard = config_test_guard();
+        let _dev_open = DevOpenPermissionsTestGuard::enable();
+        let mut config = super::WorkspaceConfig::default();
+        config.model.enable_llm_tools = false;
+        let old = std::mem::replace(&mut *super::workspace_config().lock().unwrap(), config);
+        let temp = tempfile::tempdir().unwrap();
+        let output_path = temp.path().join("must-not-be-created.html");
+        for fail_recovery in [false, true] {
+            let seen = std::sync::Arc::new(std::sync::Mutex::new(Vec::<serde_json::Value>::new()));
+            let captured = seen.clone();
+            let pseudo = format!("<tool_call>{}", serde_json::json!({"name":"write_file","arguments":{"path":output_path,"content":"<html>unsafe</html>"}}));
+            let router = axum::Router::new().route("/v1/chat/completions", axum::routing::post(
+                move |axum::Json(body): axum::Json<serde_json::Value>| {
+                    let captured = captured.clone();
+                    let pseudo = pseudo.clone();
+                    async move {
+                        let mut requests = captured.lock().unwrap();
+                        requests.push(body);
+                        let content = if requests.len() == 1 || fail_recovery { pseudo } else { "<!DOCTYPE html><html><body>pelican</body></html>".to_string() };
+                        axum::Json(serde_json::json!({"id":"recovery-fixture","object":"chat.completion","model":"local-fixture",
+                            "choices":[{"index":0,"message":{"role":"assistant","content":content},"finish_reason":"stop"}],
+                            "usage":{"prompt_tokens":10,"completion_tokens":20,"total_tokens":30}}))
+                    }
+                }));
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let address = listener.local_addr().unwrap();
+            let server = tokio::spawn(async move { axum::serve(listener, router).await.unwrap(); });
+            let mut agent = context_test_agent();
+            agent.id = "tool-policy-recovery-fixture".to_string();
+            agent.provider = "Custom".to_string();
+            agent.model = "local-fixture".to_string();
+            agent.base_url = Some(format!("http://{address}/v1"));
+            agent.memory_beads.clear();
+            let prompt = "Write a single HTML file with a pelican. Output only the HTML.";
+            let response = super::call_agent_model_with_tool_loop(&agent, prompt, &[], &[], None, None).await.unwrap();
+            server.abort();
+            assert_eq!(seen.lock().unwrap().len(), 2, "只允许一次无工具恢复");
+            assert!(seen.lock().unwrap().iter().all(|request| request.get("tools").map_or(true, serde_json::Value::is_null)));
+            assert!(seen.lock().unwrap()[1]["messages"].to_string().contains(prompt));
+            assert!(!output_path.exists(), "伪工具调用不得创建文件");
+            assert!(response.tool_requests.is_empty());
+            assert!(!response.answer_text.contains("<tool_call>"));
+            if fail_recovery { assert!(response.answer_text.contains("未能完成原请求")); }
+            else { assert!(response.answer_text.starts_with("<!DOCTYPE html>")); }
+        }
+        *super::workspace_config().lock().unwrap() = old;
+    }
+
+    #[tokio::test]
+    async fn tool_policy_semantic_and_local_fallback_cannot_bypass_disabled_computer_use() {
+        let _guard = config_test_guard();
+        let _dev_open = DevOpenPermissionsTestGuard::enable();
+        let mut agent = context_test_agent();
+        agent.id = "tool-policy-gated-fixture".to_string();
+        let mut config = super::WorkspaceConfig::default();
+        config.model.llm_tool_exposure = Some("all".to_string());
+        config.session_model_limits.insert(agent.id.clone(), super::SessionModelLimitOverride {
+            computer_use_enabled: Some(false), ..Default::default()
+        });
+        let old = std::mem::replace(&mut *super::workspace_config().lock().unwrap(), config);
+        let result = super::run_model_tool_dispatch_for_session_with_identity(
+            "tools_semantic_dispatch", &serde_json::json!({"intent":"点击浏览器按钮", "execute":true}),
+            Some(&agent.id), Some("denied"), Some("tool-policy-turn"), None).await;
+        assert!(result.is_err(), "语义 UI 路由必须尊重 Computer Use 开关");
+        assert!(super::run_tool_intent_message(&agent, "点击浏览器按钮", None).await.is_none());
+        super::workspace_config().lock().unwrap().model.enable_llm_tools = false;
+        let result = super::run_model_tool_dispatch_for_session_with_identity(
+            "write_file", &serde_json::json!({"path":"tmp/must-not-execute.html","content":"blocked"}),
+            Some(&agent.id), Some("denied"), Some("tool-policy-turn"), None).await;
+        assert!(result.is_err(), "完全访问不能重新开启关闭的工具");
+        *super::workspace_config().lock().unwrap() = old;
     }
 
     #[test]
@@ -71955,7 +72695,7 @@ attach: last_assistant
         let names: Vec<&str> = defs.iter().map(|d| d.name.as_str()).collect();
         // 必含元工。
         assert!(names.contains(&"tools_semantic_dispatch"));
-        assert!(names.contains(&super::COMPUTER_USE_TOOL_NAME));
+        assert!(!names.contains(&super::COMPUTER_USE_TOOL_NAME));
         // 必含内部协作工具，允许模型在同一聊天室内显式交接任务。
         assert!(names.contains(&"chat_handoff"));
         // 必含若干典型 ReadOnly 工具
@@ -72111,7 +72851,7 @@ attach: last_assistant
     }
 
     #[test]
-    fn llm_tool_definitions_dispatch_only_mode_keeps_task_computer_use() {
+    fn llm_tool_definitions_dispatch_only_mode_excludes_computer_use() {
         use super::{ConfigModel, WorkspaceConfig};
         let _guard = config_test_guard();
         let patched = WorkspaceConfig {
@@ -72127,9 +72867,8 @@ attach: last_assistant
             std::mem::replace(&mut *guard, patched)
         };
         let defs = super::llm_tool_definitions().expect("enabled");
-        assert_eq!(defs.len(), 2);
+        assert_eq!(defs.len(), 1);
         assert_eq!(defs[0].name, "tools_semantic_dispatch");
-        assert_eq!(defs[1].name, super::COMPUTER_USE_TOOL_NAME);
 
         let _ = std::mem::replace(&mut *super::workspace_config().lock().expect("lock"), prev);
     }
@@ -72183,8 +72922,6 @@ attach: last_assistant
             "computer_use.perform",
             "computer-use.perform",
             "computer.left_click",
-            "tools_semantic_dispatch",
-            "tools.semantic_dispatch",
         ] {
             assert!(
                 super::is_computer_use_tool_family(name),
@@ -72192,6 +72929,7 @@ attach: last_assistant
             );
         }
         assert!(!super::is_computer_use_tool_family("read_file"));
+        assert!(!super::is_computer_use_tool_family("tools_semantic_dispatch"));
 
         let feedback = super::computer_use_recursive_call_blocked_feedback(
             "failed/backend_unavailable: browser bridge disconnected",
@@ -72231,6 +72969,19 @@ attach: last_assistant
             .collect::<Vec<_>>();
 
         assert_eq!(criteria, vec!["页面标题包含 Wikipedia"]);
+    }
+
+    #[test]
+    fn formal_computer_use_preserves_fullwidth_criteria_and_observed_canvas_drag() {
+        for marker in ["success_criteria：", "success criteria：", "SUCCESS_CRITERIA："] {
+            let prompt = format!("请调用 computer_use.perform，surface=desktop，在当前 Paint 画布画一个方形。{marker} 画布中可见方形；保持窗口原位。constraints：仅用最新画布引用，不使用裸坐标。");
+            let request = super::formal_computer_use_tool_request_from_intent(&prompt).expect("formal desktop fallback");
+            assert_eq!(request.2["success_criteria"], serde_json::json!(["画布中可见方形", "保持窗口原位"]));
+            assert_eq!(request.2["surface"], "desktop");
+            let constraints = request.2["constraints"].to_string();
+            assert!(constraints.contains("currently observed canvas_target") && constraints.contains("bounded relative drag"));
+            assert!(!constraints.contains("and UIA references for desktop work"));
+        }
     }
 
     #[test]
@@ -73538,6 +74289,53 @@ attach: last_assistant
     }
 
     #[test]
+    fn chat_room_permission_status_reports_effective_dev_access_without_overwriting_saved_profile() {
+        let _guard = config_test_guard();
+        let _restore_dev = DevOpenPermissionsTestGuard {
+            previous: super::test_dev_open_tool_permissions_enabled()
+                .swap(false, std::sync::atomic::Ordering::SeqCst),
+        };
+        let temp = tempfile::tempdir().expect("tempdir");
+        let _db_guard = scoped_session_db_env(temp.path());
+        let db_path = temp.path().join("web-sessions.sqlite3");
+        let connection = super::open_session_connection(&db_path).expect("open sqlite");
+        super::initialize_session_schema(&connection).expect("schema");
+        for (id, profile) in [
+            ("saved-workspace", super::ROOM_PERMISSION_WORKSPACE_WRITE),
+            ("saved-full", super::ROOM_PERMISSION_FULL_ACCESS),
+        ] {
+            connection.execute(
+                "INSERT INTO chat_rooms(id, name, created_at, updated_at) VALUES (?1, ?1, 1, 1)",
+                rusqlite::params![id],
+            ).expect("insert room");
+            super::set_chat_room_permission_profile_sqlite(&db_path, id, profile).expect("save profile");
+        }
+        drop(connection);
+        let saved_record = super::chat_room_permission_record_sqlite(&db_path, "saved-workspace").unwrap();
+        let normal = super::chat_room_permission_status("saved-workspace", "工作区".into()).unwrap();
+        assert!(!normal.dev_open_permissions);
+        assert!(!normal.full_access && !normal.effective_full_access);
+        assert_eq!(normal.permission_profile, super::ROOM_PERMISSION_WORKSPACE_WRITE);
+        assert_eq!(normal.effective_permission_profile, super::ROOM_PERMISSION_WORKSPACE_WRITE);
+        let saved_full = super::chat_room_permission_status("saved-full", "完全访问".into()).unwrap();
+        assert!(!saved_full.dev_open_permissions);
+        assert!(saved_full.full_access && saved_full.effective_full_access);
+        assert_eq!(saved_full.effective_permission_profile, super::ROOM_PERMISSION_FULL_ACCESS);
+        {
+            let _dev_open = DevOpenPermissionsTestGuard::enable();
+            let development = super::chat_room_permission_status("saved-workspace", "工作区".into()).unwrap();
+            assert!(development.dev_open_permissions && development.effective_full_access);
+            assert!(!development.full_access);
+            assert_eq!(development.permission_profile, super::ROOM_PERMISSION_WORKSPACE_WRITE);
+            assert_eq!(development.effective_permission_profile, super::ROOM_PERMISSION_FULL_ACCESS);
+            assert_eq!(super::chat_room_permission_record_sqlite(&db_path, "saved-workspace").unwrap(), saved_record);
+        }
+        let restored = super::chat_room_permission_status("saved-workspace", "工作区".into()).unwrap();
+        assert!(!restored.dev_open_permissions && !restored.effective_full_access);
+        assert_eq!(super::chat_room_permission_record_sqlite(&db_path, "saved-workspace").unwrap(), saved_record);
+    }
+
+    #[test]
     fn chat_room_diagnostics_preferences_persist_and_default_safe() {
         let temp = tempfile::tempdir().expect("tempdir");
         let db_path = temp.path().join("sessions.sqlite3");
@@ -73913,7 +74711,7 @@ attach: last_assistant
         let agent = context_test_agent();
         let prompt = "当前目录下创建一个test.txt文件，并在里面写上hello world";
 
-        let message = super::run_tool_intent_message(&agent, prompt)
+        let message = super::run_tool_intent_message(&agent, prompt, None)
             .await
             .expect("tool intent message");
 
@@ -74866,6 +75664,16 @@ attach: last_assistant
 
     #[test]
     fn web_frontend_p6e4e_preserves_custom_reasoning_and_desktop_rail_layout() {
+        let dock = WEB_INDEX_HTML
+            .split("<nav class=\"window-dock\"")
+            .nth(1)
+            .and_then(|tail| tail.split("</nav>").next())
+            .expect("快捷栏必须存在");
+        let fixed_dock = dock.split("<details").next().unwrap_or(dock);
+        assert!(
+            fixed_dock.contains("data-window-target=\"settings\""),
+            "设置必须位于固定快捷栏，不能只藏在更多菜单中"
+        );
         let reasoning_start = WEB_APP_JS
             .find("function reasoningOptionDetailsForForm()")
             .expect("reasoning form lookup must exist");
@@ -75144,7 +75952,7 @@ attach: last_assistant
             .contains("class=\"chat-rail-overlay-close chat-right-overlay-close\""));
         for (rail, label, min, max, value) in [
             ("chat-left-rail", "聊天导航侧栏", "190", "360", "285"),
-            ("chat-right-rail", "协作与任务链侧栏", "240", "760", "480"),
+            ("chat-right-rail", "扩展栏", "240", "760", "480"),
         ] {
             assert!(
                 WEB_INDEX_HTML.contains(&format!("aria-controls=\"{rail}\"")),
@@ -76780,7 +77588,7 @@ attach: last_assistant
             .find("<nav class=\"window-dock\"")
             .expect("快捷窗口 dock 必须存在");
         assert!(workbench < dock, "唯一 window-dock 必须位于工作台内");
-        for target in ["chat", "project", "tasks", "terminal", "browser"] {
+        for target in ["chat", "project", "tasks", "terminal", "browser", "settings"] {
             assert_eq!(
                 WEB_INDEX_HTML
                     .matches(&format!("data-window-target=\"{target}\""))
@@ -76792,7 +77600,11 @@ attach: last_assistant
         let more = WEB_INDEX_HTML
             .find("data-role=\"window-dock-more\"")
             .expect("低频窗口必须有更多入口");
-        for target in ["settings", "clawbot", "memory", "vision"] {
+        let settings = WEB_INDEX_HTML
+            .find("data-window-target=\"settings\"")
+            .expect("设置入口必须存在");
+        assert!(dock < settings && settings < more, "设置入口必须常驻快捷栏");
+        for target in ["clawbot", "memory", "vision"] {
             let marker = format!("data-window-target=\"{target}\"");
             let target_offset = WEB_INDEX_HTML
                 .find(&marker)
@@ -77053,18 +77865,17 @@ attach: last_assistant
             "data-role=\"overview-mascot-avatar\"",
             "data-role=\"overview-agent-trigger\"",
             "data-action=\"overview-agent-settings\"",
-            "打开聊天导航中的发送对象配置",
+            "切换当前 Agent",
             "data-role=\"overview-agent-label\"",
             "data-role=\"overview-workspace-name\"",
             "data-role=\"overview-workspace-label\"",
-            "data-action=\"overview-workspace-settings\"",
-            "打开聊天导航中的工作区设置",
+            "aria-label=\"切换工程目录\"",
             "class=\"overview-field overview-agent-field\"",
             "class=\"overview-field overview-workspace-field\"",
             "class=\"overview-field-divider\"",
             "class=\"top-chat-room-entry\"",
             "data-action=\"top-chat-room\"",
-            "打开聊天导航中的聊天室选择",
+            "切换当前聊天室",
             "assets/icons-wuxia/chevron.svg",
             "class=\"brand-banner-art\"",
             "class=\"brand-banner-title\">COOLZHU CODE</span>",
@@ -77084,6 +77895,15 @@ attach: last_assistant
         assert!(identity_markup.contains("data-role=\"overview-mascot-avatar\""));
         assert!(identity_markup.contains("data-role=\"overview-agent-label\""));
         assert!(identity_markup.contains("data-role=\"overview-workspace-label\""));
+        assert_eq!(
+            identity_markup.matches("data-role=\"overview-workspace-name\"").count(),
+            1,
+            "工程目录应保留唯一的环境切换入口"
+        );
+        assert!(!identity_markup.contains("data-action=\"overview-workspace-settings\""));
+        assert!(WEB_APP_JS.contains(
+            "document.querySelector('[data-role=\"overview-workspace-name\"]')?.addEventListener(\"click\", focusChatWorkspaceSettings)"
+        ));
         assert!(identity_markup.contains("class=\"overview-field-divider\""));
         assert!(!identity_markup.contains("data-role=\"overview-status-dot\""));
         let chat_markup = &top[chat..];
@@ -77140,14 +77960,12 @@ attach: last_assistant
         }
         for token in [
             "function focusChatRoomSelector()",
-            "toggleChatLayoutRail(\"left\")",
+            "window.CoolzhuChatExperience?.popup(\"room\")",
             "[data-role=\"chat-room-search\"]",
             "bindChatLayoutAction(\"top-chat-room\", focusChatRoomSelector)",
             "function focusChatAgentTargets()",
-            "[data-sidebar-group=\"advanced-config\"]",
+            "window.CoolzhuChatExperience?.popup(\"agent\")",
             "[data-role=\"agent-trigger\"]",
-            "wrap.classList.add(\"open\");",
-            "trigger.setAttribute(\"aria-expanded\", \"true\");",
             "function renderChatTopReadyStatus(snapshot = agentHealthSnapshot())",
             "function renderChatTopAlertStatus({ healthTone = \"idle\", taskState = null } = {})",
             "renderChatTopReadyStatus(snapshot);",
@@ -77157,7 +77975,7 @@ attach: last_assistant
             "getSelectedAgentIds()",
             "overviewLabel.textContent = names.length ? names.join(\"、\") : \"未配置\";",
             "function focusChatWorkspaceSettings()",
-            "[data-action=\"chat-workspace-edit\"]",
+            "window.CoolzhuChatExperience?.popup(\"workspace\")",
             "setOverviewWorkspaceName(full);",
             "const lantern = document.querySelector('[data-role=\"chat-top-status-lantern\"]')",
             "lantern.setAttribute(\"aria-label\", stateLabel);",
@@ -78466,19 +79284,20 @@ attach: last_assistant
             assert!(!button.contains("data-bind="), "窗口入口不得复制 data-bind：{target}");
             assert!(!button.contains("data-action="), "窗口入口不得复制 data-action：{target}");
         }
+        let more_start = dock
+            .find("data-role=\"window-dock-more\"")
+            .expect("更多窗口入口必须存在");
         let mut previous = 0;
-        for target in ["chat", "project", "tasks", "terminal", "browser"] {
+        for target in ["chat", "project", "tasks", "terminal", "browser", "settings"] {
             let position = dock
                 .find(&format!("data-window-target=\"{target}\""))
                 .expect("高频窗口入口必须常驻");
             assert!(position > previous, "高频窗口入口顺序不符合基础信息架构：{target}");
+            assert!(position < more_start, "高频窗口入口不能藏在更多中：{target}");
             previous = position;
         }
-        for target in ["settings", "clawbot", "memory", "vision"] {
+        for target in ["clawbot", "memory", "vision"] {
             let marker = format!("data-window-target=\"{target}\"");
-            let more_start = dock
-                .find("data-role=\"window-dock-more\"")
-                .expect("更多窗口入口必须存在");
             assert!(
                 dock[more_start..].contains(&marker),
                 "低频窗口必须通过更多入口保持可达：{target}"
@@ -80061,6 +80880,7 @@ attach: last_assistant
     #[test]
     fn chat_stream_started_and_interrupted_done_include_turn_id() {
         let started = serde_json::to_value(super::ChatStreamStarted {
+            chat_room_id: "room-test".to_string(),
             turn_id: "chat-turn-serialization".into(),
             run_id: None,
         })
@@ -80354,6 +81174,7 @@ attach: last_assistant
     #[test]
     fn chat_stream_json_keeps_turn_id_and_optional_run_id_compatibility() {
         let started = serde_json::to_value(super::ChatStreamStarted {
+            chat_room_id: "room-test".to_string(),
             turn_id: "turn-with-run".to_string(),
             run_id: Some("run-chat-serialization".to_string()),
         })
@@ -80374,6 +81195,7 @@ attach: last_assistant
         assert_eq!(done["status"], "interrupted");
 
         let legacy = serde_json::to_value(super::ChatStreamStarted {
+            chat_room_id: "room-test".to_string(),
             turn_id: "legacy-turn".to_string(),
             run_id: None,
         })
@@ -80544,7 +81366,7 @@ attach: last_assistant
     }
 
     #[test]
-    fn web_frontend_keeps_completed_reasoning_cards_and_tool_results() {
+    fn web_frontend_hides_completed_reasoning_and_routes_tools_to_status() {
         assert!(WEB_MAIN_RS.contains("let reasoning_id = format!(\"{assistant_id}-thinking\");"));
         assert!(WEB_MAIN_RS.contains("let mut assistant_started = false;"));
         assert!(WEB_MAIN_RS.contains("if !assistant_started"));
@@ -80552,10 +81374,18 @@ attach: last_assistant
             .contains("yield Ok(sse_json_event(\"message_done\", &reasoning_message));"));
         assert!(WEB_APP_JS.contains("function shouldRenderCompletedMessage"));
         assert!(WEB_APP_JS.contains("includeReasoning = false"));
-        assert!(WEB_APP_JS.contains("includeReasoning: true"));
+        assert!(!WEB_APP_JS.contains("includeReasoning: true"));
         assert!(WEB_APP_JS.contains("function isGoalPhaseMessage"));
         assert!(WEB_APP_JS.contains("reasoning && !includeReasoning"));
-        assert!(WEB_APP_JS.contains("const toolCall = message.kind === \"tool-call\""));
+        assert!(WEB_APP_JS.contains("[\"tool-call\", \"tool-summary\", \"tool-result\", \"computer-use\", \"vision-computer-use\"].includes(kind)"));
+        assert!(WEB_APP_JS.contains("String(message?.kind ?? kindForMessage(message || {})).trim().toLowerCase().replaceAll(\"_\", \"-\")"));
+        let experience = include_str!("chat_experience.js");
+        assert!(experience.contains("function intercept(message, streaming = false)"));
+        assert!(experience.contains("new Set([\"reasoning\", \"tool-call\", \"tool-summary\", \"tool-result\", \"computer-use\", \"vision-computer-use\"])"));
+        assert!(experience.contains("String(message?.kind || \"\").trim().toLowerCase().replaceAll(\"_\", \"-\")"));
+        assert!(experience.contains("state.reasoning.delete(message.id)"));
+        assert!(experience.contains("toolStatus(message); return true"));
+        assert!(experience.contains("state.pendingMessages.set(message.id, message)"));
         assert!(!WEB_APP_JS.contains("function hideReasoningForAssistant"));
         assert!(!WEB_APP_JS.contains("hideReasoningForAssistant(data.id)"));
         assert!(WEB_APP_JS.contains("if (data?.kind === \"reasoning\")"));
@@ -80581,8 +81411,9 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("renderChatMessageText(content, message.content || \"\", {"));
         assert!(WEB_APP_JS.contains("renderChatMessageText(content, nextText, {"));
         assert!(WEB_APP_JS.contains(
-            ".forEach((message) => upsertMessage(message, { sessionId: activeSessionId }));"
+            "if (shouldRenderCompletedMessage(message)) upsertMessage(message, { sessionId: activeSessionId });"
         ));
+        assert!(WEB_APP_JS.contains("else window.CoolzhuChatExperience?.intercept(message);"));
     }
 
     #[test]
@@ -80940,9 +81771,8 @@ attach: last_assistant
         ));
         assert!(WEB_MAIN_RS.contains("round < max_tool_feedback_rounds"));
         assert!(WEB_MAIN_RS.contains("history.clone().unwrap_or_else(|| base_history.clone())"));
-        assert!(normalized_source.contains(
-            "tool_feedback_watchdog_message( max_tool_feedback_rounds, tool_requests.len(), );"
-        ));
+        assert!(normalized_source.contains("tool_feedback_watchdog_message(max_tool_feedback_rounds, tool_requests.len())"));
+        assert!(normalized_source.contains("call_agent_model_text_recovery"));
     }
 
     #[test]
@@ -83815,7 +84645,7 @@ attach: last_assistant
             author: "Agent A (model-a)".to_string(),
             role: "assistant".to_string(),
             target: "工具结果".to_string(),
-            content: "PASS live-session-tool-chain-open-8765".to_string(),
+            content: "工具 `write_file` 已完成：{\"path\":\"verified.txt\"}".to_string(),
             kind: "tool-summary".to_string(),
             attachments: Vec::new(),
         };
@@ -84364,7 +85194,7 @@ attach: last_assistant
             .expect("session remains");
         assert!(session.context_reset_at > 0);
         assert!(session.memory_beads.iter().any(|bead| {
-            bead.source == "context:auto-compact"
+            bead.source == "context:auto-compact:v2"
                 && bead.kind == "compaction"
                 && bead.summary.contains("clawd-on-desk-main")
                 && !bead.summary.contains("goal-artifacts")

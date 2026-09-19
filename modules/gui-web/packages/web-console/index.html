@@ -6,6 +6,11 @@
     <title>COOLZHU CODE 控制台</title>
     <link rel="icon" href="./assets/icons-wuxia/project.svg" />
     <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/chat_experience.css" />
+    <link rel="stylesheet" href="./src/model_settings.css" />
+    <link rel="stylesheet" href="./src/wuxia_layout.css" />
+    <script src="./src/chat_experience.js" defer></script>
+    <script src="./src/model_settings.js" defer></script>
     <script src="./src/realtime_voice_capture.js" defer></script>
     <script src="./src/realtime_audio_output.js" defer></script>
     <script src="./src/stt_tail_capture.js" defer></script>
@@ -26,7 +31,7 @@
             <div class="overview-identity-copy">
               <div class="overview-field overview-agent-field">
                 <span class="overview-field-label">当前 Agent</span>
-                <button class="overview-agent-name" data-role="overview-agent-trigger" data-action="overview-agent-settings" type="button" aria-label="打开聊天导航中的发送对象配置" title="打开聊天导航中的发送对象配置">
+                <button class="overview-agent-name" data-role="overview-agent-trigger" data-action="overview-agent-settings" type="button" aria-label="切换当前 Agent" title="切换当前 Agent" aria-haspopup="dialog" aria-expanded="false">
                   <span data-role="overview-agent-label">未配置</span>
                   <img src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" />
                 </button>
@@ -35,11 +40,8 @@
               <div class="overview-field overview-workspace-field">
                 <span class="overview-field-label">工程目录</span>
                 <div class="overview-workspace-control">
-                  <button class="overview-workspace-name" data-role="overview-workspace-name" type="button" aria-label="复制当前工作区路径" title="点击复制工作区路径">
+                  <button class="overview-workspace-name" data-role="overview-workspace-name" type="button" aria-label="切换工程目录" title="切换工程目录" aria-haspopup="dialog" aria-expanded="false">
                     <img src="./assets/icons-wuxia/folder.svg" alt="" aria-hidden="true" /><span data-role="overview-workspace-label">当前工作区</span>
-                  </button>
-                  <button class="overview-workspace-settings" data-action="overview-workspace-settings" type="button" aria-label="打开聊天工作区设置" title="打开聊天导航中的工作区设置">
-                    <img src="./assets/icons-wuxia/settings.svg" alt="" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -49,7 +51,7 @@
         <section class="top-chat-context" data-role="top-chat-context" aria-label="当前聊天室与状态">
           <div class="top-chat-room-slot">
             <span>当前聊天室</span>
-            <button class="top-chat-room-entry" data-action="top-chat-room" type="button" aria-label="打开聊天导航中的聊天室选择" title="打开聊天导航中的聊天室选择">
+            <button class="top-chat-room-entry" data-action="top-chat-room" type="button" aria-label="切换当前聊天室" title="切换当前聊天室" aria-haspopup="dialog" aria-expanded="false">
               <strong data-bind="chat.current" data-role="chat-room-title">主聊天室</strong>
               <img src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" />
             </button>
@@ -88,14 +90,14 @@
             <button class="window-tab" data-window-target="browser" data-window-icon="browser" type="button" title="浏览器" aria-pressed="false">
               <img class="window-icon window-icon-browser" src="./assets/icons-wuxia/browser.svg" alt="" /><span>浏览器</span>
             </button>
+            <button class="window-tab" data-window-target="settings" data-window-icon="settings" type="button" title="设置" aria-pressed="false">
+              <img class="window-icon window-icon-settings" src="./assets/icons-wuxia/settings.svg" alt="" /><span>设置</span>
+            </button>
             <details class="window-dock-more" data-role="window-dock-more">
               <summary class="window-tab window-dock-more-toggle" aria-label="更多窗口" title="更多窗口" tabindex="0">
                 <img class="window-icon" src="./assets/icons-wuxia/more-vertical.svg" alt="" /><span>更多</span>
               </summary>
               <div class="window-dock-secondary" data-role="window-dock-secondary" aria-label="更多窗口入口">
-                <button class="window-tab" data-window-target="settings" data-window-icon="settings" type="button" title="设置" aria-pressed="false">
-                  <img class="window-icon window-icon-settings" src="./assets/icons-wuxia/settings.svg" alt="" /><span>设置</span>
-                </button>
                 <button class="window-tab" data-window-target="clawbot" data-window-icon="clawbot" type="button" title="微信连接" aria-pressed="false">
                   <img class="window-icon window-icon-clawbot" src="./assets/icons-wuxia/link.svg" alt="" /><span>微信连接</span>
                 </button>
@@ -109,14 +111,13 @@
             </details>
           </nav>
           <div class="chat-quick-layout-controls" data-role="chat-quick-layout-controls" aria-label="聊天室布局控制">
-            <button class="chat-rail-toggle chat-left-rail-toggle" data-action="chat-left-rail-toggle" type="button" aria-controls="chat-left-rail" aria-expanded="false" aria-label="显示聊天导航侧栏" title="显示或隐藏聊天导航侧栏">
-              <img data-role="chat-left-rail-toggle-icon" src="./assets/ui-redesign/three-column/control-icons/panel-left-open-v1.png" alt="" aria-hidden="true" /><span>导航</span>
-            </button>
+            <button class="window-tab" data-window-target="history" type="button" title="搜索聊天记录（Ctrl+Shift+F）" aria-label="搜索与消息索引"><img src="./assets/icons-wuxia/search.svg" alt="" /><span>记录</span></button>
+            <button class="window-tab" data-window-target="usage" type="button" title="Token 用量统计" aria-label="Token 用量统计"><img src="./assets/icons-wuxia/model-scroll.svg" alt="" /><span>用量</span></button>
             <button class="chat-main-action" data-action="chat-focus-layout" type="button" aria-pressed="false" title="专注聊天布局">
               <img data-role="chat-focus-layout-icon" src="./assets/ui-redesign/three-column/control-icons/focus-layout-v1.png" alt="" aria-hidden="true" /><span>专注</span>
             </button>
-            <button class="chat-rail-toggle chat-right-rail-toggle" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="false" aria-label="显示协作与任务链侧栏" title="显示或隐藏协作与任务链侧栏">
-              <span>协作</span><img data-role="chat-right-rail-toggle-icon" src="./assets/ui-redesign/three-column/control-icons/panel-right-open-v1.png" alt="" aria-hidden="true" />
+            <button class="chat-rail-toggle chat-right-rail-toggle" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="false" aria-label="显示扩展栏" title="显示或隐藏扩展栏">
+              <span>扩展</span><img data-role="chat-right-rail-toggle-icon" src="./assets/ui-redesign/three-column/control-icons/panel-right-open-v1.png" alt="" aria-hidden="true" />
             </button>
           </div>
         </aside>
@@ -166,8 +167,10 @@
 
           <article class="workbench-window settings-workbench-window" data-window-id="settings" data-window-theme="engine-room" aria-label="设置窗口">
             <div class="window-panel settings-layout">
+              <section class="settings-section" data-role="unified-model-settings" aria-label="统一模型会话参数"></section>
               <section class="settings-section session-settings">
-                <h2>会话与模型</h2>
+                <h2>当前 Agent · 生命周期</h2>
+                <div data-role="session-extra-controls" class="session-extra-controls"></div>
                 <div class="session-select-wrap">
                   <button type="button" class="session-select-trigger" data-role="session-trigger" aria-controls="session-list" aria-expanded="false" aria-haspopup="listbox">尚未选择会话</button>
                   <div id="session-list" class="session-select-dropdown" data-role="session-list" role="listbox"></div>
@@ -253,6 +256,7 @@
                 </div>
               </section>
 
+              <section class="settings-section" data-role="chat-environment-settings" aria-label="权限与协作设置"></section>
               <section class="settings-section tool-settings">
                 <h2>工具与审批</h2>
                 <div class="tool-inventory-list" aria-label="工具与审批状态">
@@ -732,6 +736,7 @@
                   </div>
                 </div>
                 <section class="chat-panel">
+                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button></div>
                   <div class="message-list" data-role="chat-message-list" data-chat-window-lines="50">
                     <div class="chat-message-empty-state" data-role="chat-message-empty-state" role="status">
                       <span aria-hidden="true"><img src="./assets/icons-wuxia/chat.svg" alt="" /></span>
@@ -741,6 +746,11 @@
                       </div>
                     </div>
                   </div>
+                </section>
+                <section class="chat-live-reasoning" data-role="chat-live-reasoning" aria-label="正在思考" hidden><strong>正在思考</strong><div data-role="chat-live-reasoning-text"></div></section>
+                <section class="chat-activity" aria-label="本轮状态">
+                  <div class="chat-activity-summary"><span data-role="chat-activity-label" role="status">就绪</span><time data-role="chat-turn-time"></time></div>
+                  <details data-role="chat-tool-results" hidden><summary data-role="chat-tool-count">工具活动</summary><div data-role="chat-tool-result-list"></div></details>
                 </section>
                 <footer class="composer">
                   <div class="composer-attachments" data-role="composer-attachments" aria-live="polite"></div>
@@ -755,7 +765,7 @@
                   <button data-action="stt-dictate" type="button" title="语音输入：说话→自动识别并发送，大模型回复自动朗读"><img src="./assets/icons-wuxia/microphone.svg" alt="" />语音输入</button>
                 </footer>
               </div>
-              <div class="chat-rail-resizer chat-rail-resizer-right" data-role="chat-right-rail-resizer" role="separator" aria-label="调整协作与任务链侧栏宽度" aria-controls="chat-right-rail" aria-orientation="vertical" aria-valuemin="240" aria-valuemax="760" aria-valuenow="480" tabindex="0"></div>
+              <div class="chat-rail-resizer chat-rail-resizer-right" data-role="chat-right-rail-resizer" role="separator" aria-label="调整扩展栏宽度" aria-controls="chat-right-rail" aria-orientation="vertical" aria-valuemin="240" aria-valuemax="760" aria-valuenow="480" tabindex="0"></div>
               <aside id="chat-right-rail" class="chat-right-rail" data-role="chat-right-rail" aria-labelledby="chat-right-rail-title">
                 <header class="chat-right-rail-heading">
                   <img class="chat-right-agent-avatar" src="./assets/avatars/wuxia-v3/bamboo-swordsman.png" alt="" />
@@ -763,7 +773,7 @@
                     <span data-role="chat-right-rail-kicker">协作阵列</span>
                     <strong id="chat-right-rail-title" data-role="chat-right-rail-title">Agent 与任务链</strong>
                   </div>
-                  <button class="chat-rail-overlay-close chat-right-overlay-close" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="true" aria-label="隐藏协作与任务链侧栏" title="收起协作与任务链侧栏">
+                  <button class="chat-rail-overlay-close chat-right-overlay-close" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="true" aria-label="隐藏扩展栏" title="收起扩展栏">
                     <img src="./assets/ui-redesign/three-column/control-icons/panel-right-close-v1.png" alt="" aria-hidden="true" />
                   </button>
                 </header>
@@ -888,6 +898,12 @@
             </div>
           </article>
 
+          <article class="workbench-window" data-window-id="history" aria-label="聊天记录搜索与索引">
+            <div class="chat-insights-panel"><h2>聊天记录</h2><label>搜索当前聊天室的全部历史<input data-role="chat-history-query" type="search" placeholder="搜索内容或发言人" /></label><p data-role="chat-history-count" role="status"></p><div data-role="chat-history-results"></div><button data-role="chat-history-more" type="button" hidden>加载更多记录</button></div>
+          </article>
+          <article class="workbench-window" data-window-id="usage" aria-label="Token 用量统计">
+            <div class="chat-insights-panel"><h2>Token 用量</h2><p>当前聊天室 · 按模型会话统计</p><button data-role="chat-usage-refresh" type="button">刷新统计</button><div data-role="chat-usage-list"></div><small data-role="chat-usage-note"></small></div>
+          </article>
           <article class="workbench-window browser-workbench-window" data-window-id="browser" data-window-theme="observatory" aria-label="浏览器窗口">
             <div class="window-panel browser-window-panel">
               <section class="browser-window-toolbar" aria-label="浏览器导航">
