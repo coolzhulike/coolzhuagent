@@ -8,13 +8,17 @@ use std::sync::{Mutex, OnceLock};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager, PhysicalPosition, Url, WebviewWindowBuilder, WindowEvent,
+    AppHandle, Emitter, Listener, Manager, PhysicalPosition, Url, WebviewWindowBuilder,
+    WindowEvent,
 };
 
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const CONSOLE_LABEL: &str = "console";
 const PET_LABEL: &str = "pet";
+const STARTUP_PERFORMANCE_LABEL: &str = "launch-performance";
+const STARTUP_PERFORMANCE_COMPLETE_EVENT: &str = "launch-performance-complete";
+const STARTUP_PERFORMANCE_FALLBACK_MS: u64 = 15_000;
 const EXTERNAL_BROWSER_LABEL: &str = "external-browser";
 const DEFAULT_GUI_WEB_URL: &str = "http://127.0.0.1:8765";
 const PET_WINDOW_SIZE: f64 = 152.0;
@@ -151,6 +155,11 @@ fn startup_visibility(args: &[String]) -> StartupVisibility {
     }
 }
 
+fn startup_performance_requested(args: &[String]) -> bool {
+    let visibility = startup_visibility(args);
+    visibility.show_console && !args.iter().any(|arg| arg == "--show-console")
+}
+
 fn main() {
     if let Err(error) = diagnostics::init("coolzhu-tauri-shell") {
         diagnostics::error_event(
@@ -258,7 +267,25 @@ fn main() {
             spawn_web_console_parent_monitor_if_requested(&handle, &startup_args);
             let handled_pet_action = handle_pet_action_args(&handle, &startup_args);
             let visibility = startup_visibility(&startup_args);
-            if visibility.show_console {
+            if startup_performance_requested(&startup_args) {
+                install_startup_performance_completion_handler(&handle);
+                match build_startup_performance_window(&handle) {
+                    Ok(()) => arm_startup_performance_fallback(&handle),
+                    Err(error) => {
+                        diagnostics::error_event(
+                            DIAGNOSTICS_MODULE,
+                            "startup_performance_window_build_failed",
+                            "Failed to build startup performance window; falling back to console",
+                            error.as_ref(),
+                            &[
+                                ("phase", "startup".to_string()),
+                                ("component", "startup-performance-window".to_string()),
+                            ],
+                        );
+                        show_console(&handle);
+                    }
+                }
+            } else if visibility.show_console {
                 show_console(&handle);
             }
             if visibility.show_pet && !handled_pet_action {
@@ -278,6 +305,107 @@ fn main() {
         );
         std::process::exit(1);
     }
+}
+
+fn startup_performance_url() -> Result<Url, Box<dyn std::error::Error>> {
+    // Tauri v2 在 Windows/Android 的 wry 资源协议使用 tauri.localhost；其他桌面平台
+    // 仍使用 tauri://localhost。这里不能写死后者，否则 Windows WebView2 不会加载资源。
+    #[cfg(any(windows, target_os = "android"))]
+    let raw = "http://tauri.localhost/launch-performance.html";
+    #[cfg(not(any(windows, target_os = "android")))]
+    let raw = "tauri://localhost/launch-performance.html";
+    Ok(Url::parse(raw)?)
+}
+
+fn hide_startup_performance(app: &AppHandle) {
+    if let Some(performance) = app.get_webview_window(STARTUP_PERFORMANCE_LABEL) {
+        performance.hide().ok();
+    }
+}
+
+fn install_startup_performance_completion_handler(app: &AppHandle) {
+    let app_for_event = app.clone();
+    app.listen(STARTUP_PERFORMANCE_COMPLETE_EVENT, move |_event| {
+        hide_startup_performance(&app_for_event);
+        show_console(&app_for_event);
+    });
+}
+
+fn build_startup_performance_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+    if app.get_webview_window(STARTUP_PERFORMANCE_LABEL).is_some() {
+        return Ok(());
+    }
+
+    // 不能使用 WebviewUrl::App：本项目 devUrl 指向外部 web-console，开发态会把
+    // launch-performance.html 错误地拼到 8765。直接走平台对应的 Tauri 资源协议，
+    // 开发/发布都从 tauri-shell 的 frontendDist 读取这张本地演出页及其素材。
+    let launch_url = startup_performance_url()?;
+    let performance = WebviewWindowBuilder::new(
+        app,
+        STARTUP_PERFORMANCE_LABEL,
+        tauri::WebviewUrl::CustomProtocol(launch_url),
+    )
+    .title("COOLZHU")
+    .inner_size(1440.0, 900.0)
+    .min_inner_size(900.0, 520.0)
+    .center()
+    .prevent_overflow_with_margin(tauri::LogicalSize::new(16.0, 16.0))
+    .decorations(false)
+    .resizable(false)
+    .maximizable(false)
+    .minimizable(false)
+    .closable(false)
+    .visible(true)
+    .focused(true)
+    .build()?;
+
+    let app_for_close = app.clone();
+    performance.on_window_event(move |event| {
+        if let WindowEvent::CloseRequested { api, .. } = event {
+            api.prevent_close();
+            hide_startup_performance(&app_for_close);
+            show_console(&app_for_close);
+        }
+    });
+
+    Ok(())
+}
+
+fn arm_startup_performance_fallback(app: &AppHandle) {
+    let app_for_timer = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(
+            STARTUP_PERFORMANCE_FALLBACK_MS,
+        ));
+        let app_for_main = app_for_timer.clone();
+        let _ = app_for_timer.run_on_main_thread(move || {
+            let performance_visible = app_for_main
+                .get_webview_window(STARTUP_PERFORMANCE_LABEL)
+                .and_then(|window| window.is_visible().ok())
+                .unwrap_or(false);
+            let console_visible = app_for_main
+                .get_webview_window(CONSOLE_LABEL)
+                .and_then(|window| window.is_visible().ok())
+                .unwrap_or(false);
+            if performance_visible && !console_visible {
+                diagnostics::error_event(
+                    DIAGNOSTICS_MODULE,
+                    "startup_performance_timeout",
+                    "Startup performance did not report completion; falling back to console",
+                    &std::io::Error::new(
+                        std::io::ErrorKind::TimedOut,
+                        "startup performance completion timeout",
+                    ),
+                    &[
+                        ("phase", "startup".to_string()),
+                        ("component", "startup-performance-window".to_string()),
+                    ],
+                );
+                hide_startup_performance(&app_for_main);
+                show_console(&app_for_main);
+            }
+        });
+    });
 }
 
 fn build_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
@@ -444,6 +572,7 @@ fn build_pet_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn show_console(app: &AppHandle) {
+    hide_startup_performance(app);
     if app.get_webview_window(CONSOLE_LABEL).is_none() {
         if let Err(error) = build_console_window(app) {
             diagnostics::error_event(
@@ -1608,7 +1737,8 @@ mod tests {
     use super::{
         console_toggle_decision, default_pet_state_message, normalize_gui_web_url,
         normalize_pet_state, owned_web_console_pid, pet_action_frame_offsets, pet_action_frames,
-        pet_action_from_args, pet_bubble_asset, pet_status_for_event, startup_visibility,
+        pet_action_from_args, pet_bubble_asset, pet_status_for_event,
+        startup_performance_requested, startup_performance_url, startup_visibility,
         throne_drop_contains, throne_snap_position, web_console_parent_pid_from_args_or_env,
         ConsoleToggleDecision, ThroneZone, PET_THEME_JSON, PET_WINDOW_SIZE,
     };
@@ -1776,6 +1906,70 @@ mod tests {
     }
 
     #[test]
+    fn startup_performance_is_default_console_path_but_respects_explicit_bypass() {
+        let normal = vec!["coolzhu-tauri-shell.exe".to_string()];
+        assert!(startup_performance_requested(&normal));
+
+        let explicit_console = vec![
+            "coolzhu-tauri-shell.exe".to_string(),
+            "--show-console".to_string(),
+        ];
+        assert!(!startup_performance_requested(&explicit_console));
+
+        let pet_only = vec!["coolzhu-tauri-shell.exe".to_string(), "--pet".to_string()];
+        assert!(!startup_performance_requested(&pet_only));
+    }
+
+    #[test]
+    fn startup_performance_url_matches_tauri_platform_resource_scheme() {
+        assert!(MAIN_RS.contains("http://tauri.localhost/launch-performance.html"));
+        assert!(MAIN_RS.contains("tauri://localhost/launch-performance.html"));
+        assert!(MAIN_RS.contains("STARTUP_PERFORMANCE_FALLBACK_MS: u64 = 15_000"));
+        assert!(MAIN_RS.contains("startup_performance_window_build_failed"));
+        assert!(MAIN_RS.contains("startup_performance_timeout"));
+        let url = startup_performance_url()
+            .expect("启动演出资源 URL 应可解析")
+            .to_string();
+        if cfg!(any(windows, target_os = "android")) {
+            assert_eq!(url, "http://tauri.localhost/launch-performance.html");
+        } else {
+            assert_eq!(url, "tauri://localhost/launch-performance.html");
+        }
+    }
+
+    #[test]
+    fn startup_performance_exit_paths_hide_before_showing_console() {
+        let source = normalized_main_source();
+        let close_start = source
+            .find("performance.on_window_event(move |event| {")
+            .expect("演出窗应注册关闭事件");
+        let close_end = source[close_start..]
+            .find("\n\n    Ok(())")
+            .map(|offset| close_start + offset)
+            .expect("演出窗关闭处理应有边界");
+        let close_section = &source[close_start..close_end];
+        assert!(
+            close_section.find("hide_startup_performance").unwrap()
+                < close_section.find("show_console").unwrap(),
+            "演出窗关闭必须先隐藏演出窗再显示控制台"
+        );
+
+        let fallback_start = source
+            .find("if performance_visible && !console_visible {")
+            .expect("演出超时兜底分支应存在");
+        let fallback_end = source[fallback_start..]
+            .find("\n            }\n        });")
+            .map(|offset| fallback_start + offset)
+            .expect("演出超时兜底分支应有边界");
+        let fallback_section = &source[fallback_start..fallback_end];
+        assert!(
+            fallback_section.find("hide_startup_performance").unwrap()
+                < fallback_section.find("show_console").unwrap(),
+            "演出超时兜底必须先隐藏演出窗再显示控制台"
+        );
+    }
+
+    #[test]
     fn tray_exposes_safe_pet_hide_action() {
         let production = MAIN_RS
             .split("#[cfg(test)]")
@@ -1862,7 +2056,7 @@ mod tests {
         );
         assert_eq!(
             main_rs.matches("diagnostics::error_event(\n").count(),
-            9,
+            11,
             "init failure and every Tauri shell error should use diagnostics::error_event"
         );
         for removed_helper in ["log_tauri_shell_error", "escape_json", "unix_millis"] {
