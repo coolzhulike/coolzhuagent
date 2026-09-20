@@ -234,9 +234,52 @@ function Backup-ExistingArtifact {
   }
 }
 
+function Resolve-WebView2LoaderSource {
+  param(
+    [Parameter(Mandatory = $true)][object]$Artifact,
+    [Parameter(Mandatory = $true)][string]$RequestedSource
+  )
+
+  if (Test-Path -LiteralPath $RequestedSource -PathType Leaf) {
+    return $RequestedSource
+  }
+
+  # Tauri 的 WebView2 依赖有时只落在本次 cargo 构建的 build crate x64 输出中。
+  # 仅对这个明确的 artifact 启用回退，并把搜索范围锁在 source 所属 release/build 下。
+  if ([string]$Artifact.id -ne 'gui-desktop.webview2-loader') {
+    return $RequestedSource
+  }
+
+  $releaseRoot = Split-Path -Parent $RequestedSource
+  $fallbackRoot = Join-Path $releaseRoot 'build'
+  $candidates = @()
+  if (Test-Path -LiteralPath $fallbackRoot -PathType Container) {
+    $buildCrates = @(Get-ChildItem -LiteralPath $fallbackRoot -Directory -Filter 'webview2-com-sys-*' -Force | Sort-Object FullName)
+    foreach ($buildCrate in $buildCrates) {
+      $candidatePath = Join-Path $buildCrate.FullName 'out\x64\WebView2Loader.dll'
+      if (Test-Path -LiteralPath $candidatePath -PathType Leaf) {
+        $candidates += (Get-Item -LiteralPath $candidatePath)
+      }
+    }
+  }
+
+  if ($candidates.Count -eq 1) {
+    Write-Host "fallback source $($Artifact.id): $RequestedSource -> $($candidates[0].FullName)"
+    return $candidates[0].FullName
+  }
+
+  if ($candidates.Count -eq 0) {
+    throw "artifact source missing for $($Artifact.id): $RequestedSource; no x64 WebView2Loader.dll candidate under $fallbackRoot"
+  }
+
+  $candidateList = ($candidates | ForEach-Object { $_.FullName }) -join '; '
+  throw "ambiguous WebView2 loader sources for $($Artifact.id): expected one x64 candidate under $fallbackRoot, found $($candidates.Count): $candidateList"
+}
+
 function Publish-Artifact {
   param([object]$Artifact)
-  $source = Resolve-RepoPath ([string]$Artifact.source)
+  $requestedSource = Resolve-RepoPath ([string]$Artifact.source)
+  $source = Resolve-WebView2LoaderSource -Artifact $Artifact -RequestedSource $requestedSource
   $target = Resolve-PackagePath ([string]$Artifact.target)
   $sourceRelative = ConvertTo-RepoRelativePath $source
   $targetRelative = ConvertTo-PackageRelativePath $target
