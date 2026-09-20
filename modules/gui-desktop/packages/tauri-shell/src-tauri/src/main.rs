@@ -1906,12 +1906,16 @@ mod tests {
     }
 
     #[test]
-    fn startup_performance_is_default_console_path_but_respects_explicit_bypass() {
-        let normal = vec!["coolzhu-tauri-shell.exe".to_string()];
-        assert!(startup_performance_requested(&normal));
+    fn launcher_pid_only_args_play_performance_but_explicit_console_bypasses_it() {
+        let launcher = vec![
+            "coolzhu-tauri-shell.exe".to_string(),
+            "--web-console-pid=12345".to_string(),
+        ];
+        assert!(startup_performance_requested(&launcher));
 
         let explicit_console = vec![
             "coolzhu-tauri-shell.exe".to_string(),
+            "--web-console-pid=12345".to_string(),
             "--show-console".to_string(),
         ];
         assert!(!startup_performance_requested(&explicit_console));

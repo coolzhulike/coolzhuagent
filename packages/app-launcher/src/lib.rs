@@ -116,6 +116,31 @@ pub fn classify_listener_recovery(
     }
 }
 
+/// 判断健康的本地 Web Console 是否属于可复用的既有实例。
+///
+/// 启动器重复点击时只把 `--show-console` 转发给 Tauri shell，让
+/// `tauri-plugin-single-instance` 唤起已有控制台；不对未知监听者或未健康的服务放行。
+pub fn is_live_web_console_instance(health_ready: bool, owner: Option<&ListenerOwner>) -> bool {
+    if !health_ready {
+        return false;
+    }
+    let Some(owner) = owner else {
+        return false;
+    };
+    if !owner.alive {
+        return false;
+    }
+    owner.process_name.as_deref().is_some_and(|name| {
+        Path::new(name)
+            .file_name()
+            .and_then(|value| value.to_str())
+            .is_some_and(|value| {
+                value.eq_ignore_ascii_case("coolzhu-web-console.exe")
+                    || value.eq_ignore_ascii_case("coolzhu-web-console")
+            })
+    })
+}
+
 /// Errors surfaced when the launcher cannot bring the package online.
 #[derive(Debug)]
 pub enum LaunchError {
@@ -395,12 +420,14 @@ where
     }
 }
 
-/// Build the argument vector forwarded to the Tauri shell, injecting
-/// `--web-console-pid=<pid>` ahead of any configured extra args.
+/// 构造传给 Tauri shell 的参数，只在配置参数前注入
+/// `--web-console-pid=<pid>`。
+///
+/// 启动器默认不添加 `--show-console`：缺少该标志才是 Tauri 播放启动演出的信号；
+/// 配置或转发参数中显式提供的 `--show-console` 会原样保留。
 pub fn build_tauri_args(web_console_pid: u32, extra_args: &[String]) -> Vec<String> {
-    let mut args = Vec::with_capacity(extra_args.len() + 2);
+    let mut args = Vec::with_capacity(extra_args.len() + 1);
     args.push(format!("--web-console-pid={web_console_pid}"));
-    args.push("--show-console".to_string());
     args.extend(extra_args.iter().cloned());
     args
 }
@@ -825,7 +852,6 @@ mod tests {
             args,
             vec![
                 "--web-console-pid=12345".to_string(),
-                "--show-console".to_string(),
                 "--ui=foo".to_string(),
                 "bar".to_string()
             ]
@@ -835,13 +861,37 @@ mod tests {
     #[test]
     fn tauri_args_with_no_extra_args() {
         let args = build_tauri_args(1, &[]);
+        assert_eq!(args, vec!["--web-console-pid=1".to_string()]);
+    }
+
+    #[test]
+    fn explicit_console_arg_is_forwarded_without_being_injected_by_default() {
+        let args = build_tauri_args(7, &["--show-console".to_string()]);
         assert_eq!(
             args,
             vec![
-                "--web-console-pid=1".to_string(),
+                "--web-console-pid=7".to_string(),
                 "--show-console".to_string()
             ]
         );
+    }
+
+    #[test]
+    fn healthy_live_web_console_can_be_reused_but_unknown_or_unhealthy_listener_cannot() {
+        let owner = ListenerOwner {
+            pid: 8188,
+            alive: true,
+            process_name: Some("COOLZHU-WEB-CONSOLE.EXE".into()),
+        };
+        assert!(is_live_web_console_instance(true, Some(&owner)));
+        assert!(!is_live_web_console_instance(false, Some(&owner)));
+
+        let unknown = ListenerOwner {
+            pid: 8189,
+            alive: true,
+            process_name: Some("other-service.exe".into()),
+        };
+        assert!(!is_live_web_console_instance(true, Some(&unknown)));
     }
 
     #[test]
@@ -1121,11 +1171,7 @@ mod tests {
         assert!(spawner.terminated_pids.is_empty());
         assert_eq!(
             spawner.last_tauri_args,
-            vec![
-                "--web-console-pid=111".to_string(),
-                "--show-console".to_string(),
-                "--ui=foo".to_string()
-            ]
+            vec!["--web-console-pid=111".to_string(), "--ui=foo".to_string()]
         );
         assert_eq!(
             spawner.last_tauri_log,
