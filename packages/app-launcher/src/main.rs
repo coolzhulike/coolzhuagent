@@ -5,7 +5,8 @@
 //! [`app_launcher::http_probe`], and `Instant`/`thread::sleep` for the
 //! bounded health-poll budget. The Web Console is spawned hidden
 //! (`CREATE_NO_WINDOW` on Windows) with stdout/stderr redirected to the log
-//! file; the Tauri shell is spawned with `--web-console-pid=<pid>`.
+//! 文件；Tauri shell 使用 `--web-console-pid=<pid>` 启动。对已健康 Web Console 的重复点击
+//! 会把 `--show-console` 转发给 Tauri shell，由单实例处理器显示已有控制台。
 
 use std::collections::HashMap;
 use std::env;
@@ -17,9 +18,10 @@ use std::process::{Child, Command, ExitCode, Stdio};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use app_launcher::{
-    self, classify_listener_recovery, health_endpoint_port, http_probe, launch,
-    web_console_environment, web_console_runtime_environment, ExecutableSpec, LaunchError,
-    LaunchSpawner, LauncherConfig, ListenerOwner, ListenerRecoveryAction,
+    self, classify_listener_recovery, health_endpoint_port, http_probe,
+    is_live_web_console_instance, launch, web_console_environment, web_console_runtime_environment,
+    ExecutableSpec, LaunchError, LaunchSpawner, LauncherConfig, ListenerOwner,
+    ListenerRecoveryAction,
 };
 
 const DEFAULT_CONFIG_PATH: &str = "config/package-launcher.json";
@@ -36,10 +38,16 @@ fn main() -> ExitCode {
     };
 
     match run(&config_path) {
-        Ok(outcome) => {
+        Ok(RunOutcome::Started(outcome)) => {
             eprintln!(
                 "package-launcher: web-console pid={} tauri pid={}",
                 outcome.web_console_pid, outcome.tauri_pid
+            );
+            ExitCode::SUCCESS
+        }
+        Ok(RunOutcome::ForwardedExisting { tauri_pid }) => {
+            eprintln!(
+                "package-launcher: forwarded --show-console to existing instance via tauri pid={tauri_pid}"
             );
             ExitCode::SUCCESS
         }
@@ -65,7 +73,12 @@ where
         .join(DEFAULT_CONFIG_PATH))
 }
 
-fn run(config_path: &Path) -> Result<app_launcher::LaunchOutcome, LaunchError> {
+enum RunOutcome {
+    Started(app_launcher::LaunchOutcome),
+    ForwardedExisting { tauri_pid: u32 },
+}
+
+fn run(config_path: &Path) -> Result<RunOutcome, LaunchError> {
     let config_dir = config_path
         .parent()
         .map(Path::to_path_buf)
@@ -74,7 +87,10 @@ fn run(config_path: &Path) -> Result<app_launcher::LaunchOutcome, LaunchError> {
         LaunchError::ConfigInvalid(format!("could not read {}: {e}", config_path.display()))
     })?;
     let config = LauncherConfig::from_json(&text, &config_dir)?;
-    preflight_web_console_port(&config)?;
+    if preflight_web_console_port(&config)? {
+        let tauri_pid = forward_existing_console(&config)?;
+        return Ok(RunOutcome::ForwardedExisting { tauri_pid });
+    }
 
     let start = Instant::now();
     let now_fn = move || start.elapsed();
@@ -95,10 +111,30 @@ fn run(config_path: &Path) -> Result<app_launcher::LaunchOutcome, LaunchError> {
         sleep_fn,
         timestamp_ms,
     )
+    .map(RunOutcome::Started)
+}
+
+fn forward_existing_console(config: &LauncherConfig) -> Result<u32, LaunchError> {
+    if !config.tauri.path.exists() {
+        return Err(LaunchError::ExecutableMissing {
+            role: "tauri",
+            path: config.tauri.path.clone(),
+        });
+    }
+    fs::create_dir_all(&config.runtime_dir).map_err(LaunchError::Persistence)?;
+    fs::create_dir_all(&config.log_dir).map_err(LaunchError::Persistence)?;
+
+    let mut args = config.tauri.args.clone();
+    if !args.iter().any(|arg| arg == "--show-console") {
+        args.push("--show-console".to_string());
+    }
+    let tauri_log_file = config.log_dir.join("tauri.stdout.log");
+    let mut spawner = RealSpawner::default();
+    spawner.spawn_tauri(&config.tauri, &args, &config.runtime_dir, &tauri_log_file)
 }
 
 #[cfg(windows)]
-fn preflight_web_console_port(config: &LauncherConfig) -> Result<(), LaunchError> {
+fn preflight_web_console_port(config: &LauncherConfig) -> Result<bool, LaunchError> {
     let port = health_endpoint_port(&config.health_url).ok_or_else(|| {
         LaunchError::ConfigInvalid(format!("invalid health_url: {}", config.health_url))
     })?;
@@ -108,22 +144,30 @@ fn preflight_web_console_port(config: &LauncherConfig) -> Result<(), LaunchError
         app_launcher::ProbeOutcome::Ready
     );
     match classify_listener_recovery(health_ready, owner.as_ref()) {
-        ListenerRecoveryAction::Free => Ok(()),
+        ListenerRecoveryAction::Free => Ok(false),
         ListenerRecoveryAction::CleanupOrphan { parent_pid } => {
             eprintln!(
                 "package-launcher: recovering stale listener on port {port}, dead owner pid={parent_pid}"
             );
             cleanup_stale_listener_processes(parent_pid, None)?;
-            wait_for_port_release(port, config.health_timeout, config.health_poll_interval)
+            wait_for_port_release(port, config.health_timeout, config.health_poll_interval)?;
+            Ok(false)
         }
         ListenerRecoveryAction::CleanupKnownHolder { pid } => {
             eprintln!(
                 "package-launcher: recovering known local-model holder on port {port}, pid={pid}"
             );
             cleanup_stale_listener_processes(pid, Some(pid))?;
-            wait_for_port_release(port, config.health_timeout, config.health_poll_interval)
+            wait_for_port_release(port, config.health_timeout, config.health_poll_interval)?;
+            Ok(false)
         }
         ListenerRecoveryAction::Block { pid, process_name } => {
+            if is_live_web_console_instance(health_ready, owner.as_ref()) {
+                eprintln!(
+                    "package-launcher: healthy Web Console already exists at port {port}; forwarding --show-console"
+                );
+                return Ok(true);
+            }
             Err(LaunchError::ConfigInvalid(format!(
                 "web console port {port} is already owned by live process pid={pid} name={}",
                 process_name.as_deref().unwrap_or("unknown")
@@ -133,8 +177,8 @@ fn preflight_web_console_port(config: &LauncherConfig) -> Result<(), LaunchError
 }
 
 #[cfg(not(windows))]
-fn preflight_web_console_port(_config: &LauncherConfig) -> Result<(), LaunchError> {
-    Ok(())
+fn preflight_web_console_port(_config: &LauncherConfig) -> Result<bool, LaunchError> {
+    Ok(false)
 }
 
 #[cfg(windows)]
