@@ -1811,6 +1811,36 @@ desktop-console **16/0**、module_linkage_smoke **5/0**（含新增守门）。
 
 **门禁**：web-console **1135/0**。
 
+### B-88 PR-05（P2-1 · CU-01）第一层交付：统一的 `input_status`（none／partial／complete／unknown）
+
+**侦察结论（省掉了一次重复劳动）**：CU-01 要求的**安全核心已经存在且有测试**——
+"partial/unknown 绝不自动重放"由控制器与收尾路径强制（`controller.rs` 的身份不匹配/可能已发出分支、
+`input_stroke.rs` 的"释放未确认必须隔离、`retryable` 不是重放授权"、`supervisor.rs` 的
+"相同观察下的原样重放被阻断"用例）；事实层也已有四值的 `EffectStatus`/`GoalVerdict`，
+并非"success/error 二值"。**真正缺的是粗粒度统一视图**：报告的读者要自己把
+`input_delivery`／`partial`／`path_completed`／点数拼成"到底注入没有、完成没有"。
+
+**本轮交付**（`computer-use-core/src/input.rs`，additive）：
+
+- `InputStatus { None, Partial, Complete, Unknown }` + `as_str()`（稳定契约，报告/界面按它落列）；
+- `derive_input_status(&DeliveryFacts) -> InputStatus`：**唯一判定点**，映射按最保守方向——
+  `NotSent ⇒ none`；**只有** `Sent` 且 `partial = Some(false)` 才 `complete`；
+  `partial = Some(true) ⇒ partial`（**含自相矛盾记录：宁可 partial，不许 complete**）；
+  "光标动过但零输入事件且记录已封闭" ⇒ `none`（与 `input_delivery` 刻意不称 `NotSent` 是两个粒度，
+  代码注释写明）；其余 ⇒ `unknown`；
+- `may_claim_complete()` / `forbids_automatic_replay()` 两个判定词，把口径写进类型；
+- 笔画回执（`StrokeFailure`）新增 `input_status` 字段（随事实一起派生与传递，**不得重算**）。
+
+**用例**：映射表 8 例（含矛盾记录、缺 `partial` 结论）；不变式用例断言
+"这些事实不得声称完成" + "非完成态只能落 none 或禁止自动重放" + 四值字符串契约。
+
+**仍未做（CU-01 的其余列与 CU-02）**：失配子类、请求状态、任务级基线、统一 run 计数
+（C8/C9/C11 的落列与界面呈现）；CU-02 的"owner = room/turn/run 的桌面输入租约"——
+跨进程互斥与崩溃回收在受控输入路径已有（`ScopedInputOwnership` + 命名内核对象），
+但"owner 身份 = room/turn/run"这一口径尚未对齐。
+
+**门禁**：computer-use-core **125/0**、web-console 1135/0、module_linkage_smoke 5/0。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

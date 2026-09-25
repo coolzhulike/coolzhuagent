@@ -1,7 +1,8 @@
 //! 受控原生笔画：固定 helper 只接受窗口身份和数值路径，不提供脚本执行入口。
 use super::{
     cleanup_release_status_of, derive_after_cleanup, derive_before_cleanup, derive_delivery_facts,
-    derive_release_obligation, validate_receipt_for_write, DeliveryFacts, HelperFactPhase,
+    derive_input_status, derive_release_obligation, validate_receipt_for_write, DeliveryFacts,
+    HelperFactPhase, InputStatus,
     HelperFactRead, HelperFactView, ReleaseDerivationInputs, ReleaseObligationState,
     HELPER_FACT_PROTOCOL_V1, HELPER_FACT_PROTOCOL_V2,
 };
@@ -355,6 +356,8 @@ pub struct StrokeFailure {
     pub stillness_confirmed: bool,
     /// 投递事实（推导结果，不是再次计算的现场判断）。
     pub delivery: DeliveryFacts,
+    /// CU-01：由 `delivery` 派生的粗粒度输入状态（none／partial／complete／unknown）。
+    pub input_status: InputStatus,
     /// 释放义务的**最终**状态（已把本次收尾的结果合并进去）。
     pub release_state: ReleaseObligationState,
     /// 有界收尾的事实；`None` = 这次失败没有进入取消/异常收尾。
@@ -408,6 +411,9 @@ impl StrokeFailure {
         );
         let delivery = derive_delivery_facts(&inputs);
         let release_state = derive_release_obligation(&inputs);
+        // CU-01：粗粒度输入状态由事实层派生出（唯一判定点在 `derive_input_status`），
+        // 报告与界面读它即可，不必各自把 delivery/partial/点数再拼一遍。
+        let input_status = derive_input_status(&delivery);
         Self {
             message,
             input_possible,
@@ -415,6 +421,7 @@ impl StrokeFailure {
             helper_reported_release_failure,
             stillness_confirmed,
             delivery,
+            input_status,
             release_state,
             cleanup: None,
         }
@@ -1264,6 +1271,8 @@ fn emergency_release(
             helper_reported_release_failure: failure.helper_reported_release_failure,
             stillness_confirmed: failure.stillness_confirmed,
             delivery: failure.delivery,
+            // 派生视图随事实一起传递：不得在此重算（唯一判定点在 `derive_input_status`）。
+            input_status: failure.input_status,
             release_state: failure.release_state,
             cleanup: failure.cleanup,
         })

@@ -2068,6 +2068,82 @@ impl DeliveryFacts {
     }
 }
 
+/// **CU-01（Paint 事实层 · Layer 1）**：动作输入状态的**粗粒度四值视图**。
+///
+/// 为什么需要它：报告的读者此前要自己把 `input_delivery`／`partial`／`path_completed`／
+/// 点数拼成"到底注入没有、完成没有"。拼错一次就会产出"把未知读成完成"或"把部分读成没发生"。
+/// 四值视图把这件事**只判定一次**，并且与 [`DeliveryFacts`]（唯一事实来源）同一口径。
+///
+/// **安全口径**：`Partial` 与 `Unknown` 都**不得**触发自动重放，`Unknown` 更不得被读成完成——
+/// 重放禁令本身由控制器与收尾路径负责（`controller.rs` 的身份不匹配/可能已发出分支、
+/// `input_stroke.rs` 的"释放未确认必须隔离"），本视图只保证**不会把事实说成比它更强**。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InputStatus {
+    /// 没有输入事件被确认（结构事实，或"光标动过但 0 点且未按下"的封闭记录）。
+    None,
+    /// 确认注入过**部分**内容：绝不算完成，且不得据此自动重放。
+    Partial,
+    /// 确认走完：只有"确认发送且明确不是部分"才允许落到这里。
+    Complete,
+    /// 读不懂／记录未封闭：既不是完成，也不是"没有发生"；进入对账，禁止自动重放。
+    Unknown,
+}
+
+impl InputStatus {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::Partial => "partial",
+            Self::Complete => "complete",
+            Self::Unknown => "unknown",
+        }
+    }
+
+    /// 是否**可以**声称"这一步完成了"。只有 `Complete` 为真——其余三态一律不许。
+    #[must_use]
+    pub const fn may_claim_complete(self) -> bool {
+        matches!(self, Self::Complete)
+    }
+
+    /// 是否禁止自动重放（`Partial` / `Unknown`；`None` 表示可安全重试，`Complete` 表示无需重试）。
+    #[must_use]
+    pub const fn forbids_automatic_replay(self) -> bool {
+        matches!(self, Self::Partial | Self::Unknown)
+    }
+}
+
+/// 由的事实层推导粗粒度输入状态（**唯一判定点**）。
+///
+/// 映射规则按"最保守方向"排列，任何一条不满足都落到 `Unknown`：
+///
+/// | 事实 | 视图 | 说明 |
+/// | --- | --- | --- |
+/// | `input_delivery = NotSent` | `none` | 结构事实：请求没送到或明确 0 点且未走完 |
+/// | `Sent` 且 `partial = Some(false)` | `complete` | 唯一允许声称完成的组合 |
+/// | `partial = Some(true)` | `partial` | 明确的部分注入（含自相矛盾记录：宁可 partial，不许 complete） |
+/// | `MayHaveBeenSent` 且 `partial = Some(false)` 且点数 `0` | `none` | 光标动过但**没有任何输入事件被确认**且记录已封闭；注意 `input_delivery` 刻意不称其为 `NotSent`（光标真的动过），两者是不同粒度 |
+/// | 其它 | `unknown` | 记录未封闭/缺字段/读不懂 |
+#[must_use]
+pub fn derive_input_status(facts: &DeliveryFacts) -> InputStatus {
+    if facts.input_delivery == InputDelivery::NotSent {
+        return InputStatus::None;
+    }
+    if facts.input_delivery == InputDelivery::Sent && facts.partial == Some(false) {
+        return InputStatus::Complete;
+    }
+    if facts.partial == Some(true) {
+        return InputStatus::Partial;
+    }
+    if facts.input_delivery == InputDelivery::MayHaveBeenSent
+        && facts.partial == Some(false)
+        && facts.confirmed_point_count == Some(0)
+    {
+        return InputStatus::None;
+    }
+    InputStatus::Unknown
+}
+
 /// 释放义务的五态（第四轮裁决第三节 CU-F01 §3）。
 ///
 /// 五态各自对应一个**确定的动作**：不补发 / 不重复补发 / 一次受控收尾 /
@@ -4273,6 +4349,135 @@ impl Drop for PipeReaderTestSlot {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    /// **CU-01**：粗粒度输入状态的映射表（最保守方向）。
+    #[test]
+    fn input_status_maps_delivery_facts_conservatively() {
+        let cases = [
+            (
+                DeliveryFacts::unknown(),
+                InputStatus::Unknown,
+                "读不懂/未封闭一律 unknown",
+            ),
+            (
+                DeliveryFacts::proven_not_sent(false),
+                InputStatus::None,
+                "结构事实：未发送",
+            ),
+            (
+                DeliveryFacts::proven_not_sent(true),
+                InputStatus::None,
+                "路径动作明确 0 点且未走完",
+            ),
+            (
+                DeliveryFacts {
+                    input_delivery: InputDelivery::Sent,
+                    partial: Some(false),
+                    path_completed: Some(true),
+                    confirmed_point_count: Some(12),
+                },
+                InputStatus::Complete,
+                "确认发送且明确不是部分",
+            ),
+            (
+                DeliveryFacts {
+                    input_delivery: InputDelivery::MayHaveBeenSent,
+                    partial: Some(true),
+                    path_completed: Some(false),
+                    confirmed_point_count: Some(3),
+                },
+                InputStatus::Partial,
+                "确认注入过部分内容",
+            ),
+            (
+                // 自相矛盾记录（发送 + 部分）：宁可 partial，**不许** complete。
+                DeliveryFacts {
+                    input_delivery: InputDelivery::Sent,
+                    partial: Some(true),
+                    path_completed: None,
+                    confirmed_point_count: None,
+                },
+                InputStatus::Partial,
+                "矛盾记录不得升格成完成",
+            ),
+            (
+                // 光标动过但没有输入事件被确认，且记录已封闭。
+                DeliveryFacts {
+                    input_delivery: InputDelivery::MayHaveBeenSent,
+                    partial: Some(false),
+                    path_completed: Some(false),
+                    confirmed_point_count: Some(0),
+                },
+                InputStatus::None,
+                "光标动过但零输入事件：粗粒度属于 none（delivery 仍是'可能已发出'，两者不同粒度）",
+            ),
+            (
+                // 发送了但没有 partial 结论：缺字段 ⇒ 不得声称完成。
+                DeliveryFacts {
+                    input_delivery: InputDelivery::Sent,
+                    partial: None,
+                    path_completed: None,
+                    confirmed_point_count: None,
+                },
+                InputStatus::Unknown,
+                "缺 partial 结论不得当完成",
+            ),
+        ];
+        for (facts, expected, reason) in cases {
+            assert_eq!(derive_input_status(&facts), expected, "{reason}: {facts:?}");
+        }
+    }
+
+    /// **CU-01 不变式**：只有"确认发送且明确不是部分"才允许声称完成；
+    /// partial 与 unknown 一律禁止自动重放。
+    #[test]
+    fn input_status_never_claims_completion_without_proof() {
+        let all = [
+            DeliveryFacts::unknown(),
+            DeliveryFacts::proven_not_sent(false),
+            DeliveryFacts::proven_not_sent(true),
+            DeliveryFacts {
+                input_delivery: InputDelivery::Sent,
+                partial: Some(true),
+                path_completed: Some(true),
+                confirmed_point_count: Some(5),
+            },
+            DeliveryFacts {
+                input_delivery: InputDelivery::MayHaveBeenSent,
+                partial: Some(true),
+                path_completed: None,
+                confirmed_point_count: None,
+            },
+        ];
+        for facts in all {
+            let status = derive_input_status(&facts);
+            assert!(
+                !status.may_claim_complete(),
+                "这些事实不得声称完成：{facts:?} -> {status:?}"
+            );
+            assert!(
+                status.forbids_automatic_replay() || status == InputStatus::None,
+                "非完成态只能落 None 或禁止自动重放：{facts:?} -> {status:?}"
+            );
+        }
+        // 唯一的完成组合。
+        let complete = DeliveryFacts {
+            input_delivery: InputDelivery::Sent,
+            partial: Some(false),
+            path_completed: Some(true),
+            confirmed_point_count: Some(9),
+        };
+        assert_eq!(derive_input_status(&complete), InputStatus::Complete);
+        assert!(derive_input_status(&complete).may_claim_complete());
+        assert!(!derive_input_status(&complete).forbids_automatic_replay());
+        // 四值的字符串是稳定契约（报告/界面按它落列）。
+        assert_eq!(InputStatus::None.as_str(), "none");
+        assert_eq!(InputStatus::Partial.as_str(), "partial");
+        assert_eq!(InputStatus::Complete.as_str(), "complete");
+        assert_eq!(InputStatus::Unknown.as_str(), "unknown");
+    }
+
     use super::{
         drag_path, select_backend, sendinput_unicode_text_script, InputBackend, MousePoint,
     };
