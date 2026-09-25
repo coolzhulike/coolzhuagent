@@ -1364,6 +1364,24 @@ git push -u origin rd4-input-safety-and-pkg-integrity
 
 **⚠ 我自己的事故（如实记录）**：准备工作时我先执行 `git add -A`，随后**直接覆盖**了工作区里**已存在**的 `.gitattributes`（未先查看内容——正是"覆盖前先看目标"这条纪律的反面）。该文件**未被任何提交跟踪**，两个种子提交里都没有它（`fatal: path '.gitattributes' exists on disk, but not in 'baa8e35'/'0a3802b'`），因此无法从 git 恢复；我在 `tmp/2026-09-19-agent-fixes/pr-checkout/.gitattributes` 找到一份**旧检出副本**（3 行：钉 `app.js`/`styles.css` 为 `eol=lf`），据此**恢复原文并追加**了本轮的 `eol=lf` 规则（原因：本机 `core.autocrlf=true`，而 `pipe.rs` 的文本钉住断言把 LF 本身当契约）。**风险**：若原文件还有其它规则（副本未必是最新版），需要由你确认或补回；我无法证明副本与覆盖前的内容逐字一致。
 
+### B-75 现场问题排查：**安装后的桌面/开始菜单图标双击后"无法启动"** —— 不是崩溃，是**不可见的正确拒绝**
+
+**现象（用户报告）**：安装出来的图标双击都没有反应。
+
+**排查链（逐步实测）**：
+1. 快捷方式本身正常 ✅：开始菜单 `…\Start Menu\Programs\COOLZHU CODE\COOLZHU CODE Agent.lnk` 与公共桌面 `COOLZHU CODE Agent.lnk` 都指向 `C:\Program Files\CoolzhuAgent\COOLZHU-AGENT.exe`，工作目录＝安装目录，**目标存在** ✅。
+2. 从安装目录带输出运行该 exe ⇒ **退出码 1**，并打印：`package-launcher: startup failed: 发现多个含数据的工作区候选，拒绝自动选择（不按时间/容量/数量挑选，不合并，不删除）`，候选为 `[1] C:\Users\zhupu\coolzhuagent`、`[2] C:\Users\zhupu\AppData\Local\CoolzhuAgent`，并给出修正入口 `--select-workspace <绝对路径>`。
+3. 该拒绝**已完整落日志** ✅：`%LOCALAPPDATA%\CoolzhuAgent\logs\package-launcher\package-selfcheck-last.json` 里 `"ok":false` + 完整 `error` + `resolution_notes:["[refused] 路径解析未通过：已阻断启动，未创建替代工作区"]`。
+4. `--list-candidates`（只读）确认**恰好两个**候选，且**都不包含**当前构建目录 `C:\Users\zhupu\Desktop\coolzhuagent`（该目录没有 `coolzhu.toml`/数据 ⇒ 不是候选）。
+
+**根因**：启动器按设计**拒绝在两个含数据的工作区之间自动选择**（不按时间/容量/数量挑、不合并、不删除），因此 `exit=1` 且**未启动**。用户双击时这段说明只出现在一个**瞬间关闭的控制台**里 ⇒ 主观感受就是"双击没反应"。**不是**打包缺陷、**不是**崩溃、也**不是**图标/快捷方式问题。
+
+**修正入口（启动器自带）**：`--list-candidates`（只读列出候选）／`--select-workspace "<绝对路径>"`（决定归属：候选[1] 旧工作目录、候选[2] 用户级状态根，或当前构建目录）／另有 `--show-console`、`--print-resolved-paths`、`--user-state-dir`、`--headless`、`--help`。
+
+**必须坦白的一处验证缺口**：我此前的"安装验证"是**直接运行 `coolzhu-web-console.exe`**（绕过了启动器）⇒ 只证明控制台能起，**没有**证明图标所走的 **launcher 路径**能起。这条缺口我在 §B-72 已列为"尚未验证：由 launcher 启动的完整链路"，本次现场问题**正是**它 ⇒ 先前的"安装验证"**不完整**，不得据此宣称安装可用。
+
+**由此暴露的产品/UX 缺陷（建议立工单）**：随包安装的快捷方式指向一个**可能结构化拒绝**的启动器，而拒绝信息**对双击用户不可见**（控制台瞬关、日志在非显眼路径）。可选修法：① 拒绝时弹**消息框**；② 快捷方式带 `--show-console` 之类参数让窗口保留；③ 首次运行引导（候选选择界面）；④ 至少在失败时给出**可见提示**并指向日志与 `--select-workspace`。**我不擅自选定机制**（属产品口径）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
