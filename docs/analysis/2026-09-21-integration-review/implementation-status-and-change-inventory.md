@@ -91,7 +91,8 @@
 | PR-05（P2-1 · CU-01） | **五列已实现**：`input_status` 四值（§B-88）＋统一 run 计数（`finish` 回填，修掉 C9 的「有 3 步却存 0」）＋任务级基线＋请求状态（无 usage 仍保留 attempt）＋失配子类（§B-90）。**未做**：这些列的 UI/报告落列；CU-02 的 owner=room/turn/run 归属口径 | §B-88／§B-90 |
 | **PR-02B**（`tool_calls` 登记链） | **已实现 + 生产已接线**（§B-91）：v25 登记表、派发边界写入（dispatched → completed/failed）、authority 只认**登记表真有**的关系、执行器"有登记必声称/无登记不声称"；4 条用例含端到端 | §B-91 |
 | PR-02B 剩余：SafetyCleanup 事故登记 | CU-F05-5 正半仍缺 `CleanupIncidentRecord` 形态的事故登记（需单独建） | §B-84／§B-91 |
-| 其余 P2 | CU-01 五列的 UI/报告落列；CU-02 的 owner=room/turn/run 口径；Paint 其余层（frame_id／planner 反馈）；Hook 授权服务；RPR-01b 恢复式作用域 | 决策 §P2 |
+| **CU-02**（桌面输入租约归属） | **归属口径已实现**（§B-92）：owner 串 = `room\|turn\|call_id`（缺维退回运行 id，不编造占位符）；跨进程互斥/崩溃回收/epoch 防复活**原有机制保留** | §B-92 |
+| 其余 P2 | CU-01 五列的 UI/报告落列；Paint 其余层（frame_id／planner 反馈）；Hook 授权服务；RPR-01b 恢复式作用域；SafetyCleanup 事故登记 | 决策 §P2 |
 | ~~受控族缺 `move` 入口~~ | **已闭环（§B-89）**：helper 增加 `move`／`move_relative` 模式（相对移动由 helper 自己读位置）、`controlled_move_mouse_absolute/relative` 上线、两处调用迁移完成、移动原语改名 `diagnostic_*`、守门**例外清零**；真跑用例（mock 驱动 + 真实 helper 进程）通过 | §B-89 |
 | 真实崩溃变体 | 只在**真实库**上观察到"半途中断后重放"（已修并验证）；"恢复者进程被杀"的跨进程变体未构造 | §B-77 |
 | 由 launcher 启动的控制台进程内**输入安全联动** | 直接注入 env 运行已观察（走评估/保持隔离）；launcher→控制台链路的该行日志**未直接抓取**（进程由 launcher 派生） | §B-76 |

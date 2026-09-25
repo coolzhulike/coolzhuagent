@@ -577,6 +577,25 @@ impl TracingAdapter<'_> {
     }
 }
 
+/// **CU-02**：桌面输入租约的 **owner 归属串**（可审计的"谁占着桌面输入"）。
+///
+/// 为什么不是随便一个唯一 id：租约日志要能回答"当时是**哪个房间、哪个轮次**占着桌面输入"，
+/// 只写运行 id 看不出来。因此把房间与轮次一并写进归属串。
+///
+/// 两条刻意的口径：
+/// - **互斥与归属串无关**：同一桌面同一时刻只允许一个所有者，这一点由交互 scope + 命名内核对象
+///   决定（见 `ScopedInputOwnership`），归属串只负责"是谁"可读；
+/// - **维度不齐就退回运行 id**，不编造占位符（`-`/`unknown` 这类值会被后来人当成真实房间名）。
+fn native_input_owner_id(room: Option<&str>, turn: Option<&str>, call_id: &str) -> String {
+    match (
+        room.filter(|value| !value.trim().is_empty()),
+        turn.filter(|value| !value.trim().is_empty()),
+    ) {
+        (Some(room), Some(turn)) => format!("{room}|{turn}|{call_id}"),
+        _ => call_id.to_string(),
+    }
+}
+
 pub(crate) trait ComputerUseAdapterFactory: Send + Sync {
     fn routing_context(&self) -> SurfaceRoutingContext;
 
@@ -1150,10 +1169,17 @@ impl<'a> ComputerUseExecutor<'a> {
             };
             // 跨进程所有权：桌面 CU 取得的是"进程内 lease + 命名内核对象"的合成所有权，
             // 因此另一个进程也无法在本次 run 期间取得同一交互 scope。
+            // CU-02：owner 归属串 = `room|turn|call_id`（维度不齐时退回运行 id）。
+            // 互斥仍由 scope + 命名内核对象保证，这里只是让"谁占着桌面输入"可审计。
+            let owner_id = native_input_owner_id(
+                chat_room_id,
+                Some(identity.turn_id.as_str()),
+                &identity.call_id,
+            );
             match windows_process_guard::ScopedInputOwnership::acquire(
                 windows_process_guard::interactive_input_lease_broker(),
                 &scope,
-                &identity.call_id,
+                &owner_id,
                 std::time::Duration::ZERO,
             ) {
                 Ok(ownership) => Some(ownership),
@@ -2915,6 +2941,38 @@ mod tests")
         assert_eq!(physical, 0);
         // ④ 工厂一次都没被调用（拒绝发生在任何输入之前）。
         assert_eq!(factory.action_count.load(Ordering::SeqCst), 0);
+    }
+
+    /// **CU-02**：租约的 owner 归属串把房间与轮次一并写出来（可审计），且**不编造占位符**。
+    #[test]
+    fn input_lease_owner_identifies_room_turn_and_run() {
+        assert_eq!(
+            native_input_owner_id(Some("room-1"), Some("turn-9"), "cu-run-7"),
+            "room-1|turn-9|cu-run-7"
+        );
+        // 维度不全 ⇒ 退回运行 id，**不**塞 `-`/`unknown` 之类的假值。
+        assert_eq!(
+            native_input_owner_id(None, Some("turn-9"), "cu-run-7"),
+            "cu-run-7"
+        );
+        assert_eq!(
+            native_input_owner_id(Some("   "), Some("turn-9"), "cu-run-7"),
+            "cu-run-7",
+            "空白房间名不得被当成真实房间"
+        );
+        assert_eq!(
+            native_input_owner_id(Some("room-1"), None, "cu-run-7"),
+            "cu-run-7"
+        );
+        for value in [
+            native_input_owner_id(None, None, "cu-run-7"),
+            native_input_owner_id(Some("room-1"), Some("turn-9"), "cu-run-7"),
+        ] {
+            assert!(
+                !value.contains("unknown") && !value.starts_with('-'),
+                "归属串不得到处放占位符：{value}"
+            );
+        }
     }
 
     /// **PR-02B／CU-F05-3（正半）**：工具调用**已登记** ⇒ 事实必须如实带上 `tool_call_id`。
