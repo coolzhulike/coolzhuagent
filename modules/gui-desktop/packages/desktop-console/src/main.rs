@@ -15,7 +15,7 @@ use std::env;
 use app::ClawGuiApp;
 use config::GuiConfigStore;
 use desktop_agent::{mode_label, phase_label, spawn_desktop_automation, DesktopAutomationEvent};
-use input_backend::{click_point as input_click_point, preflight_report};
+use input_backend::{diagnostic_click_point as input_click_point, preflight_report};
 use service::{run_desktop_vision_test, run_smoke_test};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

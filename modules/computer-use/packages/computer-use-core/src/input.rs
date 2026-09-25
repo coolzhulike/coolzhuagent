@@ -8,8 +8,8 @@
 //!    收尾策略与受控笔画（`input_stroke`）**共用** [`crate::cleanup`]，但两者是**不同机制**：
 //!    各自独立的执行者、事实与验收结论，不能互相继承。"已覆盖的具体输入路径采用该策略；
 //!    `input.rs` 尚需补齐，不能全称"原生输入已有四秒收尾"。
-//! 2. **未受控原语**（本文件上半部分的 `click_point` / `type_text` / `scroll_wheel` /
-//!    `press_virtual_key` / `send_virtual_key_combo` / `drag_point` 等）：保留给交互式与
+//! 2. **未受控原语**（本文件上半部分的 `diagnostic_click_point` / `diagnostic_type_text` / `diagnostic_scroll_wheel` /
+//!    `diagnostic_press_virtual_key` / `diagnostic_send_virtual_key_combo` / `diagnostic_drag_point` 等）：保留给交互式与
 //!    诊断调用（例如控制台的人工动作、`coolzhu-computer-use-check`）。它们**超时后不终止
 //!    子进程、不做静止确认、不登记释放义务**，因此**不得**进入"已验收的自动输入集合"。
 
@@ -119,14 +119,14 @@ pub struct InputBackendPreflightReport {
 // 的 `controlled_*`；只有控制台人工动作与 `bin/check.rs` 诊断可以继续用它们。
 
 /// 未受控点击原语（见本文件顶部"未受控原语"说明）。
-pub fn click_point(x: i32, y: i32, clicks: u32, timeout: Duration) -> Result<(), String> {
+pub fn diagnostic_click_point(x: i32, y: i32, clicks: u32, timeout: Duration) -> Result<(), String> {
     if clicks > 1 {
-        return mouse_button_action_point(x, y, MouseButtonAction::DoubleClick, timeout);
+        return diagnostic_mouse_button_action_point(x, y, MouseButtonAction::DoubleClick, timeout);
     }
-    mouse_button_action_point(x, y, MouseButtonAction::LeftClick, timeout)
+    diagnostic_mouse_button_action_point(x, y, MouseButtonAction::LeftClick, timeout)
 }
 
-pub fn mouse_button_action_point(
+pub fn diagnostic_mouse_button_action_point(
     x: i32,
     y: i32,
     action: MouseButtonAction,
@@ -149,7 +149,7 @@ pub fn move_mouse_absolute(x: i32, y: i32, timeout: Duration) -> Result<(), Stri
     sendinput_move_mouse_absolute(x, y, timeout)
 }
 
-pub fn mouse_button_down_point(
+pub fn diagnostic_mouse_button_down_point(
     x: i32,
     y: i32,
     button: MouseButton,
@@ -161,7 +161,7 @@ pub fn mouse_button_down_point(
     }
 }
 
-pub fn mouse_button_up_point(
+pub fn diagnostic_mouse_button_up_point(
     x: i32,
     y: i32,
     button: MouseButton,
@@ -196,7 +196,7 @@ pub fn drag_path(start: MousePoint, end: MousePoint, segments: u32) -> Vec<Mouse
     points
 }
 
-pub fn drag_point(
+pub fn diagnostic_drag_point(
     start: MousePoint,
     end: MousePoint,
     segments: u32,
@@ -214,39 +214,39 @@ pub fn drag_point(
     }
 }
 
-pub fn press_escape(timeout: Duration) -> Result<(), String> {
-    press_virtual_key(0x1B, timeout)
+pub fn diagnostic_press_escape(timeout: Duration) -> Result<(), String> {
+    diagnostic_press_virtual_key(0x1B, timeout)
 }
 
-pub fn scroll_wheel(delta: i32, timeout: Duration) -> Result<(), String> {
+pub fn diagnostic_scroll_wheel(delta: i32, timeout: Duration) -> Result<(), String> {
     match active_backend() {
         InputBackend::SendInput => sendinput_scroll_wheel(delta, timeout),
         InputBackend::Interception => interception_scroll_wheel(delta, timeout),
     }
 }
 
-pub fn type_text(text: &str, timeout: Duration) -> Result<(), String> {
+pub fn diagnostic_type_text(text: &str, timeout: Duration) -> Result<(), String> {
     match active_backend() {
         InputBackend::SendInput => sendinput_type_text(text, timeout),
         InputBackend::Interception => interception_type_text(text, timeout),
     }
 }
 
-pub fn press_virtual_key(virtual_key: u8, timeout: Duration) -> Result<(), String> {
+pub fn diagnostic_press_virtual_key(virtual_key: u8, timeout: Duration) -> Result<(), String> {
     match active_backend() {
         InputBackend::SendInput => sendinput_press_virtual_key(virtual_key, timeout),
         InputBackend::Interception => interception_press_virtual_key(virtual_key, 70, timeout),
     }
 }
 
-pub fn hold_virtual_key(virtual_key: u8, hold_ms: u64, timeout: Duration) -> Result<(), String> {
+pub fn diagnostic_hold_virtual_key(virtual_key: u8, hold_ms: u64, timeout: Duration) -> Result<(), String> {
     match active_backend() {
         InputBackend::SendInput => sendinput_hold_virtual_key(virtual_key, hold_ms, timeout),
         InputBackend::Interception => interception_press_virtual_key(virtual_key, hold_ms, timeout),
     }
 }
 
-pub fn send_virtual_key_combo(virtual_keys: &[u8], timeout: Duration) -> Result<(), String> {
+pub fn diagnostic_send_virtual_key_combo(virtual_keys: &[u8], timeout: Duration) -> Result<(), String> {
     match active_backend() {
         InputBackend::SendInput => sendinput_send_virtual_key_combo(virtual_keys, timeout),
         InputBackend::Interception => interception_send_virtual_key_combo(virtual_keys, timeout),
@@ -2684,7 +2684,7 @@ pub fn controlled_scroll(
     )
 }
 
-/// 受控按键（按住 70ms，与既有 `press_virtual_key` 的语义一致）。
+/// 受控按键（按住 70ms，与既有 `diagnostic_press_virtual_key` 的语义一致）。
 pub fn controlled_press_key(
     virtual_key: u8,
     attempt: &NativeInputAttempt,

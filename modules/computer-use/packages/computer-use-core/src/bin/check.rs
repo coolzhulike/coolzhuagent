@@ -2,7 +2,7 @@ use std::env;
 use std::time::Duration;
 
 use computer_use::input::{
-    click_point, mouse_button_action_point, preflight_report, MouseButtonAction,
+    diagnostic_click_point, diagnostic_mouse_button_action_point, preflight_report, MouseButtonAction,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .map(|value| value.parse::<u32>())
                 .transpose()?
                 .unwrap_or(1);
-            click_point(x, y, clicks, Duration::from_secs(6))?;
+            diagnostic_click_point(x, y, clicks, Duration::from_secs(6))?;
             println!(
                 "{}",
                 serde_json::to_string_pretty(&serde_json::json!({
@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let action = parse_mouse_action(&parse_arg::<String>(&mut args, "action")?)?;
             let x = parse_arg::<i32>(&mut args, "x")?;
             let y = parse_arg::<i32>(&mut args, "y")?;
-            mouse_button_action_point(x, y, action, Duration::from_secs(6))?;
+            diagnostic_mouse_button_action_point(x, y, action, Duration::from_secs(6))?;
             println!(
                 "{}",
                 serde_json::to_string_pretty(&serde_json::json!({

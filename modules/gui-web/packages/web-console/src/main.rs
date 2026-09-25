@@ -87,9 +87,14 @@ use axum::response::sse::{Event, Sse};
 use axum::response::IntoResponse;
 use axum::routing::{delete, get, patch, post, MethodRouter};
 use axum::{Json, Router};
+// PR-03（P0-3）：闭环评测的真实输入一律经**受控入口**（validate → reserve → execute →
+// receipt → cleanup → settlement）。原先直接调的 `drag_point` / `mouse_button_action_point` /
+// `press_escape` / `type_text` 是**无生命周期**原语：没有预留、没有回执、没有释放义务登记，
+// 中途失败可能在桌面上留下按下的按钮而没有任何事实可对账。
 use computer_use::input::{
-    drag_path, drag_point, mouse_button_action_point, press_escape, type_text as input_type_text,
-    MouseButtonAction, MousePoint,
+    drag_path, move_mouse_absolute, controlled_mouse_button_action, controlled_mouse_button_state,
+    controlled_press_key, controlled_type_text, NativeInputAttempt, MouseButton, MouseButtonAction,
+    MousePoint,
 };
 use computer_use::{
     anchor_to_physical_pixel, default_regression_scenarios, standard_resolution_cases,
@@ -36179,33 +36184,104 @@ async fn execute_mouse_action(
     }
 }
 
-async fn send_mouse_action(x: i32, y: i32, action: MouseButtonAction) -> Result<(), String> {
-    run_blocking_input(move || mouse_button_action_point(x, y, action, Duration::from_secs(6)))
-        .await
+/// 评测路径的受控输入样板：attempt 在闭包内构造（`run_blocking_input` 要求 `'static`）。
+fn controlled_eval_input(
+    run: impl FnOnce(&NativeInputAttempt<'_>) -> Result<(), String>,
+) -> Result<(), String> {
+    // 评测执行目前没有取消信号：如实传"永不取消"，不假装有。
+    let cancelled = || false;
+    let attempt = NativeInputAttempt::without_identity(&cancelled);
+    run(&attempt)
 }
 
+async fn send_mouse_action(x: i32, y: i32, action: MouseButtonAction) -> Result<(), String> {
+    run_blocking_input(move || {
+        controlled_eval_input(|attempt| {
+            controlled_mouse_button_action(x, y, action, attempt, Duration::from_secs(6))
+                .map(|_outcome| ())
+                .map_err(|failure| failure.to_string())
+        })
+    })
+    .await
+}
+
+/// 拖拽：受控按下 → 逐段移动 → 受控抬起。
+///
+/// 这样拆的理由：**释放义务只在"按下"时产生**（`controlled_mouse_button_state(down)` 会登记
+/// 左键义务；中途失败时由受控收尾负责释放），而鼠标**移动本身不产生任何释放义务**，
+/// 因此中间段用无义务的移动不会绕过对账；最后那一次"抬起"无论前面是否出错都要执行
+/// ——否则左键会留在按下状态（这正是原先"无生命周期原语"下可能发生的事实不一致）。
 async fn send_drag_action(start: PointDto, end: PointDto) -> Result<(), String> {
     run_blocking_input(move || {
-        drag_point(
-            MousePoint {
-                x: start.x,
-                y: start.y,
-            },
-            MousePoint { x: end.x, y: end.y },
-            16,
-            Duration::from_millis(18),
-            Duration::from_secs(8),
-        )
+        controlled_eval_input(|attempt| {
+            let path = drag_path(
+                MousePoint {
+                    x: start.x,
+                    y: start.y,
+                },
+                MousePoint { x: end.x, y: end.y },
+                16,
+            );
+            let timeout = Duration::from_secs(8);
+            let Some(first) = path.first().copied() else {
+                return Err("拖拽路径为空：不得在没有路径的情况下直接按下".to_string());
+            };
+            controlled_mouse_button_state(
+                first.x,
+                first.y,
+                MouseButton::Left,
+                true,
+                attempt,
+                Duration::from_secs(6),
+            )
+            .map_err(|failure| failure.to_string())?;
+            let mut move_error = None;
+            for point in path.iter().skip(1) {
+                if let Err(error) = move_mouse_absolute(point.x, point.y, Duration::from_millis(18)) {
+                    move_error = Some(error);
+                    break;
+                }
+            }
+            // **无论中间是否出错都要抬起**：释放是义务，不是可选步骤。
+            let release = controlled_mouse_button_state(
+                end.x,
+                end.y,
+                MouseButton::Left,
+                false,
+                attempt,
+                Duration::from_secs(6),
+            );
+            match (move_error, release) {
+                (Some(error), _) => Err(error),
+                (None, Err(failure)) => Err(failure.to_string()),
+                (None, Ok(_)) => Ok(()),
+            }
+        })
     })
     .await
 }
 
 async fn send_escape_key() -> Result<(), String> {
-    run_blocking_input(move || press_escape(Duration::from_secs(3))).await
+    run_blocking_input(move || {
+        controlled_eval_input(|attempt| {
+            // VK_ESCAPE = 0x1B：受控按键（释放义务按这一个键登记）。
+            controlled_press_key(0x1B, attempt, Duration::from_secs(3))
+                .map(|_outcome| ())
+                .map_err(|failure| failure.to_string())
+        })
+    })
+    .await
 }
 
 async fn send_text_input(text: String) -> Result<(), String> {
-    run_blocking_input(move || input_type_text(&text, Duration::from_secs(8))).await
+    run_blocking_input(move || {
+        controlled_eval_input(|attempt| {
+            controlled_type_text(&text, attempt, Duration::from_secs(8))
+                .map(|_outcome| ())
+                .map_err(|failure| failure.to_string())
+        })
+    })
+    .await
 }
 
 async fn run_blocking_input<F>(operation: F) -> Result<(), String>

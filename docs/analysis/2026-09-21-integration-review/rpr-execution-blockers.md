@@ -1729,6 +1729,55 @@ HTTP（只读/非改动校验）：空署名 ⇒ 400；阻断集合不符 ⇒ 40
 `ActionOrigin::tool_call_id` 因此仍为 `None`（不伪造）；③ 生产首次真实运行后应复核"每次动作都留下
 来源已核对的 ActionFact"（本轮只做了构建期与单测验证，未跑真实模型任务）。
 
+### B-86 PR-03（P0-3）交付：输入入口收口为受控族——**两条仍在跑的"无生命周期"自动化路径已迁移**
+
+**决策要求**：建立统一输入入口（validate → reserve → execute → receipt → cleanup → settlement），
+禁止再存在多套互不知情的输入体系；必测 6 项（超时 helper 存活／stdout 管道未结束／release unknown／
+cancel 重复／强杀／输入前失败）。
+
+**侦察结论**：受控族 `controlled_*`（`computer_use_core::input`）**已经就是**那个生命周期——
+`controlled_click` / `controlled_mouse_button_action` / `controlled_mouse_button_state` /
+`controlled_type_text` / `controlled_scroll` / `controlled_press_key` / `controlled_hold_key` /
+`controlled_key_combo`，内部含预留、回执、**按实际按钮/键登记释放义务**、收尾与静止对账，
+6 项必测在 `input.rs` 的测试模块里**已有覆盖**（含真实子进程：预算超时、重复取消不刷新收尾窗口、
+静止未确认不报 released、回执丢失不虚构释放、孙进程持管道等）。
+
+**真正的缺口（P0-3 说的"事实不一致风险"）是两条仍在跑的自动化路径**，它们直调**无生命周期原语**：
+
+| 路径 | 位置 | 原先的输入调用 | 风险 |
+| --- | --- | --- | --- |
+| 桌宠自动化 | `gui-desktop/packages/desktop-console/src/desktop_agent.rs` | 7 个薄包装直调 `click_point`/`type_text`/`press_virtual_key`/`hold_virtual_key`/`scroll_wheel`/`send_virtual_key_combo`/`move_mouse_relative` | 无预留、无回执、**无释放义务登记**：中途失败可能留下按下的键/按钮而无法对账 |
+| 闭环评测执行器 | `gui-web/packages/web-console/src/main.rs` | `send_mouse_action`/`send_escape_key`/`send_text_input`/`send_drag_action` 直调 `mouse_button_action_point`/`press_escape`/`type_text`/`drag_point` | 同上；**拖拽**尤其明显：中途死亡可能让左键停在按下状态 |
+
+**已做的收口**：
+
+1. **桌宠自动化**：6 个带义务的包装改为 `controlled_*`（点击/滚动/打字/按键/按住/组合键）；
+   相对移动保留（见下"例外"）。本 agent 目前**没有**取消信号 ⇒ 如实传"永不取消"并写在注释里
+   （引入取消时应接入真实信号，而不是让"永不取消"冒充"没有需求"）。
+2. **闭环评测执行器**：鼠标动作/ESC/文本改为受控入口；**拖拽重写为"受控按下 → 逐段移动 → 受控抬起"**
+   —— 释放义务在"按下"那一步登记、由受控收尾负责，**无论中间是否出错都要执行"抬起"**，
+   否则左键会留在按下状态（这正是原先无生命周期路径下可能发生的事实不一致）。
+3. **改名收口（编译器强制）**：11 个无生命周期原语改名为 `diagnostic_*`
+   （`click_point`→`diagnostic_click_point` …）。改完 `cargo build --workspace` **零错误**，
+   即"除诊断入口外没有任何调用方"由**编译器**证明，而不是靠口头约定。
+4. **根级源码守门**（`tests/module_linkage_smoke.rs`，新增用例）钉住三件事：
+   ① `diagnostic_*` 只允许出现在诊断入口（`bin/check.rs`、桌宠控制台 CLI 子命令、core 自身定义/测试）；
+   ② 两条自动化路径必须引用 `controlled_`；③ 仍被自动化使用的"无义务"原语只能是**移动**，
+   且其引用文件被**逐个列出**——多一个引用点即失败。
+   （过程中踩到一次误报：`diagnostic_redaction_...` 这种**测试名**含 `diagnostic_`，
+   故守门的针精确到"函数名 + 左括号"。）
+
+**如实保留的两处例外（已写进代码注释与守门清单）**：
+
+- `move_mouse_relative` / `move_mouse_absolute`：受控族**没有**移动入口。移动**不产生释放义务**
+  （不按下任何按钮/键），因此不构成"留下按下状态"的风险；要么给受控族补
+  `controlled_move_mouse_relative/absolute` 才能彻底统一。
+- 评测执行器与桌宠自动化目前**没有取消信号**（传 `|| false`）。这不影响本次收口的安全性，
+  但"取消"是受控族的一等公民，接线时应补上真实信号。
+
+**门禁**：workspace 构建 ✅、web-console **1133/0**、computer-use-core **123/0**、
+desktop-console **16/0**、module_linkage_smoke **5/0**（含新增守门）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
