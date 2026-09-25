@@ -1552,6 +1552,22 @@ pub(crate) struct NewComputerUseRun {
     pub workspace: CuWorkspaceAttribution,
 }
 
+/// 报告用的一行步骤读数（原样读库；**不**在此派生结论）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct RunStepReportRow {
+    pub step_index: usize,
+    pub status: String,
+    /// 协议异常子类（`receipt_identity_mismatch` / `receipt_self_contradictory`）等。
+    pub error_code: Option<String>,
+    pub input_delivery: Option<String>,
+    pub partial: Option<bool>,
+    pub path_completed: Option<bool>,
+    pub confirmed_point_count: Option<u32>,
+    pub effect_status: Option<String>,
+    pub goal_verdict: Option<String>,
+    pub input_release_status: Option<String>,
+}
+
 /// 一条**清理事故登记**。与契约的 `CleanupIncidentRecord` 对应（外加登记时间与获得资格时间）。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct CleanupIncidentRow {
@@ -2328,6 +2344,39 @@ impl ComputerUseRunStore {
                     status: row.get(5)?,
                     created_at_unix_ms: row.get(6)?,
                     updated_at_unix_ms: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
+    /// **逐步读数**（CU-01 的"每步一致"落列）：报告侧据此派生 `input_status` 与失配子类。
+    ///
+    /// 只读、不派生结论：派生交给 `computer_use::input::derive_input_status`（唯一判定点），
+    /// 免得报告自己再拼一遍 `input_delivery`/`partial`/点数。
+    pub(crate) fn run_step_reports(
+        &self,
+        call_id: &str,
+    ) -> rusqlite::Result<Vec<RunStepReportRow>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let mut statement = connection.prepare(
+            "SELECT step_index, status, error_code, input_delivery, partial, path_completed,
+                    confirmed_point_count, effect_status, goal_verdict, input_release_status
+               FROM computer_use_steps WHERE run_id = ?1 ORDER BY step_index",
+        )?;
+        let rows = statement
+            .query_map([call_id], |row| {
+                Ok(RunStepReportRow {
+                    step_index: row.get::<_, i64>(0)? as usize,
+                    status: row.get(1)?,
+                    error_code: row.get(2)?,
+                    input_delivery: row.get(3)?,
+                    partial: row.get(4)?,
+                    path_completed: row.get(5)?,
+                    confirmed_point_count: row.get(6)?,
+                    effect_status: row.get(7)?,
+                    goal_verdict: row.get(8)?,
+                    input_release_status: row.get(9)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;

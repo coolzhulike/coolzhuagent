@@ -2015,6 +2015,32 @@ fail-closed 正确，但**无路可走**（§B-84 记的 CU-F05-5 正半缺口�
 
 **CU-F05 五场景现状**：1/2/3/4 ✅；**5 两半齐备** ✅（负半 + 正半 + 生产者）。
 
+### B-94 CU-01 五列的**机器可读落列**：`GET /api/computer-use/run-report?call_id=…`
+
+**背景**：CU-01 的验收是"核对 **DB、UI、报告**"。五列此前只存在于库里 ⇒ 核对只能人肉查表。
+
+**已落地**（只读端点，不建表、不迁移、不改状态）：
+
+- 逐步读数：每步 `input_status`（none／partial／complete／unknown，走**唯一判定点**
+  `derive_input_status`）、`may_claim_complete`、`forbids_automatic_replay`、失配子类
+  （`receipt_identity_mismatch`／`receipt_self_contradictory`）；
+- 统一 run 计数四维（`attempts`／`input_sent`／`partial_input`／`verified_steps`）；
+- 任务级基线与末帧证据引用（**成对**给出）；
+- 规划请求状态（**无 usage 的请求同样在列表里**）；
+- 清理事故（含 `recovery_eligible`）。
+- 库不可读/未初始化时**如实报 `unavailable`**，不给一份"看起来正常"的空报告（空 ≠ 没有待办）。
+- 库里的投递取值认不出时按 `may_have_been_sent` 处理（最保守方向，**不得升格成完成**）。
+
+**用例**：`run_report_surfaces_the_five_columns_without_faking_them`——未初始化库 ⇒ `unavailable`；
+三步分别是 complete／partial／unknown 且"部分与未知都不得声称完成、都禁止自动重放"；
+计数四维 = (3, 2, 1, 0)；基线与末帧成对；**无 usage 的请求没消失**；事故初始无资格。
+
+**门禁**：web-console **1147/0**、module_linkage_smoke 6/0、`cargo build --workspace` ✅。
+
+**仍缺（如实记）**：**UI 面板**未接。原因不是技术障碍，而是**今天没有"选一个 CU 运行"的界面位置**
+（闭环面板是预演场景，不带 `call_id`）；要接需要先有运行列表/运行详情页。端点已可供脚本与
+后续 UI 直接消费。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

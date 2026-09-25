@@ -1982,6 +1982,11 @@ fn app() -> Router {
             "/api/vision/tool-service/ground-bbox",
             post(api_vision_find_target),
         )
+        // CU-01：五列的只读呈现（每步输入状态 / 统一计数 / 任务级基线 / 请求状态 / 失配子类）。
+        .route(
+            "/api/computer-use/run-report",
+            get(api_computer_use_run_report),
+        )
         .route("/api/computer-use/action-plan", post(api_action_plan))
         .route(
             "/api/external-vision/capabilities",
@@ -2374,6 +2379,166 @@ async fn api_attribution_and_recovery() -> Json<AttributionAndRecoveryResponse> 
             .to_string(),
         input_safety_recovery: probe_input_safety_recovery_surface(),
     })
+}
+
+/// **CU-01 五列的机器可读呈现**（只读；`GET /api/computer-use/run-report`）。
+///
+/// 为什么要有这个端点：五列（每步输入状态、统一 run 计数、任务级基线、请求状态、失配子类）
+/// 此前只存在于库里，"核对 DB/UI/报告"因此只能靠人肉查表。这里把它们一次说清，
+/// 并且**派生结论只有一个来源**（`derive_input_status`），不在报告里重拼一遍口径。
+#[derive(Debug, serde::Serialize)]
+struct ComputerUseRunReportResponse {
+    call_id: String,
+    /// 库不可用时的原因（可读时为 `None`）——**不谎报**为空报告。
+    unavailable: Option<String>,
+    /// 统一 run 计数四维（`attempts`/`input_sent`/`partial_input`/`verified_steps`）。
+    attempts: usize,
+    input_sent: usize,
+    partial_input: usize,
+    verified_steps: usize,
+    /// 任务级基线 vs 末帧：**成对**才是"本轮改变了什么"的最小证据。
+    baseline_evidence_ref: Option<String>,
+    final_evidence_ref: Option<String>,
+    /// 逐步读数：每步的输入状态（none/partial/complete/unknown）与失配子类。
+    steps: Vec<ComputerUseRunStepReport>,
+    /// 规划请求状态：**无 usage 的请求同样在列表里**（否则失败的请求会凭空消失）。
+    requests: Vec<ComputerUseRunRequestReport>,
+    /// 清理事故（未确认释放）：是否具备恢复资格决定"能否作为清理来源"。
+    cleanup_incidents: Vec<ComputerUseRunIncidentReport>,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct ComputerUseRunStepReport {
+    step_index: usize,
+    status: String,
+    /// CU-01 四值输入状态（唯一判定点：`derive_input_status`）。
+    input_status: String,
+    /// 是否允许声称"这一步完成了"（只有 `complete` 为真）。
+    may_claim_complete: bool,
+    /// 是否禁止自动重放（`partial`/`unknown`）。
+    forbids_automatic_replay: bool,
+    /// 失配子类等异常码（`receipt_identity_mismatch` / `receipt_self_contradictory`）。
+    error_code: Option<String>,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct ComputerUseRunRequestReport {
+    attempt_key: String,
+    action_id: Option<String>,
+    has_usage_fact: bool,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct ComputerUseRunIncidentReport {
+    incident_id: String,
+    original_action_id: String,
+    recovery_eligible: bool,
+}
+
+/// `GET /api/computer-use/run-report`：只读运行报告（不建表、不迁移、不改任何状态）。
+async fn api_computer_use_run_report(
+    Query(query): Query<ComputerUseRunReportQuery>,
+) -> Json<ComputerUseRunReportResponse> {
+    Json(computer_use_run_report(&query.call_id))
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct ComputerUseRunReportQuery {
+    call_id: String,
+}
+
+fn computer_use_run_report(call_id: &str) -> ComputerUseRunReportResponse {
+    let empty = |unavailable: Option<String>| ComputerUseRunReportResponse {
+        call_id: call_id.to_string(),
+        unavailable,
+        attempts: 0,
+        input_sent: 0,
+        partial_input: 0,
+        verified_steps: 0,
+        baseline_evidence_ref: None,
+        final_evidence_ref: None,
+        steps: Vec::new(),
+        requests: Vec::new(),
+        cleanup_incidents: Vec::new(),
+    };
+    let path = default_session_sqlite_path();
+    if !path.exists() {
+        return empty(Some("运行库未初始化".to_string()));
+    }
+    let Ok(store) = computer_use_store::ComputerUseRunStore::open(&path) else {
+        return empty(Some("运行库不可读".to_string()));
+    };
+    let Ok(counts) = store.run_counts(call_id) else {
+        return empty(Some("计数读取失败".to_string()));
+    };
+    let steps = store
+        .run_step_reports(call_id)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|row| {
+            // 派生只走**唯一判定点**：报告不自己拼口径。
+            let delivery = computer_use::input::DeliveryFacts {
+                input_delivery: parse_input_delivery(row.input_delivery.as_deref()),
+                partial: row.partial,
+                path_completed: row.path_completed,
+                confirmed_point_count: row.confirmed_point_count,
+            };
+            let status = computer_use::input::derive_input_status(&delivery);
+            ComputerUseRunStepReport {
+                step_index: row.step_index,
+                status: row.status,
+                input_status: status.as_str().to_string(),
+                may_claim_complete: status.may_claim_complete(),
+                forbids_automatic_replay: status.forbids_automatic_replay(),
+                error_code: row.error_code,
+            }
+        })
+        .collect();
+    let requests = store
+        .run_request_status(call_id)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|row| ComputerUseRunRequestReport {
+            attempt_key: row.attempt_key,
+            action_id: row.action_id,
+            has_usage_fact: row.has_usage_fact,
+        })
+        .collect();
+    let cleanup_incidents = store
+        .cleanup_incidents_for_run(call_id)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|row| ComputerUseRunIncidentReport {
+            incident_id: row.incident_id,
+            original_action_id: row.original_action_id,
+            recovery_eligible: row.recovery_eligible,
+        })
+        .collect();
+    ComputerUseRunReportResponse {
+        call_id: call_id.to_string(),
+        unavailable: None,
+        attempts: counts.attempts,
+        input_sent: counts.input_sent,
+        partial_input: counts.partial_input,
+        verified_steps: counts.verified_steps,
+        baseline_evidence_ref: store
+            .run_baseline_evidence_ref(call_id)
+            .ok()
+            .flatten(),
+        final_evidence_ref: store.run_final_evidence_ref(call_id).ok().flatten(),
+        steps,
+        requests,
+        cleanup_incidents,
+    }
+}
+
+/// 库里的投递取值 → 契约枚举：**认不出一律按"可能已发出"**（最保守方向，不得升格成完成）。
+fn parse_input_delivery(raw: Option<&str>) -> runtime::InputDelivery {
+    match raw {
+        Some("not_sent") => runtime::InputDelivery::NotSent,
+        Some("sent") => runtime::InputDelivery::Sent,
+        _ => runtime::InputDelivery::MayHaveBeenSent,
+    }
 }
 
 /// PR-01／P0-1：人工放行的请求体。
@@ -61533,6 +61698,158 @@ pub(crate) mod tests {
             WEB_APP_JS.contains("ShutdownIncomplete"),
             "关闭未完成的提示必须能一眼看出，而不是被当成 off"
         );
+    }
+
+    /// **CU-01**：运行报告把五列如实列出——不谎报完成、不隐藏无 usage 的请求、基线与末帧成对。
+    #[test]
+    fn run_report_surfaces_the_five_columns_without_faking_them() {
+        let _guard = crate::tests::config_test_guard();
+        let directory = tempfile::TempDir::new().unwrap();
+        let db_path = directory.path().join("web-sessions.sqlite3");
+        let previous = super::replace_session_db_path_override_for_test(Some(db_path.clone()));
+
+        // 未初始化的库：如实地报"不可用"，而不是给一份空报告（空 ≠ 没有待办）。
+        assert_eq!(
+            super::computer_use_run_report("cu-report").unavailable.as_deref(),
+            Some("运行库未初始化")
+        );
+
+        {
+            let store = super::computer_use_store::ComputerUseRunStore::open(&db_path)
+                .expect("store");
+            let workspace = super::canonical_workspace_identity("ws-0123456789abcdef")
+                .expect("canonical workspace");
+            assert!(store
+                .create_run(&super::computer_use_store::NewComputerUseRun {
+                    call_id: "cu-report".to_string(),
+                    provider_tool_call_id: Some("toolu-report".to_string()),
+                    session_id: "session-1".to_string(),
+                    turn_id: "turn-1".to_string(),
+                    chat_room_id: Some("room-1".to_string()),
+                    idempotency_key: "idem-report".to_string(),
+                    objective_json: "{}".to_string(),
+                    surface: computer_use::ComputerUseSurface::Desktop,
+                    deadline_ms: 60_000,
+                    created_at_ms: 1,
+                    workspace: super::computer_use_store::CuWorkspaceAttribution::from_parent_run(
+                        &workspace,
+                    ),
+                })
+                .expect("create run"));
+            let step = |index: usize,
+                        delivery: Option<runtime::InputDelivery>,
+                        partial: Option<bool>,
+                        before: &str,
+                        after: Option<&str>| super::computer_use_store::ComputerUseStepRecord {
+                run_id: "cu-report".to_string(),
+                step_index: index,
+                observation_generation: index as u64 + 1,
+                action_type: "click".to_string(),
+                normalized_target: "target".to_string(),
+                action_fingerprint: format!("fp-{index}"),
+                status: "input_sent".to_string(),
+                error_code: None,
+                before_evidence_ref: Some(before.to_string()),
+                after_evidence_ref: after.map(str::to_string),
+                visible_progress: false,
+                input_delivery: delivery,
+                partial,
+                path_completed: None,
+                confirmed_point_count: None,
+                effect_status: None,
+                goal_verdict: None,
+                input_release_status: None,
+                started_at_ms: 1,
+                completed_at_ms: Some(2),
+            };
+            // 三步：① 确认发送且非部分 ⇒ complete；② 部分注入 ⇒ partial；③ 无投递结论 ⇒ unknown。
+            assert!(store
+                .append_step(&step(
+                    0,
+                    Some(runtime::InputDelivery::Sent),
+                    Some(false),
+                    "shot-baseline",
+                    Some("shot-after-0")
+                ))
+                .expect("step 0"));
+            assert!(store
+                .append_step(&step(
+                    1,
+                    Some(runtime::InputDelivery::Sent),
+                    Some(true),
+                    "shot-mid",
+                    Some("shot-after-1")
+                ))
+                .expect("step 1"));
+            assert!(store
+                .append_step(&step(2, None, None, "shot-tail", None))
+                .expect("step 2"));
+            // 两次规划请求：其一没有 usage 事实（必须仍在列表里）。
+            let attempt = |logical: &str| {
+                runtime::PlannedRequestAttempt::new("cu-report", logical, "attempt-1")
+                    .expect("合法复合键")
+            };
+            let with_usage = attempt("computer_use_planning:step-0");
+            let without_usage = attempt("computer_use_planning:step-1");
+            store
+                .record_plan_attempt("cu-report", &with_usage, 0)
+                .expect("登记");
+            store
+                .record_plan_attempt("cu-report", &without_usage, 1)
+                .expect("登记");
+            store
+                .bind_plan_attempt_action(&with_usage.stable_key(), "action-0")
+                .expect("绑定");
+            store
+                .register_cleanup_incident("incident-report", "cu-report", "action-0", Some("toolu-report"))
+                .expect("事故");
+            {
+                let connection = super::open_session_connection(&db_path).expect("open");
+                connection
+                    .execute(
+                        "INSERT INTO fact_log_records
+                             (record_kind, record_subject, scope_kind, content_digest, payload_json)
+                         VALUES ('usage_attempt', ?1, NULL, 'digest', '{}')",
+                        [with_usage.stable_key()],
+                    )
+                    .expect("usage fact");
+            }
+        }
+
+        let report = super::computer_use_run_report("cu-report");
+        assert_eq!(report.unavailable, None);
+        assert_eq!(
+            (report.attempts, report.input_sent, report.partial_input, report.verified_steps),
+            (3, 2, 1, 0),
+            "四维计数：3 次尝试、2 次确认发送、1 次部分注入、0 次验收通过"
+        );
+        assert_eq!(report.steps.len(), 3);
+        assert_eq!(report.steps[0].input_status, "complete");
+        assert!(report.steps[0].may_claim_complete);
+        assert!(!report.steps[0].forbids_automatic_replay);
+        assert_eq!(report.steps[1].input_status, "partial");
+        assert!(!report.steps[1].may_claim_complete, "部分注入绝不算完成");
+        assert!(report.steps[1].forbids_automatic_replay, "部分注入禁止自动重放");
+        assert_eq!(report.steps[2].input_status, "unknown");
+        assert!(!report.steps[2].may_claim_complete, "读不懂不得当完成");
+        assert!(report.steps[2].forbids_automatic_replay);
+        assert_eq!(
+            report.baseline_evidence_ref.as_deref(),
+            Some("shot-baseline"),
+            "基线取最早的视图"
+        );
+        assert_eq!(report.final_evidence_ref.as_deref(), Some("shot-tail"));
+        assert_eq!(report.requests.len(), 2, "无 usage 的请求不得消失");
+        assert!(report.requests[0].has_usage_fact);
+        assert!(!report.requests[1].has_usage_fact);
+        assert_eq!(report.requests[0].action_id.as_deref(), Some("action-0"));
+        assert_eq!(report.cleanup_incidents.len(), 1);
+        assert!(
+            !report.cleanup_incidents[0].recovery_eligible,
+            "事故刚发生时没有恢复资格"
+        );
+
+        super::replace_session_db_path_override_for_test(previous);
     }
 
     /// **PR-01／P0-1**：人工放行入口必须真的接上，且文案不得把它说成"重启即解锁/删事故"。
