@@ -1841,6 +1841,34 @@ desktop-console **16/0**、module_linkage_smoke **5/0**（含新增守门）。
 
 **门禁**：computer-use-core **125/0**、web-console 1135/0、module_linkage_smoke 5/0。
 
+### B-89 PR-03 后续工单：受控族缺 `move` 入口，以及我在拖拽重写里引入的一处**已知局限**
+
+**侦察结论（决定后续工单的形状）**：鼠标移动**不走受监督 helper**——
+`move_mouse_relative`/`diagnostic_move_mouse_absolute` 各自 `run_powershell` 一段独立的
+`SetCursorPos` 脚本；而 helper 的动作模式只有 `click`/`text`/`scroll`/`key`/`combo`/`down`/`up`
+（**没有 `move`**）。因此：
+
+- 移动**没有**注入步数、序列完成等事实（不登记 `injected_steps`）；
+- 移动不产生释放义务（不按下任何按钮/键）——这也是 PR-03 允许它作为唯一例外的依据；
+- 但每次移动都会**新起一个 PowerShell 进程**（性能与生命周期上都与受监督 helper 不一致）。
+
+**我在 PR-03 里引入的一处已知局限（必须如实记录）**：闭环评测的拖拽被重写为
+"受控按下 → 逐段移动（无义务移动）→ 受控抬起"。因为中间段走的是**不受监督**的移动，
+它们**不计入**回执的 `confirmed_point_count`（该字段统计的是 helper 自己注入的点）。
+后果：读报告的人若拿拖拽的 `confirmed_point_count` 当作"路径注入点数"，会看到偏低的值
+（极端情况下为 0），而光标确实移动过。**这不是"谎报完成"**（完成与否由 `path_completed` 与
+`partial` 表达，且 PR-05 的 `input_status` 只允许 `Sent + partial=false` 落到 complete），
+但它确实是一处**维度口径不完整**。
+
+**收口方案（后续工单，建议与 CU-02 一起做）**：给 helper 增加 `move` 模式（含
+`injected_steps`/`sequence_completed` 事实与"永不按下"的语义），并据此提供
+`controlled_move_mouse_relative` / `controlled_move_mouse_absolute`；随后：
+① 拖拽中间段改走受控移动（点数与"移动也算一步"的口径就完整了）；
+② 桌宠自动化的相对移动与评测拖拽都脱离未受监督路径，PR-03 守门清单里的"移动例外"即可删除。
+
+**在此之前**：PR-03 的守门用例仍在用**允许清单**把这两个移动原语钉住（多一处引用即失败），
+所以"例外"不会悄悄扩散。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
