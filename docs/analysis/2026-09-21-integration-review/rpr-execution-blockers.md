@@ -1399,6 +1399,96 @@ git push -u origin rd4-input-safety-and-pkg-integrity
 
 **仍未闭环（与本次修复无关，继续保留）**：B-72 列出的 launcher 注入/输入安全启动路径联动（本次日志未展示输入安全启动路径的评估/开放行——因为启动器链路尚未接入注入后行为观察）、卸载/修复/重装、升级数据兼容、签名。
 
+### B-77 启动路径**每次必失败**的自锁缺陷：旧恢复操作不重绑 + 阶段守门不许回退（已修，含真实库验证）
+
+**现场现象**（本机真实输入安全库，修复前）：
+
+```text
+WARN coolzhu_web_console: 输入安全启动路径失败（正式输入保持阻断）:
+  未持有 scope windows-session-1 的当前恢复资格（持有 epoch Some(1)，当前 Some(4)）：不得修改安全状态
+```
+
+每次启动都失败，**且 epoch 每次都前进**（1 → 4 → 5），说明"取得资格"本身是成功的，失败在**其后的某一步**。
+
+**根因定位（读真实库，不靠推断）**：`%LOCALAPPDATA%\CoolzhuAgent\input-safety\input-safety.sqlite3` 里
+
+```text
+input_safety_ownership_epochs : windows-session-1, epoch=5, holder=coordinator-14896-…, released=NULL
+input_safety_recovery_operations:
+  startup-input-safety                                   epoch=5 stage=r1  committed=0   ← 本次
+  startup-recovery-cu-session-…rpO0wuINWlivnmBZeYz48T7iLk5bFSaF  epoch=2 stage=r5  committed=0   ← 上次遗留
+  startup-recovery-cu-session-…call_ea30b56c5ec44e898fce7353     epoch=1 stage=r1  committed=0   ← 上次遗留
+```
+
+即：报错的 `持有 epoch 1` **不是**本次取得的资格，而是**上次运行遗留的操作行**上记录的 epoch。
+
+两个叠加的设计后果（都不是"某处手滑"，而是组合出来的自锁）：
+
+1. 驱动的操作 id 按 `run.call_id` 命名（`startup-recovery-{call_id}`），而 `put_recovery_operation` 的 upsert **刻意只允许推进 `stage`/`committed`、不允许换绑**（防自证换绑，见 `input_safety_store.rs` 注释）。⇒ 重启后同一 id 复用，行仍绑在**已失效**的 epoch 上，`advance_recovery_operation_authorized` 的"必须持有当前 epoch 且操作也绑在当前 epoch"守门必然拒绝。
+2. 阶段守门是 `next.order() == stage.order() + 1`（**不得跳步、也不得回退**）。⇒ 即便重绑成功，中断重放从 R2 起逐条请求也会撞上"回退"而被拒。
+
+**后果（严重）**：只要**任何一次**启动在 R1–R9 中途结束（崩溃/被 kill/正常退出前的失败），下一次启动就永久失败 ⇒ 资源永久保持阻断，**无人能恢复**（自锁，且没有人工通道）。
+
+**修复（`legacy_recovery_driver.rs`，两处）**：
+
+- 登记后按**当前资格**重新绑定未提交的旧操作：`rebind_recovery_operation_authorized(operation_id, guard)`（store 侧本就要求"持有当前 epoch"才允许重绑，符合裁决 §2.2"重启后必须重新取得协调权"）。
+- `advance` 改为**幂等**：`current.stage.order() >= next.order()` ⇒ 跳过；仅未达标时才调用 store 的按资格推进。阶段推进本身的校验仍在 store。
+
+**真实库验证（同一台机、同一批遗留行，不清理现场）**：
+
+```text
+修复前：WARN …输入安全启动路径失败（正式输入保持阻断）: …持有 epoch Some(1)，当前 Some(5)…
+修复后：INFO …输入安全启动路径: candidates=2, converged=0, refused=2,
+        opening=KeptIsolated { open_blocks: 2, pending_recovery_operations: 1, legacy_unconverged_runs: 2,
+                               refusal: Some("该资源仍有未关闭的阻断事实") }
+```
+
+**回归用例**：`legacy_recovery_driver::tests::replay_rebinds_an_operation_left_by_a_previous_run`（取得资格→登记操作→**释放资格**模拟中断，再以 `coordinator: None` 重放：断言重放成功、收敛完成、操作行 `recovery_epoch` 已等于**新** epoch）。
+
+### B-78 开放路径**永不可达**的逻辑错误：把"活着的协调者正在处理"也算成"待对账"（已修）
+
+B-77 修掉后暴露：启动路径的评估恒带 `pending_recovery_operations ≥ 1`。读 `assess_input_resource` 才看清——它把启动对账的两类结论**都**计入"待对账"：
+
+- `NeedsReacquire`（旧 epoch／持有者已消失）⇒ 确实"待对账"，应计数；
+- `StillAuthorized`（**当前活着的**协调者正在处理）⇒ 在启动路径里那就是**本次调用自己**刚登记的那条操作。
+
+⇒ 只要协调器存在，评估永远得到"该资源上仍有尚未提交的恢复操作"，**开放分支永不可达**（现场 `pending=3` 中有一条正是本次协调器的登记）。
+
+**修复**（`input_safety_opening.rs`）：只把 `NeedsReacquire` 计入 `pending_recovery_operations`。修复后现场 `pending=3 → 1`（剩下的 1 条确为旧 epoch 的待对账操作）。
+
+**回归用例**：`input_safety_opening::tests::operations_held_by_a_live_coordinator_are_not_pending_reconciliation`（持协调器 ⇒ `pending==0`、`is_safe()` 成立，且同一协调器**确实能**按资格开放）。
+
+### B-79 全量测试的并行 env 竞态（1114/1）：非回归，但**必须修**，否则门禁不可信（已修）
+
+**现象**：全量跑出现 1 失败——`computer_use_executor::tests::admission_entry_records_the_frozen_workspace_in_the_frozen_database`，实际 `input_safety_resource_not_accepting_new_input`、期望 `computer_use_room_full_access_required`；**单跑该用例通过**。
+
+**根因（进程级 env + 缺互斥）**：正式输入入口要经共享输入安全库，库根经**进程级环境变量**注入。CU 侧的两个入口用例都持全局串行守卫 `crate::tests::config_test_guard()`，而 `input_safety_opening` 的两个用例会 `set_var`／`remove_var` 同一变量却**没持**该守卫 ⇒ 窗口内 CU 用例读到**别人的临时库根**（一个未被开放的资源）而 fail-closed 拒绝。属既存竞态，本轮新增用例提高了并行度后暴露。
+
+**修复（纯测试面）**：
+
+- `input_safety_opening` 的两个 env 敏感用例加 `let _guard = crate::tests::config_test_guard();`；
+- CU 的 `open_input_resource_for_test` 改为返回 **Drop 守卫**（`InputSafetyEnvGuard`），用例结束恢复原 env——此前只 `set_var` 不恢复，把已删除临时目录的库根泄漏给后续用例。
+
+**验证**：**连跑 3 轮全量，1115/0 稳定**（修复前同一命令曾出 1114/1）。
+
+### B-80 **规格未明确**：被拒绝的恢复"永不结账" ⇒ 一个无法判定的遗留运行 = 永久隔离
+
+修复 B-77/B-78 后，本机真实库的**正确**结果是继续保持隔离：`refused=2`（两个真实遗留 CU 运行被如实拒绝，不写终态）、`open_blocks=2`（恢复期为它们建立了真实阻断）。这**符合裁决**（"未知不是没有 owner ⇒ 不写终态、保持隔离"）。
+
+**但缺一环（现状即风险）**：被拒绝的操作 `committed` 恒为 0、阻断永远不关闭，而**没有任何机制**把它们结账或人工放行。后果：只要历史上留下一个无法判定的遗留运行，该资源就**永久隔离**，且现场无人能恢复（既非"崩溃可自愈"，也非"有管理通道"）。裁决文本只规定了"拒绝写终态并保持隔离"，未规定"拒绝后如何结账、谁来放行、凭什么证据"。
+
+**待裁决（不阻塞其它已裁决项）**：
+
+1. 是否为"已被拒绝且已裁定保持隔离"的恢复操作引入**终态登记**（例如 `committed=1` + `disposition=kept_isolated`），使"待对账"不再把它算作未办事项；
+2. 阻断（`resource_blocks`）是否允许在"运行本体已被隔离且不再持有输入"时关闭；若允许，谁可关闭、需什么证据、如何审计；
+3. 是否需要一条**受控的人工/管理放行通道**（第八轮 §1.5 只讨论了"独立证明"，未给出运营处置路径）。
+
+在此之前，本机现状应如实描述为：**资源保持隔离（阻断 2 条），正式输入 fail-closed**——这是设计结果，不是待修 bug。
+
+### B-81 B-73 收口：容量记账用例的偶发失败不再阻塞门禁（根因仍未定位，如实保留）
+
+改动为**基线相对断言**（不再与硬编码常量比），随后：定向 20/20 轮绿 + 本轮**全量 3/3 轮 1115/0**。原始那次失败（`(4,4)`）**仍不可复现、根因未定位**，故保留"归因待核"，但不再作为门禁阻塞项；`tmp/guard-first-failure.log` 为首跑证据。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

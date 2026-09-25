@@ -3879,18 +3879,16 @@ mod tests {
     /// "可选外部依赖缺失且**前置有真实探测** ⇒ 明确跳过并**独立统计**"，因此这里保留跳过，
     /// 但补齐三件事：① 前置是真实探测；② 打印绕过捕获的 `[env-skip]` 行，写明原因、
     /// 被探测的对象与"本机不验证任何行为、**不是通过**"；③ 独立统计口径 = 数 `[env-skip]` 行。
-    fn require_powershell_or_skip(test_name: &str) -> bool {
-        match super::detect_powershell_shell() {
-            Ok(_) => true,
-            Err(error) => {
-                announce_env(&format!(
-                    "[env-skip] {test_name}: 本机未验证——找不到可用的 PowerShell 可执行文件（{error}）。\
-                     本用例需要真实 shell 才能验证超时口径；缺前置时它**不验证任何行为**，\
-                     因此**不是通过**（独立统计：数 [env-skip] 行）。Windows 上请确认 PATH 里的 \
-                     pwsh/powershell 可用；非 Windows 属平台不适用。"
-                ));
-                false
-            }
+    /// PowerShell 属**执行环境依赖**，不是可选依赖：产品的原生输入 helper 本身就经
+    /// `powershell.exe -Command` 内联执行，缺它意味着**本机无法执行 CU**。
+    ///
+    /// 因此本机缺 PowerShell 时**必须失败**（第八轮裁决 §5：PowerShell → fail），
+    /// 不得记成"跳过"——那会让发布门禁在一台根本跑不了 CU 的机器上变绿。
+    fn require_powershell_or_fail(test_name: &str) {
+        if let Err(error) = super::detect_powershell_shell() {
+            panic!(
+                "[env-missing] {test_name}: 找不到可用的 PowerShell 可执行文件（{error}）。本用例需要真实 shell 才能验证超时口径；缺前置时它不验证任何行为，因此不是通过，而是验收未完成（不是产品缺陷，是执行环境无效）。Windows 上请确认 PATH 里的 pwsh/powershell 可用。"
+            );
         }
     }
 
@@ -4594,9 +4592,7 @@ mod tests {
     fn powershell_timeout_treated_as_seconds() {
         use super::execute_powershell;
         // 显式环境例外：需要真实 PowerShell（缺前置 ⇒ 声明式跳过并独立统计，绝不静默通过）。
-        if !require_powershell_or_skip("powershell_timeout_treated_as_seconds") {
-            return;
-        }
+        require_powershell_or_fail("powershell_timeout_treated_as_seconds");
         // RPR-01：cwd: None 意味着子进程继承**进程 cwd**，等价于读一次进程全局状态；
         // 必须与改动 cwd 的用例互斥，否则可能继承到正被删除的临时目录（os error 267）。
         let _guard = env_lock()

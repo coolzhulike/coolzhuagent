@@ -93,16 +93,17 @@ pub(crate) fn assess_input_resource(
     };
     let mut pending_recovery_operations = 0usize;
     for outcome in store.reconcile_recovery_operations_on_startup()? {
-        let id = match &outcome {
-            crate::input_safety_store::RecoveryReconcileOutcome::StillAuthorized {
-                recovery_operation_id,
-            }
-            | crate::input_safety_store::RecoveryReconcileOutcome::NeedsReacquire {
-                recovery_operation_id,
-                ..
-            } => recovery_operation_id.clone(),
+        // **只把 `NeedsReacquire` 算作"待对账"**：`StillAuthorized` 表示该操作正由**活着的**
+        // 协调者处理中——在启动路径里那就是本次调用自己。把它计入"待对账"，会让启动路径的
+        // 开放分支**永不可达**（现场实测：`pending=3` 的三条里就有一条是本次协调器的登记）。
+        let crate::input_safety_store::RecoveryReconcileOutcome::NeedsReacquire {
+            recovery_operation_id,
+            ..
+        } = &outcome
+        else {
+            continue;
         };
-        if let Some(operation) = store.recovery_operation(&id)? {
+        if let Some(operation) = store.recovery_operation(recovery_operation_id)? {
             if operation.scope == *resource_scope && !operation.committed {
                 pending_recovery_operations += 1;
             }
@@ -334,6 +335,38 @@ mod tests {
         );
     }
 
+    /// **活着**协调者的在办操作不算"待对账"：否则启动路径的开放分支**永不可达**。
+    ///
+    /// 现场背景：启动路径先取协调资格（登记一条未提交操作）再评估，而评估曾把
+    /// `StillAuthorized`（正在被活着的持有者处理）也计入 `pending_recovery_operations`，
+    /// 于是每次启动都得到"仍有尚未提交的恢复操作"而永远保持隔离。
+    #[test]
+    fn operations_held_by_a_live_coordinator_are_not_pending_reconciliation() {
+        let (_directory, session_db, safety_root) = setup();
+        let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+            &safety_root,
+            "windows-session-opening|test-still-authorized",
+            &scope(),
+            "self-operation",
+            &["open_new_input"],
+            std::time::Duration::from_secs(2),
+        )
+        .expect("coordinator");
+        // 协调器已登记一条未提交（r1）操作，且持有者**活着**。
+        let assessment = assess_input_resource(&safety_root, &session_db, &scope()).expect("assess");
+        assert_eq!(
+            assessment.pending_recovery_operations, 0,
+            "活着协调者的在办操作不是待对账：{assessment:?}"
+        );
+        assert!(assessment.is_safe(), "干净资源必须评估通过：{assessment:?}");
+        // 开放分支确实可达（这正是启动路径的形态：同一协调器直接按资格开放）。
+        let state = coordinator
+            .store()
+            .reopen_new_input_authorized(&scope(), coordinator.control())
+            .expect("按资格开放");
+        assert!(state.accepts_new_input, "评估通过后必须能开放新输入");
+    }
+
     /// 有未关闭阻断 ⇒ **保持隔离**（不是失败，是保守结果），且不得开放。
     #[test]
     fn open_block_keeps_the_resource_isolated() {
@@ -388,6 +421,9 @@ mod tests {
     /// 启动触发点：库根未注入 ⇒ 如实地"跳过"，**不自造路径**（正式输入继续 fail-closed）。
     #[test]
     fn startup_skips_without_an_injected_root() {
+        // **串行守卫**：本用例临时**移除**进程级库根，并行时会让别的用例读到"未注入"（现场实测：与 CU 入口用例并行时，入口用例偶发
+        // 报 `input_safety_resource_not_accepting_new_input`）。
+        let _guard = crate::tests::config_test_guard();
         let (_directory, session_db, _safety_root) = setup();
         let saved = std::env::var_os(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
         std::env::remove_var(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
@@ -404,6 +440,9 @@ mod tests {
     /// 但资源**仍然保持隔离**——因为该运行缺独立安全检查，恢复期为它建立了真实阻断。
     #[test]
     fn startup_drives_candidates_and_keeps_the_resource_isolated() {
+        // **串行守卫**：本用例把进程级库根指向自己的临时目录，并行时会让别的用例读写错库（现场实测：与 CU 入口用例并行时，入口用例偶发
+        // 报 `input_safety_resource_not_accepting_new_input`）。
+        let _guard = crate::tests::config_test_guard();
         let (_directory, session_db, safety_root) = setup();
         // 真实 owner 关系必须存在：否则驱动会以 `legacy_run_owner_no_mapping` 拒写（用例 5 的规则）。
         crate::create_chat_runtime_run_sqlite(

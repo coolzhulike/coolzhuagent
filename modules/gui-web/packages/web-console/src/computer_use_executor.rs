@@ -1944,7 +1944,28 @@ mod tests {
     ///
     /// 这不是测试旁路：它走生产同一入口（协调器取锁 + 取 epoch + 按资格开放），
     /// 因此"资源接受新输入"是**真实发生过的事实**。返回库根路径供用例断言使用。
-    fn open_input_resource_for_test(safety_root: &std::path::Path) -> String {
+    /// 注入库根的**环境守卫**：drop 时恢复原值，避免进程级 env 泄漏到其它用例
+    /// （此前 helper 只 `set_var` 不恢复，后续用例会读到已删除临时目录的库根）。
+    struct InputSafetyEnvGuard {
+        #[allow(dead_code)]
+        coordination: String,
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl Drop for InputSafetyEnvGuard {
+        fn drop(&mut self) {
+            match self.previous.take() {
+                Some(value) => std::env::set_var(
+                    crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV,
+                    value,
+                ),
+                None => std::env::remove_var(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV),
+            }
+        }
+    }
+
+    fn open_input_resource_for_test(safety_root: &std::path::Path) -> InputSafetyEnvGuard {
+        let previous = std::env::var_os(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
         let scope = crate::input_safety_store::physical_input_resource_scope()
             .expect("physical input resource scope");
         let coordination = format!(
@@ -1974,7 +1995,10 @@ mod tests {
             .reopen_new_input_authorized(&scope, coordinator.control())
             .expect("按资格开放资源");
         std::mem::forget(coordinator); // 用例期内保持持有（释放会归还资源）
-        coordination
+        InputSafetyEnvGuard {
+            coordination,
+            previous,
+        }
     }
 
     /// 建一组**关系完整**的真实事实：会话行 + 房间行 + `chat_turn` 运行行（accepted）。

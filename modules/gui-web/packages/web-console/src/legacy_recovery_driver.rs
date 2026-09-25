@@ -80,11 +80,29 @@ pub(crate) struct LegacyRecoveryInputs<'a> {
     pub independent_safety_check: Option<&'a runtime::CurrentResourceSafetyCheck>,
 }
 
+/// 幂等推进阶段：**已达标就跳过**，未达标才按资格推进。
+///
+/// 为什么需要幂等：恢复是"重启后重放"。上次中断在半途的操作，其 stage 已落盘到中途
+/// （例如 `r5`），重放时驱动仍从 R2 起逐条请求——若直接调
+/// [`InputSafetyStore::advance_recovery_operation_authorized`]，store 的"不得跳步或回退"
+/// 守门会把**正常重放**判成回退而拒绝，使启动路径每次都失败、资源永久保持阻断
+/// （现场实测：遗留操作停在 `r1`/`r5` 时命中）。
+/// 这里只负责"跳过已达标的阶段"；阶段本身的推进仍由 store 按持有资格校验。
 fn advance(
     coordinator: &InputSafetyCoordinator,
     operation_id: &str,
     next: RecoveryStage,
 ) -> Result<(), CoordinatorError> {
+    let current = coordinator
+        .store()
+        .recovery_operation(operation_id)
+        .map_err(CoordinatorError::Store)?
+        .ok_or_else(|| {
+            CoordinatorError::Store(InputSafetyStoreError::Sqlite("恢复操作不存在".to_string()))
+        })?;
+    if current.stage.order() >= next.order() {
+        return Ok(());
+    }
     coordinator
         .store()
         .advance_recovery_operation_authorized(operation_id, coordinator.control(), next)
@@ -135,6 +153,24 @@ pub(crate) fn run_legacy_recovery(
             committed: false,
         })
         .map_err(CoordinatorError::Store)?;
+    // **重启后必须重新取得协调权才能继续**（裁决 §2.2）：旧运行遗留的操作行仍绑在已失效的
+    // epoch／协调者上，而 `put_recovery_operation` 刻意**只允许推进 stage/committed、不允许换绑**。
+    // 因此这里按**当前**资格重新绑定；否则后续按资格推进阶段会报"未持有当前恢复资格"
+    // （现场实测：持有 epoch 1、当前 5 ⇒ 每次启动都在 R2 失败，资源永久保持阻断）。
+    if let Some(existing) = coordinator
+        .store()
+        .recovery_operation(inputs.recovery_operation_id)
+        .map_err(CoordinatorError::Store)?
+    {
+        let bound_elsewhere = existing.recovery_epoch != guard.epoch()
+            || existing.coordinator_instance_id != guard.coordinator_id();
+        if bound_elsewhere && !existing.committed {
+            coordinator
+                .store()
+                .rebind_recovery_operation_authorized(inputs.recovery_operation_id, guard)
+                .map_err(CoordinatorError::Store)?;
+        }
+    }
 
     // ---- R2：持久化恢复意图 + **关闭新输入接纳**（收紧方向不需要资格，但由协调者执行）----
     coordinator
@@ -391,6 +427,88 @@ mod tests {
 
     fn scope() -> InputSafetyResourceScope {
         InputSafetyResourceScope::parse("windows-session-recovery").expect("scope")
+    }
+
+    /// 重放：上次中断留下的操作（绑在**已失效**的 epoch 上）必须被重新绑定并继续。
+    ///
+    /// 现场背景：驱动按 `run.call_id` 命名操作 id，而 `put_recovery_operation` 刻意只推进
+    /// stage/committed、**不换绑**；旧操作因此仍绑在旧 epoch 上，后续按资格推进阶段报
+    /// "未持有当前恢复资格（持有 epoch 1，当前 5）"⇒ 启动路径每次失败、资源永久阻断。
+    #[test]
+    fn replay_rebinds_an_operation_left_by_a_previous_run() {
+        let (_directory, session_db, safety_root) = setup();
+        crate::create_chat_runtime_run_sqlite(
+            &session_db,
+            "run-chat-replay",
+            "claim",
+            "ws-0123456789abcdef",
+            Some("session-1"),
+            "room-1",
+            "turn-1",
+        )
+        .expect("seed runtime run");
+        let store = ComputerUseRunStore::open(&session_db).expect("store");
+        seed_legacy_unrecorded_run_for_test(&store, "legacy-cu-replay", "session-1", "turn-1", true);
+        drop(store);
+        let run = ComputerUseRunStore::open(&session_db)
+            .expect("store")
+            .legacy_unconverged_runs()
+            .expect("candidates")
+            .into_iter()
+            .find(|run| run.call_id == "legacy-cu-replay")
+            .expect("候选存在");
+
+        // 模拟"上次启动中断"：取得资格 → 登记操作 → **释放资格**，操作行留在旧 epoch 上且未提交。
+        let previous = InputSafetyCoordinator::begin(
+            &safety_root,
+            &scope(),
+            "recovery-legacy-replay",
+            &["converge_legacy_cu_run"],
+            std::time::Duration::from_secs(2),
+        )
+        .expect("previous coordinator");
+        let previous_epoch = previous.control().epoch();
+        previous.relinquish().expect("release previous epoch");
+
+        let report = run_legacy_recovery(&LegacyRecoveryInputs {
+            session_db_path: &session_db,
+            input_safety_root: &safety_root,
+            coordinator: None,
+            coordination_scope: "windows-session-recovery|physical-input-resource",
+            resource_scope: &scope(),
+            run: &run,
+            recovery_operation_id: "recovery-legacy-replay",
+            recovery_service_instance: "recovery-service-test",
+            source_database_identity: "session-db:default",
+            observed_commit_candidate: Some(false),
+            independent_safety_check: None,
+        })
+        .expect("重放必须成功（不得报未持有当前恢复资格）");
+        assert!(
+            matches!(report.disposition, LegacyRecoveryDisposition::Converged { .. }),
+            "重放应当完成收敛：{:?}",
+            report.disposition
+        );
+
+        let safety = crate::input_safety_store::InputSafetyStore::open_at(&safety_root).expect("safety");
+        let operation = safety
+            .recovery_operation("recovery-legacy-replay")
+            .expect("read")
+            .expect("exists");
+        let current = safety
+            .current_recovery_epoch(&scope())
+            .expect("read epoch")
+            .expect("本次运行必须持有资格");
+        assert!(
+            current.epoch > previous_epoch,
+            "重启必须取得**新** epoch（旧 {} → 新 {}）",
+            previous_epoch,
+            current.epoch
+        );
+        assert_eq!(
+            operation.recovery_epoch, current.epoch,
+            "重放必须把旧操作重新绑定到当前 epoch"
+        );
     }
 
     /// R1–R9 端到端：**资源不确定 ⇒ 建事故 + 保持隔离**，但控制终态与收敛事实**必须落库**。
