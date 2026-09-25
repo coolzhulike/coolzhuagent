@@ -1605,6 +1605,82 @@ HTTP（只读/非改动校验）：空署名 ⇒ 400；阻断集合不符 ⇒ 40
 
 **为什么本轮**不**开工**：分叉 A/B 任一选错，都会产出决策文档明令避免的"全绿但事实链不是生产约束"；且 PR-02 的接线会**改变 CU 运行时行为**（步骤写入路径），在口径未定前动手，等于把未定语义写进生产路径。本轮已完成并验证的是 PR-01（`c292fe9`），PR-02/PR-03 保持**未开工**状态（不是半成品）。
 
+### B-84 PR-02A（Stage 1+2）交付：attempt 落库 + 生产 `ActionOriginAuthority`；Stage 3（执行器接线）已实测工作面
+
+**裁决依据**：PR-02A 最终裁决（采用 A2 分阶段：先 attempt 落库 + 生产 authority + 执行器写 ActionFact；
+`tool_call_id` 降为"有真实登记才必填、无登记不得伪造"；`tool_calls` 登记表留 PR-02B）。
+
+**已落地（Stage 1：登记落库，schema v23 → v24）**
+
+- 新表 `computer_use_plan_attempts`：`attempt_key`（`run#logical_request_id#attempt_id` 复合键）主键 +
+  `(call_id)` 索引 + **`(call_id, action_id)` 唯一索引**（一条动作只能由**一次**规划请求产生；
+  后来者认领会撞唯一约束而失败，不是"悄悄覆盖"）。
+- 新表 `computer_use_action_origin_rejections`：**输入前身份拒绝**的审计事件，`physical_input` 恒为 0
+  ——拒绝日志与动作事实分开（裁决 §五）。
+- 迁移 `apply_session_migration_v24_action_origin_ledger`：就地补齐（`IF NOT EXISTS`）、推进到 24；
+  同时接进 `ComputerUseRunStore::open`（独立打开 store 也必须可用，否则登记会以 `no such table` 失败，
+  来源核对就静默退化成"查不到"）与 `main.rs` 阶梯。
+- store API：`record_plan_attempt`（幂等）、`bind_plan_attempt_action`、`plan_attempt_for_action`
+  （`plan_producer` 的读回面）、`plan_attempt_by_key`（`known_request` 的读回面）、
+  `record_action_origin_rejection` / `action_origin_rejection_count`。
+
+**已落地（Stage 2：生产 authority）**
+
+- 新文件 `web-console/src/action_origin_authority.rs`：`ProductionActionOriginAuthority` 实现
+  `ActionOriginAuthority` 的 8 个查询，**每条记录都来自真实查询**（构造时快照，因此 `&self` 返回引用安全）：
+  - `plan_producer`/`known_request` ← `computer_use_plan_attempts`（落库，可跨进程审计）；
+  - `run_relation` ← `computer_use_runs` 行（**工作区未记录的历史行不构造记录**，不拿当前工作区顶替）；
+  - `tool_call_relation` / `cleanup_incident` / `control_operation` / `host_operation` ←
+    **当前留空**（对应登记表尚不存在）：查不到即 `None`，契约随即按"不得虚构工具归属/来源不成立"拒绝。
+- **必要使能（additive）**：`RunRelationRecord`/`ToolCallRelation`/`HostOperationRecord`/
+  `CleanupIncidentRecord`/`ControlOperationRecord` 此前**未从 `runtime` 导出**，导致该 trait 在 crate
+  之外**根本无法实现**（这也解释了"生产里一次都没调用过 `admit_action_origin`"）。已在 `lib.rs`
+  加入导出，**无语义变化**。
+
+**契约侧的好消息（不需要改契约）**：裁决要求的 `tool_call_id` 条件语义**契约早已内建**——
+`ActionSource::required_relations()` 明确写着"`tool_call_id` 是否必填由**可信上下文**决定，
+可选性不得由调用方自己挑"，`validate_against` 的四个分支正是：
+`(None,None)` 通过（类型 B：模型规划非工具链动作）、`(None,Some)` **拒绝**（"工具归属不得虚构"）、
+`(Some,None)` 拒绝（漏传）、不一致拒绝；跨 run 由 `ensure_runs_are_related` 拒绝。
+因此 CU-F05-3/4 落在"authority 如实返回 None" + "origin 不伪造"上即可。
+
+**验收用例（已通过）**：`plan_producer_comes_from_the_store_not_from_the_caller`（真实 attempt 可查回；
+别的动作/别的 run **查不到** —— 禁止"最近一次请求"顶替）、`tool_relations_are_never_fabricated`、
+`legacy_rows_without_recorded_workspace_have_no_run_relation`；
+存储侧 `plan_attempts_are_persisted_bound_and_read_back`（含"一动作一请求"的唯一约束冲突）、
+`pre_input_origin_rejections_are_audited_without_claiming_physical_input`、
+`migration_v24_creates_action_origin_ledger_in_place`。
+另更新迁移阶梯守卫（终点 v23 → v24，并把 v24 对象纳入"版本推进了、对象真的建出来了"检查）。
+
+**门禁**：web-console **1128/0**、core-runtime **312/0**、module_linkage_smoke 4/0。
+
+**Stage 3（执行器接线）——已实测的工作面（尚未动代码，刻意不半接线）**
+
+1. **适配器缺会话维度**：`TracingAdapter`（`computer_use_executor.rs:116`）当前只有
+   `store`/`call_id`/`state`/`cancelled`/`input_lease`；而 `ActionOrigin` 需要
+   `ConversationActionContext`（工作区/房间/会话/公开轮次）。四维**在入口就有**（`execute_with_current_runtime`
+   的 `parent: FrozenParentContext` + `chat_room_id`），但需要穿过 `execute_in_room_with_policy`
+   到适配器（适配器构造点**只有 1 处**：`executor.rs:913`）。
+   同时适配器要拿 `&dyn ComputerUsePlanner` 才能取 `last_plan_request_attempt()`（该 trait 方法正是
+   为"写动作事实时构造来源"而设，且明确禁止用近似物顶替）。
+2. **翻转"输入前缺 attempt ⇒ 拒绝"的影响面已实测**：执行器侧有 **6 个假 planner 实现**、
+   **50 个用例**。这些假 planner 都未实现 `last_plan_request_attempt`（默认 `None`）——
+   按裁决 §五，它们会全部落到"输入前身份拒绝"。正确做法是给每个假 planner 补一条**真实** attempt
+   （而不是放宽判定），属机械但有面儿的改动。
+3. **事实写入点已确定**：`act()` 末尾的 `record_step(&step, &action_json)` 处，
+   `result`（含 `execution.receipt` / `error.receipt`）在手 ⇒ 就地改用
+   `record_step_with_facts`，在同事务里 `facts.record_action_fact(&ActionFact::new(identity, receipt).with_origin(origin))`
+   （准入已在输入前完成，符合"先准入、再写事实"）。
+
+**为什么本轮停在这里**：Stage 3 会**翻转 CU 运行时行为**（输入前拒绝），并且影响 50 个用例中的假 planner。
+在没有把"上下文穿过适配器 + 6 个假 planner 补真实 attempt"一次做完并验证之前，半接线的形态恰好就是
+裁决 §五要禁止的那种——"有些动作有事实、有些没有，且没有拒绝留痕"。已完成的 Stage 1+2 是**完整且被测试的
+单元**（登记 + authority），执行器未被触碰，生产里没有任何"声称已核对来源"的假事实。
+
+**CU-F05 现状**：1/2/3/4 的基础已就位（authority 层已测），**5（SafetyCleanup）本轮只能落地"无 incident ⇒ 拒绝"
+这一半**——生产里没有 `CleanupIncidentRecord` 形态的登记（`original_action_id` + `recovery_eligible`），
+现有输入安全库的 incident 形状不同。正面那一半需要先建事故登记，属 PR-02B 或独立工单。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

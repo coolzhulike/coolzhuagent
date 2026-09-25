@@ -6,6 +6,7 @@ use computer_use::{
 };
 use runtime::{
     legacy_cu_run_convergence_order_is_safe, reconcile_legacy_cu_run_convergence,
+    PlannedRequestAttempt,
     CurrentResourceSafetyCheck, EffectStatus, GoalVerdict, InputDelivery, InputReleaseStatus,
     LegacyCuRunConvergenceEvidence, LegacyCuRunConvergenceFact, LegacyCuRunConvergenceIntent,
     LegacyCuRunConvergenceKey, LegacyCuRunConvergenceRefusal,
@@ -199,6 +200,61 @@ pub(crate) fn apply_session_migration_v22(connection: &Connection) -> rusqlite::
     }
     if current < 22 {
         connection.execute_batch("PRAGMA user_version = 22;")?;
+    }
+    Ok(())
+}
+
+/// v24（PR-02A／P0-2）：**动作来源核对所需的登记**。
+///
+/// 两张表，各管一件事：
+///
+/// - `computer_use_plan_attempts`：**真实规划请求 attempt 的落库**。为什么必须落库而不是留在
+///   进程内记忆：审计要在**重启 / 重放 / 恢复**之后仍能回答"这条动作由哪次模型请求产生"
+///   （裁决 PR-02A §六：attempt 来源取落库）。`attempt_key` 是
+///   `run#logical_request_id#attempt_id` 复合键——局部 attempt 编号或逻辑请求 ID 单独都不能当身份。
+/// - `computer_use_action_origin_rejections`：**输入前身份拒绝**的审计事件（裁决 §五）。
+///   它**不是**动作事实：这里只记录"计划被拒"，`physical_input` 恒为 0——事实与拒绝日志必须分开，
+///   否则"动作发生了没有"会被日志混淆。
+///
+/// 本表由本文件拥有（与 v11/v22 同例）：`IF NOT EXISTS` 风格、每次初始化都安全补齐。
+pub(crate) fn apply_session_migration_v24_action_origin_ledger(
+    connection: &Connection,
+) -> rusqlite::Result<()> {
+    let current: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    connection.execute_batch(
+        r#"
+        CREATE TABLE IF NOT EXISTS computer_use_plan_attempts (
+            attempt_key TEXT PRIMARY KEY,
+            call_id TEXT NOT NULL,
+            logical_request_id TEXT NOT NULL,
+            attempt_id TEXT NOT NULL,
+            step_index INTEGER NOT NULL,
+            -- 产生该动作的计划请求在**动作产生之后**才回填（登记时还不知道 action_id）。
+            action_id TEXT,
+            registered_at_unix_ms INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_cu_plan_attempts_call
+            ON computer_use_plan_attempts(call_id);
+        -- 一条动作只能由**一次**规划请求产生：重复回填即冲突（暴露"最近一次请求"式顶替）。
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_cu_plan_attempts_action
+            ON computer_use_plan_attempts(call_id, action_id) WHERE action_id IS NOT NULL;
+        -- 输入前身份拒绝的审计（不是事实；physical_input 恒 0）。
+        CREATE TABLE IF NOT EXISTS computer_use_action_origin_rejections (
+            rejection_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            call_id TEXT NOT NULL,
+            action_id TEXT,
+            step_index INTEGER,
+            reason_code TEXT NOT NULL,
+            reason_detail TEXT NOT NULL,
+            physical_input INTEGER NOT NULL,
+            recorded_at_unix_ms INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_cu_action_origin_rejections_call
+            ON computer_use_action_origin_rejections(call_id);
+        "#,
+    )?;
+    if current < 24 {
+        connection.execute_batch("PRAGMA user_version = 24;")?;
     }
     Ok(())
 }
@@ -1618,6 +1674,9 @@ impl ComputerUseRunStore {
         // 同例：收敛列/表也由本文件拥有，独立打开 store（不经 main.rs 阶梯）时也必须可用；
         // 否则收敛写入会以 `no such column` fail-closed（登记前后行为一致，不留半套事实）。
         apply_session_migration_v23_legacy_run_convergence(&connection)?;
+        // 同例（PR-02A）：动作来源核对的登记表也由本文件拥有——独立打开 store 时它必须可用，
+        // 否则"登记规划 attempt"会以 `no such table` 失败，来源核对就退化成"查不到"。
+        apply_session_migration_v24_action_origin_ledger(&connection)?;
         Ok(Self::from_connection(connection))
     }
 
@@ -2174,6 +2233,131 @@ impl ComputerUseRunStore {
     /// `workspace_id IS NULL`（历史归属未记录）、`terminal_result_json IS NULL`、
     /// `state` 非终态（未收尾）、`legacy_convergence_id IS NULL`（尚未收敛）。
     /// 它只读不改：既不会回填归属，也不会顺手改状态。
+    /// 登记一次**真实规划请求 attempt**（PR-02A；幂等：同 key 重复登记不改变现有行）。
+    ///
+    /// 调用方是执行器：它在 planner 产出动作时拿到 `last_plan_request_attempt()` 并就地落库。
+    /// 这里**不**接受调用方自造的 key：key 由 `PlannedRequestAttempt::stable_key()` 给出。
+    pub(crate) fn record_plan_attempt(
+        &self,
+        call_id: &str,
+        attempt: &PlannedRequestAttempt,
+        step_index: usize,
+    ) -> rusqlite::Result<()> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection.execute(
+            "INSERT INTO computer_use_plan_attempts
+                 (attempt_key, call_id, logical_request_id, attempt_id, step_index, action_id, registered_at_unix_ms)
+             VALUES (?1, ?2, ?3, ?4, ?5, NULL, ?6)
+             ON CONFLICT(attempt_key) DO NOTHING",
+            params![
+                attempt.stable_key(),
+                call_id,
+                attempt.logical_request_id(),
+                attempt.attempt_id(),
+                step_index as i64,
+                now_ms() as i64
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// 把**动作**绑到产生它的规划请求上（动作产出后调用）。
+    ///
+    /// 该动作已被**别的**请求认领时，唯一索引 `(call_id, action_id)` 会让本语句报冲突——
+    /// 这是刻意的：一条动作只能由一次规划请求产生，"后来者覆盖"必须失败而不是悄悄改写。
+    pub(crate) fn bind_plan_attempt_action(
+        &self,
+        attempt_key: &str,
+        action_id: &str,
+    ) -> rusqlite::Result<()> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection.execute(
+            "UPDATE computer_use_plan_attempts SET action_id = ?2
+              WHERE attempt_key = ?1 AND action_id IS NULL",
+            params![attempt_key, action_id],
+        )?;
+        Ok(())
+    }
+
+    /// 按**动作**读回产生它的规划请求（来源核对的主要入口：`plan_producer`）。
+    pub(crate) fn plan_attempt_for_action(
+        &self,
+        call_id: &str,
+        action_id: &str,
+    ) -> rusqlite::Result<Option<PlannedRequestAttempt>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let row: Option<(String, String, String)> = connection
+            .query_row(
+                "SELECT call_id, logical_request_id, attempt_id
+                   FROM computer_use_plan_attempts
+                  WHERE call_id = ?1 AND action_id = ?2",
+                params![call_id, action_id],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .optional()?;
+        Ok(row.and_then(|(run_id, logical, attempt)| {
+            // 重建失败（值不合法）按"查不到"处理：不得把不合法身份当已验证来源。
+            PlannedRequestAttempt::new(run_id, logical, attempt).ok()
+        }))
+    }
+
+    /// 按**复合键**读回规划请求（`known_request`）。跨 run 的键也照读——
+    /// 由契约的 `ensure_runs_are_related` 判定"是否属于同一运行"，本函数不越权判定。
+    pub(crate) fn plan_attempt_by_key(
+        &self,
+        attempt_key: &str,
+    ) -> rusqlite::Result<Option<PlannedRequestAttempt>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let row: Option<(String, String, String)> = connection
+            .query_row(
+                "SELECT call_id, logical_request_id, attempt_id
+                   FROM computer_use_plan_attempts WHERE attempt_key = ?1",
+                params![attempt_key],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .optional()?;
+        Ok(row.and_then(|(run_id, logical, attempt)| {
+            PlannedRequestAttempt::new(run_id, logical, attempt).ok()
+        }))
+    }
+
+    /// 记录一条**输入前身份拒绝**（审计事件，不是动作事实；`physical_input` 恒为 0）。
+    pub(crate) fn record_action_origin_rejection(
+        &self,
+        call_id: &str,
+        action_id: Option<&str>,
+        step_index: Option<usize>,
+        reason_code: &str,
+        reason_detail: &str,
+    ) -> rusqlite::Result<()> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection.execute(
+            "INSERT INTO computer_use_action_origin_rejections
+                 (call_id, action_id, step_index, reason_code, reason_detail, physical_input, recorded_at_unix_ms)
+             VALUES (?1, ?2, ?3, ?4, ?5, 0, ?6)",
+            params![
+                call_id,
+                action_id,
+                step_index.map(|value| value as i64),
+                reason_code,
+                reason_detail,
+                now_ms() as i64
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// 该 run 上的拒绝审计条数（测试/诊断用；**不能**当作"事实"）。
+    pub(crate) fn action_origin_rejection_count(&self, call_id: &str) -> rusqlite::Result<usize> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let count: i64 = connection.query_row(
+            "SELECT COUNT(*) FROM computer_use_action_origin_rejections WHERE call_id = ?1",
+            params![call_id],
+            |row| row.get(0),
+        )?;
+        Ok(count as usize)
+    }
+
     pub(crate) fn legacy_unconverged_runs(
         &self,
     ) -> rusqlite::Result<Vec<LegacyUnconvergedRun>> {
@@ -2989,6 +3173,141 @@ mod tests {
             )
             .unwrap();
         assert_eq!(values, (None, None, None, None));
+    }
+
+    /// **PR-02A**：规划请求 attempt 落库——幂等、可读回、动作绑定唯一。
+    ///
+    /// 为什么这些断言重要：`plan_producer` 是"这条动作由哪次模型请求产生"的**唯一合法来源**。
+    /// 它必须来自落库的登记（重启/重放/恢复后仍可回答），而不是进程内记忆。
+    #[test]
+    fn plan_attempts_are_persisted_bound_and_read_back() {
+        let directory = tempfile::TempDir::new().unwrap();
+        let store = ComputerUseRunStore::open(&directory.path().join("web-sessions.sqlite3")).unwrap();
+        let attempt = runtime::PlannedRequestAttempt::new(
+            "cu-run-1",
+            "computer_use_planning:step-0",
+            "attempt-1",
+        )
+        .expect("复合键合法");
+        let key = attempt.stable_key();
+
+        store.record_plan_attempt("cu-run-1", &attempt, 0).expect("登记");
+        store.record_plan_attempt("cu-run-1", &attempt, 0).expect("重复登记必须幂等");
+        // 动作产生之前：按动作查不到（不得凭空关联）。
+        assert!(store
+            .plan_attempt_for_action("cu-run-1", "action-0")
+            .unwrap()
+            .is_none());
+
+        store
+            .bind_plan_attempt_action(&key, "action-0")
+            .expect("绑定动作");
+        let bound = store
+            .plan_attempt_for_action("cu-run-1", "action-0")
+            .unwrap()
+            .expect("绑过就必须查得到");
+        assert_eq!(bound.stable_key(), key);
+        assert_eq!(bound.run_id(), "cu-run-1");
+        assert_eq!(bound.logical_request_id(), "computer_use_planning:step-0");
+        assert_eq!(bound.attempt_id(), "attempt-1");
+        // 按复合键同样可读回（`known_request` 口径）。
+        assert_eq!(
+            store.plan_attempt_by_key(&key).unwrap().map(|value| value.stable_key()),
+            Some(key.clone())
+        );
+        // 别的动作查不到"最近一次请求"（禁止用最近一次顶替）。
+        assert!(store
+            .plan_attempt_for_action("cu-run-1", "action-1")
+            .unwrap()
+            .is_none());
+        // 换个 run 查同一动作 ID 也查不到（跨 run 不得互相借用）。
+        assert!(store
+            .plan_attempt_for_action("cu-run-2", "action-0")
+            .unwrap()
+            .is_none());
+        // 已绑定的动作不得改绑到别的请求：第二次绑定不改写（`action_id IS NULL` 守门）。
+        let other = runtime::PlannedRequestAttempt::new(
+            "cu-run-1",
+            "computer_use_planning:step-1",
+            "attempt-1",
+        )
+        .expect("复合键合法");
+        store.record_plan_attempt("cu-run-1", &other, 1).expect("登记第二个");
+        // 改绑被**数据库约束**拦下（`(call_id, action_id)` 唯一）：不是"静默不改"，
+        // 而是写不进去——这样"同一动作被两个请求认领"一定失败，不会被后来的写覆盖。
+        let conflict = store
+            .bind_plan_attempt_action(&other.stable_key(), "action-0")
+            .expect_err("同一动作不得被第二个规划请求认领");
+        assert!(
+            conflict.to_string().contains("UNIQUE"),
+            "冲突必须来自唯一约束：{conflict}"
+        );
+        assert_eq!(
+            store
+                .plan_attempt_for_action("cu-run-1", "action-0")
+                .unwrap()
+                .map(|value| value.stable_key()),
+            Some(key),
+            "冲突之后，原绑定必须保持不变"
+        );
+    }
+
+    /// **PR-02A**：输入前身份拒绝只写**审计**，且 `physical_input` 恒为 0（不是事实）。
+    #[test]
+    fn pre_input_origin_rejections_are_audited_without_claiming_physical_input() {
+        let directory = tempfile::TempDir::new().unwrap();
+        let store = ComputerUseRunStore::open(&directory.path().join("web-sessions.sqlite3")).unwrap();
+        store
+            .record_action_origin_rejection(
+                "cu-run-1",
+                Some("action-0"),
+                Some(0),
+                "missing_request_attempt",
+                "核对不到真正产生执行计划的规划请求",
+            )
+            .expect("审计");
+        assert_eq!(store.action_origin_rejection_count("cu-run-1").unwrap(), 1);
+        assert_eq!(store.action_origin_rejection_count("cu-run-other").unwrap(), 0);
+        let connection = store.connection.lock().unwrap();
+        let physical: i64 = connection
+            .query_row(
+                "SELECT physical_input FROM computer_use_action_origin_rejections WHERE call_id = 'cu-run-1'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(physical, 0, "输入前拒绝必须表明零物理输入");
+        let facts: i64 = connection
+            .query_row("SELECT COUNT(*) FROM fact_log_records", [], |row| row.get(0))
+            .unwrap_or(0);
+        assert_eq!(facts, 0, "拒绝不是事实：不得因此产生任何动作事实");
+    }
+
+    /// **PR-02A**：v24 就地补齐（旧库缺表时建表并推进版本；重复调用安全）。
+    #[test]
+    fn migration_v24_creates_action_origin_ledger_in_place() {
+        let connection = Connection::open_in_memory().unwrap();
+        connection.execute_batch("PRAGMA user_version = 23;").unwrap();
+        apply_session_migration_v24_action_origin_ledger(&connection).unwrap();
+        let version: i64 = connection
+            .query_row("PRAGMA user_version", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(version, 24);
+        for table in [
+            "computer_use_plan_attempts",
+            "computer_use_action_origin_rejections",
+        ] {
+            let count: i64 = connection
+                .query_row(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?1",
+                    [table],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            assert_eq!(count, 1, "v24 必须建出 {table}");
+        }
+        // 再跑一次不得报错（IF NOT EXISTS 风格）。
+        apply_session_migration_v24_action_origin_ledger(&connection).unwrap();
     }
 
     /// CU-F03（裁决 §5.1 / T13 的读回面）：v22 只加**可空**归属列；迁移之前写入的历史行

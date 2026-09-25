@@ -1,3 +1,4 @@
+mod action_origin_authority;
 mod audio;
 mod browser_bridge;
 mod browser_bridge_protocol;
@@ -41358,6 +41359,8 @@ fn initialize_session_schema(connection: &Connection) -> rusqlite::Result<()> {
     apply_session_migration_v21(connection)?;
     computer_use_store::apply_session_migration_v22(connection)?;
     computer_use_store::apply_session_migration_v23_legacy_run_convergence(connection)?;
+    // PR-02A／P0-2：动作来源核对所需的**登记**（规划请求 attempt 落库 + 输入前拒绝审计）。
+    computer_use_store::apply_session_migration_v24_action_origin_ledger(connection)?;
     Ok(())
 }
 
@@ -41629,7 +41632,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 23;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 24;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///
@@ -70918,11 +70921,13 @@ attach: last_assistant
             )
             .expect("seed session");
 
-        super::initialize_session_schema(&connection).expect("upgrade to v23");
+        super::initialize_session_schema(&connection).expect("upgrade to the current version");
 
         let version = session_user_version(&connection);
         assert_eq!(version, super::SESSION_SCHEMA_VERSION);
-        assert_eq!(version, 23, "本轮阶梯终点必须是 v23");
+        // 终点随阶梯前进而前进（PR-02A 起为 v24）：这里钉的是"**本轮**终点"，
+        // 与上面的唯一来源常量**两处都断言**——一处防漂移，一处防"只改常量没落对象"。
+        assert_eq!(version, 24, "本轮阶梯终点必须是 v24（PR-02A：动作来源登记）");
         let mut missing = Vec::new();
         for object in [
             "computer_use_legacy_run_convergences",
@@ -70939,6 +70944,19 @@ attach: last_assistant
             "升级后 v23 对象缺失：{missing:?}；实际存在的 legacy 对象={:?}",
             session_objects_containing(&connection, "legacy")
         );
+        // PR-02A（v24）：同样要"版本推进了、对象真的建出来了"，否则来源核对会以
+        // `no such table` 静默退化成"查不到"（那正是"事实链看起来有、其实没有"的形态）。
+        let mut missing_v24 = Vec::new();
+        for object in [
+            "computer_use_plan_attempts",
+            "computer_use_action_origin_rejections",
+            "idx_cu_plan_attempts_action",
+        ] {
+            if !session_object_exists(&connection, object) {
+                missing_v24.push(object);
+            }
+        }
+        assert!(missing_v24.is_empty(), "升级后 v24 对象缺失：{missing_v24:?}");
         for column in [
             "legacy_convergence_id",
             "legacy_convergence_state",
