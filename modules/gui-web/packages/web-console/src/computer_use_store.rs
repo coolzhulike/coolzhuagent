@@ -1552,6 +1552,18 @@ pub(crate) struct NewComputerUseRun {
     pub workspace: CuWorkspaceAttribution,
 }
 
+/// 运行列表里的一行（CU-01 的 UI 落列用；只含稳定可展示的最小字段）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct RecentComputerUseRun {
+    pub call_id: String,
+    pub session_id: String,
+    pub turn_id: String,
+    pub state: String,
+    /// 迁移前的历史行可能未记录归属 ⇒ `None`（**不**回填当前工作区）。
+    pub workspace_id: Option<String>,
+    pub created_at_ms: i64,
+}
+
 /// 报告用的一行步骤读数（原样读库；**不**在此派生结论）。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct RunStepReportRow {
@@ -2321,6 +2333,34 @@ impl ComputerUseRunStore {
             .optional()
     }
 
+    /// **最近的运行列表**（CU-01 的 UI 落列用）：只读、按创建时间倒序、有上界。
+    ///
+    /// 只回"能被稳定展示"的最小字段：运行 id、会话/轮次、状态、创建时间、工作区归属。
+    /// 每步的输入状态等由 [`Self::run_step_reports`] 单独取——列表查询不该顺带做重活。
+    pub(crate) fn recent_runs(
+        &self,
+        limit: usize,
+    ) -> rusqlite::Result<Vec<RecentComputerUseRun>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let mut statement = connection.prepare(
+            "SELECT call_id, session_id, turn_id, state, workspace_id, created_at_ms
+               FROM computer_use_runs ORDER BY created_at_ms DESC, call_id DESC LIMIT ?1",
+        )?;
+        let rows = statement
+            .query_map([limit as i64], |row| {
+                Ok(RecentComputerUseRun {
+                    call_id: row.get(0)?,
+                    session_id: row.get(1)?,
+                    turn_id: row.get(2)?,
+                    state: row.get(3)?,
+                    workspace_id: row.get(4)?,
+                    created_at_ms: row.get(5)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
     /// 该 run 上登记过的工具调用（按登记时间）。
     pub(crate) fn tool_calls_for_run(
         &self,
@@ -2410,6 +2450,24 @@ impl ComputerUseRunStore {
             })?
             .collect::<Result<Vec<_>, _>>()?;
         Ok(rows)
+    }
+
+    /// 本 run **是否真的有末帧**（最后一步写下了 `after` 证据）。
+    ///
+    /// 与 [`Self::run_final_evidence_ref`] 的区别很重要：后者在缺 `after` 时**回退**到最后一步的
+    /// `before`（用于"基线与末态成对"的口径），因此拿它当"有没有末帧"会**谎报有一张末帧**。
+    /// 本判据只看 `after`，不回落。
+    pub(crate) fn run_has_final_frame(&self, call_id: &str) -> rusqlite::Result<bool> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let row: Option<Option<String>> = connection
+            .query_row(
+                "SELECT after_evidence_ref FROM computer_use_steps
+                  WHERE run_id = ?1 ORDER BY step_index DESC LIMIT 1",
+                [call_id],
+                |row| row.get::<_, Option<String>>(0),
+            )
+            .optional()?;
+        Ok(row.flatten().is_some())
     }
 
     /// 本 run **最后**观测到的证据引用（末步的 `after` 证据；缺失时退回首步的 `before`）。

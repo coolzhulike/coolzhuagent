@@ -1987,6 +1987,7 @@ fn app() -> Router {
             "/api/computer-use/run-report",
             get(api_computer_use_run_report),
         )
+        .route("/api/computer-use/runs", get(api_computer_use_runs))
         .route("/api/computer-use/action-plan", post(api_action_plan))
         .route(
             "/api/external-vision/capabilities",
@@ -2433,6 +2434,121 @@ struct ComputerUseRunIncidentReport {
     incident_id: String,
     original_action_id: String,
     recovery_eligible: bool,
+}
+
+/// **CU-01 的运行列表**（UI 落列用）：最近 N 次运行 + 每次的五列摘要。
+///
+/// 为什么要有它：单个运行报告需要 `call_id`，而界面此前**没有"选一个运行"的位置**
+/// （闭环面板是预演、不带 call_id）。本端点给出候选，界面据此列出并逐条展示报告。
+#[derive(Debug, serde::Serialize)]
+struct ComputerUseRunListResponse {
+    unavailable: Option<String>,
+    runs: Vec<ComputerUseRunListRow>,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct ComputerUseRunListRow {
+    call_id: String,
+    session_id: String,
+    turn_id: String,
+    state: String,
+    /// 迁移前的历史行可能未记录归属 ⇒ `null`（**不**回填当前工作区）。
+    workspace_id: Option<String>,
+    created_at_ms: i64,
+    attempts: usize,
+    input_sent: usize,
+    partial_input: usize,
+    verified_steps: usize,
+    /// 每步输入状态的计数（`none`/`partial`/`complete`/`unknown`）。
+    step_status_counts: std::collections::BTreeMap<String, usize>,
+    /// 是否已有任务级基线与末帧（成对才有"本轮改变了什么"的证据）。
+    has_baseline: bool,
+    has_final_frame: bool,
+    /// 未确认释放的事故数（含未获资格者）。
+    cleanup_incidents: usize,
+}
+
+async fn api_computer_use_runs(
+    Query(query): Query<ComputerUseRunListQuery>,
+) -> Json<ComputerUseRunListResponse> {
+    Json(computer_use_run_list(query.limit.unwrap_or(20).min(200)))
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct ComputerUseRunListQuery {
+    limit: Option<usize>,
+}
+
+fn computer_use_run_list(limit: usize) -> ComputerUseRunListResponse {
+    let path = default_session_sqlite_path();
+    if !path.exists() {
+        return ComputerUseRunListResponse {
+            unavailable: Some("运行库未初始化".to_string()),
+            runs: Vec::new(),
+        };
+    }
+    let Ok(store) = computer_use_store::ComputerUseRunStore::open(&path) else {
+        return ComputerUseRunListResponse {
+            unavailable: Some("运行库不可读".to_string()),
+            runs: Vec::new(),
+        };
+    };
+    let Ok(recent) = store.recent_runs(limit) else {
+        return ComputerUseRunListResponse {
+            unavailable: Some("运行列表读取失败".to_string()),
+            runs: Vec::new(),
+        };
+    };
+    let runs = recent
+        .into_iter()
+        .map(|run| {
+            let counts = store.run_counts(&run.call_id).unwrap_or_default();
+            let mut step_status_counts = std::collections::BTreeMap::new();
+            for step in store.run_step_reports(&run.call_id).unwrap_or_default() {
+                let delivery = computer_use::input::DeliveryFacts {
+                    input_delivery: parse_input_delivery(step.input_delivery.as_deref()),
+                    partial: step.partial,
+                    path_completed: step.path_completed,
+                    confirmed_point_count: step.confirmed_point_count,
+                };
+                let status = computer_use::input::derive_input_status(&delivery);
+                *step_status_counts
+                    .entry(status.as_str().to_string())
+                    .or_insert(0) += 1;
+            }
+            ComputerUseRunListRow {
+                call_id: run.call_id.clone(),
+                session_id: run.session_id,
+                turn_id: run.turn_id,
+                state: run.state,
+                workspace_id: run.workspace_id,
+                created_at_ms: run.created_at_ms,
+                attempts: counts.attempts,
+                input_sent: counts.input_sent,
+                partial_input: counts.partial_input,
+                verified_steps: counts.verified_steps,
+                step_status_counts,
+                has_baseline: store
+                    .run_baseline_evidence_ref(&run.call_id)
+                    .ok()
+                    .flatten()
+                    .is_some(),
+                // 只看**真的有 after 证据**，不用带回退的 `run_final_evidence_ref`
+                // （那会把"最后一步的 before"读成"有一张末帧"）。
+                has_final_frame: store
+                    .run_has_final_frame(&run.call_id)
+                    .unwrap_or(false),
+                cleanup_incidents: store
+                    .cleanup_incidents_for_run(&run.call_id)
+                    .map(|incidents| incidents.len())
+                    .unwrap_or(0),
+            }
+        })
+        .collect();
+    ComputerUseRunListResponse {
+        unavailable: None,
+        runs,
+    }
 }
 
 /// `GET /api/computer-use/run-report`：只读运行报告（不建表、不迁移、不改任何状态）。
@@ -61685,6 +61801,20 @@ pub(crate) mod tests {
         assert!(WEB_APP_JS.contains("包含正在执行的轮次"));
     }
 
+    /// **CU-01**：运行列表的 UI 落列必须真的接上，且文案不得把它说成"完整轨迹"。
+    #[test]
+    fn computer_use_run_list_surface_is_wired_honestly() {
+        assert!(WEB_APP_JS.contains("/api/computer-use/runs"));
+        assert!(WEB_INDEX_HTML.contains("data-role=\"cu-runs\""));
+        // 三件事必须在文案里说清：部分/未知不算完成、未知禁止自动重放、库不可读要如实说。
+        assert!(WEB_APP_JS.contains("都**不会**算作完成"));
+        assert!(WEB_APP_JS.contains("也不会自动重放"));
+        assert!(WEB_APP_JS.contains("运行库不可用"));
+        // 每条摘要必须含四维计数与"基线/末帧"成对信息。
+        assert!(WEB_APP_JS.contains("验收通过"));
+        assert!(WEB_APP_JS.contains("未确认释放事故"));
+    }
+
     /// **PR-04（P1-2）**：前端不得把 `off` 当成"立即完成"，且必须按结果码处理。
     ///
     /// 原先 `pollLocalModelsMode` 里 `requestedMode === "off" || ...` 的短路会让"关闭未完成"
@@ -61703,6 +61833,108 @@ pub(crate) mod tests {
             WEB_APP_JS.contains("ShutdownIncomplete"),
             "关闭未完成的提示必须能一眼看出，而不是被当成 off"
         );
+    }
+
+    /// **CU-01**：运行列表给出候选与事实摘要——**不谎报**（未初始化即如实说），
+    /// 且每条摘要的数来自权威来源（每步状态经唯一判定点、计数四维）。
+    #[test]
+    fn run_list_reports_recent_runs_with_honest_summaries() {
+        let _guard = crate::tests::config_test_guard();
+        let directory = tempfile::TempDir::new().unwrap();
+        let db_path = directory.path().join("web-sessions.sqlite3");
+        let previous = super::replace_session_db_path_override_for_test(Some(db_path.clone()));
+
+        // 未初始化 ⇒ 如实报不可用（空列表 ≠ 没有待办）。
+        let empty = super::computer_use_run_list(20);
+        assert_eq!(empty.unavailable.as_deref(), Some("运行库未初始化"));
+        assert!(empty.runs.is_empty());
+
+        {
+            let store = super::computer_use_store::ComputerUseRunStore::open(&db_path)
+                .expect("store");
+            let workspace = super::canonical_workspace_identity("ws-0123456789abcdef")
+                .expect("canonical workspace");
+            let mut create = |call_id: &str, created_at: u64| {
+                assert!(store
+                    .create_run(&super::computer_use_store::NewComputerUseRun {
+                        call_id: call_id.to_string(),
+                        provider_tool_call_id: Some(format!("toolu-{call_id}")),
+                        session_id: "session-1".to_string(),
+                        turn_id: "turn-1".to_string(),
+                        chat_room_id: Some("room-1".to_string()),
+                        idempotency_key: format!("idem-{call_id}"),
+                        objective_json: "{}".to_string(),
+                        surface: computer_use::ComputerUseSurface::Desktop,
+                        deadline_ms: 60_000,
+                        created_at_ms: created_at,
+                        workspace: super::computer_use_store::CuWorkspaceAttribution::from_parent_run(
+                            &workspace,
+                        ),
+                    })
+                    .expect("create run"));
+            };
+            create("cu-older", 1);
+            create("cu-newer", 2);
+            // 只给较新的那个加两步：一步 complete、一步 partial。
+            let step = |index: usize, delivery: runtime::InputDelivery, partial: bool| {
+                super::computer_use_store::ComputerUseStepRecord {
+                    run_id: "cu-newer".to_string(),
+                    step_index: index,
+                    observation_generation: index as u64 + 1,
+                    action_type: "click".to_string(),
+                    normalized_target: "target".to_string(),
+                    action_fingerprint: format!("fp-{index}"),
+                    status: "input_sent".to_string(),
+                    error_code: None,
+                    before_evidence_ref: Some(format!("shot-{index}")),
+                    after_evidence_ref: None,
+                    visible_progress: false,
+                    input_delivery: Some(delivery),
+                    partial: Some(partial),
+                    path_completed: None,
+                    confirmed_point_count: None,
+                    effect_status: None,
+                    goal_verdict: None,
+                    input_release_status: None,
+                    started_at_ms: 1,
+                    completed_at_ms: Some(2),
+                }
+            };
+            assert!(store
+                .append_step(&step(0, runtime::InputDelivery::Sent, false))
+                .expect("step 0"));
+            assert!(store
+                .append_step(&step(1, runtime::InputDelivery::Sent, true))
+                .expect("step 1"));
+            store
+                .register_cleanup_incident("incident-list", "cu-newer", "action-9", None)
+                .expect("事故");
+        }
+
+        let list = super::computer_use_run_list(20);
+        assert_eq!(list.unavailable, None);
+        assert_eq!(list.runs.len(), 2);
+        // 按创建时间倒序：新的在前。
+        assert_eq!(list.runs[0].call_id, "cu-newer");
+        assert_eq!(list.runs[1].call_id, "cu-older");
+        let newer = &list.runs[0];
+        assert_eq!(
+            (newer.attempts, newer.input_sent, newer.partial_input, newer.verified_steps),
+            (2, 2, 1, 0)
+        );
+        assert_eq!(newer.step_status_counts.get("complete"), Some(&1));
+        assert_eq!(newer.step_status_counts.get("partial"), Some(&1));
+        assert!(newer.has_baseline, "首步的 before 证据就是基线");
+        assert!(!newer.has_final_frame, "没有 after 证据 ⇒ 不得谎报有末帧");
+        assert_eq!(newer.cleanup_incidents, 1);
+        // 较旧的运行没有任何步 ⇒ 全 0 且没有证据（不补默认值）。
+        let older = &list.runs[1];
+        assert_eq!(older.attempts, 0);
+        assert!(older.step_status_counts.is_empty());
+        assert!(!older.has_baseline);
+        assert_eq!(older.cleanup_incidents, 0);
+
+        super::replace_session_db_path_override_for_test(previous);
     }
 
     /// **CU-01**：运行报告把五列如实列出——不谎报完成、不隐藏无 usage 的请求、基线与末帧成对。

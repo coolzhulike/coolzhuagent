@@ -8005,6 +8005,7 @@ async function refreshAttributionAndRecovery() {
       attributionDetailText(surface)
     );
     syncReleaseIsolationButton(surface?.input_safety_recovery);
+    bindComputerUseRunsButton();
   } catch (error) {
     setSystemInfoText("system-attribution", "归属状态未知", error.message);
     syncReleaseIsolationButton(null);
@@ -8125,6 +8126,72 @@ function attributionDetailText(surface) {
 ${release}`;
   return note ? `${body}
 ${note}` : body;
+}
+
+// CU-01 的 UI 落列：列出最近的 CU 运行及其事实摘要。
+//
+// 为什么要有它：单个运行的报告要 call_id，而界面此前没有「选一个运行」的位置。
+// 这里把列表与每条的事实摘要（每步输入状态计数／统一计数／基线是否成对／未确认释放事故数）
+// 一次说清；**不谎报**——库不可读时如实说，而不是给一份空列表。
+async function showComputerUseRuns() {
+  let payload;
+  try {
+    payload = await requestJson("/api/computer-use/runs?limit=20");
+  } catch (error) {
+    addMessage({
+      author: "Computer Use 运行",
+      text: `读取运行列表失败：${error.message}`,
+      kind: "thought",
+      icon: "monitor-on",
+    });
+    return;
+  }
+  if (payload?.unavailable) {
+    addMessage({
+      author: "Computer Use 运行",
+      text: `运行库不可用：${payload.unavailable}`,
+      kind: "thought",
+      icon: "monitor-on",
+    });
+    return;
+  }
+  const runs = Array.isArray(payload?.runs) ? payload.runs : [];
+  if (runs.length === 0) {
+    addMessage({
+      author: "Computer Use 运行",
+      text: "还没有 Computer Use 运行记录。",
+      kind: "bot",
+      icon: "monitor-on",
+    });
+    return;
+  }
+  const lines = runs.map((run) => {
+    const statuses = run.step_status_counts || {};
+    const statusText = ["complete", "partial", "unknown", "none"]
+      .map((key) => `${key}:${Number(statuses[key] || 0)}`)
+      .join(" ");
+    const evidence = `基线${run.has_baseline ? "有" : "无"}/末帧${run.has_final_frame ? "有" : "无"}`;
+    return (
+      `· ${run.call_id}（${run.state}）` +
+      ` 尝试${run.attempts} 已发送${run.input_sent} 部分${run.partial_input} 验收通过${run.verified_steps}` +
+      ` ｜ 每步 ${statusText} ｜ ${evidence} ｜ 未确认释放事故 ${run.cleanup_incidents}`
+    );
+  });
+  addMessage({
+    author: "Computer Use 运行",
+    text: `最近 ${runs.length} 次运行（部分／未知都**不会**算作完成，也不会自动重放）：
+${lines.join("
+")}`,
+    kind: "bot",
+    icon: "monitor-on",
+  });
+}
+
+function bindComputerUseRunsButton() {
+  const button = document.querySelector('[data-role="cu-runs"]');
+  if (button) {
+    button.onclick = () => void showComputerUseRuns();
+  }
 }
 
 // 总览卡头部工作区名：显示路径末段目录名，完整路径存 dataset 供点击复制
