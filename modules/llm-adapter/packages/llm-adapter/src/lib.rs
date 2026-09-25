@@ -78,6 +78,9 @@ pub(crate) fn process_env_lock() -> std::sync::MutexGuard<'static, ()> {
 }
 
 #[cfg(test)]
+mod test_env;
+
+#[cfg(test)]
 mod resolver_contract_tests {
     use crate::{EndpointResolver, ProviderProtocol, RequestCapability};
 

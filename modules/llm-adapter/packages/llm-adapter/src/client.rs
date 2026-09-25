@@ -602,7 +602,7 @@ mod tests {
                 .expect("response should write");
         });
 
-        std::env::set_var("ZAI_API_KEY", "zhipu-test-key");
+        let _scoped_env = crate::test_env::set("ZAI_API_KEY", Some("zhipu-test-key"));
         let registry = ModelRegistry::with_config(AdapterConfig {
             providers: HashMap::from([(
                 "zhipuai".to_string(),
@@ -639,7 +639,7 @@ mod tests {
 
         assert_eq!(response.model, "glm-api-id");
         server.await.expect("server task should finish");
-        std::env::remove_var("ZAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("ZAI_API_KEY");
     }
 
     #[tokio::test(flavor = "current_thread")]

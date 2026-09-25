@@ -360,6 +360,40 @@ mod tests {
     use super::*;
     use crate::computer_use_store::seed_legacy_unrecorded_run_for_test;
 
+    /// 作用域内改写**库根**进程环境变量，Drop 时恢复原值（RPR-01b）。
+    ///
+    /// 为什么用具名守卫而不是"手工保存/恢复"：手工恢复一旦中途提前返回（`assert!` 失败、
+    /// `?` 传播）就会**漏恢复**，把变量留给同进程的其它用例；Drop 不受控制流影响。
+    struct ScopedEnvVar {
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl ScopedEnvVar {
+        fn set(value: impl AsRef<std::ffi::OsStr>) -> Self {
+            let name = crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV;
+            let previous = std::env::var_os(name);
+            std::env::set_var(name, value);
+            Self { previous }
+        }
+
+        fn remove_root() -> Self {
+            let name = crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV;
+            let previous = std::env::var_os(name);
+            std::env::remove_var(name);
+            Self { previous }
+        }
+    }
+
+    impl Drop for ScopedEnvVar {
+        fn drop(&mut self) {
+            let name = crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV;
+            match self.previous.take() {
+                Some(value) => std::env::set_var(name, value),
+                None => std::env::remove_var(name),
+            }
+        }
+    }
+
     fn setup() -> (tempfile::TempDir, std::path::PathBuf, std::path::PathBuf) {
         let directory = tempfile::TempDir::new().expect("tempdir");
         let session_db = directory.path().join("web-sessions.sqlite3");
@@ -547,15 +581,11 @@ mod tests {
         // 报 `input_safety_resource_not_accepting_new_input`）。
         let _guard = crate::tests::config_test_guard();
         let (_directory, session_db, _safety_root) = setup();
-        let saved = std::env::var_os(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
-        std::env::remove_var(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
+        let _root = ScopedEnvVar::remove_root();
         let report = run_startup_input_safety(&session_db, "test-instance", "session-db:default")
             .expect("report");
         assert_eq!(report.opening, OpeningOutcome::SkippedRootNotInjected);
         assert_eq!(report.candidates, 0);
-        if let Some(saved) = saved {
-            std::env::set_var(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV, saved);
-        }
     }
 
     /// 启动触发点：有待收敛运行 ⇒ 驱动**收敛**它（事实日志无终态事实），
@@ -580,10 +610,7 @@ mod tests {
         let cu_store = ComputerUseRunStore::open(&session_db).expect("cu store");
         seed_legacy_unrecorded_run_for_test(&cu_store, "legacy-cu-1", "session-1", "turn-1", true);
         drop(cu_store);
-        std::env::set_var(
-            crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV,
-            safety_root.as_os_str(),
-        );
+        let _root = ScopedEnvVar::set(safety_root.as_os_str());
         let report = run_startup_input_safety(&session_db, "test-instance", "session-db:default")
             .expect("report");
         assert_eq!(report.candidates, 1);
@@ -601,6 +628,5 @@ mod tests {
             }
             other => panic!("必须保持隔离：{other:?}"),
         }
-        std::env::remove_var(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
     }
 }

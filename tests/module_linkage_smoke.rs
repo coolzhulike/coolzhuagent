@@ -112,6 +112,40 @@ fn only_the_controlled_input_entry_is_reachable_from_automation() {
     // 未受监督原语——上一条规则（①）已经把整族 `diagnostic_*` 限制在诊断入口。
 }
 
+/// **RPR-01b**：测试里的进程环境写入必须**成对**——要么有恢复式守卫，要么就是守卫自身。
+///
+/// 不变式（低误报、可执行）：**同一个文件**里出现 `std::env::set_var(` / `std::env::remove_var(`
+/// 时，该文件必须同时定义/使用一个恢复式守卫（名字里含 `ScopedEnv` / `EnvVarGuard` /
+/// `InputSafetyEnvGuard` 之一）。生产侧的合法写入（把配置注入进程环境、给子进程准备 WebView2
+/// 变量）在允许清单里逐个列出并注明原因。
+#[test]
+fn test_environment_writes_are_paired_with_a_restoring_guard() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    // 生产代码里的合法写入：把配置应用到进程环境（不是测试污染，因此不受本不变式约束）。
+    let production_allowlist = [
+        "modules/gui-web/packages/web-console/src/main.rs",
+        "modules/gui-desktop/packages/desktop-console/src/config.rs",
+        "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+    ];
+    let guard_markers = ["ScopedEnv", "EnvVarGuard", "InputSafetyEnvGuard"];
+    let mut offenders = Vec::new();
+    for (relative, contents) in collect_rust_sources(&root.join("modules")) {
+        let writes_env = contents.contains("std::env::set_var(")
+            || contents.contains("std::env::remove_var(");
+        if !writes_env || production_allowlist.contains(&relative.as_str()) {
+            continue;
+        }
+        if !guard_markers.iter().any(|marker| contents.contains(marker)) {
+            offenders.push(relative);
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "这些文件写了进程环境却没有恢复式守卫（RPR-01b）：{offenders:?}
+         请用作用域守卫（进入时记原值、Drop 时恢复），否则用例之间会互相看到对方留下的变量"
+    );
+}
+
 /// 递归收集仓库源码（只读文本，用于上面的源码级守门）。
 fn collect_rust_sources(root: &std::path::Path) -> Vec<(String, String)> {
     let mut collected = Vec::new();

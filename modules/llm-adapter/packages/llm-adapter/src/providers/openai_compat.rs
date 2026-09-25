@@ -1863,7 +1863,7 @@ mod tests {
     #[test]
     fn missing_xai_api_key_is_provider_specific() {
         let _lock = env_lock();
-        std::env::remove_var("XAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("XAI_API_KEY");
         let error = OpenAiCompatClient::from_env(OpenAiCompatConfig::xai())
             .expect_err("missing key should error");
         assert!(matches!(
@@ -1894,14 +1894,14 @@ mod tests {
     #[test]
     fn zhipu_config_prefers_provider_specific_env_vars() {
         let _lock = env_lock();
-        std::env::remove_var("ZAI_BASE_URL");
-        std::env::remove_var("BIGMODEL_BASE_URL");
-        std::env::remove_var("OPENAI_BASE_URL");
-        std::env::set_var("OPENAI_BASE_URL", "https://fallback.example/v1");
-        std::env::set_var("ZAI_BASE_URL", "https://zhipu.example/v4");
-        std::env::set_var("BIGMODEL_API_KEY", "bigmodel-key");
-        std::env::remove_var("ZAI_API_KEY");
-        std::env::remove_var("OPENAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("ZAI_BASE_URL");
+        let _scoped_env = crate::test_env::remove("BIGMODEL_BASE_URL");
+        let _scoped_env = crate::test_env::remove("OPENAI_BASE_URL");
+        let _scoped_env = crate::test_env::set("OPENAI_BASE_URL", Some("https://fallback.example/v1"));
+        let _scoped_env = crate::test_env::set("ZAI_BASE_URL", Some("https://zhipu.example/v4"));
+        let _scoped_env = crate::test_env::set("BIGMODEL_API_KEY", Some("bigmodel-key"));
+        let _scoped_env = crate::test_env::remove("ZAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("OPENAI_API_KEY");
 
         let client = OpenAiCompatClient::from_env(OpenAiCompatConfig::zhipu())
             .expect("zhipu config should accept fallback credentials");
@@ -1912,9 +1912,9 @@ mod tests {
         );
         drop(client);
 
-        std::env::remove_var("ZAI_BASE_URL");
-        std::env::remove_var("BIGMODEL_API_KEY");
-        std::env::remove_var("OPENAI_BASE_URL");
+        let _scoped_env = crate::test_env::remove("ZAI_BASE_URL");
+        let _scoped_env = crate::test_env::remove("BIGMODEL_API_KEY");
+        let _scoped_env = crate::test_env::remove("OPENAI_BASE_URL");
     }
 
     #[tokio::test(flavor = "current_thread")]
@@ -1956,8 +1956,8 @@ mod tests {
                 .expect("response should write");
         });
 
-        std::env::set_var("ZAI_API_KEY", "zhipu-test-key");
-        std::env::set_var("ZAI_BASE_URL", format!("http://{address}/v1"));
+        let _scoped_env = crate::test_env::set("ZAI_API_KEY", Some("zhipu-test-key"));
+        let _scoped_env = crate::test_env::set("ZAI_BASE_URL", Some(format!("http://{address}/v1")));
 
         let client = OpenAiCompatClient::from_env(OpenAiCompatConfig::zhipu())
             .expect("zhipu client should build");
@@ -1981,8 +1981,8 @@ mod tests {
         assert_eq!(response.usage.output_tokens, 7);
 
         server.await.expect("server task should finish");
-        std::env::remove_var("ZAI_API_KEY");
-        std::env::remove_var("ZAI_BASE_URL");
+        let _scoped_env = crate::test_env::remove("ZAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("ZAI_BASE_URL");
     }
 
     async fn read_http_request(socket: &mut tokio::net::TcpStream) -> String {
