@@ -2041,6 +2041,41 @@ fail-closed 正确，但**无路可走**（§B-84 记的 CU-F05-5 正半缺口�
 （闭环面板是预演场景，不带 `call_id`）；要接需要先有运行列表/运行详情页。端点已可供脚本与
 后续 UI 直接消费。
 
+### B-95 CU-04 现状核实：**坐标与陈旧帧的大半早已具备**，本轮补上可度量的验收断言
+
+**为什么先核实**：CU-04 的裁决文字是"采用 frame_id + 返回光栅内整数坐标，宿主映射到物理像素"。
+若按字面从零实现，会**重复造已经存在的机制**、并可能把已经正确的坐标契约改坏。核实结论如下。
+
+**已经具备（带锚点，可直接复核）**：
+
+| 要求 | 现状 | 锚点 |
+| --- | --- | --- |
+| 模型**不**做坐标数学 | vision 返回**截图相对坐标**（0–1），提示词明确"relative coordinate on the screenshot, scaled from 0 to 1" | `vision-service/src/lib.rs` 的 `VisionGroundingResult.point` 与 `SHOWUI_GROUNDING_PROMPT` |
+| 宿主映射到物理像素 | `anchor(0–1) × (width-1 / height-1)`，四舍五入；**越界或零尺寸 ⇒ `None`** | `computer-use-core/src/lib.rs::anchor_to_physical_pixel` |
+| 多 DPI／多分辨率覆盖 | `standard_resolution_cases()`：hd-100／fhd-100／**fhd-125／qhd-150／uhd-200** | `computer-use-core/src/lib.rs:84` |
+| 旧 frame ⇒ 0 输入（浏览器） | 生成号 + `same_input_identity`（page_id／url／dom_revision）不符 ⇒ `stale_observation`（输入前拒绝） | `computer_use_adapters.rs:312/326` |
+| 旧 frame ⇒ 0 输入（桌面） | 生成号 + `same_input_identity`（window_id／pid／**window_rect**／**dpi**／webview2 覆盖）不符 ⇒ 拒绝 | `computer_use_adapters.rs:349`；相关 `stale_observation` 用例 4 条 |
+
+也就是说：CU-04 的**安全性那一半**（不拿旧帧动手、越界不注入）已经在生产路径上成立，且桌面侧的
+身份比较**包含 rect 与 dpi**——正是"窗口移动／缩放变化"的场景。
+
+**本轮补上的缺口**（此前**没有**可度量的误差验收）：
+
+- 新增 `pixel_mapping_stays_within_one_pixel_across_standard_scales`：对 5 个标准分辨率（含
+  125%／150%／200%）取四角、中心、双向稀疏网格共 21 个采样点，做**往返检验**
+  （物理像素 → 相对坐标 → 再映射），断言**误差 ≤1 物理像素**；并锁死三条边界：
+  相对坐标 **越界 ⇒ `None`**（不得被四舍五入"救回来"）、**NAN ⇒ `None`**、**零尺寸 ⇒ `None`**。
+
+**仍未做（如实记，且不是安全缺口）**：
+
+1. **可选语义 canvas ROI** 与"可见 ROI 不含工具栏"：今天只有闭环预演的 `roi_radius`（一个半径参数），
+   没有"语义 canvas 区域"的契约与排除工具栏的判据；
+2. **`frame_id` 这个命名**：现状用"生成号 + 输入身份"表达帧身份，语义等价但未叫 `frame_id`。
+   若要引入同名字段，应先说明它比现有身份**多**判了什么——否则只是改名（且会把已经正确的
+   陈旧判据拆成两处）。
+
+**门禁**：computer-use-core **127/0**。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

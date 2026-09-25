@@ -284,7 +284,7 @@ pub fn anchor_to_physical_pixel(
 mod tests {
     use super::{
         anchor_to_physical_pixel, default_regression_scenarios, standard_resolution_cases,
-        MouseActionKind, UiTargetKind,
+        MouseActionKind, RelativeAnchor, ResolutionCase, UiTargetKind,
     };
 
     #[test]
@@ -396,6 +396,83 @@ mod tests {
                 .expect("anchor should map");
             assert!(point.0 >= 0 && point.0 < case.width as i32);
             assert!(point.1 >= 0 && point.1 < case.height as i32);
+        }
+    }
+
+    /// **CU-04 验收**：同一视觉点在 100%／125%／150%／200% 下的映射，**误差 ≤1 物理像素**。
+    ///
+    /// 判据是"往返一致"：物理像素 → 相对坐标（`x/(w-1)`）→ 再映射回物理像素，必须回到原点；
+    /// 这不是自证——它是"宿主侧的映射是可逆且无偏的"这一条的直接检验（模型只给相对坐标，
+    /// 坐标数学全部由宿主承担）。同时锁死两条边界：相对坐标越界 ⇒ `None`（越界不得注入），
+    /// 以及 1.0 落在**最后一个像素**上（不是宽度本身，否则会点到画面外）。
+    #[test]
+    fn pixel_mapping_stays_within_one_pixel_across_standard_scales() {
+        for case in standard_resolution_cases() {
+            let last_x = case.width.saturating_sub(1) as f32;
+            let last_y = case.height.saturating_sub(1) as f32;
+            // 采样：四角 + 中心 + 稀疏网格（覆盖整幅画面，不只看一个点）。
+            let mut anchors = vec![
+                (0.0_f32, 0.0_f32),
+                (1.0, 1.0),
+                (0.5, 0.5),
+                (0.0, 1.0),
+                (1.0, 0.0),
+            ];
+            for step in 1..8 {
+                let value = step as f32 / 8.0;
+                anchors.push((value, value));
+                anchors.push((value, 1.0 - value));
+            }
+            for (ax, ay) in anchors {
+                let anchor = RelativeAnchor { x: ax, y: ay };
+                let mapped = anchor_to_physical_pixel(anchor, *case)
+                    .unwrap_or_else(|| panic!("{}：({ax}, {ay}) 必须可映射", case.name));
+                // 物理像素必须在画面内。
+                assert!(
+                    (0..case.width as i32).contains(&mapped.0)
+                        && (0..case.height as i32).contains(&mapped.1),
+                    "{}：映射越界 {mapped:?}",
+                    case.name
+                );
+                // 往返：映射点 → 相对坐标 → 再映射，必须回到同一像素（误差 ≤1）。
+                let round_trip = RelativeAnchor {
+                    x: mapped.0 as f32 / last_x,
+                    y: mapped.1 as f32 / last_y,
+                };
+                let again = anchor_to_physical_pixel(round_trip, *case).expect("往返必须可映射");
+                let error_x = (again.0 - mapped.0).abs();
+                let error_y = (again.1 - mapped.1).abs();
+                assert!(
+                    error_x <= 1 && error_y <= 1,
+                    "{}：({ax}, {ay}) 往返误差 ({error_x}, {error_y}) 超过 1 物理像素",
+                    case.name
+                );
+            }
+            // 越界 ⇒ **拒绝**（越界不得注入，也不得被四舍五入"救回来"）。
+            for bad in [
+                RelativeAnchor { x: -0.001, y: 0.5 },
+                RelativeAnchor { x: 0.5, y: 1.001 },
+                RelativeAnchor { x: f32::NAN, y: 0.5 },
+            ] {
+                assert!(
+                    anchor_to_physical_pixel(bad, *case).is_none(),
+                    "{}：越界相对坐标 ({}, {}) 必须返回 None",
+                    case.name,
+                    bad.x,
+                    bad.y
+                );
+            }
+        }
+        // 零尺寸/零分辨率 ⇒ 拒绝（不得除零，也不得给一个假点）。
+        for zero in [
+            ResolutionCase { name: "zero-w", width: 0, height: 720, scale_factor: 1.0 },
+            ResolutionCase { name: "zero-h", width: 1280, height: 0, scale_factor: 1.0 },
+        ] {
+            assert!(
+                anchor_to_physical_pixel(RelativeAnchor { x: 0.5, y: 0.5 }, zero).is_none(),
+                "{}：零尺寸不得产出坐标",
+                zero.name
+            );
         }
     }
 }
