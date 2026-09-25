@@ -1482,6 +1482,21 @@ pub(crate) struct NewComputerUseRun {
     pub workspace: CuWorkspaceAttribution,
 }
 
+/// **请求状态**（CU-01）：本 run 每一次**规划请求**的登记情况。
+///
+/// 为什么它不是"有没有 usage"的同义词：验收明确要求"**无 usage 请求也有 attempt 记录**"。
+/// 因此这里把两个事实**分开**报：`attempt_key` 存在说明请求已登记；`has_usage_fact`
+/// 只说明是否另有 usage 记录。把后者当成"请求是否存在"的判据，会凭空丢掉失败的请求。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ComputerUseRequestStatus {
+    /// 规划请求的稳定复合键（`run#logical#attempt`）。
+    pub attempt_key: String,
+    /// 该请求最终产出的动作（尚未绑定动作时为 `None`）。
+    pub action_id: Option<String>,
+    /// 是否有对应的 usage 事实（**不是**"请求是否存在"的判据）。
+    pub has_usage_fact: bool,
+}
+
 /// **统一 run 计数**的四维（CU-01）。字段语义见 [`ComputerUseRunStore::run_counts`]。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub(crate) struct ComputerUseRunCounts {
@@ -1984,6 +1999,35 @@ impl ComputerUseRunStore {
         )
         .optional()
         .map(Option::flatten)
+    }
+
+    /// **请求状态**（CU-01）：逐条列出本 run 的规划请求及其 usage 登记情况。
+    ///
+    /// 联接方式不是猜的：usage 事实的 `record_subject` 与规划请求的稳定复合键是**同一格式**
+    /// （`run#logical_request_id#attempt_id`，见 `fact_log_sqlite` 的 UsageAttempt 分支）。
+    pub(crate) fn run_request_status(
+        &self,
+        call_id: &str,
+    ) -> rusqlite::Result<Vec<ComputerUseRequestStatus>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let mut statement = connection.prepare(
+            "SELECT a.attempt_key, a.action_id,
+                    EXISTS(SELECT 1 FROM fact_log_records f
+                            WHERE f.record_kind = 'usage_attempt' AND f.record_subject = a.attempt_key)
+               FROM computer_use_plan_attempts a
+              WHERE a.call_id = ?1
+              ORDER BY a.step_index, a.attempt_key",
+        )?;
+        let rows = statement
+            .query_map([call_id], |row| {
+                Ok(ComputerUseRequestStatus {
+                    attempt_key: row.get(0)?,
+                    action_id: row.get(1)?,
+                    has_usage_fact: row.get::<_, i64>(2)? != 0,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
     }
 
     /// 本 run **最后**观测到的证据引用（末步的 `after` 证据；缺失时退回首步的 `before`）。
@@ -3075,11 +3119,15 @@ mod tests {
     fn temp_store() -> ComputerUseRunStore {
         let connection = Connection::open_in_memory().unwrap();
         apply_session_migration_v11(&connection).unwrap();
+        // v21：`fact_log_records`（事实日志）——请求状态要读 usage 事实，缺它就会 `no such table`。
+        crate::apply_session_migration_v21(&connection).unwrap();
         apply_session_migration_v22(&connection).unwrap();
         // RD4-01：收敛列/表由 v23 的函数体提供。本工单**不**自行抢占迁移版本号，也不动
         // `main.rs` 的阶梯，因此测试显式应用它；生产侧由统一维护人在阶梯里登记
         // （见 `apply_session_migration_v23_legacy_run_convergence` 的文档）。
         apply_session_migration_v23_legacy_run_convergence(&connection).unwrap();
+        // PR-02A：规划请求登记表（动作来源核对与"请求状态"都读它）。
+        apply_session_migration_v24_action_origin_ledger(&connection).unwrap();
         ComputerUseRunStore::from_connection(connection)
     }
 
@@ -3867,6 +3915,58 @@ mod tests {
             existing.terminal_result.unwrap().error.unwrap().code,
             "target_not_found"
         );
+    }
+
+    /// **CU-01「请求状态」**：无 usage 的请求**同样**要有 attempt 记录（不得被当成"请求不存在"）。
+    #[test]
+    fn request_status_keeps_attempts_even_without_usage_facts() {
+        let store = temp_store();
+        assert!(store.create_run(&run()).unwrap());
+        let attempt = |logical: &str, attempt_id: &str| {
+            runtime::PlannedRequestAttempt::new("cu-1", logical, attempt_id).expect("合法复合键")
+        };
+        // 三次规划请求：① 有 usage 且已产出动作；② 无 usage；③ 有 usage 未产出动作。
+        let first = attempt("computer_use_planning:step-0", "attempt-1");
+        let second = attempt("computer_use_planning:step-1", "attempt-1");
+        let third = attempt("computer_use_planning:step-2", "attempt-1");
+        for (index, item) in [&first, &second, &third].iter().enumerate() {
+            store
+                .record_plan_attempt("cu-1", item, index)
+                .expect("登记规划请求");
+        }
+        store
+            .bind_plan_attempt_action(&first.stable_key(), "action-0")
+            .expect("绑定动作");
+        // 只为 ①③ 写 usage 事实（② 没有：例如请求失败/未走计费路径）。
+        {
+            let connection = store.connection.lock().unwrap();
+            for key in [first.stable_key(), third.stable_key()] {
+                connection
+                    .execute(
+                        "INSERT INTO fact_log_records
+                             (record_kind, record_subject, scope_kind, content_digest, payload_json)
+                         VALUES ('usage_attempt', ?1, NULL, 'digest', '{}')",
+                        [key],
+                    )
+                    .unwrap();
+            }
+        }
+        let status = store.run_request_status("cu-1").unwrap();
+        assert_eq!(status.len(), 3, "三次请求都必须有 attempt 记录");
+        assert_eq!(status[0].attempt_key, first.stable_key());
+        assert_eq!(status[0].action_id.as_deref(), Some("action-0"));
+        assert!(status[0].has_usage_fact);
+        assert_eq!(
+            status[1].attempt_key,
+            second.stable_key(),
+            "无 usage 的请求**不得**从列表里消失"
+        );
+        assert!(
+            !status[1].has_usage_fact,
+            "没有 usage 事实就如实报 false（而不是把请求当成不存在）"
+        );
+        assert_eq!(status[2].action_id, None, "未产出动作时为 None，不编造");
+        assert!(status[2].has_usage_fact);
     }
 
     /// **CU-01「任务级基线」**：基线与末帧**成对**给出，且基线取**最早**的视图。
