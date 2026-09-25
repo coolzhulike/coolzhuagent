@@ -259,6 +259,44 @@ pub(crate) fn apply_session_migration_v24_action_origin_ledger(
     Ok(())
 }
 
+/// v25（PR-02B）：**工具调用登记表**。
+///
+/// 为什么需要它：`ActionOrigin::tool_call_id` 要求"有真实工具调用关系才填、无登记不得伪造"，
+/// 但此前**没有**任何地方能核对"这次工具调用真的发生过"。本表把工具派发边界上那些
+/// **只有那里才知道**的事实记下来：provider 的 tool call id、父运行、工具名、参数摘要。
+///
+/// 字段按裁决建议（`id`/`run_id`/`request_attempt_id`/`tool_name`/`arguments_digest`/`created_at`/`status`），
+/// **不额外增加身份字段**（裁决 §三：RunIdentity 已够复杂，下一步该消费而不是扩展）。
+///
+/// 两条刻意的口径：
+/// - `request_attempt_id` 可空且**未知就留空**：产生该工具调用的模型请求在派发边界上拿不到，
+///   不拿"最近一次请求"顶替（那正是裁决禁止的近似物）；
+/// - `arguments_digest` 只存**摘要**，不落参数原文——工具参数里可能有凭据/隐私内容。
+pub(crate) fn apply_session_migration_v25_tool_call_registry(
+    connection: &Connection,
+) -> rusqlite::Result<()> {
+    let current: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    connection.execute_batch(
+        r#"
+        CREATE TABLE IF NOT EXISTS tool_calls (
+            tool_call_id TEXT PRIMARY KEY,
+            run_id TEXT,
+            request_attempt_id TEXT,
+            tool_name TEXT NOT NULL,
+            arguments_digest TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at_unix_ms INTEGER NOT NULL,
+            updated_at_unix_ms INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_tool_calls_run ON tool_calls(run_id);
+        "#,
+    )?;
+    if current < 25 {
+        connection.execute_batch("PRAGMA user_version = 25;")?;
+    }
+    Ok(())
+}
+
 /// v22 只追加可空归属列；历史运行没有归属记录，因此必须保留 NULL。
 fn ensure_computer_use_runs_column(
     connection: &Connection,
@@ -1482,6 +1520,21 @@ pub(crate) struct NewComputerUseRun {
     pub workspace: CuWorkspaceAttribution,
 }
 
+/// 一条**工具调用登记**（PR-02B）。字段与表一一对应，语义见迁移函数的文档。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ToolCallRecord {
+    pub tool_call_id: String,
+    pub run_id: Option<String>,
+    /// 产生该工具调用的模型请求：**未知即 `None`**（不拿"最近一次请求"顶替）。
+    pub request_attempt_id: Option<String>,
+    pub tool_name: String,
+    /// 参数摘要（不落原文：工具参数可能含凭据/隐私）。
+    pub arguments_digest: String,
+    pub status: String,
+    pub created_at_unix_ms: i64,
+    pub updated_at_unix_ms: i64,
+}
+
 /// **请求状态**（CU-01）：本 run 每一次**规划请求**的登记情况。
 ///
 /// 为什么它不是"有没有 usage"的同义词：验收明确要求"**无 usage 请求也有 attempt 记录**"。
@@ -1710,6 +1763,8 @@ impl ComputerUseRunStore {
         // 同例（PR-02A）：动作来源核对的登记表也由本文件拥有——独立打开 store 时它必须可用，
         // 否则"登记规划 attempt"会以 `no such table` 失败，来源核对就退化成"查不到"。
         apply_session_migration_v24_action_origin_ledger(&connection)?;
+        // 同例（PR-02B）：工具调用登记表也由本文件拥有——来源核对读它，缺表会退化成"查不到"。
+        apply_session_migration_v25_tool_call_registry(&connection)?;
         Ok(Self::from_connection(connection))
     }
 
@@ -1999,6 +2054,108 @@ impl ComputerUseRunStore {
         )
         .optional()
         .map(Option::flatten)
+    }
+
+    /// **登记一次工具调用**（PR-02B）：在派发边界写入，只有那里才知道"哪个工具、什么参数、属于哪个运行"。
+    ///
+    /// 幂等：同一 `tool_call_id` 重复登记只更新状态与时间（provider 重试同一 id 时不重复建行）。
+    pub(crate) fn register_tool_call(
+        &self,
+        tool_call_id: &str,
+        run_id: Option<&str>,
+        request_attempt_id: Option<&str>,
+        tool_name: &str,
+        arguments_digest: &str,
+        status: &str,
+    ) -> rusqlite::Result<()> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection.execute(
+            "INSERT INTO tool_calls
+                 (tool_call_id, run_id, request_attempt_id, tool_name, arguments_digest,
+                  status, created_at_unix_ms, updated_at_unix_ms)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?7)
+             ON CONFLICT(tool_call_id) DO UPDATE SET
+                 status = excluded.status,
+                 updated_at_unix_ms = excluded.updated_at_unix_ms",
+            params![
+                tool_call_id,
+                run_id,
+                request_attempt_id,
+                tool_name,
+                arguments_digest,
+                status,
+                now_ms() as i64
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// 该工具调用是否**已登记**（来源核对的唯一判据；`false` ⇒ 不得声称工具归属）。
+    pub(crate) fn tool_call_is_registered(&self, tool_call_id: &str) -> rusqlite::Result<bool> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let count: i64 = connection.query_row(
+            "SELECT COUNT(*) FROM tool_calls WHERE tool_call_id = ?1",
+            [tool_call_id],
+            |row| row.get(0),
+        )?;
+        Ok(count > 0)
+    }
+
+    /// 读回一条工具调用登记（审计用）。
+    pub(crate) fn tool_call_record(
+        &self,
+        tool_call_id: &str,
+    ) -> rusqlite::Result<Option<ToolCallRecord>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection
+            .query_row(
+                "SELECT tool_call_id, run_id, request_attempt_id, tool_name, arguments_digest,
+                        status, created_at_unix_ms, updated_at_unix_ms
+                   FROM tool_calls WHERE tool_call_id = ?1",
+                [tool_call_id],
+                |row| {
+                    Ok(ToolCallRecord {
+                        tool_call_id: row.get(0)?,
+                        run_id: row.get(1)?,
+                        request_attempt_id: row.get(2)?,
+                        tool_name: row.get(3)?,
+                        arguments_digest: row.get(4)?,
+                        status: row.get(5)?,
+                        created_at_unix_ms: row.get(6)?,
+                        updated_at_unix_ms: row.get(7)?,
+                    })
+                },
+            )
+            .optional()
+    }
+
+    /// 该 run 上登记过的工具调用（按登记时间）。
+    pub(crate) fn tool_calls_for_run(
+        &self,
+        run_id: &str,
+    ) -> rusqlite::Result<Vec<ToolCallRecord>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let mut statement = connection.prepare(
+            "SELECT tool_call_id, run_id, request_attempt_id, tool_name, arguments_digest,
+                    status, created_at_unix_ms, updated_at_unix_ms
+               FROM tool_calls WHERE run_id = ?1
+              ORDER BY created_at_unix_ms, tool_call_id",
+        )?;
+        let rows = statement
+            .query_map([run_id], |row| {
+                Ok(ToolCallRecord {
+                    tool_call_id: row.get(0)?,
+                    run_id: row.get(1)?,
+                    request_attempt_id: row.get(2)?,
+                    tool_name: row.get(3)?,
+                    arguments_digest: row.get(4)?,
+                    status: row.get(5)?,
+                    created_at_unix_ms: row.get(6)?,
+                    updated_at_unix_ms: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
     }
 
     /// **请求状态**（CU-01）：逐条列出本 run 的规划请求及其 usage 登记情况。
@@ -3128,6 +3285,8 @@ mod tests {
         apply_session_migration_v23_legacy_run_convergence(&connection).unwrap();
         // PR-02A：规划请求登记表（动作来源核对与"请求状态"都读它）。
         apply_session_migration_v24_action_origin_ledger(&connection).unwrap();
+        // PR-02B：工具调用登记表（工具归属核对的唯一判据）。
+        apply_session_migration_v25_tool_call_registry(&connection).unwrap();
         ComputerUseRunStore::from_connection(connection)
     }
 
@@ -3915,6 +4074,52 @@ mod tests {
             existing.terminal_result.unwrap().error.unwrap().code,
             "target_not_found"
         );
+    }
+
+    /// **PR-02B**：工具调用登记——幂等（同 id 更新状态而非新建行）、可读回、参数只存摘要。
+    #[test]
+    fn tool_call_registry_is_idempotent_and_keeps_only_a_digest() {
+        let store = temp_store();
+        store
+            .register_tool_call(
+                "toolu-1",
+                Some("run-1"),
+                None,
+                "computer_use_perform",
+                "digest-abc",
+                "dispatched",
+            )
+            .expect("登记");
+        let dispatched = store.tool_call_record("toolu-1").unwrap().expect("可读回");
+        assert_eq!(dispatched.status, "dispatched");
+        assert_eq!(dispatched.run_id.as_deref(), Some("run-1"));
+        assert_eq!(
+            dispatched.request_attempt_id, None,
+            "产生该工具调用的模型请求未知 ⇒ 必须留空（不得拿最近一次请求顶替）"
+        );
+
+        // 收尾：同 id 只更新状态与时间，不新建行。
+        store
+            .register_tool_call(
+                "toolu-1",
+                Some("run-1"),
+                None,
+                "computer_use_perform",
+                "digest-abc",
+                "completed",
+            )
+            .expect("收尾");
+        assert_eq!(
+            store.tool_calls_for_run("run-1").unwrap().len(),
+            1,
+            "同一 tool_call_id 只能有一行"
+        );
+        let completed = store.tool_call_record("toolu-1").unwrap().expect("可读回");
+        assert_eq!(completed.status, "completed");
+        assert_eq!(completed.created_at_unix_ms, dispatched.created_at_unix_ms);
+        // 未登记 ⇒ 关系不成立（这是"不得伪造工具归属"的唯一判据）。
+        assert!(!store.tool_call_is_registered("toolu-unknown").unwrap());
+        assert!(store.tool_call_is_registered("toolu-1").unwrap());
     }
 
     /// **CU-01「请求状态」**：无 usage 的请求**同样**要有 attempt 记录（不得被当成"请求不存在"）。

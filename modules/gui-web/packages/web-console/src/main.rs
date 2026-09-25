@@ -27841,6 +27841,46 @@ struct ModelToolDispatchResult {
     is_error: bool,
 }
 
+/// PR-02B：工具调用的参数**摘要**（**不落原文**：工具参数里可能有凭据/隐私内容）。
+fn tool_arguments_digest(input: &JsonValue) -> String {
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    std::hash::Hash::hash(&input.to_string(), &mut hasher);
+    format!("{:016x}", std::hash::Hasher::finish(&hasher))
+}
+
+/// PR-02B：把一次工具调用登记到 `tool_calls`（幂等；`status` 由调用方给）。
+///
+/// **登记失败不阻断工具执行**：它只影响"以后能不能声称工具归属"——没有登记就不声称，
+/// 契约走 `(None, None)`（模型规划但非工具链动作），不构成"这次调用不安全"。
+/// 但失败必须**响亮记录**，不得静默（否则来源核对会悄悄退化成"查不到"）。
+///
+/// `request_attempt_id` 传 `None`：产生该工具调用的模型请求在派发边界**拿不到**，
+/// 未知就留空——不拿"最近一次请求"顶替（裁决禁止的近似物）。
+fn register_tool_call_at_dispatch(
+    tool_call_id: &str,
+    tool_name: &str,
+    input: &JsonValue,
+    run_id: Option<&str>,
+    status: &str,
+) {
+    let result = computer_use_store::ComputerUseRunStore::open(&default_session_sqlite_path())
+        .and_then(|store| {
+            store.register_tool_call(
+                tool_call_id,
+                run_id,
+                None,
+                tool_name,
+                &tool_arguments_digest(input),
+                status,
+            )
+        });
+    if let Err(error) = result {
+        diag!(
+            "tool_call registry write failed: id={tool_call_id}, name={tool_name}, status={status}, error={error}"
+        );
+    }
+}
+
 async fn dispatch_model_tool_calls_parallel(
     tool_requests: Vec<(String, String, JsonValue)>,
     log_prefix: &'static str,
@@ -27875,6 +27915,18 @@ async fn dispatch_model_tool_calls_parallel(
         tasks.spawn(async move {
             let _permit = semaphore.acquire_owned().await.ok();
             diag!("{log_prefix} dispatching tool_call: {name}, id={tool_use_id}, input={input}");
+            // PR-02B：**只有派发边界**才知道"provider 工具调用 id + 工具名 + 参数 + 所属运行"，
+            // 因此登记必须在这里做（executor 里没有这些事实）。
+            let registry_run_id = parent
+                .as_ref()
+                .and_then(|parent| parent.parent_run_id.clone());
+            register_tool_call_at_dispatch(
+                &tool_use_id,
+                &name,
+                &input,
+                registry_run_id.as_deref(),
+                "dispatched",
+            );
             let outcome = run_model_tool_dispatch_for_session_with_identity(
                 &name,
                 &input,
@@ -27913,6 +27965,14 @@ async fn dispatch_model_tool_calls_parallel(
                     )
                 }
             };
+            // PR-02B：收尾把状态落成 completed/failed（同一 id 的 upsert，不新建行）。
+            register_tool_call_at_dispatch(
+                &tool_use_id,
+                &name,
+                &input,
+                registry_run_id.as_deref(),
+                if is_error { "failed" } else { "completed" },
+            );
             (
                 index,
                 ModelToolDispatchResult {
@@ -41469,6 +41529,8 @@ fn initialize_session_schema(connection: &Connection) -> rusqlite::Result<()> {
     computer_use_store::apply_session_migration_v23_legacy_run_convergence(connection)?;
     // PR-02A／P0-2：动作来源核对所需的**登记**（规划请求 attempt 落库 + 输入前拒绝审计）。
     computer_use_store::apply_session_migration_v24_action_origin_ledger(connection)?;
+    // PR-02B：工具调用登记（`tool_call_id` 的真来源）。
+    computer_use_store::apply_session_migration_v25_tool_call_registry(connection)?;
     Ok(())
 }
 
@@ -41740,7 +41802,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 24;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 25;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///
@@ -71055,7 +71117,7 @@ attach: last_assistant
         assert_eq!(version, super::SESSION_SCHEMA_VERSION);
         // 终点随阶梯前进而前进（PR-02A 起为 v24）：这里钉的是"**本轮**终点"，
         // 与上面的唯一来源常量**两处都断言**——一处防漂移，一处防"只改常量没落对象"。
-        assert_eq!(version, 24, "本轮阶梯终点必须是 v24（PR-02A：动作来源登记）");
+        assert_eq!(version, 25, "本轮阶梯终点必须是 v25（PR-02B：工具调用登记）");
         let mut missing = Vec::new();
         for object in [
             "computer_use_legacy_run_convergences",
@@ -71079,6 +71141,8 @@ attach: last_assistant
             "computer_use_plan_attempts",
             "computer_use_action_origin_rejections",
             "idx_cu_plan_attempts_action",
+            "tool_calls",
+            "idx_tool_calls_run",
         ] {
             if !session_object_exists(&connection, object) {
                 missing_v24.push(object);

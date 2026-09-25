@@ -469,15 +469,21 @@ impl TracingAdapter<'_> {
             .with_tool_call_id(self.provider_tool_call_id.clone());
         let context = runtime::ConversationActionContext::new(identity.clone())
             .map_err(|error| persistence_error(format!("{}: {}", error.code, error.message)))?;
+        // PR-02B：工具归属由**登记表**决定——有真实登记就**必须**声称（契约对漏传是拒绝的），
+        // 没有登记就不声称（契约的 `(None, None)` 通过；凭空声称会被判为伪造）。
+        let tool_call_id = authority
+            .tool_call_id_for(action_id)
+            .map(str::to_string);
+        debug_assert_eq!(
+            tool_call_id.is_some(),
+            authority.has_tool_call_relation(action_id)
+        );
         let origin = runtime::ActionOrigin {
             action_id: action_id.to_string(),
             source: runtime::ActionSource::ModelPlanned,
             context: runtime::ActionContext::Conversation(context),
             request_attempt_id: Some(attempt.stable_key()),
-            // 工具归属：**有真实登记才填**。当前没有工具调用登记表（PR-02B），因此不填——
-            // 契约的 `(None, None)` 分支通过（模型规划但非工具链动作），
-            // 而"声称一个有归属的 tool_call_id"会被判为伪造。
-            tool_call_id: None,
+            tool_call_id,
             parent_step_operation: None,
             host_algorithm_version: None,
             resource_scope: None,
@@ -2271,6 +2277,9 @@ mod tests")
             .unwrap();
         crate::computer_use_store::apply_session_migration_v24_action_origin_ledger(&connection)
             .unwrap();
+        // PR-02B：工具调用登记表（来源核对读它；缺表会让核对以 `no such table` 失败）。
+        crate::computer_use_store::apply_session_migration_v25_tool_call_registry(&connection)
+            .unwrap();
         ComputerUseRunStore::from_connection(connection)
     }
 
@@ -2906,6 +2915,73 @@ mod tests")
         assert_eq!(physical, 0);
         // ④ 工厂一次都没被调用（拒绝发生在任何输入之前）。
         assert_eq!(factory.action_count.load(Ordering::SeqCst), 0);
+    }
+
+    /// **PR-02B／CU-F05-3（正半）**：工具调用**已登记** ⇒ 事实必须如实带上 `tool_call_id`。
+    ///
+    /// 这是"有真实登记才必填"的落地：契约对"有工具链关系却漏传"是**拒绝**的，
+    /// 因此"有就必填"必须由证据（登记表）决定，而不是由调用方挑。
+    #[tokio::test]
+    async fn cu_f05_3_registered_tool_call_is_claimed_in_the_action_fact() {
+        let _desktop_lease = crate::tests::desktop_input_lease_test_guard().await;
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("f05-3-tool-claim.sqlite3");
+        let store = ComputerUseRunStore::open(&path).unwrap();
+        let planner = FakePlanner::one_click();
+        let executions = Arc::new(AtomicUsize::new(0));
+        let factory = ReceiptActFactory {
+            executions: Arc::clone(&executions),
+            failure: None,
+            attach_receipt: true,
+            mismatch_action_id: false,
+            spec: ReceiptSpec {
+                input_delivery: runtime::InputDelivery::Sent,
+                partial: Some(false),
+                path_completed: Some(true),
+                confirmed_point_count: Some(5),
+                input_release: runtime::InputReleaseStatus::Released,
+            },
+        };
+        let identity = identity("f05-3-tool-claim");
+        // 模拟**派发边界**的登记：本 run 的承载工具调用确实发生过。
+        store
+            .register_tool_call(
+                &identity.provider_tool_call_id,
+                Some("run-1"),
+                None,
+                "computer_use_perform",
+                "digest",
+                "dispatched",
+            )
+            .expect("登记工具调用");
+
+        let result =
+            ComputerUseExecutor::new_for_test(&planner, &factory, &store, ComputerUseBudgets::default())
+                .with_provider_tool_call_id(&identity.provider_tool_call_id)
+                .execute(&input("desktop"), &identity)
+                .await;
+        assert!(executions.load(Ordering::SeqCst) >= 1, "动作确实执行过");
+        assert_ne!(
+            result.error.as_ref().map(|error| error.code.as_str()),
+            Some("action_origin_rejected"),
+            "有登记的工具有归属，不得被准入拒绝：{:?}",
+            result.error
+        );
+
+        let connection = Connection::open(&path).unwrap();
+        let payloads: Vec<String> = connection
+            .prepare("SELECT payload_json FROM fact_log_records")
+            .unwrap()
+            .query_map([], |row| row.get::<_, String>(0))
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        let joined = payloads.join("
+");
+        assert!(
+            joined.contains(&identity.provider_tool_call_id),
+            "已登记的工具调用必须在动作事实里如实带出：{joined}"
+        );
     }
 
     /// **CU-F05-4**：跨 run 的 attempt 不得作为本动作的来源。
@@ -5207,6 +5283,8 @@ mod tests")
         crate::computer_use_store::apply_session_migration_v23_legacy_run_convergence(&connection)
             .unwrap();
         crate::computer_use_store::apply_session_migration_v24_action_origin_ledger(&connection)
+            .unwrap();
+        crate::computer_use_store::apply_session_migration_v25_tool_call_registry(&connection)
             .unwrap();
         connection.execute_batch("PRAGMA query_only = ON;").unwrap();
         let store = ComputerUseRunStore::from_connection(connection);

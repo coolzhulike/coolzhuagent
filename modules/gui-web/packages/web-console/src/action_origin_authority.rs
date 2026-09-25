@@ -37,7 +37,10 @@ pub(crate) struct ProductionActionOriginAuthority {
     plan_producers: BTreeMap<String, PlannedRequestAttempt>,
     /// 已登记的规划请求（按稳定复合键）：`known_request`（附加因果引用核对用）。
     known_requests: BTreeMap<String, PlannedRequestAttempt>,
-    /// 工具调用归属：**暂无登记表**（PR-02B）。留空 ⇒ 不伪造工具归属。
+    /// 工具调用归属（PR-02B）：按 `action_id` 存"这个动作所属的工具调用"。
+    ///
+    /// 只在**登记表里真有这一行**时才有条目：查不到就不填，让契约走 `(None, None)`
+    /// （不声称工具归属）或对伪造的声称报"工具归属不得虚构"。
     tool_relations: BTreeMap<String, ToolCallRelation>,
     /// 宿主辅助动作的父操作登记：暂无 ⇒ `HostIncidental` 一律拒绝（fail-closed）。
     host_operations: BTreeMap<String, HostOperationRecord>,
@@ -93,6 +96,26 @@ impl ProductionActionOriginAuthority {
                 );
             }
         }
+        // 工具调用归属（PR-02B）：本 CU 运行是由哪次工具调用承载的——运行行里有真实的
+        // `provider_tool_call_id`，但**只有在登记表里查得到**时才算"有真实工具调用关系"。
+        // 查不到就什么都不填：既不自造，也不把"外层 id 存在"当成"关系成立"。
+        if let Some(run_row) = store.load(call_id).map_err(|error| error.to_string())? {
+            if let Some(provider_tool_call_id) = run_row
+                .provider_tool_call_id
+                .as_deref()
+                .filter(|value| !value.trim().is_empty())
+            {
+                if store
+                    .tool_call_is_registered(provider_tool_call_id)
+                    .map_err(|error| error.to_string())?
+                {
+                    authority.tool_relations.insert(
+                        action_id.to_string(),
+                        ToolCallRelation::new(action_id, provider_tool_call_id),
+                    );
+                }
+            }
+        }
         // 规划请求：按动作读"真正产生它的请求"；同一请求同时进 `known_requests`。
         if let Some(attempt) = store
             .plan_attempt_for_action(call_id, action_id)
@@ -106,6 +129,23 @@ impl ProductionActionOriginAuthority {
                 .insert(action_id.to_string(), attempt);
         }
         Ok(authority)
+    }
+
+    /// 只读探测：本快照里有没有"该动作所属的工具调用"。
+    ///
+    /// 调用方（执行器）据此决定**是否声称** `tool_call_id`：契约对"有真实工具调用关系却漏传"
+    /// 是拒绝的，因此"有就必填、无就不填"必须由证据决定，而不是由调用方挑。
+    #[must_use]
+    pub(crate) fn has_tool_call_relation(&self, action_id: &str) -> bool {
+        self.tool_relations.contains_key(action_id)
+    }
+
+    /// 该动作所属工具调用的 id（`None` = 没有可核对的关系 ⇒ **不得声称**工具归属）。
+    #[must_use]
+    pub(crate) fn tool_call_id_for(&self, action_id: &str) -> Option<&str> {
+        self.tool_relations
+            .get(action_id)
+            .map(|relation| relation.tool_call_id.as_str())
     }
 
     /// 只读探测：本快照里有没有"产生该动作的规划请求"（供调用方区分"查不到"与"不符"）。
@@ -231,6 +271,54 @@ mod tests {
         );
         // 未登记的 run 如实为"查不到"（跨 run 声明因此会被契约拒绝）。
         assert!(authority.run_relation("cu-run-unknown").is_none());
+    }
+
+    /// **PR-02B**：工具归属只在**登记表真有这一行**时成立；未登记一律不成立（不得伪造）。
+    #[test]
+    fn tool_relation_requires_a_registered_tool_call() {
+        let (_directory, db) = seed_store();
+        seed_run(&db, "cu-run-1");
+        {
+            let store = ComputerUseRunStore::open(&db).expect("store");
+            // 该 CU 运行的承载工具调用：真实 provider id，但**尚未登记**。
+            store
+                .register_tool_call("toolu-cu-1", Some("run-1"), None, "computer_use_perform", "d", "dispatched")
+                .expect("另一个工具调用的登记（与本 run 无关）");
+        }
+        let authority = ProductionActionOriginAuthority::for_action(
+            &db,
+            "cu-run-1",
+            "action-0",
+            Some(scope()),
+        )
+        .expect("快照");
+        assert!(
+            !authority.has_tool_call_relation("action-0"),
+            "provider id 存在但**未登记** ⇒ 关系不成立（外层 id 不等于真实关系）"
+        );
+        assert_eq!(authority.tool_call_id_for("action-0"), None);
+
+        // 登记该工具调用之后，关系才成立。
+        let provider_id = ComputerUseRunStore::open(&db)
+            .expect("store")
+            .load("cu-run-1")
+            .expect("load")
+            .expect("run row")
+            .provider_tool_call_id
+            .expect("运行行必须有 provider 工具调用 id");
+        ComputerUseRunStore::open(&db)
+            .expect("store")
+            .register_tool_call(&provider_id, Some("run-1"), None, "computer_use_perform", "d", "dispatched")
+            .expect("登记");
+        let authority = ProductionActionOriginAuthority::for_action(
+            &db,
+            "cu-run-1",
+            "action-0",
+            Some(scope()),
+        )
+        .expect("快照");
+        assert!(authority.has_tool_call_relation("action-0"));
+        assert_eq!(authority.tool_call_id_for("action-0"), Some(provider_id.as_str()));
     }
 
     /// **工具归属不伪造**：当前没有工具调用登记表 ⇒ 一律 `None`。

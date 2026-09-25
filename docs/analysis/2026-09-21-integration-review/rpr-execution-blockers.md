@@ -1918,6 +1918,47 @@ module_linkage_smoke **5/0**、`cargo build --workspace` ✅。
 
 **CU-01 剩余**：这些列的 **UI/报告落列**尚未接；CU-02（owner=room/turn/run 的租约归属）未开工。
 
+### B-91 PR-02B 交付：工具调用登记链——`tool_call_id` 有了**可真核对**的来源
+
+**裁决依据**：PR-02A 最终裁决把 `tool_calls` 登记表列为单独的 PR-02B，并给了建议字段与写入位置
+（**不是 executor，而是 tool dispatch boundary**：只有那里才知道"模型请求 + 工具调用 + run 关系"）。
+
+**已落地**：
+
+1. **登记表**（会话库 **v25**）：`tool_calls(tool_call_id PK, run_id, request_attempt_id, tool_name,
+   arguments_digest, status, created_at_unix_ms, updated_at_unix_ms)`，按裁决建议的字段，
+   **不额外增加身份字段**（裁决 §三：下一步该消费而不是扩展）。两条刻意口径：
+   - `request_attempt_id` **可空且未知就留空**：产生该工具调用的模型请求在派发边界上拿不到，
+     不拿"最近一次请求"顶替；
+   - `arguments_digest` 只存**摘要**，不落参数原文（工具参数可能含凭据/隐私）。
+   迁移 `apply_session_migration_v25_tool_call_registry` 同时接进 `main.rs` 阶梯与
+   `ComputerUseRunStore::open`（独立打开也必须可用，否则核对会以 `no such table` 静默退化成"查不到"）。
+2. **写入点 = 派发边界**（`main.rs::dispatch_model_tool_calls_parallel`）：任务开始时登记
+   `status='dispatched'`，收尾时同 id upsert 成 `completed`/`failed`。
+   **登记失败不阻断工具执行**（它只影响"以后能不能声称工具归属"），但**响亮记录**、不静默。
+3. **核对侧**：`ProductionActionOriginAuthority` 在快照里只为**登记表真有这一行**的动作建立
+   `tool_call_relation`——"provider id 存在"**不等于**"关系成立"。
+4. **执行器如实声称**：有登记 ⇒ **必须**带 `tool_call_id`（契约对"有工具链关系却漏传"是拒绝的）；
+   无登记 ⇒ 不声称，走 `(None, None)`。于是裁决的口径真正落地：
+   **有真实登记才必填、无登记不得伪造**。
+
+**用例**（4 条）：
+`tool_call_registry_is_idempotent_and_keeps_only_a_digest`（同 id 只更新状态不新建行、参数只存摘要、
+未知 attempt 留空）、`tool_relation_requires_a_registered_tool_call`（provider id 存在但未登记 ⇒ 关系**不成立**；
+登记后才成立）、`cu_f05_3_registered_tool_call_is_claimed_in_the_action_fact`（执行器端到端：
+登记 ⇒ 事实带出 `tool_call_id`）、以及既有 `cu_f05_3_tool_ownership_cannot_be_fabricated`（伪造仍被拒）。
+
+**同源问题第四次出现**：手工建的测试库必须补齐本文件拥有的迁移——本轮是执行器测试的两个
+`store()` 助手补 v25（前三次分别是执行器 `store()` 的 v21/v24、`ComputerUseRunStore::open` 的 v21、
+`temp_store` 的 v21/v24）。
+
+**门禁**：web-console **1142/0**、computer-use-core 126/0、desktop-console 16/0、
+module_linkage_smoke 5/0、`cargo build --workspace` ✅。
+
+**仍未闭环**：① **SafetyCleanup 事故登记**（CU-F05-5 正半）：生产里没有 `CleanupIncidentRecord`
+形态的登记（`original_action_id` + `recovery_eligible`），需要单独建；② CU-01 五列的 UI/报告落列；
+③ CU-02 的 owner=room/turn/run 归属口径。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
