@@ -1893,6 +1893,31 @@ desktop-console **16/0**、module_linkage_smoke **5/0**（含新增守门）。
 module_linkage_smoke **5/0**、`cargo build --workspace` ✅。
 所以"例外"不会悄悄扩散。
 
+### B-90 CU-01 其余列交付（计数／基线／请求状态／失配子类）：四处说不清的事实各自变可分辨
+
+**背景**：CU-01 的验收是「每个步骤事实一致；partial/unknown 绝不自动重放；无 usage 请求也有 attempt 记录；取消/失败不声称完成」。第一层（`input_status`）见 §B-88；本轮补齐其余四列。
+
+| # | 交付 | 修掉的具体缺陷 |
+| --- | --- | --- |
+| 1 | **统一 run 计数**：匿名元组 `(attempts, steps)` → 具名四维 `ComputerUseRunCounts { attempts, input_sent, partial_input, verified_steps }`；`finish` 在**同一条已锁定连接**上派生权威计数并**回填** `action_count`（拆 `run_counts_on` 避免自死锁）；`replan_count` **明确废弃** | 专项文档 C9 的**可复核统计缺陷**：`action_count` 从不写入、恒为 0，而真值在读取侧由步骤行派生 ⇒ 库里同时存在「有 3 步」与「计数 0」。现在只有一个权威来源 |
+| 2 | 执行器消费点收紧：`steps_completed` 只认**确认已发送输入**的步数 | 原判据把零输入行（输入前拒绝）也计入「完成步数」⇒ 让「完成」被没动手的步骤充数 |
+| 3 | **任务级基线**：`run_baseline_evidence_ref`（首步 before 证据＝任务开始时视图）＋ `run_final_evidence_ref`（末步 after，缺失退回其 before） | 专项文档 F5/F7：只给「最后一对 before/after」时，**目标早已存在**会被读成「本轮新画出」。基线与末帧成对才是最小证据（派生实现，不新增列） |
+| 4 | **请求状态**：`ComputerUseRequestStatus { attempt_key, action_id, has_usage_fact }`，把「请求已登记」与「另有 usage 记录」**分开**报 | 验收要求「**无 usage 请求也有 attempt 记录**」：两者混为一谈时，失败的请求会凭空消失。联接不是猜的——usage 事实的 `record_subject` 与规划请求复合键**同一格式** |
+| 5 | **失配子类**：`ReceiptTrust { Trusted, IdentityMismatch, SelfContradictory }` 写进步骤行 `error_code`（`receipt_identity_mismatch` / `receipt_self_contradictory`），不动既有 `status` 口径 | 先前两类被压成一个 `None`，库里只剩笼统的 `receipt_protocol_anomaly`：复盘分不清「**拿错了回执**」（不属于本动作）还是「**回执自相矛盾**」 |
+
+**用例**：`run_counts_are_derived_from_steps_and_backfilled_at_finish`、
+`task_baseline_is_the_earliest_view_and_pairs_with_the_final_frame`、
+`request_status_keeps_attempts_even_without_usage_facts`、
+`receipt_anomalies_record_their_subclass_distinctly`。
+
+**同源问题第三次出现**：手工建的测试库必须补齐本文件拥有的迁移——`temp_store` 补 v21/v24，
+否则请求状态会以 `no such table: computer_use_plan_attempts` 失败（前两次分别在执行器测试的
+`store()` 与 `ComputerUseRunStore::open` 上）。这条已写进注释。
+
+**门禁**：web-console **1139/0**。
+
+**CU-01 剩余**：这些列的 **UI/报告落列**尚未接；CU-02（owner=room/turn/run 的租约归属）未开工。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

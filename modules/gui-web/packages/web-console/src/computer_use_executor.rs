@@ -313,13 +313,21 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
                 .into();
                 match execution.receipt.as_ref() {
                     // 有回执就以回执为准（身份必须匹配，否则按协议异常保守处理）。
-                    Some(receipt) => match trusted_receipt_facts(receipt, &expected_action_id) {
-                        Some(facts) => apply_stepped_facts(&mut step, facts),
-                        None => {
-                            step.status = "receipt_protocol_anomaly".into();
-                            apply_stepped_facts(&mut step, conservative_facts(execution.input_sent));
+                    Some(receipt) => {
+                        let trust = classify_receipt(receipt, &expected_action_id);
+                        match trusted_receipt_facts(receipt, &expected_action_id) {
+                            Some(facts) => apply_stepped_facts(&mut step, facts),
+                            None => {
+                                step.status = "receipt_protocol_anomaly".into();
+                                // CU-01：把"哪一类失配"如实记下来（身份失配 vs 自相矛盾）。
+                                step.error_code = trust.anomaly_code().map(str::to_string);
+                                apply_stepped_facts(
+                                    &mut step,
+                                    conservative_facts(execution.input_sent),
+                                );
+                            }
                         }
-                    },
+                    }
                     // 没有回执的适配器（旧实现、浏览器桥）：沿用其逐字段声明。
                     None => {
                         step.input_delivery = Some(if execution.input_sent {
@@ -344,15 +352,20 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
                 step.error_code = Some(error.code.clone());
                 match error.receipt.as_ref() {
                     // §2.2：失败路径的四个维度由 helper 自己的回执决定，而不是由错误码猜。
-                    Some(receipt) => match trusted_receipt_facts(receipt, &expected_action_id) {
-                        Some(facts) => apply_stepped_facts(&mut step, facts),
-                        None => {
-                            // 回执属于别的动作或自相矛盾：记录协议异常，
-                            // 既不接纳到当前动作，也不因为读不懂而报告"零输入"。
-                            step.status = "receipt_protocol_anomaly".into();
-                            apply_stepped_facts(&mut step, conservative_facts(false));
+                    Some(receipt) => {
+                        let trust = classify_receipt(receipt, &expected_action_id);
+                        match trusted_receipt_facts(receipt, &expected_action_id) {
+                            Some(facts) => apply_stepped_facts(&mut step, facts),
+                            None => {
+                                // 回执属于别的动作或自相矛盾：记录协议异常，
+                                // 既不接纳到当前动作，也不因为读不懂而报告"零输入"。
+                                step.status = "receipt_protocol_anomaly".into();
+                                // CU-01：子类必须可分辨（失败路径同样如此）。
+                                step.error_code = trust.anomaly_code().map(str::to_string);
+                                apply_stepped_facts(&mut step, conservative_facts(false));
+                            }
                         }
-                    },
+                    }
                     // 旧错误没有回执：沿用既有按错误码判定的保守规则。
                     None => {
                         // §2.2 恢复表要求失败路径也明确"是否可能已发送"与释放事实：
@@ -1378,11 +1391,51 @@ fn apply_stepped_facts(step: &mut ComputerUseStepRecord, facts: SteppedFacts) {
 ///
 /// 身份不匹配（回执属于别的动作）或自相矛盾时返回 `None`：这是协议异常，
 /// 既不能把事实接纳到当前动作，也不能因为读不懂就退化成"没有输入"。
+/// 回执**不可信**的原因（CU-01「失配子类」）。
+///
+/// 为什么必须分开：两种原因指向**不同的事实**，处置方向也不同——
+/// - `IdentityMismatch`：这份回执**不属于本动作**（可能来自另一个动作/另一次运行）⇒ 一个字段都不能采纳；
+/// - `SelfContradictory`：回执属于本动作、但它自己说不通（规则引擎拒绝的矛盾组合）⇒ 同样不采纳字段，
+///   但"这份回执确实与本动作有关"这一点是成立的。
+///
+/// 先前两者被压成一个 `None`，于是库里只剩一个笼统的 `receipt_protocol_anomaly`，
+/// 复盘时分不清"拿错了回执"还是"回执自相矛盾"。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ReceiptTrust {
+    Trusted,
+    IdentityMismatch,
+    SelfContradictory,
+}
+
+impl ReceiptTrust {
+    /// 落库用的子类码（写进步骤行的 `error_code`；不影响既有 `status` 口径）。
+    const fn anomaly_code(self) -> Option<&'static str> {
+        match self {
+            Self::Trusted => None,
+            Self::IdentityMismatch => Some("receipt_identity_mismatch"),
+            Self::SelfContradictory => Some("receipt_self_contradictory"),
+        }
+    }
+}
+
+fn classify_receipt(
+    receipt: &runtime::ActionReceipt,
+    expected_action_id: &str,
+) -> ReceiptTrust {
+    if receipt.action_id != expected_action_id {
+        return ReceiptTrust::IdentityMismatch;
+    }
+    if receipt.validate().is_err() {
+        return ReceiptTrust::SelfContradictory;
+    }
+    ReceiptTrust::Trusted
+}
+
 fn trusted_receipt_facts(
     receipt: &runtime::ActionReceipt,
     expected_action_id: &str,
 ) -> Option<SteppedFacts> {
-    if receipt.action_id != expected_action_id || receipt.validate().is_err() {
+    if classify_receipt(receipt, expected_action_id) != ReceiptTrust::Trusted {
         return None;
     }
     Some(SteppedFacts {
@@ -2658,6 +2711,72 @@ mod tests")
             );
             drop(reacquired); // 释放，避免影响其它桌面用例
         }
+    }
+
+    /// **CU-01「失配子类」**：身份失配与自相矛盾必须**可分辨**（此前都只剩一个笼统异常）。
+    #[test]
+    fn receipt_anomalies_record_their_subclass_distinctly() {
+        let identity = "desktop:click:0";
+        let other_action = runtime::ActionReceipt {
+            action_id: "desktop:click:1".into(),
+            input_delivery: runtime::InputDelivery::Sent,
+            partial: Some(false),
+            path_completed: None,
+            confirmed_point_count: None,
+            effect: runtime::EffectStatus::EffectObserved,
+            goal_verdict: runtime::GoalVerdict::Passed,
+            input_release: runtime::InputReleaseStatus::Released,
+        };
+        assert_eq!(
+            classify_receipt(&other_action, identity),
+            ReceiptTrust::IdentityMismatch,
+            "回执属于别的动作 ⇒ 身份失配"
+        );
+        assert_eq!(
+            ReceiptTrust::IdentityMismatch.anomaly_code(),
+            Some("receipt_identity_mismatch")
+        );
+        // 自相矛盾：未发送却说"部分注入"（规则引擎必须拒绝这一组合）。
+        let contradictory = runtime::ActionReceipt {
+            action_id: identity.into(),
+            input_delivery: runtime::InputDelivery::NotSent,
+            partial: Some(true),
+            path_completed: None,
+            confirmed_point_count: None,
+            effect: runtime::EffectStatus::NotObserved,
+            goal_verdict: runtime::GoalVerdict::NotChecked,
+            input_release: runtime::InputReleaseStatus::NotNeeded,
+        };
+        assert!(
+            contradictory.validate().is_err(),
+            "前置：该组合必须被规则引擎判为自相矛盾"
+        );
+        assert_eq!(
+            classify_receipt(&contradictory, identity),
+            ReceiptTrust::SelfContradictory,
+            "回执属于本动作但自己说不通 ⇒ 自相矛盾（与身份失配**不同**子类）"
+        );
+        assert_eq!(
+            ReceiptTrust::SelfContradictory.anomaly_code(),
+            Some("receipt_self_contradictory")
+        );
+        // 两类都不得被采纳为事实。
+        assert!(trusted_receipt_facts(&other_action, identity).is_none());
+        assert!(trusted_receipt_facts(&contradictory, identity).is_none());
+        // 正常回执仍是 Trusted（不写子类码）。
+        let trusted = runtime::ActionReceipt {
+            action_id: identity.into(),
+            input_delivery: runtime::InputDelivery::Sent,
+            partial: Some(false),
+            path_completed: Some(true),
+            confirmed_point_count: Some(3),
+            effect: runtime::EffectStatus::EffectObserved,
+            goal_verdict: runtime::GoalVerdict::Passed,
+            input_release: runtime::InputReleaseStatus::Released,
+        };
+        assert_eq!(classify_receipt(&trusted, identity), ReceiptTrust::Trusted);
+        assert_eq!(ReceiptTrust::Trusted.anomaly_code(), None);
+        assert!(trusted_receipt_facts(&trusted, identity).is_some());
     }
 
     /// **CU-F05-1**：真实 attempt 存在 ⇒ 准入通过，且**动作事实真的落库**（含已核对的来源）。

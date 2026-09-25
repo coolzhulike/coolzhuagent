@@ -88,7 +88,7 @@
 | P1-1 根 deadline（Phase 2） | 按裁决 **Phase 1 保持"未接线"并核实不假装**：`RootDeadlineState::NotWired` 如实呈现、`RunBudget` 在 web-console **零引用**（§B-87）。Phase 2 的 `RuntimeDeadlineContext`（chat/goal/relay accept 冻结 + `remaining = root ∩ CU ∩ stage`）**按裁决暂不做** | §B-87 |
 | P1-2 切换/关闭口径 | **已实现**（PR-04）：`outcome` 结果码（`applied`／`shutdown_incomplete`）+ 拒绝在应用之前返回 + 前端不再把 off 当已完成（2 条守门用例）。**vision switch 仍未纳入排空**（vision 服务未登记在途，代码注释已如实标注） | §B-87 |
 | P1-3 PKG-L07c-RACE | 按裁决**不重新打开**（P0 修复已完成，并发能力待验收） | 决策 §P1-3 |
-| PR-05（P2-1 · CU-01） | **第一层已实现**：统一 `input_status`（none／partial／complete／unknown）+ 唯一判定点 + 8 例映射与不变式用例（§B-88）。**未做**：失配子类／请求状态／任务级基线／统一 run 计数（C8/C9/C11 落列与界面）、CU-02 的 owner=room/turn/run 口径 | §B-88 |
+| PR-05（P2-1 · CU-01） | **五列已实现**：`input_status` 四值（§B-88）＋统一 run 计数（`finish` 回填，修掉 C9 的「有 3 步却存 0」）＋任务级基线＋请求状态（无 usage 仍保留 attempt）＋失配子类（§B-90）。**未做**：这些列的 UI/报告落列；CU-02 的 owner=room/turn/run 归属口径 | §B-88／§B-90 |
 | PR-02B／其余 P2 | `tool_calls` 登记链与 SafetyCleanup 事故登记；Paint 其余层（frame_id/observation_version、planner 反馈）；Hook 授权服务；RPR-01b 剩余裸 `set_var` | 决策 §P2／§B-84 |
 | ~~受控族缺 `move` 入口~~ | **已闭环（§B-89）**：helper 增加 `move`／`move_relative` 模式（相对移动由 helper 自己读位置）、`controlled_move_mouse_absolute/relative` 上线、两处调用迁移完成、移动原语改名 `diagnostic_*`、守门**例外清零**；真跑用例（mock 驱动 + 真实 helper 进程）通过 | §B-89 |
 | 真实崩溃变体 | 只在**真实库**上观察到"半途中断后重放"（已修并验证）；"恢复者进程被杀"的跨进程变体未构造 | §B-77 |
