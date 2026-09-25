@@ -1681,6 +1681,54 @@ HTTP（只读/非改动校验）：空署名 ⇒ 400；阻断集合不符 ⇒ 40
 这一半**——生产里没有 `CleanupIncidentRecord` 形态的登记（`original_action_id` + `recovery_eligible`），
 现有输入安全库的 incident 形状不同。正面那一半需要先建事故登记，属 PR-02B 或独立工单。
 
+### B-85 PR-02A Stage 3 交付：执行器接线完成——**CU 动作来源与动作事实从此是生产约束**
+
+**目标（裁决 PR-02A §三／§五）**：让 `CU 动作 → 事实 → 事务 → 审计` 真实成立，且**输入前身份拒绝**＝
+零物理输入 + 零步骤行 + 只留审计。已落地：
+
+1. **冻结上下文穿到适配器**：`TracingAdapter` 新增 `planner`（取 `last_plan_request_attempt`）与
+   `conversation`（四维会话上下文）；执行器新增 `with_conversation_scope` / `with_provider_tool_call_id`
+   两个**构造期**注入点（无 setter ⇒ 运行中不可改写）；生产入口从 `FrozenParentContext` + 房间
+   构造四维（房间缺失时**回落到冻结上下文里的房间**——两者都是权威值，回落不放宽核对）。
+2. **输入前准入**（`admit_action_origin`）：先凑齐真实输入（冻结四维、planner 的真实规划请求、
+   刚落库的登记），再交契约的 `admit_action_origin` 两级核对；**顺序刻意在写步骤行与发输入之前**。
+   任一项拿不出来 ⇒ `reject_action_origin`：写一条**审计**（`physical_input = 0`）并返回
+   `action_origin_rejected`，**不写步骤行、不发输入**。
+3. **步骤行与动作事实同事务**（`persist_step`）：有**可信**回执且已准入 ⇒ 经
+   `record_step_with_facts` 在同事务写 `ActionFact::new(identity, receipt).with_origin(origin)`；
+   缺任一半 ⇒ 只写步骤行（没有回执就没有"发生过什么"可言，不得凭状态编造事实）。
+
+**过程中发现并修掉的四个真问题**（都已写进代码注释／用例）：
+
+| # | 现象 | 根因 | 处置 |
+| --- | --- | --- | --- |
+| 1 | 准入报 `incomplete_identity: tool_call_id 本应存在却缺失` | `StepAction` 身份**必填**维度含 `tool_call_id` | 身份如实填**外层工具调用 id**（`provider_tool_call_id`，运行接纳时的真实值）；`ActionOrigin::tool_call_id` 仍留空（无登记表 ⇒ 不得声称工具归属）。两者是**不同轴**：前者是"动作发生在哪次工具调用里"，后者是"是否存在可核对的工具调用关系" |
+| 2 | 17 个用例 `no such table: fact_log_records` | 执行器现在真的会写事实，而 `ComputerUseRunStore::open` **没应用 v21**（事实日志表） | 生产侧：`open` 补调 `crate::apply_session_migration_v21`（与 v22/v23 同例，调用同一批函数）；测试侧：手工建的库补齐 v21/v23/v24 |
+| 3 | `mismatched_receipt_identity...` 期望 `receipt_protocol_anomaly`，实际停在 `executing` | 协议异常回执（不属于本动作）被拿去写事实 ⇒ 规则引擎拒绝 ⇒ **连步骤行都写不进去** | 事实写入只接受**可信回执**（过 `trusted_receipt_facts`）；异常回执 ⇒ 不写事实，但步骤行照写（如实记录异常） |
+| 4 | 三个源码顺序守门用例报"缺少锚点" | 守门用 `split("#[cfg(test)]")` 截取"运行代码区域"，而新加的 `cfg(test)` 夹具字段恰好落在函数体内，把区域**提前切断** | 守门改为切精确标记 `"\n#[cfg(test)]\nmod tests"`（保留原意，不再被属性截断） |
+
+**测试夹具接缝（照 RPR-02a 先例）**：测试替身既没有真实模型请求、也没有接纳时的冻结上下文，因此
+`new_for_test` 默认提供**夹具**（attempt 形状与生产一致：`computer_use_planning:step-N` + `attempt-1`）。
+夹具**只存在于测试构建**（`#[cfg(test)]` 字段 + `fixture_plan_attempt` 有 `#[cfg(not(test))]` 版本恒返回
+`None`），生产构建里"缺 attempt ⇒ 拒绝"不可绕过；要测生产语义用 `without_plan_attempt_fixture()`。
+非测试构建（`cargo build -p coolzhu-web-console`）实测通过 ✅。
+
+**CU-F05 验收（全部落地）**：
+
+| 场景 | 用例 | 断言 |
+| --- | --- | --- |
+| 1 真实 attempt | `cu_f05_1_real_attempt_writes_the_action_fact_with_verified_origin` | 事实**真的落库**、含 `model_planned` 与复合键；登记表有绑定；无拒绝审计 |
+| 2 attempt 不存在 | `cu_f05_2_missing_attempt_is_refused_before_input_with_audit_only` | `Blocked` + `action_origin_rejected`；**零事实、零步骤行**、有审计（`physical_input = 0`）；工厂零调用 |
+| 3 tool_call_id | `cu_f05_3_tool_ownership_cannot_be_fabricated` | 不声称 ⇒ 通过（类型 B）；声称无登记的工具归属 ⇒ 拒绝（"工具归属不得虚构"） |
+| 4 跨 run attempt | `cu_f05_4_cross_run_attempt_is_refused` | 拒绝、零事实、拒绝理由指向运行关联 |
+| 5 SafetyCleanup | `cu_f05_5_cleanup_without_an_incident_registry_is_refused` | **负半已测**（无 incident 登记 ⇒ 拒绝）；正半仍缺 `CleanupIncidentRecord` 形态的事故登记（PR-02B） |
+
+**门禁**：web-console **1133/0**、core-runtime **312/0**、computer-use-core 123/0、module_linkage_smoke 4/0。
+
+**仍未闭环（如实保留）**：① CU-F05-5 正半（事故登记）；② `tool_calls` 登记链（PR-02B）——
+`ActionOrigin::tool_call_id` 因此仍为 `None`（不伪造）；③ 生产首次真实运行后应复核"每次动作都留下
+来源已核对的 ActionFact"（本轮只做了构建期与单测验证，未跑真实模型任务）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

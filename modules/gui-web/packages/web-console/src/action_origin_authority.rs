@@ -58,6 +58,19 @@ impl ProductionActionOriginAuthority {
         conversation_scope: Option<RunScopeContext>,
     ) -> Result<Self, String> {
         let store = ComputerUseRunStore::open(session_db_path).map_err(|error| error.to_string())?;
+        Self::for_store(&store, call_id, action_id, conversation_scope)
+    }
+
+    /// **执行器用的构造**：复用**同一条** store（不再为每个动作新开连接/重复迁移）。
+    ///
+    /// 复用不只是省开销：动作来源核对必须看到"刚刚登记的那条 attempt"，同一连接下的读写顺序
+    /// 是确定的；另开连接会引入 WAL 下的可见性/忙等噪声，让"查不到"与"还没提交"混为一谈。
+    pub(crate) fn for_store(
+        store: &ComputerUseRunStore,
+        call_id: &str,
+        action_id: &str,
+        conversation_scope: Option<RunScopeContext>,
+    ) -> Result<Self, String> {
         let mut authority = Self {
             conversation_scope,
             run_relations: BTreeMap::new(),
@@ -234,6 +247,109 @@ mod tests {
         assert!(authority.cleanup_incident("incident-1").is_none());
         assert!(authority.control_operation("control-1").is_none());
         assert!(authority.host_operation("operation-1").is_none());
+    }
+
+    /// **CU-F05-3**：工具归属**不得虚构**——没有登记却声称 `tool_call_id` ⇒ 拒绝；
+    /// 没有工具链关系时 `tool_call_id = None` ⇒ 通过（类型 B：模型规划但非工具链动作）。
+    #[test]
+    fn cu_f05_3_tool_ownership_cannot_be_fabricated() {
+        let (_directory, db) = seed_store();
+        seed_run(&db, "cu-run-1");
+        let attempt =
+            runtime::PlannedRequestAttempt::new("cu-run-1", "computer_use_planning:step-0", "attempt-1")
+                .expect("合法复合键");
+        {
+            let store = ComputerUseRunStore::open(&db).expect("store");
+            store.record_plan_attempt("cu-run-1", &attempt, 0).expect("登记");
+            store
+                .bind_plan_attempt_action(&attempt.stable_key(), "action-0")
+                .expect("绑定");
+        }
+        let authority = ProductionActionOriginAuthority::for_action(
+            &db,
+            "cu-run-1",
+            "action-0",
+            Some(scope()),
+        )
+        .expect("快照");
+        let identity = scope()
+            .step_action_fact(
+                "cu-run-1",
+                "step-0",
+                attempt.stable_key(),
+                "action-0",
+            )
+            .with_tool_call_id("provider-call");
+        let context = runtime::ConversationActionContext::new(identity).expect("上下文");
+        let origin = |tool_call_id: Option<&str>| runtime::ActionOrigin {
+            action_id: "action-0".to_string(),
+            source: runtime::ActionSource::ModelPlanned,
+            context: runtime::ActionContext::Conversation(context.clone()),
+            request_attempt_id: Some(attempt.stable_key()),
+            tool_call_id: tool_call_id.map(str::to_string),
+            parent_step_operation: None,
+            host_algorithm_version: None,
+            resource_scope: None,
+            cleanup: None,
+            user_direct: None,
+            host_transform: None,
+            additional_causal_refs: Vec::new(),
+        };
+        // ① 不声称工具归属 ⇒ 通过（当前没有工具调用登记表，类型 B 合法）。
+        runtime::admit_action_origin(&origin(None), &authority).expect("类型 B 必须通过");
+        // ② 声称一个没有登记的工具调用 ⇒ 拒绝（不得伪造工具归属）。
+        let forged = runtime::admit_action_origin(&origin(Some("computer_use_perform-forged")), &authority)
+            .err()
+            .expect("伪造工具归属必须被拒");
+        assert!(
+            forged.message.contains("工具归属不得虚构"),
+            "拒绝理由必须点明伪造：{}",
+            forged.message
+        );
+    }
+
+    /// **CU-F05-5（负半）**：清理动作没有 incident 登记 ⇒ **拒绝**（fail-closed）。
+    ///
+    /// 正面那一半（有 incident + 恢复资格即通过）需要 `CleanupIncidentRecord` 形态的事故登记，
+    /// 生产里尚不存在 ⇒ 归 PR-02B／独立工单（见台账 §B-84）。
+    #[test]
+    fn cu_f05_5_cleanup_without_an_incident_registry_is_refused() {
+        let (_directory, db) = seed_store();
+        seed_run(&db, "cu-run-1");
+        let authority =
+            ProductionActionOriginAuthority::for_action(&db, "cu-run-1", "action-cleanup", Some(scope()))
+                .expect("快照");
+        let identity = scope()
+            .step_action_fact("cu-run-1", "step-0", "attempt-1", "action-cleanup")
+            .with_tool_call_id("provider-call");
+        let context = runtime::ConversationActionContext::new(identity).expect("上下文");
+        let origin = runtime::ActionOrigin {
+            action_id: "action-cleanup".to_string(),
+            source: runtime::ActionSource::SafetyCleanup,
+            context: runtime::ActionContext::Conversation(context),
+            request_attempt_id: None,
+            tool_call_id: None,
+            parent_step_operation: None,
+            host_algorithm_version: None,
+            resource_scope: None,
+            cleanup: Some(runtime::CleanupRelation {
+                incident_id: "incident-1".to_string(),
+                original_action_id: "action-0".to_string(),
+                // 声明"具备恢复资格"：拒绝必须来自"查不到 incident"，而不是来自资格字段。
+                recovery_eligible: true,
+            }),
+            user_direct: None,
+            host_transform: None,
+            additional_causal_refs: Vec::new(),
+        };
+        let refused = runtime::admit_action_origin(&origin, &authority)
+            .err()
+            .expect("没有 incident 登记的清理动作必须被拒");
+        assert!(
+            refused.message.contains("incident") || refused.message.contains("清理"),
+            "拒绝理由必须指向缺失的事故登记：{}",
+            refused.message
+        );
     }
 
     /// 历史行（工作区未记录）**不得**被当前工作区顶替：运行关联如实缺失。

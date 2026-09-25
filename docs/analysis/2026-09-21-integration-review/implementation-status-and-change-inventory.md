@@ -2,7 +2,7 @@
 
 - **状态口径**（沿用第七轮裁决 §八）：**已裁决 / 已实现 / 生产已接线 / 目标环境·安装已验收**。四者不等价，"已实现"不等于"已接线"或"已验收"。
 - **范围**：第七、八两轮裁决的实施；三次现场问题修复（图标无法启动、默认工作区口径确认、**启动路径自锁**）；一次测试基础设施的并发竞态修复；**PR-01（P0-1）恢复处置闭环**（决策：`RecoveryDisposition` 状态机 + 人工放行通道）。
-- **验证基线**（本轮末实跑）：web-console **1122/0**、computer-use-core 123/0、windows-process-guard 50/0（1 ignored，另见 §7）、tool-registry 54/0、core-runtime **312/0**、module_linkage_smoke 4/0、app-launcher 64/0 + 5/0。
+- **验证基线**（本轮末实跑）：web-console **1133/0**、computer-use-core 123/0、windows-process-guard 50/0（1 ignored，另见 §7）、tool-registry 54/0、core-runtime **312/0**、module_linkage_smoke 4/0、app-launcher 64/0 + 5/0。
 - **本文件所有"锚点"都可用 §6 的命令核验**，不是凭记忆写的。
 
 ## 1. 实施计划完成情况
@@ -122,7 +122,7 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 | --- | --- | --- | --- | --- |
 | ~~被拒绝的恢复操作永不结账 ⇒ 永久隔离~~ | **已闭环（PR-01）**：终端处置 + 人工放行通道；真实库 `pending 1 → 0`、`settled=2`、`human_review_required=2`、资源仍隔离（**设计结果**） | 原缺口是"规格未明确"，本轮按决策落地 | — | 无需再裁决（结账/放行机制已具备） |
 | **放行资格与复核口径未定义**（PR-01 伴随项） | 通道已具备（署名/理由/证据 + TOCTOU 校验）；但"谁有权放行、是否需要双人复核、证据放哪里"**没有规定** | 决策只要求"人工确认 ⇒ 新增 `ReleaseIsolationDecision`"，未定义运营权限模型 | 放行是**安全决定**：任何能访问本地控制台的人都能署名放行 | 一次口径确认：放行者身份来源（本机账号？）／是否双人／证据留存位置 |
-| **P0-2：CU 动作事实仍未进业务链** | **已侦察、未开工**（§B-83）：真实 attempt 已在 planner 产出（`planner.rs:538/816`）、同事务事实写入 API 已在（`computer_use_store.rs:1790`）、准入契约已在（`run_contract.rs:2420`）；缺口是**没有生产 authority**（`admit_action_origin` 生产零调用）与**执行器不写动作级事实**（4 个 `record_step` 点：`executor.rs:169/236/273/346`） | 侦察发现两个**规格分叉**必须先定口径：A) attempt 来源进程内 vs 落库（推荐落库）；B) 准入失败时步骤行写不写（推荐 fail-closed 但保留拒绝留痕）。选错会产出"看起来有事实、其实没约束"的假链 | 系统"全绿"但关键事实链不是生产约束 | 口径确认后按 §B-83 的接线清单执行 PR-02（CU-F05 四场景） |
+| **P0-2：CU 动作事实进业务链** | **已实现 + 生产已接线**（PR-02A Stage 1+2+3，§B-84／§B-85）：attempt 落库（v24 登记表 + 一动作一请求约束）、生产 `ProductionActionOriginAuthority`、执行器**输入前准入** + **步骤行与动作事实同事务** | 裁决口径：attempt 取落库；输入前身份拒绝＝零物理输入 + 零步骤行 + 只留审计；`tool_call_id` 有登记才必填、无登记不得伪造 | — | **CU-F05-5 正半**（SafetyCleanup 事故登记）与 **PR-02B**（`tool_calls` 登记链）仍待做 |
 | **P0-3：普通输入路径统一生命周期** | **未开工**（决策已排期 PR-03，范围与六场景已列） | 需要跨 `input.rs`／`desktop_bridge`／`gui-desktop input_backend` 收口到 `NativeInputExecutor`，属**行为重构**（不是接线） | 普通原生输入缺独立生命周期治理 | 按决策实施 PR-03（RPR-04d-2 六场景） |
 
 | **R3：撤销未激活许可 / R4：跨进程执行者身份核查** | 未实现 | R4 需要**跨进程**执行者身份来源（当前只有进程内身份）；裁决未指定可信来源与失败语义 | 恢复期无法证明"旧执行者确实已停" | 指定跨进程执行者身份的权威来源（如 helper 侧登记 + 存活核对）与其 fail-closed 语义 |

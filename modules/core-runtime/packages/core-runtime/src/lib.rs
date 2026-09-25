@@ -165,8 +165,8 @@ pub use run_contract::{
     // PR-02A：`ActionOriginAuthority` 的**实现方**必须能命名这些记录类型，否则 trait 在
     // crate 之外根本无法实现（事实：在此之前生产里一次都没调用过 `admit_action_origin`，
     // 唯一实现是 crate 内的测试替身）。这里只是把它们导出，不改任何语义。
-    CleanupIncidentRecord, ControlOperationRecord, HostOperationRecord, RunRelationRecord,
-    ToolCallRelation,
+    CleanupIncidentRecord, CleanupRelation, ControlOperationRecord, HostOperationRecord,
+    RunRelationRecord, ToolCallRelation,
 };
 pub use semantic::{
     cosine_similarity, decode_vector, encode_vector, hash_embed, BruteForceCosineIndex,

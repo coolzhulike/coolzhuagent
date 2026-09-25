@@ -117,6 +117,26 @@ struct TracingAdapter<'a> {
     inner: DynComputerUseAdapter,
     store: &'a ComputerUseRunStore,
     call_id: String,
+    /// 规划请求身份的**唯一合法来源**（PR-02A）。trait 的方法文档明确：写动作事实时用它构造
+    /// `ActionOrigin` 的模型规划来源，**不得**用 provider trace、外层工具调用 id 或"最近一次请求"顶替。
+    planner: &'a dyn ComputerUsePlanner,
+    /// 接纳时**冻结**的四维会话上下文（工作区/房间/会话/公开轮次）。
+    ///
+    /// 缺它 ⇒ 无法构造动作身份 ⇒ 来源核对必然失败 ⇒ **输入前拒绝**（fail-closed）：
+    /// 宁可不动手，也不写一条"来源说不清"的事实。
+    conversation: Option<runtime::RunScopeContext>,
+    /// **外层工具调用 id**（`provider_tool_call_id`）：CU 动作是由这次工具调用承载的，
+    /// 因此它是动作身份里 `tool_call_id` 维度的**真实**取值（运行接纳时已记录）。
+    ///
+    /// 注意与 `ActionOrigin::tool_call_id` 的区别：后者要求"存在可核对的**工具调用关系**登记"，
+    /// 而该登记表要到 PR-02B 才建；因此 origin 里**不填**（契约会拒绝无登记的声称），
+    /// 身份维度仍如实填写运行接纳时那个真实的工具调用 id。
+    provider_tool_call_id: String,
+    /// **仅测试构建存在**：测试替身没有真实模型请求，夹具按 `call_id` 造一个形状一致的
+    /// attempt。生产构建里这个字段与它对应的函数**都不存在**（`cfg(test)`），
+    /// 因此"缺 attempt ⇒ 拒绝"在生产里不可绕过。
+    #[cfg(test)]
+    plan_attempt_fixture: bool,
     state: Mutex<TraceState>,
     cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
     #[cfg(windows)]
@@ -200,6 +220,10 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
         let action_json = crate::computer_use_store::sanitized_action_json(
             &serde_json::to_string(action).unwrap_or_default(),
         );
+        // **PR-02A：输入前来源准入**（fail-closed）。放在这里是因为此刻已知步骤序号与动作 ID，
+        // 而**尚未**写任何步骤行、更未发任何输入——拒绝时符合"零物理输入 + 零执行事实 + 只留审计"。
+        let admitted = self.admit_action_origin(&expected_action_id, index)?;
+        let admitted = Some(admitted);
         let mut fingerprint = std::collections::hash_map::DefaultHasher::new();
         (self.surface().as_str(), expected_generation, &action_json).hash(&mut fingerprint);
         let mut step = ComputerUseStepRecord {
@@ -342,9 +366,18 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
                 }
             }
         }
-        self.store
-            .record_step(&step, &action_json)
-            .map_err(persistence_error)?;
+        // 只有**可信**回执才能成为动作事实的来源：回执若不属于本动作（`receipt_protocol_anomaly`），
+        // 它必须既不进事实、也不影响步骤行——步骤行如实记录异常，事实保持"没有"。
+        let trusted_receipt = |receipt: &Option<runtime::ActionReceipt>| {
+            receipt
+                .clone()
+                .filter(|receipt| trusted_receipt_facts(receipt, &expected_action_id).is_some())
+        };
+        let receipt = match &result {
+            Ok(execution) => trusted_receipt(&execution.receipt),
+            Err(error) => trusted_receipt(&error.receipt),
+        };
+        self.persist_step(&step, &action_json, admitted, receipt)?;
         result
     }
     fn verify(
@@ -355,6 +388,170 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
         remaining: std::time::Duration,
     ) -> Result<Verification, ComputerUseError> {
         self.inner.verify(criteria, before, after, remaining)
+    }
+}
+
+impl TracingAdapter<'_> {
+    /// **PR-02A：输入前动作来源准入**（fail-closed）。
+    ///
+    /// 顺序刻意如此——**先核对来源，再写步骤行、再发输入**。裁决 §五：输入前身份拒绝的结果是
+    /// "零物理输入 + 零步骤行 + 只留一条审计"，否则"动作发生了没有"会被日志混淆。
+    ///
+    /// 核对本身交给契约的 `admit_action_origin`（结构层 + 可信关联层），本方法只负责**凑齐真实输入**：
+    /// 冻结的四维上下文、planner 给出的**真实**规划请求身份、以及刚落库的登记（`plan_producer` 的
+    /// 读回面）。任何一项拿不出来 ⇒ 拒绝，绝不用近似物顶替。
+    fn admit_action_origin(
+        &self,
+        action_id: &str,
+        step_index: usize,
+    ) -> Result<(runtime::RunIdentity, runtime::ActionOrigin), ComputerUseError> {
+        let Some(scope) = self.conversation.clone() else {
+            return Err(self.reject_action_origin(
+                action_id,
+                step_index,
+                "missing_conversation_scope",
+                "接纳时没有冻结的四维会话上下文（工作区/房间/会话/公开轮次）：无法构造动作身份",
+            ));
+        };
+        // 规划请求身份只能来自 planner 自己的记录（trait 文档：不得用 provider trace、
+        // 外层 computer_use_perform 的 call id 或"最近一次请求"顶替）。
+        let attempt = self
+            .planner
+            .last_plan_request_attempt()
+            .or_else(|| self.fixture_plan_attempt(step_index));
+        let Some(attempt) = attempt else {
+            return Err(self.reject_action_origin(
+                action_id,
+                step_index,
+                "missing_request_attempt",
+                "规划请求身份未知：动作不得凭空声称\"由某次模型请求产生\"",
+            ));
+        };
+        // 落库（幂等）+ 绑定本动作：`plan_producer(action_id)` 之后才有据可查。
+        self.store
+            .record_plan_attempt(&self.call_id, &attempt, step_index)
+            .map_err(persistence_error)?;
+        self.store
+            .bind_plan_attempt_action(&attempt.stable_key(), action_id)
+            .map_err(persistence_error)?;
+        let authority = crate::action_origin_authority::ProductionActionOriginAuthority::for_store(
+            self.store,
+            &self.call_id,
+            action_id,
+            Some(scope.clone()),
+        )
+        .map_err(persistence_error)?;
+        let identity = scope
+            .step_action_fact(
+                &self.call_id,
+                format!("step-{step_index}"),
+                attempt.stable_key(),
+                action_id,
+            )
+            // StepAction 身份的必填维度含 `tool_call_id`：如实填**外层工具调用 id**
+            // （运行接纳时记录的真实值），而不是把它留空再去"解释为不适用"。
+            .with_tool_call_id(self.provider_tool_call_id.clone());
+        let context = runtime::ConversationActionContext::new(identity.clone())
+            .map_err(|error| persistence_error(format!("{}: {}", error.code, error.message)))?;
+        let origin = runtime::ActionOrigin {
+            action_id: action_id.to_string(),
+            source: runtime::ActionSource::ModelPlanned,
+            context: runtime::ActionContext::Conversation(context),
+            request_attempt_id: Some(attempt.stable_key()),
+            // 工具归属：**有真实登记才填**。当前没有工具调用登记表（PR-02B），因此不填——
+            // 契约的 `(None, None)` 分支通过（模型规划但非工具链动作），
+            // 而"声称一个有归属的 tool_call_id"会被判为伪造。
+            tool_call_id: None,
+            parent_step_operation: None,
+            host_algorithm_version: None,
+            resource_scope: None,
+            cleanup: None,
+            user_direct: None,
+            host_transform: None,
+            additional_causal_refs: Vec::new(),
+        };
+        match runtime::admit_action_origin(&origin, &authority) {
+            Ok(_) => Ok((identity, origin)),
+            Err(error) => Err(self.reject_action_origin(
+                action_id,
+                step_index,
+                error.code.as_str(),
+                &error.message,
+            )),
+        }
+    }
+
+    /// 测试夹具的 attempt（**仅测试构建**会真的造一个；生产构建恒为 `None`）。
+    #[cfg(test)]
+    fn fixture_plan_attempt(&self, step_index: usize) -> Option<runtime::PlannedRequestAttempt> {
+        if !self.plan_attempt_fixture {
+            return None;
+        }
+        // 形状与生产一致：`computer_use_planning:step-N` + `attempt-K`。
+        runtime::PlannedRequestAttempt::new(
+            self.call_id.clone(),
+            format!("computer_use_planning:step-{step_index}"),
+            "attempt-1",
+        )
+        .ok()
+    }
+
+    /// 生产构建：**没有**夹具，缺 attempt 就是拒绝。
+    #[cfg(not(test))]
+    fn fixture_plan_attempt(&self, _step_index: usize) -> Option<runtime::PlannedRequestAttempt> {
+        None
+    }
+
+    /// 记录一条**输入前**来源拒绝（审计，不是事实）并返回可观测的错误。
+    fn reject_action_origin(
+        &self,
+        action_id: &str,
+        step_index: usize,
+        code: &str,
+        detail: &str,
+    ) -> ComputerUseError {
+        // 审计写入失败也不改变判定：它是"拒绝的理由"，不是"动作已发生"的证据。
+        let _ = self.store.record_action_origin_rejection(
+            &self.call_id,
+            Some(action_id),
+            Some(step_index),
+            code,
+            detail,
+        );
+        ComputerUseError::blocked(
+            "action_origin_rejected",
+            format!("action origin rejected before input ({code}): {detail}"),
+            ComputerUseRetryOwner::None,
+        )
+    }
+
+    /// 步骤行的**唯一**落库出口：有回执且已准入 ⇒ 步骤行与**动作事实**同事务提交。
+    ///
+    /// 缺任一半就只写步骤行：没有回执就没有"发生过什么"可言，不得凭状态编造事实；
+    /// 没有准入就没有可信来源，同样不得写事实（这种情况在输入前已被拒绝）。
+    fn persist_step(
+        &self,
+        step: &ComputerUseStepRecord,
+        action_json: &str,
+        admitted: Option<(runtime::RunIdentity, runtime::ActionOrigin)>,
+        receipt: Option<runtime::ActionReceipt>,
+    ) -> Result<(), ComputerUseError> {
+        let (Some((identity, origin)), Some(receipt)) = (admitted, receipt) else {
+            return self.store.record_step(step, action_json).map_err(persistence_error);
+        };
+        self.store
+            .record_step_with_facts(step, action_json, |transaction| {
+                let mut facts = runtime::AppendOnlyFactStore::open(
+                    crate::fact_log_sqlite::SqliteFactLog::new(transaction),
+                )
+                .map_err(|error| error.to_string())?;
+                let fact = runtime::ActionFact::new(identity.clone(), receipt.clone())
+                    .with_origin(origin.clone());
+                runtime::FactStore::record_action_fact(&mut facts, &fact)
+                    .map(|_| ())
+                    .map_err(|error| error.to_string())
+            })
+            .map_err(persistence_error)
     }
 }
 
@@ -495,6 +692,16 @@ pub(crate) struct ComputerUseExecutor<'a> {
     /// 接纳时冻结的工作区归属。**非 `Option`**：执行器在类型层面无法"没有归属"，
     /// 且构造后没有任何 setter——运行中不存在改写它的入口。
     workspace: CuWorkspaceAttribution,
+    /// 接纳时**冻结**的四维会话上下文（PR-02A）：动作来源核对据此构造动作身份。
+    ///
+    /// 无 setter，只有构造期的 `with_conversation_scope`——运行中不存在改写它的入口，
+    /// 因此"核对用的上下文"与"这次运行开始时的事实"必然一致。
+    conversation: Option<runtime::RunScopeContext>,
+    /// 外层工具调用 id（`provider_tool_call_id`）：动作身份的 `tool_call_id` 维度用它。
+    provider_tool_call_id: String,
+    /// **仅测试构建存在**：见 `TracingAdapter::plan_attempt_fixture`。
+    #[cfg(test)]
+    plan_attempt_fixture: bool,
 }
 
 impl<'a> ComputerUseExecutor<'a> {
@@ -512,7 +719,46 @@ impl<'a> ComputerUseExecutor<'a> {
             budgets,
             cancelled: Arc::new(|| false),
             workspace,
+            conversation: None,
+            provider_tool_call_id: String::new(),
+            #[cfg(test)]
+            // 生产构造（`new`）：夹具**必须关闭**——生产里缺 attempt 就是拒绝。
+            plan_attempt_fixture: false,
         }
+    }
+
+    /// **测试替身专用**：开启"无真实规划请求时的夹具 attempt"。
+    ///
+    /// 测试里没有真实模型请求，而生产语义要求"模型动作必须有真实 attempt"；夹具让既有用例
+    /// 不必逐个伪造 attempt。要测"缺 attempt ⇒ 拒绝"请用 [`Self::without_plan_attempt_fixture`]。
+    #[cfg(test)]
+    #[must_use]
+    pub(crate) fn with_plan_attempt_fixture(mut self) -> Self {
+        self.plan_attempt_fixture = true;
+        self
+    }
+
+    /// **测试专用**：关闭夹具，回到生产语义（缺 attempt ⇒ 输入前拒绝）。
+    #[cfg(test)]
+    #[must_use]
+    pub(crate) fn without_plan_attempt_fixture(mut self) -> Self {
+        self.plan_attempt_fixture = false;
+        self
+    }
+
+    /// 注入**接纳时冻结**的四维会话上下文（PR-02A）。缺省为 `None` ⇒ 动作来源无法核对 ⇒
+    /// 输入前拒绝（fail-closed）；生产入口必须显式注入。
+    #[must_use]
+    pub(crate) fn with_conversation_scope(mut self, scope: runtime::RunScopeContext) -> Self {
+        self.conversation = Some(scope);
+        self
+    }
+
+    /// 注入**外层工具调用 id**（运行接纳身份里的真实值）。空值 ⇒ 动作身份缺维度 ⇒ 输入前拒绝。
+    #[must_use]
+    pub(crate) fn with_provider_tool_call_id(mut self, provider_tool_call_id: &str) -> Self {
+        self.provider_tool_call_id = provider_tool_call_id.to_string();
+        self
     }
 
     /// **仅供测试替身**：用显式固定的测试归属构造执行器，走与生产完全相同的写入路径。
@@ -526,7 +772,18 @@ impl<'a> ComputerUseExecutor<'a> {
         store: &'a ComputerUseRunStore,
         budgets: ComputerUseBudgets,
     ) -> Self {
-        Self::new(planner, adapters, store, budgets, CuWorkspaceAttribution::test_fixture())
+        let executor = Self::new(planner, adapters, store, budgets, CuWorkspaceAttribution::test_fixture())
+            // 测试替身既没有真实模型请求，也没有接纳时的冻结上下文：默认两者都提供夹具
+            // （要测生产语义——缺 attempt／缺上下文即拒绝——请显式用 `without_plan_attempt_fixture`）。
+            .with_plan_attempt_fixture()
+            .with_conversation_scope(runtime::RunScopeContext::new(
+                "ws-00000000000000ff",
+                "room-1",
+                "session-1",
+                "turn-1",
+            ))
+            .with_provider_tool_call_id("provider-tool-call-test");
+        executor
     }
 
     fn with_cancelled(mut self, cancelled: Arc<dyn Fn() -> bool + Send + Sync>) -> Self {
@@ -914,6 +1171,11 @@ impl<'a> ComputerUseExecutor<'a> {
             inner: adapter,
             store: self.store,
             call_id: identity.call_id.clone(),
+            planner: self.planner,
+            conversation: self.conversation.clone(),
+            provider_tool_call_id: self.provider_tool_call_id.clone(),
+            #[cfg(test)]
+            plan_attempt_fixture: self.plan_attempt_fixture,
             state: Mutex::new(TraceState {
                 observation: None,
                 next_index: 0,
@@ -1656,9 +1918,28 @@ pub(crate) async fn execute_with_current_runtime(
     };
     let planner = CurrentSessionComputerUsePlanner::with_context(identity, chat_room_id, &store)
         .with_cancelled(cancelled.clone());
+    // PR-02A：四维会话上下文同样取自**接纳时冻结**的父上下文（与工作区归属同一来源）。
+    // 任一维缺失就不构造——宁可让动作来源核对 fail-closed，也不用"当前房间/会话"顶替。
+    // 房间维度取调用方给的房间，缺省时**回落到冻结上下文里的房间**——两者都是权威值，
+    // 回落不会放宽核对（都不是"当前房间"式的猜测），却能避免合法调用被误判成"缺上下文"。
+    let conversation_scope = chat_room_id
+        .or(parent.room_id.as_deref())
+        .and_then(|room_id| {
+            Some(runtime::RunScopeContext::new(
+                parent.workspace_id.as_str(),
+                room_id,
+                parent.session_id.as_deref()?,
+                parent.public_turn_id.as_deref()?,
+            ))
+        });
     let executor =
         ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets(), workspace)
             .with_cancelled(cancelled);
+    let executor = match conversation_scope {
+        Some(scope) => executor.with_conversation_scope(scope),
+        None => executor,
+    };
+    let executor = executor.with_provider_tool_call_id(&identity.provider_tool_call_id);
     // 授权复核也读**同一份冻结的库路径**：运行期间切换工作区不会把这次复核指向另一个库。
     let room_grant =
         crate::room_permission_grant_view_for_path(&admission_db_path, chat_room_id);
@@ -1709,7 +1990,9 @@ mod tests {
             .split("pub(crate) async fn execute_with_current_runtime")
             .nth(1)
             .expect("runtime function")
-            .split("#[cfg(test)]")
+            .split("
+#[cfg(test)]
+mod tests")
             .next()
             .expect("runtime function body");
         assert!(!runtime.contains("UnavailablePlanner"));
@@ -1922,7 +2205,16 @@ mod tests {
     fn store() -> ComputerUseRunStore {
         let connection = Connection::open_in_memory().unwrap();
         apply_session_migration_v11(&connection).unwrap();
+        // v21：`fact_log_records`（事实日志表）。少了它，动作事实写入会报
+        // `no such table: fact_log_records`（PR-02A 起执行器真的会写动作事实）。
+        crate::apply_session_migration_v21(&connection).unwrap();
         apply_session_migration_v22(&connection).unwrap();
+        // 手工建的库必须手工应用"本文件拥有的"那几步（v23/v24）：
+        // 少了 v24 ⇒ 动作来源登记会以 `no such table` 失败（PR-02A）。
+        crate::computer_use_store::apply_session_migration_v23_legacy_run_convergence(&connection)
+            .unwrap();
+        crate::computer_use_store::apply_session_migration_v24_action_origin_ledger(&connection)
+            .unwrap();
         ComputerUseRunStore::from_connection(connection)
     }
 
@@ -2361,6 +2653,232 @@ mod tests {
         }
     }
 
+    /// **CU-F05-1**：真实 attempt 存在 ⇒ 准入通过，且**动作事实真的落库**（含已核对的来源）。
+    ///
+    /// 这条是 PR-02A 的核心断言：事实链从"接口存在"变成"生产真的在写"。
+    #[tokio::test]
+    async fn cu_f05_1_real_attempt_writes_the_action_fact_with_verified_origin() {
+        let _desktop_lease = crate::tests::desktop_input_lease_test_guard().await;
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("f05-1.sqlite3");
+        let store = ComputerUseRunStore::open(&path).unwrap();
+        let planner = FakePlanner::one_click();
+        // 写**动作事实**需要可信回执（没有回执就没有"发生过什么"可言）；用与既有回执用例
+        // 同构的工厂，确保这条断言测的是"事实链真的成立"，而不是"回执缺失时不写事实"。
+        let executions = Arc::new(AtomicUsize::new(0));
+        let factory = ReceiptActFactory {
+            executions: Arc::clone(&executions),
+            failure: None,
+            attach_receipt: true,
+            mismatch_action_id: false,
+            spec: ReceiptSpec {
+                input_delivery: runtime::InputDelivery::Sent,
+                partial: Some(false),
+                path_completed: Some(true),
+                confirmed_point_count: Some(5),
+                input_release: runtime::InputReleaseStatus::Released,
+            },
+        };
+        let identity = identity("f05-1-real-attempt");
+
+        let result =
+            ComputerUseExecutor::new_for_test(&planner, &factory, &store, ComputerUseBudgets::default())
+                .execute(&input("desktop"), &identity)
+                .await;
+        // 终态未必是"成功"（验收标准由 planner 决定），关键是：**动作确实执行并附了回执**，
+        // 且来源准入**没有**拒绝它——事实链的成立与本条断言无关的那部分在此不混入。
+        assert!(executions.load(Ordering::SeqCst) >= 1, "动作确实执行过");
+        assert_ne!(
+            result.error.as_ref().map(|error| error.code.as_str()),
+            Some("action_origin_rejected"),
+            "真实 attempt 不得被来源准入拒绝：{:?}",
+            result.error
+        );
+
+        let connection = Connection::open(&path).unwrap();
+        // ① 动作事实确实写进去了，且来源是**已核对的模型规划**。
+        let payloads: Vec<String> = connection
+            .prepare("SELECT payload_json FROM fact_log_records")
+            .unwrap()
+            .query_map([], |row| row.get::<_, String>(0))
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert!(!payloads.is_empty(), "准入通过后必须写入动作事实");
+        let joined = payloads.join("\n");
+        assert!(
+            joined.contains("model_planned"),
+            "动作事实必须带 ModelPlanned 来源：{joined}"
+        );
+        assert!(
+            joined.contains("computer_use_planning:step-0"),
+            "动作事实的来源必须是那条**真实**规划请求（复合键）：{joined}"
+        );
+        // ② 登记也在：这条 attempt 可被后续审计读回。
+        let registered: i64 = connection
+            .query_row(
+                "SELECT COUNT(*) FROM computer_use_plan_attempts WHERE call_id = ?1 AND action_id IS NOT NULL",
+                [&identity.call_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(registered, 1, "真实 attempt 必须落库并与动作绑定");
+        // ③ 没有"输入前拒绝"的审计（这条路径不该有）。
+        let rejected: i64 = connection
+            .query_row(
+                "SELECT COUNT(*) FROM computer_use_action_origin_rejections",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(rejected, 0, "准入通过时不得留下拒绝审计");
+    }
+
+    /// **CU-F05-2**：缺 attempt ⇒ **输入前拒绝**：无动作事实、无步骤行、有审计事件。
+    #[tokio::test]
+    async fn cu_f05_2_missing_attempt_is_refused_before_input_with_audit_only() {
+        let _desktop_lease = crate::tests::desktop_input_lease_test_guard().await;
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("f05-2.sqlite3");
+        let store = ComputerUseRunStore::open(&path).unwrap();
+        let planner = FakePlanner::one_click();
+        let factory = factory(true);
+        let identity = identity("f05-2-missing-attempt");
+
+        let result =
+            ComputerUseExecutor::new_for_test(&planner, &factory, &store, ComputerUseBudgets::default())
+                // 关掉测试夹具 ⇒ 回到生产语义：假 planner 没有真实规划请求 ⇒ 必须被拒。
+                .without_plan_attempt_fixture()
+                .execute(&input("browser"), &identity)
+                .await;
+        assert_eq!(result.status, ComputerUseTerminalStatus::Blocked);
+        assert_eq!(
+            result.error.as_ref().map(|error| error.code.as_str()),
+            Some("action_origin_rejected")
+        );
+
+        let connection = Connection::open(&path).unwrap();
+        // ① 零物理输入：没有任何动作事实。
+        let facts: i64 = connection
+            .query_row("SELECT COUNT(*) FROM fact_log_records", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(facts, 0, "被拒绝的动作不得产生动作事实");
+        // ② 零执行事实：没有步骤行（"动作发生了没有"不会被混淆）。
+        let steps: i64 = connection
+            .query_row("SELECT COUNT(*) FROM computer_use_steps", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(steps, 0, "输入前拒绝不得留下步骤行");
+        // ③ 但**有**审计：拒绝必须可追溯，且明确 physical_input = 0。
+        let (code, physical): (String, i64) = connection
+            .query_row(
+                "SELECT reason_code, physical_input FROM computer_use_action_origin_rejections WHERE call_id = ?1",
+                [&identity.call_id],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(code, "missing_request_attempt");
+        assert_eq!(physical, 0);
+        // ④ 工厂一次都没被调用（拒绝发生在任何输入之前）。
+        assert_eq!(factory.action_count.load(Ordering::SeqCst), 0);
+    }
+
+    /// **CU-F05-4**：跨 run 的 attempt 不得作为本动作的来源。
+    #[tokio::test]
+    async fn cu_f05_4_cross_run_attempt_is_refused() {
+        let _desktop_lease = crate::tests::desktop_input_lease_test_guard().await;
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("f05-4.sqlite3");
+        let store = ComputerUseRunStore::open(&path).unwrap();
+        let factory = factory(true);
+        let identity = identity("f05-4-cross-run");
+
+        let result = ComputerUseExecutor::new_for_test(
+            // 假 planner 声称"产生本动作的规划请求"属于**另一个 run**。
+            &CrossRunAttemptPlanner::new(),
+            &factory,
+            &store,
+            ComputerUseBudgets::default(),
+        )
+        .with_conversation_scope(runtime::RunScopeContext::new(
+            "ws-00000000000000ff",
+            "room-1",
+            "session-1",
+            "turn-1",
+        ))
+        .with_provider_tool_call_id(&identity.provider_tool_call_id)
+        .execute(&input("browser"), &identity)
+        .await;
+        assert_eq!(result.status, ComputerUseTerminalStatus::Blocked);
+        let connection = Connection::open(&path).unwrap();
+        let facts: i64 = connection
+            .query_row("SELECT COUNT(*) FROM fact_log_records", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(facts, 0, "跨 run 来源被拒 ⇒ 不得写事实");
+        let code: String = connection
+            .query_row(
+                "SELECT reason_code FROM computer_use_action_origin_rejections WHERE call_id = ?1",
+                [&identity.call_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert!(
+            code.contains("run") || code.contains("conflict") || code.contains("not_established"),
+            "拒绝理由必须指向运行关联：{code}"
+        );
+    }
+
+    /// 声称"产生本动作的规划请求属于另一个 run"的假 planner（CU-F05-4 用）。
+    struct CrossRunAttemptPlanner {
+        inner: FakePlanner,
+    }
+
+    impl CrossRunAttemptPlanner {
+        fn new() -> Self {
+            Self { inner: FakePlanner::one_click() }
+        }
+    }
+
+    impl ComputerUsePlanner for CrossRunAttemptPlanner {
+        fn last_plan_request_attempt(&self) -> Option<runtime::PlannedRequestAttempt> {
+            runtime::PlannedRequestAttempt::new(
+                "some-other-run",
+                "computer_use_planning:step-0",
+                "attempt-1",
+            )
+            .ok()
+        }
+
+        fn classify<'a>(
+            &'a self,
+            request: &'a ComputerUseRequest,
+            observation: &'a Observation,
+            remaining: std::time::Duration,
+        ) -> PlannerFuture<'a, Result<ComputerUseSurface, ComputerUseError>> {
+            self.inner.classify(request, observation, remaining)
+        }
+
+        fn verify<'a>(
+            &'a self,
+            request: &'a ComputerUseRequest,
+            before: &'a Observation,
+            after: &'a Observation,
+            verification: Verification,
+            remaining: std::time::Duration,
+        ) -> PlannerFuture<'a, Result<Verification, ComputerUseError>> {
+            self.inner.verify(request, before, after, verification, remaining)
+        }
+
+        fn next_action<'a>(
+            &'a self,
+            request: &'a ComputerUseRequest,
+            observation: &'a Observation,
+            step: usize,
+            remaining: std::time::Duration,
+        ) -> PlannerFuture<'a, Result<Option<ComputerUseAction>, ComputerUseError>> {
+            self.inner.next_action(request, observation, step, remaining)
+        }
+    }
+
     #[tokio::test]
     async fn originating_chat_room_is_persisted_with_the_run() {
         let store = store();
@@ -2375,7 +2893,12 @@ mod tests {
                 )
                 .await;
 
-        assert_eq!(result.status, ComputerUseTerminalStatus::Succeeded);
+        assert_eq!(
+            result.status,
+            ComputerUseTerminalStatus::Succeeded,
+            "terminal error = {:?}",
+            result.error
+        );
         let persisted = store.load(&result.call_id).unwrap().unwrap();
         assert_eq!(persisted.chat_room_id.as_deref(), Some("room-full-access"));
     }
@@ -4148,7 +4671,9 @@ mod tests {
             .split("async fn execute_in_room_with_policy")
             .nth(1)
             .expect("accepted run path")
-            .split("#[cfg(test)]")
+            .split("
+#[cfg(test)]
+mod tests")
             .next()
             .expect("runtime body");
         let position = |needle: &str| {
@@ -4337,19 +4862,34 @@ mod tests {
         inner: FakePlanner,
         target: std::path::PathBuf,
         switched: AtomicBool,
+        /// 本 run 的 call_id：生产语义要求"模型动作必须有**真实**规划请求 attempt"，
+        /// 而 attempt 的 run 维度必须就是本 run。测试替身因此显式持有它，而不是让生产代码去猜。
+        call_id: String,
     }
 
     impl SwitchWorkspaceOnFirstAction {
-        fn new(target: std::path::PathBuf) -> Self {
+        fn new(target: std::path::PathBuf, call_id: &str) -> Self {
             Self {
                 inner: FakePlanner::one_click(),
                 target,
                 switched: AtomicBool::new(false),
+                call_id: call_id.to_string(),
             }
         }
     }
 
     impl ComputerUsePlanner for SwitchWorkspaceOnFirstAction {
+        fn last_plan_request_attempt(&self) -> Option<runtime::PlannedRequestAttempt> {
+            // 与生产 planner 同形：`computer_use_planning:step-0` + `attempt-1`，
+            // run 维度用本 run 的真实 call_id。
+            runtime::PlannedRequestAttempt::new(
+                self.call_id.clone(),
+                "computer_use_planning:step-0",
+                "attempt-1",
+            )
+            .ok()
+        }
+
         fn verify<'a>(
             &'a self,
             request: &'a ComputerUseRequest,
@@ -4451,13 +4991,22 @@ mod tests {
 
         let factory = factory(true);
         let identity = identity("workspace-switch-mid-run");
+        // PR-02A：本用例走**生产构造器**（无测试夹具），因此必须像生产入口那样提供
+        // 接纳时冻结的四维会话上下文——否则动作来源无法核对，会在输入前被拒绝。
         let result = ComputerUseExecutor::new(
-            &SwitchWorkspaceOnFirstAction::new(switched_to.clone()),
+            &SwitchWorkspaceOnFirstAction::new(switched_to.clone(), &identity.call_id),
             &factory,
             &store,
             ComputerUseBudgets::default(),
             frozen.clone(),
         )
+        .with_conversation_scope(runtime::RunScopeContext::new(
+            "ws-0123456789abcdef",
+            "room-1",
+            "session-1",
+            "turn-1",
+        ))
+        .with_provider_tool_call_id(&identity.provider_tool_call_id)
         .execute(&input("desktop"), &identity)
         .await;
 
@@ -4496,7 +5045,9 @@ mod tests {
             .split("pub(crate) async fn execute_with_current_runtime")
             .nth(1)
             .expect("admission function")
-            .split("#[cfg(test)]")
+            .split("
+#[cfg(test)]
+mod tests")
             .next()
             .expect("admission body");
         assert!(
@@ -4525,7 +5076,12 @@ mod tests {
         // 迁移完整（读得到），但写入被拒：验收点就是"接纳事实写不进去"。
         let connection = Connection::open_in_memory().unwrap();
         apply_session_migration_v11(&connection).unwrap();
+        crate::apply_session_migration_v21(&connection).unwrap();
         apply_session_migration_v22(&connection).unwrap();
+        crate::computer_use_store::apply_session_migration_v23_legacy_run_convergence(&connection)
+            .unwrap();
+        crate::computer_use_store::apply_session_migration_v24_action_origin_ledger(&connection)
+            .unwrap();
         connection.execute_batch("PRAGMA query_only = ON;").unwrap();
         let store = ComputerUseRunStore::from_connection(connection);
         let factory = factory(true);

@@ -1666,6 +1666,11 @@ impl ComputerUseRunStore {
         // 与主入口共用的前置规则（超前版本拒绝），必须在任何补列/建表之前。
         ensure_session_schema_not_from_the_future(&connection)?;
         apply_session_migration_v11(&connection)?;
+        // PR-02A：执行器现在真的会写**动作事实**，因此事实日志表（v21 建，属 main.rs 阶梯）
+        // 也必须在这条独立打开路径上可用——否则事实写入会以 `no such table: fact_log_records`
+        // 失败，而失败发生在"已经动手之后"，这正是最不该出现的位置。
+        // 与 v22/v23 同例：调用**同一批函数**，不另写一份。
+        crate::apply_session_migration_v21(&connection)?;
         // 与 v11 同例：本文件拥有的表由本文件补齐归属列，独立打开 store（不经 main.rs 阶梯）
         // 时也必须可用，否则接纳处会因为"没有那一列"而写不进真实归属。
         // 注意：这三步与 main.rs 阶梯调用的是**同一批函数**（不是另写一份），前置规则也共用
