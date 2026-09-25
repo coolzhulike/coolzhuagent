@@ -22321,6 +22321,11 @@ fn locate_uia_target(
         is_offscreen: element.is_offscreen,
         is_enabled: element.is_enabled,
         confidence,
+        // CU-05：状态与支持模式**原样转出**（`None` 保持 `None`，不在这里补成 false）。
+        is_selected: element.is_selected,
+        has_keyboard_focus: element.has_keyboard_focus,
+        toggle_state: element.toggle_state,
+        patterns: element.patterns,
     })
 }
 

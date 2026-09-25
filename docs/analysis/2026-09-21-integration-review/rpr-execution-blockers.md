@@ -2113,6 +2113,42 @@ fail-closed 正确，但**无路可走**（§B-84 记的 CU-F05-5 正半缺口�
 "两边都按同一授权口径运行"，而不是把它们合成一套。另：插件侧 runner 还没有生产调用方，
 接入时应**显式**决定授权范围（不要用 `AllowHookEvents::default()` 打开全部）。
 
+### B-97 CU-05（P1）交付：UIA 元素状态进入快照（selected／focused／toggle／支持模式）
+
+**范围与边界先说清**（这是我上一轮提出的边界，本轮按它执行）：
+
+- **可离线验证的部分全测**：状态取值语义、模式名映射、快照→命中的传递；
+- **无法离线验证的部分如实标注**：读取走 Windows COM（`windows_impl.rs` 是 `#[cfg(windows)]` 的
+  真实 UIA 调用），需要真实桌面与元素才能跑，本轮**没有**现场执行过一次真实读取。
+
+**改动**：
+
+1. `UiaElementSnapshot` / `UiaHit` 增加四个字段：
+   - `is_selected: Option<bool>` —— `None` = **该元素不支持选择模式**（不是"没选中"）；
+   - `has_keyboard_focus: Option<bool>`；
+   - `toggle_state: Option<String>`（`on`／`off`／`indeterminate`）；
+   - `patterns: Vec<String>`（支持的模式名）。
+2. 新增纯函数（离线可测）：`toggle_state_name(i32)`（**认不出的取值给 `"unknown"`，
+   不回落到 off**）、`pattern_name(i32)`（未知 id 给可追溯的 `pattern-<id>`，**不返回空串**——
+   空串会与"不支持"混淆）、`selection_and_toggle_supported(&[String])`。
+3. COM 读取：`GetCurrentPatternAs::<SelectionItemPattern>` / `<TogglePattern>` /
+   `CurrentHasKeyboardFocus`，逐个 `.ok()` ⇒ 不支持就是 `None`。
+4. **一处如实降级**：本 crate 固定的 windows 版本**没有** `GetSupportedPatterns`，
+   因此"支持的模式"用**逐个探测**得到，且只探测本项目关心的四种
+   （value／text／selection_item／toggle）——**不臆测**未探测的模式；要拿全量需另开升级工单。
+5. 内置 PowerShell 脚本路径（`resolve_via_script`）**不读**这些状态 ⇒ 如实给 `None`/空，
+   而不是给一个"看起来读到了但都是 false"的结果。
+
+**用例**（2 条）：`element_state_distinguishes_unsupported_from_false`（未知 toggle 取值 ⇒ unknown；
+未知 pattern id ⇒ `pattern-<id>`；支持性判定看模式而非字段非空）、
+`query_preserves_element_state_including_unknowns`（快照状态原样传到命中结果，`None` 不填成 false）。
+
+**门禁**：uia-resolver **7/0**、vision-service 36/0、web-console 1147/0、
+`cargo build --workspace` ✅。
+
+**下一步（若要真用起来）**：把 `patterns`／`toggle_state` 等接入 observation 的 `state`，
+让 planner 能看到"这个元素可切换／已选中"；以及升级 windows crate 拿全量模式（另开工单）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
