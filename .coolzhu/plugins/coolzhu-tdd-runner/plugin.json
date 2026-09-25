@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-tdd-runner",
+  "version": "0.1.0",
+  "description": "RED-GREEN-REFACTOR TDD cycle state and test result helpers",
+  "permissions": ["read", "execute"],
+  "defaultEnabled": false
+}

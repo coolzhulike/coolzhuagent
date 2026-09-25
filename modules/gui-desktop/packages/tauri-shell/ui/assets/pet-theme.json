@@ -1,0 +1,283 @@
+{
+  "version": 1,
+  "asset_version": "20260711-blinkoverlay",
+  "default_state": "idle",
+  "states": {
+    "idle": {
+      "frame_pattern": "assets/pet-actions/idle-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 180,
+      "priority": 1,
+      "min_duration_ms": 0,
+      "message": "我在后台待命。"
+    },
+    "blink": {
+      "frame_pattern": "assets/pet-actions/idle-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 90,
+      "priority": 1,
+      "min_duration_ms": 0,
+      "message": "正在聆听。"
+    },
+    "thinking": {
+      "frame_pattern": "assets/pet-actions/thinking-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 140,
+      "priority": 2,
+      "min_duration_ms": 900,
+      "message": "我正在思考。",
+      "bubble": "assets/pet-bubbles/thinking.png"
+    },
+    "working": {
+      "frame_pattern": "assets/pet-actions/working-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 135,
+      "priority": 3,
+      "min_duration_ms": 1000,
+      "message": "工具正在执行。",
+      "bubble": "assets/pet-bubbles/thinking.png"
+    },
+    "carrying": {
+      "frame_pattern": "assets/pet-actions/carrying-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 150,
+      "priority": 3,
+      "min_duration_ms": 1000,
+      "message": "正在搬运任务结果。"
+    },
+    "juggling": {
+      "frame_pattern": "assets/pet-actions/juggling-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 130,
+      "priority": 3,
+      "min_duration_ms": 1000,
+      "message": "多任务流转中。"
+    },
+    "sweeping": {
+      "frame_pattern": "assets/pet-actions/sweeping-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 150,
+      "priority": 3,
+      "min_duration_ms": 900,
+      "message": "正在清理临时状态。"
+    },
+    "notification": {
+      "frame_pattern": "assets/pet-actions/notification-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 130,
+      "priority": 4,
+      "min_duration_ms": 1200,
+      "auto_return_ms": 4200,
+      "message": "有新的任务更新。",
+      "bubble": "assets/pet-bubbles/success.png"
+    },
+    "attention": {
+      "frame_pattern": "assets/pet-actions/attention-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 110,
+      "priority": 5,
+      "min_duration_ms": 1400,
+      "message": "需要你的确认。",
+      "bubble": "assets/pet-bubbles/warning.png"
+    },
+    "warning": {
+      "frame_pattern": "assets/pet-actions/warning-{index}.png",
+      "frame_count": 7,
+      "interval_ms": 100,
+      "priority": 6,
+      "min_duration_ms": 1800,
+      "message": "需要注意一下。",
+      "bubble": "assets/pet-bubbles/warning.png"
+    },
+    "success": {
+      "frame_pattern": "assets/pet-actions/success-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 130,
+      "priority": 4,
+      "min_duration_ms": 900,
+      "auto_return_ms": 3600,
+      "message": "完成啦。",
+      "bubble": "assets/pet-bubbles/success.png"
+    },
+    "dragging": {
+      "frame_pattern": "assets/pet-actions/sword-flight-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 95,
+      "priority": 4,
+      "min_duration_ms": 0,
+      "message": "御剑飞行！"
+    },
+    "crowned": {
+      "frame_pattern": "assets/pet-actions/crowned-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 180,
+      "priority": 5,
+      "min_duration_ms": 0,
+      "message": "已登上王座。",
+      "bubble": "assets/pet-bubbles/success.png"
+    },
+    "perform_martial": {
+      "frame_pattern": "assets/pet-actions/perform_martial-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 125,
+      "priority": 0,
+      "min_duration_ms": 2400,
+      "auto_return_ms": 5600,
+      "message": "剑术时间。"
+    },
+    "sleeping": {
+      "frame_pattern": "assets/pet-actions/sleeping-{index}.png",
+      "frame_count": 8,
+      "interval_ms": 260,
+      "priority": 0,
+      "min_duration_ms": 0,
+      "message": "我先休息一会儿。"
+    }
+  },
+  "event_map": [
+    {
+      "match": "starts_with",
+      "value": "chat.completed",
+      "state": "success",
+      "message": "Chat response completed"
+    },
+    {
+      "match": "starts_with",
+      "value": "chat.done",
+      "state": "success",
+      "message": "Chat response completed"
+    },
+    {
+      "match": "starts_with",
+      "value": "chat.failed",
+      "state": "warning",
+      "message": "Chat request failed"
+    },
+    {
+      "match": "starts_with",
+      "value": "chat.error",
+      "state": "warning",
+      "message": "Chat request failed"
+    },
+    {
+      "match": "starts_with",
+      "value": "chat",
+      "state": "perform_martial",
+      "message": "Chat is active"
+    },
+    {
+      "match": "starts_with",
+      "value": "llm",
+      "state": "perform_martial",
+      "message": "Agent is working"
+    },
+    {
+      "match": "contains",
+      "value": "reasoning",
+      "state": "thinking",
+      "message": "Agent is reasoning"
+    },
+    {
+      "match": "starts_with",
+      "value": "goal.completed",
+      "state": "success",
+      "message": "Goal completed"
+    },
+    {
+      "match": "starts_with",
+      "value": "goal.failed",
+      "state": "warning",
+      "message": "Goal needs attention"
+    },
+    {
+      "match": "starts_with",
+      "value": "goal.paused",
+      "state": "attention",
+      "message": "Goal is paused"
+    },
+    {
+      "match": "starts_with",
+      "value": "goal",
+      "state": "working",
+      "message": "Goal task is running"
+    },
+    {
+      "match": "starts_with",
+      "value": "permission",
+      "state": "attention",
+      "message": "Waiting for permission approval"
+    },
+    {
+      "match": "starts_with",
+      "value": "notification",
+      "state": "notification",
+      "message": "New task update"
+    },
+    {
+      "match": "starts_with",
+      "value": "tool.ok",
+      "state": "success",
+      "message": "Tool completed"
+    },
+    {
+      "match": "starts_with",
+      "value": "tool.success",
+      "state": "success",
+      "message": "Tool completed"
+    },
+    {
+      "match": "starts_with",
+      "value": "tool.failed",
+      "state": "warning",
+      "message": "Tool failed"
+    },
+    {
+      "match": "starts_with",
+      "value": "tool.rejected",
+      "state": "attention",
+      "message": "Tool needs approval"
+    },
+    {
+      "match": "starts_with",
+      "value": "tool.timeout",
+      "state": "warning",
+      "message": "Tool timed out"
+    },
+    {
+      "match": "starts_with",
+      "value": "tool",
+      "state": "perform_martial",
+      "message": "Tool is running"
+    },
+    {
+      "match": "starts_with",
+      "value": "audio",
+      "state": "blink",
+      "message": "Listening"
+    },
+    {
+      "match": "starts_with",
+      "value": "success",
+      "state": "success",
+      "message": "Completed"
+    },
+    {
+      "match": "starts_with",
+      "value": "complete",
+      "state": "success",
+      "message": "Completed"
+    },
+    {
+      "match": "starts_with",
+      "value": "error",
+      "state": "warning",
+      "message": "Attention needed"
+    },
+    {
+      "match": "starts_with",
+      "value": "warning",
+      "state": "warning",
+      "message": "Attention needed"
+    }
+  ]
+}

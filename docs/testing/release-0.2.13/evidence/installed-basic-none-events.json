@@ -1,0 +1,126 @@
+[
+  {
+    "type": "started",
+    "at_ms": 86,
+    "data": {
+      "turn_id": "chat-turn-1789828928217-2",
+      "run_id": "run-chat-5b4e645c71ba05aa8449436e88cac4abe3915caf54f3ed83"
+    }
+  },
+  {
+    "type": "message",
+    "at_ms": 87,
+    "data": {
+      "id": "msg-1789828928217-user",
+      "author": "",
+      "role": "user",
+      "target": "qwen(qwen3.8-flash)",
+      "content": "这是安装后关闭思考的基本对话测试。只回复9乘13的结果和标记 QWEN_NO_THINK_OK。",
+      "kind": "text",
+      "attachments": []
+    }
+  },
+  {
+    "type": "message_start",
+    "at_ms": 1934,
+    "data": {
+      "id": "msg-1789828928259-0",
+      "author": "qwen(qwen3.8-flash)",
+      "role": "assistant",
+      "target": "聊天",
+      "content": "",
+      "kind": "assistant-reply",
+      "attachments": []
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 1935,
+    "data": {
+      "id": "msg-1789828928259-0",
+      "kind": "assistant-reply",
+      "delta": "1"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2078,
+    "data": {
+      "id": "msg-1789828928259-0",
+      "kind": "assistant-reply",
+      "delta": "17 QW"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2078,
+    "data": {
+      "id": "msg-1789828928259-0",
+      "kind": "assistant-reply",
+      "delta": "EN_NO_THINK"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2078,
+    "data": {
+      "id": "msg-1789828928259-0",
+      "kind": "assistant-reply",
+      "delta": "_OK"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2209,
+    "data": {
+      "id": "msg-1789828928259-0",
+      "kind": "assistant-reply",
+      "delta": "\n\n---\nContext usage: 0.1% (1229/1000000 input tokens; source=remote). Local estimate: 1191 tokens; local prompt budget: 1191/848976 tokens; history truncated: false.\nContext turn: 000000000000000818d6bfed659c555c; Context snapshot: ctx-12c4e1d443db3ba3; history source: chat_room.messages; history loaded: 3; memory revision: mem-36bece86f153e332"
+    }
+  },
+  {
+    "type": "message_done",
+    "at_ms": 2209,
+    "data": {
+      "id": "msg-1789828928259-0",
+      "author": "qwen(qwen3.8-flash)",
+      "role": "assistant",
+      "target": "聊天",
+      "content": "117 QWEN_NO_THINK_OK\n\n---\nContext usage: 0.1% (1229/1000000 input tokens; source=remote). Local estimate: 1191 tokens; local prompt budget: 1191/848976 tokens; history truncated: false.\nContext turn: 000000000000000818d6bfed659c555c; Context snapshot: ctx-12c4e1d443db3ba3; history source: chat_room.messages; history loaded: 3; memory revision: mem-36bece86f153e332",
+      "kind": "assistant-reply",
+      "attachments": []
+    }
+  },
+  {
+    "type": "done",
+    "at_ms": 2210,
+    "data": {
+      "turn_id": "chat-turn-1789828928217-2",
+      "run_id": "run-chat-5b4e645c71ba05aa8449436e88cac4abe3915caf54f3ed83",
+      "status": "completed",
+      "accepted_agent_ids": [
+        "session-1779459149988"
+      ],
+      "tasks": [
+        {
+          "id": "task-1789828928259-0",
+          "owner_agent": "qwen(qwen3.8-flash)",
+          "executor_agent": "qwen(qwen3.8-flash)",
+          "status": "模型已回",
+          "visible_in_chat": true,
+          "timeout_ms": 20000,
+          "summary": "会话 Agent 已按当前 Provider/Model 配置完成真实模型调用"
+        },
+        {
+          "id": "task-1789828928259-0-tool",
+          "owner_agent": "qwen(qwen3.8-flash)",
+          "executor_agent": "系统工具执行 Agent",
+          "status": "已触发 computer-use 工具侧路",
+          "visible_in_chat": true,
+          "timeout_ms": 15000,
+          "summary": "@qwen 请求键鼠/CLI 工具执行"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "path": "Cargo.toml",
+    "bytes": 3248,
+    "sha256": "DE1768A6958DF689A15A63050DE673239555F182D8CC325674B3D056E84B56BB"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/main.rs",
+    "bytes": 3365760,
+    "sha256": "165CA0F8CBC9EA94886BBD71D478DCDB938B31266DE09577EACC1AFD014D0A21"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/chat_insights.rs",
+    "bytes": 15406,
+    "sha256": "E18B7F4DD5101D816BACE2897BFE83475540FC949B205232EC9ADE14D30E1F44"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/app.js",
+    "bytes": 765343,
+    "sha256": "372880EE21FBC26C96CB99668B60D3BD5A2F3D6899F9C21171FF4BE991E28B43"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/index.html",
+    "bytes": 122689,
+    "sha256": "3059FF01069A77EBFB310682B2C3B6ACBF4EAC3B84E4EB9A8F76E786342D5D2E"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/styles.css",
+    "bytes": 455926,
+    "sha256": "65AF4F23206E321B1022A4B5F7425476A4F7554108FC3D281A5599E1BA969021"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/chat_experience.js",
+    "bytes": 24393,
+    "sha256": "B35B71BACA50A17C6D5D7DF2F5D6906359F7363C43F6C264AC51235B66FC4239"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/chat_experience.css",
+    "bytes": 8150,
+    "sha256": "EE10E49D6FA125F8DAA2572E441B5ED8FAAEBA963B602232B9AA315090154E53"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/model_settings.js",
+    "bytes": 17463,
+    "sha256": "ED5AC479BA2F8FAABE6F4655AC61ACE3D1CE0F78EEFB4391AF87869A2AA9F5B9"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/model_settings.css",
+    "bytes": 7131,
+    "sha256": "9C3336BD756D5B4C8A10A30071AA56EDC70728B8FDBBD5F38CDA86EB7C842A5D"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/wuxia_layout.css",
+    "bytes": 31591,
+    "sha256": "B45394AF22583B468DE15B801D29D8D6C69F9097D8B13B414520F66F6837339A"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/tool_loop_coordinator.rs",
+    "bytes": 6618,
+    "sha256": "BCA61B27966D491519A95898009578CA15B1C7442B0DE39238F41832934A0F89"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/src/lib.rs",
+    "bytes": 7359,
+    "sha256": "54F863B1E9870AD4967D01944DB607B38D8C21E8CBDF37D55540C6950AFAF8D9"
+  },
+  {
+    "path": "config/package-manifest.json",
+    "bytes": 5879,
+    "sha256": "9949E5201DF0BAFC978C3D30D50413ED090D8C12A9C6529BB59FC62A6F7B7896"
+  },
+  {
+    "path": "config/package-launcher.json",
+    "bytes": 383,
+    "sha256": "C23B2375D3251C1E802FDF1B8005E9FCEF1A71F6A116E5B34DD4B7DA488636B9"
+  },
+  {
+    "path": "scripts/build-msi.ps1",
+    "bytes": 10186,
+    "sha256": "76CD86DB72D81F04E882B491A25514E23E088DF07CF43185BCD8636AE21F1DEC"
+  },
+  {
+    "path": "scripts/package-all.ps1",
+    "bytes": 15919,
+    "sha256": "6E184018EDD57D24D4B9FBF1FCFB1676E172EEC8E7CCF542A3E23DEBFA5D4429"
+  },
+  {
+    "path": "installer/Product.wxs",
+    "bytes": 5239,
+    "sha256": "BF6F25DB5B768EF9A883DA8524A5EF4A6A86D553D66A1A1112E291E43A092AF6"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/src/request_parameters.rs",
+    "bytes": 3944,
+    "sha256": "B25E0470AAB31A65CA9299F68E61EBF37DD990F382828C367DBEFE73CBC8426D"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/src/client.rs",
+    "bytes": 26743,
+    "sha256": "92850D04EE12565A49C72C3E4C9A500698B3C6A218FEB38B0057DF348DC045E9"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/src/providers/openai_compat.rs",
+    "bytes": 65794,
+    "sha256": "A2ACC768D52E458696EF65B03172B17E02836311D9211A02B3890E92D6DBF9AC"
+  }
+]

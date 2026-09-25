@@ -1,0 +1,21 @@
+[package]
+name = "coolzhu-windows-process-guard"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# 仅测试构建可见的故障注入接缝（`InteractiveInputLeaseBroker::revoke_owner_for_test`）。
+# 默认关闭；只在 **[dev-dependencies]** 里由测试目标打开，不得进入发布依赖图。
+test-support = []
+
+[dependencies]
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_IO",
+    "Win32_System_JobObjects",
+    "Win32_System_Pipes",
+    "Win32_System_Threading",
+] }

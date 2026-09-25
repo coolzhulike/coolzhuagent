@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-opencode-sync",
+  "version": "0.1.0",
+  "description": "Bidirectional SKILL.md and agent sync between Coolzhu and OpenCode formats",
+  "permissions": ["read", "write", "execute"],
+  "defaultEnabled": false
+}

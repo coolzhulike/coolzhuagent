@@ -1,0 +1,23 @@
+修改完成并已验证。文件：`C:\Users\zhupu\Desktop\coolzhuagent\tmp\2026-09-19-qwen\runtime\pelican-bicycle.html`（现 329 行）。
+
+**本轮具体变更：**
+
+1. **结构**（保留前两轮全部图形与动画，未重建）
+   - 第 26–27 行：`<svg>` 外包一层 `<div id="stage">`，并给 SVG 加 `id="scene"` 供脚本控制。
+   - 第 263–271 行：新增控制条 —— `⏸ 暂停 / ▶ 播放` 按钮、0.5–2×（步进 0.05）速度滑块 + 实时倍速读数、`↺ 恢复默认` 按钮。
+   - `<style>` 中新增胶囊形控制条与按钮/滑杆样式，`svg` 高度改为 88vh 为控制条让位。
+
+2. **播放控制核心逻辑**（第 273–327 行脚本）
+   - 采用统一主时钟方案：初始化调用 `svg.pauseAnimations()` 冻结浏览器内置 SMIL 时钟，之后每帧由 `requestAnimationFrame` 按 `vTime += dt × rate` 推进并 `svg.setCurrentTime(vTime)`。
+   - **为什么能冻结/变速全部动画**：场景中所有运动（车轮辐条 `animateTransform`、双腿 `animate d`、脚掌公转/反转、曲柄、身体起伏、翅膀、喉囊鼓动、三层视差背景 `<use>` 平移、路面虚线与链条的 `stroke-dashoffset`）都是同一 SVG 文档时间线上的 SMIL 动画，seek 该时间线即整体生效，无需逐个枚举元素。
+   - 暂停 = 停止推进虚拟时间；滑块 = 缩放每帧时间增量，暂停中拖动读数仍会更新，恢复后以新速率续播（相位连续，不会跳回）。
+   - `恢复默认`：倍速重置 1.00×、时间轴归零、恢复播放。
+   - 附赠快捷键：页面聚焦时按空格切换播放/暂停。
+
+3. **一致性微调**：画面底部说明文字从 “no scripts” 改为仅声明 “no external assets”，如实反映现在含内联控制脚本。
+
+已通过 grep/read 复核：`stage` 包裹与闭合完整、控制条 HTML 位于 `</svg>` 之后、脚本位于 `</body>` 前，鹈鹕/双腿 IK 相位（上一轮修复）原样保留。浏览器打开即可用控制条操作。
+
+---
+Context usage: 3.8% (38880/1000000 input tokens; source=remote). Local estimate: 15480 tokens; local prompt budget: 15480/848976 tokens; history truncated: false.
+Context turn: 000000000000001118d6bf5a3d0643fc; Context snapshot: ctx-cfaaab21cf7ce5dd; history source: chat_room.messages; history loaded: 28; memory revision: mem-1485245ae71d6bdb

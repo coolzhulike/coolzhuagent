@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-09-19T13:50:03.6978433Z",
+  "display_name": "COOLZHU CODE Agent",
+  "display_version": "0.2.12",
+  "product_code": "{694CF816-2F1E-4AB5-B619-4C18A423798A}",
+  "install_directory": "C:\\Program Files\\CoolzhuAgent",
+  "cli_version_output": "COOLZHU CODE Agent\r\n  Version          0.2.12\r\n  Git SHA          0a3802bada8ca6b37dad77f2e38c175cde8b2875\r\n  Target           x86_64-pc-windows-msvc\r\n  Build date       2026-09-19\r\n\r\nSupport\r\n  Help             coolzhu-cli --help\r\n  REPL             /help",
+  "legacy_index_present": false,
+  "legacy_src_present": false
+}

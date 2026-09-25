@@ -1,0 +1,72 @@
+[
+  {
+    "id": "gui-web.web-console",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "expected_sha256": "888A8B5FE55849A1C5C78CC0516D5C8F4DD722D492AE0DDF85DA4458A6FB0E36",
+    "actual_sha256": "888A8B5FE55849A1C5C78CC0516D5C8F4DD722D492AE0DDF85DA4458A6FB0E36",
+    "match": true
+  },
+  {
+    "id": "gui-web.browser-native-host",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-browser-native-host.exe",
+    "expected_sha256": "C8F92A5651A679E5854508D128171A91F534D81A12D2B2CBC7F68DA0A90BA656",
+    "actual_sha256": "C8F92A5651A679E5854508D128171A91F534D81A12D2B2CBC7F68DA0A90BA656",
+    "match": true
+  },
+  {
+    "id": "gui-web.clawbot-sidecar",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-clawbot-sidecar.exe",
+    "expected_sha256": "0A822F8C8988346A0CF4972AAE42BCB4B14843084EDF6CBEA7DBF634EDFDA4F2",
+    "actual_sha256": "0A822F8C8988346A0CF4972AAE42BCB4B14843084EDF6CBEA7DBF634EDFDA4F2",
+    "match": true
+  },
+  {
+    "id": "cli.command-line",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-cli.exe",
+    "expected_sha256": "8ADA035CAF098E457865BF4CE76FEC8EB4EF7D56FA9F0D063DD44CF9E2B76207",
+    "actual_sha256": "8ADA035CAF098E457865BF4CE76FEC8EB4EF7D56FA9F0D063DD44CF9E2B76207",
+    "match": true
+  },
+  {
+    "id": "computer-use.preflight-check",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-computer-use-check.exe",
+    "expected_sha256": "F9EAB3E9FF68823854C1EBB8B978193D02547A5C0F417A696CD703D56C64C780",
+    "actual_sha256": "F9EAB3E9FF68823854C1EBB8B978193D02547A5C0F417A696CD703D56C64C780",
+    "match": true
+  },
+  {
+    "id": "vision.smoke",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-vision-smoke.exe",
+    "expected_sha256": "9D209A2CE4AF12AB96233D8A535081EC47014D546BBC2A1671F574FC1FF20E96",
+    "actual_sha256": "9D209A2CE4AF12AB96233D8A535081EC47014D546BBC2A1671F574FC1FF20E96",
+    "match": true
+  },
+  {
+    "id": "vision.latest-desktop",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-latest-desktop-vision.exe",
+    "expected_sha256": "8C6E09CC77A803F6486350A93089CA28164DD3DC16FB5DC9DB907435FFB33E03",
+    "actual_sha256": "8C6E09CC77A803F6486350A93089CA28164DD3DC16FB5DC9DB907435FFB33E03",
+    "match": true
+  },
+  {
+    "id": "gui-desktop.tauri-shell",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "expected_sha256": "D41190A92611DE4D5AA7EC24BCD0DDFF78C969BEB6BBEAD1BA56A80088F70426",
+    "actual_sha256": "D41190A92611DE4D5AA7EC24BCD0DDFF78C969BEB6BBEAD1BA56A80088F70426",
+    "match": true
+  },
+  {
+    "id": "gui-desktop.webview2-loader",
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\WebView2Loader.dll",
+    "expected_sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C",
+    "actual_sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C",
+    "match": true
+  },
+  {
+    "id": "package.app-launcher",
+    "path": "C:\\Program Files\\CoolzhuAgent\\COOLZHU-AGENT.exe",
+    "expected_sha256": "0A155ABDA53C94F257379858E22CDA4C1E56E58C751CF4A8FE0F1288C8830DF1",
+    "actual_sha256": "0A155ABDA53C94F257379858E22CDA4C1E56E58C751CF4A8FE0F1288C8830DF1",
+    "match": true
+  }
+]

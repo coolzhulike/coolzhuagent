@@ -1,0 +1,10 @@
+[
+  { "file": "wuxia-v3/bamboo-swordsman.png", "name": "竹林少侠", "theme_color": "#8fd3b1" },
+  { "file": "wuxia-v3/feather-guard.png", "name": "羽林女侠", "theme_color": "#c89178" },
+  { "file": "wuxia-v3/jade-strategist.png", "name": "青衣谋士", "theme_color": "#78ad89" },
+  { "file": "wuxia-v3/gold-commander.png", "name": "金甲指挥使", "theme_color": "#d7b35a" },
+  { "file": "wuxia-v3/ink-shadow.png", "name": "墨衣影卫", "theme_color": "#607e74" },
+  { "file": "wuxia-v3/wandering-physician.png", "name": "云游医师", "theme_color": "#91b19b" },
+  { "file": "wuxia-v3/mechanist.png", "name": "机关巧匠", "theme_color": "#af8954" },
+  { "file": "wuxia-v3/scripture-monk.png", "name": "藏经僧", "theme_color": "#c7a46a" }
+]

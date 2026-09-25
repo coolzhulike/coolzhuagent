@@ -1,0 +1,452 @@
+[
+  {
+    "type": "started",
+    "at_ms": 49,
+    "data": {
+      "turn_id": "chat-turn-1789828899438-0",
+      "run_id": "run-chat-2fdfc1ced835ec745dd430e9fed427fd8d0cde6f32c64e7d"
+    }
+  },
+  {
+    "type": "message",
+    "at_ms": 50,
+    "data": {
+      "id": "msg-1789828899438-user",
+      "author": "",
+      "role": "user",
+      "target": "qwen(qwen3.8-flash)",
+      "content": "请只根据附件图片回答：从左到右有哪些图形、各是什么颜色？图片下方的英文数字标记是什么？请完整抄写标记。不要调用工具，不要根据文件名猜测。",
+      "kind": "multimedia",
+      "attachments": [
+        {
+          "kind": "image",
+          "name": "visual-fixture.png",
+          "url": "/api/attachments/files/att-1789828899400-505a9bd9e51ddcf9-visual-fixture.png",
+          "mime_type": "image/png"
+        }
+      ]
+    }
+  },
+  {
+    "type": "message_start",
+    "at_ms": 2101,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "author": "qwen(qwen3.8-flash) 推理",
+      "role": "assistant",
+      "target": "推理卡片",
+      "content": "",
+      "kind": "reasoning",
+      "attachments": []
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2102,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "用户"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2265,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "要求只根据图片"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2266,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "回答，不调用"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2266,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "工具。我需要"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2266,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "观察图片内容。"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2373,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "\n\n从左到右"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2374,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "：红色三角形、"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2374,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "蓝色圆形、黄色"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2375,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "正方形。下方标记"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2474,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "为 JADE-"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2474,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "7382"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2549,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "。\n\n我需要完整"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2549,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "抄写标记，"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2549,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "确认字母和数字"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2550,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "：J-A-D"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2636,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "-E-连字符"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2636,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "-7-3"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2637,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "-8-2"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2637,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "。\n\n直接"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2719,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "给出最终答案，"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2720,
+    "data": {
+      "id": "msg-1789828899461-0-thinking",
+      "kind": "reasoning",
+      "delta": "无需工具调用。"
+    }
+  },
+  {
+    "type": "message_start",
+    "at_ms": 2720,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "author": "qwen(qwen3.8-flash)",
+      "role": "assistant",
+      "target": "聊天",
+      "content": "",
+      "kind": "assistant-reply",
+      "attachments": []
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2720,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "根据"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2721,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "图片内容回答"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2721,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "：\n\n**"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2868,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "从左到右的"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2869,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "图形及颜色：**"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2869,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "\n1. "
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2870,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "三角形 —— 红色"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2936,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "\n2. "
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2936,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "圆形 —— 蓝色"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2938,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "\n3."
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3035,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": " 正方形 —— "
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3036,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "黄色\n\n**"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3036,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "图片下方的英文数字"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3037,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "标记（"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3147,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "完整抄写）"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3147,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "：**\n`"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3365,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "JADE-7"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3366,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "382`"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 3490,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "kind": "assistant-reply",
+      "delta": "\n\n---\nContext usage: 0.2% (2331/1000000 input tokens; source=remote). Local estimate: 2180 tokens; local prompt budget: 2180/848976 tokens; history truncated: false.\nContext turn: 000000000000000118d6bfe6b12066a0; Context snapshot: ctx-ae78223150bff34c; history source: chat_room.messages; history loaded: 0; memory revision: mem-ea1b96e7f7c583f9"
+    }
+  },
+  {
+    "type": "message_done",
+    "at_ms": 3490,
+    "data": {
+      "id": "msg-1789828899461-0",
+      "author": "qwen(qwen3.8-flash)",
+      "role": "assistant",
+      "target": "聊天",
+      "content": "根据图片内容回答：\n\n**从左到右的图形及颜色：**\n1. 三角形 —— 红色\n2. 圆形 —— 蓝色\n3. 正方形 —— 黄色\n\n**图片下方的英文数字标记（完整抄写）：**\n`JADE-7382`\n\n---\nContext usage: 0.2% (2331/1000000 input tokens; source=remote). Local estimate: 2180 tokens; local prompt budget: 2180/848976 tokens; history truncated: false.\nContext turn: 000000000000000118d6bfe6b12066a0; Context snapshot: ctx-ae78223150bff34c; history source: chat_room.messages; history loaded: 0; memory revision: mem-ea1b96e7f7c583f9",
+      "kind": "assistant-reply",
+      "attachments": []
+    }
+  },
+  {
+    "type": "done",
+    "at_ms": 3491,
+    "data": {
+      "turn_id": "chat-turn-1789828899438-0",
+      "run_id": "run-chat-2fdfc1ced835ec745dd430e9fed427fd8d0cde6f32c64e7d",
+      "status": "completed",
+      "accepted_agent_ids": [
+        "session-1779459149988"
+      ],
+      "tasks": [
+        {
+          "id": "task-1789828899461-0",
+          "owner_agent": "qwen(qwen3.8-flash)",
+          "executor_agent": "qwen(qwen3.8-flash)",
+          "status": "模型已回",
+          "visible_in_chat": true,
+          "timeout_ms": 20000,
+          "summary": "会话 Agent 已按当前 Provider/Model 配置完成真实模型调用"
+        }
+      ]
+    }
+  }
+]

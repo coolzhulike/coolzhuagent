@@ -1,0 +1,60 @@
+﻿[package]
+name = "coolzhu-web-console"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "coolzhu-web-console"
+path = "src/main.rs"
+
+[[bin]]
+name = "coolzhu-browser-native-host"
+path = "src/bin/browser_native_host.rs"
+
+[dependencies]
+api.workspace = true
+axum = { version = "0.8", features = ["multipart", "ws"] }
+base64 = "0.22"
+computer-use.workspace = true
+diagnostics.workspace = true
+encoding_rs = "0.8"
+# IDE 工程窗口 · 符号索引（plan 阶段A）：正则提取符号 + once_cell 静态编译正则 + walkdir 遍历工作区。
+once_cell = "1"
+regex = "1"
+walkdir = "2"
+async-stream = "0.3"
+futures-core = "0.3"
+futures-util = "0.3"
+getrandom.workspace = true
+runtime.workspace = true
+rusqlite = { version = "0.32", features = ["bundled"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+serde = { version = "1", features = ["derive"] }
+serde_json.workspace = true
+toml = "0.8"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "process", "fs", "time", "sync"] }
+tokio-tungstenite = { version = "0.28", features = ["rustls-tls-webpki-roots"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+vision.workspace = true
+uia_resolver.workspace = true
+plugins.workspace = true
+tools.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-process-guard = { package = "coolzhu-windows-process-guard", path = "../windows-process-guard" }
+
+[dev-dependencies]
+http-body-util = "0.1"
+tempfile = "3"
+tower = { version = "0.5", features = ["util"] }
+
+# 仅测试目标开启 guard 的故障注入接缝（`revoke_owner_for_test`）。
+# 刻意放在 dev-dependencies：发布构建（cargo build / cargo tree --no-dev）不得出现该 feature。
+[target.'cfg(windows)'.dev-dependencies]
+windows-process-guard = { package = "coolzhu-windows-process-guard", path = "../windows-process-guard", features = ["test-support"] }
+
+[lints]
+workspace = true

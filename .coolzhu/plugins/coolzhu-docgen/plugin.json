@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-docgen",
+  "version": "0.1.0",
+  "description": "Markdown, HTML, JSON, YAML, and changelog document generation helpers",
+  "permissions": ["read", "write"],
+  "defaultEnabled": false
+}

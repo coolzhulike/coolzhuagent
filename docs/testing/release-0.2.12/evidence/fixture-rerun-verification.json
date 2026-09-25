@@ -1,0 +1,245 @@
+{
+  "started_at": "2026-09-19T13:48:18.9711540Z",
+  "fixture_directory": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\docs\\testing\\release-0.2.12",
+  "runtime_directory": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-release\\fixture-rerun",
+  "runtime_was_absent": true,
+  "ports": [
+    18785,
+    18786
+  ],
+  "installed_executable": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "phases": [
+    {
+      "name": "start-isolated",
+      "status": "PASS",
+      "readiness_checked": true
+    },
+    {
+      "name": "api-regression",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "name": "verify-recorded-evidence",
+      "status": "PASS",
+      "exit_code": 0
+    }
+  ],
+  "process_identity": [
+    {
+      "role": "server",
+      "pid": 17968,
+      "port": 18785,
+      "executable": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "command_line": "\"C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe\"",
+      "creation_date": "2026-09-19T13:48:20.1797010Z"
+    },
+    {
+      "role": "mock",
+      "pid": 26976,
+      "port": 18786,
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "command_line": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\zhupu\\Desktop\\coolzhuagent\\docs\\testing\\release-0.2.12\\mock-openai.cjs\"",
+      "creation_date": "2026-09-19T13:48:20.1941280Z"
+    }
+  ],
+  "cleanup": [
+    {
+      "role": "server",
+      "pid": 17968,
+      "status": "STOPPED_AFTER_IDENTITY_RECHECK"
+    },
+    {
+      "role": "mock",
+      "pid": 26976,
+      "status": "STOPPED_AFTER_IDENTITY_RECHECK"
+    }
+  ],
+  "safety": "仅使用本次全新隔离目录与 18785/18786；未连接或停止 18775/18776/8765；未修改产品代码。",
+  "installed_executable_sha256": "888A8B5FE55849A1C5C78CC0516D5C8F4DD722D492AE0DDF85DA4458A6FB0E36",
+  "node_version": "v24.15.0",
+  "fixture_hashes": [
+    {
+      "name": "api-regression.cjs",
+      "sha256": "4854D032EAF9322B8C88DE19ADD8441C0F5FD443A479B42149F5C0CD51F1460E"
+    },
+    {
+      "name": "mock-openai.cjs",
+      "sha256": "475FD4E67D3986A1CDA648712CF33D2787F3EADE5E56B6FE0169318A40DE34BF"
+    },
+    {
+      "name": "README.md",
+      "sha256": "658E2618C1DFB9F582AAA469B16080545352AAE1E3850B209CF4BA3D45FB0FC4"
+    },
+    {
+      "name": "start-isolated.ps1",
+      "sha256": "D0846A4676BE916FEA1F044F3187C605A5048ECDD02080F1B0717C9DC36AA235"
+    },
+    {
+      "name": "verify-recorded-evidence.cjs",
+      "sha256": "E5A362D9F08267DB0DA15AC65D8FA5DCA19FC1A019A2CA2D60B3C7A0F7C3B94C"
+    }
+  ],
+  "api": {
+    "context": {
+      "base": "http://127.0.0.1:18785",
+      "mock": "http://127.0.0.1:18786",
+      "root": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-release\\fixture-rerun",
+      "session": "session-1789825701431",
+      "room": "room-1789825701444",
+      "pseudo-ok": "room-1789825706507",
+      "pseudo-fail": "room-1789825709837",
+      "forbidden": "room-1789825714506"
+    },
+    "results": [
+      {
+        "name": "model-settings-save-and-roundtrip",
+        "status": "PASS",
+        "evidence": {
+          "session": "session-1789825701431",
+          "parameters": {
+            "base_url": "http://127.0.0.1:18786/v1",
+            "computer_use_enabled": false,
+            "context_window": 32768,
+            "enable_llm_tools": true,
+            "endpoint": "http://127.0.0.1:18786/v1/chat/completions",
+            "llm_tool_exposure": "all",
+            "max_output_tokens": 2048,
+            "protocol": "openai_chat_completions",
+            "reasoning_mode": "effort",
+            "temperature": 0.35,
+            "thinking_budget": null,
+            "tool_allowlist": [
+              "read_file"
+            ],
+            "top_p": 0.9
+          }
+        }
+      },
+      {
+        "name": "installed-embedded-styles-and-effective-permissions",
+        "status": "PASS",
+        "evidence": {
+          "static_root": "C:\\Program Files\\CoolzhuAgent\\modules\\gui-web\\packages\\web-console",
+          "permission_profile": "workspace-write",
+          "effective_permission_profile": "full-access"
+        }
+      },
+      {
+        "name": "stream-read-file-thought-before-answer-two-requests",
+        "status": "PASS",
+        "evidence": {
+          "calls": 2,
+          "usage": {
+            "requests": 2,
+            "input": 200,
+            "output": 40
+          },
+          "thinking_ms": 3,
+          "answer_ms": 2488,
+          "tool_result_events": 1
+        }
+      },
+      {
+        "name": "history-search-around-and-internal-result-filter",
+        "status": "PASS",
+        "evidence": {
+          "matches": 1,
+          "position": 2,
+          "visible_messages": 2
+        }
+      },
+      {
+        "name": "tools-disabled-does-not-expose-despite-dev-open",
+        "status": "PASS",
+        "evidence": {
+          "calls": 1,
+          "toolNames": [],
+          "dev_open_permissions": true
+        }
+      },
+      {
+        "name": "pseudo-ok-bounded-recovery-stream",
+        "status": "PASS",
+        "evidence": {
+          "calls": 2,
+          "original_retained": true,
+          "no_file_created": true,
+          "usage": {
+            "requests": 2,
+            "input": 200,
+            "output": 40
+          }
+        }
+      },
+      {
+        "name": "pseudo-fail-bounded-recovery-nonstream",
+        "status": "PASS",
+        "evidence": {
+          "calls": 2,
+          "original_retained": true,
+          "no_file_created": true,
+          "usage": {
+            "requests": 2,
+            "input": 200,
+            "output": 40
+          }
+        }
+      },
+      {
+        "name": "forbidden-bounded-recovery-stream",
+        "status": "PASS",
+        "evidence": {
+          "calls": 2,
+          "original_retained": true,
+          "no_file_created": true,
+          "usage": {
+            "requests": 2,
+            "input": 200,
+            "output": 40
+          }
+        }
+      }
+    ],
+    "pass": 8,
+    "fail": 0,
+    "not_tested": [
+      "真实本地模型",
+      "真实桌面操作",
+      "取消与断线故障注入",
+      "进程重启后持久性",
+      "页面显示由主任务浏览器验证"
+    ],
+    "services_kept_running": true
+  },
+  "fixture_self_contained": {
+    "pass": true,
+    "executed_from": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\docs\\testing\\release-0.2.12",
+    "fixture_files": [
+      "start-isolated.ps1",
+      "mock-openai.cjs",
+      "api-regression.cjs",
+      "verify-recorded-evidence.cjs"
+    ],
+    "requires": [
+      "Windows PowerShell",
+      "Node.js 内置 fetch",
+      "已安装 CoolzhuAgent 及外置 assets"
+    ],
+    "generated_fresh": [
+      "coolzhu.toml",
+      ".coolzhu",
+      "mock-note.txt",
+      "mock-key.txt",
+      "launch.json",
+      "SSE 与 JSON 验收证据"
+    ],
+    "preexisting_recorded_evidence_required": false,
+    "development_source_fallback_disabled": true,
+    "static_root": "C:\\Program Files\\CoolzhuAgent\\modules\\gui-web\\packages\\web-console",
+    "scope": "验证 docs 中交付脚本可独立运行；源码仓库仅提供夹具脚本，产品由安装 EXE 执行，静态目录固定为安装目录。"
+  },
+  "remaining_listeners": [],
+  "completed_at": "2026-09-19T13:48:37.5202260Z",
+  "pass": true
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goal Model Reasoning"
+  short_description: "Constrain scope budgets and completion claims"
+  default_prompt: "Apply model-reasoning constraints before executing a Goal phase."

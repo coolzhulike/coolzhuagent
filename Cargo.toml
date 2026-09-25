@@ -1,0 +1,80 @@
+[package]
+name = "coolzhu-agent-workspace"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[workspace]
+members = [
+    ".",
+    "modules/core-runtime/packages/core-runtime",
+    "modules/core-runtime/packages/agent-server",
+    "modules/core-runtime/packages/language-service",
+    "modules/llm-adapter/packages/llm-adapter",
+    "modules/tooling/packages/tool-registry",
+    "modules/tooling/packages/plugin-system",
+    "modules/tooling/packages/command-router",
+    "modules/tooling/packages/compatibility-harness",
+    "modules/vision/packages/vision-service",
+    "modules/vision/packages/uia-resolver",
+    "modules/computer-use/packages/computer-use-core",
+    "modules/gui-web/packages/web-console",
+    "modules/gui-web/packages/clawbot-sidecar",
+    "modules/gui-web/packages/windows-process-guard",
+    "modules/gui-desktop/packages/desktop-console",
+    "modules/cli/packages/command-line",
+    "modules/diagnostics/packages/diagnostics",
+    "packages/app-launcher",
+    ".coolzhu/plugins/coolzhu-tdd-runner",
+    ".coolzhu/plugins/coolzhu-git-workflow",
+    ".coolzhu/plugins/coolzhu-code-review",
+    ".coolzhu/plugins/coolzhu-orchestrator",
+    ".coolzhu/plugins/coolzhu-docgen",
+    ".coolzhu/plugins/coolzhu-db-tools",
+    ".coolzhu/plugins/coolzhu-debug-diag",
+    ".coolzhu/plugins/coolzhu-monitor",
+    ".coolzhu/plugins/coolzhu-marketplace",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+api = { package = "coolzhu-llm-adapter", path = "modules/llm-adapter/packages/llm-adapter" }
+commands = { package = "coolzhu-command-router", path = "modules/tooling/packages/command-router" }
+compat-harness = { package = "coolzhu-compatibility-harness", path = "modules/tooling/packages/compatibility-harness" }
+computer-use = { package = "coolzhu-computer-use-core", path = "modules/computer-use/packages/computer-use-core" }
+diagnostics = { package = "coolzhu-diagnostics", path = "modules/diagnostics/packages/diagnostics" }
+getrandom = "0.3"
+lsp = { package = "coolzhu-language-service", path = "modules/core-runtime/packages/language-service" }
+lsp-types = "0.97"
+plugins = { package = "coolzhu-plugin-system", path = "modules/tooling/packages/plugin-system" }
+runtime = { package = "coolzhu-core-runtime", path = "modules/core-runtime/packages/core-runtime" }
+serde_json = "1"
+server = { package = "coolzhu-agent-server", path = "modules/core-runtime/packages/agent-server" }
+tools = { package = "coolzhu-tool-registry", path = "modules/tooling/packages/tool-registry" }
+vision = { package = "coolzhu-vision-service", path = "modules/vision/packages/vision-service" }
+uia_resolver = { package = "coolzhu-uia-resolver", path = "modules/vision/packages/uia-resolver" }
+
+[dev-dependencies]
+computer-use.workspace = true
+plugins.workspace = true
+runtime.workspace = true
+serde_json.workspace = true
+server.workspace = true
+vision.workspace = true
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_panics_doc = "allow"
+missing_errors_doc = "allow"

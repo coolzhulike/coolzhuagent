@@ -1,0 +1,8 @@
+{
+  "session_id": "session-1779459149988",
+  "target_agent_ids": [
+    "session-1779459149988"
+  ],
+  "chat_room_id": "room-1789827818904",
+  "text": "这是基本会话连通性测试。请计算17乘以23，并在同一行写出结果和标记 QWEN_SESSION_OK。不需要工具，不要生成代码。"
+}

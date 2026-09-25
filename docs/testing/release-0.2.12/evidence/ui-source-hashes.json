@@ -1,0 +1,77 @@
+[
+  {
+    "RelativePath": "index.html",
+    "SHA256": "3059FF01069A77EBFB310682B2C3B6ACBF4EAC3B84E4EB9A8F76E786342D5D2E",
+    "Bytes": 122689
+  },
+  {
+    "RelativePath": "src/app.js",
+    "SHA256": "372880EE21FBC26C96CB99668B60D3BD5A2F3D6899F9C21171FF4BE991E28B43",
+    "Bytes": 765343
+  },
+  {
+    "RelativePath": "src/styles.css",
+    "SHA256": "65AF4F23206E321B1022A4B5F7425476A4F7554108FC3D281A5599E1BA969021",
+    "Bytes": 455926
+  },
+  {
+    "RelativePath": "src/chat_experience.js",
+    "SHA256": "B35B71BACA50A17C6D5D7DF2F5D6906359F7363C43F6C264AC51235B66FC4239",
+    "Bytes": 24393
+  },
+  {
+    "RelativePath": "src/chat_experience.css",
+    "SHA256": "EE10E49D6FA125F8DAA2572E441B5ED8FAAEBA963B602232B9AA315090154E53",
+    "Bytes": 8150
+  },
+  {
+    "RelativePath": "src/model_settings.js",
+    "SHA256": "ED5AC479BA2F8FAABE6F4655AC61ACE3D1CE0F78EEFB4391AF87869A2AA9F5B9",
+    "Bytes": 17463
+  },
+  {
+    "RelativePath": "src/model_settings.css",
+    "SHA256": "9C3336BD756D5B4C8A10A30071AA56EDC70728B8FDBBD5F38CDA86EB7C842A5D",
+    "Bytes": 7131
+  },
+  {
+    "RelativePath": "src/wuxia_layout.css",
+    "SHA256": "B45394AF22583B468DE15B801D29D8D6C69F9097D8B13B414520F66F6837339A",
+    "Bytes": 31591
+  },
+  {
+    "RelativePath": "src/realtime_voice_capture.js",
+    "SHA256": "79EE7CACC520DAA47C161A453EF90842273DFC14504A5B0BC34FE72F58D22B42",
+    "Bytes": 19343
+  },
+  {
+    "RelativePath": "src/realtime_audio_output.js",
+    "SHA256": "36A5D8DB5041183EF0D89FF382A3B1770AEACC69AC8219178A7992A5EA870629",
+    "Bytes": 7010
+  },
+  {
+    "RelativePath": "src/stt_tail_capture.js",
+    "SHA256": "60E1D84C3CF8FF2B5865CC71AC96518DD0FAC3400954524D1372DE74368A6A62",
+    "Bytes": 6711
+  },
+  {
+    "RelativePath": "tests/fixtures/computer-use-browser.html",
+    "SHA256": "6DB258239989EA26A6B475D65834D3CA9CD8C438E6D2AECFA0FE20D66BC26D88",
+    "Bytes": 3151
+  },
+  {
+    "RelativePath": "assets/bamboo-banner-wind.js",
+    "SHA256": "AF95D24D45BEDC043C4EA9DA8999A08E63E2EBBF1DC4AAD5EB48D4DD7B32F1C2",
+    "Bytes": 19747
+  },
+  {
+    "RelativePath": "assets/icons-wuxia/chat.svg",
+    "SHA256": "8727335C1AFDD5A667249CDA2CCCF91AF62200AB41CFE884DE11770158C62C09",
+    "Bytes": 253
+  },
+  {
+    "RelativePath": "assets/ui-redesign/chat-backgrounds/wuxia-bamboo-moonlit-chat-stage-v2.png",
+    "SHA256": "E80A43CA4E171947D9979C2DB7186FF963C47E27F6ED175C3B9AB789C80FBA27",
+    "Bytes": 2169366
+  }
+]

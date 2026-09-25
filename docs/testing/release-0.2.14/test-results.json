@@ -1,0 +1,50 @@
+{
+  "version": "0.2.14",
+  "source_commit": "e314500a34df0b39918371feb00fb65e7855874c",
+  "passed": 1175,
+  "failed": 0,
+  "ignored": 1,
+  "groups": [
+    {
+      "name": "web-console",
+      "passed": 988,
+      "ignored": 0
+    },
+    {
+      "name": "computer-use-core",
+      "passed": 42,
+      "ignored": 0
+    },
+    {
+      "name": "uia-resolver",
+      "passed": 5,
+      "ignored": 0
+    },
+    {
+      "name": "module-linkage",
+      "passed": 4,
+      "ignored": 0
+    },
+    {
+      "name": "llm-adapter",
+      "passed": 119,
+      "ignored": 1
+    },
+    {
+      "name": "frontend-tool-status",
+      "passed": 9,
+      "ignored": 0
+    },
+    {
+      "name": "public-audit-script",
+      "passed": 8,
+      "ignored": 0
+    }
+  ],
+  "additional_checks": [
+    "cargo check -p coolzhu-tool-registry --offline"
+  ],
+  "ignored_reason": "Anthropic live_stream_smoke_test requires its own credential",
+  "paint_end_to_end_passed": false,
+  "note": "自动化测试计数不包含真实Qwen任务；Paint实际目标仍未通过，详见各轮审计和报告。"
+}

@@ -1,0 +1,39 @@
+{
+  "label": "basic",
+  "room": "room-1789827818904",
+  "elapsed_ms": 3081,
+  "answer": "391 QWEN_SESSION_OK\n\n---\nContext usage: 0.1% (1063/1000000 input tokens; source=remote). Local estimate: 1080 tokens; local prompt budget: 1080/848976 tokens; history truncated: false.\nContext turn: 000000000000000118d6beeb1e168b60; Context snapshot: ctx-680a10434f0477bb; history source: chat_room.messages; history loaded: 0; memory revision: mem-382472eb669613f8",
+  "errors": [],
+  "failure": null,
+  "run": {
+    "run_id": "run-chat-1c51852b8c2cf72f8129a161edde6fa30365ffe7144363ae",
+    "kind": "chat_turn",
+    "workspace_id": "ws-19c397ce5cedaa94",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1789827818904",
+    "goal_id": null,
+    "phase_id": null,
+    "turn_id": "chat-turn-1789827818935-0",
+    "provider_turn_id": null,
+    "state": "completed",
+    "stop_reason": null,
+    "created_at": 1789827818938,
+    "started_at": 1789827818945,
+    "stop_requested_at": null,
+    "heartbeat_at": 1789827818945,
+    "finished_at": 1789827821988
+  },
+  "events": 27,
+  "tool_calls": 0,
+  "tool_results": 0,
+  "usage": [
+    {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 1063,
+      "output_tokens": 72,
+      "requests": 1,
+      "session_id": "session-1779459149988"
+    }
+  ]
+}

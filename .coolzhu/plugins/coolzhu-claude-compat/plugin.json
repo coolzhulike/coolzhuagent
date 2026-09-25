@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-claude-compat",
+  "version": "0.1.0",
+  "description": "Compatibility metadata for Claude Code style hooks, commands, skills, and MCPs",
+  "permissions": ["read", "write"],
+  "defaultEnabled": false
+}

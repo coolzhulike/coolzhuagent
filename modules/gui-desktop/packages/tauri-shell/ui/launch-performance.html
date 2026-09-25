@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>金锋刻字</title>
+    <link rel="stylesheet" href="./launch-performance.css">
+  </head>
+  <body>
+    <main id="launch-performance" aria-label="金锋刻字启动演出">
+      <canvas id="launch-performance-canvas" aria-hidden="true"></canvas>
+      <button id="launch-performance-skip" type="button" data-skip-launch aria-label="跳过启动演出">跳过</button>
+    </main>
+    <!-- 页面只加载七字 COOLZHU 播放器、manifest 与桥接；旧十一字模块不参与此入口。 -->
+    <script defer src="./seven-letter-startup-player.js"></script>
+    <script defer src="./coolzhu-seven-letter-manifest.js"></script>
+    <script defer src="./coolzhu-seven-letter-bridge.js"></script>
+  </body>
+</html>

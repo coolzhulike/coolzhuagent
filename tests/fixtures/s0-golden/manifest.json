@@ -1,0 +1,65 @@
+{
+  "schema_version": "coolzhu.s0-golden-fixture.v1",
+  "fixture_family": "s0-web-contract",
+  "data_classification": "synthetic-only",
+  "side_effect_policy": "recorded-only",
+  "scenarios": [
+    {
+      "id": "BASE-STREAM-TOOL-PAIR",
+      "entry_points": ["web-stream"],
+      "events": [
+        { "type": "assistant.tool_call", "call_id": "fixture-call-001", "name": "read_file" },
+        { "type": "tool.result", "call_id": "fixture-call-001", "status": "completed" },
+        { "type": "assistant.completed", "status": "completed" }
+      ],
+      "assertions": ["工具结果与请求按 call_id 配对", "不执行 fixture 之外的副作用"]
+    },
+    {
+      "id": "BASE-NONSTREAM-TOOL-PAIR",
+      "entry_points": ["web-nonstream"],
+      "events": [
+        { "type": "assistant.tool_call", "call_id": "fixture-call-002", "name": "list_directory" },
+        { "type": "tool.result", "call_id": "fixture-call-002", "status": "completed" },
+        { "type": "assistant.completed", "status": "completed" }
+      ],
+      "assertions": ["非流式路径保留工具配对", "不因回放写入文件"]
+    },
+    {
+      "id": "BASE-IMAGE-ROUTING",
+      "entry_points": ["web-stream", "web-nonstream"],
+      "events": [
+        { "type": "request.image_route", "route": "native-or-described" },
+        { "type": "assistant.completed", "status": "completed" }
+      ],
+      "assertions": ["图像路由来源可区分", "fixture 不含真实附件"]
+    },
+    {
+      "id": "BASE-EMPTY-SUMMARY",
+      "entry_points": ["web-stream"],
+      "events": [
+        { "type": "assistant.summary", "content": "" },
+        { "type": "assistant.completed", "status": "completed" }
+      ],
+      "assertions": ["空总结不被伪装为完成内容"]
+    },
+    {
+      "id": "BASE-CROSS-TURN-FILTER",
+      "entry_points": ["web-stream"],
+      "events": [
+        { "type": "history.filtered", "reason": "different-turn" },
+        { "type": "assistant.completed", "status": "completed" }
+      ],
+      "assertions": ["跨轮临时内容不进入当前轮上下文"]
+    },
+    {
+      "id": "BASE-LONG-FILE-TASK",
+      "entry_points": ["web-stream"],
+      "events": [
+        { "type": "tool.intent", "call_id": "fixture-call-003", "name": "write_file" },
+        { "type": "tool.result", "call_id": "fixture-call-003", "status": "recorded-only" },
+        { "type": "assistant.completed", "status": "completed" }
+      ],
+      "assertions": ["仅回放已录制结果", "不会创建 fixture 指定以外的文件"]
+    }
+  ]
+}

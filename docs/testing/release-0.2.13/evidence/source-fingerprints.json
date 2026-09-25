@@ -1,0 +1,30 @@
+[
+  {
+    "file": "modules/gui-web/packages/web-console/src/main.rs",
+    "sha256": "d172720004aa21f4e5bfa6823c24650b338b8b1846e1565d1bd3c0f21bbdedeb"
+  },
+  {
+    "file": "modules/gui-web/packages/web-console/src/multimodal_input.rs",
+    "sha256": "560fe5b9b604ac3a8f1837babba920829ea00569cf6e52e66edfaff85fd1bb1d"
+  },
+  {
+    "file": "modules/gui-web/packages/web-console/src/model_settings.js",
+    "sha256": "1360f7e1933ea7208e612039ab823a0ade20c07480036f9507c118b38fa9541e"
+  },
+  {
+    "file": "modules/llm-adapter/packages/llm-adapter/src/reasoning.rs",
+    "sha256": "39d51085c83fa7e10dd6fdc3c0f51b4b870a9d2755da530eefbde0456f42ca1b"
+  },
+  {
+    "file": "modules/llm-adapter/packages/llm-adapter/src/request_parameters.rs",
+    "sha256": "9cc27ce4e95e377f90bc318a8e50415dd206eef1ed282588d45b9f04fdda7cba"
+  },
+  {
+    "file": "modules/llm-adapter/packages/llm-adapter/src/providers/openai_compat.rs",
+    "sha256": "61079c392c98352da3d93117f5fd89a1deb73b5887a75179e53a5be339ae8b48"
+  },
+  {
+    "file": "modules/llm-adapter/packages/llm-adapter/src/providers/claw_provider.rs",
+    "sha256": "37aac78f1f38114c44d679f024abdfd404156567493c1cc2a2ec411c644e63ef"
+  }
+]

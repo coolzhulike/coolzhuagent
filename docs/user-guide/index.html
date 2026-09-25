@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="COOLZHU AGENT 0.2.0 使用说明、隐私边界与基本交互验收表">
+  <title>COOLZHU AGENT 0.2.0 · 使用说明与交互验收</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23091410'/%3E%3Cpath d='M18 18h28v8H27v12h19v8H18z' fill='%2377e6ad'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+
+  <header class="hero" id="top">
+    <div class="hero-copy">
+      <p class="eyebrow">COOLZHU AGENT · WINDOWS · 0.2.0</p>
+      <h1>从模型会话，到真实桌面执行</h1>
+      <p class="lead">本页既是上手说明，也是发布验收记录。测试结果按“通过、受限、待测”如实标记；页面不调用业务 API，也不会上传会话、文件或设备信息。</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#quick-start">开始使用</a>
+        <a class="button" href="#test-matrix">查看测试表</a>
+      </div>
+      <div class="hero-facts" aria-label="当前验收摘要">
+        <span><b>9 / 9</b>主窗口可打开</span>
+        <span><b>5 / 5</b>Browser Bridge 专项</span>
+        <span><b>788 / 788</b>web main 测试</span>
+        <span><b>776 / 776</b>候选制品隐私扫描</span>
+        <span><b>人工跳过</b>物理语音复测（不阻塞发布）</span>
+      </div>
+    </div>
+    <div class="loop-demo" aria-label="实时交互闭环示意动画">
+      <div class="loop-core"><span>COOLZHU</span><strong>AGENT</strong></div>
+      <div class="orbit orbit-a"><i>麦克风</i><i>STT</i><i>模型</i><i>TTS</i></div>
+      <div class="orbit orbit-b"><i>上下文</i><i>工具</i><i>审批</i><i>反馈</i></div>
+    </div>
+  </header>
+
+  <nav class="dock" aria-label="使用说明章节">
+    <a href="#quick-start">快速开始</a>
+    <a href="#windows">窗口</a>
+    <a href="#sessions">模型会话</a>
+    <a href="#tools">工具</a>
+    <a href="#computer-use">Computer Use</a>
+    <a href="#voice">实时语音</a>
+    <a href="#wechat">微信连接</a>
+    <a href="#install">安装与隐私</a>
+    <a href="#test-matrix">测试表</a>
+    <a href="#troubleshooting">排障</a>
+  </nav>
+
+  <main>
+    <section id="quick-start" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">01 · QUICK START</p>
+        <h2>安装后第一次启动</h2>
+        <p class="section-intro">先完成本地工作区和模型会话配置，再把工具权限交给聊天室。权限属于聊天室，不会因切换模型而绕过。</p>
+      </div>
+      <div class="step-grid">
+        <article class="step-card"><span>1</span><h3>启动软件</h3><p>从桌面或开始菜单打开 “COOLZHU CODE Agent”。启动器会拉起本地服务与 Tauri 控制台。</p></article>
+        <article class="step-card"><span>2</span><h3>选择项目</h3><p>在“项目”中确认工作区路径，等待文件和符号索引完成；后续相对路径都以活动工作区为根。</p></article>
+        <article class="step-card"><span>3</span><h3>配置会话</h3><p>在“设置”中配置 Provider，再创建或选择已有模型会话；可填写上下文容量与最大输出。</p></article>
+        <article class="step-card"><span>4</span><h3>选择聊天室</h3><p>在“聊天室”明确选择发送对象。历史、记忆、会话模型与工具结果均按聊天室组织。</p></article>
+        <article class="step-card"><span>5</span><h3>设置权限</h3><p>在聊天室设置普通、工具或 full-access 权限。高风险写入和输入事件仍可要求一次性审批。</p></article>
+        <article class="step-card"><span>6</span><h3>检查终态</h3><p>工具成功、失败、拒绝、超时或取消后，都应在原模型会话看到唯一终态与原因。</p></article>
+      </div>
+      <aside class="notice">
+        <strong>隐私边界</strong>
+        <span>发布安装包不得包含 web-sessions、SQLite 及 sidecar、<code>.env</code>、<code>coolzhu.toml</code>、微信凭据、二维码、密钥、日志备份或当前模型会话配置。当前 0.2.0 候选制品的暂存目录与行政解包结果均已通过扫描；重新生成制品后仍应核对对应扫描报告。</span>
+      </aside>
+    </section>
+
+    <section id="windows" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">02 · WINDOWS</p>
+        <h2>九个主窗口</h2>
+        <p class="section-intro">本轮已逐一打开九个入口，页面均能呈现且浏览器控制台没有 error/warning。下面是每个窗口的主任务与最短自检方法。</p>
+      </div>
+      <div class="window-grid">
+        <article>
+          <div class="card-head"><b>项目</b><span class="status pass">已打开</span></div>
+          <p>选择工作区、浏览文件树、查看项目级配置和索引状态。</p>
+          <small>自检：路径正确，文件数与符号数非零；本轮索引为 755 个文件、7731 个符号。</small>
+        </article>
+        <article>
+          <div class="card-head"><b>设置</b><span class="status pass">已打开</span></div>
+          <p>管理 Provider、模型会话、上下文限制、语音设备、工具和诊断。</p>
+          <small>自检：保存上下文限制后刷新可回读，清空覆盖后回到 Provider 默认值。</small>
+        </article>
+        <article>
+          <div class="card-head"><b>微信连接</b><span class="status pass">已打开</span></div>
+          <p>扫码登录、查看在线状态、认领操作管理员、绑定私聊和查看命令。</p>
+          <small>当前官方 iLink Provider 只承诺私聊；群聊入口不作为可用能力。</small>
+        </article>
+        <article>
+          <div class="card-head"><b>聊天室</b><span class="status pass">已打开</span></div>
+          <p>选择收件人、发送文字或附件、查看流式回答、工具卡片与审批。</p>
+          <small>自检：活动聊天室与会话明确，发送后增量输出只落入当前聊天室。</small>
+        </article>
+        <article>
+          <div class="card-head"><b>浏览器</b><span class="status pass">已打开</span></div>
+          <p>打开本地页或真实网页，查看 Browser Bridge 健康和运行 DOM 自测。</p>
+          <small>受浏览器保护的内部页不能直接操作；任务自有测试页应在结束后关闭。</small>
+        </article>
+        <article>
+          <div class="card-head"><b>终端</b><span class="status pass">已打开</span></div>
+          <p>创建命令会话，查看 UTF-8/GB18030 输出，停止进程并确认工作目录。</p>
+          <small>本轮 PowerShell 中文输出与活动工作区路径均已实测通过。</small>
+        </article>
+        <article>
+          <div class="card-head"><b>任务中心</b><span class="status pass">已打开</span></div>
+          <p>管理 Goal、阶段依赖、执行角色、暂停/继续、失败回退和审批。</p>
+          <small>自检：任务状态、阶段状态和产物相互一致；失败不能被显示成完成。</small>
+        </article>
+        <article>
+          <div class="card-head"><b>记忆</b><span class="status pass">已打开</span></div>
+          <p>查看 Beads，执行检索、固定、合并、巩固和关联图刷新。</p>
+          <small>自检：会话切换后只显示对应会话的记忆，固定内容不会被自动替换。</small>
+        </article>
+        <article>
+          <div class="card-head"><b>视觉实验室</b><span class="status pass">已打开</span></div>
+          <p>截图定位、视觉描述、实时感知、坐标校验和视觉 Agent 调试。</p>
+          <small>自检：屏幕与坐标系匹配；视觉定位必须在输入事件前再次校验。</small>
+        </article>
+      </div>
+      <aside class="notice compact">
+        <strong>验收边界</strong>
+        <span>“窗口可打开”只证明入口、布局和基础加载正常，不等于窗口内每个外部 Provider、物理设备和高风险动作都已通过；细项见下方测试表。</span>
+      </aside>
+    </section>
+
+    <section id="sessions" class="section split">
+      <div>
+        <div class="section-heading">
+          <p class="eyebrow">03 · CONTEXT</p>
+          <h2>模型会话与上下文</h2>
+        </div>
+        <ol class="instruction-list">
+          <li><strong>建立会话：</strong>选择 Provider、模型、推理强度、上下文容量和最大输出。微信侧只能选择已经配置好的会话。</li>
+          <li><strong>绑定聊天室：</strong>消息历史、记忆、成员信息和工具结果按聊天室组装；切换聊天室前先确认顶部活动对象。</li>
+          <li><strong>观察预算：</strong>界面显示上下文使用量；“Context usage / Remote context usage”属于技术统计，不进入下一轮正文，也不会被 TTS 朗读。</li>
+          <li><strong>处理长会话：</strong>达到阈值后压缩连续历史；最近用户消息不能被旧消息替代。压缩、超限和截断状态必须显式显示。</li>
+          <li><strong>恢复默认：</strong>把自定义 context/max-output 清空并保存，即回退 Provider 默认表，而不是保留旧覆盖。</li>
+        </ol>
+        <div class="evidence-box">
+          <span class="status pass">本轮通过</span>
+          <p>自定义限制 <code>999983 / 127983</code> 保存与刷新回读成功，随后已清除覆盖并恢复默认 <code>1000000 / 128000</code>；GLM5.2 第二轮准确召回标记 <code>CZCTX-20260728-1641-A7F3</code>，且 <code>history truncated=false</code>。</p>
+        </div>
+      </div>
+      <div class="context-meter" aria-label="上下文组成示意动画">
+        <div style="--size: 84%"><span>系统与角色</span></div>
+        <div style="--size: 70%"><span>聊天室历史</span></div>
+        <div style="--size: 52%"><span>记忆 Beads</span></div>
+        <div style="--size: 38%"><span>工具反馈</span></div>
+        <small>示意比例，不代表当前会话真实 token 占比。</small>
+      </div>
+    </section>
+
+    <section id="tools" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">04 · TOOLS</p>
+        <h2>工具调用的可靠闭环</h2>
+        <p class="section-intro">模型可以提出工具调用，但能否执行由当前聊天室权限、工具风险级别和审批状态共同决定。</p>
+      </div>
+      <div class="flow" role="img" aria-label="工具调用状态流程">
+        <span>模型识别意图</span><i>→</i><span>参数与路径归一化</span><i>→</i><span>聊天室权限预检</span><i>→</i><span>执行或审批</span><i>→</i><span>唯一终态回灌</span>
+      </div>
+      <div class="callouts">
+        <p><b>成功 completed：</b>结果、证据和实际作用域进入原模型回合。</p>
+        <p><b>失败 failed/blocked：</b>返回具体原因；相同失败由看护阻止递归调度。</p>
+        <p><b>审批 rejected/timed_out：</b>批准、拒绝、超时或取消均有终态，未批准时不得产生副作用。</p>
+        <p><b>轮数上限：</b>达到最大反馈轮后停止执行新工具，并让模型向用户说明。</p>
+      </div>
+      <div class="two-column-guide">
+        <article class="guide-card">
+          <h3>相对路径规则</h3>
+          <p>文件和 shell 工具的相对路径必须落在活动工作区，不得默认为启动器源码目录。执行前可在“项目”确认工作区，在“终端”执行 <code>(Get-Location).Path</code> 复核。</p>
+          <span class="status pass">已修复并实测</span>
+        </article>
+        <article class="guide-card">
+          <h3>审批规则</h3>
+          <p>关闭开发开放权限后，受保护写入应显示工具名、原因、目标路径和聊天室。点击“拒绝”后，待审批数归零、文件不存在且审计为 <code>rejected</code>。</p>
+          <span class="status pass">拒绝路径已实测</span>
+        </article>
+      </div>
+    </section>
+
+    <section id="computer-use" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">05 · COMPUTER USE</p>
+        <h2>桌面与浏览器操作</h2>
+        <p class="section-intro">Computer Use 是模型会话可调用的工具能力，不是无条件的遥控。每次调用都要返回成功或失败；失败时受重复失败看护和重试上限约束。</p>
+      </div>
+      <div class="capability-grid">
+        <article class="capability-card">
+          <div class="card-head"><h3>桌面 UIA / 输入</h3><span class="status pass">真实实测</span></div>
+          <ul class="instruction-list">
+            <li>观察当前窗口并确认目标应用。</li>
+            <li>执行点击、文本输入、滚动、组合键或拖动。</li>
+            <li>输入前检查聊天室 full-access 和审批；输入后用 UIA/视觉证据验证。</li>
+            <li>坐标变化、窗口遮挡或目标消失时立即停止，不盲点。</li>
+          </ul>
+          <p class="evidence-line">已在 Windows 记事本完成真实 UIA 定位与文本输入，成功结果已回灌模型会话。</p>
+        </article>
+        <article class="capability-card">
+          <div class="card-head"><h3>浏览器 DOM / Bridge</h3><span class="status pass">真实实测</span></div>
+          <ul class="instruction-list">
+            <li>先检查 Browser Bridge 显示 <code>connected=true</code>。</li>
+            <li>优先使用 DOM 语义点击、输入、选择和提交，必要时再走视觉坐标。</li>
+            <li>任务创建的标签页由任务关闭；不得关闭用户已有的非任务标签。</li>
+            <li>浏览器内部页、扩展页等受限页面只能跳转到任务自有测试页后操作。</li>
+          </ul>
+          <p class="evidence-line">已完成 Wikipedia 标题/输入与本地测试页滑块、拖动、Ctrl+A 的真实 DOM 操作。</p>
+        </article>
+      </div>
+      <div class="terminal-demo" aria-label="Computer Use 示例执行轨迹">
+        <div class="terminal-title"><i></i><i></i><i></i><span>执行轨迹</span></div>
+        <pre><code><em>01</em> observe  target="记事本 / 网页 DOM"
+<em>02</em> policy   room="测试环境" full_access=true
+<em>03</em> action   type_or_click
+<em>04</em> verify   expected_state=true
+<em>05</em> feedback status=completed</code></pre>
+      </div>
+      <aside class="notice compact">
+        <strong>专项已闭环</strong>
+        <span>Browser Bridge 五项真实自测均已通过：slider、drag、Ctrl+A、独立 Enter 与 tab_lifecycle。受限页兜底会改用任务自有测试页，并只关闭任务创建的标签。</span>
+      </aside>
+    </section>
+
+    <section id="voice" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">06 · REALTIME VOICE</p>
+        <h2>麦克风 → STT → 模型 → TTS → 扬声器</h2>
+        <p class="section-intro">当前默认本地链路是有保护的半双工模式。模型流式 probe、STT/TTS 状态探针和 TTS 生成已通过；物理麦克风闭环需要真人参与，本轮按验收范围明确跳过且不阻塞候选发布，状态仍保留为“待测”。</p>
+      </div>
+      <div class="voice-track">
+        <div><span>🎙</span><b>物理麦克风</b><small>设备选择</small></div>
+        <i></i><div><span>字</span><b>STT</b><small>转写</small></div>
+        <i></i><div><span>AI</span><b>模型流</b><small>增量输出</small></div>
+        <i></i><div><span>声</span><b>TTS</b><small>合成与队列</small></div>
+        <i></i><div><span>🔊</span><b>扬声器</b><small>实际播放</small></div>
+      </div>
+      <div class="mode-grid">
+        <article class="mode-card">
+          <div class="card-head"><h3>默认：half_duplex_guarded</h3><span class="status pass">可用基线</span></div>
+          <p>使用 MediaRecorder 分段采集、本地 STT、模型流式回复与 Piper TTS。一次只保留一个主要说话方向，避免扬声器声音再次进入麦克风造成回声递归。</p>
+        </article>
+        <article class="mode-card">
+          <div class="card-head"><h3>full streaming</h3><span class="status blocked">当前未就绪</span></div>
+          <p>只有下列四个生产能力门全部可用时才能进入 full streaming。默认本地环境缺少这些外部能力，系统应显示降级，而不是伪装成 full stream。</p>
+        </article>
+      </div>
+      <div class="gate-grid" aria-label="Full streaming 四项能力门">
+        <article><span>1</span><b>Provider 原生 partial ASR</b><small>当前：未配置</small></article>
+        <article><span>2</span><b>远端回声消除 AEC</b><small>当前：未配置</small></article>
+        <article><span>3</span><b>实时模型适配器</b><small>当前：未配置</small></article>
+        <article><span>4</span><b>流式 TTS 输出</b><small>当前：未配置上游 URL</small></article>
+      </div>
+      <div class="callouts">
+        <p><b>开始前：</b>在“设置 → 语音”选择输入和输出设备，确认 STT/TTS readiness；当前状态探针显示本地 STT/TTS 可用。</p>
+        <p><b>模型流：</b>GLM5.2 probe 返回 6 个事件、1 个 delta，无错误；该结果不等价于物理麦克风已经复测。</p>
+        <p><b>TTS 生成：</b>中文、英文语音生成均通过，短中文 <code>auto_play=true</code> 的自动播放触发已通过；这些证据仍不等价于真人确认扬声器实际听感。</p>
+        <p><b>停止后：</b>麦克风轨、AudioWorklet、WebSocket 和播放队列都应释放；拒绝权限或设备错误也必须回滚。</p>
+        <p><b>朗读规则：</b>“Context usage / Remote context usage”及之后的技术统计不朗读。</p>
+      </div>
+      <aside class="notice">
+        <strong>本轮人工验收跳过</strong>
+        <span>下列物理设备步骤用于后续人工验收，不计为本轮已通过。VOICE-04 与 VOICE-06 继续保持“待测”，不会用 readiness、合成音频或自动播放触发结果冒充真实麦克风、扬声器与资源复用闭环。</span>
+      </aside>
+      <ol class="physical-checklist">
+        <li>选择真实麦克风与扬声器，点击开始实时语音。</li>
+        <li>说出包含随机标记的完整句子，确认 STT 文本准确出现。</li>
+        <li>确认模型回复与该句相关，且增量输出没有重复。</li>
+        <li>听到 TTS 后确认技术统计未被朗读，再点击停止。</li>
+        <li>确认麦克风占用标记消失；重新开始一次，验证资源可复用。</li>
+      </ol>
+    </section>
+
+    <section id="wechat" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">07 · WECHAT CONNECTION</p>
+        <h2>微信私聊连接</h2>
+        <p class="section-intro">窗口名称为“微信连接”，机器人显示名为 “coolzhu robot”。当前官方 iLink Provider 仅支持私聊，不把群聊能力列为发布承诺。</p>
+      </div>
+      <div class="wechat-steps">
+        <article><span>1</span><h3>扫码登录</h3><p>二维码直接显示在“微信连接”窗口。扫码成功后状态应切换为 Online 并隐藏二维码；不要跳转外部二维码窗口。</p></article>
+        <article><span>2</span><h3>认领操作管理员</h3><p>在窗口内点击“认领管理员”。这里指 coolzhu robot 的操作管理员，不是微信群管理员；默认与已登录微信账号绑定。</p></article>
+        <article><span>3</span><h3>绑定路由</h3><p>先选择 coolzhu 聊天室，再从该聊天室已有模型会话中选择发送对象。模型名相同也必须按会话编号、ID 或唯一会话名选择。</p></article>
+        <article><span>4</span><h3>继承权限</h3><p>微信联系人能力与目标聊天室授权取交集；微信通道不能扩大 full-access、工具、文件或审批权限。</p></article>
+      </div>
+      <div class="role-grid" aria-label="微信私聊角色权限">
+        <article><b>聊天成员</b><p>可以私聊并接收模型回复、查询自身和连接状态；不能调用工具、读写文件或控制任务。</p></article>
+        <article><b>操作员</b><p>在聊天室授权范围内增加工具调用和文件读写；不能管理任务、解决审批或更改管理员绑定。</p></article>
+        <article><b>操作管理员</b><p>由登录账号在窗口内认领，可管理路由绑定、任务与审批。管理员身份不能越过聊天室本身的权限边界。</p></article>
+      </div>
+      <div class="command-section">
+        <div class="card-head">
+          <h3>私聊命令速查</h3>
+          <span class="status pass">核心命令已实测</span>
+        </div>
+        <p>在微信发送 <code>/help</code> 可查看当前版本完整目录与可用状态；<code>/commands</code> 是别名。标为“阶段未开放”的命令不会伪装成可用。</p>
+        <div class="command-grid">
+          <article>
+            <b>状态与诊断</b>
+            <code>/status [detail]</code>
+            <code>/ping</code>
+            <code>/whoami</code>
+            <code>/errors</code>
+            <code>/reconnect</code>
+          </article>
+          <article>
+            <b>聊天室与会话</b>
+            <code>/rooms [关键词]</code>
+            <code>/room &lt;编号或ID&gt;</code>
+            <code>/room current</code>
+            <code>/sessions</code>
+            <code>/use &lt;编号|会话ID|唯一会话名&gt;</code>
+          </article>
+          <article>
+            <b>模型与 Agent</b>
+            <code>/models [provider]</code>
+            <code>/model status</code>
+            <code>/targets</code>
+            <code>/target &lt;编号或ID&gt;</code>
+            <code>/target clear</code>
+          </article>
+          <article>
+            <b>工作区与任务</b>
+            <code>/workspace</code>
+            <code>/cwd</code>
+            <code>/tasks</code>
+            <code>/task &lt;ID&gt;</code>
+            <code>/continue &lt;ID&gt;</code>
+            <code>/stop [ID]</code>
+            <code>/queue status</code>
+          </article>
+          <article>
+            <b>文件</b>
+            <code>/file list [路径]</code>
+            <code>/file info &lt;路径&gt;</code>
+            <code>/file get &lt;路径&gt;</code>
+            <code>/file write &lt;路径&gt;</code>
+            <small><code>/file write</code> 的正文放在命令下一行；所有路径必须位于授权根内。</small>
+          </article>
+          <article>
+            <b>权限</b>
+            <code>/permissions</code>
+            <small>查看联系人能力与聊天室授权的交集。审批解决、附件写入、产物回传、日志和通知等命令仍按 <code>/help</code> 标注的阶段门执行。</small>
+          </article>
+        </div>
+        <aside class="notice compact">
+          <strong><code>/new</code> 说明</strong>
+          <span><code>/new</code> 仅为 <code>/use</code> 的兼容别名，不创建新会话。出现“会话不存在”时先重新发送 <code>/sessions</code>，再用最新编号或稳定会话 ID。</span>
+        </aside>
+      </div>
+    </section>
+
+    <section id="install" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">08 · INSTALL &amp; PRIVACY</p>
+        <h2>安装、数据与发布边界</h2>
+        <p class="section-intro">0.2.0 候选 MSI 已生成并完成行政解包、启动器自检和隔离数据目录下的 Web/Tauri 首启；暂存目录与行政解包目录均扫描 776 个文件、0 项发现。系统级安装、升级和卸载尚未执行，单独保留为待测。</p>
+      </div>
+      <div class="install-grid">
+        <article class="guide-card">
+          <h3>安装与启动</h3>
+          <ol>
+            <li>从 GitHub Release 下载对应版本的 <code>.msi</code>。</li>
+            <li>完成 Windows 安装后，从开始菜单或桌面快捷方式启动。</li>
+            <li>首次启动后自行配置 Provider、工作区、聊天室和微信登录。</li>
+            <li>若启动失败，先退出旧进程，再查看本地诊断日志与端口占用。</li>
+          </ol>
+          <span class="status pass">候选 MSI 已生成；行政解包与首启通过</span>
+        </article>
+        <article class="guide-card">
+          <h3>本地运行数据</h3>
+          <p>打包启动器把可变运行数据放在 <code>%LOCALAPPDATA%\CoolzhuAgent</code>，避免写回安装目录。升级与卸载前如需清理，请先备份自己的会话、工作区配置和产物。</p>
+          <p>卸载程序是否保留用户数据必须以最终安装实测结果为准。</p>
+        </article>
+        <article class="guide-card">
+          <h3>发布扫描必须排除</h3>
+          <ul>
+            <li>会话 JSON、SQLite、<code>-wal</code>、<code>-shm</code> 与数据库备份；</li>
+            <li><code>.env</code>、个人 <code>coolzhu.toml</code>、API key/token；</li>
+            <li>微信登录凭据、二维码、联系人私有标识和通道状态；</li>
+            <li>模型会话配置、运行日志、临时脚本、备份文件与编译缓存。</li>
+          </ul>
+          <span class="status pass">暂存与行政解包扫描通过：776 个文件，0 项发现</span>
+        </article>
+        <article class="guide-card">
+          <h3>系统级安装生命周期</h3>
+          <p>尚未在 Windows Installer 的系统安装态验证注册信息、开始菜单/桌面快捷方式、覆盖升级、卸载和用户数据保留策略。行政解包与隔离首启不能替代这些检查。</p>
+          <span class="status pending">本轮未实测，保留待人工验收</span>
+        </article>
+      </div>
+    </section>
+
+    <section id="test-matrix" class="section">
+      <div class="section-heading test-heading">
+        <div>
+          <p class="eyebrow">09 · ACCEPTANCE · 2026-07-29</p>
+          <h2>基本交互功能测试表</h2>
+          <p class="section-intro">“通过”只覆盖该行明确写出的场景。“受限”表示依赖尚未配置的外部能力；“待测”表示本轮尚无足够证据。按计划跳过的人工验收仍归“待测”，不计入通过数，也不阻塞本轮候选制品生成。</p>
+        </div>
+        <div class="filters" aria-label="测试结果筛选">
+          <button class="active" data-filter="all" aria-pressed="true">全部 <span data-filter-count="all"></span></button>
+          <button data-filter="pass" aria-pressed="false">通过 <span data-filter-count="pass"></span></button>
+          <button data-filter="blocked" aria-pressed="false">受限 <span data-filter-count="blocked"></span></button>
+          <button data-filter="pending" aria-pressed="false">待测 <span data-filter-count="pending"></span></button>
+        </div>
+      </div>
+      <p id="matrix-summary" class="matrix-summary" aria-live="polite"></p>
+      <div class="table-wrap">
+        <table>
+          <caption>COOLZHU AGENT 0.2.0 基本交互验收记录</caption>
+          <thead><tr><th>编号</th><th>模块</th><th>场景</th><th>验收标准</th><th>结果</th><th>证据 / 未完成原因</th></tr></thead>
+          <tbody id="test-rows">
+            <tr data-status="pass"><td>UI-01</td><td>全部窗口</td><td>九个标签逐一打开</td><td>入口可见、内容非空、活动态正确、控制台无错误</td><td><span class="status pass">通过</span></td><td>项目/设置/微信连接/聊天室/浏览器/终端/任务中心/记忆/视觉实验室均已打开；console error/warning=0。</td></tr>
+            <tr data-status="pending"><td>UI-02</td><td>前后端一致性</td><td>每个可操作控件逐项执行</td><td>入口、请求、状态文案和后端终态完全一致</td><td><span class="status pending">待最终回归</span></td><td>九窗基础加载通过；外部 Provider、物理设备及所有高风险按钮仍需随最终制品复测。</td></tr>
+            <tr data-status="pass"><td>IDX-01</td><td>项目</td><td>活动工作区索引</td><td>完成且文件/符号数非零</td><td><span class="status pass">通过</span></td><td>755 files、7731 symbols、246 ms。</td></tr>
+            <tr data-status="pass"><td>CTX-01</td><td>模型会话</td><td>保存、刷新、清除 token 覆盖</td><td>自定义值持久化，清除后恢复 Provider 默认</td><td><span class="status pass">通过</span></td><td>999983/127983 回读成功，随后恢复 1000000/128000，overridden=false。</td></tr>
+            <tr data-status="pass"><td>CTX-02</td><td>上下文</td><td>GLM5.2 两轮真实对话</td><td>第二轮准确召回第一轮随机标记且未错误截断</td><td><span class="status pass">通过</span></td><td>召回 CZCTX-20260728-1641-A7F3；history truncated=false。</td></tr>
+            <tr data-status="pending"><td>CTX-03</td><td>长上下文</td><td>逼近窗口上限并压缩</td><td>最近消息、system prompt、记忆和工具结果边界正确</td><td><span class="status pending">待专项压测</span></td><td>当前两轮回归不能替代极限容量测试。</td></tr>
+            <tr data-status="pass"><td>TOOL-01</td><td>Shell 工具</td><td>中文输出与工作目录</td><td>输出不乱码，cwd 为活动工作区</td><td><span class="status pass">通过</span></td><td>PowerShell “工具调用中文正常”；cwd=<code>%USERPROFILE%\coolzhuagent</code>。</td></tr>
+            <tr data-status="pass"><td>TOOL-02</td><td>文件工具</td><td>相对路径作用域</td><td>相对路径限定到活动工作区，不写入程序源码目录</td><td><span class="status pass">通过</span></td><td>运行时默认路径已修复；相对写入作用域测试通过。</td></tr>
+            <tr data-status="pass"><td>TOOL-03</td><td>审批</td><td>受保护写入并拒绝</td><td>拒绝后无副作用且写入唯一拒绝终态</td><td><span class="status pass">通过</span></td><td>pending=0、目标文件不存在、audit status=rejected。</td></tr>
+            <tr data-status="pending"><td>TOOL-04</td><td>工具终态</td><td>成功/失败/拒绝/超时/取消全矩阵</td><td>每次调用只回灌一个结构化终态</td><td><span class="status pending">待全矩阵回归</span></td><td>本轮有成功与拒绝证据；超时、取消及相同失败上限需最终制品复测。</td></tr>
+            <tr data-status="pass"><td>CU-01</td><td>桌面 UIA</td><td>真实记事本定位与输入</td><td>实际输入成功，结果回灌原模型会话</td><td><span class="status pass">通过</span></td><td>Windows 记事本 UIA 文本输入已在两个实际回合完成。</td></tr>
+            <tr data-status="pass"><td>CU-02</td><td>浏览器 DOM</td><td>真实网页与本地测试页</td><td>语义定位、输入、滑块/拖动/组合键成功</td><td><span class="status pass">通过</span></td><td>Wikipedia 标题/输入；本地页 slider、drag、Ctrl+A 均成功。</td></tr>
+            <tr data-status="pass"><td>CU-03</td><td>Browser Bridge</td><td>连接健康</td><td>bridge connected 且无需 setup</td><td><span class="status pass">通过</span></td><td>connected=true，setup_required=false。</td></tr>
+            <tr data-status="pass"><td>CU-04</td><td>Browser Bridge 专项</td><td>slider/drag/Ctrl+A/Enter/tab_lifecycle</td><td>五项真实动作、受限页兜底和任务标签清理全部闭环</td><td><span class="status pass">通过</span></td><td>五项自测均真实通过；任务自有测试页完成后关闭，非任务标签不关闭。</td></tr>
+            <tr data-status="pending"><td>CU-05</td><td>Computer Use 权限</td><td>无 full-access / 拒绝审批</td><td>输入事件为 0，原因只回灌一次</td><td><span class="status pending">待负向实测</span></td><td>通用文件审批拒绝已通过，但不能替代真实鼠标/键盘负向事件计数。</td></tr>
+            <tr data-status="pass"><td>VOICE-01</td><td>模型流</td><td>GLM5.2 流式 probe</td><td>收到增量事件且无错误</td><td><span class="status pass">通过</span></td><td>event_count=6、delta_count=1、first_delta_ms=3457、error=none。</td></tr>
+            <tr data-status="pass"><td>VOICE-02</td><td>本地音频能力</td><td>STT/TTS readiness</td><td>本地模型和语音监视状态可用</td><td><span class="status pass">通过（状态探针）</span></td><td>STT/TTS=true；base.pt 与 lessac ONNX 可发现。此项不代表物理闭环。</td></tr>
+            <tr data-status="pass"><td>VOICE-03</td><td>TTS</td><td>中文/英文生成与短中文自动播放</td><td>两种语言均生成有效音频，短中文返回并触发 auto_play</td><td><span class="status pass">通过</span></td><td>中文、英文 TTS 生成通过；短中文 auto_play=true。未以此代替真人扬声器听感。</td></tr>
+            <tr data-status="pending"><td>VOICE-04</td><td>真实语音</td><td>物理麦克风完整闭环</td><td>麦克风→STT→模型→TTS→扬声器并可再次启动</td><td><span class="status pending">本轮人工验收跳过</span></td><td>该项需要真人说话与听音；按本轮验收范围跳过，不标记为通过，也不阻塞候选制品生成。</td></tr>
+            <tr data-status="blocked"><td>VOICE-05</td><td>Full streaming</td><td>真正双向全流式</td><td>partial ASR、AEC、实时模型、流式 TTS 四门均可用</td><td><span class="status blocked">受限</span></td><td>默认环境四项生产能力未配置；当前正确模式为 half_duplex_guarded。</td></tr>
+            <tr data-status="pending"><td>VOICE-06</td><td>资源释放</td><td>停止/拒绝权限/设备错误</td><td>轨道、WebSocket、队列全部释放且可重启</td><td><span class="status pending">本轮人工验收跳过</span></td><td>需与 VOICE-04 在真实设备上一起确认；本轮不标记为通过，也不阻塞候选制品生成。</td></tr>
+            <tr data-status="pass"><td>WX-01</td><td>微信私聊</td><td>扫码、在线和路由核心命令</td><td>扫码后状态同步；可选择聊天室与已有会话</td><td><span class="status pass">通过</span></td><td>已真实扫码；/status、/rooms、/room、/sessions、/use 已收到正常回复。</td></tr>
+            <tr data-status="pass"><td>WX-02</td><td>微信文件</td><td>/file get Cargo.toml</td><td>微信收到真实文件附件</td><td><span class="status pass">通过</span></td><td>修复无回复问题后，已在微信成功收到文件。</td></tr>
+            <tr data-status="pending"><td>WX-03</td><td>微信命令全集</td><td>文件写入、任务、权限和异常恢复</td><td><code>/help</code> 所有“可用”命令逐项回归</td><td><span class="status pending">待最终批量回归</span></td><td>核心路由与文件读取有证据；最终安装制品仍需按 /help 批量复测其余命令。</td></tr>
+            <tr data-status="blocked"><td>WX-04</td><td>微信群聊</td><td>群成员、@机器人和群同步</td><td>Provider 提供真实群事件与成员 ID</td><td><span class="status blocked">当前不承诺</span></td><td>官方 iLink Provider 当前仅支持私聊；相关命令应在 /help 标注不可用。</td></tr>
+            <tr data-status="pass"><td>PKG-01</td><td>安装包</td><td>隐私安全扫描</td><td>不包含会话、密钥、数据库、备份或个人路径</td><td><span class="status pass">通过</span></td><td>候选制品暂存目录与 MSI 行政解包目录各扫描 776 个文件，safe=true，findings=0。</td></tr>
+            <tr data-status="pass"><td>PKG-02</td><td>安装态启动</td><td>行政解包、启动器自检、Web/Tauri 首启</td><td>解包内容可启动，健康检查正常，桌面主窗可见</td><td><span class="status pass">通过（限定场景）</span></td><td>MSI 行政解包成功；package-selfcheck ok=true；Web health HTTP 200；Tauri 主窗已真实显示。</td></tr>
+            <tr data-status="pending"><td>PKG-03</td><td>系统级安装</td><td>安装、升级、卸载与数据保留</td><td>注册信息和快捷方式正确，升级/卸载行为符合说明</td><td><span class="status pending">待系统级人工验收</span></td><td>尚未执行真实 Windows Installer 系统安装生命周期；行政解包与隔离首启不能替代此项。</td></tr>
+            <tr data-status="pass"><td>TEST-01</td><td>web-console</td><td>Rust 全量回归</td><td>main、lib 与 native host 测试全部通过且零失败</td><td><span class="status pass">通过</span></td><td>main 788/788、lib 8/8、native host 1/1。</td></tr>
+            <tr data-status="pass"><td>DOC-01</td><td>使用说明</td><td>本地静态页、导航、筛选与响应式</td><td>不请求远程资源、无控制台错误、键盘可操作</td><td><span class="status pass">通过</span></td><td>静态链接/结构检查与本地 HTTP 浏览器交互验证通过；Playwright 策略禁止自动导航到 file://。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="matrix-note">状态更新原则：只有获得当前代码或最终制品的实际证据后，才能把“待测/受限”改成“通过”。外部服务不可用时应记录依赖和错误，不使用模拟结果冒充真实闭环。</p>
+    </section>
+
+    <section id="troubleshooting" class="section troubleshoot">
+      <div class="section-heading">
+        <p class="eyebrow">10 · TROUBLESHOOTING</p>
+        <h2>常见问题</h2>
+      </div>
+      <details>
+        <summary>控制台页面空白、旧样式或按钮没有响应</summary>
+        <p>先在诊断中确认 web-console health。前端资源通过 <code>include_str!</code> 编译进可执行文件，修改 HTML/CSS/JS 后必须重新构建并重启；旧进程占用端口时先安全退出旧进程。浏览器控制台仍有错误时记录首个错误及请求状态码。</p>
+      </details>
+      <details>
+        <summary>会话上下文限制保存后没有生效</summary>
+        <p>确认编辑的是当前活动会话，并检查保存后的“有效值/默认值/是否覆盖”。清空两项再保存会恢复 Provider 默认。微信端会话目录变化后必须重新发 <code>/sessions</code>，再用编号或稳定 ID 选择。</p>
+      </details>
+      <details>
+        <summary>工具写到了错误目录或中文输出乱码</summary>
+        <p>先在“项目”确认活动工作区，再在终端执行 <code>(Get-Location).Path</code>。相对路径必须以活动工作区为根。中文 Windows 子进程输出应按 UTF-8 优先、失败后回退 GB18030；若仍乱码，保存原始命令和原始字节来源。</p>
+      </details>
+      <details>
+        <summary>工具一直等待审批或模型反复调用同一失败工具</summary>
+        <p>在任务/聊天室审批卡选择批准、拒绝或取消。每个终态都应回到原模型会话。重复失败看护会阻止相同请求继续调度；先修复权限、参数或外部依赖，再由用户主动发起新请求，不要通过模型递归自重试。</p>
+      </details>
+      <details>
+        <summary>Browser Bridge 已连接但自测提示 restricted_page</summary>
+        <p>浏览器内部页、扩展页和部分安全页禁止快照。使用普通网页或随任务打开的本地测试页；任务只能关闭自己创建的标签。受限页兜底后的五项专项自测已通过，最新证据见测试表 CU-04。</p>
+      </details>
+      <details>
+        <summary>Computer Use 显示不可用或动作没有发生</summary>
+        <p>确认工具目录中的 computer-use 分类、Browser Bridge/桌面适配器健康、当前聊天室 full-access 和审批状态。失败原因应同时显示在工具结果和模型反馈中；无权限时输入事件必须为 0。</p>
+      </details>
+      <details>
+        <summary>实时语音没有转写、没有声音或重复朗读</summary>
+        <p>检查所选麦克风/扬声器、STT/TTS readiness 和 Provider 配置。默认环境使用 <code>half_duplex_guarded</code>；full streaming 四门不齐时不要强制启动。重复朗读时检查增量去重；“Remote context usage”及之后内容不应进入 TTS。</p>
+      </details>
+      <details>
+        <summary>微信二维码刷新失败、扫码后仍显示二维码</summary>
+        <p>确认 sidecar 与 provider health、登录端口及旧进程状态。二维码应内联显示；扫码成功后页面应在轮询周期内切换为 Online 并隐藏二维码。若显示“无法连接”，先用 <code>/status detail</code> 或窗口诊断查看具体环节，再执行一次 <code>/reconnect</code>。</p>
+      </details>
+      <details>
+        <summary>微信消息无回复或提示“未找到绑定”</summary>
+        <p>依次发送 <code>/rooms</code>、<code>/room &lt;编号&gt;</code>、<code>/sessions</code>、<code>/use &lt;编号&gt;</code>。不要用模型名代替会话标识；<code>/new</code> 不创建会话。仍无回复时检查联系人权限、聊天室授权、inbox/outbox/dead-letter 状态和最近结构化错误。</p>
+      </details>
+      <details>
+        <summary>微信 /file get 没有返回附件</summary>
+        <p>路径必须位于授权根内，联系人需要文件读取权限，Provider 必须在线。先用 <code>/file info &lt;路径&gt;</code> 检查存在性与大小，再执行 <code>/file get</code>；失败后查看 <code>/errors</code>，不要连续发送相同请求触发重复失败看护。</p>
+      </details>
+      <details>
+        <summary>如何确认安装包没有带入个人配置</summary>
+        <p>以对应 MSI 的暂存目录和行政解包结果为准，扫描会话 JSON、SQLite 及 sidecar、<code>.env</code>、<code>coolzhu.toml</code>、key/token、微信凭据、二维码、日志、备份和个人绝对路径。当前候选制品两处均扫描 776 个文件、0 项发现；重新打包后必须核对新制品自己的扫描报告，不能沿用旧报告。</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      <b>COOLZHU AGENT 0.2.0</b>
+      <small>使用说明与验收状态 · 2026-07-29</small>
+    </div>
+    <a href="#top">返回顶部 ↑</a>
+  </footer>
+  <script src="./guide.js"></script>
+</body>
+</html>

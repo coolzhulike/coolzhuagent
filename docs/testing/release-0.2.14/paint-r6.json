@@ -1,0 +1,483 @@
+{
+  "format_version": 1,
+  "privacy": "public_allowlisted_summary",
+  "schema_version": 20,
+  "read_only": true,
+  "snapshot_consistency": "single SQLite read transaction including WAL",
+  "missing_schema_columns": {},
+  "notes": [
+    "step.started_at_ms 在 adapter.act 前持久化，completed_at_ms 在 act 返回时记录；它们含重新观察及后截图耗时，不是鼠标物理 down/up 精确时间。",
+    "visible_progress 与像素变化均不等同目标达成；以 terminal.goal_achieved 及验证状态共同判断。",
+    "usage 是服务端已返回的非零事实；失败请求可能已有用量，没有记录不表示请求免费或未发送。",
+    "没有 call/turn 的聊天用量单独归集，不推断归属某次 CU。",
+    "缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画；这里只报告记录的相对点。",
+    "不读取会话正文，不输出 thinking、原图 data_url、凭据；公开版身份为本报告内编号。"
+  ],
+  "runs": [
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "surface": "desktop",
+      "state": "failed",
+      "timing": {
+        "started_offset_ms": 0,
+        "completed_offset_ms": 60353,
+        "elapsed_ms": 60353
+      },
+      "stored_action_count": 0,
+      "stored_replan_count": 0,
+      "terminal": {
+        "present": true,
+        "status": "failed",
+        "goal_achieved": false,
+        "attempts": 3,
+        "steps_completed": 1,
+        "error_code": "stale_observation",
+        "evidence": [
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 173
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 173
+          },
+          {
+            "reference": "evidence-003",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-004",
+            "kind": "screenshot",
+            "sha256": "d1e284a07e190f6aeda50702ecf75a505671c6a5af2bf619372554ed3a4f48c6",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 173
+          },
+          {
+            "reference": "evidence-005",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-006",
+            "kind": "screenshot",
+            "sha256": "4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 173
+          },
+          {
+            "reference": "evidence-006",
+            "kind": "screenshot",
+            "sha256": "4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1",
+            "width": 2560,
+            "height": 1152
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "window-001",
+            "element_count": 173
+          },
+          {
+            "reference": "evidence-007",
+            "kind": "other_reference_or_semantic_text_redacted"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "index": 0,
+          "generation": 1,
+          "action_type": "click",
+          "status": "failed",
+          "error_code": "stale_observation",
+          "target_kind": "uia_element",
+          "target": "target-001",
+          "action": {
+            "valid_object": true,
+            "kind": "click",
+            "done": null,
+            "target_kind": "uia_element",
+            "redacted_fields": true,
+            "duration_ms": null
+          },
+          "timing": {
+            "started_offset_ms": 20075,
+            "completed_offset_ms": 21436,
+            "elapsed_ms": 1361
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 173
+            }
+          ],
+          "after_evidence": []
+        },
+        {
+          "index": 1,
+          "generation": 2,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "target_kind": "uia_element",
+          "target": "target-002",
+          "action": {
+            "valid_object": true,
+            "kind": "click",
+            "done": null,
+            "target_kind": "uia_element",
+            "redacted_fields": true,
+            "duration_ms": null
+          },
+          "timing": {
+            "started_offset_ms": 32235,
+            "completed_offset_ms": 34507,
+            "elapsed_ms": 2272
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-004",
+              "kind": "screenshot",
+              "sha256": "d1e284a07e190f6aeda50702ecf75a505671c6a5af2bf619372554ed3a4f48c6",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 173
+            }
+          ],
+          "after_evidence": [
+            {
+              "reference": "evidence-006",
+              "kind": "screenshot",
+              "sha256": "4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 173
+            },
+            {
+              "reference": "evidence-007",
+              "kind": "other_reference_or_semantic_text_redacted"
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "generation": 3,
+          "action_type": "drag",
+          "status": "failed",
+          "error_code": "stale_observation",
+          "target_kind": "window_canvas",
+          "target": "target-003",
+          "action": {
+            "valid_object": true,
+            "kind": "drag",
+            "done": null,
+            "target_kind": "window_canvas",
+            "redacted_fields": true,
+            "duration_ms": 800,
+            "point_count": 2,
+            "points_numeric": true,
+            "points_in_unit_square": true,
+            "points": [
+              [
+                0.31,
+                0.31
+              ],
+              [
+                0.59,
+                0.82
+              ]
+            ],
+            "relative_bounds": [
+              0.31,
+              0.31,
+              0.59,
+              0.82
+            ],
+            "closed_path": false
+          },
+          "timing": {
+            "started_offset_ms": 58618,
+            "completed_offset_ms": 60349,
+            "elapsed_ms": 1731
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-006",
+              "kind": "screenshot",
+              "sha256": "4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1",
+              "width": 2560,
+              "height": 1152
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "window-001",
+              "element_count": 173
+            }
+          ],
+          "after_evidence": []
+        }
+      ],
+      "recorded_step_count": 3,
+      "recorded_action_types": {
+        "click": 2,
+        "drag": 1
+      },
+      "audit_flags": []
+    }
+  ],
+  "planner_diagnostics": [
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 1,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 1997,
+        "completed_offset_ms": 9020,
+        "elapsed_ms": 7023
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 1,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "click",
+        "done": false,
+        "target_kind": "uia_element",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 9075,
+        "completed_offset_ms": 20072,
+        "elapsed_ms": 10997
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 2,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "click",
+        "done": false,
+        "target_kind": "uia_element",
+        "redacted_fields": false,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 22411,
+        "completed_offset_ms": 32231,
+        "elapsed_ms": 9820
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 3,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 36447,
+        "completed_offset_ms": 46371,
+        "elapsed_ms": 9924
+      }
+    },
+    {
+      "call": "call-001",
+      "session": "session-001",
+      "room": "room-001",
+      "turn": "turn-001",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 3,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "drag",
+        "done": false,
+        "target_kind": "window_canvas",
+        "redacted_fields": true,
+        "duration_ms": 800,
+        "point_count": 2,
+        "points_numeric": true,
+        "points_in_unit_square": true,
+        "points": [
+          [
+            0.31,
+            0.31
+          ],
+          [
+            0.59,
+            0.82
+          ]
+        ],
+        "relative_bounds": [
+          0.31,
+          0.31,
+          0.59,
+          0.82
+        ],
+        "closed_path": false
+      },
+      "timing": {
+        "started_offset_ms": 46516,
+        "completed_offset_ms": 58610,
+        "elapsed_ms": 12094
+      }
+    }
+  ],
+  "usage_groups": [
+    {
+      "scope": "chat_or_other_unattributed",
+      "request_kind": "unattributed",
+      "room": "room-001",
+      "turn": null,
+      "call": null,
+      "session": "session-001",
+      "recorded_requests": 1,
+      "input_tokens": 2246,
+      "output_tokens": 398,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "cu_linked",
+      "request_kind": "computer_use_verification",
+      "room": "room-001",
+      "turn": "turn-001",
+      "call": "call-001",
+      "session": "session-001",
+      "recorded_requests": 2,
+      "input_tokens": 34158,
+      "output_tokens": 664,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "cu_linked",
+      "request_kind": "computer_use_planning",
+      "room": "room-001",
+      "turn": "turn-001",
+      "call": "call-001",
+      "session": "session-001",
+      "recorded_requests": 3,
+      "input_tokens": 50101,
+      "output_tokens": 1672,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  ],
+  "summary": {
+    "run_count": 1,
+    "run_states": {
+      "failed": 1
+    },
+    "step_count": 3,
+    "diagnostic_count": 5,
+    "diagnostic_errors": {},
+    "usage_record_count": 6,
+    "usage_totals": {
+      "input_tokens": 86505,
+      "output_tokens": 2734,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "cu_usage_totals": {
+      "input_tokens": 84259,
+      "output_tokens": 2336,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  }
+}

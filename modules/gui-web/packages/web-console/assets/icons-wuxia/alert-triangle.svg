@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="alert">
+  <defs>
+    <linearGradient id="jade" x1="8" y1="8" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f7e8a8"/>
+      <stop offset="0.48" stop-color="#d7ae45"/>
+      <stop offset="1" stop-color="#8ee8a5"/>
+    </linearGradient>
+    <radialGradient id="glass" cx="35%" cy="22%" r="70%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="0.42" stop-color="#1d3a32" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#051113"/>
+    </radialGradient>
+  </defs>
+  <path d="M32 7 59 55H5L32 7Z" fill="url(#glass)" stroke="url(#jade)" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M32 15 51 50H13L32 15Z" fill="none" stroke="#8fe6a7" stroke-opacity="0.28" stroke-width="2"/>
+  <path d="M32 23v16" stroke="#ffe19a" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="32" cy="48" r="3.5" fill="#ffe19a"/>
+  <path d="M16 49h32" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2" stroke-linecap="round"/>
+</svg>

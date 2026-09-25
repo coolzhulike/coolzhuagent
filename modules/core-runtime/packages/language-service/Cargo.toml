@@ -1,0 +1,19 @@
+[package]
+name = "coolzhu-language-service"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+
+[lib]
+name = "lsp"
+[dependencies]
+lsp-types.workspace = true
+serde = { version = "1", features = ["derive"] }
+serde_json.workspace = true
+tokio = { version = "1", features = ["io-util", "macros", "process", "rt", "rt-multi-thread", "sync", "time"] }
+url = "2"
+
+[lints]
+workspace = true

@@ -1,0 +1,51 @@
+{
+  "date": "2026-09-19",
+  "scope": "新增会话多模态后端；合成本地HTTP测试，无真实凭证",
+  "logs": [
+    {
+      "source": "tmp/2026-09-19-qwen/test-multimodal.log",
+      "sha256": "a020e055029fa13c8908353c490e4915749f06348b40b5cebe640af604385c7d",
+      "results": [
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s",
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 944 filtered out; finished in 0.33s"
+      ],
+      "multimodal_tests": [
+        "test multimodal_input::tests::multimodal_attachment_paths_bytes_and_missing_images_fail_explicitly ... ok",
+        "test multimodal_input::tests::multimodal_context_budget_cannot_silently_remove_images_or_description ... ok",
+        "test multimodal_input::tests::multimodal_qwen_thinking_uses_auto_tools_without_changing_other_models ... ok",
+        "test multimodal_input::tests::multimodal_description_cannot_enable_tools_or_replace_original_ui_intent ... ok",
+        "test multimodal_input::tests::multimodal_tri_state_roundtrip_and_empty_description_rejection ... ok",
+        "test multimodal_input::tests::multimodal_routes_native_and_described_images_per_session_in_both_model_entries ... ok",
+        "test multimodal_input::tests::multimodal_missing_disabled_or_tool_only_vision_never_calls_text_target ... ok"
+      ]
+    },
+    {
+      "source": "tmp/2026-09-19-qwen/test-web-all.log",
+      "sha256": "de009cb23d44e3fc6f09fe087176688d471cf88ecf11230dafc071774be1b53b",
+      "results": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 951 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.24s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "multimodal_tests": [
+        "test multimodal_input::tests::multimodal_attachment_paths_bytes_and_missing_images_fail_explicitly ... ok",
+        "test multimodal_input::tests::multimodal_description_cannot_enable_tools_or_replace_original_ui_intent ... ok",
+        "test multimodal_input::tests::multimodal_context_budget_cannot_silently_remove_images_or_description ... ok",
+        "test multimodal_input::tests::multimodal_qwen_thinking_uses_auto_tools_without_changing_other_models ... ok",
+        "test multimodal_input::tests::multimodal_missing_disabled_or_tool_only_vision_never_calls_text_target ... ok",
+        "test multimodal_input::tests::multimodal_routes_native_and_described_images_per_session_in_both_model_entries ... ok",
+        "test multimodal_input::tests::multimodal_tri_state_roundtrip_and_empty_description_rejection ... ok"
+      ]
+    }
+  ],
+  "mock_assertions": [
+    "native: one target request preserves all supplied image URIs",
+    "fallback: default-vision then target-text; vision image=true/tools absent; target image=false",
+    "fallback: target contains SYNTHETIC-EVIDENCE and ORIGINAL-TASK",
+    "stream: two requests; second stream=true with actual description and no image",
+    "missing/disabled default vision: no model requests",
+    "tool-only vision: one vision request, no target request and no tool execution"
+  ]
+}

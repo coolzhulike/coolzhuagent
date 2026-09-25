@@ -1,0 +1,17 @@
+{
+  "attachment": {
+    "kind": "image",
+    "name": "visual-fixture.png",
+    "url": "/api/attachments/files/att-1789828899400-505a9bd9e51ddcf9-visual-fixture.png",
+    "mime_type": "image/png"
+  },
+  "preview": {
+    "kind": "image",
+    "display": "图片预览",
+    "playable": false,
+    "embeddable": true,
+    "mime_type": "image/png"
+  },
+  "file_name": "att-1789828899400-505a9bd9e51ddcf9-visual-fixture.png",
+  "bytes": 12267
+}

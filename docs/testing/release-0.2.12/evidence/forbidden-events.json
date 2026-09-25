@@ -1,0 +1,148 @@
+[
+  {
+    "type": "started",
+    "at_ms": 0,
+    "data": {
+      "turn_id": "chat-turn-1789825028578-3",
+      "run_id": "run-chat-034f8c7ece44994817980de1e7ecb27344947866638b417f"
+    }
+  },
+  {
+    "type": "message",
+    "at_ms": 0,
+    "data": {
+      "id": "msg-1789825028578-user",
+      "author": "",
+      "role": "user",
+      "target": "Release 0.2.12 隔离验收(mock-release-2026)",
+      "content": "请直接输出HTML [release-forbidden]；不要执行文件操作。",
+      "kind": "text",
+      "attachments": []
+    }
+  },
+  {
+    "type": "message_start",
+    "at_ms": 1,
+    "data": {
+      "id": "msg-1789825028596-0-thinking",
+      "author": "Release 0.2.12 隔离验收(mock-release-2026) 推理",
+      "role": "assistant",
+      "target": "推理卡片",
+      "content": "",
+      "kind": "reasoning",
+      "attachments": []
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 1,
+    "data": {
+      "id": "msg-1789825028596-0-thinking",
+      "kind": "reasoning",
+      "delta": "正在检查安装版隔离任务。"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 709,
+    "data": {
+      "id": "msg-1789825028596-0-thinking",
+      "kind": "reasoning",
+      "delta": "验证思考先于正文。"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 1415,
+    "data": {
+      "id": "msg-1789825028596-0-thinking",
+      "kind": "reasoning",
+      "delta": "即将输出最终结果。"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2128,
+    "data": {
+      "id": "msg-1789825028596-0-thinking",
+      "kind": "reasoning",
+      "delta": "模型请求工具：write_file {}\n"
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2128,
+    "data": {
+      "id": "msg-1789825028596-0-thinking",
+      "kind": "reasoning",
+      "delta": "{\"path\":\"C:\\\\Users\\\\zhupu\\\\Desktop\\\\coolzhuagent\\\\tmp\\\\2026-09-19-release\\\\acceptance\\\\must-not-be-created.html\",\"content\":\"must not execute\"}"
+    }
+  },
+  {
+    "type": "message_replace",
+    "at_ms": 2452,
+    "data": {
+      "id": "msg-1789825028596-0",
+      "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+      "role": "assistant",
+      "target": "聊天",
+      "content": "RELEASE_STREAM_OK：思考结束，现在显示最终回复。",
+      "kind": "assistant-reply",
+      "attachments": []
+    }
+  },
+  {
+    "type": "message_delta",
+    "at_ms": 2452,
+    "data": {
+      "id": "msg-1789825028596-0",
+      "kind": "assistant-reply",
+      "delta": "\n\n---\nContext usage: 0.3% (100/32768 input tokens; source=remote). Local estimate: 1206 tokens; local prompt budget: 1206/26829 tokens; history truncated: false.\nContext turn: 000000000000000d18d6bc616f9e3c80; Context snapshot: ctx-e71baf71472ad340; history source: chat_room.messages; history loaded: 0; memory revision: mem-5fb1e96c10a2a91c"
+    }
+  },
+  {
+    "type": "message_done",
+    "at_ms": 2452,
+    "data": {
+      "id": "msg-1789825028596-0",
+      "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+      "role": "assistant",
+      "target": "聊天",
+      "content": "RELEASE_STREAM_OK：思考结束，现在显示最终回复。\n\n---\nContext usage: 0.3% (100/32768 input tokens; source=remote). Local estimate: 1206 tokens; local prompt budget: 1206/26829 tokens; history truncated: false.\nContext turn: 000000000000000d18d6bc616f9e3c80; Context snapshot: ctx-e71baf71472ad340; history source: chat_room.messages; history loaded: 0; memory revision: mem-5fb1e96c10a2a91c",
+      "kind": "assistant-reply",
+      "attachments": []
+    }
+  },
+  {
+    "type": "done",
+    "at_ms": 2452,
+    "data": {
+      "turn_id": "chat-turn-1789825028578-3",
+      "run_id": "run-chat-034f8c7ece44994817980de1e7ecb27344947866638b417f",
+      "status": "completed",
+      "accepted_agent_ids": [
+        "session-1789825015524"
+      ],
+      "tasks": [
+        {
+          "id": "task-1789825028596-0",
+          "owner_agent": "Release 0.2.12 隔离验收(mock-release-2026)",
+          "executor_agent": "Release 0.2.12 隔离验收(mock-release-2026)",
+          "status": "模型已回",
+          "visible_in_chat": true,
+          "timeout_ms": 20000,
+          "summary": "模型返回未开放的工具调用，已拒绝执行并尝试无工具回答"
+        },
+        {
+          "id": "task-1789825028596-0-tool",
+          "owner_agent": "Release 0.2.12 隔离验收(mock-release-2026)",
+          "executor_agent": "系统工具执行 Agent",
+          "status": "已触发 computer-use 工具侧路",
+          "visible_in_chat": true,
+          "timeout_ms": 15000,
+          "summary": "@Release 0.2.12 隔离验收 请求键鼠/CLI 工具执行"
+        }
+      ]
+    }
+  }
+]

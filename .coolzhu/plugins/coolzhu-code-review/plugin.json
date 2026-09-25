@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-code-review",
+  "version": "0.1.0",
+  "description": "Automated security, performance, correctness, and maintainability review helpers",
+  "permissions": ["read"],
+  "defaultEnabled": false
+}

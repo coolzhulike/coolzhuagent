@@ -1,0 +1,26 @@
+{
+  "model": "qwen3.8-flash",
+  "base_url": "https://dashscope.aliyuncs.com/compatible-mode",
+  "base_url_unchanged": true,
+  "credential_unchanged": true,
+  "credential_present": true,
+  "parameters": {
+    "base_url": null,
+    "computer_use_enabled": null,
+    "context_window": 1000000,
+    "enable_llm_tools": null,
+    "endpoint": "v1/chat/completions",
+    "llm_tool_exposure": null,
+    "max_output_tokens": 32768,
+    "protocol": "openai_chat_completions",
+    "reasoning_mode": "effort",
+    "supports_multimodal": true,
+    "temperature": null,
+    "thinking_budget": null,
+    "tool_allowlist": null,
+    "top_p": null
+  },
+  "effective_supports_multimodal": true,
+  "image_input_strategy": "native",
+  "reasoning_effort": "medium"
+}

@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "columns": 4,
+  "rows": 4,
+  "cell_width": 320,
+  "cell_height": 320,
+  "runtime_icon_size": "16-24px",
+  "source": "ImageGen built-in, 2026-08-24",
+  "cells": [
+    {
+      "name": "panel-left-open",
+      "file": "control-icons/panel-left-open-v1.png",
+      "row": 0,
+      "column": 0,
+      "atlas_x": 0,
+      "atlas_y": 0
+    },
+    {
+      "name": "panel-left-close",
+      "file": "control-icons/panel-left-close-v1.png",
+      "row": 0,
+      "column": 1,
+      "atlas_x": 320,
+      "atlas_y": 0
+    },
+    {
+      "name": "panel-right-open",
+      "file": "control-icons/panel-right-open-v1.png",
+      "row": 0,
+      "column": 2,
+      "atlas_x": 640,
+      "atlas_y": 0
+    },
+    {
+      "name": "panel-right-close",
+      "file": "control-icons/panel-right-close-v1.png",
+      "row": 0,
+      "column": 3,
+      "atlas_x": 960,
+      "atlas_y": 0
+    },
+    {
+      "name": "queue",
+      "file": "control-icons/queue-v1.png",
+      "row": 1,
+      "column": 0,
+      "atlas_x": 0,
+      "atlas_y": 320
+    },
+    {
+      "name": "steer-now",
+      "file": "control-icons/steer-now-v1.png",
+      "row": 1,
+      "column": 1,
+      "atlas_x": 320,
+      "atlas_y": 320
+    },
+    {
+      "name": "pause",
+      "file": "control-icons/pause-v1.png",
+      "row": 1,
+      "column": 2,
+      "atlas_x": 640,
+      "atlas_y": 320
+    },
+    {
+      "name": "resume",
+      "file": "control-icons/resume-v1.png",
+      "row": 1,
+      "column": 3,
+      "atlas_x": 960,
+      "atlas_y": 320
+    },
+    {
+      "name": "checkpoint",
+      "file": "control-icons/checkpoint-v1.png",
+      "row": 2,
+      "column": 0,
+      "atlas_x": 0,
+      "atlas_y": 640
+    },
+    {
+      "name": "restore-code",
+      "file": "control-icons/restore-code-v1.png",
+      "row": 2,
+      "column": 1,
+      "atlas_x": 320,
+      "atlas_y": 640
+    },
+    {
+      "name": "restore-chat",
+      "file": "control-icons/restore-chat-v1.png",
+      "row": 2,
+      "column": 2,
+      "atlas_x": 640,
+      "atlas_y": 640
+    },
+    {
+      "name": "restore-both",
+      "file": "control-icons/restore-both-v1.png",
+      "row": 2,
+      "column": 3,
+      "atlas_x": 960,
+      "atlas_y": 640
+    },
+    {
+      "name": "approve-once",
+      "file": "control-icons/approve-once-v1.png",
+      "row": 3,
+      "column": 0,
+      "atlas_x": 0,
+      "atlas_y": 960
+    },
+    {
+      "name": "approve-rule",
+      "file": "control-icons/approve-rule-v1.png",
+      "row": 3,
+      "column": 1,
+      "atlas_x": 320,
+      "atlas_y": 960
+    },
+    {
+      "name": "reject-feedback",
+      "file": "control-icons/reject-feedback-v1.png",
+      "row": 3,
+      "column": 2,
+      "atlas_x": 640,
+      "atlas_y": 960
+    },
+    {
+      "name": "focus-layout",
+      "file": "control-icons/focus-layout-v1.png",
+      "row": 3,
+      "column": 3,
+      "atlas_x": 960,
+      "atlas_y": 960
+    }
+  ]
+}

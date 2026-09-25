@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-db-tools",
+  "version": "0.1.0",
+  "description": "SQL parsing, migration management, and ER diagram helper utilities",
+  "permissions": ["read", "write"],
+  "defaultEnabled": false
+}

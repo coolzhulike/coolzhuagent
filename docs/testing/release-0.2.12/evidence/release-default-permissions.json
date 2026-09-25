@@ -1,0 +1,39 @@
+{
+  "checked_at": "2026-09-19T13:50:34.6167274Z",
+  "exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "exe_sha256": "888A8B5FE55849A1C5C78CC0516D5C8F4DD722D492AE0DDF85DA4458A6FB0E36",
+  "static_root": "C:\\Program Files\\CoolzhuAgent\\modules\\gui-web\\packages\\web-console",
+  "runtime_directory": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-release\\release-default",
+  "port": 18777,
+  "config_has_explicit_dev_open_permissions": false,
+  "model_calls_enabled": false,
+  "chat_requests_sent": 0,
+  "passed": true,
+  "stopped_own_process": true,
+  "config_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-release\\release-default\\coolzhu.toml",
+  "config_sha256_before": "F8097B3E3AEB52FE32F3B1EE527E25D56A438887FCF16C439D3D62A3E4C2ADF1",
+  "created_pid": 10092,
+  "permission_url": "http://127.0.0.1:18777/api/chat/rooms/main-room/permissions",
+  "permission_response": {
+    "room_id": "main-room",
+    "room_name": "主聊天室",
+    "permission_profile": "workspace-write",
+    "full_access": false,
+    "dev_open_permissions": false,
+    "effective_permission_profile": "workspace-write",
+    "effective_full_access": false,
+    "warning": "该权限完全允许操作用户电脑文件，有一定风险",
+    "updated_at": null
+  },
+  "checks": {
+    "release_default_is_false": true,
+    "effective_profile_matches_saved_profile": true,
+    "effective_full_access_matches_saved_value": true,
+    "fresh_room_is_not_full_access": true,
+    "explicit_installed_static_root": true,
+    "own_pid_owns_port": true,
+    "config_unchanged": true
+  },
+  "config_sha256_after": "F8097B3E3AEB52FE32F3B1EE527E25D56A438887FCF16C439D3D62A3E4C2ADF1",
+  "test_port_is_free_after_cleanup": true
+}

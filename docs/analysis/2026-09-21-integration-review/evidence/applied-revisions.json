@@ -1,0 +1,236 @@
+[
+  {
+    "file": "01-coolzhu-dsh-架构差异与整合决策.md",
+    "before_sha256": "4e2bb7748dbcfb9e99d74cf0fbfa19a8b0bbad79ed9b1776ba853c2feb4939e3",
+    "after_sha256": "3be52b769d144e6d5edcc10e7eb92c8ae099595b865cb7e8b0d3c9d37d4ca51d",
+    "edits": [
+      {
+        "old": "| D3.5 | 崩溃恢复 | 无（SQLite 事务）；runtime_runs 有 lease | 合成 TOOL_NOT_STARTED / TOOL_OUTCOME_UNKNOWN + 不变量断言 | B 侧显式建模了\"工具执行中崩溃\" |",
+        "new": "| D3.5 | 崩溃恢复 | 已有启动恢复：遗留 run 收敛 orphaned，匹配 Goal claim/状态/事件在同一事务更新（`main.rs:796,41804-41824`）；未见与 B 等价的完整工具副作用重建协议 | 合成 TOOL_NOT_STARTED / TOOL_OUTCOME_UNKNOWN + 不变量断言 | 需补齐工具结果不确定性与防重执行，不应把 A 写成无恢复 |",
+        "reason": "AR-01：代码已有幂等启动恢复，SQLite事务不是全部恢复机制。"
+      },
+      {
+        "old": "- 参数：`temperature`/`top_p`/`thinking_budget` 在 `RequestParameters`（`request_parameters.rs:6-12`），`validate_for_model`（`:17`）+ `apply(&mut Value)`（`:41`）写 wire payload；**`max_tokens` 不在这里**——来自 `max_tokens_for_model()` 静态表 + `MODEL_TOKEN_LIMITS`。",
+        "new": "- 参数：`RequestParameters` 包含 `temperature`/`top_p`/`reasoning_mode`/`thinking_budget`（`request_parameters.rs:6-12`）；`reasoning_effort` 在请求对象另传，Qwen3.8原生编码有校验。`max_tokens` 不在该结构，但并非只能走静态表：web 会话 `SessionModelLimitOverride` 已含 `context_window/max_output_tokens`、协议/Endpoint、图片与工具策略（`main.rs:5154-5183`），`effective_model_limit_for` 优先显式会话覆盖再回退目录（`:27719-27733`）。",
+        "reason": "AR-02：补0.2.14已发布参数架构，避免重复建设统一配置页。"
+      },
+      {
+        "old": "- API key：一律从 env 读（`api_key_env` 常量表 `providers/openai_compat.rs:36,83-163`；`read_first_env_non_empty` `:248`）；`resolve_api_key_ref` 支持内联字面值或从文件读（`main.rs:29913-29941`）；`looks_like_secret` 只用前缀/长度启发式（`:29944-29951`）。",
+        "new": "- API key：适配器的默认入口可读取环境变量；web 产品会话还支持 `api_key_ref` 的内联字面值与文件引用（`main.rs:29913-29941`），统一参数页可保存且空输入默认保留旧密钥（`model_settings.js:186`）。不能概括为全部从 env 读取；`looks_like_secret` 仍是前缀/长度启发式。",
+        "reason": "AR-03：区分适配器默认配置与实际web会话凭据路径。"
+      },
+      {
+        "old": "| D8.1 | 存储 | 无库；API key 全从 env；OAuth 明文 JSON | `.credentials.yaml`，只存引用，值由 provider 持 | A 侧 OAuth 明文是风险点 |",
+        "new": "| D8.1 | 存储 | API key 可来自适配器环境、会话字面值或文件引用；OAuth 明文 JSON | `.credentials.yaml` 实际存 refs 对应值和 tagged records；继承环境 > 托管凭据文件 > 调用目录.env > home.env（`credentials-local/src/index.ts:2-24,443-463`） | 两侧均需明确凭据来源、写入、脱敏与迁移，B并非只保存无密钥引用 |",
+        "reason": "AR-03/04：补B真实存储值及完整优先级，不作加密假设。"
+      },
+      {
+        "old": "- 跨进程租约：POSIX `flock(2)` on `session.lock`（inode 校验 + 重试）；**Windows 无 lock 文件**（`src/lease.ts:39,40`）；浏览器 worker 环境 stub 掉原生 flock（`:25`）。",
+        "new": "- 跨进程租约：POSIX 在 `session.lock` 上 `flock(2)`（inode校验+重试）；Windows 不创建 lock 文件，而持有由该路径派生的命名内核信号量（`session-persistence-jsonl/src/lease.ts:1-12,36,78-85`，`win32.ts:151-160`）。因此“无lock文件”不等于“无跨进程租约”。浏览器worker使用单进程替代路径，仍需各平台实测。",
+        "reason": "AR-05：原文将文件布局事实误推为Windows无互斥。"
+      },
+      {
+        "old": "| D10.6 | 并发写 | SQLite 锁 | 跨进程 flock（Windows 无）+ 单写者契约 | — |",
+        "new": "| D10.6 | 并发写 | SQLite 锁 | POSIX flock / Windows 命名内核信号量 + 单写者契约 | 两侧都有写者互斥实现，需分别验证进程崩溃与竞争场景 |",
+        "reason": "AR-05：同步修正差异表。"
+      },
+      {
+        "old": "| Windows 无 session lock 文件 | 跨进程租约在 Windows 缺失 | `session-persistence-jsonl/src/lease.ts:39,40` |",
+        "new": "| Windows session 写者互斥 | 有实现；无 lock 文件，改用命名内核信号量；本次未运行跨进程竞争测试 | `session-persistence-jsonl/src/lease.ts:1-12,78-85`、`win32.ts:151-160` |",
+        "reason": "AR-05：删除汇总表中的虚假缺口，保留未实测限定。"
+      },
+      {
+        "old": "| D9.5 | 保护路径 | **Protected 规则优先于 profile**（`:254-268`） | 无对应物（靠 sandbox `writableRoots`） | A 侧有、B 侧无 |",
+        "new": "| D9.5 | 保护路径 | FullAccess先短路；Protected规则仅优先于普通workspace自动放行（`permission_gate.rs:241-268`） | 无同构Protected规则（依靠sandbox writableRoots等执行边界） | 若改变FullAccess与Protected的关系，必须作为显式行为变更 |",
+        "reason": "AR-06：与实际判定顺序一致，避免权限映射倒置。"
+      },
+      {
+        "old": "| D16.3 | 工具命名 | `mcp_tool_name(server, tool)` | `mcp__<server>__<tool>` | 命名规则不同 |",
+        "new": "| D16.3 | 工具命名 | `mcp_tool_name()` 实际生成 `mcp__<server>__<tool>`，先规范化名称（`mcp.rs:26-35`） | `mcp__<server>__<rawName>`，serverName受格式限制 | 前缀格式相同，需核对规范化、长度、碰撞与兼容alias |",
+        "reason": "AR-09：函数名与生成值不能当成两种协议。"
+      },
+      {
+        "old": "- 工具命名规则取哪个（`mcp__<server>__<tool>` vs `mcp_tool_name(server, tool)`）",
+        "new": "- 工具命名前缀两侧都是 `mcp__<server>__<tool>`；需决策的是 server/tool 名规范化、长度与碰撞处理，以及旧会话工具名兼容映射，不能仅比较 A 的函数名与 B 的输出字符串。",
+        "reason": "AR-09：同步修正决策10的假二选一。"
+      },
+      {
+        "old": "| D19.11 | DPI/多显示器 | 不处理，截图仅主屏 | — | A 侧缺口 |",
+        "new": "| D19.11 | DPI/多显示器 | 已有线程PMv2物理坐标观察与恢复，0.2.14修复150%缩放错配；正式桌面桥按绑定窗口取原图；旧主屏截图入口另列，多屏拓扑/跨屏移动需专项验证 | 取决于选用provider，不能由注册服务推断 | 分开验收DPI、图像缩放、窗口移动与多屏，不能笼统写不处理 |",
+        "reason": "AR-10：保留已修DPI事实，不扩大为已解决所有多屏问题。"
+      },
+      {
+        "old": "- **无 MSI / 无安装包 / 无 WiX**。",
+        "new": "- 未见采用 MSI/WiX；**已有 Electron 安装包工程**：Windows NSIS、macOS dmg/zip，并有打包与安装器测试脚本（`apps/desktop/package.json:10,22-34`、`scripts/electron-builder-config.mjs:130,184,190`）。本次未重新构建或安装这些DSH制品，代码存在不等于本机发布验证通过。",
+        "reason": "AR-12：本地源码反驳无安装包，保留实测边界。"
+      },
+      {
+        "old": "- 布局：三栏 —— 工作台 = 54px 快捷轨 + 舞台（`wuxia_layout.css:83`）；聊天窗左中右栏 + 2 个 resizer（`index.html:608-897`），默认 285/480、focus 模式、980px 断点叠层（`app.js:135-139`）。",
+        "new": "- 布局：工作台为54px快捷轨+舞台；旧DOM保留左/中/右区与resizer，但当前 `chat_experience.css:2-4` 已隐藏左聊天导航、左resizer及其toggle，`:6-14` 将顶部环境区改为横排。0.2.14产品采用快捷轨与右扩展页、顶部环境下拉；不能仅按旧DOM判定当前仍显示三栏。",
+        "reason": "AR-11：按当前CSS与发布报告描述有效布局。"
+      },
+      {
+        "old": "| D7.4 | 并发写 | 未见写锁 | 跨进程写锁 | — |",
+        "new": "| D7.4 | 并发写 | 有进程内 `Mutex<WorkspaceConfig>` 与 `mutate_workspace_config`（`main.rs:6675,6692`）；跨进程文件写锁尚需核实 | 跨进程写锁 | 需分别验收进程内序列化、原子落盘与跨进程竞争 |",
+        "reason": "AR-14：限定缺口范围，不把没有核实跨进程锁写成完全无锁。"
+      },
+      {
+        "old": "- **选项**：① 以事件日志为权威（B 侧模型，SQLite 降为派生）；② 以 SQLite 为权威（A 侧模型，事件流为投影）；③ 双权威分层（热路径 SQLite、冷路径日志）",
+        "new": "- **选项需要分两层**：先确定单一权威写者、事务边界、事件语义与可重建投影，再选择SQLite或JSONL等物理介质。推荐先保留A的SQLite单权威，在同一事务中追加事件/outbox；JSONL可作导出/审计副本。SQLite也能承载append-only事件；没有冲突/提交协议的“热SQLite、冷日志双权威”不列为可直接实施方案。",
+        "reason": "AR-15：解除事件溯源与物理载体的错误绑定，规避未经设计的双权威。"
+      },
+      {
+        "old": "**B 侧**：291 个 workspace 包（`packages/<group>/<pkg>`）+ 4 个 app + python 2 包 + native 平台包",
+        "new": "**B 侧**：291 个包层成员（`packages/<group>/<pkg>`）；整个 pnpm workspace 另含22个成员manifest，共313个，不含根包。详细分母见02清单本轮审查",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "02-功能全量清单.md",
+        "new": "02-coolzhu-dsh-功能全量清单.md",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "决定了后续 90% 的领域能否直接合并——见第 24 节决策点",
+        "new": "显著约束运行时、状态与扩展的整合方式；具体影响见第九部分决策点，不使用缺乏分母的比例",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "| D6.3 | 请求参数 | `RequestParameters`（temperature/top_p/thinking_budget）；max_tokens 走静态表 | adapter 自定 + `prepareCall`；extensions 注册表可加字段 | 分层不同 |",
+        "new": "| D6.3 | 请求参数 | 已有思考、采样与会话输出预算等显式覆盖，目录值作为回退；统一配置页已发布 | adapter 自定 + `prepareCall`；extensions 注册表可加字段 | 优先收敛解析与wire校验，不重复建设现有参数页 |",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "  - DPI/多显示器：`input.rs` **不处理**；坐标由调用方给物理像素；DPI 处理在 uia-resolver 物理坐标模式与 web-console `read_screen_info`。**截图仅主屏**，无显示器枚举。",
+        "new": "  - DPI/多显示器：旧输入原语由调用方提供物理像素；正式桥已有PMv2观察、绑定窗口原图和窗口/DPI校验。旧 `capture_desktop` 主屏截图另列，不代表正式CU只能截主屏；跨屏、负坐标和混合缩放仍需专项验收。",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "  - **无输入内容安全控制**（全模块 grep deny/blocklist/forbidden/安全控制 无匹配，除 `serde(deny_unknown_fields)`）。",
+        "new": "  - 输入控制已有敏感语义、目标能力、输入长度、授权及取消释放约束；尚不能证明完整输入内容治理或OS隔离。字符串检索未命中某类deny-list不能推出完全不存在控制。",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "| Computer Use 输入安全控制 | **不存在**（README 声称有） | 全模块无 deny-list |",
+        "new": "| Computer Use 输入控制 | 已有敏感语义、目标/长度、授权和真实输入边界；完整覆盖待验 | `controller.rs:92,201,541`、`computer_use_desktop_bridge.rs:162`；见03专项 |",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "Host 侧 `apply()` **空实现** `src/index.ts:4`，注释 \"Provides no host-side behavior\" `[stub]`",
+        "new": "Host 侧 `apply()` 无行为是browser-only职责设计（`src/index.ts:4`），不标stub",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "| `client-ui-renderer` host `apply()` | `[stub]` 空实现 | `src/index.ts:4` |",
+        "new": "| `client-ui-renderer` host `apply()` | 仅浏览器renderer的预期空宿主入口，不是功能缺口 | `src/index.ts:1-4`及client实现 |",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "| **sandbox** | 无进程沙箱；`requiredPermission` 声明但无强制 |",
+        "new": "| **sandbox** | 未见统一进程沙箱；每工具requiredPermission在CLI有消费者，Web动态工具回退需审计；manifest权限标签不等同OS隔离 |",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "- **观察**：A 侧 `requiredPermission` 无强制点、默认全权；B 侧 sandbox 自述非 containment。**两侧在\"声明的权限 vs 实际的隔离\"上都不闭合**，无论选哪个都需先补权威强制点",
+        "new": "- **观察**：A 的manifest权限标签、每工具requiredPermission与OS隔离必须分开审计：CLI消费每工具权限，Web未知/动态工具解析存在待验回退路径。B 的同进程VM扩展明确非containment，但平台进程沙箱另有实现，不能合并成同一结论。先统一实际执行闸门，再决定扩展宿主。",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "WebFetch/WebSearch 在 20 工具内",
+        "new": "WebFetch/WebSearch 在19个静态工具spec中；模型最终可见集合动态生成",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "- 必须先定**默认档**（A 侧 WorkspaceAuto vs B 侧 read-only+ask）",
+        "new": "- 必须分开定义debug/release与用户显式配置：A当前debug缺省开发完全访问、release缺省关闭该开关；B的read-only+ask需按目标profile验证。不得用一个默认档覆盖全部入口。",
+        "reason": "主审查交叉纠错与范围限定"
+      },
+      {
+        "old": "统一整合时容易被忽略的部分。全部为已核实事实。",
+        "new": "统一整合时容易被忽略的部分。以下为静态审计结论及明确边界，非逐项产品验收；本轮纠错与新增专项见文首和文末。",
+        "reason": "主审查交叉纠错与范围限定"
+      }
+    ]
+  },
+  {
+    "file": "02-coolzhu-dsh-功能全量清单.md",
+    "before_sha256": "e3b32f02c8f5449817267ddd94da20229cf4b56edada88dc1c7d77429ee1566e",
+    "after_sha256": "a77b9b5c56bd0f9ce2fa1fa248791113ce6c42ac259b948975b0a611cf3ce67b",
+    "edits": [
+      {
+        "old": "- B 侧 = `C:\\Users\\zhupu\\Desktop\\dsh`：**291 个 workspace 包**（复核：`find packages -mindepth 3 -maxdepth 3 -name package.json | wc -l` = 291）",
+        "new": "- B 侧 = `C:\\Users\\zhupu\\Desktop\\dsh`：**291 个包层成员**（仅 `packages/*/*/package.json`）；`pnpm-workspace.yaml` 另外匹配 22 个成员 manifest（vendor 9、native 6、apps 4、benchmarks/website/python-sdk-runtime 各 1），合计 **313 个 workspace 成员 manifest，不含仓库根包**。后文 B 侧逐包清单的分母仍为 291，不把其它层混入包层计数。",
+        "reason": "区分 packages 包层与整个 workspace；pnpm-workspace.yaml:1-17 以及逐目录枚举确认。"
+      },
+      {
+        "old": "`mvp_tool_specs()` **20 个 `ToolSpec`**",
+        "new": "`mvp_tool_specs()` **19 个静态 `ToolSpec`**",
+        "reason": "tool-registry/src/lib.rs:278 静态列表仅19项；这不是模型实际可见工具计数。"
+      },
+      {
+        "old": "### coolzhu-computer-use-core `[完整 + 死代码]`",
+        "new": "### coolzhu-computer-use-core `[基础执行已接线；端到端部分验证]`",
+        "reason": "0.2.14已贯通正式执行与视觉反馈，但Paint目标没有通过；不能标产品完整。"
+      },
+      {
+        "old": "- 缺口：`move_mouse_absolute`/`mouse_button_down_point` `[死代码]`（`:86,90`）；**不处理 DPI/多显示器，截图仅主屏**；**无输入内容安全控制**。",
+        "new": "- 缺口与边界：`move_mouse_absolute`/`mouse_button_down_point` 的调用范围仍需区分底层与正式桥接。0.2.14 已增加 UIA 观察的可恢复 PMv2 线程上下文、绑定窗口原图和物理像素/DPI/身份校验，不能再称“不处理 DPI、截图仅主屏”。混合 DPI、多显示器、负坐标及跨屏仍需专项实测。宿主已有敏感语义检查与输入目标/长度限制（`controller.rs:92,201,541`；`web-console/src/computer_use_desktop_bridge.rs:162`），但不等于完整内容安全方案。Paint 实测证明接口可执行，未证明目标绘图成功。",
+        "reason": "原DPI/截图/安全绝对断言已被当前源码和0.2.14真实证据推翻。"
+      },
+      {
+        "old": "- 规模：`src/main.rs` **87,025 行 / 3.47 MB**；`src/app.js` 20,416 行 / 765 KB；`index.html` 1,478 行；`styles.css` 17,809 行；`src/model_settings.js`、`src/chat_insights.rs`、`src/chat_experience.js`、`src/realtime_voice_capture.js`、`src/browser_bridge.rs`、`src/wuxia_layout.css`、`assets/bamboo-*.js`。",
+        "new": "- 规模：`src/main.rs` **87,025 行 / 3.47 MB**；`src/app.js` 20,416 行 / 765 KB；`index.html` 1,478 行；`styles.css` 17,809 行；`src/model_settings.js`、`src/chat_insights.rs`、`src/chat_experience.js`、`src/realtime_voice_capture.js`、`src/browser_bridge.rs`、`src/wuxia_layout.css`、`assets/bamboo-*.js`。\n- 已拆出的生产边界还包括：`src/chat_tool_history.rs`、`src/tool_loop_coordinator.rs`、`src/multimodal_input.rs`、`src/computer_use_planner.rs`、`src/computer_use_executor.rs`、`src/computer_use_adapters.rs`、`src/computer_use_desktop_bridge.rs`、`src/computer_use_store.rs`。分别承载工具历史投影、调用身份、图片路由、专用规划/视觉验收、真实步骤与桌面桥接，必须纳入整合保留面。",
+        "reason": "补齐已接线的关键模块；规模数字仍正确，保留原值。"
+      },
+      {
+        "old": "- 职责：web-console 所需 Windows 句柄操作的**唯一 `unsafe` 容器**（其余 workspace 禁止 unsafe，`lib.rs:1-7`）。",
+        "new": "- 职责：封装 web-console 所需的 Windows 句柄与 Job Object 操作。它**不是唯一 unsafe 容器**：`modules/vision/packages/uia-resolver/Cargo.toml:25` 也允许 unsafe，`windows_impl.rs` 直接调用 UIA/COM/Win32 并管理同步观察 DPI 上下文；应分别审查这些原生边界。",
+        "reason": "uia-resolver Cargo与Windows实现明确存在unsafe例外。"
+      },
+      {
+        "old": "- 缺口：新增 provider 需改 ~10 处（`providers/mod.rs`、`openai_compat.rs:83-163`），**无注册 API**。",
+        "new": "- 缺口：新增 provider 需改 ~10 处（`providers/mod.rs`、`openai_compat.rs:83-163`），**无注册 API**。 此处指新增 ProviderKind/适配器实现；**不等于新增模型或兼容连接也要改代码**。`client.rs:39` 的 `from_session_endpoint` 已支持显式协议、Endpoint 与未登记模型，统一会话参数页也已在 0.2.14 发布。",
+        "reason": "避免把模型迭代与原生适配器新增混为一谈，重复开发已实现统一配置。"
+      },
+      {
+        "old": "| `tmp/2026-09-19-agent-fixes/pr-checkout/` | 整仓副本（污染 find 结果，建议清理） | — |",
+        "new": "| `tmp/2026-09-19-agent-fixes/pr-checkout/` | 发布源码及验证用独立 checkout；扫描应排除此目录以免重复计数，含共享构建 junction，清理须另行确认真实路径与链接范围 | 发布追溯资产，不作为本轮整合删除项 |",
+        "reason": "防止把发布追溯与共享链接目录当普通副本直接清理。"
+      },
+      {
+        "old": "### A 侧调试/验证入口清单（模型可见工具 20 个）\nbash、read_file、write_file、edit_file、glob_search、grep_search、WebFetch、WebSearch、TodoWrite、Skill、Agent、ToolSearch、NotebookEdit、Sleep、SendUserMessage、Config、StructuredOutput、REPL、PowerShell（+ 定义在 `tool-registry/src/lib.rs:281-598`）",
+        "new": "### A 侧静态工具注册清单（19 个 spec；实际模型可见集合动态生成）\nbash、read_file、write_file、edit_file、glob_search、grep_search、WebFetch、WebSearch、TodoWrite、Skill、Agent、ToolSearch、NotebookEdit、Sleep、SendUserMessage、Config、StructuredOutput、REPL、PowerShell（定义在 `tool-registry/src/lib.rs:278-598`）\n\nWeb 主路径额外提供 `semantic_dispatch`、`computer_use_perform`、`chat_handoff`，并主动不向 LLM 暴露 `ToolSearch`（`web-console/src/main.rs:32419,32580,32627`）。最终可见集合受会话/房间能力、权限、暴露模式和 allowlist 控制；另需单列 MCP/插件动态工具及开发用 `computer.*` 目录，不能把目录可用状态等同于模型真实执行入口。",
+        "reason": "完整解释19个静态spec与动态模型工具面的不同分母。"
+      },
+      {
+        "old": "`sessions`、`chat_rooms`、`session_messages`、`chat_room_messages`、`chat_room_permissions`、`runtime_runs`、`runtime_run_events`、`goals`、`goal_phases`、`goal_role_configs`、`chat_handoffs`、`goal_events`、`memory_beads`、`memory_vectors`、`memory_access`、`memory_meta`、`memory_edges`、`memory_settings`、`memory_jobs`、`attachment_refs`、`chat_usage_events`、`chat_message_timing`、`clawbot_login_snapshot`、`clawbot_inbox`、`clawbot_outbox`、`clawbot_group_member_grants`、`clawbot_contacts`、`clawbot_operation_administrators`、`clawbot_groups`、`clawbot_group_audit`、`clawbot_denial_notices`",
+        "new": "`sessions`、`chat_rooms`、`session_messages`、`chat_room_messages`、`chat_room_permissions`、`runtime_runs`、`runtime_run_events`、`goals`、`goal_phases`、`goal_role_configs`、`chat_handoffs`、`goal_events`、`memory_beads`、`memory_vectors`、`memory_access`、`memory_meta`、`memory_edges`、`memory_settings`、`memory_jobs`、`attachment_refs`、`chat_usage_events`、`chat_message_timing`、`clawbot_login_snapshot`、`clawbot_inbox`、`clawbot_outbox`、`clawbot_group_member_grants`、`clawbot_contacts`、`clawbot_operation_administrators`、`clawbot_groups`、`clawbot_group_audit`、`clawbot_denial_notices`、`metadata`、`chat_room_diagnostics`、`computer_use_runs`、`computer_use_steps`、`computer_use_step_details`、`computer_use_planner_diagnostics`\n\n上述为当前业务/审计表；迁移中临时替换表（如 `goal_phases_v6`）另列，不计入当前业务实体。证据：`main.rs:39653,39844` 与 `computer_use_store.rs:13,45,67,72`。",
+        "reason": "补齐被漏掉的CU审计与元数据持久化表。"
+      },
+      {
+        "old": "## B 侧非 workspace 目录",
+        "new": "## B 侧包层之外的目录（其中 apps/native/vendor 等仍属于 workspace）",
+        "reason": "该节标题与pnpm-workspace定义冲突，改为包层之外。"
+      },
+      {
+        "old": "## experimental（17）",
+        "new": "## experimental（16）",
+        "reason": "实际16个package.json；末尾README说明不是包。"
+      },
+      {
+        "old": "- `client-ui-renderer` — React slot 绑定、`ctx.uiRenderer`。**Host 侧 `apply()` 空实现** `[stub]`",
+        "new": "- `client-ui-renderer` — React slot 绑定、`ctx.uiRenderer`。`[接口与实现已存在]`；Host `apply()` 空实现是仅浏览器 renderer 的预期设计，Client `src/client/index.ts:92` 安装 slot renderer 并提供 mount，不能据 Host 空入口判定为 stub。",
+        "reason": "正确识别host/client双面职责，客户端已有实际实现。"
+      },
+      {
+        "old": "- `session-persistence-jsonl` — JSONL 后端（zstd 帧、fsync、原子 publish、flock 租约、torn tail）。`[完整]`（Windows 无 lock 文件）",
+        "new": "- `session-persistence-jsonl` — JSONL 后端（zstd 帧、fsync、原子 publish、flock 租约、torn tail）。`[完整]`（Windows 使用路径派生的命名内核信号量，**无锁文件但有跨进程排他**；名称按登录会话隔离，见 `src/lease.ts:1,80` 与 README:160）",
+        "reason": "无锁文件不等于无跨进程锁；补关键平台边界。"
+      },
+      {
+        "old": "| `vendor/` | 6 个 vendored 包（pinned 源拷贝 + 上游 SHA）。`[完整]` |",
+        "new": "| `vendor/` | 9 个 vendored 包（pinned 源拷贝 + 上游 SHA）。`[完整]` |",
+        "reason": "枚举vendor/*/package.json得到9，属于另外22个workspace成员中的9个。"
+      }
+    ]
+  }
+]

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coolzhu Browser Bridge Test</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; color: #17212b; }
+    main { max-width: 760px; margin: 0 auto; }
+    section { display: grid; gap: 0.75rem; margin: 1.25rem 0; }
+    input, select, button { font: inherit; padding: 0.45rem; }
+    .drag-row { display: flex; gap: 1rem; align-items: stretch; }
+    .drag-box { flex: 1; min-height: 5rem; display: grid; place-items: center; border: 2px dashed #68798a; border-radius: 0.5rem; }
+    #drag-source { cursor: grab; background: #e8f2ff; }
+    #drop-target { background: #f7f9fb; }
+    #drop-target.is-complete { border-color: #14843c; background: #e8f7ed; }
+    #result { min-height: 2.5rem; padding: 0.75rem; border-radius: 0.4rem; background: #101820; color: #d9fbe4; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Coolzhu Browser Bridge Test</h1>
+    <p>fixture-ready</p>
+
+    <section aria-label="表单测试">
+      <label for="text-input">文本</label>
+      <input id="text-input" type="text" value="select this text" />
+      <label for="choice">选项</label>
+      <select id="choice">
+        <option value="alpha" selected>Alpha</option>
+        <option value="beta">Beta</option>
+      </select>
+      <label for="range-input">滑块</label>
+      <input id="range-input" type="range" min="0" max="100" value="20" />
+    </section>
+
+    <section class="drag-row" aria-label="拖拽测试">
+      <div id="drag-source" class="drag-box" draggable="true">drag-me</div>
+      <div id="drop-target" class="drag-box" data-drop-target="true">drop-here</div>
+    </section>
+
+    <output id="result" role="status" aria-live="polite">ready</output>
+  </main>
+  <script>
+    const result = document.querySelector("#result");
+    const textInput = document.querySelector("#text-input");
+    const choice = document.querySelector("#choice");
+    const rangeInput = document.querySelector("#range-input");
+    const dragSource = document.querySelector("#drag-source");
+    const dropTarget = document.querySelector("#drop-target");
+
+    rangeInput.addEventListener("input", () => {
+      result.textContent = JSON.stringify({ value: rangeInput.value });
+    });
+    textInput.addEventListener("keydown", (event) => {
+      if (event.ctrlKey && event.key.toLowerCase() === "a") {
+        result.textContent = "key=ctrl+a";
+      }
+      if (event.key === "Enter") {
+        event.preventDefault();
+        result.textContent = `key=enter choice=${choice.value}`;
+      }
+    });
+    dragSource.addEventListener("dragstart", (event) => {
+      event.dataTransfer?.setData("text/plain", "drag-me");
+    });
+    dropTarget.addEventListener("dragover", (event) => event.preventDefault());
+    dropTarget.addEventListener("drop", (event) => {
+      event.preventDefault();
+      dropTarget.textContent = "drop-complete";
+      dropTarget.classList.add("is-complete");
+      result.textContent = "drop|accepted=true drop-complete";
+    });
+  </script>
+</body>
+</html>

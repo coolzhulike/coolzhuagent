@@ -1,0 +1,19 @@
+# web-console 将前端资源以内嵌字符串编译进 Rust，契约测试按 LF 匹配多行片段。
+/modules/gui-web/packages/web-console/src/app.js text eol=lf
+/modules/gui-web/packages/web-console/src/styles.css text eol=lf
+
+# 以下由本轮（RD4 输入安全链 + PKG 完整性 + 安装准备）追加：
+# 仓库内另有测试用 include_str! 把 **LF 本身**当被断言对象（例：
+# modules/gui-web/packages/windows-process-guard/src/pipe.rs 的文本钉住断言），
+# 而本机 core.autocrlf=true —— 检出时若被转成 CRLF 会直接判红。
+*.rs text eol=lf
+*.ps1 text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.png binary
+*.ico binary
+*.msi binary
+*.dll binary
+*.exe binary
+*.sqlite3 binary

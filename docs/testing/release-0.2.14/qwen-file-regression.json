@@ -1,0 +1,103 @@
+{
+  "model": "qwen3.8-flash",
+  "purpose": "正式模型文件工具与跨轮回归",
+  "rounds": [
+    {
+      "label": "tools-r1",
+      "elapsed_ms": 51200,
+      "chat_state": "completed",
+      "stream_errors": 0,
+      "transport_failure": null,
+      "tool_calls": [
+        {
+          "tool": "write_file",
+          "statuses": [
+            "requested",
+            "running",
+            "completed"
+          ]
+        },
+        {
+          "tool": "read_file",
+          "statuses": [
+            "requested",
+            "running",
+            "completed"
+          ]
+        }
+      ],
+      "room_cumulative_usage": [
+        {
+          "cache_read_tokens": 0,
+          "cache_write_tokens": 0,
+          "input_tokens": 17181,
+          "output_tokens": 3082,
+          "requests": 3
+        }
+      ]
+    },
+    {
+      "label": "tools-r2",
+      "elapsed_ms": 22188,
+      "chat_state": "completed",
+      "stream_errors": 0,
+      "transport_failure": null,
+      "tool_calls": [
+        {
+          "tool": "read_file",
+          "statuses": [
+            "requested",
+            "running",
+            "completed"
+          ]
+        },
+        {
+          "tool": "edit_file",
+          "statuses": [
+            "requested",
+            "running",
+            "completed"
+          ]
+        },
+        {
+          "tool": "edit_file",
+          "statuses": [
+            "requested",
+            "running",
+            "completed"
+          ]
+        },
+        {
+          "tool": "read_file",
+          "statuses": [
+            "requested",
+            "running",
+            "completed"
+          ]
+        }
+      ],
+      "room_cumulative_usage": [
+        {
+          "cache_read_tokens": 0,
+          "cache_write_tokens": 0,
+          "input_tokens": 48629,
+          "output_tokens": 4021,
+          "requests": 7
+        }
+      ]
+    }
+  ],
+  "artifact": {
+    "type": "HTML + SVG SMIL",
+    "bytes": 5568,
+    "sha256": "ddd78cdeab670b8408583531f6a9bd5f3a0af784beee84a1ea2675f2b4c00980",
+    "animation_elements": 6,
+    "browser_page_errors": 0,
+    "frames_changed": true
+  },
+  "notes": [
+    "回归第一版工具终态摘要曾包含短源码，已修复并补模拟服务及前端测试；最终安装版另做短工具复测。",
+    "usage为房间累计值，第二轮增量需减去第一轮。",
+    "本摘要不包含凭据、实际会话ID、用户路径、聊天正文或原始SSE。"
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "baseUrl": "http://127.0.0.1:8765",
+  "requestedSessionId": "session-1779459149988",
+  "pageErrors": [],
+  "console": [],
+  "blockedRequests": [],
+  "checks": {
+    "hasThreeStates": true,
+    "matchesSavedOverride": true,
+    "effectiveStrategyPresent": true,
+    "passwordNeverEchoed": true,
+    "draftStatesWork": true,
+    "modelTypeUnchanged": true,
+    "noHorizontalOverflow": true,
+    "noPageErrors": true,
+    "noChatRequests": true
+  },
+  "passed": true,
+  "persistedChanges": false,
+  "loaded": {
+    "sessionId": "session-1779459149988",
+    "model": "qwen3.8-flash",
+    "modelType": "multimodal",
+    "apiKeyStatus": "已配置 Key (...a620)",
+    "supportsMultimodal": true,
+    "effectiveSupportsMultimodal": true,
+    "imageInputStrategy": "native"
+  },
+  "options": [
+    {
+      "value": "",
+      "text": "沿用模型能力"
+    },
+    {
+      "value": "true",
+      "text": "支持图片直传"
+    },
+    {
+      "value": "false",
+      "text": "纯文本 · 由视觉 Agent 描述"
+    }
+  ],
+  "originalHint": "",
+  "draftStates": [
+    {
+      "choice": "true",
+      "actual": "true",
+      "hint": "图片直接发送给此模型；请确认所用模型及接口支持图片输入。",
+      "dirty": true,
+      "modelType": "text"
+    },
+    {
+      "choice": "false",
+      "actual": "false",
+      "hint": "由视觉 Agent 先描述图片，再把文字交给此模型；缺少可用视觉 Agent 时会提示错误。",
+      "dirty": true,
+      "modelType": "text"
+    },
+    {
+      "choice": "",
+      "actual": "",
+      "hint": "沿用模型用途和已识别能力。已保存配置当前由视觉 Agent 描述图片。",
+      "dirty": true,
+      "modelType": "text"
+    }
+  ],
+  "compactLayout": {
+    "field": {
+      "left": 575,
+      "right": 981,
+      "width": 406
+    },
+    "panel": {
+      "left": 560,
+      "right": 996,
+      "width": 436
+    },
+    "viewportWidth": 1024
+  },
+  "note": "三态仅修改独立浏览器中的未保存草稿；脚本未点击保存，拦截全部非 GET/HEAD 请求。整页启动产生的被阻止写请求单独记录，不能当作模型调用成功。"
+}

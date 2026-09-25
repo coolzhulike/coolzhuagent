@@ -1,0 +1,59 @@
+{
+  "asset_set": "p6-front-topbar-2026-08-28",
+  "generated_from": "ImageGen source files supplied for P6-B",
+  "processing": {
+    "tool": "System.Drawing",
+    "brand_operation": "deterministic crop; no redraw or text baking",
+    "brand_crop_box_source_xywh": [0, 160, 1983, 472],
+    "status_operation": "224x224 resize",
+    "resampling": "HighQualityBicubic",
+    "alpha_preserved_for_status_assets": true
+  },
+  "assets": [
+    {
+      "id": "brand-banner-wuxia-v1",
+      "source_imagegen_path": "C:\\Users\\coolzhu\\.codex\\generated_images\\01a02f69-d5a7-7d73-8e0d-2fb431b1be01\\exec-74d8e915-4159-455e-b99a-7cd87a7a8544.png",
+      "source_repo_copy": "source-brand-banner-wuxia-v1-original.png",
+      "source_sha256": "E087F4ABD00F439F2F9E0C646903E5DADC4ADCA3A98A0A93E9C8AEFC1A7793D7",
+      "source_dimensions": "1983x793",
+      "source_pixel_format": "Format24bppRgb",
+      "output": "brand-banner-wuxia-v1.png",
+      "output_dimensions": "1983x472",
+      "output_pixel_format": "Format24bppRgb",
+      "output_sha256": "83835F8BF877DE6473789CB8C480EA16CF77A159F96164BDC424DEDCB239C220",
+      "safe_zone": "left jade light, central title area, right swordsman retained"
+    },
+    {
+      "id": "status-jade-ready-v1",
+      "source_imagegen_path": "C:\\Users\\coolzhu\\.codex\\generated_images\\01a02f69-d5a7-7d73-8e0d-2fb431b1be01\\exec-09ea05f7-4f53-4203-998e-f0f4f6f60be8.png",
+      "source_repo_copy": "source-status-jade-ready-v1-original.png",
+      "source_sha256": "A6D9E31C7D897C2968E057F7549888628F51CB04C7463713787C21EDE16501C9",
+      "source_dimensions": "1254x1254",
+      "source_pixel_format": "Format32bppArgb",
+      "output": "status-jade-ready-v1.png",
+      "output_dimensions": "224x224",
+      "output_pixel_format": "Format32bppArgb",
+      "output_sha256": "4A1E372BBA89BCEB279AE13A3FF9691888AA70510A210BF566AA097043D8D16C",
+      "transparent_corner_alpha": [0, 0, 0, 0]
+    },
+    {
+      "id": "status-vermilion-alert-v1",
+      "source_imagegen_path": "C:\\Users\\coolzhu\\.codex\\generated_images\\01a02f69-d5a7-7d73-8e0d-2fb431b1be01\\exec-4fdf6cce-4e5e-4e97-8873-7b9fd4861ad4.png",
+      "source_repo_copy": "source-status-vermilion-alert-v1-original.png",
+      "source_sha256": "86E66363716E4932A9CF540F3EC8D7584C73171D7898DCC1F4EC301FE6739E83",
+      "source_dimensions": "1254x1254",
+      "source_pixel_format": "Format32bppArgb",
+      "output": "status-vermilion-alert-v1.png",
+      "output_dimensions": "224x224",
+      "output_pixel_format": "Format32bppArgb",
+      "output_sha256": "FC2C793FC828B70AC2289D3206B8542C78063D766432ECF8DFD6899CDD269198",
+      "transparent_corner_alpha": [0, 0, 0, 0]
+    }
+  ],
+  "runtime_mapping": {
+    "brand_banner": "brand-banner-wuxia-v1.png",
+    "ready_status": "status-jade-ready-v1.png",
+    "alert_status": "status-vermilion-alert-v1.png",
+    "gold_lantern": "../three-column/rail-lantern-gold-v1.png"
+  }
+}

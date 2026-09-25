@@ -1,0 +1,17 @@
+[package]
+name = "coolzhu-command-router"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+
+[lib]
+name = "commands"
+[dependencies]
+plugins.workspace = true
+runtime.workspace = true
+serde_json.workspace = true

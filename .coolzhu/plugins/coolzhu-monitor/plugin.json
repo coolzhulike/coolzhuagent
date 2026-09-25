@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-monitor",
+  "version": "0.1.0",
+  "description": "Agent dashboard metrics and alert rule evaluation helpers",
+  "permissions": ["read"],
+  "defaultEnabled": false
+}

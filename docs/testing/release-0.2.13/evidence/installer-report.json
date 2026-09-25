@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-09-19T14:36:56.5794445Z",
+  "version": "0.2.13",
+  "cli_version": "0.2.13",
+  "configuration": "release",
+  "msi": "dist/CoolzhuAgent-0.2.13.msi",
+  "sha256": "88F84ECB461A8978FCA528849A732A030DE5AAE11699E28ABC8CC0D8B03B4D75",
+  "package_safety_report": "dist/CoolzhuAgent-0.2.13-package-safety.json",
+  "wix_version": "5.0.2+aa65968c",
+  "signed": false,
+  "signing_status": "unsigned"
+}

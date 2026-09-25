@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COOLZHU 桌宠</title>
+  <style>
+    :root {
+      --window-size: 150px;
+      --pet-size: 126px;
+      --bubble-width: 120px;
+      --bubble-height: 54px;
+      --gold: #ffd552;
+      --deep-blue: #071827;
+      --text: #f6fbff;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: transparent;
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    }
+
+    body {
+      position: relative;
+      display: block;
+    }
+
+    .pet-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--window-size);
+      height: var(--window-size);
+      overflow: hidden;
+      background: transparent;
+      cursor: grab;
+    }
+
+    .pet-stage:active {
+      cursor: grabbing;
+    }
+
+    .status-bubble {
+      display: none;
+      position: absolute;
+      top: 2px;
+      left: 50%;
+      width: var(--bubble-width);
+      height: var(--bubble-height);
+      transform: translateX(-50%) scale(0.92);
+      transform-origin: top center;
+      background-image: url("assets/status-bubbles.png");
+      background-size: calc(var(--bubble-width) * 2) calc(var(--bubble-height) * 2);
+      background-repeat: no-repeat;
+      filter: drop-shadow(0 6px 5px rgba(0, 0, 0, 0.32));
+      opacity: 0;
+      transition: opacity 180ms ease, transform 180ms ease, background-position 180ms steps(1);
+      pointer-events: none;
+    }
+
+    .status-bubble.visible {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    .status-bubble[data-state="idle"] {
+      background-position: 0 0;
+    }
+
+    .status-bubble[data-state="thinking"] {
+      background-position: calc(var(--bubble-width) * -1) 0;
+    }
+
+    .status-bubble[data-state="warning"] {
+      background-position: 0 calc(var(--bubble-height) * -1);
+    }
+
+    .status-bubble[data-state="success"] {
+      background-position: calc(var(--bubble-width) * -1) calc(var(--bubble-height) * -1);
+    }
+
+    .status-message {
+      position: absolute;
+      left: 42px;
+      right: 46px;
+      top: 16px;
+      min-height: 22px;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.04em;
+      text-align: center;
+      text-shadow: 0 2px 0 #00111f, 0 0 10px rgba(56, 178, 255, 0.55);
+    }
+
+    .pet-shadow {
+      position: fixed;
+      left: 29px;
+      top: 130px;
+      width: 92px;
+      height: 12px;
+      border-radius: 999px;
+      background: radial-gradient(ellipse, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0));
+      filter: blur(2px);
+    }
+
+    .pet-img {
+      position: fixed;
+      left: 12px;
+      top: 8px;
+      width: var(--pet-size);
+      height: var(--pet-size);
+      object-fit: contain;
+      filter: drop-shadow(0 7px 4px rgba(0, 0, 0, 0.28));
+      will-change: contents;
+    }
+
+    .pet-stage[data-state="thinking"] .pet-img {
+      filter: drop-shadow(0 7px 4px rgba(0, 0, 0, 0.28)) saturate(1.04);
+    }
+
+    .pet-stage[data-state="warning"] .pet-img {
+      filter: drop-shadow(0 7px 4px rgba(0, 0, 0, 0.28)) saturate(1.14);
+    }
+
+    .pet-stage[data-state="success"] .pet-img {
+      filter: drop-shadow(0 7px 4px rgba(0, 0, 0, 0.28)) saturate(1.08);
+    }
+
+    .hint-strip {
+      display: none;
+      position: absolute;
+      left: 50%;
+      bottom: 4px;
+      transform: translateX(-50%);
+      max-width: 118px;
+      padding: 3px 7px 4px;
+      border: 1px solid rgba(255, 222, 91, 0.9);
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(15, 70, 38, 0.86), rgba(4, 37, 28, 0.92));
+      color: #fffce5;
+      font-size: 9px;
+      font-weight: 800;
+      text-align: center;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
+      box-shadow: inset 0 2px rgba(255, 255, 255, 0.25), 0 8px 16px rgba(0, 0, 0, 0.28);
+    }
+
+    .toolbar {
+      position: fixed;
+      left: 119px;
+      top: 119px;
+      display: grid;
+      gap: 3px;
+      opacity: 0;
+      transform: translateX(5px);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .pet-stage:hover .toolbar {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .tool-button {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #0c1726;
+      border-radius: 5px;
+      background: linear-gradient(180deg, #ffe270, #d18c19);
+      color: #15130b;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: inset 0 1px #fff4a8, 0 2px 0 #5c3106, 0 4px 7px rgba(0, 0, 0, 0.22);
+    }
+
+    .tool-button:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 1px #fff4a8, 0 1px 0 #5c3106;
+    }
+  </style>
+</head>
+<body>
+  <main class="pet-stage" id="petStage" data-state="idle">
+    <section class="status-bubble visible" id="statusBubble" data-state="idle">
+      <div class="status-message" id="statusMessage">双击我打开控制台</div>
+    </section>
+    <div class="pet-shadow"></div>
+    <img
+      class="pet-img"
+      id="petImage"
+      src="assets/pet-actions/idle.png"
+      alt="COOLZHU 桌宠"
+      draggable="false"
+    />
+    <div class="hint-strip" id="hintStrip">双击控制台，长按拖动</div>
+    <nav class="toolbar" aria-label="桌宠操作">
+      <button class="tool-button" id="closeButton" title="退出程序">×</button>
+    </nav>
+  </main>
+
+  <script>
+    const invoke = window.__TAURI__?.core?.invoke;
+    const listen = window.__TAURI__?.event?.listen;
+    const petStage = document.getElementById("petStage");
+    const statusBubble = document.getElementById("statusBubble");
+    const statusMessage = document.getElementById("statusMessage");
+    const hintStrip = document.getElementById("hintStrip");
+    const petImage = document.getElementById("petImage");
+
+    const stateSprites = {
+      idle: "assets/pet-actions/idle.png",
+      thinking: "assets/pet-actions/thinking.png",
+      warning: "assets/pet-actions/warning.png",
+      success: "assets/pet-actions/success.png",
+    };
+    const frameSets = {
+      idle: [0, 1, 2, 3, 4, 5].map((index) => `assets/pet-actions/idle-${index}.png`),
+      thinking: [0, 1, 2, 3, 4, 5, 6].map((index) => `assets/pet-actions/thinking-${index}.png`),
+      warning: [0, 1, 2].map((index) => `assets/pet-actions/warning-${index}.png`),
+      success: [0, 1, 2, 5, 6, 7].map((index) => `assets/pet-actions/success-${index}.png`),
+    };
+    const frameIntervals = {
+      idle: 180,
+      thinking: 150,
+      warning: 120,
+      success: 130,
+    };
+
+    let bubbleTimer = null;
+    let clickTimer = null;
+    let pointerDown = null;
+    let frameHandle = null;
+    let frameStartedAt = 0;
+    let currentFrame = 0;
+    let activeFrameState = null;
+    const imageCache = new Map();
+
+    Object.values(frameSets).flat().forEach((src) => {
+      const image = new Image();
+      image.src = src;
+      imageCache.set(src, image);
+    });
+
+    function startPetAnimation(state) {
+      const frames = frameSets[state] || [stateSprites.idle];
+      if (activeFrameState === state && frameHandle) {
+        return;
+      }
+      if (frameHandle) {
+        cancelAnimationFrame(frameHandle);
+      }
+
+      activeFrameState = state;
+      currentFrame = 0;
+      petImage.src = frames[currentFrame];
+      frameStartedAt = 0;
+
+      const frameInterval = frameIntervals[state] || 160;
+      const animate = (timestamp) => {
+        if (!frameStartedAt) {
+          frameStartedAt = timestamp;
+        }
+        if (timestamp - frameStartedAt >= frameInterval) {
+          currentFrame = (currentFrame + 1) % frames.length;
+          const nextFrame = frames[currentFrame];
+          petImage.src = imageCache.get(nextFrame)?.src || nextFrame;
+          frameStartedAt = timestamp;
+        }
+        frameHandle = requestAnimationFrame(animate);
+      };
+      frameHandle = requestAnimationFrame(animate);
+    }
+
+    function setStatus(state, message, timeout = 4200) {
+      petStage.dataset.state = state;
+      statusBubble.dataset.state = state;
+      startPetAnimation(state);
+      statusMessage.textContent = message;
+      hintStrip.textContent = message.length > 18 ? "COOLZHU AGENT 待命中" : message;
+      statusBubble.classList.add("visible");
+
+      if (bubbleTimer) {
+        clearTimeout(bubbleTimer);
+      }
+      if (timeout > 0) {
+        bubbleTimer = setTimeout(() => {
+          if (petStage.dataset.state !== "warning") {
+            statusBubble.classList.remove("visible");
+          }
+        }, timeout);
+      }
+    }
+
+    async function tauriInvoke(command) {
+      if (!invoke) {
+        setStatus("warning", "当前在浏览器预览，Tauri 命令不可用", 5200);
+        return null;
+      }
+      return invoke(command);
+    }
+
+    petStage.addEventListener("mousedown", (event) => {
+      if (event.button !== 0 || event.target.closest("button")) {
+        return;
+      }
+      pointerDown = {
+        x: event.screenX,
+        y: event.screenY,
+      };
+    });
+
+    petStage.addEventListener("mousemove", async (event) => {
+      if (!pointerDown || event.buttons !== 1) {
+        return;
+      }
+      const dx = Math.abs(event.screenX - pointerDown.x);
+      const dy = Math.abs(event.screenY - pointerDown.y);
+      if (dx < 4 && dy < 4) {
+        return;
+      }
+      pointerDown = null;
+      try {
+        await tauriInvoke("start_dragging");
+      } catch (error) {
+        setStatus("warning", `拖动失败：${error}`, 5200);
+      }
+    });
+
+    petStage.addEventListener("mouseup", () => {
+      pointerDown = null;
+    });
+
+    petStage.addEventListener("click", (event) => {
+      if (event.target.closest("button")) {
+        return;
+      }
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+      }
+      clickTimer = setTimeout(() => {
+        setStatus("idle", "我在后台待命", 2800);
+      }, 220);
+    });
+
+    petStage.addEventListener("dblclick", async (event) => {
+      event.preventDefault();
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+      }
+      setStatus("thinking", "正在切换控制台", 0);
+      try {
+        const result = await tauriInvoke("toggle_console");
+        if (result) {
+          setStatus(result.visible ? "success" : "idle", result.message, 3600);
+        }
+      } catch (error) {
+        setStatus("warning", `控制台切换失败：${error}`, 6200);
+      }
+    });
+
+    petStage.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      setStatus("idle", "右下角托盘也可以控制我", 3600);
+    });
+
+    document.getElementById("idleButton")?.addEventListener("click", () => {
+      setStatus("idle", "我在后台待命", 0);
+    });
+
+    document.getElementById("thinkingButton")?.addEventListener("click", () => {
+      setStatus("thinking", "正在思考任务路径", 0);
+    });
+
+    document.getElementById("warningButton")?.addEventListener("click", () => {
+      setStatus("warning", "需要你确认一个操作", 0);
+    });
+
+    document.getElementById("closeButton").addEventListener("click", async () => {
+      setStatus("idle", "正在退出 COOLZHU AGENT", 800);
+      await tauriInvoke("quit_app");
+    });
+
+    if (listen) {
+      listen("pet-status", (event) => {
+        const payload = event.payload || {};
+        setStatus(payload.state || "idle", payload.message || "状态已更新", 3600);
+      });
+    }
+
+    (async () => {
+      try {
+        const status = await tauriInvoke("pet_status");
+        if (status) {
+          setStatus(status.state, status.message, 5200);
+        }
+      } catch {
+        setStatus("idle", "双击我打开控制台", 5200);
+      }
+    })();
+  </script>
+</body>
+</html>

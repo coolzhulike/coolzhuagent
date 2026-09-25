@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goal Session Chain"
+  short_description: "Keep Goal rooms paths and handoffs consistent"
+  default_prompt: "Apply session-chain constraints before executing a Goal phase."

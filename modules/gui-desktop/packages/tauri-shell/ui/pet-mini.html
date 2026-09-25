@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 152px;
+      height: 152px;
+      margin: 0;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0);
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+      cursor: grab;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.004);
+      pointer-events: none;
+    }
+
+    body:active {
+      cursor: grabbing;
+    }
+
+    #petImage {
+      position: fixed;
+      left: 12px;
+      top: 8px;
+      width: 128px;
+      height: 128px;
+      object-fit: contain;
+      transform-origin: center bottom;
+      filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.28));
+      will-change: transform;
+      z-index: 1;
+    }
+
+    #petShadow {
+      position: fixed;
+      left: 32px;
+      top: 136px;
+      width: 96px;
+      height: 12px;
+      border-radius: 999px;
+      background: radial-gradient(ellipse, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0));
+      filter: blur(0.5px);
+      pointer-events: none;
+    }
+
+    #bubbleImage {
+      position: fixed;
+      right: 4px;
+      top: 4px;
+      max-width: 64px;
+      max-height: 44px;
+      object-fit: contain;
+      opacity: 0;
+      transform: translateY(1px);
+      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28));
+      transition: opacity 160ms ease, transform 160ms ease;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    #bubbleImage.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #bubbleText {
+      position: fixed;
+      left: 8px;
+      top: 4px;
+      width: 104px;
+      min-height: 32px;
+      max-height: 48px;
+      padding: 4px 8px;
+      overflow: hidden;
+      color: #fffce5;
+      border: 1px solid rgba(255, 221, 91, 0.92);
+      border-radius: 12px 12px 12px 4px;
+      background: linear-gradient(180deg, rgba(12, 52, 71, 0.94), rgba(5, 30, 45, 0.94));
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.28);
+      font: 800 12px/1.1 "Microsoft YaHei", "Segoe UI", sans-serif;
+      text-align: center;
+      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      transform: translateY(1px) scale(0.96);
+      transition: opacity 160ms ease, transform 160ms ease;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    #bubbleText.is-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    #closeButton {
+      position: fixed;
+      right: 8px;
+      bottom: 12px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      opacity: 0;
+      color: #15130b;
+      border: 1px solid #0c1726;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #ffe270, #d18c19);
+      box-shadow: inset 0 1px #fff4a8, 0 1px 0 #5c3106;
+      font: 900 20px/1 "Segoe UI", sans-serif;
+      transition: opacity 140ms ease;
+    }
+
+    body:hover #closeButton {
+      opacity: 0.92;
+    }
+
+    /* 右键交互菜单：点播表演 / 睡眠切换 / 打开控制台（像素风，适配 152px 小窗） */
+    #petMenu {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9;
+      min-width: 128px;
+      padding: 6px;
+      border: 1px solid rgba(255, 221, 91, 0.92);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(12, 52, 71, 0.97), rgba(5, 30, 45, 0.97));
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.28), 0 4px 9px rgba(0, 0, 0, 0.4);
+    }
+
+    #petMenu.is-visible {
+      display: grid;
+      gap: 4px;
+    }
+
+    #petMenu button {
+      width: 100%;
+      padding: 4px 12px;
+      border: 1px solid rgba(12, 23, 38, 0.9);
+      border-radius: 7px;
+      background: linear-gradient(180deg, #ffe270, #d18c19);
+      color: #15130b;
+      font: 800 16px/1.3 "Microsoft YaHei", "Segoe UI", sans-serif;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: inset 0 1px #fff4a8, 0 1px 0 #5c3106;
+    }
+
+    #petMenu button:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 1px #fff4a8;
+    }
+  </style>
+</head>
+<body>
+  <img id="petImage" src="assets/pet-actions/idle-0.png" alt="" draggable="false" />
+  <img id="bubbleImage" src="" alt="" draggable="false" />
+  <div id="bubbleText" aria-hidden="true"></div>
+  <div id="petShadow"></div>
+  <button id="closeButton" aria-label="退出程序">×</button>
+  <nav id="petMenu" aria-label="桌宠交互菜单">
+    <button type="button" data-act="martial">⚔ 剑术</button>
+    <button type="button" data-act="sleep">😴 睡觉</button>
+    <button type="button" data-act="console">🖥 控制台</button>
+  </nav>
+
+  <script>
+    const invoke = window.__TAURI__?.core?.invoke;
+    const listen = window.__TAURI__?.event?.listen;
+    const petImage = document.getElementById("petImage");
+    const bubbleImage = document.getElementById("bubbleImage");
+    const bubbleText = document.getElementById("bubbleText");
+
+    let assetVersion = "";
+    const versionAssetPath = (path) => {
+      if (!path || !assetVersion || path.includes("?")) {
+        return path;
+      }
+      return `${path}?v=${encodeURIComponent(assetVersion)}`;
+    };
+    const actionFrames = (state, count = 8) =>
+      Array.from({ length: count }, (_, index) =>
+        versionAssetPath(`assets/pet-actions/${state}-${index}.png`)
+      );
+    const frames = {
+      idle: actionFrames("idle"),
+      // 眨眼不再使用独立序列（旧 blink-*.png 与 idle 各帧身体形体不一致会造成忽大忽小）。
+      // 现为"闭眼覆盖"机制：idle 正常推进，覆盖期用 idle-closed-{k} 替换当前帧（见 blinkOverlayUntil）。
+      blink: [],
+      thinking: actionFrames("thinking"),
+      working: actionFrames("working"),
+      carrying: actionFrames("carrying"),
+      juggling: actionFrames("juggling"),
+      sweeping: actionFrames("sweeping"),
+      notification: actionFrames("notification"),
+      attention: actionFrames("attention"),
+      dragging: actionFrames("sword-flight"),
+      crowned: actionFrames("crowned"),
+      perform_martial: actionFrames("perform_martial"),
+      sleeping: actionFrames("sleeping"),
+      warning: actionFrames("warning", 7),
+      success: actionFrames("success"),
+    };
+    const intervals = {
+      idle: 180,
+      blink: 90,
+      thinking: 140,
+      working: 135,
+      carrying: 150,
+      juggling: 130,
+      sweeping: 150,
+      notification: 130,
+      attention: 110,
+      dragging: 95,
+      crowned: 180,
+      // 剑术动作帧间隔略放慢，展示时长同步保持完整轮数。
+      perform_martial: 250,
+      sleeping: 260,
+      warning: 100,
+      success: 130,
+    };
+    const statePriorities = {
+      sleeping: 0,
+      idle: 1,
+      blink: 1,
+      perform_martial: 0,
+      thinking: 2,
+      working: 3,
+      carrying: 3,
+      juggling: 3,
+      sweeping: 3,
+      notification: 4,
+      success: 4,
+      dragging: 4,
+      crowned: 5,
+      attention: 5,
+      warning: 6,
+    };
+    const minDurationMs = {
+      idle: 0,
+      blink: 0,
+      thinking: 900,
+      working: 1000,
+      carrying: 1000,
+      juggling: 1000,
+      sweeping: 900,
+      notification: 1200,
+      success: 900,
+      dragging: 0,
+      crowned: 0,
+      perform_martial: 4800,
+      attention: 1400,
+      warning: 1800,
+      sleeping: 0,
+    };
+    const autoReturnMs = {
+      notification: 4200,
+      success: 3600,
+      perform_martial: 11200,
+    };
+    const cache = new Map();
+    const frameOffsetsByState = {};
+    const frameScalesByState = {};
+    const bubbleByState = {
+      idle: null,
+      blink: null,
+      thinking: "assets/pet-bubbles/thinking.png",
+      working: "assets/pet-bubbles/thinking.png",
+      notification: "assets/pet-bubbles/success.png",
+      attention: "assets/pet-bubbles/warning.png",
+      warning: "assets/pet-bubbles/warning.png",
+      success: "assets/pet-bubbles/success.png",
+      crowned: "assets/pet-bubbles/success.png",
+    };
+
+    function cacheFrame(src) {
+      if (!src || cache.has(src)) {
+        return;
+      }
+      const image = new Image();
+      image.src = src;
+      cache.set(src, image);
+    }
+
+    let idleClosedFrames = actionFrames("idle-closed", 8);
+
+    Object.values(frames).flat().forEach(cacheFrame);
+    idleClosedFrames.forEach(cacheFrame);
+
+    let state = "idle";
+    let blinkOverlayUntil = 0;
+    let activeFrames = frames.idle;
+    let activeFrameOffsets = frames.idle.map(() => 0);
+    let activeFrameScales = frames.idle.map(() => 1);
+    let frameIndex = 0;
+    let frameStart = 0;
+    let crownedIntroComplete = false;
+    let stateStartedAt = performance.now();
+    let currentPriority = statePriorities.idle;
+    let currentMinDurationMs = minDurationMs.idle;
+    let currentIntervalMs = intervals.idle;
+    let pendingStatus = null;
+    let pendingStatusTimer = null;
+    let autoReturnTimer = null;
+    let clickTimer = null;
+    let bubbleTimer = null;
+    let idleBlinkTimer = null;
+    let isNativeDragging = false;
+    let wasDragged = false;
+    let pointerDown = null;
+    let lastClickAt = 0;
+    let lastClickPoint = null;
+    let lastToggleAt = 0;
+    const dragThreshold = 10;
+    const doubleClickMs = 420;
+    const doubleClickDistance = 18;
+    const IDLE_PERFORMANCE_MS = 5 * 60 * 1000;
+    const IDLE_SLEEP_MS = 10 * 60 * 1000;
+    const IDLE_AUTONOMY_CHECK_MS = 30 * 1000;
+    const idlePerformanceStates = ["perform_martial"];
+    let lastActivityAt = performance.now();
+    let lastAutonomyAt = 0;
+    let dragPreviewActive = false;
+
+    function recordPetActivity() {
+      lastActivityAt = performance.now();
+      lastAutonomyAt = 0;
+      if (state === "sleeping") {
+        applyStatus({ state: "idle", message: "我醒啦。" });
+      }
+    }
+
+    function expandFramePattern(pattern, count, stateName) {
+      if (typeof pattern !== "string" || !pattern.trim()) {
+        return [];
+      }
+      const safeCount = Math.max(1, Number(count) || 1);
+      return Array.from({ length: safeCount }, (_, index) =>
+        pattern.replaceAll("{state}", stateName).replaceAll("{index}", String(index))
+      );
+    }
+
+    async function loadPetTheme() {
+      try {
+        const response = await fetch("assets/pet-theme.json", { cache: "no-store" });
+        if (!response.ok) {
+          return;
+        }
+        const theme = await response.json();
+        if (!theme || typeof theme.states !== "object") {
+          return;
+        }
+        assetVersion = typeof theme.asset_version === "string" ? theme.asset_version.trim() : "";
+        Object.entries(theme.states).forEach(([stateName, config]) => {
+          const configuredFrames = expandFramePattern(config.frame_pattern, config.frame_count, stateName)
+            .map(versionAssetPath);
+          if (configuredFrames.length) {
+            frames[stateName] = configuredFrames;
+            frameOffsetsByState[stateName] = normalizeOffsetList(config.frame_offsets, configuredFrames.length);
+            frameScalesByState[stateName] = normalizeScaleList(config.frame_scales, configuredFrames.length);
+          }
+          if (Number.isFinite(Number(config.interval_ms))) {
+            intervals[stateName] = Number(config.interval_ms);
+          }
+          if (Number.isFinite(Number(config.priority))) {
+            statePriorities[stateName] = Number(config.priority);
+          }
+          if (Number.isFinite(Number(config.min_duration_ms))) {
+            minDurationMs[stateName] = Number(config.min_duration_ms);
+          }
+          if (Number.isFinite(Number(config.auto_return_ms))) {
+            autoReturnMs[stateName] = Number(config.auto_return_ms);
+          }
+          if (typeof config.bubble === "string" && config.bubble.trim()) {
+            bubbleByState[stateName] = versionAssetPath(config.bubble.trim());
+          }
+        });
+        idleClosedFrames = actionFrames("idle-closed", 8);
+        Object.values(frames).flat().forEach(cacheFrame);
+        idleClosedFrames.forEach(cacheFrame);
+        if (state === "idle") {
+          setState("idle");
+        }
+      } catch (_) {
+        // Built-in frame lists remain available when the theme file cannot be loaded.
+      }
+    }
+
+    function normalizeFrameList(value) {
+      if (!Array.isArray(value)) {
+        return [];
+      }
+      return value.filter((item) => typeof item === "string" && item.trim()).map((item) => {
+        const frame = versionAssetPath(item.trim());
+        cacheFrame(frame);
+        return frame;
+      });
+    }
+
+    function normalizeOffsetList(value, expectedLength) {
+      if (!Array.isArray(value) || value.length !== expectedLength) {
+        return Array.from({ length: expectedLength }, () => 0);
+      }
+      return value.map((item) => {
+        const offset = Number(item);
+        return Number.isFinite(offset) ? offset : 0;
+      });
+    }
+
+    function normalizeScaleList(value, expectedLength) {
+      if (!Array.isArray(value) || value.length !== expectedLength) {
+        return Array.from({ length: expectedLength }, () => 1);
+      }
+      return value.map((item) => {
+        const scale = Number(item);
+        return Number.isFinite(scale) && scale > 0 ? scale : 1;
+      });
+    }
+
+    function defaultBubbleForState(nextState) {
+      return bubbleByState[nextState] || null;
+    }
+
+    function applyFrame(index) {
+      const framesForState = activeFrames.length ? activeFrames : frames.idle;
+      const safeIndex = index % framesForState.length;
+      let nextFrame = framesForState[safeIndex];
+      if (state === "idle" && performance.now() < blinkOverlayUntil) {
+        const closedFrame = idleClosedFrames[safeIndex];
+        if (closedFrame) {
+          nextFrame = closedFrame;
+        }
+      }
+      const offset = activeFrameOffsets[safeIndex] || 0;
+      const scale = activeFrameScales[safeIndex] || 1;
+      const transforms = [];
+      if (offset) transforms.push(`translateX(${offset}px)`);
+      if (Math.abs(scale - 1) > 0.0001) transforms.push(`scale(${scale})`);
+      petImage.src = cache.get(nextFrame)?.src || nextFrame;
+      petImage.style.transform = transforms.join(" ");
+    }
+
+    function priorityFor(nextState, payload = {}) {
+      const value = Number(payload.priority);
+      return Number.isFinite(value) ? value : (statePriorities[nextState] ?? statePriorities.idle);
+    }
+
+    function minDurationFor(nextState, payload = {}) {
+      const value = Number(payload.min_duration_ms);
+      return Number.isFinite(value) ? value : (minDurationMs[nextState] ?? 0);
+    }
+
+    function intervalFor(nextState, payload = {}) {
+      const value = Number(payload.interval_ms);
+      return Number.isFinite(value) && value > 0 ? value : (intervals[nextState] || 160);
+    }
+
+    function autoReturnFor(nextState, payload = {}) {
+      const value = Number(payload.auto_return_ms);
+      return Number.isFinite(value) && value > 0 ? value : (autoReturnMs[nextState] || 0);
+    }
+
+    function schedulePendingStatus(delayMs) {
+      if (pendingStatusTimer) {
+        clearTimeout(pendingStatusTimer);
+      }
+      pendingStatusTimer = setTimeout(() => {
+        pendingStatusTimer = null;
+        const next = pendingStatus;
+        pendingStatus = null;
+        if (next) {
+          applyStatus(next);
+        }
+      }, Math.max(0, delayMs));
+    }
+
+    function applyStatus(payload = {}) {
+      let nextState = payload.state || "idle";
+      if (nextState === "blink") {
+        // 兼容外部触发的 blink：转为闭眼覆盖，身体动作不中断、不重置帧序。
+        blinkOverlayUntil = performance.now() + 240;
+        if (state === "idle") {
+          applyFrame(frameIndex);
+          return;
+        }
+        nextState = "idle";
+      }
+      const nextPriority = priorityFor(nextState, payload);
+      const elapsed = performance.now() - stateStartedAt;
+      const stillLocked = elapsed < currentMinDurationMs;
+      if (nextState !== state && nextPriority < currentPriority && stillLocked) {
+        pendingStatus = payload;
+        schedulePendingStatus(currentMinDurationMs - elapsed);
+        return;
+      }
+      setState(nextState, payload);
+    }
+
+    function setState(nextState, payload = {}) {
+      const payloadFrames = normalizeFrameList(payload.frames);
+      state = (frames[nextState] || payloadFrames.length) ? nextState : "idle";
+      activeFrames = payloadFrames.length ? payloadFrames : (frames[state] || frames.idle);
+      activeFrameOffsets = normalizeOffsetList(
+        payload.frame_offsets ?? frameOffsetsByState[state],
+        activeFrames.length,
+      );
+      activeFrameScales = normalizeScaleList(
+        payload.frame_scales ?? frameScalesByState[state],
+        activeFrames.length,
+      );
+      frameIndex = 0;
+      frameStart = 0;
+      crownedIntroComplete = false;
+      stateStartedAt = performance.now();
+      currentPriority = priorityFor(state, payload);
+      currentMinDurationMs = minDurationFor(state, payload);
+      currentIntervalMs = intervalFor(state, payload);
+      if (autoReturnTimer) {
+        clearTimeout(autoReturnTimer);
+        autoReturnTimer = null;
+      }
+      applyFrame(frameIndex);
+      const hasPayload = payload && Object.keys(payload).length > 0;
+      showBubble(payload.bubble || (hasPayload ? defaultBubbleForState(state) : null), payload.message);
+      const returnDelay = autoReturnFor(state, payload);
+      if (returnDelay > 0) {
+        autoReturnTimer = setTimeout(() => {
+          autoReturnTimer = null;
+          applyStatus({ state: "idle" });
+        }, returnDelay);
+      }
+      scheduleIdleBlink();
+    }
+
+    function beginDragPreview() {
+      if (dragPreviewActive || state === "dragging") {
+        return;
+      }
+      dragPreviewActive = true;
+      setState("dragging", { state: "dragging", message: "移动中" });
+    }
+
+    function endDragPreview() {
+      const wasPreviewing = dragPreviewActive;
+      dragPreviewActive = false;
+      if (wasPreviewing && state === "dragging") {
+        applyStatus({ state: "idle" });
+      }
+    }
+
+    function finishNativeDrag() {
+      clearPointerState();
+      dragPreviewActive = false;
+      if (state === "dragging") {
+        applyStatus({ state: "idle" });
+      }
+    }
+
+    function hideBubble() {
+      bubbleImage.classList.remove("is-visible");
+      bubbleImage.removeAttribute("src");
+      bubbleText.classList.remove("is-visible");
+      bubbleText.textContent = "";
+    }
+
+    function showBubble(src, message) {
+      const text = typeof message === "string" ? message.trim() : "";
+      if (!src && !text) {
+        hideBubble();
+        return;
+      }
+
+      if (text) {
+        bubbleImage.classList.remove("is-visible");
+        bubbleImage.removeAttribute("src");
+        bubbleText.textContent = text;
+        bubbleText.classList.add("is-visible");
+      } else if (src) {
+        bubbleText.classList.remove("is-visible");
+        bubbleText.textContent = "";
+        bubbleImage.src = src;
+        bubbleImage.classList.add("is-visible");
+      } else {
+        hideBubble();
+      }
+
+      if (bubbleTimer) {
+        clearTimeout(bubbleTimer);
+      }
+      bubbleTimer = setTimeout(hideBubble, 4200);
+    }
+
+    function scheduleIdleBlink() {
+      if (idleBlinkTimer) {
+        clearTimeout(idleBlinkTimer);
+        idleBlinkTimer = null;
+      }
+      if (state !== "idle") {
+        return;
+      }
+      idleBlinkTimer = setTimeout(() => {
+        if (state !== "idle") {
+          return;
+        }
+        // 闭眼覆盖：idle 帧序照常推进，覆盖期内 applyFrame 用 idle-closed-{k} 替换当前帧。
+        blinkOverlayUntil = performance.now() + 240;
+        applyFrame(frameIndex);
+        scheduleIdleBlink();
+      }, 3200 + Math.floor(Math.random() * 1800));
+    }
+
+    function maybeRunIdleAutonomy() {
+      if (state !== "idle") {
+        return;
+      }
+      const now = performance.now();
+      const idleFor = now - lastActivityAt;
+      if (idleFor >= IDLE_SLEEP_MS) {
+        lastAutonomyAt = now;
+        applyStatus({ state: "sleeping", message: "我先休息一会儿。" });
+        return;
+      }
+      if (idleFor < IDLE_PERFORMANCE_MS || now - lastAutonomyAt < IDLE_PERFORMANCE_MS) {
+        return;
+      }
+      const nextState = idlePerformanceStates[Math.floor(Math.random() * idlePerformanceStates.length)];
+      lastAutonomyAt = now;
+      applyStatus({ state: nextState });
+    }
+
+    function nextFrameIndex(frameCount) {
+      if (state !== "crowned") {
+        return (frameIndex + 1) % frameCount;
+      }
+      const settledStart = Math.max(0, frameCount - 2);
+      if (!crownedIntroComplete) {
+        if (frameIndex < frameCount - 1) {
+          return frameIndex + 1;
+        }
+        crownedIntroComplete = true;
+        return settledStart;
+      }
+      return frameIndex >= frameCount - 1 ? settledStart : frameIndex + 1;
+    }
+
+    function tick(timestamp) {
+      if (!frameStart) {
+        frameStart = timestamp;
+      }
+      if (timestamp - frameStart >= currentIntervalMs) {
+        const framesForState = activeFrames.length ? activeFrames : frames.idle;
+        frameIndex = nextFrameIndex(framesForState.length);
+        applyFrame(frameIndex);
+        frameStart = timestamp;
+      }
+      requestAnimationFrame(tick);
+    }
+
+    async function call(command) {
+      if (!invoke) {
+        return null;
+      }
+      return invoke(command);
+    }
+
+    function clearPointerState(options = {}) {
+      pointerDown = null;
+      if (!options.keepNativeDragging) {
+        isNativeDragging = false;
+      }
+    }
+
+    function pointerDistance(a, b) {
+      if (!a || !b) {
+        return Number.POSITIVE_INFINITY;
+      }
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function rememberSingleClick(point) {
+      lastClickAt = performance.now();
+      lastClickPoint = point;
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+      }
+      clickTimer = setTimeout(() => {
+        showBubble(null, "双击打开控制台");
+        clickTimer = null;
+        lastClickAt = 0;
+        lastClickPoint = null;
+      }, doubleClickMs + 40);
+    }
+
+    async function handlePetDoubleClick(event) {
+      event?.preventDefault();
+      if (wasDragged) {
+        wasDragged = false;
+        return;
+      }
+      dragPreviewActive = false;
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+      }
+      lastClickAt = 0;
+      lastClickPoint = null;
+
+      const now = performance.now();
+      if (now - lastToggleAt < 260) {
+        return;
+      }
+      lastToggleAt = now;
+
+      setState("thinking");
+      const result = await call("toggle_console");
+      setState(result?.visible ? "success" : "idle", result || {});
+    }
+
+    document.body.addEventListener("mousedown", (event) => {
+      if (event.button !== 0 || event.target.closest("button")) {
+        return;
+      }
+      recordPetActivity();
+      wasDragged = false;
+      pointerDown = {
+        x: event.screenX,
+        y: event.screenY,
+        time: performance.now(),
+      };
+    });
+
+    document.body.addEventListener("mousemove", async (event) => {
+      if (!pointerDown || isNativeDragging || event.buttons !== 1) {
+        return;
+      }
+      recordPetActivity();
+      const dx = Math.abs(event.screenX - pointerDown.x);
+      const dy = Math.abs(event.screenY - pointerDown.y);
+      if (Math.hypot(dx, dy) < dragThreshold) {
+        return;
+      }
+      wasDragged = true;
+      isNativeDragging = true;
+      pointerDown = null;
+      beginDragPreview();
+      try {
+        await call("start_pet_dragging");
+      } catch {
+        finishNativeDrag();
+      }
+    });
+
+    document.body.addEventListener("mouseup", async (event) => {
+      if (event.button !== 0 || event.target.closest("button")) {
+        finishNativeDrag();
+        return;
+      }
+      recordPetActivity();
+      const releasedAt = { x: event.screenX, y: event.screenY };
+      const start = pointerDown;
+      const clickMoved = pointerDistance(start, releasedAt);
+      const isClick = Boolean(start) && !wasDragged && clickMoved < dragThreshold;
+      clearPointerState();
+      if (!isClick) {
+        finishNativeDrag();
+        return;
+      }
+      const now = performance.now();
+      if (
+        lastClickAt &&
+        now - lastClickAt <= doubleClickMs &&
+        pointerDistance(lastClickPoint, releasedAt) <= doubleClickDistance
+      ) {
+        await handlePetDoubleClick(event);
+        return;
+      }
+      endDragPreview();
+      rememberSingleClick(releasedAt);
+    });
+
+    window.addEventListener("mouseup", () => {
+      finishNativeDrag();
+    });
+
+    window.addEventListener("blur", () => {
+      const nativeDragInProgress = isNativeDragging;
+      clearPointerState({ keepNativeDragging: nativeDragInProgress });
+      if (!nativeDragInProgress) {
+        endDragPreview();
+      }
+    });
+    window.addEventListener("blur", () => call("stabilize_pet_window_command"));
+    window.addEventListener("focus", () => call("stabilize_pet_window_command"));
+
+    document.body.addEventListener("dblclick", handlePetDoubleClick);
+
+    document.getElementById("closeButton").addEventListener("click", () => {
+      call("quit_app");
+    });
+
+    // 右键交互菜单：点播表演（高优先级覆盖当前状态）/ 睡眠切换 / 打开控制台。
+    const petMenu = document.getElementById("petMenu");
+
+    function hidePetMenu() {
+      petMenu.classList.remove("is-visible");
+    }
+
+    function showPetMenu() {
+      const sleepItem = petMenu.querySelector('[data-act="sleep"]');
+      if (sleepItem) {
+        sleepItem.textContent = state === "sleeping" ? "☀ 唤醒" : "😴 睡觉";
+      }
+      petMenu.classList.add("is-visible");
+    }
+
+    document.body.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      if (petMenu.classList.contains("is-visible")) {
+        hidePetMenu();
+        return;
+      }
+      recordPetActivity();
+      showPetMenu();
+    });
+
+    petMenu.addEventListener("click", async (event) => {
+      const item = event.target.closest("[data-act]");
+      if (!item) {
+        return;
+      }
+      event.stopPropagation();
+      const act = item.dataset.act;
+      hidePetMenu();
+      recordPetActivity();
+      if (act === "martial") {
+        applyStatus({ state: "perform_martial", priority: 9, message: "武术时间！" });
+      } else if (act === "sleep") {
+        if (state === "sleeping") {
+          applyStatus({ state: "idle", message: "我醒啦。" });
+        } else {
+          applyStatus({ state: "sleeping", priority: 8, message: "我先睡了…" });
+        }
+      } else if (act === "console") {
+        await handlePetDoubleClick();
+      }
+    });
+
+    document.body.addEventListener("mousedown", (event) => {
+      if (!event.target.closest("#petMenu")) {
+        hidePetMenu();
+      }
+    });
+
+    // 文件拖放（HTML5）：拖文件到桌宠 → 读内容（base64）→ 经 Tauri command 上传到工作区附件。
+    // 桌宠窗口启用了 disable_drag_drop_handler，WebView2 把拖放交给网页层，故这里能收到 drop 事件。
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || "").split(",").pop() || "");
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+    }
+    function dragHasFiles(event) {
+      const types = event.dataTransfer ? Array.from(event.dataTransfer.types || []) : [];
+      return types.includes("Files");
+    }
+    ["dragenter", "dragover"].forEach((evt) => {
+      document.body.addEventListener(evt, (event) => {
+        if (!dragHasFiles(event)) {
+          return;
+        }
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+        if (state !== "attention" && state !== "carrying") {
+          applyStatus({ state: "attention", message: "松手放给我" });
+        }
+      });
+    });
+    document.body.addEventListener("dragleave", (event) => {
+      if (dragHasFiles(event)) {
+        event.preventDefault();
+      }
+    });
+    document.body.addEventListener("drop", async (event) => {
+      if (!dragHasFiles(event)) {
+        return;
+      }
+      event.preventDefault();
+      const fileList = event.dataTransfer ? Array.from(event.dataTransfer.files || []) : [];
+      if (!fileList.length) {
+        return;
+      }
+      recordPetActivity();
+      applyStatus({ state: "carrying", message: "接收文件中…" });
+      try {
+        const files = [];
+        for (const file of fileList) {
+          files.push({
+            name: file.name || "dropped-file",
+            mime_type: file.type || null,
+            content_base64: await fileToBase64(file),
+          });
+        }
+        const moved = invoke ? await invoke("pet_drop_uploaded", { files }) : 0;
+        applyStatus({
+          state: moved > 0 ? "success" : "warning",
+          message: moved > 0 ? `收下 ${moved} 个文件` : "没接住文件",
+        });
+      } catch (err) {
+        applyStatus({ state: "warning", message: "接收失败" });
+      }
+    });
+
+    if (listen) {
+      listen("pet-status", (event) => {
+        recordPetActivity();
+        const payload = event.payload || { state: "idle" };
+        if (payload.state !== "dragging") {
+          clearPointerState();
+          isNativeDragging = false;
+          dragPreviewActive = false;
+        }
+        applyStatus(payload);
+      });
+    }
+
+    setState("idle");
+    loadPetTheme();
+    setInterval(() => call("stabilize_pet_window_command"), 1200);
+    setInterval(maybeRunIdleAutonomy, IDLE_AUTONOMY_CHECK_MS);
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

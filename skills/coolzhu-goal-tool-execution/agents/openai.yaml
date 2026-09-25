@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goal Tool Execution"
+  short_description: "Use tools schemas Windows paths logs and verification correctly"
+  default_prompt: "Apply tool-execution constraints before calling tools in a Goal phase."

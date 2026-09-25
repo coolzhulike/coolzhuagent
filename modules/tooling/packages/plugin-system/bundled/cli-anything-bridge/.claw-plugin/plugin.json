@@ -1,0 +1,85 @@
+{
+  "name": "cli-anything-bridge",
+  "version": "0.1.0",
+  "description": "Bridge CLI-Anything generated CLIs into the Claw tool layer.",
+  "permissions": ["read", "write", "execute"],
+  "defaultEnabled": true,
+  "tools": [
+    {
+      "name": "cli_anything_status",
+      "description": "Inspect whether a CLI-Anything runtime or generated executable is available on this machine.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Optional explicit executable name or path to inspect."
+          }
+        },
+        "additionalProperties": false
+      },
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-WindowStyle",
+        "Hidden",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "./tools/cli_anything_bridge.ps1"
+      ],
+      "requiredPermission": "read-only"
+    },
+    {
+      "name": "cli_anything_run",
+      "description": "Run a CLI-Anything generated CLI or compatible command through the Claw tool layer.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Optional explicit executable name or absolute path. If omitted, the bridge tries CLI_ANYTHING_COMMAND and then common candidate names."
+          },
+          "args": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Command-line arguments passed to the target CLI."
+          },
+          "stdin": {
+            "type": "string",
+            "description": "Optional stdin payload."
+          },
+          "workingDirectory": {
+            "type": "string",
+            "description": "Optional working directory for the target CLI."
+          },
+          "timeoutSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "description": "Execution timeout in seconds."
+          },
+          "env": {
+            "type": "object",
+            "description": "Optional extra environment variables for the child process.",
+            "additionalProperties": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      },
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-WindowStyle",
+        "Hidden",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "./tools/cli_anything_bridge.ps1"
+      ],
+      "requiredPermission": "danger-full-access"
+    }
+  ]
+}

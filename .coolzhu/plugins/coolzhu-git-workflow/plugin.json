@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-git-workflow",
+  "version": "0.1.0",
+  "description": "Atomic commits, Gerrit Change-Id injection, and push-to-review helpers",
+  "permissions": ["read", "write", "execute"],
+  "defaultEnabled": false
+}

@@ -1,0 +1,5 @@
+117 QWEN_NO_THINK_OK
+
+---
+Context usage: 0.1% (1229/1000000 input tokens; source=remote). Local estimate: 1191 tokens; local prompt budget: 1191/848976 tokens; history truncated: false.
+Context turn: 000000000000000818d6bfed659c555c; Context snapshot: ctx-12c4e1d443db3ba3; history source: chat_room.messages; history loaded: 3; memory revision: mem-36bece86f153e332

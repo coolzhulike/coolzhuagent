@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-debug-diag",
+  "version": "0.1.0",
+  "description": "Crash analysis, stack trace parsing, leak detection, and profiling helpers",
+  "permissions": ["read"],
+  "defaultEnabled": false
+}

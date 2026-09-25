@@ -1,0 +1,17 @@
+{
+  "install_root": "%USERPROFILE%\\.claw\\local-vlm",
+  "profiles": {
+    "qwen": {
+      "base_url": "http://127.0.0.1:8001/v1",
+      "health_url": "http://127.0.0.1:8001/health",
+      "model": "qwen2.5-vl-3b",
+      "launcher": "%USERPROFILE%\\.claw\\local-vlm\\start-qwen-vl-server.ps1"
+    },
+    "showui": {
+      "base_url": "http://127.0.0.1:8000/v1",
+      "health_url": "http://127.0.0.1:8000/health",
+      "model": "showui-2b",
+      "launcher": "%USERPROFILE%\\.claw\\local-vlm\\start-showui-server.ps1"
+    }
+  }
+}

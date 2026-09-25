@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-orchestrator",
+  "version": "0.1.0",
+  "description": "Multi-agent task distribution with priority routing, retry, and timeout helpers",
+  "permissions": ["read", "write"],
+  "defaultEnabled": false
+}

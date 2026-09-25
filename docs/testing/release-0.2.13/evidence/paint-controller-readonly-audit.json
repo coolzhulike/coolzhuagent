@@ -1,0 +1,244 @@
+{
+  "read_only": true,
+  "database": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-qwen\\runtime\\.coolzhu\\web-sessions.sqlite3",
+  "queried_tables": [
+    "computer_use_runs",
+    "computer_use_steps"
+  ],
+  "room_id": "room-1789828631771",
+  "runs": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000118d6bfa8780b2af0-call_ff93b6818c9844e5b7cc764c",
+      "provider_tool_call_id": "call_ff93b6818c9844e5b7cc764c",
+      "turn_id": "000000000000000118d6bfa8780b2af0",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1789828631771",
+      "surface": "desktop",
+      "state": "blocked",
+      "state_version": 7,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "created_at_ms": 1789828638767,
+      "updated_at_ms": 1789828644621,
+      "terminal_result": {
+        "call_id": "cu-session-1779459149988-000000000000000118d6bfa8780b2af0-call_ff93b6818c9844e5b7cc764c",
+        "provider_tool_call_id": "call_ff93b6818c9844e5b7cc764c",
+        "status": "blocked",
+        "stage": "planning",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "invalid type: string \"click\", expected struct PlannerAction at line 1 column 17",
+        "error": {
+          "code": "invalid_plan",
+          "message": "invalid type: string \"click\", expected struct PlannerAction at line 1 column 17",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "uia_snapshot:hwnd-13f0682:elements=170",
+          "uia_snapshot:hwnd-13f0682:elements=170"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000418d6bfada37155c0-call_2a99d45df6144b5689d5aa74",
+      "provider_tool_call_id": "call_2a99d45df6144b5689d5aa74",
+      "turn_id": "000000000000000418d6bfada37155c0",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1789828631771",
+      "surface": "desktop",
+      "state": "blocked",
+      "state_version": 7,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "created_at_ms": 1789828665991,
+      "updated_at_ms": 1789828686148,
+      "terminal_result": {
+        "call_id": "cu-session-1779459149988-000000000000000418d6bfada37155c0-call_2a99d45df6144b5689d5aa74",
+        "provider_tool_call_id": "call_2a99d45df6144b5689d5aa74",
+        "status": "blocked",
+        "stage": "planning",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "invalid type: string \"click\", expected struct PlannerAction at line 1 column 17",
+        "error": {
+          "code": "invalid_plan",
+          "message": "invalid type: string \"click\", expected struct PlannerAction at line 1 column 17",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "uia_snapshot:hwnd-13f0682:elements=175",
+          "uia_snapshot:hwnd-13f0682:elements=175"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        }
+      },
+      "steps": []
+    }
+  ],
+  "events": [
+    {
+      "round": 1,
+      "events_sha256": "a39cd9228ce967a54b5e39bce80c82dd93c0cb940a226c99799593ca26aea34c",
+      "tool_records": [
+        {
+          "type": "message",
+          "at_ms": 12447,
+          "data": {
+            "id": "tool-call-7c7c76aa17de43df",
+            "author": "系统工具执行 Agent",
+            "role": "assistant",
+            "target": "qwen(qwen3.8-flash)",
+            "content": "工具 `computer_use_perform` 失败：工具 `computer-use-task-controller` 失败：invalid type: string \"click\", expected struct PlannerAction at line 1 column 17",
+            "kind": "tool-summary",
+            "attachments": []
+          }
+        },
+        {
+          "type": "message",
+          "at_ms": 12447,
+          "data": {
+            "id": "tool-result-7c7c76aa17de43df",
+            "author": "工具结果",
+            "role": "assistant",
+            "target": "qwen(qwen3.8-flash)",
+            "content": "tool_call_id: tool-call-7c7c76aa17de43df\ntool_name: computer_use_perform\nroute: computer-use-task-controller\nstatus: failed\nsummary: {\"call_id\":\"cu-session-1779459149988-000000000000000118d6bfa8780b2af0-call_ff93b6818c9844e5b7cc764c\",\"provider_tool_call_id\":\"call_ff93b6818c9844e5b7cc764c\",\"status\":\"blocked\",\"stage\":\"planning\",\"goal_achieved\":false,\"surface\":\"desktop\",\"summary\":\"invalid type: string \\\"click\\\", expected struct PlannerAction at line 1 column 17\",\"error\":{\"code\":\"invalid_plan\",\"message\":\"invalid type: string \\\"click\\\", expected struct PlannerAction at line 1 column 17\",\"retryable\":false,\"retry_owner\":\"model\"},\"attempts\":0,\"steps_completed\":0,\"evidence\":[\"uia_snapshot:hwnd-13f0682:elements=170\",\"uia_snapshot:hwnd-13f0682:elements=170\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":0,\"replan_count\":0,\"no_progress_count\":0}}",
+            "kind": "tool-result",
+            "attachments": []
+          }
+        }
+      ],
+      "done": [
+        {
+          "type": "done",
+          "at_ms": 21496,
+          "data": {
+            "turn_id": "chat-turn-1789828632189-0",
+            "run_id": "run-chat-2bb5b41f870c9c6e450807f7dc987d1beacf7bf9c30c4cb2",
+            "status": "completed",
+            "accepted_agent_ids": [
+              "session-1779459149988"
+            ],
+            "tasks": [
+              {
+                "id": "task-1789828632215-0",
+                "owner_agent": "qwen(qwen3.8-flash)",
+                "executor_agent": "qwen(qwen3.8-flash)",
+                "status": "模型已回",
+                "visible_in_chat": true,
+                "timeout_ms": 20000,
+                "summary": "会话 Agent 已按当前 Provider/Model 配置完成真实模型调用"
+              },
+              {
+                "id": "task-1789828632215-0-vision",
+                "owner_agent": "qwen(qwen3.8-flash)",
+                "executor_agent": "系统视觉 Agent",
+                "status": "已触发内视觉工具侧路",
+                "visible_in_chat": true,
+                "timeout_ms": 10000,
+                "summary": "@qwen 请求内视觉识别当前屏幕"
+              },
+              {
+                "id": "task-1789828632215-0-tool",
+                "owner_agent": "qwen(qwen3.8-flash)",
+                "executor_agent": "系统工具执行 Agent",
+                "status": "已触发 computer-use 工具侧路",
+                "visible_in_chat": true,
+                "timeout_ms": 15000,
+                "summary": "@qwen 请求键鼠/CLI 工具执行"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "events_sha256": "2c3563cc024390a211688dae6251d83a890c193cd83df2b1131bef97ca87720e",
+      "tool_records": [
+        {
+          "type": "message",
+          "at_ms": 31858,
+          "data": {
+            "id": "tool-call-01efdb0304b806b4",
+            "author": "系统工具执行 Agent",
+            "role": "assistant",
+            "target": "qwen(qwen3.8-flash)",
+            "content": "工具 `computer_use_perform` 失败：工具 `computer-use-task-controller` 失败：invalid type: string \"click\", expected struct PlannerAction at line 1 column 17",
+            "kind": "tool-summary",
+            "attachments": []
+          }
+        },
+        {
+          "type": "message",
+          "at_ms": 31859,
+          "data": {
+            "id": "tool-result-01efdb0304b806b4",
+            "author": "工具结果",
+            "role": "assistant",
+            "target": "qwen(qwen3.8-flash)",
+            "content": "tool_call_id: tool-call-01efdb0304b806b4\ntool_name: computer_use_perform\nroute: computer-use-task-controller\nstatus: failed\nsummary: {\"call_id\":\"cu-session-1779459149988-000000000000000418d6bfada37155c0-call_2a99d45df6144b5689d5aa74\",\"provider_tool_call_id\":\"call_2a99d45df6144b5689d5aa74\",\"status\":\"blocked\",\"stage\":\"planning\",\"goal_achieved\":false,\"surface\":\"desktop\",\"summary\":\"invalid type: string \\\"click\\\", expected struct PlannerAction at line 1 column 17\",\"error\":{\"code\":\"invalid_plan\",\"message\":\"invalid type: string \\\"click\\\", expected struct PlannerAction at line 1 column 17\",\"retryable\":false,\"retry_owner\":\"model\"},\"attempts\":0,\"steps_completed\":0,\"evidence\":[\"uia_snapshot:hwnd-13f0682:elements=175\",\"uia_snapshot:hwnd-13f0682:elements=175\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":0,\"replan_count\":0,\"no_progress_count\":0}}",
+            "kind": "tool-result",
+            "attachments": []
+          }
+        }
+      ],
+      "done": [
+        {
+          "type": "done",
+          "at_ms": 43431,
+          "data": {
+            "turn_id": "chat-turn-1789828654305-1",
+            "run_id": "run-chat-38ac28b6f898ff15c53072f327dd37a5a02a7acb25424a90",
+            "status": "completed",
+            "accepted_agent_ids": [
+              "session-1779459149988"
+            ],
+            "tasks": [
+              {
+                "id": "task-1789828654418-0",
+                "owner_agent": "qwen(qwen3.8-flash)",
+                "executor_agent": "qwen(qwen3.8-flash)",
+                "status": "模型已回",
+                "visible_in_chat": true,
+                "timeout_ms": 20000,
+                "summary": "会话 Agent 已按当前 Provider/Model 配置完成真实模型调用"
+              },
+              {
+                "id": "task-1789828654418-0-tool",
+                "owner_agent": "qwen(qwen3.8-flash)",
+                "executor_agent": "系统工具执行 Agent",
+                "status": "已触发 computer-use 工具侧路",
+                "visible_in_chat": true,
+                "timeout_ms": 15000,
+                "summary": "@qwen 请求键鼠/CLI 工具执行"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "raw_planner_response_available": false,
+  "raw_response_note": "源码只将 answer_text 交给严格解析器，错误入终态；现存表与 SSE 不保存内部 planner 原始请求或返回体。"
+}

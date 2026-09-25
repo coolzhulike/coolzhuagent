@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-agents-md-updater",
+  "version": "0.1.0",
+  "description": "Auto-updates AGENTS.md with session learnings after compaction",
+  "permissions": ["read", "write"],
+  "defaultEnabled": false
+}

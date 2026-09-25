@@ -1,0 +1,16 @@
+# Rust 构建产物（GB 级）
+/target/
+**/target/
+
+# 运行期数据
+**/*.sqlite3
+**/*.sqlite3-wal
+**/*.sqlite3-shm
+
+# E2E 输出
+/output/
+**/output/playwright/
+
+# 运行期产物（音频块/截图/索引等，不入版本）
+**/.coolzhu/
+**/tmp/

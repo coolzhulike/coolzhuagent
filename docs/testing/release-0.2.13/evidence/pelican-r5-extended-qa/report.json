@@ -1,0 +1,557 @@
+{
+  "input": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-qwen\\evidence\\pelican-r5.html",
+  "inputSha256": "f13cb35d1fc089dbd4c629d9f6b1427e2c9c1074c6aa65b40e21a45820e97add",
+  "output": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-qwen\\pelican-r5-extended-qa",
+  "checks": {
+    "actualSpeed": "passed",
+    "resetDefaults": "passed",
+    "layout1024x600": "passed",
+    "layout720x480": "passed",
+    "manualReducedMotion": "passed",
+    "manualMotionRestores": "passed",
+    "resetClearsReducedMotion": "passed",
+    "prefersReducedMotion": "passed",
+    "systemPreferenceChanges": "passed",
+    "noRuntimeErrors": "passed",
+    "noExternalRequests": "passed",
+    "inputUnchanged": "passed"
+  },
+  "blockedRequests": [],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "passed": true,
+  "initialControls": [
+    {
+      "index": 0,
+      "tag": "button",
+      "type": "button",
+      "text": "⏸ 暂停",
+      "label": "",
+      "aria": "",
+      "title": "",
+      "value": "",
+      "checked": null,
+      "pressed": "false",
+      "min": "",
+      "max": "",
+      "visible": true,
+      "disabled": false
+    },
+    {
+      "index": 1,
+      "tag": "input",
+      "type": "range",
+      "text": "",
+      "label": "速度\n1.00×",
+      "aria": "",
+      "title": "",
+      "value": "1",
+      "checked": false,
+      "pressed": null,
+      "min": "0.5",
+      "max": "2",
+      "visible": true,
+      "disabled": false
+    },
+    {
+      "index": 2,
+      "tag": "button",
+      "type": "button",
+      "text": "↺ 恢复默认",
+      "label": "",
+      "aria": "",
+      "title": "",
+      "value": "",
+      "checked": null,
+      "pressed": null,
+      "min": "",
+      "max": "",
+      "visible": true,
+      "disabled": false
+    },
+    {
+      "index": 3,
+      "tag": "input",
+      "type": "checkbox",
+      "text": "",
+      "label": "减少动态",
+      "aria": "",
+      "title": "",
+      "value": "on",
+      "checked": false,
+      "pressed": null,
+      "min": "",
+      "max": "",
+      "visible": true,
+      "disabled": false
+    }
+  ],
+  "defaultMotion": {
+    "supported": true,
+    "elapsedSeconds": 0.600300000011921,
+    "svgStart": 0.008399000391364098,
+    "svgEnd": 0.8001000285148621,
+    "svgAdvance": 0.791701028123498,
+    "actualRate": 1.3188422923667769
+  },
+  "speed": {
+    "half": {
+      "setting": {
+        "found": true,
+        "supported": true,
+        "input": {
+          "index": 1,
+          "tag": "input",
+          "type": "range",
+          "text": "",
+          "label": "速度\n1.00×",
+          "aria": "",
+          "title": "",
+          "value": "1",
+          "checked": false,
+          "pressed": null,
+          "min": "0.5",
+          "max": "2",
+          "visible": true,
+          "disabled": false
+        },
+        "actualValue": 0.5
+      },
+      "sample": {
+        "supported": true,
+        "elapsedSeconds": 1.2007000000029802,
+        "svgStart": 0.8667500019073486,
+        "svgEnd": 1.4687989950180054,
+        "svgAdvance": 0.6020489931106567,
+        "actualRate": 0.5014150021730345
+      }
+    },
+    "double": {
+      "setting": {
+        "found": true,
+        "supported": true,
+        "input": {
+          "index": 1,
+          "tag": "input",
+          "type": "range",
+          "text": "",
+          "label": "速度\n0.50×",
+          "aria": "",
+          "title": "",
+          "value": "0.5",
+          "checked": false,
+          "pressed": null,
+          "min": "0.5",
+          "max": "2",
+          "visible": true,
+          "disabled": false
+        },
+        "actualValue": 2
+      },
+      "sample": {
+        "supported": true,
+        "elapsedSeconds": 1.2006000000089407,
+        "svgStart": 1.6936990022659302,
+        "svgEnd": 4.1020989418029785,
+        "svgAdvance": 2.4083999395370483,
+        "actualRate": 2.005996951123699
+      }
+    },
+    "ratio": 4.000671983147893,
+    "expectedRatio": 4,
+    "tolerance": "单档实际速度与预期差异不超过 20%，两档比值在 3.2–4.8 之间"
+  },
+  "reset": {
+    "control": {
+      "index": 2,
+      "tag": "button",
+      "type": "button",
+      "text": "↺ 恢复默认",
+      "label": "",
+      "aria": "",
+      "title": "",
+      "value": "",
+      "checked": null,
+      "pressed": null,
+      "min": "",
+      "max": "",
+      "visible": true,
+      "disabled": false
+    },
+    "immediateTime": 0.008200000040233135,
+    "controls": [
+      {
+        "index": 0,
+        "tag": "button",
+        "type": "button",
+        "text": "⏸ 暂停",
+        "label": "",
+        "aria": "",
+        "title": "",
+        "value": "",
+        "checked": null,
+        "pressed": "false",
+        "min": "",
+        "max": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "range",
+        "text": "",
+        "label": "速度\n1.00×",
+        "aria": "",
+        "title": "",
+        "value": "1",
+        "checked": false,
+        "pressed": null,
+        "min": "0.5",
+        "max": "2",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "index": 2,
+        "tag": "button",
+        "type": "button",
+        "text": "↺ 恢复默认",
+        "label": "",
+        "aria": "",
+        "title": "",
+        "value": "",
+        "checked": null,
+        "pressed": null,
+        "min": "",
+        "max": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "checkbox",
+        "text": "",
+        "label": "减少动态",
+        "aria": "",
+        "title": "",
+        "value": "on",
+        "checked": false,
+        "pressed": null,
+        "min": "",
+        "max": "",
+        "visible": true,
+        "disabled": false
+      }
+    ],
+    "motion": {
+      "supported": true,
+      "elapsedSeconds": 0.7,
+      "svgStart": 0.016598999500274658,
+      "svgEnd": 0.71670001745224,
+      "svgAdvance": 0.7001010179519653,
+      "actualRate": 1.0001443113599506
+    },
+    "speedRestored": true,
+    "clockRestarted": true,
+    "playingRestored": true
+  },
+  "layouts": [
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 600
+      },
+      "document": {
+        "width": 1024,
+        "height": 600
+      },
+      "svg": {
+        "tag": "svg",
+        "text": "",
+        "bounds": {
+          "x": 99.203125,
+          "y": 12.5,
+          "width": 825.59375,
+          "height": 515.984375,
+          "right": 924.796875,
+          "bottom": 528.484375
+        },
+        "visible": true,
+        "fullyVisible": true
+      },
+      "controls": [
+        {
+          "tag": "button",
+          "text": "⏸ 暂停",
+          "bounds": {
+            "x": 225.078125,
+            "y": 546.484375,
+            "width": 86,
+            "height": 31,
+            "right": 311.078125,
+            "bottom": 577.484375
+          },
+          "visible": true,
+          "fullyVisible": true
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "bounds": {
+            "x": 363.078125,
+            "y": 553.984375,
+            "width": 160,
+            "height": 16,
+            "right": 523.078125,
+            "bottom": 569.984375
+          },
+          "visible": true,
+          "fullyVisible": true
+        },
+        {
+          "tag": "button",
+          "text": "↺ 恢复默认",
+          "bounds": {
+            "x": 599.078125,
+            "y": 545.484375,
+            "width": 100.84375,
+            "height": 33,
+            "right": 699.921875,
+            "bottom": 578.484375
+          },
+          "visible": true,
+          "fullyVisible": true
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "bounds": {
+            "x": 717.921875,
+            "y": 553.984375,
+            "width": 16,
+            "height": 16,
+            "right": 733.921875,
+            "bottom": 569.984375
+          },
+          "visible": true,
+          "fullyVisible": true
+        }
+      ],
+      "noOverflow": true,
+      "allVisible": true,
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 720,
+        "height": 480
+      },
+      "document": {
+        "width": 720,
+        "height": 480
+      },
+      "svg": {
+        "tag": "svg",
+        "text": "",
+        "bounds": {
+          "x": 25.59375,
+          "y": 11.5,
+          "width": 668.796875,
+          "height": 417.984375,
+          "right": 694.390625,
+          "bottom": 429.484375
+        },
+        "visible": true,
+        "fullyVisible": true
+      },
+      "controls": [
+        {
+          "tag": "button",
+          "text": "⏸ 暂停",
+          "bounds": {
+            "x": 130.3125,
+            "y": 439.984375,
+            "width": 70,
+            "height": 22,
+            "right": 200.3125,
+            "bottom": 461.984375
+          },
+          "visible": true,
+          "fullyVisible": true
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "bounds": {
+            "x": 242.3125,
+            "y": 442.984375,
+            "width": 110,
+            "height": 16,
+            "right": 352.3125,
+            "bottom": 458.984375
+          },
+          "visible": true,
+          "fullyVisible": true
+        },
+        {
+          "tag": "button",
+          "text": "↺ 恢复默认",
+          "bounds": {
+            "x": 422.3125,
+            "y": 438.484375,
+            "width": 82.34375,
+            "height": 25,
+            "right": 504.65625,
+            "bottom": 463.484375
+          },
+          "visible": true,
+          "fullyVisible": true
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "bounds": {
+            "x": 516.65625,
+            "y": 442.984375,
+            "width": 16,
+            "height": 16,
+            "right": 532.65625,
+            "bottom": 458.984375
+          },
+          "visible": true,
+          "fullyVisible": true
+        }
+      ],
+      "noOverflow": true,
+      "allVisible": true,
+      "passed": true
+    }
+  ],
+  "manualReducedMotion": {
+    "control": {
+      "index": 3,
+      "tag": "input",
+      "type": "checkbox",
+      "text": "",
+      "label": "减少动态",
+      "aria": "",
+      "title": "",
+      "value": "on",
+      "checked": false,
+      "pressed": null,
+      "min": "",
+      "max": "",
+      "visible": true,
+      "disabled": false
+    },
+    "checked": true,
+    "before": {
+      "clock": {
+        "supported": true,
+        "elapsedSeconds": 0.6510999999940396,
+        "svgStart": 1.2415000200271606,
+        "svgEnd": 1.8956990242004395,
+        "svgAdvance": 0.6541990041732788,
+        "actualRate": 1.0047596439552566
+      },
+      "pixelChanges": true,
+      "firstSha256": "79e5dc4748742e361e6870200157d24c4f051c08bd65f010cc70ad6cca9ccab9",
+      "secondSha256": "ce5477bd7e4058c2f3a6ca53b45fdc888f15b5a4797de07964609002db48872f"
+    },
+    "after": {
+      "clock": {
+        "supported": true,
+        "elapsedSeconds": 0.6517000000029802,
+        "svgStart": 1.9539990425109863,
+        "svgEnd": 1.9539990425109863,
+        "svgAdvance": 0,
+        "actualRate": 0
+      },
+      "pixelChanges": false,
+      "firstSha256": "fdb148b6457ff2a01d7eb2940d4d755fd906b844c1afbf2faab76ccbab757444",
+      "secondSha256": "fdb148b6457ff2a01d7eb2940d4d755fd906b844c1afbf2faab76ccbab757444"
+    },
+    "reduced": true,
+    "restored": {
+      "clock": {
+        "supported": true,
+        "elapsedSeconds": 0.6513999999910594,
+        "svgStart": 2.0081000328063965,
+        "svgEnd": 2.6623001098632812,
+        "svgAdvance": 0.6542000770568848,
+        "actualRate": 1.0042985524498984
+      },
+      "pixelChanges": true,
+      "firstSha256": "d46cb29599387e5cae60a400bc346e5f3742ef2517cf0d44ae87b09345563715",
+      "secondSha256": "75f2da382723e180511c70f54094dc7e98c14df3b4be30145355e34529f01686"
+    }
+  },
+  "reducedReset": {
+    "checkboxCleared": true,
+    "motion": {
+      "supported": true,
+      "elapsedSeconds": 0.5000999999940395,
+      "svgStart": 0.00800000037997961,
+      "svgEnd": 0.5121989846229553,
+      "svgAdvance": 0.5041989842429757,
+      "actualRate": 1.0081963292321237
+    }
+  },
+  "systemReducedMotion": {
+    "mediaMatches": true,
+    "checkbox": {
+      "index": 3,
+      "tag": "input",
+      "type": "checkbox",
+      "text": "",
+      "label": "减少动态",
+      "aria": "",
+      "title": "",
+      "value": "on",
+      "checked": true,
+      "pressed": null,
+      "min": "",
+      "max": "",
+      "visible": true,
+      "disabled": false
+    },
+    "sample": {
+      "clock": {
+        "supported": true,
+        "elapsedSeconds": 0.6511000000089407,
+        "svgStart": 0,
+        "svgEnd": 0,
+        "svgAdvance": 0,
+        "actualRate": 0
+      },
+      "pixelChanges": false,
+      "firstSha256": "7db509506bc7f57942e0f845bfc5b886062e19b0dd2a895b11065a8570daf257",
+      "secondSha256": "7db509506bc7f57942e0f845bfc5b886062e19b0dd2a895b11065a8570daf257"
+    },
+    "reduced": true
+  },
+  "systemMotionChanges": {
+    "restoredClock": {
+      "supported": true,
+      "elapsedSeconds": 0.5020999999940395,
+      "svgStart": 0.10400000214576721,
+      "svgEnd": 0.6082000136375427,
+      "svgAdvance": 0.5042000114917755,
+      "actualRate": 1.0041824566774764
+    },
+    "reducedAgainClock": {
+      "supported": true,
+      "elapsedSeconds": 0.5018999999910593,
+      "svgStart": 0.6123989820480347,
+      "svgEnd": 0.6123989820480347,
+      "svgAdvance": 0,
+      "actualRate": 0
+    }
+  },
+  "notes": [
+    "missing 表示本轮产物尚未具备对应功能；不代替最终轮验收。",
+    "减少动态允许冻结或明显减速；若模型仅禁用部分装饰动画而主 SVG 时钟不变，应结合截图与实现人工复核。"
+  ]
+}

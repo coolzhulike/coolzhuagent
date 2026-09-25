@@ -1,0 +1,7 @@
+{
+  "name": "coolzhu-marketplace",
+  "version": "0.1.0",
+  "description": "Agent template marketplace search, publish, install, and rendering helpers",
+  "permissions": ["read", "write"],
+  "defaultEnabled": false
+}

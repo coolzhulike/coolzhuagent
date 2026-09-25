@@ -1,0 +1,3 @@
+# Model binaries - downloaded separately
+models/*.bin
+models/*.onnx

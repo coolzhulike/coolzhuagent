@@ -1,0 +1,16 @@
+{
+  "session_id": "session-1779459149988",
+  "target_agent_ids": [
+    "session-1779459149988"
+  ],
+  "chat_room_id": "room-1789828902942",
+  "text": "请只根据附件图片回答：从左到右有哪些图形、各是什么颜色？图片下方的英文数字标记是什么？请完整抄写标记。不要调用工具，不要根据文件名猜测。",
+  "attachments": [
+    {
+      "kind": "image",
+      "name": "visual-fixture.png",
+      "url": "/api/attachments/files/att-1789828899400-505a9bd9e51ddcf9-visual-fixture.png",
+      "mime_type": "image/png"
+    }
+  ]
+}

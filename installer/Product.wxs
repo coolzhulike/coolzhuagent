@@ -1,0 +1,111 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="COOLZHU CODE Agent"
+           Manufacturer="Coolzhu"
+           Version="$(Version)"
+           UpgradeCode="7873714F-87EE-4DFA-8AAB-2A2402B4ABEA"
+           Scope="perMachine">
+    <MajorUpgrade DowngradeErrorMessage="已安装更高版本的 [ProductName]。" />
+    <MediaTemplate EmbedCab="yes" />
+    <Icon Id="CoolzhuApplicationIcon" SourceFile="$(ApplicationIcon)" />
+    <Property Id="ARPPRODUCTICON" Value="CoolzhuApplicationIcon" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLDIR" Name="CoolzhuAgent" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppMenuDir" Name="COOLZHU CODE" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Component Id="LauncherComponent" Directory="INSTALLDIR" Guid="*">
+      <File Id="LauncherExe"
+            Source="$(PackageRoot)\COOLZHU-AGENT.exe"
+            KeyPath="yes" />
+
+      <!--
+        将安装根目录及 bin 目录绑定到稳定的启动器组件。Files 收集器会
+        动态生成文件组件，但空目录本身没有稳定的卸载归属；显式登记创建
+        与卸载清理，确保 RemoveFiles 后遗留的空目录也能被移除。
+      -->
+      <CreateFolder Directory="INSTALLDIR" />
+      <CreateFolder Directory="INSTALLDIR" Subdirectory="bin" />
+      <RemoveFolder Id="RemoveInstallBinDir"
+                    Directory="INSTALLDIR"
+                    Subdirectory="bin"
+                    On="uninstall" />
+      <RemoveFolder Id="RemoveInstallRootDir"
+                    Directory="INSTALLDIR"
+                    On="uninstall" />
+
+      <Shortcut Id="StartMenuShortcut"
+                Directory="AppMenuDir"
+                Name="COOLZHU CODE Agent"
+                Target="[INSTALLDIR]COOLZHU-AGENT.exe"
+                Icon="CoolzhuApplicationIcon"
+                WorkingDirectory="INSTALLDIR" />
+      <Shortcut Id="DesktopShortcut"
+                Directory="DesktopFolder"
+                Name="COOLZHU CODE Agent"
+                Target="[INSTALLDIR]COOLZHU-AGENT.exe"
+                Icon="CoolzhuApplicationIcon"
+                WorkingDirectory="INSTALLDIR" />
+      <RemoveFolder Id="RemoveAppMenuDir"
+                    Directory="AppMenuDir"
+                    On="uninstall" />
+    </Component>
+
+    <Feature Id="Main" Title="COOLZHU CODE Agent" Level="1">
+      <ComponentRef Id="LauncherComponent" />
+      <Files Directory="INSTALLDIR" Include="$(PackageRoot)\**">
+        <!--
+          Keep recursive globs in the final file-selection segment so these
+          patterns compile with the bundled WiX 5 harvester. Directory
+          exclusions (including backup/tmp/session trees) are enforced by
+          the mandatory package safety scan before WiX runs; these patterns
+          are defense-in-depth for blocked file names and extensions.
+        -->
+        <Exclude Files="$(PackageRoot)\**web-sessions*" />
+        <Exclude Files="$(PackageRoot)\**coolzhu.toml" />
+        <Exclude Files="$(PackageRoot)\**.env*" />
+        <Exclude Files="$(PackageRoot)\**.sqlite" />
+        <Exclude Files="$(PackageRoot)\**.sqlite-*" />
+        <Exclude Files="$(PackageRoot)\**.sqlite3" />
+        <Exclude Files="$(PackageRoot)\**.sqlite3-*" />
+        <Exclude Files="$(PackageRoot)\**.db" />
+        <Exclude Files="$(PackageRoot)\**.db-*" />
+        <Exclude Files="$(PackageRoot)\**.bak" />
+        <Exclude Files="$(PackageRoot)\**.old" />
+        <Exclude Files="$(PackageRoot)\**.orig" />
+        <Exclude Files="$(PackageRoot)\**.rej" />
+        <Exclude Files="$(PackageRoot)\**.pem" />
+        <Exclude Files="$(PackageRoot)\**.key" />
+        <Exclude Files="$(PackageRoot)\**.pfx" />
+        <Exclude Files="$(PackageRoot)\**.p12" />
+        <Exclude Files="$(PackageRoot)\**.claw-todos.json" />
+        <Exclude Files="$(PackageRoot)\**credential" />
+        <Exclude Files="$(PackageRoot)\**credential.*" />
+        <Exclude Files="$(PackageRoot)\**credentials" />
+        <Exclude Files="$(PackageRoot)\**credentials.*" />
+        <Exclude Files="$(PackageRoot)\**secret" />
+        <Exclude Files="$(PackageRoot)\**secret.*" />
+        <Exclude Files="$(PackageRoot)\**secrets" />
+        <Exclude Files="$(PackageRoot)\**secrets.*" />
+        <Exclude Files="$(PackageRoot)\**token-cache" />
+        <Exclude Files="$(PackageRoot)\**token-cache.*" />
+        <Exclude Files="$(PackageRoot)\**credential-cache" />
+        <Exclude Files="$(PackageRoot)\**credential-cache.*" />
+        <Exclude Files="$(PackageRoot)\**access-token" />
+        <Exclude Files="$(PackageRoot)\**access-token.*" />
+        <Exclude Files="$(PackageRoot)\**refresh-token" />
+        <Exclude Files="$(PackageRoot)\**refresh-token.*" />
+        <Exclude Files="$(PackageRoot)\**session-token" />
+        <Exclude Files="$(PackageRoot)\**session-token.*" />
+        <Exclude Files="$(PackageRoot)\**auth-token" />
+        <Exclude Files="$(PackageRoot)\**auth-token.*" />
+        <Exclude Files="$(PackageRoot)\**package-report.json" />
+        <Exclude Files="$(PackageRoot)\COOLZHU-AGENT.exe" />
+      </Files>
+    </Feature>
+  </Package>
+</Wix>

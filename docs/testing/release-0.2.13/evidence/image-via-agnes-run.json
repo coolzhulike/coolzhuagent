@@ -1,0 +1,18 @@
+{
+  "run_id": "run-chat-fd5c0a58b0bcc1e9067b25193363a6d0067b8c1d8776f93d",
+  "kind": "chat_turn",
+  "workspace_id": "ws-19c397ce5cedaa94",
+  "session_id": "session-1779459149988",
+  "chat_room_id": "room-1789827909737",
+  "goal_id": null,
+  "phase_id": null,
+  "turn_id": "chat-turn-1789827909779-2",
+  "provider_turn_id": null,
+  "state": "completed",
+  "stop_reason": null,
+  "created_at": 1789827909782,
+  "started_at": 1789827909788,
+  "stop_requested_at": null,
+  "heartbeat_at": 1789827909788,
+  "finished_at": 1789827919368
+}

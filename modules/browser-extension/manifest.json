@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Coolzhu Agent Browser Bridge",
+  "version": "0.2.0",
+  "description": "Generation-bound DOM bridge for Coolzhu Agent Computer Use.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA616RpxllsqmG24Ceu5Ccsn4T5NZ+AMNgyIiwPw+6XRZPv+DiDnp3becDKQqO3FmHr5aLbQABlxL1qeMiX3M4lOPXqMN18iWMCizqJ4LPIyk9nGTXRAwlPxVlGNWMivXGWZN3hrMagzPZ0Mc9oScy2G34XngmY4uUPeH2jAZ8kqKbLtw7s5wVAhgKKlXQkov791C6pAD070lLZpayKncgpklWSD3F/MziBuBeQBxz4eZ4XCj6y4cFln9l9wQcDvms73/9iqCjGWd9Hg0VbVnXekRuRJc4LUJUgYwE1N74AxIhleI3aNiw5PU4o9hjK+pkN8cRWEBlMXK1EgAcUEe95wIDAQAB",
+  "permissions": ["activeTab", "scripting", "nativeMessaging", "tabs", "storage"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": { "service_worker": "service_worker.js" },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content_script.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "Coolzhu Agent Browser Bridge"
+  }
+}

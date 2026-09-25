@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<base href="/">
+<title>background fallback contract</title>
+<body>
+  <canvas id="coolzhu-seven-letter-startup-canvas" width="1680" height="900"></canvas>
+  <output id="contract-status">pending</output>
+  <script src="/seven-letter-startup-player.js"></script>
+  <script src="/coolzhu-seven-letter-manifest.js"></script>
+  <script>
+    (async () => {
+      const status = document.getElementById("contract-status");
+      const manifest = JSON.parse(JSON.stringify(window.CoolzhuSevenLetterManifest));
+      manifest.background.source.src = "assets/p83-coolzhu/__missing-scroll-shanhe.png";
+      const player = window.CoolzhuSevenLetterStartupPlayer;
+      const instance = player.createStartupPlayer({
+        manifest,
+        canvas: document.getElementById("coolzhu-seven-letter-startup-canvas"),
+        documentRef: document,
+        windowRef: window,
+        reducedMotion: true,
+        reducedMotionDelayMs: 300,
+      });
+      instance.start();
+      window.setTimeout(() => {
+        const scene = instance.getLastScene();
+        const passed = instance.isFinished()
+          && scene
+          && scene.background.drawn === false
+          && scene.glyphsDrawn.length === 7;
+        status.textContent = passed ? "PASS" : `FAIL finished=${instance.isFinished()} scene=${Boolean(scene)} glyphs=${scene ? scene.glyphsDrawn.length : "null"}`;
+        document.documentElement.dataset.contract = passed ? "pass" : "fail";
+      }, 1200);
+    })().catch((error) => {
+      document.getElementById("contract-status").textContent = `FAIL: ${error}`;
+      document.documentElement.dataset.contract = "fail";
+    });
+  </script>
+</body>

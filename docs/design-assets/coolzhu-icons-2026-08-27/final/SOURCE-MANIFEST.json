@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "asset_id": "app-icon-cz-moon-gate-lantern-v1",
+  "display_name": "C 月门灯芯＋CZ",
+  "generation": {
+    "mode": "built-in ImageGen",
+    "reference_images": [],
+    "final_prompt": "Use case: stylized-concept\nAsset type: Windows desktop application icon master artwork\nPrimary request: Create a polished wuxia-themed application icon derived from the Moon Gate Lantern concept, with the exact uppercase monogram \"CZ\" as the central brand mark.\nScene/backdrop: No scene and no background. Output a genuinely transparent RGBA canvas; all pixels outside the icon silhouette must have alpha 0.\nSubject: A compact square dark-emerald bamboo-scroll frame surrounding a circular moon gate. Inside the moon gate is one luminous jade bamboo-leaf sweep and a small warm-gold hanging lantern. Center the exact letters C and Z side by side over the jade light.\nStyle/medium: High-end painted game UI icon, emerald jade, dark bamboo green, warm antique gold, ivory-jade letter faces, glossy enamel, carved metal ornament, restrained magical glow, crisp production finish.\nComposition/framing: Square 1:1 icon, front-facing and geometrically centered, strong compact silhouette, generous transparent outer margin. The CZ monogram occupies about 42% of the inner circle width. Use very bold broad strokes, ivory-jade faces, clean warm-gold rims, and a dark emerald shadow. The letters must remain unmistakably readable at 16–32px. Keep the lantern visible at the lower-left of the inner circle and the jade leaf behind the letters.\nText (verbatim): \"CZ\"\nConstraints: Render exactly one uppercase C followed by one uppercase Z. Genuine alpha transparency only; no checkerboard, no white/black/gray background, no square background plate, no wallpaper, no outer drop shadow, no extra letters, words, numbers, symbols, watermark, mockup, or app-window frame. Preserve a refined bamboo-wuxia identity and the green/gold/ivory color harmony.\nAvoid: C resembling G, Z resembling 2, thin strokes, overly ornate calligraphy, tiny letters, cluttered leaves, photographic background, fake transparency grid.",
+    "successful_output_id": "exec-1275c8c1-c6a2-413b-877a-8c7569eb34a7",
+    "default_generation_directory": "ImageGen 默认生成目录仅作来源记录，生产引用仍是 source.path 指向的仓库母版。",
+    "rejected_reference_edits": [
+      {
+        "attempt": 1,
+        "status": "rejected_not_committed",
+        "reason": "输出为 24bpp RGB，并把棋盘格背景烘焙进图像。"
+      },
+      {
+        "attempt": 2,
+        "status": "rejected_not_committed",
+        "reason": "输出为 24bpp RGB，并把棋盘格背景烘焙进图像。"
+      }
+    ]
+  },
+  "source": {
+    "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1.png",
+    "format": "PNG",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "sha256": "2bfcd2602d8a364235a351dabac84caabc9512e0a17cc62de0a95757ec652fb2"
+  },
+  "derivation": {
+    "tool": "Pillow 12.3.0",
+    "resampling": "Lanczos",
+    "png_sizes": [16, 24, 32, 48, 64, 128, 256],
+    "ico_frame_order": [256, 128, 64, 48, 32, 24, 16]
+  },
+  "final_files": [
+    {
+      "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-16.png",
+      "format": "PNG",
+      "width": 16,
+      "height": 16,
+      "mode": "RGBA",
+      "sha256": "2dd1e2b27757264683ace0f3689b99cf562038b054efd3723ee6c760e6df8409"
+    },
+    {
+      "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-24.png",
+      "format": "PNG",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "d0360b473397ba6f1f534ca4342453d7da0cf743f81645c15ef3cdb33d59012a"
+    },
+    {
+      "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-32.png",
+      "format": "PNG",
+      "width": 32,
+      "height": 32,
+      "mode": "RGBA",
+      "sha256": "afe8950e713b2fb4bc3a092e131b85bfe565ba806db320fb7e22302f0457fb52"
+    },
+    {
+      "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-48.png",
+      "format": "PNG",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "42aaaf9b3cd5d53fc0cb64d2c0dbbadb57f374dfa9c70b00c72e6760e30782bf"
+    },
+    {
+      "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-64.png",
+      "format": "PNG",
+      "width": 64,
+      "height": 64,
+      "mode": "RGBA",
+      "sha256": "45218a3f7db474aa7c3a83ca9f1fb0245c1fdd4988b95b73db36ac3972671a56"
+    },
+    {
+      "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-128.png",
+      "format": "PNG",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA",
+      "sha256": "e908a59bec3a1c6c7323c7c6e095aeadeeb1e7534c581034f2abe599c7dc443e"
+    },
+    {
+      "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-256.png",
+      "format": "PNG",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA",
+      "sha256": "890a58bf681bb22009471cf851c0bee6248ee55fb8572e4c6442a9c36f172131"
+    },
+    {
+      "path": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1.ico",
+      "format": "ICO",
+      "frames": [256, 128, 64, 48, 32, 24, 16],
+      "sha256": "a8852f903d7f0c5246f9567e59666cc8fef763e0a3e0095a2ce3db26703e4db9"
+    }
+  ],
+  "runtime_files": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/icons/app-icon-cz-moon-gate-lantern-v1.ico",
+      "format": "ICO",
+      "frames": [256, 128, 64, 48, 32, 24, 16],
+      "sha256": "a8852f903d7f0c5246f9567e59666cc8fef763e0a3e0095a2ce3db26703e4db9",
+      "maps_to": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1.ico"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/icons/app-icon-cz-moon-gate-lantern-v1.png",
+      "format": "PNG",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA",
+      "sha256": "890a58bf681bb22009471cf851c0bee6248ee55fb8572e4c6442a9c36f172131",
+      "maps_to": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-256.png"
+    },
+    {
+      "path": "modules/gui-desktop/packages/desktop-console/assets/app-icon-cz-moon-gate-lantern-v1.png",
+      "format": "PNG",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA",
+      "sha256": "890a58bf681bb22009471cf851c0bee6248ee55fb8572e4c6442a9c36f172131",
+      "maps_to": "docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1-256.png"
+    }
+  ],
+  "runtime_mapping": {
+    "launcher_pe": "packages/app-launcher/build.rs -> docs/design-assets/coolzhu-icons-2026-08-27/final/app-icon-cz-moon-gate-lantern-v1.ico",
+    "msi_shortcuts_and_arp": "installer/Product.wxs -> CoolzhuApplicationIcon -> ARPPRODUCTICON and Desktop/StartMenu shortcuts",
+    "msi_build": "scripts/build-msi.ps1 -> final/app-icon-cz-moon-gate-lantern-v1.ico",
+    "tauri_bundle": "modules/gui-desktop/packages/tauri-shell/src-tauri/tauri.conf.json -> versioned ICO and PNG",
+    "tauri_tray": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs -> app.default_window_icon()",
+    "desktop_console": "modules/gui-desktop/packages/desktop-console/build.rs -> final ICO embedded as PE RT_GROUP_ICON/RT_ICON; modules/gui-desktop/packages/desktop-console/src/main.rs -> versioned 256px PNG"
+  }
+}
