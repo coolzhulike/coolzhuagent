@@ -2,7 +2,7 @@
 
 - **状态口径**（沿用第七轮裁决 §八）：**已裁决 / 已实现 / 生产已接线 / 目标环境·安装已验收**。四者不等价，"已实现"不等于"已接线"或"已验收"。
 - **范围**：第七、八两轮裁决的实施；三次现场问题修复（图标无法启动、默认工作区口径确认、**启动路径自锁**）；一次测试基础设施的并发竞态修复；**PR-01（P0-1）恢复处置闭环**（决策：`RecoveryDisposition` 状态机 + 人工放行通道）。
-- **验证基线**（本轮末实跑）：web-console **1133/0**、computer-use-core 123/0、windows-process-guard 50/0（1 ignored，另见 §7）、tool-registry 54/0、core-runtime **312/0**、module_linkage_smoke 4/0、app-launcher 64/0 + 5/0。
+- **验证基线**（本轮末实跑）：web-console **1135/0**、computer-use-core 123/0、windows-process-guard 50/0（1 ignored，另见 §7）、tool-registry 54/0、core-runtime **312/0**、module_linkage_smoke 4/0、app-launcher 64/0 + 5/0。
 - **本文件所有"锚点"都可用 §6 的命令核验**，不是凭记忆写的。
 
 ## 1. 实施计划完成情况
@@ -85,7 +85,10 @@
 | 项 | 现状 | 出处 |
 | --- | --- | --- |
 | RD4-03 剩余 | R3（撤销未激活许可）、R4（跨进程执行者身份核查）、Goal 锚点真实关系、真实子进程崩溃变体 | §B-69 |
-| P1/P2（决策已排期） | PR-04 运行预算 root deadline（chat/goal/relay accept 冻结）；PR-05 Paint 事实层；PKG-L07c-RACE 并发验收；Hook 授权服务；RPR-01b 剩余裸 `set_var` | 决策文档 §P1/§P2 |
+| P1-1 根 deadline（Phase 2） | 按裁决 **Phase 1 保持"未接线"并核实不假装**：`RootDeadlineState::NotWired` 如实呈现、`RunBudget` 在 web-console **零引用**（§B-87）。Phase 2 的 `RuntimeDeadlineContext`（chat/goal/relay accept 冻结 + `remaining = root ∩ CU ∩ stage`）**按裁决暂不做** | §B-87 |
+| P1-2 切换/关闭口径 | **已实现**（PR-04）：`outcome` 结果码（`applied`／`shutdown_incomplete`）+ 拒绝在应用之前返回 + 前端不再把 off 当已完成（2 条守门用例）。**vision switch 仍未纳入排空**（vision 服务未登记在途，代码注释已如实标注） | §B-87 |
+| P1-3 PKG-L07c-RACE | 按裁决**不重新打开**（P0 修复已完成，并发能力待验收） | 决策 §P1-3 |
+| PR-02B／PR-05 等 | `tool_calls` 登记链与 SafetyCleanup 事故登记；Paint 事实层；Hook 授权服务；RPR-01b 剩余裸 `set_var`；受控输入族补移动入口 | 决策 §P2／§B-84／§B-86 |
 | 真实崩溃变体 | 只在**真实库**上观察到"半途中断后重放"（已修并验证）；"恢复者进程被杀"的跨进程变体未构造 | §B-77 |
 | 由 launcher 启动的控制台进程内**输入安全联动** | 直接注入 env 运行已观察（走评估/保持隔离）；launcher→控制台链路的该行日志**未直接抓取**（进程由 launcher 派生） | §B-76 |
 | **签名** | 包为 `unsigned`；本轮不涉及 | §B-72 |

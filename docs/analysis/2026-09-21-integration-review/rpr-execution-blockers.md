@@ -1778,6 +1778,39 @@ cancel 重复／强杀／输入前失败）。
 **门禁**：workspace 构建 ✅、web-console **1133/0**、computer-use-core **123/0**、
 desktop-console **16/0**、module_linkage_smoke **5/0**（含新增守门）。
 
+### B-87 PR-04（P1）交付：切换/关闭口径收口——`shutdown_incomplete` 可判定，UI 不再把 off 当已完成
+
+**P1-1 根 deadline：按裁决的 Phase 1 处置（**不改代码**），并核实"不假装"成立。**
+
+- 事实：`RootDeadlineState::NotWired` 存在（`computer-use-core/src/budget.rs`），如实呈现为 `not_wired`；
+  `supervisor.rs` 有用例断言 `deadline().root_deadline_state().as_str() == "not_wired"`。
+- 核实"没有假装已接线"：`RunBudget` 在 web-console 侧**零引用**（grep 无命中），
+  即聊天/目标/中继路径没有偷偷造一个根 deadline。
+- Phase 2（`RuntimeDeadlineContext`：chat accept／goal accept／relay accept 冻结
+  `created_at`/`deadline`/`source`，模型请求取 `remaining = root ∩ CU ∩ stage`）按裁决
+  **"不要现在全面改"**执行 ⇒ 本轮不动，保持遗留（列入 §7）。
+
+**P1-2 切换/关闭：找到并修掉一处真实 UI 缺陷。**
+
+- 现状（修前）：后端 `api_local_models_switch` 里 chat switch 与 **`off` 都走同一排空闸门**，
+  失败时返回"关闭/切换未完成：{原因}"且**不写** off ✅（`off_does_not_bypass_the_drain_gate` 已覆盖）。
+  但两处不足：
+  1. 失败只有一句**人读** message，没有机器可判定的结果码；
+  2. **前端 `pollLocalModelsMode` 里 `requestedMode === "off" || …` 直接短路**——用户点 off 后
+     轮询立刻"完成"并渲染，于是"关闭未完成"在界面上看起来像已关闭。**这正是裁决禁止的"UI 显示 off"**。
+- 修法：
+  1. 响应新增机器可辨识的 `outcome`：`applied` / `shutdown_incomplete`
+     （`local_models_status_response_with_outcome`）；拒绝分支返回
+     `shutdown_incomplete` 且消息写明 `ShutdownIncomplete`。
+  2. 前端不再短路 off：只在**后端如实呈现** `active_mode === requestedMode` 时才认为完成；
+     收到 `shutdown_incomplete` 时显式提示"未执行关闭，当前仍为 X"，不按目标状态等待。
+- 守门用例（2 条）：后端断言"结果码必须在**应用切换之前**返回"（顺序错了就等于关闭已被执行，
+  再报未完成也晚了）+ 结果码可判定；前端断言不得再出现 off 短路、且必须按结果码处理。
+- **保持遗留**：vision switch 仍未纳入排空（vision 服务 7860/8000 未登记在途），
+  代码注释里已如实标注、此处不宣称已覆盖（属裁决提到的 P-06 待补项）。
+
+**门禁**：web-console **1135/0**。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

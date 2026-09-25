@@ -14661,7 +14661,9 @@ async function pollLocalModelsMode(requestedMode, initialStatus = null) {
   while (Date.now() < deadline) {
     const host = document.querySelector('[data-role="local-models"]');
     status = await requestJson("/api/local-models/status");
-    if (requestedMode === "off" || status.active_mode === requestedMode) {
+    // `off` **不是**"立即完成"：它是目标状态，不证明排空通过。必须等后端把它如实呈现为
+    // 当前模式（`shutdown_incomplete` 时后端根本不会关闭，因此这里也就等不到 off）。
+    if (status.active_mode === requestedMode) {
       await renderLocalModelsSwitch(status);
       return status;
     }
@@ -14792,6 +14794,15 @@ async function renderLocalModelsSwitch(prefetchedStatus = null) {
           body: JSON.stringify({ mode }),
         });
         await renderLocalModelsSwitch(switched);
+        if (switched && switched.outcome === "shutdown_incomplete") {
+          // 排空未确认 ⇒ 后端**没有**执行关闭/切换：不得继续按目标状态等待或显示 off。
+          appendLocalModelsMessage(
+            document.querySelector('[data-role="local-models"]'),
+            `${switched.message || "关闭/切换未完成"}（ShutdownIncomplete：未执行关闭，当前仍为 ${localModeLabel(switched.active_mode)}）`,
+            true,
+          );
+          return;
+        }
         await pollLocalModelsMode(mode, switched);
       } catch (error) {
         await renderLocalModelsSwitch();

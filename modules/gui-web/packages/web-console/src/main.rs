@@ -4855,9 +4855,30 @@ struct LocalModelsStatusResponse {
     model_path: Option<String>,
     model_path_exists: bool,
     message: String,
+    /// **机器可辨识的结果码**（PR-04／P1-2）：
+    ///
+    /// - `applied`：切换/关闭的实际状态已由本次调用落定（`active_mode` 与目标一致或已如实呈现）；
+    /// - `shutdown_incomplete`：**排空未确认**，因此**没有**执行关闭/切换，配置与 UI 都不得显示 off。
+    ///
+    /// 为什么要有它：此前只有一句人读的 message，前端只能靠"目标是否是 off"来猜是否完成——
+    /// 而 `off` 是**目标状态**，不证明用户同意中断在途生成。结果就是"关闭未完成"也可能被
+    /// 前端当成 off 已生效（`pollLocalModelsMode` 的短路）。结果码把这件事变成可判定的。
+    outcome: String,
 }
 
+/// 结果码：切换/关闭已落定。
+const LOCAL_MODELS_OUTCOME_APPLIED: &str = "applied";
+/// 结果码：排空未确认 ⇒ 未执行关闭/切换（UI 不得据此显示 off）。
+const LOCAL_MODELS_OUTCOME_SHUTDOWN_INCOMPLETE: &str = "shutdown_incomplete";
+
 fn local_models_status_response(message: impl Into<String>) -> LocalModelsStatusResponse {
+    local_models_status_response_with_outcome(message, LOCAL_MODELS_OUTCOME_APPLIED)
+}
+
+fn local_models_status_response_with_outcome(
+    message: impl Into<String>,
+    outcome: &str,
+) -> LocalModelsStatusResponse {
     let gemma_port = local_chat_runtime_config().port;
     let gemma = local_gemma_ready(gemma_port);
     let uidetr = local_port_listening(LOCAL_UIDETR_PORT);
@@ -4896,6 +4917,7 @@ fn local_models_status_response(message: impl Into<String>) -> LocalModelsStatus
         model_path: model_path.map(|path| path.to_string_lossy().to_string()),
         model_path_exists,
         message: message.into(),
+        outcome: outcome.to_string(),
     }
 }
 
@@ -5094,9 +5116,12 @@ async fn api_local_models_switch(
     // 已知覆盖范围：本闸门只覆盖经 llm-adapter 的 provider 请求；vision 服务
     // （7860/8000）尚未纳入在途登记，属 B-13 的 P-06 待补项（已记入台账，不在此宣称已覆盖）。
     if let Err(refusal) = local_model_switch_drain_gate().await {
-        return Json(local_models_status_response(format!(
-            "关闭/切换未完成：{refusal}"
-        )));
+        // **不落定**：既不改配置也不改 UI 目标态；结果码明确为 `shutdown_incomplete`，
+        // 让前端能判定"关闭未完成"，而不是把目标状态 off 当成已生效。
+        return Json(local_models_status_response_with_outcome(
+            format!("关闭/切换未完成（ShutdownIncomplete）：{refusal}"),
+            LOCAL_MODELS_OUTCOME_SHUTDOWN_INCOMPLETE,
+        ));
     }
     Json(switch_local_models(&payload.mode))
 }
@@ -61419,6 +61444,26 @@ pub(crate) mod tests {
         assert!(WEB_APP_JS.contains("包含正在执行的轮次"));
     }
 
+    /// **PR-04（P1-2）**：前端不得把 `off` 当成"立即完成"，且必须按结果码处理。
+    ///
+    /// 原先 `pollLocalModelsMode` 里 `requestedMode === "off" || ...` 的短路会让"关闭未完成"
+    /// 在界面上看起来像已关闭——这正是裁决禁止的"UI 显示 off"。
+    #[test]
+    fn frontend_never_treats_off_as_immediately_done() {
+        assert!(
+            !WEB_APP_JS.contains(&["requestedMode === \"off\" ||", " status.active_mode"].concat()),
+            "off 不得再短路轮询：它是目标状态，不证明排空通过"
+        );
+        assert!(
+            WEB_APP_JS.contains("shutdown_incomplete"),
+            "前端必须按结果码识别关闭未完成"
+        );
+        assert!(
+            WEB_APP_JS.contains("ShutdownIncomplete"),
+            "关闭未完成的提示必须能一眼看出，而不是被当成 off"
+        );
+    }
+
     /// **PR-01／P0-1**：人工放行入口必须真的接上，且文案不得把它说成"重启即解锁/删事故"。
     #[test]
     fn release_isolation_surface_is_wired_without_lying() {
@@ -85695,6 +85740,50 @@ attach: last_assistant
             super::stop_managed_local_service(super::LocalServiceRole::Showui),
             super::ManagedStop::NotManaged,
             "未登记的占用者属于外部服务，Agent 无权终止"
+        );
+    }
+
+    /// **PR-04（P1-2）**：排空未确认时结果码必须是 `shutdown_incomplete`，且**不得**已应用关闭。
+    ///
+    /// 这条把"关闭未完成"从一句人读的 message 变成**可判定**的结果码：前端据此拒绝显示 off
+    /// （`off` 是目标状态，不证明用户同意中断在途生成）。顺序断言尤其重要——
+    /// 一旦有人在拒绝分支**之前**就调用了 `switch_local_models`，关闭会被真的执行。
+    #[test]
+    fn shutdown_incomplete_is_machine_readable_and_never_applies_the_switch() {
+        let handler_start = WEB_MAIN_RS
+            .find(&["async fn api_local_models_", "switch("].concat())
+            .expect("switch handler exists");
+        let handler_end = WEB_MAIN_RS[handler_start..]
+            .find(&["Json(switch_local_", "models(&payload.mode))"].concat())
+            .map(|offset| handler_start + offset)
+            .expect("handler calls switch_local_models");
+        let body = &WEB_MAIN_RS[handler_start..handler_end];
+        let refusal_offset = body
+            .find(&["local_models_status_response_", "with_outcome("].concat())
+            .expect("拒绝分支必须用带结果码的构造函数");
+        // 注意：`body` 在**应用分支之前**就结束了（`handler_end` 正是该字符串的下标），
+        // 因此这里必须从完整源码的相对位置取，不能拿 body 去找它。
+        let apply_offset = WEB_MAIN_RS[handler_start..]
+            .find(&["Json(switch_local_", "models(&payload.mode))"].concat())
+            .expect("应用分支存在");
+        assert!(
+            refusal_offset < apply_offset,
+            "结果码必须在**应用切换之前**返回：否则关闭已经被执行，再报 shutdown_incomplete 也晚了"
+        );
+        assert!(
+            body.contains(&["LOCAL_MODELS_OUTCOME_", "SHUTDOWN_INCOMPLETE"].concat()),
+            "拒绝分支必须标注 shutdown_incomplete"
+        );
+        // 结果码本身可判定（构造出来就是它，不会被别的分支改写）。
+        let response = super::local_models_status_response_with_outcome(
+            "关闭/切换未完成（ShutdownIncomplete）：在途未结清",
+            super::LOCAL_MODELS_OUTCOME_SHUTDOWN_INCOMPLETE,
+        );
+        assert_eq!(response.outcome, "shutdown_incomplete");
+        assert!(
+            response.message.contains("ShutdownIncomplete"),
+            "人读消息必须能一眼看出未完成：{}",
+            response.message
         );
     }
 
