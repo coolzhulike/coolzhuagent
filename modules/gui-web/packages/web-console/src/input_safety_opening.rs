@@ -212,13 +212,24 @@ pub(crate) fn run_startup_input_safety(
     } else {
         Vec::new()
     };
+    // **同一资源范围只允许一个协调者**：整个启动路径共用一个协调器与一个协调范围，
+    // 不再给每个遗留运行/开放步骤各起一个（否则 epoch 会互相顶掉，现场实测踩到过）。
+    let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+        &safety_root,
+        &coordination_scope,
+        &resource_scope,
+        "startup-input-safety",
+        &["converge_legacy_cu_run", "open_new_input"],
+        std::time::Duration::from_secs(2),
+    )?;
     let mut converged = 0usize;
     let mut refused = 0usize;
     for run in &candidates {
         let report = run_legacy_recovery(&LegacyRecoveryInputs {
             session_db_path,
             input_safety_root: &safety_root,
-            coordination_scope: &format!("{coordination_scope}|legacy-{}", run.call_id),
+            coordinator: Some(&coordinator),
+            coordination_scope: &coordination_scope,
             resource_scope: &resource_scope,
             run,
             recovery_operation_id: &format!("startup-recovery-{}", run.call_id),
@@ -240,12 +251,42 @@ pub(crate) fn run_startup_input_safety(
     }
 
     // 再评估并（可能）开放。
-    let opening = assess_and_open_input_resource(
-        &safety_root,
-        session_db_path,
-        &resource_scope,
-        &format!("{coordination_scope}|startup-opening"),
-    )?;
+    // 评估与开放同样**复用**上面的协调器（不再另起一个、也不给范围加后缀）。
+    let opening = match assess_input_resource(&safety_root, session_db_path, &resource_scope) {
+        Ok(assessment) if assessment.is_safe() => {
+            match coordinator
+                .store()
+                .reopen_new_input_authorized(&resource_scope, coordinator.control())
+            {
+                Ok(state) => {
+                    debug_assert!(state.accepts_new_input);
+                    OpeningOutcome::Opened {
+                        epoch: coordinator.control().epoch(),
+                    }
+                }
+                Err(error) => OpeningOutcome::StoreUnavailable {
+                    code: error.code(),
+                    message: error.to_string(),
+                },
+            }
+        }
+        Ok(assessment) => OpeningOutcome::KeptIsolated { assessment },
+        Err(error) => OpeningOutcome::StoreUnavailable {
+            code: error.code(),
+            message: error.to_string(),
+        },
+    };
+    // 收尾：**一次性**释放协调资格。释放失败只如实记进日志口径（`opening` 已表达真实结果），
+    // 不再把整个启动路径判为失败——避免"资源其实已开放、却报告保持阻断"的误导性状态。
+    if let Err(error) = coordinator.store().release_recovery_epoch(
+        &crate::input_safety_store::OwnedRecoveryEpoch {
+            scope: resource_scope.clone(),
+            epoch: coordinator.control().epoch(),
+            coordinator_instance_id: coordinator.control().coordinator_id().to_string(),
+        },
+    ) {
+        eprintln!("[input-safety] 启动路径收尾释放资格失败（不影响已表达的 opening 结果）：{error}");
+    }
     Ok(StartupInputSafetyReport {
         candidates: candidates.len(),
         converged,

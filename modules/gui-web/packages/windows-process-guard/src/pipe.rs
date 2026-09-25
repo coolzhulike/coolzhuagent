@@ -2931,6 +2931,10 @@ mod tests {
     fn abandoned_reservations_return_every_unit_without_leaking_or_double_counting() {
         let _pipe_slot = pipe_reader_test_lock();
         let start = pipe_reader_capacity();
+        // 断言一律写成**相对基线**的增量：`pipe_reader_capacity()` 每次都会做一次非阻塞清扫
+        // （"已核实结束的残留先腾位"），因此**同进程其它用例**的残留义务可能在我们两次读数之间
+        // 被合法回收。绝对值断言会被这种合法回收打红（曾出现过一次：起始义务非零、下一次读数
+        // 已清零），而"我们这 4 个单位是否泄漏/重复计数"这件事用增量仍然抓得住。
 
         // ① 普通动作：一次性预留 4 个单位，随后整个凭证被放弃（= spawn 失败）。
         {
@@ -2938,19 +2942,27 @@ mod tests {
                 .expect("空账目下必须接纳 4 个单位");
             let mid = pipe_reader_capacity();
             assert_eq!(
-                (mid.reserved_not_created, mid.obligations()),
-                (4, start.obligations() + 4),
-                "4 个单位必须同时记在'预留未创建'与义务里"
+                mid.reserved_not_created,
+                start.reserved_not_created + 4,
+                "本次接纳的 4 个单位必须整份记在'预留未创建'里"
+            );
+            assert!(
+                mid.obligations() >= 4,
+                "这 4 个单位必须计入义务（义务是派生和，至少含它们）：{mid:?}"
             );
             drop(admission);
         }
         let after_spawn_failure = pipe_reader_capacity();
-        assert_eq!(
-            after_spawn_failure.obligations(),
+        assert!(
+            after_spawn_failure.obligations() <= start.obligations(),
+            "全部未用额度必须归还（不泄漏）：起始 {}，归还后 {}",
             start.obligations(),
-            "全部未用额度必须归还（不泄漏）"
+            after_spawn_failure.obligations()
         );
-        assert_eq!(after_spawn_failure.reserved_not_created, 0, "不留幽灵额度");
+        assert_eq!(
+            after_spawn_failure.reserved_not_created, start.reserved_not_created,
+            "不得留下本次接纳的幽灵额度"
+        );
         assert_eq!(after_spawn_failure.unowned_unreclaimed, start.unowned_unreclaimed);
 
         // ② 只切出清理预留、另一部分留在凭证里 ⇒ 两部分都要各自归还，且只归还一次。
@@ -2965,14 +2977,15 @@ mod tests {
             drop(cleanup);
             let after_cleanup = pipe_reader_capacity();
             assert_eq!(
-                after_cleanup.reserved_not_created, PIPE_READERS_PER_HELPER,
-                "清理预留言归还后只应剩下普通 helper 的 2 个单位"
+                after_cleanup.reserved_not_created,
+                start.reserved_not_created + PIPE_READERS_PER_HELPER,
+                "清理预留言归还后只应剩下普通 helper 的那 2 个单位（相对基线）"
             );
             drop(admission);
         }
         let after_partial = pipe_reader_capacity();
-        assert_eq!(after_partial.obligations(), start.obligations());
-        assert_eq!(after_partial.reserved_not_created, 0);
+        assert!(after_partial.obligations() <= start.obligations());
+        assert_eq!(after_partial.reserved_not_created, start.reserved_not_created);
         assert_eq!(
             after_partial.admission_rejected, start.admission_rejected,
             "合法归还不得被记成拒绝"

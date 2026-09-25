@@ -60,6 +60,11 @@ pub(crate) struct LegacyRecoveryInputs<'a> {
     pub input_safety_root: &'a Path,
     /// 跨进程协调范围（生产用 `recovery_coordination_scope()`）。
     pub coordination_scope: &'a str,
+    /// 调用方**已经持有**的协调器（同一资源范围只允许一个协调者）。
+    ///
+    /// 启动路径必须复用它：若每个遗留运行各起一个协调器，即使协调范围字符串不同，
+    /// 它们改的仍是**同一个资源 scope** 的 epoch，会互相顶掉资格（现场实测踩到过）。
+    pub coordinator: Option<&'a InputSafetyCoordinator>,
     pub resource_scope: &'a InputSafetyResourceScope,
     pub run: &'a LegacyUnconvergedRun,
     pub recovery_operation_id: &'a str,
@@ -93,14 +98,43 @@ pub(crate) fn run_legacy_recovery(
     let run = inputs.run;
 
     // ---- R1：取得同 scope 唯一恢复协调权（跨进程锁 + epoch + RecoveryOperationStarted）----
-    let coordinator = InputSafetyCoordinator::begin(
-        inputs.input_safety_root,
-        inputs.resource_scope,
-        inputs.recovery_operation_id,
-        &["converge_legacy_cu_run"],
-        std::time::Duration::from_secs(2),
-    )?;
+    //
+    // 调用方已持有协调器时**复用它**（同一资源范围只允许一个协调者）；否则自行取得。
+    let owned_coordinator;
+    let coordinator = match inputs.coordinator {
+        Some(existing) => existing,
+        None => {
+            owned_coordinator = InputSafetyCoordinator::begin(
+                inputs.input_safety_root,
+                inputs.resource_scope,
+                inputs.recovery_operation_id,
+                &["converge_legacy_cu_run"],
+                std::time::Duration::from_secs(2),
+            )?;
+            &owned_coordinator
+        }
+    };
     let guard: &RecoveryControlGuard = coordinator.control();
+    // 无论自有还是**复用**协调器，都要确保"本次运行"的操作已登记并绑定当前资格：
+    // 协调器自带的登记用的是它自己的 operation id；复用时不补这一步，
+    // 后续按资格推进阶段会报"恢复操作不存在"（测试抓到过）。这里用幂等登记，
+    // 已存在的操作只会被推进 stage/committed，不会被换绑。
+    coordinator
+        .store()
+        .put_recovery_operation(&runtime::InputSafetyRecoveryOperation {
+            recovery_operation_id: inputs.recovery_operation_id.to_string(),
+            coordinator_instance_id: guard.coordinator_id().to_string(),
+            recovery_epoch: guard.epoch(),
+            gate_revision: guard.epoch(),
+            scope: inputs.resource_scope.clone(),
+            source_database_identity: inputs.source_database_identity.to_string(),
+            candidate_run_ids: vec![run.call_id.clone()],
+            allowed_operations: vec!["converge_legacy_cu_run".to_string()],
+            stage: RecoveryStage::CoordinationAcquired,
+            recorded_at_unix_ms: unix_now_ms(),
+            committed: false,
+        })
+        .map_err(CoordinatorError::Store)?;
 
     // ---- R2：持久化恢复意图 + **关闭新输入接纳**（收紧方向不需要资格，但由协调者执行）----
     coordinator
@@ -389,6 +423,7 @@ mod tests {
         let report = run_legacy_recovery(&LegacyRecoveryInputs {
             session_db_path: &session_db,
             input_safety_root: &safety_root,
+            coordinator: None,
             coordination_scope: "windows-session-recovery|physical-input-resource",
             resource_scope: &scope(),
             run: &run,
@@ -451,6 +486,7 @@ mod tests {
         let report = run_legacy_recovery(&LegacyRecoveryInputs {
             session_db_path: &session_db,
             input_safety_root: &safety_root,
+            coordinator: None,
             coordination_scope: "windows-session-recovery-owner|physical-input-resource",
             resource_scope: &scope(),
             run: &run,
@@ -503,6 +539,7 @@ mod tests {
         let report = run_legacy_recovery(&LegacyRecoveryInputs {
             session_db_path: &session_db,
             input_safety_root: &safety_root,
+            coordinator: None,
             coordination_scope: "windows-session-recovery-check|physical-input-resource",
             resource_scope: &scope(),
             run: &run,
