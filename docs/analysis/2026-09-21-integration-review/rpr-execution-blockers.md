@@ -2146,8 +2146,15 @@ fail-closed 正确，但**无路可走**（§B-84 记的 CU-F05-5 正半缺口�
 **门禁**：uia-resolver **7/0**、vision-service 36/0、web-console 1147/0、
 `cargo build --workspace` ✅。
 
-**下一步（若要真用起来）**：把 `patterns`／`toggle_state` 等接入 observation 的 `state`，
-让 planner 能看到"这个元素可切换／已选中"；以及升级 windows crate 拿全量模式（另开工单）。
+**收尾（同一轮补上）**：状态已进入 locate 结果的**可见文本**——`uia_hit_to_attempt` 的
+`raw_response` 现在带 `describe_uia_state`，格式为
+`selected=yes|no|unsupported focus=… toggle=on|off|indeterminate|unknown|unsupported patterns=[…]`。
+三条口径由用例钉住：**不支持写 `unsupported`（不是 `no`）**、认不出的开关取值**原样保留**为 `unknown`
+（不回落 `off`）、`patterns` 为空写 `[]`（本项目只探测关心的四种，不臆测全集）。
+用例 `uia_state_description_never_confuses_unsupported_with_false`。
+
+**仍未做**：把状态接进 observation 的 `state` 结构化字段（今天只进了 `raw_response` 文本）；
+升级 windows crate 拿全量模式（另开工单）。
 
 ### B-98 CU-01 的 **UI 落列**交付：运行列表端点 + 状态栏入口（"核对 DB／UI／报告"三处齐备）
 

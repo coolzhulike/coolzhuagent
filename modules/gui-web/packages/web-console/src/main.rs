@@ -22337,6 +22337,27 @@ fn locate_target_text(target: &vision::locate::LocateTarget) -> String {
     }
 }
 
+/// **CU-05**：把 UIA 元素状态描述成**可读且不撒谎**的一段文本。
+///
+/// 三条口径（离线用例钉住）：
+/// - `None` ⇒ 写「`不支持`」而不是 `no`/`false`——"不知道"与"没选中"是两回事；
+/// - `toggle_state` 缺失同例；`unknown`（认不出的取值）原样保留，不回落成 `off`；
+/// - `patterns` 为空 ⇒ 写 `[]`（本项目只探测关心的四种，不臆测模式全集）。
+fn describe_uia_state(hit: &uia_resolver::UiaHit) -> String {
+    let tri = |value: Option<bool>| match value {
+        Some(true) => "yes",
+        Some(false) => "no",
+        None => "unsupported",
+    };
+    format!(
+        "selected={} focus={} toggle={} patterns=[{}]",
+        tri(hit.is_selected),
+        tri(hit.has_keyboard_focus),
+        hit.toggle_state.as_deref().unwrap_or("unsupported"),
+        hit.patterns.join(",")
+    )
+}
+
 fn uia_hit_to_attempt(
     started: std::time::Instant,
     hit: uia_resolver::UiaHit,
@@ -22357,8 +22378,13 @@ fn uia_hit_to_attempt(
         bbox: Some(hit.bounding_rect),
         confidence: Some(hit.confidence),
         raw_response: Some(format!(
-            "uia target name={:?} automation_id={:?} control_type={}",
-            hit.name, hit.automation_id, hit.control_type
+            // CU-05：把状态一并呈现（planner 由此能看到"可切换/已选中"），
+            // 且"不支持"如实写成 unsupported，不冒充 false。
+            "uia target name={:?} automation_id={:?} control_type={} {}",
+            hit.name,
+            hit.automation_id,
+            hit.control_type,
+            describe_uia_state(&hit)
         )),
         model: Some("windows-uiautomation".to_string()),
         base_url: None,
@@ -61833,6 +61859,56 @@ pub(crate) mod tests {
             WEB_APP_JS.contains("ShutdownIncomplete"),
             "关闭未完成的提示必须能一眼看出，而不是被当成 off"
         );
+    }
+
+    /// **CU-05**：状态描述必须把"不支持"与"否"分开写（离线可测的最后一环）。
+    #[test]
+    fn uia_state_description_never_confuses_unsupported_with_false() {
+        let hit = |is_selected: Option<bool>,
+                   focus: Option<bool>,
+                   toggle: Option<&str>,
+                   patterns: &[&str]| uia_resolver::UiaHit {
+            automation_id: Some("CheckBox1".to_string()),
+            class_name: None,
+            name: Some("启用".to_string()),
+            control_type: "CheckBox".to_string(),
+            // `BBoxPx` 由 `vision::locate` 定义、uia-resolver 未再导出 ⇒ 这里用它自己的路径。
+            bounding_rect: vision::locate::BBoxPx {
+                x: 0,
+                y: 0,
+                width: 10,
+                height: 10,
+            },
+            is_offscreen: false,
+            is_enabled: true,
+            confidence: 0.9,
+            is_selected: is_selected,
+            has_keyboard_focus: focus,
+            toggle_state: toggle.map(str::to_string),
+            patterns: patterns.iter().map(|value| (*value).to_string()).collect(),
+        };
+        let supported = super::describe_uia_state(&hit(
+            Some(true),
+            Some(false),
+            Some("on"),
+            &["selection_item", "toggle"],
+        ));
+        assert!(supported.contains("selected=yes"), "{supported}");
+        assert!(supported.contains("focus=no"), "{supported}");
+        assert!(supported.contains("toggle=on"), "{supported}");
+        assert!(supported.contains("patterns=[selection_item,toggle]"), "{supported}");
+        // 不支持 ⇒ unsupported（**不是** no）：这是"不知道"而不是"没选中"。
+        let unsupported = super::describe_uia_state(&hit(None, None, None, &[]));
+        assert!(unsupported.contains("selected=unsupported"), "{unsupported}");
+        assert!(unsupported.contains("toggle=unsupported"), "{unsupported}");
+        assert!(unsupported.contains("patterns=[]"), "{unsupported}");
+        assert!(
+            !unsupported.contains("selected=no"),
+            "不得把「不支持选择模式」写成「没选中」：{unsupported}"
+        );
+        // 认不出的开关取值原样保留，不回落成 off。
+        let unknown = super::describe_uia_state(&hit(Some(false), Some(true), Some("unknown"), &[]));
+        assert!(unknown.contains("toggle=unknown"), "{unknown}");
     }
 
     /// **CU-01**：运行列表给出候选与事实摘要——**不谎报**（未初始化即如实说），

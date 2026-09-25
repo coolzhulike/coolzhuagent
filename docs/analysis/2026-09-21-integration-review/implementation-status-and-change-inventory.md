@@ -95,7 +95,7 @@
 | CU-01 五列落列 | **报告面 + UI 面均已实现**（§B-94／§B-98）：`GET /api/computer-use/run-report`（单次）与 `GET /api/computer-use/runs`（列表）+ 状态栏「CU 运行…」入口；不可读时如实报 `unavailable` | §B-94／§B-98 |
 | **CU-04**（坐标与陈旧帧） | **安全半已具备 + 本轮补齐度量验收**（§B-95）：vision 返回 0–1 相对坐标、宿主映射含越界拒绝、四档缩放用例、两表面陈旧帧守卫（桌面含 rect/dpi）；新增**跨缩放往返误差 ≤1px** 断言 | §B-95 |
 | **Hook 授权服务（P2-2）** | **已实现（插件侧对齐）**（§B-96）：`HookAuthorizationService` + 默认什么都不授权 + `unauthorized_skips` 可分辨"没跑"与"允许"；运行时侧原已具备该语义 | §B-96 |
-| **CU-05（UIA 状态）** | **已实现**（§B-97）：快照/命中增加 `is_selected`／`has_keyboard_focus`／`toggle_state`／`patterns`，`None` = 不支持（不是 false）；纯映射与传递有离线用例；**真实 UIA 读取未现场执行**（COM 路径），且"支持的模式"是**逐个探测**（固定 windows 版本无 `GetSupportedPatterns`）。**未接**：把状态接入 observation 供 planner 使用 | §B-97 |
+| **CU-05（UIA 状态）** | **已实现（含可见面）**（§B-97）：快照/命中四字段（`None` = 不支持，不是 false）+ 纯映射 + 状态进入 locate 的 `raw_response`（`unsupported`/`unknown` 如实写）；离线用例齐；**真实 UIA 读取未现场执行**；模式为**逐个探测**。**未做**：接进 observation 的结构化 `state`；升级 windows crate 拿全量模式 | §B-97 |
 | 其余 P2 | CU-04 剩余：可选语义 canvas ROI 与「ROI 不含工具栏」；`frame_id` 命名（需说明比现有身份多判什么）。CU-03 planner 反馈（**需模型评测预算**）。CU-05 剩余：把状态接入 observation 供 planner 使用（§B-97） | 决策 §P2／§B-95／§B-97 |
 | ~~受控族缺 `move` 入口~~ | **已闭环（§B-89）**：helper 增加 `move`／`move_relative` 模式（相对移动由 helper 自己读位置）、`controlled_move_mouse_absolute/relative` 上线、两处调用迁移完成、移动原语改名 `diagnostic_*`、守门**例外清零**；真跑用例（mock 驱动 + 真实 helper 进程）通过 | §B-89 |
 | 真实崩溃变体 | 只在**真实库**上观察到"半途中断后重放"（已修并验证）；"恢复者进程被杀"的跨进程变体未构造 | §B-77 |
