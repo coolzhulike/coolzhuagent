@@ -1349,6 +1349,21 @@ RD4-01 按"不自行抢占版本号"的纪律停下并交回一行。该行落�
 **为什么不当作纯测试噪声**：该用例所在的**正是**保证"放弃的预留不泄漏、不重复计数"的那段生产记账逻辑；若在真实场景（账目非空、多次接纳）下义务计数确实会少记，那是**生产缺陷**而不是测试问题。因此本项需要 RD4-09 补两件证据：① 触发条件的**受控复现**（例如显式构造"起始账目非空"的用例，而不是靠用例顺序碰出来）；② 区分"测试清理不足"与"生产记账缺陷"的对照实验。
 **首次失败日志已保留**：`tmp/guard-first-failure.log`（与 `tmp/gates/final-guard.log` 同源），未被后续绿色覆盖。
 
+### B-74 提交入库完成，**GitHub PR 被阻塞**（无远端/无 gh/无 token）；含一次我自己的文件覆盖事故
+
+**已完成（本地）**：工作树确实是 git 仓库（分支原为 `master`，两个种子提交 `baa8e35`/`0a3802b`，`git ls-files` 原为 **0**、无任何远端）。已新建分支 **`rd4-input-safety-and-pkg-integrity`** 并提交 **`965166c`**：`1540 files changed, 454375 insertions(+)`（`target`/`tmp`/`package`/`dist` 由既有 .gitignore 排除），提交信息逐条列出改动面、验证数字与**尚未验证项**。
+
+**GitHub PR 无法创建（阻塞，需用户提供）**：① `git remote -v` **为空**（无任何远端）；② `gh` **未安装**；③ 环境无 `GITHUB_TOKEN`/`GH_TOKEN`。凭据助手是 `manager`（若给出远端 URL，HTTPS 推送**可能**可用）。只读探测 `https://github.com/zhupu1122/coolzhuagent` 返回 **404**（不存在，或私有仓库对未授权请求同样 404，二者不可区分）——因此**不能**据此假定目标仓库。
+
+**完成 PR 所需的命令（待远端确定后执行）**：
+```
+git remote add origin <仓库 URL>
+git push -u origin rd4-input-safety-and-pkg-integrity
+# 有 gh 时：gh pr create --base master --head rd4-input-safety-and-pkg-integrity --title "..." --body-file <文件>
+```
+
+**⚠ 我自己的事故（如实记录）**：准备工作时我先执行 `git add -A`，随后**直接覆盖**了工作区里**已存在**的 `.gitattributes`（未先查看内容——正是"覆盖前先看目标"这条纪律的反面）。该文件**未被任何提交跟踪**，两个种子提交里都没有它（`fatal: path '.gitattributes' exists on disk, but not in 'baa8e35'/'0a3802b'`），因此无法从 git 恢复；我在 `tmp/2026-09-19-agent-fixes/pr-checkout/.gitattributes` 找到一份**旧检出副本**（3 行：钉 `app.js`/`styles.css` 为 `eol=lf`），据此**恢复原文并追加**了本轮的 `eol=lf` 规则（原因：本机 `core.autocrlf=true`，而 `pipe.rs` 的文本钉住断言把 LF 本身当契约）。**风险**：若原文件还有其它规则（副本未必是最新版），需要由你确认或补回；我无法证明副本与覆盖前的内容逐字一致。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
