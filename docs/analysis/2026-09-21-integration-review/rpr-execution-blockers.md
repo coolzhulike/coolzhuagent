@@ -1559,6 +1559,52 @@ HTTP（只读/非改动校验）：空署名 ⇒ 400；阻断集合不符 ⇒ 40
 证据存放位置）；本机资源当前仍是隔离状态（2 条未获放行阻断）——这是**设计结果**，不是待修 bug；
 是否放行是**运营决定**，我不代行。
 
+### B-83 PR-02（P0-2）**开工前侦察**：接线面已定位，但有两个规格分叉必须先定口径
+
+**结论先行**：PR-02 不是"从零造事实链"，而是**接线**——三块关键件**已存在**：
+
+| 已有件 | 位置（可核验） | 说明 |
+| --- | --- | --- |
+| 真实规划 attempt 的产生 | `computer_use_planner.rs:538` `register_plan_attempt`、`:816` `last_plan_request_attempt` | 复合键 `run_id#logical_request_id#attempt_id`（`computer_use_planning:step-N` + `attempt-K`），且**已有**"绝不伪造"的测试（`:1560`） |
+| 同事务事实写入 API | `computer_use_store.rs:1790` `record_step_with_facts(step, action_json, \|tx\| …)` | 步骤行与事实**同一事务**（规则引擎为 `AppendOnlyFactStore`） |
+| 动作事实契约 | `run_contract.rs:473` `RunScopeContext::step_action_fact`、`admit_action_origin`（`:2420`）、`ActionOriginAuthority` trait（`:2479`） | 准入是**两级**：结构校验 + 可信关联核对 |
+
+**真正的缺口（两处）**：
+
+1. **没有生产实现 `ActionOriginAuthority`**：唯一实现是测试用的内存 `TrustedOriginContext`（`run_contract.rs:2503`）。因此 `admit_action_origin` 在生产里**一次都没被调用过**。
+2. **执行器不写动作级事实**：4 个步骤写入点（`computer_use_executor.rs:169 / 236 / 273 / 346`）只调 `record_step`（步骤行），生产事实里只写了**轮次级** `record_host_outcome`；动作级 `record_action_receipt` 仅出现在测试（`computer_use_store.rs:3229` 起）。
+
+**两个规格分叉（**必须先定，否则接线会产出"看起来有事实、其实没约束"的假链**）**：
+
+**分叉 A：authority 的 attempt 来源——进程内还是落库？**
+- 现状：attempt 只活在 planner 实例的 `Mutex<Option<PlannedRequestAttempt>>` 里（进程内）。
+- 选项 A1（进程内）：authority 直接查该 planner 实例的 attempt。**真实**（确实来自这次规划请求），但**跨进程不可复核**：进程退出后无法审计"这条动作当时由哪次请求产生"。
+- 选项 A2（落库）：新增 attempt 登记表（如 `computer_use_plan_attempts`），planner 每产生一次规划 attempt 就登记一行；authority 从表里核对。可跨进程审计，代价是**新表 + 新写入点 + 迁移**（会话库 v24）。
+- 推荐：**A2**。理由是决策原文要求 authority 来源包含 `runtime_runs` / `computer_use_runs` / `tool_calls` / `control_operations`——即"可核对的登记"，而非"进程内记忆"；且 §B-82 的教训正是"挂账/记忆不进持久层 ⇒ 无人能复核"。
+
+**分叉 B：准入失败时，步骤行还写不写？**
+- 选项 B1（fail-closed，推荐）：动作事实**不写**，且把拒绝**显式留痕**（步骤行写 `action_origin_refused` 类错误码）——"没有事实"永远由"已记录的原因"解释，不会静默。
+- 选项 B2：动作事实不写、步骤行也不写（即整个步骤被拒绝）。**风险**：CU 在 attempt 缺失（例如旧版本运行、或 planner 无法产出合法复合键时）会整体不可用；而 `register_plan_attempt` 明确会在构造不合法时返回 `None`（`planner.rs:541` 注释）。
+- 选项 B3：落一条"来源被拒"的事实记录。语义最强，但需要事实表支持"拒绝记录"这一 kind（当前 `InputSafetyEventKind`/事实 kind 需扩展）。
+- 推荐：**B1**（保守且不哑：拒绝有留痕，CU 不因缺证据整体熄火）。
+
+**接线清单（口径确定后即可执行，预计 3 个文件）**：
+
+1. `web-console/src/action_origin_authority.rs`（新）：`ProductionActionOriginAuthority` 实现 8 个查询——`conversation_scope`（执行器的冻结上下文）、`run_relation`（`chat_runtime_runs`）、`plan_producer`/`known_request`（分叉 A 选定的来源）、`tool_call_relation`/`control_operation`/`cleanup_incident`（相应登记存在则读出，不存在则 `None` ⇒ **拒绝**，这正是"禁止模型自报 origin"的落点）。
+2. `computer_use_executor.rs`：4 个写入点改为经 `record_step_with_facts`——先 `admit_action_origin`（`ModelPlanned` 必须带真实 attempt；`UserDirect` 必须有控制面上下文 + 许可决定；`SafetyCleanup` 必须有 incident + 原动作 + 恢复资格），通过后在同事务写 `record_action_receipt`；不通过按分叉 B 的选定口径处理。
+3. `computer_use_store.rs`：如选 B3 则扩展事实 kind；如选 A2 则加 attempt 登记表 + v24 迁移。
+
+**CU-F05 验收（决策原文四场景）到用例的映射**（全部可在 authority + store 层断言，无需真实模型）：
+
+| 场景 | 断言点 |
+| --- | --- |
+| 模型动作无 attempt | `admit_action_origin` 拒绝（`ModelPlanned` 缺 `request_attempt_id`） |
+| tool id 存在但 attempt 错误 | 复合键不一致 ⇒ 拒绝（`known_request`/`plan_producer` 比对失败） |
+| 真实 attempt | 准入通过且**事实真的落库**（`fact_log_records` 计数 + 内容） |
+| cleanup 无 incident | `SafetyCleanup` 缺 incident 关联 ⇒ 拒绝 |
+
+**为什么本轮**不**开工**：分叉 A/B 任一选错，都会产出决策文档明令避免的"全绿但事实链不是生产约束"；且 PR-02 的接线会**改变 CU 运行时行为**（步骤写入路径），在口径未定前动手，等于把未定语义写进生产路径。本轮已完成并验证的是 PR-01（`c292fe9`），PR-02/PR-03 保持**未开工**状态（不是半成品）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

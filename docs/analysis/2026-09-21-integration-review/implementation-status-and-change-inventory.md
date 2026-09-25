@@ -122,8 +122,9 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 | --- | --- | --- | --- | --- |
 | ~~被拒绝的恢复操作永不结账 ⇒ 永久隔离~~ | **已闭环（PR-01）**：终端处置 + 人工放行通道；真实库 `pending 1 → 0`、`settled=2`、`human_review_required=2`、资源仍隔离（**设计结果**） | 原缺口是"规格未明确"，本轮按决策落地 | — | 无需再裁决（结账/放行机制已具备） |
 | **放行资格与复核口径未定义**（PR-01 伴随项） | 通道已具备（署名/理由/证据 + TOCTOU 校验）；但"谁有权放行、是否需要双人复核、证据放哪里"**没有规定** | 决策只要求"人工确认 ⇒ 新增 `ReleaseIsolationDecision`"，未定义运营权限模型 | 放行是**安全决定**：任何能访问本地控制台的人都能署名放行 | 一次口径确认：放行者身份来源（本机账号？）／是否双人／证据留存位置 |
-| **P0-2：CU 动作事实仍未进业务链** | `ActionFact` schema／`ActionOrigin`／attempt 接缝／FactStore 已具备；缺**生产实现**的 `ActionOriginAuthority` 接线（`record_step_with_fact`） | 决策已明确（PR-02）：新增 `ProductionActionOriginAuthority`（来源：`runtime_runs`／`computer_use_runs`／`tool_calls`／`control_operations`），并禁止"模型自报 origin" | 系统"全绿"但关键事实链不是生产约束 | 按决策实施 PR-02（CU-F05 四场景验收） |
-| **P0-3：普通输入路径事实不一致风险** | 已修 drag／stroke／helper；`input.rs`／`desktop_bridge`／`gui-desktop input_backend` 仍有三套独立入口 | 决策已明确（PR-03）：统一 `NativeInputExecutor` 生命周期（validate→reserve→execute→receipt→cleanup→settlement） | 普通原生输入缺独立生命周期治理 | 按决策实施 PR-03（RPR-04d-2 六场景） |
+| **P0-2：CU 动作事实仍未进业务链** | **已侦察、未开工**（§B-83）：真实 attempt 已在 planner 产出（`planner.rs:538/816`）、同事务事实写入 API 已在（`computer_use_store.rs:1790`）、准入契约已在（`run_contract.rs:2420`）；缺口是**没有生产 authority**（`admit_action_origin` 生产零调用）与**执行器不写动作级事实**（4 个 `record_step` 点：`executor.rs:169/236/273/346`） | 侦察发现两个**规格分叉**必须先定口径：A) attempt 来源进程内 vs 落库（推荐落库）；B) 准入失败时步骤行写不写（推荐 fail-closed 但保留拒绝留痕）。选错会产出"看起来有事实、其实没约束"的假链 | 系统"全绿"但关键事实链不是生产约束 | 口径确认后按 §B-83 的接线清单执行 PR-02（CU-F05 四场景） |
+| **P0-3：普通输入路径统一生命周期** | **未开工**（决策已排期 PR-03，范围与六场景已列） | 需要跨 `input.rs`／`desktop_bridge`／`gui-desktop input_backend` 收口到 `NativeInputExecutor`，属**行为重构**（不是接线） | 普通原生输入缺独立生命周期治理 | 按决策实施 PR-03（RPR-04d-2 六场景） |
+
 | **R3：撤销未激活许可 / R4：跨进程执行者身份核查** | 未实现 | R4 需要**跨进程**执行者身份来源（当前只有进程内身份）；裁决未指定可信来源与失败语义 | 恢复期无法证明"旧执行者确实已停" | 指定跨进程执行者身份的权威来源（如 helper 侧登记 + 存活核对）与其 fail-closed 语义 |
 | **Goal 锚点的"真实关系"** | 驱动按 `session_id/turn_id → runtime_runs → owner` 解析；Goal 侧关系未纳入 | 现状无法从设计上明确 Goal 锚点与 chat turn 的**必然**关系（可能本来就不一一对应） | 涉及 CU 归属与审计的完整性 | 明确 Goal↔turn 关系的规格（是可缺省的弱引用，还是必须存在的强关系） |
 | **真实子进程崩溃变体** | 只覆盖"半途中断后重放"（本轮修好并实测） | 需要能**受控杀死**恢复者进程的跨进程实验装置（而非仅单进程模拟） | 崩溃恢复的证据强度 | 允许引入进程级故障注入装置（或提供可重复的现场复现步骤） |
