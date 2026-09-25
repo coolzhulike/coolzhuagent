@@ -100,10 +100,13 @@ impl Drop for PendingRunGuard<'_> {
                     cancelled_error(),
                 );
                 result.cu_budget = Some(self.cu_budget);
-                if let Ok((attempts, steps)) = self.store.action_counts(&self.identity.call_id) {
-                    result.attempts = attempts;
-                    result.steps_completed = steps;
-                    result.supervisor.action_count = attempts;
+                // CU-01：四维**分别**取值，不再用一个含糊的元组混称：
+                // `attempts` = 写下的步骤行数（含零输入的"输入前拒绝"行）；
+                // `steps_completed` 只认**确认已发送输入**的步数（否则"完成"会被零输入的行充数）。
+                if let Ok(counts) = self.store.run_counts(&self.identity.call_id) {
+                    result.attempts = counts.attempts;
+                    result.steps_completed = counts.input_sent;
+                    result.supervisor.action_count = counts.attempts;
                 }
                 let _ = self
                     .store
@@ -2566,7 +2569,11 @@ mod tests")
                 .await;
         assert_eq!(result.status, ComputerUseTerminalStatus::Cancelled);
         assert_eq!(factory.action_count.load(Ordering::SeqCst), 0);
-        assert_eq!(store.action_counts(&identity.call_id).unwrap(), (0, 0));
+        assert_eq!(
+            store.run_counts(&identity.call_id).unwrap(),
+            crate::computer_use_store::ComputerUseRunCounts::default(),
+            "零输入：四维必须全为 0（而不是含糊的 (0,0)）"
+        );
         assert_eq!(
             store
                 .load(&identity.call_id)
@@ -4968,7 +4975,7 @@ mod tests")
 
     /// 该 run 落盘的 step 行数（0 = 没有任何动作被记录，即零输入）。
     fn step_row_count_in_store(store: &ComputerUseRunStore, call_id: &str) -> usize {
-        store.action_counts(call_id).expect("action counts").0
+        store.run_counts(call_id).expect("run counts").attempts
     }
 
     /// **T13（必测）**：CU 运行中切换 UI 工作区 ⇒ 原运行的 **workspace** 与 **数据库**不变。

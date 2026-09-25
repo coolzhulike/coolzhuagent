@@ -1482,6 +1482,19 @@ pub(crate) struct NewComputerUseRun {
     pub workspace: CuWorkspaceAttribution,
 }
 
+/// **统一 run 计数**的四维（CU-01）。字段语义见 [`ComputerUseRunStore::run_counts`]。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub(crate) struct ComputerUseRunCounts {
+    /// 步骤行数（含零输入的"输入前拒绝"行）＝ 尝试次数。
+    pub attempts: usize,
+    /// 确认已发送输入的步数。
+    pub input_sent: usize,
+    /// 部分注入的步数（不算完成，且禁止自动重放）。
+    pub partial_input: usize,
+    /// 验收通过的步数。
+    pub verified_steps: usize,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct StoredComputerUseRun {
     pub call_id: String,
@@ -1747,13 +1760,20 @@ impl ComputerUseRunStore {
         result: &ComputerUseResult,
     ) -> rusqlite::Result<bool> {
         let connection = self.connection.lock().expect("computer-use store lock");
+        // CU-01：终态回填的权威计数**必须**在写入前从步骤行求出（同一把锁内，不另开连接）。
+        let counts = Self::run_counts_on(&connection, call_id)?;
         let result_json = serde_json::to_string(result)
             .map_err(|error| rusqlite::Error::ToSqlConversionFailure(Box::new(error)))?;
         let changed = connection.execute(
             r#"
             UPDATE computer_use_runs
             SET state = ?1, state_version = state_version + 1,
-                terminal_result_json = ?2, updated_at_ms = ?3
+                terminal_result_json = ?2, updated_at_ms = ?3,
+                -- CU-01：终态**回填权威计数**（此前 `action_count` 从不写入、恒为 0，
+                -- 与"步骤表里有 N 行"直接矛盾）。真值只有一个来源：步骤行的派生计数。
+                -- `replan_count` **已废弃**（不再维护）：重规划次数没有权威事实来源，
+                -- 留 0 而不谎称准确；需要它时请先在事实层定义"一次重规划"。
+                action_count = ?6
             WHERE call_id = ?4 AND state_version = ?5 AND terminal_result_json IS NULL
             "#,
             params![
@@ -1762,6 +1782,7 @@ impl ComputerUseRunStore {
                 now_ms(),
                 call_id,
                 expected_version,
+                counts.input_sent as i64,
             ],
         )?;
         Ok(changed == 1)
@@ -1901,10 +1922,84 @@ impl ComputerUseRunStore {
         Ok(())
     }
 
-    pub(crate) fn action_counts(&self, call_id: &str) -> rusqlite::Result<(usize, usize)> {
-        self.connection.lock().expect("computer-use store lock").query_row(
-            "SELECT COUNT(*),COALESCE(SUM(CASE WHEN input_delivery='sent' OR (input_delivery IS NULL AND status IN ('input_sent','input_sent_observed','verified','completed_unverified','observation_failed')) THEN 1 ELSE 0 END),0) FROM computer_use_steps WHERE run_id=?1",
-            [call_id], |row| Ok((row.get(0)?,row.get(1)?)))
+    /// **统一 run 计数**（CU-01）：四个维度**分别**给出，不允许再用一个含糊的"次数"混称。
+    ///
+    /// 为什么要具名而不是元组：`action_count` 这类列此前**从不写入**（始终 0），而真值在读取侧
+    /// 由步骤行派生——两处口径不一致时，报告里就会出现"有 3 步却写 0"这种自相矛盾。
+    /// 现在只有这一个权威来源，终态写入也用它回填（见 [`Self::finish`]）。
+    ///
+    /// 四维的语义边界（**不得**互相替代）：
+    /// - `attempts`：执行器为每一步写下的**一行**（含"输入前拒绝"那种零输入的行）⇒ 是"试了多少次"；
+    /// - `input_sent`：确认**已发送**输入的步数 ⇒ 只有它逼近"动手次数"；
+    /// - `partial_input`：**部分**注入的步数 ⇒ 既不算完成，也不得触发自动重放；
+    /// - `verified_steps`：验收**通过**的步数 ⇒ 只有它可以说"做成了"。
+    pub(crate) fn run_counts(&self, call_id: &str) -> rusqlite::Result<ComputerUseRunCounts> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        Self::run_counts_on(&connection, call_id)
+    }
+
+    /// 在**已持有**的连接上求计数。
+    ///
+    /// 拆出这一层是因为 [`Self::finish`] 已经持有连接锁——它若调 `run_counts`（自己再锁一次）
+    /// 会**自死锁**（std 的 Mutex 不可重入）。计数语义只有这一份实现。
+    fn run_counts_on(
+        connection: &rusqlite::Connection,
+        call_id: &str,
+    ) -> rusqlite::Result<ComputerUseRunCounts> {
+        connection.query_row(
+            "SELECT COUNT(*),\
+                    COALESCE(SUM(CASE WHEN input_delivery='sent' THEN 1 ELSE 0 END),0),\
+                    COALESCE(SUM(CASE WHEN partial=1 THEN 1 ELSE 0 END),0),\
+                    COALESCE(SUM(CASE WHEN goal_verdict='passed' THEN 1 ELSE 0 END),0) \
+               FROM computer_use_steps WHERE run_id=?1",
+            [call_id],
+            |row| {
+                Ok(ComputerUseRunCounts {
+                    attempts: row.get::<_, i64>(0)? as usize,
+                    input_sent: row.get::<_, i64>(1)? as usize,
+                    partial_input: row.get::<_, i64>(2)? as usize,
+                    verified_steps: row.get::<_, i64>(3)? as usize,
+                })
+            },
+        )
+    }
+
+    /// **任务级基线**（CU-01）：本 run **最早**观测到的证据引用（首步的 `before` 证据）。
+    ///
+    /// 为什么要单独给出来：验收若只看"最后一对 before/after"，就无法回答"本轮**新画出了**什么"
+    /// ——目标可能早就存在。基线必须是**任务开始时**的视图，与"最后一帧"配对才有语义。
+    ///
+    /// 它是**派生**的（不新增列）：首个 `step_index` 的 `before_evidence_ref` 就是运行开始时的视图；
+    /// 没有步骤时返回 `None`（此时没有动作发生过，也就无所谓基线）。
+    pub(crate) fn run_baseline_evidence_ref(
+        &self,
+        call_id: &str,
+    ) -> rusqlite::Result<Option<String>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection.query_row(
+            "SELECT before_evidence_ref FROM computer_use_steps
+              WHERE run_id = ?1 ORDER BY step_index ASC LIMIT 1",
+            [call_id],
+            |row| row.get::<_, Option<String>>(0),
+        )
+        .optional()
+        .map(Option::flatten)
+    }
+
+    /// 本 run **最后**观测到的证据引用（末步的 `after` 证据；缺失时退回首步的 `before`）。
+    ///
+    /// 与 [`Self::run_baseline_evidence_ref`] 配对使用：**基线 vs 末帧**才是"这一轮改变了什么"的
+    /// 最小证据对；只看最后一对 before/after 会把"早已存在"读成"本轮做到"。
+    pub(crate) fn run_final_evidence_ref(&self, call_id: &str) -> rusqlite::Result<Option<String>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection.query_row(
+            "SELECT COALESCE(after_evidence_ref, before_evidence_ref) FROM computer_use_steps
+              WHERE run_id = ?1 ORDER BY step_index DESC LIMIT 1",
+            [call_id],
+            |row| row.get::<_, Option<String>>(0),
+        )
+        .optional()
+        .map(Option::flatten)
     }
 
     pub(crate) fn load(&self, call_id: &str) -> rusqlite::Result<Option<StoredComputerUseRun>> {
@@ -3771,6 +3866,135 @@ mod tests {
         assert_eq!(
             existing.terminal_result.unwrap().error.unwrap().code,
             "target_not_found"
+        );
+    }
+
+    /// **CU-01「任务级基线」**：基线与末帧**成对**给出，且基线取**最早**的视图。
+    ///
+    /// 反例（专项文档 F5/F7）：只给最后一对 before/after，会把"目标早已存在"读成"本轮新画出"。
+    #[test]
+    fn task_baseline_is_the_earliest_view_and_pairs_with_the_final_frame() {
+        let store = temp_store();
+        assert!(store.create_run(&run()).unwrap());
+        let step = |index: usize, before: &str, after: Option<&str>| ComputerUseStepRecord {
+            run_id: "cu-1".into(),
+            step_index: index,
+            observation_generation: index as u64 + 1,
+            action_type: "click".into(),
+            normalized_target: "target".into(),
+            action_fingerprint: format!("fingerprint-{index}"),
+            status: "input_sent".into(),
+            error_code: None,
+            before_evidence_ref: Some(before.to_string()),
+            after_evidence_ref: after.map(str::to_string),
+            visible_progress: false,
+            input_delivery: Some(InputDelivery::Sent),
+            partial: Some(false),
+            path_completed: None,
+            confirmed_point_count: None,
+            effect_status: None,
+            goal_verdict: None,
+            input_release_status: None,
+            started_at_ms: 1,
+            completed_at_ms: Some(2),
+        };
+        // 零步骤：没有基线可言（不得凭空造一个）。
+        assert_eq!(store.run_baseline_evidence_ref("cu-1").unwrap(), None);
+        assert_eq!(store.run_final_evidence_ref("cu-1").unwrap(), None);
+
+        assert!(store.append_step(&step(0, "shot-baseline", None)).unwrap());
+        assert!(store.append_step(&step(1, "shot-mid", Some("shot-mid-after"))).unwrap());
+        assert!(store.append_step(&step(2, "shot-last-before", Some("shot-final"))).unwrap());
+
+        assert_eq!(
+            store.run_baseline_evidence_ref("cu-1").unwrap().as_deref(),
+            Some("shot-baseline"),
+            "基线必须是**最早**的视图，而不是最后一对的 before"
+        );
+        assert_eq!(
+            store.run_final_evidence_ref("cu-1").unwrap().as_deref(),
+            Some("shot-final"),
+            "末帧取最后一个 after"
+        );
+        // 末步没有 after 时退回它的 before（不谎报有一张末帧）。
+        assert!(store.append_step(&step(3, "shot-tail-before", None)).unwrap());
+        assert_eq!(
+            store.run_final_evidence_ref("cu-1").unwrap().as_deref(),
+            Some("shot-tail-before")
+        );
+    }
+
+    /// **CU-01「统一 run 计数」**：计数只有一个权威来源（步骤行派生），且终态**回填**该计数。
+    ///
+    /// 事故背景（专项文档 C9，可直接复核）：`computer_use_runs.action_count` / `replan_count`
+    /// 两列**从不写入**（恒为 0），而真值在读取侧由步骤行派生——于是"有 3 步却存 0"会同时出现在
+    /// 库与报告里。现在：四维分别求值；`finish` 把 `action_count` 回填为"已发送输入"的步数；
+    /// `replan_count` **明确废弃**（没有权威事实来源，宁可不写也不谎称准确）。
+    #[test]
+    fn run_counts_are_derived_from_steps_and_backfilled_at_finish() {
+        let store = temp_store();
+        assert!(store.create_run(&run()).unwrap());
+        let step = |index: usize, delivery: Option<InputDelivery>, partial: Option<bool>, verdict: Option<GoalVerdict>| ComputerUseStepRecord {
+            run_id: "cu-1".into(),
+            step_index: index,
+            observation_generation: 1,
+            action_type: "click".into(),
+            normalized_target: "target".into(),
+            action_fingerprint: format!("fingerprint-{index}"),
+            // 零输入行（输入前拒绝）用 `input_not_sent`：它**不能**被算成"完成了一步"。
+            status: if delivery == Some(InputDelivery::NotSent) {
+                "input_not_sent".into()
+            } else {
+                "input_sent".into()
+            },
+            error_code: None,
+            before_evidence_ref: None,
+            after_evidence_ref: None,
+            visible_progress: false,
+            input_delivery: delivery,
+            partial,
+            path_completed: None,
+            confirmed_point_count: None,
+            effect_status: None,
+            goal_verdict: verdict,
+            input_release_status: None,
+            started_at_ms: 1,
+            completed_at_ms: Some(2),
+        };
+        // 三步：① 已发送且验收通过；② 部分注入（未通过）；③ 零输入（输入前拒绝）。
+        assert!(store
+            .append_step(&step(0, Some(InputDelivery::Sent), Some(false), Some(GoalVerdict::Passed)))
+            .unwrap());
+        assert!(store
+            .append_step(&step(1, Some(InputDelivery::Sent), Some(true), Some(GoalVerdict::Failed)))
+            .unwrap());
+        assert!(store
+            .append_step(&step(2, Some(InputDelivery::NotSent), Some(false), None))
+            .unwrap());
+
+        let counts = store.run_counts("cu-1").unwrap();
+        assert_eq!(counts.attempts, 3, "三次尝试（含零输入的那次）");
+        assert_eq!(counts.input_sent, 2, "只有两次真的发送了输入");
+        assert_eq!(counts.partial_input, 1, "一次部分注入：绝不算完成");
+        assert_eq!(counts.verified_steps, 1, "只有一次验收通过");
+
+        // 终态回填：`action_count` 必须等于权威来源的 `input_sent`，而不是留 0。
+        assert!(store
+            .finish("cu-1", 0, &failed_result("target_not_found"))
+            .unwrap());
+        let stored_count: i64 = store
+            .connection
+            .lock()
+            .unwrap()
+            .query_row(
+                "SELECT action_count, replan_count FROM computer_use_runs WHERE call_id='cu-1'",
+                [],
+                |row| Ok(row.get(0)?),
+            )
+            .unwrap();
+        assert_eq!(
+            stored_count as usize, counts.input_sent,
+            "终态必须回填权威计数（此前恒为 0，与步骤表直接矛盾）"
         );
     }
 
