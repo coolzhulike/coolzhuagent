@@ -44,7 +44,10 @@ pub(crate) struct ProductionActionOriginAuthority {
     tool_relations: BTreeMap<String, ToolCallRelation>,
     /// 宿主辅助动作的父操作登记：暂无 ⇒ `HostIncidental` 一律拒绝（fail-closed）。
     host_operations: BTreeMap<String, HostOperationRecord>,
-    /// 清理事故登记：暂无这类登记 ⇒ `SafetyCleanup` 一律拒绝（fail-closed，见 §B-83 的说明）。
+    /// 清理事故登记（`SafetyCleanup` 来源核对的依据）。
+    ///
+    /// 只有**登记表里真有**、且 `recovery_eligible = true` 的事故才会进这个快照——
+    /// 没有资格的事故不该被当成"可以清理的来源"（契约会据此拒绝）。
     cleanup_incidents: BTreeMap<String, CleanupIncidentRecord>,
     /// 控制面操作登记：暂无 ⇒ `UserDirect` 一律拒绝（模型输入里声称"用户点击"不构成来源）。
     control_operations: BTreeMap<String, ControlOperationRecord>,
@@ -114,6 +117,26 @@ impl ProductionActionOriginAuthority {
                         ToolCallRelation::new(action_id, provider_tool_call_id),
                     );
                 }
+            }
+        }
+        // 清理事故（`SafetyCleanup` 的核对来源）：预载**本运行**的事故，按 incident_id 提供查询
+        // ——契约的 `cleanup_incident(incident_id)` 就是按 id 查，因此这里按 run 预载最贴合。
+        // 只载入**具备恢复资格**的事故：没有资格的不得被当成"可以清理的来源"。
+        for incident in store
+            .cleanup_incidents_for_run(call_id)
+            .map_err(|error| error.to_string())?
+        {
+            if incident.recovery_eligible {
+                authority.cleanup_incidents.insert(
+                    incident.incident_id.clone(),
+                    CleanupIncidentRecord {
+                        incident_id: incident.incident_id,
+                        run_id: incident.run_id,
+                        original_action_id: incident.original_action_id,
+                        original_tool_call_id: incident.original_tool_call_id,
+                        recovery_eligible: true,
+                    },
+                );
             }
         }
         // 规划请求：按动作读"真正产生它的请求"；同一请求同时进 `known_requests`。
@@ -394,6 +417,85 @@ mod tests {
             "拒绝理由必须点明伪造：{}",
             forged.message
         );
+    }
+
+    /// **CU-F05-5（正半）**：具备恢复资格的事故 ⇒ 清理动作**成立**（来源可核对）。
+    #[test]
+    fn cu_f05_5_eligible_cleanup_incident_is_accepted_as_a_source() {
+        let (_directory, db) = seed_store();
+        seed_run(&db, "cu-run-1");
+        {
+            let store = ComputerUseRunStore::open(&db).expect("store");
+            store
+                .register_cleanup_incident(
+                    "incident-cleanup-1",
+                    "cu-run-1",
+                    "action-0",
+                    Some("toolu-1"),
+                )
+                .expect("登记事故");
+            // 前提状态：资格由**解决路径**给出（`resolve_unconfirmed_release` 的翻转）；
+            // 本用例只验证"来源核对"，因此直接置位（真实链路见 store 侧的资格用例）。
+            store
+                .mark_cleanup_incident_recovery_eligible("incident-cleanup-1")
+                .expect("给出恢复资格");
+        }
+        let authority = ProductionActionOriginAuthority::for_action(
+            &db,
+            "cu-run-1",
+            "action-cleanup",
+            Some(scope()),
+        )
+        .expect("快照");
+        let identity = scope()
+            .step_action_fact("cu-run-1", "step-0", "attempt-1", "action-cleanup")
+            .with_tool_call_id("provider-call");
+        let context = runtime::ConversationActionContext::new(identity).expect("上下文");
+        let origin = |original_action_id: &str| runtime::ActionOrigin {
+            action_id: "action-cleanup".to_string(),
+            source: runtime::ActionSource::SafetyCleanup,
+            context: runtime::ActionContext::Conversation(context.clone()),
+            request_attempt_id: None,
+            tool_call_id: None,
+            parent_step_operation: None,
+            host_algorithm_version: None,
+            resource_scope: None,
+            cleanup: Some(runtime::CleanupRelation {
+                incident_id: "incident-cleanup-1".to_string(),
+                original_action_id: original_action_id.to_string(),
+                recovery_eligible: true,
+            }),
+            user_direct: None,
+            host_transform: None,
+            additional_causal_refs: Vec::new(),
+        };
+        // ① 原动作与事故记录一致 ⇒ 成立。
+        runtime::admit_action_origin(&origin("action-0"), &authority)
+            .expect("有资格且原动作一致 ⇒ 清理来源成立");
+        // ② 原动作不一致 ⇒ 拒绝（不得借别的事故给自己做来源）。
+        let mismatched = runtime::admit_action_origin(&origin("action-other"), &authority)
+            .err()
+            .expect("原动作不一致必须被拒");
+        assert!(
+            mismatched.message.contains("不一致"),
+            "拒绝理由必须指向原动作不一致：{}",
+            mismatched.message
+        );
+        // ③ 未登记的事故 ⇒ 拒绝。
+        let unknown = runtime::admit_action_origin(
+            &runtime::ActionOrigin {
+                cleanup: Some(runtime::CleanupRelation {
+                    incident_id: "incident-unknown".to_string(),
+                    original_action_id: "action-0".to_string(),
+                    recovery_eligible: true,
+                }),
+                ..origin("action-0")
+            },
+            &authority,
+        )
+        .err()
+        .expect("未登记的事故必须被拒");
+        assert!(unknown.message.contains("incident"), "{}", unknown.message);
     }
 
     /// **CU-F05-5（负半）**：清理动作没有 incident 登记 ⇒ **拒绝**（fail-closed）。

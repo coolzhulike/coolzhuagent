@@ -297,6 +297,38 @@ pub(crate) fn apply_session_migration_v25_tool_call_registry(
     Ok(())
 }
 
+/// v26：**清理事故登记**（`CleanupIncidentRecord` 形态）。
+///
+/// 为什么需要它：`ActionSource::SafetyCleanup` 要求"核对到 incident + 原动作 + 恢复资格"才成立，
+/// 但生产里此前**没有**这种形态的登记（只有 session/turn 粒度的释放解除记录）⇒ 任何清理动作
+/// 都只能被拒绝（fail-closed 但无路可走）。本表把"某次动作留下了未确认的输入状态"记成事故，
+/// 并在**释放被确认解决**之后给它**恢复资格**——只有具备资格的 incident 才允许作为清理来源
+/// （`recovery_eligible = 0` 的仍被拒绝）。
+pub(crate) fn apply_session_migration_v26_cleanup_incidents(
+    connection: &Connection,
+) -> rusqlite::Result<()> {
+    let current: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    connection.execute_batch(
+        r#"
+        CREATE TABLE IF NOT EXISTS computer_use_cleanup_incidents (
+            incident_id TEXT PRIMARY KEY,
+            run_id TEXT NOT NULL,
+            original_action_id TEXT NOT NULL,
+            original_tool_call_id TEXT,
+            recovery_eligible INTEGER NOT NULL DEFAULT 0,
+            created_at_unix_ms INTEGER NOT NULL,
+            eligible_at_unix_ms INTEGER
+        );
+        CREATE INDEX IF NOT EXISTS idx_cu_cleanup_incidents_run
+            ON computer_use_cleanup_incidents(run_id);
+        "#,
+    )?;
+    if current < 26 {
+        connection.execute_batch("PRAGMA user_version = 26;")?;
+    }
+    Ok(())
+}
+
 /// v22 只追加可空归属列；历史运行没有归属记录，因此必须保留 NULL。
 fn ensure_computer_use_runs_column(
     connection: &Connection,
@@ -1520,6 +1552,19 @@ pub(crate) struct NewComputerUseRun {
     pub workspace: CuWorkspaceAttribution,
 }
 
+/// 一条**清理事故登记**。与契约的 `CleanupIncidentRecord` 对应（外加登记时间与获得资格时间）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct CleanupIncidentRow {
+    pub incident_id: String,
+    pub run_id: String,
+    pub original_action_id: String,
+    pub original_tool_call_id: Option<String>,
+    /// 恢复资格：`false` 时**不得**作为清理执行的来源。
+    pub recovery_eligible: bool,
+    pub created_at_unix_ms: i64,
+    pub eligible_at_unix_ms: Option<i64>,
+}
+
 /// 一条**工具调用登记**（PR-02B）。字段与表一一对应，语义见迁移函数的文档。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ToolCallRecord {
@@ -1765,6 +1810,8 @@ impl ComputerUseRunStore {
         apply_session_migration_v24_action_origin_ledger(&connection)?;
         // 同例（PR-02B）：工具调用登记表也由本文件拥有——来源核对读它，缺表会退化成"查不到"。
         apply_session_migration_v25_tool_call_registry(&connection)?;
+        // 同例：清理事故登记也由本文件拥有（SafetyCleanup 来源核对读它）。
+        apply_session_migration_v26_cleanup_incidents(&connection)?;
         Ok(Self::from_connection(connection))
     }
 
@@ -2054,6 +2101,135 @@ impl ComputerUseRunStore {
         )
         .optional()
         .map(Option::flatten)
+    }
+
+    /// **登记一次清理事故**（未确认输入状态）。幂等：同一 incident_id 不重复建行。
+    ///
+    /// `recovery_eligible` 初始为 `false`：刚发生时**没有**恢复资格——只有等未确认状态被
+    /// 确认解决（见 [`Self::resolve_unconfirmed_release`] 的翻转），它才允许作为清理来源。
+    pub(crate) fn register_cleanup_incident(
+        &self,
+        incident_id: &str,
+        run_id: &str,
+        original_action_id: &str,
+        original_tool_call_id: Option<&str>,
+    ) -> rusqlite::Result<()> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection.execute(
+            "INSERT INTO computer_use_cleanup_incidents
+                 (incident_id, run_id, original_action_id, original_tool_call_id,
+                  recovery_eligible, created_at_unix_ms, eligible_at_unix_ms)
+             VALUES (?1, ?2, ?3, ?4, 0, ?5, NULL)
+             ON CONFLICT(incident_id) DO NOTHING",
+            params![
+                incident_id,
+                run_id,
+                original_action_id,
+                original_tool_call_id,
+                now_ms() as i64
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// 读回一条清理事故（`SafetyCleanup` 来源核对的唯一入口）。
+    pub(crate) fn cleanup_incident(
+        &self,
+        incident_id: &str,
+    ) -> rusqlite::Result<Option<CleanupIncidentRow>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection
+            .query_row(
+                "SELECT incident_id, run_id, original_action_id, original_tool_call_id,
+                        recovery_eligible, created_at_unix_ms, eligible_at_unix_ms
+                   FROM computer_use_cleanup_incidents WHERE incident_id = ?1",
+                [incident_id],
+                |row| {
+                    Ok(CleanupIncidentRow {
+                        incident_id: row.get(0)?,
+                        run_id: row.get(1)?,
+                        original_action_id: row.get(2)?,
+                        original_tool_call_id: row.get(3)?,
+                        recovery_eligible: row.get::<_, i64>(4)? != 0,
+                        created_at_unix_ms: row.get(5)?,
+                        eligible_at_unix_ms: row.get(6)?,
+                    })
+                },
+            )
+            .optional()
+    }
+
+    /// 显式给出恢复资格（**解决路径之外**的受控入口；测试与运维复核用）。
+    ///
+    /// 常规路径是 [`Self::resolve_unconfirmed_release`]：未确认状态被确认解决时自动置位。
+    /// 本入口只用于"资格由别的受控流程给出"的场景，置位同样**留痕**（`eligible_at_unix_ms`）。
+    pub(crate) fn mark_cleanup_incident_recovery_eligible(
+        &self,
+        incident_id: &str,
+    ) -> rusqlite::Result<bool> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let changed = connection.execute(
+            "UPDATE computer_use_cleanup_incidents
+                SET recovery_eligible = 1, eligible_at_unix_ms = ?2
+              WHERE incident_id = ?1 AND recovery_eligible = 0",
+            params![incident_id, now_ms() as i64],
+        )?;
+        Ok(changed == 1)
+    }
+
+    /// 按**工具调用**反查清理事故（`SafetyCleanup` 来源核对：事故记的正是"哪次动作/哪次工具调用"）。
+    pub(crate) fn cleanup_incidents_for_tool_call(
+        &self,
+        tool_call_id: &str,
+    ) -> rusqlite::Result<Vec<CleanupIncidentRow>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let mut statement = connection.prepare(
+            "SELECT incident_id, run_id, original_action_id, original_tool_call_id,
+                    recovery_eligible, created_at_unix_ms, eligible_at_unix_ms
+               FROM computer_use_cleanup_incidents
+              WHERE original_tool_call_id = ?1 ORDER BY incident_id",
+        )?;
+        let rows = statement
+            .query_map([tool_call_id], |row| {
+                Ok(CleanupIncidentRow {
+                    incident_id: row.get(0)?,
+                    run_id: row.get(1)?,
+                    original_action_id: row.get(2)?,
+                    original_tool_call_id: row.get(3)?,
+                    recovery_eligible: row.get::<_, i64>(4)? != 0,
+                    created_at_unix_ms: row.get(5)?,
+                    eligible_at_unix_ms: row.get(6)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
+    /// 该 run 上的清理事故（审计用）。
+    pub(crate) fn cleanup_incidents_for_run(
+        &self,
+        run_id: &str,
+    ) -> rusqlite::Result<Vec<CleanupIncidentRow>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let mut statement = connection.prepare(
+            "SELECT incident_id, run_id, original_action_id, original_tool_call_id,
+                    recovery_eligible, created_at_unix_ms, eligible_at_unix_ms
+               FROM computer_use_cleanup_incidents WHERE run_id = ?1 ORDER BY incident_id",
+        )?;
+        let rows = statement
+            .query_map([run_id], |row| {
+                Ok(CleanupIncidentRow {
+                    incident_id: row.get(0)?,
+                    run_id: row.get(1)?,
+                    original_action_id: row.get(2)?,
+                    original_tool_call_id: row.get(3)?,
+                    recovery_eligible: row.get::<_, i64>(4)? != 0,
+                    created_at_unix_ms: row.get(5)?,
+                    eligible_at_unix_ms: row.get(6)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
     }
 
     /// **登记一次工具调用**（PR-02B）：在派发边界写入，只有那里才知道"哪个工具、什么参数、属于哪个运行"。
@@ -2389,6 +2565,22 @@ impl ComputerUseRunStore {
             "operator_check_note": request.operator_check_note,
         })
         .to_string();
+        // 释放被**确认解决** ⇒ 该 scope 覆盖的清理事故才获得恢复资格。
+        // 口径：资格不是"发生过"就有的，而是"未确认状态已被确认收尾"才有的；
+        // 没有资格的事故不得作为清理来源（契约据此拒绝）。
+        transaction.execute(
+            "UPDATE computer_use_cleanup_incidents
+                SET recovery_eligible = 1, eligible_at_unix_ms = ?2
+              WHERE recovery_eligible = 0
+                AND run_id IN (SELECT call_id FROM computer_use_runs
+                                WHERE session_id = ?3 AND turn_id = ?4)",
+            params![
+                request.reason,
+                now_ms() as i64,
+                request.session_id,
+                request.turn_id
+            ],
+        )?;
         transaction.execute(
             "INSERT INTO computer_use_release_resolutions(
                 session_id, turn_id, epoch, previous_epoch, operator_source, operator_id,
@@ -3287,6 +3479,8 @@ mod tests {
         apply_session_migration_v24_action_origin_ledger(&connection).unwrap();
         // PR-02B：工具调用登记表（工具归属核对的唯一判据）。
         apply_session_migration_v25_tool_call_registry(&connection).unwrap();
+        // 清理事故登记（SafetyCleanup 来源核对）。
+        apply_session_migration_v26_cleanup_incidents(&connection).unwrap();
         ComputerUseRunStore::from_connection(connection)
     }
 
@@ -4076,6 +4270,66 @@ mod tests {
         );
     }
 
+    /// **CU-F05-5（正半）**：清理事故的**恢复资格**不是"发生过"就有，而是"未确认状态被确认解决"才有。
+    ///
+    /// 这条把 SafetyCleanup 的来源核对变成可走通的路径：此前生产里没有任何
+    /// `CleanupIncidentRecord` 形态的登记 ⇒ 任何清理动作都只能被拒绝（fail-closed 但无路可走）。
+    #[test]
+    fn cleanup_incidents_gain_recovery_eligibility_only_after_the_release_is_resolved() {
+        let store = temp_store();
+        seed_release_step(
+            &store,
+            "session-1",
+            "turn-1",
+            "cu-unresolved-a",
+            Some(InputDelivery::MayHaveBeenSent),
+            Some(InputReleaseStatus::Unknown),
+        );
+        // 生产者登记一条事故（模拟执行器在"未确认释放"时的写入）。
+        store
+            .register_cleanup_incident("cleanup-cu-a", "cu-unresolved-a", "action-7", Some("toolu-7"))
+            .expect("登记事故");
+        store
+            .register_cleanup_incident("cleanup-cu-a", "cu-unresolved-a", "action-7", Some("toolu-7"))
+            .expect("重复登记必须幂等");
+        let incident = store
+            .cleanup_incident("cleanup-cu-a")
+            .unwrap()
+            .expect("可读回");
+        assert_eq!(incident.original_action_id, "action-7");
+        assert_eq!(incident.original_tool_call_id.as_deref(), Some("toolu-7"));
+        assert!(
+            !incident.recovery_eligible,
+            "刚发生时**没有**恢复资格：不得作为清理来源"
+        );
+        assert_eq!(incident.eligible_at_unix_ms, None);
+        // 按工具调用反查（来源核对的入口）。
+        assert_eq!(
+            store
+                .cleanup_incidents_for_tool_call("toolu-7")
+                .unwrap()
+                .len(),
+            1
+        );
+
+        // 释放被确认解决 ⇒ 该 scope 覆盖的事故才获得资格。
+        assert!(
+            store
+                .resolve_unconfirmed_release(&resolution("session-1", "turn-1"))
+                .unwrap()
+                .recorded
+        );
+        let incident = store
+            .cleanup_incident("cleanup-cu-a")
+            .unwrap()
+            .expect("可读回");
+        assert!(
+            incident.recovery_eligible,
+            "确认解决之后才具备恢复资格"
+        );
+        assert!(incident.eligible_at_unix_ms.is_some(), "资格时间必须留痕");
+    }
+
     /// **PR-02B**：工具调用登记——幂等（同 id 更新状态而非新建行）、可读回、参数只存摘要。
     #[test]
     fn tool_call_registry_is_idempotent_and_keeps_only_a_digest() {
@@ -4752,6 +5006,13 @@ mod tests {
         );
 
         apply_session_migration_v11(&connection).unwrap();
+        // 本用例手工建"旧库"，因此必须补齐后续阶梯里**本文件拥有**的迁移：
+        // 释放解除现在会顺带翻转清理事故的恢复资格（v26），缺表即 `no such table`。
+        apply_session_migration_v22(&connection).unwrap();
+        apply_session_migration_v23_legacy_run_convergence(&connection).unwrap();
+        apply_session_migration_v24_action_origin_ledger(&connection).unwrap();
+        apply_session_migration_v25_tool_call_registry(&connection).unwrap();
+        apply_session_migration_v26_cleanup_incidents(&connection).unwrap();
 
         for table in [
             "computer_use_release_resolutions",

@@ -41531,6 +41531,8 @@ fn initialize_session_schema(connection: &Connection) -> rusqlite::Result<()> {
     computer_use_store::apply_session_migration_v24_action_origin_ledger(connection)?;
     // PR-02B：工具调用登记（`tool_call_id` 的真来源）。
     computer_use_store::apply_session_migration_v25_tool_call_registry(connection)?;
+    // 清理事故登记（SafetyCleanup 来源核对）。
+    computer_use_store::apply_session_migration_v26_cleanup_incidents(connection)?;
     Ok(())
 }
 
@@ -41802,7 +41804,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 25;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 26;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///
@@ -71117,7 +71119,7 @@ attach: last_assistant
         assert_eq!(version, super::SESSION_SCHEMA_VERSION);
         // 终点随阶梯前进而前进（PR-02A 起为 v24）：这里钉的是"**本轮**终点"，
         // 与上面的唯一来源常量**两处都断言**——一处防漂移，一处防"只改常量没落对象"。
-        assert_eq!(version, 25, "本轮阶梯终点必须是 v25（PR-02B：工具调用登记）");
+        assert_eq!(version, 26, "本轮阶梯终点必须是 v26（清理事故登记）");
         let mut missing = Vec::new();
         for object in [
             "computer_use_legacy_run_convergences",
@@ -71143,6 +71145,8 @@ attach: last_assistant
             "idx_cu_plan_attempts_action",
             "tool_calls",
             "idx_tool_calls_run",
+            "computer_use_cleanup_incidents",
+            "idx_cu_cleanup_incidents_run",
         ] {
             if !session_object_exists(&connection, object) {
                 missing_v24.push(object);

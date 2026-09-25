@@ -561,6 +561,24 @@ impl TracingAdapter<'_> {
         let (Some((identity, origin)), Some(receipt)) = (admitted, receipt) else {
             return self.store.record_step(step, action_json).map_err(persistence_error);
         };
+        // **清理事故生产者**（CU-F05-5）：这一步留下了**未确认的释放**（按钮/键可能还按着）⇒
+        // 登记一条事故，供后续清理动作引用。`recovery_eligible` 初始为 false：
+        // 刚发生时**没有**资格，要等未确认状态被确认解决（走 `resolve_unconfirmed_release`）。
+        //
+        // incident_id 按 (run, action) 确定性生成 ⇒ 同一步重复写入是幂等的。
+        if step.input_release_status == Some(runtime::InputReleaseStatus::Unknown) {
+            let incident_id = format!("cleanup-{}-{}", self.call_id, origin.action_id);
+            if let Err(error) = self.store.register_cleanup_incident(
+                &incident_id,
+                &self.call_id,
+                &origin.action_id,
+                origin.tool_call_id.as_deref(),
+            ) {
+                // 登记失败**不改写这一步的事实**（事实已按回执落盘），但必须响亮记录：
+                // 少一条事故 = 以后那次清理会因"核对不到 incident"被拒绝。
+                eprintln!("[cu] cleanup incident registration failed: {incident_id}: {error}");
+            }
+        }
         self.store
             .record_step_with_facts(step, action_json, |transaction| {
                 let mut facts = runtime::AppendOnlyFactStore::open(
@@ -2306,6 +2324,8 @@ mod tests")
         // PR-02B：工具调用登记表（来源核对读它；缺表会让核对以 `no such table` 失败）。
         crate::computer_use_store::apply_session_migration_v25_tool_call_registry(&connection)
             .unwrap();
+        crate::computer_use_store::apply_session_migration_v26_cleanup_incidents(&connection)
+            .unwrap();
         ComputerUseRunStore::from_connection(connection)
     }
 
@@ -2973,6 +2993,58 @@ mod tests")
                 "归属串不得到处放占位符：{value}"
             );
         }
+    }
+
+    /// **CU-F05-5（生产者）**：一步留下**未确认释放** ⇒ 运行时真的登记一条清理事故（初始无资格）。
+    #[tokio::test]
+    async fn unconfirmed_release_registers_a_cleanup_incident_without_eligibility() {
+        let _desktop_lease = crate::tests::desktop_input_lease_test_guard().await;
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("cleanup-incident.sqlite3");
+        let store = ComputerUseRunStore::open(&path).unwrap();
+        let planner = FakePlanner::one_click();
+        let executions = Arc::new(AtomicUsize::new(0));
+        let factory = ReceiptActFactory {
+            executions: Arc::clone(&executions),
+            failure: None,
+            attach_receipt: true,
+            mismatch_action_id: false,
+            spec: ReceiptSpec {
+                input_delivery: runtime::InputDelivery::Sent,
+                partial: Some(false),
+                path_completed: Some(true),
+                confirmed_point_count: Some(5),
+                // **未确认释放**：可能还按着按钮 ⇒ 必须留下事故，供后续清理引用。
+                input_release: runtime::InputReleaseStatus::Unknown,
+            },
+        };
+        let identity = identity("cleanup-incident");
+        let result =
+            ComputerUseExecutor::new_for_test(&planner, &factory, &store, ComputerUseBudgets::default())
+                .execute(&input("desktop"), &identity)
+                .await;
+        assert!(executions.load(Ordering::SeqCst) >= 1, "动作确实执行过");
+        assert_ne!(
+            result.error.as_ref().map(|error| error.code.as_str()),
+            Some("action_origin_rejected"),
+            "本用例关注事故登记，不应被准入拒绝：{:?}",
+            result.error
+        );
+
+        let incidents = store
+            .cleanup_incidents_for_run(&identity.call_id)
+            .expect("读回事故");
+        assert_eq!(incidents.len(), 1, "未确认释放必须留下**一条**事故");
+        let incident = &incidents[0];
+        assert!(
+            !incident.recovery_eligible,
+            "刚发生时没有恢复资格：要等释放被确认解决"
+        );
+        assert!(
+            !incident.original_action_id.is_empty(),
+            "事故必须指向原始动作（清理要靠它对上）"
+        );
+        assert!(incident.eligible_at_unix_ms.is_none());
     }
 
     /// **PR-02B／CU-F05-3（正半）**：工具调用**已登记** ⇒ 事实必须如实带上 `tool_call_id`。
@@ -5343,6 +5415,8 @@ mod tests")
         crate::computer_use_store::apply_session_migration_v24_action_origin_ledger(&connection)
             .unwrap();
         crate::computer_use_store::apply_session_migration_v25_tool_call_registry(&connection)
+            .unwrap();
+        crate::computer_use_store::apply_session_migration_v26_cleanup_incidents(&connection)
             .unwrap();
         connection.execute_batch("PRAGMA query_only = ON;").unwrap();
         let store = ComputerUseRunStore::from_connection(connection);

@@ -1980,6 +1980,41 @@ module_linkage_smoke 5/0、`cargo build --workspace` ✅。
 
 **门禁**：web-console **1143/0**。
 
+### B-93 SafetyCleanup 事故登记交付：CU-F05-5 **两半齐备**（来源可核对 + 真的会登记）
+
+**背景**：`ActionSource::SafetyCleanup` 要求"核对到 incident + 原动作 + 恢复资格"才成立，而生产里
+此前**没有**这种形态的登记（只有 session/turn 粒度的释放解除记录）⇒ 任何清理动作都只能被拒绝：
+fail-closed 正确，但**无路可走**（§B-84 记的 CU-F05-5 正半缺口）。
+
+**已落地**：
+
+1. **登记表**（会话库 **v26**）：`computer_use_cleanup_incidents(incident_id PK, run_id,
+   original_action_id, original_tool_call_id, recovery_eligible, created_at_unix_ms, eligible_at_unix_ms)`，
+   与契约的 `CleanupIncidentRecord` 字段对齐（外加登记时间与资格时间）。
+2. **生产者（真的会发生）**：执行器写一步时，若该步的**未确认释放**（`input_release_status = Unknown`）
+   ⇒ 按 `(run, action)` 确定性生成 `incident_id` 登记一条事故，初始 `recovery_eligible = false`。
+   `incident_id` 确定性 ⇒ 重复写入幂等；登记失败**不改写该步的事实**（事实已按回执落盘）但会响亮记录。
+3. **资格来源（不是"发生过"就有）**：`resolve_unconfirmed_release`（释放被确认解决）会把该 scope
+   覆盖的事故翻转为 `recovery_eligible = 1` 并留痕 `eligible_at_unix_ms`。
+   另有显式入口 `mark_cleanup_incident_recovery_eligible`（受控复核场景，同样留痕）。
+4. **核对侧**：`ProductionActionOriginAuthority` 预载**本运行**具备资格的事故，按 `incident_id` 提供
+   `cleanup_incident` 查询——于是"清理可以成立"成为一条**可走通且可核对**的路径。
+
+**用例**（4 条）：
+`cleanup_incidents_gain_recovery_eligibility_only_after_the_release_is_resolved`（初始无资格 ⇒
+解决后才具备 + 时间留痕）、`cu_f05_5_eligible_cleanup_incident_is_accepted_as_a_source`
+（有资格且原动作一致 ⇒ 成立；原动作不一致 ⇒ 拒绝；未登记 ⇒ 拒绝）、
+`unconfirmed_release_registers_a_cleanup_incident_without_eligibility`（执行器端到端：
+未确认释放真的留下一条事故，且**无**资格）、以及既有 `cu_f05_5_cleanup_without_an_incident_registry_is_refused`（负半）。
+
+**同源问题第五次出现**：手工建的测试库必须补齐本文件拥有的迁移——本轮是
+`release_resolution_tables_are_added_to_an_existing_database_without_rewriting_rows`
+（释放解除新增的事故翻转读 v26 表）与执行器两个 `store()` 助手补 v26。
+
+**门禁**：web-console **1146/0**、module_linkage_smoke 6/0、`cargo build --workspace` ✅。
+
+**CU-F05 五场景现状**：1/2/3/4 ✅；**5 两半齐备** ✅（负半 + 正半 + 生产者）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
