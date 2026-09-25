@@ -30,8 +30,9 @@ use rusqlite::{params, Connection, OptionalExtension};
 use runtime::{
     parse_input_safety_store_id, BlockingRefRejection, IncidentState, InputSafetyEvent,
     InputSafetyEventKind, InputSafetyIncident, InputSafetyRecoveryOperation,
-    InputSafetyResourceScope, InputSafetyResourceState, InputSafetyStoreId, RecoveryStage,
-    ResourceSafetyState, VerifiedBlockingRef, INPUT_SAFETY_SCHEMA_VERSION,
+    InputSafetyResourceScope, InputSafetyResourceState, InputSafetyStoreId, RecoveryDisposition,
+    RecoveryStage, ReleaseIsolationDecision, ResourceSafetyState, VerifiedBlockingRef,
+    INPUT_SAFETY_SCHEMA_VERSION,
 };
 
 /// 宿主注入的环境变量名：**输入安全状态根**（由 launcher 按 `input_safety_state_root_for` 注入）。
@@ -366,7 +367,10 @@ impl InputSafetyStore {
                     allowed_operations_json TEXT NOT NULL,
                     stage TEXT NOT NULL,
                     recorded_at_unix_ms INTEGER NOT NULL,
-                    committed INTEGER NOT NULL
+                    committed INTEGER NOT NULL,
+                    -- v2（PR-01／P0-1）：最终处置。**过程看 stage，结论看本列**；
+                    -- 旧行由 ALTER 补成 'pending'（未知不得当已结账）。
+                    disposition TEXT NOT NULL DEFAULT 'pending'
                 );
                 -- 资源阻断事实（谁开的、为什么、何时关）：与 incident 分开——
                 -- incident 是"事故"，本表是"当前该资源是否被阻断"的事实行。
@@ -401,15 +405,57 @@ impl InputSafetyStore {
                     detail TEXT NOT NULL,
                     recorded_at_unix_ms INTEGER NOT NULL
                 );
+                -- v2（PR-01／P0-1）：**人工放行决定**。这是"谁在什么资格下、凭什么证据、
+                -- 于何时解除隔离"的追加事实；它**不**删除 incident、**不**重置库、
+                -- 也不等于"重启即解锁"——放开新输入仍须另行走按资格开放。
+                CREATE TABLE IF NOT EXISTS input_safety_release_decisions (
+                    decision_id TEXT PRIMARY KEY,
+                    scope TEXT NOT NULL,
+                    operator TEXT NOT NULL,
+                    reason TEXT NOT NULL,
+                    evidence_refs_json TEXT NOT NULL,
+                    acknowledged_block_ids_json TEXT NOT NULL,
+                    acknowledged_run_ids_json TEXT NOT NULL,
+                    release_epoch INTEGER NOT NULL,
+                    coordinator_instance_id TEXT NOT NULL,
+                    decided_at_unix_ms INTEGER NOT NULL
+                );
                 "#,
             )
             .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
+        // v1 → v2 **就地升级**：旧库（user_version=1）的恢复操作表没有 `disposition` 列。
+        // 加列而不是另建空库——"另建空库"等于遗忘旧事故（本模块开篇口径）。
+        if !Self::column_exists(connection, "input_safety_recovery_operations", "disposition")? {
+            connection
+                .execute_batch(
+                    "ALTER TABLE input_safety_recovery_operations
+                         ADD COLUMN disposition TEXT NOT NULL DEFAULT 'pending';",
+                )
+                .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
+        }
         if current < INPUT_SAFETY_SCHEMA_VERSION {
             connection
                 .execute_batch(&format!("PRAGMA user_version = {INPUT_SAFETY_SCHEMA_VERSION};"))
                 .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
         }
         Ok(())
+    }
+
+    /// 列是否存在（用于**就地**迁移判定；只读 PRAGMA，不改任何状态）。
+    fn column_exists(
+        connection: &Connection,
+        table: &str,
+        column: &str,
+    ) -> Result<bool, InputSafetyStoreError> {
+        let mut statement = connection
+            .prepare(&format!("PRAGMA table_info({table})"))
+            .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
+        let names = statement
+            .query_map([], |row| row.get::<_, String>(1))
+            .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
+        Ok(names.iter().any(|name| name == column))
     }
 
     fn read_identity(
@@ -686,6 +732,9 @@ impl InputSafetyStore {
     }
 
     /// 登记（或幂等读回）一条恢复操作。
+    ///
+    /// **已结账（`committed = 1`）的操作不受本函数影响**：结账是历史，不得被后续登记复活
+    /// 或改判（`ON CONFLICT ... WHERE committed = 0`）。
     pub(crate) fn put_recovery_operation(
         &self,
         operation: &InputSafetyRecoveryOperation,
@@ -695,13 +744,14 @@ impl InputSafetyStore {
                 "INSERT INTO input_safety_recovery_operations
                      (recovery_operation_id, coordinator_instance_id, recovery_epoch, gate_revision, scope,
                       source_database_identity, candidate_run_ids_json, allowed_operations_json, stage,
-                      recorded_at_unix_ms, committed)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+                      recorded_at_unix_ms, committed, disposition)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
                  ON CONFLICT(recovery_operation_id) DO UPDATE SET
                      stage = excluded.stage,
                      committed = excluded.committed
-                 WHERE excluded.stage != input_safety_recovery_operations.stage
-                    OR excluded.committed != input_safety_recovery_operations.committed",
+                 WHERE input_safety_recovery_operations.committed = 0
+                   AND (excluded.stage != input_safety_recovery_operations.stage
+                        OR excluded.committed != input_safety_recovery_operations.committed)",
                 params![
                     operation.recovery_operation_id,
                     operation.coordinator_instance_id,
@@ -713,7 +763,8 @@ impl InputSafetyStore {
                     operation.allowed_operations.join("\n"),
                     operation.stage.as_str(),
                     operation.recorded_at_unix_ms as i64,
-                    i64::from(operation.committed)
+                    i64::from(operation.committed),
+                    operation.disposition.as_str()
                 ],
             )
             .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
@@ -725,24 +776,50 @@ impl InputSafetyStore {
         recovery_operation_id: &str,
     ) -> Result<Option<InputSafetyRecoveryOperation>, InputSafetyStoreError> {
         #[allow(clippy::type_complexity)]
-        let row: Option<(String, String, i64, i64, String, String, String, String, String, i64, i64)> = self
+        let row: Option<(
+            String,
+            String,
+            i64,
+            i64,
+            String,
+            String,
+            String,
+            String,
+            String,
+            i64,
+            i64,
+            String,
+        )> = self
             .connection
             .query_row(
                 "SELECT recovery_operation_id, coordinator_instance_id, recovery_epoch, gate_revision, scope,
                         source_database_identity, candidate_run_ids_json, allowed_operations_json, stage,
-                        recorded_at_unix_ms, committed
+                        recorded_at_unix_ms, committed, disposition
                  FROM input_safety_recovery_operations WHERE recovery_operation_id = ?1",
                 [recovery_operation_id],
                 |row| {
                     Ok((
                         row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?,
-                        row.get(6)?, row.get(7)?, row.get(8)?, row.get(9)?, row.get(10)?,
+                        row.get(6)?, row.get(7)?, row.get(8)?, row.get(9)?, row.get(10)?, row.get(11)?,
                     ))
                 },
             )
             .optional()
             .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
-        let Some((id, coordinator, epoch, gate, scope, source_db, runs, ops, stage, recorded, committed)) = row
+        let Some((
+            id,
+            coordinator,
+            epoch,
+            gate,
+            scope,
+            source_db,
+            runs,
+            ops,
+            stage,
+            recorded,
+            committed,
+            disposition,
+        )) = row
         else {
             return Ok(None);
         };
@@ -772,6 +849,7 @@ impl InputSafetyStore {
             stage,
             recorded_at_unix_ms: recorded as u64,
             committed: committed != 0,
+            disposition: RecoveryDisposition::parse(&disposition),
         }))
     }
 
@@ -1211,6 +1289,340 @@ impl InputSafetyStore {
             .ok_or_else(|| InputSafetyStoreError::Sqlite("重新绑定后读不到恢复操作".to_string()))
     }
 
+    /// **结账**一条恢复操作：写入终态处置（PR-01／P0-1）。
+    ///
+    /// 为什么必须持有当前资格：结账决定"这件事怎么结的"，属于**安全状态**的修改。拿不出当前
+    /// epoch 就结账，等于任何人写一行 `human_review_required` 就能把"永久隔离"包装成"已处置"。
+    ///
+    /// 规则：
+    /// - `Pending` **不是**结账（拒收），避免"用结账掩盖仍在办"；
+    /// - 已结账的操作**不得改判**（历史不得回写）；同值重复结账按幂等成功返回；
+    /// - 结账同时写 `committed = 1`，此后不再出现在"待对账"集合里（这正是永久隔离的出口）。
+    pub(crate) fn settle_recovery_operation_authorized(
+        &self,
+        recovery_operation_id: &str,
+        guard: &RecoveryControlGuard,
+        disposition: RecoveryDisposition,
+        reason: &str,
+    ) -> Result<InputSafetyRecoveryOperation, InputSafetyStoreError> {
+        if !disposition.is_terminal() {
+            return Err(InputSafetyStoreError::Sqlite(
+                "Pending 不是结账：仍在办的操作不得写入终态处置".to_string(),
+            ));
+        }
+        let operation = self
+            .recovery_operation(recovery_operation_id)?
+            .ok_or_else(|| InputSafetyStoreError::Sqlite("恢复操作不存在".to_string()))?;
+        let owned = self.require_recovery_authorization(&operation.scope, guard)?;
+        if operation.disposition.is_terminal() {
+            if operation.disposition == disposition {
+                return Ok(operation);
+            }
+            return Err(InputSafetyStoreError::Sqlite(format!(
+                "已结账（{}）的操作不得改判为 {}：历史不得回写",
+                operation.disposition.as_str(),
+                disposition.as_str()
+            )));
+        }
+        let changed = self
+            .connection
+            .execute(
+                // 结账的唯一守门是"处置仍为 pending"（**不是** `committed = 0`）：
+                // R8（`stage_committed`）本身就会把 `committed` 置 1，而处置与它是**两个维度**
+                // ——"阶段走完了"不等于"结论写下了"。用 `committed = 0` 当守门会让已走完
+                // R8 的收敛操作永远结不了账（现场实测：`presented_epoch == current_epoch`
+                // 却报未持有资格，因为 UPDATE 打空）。
+                "UPDATE input_safety_recovery_operations
+                    SET disposition = ?2, committed = 1
+                  WHERE recovery_operation_id = ?1 AND disposition = 'pending'",
+                params![recovery_operation_id, disposition.as_str()],
+            )
+            .map_err(sqlite_error)?;
+        if changed != 1 {
+            return Err(InputSafetyStoreError::RecoveryUnauthorized {
+                scope: operation.scope.as_str().to_string(),
+                presented_epoch: Some(owned.epoch),
+                current_epoch: self
+                    .current_recovery_epoch(&operation.scope)?
+                    .map(|value| value.epoch),
+            });
+        }
+        self.append_event(InputSafetyEvent {
+            kind: InputSafetyEventKind::RecoveryStageAdvanced,
+            scope: Some(operation.scope.clone()),
+            subject_id: Some(recovery_operation_id.to_string()),
+            detail: format!(
+                "恢复操作结账：处置={} epoch={} 理由={}",
+                disposition.as_str(),
+                owned.epoch,
+                reason.trim()
+            ),
+            recorded_at_unix_ms: now_unix_ms(),
+        })?;
+        self.recovery_operation(recovery_operation_id)?
+            .ok_or_else(|| InputSafetyStoreError::Sqlite("结账后读不到恢复操作".to_string()))
+    }
+
+    /// 记录一条**人工放行决定**，并逐条关闭它声明的阻断（PR-01／P0-1）。
+    ///
+    /// 禁止事项照抄决策：**不**删除 incident、**不**重置安全库、**不**把"重启"当解锁。
+    /// 因此这里做的是"追加一条决定事实 + 把它声明的阻断逐条置为 closed"，事故记录原样保留。
+    ///
+    /// 它**不**放开新输入：放开仍须经 [`Self::reopen_new_input_authorized`]（独立评估 + 当前资格）。
+    /// 本函数只负责"人事"这一半——解除人工阻断；"机器"那一半留给开放路径。
+    pub(crate) fn release_isolation_authorized(
+        &self,
+        decision: &ReleaseIsolationDecision,
+        guard: &RecoveryControlGuard,
+    ) -> Result<ReleaseIsolationDecision, InputSafetyStoreError> {
+        if decision.operator.trim().is_empty() {
+            return Err(InputSafetyStoreError::Sqlite(
+                "放行必须署名：operator 不得为空".to_string(),
+            ));
+        }
+        if decision.reason.trim().is_empty() {
+            return Err(InputSafetyStoreError::Sqlite(
+                "放行必须给出理由：reason 不得为空".to_string(),
+            ));
+        }
+        let owned = self.require_recovery_authorization(&decision.scope, guard)?;
+        // 资格与时刻由**库侧**落定，不接受调用方自报（否则可回填旧决定去套新阻断）。
+        let decision = ReleaseIsolationDecision {
+            release_epoch: owned.epoch,
+            coordinator_instance_id: owned.coordinator_instance_id.clone(),
+            decided_at_unix_ms: now_unix_ms(),
+            ..decision.clone()
+        };
+        let existed: Option<String> = self
+            .connection
+            .query_row(
+                "SELECT decision_id FROM input_safety_release_decisions WHERE decision_id = ?1",
+                [decision.decision_id.as_str()],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(sqlite_error)?;
+        if existed.is_some() {
+            return Err(InputSafetyStoreError::Sqlite(format!(
+                "放行决定 ID 已存在（{}）：决定是追加事实，不得覆盖",
+                decision.decision_id
+            )));
+        }
+        let mut closed_block_ids = Vec::new();
+        for block_id in &decision.acknowledged_block_ids {
+            let open: Option<String> = self
+                .connection
+                .query_row(
+                    "SELECT block_id FROM input_safety_resource_blocks
+                      WHERE block_id = ?1 AND scope = ?2 AND state = 'open'",
+                    params![block_id.as_str(), decision.scope.as_str()],
+                    |row| row.get(0),
+                )
+                .optional()
+                .map_err(sqlite_error)?;
+            let Some(block_id) = open else {
+                return Err(InputSafetyStoreError::Sqlite(format!(
+                    "阻断 {block_id} 不存在／已关闭／不属于 {}：不得放行未声明的阻断",
+                    decision.scope.as_str()
+                )));
+            };
+            self.close_resource_block(&block_id)?;
+            closed_block_ids.push(block_id);
+        }
+        self.connection
+            .execute(
+                "INSERT INTO input_safety_release_decisions
+                     (decision_id, scope, operator, reason, evidence_refs_json, acknowledged_block_ids_json,
+                      acknowledged_run_ids_json, release_epoch, coordinator_instance_id, decided_at_unix_ms)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+                params![
+                    decision.decision_id.as_str(),
+                    decision.scope.as_str(),
+                    decision.operator,
+                    decision.reason,
+                    decision.evidence_refs.join("\n"),
+                    decision.acknowledged_block_ids.join("\n"),
+                    decision.acknowledged_run_ids.join("\n"),
+                    decision.release_epoch as i64,
+                    decision.coordinator_instance_id,
+                    decision.decided_at_unix_ms as i64
+                ],
+            )
+            .map_err(sqlite_error)?;
+        self.append_event(InputSafetyEvent {
+            kind: InputSafetyEventKind::IncidentResolved,
+            scope: Some(decision.scope.clone()),
+            subject_id: Some(decision.decision_id.clone()),
+            detail: format!(
+                "人工放行决定：operator={} epoch={} 解除阻断={:?} 接受遗留运行={:?} 理由={}",
+                decision.operator,
+                decision.release_epoch,
+                closed_block_ids,
+                decision.acknowledged_run_ids,
+                decision.reason.trim()
+            ),
+            recorded_at_unix_ms: decision.decided_at_unix_ms,
+        })?;
+        Ok(decision)
+    }
+
+    /// 最近一次人工放行决定（不存在则 `None`）。
+    pub(crate) fn latest_release_decision(
+        &self,
+        scope: &InputSafetyResourceScope,
+    ) -> Result<Option<ReleaseIsolationDecision>, InputSafetyStoreError> {
+        #[allow(clippy::type_complexity)]
+        let row: Option<(String, String, String, String, String, String, String, i64, String, i64)> = self
+            .connection
+            .query_row(
+                "SELECT decision_id, scope, operator, reason, evidence_refs_json,
+                        acknowledged_block_ids_json, acknowledged_run_ids_json, release_epoch,
+                        coordinator_instance_id, decided_at_unix_ms
+                 FROM input_safety_release_decisions
+                 WHERE scope = ?1
+                 ORDER BY decided_at_unix_ms DESC, decision_id DESC
+                 LIMIT 1",
+                [scope.as_str()],
+                |row| {
+                    Ok((
+                        row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?,
+                        row.get(6)?, row.get(7)?, row.get(8)?, row.get(9)?,
+                    ))
+                },
+            )
+            .optional()
+            .map_err(sqlite_error)?;
+        let Some((
+            decision_id,
+            scope_raw,
+            operator,
+            reason,
+            evidence,
+            blocks,
+            runs,
+            epoch,
+            coordinator,
+            decided,
+        )) = row
+        else {
+            return Ok(None);
+        };
+        let scope = InputSafetyResourceScope::parse(&scope_raw)
+            .map_err(|_| InputSafetyStoreError::UnknownProvenance)?;
+        Ok(Some(ReleaseIsolationDecision {
+            decision_id,
+            scope,
+            operator,
+            reason,
+            evidence_refs: split_lines(&evidence),
+            acknowledged_block_ids: split_lines(&blocks),
+            acknowledged_run_ids: split_lines(&runs),
+            release_epoch: epoch as u64,
+            coordinator_instance_id: coordinator,
+            decided_at_unix_ms: decided as u64,
+        }))
+    }
+
+    /// 该 scope **仍未获放行**的开启阻断。
+    ///
+    /// 判定规则：被最近一次放行决定**逐条声明**、且该决定**不早于**阻断开启时刻 ⇒ 视为已获放行。
+    /// 用"不早于"而不是"晚于"：同毫秒内先开阻断、后做放行是正常次序（放行总是发生在看到阻断之后）；
+    /// 反过来（旧决定被拿来套新阻断）必须无效——否则一条历史决定就能永久放行未来的一切阻断。
+    pub(crate) fn unacknowledged_open_block_ids(
+        &self,
+        scope: &InputSafetyResourceScope,
+    ) -> Result<Vec<String>, InputSafetyStoreError> {
+        let decision = self.latest_release_decision(scope)?;
+        let mut statement = self
+            .connection
+            .prepare(
+                "SELECT block_id, opened_at_unix_ms FROM input_safety_resource_blocks
+                 WHERE scope = ?1 AND state = 'open'
+                 ORDER BY opened_at_unix_ms, block_id",
+            )
+            .map_err(sqlite_error)?;
+        let rows = statement
+            .query_map([scope.as_str()], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+            })
+            .map_err(sqlite_error)?
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(sqlite_error)?;
+        Ok(match decision {
+            None => rows.into_iter().map(|(id, _)| id).collect(),
+            Some(decision) => rows
+                .into_iter()
+                .filter(|(id, opened)| {
+                    !(decision.acknowledged_block_ids.contains(id)
+                        && decision.decided_at_unix_ms >= (*opened as u64))
+                })
+                .map(|(id, _)| id)
+                .collect(),
+        })
+    }
+
+    /// 最近一次放行决定所**接受**的未收敛遗留运行（operator 已明确承担其风险）。
+    pub(crate) fn acknowledged_run_ids(
+        &self,
+        scope: &InputSafetyResourceScope,
+    ) -> Result<Vec<String>, InputSafetyStoreError> {
+        Ok(self
+            .latest_release_decision(scope)?
+            .map(|decision| decision.acknowledged_run_ids)
+            .unwrap_or_default())
+    }
+
+    /// 某 scope 上**未结账**（处置 `Pending`）的恢复操作：只有它们算"待对账"。
+    pub(crate) fn unsettled_recovery_operations(
+        &self,
+        scope: &InputSafetyResourceScope,
+    ) -> Result<Vec<InputSafetyRecoveryOperation>, InputSafetyStoreError> {
+        self.recovery_operations_where(
+            "scope = ?1 AND committed = 0 AND disposition = 'pending'",
+            Some(scope.as_str()),
+        )
+    }
+
+    /// 处置为 `human_review_required` 的操作（界面与运维口径：这是"等人"）。
+    pub(crate) fn human_review_required_operations(
+        &self,
+    ) -> Result<Vec<InputSafetyRecoveryOperation>, InputSafetyStoreError> {
+        self.recovery_operations_where("disposition = 'human_review_required'", None)
+    }
+
+    /// 按给定条件读回操作（内部工具：只用于上面两个口径查询）。
+    fn recovery_operations_where(
+        &self,
+        predicate: &str,
+        scope: Option<&str>,
+    ) -> Result<Vec<InputSafetyRecoveryOperation>, InputSafetyStoreError> {
+        let sql = format!(
+            "SELECT recovery_operation_id FROM input_safety_recovery_operations
+             WHERE {predicate}
+             ORDER BY recorded_at_unix_ms, recovery_operation_id"
+        );
+        let mut statement = self.connection.prepare(&sql).map_err(sqlite_error)?;
+        let ids = match scope {
+            Some(scope) => statement
+                .query_map([scope], |row| row.get::<_, String>(0))
+                .map_err(sqlite_error)?
+                .collect::<rusqlite::Result<Vec<_>>>()
+                .map_err(sqlite_error)?,
+            None => statement
+                .query_map([], |row| row.get::<_, String>(0))
+                .map_err(sqlite_error)?
+                .collect::<rusqlite::Result<Vec<_>>>()
+                .map_err(sqlite_error)?,
+        };
+        let mut operations = Vec::new();
+        for id in ids {
+            if let Some(operation) = self.recovery_operation(&id)? {
+                operations.push(operation);
+            }
+        }
+        Ok(operations)
+    }
+
     /// 启动对账（第八轮 §4 组合用例 3）：读**未提交**的恢复操作，判断能否继续。
     ///
     /// **只读不删**：崩溃恢复**禁止**删除 recovery 行；资格已易主或本实例未取权时，
@@ -1628,6 +2040,7 @@ impl InputSafetyCoordinator {
                 stage: RecoveryStage::CoordinationAcquired,
                 recorded_at_unix_ms: now_unix_ms(),
                 committed: false,
+                disposition: RecoveryDisposition::Pending,
             })
             .map_err(CoordinatorError::Store)?;
         if abandoned {
@@ -1816,6 +2229,254 @@ mod tests {
         let scope = unique_scope(tag);
         let coordinator = coordinator_for_scope(root, tag, &scope, recovery_id);
         (coordinator, scope)
+    }
+
+    /// **PR-01／P0-1**：结账必须持有当前资格；`Pending` 不是结账；结账后不得改判、不得被登记复活。
+    ///
+    /// 这组规则合起来才构成"永久隔离"的出口：处置是**终态**（所以不再挂账），
+    /// 又是**一次性**的（所以不会被后续登记悄悄改回"还在办"）。
+    #[test]
+    fn settling_is_authorized_final_and_not_resurrectable() {
+        let root = temp_root();
+        let (coordinator, scope) = coordinator_for(root.path(), "settle", "recovery-settle");
+        let operation_id = "recovery-settle";
+
+        // ① `Pending` 不是结账。
+        let refused = coordinator
+            .store()
+            .settle_recovery_operation_authorized(
+                operation_id,
+                coordinator.control(),
+                RecoveryDisposition::Pending,
+                "试图用结账掩盖仍在办",
+            )
+            .err()
+            .expect("Pending 必须被拒");
+        assert!(refused.to_string().contains("Pending 不是结账"), "{refused}");
+
+        // ② 正常结账：owner 未知 ⇒ human_review_required，且同时提交。
+        let settled = coordinator
+            .store()
+            .settle_recovery_operation_authorized(
+                operation_id,
+                coordinator.control(),
+                RecoveryDisposition::HumanReviewRequired,
+                "owner 关系永久未知",
+            )
+            .expect("结账");
+        assert_eq!(settled.disposition, RecoveryDisposition::HumanReviewRequired);
+        assert!(settled.committed, "结账必须同时提交");
+
+        // ③ 幂等：同值重复结账成功返回。
+        coordinator
+            .store()
+            .settle_recovery_operation_authorized(
+                operation_id,
+                coordinator.control(),
+                RecoveryDisposition::HumanReviewRequired,
+                "重复结账（幂等）",
+            )
+            .expect("同值重复结账必须成功");
+
+        // ④ 改判：拒绝（历史不得回写）。
+        let rejudged = coordinator
+            .store()
+            .settle_recovery_operation_authorized(
+                operation_id,
+                coordinator.control(),
+                RecoveryDisposition::Recovered,
+                "试图把保持隔离改判成已收敛",
+            )
+            .err()
+            .expect("改判必须被拒");
+        assert!(rejudged.to_string().contains("不得改判"), "{rejudged}");
+
+        // ⑤ 登记（幂等 upsert）不得复活/降级已结账的操作。
+        let mut resurrect =
+            pending_operation(&scope, coordinator.control().epoch(), coordinator.control().coordinator_id());
+        resurrect.recovery_operation_id = operation_id.to_string();
+        coordinator
+            .store()
+            .put_recovery_operation(&resurrect)
+            .expect("put");
+        let read_back = coordinator
+            .store()
+            .recovery_operation(operation_id)
+            .expect("read")
+            .expect("exists");
+        assert_eq!(
+            read_back.disposition,
+            RecoveryDisposition::HumanReviewRequired,
+            "已结账的操作不得被后续登记复活"
+        );
+        assert!(read_back.committed, "已结账的 committed 不得被登记回退");
+
+        // ⑥ 已结账 ⇒ 移出"待对账"，但仍在"待人工复核"里可见（这是"等人"，不是"等机器"）。
+        assert!(
+            coordinator
+                .store()
+                .unsettled_recovery_operations(&scope)
+                .expect("unsettled")
+                .is_empty(),
+            "结账后不得再算待对账（这正是永久隔离的出口）"
+        );
+        assert!(
+            coordinator
+                .store()
+                .human_review_required_operations()
+                .expect("human")
+                .iter()
+                .any(|operation| operation.recovery_operation_id == operation_id),
+            "human_review_required 必须可查询（待办要能归属到人）"
+        );
+    }
+
+    /// **PR-01／P0-1**：人工放行必须署名 + 理由；只解除**逐条声明**的阻断；事故记录不得删除。
+    #[test]
+    fn release_decision_requires_signature_and_releases_only_declared_blocks() {
+        let root = temp_root();
+        let (coordinator, scope) = coordinator_for(root.path(), "release", "recovery-release");
+        let store = coordinator.store();
+        // 一条真实事故 + 两条阻断：放行只解除声明的那条，事故必须原样保留。
+        store
+            .establish_incident_authorized(&incident_for(&scope, "incident-a"), coordinator.control())
+            .expect("incident");
+        store
+            .open_resource_block("block-a", &scope, "legacy_recovery", "incident-a")
+            .expect("block-a");
+        store
+            .open_resource_block("block-b", &scope, "legacy_recovery", "incident-b")
+            .expect("block-b");
+
+        let base = ReleaseIsolationDecision {
+            decision_id: "release-1".to_string(),
+            scope: scope.clone(),
+            operator: String::new(),
+            reason: "已人工核对：旧执行者确认不在场".to_string(),
+            evidence_refs: vec!["manual-check-2026-09-25".to_string()],
+            acknowledged_block_ids: vec!["block-a".to_string()],
+            acknowledged_run_ids: vec!["legacy-cu-1".to_string()],
+            // 资格与时刻由库侧落定；这里刻意填占位值，验证库会覆盖它。
+            release_epoch: 0,
+            coordinator_instance_id: String::new(),
+            decided_at_unix_ms: 0,
+        };
+
+        // ① 匿名放行 ⇒ 拒绝。
+        let anonymous = store
+            .release_isolation_authorized(&base, coordinator.control())
+            .err()
+            .expect("匿名必须被拒");
+        assert!(anonymous.to_string().contains("署名"), "{anonymous}");
+
+        // ② 无理由 ⇒ 拒绝。
+        let named = ReleaseIsolationDecision {
+            operator: "ops-zhang".to_string(),
+            ..base.clone()
+        };
+        let no_reason = store
+            .release_isolation_authorized(
+                &ReleaseIsolationDecision {
+                    reason: "   ".to_string(),
+                    ..named.clone()
+                },
+                coordinator.control(),
+            )
+            .err()
+            .expect("无理由必须被拒");
+        assert!(no_reason.to_string().contains("理由"), "{no_reason}");
+
+        // ③ 正常放行：只解除 block-a；block-b 仍算未获放行；epoch/时刻由库侧落定。
+        let recorded = store
+            .release_isolation_authorized(&named, coordinator.control())
+            .expect("release");
+        assert_eq!(
+            recorded.release_epoch,
+            coordinator.control().epoch(),
+            "留痕 epoch 必须来自库侧（不接受调用方自报）"
+        );
+        assert!(recorded.decided_at_unix_ms > 0, "时刻也必须由库侧落定");
+        assert_eq!(
+            store.unacknowledged_open_block_ids(&scope).expect("open"),
+            vec!["block-b".to_string()],
+            "未声明的阻断不得被解除"
+        );
+        assert_eq!(
+            store.acknowledged_run_ids(&scope).expect("runs"),
+            vec!["legacy-cu-1".to_string()],
+            "operator 接受的遗留运行必须可读回"
+        );
+        // ④ **禁止删事故**：放行后 incident 仍然在，且状态未被篡改。
+        let incident = store.incident("incident-a").expect("read").expect("事故不得被删除");
+        assert_eq!(incident.state, IncidentState::Pending);
+        assert!(store.latest_release_decision(&scope).expect("latest").is_some());
+
+        // ⑤ 决定是追加事实：同 ID 覆盖 ⇒ 拒绝。
+        let duplicate = store
+            .release_isolation_authorized(&named, coordinator.control())
+            .err()
+            .expect("覆盖必须被拒");
+        assert!(duplicate.to_string().contains("不得覆盖"), "{duplicate}");
+
+        // ⑥ 声明不存在/已关闭的阻断 ⇒ 拒绝（不得放行未声明的阻断）。
+        let bogus = store
+            .release_isolation_authorized(
+                &ReleaseIsolationDecision {
+                    decision_id: "release-2".to_string(),
+                    acknowledged_block_ids: vec!["block-a".to_string()],
+                    ..named
+                },
+                coordinator.control(),
+            )
+            .err()
+            .expect("已关闭的阻断不得再次放行");
+        assert!(bogus.to_string().contains("不得放行未声明的阻断"), "{bogus}");
+    }
+
+    /// **PR-01**：v1 库**就地升级**到 v2（加列 + 建新表），旧行按"仍在办"读回——**不另建空库**。
+    #[test]
+    fn v1_database_is_upgraded_in_place_and_old_rows_read_as_pending() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        let store_id = store.store_id().as_str().to_string();
+        drop(store);
+        // 把库降回 **v1 形态**：没有 disposition 列、没有放行决定表、版本号 1，并留一条旧行。
+        {
+            let connection =
+                Connection::open(root.path().join(INPUT_SAFETY_DB_FILE)).expect("reopen raw");
+            connection
+                .execute_batch(
+                    "DROP TABLE IF EXISTS input_safety_release_decisions;
+                     ALTER TABLE input_safety_recovery_operations DROP COLUMN disposition;
+                     INSERT INTO input_safety_recovery_operations
+                         (recovery_operation_id, coordinator_instance_id, recovery_epoch, gate_revision, scope,
+                          source_database_identity, candidate_run_ids_json, allowed_operations_json, stage,
+                          recorded_at_unix_ms, committed)
+                     VALUES ('recovery-old', 'coordinator-old', 1, 1, 'windows-session-1', 'session-db:default',
+                             '', '', 'r5_incident_established', 1, 0);
+                     PRAGMA user_version = 1;",
+                )
+                .expect("v1 shape");
+        }
+        let upgraded = InputSafetyStore::open_at(root.path()).expect("就地升级必须成功");
+        assert_eq!(upgraded.store_id().as_str(), store_id, "就地升级不得换身份");
+        let old = upgraded
+            .recovery_operation("recovery-old")
+            .expect("read")
+            .expect("旧行必须可读");
+        assert_eq!(
+            old.disposition,
+            RecoveryDisposition::Pending,
+            "旧行必须按'仍在办'读回（不得把未知当已结账）"
+        );
+        assert!(!old.committed);
+        assert!(
+            upgraded
+                .latest_release_decision(&scope())
+                .expect("v2 放行决定表必须已被建出")
+                .is_none(),
+            "升级后放行决定表可查询（空集）"
+        );
     }
 
     /// 首次初始化：生成身份、写侧车标记、记一条初始化事件；重开身份不变。
@@ -2060,6 +2721,7 @@ mod tests {
             stage: RecoveryStage::CoordinationAcquired,
             recorded_at_unix_ms: now_unix_ms(),
             committed: false,
+            disposition: RecoveryDisposition::Pending,
         }
     }
 
@@ -2301,6 +2963,7 @@ mod tests {
             stage: RecoveryStage::CoordinationAcquired,
             recorded_at_unix_ms: now_unix_ms(),
             committed: false,
+            disposition: RecoveryDisposition::Pending,
         };
         store.put_recovery_operation(&operation).expect("put");
         store.put_recovery_operation(&operation).expect("幂等");

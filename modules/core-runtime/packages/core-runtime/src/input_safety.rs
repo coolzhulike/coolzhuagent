@@ -30,8 +30,13 @@ use std::fmt;
 
 /// 输入安全库的**独立**组件 schema 版本（裁决 §1.2）。
 ///
-/// 初始为 1；与会话库的版本号**互不相干**。升级 schema **不得**另建空的新版本文件来遗忘旧事故。
-pub const INPUT_SAFETY_SCHEMA_VERSION: i64 = 1;
+/// 与会话库的版本号**互不相干**。升级 schema **不得**另建空的新版本文件来遗忘旧事故。
+///
+/// - v1：五实体（identity／resource_state／incidents／resource_blocks／ownership_epochs＋events）。
+/// - v2（PR-01／P0-1）：`input_safety_recovery_operations` 增加 `disposition`（**结账口径**），
+///   并新增 `input_safety_release_decisions`（人工放行决定）。加列走 `ALTER TABLE`（旧库就地升级），
+///   不新建空库——"另建空库"等于遗忘旧事故。
+pub const INPUT_SAFETY_SCHEMA_VERSION: i64 = 2;
 
 /// 存储身份前缀：`is-` + 32 位小写十六进制。
 pub const INPUT_SAFETY_STORE_ID_PREFIX: &str = "is-";
@@ -434,6 +439,12 @@ pub struct InputSafetyRecoveryOperation {
     pub recorded_at_unix_ms: u64,
     /// 是否已提交（提交后不得再次修改本操作的安全状态）。
     pub committed: bool,
+    /// 本次恢复的**最终处置**：过程看 `stage`，结论看本字段（PR-01／P0-1）。
+    ///
+    /// `Pending` = 仍在办（**只有它**算"待对账"）；其余为终态，只能由持有**当前**恢复资格的
+    /// 结账入口写入。缺了它，被拒绝的恢复会永远挂在"未结账"上 ⇒ 一个无法判定的遗留运行
+    /// 就能让资源永久隔离（台账 §B-80）。
+    pub disposition: RecoveryDisposition,
 }
 
 impl InputSafetyRecoveryOperation {
@@ -442,6 +453,95 @@ impl InputSafetyRecoveryOperation {
     pub fn can_advance_to(&self, next: RecoveryStage) -> bool {
         !self.committed && next.order() == self.stage.order() + 1
     }
+
+    /// 是否已结账（终态处置）。结账与 `committed` 由同一次写操作落库，这里以处置为准。
+    #[must_use]
+    pub const fn is_settled(&self) -> bool {
+        self.disposition.is_terminal()
+    }
+}
+
+/// 恢复操作的**最终处置**（PR-01／P0-1 裁决：恢复失败必须有出口，不得永久挂账）。
+///
+/// `stage` 回答"走到哪一步"，本类型回答"这件事怎么结的"：
+///
+/// - 一个被拒绝的恢复可能停在 `r5`，而它的处置是 `HumanReviewRequired`；
+/// - 复用 `stage` 表达结论会逼出"用 `r9` 表示放弃"这类谎言，且无法区分
+///   "还在办"与"永远办不完"——后者正是"永久隔离"缺口的成因。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryDisposition {
+    /// 尚未结账：仍在办。**只有它**计入"待对账"。
+    Pending,
+    /// 已收敛：控制终态与收敛事实已落库。
+    Recovered,
+    /// 已裁定保持隔离：原因明确、**无人工待办**（机器可判定，资源继续隔离）。
+    KeptIsolated,
+    /// 需要人工复核：资源**保持隔离**，但待办归属明确到人（例如 owner 关系永久未知）。
+    HumanReviewRequired,
+    /// 带证据放弃：承认无法判定，附证据后结账（不做"假装已收敛"）。
+    AbandonedWithEvidence,
+}
+
+impl RecoveryDisposition {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Pending => "pending",
+            Self::Recovered => "recovered",
+            Self::KeptIsolated => "kept_isolated",
+            Self::HumanReviewRequired => "human_review_required",
+            Self::AbandonedWithEvidence => "abandoned_with_evidence",
+        }
+    }
+
+    /// 是否已结账（终态）。**只有终态**允许把操作标记为 `committed`。
+    #[must_use]
+    pub const fn is_terminal(self) -> bool {
+        !matches!(self, Self::Pending)
+    }
+
+    /// 是否需要人工介入（用于界面与运维口径：这是"等人"，不是"等机器"）。
+    #[must_use]
+    pub const fn needs_human(self) -> bool {
+        matches!(self, Self::HumanReviewRequired)
+    }
+
+    /// 从库中读回（认不出的处置一律按 `Pending` 处理——**不得**把未知当已结账）。
+    #[must_use]
+    pub fn parse(value: &str) -> Self {
+        match value {
+            "recovered" => Self::Recovered,
+            "kept_isolated" => Self::KeptIsolated,
+            "human_review_required" => Self::HumanReviewRequired,
+            "abandoned_with_evidence" => Self::AbandonedWithEvidence,
+            _ => Self::Pending,
+        }
+    }
+}
+
+/// 人工放行决定（PR-01／P0-1）：**不是**"删事故"，而是一条可审计的决定事实。
+///
+/// 决策原文的禁止事项：不得 `DELETE FROM incidents`、不得重置安全库、不得把"重启"当解锁。
+/// 本记录承担的是"**谁**在**什么资格**下、凭**什么证据**、于**何时**决定解除隔离"，
+/// 并且它解除的是它**逐条列出**的阻断（不做批量删除）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReleaseIsolationDecision {
+    pub decision_id: String,
+    pub scope: InputSafetyResourceScope,
+    /// 操作者标识：**不得为空**（匿名放行等于没有责任人）。
+    pub operator: String,
+    /// 放行理由：**不得为空**。
+    pub reason: String,
+    /// 证据引用（可空；为空时须由理由说明，留给审计口径判断）。
+    pub evidence_refs: Vec<String>,
+    /// 本次决定解除的阻断事实（逐条留痕；空集表示只解除"遗留运行"这一侧）。
+    pub acknowledged_block_ids: Vec<String>,
+    /// 本次决定**接受**的未收敛遗留运行（operator 明确承担其风险）。
+    pub acknowledged_run_ids: Vec<String>,
+    /// 做出决定时所持有的恢复资格 epoch（**留痕**：无资格的放行不可信）。
+    pub release_epoch: u64,
+    pub coordinator_instance_id: String,
+    pub decided_at_unix_ms: u64,
 }
 
 /// 追加式安全事件的类型（用于解释投影与重启对账）。
@@ -488,7 +588,7 @@ mod tests {
     /// 版本独立：本库版本与会话库**不是**同一个号（本 crate 不知道会话库版本，故只钉本值）。
     #[test]
     fn schema_version_is_independent_and_pinned() {
-        assert_eq!(INPUT_SAFETY_SCHEMA_VERSION, 1);
+        assert_eq!(INPUT_SAFETY_SCHEMA_VERSION, 2);
     }
 
     /// 存储身份的解析不放宽：前缀、长度、字符集都不做近似归一。
@@ -566,6 +666,7 @@ mod tests {
             stage: RecoveryStage::CoordinationAcquired,
             recorded_at_unix_ms: 1,
             committed: false,
+            disposition: RecoveryDisposition::Pending,
         };
         assert!(operation.can_advance_to(RecoveryStage::IntentPersistedAndIntakeClosed));
         assert!(!operation.can_advance_to(RecoveryStage::TerminalCommitted), "不得跳步");
@@ -574,5 +675,32 @@ mod tests {
         operation.committed = true;
         assert!(!operation.can_advance_to(RecoveryStage::StageCommitted), "提交后冻结");
         assert_eq!(RecoveryStage::Reopened.order(), 9);
+    }
+
+    /// 处置的终态口径：只有 `Pending` 是"还在办"，且**认不出的值不得当已结账**。
+    #[test]
+    fn recovery_dispositions_are_terminal_except_pending() {
+        assert!(!RecoveryDisposition::Pending.is_terminal());
+        for settled in [
+            RecoveryDisposition::Recovered,
+            RecoveryDisposition::KeptIsolated,
+            RecoveryDisposition::HumanReviewRequired,
+            RecoveryDisposition::AbandonedWithEvidence,
+        ] {
+            assert!(settled.is_terminal(), "{settled:?} 必须是终态（否则永远挂在待对账）");
+        }
+        assert!(RecoveryDisposition::HumanReviewRequired.needs_human());
+        assert!(!RecoveryDisposition::Recovered.needs_human());
+        // 读写往返：五个值都要能原样读回；未知值一律按"仍在办"（fail-closed，不谎报已结账）。
+        for value in [
+            RecoveryDisposition::Pending,
+            RecoveryDisposition::Recovered,
+            RecoveryDisposition::KeptIsolated,
+            RecoveryDisposition::HumanReviewRequired,
+            RecoveryDisposition::AbandonedWithEvidence,
+        ] {
+            assert_eq!(RecoveryDisposition::parse(value.as_str()), value);
+        }
+        assert_eq!(RecoveryDisposition::parse("whatever"), RecoveryDisposition::Pending);
     }
 }

@@ -1489,6 +1489,76 @@ B-77 修掉后暴露：启动路径的评估恒带 `pending_recovery_operations 
 
 改动为**基线相对断言**（不再与硬编码常量比），随后：定向 20/20 轮绿 + 本轮**全量 3/3 轮 1115/0**。原始那次失败（`(4,4)`）**仍不可复现、根因未定位**，故保留"归因待核"，但不再作为门禁阻塞项；`tmp/guard-first-failure.log` 为首跑证据。
 
+### B-82 PR-01（P0-1）交付：`RecoveryDisposition` 状态机 + 人工放行通道，**永久隔离出口已闭环**
+
+**背景（承接 §B-80）**：修复 §B-77/§B-78 之后，本机真实库仍表现为 `refused=2 / open_blocks=2 / pending=1`——
+其中"被拒绝的恢复永不结账"没有任何出口：**一个无法判定的遗留运行 = 该桌面资源永久隔离**。
+
+**决策落地（PR-01）**：
+
+1. **契约层**（`core-runtime/src/input_safety.rs`）：新增 `RecoveryDisposition`
+   （`Pending` / `Recovered` / `KeptIsolated` / `HumanReviewRequired` / `AbandonedWithEvidence`）与
+   `ReleaseIsolationDecision`；`InputSafetyRecoveryOperation` 增加 `disposition` 列语义；
+   schema 版本 **1 → 2**。口径：**过程看 `stage`，结论看 `disposition`**——混用会让"还没走完"
+   与"永远走不完"不可区分（那正是缺口的成因）。
+2. **存储层**（`input_safety_store.rs`）：
+   - **v1 → v2 就地升级**：`ALTER TABLE ... ADD COLUMN disposition TEXT NOT NULL DEFAULT 'pending'`
+     + 新建 `input_safety_release_decisions`；**不另建空库**（另建空库等于遗忘旧事故）。
+   - `settle_recovery_operation_authorized`：结账必须持有**当前** epoch；`Pending` 不是结账；
+     已结账**不得改判**（同值幂等）；结账即 `committed = 1` ⇒ 移出"待对账"。
+   - `release_isolation_authorized`：人工放行**必须署名 + 理由**；只解除**逐条声明**的阻断；
+     决定是**追加事实**（同 ID 覆盖即拒绝）；**不删 incident、不重置库**；
+     `release_epoch` / `decided_at` 由**库侧**落定（不接受调用方自报，防回填旧决定套新阻断）。
+3. **驱动层**：四条退出路径各自结账——`Converged/AlreadyConverged ⇒ Recovered`、
+   `owner 未知 ⇒ HumanReviewRequired`（资源**仍隔离**）、`规则拒绝/前提不满足 ⇒ KeptIsolated`、
+   **缺"提交候选检查"⇒ 刻意不结账**（那是"尝试不完整"，不是结论；结账会掩盖它并阻止带齐检查的重放）。
+   已结账的操作**不重放**（报 `AlreadySettled`，不重复建阻断）。
+4. **评估层**：`unacknowledged_open_block_ids` + `acknowledged_run_ids`——**未获放行的阻断**才算挡路；
+   operator 明确接受的遗留运行不再挡路；放行后仍须走**独立评估 + 按资格开放**（人事与机器各一半）。
+5. **入口**：`GET /api/system/attribution-and-recovery` 增加 `input_safety_recovery`
+   （pending / human_review_required / 未获放行阻断 / 未获接受运行 **分开报**）；
+   新增 `POST /api/system/release-isolation`（署名/理由/证据 + **集合相等**校验防 TOCTOU）。
+6. **前端**：状态栏新增"放行隔离…"按钮（只在真有挡路项时出现）+ 三态文案 + 放行确认（写明
+   "不删事故、不重置库、不等于已开放"）。
+
+**过程中踩到并修掉的两个顺序缺陷**（都写进代码注释，避免后人重犯）：
+
+- **提前结账挡住阶段推进**：R8（`stage_committed`）由 store 置 `committed = true`，而阶段推进要求
+  "未提交"。最初把结账写在收敛分支里 ⇒ R8 被"不得跳步或回退"挡下
+  （`当前 r7_terminal_committed → 请求 r8_stage_committed`）。**结账必须放在阶段阶梯之后**。
+- **结账守门用错维度**：`UPDATE ... WHERE committed = 0` 会让已走完 R8 的操作永远结不了账
+  （表现为 `presented_epoch == current_epoch` 却报未持有资格）。守门改为 `WHERE disposition = 'pending'`。
+- **同源挂账**：启动路径协调器**自身**的登记操作（`startup-input-safety`）此前也永不结账，
+  每次启动都留下待对账项 ⇒ 下一次启动拒绝开放。现已按 opening 结果结账
+  （`Opened ⇒ Recovered`、`KeptIsolated ⇒ KeptIsolated`；根未注入/库不可用时保持 pending——那时写不进去）。
+
+**真实验证（本机真实库，未清理现场）**：
+
+```text
+迁移：user_version 1 → 2；disposition 列就位；input_safety_release_decisions 建出（就地，未换身份）
+第一次：candidates=2, converged=0, refused=2, settled=0,
+        opening=KeptIsolated{open_blocks:2, pending:1, human_review_required:2}
+        ⇒ 两条历史操作结账为 human_review_required、启动自身操作结账为 kept_isolated
+第二次：candidates=2, converged=0, refused=0, settled=2,
+        opening=KeptIsolated{open_blocks:2, pending:0, human_review_required:2,
+                             refusal:Some("该资源仍有未获放行的阻断事实")}
+库内：未结账操作 0 条；human_review_required 2 条；open blocks 2 条；incidents 2 条（**未被删除**）
+HTTP（只读/非改动校验）：空署名 ⇒ 400；阻断集合不符 ⇒ 409（TOCTOU）；状态未被改动
+```
+
+**验收用例（决策的 Recovery-P0-T1 已落地）**：
+`legacy_recovery_driver::tests::p0_t1_unknown_owner_settles_as_human_review_and_stays_blocked`
+（owner 未知 ⇒ 资源阻断 + 处置 = `HumanReviewRequired` + **不再永久 pending**）；
+`settled_operation_is_reported_instead_of_being_replayed`；存储侧 3 条
+（`settling_is_authorized_final_and_not_resurrectable`、`release_decision_requires_signature_and_releases_only_declared_blocks`、
+`v1_database_is_upgraded_in_place_and_old_rows_read_as_pending`）；开放侧 1 条
+（`release_decision_is_what_makes_the_resource_openable`）；前端守门 1 条
+（`release_isolation_surface_is_wired_without_lying`）。web-console **1122/0**、core-runtime **312/0**。
+
+**仍未闭环（如实保留）**：放行通道已具备，但**放行资格与复核口径**未定义（谁有权放行、是否需要双人复核、
+证据存放位置）；本机资源当前仍是隔离状态（2 条未获放行阻断）——这是**设计结果**，不是待修 bug；
+是否放行是**运营决定**，我不代行。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

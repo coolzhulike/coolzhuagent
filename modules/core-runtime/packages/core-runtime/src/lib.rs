@@ -64,8 +64,9 @@ pub use input_safety::{
     parse_input_safety_store_id, BlockingRefRejection, IncidentState, InputSafetyEvent,
     InputSafetyEventKind, InputSafetyIncident, InputSafetyRecoveryOperation,
     InputSafetyResourceScope, InputSafetyResourceState, InputSafetyStoreId, InvalidInputSafetyStoreId,
-    InvalidResourceScope, RecoveryStage, ResourceSafetyState, VerifiedBlockingRef,
-    INPUT_SAFETY_SCHEMA_VERSION, INPUT_SAFETY_STORE_ID_PREFIX,
+    InvalidResourceScope, RecoveryDisposition, RecoveryStage, ReleaseIsolationDecision,
+    ResourceSafetyState, VerifiedBlockingRef, INPUT_SAFETY_SCHEMA_VERSION,
+    INPUT_SAFETY_STORE_ID_PREFIX,
 };
 // RD4-01（第五轮裁决 A-1）：遗留 CU 运行收敛的契约与规则（additive 导出，语义见各自文档）。
 pub use fact_store::{

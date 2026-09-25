@@ -14,7 +14,7 @@ use std::path::Path;
 use runtime::{
     IncidentState as RuntimeIncidentState, InputSafetyIncident, InputSafetyResourceScope,
     LegacyCuRunConvergenceEvidence, LegacyResourceScope, LegacyRunHistoricalOutcome,
-    LegacyRunInputResourceState, RecoveryStage,
+    LegacyRunInputResourceState, RecoveryDisposition, RecoveryStage,
 };
 
 use crate::computer_use_store::{
@@ -35,6 +35,8 @@ pub(crate) enum LegacyRecoveryDisposition {
     Converged { convergence_id: i64 },
     /// 同一次收敛已存在：幂等，未写第二份。
     AlreadyConverged { convergence_id: i64 },
+    /// 本次**没有重放**：该操作的处置已是终态（PR-01／P0-1），重放只会重复同一结论。
+    AlreadySettled { disposition: RecoveryDisposition },
     /// **在任何写入之前**拒绝（缺前提/缺检查），资源保持隔离。
     RefusedBeforeWrite { code: String, message: String },
     /// 规则拒绝（已有真实终态 / 提交候选 / 原 revision 变了 / 冲突 / 操作 ID 复用）。
@@ -88,6 +90,23 @@ pub(crate) struct LegacyRecoveryInputs<'a> {
 /// 守门会把**正常重放**判成回退而拒绝，使启动路径每次都失败、资源永久保持阻断
 /// （现场实测：遗留操作停在 `r1`/`r5` 时命中）。
 /// 这里只负责"跳过已达标的阶段"；阶段本身的推进仍由 store 按持有资格校验。
+/// 结账：写入**终态处置**（PR-01／P0-1）。与 `advance` 同例——按持有资格写。
+///
+/// 为什么要结账：被拒绝的恢复若一直挂在"未结账"上，一个无法判定的遗留运行就能让资源
+/// **永久隔离**（台账 §B-80）。结账把"这件事怎么结的"落成事实，同时把它移出"待对账"。
+fn settle(
+    coordinator: &InputSafetyCoordinator,
+    operation_id: &str,
+    disposition: RecoveryDisposition,
+    reason: &str,
+) -> Result<(), CoordinatorError> {
+    coordinator
+        .store()
+        .settle_recovery_operation_authorized(operation_id, coordinator.control(), disposition, reason)
+        .map(|_| ())
+        .map_err(CoordinatorError::Store)
+}
+
 fn advance(
     coordinator: &InputSafetyCoordinator,
     operation_id: &str,
@@ -151,6 +170,7 @@ pub(crate) fn run_legacy_recovery(
             stage: RecoveryStage::CoordinationAcquired,
             recorded_at_unix_ms: unix_now_ms(),
             committed: false,
+            disposition: RecoveryDisposition::Pending,
         })
         .map_err(CoordinatorError::Store)?;
     // **重启后必须重新取得协调权才能继续**（裁决 §2.2）：旧运行遗留的操作行仍绑在已失效的
@@ -169,6 +189,29 @@ pub(crate) fn run_legacy_recovery(
                 .store()
                 .rebind_recovery_operation_authorized(inputs.recovery_operation_id, guard)
                 .map_err(CoordinatorError::Store)?;
+        }
+        // **已结账的操作不再重放**（PR-01／P0-1）：结账是结论（例如"需要人工复核"）。重放只会
+        // 重复做出同一拒绝、反复建立相同阻断，并把"等人工"伪装成"在办"。这里如实报告上次的
+        // 结账结果，把待办交给人工通道；资源是否放行由阻断事实与放行决定继续表达。
+        if existing.is_settled() {
+            let store = ComputerUseRunStore::open(inputs.session_db_path).map_err(|error| {
+                CoordinatorError::Store(InputSafetyStoreError::Sqlite(error.to_string()))
+            })?;
+            return Ok(LegacyRecoveryReport {
+                call_id: run.call_id.clone(),
+                stage: existing.stage,
+                disposition: LegacyRecoveryDisposition::AlreadySettled {
+                    disposition: existing.disposition,
+                },
+                owner: resolve_legacy_run_owner(inputs.session_db_path, &run.session_id, &run.turn_id),
+                assessment: assess_legacy_run_resource(
+                    &store,
+                    &run.session_id,
+                    &run.turn_id,
+                    inputs.independent_safety_check,
+                ),
+                new_input_reopened: false,
+            });
         }
     }
 
@@ -251,6 +294,14 @@ pub(crate) fn run_legacy_recovery(
     // ---- R6：按**真实关系**核对 owner；未知 ⇒ 拒绝写终态并保持隔离 ----
     let owner = resolve_legacy_run_owner(inputs.session_db_path, &run.session_id, &run.turn_id);
     if let LegacyRunOwner::Unknown { reason } = owner {
+        // 决策（P0-1 情况 2）：owner **永久未知**不得停在 pending、也不得改判成"已收敛"，
+        // 而是 `HumanReviewRequired`——资源**仍然隔离**，但待办明确归属到人（可查询、可放行）。
+        settle(
+            &coordinator,
+            inputs.recovery_operation_id,
+            RecoveryDisposition::HumanReviewRequired,
+            &format!("owner 关系未知（{}）：请人工核对并决定是否放行", reason.code()),
+        )?;
         return Ok(LegacyRecoveryReport {
             call_id: run.call_id.clone(),
             stage: RecoveryStage::IncidentEstablished,
@@ -276,6 +327,9 @@ pub(crate) fn run_legacy_recovery(
 
     // ---- R7：同事务提交已裁定终态与收敛事实 ----
     let Some(observed_commit_candidate) = inputs.observed_commit_candidate else {
+        // **刻意不结账**：这不是"结论"，而是"这次尝试不完整"（调用方漏了必填的真实检查）。
+        // 结账会把它伪装成已处置，还会让后续带齐检查的重放因"已结账"而不再执行。
+        // 因此保持 `Pending`——它在"待对账"里如实表现为**待补检查**，而不是永久隔离的既成事实。
         return Ok(LegacyRecoveryReport {
             call_id: run.call_id.clone(),
             stage: RecoveryStage::RunRelationChecked,
@@ -352,10 +406,27 @@ pub(crate) fn run_legacy_recovery(
         LegacyRunConvergenceOutcome::AlreadyConverged { convergence_id } => {
             LegacyRecoveryDisposition::AlreadyConverged { convergence_id }
         }
-        LegacyRunConvergenceOutcome::Refused(refusal) => LegacyRecoveryDisposition::RefusedByRule {
-            message: format!("{refusal:?}"),
-        },
+        LegacyRunConvergenceOutcome::Refused(refusal) => {
+            // 规则拒绝是**有依据的结论**（已有真实终态／存在提交候选／revision 变了／冲突／
+            // 操作 ID 复用）：机器已判定不得写终态 ⇒ `KeptIsolated`（资源继续隔离，无人工待办）。
+            settle(
+                &coordinator,
+                inputs.recovery_operation_id,
+                RecoveryDisposition::KeptIsolated,
+                &format!("规则拒绝，按裁决保持隔离：{refusal:?}"),
+            )?;
+            LegacyRecoveryDisposition::RefusedByRule {
+                message: format!("{refusal:?}"),
+            }
+        }
         LegacyRunConvergenceOutcome::PreconditionUnmet(precondition) => {
+            // 前提不满足（例如原状态/revision 已被改动）：同样是有依据的结论 ⇒ 保持隔离并结账。
+            settle(
+                &coordinator,
+                inputs.recovery_operation_id,
+                RecoveryDisposition::KeptIsolated,
+                &format!("收敛前提不满足，按裁决保持隔离：{precondition:?}"),
+            )?;
             LegacyRecoveryDisposition::RefusedBeforeWrite {
                 code: "convergence_precondition_unmet".to_string(),
                 message: format!("{precondition:?}"),
@@ -384,6 +455,23 @@ pub(crate) fn run_legacy_recovery(
                 Err(_) => new_input_reopened = false,
             }
         }
+    }
+
+    // **结账放在阶段阶梯之后**（PR-01／P0-1）：R8（`stage_committed`）由 store 置
+    // `committed = true`，而阶段推进要求"未提交"才能前进。若在收敛分支里提前结账，
+    // R8 会被 store 的"不得跳步或回退"守门挡下（现场实测：
+    // `当前 r7_terminal_committed → 请求 r8_stage_committed`）。因此顺序是：
+    // 先走完阶段 → 再结账。
+    if matches!(
+        disposition,
+        LegacyRecoveryDisposition::Converged { .. } | LegacyRecoveryDisposition::AlreadyConverged { .. }
+    ) {
+        settle(
+            &coordinator,
+            inputs.recovery_operation_id,
+            RecoveryDisposition::Recovered,
+            "已收敛：控制终态与收敛事实已落库",
+        )?;
     }
 
     Ok(LegacyRecoveryReport {
@@ -508,6 +596,133 @@ mod tests {
         assert_eq!(
             operation.recovery_epoch, current.epoch,
             "重放必须把旧操作重新绑定到当前 epoch"
+        );
+    }
+
+    /// **Recovery-P0-T1（验收）**：遗留运行 owner 永久未知 ⇒
+    /// ① 资源仍被阻断；② 处置是 `HumanReviewRequired`（**不是**一直 pending）；
+    /// ③ 待对账归零（"永久隔离"的账挂不上去）。
+    #[test]
+    fn p0_t1_unknown_owner_settles_as_human_review_and_stays_blocked() {
+        let (_directory, session_db, safety_root) = setup();
+        // **刻意不建任何 owner 关系** ⇒ `resolve_legacy_run_owner` 必为 Unknown。
+        let store = ComputerUseRunStore::open(&session_db).expect("store");
+        seed_legacy_unrecorded_run_for_test(&store, "legacy-cu-unknown-owner", "session-x", "turn-x", true);
+        drop(store);
+        let run = ComputerUseRunStore::open(&session_db)
+            .expect("store")
+            .legacy_unconverged_runs()
+            .expect("candidates")
+            .into_iter()
+            .find(|run| run.call_id == "legacy-cu-unknown-owner")
+            .expect("候选存在");
+
+        let report = run_legacy_recovery(&LegacyRecoveryInputs {
+            session_db_path: &session_db,
+            input_safety_root: &safety_root,
+            coordinator: None,
+            coordination_scope: "windows-session-recovery|physical-input-resource",
+            resource_scope: &scope(),
+            run: &run,
+            recovery_operation_id: "recovery-p0-t1",
+            recovery_service_instance: "recovery-service-test",
+            source_database_identity: "session-db:default",
+            observed_commit_candidate: Some(false),
+            independent_safety_check: None,
+        })
+        .expect("驱动必须给出结账结果，而不是失败");
+        assert!(
+            matches!(report.disposition, LegacyRecoveryDisposition::RefusedBeforeWrite { .. }),
+            "owner 未知必须拒绝写终态：{:?}",
+            report.disposition
+        );
+        assert!(!report.new_input_reopened, "资源必须保持隔离");
+
+        let safety = crate::input_safety_store::InputSafetyStore::open_at(&safety_root).expect("safety");
+        let operation = safety
+            .recovery_operation("recovery-p0-t1")
+            .expect("read")
+            .expect("exists");
+        assert_eq!(
+            operation.disposition,
+            RecoveryDisposition::HumanReviewRequired,
+            "owner 永久未知必须落到'待人工复核'"
+        );
+        assert!(operation.committed, "必须结账——不得永久挂在 pending");
+        assert!(
+            safety
+                .unsettled_recovery_operations(&scope())
+                .expect("unsettled")
+                .is_empty(),
+            "结账后不得再算待对账"
+        );
+        assert!(
+            safety.has_open_resource_block(&scope()).expect("blocked"),
+            "阻断必须仍然存在：结账是'怎么结的'，不是'已放行'"
+        );
+        assert!(
+            safety
+                .human_review_required_operations()
+                .expect("human")
+                .iter()
+                .any(|operation| operation.recovery_operation_id == "recovery-p0-t1"),
+            "待办必须能在'待人工复核'里查到"
+        );
+    }
+
+    /// **PR-01**：已结账的操作**不重放**——第二遍如实报 `AlreadySettled`，且不重复建阻断。
+    #[test]
+    fn settled_operation_is_reported_instead_of_being_replayed() {
+        let (_directory, session_db, safety_root) = setup();
+        let store = ComputerUseRunStore::open(&session_db).expect("store");
+        seed_legacy_unrecorded_run_for_test(&store, "legacy-cu-settled", "session-x", "turn-x", true);
+        drop(store);
+        let run = ComputerUseRunStore::open(&session_db)
+            .expect("store")
+            .legacy_unconverged_runs()
+            .expect("candidates")
+            .into_iter()
+            .find(|run| run.call_id == "legacy-cu-settled")
+            .expect("候选存在");
+        fn inputs_for<'a>(
+            session_db: &'a Path,
+            safety_root: &'a Path,
+            scope: &'a InputSafetyResourceScope,
+            run: &'a crate::computer_use_store::LegacyUnconvergedRun,
+        ) -> LegacyRecoveryInputs<'a> {
+            LegacyRecoveryInputs {
+                session_db_path: session_db,
+                input_safety_root: safety_root,
+                coordinator: None,
+                coordination_scope: "windows-session-recovery|physical-input-resource",
+                resource_scope: scope,
+                run,
+                recovery_operation_id: "recovery-settled-replay",
+                recovery_service_instance: "recovery-service-test",
+                source_database_identity: "session-db:default",
+                observed_commit_candidate: Some(false),
+                independent_safety_check: None,
+            }
+        }
+        let first = run_legacy_recovery(&inputs_for(&session_db, &safety_root, &scope(), &run)).expect("首次");
+        assert!(matches!(first.disposition, LegacyRecoveryDisposition::RefusedBeforeWrite { .. }));
+
+        let safety = crate::input_safety_store::InputSafetyStore::open_at(&safety_root).expect("safety");
+        let blocks_after_first = safety.open_block_count(&scope()).expect("blocks");
+        drop(safety);
+
+        let second = run_legacy_recovery(&inputs_for(&session_db, &safety_root, &scope(), &run)).expect("第二遍");
+        match second.disposition {
+            LegacyRecoveryDisposition::AlreadySettled { disposition } => {
+                assert_eq!(disposition, RecoveryDisposition::HumanReviewRequired);
+            }
+            other => panic!("已结账的操作必须如实报 AlreadySettled：{other:?}"),
+        }
+        let safety = crate::input_safety_store::InputSafetyStore::open_at(&safety_root).expect("safety");
+        assert_eq!(
+            safety.open_block_count(&scope()).expect("blocks"),
+            blocks_after_first,
+            "重放不得重复建立阻断"
         );
     }
 

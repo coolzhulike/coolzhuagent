@@ -8004,8 +8004,10 @@ async function refreshAttributionAndRecovery() {
       describeAttributionAndRecovery(surface),
       attributionDetailText(surface)
     );
+    syncReleaseIsolationButton(surface?.input_safety_recovery);
   } catch (error) {
     setSystemInfoText("system-attribution", "归属状态未知", error.message);
+    syncReleaseIsolationButton(null);
   }
 }
 
@@ -8016,16 +8018,113 @@ function describeAttributionAndRecovery(surface) {
   const legacy = Number(surface?.legacy_unconverged_runs ?? 0);
   const intents = Number(surface?.pending_convergence_intents ?? 0);
   const live = Array.isArray(surface?.live_runtime_runs) ? surface.live_runtime_runs.length : 0;
-  return `历史归属未记录待收敛 ${legacy} · 收敛待对账 ${intents} · 非终态运行行 ${live}`;
+  return (
+    `历史归属未记录待收敛 ${legacy} · 收敛待对账 ${intents} · 非终态运行行 ${live}` +
+    describeInputSafetyRecovery(surface?.input_safety_recovery)
+  );
+}
+
+// 输入安全恢复（PR-01／P0-1）：把“还在办（待对账）”“在等人（待人工复核）”“真的挡路
+// （未获放行的阻断／未获接受的遗留运行）”**分开**报。合并成一个“待处理 N”会掩盖到底在等谁——
+// 那正是“一个无法判定的遗留运行导致永久隔离”长期不被发现的原因（台账 §B-80）。
+function describeInputSafetyRecovery(safety) {
+  if (!safety) return "";
+  if (safety.unavailable) {
+    return " · 输入安全库不可读（不代表没有待办）";
+  }
+  const pending = Number(safety.pending_recovery_operations ?? 0);
+  const human = Number(safety.human_review_required ?? 0);
+  const blocks = Number(safety.unacknowledged_open_blocks ?? 0);
+  const runs = Number(safety.unacknowledged_legacy_runs ?? 0);
+  return ` · 待对账恢复 ${pending} · 待人工复核 ${human} · 未获放行阻断 ${blocks} · 待收敛遗留 ${runs}`;
+}
+
+// 只有“真的挡路”的项才需要放行；纯 pending（还在办）不该提示人工介入。
+function inputSafetyNeedsRelease(safety) {
+  if (!safety || safety.unavailable) return false;
+  return (
+    Number(safety.unacknowledged_open_blocks ?? 0) > 0 ||
+    Number(safety.unacknowledged_legacy_runs ?? 0) > 0
+  );
+}
+
+function syncReleaseIsolationButton(safety) {
+  const button = document.querySelector('[data-role="release-isolation"]');
+  if (!button) return;
+  const needed = inputSafetyNeedsRelease(safety);
+  button.hidden = !needed;
+  button.onclick = needed ? () => void releaseInputIsolation() : null;
+}
+
+// 人工放行：**不**删事故、**不**重置库、**不**把重启当解锁。只记录一条署名/理由俱在的决定，
+// 并逐条解除当前未获放行的阻断；放开新输入仍由后端按独立评估决定（这里不承诺“放行=已开放”）。
+async function releaseInputIsolation() {
+  let surface;
+  try {
+    surface = await requestJson("/api/system/attribution-and-recovery");
+  } catch (error) {
+    window.alert(`读取当前放行状态失败：${error.message}`);
+    return;
+  }
+  const safety = surface?.input_safety_recovery;
+  if (!inputSafetyNeedsRelease(safety)) {
+    window.alert("当前没有需要放行的阻断或遗留运行（待对账/待复核不等同于挡路）。");
+    return;
+  }
+  const operator = (window.prompt("放行署名（不得为空；这是审计留痕的责任人）", "") || "").trim();
+  if (!operator) return;
+  const reason = (window.prompt("放行理由（不得为空；写清依据）", "") || "").trim();
+  if (!reason) return;
+  const blocks = (safety.unacknowledged_block_ids || []).join("、") || "（无）";
+  const runs = (safety.unacknowledged_run_ids || []).join("、") || "（无）";
+  const confirmed = window.confirm(
+    "即将记录一条人工放行决定：
+" +
+      `署名：${operator}
+理由：${reason}
+` +
+      `解除阻断：${blocks}
+接受遗留运行（承担其风险）：${runs}
+
+` +
+      "不会删除事故记录、不会重置安全库；放开新输入仍须后端独立评估通过。确认继续？"
+  );
+  if (!confirmed) return;
+  try {
+    const result = await requestJson("/api/system/release-isolation", {
+      method: "POST",
+      body: JSON.stringify({
+        operator,
+        reason,
+        evidence_refs: [],
+        acknowledged_block_ids: safety.unacknowledged_block_ids || [],
+        acknowledged_run_ids: safety.unacknowledged_run_ids || [],
+      }),
+    });
+    window.alert(`已记录放行决定 ${result.decision_id}
+结果：${result.outcome}
+${result.message}`);
+  } catch (error) {
+    window.alert(`放行失败：${error.message}`);
+  }
+  await refreshAttributionAndRecovery();
 }
 
 function attributionDetailText(surface) {
   const note = String(surface?.recovery_entry_note || "").trim();
   const base =
     "非终态运行行包含正在执行的轮次；“执行已结束但终态提交失败”时该轮会残留在这里，" +
-    "不会被报成已完成。历史归属未记录是迁移前的真实缺口，不会被补值。";
-  return note ? `${base}
-${note}` : base;
+    "不会被报成已完成。历史归属未记录是迁移前的真实缺口，不会被补值。" +
+    "输入安全恢复分三态：待对账（还在办）／待人工复核（等人）／未获放行的阻断（真的挡路，可由人工放行解除）。" +
+    "人工放行只记录署名与理由并逐条解除阻断，不删除事故记录、不重置安全库，也不等于“已开放”。";
+  const safety = surface?.input_safety_recovery;
+  const release = safety?.latest_release
+    ? `最近放行：${safety.latest_release.operator}（epoch ${safety.latest_release.release_epoch}）`
+    : "尚无人工放行记录。";
+  const body = `${base}
+${release}`;
+  return note ? `${body}
+${note}` : body;
 }
 
 // 总览卡头部工作区名：显示路径末段目录名，完整路径存 dataset 供点击复制

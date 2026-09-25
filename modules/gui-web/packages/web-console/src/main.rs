@@ -1182,8 +1182,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ) {
         Ok(report) => {
             info!(
-                "输入安全启动路径: candidates={}, converged={}, refused={}, opening={:?}",
-                report.candidates, report.converged, report.refused, report.opening
+                "输入安全启动路径: candidates={}, converged={}, refused={}, settled={}, opening={:?}",
+                report.candidates, report.converged, report.refused, report.settled, report.opening
             );
         }
         Err(error) => {
@@ -1398,6 +1398,9 @@ fn app() -> Router {
             "/api/system/attribution-and-recovery",
             get(api_attribution_and_recovery),
         )
+        // PR-01／P0-1：人工放行入口（受控写入）。它不是"重启即解锁"，也不是"删事故"：
+        // 它记录一条署名/理由/证据俱在的决定，并逐条解除调用方声明的阻断。
+        .route("/api/system/release-isolation", post(api_release_isolation))
         .route("/api/office/scene", get(api_office_scene))
         .route("/api/web/cards", get(api_web_cards))
         .route("/api/workspace", get(api_workspace).post(api_set_workspace))
@@ -2175,6 +2178,182 @@ struct AttributionAndRecoveryResponse {
     live_runtime_runs: Vec<LiveRuntimeRunRow>,
     /// 恢复入口的**事实说明**（前端据此显示文案，不靠猜）。
     recovery_entry_note: String,
+    /// PR-01／P0-1：输入安全库的**恢复处置**呈现（只读；库根未注入时为 `None`）。
+    input_safety_recovery: Option<InputSafetyRecoverySurface>,
+}
+
+/// 输入安全库的恢复处置呈现（只读、无副作用）。
+///
+/// 三个数字必须**分别**报：`pending`（还在办）、`human_review_required`（等人）、
+/// `unacknowledged_open_blocks`（挡路的阻断）。把它们合并成一个"待处理 N"会掩盖
+/// "到底在等谁"——那正是永久隔离之所以长期不被发现的原因（台账 §B-80）。
+#[derive(Debug, serde::Serialize)]
+struct InputSafetyRecoverySurface {
+    /// 库不可读时的原因（可读时为 `None`）；**不谎报**为"没有待办"。
+    unavailable: Option<String>,
+    resource_scope: String,
+    pending_recovery_operations: usize,
+    human_review_required: usize,
+    /// 未获人工放行的开启阻断（只有它们构成"资源仍被挡"）。
+    unacknowledged_open_blocks: usize,
+    /// 未获放行、也未被 operator 接受的遗留 CU 运行数。
+    unacknowledged_legacy_runs: usize,
+    /// 已被放行决定接受的遗留运行数。
+    acknowledged_legacy_runs: usize,
+    /// 待人工复核的操作（逐条：操作 ID／阶段／原因摘要），供界面显示与放行。
+    human_review_operations: Vec<HumanReviewOperationRow>,
+    /// 未获放行的阻断 ID（放行请求必须**逐条**声明，服务端按集合相等校验）。
+    unacknowledged_block_ids: Vec<String>,
+    /// 未获接受、也未被接受的遗留运行 call_id（放行时由 operator 逐条勾选接受）。
+    unacknowledged_run_ids: Vec<String>,
+    /// 最近一次人工放行决定（如有）。
+    latest_release: Option<LatestReleaseRow>,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct HumanReviewOperationRow {
+    recovery_operation_id: String,
+    stage: String,
+    disposition: String,
+    recorded_at_unix_ms: i64,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct LatestReleaseRow {
+    decision_id: String,
+    operator: String,
+    reason: String,
+    release_epoch: i64,
+    decided_at_unix_ms: i64,
+}
+
+fn probe_input_safety_recovery_surface() -> Option<InputSafetyRecoverySurface> {
+    let safety_root = input_safety_store::input_safety_state_root()?;
+    let scope = match input_safety_store::physical_input_resource_scope() {
+        Ok(scope) => scope,
+        Err(refusal) => {
+            return Some(InputSafetyRecoverySurface {
+                unavailable: Some(refusal.reason().to_string()),
+                resource_scope: String::new(),
+                pending_recovery_operations: 0,
+                human_review_required: 0,
+                unacknowledged_open_blocks: 0,
+                unacknowledged_legacy_runs: 0,
+                acknowledged_legacy_runs: 0,
+                human_review_operations: Vec::new(),
+                unacknowledged_block_ids: Vec::new(),
+                unacknowledged_run_ids: Vec::new(),
+                latest_release: None,
+            });
+        }
+    };
+    let Some(unavailable) = probe_safety_unavailable(&safety_root) else {
+        return Some(input_safety_recovery_surface(&safety_root, &scope));
+    };
+    Some(InputSafetyRecoverySurface {
+        unavailable: Some(unavailable),
+        resource_scope: scope.as_str().to_string(),
+        pending_recovery_operations: 0,
+        human_review_required: 0,
+        unacknowledged_open_blocks: 0,
+        unacknowledged_legacy_runs: 0,
+        acknowledged_legacy_runs: 0,
+        human_review_operations: Vec::new(),
+        unacknowledged_block_ids: Vec::new(),
+        unacknowledged_run_ids: Vec::new(),
+        latest_release: None,
+    })
+}
+
+/// 库是否可读；不可读时给出**原因文本**（不把它伪装成"零待办"）。
+fn probe_safety_unavailable(safety_root: &Path) -> Option<String> {
+    match input_safety_store::InputSafetyStore::open_at(safety_root) {
+        Ok(_) => None,
+        Err(error) => Some(error.to_string()),
+    }
+}
+
+fn input_safety_recovery_surface(
+    safety_root: &Path,
+    scope: &runtime::InputSafetyResourceScope,
+) -> InputSafetyRecoverySurface {
+    let Ok(store) = input_safety_store::InputSafetyStore::open_at(safety_root) else {
+        return InputSafetyRecoverySurface {
+            unavailable: Some("输入安全库打开失败".to_string()),
+            resource_scope: scope.as_str().to_string(),
+            pending_recovery_operations: 0,
+            human_review_required: 0,
+            unacknowledged_open_blocks: 0,
+            unacknowledged_legacy_runs: 0,
+            acknowledged_legacy_runs: 0,
+            human_review_operations: Vec::new(),
+            unacknowledged_block_ids: Vec::new(),
+            unacknowledged_run_ids: Vec::new(),
+            latest_release: None,
+        };
+    };
+    let pending = store
+        .unsettled_recovery_operations(scope)
+        .map(|operations| operations.len())
+        .unwrap_or(0);
+    let human_review = store.human_review_required_operations().unwrap_or_default();
+    let unacknowledged_block_ids = store
+        .unacknowledged_open_block_ids(scope)
+        .unwrap_or_default();
+    let acknowledged_run_ids = store.acknowledged_run_ids(scope).unwrap_or_default();
+    let db_path = default_session_sqlite_path();
+    let (unacknowledged_runs, acknowledged_runs) = if db_path.exists() {
+        match computer_use_store::ComputerUseRunStore::open(&db_path) {
+            Ok(runs) => runs
+                .legacy_unconverged_runs()
+                .map(|runs| {
+                    let mut pending_ids = Vec::new();
+                    let mut accepted = 0usize;
+                    for run in runs {
+                        if acknowledged_run_ids.contains(&run.call_id) {
+                            accepted += 1;
+                        } else {
+                            pending_ids.push(run.call_id);
+                        }
+                    }
+                    (pending_ids, accepted)
+                })
+                .unwrap_or_default(),
+            Err(_) => (Vec::new(), 0),
+        }
+    } else {
+        (Vec::new(), 0)
+    };
+    let latest_release = store.latest_release_decision(scope).ok().flatten().map(|decision| {
+        LatestReleaseRow {
+            decision_id: decision.decision_id,
+            operator: decision.operator,
+            reason: decision.reason,
+            release_epoch: decision.release_epoch as i64,
+            decided_at_unix_ms: decision.decided_at_unix_ms as i64,
+        }
+    });
+    InputSafetyRecoverySurface {
+        unavailable: None,
+        resource_scope: scope.as_str().to_string(),
+        pending_recovery_operations: pending,
+        human_review_required: human_review.len(),
+        unacknowledged_open_blocks: unacknowledged_block_ids.len(),
+        unacknowledged_legacy_runs: unacknowledged_runs.len(),
+        acknowledged_legacy_runs: acknowledged_runs,
+        human_review_operations: human_review
+            .into_iter()
+            .map(|operation| HumanReviewOperationRow {
+                recovery_operation_id: operation.recovery_operation_id,
+                stage: operation.stage.as_str().to_string(),
+                disposition: operation.disposition.as_str().to_string(),
+                recorded_at_unix_ms: operation.recorded_at_unix_ms as i64,
+            })
+            .collect(),
+        unacknowledged_block_ids,
+        unacknowledged_run_ids: unacknowledged_runs,
+        latest_release,
+    }
 }
 
 async fn api_attribution_and_recovery() -> Json<AttributionAndRecoveryResponse> {
@@ -2187,7 +2366,163 @@ async fn api_attribution_and_recovery() -> Json<AttributionAndRecoveryResponse> 
         live_runtime_runs: read_live_runtime_runs(&db_path),
         recovery_entry_note: "非终态运行行的恢复走既有 orphan 收敛（进程启动时执行）；                              遗留 CU 运行的收敛需先满足恢复前置条件，未满足前不写终态。"
             .to_string(),
+        input_safety_recovery: probe_input_safety_recovery_surface(),
     })
+}
+
+/// PR-01／P0-1：人工放行的请求体。
+///
+/// `acknowledged_block_ids` 必须**逐条**列出调用方认为可解除的阻断；服务端拿它与库中
+/// "当前未获放行的阻断集合"做**集合相等**校验——不是"信任客户端"，而是防止前端看到的
+/// 状态与提交时的状态不一致（TOCTOU）：不一致就拒绝，让调用方按最新事实重新确认。
+#[derive(Debug, serde::Deserialize)]
+struct ReleaseIsolationRequest {
+    operator: String,
+    reason: String,
+    #[serde(default)]
+    evidence_refs: Vec<String>,
+    #[serde(default)]
+    acknowledged_block_ids: Vec<String>,
+    /// operator 明确**接受**的未收敛遗留运行（这些运行的风险由其承担）。
+    #[serde(default)]
+    acknowledged_run_ids: Vec<String>,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct ReleaseIsolationResponse {
+    decision_id: String,
+    released_block_ids: Vec<String>,
+    acknowledged_run_ids: Vec<String>,
+    /// `opened` / `kept_isolated`：放行是"人事"的一半，另一半（按独立评估开放）如实报告。
+    outcome: String,
+    message: String,
+}
+
+/// `POST /api/system/release-isolation`：记录人工放行决定，并尝试按资格开放。
+///
+/// 三道硬约束（照抄 PR-01 决策）：
+/// 1. **必须署名 + 理由**（匿名放行等于没有责任人）；
+/// 2. 只解除**逐条声明**的阻断，且与服务端当前集合一致（不删 incident、不重置库）；
+/// 3. 记录与开放都在**持有当前恢复资格**的前提下完成——"重启即解锁"被明确禁止。
+async fn api_release_isolation(
+    Json(request): Json<ReleaseIsolationRequest>,
+) -> ApiResult<Json<ReleaseIsolationResponse>> {
+    let operator = request.operator.trim();
+    let reason = request.reason.trim();
+    if operator.is_empty() {
+        return Err(api_error(StatusCode::BAD_REQUEST, "放行必须署名（operator 不得为空）"));
+    }
+    if reason.is_empty() {
+        return Err(api_error(StatusCode::BAD_REQUEST, "放行必须给出理由（reason 不得为空）"));
+    }
+    let Some(safety_root) = input_safety_store::input_safety_state_root() else {
+        return Err(api_error(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "输入安全状态根未注入：不得在未接线的环境里放行",
+        ));
+    };
+    let scope = input_safety_store::physical_input_resource_scope()
+        .map_err(|refusal| api_error(StatusCode::SERVICE_UNAVAILABLE, &refusal.reason()))?;
+    let coordination_scope = input_safety_store::recovery_coordination_scope()
+        .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
+    // 放行前先按最新事实核对"要解除的阻断集合"，逐条相等才继续（TOCTOU 防护）。
+    let store = input_safety_store::InputSafetyStore::open_at(&safety_root)
+        .map_err(|error| api_error(StatusCode::SERVICE_UNAVAILABLE, &error.to_string()))?;
+    let current = store
+        .unacknowledged_open_block_ids(&scope)
+        .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
+    let mut requested = request.acknowledged_block_ids.clone();
+    requested.sort();
+    requested.dedup();
+    let mut expected = current.clone();
+    expected.sort();
+    if requested != expected {
+        return Err(api_error(
+            StatusCode::CONFLICT,
+            &format!(
+                "放行声明与实际阻断不一致（当前未获放行：{:?}，声明：{:?}）：请按最新事实重新确认",
+                current, request.acknowledged_block_ids
+            ),
+        ));
+    }
+    drop(store);
+    let coordinator = input_safety_store::InputSafetyCoordinator::begin_with_coordination_scope(
+        &safety_root,
+        &coordination_scope,
+        &scope,
+        "operator-release-isolation",
+        &["release_isolation", "open_new_input"],
+        std::time::Duration::from_secs(2),
+    )
+    .map_err(|error| api_error(StatusCode::CONFLICT, &format!("取得恢复资格失败：{error}")))?;
+    let decision = runtime::ReleaseIsolationDecision {
+        decision_id: format!("release-{}-{}", unix_timestamp_millis(), release_decision_entropy()),
+        scope: scope.clone(),
+        operator: operator.to_string(),
+        reason: reason.to_string(),
+        evidence_refs: request
+            .evidence_refs
+            .iter()
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty())
+            .collect(),
+        acknowledged_block_ids: current.clone(),
+        acknowledged_run_ids: request.acknowledged_run_ids.clone(),
+        // 资格与时刻由库侧落定（此处占位，库内会覆盖）。
+        release_epoch: 0,
+        coordinator_instance_id: String::new(),
+        decided_at_unix_ms: 0,
+    };
+    let recorded = coordinator
+        .store()
+        .release_isolation_authorized(&decision, coordinator.control())
+        .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
+    // 人事已办：再走**机器那一半**——独立评估通过才开放（不通过就如实保持隔离）。
+    let assessment = input_safety_opening::assess_input_resource(
+        &safety_root,
+        &default_session_sqlite_path(),
+        &scope,
+    )
+    .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
+    let (outcome, message) = if assessment.is_safe() {
+        match coordinator
+            .store()
+            .reopen_new_input_authorized(&scope, coordinator.control())
+        {
+            Ok(state) if state.accepts_new_input => (
+                "opened".to_string(),
+                format!("已记录放行并开放新输入（epoch={}）", recorded.release_epoch),
+            ),
+            Ok(_) => (
+                "kept_isolated".to_string(),
+                "放行已记录，但资源仍未接受新输入".to_string(),
+            ),
+            Err(error) => (
+                "kept_isolated".to_string(),
+                format!("放行已记录，但按资格开放失败：{error}"),
+            ),
+        }
+    } else {
+        (
+            "kept_isolated".to_string(),
+            format!("放行已记录；资源仍保持隔离：{}", assessment.describe()),
+        )
+    };
+    // 收尾释放资格（尽力而为；结果已由上面的 outcome 如实表达）。
+    let _ = coordinator.store().release_recovery_epoch(
+        &input_safety_store::OwnedRecoveryEpoch {
+            scope: scope.clone(),
+            epoch: coordinator.control().epoch(),
+            coordinator_instance_id: coordinator.control().coordinator_id().to_string(),
+        },
+    );
+    Ok(Json(ReleaseIsolationResponse {
+        decision_id: recorded.decision_id,
+        released_block_ids: recorded.acknowledged_block_ids,
+        acknowledged_run_ids: recorded.acknowledged_run_ids,
+        outcome,
+        message,
+    }))
 }
 
 /// CU 侧两类计数：**复用** store 的既有全局读回（不另写判据、不回填归属）。
@@ -36815,6 +37150,15 @@ fn system_time_millis(time: SystemTime) -> Option<u64> {
         .and_then(|duration| u64::try_from(duration.as_millis()).ok())
 }
 
+/// 放行决定 ID 的熵部分：纳秒时间戳。同一毫秒内的两次放行必须能区分——
+/// 决定是**追加事实**，ID 冲突会被 store 明确拒绝（不允许覆盖）。
+fn release_decision_entropy() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .unwrap_or(0)
+}
+
 fn unix_timestamp_millis() -> u64 {
     system_time_millis(SystemTime::now()).unwrap_or(0)
 }
@@ -60994,6 +61338,23 @@ pub(crate) mod tests {
         assert!(WEB_APP_JS.contains("不会被报成已完成"));
         // 不得把非终态运行行一律说成提交失败（正在执行的轮次也在那里）。
         assert!(WEB_APP_JS.contains("包含正在执行的轮次"));
+    }
+
+    /// **PR-01／P0-1**：人工放行入口必须真的接上，且文案不得把它说成"重启即解锁/删事故"。
+    #[test]
+    fn release_isolation_surface_is_wired_without_lying() {
+        assert!(WEB_APP_JS.contains("/api/system/release-isolation"));
+        assert!(WEB_INDEX_HTML.contains("data-role=\"release-isolation\""));
+        // 三态必须分开说："还在办"与"真的挡路"不是一回事（§B-80 的教训）。
+        assert!(WEB_APP_JS.contains("待对账"));
+        assert!(WEB_APP_JS.contains("待人工复核"));
+        assert!(WEB_APP_JS.contains("未获放行阻断"));
+        // 不得把放行说成删除事故或重置库，也不得承诺"放行=已开放"。
+        assert!(WEB_APP_JS.contains("不会删除事故记录、不会重置安全库"));
+        assert!(WEB_APP_JS.contains("仍须后端独立评估通过"));
+        // 署名与理由必须在提交前收集（匿名放行等于没有责任人）。
+        assert!(WEB_APP_JS.contains("放行署名"));
+        assert!(WEB_APP_JS.contains("放行理由"));
     }
 
     /// **RD4-07**：实际运行时身份读取的**判定函数**（用临时路径，环境无关）。

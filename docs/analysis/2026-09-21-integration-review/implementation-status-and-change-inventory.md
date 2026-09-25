@@ -1,8 +1,8 @@
 # 实施计划完成情况与改动清单（截至 2026-09-25 本轮末）
 
 - **状态口径**（沿用第七轮裁决 §八）：**已裁决 / 已实现 / 生产已接线 / 目标环境·安装已验收**。四者不等价，"已实现"不等于"已接线"或"已验收"。
-- **范围**：第七、八两轮裁决的实施；三次现场问题修复（图标无法启动、默认工作区口径确认、**启动路径自锁**）；一次测试基础设施的并发竞态修复。
-- **验证基线**（本轮末实跑）：web-console **1115/0（连跑 3 轮稳定）**、computer-use-core 123/0、windows-process-guard 50/0（1 ignored，另见 §7）、tool-registry 54/0、core-runtime 311/0、module_linkage_smoke 4/0、app-launcher 64/0 + 5/0。
+- **范围**：第七、八两轮裁决的实施；三次现场问题修复（图标无法启动、默认工作区口径确认、**启动路径自锁**）；一次测试基础设施的并发竞态修复；**PR-01（P0-1）恢复处置闭环**（决策：`RecoveryDisposition` 状态机 + 人工放行通道）。
+- **验证基线**（本轮末实跑）：web-console **1122/0**、computer-use-core 123/0、windows-process-guard 50/0（1 ignored，另见 §7）、tool-registry 54/0、core-runtime **312/0**、module_linkage_smoke 4/0、app-launcher 64/0 + 5/0。
 - **本文件所有"锚点"都可用 §6 的命令核验**，不是凭记忆写的。
 
 ## 1. 实施计划完成情况
@@ -20,7 +20,8 @@
 | PKG-PR-03 重建与安装 | **目标环境·安装已验收（含卸载／修复／重装）** | `dist/CoolzhuAgent-0.2.16.msi` | 六项一致性条件全 PASS；`msiexec` 安装／修复／卸载 exit=0；重装后 CLI 报 `0.2.16`；用户数据与工作区数据保留 | **签名**（包为 unsigned） |
 | 现场修复①：图标无法启动 | **目标环境·安装已验收** | `packages/app-launcher/src/launch_paths.rs`（`select_holder_by_recency`） | 安装后 `--print-resolved-paths` 采用 `C:\Users\zhupu\coolzhuagent` 并持久化；控制台与桌面壳均运行 | 拒绝信息对双击用户**不可见**这一 UX 缺陷未修（待定机制） |
 | 现场修复②：默认工作区按设备账号解析 | **已核实（非缺陷）** | 随包 `config/package-launcher.json` 的 `"%USERPROFILE%\coolzhuagent"` | 模板形式；改动 diff 内**无**硬编码用户名 | — |
-| 现场修复③：启动路径**自锁**（本轮） | **已实现 + 现场验证** | `legacy_recovery_driver.rs`（重绑／幂等推进）、`input_safety_opening.rs`（待对账口径） | §B-77／§B-78；2 条新回归用例；真实库实跑不再失败 | 拒绝后结账与放行通道（§7 待裁决） |
+| 现场修复③：启动路径**自锁**（本轮） | **已实现 + 现场验证** | `legacy_recovery_driver.rs`（重绑／幂等推进）、`input_safety_opening.rs`（待对账口径） | §B-77／§B-78；2 条新回归用例；真实库实跑不再失败 | — |
+| **PR-01（P0-1）恢复处置闭环** | **已实现 + 生产已接线 + 现场验证** | 契约 `input_safety.rs`（`RecoveryDisposition`／`ReleaseIsolationDecision`，schema v2）；存储 `input_safety_store.rs`（就地迁移／结账／放行）；驱动／评估／入口／前端 | §B-82；**Recovery-P0-T1** 落地；真实库两遍验证（`pending 1 → 0`、`settled=2`、`human_review_required=2`）；HTTP 守门 400/409 实测 | 放行资格与复核口径（§7） |
 
 ## 2. 前端修改点
 
@@ -33,6 +34,8 @@
 | F3 | `src/app.js` | `describeAttributionAndRecovery()` | 三态文案：`归属存储未初始化`／`归属存储不可读`／`历史归属未记录待收敛 N · 收敛待对账 M · 非终态运行行 K` | **不谎报**：未初始化/不可读与"没有待收敛"是不同事实 | 同上 |
 | F4 | `src/app.js` | `attributionDetailText()` | 提示语说明"**非终态运行行包含正在执行的轮次**；只有执行已结束但终态提交失败时才残留，且**不会被报成已完成**" | 防止后人把该栏简化成误导性文案 | 守卫用例断言必须含这句 |
 | F5 | （守卫用例） | `attribution_surface_frontend_is_wired_with_honest_wording` | 断言 app.js 含端点与诚实措辞、index.html 含该 `data-role` | 前端接线与文案的回归守门 | 该用例通过 |
+| **F6** | `index.html`＋`src/app.js` | `data-role="release-isolation"`、`describeInputSafetyRecovery`、`releaseInputIsolation` | 状态栏"放行隔离…"按钮（**只在真有挡路项时出现**）＋三态文案（待对账／待人工复核／未获放行阻断）＋放行确认（写明不删事故、不重置库、不等于已开放） | PR-01：把"在等谁"如实摊开，并给出受控的人工出口 | `release_isolation_surface_is_wired_without_lying`（断言端点/按钮/三态文案/署名与理由） |
+| **F7** | `src/app.js` | `syncReleaseIsolationButton`、`inputSafetyNeedsRelease` | 只有"未获放行阻断／未获接受遗留运行"才提示人工介入（纯 `pending` 不算） | 避免把"还在办"误报成"要人管" | 同上 |
 
 > 本轮**没有**新的前端改动点（后端修复不影响前端契约；`/api/system/*` 两个端点的响应结构未变）。
 
@@ -59,6 +62,11 @@
 | **B17** | web-console | `src/legacy_recovery_driver.rs` | `advance` 改**幂等**：`stage.order() >= next.order()` 即跳过 | 中断重放不再被"不得跳步或回退"守门判成回退（§B-77 第 2 因） | 同上（重放用例覆盖 r1/r5 两种遗留 stage） |
 | **B18** | web-console | `src/input_safety_opening.rs` | 启动对账只把 `NeedsReacquire` 计入 `pending_recovery_operations`（`StillAuthorized` 是活着协调者的在办事项） | 修"开放分支永不可达"（§B-78）；现场 `pending 3 → 1` | 新用例 `operations_held_by_a_live_coordinator_are_not_pending_reconciliation` |
 | **B19** | （测试基础设施） | `input_safety_opening.rs`、`computer_use_executor.rs` | opening 两个 env 敏感用例加全局串行守卫；CU 的 `open_input_resource_for_test` 改返回 **Drop 守卫**（恢复原 env） | 消除进程级 env 竞态与泄漏（§B-79） | **连跑 3 轮全量 1115/0** |
+| **B20** | core-runtime | `src/input_safety.rs`、`src/lib.rs` | `RecoveryDisposition`（五值，含 `is_terminal`/`needs_human`/`parse`）、`ReleaseIsolationDecision`、操作结构体加 `disposition`；schema **v1 → v2** | 过程（stage）与结论（disposition）分离；未知值一律按 `Pending`（不谎报已结账） | 契约用例 6 条；core-runtime 312/0 |
+| **B21** | web-console | `src/input_safety_store.rs` | **v1 → v2 就地迁移**（`ALTER TABLE` 加列 + 新建 `input_safety_release_decisions`）；`settle_recovery_operation_authorized`；`release_isolation_authorized`；`unacknowledged_open_block_ids`／`acknowledged_run_ids`／`unsettled_*`／`human_review_required_operations`；`put` 不得复活已结账 | 给出"永久隔离"的出口：结账是终态且一次性；放行必须署名/理由且逐条留痕 | 存储用例 3 条（含就地升级与"不删事故"断言） |
+| **B22** | web-console | `src/legacy_recovery_driver.rs` | 四条退出路径各自结账；已结账不重放（`AlreadySettled`）；**结账放在阶段阶梯之后** | owner 未知 ⇒ `HumanReviewRequired`（资源仍隔离），不再永久挂账 | **Recovery-P0-T1** + 不重放用例 |
+| **B23** | web-console | `src/input_safety_opening.rs` | 未获放行的阻断才算挡路；被接受的遗留运行不再挡路；**启动路径自身操作也结账**；`StartupInputSafetyReport` 增加 `settled` 与 `acknowledged_runs`／`human_review_required` | 放行后开放可达；杜绝"每次启动留下一条待对账"的同源挂账 | 开放侧用例 1 条 + 真实库两遍验证 |
+| **B24** | web-console | `src/main.rs` | 归属端点增加 `input_safety_recovery`；新增 `POST /api/system/release-isolation`（署名/理由校验 + **集合相等**防 TOCTOU + 库侧落定 epoch/时刻） | 机器可读的处置呈现与受控放行入口 | 前端守门用例；HTTP 实测 400/409；状态未被改动 |
 
 ## 4. 打包、安装与基础设施
 
@@ -77,6 +85,7 @@
 | 项 | 现状 | 出处 |
 | --- | --- | --- |
 | RD4-03 剩余 | R3（撤销未激活许可）、R4（跨进程执行者身份核查）、Goal 锚点真实关系、真实子进程崩溃变体 | §B-69 |
+| P1/P2（决策已排期） | PR-04 运行预算 root deadline（chat/goal/relay accept 冻结）；PR-05 Paint 事实层；PKG-L07c-RACE 并发验收；Hook 授权服务；RPR-01b 剩余裸 `set_var` | 决策文档 §P1/§P2 |
 | 真实崩溃变体 | 只在**真实库**上观察到"半途中断后重放"（已修并验证）；"恢复者进程被杀"的跨进程变体未构造 | §B-77 |
 | 由 launcher 启动的控制台进程内**输入安全联动** | 直接注入 env 运行已观察（走评估/保持隔离）；launcher→控制台链路的该行日志**未直接抓取**（进程由 launcher 派生） | §B-76 |
 | **签名** | 包为 `unsigned`；本轮不涉及 | §B-72 |
@@ -111,7 +120,10 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 
 | 遗留项 | 现状（可观测） | 为什么遗留（原因） | 影响面 | 需要什么才能推进 |
 | --- | --- | --- | --- | --- |
-| **被拒绝的恢复操作永不结账 ⇒ 永久隔离**（§B-80） | 真实库：`refused=2`、`open_blocks=2`、资源 `isolated`、正式输入 fail-closed | 裁决只规定"未知 ⇒ 不写终态并保持隔离"，**未规定**"拒绝后如何结账、谁可关闭阻断、是否有管理放行通道"；本项属**规格未明确**，不是实现缺陷 | 只要历史上有一个无法判定的遗留运行，该桌面资源就无法恢复（需人/机放行机制） | 一次裁决：①是否为"已裁定保持隔离"的操作引入终态登记；②阻断关闭的条件与责任人；③受控人工放行通道（证据、审计） |
+| ~~被拒绝的恢复操作永不结账 ⇒ 永久隔离~~ | **已闭环（PR-01）**：终端处置 + 人工放行通道；真实库 `pending 1 → 0`、`settled=2`、`human_review_required=2`、资源仍隔离（**设计结果**） | 原缺口是"规格未明确"，本轮按决策落地 | — | 无需再裁决（结账/放行机制已具备） |
+| **放行资格与复核口径未定义**（PR-01 伴随项） | 通道已具备（署名/理由/证据 + TOCTOU 校验）；但"谁有权放行、是否需要双人复核、证据放哪里"**没有规定** | 决策只要求"人工确认 ⇒ 新增 `ReleaseIsolationDecision`"，未定义运营权限模型 | 放行是**安全决定**：任何能访问本地控制台的人都能署名放行 | 一次口径确认：放行者身份来源（本机账号？）／是否双人／证据留存位置 |
+| **P0-2：CU 动作事实仍未进业务链** | `ActionFact` schema／`ActionOrigin`／attempt 接缝／FactStore 已具备；缺**生产实现**的 `ActionOriginAuthority` 接线（`record_step_with_fact`） | 决策已明确（PR-02）：新增 `ProductionActionOriginAuthority`（来源：`runtime_runs`／`computer_use_runs`／`tool_calls`／`control_operations`），并禁止"模型自报 origin" | 系统"全绿"但关键事实链不是生产约束 | 按决策实施 PR-02（CU-F05 四场景验收） |
+| **P0-3：普通输入路径事实不一致风险** | 已修 drag／stroke／helper；`input.rs`／`desktop_bridge`／`gui-desktop input_backend` 仍有三套独立入口 | 决策已明确（PR-03）：统一 `NativeInputExecutor` 生命周期（validate→reserve→execute→receipt→cleanup→settlement） | 普通原生输入缺独立生命周期治理 | 按决策实施 PR-03（RPR-04d-2 六场景） |
 | **R3：撤销未激活许可 / R4：跨进程执行者身份核查** | 未实现 | R4 需要**跨进程**执行者身份来源（当前只有进程内身份）；裁决未指定可信来源与失败语义 | 恢复期无法证明"旧执行者确实已停" | 指定跨进程执行者身份的权威来源（如 helper 侧登记 + 存活核对）与其 fail-closed 语义 |
 | **Goal 锚点的"真实关系"** | 驱动按 `session_id/turn_id → runtime_runs → owner` 解析；Goal 侧关系未纳入 | 现状无法从设计上明确 Goal 锚点与 chat turn 的**必然**关系（可能本来就不一一对应） | 涉及 CU 归属与审计的完整性 | 明确 Goal↔turn 关系的规格（是可缺省的弱引用，还是必须存在的强关系） |
 | **真实子进程崩溃变体** | 只覆盖"半途中断后重放"（本轮修好并实测） | 需要能**受控杀死**恢复者进程的跨进程实验装置（而非仅单进程模拟） | 崩溃恢复的证据强度 | 允许引入进程级故障注入装置（或提供可重复的现场复现步骤） |

@@ -28,16 +28,26 @@ use crate::legacy_recovery_driver::{
     run_legacy_recovery, LegacyRecoveryDisposition, LegacyRecoveryInputs,
 };
 
+/// 启动路径协调器**自身**的登记操作 ID。
+///
+/// 它必须和开放结果一起结账：否则每次启动都会留下一条"尚未提交"的操作，下一次启动就会
+/// 因此拒绝开放——与"被拒绝的恢复永不结账"同源的挂账缺陷（PR-01／P0-1）。
+const STARTUP_INPUT_SAFETY_OPERATION_ID: &str = "startup-input-safety";
+
 /// 开放前的独立评估结果。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct OpeningAssessment {
     pub resource_scope: String,
-    /// 未关闭的阻断事实数。
+    /// **未获人工放行**的开启阻断数（只有它们构成拒绝理由）。
     pub open_blocks: usize,
-    /// 该资源上尚未提交的恢复操作数。
+    /// 该资源上尚未提交（`Pending`）的恢复操作数。
     pub pending_recovery_operations: usize,
-    /// 尚未收敛的遗留 CU 运行数（它们必须先被恢复）。
+    /// 尚未收敛、且**未被放行决定接受**的遗留 CU 运行数（它们必须先被恢复）。
     pub legacy_unconverged_runs: usize,
+    /// 已被人工放行决定**接受**的遗留运行数（operator 明确承担其风险；仍如实计数、不再挡路）。
+    pub acknowledged_runs: usize,
+    /// 处置为"需要人工复核"的恢复操作数（这是"等人"，不是"等机器"）。
+    pub human_review_required: usize,
     /// 不满足"可开放"的原因（`None` = 评估通过）。
     pub refusal: Option<String>,
 }
@@ -56,8 +66,13 @@ impl OpeningAssessment {
                 self.resource_scope
             ),
             Some(reason) => format!(
-                "保持隔离：{reason}（未决阻断 {} / 待对账恢复 {} / 待收敛遗留运行 {}）",
-                self.open_blocks, self.pending_recovery_operations, self.legacy_unconverged_runs
+                "保持隔离：{reason}（未获放行阻断 {} / 待对账恢复 {} / 待收敛遗留运行 {} / \
+                 已获人工放行 {} / 待人工复核 {}）",
+                self.open_blocks,
+                self.pending_recovery_operations,
+                self.legacy_unconverged_runs,
+                self.acknowledged_runs,
+                self.human_review_required
             ),
         }
     }
@@ -85,12 +100,9 @@ pub(crate) fn assess_input_resource(
     resource_scope: &InputSafetyResourceScope,
 ) -> Result<OpeningAssessment, InputSafetyStoreError> {
     let store = InputSafetyStore::open_at(safety_root)?;
-    let open_blocks = if store.has_open_resource_block(resource_scope)? {
-        // 计数（不只布尔）：多一条阻断在诊断里更可读。
-        store.open_block_count(resource_scope)?
-    } else {
-        0
-    };
+    // 阻断分两类：**未获人工放行**的（真的挡路）与被最新放行决定覆盖的（operator 已承担）。
+    // 只有前者构成拒绝理由——否则"人工放行"就成了一句空话（PR-01／P0-1）。
+    let open_blocks = store.unacknowledged_open_block_ids(resource_scope)?.len();
     let mut pending_recovery_operations = 0usize;
     for outcome in store.reconcile_recovery_operations_on_startup()? {
         // **只把 `NeedsReacquire` 算作"待对账"**：`StillAuthorized` 表示该操作正由**活着的**
@@ -109,21 +121,28 @@ pub(crate) fn assess_input_resource(
             }
         }
     }
+    // 放行决定"接受"的遗留运行不再计入挡路项：operator 已在署名/理由/证据下落定了判断，
+    // 系统**不得**用"还有待收敛遗留运行"把它再次挡回去（那就等于没有放行通道）。
+    let acknowledged_runs = store.acknowledged_run_ids(resource_scope)?;
     let legacy_unconverged_runs = if session_db_path.exists() {
         ComputerUseRunStore::open(session_db_path)
             .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?
             .legacy_unconverged_runs()
             .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?
-            .len()
+            .into_iter()
+            .filter(|run| !acknowledged_runs.contains(&run.call_id))
+            .count()
     } else {
         0
     };
+    let acknowledged_runs = acknowledged_runs.len();
+    let human_review_required = store.human_review_required_operations()?.len();
     let refusal = if open_blocks > 0 {
-        Some("该资源仍有未关闭的阻断事实".to_string())
+        Some("该资源仍有未获放行的阻断事实".to_string())
     } else if pending_recovery_operations > 0 {
         Some("该资源上仍有尚未提交的恢复操作".to_string())
     } else if legacy_unconverged_runs > 0 {
-        Some("仍有待收敛的遗留 CU 运行（必须先完成恢复）".to_string())
+        Some("仍有待收敛的遗留 CU 运行（必须先完成恢复或由人工放行）".to_string())
     } else {
         None
     };
@@ -132,6 +151,8 @@ pub(crate) fn assess_input_resource(
         open_blocks,
         pending_recovery_operations,
         legacy_unconverged_runs,
+        acknowledged_runs,
+        human_review_required,
         refusal,
     })
 }
@@ -161,6 +182,16 @@ pub(crate) fn assess_and_open_input_resource(
         .reopen_new_input_authorized(resource_scope, coordinator.control())
         .map_err(CoordinatorError::Store)?;
     debug_assert!(state.accepts_new_input);
+    // 与启动路径同口径：本入口自身的登记操作也要结账，不得留下永久"待对账"。
+    coordinator
+        .store()
+        .settle_recovery_operation_authorized(
+            "startup-open-input",
+            coordinator.control(),
+            runtime::RecoveryDisposition::Recovered,
+            "开放路径自身的操作结账（已按资格开放）",
+        )
+        .map_err(CoordinatorError::Store)?;
     let epoch = coordinator.control().epoch();
     // 开放后**主动释放**排他资格：正常输入不依赖恢复锁常驻（资格失效后不得再改安全状态，
     // 而"已经开放"这一事实已持久化在资源状态里）。
@@ -181,6 +212,8 @@ pub(crate) struct StartupInputSafetyReport {
     pub candidates: usize,
     pub converged: usize,
     pub refused: usize,
+    /// 本次**未重放**（该操作已结账）：它们不做事、也不算拒绝（PR-01／P0-1）。
+    pub settled: usize,
     pub opening: OpeningOutcome,
 }
 
@@ -197,6 +230,7 @@ pub(crate) fn run_startup_input_safety(
             candidates: 0,
             converged: 0,
             refused: 0,
+            settled: 0,
             opening: OpeningOutcome::SkippedRootNotInjected,
         });
     };
@@ -219,12 +253,13 @@ pub(crate) fn run_startup_input_safety(
         &safety_root,
         &coordination_scope,
         &resource_scope,
-        "startup-input-safety",
+        STARTUP_INPUT_SAFETY_OPERATION_ID,
         &["converge_legacy_cu_run", "open_new_input"],
         std::time::Duration::from_secs(2),
     )?;
     let mut converged = 0usize;
     let mut refused = 0usize;
+    let mut settled = 0usize;
     for run in &candidates {
         let report = run_legacy_recovery(&LegacyRecoveryInputs {
             session_db_path,
@@ -247,6 +282,7 @@ pub(crate) fn run_startup_input_safety(
         match report.disposition {
             LegacyRecoveryDisposition::Converged { .. }
             | LegacyRecoveryDisposition::AlreadyConverged { .. } => converged += 1,
+            LegacyRecoveryDisposition::AlreadySettled { .. } => settled += 1,
             _ => refused += 1,
         }
     }
@@ -277,6 +313,28 @@ pub(crate) fn run_startup_input_safety(
             message: error.to_string(),
         },
     };
+    // **本次协调器自身的登记也要结账**（PR-01／P0-1）：否则它会永远留在"待对账"里，
+    // 让下一次启动看到"仍有尚未提交的恢复操作"而永久拒绝开放。
+    //
+    // 处置口径与 `opening` 一致：开放了就是 `Recovered`；仍是隔离就是 `KeptIsolated`
+    // （机器已判定，且底层遗留运行的"待人工复核"另有各自的操作承担）。
+    // 根未注入／库不可用时**保持 pending**：那时连结账都写不进去，如实挂着才是诚实的。
+    let own_disposition = match &opening {
+        OpeningOutcome::Opened { .. } => Some(runtime::RecoveryDisposition::Recovered),
+        OpeningOutcome::KeptIsolated { .. } => Some(runtime::RecoveryDisposition::KeptIsolated),
+        OpeningOutcome::SkippedRootNotInjected | OpeningOutcome::StoreUnavailable { .. } => None,
+    };
+    if let Some(disposition) = own_disposition {
+        if let Err(error) = coordinator.store().settle_recovery_operation_authorized(
+            STARTUP_INPUT_SAFETY_OPERATION_ID,
+            coordinator.control(),
+            disposition,
+            "启动路径自身的评估/开放操作结账",
+        ) {
+            eprintln!("[input-safety] 启动路径自身操作结账失败（不影响已表达的 opening 结果）：{error}");
+        }
+    }
+
     // 收尾：**一次性**释放协调资格。释放失败只如实记进日志口径（`opening` 已表达真实结果），
     // 不再把整个启动路径判为失败——避免"资源其实已开放、却报告保持阻断"的误导性状态。
     if let Err(error) = coordinator.store().release_recovery_epoch(
@@ -292,6 +350,7 @@ pub(crate) fn run_startup_input_safety(
         candidates: candidates.len(),
         converged,
         refused,
+        settled,
         opening,
     })
 }
@@ -416,6 +475,69 @@ mod tests {
             }
             other => panic!("必须保持隔离：{other:?}"),
         }
+    }
+
+    /// **PR-01／P0-1**：没有人工放行 ⇒ 阻断与遗留运行都挡路；放行之后 ⇒ 评估通过并可开放。
+    ///
+    /// 这是"永久隔离"出口的**端到端**断言：不是"改个字段就算放行"，而是
+    /// "放行决定（人事）+ 独立评估（机器）"两者都成立，资源才真的能被重新接受输入。
+    #[test]
+    fn release_decision_is_what_makes_the_resource_openable() {
+        let (_directory, session_db, safety_root) = setup();
+        let cu_store = ComputerUseRunStore::open(&session_db).expect("cu store");
+        seed_legacy_unrecorded_run_for_test(&cu_store, "legacy-cu-1", "session-1", "turn-1", true);
+        drop(cu_store);
+        let store = InputSafetyStore::open_at(&safety_root).expect("store");
+        store
+            .open_resource_block("legacy-block-legacy-cu-1", &scope(), "legacy_recovery", "incident-1")
+            .expect("block");
+        drop(store);
+
+        // ① 未放行：阻断挡路（遗留运行也挡路）。
+        let before = assess_input_resource(&safety_root, &session_db, &scope()).expect("assess");
+        assert!(!before.is_safe(), "有未获放行的阻断时必须保持隔离：{before:?}");
+        assert_eq!(before.open_blocks, 1);
+        assert_eq!(before.legacy_unconverged_runs, 1);
+
+        // ② 人工放行：逐条声明阻断 + 明确接受该遗留运行（承担其风险）。
+        let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+            &safety_root,
+            "windows-session-opening|test-release",
+            &scope(),
+            "release-test",
+            &["release_isolation", "open_new_input"],
+            std::time::Duration::from_secs(2),
+        )
+        .expect("coordinator");
+        coordinator
+            .store()
+            .release_isolation_authorized(
+                &runtime::ReleaseIsolationDecision {
+                    decision_id: "release-opening-1".to_string(),
+                    scope: scope(),
+                    operator: "ops-zhang".to_string(),
+                    reason: "已人工核对旧执行者不在场，接受该遗留运行的风险".to_string(),
+                    evidence_refs: vec!["manual-check-2026-09-25".to_string()],
+                    acknowledged_block_ids: vec!["legacy-block-legacy-cu-1".to_string()],
+                    acknowledged_run_ids: vec!["legacy-cu-1".to_string()],
+                    release_epoch: 0,
+                    coordinator_instance_id: String::new(),
+                    decided_at_unix_ms: 0,
+                },
+                coordinator.control(),
+            )
+            .expect("放行");
+
+        // ③ 放行之后：评估通过（阻断已解除、遗留运行已被接受），且**按资格**开放成功。
+        let after = assess_input_resource(&safety_root, &session_db, &scope()).expect("assess");
+        assert!(after.is_safe(), "放行之后评估必须通过：{after:?}");
+        assert_eq!(after.open_blocks, 0);
+        assert_eq!(after.acknowledged_runs, 1, "被接受的遗留运行要如实计数，不谎报为 0");
+        let state = coordinator
+            .store()
+            .reopen_new_input_authorized(&scope(), coordinator.control())
+            .expect("按资格开放");
+        assert!(state.accepts_new_input, "放行 + 独立评估通过 ⇒ 资源重新接受输入");
     }
 
     /// 启动触发点：库根未注入 ⇒ 如实地"跳过"，**不自造路径**（正式输入继续 fail-closed）。
