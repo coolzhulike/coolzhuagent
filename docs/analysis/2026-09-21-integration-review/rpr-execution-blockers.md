@@ -2076,6 +2076,43 @@ fail-closed 正确，但**无路可走**（§B-84 记的 CU-F05-5 正半缺口�
 
 **门禁**：computer-use-core **127/0**。
 
+### B-96 Hook 授权服务（P2-2）交付：**配置 ≠ 授权**在插件侧也成立（与运行时侧同口径）
+
+**先核实的现状**（避免重复造件）：**运行时/会话侧早就有这套语义**——
+`core-runtime/src/hooks.rs` 的 `HookRunner` 持有 `authorization: PermissionPolicy`，
+`new()` 用的是 `unauthorized_policy()`（首期**没有任何 hook 有独立执行授权**），
+且注释写明"所有 hook 都不会运行，直到宿主显式调用 `with_authorization`"；用例
+`authorized_hook_allow_cannot_override_host_denial` 钉住"插件 allow 不得覆盖宿主拒绝"。
+
+**真正的缺口只有插件系统那一侧**：`tooling/packages/plugin-system/src/hooks.rs` 的 `HookRunner`
+**完全没有授权概念**——`PluginHooks` 里写了 hook 就运行，等于让**插件配置本身成为权限来源**。
+
+**本轮改动**（additive + 对齐口径）：
+
+1. 新增 `HookAuthorizationService`（`authorize(event, tool_name) -> bool`）与两个实现：
+   `NoHookAuthorization`（**默认：什么都不授权**）与 `AllowHookEvents`（显式按事件授权）；
+2. `HookRunner` 增加该服务字段 + `with_authorization(...)`；**未授权前 hook 不运行**
+   （逐条跳过并留可见说明："未获授权，未运行（配置 ≠ 授权；需宿主显式授权）"）；
+3. `HookRunResult` 增加 `unauthorized_skips()`：以前 `is_denied() == false` **既可能是"允许"、
+   也可能是"根本没跑"**——把两者混成一个布尔，等于把"没跑"读成"允许"。现在可分辨；
+4. `HookRunner` 的 `Debug`/`PartialEq` 改为手写（授权是外部策略：相等按**同一授权对象**判定，
+   内容相等不代表授权相同）。
+
+**行为影响核实**：插件侧 `HookRunner` **目前没有生产调用方**（生产 hook 走运行时侧，那边早已
+按授权运行）⇒ 本改动是**契约对齐**，不改变运行时行为；插件侧两个既有用例改为**显式授权**
+（它们测的是"运行后拒绝/运行后收集"，未授权时本就不该运行）。
+
+**用例**：`unconfigured_authorization_prevents_plugin_hooks_from_running`——未授权时
+**用"会写文件的脚本"证明它真的没运行**、`unauthorized_skips == 1`、消息里可见"未获授权"；
+显式授权后确实运行；**只授权 PreToolUse 时 PostToolUse 仍不运行**。
+
+**门禁**：plugin-system **29/0**、tool-registry 54/0、core-runtime 312/0、web-console 1147/0、
+`cargo build --workspace` ✅。
+
+**仍缺（如实记）**：两套 hook 的**合并**按裁决"不要立即合并"继续不做；本轮的成果是
+"两边都按同一授权口径运行"，而不是把它们合成一套。另：插件侧 runner 还没有生产调用方，
+接入时应**显式**决定授权范围（不要用 `AllowHookEvents::default()` 打开全部）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
