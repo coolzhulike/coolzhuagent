@@ -1382,6 +1382,23 @@ git push -u origin rd4-input-safety-and-pkg-integrity
 
 **由此暴露的产品/UX 缺陷（建议立工单）**：随包安装的快捷方式指向一个**可能结构化拒绝**的启动器，而拒绝信息**对双击用户不可见**（控制台瞬关、日志在非显眼路径）。可选修法：① 拒绝时弹**消息框**；② 快捷方式带 `--show-console` 之类参数让窗口保留；③ 首次运行引导（候选选择界面）；④ 至少在失败时给出**可见提示**并指向日志与 `--select-workspace`。**我不擅自选定机制**（属产品口径）。
 
+### B-76 修复"图标双击无法启动"：多候选不再一律拒绝，改为**按来源优先级采用**（已安装 0.2.16 并端到端验证）
+
+**用户口径（现场裁决）**：默认工作区是 `C:\Users\<用户名>\coolzhuagent`，**用户名按设备账号在运行时解析、不得硬编码**；**已有保存的配置时，使用"最近打开"的 workspace 目录**。
+
+**核验（未硬编码的证据）**：随包配置 `config/package-launcher.json` 里是模板 `"runtime_dir": "%USERPROFILE%\coolzhuagent"`，配置注释明确"按实际运行用户的用户目录上下文解析模板（**不在构建机替换成绝对路径**）"；`C:\Users\zhupu\coolzhuagent` 只是**本机解析结果**。对 `launch_paths.rs` 的改动做 `git diff` 扫描：**无任何** `zhupu` / `C:\Users\…` 硬编码（grep 无输出）。
+
+**代码改动（`packages/app-launcher/src/launch_paths.rs`）**：把"有数据的候选 ≥2 即 `WorkspaceSelectionAmbiguous`"改为按**来源优先级**挑唯一最优：
+`SavedSelection{revision}` (3) → `ConfigSnapshot{recorded_at_ms}` (2，即"最近打开") → `ImportedLegacySelection` (1) → `PackagedDefault` / `KnownHistoricalDefault` / `LegacyLogDirDerivation` (0)。**顶层并列或全不可判定**时仍要求一次显式选择（fail-closed，不猜、不合并、不删除）。随包默认值**刻意不高于**历史遗留：它可能写在"曾被误建"的位置上（P13 场景），同层并列时让它胜出会把误建目录选中。
+
+**测试调整（都是新政策的必然结果，且裁决规定的"不合并/不删除"断言全部保留）**：P05 改名并改为断言"采用导入的旧选择"，同时**新增"两条导入选择并列 ⇒ 仍拒绝"**场景；P13 期望更新为采用导入的旧选择（两份数据都仍在、未新建目录的断言原样保留）；新增 `select_holder_by_recency` 决策表用例（唯一最近 / 两条取新 / 并列拒绝 / 全不可判定拒绝 / 已保存选择优先）。`app-launcher` **64/0 + 5/0**。
+
+**端到端验证（安装后真实入口）**：升版本 0.2.16 → 重新冻结 → 正式构建（`release_eligible=true`，六项一致性条件全 PASS）→ MSI `dist/CoolzhuAgent-0.2.16.msi` → **安装 exit=0**。随后：
+- `COOLZHU-AGENT.exe --print-resolved-paths`（即图标的目标）**不再拒绝**：`工作区根 request=C:\Users\zhupu\coolzhuagent source=imported_legacy_selection origin=config_snapshot:launcher-config-a7e3fb7c0ba6db2b.json@recorded_at_ms=…`，并**持久化选择 ⇒ revision=1**（此后启动确定化）；`input_safety_state_root=%LOCALAPPDATA%\CoolzhuAgent\input-safety`；exit=0 ✅。
+- **真正启动**（图标路径）：`coolzhu-web-console`（pid 20988）与 `coolzhu-tauri-shell`（pid 14568）**均在运行**，启动器日志写明 `后台实际使用 workspace=\?\C:\Users\zhupu\coolzhuagent session_db=…\.coolzhu\web-sessions.sqlite3（build=46a876490f1f）` ✅。⇒ 图标双击现在可用。
+
+**仍未闭环（与本次修复无关，继续保留）**：B-72 列出的 launcher 注入/输入安全启动路径联动（本次日志未展示输入安全启动路径的评估/开放行——因为启动器链路尚未接入注入后行为观察）、卸载/修复/重装、升级数据兼容、签名。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

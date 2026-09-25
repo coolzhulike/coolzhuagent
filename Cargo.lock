@@ -796,7 +796,7 @@ version = "0.2.0"
 
 [[package]]
 name = "coolzhu-command-line"
-version = "0.2.15"
+version = "0.2.16"
 dependencies = [
  "coolzhu-command-router",
  "coolzhu-compatibility-harness",
