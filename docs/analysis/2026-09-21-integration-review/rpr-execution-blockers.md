@@ -1841,7 +1841,7 @@ desktop-console **16/0**、module_linkage_smoke **5/0**（含新增守门）。
 
 **门禁**：computer-use-core **125/0**、web-console 1135/0、module_linkage_smoke 5/0。
 
-### B-89 PR-03 后续工单：受控族缺 `move` 入口，以及我在拖拽重写里引入的一处**已知局限**
+### B-89 PR-03 后续工单：受控族缺 `move` 入口，以及我在拖拽重写里引入的一处**已知局限**（**已交付，见本节末**）
 
 **侦察结论（决定后续工单的形状）**：鼠标移动**不走受监督 helper**——
 `move_mouse_relative`/`diagnostic_move_mouse_absolute` 各自 `run_powershell` 一段独立的
@@ -1867,6 +1867,30 @@ desktop-console **16/0**、module_linkage_smoke **5/0**（含新增守门）。
 ② 桌宠自动化的相对移动与评测拖拽都脱离未受监督路径，PR-03 守门清单里的"移动例外"即可删除。
 
 **在此之前**：PR-03 的守门用例仍在用**允许清单**把这两个移动原语钉住（多一处引用即失败），
+
+**已交付（同一轮，收口完成）**：
+
+1. **helper 增加两个模式**：`move`（绝对）与 `move_relative`。相对移动的起点由 **helper 自己**
+   在同一段受监督运行里读（`Driver.CursorPosition`；SendInput／Interception 用 `GetCursorPos`，
+   mock 驱动记录内部位置）——**不**让主机在外面另探一次，那会重新引入不受监督的路径。
+2. **Rust 增加两个受控入口**：`controlled_move_mouse_absolute` / `controlled_move_mouse_relative`
+   （义务为 `none`，但同样受监督运行、事实落盘、收尾确认；`cursor_moved` 与「未按下」都如实登记）。
+3. **迁移完成**：桌宠自动化的相对移动、闭环评测拖拽的中间段移动改走受控入口；
+   两个移动原语改名 `diagnostic_move_*`。
+4. **守门收紧**：PR-03 守门用例里「移动例外」的允许清单**整条删除**（例外清零）；
+   两个移动原语并入「仅诊断」针 ⇒ 自动化侧不得再引用任何未受监督原语——由编译器 + 守门用例双重保证。
+5. **真跑验证**（不可省：helper 的 C# 由 PowerShell 在**运行时** `Add-Type` 编译，单元测试编不出它的
+   语法错误）：用例 `real_helper_move_modes_report_cursor_movement_without_pressing` 用 mock 驱动跑
+   **真实 helper 进程**，断言 `cursor_moved = Some(true)`、`injected_steps = 0`、`completed`、
+   未按下、无残留、`derive_input_status = complete`。
+
+**事实口径的诚实说明**：移动的 `injected_steps` 恒为 `0`——它不是按钮/键/滚动类输入事件
+（与「click 的 MoveTo 不计步」同口径）。因此拖拽的 `confirmed_point_count` **仍然不含**中间移动段；
+变化在于：中间段现在**各自有自己的受监督回执与「光标移动过」事实**，不再是「无事实的盲区」。
+若要把它们并入一个总数，需要 helper 侧新增 `drag` 模式（列为可选后续，不再是安全缺口）。
+
+**门禁**：computer-use-core **126/0**、web-console 1135/0、desktop-console 16/0、
+module_linkage_smoke **5/0**、`cargo build --workspace` ✅。
 所以"例外"不会悄悄扩散。
 
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）

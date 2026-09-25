@@ -28,8 +28,8 @@ use crate::desktop_capture::capture_latest_desktop_snapshot_now;
 /// 桌面上留下按下的键或按钮，而**没有任何事实可对账**（这正是 P0-3 说的"事实不一致风险"）。
 /// 受控入口把 validate → reserve → execute → receipt → cleanup → settlement 一次做完。
 use computer_use::input::{
-    controlled_click, controlled_hold_key, controlled_key_combo, controlled_press_key,
-    controlled_scroll, controlled_type_text, NativeInputAttempt,
+    controlled_click, controlled_hold_key, controlled_key_combo, controlled_move_mouse_relative,
+    controlled_press_key, controlled_scroll, controlled_type_text, NativeInputAttempt,
 };
 
 /// 本 agent 目前**没有**取消信号：这里如实传"永不取消"。
@@ -1990,14 +1990,13 @@ fn hold_key(key: &str, hold_ms: u64) -> Result<(), String> {
     })
 }
 
-/// 相对移动：**本文件里唯一未走受控入口的输入**，如实标注而不掩盖。
-///
-/// 原因：受控族目前没有"相对移动"入口（只有点击/按钮状态/文本/滚动/按键），而相对移动
-/// **不产生释放义务**（不按下任何按钮或键），因此它的风险面是"位置不准"，不是"留下按下的
-/// 键/按钮"。要彻底收口需要先给受控族补一个 `controlled_move_mouse_relative`；在那之前
-/// 这里保持现状，并由根级守门用例把"唯一例外"钉住（多一个例外就会失败）。
 fn move_mouse_relative(dx: i32, dy: i32) -> Result<(), String> {
-    crate::input_backend::move_mouse_relative(dx, dy, Duration::from_secs(6))
+    // 受控相对移动：位置由 helper 在同一段受监督运行里读，并落盘"光标移动过"的事实。
+    controlled_call(|attempt| {
+        controlled_move_mouse_relative(dx, dy, attempt, Duration::from_secs(6))
+            .map(|_outcome| ())
+            .map_err(|failure| failure.to_string())
+    })
 }
 
 fn send_key_combo(keys: &[String]) -> Result<(), String> {

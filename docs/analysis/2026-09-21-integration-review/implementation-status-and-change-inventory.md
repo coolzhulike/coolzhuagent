@@ -90,7 +90,7 @@
 | P1-3 PKG-L07c-RACE | 按裁决**不重新打开**（P0 修复已完成，并发能力待验收） | 决策 §P1-3 |
 | PR-05（P2-1 · CU-01） | **第一层已实现**：统一 `input_status`（none／partial／complete／unknown）+ 唯一判定点 + 8 例映射与不变式用例（§B-88）。**未做**：失配子类／请求状态／任务级基线／统一 run 计数（C8/C9/C11 落列与界面）、CU-02 的 owner=room/turn/run 口径 | §B-88 |
 | PR-02B／其余 P2 | `tool_calls` 登记链与 SafetyCleanup 事故登记；Paint 其余层（frame_id/observation_version、planner 反馈）；Hook 授权服务；RPR-01b 剩余裸 `set_var` | 决策 §P2／§B-84 |
-| **受控族缺 `move` 入口**（PR-03 后续） | 移动走独立的 `SetCursorPos` PowerShell（**不经**受监督 helper，helper 无 `move` 模式）⇒ 移动无注入步数事实；**并导致拖拽的 `confirmed_point_count` 不含中间移动段**（维度口径不完整，不是谎报完成）。方案与影响见 §B-89 | §B-89 |
+| ~~受控族缺 `move` 入口~~ | **已闭环（§B-89）**：helper 增加 `move`／`move_relative` 模式（相对移动由 helper 自己读位置）、`controlled_move_mouse_absolute/relative` 上线、两处调用迁移完成、移动原语改名 `diagnostic_*`、守门**例外清零**；真跑用例（mock 驱动 + 真实 helper 进程）通过 | §B-89 |
 | 真实崩溃变体 | 只在**真实库**上观察到"半途中断后重放"（已修并验证）；"恢复者进程被杀"的跨进程变体未构造 | §B-77 |
 | 由 launcher 启动的控制台进程内**输入安全联动** | 直接注入 env 运行已观察（走评估/保持隔离）；launcher→控制台链路的该行日志**未直接抓取**（进程由 launcher 派生） | §B-76 |
 | **签名** | 包为 `unsigned`；本轮不涉及 | §B-72 |

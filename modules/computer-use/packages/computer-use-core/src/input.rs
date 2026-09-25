@@ -138,14 +138,14 @@ pub fn diagnostic_mouse_button_action_point(
     }
 }
 
-pub fn move_mouse_relative(dx: i32, dy: i32, timeout: Duration) -> Result<(), String> {
+pub fn diagnostic_move_mouse_relative(dx: i32, dy: i32, timeout: Duration) -> Result<(), String> {
     match active_backend() {
         InputBackend::SendInput => sendinput_move_mouse_relative(dx, dy, timeout),
         InputBackend::Interception => interception_move_mouse_relative(dx, dy, timeout),
     }
 }
 
-pub fn move_mouse_absolute(x: i32, y: i32, timeout: Duration) -> Result<(), String> {
+pub fn diagnostic_move_mouse_absolute(x: i32, y: i32, timeout: Duration) -> Result<(), String> {
     sendinput_move_mouse_absolute(x, y, timeout)
 }
 
@@ -2723,6 +2723,46 @@ pub fn controlled_mouse_button_state(
     )
 }
 
+/// 受控**绝对**移动：只改光标位置，**永不按下**任何按钮/键。
+///
+/// 释放义务是 `none`（移动不产生义务），但**受监督运行、事实落盘、收尾确认**一样不少：
+/// 它证明"光标移动过"（`cursor_moved`）并如实报告未走完/失败。
+pub fn controlled_move_mouse_absolute(
+    x: i32,
+    y: i32,
+    attempt: &NativeInputAttempt,
+    timeout: Duration,
+) -> Result<NativeInputOutcome, NativeInputFailure> {
+    native_run(
+        "move",
+        serde_json::json!({ "x": x, "y": y }),
+        ReleaseObligation::none(),
+        attempt,
+        timeout,
+        active_backend(),
+    )
+}
+
+/// 受控**相对**移动：`dx`/`dy` 相对当前光标位置。
+///
+/// 位置由 **helper 自己**在同一段受监督运行里读（`CursorPosition`），
+/// 而不是主机在外面另探一次——那会重新引入一条不受监督的路径。
+pub fn controlled_move_mouse_relative(
+    dx: i32,
+    dy: i32,
+    attempt: &NativeInputAttempt,
+    timeout: Duration,
+) -> Result<NativeInputOutcome, NativeInputFailure> {
+    native_run(
+        "move_relative",
+        serde_json::json!({ "x": dx, "y": dy }),
+        ReleaseObligation::none(),
+        attempt,
+        timeout,
+        active_backend(),
+    )
+}
+
 /// 受控文本输入：不点击，只输入文本（点击由调用方作为前一段输入）。
 pub fn controlled_type_text(
     text: &str,
@@ -3769,6 +3809,9 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
  public interface Driver {
   void Check();
   void MoveTo(int x, int y);
+  // 读当前光标位置：相对移动必须先知道"从哪出发"，否则只能由主机在 helper 之外再探一次
+  // （那正是我们要消除的未受监督路径）。
+  void CursorPosition(out int x, out int y);
   void ButtonDown(string button);
   void ButtonUp(string button);
   void Wheel(int delta);
@@ -3882,6 +3925,7 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
    if (x < left || y < top || x >= left + width || y >= top + height) throw new Exception("cursor_move_failed: 目标点不在桌面可见范围内");
   }
   public abstract void MoveTo(int x, int y);
+  public abstract void CursorPosition(out int x, out int y);
   public abstract void ButtonDown(string button);
   public abstract void ButtonUp(string button);
   public abstract void Wheel(int delta);
@@ -3925,7 +3969,9 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
   [StructLayout(LayoutKind.Sequential)] struct KEYBDINPUT { public ushort vk, scan; public uint flags, time; public UIntPtr extra; }
   [StructLayout(LayoutKind.Explicit)] struct INPUTUNION { [FieldOffset(0)] public MOUSEINPUT mouse; [FieldOffset(0)] public KEYBDINPUT key; }
   [StructLayout(LayoutKind.Sequential)] struct INPUT { public uint type; public INPUTUNION u; }
+  [StructLayout(LayoutKind.Sequential)] struct CURSORPOINT { public int x, y; }
   [DllImport("user32.dll")] static extern bool SetCursorPos(int x, int y);
+  [DllImport("user32.dll")] static extern bool GetCursorPos(out CURSORPOINT point);
   [DllImport("user32.dll", SetLastError = true)] static extern uint SendInput(uint n, INPUT[] inputs, int size);
   public SendInputDriver(bool identity, long handle, uint pid, int[] rect, uint dpi, string cancel, int watchdogMs)
    : base(identity, handle, pid, rect, dpi, cancel, watchdogMs) {}
@@ -3941,6 +3987,7 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
    return down ? 0x0008u : 0x0010u;
   }
   public override void MoveTo(int x, int y) { Check(); AssertOnDesktop(x, y); if (!SetCursorPos(x, y)) throw new Exception("cursor_move_failed: SetCursorPos 返回 false"); }
+  public override void CursorPosition(out int x, out int y) { Check(); CURSORPOINT point; if (!GetCursorPos(out point)) throw new Exception("cursor_position_failed: GetCursorPos 返回 false"); x = point.x; y = point.y; }
   public override void ButtonDown(string button) { Check(); Send(new INPUT[] { Mouse(MouseFlag(button, true), 0) }); Armed(Buttons.Name(button)); }
   public override void ButtonUp(string button) { Check(); Send(new INPUT[] { Mouse(MouseFlag(button, false), 0) }); Unarmed(Buttons.Name(button)); }
   protected override void RawButtonUp(string button) { Send(new INPUT[] { Mouse(MouseFlag(button, false), 0) }); }
@@ -3989,12 +4036,15 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
     default: return false;
    }
   }
+  [StructLayout(LayoutKind.Sequential)] struct CURSORPOINT { public int x, y; }
+  [DllImport("user32.dll")] static extern bool GetCursorPos(out CURSORPOINT point);
   static ushort ButtonState(string button, bool down) {
    bool left = Buttons.Name(button) == "left";
    if (left) return (ushort)(down ? 1 : 2);
    return (ushort)(down ? 4 : 8);
   }
   public override void MoveTo(int x, int y) { Check(); AssertOnDesktop(x, y); if (!SetCursorPos(x, y)) throw new Exception("cursor_move_failed: SetCursorPos 返回 false"); }
+  public override void CursorPosition(out int x, out int y) { Check(); CURSORPOINT point; if (!GetCursorPos(out point)) throw new Exception("cursor_position_failed: GetCursorPos 返回 false"); x = point.x; y = point.y; }
   public override void ButtonDown(string button) { Check(); SendMouse(ButtonState(button, true), 0); Armed(Buttons.Name(button)); }
   public override void ButtonUp(string button) { Check(); SendMouse(ButtonState(button, false), 0); Unarmed(Buttons.Name(button)); }
   protected override void RawButtonUp(string button) { SendMouse(ButtonState(button, false), 0); }
@@ -4134,6 +4184,21 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
       completed = true;
       break;
      }
+     case "move":
+     case "move_relative": {
+      // 移动：只改光标位置，**永不按下**任何按钮/键 ⇒ 本模式没有释放义务。
+      // 相对移动必须在**同一段受监督运行里**先读位置：主机在外面再探一次会引入
+      // 一条不受监督的路径，也正是本次收口要消除的东西。
+      driver.Check();
+      int targetX = x; int targetY = y;
+      if (mode == "move_relative") { int cx; int cy; driver.CursorPosition(out cx, out cy); targetX = cx + x; targetY = cy + y; }
+      driver.MoveTo(targetX, targetY); cursorMoved = true;
+      // 光标移动过就必须立即落盘（与 click 同口径）：否则"移动过"与"什么都没做"无法区分。
+      // 注意 `steps` 不加：它计的是**按钮/键/滚动**这类输入事件，移动不是（与 click 的 MoveTo 同口径）。
+      reportStep(true, null);
+      completed = true;
+      break;
+     }
      case "down":
      case "up": {
       string button = Buttons.Name(action);
@@ -4174,7 +4239,13 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
    public Mock(string scenario, string cancelFile, int watchdogMs) : base(false, 0, 0, null, 0, cancelFile, watchdogMs) { this.scenario = scenario; }
    // slow_steps 模拟"阻塞且不理会取消"的执行者：只有主机强杀才能停下它。
    public override void Check() { if (scenario == "slow_steps") return; base.Check(); }
-   public override void MoveTo(int x, int y) { if (scenario == "fail_before_press") throw new Exception("send_input_failed: mock 在按下之前失败"); }
+   int cursorX; int cursorY;
+   public override void MoveTo(int x, int y) {
+    if (scenario == "fail_before_press") throw new Exception("send_input_failed: mock 在按下之前失败");
+    if (scenario == "fail_move") throw new Exception("cursor_move_failed: mock 移动失败");
+    cursorX = x; cursorY = y;
+   }
+   public override void CursorPosition(out int x, out int y) { x = cursorX; y = cursorY; }
    public override void ButtonDown(string button) {
     if (scenario == "fail_before_press") throw new Exception("send_input_failed: mock 在按下之前失败");
     Armed(Buttons.Name(button));
@@ -5231,6 +5302,69 @@ foreach($mode in @(0,1,2,3)) {{
             assert_eq!(receipt.input_delivery, InputDelivery::NotSent);
             assert_eq!(receipt.partial, Some(false));
             assert_eq!(receipt.input_release, InputReleaseStatus::NotNeeded);
+        }
+
+        /// **§B-89**：受控移动走**同一段受监督运行**，且如实登记"光标移动过、未按下"。
+        ///
+        /// 为什么必须真跑：helper 的 C# 由 PowerShell 在**运行时** `Add-Type` 编译，
+        /// 单元测试编不出它的语法错误；只有真实运行一次才能证明新分支可用。
+        /// 用 mock 驱动（不碰 user32、不注入真实输入）⇒ 不会移动用户桌面上的光标。
+        #[test]
+        #[cfg(windows)]
+        fn real_helper_move_modes_report_cursor_movement_without_pressing() {
+            let cancelled = || false;
+            let attempt = attempt_without_identity(&cancelled);
+            // 移动**没有释放义务**：这正是它可以与"按下类动作"共用同一运行器而不需要收尾释放的原因。
+            let obligation = ReleaseObligation::none();
+            for (mode, params) in [
+                ("move", serde_json::json!({"x": 120, "y": 240})),
+                ("move_relative", serde_json::json!({"x": 8, "y": -6})),
+            ] {
+                let outcome = native_run_with_mock(
+                    mode,
+                    params.clone(),
+                    &obligation,
+                    &attempt,
+                    Duration::from_secs(20),
+                    "",
+                )
+                .unwrap_or_else(|failure| panic!("{mode} 必须成功：{}", failure.message));
+                let facts = outcome.facts().expect("helper 必须写出事实");
+                assert_eq!(
+                    facts.cursor_moved,
+                    Some(true),
+                    "{mode}：光标移动过必须如实登记"
+                );
+                assert_eq!(
+                    facts.injected_steps, 0,
+                    "{mode}：移动不是按钮/键/滚动类输入事件，不得记为注入步数"
+                );
+                assert!(facts.completed, "{mode}：走完必须如实登记");
+                assert!(!facts.pressed, "{mode}：移动**永不按下**");
+                assert!(!facts.still_holding(), "{mode}：不得留下按住状态");
+                // 收尾的 `released` 是「无残留按下」的确认：移动从不按下，因此这里
+                // `Some(true)` 表示"确认没有残留"，与 click 的收尾口径一致——
+                // 它**不是**在说"释放了一个我从没按下的按钮"。
+                assert_eq!(
+                    facts.released,
+                    Some(true),
+                    "{mode}：收尾必须确认无残留（没有义务≠不确认）"
+                );
+                // 派生视图：移动**完成**（Sent + 明确非部分），但没有注入点数。
+                // 走**生产同一条**派生入口（`release_inputs` + `derive_delivery_facts`）。
+                let delivery = derive_delivery_facts(
+                    &outcome.release_inputs(StrokeFailureKind::Failed),
+                );
+                assert_eq!(
+                    derive_input_status(&delivery),
+                    InputStatus::Complete,
+                    "{mode}：移动走完就是 complete（而不是 unknown 或 partial）"
+                );
+                assert!(
+                    !derive_input_status(&delivery).forbids_automatic_replay(),
+                    "{mode}：完成的移动不需要重放禁令"
+                );
+            }
         }
 
         /// 真实受控 helper：**按下之后失败**。helper 自己登记过左键、确认走不完，

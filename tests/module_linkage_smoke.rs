@@ -77,6 +77,9 @@ fn only_the_controlled_input_entry_is_reachable_from_automation() {
         "diagnostic_press_virtual_key(",
         "diagnostic_hold_virtual_key(",
         "diagnostic_send_virtual_key_combo(",
+        // §B-89 之后：移动也有了受控入口，因此这两个原语同样只剩诊断/自检在用。
+        "diagnostic_move_mouse_relative(",
+        "diagnostic_move_mouse_absolute(",
     ];
     for (relative, contents) in &sources {
         if !diagnostic_needles.iter().any(|needle| contents.contains(needle)) {
@@ -105,25 +108,8 @@ fn only_the_controlled_input_entry_is_reachable_from_automation() {
         );
     }
 
-    // ③ "无义务"例外只允许是移动，且引用文件被逐个列出。
-    let move_primitives = ["move_mouse_relative(", "move_mouse_absolute("];
-    let move_allowlist = [
-        "modules/computer-use/packages/computer-use-core/src/input.rs",
-        "modules/gui-desktop/packages/desktop-console/src/input_backend.rs",
-        "modules/gui-desktop/packages/desktop-console/src/desktop_agent.rs",
-        "modules/gui-web/packages/web-console/src/main.rs",
-    ];
-    for (relative, contents) in &sources {
-        let references_move = move_primitives.iter().any(|needle| contents.contains(needle));
-        if !references_move {
-            continue;
-        }
-        assert!(
-            move_allowlist.contains(&relative.as_str()),
-            "{relative} 引用了无义务移动原语：若这确实是新的一处合法例外，请把它加进允许清单\
-             并写明理由；若要注入**可能按住按钮/键**的输入，必须走 controlled_*"
-        );
-    }
+    // ③ **例外已清零**（§B-89）：移动也有受控入口，所以自动化侧不得再引用任何
+    // 未受监督原语——上一条规则（①）已经把整族 `diagnostic_*` 限制在诊断入口。
 }
 
 /// 递归收集仓库源码（只读文本，用于上面的源码级守门）。

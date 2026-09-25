@@ -92,9 +92,9 @@ use axum::{Json, Router};
 // `press_escape` / `type_text` 是**无生命周期**原语：没有预留、没有回执、没有释放义务登记，
 // 中途失败可能在桌面上留下按下的按钮而没有任何事实可对账。
 use computer_use::input::{
-    drag_path, move_mouse_absolute, controlled_mouse_button_action, controlled_mouse_button_state,
-    controlled_press_key, controlled_type_text, NativeInputAttempt, MouseButton, MouseButtonAction,
-    MousePoint,
+    controlled_mouse_button_action, controlled_mouse_button_state, controlled_move_mouse_absolute,
+    controlled_press_key, controlled_type_text, drag_path, NativeInputAttempt, MouseButton,
+    MouseButtonAction, MousePoint,
 };
 use computer_use::{
     anchor_to_physical_pixel, default_regression_scenarios, standard_resolution_cases,
@@ -36262,8 +36262,15 @@ async fn send_drag_action(start: PointDto, end: PointDto) -> Result<(), String> 
             .map_err(|failure| failure.to_string())?;
             let mut move_error = None;
             for point in path.iter().skip(1) {
-                if let Err(error) = move_mouse_absolute(point.x, point.y, Duration::from_millis(18)) {
-                    move_error = Some(error);
+                // 中间段改走**受控**移动：每次移动都有自己的受监督回执与"光标移动过"事实，
+                // 不再是"无事实的盲区"（原先用未受监督原语时，中间段不落任何事实）。
+                if let Err(failure) = controlled_move_mouse_absolute(
+                    point.x,
+                    point.y,
+                    attempt,
+                    Duration::from_secs(6),
+                ) {
+                    move_error = Some(failure.to_string());
                     break;
                 }
             }
