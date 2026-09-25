@@ -1477,16 +1477,25 @@ pub fn resolve_launch_paths(
         }
     }
 
-    // ③/④ 采用规则：有数据的候选只能有一个；两个及以上必须由用户显式选择。
-    if holders.len() > 1 {
+    // ③/④ 采用规则（现场裁决：**已有保存的配置时，用"最近打开"的 workspace**）：
+    //   1) 已持久保存的用户选择（`SavedSelection`）最优先——它就是"已保存的配置"；
+    //   2) 否则按**记录时间**取最新的 `ConfigSnapshot`（= 最近打开过的工作区）；
+    //      随包默认值（`PackagedDefault`，即安装默认目录）优先于纯历史遗留；
+    //   3) **顶层并列**（两条同样新的记录）或全都不可判定 ⇒ 仍要求一次显式选择（fail-closed，不猜）。
+    let adopted: Option<WorkspaceCandidate> = if holders.len() <= 1 {
+        holders.first().cloned()
+    } else {
+        select_holder_by_recency(&holders)
+    };
+    if holders.len() > 1 && adopted.is_none() {
         return Err(LaunchError::WorkspaceSelectionAmbiguous {
             candidates: holders,
-            remedy: "分别确认哪个是你要的工作区，然后执行 --select-workspace <绝对路径>（本启动器不按时间/容量/数量自动选，不合并，也不删除任何一份）"
+            remedy: "候选之间没有可判定的先后（已保存选择缺失、最近记录并列或都不可判定）。请执行 --select-workspace <绝对路径> 明确指定（本启动器不合并、不删除任何一份；有已保存选择或唯一最近记录时会自动采用）"
                 .into(),
         });
     }
 
-    if let Some(holder) = holders.first() {
+    if let Some(holder) = adopted {
         let source = match &holder.source {
             CandidateSource::PackagedDefault => ResolutionSource::PackagedDefaultExistingData {
                 config_key: RUNTIME_DIR_KEY.to_string(),
@@ -1519,7 +1528,7 @@ pub fn resolve_launch_paths(
         notes.push(ResolutionNote::new(
             "adopt_single_legacy_candidate",
             format!(
-                "唯一可信候选 {} 含工作区数据，按升级规则一次性采用（{origin}）；已保留其余候选路径与旧值，不做合并/删除",
+                "采用候选 {}（{origin}）：唯一含数据候选时按升级规则一次性采用；多个候选时按「已保存选择 → 最近记录（ConfigSnapshot.recorded_at_ms）→ 安装默认」的口径挑出唯一最优，并列则要求显式选择。已保留其余候选路径与旧值，不做合并/删除",
                 holder.path.display()
             ),
         ));
@@ -1955,6 +1964,55 @@ pub fn expand_user_path_text(
     Ok(path)
 }
 
+
+/// 从多个含数据候选中挑出**唯一**可采用的候选（现场裁决口径）。
+///
+/// 排序键（越大越优先）：
+/// - `SavedSelection{revision}` = (3, revision)：已保存的用户选择（最权威）；
+/// - `ConfigSnapshot{recorded_at_ms}` = (2, ts)：**最近打开**的工作区（本次现场裁决的依据）；
+/// - `ImportedLegacySelection` = (1, 0)：一次性导入的旧版选择（用户上一次真正的选择）；
+/// - `PackagedDefault` / `KnownHistoricalDefault` / `LegacyLogDirDerivation` = (0, 0)：安装默认与
+///   历史遗留。**随包默认值刻意不高于历史遗留**：它可能是在"曾被误建"的位置上写下的
+///   （见 `p13_recovery_keeps_both_datasets_and_never_deletes_the_mis_created_one`），
+///   让它在同层并列时自动胜出会把误建目录选中。
+///
+/// 返回 `None` 的两种情形都交给调用方**要求显式选择**（不猜）：顶层键**并列**；
+/// 或所有候选的键都是 (0, 0)（没有任何可判定的记录）。
+#[must_use]
+fn select_holder_by_recency(holders: &[WorkspaceCandidate]) -> Option<WorkspaceCandidate> {
+    fn key(source: &CandidateSource) -> (u8, u64) {
+        match source {
+            CandidateSource::SavedSelection { revision } => (3, *revision),
+            CandidateSource::ConfigSnapshot { recorded_at_ms, .. } => (2, *recorded_at_ms),
+            CandidateSource::ImportedLegacySelection { .. } => (1, 0),
+            _ => (0, 0),
+        }
+    }
+
+    let mut best: Option<(&WorkspaceCandidate, (u8, u64))> = None;
+    let mut tied = false;
+    for holder in holders {
+        let candidate = key(&holder.source);
+        match best {
+            None => best = Some((holder, candidate)),
+            Some((_, current)) if candidate > current => {
+                best = Some((holder, candidate));
+                tied = false;
+            }
+            Some((_, current)) if candidate == current => tied = true,
+            _ => {}
+        }
+    }
+    match best {
+        Some((holder, (0, 0))) => {
+            let _ = holder;
+            None
+        }
+        Some((holder, _)) if !tied => Some(holder.clone()),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2182,7 +2240,10 @@ mod tests {
 
     // P05：两个历史目录都有数据 ⇒ 不按 mtime/容量/数量自动选、不合并、不删除。
     #[test]
-    fn p05_two_data_holding_candidates_require_explicit_choice_and_change_nothing() {
+    fn p05_two_data_holding_candidates_adopt_the_recorded_choice_and_change_nothing() {
+        // 现场裁决后的口径：多个含数据候选**不再一律阻断**，而是按
+        // 「已保存选择 → 最近记录 → 导入的旧选择 → 安装默认/历史遗留」挑唯一最优；
+        // **只在顶层并列或全不可判定时**才要求显式选择。
         let (mut inputs, root, _) = base_inputs("p05");
         let legacy = root.join("localappdata").join("CoolzhuAgent");
         write_workspace_data(&legacy);
@@ -2197,15 +2258,14 @@ mod tests {
         }];
         let probe = ScriptedProbe::new(&[]);
 
-        let error = resolve_launch_paths(&inputs, &probe).unwrap_err();
-        match &error {
-            LaunchError::WorkspaceSelectionAmbiguous { candidates, remedy } => {
-                assert_eq!(candidates.len(), 2);
-                assert!(remedy.contains("不合并"));
-            }
-            other => panic!("unexpected error: {other:?}"),
-        }
-        // 两份数据都还在，且没有新建目录。
+        // ① 导入的旧选择（键 (1,0)）严格高于历史遗留默认（(0,0)）⇒ 采用它，不阻断。
+        let decision = resolve_launch_paths(&inputs, &probe).expect("应按下述口径采用而非阻断");
+        assert_eq!(decision.resolved.workspace_root, other);
+        assert!(matches!(
+            decision.resolved.resolution_source,
+            ResolutionSource::ImportedLegacySelection { .. }
+        ));
+        // 两份数据都还在，且没有新建目录（"不合并、不删除"仍然成立）。
         assert!(legacy.join(crate::DATA_DIR_NAME).join("web-sessions.sqlite3").is_file());
         assert!(other.join("notes.txt").is_file());
         assert!(!inputs
@@ -2213,6 +2273,33 @@ mod tests {
             .as_ref()
             .unwrap()
             .exists());
+
+        // ② 顶层**并列**（两条导入的旧选择，键相同）⇒ 不猜，仍要求显式选择；两份数据依旧不动。
+        let third = root.join("work").join("third");
+        write_workspace_data(&third);
+        inputs.user_state.legacy_selections = vec![
+            LegacySelectionRecord {
+                workspace_root: other.clone(),
+                origin: "imported_from_previous_install".into(),
+                imported_at_ms: 0,
+            },
+            LegacySelectionRecord {
+                workspace_root: third.clone(),
+                origin: "imported_from_previous_install".into(),
+                imported_at_ms: 0,
+            },
+        ];
+        let error = resolve_launch_paths(&inputs, &probe).unwrap_err();
+        match &error {
+            LaunchError::WorkspaceSelectionAmbiguous { candidates, remedy } => {
+                assert_eq!(candidates.len(), 3, "legacy + other + third");
+                assert!(remedy.contains("不合并"));
+            }
+            other => panic!("并列时必须要求显式选择：{other:?}"),
+        }
+        assert!(legacy.join(crate::DATA_DIR_NAME).join("web-sessions.sqlite3").is_file());
+        assert!(other.join(crate::DATA_DIR_NAME).join("web-sessions.sqlite3").is_file());
+        assert!(third.join(crate::DATA_DIR_NAME).join("web-sessions.sqlite3").is_file());
     }
 
     // P06：修改 log_dir ⇒ 工作区、实际数据库绑定、共享输入安全路径不变。
@@ -2464,9 +2551,19 @@ mod tests {
         }];
         let probe = ScriptedProbe::new(&[]);
 
-        // 两个都有数据 → 阻断，绝不自动选，也绝不删除。
-        let error = resolve_launch_paths(&inputs, &probe).unwrap_err();
-        assert!(matches!(error, LaunchError::WorkspaceSelectionAmbiguous { .. }));
+        // 两个都有数据：按现场裁决改为**采用"导入的旧版选择"**（用户上一次真正的选择），
+        // 因为它的排序键 (1,0) 严格高于随包默认值 (0,0)——随包默认值可能正是在"曾被误建"的位置。
+        // 无论采用哪一个，**绝不删除、绝不合并**两条数据。
+        let decision = resolve_launch_paths(&inputs, &probe).expect("应按下述口径采用而非阻断");
+        assert_eq!(decision.resolved.workspace_root, original, "必须采用导入的旧版选择");
+        assert!(
+            matches!(
+                decision.resolved.resolution_source,
+                ResolutionSource::ImportedLegacySelection { .. }
+            ),
+            "来源必须如实记为导入的旧版选择：{:?}",
+            decision.resolved.resolution_source
+        );
         assert!(mis_created.join(crate::DATA_DIR_NAME).join("web-sessions.sqlite3").is_file());
         assert!(original.join(crate::DATA_DIR_NAME).join("web-sessions.sqlite3").is_file());
 
@@ -2747,5 +2844,78 @@ mod tests {
         assert!(rendered.contains("packaged_default"));
         assert!(!rendered.contains("mtime"));
         assert!(!rendered.contains("size="));
+    }
+
+    /// 现场裁决：多个含数据候选时**不再一律拒绝**，而是按
+    /// 「已保存选择 → 最近记录（ConfigSnapshot.recorded_at_ms）→ 安装默认」挑出唯一最优；
+    /// 仅在顶层键**并列**或**全不可判定**时才要求显式选择。
+    #[test]
+    fn multiple_data_candidates_adopt_the_most_recent_record_instead_of_refusing() {
+        fn holder(path: &str, source: CandidateSource) -> WorkspaceCandidate {
+            WorkspaceCandidate {
+                path: PathBuf::from(path),
+                source,
+                access: WorkspaceAccess::Writable,
+                evidence: WorkspaceDataEvidence {
+                    session_db: true,
+                    session_json: false,
+                    workspace_config: true,
+                    attachments: false,
+                    other_entries: 0,
+                },
+            }
+        }
+        let snapshot = |name: &str, at: u64| {
+            holder(
+                "C:/ws-snapshot",
+                CandidateSource::ConfigSnapshot {
+                    snapshot: name.to_string(),
+                    recorded_at_ms: at,
+                },
+            )
+        };
+        let historical = || {
+            holder(
+                "C:/ws-historical",
+                CandidateSource::KnownHistoricalDefault {
+                    name: "local_app_data_coolzhuagent".to_string(),
+                },
+            )
+        };
+
+        // ① 最近记录 vs 历史遗留 ⇒ 采用最近记录（这正是用户现场遇到的一对）。
+        let picked = select_holder_by_recency(&[historical(), snapshot("cfg", 200)])
+            .expect("有唯一最近记录时必须采用它，而不是要求显式选择");
+        assert_eq!(picked.source.as_str(), "config_snapshot");
+
+        // ② 两条记录时间不同 ⇒ 采用较新的那条。
+        let picked = select_holder_by_recency(&[snapshot("old", 100), snapshot("new", 300)])
+            .expect("两条记录时必须取最近的一条");
+        match picked.source {
+            CandidateSource::ConfigSnapshot { ref snapshot, .. } => assert_eq!(snapshot, "new"),
+            other => panic!("必须挑到较新的记录：{other:?}"),
+        }
+
+        // ③ 两条记录**并列** ⇒ 不猜，交给显式选择。
+        assert!(
+            select_holder_by_recency(&[snapshot("a", 500), snapshot("b", 500)]).is_none(),
+            "并列必须要求显式选择"
+        );
+        // ④ 全无可判定记录 ⇒ 同样要求显式选择（fail-closed）。
+        assert!(
+            select_holder_by_recency(&[historical(), holder(
+                "C:/ws-legacy",
+                CandidateSource::LegacyLogDirDerivation
+            )])
+            .is_none(),
+            "没有可判定记录时不得自动挑"
+        );
+        // ⑤ 已保存的用户选择优先于任何记录。
+        let picked = select_holder_by_recency(&[
+            snapshot("cfg", 9_999_999),
+            holder("C:/ws-saved", CandidateSource::SavedSelection { revision: 3 }),
+        ])
+        .expect("已保存选择必须优先");
+        assert_eq!(picked.source.as_str(), "saved_selection");
     }
 }
