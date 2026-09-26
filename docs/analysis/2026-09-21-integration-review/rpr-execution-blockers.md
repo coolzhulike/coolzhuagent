@@ -3928,6 +3928,63 @@ Permit production binding 未开始／input switch ⛔ 禁止。
 **本轮未接** `ExecutorStore`／`PermitGate`／`:228`；未写生产 permit；未迁移真实库、未解除隔离、
 未启动真实输入、未提权、未安装、未推送。
 
+### B-148 Phase 1 决策落地：测试注入缝（只补测试参数）＋ 命令行长度门禁 ＋ rustc 环境异常结构化记录
+
+**裁决要点（§一–§九）**：继续 `8.3c-A-helper-runtime`；**只扩展已有测试注入缝**，不新造测试管道、
+不新增生产能力；**暂不迁移脚本启动方式**（不引入 `-File`／临时脚本文件）；Phase 2 与 `:228` 保持冻结；
+命令行长作为**持续门禁**；rustc 崩溃只作环境异常登记。
+
+**① 测试注入缝（§一，下一步的实施口径）**：`native_run_with_mock`（`input.rs:3291`）已存在
+⇒ 之前的"需要新造测试管道"判断**过重**，本轮更正为"让现有测试入口能携带两相 helper 所需的
+**测试参数**"。允许只增测试字段：`two_phase_helper`／`ready_file`／`permit_file`／`protocol_mode=Test`
+（或等价结构）；**不允许**测试入口直接接受 `InputPermit`／`ExecutorInstanceId`——
+Phase 1 验证的是 **helper 生命周期**，**不是授权系统**。
+
+**② T6-A/B/C 期望值冻结（§二，语义上必须区分三类结果）**：
+
+| 用例 | 期望 | 关键点 |
+| --- | --- | --- |
+| **T6-A** 无 permit | **`TimedOut` ＋ `physical_input_count = 0`** | **不是 `Rejected`**：没有非法信号，只是没有授权 |
+| **T6-B** 错误 nonce permit | **`RejectedPermit` ＋ `input = 0`** | **不得继续等待**：这是协议错误，不是缺少授权 |
+| **T6-C** 合法测试 permit | `EXECUTE` gate 放行、`Engine::Run` 执行 | 证明 EXECUTE gate **确实控制输入入口** |
+
+**③ 命令行长度门禁（§三，决策：暂不迁移启动方式）**：事实是 31501（超软门槛 31000）→ 压缩后 2139 通过。
+**不引入** `powershell -File`／临时脚本文件——那会带来文件生命周期、权限、临时目录、清理、
+脚本来源身份、多实例竞争等**新的架构决策**，当前没必要。**新增门禁 `ScriptCommandLineBudget`**：
+任何 helper 脚本变化都必须检查**完整命令行 UTF-16 长度（含终止符）＋ 动态参数余量**；
+**保持 `<31000` 为软门槛**，**不得**改成"刚好低于 Windows 极限即可"——未来动态参数
+（path／nonce／临时文件／调试参数）仍需空间。**只有**出现以下任一情况才单独开设计：
+Phase 2 新增参数无法压缩／协议长期增长逼近阈值／多平台脚本管理需统一文件化／安全审计要求脚本独立身份。
+
+**④ rustc 环境异常结构化记录（§六，按要求：不写"已修复"，也不写"代码无关"）**：
+
+```
+build environment anomaly
+  rustc version: 1.94.1 (e408947bf 2026-03-25)
+  host:          x86_64-pc-windows-msvc
+  command:       cargo build --workspace --offline
+  occurrences:   2（同一轮内）
+  crates:        coolzhu_web_console (src/main.rs)、COOLZHU_AGENT (packages/app-launcher/src/main.rs)
+  symptom:       rustc exit 0xc0000409 STATUS_STACK_BUFFER_OVERRUN
+  后续观测:      对应 crate 的 cargo test 通过（web-console 1215/0）；
+                 复跑 cargo build --workspace 通过；
+                 computer-use-core 130/0
+  结论（可支持的限度）: 本轮观察到两次 rustc 崩溃，对应 crate 后续测试通过、复跑成功，
+                 当前未发现与本轮修改相关的代码证据。
+```
+
+**再次出现时应比较**：是否同一 crate／同一 rustc／同一机器／是否与特定 feature 或 build script 有关。
+
+**§五 Phase 1 剩余顺序**：Step 1 扩展 `native_run_with_mock`（加三字段）→ Step 2 接入真实 helper opt-in
+（**默认 `two_phase_helper=false`，旧路径不变**）→ Step 3 跑 T6-A/B/C → Step 4 检查
+computer-use-core／web-console／core-runtime 三门禁。**四项完成 Phase 1 才关闭。**
+
+**§七 禁止事项不变**：不接 `:228`／不写生产 permit／不接 `ExecutorStore`／不迁移真实 safety DB／
+不解除隔离／不启动真实桌面输入／**不自动 fallback 旧 helper**。
+
+**本轮只采集环境数据与登记决策，未改任何代码。** 门禁：computer-use-core **130/0**、
+`cargo build --workspace` ✅（复跑）。未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
