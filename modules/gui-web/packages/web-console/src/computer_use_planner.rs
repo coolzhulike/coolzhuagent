@@ -643,6 +643,21 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         Ok(())
     }
 
+    /// 读取**上一步**的事实读数（`step_index == step - 1`）；没有 store、没有上一步、
+    /// 或读不到 ⇒ `None`（**不**编一份"看起来有反馈"的东西）。
+    fn step_feedback(&self, step: usize) -> Option<JsonValue> {
+        let store = self.store?;
+        if step == 0 {
+            return None;
+        }
+        let previous_index = step - 1;
+        let rows = store.run_step_reports(&self.call_id).ok()?;
+        let previous = rows
+            .into_iter()
+            .find(|row| row.step_index == previous_index)?;
+        Some(bounded_step_feedback(&previous))
+    }
+
     async fn plan(
         &self,
         request: &ComputerUseRequest,
@@ -660,6 +675,17 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
             "capabilities":capabilities,"observation":bounded_observation(&observation.state),
             "response_schema":planner_response_schema(observation.surface,capabilities),
             "action_example":{"done":false,"action":{"kind":"click","target":if observation.surface == ComputerUseSurface::Desktop {"uia-<latest-reference>"} else {"dom-<latest-reference>"},"arguments":{}}}});
+        // CU-03：把**上一步的事实**作为有界反馈附进规划请求（无上一步则不带该键）。
+        // 只放白名单字段、每字段截断并标注、整块有界；理由由事实推出（见 `bounded_step_feedback`）。
+        if let Some(previous) = self.step_feedback(step) {
+            debug_assert!(
+                serde_json::to_string(&previous)
+                    .map(|text| text.chars().count() <= STEP_FEEDBACK_CHAR_BUDGET)
+                    .unwrap_or(true),
+                "上一步反馈必须在预算内"
+            );
+            prompt["previous_step_feedback"] = previous;
+        }
         let mut images = observation_image(observation).into_iter().collect::<Vec<_>>();
         if observation.surface == ComputerUseSurface::Desktop && images.is_empty() {
             return Err(planner_backend_error("desktop planner requires a current original screenshot"));
@@ -886,6 +912,78 @@ impl ComputerUsePlanner for CurrentSessionComputerUsePlanner<'_> {
             self.plan(request, observation, step, remaining).await
         })
     }
+}
+
+/// **CU-03**：上一步反馈的**字段预算**（字符）。
+///
+/// 为什么用字符而不是 token：本层不做分词（那要引入依赖），而"有界"这件事必须**可测**。
+/// 口径按保守换算写成常量并注明：约 4 字符 ≈ 1 token，因此 8_000 字符 ≈ 2_000 token——
+/// 正是裁决给的"新增反馈预算 ≤ 约 2K token"。**按模型的精确测量仍需真实模型**（见台账）。
+const STEP_FEEDBACK_CHAR_BUDGET: usize = 8_000;
+/// 单个文本字段的上限：超过就截断并**显式标注**（不静默切掉）。
+const STEP_FEEDBACK_FIELD_CHARS: usize = 240;
+
+/// 截断到上限并显式标注（**不得**静默截断：调用方要能看出"这里被截了"）。
+fn bounded_text(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.chars().count() <= STEP_FEEDBACK_FIELD_CHARS {
+        return trimmed.to_string();
+    }
+    let kept: String = trimmed.chars().take(STEP_FEEDBACK_FIELD_CHARS).collect();
+    format!("{kept}…[截断]")
+}
+
+/// **CU-03**：把"上一步的**事实**"整理成**有界、无泄漏**的反馈块。
+///
+/// 三条硬口径（都由离线用例钉住）：
+///
+/// 1. **只放白名单字段**：状态、输入状态、可否声称完成、是否禁止自动重放、验收结论、
+///    是否有可见进展、以及**不应重试的理由**。**不放**证据引用、动作原文、任何图片数据；
+/// 2. **有界**：每个文本字段截断并标注，整块序列化后不超过 [`STEP_FEEDBACK_CHAR_BUDGET`]；
+/// 3. **理由来自事实**：例如"可能已注入部分输入"才说"不得原样重放"，不是无条件劝退。
+///
+/// 它是**纯函数**（只吃一行步骤读数）⇒ 不需要真实模型即可验证"无泄漏"与"有界"。
+fn bounded_step_feedback(previous: &crate::computer_use_store::RunStepReportRow) -> JsonValue {
+    let delivery = computer_use::input::DeliveryFacts {
+        input_delivery: match previous.input_delivery.as_deref() {
+            Some("not_sent") => runtime::InputDelivery::NotSent,
+            Some("sent") => runtime::InputDelivery::Sent,
+            _ => runtime::InputDelivery::MayHaveBeenSent,
+        },
+        partial: previous.partial,
+        path_completed: previous.path_completed,
+        confirmed_point_count: previous.confirmed_point_count,
+    };
+    let input_status = computer_use::input::derive_input_status(&delivery);
+    // "不应重试"的理由**按事实给**：只有"可能已注入/部分注入"才禁止原样重放。
+    let retry_not_recommended_reason = if input_status.forbids_automatic_replay() {
+        Some(match input_status {
+            computer_use::input::InputStatus::Partial => {
+                "上一步可能已注入部分输入：不得原样重放，应先重新观察再决定"
+            }
+            _ => "上一步的输入结果读不懂（unknown）：不得原样重放，必须先重新观察对账",
+        })
+    } else if previous
+        .error_code
+        .as_deref()
+        .is_some_and(|code| code.starts_with("receipt_"))
+    {
+        Some("上一步的回执与动作不符（协议异常）：不得据此重放，应先重新观察")
+    } else {
+        None
+    };
+    json!({
+        "step_index": previous.step_index,
+        "status": bounded_text(&previous.status),
+        "input_status": input_status.as_str(),
+        "may_claim_complete": input_status.may_claim_complete(),
+        "forbids_automatic_replay": input_status.forbids_automatic_replay(),
+        "error_code": previous.error_code.as_deref().map(bounded_text),
+        "verdict": previous.goal_verdict.as_deref().map(bounded_text),
+        "effect": previous.effect_status.as_deref().map(bounded_text),
+        "subgoal_progress": previous.visible_progress,
+        "retry_not_recommended_reason": retry_not_recommended_reason,
+    })
 }
 
 fn observation_references(value: &JsonValue) -> HashSet<String> {
@@ -1557,6 +1655,123 @@ mod tests {
     /// 裁决第 14.6 项：规划请求的 attempt 必须是**真实复合键**（run#逻辑请求#重试序号），
     /// 重试得到新 attempt；身份不成立时保持未知，**不得**编造。
     #[test]
+    /// **CU-03**：上一步反馈必须**有界、无泄漏、理由来自事实**。
+    ///
+    /// "正确选择比例提高／重复动作减少"需要真实模型评测（另记台账）；这里钉住的是
+    /// **离线可判定**的三条：预算、无泄漏、理由不撒谎。
+    #[test]
+    fn step_feedback_is_bounded_leak_free_and_fact_derived() {
+        let row = |status: &str,
+                   error_code: Option<&str>,
+                   delivery: Option<&str>,
+                   partial: Option<bool>,
+                   verdict: Option<&str>,
+                   progress: bool| crate::computer_use_store::RunStepReportRow {
+            step_index: 3,
+            status: status.to_string(),
+            error_code: error_code.map(str::to_string),
+            input_delivery: delivery.map(str::to_string),
+            partial,
+            path_completed: None,
+            confirmed_point_count: Some(0),
+            effect_status: Some("effect_observed".to_string()),
+            goal_verdict: verdict.map(str::to_string),
+            input_release_status: Some("unknown".to_string()),
+            visible_progress: progress,
+        };
+
+        // ① 部分注入：不得声称完成、禁止自动重放，且**理由**点明"部分输入"。
+        let partial = super::bounded_step_feedback(&row(
+            "input_sent",
+            None,
+            Some("sent"),
+            Some(true),
+            Some("failed"),
+            false,
+        ));
+        assert_eq!(partial["input_status"], "partial");
+        assert_eq!(partial["may_claim_complete"], false);
+        assert_eq!(partial["forbids_automatic_replay"], true);
+        assert!(
+            partial["retry_not_recommended_reason"]
+                .as_str()
+                .is_some_and(|reason| reason.contains("部分输入")),
+            "理由必须点明事实：{partial}"
+        );
+        assert_eq!(partial["subgoal_progress"], false);
+        assert_eq!(partial["verdict"], "failed");
+
+        // ② 确认完成：可以声称完成，且**没有**"不应重试"的理由（不无条件劝退）。
+        let complete = super::bounded_step_feedback(&row(
+            "input_sent",
+            None,
+            Some("sent"),
+            Some(false),
+            Some("passed"),
+            true,
+        ));
+        assert_eq!(complete["input_status"], "complete");
+        assert_eq!(complete["may_claim_complete"], true);
+        assert_eq!(complete["forbids_automatic_replay"], false);
+        assert!(
+            complete["retry_not_recommended_reason"].is_null(),
+            "无事实支持时不得编造劝退理由：{complete}"
+        );
+
+        // ③ 回执协议异常：理由指向"回执与动作不符"，同样不许原样重放。
+        let anomaly = super::bounded_step_feedback(&row(
+            "receipt_protocol_anomaly",
+            Some("receipt_identity_mismatch"),
+            Some("may_have_been_sent"),
+            None,
+            None,
+            false,
+        ));
+        assert_eq!(anomaly["forbids_automatic_replay"], true);
+        assert!(
+            anomaly["retry_not_recommended_reason"]
+                .as_str()
+                .is_some_and(|reason| reason.contains("回执") || reason.contains("重放")),
+            "{anomaly}"
+        );
+
+        // ④ **无泄漏**：只放白名单字段——不得出现证据引用/动作原文/图片数据这类键。
+        let serialized = partial.to_string();
+        for forbidden in [
+            "evidence", "before_evidence_ref", "after_evidence_ref", "action_json",
+            "base64", "screenshot", "data:image", "thinking",
+        ] {
+            assert!(
+                !serialized.contains(forbidden),
+                "反馈块不得包含 `{forbidden}`：{serialized}"
+            );
+        }
+
+        // ⑤ **有界**：超长字段被截断且**显式标注**，整块不超预算。
+        let long_status = "x".repeat(4_000);
+        let long_code = "c".repeat(4_000);
+        let huge = super::bounded_step_feedback(&row(
+            &long_status,
+            Some(&long_code),
+            Some("sent"),
+            Some(true),
+            Some(&long_status),
+            false,
+        ));
+        let huge_text = huge.to_string();
+        assert!(
+            huge_text.chars().count() <= super::STEP_FEEDBACK_CHAR_BUDGET,
+            "反馈块必须有界：{} 字符",
+            huge_text.chars().count()
+        );
+        assert!(huge_text.contains("截断"), "截断必须显式标注：{huge_text}");
+        assert_eq!(
+            super::bounded_text(&long_status).chars().count(),
+            super::STEP_FEEDBACK_FIELD_CHARS + "…[截断]".chars().count(),
+            "单字段上限必须精确（截断标记另计）"
+        );
+    }
+
     fn plan_request_attempt_is_a_real_composite_key_and_never_fabricated() {
         use computer_use::ComputerUsePlanner as _;
 

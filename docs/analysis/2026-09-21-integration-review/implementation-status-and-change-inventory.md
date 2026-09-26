@@ -98,7 +98,8 @@
 | **CU-05（UIA 状态）** | **已实现（含可见面）**（§B-97）：快照/命中四字段（`None` = 不支持，不是 false）+ 纯映射 + 状态进入 locate 的 `raw_response`（`unsupported`/`unknown` 如实写）；离线用例齐；**真实 UIA 读取未现场执行**；模式为**逐个探测**。**未做**：接进 observation 的结构化 `state`；升级 windows crate 拿全量模式 | §B-97 |
 | **CU-04 剩余（canvas ROI）** | **已实现**（§B-99）：闭环请求可选 `canvas_roi`（调用方声明的相对画布）⇒ 可见 ROI 被裁进画布并如实报告 `canvas_clipped`；越界/空区域/完全落画布外分别 400/400/409（**不钳制**）。**未做**：UI 不声明画布；`frame_id` 命名仍待语义增量说明 | §B-99 |
 | CU-05 结构化通道 | **已实现**（§B-100）：UIA 状态进入观测 `state.elements`（`selected`／`keyboard_focus`／`toggle_state`／`patterns`），`null` = 不支持（不是 false） | §B-100 |
-| 仅剩两项 | **CU-03 planner 反馈**（验收要求"基线与反馈版各 10 次模型规划"对照 ⇒ **需模型评测预算**）；**`frame_id` 命名**（需先说明它比现有身份——生成号 + 页面/窗口输入身份（桌面含 rect/dpi）——**多判**了什么） | 决策 §P2／§B-95 |
+| **CU-03 planner 反馈** | **代码半已实现**（§B-102）：规划请求带上**有界、无泄漏、理由来自事实**的 `previous_step_feedback`（含 `subgoal_progress`）；离线三条口径有全量用例。**模型评测半未执行**：缺"固定记录的 R4–R6 观察素材"、判分口径与预算授权（环境有 `ANTHROPIC_AUTH_TOKEN`，但 10+10 是真实计费调用） | §B-102 |
+| `frame_id` 命名 | 待先说明它比现有身份（生成号 + 页面/窗口输入身份，桌面含 rect/dpi）**多判**了什么，否则只是改名 | §B-95 |
 | ~~受控族缺 `move` 入口~~ | **已闭环（§B-89）**：helper 增加 `move`／`move_relative` 模式（相对移动由 helper 自己读位置）、`controlled_move_mouse_absolute/relative` 上线、两处调用迁移完成、移动原语改名 `diagnostic_*`、守门**例外清零**；真跑用例（mock 驱动 + 真实 helper 进程）通过 | §B-89 |
 | 真实崩溃变体 | 只在**真实库**上观察到"半途中断后重放"（已修并验证）；"恢复者进程被杀"的跨进程变体未构造 | §B-77 |
 | 由 launcher 启动的控制台进程内**输入安全联动** | 直接注入 env 运行已观察（走评估/保持隔离）；launcher→控制台链路的该行日志**未直接抓取**（进程由 launcher 派生） | §B-76 |

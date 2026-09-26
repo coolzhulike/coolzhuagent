@@ -1578,6 +1578,8 @@ pub(crate) struct RunStepReportRow {
     pub effect_status: Option<String>,
     pub goal_verdict: Option<String>,
     pub input_release_status: Option<String>,
+    /// 该步是否被判定为"任务有进展"（CU-03 的 subgoal progress 用的就是它）。
+    pub visible_progress: bool,
 }
 
 /// 一条**清理事故登记**。与契约的 `CleanupIncidentRecord` 对应（外加登记时间与获得资格时间）。
@@ -2401,7 +2403,8 @@ impl ComputerUseRunStore {
         let connection = self.connection.lock().expect("computer-use store lock");
         let mut statement = connection.prepare(
             "SELECT step_index, status, error_code, input_delivery, partial, path_completed,
-                    confirmed_point_count, effect_status, goal_verdict, input_release_status
+                    confirmed_point_count, effect_status, goal_verdict, input_release_status,
+                    visible_progress
                FROM computer_use_steps WHERE run_id = ?1 ORDER BY step_index",
         )?;
         let rows = statement
@@ -2417,6 +2420,7 @@ impl ComputerUseRunStore {
                     effect_status: row.get(7)?,
                     goal_verdict: row.get(8)?,
                     input_release_status: row.get(9)?,
+                    visible_progress: row.get::<_, i64>(10)? != 0,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
