@@ -4340,7 +4340,7 @@ $driver = [CoolzhuNative.Drivers]::Create(
 if($sp[2]){Start-Sleep -Milli ([int]$sp[2])}
 $progress = New-Object CoolzhuNative.FileProgress ([string]$r.progress_file, [string]$r.request_id)
 # 8.3c-A Phase 1：两相生命周期（opt-in；$r.two_phase_helper 默认不存在 ⇒ 绝不执行）。
-if($r.two_phase_helper){$q=[string]$r.ready_file;$m=[string]$r.permit_file;$n=[string]$r.request_id
+if($r.two_phase_helper){$q=[string]$r.ready_file;$m=[string]$r.permit_file;$n=[string]$r.two_phase_nonce
 if($q){[IO.File]::WriteAllText($q,'{"type":"ready","helper_protocol_version":1,"nonce":"'+$n+'","pid":'+$PID+',"timestamp_unix_ms":'+[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()+'}')
 $w=1;while($w){if(Test-Path -LiteralPath ([string]$r.cancel_file)){$w=0}elseif($m -and (Test-Path -LiteralPath $m)){if(([IO.File]::ReadAllText($m)) -like ('*"'+$n+'"*')){$w=0}else{exit 4}}else{Start-Sleep -Milli 20}}}}
 if($sp[1]){$null=ni $sp[1]}
