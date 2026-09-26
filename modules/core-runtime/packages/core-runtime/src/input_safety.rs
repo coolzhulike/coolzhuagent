@@ -780,6 +780,97 @@ impl HelperLifecycleException {
     }
 }
 
+// ---------------------------------------------------------------------------
+// 协议版本与切换前门禁（2026-09-26 §B-139 裁决 §五 要求；T13 依赖）
+//
+// 为什么必须显式：helper 是 **PowerShell/C#**、不是 Rust 内部模块，因此
+// "旧 helper 接新宿主"／"新 helper 接旧宿主"都无法在编译期被发现。
+// 协议版本必须作为**可交换字段**存在，并在恢复输入入口前比对一致。
+// ---------------------------------------------------------------------------
+
+/// 两相协议要求的**最低** helper 协议版本（带 READY／等 permit／EXECUTE gate 的那一版）。
+///
+/// 旧 helper（没有这些阶段）应报告更低的值或 0；门禁据此**拒绝**它，且**不得自动降级**。
+pub const TWO_PHASE_HELPER_PROTOCOL_VERSION: u32 = 1;
+
+/// 交换用的协议版本声明。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ProtocolVersions {
+    /// helper 自报的协议版本（旧 helper 为 0）。
+    pub helper_protocol_version: u32,
+    /// 宿主支持的协议版本。
+    pub host_protocol_version: u32,
+    /// 许可 schema 版本（不一致说明两侧对许可的理解不同）。
+    pub permit_schema_version: u32,
+    /// 对端是否支持**真实执行者身份**（`executor_instance_id`）。
+    pub executor_identity_supported: bool,
+}
+
+/// 门禁拒绝：**每一项都可分辨**（不得统一成一句"不兼容"）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PreflightRefusal {
+    /// helper 协议版本不支持两相流程（旧 helper）——**不得自动降级**。
+    HelperProtocolTooOld {
+        helper: u32,
+        required: u32,
+    },
+    /// 两侧协议版本不一致（新旧混搭）。
+    HelperProtocolMismatch { helper: u32, host: u32 },
+    /// 许可 schema 不一致：两侧对许可语义的理解不同。
+    PermitSchemaMismatch { helper_side: u32, host: u32 },
+    /// 对端不支持真实执行者身份：许可将无法绑定到真实实例。
+    ExecutorIdentityUnsupported,
+}
+
+impl PreflightRefusal {
+    #[must_use]
+    pub const fn code(self) -> &'static str {
+        match self {
+            Self::HelperProtocolTooOld { .. } => "helper_protocol_too_old",
+            Self::HelperProtocolMismatch { .. } => "helper_protocol_mismatch",
+            Self::PermitSchemaMismatch { .. } => "permit_schema_mismatch",
+            Self::ExecutorIdentityUnsupported => "executor_identity_unsupported",
+        }
+    }
+
+    /// 是否允许**自动降级**到旧流程（**全部为否**：安全路径不可降级）。
+    #[must_use]
+    pub const fn may_auto_downgrade(self) -> bool {
+        false
+    }
+}
+
+/// 切换前门禁（裁决 §五）：四项必须一致，且 helper 必须达到两相版本。
+///
+/// `expected` 是本产品期望的值（宿主侧常量），`peer` 是对端自报的值。
+pub fn preflight_agreement(
+    expected: ProtocolVersions,
+    peer: ProtocolVersions,
+) -> Result<(), PreflightRefusal> {
+    if peer.helper_protocol_version < TWO_PHASE_HELPER_PROTOCOL_VERSION {
+        return Err(PreflightRefusal::HelperProtocolTooOld {
+            helper: peer.helper_protocol_version,
+            required: TWO_PHASE_HELPER_PROTOCOL_VERSION,
+        });
+    }
+    if peer.helper_protocol_version != peer.host_protocol_version {
+        return Err(PreflightRefusal::HelperProtocolMismatch {
+            helper: peer.helper_protocol_version,
+            host: peer.host_protocol_version,
+        });
+    }
+    if peer.permit_schema_version != expected.permit_schema_version {
+        return Err(PreflightRefusal::PermitSchemaMismatch {
+            helper_side: peer.permit_schema_version,
+            host: expected.permit_schema_version,
+        });
+    }
+    if !peer.executor_identity_supported {
+        return Err(PreflightRefusal::ExecutorIdentityUnsupported);
+    }
+    Ok(())
+}
+
 /// helper 的生命周期状态（**唯一允许物理输入的状态是 [`Self::ExecutingInput`]**）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HelperExecutionState {
@@ -2098,6 +2189,81 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // 切换前门禁（§B-139 裁决 §五 / T13）
+    // -----------------------------------------------------------------------
+
+    fn expected_versions() -> ProtocolVersions {
+        ProtocolVersions {
+            helper_protocol_version: TWO_PHASE_HELPER_PROTOCOL_VERSION,
+            host_protocol_version: TWO_PHASE_HELPER_PROTOCOL_VERSION,
+            permit_schema_version: 3,
+            executor_identity_supported: true,
+        }
+    }
+
+    /// 一致时通过；四项各自不一致时**可分辨**地拒绝。
+    #[test]
+    fn preflight_agreement_accepts_matching_and_reports_each_mismatch_distinctly() {
+        let expected = expected_versions();
+        preflight_agreement(expected, expected).expect("四项一致必须放行");
+
+        // ① 旧 helper：没有两相协议 ⇒ 拒绝，并点名缺什么版本。
+        let mut old_helper = expected;
+        old_helper.helper_protocol_version = 0;
+        match preflight_agreement(expected, old_helper) {
+            Err(PreflightRefusal::HelperProtocolTooOld { helper, required }) => {
+                assert_eq!(helper, 0);
+                assert_eq!(required, TWO_PHASE_HELPER_PROTOCOL_VERSION);
+            }
+            other => panic!("旧 helper 必须被判为协议过旧：{other:?}"),
+        }
+        // ② 新旧混搭（helper 与 host 不一致）⇒ 另一类拒绝。
+        let mut mixed = expected;
+        mixed.helper_protocol_version = TWO_PHASE_HELPER_PROTOCOL_VERSION + 1;
+        assert!(matches!(
+            preflight_agreement(expected, mixed),
+            Err(PreflightRefusal::HelperProtocolMismatch { .. })
+        ));
+        // ③ 许可 schema 不一致 ⇒ 两侧对许可理解不同。
+        let mut schema = expected;
+        schema.permit_schema_version = 2;
+        assert!(matches!(
+            preflight_agreement(expected, schema),
+            Err(PreflightRefusal::PermitSchemaMismatch { .. })
+        ));
+        // ④ 不支持真实执行者身份 ⇒ 许可无法绑定真实实例。
+        let mut no_identity = expected;
+        no_identity.executor_identity_supported = false;
+        assert!(matches!(
+            preflight_agreement(expected, no_identity),
+            Err(PreflightRefusal::ExecutorIdentityUnsupported)
+        ));
+    }
+
+    /// **T13 的核心**：门禁拒绝之后**不得自动降级**到旧流程（否则安全路径失败反而走未授权路径）。
+    #[test]
+    fn preflight_refusals_never_allow_automatic_downgrade() {
+        for refusal in [
+            PreflightRefusal::HelperProtocolTooOld {
+                helper: 0,
+                required: TWO_PHASE_HELPER_PROTOCOL_VERSION,
+            },
+            PreflightRefusal::HelperProtocolMismatch { helper: 2, host: 1 },
+            PreflightRefusal::PermitSchemaMismatch {
+                helper_side: 2,
+                host: 3,
+            },
+            PreflightRefusal::ExecutorIdentityUnsupported,
+        ] {
+            assert!(
+                !refusal.may_auto_downgrade(),
+                "{refusal:?} 不得自动降级到旧 helper 流程"
+            );
+            assert!(!refusal.code().is_empty());
+        }
+    }
+
     // -----------------------------------------------------------------------
     // 8.3c-2 文件协议语义（§B-127 裁决 §三／§四／§六）
     // -----------------------------------------------------------------------
