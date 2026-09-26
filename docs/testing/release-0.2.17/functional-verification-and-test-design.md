@@ -4,7 +4,7 @@
 
 ## 1. 环境、版本和证据等级
 
-- 源码基线：分支 `rd4-input-safety-and-pkg-integrity`，实施前 HEAD `2c15397688eb`，0.2.17 改动尚待提交。`coolzhu-web-console` 编译期内联前端资源，因此页面验收使用的是重新构建后的 `target/debug/coolzhu-web-console.exe`，不是直接打开源码文件。
+- 源码基线：实施前 HEAD `2c15397688eb`，0.2.17 代码与证据已提交至 `codex/integration-0.2.17` 并推送 Draft PR #67。MSI 于提交前从确定的源码快照构建，包根收据和源码快照 digest 是包与源码的关联依据；后续文档提交不改变该安装包。`coolzhu-web-console` 编译期内联前端资源，因此页面验收使用的是重新构建后的 `target/debug/coolzhu-web-console.exe`，不是直接打开源码文件。
 - 隔离运行实例：`http://127.0.0.1:8766/`，运行目录 `tmp/2026-09-26-completion/ui-retest/runtime`，会话 schema 27；不使用用户原有 8765 服务和真实会话数据库。隔离实例没有云模型 API Key。
 - E1 源码/自动化：`cargo test --workspace --offline`：**2367 passed / 0 failed / 4 ignored**，69 个套件；`cargo build -p coolzhu-web-console --offline` 通过。`computer-use-core` 并发套件 **139/0**，Web 套件 **1242/0/1 ignored**。启动动画 Node 用例、微信投递/媒体 Node 用例均通过。原始运行日志保存在忽略目录 `tmp/2026-09-26-completion/`，不是发布包组成部分。
 - E2 源码构建的软件实操：此前隔离 `8765` 的原生桌面窗口截图及浏览器实操图保存在 `evidence-pre-release/`。本轮重新构建的 `8766` 浏览器实例也逐项打开五入口、顶部三下拉、文字/图片/视频/网址右栏、消息搜索与轨迹。截图只绑定其拍摄时的源码构建，不能移作最终 MSI 证据。
@@ -57,7 +57,7 @@
 
 | WBS | 代码核查结果 | 功能/退出门槛的剩余验证 |
 | --- | --- | --- |
-| 0.1 | 包根收据、构建身份和本报告 feature_id 可对应；MSI 哈希与 10 个安装二进制已核对 | 打包时 HEAD 是 `2c15397` 种子引用，源码权威为 snapshot digest；提交后的 PR 身份和新安装版原生截图仍需补 |
+| 0.1 | 包根收据、构建身份和本报告 feature_id 可对应；MSI 哈希与 10 个安装二进制已核对；代码及证据已提交 Draft PR #67 | 打包时 HEAD 是 `2c15397` 种子引用，源码权威为 snapshot digest；新安装版原生截图仍需补 |
 | 0.2 | Web/LLM/CU 有假模型、契约和输入故障测试 | 黄金 fixture 覆盖率及全量历史回放未逐条审计 |
 | 0.3 | 离线工作区门禁通过；插件/诊断路径有状态测试 | CI 环境、真实插件不可用声明与诊断探测现场核对 |
 | 1.1 | `run_contract.rs` 定义身份/预算/事实契约 | 多入口迟到事实与兼容旧字段的数据库回放 |
