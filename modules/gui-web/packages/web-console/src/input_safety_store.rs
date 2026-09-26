@@ -562,6 +562,23 @@ impl InputSafetyStore {
         Ok(())
     }
 
+    /// 许可登记适配器（8.2c 的使能步骤），工作在**本库自己的连接**上。
+    ///
+    /// 为什么需要它：`input_permit_store` 按设计工作在**既有 store 的连接上**——这正是
+    /// "同一套事务纪律、单一写入口"的落地方式。但连接是私有的，生产代码拿不到它，于是 8.2c 的
+    /// 接线会卡在"适配器无法从生产路径触达"。这里给出的是**窄口**：只交适配器，不外泄连接本身。
+    ///
+    /// 调用方**不得**在适配器调用外层再开长事务或跨等待持有事务（裁决 §3.3）；
+    /// 适配器内部用的是短 `BEGIN IMMEDIATE … COMMIT`。
+    pub(crate) fn permit_store(&self) -> crate::input_permit_store::PermitStore<'_> {
+        crate::input_permit_store::PermitStore::new(&self.connection)
+    }
+
+    /// 执行者登记适配器（8.2c／8.3c 的使能步骤），同样工作在本库连接上。
+    pub(crate) fn executor_store(&self) -> crate::input_permit_store::ExecutorStore<'_> {
+        crate::input_permit_store::ExecutorStore::new(&self.connection)
+    }
+
     /// **仅供测试**：拿底层连接（许可/执行者存储适配器在同一库上工作）。
     ///
     /// 刻意只在测试构建里存在：生产代码不需要绕过 store 的写入口，

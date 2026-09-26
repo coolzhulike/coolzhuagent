@@ -1246,6 +1246,49 @@ mod tests {
         ));
     }
 
+
+    /// **使能步骤验收**：许可的签发与消费都能经**生产可达的窄口**（`store.permit_store()`）完成，
+    /// 而不是只能在测试里自造连接。这条直接解掉 8.2c 的接线阻塞。
+    #[test]
+    fn permits_are_reachable_through_the_production_accessor() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        // 生产形态：从 store 拿适配器，而不是自己 Connection::open。
+        let permits = store.permit_store();
+        permits
+            .register_pending(&permit("permit-1", "action-1"), InputPermitState::PendingActivation, 1)
+            .expect("经窄口登记");
+        let consumed = permits
+            .consume_permit("permit-1", budget(), PermitExecutorBinding::BindTo("exec-1"), 2)
+            .expect("经窄口消费");
+        assert_eq!(consumed, InputPermitState::DispatchCommitted);
+
+        // 关闸竞争在**同一条生产可达路径**上同样成立：先关闸 ⇒ 新的消费必失败。
+        permits
+            .register_pending(&permit("permit-2", "action-2"), InputPermitState::PendingActivation, 3)
+            .expect("登记第二条");
+        permits
+            .close_intake_and_revoke_pending(&scope(), 8, 4)
+            .expect("关闸");
+        let refused = permits.consume_permit(
+            "permit-2",
+            PermitConsumptionBudget { gate_revision: 8, ..budget() },
+            PermitExecutorBinding::BindTo("exec-1"),
+            5,
+        );
+        assert!(refused.is_err(), "关闸在先时，经窄口的消费同样必须失败");
+
+        // 执行者适配器同样可达。
+        let executors = store.executor_store();
+        executors
+            .register_launch_intent(&executor(), 6)
+            .expect("经窄口登记执行者意图");
+        assert_eq!(
+            executors.load_executor("exec-1").expect("load").state,
+            ExecutorInstanceState::RegisteredPendingVerification
+        );
+    }
+
     /// 8.3b：创建顺序支持"先登记待核查、后取得实际实例证据"（§3.2），
     /// 且失败表处置由契约给出（不在 SQL 层另写一套）。
     #[test]
