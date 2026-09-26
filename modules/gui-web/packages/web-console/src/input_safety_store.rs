@@ -318,7 +318,15 @@ impl InputSafetyStore {
     }
 
     /// 本库的**独立** schema（裁决 §1.2：与会话库版本号互不相干）。
+    ///
+    /// **8.2b／8.3b 联合迁移（2026-09-26）**：整个"建对象 + 推进版本"在**一个事务**内完成，
+    /// 因此 DB-3（迁移中途失败）不会留下"版本已升级、对象未建齐"的可接纳状态。
+    /// 并发打开时由 `busy_timeout` 等待，超时返回**显式**写锁竞争（DB-5），不跑半套 schema。
     fn ensure_schema(connection: &Connection) -> Result<(), InputSafetyStoreError> {
+        // 等锁而不是立刻失败：另一进程正在迁移时应当等待；超时仍是明确的忙。
+        connection
+            .busy_timeout(std::time::Duration::from_secs(10))
+            .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
         let current: i64 = connection
             .query_row("PRAGMA user_version", [], |row| row.get(0))
             .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
@@ -328,6 +336,12 @@ impl InputSafetyStore {
                 supported: INPUT_SAFETY_SCHEMA_VERSION,
             });
         }
+        // 整个迁移在一个写事务内：失败即整体回滚（版本与对象一起回退），
+        // 因此不存在"版本已升级、对象未建齐"的可接纳中间态。
+        connection
+            .execute_batch("BEGIN IMMEDIATE")
+            .map_err(Self::migration_busy)?;
+        let migrated = (|| -> Result<(), InputSafetyStoreError> {
         connection
             .execute_batch(
                 r#"
@@ -433,12 +447,46 @@ impl InputSafetyStore {
                 )
                 .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
         }
+        // v2 → v3：许可登记与执行者实例登记（8.2b／8.3b **共用一次**迁移）。
+        crate::input_permit_store::ensure_v3_objects(connection)
+            .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
+        // 版本推进放在**所有对象就位之后**、且在同一事务内。
         if current < INPUT_SAFETY_SCHEMA_VERSION {
             connection
                 .execute_batch(&format!("PRAGMA user_version = {INPUT_SAFETY_SCHEMA_VERSION};"))
                 .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
         }
         Ok(())
+        })();
+        match migrated {
+            Ok(()) => {
+                connection
+                    .execute_batch("COMMIT")
+                    .map_err(Self::migration_busy)?;
+                Ok(())
+            }
+            Err(error) => {
+                // 回滚失败也不掩盖原始错误。
+                if let Err(rollback) = connection.execute_batch("ROLLBACK") {
+                    return Err(InputSafetyStoreError::Sqlite(format!(
+                        "{error}（且回滚失败：{rollback}）"
+                    )));
+                }
+                Err(error)
+            }
+        }
+    }
+
+    /// 迁移期间的写锁竞争/失败：**显式**返回，不当作成功（DB-5）。
+    fn migration_busy(error: rusqlite::Error) -> InputSafetyStoreError {
+        let text = error.to_string();
+        if text.contains("locked") || text.contains("busy") {
+            InputSafetyStoreError::Sqlite(format!(
+                "输入安全库迁移写锁竞争（另一方正在迁移或持有写事务，不得当作成功）：{text}"
+            ))
+        } else {
+            InputSafetyStoreError::Sqlite(text)
+        }
     }
 
     /// 列是否存在（用于**就地**迁移判定；只读 PRAGMA，不改任何状态）。
@@ -512,6 +560,15 @@ impl InputSafetyStore {
             )
             .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
         Ok(())
+    }
+
+    /// **仅供测试**：拿底层连接（许可/执行者存储适配器在同一库上工作）。
+    ///
+    /// 刻意只在测试构建里存在：生产代码不需要绕过 store 的写入口，
+    /// 而许可适配器本来就设计成"在既有 store 的连接上、用同一套事务纪律工作"。
+    #[cfg(test)]
+    pub(crate) fn connection_for_test(&self) -> &Connection {
+        &self.connection
     }
 
     pub(crate) fn event_count(&self) -> Result<usize, InputSafetyStoreError> {
