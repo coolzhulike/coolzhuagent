@@ -4077,6 +4077,45 @@ web-console 1215/0、core-runtime 347/0、module_linkage_smoke 8/0。
 **Phase 1 未关闭**，因此 **Phase 2（`ExecutorStore`／`PermitGate`／permit_file 生产写入）与
 `:228` 继续冻结**。未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-153 Step 1 验收与 Step 4 口径冻结（＋一条待办登记）
+
+**Step 1 关闭条件已满足（裁决 §一）**：测试注入完成（`TwoPhaseHelperTestOptions` ＋
+`native_run_with_mock_two_phase`）；身份边界确认 `request_id ≠ two_phase_nonce`（由**测试侧生成**，
+不读 READY 反推）⇒ **B128-T1 的前提成立**；**默认路径隔离由结构保证**——旧测试走旧入口、
+新测试走 two-phase 入口，**不是**"`native_run` ＋ `two_phase_helper=false`"这种隐式覆盖，
+因此"旧行为未变"是**事实**而非假设。
+
+**待办登记（裁决 §二）**：`TODO(8.3c-A-executor-bind): 删除 helper_ready 的 dead_code 豁免`。
+已同时写入源码 TODO 标记与本节，**防止豁免变成永久装饰**。
+
+**Step 4 执行顺序（裁决 §三，固定）**：
+
+```
+B128-T1 → T11 → T6-A → T6-B → T6-C → 三 crate 门禁 → Phase 1 关闭
+```
+
+**逐条通过标准（裁决 §四–§六）**：
+
+| 用例 | 断言要点 |
+| --- | --- |
+| **B128-T1** | READY 的 `nonce` 必须等于 `two_phase_nonce`；progress/log **仍关联 `request_id`**；**不得**以"两者恰好相等"作为唯一证明 |
+| **T11** | helper A（nonce=A）产出 permit(A)；helper B（nonce=B）读到 permit(A) ⇒ **`RejectedPermit`**。**禁止**采用"B 读 READY 再复制 nonce 生成 permit"的测法（那会退回 B-128 之前的问题） |
+| **T6-A** | READY 后无 permit ⇒ **`TimedOut`** ＋ `physical_input = 0`（**不是** `RejectedPermit`：无非法信号，只是无授权） |
+| **T6-B** | READY 后 given permit(B)（错 nonce）⇒ **`RejectedPermit`** ＋ `physical_input = 0` |
+| **T6-C** | READY ＋ 合法**测试** permit ＋ EXECUTE ⇒ 输入路径可达。**Phase 1 唯一允许"输入发生"的用例**，且输入必须是 **mock／受控执行计数**，不是生产桌面输入 |
+
+**约束（裁决 §七／§八）**：不得为提速合并测试、跳过真实 helper、或用静态 stub 替代 T6——
+当前最大未知是**脚本生命周期**而非 Rust 状态机；可优化 helper 启动参数／等待窗口，但**不能优化掉
+真实 PowerShell helper**。**诊断信息一律放 Rust 测试侧**，不得写进 inline PowerShell（命令行预算 2144 单元、
+软门槛 31000）。
+
+**§十 继续冻结**：`ExecutorStore`／`PermitGate` production／permit_file 生产协议／
+`computer_use_executor.rs:228`／`controlled_*` 拆分／真实 safety DB／当前隔离解除。
+
+**本轮未改任何脚本或生产代码**（仅加源码 TODO 标记与文档）。门禁：computer-use-core **131/0**、
+web-console **1215/0**（1 ignored＝真实调用评测）、core-runtime **347/0**、linkage 8/0。
+未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

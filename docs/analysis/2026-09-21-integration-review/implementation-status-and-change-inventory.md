@@ -321,8 +321,10 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 
 ### 9.4 下一步（唯一入口，无待决策项）
 
-**Step 1** 扩展 `native_run_with_mock` 注入 `two_phase_nonce` → **Step 4** 跑
-**T6-A／T6-B／T6-C／T11／B128-T1** → 三 crate 门禁 → **Phase 1 关闭**。
+**Step 4**（Step 1 已完成）：按**固定顺序**跑真实 helper 测试并断言——
+**B128-T1**（`request_id ≠ two_phase_nonce`，READY 用后者、progress 仍用前者）→ **T11**（A/B 两会话 nonce，B 读 A 的 permit ⇒ `RejectedPermit`＋`input=0`）→ **T6-A**（无 permit ⇒ `TimedOut`＋`input=0`）→ **T6-B**（错 nonce ⇒ `RejectedPermit`＋`input=0`）→ **T6-C**（合法测试 permit ⇒ **只有它允许输入发生**，用 mock 驱动计数）→ 三 crate 门禁 → **Phase 1 关闭**。
+
+约束：不得为提速而合并/跳过真实 helper 或用静态 stub 替代；T6-C 的输入必须是 mock／受控执行计数，**不是**生产桌面输入；**诊断信息放 Rust 测试侧，不得写进 inline PowerShell**（命令行预算）。
 插入点、期望结果、命令行预算约束、禁止事项见
 `handoff-8.3c-producer-2026-09-26.md` **§3-ter**。
 
