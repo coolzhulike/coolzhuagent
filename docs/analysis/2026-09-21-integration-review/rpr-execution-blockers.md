@@ -3832,6 +3832,39 @@ cancel 时不在此退出、落回 `Engine::Run` 由既有 driver 按 `stroke_ca
 **未做**：脚本侧两相段（归入"必须真跑"批次）；Phase 2／3；`:228` 仍未接线。
 未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-145 Phase 1 裁决落地：宿主半边关闭、**静态解析撤销**、helper-runtime 待真实进程批次
+
+**裁决（§一／§二／§三／§十二）**：`helper_ready.rs` 宿主半边**可以关闭**；PowerShell/C# helper 两相段
+**不能以静态解析方式合入**，必须进入**真实 helper 运行窗口**与 T6 一起完成。
+§B-144 的回退被确认为**正确动作**——不是"脚本不好测"，而是**已证明所准备的静态校验方案无法证明脚本安全**；
+在安全关键输入路径里"静态脚本检查通过 ≠ helper 生命周期行为正确"，因此**不应保留任何脚本半改**。
+
+**状态口径（§十二）**：`8.3c-A-contract` ✅ ／ `8.3c-A-host-ready` ✅ ／
+`8.3c-A-helper-runtime` ⏳ ／ `8.3c-A-executor-bind` ⏳ ／ `8.3c-A-input-switch` ⛔。
+
+**§三 撤销静态门禁**：`scriptblock::Create()` 只验证语法可解析，**不验证** READY 是否在输入前发生、
+等待期是否真的无输入、cancel 是否优先、permit nonce 是否匹配、helper 是否提前执行 `Engine::Run`
+⇒ **不再要求"脚本改动先过静态 parser"**，改由**真实 helper 行为测试**把关。
+
+**§二 保留的宿主侧设计**（不得改）：READY ≠ 文件存在（`file exists → parse → validate → session match`
+才叫 READY）；**非法 READY 立即 `Rejected`**，**不得**改成"继续等待直到 timeout"——后者会隐藏协议污染、
+nonce 错配、恶意/错误 helper，而 `Rejected` 比 `TimedOut` 更有诊断价值。
+
+**下一批 `8.3c-A-helper-runtime` 范围（§四／§五／§六／§七／§八／§十）**：只做脚本两相生命周期 ＋
+T6 真实 helper 测试；插入位置在 `$progress` 之后、`Engine::Run(` 之前；等待循环要求
+`cancel → validate nonce → heartbeat → 有界 sleep`，**禁止** `while(true){}` 与不可控 `sleep(1000)`；
+`if ($r.two_phase_helper)` opt-in 保持但**只限开发/测试阶段**，最终生产必须**统一由协议版本门禁判定**
+（不能长期"部分 `controlled_*` 新协议、部分旧协议"）。
+测试不得假装已有完整 `PermitGate`：可用**测试专用 permit stub** 并明确其**不是生产授权**，
+**禁止**"写生产格式 permit 然后宣称 `PermitGate` 已通过"。新增 **T6-A**（无 permit ⇒ timeout，`input = 0`）／
+**T6-B**（错 nonce ⇒ 拒绝，`input = 0`）／**T6-C**（合法**测试** permit ⇒ 输入发生）。
+完成标准七项全满足才进入 Phase 2。
+
+**以上全部已写进交接文件 §3-ter。本轮未改任何代码。** 门禁维持：computer-use-core **130/0**
+（含 §B-143 的 3 条 READY 宿主侧用例）、web-console **1215/0**（1 ignored＝真实调用评测）、
+core-runtime **347/0**、linkage 8/0、`cargo build --workspace` ✅。
+未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

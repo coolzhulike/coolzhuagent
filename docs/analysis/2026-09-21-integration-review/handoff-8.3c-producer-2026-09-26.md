@@ -258,6 +258,61 @@ execute  : 让 helper 继续（它轮询到本人 nonce 的 permit → EXECUTE �
 协议门禁解决的是「**新旧 helper 是否允许进入同一个生命周期**」，**不是**「helper 是否已完成两相执行」。
 ⇒ **不得**把"门禁通过"写成"8.3c-A 已完成"。
 
+### **阶段状态（2026-09-26 裁决 §十二，权威口径）**
+
+| 阶段 | 状态 |
+| --- | --- |
+| `8.3c-A-contract`（设计冻结 ＋ 协议门禁） | ✅ |
+| `8.3c-A-host-ready`（宿主侧 READY 等待与校验） | ✅ |
+| `8.3c-A-helper-runtime`（脚本侧两相生命周期 ＋ T6 真实 helper 测试） | ⏳ **下一批** |
+| `8.3c-A-executor-bind`（`ExecutorStore` ＋ `PermitGate`） | ⏳ |
+| `8.3c-A-input-switch`（`controlled_*` 一次性切换） | ⛔ **禁止** |
+
+### **静态脚本解析不再作为安全门禁（裁决 §三 撤销）**
+
+`[scriptblock]::Create()` 只验证"PowerShell 语法能否解析"，**不验证**：READY 是否在输入前发生、
+等待期间是否真的没有输入、cancel 是否优先、permit nonce 是否匹配、helper 是否提前执行
+`Engine::Run`。⇒ **脚本改动必须由真实 helper 行为测试把关**，不再要求"先过静态 parser"。
+（§B-144 的回退与此一致：当时正是因为没有可信的静态保护才回退。）
+
+### **Phase 1 Helper Side 范围（§四）**
+
+只做：**PowerShell/C# helper 生命周期改造 ＋ T6 真实 helper 测试**。
+**暂不接**：`ExecutorStore`、`PermitGate`、`computer_use_executor.rs:228`。
+
+- **插入位置**（已批准）：`$progress` 创建之后、`[CoolzhuNative.Engine]::Run(` **之前**
+  ——满足"READY 必须早于任何输入 API"。
+- **脚本状态要求（§六）**：`initialize → create files → write READY → wait permit`；
+  等待循环必须 `if cancel_file: abort` → `if permit_file: validate nonce: break` → `heartbeat` →
+  **有界** `sleep`。**禁止** `while(true){}`、**禁止**不可控 `sleep(1000)`。
+- **opt-in `if ($r.two_phase_helper)` 保持**（§九）：协议切换期不得影响旧路径测试／非 CU 流程／其他输入族；
+  但**只能存在于开发/测试阶段**——最终生产不能长期"部分 `controlled_*` 新协议、部分旧协议"，
+  **最终必须统一由协议版本门禁判定**。
+
+### **Phase 1 测试（§七／§八）**
+
+Phase 1 **不能假装已有完整 `PermitGate`**：T6 不测 `ExecutorStore`／`PermitGate`，只测
+"helper 能否进入**等待授权但不可输入**状态"。测试可用**测试专用 permit stub**，
+但必须明确**它不是生产授权**；**禁止**"写生产格式 permit 然后宣称 `PermitGate` 已通过"。
+
+| 用例 | 流程 | 断言 |
+| --- | --- | --- |
+| **T6-A** | spawn → READY → 等待 → timeout | `physical_input_count == 0` |
+| **T6-B** | READY → permit nonce mismatch | 拒绝，`input = 0` |
+| **T6-C** | READY → valid **test** permit → EXECUTE | 输入发生 |
+
+（另有既有 T6／T7／T9／T11／T12 与 T13 的清单见前文；本阶段聚焦 T6-A/B/C。）
+
+### **Phase 1 完成标准（§十）**
+
+`READY 在 Engine::Run 前`／`AwaitingPermit 无输入`／`cancel 优先`／`错 nonce 拒绝`／
+`无 permit 超时退出`／`合法 permit 执行`／`旧路径未受影响`——**全部满足**才进入 Phase 2。
+
+### 继续保持不做（§十一）
+
+不改 `:228`；不写**生产** permit 文件；不接 `ExecutorStore`；不迁移真实 safety DB；不解除隔离；
+**不用静态脚本检查代替真实 helper 测试**。
+
 ### 实现纪律（§三／§四／§五，按生命周期顺序而非文件顺序）
 
 **Phase 1 · helper 双相化**：让 helper 真的支持
