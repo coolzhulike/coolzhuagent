@@ -21596,6 +21596,8 @@ async fn run_tool_dry_run(tool_id: &str, input: JsonValue) -> ApiResult<Json<Too
                 input_bool(&input, "confirm_after").unwrap_or(true),
                 input_u32(&input, "roi_radius").unwrap_or(64).clamp(12, 240),
                 input_string(&input, "text").as_deref(),
+                // 工具入口没有 canvas 声明字段 ⇒ None。
+                None,
             )
             .await?;
             json!(response)
@@ -21749,6 +21751,8 @@ async fn run_tool_dispatch(payload: ToolDispatchRequest) -> ApiResult<ToolDispat
         payload.confirm_after.unwrap_or(true),
         payload.roi_radius.unwrap_or(64).clamp(12, 240),
         payload.text.as_deref(),
+        // 本入口（工具 dispatch）没有 canvas 声明字段 ⇒ None（不臆测画布区域）。
+        None,
     )
     .await?;
     Ok(ToolDispatchResponse {
@@ -26036,6 +26040,8 @@ async fn run_computer_use_profile(
         scenario,
         screen,
         payload.roi_radius.unwrap_or(64).clamp(12, 240),
+        // 本入口（profile）没有 canvas 声明字段 ⇒ None。
+        None,
     )?;
     let before_file = capture_file_info(&before_capture).await?;
     phases.push(timed_phase(
@@ -26176,6 +26182,7 @@ async fn api_closed_loop(
         payload.confirm_after.unwrap_or(true),
         payload.roi_radius.unwrap_or(48).clamp(12, 240),
         payload.text.as_deref(),
+        payload.canvas_roi,
     )
     .await?;
     Ok(Json(response))
@@ -26187,6 +26194,7 @@ async fn run_closed_loop_scenario(
     confirm_after: bool,
     roi_radius: u32,
     text: Option<&str>,
+    canvas_roi: Option<CanvasRoiRequest>,
 ) -> ApiResult<ClosedLoopResponse> {
     let timestamp = unix_timestamp_millis();
     let before_capture = closed_loop_capture_path(timestamp, "before");
@@ -26194,7 +26202,7 @@ async fn run_closed_loop_scenario(
 
     capture_desktop(&before_capture).await?;
     let screen = read_png_dimensions(&before_capture)?;
-    let plan = build_closed_loop_plan(scenario, screen, roi_radius)?;
+    let plan = build_closed_loop_plan(scenario, screen, roi_radius, canvas_roi)?;
     let before_file = capture_file_info(&before_capture).await?;
 
     let mut executed = false;
@@ -26241,6 +26249,8 @@ async fn run_closed_loop_scenario(
         after_capture: after_file,
         screen_changed: changed,
         notes: closed_loop_notes(execute, scenario.action),
+        canvas_roi: plan.canvas_roi,
+        canvas_clipped: plan.canvas_clipped,
     })
 }
 
@@ -36461,6 +36471,7 @@ fn build_closed_loop_plan(
     scenario: &InteractionScenario,
     screen: ScreenDimensions,
     roi_radius: u32,
+    canvas_roi: Option<CanvasRoiRequest>,
 ) -> ApiResult<ClosedLoopPlan> {
     let resolution = ResolutionCase {
         name: "current-screen",
@@ -36475,10 +36486,86 @@ fn build_closed_loop_plan(
         ));
     };
 
+    let roi = clip_roi(x, y, screen.width, screen.height, roi_radius);
+    // CU-04：声明了 canvas 就把 ROI 裁进它，并如实报告"是否被裁剪过"。
+    let (roi, canvas, canvas_clipped) = match canvas_roi {
+        None => (roi, None, false),
+        Some(relative) => {
+            let canvas = canvas_relative_to_absolute(relative, screen)
+                .map_err(|message| api_error(StatusCode::BAD_REQUEST, &message))?;
+            let (clipped, changed) = clip_roi_to_canvas(roi, canvas);
+            let Some(clipped) = clipped else {
+                return Err(api_error(
+                    StatusCode::CONFLICT,
+                    "可见 ROI 完全落在声明的 canvas 之外：本次没有可验证的可见区域，拒绝继续",
+                ));
+            };
+            (clipped, Some(canvas), changed)
+        }
+    };
     Ok(ClosedLoopPlan {
         point: PointDto { x, y },
-        roi: clip_roi(x, y, screen.width, screen.height, roi_radius),
+        roi,
+        canvas_roi: canvas,
+        canvas_clipped,
     })
+}
+
+/// **CU-04**：把**相对** canvas 矩形（0–1，截图坐标系）换算成绝对像素区域。
+///
+/// 拒绝而不是钳制：越界/零尺寸的 canvas 说明调用方对画面理解有误，**钳制会掩盖这个错误**，
+/// 让"画布"静默变成"整屏"（于是工具栏又被算进 ROI，正是本项要防的事）。
+fn canvas_relative_to_absolute(
+    canvas: CanvasRoiRequest,
+    screen: ScreenDimensions,
+) -> Result<RoiDto, String> {
+    let in_unit = |value: f32| value.is_finite() && (0.0..=1.0).contains(&value);
+    if !in_unit(canvas.left) || !in_unit(canvas.top) {
+        return Err("canvas_roi 的 left/top 必须在 0–1 之间".to_string());
+    }
+    if !in_unit(canvas.width) || !in_unit(canvas.height) || canvas.width == 0.0 || canvas.height == 0.0 {
+        return Err("canvas_roi 的 width/height 必须在 (0, 1] 之间".to_string());
+    }
+    if canvas.left + canvas.width > 1.0 + f32::EPSILON || canvas.top + canvas.height > 1.0 + f32::EPSILON {
+        return Err("canvas_roi 不得越出截图边界".to_string());
+    }
+    let width = screen.width as f32;
+    let height = screen.height as f32;
+    let left = (canvas.left * width).floor().max(0.0) as i32;
+    let top = (canvas.top * height).floor().max(0.0) as i32;
+    let right = ((canvas.left + canvas.width) * width).ceil().min(width) as i32;
+    let bottom = ((canvas.top + canvas.height) * height).ceil().min(height) as i32;
+    if right <= left || bottom <= top {
+        return Err("canvas_roi 换算后是空区域".to_string());
+    }
+    Ok(RoiDto {
+        left,
+        top,
+        width: right - left,
+        height: bottom - top,
+    })
+}
+
+/// 把 ROI 裁剪进 canvas；返回 `(裁剪结果, 是否被裁剪过)`。
+///
+/// 完全落在画布之外 ⇒ `None`：**不给**一个空 ROI，也不给一个越界的 ROI——
+/// 调用方必须知道"这次根本没有可见区域"，而不是拿到一个看起来正常的空框。
+fn clip_roi_to_canvas(roi: RoiDto, canvas: RoiDto) -> (Option<RoiDto>, bool) {
+    let left = roi.left.max(canvas.left);
+    let top = roi.top.max(canvas.top);
+    let right = (roi.left + roi.width).min(canvas.left + canvas.width);
+    let bottom = (roi.top + roi.height).min(canvas.top + canvas.height);
+    if right <= left || bottom <= top {
+        return (None, true);
+    }
+    let clipped = RoiDto {
+        left,
+        top,
+        width: right - left,
+        height: bottom - top,
+    };
+    let changed = clipped != roi;
+    (Some(clipped), changed)
 }
 
 fn clip_roi(x: i32, y: i32, screen_width: u32, screen_height: u32, radius: u32) -> RoiDto {
@@ -54585,6 +54672,19 @@ struct ClosedLoopRequest {
     confirm_after: Option<bool>,
     roi_radius: Option<u32>,
     text: Option<String>,
+    /// **可选语义 canvas ROI**（CU-04）：画布区域在**截图内的相对矩形**（0–1）。
+    ///
+    /// 由调用方声明（本项目**不猜**哪个区域是画布）：给了它，可见 ROI 就被裁剪进这块区域，
+    /// 于是"可见 ROI 不含工具栏"成为**可验证**的性质，而不是靠看截图目测。
+    canvas_roi: Option<CanvasRoiRequest>,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+struct CanvasRoiRequest {
+    left: f32,
+    top: f32,
+    width: f32,
+    height: f32,
 }
 
 #[derive(Debug, Serialize)]
@@ -54604,6 +54704,10 @@ struct ClosedLoopResponse {
     after_capture: Option<CaptureFileInfo>,
     screen_changed: bool,
     notes: Vec<String>,
+    /// 本次使用的 canvas 绝对区域（未声明则为 `null`）。
+    canvas_roi: Option<RoiDto>,
+    /// 可见 ROI 是否被 canvas 裁剪过（`true` = 原 ROI 有部分落在画布之外，已被裁掉）。
+    canvas_clipped: bool,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -54701,6 +54805,10 @@ struct SafeDragSelectResponse {
 struct ClosedLoopPlan {
     point: PointDto,
     roi: RoiDto,
+    /// CU-04：本次使用的 canvas 绝对区域（未声明则 `None`）。
+    canvas_roi: Option<RoiDto>,
+    /// 可见 ROI 是否被 canvas 裁剪过。
+    canvas_clipped: bool,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
@@ -59942,6 +60050,8 @@ pub(crate) mod tests {
                 height: 1080,
             },
             48,
+            // 未声明 canvas ⇒ 行为与从前一致（本用例即验证这一点）。
+            None,
         )
         .expect("plan should build");
 
@@ -61859,6 +61969,79 @@ pub(crate) mod tests {
             WEB_APP_JS.contains("ShutdownIncomplete"),
             "关闭未完成的提示必须能一眼看出，而不是被当成 off"
         );
+    }
+
+    /// **CU-04**：可选语义 canvas ROI——可见 ROI 被裁进画布（**不含工具栏**），
+    /// 越界声明被拒，完全落在画布外则拒绝继续（不给空框）。
+    #[test]
+    fn canvas_roi_clips_visible_region_and_rejects_bad_declarations() {
+        let screen = super::ScreenDimensions {
+            width: 1000,
+            height: 800,
+        };
+        // 画布：顶部留 100px 工具栏 ⇒ 相对 (0, 0.125)–(1, 1)。
+        let canvas = super::canvas_relative_to_absolute(
+            super::CanvasRoiRequest {
+                left: 0.0,
+                top: 0.125,
+                width: 1.0,
+                height: 0.875,
+            },
+            screen,
+        )
+        .expect("画布换算");
+        assert_eq!(canvas.top, 100, "顶部工具栏必须被排除在画布之外");
+        assert_eq!(canvas.left, 0);
+        assert_eq!(canvas.height, 700);
+
+        // ① 原 ROI 跨越工具栏 ⇒ 被裁到画布内（结果绝不越出画布）。
+        let spanning = super::RoiDto {
+            left: 400,
+            top: 40,
+            width: 200,
+            height: 200,
+        };
+        let (clipped, changed) = super::clip_roi_to_canvas(spanning, canvas);
+        let clipped = clipped.expect("应仍有可见区域");
+        assert!(changed, "跨越工具栏必须报告为被裁剪过");
+        assert!(clipped.top >= canvas.top, "裁剪后不得再包含工具栏：{clipped:?}");
+        assert!(clipped.top + clipped.height <= canvas.top + canvas.height);
+
+        // ② 原 ROI 完全在画布之外（工具栏那一带）⇒ 拒绝，而不是给一个空框。
+        let outside = super::RoiDto {
+            left: 400,
+            top: 10,
+            width: 200,
+            height: 60,
+        };
+        let (none, changed) = super::clip_roi_to_canvas(outside, canvas);
+        assert!(none.is_none(), "完全在画布外不得产出可见区域");
+        assert!(changed);
+
+        // ③ 完全在画布内 ⇒ 原样返回且报告"未被裁剪"。
+        let inside = super::RoiDto {
+            left: 400,
+            top: 300,
+            width: 200,
+            height: 200,
+        };
+        let (same, changed) = super::clip_roi_to_canvas(inside, canvas);
+        assert_eq!(same, Some(inside));
+        assert!(!changed);
+
+        // ④ 非法声明：越界/零尺寸/非有限值一律**拒绝**（钳制会掩盖"调用方理解有误"）。
+        for bad in [
+            super::CanvasRoiRequest { left: -0.1, top: 0.0, width: 1.0, height: 1.0 },
+            super::CanvasRoiRequest { left: 0.0, top: 0.0, width: 0.0, height: 1.0 },
+            super::CanvasRoiRequest { left: 0.5, top: 0.0, width: 0.6, height: 1.0 },
+            super::CanvasRoiRequest { left: 0.0, top: 0.0, width: f32::NAN, height: 1.0 },
+            super::CanvasRoiRequest { left: 0.0, top: 0.9, width: 1.0, height: 0.2 },
+        ] {
+            assert!(
+                super::canvas_relative_to_absolute(bad, screen).is_err(),
+                "非法 canvas 声明必须被拒：{bad:?}"
+            );
+        }
     }
 
     /// **CU-05**：状态描述必须把"不支持"与"否"分开写（离线可测的最后一环）。
