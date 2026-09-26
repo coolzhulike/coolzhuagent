@@ -61,7 +61,11 @@ pub use fact_store::{
 // RD4-02A（第七轮裁决 §1）：共享输入安全存储的**领域契约**（纯类型；SQLite 实现在 Web/宿主适配边界，
 // core-runtime 不引入 rusqlite）。权威正文见 round7-rulings-and-gates.md §1。
 pub use input_safety::{
-    decide_permit_reuse, parse_input_safety_store_id, resolve_intake_close_race,
+    decide_permit_reuse, disposition_allows_automatic_privilege_escalation, disposition_for,
+    parse_input_safety_store_id, resolve_intake_close_race, DescendantStopEvidence,
+    ExecutorDisposition, ExecutorEvidenceSource, ExecutorInstanceState, ExecutorObservation,
+    ExecutorRegistration, ExecutorVerification, HelperIdentity, InvalidExecutorRegistration,
+    TerminatePhase,
     BlockingRefRejection, IncidentState, InputPermit, InputPermitState, InputSafetyEvent,
     InputSafetyEventKind, InputSafetyIncident, InputSafetyRecoveryOperation,
     InputSafetyResourceScope, InputSafetyResourceState, InputSafetyStoreId, IntakeCloseRaceOutcome,

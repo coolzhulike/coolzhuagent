@@ -905,9 +905,599 @@ impl TightenOnlyAction {
     }
 }
 
+// ---------------------------------------------------------------------------
+// 执行者实例身份（R4）——2026-09-26 补充裁决 §4 冻结的**纯逻辑**契约
+//
+// 与上面的许可契约配套：`InputPermit.executor_instance_id` 指向这里的实例身份。
+// 同样**不含存储、不分配 schema 版本号**。落库时使用同一套判定规则。
+// ---------------------------------------------------------------------------
+
+/// 执行者证据的**来源分工**（裁决 §4.1：三种来源各自证明不同的事，不重定义）。
+///
+/// 这张分工表是"不要把单一来源当充分证据"的落地形式：每个来源都显式写出它**不能**证明什么。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ExecutorEvidenceSource {
+    /// 宿主启动登记：为哪个 run／action 创建了哪个执行者。
+    HostLaunchRegistration,
+    /// OS 实例证据：当前句柄对应的实际进程实例及其状态。
+    OsInstanceEvidence,
+    /// helper 执行回执：与该实例绑定的已确认输入阶段与结果。
+    HelperExecutionReceipt,
+}
+
+impl ExecutorEvidenceSource {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::HostLaunchRegistration => "host_launch_registration",
+            Self::OsInstanceEvidence => "os_instance_evidence",
+            Self::HelperExecutionReceipt => "helper_execution_receipt",
+        }
+    }
+
+    /// 该来源**能**证明什么。
+    #[must_use]
+    pub const fn proves(self) -> &'static str {
+        match self {
+            Self::HostLaunchRegistration => "为哪个 run／action 创建了哪个执行者",
+            Self::OsInstanceEvidence => "当前句柄对应的实际进程实例及其状态",
+            Self::HelperExecutionReceipt => "与该实例绑定的已确认输入阶段与结果",
+        }
+    }
+
+    /// 该来源**不能**证明什么——防止把单一来源当充分证据。
+    #[must_use]
+    pub const fn does_not_prove(self) -> &'static str {
+        match self {
+            Self::HostLaunchRegistration => "不能单独证明进程当前仍存活或已经停止",
+            Self::OsInstanceEvidence => "不能证明输入目标完成、按键已释放",
+            Self::HelperExecutionReceipt => "不能自己签发运行归属或恢复资格",
+        }
+    }
+
+    /// 该来源是否足以**单独**支撑"这个执行者已停止"的处置。
+    ///
+    /// 三种来源**都不是**：停止结论必须来自对**实际实例句柄**的核查＋有界等待确认。
+    #[must_use]
+    pub const fn alone_suffices_to_conclude_stopped(self) -> bool {
+        false
+    }
+}
+
+/// 执行者的固定身份：**宿主进程路径 ＋ 受控脚本／程序身份**。
+///
+/// 裁决 §4.2 明令："只验证 `powershell.exe` 路径，不足以证明它在运行**本次**受控脚本。"
+/// 因此结构上把两者分开：解释器路径相同、脚本身份不同 ⇒ 不是同一个受控执行者。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HelperIdentity {
+    /// 宿主解释器／程序路径（例如 powershell.exe）。
+    pub host_process_path: String,
+    /// 本次受控脚本／程序的身份（内容摘要或稳定标识）。
+    pub script_or_program_digest: String,
+}
+
+impl HelperIdentity {
+    pub fn validate_structure(&self) -> Result<(), InvalidExecutorRegistration> {
+        if self.host_process_path.trim().is_empty() {
+            return Err(InvalidExecutorRegistration {
+                field: "helper.host_process_path",
+                reason: "不得为空",
+            });
+        }
+        if self.script_or_program_digest.trim().is_empty() {
+            return Err(InvalidExecutorRegistration {
+                field: "helper.script_or_program_digest",
+                reason: "只给解释器路径不足以证明在运行本次受控脚本，必须同时给出脚本／程序身份",
+            });
+        }
+        Ok(())
+    }
+}
+
+/// 执行者登记的持久状态。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExecutorInstanceState {
+    /// 已登记，等待核查实际实例。
+    RegisteredPendingVerification,
+    /// 已在真实实例句柄上核查通过。
+    VerifiedAlive,
+    /// 已确认退出（**仅**该实例退出，不推断后代）。
+    ExitedConfirmed,
+    /// 被登记为"无法判定"（如 `AccessDenied`）：保持阻断。
+    UnverifiableUnknown,
+    /// 有界等待超时：进入明确隔离／人工复核，**不继续重试**。
+    EscalatedHumanReview,
+}
+
+impl ExecutorInstanceState {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::RegisteredPendingVerification => "registered_pending_verification",
+            Self::VerifiedAlive => "verified_alive",
+            Self::ExitedConfirmed => "exited_confirmed",
+            Self::UnverifiableUnknown => "unverifiable_unknown",
+            Self::EscalatedHumanReview => "escalated_human_review",
+        }
+    }
+}
+
+/// 执行者登记（裁决 §4.2 的关联项）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExecutorRegistration {
+    pub executor_instance_id: String,
+    pub launch_operation_id: String,
+    pub coordinator_instance_id: String,
+    pub scope: InputSafetyResourceScope,
+    /// 宿主启动实例（哪一次启动创建了它）。
+    pub host_launch_instance: String,
+    /// 与之绑定的动作。
+    pub action_id: String,
+    pub pid: u32,
+    /// 从**创建结果**取得的创建时间。读不到就保留 `None` 与其错误，**不退化**为只核对 PID。
+    pub creation_time_100ns: Option<u64>,
+    /// 实际用户／登录会话关联（可得时）。
+    pub user_session: Option<String>,
+    pub helper: HelperIdentity,
+    pub protocol_version: u32,
+    /// 是否已绑定真实监督关系（Job／监督器）。
+    pub supervision_bound: bool,
+    pub state: ExecutorInstanceState,
+    pub revision: u64,
+}
+
+/// 执行者登记结构校验失败。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvalidExecutorRegistration {
+    pub field: &'static str,
+    pub reason: &'static str,
+}
+
+impl std::fmt::Display for InvalidExecutorRegistration {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "执行者登记字段 {} 无效：{}",
+            self.field, self.reason
+        )
+    }
+}
+
+impl ExecutorRegistration {
+    pub fn validate_structure(&self) -> Result<(), InvalidExecutorRegistration> {
+        for (field, value) in [
+            ("executor_instance_id", &self.executor_instance_id),
+            ("launch_operation_id", &self.launch_operation_id),
+            ("coordinator_instance_id", &self.coordinator_instance_id),
+            ("host_launch_instance", &self.host_launch_instance),
+            ("action_id", &self.action_id),
+        ] {
+            if value.trim().is_empty() {
+                return Err(InvalidExecutorRegistration {
+                    field,
+                    reason: "不得为空",
+                });
+            }
+            if value.chars().any(char::is_control) {
+                return Err(InvalidExecutorRegistration {
+                    field,
+                    reason: "不得含控制字符",
+                });
+            }
+            if crate::run_contract::is_placeholder_identity_value(value) {
+                return Err(InvalidExecutorRegistration {
+                    field,
+                    reason: "不得用占位值顶替真实来源",
+                });
+            }
+        }
+        self.helper.validate_structure()?;
+        if self.protocol_version == 0 {
+            return Err(InvalidExecutorRegistration {
+                field: "protocol_version",
+                reason: "必须记录真实的协议版本（0 表示未记录）",
+            });
+        }
+        // 裁决 §4.2 的启动顺序：**先绑定监督、再允许输入**。因此"核查通过"的登记必须已绑定监督。
+        if self.state == ExecutorInstanceState::VerifiedAlive && !self.supervision_bound {
+            return Err(InvalidExecutorRegistration {
+                field: "supervision_bound",
+                reason: "未绑定真实监督关系的执行者不得被视为已核查通过",
+            });
+        }
+        Ok(())
+    }
+
+    /// 创建身份是否**完整**：缺创建时间只能"保留错误继续核查"，不得当成身份相符。
+    #[must_use]
+    pub fn creation_identity_complete(&self) -> bool {
+        self.creation_time_100ns.is_some()
+    }
+}
+
+/// 对某个实例句柄的一次核查结果（**效力绑定到该句柄世代**）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExecutorVerification {
+    pub executor_instance_id: String,
+    /// 核查时所用句柄的世代号：重新取得句柄后，上一次验证**不自动继承**（裁决 §4.3）。
+    pub handle_generation: u64,
+    pub verified_at_unix_ms: u64,
+}
+
+impl ExecutorVerification {
+    /// 这次核查能否用于当前目标（同一实例 ＋ 同一句柄世代）。
+    #[must_use]
+    pub fn is_valid_for(&self, executor_instance_id: &str, handle_generation: u64) -> bool {
+        self.executor_instance_id == executor_instance_id
+            && self.handle_generation == handle_generation
+    }
+}
+
+/// 实例观测结果（裁决 §4.4 失败表逐行）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExecutorObservation {
+    /// 创建身份匹配且存活。
+    MatchesAndAlive,
+    /// PID 存在但创建身份不同（PID 已被复用）。
+    PidReused,
+    /// `AccessDenied` / 无法读取创建身份 ⇒ Unknown。
+    AccessDeniedOrUnreadable,
+    /// 缺可信宿主登记（或登记损坏／关系不匹配）。
+    NoTrustedRegistration,
+    /// 直接 helper 已退出。
+    DirectHelperExited,
+    /// Job 已关闭，但结果未核实。
+    JobClosedOutcomeUnverified,
+    /// 终止 API 返回成功，但尚未确认退出。
+    TerminateRequestedNotConfirmed,
+    /// 退出已确认，但释放未知。
+    ExitedButReleaseUnknown,
+    /// 旧回执迟到。
+    LateReceipt,
+}
+
+/// 观测结果对应的处置（与失败表一一对应）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExecutorDisposition {
+    /// 先协作停止；必要时仅终止本产品实际拥有的实例（沿用既有有界收尾）。
+    CooperativeStopThenScopedTerminate,
+    /// 不操作当前进程（它已不是原来那个实例）；原效果仍按原证据判断。
+    DoNotTouchCurrentProcess,
+    /// 保持阻断并记为未知，**不自动提权**。
+    KeepBlockedAsUnknown,
+    /// 不按进程名／端口猜 owner，不终止不明进程。
+    DoNotGuessOwner,
+    /// 继续核查后代与释放义务（直接 helper 退出不等于可以放行）。
+    KeepCheckingDescendantsAndRelease,
+    /// 有界等待并核查实际结果，不把"关闭调用"当"后代已停"。
+    WaitBoundedThenVerify,
+    /// 记录"已请求终止"；在有界等待确认前**不写**"已经退出"。
+    RecordRequestedNotExited,
+    /// 资源继续隔离。
+    KeepIsolated,
+    /// 验证原 action／实例后**追加**事实；不恢复旧资格。
+    AppendFactWithoutRestoringEligibility,
+}
+
+/// 冻结失败表。
+#[must_use]
+pub const fn disposition_for(observation: ExecutorObservation) -> ExecutorDisposition {
+    match observation {
+        ExecutorObservation::MatchesAndAlive => {
+            ExecutorDisposition::CooperativeStopThenScopedTerminate
+        }
+        ExecutorObservation::PidReused => ExecutorDisposition::DoNotTouchCurrentProcess,
+        ExecutorObservation::AccessDeniedOrUnreadable => ExecutorDisposition::KeepBlockedAsUnknown,
+        ExecutorObservation::NoTrustedRegistration => ExecutorDisposition::DoNotGuessOwner,
+        ExecutorObservation::DirectHelperExited => {
+            ExecutorDisposition::KeepCheckingDescendantsAndRelease
+        }
+        ExecutorObservation::JobClosedOutcomeUnverified => ExecutorDisposition::WaitBoundedThenVerify,
+        ExecutorObservation::TerminateRequestedNotConfirmed => {
+            ExecutorDisposition::RecordRequestedNotExited
+        }
+        ExecutorObservation::ExitedButReleaseUnknown => ExecutorDisposition::KeepIsolated,
+        ExecutorObservation::LateReceipt => {
+            ExecutorDisposition::AppendFactWithoutRestoringEligibility
+        }
+    }
+}
+
+/// 每一种处置是否**允许**自动提权。
+///
+/// 裁决要求：`AccessDenied` 等不得"为继续流程自动提权"，也不允许为绕过 `OpenProcess` 失败
+/// 而启用调试权限。因此本函数恒为 `false` —— 提权永远不是自动路径的一部分。
+#[must_use]
+pub const fn disposition_allows_automatic_privilege_escalation(
+    _disposition: ExecutorDisposition,
+) -> bool {
+    false
+}
+
+/// 后代停止证据（裁决 §4.3／§4.4：父进程退出与 Job 关闭**都不是**充分证据）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DescendantStopEvidence {
+    /// 父进程已退出。
+    ParentExited,
+    /// 已请求关闭 Job。
+    JobClosedRequested,
+    /// 已逐个确认全部受监督成员退出。
+    AllMembersExitedVerified,
+}
+
+impl DescendantStopEvidence {
+    /// 是否构成"后代已确认停止"。
+    ///
+    /// 只有逐个确认成员退出才算；父进程退出与 Job 关闭都不算（Job 的行为取决于成员关系、
+    /// 句柄与限制配置，关闭调用本身不等于成员已停）。
+    #[must_use]
+    pub const fn confirms_all_descendants_stopped(self) -> bool {
+        matches!(self, Self::AllMembersExitedVerified)
+    }
+}
+
+/// 终止阶段（裁决 §4.4：`TerminateProcess` 对外部进程是异步的，返回后仍需等待）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TerminatePhase {
+    /// 已调用终止 API（只是**请求**）。
+    Requested,
+    /// 正在有界等待。
+    WaitBounded,
+    /// 已确认退出。
+    ExitedConfirmed,
+    /// 有界等待超时。
+    WaitTimedOut,
+}
+
+impl TerminatePhase {
+    /// 该阶段是否构成"已停止"的确认。
+    #[must_use]
+    pub const fn is_stop_confirmation(self) -> bool {
+        matches!(self, Self::ExitedConfirmed)
+    }
+
+    /// 超时后的处置：进入明确隔离／人工复核。
+    ///
+    /// 裁决明确"不另开一套更长的 R4 专用无限等待""到期仍不能确定，进入明确隔离／人工复核，
+    /// 而不是继续重试直到看起来成功"。
+    #[must_use]
+    pub const fn disposition_on_timeout(self) -> Option<ExecutorDisposition> {
+        match self {
+            Self::WaitTimedOut => Some(ExecutorDisposition::KeepIsolated),
+            _ => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // -----------------------------------------------------------------------
+    // 8.3a 执行者实例身份（2026-09-26 补充裁决 §4）
+    // -----------------------------------------------------------------------
+
+    fn executor(state: ExecutorInstanceState) -> ExecutorRegistration {
+        ExecutorRegistration {
+            executor_instance_id: "exec-1".to_string(),
+            launch_operation_id: "launch-1".to_string(),
+            coordinator_instance_id: "coordinator-1".to_string(),
+            scope: InputSafetyResourceScope::parse("windows-session-1").expect("scope"),
+            host_launch_instance: "host-launch-1".to_string(),
+            action_id: "action-1".to_string(),
+            pid: 4242,
+            creation_time_100ns: Some(133_000_000_000_000_000),
+            user_session: Some("session-1".to_string()),
+            helper: HelperIdentity {
+                host_process_path: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                    .to_string(),
+                script_or_program_digest: "script-digest-a".to_string(),
+            },
+            protocol_version: 2,
+            supervision_bound: true,
+            state,
+            revision: 1,
+        }
+    }
+
+    /// 三种证据来源分工：各自写明能证明与**不能**证明什么，且**没有**任何来源可单独
+    /// 支撑"已停止"的结论（防止把单一来源当充分证据）。
+    #[test]
+    fn executor_evidence_sources_have_separate_claims_and_none_suffices_alone() {
+        let sources = [
+            ExecutorEvidenceSource::HostLaunchRegistration,
+            ExecutorEvidenceSource::OsInstanceEvidence,
+            ExecutorEvidenceSource::HelperExecutionReceipt,
+        ];
+        for source in sources {
+            assert!(!source.proves().is_empty(), "{source:?} 必须写明能证明什么");
+            assert!(
+                !source.does_not_prove().is_empty(),
+                "{source:?} 必须写明不能证明什么"
+            );
+            assert!(
+                !source.alone_suffices_to_conclude_stopped(),
+                "{source:?} 不得单独支撑「已停止」结论"
+            );
+        }
+        // 分工具体成立：登记证明归属、不证明存活；OS 证据证明实例、不证明释放；
+        // 回执证明执行事实、不能自签归属。
+        assert!(ExecutorEvidenceSource::HostLaunchRegistration
+            .does_not_prove()
+            .contains("存活"));
+        assert!(ExecutorEvidenceSource::OsInstanceEvidence
+            .does_not_prove()
+            .contains("释放"));
+        assert!(ExecutorEvidenceSource::HelperExecutionReceipt
+            .does_not_prove()
+            .contains("归属"));
+    }
+
+    /// 登记校验：占位/空值被拒；**只给解释器路径不算证明本次受控脚本**；
+    /// 未绑定监督的不得被视为已核查通过。
+    #[test]
+    fn executor_registration_requires_script_identity_and_supervision() {
+        executor(ExecutorInstanceState::VerifiedAlive)
+            .validate_structure()
+            .expect("完整登记应通过");
+
+        // 只给解释器路径（这正是裁决点名的错法）。
+        let mut interpreter_only = executor(ExecutorInstanceState::RegisteredPendingVerification);
+        interpreter_only.helper.script_or_program_digest = "  ".to_string();
+        let error = interpreter_only
+            .validate_structure()
+            .expect_err("只验证解释器路径必须被拒");
+        assert_eq!(error.field, "helper.script_or_program_digest");
+        assert!(error.reason.contains("不足以证明"), "{}", error.reason);
+
+        // 协议版本未记录。
+        let mut no_protocol = executor(ExecutorInstanceState::RegisteredPendingVerification);
+        no_protocol.protocol_version = 0;
+        assert_eq!(
+            no_protocol.validate_structure().expect_err("必须记录协议版本").field,
+            "protocol_version"
+        );
+
+        // 未绑定监督却标记"已核查通过"：拒绝（启动顺序是先绑定监督再允许输入）。
+        let mut unsupervised = executor(ExecutorInstanceState::VerifiedAlive);
+        unsupervised.supervision_bound = false;
+        assert_eq!(
+            unsupervised
+                .validate_structure()
+                .expect_err("未绑定监督不得算已核查通过")
+                .field,
+            "supervision_bound"
+        );
+
+        // 占位值。
+        let mut placeholder = executor(ExecutorInstanceState::RegisteredPendingVerification);
+        placeholder.executor_instance_id = "unknown".to_string();
+        assert_eq!(
+            placeholder.validate_structure().expect_err("占位值必须被拒").field,
+            "executor_instance_id"
+        );
+    }
+
+    /// 创建身份完整性：缺创建时间**只能保留错误继续核查**，不得当成身份相符。
+    #[test]
+    fn missing_creation_time_is_not_treated_as_a_identity_match() {
+        let mut incomplete = executor(ExecutorInstanceState::RegisteredPendingVerification);
+        incomplete.creation_time_100ns = None;
+        assert!(!incomplete.creation_identity_complete());
+        // 结构仍可合法（登记允许"尚未读到"），但"身份完整"为假 ⇒ 不能据此判定相符。
+        incomplete
+            .validate_structure()
+            .expect("缺创建时间是保留错误，不是结构非法");
+        assert!(executor(ExecutorInstanceState::RegisteredPendingVerification)
+            .creation_identity_complete());
+    }
+
+    /// 句柄世代：重新取得句柄后，上一次核查**不自动继承**（裁决 §4.3）。
+    #[test]
+    fn verification_is_scoped_to_the_handle_generation_it_was_done_on() {
+        let verification = ExecutorVerification {
+            executor_instance_id: "exec-1".to_string(),
+            handle_generation: 7,
+            verified_at_unix_ms: 1_000,
+        };
+        assert!(verification.is_valid_for("exec-1", 7), "同一实例同一句柄可用");
+        assert!(
+            !verification.is_valid_for("exec-1", 8),
+            "重新取得句柄后必须重新核查，不得继承上一次验证"
+        );
+        assert!(
+            !verification.is_valid_for("exec-2", 7),
+            "不同实例不得复用核查结论"
+        );
+    }
+
+    /// 失败表逐行冻结；尤其：PID 复用不得去动当前进程、AccessDenied 是 Unknown、
+    /// 缺登记不得猜 owner、终止返回成功只算"已请求"。
+    #[test]
+    fn executor_failure_table_is_frozen_row_by_row() {
+        use ExecutorDisposition::*;
+        use ExecutorObservation::*;
+        for (observation, expected) in [
+            (MatchesAndAlive, CooperativeStopThenScopedTerminate),
+            (PidReused, DoNotTouchCurrentProcess),
+            (AccessDeniedOrUnreadable, KeepBlockedAsUnknown),
+            (NoTrustedRegistration, DoNotGuessOwner),
+            (DirectHelperExited, KeepCheckingDescendantsAndRelease),
+            (JobClosedOutcomeUnverified, WaitBoundedThenVerify),
+            (TerminateRequestedNotConfirmed, RecordRequestedNotExited),
+            (ExitedButReleaseUnknown, KeepIsolated),
+            (LateReceipt, AppendFactWithoutRestoringEligibility),
+        ] {
+            assert_eq!(disposition_for(observation), expected, "{observation:?}");
+        }
+        // 九行覆盖全表（新增观测时必须同步本表）。
+        assert_eq!(
+            [
+                MatchesAndAlive,
+                PidReused,
+                AccessDeniedOrUnreadable,
+                NoTrustedRegistration,
+                DirectHelperExited,
+                JobClosedOutcomeUnverified,
+                TerminateRequestedNotConfirmed,
+                ExitedButReleaseUnknown,
+                LateReceipt,
+            ]
+            .len(),
+            9
+        );
+    }
+
+    /// 自动提权：**任何**处置都不允许。
+    #[test]
+    fn no_disposition_ever_allows_automatic_privilege_escalation() {
+        use ExecutorDisposition::*;
+        for disposition in [
+            CooperativeStopThenScopedTerminate,
+            DoNotTouchCurrentProcess,
+            KeepBlockedAsUnknown,
+            DoNotGuessOwner,
+            KeepCheckingDescendantsAndRelease,
+            WaitBoundedThenVerify,
+            RecordRequestedNotExited,
+            KeepIsolated,
+            AppendFactWithoutRestoringEligibility,
+        ] {
+            assert!(
+                !disposition_allows_automatic_privilege_escalation(disposition),
+                "{disposition:?} 不得把提权作为自动路径的一部分"
+            );
+        }
+    }
+
+    /// 后代停止证据：父进程退出与 Job 关闭都**不是**充分证据。
+    #[test]
+    fn parent_exit_and_job_close_do_not_prove_descendants_stopped() {
+        assert!(!DescendantStopEvidence::ParentExited.confirms_all_descendants_stopped());
+        assert!(!DescendantStopEvidence::JobClosedRequested.confirms_all_descendants_stopped());
+        assert!(DescendantStopEvidence::AllMembersExitedVerified.confirms_all_descendants_stopped());
+    }
+
+    /// 终止阶段：只有"已确认退出"是停止确认；超时进入明确隔离／人工复核，不无限重试。
+    #[test]
+    fn terminate_request_is_not_stop_confirmation_and_timeout_escalates() {
+        assert!(!TerminatePhase::Requested.is_stop_confirmation());
+        assert!(!TerminatePhase::WaitBounded.is_stop_confirmation());
+        assert!(TerminatePhase::ExitedConfirmed.is_stop_confirmation());
+        assert!(!TerminatePhase::WaitTimedOut.is_stop_confirmation());
+        assert_eq!(
+            TerminatePhase::WaitTimedOut.disposition_on_timeout(),
+            Some(ExecutorDisposition::KeepIsolated),
+            "超时必须落到明确隔离／人工复核，而不是继续重试到看起来成功"
+        );
+        for phase in [
+            TerminatePhase::Requested,
+            TerminatePhase::WaitBounded,
+            TerminatePhase::ExitedConfirmed,
+        ] {
+            assert_eq!(phase.disposition_on_timeout(), None, "{phase:?} 未超时");
+        }
+    }
 
     // -----------------------------------------------------------------------
     // 8.2a 输入许可六态（2026-09-26 补充裁决 §3）
