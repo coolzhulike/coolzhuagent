@@ -43,6 +43,13 @@ pub(crate) enum PermitStoreError {
     InvalidExecutor { field: &'static str, reason: &'static str },
     /// 条件更新没有命中（revision / 状态 / gate 已变）：调用方必须重新读取后再决定。
     ConditionNotMet { what: &'static str },
+    /// **gate 版本已变化**（§B-124 §六 B124-T1）：旧闸门状态下的许可不得继续使用。
+    StaleGateRevision {
+        permit_gate_revision: u64,
+        current_gate_revision: u64,
+    },
+    /// **恢复 epoch 已变化**（§B-124 §六 B124-T2）：旧恢复控制周期签发的许可不得继续使用。
+    StaleRecoveryEpoch { permit_epoch: u64, current_epoch: u64 },
     /// **同一次执行尝试被复用于不同内容**（§B-121 裁决 §四 情况 3）：执行身份被复用 ⇒ 拒绝。
     ActionIdentityConflict {
         attempt_logical_key: String,
@@ -72,6 +79,20 @@ impl std::fmt::Display for PermitStoreError {
             Self::ConditionNotMet { what } => {
                 write!(formatter, "条件更新未命中（{what}）：必须重新读取后再决定")
             }
+            Self::StaleGateRevision {
+                permit_gate_revision,
+                current_gate_revision,
+            } => write!(
+                formatter,
+                "许可的 gate 版本（{permit_gate_revision}）已不是当前版本（{current_gate_revision}）：资源接纳状态已变化，旧许可不得继续使用"
+            ),
+            Self::StaleRecoveryEpoch {
+                permit_epoch,
+                current_epoch,
+            } => write!(
+                formatter,
+                "许可的恢复 epoch（{permit_epoch}）已不是当前代次（{current_epoch}）：旧恢复控制周期签发的许可不得继续使用"
+            ),
             Self::ActionIdentityConflict {
                 attempt_logical_key,
                 existing_action_id,
@@ -120,7 +141,6 @@ pub(crate) fn ensure_v3_objects(connection: &Connection) -> Result<(), PermitSto
                 scope TEXT NOT NULL,
                 execution_context_ref TEXT NOT NULL,
                 frozen_action_digest TEXT NOT NULL,
-                policy_revision INTEGER NOT NULL,
                 gate_revision INTEGER NOT NULL,
                 issued_owner_id TEXT NOT NULL,
                 issued_epoch INTEGER NOT NULL,
@@ -308,18 +328,17 @@ impl<'a> PermitStore<'a> {
                 .execute(
                     "INSERT INTO input_safety_permits (
                         permit_id, action_id, scope, execution_context_ref, frozen_action_digest,
-                        policy_revision, gate_revision, issued_owner_id, issued_epoch,
+                        gate_revision, issued_owner_id, issued_epoch,
                         expires_at_unix_ms, executor_instance_id, state, revision,
                         revocation_reason, updated_at_unix_ms,
                         observation_generation, step_identity, attempt_sequence, execution_attempt_id
-                     ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19)",
+                     ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18)",
                     rusqlite::params![
                         permit.permit_id,
                         permit.action_id,
                         permit.scope.as_str(),
                         permit.execution_context_ref,
                         permit.frozen_action_digest,
-                        permit.policy_revision as i64,
                         permit.gate_revision as i64,
                         permit.issued_owner_id,
                         permit.issued_epoch as i64,
@@ -348,7 +367,7 @@ impl<'a> PermitStore<'a> {
             .connection
             .query_row(
                 "SELECT permit_id, action_id, scope, execution_context_ref, frozen_action_digest,
-                        policy_revision, gate_revision, issued_owner_id, issued_epoch,
+                        gate_revision, issued_owner_id, issued_epoch,
                         expires_at_unix_ms, executor_instance_id, state, revision, revocation_reason,
                         observation_generation, step_identity, attempt_sequence
                    FROM input_safety_permits WHERE permit_id = ?1",
@@ -361,17 +380,16 @@ impl<'a> PermitStore<'a> {
                         row.get::<_, String>(3)?,
                         row.get::<_, String>(4)?,
                         row.get::<_, i64>(5)?,
-                        row.get::<_, i64>(6)?,
-                        row.get::<_, String>(7)?,
+                        row.get::<_, String>(6)?,
+                        row.get::<_, i64>(7)?,
                         row.get::<_, i64>(8)?,
-                        row.get::<_, i64>(9)?,
-                        row.get::<_, Option<String>>(10)?,
-                        row.get::<_, String>(11)?,
-                        row.get::<_, i64>(12)?,
-                        row.get::<_, Option<String>>(13)?,
-                        row.get::<_, i64>(14)?,
-                        row.get::<_, String>(15)?,
-                        row.get::<_, i64>(16)?,
+                        row.get::<_, Option<String>>(9)?,
+                        row.get::<_, String>(10)?,
+                        row.get::<_, i64>(11)?,
+                        row.get::<_, Option<String>>(12)?,
+                        row.get::<_, i64>(13)?,
+                        row.get::<_, String>(14)?,
+                        row.get::<_, i64>(15)?,
                     ))
                 },
             )
@@ -383,9 +401,9 @@ impl<'a> PermitStore<'a> {
         // 先算执行尝试身份（它借用 action_id，随后 action_id 才被移动进结构体）。
         let attempt_identity = runtime::ExecutionAttemptId::new(
             row.1.clone(),
-            u64::try_from(row.14).unwrap_or_default(),
-            row.15.clone(),
-            u64::try_from(row.16).unwrap_or_default(),
+            u64::try_from(row.13).unwrap_or_default(),
+            row.14.clone(),
+            u64::try_from(row.15).unwrap_or_default(),
         )
         .map_err(|error| PermitStoreError::Sqlite(error.to_string()))?;
         Ok(InputPermit {
@@ -394,16 +412,15 @@ impl<'a> PermitStore<'a> {
             scope: scope_of(&row.2)?,
             execution_context_ref: row.3,
             frozen_action_digest: row.4,
-            policy_revision: u64::try_from(row.5).unwrap_or_default(),
-            gate_revision: u64::try_from(row.6).unwrap_or_default(),
-            issued_owner_id: row.7,
-            issued_epoch: u64::try_from(row.8).unwrap_or_default(),
-            expires_at_unix_ms: u64::try_from(row.9).unwrap_or_default(),
-            executor_instance_id: row.10,
+            gate_revision: u64::try_from(row.5).unwrap_or_default(),
+            issued_owner_id: row.6,
+            issued_epoch: u64::try_from(row.7).unwrap_or_default(),
+            expires_at_unix_ms: u64::try_from(row.8).unwrap_or_default(),
+            executor_instance_id: row.9,
             execution_attempt_id: attempt_identity,
-            state: parse_permit_state(&row.11)?,
-            revision: u64::try_from(row.12).unwrap_or_default(),
-            revocation_reason: row.13,
+            state: parse_permit_state(&row.10)?,
+            revision: u64::try_from(row.11).unwrap_or_default(),
+            revocation_reason: row.12,
         })
     }
 
@@ -432,20 +449,18 @@ impl<'a> PermitStore<'a> {
                     what: "许可已过期，不得激活",
                 });
             }
-            // gate／政策：**必须与当前一致**，否则说明关闸已经发生过。
+            // gate：**必须与当前一致**，否则说明关闸已经发生过（B124-T1）。
             if row.gate_revision != budget.gate_revision {
-                return Err(PermitStoreError::ConditionNotMet {
-                    what: "gate revision 已变化（关闸在先）：消费必须失败",
+                return Err(PermitStoreError::StaleGateRevision {
+                    permit_gate_revision: row.gate_revision,
+                    current_gate_revision: budget.gate_revision,
                 });
             }
-            if row.policy_revision != budget.policy_revision {
-                return Err(PermitStoreError::ConditionNotMet {
-                    what: "安全政策已变化：按最新政策重新登记后再说",
-                });
-            }
+            // epoch：**必须与当前一致**，否则说明恢复控制权已经换代（B124-T2）。
             if row.issued_epoch != budget.held_epoch {
-                return Err(PermitStoreError::ConditionNotMet {
-                    what: "epoch 不是当前持有的资格",
+                return Err(PermitStoreError::StaleRecoveryEpoch {
+                    permit_epoch: row.issued_epoch,
+                    current_epoch: budget.held_epoch,
                 });
             }
             // 越界前执行者关联必须齐备（§3.2）；要么登记时已有，要么此刻显式绑定。
@@ -641,8 +656,9 @@ impl<'a> PermitStore<'a> {
 /// 消费许可时要求核对的条件（都在同一事务内读取并比对）。
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PermitConsumptionBudget {
+    /// 资源接纳状态版本（来源：`InputSafetyResourceState.revision`）。
     pub gate_revision: u64,
-    pub policy_revision: u64,
+    /// 当前恢复控制权的代次（来源：`InputSafetyResourceState.recovery_epoch`）。
     pub held_epoch: u64,
 }
 
@@ -676,7 +692,6 @@ fn read_permit_state(
 struct PermitRow {
     expires_at_unix_ms: u64,
     gate_revision: u64,
-    policy_revision: u64,
     issued_epoch: u64,
     revision: u64,
     executor_instance_id: Option<String>,
@@ -688,7 +703,7 @@ fn read_permit_columns(
 ) -> Result<PermitRow, PermitStoreError> {
     connection
         .query_row(
-            "SELECT expires_at_unix_ms, gate_revision, policy_revision, issued_epoch, revision,
+            "SELECT expires_at_unix_ms, gate_revision, issued_epoch, revision,
                     executor_instance_id
                FROM input_safety_permits WHERE permit_id = ?1",
             rusqlite::params![permit_id],
@@ -696,10 +711,9 @@ fn read_permit_columns(
                 Ok(PermitRow {
                     expires_at_unix_ms: u64::try_from(row.get::<_, i64>(0)?).unwrap_or_default(),
                     gate_revision: u64::try_from(row.get::<_, i64>(1)?).unwrap_or_default(),
-                    policy_revision: u64::try_from(row.get::<_, i64>(2)?).unwrap_or_default(),
-                    issued_epoch: u64::try_from(row.get::<_, i64>(3)?).unwrap_or_default(),
-                    revision: u64::try_from(row.get::<_, i64>(4)?).unwrap_or_default(),
-                    executor_instance_id: row.get(5)?,
+                    issued_epoch: u64::try_from(row.get::<_, i64>(2)?).unwrap_or_default(),
+                    revision: u64::try_from(row.get::<_, i64>(3)?).unwrap_or_default(),
+                    executor_instance_id: row.get(4)?,
                 })
             },
         )
@@ -970,7 +984,6 @@ mod tests {
             scope: scope(),
             execution_context_ref: "cu-run-1".to_string(),
             frozen_action_digest: "digest-a".to_string(),
-            policy_revision: 4,
             gate_revision: 7,
             issued_owner_id: "owner-1".to_string(),
             issued_epoch: 3,
@@ -985,7 +998,6 @@ mod tests {
     fn budget() -> PermitConsumptionBudget {
         PermitConsumptionBudget {
             gate_revision: 7,
-            policy_revision: 4,
             held_epoch: 3,
         }
     }
@@ -1472,6 +1484,84 @@ mod tests {
             .register_pending(&second, InputPermitState::PendingActivation, 2)
             .expect("paint-r3 第二次点击**必须**放行：它不是 duplicate request");
         assert_eq!(pending_count(&store), 2);
+    }
+
+
+    // -----------------------------------------------------------------------
+    // B124-T1／T2（§B-124 裁决 §六）：删掉 policy_revision 后，要证明的是
+    // **gate / epoch 这两个真实维度足够**做失效判定。
+    // -----------------------------------------------------------------------
+
+    /// **B124-T1**：gate 版本变化 ⇒ 旧许可消费被拒（`StaleGateRevision`）。
+    #[test]
+    fn b124_t1_stale_gate_revision_refuses_consumption() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        let permits = store.permit_store();
+        // 许可在 gate_revision=7 时签发。
+        permits
+            .register_pending(&permit("permit-1", "action-1"), InputPermitState::PendingActivation, 1)
+            .expect("登记");
+        assert_eq!(permits.load_permit("permit-1").expect("load").gate_revision, 7);
+        // 外部安全事件把闸门推进到 11（例如"允许输入 → 发现事故 → 关闸"）。
+        let outcome = permits.consume_permit(
+            "permit-1",
+            PermitConsumptionBudget { gate_revision: 11, ..budget() },
+            PermitExecutorBinding::BindTo("exec-1"),
+            2,
+        );
+        match outcome {
+            Err(PermitStoreError::StaleGateRevision {
+                permit_gate_revision,
+                current_gate_revision,
+            }) => {
+                assert_eq!(permit_gate_revision, 7);
+                assert_eq!(current_gate_revision, 11);
+            }
+            other => panic!("gate 变化必须被拒为 StaleGateRevision：{other:?}"),
+        }
+        // 拒绝**没有破坏状态**：用正确 gate（7）再消费应当成功。
+        // 这条同时说明删除 policy_revision 没有削弱失效能力——gate 一个人就能判。
+        assert_eq!(
+            permits
+                .consume_permit(
+                    "permit-1",
+                    budget(),
+                    PermitExecutorBinding::BindTo("exec-1"),
+                    3
+                )
+                .expect("gate 正确时必须消费成功"),
+            InputPermitState::DispatchCommitted
+        );
+    }
+
+    /// **B124-T2**：恢复 epoch 变化 ⇒ 旧许可消费被拒（`StaleRecoveryEpoch`）。
+    #[test]
+    fn b124_t2_stale_recovery_epoch_refuses_consumption() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        let permits = store.permit_store();
+        // 许可在 epoch=3 时签发。
+        permits
+            .register_pending(&permit("permit-1", "action-1"), InputPermitState::PendingActivation, 1)
+            .expect("登记");
+        // 恢复协调权换代：epoch 3 → 4。
+        let outcome = permits.consume_permit(
+            "permit-1",
+            PermitConsumptionBudget { held_epoch: 4, ..budget() },
+            PermitExecutorBinding::BindTo("exec-1"),
+            2,
+        );
+        match outcome {
+            Err(PermitStoreError::StaleRecoveryEpoch {
+                permit_epoch,
+                current_epoch,
+            }) => {
+                assert_eq!(permit_epoch, 3);
+                assert_eq!(current_epoch, 4);
+            }
+            other => panic!("epoch 换代必须被拒为 StaleRecoveryEpoch：{other:?}"),
+        }
     }
 
     /// **使能步骤验收**：许可的签发与消费都能经**生产可达的窄口**（`store.permit_store()`）完成，

@@ -866,8 +866,12 @@ pub struct InputPermit {
     pub execution_context_ref: String,
     /// 冻结的动作／参数摘要：同一 `action_id` 换内容即拒绝。
     pub frozen_action_digest: String,
-    /// 当前安全政策与 gate revision。
-    pub policy_revision: u64,
+    /// **资源接纳状态的版本**（真实来源：`InputSafetyResourceState.revision`）。
+    ///
+    /// 回答"这个许可是在什么资源状态下产生的"：资源状态一变它必被推进，旧许可自然失效。
+    /// `policy_revision` 已按 2026-09-26 §B-124 裁决**删除**——本库从来没有"安全政策版本"这一
+    /// 权威来源，加它只会制造"看起来比缺失更安全、实际无法验证"的绑定（不得用常量、
+    /// schema 版本或改名后的 gate 冒充）。
     pub gate_revision: u64,
     /// 签发 owner／epoch。
     pub issued_owner_id: String,
@@ -1643,7 +1647,6 @@ mod tests {
             scope: InputSafetyResourceScope::parse("windows-session-1").expect("scope"),
             execution_context_ref: "cu-run-1".to_string(),
             frozen_action_digest: "digest-a".to_string(),
-            policy_revision: 3,
             gate_revision: 7,
             issued_owner_id: "owner-1".to_string(),
             issued_epoch: 5,
