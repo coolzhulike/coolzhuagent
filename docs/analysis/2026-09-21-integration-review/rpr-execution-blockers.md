@@ -3985,6 +3985,44 @@ computer-use-core／web-console／core-runtime 三门禁。**四项完成 Phase 
 **本轮只采集环境数据与登记决策，未改任何代码。** 门禁：computer-use-core **130/0**、
 `cargo build --workspace` ✅（复跑）。未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-149 Step 1 的注入边界阻塞：**nonce 由内部生成、调用方无法指定** ⇒ T11 的"防串用"会变成空检查
+
+**裁决口径**：继续 Step 1–4；只扩展测试注入能力（`TwoPhaseHelperTestOptions`）；**测试入口不得接受**
+`InputPermit`／`ExecutorInstanceId`／`RecoveryControlGuard`；默认 `two_phase_helper=false`，
+已有 130 条测试继续证明旧路径未变；**若出现阻塞，优先判断是否属** helper 生命周期／测试注入边界／
+命令行预算三类，**不要重开已冻结的两相协议设计**。
+
+**本轮核实的阻塞（属第 2 类：测试注入边界）**：
+
+| 事实 | 位置 |
+| --- | --- |
+| nonce 在 **`run_native_helper` 内部生成**（`"{pid}-{nanos}-{seq}"`） | `input.rs:3370` |
+| 并**覆盖式**写入 `request["request_id"]` | `input.rs:3393` |
+| 调用方**没有任何途径**指定它 | 签名 `run_native_helper(request, obligation, timeout, cancelled, mock_scenario, backend, capacity)` |
+
+**为什么这会挡住 T6-C 与 T11**：
+
+- T6-C 要写一份 nonce **匹配**的测试 permit；T11 要证明"**helper B 读到 helper A 遗留的 permit 必须拒绝**"。
+- 但测试**无法预先知道** nonce——只能先把 READY 读出来、再用读到的那一个去写 permit。
+- 这样做的话，"nonce 必须属于本会话"就变成**自指检查**：**任何** READY 都会被接受，
+  **T11 的防串用保护变成空检查**（形式上还在、实际不生效）。
+- 也不能靠"注入 `request_id` 后再调用"：`run_native_helper` 会**覆盖**该键（`:3393`），注入会被吃掉。
+
+**两个可选处置（我倾向 (a)，请裁决）**：
+
+| 方案 | 内容 | 代价 |
+| --- | --- | --- |
+| **(a) 由调用方提供 nonce（建议）** | 两相段改用**调用方可设的独立字段**（如 `two_phase_nonce`）而不是 `request["request_id"]`；测试注入该字段，Phase 2 由 web-console 提供 | 脚本改几处标识符（**字符数很小，仍在命令行预算内**）；`request_id` 的进度关联语义**不动** |
+| (b) 由 READY 反读 nonce | 测试读 READY 拿 nonce 再写 permit | **拒绝**：使 T11 与 nonce 校验失去意义（自指） |
+
+**为什么必须现在定**：T6-C 与 T11 的**验收价值取决于 nonce 是否由"本会话"掌握**。若走 (b)，
+我们会有两个"看起来通过"的用例，但它们证明的是"文件读得出来"，不是"授权不可串用"——
+这正是本项目反复防的"**看起来比缺失更安全**"。
+
+**本轮未改任何代码**（未动 `native_run_with_mock`、未动脚本）。门禁维持：computer-use-core **130/0**、
+web-console **1215/0**（1 ignored＝真实调用评测）、core-runtime **347/0**、linkage 8/0、
+`cargo build --workspace` ✅。未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
