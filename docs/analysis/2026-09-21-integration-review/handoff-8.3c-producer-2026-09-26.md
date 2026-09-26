@@ -275,6 +275,28 @@ execute  : 让 helper 继续（它轮询到本人 nonce 的 permit → EXECUTE �
 `Engine::Run`。⇒ **脚本改动必须由真实 helper 行为测试把关**，不再要求"先过静态 parser"。
 （§B-144 的回退与此一致：当时正是因为没有可信的静态保护才回退。）
 
+### **下一窗口 Step 1 的精确边界（裁决 §三，新增约束）**
+
+**只改** `NATIVE_INPUT_HELPER_ENTRY` 这一处常量；**只新增** `ready_file`、permit 等待、EXECUTE gate。
+
+- **插入点保持**：`$progress` → **two-phase block** → `[CoolzhuNative.Engine]::Run(`；
+- **禁止移动**：`cancel` 初始化、`progress` 初始化、**cleanup 逻辑**——
+  这些**已经过旧路径验证**，挪动它们等于把已验证的行为重新置于风险中。
+
+### **测试 permit 必须显式可区分（裁决 §五，新增约束）**
+
+Phase 1 可以造 test permit stub，但它必须**一眼可辨**：用 `protocol_mode=test` 或
+`TestPermitSignal` 之类的显式标记。
+
+**禁止**让它产生类似 `PermitGate issued` 的日志或记录——否则将来会出现
+"**测试文件看起来像生产授权记录**"，那是比缺测试更坏的结果（会让人误以为授权链已成立）。
+
+### **opt-in 的终局（裁决 §六，补一句）**
+
+`two_phase_helper` 只限开发/测试阶段；**最终生产必须关闭 optional path、改为协议版本门禁**
+（`if helper protocol < required ⇒ reject`）。理由是它要防的不只是"新旧混跑"，而是
+**"不同入口不同安全等级"**——那正是最难发现的形态。
+
 ### **Phase 1 Helper Side 范围（§四）**
 
 只做：**PowerShell/C# helper 生命周期改造 ＋ T6 真实 helper 测试**。

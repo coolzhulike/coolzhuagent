@@ -3865,6 +3865,33 @@ T6 真实 helper 测试；插入位置在 `$progress` 之后、`Engine::Run(` �
 core-runtime **347/0**、linkage 8/0、`cargo build --workspace` ✅。
 未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-146 helper-runtime 冻结确认：下一窗口直接执行，本轮只补两条实施约束
+
+**裁决**：保持冻结；`8.3c-A-helper-runtime` 的下一窗口**直接执行**（只改 helper 两相生命周期 ＋
+跑真实 helper 的 T6-A/B/C）；**不再增加契约**（helper 状态／handshake 消息／Permit 字段／测试枚举／
+额外安全抽象一律不加）；不接 `ExecutorStore`、不接 `PermitGate`、不恢复输入入口。
+裁决同时点明本阶段真正的风险**不是"不够完善"，而是有人为了尽快看到输入成功而把已冻结的
+生命周期边界打穿**。
+
+**本轮只补两条新的实施约束进交接（不加任何代码）**：
+
+1. **Step 1 的精确边界（§三）**：**只改** `NATIVE_INPUT_HELPER_ENTRY` 一处常量，**只新增**
+   `ready_file`／permit 等待／EXECUTE gate；插入点保持 `$progress → two-phase block → Engine::Run(`；
+   **禁止移动** `cancel` 初始化、`progress` 初始化与 **cleanup 逻辑**——它们**已经过旧路径验证**。
+2. **测试 permit 必须显式可区分（§五）**：Phase 1 的 test permit stub 必须用
+   `protocol_mode=test`／`TestPermitSignal` 之类显式标记，**禁止**产生 `PermitGate issued` 这类
+   日志或记录——否则会出现"**测试文件看起来像生产授权记录**"，比缺测试更坏。
+   另补一句 opt-in 终局（§六）：最终生产必须关闭 optional path、改为**协议版本门禁**，
+   要防的是"**不同入口不同安全等级**"。
+
+**状态（§九 台账口径，与 §B-145 一致）**：`8.3c-contract` ✅／`8.3c-host-ready` ✅／
+`8.3c-helper-runtime` ⏳ 等真实 helper 窗口／T6-A·B·C ⏳／`8.3c-executor-bind` 未开始／
+Permit production binding 未开始／input switch ⛔ 禁止。
+
+**本轮未改任何代码。** 门禁维持：computer-use-core **130/0**、web-console **1215/0**
+（1 ignored＝真实调用评测）、core-runtime **347/0**、linkage 8/0、`cargo build --workspace` ✅。
+未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
