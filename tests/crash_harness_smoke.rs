@@ -32,6 +32,213 @@ const RUN_ID_ENV: &str = "COOLZHU_CRASH_HARNESS_RUN_ID";
 /// 屏障阶段名。**它们是观察点，不是生产可启用的崩溃开关**（裁决 §5.1）。
 const STAGE_REGISTERED: &str = "stage-registered";
 const STAGE_PRE_DISPATCH_REACHED: &str = "stage-pre-dispatch-reached";
+/// 可选：让子进程额外到达**某个具名测试事件**阶段（用于把故障点绑到事件上）。
+const EVENT_STAGE_ENV: &str = "COOLZHU_CRASH_HARNESS_EVENT_STAGE";
+
+// ---------------------------------------------------------------------------
+// 测试事件词汇表 + K1–K6 依赖门（裁决 §5.1／§5.2）
+//
+// §5.1 要求"冻结小范围测试事件，例如「许可消费已提交」「执行者已登记」「终态提交完成」，
+// 通过 test-support 暴露同步屏障"。这里把词汇表冻下来，并把它**锚定到已冻结的契约**
+// （8.2a 的 `InputPermitState`／8.3a 的 `ExecutorInstanceState`／既有 `RecoveryStage`），
+// 使事件名与契约状态不可能各自漂移。
+// ---------------------------------------------------------------------------
+
+use runtime::{ExecutorInstanceState, InputPermitState, RecoveryStage};
+
+/// 装置暴露的**测试事件**。它们是**观察点**，不是生产可启用的崩溃开关。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HarnessEvent {
+    /// 恢复登记完成（R2 之后）。
+    RecoveryRegistered,
+    /// 关闸与 Pending 许可撤销**已提交**。
+    IntakeClosedWithPendingRevoked,
+    /// 许可**消费已提交**。
+    PermitConsumed,
+    /// 执行者**已登记**。
+    ExecutorRegistered,
+    /// 会话终态**提交完成**。
+    TerminalCommitted,
+    /// 一次性确认**已完成**（开放提交之前）。
+    ConfirmationCompleted,
+}
+
+impl HarnessEvent {
+    const ALL: [Self; 6] = [
+        Self::RecoveryRegistered,
+        Self::IntakeClosedWithPendingRevoked,
+        Self::PermitConsumed,
+        Self::ExecutorRegistered,
+        Self::TerminalCommitted,
+        Self::ConfirmationCompleted,
+    ];
+
+    const fn stage(self) -> &'static str {
+        match self {
+            Self::RecoveryRegistered => "event-recovery-registered",
+            Self::IntakeClosedWithPendingRevoked => "event-intake-closed-pending-revoked",
+            Self::PermitConsumed => "event-permit-consumed",
+            Self::ExecutorRegistered => "event-executor-registered",
+            Self::TerminalCommitted => "event-terminal-committed",
+            Self::ConfirmationCompleted => "event-confirmation-completed",
+        }
+    }
+
+    fn is_known_stage(stage: &str) -> bool {
+        Self::ALL.iter().any(|event| event.stage() == stage)
+    }
+
+    /// 事件在 8.2a 许可契约里对应的状态（没有对应则为 `None`）。
+    const fn permit_state(self) -> Option<InputPermitState> {
+        match self {
+            Self::PermitConsumed => Some(InputPermitState::DispatchCommitted),
+            _ => None,
+        }
+    }
+
+    /// 事件在 8.3a 执行者契约里对应的状态。
+    const fn executor_state(self) -> Option<ExecutorInstanceState> {
+        match self {
+            Self::ExecutorRegistered => Some(ExecutorInstanceState::VerifiedAlive),
+            _ => None,
+        }
+    }
+
+    /// 事件在既有恢复阶段里对应的锚点。
+    const fn recovery_stage(self) -> Option<RecoveryStage> {
+        match self {
+            Self::RecoveryRegistered => Some(RecoveryStage::IntentPersistedAndIntakeClosed),
+            Self::IntakeClosedWithPendingRevoked => Some(RecoveryStage::InFlightRegistered),
+            Self::TerminalCommitted => Some(RecoveryStage::TerminalCommitted),
+            _ => None,
+        }
+    }
+}
+
+/// 装置/场景所依赖的、**尚未全部落地**的能力。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HarnessDependency {
+    /// 既有恢复协调器（R1–R9 驱动）。
+    ExistingCoordinator,
+    /// R3 许可**持久化**（8.2b/8.2c）。
+    PermitPersistenceR3,
+    /// R4 执行者**监督与实例核查**（8.3b/8.3c）。
+    ExecutorSupervisionR4,
+    /// 恢复事务的终态提交与结账。
+    RecoveryTransaction,
+    /// 操作员认证与恢复提交（8.1）。
+    OperatorAuth,
+}
+
+impl HarnessDependency {
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::ExistingCoordinator => "existing_coordinator",
+            Self::PermitPersistenceR3 => "permit_persistence_r3",
+            Self::ExecutorSupervisionR4 => "executor_supervision_r4",
+            Self::RecoveryTransaction => "recovery_transaction",
+            Self::OperatorAuth => "operator_auth",
+        }
+    }
+
+    /// 该依赖现在是否**可驱动**。
+    ///
+    /// 全部为 `false` 不是悲观，而是如实：① 协调器虽已实现，但它位于 web-console 的 **bin 内部**，
+    /// 根测试目标（本文件）**无法导入**其类型 ⇒ 驱动不可得；② R3／R4 的持久化、恢复事务与
+    /// 操作员认证均未落地。将来落地时把对应项改为 `true`，门与用例即可逐项解锁。
+    const fn available(self) -> bool {
+        match self {
+            Self::ExistingCoordinator
+            | Self::PermitPersistenceR3
+            | Self::ExecutorSupervisionR4
+            | Self::RecoveryTransaction
+            | Self::OperatorAuth => false,
+        }
+    }
+
+    /// 为什么不可用（必须给出理由，便于"逐项解锁"而不是含糊搁置）。
+    const fn blocker(self) -> &'static str {
+        match self {
+            Self::ExistingCoordinator => {
+                "协调器在 web-console 的 bin 内部，根测试目标无法导入；需要暴露 lib 侧入口或把驱动下沉"
+            }
+            Self::PermitPersistenceR3 => "R3 许可持久化未落地（8.2b/8.2c，等 schema 窗口）",
+            Self::ExecutorSupervisionR4 => "R4 执行者监督与实例核查未落地（8.3b/8.3c）",
+            Self::RecoveryTransaction => "恢复事务的终态提交与结账尚未接线",
+            Self::OperatorAuth => "操作员认证与恢复提交未实现（8.1）",
+        }
+    }
+}
+
+/// 六个故障点场景（裁决 §5.2 的 K1–K6），依赖集**逐项对齐该表**。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HarnessScenario {
+    K1,
+    K2,
+    K3,
+    K4,
+    K5,
+    K6,
+}
+
+impl HarnessScenario {
+    const ALL: [Self; 6] = [Self::K1, Self::K2, Self::K3, Self::K4, Self::K5, Self::K6];
+
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::K1 => "K1",
+            Self::K2 => "K2",
+            Self::K3 => "K3",
+            Self::K4 => "K4",
+            Self::K5 => "K5",
+            Self::K6 => "K6",
+        }
+    }
+
+    /// 终止点说明（裁决 §5.2 的表）。
+    const fn terminate_point(self) -> &'static str {
+        match self {
+            Self::K1 => "取得协调权后、恢复登记完成前",
+            Self::K2 => "关闸和 Pending 撤销已提交后",
+            Self::K3 => "许可已消费、尚无执行回执",
+            Self::K4 => "协调器死亡而测试执行者仍存活",
+            Self::K5 => "会话终态已提交、安全恢复未结账",
+            Self::K6 => "确认已完成、开放提交之前",
+        }
+    }
+
+    /// 依赖集（与 §5.2 的「依赖」列逐行一致）。
+    const fn dependencies(self) -> &'static [HarnessDependency] {
+        match self {
+            Self::K1 => &[HarnessDependency::ExistingCoordinator],
+            Self::K2 => &[HarnessDependency::PermitPersistenceR3],
+            Self::K3 => &[
+                HarnessDependency::PermitPersistenceR3,
+                HarnessDependency::ExecutorSupervisionR4,
+            ],
+            Self::K4 => &[HarnessDependency::ExecutorSupervisionR4],
+            Self::K5 => &[HarnessDependency::RecoveryTransaction],
+            Self::K6 => &[
+                HarnessDependency::OperatorAuth,
+                HarnessDependency::RecoveryTransaction,
+            ],
+        }
+    }
+
+    /// 依赖是否全部具备（只有全具备才能绑定为真实场景）。
+    fn available(self) -> bool {
+        self.dependencies().iter().all(|dependency| dependency.available())
+    }
+
+    /// 尚缺哪些依赖（用于"逐项解锁"时点名）。
+    fn blocked_by(self) -> Vec<HarnessDependency> {
+        self.dependencies()
+            .iter()
+            .copied()
+            .filter(|dependency| !dependency.available())
+            .collect()
+    }
+}
 
 /// 每次运行独立的测试空间：会话库／输入安全库／证据／屏障／日志**各自独立**。
 ///
@@ -150,12 +357,22 @@ impl ChildExecutor {
     ///
     /// 只跑子模式那一个用例：`--exact crash_harness_child_mode`，避免子进程再跑整套测试。
     fn spawn(workspace: &HarnessWorkspace) -> Self {
+        Self::spawn_reaching_event(workspace, None)
+    }
+
+    /// 让子进程额外到达某个**具名测试事件**阶段再等待被终止。
+    fn spawn_reaching_event(workspace: &HarnessWorkspace, event: Option<HarnessEvent>) -> Self {
         let exe = std::env::current_exe().expect("current test binary");
-        let child = Command::new(exe)
+        let mut command = Command::new(exe);
+        command
             .args(["--exact", "crash_harness_child_mode", "--nocapture"])
             .env(CHILD_MODE_ENV, "1")
             .env(BARRIER_DIR_ENV, workspace.barrier_dir())
-            .env(RUN_ID_ENV, &workspace.run_id)
+            .env(RUN_ID_ENV, &workspace.run_id);
+        if let Some(event) = event {
+            command.env(EVENT_STAGE_ENV, event.stage());
+        }
+        let child = command
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
@@ -243,6 +460,15 @@ fn crash_harness_child_mode() {
     barrier.signal(STAGE_REGISTERED);
     // 阶段二：到达"派发之前"的观察点（后续 K 系列场景会在此处被终止）。
     barrier.signal(STAGE_PRE_DISPATCH_REACHED);
+    // 可选：到达调用方指定的**测试事件**阶段（事件词汇表见 [`HarnessEvent`]）。
+    if let Some(event_stage) = std::env::var_os(EVENT_STAGE_ENV) {
+        let event_stage = event_stage.to_string_lossy().to_string();
+        assert!(
+            HarnessEvent::is_known_stage(&event_stage),
+            "只接受已冻结的事件阶段名，未知阶段 `{event_stage}` 一律拒绝"
+        );
+        barrier.signal(&event_stage);
+    }
     // 等待父进程终止。**不写任何输入、不碰真实桌面**。
     loop {
         std::thread::sleep(Duration::from_millis(50));
@@ -304,6 +530,148 @@ fn crash_harness_foundation_runs_and_cleans_up() {
     assert!(!executor.is_running(), "确认退出后不得仍在运行");
 
     // 收尾（Drop 也会再兜一次）：父级收尾失败必须让测试失败，故这里不吞错。
+    executor.cleanup();
+}
+
+
+/// 事件词汇表必须**锚定到已冻结的契约**：事件名与契约状态不得各自漂移。
+#[test]
+fn harness_events_are_anchored_to_frozen_contracts() {
+    // 事件阶段名唯一且非空。
+    let mut stages = HarnessEvent::ALL.iter().map(|event| event.stage()).collect::<Vec<_>>();
+    stages.sort_unstable();
+    let before = stages.len();
+    stages.dedup();
+    assert_eq!(stages.len(), before, "事件阶段名必须唯一");
+
+    // ① 许可消费事件必须对应**已越过派发边界**的状态（不能是待激活或已撤销）。
+    let consumed = HarnessEvent::PermitConsumed
+        .permit_state()
+        .expect("许可消费必须有契约锚点");
+    assert_eq!(consumed, InputPermitState::DispatchCommitted);
+    assert!(
+        consumed.crossed_dispatch_boundary(),
+        "「许可消费已提交」必须对应已越过派发边界的状态"
+    );
+    assert!(
+        !consumed.may_still_be_dispatched(),
+        "消费之后不得再被视为「仍可派发」"
+    );
+
+    // ② 执行者登记事件必须对应**已核查存活**，而该状态在契约上要求已绑定监督。
+    let registered = HarnessEvent::ExecutorRegistered
+        .executor_state()
+        .expect("执行者登记必须有契约锚点");
+    assert_eq!(registered, ExecutorInstanceState::VerifiedAlive);
+
+    // ③ 恢复类事件锚定到既有的 R1–R9 阶段。
+    assert_eq!(
+        HarnessEvent::RecoveryRegistered.recovery_stage(),
+        Some(RecoveryStage::IntentPersistedAndIntakeClosed)
+    );
+    assert_eq!(
+        HarnessEvent::IntakeClosedWithPendingRevoked.recovery_stage(),
+        Some(RecoveryStage::InFlightRegistered)
+    );
+    assert_eq!(
+        HarnessEvent::TerminalCommitted.recovery_stage(),
+        Some(RecoveryStage::TerminalCommitted)
+    );
+
+    // ④ 未知阶段名一律不认（子模式据此拒绝）。
+    assert!(HarnessEvent::is_known_stage("event-permit-consumed"));
+    for unknown in ["event-whatever", "stage-registered", ""] {
+        assert!(
+            !HarnessEvent::is_known_stage(unknown),
+            "未知阶段 `{unknown}` 不得被认作已冻结事件"
+        );
+    }
+}
+
+/// K1–K6 的依赖集必须与裁决 §5.2 的表逐行一致（改动依赖就必须改本表，否则红）。
+#[test]
+fn scenario_dependencies_match_the_ruling_table_row_by_row() {
+    use HarnessDependency::*;
+    for (scenario, expected) in [
+        (HarnessScenario::K1, vec![ExistingCoordinator]),
+        (HarnessScenario::K2, vec![PermitPersistenceR3]),
+        (HarnessScenario::K3, vec![PermitPersistenceR3, ExecutorSupervisionR4]),
+        (HarnessScenario::K4, vec![ExecutorSupervisionR4]),
+        (HarnessScenario::K5, vec![RecoveryTransaction]),
+        (HarnessScenario::K6, vec![OperatorAuth, RecoveryTransaction]),
+    ] {
+        assert_eq!(scenario.dependencies(), expected.as_slice(), "{scenario:?}");
+        // 终止点必须写明（不得出现"场景存在但说不出终止在哪"）。
+        assert!(!scenario.terminate_point().is_empty(), "{scenario:?}");
+    }
+    assert_eq!(HarnessScenario::ALL.len(), 6, "K1–K6 恰好六项");
+}
+
+/// **不得把装置就绪当成场景通过**：依赖未齐的场景，`available()` 必须为假，
+/// 且必须点名缺哪一项（不许含糊搁置）。
+#[test]
+fn no_scenario_is_claimable_before_its_dependencies_land() {
+    let mut claimable = Vec::new();
+    for scenario in HarnessScenario::ALL {
+        let blocked = scenario.blocked_by();
+        if scenario.available() {
+            assert!(blocked.is_empty(), "{scenario:?} 可用时不应有阻塞项");
+            claimable.push(scenario.as_str());
+        } else {
+            assert!(
+                !blocked.is_empty(),
+                "{scenario:?} 不可用时必须点名缺哪一项依赖"
+            );
+            for dependency in blocked {
+                assert!(
+                    !dependency.blocker().is_empty(),
+                    "依赖 {} 必须给出不可用理由",
+                    dependency.as_str()
+                );
+            }
+        }
+    }
+    // 当前**没有任何** K 场景可声明通过：R3/R4／恢复事务／操作员认证都未落地，
+    // 且协调器在 web-console bin 内部、根测试目标无法驱动。
+    assert!(
+        claimable.is_empty(),
+        "本轮装置只交付基础层，不得声明任何 K 场景通过；实际声明：{claimable:?}"
+    );
+    // 但依赖图本身是完整的（六个场景都指出了阻塞点）——保证"逐项解锁"有据可依。
+    assert_eq!(
+        HarnessScenario::ALL
+            .iter()
+            .filter(|scenario| !scenario.blocked_by().is_empty())
+            .count(),
+        6
+    );
+}
+
+/// 事件阶段是**可驱动**的：装置能真的让子进程到达某个具名事件阶段再终止。
+///
+/// 这条证明的是"事件词汇表接进了屏障"，**不是**任何业务故障场景通过。
+#[test]
+fn harness_can_drive_a_named_event_stage_end_to_end() {
+    let workspace = HarnessWorkspace::new("event-drive");
+    let event = HarnessEvent::PermitConsumed;
+    let mut executor = ChildExecutor::spawn_reaching_event(&workspace, Some(event));
+    let barrier = Barrier::new(&workspace.barrier_dir());
+
+    barrier
+        .wait_for(STAGE_REGISTERED)
+        .expect("登记阶段必须到达");
+    let reached = barrier
+        .wait_for(event.stage())
+        .unwrap_or_else(|error| panic!("具名事件阶段必须到达：{error}"));
+    assert!(reached <= BARRIER_TIMEOUT, "事件阶段必须在预算内到达");
+    assert!(
+        executor.is_running(),
+        "到达事件阶段后子进程应仍在运行（等待被终止）"
+    );
+
+    executor
+        .terminate_and_confirm()
+        .expect("必须能有界确认子进程退出");
     executor.cleanup();
 }
 

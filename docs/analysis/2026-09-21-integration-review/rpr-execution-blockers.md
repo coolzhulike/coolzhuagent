@@ -3037,6 +3037,46 @@ schema 设计与迁移计划可提前评审，**版本号仍由输入安全库�
 装置的下一步是把已冻结的 8.2a／8.3a 契约作为测试事件接进来（许可消费已提交／执行者已登记／
 终态提交完成），再逐项绑定故障点。
 
+### B-116 8.4b 交付：测试事件词汇表 + K1–K6 依赖门（**机器可判**，不靠散文）
+
+**裁决口径（§5.1／§5.2）**：冻结小范围**测试事件**（"许可消费已提交""执行者已登记""终态提交完成"），
+通过 test-support 暴露同步屏障——它是**测试观察点，不是生产可启用的崩溃开关**；
+§5.2 给出 K1–K6 的依赖与关键断言。
+
+**交付**（`tests/crash_harness_smoke.rs`，7 条用例）：
+
+1. **事件词汇表 `HarnessEvent`（6 个）**：`RecoveryRegistered` / `IntakeClosedWithPendingRevoked` /
+   `PermitConsumed` / `ExecutorRegistered` / `TerminalCommitted` / `ConfirmationCompleted`，
+   每个都有唯一阶段名，且**锚定到已冻结的契约**：
+   `PermitConsumed → InputPermitState::DispatchCommitted`（并断言该状态**已越过派发边界且不可再派发**）、
+   `ExecutorRegistered → ExecutorInstanceState::VerifiedAlive`（该状态在 8.3a 里要求已绑定监督）、
+   `RecoveryRegistered / IntakeClosedWithPendingRevoked / TerminalCommitted → RecoveryStage` 的既有阶段。
+   ⇒ 事件名与契约状态**不可能各自漂移**：改一边就有用例红。
+2. **事件可被真的驱动**：子模式支持"按事件名到达阶段再等待被终止"（未知阶段名一律拒绝），
+   并有端到端用例证明装置能把子进程带到具名事件阶段（`harness_can_drive_a_named_event_stage_end_to_end`）。
+3. **K1–K6 依赖门（机器可判）**：`HarnessScenario` 逐项携带 `dependencies()` 与 `terminate_point()`，
+   与 §5.2 的表**逐行一致**；`available()` 只在依赖全具备时为真，`blocked_by()` 必须点名缺哪一项、
+   每项依赖必须给出 `blocker()` 理由。
+4. **不得把装置就绪当成场景通过**：`no_scenario_is_claimable_before_its_dependencies_land` 断言
+   **当前没有任何 K 场景可声明通过**（`claimable` 必须为空），同时六个场景**都**指出了阻塞点——
+   保证"逐项解锁"有据可依，而不是含糊搁置。
+
+**依赖现状（如实，全部为"不可驱动"并各带理由）**：
+- `ExistingCoordinator`：协调器已实现，但位于 web-console 的 **bin 内部**，**根测试目标无法导入**
+  ⇒ 要驱动 K1 需先暴露 lib 侧入口或把驱动下沉；
+- `PermitPersistenceR3`（8.2b/8.2c，等 schema 窗口）、`ExecutorSupervisionR4`（8.3b/8.3c）、
+  `RecoveryTransaction`、`OperatorAuth`（8.1）均未落地。
+
+**变异验证 4/4**：改掉 K4 的依赖集 ⇒ 红；把消费事件锚到"待激活"⇒ 红；
+未知阶段名被认作已知 ⇒ 红；声称某依赖已可用 ⇒ 红。
+**稳定性**：连跑 3 次全绿（每次 0.03s），跑完后 0 个 harness 残留进程。
+
+**诚实记一笔（同一类错误第三次）**：这轮我的变异 M2 第一次又是**无操作变异**——把两个分支都写成 `false`，
+行为没变，所以显示"未捕获"。已重做为真正让依赖可用并确认被捕获。教训：**变异必须验证"确实改变了行为"**，
+不能只看"我改了文本"。
+
+**未做（不冒充）**：K1–K6 的真实故障场景（依赖如上一节所列尚未落地）；本轮**没有**声明任何场景通过。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
