@@ -1671,6 +1671,243 @@ mod tests {
 
     /// 裁决第 14.6 项：规划请求的 attempt 必须是**真实复合键**（run#逻辑请求#重试序号），
     /// 重试得到新 attempt；身份不成立时保持未知，**不得**编造。
+    /// CU-03 评测用的一条素材：观察 + 上一步事实 + 上一步动作的目标。
+    struct EvalFixture {
+        step: usize,
+        observation: Observation,
+        previous: crate::computer_use_store::RunStepReportRow,
+        /// 上一步动作的目标引用（用于判定"是否重复同一目标"）。
+        previous_target: String,
+    }
+
+    /// **合成占位**观察（Paint 形态）：明确标注为占位——**不是**裁决要求的 R4–R6 真实录制。
+    ///
+    /// 真实录制到位后**替换本函数**即可复用整套装置与规则。
+    fn paint_like_observations() -> Vec<EvalFixture> {
+        let observation = |step: usize| Observation {
+            generation: step as u64,
+            surface: ComputerUseSurface::Desktop,
+            surface_identity: "desktop:1".to_string(),
+            state: json!({
+                "window": {"reference": "uia-window-1", "name": "画图"},
+                "elements": [
+                    {"reference": "uia-pencil", "control_type": "Button", "name": "铅笔",
+                     "selected": true, "keyboard_focus": false, "toggle_state": null,
+                     "patterns": ["selection_item"]},
+                    {"reference": "uia-brush", "control_type": "Button", "name": "刷子",
+                     "selected": false, "keyboard_focus": false, "toggle_state": null,
+                     "patterns": ["selection_item"]},
+                    {"reference": "uia-canvas", "control_type": "Pane", "name": "画布",
+                     "selected": null, "keyboard_focus": false, "toggle_state": null,
+                     "patterns": []},
+                ],
+                "canvas_target": "window-canvas:1",
+                "canvas_rect": [0, 100, 800, 500],
+                "image": {"sha256": "placeholder", "path": "placeholder.png"},
+            }),
+            evidence: vec!["placeholder-evidence".to_string()],
+        };
+        let row = |status: &str,
+                   delivery: Option<&str>,
+                   partial: Option<bool>,
+                   verdict: Option<&str>,
+                   progress: bool| crate::computer_use_store::RunStepReportRow {
+            step_index: 0,
+            status: status.to_string(),
+            error_code: None,
+            input_delivery: delivery.map(str::to_string),
+            partial,
+            path_completed: None,
+            confirmed_point_count: Some(0),
+            effect_status: Some("effect_observed".to_string()),
+            goal_verdict: verdict.map(str::to_string),
+            input_release_status: Some("unknown".to_string()),
+            visible_progress: progress,
+        };
+        // 十个素材覆盖三类上一步状态：部分注入（禁止重放）、读不懂（先对账）、已完成（可继续）。
+        vec![
+            EvalFixture { step: 1, observation: observation(1), previous: row("input_not_sent", Some("not_sent"), Some(false), None, false), previous_target: "uia-pencil".to_string() },
+            EvalFixture { step: 2, observation: observation(2), previous: row("input_sent", Some("sent"), Some(false), Some("passed"), true), previous_target: "uia-pencil".to_string() },
+            EvalFixture { step: 3, observation: observation(3), previous: row("input_sent", Some("sent"), Some(true), Some("failed"), false), previous_target: "uia-canvas".to_string() },
+            EvalFixture { step: 4, observation: observation(4), previous: row("input_sent", Some("sent"), Some(true), Some("failed"), false), previous_target: "uia-canvas".to_string() },
+            EvalFixture { step: 5, observation: observation(5), previous: row("observation_failed", None, None, None, false), previous_target: "uia-canvas".to_string() },
+            EvalFixture { step: 6, observation: observation(6), previous: row("observation_failed", None, None, None, false), previous_target: "uia-canvas".to_string() },
+            EvalFixture { step: 7, observation: observation(7), previous: row("input_sent", Some("sent"), Some(false), Some("passed"), true), previous_target: "uia-brush".to_string() },
+            EvalFixture { step: 8, observation: observation(8), previous: row("input_sent", Some("sent"), Some(false), Some("passed"), true), previous_target: "uia-canvas".to_string() },
+            EvalFixture { step: 9, observation: observation(9), previous: row("input_sent", Some("sent"), Some(true), Some("failed"), false), previous_target: "uia-canvas".to_string() },
+            EvalFixture { step: 10, observation: observation(10), previous: row("input_not_sent", Some("not_sent"), Some(false), None, false), previous_target: "uia-pencil".to_string() },
+        ]
+    }
+
+    /// 从模型回复里取出动作对象（只认 JSON；取不到就算"解析失败"，**不猜**）。
+    fn parse_eval_action(text: &str) -> JsonValue {
+        let trimmed = text.trim();
+        let candidate = trimmed
+            .strip_prefix("```json")
+            .and_then(|rest| rest.strip_suffix("```"))
+            .unwrap_or(trimmed)
+            .trim();
+        serde_json::from_str::<JsonValue>(candidate)
+            .ok()
+            .and_then(|value| value.get("action").cloned().or(Some(value)))
+            .unwrap_or(JsonValue::Null)
+    }
+
+    /// 三条**可自动判定**的规则（与反馈块要改善的三类错误一一对应）。
+    fn judge_eval_action(action: &JsonValue, fixture: &EvalFixture) -> JsonValue {
+        let target = action.get("target").and_then(JsonValue::as_str);
+        let references: std::collections::HashSet<String> = observation_references(&fixture.observation.state);
+        let in_observation = target.is_some_and(|target| references.contains(target));
+        let repeats_previous = target.is_some_and(|target| target == fixture.previous_target);
+        let previous_feedback = bounded_step_feedback(&fixture.previous);
+        let uncertain = previous_feedback["forbids_automatic_replay"] == json!(true);
+        json!({
+            "parsed": !action.is_null(),
+            "target": target,
+            "target_in_observation": in_observation,
+            "repeats_previous_target": repeats_previous,
+            "replayed_after_uncertain": uncertain && repeats_previous,
+        })
+    }
+
+    /// 统计两臂的三类错误次数（**不做显著性断言**：样本小，只如实报数）。
+    fn summarize_eval(rows: &[JsonValue]) -> JsonValue {
+        let mut arms = serde_json::Map::new();
+        for arm in ["baseline", "feedback"] {
+            let mut total = 0usize;
+            let mut unparsed = 0usize;
+            let mut wrong_target = 0usize;
+            let mut repeated = 0usize;
+            let mut replayed_after_uncertain = 0usize;
+            for row in rows {
+                for entry in row["arms"].as_array().into_iter().flatten() {
+                    if entry["arm"] != json!(arm) {
+                        continue;
+                    }
+                    total += 1;
+                    let rules = &entry["rules"];
+                    if rules["parsed"] != json!(true) {
+                        unparsed += 1;
+                    }
+                    if rules["target_in_observation"] != json!(true) {
+                        wrong_target += 1;
+                    }
+                    if rules["repeats_previous_target"] == json!(true) {
+                        repeated += 1;
+                    }
+                    if rules["replayed_after_uncertain"] == json!(true) {
+                        replayed_after_uncertain += 1;
+                    }
+                }
+            }
+            arms.insert(
+                arm.to_string(),
+                json!({
+                    "runs": total,
+                    "unparsed": unparsed,
+                    "wrong_target": wrong_target,
+                    "repeated_action": repeated,
+                    "replayed_after_uncertain": replayed_after_uncertain,
+                }),
+            );
+        }
+        json!({"note": "样本小（每臂 10 次），只报数不做显著性断言；素材为合成占位，非 R4–R6 真实录制", "arms": arms})
+    }
+
+    /// **CU-03 模型评测**（`#[ignore]`：真实模型调用、消耗预算；手动运行）。
+    ///
+    /// ```text
+    /// cargo test -p coolzhu-web-console --offline cu03_model_planning_comparison -- --ignored --nocapture
+    /// ```
+    ///
+    /// 素材与模型的如实标注见 `paint_like_observations` 与测试体；结果写 `tmp/cu03-eval/results.json`。
+    #[tokio::test]
+    #[ignore = "真实模型调用（消耗预算）：默认不跑，需显式 --ignored"]
+    async fn cu03_model_planning_comparison_baseline_vs_feedback() {
+        let model = std::env::var("COOLZHU_CU03_EVAL_MODEL")
+            .unwrap_or_else(|_| "claude-sonnet-4-6".to_string());
+        // 传输层如实标注：本机配的是**第三方代理**（`ANTHROPIC_BASE_URL`），其 `/v1/messages`
+        // 响应**缺 `id`**（Anthropic 形状但不带该字段），适配器的 Anthropic 解析器会拒绝
+        // （实测报 `missing field id`）；而它的 `/v1/chat/completions` 是标准 OpenAI 形状
+        // ⇒ 评测走 **OpenAI 兼容客户端**并把 base_url 指向同一代理。
+        // 这只影响评测的**传输**，不影响被测对象（提示词与反馈块是同一份产品代码）。
+        let api_key = std::env::var("COOLZHU_CU03_EVAL_API_KEY")
+            .or_else(|_| std::env::var("ANTHROPIC_AUTH_TOKEN"))
+            .expect("评测需要 API key（COOLZHU_CU03_EVAL_API_KEY 或 ANTHROPIC_AUTH_TOKEN）");
+        let base_url = std::env::var("COOLZHU_CU03_EVAL_BASE_URL")
+            .or_else(|_| std::env::var("ANTHROPIC_BASE_URL"))
+            .expect("评测需要 base_url（COOLZHU_CU03_EVAL_BASE_URL 或 ANTHROPIC_BASE_URL）");
+        let previous_base_url = std::env::var_os("OPENAI_BASE_URL");
+        std::env::set_var("OPENAI_BASE_URL", &base_url);
+        let client = api::OpenAiCompatClient::new(api_key, api::OpenAiCompatConfig::openai());
+        let request = ComputerUseRequest {
+            objective: "在画布上画一条从左到右的横线".to_string(),
+            surface: ComputerUseSurface::Desktop,
+            target: None,
+            success_criteria: vec!["画布出现新线条".to_string()],
+            constraints: vec!["不要点工具栏".to_string()],
+        };
+        let fixtures = paint_like_observations();
+        let mut rows = Vec::new();
+        for fixture in &fixtures {
+            let mut arms = Vec::new();
+            for arm in ["baseline", "feedback"] {
+                let mut prompt = planning_prompt(&request, &fixture.observation, fixture.step, None);
+                if arm == "feedback" {
+                    prompt["previous_step_feedback"] = bounded_step_feedback(&fixture.previous);
+                }
+                let response = client
+                    .send_message(&api::MessageRequest {
+                        model: model.clone(),
+                        max_tokens: 1_024,
+                        messages: vec![api::InputMessage::user_text(prompt.to_string())],
+                        system: Some(
+                            "你是 Computer Use 规划器：只输出符合 response_schema 的 JSON，不要解释。"
+                                .to_string(),
+                        ),
+                        tools: None,
+                        tool_choice: None,
+                        reasoning_effort: None,
+                        stream: false,
+                    })
+                    .await
+                    .expect("模型请求必须成功（失败即中止评测，避免得出无意义的统计）");
+                let action = parse_eval_action(&crate::answer_text(&response.content));
+                arms.push(json!({
+                    "arm": arm,
+                    "action": action,
+                    "rules": judge_eval_action(&action, fixture),
+                }));
+            }
+            rows.push(json!({
+                "step": fixture.step,
+                "previous_input_status": bounded_step_feedback(&fixture.previous)["input_status"],
+                "arms": arms,
+            }));
+        }
+        let payload = json!({
+            "model": model,
+            "fixture": "合成占位观察（Paint 形态；**不是** R4–R6 真实录制）",
+            "runs_per_arm": fixtures.len(),
+            "summary": summarize_eval(&rows),
+            "rows": rows,
+        });
+        let directory = std::path::Path::new("tmp/cu03-eval");
+        std::fs::create_dir_all(directory).expect("create eval dir");
+        std::fs::write(
+            directory.join("results.json"),
+            serde_json::to_string_pretty(&payload).expect("serialize"),
+        )
+        .expect("write results");
+        match previous_base_url {
+            Some(value) => std::env::set_var("OPENAI_BASE_URL", value),
+            None => std::env::remove_var("OPENAI_BASE_URL"),
+        }
+        println!("[cu03] base_url={base_url} model={model}");
+        println!("[cu03] {}", serde_json::to_string(&payload["summary"]).unwrap());
+        println!("[cu03] 明细：tmp/cu03-eval/results.json");
+    }
+
     #[test]
     /// **CU-03 回放装置**：同一份固定观察可以只生成提示词（**不发任何模型请求**），
     /// 于是"基线与反馈版对照"能离线做——这正是裁决里"仅离线判方案"那一半。
