@@ -5,7 +5,7 @@
 - **验证基线**（本轮末实跑）：web-console **1135/0**、computer-use-core 123/0、windows-process-guard 50/0（1 ignored，另见 §7）、tool-registry 54/0、core-runtime **312/0**、module_linkage_smoke 4/0、app-launcher 64/0 + 5/0。
 - **本文件所有"锚点"都可用 §6 的命令核验**，不是凭记忆写的。
 
-> **2026-09-27 当前口径**：本文件下文保留 2026-09-26 各阶段记录，尤其 §9.1–9.5 的“Step 4 尚未完成”和 1215/132 项门禁数字已是历史快照，不能再当当前状态。最新逐项矩阵、实操证据、0.2.17 打包与安装结果见 [0.2.17 功能核查与针对性测试设计](../../testing/release-0.2.17/functional-verification-and-test-design.md)。当前工作区回归 `2367 passed / 0 failed / 4 ignored`，CU core `139/0`；两相 helper T1/T11/T6-A/B/C 已通过。0.2.17 MSI 已生成并升级安装，10/10 已安装二进制哈希一致；原生安装版窗口与 Paint 实操截图未获得，S0–S6 不得标作全通过。
+> **2026-09-27 当前口径**：本文件下文保留 2026-09-26 各阶段记录，尤其 §9.1–9.5 的“Step 4 尚未完成”和 1215/132 项门禁数字已是历史快照，不能再当当前状态。最新逐项矩阵、实操证据、0.2.17 打包与安装结果见 [0.2.17 功能核查与针对性测试设计](../../testing/release-0.2.17/functional-verification-and-test-design.md)；代码在 [Draft PR #67](https://github.com/coolzhulike/coolzhuagent/pull/67)。当前工作区回归 `2367 passed / 0 failed / 4 ignored`，CU core `139/0`；两相 helper T1/T11/T6-A/B/C 已通过。0.2.17 MSI 已生成并升级安装，10/10 已安装二进制哈希一致；原生安装版窗口与 Paint 实操截图未获得，S0–S6 不得标作全通过。
 
 ## 1. 实施计划完成情况
 

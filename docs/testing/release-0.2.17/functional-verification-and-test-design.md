@@ -12,7 +12,7 @@
 
 证据判定：E1 证明被覆盖的代码行为；E2 证明拍摄时源码构建的原生/浏览器软件可见行为；最终安装版原生窗口、Paint 等必须另有 E3 截图与实际回执，才满足用户指定的最终验收标准。
 
-安装包身份：`dist/CoolzhuAgent-0.2.17.msi`，SHA256 `35584E5291D9C86CE244F9B6F63C632DA29E8519306E9A577B145D2ADB87B0EB`；包根 digest `ee6cf8adf268908df97798cc17b3b1c2a3cec52941e9ab012cded61e9cb13ef6`；源码快照 digest `fc2da23ade641f33c8d6172b13fce37b1e2579437985f6e64102eeab689affbe`。打包脚本已将包报告归档到 `evidence/build-identity/`。安装日志 `tmp/2026-09-26-completion/msiexec-install-0.2.17.log` 属本机忽略区，不随 PR 分发。
+安装包身份：`dist/CoolzhuAgent-0.2.17.msi`，SHA256 `35584E5291D9C86CE244F9B6F63C632DA29E8519306E9A577B145D2ADB87B0EB`；包根 digest `ee6cf8adf268908df97798cc17b3b1c2a3cec52941e9ab012cded61e9cb13ef6`；源码快照 digest `fc2da23ade641f33c8d6172b13fce37b1e2579437985f6e64102eeab689affbe`。打包脚本已将包报告归档到 `evidence/build-identity/`。安装日志 `tmp/2026-09-26-completion/msiexec-install-0.2.17.log` 属本机忽略区，不随 PR 分发。代码与本报告已提交 [Draft PR #67](https://github.com/coolzhulike/coolzhuagent/pull/67)，待完成原生现场验收后才能转为正式评审。
 
 ## 2. 关键改动及可设计用例的契约
 
@@ -88,4 +88,4 @@
 | 6.1 | 诊断与运行轨迹有代码和 E2 显示 | 健康故障注入、日志轮转/配额、脱敏导出 |
 | 6.2 | schema27 WAL 备份、前向拒绝测试通过 | 升级/降级、配置和秘密成套恢复、用户真实数据差异 |
 | 6.3 | 隔离源码构建中原生/浏览器 E2 截图及 Qwen 云模型试验已归档；0.2.17 安装和已安装后端启动通过 | 0.2.17 原生窗口、Paint、低高度及取消截图缺失 |
-| 6.4 | 本报告、自动归档的包身份和发布脚本可追溯代码/测试；0.2.17 MSI 与安装日志已生成 | 签名证书/签名、最终 PR 和原生现场证据仍待补 |
+| 6.4 | 本报告、自动归档的包身份和发布脚本可追溯代码/测试；0.2.17 MSI 与安装日志已生成，Draft PR #67 已开 | 签名证书/签名和原生现场证据仍待补；PR 保持 Draft |
