@@ -24,6 +24,8 @@ mod input_safety_store;
 // 8.2b／8.3b（2026-09-26 授权）：许可登记与执行者实例登记的 SQLite 适配（v3 联合迁移）。
 mod input_permit_store;
 // 2026-09-26 授权 §5：宿主 bin 的测试接缝（协调器在 bin 内部，集成测试无法导入）。
+// 8.2c：执行许可门（§七 顺序），供执行器在逐动作 fail-closed 点调用。
+mod input_permit_gate;
 #[cfg(test)]
 mod input_safety_harness;
 // RD4-03 语义基础：遗留 CU 运行的 owner 真实关系解析 + 资源不确定性评估（第八轮 §4 用例 4/5）。
