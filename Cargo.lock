@@ -767,6 +767,7 @@ dependencies = [
  "coolzhu-plugin-system",
  "coolzhu-vision-service",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
