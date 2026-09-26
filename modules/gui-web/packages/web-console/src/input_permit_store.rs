@@ -43,6 +43,21 @@ pub(crate) enum PermitStoreError {
     InvalidExecutor { field: &'static str, reason: &'static str },
     /// 条件更新没有命中（revision / 状态 / gate 已变）：调用方必须重新读取后再决定。
     ConditionNotMet { what: &'static str },
+    /// **许可已不是待激活**（已消费/已撤销/已结束等）：不得再次消费（§七）。
+    ///
+    /// 与 `PermitStale` 分开：这条说明"已经被用掉了"，不是"条件变了"。
+    PermitAlreadyConsumed { permit_id: String, state: InputPermitState },
+    /// **执行者实例不匹配**（§七 B126-T2／T4／T5）：许可绑定的执行者与当前已核实的执行者不一致。
+    ///
+    /// `permit_executor = None` 表示许可**没有**绑定执行者（B126-T4：不能消费）。
+    PermitExecutorMismatch {
+        permit_executor: Option<String>,
+        current_executor: String,
+    },
+    /// **条件更新未命中**：状态/revision/gate/epoch/执行者在"读到写"之间被他人改变（§七）。
+    ///
+    /// 这是并发事实，不是权限结论——调用方必须重新读取后再决定。
+    PermitStale { what: &'static str },
     /// **gate 版本已变化**（§B-124 §六 B124-T1）：旧闸门状态下的许可不得继续使用。
     StaleGateRevision {
         permit_gate_revision: u64,
@@ -79,6 +94,23 @@ impl std::fmt::Display for PermitStoreError {
             Self::ConditionNotMet { what } => {
                 write!(formatter, "条件更新未命中（{what}）：必须重新读取后再决定")
             }
+            Self::PermitAlreadyConsumed { permit_id, state } => write!(
+                formatter,
+                "许可 {permit_id} 当前状态为 {}，不是待激活：不得再次消费",
+                state.as_str()
+            ),
+            Self::PermitExecutorMismatch {
+                permit_executor,
+                current_executor,
+            } => write!(
+                formatter,
+                "许可绑定的执行者（{}）与当前已核实的执行者（{current_executor}）不一致：拒绝输入",
+                permit_executor.as_deref().unwrap_or("<未绑定>")
+            ),
+            Self::PermitStale { what } => write!(
+                formatter,
+                "许可条件在读取与写入之间被改变（{what}）：必须重新读取后再决定"
+            ),
             Self::StaleGateRevision {
                 permit_gate_revision,
                 current_gate_revision,
@@ -439,6 +471,13 @@ impl<'a> PermitStore<'a> {
         self.in_immediate_transaction("consume_permit", |connection| {
             let current = read_permit_state(connection, permit_id)?;
             let row = read_permit_columns(connection, permit_id)?;
+            // §七：先给"已经被用掉"一个**具体**诊断，而不是笼统的非法转换。
+            if current != InputPermitState::PendingActivation {
+                return Err(PermitStoreError::PermitAlreadyConsumed {
+                    permit_id: permit_id.to_string(),
+                    state: current,
+                });
+            }
             // 纯契约判定：只能从待激活出发。
             let next = current
                 .transition_to(InputPermitState::DispatchCommitted)
@@ -463,44 +502,40 @@ impl<'a> PermitStore<'a> {
                     current_epoch: budget.held_epoch,
                 });
             }
-            // 越界前执行者关联必须齐备（§3.2）；要么登记时已有，要么此刻显式绑定。
-            let executor = match (row.executor_instance_id.as_deref(), execution_bound) {
-                (Some(bound), PermitExecutorBinding::AlreadyBound(bound_id))
-                    if bound == bound_id =>
-                {
-                    bound_id.to_string()
-                }
-                (Some(bound), PermitExecutorBinding::BindTo(bound_id)) => {
-                    let _ = bound;
-                    bound_id.to_string()
-                }
-                (None, PermitExecutorBinding::BindTo(bound_id)) => bound_id.to_string(),
-                _ => {
-                    return Err(PermitStoreError::ConditionNotMet {
-                        what: "越过派发边界前必须建立执行者实例关联",
-                    })
-                }
+            // §七：**执行者身份必须已验证且一致**——consume 只做**核对**，不再"顺手绑定"。
+            // 许可没有绑定执行者（`None`）时**不能**消费（B126-T4）：那不是许可，是半成品。
+            let current_executor = match execution_bound {
+                PermitExecutorBinding::Verified(executor_instance_id) => executor_instance_id,
             };
-            // 条件更新：把状态与 revision 一起推进（乐观并发，不用最后写入覆盖）。
+            if row.executor_instance_id.as_deref() != Some(current_executor) {
+                return Err(PermitStoreError::PermitExecutorMismatch {
+                    permit_executor: row.executor_instance_id.clone(),
+                    current_executor: current_executor.to_string(),
+                });
+            }
+            // 条件更新带上**全部**谓词（§七）：状态、revision、gate、epoch、执行者一起核对。
+            // 少任何一个谓词都等于"重新相信数据库"，中间被污染就会放行。
             let changed = connection
                 .execute(
                     "UPDATE input_safety_permits
-                        SET state = ?1, revision = revision + 1, executor_instance_id = ?2,
-                            updated_at_unix_ms = ?3
-                      WHERE permit_id = ?4 AND state = ?5 AND revision = ?6",
+                        SET state = ?1, revision = revision + 1, updated_at_unix_ms = ?2
+                      WHERE permit_id = ?3 AND state = ?4 AND revision = ?5
+                        AND gate_revision = ?6 AND issued_epoch = ?7 AND executor_instance_id = ?8",
                     rusqlite::params![
                         next.as_str(),
-                        executor,
                         now_unix_ms as i64,
                         permit_id,
                         current.as_str(),
                         row.revision as i64,
+                        budget.gate_revision as i64,
+                        budget.held_epoch as i64,
+                        current_executor,
                     ],
                 )
                 .map_err(map_write_error)?;
             if changed != 1 {
-                return Err(PermitStoreError::ConditionNotMet {
-                    what: "许可状态或 revision 已被他人改变",
+                return Err(PermitStoreError::PermitStale {
+                    what: "状态 / revision / gate / epoch / 执行者在读取与写入之间被改变",
                 });
             }
             Ok(next)
@@ -662,13 +697,14 @@ pub(crate) struct PermitConsumptionBudget {
     pub held_epoch: u64,
 }
 
-/// 越界前如何取得执行者关联（§3.2 的创建顺序）。
+/// consume 时提供的**已核实**执行者实例（§七：身份先就绪，再核对，不在 consume 里补绑）。
+///
+/// 刻意只有一个变体：它表达"调用方已经**独立核实**过这个执行者实例"，
+/// 因此不存在"顺手绑一个字符串"的入口——那正是 B-121／B-124 同源的错误。
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum PermitExecutorBinding<'a> {
-    /// 登记时已绑定（Pending 记录也可以先不绑定，见 `register_pending`）。
-    AlreadyBound(&'a str),
-    /// 此刻显式绑定。
-    BindTo(&'a str),
+    /// 已核实的执行者实例 id（必须与许可绑定的一致，否则拒绝）。
+    Verified(&'a str),
 }
 
 fn read_permit_state(
@@ -988,7 +1024,8 @@ mod tests {
             issued_owner_id: "owner-1".to_string(),
             issued_epoch: 3,
             expires_at_unix_ms: 10_000,
-            executor_instance_id: None,
+            // §七：许可在**登记时**绑定执行者实例；consume 只做核对，不再"顺手绑定"。
+            executor_instance_id: Some("exec-1".to_string()),
             state: InputPermitState::PendingActivation,
             revision: 1,
             revocation_reason: None,
@@ -1207,7 +1244,7 @@ mod tests {
             let outcome = permits.consume_permit(
                 "permit-1",
                 PermitConsumptionBudget { gate_revision: 8, ..budget() },
-                PermitExecutorBinding::BindTo("exec-1"),
+                PermitExecutorBinding::Verified("exec-1"),
                 3,
             );
             assert!(outcome.is_err(), "先关闸则消费必须失败");
@@ -1229,7 +1266,7 @@ mod tests {
                 .consume_permit(
                     "permit-1",
                     budget(),
-                    PermitExecutorBinding::BindTo("exec-1"),
+                    PermitExecutorBinding::Verified("exec-1"),
                     2,
                 )
                 .expect("先消费必须成功");
@@ -1256,17 +1293,17 @@ mod tests {
             .register_pending(&permit("permit-1", "action-1"), InputPermitState::PendingActivation, 1)
             .expect("register");
         permits
-            .consume_permit("permit-1", budget(), PermitExecutorBinding::BindTo("exec-1"), 2)
+            .consume_permit("permit-1", budget(), PermitExecutorBinding::Verified("exec-1"), 2)
             .expect("first consume");
         let again = permits.consume_permit(
             "permit-1",
             budget(),
-            PermitExecutorBinding::BindTo("exec-1"),
+            PermitExecutorBinding::Verified("exec-1"),
             3,
         );
         assert!(
-            matches!(again, Err(PermitStoreError::IllegalTransition(_))),
-            "重复消费必须因状态已变而被拒（不产生第二次执行资格）：{again:?}"
+            matches!(again, Err(PermitStoreError::PermitAlreadyConsumed { .. })),
+            "重复消费必须被拒为「已消费」（§七：可分辨失败，不统一成 false）：{again:?}"
         );
         // 同一 action 重复登记也必须被拒（不新建许可）。
         let duplicate = permits.register_pending(
@@ -1326,7 +1363,7 @@ mod tests {
             permits.consume_permit(
                 "permit-missing",
                 budget(),
-                PermitExecutorBinding::BindTo("exec-1"),
+                PermitExecutorBinding::Verified("exec-1"),
                 1
             ),
             Err(PermitStoreError::PermitNotFound { .. })
@@ -1374,7 +1411,7 @@ mod tests {
         for id in ["permit-1", "permit-2"] {
             let state = store
                 .permit_store()
-                .consume_permit(id, budget(), PermitExecutorBinding::BindTo("exec-1"), 3)
+                .consume_permit(id, budget(), PermitExecutorBinding::Verified("exec-1"), 3)
                 .expect("两次尝试都应可消费");
             assert_eq!(state, InputPermitState::DispatchCommitted);
         }
@@ -1507,7 +1544,7 @@ mod tests {
         let outcome = permits.consume_permit(
             "permit-1",
             PermitConsumptionBudget { gate_revision: 11, ..budget() },
-            PermitExecutorBinding::BindTo("exec-1"),
+            PermitExecutorBinding::Verified("exec-1"),
             2,
         );
         match outcome {
@@ -1527,7 +1564,7 @@ mod tests {
                 .consume_permit(
                     "permit-1",
                     budget(),
-                    PermitExecutorBinding::BindTo("exec-1"),
+                    PermitExecutorBinding::Verified("exec-1"),
                     3
                 )
                 .expect("gate 正确时必须消费成功"),
@@ -1549,7 +1586,7 @@ mod tests {
         let outcome = permits.consume_permit(
             "permit-1",
             PermitConsumptionBudget { held_epoch: 4, ..budget() },
-            PermitExecutorBinding::BindTo("exec-1"),
+            PermitExecutorBinding::Verified("exec-1"),
             2,
         );
         match outcome {
@@ -1576,7 +1613,7 @@ mod tests {
             .register_pending(&permit("permit-1", "action-1"), InputPermitState::PendingActivation, 1)
             .expect("经窄口登记");
         let consumed = permits
-            .consume_permit("permit-1", budget(), PermitExecutorBinding::BindTo("exec-1"), 2)
+            .consume_permit("permit-1", budget(), PermitExecutorBinding::Verified("exec-1"), 2)
             .expect("经窄口消费");
         assert_eq!(consumed, InputPermitState::DispatchCommitted);
 
@@ -1596,7 +1633,7 @@ mod tests {
         let refused = permits.consume_permit(
             "permit-2",
             PermitConsumptionBudget { gate_revision: 8, ..budget() },
-            PermitExecutorBinding::BindTo("exec-1"),
+            PermitExecutorBinding::Verified("exec-1"),
             5,
         );
         assert!(refused.is_err(), "关闸在先时，经窄口的消费同样必须失败");

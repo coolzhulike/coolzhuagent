@@ -87,6 +87,12 @@ pub(crate) struct IssuedExecutionPermit {
     pub attempt_key: String,
     pub gate_revision: u64,
     pub recovery_epoch: u64,
+    /// **已核实的执行者实例 id**（`None` = 尚未就绪）。
+    ///
+    /// 按 2026-09-26 裁决"先补 8.3c 生产者、再接 consume"：在真实执行者身份可生产之前，
+    /// 本字段保持 `None`，且 `recheck_and_consume` 会据此**明确拒绝**——
+    /// 绝不用尝试身份或任何相似字符串顶替（与 B-121／B-124 同源的原则）。
+    pub executor_instance_id: Option<String>,
     root: PathBuf,
     scope: InputSafetyResourceScope,
 }
@@ -114,6 +120,12 @@ impl IssuedExecutionPermit {
                 self.recovery_epoch, current.recovery_epoch
             )));
         }
+        // 执行者身份：**尚未就绪就必须拒绝**（不猜、不自绑）。
+        let Some(executor_instance_id) = self.executor_instance_id.as_deref() else {
+            return Err(PermitGateRefusal::StaleOrRefused(
+                "执行者实例身份尚未就绪：按裁决先补 8.3c 生产者，再开放许可消费".to_string(),
+            ));
+        };
         let budget = PermitConsumptionBudget {
             gate_revision: current.revision,
             held_epoch: current.recovery_epoch,
@@ -123,15 +135,15 @@ impl IssuedExecutionPermit {
             .consume_permit(
                 &self.permit_id,
                 budget,
-                // 执行者绑定由调用方在接线时提供真实实例 id；本单元先以尝试身份自绑，
-                // 待 8.3c 执行者登记接线后改为传真实 `executor_instance_id`。
-                PermitExecutorBinding::BindTo(&self.attempt_key),
+                PermitExecutorBinding::Verified(executor_instance_id),
                 0,
             )
             .map_err(|error| match error {
                 PermitStoreError::StaleGateRevision { .. }
                 | PermitStoreError::StaleRecoveryEpoch { .. }
-                | PermitStoreError::ConditionNotMet { .. }
+                | PermitStoreError::PermitAlreadyConsumed { .. }
+                | PermitStoreError::PermitExecutorMismatch { .. }
+                | PermitStoreError::PermitStale { .. }
                 | PermitStoreError::IllegalTransition(_) => {
                     PermitGateRefusal::StaleOrRefused(error.to_string())
                 }
@@ -213,6 +225,8 @@ impl PermitGate {
             attempt_key: attempt.stable_key(),
             gate_revision: state.revision,
             recovery_epoch: state.recovery_epoch,
+            // 8.3c 生产者接线前**保持 None**：许可能签发、但**不能**消费（fail-closed）。
+            executor_instance_id: None,
             root: root.to_path_buf(),
             scope: scope.clone(),
         })
@@ -249,9 +263,11 @@ mod tests {
             .expect("put resource state");
     }
 
-    /// §七 的正常路径：签发 → 复核通过 → 消费成功。
+    /// 签发可用；但在 8.3c 生产者接线前，**消费必须失败**（执行者身份未就绪）。
+    ///
+    /// 这条是"先补 8.3c、再接 consume"的可执行形式：宁可拒绝，也不用尝试身份自绑。
     #[test]
-    fn issue_recheck_and_consume_succeed_on_the_happy_path() {
+    fn issue_works_but_consume_is_refused_until_the_executor_identity_exists() {
         let directory = root();
         seed_store(directory.path(), 7, 3);
         let issued = PermitGate::issue(
@@ -264,10 +280,24 @@ mod tests {
             1,
             1_000,
         )
-        .expect("签发");
+        .expect("签发可用（签发不需要执行者）");
         assert_eq!((issued.gate_revision, issued.recovery_epoch), (7, 3));
-        let state = issued.recheck_and_consume().expect("复核并消费");
-        assert_eq!(state, InputPermitState::DispatchCommitted);
+        assert_eq!(issued.executor_instance_id, None, "生产者接线前必须保持 None");
+        let refusal = issued
+            .recheck_and_consume()
+            .expect_err("执行者身份未就绪时必须拒绝消费");
+        assert_eq!(refusal.code(), "input_permit_stale_or_refused");
+        assert!(
+            refusal.reason().contains("执行者实例身份尚未就绪"),
+            "{}",
+            refusal.reason()
+        );
+        // 许可仍是待激活（拒绝不等于放过，也没有被"顺手绑定"）。
+        let store = InputSafetyStore::open_at(directory.path()).expect("open");
+        assert_eq!(
+            store.permit_store().load_permit(&issued.permit_id).expect("load").state,
+            InputPermitState::PendingActivation
+        );
     }
 
     /// §七 的核心：**物理输入前复核**能抓住"签发之后、输入之前"的关闸。
