@@ -93,9 +93,15 @@ fn only_the_controlled_input_entry_is_reachable_from_automation() {
     }
 
     // ② 自动输入路径必须引用受控入口。
+    //
+    // 2026-09-26 入口清单核对（§B-112）补上 `computer_use_desktop_bridge.rs`：
+    // 它才是**桌面 CU 真正注入输入的地方**（click/drag/key/scroll/text 全在这里落地），
+    // 而原先只断言了同 crate 的 `main.rs`——这等于让最关键的那条路径落在断言之外。
+    // 实测它本就使用 `controlled_*`，因此补进清单立即通过，作用是**防将来回归**。
     for automation in [
         "modules/gui-desktop/packages/desktop-console/src/desktop_agent.rs",
         "modules/gui-web/packages/web-console/src/main.rs",
+        "modules/gui-web/packages/web-console/src/computer_use_desktop_bridge.rs",
     ] {
         let contents = &sources
             .iter()

@@ -2888,6 +2888,53 @@ web-console **1189/0**（1 ignored＝真实调用评测）、module_linkage_smok
 以及阶段重试／错误父运行／跨工作区引用／父运行取消／迟到回执不重开旧阶段这五个场景。
 这些都以"宿主登记"为前置，属 §9.1 的「优先并串行 R3／R4 执行者权威登记」之后。
 
+### B-112 收口两项无风险待办：**.gitattributes 隔离检出验证**（§7.2 剩余）＋**正式输入入口清单核对**
+
+#### 一、`.gitattributes` 前向基线在**隔离检出**中验证（补 §7.2 要求的那一步）
+
+§7.2 明确要求"使用 `git check-attr`／`git ls-files --eol` 检查实际生效属性与行尾，**再在隔离检出中验证**；
+不把属性文件存在等同于规则实际生效"。上一轮只做到属性查询，本轮把隔离检出补上：
+
+`git worktree add --detach <临时目录> HEAD`（自动应用已提交的属性）后核对：
+
+| 维度 | 主工作区 | **隔离检出** |
+| --- | --- | --- |
+| `i/lf w/lf` | 772 | **827** |
+| `i/lf w/crlf`（仓库 LF、工作区 CRLF） | 55 | **0** |
+| `i/-text w/-text`（不归一化） | 803 | 803 |
+| `i/crlf w/crlf`（语料库原样保留） | 8 | 8 |
+
+逐字节抽查：`Cargo.lock`、`modules/browser-extension/service_worker.js`、
+`modules/gui-web/packages/web-console/src/app.js` 在隔离检出里**均为 LF**；
+语料库 `samples/paint-r1/paint-r1-audit.json` **仍为 CRLF**（与清单记录的 sha256 一致）。
+⇒ 恢复的那条 `* text=auto eol=lf` **确实生效**：主工作区那 55 个"仓库 LF／工作区 CRLF"的文件，
+在干净检出中全部落成 LF；而语料库的字节固定未被该全仓规则破坏（更深文件的 `-text` 就近优先）。
+随后 `git worktree remove --force` 清理，`git worktree list` 只剩主工作区。
+
+#### 二、正式输入入口清单核对（只读审计）＋**补上一处守卫覆盖缺口**
+
+裁决要求"按入口清单核对现有受控原语的消费；不预设必须再造 `NativeInputExecutor`"。审计结果：
+
+| 正式输入入口（生产代码） | 使用的原语 | 结论 |
+| --- | --- | --- |
+| `gui-web/web-console/src/computer_use_desktop_bridge.rs` | `controlled_click`／`controlled_drag_path`／`controlled_key_combo`／`controlled_scroll`／`controlled_type_text`／`controlled_input` | ✅ 全受控 |
+| `gui-web/web-console/src/main.rs` | `controlled_eval_input`／`controlled_mouse_button_action`／`controlled_mouse_button_state`／`controlled_move_mouse_absolute`／`controlled_press_key`／`controlled_type_text` | ✅ 全受控 |
+| `gui-desktop/desktop-console/src/desktop_agent.rs` | 7 个 `controlled_*`，且**统一经 `controlled_call(...)`** 包装 | ✅ 全受控 |
+| `computer-use-core/src/input_stroke.rs`／`input.rs` | 受控族的**定义处** | ✅ 库，不注入 |
+| `computer-use-core/src/bin/check.rs`、`desktop-console/src/main.rs` | `diagnostic_*` | ✅ 已在守卫允许清单内（诊断/自检用途） |
+
+**审计发现的缺口**：根级守卫 `only_the_controlled_input_entry_is_reachable_from_automation` 的第 ② 条
+只断言了 `desktop_agent.rs` 与 web-console 的 `main.rs`，却**没有**断言
+`computer_use_desktop_bridge.rs`——而它才是**桌面 CU 真正注入输入的地方**（click/drag/key/scroll/text
+都在这里落地）。也就是说：最关键的那条路径当时落在断言之外。
+
+**已修（只加断言，不改生产代码）**：把 `computer_use_desktop_bridge.rs` 补进 ② 的清单。
+实测它本就使用 `controlled_*`，因此补入后立即通过，作用是**防将来回归**。
+**判别性验证**：把该文件里的一条 `controlled_drag_path(` 改回 `diagnostic_drag_point(`（模拟回归），
+守卫立刻报"引用了无生命周期输入原语（diagnostic_*）：自动路径必须走 controlled_*"⇒ 这条断言是活的。
+
+**门禁**：module_linkage_smoke **8/0**（断言增强，未增用例数）；本次未改任何生产代码。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
