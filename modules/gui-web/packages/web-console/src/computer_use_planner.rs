@@ -669,12 +669,8 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         let mut budget = require_stage_budget(remaining, PLANNER_TIMEOUT, "computer_use_planning")?;
         let agent = self.agent()?;
         let capabilities = observation.state.get("capabilities").and_then(|value| serde_json::from_value(value.clone()).ok());
-        let mut prompt = json!({"schema_version":1,"surface":observation.surface,"step":step,
-            "objective":request.objective,"target":request.target,"constraints":request.constraints,
-            "success_criteria":request.success_criteria,"observation_generation":observation.generation,
-            "capabilities":capabilities,"observation":bounded_observation(&observation.state),
-            "response_schema":planner_response_schema(observation.surface,capabilities),
-            "action_example":{"done":false,"action":{"kind":"click","target":if observation.surface == ComputerUseSurface::Desktop {"uia-<latest-reference>"} else {"dom-<latest-reference>"},"arguments":{}}}});
+        // 提示词由**纯函数**构造 ⇒ 可用固定观察离线回放（不发请求），见 `planning_prompt`。
+        let mut prompt = planning_prompt(request, observation, step, capabilities);
         // CU-03：把**上一步的事实**作为有界反馈附进规划请求（无上一步则不带该键）。
         // 只放白名单字段、每字段截断并标注、整块有界；理由由事实推出（见 `bounded_step_feedback`）。
         if let Some(previous) = self.step_feedback(step) {
@@ -943,6 +939,27 @@ fn bounded_text(raw: &str) -> String {
 /// 3. **理由来自事实**：例如"可能已注入部分输入"才说"不得原样重放"，不是无条件劝退。
 ///
 /// 它是**纯函数**（只吃一行步骤读数）⇒ 不需要真实模型即可验证"无泄漏"与"有界"。
+/// **规划提示词的纯构造**（从 `plan()` 里抽出，使提示词**可离线回放与断言**）。
+///
+/// 为什么值得抽：CU-03 的验收要求"固定记录的观察回放、基线与反馈版对照"，而提示词原先只能在
+/// **真实模型调用**里被观察 ⇒ 无法离线判定"有没有泄漏 / 有没有超预算 / 反馈有没有带上"。
+/// 抽出后：同一份观察可以只生成提示词（不发任何请求），对照与断言都不花钱。
+///
+/// 取值与抽出前**逐字一致**（含 `response_schema` 与 `action_example`）。
+fn planning_prompt(
+    request: &ComputerUseRequest,
+    observation: &Observation,
+    step: usize,
+    capabilities: Option<computer_use::ComputerUseCapabilities>,
+) -> JsonValue {
+    json!({"schema_version":1,"surface":observation.surface,"step":step,
+        "objective":request.objective,"target":request.target,"constraints":request.constraints,
+        "success_criteria":request.success_criteria,"observation_generation":observation.generation,
+        "capabilities":capabilities,"observation":bounded_observation(&observation.state),
+        "response_schema":planner_response_schema(observation.surface,capabilities),
+        "action_example":{"done":false,"action":{"kind":"click","target":if observation.surface == ComputerUseSurface::Desktop {"uia-<latest-reference>"} else {"dom-<latest-reference>"},"arguments":{}}}})
+}
+
 fn bounded_step_feedback(previous: &crate::computer_use_store::RunStepReportRow) -> JsonValue {
     let delivery = computer_use::input::DeliveryFacts {
         input_delivery: match previous.input_delivery.as_deref() {
@@ -1655,6 +1672,83 @@ mod tests {
     /// 裁决第 14.6 项：规划请求的 attempt 必须是**真实复合键**（run#逻辑请求#重试序号），
     /// 重试得到新 attempt；身份不成立时保持未知，**不得**编造。
     #[test]
+    /// **CU-03 回放装置**：同一份固定观察可以只生成提示词（**不发任何模型请求**），
+    /// 于是"基线与反馈版对照"能离线做——这正是裁决里"仅离线判方案"那一半。
+    ///
+    /// 本轮先用一份**合成的、明确标注为占位**的观察（Paint 语义：有 canvas_rect 与元素）；
+    /// 真实 R4–R6 录制到位后替换 fixture 即可复用本装置与同一组断言。
+    #[test]
+    fn planning_prompt_replay_is_offline_bounded_and_feedback_distinguishable() {
+        let request = ComputerUseRequest {
+            objective: "在画布上画一条横线".to_string(),
+            surface: ComputerUseSurface::Desktop,
+            target: None,
+            success_criteria: vec!["画布出现新线条".to_string()],
+            constraints: vec!["不要点工具栏".to_string()],
+        };
+        // 占位观察（结构取自真实桌面观测的形态：window/elements/canvas_rect/image）。
+        let observation = |step: u64| Observation {
+            generation: step,
+            surface: ComputerUseSurface::Desktop,
+            surface_identity: "desktop:1".to_string(),
+            state: json!({
+                "window": {"reference": "uia-window-1", "name": "画图"},
+                "elements": [
+                    {"reference": "uia-1", "control_type": "Button", "name": "画笔",
+                     "selected": true, "toggle_state": null, "patterns": ["selection_item"]},
+                    {"reference": "uia-2", "control_type": "Button", "name": "橡皮"},
+                ],
+                "canvas_target": "window-canvas:1",
+                "canvas_rect": [0, 100, 800, 500],
+                "image": {"sha256": "placeholder", "path": "placeholder.png"},
+            }),
+            evidence: vec!["placeholder-evidence".to_string()],
+        };
+        // 基线（不带反馈）：提示词里**没有** feedback 键。
+        let baseline = super::planning_prompt(&request, &observation(4), 4, None);
+        assert!(
+            baseline.get("previous_step_feedback").is_none(),
+            "基线版不得带反馈键（对照才有意义）"
+        );
+        // 反馈版：附上上一步事实。
+        let previous = crate::computer_use_store::RunStepReportRow {
+            step_index: 3,
+            status: "input_sent".to_string(),
+            error_code: None,
+            input_delivery: Some("sent".to_string()),
+            partial: Some(true),
+            path_completed: None,
+            confirmed_point_count: Some(2),
+            effect_status: Some("effect_observed".to_string()),
+            goal_verdict: Some("failed".to_string()),
+            input_release_status: Some("unknown".to_string()),
+            visible_progress: false,
+        };
+        let mut feedback = baseline.clone();
+        feedback["previous_step_feedback"] = super::bounded_step_feedback(&previous);
+        assert!(feedback.get("previous_step_feedback").is_some());
+        // 两版都必须**有界**（含反馈的那版也在预算内）。
+        for (label, prompt) in [("基线", &baseline), ("反馈", &feedback)] {
+            let text = prompt.to_string();
+            assert!(
+                text.chars().count() <= super::STEP_FEEDBACK_CHAR_BUDGET + 64 * 1024,
+                "{label}提示词异常膨胀：{} 字符",
+                text.chars().count()
+            );
+        }
+        // 反馈块的**新增**部分必须在 2K token 预算内（口径见常量注释）。
+        let added = serde_json::to_string(&feedback["previous_step_feedback"]).expect("serialize");
+        assert!(
+            added.chars().count() <= super::STEP_FEEDBACK_CHAR_BUDGET,
+            "新增反馈超预算：{} 字符",
+            added.chars().count()
+        );
+        // 观察里的**图片/证据引用**不得被塞进反馈块（无泄漏）。
+        for forbidden in ["placeholder.png", "placeholder-evidence", "sha256"] {
+            assert!(!added.contains(forbidden), "反馈块泄漏了 `{forbidden}`：{added}");
+        }
+    }
+
     /// **CU-03**：上一步反馈必须**有界、无泄漏、理由来自事实**。
     ///
     /// "正确选择比例提高／重复动作减少"需要真实模型评测（另记台账）；这里钉住的是

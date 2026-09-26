@@ -2307,6 +2307,16 @@ fail-closed 正确，但**无路可走**（§B-84 记的 CU-F05-5 正半缺口�
 
 **门禁**：web-console **1153/0**、computer-use-core 127/0、`cargo build --workspace` ✅。
 
+**追加（同轮）：把"离线判方案"那一半做成**可执行**的装置**
+
+- **提示词抽成纯函数** `planning_prompt(request, observation, step, capabilities)`（取值与抽出前逐字一致）：
+  于是同一份观察可以**只生成提示词、不发任何模型请求** ⇒ 对照与断言都不花钱。
+- **回放用例** `planning_prompt_replay_is_offline_bounded_and_feedback_distinguishable`：
+  用一份**明确标注为占位**的 Paint 形态观察（含 `canvas_rect` 与带 `selected`/`patterns` 的元素），
+  生成基线版与反馈版两份提示词，断言：基线版**没有** feedback 键（对照才有意义）、反馈版有；
+  两版都有界；新增反馈部分在 2K token 预算内；且反馈块里**不得**出现观察中的图片路径与证据引用。
+- 真实 R4–R6 录制到位后，**替换观察素材即可复用**同一装置与同一组断言。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
