@@ -108,7 +108,10 @@
 | 真实崩溃变体 | 只在**真实库**上观察到"半途中断后重放"（已修并验证）；"恢复者进程被杀"的跨进程变体未构造 | §B-77 |
 | 由 launcher 启动的控制台进程内**输入安全联动** | 直接注入 env 运行已观察（走评估/保持隔离）；launcher→控制台链路的该行日志**未直接抓取**（进程由 launcher 派生） | §B-76 |
 | **签名** | 包为 `unsigned`；本轮不涉及 | §B-72 |
-| Phase 3／4／5 | CU 释放义务事实修复（**新 P0**）、`ExecutionOutcome`、`ActionScope`、Paint 事实链（CU-01/02 P0、CU-03/04/05 P1）、PKG-L07c-RACE、PowerShell fail-closed | §B-63、第八轮 §7–§11 |
+| ~~Phase 3 原表~~ **已撤回** | **本行原列的两条契约要求已由 2026-09-26 补充裁决正式撤回，不再是工单**：`ExecutionOutcome` 取代 `Result<StepExecution, ComputerUseError>`（撤回，保留既有 `Result` ＋ `ComputerUseError.receipt`）、新增 `ActionScope::NativeAction`（撤回，保留 `ContextKind`／`ActionSource` 正交设计） | §C-收口（撤回标记） |
+| CU 释放义务（原记「新 P0」） | **既有修复保留**（§B-43）：五态 `ReleaseObligationState` ＋ 唯一推导点 `derive_release_obligation` ＋ 消费侧闸门 `NotSent ⇒ NotNeeded`（`contracts.rs:237-246`）＋ 零填充已删除。**2026-09-26 逐符号核对仍在位**；不再作为待开工缺陷，只有真回归才重开 | §B-43、§C-收口 |
+| **本轮新拆出的独立项**（不得与既有测试混作同一证据） | ① **真实进程级崩溃装置**（已批准，隔离装置；组合测试 3 目前只到存活探针模拟）② **Goal 正向强父关系**（组合测试 5 只覆盖否定路径）③ **R3 撤销未激活许可**（无实现，本轮给出许可状态机与恢复自锁口径）④ **R4 跨进程执行者实例核查**（无实现，本轮给出权威来源＝宿主启动登记＋OS 实例证据＋helper 回执）⑤ **恢复操作员认证授权**（现状只有记录与并发一致性检查；**补齐前普通 HTTP 放行接口不得凭署名改变资源状态**） | 2026-09-26 补充裁决 §2–§6 |
+| Phase 4／5 剩余 | Paint 事实链剩余（CU03-CONFIRM 前提未满足、真实帧绑定拒绝需真实桌面、CU-05 现场 UIA 读取）、`PKG-L07c-RACE`、PowerShell fail-closed（已改，仅登记） | §B-102～§B-108、§C-收口-补 |
 | **GitHub PR** | 未提交：仓库**无远端**、`gh` **未安装**、环境**无 token**；工作保留在本地分支 `rd4-input-safety-and-pkg-integrity` | §B-74 |
 
 ## 6. 复现与核验命令（本文件"锚点"的验证方式）

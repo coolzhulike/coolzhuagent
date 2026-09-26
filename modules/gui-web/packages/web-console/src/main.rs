@@ -2694,7 +2694,23 @@ struct ReleaseIsolationResponse {
     message: String,
 }
 
-/// `POST /api/system/release-isolation`：记录人工放行决定，并尝试按资格开放。
+/// 恢复操作员**认证与授权是否已可用**。**当前恒为 `false`**——原生系统验证（取得真实
+/// Windows 用户身份）尚未实现，见第八轮补充裁决 §3。
+///
+/// 这是"公开 HTTP 放行入口能否改变资源状态"的**唯一开关点**：实现认证后，改为返回实际
+/// 验证结果，**不要另开旁路**、不要让 Web 请求传入 `verified=true`、不要退回纯署名。
+/// 保持恒 `false` 时该接口只做输入校验与阻断集合核对，绝不写放行决定、绝不开放新输入。
+const fn operator_authorization_available() -> bool {
+    false
+}
+
+/// 放行被拒绝时给调用者的**可行动**说明：不是"你没权限"，而是"这条通道还没建好"。
+const RELEASE_REQUIRES_VERIFIED_OPERATOR: &str =
+    "恢复操作员认证与授权尚未实现（第八轮补充裁决 §3）：本条 HTTP 通道当前**不得**改变资源状态，\
+     本次未记录放行决定、未开放新输入。放行必须经原生系统验证取得真实 Windows 用户身份后，\
+     在受信本机控制面完成；查询状态与提交复核请求不受影响。";
+
+/// `POST /api/system/release-isolation`：**校验并记录放行意图**；在操作者认证补齐前**不改变资源状态**。
 ///
 /// 三道硬约束（照抄 PR-01 决策）：
 /// 1. **必须署名 + 理由**（匿名放行等于没有责任人）；
@@ -2742,6 +2758,21 @@ async fn api_release_isolation(
         ));
     }
     drop(store);
+    // **第八轮补充裁决 §3.1／§9.1（2026-09-26）：公开的 HTTP 放行入口先 fail-closed。**
+    //
+    // 上面两道检查（400 署名/理由非空、409 阻断集合一致）只证明**输入合法**与**版本没冲突**，
+    // **不能**证明调用者有权放行——现状任何能访问本机控制台的客户端都能填一个署名就改资源状态。
+    // 裁决要求在"操作者认证与授权"补齐前，本接口**不得凭这些字段改变资源状态**。
+    // 因此：到达此处即拒绝，**不写放行决定、不开放新输入**；查询、提交复核请求、
+    // 打开原生确认面的能力保留（后者属下一执行单元：原生系统验证取得真实身份）。
+    //
+    // 这一层是**只收紧**：它不放开任何此前被拒绝的请求，只阻止一个本不该存在的放行路径。
+    if !operator_authorization_available() {
+        return Err(api_error(
+            StatusCode::FORBIDDEN,
+            RELEASE_REQUIRES_VERIFIED_OPERATOR,
+        ));
+    }
     let coordinator = input_safety_store::InputSafetyCoordinator::begin_with_coordination_scope(
         &safety_root,
         &coordination_scope,
@@ -62372,6 +62403,61 @@ pub(crate) mod tests {
         // 署名与理由必须在提交前收集（匿名放行等于没有责任人）。
         assert!(WEB_APP_JS.contains("放行署名"));
         assert!(WEB_APP_JS.contains("放行理由"));
+    }
+
+    /// **第八轮补充裁决 §3.1**：公开的 HTTP 放行入口在操作者认证补齐前**不得改变资源状态**。
+    ///
+    /// 这条不变式有三半，缺一半都等于没做到：
+    /// 1. **开关是关的**——`operator_authorization_available()` 当前必须为 `false`；
+    /// 2. **位置在写之前**——拒绝必须发生在 `begin_with_coordination_scope` 与
+    ///    `release_isolation_authorized` **之前**（否则等于先放行再检查，等于没检查）；
+    /// 3. **身份不经 Web 传入**——不得存在从请求体读 `verified` 之类的旁路。
+    #[test]
+    fn public_release_endpoint_cannot_change_state_until_operator_auth_exists() {
+        assert!(
+            !super::operator_authorization_available(),
+            "操作者认证尚未实现时，开关必须保持关闭；实现后请连同本用例一起改，\
+             不要为了让它变绿而直接返回 true"
+        );
+        assert!(
+            super::RELEASE_REQUIRES_VERIFIED_OPERATOR.contains("不得")
+                && super::RELEASE_REQUIRES_VERIFIED_OPERATOR.contains("未记录放行决定"),
+            "拒绝文案必须说清「不得改变资源状态、本次未记录放行」，而不是含糊的权限不足"
+        );
+
+        // 源码顺序：拒绝点在两个写动作之前。
+        let source = include_str!("main.rs");
+        let function = source
+            .find("async fn api_release_isolation(")
+            .expect("放行接口必须存在");
+        let body = &source[function..];
+        let end = body.find("\nasync fn ").or_else(|| body.find("\nfn ")).unwrap_or(body.len());
+        let body = &body[..end];
+        // 按字符取窗口，避免中文注释造成的字节边界问题。
+        let body: String = body.chars().take(6000).collect();
+        let gate = body
+            .find("if !operator_authorization_available()")
+            .expect("放行接口必须有 fail-closed 开关");
+        for write_call in [
+            "InputSafetyCoordinator::begin_with_coordination_scope",
+            "release_isolation_authorized(",
+            "reopen_new_input_authorized(",
+        ] {
+            let at = body.find(write_call).unwrap_or_else(|| {
+                panic!("放行接口里应能找到一个写动作 `{write_call}`（若已重构，请同步本用例）")
+            });
+            assert!(
+                gate < at,
+                "开关必须排在写动作 `{write_call}` **之前**：否则形同先放行后检查"
+            );
+        }
+        // 身份只能来自原生验证，不得从 Web 请求里读。
+        for bypass in ["verified", "authorized_by_web", "trust_web"] {
+            assert!(
+                !body.contains(bypass),
+                "不得存在从 Web 请求接受 `{bypass}` 的旁路：身份必须由原生系统验证取得"
+            );
+        }
     }
 
     /// **RD4-07**：实际运行时身份读取的**判定函数**（用临时路径，环境无关）。

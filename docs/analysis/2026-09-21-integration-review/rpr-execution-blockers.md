@@ -2665,6 +2665,101 @@ module_linkage_smoke **8/0**（增 1 条逐处守卫）；全量套件**连跑 3
 `core-runtime`／`command-router`／`vision`）各自已有锁或守卫约定，本次**未**逐个收紧为逐处检查，
 按"不扩大范围"留待需要时再做。
 
+### B-109 本轮补充裁决（2026-09-26）：**先纠错**——撤回两条错误契约要求，并把"搜不到符号"这条推断废掉
+
+**裁决口径摘要**：上一轮裁决的 Phase 3 部分"来自一次错误地改写了已经确定、且已有实现的契约"，
+**错误源头在裁决方**；本轮正式撤回两条要求，并给出一条证据规则。以下按裁决 §2／§8.1 落地。
+
+#### 一、我的错误（如实登记）
+
+我在上一条汇报里写了 **"Phase 3（PR-CU-FACT）整个未动，代码里搜不到符号"**。这是**错的**，
+错在把"搜不到 `ExecutionOutcome`／`ActionScope`"推广成了"整个 Phase 3 未实现"。裁决指出：
+**不存在计划中的某个符号，只能证明该符号不存在，不能证明该功能未实现**——而这两条要求本身
+已被撤回，拿它们当"Phase 3 的判据"从一开始就不成立。
+
+**逐符号核对结果（本轮实做，替代原来的推断）**：§B-43 那份释放义务修复**完整保留在当前代码里**——
+
+| §B-43 的交付点 | 现状 |
+| --- | --- |
+| 五态 `ReleaseObligationState` | 在（26 处引用；`ProvenAbsent`／`Possible`／`Unsettled`／`Settled`／`EvidenceConflict` 五态齐，含测试） |
+| 唯一推导点 `derive_release_obligation` | 在（13 处，笔画与普通输入共用） |
+| `needs_emergency_release` 消费五态 | 在（14 处） |
+| v1 旧记录读成 `LegacyUnverifiable` | 在（8 处） |
+| `cursor_moved` / `protocol=2` / `phase(pre_in_flight,final)` | 在（`cursor_moved` 60 处） |
+| 消费侧闸门 `NotSent ⇒ input_release = NotNeeded` | 在（`computer-use-core/src/contracts.rs:237-246`） |
+| 零填充 `facts.unwrap_or_default()` 已删除 | 是（全仓库无命中） |
+
+⇒ **本项不再作为待开工缺陷**；将来只有在**确认回归**时才重开具体缺陷。
+
+#### 二、两条正式撤回（不再是可以领取的工单）
+
+| 原要求 | 本轮处理 | 生效口径 |
+| --- | --- | --- |
+| 用 `ExecutionOutcome` 取代 `Result<StepExecution, ComputerUseError>` | **撤回，不实施** | 保留已选定的 `Result` 形态与 `ComputerUseError.receipt: Option<ActionReceipt>`（§B-84 已交付）：**失败可以携带回执，不需要为此再造一个平行顶层结果类型** |
+| 新增 `ActionScope::NativeAction`，其 `request_attempt_id` 可选 | **撤回，不实施** | 保留事实层级、`ContextKind` 与 `ActionSource` 的**正交**设计：模型规划动作**即使由原生 helper 执行仍必须携带真实规划 attempt**；清理／宿主辅助／真实用户直操**按来源判断**不适用维度 |
+
+**已落地的防重犯措施**：§C-收口 表里这两条（含重复出现的两份行）全部标
+**`[已撤回／被本轮替代]`** 且注明"禁止据此开工"；状态文档对应行改写为"已撤回"。
+**旧决定不删除、已提交历史不重写**——只加撤回标记，阻止后续按错误工单开工。
+
+#### 三、Phase 3 改名为"符合性核对"，并登记实际缺口
+
+**新名**：**CU 动作事实与现有执行契约的生产接线／符合性核对**。
+**已实现的不重建**：释放事实链（§B-43）、`ActionOriginAuthority` 生产实现与输入前准入（§B-84／§B-85）、
+`tool_calls` 登记链（§B-91）、SafetyCleanup 事故登记（§B-93）。
+**仍需核对的**（沿**实际生产调用链**核对，不以符号存在与否代替验收）：`ProductionActionOriginAuthority`
+的覆盖范围、真实 attempt 关联、步骤与事实同事务、迟到事实、**正式输入入口是否已全覆盖**。
+
+#### 四、其余四项裁决的登记（执行项见 §C-收口-补）
+
+| 决定 | 生效口径 | 我这一侧的状态 |
+| --- | --- | --- |
+| **放行资格与复核** | 默认**单人**受信本机恢复操作员，**不要求双人**；角色绑定实际 **Windows 用户 SID** ＋ 资源与政策版本；**署名不是授权**；身份须经原生系统验证；一次批准绑定一次具体决定并复用 `ReleaseIsolationDecision`；**不接受 Web 传入 `verified=true`** | **已按最紧一层先行收口**，见下节 |
+| **R3／R4 权威来源** | **宿主启动登记**（关系）＋ **OS 实例证据**（进程句柄/创建时间/实际用户会话）＋ **helper 执行回执**（执行）；helper **不自行认领身份**；`owner_id`／`coordinator_id`／PID 不得互相替代；六类失败语义逐一规定 | 仍是**无实现**；口径已足够开工 |
+| **Goal 与 chat turn** | Goal 阶段的一次真实执行与 CU 是**强父执行关系**；Chat turn 是**可缺省的因果引用**；自主 Goal **不需要制造** chat turn，有字段也**不得复制 ID 充数**；授权增加 `GoalPhase` 等价上下文分支（**不是** `ActionScope::NativeAction`，也不是另建回执） | 组合测试 5 只覆盖**否定路径**，正向能力仍缺（已单列） |
+| **真实进程崩溃测试** | **批准**：编译期门控＋隔离库＋测试专用资源作用域＋**真正的受控子进程**；不杀当前产品／模型服务／用户程序 | 已按批准范围单列，未开工 |
+| **`.gitattributes` 恢复核查** | **批准一次有边界的只读核查**，并建立**前向规则基线**；特别核查覆盖前 `git add -A` 可能留下的索引／blob；**不再写"未提交所以 Git 无法恢复"**（该结论过强）；本工单**不执行** `gc`/`prune`/`reset --hard`/`clean` | 已单列，未开工（见下节说明） |
+
+#### 五、本轮立即交付②：公开 HTTP 放行入口**先 fail-closed**（裁决 §3.1／§9.1）
+
+**核实（不是照抄裁决）**：`POST /api/system/release-isolation`（`main.rs` 路由 `:1418`、
+实现 `api_release_isolation`）原本在**只有非空 `operator` 字符串 ＋ 理由 ＋ 阻断集合一致**时，
+就会取得恢复资格并**真的调用 `release_isolation_authorized` ＋ `reopen_new_input_authorized`**
+——即**真的改变资源状态**，而**没有任何操作者认证**。⇒ 裁决 §3.1 的判断与我核实的一致：
+`400`（空署名）与 `409`（阻断集合过期）**只能**证明输入校验与版本冲突处理。
+
+**改动（只收紧，不放开任何此前被拒绝的请求）**：
+- 新增唯一开关点 `operator_authorization_available()`（**当前恒 `false`**），排在两处校验**之后**、
+  **任何写动作之前**：到达即返回 `403` 并附可行动说明，**不写放行决定、不开放新输入**。
+- 注释写明这是**唯一开关点**：实现认证后按实际验证结果返回，**不要另开旁路**；恒 `false` 时该接口
+  只做校验与核对。
+- 保留的：查询、提交复核请求、打开原生确认面（后者属下一执行单元）。
+- **未做**（留给下一单元）：原生系统验证（优先桌面应用适用的 Windows Hello／用户验证接口，
+  回退受控系统凭据验证并**验证取得的实际身份**；两者不可用或身份不符则**继续隔离，不退回纯署名**）；
+  身份与 `resource_scope`／政策版本绑定；`120 秒一次性确认窗口`；证据目录 `<input_safety_state_root>/evidence/`。
+
+**守卫 + 变异验证 3/3**（`public_release_endpoint_cannot_change_state_until_operator_auth_exists`）：
+① 开关改为 `true` ⇒ 红；② 去掉 fail-closed 开关 ⇒ 红；③ 把门挪到写动作之后 ⇒ 红。
+另有一条**顺带发现**：该接口原本**没有**任何"成功放行"的自动化用例（既有用例只断言前端接线），
+`400/409` 是当时**手工 HTTP 实测**的——所以这次加门没有打红任何既有测试。这个缺口已由上述新用例部分补上。
+
+#### 六、仍按"优先序"待开工（不在本轮冒充已完成）
+
+按裁决 §9.1 的顺序：**立即**＝决策与台账纠错（本 §B-109，**已完成**）→ **优先**＝恢复操作员认证授权
+（本轮只做了其最紧一层：先关掉公开通道）→ **优先并串行**＝R3／R4 执行者权威登记 →
+**可并行**＝Goal 强父关系 → **跟随**＝真实崩溃装置 → **独立只读起步**＝`.gitattributes` 恢复核查 →
+之后＝真实资源恢复与桌面验证（**由有权限的实际操作者执行，本轮不代为放行**）。
+
+**本轮未做且未声称完成**：R3／R4 实现、Goal 正向强关联、真实崩溃装置、`.gitattributes` 只读核查、
+原生确认入口、证据目录落位。**隔离状态未变**、**未推送**、**未安装**、**未改真实运行库**。
+
+**发布门禁（裁决 §9.2，登记备查）**：以下全部满足才可关闭"受信恢复能力可发布"——
+① 普通控制台调用者不能凭署名放行；② 系统验证身份与资源操作员政策一致；③ R3 真能撤销未激活许可、
+R4 真能核查对应进程实例；④ owner／进程／释放未知时仍保持正确阻断、不靠终态或重启清空；
+⑤ Goal 真实执行关系可在无 chat turn 时成立；⑥ 真实恢复者崩溃后能重新取权对账、旧资格不能改状态；
+⑦ 人工批准与机器前后检查及最终提交有完整证据；⑧ 解除只允许新尝试重新观察与接纳，不复活旧运行、
+不重写历史未知。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
@@ -2719,26 +2814,43 @@ module_linkage_smoke **8/0**（增 1 条逐处守卫）；全量套件**连跑 3
 
 
 
-## C-收口. 第八轮裁决新增项（**已裁决，待实现／待接线**，按阶段推进）
+## C-收口. 第八轮裁决新增项（**已裁决的执行项**，按状态登记）
 
-> 权威正文见 `round8-rulings-and-execution-order.md`。以下不是"待裁决"，而是**已裁决的执行项**，按状态登记。
+> 权威正文见 `round8-rulings-and-execution-order.md`。以下不是「待裁决」，而是**已裁决的执行项**。
+>
+> **2026-09-26 纠错（本轮补充裁决 §2）**：本表曾把若干**已经实现**的项登记为「待实现」，
+> 也把两条**已被本轮正式撤回**的契约要求当成后续工单。两处都已按下文更正；被撤回的条目
+> 一律标 **[已撤回／被本轮替代]**，**不再是可领取的任务**。
 
 | 项 | 生效结论 | 状态 |
 | --- | --- | --- |
 | RD4-02A 最终形态 | **采用 A ＋ C 的语义约束**：独立输入安全库，但它**不是物理输入所有权本身**，而是"输入安全事实"的**权威记录**；否决 B（塞 session SQLite，破坏"不宣称跨库原子性"）与纯 C。结构：`InputSafetyStore → input-safety.sqlite3`，含 **incidents / resource_blocks / recovery_operations / ownership_epochs / safety_events**；位置 `ResolvedLaunchPaths.input_safety_state_root`，**禁止** workspace `.coolzhu`／session db／temporary path | **方向已定，继续实施**（Phase 1） |
-| RD4-02A 剩余 | **launcher 注入** `COOLZHU_INPUT_SAFETY_STATE_ROOT`；生产路径**必须注入**；缺失即 `root_not_injected` **直接 fail closed**；**不要 fallback**（否则测试环境污染生产路径） | **已批准，待实现** |
+| RD4-02A 剩余 | **launcher 注入** `COOLZHU_INPUT_SAFETY_STATE_ROOT`；生产路径**必须注入**；缺失即 `root_not_injected` **直接 fail closed**；**不要 fallback**（否则测试环境污染生产路径） | **已实现**（更正于 2026-09-26）：`packages/app-launcher/src/lib.rs` 从既有契约字段 `ResolvedLaunchPaths.input_safety_state_root` 注入（**不另行推导目录名**），注释直接引用第八轮 §2；引入提交 `965166c`。**未直接抓取**的只是「由 launcher 启动的控制台进程内」那一行联动日志（见 §5） |
 | RD4-02B | **跨进程资源协调器 ＋ 可信 `RecoveryControlGuard`**；**不是**进程 mutex／session 级锁／caller 参数声明。`InputSafetyCoordinator`：取得资源锁（scope ＝ `windows-session-{id}` ＋ `physical-input-resource`，**不是** workspace/session/turn）→ 写 `RecoveryOperationStarted` → 创建 `RecoveryControlGuard { resource_scope, recovery_id, epoch, coordinator_id, allowed_actions }`；恢复入口**必须**走 `Coordinator → InputSafetyStore → RecoveryControlGuard`，**禁止** `paused=true`／`authority="xxx"` 式调用 | **开工条件满足**（Phase 2） |
-| 组合测试 1 | `paused=true` 但闸门未关闭 ⇒ `RecoveryUnauthorized`，**不写终态** | 待实现（Phase 1 退出条件） |
-| 组合测试 2 | 双进程竞争：A 取得 epoch 21，B **epoch 冲突被拒**，且 B **不能**写 incident／改 run 状态／开新输入 | 待实现（Phase 1 退出条件） |
-| 组合测试 3 | 恢复者死亡 ⇒ **启动恢复**（`RecoveryStarted → crash → startup reconcile → acquire new coordinator epoch → continue/reject`）；**禁止 delete recovery row** | 待实现（Phase 1 退出条件） |
-| 组合测试 4 | 已 `Interrupted` 但 helper 未知 ⇒ **保持隔离**；**不能** `Interrupted == safe`，必须表达 `run stopped / resource uncertain / input blocked` | 待实现（Phase 2） |
-| 组合测试 5 | Goal 有锚点但 chat turn 缺失 ⇒ 经 `turn_id/session_id → runtime_runs → owner` **真实关系**解析；**不能**把 `goal_id` 复制成 `chat_turn_id` | 待实现（Phase 2） |
-| **CU 释放义务缺陷（新 P0 事实错误）** | 现状 `NotSent ＋ ReleaseUnknown` **可同时落库**，根因是**释放义务判断没有消费 helper fact**。批准 **(a)** 义务必须基于事实（`button_down=false` ＋ `injected_points=0` ＋ `path_completed=false` ⇒ `release_needed=false`）；**(b)** 回执**禁止** `NotSent ＋ ReleaseUnknown`，必须 `input_release=**NotNeeded**`；**禁止只改测试**（属事实模型错误，不是测试过严） | **P0 修复待实现**（Phase 3 PR-CU-FACT） |
-| **CU Error Contract** | 采用 **`ExecutionOutcome { execution: Option<StepExecution>, receipt: ActionReceipt, error: Option<ComputerUseError> }`** 取代 `Result<StepExecution, ComputerUseError>`；理由：**错误不是异常**，CU 执行失败**仍可能产生事实** | **新工单**（Phase 3） |
-| **CU 动作身份** | **采用 A：新增 `ActionScope`**，不强迫所有动作属于 `StepAction`；`StepAction.request_attempt_id` **required**，`NativeAction.request_attempt_id` **optional**（原生动作没有模型请求：release／safety cleanup／user direct） | 已裁决，待实现 |
-| **Paint（CU-01..CU-05）** | **不进入模型调参，先修事实链**。**P0**：CU-01 动作状态改 `none/partial/complete/unknown`（替代 `success/error`）；CU-02 **输入独占**（one physical keyboard/mouse owner，否则两个 CU run 争抢桌面）。**P1**：CU-03 planner 反馈（`last_action`/`last_error`/`last_verdict`/`subgoal_progress`）；CU-05 UIA 状态（`selected`/`focused`/`pattern`/`toggle state`）；CU-04 `frame_id` ＋ raster 坐标（**批准**）。**不要**继续扩大模型承担：截图 → 坐标数学 | **延后**（Phase 4） |
+| 组合测试 1 | `paused=true` 但闸门未关闭 ⇒ `RecoveryUnauthorized`，**不写终态** | **已实现**（更正于 2026-09-26）：`input_safety_store.rs:2730` `combined_1_recovery_without_a_held_epoch_is_unauthorized`；**层级＝存储层**（真库真事务，无真实子进程） |
+| 组合测试 2 | 双进程竞争：A 取得 epoch 21，B **epoch 冲突被拒**，且 B **不能**写 incident／改 run 状态／开新输入 | **已实现**：`input_safety_store.rs:2776` `combined_2_second_recovery_instance_is_rejected_by_epoch_conflict` ＋ 协调器用例 `input_safety_coordinator_busy`；**层级＝存储／协调器层**（所谓双进程实为同进程两个协调器实例，**非**真实双进程） |
+| 组合测试 3 | 恢复者死亡 ⇒ **启动恢复**（`RecoveryStarted → crash → startup reconcile → acquire new coordinator epoch → continue/reject`）；**禁止 delete recovery row** | **已实现**：`input_safety_store.rs:2860` `combined_3_restart_reconcile_needs_a_new_epoch_and_never_deletes_rows`；**层级＝存储层**，崩溃用**存活探针模拟**，**非**真实进程终止（真实变体见下方独立行） |
+| 组合测试 4 | 已 `Interrupted` 但 helper 未知 ⇒ **保持隔离**；**不能** `Interrupted == safe`，必须表达 `run stopped / resource uncertain / input blocked` | **已实现**：`legacy_recovery.rs:300` `combined_4_interrupted_run_does_not_imply_release_safety`（含遗留 NULL 归属未收尾运行）；**层级＝存储＋语义层** |
+| 组合测试 5 | Goal 有锚点但 chat turn 缺失 ⇒ 经 `turn_id/session_id → runtime_runs → owner` **真实关系**解析；**不能**把 `goal_id` 复制成 `chat_turn_id` | **已实现（仅否定路径）**：`legacy_recovery.rs:236` `combined_5_owner_resolution_uses_real_relations_only`，三种未知分别可辨且不复制 ID。**⚠ 只覆盖否定路径**——「真实自主 Goal 没有 chat turn 仍能经合法**强父关系**接纳」这一**正向能力仍缺**，见下方独立行（本轮裁决 §5.5 要求两者分开证明） |
+| **CU 释放义务缺陷（原记「新 P0 事实错误」）** | ~~现状 `NotSent ＋ ReleaseUnknown` 可同时落库~~ —— **该缺陷已由 §B-43 修复**：五态 `ReleaseObligationState` ＋ 唯一推导点 `derive_release_obligation`（笔画与普通输入共用）＋ 回执由已推导的投递事实构成 ＋ `needs_emergency_release` 消费五态 ＋ 消费侧闸门（`contracts.rs:237-246`：`NotSent` 必须带 `input_release = NotNeeded`）＋ 零填充 `facts.unwrap_or_default()` 已删除 | **既有修复保留；2026-09-26 逐符号核对仍在位**（`ReleaseObligationState` 26 处、`derive_release_obligation` 13 处、`needs_emergency_release` 14 处、`LegacyUnverifiable` 8 处、五态测试齐）。**不再作为待开工缺陷**；只有将来真回归才重开 |
+| ~~CU Error Contract：`ExecutionOutcome` 取代 `Result<StepExecution, ComputerUseError>`~~ | **[已撤回／被本轮替代]** 本轮正式撤回，**不实施**。保留已选定的 `Result` 形态与 `ComputerUseError.receipt: Option<ActionReceipt>`（§B-84 已交付）：**失败可以携带回执，不需要为此再造一个平行顶层结果类型** | **禁止据此开工**（2026-09-26 本轮补充裁决 §2.1） |
+| ~~CU 动作身份：新增 `ActionScope::NativeAction`，其 `request_attempt_id` 可选~~ | **[已撤回／被本轮替代]** 本轮正式撤回，**不实施**。保留事实层级、`ContextKind` 与 `ActionSource` 的**正交**设计：模型规划动作**即使由原生 helper 执行，仍必须携带真实规划 attempt**；清理／宿主辅助／真实用户直操**按来源判断**不适用维度 | **禁止据此开工**（2026-09-26 本轮补充裁决 §2.1） |
+| ~~**CU Error Contract**：`ExecutionOutcome`~~ | **[已撤回／被本轮替代]** 见本表上方同名条目的撤回说明；**不实施**，**不再是可领取工单** | **禁止据此开工**（2026-09-26） |
+| ~~**CU 动作身份**：新增 `ActionScope::NativeAction`~~ | **[已撤回／被本轮替代]** 见本表上方同名条目的撤回说明；**不实施**（保留 `ContextKind`／`ActionSource` 正交设计） | **禁止据此开工**（2026-09-26） |
+| **Paint（CU-01..CU-05）** | **不进入模型调参，先修事实链**。**P0**：CU-01 动作状态改 `none/partial/complete/unknown`（替代 `success/error`）；CU-02 **输入独占**（one physical keyboard/mouse owner，否则两个 CU run 争抢桌面）。**P1**：CU-03 planner 反馈（`last_action`/`last_error`/`last_verdict`/`subgoal_progress`）；CU-05 UIA 状态（`selected`/`focused`/`pattern`/`toggle state`）；CU-04 `frame_id` ＋ raster 坐标（**已交付**，见 §B-107：审查后结论是**不需要新标识**，改为复用既有值做帧绑定）。**不要**继续扩大模型承担：截图 → 坐标数学 | **延后**（Phase 4） |
 | **PKG-L07c-RACE** | 独立补验：100 次并发导出／10 失败竞争者／随机 kill；检查 winner generation 唯一、receipt 不错配、consumer 永远读完整代次 | **新工单**（Phase 5，不阻塞单发布） |
 | 架构路线 | **保留 Rust/Tauri/SQLite**，吸收 DSH 契约，**不迁移 Node runtime** | 已裁决 |
+
+### C-收口-补. **本轮（2026-09-26）新拆出的独立项**——不得与上面「已有测试」混作同一证据
+
+| 项 | 要求 | 为什么单列 |
+| --- | --- | --- |
+| **真实进程级崩溃装置** | 父测试创建**专用子进程**、独立会话库／输入安全库／证据目录、测试专用锁命名空间、`cfg(test)`／默认关闭的故障入口、只终止**自己持有创建句柄**的子进程、受控假输入、看门狗与受控后代回收；用命名事件／管道屏障确认前置阶段真的到达后再终止（**不靠 sleep 猜时序**）。最低六个故障点见本轮裁决 §6.2；正式打包继续验证 `test-support` 未进入产品依赖与二进制 | 组合测试 3 用的是**存活探针模拟**崩溃 ⇒「测试存在」与「真实崩溃变体已执行」是**不同证据**。**本轮已批准**（裁决 §4／§6） |
+| **Goal 正向强父关系** | 真实自主 Goal **没有 chat turn** 时，仍能经**合法强父关系**接纳 CU；并覆盖阶段重试、错误父运行、跨工作区引用、父运行取消、迟到回执不重开旧阶段。强关系＝CU 对应哪一次**真实 Goal 阶段运行**；**可缺省**的是有没有聊天发起者 | 组合测试 5 只证明**否定路径**（不复制 ID、正确 Unknown），**不能**替代正向能力（裁决 §5.5） |
+| **R3 撤销未激活许可** | 许可状态至少区分：待激活／已消费进入派发／执行中／已结束／已撤销／结果未知。动作：按真实 scope 关闸并推进 gate revision → **原子撤销**未消费旧许可 → 已消费进在途清单交 R4（**不得改记为未发送**）→ 最终派发前再核许可与 epoch。并须避免**恢复自锁**（关闸／取消不得先等持有整段排他的活跃 helper 自己放锁） | 当前**无实现**；裁决 §4.4 本轮才给出完整口径与许可状态机 |
+| **R4 跨进程执行者实例核查** | 权威来源＝**宿主启动登记**（哪个 run／action 由谁创建）＋**OS 实例证据**（创建返回的进程句柄、创建时间、实际用户／会话）＋**helper 执行回执**；`owner_id`／`coordinator_id`／PID **三者不得互相替代**；六类失败语义逐一规定（已确认退出／PID 已复用／AccessDenied⇒Unknown／缺登记或损坏／监督者退出但 helper 可能存活／迟到回执）；只准在**同一个已核实实例句柄**上完成后续操作 | 当前**无实现**；裁决 §4.5 本轮给出权威来源与失败语义（原阻塞点正是「裁决未指定可信来源」） |
+| **恢复操作员认证授权** | 单受信本机操作员（**不要求双人**），绑定实际 **Windows 用户 SID** ＋ 资源与政策版本；原生系统验证（优先桌面应用适用的 Windows Hello／用户验证接口，回退受控系统凭据验证并**验证取得的实际身份**；两者不可用或身份不符则**继续隔离**，**不退回纯署名**）；一次批准绑定一次具体决定并复用 `ReleaseIsolationDecision`；**不接受 Web 传入 `verified=true`** | 现状只实现**记录与并发一致性检查**；`400` 空署名／`409` 过期阻断集合**只能**证明输入校验与版本冲突，**不能**证明调用者有权放行（裁决 §3.1）。在补齐前，**普通 HTTP 放行接口不得凭这些字段改变资源状态**（可保留查询、提交复核请求、打开原生确认面） |
+
 
 ## C-禁止. 第八轮禁止事项（后续执行硬约束）
 
