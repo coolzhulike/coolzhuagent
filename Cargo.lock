@@ -839,6 +839,7 @@ dependencies = [
  "coolzhu-windows-process-guard",
  "serde",
  "serde_json",
+ "tempfile",
  "tokio",
 ]
 
