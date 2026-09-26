@@ -1174,6 +1174,15 @@ mod action_origin_contract {
         /// 这是实际创建一个控制操作，不是生成几个随机 ID 假装它属于聊天轮次。
         /// 本分支的结构里**没有**会话 / 轮次字段，因此"假装属于聊天轮次"无法表达。
         ControlPlane,
+        /// **Goal 阶段上下文**（2026-09-26 补充裁决 §5.3 授权新增）：自主 Goal 的阶段执行。
+        ///
+        /// 与聊天 CU 的关键差别：**强父关系是「哪一次真实 Goal 阶段运行」，而发起它的聊天轮次
+        /// 是可缺省的因果引用**——自主 Goal 根本没有 chat turn，不得因此无法表达，
+        /// 也不得为凑字段去制造一个 chat turn 或复制 ID 充数。
+        ///
+        /// 本分支**不等于** [`Self::ControlPlane`]：Goal 内由模型规划的动作仍必须关联**真实规划
+        /// attempt**，不能标成控制面来逃避父关系要求，也不能标成「用户直操」。
+        GoalPhase,
     }
 
     impl ContextKind {
@@ -1182,6 +1191,7 @@ mod action_origin_contract {
             match self {
                 Self::Conversation => "conversation",
                 Self::ControlPlane => "control_plane",
+                Self::GoalPhase => "goal_phase",
             }
         }
 
@@ -1221,9 +1231,83 @@ mod action_origin_contract {
         }
     }
 
-    /// 操作者来源：谁**真的**发起了这次控制面操作。
+    /// **Goal 阶段上下文**（2026-09-26 补充裁决 §5.2／§5.4）。
     ///
-    /// 只有宿主可观察的真实操作者；**模型不在这个表里**（模型最多提出计划，
+    /// 字段按「强关系必须真实存在、弱关系允许缺省」两分：
+    ///
+    /// - **强父执行关系**：`goal_id` / `phase_id` / `phase_run_id` 三者必须来自**真实**的 Goal
+    ///   阶段运行记录；第三者是"本次阶段尝试"的身份，**已有运行 id 足以区分时不再造冗余 id**。
+    /// - **可缺省的因果引用**：`initiating_chat_turn`。自主 Goal 为 `None` 是**合法**的，
+    ///   不是缺失；它存在时只是因果记录，**不要求它在放行时仍处于运行中**。
+    ///
+    /// 刻意**没有**的字段：任何"当前活跃运行"或全局唯一的聊天标识。后者若被占用，多个 Goal
+    /// 阶段会为同一个 chat 标识竞争（裁决 §5.4 明令不要复用 `legacy_turn_id` 那类列）。
+    /// 也刻意**没有** `step_id` / `action_id`：这两个属于 [`ActionOrigin`] 的事实层级，
+    /// 不在这里重复一份（否则同一事实有两个来源，迟早漂移）。
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct GoalPhaseActionContext {
+        /// 事实层级（`Turn` / `StepAction`），与上下文类型正交。
+        pub hierarchy: RunIdentityScope,
+        /// 所属 Goal 的真实 id。
+        pub goal_id: String,
+        /// 所属阶段的真实 id。
+        pub phase_id: String,
+        /// **本次阶段尝试**的真实运行 id（阶段重试会产生新的运行尝试，见 [`Self::is_same_attempt_as`]）。
+        pub phase_run_id: String,
+        /// 工作区归属（非可选：Goal 一定在某工作区里执行）。
+        pub workspace_id: String,
+        /// 真实存在的房间 / 会话关联；自主 Goal 可以为 `None`（**不造占位值**）。
+        pub room_id: Option<String>,
+        pub session_id: Option<String>,
+        /// 发起它的聊天轮次（**可缺省的因果引用**）：自主 Goal 为 `None`。
+        pub initiating_chat_turn: Option<String>,
+        /// 本次 CU 运行的 run id。
+        pub run_id: String,
+    }
+
+    impl GoalPhaseActionContext {
+        /// 结构校验：必需字段必须真实；可选字段**允许缺省**，但一旦存在就必须真实。
+        ///
+        /// 这一级只看自身，**不足**以受理事实——父运行是否真的存在由宿主权威核对
+        /// （见 [`ActionOrigin::validate_against`]）。因此这里**不**做"看起来像 Goal 就行"的放松。
+        pub fn validate_structure(&self) -> Result<(), RunContractError> {
+            for (field, value) in [
+                ("goal_phase.goal_id", &self.goal_id),
+                ("goal_phase.phase_id", &self.phase_id),
+                ("goal_phase.phase_run_id", &self.phase_run_id),
+                ("goal_phase.workspace_id", &self.workspace_id),
+                ("goal_phase.run_id", &self.run_id),
+            ] {
+                validate_origin_reference(field, value)?;
+            }
+            // 可选字段：缺省合法；存在则必须真实（不得拿占位值顶替"没有"）。
+            for (field, value) in [
+                ("goal_phase.room_id", &self.room_id),
+                ("goal_phase.session_id", &self.session_id),
+                ("goal_phase.initiating_chat_turn", &self.initiating_chat_turn),
+            ] {
+                if let Some(value) = value {
+                    validate_origin_reference(field, value)?;
+                }
+            }
+            Ok(())
+        }
+
+        /// 两个上下文是否描述**同一次阶段尝试**。
+        ///
+        /// 阶段重试会产生新的 `phase_run_id` ⇒ 返回 `false`；调用方据此**不得**让新尝试继承
+        /// 旧尝试的输入许可 / 审批 / 动作（裁决 §5.2）。
+        #[must_use]
+        pub fn is_same_attempt_as(&self, other: &Self) -> bool {
+            self.goal_id == other.goal_id
+                && self.phase_id == other.phase_id
+                && self.phase_run_id == other.phase_run_id
+        }
+    }
+
+    /// 操作者来源：谁**真的**发起了这次控制面操作。
+    ///    /// 只有宿主可观察的真实操作者；**模型不在这个表里**（模型最多提出计划，
     /// 不能声明"用户点击了"）。表外的值（例如 `"model"`）在反序列化时报错，
     /// 不会落到某个"未知操作者"兜底。
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -1792,12 +1876,16 @@ mod action_origin_contract {
         }
     }
 
-    /// 动作的**执行上下文**（`Conversation` / `ControlPlane` 二者之一）。
+    /// 动作的**执行上下文**（`Conversation` / `ControlPlane` / `GoalPhase` 三者之一）。
+    ///
+    /// 反序列化**不做未知值兜底**：`ContextKind` 用 `snake_case` 枚举，表外的值会直接报错，
+    /// 不会落成某个"未知上下文"——否则一个未来版本的上下文会在旧读者里被静默当成受信面。
     #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
     pub enum ActionContext {
         Conversation(ConversationActionContext),
         ControlPlane(ControlPlaneContext),
+        GoalPhase(GoalPhaseActionContext),
     }
 
     impl ActionContext {
@@ -1817,6 +1905,7 @@ mod action_origin_contract {
             match self {
                 Self::Conversation(_) => ContextKind::Conversation,
                 Self::ControlPlane(_) => ContextKind::ControlPlane,
+                Self::GoalPhase(_) => ContextKind::GoalPhase,
             }
         }
 
@@ -1825,14 +1914,30 @@ mod action_origin_contract {
             match self {
                 Self::Conversation(conversation) => &conversation.identity.workspace_id,
                 Self::ControlPlane(context) => &context.workspace_id,
+                Self::GoalPhase(context) => &context.workspace_id,
             }
         }
 
+        /// 房间的真实归属。
+        ///
+        /// 返回 `Option`：**Goal 阶段上下文里房间可以真实地不存在**（自主 Goal 没有聊天房间），
+        /// 这时必须是 `None`——返回空串会把"没有"伪装成一个值，调用方也无从分辨。
         #[must_use]
-        pub fn room_id(&self) -> &str {
+        pub fn room_id(&self) -> Option<&str> {
             match self {
-                Self::Conversation(conversation) => &conversation.identity.room_id,
-                Self::ControlPlane(context) => &context.room_id,
+                Self::Conversation(conversation) => Some(&conversation.identity.room_id),
+                Self::ControlPlane(context) => Some(&context.room_id),
+                Self::GoalPhase(context) => context.room_id.as_deref(),
+            }
+        }
+
+        /// 会话的真实归属（语义同 [`Self::room_id`]：允许真实地不存在）。
+        #[must_use]
+        pub fn session_id(&self) -> Option<&str> {
+            match self {
+                Self::Conversation(conversation) => Some(&conversation.identity.session_id),
+                Self::ControlPlane(_) => None,
+                Self::GoalPhase(context) => context.session_id.as_deref(),
             }
         }
 
@@ -1841,6 +1946,7 @@ mod action_origin_contract {
             match self {
                 Self::Conversation(conversation) => &conversation.identity.run_id,
                 Self::ControlPlane(context) => &context.run_id,
+                Self::GoalPhase(context) => &context.run_id,
             }
         }
 
@@ -1850,6 +1956,8 @@ mod action_origin_contract {
             match self {
                 Self::Conversation(conversation) => conversation.identity.step_id(),
                 Self::ControlPlane(context) => Some(context.step_id.as_str()),
+                // Goal 阶段上下文不重复承载 step：它属于事实层级（见 `ActionOrigin`）。
+                Self::GoalPhase(_) => None,
             }
         }
 
@@ -1859,6 +1967,19 @@ mod action_origin_contract {
             match self {
                 Self::Conversation(_) => None,
                 Self::ControlPlane(context) => Some(context.control_operation_id.as_str()),
+                // Goal 阶段**不是**控制面：不得借道这条访问器把自己当成控制操作。
+                Self::GoalPhase(_) => None,
+            }
+        }
+
+        /// **强父执行关系**里的"本次阶段尝试"运行 id（只有 Goal 阶段上下文有）。
+        ///
+        /// 这是"这条 CU 属于哪一次真实 Goal 阶段执行"的锚点；宿主必须按它核对真实父运行。
+        #[must_use]
+        pub fn parent_goal_phase_run_id(&self) -> Option<&str> {
+            match self {
+                Self::GoalPhase(context) => Some(context.phase_run_id.as_str()),
+                _ => None,
             }
         }
     }
@@ -1934,6 +2055,9 @@ mod action_origin_contract {
             validate_origin_reference("action_id", &self.action_id)?;
             if let ActionContext::Conversation(conversation) = &self.context {
                 self.validate_conversation_context(conversation)?;
+            }
+            if let ActionContext::GoalPhase(context) = &self.context {
+                context.validate_structure()?;
             }
             if let ActionContext::ControlPlane(context) = &self.context {
                 context.validate_structure()?;
@@ -2196,6 +2320,23 @@ mod action_origin_contract {
                             ))
                         })?;
                     record.matches_claim(context)?;
+                }
+                // **Goal 阶段：结构可以表达，但受理必须等宿主能核对真实父运行 —— 当前一律拒绝。**
+                //
+                // 这是刻意的 fail-closed，不是"未实现所以先放过"：强父关系的全部意义就是
+                // 「这条 CU 属于**哪一次真实 Goal 阶段执行**」，而宿主权威目前**没有**按
+                // `phase_run_id` 核对真实阶段运行的能力。若在这里放行，`phase_run_id` 就退化成
+                // 一句自称——正是裁决 §5.2 明令禁止的"现场在同房间的活跃运行里选一个"。
+                //
+                // 因此：表达力（`ContextKind::GoalPhase`）已经具备，受理能力等宿主登记补齐后
+                // 再在此处改为真实核对；在那之前，任何 Goal 阶段来源都**进不来**。
+                ActionContext::GoalPhase(context) => {
+                    context.validate_structure()?;
+                    return Err(RunContractError::action_source_not_established(format!(
+                        "Goal 阶段动作的来源暂不能被受理：宿主尚未能按真实阶段运行 `{}`（goal `{}` / phase `{}`）核对强父关系；\
+                         在补齐之前不得放行，也不得改用 ControlPlane 或 UserDirect 绕过",
+                        context.phase_run_id, context.goal_id, context.phase_id
+                    )));
                 }
             }
 
@@ -6781,5 +6922,170 @@ mod tests {
         let mut other_run = fact.clone();
         other_run.subject.original_run_id = "cu-legacy-2".to_string();
         assert!(!intent.matches_fact(&other_run));
+    }
+
+    // -----------------------------------------------------------------------
+    // Goal 阶段上下文（2026-09-26 补充裁决 §5.3／§5.4／§5.5）
+    // -----------------------------------------------------------------------
+
+    /// 一个**自主 Goal**（没有 chat turn）的 Goal 阶段上下文：三个可选维度全缺省。
+    fn goal_phase_context(phase_run_id: &str) -> GoalPhaseActionContext {
+        GoalPhaseActionContext {
+            hierarchy: RunIdentityScope::StepAction,
+            goal_id: "goal-1".to_string(),
+            phase_id: "phase-implement".to_string(),
+            phase_run_id: phase_run_id.to_string(),
+            workspace_id: "ws-0123456789abcdef".to_string(),
+            room_id: None,
+            session_id: None,
+            initiating_chat_turn: None,
+            run_id: "cu-run-1".to_string(),
+        }
+    }
+
+    /// §5.3：Goal 阶段必须是**独立可辨的上下文种类**，不得与聊天/控制面混同。
+    #[test]
+    fn goal_phase_is_its_own_context_kind_and_does_not_require_a_chat_turn() {
+        assert_eq!(ContextKind::GoalPhase.as_str(), "goal_phase");
+        assert!(
+            !ContextKind::GoalPhase.requires_chat_session_and_turn(),
+            "自主 Goal 没有 chat turn，不得要求它存在"
+        );
+        assert!(ContextKind::Conversation.requires_chat_session_and_turn());
+        assert_ne!(
+            ContextKind::GoalPhase,
+            ContextKind::ControlPlane,
+            "Goal 阶段不得被当成控制面：否则会借控制操作逃过父关系要求"
+        );
+
+        let context = ActionContext::GoalPhase(goal_phase_context("cu-run-1"));
+        assert_eq!(context.kind(), ContextKind::GoalPhase);
+        // 序列化成自己的具名变体，而不是落到某个通用包里。
+        let value = serde_json::to_value(&context).expect("serialize");
+        assert!(value.get("goal_phase").is_some(), "变体名必须是 goal_phase：{value}");
+        let round_trip: ActionContext = serde_json::from_value(value).expect("deserialize");
+        assert_eq!(round_trip, context);
+    }
+
+    /// §5.4：自主 Goal 缺省合法；**缺省不等于缺失**，也不得用占位值顶替。
+    #[test]
+    fn autonomous_goal_without_chat_turn_is_valid_and_absence_is_not_a_placeholder() {
+        let context = goal_phase_context("cu-run-1");
+        context.validate_structure().expect("自主 Goal 必须合法");
+        // 访问器如实返回"没有"，而不是空串或某个占位符。
+        let wrapped = ActionContext::GoalPhase(context.clone());
+        assert_eq!(wrapped.room_id(), None);
+        assert_eq!(wrapped.session_id(), None);
+        assert_eq!(wrapped.step_id(), None);
+        assert_eq!(
+            wrapped.control_operation_id(),
+            None,
+            "Goal 阶段不是控制面操作，不得借这条访问器冒充"
+        );
+        assert_eq!(wrapped.parent_goal_phase_run_id(), Some("cu-run-1"));
+
+        // 占位值不得被当作"真实存在"。
+        for placeholder in ["unknown", "N/A", "none", "0", "-"] {
+            let mut fabricated = context.clone();
+            fabricated.initiating_chat_turn = Some(placeholder.to_string());
+            assert!(
+                fabricated.validate_structure().is_err(),
+                "可选字段一旦存在就必须真实，占位值 `{placeholder}` 必须被拒"
+            );
+        }
+        let mut empty = context.clone();
+        empty.phase_run_id = "  ".to_string();
+        assert!(
+            empty.validate_structure().is_err(),
+            "强父关系里的运行 id 不得为空——否则等于没有父运行"
+        );
+    }
+
+    /// §5.4：因果引用存在时如实记录；**它不要求"仍在运行"**，也不占全局唯一聊天标识。
+    #[test]
+    fn causal_chat_reference_is_recorded_without_a_globally_unique_chat_field() {
+        let mut context = goal_phase_context("cu-run-1");
+        context.initiating_chat_turn = Some("chat-turn-77".to_string());
+        context.room_id = Some("room-1".to_string());
+        context.session_id = Some("session-1".to_string());
+        context
+            .validate_structure()
+            .expect("由聊天发起的 Goal 阶段同样合法");
+
+        // 不落进任何"全局唯一且含义不同"的聊天列：结构里没有这些字段。
+        let value = serde_json::to_value(ActionContext::GoalPhase(context)).expect("serialize");
+        let keys = value["goal_phase"].as_object().expect("object").keys().cloned().collect::<Vec<_>>();
+        for forbidden in ["legacy_turn_id", "public_turn_id", "turn_id"] {
+            assert!(
+                !keys.iter().any(|key| key == forbidden),
+                "不得把发起轮次写进含义不同的聊天标识列 `{forbidden}`（多个 Goal 阶段会互相竞争）"
+            );
+        }
+        assert!(keys.iter().any(|key| key == "initiating_chat_turn"));
+    }
+
+    /// §5.2：阶段重试是**新的运行尝试**，因此旧尝试的许可/审批/动作不得被继承。
+    #[test]
+    fn phase_retry_is_a_different_attempt_so_old_permissions_are_not_inherited() {
+        let first = goal_phase_context("cu-run-1");
+        let same = goal_phase_context("cu-run-1");
+        let retried = goal_phase_context("cu-run-2");
+        assert!(first.is_same_attempt_as(&same), "同一阶段运行视为同一尝试");
+        assert!(
+            !first.is_same_attempt_as(&retried),
+            "阶段重试必须被识别为不同尝试，否则新尝试会继承旧许可"
+        );
+    }
+
+    /// §5.3：**未知上下文不得被默认解释成受信面**（旧读者遇到未来变体必须报错）。
+    #[test]
+    fn unknown_or_future_context_kind_never_deserializes_into_a_trusted_one() {
+        for raw in [
+            r#"{"goal_phase_v2":{"hierarchy":"step_action"}}"#,
+            r#"{"some_future_context":{}}"#,
+            r#"{"conversation_v2":{}}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<ActionContext>(raw).is_err(),
+                "未知上下文变体 `{raw}` 必须报错，不得兜底成任何已受信上下文"
+            );
+        }
+        for raw in [r#""future_kind""#, r#""goal_phase_v2""#] {
+            assert!(
+                serde_json::from_str::<ContextKind>(raw).is_err(),
+                "未知上下文种类 {raw} 必须报错"
+            );
+        }
+        assert_eq!(
+            serde_json::from_str::<ContextKind>(r#""goal_phase""#).expect("已知种类"),
+            ContextKind::GoalPhase
+        );
+    }
+
+    /// **强父关系必须由宿主核对**：在宿主具备该能力之前，Goal 阶段来源一律进不来；
+    /// 且模型规划动作的义务不因换上下文而免除。
+    #[test]
+    fn goal_phase_admission_fails_closed_until_the_host_can_verify_the_parent_run() {
+        let authority = trusted_context();
+        let mut origin = empty_origin("action-1", ActionSource::ModelPlanned);
+        origin.context = ActionContext::GoalPhase(goal_phase_context("cu-run-1"));
+        origin.request_attempt_id = Some(planned_attempt().stable_key());
+        origin.action_id = "action-1".to_string();
+        let refusal = admit_action_origin(&origin, &authority)
+            .expect_err("宿主尚不能核对阶段运行 ⇒ 不得受理");
+        assert_eq!(refusal.code, "action_source_not_established");
+        assert!(
+            refusal.message.contains("phase-implement") || refusal.message.contains("goal-1"),
+            "拒绝理由必须点名缺的是哪条强父关系：{}",
+            refusal.message
+        );
+
+        // 模型规划动作仍必须携带真实规划 attempt —— 换上下文不免除该义务。
+        let mut without_attempt = origin.clone();
+        without_attempt.request_attempt_id = None;
+        assert!(
+            without_attempt.validate_structure().is_err(),
+            "Goal 阶段的模型规划动作仍必须有真实规划 attempt"
+        );
     }
 }
