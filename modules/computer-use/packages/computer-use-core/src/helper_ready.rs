@@ -16,6 +16,14 @@
 //! 形状与 `input.rs` 里 `cancel_file` 的轮询一致（固定间隔、有界、可取消），
 //! **不引入新的等待机制**；cancel 优先级在 helper 侧循环里实现，本模块只负责"等到 READY"。
 
+//! ## 为什么暂时允许 dead_code（显式，不是掩盖）
+//!
+//! 本模块是 Phase 1 的**宿主半边**，当前只有它自己的用例在调它；把它接进生产调用链
+//! 属 Phase 2（`ExecutorStore` ＋ `PermitGate` 编排）。因此本模块当前**没有生产调用者**，
+//! 但**不是**被丢弃的代码：它已由本模块用例与后续 T6 系列真实驱动。
+//! **接线落地后应移除此豁免**——留着它才是问题。
+#![allow(dead_code)]
+
 use std::path::Path;
 use std::time::{Duration, Instant};
 

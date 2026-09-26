@@ -4047,6 +4047,36 @@ EXECUTE 的 nonce 来源」。理由：本轮改动只有一行，将来很容�
 core-runtime **347/0**、module_linkage_smoke 8/0。**未改脚本语义**（只加测试）；未接
 `ExecutorStore`／`PermitGate`／`:228`；未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-152 8.3c-A-helper-runtime **Step 1 交付**：测试注入入口（两相模式），默认路径零两相键
+
+**裁决口径（§一）**：只扩展**测试注入入口**，让测试能提供 `two_phase_nonce`；**不扩大范围**——
+禁改 production `native_run`／`controlled_*` 行为／helper 默认行为／`request_id` 生成逻辑／
+READY 协议／`PermitGate`／`ExecutorStore`。
+
+**交付**（`input.rs`，均 `#[cfg(test)]`）：
+
+| 项 | 内容 |
+| --- | --- |
+| `TwoPhaseHelperTestOptions` | `two_phase_nonce`（**由测试生成**，绝不读 READY 反推）＋ `ready_file` ＋ `permit_file`；**刻意不含** `InputPermit`／`ExecutorInstanceId`——Phase 1 验的是 helper 生命周期，不是授权系统 |
+| `native_run_with_mock_two_phase(...)` | 与既有 `native_run_with_mock` **同一路径**，只在请求里注入 `two_phase_helper=true`／`two_phase_nonce`／`ready_file`／`permit_file` |
+
+**为什么新增入口而不是改既有签名**：既有 `native_run_with_mock` 的 130 条用例不动 ⇒
+"默认行为不变"由**不调用新入口**直接保证（§二.2 的意图），也不需要改动测试调用链。
+
+**顺带清理**：`helper_ready.rs` 因"尚未接线（Phase 2 才接）"产生 dead_code 告警，
+已加**显式豁免＋理由**（与本会话对 `input_permit_store` 的做法一致），并注明
+"**接线落地后应移除此豁免**"——不是掩盖。当前该文件**零告警**。
+
+**门禁**：computer-use-core **131/0**（既有 130 条未受影响 ⇒ 默认路径未变），
+web-console 1215/0、core-runtime 347/0、module_linkage_smoke 8/0。
+
+**仍未做（Step 4，需真实 helper 进程）**：**T6-A**（无 permit ⇒ `TimedOut`＋`input=0`）、
+**T6-B**（错 nonce ⇒ `RejectedPermit`＋`input=0`）、**T6-C**（合法测试 permit ⇒ 过 EXECUTE gate）、
+**T11**（A/B 两 nonce，B 读 A 的 permit ⇒ 拒绝）、**B128-T1**（`request_id` 与 `two_phase_nonce`
+不混淆）、以及建议项 **B128-T3／T4**。
+**Phase 1 未关闭**，因此 **Phase 2（`ExecutorStore`／`PermitGate`／permit_file 生产写入）与
+`:228` 继续冻结**。未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

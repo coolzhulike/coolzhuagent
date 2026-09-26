@@ -3283,6 +3283,52 @@ fn native_stillness_failure(
     )
 }
 
+/// **两相 helper 的测试注入选项**（B-128 §一；**仅测试**）。
+///
+/// 只携带"这次 helper 是否进入两相模式"所需的**测试参数**，刻意**不含**
+/// `InputPermit`／`ExecutorInstanceId`——Phase 1 验证的是 helper 生命周期，**不是授权系统**。
+#[cfg(test)]
+pub(crate) struct TwoPhaseHelperTestOptions {
+    /// **由调用方（测试）生成**的两相会话身份。绝不读取 READY 后反推（那会让校验自指）。
+    pub(crate) two_phase_nonce: String,
+    pub(crate) ready_file: std::path::PathBuf,
+    pub(crate) permit_file: std::path::PathBuf,
+}
+
+/// 测试专用：**两相模式**的受控原生运行（内存驱动，不驱动真实鼠标键盘）。
+///
+/// 与 [`native_run_with_mock`] 唯一差别：请求里带上 `two_phase_helper=true` 与
+/// `two_phase_nonce`／`ready_file`／`permit_file`，从而让 helper 进入
+/// `READY → WAIT_PERMIT → EXECUTE` 生命周期。
+/// **默认路径不受影响**：不调用本函数就不会出现任何两相键（B128-T4）。
+#[cfg(test)]
+fn native_run_with_mock_two_phase(
+    mode: &str,
+    params: serde_json::Value,
+    obligation: &ReleaseObligation,
+    attempt: &NativeInputAttempt,
+    timeout: Duration,
+    mock_scenario: &str,
+    options: &TwoPhaseHelperTestOptions,
+) -> Result<NativeInputOutcome, NativeInputFailure> {
+    let backend = active_backend();
+    validate_native_attempt(attempt, backend)?;
+    let mut request = native_request(mode, params, attempt.window);
+    request["two_phase_helper"] = serde_json::json!(true);
+    request["two_phase_nonce"] = serde_json::json!(options.two_phase_nonce);
+    request["ready_file"] = serde_json::json!(options.ready_file.to_string_lossy());
+    request["permit_file"] = serde_json::json!(options.permit_file.to_string_lossy());
+    run_native_helper(
+        request,
+        obligation,
+        timeout,
+        attempt.cancelled,
+        Some(mock_scenario),
+        backend,
+        NativeRunCapacity::OrdinaryAction,
+    )
+}
+
 /// 测试专用：把一次受控原生运行交给内存驱动（**不驱动真实鼠标键盘**）。
 ///
 /// 生产路径的请求构造器与监督循环完全复用，只有注入驱动被替换：`mock_scenario` 只能由测试
