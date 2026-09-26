@@ -1,0 +1,135 @@
+{
+  "dangerous_replay": {
+    "applicable": 0,
+    "insufficient_evidence": 10,
+    "not_applicable": 10,
+    "violations": 0
+  },
+  "ineffective_repeat": {
+    "applicable": 0,
+    "insufficient_evidence": 20,
+    "not_applicable": 0,
+    "violations": 0
+  },
+  "legacy_metrics_disclaimer": "metrics_v1 只证明：引用合法性 / 同一目标被再次操作 / 一种可疑操作模式；不能命名为目标选择正确、无效重复或危险重放",
+  "legacy_metrics_version": "metrics_v1",
+  "notes": [
+    "本报告不覆盖旧结果：旧 metrics_v1 与语义层并存，便于对照",
+    "缺冻结标签 ⇒ 目标选择指标不可评分；缺上一步动作/副作用键 ⇒ 重复与危险重放记证据不足",
+    "任何『不适用』都不写成 0%"
+  ],
+  "parsed": 20,
+  "per_sample": [
+    [
+      "baseline:none",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "feedback:none",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "baseline:complete",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "feedback:complete",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "baseline:partial",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "feedback:partial",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "baseline:partial",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "feedback:partial",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "baseline:unknown",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "feedback:unknown",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "baseline:unknown",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "feedback:unknown",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "baseline:complete",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "feedback:complete",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "baseline:complete",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "feedback:complete",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "baseline:partial",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "feedback:partial",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=insufficient_evidence"
+    ],
+    [
+      "baseline:none",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ],
+    [
+      "feedback:none",
+      "target_selection=insufficient_evidence",
+      "ineffective_repeat=insufficient_evidence dangerous_replay=not_applicable"
+    ]
+  ],
+  "rescored_from_same_raw_results": true,
+  "runs": 20,
+  "scorer_version": "cu03-scorer-v2",
+  "source": "raw-results.json",
+  "structural_passed": 20,
+  "target_selection": {
+    "applicable": 0,
+    "insufficient_evidence": 20,
+    "not_applicable": 0,
+    "violations": 0
+  }
+}

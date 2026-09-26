@@ -1,0 +1,619 @@
+{
+  "fixture": "合成占位观察（Paint 形态；**不是** R4–R6 真实录制）",
+  "model": "claude-sonnet-4-6",
+  "rows": [
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "none",
+      "step": 1
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "complete",
+      "step": 2
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "partial",
+      "step": 3
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "partial",
+      "step": 4
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "unknown",
+      "step": 5
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "unknown",
+      "step": 6
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 300,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "complete",
+      "step": 7
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "complete",
+      "step": 8
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "partial",
+      "step": 9
+    },
+    {
+      "arms": [
+        {
+          "action": {
+            "arguments": {
+              "duration_ms": 500,
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "baseline",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        },
+        {
+          "action": {
+            "arguments": {
+              "points": [
+                [
+                  0.05,
+                  0.5
+                ],
+                [
+                  0.95,
+                  0.5
+                ]
+              ]
+            },
+            "kind": "drag",
+            "target": "window-canvas:1"
+          },
+          "arm": "feedback",
+          "rules": {
+            "parsed": true,
+            "repeats_previous_target": false,
+            "replayed_after_uncertain": false,
+            "target": "window-canvas:1",
+            "target_in_observation": true
+          }
+        }
+      ],
+      "previous_input_status": "none",
+      "step": 10
+    }
+  ],
+  "runs_per_arm": 10,
+  "summary": {
+    "arms": {
+      "baseline": {
+        "repeated_action": 0,
+        "replayed_after_uncertain": 0,
+        "runs": 10,
+        "unparsed": 0,
+        "wrong_target": 0
+      },
+      "feedback": {
+        "repeated_action": 0,
+        "replayed_after_uncertain": 0,
+        "runs": 10,
+        "unparsed": 0,
+        "wrong_target": 0
+      }
+    },
+    "note": "样本小（每臂 10 次），只报数不做显著性断言；素材为合成占位，非 R4–R6 真实录制"
+  }
+}

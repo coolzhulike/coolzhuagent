@@ -9,6 +9,8 @@ mod clawbot_channel;
 mod clawbot_gateway;
 mod computer_use_adapters;
 mod computer_use_desktop_bridge;
+mod computer_use_eval_rescore;
+mod computer_use_eval_scorer;
 mod computer_use_executor;
 mod computer_use_planner;
 mod computer_use_store;
