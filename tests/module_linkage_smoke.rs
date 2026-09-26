@@ -220,6 +220,75 @@ fn frame_binding_is_wired_at_the_mapping_point_and_does_not_replace_window_ident
     );
 }
 
+/// **RPR-01b 的同进程那一半**：web-console 的**测试代码**里不得出现裸进程环境写入。
+///
+/// 既有的 `test_environment_writes_are_paired_with_a_restoring_guard` 是**文件级**检查
+/// （文件里出现过守卫标记就放行），因此看不出一件事：一个文件里有守卫类，同时**另有一处**
+/// 手工 `saved = var_os()` → `remove_var()` → 末尾 `set_var(saved)` 的写入。那种写法一旦中间
+/// 断言 panic 就会把变量永久删掉——`computer_use_executor.rs` 里确实有过这样一处。
+///
+/// 这里把不变式收紧到**逐处**：测试区里出现 `std::env::set_var(` / `std::env::remove_var(`
+/// 即视为违规，**唯一**例外是守卫/锁的实现模块 `test_env.rs`。这样"改写进程环境"这件事
+/// 在 web-console 里只有一条路可走，而那条路自带锁与恢复。
+#[test]
+fn web_console_test_code_writes_process_env_only_through_the_shared_guard() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let crate_src = root.join("modules/gui-web/packages/web-console/src");
+    // 唯一的例外：守卫与进程环境锁的实现本身。
+    let guard_module = "modules/gui-web/packages/web-console/src/test_env.rs";
+    // 整文件都是测试代码的模块（由 main.rs 以 `#[cfg(test)] mod NAME;` 声明）。
+    let main_rs = std::fs::read_to_string(crate_src.join("main.rs")).expect("main.rs 必须可读");
+    let mut all_test_modules = Vec::new();
+    for line in main_rs.lines() {
+        let line = line.trim();
+        if let Some(rest) = line.strip_prefix("#[cfg(test)] mod ") {
+            if let Some(name) = rest.strip_suffix(';') {
+                all_test_modules.push(name.to_string());
+            }
+        }
+    }
+
+    let mut offenders = Vec::new();
+    for entry in std::fs::read_dir(&crate_src).expect("src 目录必须可读") {
+        let path = entry.expect("dir entry").path();
+        if path.extension().and_then(|value| value.to_str()) != Some("rs") {
+            continue;
+        }
+        let name = path.file_name().and_then(|value| value.to_str()).unwrap_or("");
+        let relative = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if relative == guard_module {
+            continue;
+        }
+        let contents = std::fs::read_to_string(&path).expect("源码必须可读");
+        let module_name = name.trim_end_matches(".rs");
+        // 认定"测试区"：整文件即测试模块时取全文；否则取内联 `#[cfg(test)] mod tests` 之后。
+        let test_region = if all_test_modules.iter().any(|item| item == module_name) {
+            contents.as_str()
+        } else {
+            match contents.find("\n#[cfg(test)]\nmod tests") {
+                Some(index) => &contents[index..],
+                None => "",
+            }
+        };
+        let raw_writes = test_region.matches("std::env::set_var(").count()
+            + test_region.matches("std::env::remove_var(").count();
+        if raw_writes > 0 {
+            offenders.push(format!("{relative}（{raw_writes} 处）"));
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "这些文件的**测试代码**里有裸进程环境写入：{offenders:?}
+         请改用 `crate::test_env::set` / `crate::test_env::remove`——它们成对提供\
+         「作用域结束（含 panic）恢复」与「全 crate 共用的进程环境锁」。\
+         只恢复不加锁时，同进程并行跑的其它用例仍会读到中途值；只有锁没有恢复则会泄漏。"
+    );
+}
+
 /// 递归收集仓库源码（只读文本，用于上面的源码级守门）。
 fn collect_rust_sources(root: &std::path::Path) -> Vec<(String, String)> {
     let mut collected = Vec::new();

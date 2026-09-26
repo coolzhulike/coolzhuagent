@@ -34,6 +34,9 @@ mod native_message;
 mod realtime_voice_stream;
 #[cfg(test)]
 mod s0_fixture_replay;
+// RPR-01b（同进程读者那一半）：进程环境锁 + 恢复式作用域。测试改写进程环境**必须**走这里。
+#[cfg(test)]
+mod test_env;
 mod tool_loop_coordinator;
 mod wechat_authorization;
 mod wechat_command;

@@ -2347,28 +2347,23 @@ mod tests")
     ///
     /// 这不是测试旁路：它走生产同一入口（协调器取锁 + 取 epoch + 按资格开放），
     /// 因此"资源接受新输入"是**真实发生过的事实**。返回库根路径供用例断言使用。
-    /// 注入库根的**环境守卫**：drop 时恢复原值，避免进程级 env 泄漏到其它用例
-    /// （此前 helper 只 `set_var` 不恢复，后续用例会读到已删除临时目录的库根）。
+    /// `open_input_resource_for_test` 的返回守卫：**恢复原值 + 持有进程环境锁**。
+    ///
+    /// 为什么不再自带一份实现：进程环境是全局的，而测试是多线程并行的。只恢复不加锁时，
+    /// 本用例作用域内读到的库根可能是**另一个并发用例**中途设定的值（反之亦然）。
+    /// 统一走 `crate::test_env`，与环境改写同源同锁。
     struct InputSafetyEnvGuard {
         #[allow(dead_code)]
         coordination: String,
-        previous: Option<std::ffi::OsString>,
-    }
-
-    impl Drop for InputSafetyEnvGuard {
-        fn drop(&mut self) {
-            match self.previous.take() {
-                Some(value) => std::env::set_var(
-                    crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV,
-                    value,
-                ),
-                None => std::env::remove_var(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV),
-            }
-        }
+        #[allow(dead_code)]
+        root: crate::test_env::ScopedEnvVar,
     }
 
     fn open_input_resource_for_test(safety_root: &std::path::Path) -> InputSafetyEnvGuard {
-        let previous = std::env::var_os(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
+        let root = crate::test_env::set(
+            crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV,
+            Some(safety_root.as_os_str()),
+        );
         let scope = crate::input_safety_store::physical_input_resource_scope()
             .expect("physical input resource scope");
         let coordination = format!(
@@ -2378,10 +2373,6 @@ mod tests")
                 .duration_since(std::time::UNIX_EPOCH)
                 .map(|value| value.as_nanos())
                 .unwrap_or(0)
-        );
-        std::env::set_var(
-            crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV,
-            safety_root.as_os_str(),
         );
         let coordinator =
             crate::input_safety_store::InputSafetyCoordinator::begin_with_coordination_scope(
@@ -2398,10 +2389,7 @@ mod tests")
             .reopen_new_input_authorized(&scope, coordinator.control())
             .expect("按资格开放资源");
         std::mem::forget(coordinator); // 用例期内保持持有（释放会归还资源）
-        InputSafetyEnvGuard {
-            coordination,
-            previous,
-        }
+        InputSafetyEnvGuard { coordination, root }
     }
 
     /// 建一组**关系完整**的真实事实：会话行 + 房间行 + `chat_turn` 运行行（accepted）。
@@ -5682,33 +5670,33 @@ mod tests")
         .ok();
 
         // ① 未注入库根 ⇒ 拒绝（不得回退到自造路径）。
-        let saved = std::env::var_os(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
-        std::env::remove_var(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
-        let no_root_identity = identity("safety-gate-no-root");
-        let result = execute_with_current_runtime(
-            &input("browser"),
-            &no_root_identity,
-            Some("room-1"),
-            parent.as_ref(),
-        )
-        .await;
-        assert_eq!(result.status, ComputerUseTerminalStatus::Blocked);
-        assert_eq!(
-            result.error.as_ref().map(|error| error.code.as_str()),
-            Some("input_safety_root_not_injected")
-        );
-        if let Some(saved) = saved {
-            std::env::set_var(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV, saved);
+        //
+        // 改前这里是**手工** `saved = var_os(..)` → `remove_var` → … → 末尾 `set_var(saved)`：
+        // 中间任何一个断言 panic 都会把库根**永久**从本进程环境里删掉（同进程其它用例随后读到
+        // "未注入"）。现在改成作用域守卫，并把"未注入"这一步单独收进块里，
+        // 使恢复发生在块结束时——不受断言成败影响。
+        {
+            let _no_root = crate::test_env::remove(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV);
+            let no_root_identity = identity("safety-gate-no-root");
+            let result = execute_with_current_runtime(
+                &input("browser"),
+                &no_root_identity,
+                Some("room-1"),
+                parent.as_ref(),
+            )
+            .await;
+            assert_eq!(result.status, ComputerUseTerminalStatus::Blocked);
+            assert_eq!(
+                result.error.as_ref().map(|error| error.code.as_str()),
+                Some("input_safety_root_not_injected")
+            );
         }
 
         // ② 注入了库根但资源从未登记（Unknown）⇒ 拒绝。
         // ③ 资源被隔离 ⇒ 拒绝。两者都必须在任何写入之前。
         let scope = crate::input_safety_store::physical_input_resource_scope().expect("scope");
         assert_eq!(scope.as_str(), crate::input_safety_store::physical_input_resource_scope().unwrap().as_str());
-        std::env::set_var(
-            crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV,
-            safety_root.as_os_str(),
-        );
+        let _root_injected = crate::test_env::set(crate::input_safety_store::INPUT_SAFETY_STATE_ROOT_ENV, Some(safety_root.as_os_str()));
         {
             let connection = crate::open_session_connection(&db_path).unwrap();
             let _ = connection;
