@@ -601,6 +601,185 @@ pub struct InputSafetyEvent {
 // 完成真实身份登记、拿到 executor_instance_id，消费许可之后才允许 EXECUTE。
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// 两相 helper 的**文件协议语义**（2026-09-26 §B-127 裁决 §三／§四／§六 冻结）
+//
+// 复用既有 `cancel_file` / `progress_file` 通道，新增同族 `ready_file` 与 permit 通知；
+// **不新增 IPC／命名管道／socket**（不新增第二条同义通道——两条必然漂移）。
+// 本段只冻结**语义与判定**；脚本侧实现（内嵌 PowerShell／C#）另行落地并需真实 helper 验证。
+// ---------------------------------------------------------------------------
+
+/// helper 的 **READY 信号**（写进 `ready_file`）。
+///
+/// 语义**严格**：仅表示"helper 已启动，并保证当前不会执行物理输入"。
+/// **不是**成功、不是可以执行、不是已授权。
+///
+/// **刻意没有** `executor_instance_id` / permit / authorization 字段——helper **不能自证执行身份**。
+/// 反序列化用 `deny_unknown_fields`：多带这些字段一律报错，而不是被忽略。
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HelperReadySignal {
+    /// 恒为 `"ready"`（用于与别的记录区分）。
+    pub r#type: String,
+    pub helper_protocol_version: u32,
+    pub nonce: String,
+    pub pid: u32,
+    pub timestamp_unix_ms: u64,
+}
+
+impl HelperReadySignal {
+    /// 校验：类型标识、协议版本、nonce 与 pid 都必须真实。
+    pub fn validate(&self) -> Result<(), InvalidHelperSignal> {
+        if self.r#type != "ready" {
+            return Err(InvalidHelperSignal {
+                field: "type",
+                reason: "READY 信号的类型标识必须是 ready",
+            });
+        }
+        if self.helper_protocol_version == 0 {
+            return Err(InvalidHelperSignal {
+                field: "helper_protocol_version",
+                reason: "必须声明真实协议版本（0 = 未声明）",
+            });
+        }
+        if self.nonce.trim().is_empty() {
+            return Err(InvalidHelperSignal {
+                field: "nonce",
+                reason: "必须带本次会话 nonce（否则无法区分是不是给别人的命令）",
+            });
+        }
+        if self.pid == 0 {
+            return Err(InvalidHelperSignal {
+                field: "pid",
+                reason: "必须带真实 pid（0 = 未声明）",
+            });
+        }
+        Ok(())
+    }
+}
+
+/// helper 收到的 **permit 通知**（宿主在 PermitGate 消费成功后写入）。
+///
+/// **它不是授权来源**——gate／epoch／executor 全部已由宿主侧核对过。
+/// helper 只核对"这条通知是否属于**当前 nonce／会话**"，防止错误 helper 收到别人的命令。
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HelperPermitSignal {
+    /// 恒为 `"execute"`。
+    pub r#type: String,
+    pub permit_id: String,
+    pub attempt_id: String,
+    /// 会话 nonce：必须与 helper 自己的 nonce 一致。
+    pub nonce: String,
+}
+
+impl HelperPermitSignal {
+    /// 该通知是否属于给定 nonce 的会话（**唯一的 helper 侧校验**）。
+    #[must_use]
+    pub fn belongs_to_session(&self, nonce: &str) -> bool {
+        self.r#type == "execute" && !self.permit_id.trim().is_empty() && self.nonce == nonce
+    }
+}
+
+/// helper 信号非法。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvalidHelperSignal {
+    pub field: &'static str,
+    pub reason: &'static str,
+}
+
+/// `AwaitingPermit` 等待循环的退出判定（§四：**cancel 优先级高于 permit**）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AwaitingPermitOutcome {
+    /// 取消到场（**即使 permit 也在**）⇒ 输入之前中止；恢复流程必须能可靠停下 helper。
+    AbortedBeforeInput,
+    /// 只有 permit 到场，且属于本会话 ⇒ 允许进入 `ExecutingInput`。
+    ProceedToExecute,
+    /// 都没有：继续有界等待（不是忙等）。
+    KeepWaiting,
+}
+
+/// 冻结 cancel 优先于 permit（§四）。
+#[must_use]
+pub const fn resolve_awaiting_permit(
+    cancel_present: bool,
+    permit_present_for_this_session: bool,
+) -> AwaitingPermitOutcome {
+    if cancel_present {
+        // 取消优先：即使 permit 同时到达也**不得**继续执行。
+        return AwaitingPermitOutcome::AbortedBeforeInput;
+    }
+    if permit_present_for_this_session {
+        return AwaitingPermitOutcome::ProceedToExecute;
+    }
+    AwaitingPermitOutcome::KeepWaiting
+}
+
+/// 两相生命周期里的异常语义（§六 逐条冻结）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HelperLifecycleException {
+    /// 1. spawn 成功但**没有 READY**：仍处 `Prepared`（**不是** Executing）；取消并回收。
+    NoReadyAfterSpawn,
+    /// 2. READY 已写但**身份登记失败**：`AbortedBeforeInput`；**不得**重新生成 executor id。
+    IdentityRegistrationFailed,
+    /// 3. READY 后等待许可时崩溃：**生命周期未知**，且**输入未获授权**
+    ///    （`execution_not_authorized`）——与"物理输入未知"是两件事，不得混为一谈。
+    CrashWhileAwaitingPermit,
+    /// 4. **许可已消费、EXECUTE 未发出**时崩溃：保留 `PermitConsumed` ＋ `ExecutionNotConfirmed`；
+    ///    不得回滚成 Pending，也不得自动重发。
+    CrashAfterConsumeBeforeExecute,
+    /// 5. EXECUTE 之后崩溃：进入既有输入事实处理（回执／释放义务／资源隔离）。
+    CrashAfterExecute,
+}
+
+impl HelperLifecycleException {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::NoReadyAfterSpawn => "no_ready_after_spawn",
+            Self::IdentityRegistrationFailed => "identity_registration_failed",
+            Self::CrashWhileAwaitingPermit => "crash_while_awaiting_permit",
+            Self::CrashAfterConsumeBeforeExecute => "crash_after_consume_before_execute",
+            Self::CrashAfterExecute => "crash_after_execute",
+        }
+    }
+
+    /// 该异常下 helper 的状态落点。
+    #[must_use]
+    pub const fn state(self) -> HelperExecutionState {
+        match self {
+            Self::NoReadyAfterSpawn => HelperExecutionState::Prepared,
+            Self::IdentityRegistrationFailed | Self::CrashWhileAwaitingPermit => {
+                HelperExecutionState::AbortedBeforeInput
+            }
+            // 已消费但未确认执行：**不回滚**消费事实。
+            Self::CrashAfterConsumeBeforeExecute => HelperExecutionState::PermitConsumed,
+            Self::CrashAfterExecute => HelperExecutionState::ExecutingInput,
+        }
+    }
+
+    /// 是否允许自动重新 spawn 并继续（**全部为否**）。
+    #[must_use]
+    pub const fn may_auto_respawn_and_continue(self) -> bool {
+        false
+    }
+
+    /// 是否允许把已消费的许可**回滚**成待激活（**全部为否**）。
+    #[must_use]
+    pub const fn may_roll_back_consumed_permit(self) -> bool {
+        false
+    }
+
+    /// 该异常是否要求"输入未获授权"这一**独立的**事实（区别于"物理输入未知"）。
+    #[must_use]
+    pub const fn requires_execution_not_authorized_fact(self) -> bool {
+        matches!(
+            self,
+            Self::CrashWhileAwaitingPermit | Self::IdentityRegistrationFailed
+        )
+    }
+}
+
 /// helper 的生命周期状态（**唯一允许物理输入的状态是 [`Self::ExecutingInput`]**）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HelperExecutionState {
@@ -1919,6 +2098,111 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // 8.3c-2 文件协议语义（§B-127 裁决 §三／§四／§六）
+    // -----------------------------------------------------------------------
+
+    /// READY 信号：**helper 不能自证执行身份**——多带 executor／permit／authorization 必须报错，
+    /// 而不是被忽略（`deny_unknown_fields`）。
+    #[test]
+    fn ready_signal_cannot_carry_executor_or_authorization_claims() {
+        let ok = r#"{"type":"ready","helper_protocol_version":1,"nonce":"n-1","pid":1234,"timestamp_unix_ms":9}"#;
+        let signal: HelperReadySignal = serde_json::from_str(ok).expect("合法 READY");
+        signal.validate().expect("合法 READY 应通过");
+        for forged in [
+            r#"{"type":"ready","helper_protocol_version":1,"nonce":"n-1","pid":1234,"timestamp_unix_ms":9,"executor_instance_id":"e-1"}"#,
+            r#"{"type":"ready","helper_protocol_version":1,"nonce":"n-1","pid":1234,"timestamp_unix_ms":9,"permit":"p-1"}"#,
+            r#"{"type":"ready","helper_protocol_version":1,"nonce":"n-1","pid":1234,"timestamp_unix_ms":9,"authorization":"granted"}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<HelperReadySignal>(forged).is_err(),
+                "helper 不得自证执行身份/授权：{forged}"
+            );
+        }
+        // 字段本身也要真实。
+        let mut bad = signal.clone();
+        bad.r#type = "progress".to_string();
+        assert_eq!(bad.validate().expect_err("类型标识必须是 ready").field, "type");
+        let mut bad = signal.clone();
+        bad.nonce = "  ".to_string();
+        assert_eq!(bad.validate().expect_err("必须有 nonce").field, "nonce");
+        let mut bad = signal;
+        bad.helper_protocol_version = 0;
+        assert_eq!(
+            bad.validate().expect_err("必须声明协议版本").field,
+            "helper_protocol_version"
+        );
+    }
+
+    /// permit 通知：helper 侧**唯一**的校验是"是否属于本会话 nonce"（B127-T9：错 nonce 拒绝）。
+    #[test]
+    fn permit_notice_is_accepted_only_for_the_same_session_nonce() {
+        let mine: HelperPermitSignal = serde_json::from_str(
+            r#"{"type":"execute","permit_id":"p-1","attempt_id":"a-1","nonce":"n-1"}"#,
+        )
+        .expect("合法通知");
+        assert!(mine.belongs_to_session("n-1"));
+        // 别的 helper 收到本命令（或反之）必须拒绝。
+        assert!(!mine.belongs_to_session("n-2"));
+        assert!(!mine.belongs_to_session(""));
+        // 类型不对／缺 permit 也拒绝。
+        let wrong_type: HelperPermitSignal =
+            serde_json::from_str(r#"{"type":"ready","permit_id":"p-1","attempt_id":"a-1","nonce":"n-1"}"#)
+                .expect("能解析");
+        assert!(!wrong_type.belongs_to_session("n-1"));
+    }
+
+    /// **cancel 优先级高于 permit**（§四／B127-T7）：两者同时到场也必须中止，不得继续执行。
+    #[test]
+    fn cancel_wins_over_permit_during_the_awaiting_permit_loop() {
+        assert_eq!(
+            resolve_awaiting_permit(true, true),
+            AwaitingPermitOutcome::AbortedBeforeInput,
+            "cancel 与 permit 同时到场：必须中止（否则恢复流程无法可靠停下 helper）"
+        );
+        assert_eq!(
+            resolve_awaiting_permit(true, false),
+            AwaitingPermitOutcome::AbortedBeforeInput
+        );
+        assert_eq!(
+            resolve_awaiting_permit(false, true),
+            AwaitingPermitOutcome::ProceedToExecute
+        );
+        assert_eq!(
+            resolve_awaiting_permit(false, false),
+            AwaitingPermitOutcome::KeepWaiting
+        );
+    }
+
+    /// 五条异常语义逐条冻结（§六）：状态落点、不得自动重启、不得回滚消费、
+    /// 以及"未获授权"必须与"物理输入未知"分开记。
+    #[test]
+    fn helper_lifecycle_exceptions_are_frozen_row_by_row() {
+        use HelperExecutionState::*;
+        use HelperLifecycleException::*;
+        for (exception, state) in [
+            (NoReadyAfterSpawn, Prepared),
+            (IdentityRegistrationFailed, AbortedBeforeInput),
+            (CrashWhileAwaitingPermit, AbortedBeforeInput),
+            (CrashAfterConsumeBeforeExecute, PermitConsumed),
+            (CrashAfterExecute, ExecutingInput),
+        ] {
+            assert_eq!(exception.state(), state, "{exception:?}");
+            assert!(!exception.may_auto_respawn_and_continue(), "{exception:?} 不得自动重启");
+            assert!(!exception.may_roll_back_consumed_permit(), "{exception:?} 不得回滚消费");
+        }
+        // 关键区分：等待许可时崩溃 ⇒ **未获授权**，不是"物理输入未知"。
+        assert!(CrashWhileAwaitingPermit.requires_execution_not_authorized_fact());
+        assert!(IdentityRegistrationFailed.requires_execution_not_authorized_fact());
+        assert!(!CrashAfterExecute.requires_execution_not_authorized_fact());
+        // "已消费但未确认执行"必须保留消费事实（不回滚），这条是 §六.4 的核心。
+        assert_eq!(
+            CrashAfterConsumeBeforeExecute.state(),
+            PermitConsumed,
+            "许可已消费的事实不得因为随后崩溃而回滚成待激活"
+        );
+    }
+
     // -----------------------------------------------------------------------
     // 两相 helper 生命周期（§B-127 裁决 §五／§六／§十）
     // -----------------------------------------------------------------------
