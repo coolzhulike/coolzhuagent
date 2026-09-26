@@ -592,6 +592,221 @@ pub struct InputSafetyEvent {
 // 落库时必须使用**同一套**转换规则（不得先写一套测试状态机、落库再独立写第二套）。
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// 两相 helper 生命周期（2026-09-26 §B-127 裁决 §五／§六／§八 正式冻结）
+//
+// 为什么需要它：受控输入原本是"一次调用＝spawn＋立即注入"，因此**执行者身份只在注入那一刻才存在**，
+// 而许可必须在**物理输入之前**消费并绑定已核实的执行者 —— 两者互斥。
+// 裁决选择"调整执行时序"而不是"降低身份要求"：helper 必须先进入**不可输入**的 Prepared/Ready 状态，
+// 完成真实身份登记、拿到 executor_instance_id，消费许可之后才允许 EXECUTE。
+// ---------------------------------------------------------------------------
+
+/// helper 的生命周期状态（**唯一允许物理输入的状态是 [`Self::ExecutingInput`]**）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum HelperExecutionState {
+    /// 宿主决定需要 helper；**尚未创建**。
+    Requested,
+    /// helper 已创建，但**禁止输入**（这是新增的关键状态）。
+    Prepared,
+    /// 已取得 pid／创建时间／镜像并写入 `ExecutorStore`，得到 `executor_instance_id`。
+    IdentityRegistered,
+    /// 等待 `InputPermit`。允许 heartbeat／handshake／status；
+    /// **禁止** mouse／keyboard／clipboard mutation／window mutation。
+    AwaitingPermit,
+    /// 许可已由 `PendingActivation` 成功转为 `DispatchCommitted`。
+    PermitConsumed,
+    /// **只有这里** helper 才允许执行 click／drag／keypress。
+    ExecutingInput,
+    /// 本次执行结束。
+    Finished,
+    /// **进入输入之前** helper 就没了（崩溃／被杀）：结果未知，
+    /// **不得自动重 spawn 并继续**（裁决 §十 B127-T5）。
+    AbortedBeforeInput,
+}
+
+impl HelperExecutionState {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Requested => "requested",
+            Self::Prepared => "prepared",
+            Self::IdentityRegistered => "identity_registered",
+            Self::AwaitingPermit => "awaiting_permit",
+            Self::PermitConsumed => "permit_consumed",
+            Self::ExecutingInput => "executing_input",
+            Self::Finished => "finished",
+            Self::AbortedBeforeInput => "aborted_before_input",
+        }
+    }
+
+    /// **是否允许产生物理输入**——整个生命周期里只有 `ExecutingInput` 为真。
+    ///
+    /// 这是 B127-T1 在状态层的表达："等待许可期间"（以及 Prepared／IdentityRegistered／
+    /// PermitConsumed 等）一律**不得**输入。
+    #[must_use]
+    pub const fn may_execute_physical_input(self) -> bool {
+        matches!(self, Self::ExecutingInput)
+    }
+
+    /// 该状态下允许做的事（诊断用；也是给 helper 脚本的规范）。
+    #[must_use]
+    pub const fn allowed_activities(self) -> &'static str {
+        match self {
+            Self::Requested => "仅登记意图；尚未创建进程",
+            Self::Prepared => "仅存活；禁止一切输入与界面变更",
+            Self::IdentityRegistered => "仅存活与握手；禁止一切输入与界面变更",
+            Self::AwaitingPermit => "heartbeat／handshake／status；禁止 mouse／keyboard／clipboard／window 变更",
+            Self::PermitConsumed => "等待 EXECUTE 命令；仍禁止输入",
+            Self::ExecutingInput => "允许 click／drag／keypress（唯一允许输入的状态）",
+            Self::Finished => "已结束；只允许读回结果",
+            Self::AbortedBeforeInput => "只允许记录未知结果与收尾；**不得**自动重新 spawn 继续",
+        }
+    }
+
+    /// 是否已进入"不可输入但已存在"的阶段（Prepared 之后、ExecutingInput 之前）。
+    #[must_use]
+    pub const fn is_prepared_but_not_authorized(self) -> bool {
+        matches!(
+            self,
+            Self::Prepared | Self::IdentityRegistered | Self::AwaitingPermit | Self::PermitConsumed
+        )
+    }
+
+    /// 合法转换：**严格按裁决 §五 的顺序**，不得跳步。
+    #[must_use]
+    pub const fn can_advance_to(self, next: Self) -> bool {
+        matches!(
+            (self, next),
+            (Self::Requested, Self::Prepared)
+                | (Self::Prepared, Self::IdentityRegistered)
+                | (Self::IdentityRegistered, Self::AwaitingPermit)
+                | (Self::AwaitingPermit, Self::PermitConsumed)
+                | (Self::PermitConsumed, Self::ExecutingInput)
+                | (Self::ExecutingInput, Self::Finished)
+                // 输入之前任何一步失败／消失 ⇒ 结果未知（含 Requested 与 AwaitingPermit）。
+                | (
+                    Self::Requested
+                        | Self::Prepared
+                        | Self::IdentityRegistered
+                        | Self::AwaitingPermit,
+                    Self::AbortedBeforeInput
+                )
+        )
+    }
+
+    /// 失败时的处置（对应命令 `AbortBeforeInput`）。
+    #[must_use]
+    pub fn advance_to(self, next: Self) -> Result<Self, HelperLifecycleError> {
+        if self.can_advance_to(next) {
+            return Ok(next);
+        }
+        Err(HelperLifecycleError {
+            from: self,
+            to: next,
+            reason: self.refusal_reason(next),
+        })
+    }
+
+    fn refusal_reason(self, next: Self) -> &'static str {
+        match (self, next) {
+            (_, Self::ExecutingInput) => {
+                "只有「许可已消费」之后才允许进入执行输入：跳步等于在没有许可的情况下输入"
+            }
+            (Self::AbortedBeforeInput, _) => {
+                "输入之前已中止：不得自动重 spawn 继续（结果未知，必须人工／恢复流程处理）"
+            }
+            (Self::Finished, _) => "已结束的生命周期不得再转换",
+            (Self::ExecutingInput, _) => "已经开始输入：只能走向结束",
+            _ => "该转换不在冻结的生命周期顺序内",
+        }
+    }
+
+    /// 中止后是否允许自动重 spawn 继续（**恒为否**，B127-T5）。
+    #[must_use]
+    pub const fn may_auto_respawn_and_continue(self) -> bool {
+        false
+    }
+}
+
+/// 生命周期转换被拒。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct HelperLifecycleError {
+    pub from: HelperExecutionState,
+    pub to: HelperExecutionState,
+    pub reason: &'static str,
+}
+
+impl std::fmt::Display for HelperLifecycleError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "helper 生命周期不得从 {} 转为 {}：{}",
+            self.from.as_str(),
+            self.to.as_str(),
+            self.reason
+        )
+    }
+}
+
+/// 握手消息（§六：**协议化**，不能靠"启动脚本但希望它暂时别动"）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HelperHandshake {
+    /// 宿主 → helper：开始（此后 helper 必须停在不可输入状态）。
+    Start,
+    /// helper → 宿主：已就绪且**不会输入**。
+    Ready,
+    /// 宿主 → helper：许可标识（仅在许可**已消费**之后发送）。
+    Permit,
+    /// helper → 宿主：已收到许可，等待 EXECUTE。
+    Ack,
+    /// 宿主 → helper：**唯一**允许触发物理输入的命令。
+    Execute,
+}
+
+impl HelperHandshake {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Start => "start",
+            Self::Ready => "ready",
+            Self::Permit => "permit",
+            Self::Ack => "ack",
+            Self::Execute => "execute",
+        }
+    }
+
+    /// 该消息要求当前处于哪个状态（**仅在正确状态才被接受**）。
+    #[must_use]
+    pub const fn required_state(self) -> HelperExecutionState {
+        match self {
+            Self::Start => HelperExecutionState::Requested,
+            Self::Ready => HelperExecutionState::Prepared,
+            Self::Permit => HelperExecutionState::AwaitingPermit,
+            Self::Ack => HelperExecutionState::PermitConsumed,
+            Self::Execute => HelperExecutionState::PermitConsumed,
+        }
+    }
+
+    /// 该消息推进到的状态（不改变状态的消息返回当前状态的期望后继；用 `None` 表达"仅回执"）。
+    #[must_use]
+    pub const fn advances_to(self) -> Option<HelperExecutionState> {
+        match self {
+            Self::Start => Some(HelperExecutionState::Prepared),
+            Self::Ready => Some(HelperExecutionState::IdentityRegistered),
+            // Permit 的到达本身不推进（helper 先 ACK，许可消费由宿主侧完成）。
+            Self::Permit => None,
+            Self::Ack => None,
+            Self::Execute => Some(HelperExecutionState::ExecutingInput),
+        }
+    }
+
+    /// 该消息是否**可能触发物理输入**（只有 EXECUTE）。
+    #[must_use]
+    pub const fn may_trigger_input(self) -> bool {
+        matches!(self, Self::Execute)
+    }
+}
+
 /// 输入许可的状态（六态）。
 ///
 /// 语义要点（裁决 §3.2 点名"三条特别重要"）：
@@ -1704,6 +1919,100 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // 两相 helper 生命周期（§B-127 裁决 §五／§六／§十）
+    // -----------------------------------------------------------------------
+
+    /// **B127-T1 的状态层表达**：只有 `ExecutingInput` 允许物理输入；
+    /// Prepared／IdentityRegistered／AwaitingPermit／PermitConsumed 全部禁止。
+    #[test]
+    fn only_executing_input_may_produce_physical_input() {
+        use HelperExecutionState::*;
+        assert!(ExecutingInput.may_execute_physical_input());
+        for state in [
+            Requested,
+            Prepared,
+            IdentityRegistered,
+            AwaitingPermit,
+            PermitConsumed,
+            Finished,
+            AbortedBeforeInput,
+        ] {
+            assert!(
+                !state.may_execute_physical_input(),
+                "{state:?} 不得产生物理输入（含等待许可期间）"
+            );
+        }
+        for state in [Prepared, IdentityRegistered, AwaitingPermit, PermitConsumed] {
+            assert!(state.is_prepared_but_not_authorized(), "{state:?}");
+        }
+    }
+
+    /// 生命周期严格按裁决顺序推进，**跳步一律被拒**（尤其是"没消费许可就执行"）。
+    #[test]
+    fn helper_lifecycle_advances_only_in_the_frozen_order() {
+        use HelperExecutionState::*;
+        let path = [
+            (Requested, Prepared),
+            (Prepared, IdentityRegistered),
+            (IdentityRegistered, AwaitingPermit),
+            (AwaitingPermit, PermitConsumed),
+            (PermitConsumed, ExecutingInput),
+            (ExecutingInput, Finished),
+        ];
+        let mut state = Requested;
+        for (from, to) in path {
+            assert_eq!(state, from, "路径必须从 {from:?} 开始");
+            state = state.advance_to(to).expect("合法推进");
+        }
+        assert_eq!(state, Finished);
+        let refused = AwaitingPermit.advance_to(ExecutingInput).expect_err("跳步必须被拒");
+        assert!(refused.reason.contains("许可"), "{}", refused.reason);
+        assert!(Prepared.advance_to(ExecutingInput).is_err());
+        assert!(IdentityRegistered.advance_to(ExecutingInput).is_err());
+        assert!(Finished.advance_to(ExecutingInput).is_err());
+    }
+
+    /// **B127-T5 的状态层表达**：输入之前中止 ⇒ 结果未知，且**不得自动重 spawn 继续**。
+    #[test]
+    fn abort_before_input_is_unknown_and_never_auto_respawns() {
+        use HelperExecutionState::*;
+        for state in [Requested, Prepared, IdentityRegistered, AwaitingPermit] {
+            let aborted = state.advance_to(AbortedBeforeInput).expect("中止合法");
+            assert!(!aborted.may_execute_physical_input());
+            assert!(!aborted.may_auto_respawn_and_continue(), "中止后不得自动重 spawn 继续");
+        }
+        assert!(!ExecutingInput.can_advance_to(AbortedBeforeInput));
+        assert!(AbortedBeforeInput.advance_to(Prepared).is_err());
+        assert!(AbortedBeforeInput.advance_to(ExecutingInput).is_err());
+    }
+
+    /// 握手协议：每条消息只在**正确状态**下被接受；且**只有 EXECUTE 可能触发输入**。
+    #[test]
+    fn handshake_messages_require_the_right_state_and_only_execute_may_input() {
+        use HelperExecutionState::*;
+        use HelperHandshake::*;
+        for (message, state) in [
+            (Start, Requested),
+            (Ready, Prepared),
+            (Permit, AwaitingPermit),
+            (Ack, PermitConsumed),
+            (Execute, PermitConsumed),
+        ] {
+            assert_eq!(message.required_state(), state, "{message:?}");
+        }
+        assert!(Execute.may_trigger_input());
+        for message in [Start, Ready, Permit, Ack] {
+            assert!(!message.may_trigger_input(), "{message:?} 不得触发输入");
+        }
+        assert_eq!(Start.advances_to(), Some(Prepared));
+        assert_eq!(Ready.advances_to(), Some(IdentityRegistered));
+        assert_eq!(Execute.advances_to(), Some(ExecutingInput));
+        assert_eq!(Permit.advances_to(), None);
+        assert_eq!(Ack.advances_to(), None);
+        assert_ne!(Execute.required_state(), AwaitingPermit);
+    }
+
     // 8.3c 实例比对（§B-127）：PID 复用必须可识别
     // -----------------------------------------------------------------------
 
