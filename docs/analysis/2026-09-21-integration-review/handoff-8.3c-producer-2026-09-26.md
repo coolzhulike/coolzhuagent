@@ -248,6 +248,60 @@ execute  : 让 helper 继续（它轮询到本人 nonce 的 permit → EXECUTE �
 **分层不破**：安全判定全部留在 web-console；`computer-use-core` 只提供「能创建、能等、能执行」
 两个入口，**不含任何安全判定**（它本来也不该有）。
 
+### **命名纠正（2026-09-26 裁决 §一）：`8.3c-A-contract` ≠ 已完成**
+
+| 名称 | 含义 | 状态 |
+| --- | --- | --- |
+| **`8.3c-A-contract`** | 设计冻结 ＋ 协议门禁 | ✅ **完成** |
+| **`8.3c-A-runtime`** | helper READY/WAIT_PERMIT/EXECUTE 的实际行为、permit 文件真实流转、`ExecutorStore` 实际绑定、EXECUTE gate | **待完整切换窗口** |
+
+协议门禁解决的是「**新旧 helper 是否允许进入同一个生命周期**」，**不是**「helper 是否已完成两相执行」。
+⇒ **不得**把"门禁通过"写成"8.3c-A 已完成"。
+
+### 实现纪律（§三／§四／§五，按生命周期顺序而非文件顺序）
+
+**Phase 1 · helper 双相化**：让 helper 真的支持
+`START → READY → WAIT_PERMIT → PERMIT → EXECUTE → INPUT`。
+**此阶段结束时旧路径仍未切换**（允许存在新协议代码，但生产 executor 不调用）。
+出口条件：先过 **T6**（`spawn → READY → wait`，`physical input = 0`）与 **T12**
+（伪 READY：不是 `ready_file exists` 就算，必须 **valid nonce ＋ valid state ＋ valid helper identity**）。
+
+**Phase 2 · 宿主编排**：由 **web-console** 接入（它持有 `ExecutorStore`／`PermitGate`／输入安全状态）：
+`prepare helper → wait READY → capture identity → ExecutorStore.register → PermitGate.issue
+→ PermitGate.consume → write permit`。
+**额外硬要求**：**web-console 不得自己读 helper 的 PID**——身份**唯一来源**是
+`NativeInputOutcome → ProcessInstanceEvidence`。否则会重新产生"core 捕获一次、web 再查一次"的
+**两个身份来源**（本轮已多次防这类漂移）。
+
+**Phase 3 · 切换 `controlled_*` 调用**（**唯一危险阶段**）：`controlled_click → prepare → authorize
+→ execute`。**必须一次完成**；不允许"部分 `controlled_*` 走新路径、部分走旧路径"
+（否则同一动作会出现"有 permit / 无 permit"两种语义）；新协议失败 ⇒ **fail closed**，
+**不得**回退旧 helper。
+
+### 切换保护开关（§四）
+
+增加 `two_phase_helper_required = true`：**它不是 fallback**，而是**启动时检查生产组合是否完整**
+（`helper protocol = 1`、`host protocol = 1`、`permit schema` 兼容、`executor identity supported`）。
+任何一项不满足 ⇒ **该能力启动失败**，**不是**切回旧路径。
+
+### 真实测试顺序（§五，分三组）
+
+1. **helper 独立**（无需真实 permit）：**T6** READY 无输入、**T12** READY 伪造、**T11** 旧 permit nonce。
+2. **完整授权链**（需 web-console）：identity register ＋ permit issue ＋ permit consume ⇒ **T8** 正常执行、
+   **T7** cancel 优先、**T9** nonce 错误。
+3. **故障窗口**（依赖真实状态机）：**T10** READY 后崩溃、permit consumed 后 crash、execute 前 crash、
+   execute 后 crash。
+
+### schema（§六）
+
+**暂不新增**——已有 permit 状态、executor identity、helper lifecycle 足以表达。
+**只有**实现中发现"必须持久化 `AwaitingPermit` 的 helper"时才新增；**不得为记录中间态扩大安全库**。
+
+### 非批次项（§七）
+
+非空基线／并发释放的确定性场景：**批准但排序放后**——它属"验证已有资源模型"，
+不解除当前输入阻塞；**不要在切换窗口之前引入额外共享状态测试**。
+
 ### 下一次窗口必须按此顺序（不得改变）
 
 **Phase 1 · helper 协议落地**：`spawn → READY → await permit → EXECUTE → input`。

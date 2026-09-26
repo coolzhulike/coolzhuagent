@@ -3730,6 +3730,43 @@ prepare／execute 两个入口并保持**不含任何安全判定**（它本来�
 computer-use-core **127/0**、linkage 8/0、`cargo build --workspace` ✅。
 未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-142 8.3c-A 命名与状态纠正 + runtime 窗口实现纪律（裁决 §一／§三／§四／§五）
+
+**命名纠正（§一）**：`8.3c-A-contract`（设计冻结 ＋ 协议门禁）＝ **完成**；
+`8.3c-A-runtime`（helper READY/WAIT_PERMIT/EXECUTE 的实际行为、permit 文件真实流转、
+`ExecutorStore` 实际绑定、EXECUTE gate）＝ **待完整切换窗口**。
+协议门禁解决的是"**新旧 helper 是否允许进入同一生命周期**"，**不是**"helper 是否已完成两相执行"
+⇒ **不得**把门禁通过写成"8.3c-A 已完成"。同时裁决明确：**本轮不再增加契约层内容**，
+继续加状态／握手／契约测试已不是降低风险而是**契约膨胀**；真正缺的是
+`contract → runtime implementation → real helper → real executor → real permit`。
+
+**已写进交接文件 §3-ter**（实现纪律，按**生命周期顺序**而非文件顺序）：
+
+- **Phase 1 helper 双相化**：`START → READY → WAIT_PERMIT → PERMIT → EXECUTE → INPUT`；
+  **此阶段结束旧路径仍未切换**（可存在新协议代码，但生产 executor 不调用）；
+  出口条件先过 **T6**（spawn→READY→wait，physical input = 0）与 **T12**（伪 READY 必须校验
+  valid nonce ＋ valid state ＋ valid helper identity，不是文件存在即通过）。
+- **Phase 2 宿主编排**（web-console，它持有 ExecutorStore／PermitGate／输入安全状态）：
+  `prepare → wait READY → capture identity → register → issue → consume → write permit`；
+  **硬要求：web-console 不得自己读 helper PID**——身份**唯一来源**是
+  `NativeInputOutcome → ProcessInstanceEvidence`，否则又出现"core 捕获一次、web 再查一次"两个来源。
+- **Phase 3 切换 `controlled_*`**（**唯一危险阶段**）：必须**一次完成**，
+  不允许部分新路径部分旧路径（同一动作会出现两种语义）；失败 ⇒ **fail closed，不得回退旧 helper**。
+- **切换保护开关** `two_phase_helper_required = true`：**不是 fallback**，而是启动时检查生产组合完整
+  （helper protocol=1／host protocol=1／permit schema 兼容／executor identity supported）；
+  任一不满足 ⇒ **该能力启动失败**，而非切旧路径。
+- **测试顺序三组**：① helper 独立（T6／T12／T11，无需真实 permit）；② 完整授权链（T8／T7／T9，需 web-console）；
+  ③ 故障窗口（T10 与 consume 后／execute 前／execute 后崩溃，依赖真实状态机）。
+- **schema**：暂不新增（已有 permit 状态／executor identity／helper lifecycle 足以表达）；
+  只有"必须持久化 `AwaitingPermit` 的 helper"时才新增，**不得为记录中间态扩大安全库**。
+- **非批次项**（非空基线／并发释放）：批准但**排序放后**——属验证已有资源模型，
+  不在切换窗口前引入额外共享状态测试。
+
+**当前状态不是阻塞，而是正确冻结点**：风险已从"设计错误"转移为"实现切换纪律"。
+**本轮未改任何代码**。门禁维持：web-console **1215/0**（1 ignored＝真实调用评测）、
+core-runtime **347/0**、computer-use-core 127/0、linkage 8/0、`cargo build --workspace` ✅。
+未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
