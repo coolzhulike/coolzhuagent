@@ -43,6 +43,12 @@ pub(crate) enum PermitStoreError {
     InvalidExecutor { field: &'static str, reason: &'static str },
     /// 条件更新没有命中（revision / 状态 / gate 已变）：调用方必须重新读取后再决定。
     ConditionNotMet { what: &'static str },
+    /// **同一次执行尝试被复用于不同内容**（§B-121 裁决 §四 情况 3）：执行身份被复用 ⇒ 拒绝。
+    ActionIdentityConflict {
+        attempt_logical_key: String,
+        existing_action_id: String,
+        attempted_action_id: String,
+    },
 }
 
 impl std::fmt::Display for PermitStoreError {
@@ -66,6 +72,14 @@ impl std::fmt::Display for PermitStoreError {
             Self::ConditionNotMet { what } => {
                 write!(formatter, "条件更新未命中（{what}）：必须重新读取后再决定")
             }
+            Self::ActionIdentityConflict {
+                attempt_logical_key,
+                existing_action_id,
+                attempted_action_id,
+            } => write!(
+                formatter,
+                "执行尝试身份被复用：尝试 `{attempt_logical_key}` 已属于动作 `{existing_action_id}`，不得再用于 `{attempted_action_id}`（同一尝试不得换内容）"
+            ),
         }
     }
 }
@@ -251,27 +265,45 @@ impl<'a> PermitStore<'a> {
                 reason: error.reason,
             });
         }
+        // §B-121 裁决 §四：判定按**逻辑尝试键**（观察代次 + 步骤 + 尝试序号），
+        // **不是**按 action_id。这正是"同内容不同尝试必须各自放行"的落点。
+        let attempt = permit.execution_attempt_id.clone();
         self.in_immediate_transaction("register_pending", |connection| {
-            // 同 action 已存在：按契约"返回已有状态、不重新创建可执行资格"，这里显式拒绝重复登记。
             let existing: Option<(String, String)> = connection
                 .query_row(
-                    "SELECT permit_id, frozen_action_digest FROM input_safety_permits WHERE action_id = ?1",
-                    rusqlite::params![permit.action_id],
+                    "SELECT action_id, permit_id FROM input_safety_permits
+                      WHERE observation_generation = ?1 AND step_identity = ?2
+                        AND attempt_sequence = ?3",
+                    rusqlite::params![
+                        attempt.observation_generation as i64,
+                        attempt.step_identity,
+                        attempt.attempt_sequence as i64,
+                    ],
                     |row| Ok((row.get(0)?, row.get(1)?)),
                 )
                 .optional()
                 .map_err(sqlite_error)?;
-            if let Some((_existing_id, existing_digest)) = existing {
-                return Err(if existing_digest == permit.frozen_action_digest {
-                    PermitStoreError::ConditionNotMet {
-                        what: "同一 action 与同一内容已登记：调用方应读取已有许可状态，而不是新建",
-                    }
-                } else {
-                    PermitStoreError::ConditionNotMet {
-                        what: "同一 action 换内容：拒绝（这是错误的复用）",
-                    }
+            if let Some((existing_action_id, _existing_permit_id)) = existing {
+                if existing_action_id != permit.action_id {
+                    // 情况 3：**同一次执行尝试被换内容** ⇒ 执行身份被复用 ⇒ 拒绝。
+                    return Err(PermitStoreError::ActionIdentityConflict {
+                        attempt_logical_key: format!(
+                            "gen{}#{}#attempt{}",
+                            attempt.observation_generation,
+                            attempt.step_identity,
+                            attempt.attempt_sequence
+                        ),
+                        existing_action_id,
+                        attempted_action_id: permit.action_id.clone(),
+                    });
+                }
+                // 情况 1／2：同一次尝试、同内容 ⇒ 返回已有状态，不新建、不重新执行。
+                return Err(PermitStoreError::ConditionNotMet {
+                    what: "同一次执行尝试已登记：调用方应读取已有许可状态（返回已有状态，不重新输入）",
                 });
             }
+            // 情况 2／4：**同一动作内容的再一次尝试**（不同 attempt）⇒ 允许新许可。
+            // 这里刻意**不**按 action_id 拒——那正是 §B-121 要修掉的错误合并。
             connection
                 .execute(
                     "INSERT INTO input_safety_permits (
@@ -1290,6 +1322,158 @@ mod tests {
     }
 
 
+
+    // -----------------------------------------------------------------------
+    // B121-T1..T5（§B-121 裁决 §六）：动作内容重复 ≠ 执行请求重复
+    // -----------------------------------------------------------------------
+
+    fn pending_count(store: &InputSafetyStore) -> u64 {
+        store
+            .permit_store()
+            .count_by_state(&scope())
+            .expect("count")
+            .into_iter()
+            .filter(|(state, _)| *state == InputPermitState::PendingActivation)
+            .map(|(_, count)| count)
+            .sum()
+    }
+
+    /// **B121-T1**：同内容、不同尝试 ⇒ **两个许可、两次允许**。
+    ///
+    /// 这是 §B-121 的核心：`action_id` 相同不构成"重复请求"。
+    #[test]
+    fn b121_t1_same_content_different_attempt_yields_two_permits() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        // 同 action_id、同内容；观察代次不同（41 → 42）。
+        let first = permit_attempt("permit-1", "click:uia-951f959f29c11d9f:hash123", 41, "step-7", 1);
+        let second = permit_attempt("permit-2", "click:uia-951f959f29c11d9f:hash123", 42, "step-9", 1);
+        store
+            .permit_store()
+            .register_pending(&first, InputPermitState::PendingActivation, 1)
+            .expect("第一次尝试必须放行");
+        store
+            .permit_store()
+            .register_pending(&second, InputPermitState::PendingActivation, 2)
+            .expect("第二次同内容动作必须**也**放行（旧行为会在这里错误拒绝）");
+        assert_eq!(pending_count(&store), 2, "两次合法尝试 = 两个许可");
+
+        // 两次都能各自消费（各自获得一次物理输入资格）。
+        for id in ["permit-1", "permit-2"] {
+            let state = store
+                .permit_store()
+                .consume_permit(id, budget(), PermitExecutorBinding::BindTo("exec-1"), 3)
+                .expect("两次尝试都应可消费");
+            assert_eq!(state, InputPermitState::DispatchCommitted);
+        }
+    }
+
+    /// **B121-T2**：同一次请求重试（action_id ＋ 执行尝试完全相同）⇒ 返回已有状态，不重新输入。
+    #[test]
+    fn b121_t2_same_request_retry_returns_existing_state_without_second_input() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        let permit = permit_attempt("permit-1", "click:uia-x:hash1", 41, "step-7", 1);
+        store
+            .permit_store()
+            .register_pending(&permit, InputPermitState::PendingActivation, 1)
+            .expect("首次登记");
+        // 完全相同的重试：必须**不**新建第二个许可。
+        let retry = permit_attempt("permit-2", "click:uia-x:hash1", 41, "step-7", 1);
+        let outcome = store
+            .permit_store()
+            .register_pending(&retry, InputPermitState::PendingActivation, 2);
+        assert!(
+            matches!(outcome, Err(PermitStoreError::ConditionNotMet { .. })),
+            "同一次执行尝试的重试必须返回已有状态语义：{outcome:?}"
+        );
+        assert_eq!(pending_count(&store), 1, "重试不得产生第二个许可");
+        // 已有许可状态未被改动（仍是待激活，等待真正的那一次消费）。
+        assert_eq!(
+            store.permit_store().load_permit("permit-1").expect("load").state,
+            InputPermitState::PendingActivation
+        );
+    }
+
+    /// **B121-T3**：同一次尝试被换内容 ⇒ **拒绝**（执行身份被复用）。
+    #[test]
+    fn b121_t3_reusing_an_attempt_with_different_content_is_rejected() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        // 同一逻辑尝试（gen=41 / step-7 / attempt 1），两次内容不同。
+        let first = permit_attempt("permit-1", "click:uia-x:hash1", 41, "step-7", 1);
+        let changed = permit_attempt("permit-2", "click:uia-x:hash2", 41, "step-7", 1);
+        store
+            .permit_store()
+            .register_pending(&first, InputPermitState::PendingActivation, 1)
+            .expect("首次登记");
+        let outcome = store
+            .permit_store()
+            .register_pending(&changed, InputPermitState::PendingActivation, 2);
+        match outcome {
+            Err(PermitStoreError::ActionIdentityConflict {
+                existing_action_id,
+                attempted_action_id,
+                ..
+            }) => {
+                assert_eq!(existing_action_id, "click:uia-x:hash1");
+                assert_eq!(attempted_action_id, "click:uia-x:hash2");
+            }
+            other => panic!("同一尝试换内容必须被拒为 ActionIdentityConflict：{other:?}"),
+        }
+    }
+
+    /// **B121-T4**：恢复重算（同观察上下文、同目标）但 `attempt_sequence++` ⇒ 新的执行尝试，
+    /// **不被旧许可吞掉**。
+    #[test]
+    fn b121_t4_recovery_recompute_with_incremented_sequence_is_a_new_attempt() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        // 同 gen、同 step、同内容——只有 attempt_sequence 递增。
+        let before = permit_attempt("permit-1", "click:uia-x:hash1", 41, "step-7", 1);
+        let after = permit_attempt("permit-2", "click:uia-x:hash1", 41, "step-7", 2);
+        store
+            .permit_store()
+            .register_pending(&before, InputPermitState::PendingActivation, 1)
+            .expect("第一次尝试");
+        store
+            .permit_store()
+            .register_pending(&after, InputPermitState::PendingActivation, 2)
+            .expect("重算后的再一次尝试必须放行，不得被旧许可吞掉");
+        assert_eq!(pending_count(&store), 2);
+    }
+
+    /// **B121-T5（关键）**：真实 Paint 类案例——`paint-r3` 的两次点击载荷完全相同、
+    /// 只是观察代次不同；第二次**不是** duplicate request。
+    ///
+    /// 这条证明"动作内容重复 ≠ 执行请求重复"，也是"不再错误拒绝合法输入"的直接证据。
+    #[test]
+    fn b121_t5_paint_r3_repeated_identical_clicks_are_not_duplicates() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        // 取自 §B-106 归档语料的真实动作：两次点击的目标与载荷完全相同，观察代次不同。
+        const PAINT_R3_TARGET: &str = "click:uia-951f959f29c11d9f:4a17c0e5f8b21d33";
+        let first = permit_attempt("paint-r3-click-1", PAINT_R3_TARGET, 1, "step-0", 1);
+        let second = permit_attempt("paint-r3-click-2", PAINT_R3_TARGET, 2, "step-1", 1);
+        assert_eq!(
+            first.action_id, second.action_id,
+            "两条动作的内容身份必须相同（这正是当初会被误判为重复的原因）"
+        );
+        assert_ne!(
+            first.execution_attempt_id, second.execution_attempt_id,
+            "执行尝试身份必须不同（观察代次不同）"
+        );
+        store
+            .permit_store()
+            .register_pending(&first, InputPermitState::PendingActivation, 1)
+            .expect("paint-r3 第一次点击");
+        store
+            .permit_store()
+            .register_pending(&second, InputPermitState::PendingActivation, 2)
+            .expect("paint-r3 第二次点击**必须**放行：它不是 duplicate request");
+        assert_eq!(pending_count(&store), 2);
+    }
+
     /// **使能步骤验收**：许可的签发与消费都能经**生产可达的窄口**（`store.permit_store()`）完成，
     /// 而不是只能在测试里自造连接。这条直接解掉 8.2c 的接线阻塞。
     #[test]
@@ -1307,8 +1491,14 @@ mod tests {
         assert_eq!(consumed, InputPermitState::DispatchCommitted);
 
         // 关闸竞争在**同一条生产可达路径**上同样成立：先关闸 ⇒ 新的消费必失败。
+        // 注意：第二条必须是**另一次执行尝试**（不同观察代次/步骤）——同一逻辑尝试换内容
+        // 现在会被正确拒为 ActionIdentityConflict（§B-121 §四 情况 3）。
         permits
-            .register_pending(&permit("permit-2", "action-2"), InputPermitState::PendingActivation, 3)
+            .register_pending(
+                &permit_attempt("permit-2", "action-2", 42, "step-8", 1),
+                InputPermitState::PendingActivation,
+                3,
+            )
             .expect("登记第二条");
         permits
             .close_intake_and_revoke_pending(&scope(), 8, 4)
