@@ -86,6 +86,32 @@ d025b53  B126-T2/T4/T5 落地
   建议做法：先加字段并**逐个构造点**补齐（编译错误会逐一点名），或先加带 `Default` 的
   `Option` 字段以降低一次性改动量。**改完必须两个 crate 全绿**（见第 2 节基线）。
 
+### 第 1 步的侦察结论（2026-09-26 会话收尾时核实，**不是**推断）
+
+动手前把第 1 步的未知项查完了，结论是**好消息**——比预想的小：
+
+| 事实 | 值 |
+| --- | --- |
+| 生产构造点 | `input.rs` 的 `run_native_helper`（**函数起点 :3317**）内，`NativeInputOutcome` 在 **:3604** 构造 |
+| helper 句柄是否在同一函数作用域 | **是**：约 **:3531** 有 `let mut child = match command.spawn()`，`child` 与 `child.id()` 都在作用域内 |
+| 身份捕获能力 | 已有：`windows_process_guard::capture_process_identity(pid)`（同文件 :6392 在用） |
+| 身份类型 | `windows_process_guard::ProcessIdentity { pid, creation_time, image_path }`，访问器 `pid()` / `creation_time_filetime()` |
+| 契约类型是否可直接用 | **可以**：`computer-use-core` 的 `Cargo.toml` **已依赖 `runtime`** ⇒ 直接填 `runtime::ProcessInstanceEvidence { pid, creation_time_filetime }`，**不需要**新增依赖或本地同义类型 |
+| 其它构造点 | 仅 2 处，都在测试里（约 **:6253**、**:6307**）⇒ 各补 `helper_process: None` 即可 |
+
+**⇒ 第 1 步是"函数内局部改动"**：在 spawn 成功之后捕获一次身份 → 在 :3604 填进 outcome →
+两个测试构造点补 `None`。不需要穿层、不需要新增依赖。
+
+**唯一仍需小心的一点（下次上手先读这一段）**：`:3531` 的 `match command.spawn()` **不是一个几行的
+match**——它的 Ok 分支里包含**整个等待/轮询/收尾循环**（:3548 附近起的 `cancelled()/timeout` 轮询、
+协作退出、kill 收尾都在其中）。因此捕获点的正确位置是**spawn 之后、轮询循环之前**的 Ok 分支早期，
+而"match 的结束位置"不能用简单的 `};` 锚定。**必须先读清 Ok 分支的结构再插入**，
+不要按行号盲插（本会话已有"锚点不唯一/不命中"的数次教训）。
+
+**建议的验证顺序**：`cargo test -p coolzhu-computer-use-core --offline` ＋
+`cargo test -p coolzhu-web-console --offline` **都要绿**（加字段是全链改动；
+本会话三次教训：`cargo build` 绿 ≠ 测试能编译）。
+
 ### 第 2 步：执行器登记，产出**真实** `executor_instance_id`
 
 - **顺序不能反**（裁决 §五）：
