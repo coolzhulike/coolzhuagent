@@ -2935,6 +2935,43 @@ web-console **1189/0**（1 ignored＝真实调用评测）、module_linkage_smok
 
 **门禁**：module_linkage_smoke **8/0**（断言增强，未增用例数）；本次未改任何生产代码。
 
+### B-113 8.2a 交付：六态输入许可转换契约**纯逻辑冻结**（不落库、不占 schema 版本号）
+
+**裁决口径（§3）**：批准新增最小的持久许可登记，**同意先做纯逻辑与测试以缩短 schema 串行窗口**；
+纯逻辑与后续存储**必须使用同一套转换规则**（不得先写一套测试状态机、落库再独立写第二套）；
+schema 设计与迁移计划可提前评审，**版本号仍由输入安全库负责人在合并时分配**。
+
+**交付**（`core-runtime/src/input_safety.rs`，纯逻辑，无存储、无版本号）：
+
+| 项 | 内容 |
+| --- | --- |
+| 六态 | `PendingActivation` / `DispatchCommitted` / `Executing` / `Finished` / `Revoked` / `OutcomeUnknown`，语义按裁决 §3.2 冻结 |
+| 转换表 | `Pending→DispatchCommitted\|Revoked`；`DispatchCommitted→Executing\|Finished\|OutcomeUnknown`；`Executing→Finished\|OutcomeUnknown`；`OutcomeUnknown→Finished`（**对账**）；`Finished`/`Revoked` 为终态 |
+| 判定辅助 | `may_still_be_dispatched()`（只有未消费的 `PendingActivation`）、`crossed_dispatch_boundary()`（此后撤销都不构成"未发送"，而 `Revoked` **没有**越界——它在消费前生效） |
+| 许可绑定 | `InputPermit`（§3.3 的最低绑定：permit/action/scope/执行上下文引用/冻结动作摘要/政策与 gate revision/签发 owner 与 epoch/期限/执行者实例/revision/撤销原因）＋ 结构校验 |
+| 重复请求 | `decide_permit_reuse()`：同内容 ⇒ 返回**已有**状态（不重新获得可执行资格）；换内容 ⇒ 拒绝；已撤销的许可也不会因"再请求一次"复活 |
+| 竞争判定 | `resolve_intake_close_race()`：关闸先 ⇒ 消费失败 ⇒ **原生输入为零**；消费先 ⇒ 在途、**不得改写为未发送**、交 R4；**两个都成功或都不成功 ⇒ 按写锁竞争失败处理（`SQLITE_BUSY` 不是成功）** |
+| 只收紧入口 | `TightenOnlyAction::{CloseIntake, RevokeUnconsumedPermits}`，`loosens()` 恒 `false` —— 它不是放行通道 |
+| 异常而非转换 | `PermitAnomalyKind`：撤销后观察到真实输入记成**追加异常**，**不是**状态转换（不得为状态机漂亮丢事实） |
+
+**三条"特别重要"语义直接写进文档注释并由测试钉住**：`DispatchCommitted` ≠ 输入已发生；
+`Finished` ≠ 成功 ≠ 释放已确认；`OutcomeUnknown→Finished` 是**对账**不是恢复执行（同一许可永不因此再次产生输入）。
+
+**测试 9 条**（`input_safety::tests`）：转换表合法/非法逐项（非法项必须带可分辨理由，且"撤销回待激活"理由要点名
+"凭空发一份新许可"）；派发/越界判定；三条语义；异常不是转换；结构校验（占位/空值/控制字符被拒、
+**越界后缺执行者实例即错误**、待激活可暂缺但不得激活）；可激活判定（未消费+未过期+执行者已建立，时间由调用方传入）；
+重复请求；竞争判定；只收紧入口。
+**变异验证 4/4**：允许"已撤销→待激活"⇒ 红；允许"未知→执行中"⇒ 红；让 `DispatchCommitted` 也算"仍可派发"⇒ 红；
+把写锁竞争当成"消费在先"⇒ 红。
+（诚实记一笔：其中 M2 我第一次构造失误——改后的目标集合里其实**没有** `Executing`，等于没引入违规，
+所以显示"未捕获"；已重做正确变异并确认被捕获。）
+
+**门禁**：`core-runtime` **327/0**（较此前增 9 条）；`cargo build --workspace` ✅。
+
+**未做（不冒充）**：8.2b 持久化（单一实现的事务接口、迁移、重启与提交失败处理）、8.2c 生产接线
+（各输入入口在**实际派发前**消费许可）、8.2d 并发/崩溃（关闸竞争、重复消费、派发前后崩溃与迟到回执）。
+落库时必须复用本节的同一套转换规则，且**不得**为旧运行批量生成"已撤销／未发送"记录（裁决 §3.6）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

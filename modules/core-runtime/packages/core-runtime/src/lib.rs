@@ -61,12 +61,14 @@ pub use fact_store::{
 // RD4-02A（第七轮裁决 §1）：共享输入安全存储的**领域契约**（纯类型；SQLite 实现在 Web/宿主适配边界，
 // core-runtime 不引入 rusqlite）。权威正文见 round7-rulings-and-gates.md §1。
 pub use input_safety::{
-    parse_input_safety_store_id, BlockingRefRejection, IncidentState, InputSafetyEvent,
+    decide_permit_reuse, parse_input_safety_store_id, resolve_intake_close_race,
+    BlockingRefRejection, IncidentState, InputPermit, InputPermitState, InputSafetyEvent,
     InputSafetyEventKind, InputSafetyIncident, InputSafetyRecoveryOperation,
-    InputSafetyResourceScope, InputSafetyResourceState, InputSafetyStoreId, InvalidInputSafetyStoreId,
-    InvalidResourceScope, RecoveryDisposition, RecoveryStage, ReleaseIsolationDecision,
-    ResourceSafetyState, VerifiedBlockingRef, INPUT_SAFETY_SCHEMA_VERSION,
-    INPUT_SAFETY_STORE_ID_PREFIX,
+    InputSafetyResourceScope, InputSafetyResourceState, InputSafetyStoreId, IntakeCloseRaceOutcome,
+    InvalidInputPermit, InvalidInputSafetyStoreId, InvalidResourceScope, PermitAnomalyKind,
+    PermitReuseDecision, PermitTransitionError, RecoveryDisposition, RecoveryStage,
+    ReleaseIsolationDecision, ResourceSafetyState, TightenOnlyAction, VerifiedBlockingRef,
+    INPUT_SAFETY_SCHEMA_VERSION, INPUT_SAFETY_STORE_ID_PREFIX,
 };
 // RD4-01（第五轮裁决 A-1）：遗留 CU 运行收敛的契约与规则（additive 导出，语义见各自文档）。
 pub use fact_store::{

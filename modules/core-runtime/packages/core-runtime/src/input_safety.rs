@@ -581,9 +581,595 @@ pub struct InputSafetyEvent {
     pub recorded_at_unix_ms: u64,
 }
 
+// ---------------------------------------------------------------------------
+// 输入许可（六态）——2026-09-26 补充裁决 §3 正式冻结的**纯逻辑**契约
+//
+// 本段只定义状态、身份、转换与"竞争结果"的判定规则，**不含存储、不分配 schema 版本号**：
+// 裁决要求"先做纯逻辑与测试，以缩短 schema 串行窗口"，且版本号由输入安全库负责人在合并时分配。
+// 落库时必须使用**同一套**转换规则（不得先写一套测试状态机、落库再独立写第二套）。
+// ---------------------------------------------------------------------------
+
+/// 输入许可的状态（六态）。
+///
+/// 语义要点（裁决 §3.2 点名"三条特别重要"）：
+/// - [`Self::DispatchCommitted`] **不等于输入已经发生**：它表达"不能再用未消费许可的逻辑安全重发"；
+/// - [`Self::Finished`] **不等于成功，也不等于释放已确认**：部分失败、已结束但资源仍隔离都可保留真实结果；
+/// - [`Self::OutcomeUnknown`] → [`Self::Finished`] 是**对账**，不是恢复执行；同一许可永远不能因此再次产生输入。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum InputPermitState {
+    /// 已登记，但尚未消费输入许可。
+    PendingActivation,
+    /// 许可已持久消费，动作进入**可能**派发边界。
+    DispatchCommitted,
+    /// 执行者已确认进入实际执行阶段。
+    Executing,
+    /// 本次执行已结束，且有足以结账的执行结果（**不代表成功、不代表已释放**）。
+    Finished,
+    /// 在**消费前**被撤销，从此不能派发（不得回到 `PendingActivation`）。
+    Revoked,
+    /// 已越过派发边界，但结果不充分（**不得回到 `PendingActivation`**）。
+    OutcomeUnknown,
+}
+
+impl InputPermitState {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::PendingActivation => "pending_activation",
+            Self::DispatchCommitted => "dispatch_committed",
+            Self::Executing => "executing",
+            Self::Finished => "finished",
+            Self::Revoked => "revoked",
+            Self::OutcomeUnknown => "outcome_unknown",
+        }
+    }
+
+    /// 是否**仍然可能被派发**（只有未消费的 `PendingActivation` 是）。
+    ///
+    /// 这是"能否激活"的唯一判据来源：`Revoked` / `DispatchCommitted` / 已结束与未知都**不是**。
+    #[must_use]
+    pub const fn may_still_be_dispatched(self) -> bool {
+        matches!(self, Self::PendingActivation)
+    }
+
+    /// 是否已越过派发边界（此后再撤销都不构成"未发送"）。
+    #[must_use]
+    pub const fn crossed_dispatch_boundary(self) -> bool {
+        matches!(
+            self,
+            Self::DispatchCommitted | Self::Executing | Self::Finished | Self::OutcomeUnknown
+        )
+    }
+
+    /// 唯一合法的状态转换表。
+    #[must_use]
+    pub const fn can_transition_to(self, next: Self) -> bool {
+        matches!(
+            (self, next),
+            (Self::PendingActivation, Self::DispatchCommitted | Self::Revoked)
+                | (
+                    Self::DispatchCommitted,
+                    Self::Executing | Self::Finished | Self::OutcomeUnknown
+                )
+                | (Self::Executing, Self::Finished | Self::OutcomeUnknown)
+                // 对账：不是恢复执行，也不产生新的输入。
+                | (Self::OutcomeUnknown, Self::Finished)
+        )
+    }
+
+    /// 执行转换；非法转换返回**可分辨**的理由，而不是静默夹紧或回退。
+    pub fn transition_to(self, next: Self) -> Result<Self, PermitTransitionError> {
+        if self.can_transition_to(next) {
+            return Ok(next);
+        }
+        Err(PermitTransitionError {
+            from: self,
+            to: next,
+            reason: self.refusal_reason(next),
+        })
+    }
+
+    fn refusal_reason(self, next: Self) -> &'static str {
+        match (self, next) {
+            (Self::Revoked, Self::PendingActivation) => {
+                "已撤销的许可不得回到待激活：撤销在消费之前生效，重新激活等于凭空发一份新许可"
+            }
+            (Self::OutcomeUnknown, Self::PendingActivation) => {
+                "结果未知不得回到待激活：它已越过派发边界，对账只能结清为已完成，不能重新派发"
+            }
+            (Self::Finished, _) => {
+                "已结束的许可不得再转换：结束不是可逆状态（相容的迟到事实按追加处理，不改状态）"
+            }
+            (Self::Revoked, _) => "已撤销的许可不得再转换（撤销是终态）",
+            (_, Self::Executing) => "只有已提交派发的许可才能进入执行中",
+            _ => "该转换不在冻结的转换表内",
+        }
+    }
+}
+
+/// 转换被拒的理由。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PermitTransitionError {
+    pub from: InputPermitState,
+    pub to: InputPermitState,
+    pub reason: &'static str,
+}
+
+impl std::fmt::Display for PermitTransitionError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "输入许可状态不得从 {} 转为 {}：{}",
+            self.from.as_str(),
+            self.to.as_str(),
+            self.reason
+        )
+    }
+}
+
+/// 撤销之后**观察到真实输入**时的记法。
+///
+/// 裁决 §3.2：这种情况要"保存异常与回执、触发安全处理"，**不能为维持状态机漂亮而丢掉事实**。
+/// 因此它**不是**一次状态转换（不回到 `DispatchCommitted`），而是一条追加的异常事实。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PermitAnomalyKind {
+    /// 许可已被撤销，却观察到该动作的真实输入。
+    InputObservedAfterRevoke,
+    /// 许可已结束、却收到与本次动作相容的新输入事实。
+    InputObservedAfterFinished,
+}
+
+impl PermitAnomalyKind {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::InputObservedAfterRevoke => "input_observed_after_revoke",
+            Self::InputObservedAfterFinished => "input_observed_after_finished",
+        }
+    }
+
+    /// 迟到的真实输入事实应当被记成**异常追加**，而不是状态转换。
+    #[must_use]
+    pub const fn for_state(state: InputPermitState) -> Option<Self> {
+        match state {
+            InputPermitState::Revoked => Some(Self::InputObservedAfterRevoke),
+            InputPermitState::Finished => Some(Self::InputObservedAfterFinished),
+            _ => None,
+        }
+    }
+}
+
+/// 许可的最低绑定内容（裁决 §3.3）。复用既有身份，不复制完整会话模型。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InputPermit {
+    pub permit_id: String,
+    pub action_id: String,
+    pub scope: InputSafetyResourceScope,
+    /// 所属**真实执行上下文**的引用（例如 Goal 阶段运行 / 会话运行，由接纳侧冻结）。
+    pub execution_context_ref: String,
+    /// 冻结的动作／参数摘要：同一 `action_id` 换内容即拒绝。
+    pub frozen_action_digest: String,
+    /// 当前安全政策与 gate revision。
+    pub policy_revision: u64,
+    pub gate_revision: u64,
+    /// 签发 owner／epoch。
+    pub issued_owner_id: String,
+    pub issued_epoch: u64,
+    /// 适用期限（到期即不得激活）。
+    pub expires_at_unix_ms: u64,
+    /// **激活前必须建立**的执行者实例 id（裁决 §3.3）。
+    pub executor_instance_id: Option<String>,
+    pub state: InputPermitState,
+    /// 许可自身的 revision（并发判定用）。
+    pub revision: u64,
+    /// 关联回执／撤销原因（可缺省，不是"占位"）。
+    pub revocation_reason: Option<String>,
+}
+
+/// 许可结构校验失败。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvalidInputPermit {
+    pub field: &'static str,
+    pub reason: &'static str,
+}
+
+impl std::fmt::Display for InvalidInputPermit {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "输入许可字段 {} 无效：{}", self.field, self.reason)
+    }
+}
+
+impl InputPermit {
+    /// 结构校验：必需字段必须真实；`executor_instance_id` 在**激活前**必须已建立。
+    pub fn validate_structure(&self) -> Result<(), InvalidInputPermit> {
+        for (field, value) in [
+            ("permit_id", &self.permit_id),
+            ("action_id", &self.action_id),
+            ("execution_context_ref", &self.execution_context_ref),
+            ("frozen_action_digest", &self.frozen_action_digest),
+            ("issued_owner_id", &self.issued_owner_id),
+        ] {
+            if value.trim().is_empty() {
+                return Err(InvalidInputPermit {
+                    field,
+                    reason: "不得为空",
+                });
+            }
+            if value.chars().any(char::is_control) {
+                return Err(InvalidInputPermit {
+                    field,
+                    reason: "不得含控制字符",
+                });
+            }
+            if crate::run_contract::is_placeholder_identity_value(value) {
+                return Err(InvalidInputPermit {
+                    field,
+                    reason: "不得用占位值顶替真实来源",
+                });
+            }
+        }
+        if self.state.crossed_dispatch_boundary() && self.executor_instance_id.is_none() {
+            return Err(InvalidInputPermit {
+                field: "executor_instance_id",
+                reason: "越过派发边界后必须能指出是哪个执行者实例",
+            });
+        }
+        Ok(())
+    }
+
+    /// 是否到了"可以激活"的时刻（未消费 + 未过期 + 执行者实例已建立）。
+    ///
+    /// `now` 是显式传入的时刻：时间来源由调用方决定，纯逻辑不读时钟。
+    #[must_use]
+    pub fn is_activatable_at(&self, now_unix_ms: u64) -> bool {
+        self.state.may_still_be_dispatched()
+            && now_unix_ms < self.expires_at_unix_ms
+            && self.executor_instance_id.is_some()
+    }
+}
+
+/// 同一 `action_id` 重复到来时的处置（裁决 §3.3）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PermitReuseDecision {
+    /// 内容相同：返回**已有**许可的状态，不重新创建可执行资格。
+    ReturnExisting(InputPermitState),
+    /// 内容不同：拒绝（换 content 用同 id 是错误复用）。
+    RejectedDifferentContent,
+}
+
+/// 冻结"重复请求不得重新获得可执行资格"这条规则。
+#[must_use]
+pub fn decide_permit_reuse(
+    existing: &InputPermit,
+    frozen_action_digest: &str,
+) -> PermitReuseDecision {
+    if existing.frozen_action_digest == frozen_action_digest {
+        PermitReuseDecision::ReturnExisting(existing.state)
+    } else {
+        PermitReuseDecision::RejectedDifferentContent
+    }
+}
+
+/// "关闸"与"消费许可"的竞争结果（裁决 §3.4 冻结）。
+///
+/// 真实原子性由**同一输入安全库的单一写事务**建立（SQLite 同时只有一个写事务）；
+/// 本枚举只冻结**判定**：两种先后顺序各自导向什么结论。注意 `SqliteBusy` 不是成功。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IntakeCloseRaceOutcome {
+    /// 关闸先提交 ⇒ 后续消费失败 ⇒ **原生输入调用为零**。
+    CloseCommittedFirst,
+    /// 消费先提交 ⇒ 动作属**在途**；关闸不得把它改写成"未发送"，交 R4 停止与核查。
+    ConsumeCommittedFirst,
+    /// 写锁竞争失败（如 `SQLITE_BUSY`）：**不得当成功继续**，按失败处理。
+    WriteContentionNotSuccess,
+}
+
+/// 依"两个提交各自是否成功"判定竞争结果。
+#[must_use]
+pub const fn resolve_intake_close_race(
+    close_committed: bool,
+    consume_committed: bool,
+) -> IntakeCloseRaceOutcome {
+    match (close_committed, consume_committed) {
+        // 两个都记为成功时不猜顺序：真实顺序必须由存储层在同库事务里判定。
+        (true, true) | (false, false) => IntakeCloseRaceOutcome::WriteContentionNotSuccess,
+        (true, false) => IntakeCloseRaceOutcome::CloseCommittedFirst,
+        (false, true) => IntakeCloseRaceOutcome::ConsumeCommittedFirst,
+    }
+}
+
+/// "只收紧"入口允许做的动作（裁决 §3.5）。
+///
+/// 恢复者不必先等持有整段输入排他的活跃 helper 释放锁，才能叫它停止；因此给一个**窄**入口。
+/// 但它只能收紧：下列动作之外的一律不允许，尤其**不能**成为放行通道。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TightenOnlyAction {
+    /// 关闭新输入接纳并推进 gate revision。
+    CloseIntake,
+    /// 撤销该 scope 下**尚未消费**的许可。
+    RevokeUnconsumedPermits,
+}
+
+impl TightenOnlyAction {
+    /// 该动作是否只收紧（当前两项都是；新增前必须重新论证）。
+    #[must_use]
+    pub const fn is_tighten_only(self) -> bool {
+        // 两项都是收紧：关闸与撤销都不会让任何输入变得更可能发生。
+        matches!(self, Self::CloseIntake | Self::RevokeUnconsumedPermits)
+    }
+
+    /// 该动作是否**会**让输入更可能发生（只收紧入口一律不得为真）。
+    #[must_use]
+    pub const fn loosens(self) -> bool {
+        false
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // -----------------------------------------------------------------------
+    // 8.2a 输入许可六态（2026-09-26 补充裁决 §3）
+    // -----------------------------------------------------------------------
+
+    fn permit(state: InputPermitState) -> InputPermit {
+        InputPermit {
+            permit_id: "permit-1".to_string(),
+            action_id: "action-1".to_string(),
+            scope: InputSafetyResourceScope::parse("windows-session-1").expect("scope"),
+            execution_context_ref: "cu-run-1".to_string(),
+            frozen_action_digest: "digest-a".to_string(),
+            policy_revision: 3,
+            gate_revision: 7,
+            issued_owner_id: "owner-1".to_string(),
+            issued_epoch: 5,
+            expires_at_unix_ms: 1_000,
+            executor_instance_id: Some("exec-1".to_string()),
+            state,
+            revision: 1,
+            revocation_reason: None,
+        }
+    }
+
+    /// 转换表：合法路径全部可达，非法路径全部被拒且理由可分辨。
+    #[test]
+    fn permit_transition_table_is_frozen_and_illegal_moves_are_refused() {
+        use InputPermitState::*;
+        let legal = [
+            (PendingActivation, DispatchCommitted),
+            (PendingActivation, Revoked),
+            (DispatchCommitted, Executing),
+            (DispatchCommitted, Finished),
+            (DispatchCommitted, OutcomeUnknown),
+            (Executing, Finished),
+            (Executing, OutcomeUnknown),
+            (OutcomeUnknown, Finished),
+        ];
+        for (from, to) in legal {
+            assert_eq!(from.transition_to(to), Ok(to), "{from:?} -> {to:?} 应合法");
+            assert!(from.can_transition_to(to));
+        }
+        let illegal = [
+            // 撤销在消费之前生效：不得回到待激活，也不得再转任何状态。
+            (Revoked, PendingActivation),
+            (Revoked, DispatchCommitted),
+            // 未知已越过派发边界：只能对账结清，不能重新派发。
+            (OutcomeUnknown, PendingActivation),
+            (OutcomeUnknown, DispatchCommitted),
+            (OutcomeUnknown, Executing),
+            // 结束不可逆。
+            (Finished, PendingActivation),
+            (Finished, Executing),
+            // 只有已提交派发的许可才能进入执行中。
+            (PendingActivation, Executing),
+            (PendingActivation, Finished),
+            (PendingActivation, OutcomeUnknown),
+        ];
+        for (from, to) in illegal {
+            let error = from.transition_to(to).expect_err("非法转换必须被拒");
+            assert_eq!(error.from, from);
+            assert_eq!(error.to, to);
+            assert!(!error.reason.is_empty(), "拒绝必须带可分辨理由");
+        }
+        // 撤销后回待激活的理由要**点名**这条语义，而不是泛泛的"不在表内"。
+        let error = Revoked.transition_to(PendingActivation).expect_err("拒");
+        assert!(error.reason.contains("凭空发一份新许可"), "{}", error.reason);
+    }
+
+    /// 判定辅助：只有未消费的待激活许可"仍可能被派发"；越过边界后撤销都不算"未发送"。
+    #[test]
+    fn only_pending_permits_may_still_be_dispatched() {
+        assert!(InputPermitState::PendingActivation.may_still_be_dispatched());
+        for state in [
+            InputPermitState::DispatchCommitted,
+            InputPermitState::Executing,
+            InputPermitState::Finished,
+            InputPermitState::Revoked,
+            InputPermitState::OutcomeUnknown,
+        ] {
+            assert!(!state.may_still_be_dispatched(), "{state:?} 不得被派发");
+        }
+        assert!(!InputPermitState::PendingActivation.crossed_dispatch_boundary());
+        for state in [
+            InputPermitState::DispatchCommitted,
+            InputPermitState::Executing,
+            InputPermitState::Finished,
+            InputPermitState::OutcomeUnknown,
+        ] {
+            assert!(
+                state.crossed_dispatch_boundary(),
+                "{state:?} 已越过派发边界 ⇒ 此后撤销都不构成「未发送」"
+            );
+        }
+        // 撤销**没有**越过边界：它在消费之前生效。
+        assert!(!InputPermitState::Revoked.crossed_dispatch_boundary());
+    }
+
+    /// 三条"特别重要"语义（裁决 §3.2）：提交派发 ≠ 输入已发生；结束 ≠ 成功/已释放；
+    /// 未知→结束是**对账**而非恢复执行。
+    #[test]
+    fn dispatch_commit_finish_and_reconcile_mean_what_the_ruling_says() {
+        use InputPermitState::*;
+        // ① DispatchCommitted 只表达"不能再按未消费许可安全重发"，不表达输入已发生。
+        assert!(DispatchCommitted.crossed_dispatch_boundary());
+        assert!(!DispatchCommitted.may_still_be_dispatched());
+        // ② Finished 不是成功、也不是释放已确认：它是"有足以结账的结果"。
+        assert!(Executing.transition_to(Finished).is_ok());
+        assert!(DispatchCommitted.transition_to(Finished).is_ok());
+        // ③ 未知 → 结束是对账路径；它**不**经过 Executing（不产生新的输入）。
+        assert!(OutcomeUnknown.transition_to(Finished).is_ok());
+        assert!(
+            !OutcomeUnknown.can_transition_to(Executing),
+            "对账不得把许可送回执行中——那等于恢复执行"
+        );
+    }
+
+    /// 撤销后观察到真实输入：记成**异常追加**，不是状态转换（不得为状态机漂亮丢事实）。
+    #[test]
+    fn input_observed_after_revoke_is_an_anomaly_not_a_transition() {
+        assert_eq!(
+            PermitAnomalyKind::for_state(InputPermitState::Revoked),
+            Some(PermitAnomalyKind::InputObservedAfterRevoke)
+        );
+        assert_eq!(
+            PermitAnomalyKind::for_state(InputPermitState::Finished),
+            Some(PermitAnomalyKind::InputObservedAfterFinished)
+        );
+        assert_eq!(PermitAnomalyKind::for_state(InputPermitState::PendingActivation), None);
+        assert_eq!(
+            PermitAnomalyKind::InputObservedAfterRevoke.as_str(),
+            "input_observed_after_revoke"
+        );
+        // 异常不改变"已撤销不得再转换"这一事实。
+        assert!(
+            InputPermitState::Revoked
+                .transition_to(InputPermitState::DispatchCommitted)
+                .is_err(),
+            "即使观察到真实输入，也不得把撤销状态改写回去"
+        );
+    }
+
+    /// 结构校验：占位/空值被拒；**越过派发边界前必须已建立执行者实例**。
+    #[test]
+    fn permit_structure_requires_real_fields_and_an_executor_before_dispatch() {
+        permit(InputPermitState::PendingActivation)
+            .validate_structure()
+            .expect("完整许可应通过");
+
+        for (field, mutate) in [
+            ("permit_id", (|p: &mut InputPermit| p.permit_id = "  ".to_string()) as fn(&mut InputPermit)),
+            ("action_id", |p: &mut InputPermit| p.action_id = "unknown".to_string()),
+            (
+                "execution_context_ref",
+                |p: &mut InputPermit| p.execution_context_ref = "".to_string(),
+            ),
+            (
+                "frozen_action_digest",
+                |p: &mut InputPermit| p.frozen_action_digest = "0".to_string(),
+            ),
+            ("issued_owner_id", |p: &mut InputPermit| {
+                p.issued_owner_id = "owner\u{7}bad".to_string()
+            }),
+        ] {
+            let mut candidate = permit(InputPermitState::PendingActivation);
+            mutate(&mut candidate);
+            let error = candidate
+                .validate_structure()
+                .expect_err("非法字段必须被拒");
+            assert_eq!(error.field, field, "{error}");
+        }
+
+        // 未建立执行者实例：待激活状态允许（尚未越界），但**不得激活**。
+        let mut without_executor = permit(InputPermitState::PendingActivation);
+        without_executor.executor_instance_id = None;
+        without_executor.validate_structure().expect("待激活可暂缺执行者");
+        assert!(
+            !without_executor.is_activatable_at(500),
+            "执行者实例未建立时不得激活"
+        );
+        // 一旦越界，缺执行者实例就是结构错误。
+        let mut dispatched = without_executor.clone();
+        dispatched.state = InputPermitState::DispatchCommitted;
+        assert_eq!(
+            dispatched.validate_structure().expect_err("越界必须能指出执行者").field,
+            "executor_instance_id"
+        );
+    }
+
+    /// 可激活判定：未消费 + 未过期 + 执行者已建立；时间由调用方给定（纯逻辑不读时钟）。
+    #[test]
+    fn activatable_requires_unconsumed_unexpired_and_an_executor() {
+        let ok = permit(InputPermitState::PendingActivation);
+        assert!(ok.is_activatable_at(999));
+        assert!(!ok.is_activatable_at(1_000), "到期即不得激活");
+        assert!(!ok.is_activatable_at(1_001));
+
+        let mut consumed = ok.clone();
+        consumed.state = InputPermitState::DispatchCommitted;
+        assert!(!consumed.is_activatable_at(1), "已消费不得再激活");
+        let mut revoked = ok.clone();
+        revoked.state = InputPermitState::Revoked;
+        assert!(!revoked.is_activatable_at(1), "已撤销不得再激活");
+    }
+
+    /// 重复请求：内容相同返回已有状态（不重新获得资格）；内容不同拒绝。
+    #[test]
+    fn repeated_request_returns_existing_state_and_never_regrants_eligibility() {
+        let existing = permit(InputPermitState::DispatchCommitted);
+        assert_eq!(
+            decide_permit_reuse(&existing, "digest-a"),
+            PermitReuseDecision::ReturnExisting(InputPermitState::DispatchCommitted),
+            "同内容重复请求必须返回已有状态，而不是新建许可"
+        );
+        assert_eq!(
+            decide_permit_reuse(&existing, "digest-b"),
+            PermitReuseDecision::RejectedDifferentContent,
+            "同 action_id 换内容必须拒绝"
+        );
+        // 已撤销的许可同样只能回状态，不能因为"再请求一次"复活。
+        let revoked = permit(InputPermitState::Revoked);
+        assert_eq!(
+            decide_permit_reuse(&revoked, "digest-a"),
+            PermitReuseDecision::ReturnExisting(InputPermitState::Revoked)
+        );
+    }
+
+    /// 关闸与消费的竞争判定（裁决 §3.4）：顺序决定结论；**写锁竞争失败不算成功**。
+    #[test]
+    fn intake_close_race_outcomes_are_frozen_and_contention_is_not_success() {
+        assert_eq!(
+            resolve_intake_close_race(true, false),
+            IntakeCloseRaceOutcome::CloseCommittedFirst
+        );
+        assert_eq!(
+            resolve_intake_close_race(false, true),
+            IntakeCloseRaceOutcome::ConsumeCommittedFirst
+        );
+        // 两个都成功或都不成功：不得猜顺序，按失败处理（SQLITE_BUSY 不是成功）。
+        for pair in [(true, true), (false, false)] {
+            assert_eq!(
+                resolve_intake_close_race(pair.0, pair.1),
+                IntakeCloseRaceOutcome::WriteContentionNotSuccess,
+                "{pair:?} 不得被当成某个确定的先后顺序"
+            );
+        }
+    }
+
+    /// 只收紧入口：两个动作都只收紧，且**没有任何**动作会让输入更可能发生。
+    #[test]
+    fn the_narrow_recovery_entry_can_only_tighten() {
+        for action in [
+            TightenOnlyAction::CloseIntake,
+            TightenOnlyAction::RevokeUnconsumedPermits,
+        ] {
+            assert!(action.is_tighten_only(), "{action:?}");
+            assert!(
+                !action.loosens(),
+                "{action:?} 不得让输入更可能发生——它不是放行通道"
+            );
+        }
+    }
 
     /// 版本独立：本库版本与会话库**不是**同一个号（本 crate 不知道会话库版本，故只钉本值）。
     #[test]
