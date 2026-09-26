@@ -657,7 +657,11 @@ impl StreamState {
             self.message_started = true;
             events.push(StreamEvent::MessageStart(MessageStartEvent {
                 message: MessageResponse {
-                    id: chunk.id.clone(),
+                    // COMPAT-ID：OpenAI 兼容路线的 `id` 语义与 Anthropic 顶层 message id 不同
+                    // （这条路线实测会返回空串），因此这里把空串归一为**未提供**而不是拒绝——
+                    // 拒绝会打断一条本来可用的路线；这与"Anthropic 形状顶层 id 空串仍拒绝"并不矛盾
+                    // （两者是不同协议的不同字段）。
+                    id: (!chunk.id.trim().is_empty()).then(|| chunk.id.clone()),
                     kind: "message".to_string(),
                     role: "assistant".to_string(),
                     content: Vec::new(),
@@ -1285,7 +1289,8 @@ fn normalize_response(
     }
 
     Ok(MessageResponse {
-        id: response.id,
+        // 同流式：OpenAI 兼容路线的空 id ⇒ 未提供（不拒绝）。
+        id: (!response.id.trim().is_empty()).then(|| response.id),
         kind: "message".to_string(),
         role: choice.message.role,
         content,

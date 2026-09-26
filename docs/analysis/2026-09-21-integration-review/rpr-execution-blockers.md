@@ -2358,6 +2358,62 @@ cargo test -p coolzhu-web-console --offline cu03_model_planning_comparison_basel
 `/v1/chat/completions`（该路径是标准 OpenAI 形状且 `id` 存在）；这只影响**传输**，
 被测对象（提示词与反馈块）是**同一份产品代码**。
 
+### B-104 COMPAT-ID 交付：顶层 message ID 缺失**显式为"未提供"**（连接级兼容，工具配对仍严格）
+
+**裁决口径**（本轮逐条落地）：批准有边界兼容、**不接受**"给 String 加默认空串"了事；
+缺失必须显式表示为"未提供"，不能冒充有效身份。
+
+**实现**：
+
+1. **归一化器**（新 `llm-adapter/src/message_id.rs`，**唯一判定点**）：按裁决 §2.2 的表，
+   非空字符串 ⇒ 原值；缺失 ⇒ 严格拒绝 / 兼容 `None`；`null` ⇒ 严格拒绝 / 兼容 `None`（形态
+   `absent`／`null` 可分辨）；**空串/全空白 ⇒ 两种模式都拒绝**；数字/对象等 ⇒ 两种模式都拒绝。
+2. **类型**：`MessageResponse.id: Option<String>`（`None` = 未提供，注释写明它**不**替代本地
+   attempt／工具调用／动作去重身份）。**未**给 `String` 加 `#[serde(default)]`——那会把"缺失"
+   静默吃掉，"严格模式拒绝缺失"就无法实现。
+3. **解码顺序**：先把响应体取成原始 JSON → 归一化顶层 ID → **再**反序列化
+   （`decode_message_response_body`，纯函数 ⇒ 离线可测）。其余字段仍按原规则校验（不连带放宽）。
+4. **连接级兼容位**：`ClawApiClient`/`ProviderClient` 上的
+   `with_allow_missing_top_level_message_id(bool)` + 环境 `COOLZHU_ALLOW_MISSING_MESSAGE_ID`
+   （宿主按连接配置注入）。**默认严格**；**不硬编码任何域名**、不按模型名（是否 Claude）猜测；
+   未启用的连接（含官方直连）保持严格。OpenAI 兼容路线的 `id` 语义不同（实测返回空串），
+   该路线的空值归一为"未提供"而**不**拒绝——两者是不同协议的不同字段，注释写明。
+5. **流式同样处理**：`SseParser` 带同一位，`message_start.message.id` 走**同一个**归一化器：
+   严格 ⇒ 拒绝；兼容 ⇒ `id=None` 并**继续聚合**（不得提前判结束）。
+6. **不重发、不换协议**：解码只处理**收到的那份**响应；没有"缺 ID 就再请求一次"，
+   也没有在 `/v1/messages` 失败后自动改走 `/v1/chat/completions`。
+7. **诊断**：库保持静默（llm-adapter 无日志依赖），裁决要的三元组由**调用方**记录——
+   planner 诊断现在写 `provider_response_id: response.id.as_deref()`（`None` 即"未提供"），
+   口径常量 `allow_missing_top_level_message_id` 已导出，本地 attempt 身份沿用既有字段。
+
+**测试（裁决 §2.1/§2.5 的五个面，共 8 条新用例）**：
+非流式矩阵（两模式 × 五种输入，正文/用量在有/无 ID 下**等价**）、错误响应体不得解码成成功、
+**工具配对仍严格**（`tool_use.id` 在类型层就是必填；兼容位下缺它照样拒绝，且有工具 ID 时
+工具块原样保留）、**流式起始消息**（严格拒绝缺 ID／兼容接受并保留其余字段／空串两种模式都拒绝）、
+**兼容模式下缺 ID 不提前判结束**（起始→增量→结束照常产出）、**两份都缺 ID 的响应互不混淆**
+（结构上不以 `id` 为键 ⇒ 不会被并进同一个"空键桶"；用量与正文各自独立）。
+
+**真实端点小范围复验（1 次调用，产品同一入口）**：
+
+```text
+cargo test -p coolzhu-llm-adapter --offline --test client_integration   compat_id_anthropic_shape_endpoint_check -- --ignored --nocapture
+⇒ [compat-id] 解析成功：provider_message_id=None（None = 未提供）model=claude-sonnet-4-6
+   base_url=https://new.aicode.us.com
+```
+
+即：**启用兼容位后，产品同一入口能解析该代理的 Anthropic 形状响应**，且身份字段如实为"未提供"。
+**边界如实说明**：这**不**证明"以前所有模型调用失败都由缺 ID 引起"，也**不**等于流式/工具/并发
+形态已在真实端点复验（那些由离线夹具覆盖；裁决的关闭条件要求分别通过测试，本轮按此登记）。
+
+**同时按裁决调整**：CU-03 评测不再改进程环境——改用客户端的**显式** base_url 注入
+（`with_base_url`），并把先前那个作用域守卫一并删掉（已无用途）。
+
+**门禁**：llm-adapter **125/0**（+8 用例）及各集成套件、web-console 1154/0（1 ignored＝评测）、
+module_linkage_smoke 6/0、`cargo build --workspace` ✅。
+
+**下一步（按裁决顺序）**：**CU03-SCORER**（旧指标改名、语义标签、适用分母、正反例与变异验证）；
+`CU03-CORPUS`（查找 `docs/testing/release-0.2.14/paint-r4..r6.json`）；`FRAME-BINDING`。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

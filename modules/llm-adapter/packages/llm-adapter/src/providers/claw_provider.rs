@@ -119,6 +119,58 @@ pub struct ClawApiClient {
     initial_backoff: Duration,
     max_backoff: Duration,
     request_parameters: crate::RequestParameters,
+    /// **连接级兼容能力位**（裁决 COMPAT-ID §2.3）：允许顶层 message ID **缺失**（显式为"未提供"）。
+    ///
+    /// 三条边界照抄裁决：① 默认 `false` ⇒ **官方直连与未启用的连接保持严格**；
+    /// ② **不硬编码任何代理域名**、不按模型名（是否 Claude）猜测，只由构造方显式启用；
+    /// ③ 它只作用于这一处差异——`tool_use.id`／`tool_result.tool_use_id` 的配对**仍然严格**。
+    ///
+    /// 启用方式（二者其一）：构造时 `with_allow_missing_top_level_message_id(true)`，
+    /// 或进程环境 `COOLZHU_ALLOW_MISSING_MESSAGE_ID=1`（由宿主/启动器按其连接配置注入，
+    /// 因此"哪个连接启用"是配置事实，不是代码常量）。
+    allow_missing_top_level_message_id: bool,
+}
+
+/// 启用"允许缺失顶层 message ID"的环境变量名（宿主按连接配置注入；**不含域名**）。
+pub const ALLOW_MISSING_MESSAGE_ID_ENV: &str = "COOLZHU_ALLOW_MISSING_MESSAGE_ID";
+
+/// 读环境里的兼容位：认不出的取值一律 `false`（**严格**是默认，失败方向是拒绝）。
+#[must_use]
+fn allow_missing_message_id_from_env() -> bool {
+    matches!(
+        std::env::var(ALLOW_MISSING_MESSAGE_ID_ENV).as_deref(),
+        Ok("1") | Ok("true") | Ok("TRUE") | Ok("yes")
+    )
+}
+
+/// **COMPAT-ID 的唯一解码点**（纯函数：吃原始响应 JSON，产出 `MessageResponse`）。
+///
+/// 顺序刻意如此：**先**判定顶层 message ID，**再**反序列化——否则 `#[serde(default)]` 会把
+/// "缺失"静默吃掉，"严格模式拒绝缺失"就无法实现（裁决 §2.2 的整张表都是为了这件事）。
+///
+/// 本函数只处理这一处差异：其余字段仍按 `MessageResponse` 的原规则校验；`tool_use.id`／
+/// `tool_result.tool_use_id` 的配对不在这里放宽（配对错误 ⇒ 不执行工具，由调用方保证）。
+pub fn decode_message_response_body(
+    mut body: serde_json::Value,
+    allow_missing_top_level_message_id: bool,
+) -> Result<MessageResponse, ApiError> {
+    match crate::message_id::normalize_top_level_message_id(
+        crate::message_id::top_level_message_id_value(&body),
+        allow_missing_top_level_message_id,
+    )? {
+        (Some(id), _) => {
+            body["id"] = serde_json::Value::String(id);
+        }
+        (None, _shape) => {
+            // 兼容路径：去掉 `id` ⇒ `MessageResponse.id = None` = **未提供**。
+            // 本库不打日志（静默库）；诊断由调用方记录（provider_message_id / compatibility_rule /
+            // local_request_attempt 三元组）。
+            if let Some(object) = body.as_object_mut() {
+                object.remove("id");
+            }
+        }
+    }
+    serde_json::from_value::<MessageResponse>(body).map_err(ApiError::from)
 }
 
 /// 带超时的 HTTP 客户端：避免上游挂起导致请求 await 无限期阻塞（与 openai_compat 一致，#6 根因之一）。
@@ -143,6 +195,7 @@ impl ClawApiClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            allow_missing_top_level_message_id: allow_missing_message_id_from_env(),
         }
     }
 
@@ -158,11 +211,25 @@ impl ClawApiClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            allow_missing_top_level_message_id: allow_missing_message_id_from_env(),
         }
     }
 
     pub fn from_env() -> Result<Self, ApiError> {
         Ok(Self::from_auth(AuthSource::from_env_or_saved()?).with_base_url(read_base_url()))
+    }
+
+    /// 显式启用"允许缺失顶层 message ID"（连接级；默认严格）。
+    #[must_use]
+    pub fn with_allow_missing_top_level_message_id(mut self, allow: bool) -> Self {
+        self.allow_missing_top_level_message_id = allow;
+        self
+    }
+
+    /// 当前连接是否允许缺失顶层 message ID（诊断/请求快照用）。
+    #[must_use]
+    pub const fn allows_missing_top_level_message_id(&self) -> bool {
+        self.allow_missing_top_level_message_id
     }
 
     #[must_use]
@@ -285,11 +352,24 @@ impl ClawApiClient {
             }
         };
         let request_id = request_id_from_headers(response.headers());
-        let mut response = match response.json::<MessageResponse>().await {
-            Ok(response) => response,
+        // COMPAT-ID：**先**把响应体取成原始 JSON，用归一化器判定顶层 message ID
+        // （缺失/null 在严格模式下是明确协议错误；空串/错误类型两种模式都拒绝），
+        // **再**反序列化成 `MessageResponse`。这样"缺失"不会被 serde 默认值悄悄吃掉。
+        let body: serde_json::Value = match response.json().await {
+            Ok(body) => body,
             Err(error) => {
                 // 响应体读取失败：正文未完整拿到 → 远端结果未知，不归零。
                 let error = ApiError::from(error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
+        let mut response = match decode_message_response_body(
+            body,
+            self.allow_missing_top_level_message_id,
+        ) {
+            Ok(response) => response,
+            Err(error) => {
                 guard.settle_from_error(&error);
                 return Err(error);
             }
@@ -323,7 +403,9 @@ impl ClawApiClient {
         Ok(MessageStream {
             request_id: request_id_from_headers(response.headers()),
             response,
-            parser: SseParser::new(),
+            parser: SseParser::with_allow_missing_top_level_message_id(
+                self.allow_missing_top_level_message_id,
+            ),
             pending: VecDeque::new(),
             done: false,
             protocol_end_observed: false,
@@ -896,6 +978,125 @@ struct ApiErrorBody {
 
 #[cfg(test)]
 mod tests {
+
+    /// 合法的响应底稿（含一个工具调用块，用于验证"工具 ID 仍严格"）。
+    fn response_body(id: serde_json::Value) -> serde_json::Value {
+        let mut body = serde_json::json!({
+            "type": "message",
+            "role": "assistant",
+            "content": [
+                {"type": "text", "text": "ok"},
+                {"type": "tool_use", "id": "toolu_1", "name": "read_file", "input": {"path": "a"}}
+            ],
+            "model": "claude-sonnet-4-6",
+            "stop_reason": "tool_use",
+            "usage": {"input_tokens": 3, "output_tokens": 2}
+        });
+        match id {
+            serde_json::Value::Null => {}
+            value => body["id"] = value,
+        }
+        body
+    }
+
+    /// **COMPAT-ID §2.2 表（在真实解码点上验一遍）**：严格/兼容两模式 × 五种输入。
+    #[test]
+    fn message_id_normalization_at_the_real_decode_point() {
+        // ① 正常非空字符串：两种模式都原值保留。
+        for allow in [false, true] {
+            let decoded = super::decode_message_response_body(
+                response_body(serde_json::json!("msg_01ABC")),
+                allow,
+            )
+            .expect("有效 ID 必须成功");
+            assert_eq!(decoded.id.as_deref(), Some("msg_01ABC"));
+        }
+        // ② 顶层缺失：严格 ⇒ 拒绝；兼容 ⇒ None（未提供）。
+        assert!(
+            super::decode_message_response_body(response_body(serde_json::Value::Null), false)
+                .is_err(),
+            "严格模式必须拒绝缺 ID 的响应"
+        );
+        let decoded =
+            super::decode_message_response_body(response_body(serde_json::Value::Null), true)
+                .expect("兼容模式接受缺失");
+        assert_eq!(decoded.id, None, "缺失必须显式为 None（不是空串）");
+        // 正文与用量必须**等价**（唯一差异是身份字段）。
+        assert_eq!(decoded.usage.input_tokens, 3);
+        assert_eq!(decoded.model, "claude-sonnet-4-6");
+        // ③ 顶层 null：严格 ⇒ 拒绝；兼容 ⇒ None。
+        assert!(
+            super::decode_message_response_body(response_body(serde_json::json!(null)), false)
+                .is_err()
+        );
+        assert_eq!(
+            super::decode_message_response_body(response_body(serde_json::json!(null)), true)
+                .expect("兼容模式接受 null")
+                .id,
+            None
+        );
+        // ④ 空串/全空白：**两种模式都拒绝**。
+        for bad in [serde_json::json!(""), serde_json::json!("   ")] {
+            for allow in [false, true] {
+                assert!(
+                    super::decode_message_response_body(response_body(bad.clone()), allow).is_err(),
+                    "空串/全空白必须拒绝（allow={allow}）"
+                );
+            }
+        }
+        // ⑤ 错误类型：两种模式都拒绝。
+        for bad in [serde_json::json!(7), serde_json::json!({"x": 1})] {
+            for allow in [false, true] {
+                assert!(
+                    super::decode_message_response_body(response_body(bad.clone()), allow).is_err()
+                );
+            }
+        }
+    }
+
+    /// **错误响应体不得被解码成成功消息**（错误 JSON / 缺必需字段一律拒绝）。
+    #[test]
+    fn error_bodies_never_decode_as_success() {
+        for body in [
+            serde_json::json!({"type": "error", "error": {"type": "overloaded_error", "message": "busy"}}),
+            serde_json::json!({"type": "message", "id": "msg_x"}),
+            serde_json::json!("not an object"),
+        ] {
+            assert!(
+                super::decode_message_response_body(body.clone(), true).is_err(),
+                "错误体不得当成成功消息：{body}"
+            );
+        }
+    }
+
+    /// **工具调用 ID 仍严格**：工具块的 `id` 缺失 ⇒ 解码即失败（`tool_use.id` 是必填）；
+    /// 兼容位**只**放宽顶层 message ID，不放宽工具配对。
+    #[test]
+    fn tool_use_id_stays_strict_under_the_compat_flag() {
+        for allow in [false, true] {
+            let mut body = response_body(serde_json::Value::Null);
+            body["content"][1].as_object_mut().expect("object").remove("id");
+            assert!(
+                super::decode_message_response_body(body, allow).is_err(),
+                "缺 tool_use.id 必须拒绝（allow={allow}）：工具配对不得被兼容位放宽"
+            );
+        }
+        // 有工具 ID 时，缺顶层 ID 的兼容解码必须**保留**工具块与它的 id。
+        let decoded =
+            super::decode_message_response_body(response_body(serde_json::Value::Null), true)
+                .expect("兼容解码");
+        let tool = decoded
+            .content
+            .iter()
+            .find_map(|block| match block {
+                crate::types::OutputContentBlock::ToolUse { id, name, .. } => Some((id.clone(), name.clone())),
+                _ => None,
+            })
+            .expect("工具块必须保留");
+        assert_eq!(tool.0, "toolu_1", "工具调用 ID 必须原样保留（兼容位不碰它）");
+        assert_eq!(tool.1, "read_file");
+    }
+
     use super::{ALT_REQUEST_ID_HEADER, REQUEST_ID_HEADER};
     use std::io::{Read, Write};
     use std::net::TcpListener;

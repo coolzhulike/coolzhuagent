@@ -636,7 +636,12 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
             store.record_planner_diagnostic(&crate::computer_use_store::PlannerDiagnostic {
                 call_id: &self.call_id, turn_id: &self.turn_id, room_id: self.room_id.as_deref(), session_id: &agent.id,
                 request_kind: kind, observation_generation: observation.generation, model: &agent.model,
-                provider_response_id: Some(&response.id), response_json: &sanitized,
+                // COMPAT-ID：顶层 message ID **缺失时显式为 None**（=「未提供」），
+                // 不再伪造成一个字符串；本条诊断同时承载裁决要的三元组——
+                // `provider_message_id`（None 即未提供）、`compatibility_rule`（口径常量）、
+                // 以及本地的真实请求 attempt（由 `planner_diagnostics` 的既有身份字段承担，
+                // 与 provider 侧身份互不替代）。
+                provider_response_id: response.id.as_deref(), response_json: &sanitized,
                 error_code: error.map(|error| error.code.as_str()), started_at_ms: started_at, completed_at_ms: planner_now_ms(),
             }).map_err(|_| planner_backend_error("planner diagnostic could not be saved"))?;
         }
@@ -1671,32 +1676,6 @@ mod tests {
 
     /// 裁决第 14.6 项：规划请求的 attempt 必须是**真实复合键**（run#逻辑请求#重试序号），
     /// 重试得到新 attempt；身份不成立时保持未知，**不得**编造。
-    /// 作用域内改写进程环境变量，Drop 时恢复（RPR-01b：**panic 也要恢复**）。
-    ///
-    /// 为什么不能用"正常路径末尾手工恢复"：评测中途 `expect` 失败会直接 panic，
-    /// 手工恢复那行不会执行 ⇒ 变量泄漏给同二进制里的其它用例。
-    struct ScopedEnvVar {
-        name: &'static str,
-        previous: Option<std::ffi::OsString>,
-    }
-
-    impl ScopedEnvVar {
-        fn set(name: &'static str, value: &str) -> Self {
-            let previous = std::env::var_os(name);
-            std::env::set_var(name, value);
-            Self { name, previous }
-        }
-    }
-
-    impl Drop for ScopedEnvVar {
-        fn drop(&mut self) {
-            match self.previous.take() {
-                Some(value) => std::env::set_var(self.name, value),
-                None => std::env::remove_var(self.name),
-            }
-        }
-    }
-
     /// CU-03 评测用的一条素材：观察 + 上一步事实 + 上一步动作的目标。
     struct EvalFixture {
         step: usize,
@@ -1863,9 +1842,10 @@ mod tests {
         let base_url = std::env::var("COOLZHU_CU03_EVAL_BASE_URL")
             .or_else(|_| std::env::var("ANTHROPIC_BASE_URL"))
             .expect("评测需要 base_url（COOLZHU_CU03_EVAL_BASE_URL 或 ANTHROPIC_BASE_URL）");
-        // 用作用域守卫：即使评测中途 panic 也会恢复（RPR-01b）。
-        let _base_url_guard = ScopedEnvVar::set("OPENAI_BASE_URL", &base_url);
-        let client = api::OpenAiCompatClient::new(api_key, api::OpenAiCompatConfig::openai());
+        // 裁决（COMPAT-ID §7）：**优先显式传入连接**，不为"选一个端点"改进程全局环境。
+        // 因此这里用客户端的显式 base_url 设置，不再动 `OPENAI_BASE_URL`。
+        let client = api::OpenAiCompatClient::new(api_key, api::OpenAiCompatConfig::openai())
+            .with_base_url(base_url.clone());
         let request = ComputerUseRequest {
             objective: "在画布上画一条从左到右的横线".to_string(),
             surface: ComputerUseSurface::Desktop,

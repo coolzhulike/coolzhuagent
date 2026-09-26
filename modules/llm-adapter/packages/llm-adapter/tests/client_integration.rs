@@ -42,7 +42,11 @@ async fn send_message_posts_json_and_parses_response() {
         .await
         .expect("request should succeed");
 
-    assert_eq!(response.id, "msg_test");
+    assert_eq!(
+        response.id.as_deref(),
+        Some("msg_test"),
+        "有 ID 时必须原值保留（COMPAT-ID：缺失才为 None）"
+    );
     assert_eq!(response.total_tokens(), 16);
     assert_eq!(response.request_id.as_deref(), Some("req_body_123"));
     assert_eq!(
@@ -481,5 +485,60 @@ fn sample_request(stream: bool) -> MessageRequest {
         tool_choice: Some(ToolChoice::Auto),
         reasoning_effort: None,
         stream,
+    }
+}
+
+/// **COMPAT-ID 真实端点小范围复验**（`#[ignore]`：真实调用、消耗预算；手动运行）。
+///
+/// ```text
+/// cargo test -p coolzhu-llm-adapter --offline compat_id_anthropic_shape_endpoint_check -- --ignored --nocapture
+/// ```
+///
+/// 目的与边界：只验证**当前已配置的 Anthropic 兼容连接**在启用兼容位后，
+/// 非流式 `/v1/messages` 这一形态能被**产品同一入口**（`ProviderClient`）解析成功；
+/// 它**不是**对"所有流式/工具/并发形态"的复验（那些由离线夹具覆盖），
+/// 也不证明"以前的失败都由缺 ID 引起"。
+#[tokio::test]
+#[ignore = "真实模型调用（消耗预算）：默认不跑，需显式 --ignored"]
+async fn compat_id_anthropic_shape_endpoint_check() {
+    use api::ProviderKind;
+    let model = std::env::var("COOLZHU_COMPAT_ID_MODEL")
+        .unwrap_or_else(|_| "claude-sonnet-4-6".to_string());
+    let api_key = std::env::var("ANTHROPIC_AUTH_TOKEN").expect("需要 ANTHROPIC_AUTH_TOKEN");
+    // 产品同一入口 + **显式**兼容位（连接级；不硬编码任何域名）。
+    let client = api::ProviderClient::from_model_provider_and_key(
+        &model,
+        ProviderKind::Anthropic,
+        Some(api_key),
+    )
+    .expect("构造客户端")
+    .with_allow_missing_top_level_message_id(true);
+    let base_url = std::env::var("ANTHROPIC_BASE_URL").unwrap_or_default();
+    let response = client
+        .send_message(&api::MessageRequest {
+            model: model.clone(),
+            max_tokens: 32,
+            messages: vec![api::InputMessage::user_text("只回复 JSON：{\"ok\":true}")],
+            system: None,
+            tools: None,
+            tool_choice: None,
+            reasoning_effort: None,
+            stream: false,
+        })
+        .await;
+    match response {
+        Ok(response) => {
+            println!(
+                "[compat-id] 解析成功：provider_message_id={:?}（None = 未提供）model={} base_url={base_url}",
+                response.id, response.model
+            );
+            assert!(
+                !response.model.trim().is_empty(),
+                "解析成功必须带有效 model 字段"
+            );
+        }
+        Err(error) => panic!(
+            "[compat-id] 启用兼容位后仍失败（该形态未通过复验；不要把本结果写成\"所有失败都由缺 ID 引起\"）：{error}"
+        ),
     }
 }

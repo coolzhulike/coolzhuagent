@@ -271,6 +271,21 @@ impl ProviderClient {
         }
     }
 
+    /// **连接级兼容位**（COMPAT-ID）：允许顶层 message ID 缺失（显式为"未提供"）。
+    ///
+    /// 默认严格；只有显式启用才放宽，且**只**对 Anthropic/ClawApi 这条形态生效
+    /// （OpenAI 兼容路线的 `id` 语义不同，不走这个开关）。不硬编码任何代理域名。
+    #[must_use]
+    pub fn with_allow_missing_top_level_message_id(self, allow: bool) -> Self {
+        match self {
+            Self::ClawApi(client) | Self::Anthropic(client) => {
+                Self::Anthropic(client.with_allow_missing_top_level_message_id(allow))
+            }
+            // 其它 provider 的响应形态没有这一处差异：原样返回（**不**放宽它们的解析）。
+            other => other,
+        }
+    }
+
     pub async fn send_message(
         &self,
         request: &MessageRequest,

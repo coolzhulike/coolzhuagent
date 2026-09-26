@@ -1,4 +1,5 @@
 mod client;
+mod message_id;
 mod config;
 mod embeddings;
 mod error;
@@ -55,6 +56,9 @@ pub use resolver::{
     AuthPolicy, EndpointResolver, ProviderProtocol, RequestCapability, ResolvedProviderRoute,
 };
 pub use sse::{parse_frame, SseParser};
+pub use message_id::{
+    normalize_top_level_message_id, MissingMessageIdShape, ALLOW_MISSING_MESSAGE_ID_RULE,
+};
 pub use types::{
     ContentBlockDelta, ContentBlockDeltaEvent, ContentBlockStartEvent, ContentBlockStopEvent,
     InputContentBlock, InputMessage, MessageDelta, MessageDeltaEvent, MessageRequest,
