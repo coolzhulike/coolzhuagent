@@ -229,6 +229,25 @@ match**——它的 Ok 分支里包含**整个等待/轮询/收尾循环**（:35
 - **半改 B（宿主直接写 permit）** ⇒ 绕开 `ExecutorStore`／`PermitGate`／gate revision／epoch 检查 ⇒ **文件存在＝授权**；
 - **半改 C（只接 executor，不接 helper）** ⇒ 身份存在但**未控制执行时序**。
 
+### **先定「谁编排」（裁决留下的实施空位，2026-09-26 核实后补齐）**
+
+两个硬事实决定了批次形状：
+
+- `computer-use-core` **不依赖** web-console ⇒ 它**无法**调用 `PermitGate`／`ExecutorStore`（都在 web-console）；
+- `controlled_*` 的消费方是 **4 个文件／3 个 crate**（core 自身、desktop-console、web-console 的 bridge 与 main），
+  ⇒ 改签名的跨度是跨 crate 的。
+
+⇒ `run_native_helper` **必须拆成两相 API**，且**由 web-console 编排**：
+
+```
+prepare  : 创建 helper → 等 READY → 返回 helper 身份（helper 存活并等待许可）
+   ↓        web-console 在中间完成：ExecutorStore 登记 → PermitGate.issue → consume → 写 permit 文件
+execute  : 让 helper 继续（它轮询到本人 nonce 的 permit → EXECUTE → 注入）
+```
+
+**分层不破**：安全判定全部留在 web-console；`computer-use-core` 只提供「能创建、能等、能执行」
+两个入口，**不含任何安全判定**（它本来也不该有）。
+
 ### 下一次窗口必须按此顺序（不得改变）
 
 **Phase 1 · helper 协议落地**：`spawn → READY → await permit → EXECUTE → input`。

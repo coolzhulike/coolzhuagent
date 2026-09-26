@@ -3688,6 +3688,48 @@ core-runtime **345/0**、computer-use-core 127/0、linkage 8/0、`cargo build --
 core-runtime **345/0**、computer-use-core 127/0、linkage 8/0、`cargo build --workspace` ✅。
 未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-140 执行 8.3c-A 时的**分层阻塞与设计缺口**（裁决未规定"谁编排"）
+
+按"按计划执行"启动 Phase 1，先核两件决定批次形状的事，结果是**两个硬事实**：
+
+| 核实项 | 结果 | 含义 |
+| --- | --- | --- |
+| `computer-use-core` 是否依赖 web-console | **否**（Cargo.toml 无该依赖） | ⇒ 它**无法**调用 `PermitGate`／`ExecutorStore`（两者在 web-console） |
+| `controlled_*` 的消费方 | **4 个文件／3 个 crate**：computer-use-core 自身、`gui-desktop/desktop-console`、`gui-web/web-console` 的 bridge 与 main | ⇒ 改 `controlled_*`／`native_run` **签名**的影响面是跨 crate 的 |
+
+**由此得出的设计缺口（裁决 §三／§七 没有规定）**：helper 由 `run_native_helper`（在
+computer-use-core 内）创建，而"等 READY → 捕获身份 → `ExecutorStore` 登记 → 许可签发/消费 →
+写 permit"这一串**只能在 web-console 里做**（gate 与 executor 适配器都在那边）。
+
+⇒ 因此 `run_native_helper` **不能再是"一次调用完成创建＋输入"**，必须**拆成两相 API**：
+
+```
+prepare  : 创建 helper → 等 READY → 返回 helper 身份（helper 保持存活、等待许可）
+   ↓        （web-console 在此之间完成：注册执行者 → 签发并消费许可 → 写 permit 文件）
+execute  : 让 helper 继续（helper 轮询到本人 permit → EXECUTE → 注入）
+```
+
+**这就是 8.3c-A 的真实体量（比裁决描述更大）**：
+① `computer-use-core` 的 **API 拆分**（prepare／execute），影响 4 个文件／3 个 crate；
+② helper 脚本协议（READY／等 permit／EXECUTE gate）；
+③ web-console 的编排（登记 + 许可 + 写 permit）；
+④ 8 条真实进程用例（T6…T13）；
+⑤ 且按裁决 §四，旧路径必须保持默认有效（feature flag／atomic merge），**不得出现半升级可运行中间态**。
+
+**为什么本轮不继续往下改**：上面任一项单独落地都会命中已被明确拒绝的三个半改之一
+（helper 空等 / 宿主直写 permit / 身份存在但未控制时序）；而"①的 API 拆分 + ②的脚本协议 +
+③的编排 + ④的 8 条真实进程验证"超出本会话剩余预算。⇒ 按"遇到阻塞汇报阻塞问题"如实汇报。
+
+**下一步入口（已补进交接 §3-ter 的执行口径）**：先定"**谁编排**"这个设计点——
+建议由 **web-console 编排**（它同时持有执行器与许可门），computer-use-core 只提供
+prepare／execute 两个入口并保持**不含任何安全判定**（它本来也不该有）。这样分层不破：
+安全判定全在 web-console，core 只负责"能创建、能等、能执行"。
+**本条不是要新决策**，而是把裁决留下的一个实施空位补齐并登记。
+
+**本轮未改任何代码**（含脚本与协议）。门禁维持：web-console **1215/0**、core-runtime **345/0**、
+computer-use-core **127/0**、linkage 8/0、`cargo build --workspace` ✅。
+未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
