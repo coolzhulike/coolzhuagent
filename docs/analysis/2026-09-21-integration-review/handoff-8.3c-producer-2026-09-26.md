@@ -206,6 +206,86 @@ match**——它的 Ok 分支里包含**整个等待/轮询/收尾循环**（:35
 - **Permit**：issue 前有 attempt；consume 前复核 gate／epoch／executor；stale 拒绝；不自动重试。
 - **Failure**：等待期间崩溃／消费后执行前崩溃／EXECUTE 后崩溃，三者都进入正确未知状态。
 
+## 3-ter. **下一次工作窗口的唯一执行口径（2026-09-26 已裁决：保持冻结、不拆批）**
+
+**当前状态（正式登记）**：
+
+| 项 | 状态 |
+| --- | --- |
+| 8.3c-1 helper identity exposure | ✅ 已完成（§B-132） |
+| 8.3c-2 helper 两相协议 | **契约冻结，实现未开始**（§B-134／§B-136） |
+| 8.3c-3 executor registration | 等原子批次 |
+| 8.2c permit consume integration | 等原子批次 |
+| `computer_use_executor.rs:228` | **保持禁止接线** |
+| B127-T6…T12（+T13） | 等真实 helper 实现 |
+| 当前输入路径 | **未变化**（旧路径有效） |
+| 真实隔离状态 | **未变化** |
+
+**本条阻塞的性质**：不是技术未知、不是架构未定、不是要重新设计，而是**原子交付窗口不足**。
+四部分强依赖：`helper protocol → identity registration → permit consume → execute gate → real helper tests`。
+三个半改各自会造成的后果（登记备查，避免下次为省事而拆批）：
+
+- **半改 A（只让 helper 等 permit）** ⇒ 宿主不生产 permit ⇒ **新版本自身阻断所有输入能力**（不是 fail-closed）；
+- **半改 B（宿主直接写 permit）** ⇒ 绕开 `ExecutorStore`／`PermitGate`／gate revision／epoch 检查 ⇒ **文件存在＝授权**；
+- **半改 C（只接 executor，不接 helper）** ⇒ 身份存在但**未控制执行时序**。
+
+### 下一次窗口必须按此顺序（不得改变）
+
+**Phase 1 · helper 协议落地**：`spawn → READY → await permit → EXECUTE → input`。
+先通过 **B127-T6／T7／T9／T12**；重点是证明 **READY 状态＝零物理输入**。
+
+**Phase 2 · 宿主身份登记**：`READY → capture ProcessIdentity → ExecutorStore → executor_instance_id`。
+验证 PID ＋ creation_time、**PID 复用**、identity mismatch。
+
+**Phase 3 · Permit 真消费**：把当前的 attempt 占位替换为**真实 `executor_instance_id`**；
+`ExecutorStore → PermitGate.issue → PermitGate.consume → permit_file`。
+
+**Phase 4 · 恢复 EXECUTE**：最后才动 `computer_use_executor.rs:228`。
+注意措辞：**不是"接入 Permit"，而是"把原生输入触发点移动到 EXECUTE gate 之后"**。
+
+### 提交与切换的关系（§四）
+
+- **Git 提交可以拆**（helper protocol／executor identity／permit integration／tests 分开提交没问题）；
+- **产品行为切换必须一次完成**——不得出现"helper 已等 permit 而 executor 未生成 permit"的生产分支；
+- 落地方式：**feature flag / atomic merge**，或所有提交进入**同一个 release candidate**。
+
+### 切换前门禁（§五，新增要求：`8.3c-A Preflight Gate`）
+
+恢复 `:228` **之前**必须校验四项**一致**：**helper protocol version ＋ host protocol version ＋
+permit schema version ＋ executor identity support**。理由：helper 是 **PowerShell/C#**、不是 Rust
+内部模块，**协议版本必须显式存在**；否则"旧 helper 接新宿主／新 helper 接旧宿主"都会发生。
+⇒ 实现时需新增/确认这四项版本的可交换字段与比对函数（当前**尚未存在**，见 T13）。
+
+### 测试清单（§六）
+
+必测 **T6**（READY 等待无输入）、**T7**（cancel 优先于 permit）、**T8**（完整链输入发生）、
+**T9**（错误 nonce）、**T10**（READY 后崩溃）、**T11**（旧 permit 文件残留）、**T12**（伪 READY）、
+**T13**（**旧 helper 协议被拒绝**：没有 READY／EXECUTE 的旧版本 helper ⇒ 拒绝执行，
+**不能自动降级**）。
+
+### 环境与验收命令（§八）
+
+文件范围预计：`computer-use-core`（helper script／protocol structs／native input adapter）、
+`web-console`（executor／permit integration／ExecutorStore）、`tests`（helper process fixtures）。
+环境需要：可运行的 PowerShell helper、临时目录、**独立测试 safety root**、**不触碰当前真实 input scope**。
+
+验收**至少**跑：
+
+```powershell
+cargo test  -p coolzhu-computer-use-core --offline
+cargo test  -p coolzhu-web-console --offline
+cargo test  -p coolzhu-core-runtime --offline
+cargo build --workspace --offline
+```
+
+**不能只跑 `cargo build`**——本会话已三次出现"编译通过但测试构造点失败"
+（§B-122／§B-125／§B-132 均有记载）。
+
+### 继续保持不做（§七）
+
+不接 `:228`；不改真实输入 backend；不迁移真实 safety DB；不放行 incident；不做真实桌面测试；
+**不允许旧 helper fallback**。
+
 ## 4. 必须补的验收（裁决 §九）
 
 | 用例 | 状态 | 说明 |

@@ -3659,6 +3659,35 @@ PowerShell／C# 脚本、`computer-use-core` 宿主侧、web-console 执行器�
 core-runtime **345/0**、computer-use-core 127/0、linkage 8/0、`cargo build --workspace` ✅。
 未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-139 8.3c-A 状态基准裁决：**保持冻结、不拆批**（本轮不推进代码）
+
+**裁决**：本轮**不推进代码修改**。8.3c-A 已不是"多个小改动"，而是**一次安全生命周期切换批次**；
+任何单侧落地都会产生**比当前旧路径更危险的中间态**。正式登记：
+`8.3c-A = 契约完成，实现未开始（需要一次完整端到端切换窗口）`。
+
+**阻塞性质澄清（登记备查）**：不是技术未知、不是架构未定、不是要重新设计，而是
+**原子交付窗口不足**——四部分强依赖：`helper protocol → identity registration → permit consume
+→ execute gate → real helper tests`。三个半改的后果各自写进交接文件（半改 A 让新版本自身阻断
+所有输入；半改 B 等于"文件存在＝授权"；半改 C 身份存在但未控制执行时序）。
+
+**已写进交接文件 `handoff-8.3c-producer-2026-09-26.md` 新章节 3-ter（下一次窗口的唯一口径）**：
+
+- **四阶段顺序**（不得改变）：Phase 1 helper 协议（先过 T6／T7／T9／T12，重点是"READY＝零物理输入"）
+  → Phase 2 宿主身份登记 → Phase 3 Permit 真消费（替换 attempt 占位为真实 `executor_instance_id`）
+  → Phase 4 恢复 EXECUTE（措辞：**不是接入 Permit，而是把原生输入触发点移动到 EXECUTE gate 之后**）；
+- **提交可拆、行为切换必须一次完成**（feature flag／atomic merge／同一 RC）；
+- **新增切换前门禁 `8.3c-A Preflight Gate`**：恢复 `:228` 前必须校验
+  **helper protocol version／host protocol version／permit schema version／executor identity support**
+  四项一致——helper 是 PowerShell/C#、不是 Rust 内部模块，**协议版本必须显式存在**（当前尚未存在）；
+- **新增 T13**：旧 helper 协议（无 READY／EXECUTE）⇒ 拒绝执行，**不能自动降级**；
+- **环境与验收命令**：独立测试 safety root、不触碰真实 input scope；
+  必须至少跑 computer-use-core ＋ web-console ＋ core-runtime 的 `cargo test` 与 `cargo build --workspace`
+  ——**不能只跑 `cargo build`**（本会话三次"编译通过但测试构造点失败"已有记载）。
+
+**本轮未改任何代码**（含脚本与协议）。门禁维持：web-console **1215/0**（1 ignored＝真实调用评测）、
+core-runtime **345/0**、computer-use-core 127/0、linkage 8/0、`cargo build --workspace` ✅。
+未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
