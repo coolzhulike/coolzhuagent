@@ -11,6 +11,7 @@ use serde_json::{json, Value as JsonValue};
 use uia_resolver::{snapshot_foreground_window, UiaElementSnapshot, UiaError};
 
 use crate::computer_use_adapters::{clamp_stage_timeout, DesktopBridge, DesktopSnapshot};
+use crate::computer_use_frame::{unit_axis_to_pixel, FrameRef};
 
 const INPUT_TIMEOUT: Duration = Duration::from_secs(8);
 const UIA_ELEMENT_LIMIT: usize = 500;
@@ -98,6 +99,30 @@ impl DesktopBridge for DesktopNativeBridge {
             rect_from_element(&json!({"rect":image["screen_rect"]}))?,
         )?;
         let image_evidence = image_evidence(&image);
+        // CU-04 帧绑定：把"这份观察的图像版本 + 裁剪 + 缩放 + 坐标容器"写成证据，
+        // 使"坐标属于哪一版图"事后可核对。**只记录，不拒绝**——观察本身不该因为
+        // 几何不全而失败；真正需要拒绝的是"要用这组坐标去发输入"的那一刻（见 Drag 分支）。
+        let state = json!({
+            "window": {
+                "reference": format!("uia-window-{:x}", snapshot.native_window_handle),
+                "name": snapshot.name,
+                "process_id": snapshot.process_id,
+                "native_window_handle": snapshot.native_window_handle,
+            },
+            "elements": elements,
+            "image": image,
+            "canvas_target": format!("window-canvas:{:x}", snapshot.native_window_handle),
+            "canvas_rect": canvas_rect,
+            "drag_contract": {
+                "kind": "drag", "target": "当前 UIA 画布 reference，或 canvas_target（相对 canvas_rect，不是整张截图）",
+                "points": "2–256 个 [x,y]，坐标均为 0..1，相对目标 rect；使用当前截图，不猜测或复用旧位置",
+                "coordinate_space": "所有 rect 是桌面物理像素 [x,y,width,height]；截图像素原点对应 image.screen_rect，归一化笔画相对目标 rect",
+                "fallback_scope": "window-canvas 仅代表可见 client 区域，包含工具栏、菜单和状态区，不等于语义绘画画布；必须依据当前原图和 rect 找到其中实际可绘画区域，不能猜位置",
+                "duration_ms": "0..5000", "button": "left", "cancel": "宿主取消或 Escape 中止笔画并尝试释放鼠标，释放失败明确报错",
+            },
+        });
+        let frame_marker = FrameRef::bind(&state, std::slice::from_ref(&image_evidence), canvas_rect)
+            .map_or_else(|error| error.evidence(), |frame| frame.evidence());
         Ok(DesktopSnapshot {
             window_id: window_id.clone(),
             process_id: snapshot.process_id,
@@ -109,31 +134,14 @@ impl DesktopBridge for DesktopNativeBridge {
             ],
             dpi: snapshot.dpi,
             webview2_overlay,
-            state: json!({
-                "window": {
-                    "reference": format!("uia-window-{:x}", snapshot.native_window_handle),
-                    "name": snapshot.name,
-                    "process_id": snapshot.process_id,
-                    "native_window_handle": snapshot.native_window_handle,
-                },
-                "elements": elements,
-                "image": image,
-                "canvas_target": format!("window-canvas:{:x}", snapshot.native_window_handle),
-                "canvas_rect": canvas_rect,
-                "drag_contract": {
-                    "kind": "drag", "target": "当前 UIA 画布 reference，或 canvas_target（相对 canvas_rect，不是整张截图）",
-                    "points": "2–256 个 [x,y]，坐标均为 0..1，相对目标 rect；使用当前截图，不猜测或复用旧位置",
-                    "coordinate_space": "所有 rect 是桌面物理像素 [x,y,width,height]；截图像素原点对应 image.screen_rect，归一化笔画相对目标 rect",
-                    "fallback_scope": "window-canvas 仅代表可见 client 区域，包含工具栏、菜单和状态区，不等于语义绘画画布；必须依据当前原图和 rect 找到其中实际可绘画区域，不能猜位置",
-                    "duration_ms": "0..5000", "button": "left", "cancel": "宿主取消或 Escape 中止笔画并尝试释放鼠标，释放失败明确报错",
-                },
-            }),
+            state,
             evidence: vec![
                 image_evidence,
                 format!(
                     "uia_snapshot:{window_id}:elements={}",
                     snapshot.elements.len()
                 ),
+                frame_marker,
             ],
         })
     }
@@ -365,6 +373,12 @@ impl DesktopBridge for DesktopNativeBridge {
                         "笔画目标应为 UIA 画布或当前截图的 canvas_target",
                     ));
                 }
+                // CU-04 帧绑定：坐标**即将**被映射成物理像素，此刻必须能说明它们属于
+                // 哪一版图像、哪次裁剪、哪个缩放（容器 = 这次映射实际用的 rect）。
+                // 与快照阶段的"只记录"不同，这里是**拒绝点**：绑定不成立就不许映射，
+                // 否则 0..1 点会被画到错误的图像/裁剪/缩放上而无人发现。
+                let frame = FrameRef::bind(&expected.state, &expected.evidence, rect)
+                    .map_err(|error| blocked(error.code(), error.describe()))?;
                 let (points, duration_ms) = stroke_arguments(&action.arguments, rect)?;
                 let visible_rect =
                     rect_from_element(&json!({"rect":expected.state["image"]["screen_rect"]}))?;
@@ -397,6 +411,9 @@ impl DesktopBridge for DesktopNativeBridge {
                             .as_ref()
                             .map(image_evidence)
                             .unwrap_or_else(|error| format!("after_capture_failed:{error:?}"));
+                        // 映射时用的绑定（容器 = 这次真正用的 rect，未必等于快照的 canvas_rect）
+                        // 必须跟着失败事实一起留下，否则事后无法说明这组点相对谁。
+                        let evidence = format!("{};mapping={}", evidence, frame.evidence());
                         // 回执直接由 helper 自己的事实构成：部分注入、路径完成、释放义务分别记录，
                         // 不合并成"整段没执行"，也不因失败就推断"零输入"。
                         let receipt =
@@ -411,6 +428,7 @@ impl DesktopBridge for DesktopNativeBridge {
                     &facts,
                     &expected.state["image"],
                     after,
+                    &frame.evidence(),
                 ));
             }
             _ => {
@@ -730,6 +748,7 @@ fn completed_stroke_execution(
     facts: &computer_use::input::HelperInputFacts,
     before: &JsonValue,
     after: Result<JsonValue, ComputerUseError>,
+    frame_evidence: &str,
 ) -> StepExecution {
     let mut evidence = vec![
         format!(
@@ -737,6 +756,8 @@ fn completed_stroke_execution(
             facts.injected_points
         ),
         format!("before:{}", image_evidence(before)),
+        // 映射时真正使用的坐标容器（UIA 画布 rect 或 canvas_rect），与快照记录分开留证。
+        format!("mapping:{frame_evidence}"),
     ];
     let summary = match after {
         Ok(image) => {
@@ -868,8 +889,8 @@ fn stroke_arguments(
                     .ok_or_else(|| blocked("invalid_stroke_point", "相对坐标必须在 0..1 内"))
             };
             Ok(computer_use::input::MousePoint {
-                x: rect[0] + (axis(0)? * f64::from(rect[2] - 1)).round() as i32,
-                y: rect[1] + (axis(1)? * f64::from(rect[3] - 1)).round() as i32,
+                x: unit_axis_to_pixel(axis(0)?, rect[0], rect[2]),
+                y: unit_axis_to_pixel(axis(1)?, rect[1], rect[3]),
             })
         })
         .collect::<Result<Vec<_>, ComputerUseError>>()?;
@@ -1152,6 +1173,7 @@ mod tests {
             &facts,
             &before,
             Err(input_error("capture unavailable".into())),
+            "frame_binding:test",
         );
         assert!(execution.input_sent);
         assert_eq!(execution.partial, Some(false));

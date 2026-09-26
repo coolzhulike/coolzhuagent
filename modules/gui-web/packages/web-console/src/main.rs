@@ -14,6 +14,8 @@ mod computer_use_eval_corpus;
 mod computer_use_eval_rescore;
 mod computer_use_eval_scorer;
 mod computer_use_executor;
+// CU-04 帧绑定：把"坐标属于哪一版图像/裁剪/缩放"变成可记录、可解析、可核对的事实。
+mod computer_use_frame;
 mod computer_use_planner;
 mod computer_use_store;
 // RD4-02A（第七轮裁决 §1）：用户级**共享输入安全库**的宿主侧 SQLite 适配。

@@ -2538,6 +2538,78 @@ module_linkage_smoke 6/0、`cargo build --workspace` ✅。
 `main.rs:36713` 的 `let timeout = Duration::from_secs(8);` 是死绑定（各调用点自带 6s，无行为影响），
 仅产生编译警告，未在本轮改动以免扩大范围。
 
+### B-107 FRAME-BINDING 交付：先审查既有绑定（**大半早已在**），只补真正缺的一格
+
+**裁决口径**：不得只为"更多 ID"而加 `frame_id`；只绑定"模型坐标属于哪一版实际图像／裁剪／缩放，
+以及如何映射到物理位置"；**先审查既有绑定**、能复用就复用；拒绝错误图像／裁剪／缩放；
+明确列出哪些错误情形**被新拒绝**；不得有侧改（不削弱窗口哈希、不扩 ROI、不改陈旧重试、不改评分器）。
+
+**审查结论（本 PR 的主要工作量，也是避免重复建设的关键）**：所需的身份**已经都在**，
+只是没有被绑在一起、也没有留下可核对的记录：
+
+| 需要的绑定 | 既有载体 |
+| --- | --- |
+| 观察代次 | `Observation.generation` → `computer_use_steps.observation_generation` |
+| 图像版本 | `image.sha256`（helper 的 .NET SHA256） |
+| 缩放／尺寸 | `image.width` / `image.height` |
+| 裁剪 | `image.screen_rect`（截图在屏幕物理像素的原点+尺寸） |
+| 坐标容器 | `canvas_rect`（= `client_rect ∩ screen_rect`）或目标元素 rect |
+
+会携带**模型坐标**的动作只有 `Drag`（0..1 归一化点）；其输入前守卫**已经**比较了窗口身份五项、
+截图画布内容摘要、UIA 画布边界与身份。⇒ 没有 `frame_id` 这种"再造一个 ID"的必要。
+
+**真正缺的三格**（本 PR 只补这三处）：
+
+1. **绑定没有被记录**：`screenshot:<path>:sha256=<d>:<W>x<H>` 全仓库**只有生产端、零解析端**，
+   "坐标属于哪一版图"事后无法核对。**修复**：新 `computer_use_frame.rs` 提供
+   `parse_screenshot_evidence`（把它变成可读），并把绑定写进**既有 `evidence` 通道**
+   （`frame_binding:sha256=…:WxH:screen_rect=…:canvas_rect=…:container_inside_image=…`）——
+   **不新增表、不新增列、不新增 ID 空间**。观察快照层负责**记录**（不因此拒绝观察）。
+2. **坐标容器与证据图像之间没有被核对**：两者若来自不同快照（现在不会，但没有东西阻止将来的
+   重构造成错配），坐标会被映射到错误的裁剪/缩放下而不报错。**修复**：`FrameRef::bind`
+   要求 `state` 的图像身份与 `screenshot:` 证据串**独立互查一致**，不一致即按
+   `wrong_image`/`wrong_scale` 拒绝。
+3. **几何缺失时没有明确表达**：拿不到 sha256／`screen_rect` 时无法区分"绑定成立"与"根本没绑定"。
+   **修复**：`FrameRef::bind` 返回 `frame_unbindable` 并**点名缺了哪些字段**；证据串里记
+   `frame_binding:unbindable:missing=…`，且该标记**不得被 `parse` 读成绑定**（否则等于把
+   "没有依据"伪装成"有依据"）。
+
+**新拒绝的情形（如实枚举，不夸大）**：
+
+| 情形 | 旧行为 | 新行为 |
+| --- | --- | --- |
+| 拖拽时几何不全（缺 sha256／尺寸／`screen_rect`／可解析的截图证据） | 照常映射坐标 | **拒绝** `frame_unbindable`（零物理输入） |
+| 拖拽时 `state` 图像身份与 `screenshot:` 证据串不一致 | 照常映射 | **拒绝** `wrong_image`／`wrong_scale` |
+| 截图画布分支：窗口 rect 与图像内容都不变、但 `canvas_rect` 变（`client_rect` 变化） | **看不见**，同一组 0..1 点落到不同物理区域 | **拒绝** `wrong_crop`（用**观察当时记下的**绑定的 `parse` 结果对**当前实时**绑定比较） |
+| 非拖拽动作（click 等）图像内容变化 | 不检查 | **仍然不检查**（刻意不改：实时 UI 内容易变，纳入会引入新的误拒；click 的坐标取自当前快照的实时元素矩形，不是模型给的坐标） |
+
+⇒ 第三行是**唯一在旧代码下真实可达**的新拒绝；前两行是"把不可核对变成可核对"的防御性拒绝。
+
+**8 项最小验收**（每项都有可执行断言）：① 一致时正常绑定并可往返读回；② `wrong_image` 可分辨；
+③ `wrong_scale` 可分辨；④ 裁剪差异归 `wrong_crop` 且优先级在图像之后；⑤ 容器包含关系被**记录**
+（不新增拒绝——拖拽路径原有 `target_offscreen` 已拒越界）；⑥ `screenshot:` 串由"只写不读"变成
+可解析；⑦ 几何缺失记 `unbindable` 且**不得**被读成绑定、不得补推测值；⑧ 映射口径与
+`stroke_arguments` **共用同一个** `unit_axis_to_pixel`（端点 `size-1` 不越界）。
+
+**接线守卫（源码级，防"写了没接"）**：`tests/module_linkage_smoke.rs` 新增
+`frame_binding_is_wired_at_the_mapping_point_and_does_not_replace_window_identity`：
+快照必须记录绑定、`FrameRef::bind` 必须出现在 `stroke_arguments` **之前**、
+窗口身份仍必须是**五项全比**且仍被调用。**变异验证 3/3**：把绑定挪到映射之后、
+让快照不记录绑定、去掉 `dpi` 比较——三种都被捕获。
+
+**无侧改的证据**：既有桥与适配器测试**全部原样通过**；窗口身份五项与陈旧重试语义
+（仍用 `stale_observation` 码，故"允许重新观察一次"的策略不变）均未改动；ROI 与评分器未触碰。
+另修掉一个**自己引入**的解析缺陷：`parse` 原用"第一个未匹配字段"兜底认尺寸，会把新增的
+`container_inside_image=true` 误当尺寸导致整串解析失败——改为**按形状**认 `<W>x<H>`，
+并由往返用例钉住。
+
+**门禁**：web-console **1184/0**（1 ignored＝真实调用评测；较 B-106 增 10 条）、
+module_linkage_smoke **7/0**（增 1 条接线守卫）、web-console build ✅、tool-registry check ✅。
+
+**仍未做**：真实桌面端到端跑一次"帧绑定拒绝"（需真实窗口，未现场执行）；
+`frame_id` 这个**名字**仍未引入，因为本 PR 的审查结论是**不需要新标识**——
+若后续要对外暴露一个稳定名字，应基于本模块的既有字段组合，而不是新造。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

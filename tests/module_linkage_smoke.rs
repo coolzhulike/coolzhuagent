@@ -146,6 +146,80 @@ fn test_environment_writes_are_paired_with_a_restoring_guard() {
     );
 }
 
+/// **CU-04 帧绑定的接线守卫**：绑定必须真的接在"坐标即将被映射成物理像素"的位置上。
+///
+/// 纯函数测试只能证明 `FrameRef` 自己算得对，证明不了它被调用。这里用源码级守卫钉住三件事：
+/// 观察快照必须**记录**绑定、拖拽路径必须**在映射前**用绑定把门、且窗口物理身份比较
+/// **不得**被这层绑定替换掉（五项全比必须还在）。任何一条被删掉，这个守卫都会红。
+#[test]
+fn frame_binding_is_wired_at_the_mapping_point_and_does_not_replace_window_identity() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let bridge = std::fs::read_to_string(
+        root.join("modules/gui-web/packages/web-console/src/computer_use_desktop_bridge.rs"),
+    )
+    .expect("桌面桥源码必须可读");
+    let adapters = std::fs::read_to_string(
+        root.join("modules/gui-web/packages/web-console/src/computer_use_adapters.rs"),
+    )
+    .expect("适配器源码必须可读");
+
+    // 1) 观察快照记录绑定：证据里必须出现绑定标记的构造，且绑定失败时如实记 unbindable。
+    assert!(
+        bridge.contains("let frame_marker = FrameRef::bind("),
+        "快照必须记录帧绑定（否则坐标属于哪一版图仍然无从核对）"
+    );
+    assert!(
+        bridge.contains("map_or_else(|error| error.evidence(), |frame| frame.evidence())"),
+        "绑定不成立时必须如实写成 unbindable 证据，而不是悄悄省略这一条"
+    );
+    assert!(
+        bridge.contains("frame_marker,"),
+        "绑定证据必须真的进入快照的 evidence 列表"
+    );
+
+    // 2) 拖拽路径在映射**之前**把门：FrameRef::bind 必须出现在 stroke_arguments 之前。
+    let bind_at = bridge
+        .find("let frame = FrameRef::bind(&expected.state, &expected.evidence, rect)")
+        .expect("拖拽路径必须在映射前建立绑定");
+    let map_at = bridge
+        .find("let (points, duration_ms) = stroke_arguments(")
+        .expect("拖拽路径必须调用 stroke_arguments");
+    assert!(
+        bind_at < map_at,
+        "帧绑定必须发生在坐标映射之前（否则等于先映射再检查，等于没检查）"
+    );
+
+    // 3) 无侧改：桌面窗口物理身份仍是五项全比，且仍被调用。
+    //    注意必须取 `impl DesktopSnapshot` 里的那一个——浏览器侧另有同名函数比较的是
+    //    页面身份（page_id/url/dom_revision），两者不能混看。
+    let impl_at = adapters
+        .find("impl DesktopSnapshot {")
+        .expect("DesktopSnapshot 实现必须存在");
+    let desktop = &adapters[impl_at..];
+    let identity = desktop
+        .find("fn same_input_identity(&self, other: &Self) -> bool {")
+        .expect("桌面身份比较必须存在");
+    // 按字符取窗口：源码含中文注释，按字节切片会落在字符中间。
+    let body: String = desktop[identity..].chars().take(400).collect();
+    for field in [
+        "self.window_id == other.window_id",
+        "self.process_id == other.process_id",
+        "self.window_rect == other.window_rect",
+        "self.dpi == other.dpi",
+        "self.webview2_overlay == other.webview2_overlay",
+    ] {
+        assert!(
+            body.contains(field),
+            "窗口输入身份被削弱了：少了 `{field}`。帧绑定只负责图像/裁剪/缩放，\
+             不得取代窗口物理身份"
+        );
+    }
+    assert!(
+        adapters.contains("same_input_identity(&current)"),
+        "窗口身份比较必须仍然在输入前被调用"
+    );
+}
+
 /// 递归收集仓库源码（只读文本，用于上面的源码级守门）。
 fn collect_rust_sources(root: &std::path::Path) -> Vec<(String, String)> {
     let mut collected = Vec::new();

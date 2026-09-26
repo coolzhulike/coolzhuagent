@@ -10,6 +10,8 @@ use computer_use::{
 };
 use serde_json::{json, Value as JsonValue};
 
+use crate::computer_use_frame::{rect_from_json, FrameRef};
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SurfaceRoutingContext {
     pub foreground_is_webview2: bool,
@@ -513,6 +515,28 @@ impl<B: DesktopBridge> ComputerUseAdapter for DesktopComputerUseAdapter<B> {
                         "截图画布已变化，需重新观察后规划笔画",
                     )));
                 }
+                // CU-04 帧绑定补的一格：上面只比了**图像内容**，没有比**坐标容器**。
+                // 窗口矩形不变、图像内容不变时 client_rect 仍可能变化 ⇒ canvas_rect 变 ⇒
+                // 同一组 0..1 点落到不同物理区域。既有检查看不出这一类，这里按可分辨原因拒绝。
+                //
+                // 比较的两端刻意选择：**观察当时记下的**绑定（`frame_binding:` 证据，
+                // 由快照层写入）对**当前实时**绑定。这样核对的正是"规划时用的那一帧"
+                // 与"现在这一帧"，而不是两次实时重算（那只能证明现在和现在一样）。
+                let recorded = expected.1.evidence.iter().find_map(|item| FrameRef::parse(item));
+                let live = current
+                    .state
+                    .get("canvas_rect")
+                    .and_then(rect_from_json)
+                    .and_then(|container| {
+                        FrameRef::bind(&current.state, &current.evidence, container).ok()
+                    });
+                // 只在两边都可用时比较：几何不全或绑定缺失由快照层的
+                // `frame_binding:unbindable` 如实记录，不在这里新增拒绝。
+                if let (Some(recorded), Some(live)) = (recorded, live) {
+                    if let Some(mismatch) = recorded.classify(&live) {
+                        return Err(pre_input(stale_observation(mismatch.reason())));
+                    }
+                }
             } else {
                 let target = |state: &JsonValue| {
                     state
@@ -565,6 +589,49 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+
+    /// **CU-04 无侧改守卫**：桌面输入前的窗口身份比较必须仍然是**五项全比**。
+    ///
+    /// 加 `frame_binding` 的诱因是"给帧一个身份"，而最省事的错法就是把窗口身份放松成
+    /// 只比句柄或只比 pid。这里把五项逐一钉住：任何一项变化都必须判为不同身份。
+    /// 它同时是 `computer_use_frame` 那层绑定的前提——帧绑定只负责"图像/裁剪/缩放"，
+    /// 窗口物理身份仍由这里独立把关，两者不得互相替代。
+    #[test]
+    fn desktop_input_identity_still_compares_all_five_fields() {
+        let base = DesktopSnapshot {
+            window_id: "hwnd-6400".to_string(),
+            process_id: 4242,
+            window_rect: [10, 20, 800, 600],
+            dpi: 96,
+            webview2_overlay: false,
+            state: json!({}),
+            evidence: Vec::new(),
+        };
+        assert!(base.same_input_identity(&base.clone()), "自身必须同身份");
+        for mutate in [
+            (|s: &mut DesktopSnapshot| s.window_id = "hwnd-6401".to_string()) as fn(&mut DesktopSnapshot),
+            |s: &mut DesktopSnapshot| s.process_id = 4243,
+            |s: &mut DesktopSnapshot| s.window_rect = [11, 20, 800, 600],
+            |s: &mut DesktopSnapshot| s.dpi = 120,
+            |s: &mut DesktopSnapshot| s.webview2_overlay = true,
+        ] {
+            let mut other = base.clone();
+            mutate(&mut other);
+            assert!(
+                !base.same_input_identity(&other),
+                "五项身份中任一项变化都必须判为不同身份"
+            );
+        }
+        // 不在身份内的字段（状态与证据）变化**不得**被判成身份变化：
+        // 内容层的新旧由各自的守卫负责，不能混进物理身份。
+        let mut content_only = base.clone();
+        content_only.state = json!({"changed": true});
+        content_only.evidence = vec!["screenshot:x:sha256=0:1x1".to_string()];
+        assert!(
+            base.same_input_identity(&content_only),
+            "状态/证据变化不是物理身份变化，不得在此被判为陈旧"
+        );
+    }
 
     fn request(surface: &str, target: serde_json::Value) -> ComputerUseRequest {
         serde_json::from_value(json!({
