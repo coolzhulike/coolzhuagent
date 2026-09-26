@@ -3420,6 +3420,48 @@ core-runtime 335/0、crash_harness_smoke 7/0、module_linkage_smoke 8/0、`cargo
 **未做**：8.2c 接线本身（§七 的 Step 5：生成 `ExecutionAttemptId` → authority 验证 → 创建许可 → 消费）。
 **未触碰 CU 输入路径**；未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-124 ⚠ Step 5 接线前的**第二处具体缺口**：`policy_revision` 没有真实来源（不得伪造）
+
+**背景**：Step 1–4 已就绪（身份契约、复合键、§四 规则、B121-T1…T5），按 §七 开始 Step 5 的接线时，
+在执行器接纳边界需要构造 `InputPermit`。许可的最低绑定（§3.3）要求填 **"当前安全政策与 gate revision"**。
+我当初把它materialize 成了一个字段 `InputSafetyResourceState` 之外的东西：
+
+```
+InputPermit { ..., policy_revision: u64, gate_revision: u64, ... }
+```
+
+**核实结果（全仓库检索）**：`policy_revision` **没有任何真实来源**——它不是笔误，是**我加契约时自己
+引入的字段**。库里现成的只有：
+
+| 真实存在的 | 出处 |
+| --- | --- |
+| `gate_revision` | `InputSafetyResourceState.revision`（单调 revision，任何安全状态变更都推进它） |
+| `recovery_epoch` | `InputSafetyResourceState.recovery_epoch` |
+| **`policy_revision`** | **不存在**：`InputSafetyResourceState` 只有 `scope / state / revision / coordinator_instance_id / recovery_epoch / accepts_new_input` |
+
+**为什么停下来而不是先填一个值**：
+
+- 填常量（例如 schema 版本或 `0`）＝ **编造绑定**：许可会声称"绑定到某个政策版本"，而那个版本
+  并不存在；将来政策变化时**没有任何东西会推进它**，等于一个永远成立的假闸门。
+- 这恰好是本轮反复强调的那条：**不得用占位值顶替真实来源**（§3.2"不能用占位 ID 解决"、
+  §九.4"不得在 SQL 层用 `ON CONFLICT` 解决"是同一类）。B-121 已经因为同类问题停过一次。
+
+**两个可选处置（请择一，或给第三种）**：
+
+1. **删掉 `policy_revision`**（最小、最诚实）：许可只绑定 `gate_revision` 与 `held_epoch`，
+   两者都有真实来源；将来真需要"政策版本"时再作为独立决策引入。
+2. **引入真实政策版本来源**：在输入安全库里给它一个可推进的 revision（例如随安全政策/配置变更推进），
+   并明确谁推进它。这需要新的存储面与推进点，属于新的授权范围。
+
+**顺带确认一个我本来要自己定的位置问题（现已定，供复核）**：按 §七"生成 attempt 在执行器接纳边界、
+消费在物理输入前"，许可门应落在 **`computer_use_executor.rs:228`** 的**逐动作** fail-closed 点
+（与既有 `admit_action_origin` 同一位置、同一口径），而**不是** `:1964` 的**运行级**资源闸门
+（那里已在接纳时检查过"资源是否接受新输入"）。两者互补：运行级管"这次运行能不能输入"，
+逐动作级管"这一次执行尝试有没有资格"。
+
+**本轮状态**：Step 1–4 已完成并有验收（§B-122／§B-123），Step 5 因上述缺口**未开始编码**。
+**未触碰 CU 输入路径**；未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
