@@ -274,3 +274,62 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 ---
 
 **本轮提交（分支 `rd4-input-safety-and-pkg-integrity`，**未推送**）**：`965166c`（输入安全事实链＋PKG 完整性＋安装 0.2.15）、`3f07b28`（台账）、`a1224f3`（§B-75 图标根因）、`46a8764`（启动器修复＋测试）、`04756db`（§B-76 修复验证）、`4bd93da`（协调器复用）、**本轮头提交**（§B-77/78/79 修复＋回归用例＋本文档与台账更新，用 `git log -1 --format=%h` 取当前值）。
+
+---
+
+## 9. 总体进度（**每轮执行推进后更新**）
+
+最后更新：2026-09-26（两相 helper 与许可门主线，第 N 轮之后）
+
+### 9.1 8.3c-A 两相 helper 与许可门：阶段进度
+
+| 阶段 | 内容 | 状态 |
+| --- | --- | --- |
+| `8.3c-A-contract` | 六态许可、`ExecutionAttemptId`、两相生命周期、握手协议、ready/permit 文件协议、五条异常语义、协议版本与切换前门禁 | ✅ |
+| `8.3c-A-host-ready` | `await_helper_ready`（有界等待；**文件存在 ≠ READY**；非本次会话 nonce 拒绝；非法信号**立即 `Rejected`** 不转 `Timeout`） | ✅ |
+| `8.3c-A-helper-runtime` | 脚本两相段（**opt-in**，默认不执行）＋ nonce 来源改为**调用方**提供的 `two_phase_nonce` | 🟡 **Step 2/3 完成**；Step 1（测试注入）与 Step 4（T6-A/B/C、T11、B128-T1）待做 |
+| `8.3c-A-executor-bind` | `ExecutorStore` 登记 ＋ `PermitGate` 真绑定 ＋ permit 通知 | ⏳ 未开始（裁决冻结） |
+| `8.3c-A-input-switch` | `controlled_*` 一次性切换／`computer_use_executor.rs:228` | ⛔ **禁止** |
+
+### 9.2 本会话累计交付（可按 §B 编号核对）
+
+- 8.2b／8.3b **联合持久化**：输入安全库 `v2 → v3` 一次相邻迁移 ＋ DB-1…DB-8 全通过（§B-117）
+- 宿主 bin **测试接缝** ＋ **K1 跨进程核心**跑通（真实进程，非模拟）（§B-118）
+- 8.2c **使能步骤**：许可/执行者适配器经生产窄口可达（§B-120）
+- **B-121 裁决落地**：`ExecutionAttemptId` ＋ 复合键 `(action_id, execution_attempt_id)` ＋ §四 四条重复判定 ＋ B121-T1…T5（§B-122／§B-123）
+- **B-124 裁决落地**：删除 `policy_revision` ＋ gate/epoch 变化改为**可分辨拒绝** ＋ B124-T1/T2（§B-125）
+- **B-126 修复**：consume 补全校验（全谓词条件更新、可分辨失败）＋ B126-T2/T4/T5（§B-128／§B-130）
+- **实例比对判定**：PID 复用可识别（同 pid 不同创建时间 ⇒ `PidReused` ⇒ 不动当前进程）（§B-129）
+- **两相生命周期与握手契约**、**ready/permit 协议与五条异常语义**、**协议版本与切换前门禁**（§B-134／§B-136／§B-141）
+- 8.4 **崩溃装置基础** ＋ 事件词汇与 K1–K6 依赖门（§B-115／§B-116）
+- **8.3c-1**：helper 身份在**存活时**捕获并经 `NativeInputOutcome` 暴露（§B-132）
+- **8.3c-A host-ready**：`await_helper_ready`（§B-143）
+- **helper-runtime Step 2/3**：`two_phase_nonce`（§B-150）
+
+### 9.3 门禁基线（**每轮必须不低于此**）
+
+| 目标 | 结果 |
+| --- | --- |
+| `cargo test -p coolzhu-computer-use-core` | **130 / 0**（含命令行长度门禁 `ScriptCommandLineBudget < 31000`） |
+| `cargo test -p coolzhu-web-console` | **1215 / 0**（1 ignored＝真实调用评测） |
+| `cargo test -p coolzhu-core-runtime` | **347 / 0** |
+| `cargo test --test module_linkage_smoke` | 8 / 0 |
+| `cargo test --test crash_harness_smoke` | 7 / 0 |
+| `cargo build --workspace --offline` | ✅（注意：本轮出现过 rustc 偶发崩溃，单次失败需复跑确认） |
+
+### 9.4 下一步（唯一入口，无待决策项）
+
+**Step 1** 扩展 `native_run_with_mock` 注入 `two_phase_nonce` → **Step 4** 跑
+**T6-A／T6-B／T6-C／T11／B128-T1** → 三 crate 门禁 → **Phase 1 关闭**。
+插入点、期望结果、命令行预算约束、禁止事项见
+`handoff-8.3c-producer-2026-09-26.md` **§3-ter**。
+
+### 9.5 当前阻塞（每轮置顶复述）
+
+1. **Step 1 尚未实现**：`native_run_with_mock` 仍需能携带 `two_phase_nonce`（有界改动，**无需新决策**）；
+2. **命令行预算几乎无余量**：脚本 2144 单元，但**任何新增（连注释都算）都可能突破 31000 软门槛**——
+   本会话已两次因此被门禁拦下；`-File` 迁移**已被裁决推迟**，后续 Phase 2 若继续增长需单独决策；
+3. **分层约束**：`computer-use-core` **不依赖** web-console ⇒ 无法调用 `PermitGate`／`ExecutorStore`，
+   Phase 2 必须做**两相 API 拆分**（改动半径 4 文件／3 crate），由 web-console 编排；
+4. **需真实环境／资源**：§8.6 五项、操作员认证的原生验证、签名（证书）、`PKG-L07c-RACE`；
+5. **环境异常**：rustc 偶发 `STATUS_STACK_BUFFER_OVERRUN`（已按"环境异常"记录，见 §B-148）。
