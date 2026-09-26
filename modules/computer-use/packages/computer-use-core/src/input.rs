@@ -6304,7 +6304,61 @@ foreach($mode in @(0,1,2,3)) {{
         }
 
         /// 真实受控 helper 的成功路径：**收到回复**与**子进程结束**分别记录。
+                /// **T6-A**：`READY != 授权`——进入两相等待态后**没有任何 permit**，
+        /// 无论等多久都**不得**产生物理输入（`injected_steps == 0`）。
+        ///
+        /// 这是 Phase 1 的核心主张："helper 可以安全地活着等待授权"。
+        /// 用 mock 驱动（不驱动真实鼠标键盘）；观测用既有 `outcome.facts()`，**不新增观测管道**。
         #[test]
+        #[cfg(windows)]
+        fn t6_a_helper_waits_without_any_physical_input() {
+            let directory = tempfile::TempDir::new().expect("tempdir");
+            let ready_file = directory.path().join("ready.json");
+            let permit_file = directory.path().join("permit.json");
+            let cancelled = || false;
+            let attempt = attempt_without_identity(&cancelled);
+            let obligation = text_release_obligation(InputBackend::SendInput);
+            let options = TwoPhaseHelperTestOptions {
+                // 测试**自己生成并记住** nonce（不读 READY 反推）。
+                two_phase_nonce: "session-A".to_string(),
+                ready_file: ready_file.clone(),
+                permit_file,
+            };
+            let outcome = native_run_with_mock_two_phase(
+                "text",
+                serde_json::json!({"text": "abc"}),
+                &obligation,
+                &attempt,
+                Duration::from_secs(6),
+                "slow_steps",
+                &options,
+            );
+            // ① **零输入**：无论 helper 是超时退出还是被收尾，都不得发生任何注入。
+            let injected = outcome
+                .as_ref()
+                .ok()
+                .and_then(|value| value.facts())
+                .map_or(0, |facts| facts.injected_steps);
+            assert_eq!(
+                injected, 0,
+                "无 permit 时不得产生任何物理输入（injected_steps 必须为 0）"
+            );
+            // ② READY 必须**真的被写过**：证明 helper 进入了等待态，
+            //    而不是"根本没起来"（否则上面那条断言会因为没有进程而空洞成立）。
+            assert!(
+                ready_file.exists(),
+                "两相模式下 helper 必须先写 READY（否则本用例证明不了等待态存在）"
+            );
+            let ready = std::fs::read_to_string(&ready_file).expect("READY 可读");
+            assert!(
+                ready.contains("session-A"),
+                "READY 必须携带**本次会话**的 two_phase_nonce，实际：{ready}"
+            );
+            // ③ 没有 permit 文件被消费（测试没写它）。
+            assert!(!directory.path().join("permit.json").exists());
+        }
+
+#[test]
         #[cfg(windows)]
         fn real_helper_success_reports_reply_and_exit_separately() {
             let cancelled = || false;

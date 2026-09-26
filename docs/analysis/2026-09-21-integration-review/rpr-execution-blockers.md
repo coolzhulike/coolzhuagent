@@ -4116,6 +4116,41 @@ B128-T1 → T11 → T6-A → T6-B → T6-C → 三 crate 门禁 → Phase 1 关�
 web-console **1215/0**（1 ignored＝真实调用评测）、core-runtime **347/0**、linkage 8/0。
 未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-154 Step 4 首例交付：**T6-A 通过**（真实 helper）——两相等待态零物理输入已被执行证明
+
+**裁决口径**：Step 4 进入真实 helper 窗口；观测统一用既有 `outcome.facts.injected_points`，
+**不新增观测管道**；不得压缩时序（必须 `spawn → await READY → 写 permit → 等终态`）；
+T6-A 不得依赖"自然 timeout 假装结果"。
+
+**交付**（`input::tests::native_lifecycle::t6_a_helper_waits_without_any_physical_input`，真实 helper，8.44s）：
+
+| 断言 | 内容 |
+| --- | --- |
+| ① **零输入** | 无 permit ⇒ `outcome.facts().injected_steps == 0`（用 mock 驱动，**不驱动真实鼠标键盘**） |
+| ② **READY 真的被写过** | `ready_file` 必须存在，且内容携带**本次会话**的 `two_phase_nonce`（`session-A`）——这一条是**防空洞**的关键：否则①会因"进程根本没起来"而空洞成立 |
+| ③ 未被消费 | 测试没写 permit 文件，它也不该出现 |
+
+**变异验证 1/1（证明用例有效而非空心）**：把 `request["two_phase_helper"]` 改成 `false`
+⇒ helper 立即执行（`slow_steps` 注入 3 步）⇒ T6-A **立刻红**：
+`assertion left == right failed: 无 permit 时不得产生任何物理输入（injected_steps 必须为 0）`。
+
+**这一步证明了什么**：Phase 1 的核心主张——**"一个 helper 可以安全地活着等待授权，
+而不会因为等待授权本身成为新的输入风险"**——现在**由真实 PowerShell 生命周期执行证明**，
+不再是"Rust 契约层看起来正确"。
+
+**参数构造（下一窗口可直接照抄）**：`attempt_without_identity(&cancelled)` ＋
+`text_release_obligation(InputBackend::SendInput)` ＋ mock 场景 `"slow_steps"` ＋
+`TwoPhaseHelperTestOptions { two_phase_nonce: "session-A", ready_file, permit_file }`。
+
+**门禁**：computer-use-core **132/0**（增 1 条真实 helper 用例）、web-console 1215/0、
+core-runtime 347/0、module_linkage_smoke 8/0。
+
+**Step 4 剩余**：**T6-B**（错 nonce ⇒ 拒绝且零输入）、**T6-C**（合法测试 permit ⇒ EXECUTE gate 放行，
+**唯一允许输入发生**）、**T11**（A/B 两会话 nonce 串用必须拒绝）、**B128-T1**（`request_id` 与
+`two_phase_nonce` 分离）。T6-B／T6-C 需要**并发编排**（调用阻塞期间、在 READY 之后写 permit 文件）。
+**Phase 1 未关闭**，Phase 2 与 `:228` 继续冻结。未迁移真实库、未解除隔离、未启动真实输入、
+未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
