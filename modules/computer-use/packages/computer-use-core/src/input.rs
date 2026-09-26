@@ -1707,6 +1707,11 @@ fn read_native_facts(path: &FsPath, expected_request_id: &str) -> HelperFactRead
 pub struct NativeInputOutcome {
     /// 本次运行**登记的释放义务**（输入开始之前登记的那一份，运行期不再改写）。
     pub obligation: ReleaseObligation,
+    /// **helper 的实例身份**（8.3c）：pid ＋ 创建时间，在 helper 存活时捕获。
+    ///
+    /// `None` = 本次没有捕获到身份（例如身份读取失败）——**不得**用别的值顶替。
+    /// 消费端据此经 `runtime::classify_executor_instance` 判定"是否同一实例"。
+    pub helper_process: Option<runtime::ProcessInstanceEvidence>,
     /// helper 自己报告的原生输入事实；`None` = 没有事实。
     pub facts: Option<NativeInputFacts>,
     /// 进度记录存在但不可信时的原因（协议不符／身份不合／自相矛盾）。
@@ -3412,6 +3417,16 @@ fn run_native_helper(
             )));
         }
     };
+    // 8.3c：**在 helper 仍然存活时**捕获它的实例身份——这是唯一捕获点，复用既有能力
+    // （`capture_process_identity`），**不新增第二条捕获路径**。
+    // 必须在派发前捕获：进程退出后取不到身份，那时再"补一个"就等于编造。
+    // pid + 创建时间构成最小身份；同 pid 不同创建时间 ⇒ 不是同一实例（PID 复用可识别）。
+    let helper_process = windows_process_guard::capture_process_identity(child.id())
+        .ok()
+        .map(|identity| runtime::ProcessInstanceEvidence {
+            pid: identity.pid(),
+            creation_time_filetime: identity.creation_time_filetime(),
+        });
     let mut stdin = child
         .stdin
         .take()
@@ -3603,6 +3618,8 @@ fn run_native_helper(
     let cause_kind = cause.kind();
     let mut derivation = NativeInputOutcome {
         obligation: obligation.clone(),
+        // 上面在 spawn 成功后捕获的真实身份；捕获不到就是 None（不编造）。
+        helper_process: helper_process.clone(),
         facts: facts.clone(),
         fact_anomaly: fact_anomaly.clone(),
         reply_received_at_ms,
@@ -6252,6 +6269,8 @@ foreach($mode in @(0,1,2,3)) {{
             let obligation = ReleaseObligation::mouse_buttons(&[MouseButton::Left]);
             let outcome = NativeInputOutcome {
                 obligation: obligation.clone(),
+                // 测试构造：本用例不涉及实例身份（真实捕获在 run_native_helper 的 spawn 之后）。
+                helper_process: None,
                 facts: Some(NativeInputFacts {
                     protocol: HELPER_FACT_PROTOCOL_V2,
                     request_id: None,
@@ -6306,6 +6325,8 @@ foreach($mode in @(0,1,2,3)) {{
             let obligation = ReleaseObligation::mouse_buttons(&[MouseButton::Left]);
             let outcome = NativeInputOutcome {
                 obligation: obligation.clone(),
+                // 测试构造：本用例不涉及实例身份（真实捕获在 run_native_helper 的 spawn 之后）。
+                helper_process: None,
                 facts: None,
                 fact_anomaly: None,
                 reply_received_at_ms: None,
