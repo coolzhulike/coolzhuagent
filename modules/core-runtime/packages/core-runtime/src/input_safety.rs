@@ -1129,6 +1129,75 @@ impl HelperIdentity {
     }
 }
 
+// ---------------------------------------------------------------------------
+// 执行者实例比对（8.3c 的判定核心，§B-127 生产者设计的第一步）
+//
+// 生产者的**缝**在输入层（把已捕获的 helper 身份送到宿主）；本段只负责"拿到观测后如何判定"，
+// 因此可以离线完成、且不触碰真实输入派发。
+// ---------------------------------------------------------------------------
+
+/// 从**实际进程句柄**取得的实例证据（最小身份：裁决 §四 批准只带这两项）。
+///
+/// 刻意**不含**命令行、环境变量、完整路径、token、用户凭据——那些不是许可需要的最小身份。
+/// `creation_time_filetime` 是把 PID 复用区分开的那一维：
+/// 旧实例 `pid=5000/created=10:00` 与现在的 `pid=5000/created=11:00` **不是**同一实例。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ProcessInstanceEvidence {
+    pub pid: u32,
+    /// Windows FILETIME（100ns 单位）。**必须来自创建结果**，不得用"当前时间"顶替。
+    pub creation_time_filetime: u64,
+}
+
+impl ProcessInstanceEvidence {
+    /// 证据是否可用作身份（缺创建时间 ⇒ 不足以判定"同一实例"）。
+    #[must_use]
+    pub const fn is_identifying(self) -> bool {
+        self.pid != 0 && self.creation_time_filetime != 0
+    }
+}
+
+/// 把"登记的实例"与"此刻观测到的实例"比对成**契约已冻结的观测结果**。
+///
+/// 判定规则（与裁决 §4.4 失败表逐条对齐）：
+///
+/// | 情形 | 结果 |
+/// | --- | --- |
+/// | 登记未记录创建时间（无法判定同一实例） | `AccessDeniedOrUnreadable` ⇒ 保持阻断的 Unknown |
+/// | 观测不到（`None`：进程不存在或读不到） | `DirectHelperExited`（**仅**证明该实例退出） |
+/// | 观测身份不完整 | `AccessDeniedOrUnreadable` |
+/// | PID 相同、创建时间相同 | `MatchesAndAlive` |
+/// | **PID 相同、创建时间不同** | `PidReused` ⇒ 不动当前进程 |
+/// | PID 不同 | `PidReused`（登记的实例已不在；**不得**去操作"现在占用这个 PID 的进程"） |
+///
+/// 返回的是 `ExecutorObservation` 而不是布尔：调用方据此走**已冻结的处置表**，
+/// 不会把"PID 复用"和"进程不在"混成同一件事。
+#[must_use]
+pub fn classify_executor_instance(
+    registered: &ExecutorRegistration,
+    observed: Option<ProcessInstanceEvidence>,
+) -> ExecutorObservation {
+    let Some(observed) = observed else {
+        return ExecutorObservation::DirectHelperExited;
+    };
+    if !observed.is_identifying() {
+        return ExecutorObservation::AccessDeniedOrUnreadable;
+    }
+    // 登记的创建时间缺失 ⇒ 无法判定"同一实例"：按 Unknown 处理，**不**降级为"按 PID 认为一致"。
+    let Some(registered_creation) = registered.creation_time_100ns else {
+        return ExecutorObservation::AccessDeniedOrUnreadable;
+    };
+    if observed.pid != registered.pid {
+        // 登记的实例已不在这个 PID 上：可能是它退出了、也可能 PID 被别的东西占了。
+        // 两种都**不允许**去操作当前进程。
+        return ExecutorObservation::PidReused;
+    }
+    if observed.creation_time_filetime != registered_creation {
+        // 同一个 PID、不同的创建时间 ⇒ **不是**同一实例（PID 复用）。
+        return ExecutorObservation::PidReused;
+    }
+    ExecutorObservation::MatchesAndAlive
+}
+
 /// 执行者登记的持久状态。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExecutorInstanceState {
@@ -1632,6 +1701,97 @@ mod tests {
         ] {
             assert_eq!(phase.disposition_on_timeout(), None, "{phase:?} 未超时");
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // 8.3c 实例比对（§B-127）：PID 复用必须可识别
+    // -----------------------------------------------------------------------
+
+    fn registered_executor(pid: u32, creation: Option<u64>) -> ExecutorRegistration {
+        ExecutorRegistration {
+            executor_instance_id: "exec-1".to_string(),
+            launch_operation_id: "launch-1".to_string(),
+            coordinator_instance_id: "coordinator-1".to_string(),
+            scope: InputSafetyResourceScope::parse("windows-session-1").expect("scope"),
+            host_launch_instance: "host-launch-1".to_string(),
+            action_id: "action-1".to_string(),
+            pid,
+            creation_time_100ns: creation,
+            user_session: None,
+            helper: HelperIdentity {
+                host_process_path: "powershell.exe".to_string(),
+                script_or_program_digest: "digest-a".to_string(),
+            },
+            protocol_version: 2,
+            supervision_bound: true,
+            state: ExecutorInstanceState::VerifiedAlive,
+            revision: 1,
+        }
+    }
+
+    /// **B126-T3 的判定核心**：同 PID ＋ 不同创建时间 ⇒ `PidReused`（**不是**同一实例），
+    /// 且按已冻结的处置表不得去操作当前进程。
+    #[test]
+    fn same_pid_with_different_creation_time_is_a_reused_pid_not_the_same_instance() {
+        let registered = registered_executor(100, Some(1_000));
+        // 旧实例：pid=100 / created=1_000（正是登记的那个）。
+        assert_eq!(
+            classify_executor_instance(&registered, Some(ProcessInstanceEvidence {
+                pid: 100,
+                creation_time_filetime: 1_000,
+            })),
+            ExecutorObservation::MatchesAndAlive
+        );
+        // PID 复用：pid 还是 100，但创建时间不同 ⇒ **不是**同一实例。
+        let reused = ProcessInstanceEvidence {
+            pid: 100,
+            creation_time_filetime: 2_000,
+        };
+        assert_eq!(
+            classify_executor_instance(&registered, Some(reused)),
+            ExecutorObservation::PidReused
+        );
+        assert_eq!(
+            disposition_for(ExecutorObservation::PidReused),
+            ExecutorDisposition::DoNotTouchCurrentProcess,
+            "PID 复用时不得去操作当前占用该 PID 的进程"
+        );
+    }
+
+    /// 登记的创建时间缺失 ⇒ **不得**降级成"按 PID 认为一致"；观测不到 ⇒ 只证明该实例退出。
+    #[test]
+    fn missing_creation_time_is_unknown_and_absent_process_is_only_an_exit() {
+        let no_creation = registered_executor(100, None);
+        assert_eq!(
+            classify_executor_instance(&no_creation, Some(ProcessInstanceEvidence {
+                pid: 100,
+                creation_time_filetime: 1_000,
+            })),
+            ExecutorObservation::AccessDeniedOrUnreadable,
+            "无法判定同一实例时必须按 Unknown 处理，不得当作相符"
+        );
+        let registered = registered_executor(100, Some(1_000));
+        assert_eq!(
+            classify_executor_instance(&registered, None),
+            ExecutorObservation::DirectHelperExited,
+            "观测不到只证明该实例退出，不证明资源已安全"
+        );
+        // 观测身份不完整（缺创建时间）同样按 Unknown，而不是"看起来 pid 对就算相符"。
+        assert_eq!(
+            classify_executor_instance(&registered, Some(ProcessInstanceEvidence {
+                pid: 100,
+                creation_time_filetime: 0,
+            })),
+            ExecutorObservation::AccessDeniedOrUnreadable
+        );
+        // PID 不同 ⇒ 登记的实例已不在 ⇒ 同样不得去动当前进程。
+        assert_eq!(
+            classify_executor_instance(&registered, Some(ProcessInstanceEvidence {
+                pid: 200,
+                creation_time_filetime: 1_000,
+            })),
+            ExecutorObservation::PidReused
+        );
     }
 
     // -----------------------------------------------------------------------
