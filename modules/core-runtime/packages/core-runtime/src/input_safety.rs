@@ -742,11 +742,125 @@ impl PermitAnomalyKind {
     }
 }
 
+/// **一次独立执行尝试的身份**（2026-09-26 §B-121 裁决 §一／§二正式冻结）。
+///
+/// 与 `action_id` 的分工**不可混用**：
+/// - `action_id` ＝ **动作语义／内容身份**（这个动作长什么样）：审计展示、内容一致性检查、
+///   判断同一逻辑动作描述是否被篡改、关联历史事实。**不再**单独用作许可唯一键、
+///   也**不再**单独判断是否重复输入。
+/// - `execution_attempt_id` ＝ **一次独立执行尝试**：许可消费、输入接纳、防止同一次请求重复执行。
+///
+/// 为什么不能只用"观察代次 + 步骤序号"：它们描述的是**观察上下文**与**规划位置**，
+/// 不天然唯一（例如恢复重算后 `generation=10, step=3` 可能再次出现），因此必须带
+/// `attempt_sequence`（同一逻辑步骤再次尝试的递增编号）。
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ExecutionAttemptId {
+    /// 内容身份（＝ `action_id`）：只用于一致性核对与审计，不承担唯一性。
+    pub parent_action_id: String,
+    /// 产生该动作时的观察上下文。
+    pub observation_generation: u64,
+    /// 当前计划步骤（规划位置，不是执行序号）。
+    pub step_identity: String,
+    /// **同一逻辑步骤再次尝试的递增编号**。
+    pub attempt_sequence: u64,
+}
+
+/// `ExecutionAttemptId` 非法。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvalidExecutionAttemptId {
+    pub field: &'static str,
+    pub reason: &'static str,
+}
+
+impl std::fmt::Display for InvalidExecutionAttemptId {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "执行尝试身份字段 {} 无效：{}",
+            self.field, self.reason
+        )
+    }
+}
+
+impl ExecutionAttemptId {
+    pub fn new(
+        parent_action_id: impl Into<String>,
+        observation_generation: u64,
+        step_identity: impl Into<String>,
+        attempt_sequence: u64,
+    ) -> Result<Self, InvalidExecutionAttemptId> {
+        let candidate = Self {
+            parent_action_id: parent_action_id.into(),
+            observation_generation,
+            step_identity: step_identity.into(),
+            attempt_sequence,
+        };
+        candidate.validate()?;
+        Ok(candidate)
+    }
+
+    pub fn validate(&self) -> Result<(), InvalidExecutionAttemptId> {
+        for (field, value) in [
+            ("execution_attempt.parent_action_id", &self.parent_action_id),
+            ("execution_attempt.step_identity", &self.step_identity),
+        ] {
+            if value.trim().is_empty() {
+                return Err(InvalidExecutionAttemptId {
+                    field,
+                    reason: "不得为空",
+                });
+            }
+            if value.chars().any(char::is_control) {
+                return Err(InvalidExecutionAttemptId {
+                    field,
+                    reason: "不得含控制字符",
+                });
+            }
+            if crate::run_contract::is_placeholder_identity_value(value) {
+                return Err(InvalidExecutionAttemptId {
+                    field,
+                    reason: "不得用占位值顶替真实来源",
+                });
+            }
+        }
+        // `attempt_sequence` 从 1 起：0 表示"还没决定是第几次尝试"，那不是一个身份。
+        if self.attempt_sequence == 0 {
+            return Err(InvalidExecutionAttemptId {
+                field: "execution_attempt.attempt_sequence",
+                reason: "必须从 1 起递增（0 表示尚未确定尝试序号）",
+            });
+        }
+        // `observation_generation` 从 1 起（与 `Observation.generation` 同口径）。
+        if self.observation_generation == 0 {
+            return Err(InvalidExecutionAttemptId {
+                field: "execution_attempt.observation_generation",
+                reason: "观察代次必须来自真实观察（0 表示没有观察上下文）",
+            });
+        }
+        Ok(())
+    }
+
+    /// 稳定字符串形式（存储/日志用）。
+    ///
+    /// **不是**随机 UUID：它必须可复现，否则无法做重复分析与审计关联（裁决 §九.1 明令禁止）。
+    #[must_use]
+    pub fn stable_key(&self) -> String {
+        format!(
+            "{}#gen{}#{}#attempt{}",
+            self.parent_action_id, self.observation_generation, self.step_identity,
+            self.attempt_sequence
+        )
+    }
+}
+
 /// 许可的最低绑定内容（裁决 §3.3）。复用既有身份，不复制完整会话模型。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputPermit {
     pub permit_id: String,
+    /// **动作语义／内容身份**：审计与一致性核对用，**不**承担许可唯一性。
     pub action_id: String,
+    /// **一次执行尝试的身份**：与 `action_id` 共同构成许可唯一键（§B-121 裁决 §一.3）。
+    pub execution_attempt_id: ExecutionAttemptId,
     pub scope: InputSafetyResourceScope,
     /// 所属**真实执行上下文**的引用（例如 Goal 阶段运行 / 会话运行，由接纳侧冻结）。
     pub execution_context_ref: String,
@@ -810,6 +924,20 @@ impl InputPermit {
                     reason: "不得用占位值顶替真实来源",
                 });
             }
+        }
+        // 先报**字段自身**的问题（更具体），再报派生的一致性冲突（更好诊断）。
+        self.execution_attempt_id
+            .validate()
+            .map_err(|error| InvalidInputPermit {
+                field: error.field,
+                reason: error.reason,
+            })?;
+        // 执行尝试身份的内容身份必须与许可的动作身份一致（两者不得各说各话）。
+        if self.execution_attempt_id.parent_action_id != self.action_id {
+            return Err(InvalidInputPermit {
+                field: "execution_attempt.parent_action_id",
+                reason: "必须与许可的 action_id 一致（内容身份不得两处不一致）",
+            });
         }
         if self.state.crossed_dispatch_boundary() && self.executor_instance_id.is_none() {
             return Err(InvalidInputPermit {
@@ -1510,6 +1638,8 @@ mod tests {
         InputPermit {
             permit_id: "permit-1".to_string(),
             action_id: "action-1".to_string(),
+            execution_attempt_id: ExecutionAttemptId::new("action-1", 41, "step-7", 1)
+                .expect("attempt"),
             scope: InputSafetyResourceScope::parse("windows-session-1").expect("scope"),
             execution_context_ref: "cu-run-1".to_string(),
             frozen_action_digest: "digest-a".to_string(),

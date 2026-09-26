@@ -96,7 +96,13 @@ pub(crate) fn ensure_v3_objects(connection: &Connection) -> Result<(), PermitSto
             r#"
             CREATE TABLE IF NOT EXISTS input_safety_permits (
                 permit_id TEXT PRIMARY KEY,
+                -- §B-121：action_id 是**动作语义／内容身份**（审计与一致性核对）。
                 action_id TEXT NOT NULL,
+                -- §B-121：执行尝试身份的四维（唯一键的另一半，可复现、非随机）。
+                observation_generation INTEGER NOT NULL,
+                step_identity TEXT NOT NULL,
+                attempt_sequence INTEGER NOT NULL,
+                execution_attempt_id TEXT NOT NULL,
                 scope TEXT NOT NULL,
                 execution_context_ref TEXT NOT NULL,
                 frozen_action_digest TEXT NOT NULL,
@@ -113,6 +119,9 @@ pub(crate) fn ensure_v3_objects(connection: &Connection) -> Result<(), PermitSto
             );
             CREATE INDEX IF NOT EXISTS input_safety_permits_action
                 ON input_safety_permits (action_id);
+            -- 唯一键是**动作 + 执行尝试**，不是 action_id 本身（§B-121 §一.3）。
+            CREATE UNIQUE INDEX IF NOT EXISTS input_safety_permits_attempt
+                ON input_safety_permits (action_id, execution_attempt_id);
             CREATE INDEX IF NOT EXISTS input_safety_permits_scope_state
                 ON input_safety_permits (scope, state);
 
@@ -269,8 +278,9 @@ impl<'a> PermitStore<'a> {
                         permit_id, action_id, scope, execution_context_ref, frozen_action_digest,
                         policy_revision, gate_revision, issued_owner_id, issued_epoch,
                         expires_at_unix_ms, executor_instance_id, state, revision,
-                        revocation_reason, updated_at_unix_ms
-                     ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",
+                        revocation_reason, updated_at_unix_ms,
+                        observation_generation, step_identity, attempt_sequence, execution_attempt_id
+                     ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19)",
                     rusqlite::params![
                         permit.permit_id,
                         permit.action_id,
@@ -287,6 +297,10 @@ impl<'a> PermitStore<'a> {
                         permit.revision as i64,
                         permit.revocation_reason,
                         now_unix_ms as i64,
+                        permit.execution_attempt_id.observation_generation as i64,
+                        permit.execution_attempt_id.step_identity,
+                        permit.execution_attempt_id.attempt_sequence as i64,
+                        permit.execution_attempt_id.stable_key(),
                     ],
                 )
                 .map_err(sqlite_error)?;
@@ -303,7 +317,8 @@ impl<'a> PermitStore<'a> {
             .query_row(
                 "SELECT permit_id, action_id, scope, execution_context_ref, frozen_action_digest,
                         policy_revision, gate_revision, issued_owner_id, issued_epoch,
-                        expires_at_unix_ms, executor_instance_id, state, revision, revocation_reason
+                        expires_at_unix_ms, executor_instance_id, state, revision, revocation_reason,
+                        observation_generation, step_identity, attempt_sequence
                    FROM input_safety_permits WHERE permit_id = ?1",
                 rusqlite::params![permit_id],
                 |row| {
@@ -322,6 +337,9 @@ impl<'a> PermitStore<'a> {
                         row.get::<_, String>(11)?,
                         row.get::<_, i64>(12)?,
                         row.get::<_, Option<String>>(13)?,
+                        row.get::<_, i64>(14)?,
+                        row.get::<_, String>(15)?,
+                        row.get::<_, i64>(16)?,
                     ))
                 },
             )
@@ -330,6 +348,14 @@ impl<'a> PermitStore<'a> {
             .ok_or_else(|| PermitStoreError::PermitNotFound {
                 permit_id: permit_id.to_string(),
             })?;
+        // 先算执行尝试身份（它借用 action_id，随后 action_id 才被移动进结构体）。
+        let attempt_identity = runtime::ExecutionAttemptId::new(
+            row.1.clone(),
+            u64::try_from(row.14).unwrap_or_default(),
+            row.15.clone(),
+            u64::try_from(row.16).unwrap_or_default(),
+        )
+        .map_err(|error| PermitStoreError::Sqlite(error.to_string()))?;
         Ok(InputPermit {
             permit_id: row.0,
             action_id: row.1,
@@ -342,6 +368,7 @@ impl<'a> PermitStore<'a> {
             issued_epoch: u64::try_from(row.8).unwrap_or_default(),
             expires_at_unix_ms: u64::try_from(row.9).unwrap_or_default(),
             executor_instance_id: row.10,
+            execution_attempt_id: attempt_identity,
             state: parse_permit_state(&row.11)?,
             revision: u64::try_from(row.12).unwrap_or_default(),
             revocation_reason: row.13,
@@ -888,10 +915,26 @@ mod tests {
         store_id
     }
 
+    fn attempt(action_id: &str, generation: u64, step: &str, sequence: u64) -> runtime::ExecutionAttemptId {
+        runtime::ExecutionAttemptId::new(action_id, generation, step, sequence).expect("attempt")
+    }
+
+    /// 便捷构造：同一逻辑步骤的第 1 次尝试。
     fn permit(permit_id: &str, action_id: &str) -> InputPermit {
+        permit_attempt(permit_id, action_id, 41, "step-7", 1)
+    }
+
+    fn permit_attempt(
+        permit_id: &str,
+        action_id: &str,
+        generation: u64,
+        step: &str,
+        sequence: u64,
+    ) -> InputPermit {
         InputPermit {
             permit_id: permit_id.to_string(),
             action_id: action_id.to_string(),
+            execution_attempt_id: attempt(action_id, generation, step, sequence),
             scope: scope(),
             execution_context_ref: "cu-run-1".to_string(),
             frozen_action_digest: "digest-a".to_string(),

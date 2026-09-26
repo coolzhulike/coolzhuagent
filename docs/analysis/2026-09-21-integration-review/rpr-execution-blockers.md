@@ -3328,6 +3328,48 @@ crash_harness_smoke 7/0、module_linkage_smoke 8/0、`cargo build --workspace` �
 且猜错的后果是**拒绝合法的真实输入**（安全方向上不是放宽，但产品行为会被破坏）。
 **未做**：8.2c 的输入路径接线本身——它**必须**等这个身份口径定下来，否则接出来就是错的。
 
+### B-122 §B-121 裁决落地（Step 1–3 完成，Step 4–5 待做）：身份模型与复合键已冻进代码
+
+**裁决口径（§一／§二／§五）**：保留 `action_id` 作为**动作语义／内容身份**（审计、一致性核对、
+篡改判断、历史关联），**不再**单独作许可唯一键、**不再**单独判断重复输入；新增
+**`ExecutionAttemptId`** 作为**一次独立执行尝试身份**（许可消费、输入接纳、防同一次请求重复执行）；
+许可唯一身份 ＝ **`(action_id, execution_attempt_id)`**。
+
+#### 已完成
+
+| 步 | 内容 |
+| --- | --- |
+| 契约 | 新增 `ExecutionAttemptId { parent_action_id, observation_generation, step_identity, attempt_sequence }` ＋ 校验：**`attempt_sequence` 从 1 起**（0 表示"还没定是第几次尝试"，那不是身份）、`observation_generation` 从 1 起、占位/空值/控制字符被拒；`stable_key()` 是**可复现**字符串（`action#gen…#step#attempt#`），**刻意不是随机 UUID**（§九.1 禁止——会破坏内容审计与重复分析） |
+| 契约 | `InputPermit` 增加**必填** `execution_attempt_id`；`validate_structure` 增加交叉校验：`parent_action_id` **必须等于** 许可的 `action_id`（内容身份不得两处各说各话）。校验顺序刻意先报**字段自身**问题、再报派生一致性冲突（更好诊断） |
+| schema | v3 的 `input_safety_permits` 增加 `observation_generation`／`step_identity`／`attempt_sequence`／`execution_attempt_id` 四列，唯一约束由"动作内容"改为 **`UNIQUE(action_id, execution_attempt_id)`**（正是 §五 的"扩展许可记录、不建平行表"） |
+| 存储 | 写入与读回都带四维；`load_permit` 从库中重建 `ExecutionAttemptId`（**不靠占位值**，重建失败即报错） |
+
+#### 依赖"观察代次 + 步骤序号"为何不够（裁决 §二，已按此实现）
+
+`observation_generation` 是**观察上下文**、`step_identity` 是**规划位置**，都不天然唯一
+（恢复重算后 `gen=10, step=3` 可能再次出现）。因此身份里必须带 `attempt_sequence`——
+它是"同一逻辑步骤再次尝试的递增编号"，正是把"再规划一次"与"同一次尝试"分开的那一维。
+
+#### 未做（如实，且**下一步就是它**）
+
+1. **§四的四条重复判定规则**尚未按新键改写：`register_pending` 目前仍是"同一 `action_id` 已存在即拒"，
+   因此 **B121-T1（同内容不同尝试 ⇒ 两个许可、两次允许）当前会失败**——必须先改这条规则。
+   规则落点已明确：按**逻辑尝试键**（`gen#step#attempt`，去掉内容哈希）判定——
+   同逻辑尝试且**内容不同** ⇒ `ActionIdentityConflict`（拒绝，§四 情况 3）；
+   同逻辑尝试且**内容相同** ⇒ 返回已有状态（情况 1／2）；不同逻辑尝试 ⇒ 允许新许可（情况 2／4）。
+2. **B121-T1…T5 五条验收用例**（其中 T5 用 `paint-r3` 的真实两次点击，证明"动作内容重复 ≠ 执行请求重复"）
+   ——这是本轮最该先补的，因为它们才是"不再错误拒绝合法输入"的证据。
+3. **8.2c 接线**（§七 的顺序：先生成 `ExecutionAttemptId` → authority 验证 → 创建许可 → 消费）。
+
+**门禁**：core-runtime **335/0**、web-console **1201/0**、crash_harness_smoke 7/0、
+module_linkage_smoke 8/0、`cargo build --workspace` ✅。
+**未触碰 CU 输入路径**；未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
+**过程中修掉的两处自伤**（都值得记）：① 给 `InputPermit` 加必填字段后，两个**测试辅助**构造点
+（core-runtime 的 `permit()` 与存储侧的同名辅助）没同步 —— 非测试构建通过、**测试构建失败**，
+说明"`cargo build` 绿"不等于"测试能编译"；② 我新加的交叉校验排在字段校验之前，抢报了更派生的
+错误（把"action_id 是占位值"报成了"两处不一致"），已把**字段自身校验前置**。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
