@@ -3564,6 +3564,43 @@ core 127/0）；第 2／3 步**等上面 (a)/(b)/(c) 的选择**。许可门、�
 B124-T1/T2、B126-T2/T4/T5）均已就位且全绿，**不因本发现而失效**。
 **未触碰真实输入路径**；未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-135 8.3c-2 的设计锚点（已侦察）：两相握手**复用既有文件控制通道**，不新造传输
+
+**侦察目标**：把 helper 改成"起来但不动、等许可"的两相形态，需要一条控制通道。先看有没有现成的。
+
+**核实到的事实（`input.rs`）**：
+
+| 事实 | 值 |
+| --- | --- |
+| helper 的启动形态 | `powershell.exe -NoProfile -NonInteractive -Sta -Command <script>`（`:1149`／`:2991`）——**整个请求是内嵌在命令行脚本里的 JSON** |
+| **已有的控制通道** | 请求里带 `cancel_file` 与 `progress_file`（`:3394-3395`），路径是 `%TEMP%` 下带 nonce 的文件（`:3379-3380`） |
+| 取消通道 | 宿主写 `cancel_file`；helper 在轮询里检查它（`stroke_cancelled` 路径） |
+| 事实通道 | helper 往 `progress_file` 追加增量协议记录；宿主轮询读回（"不依赖 EOF"） |
+| 成功标记 | `NATIVE_HELPER_SUCCESS_MARKER = "native-input:ok"`（`:1217`），可从增量记录里先看到 |
+
+**⇒ 结论：两相握手应当复用这条既有文件通道，而不是新增 IPC／命名管道／套接字。**
+理由与本轮反复坚持的一致：**不新增第二条同义通道**（两条必然漂移）。具体建议：
+
+1. 请求里**增加一个 `ready_file`**（与 `cancel_file`／`progress_file` 同族、同 nonce、同目录），
+   语义与 `progress_file` 严格分开：`progress_file` 是**执行事实**，`ready_file` 是**生命周期信号**；
+2. helper 在被创建后**立即**（注入任何输入之前）写 `ready_file`，然后进入
+   `AwaitingPermit` 的**有界、可取消**等待循环——复用它对 `cancel_file` 已有的轮询形状，
+   **不引入新的等待原语**；
+3. 宿主等到 `ready_file` 后：捕获身份（`child.id()`，§B-132 已完成）→ `ExecutorStore` 登记 →
+   签发并**消费**许可 → **写 `permit` 文件**；
+4. helper 只有在"`ready` 已写 ＋ 收到 permit"之后才允许进入 `ExecutingInput`——
+   这正是 §B-134 冻结的 `HelperHandshake::Execute` 前置条件（`required_state = PermitConsumed`）。
+
+**这一步为什么不在本轮编码**：改动落在**内嵌 PowerShell／C# 脚本文本**（`Engine.Run` 的 mode 开关、
+`input_stroke_native.cs`）与 `computer-use-core` 协议两处，**必须用真实 helper 进程验证**
+（"脚本真的起来但不动"这件事，只有跑起来才知道）；而它是**安全关键路径**——
+若"等待许可"实现成了忙等或让 helper 在等待期意外可输入，破坏面比缺门更大。
+按 §十一，`:228` 的接线本轮**继续禁止**。
+
+**当前状态**：§B-134 已把状态机与握手协议冻结为契约（core-runtime 341/0）；
+本项只登记设计锚点，**未改任何脚本或协议**。CU 输入路径与合并前一致。
+未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
