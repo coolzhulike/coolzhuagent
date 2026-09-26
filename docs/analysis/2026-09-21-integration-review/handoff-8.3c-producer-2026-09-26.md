@@ -142,6 +142,70 @@ match**——它的 Ok 分支里包含**整个等待/轮询/收尾循环**（:35
 
 ---
 
+## 3-bis. **批次边界（2026-09-26 已裁决：必须原子落地）**
+
+**这不是"实现顺序偏好"，而是生命周期契约决定的硬依赖**：helper 进入 `AwaitingPermit` 后，
+**必须存在对应的宿主授权闭环**，否则该状态只是一个必然失败路径。
+
+⇒ 把原 `8.3c-2`（helper 等待态）＋ `8.3c-3`（执行者登记）＋ `8.2c`（许可签发/消费）
+**合并为一个交付单元 `8.3c-A`：两相 helper 端到端切片**。
+
+**仍然分层**：契约保持分层、提交可以拆分；但**不得存在一个中间可运行版本**，
+让 helper 等待一个永远不存在的 permit。
+
+### 两个**已被裁决拒绝**的半成品（不要重犯）
+
+| 方案 | 为什么拒 |
+| --- | --- |
+| ❌ 先加 `wait-permit`，"以后再写 permit" | 生产行为变成"全部 CU 输入 → READY → 等待不存在的文件 → timeout"。**这不是 fail-closed，是产品功能被自身半升级状态永久拒绝** |
+| ❌ helper READY 后由宿主**直接**写 permit | 绕过了 `ExecutorStore` ＋ `PermitGate`，等于把 **permit 文件当成授权来源**，违反已冻结模型 |
+
+### 实施顺序（§三）
+
+1. **Step A：先保持旧路径有效**——改动期间 `NativeInputExecutor → 旧 helper flow` 继续工作；
+2. **Step B：一次性切换新协议**——
+   `spawn → READY → capture ProcessIdentity → ExecutorStore.register → PermitGate.issue
+   → PermitGate.consume → write EXECUTE → helper input`；
+3. **Step C：失败回退策略**——新协议失败 ⇒ `AbortBeforeInput` ＋ cleanup；
+   **禁止**"新协议失败 ⇒ 自动切回旧 helper 继续输入"（那等于安全路径失败时反而走未授权路径）。
+
+### 四处改动（§七，均需真实进程验证）
+
+| # | 位置 | 允许 | 禁止 |
+| --- | --- | --- | --- |
+| 1 | `computer-use-core` **helper 脚本**（内嵌 PowerShell／C#） | READY 写入；permit 等待；EXECUTE gate | 自己判断安全策略；自己生成 executor identity；自己创建 permit |
+| 2 | `computer-use-core` **宿主侧** | `ready_file`／`permit_file` 参数；handshake 状态 | — |
+| 3 | **web-console executor** | 完整链 `identity → ExecutorStore → PermitGate → permit file` | — |
+| 4 | **测试** | B127-T6…T12，全部**真实 helper 进程** | 用 mock 冒充进程级验收 |
+
+### 协议补充要求（§四／§五／§六／§九）
+
+- `permit_file` **只能由宿主授权流程生成**，helper **只读**；且**必须绑定当前 helper 的 nonce**
+  （否则**旧 permit 文件残留**会让 helper B 读到 helper A 的授权）。
+- `AwaitingPermit` 循环：**复用已有 `cancel_file` 模型**——先查 cancel，再查 permit（校验 nonce），
+  写 heartbeat，**有界**间隔；**禁止**裸 `while(true){sleep}`；
+  期间允许 heartbeat／status／handshake／cancel polling，**禁止** mouse／keyboard／clipboard／window 变更。
+- **cancel 优先**（本批最重要的测试之一）：`READY → cancel → permit` 必须 `AbortBeforeInput`，
+  **不得** `PermitConsumed`——cancel 意味着"该执行尝试已不应继续获得物理输入资格"。
+- **DB 操作仍留在 broker 边界之外**：`ExecutorStore` ＋ `PermitGate` 先完成事务，**再**写 `permit_file`。
+- 写 `permit_file` 后、helper 收到前宿主崩溃 ⇒ 状态 `PermitConsumed` ＋ `ExecuteUnknown`；
+  **不得**重新写 permit、**不得**重新执行。
+
+### 新增两条协议级测试（§八）
+
+- **B127-T11 旧 permit 残留**：helper A 退出后留下 `permit_file`，helper B 启动 ⇒ **B 拒绝**
+  （nonce 不匹配）。
+- **B127-T12 READY 伪造**：宿主提前写 `ready_file` 而 helper 未真正进入 `AwaitingPermit` ⇒ **拒绝**。
+  READY **不是单纯文件存在**，至少校验 nonce、helper identity、当前握手阶段。
+
+### 8.3c-A 完成标准（§十）——**全部满足才允许恢复 `:228`**
+
+- **Helper**：READY 在任何输入 API 前；`AwaitingPermit` 无物理输入；只有 EXECUTE 触发输入；
+  cancel 优先；nonce 防串用。
+- **Identity**：helper 存活时捕获；`ExecutorStore` 登记；permit 绑定**真实** `executor_instance_id`。
+- **Permit**：issue 前有 attempt；consume 前复核 gate／epoch／executor；stale 拒绝；不自动重试。
+- **Failure**：等待期间崩溃／消费后执行前崩溃／EXECUTE 后崩溃，三者都进入正确未知状态。
+
 ## 4. 必须补的验收（裁决 §九）
 
 | 用例 | 状态 | 说明 |
