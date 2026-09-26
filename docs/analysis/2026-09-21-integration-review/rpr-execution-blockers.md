@@ -3767,6 +3767,37 @@ computer-use-core **127/0**、linkage 8/0、`cargo build --workspace` ✅。
 core-runtime **347/0**、computer-use-core 127/0、linkage 8/0、`cargo build --workspace` ✅。
 未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-143 8.3c-A-runtime · Phase 1 宿主半边交付：READY 的有界等待与校验（T12 宿主侧）
+
+按裁决 §三 Phase 1"**此阶段结束旧路径仍未切换；允许存在新协议代码，但生产 executor 不调用**"的授权，
+先做其中**不触碰内嵌脚本**、可独立验证的那一半：宿主侧"等到 READY 并校验它"。
+
+**交付**（`computer-use-core/src/helper_ready.rs`）：
+
+- `await_helper_ready(ready_file, expected_nonce, budget)`：**有界**（超预算即 `TimedOut`）、
+  **不忙等**（固定 20ms 轮询，与既有 cancel/progress 轮询同量级、**不引入新等待机制**）；
+- `ReadyOutcome::{Ready, Rejected, TimedOut}` 可分辨；`may_proceed()` 只有合法 READY 为真；
+- **T12 的宿主半边**：文件存在**不等于** READY——必须过
+  ① `HelperReadySignal::validate()`（type／协议版本／nonce／pid）② **nonce 属于本次会话**
+  ③ 解析失败（半截写入／多带授权声明）也算**拒绝**；
+- 非法信号**立即拒绝**而不是"当作还没到再等一会"（伪造信号重试只会拖长窗口）。
+
+**测试 3 条**：合法 READY 在预算内放行；伪造/异会话 READY（别的 nonce、缺字段、带
+`authorization` 声明）必须被拒；无文件时有界超时（耗时贴近预算）。
+`computer-use-core` **130/0**（增 3 条）。
+
+**⚠ 命名冲突提醒（本轮顺带发现，登记以免将来混淆）**：输入层**已有**一个不同含义的
+"helper ready"——`input::tests::native_lifecycle::launch_budget_expiry_before_helper_ready_*`
+里的 ready 指"**进程启动预算**内就绪"，与本模块的 **两相生命周期信号 READY 不是一回事**。
+这正是裁决 §B-121 警告过的"一词多义"风险（当时是 `attempt` 同时表示内容指纹／执行尝试／请求重试）。
+⇒ 本模块的文档与函数名都显式写作 **两相 READY / lifecycle READY**，落地脚本侧时也应在协议字段里
+保持区分（`ready_file` 属两相协议，`launch_budget` 属启动预算），不要复用同一个词。
+
+**边界**：本模块**不启用任何生产路径**（`controlled_*` 未调用它），**未改内嵌 PowerShell／C# 脚本**，
+Phase 3 的一次性切换仍未开始。门禁：computer-use-core **130/0**、web-console **1215/0**
+（1 ignored＝真实调用评测）、core-runtime **347/0**、linkage 8/0、`cargo build --workspace` ✅。
+未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

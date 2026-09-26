@@ -19,6 +19,8 @@ serde_json.workspace = true
 windows-process-guard = { package = "coolzhu-windows-process-guard", path = "../../../gui-web/packages/windows-process-guard" }
 
 [dev-dependencies]
+# 8.3c-A Phase 1：READY 等待/校验的用例需要临时目录。
+tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt"] }
 
 [[bin]]

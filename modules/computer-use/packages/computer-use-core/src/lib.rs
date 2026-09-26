@@ -1,3 +1,5 @@
+// 8.3c-A-runtime · Phase 1 宿主半边：READY 的有界等待与校验（不启用任何生产路径）。
+mod helper_ready;
 pub mod budget;
 pub mod cleanup;
 pub mod contracts;
