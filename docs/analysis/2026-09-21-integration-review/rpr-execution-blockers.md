@@ -2466,6 +2466,78 @@ module_linkage_smoke 6/0、`cargo build --workspace` ✅。
 **仍未做（按裁决顺序，下一批）**：`CU03-CORPUS`（查找 `docs/testing/release-0.2.14/paint-r4..r6.json`
 并按四类归档）、`CU03-CONFIRM`（冻结素材与标签后再做配对真实模型对照）、`FRAME-BINDING`。
 
+### B-106 CU03-CORPUS 交付：历史素材**找得到（含真实截图）**，但仍**不足以支撑语义层指标**（如实）
+
+**裁决口径**：从已知记录与其**实际附件引用**继续定位，不全盘扫描、不凭报告重造"原始回放"；
+按四类归档（历史原始／历史派生／新采集／合成）；历史不足就**保留未知**；不得把合成说成历史回放。
+
+**定位结果**：`docs/testing/release-0.2.14/paint-r3..r6.json` 是**二级脱敏导出**
+（`privacy=public_allowlisted_summary`，已剥除路径与本地 id）。沿其附件引用回溯，在
+`tmp/2026-09-19-agent-fixes/` 找到**一级导出**（`privacy=local_ids_and_screenshot_paths_no_message_bodies`，
+保留 `local_path` 与 `sha256`）与**历史原始留存**（运行时 SQLite + PNG 截图）。
+两者事实同源已核验：二级与一级的 `summary` 逐值一致（同为 1 次 blocked、2 步、6 诊断、8 用量），
+差别只在 `privacy` 与是否带 `database_path`/`local_path`。
+
+**交付物**：`docs/testing/cu03-eval/corpus-2026-09-19-paint-window-drag/`，含 `README.md`、
+机器生成 `manifest.json`（8 个样本逐项溯源）、`samples/paint-r1..r6/`（一级导出）、
+`images/`（**只迁移被审计实际引用的窗口级截图 8 张**，1,708,685 字节；文件名即 `sha256`，
+可自校验且 8/8 校验通过）、`tools/build_corpus.py`（可重建）。**刻意未迁移并登记原因**：
+`desktop-latest.png` 与 `paint-r6-after.png` 字节相同（同为 120,736 字节、`sha256=be647e42…`）；
+另 2 张 PNG 未被任何记录引用。
+
+**六次运行全部未达成目标**（`goal_achieved=false`）——本语料库是**失败语料库**，
+覆盖：`input_failed`（窗口身份/位置/DPI 变化）、`invalid_tool_input`（缺 `success_criteria`）、
+`no_progress`×2、`planner_backend_unavailable`（规划器 20s 超时）、`stale_observation`。
+（注：`paint-r2` 的**聊天层**总结写 `recursive_call_blocked`，而运行时权威记录是
+`intent_guard / invalid_tool_input`；语料库采用运行时记录。）
+
+**共性缺失项（决定能不能算语义指标）**：截图有 ✅（`sha256`+尺寸）；但**发给规划器的提示词本体
+未留存**❌、**UIA 元素树只有 `elements=<n>` 计数**❌、**多数规划响应体已脱敏**❌、
+历史运行**早于 CU-03 反馈块（确认当时无反馈）**❌、**窗口 rect／DPI／裁剪与缩放全部缺失**❌、
+**无语义标签**❌。⇒ 历史样本只参与结构层；三项语义指标在本语料库上**不可评分**，
+不得补零。另：终态证据里的 `visual_verification:…:criteria_met=…` 是**事后**验证摘要，
+**不得**据此回填"模型当时看到了什么反馈"。
+
+**归档中得到两个硬结论**：
+
+1. **`action_fingerprint` 不能当作"同一操作"的身份**。生产代码是
+   `hash(surface, observation_generation, action_json)`（`computer_use_executor.rs:230-241`），**含观察代次**，
+   故"重新观察后再做同一动作"必然得到不同指纹。真实反例 `paint-r3`：两次点击载荷完全相同
+   （`{"arguments":{},"kind":"click","target":"uia-951f959f29c11d9f"}`），指纹却是
+   `c2ca9e5c00db712f` / `3ca13a695e4eac5c` —— 按指纹相等判重复得 **0 次**，忽略代次比较才得到那 **1 次**
+   真实重复（且第二步 `visible_progress=false`，正是"无效重复副作用"的真实样本）。
+   这正是"不得把无效重复算成没有重复"的实例。`manifest.json` 同时保留两种视图以免差异被静默吞掉。
+2. **既有身份绑定已有"图像版本"雏形**：`observation_generation` 参与指纹，
+   `before/after_evidence_ref` 形如 `screenshot:<path>:sha256=<digest>:<W>x<H>` ——
+   即已有"观察代次 + 内容摘要 + 尺寸"，缺的是**窗口 rect／DPI／裁剪与缩放**这段映射。
+   这给 `FRAME-BINDING` 的"先审查既有绑定、能复用就复用"提供了具体落点。
+
+**可执行守卫 + 变异验证**（新 `computer_use_eval_corpus.rs`，7 个测试）：把上述口径钉住——
+类别只能四类且合成样本不得引用历史库、历史样本必须写明缺失与"无标签/无反馈"、
+不得声称达成目标、语义指标必须列不可评分且不得出现 `0%`/`rate`、截图文件名必须内嵌 `sha256`
+且不得声称有窗口 rect、迁移素材必须**逐字节**等于记录的摘要与体积、指纹含代次的口径与
+`paint-r3` 真实反例必须在库。
+**变异验证 11/11**：对清单施加 11 种"把话说满"的破坏（改类别／清空缺失项／声称有标签／
+声称摘要不匹配／声称达成目标／声称有反馈块／声称有窗口 rect／抹掉不可评分声明／
+汇总写成已达成／删除非回放声明／改掉某素材的记录摘要），每一种都被对应守卫捕获。
+
+**顺带堵住一个会让溯源静默失效的坑**：本机 `core.autocrlf=true` 且仓库根 `.gitattributes` 有
+`*.json text eol=lf`，检出/提交时的行尾归一化会**改写迁移素材的字节**，使清单里记录的 `sha256`
+失效。已给语料库加自己的 `.gitattributes`（`samples/** -text`、`tools/** -text`、`images/** binary`，
+更深层属性按 git"就近优先"胜出），并实测**暂存字节 == 工作副本字节**（含 CRLF 的 JSON 样本），
+再用上面的逐字节守卫长期看住。
+
+**口子一处修正**：守卫**抓出了我自己的清单错误**——`paint-r1/r2` 步数为 0，最初只列 2 项不可评分，
+把"无效重复副作用"漏掉（0 步下它属**不适用（无适用样本）**，不是"0 次重复"）。
+已改为三项语义指标在**每个**历史样本上都列不可评分，并加 `repeat_metric_applicability` 显式写"不适用"。
+
+**门禁**：web-console **1174/0**（1 ignored＝真实调用评测；较 B-105 的 1167 增加 7 条语料库守卫）。
+
+**仍未做**：`CU03-CONFIRM`（**前提未满足**：语料与标签尚不足以支撑语义层配对对照，
+故不扩大模型调用）、`FRAME-BINDING`（已有落点，见上）。另记一处**与本次无关的遗留**：
+`main.rs:36713` 的 `let timeout = Duration::from_secs(8);` 是死绑定（各调用点自带 6s，无行为影响），
+仅产生编译警告，未在本轮改动以免扩大范围。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

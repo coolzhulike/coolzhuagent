@@ -9,6 +9,8 @@ mod clawbot_channel;
 mod clawbot_gateway;
 mod computer_use_adapters;
 mod computer_use_desktop_bridge;
+// CU03-CORPUS：历史语料库的"不许把合成说成历史回放"等口径的可执行守卫。
+mod computer_use_eval_corpus;
 mod computer_use_eval_rescore;
 mod computer_use_eval_scorer;
 mod computer_use_executor;

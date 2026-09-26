@@ -1,0 +1,18 @@
+**执行结果：未成功绘制，如实报告。**
+
+- 状态：`blocked`（终态），错误码：`recursive_call_blocked`
+- 根因：上一次 `computer_use_perform` 调用因 `invalid computer-use request: missing field success_criteria` 被拒绝，本轮运行时已禁止通过其他工具路径继续调用 Computer Use。
+- 因此**没有任何实际画布笔画被执行**：画图窗口中未绘制方形身体、眼睛、嘴或四肢，也没有截图核验结果。我不会声称任何图形已画成。
+
+**原始任务的完成度：0%。**
+
+**下一步（需要由您触发重试）：** 由于 retry_owner=user，请您再发送一次请求（例如回复“重试”）。届时我将以正确参数结构重新调用 `computer_use_perform`：
+
+- surface=desktop，target.window="无标题 - 画图"
+- objective：手绘粗略海绵宝宝——方形身体 → 两只眼睛 → 嘴 → 简单四肢
+- success_criteria（必填字段，上次缺失项）：当前画布出现方形身体和至少两处五官笔画，已能看到粗略脸部轮廓
+- constraints：仅操作该画图窗口；禁止脚本/绘图代码/导入或粘贴图片；使用接口提供的画布相对坐标拖拽绘制；每步动作后依据截图核验；只画部分时如实报告
+
+---
+Context usage: 0.2% (2406/1000000 input tokens; source=remote). Local estimate: 1354 tokens; local prompt budget: 1354/848976 tokens; history truncated: false.
+Context turn: 000000000000000118d6c352e500f1c8; Context snapshot: ctx-7320cce55ae517d2; history source: chat_room.messages; history loaded: 0; memory revision: mem-9b1448da0ed6f3b0

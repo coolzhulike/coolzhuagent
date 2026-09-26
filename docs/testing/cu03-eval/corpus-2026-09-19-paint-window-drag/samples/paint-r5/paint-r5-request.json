@@ -1,0 +1,8 @@
+{
+  "session_id": "session-1779459149988",
+  "target_agent_ids": [
+    "session-1779459149988"
+  ],
+  "chat_room_id": "room-1789833399318",
+  "text": "请调用 computer_use_perform，完整参数须有 objective、surface、target、success_criteria 数组、constraints 数组。surface=desktop；target.window=\"无标题 - 画图\"。objective: 画图窗口当前已选中黑色画笔，请直接在白色画布中央用鼠标路径拖拽画一个粗略海绵宝宝，先画方形身体，再画两处五官笔画。success_criteria: 白色画布上新增方形身体轮廓和至少两处五官笔画。constraints: 仅该画图窗口；禁止脚本、导入或粘贴图片；不需要选择或重复点击当前已选中的画笔按钮；规划器必须使用观察中的canvas_target引用和drag动作，自己根据截图生成0到1相对points；如需关闭键盘提示可以先按Escape；每步必须依据原图验证，不得只观察或点按钮便声称绘制。仅需粗略线条，不要求绘画质量。"
+}

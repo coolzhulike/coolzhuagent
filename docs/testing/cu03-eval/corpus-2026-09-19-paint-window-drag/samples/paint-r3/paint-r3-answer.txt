@@ -1,0 +1,12 @@
+执行结果：未成功绘制，如实报告。
+
+- **状态**：`blocked`（终态），错误码：`no_progress`（重复操作后画布无可见变化），不可重试。
+- **实际尝试**：Computer Use 在“无标题 - 画图”窗口上执行了 2 次动作（UIA 元素 `uia-951f959f29c11d9f` 的 SendInput 点击），但三轮视觉核验均显示 `image_changed=false`、成功标准 `0/3` 达成。
+- **结论**：画布上**没有出现任何笔画**——既无方形身体轮廓，也无五官笔画。截图证据（窗口 hwnd-25508，2560x1152）与操作前完全一致。
+- 按当前工具策略，此 `blocked` 结果为终态，我不会通过其他途径继续尝试操作该窗口。
+
+如果你希望继续，可以告诉我：例如允许我再次发起一次新的 `computer_use_perform` 尝试（在你明确授权的新回合中），或先手动确认画图窗口是否处于前台/可交互状态（例如窗口是否被对话框、全屏遮挡或处于只读状态），排除阻塞原因后再试。
+
+---
+Context usage: 0.3% (3827/1000000 input tokens; source=remote). Local estimate: 1436 tokens; local prompt budget: 1436/848976 tokens; history truncated: false.
+Context turn: 000000000000000418d6c3690bf2a194; Context snapshot: ctx-459737b0bbc0f108; history source: chat_room.messages; history loaded: 0; memory revision: mem-ac915260dbb16613

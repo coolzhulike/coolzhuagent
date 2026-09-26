@@ -50,6 +50,8 @@ windows-process-guard = { package = "coolzhu-windows-process-guard", path = "../
 http-body-util = "0.1"
 tempfile = "3"
 tower = { version = "0.5", features = ["util"] }
+# CU03-CORPUS：语料库守卫要按 manifest 记录的 sha256 复核迁移素材的字节保真。
+sha2 = "0.10"
 
 # 仅测试目标开启 guard 的故障注入接缝（`revoke_owner_for_test`）。
 # 刻意放在 dev-dependencies：发布构建（cargo build / cargo tree --no-dev）不得出现该 feature。

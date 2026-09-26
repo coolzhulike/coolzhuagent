@@ -1,0 +1,6 @@
+已执行 1 步工具操作完成本轮任务，但模型未返回最终文字总结。已完成的工具结果摘要：
+工具 `computer-use-task-controller` 失败：截图画布已变化，需重新观察后规划笔画
+
+---
+Context usage: 0.2% (2246/1000000 input tokens; source=remote). Local estimate: 1605 tokens; local prompt budget: 1605/848976 tokens; history truncated: false.
+Context turn: 000000000000000a18d6c424c533e620; Context snapshot: ctx-3ec3e55cdd712b00; history source: chat_room.messages; history loaded: 0; memory revision: mem-f3af76e2f6a1b68c

@@ -1,0 +1,1461 @@
+{
+  "corpus_id": "cu03-corpus-2026-09-19-paint-window-drag",
+  "format_version": 1,
+  "categories": {
+    "history_original": "历史原始留存（运行时 SQLite、原始截图），未在 git 内，易失",
+    "history_derived": "由历史原始留存导出的记录（本目录 samples/ 为一级导出，保留路径与 sha256；docs/testing/release-0.2.14/paint-r*.json 为二级脱敏导出）",
+    "new_capture": "本轮新采集（可能仍是简化夹具/无桌面动作，须写明）",
+    "synthetic": "合成夹具，禁止当作历史回放"
+  },
+  "privacy": "一级导出保留本地绝对路径与本地 id；不含消息正文、不含 API Key。截图仅为画图窗口级（window-*），不含全屏桌面截图。",
+  "summary": {
+    "sample_count": 8,
+    "history_samples": 6,
+    "all_history_runs_achieved_goal": false,
+    "images_migrated": 8,
+    "images_bytes": 1708685
+  },
+  "images": {
+    "window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png": {
+      "bytes": 232247,
+      "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4"
+    },
+    "window-25508-8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d.png": {
+      "bytes": 234316,
+      "sha256": "8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d"
+    },
+    "window-25508-73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5.png": {
+      "bytes": 229287,
+      "sha256": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5"
+    },
+    "window-25508-6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0.png": {
+      "bytes": 203977,
+      "sha256": "6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0"
+    },
+    "window-25508-e2a1f576994ab481ca352406fd1f346b74cd14fcd6da50401447102e2f572084.png": {
+      "bytes": 202406,
+      "sha256": "e2a1f576994ab481ca352406fd1f346b74cd14fcd6da50401447102e2f572084"
+    },
+    "window-25508-4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65.png": {
+      "bytes": 202461,
+      "sha256": "4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65"
+    },
+    "window-25508-d1e284a07e190f6aeda50702ecf75a505671c6a5af2bf619372554ed3a4f48c6.png": {
+      "bytes": 202117,
+      "sha256": "d1e284a07e190f6aeda50702ecf75a505671c6a5af2bf619372554ed3a4f48c6"
+    },
+    "window-25508-4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1.png": {
+      "bytes": 201874,
+      "sha256": "4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1"
+    }
+  },
+  "samples": [
+    {
+      "sample_id": "paint-r1",
+      "category": "history_derived",
+      "category_detail": "历史原始运行留存的一级导出（保留本地 id、截图绝对路径与 sha256；原始留存本体为 runtime SQLite 与 PNG 截图）",
+      "lineage": {
+        "original_retention": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3 + runtime/evidence/captures/**（不在 git 内，易失）",
+        "tier2_derivative": "docs/testing/release-0.2.14/paint-r1.json（public_allowlisted_summary，已去路径与本地 id）"
+      },
+      "task": {
+        "chat_instruction_retained": true,
+        "context": null,
+        "objective": {
+          "constraints": [
+            "仅操作 target.window=\"无标题 - 画图\" 这个画图窗口，不触碰其他应用",
+            "禁止运行脚本、绘图代码、导入图片或粘贴图片",
+            "使用正式接口提供的画布相对坐标路径进行鼠标拖拽绘制",
+            "每次拖拽动作后重新截图核验画布变化",
+            "若仅完成部分绘制，必须如实报告实际画出的内容，不得把观察/截图窗口当作已绘制结果"
+          ],
+          "objective": "在 Windows 画图程序的空白画布“无标题 - 画图”中，用鼠标手绘一个粗略的海绵宝宝形象：先用矩形或拖拽方式画出方形身体轮廓，再画两只圆形/点状眼睛、一条弧线嘴巴，以及简单的四肢线条。颜色与完成质量不作要求，重点是实际在画布上产生可见笔画。",
+          "success_criteria": [
+            "动作后截图显示画布上出现至少两条可见的新笔画（如方形身体轮廓、眼睛、嘴或四肢线条）",
+            "笔画是在该画图窗口的画布上直接绘制产生的，而非粘贴或导入图片"
+          ],
+          "surface": "desktop",
+          "target": {
+            "application": "画图 (mspaint)",
+            "element": "空白画布",
+            "window": "无标题 - 画图"
+          }
+        },
+        "surface": "desktop"
+      },
+      "pre_decision_observation": {
+        "status": "部分缺失",
+        "image_retained": false,
+        "image_identity": "sha256 + 宽度 x 高度（见 image_and_transform）",
+        "uia_snapshot": "仅引用字符串 uia_snapshot:<hwnd>:elements=<n>，元素树本体未留存",
+        "planner_prompt": "未留存——无任何表或导出保留发给规划器的提示词本体",
+        "model_raw_response": "规划响应体多数脱敏（computer_use_planner_diagnostics.response_json 为 {\"redacted_fields\":true}）",
+        "parsed_decision_retained": []
+      },
+      "available_feedback": {
+        "status": "无反馈块（样本早于 CU-03 反馈块实现）",
+        "feedback_block_present": false,
+        "post_hoc_verification_summary": [],
+        "note": "终态证据里的 visual_verification:generation=..:image_changed=..:criteria_met=.. 是事后验证摘要，不等于当时交给规划器的反馈内容；不得据此反推模型当时看到了反馈。"
+      },
+      "real_execution_state": {
+        "run_state": "failed",
+        "terminal_status": "failed",
+        "terminal_stage": "observation",
+        "terminal_error_code": "input_failed",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "recorded_step_count": 0,
+        "action_count": 0,
+        "replan_count": 0,
+        "no_progress_count": 0,
+        "reported_answer": "已按要求调用了一次 `computer_use_perform`（surface=desktop，target.window=\"无标题 - 画图\"），但执行**失败**，未能完成绘制。如实报告如下：\n\n**执行结果**\n- 状态：`failed`（阶段：`observation`，即操作尚未开始，在截图观察环节就失败了）\n- 错误码：`input_failed`\n- 错误信息：`stale_observation: 窗口身份、位置或DPI已变化` —— 系统在捕获目标窗口前发现\"无标题 - 画图\"窗口的身份、位置或 DPI 与已记录的观察状态不一致（例如窗口移动、失焦、被其他窗口覆盖，或 DPI 缩放发生了变化）。\n\n**画布实际状态**\n- 动作计数为 0，步骤完成数为 0：**没有在画布上产生任何笔画**，不满足\"至少两条可见新笔画\"的成功标准。\n- 没有使用脚本、绘图代码、导入或粘贴图片——完全符合约束，但绘制本身未发生。\n\n**建议**\n按照当前的工具策略，本次失败的调用对这一轮而言是终止性的，我不会在同一轮内换用其他工具重试。若该画图窗口仍然打开，请您确认它处于可见、未被移动的最小化/遮挡状态（或重新激活/置顶该窗口后再让我重试一次），我即可再次发起同一 `computer_use_perform` 调用尝试手绘海绵宝宝。\n\n---\nContext usage: 0.2% (2689/1000000 input tokens; source=remote). Local estimate: 1347 tokens; local prompt budget: 1347/848976 tokens; history truncated: false.\nContext turn: 000000000000000718d6c2633aa5badc; Context snapshot: ctx-26cf8886afdd3a82; history source: chat_room.messages; history loaded: 0; memory revision: mem-117b117a330cfb18",
+        "steps": [],
+        "structural_facts": {
+          "step_count": 0,
+          "distinct_action_fingerprints": 0,
+          "consecutive_repeated_fingerprints": [],
+          "consecutive_repeated_operations_ignoring_generation": [],
+          "fingerprint_identity_caveat": "action_fingerprint 含 observation_generation，重新观察后的同一操作会得到不同指纹；判「无效重复」不能直接用指纹相等，须按 (动作类型, 目标, 载荷) 忽略代次比较。",
+          "any_visible_progress": false,
+          "terminal_error_code": "input_failed",
+          "terminal_stage": "observation",
+          "scorable_metrics": [
+            "连续同载荷操作的计数与可见进展（结构层描述，忽略观察代次）"
+          ],
+          "unscorable_metrics": [
+            "目标/操作选择错误（无语义标签、无决策前观察提示词）",
+            "无效重复副作用（无语义标签；结构层只能给计数，不能判定「是否无效」）",
+            "未核销的危险重放（无隔离/核销状态记录）"
+          ],
+          "repeat_metric_applicability": "不适用（无适用样本：该运行未产生任何动作步）"
+        }
+      },
+      "image_and_transform": {
+        "images": [],
+        "all_digests_match": false,
+        "image_count": 0,
+        "no_image_reason": "该次运行的审计导出未引用任何截图（观察阶段即失败或未进入动作）",
+        "coordinate_space": "画布相对 0..1（action_json 中的 points 已核验落在单位方格内）",
+        "window_rect": "缺失",
+        "dpi": "缺失",
+        "crop_or_scale_mapping": "缺失——audit notes 自述：缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画"
+      },
+      "allowed_behavior_labels": {
+        "present": false,
+        "note": "历史运行未打「目标选择正确 / 无效重复 / 危险重放」等标签；本语料只提供结构层可判定事实（动作类型、目标、动作指纹、可见进展、终态错误码）。"
+      },
+      "evidence_source": {
+        "runtime_db": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3（schema_version=20）",
+        "exports": [
+          "samples/paint-r1/paint-r1-answer.txt",
+          "samples/paint-r1/paint-r1-audit.json",
+          "samples/paint-r1/paint-r1-events.json",
+          "samples/paint-r1/paint-r1-insights.json",
+          "samples/paint-r1/paint-r1-request.json",
+          "samples/paint-r1/paint-r1-run.json",
+          "samples/paint-r1/paint-r1-summary.json",
+          "samples/paint-r1/paint-r1.sse"
+        ]
+      },
+      "missing_items": [
+        "发给规划器的提示词本体（决策前观察的文本部分）",
+        "UIA 元素树本体（仅有 elements=<n> 计数）",
+        "窗口 rect / DPI / 裁剪与缩放映射",
+        "规划模型原始响应体（多数行已脱敏）",
+        "语义行为标签（目标选择是否正确、是否危险重放）"
+      ],
+      "files": [
+        {
+          "file": "samples/paint-r1/paint-r1-answer.txt",
+          "bytes": 1657,
+          "sha256": "34398eec3164d9f6733c41da2af66b24c2e4d6313efb0b61cdda7908bc18cf96"
+        },
+        {
+          "file": "samples/paint-r1/paint-r1-audit.json",
+          "bytes": 3556,
+          "sha256": "f62d5cc69460de28b47c49d8af8939101ef4d2492b38b213d6e9f39ced072968"
+        },
+        {
+          "file": "samples/paint-r1/paint-r1-events.json",
+          "bytes": 12120,
+          "sha256": "f224f5b32ed49674bc1aa7be1af6ab9a99d745667fb62e3fbca0a7cf8aafe715"
+        },
+        {
+          "file": "samples/paint-r1/paint-r1-insights.json",
+          "bytes": 635,
+          "sha256": "df9820e56f85de88610134bb4aec9a3926677d1dfd0489e216faacd2aa52737f"
+        },
+        {
+          "file": "samples/paint-r1/paint-r1-request.json",
+          "bytes": 805,
+          "sha256": "79faf57b195734ca7181973e967c72b393542fd7ca98a98ea99f5f429da28c7d"
+        },
+        {
+          "file": "samples/paint-r1/paint-r1-run.json",
+          "bytes": 532,
+          "sha256": "efe0382a1d075197de6537a13d7e1d88bbfa56e3f289e26a972c30e504f50166"
+        },
+        {
+          "file": "samples/paint-r1/paint-r1-summary.json",
+          "bytes": 2655,
+          "sha256": "60e84ba14a5212ab91140e11ba969e8019e4c4b234b262d2d04f885222b8f866"
+        },
+        {
+          "file": "samples/paint-r1/paint-r1.sse",
+          "bytes": 10141,
+          "sha256": "f9e25d7533424055d17ed6916da886eca323af6c7ed1b55da8994ef02fc4a296"
+        }
+      ]
+    },
+    {
+      "sample_id": "paint-r2",
+      "category": "history_derived",
+      "category_detail": "历史原始运行留存的一级导出（保留本地 id、截图绝对路径与 sha256；原始留存本体为 runtime SQLite 与 PNG 截图）",
+      "lineage": {
+        "original_retention": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3 + runtime/evidence/captures/**（不在 git 内，易失）",
+        "tier2_derivative": "docs/testing/release-0.2.14/paint-r2.json（public_allowlisted_summary，已去路径与本地 id）"
+      },
+      "task": {
+        "chat_instruction_retained": true,
+        "context": {
+          "room": "room-1789832662281",
+          "window": "无标题 - 画图",
+          "method": "产品正式ComputerUse，自主规划真实鼠标笔画，不导入图像"
+        },
+        "objective": {
+          "constraints": [
+            "仅操作这个画图窗口，不切换到其他应用",
+            "禁止运行脚本、绘图代码、导入或粘贴图片",
+            "使用正式接口提供的画布相对坐标进行拖拽绘制",
+            "每个动作后截图核验实际可见结果",
+            "若只完成部分图形必须如实报告，不得把观察窗口当作已绘制",
+            "颜色和完成质量不作要求，重点是真实画布笔画"
+          ],
+          "objective": "在“无标题 - 画图”空白画布中用鼠标/形状工具手绘一个粗略的海绵宝宝：先画方形身体轮廓，再画两只眼睛和嘴，最后画简单的四肢（手臂和腿），形成可辨认的粗略脸部与身体。",
+          "surface": "desktop",
+          "target": {
+            "application": "画图 (mspaint)",
+            "window": "无标题 - 画图"
+          }
+        },
+        "surface": "auto"
+      },
+      "pre_decision_observation": {
+        "status": "部分缺失",
+        "image_retained": false,
+        "image_identity": "sha256 + 宽度 x 高度（见 image_and_transform）",
+        "uia_snapshot": "仅引用字符串 uia_snapshot:<hwnd>:elements=<n>，元素树本体未留存",
+        "planner_prompt": "未留存——无任何表或导出保留发给规划器的提示词本体",
+        "model_raw_response": "规划响应体多数脱敏（computer_use_planner_diagnostics.response_json 为 {\"redacted_fields\":true}）",
+        "parsed_decision_retained": []
+      },
+      "available_feedback": {
+        "status": "无反馈块（样本早于 CU-03 反馈块实现）",
+        "feedback_block_present": false,
+        "post_hoc_verification_summary": [],
+        "note": "终态证据里的 visual_verification:generation=..:image_changed=..:criteria_met=.. 是事后验证摘要，不等于当时交给规划器的反馈内容；不得据此反推模型当时看到了反馈。"
+      },
+      "real_execution_state": {
+        "run_state": "blocked",
+        "terminal_status": "blocked",
+        "terminal_stage": "intent_guard",
+        "terminal_error_code": "invalid_tool_input",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "recorded_step_count": null,
+        "action_count": 0,
+        "replan_count": 0,
+        "no_progress_count": 0,
+        "reported_answer": "**执行结果：未成功绘制，如实报告。**\n\n- 状态：`blocked`（终态），错误码：`recursive_call_blocked`\n- 根因：上一次 `computer_use_perform` 调用因 `invalid computer-use request: missing field success_criteria` 被拒绝，本轮运行时已禁止通过其他工具路径继续调用 Computer Use。\n- 因此**没有任何实际画布笔画被执行**：画图窗口中未绘制方形身体、眼睛、嘴或四肢，也没有截图核验结果。我不会声称任何图形已画成。\n\n**原始任务的完成度：0%。**\n\n**下一步（需要由您触发重试）：** 由于 retry_owner=user，请您再发送一次请求（例如回复“重试”）。届时我将以正确参数结构重新调用 `computer_use_perform`：\n\n- surface=desktop，target.window=\"无标题 - 画图\"\n- objective：手绘粗略海绵宝宝——方形身体 → 两只眼睛 → 嘴 → 简单四肢\n- success_criteria（必填字段，上次缺失项）：当前画布出现方形身体和至少两处五官笔画，已能看到粗略脸部轮廓\n- constraints：仅操作该画图窗口；禁止脚本/绘图代码/导入或粘贴图片；使用接口提供的画布相对坐标拖拽绘制；每步动作后依据截图核验；只画部分时如实报告\n\n---\nContext usage: 0.2% (2406/1000000 input tokens; source=remote). Local estimate: 1354 tokens; local prompt budget: 1354/848976 tokens; history truncated: false.\nContext turn: 000000000000000118d6c352e500f1c8; Context snapshot: ctx-7320cce55ae517d2; history source: chat_room.messages; history loaded: 0; memory revision: mem-9b1448da0ed6f3b0",
+        "steps": [],
+        "structural_facts": {
+          "step_count": 0,
+          "distinct_action_fingerprints": 0,
+          "consecutive_repeated_fingerprints": [],
+          "consecutive_repeated_operations_ignoring_generation": [],
+          "fingerprint_identity_caveat": "action_fingerprint 含 observation_generation，重新观察后的同一操作会得到不同指纹；判「无效重复」不能直接用指纹相等，须按 (动作类型, 目标, 载荷) 忽略代次比较。",
+          "any_visible_progress": false,
+          "terminal_error_code": "invalid_tool_input",
+          "terminal_stage": "intent_guard",
+          "scorable_metrics": [
+            "连续同载荷操作的计数与可见进展（结构层描述，忽略观察代次）"
+          ],
+          "unscorable_metrics": [
+            "目标/操作选择错误（无语义标签、无决策前观察提示词）",
+            "无效重复副作用（无语义标签；结构层只能给计数，不能判定「是否无效」）",
+            "未核销的危险重放（无隔离/核销状态记录）"
+          ],
+          "repeat_metric_applicability": "不适用（无适用样本：该运行未产生任何动作步）"
+        }
+      },
+      "image_and_transform": {
+        "images": [],
+        "all_digests_match": false,
+        "image_count": 0,
+        "no_image_reason": "该次运行的审计导出未引用任何截图（观察阶段即失败或未进入动作）",
+        "coordinate_space": "画布相对 0..1（action_json 中的 points 已核验落在单位方格内）",
+        "window_rect": "缺失",
+        "dpi": "缺失",
+        "crop_or_scale_mapping": "缺失——audit notes 自述：缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画"
+      },
+      "allowed_behavior_labels": {
+        "present": false,
+        "note": "历史运行未打「目标选择正确 / 无效重复 / 危险重放」等标签；本语料只提供结构层可判定事实（动作类型、目标、动作指纹、可见进展、终态错误码）。"
+      },
+      "evidence_source": {
+        "runtime_db": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3（schema_version=20）",
+        "exports": [
+          "samples/paint-r2/paint-r2-after-capture.json",
+          "samples/paint-r2/paint-r2-after.png",
+          "samples/paint-r2/paint-r2-answer.txt",
+          "samples/paint-r2/paint-r2-before-capture.json",
+          "samples/paint-r2/paint-r2-before.png",
+          "samples/paint-r2/paint-r2-context.json",
+          "samples/paint-r2/paint-r2-events.json",
+          "samples/paint-r2/paint-r2-final-insights.json",
+          "samples/paint-r2/paint-r2-insights.json",
+          "samples/paint-r2/paint-r2-request.json",
+          "samples/paint-r2/paint-r2-run.json",
+          "samples/paint-r2/paint-r2-summary.json",
+          "samples/paint-r2/paint-r2.sse"
+        ]
+      },
+      "missing_items": [
+        "发给规划器的提示词本体（决策前观察的文本部分）",
+        "UIA 元素树本体（仅有 elements=<n> 计数）",
+        "窗口 rect / DPI / 裁剪与缩放映射",
+        "规划模型原始响应体（多数行已脱敏）",
+        "语义行为标签（目标选择是否正确、是否危险重放）"
+      ],
+      "files": [
+        {
+          "file": "samples/paint-r2/paint-r2-after-capture.json",
+          "bytes": 248,
+          "sha256": "6b5e4fc69140601793d4ec9c86244cd660996e15bb036c1e2deb05c227195f67"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-after.png",
+          "bytes": 200623,
+          "sha256": "68b5e111b96a9c20a7307d94ac4bc8aa1d57c650bc1649211bdbd92aea036dfa"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-answer.txt",
+          "bytes": 1622,
+          "sha256": "29f6e04fe90c5f8e91fe6f2c64a99fe6c4e5c2d620b39b7b54c2afa8b53a4139"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-before-capture.json",
+          "bytes": 248,
+          "sha256": "d57f241d4486f4abf8063063bfd5aa5f9ca7954eb1c8b4e6cd41cc31fb94b51b"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-before.png",
+          "bytes": 200634,
+          "sha256": "1fe3f4bf08d8d77fb6821b3c48befd461a0d67418cdc3aedda842eea6b70af03"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-context.json",
+          "bytes": 158,
+          "sha256": "3de18a04ce9318f9cbfa1734857726555f6540dc40811642bc4d7df3f297284a"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-events.json",
+          "bytes": 11645,
+          "sha256": "aac6ad44b2474231d26c4b69df053238ff74e8ffb06f657969e02f969971ff9f"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-final-insights.json",
+          "bytes": 636,
+          "sha256": "1df076e1a6b570424dd3342047946f34e731c9e2f39d82c6d4593bab0aac8e14"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-insights.json",
+          "bytes": 636,
+          "sha256": "1df076e1a6b570424dd3342047946f34e731c9e2f39d82c6d4593bab0aac8e14"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-request.json",
+          "bytes": 847,
+          "sha256": "ed53c4131b188eb60cb112ab441479b985ef844a42cac5f5e18c43cf313827aa"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-run.json",
+          "bytes": 532,
+          "sha256": "19f56c02af6cc44e15d4fd019e3447a333c7f7280636bad9958ad81fdd4c89cd"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2-summary.json",
+          "bytes": 2618,
+          "sha256": "dba147a28f04d99ecd998d931fffa854de309ecd3cf89f350f578db5082a5192"
+        },
+        {
+          "file": "samples/paint-r2/paint-r2.sse",
+          "bytes": 9422,
+          "sha256": "a069664901898fba47b0bc0298f3044c018be00b521081bc4f0db61a2c00312c"
+        }
+      ]
+    },
+    {
+      "sample_id": "paint-r3",
+      "category": "history_derived",
+      "category_detail": "历史原始运行留存的一级导出（保留本地 id、截图绝对路径与 sha256；原始留存本体为 runtime SQLite 与 PNG 截图）",
+      "lineage": {
+        "original_retention": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3 + runtime/evidence/captures/**（不在 git 内，易失）",
+        "tier2_derivative": "docs/testing/release-0.2.14/paint-r3.json（public_allowlisted_summary，已去路径与本地 id）"
+      },
+      "task": {
+        "chat_instruction_retained": true,
+        "context": {
+          "room": "room-1789832757453",
+          "window": "无标题 - 画图",
+          "method": "产品正式ComputerUse，自主规划真实鼠标笔画，不导入图像"
+        },
+        "objective": {
+          "constraints": [
+            "仅操作“无标题 - 画图”这一个窗口",
+            "禁止运行脚本、绘图代码、导入或粘贴图片",
+            "使用正式接口提供的画布相对路径拖拽进行绘制",
+            "每个动作后依据截图核验可见结果",
+            "若只完成部分绘制，必须如实报告，不得把观察窗口当作已绘制"
+          ],
+          "objective": "在名为“无标题 - 画图”的桌面画图应用空白画布上，用鼠标拖拽手绘一个非常粗略的海绵宝宝：先用矩形/直线工具画出方形身体轮廓，再画两只眼睛和一张嘴，并添加简单的四肢线条。颜色和质量不限，重点是实际在画布上留下笔画。",
+          "success_criteria": [
+            "当前画布上出现方形身体轮廓",
+            "画布上出现至少两处五官笔画（如两只眼睛或眼睛加嘴）",
+            "截图可核验已能看到粗略脸部轮廓"
+          ],
+          "surface": "desktop",
+          "target": {
+            "application": "画图 (mspaint)",
+            "window": "无标题 - 画图"
+          }
+        },
+        "surface": "desktop"
+      },
+      "pre_decision_observation": {
+        "status": "部分缺失",
+        "image_retained": true,
+        "image_identity": "sha256 + 宽度 x 高度（见 image_and_transform）",
+        "uia_snapshot": "仅引用字符串 uia_snapshot:<hwnd>:elements=<n>，元素树本体未留存",
+        "planner_prompt": "未留存——无任何表或导出保留发给规划器的提示词本体",
+        "model_raw_response": "规划响应体多数脱敏（computer_use_planner_diagnostics.response_json 为 {\"redacted_fields\":true}）",
+        "parsed_decision_retained": [
+          "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-951f959f29c11d9f\"}",
+          "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-951f959f29c11d9f\"}"
+        ]
+      },
+      "available_feedback": {
+        "status": "无反馈块（样本早于 CU-03 反馈块实现）",
+        "feedback_block_present": false,
+        "post_hoc_verification_summary": [],
+        "note": "终态证据里的 visual_verification:generation=..:image_changed=..:criteria_met=.. 是事后验证摘要，不等于当时交给规划器的反馈内容；不得据此反推模型当时看到了反馈。"
+      },
+      "real_execution_state": {
+        "run_state": "blocked",
+        "terminal_status": "blocked",
+        "terminal_stage": "supervisor",
+        "terminal_error_code": "no_progress",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "recorded_step_count": 2,
+        "action_count": 0,
+        "replan_count": 0,
+        "no_progress_count": 0,
+        "reported_answer": "执行结果：未成功绘制，如实报告。\n\n- **状态**：`blocked`（终态），错误码：`no_progress`（重复操作后画布无可见变化），不可重试。\n- **实际尝试**：Computer Use 在“无标题 - 画图”窗口上执行了 2 次动作（UIA 元素 `uia-951f959f29c11d9f` 的 SendInput 点击），但三轮视觉核验均显示 `image_changed=false`、成功标准 `0/3` 达成。\n- **结论**：画布上**没有出现任何笔画**——既无方形身体轮廓，也无五官笔画。截图证据（窗口 hwnd-25508，2560x1152）与操作前完全一致。\n- 按当前工具策略，此 `blocked` 结果为终态，我不会通过其他途径继续尝试操作该窗口。\n\n如果你希望继续，可以告诉我：例如允许我再次发起一次新的 `computer_use_perform` 尝试（在你明确授权的新回合中），或先手动确认画图窗口是否处于前台/可交互状态（例如窗口是否被对话框、全屏遮挡或处于只读状态），排除阻塞原因后再试。\n\n---\nContext usage: 0.3% (3827/1000000 input tokens; source=remote). Local estimate: 1436 tokens; local prompt budget: 1436/848976 tokens; history truncated: false.\nContext turn: 000000000000000418d6c3690bf2a194; Context snapshot: ctx-459737b0bbc0f108; history source: chat_room.messages; history loaded: 0; memory revision: mem-ac915260dbb16613",
+        "steps": [
+          {
+            "index": 0,
+            "observation_generation": 1,
+            "action_type": "click",
+            "normalized_target": "uia-951f959f29c11d9f",
+            "action_fingerprint": "c2ca9e5c00db712f",
+            "status": "completed_unverified",
+            "error_code": null,
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-951f959f29c11d9f\"}"
+          },
+          {
+            "index": 1,
+            "observation_generation": 2,
+            "action_type": "click",
+            "normalized_target": "uia-951f959f29c11d9f",
+            "action_fingerprint": "3ca13a695e4eac5c",
+            "status": "completed_unverified",
+            "error_code": null,
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-951f959f29c11d9f\"}"
+          }
+        ],
+        "structural_facts": {
+          "step_count": 2,
+          "distinct_action_fingerprints": 2,
+          "consecutive_repeated_fingerprints": [],
+          "consecutive_repeated_operations_ignoring_generation": [
+            {
+              "between_steps": [
+                0,
+                1
+              ],
+              "action_type": "click",
+              "target": "uia-951f959f29c11d9f",
+              "generations": [
+                1,
+                2
+              ],
+              "fingerprints_differ": true,
+              "second_step_visible_progress": false
+            }
+          ],
+          "fingerprint_identity_caveat": "action_fingerprint 含 observation_generation，重新观察后的同一操作会得到不同指纹；判「无效重复」不能直接用指纹相等，须按 (动作类型, 目标, 载荷) 忽略代次比较。",
+          "any_visible_progress": false,
+          "terminal_error_code": "no_progress",
+          "terminal_stage": "supervisor",
+          "scorable_metrics": [
+            "连续同载荷操作的计数与可见进展（结构层描述，忽略观察代次）"
+          ],
+          "unscorable_metrics": [
+            "目标/操作选择错误（无语义标签、无决策前观察提示词）",
+            "无效重复副作用（无语义标签；结构层只能给计数，不能判定「是否无效」）",
+            "未核销的危险重放（无隔离/核销状态记录）"
+          ],
+          "repeat_metric_applicability": "结构层有适用样本；语义层仍不可评分"
+        }
+      },
+      "image_and_transform": {
+        "images": [
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256_declared": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "sha256_actual": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+          }
+        ],
+        "all_digests_match": true,
+        "image_count": 1,
+        "no_image_reason": null,
+        "coordinate_space": "画布相对 0..1（action_json 中的 points 已核验落在单位方格内）",
+        "window_rect": "缺失",
+        "dpi": "缺失",
+        "crop_or_scale_mapping": "缺失——audit notes 自述：缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画"
+      },
+      "allowed_behavior_labels": {
+        "present": false,
+        "note": "历史运行未打「目标选择正确 / 无效重复 / 危险重放」等标签；本语料只提供结构层可判定事实（动作类型、目标、动作指纹、可见进展、终态错误码）。"
+      },
+      "evidence_source": {
+        "runtime_db": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3（schema_version=20）",
+        "exports": [
+          "samples/paint-r3/paint-r3-after-capture.json",
+          "samples/paint-r3/paint-r3-after.png",
+          "samples/paint-r3/paint-r3-answer.txt",
+          "samples/paint-r3/paint-r3-audit.json",
+          "samples/paint-r3/paint-r3-before-capture.json",
+          "samples/paint-r3/paint-r3-before.png",
+          "samples/paint-r3/paint-r3-context.json",
+          "samples/paint-r3/paint-r3-events.json",
+          "samples/paint-r3/paint-r3-final-insights.json",
+          "samples/paint-r3/paint-r3-insights.json",
+          "samples/paint-r3/paint-r3-live.json",
+          "samples/paint-r3/paint-r3-request.json",
+          "samples/paint-r3/paint-r3-run.json",
+          "samples/paint-r3/paint-r3-summary.json",
+          "samples/paint-r3/paint-r3.sse"
+        ]
+      },
+      "missing_items": [
+        "发给规划器的提示词本体（决策前观察的文本部分）",
+        "UIA 元素树本体（仅有 elements=<n> 计数）",
+        "窗口 rect / DPI / 裁剪与缩放映射",
+        "规划模型原始响应体（多数行已脱敏）",
+        "语义行为标签（目标选择是否正确、是否危险重放）"
+      ],
+      "files": [
+        {
+          "file": "samples/paint-r3/paint-r3-after-capture.json",
+          "bytes": 248,
+          "sha256": "1cf8c8454bd95a145fc6ce48fa20097246eb7b40be15b52d795675cda0d46c05"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-after.png",
+          "bytes": 148457,
+          "sha256": "146d508d9573c7682ad6d5cf74af377213c6bde93683fb95d8cc80897ca859b2"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-answer.txt",
+          "bytes": 1379,
+          "sha256": "33cf0c1109081ee155b9b85fed8ffd9e1ef159fcb9754f84ff689bdddabcf3f3"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-audit.json",
+          "bytes": 20160,
+          "sha256": "52401e6746a0c5f6a54e078d321db457ab88c1897e6e2c1246e31432ab0fa64e"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-before-capture.json",
+          "bytes": 248,
+          "sha256": "14ebebd346d910c973ef984c92182dc52d3d3b8ab093e5913ffb812e8759a11c"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-before.png",
+          "bytes": 179566,
+          "sha256": "d0cdefc109a38690608d73ebb112ae0359e44bd16285327cd7ee2322a20731fe"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-context.json",
+          "bytes": 158,
+          "sha256": "f5497622fde8ee1508cbb6850d0d7f32bda6dc0d1f6fd872ea01c9637a54ee52"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-events.json",
+          "bytes": 10396,
+          "sha256": "a59846f8e482952ecdde0e014209ae08756f96ae2477197d786f36cfa28717d9"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-final-insights.json",
+          "bytes": 638,
+          "sha256": "893d414119559eecd6540d453a019d0f64a9ba92fa7fa35de9c255994b3858e8"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-insights.json",
+          "bytes": 638,
+          "sha256": "893d414119559eecd6540d453a019d0f64a9ba92fa7fa35de9c255994b3858e8"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-live.json",
+          "bytes": 1712,
+          "sha256": "66f23ea02a0aa1883c62a455cf14ce48bbf7682fc828bbae188ce269a6ec05a7"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-request.json",
+          "bytes": 847,
+          "sha256": "6868688ac47e1fb1c2243eb5335ef378a43cc9f1105a92fe84b962ab3fb9115e"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-run.json",
+          "bytes": 532,
+          "sha256": "8d9fed4e7dc4adf3b749afdf3d5a8f7efbbdd856c73af69257882df1385c3463"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3-summary.json",
+          "bytes": 2369,
+          "sha256": "6d72039bf27740be2e43bc3d462e6d251248b768202cc434f629898afb6e325c"
+        },
+        {
+          "file": "samples/paint-r3/paint-r3.sse",
+          "bytes": 8554,
+          "sha256": "5ff9e4a98e2a72dbeb8d72429c179bbeb59bc3a3f6bf7d9deb9bddad45cb205f"
+        }
+      ]
+    },
+    {
+      "sample_id": "paint-r4",
+      "category": "history_derived",
+      "category_detail": "历史原始运行留存的一级导出（保留本地 id、截图绝对路径与 sha256；原始留存本体为 runtime SQLite 与 PNG 截图）",
+      "lineage": {
+        "original_retention": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3 + runtime/evidence/captures/**（不在 git 内，易失）",
+        "tier2_derivative": "docs/testing/release-0.2.14/paint-r4.json（public_allowlisted_summary，已去路径与本地 id）"
+      },
+      "task": {
+        "chat_instruction_retained": true,
+        "context": {
+          "room": "room-1789832908058",
+          "started_at_ms": 1789832908127,
+          "test": "模型自主生成画布相对路径，检查正式drag执行接口"
+        },
+        "objective": {
+          "constraints": [
+            "仅操作该画图窗口，不影响其他窗口",
+            "禁止脚本、导入文件或粘贴图片",
+            "不选择或重复点击画笔工具按钮（黑色画笔已选中）",
+            "规划器必须使用观察中的 canvas_target 引用和 drag 动作，依据截图自行生成 0 到 1 相对 points",
+            "如键盘提示遮挡可先按 Escape",
+            "每一步操作后须依据新截图验证画布变化，不得只观察或点按钮便声称绘制完成",
+            "线条粗略即可，不要求绘画质量"
+          ],
+          "objective": "在“无标题 - 画图”窗口的白色画布中央，用当前已选中的黑色画笔通过鼠标拖拽画出粗略海绵宝宝：先画一个方形身体轮廓，再在身体内画至少两处五官笔画（如眼睛、嘴巴）。",
+          "success_criteria": [
+            "白色画布上新增方形身体轮廓",
+            "身体内新增至少两处五官笔画",
+            "所有线条均通过画布上的鼠标拖拽绘制，未使用脚本、导入或粘贴图片"
+          ],
+          "surface": "desktop",
+          "target": {
+            "application": "画图 (mspaint)",
+            "window": "无标题 - 画图"
+          }
+        },
+        "surface": "desktop"
+      },
+      "pre_decision_observation": {
+        "status": "部分缺失",
+        "image_retained": true,
+        "image_identity": "sha256 + 宽度 x 高度（见 image_and_transform）",
+        "uia_snapshot": "仅引用字符串 uia_snapshot:<hwnd>:elements=<n>，元素树本体未留存",
+        "planner_prompt": "未留存——无任何表或导出保留发给规划器的提示词本体",
+        "model_raw_response": "规划响应体多数脱敏（computer_use_planner_diagnostics.response_json 为 {\"redacted_fields\":true}）",
+        "parsed_decision_retained": [
+          "{\"arguments\":{\"duration_ms\":800,\"points\":[[0.35,0.2],[0.4,0.2],[0.45,0.2],[0.5,0.2],[0.55,0.2],[0.6,0.2],[0.65,0.2]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}",
+          "{\"arguments\":{\"duration_ms\":2000,\"points\":[[0.35,0.15],[0.65,0.15],[0.65,0.5],[0.35,0.5],[0.35,0.15]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}"
+        ]
+      },
+      "available_feedback": {
+        "status": "无反馈块（样本早于 CU-03 反馈块实现）",
+        "feedback_block_present": false,
+        "post_hoc_verification_summary": [],
+        "note": "终态证据里的 visual_verification:generation=..:image_changed=..:criteria_met=.. 是事后验证摘要，不等于当时交给规划器的反馈内容；不得据此反推模型当时看到了反馈。"
+      },
+      "real_execution_state": {
+        "run_state": "blocked",
+        "terminal_status": "blocked",
+        "terminal_stage": "supervisor",
+        "terminal_error_code": "no_progress",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "recorded_step_count": 2,
+        "action_count": 0,
+        "replan_count": 0,
+        "no_progress_count": 0,
+        "reported_answer": "**执行结果：被阻止（blocked），任务未完成。** 如实报告如下：\n\n- **状态**：`blocked`，阶段：`supervisor`\n- **错误码**：`no_progress`（\"no visible progress after repeated actions\"），`retryable: false` —— 按当前策略这是本轮 Computer Use 的终态，我不会通过其他工具路径重试。\n\n**运行时实际做了什么（依据证据）：**\n1. 捕获了画图窗口截图并做了 UIA 快照；\n2. 第 1 次原生拖拽笔画（native_stroke，7 个 points，800ms，已释放）→ 截图对比 `image_changed=false`，验证 criteria_met=0/3；\n3. 第 2 次拖拽（5 points，2000ms）→ `image_changed=true`，但视觉验证 criteria_met=0/3（画面有变化，但未识别出符合\"方形身体轮廓\"的笔画）；\n4. 第 3 次拖拽 → 同样 `image_changed=true`，criteria_met=0/3；\n5. 监督器因连续两次无有效进展打开熔断（`circuit_open: true`），中止任务。\n\n**结论**：画布上可能留下了少量不满足验收标准的线条痕迹，但**方形身体轮廓和两处五官笔画均未通过验证（criteria_met 0/3）**，不能声称绘制成功。\n\n**建议的下一步（需你确认后我再发起新的 Computer Use 请求）**：可以重新调用一次 `computer_use_perform`，仍限定该画图窗口、用拖拽动作分多次笔画（每条边一笔、每处五官一笔，points 适当放慢/加密），并在每次拖拽后立即以截图比对验证；如当前乱线影响判断，可先用橡皮擦或 Ctrl+Z 清理画布再重画。是否要我按此方案重试？\n\n---\nContext usage: 0.4% (4687/1000000 input tokens; source=remote). Local estimate: 1475 tokens; local prompt budget: 1475/848976 tokens; history truncated: false.\nContext turn: 000000000000000d18d6c38c0ac69474; Context snapshot: ctx-bbcc4849e8345cbe; history source: chat_room.messages; history loaded: 0; memory revision: mem-70c197977e163226",
+        "steps": [
+          {
+            "index": 0,
+            "observation_generation": 1,
+            "action_type": "drag",
+            "normalized_target": "window-canvas:13f0682",
+            "action_fingerprint": "97a8ec41a7882834",
+            "status": "completed_unverified",
+            "error_code": null,
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{\"duration_ms\":800,\"points\":[[0.35,0.2],[0.4,0.2],[0.45,0.2],[0.5,0.2],[0.55,0.2],[0.6,0.2],[0.65,0.2]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}"
+          },
+          {
+            "index": 1,
+            "observation_generation": 2,
+            "action_type": "drag",
+            "normalized_target": "window-canvas:13f0682",
+            "action_fingerprint": "0f88c558a4539ea0",
+            "status": "completed_unverified",
+            "error_code": null,
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{\"duration_ms\":2000,\"points\":[[0.35,0.15],[0.65,0.15],[0.65,0.5],[0.35,0.5],[0.35,0.15]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}"
+          }
+        ],
+        "structural_facts": {
+          "step_count": 2,
+          "distinct_action_fingerprints": 2,
+          "consecutive_repeated_fingerprints": [],
+          "consecutive_repeated_operations_ignoring_generation": [],
+          "fingerprint_identity_caveat": "action_fingerprint 含 observation_generation，重新观察后的同一操作会得到不同指纹；判「无效重复」不能直接用指纹相等，须按 (动作类型, 目标, 载荷) 忽略代次比较。",
+          "any_visible_progress": false,
+          "terminal_error_code": "no_progress",
+          "terminal_stage": "supervisor",
+          "scorable_metrics": [
+            "连续同载荷操作的计数与可见进展（结构层描述，忽略观察代次）"
+          ],
+          "unscorable_metrics": [
+            "目标/操作选择错误（无语义标签、无决策前观察提示词）",
+            "无效重复副作用（无语义标签；结构层只能给计数，不能判定「是否无效」）",
+            "未核销的危险重放（无隔离/核销状态记录）"
+          ],
+          "repeat_metric_applicability": "结构层有适用样本；语义层仍不可评分"
+        }
+      },
+      "image_and_transform": {
+        "images": [
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256_declared": "8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d",
+            "sha256_actual": "8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-8b05f056867f9577b6e8a34dbb9940d11535064c29da57617550bd9855239a5d.png"
+          },
+          {
+            "reference": "evidence-006",
+            "kind": "screenshot",
+            "sha256_declared": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5",
+            "sha256_actual": "73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-73009e4257243de01b0b2c8745f5b5e44ed736da3358a73799e723ac09db66c5.png"
+          },
+          {
+            "reference": "evidence-013",
+            "kind": "screenshot",
+            "sha256_declared": "6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0",
+            "sha256_actual": "6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-6724fbf342de570ba59487315de4fd7df35e7fc0b182c1c048cb304ac7449eb0.png"
+          }
+        ],
+        "all_digests_match": true,
+        "image_count": 3,
+        "no_image_reason": null,
+        "coordinate_space": "画布相对 0..1（action_json 中的 points 已核验落在单位方格内）",
+        "window_rect": "缺失",
+        "dpi": "缺失",
+        "crop_or_scale_mapping": "缺失——audit notes 自述：缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画"
+      },
+      "allowed_behavior_labels": {
+        "present": false,
+        "note": "历史运行未打「目标选择正确 / 无效重复 / 危险重放」等标签；本语料只提供结构层可判定事实（动作类型、目标、动作指纹、可见进展、终态错误码）。"
+      },
+      "evidence_source": {
+        "runtime_db": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3（schema_version=20）",
+        "exports": [
+          "samples/paint-r4/paint-r4-answer.txt",
+          "samples/paint-r4/paint-r4-audit.json",
+          "samples/paint-r4/paint-r4-context.json",
+          "samples/paint-r4/paint-r4-events.json",
+          "samples/paint-r4/paint-r4-insights.json",
+          "samples/paint-r4/paint-r4-live.json",
+          "samples/paint-r4/paint-r4-live2.json",
+          "samples/paint-r4/paint-r4-request.json",
+          "samples/paint-r4/paint-r4-run.json",
+          "samples/paint-r4/paint-r4-summary.json",
+          "samples/paint-r4/paint-r4.sse"
+        ]
+      },
+      "missing_items": [
+        "发给规划器的提示词本体（决策前观察的文本部分）",
+        "UIA 元素树本体（仅有 elements=<n> 计数）",
+        "窗口 rect / DPI / 裁剪与缩放映射",
+        "规划模型原始响应体（多数行已脱敏）",
+        "语义行为标签（目标选择是否正确、是否危险重放）"
+      ],
+      "files": [
+        {
+          "file": "samples/paint-r4/paint-r4-answer.txt",
+          "bytes": 1930,
+          "sha256": "be29aa91e14a326421a4dcf600b6ca0447d600042374909a50f4519faf16f1f7"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-audit.json",
+          "bytes": 27473,
+          "sha256": "881f9aeb6669ebb250bf881871bf67a860b2eb454c00d789252d0d8691ad626a"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-context.json",
+          "bytes": 149,
+          "sha256": "7ffef5c42e10493abefaec0ccca4adfa40307784c01c6c54195eb696c599165d"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-events.json",
+          "bytes": 11912,
+          "sha256": "6ec4bae31508637ca015775bfa1b5edf2bb25b6763ce4d2edf6fc0058d0d367c"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-insights.json",
+          "bytes": 639,
+          "sha256": "57fcdc4a5dd760316388574a402b4a332487b10130795ec7e733b187a7ded873"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-live.json",
+          "bytes": 9528,
+          "sha256": "059821255f318e85d39274d6a7aec418f9e12f1f764ae1c2db70873cb7f159b8"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-live2.json",
+          "bytes": 17351,
+          "sha256": "d4d2de5de79a70bb316013ca641a43b72f107e94706f54baec964f461ac6e2c3"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-request.json",
+          "bytes": 1026,
+          "sha256": "62f825d5c3bae219865ec3fba104ec624911d01bf240f687c9da9d9b7d2ec0de"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-run.json",
+          "bytes": 532,
+          "sha256": "83c29273d0434f51001f4e47eb88aae23656b67be6143f8f696f0f8f2d95f62e"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4-summary.json",
+          "bytes": 2932,
+          "sha256": "57cd2189dfed59fd89f692d7226eb2427f2352a43f0df0112e7dc6f2085b588f"
+        },
+        {
+          "file": "samples/paint-r4/paint-r4.sse",
+          "bytes": 9996,
+          "sha256": "d10edfa5a01549439caece612cf24e9337204fa6577aaf5154521ba75235d2d7"
+        }
+      ]
+    },
+    {
+      "sample_id": "paint-r5",
+      "category": "history_derived",
+      "category_detail": "历史原始运行留存的一级导出（保留本地 id、截图绝对路径与 sha256；原始留存本体为 runtime SQLite 与 PNG 截图）",
+      "lineage": {
+        "original_retention": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3 + runtime/evidence/captures/**（不在 git 内，易失）",
+        "tier2_derivative": "docs/testing/release-0.2.14/paint-r5.json（public_allowlisted_summary，已去路径与本地 id）"
+      },
+      "task": {
+        "chat_instruction_retained": true,
+        "context": {
+          "room": "room-1789833399318",
+          "started_at_ms": 1789833399375,
+          "test": "模型自主生成画布相对路径，检查正式drag执行接口"
+        },
+        "objective": {
+          "constraints": [
+            "仅操作该画图窗口，不触碰其他窗口",
+            "禁止使用脚本、导入图片或粘贴图片，只用鼠标拖拽绘制",
+            "不选择或重复点击已选中的画笔按钮",
+            "使用观察到的canvas_target引用执行drag动作，根据截图自行生成0到1相对points",
+            "如键盘提示遮挡可先按Escape",
+            "每一步操作后依据新截图验证线条确已绘制，不得只观察界面或点按钮就声称完成",
+            "只需粗略线条，不要求绘画质量"
+          ],
+          "objective": "在“无标题 - 画图”窗口的白色画布中央，用鼠标拖拽路径画一个粗略的海绵宝宝：先拖拽画出方形身体轮廓，再画至少两处五官笔画（如眼睛、嘴）。画笔已预先选中为黑色，无需重新选择工具。",
+          "success_criteria": [
+            "白色画布中央新增一个方形身体轮廓线条",
+            "方形身体内部新增至少两处五官笔画（眼睛/嘴等）",
+            "新增线条为黑色且仅在画布区域内"
+          ],
+          "surface": "desktop",
+          "target": {
+            "application": "画图 (mspaint)",
+            "window": "无标题 - 画图"
+          }
+        },
+        "surface": "desktop"
+      },
+      "pre_decision_observation": {
+        "status": "部分缺失",
+        "image_retained": true,
+        "image_identity": "sha256 + 宽度 x 高度（见 image_and_transform）",
+        "uia_snapshot": "仅引用字符串 uia_snapshot:<hwnd>:elements=<n>，元素树本体未留存",
+        "planner_prompt": "未留存——无任何表或导出保留发给规划器的提示词本体",
+        "model_raw_response": "规划响应体多数脱敏（computer_use_planner_diagnostics.response_json 为 {\"redacted_fields\":true}）",
+        "parsed_decision_retained": [
+          "{\"arguments\":{\"duration_ms\":800,\"points\":[[0.19,0.14],[0.25,0.135],[0.31,0.14],[0.37,0.138],[0.43,0.14],[0.432,0.2],[0.43,0.27],[0.432,0.34],[0.43,0.44],[0.37,0.442],[0.31,0.44],[0.25,0.443],[0.19,0.44],[0.188,0.37],[0.19,0.3],[0.188,0.22],[0.19,0.14]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}",
+          "{\"arguments\":{\"duration_ms\":1500,\"points\":[[0.35,0.22],[0.5,0.22],[0.65,0.22],[0.65,0.42],[0.65,0.62],[0.5,0.62],[0.35,0.62],[0.35,0.42],[0.35,0.22]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}"
+        ]
+      },
+      "available_feedback": {
+        "status": "无反馈块（样本早于 CU-03 反馈块实现）",
+        "feedback_block_present": false,
+        "post_hoc_verification_summary": [],
+        "note": "终态证据里的 visual_verification:generation=..:image_changed=..:criteria_met=.. 是事后验证摘要，不等于当时交给规划器的反馈内容；不得据此反推模型当时看到了反馈。"
+      },
+      "real_execution_state": {
+        "run_state": "failed",
+        "terminal_status": "failed",
+        "terminal_stage": "planning",
+        "terminal_error_code": "planner_backend_unavailable",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "recorded_step_count": 2,
+        "action_count": 0,
+        "replan_count": 0,
+        "no_progress_count": 0,
+        "reported_answer": "**执行结果：失败（failed），任务未完成。** 如实报告如下：\n\n- **状态**：`failed`，阶段：`planning`\n- **错误码**：`planner_backend_unavailable`（\"planner timed out after 20 seconds\"），系统标记 `retryable: true`（由系统/下一轮决定重试，本轮按策略不再通过其他工具路径重试）\n\n**运行时实际做了什么（来自证据记录）**：\n1. 两次在画布窗口（hwnd-13f0682，\"无标题 - 画图\"）上执行了原生鼠标拖拽笔画：\n   - 第 1 笔：17 个路径点、约 800ms、已释放 → 之后截图确认 `image_changed: true`，画布上确实新增了线条；\n   - 第 2 笔：9 个路径点、约 1500ms、已释放 → 但前后截图哈希相同（`image_changed: false`），未产生新可见线条。\n2. 三次视觉验证的结果均为 **criteria_met = 0/3**——即自动验证器未能确认\"方形身体轮廓 + 至少两处五官笔画\"这三项成功标准。\n\n**结论**：\n- 画布上有过一次可验证的像素变化（第一笔拖拽留下了线条），但**不能声称海绵宝宝绘制成功**：方形身体轮廓与两处五官笔画均未通过逐项截图验证（0/3）。\n- 本次运行在规划器超时后终止，共执行 2 个动作、2 次无进展判定。\n\n**建议**：由于错误为规划器后端超时且可重试，您可以在下一轮重新发起同样的 `computer_use_perform` 请求；若想提高成功率，可以把目标拆得更小（例如先只要求\"画一个方形轮廓\"一项标准，验证通过后再单独请求画五官），减少单次规划负担。\n\n---\nContext usage: 0.4% (4712/1000000 input tokens; source=remote). Local estimate: 1558 tokens; local prompt budget: 1558/848976 tokens; history truncated: false.\nContext turn: 000000000000000118d6c3fe6b313630; Context snapshot: ctx-d4517261677cea7e; history source: chat_room.messages; history loaded: 0; memory revision: mem-0fa2d2df97048a4a",
+        "steps": [
+          {
+            "index": 0,
+            "observation_generation": 1,
+            "action_type": "drag",
+            "normalized_target": "window-canvas:13f0682",
+            "action_fingerprint": "8aad9d6948a00492",
+            "status": "completed_unverified",
+            "error_code": null,
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{\"duration_ms\":800,\"points\":[[0.19,0.14],[0.25,0.135],[0.31,0.14],[0.37,0.138],[0.43,0.14],[0.432,0.2],[0.43,0.27],[0.432,0.34],[0.43,0.44],[0.37,0.442],[0.31,0.44],[0.25,0.443],[0.19,0.44],[0.188,0.37],[0.19,0.3],[0.188,0.22],[0.19,0.14]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}"
+          },
+          {
+            "index": 1,
+            "observation_generation": 2,
+            "action_type": "drag",
+            "normalized_target": "window-canvas:13f0682",
+            "action_fingerprint": "0caefcfded5993e6",
+            "status": "completed_unverified",
+            "error_code": null,
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{\"duration_ms\":1500,\"points\":[[0.35,0.22],[0.5,0.22],[0.65,0.22],[0.65,0.42],[0.65,0.62],[0.5,0.62],[0.35,0.62],[0.35,0.42],[0.35,0.22]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}"
+          }
+        ],
+        "structural_facts": {
+          "step_count": 2,
+          "distinct_action_fingerprints": 2,
+          "consecutive_repeated_fingerprints": [],
+          "consecutive_repeated_operations_ignoring_generation": [],
+          "fingerprint_identity_caveat": "action_fingerprint 含 observation_generation，重新观察后的同一操作会得到不同指纹；判「无效重复」不能直接用指纹相等，须按 (动作类型, 目标, 载荷) 忽略代次比较。",
+          "any_visible_progress": false,
+          "terminal_error_code": "planner_backend_unavailable",
+          "terminal_stage": "planning",
+          "scorable_metrics": [
+            "连续同载荷操作的计数与可见进展（结构层描述，忽略观察代次）"
+          ],
+          "unscorable_metrics": [
+            "目标/操作选择错误（无语义标签、无决策前观察提示词）",
+            "无效重复副作用（无语义标签；结构层只能给计数，不能判定「是否无效」）",
+            "未核销的危险重放（无隔离/核销状态记录）"
+          ],
+          "repeat_metric_applicability": "结构层有适用样本；语义层仍不可评分"
+        }
+      },
+      "image_and_transform": {
+        "images": [
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256_declared": "e2a1f576994ab481ca352406fd1f346b74cd14fcd6da50401447102e2f572084",
+            "sha256_actual": "e2a1f576994ab481ca352406fd1f346b74cd14fcd6da50401447102e2f572084",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-e2a1f576994ab481ca352406fd1f346b74cd14fcd6da50401447102e2f572084.png"
+          },
+          {
+            "reference": "evidence-006",
+            "kind": "screenshot",
+            "sha256_declared": "4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65",
+            "sha256_actual": "4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65.png"
+          }
+        ],
+        "all_digests_match": true,
+        "image_count": 2,
+        "no_image_reason": null,
+        "coordinate_space": "画布相对 0..1（action_json 中的 points 已核验落在单位方格内）",
+        "window_rect": "缺失",
+        "dpi": "缺失",
+        "crop_or_scale_mapping": "缺失——audit notes 自述：缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画"
+      },
+      "allowed_behavior_labels": {
+        "present": false,
+        "note": "历史运行未打「目标选择正确 / 无效重复 / 危险重放」等标签；本语料只提供结构层可判定事实（动作类型、目标、动作指纹、可见进展、终态错误码）。"
+      },
+      "evidence_source": {
+        "runtime_db": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3（schema_version=20）",
+        "exports": [
+          "samples/paint-r5/paint-r5-answer.txt",
+          "samples/paint-r5/paint-r5-audit.json",
+          "samples/paint-r5/paint-r5-context.json",
+          "samples/paint-r5/paint-r5-events.json",
+          "samples/paint-r5/paint-r5-insights.json",
+          "samples/paint-r5/paint-r5-request.json",
+          "samples/paint-r5/paint-r5-run.json",
+          "samples/paint-r5/paint-r5-summary.json",
+          "samples/paint-r5/paint-r5.sse"
+        ]
+      },
+      "missing_items": [
+        "发给规划器的提示词本体（决策前观察的文本部分）",
+        "UIA 元素树本体（仅有 elements=<n> 计数）",
+        "窗口 rect / DPI / 裁剪与缩放映射",
+        "规划模型原始响应体（多数行已脱敏）",
+        "语义行为标签（目标选择是否正确、是否危险重放）"
+      ],
+      "files": [
+        {
+          "file": "samples/paint-r5/paint-r5-answer.txt",
+          "bytes": 1948,
+          "sha256": "e4bfd0c980e2c9a1dfe55541aa4a2a70368e84ae1918ac0ed62cbd41ed764f98"
+        },
+        {
+          "file": "samples/paint-r5/paint-r5-audit.json",
+          "bytes": 26418,
+          "sha256": "4a9ace24797fb59af981470eecac5332018c2904765bba7d7fc24371461f4d03"
+        },
+        {
+          "file": "samples/paint-r5/paint-r5-context.json",
+          "bytes": 149,
+          "sha256": "fd5f065581fd90eebea108264fab6ca228a2cbba6e13448bbe394ed9591e3fb8"
+        },
+        {
+          "file": "samples/paint-r5/paint-r5-events.json",
+          "bytes": 12056,
+          "sha256": "092217d708f910f28a0d270080fbfa12e901d145e1a77f1067ebd0805855abdf"
+        },
+        {
+          "file": "samples/paint-r5/paint-r5-insights.json",
+          "bytes": 638,
+          "sha256": "93a5568be28c728080ed3462a9668c706112e46b0cc960635ba0cdd96ec8426b"
+        },
+        {
+          "file": "samples/paint-r5/paint-r5-request.json",
+          "bytes": 1026,
+          "sha256": "c4d8edf636642d8df7ad8a1890276fd6e4f8cb2cd733b2ba4c88347a438553dd"
+        },
+        {
+          "file": "samples/paint-r5/paint-r5-run.json",
+          "bytes": 532,
+          "sha256": "ec40c497e3f5a9f307f99f3fb29b1a514faadaa1e6dd9add1ea5eea4e2e8f240"
+        },
+        {
+          "file": "samples/paint-r5/paint-r5-summary.json",
+          "bytes": 2954,
+          "sha256": "dce0f872f2486d52a79ec017d4cbbebd0f3db334b72146318037aacc99fb729e"
+        },
+        {
+          "file": "samples/paint-r5/paint-r5.sse",
+          "bytes": 10151,
+          "sha256": "00bae235605d32e5b909dbc0536332960a4b1294530230b5a9c9f91f3bb3e73b"
+        }
+      ]
+    },
+    {
+      "sample_id": "paint-r6",
+      "category": "history_derived",
+      "category_detail": "历史原始运行留存的一级导出（保留本地 id、截图绝对路径与 sha256；原始留存本体为 runtime SQLite 与 PNG 截图）",
+      "lineage": {
+        "original_retention": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3 + runtime/evidence/captures/**（不在 git 内，易失）",
+        "tier2_derivative": "docs/testing/release-0.2.14/paint-r6.json（public_allowlisted_summary，已去路径与本地 id）"
+      },
+      "task": {
+        "chat_instruction_retained": true,
+        "context": {
+          "room": "room-1789833563688",
+          "window": "无标题 - 画图",
+          "method": "产品正式ComputerUse，自主规划真实鼠标笔画，不导入图像"
+        },
+        "objective": {
+          "constraints": [
+            "仅操作标题为\"无标题 - 画图\"的这个画图窗口，不触碰其他应用或窗口",
+            "禁止运行脚本、绘图代码、终端命令",
+            "禁止导入、粘贴或下载任何图片，只能用画布工具绘制",
+            "使用正式接口提供的画布相对坐标进行鼠标拖拽绘制（mousedown→mousemove→mouseup 笔画）",
+            "每一类笔画动作后重新截图核验实际画面",
+            "若仅画出部分内容，必须如实报告已完成与未完成的笔画，不得把观察/准备动作声称为已绘制",
+            "不得执行保存、关闭、删除等超出绘制范围的操作"
+          ],
+          "objective": "在 Windows 画图程序（窗口标题\"无标题 - 画图\"）的空白画布上，用鼠标手绘一个非常粗略的海绵宝宝：先用矩形/线条工具或自由手绘拖出一个方形身体轮廓，再在身体内画出两只眼睛和一条嘴巴，最后加上简单的四肢（两条手臂、两条腿）。颜色和完成质量不作要求，重点是实际执行画布上的拖拽笔画。",
+          "success_criteria": [
+            "最终截图中当前画布上出现一个方形身体轮廓",
+            "身体内至少有两处五官笔画（两只眼睛或眼睛+嘴巴）",
+            "能看到粗略的脸部轮廓，若只完成部分需如实报告已完成与未完成的笔画"
+          ],
+          "surface": "desktop",
+          "target": {
+            "application": "画图 (mshotpaint/mspaint)",
+            "window": "无标题 - 画图"
+          }
+        },
+        "surface": "desktop"
+      },
+      "pre_decision_observation": {
+        "status": "部分缺失",
+        "image_retained": true,
+        "image_identity": "sha256 + 宽度 x 高度（见 image_and_transform）",
+        "uia_snapshot": "仅引用字符串 uia_snapshot:<hwnd>:elements=<n>，元素树本体未留存",
+        "planner_prompt": "未留存——无任何表或导出保留发给规划器的提示词本体",
+        "model_raw_response": "规划响应体多数脱敏（computer_use_planner_diagnostics.response_json 为 {\"redacted_fields\":true}）",
+        "parsed_decision_retained": [
+          "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-efc862a773ef6b53\"}",
+          "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-9826640832da9fc5\"}",
+          "{\"arguments\":{\"duration_ms\":800,\"points\":[[0.31,0.31],[0.59,0.82]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}"
+        ]
+      },
+      "available_feedback": {
+        "status": "无反馈块（样本早于 CU-03 反馈块实现）",
+        "feedback_block_present": false,
+        "post_hoc_verification_summary": [],
+        "note": "终态证据里的 visual_verification:generation=..:image_changed=..:criteria_met=.. 是事后验证摘要，不等于当时交给规划器的反馈内容；不得据此反推模型当时看到了反馈。"
+      },
+      "real_execution_state": {
+        "run_state": "failed",
+        "terminal_status": "failed",
+        "terminal_stage": "execution",
+        "terminal_error_code": "stale_observation",
+        "goal_achieved": false,
+        "attempts": 3,
+        "steps_completed": 1,
+        "recorded_step_count": 3,
+        "action_count": 0,
+        "replan_count": 0,
+        "no_progress_count": 0,
+        "reported_answer": "已执行 1 步工具操作完成本轮任务，但模型未返回最终文字总结。已完成的工具结果摘要：\n工具 `computer-use-task-controller` 失败：截图画布已变化，需重新观察后规划笔画\n\n---\nContext usage: 0.2% (2246/1000000 input tokens; source=remote). Local estimate: 1605 tokens; local prompt budget: 1605/848976 tokens; history truncated: false.\nContext turn: 000000000000000a18d6c424c533e620; Context snapshot: ctx-3ec3e55cdd712b00; history source: chat_room.messages; history loaded: 0; memory revision: mem-f3af76e2f6a1b68c",
+        "steps": [
+          {
+            "index": 0,
+            "observation_generation": 1,
+            "action_type": "click",
+            "normalized_target": "uia-efc862a773ef6b53",
+            "action_fingerprint": "b1df64a71b16a835",
+            "status": "failed",
+            "error_code": "stale_observation",
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-efc862a773ef6b53\"}"
+          },
+          {
+            "index": 1,
+            "observation_generation": 2,
+            "action_type": "click",
+            "normalized_target": "uia-9826640832da9fc5",
+            "action_fingerprint": "a30e14087d2e6627",
+            "status": "completed_unverified",
+            "error_code": null,
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-9826640832da9fc5\"}"
+          },
+          {
+            "index": 2,
+            "observation_generation": 3,
+            "action_type": "drag",
+            "normalized_target": "window-canvas:13f0682",
+            "action_fingerprint": "e681c24fe88e5e29",
+            "status": "failed",
+            "error_code": "stale_observation",
+            "visible_progress": false,
+            "action_json": "{\"arguments\":{\"duration_ms\":800,\"points\":[[0.31,0.31],[0.59,0.82]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:13f0682\"}"
+          }
+        ],
+        "structural_facts": {
+          "step_count": 3,
+          "distinct_action_fingerprints": 3,
+          "consecutive_repeated_fingerprints": [],
+          "consecutive_repeated_operations_ignoring_generation": [],
+          "fingerprint_identity_caveat": "action_fingerprint 含 observation_generation，重新观察后的同一操作会得到不同指纹；判「无效重复」不能直接用指纹相等，须按 (动作类型, 目标, 载荷) 忽略代次比较。",
+          "any_visible_progress": false,
+          "terminal_error_code": "stale_observation",
+          "terminal_stage": "execution",
+          "scorable_metrics": [
+            "连续同载荷操作的计数与可见进展（结构层描述，忽略观察代次）"
+          ],
+          "unscorable_metrics": [
+            "目标/操作选择错误（无语义标签、无决策前观察提示词）",
+            "无效重复副作用（无语义标签；结构层只能给计数，不能判定「是否无效」）",
+            "未核销的危险重放（无隔离/核销状态记录）"
+          ],
+          "repeat_metric_applicability": "结构层有适用样本；语义层仍不可评分"
+        }
+      },
+      "image_and_transform": {
+        "images": [
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256_declared": "4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65",
+            "sha256_actual": "4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-4f1d69feffe0615b162ee9f9ff3ef128056bcb21911a196fe9c238adb2f4af65.png"
+          },
+          {
+            "reference": "evidence-004",
+            "kind": "screenshot",
+            "sha256_declared": "d1e284a07e190f6aeda50702ecf75a505671c6a5af2bf619372554ed3a4f48c6",
+            "sha256_actual": "d1e284a07e190f6aeda50702ecf75a505671c6a5af2bf619372554ed3a4f48c6",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-d1e284a07e190f6aeda50702ecf75a505671c6a5af2bf619372554ed3a4f48c6.png"
+          },
+          {
+            "reference": "evidence-006",
+            "kind": "screenshot",
+            "sha256_declared": "4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1",
+            "sha256_actual": "4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1",
+            "digest_matches": true,
+            "width": 2560,
+            "height": 1152,
+            "source_filename": "window-25508-4e6646f87f48b3f72744e130bf4736cec86b256fa65eb4ae74442706913cdda1.png"
+          }
+        ],
+        "all_digests_match": true,
+        "image_count": 3,
+        "no_image_reason": null,
+        "coordinate_space": "画布相对 0..1（action_json 中的 points 已核验落在单位方格内）",
+        "window_rect": "缺失",
+        "dpi": "缺失",
+        "crop_or_scale_mapping": "缺失——audit notes 自述：缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画"
+      },
+      "allowed_behavior_labels": {
+        "present": false,
+        "note": "历史运行未打「目标选择正确 / 无效重复 / 危险重放」等标签；本语料只提供结构层可判定事实（动作类型、目标、动作指纹、可见进展、终态错误码）。"
+      },
+      "evidence_source": {
+        "runtime_db": "tmp/2026-09-19-agent-fixes/runtime/.coolzhu/web-sessions.sqlite3（schema_version=20）",
+        "exports": [
+          "samples/paint-r6/paint-r6-after-capture.json",
+          "samples/paint-r6/paint-r6-after.png",
+          "samples/paint-r6/paint-r6-answer.txt",
+          "samples/paint-r6/paint-r6-audit.json",
+          "samples/paint-r6/paint-r6-before-capture.json",
+          "samples/paint-r6/paint-r6-before.png",
+          "samples/paint-r6/paint-r6-context.json",
+          "samples/paint-r6/paint-r6-events.json",
+          "samples/paint-r6/paint-r6-final-insights.json",
+          "samples/paint-r6/paint-r6-insights.json",
+          "samples/paint-r6/paint-r6-request.json",
+          "samples/paint-r6/paint-r6-run.json",
+          "samples/paint-r6/paint-r6-summary.json",
+          "samples/paint-r6/paint-r6.sse"
+        ]
+      },
+      "missing_items": [
+        "发给规划器的提示词本体（决策前观察的文本部分）",
+        "UIA 元素树本体（仅有 elements=<n> 计数）",
+        "窗口 rect / DPI / 裁剪与缩放映射",
+        "规划模型原始响应体（多数行已脱敏）",
+        "语义行为标签（目标选择是否正确、是否危险重放）"
+      ],
+      "files": [
+        {
+          "file": "samples/paint-r6/paint-r6-after-capture.json",
+          "bytes": 248,
+          "sha256": "737b92c957921a131db9fe0d58b4b477f96616ac422917ab8f66c0cc8705b157"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-after.png",
+          "bytes": 120736,
+          "sha256": "be647e425a6fe6d81de16010b537f6532b2fec1d5193f9788057e879166cc70a"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-answer.txt",
+          "bytes": 568,
+          "sha256": "f657bed804849cdc2e9f039652ff9908f29191df3a6c2997a8f0dd32fc20c16b"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-audit.json",
+          "bytes": 19948,
+          "sha256": "1eb23c2ca215be0a5355b5627cec0bee67e9671fd023d7c1a2a743a3c3f0097a"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-before-capture.json",
+          "bytes": 248,
+          "sha256": "e7d302f6a686455b97fbcb9a72949f063367e343235120c7efc594cabecc15e8"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-before.png",
+          "bytes": 120865,
+          "sha256": "a102ae9767ffd21efb2c01f731433e48291ea2b6d4e9e325eff281fbb1b4b780"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-context.json",
+          "bytes": 158,
+          "sha256": "1e4cdaddc44af36ca2f2a364beb0912f2d0d805a1920ff54d16b3f1b3491a735"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-events.json",
+          "bytes": 10306,
+          "sha256": "3743319fcddf70489feb90dafb9554a2728d11fe2eba89b775ea6af553d949ac"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-final-insights.json",
+          "bytes": 637,
+          "sha256": "8677e97170b35b5420fc719ea7beef78e6855a14448ca3a82f377028dd2c898a"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-insights.json",
+          "bytes": 637,
+          "sha256": "8677e97170b35b5420fc719ea7beef78e6855a14448ca3a82f377028dd2c898a"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-request.json",
+          "bytes": 847,
+          "sha256": "45d95c61b0c96a0fd662004557571d9063036c58f971de265d124983d37c8f5a"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-run.json",
+          "bytes": 532,
+          "sha256": "65ae2f2d4278d9cc536cd6eef9afea15819dc8088b77b7bdddf57d4d0523f8a5"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6-summary.json",
+          "bytes": 1551,
+          "sha256": "a1fa9883ff18922c4088ea5b9683d2492526ddecf10278c98de61e634f00e9ef"
+        },
+        {
+          "file": "samples/paint-r6/paint-r6.sse",
+          "bytes": 7988,
+          "sha256": "0abd2610c62de1494b41ad39d9558e188e08605a17ebdf0cd0945094762d1fb2"
+        }
+      ]
+    },
+    {
+      "sample_id": "cu03-eval-2026-09-26-simplified-fixture",
+      "category": "new_capture",
+      "category_detail": "本轮新采集：真实模型调用，但走简化夹具且不执行桌面动作（仅规划协议），因此不是桌面执行回放。",
+      "task": {
+        "fixture": "简化夹具 20 次调用",
+        "call_count": 20
+      },
+      "pre_decision_observation": {
+        "status": "与生产观察不等价",
+        "note": "夹具给的是简化后的状态文本，不是真实截图 + UIA 观察。"
+      },
+      "available_feedback": {
+        "status": "两臂配对（基线 vs 反馈）",
+        "feedback_block_present": true,
+        "note": "干预项仅为「是否附带反馈块」，其余协议与参数保持一致。"
+      },
+      "real_execution_state": {
+        "desktop_actions_executed": false,
+        "note": "无真实桌面执行，故无发布/隔离状态可记录。"
+      },
+      "image_and_transform": {
+        "images": [],
+        "note": "不含任何真实截图。"
+      },
+      "allowed_behavior_labels": {
+        "present": false,
+        "note": "未人工打标签；cu03-scorer-v2 重评为：结构层 20/20 可判定，三项语义指标 applicable=0（证据不足）。"
+      },
+      "evidence_source": {
+        "export": "docs/testing/cu03-eval/2026-09-26-simplified-fixture/{raw-results.json, rescore-cu03-scorer-v2.json, README.md}"
+      },
+      "missing_items": [
+        "真实截图与 UIA 观察",
+        "真实桌面动作与发布/隔离状态",
+        "语义行为标签"
+      ]
+    },
+    {
+      "sample_id": "synthetic-replay-fixtures",
+      "category": "synthetic",
+      "category_detail": "合成：为评分器与提示词回放验证手工构造的夹具，**不是历史回放**，不得当作历史执行证据引用。",
+      "task": {
+        "origin": "computer_use_eval_scorer.rs / computer_use_planner.rs 内联测试夹具"
+      },
+      "pre_decision_observation": {
+        "status": "构造",
+        "note": "由测试代码直接给定，不来自任何真实运行。"
+      },
+      "available_feedback": {
+        "status": "构造",
+        "feedback_block_present": true
+      },
+      "real_execution_state": {
+        "desktop_actions_executed": false,
+        "note": "纯离线，无执行。"
+      },
+      "image_and_transform": {
+        "images": [],
+        "note": "无图像。"
+      },
+      "allowed_behavior_labels": {
+        "present": true,
+        "note": "标签由构造用例显式给定，用于验证评分器判定分支。"
+      },
+      "evidence_source": {
+        "export": "modules/gui-web/packages/web-console/src/computer_use_eval_scorer.rs（测试模块）"
+      },
+      "missing_items": [
+        "真实观察",
+        "真实执行状态"
+      ],
+      "not_history_replay": true
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "label": "paint-r6",
+  "room": "room-1789833563688",
+  "elapsed_ms": 85999,
+  "answer": "已执行 1 步工具操作完成本轮任务，但模型未返回最终文字总结。已完成的工具结果摘要：\n工具 `computer-use-task-controller` 失败：截图画布已变化，需重新观察后规划笔画\n\n---\nContext usage: 0.2% (2246/1000000 input tokens; source=remote). Local estimate: 1605 tokens; local prompt budget: 1605/848976 tokens; history truncated: false.\nContext turn: 000000000000000a18d6c424c533e620; Context snapshot: ctx-3ec3e55cdd712b00; history source: chat_room.messages; history loaded: 0; memory revision: mem-f3af76e2f6a1b68c",
+  "errors": [],
+  "failure": null,
+  "run": {
+    "run_id": "run-chat-9482808f4f5f266a438959cf4b396304af5a49f05059a821",
+    "kind": "chat_turn",
+    "workspace_id": "ws-ca1ac31ad720f832",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1789833563688",
+    "goal_id": null,
+    "phase_id": null,
+    "turn_id": "chat-turn-1789833564099-1",
+    "provider_turn_id": null,
+    "state": "completed",
+    "stop_reason": null,
+    "created_at": 1789833564103,
+    "started_at": 1789833564111,
+    "stop_requested_at": null,
+    "heartbeat_at": 1789833564111,
+    "finished_at": 1789833650056
+  },
+  "events": 24,
+  "tool_calls": 0,
+  "tool_results": 1,
+  "usage": [
+    {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 86505,
+      "output_tokens": 2734,
+      "requests": 6,
+      "session_id": "session-1779459149988"
+    }
+  ]
+}
