@@ -1671,6 +1671,32 @@ mod tests {
 
     /// 裁决第 14.6 项：规划请求的 attempt 必须是**真实复合键**（run#逻辑请求#重试序号），
     /// 重试得到新 attempt；身份不成立时保持未知，**不得**编造。
+    /// 作用域内改写进程环境变量，Drop 时恢复（RPR-01b：**panic 也要恢复**）。
+    ///
+    /// 为什么不能用"正常路径末尾手工恢复"：评测中途 `expect` 失败会直接 panic，
+    /// 手工恢复那行不会执行 ⇒ 变量泄漏给同二进制里的其它用例。
+    struct ScopedEnvVar {
+        name: &'static str,
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl ScopedEnvVar {
+        fn set(name: &'static str, value: &str) -> Self {
+            let previous = std::env::var_os(name);
+            std::env::set_var(name, value);
+            Self { name, previous }
+        }
+    }
+
+    impl Drop for ScopedEnvVar {
+        fn drop(&mut self) {
+            match self.previous.take() {
+                Some(value) => std::env::set_var(self.name, value),
+                None => std::env::remove_var(self.name),
+            }
+        }
+    }
+
     /// CU-03 评测用的一条素材：观察 + 上一步事实 + 上一步动作的目标。
     struct EvalFixture {
         step: usize,
@@ -1837,8 +1863,8 @@ mod tests {
         let base_url = std::env::var("COOLZHU_CU03_EVAL_BASE_URL")
             .or_else(|_| std::env::var("ANTHROPIC_BASE_URL"))
             .expect("评测需要 base_url（COOLZHU_CU03_EVAL_BASE_URL 或 ANTHROPIC_BASE_URL）");
-        let previous_base_url = std::env::var_os("OPENAI_BASE_URL");
-        std::env::set_var("OPENAI_BASE_URL", &base_url);
+        // 用作用域守卫：即使评测中途 panic 也会恢复（RPR-01b）。
+        let _base_url_guard = ScopedEnvVar::set("OPENAI_BASE_URL", &base_url);
         let client = api::OpenAiCompatClient::new(api_key, api::OpenAiCompatConfig::openai());
         let request = ComputerUseRequest {
             objective: "在画布上画一条从左到右的横线".to_string(),
@@ -1899,10 +1925,6 @@ mod tests {
             serde_json::to_string_pretty(&payload).expect("serialize"),
         )
         .expect("write results");
-        match previous_base_url {
-            Some(value) => std::env::set_var("OPENAI_BASE_URL", value),
-            None => std::env::remove_var("OPENAI_BASE_URL"),
-        }
         println!("[cu03] base_url={base_url} model={model}");
         println!("[cu03] {}", serde_json::to_string(&payload["summary"]).unwrap());
         println!("[cu03] 明细：tmp/cu03-eval/results.json");
