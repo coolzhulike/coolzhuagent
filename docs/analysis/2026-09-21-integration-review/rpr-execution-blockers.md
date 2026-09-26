@@ -2211,6 +2211,35 @@ fail-closed 正确，但**无路可走**（§B-84 记的 CU-F05-5 正半缺口�
 **仍未做（如实记）**：UI 不声明 canvas（界面并不知道画布区域，源码层面也没有这个信息）；
 `frame_id` 命名仍待"说清它比现有身份多判什么"。
 
+### B-100 CU-05 收尾：UIA 状态进入观测 `state.elements`（plan 侧结构化可见）
+
+**背景**：§B-97 把状态做进了快照与命中，并进了 locate 的 `raw_response` **文本**；本轮补上
+**结构化**通道——桌面观测的 `state.elements` 里每个元素现在都带这四个字段。
+
+**改动**（`computer_use_desktop_bridge::element_json`，加性）：
+
+- `selected` / `keyboard_focus` / `toggle_state` / `patterns` 四个键进入每个元素的 JSON；
+- **`null` 表示"该元素不支持该模式"**（不是 `false`），与 UIA 侧口径一致；
+- `toggle_state` 认不出的取值保持 `"unknown"`，**不回落成 `"off"`**；
+- 既有键（reference/name/automation_id/class_name/control_type/value/rect/offscreen/enabled）
+  一个不动（本用例同时断言这一点）。
+
+**用例**：`element_json_carries_uia_state_without_inventing_false_values`——不支持的选中状态必须是
+`null` 而不是 `false`；`keyboard_focus=false` 如实为 `false`；`toggle_state="unknown"` 原样保留；
+`patterns` 长度正确；既有字段不受影响。
+
+**顺带核实到的既有事实（值得记下来，避免以后重复"发明")**：桌面观测里
+**已经有 canvas 概念**——`state.canvas_target`／`state.canvas_rect`，且 `drag_contract.fallback_scope`
+明确写着"window-canvas 仅代表可见 client 区域，**包含工具栏、菜单和状态区，不等于语义绘画画布**；
+必须依据当前原图和 rect 找到其中实际可绘画区域，不能猜位置"。这正是 CU-04"可见 ROI 不含工具栏"
+的另一半（§B-99 提供的是**调用方声明画布**的机制）。
+
+**门禁**：web-console **1152/0**、`cargo build --workspace` ✅。
+
+**CU-01／CU-02／CU-04／CU-05／CU-F05／PR-02B／RPR-01b／Hook 授权服务：全部交付完毕。**
+仅剩 **CU-03**（planner 反馈：验收要求"基线与反馈版各 10 次模型规划"对照 ⇒ **需模型评测预算**）
+与 **`frame_id` 命名**（需先说明它比现有身份多判什么）。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

@@ -908,6 +908,13 @@ fn element_json(element: &UiaElementSnapshot) -> JsonValue {
         ],
         "offscreen": element.is_offscreen,
         "enabled": element.is_enabled,
+        // CU-05：状态原样进入观测 `state.elements`（plan 侧由此看到"可切换/已选中"）。
+        // `null` = **该元素不支持该模式**（不是 false），与 UIA 侧口径一致；
+        // `toggle_state` 认不出的取值保持 `"unknown"`，不回落成 `"off"`。
+        "selected": element.is_selected,
+        "keyboard_focus": element.has_keyboard_focus,
+        "toggle_state": element.toggle_state,
+        "patterns": element.patterns,
     })
 }
 
@@ -1081,6 +1088,55 @@ fn backend_error(message: impl Into<String>) -> ComputerUseError {
 
 #[cfg(test)]
 mod tests {
+
+    /// **CU-05**：元素状态进入观测 `state.elements`，且"不支持"保持 `null`（不是 `false`）。
+    #[test]
+    fn element_json_carries_uia_state_without_inventing_false_values() {
+        let element = uia_resolver::UiaElementSnapshot {
+            reference: "uia-1".to_string(),
+            process_id: 42,
+            native_window_handle: 7,
+            name: Some("启用".to_string()),
+            automation_id: Some("CheckBox1".to_string()),
+            class_name: Some("Button".to_string()),
+            control_type: "CheckBox".to_string(),
+            value: None,
+            bounding_rect: vision::locate::BBoxPx {
+                x: 10,
+                y: 20,
+                width: 30,
+                height: 40,
+            },
+            is_offscreen: false,
+            is_enabled: true,
+            is_selected: None,
+            has_keyboard_focus: Some(false),
+            toggle_state: Some("unknown".to_string()),
+            patterns: vec!["toggle".to_string()],
+        };
+        let value = super::element_json(&element);
+        assert!(
+            value.get("selected").is_some_and(JsonValue::is_null),
+            "不支持选择模式必须是 null（不是 false）：{value}"
+        );
+        assert_eq!(value.get("keyboard_focus").and_then(JsonValue::as_bool), Some(false));
+        assert_eq!(
+            value.get("toggle_state").and_then(JsonValue::as_str),
+            Some("unknown"),
+            "认不出的开关取值不得回落成 off"
+        );
+        assert_eq!(
+            value
+                .get("patterns")
+                .and_then(JsonValue::as_array)
+                .map(Vec::len),
+            Some(1)
+        );
+        // 既有字段不受影响（追加是加性的）。
+        assert_eq!(value.get("reference").and_then(JsonValue::as_str), Some("uia-1"));
+        assert_eq!(value.get("enabled").and_then(JsonValue::as_bool), Some(true));
+    }
+
     use super::*;
     // 回执事实的断言需要取值枚举；生产代码只经由 `computer_use::input` 的构造函数。
     use runtime::InputDelivery;
