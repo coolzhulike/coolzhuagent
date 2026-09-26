@@ -3462,6 +3462,49 @@ InputPermit { ..., policy_revision: u64, gate_revision: u64, ... }
 **本轮状态**：Step 1–4 已完成并有验收（§B-122／§B-123），Step 5 因上述缺口**未开始编码**。
 **未触碰 CU 输入路径**；未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-127 授权"接入真实生产者"（8.3c）：**缝在哪已核实**，下一步是穿过它
+
+**授权**：允许接入 `executor_instance_id` 的**真实生产者**，然后与许可门（签发＋消费）同批落地。
+**为什么要生产者**：§B-126 的许可门在 consume 时必须绑定真实执行者实例；今天唯一可填空的字符串是
+尝试身份 —— 填进去就是**伪造执行者身份**（与 B-121／B-124 同类），所以宁可不接。
+
+#### 核实的结论（不是推断）
+
+- 输入层**已经在捕获** helper 的进程身份：`input.rs:6392` `windows_process_guard::capture_process_identity(self.pid)`，
+  以及场景收尾用的 `GrandchildHolder { pid, identity }`（按身份核对后再终止，PID 复用会被拒）。
+- 但它**没有对外暴露**：`NativeInputOutcome` 的字段只有 `obligation` / `facts` / `fact_anomaly` /
+  `reply_received_at_ms` / "确认子进程真正结束的时刻"，**没有 pid、没有创建时间**。
+- ⇒ 生产者缺的不是"捕获能力"（已有），而是**一条把已捕获的身份送到宿主的缝**。
+
+#### 生产者设计（最小改动，复用已有捕获）
+
+1. **缝**：在 `NativeInputOutcome`（或回执）上暴露
+   `helper_process: Option<HelperProcessIdentity { pid: u32, creation_time_filetime: u64 }>`，
+   取值来自**同一处已捕获的身份**（`capture_process_identity` 的结果），**不新增第二条捕获路径**
+   ——两条捕获路径必然漂移，这正是本轮反复防的事。
+2. **登记**：执行器在原生输入派发点用 `ExecutorStore`（8.3b 已交付，含失败表处置）
+   落 `register_launch_intent` → `record_instance_evidence`（用契约的 `ExecutorObservation`
+   表达"匹配且存活／已退出／不可读"等），得到**真实** `executor_instance_id`。
+3. **绑定**：许可门的 consume 用**该** id，替换掉现在的占位自绑
+   （`PermitExecutorBinding::BindTo(&self.attempt_key)` 必须消失）。
+4. **顺带修掉 B-126 查出的静默缺陷**：契约里"越过派发边界必须有执行者实例"
+   （`input_safety.rs:946-951`）**只在签发路径被校验**（`validate_structure` 只被
+   `input_permit_store.rs:282` 的 `register_pending` 调用），consume 路径**不校验它** ⇒
+   伪造值能静默落库。同批把该校验加到 consume（或在存储层加约束）。
+
+#### 为什么这一步必须与许可门同批（而不是先后）
+
+- 只接签发：会产生**永远无法消费**的 pending 许可（消费者需要执行者实例 ⇒ 必然失败），是垃圾数据；
+- 只接消费：没有可绑定的真实执行者 id ⇒ 必须伪造；
+- 先接许可再接生产者：等于先埋一个假绑定再换掉它，中间态是**不安全且已落库**的。
+
+#### 边界与顺序
+
+- 涉及 `computer-use-core`（输入层契约）与 web-console（执行器／存储）：按裁决
+  "broker／helper 由对应负责人串行合并"，本轮由同一串行角色推进。
+- **未触碰 CU 输入路径**（本项尚未开始编码）；未迁移真实库、未解除隔离、未启动真实输入、
+  未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
