@@ -337,3 +337,4 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
    Phase 2 必须做**两相 API 拆分**（改动半径 4 文件／3 crate），由 web-console 编排；
 4. **需真实环境／资源**：§8.6 五项、操作员认证的原生验证、签名（证书）、`PKG-L07c-RACE`；
 5. **环境异常**：rustc 偶发 `STATUS_STACK_BUFFER_OVERRUN`（已按"环境异常"记录，见 §B-148）。
+6. **Step 4 的观测手段已有**（已核实）：mock 路径回传 `facts.injected_points`，"物理输入 = 0" 可直接断言，**无需新增管道**；写法配方见 handoff §3-ter 的「Step 4 测试写法配方」。

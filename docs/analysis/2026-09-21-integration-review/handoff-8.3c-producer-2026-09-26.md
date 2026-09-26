@@ -311,6 +311,32 @@ Phase 1 可以造 test permit stub，但它必须**一眼可辨**：用 `protoco
   但**只能存在于开发/测试阶段**——最终生产不能长期"部分 `controlled_*` 新协议、部分旧协议"，
   **最终必须统一由协议版本门禁判定**。
 
+### **Step 4 测试写法配方（下一窗口可直接照抄，不需要再探索）**
+
+**可用入口**（Step 1 已交付）：`native_run_with_mock_two_phase(mode, params, obligation, attempt, timeout, mock_scenario, &TwoPhaseHelperTestOptions { two_phase_nonce, ready_file, permit_file })`
+——它在请求里注入 `two_phase_helper=true` ＋ 那三个键；**旧入口 `native_run_with_mock` 不带任何两相键**。
+
+**观测手段（已核实存在，无需新增管道）**：mock 驱动会把 helper 事实回传，
+断言"物理输入 = 0 / >0"看 **`outcome.facts.injected_points`**（helper 侧计数），
+而不是去看真实桌面——**T6 全程不驱动真实鼠标键盘**（`mock_scenario` 让 helper 用内存驱动）。
+
+**每条用例的编排（时序是关键，不能只写断言）**：
+
+| 用例 | 编排 | 断言 |
+| --- | --- | --- |
+| **T6-A** | 起 helper（无 permit 文件）→ 等 `ready_file` → **什么都不做**，等 helper 自守望/等待超时 | 无 permit 被消费；`injected_points` 零输入；结果属**未授权**而非**协议错误** |
+| **T6-B** | 等 `ready_file` → 写 permit 文件但**nonce 用别的会话值** | helper 拒绝（不进入输入）；`injected_points = 0`；**不得**继续等待 |
+| **T6-C** | 等 `ready_file` → 写 permit 文件且 `nonce` **与 `two_phase_nonce` 一致** | helper 进入 EXECUTE；**唯一允许** `injected_points > 0` 的用例 |
+| **T11** | 起 B（nonce=B）→ 等其 READY → 写 **A 的 permit**（nonce=A） | B 拒绝；`injected_points = 0` |
+| **B128-T1** | 起 helper，`request_id` 与 `two_phase_nonce` **取不同值** | READY 里的 `nonce` == `two_phase_nonce`；progress/日志仍关联 `request_id` |
+
+**测试侧注意事项**：
+- **等 `ready_file` 用 `helper_ready.rs` 的 `await_helper_ready`**（有界、非"文件存在即 READY"）——
+  但注意它要求**预期的 nonce**，因此测试必须**自己生成并记住** `two_phase_nonce`（正是 Step 1 的用意）；
+- **写 permit 文件的内容必须能被 helper 的 `-like '*"<nonce>"*'` 匹配**（即 JSON 里带该 nonce 字符串）；
+- **测试时间**：每次真实 helper 约 40s；**不得**为提速合并、跳过或用 stub 替代（当前最大未知是脚本生命周期）；
+- **诊断信息写 Rust 测试侧**，**不得**加进 inline PowerShell（脚本 2144 单元、软门槛 31000）。
+
 ### **Phase 1 测试（§七／§八）**
 
 Phase 1 **不能假装已有完整 `PermitGate`**：T6 不测 `ExecutorStore`／`PermitGate`，只测
