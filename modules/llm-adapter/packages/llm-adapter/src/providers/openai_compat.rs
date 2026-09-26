@@ -1,3 +1,4 @@
+use crate::request_observer::{RequestObservation, UsageEvidence};
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::time::Duration;
 
@@ -221,6 +222,7 @@ pub struct OpenAiCompatClient {
     initial_backoff: Duration,
     max_backoff: Duration,
     request_parameters: crate::RequestParameters,
+    request_observer: Option<std::sync::Arc<dyn crate::RequestObserver>>,
 }
 
 impl OpenAiCompatClient {
@@ -242,6 +244,7 @@ impl OpenAiCompatClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            request_observer: None,
         }
     }
 
@@ -268,6 +271,10 @@ impl OpenAiCompatClient {
     }
 
     #[must_use]
+    pub fn with_request_observer(mut self, observer: std::sync::Arc<dyn crate::RequestObserver>) -> Self {
+        self.request_observer=Some(observer); self
+    }
+
     pub fn with_request_parameters(mut self, parameters: crate::RequestParameters) -> Self {
         self.request_parameters = parameters;
         self
@@ -327,9 +334,11 @@ impl OpenAiCompatClient {
         };
         // 约束 7：guard 在**实际发出请求之前**登记，非流式请求同样覆盖完整请求生命周期。
         let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::NonStreaming);
-        let response = match self.send_with_retry(&request, &guard).await {
+        let mut observation = RequestObservation::new(self.request_observer.clone());
+        let response = match self.send_with_retry(&request, &guard, &mut observation).await {
             Ok(response) => response,
             Err(error) => {
+                observation.fail(&error);
                 guard.settle_from_error(&error);
                 return Err(error);
             }
@@ -340,14 +349,17 @@ impl OpenAiCompatClient {
             Err(error) => {
                 // 响应体读取失败：正文未完整拿到 → 远端结果未知，不归零。
                 let error = ApiError::from(error);
+                observation.fail(&error);
                 guard.settle_from_error(&error);
                 return Err(error);
             }
         };
+        if let Some(usage)=&payload.usage { observation.usage(usage.evidence()); }
         let mut normalized = match normalize_response(&request.model, payload) {
             Ok(normalized) => normalized,
             Err(error) => {
                 // 完整响应已拿到但不符合预期结构：仍是协议级完整结束事实。
+                observation.fail(&error);
                 guard.settle_from_error(&error);
                 return Err(error);
             }
@@ -356,6 +368,7 @@ impl OpenAiCompatClient {
             normalized.request_id = request_id;
         }
         // 完整响应体已解析 → 协议级完整结束事实。
+        observation.finish("completed");
         guard.settle(TerminationFact::ProtocolCompletion);
         Ok(normalized)
     }
@@ -371,9 +384,11 @@ impl OpenAiCompatClient {
         .with_streaming();
         // 约束 7：guard 在**实际发出请求之前**登记；握手完成后随流对象转移。
         let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::Streaming);
-        let response = match self.send_with_retry(&request, &guard).await {
+        let mut observation = RequestObservation::new(self.request_observer.clone());
+        let response = match self.send_with_retry(&request, &guard, &mut observation).await {
             Ok(response) => response,
             Err(error) => {
+                observation.fail(&error);
                 guard.settle_from_error(&error);
                 return Err(error);
             }
@@ -386,6 +401,7 @@ impl OpenAiCompatClient {
             done: false,
             state: StreamState::new(request.model.clone()),
             protocol_end_observed: false,
+            observation,
             guard,
         })
     }
@@ -398,41 +414,33 @@ impl OpenAiCompatClient {
     }
 
     async fn send_with_retry(
-        &self,
-        request: &MessageRequest,
-        guard: &InFlightGuard,
+        &self, request: &MessageRequest, guard: &InFlightGuard, observation: &mut RequestObservation,
     ) -> Result<reqwest::Response, ApiError> {
         let mut attempts = 0;
-
-        let last_error = loop {
+        loop {
             attempts += 1;
-            let retryable_error = match self.send_raw_request(request, guard).await {
-                Ok(response) => match expect_success(response).await {
-                    Ok(response) => return Ok(response),
-                    Err(error) if error.is_retryable() && attempts <= self.max_retries + 1 => error,
-                    Err(error) => return Err(error),
-                },
-                Err(error) if error.is_retryable() && attempts <= self.max_retries + 1 => error,
-                Err(error) => return Err(error),
+            observation.begin(attempts);
+            let outcome = match self.send_raw_request(request, guard, observation).await {
+                Ok(response) => expect_success(response).await,
+                Err(error) => Err(error),
             };
-
-            if attempts > self.max_retries {
-                break retryable_error;
+            match outcome {
+                Ok(response) => return Ok(response),
+                Err(error) => {
+                    observation.fail(&error);
+                    if !error.is_retryable() { return Err(error); }
+                    if attempts > self.max_retries { return Err(ApiError::RetriesExhausted { attempts, last_error: Box::new(error) }); }
+                    tokio::time::sleep(self.backoff_for_attempt(attempts)?).await;
+                }
             }
-
-            tokio::time::sleep(self.backoff_for_attempt(attempts)?).await;
-        };
-
-        Err(ApiError::RetriesExhausted {
-            attempts,
-            last_error: Box::new(last_error),
-        })
+        }
     }
 
     async fn send_raw_request(
         &self,
         request: &MessageRequest,
         guard: &InFlightGuard,
+        observation: &mut RequestObservation,
     ) -> Result<reqwest::Response, ApiError> {
         let request_url = self.resolved_endpoint();
         diagnostics::debug(
@@ -461,6 +469,7 @@ impl OpenAiCompatClient {
             request_builder = request_builder.bearer_auth(api_key);
         }
         // 请求即将发出：登记从"尚未派发"推进到"已派发·流处理中"。
+        observation.dispatch();
         guard.mark_dispatched();
         request_builder.send().await.map_err(ApiError::from)
     }
@@ -516,6 +525,7 @@ pub struct MessageStream {
     protocol_end_observed: bool,
     /// 在途登记：随流对象的生命周期结束（Drop 只能结束本地持有，不证明远端已停算）。
     guard: InFlightGuard,
+    observation: RequestObservation,
 }
 
 impl MessageStream {
@@ -536,7 +546,15 @@ impl MessageStream {
         self.guard.mark_remote_result_unknown()
     }
 
+    pub fn usage_evidence(&self) -> UsageEvidence { self.observation.evidence() }
+
     pub async fn next_event(&mut self) -> Result<Option<StreamEvent>, ApiError> {
+        let result=self.next_event_inner().await;
+        if let Err(error)=&result { self.observation.fail(error); }
+        result
+    }
+
+    async fn next_event_inner(&mut self) -> Result<Option<StreamEvent>, ApiError> {
         loop {
             if let Some(event) = self.pending.pop_front() {
                 return Ok(Some(event));
@@ -558,6 +576,7 @@ impl MessageStream {
                         self.protocol_end_observed = true;
                     }
                     for chunk in parsed.chunks {
+                        if let Some(usage)=&chunk.usage { self.observation.usage(usage.evidence()); }
                         self.pending.extend(self.state.ingest_chunk(chunk)?);
                         if self.state.protocol_end_observed {
                             self.protocol_end_observed = true;
@@ -566,6 +585,7 @@ impl MessageStream {
                     if self.protocol_end_observed {
                         // 已取得协议级完整结束事实：立即结清远端请求状态（不必等连接关闭）。
                         self.guard.settle(TerminationFact::ProtocolCompletion);
+                        self.observation.finish("completed");
                     }
                 }
                 None => {
@@ -576,11 +596,13 @@ impl MessageStream {
     }
 
     /// 流真正结束时结清：有协议完整结束事实 → 结清；否则断流 → 远端结果未知。
-    fn settle_stream_termination(&self) {
+    fn settle_stream_termination(&mut self) {
         if self.protocol_end_observed {
             self.guard.settle(TerminationFact::ProtocolCompletion);
+                        self.observation.finish("completed");
         } else {
             self.guard.mark_remote_result_unknown();
+            self.observation.finish("remote_unknown");
         }
     }
 }
@@ -680,12 +702,9 @@ impl StreamState {
         }
 
         if let Some(usage) = chunk.usage {
-            self.usage = Some(Usage {
-                input_tokens: usage.prompt_tokens,
-                cache_creation_input_tokens: 0,
-                cache_read_input_tokens: 0,
-                output_tokens: usage.completion_tokens,
-            });
+            let mut evidence=self.usage.take().map(|u| UsageEvidence {input_tokens:Some(u.input_tokens),output_tokens:Some(u.output_tokens),cache_read_tokens:Some(u.cache_read_input_tokens),cache_write_tokens:Some(u.cache_creation_input_tokens)}).unwrap_or_default();
+            evidence.merge(usage.evidence());
+            self.usage=Some(evidence.usage());
         }
 
         for choice in chunk.choices {
@@ -933,10 +952,22 @@ struct ResponseToolFunction {
 
 #[derive(Debug, Deserialize)]
 struct OpenAiUsage {
-    #[serde(default)]
-    prompt_tokens: u32,
-    #[serde(default)]
-    completion_tokens: u32,
+    prompt_tokens: Option<u32>,
+    completion_tokens: Option<u32>,
+    prompt_tokens_details: Option<OpenAiPromptDetails>,
+    prompt_cache_hit_tokens: Option<u32>,
+    cache_read_input_tokens: Option<u32>,
+    cache_creation_input_tokens: Option<u32>,
+}
+#[derive(Debug, Deserialize)]
+struct OpenAiPromptDetails { cached_tokens: Option<u32> }
+impl OpenAiUsage {
+    fn evidence(&self) -> UsageEvidence { UsageEvidence {
+        input_tokens:self.prompt_tokens,output_tokens:self.completion_tokens,
+        cache_read_tokens:self.prompt_tokens_details.as_ref().and_then(|v|v.cached_tokens)
+            .or(self.prompt_cache_hit_tokens).or(self.cache_read_input_tokens),
+        cache_write_tokens:self.cache_creation_input_tokens,
+    } }
 }
 
 #[derive(Debug, Deserialize)]
@@ -1299,18 +1330,7 @@ fn normalize_response(
             .finish_reason
             .map(|value| normalize_finish_reason(&value)),
         stop_sequence: None,
-        usage: Usage {
-            input_tokens: response
-                .usage
-                .as_ref()
-                .map_or(0, |usage| usage.prompt_tokens),
-            cache_creation_input_tokens: 0,
-            cache_read_input_tokens: 0,
-            output_tokens: response
-                .usage
-                .as_ref()
-                .map_or(0, |usage| usage.completion_tokens),
-        },
+        usage: response.usage.as_ref().map(|u|u.evidence().usage()).unwrap_or_else(||UsageEvidence::default().usage()),
         request_id: None,
     })
 }

@@ -34,6 +34,12 @@ use windows_sys::Win32::System::Threading::{
 };
 
 mod pipe;
+mod local_control;
+mod async_process;
+mod secret_protection;
+pub use secret_protection::{protect_user_secret, unprotect_user_secret};
+pub use local_control::{LocalProcessPeer, LocalRecoveryPipeServer, process_peer_identity,
+    recovery_pipe_name, local_recovery_pipe_request};
 
 pub use pipe::{
     reclaim_finished_pipe_readers, retained_pipe_reader_count, retained_pipe_reader_count_labeled,
@@ -774,11 +780,28 @@ pub fn socket_is_inheritable(socket: RawSocket) -> io::Result<bool> {
 }
 
 /// Job Object configured to terminate all assigned children when its handle closes.
+#[derive(Debug)]
 pub struct ChildProcessJob {
     handle: usize,
 }
 
 impl ChildProcessJob {
+    /// 先以挂起状态创建，再纳入 Job，最后恢复初始线程；业务代码没有逃出 Job 的窗口。
+    /// 本入口专供无窗口的受管命令，不能用于用户主动请求保持运行的后台程序。
+    pub fn spawn_managed(command: &mut std::process::Command) -> io::Result<(Child, Self)> {
+        use std::os::windows::process::CommandExt;
+        use windows_sys::Win32::System::Threading::{CREATE_NO_WINDOW, CREATE_SUSPENDED};
+        let job = Self::new_kill_on_close()?;
+        command.creation_flags(CREATE_NO_WINDOW | CREATE_SUSPENDED);
+        let mut child = command.spawn()?;
+        if let Err(error) = job.assign(&child).and_then(|()| resume_initial_thread(child.id())) {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(error);
+        }
+        Ok((child, job))
+    }
+
     /// Create a Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`.
     pub fn new_kill_on_close() -> io::Result<Self> {
         let handle = unsafe { CreateJobObjectW(std::ptr::null(), std::ptr::null()) };
@@ -819,6 +842,37 @@ impl ChildProcessJob {
             Ok(())
         }
     }
+}
+
+fn resume_initial_thread(process_id: u32) -> io::Result<()> {
+    use windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE;
+    use windows_sys::Win32::System::Diagnostics::ToolHelp::{
+        CreateToolhelp32Snapshot, Thread32First, Thread32Next, THREADENTRY32, TH32CS_SNAPTHREAD,
+    };
+    use windows_sys::Win32::System::Threading::{OpenThread, ResumeThread, THREAD_SUSPEND_RESUME};
+    let snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0) };
+    if snapshot == INVALID_HANDLE_VALUE { return Err(io::Error::last_os_error()); }
+    let mut entry: THREADENTRY32 = unsafe { std::mem::zeroed() };
+    entry.dwSize = std::mem::size_of::<THREADENTRY32>() as u32;
+    let mut found = unsafe { Thread32First(snapshot, &mut entry) };
+    let mut result = Err(io::Error::new(io::ErrorKind::NotFound, "受管进程初始线程不存在"));
+    while found != 0 {
+        if entry.th32OwnerProcessID == process_id {
+            // 初始线程尚未运行，因此此进程只有这一条业务线程；句柄只用于解除初始挂起。
+            let thread = unsafe { OpenThread(THREAD_SUSPEND_RESUME, 0, entry.th32ThreadID) };
+            if thread.is_null() {
+                result = Err(io::Error::last_os_error());
+            } else {
+                let count = unsafe { ResumeThread(thread) };
+                result = if count == u32::MAX { Err(io::Error::last_os_error()) } else { Ok(()) };
+                unsafe { CloseHandle(thread); }
+            }
+            break;
+        }
+        found = unsafe { Thread32Next(snapshot, &mut entry) };
+    }
+    unsafe { CloseHandle(snapshot); }
+    result
 }
 
 impl Drop for ChildProcessJob {
@@ -1362,6 +1416,11 @@ impl<'a> ScopedInputOwnership<'a> {
         self.lease.owner_epoch()
     }
 
+    /// 返回实际取得 lease 的 owner，宿主不得以另一个上下文字符串冒充它。
+    pub fn owner_id(&self) -> &str {
+        &self.lease.owner_id
+    }
+
     /// 旧 token 失效语义由 broker 的 epoch 记录决定（与进程内语义完全一致）。
     pub fn is_current(&self) -> bool {
         self.lease.is_current()
@@ -1687,6 +1746,18 @@ fn process_image_path(handle: HANDLE) -> Option<String> {
 pub fn capture_process_identity(pid: u32) -> Result<ProcessIdentity, ProcessIdentityError> {
     let handle = open_process_handle(pid, PROCESS_QUERY_LIMITED_INFORMATION)?;
     identity_from_handle(handle.raw(), pid)
+}
+
+/// 同一次句柄上确认存活并读取身份；供执行者登记使用，不代替通知前的 Child 复核。
+pub fn capture_live_process_identity(pid: u32) -> Result<ProcessIdentity, ProcessIdentityError> {
+    let handle = open_process_handle(pid, PROCESS_QUERY_LIMITED_INFORMATION | windows_sys::Win32::System::Threading::PROCESS_SYNCHRONIZE)?;
+    let identity = identity_from_handle(handle.raw(), pid)?;
+    // SAFETY: 当前句柄带 SYNCHRONIZE，只做零等待；不将退出码 259 误判为存活。
+    match unsafe { WaitForSingleObject(handle.raw(), 0) } {
+        WAIT_TIMEOUT => Ok(identity),
+        WAIT_OBJECT_0 => Err(ProcessIdentityError::NotFound { pid }),
+        _ => Err(ProcessIdentityError::Os { pid, source: io::Error::last_os_error() }),
+    }
 }
 
 /// 直接从 `Child` 的进程句柄取身份标记（推荐路径：没有 PID 复用窗口）。

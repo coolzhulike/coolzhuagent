@@ -11,13 +11,8 @@
 //! - **不跨等待持事务**：不跨 helper 等待、模型请求或人工确认持有事务。
 //! - 本模块留在**宿主的输入安全存储**边界（web-console），**不把 rusqlite 引入 core-runtime**。
 //!
-//! ## 为什么暂时允许 dead_code（显式，不是掩盖）
-//!
-//! 本模块是本批（8.2b／8.3b）交付的**存储适配**；把它接进生产调用点是下一步 8.2c／8.3c
-//! 的工作（裁决 §8 把生产接线列在迁移验收之后）。因此当前**没有生产调用者**，
-//! 但**不是**被丢弃的代码：它已由本模块的迁移验收用例（DB-1…DB-8）真实驱动。
-//! 接线落地后应移除此豁免——留着它才是问题。
-#![allow(dead_code)]
+//! 原生输入生产链通过 `native_input_authorization` 使用严格消费和完成事实接口；
+//! 不核对资源/执行者的旧消费接缝仅保留在 `cfg(test)` 下供迁移故障夹具使用。
 
 use rusqlite::{Connection, OptionalExtension};
 use runtime::{
@@ -461,12 +456,35 @@ impl<'a> PermitStore<'a> {
     /// 这是 DB-6／DB-7 的核心：条件全部在事务内读取并核对，只有一个写入者能把它推到
     /// `DispatchCommitted`；第二次调用因为状态已变而**必然失败**（不产生第二次执行资格）。
     #[allow(clippy::too_many_arguments)]
+    #[cfg(test)]
     pub(crate) fn consume_permit(
         &self,
         permit_id: &str,
         budget: PermitConsumptionBudget,
         execution_bound: PermitExecutorBinding,
         now_unix_ms: u64,
+    ) -> Result<InputPermitState, PermitStoreError> {
+        self.consume_checked(permit_id, budget, execution_bound, now_unix_ms, false)
+    }
+
+    /// 正式原生输入必须在消费事务内再次读取资源与执行者登记；不能信任事务外快照。
+    pub(crate) fn consume_for_native_input(
+        &self,
+        permit_id: &str,
+        budget: PermitConsumptionBudget,
+        execution_bound: PermitExecutorBinding,
+        now_unix_ms: u64,
+    ) -> Result<InputPermitState, PermitStoreError> {
+        self.consume_checked(permit_id, budget, execution_bound, now_unix_ms, true)
+    }
+
+    fn consume_checked(
+        &self,
+        permit_id: &str,
+        budget: PermitConsumptionBudget,
+        execution_bound: PermitExecutorBinding,
+        now_unix_ms: u64,
+        verify_resource_and_executor: bool,
     ) -> Result<InputPermitState, PermitStoreError> {
         self.in_immediate_transaction("consume_permit", |connection| {
             let current = read_permit_state(connection, permit_id)?;
@@ -513,6 +531,28 @@ impl<'a> PermitStore<'a> {
                     current_executor: current_executor.to_string(),
                 });
             }
+            if verify_resource_and_executor {
+                let current: Option<(String, i64, i64, i64, String, i64)> = connection.query_row(
+                    "SELECT r.state, r.revision, r.recovery_epoch, r.accepts_new_input, e.state, e.supervision_bound
+                       FROM input_safety_permits p
+                       JOIN input_safety_resource_state r ON r.scope = p.scope
+                       JOIN input_safety_executors e ON e.executor_instance_id = p.executor_instance_id
+                        AND e.scope = p.scope AND e.action_id = p.action_id
+                      WHERE p.permit_id = ?1 AND e.creation_time_100ns IS NOT NULL AND e.pid > 0",
+                    [permit_id], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?)),
+                ).optional().map_err(sqlite_error)?;
+                let Some((state, revision, epoch, accepts, executor_state, supervised)) = current else {
+                    return Err(PermitStoreError::ConditionNotMet { what: "缺少当前资源或可信执行者登记" });
+                };
+                if state != "safe" || accepts != 1 || revision != budget.gate_revision as i64
+                    || epoch != budget.held_epoch as i64 || executor_state != "verified_alive" || supervised != 1 {
+                    return Err(PermitStoreError::ConditionNotMet { what: "消费事务中资源已收紧或执行者未经验证" });
+                }
+                let blocked: bool = connection.query_row(
+                    "SELECT EXISTS(SELECT 1 FROM input_safety_resource_blocks b JOIN input_safety_permits p ON p.scope=b.scope WHERE p.permit_id=?1 AND b.state='open')",
+                    [permit_id], |row| row.get(0)).map_err(sqlite_error)?;
+                if blocked { return Err(PermitStoreError::ConditionNotMet { what: "资源存在未解除阻断" }); }
+            }
             // 条件更新带上**全部**谓词（§七）：状态、revision、gate、epoch、执行者一起核对。
             // 少任何一个谓词都等于"重新相信数据库"，中间被污染就会放行。
             let changed = connection
@@ -538,6 +578,19 @@ impl<'a> PermitStore<'a> {
                     what: "状态 / revision / gate / epoch / 执行者在读取与写入之间被改变",
                 });
             }
+            Ok(next)
+        })
+    }
+
+    /// 结账只收紧，未知不能回到待激活；真实迟到回执允许把未知结清。
+    pub(crate) fn record_native_completion(&self, permit_id: &str, has_final_receipt: bool, now_unix_ms: u64) -> Result<InputPermitState, PermitStoreError> {
+        self.in_immediate_transaction("native_completion", |connection| {
+            let current = read_permit_state(connection, permit_id)?;
+            let next = if has_final_receipt { InputPermitState::Finished } else { InputPermitState::OutcomeUnknown };
+            if current == next { return Ok(current); }
+            current.transition_to(next).map_err(PermitStoreError::IllegalTransition)?;
+            connection.execute("UPDATE input_safety_permits SET state=?1, revision=revision+1, updated_at_unix_ms=?2 WHERE permit_id=?3 AND state=?4",
+                rusqlite::params![next.as_str(), now_unix_ms as i64, permit_id, current.as_str()]).map_err(map_write_error)?;
             Ok(next)
         })
     }
@@ -945,6 +998,20 @@ impl<'a> ExecutorStore<'a> {
             revision: u64::try_from(row.14).unwrap_or_default(),
         })
     }
+
+    /// core 持有的原始 child 已确认退出时只记该实例退出，不据此宣称输入释放。
+    pub(crate) fn record_native_completion(&self, executor_instance_id: &str, process: runtime::ProcessInstanceEvidence,
+        process_exit_confirmed: bool, now_unix_ms: u64) -> Result<(), PermitStoreError> {
+        let changed = self.connection.execute(
+            "UPDATE input_safety_executors SET state=?1, revision=revision+1, updated_at_unix_ms=?2
+              WHERE executor_instance_id=?3 AND pid=?4 AND creation_time_100ns=?5",
+            rusqlite::params![if process_exit_confirmed { ExecutorInstanceState::ExitedConfirmed.as_str() }
+                else { ExecutorInstanceState::UnverifiableUnknown.as_str() }, now_unix_ms as i64,
+                executor_instance_id, i64::from(process.pid), process.creation_time_filetime as i64],
+        ).map_err(map_write_error)?;
+        if changed != 1 { return Err(PermitStoreError::ConditionNotMet { what: "结束回执与执行者原始实例身份不符" }); }
+        Ok(())
+    }
 }
 
 
@@ -1059,6 +1126,29 @@ mod tests {
             state: ExecutorInstanceState::RegisteredPendingVerification,
             revision: 1,
         }
+    }
+
+    #[test]
+    fn native_consume_reads_current_executor_and_resource_in_its_transaction() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("store");
+        store.connection_for_test().execute(
+            "INSERT INTO input_safety_resource_state(scope,state,revision,coordinator_instance_id,recovery_epoch,accepts_new_input,updated_at_unix_ms)
+             VALUES (?1,'safe',7,NULL,3,1,1)", [scope().as_str()]).expect("resource fixture");
+        let permits = store.permit_store();
+        permits.register_pending(&permit("permit-1", "action-1"), InputPermitState::PendingActivation, 1).expect("permit");
+        assert!(permits.consume_for_native_input("permit-1", budget(), PermitExecutorBinding::Verified("exec-1"), 2).is_err(),
+            "仅绑定字符串而无真实登记不能消费");
+        store.executor_store().register_launch_intent(&executor(), 1).expect("intent");
+        store.executor_store().record_instance_evidence("exec-1", ExecutorObservation::MatchesAndAlive, Some(12345), true, 2).expect("evidence");
+        store.connection_for_test().execute("UPDATE input_safety_resource_state SET state='isolated',accepts_new_input=0,revision=8 WHERE scope=?1", [scope().as_str()]).expect("并发关闸fixture");
+        assert!(permits.consume_for_native_input("permit-1", budget(), PermitExecutorBinding::Verified("exec-1"), 3).is_err(),
+            "旧budget不能掩盖事务内已关闸的资源");
+        store.connection_for_test().execute("UPDATE input_safety_resource_state SET state='safe',accepts_new_input=1,revision=7 WHERE scope=?1", [scope().as_str()]).expect("恢复fixture");
+        assert!(permits.consume_for_native_input("permit-1", budget(), PermitExecutorBinding::Verified("exec-1"), 10_000).is_err(), "真实now到期限必须拒绝");
+        assert_eq!(permits.consume_for_native_input("permit-1", budget(), PermitExecutorBinding::Verified("exec-1"), 4).expect("consume"), InputPermitState::DispatchCommitted);
+        assert!(matches!(permits.consume_for_native_input("permit-1", budget(), PermitExecutorBinding::Verified("exec-1"), 5),
+            Err(PermitStoreError::PermitAlreadyConsumed { .. })), "同一许可不能重放");
     }
 
     /// **DB-1**：现有受支持版本升级 ⇒ 版本与全部必要对象一致；

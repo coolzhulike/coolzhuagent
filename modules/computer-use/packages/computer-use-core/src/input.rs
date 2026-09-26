@@ -31,6 +31,8 @@ use crate::cleanup::{
     unix_ms, CleanupDeadline, CleanupPolicy, CleanupReleaseStatus, HelperCleanupFacts,
 };
 use runtime::{ActionReceipt, EffectStatus, GoalVerdict, InputDelivery, InputReleaseStatus};
+pub use crate::prepared_input::{NativeInputAuthorization, NativeInputPermit, PreparedNativeInput};
+use crate::prepared_input::{NativeInputCompletion, PreparedInputSession, SupervisedHelperChild};
 #[cfg(windows)]
 pub(crate) use windows_process_guard::HelperPipeReadersAdmission;
 #[cfg(all(windows, test))]
@@ -50,9 +52,9 @@ pub(crate) type HelperCleanupReservation = ();
 #[path = "input_stroke.rs"]
 mod stroke;
 pub use stroke::{
-    capture_window_image, controlled_drag_path, helper_failure_receipt, helper_success_receipt,
+    capture_window_image, controlled_drag_path, controlled_drag_path_authorized, helper_failure_receipt, helper_success_receipt,
     partial_input_receipt, pre_input_receipt, sent_receipt, validate_stroke, HelperInputFacts,
-    StrokeFailure, StrokeFailureKind, StrokeWindow,
+    NativeStrokeOutcome, StrokeFailure, StrokeFailureKind, StrokeWindow,
 };
 
 const ENV_INPUT_BACKEND: &str = "CLAW_MOUSE_BACKEND";
@@ -1712,6 +1714,8 @@ pub struct NativeInputOutcome {
     /// `None` = 本次没有捕获到身份（例如身份读取失败）——**不得**用别的值顶替。
     /// 消费端据此经 `runtime::classify_executor_instance` 判定"是否同一实例"。
     pub helper_process: Option<runtime::ProcessInstanceEvidence>,
+    /// 两相模式是否实际提交过执行通知；Some(false) 是 helper 仍被输入屏障阻挡的正面证据。
+    pub execute_notified: Option<bool>,
     /// helper 自己报告的原生输入事实；`None` = 没有事实。
     pub facts: Option<NativeInputFacts>,
     /// 进度记录存在但不可信时的原因（协议不符／身份不合／自相矛盾）。
@@ -1750,7 +1754,7 @@ impl NativeInputOutcome {
     pub fn release_inputs(&self, kind: StrokeFailureKind) -> ReleaseDerivationInputs<'_> {
         ReleaseDerivationInputs {
             kind,
-            input_possible: true,
+            input_possible: self.execute_notified != Some(false),
             path_action: false,
             obligation_mechanism_leaves_nothing: self.obligation.is_empty(),
             // 身份不合的记录在读取时已经被判为不可信，能走到这里的记录都属于本动作。
@@ -1786,6 +1790,7 @@ impl NativeInputOutcome {
     /// 没有事实时按"可能已注入"处理（保守方向），被强杀的执行者永远不能算已证明零注入。
     #[must_use]
     pub fn may_have_injected(&self) -> bool {
+        if self.execute_notified == Some(false) { return false }
         match self.facts.as_ref() {
             None => true,
             Some(facts) => facts.pressed || facts.still_holding() || facts.injected_steps > 0,
@@ -2457,7 +2462,7 @@ impl NativeInputFailure {
         outcome.obligation = obligation.clone();
         Self {
             message: message.into(),
-            input_possible: true,
+            input_possible: outcome.execute_notified != Some(false),
             obligation,
             outcome,
         }
@@ -2633,6 +2638,7 @@ pub struct NativeInputAttempt<'a> {
     pub window: Option<StrokeWindow>,
     /// 宿主取消信号：输入开始前、每个阶段之间、以及收尾阶段都会看它。
     pub cancelled: &'a dyn Fn() -> bool,
+    pub authorization: Option<&'a dyn NativeInputAuthorization>,
 }
 
 impl<'a> NativeInputAttempt<'a> {
@@ -2642,6 +2648,7 @@ impl<'a> NativeInputAttempt<'a> {
         Self {
             window: None,
             cancelled,
+            authorization: None,
         }
     }
 
@@ -2651,7 +2658,14 @@ impl<'a> NativeInputAttempt<'a> {
         Self {
             window: Some(window),
             cancelled,
+            authorization: None,
         }
+    }
+
+    #[must_use]
+    pub fn with_authorization(mut self, authorization: &'a dyn NativeInputAuthorization) -> Self {
+        self.authorization = Some(authorization);
+        self
     }
 }
 
@@ -2875,6 +2889,9 @@ fn native_run(
     backend: InputBackend,
 ) -> Result<NativeInputOutcome, NativeInputFailure> {
     validate_native_attempt(attempt, backend)?;
+    if !cfg!(test) && attempt.authorization.is_none() {
+        return Err(NativeInputFailure::before_input("input_authorization_required: 桌面输入尚未绑定宿主执行许可"));
+    }
     let request = native_request(mode, params, attempt.window);
     run_native_helper(
         request,
@@ -2884,6 +2901,7 @@ fn native_run(
         None,
         backend,
         NativeRunCapacity::OrdinaryAction,
+        attempt.authorization,
     )
 }
 
@@ -2974,10 +2992,17 @@ fn native_request(mode: &str, params: serde_json::Value, window: Option<StrokeWi
 /// 身份判定用本段内的 `NativeIdentity`：判据与诊断措辞和受控笔画的 `IdentityCheck` 一致
 /// （各自那一侧都有用例钉住措辞），两份实现不允许出现两种说法。
 fn native_helper_script() -> String {
+    // 只省去静态 C# 的独立注释行；源码常量保留说明，不改字符串、行内注释或执行语句。
+    // helper 的新增拒绝分支需要命令行余量，不能通过放宽 Windows 长度门槛解决。
+    let source = NATIVE_INPUT_HELPER_CS
+        .lines()
+        .filter(|line| !line.trim_start().starts_with("//"))
+        .collect::<Vec<_>>()
+        .join("\n");
     format!(
         "$ErrorActionPreference='Stop'; $OutputEncoding=[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); \
          Add-Type -TypeDefinition @'\n{}\n'@\n{}",
-        NATIVE_INPUT_HELPER_CS, NATIVE_INPUT_HELPER_ENTRY
+        source, NATIVE_INPUT_HELPER_ENTRY
     )
 }
 
@@ -3311,6 +3336,8 @@ fn native_run_with_mock_two_phase(
     mock_scenario: &str,
     options: &TwoPhaseHelperTestOptions,
 ) -> Result<NativeInputOutcome, NativeInputFailure> {
+    // 空场景也必须选内存驱动；C# 把空串解释为正式输入后端。
+    let mock_scenario = if mock_scenario.is_empty() { "success" } else { mock_scenario };
     let backend = active_backend();
     validate_native_attempt(attempt, backend)?;
     let mut request = native_request(mode, params, attempt.window);
@@ -3326,6 +3353,7 @@ fn native_run_with_mock_two_phase(
         Some(mock_scenario),
         backend,
         NativeRunCapacity::OrdinaryAction,
+        None,
     )
 }
 
@@ -3342,6 +3370,8 @@ fn native_run_with_mock(
     timeout: Duration,
     mock_scenario: &str,
 ) -> Result<NativeInputOutcome, NativeInputFailure> {
+    // 测试入口绝不因空场景降为真实 SendInput / Interception。
+    let mock_scenario = if mock_scenario.is_empty() { "success" } else { mock_scenario };
     let backend = active_backend();
     validate_native_attempt(attempt, backend)?;
     let request = native_request(mode, params, attempt.window);
@@ -3353,6 +3383,7 @@ fn native_run_with_mock(
         Some(mock_scenario),
         backend,
         NativeRunCapacity::OrdinaryAction,
+        attempt.authorization,
     )
 }
 
@@ -3373,6 +3404,7 @@ fn run_native_helper(
     mock_scenario: Option<&str>,
     backend: InputBackend,
     capacity: NativeRunCapacity,
+    authorization: Option<&dyn NativeInputAuthorization>,
 ) -> Result<NativeInputOutcome, NativeInputFailure> {
     if !cfg!(windows) {
         return Err(NativeInputFailure::before_input("受控原生输入仅支持 Windows"));
@@ -3423,6 +3455,7 @@ fn run_native_helper(
         SEQUENCE.fetch_add(1, Ordering::Relaxed)
     );
     let cancel_file = std::env::temp_dir().join(format!("coolzhu-native-cancel-{nonce}"));
+    let mut prepared = authorization.map(|_| PreparedInputSession::new(&nonce, timeout));
     let progress_file = std::env::temp_dir().join(format!("coolzhu-native-progress-{nonce}.json"));
     let _ = std::fs::remove_file(&progress_file);
     let mode_controls_input = request["mode"] != "release";
@@ -3443,6 +3476,7 @@ fn run_native_helper(
     request["mouse_device_id"] = serde_json::json!(interception_mouse_device_id());
     request["keyboard_device_id"] = serde_json::json!(interception_keyboard_device_id());
     request["mock_scenario"] = serde_json::json!(mock_scenario);
+    if let Some(prepared) = prepared.as_ref() { prepared.apply_request(&mut request); }
 
     let script = native_helper_script();
     let mut command = native_helper_command(&script);
@@ -3454,8 +3488,8 @@ fn run_native_helper(
     }
     // 计数点：**尝试**启动执行者。容量不足时这个计数不会增加——"未创建进程"由此可证。
     note_native_helper_spawn_attempt();
-    let mut child = match command.spawn() {
-        Ok(child) => child,
+    let (child, job) = match windows_process_guard::ChildProcessJob::spawn_managed(&mut command) {
+        Ok(managed) => managed,
         Err(error) => {
             // 进程没建成：未用的额度（含清理预留）随凭证一起归还，不留幽灵占用。
             return Err(NativeInputFailure::before_input(format!(
@@ -3463,13 +3497,13 @@ fn run_native_helper(
             )));
         }
     };
+    let mut child = SupervisedHelperChild::new(child, job, &cancel_file);
     // 8.3c：**在 helper 仍然存活时**捕获它的实例身份——这是唯一捕获点，复用既有能力
     // （`capture_process_identity`），**不新增第二条捕获路径**。
     // 必须在派发前捕获：进程退出后取不到身份，那时再"补一个"就等于编造。
     // pid + 创建时间构成最小身份；同 pid 不同创建时间 ⇒ 不是同一实例（PID 复用可识别）。
-    let helper_process = windows_process_guard::capture_process_identity(child.id())
-        .ok()
-        .map(|identity| runtime::ProcessInstanceEvidence {
+    let helper_identity = windows_process_guard::capture_child_process_identity(&child).ok();
+    let helper_process = helper_identity.as_ref().map(|identity| runtime::ProcessInstanceEvidence {
             pid: identity.pid(),
             creation_time_filetime: identity.creation_time_filetime(),
         });
@@ -3556,6 +3590,7 @@ fn run_native_helper(
     let mut reply_received_at_ms: Option<u64> = None;
     // 轮询期间是否**已经看到**成功标记（增量、不依赖 EOF）。
     let mut marker_seen_during_poll = false;
+    let mut authorization_error = None;
     loop {
         match child.try_wait() {
             Ok(Some(status)) => {
@@ -3571,6 +3606,13 @@ fn run_native_helper(
                 exit_confirmed = killed && child.wait().is_ok();
                 helper_exited_ok = false;
                 break;
+            }
+        }
+        if authorization_error.is_none() {
+            if let (Some(prepared), Some(authorization)) = (prepared.as_mut(), authorization) {
+                if let Err(error) = prepared.poll(authorization, helper_identity.as_ref(), &script, cancelled, &mut child) {
+                    authorization_error = Some(error);
+                }
             }
         }
         // 阶段回执：helper 每确认一步都写进度文件；带释放结果的终态记录 = "收到回复"。
@@ -3594,7 +3636,7 @@ fn run_native_helper(
         {
             marker_seen_during_poll = true;
         }
-        if cancellation_at.is_none() && (cancelled() || started.elapsed() >= timeout) {
+        if cancellation_at.is_none() && (authorization_error.is_some() || cancelled() || started.elapsed() >= timeout) {
             // 独立哨兵文件只承载取消信号，不接收任何用户代码或命令。
             let _ = std::fs::write(&cancel_file, b"cancel");
             cancellation_at = Some(Instant::now());
@@ -3666,6 +3708,7 @@ fn run_native_helper(
         obligation: obligation.clone(),
         // 上面在 spawn 成功后捕获的真实身份；捕获不到就是 None（不编造）。
         helper_process: helper_process.clone(),
+        execute_notified: prepared.as_ref().map(|prepared| prepared.notified),
         facts: facts.clone(),
         fact_anomaly: fact_anomaly.clone(),
         reply_received_at_ms,
@@ -3739,6 +3782,19 @@ fn run_native_helper(
         pipe: Some(pipe_facts),
     });
     let outcome = derivation;
+    if let Some(authorization) = authorization {
+        if let Err(error) = authorization.completed(&NativeInputCompletion {
+            request_id: nonce.clone(), process: helper_process,
+            execute_notified: prepared.as_ref().is_some_and(|prepared| prepared.notified),
+            process_exit_confirmed: exit_confirmed,
+            input_release: outcome.release_status(),
+            trusted_final: outcome.facts.as_ref().is_some_and(|facts| facts.phase == HelperFactPhase::Final),
+            error: authorization_error.clone().or_else(|| (!helper_exited_ok).then(|| stderr_text.trim().to_string())),
+        }) { authorization_error = Some(format!("输入完成对账失败: {error}")); }
+    }
+    if let Some(error) = authorization_error {
+        return Err(NativeInputFailure::after_input(format!("input_authorization_failed: {error}"), obligation.clone(), outcome));
+    }
     // 第五步：最终分类 —— 安全收尾维度（未结清）与原始原因维度分别保留，不互相覆盖。
     if cause == NativeInputFailureCause::StillRunning {
         return Err(native_stillness_failure(obligation, outcome));
@@ -3760,6 +3816,8 @@ fn run_native_helper(
     _cancelled: &dyn Fn() -> bool,
     _mock_scenario: Option<&str>,
     _backend: InputBackend,
+    _capacity: NativeRunCapacity,
+    _authorization: Option<&dyn NativeInputAuthorization>,
 ) -> Result<NativeInputOutcome, NativeInputFailure> {
     Err(NativeInputFailure::before_input("受控原生输入仅支持 Windows"))
 }
@@ -3856,9 +3914,97 @@ fn native_emergency_release(
         // 宁可如实报"这次补发拿不到读取器容量"，也不把容量账目搅乱。
         None => return Err("cleanup_reader_capacity_unavailable: 独立释放没有可用的清理预留".to_string()),
     };
-    run_native_helper(request, obligation, wait, &|| false, mock_scenario, backend, capacity)
+    run_native_helper(request, obligation, wait, &|| false, mock_scenario, backend, capacity, None)
         .map(|_| ())
         .map_err(|failure| failure.message)
+}
+
+/// 固定的受控原生 helper：C# 驱动与步骤引擎。
+#[cfg(all(test, windows))]
+mod prepared_binding_tests {
+    use super::*;
+
+    struct Port {
+        deny: bool,
+        fail_after_notify: bool,
+        expiry_budget_ms: Option<u64>,
+        seen: std::cell::RefCell<Option<runtime::ProcessInstanceEvidence>>,
+        completion: std::cell::RefCell<Option<NativeInputCompletion>>,
+    }
+
+    impl NativeInputAuthorization for Port {
+        fn authorize(&self, prepared: &PreparedNativeInput) -> Result<NativeInputPermit, String> {
+            assert!(prepared.process.is_identifying());
+            assert!(prepared.helper.script_or_program_digest.starts_with("sha256:"));
+            assert!(prepared.deadline_unix_ms > prepared.ready_at_unix_ms);
+            self.seen.replace(Some(prepared.process));
+            if self.deny { return Err("测试宿主拒绝".into()) }
+            Ok(NativeInputPermit { permit_id: "test-permit".into(), attempt_id: "test-attempt".into(), executor_instance_id: "test-executor".into(), expires_at_unix_ms: self.expiry_budget_ms.map_or(prepared.deadline_unix_ms, |ms| crate::cleanup::unix_ms().saturating_add(ms)) })
+        }
+        fn dispatch(&self, _: &PreparedNativeInput, _: &NativeInputPermit, notify: &mut dyn FnMut() -> Result<(), String>) -> Result<(), String> {
+            notify()?;
+            assert!(notify().is_err(), "通知能力不可复用");
+            if self.fail_after_notify { Err("测试提交后断链".into()) } else { Ok(()) }
+        }
+        fn completed(&self, completion: &NativeInputCompletion) -> Result<(), String> {
+            self.completion.replace(Some(NativeInputCompletion {
+                request_id: completion.request_id.clone(), process: completion.process,
+                execute_notified: completion.execute_notified,
+                process_exit_confirmed: completion.process_exit_confirmed,
+                input_release: completion.input_release,
+                trusted_final: completion.trusted_final,
+                error: completion.error.clone(),
+            }));
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn prepared_native_binding_denial_success_and_committed_failure_keep_real_identity() {
+        for (deny, fail_after_notify) in [(true, false), (false, false), (false, true)] {
+            let port = Port { deny, fail_after_notify, expiry_budget_ms: None, seen: Default::default(), completion: Default::default() };
+            let cancelled = || false;
+            let attempt = NativeInputAttempt::without_identity(&cancelled).with_authorization(&port);
+            let result = native_run_with_mock("text", serde_json::json!({"text":"A"}), &ReleaseObligation::none(), &attempt, Duration::from_secs(20), "success");
+            let identity = port.seen.borrow().expect("真实 helper 已 READY 后才授权");
+            let completion = port.completion.borrow();
+            let completion = completion.as_ref().expect("必须结算执行者");
+            assert_eq!(completion.process, Some(identity));
+            assert!(completion.process_exit_confirmed);
+            assert_eq!(completion.execute_notified, !deny);
+            if deny {
+                let failure = result.expect_err("拒绝必须终止 helper");
+                assert!(!failure.input_possible);
+                assert!(failure.message.contains("测试宿主拒绝"));
+                assert_eq!(failure.release_status(), InputReleaseStatus::NotNeeded);
+                assert_eq!(failure.outcome.helper_process, Some(identity));
+            } else if fail_after_notify {
+                let failure = result.expect_err("通知后断链不能回滚成未通知");
+                assert_eq!(failure.outcome.execute_notified, Some(true));
+                assert_eq!(failure.outcome.helper_process, Some(identity));
+            } else {
+                let outcome = result.expect("授权后的内存输入应成功");
+                assert_eq!(outcome.execute_notified, Some(true));
+                assert_eq!(outcome.helper_process, Some(identity));
+                assert!(completion.trusted_final);
+            }
+        }
+    }
+
+    #[test]
+    fn prepared_native_stops_at_host_expiry_after_execute_notification() {
+        let port = Port { deny: false, fail_after_notify: false, expiry_budget_ms: Some(500), seen: Default::default(), completion: Default::default() };
+        let cancelled = || false;
+        let attempt = NativeInputAttempt::without_identity(&cancelled).with_authorization(&port);
+        // 真 helper + 内存驱动：4000 次输入需要超过 500ms，宿主总超时仍有 20s。
+        let result = native_run_with_mock("text", serde_json::json!({"text":"A".repeat(4000)}), &ReleaseObligation::none(), &attempt, Duration::from_secs(20), "success");
+        let failure = result.expect_err("宿主许可提前到期必须在 helper 内停止");
+        assert!(failure.message.contains("permit expired"), "{}", failure.message);
+        let completion = port.completion.borrow();
+        let completion = completion.as_ref().expect("helper 必须完成真实对账");
+        assert!(completion.execute_notified && completion.process_exit_confirmed && completion.trusted_final);
+        assert_eq!(completion.process, *port.seen.borrow());
+    }
 }
 
 /// 固定的受控原生 helper：C# 驱动与步骤引擎。
@@ -3869,6 +4015,7 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
  using System.Diagnostics;
  using System.Runtime.InteropServices;
  using System.Collections.Generic;
+ public static class Deadline { public static long At; public static void Check(){if(At>0&&DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()>=At)throw new Exception("stroke_cancelled: permit expired");} }
  public interface Driver {
   void Check();
   void MoveTo(int x, int y);
@@ -3962,6 +4109,7 @@ const NATIVE_INPUT_HELPER_CS: &str = r#"namespace CoolzhuNative {
   }
   // 取消一律用既有失败码 stroke_cancelled（不新造分类）；身份不匹配用 stale_observation。
   public virtual void Check() {
+   Deadline.Check();
    if (!String.IsNullOrEmpty(cancel) && File.Exists(cancel)) throw new Exception("stroke_cancelled: 受控原生输入已被取消");
    if ((GetAsyncKeyState(0x1B) & 0x8000) != 0) throw new Exception("stroke_cancelled: Escape 已按下");
    if (watchdogMs > 0 && watch.ElapsedMilliseconds > watchdogMs) throw new Exception("stroke_cancelled: helper 自守望超时");
@@ -4385,10 +4533,19 @@ $driver = [CoolzhuNative.Drivers]::Create(
  $targetDpi)
 if($sp[2]){Start-Sleep -Milli ([int]$sp[2])}
 $progress = New-Object CoolzhuNative.FileProgress ([string]$r.progress_file, [string]$r.request_id)
-# 8.3c-A Phase 1：两相生命周期（opt-in；$r.two_phase_helper 默认不存在 ⇒ 绝不执行）。
+# 正式输入由宿主启用两相授权；诊断夹具仍可直接验证底层输入引擎。
 if($r.two_phase_helper){$q=[string]$r.ready_file;$m=[string]$r.permit_file;$n=[string]$r.two_phase_nonce
-if($q){[IO.File]::WriteAllText($q,'{"type":"ready","helper_protocol_version":1,"nonce":"'+$n+'","pid":'+$PID+',"timestamp_unix_ms":'+[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()+'}')
-$w=1;while($w){if(Test-Path -LiteralPath ([string]$r.cancel_file)){$w=0}elseif($m -and (Test-Path -LiteralPath $m)){if(([IO.File]::ReadAllText($m)) -like ('*"'+$n+'"*')){$w=0}else{exit 4}}else{Start-Sleep -Milli 20}}}}
+function DenyInput($e){$progress.Report('final',$false,0,$false,@(),@(),$false,$true);throw $e}
+if(!$q -or !$m -or !$n){DenyInput 'rejected_permit: missing handshake fields'}
+$t=[Diagnostics.Stopwatch]::StartNew()
+[IO.File]::WriteAllText($q+'.tmp',(@{type='ready';helper_protocol_version=1;nonce=$n;pid=$PID;timestamp_unix_ms=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()}|ConvertTo-Json -Compress));[IO.File]::Move($q+'.tmp',$q)
+while($true){if((Test-Path -LiteralPath ([string]$r.cancel_file)) -or $t.ElapsedMilliseconds -ge [long]$r.self_watchdog_ms){DenyInput 'stroke_cancelled: awaiting permit'}
+if($r.input_deadline_unix_ms -and [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() -ge [long]$r.input_deadline_unix_ms){DenyInput 'stroke_cancelled: permit expired'}
+if(Test-Path -LiteralPath $m){try{$v=[IO.File]::ReadAllText($m)|ConvertFrom-Json}catch{DenyInput 'rejected_permit: invalid JSON'}
+if($v.type -cne 'execute' -or $v.nonce -cne $n -or [string]::IsNullOrWhiteSpace($v.permit_id) -or [string]::IsNullOrWhiteSpace($v.attempt_id)){DenyInput 'rejected_permit: invalid session'}
+if($r.input_deadline_unix_ms -and [string]::IsNullOrWhiteSpace($v.executor_instance_id)){DenyInput 'rejected_permit: missing executor'}
+if($r.input_deadline_unix_ms){if(!$v.expires_at_unix_ms){DenyInput 'rejected_permit: missing expiry'};[CoolzhuNative.Deadline]::At=[Math]::Min([long]$r.input_deadline_unix_ms,[long]$v.expires_at_unix_ms);[CoolzhuNative.Deadline]::Check()}
+break};Start-Sleep -Milli 20}}
 if($sp[1]){$null=ni $sp[1]}
 $keys = if ($null -ne $p.keys) { [int[]]$p.keys } else { $null }
 [CoolzhuNative.Engine]::Run(
@@ -6303,61 +6460,141 @@ foreach($mode in @(0,1,2,3)) {{
             assert_eq!(receipt.input_release, InputReleaseStatus::Released);
         }
 
-        /// 真实受控 helper 的成功路径：**收到回复**与**子进程结束**分别记录。
-                /// **T6-A**：`READY != 授权`——进入两相等待态后**没有任何 permit**，
-        /// 无论等多久都**不得**产生物理输入（`injected_steps == 0`）。
-        ///
-        /// 这是 Phase 1 的核心主张："helper 可以安全地活着等待授权"。
-        /// 用 mock 驱动（不驱动真实鼠标键盘）；观测用既有 `outcome.facts()`，**不新增观测管道**。
-        #[test]
+        /// 真实 helper 的两相夹具：READY 由既有解析器验证，输入由内存驱动执行。
+        /// 写入的是测试通知，不据此宣称生产 PermitGate / ExecutorStore 已接通。
         #[cfg(windows)]
-        fn t6_a_helper_waits_without_any_physical_input() {
+        fn run_two_phase_case(
+            label: &str,
+            nonce: &str,
+            permit_nonce: Option<&str>,
+        ) -> Result<NativeInputOutcome, NativeInputFailure> {
+            // 父线程在等待 READY 前预留这一 helper 的测试容量，并借给子线程。
+            // 否则子线程可能在进程级容量闸门排队超过握手时限。
+            let _handshake_slot = test_pipe_reader_capacity_slot(NATIVE_RUN_READER_UNITS);
             let directory = tempfile::TempDir::new().expect("tempdir");
             let ready_file = directory.path().join("ready.json");
             let permit_file = directory.path().join("permit.json");
-            let cancelled = || false;
-            let attempt = attempt_without_identity(&cancelled);
-            let obligation = text_release_obligation(InputBackend::SendInput);
             let options = TwoPhaseHelperTestOptions {
-                // 测试**自己生成并记住** nonce（不读 READY 反推）。
-                two_phase_nonce: "session-A".to_string(),
+                two_phase_nonce: nonce.to_string(),
                 ready_file: ready_file.clone(),
-                permit_file,
+                permit_file: permit_file.clone(),
             };
-            let outcome = native_run_with_mock_two_phase(
-                "text",
-                serde_json::json!({"text": "abc"}),
-                &obligation,
-                &attempt,
-                Duration::from_secs(6),
-                "slow_steps",
-                &options,
-            );
-            // ① **零输入**：无论 helper 是超时退出还是被收尾，都不得发生任何注入。
-            let injected = outcome
-                .as_ref()
-                .ok()
-                .and_then(|value| value.facts())
-                .map_or(0, |facts| facts.injected_steps);
-            assert_eq!(
-                injected, 0,
-                "无 permit 时不得产生任何物理输入（injected_steps 必须为 0）"
-            );
-            // ② READY 必须**真的被写过**：证明 helper 进入了等待态，
-            //    而不是"根本没起来"（否则上面那条断言会因为没有进程而空洞成立）。
-            assert!(
-                ready_file.exists(),
-                "两相模式下 helper 必须先写 READY（否则本用例证明不了等待态存在）"
-            );
-            let ready = std::fs::read_to_string(&ready_file).expect("READY 可读");
-            assert!(
-                ready.contains("session-A"),
-                "READY 必须携带**本次会话**的 two_phase_nonce，实际：{ready}"
-            );
-            // ③ 没有 permit 文件被消费（测试没写它）。
-            assert!(!directory.path().join("permit.json").exists());
+            let (ready, result) = std::thread::scope(|threads| {
+                let helper = threads.spawn(|| {
+                    PIPE_READER_TEST_HELD.with(|held| held.set(NATIVE_RUN_READER_UNITS));
+                    let cancelled = || false;
+                    let attempt = attempt_without_identity(&cancelled);
+                    native_run_with_mock_two_phase(
+                        "text",
+                        serde_json::json!({"text": "abc"}),
+                        &text_release_obligation(InputBackend::SendInput),
+                        &attempt,
+                        Duration::from_secs(if permit_nonce.is_some() { 30 } else { 12 }),
+                        // 故意使用不合作驱动，证明拒绝靠许可闸门本身而非引擎补查取消。
+                        "slow_steps",
+                        &options,
+                    )
+                });
+                let ready = crate::helper_ready::await_helper_ready(
+                    &ready_file, nonce, Duration::from_secs(60),
+                );
+                if let (crate::helper_ready::ReadyOutcome::Ready { .. }, Some(permit_nonce)) =
+                    (&ready, permit_nonce)
+                {
+                    let temporary = directory.path().join("permit.partial");
+                    // 错 nonce 用例的另一个字段仍含正确 nonce，可抓住旧 substring 校验漏洞。
+                    let signal = serde_json::json!({
+                        "type": "execute", "permit_id": "test-only",
+                        "attempt_id": nonce, "nonce": permit_nonce,
+                    });
+                    std::fs::write(&temporary, signal.to_string()).expect("写测试通知");
+                    std::fs::rename(temporary, &permit_file).expect("原子发布测试通知");
+                }
+                let result = helper.join().expect("helper 测试线程不得崩溃");
+                (ready, result)
+            });
+            let signal = match ready {
+                crate::helper_ready::ReadyOutcome::Ready { signal, .. } => signal,
+                other => panic!("{label}: 没有合法 READY：{other:?}；helper={result:#?}"),
+            };
+            let observed = match &result { Ok(value) => value, Err(failure) => &failure.outcome };
+            eprintln!("{label}: ready_pid={} nonce={} outcome={observed:#?}", signal.pid, signal.nonce);
+            assert!(observed.stillness_confirmed(), "{label}: 必须确认自己创建的 helper 已退出");
+            assert!(observed.fact_anomaly.is_none(), "{label}: 回执不得被解析器拒绝");
+            let process = observed.helper_process.as_ref().expect("必须捕获真实实例身份");
+            assert_eq!(signal.pid, process.pid, "READY 与已捕获实例必须一致");
+            let facts = observed.facts().expect("Err 或缺回执不等于零输入，必须有可信事实");
+            assert_eq!(facts.protocol, HELPER_FACT_PROTOCOL_V2);
+            assert_eq!(facts.phase, HelperFactPhase::Final);
+            let request_id = facts.request_id.as_deref().expect("必须有真实请求身份");
+            assert!(!request_id.is_empty());
+            assert_ne!(request_id, nonce, "B128-T1：progress 使用 request_id，READY 使用独立 nonce");
+            assert!(facts.armed_buttons.is_empty() && facts.armed_keys.is_empty());
+            assert_eq!(facts.released, Some(true));
+            result
         }
 
+        #[cfg(windows)]
+        fn assert_handshake_refused(result: Result<NativeInputOutcome, NativeInputFailure>, code: &str) {
+            let failure = result.expect_err("未获合法通知必须失败，不能执行后再报失败");
+            assert!(failure.message.contains(code), "错误原因不符：{}", failure.message);
+            let facts = failure.facts().expect("拒绝也必须有可信终态输入事实");
+            assert_eq!(facts.injected_steps, 0, "拒绝前后均不得注入");
+            assert_eq!(facts.cursor_moved, Some(false));
+            assert!(!facts.completed, "未执行不得称序列完成");
+            assert!(!facts.pressed);
+            assert_eq!(failure.release_status(), InputReleaseStatus::NotNeeded);
+            assert!(!failure.must_quarantine(), "已证明零输入且退出，无需制造隔离事故");
+        }
+
+        #[test]
+        #[cfg(windows)]
+        fn b128_t1_helper_keeps_request_id_distinct_from_handshake_nonce() {
+            let result = run_two_phase_case("B128-T1", "b128-session", Some("b128-session"));
+            let outcome = result.expect("正确通知应成功");
+            assert_eq!(outcome.facts().expect("facts").injected_steps, 3);
+        }
+
+        #[test]
+        #[cfg(windows)]
+        fn t11_helper_rejects_a_previous_sessions_permit() {
+            run_two_phase_case("T11-A", "previous-session-A", Some("previous-session-A"))
+                .expect("先完成真实会话 A");
+            assert_handshake_refused(
+                run_two_phase_case("T11-B", "current-session-B", Some("previous-session-A")),
+                "rejected_permit",
+            );
+        }
+
+        #[test]
+        #[cfg(windows)]
+        fn t6_a_helper_waits_without_any_physical_input() {
+            assert_handshake_refused(
+                run_two_phase_case("T6-A", "without-permit", None), "stroke_cancelled",
+            );
+        }
+
+        #[test]
+        #[cfg(windows)]
+        fn t6_b_helper_rejects_wrong_nonce_before_input() {
+            assert_handshake_refused(
+                run_two_phase_case("T6-B", "expected-session", Some("foreign-session")),
+                "rejected_permit",
+            );
+        }
+
+        #[test]
+        #[cfg(windows)]
+        fn t6_c_helper_executes_only_after_matching_test_permit() {
+            let outcome = run_two_phase_case("T6-C", "permitted-session", Some("permitted-session"))
+                .expect("合法测试通知应允许内存驱动执行");
+            let facts = outcome.facts().expect("facts");
+            assert_eq!(facts.injected_steps, 3);
+            assert!(facts.completed);
+            assert!(outcome.reply_received());
+        }
+
+        /// 真实受控 helper 的成功路径：**收到回复**与**子进程结束**分别记录。
 #[test]
         #[cfg(windows)]
         fn real_helper_success_reports_reply_and_exit_separately() {
@@ -6396,6 +6633,7 @@ foreach($mode in @(0,1,2,3)) {{
         fn unconfirmed_stillness_is_quarantined_and_never_reported_as_released() {
             let obligation = ReleaseObligation::mouse_buttons(&[MouseButton::Left]);
             let outcome = NativeInputOutcome {
+                execute_notified: None,
                 obligation: obligation.clone(),
                 // 测试构造：本用例不涉及实例身份（真实捕获在 run_native_helper 的 spawn 之后）。
                 helper_process: None,
@@ -6452,6 +6690,7 @@ foreach($mode in @(0,1,2,3)) {{
         fn missing_helper_receipt_keeps_unknown_delivery_and_no_invented_release() {
             let obligation = ReleaseObligation::mouse_buttons(&[MouseButton::Left]);
             let outcome = NativeInputOutcome {
+                execute_notified: None,
                 obligation: obligation.clone(),
                 // 测试构造：本用例不涉及实例身份（真实捕获在 run_native_helper 的 spawn 之后）。
                 helper_process: None,

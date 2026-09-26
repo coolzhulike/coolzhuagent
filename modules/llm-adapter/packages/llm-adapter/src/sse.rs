@@ -4,6 +4,7 @@ use crate::types::{MessageStartEvent, StreamEvent};
 #[derive(Debug, Default)]
 pub struct SseParser {
     buffer: Vec<u8>,
+    usage_evidence: crate::UsageEvidence,
     /// **连接级兼容位**（COMPAT-ID §2.3）：允许流式 `message_start.message.id` 缺失。
     ///
     /// 流式必须与**非流式**分开验（裁决 §2.5）：起始事件里的 Message 对象带的是同一个顶层
@@ -23,6 +24,7 @@ impl SseParser {
     pub fn with_allow_missing_top_level_message_id(allow: bool) -> Self {
         Self {
             buffer: Vec::new(),
+            usage_evidence: crate::UsageEvidence::default(),
             allow_missing_top_level_message_id: allow,
         }
     }
@@ -32,6 +34,7 @@ impl SseParser {
         let mut events = Vec::new();
 
         while let Some(frame) = self.next_frame() {
+            self.usage_evidence.merge(crate::UsageEvidence::anthropic_frame(&frame));
             if let Some(event) = parse_frame_with_compat(&frame, self.allow_missing_top_level_message_id)?
             {
                 events.push(event);
@@ -47,6 +50,7 @@ impl SseParser {
         }
 
         let trailing = std::mem::take(&mut self.buffer);
+        self.usage_evidence.merge(crate::UsageEvidence::anthropic_frame(&String::from_utf8_lossy(&trailing)));
         match parse_frame_with_compat(
             &String::from_utf8_lossy(&trailing),
             self.allow_missing_top_level_message_id,
@@ -55,6 +59,8 @@ impl SseParser {
             None => Ok(Vec::new()),
         }
     }
+
+    pub fn usage_evidence(&self) -> crate::UsageEvidence { self.usage_evidence }
 
     fn next_frame(&mut self) -> Option<String> {
         let separator = self

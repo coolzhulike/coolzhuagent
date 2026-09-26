@@ -11,7 +11,7 @@ use computer_use::{
     ComputerUseEventSink, ComputerUsePlanner, ComputerUseRequest, ComputerUseResult,
     ComputerUseRetryOwner, ComputerUseRiskClass, ComputerUseRunContext, ComputerUseRunState,
     ComputerUseStage, ComputerUseSurface, ComputerUseTerminalStatus, CuBudgetFacts, CuDeadline,
-    Observation, PlannerFuture, StepExecution, SupervisorSnapshot, TaskIdempotencyKey, Verification,
+    Observation, PlannerFuture, RootDeadline, StepExecution, SupervisorSnapshot, TaskIdempotencyKey, Verification,
 };
 use serde_json::Value as JsonValue;
 
@@ -73,6 +73,16 @@ impl ComputerUseAdapter for DynComputerUseAdapter {
     ) -> Result<Verification, ComputerUseError> {
         self.0.verify(criteria, before, after, remaining)
     }
+
+    fn act_authorized(
+        &self,
+        action: &ComputerUseAction,
+        expected_generation: u64,
+        remaining: std::time::Duration,
+        authorization: &dyn computer_use::prepared_input::NativeInputAuthorization,
+    ) -> Result<StepExecution, ComputerUseError> {
+        self.0.act_authorized(action, expected_generation, remaining, authorization)
+    }
 }
 
 struct TraceState {
@@ -128,6 +138,7 @@ struct TracingAdapter<'a> {
     /// 缺它 ⇒ 无法构造动作身份 ⇒ 来源核对必然失败 ⇒ **输入前拒绝**（fail-closed）：
     /// 宁可不动手，也不写一条"来源说不清"的事实。
     conversation: Option<runtime::RunScopeContext>,
+    goal_parent: Option<crate::goal_execution_parent::FrozenGoalPhaseParent>,
     /// **外层工具调用 id**（`provider_tool_call_id`）：CU 动作是由这次工具调用承载的，
     /// 因此它是动作身份里 `tool_call_id` 维度的**真实**取值（运行接纳时已记录）。
     ///
@@ -144,6 +155,12 @@ struct TracingAdapter<'a> {
     cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
     #[cfg(windows)]
     input_lease: Option<&'a windows_process_guard::ScopedInputOwnership<'static>>,
+    #[cfg(windows)]
+    input_safety_root: Option<std::path::PathBuf>,
+    #[cfg(windows)]
+    input_owner_id: String,
+    #[cfg(windows)]
+    input_deadline_unix_ms: u64,
 }
 
 impl ComputerUseAdapter for TracingAdapter<'_> {
@@ -262,46 +279,47 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
         self.store
             .record_step(&step, &action_json)
             .map_err(persistence_error)?;
-        // 复检与派发进入**同一 broker 序列化边界**：上面的 `record_step` 是落库（可能长时间
-        // 等待），必须在边界之外完成，否则又回到"复检通过 → 等待 → 已撤销 → 仍派发"的交错。
+        // helper 的启动、READY 等待和数据库授权都在 lease 临界区之外。
+        // 宿主端口只在真正通知 helper 执行的一刻持短 lease；收尾等待也不阻塞撤销。
         #[cfg(windows)]
-        let dispatched = match self.input_lease {
-            Some(lease) => {
-                // 守卫约定：`check()` 返回 **true 表示允许派发**，false 表示拒绝
-                // （见 `InputDispatchGuard::new` 的文档）；这里两条都是"允许条件"。
-                let not_cancelled = || !(self.cancelled)();
-                let has_execution_budget = || !remaining.is_zero();
-                let guards = [
-                    windows_process_guard::InputDispatchGuard::new("cancelled", &not_cancelled),
-                    windows_process_guard::InputDispatchGuard::new(
-                        "execution_budget_exhausted",
-                        &has_execution_budget,
-                    ),
-                ];
-                // 隔离 / 恢复中状态在**运行接纳时**已由未确认释放互锁把关；此处不查库——
-                // 边界内出现 DB 查询这类长等待，会重新制造本边界要消除的交错窗口。
-                lease.dispatch_if_current(&guards, || {
-                    self.inner.act(action, expected_generation, remaining)
-                })
+        let result = match (self.input_lease, self.input_safety_root.as_ref()) {
+            (Some(lease), Some(root)) => {
+                use sha2::{Digest, Sha256};
+                let frozen_action = serde_json::to_vec(action).map_err(persistence_error)?;
+                let scope = runtime::InputSafetyResourceScope::parse(lease.scope())
+                    .map_err(|error| persistence_error(format!("input resource scope: {error:?}")))?;
+                let context = crate::native_input_authorization::NativeInputAuthorizationContext {
+                    root: root.clone(),
+                    scope,
+                    owner_id: self.input_owner_id.clone(),
+                    action_id: expected_action_id.clone(),
+                    frozen_action_digest: format!("sha256:{:x}", Sha256::digest(&frozen_action)),
+                    observation_generation: expected_generation,
+                    step_identity: format!("{}:step-{index}", self.call_id),
+                    deadline_unix_ms: self.input_deadline_unix_ms.min(now_ms().saturating_add(
+                        remaining.as_millis().min(u128::from(u64::MAX)) as u64,
+                    )),
+                };
+                match crate::native_input_authorization::HostNativeInputAuthorization::new(
+                    context, lease, &*self.cancelled,
+                ) {
+                    Ok(port) => {
+                        if let Some(parent) = self.goal_parent.as_ref() {
+                            let goal_port = crate::goal_execution_parent::GoalNativeAuthorization { parent, inner: &port };
+                            self.inner.act_authorized(action, expected_generation, remaining, &goal_port)
+                        } else { self.inner.act_authorized(action, expected_generation, remaining, &port) }
+                    },
+                    Err(reason) => Err(ComputerUseError::blocked(
+                        "native_input_authorization_unavailable", reason, ComputerUseRetryOwner::None,
+                    )),
+                }
             }
-            None => Ok(self.inner.act(action, expected_generation, remaining)),
+            // 浏览器适配器没有桌面输入；真实原生 bridge 的无端口调用在 core 中明确拒绝。
+            // 正式 CU 入口在接纳时已检查宿主根，不能从这里补造许可或进程身份。
+            _ => self.inner.act(action, expected_generation, remaining),
         };
         #[cfg(not(windows))]
-        let dispatched = Ok(self.inner.act(action, expected_generation, remaining));
-        let result = match dispatched {
-            Ok(result) => result,
-            Err(refusal) => {
-                let error = input_dispatch_refusal_error(&refusal, remaining);
-                // 边界拒绝发生在步骤行落库之后：**修正该行**，不留"执行中"的陈旧记录。
-                step.status = "input_not_sent".into();
-                step.error_code = Some(error.code.clone());
-                step.completed_at_ms = Some(now_ms());
-                self.store
-                    .record_step(&step, &action_json)
-                    .map_err(|_| persistence_error("step correction after dispatch refusal"))?;
-                return Err(error);
-            }
-        };
+        let result = self.inner.act(action, expected_generation, remaining);
         step.completed_at_ms = Some(now_ms());
         match &result {
             Ok(execution) => {
@@ -421,14 +439,14 @@ impl TracingAdapter<'_> {
         action_id: &str,
         step_index: usize,
     ) -> Result<(runtime::RunIdentity, runtime::ActionOrigin), ComputerUseError> {
-        let Some(scope) = self.conversation.clone() else {
+        if self.conversation.is_none() && self.goal_parent.is_none() {
             return Err(self.reject_action_origin(
                 action_id,
                 step_index,
                 "missing_conversation_scope",
                 "接纳时没有冻结的四维会话上下文（工作区/房间/会话/公开轮次）：无法构造动作身份",
             ));
-        };
+        }
         // 规划请求身份只能来自 planner 自己的记录（trait 文档：不得用 provider trace、
         // 外层 computer_use_perform 的 call id 或"最近一次请求"顶替）。
         let attempt = self
@@ -450,14 +468,20 @@ impl TracingAdapter<'_> {
         self.store
             .bind_plan_attempt_action(&attempt.stable_key(), action_id)
             .map_err(persistence_error)?;
-        let authority = crate::action_origin_authority::ProductionActionOriginAuthority::for_store(
+        let mut authority = crate::action_origin_authority::ProductionActionOriginAuthority::for_store(
             self.store,
             &self.call_id,
             action_id,
-            Some(scope.clone()),
+            self.conversation.clone(),
         )
         .map_err(persistence_error)?;
-        let identity = scope
+        let (mut identity, mut context) = if let Some(parent) = self.goal_parent.as_ref() {
+            authority = authority.with_goal_parent(self.store, &self.call_id, parent).map_err(|detail|
+                self.reject_action_origin(action_id, step_index, "goal_parent_not_current", &detail))?;
+            (parent.action_identity(&self.call_id, &format!("step-{step_index}"), &attempt.stable_key(), action_id,
+                &self.provider_tool_call_id), runtime::ActionContext::GoalPhase(parent.action_context(&self.call_id)))
+        } else {
+        let identity = self.conversation.as_ref().expect("已检查会话上下文")
             .step_action_fact(
                 &self.call_id,
                 format!("step-{step_index}"),
@@ -469,6 +493,17 @@ impl TracingAdapter<'_> {
             .with_tool_call_id(self.provider_tool_call_id.clone());
         let context = runtime::ConversationActionContext::new(identity.clone())
             .map_err(|error| persistence_error(format!("{}: {}", error.code, error.message)))?;
+        (identity, runtime::ActionContext::Conversation(context))
+        };
+        #[cfg(windows)]
+        if let Some(lease) = self.input_lease {
+            identity.owner_epoch = Some(runtime::InputOwnerEpoch::from_host_counter(lease.owner_epoch())
+                .map_err(|error| persistence_error(error.message))?);
+            if matches!(context, runtime::ActionContext::Conversation(_)) {
+                context = runtime::ActionContext::Conversation(runtime::ConversationActionContext::new(identity.clone())
+                    .map_err(|error| persistence_error(error.message))?);
+            }
+        }
         // PR-02B：工具归属由**登记表**决定——有真实登记就**必须**声称（契约对漏传是拒绝的），
         // 没有登记就不声称（契约的 `(None, None)` 通过；凭空声称会被判为伪造）。
         let tool_call_id = authority
@@ -481,7 +516,7 @@ impl TracingAdapter<'_> {
         let origin = runtime::ActionOrigin {
             action_id: action_id.to_string(),
             source: runtime::ActionSource::ModelPlanned,
-            context: runtime::ActionContext::Conversation(context),
+            context,
             request_attempt_id: Some(attempt.stable_key()),
             tool_call_id,
             parent_step_operation: None,
@@ -492,6 +527,10 @@ impl TracingAdapter<'_> {
             host_transform: None,
             additional_causal_refs: Vec::new(),
         };
+        if self.goal_parent.is_some() {
+            runtime::validate_goal_action_projection(&identity, &origin)
+                .map_err(|error| self.reject_action_origin(action_id, step_index, &error.code, &error.message))?;
+        }
         match runtime::admit_action_origin(&origin, &authority) {
             Ok(_) => Ok((identity, origin)),
             Err(error) => Err(self.reject_action_origin(
@@ -579,8 +618,17 @@ impl TracingAdapter<'_> {
                 eprintln!("[cu] cleanup incident registration failed: {incident_id}: {error}");
             }
         }
+        // 迟到结果沿用原 claim 事实，绝不能因 claim 已换代而丢失实际输入回执。
+        let late_goal_reason = self.goal_parent.as_ref().and_then(|parent| parent.validate_live().err());
         self.store
             .record_step_with_facts(step, action_json, |transaction| {
+                if let Some(reason) = &late_goal_reason {
+                    transaction.execute(
+                        "INSERT INTO computer_use_action_origin_rejections (call_id,action_id,step_index,reason_code,reason_detail,physical_input,recorded_at_unix_ms) VALUES (?1,?2,?3,'claim_superseded_late_fact',?4,?5,?6)",
+                        rusqlite::params![self.call_id, origin.action_id, step.step_index as i64,
+                            format!("迟到事实仍归原 Goal claim；无新输入资格：{reason}"), receipt.may_have_started_input(), now_ms() as i64])
+                        .map_err(|error| error.to_string())?;
+                }
                 let mut facts = runtime::AppendOnlyFactStore::open(
                     crate::fact_log_sqlite::SqliteFactLog::new(transaction),
                 )
@@ -748,6 +796,8 @@ pub(crate) struct ComputerUseExecutor<'a> {
     store: &'a ComputerUseRunStore,
     budgets: ComputerUseBudgets,
     cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
+    root_budget: Option<crate::root_execution_budget::RootExecutionBudget>,
+    goal_parent: Option<crate::goal_execution_parent::FrozenGoalPhaseParent>,
     /// 接纳时冻结的工作区归属。**非 `Option`**：执行器在类型层面无法"没有归属"，
     /// 且构造后没有任何 setter——运行中不存在改写它的入口。
     workspace: CuWorkspaceAttribution,
@@ -777,6 +827,8 @@ impl<'a> ComputerUseExecutor<'a> {
             store,
             budgets,
             cancelled: Arc::new(|| false),
+            root_budget: crate::root_execution_budget::current(),
+            goal_parent: None,
             workspace,
             conversation: None,
             provider_tool_call_id: String::new(),
@@ -847,6 +899,16 @@ impl<'a> ComputerUseExecutor<'a> {
 
     fn with_cancelled(mut self, cancelled: Arc<dyn Fn() -> bool + Send + Sync>) -> Self {
         self.cancelled = cancelled;
+        self
+    }
+
+    pub(crate) fn with_root_budget(mut self, root_budget: Option<crate::root_execution_budget::RootExecutionBudget>) -> Self {
+        self.root_budget = root_budget;
+        self
+    }
+
+    pub(crate) fn with_goal_parent(mut self, parent: crate::goal_execution_parent::FrozenGoalPhaseParent) -> Self {
+        self.goal_parent = Some(parent);
         self
     }
 
@@ -1062,11 +1124,9 @@ impl<'a> ComputerUseExecutor<'a> {
         //
         // 位置是刻意的：这一行早于未确认释放互锁、租约等待、适配器构建与本地模型切换，
         // 也早于初始观察与规划请求。因此这些耗时全部落在同一个预算里，不会被隐藏。
-        // 根 deadline 当前**未接线**：记录写成 `root_deadline_state = not_wired` +
-        // `root_deadline = absent`，这不是"用户选择了无限时间"，只是本项目还没有把根
-        // deadline 接进来。校验锚点见测试
-        // `cu_deadline_is_established_before_interlock_lease_and_observation`。
-        let cu_deadline = CuDeadline::establish_without_root(&self.budgets, now_ms());
+        // 根时限只来自父轮次/Goal 阶段接纳值；未接线的历史测试如实保持 absent。
+        let root = self.root_budget.as_ref().map_or(RootDeadline::Absent, |budget| RootDeadline::at(budget.deadline_unix_ms()));
+        let cu_deadline = CuDeadline::establish(&self.budgets, now_ms(), root);
         if !self.create_run(
             input,
             identity,
@@ -1239,6 +1299,7 @@ impl<'a> ComputerUseExecutor<'a> {
             call_id: identity.call_id.clone(),
             planner: self.planner,
             conversation: self.conversation.clone(),
+            goal_parent: self.goal_parent.clone(),
             provider_tool_call_id: self.provider_tool_call_id.clone(),
             #[cfg(test)]
             plan_attempt_fixture: self.plan_attempt_fixture,
@@ -1250,6 +1311,14 @@ impl<'a> ComputerUseExecutor<'a> {
             cancelled: self.cancelled.clone(),
             #[cfg(windows)]
             input_lease: desktop_input_lease.as_ref(),
+            #[cfg(windows)]
+            input_safety_root: crate::input_safety_store::input_safety_state_root(),
+            #[cfg(windows)]
+            input_owner_id: native_input_owner_id(
+                chat_room_id, Some(identity.turn_id.as_str()), &identity.call_id,
+            ),
+            #[cfg(windows)]
+            input_deadline_unix_ms: self.root_budget.as_ref().map_or(cu_deadline.cu_deadline_ms(), |budget| cu_deadline.cu_deadline_ms().min(budget.effective_protocol_deadline_unix_ms())),
         };
         let event_sink = PersistingEventSink::new(self.store, &identity.call_id);
         let mut controller = ComputerUseController::new(
@@ -1942,7 +2011,9 @@ pub(crate) async fn execute_with_current_runtime(
     let workspace = CuWorkspaceAttribution::from_parent_run(frozen_workspace);
     // 运行库路径同样在**接纳时**定型：本次运行只写这一个库，运行期间切换工作区不会把
     // 后续操作（含房间授权复核）指向另一个库（裁决 T13 的「数据库不变」面）。
-    let admission_db_path = crate::default_session_sqlite_path();
+    let admission_db_path = parent.goal_phase.as_ref().map(|goal| goal.db_path().to_path_buf())
+        .or_else(|| parent.runtime_db_path.clone())
+        .unwrap_or_else(crate::default_session_sqlite_path);
     // A-2 §3 / A2-T5：四维**可信关系核对**。必须在**任何 store 操作与任何原生输入之前**，
     // 且不以"同一结构体字段互相比"代替权威查询。
     if let Err(violation) = crate::validate_frozen_parent_relations(&admission_db_path, parent) {
@@ -1956,6 +2027,12 @@ pub(crate) async fn execute_with_current_runtime(
                 ComputerUseRetryOwner::User,
             ),
         );
+    }
+    if let Some(goal) = parent.goal_phase.as_ref() {
+        if let Err(error) = goal.validate_live() {
+            return terminal_result(identity, ComputerUseSurface::Auto, ComputerUseStage::IntentGuard,
+                ComputerUseError::blocked("goal_parent_not_current", error, ComputerUseRetryOwner::None));
+        }
     }
     // 第八轮 §1.4：**所有正式输入入口**都必须经共享输入安全库检查资源状态。
     // 顺序上排在身份/关系校验**之后**（先确认"是谁在问"，再问"现在能不能输入"），
@@ -2002,6 +2079,8 @@ pub(crate) async fn execute_with_current_runtime(
         }
     };
     let host_cancelled = crate::tool_turn_cancellation_checker(&identity.turn_id);
+    let root_budget = parent.root_budget.clone().or_else(crate::root_execution_budget::current);
+    let cancellation_budget = root_budget.clone();
     let dropped = Arc::new(AtomicBool::new(false));
     struct CancelOnDrop(Arc<AtomicBool>);
     impl Drop for CancelOnDrop {
@@ -2011,7 +2090,7 @@ pub(crate) async fn execute_with_current_runtime(
     }
     let _cancel_on_drop = CancelOnDrop(dropped.clone());
     let cancelled: Arc<dyn Fn() -> bool + Send + Sync> =
-        Arc::new(move || host_cancelled() || dropped.load(Ordering::SeqCst));
+        Arc::new(move || host_cancelled() || dropped.load(Ordering::SeqCst) || cancellation_budget.as_ref().is_some_and(|budget| budget.is_expired()));
     let adapters = ProductionAdapterFactory {
         desktop_enabled: config.desktop.enabled,
         browser_enabled: config.browser.enabled,
@@ -2040,9 +2119,14 @@ pub(crate) async fn execute_with_current_runtime(
         });
     let executor =
         ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets(), workspace)
-            .with_cancelled(cancelled);
+            .with_cancelled(cancelled)
+            .with_root_budget(root_budget);
     let executor = match conversation_scope {
         Some(scope) => executor.with_conversation_scope(scope),
+        None => executor,
+    };
+    let executor = match parent.goal_phase.as_ref() {
+        Some(goal) => executor.with_goal_parent(goal.clone()),
         None => executor,
     };
     let executor = executor.with_provider_tool_call_id(&identity.provider_tool_call_id);
@@ -5002,7 +5086,7 @@ mod tests")
                 .unwrap_or_else(|| panic!("缺少锚点：{needle}"))
         };
 
-        let established = position("CuDeadline::establish_without_root");
+        let established = position("CuDeadline::establish(&self.budgets, now_ms(), root)");
         assert!(
             established < position("match release_interlock_decision("),
             "截止时间必须早于未确认释放互锁（互锁失败会直接终态）"
@@ -5298,8 +5382,7 @@ mod tests")
     #[tokio::test(flavor = "current_thread")]
     async fn switching_the_ui_workspace_mid_run_keeps_workspace_and_database() {
         let _guard = crate::tests::config_test_guard();
-        // 该 run 会真实走到桌面输入边界：与其它桌面 CU 测试共用同一把输入所有权锁。
-        let _desktop_lease = crate::tests::desktop_input_lease_test_guard().await;
+        // 本用例验证冻结的工作区与数据库，使用浏览器表面避免与物理桌面输入锁耦合。
         let directory = tempfile::TempDir::new().unwrap();
         let db_path = directory.path().join("frozen-workspace.sqlite3");
         let store = ComputerUseRunStore::open(&db_path).unwrap();
@@ -5327,11 +5410,11 @@ mod tests")
             "turn-1",
         ))
         .with_provider_tool_call_id(&identity.provider_tool_call_id)
-        .execute(&input("desktop"), &identity)
+        .execute(&input("browser"), &identity)
         .await;
 
         // 运行确实执行到了输入（否则这条测试证明不了"运行中"）。
-        assert_eq!(result.status, ComputerUseTerminalStatus::Succeeded);
+        assert_eq!(result.status, ComputerUseTerminalStatus::Succeeded, "{:?}", result.error);
         assert_eq!(factory.action_count.load(Ordering::SeqCst), 1);
         // 前置条件成立：运行期间"当前工作区"确实已经切到别处。
         assert_eq!(
@@ -5382,10 +5465,15 @@ mod tests")
             admission.contains("parent: Option<&crate::FrozenParentContext>"),
             "接纳入口必须接收父运行的冻结上下文载体（裁决 B-5：不得改回只含 Option<String> 的临时工作区传参）"
         );
+        assert!(
+            admission.contains("parent.runtime_db_path.clone()")
+                && admission.contains(".unwrap_or_else(crate::default_session_sqlite_path)"),
+            "运行库应优先复用父运行冻结路径，仅在缺失时回退默认库"
+        );
         assert_eq!(
-            admission.matches("default_session_sqlite_path()").count(),
+            admission.matches(".unwrap_or_else(crate::default_session_sqlite_path)").count(),
             1,
-            "运行库路径必须只解析一次并冻结（避免运行中切工作区改变库归属）"
+            "运行库路径只能在接纳时确定一次"
         );
     }
 

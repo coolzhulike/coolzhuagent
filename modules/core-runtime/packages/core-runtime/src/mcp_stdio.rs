@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::io;
 use std::path::Path;
 use std::process::Stdio;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -762,11 +762,40 @@ fn mcp_tool_result_summary(tool_name: &str, result: &McpToolCallResult, is_error
 #[derive(Debug)]
 pub struct McpStdioProcess {
     child: Child,
-    stdin: ChildStdin,
+    stdin: Option<ChildStdin>,
     stdout: BufReader<ChildStdout>,
+    tainted: bool,
+    #[cfg(windows)]
+    job: Option<windows_process_guard::ChildProcessJob>,
+}
+
+// I/O future 被取消或协议失败时停止整个子树；半帧不能交给下一请求继续解析。
+struct McpOperation<'a> { process: &'a mut McpStdioProcess, complete: bool }
+impl Drop for McpOperation<'_> {
+    fn drop(&mut self) { if !self.complete { self.process.abort_now(); } }
+}
+impl Drop for McpStdioProcess { fn drop(&mut self) { self.abort_now(); } }
+
+const MAX_MCP_FRAME: usize = 8 * 1024 * 1024;
+const MAX_MCP_HEADERS: usize = 16 * 1024;
+
+async fn bounded_stdio_line(reader: &mut BufReader<ChildStdout>, max: usize) -> io::Result<String> {
+    let mut bytes = Vec::new();
+    (&mut *reader).take(max as u64 + 1).read_until(b'\n', &mut bytes).await?;
+    if bytes.len() > max { return Err(io::Error::new(io::ErrorKind::InvalidData, "MCP 行/帧头超过限制")); }
+    if bytes.last() != Some(&b'\n') { return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "MCP 行/帧头中途结束")); }
+    String::from_utf8(bytes).map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "MCP 帧头不是 UTF-8"))
 }
 
 impl McpStdioProcess {
+    fn ensure_usable(&self) -> io::Result<()> {
+        if self.tainted { Err(io::Error::new(io::ErrorKind::BrokenPipe, "MCP 连接已因取消或协议错误隔离，请重启连接")) } else { Ok(()) }
+    }
+    fn abort_now(&mut self) {
+        self.tainted = true;
+        #[cfg(windows)] self.job.take();
+        let _ = self.child.start_kill();
+    }
     pub fn spawn(transport: &McpStdioTransport) -> io::Result<Self> {
         let mut command = Command::new(&transport.command);
         command
@@ -776,7 +805,9 @@ impl McpStdioProcess {
             .stderr(Stdio::inherit());
         apply_env(&mut command, &transport.env);
 
-        let mut child = command.spawn()?;
+        command.kill_on_drop(true);
+        #[cfg(windows)] let (mut child, job) = windows_process_guard::ChildProcessJob::spawn_managed_async(&mut command)?;
+        #[cfg(not(windows))] let mut child = command.spawn()?;
         let stdin = child
             .stdin
             .take()
@@ -788,17 +819,21 @@ impl McpStdioProcess {
 
         Ok(Self {
             child,
-            stdin,
+            stdin: Some(stdin),
             stdout: BufReader::new(stdout),
+            tainted: false,
+            #[cfg(windows)] job: Some(job),
         })
     }
 
     pub async fn write_all(&mut self, bytes: &[u8]) -> io::Result<()> {
-        self.stdin.write_all(bytes).await
+        self.ensure_usable()?;
+        self.stdin.as_mut().ok_or_else(|| io::Error::new(io::ErrorKind::BrokenPipe, "MCP stdin 已关闭"))?.write_all(bytes).await
     }
 
     pub async fn flush(&mut self) -> io::Result<()> {
-        self.stdin.flush().await
+        self.ensure_usable()?;
+        self.stdin.as_mut().ok_or_else(|| io::Error::new(io::ErrorKind::BrokenPipe, "MCP stdin 已关闭"))?.flush().await
     }
 
     pub async fn write_line(&mut self, line: &str) -> io::Result<()> {
@@ -808,15 +843,10 @@ impl McpStdioProcess {
     }
 
     pub async fn read_line(&mut self) -> io::Result<String> {
-        let mut line = String::new();
-        let bytes_read = self.stdout.read_line(&mut line).await?;
-        if bytes_read == 0 {
-            return Err(io::Error::new(
-                io::ErrorKind::UnexpectedEof,
-                "MCP stdio stream closed while reading line",
-            ));
-        }
-        Ok(line)
+        self.ensure_usable()?;
+        let mut operation = McpOperation { process: self, complete: false };
+        let result = bounded_stdio_line(&mut operation.process.stdout, MAX_MCP_HEADERS).await;
+        operation.complete = result.is_ok(); result
     }
 
     pub async fn read_available(&mut self) -> io::Result<Vec<u8>> {
@@ -827,40 +857,34 @@ impl McpStdioProcess {
     }
 
     pub async fn write_frame(&mut self, payload: &[u8]) -> io::Result<()> {
-        let encoded = encode_frame(payload);
-        self.write_all(&encoded).await?;
-        self.flush().await
+        self.ensure_usable()?;
+        if payload.len() > MAX_MCP_FRAME { return Err(io::Error::new(io::ErrorKind::InvalidInput, "MCP 请求超过 8 MiB 限制")); }
+        let mut operation = McpOperation { process: self, complete: false };
+        operation.process.write_all(&encode_frame(payload)).await?;
+        operation.process.flush().await?; operation.complete = true; Ok(())
     }
 
     pub async fn read_frame(&mut self) -> io::Result<Vec<u8>> {
-        let mut content_length = None;
+        self.ensure_usable()?;
+        let mut operation = McpOperation { process: self, complete: false };
+        let mut content_length = None; let mut header_bytes = 0usize;
         loop {
-            let mut line = String::new();
-            let bytes_read = self.stdout.read_line(&mut line).await?;
-            if bytes_read == 0 {
-                return Err(io::Error::new(
-                    io::ErrorKind::UnexpectedEof,
-                    "MCP stdio stream closed while reading headers",
-                ));
-            }
-            if line == "\r\n" {
-                break;
-            }
-            if let Some(value) = line.strip_prefix("Content-Length:") {
-                let parsed = value
-                    .trim()
-                    .parse::<usize>()
-                    .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
-                content_length = Some(parsed);
+            let line = bounded_stdio_line(&mut operation.process.stdout, MAX_MCP_HEADERS.saturating_sub(header_bytes)).await?;
+            header_bytes += line.len();
+            if line == "\r\n" || line == "\n" { break; }
+            if let Some((name, value)) = line.split_once(':') {
+                if name.eq_ignore_ascii_case("Content-Length") {
+                    if content_length.is_some() { return Err(io::Error::new(io::ErrorKind::InvalidData, "MCP 重复 Content-Length")); }
+                    let parsed = value.trim().parse::<usize>().map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "MCP Content-Length 无效"))?;
+                    if parsed > MAX_MCP_FRAME { return Err(io::Error::new(io::ErrorKind::InvalidData, "MCP 响应超过 8 MiB 限制")); }
+                    content_length = Some(parsed);
+                }
             }
         }
-
-        let content_length = content_length.ok_or_else(|| {
-            io::Error::new(io::ErrorKind::InvalidData, "missing Content-Length header")
-        })?;
+        let content_length = content_length.ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing Content-Length header"))?;
         let mut payload = vec![0_u8; content_length];
-        self.stdout.read_exact(&mut payload).await?;
-        Ok(payload)
+        operation.process.stdout.read_exact(&mut payload).await?;
+        operation.complete = true; Ok(payload)
     }
 
     pub async fn write_jsonrpc_message<T: Serialize>(&mut self, message: &T) -> io::Result<()> {
@@ -870,9 +894,12 @@ impl McpStdioProcess {
     }
 
     pub async fn read_jsonrpc_message<T: DeserializeOwned>(&mut self) -> io::Result<T> {
-        let payload = self.read_frame().await?;
-        serde_json::from_slice(&payload)
-            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))
+        self.ensure_usable()?;
+        let mut operation = McpOperation { process: self, complete: false };
+        let payload = operation.process.read_frame().await?;
+        let parsed = serde_json::from_slice(&payload)
+            .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "MCP 响应 JSON 无效"));
+        operation.complete = parsed.is_ok(); parsed
     }
 
     pub async fn send_request<T: Serialize>(
@@ -892,9 +919,32 @@ impl McpStdioProcess {
         method: impl Into<String>,
         params: Option<TParams>,
     ) -> io::Result<JsonRpcResponse<TResult>> {
-        let request = JsonRpcRequest::new(id, method, params);
-        self.send_request(&request).await?;
-        self.read_response().await
+        self.ensure_usable()?;
+        let mut operation = McpOperation { process: self, complete: false };
+        let control = crate::managed_process::current_execution_control();
+        if control.as_ref().is_some_and(|control| control.interruption().is_some()) {
+            return Err(io::Error::new(io::ErrorKind::Interrupted, "MCP 根执行已截止，未发送请求"));
+        }
+        let request = JsonRpcRequest::new(id.clone(), method, params);
+        let exchange = async {
+            operation.process.send_request(&request).await?;
+            let response: JsonRpcResponse<TResult> = operation.process.read_response().await?;
+            if response.jsonrpc != "2.0" || response.id != id {
+                return Err(io::Error::new(io::ErrorKind::InvalidData, "MCP 响应身份不匹配，未归入当前请求"));
+            }
+            Ok(response)
+        };
+        let cancelled = async {
+            loop {
+                if control.as_ref().is_some_and(|control| control.interruption().is_some()) { return; }
+                tokio::time::sleep(Duration::from_millis(20)).await;
+            }
+        };
+        let result = tokio::select! {
+            result = tokio::time::timeout(Duration::from_secs(120), exchange) => result.unwrap_or_else(|_| Err(io::Error::new(io::ErrorKind::TimedOut, "MCP 请求超时，连接已停止"))),
+            () = cancelled => Err(io::Error::new(io::ErrorKind::Interrupted, "MCP 根执行已取消或截止")),
+        };
+        operation.complete = result.is_ok(); result
     }
 
     pub async fn initialize(
@@ -938,20 +988,29 @@ impl McpStdioProcess {
     }
 
     pub async fn terminate(&mut self) -> io::Result<()> {
-        self.child.kill().await
+        self.abort_now();
+        tokio::time::timeout(Duration::from_secs(2), self.child.wait()).await
+            .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "MCP 子进程退出仍未确认"))??;
+        Ok(())
     }
 
     pub async fn wait(&mut self) -> io::Result<std::process::ExitStatus> {
-        self.child.wait().await
+        let status = self.child.wait().await?;
+        #[cfg(windows)] self.job.take();
+        Ok(status)
     }
 
     async fn shutdown(&mut self) -> io::Result<()> {
-        if self.child.try_wait()?.is_none() {
-            self.child.kill().await?;
+        self.stdin.take();
+        if let Ok(result) = tokio::time::timeout(Duration::from_millis(500), self.child.wait()).await {
+            result?;
+            #[cfg(windows)] self.job.take();
+            self.tainted = true;
+            return Ok(());
         }
-        let _ = self.child.wait().await?;
-        Ok(())
+        self.terminate().await
     }
+
 }
 
 pub fn spawn_mcp_stdio_process(bootstrap: &McpClientBootstrap) -> io::Result<McpStdioProcess> {
@@ -1429,6 +1488,33 @@ mod tests {
                 ]),
             }),
         }
+    }
+
+    #[test]
+    fn malformed_or_cancelled_frames_stop_child_and_cannot_be_reused() {
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+        runtime.block_on(async {
+            let root = temp_dir(); fs::create_dir_all(&root).unwrap();
+            for (index, frame) in [
+                b"Content-Length: 999999999\r\n\r\n".to_vec(),
+                b"Content-Length: 2\r\nContent-Length: 2\r\n\r\n{}".to_vec(),
+                super::encode_frame(br#"{"jsonrpc":"2.0","id":999,"result":{}}"#),
+                b"Content-Length: 100\r\n\r\n{}".to_vec(),
+            ].into_iter().enumerate() {
+                let script = root.join(format!("bad-{index}.py"));
+                let text = std::str::from_utf8(&frame).unwrap();
+                fs::write(&script, format!("import sys,time\nsys.stdout.buffer.write({text:?}.encode())\nsys.stdout.flush()\ntime.sleep(30)\n")).unwrap();
+                let mut process = McpStdioProcess::spawn(&script_transport(&script)).unwrap();
+                if index == 2 {
+                    assert!(process.request::<serde_json::Value, serde_json::Value>(JsonRpcId::Number(1), "tools/list", None).await.is_err());
+                } else if index == 3 {
+                    assert!(tokio::time::timeout(std::time::Duration::from_millis(100), process.read_frame()).await.is_err());
+                } else { assert!(process.read_frame().await.is_err()); }
+                assert_eq!(process.read_frame().await.unwrap_err().kind(), ErrorKind::BrokenPipe);
+                tokio::time::timeout(std::time::Duration::from_secs(2), process.wait()).await.unwrap().unwrap();
+            }
+            fs::remove_dir_all(root).unwrap();
+        });
     }
 
     #[test]

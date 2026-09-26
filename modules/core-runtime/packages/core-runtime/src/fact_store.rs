@@ -106,7 +106,7 @@ use crate::action_evidence::ActionEvidence;
 use crate::late_facts::{append_late_fact, LateFact, LateFactAppend, LateFactError};
 use crate::recovery::{RecoveryAttempt, RecoveryError};
 use crate::run_contract::{
-    admit_action_fact, ActionIdentityAdmission, ActionOrigin, ActionReceipt,
+    admit_action_fact_with_origin, ActionIdentityAdmission, ActionOrigin, ActionReceipt,
     EffectiveRunIdentityScope, HostRunOutcome, IdentityAnomaly, IdentityDimension,
     LegacyCuRunConvergenceFact, LegacyCuRunConvergenceKey, LegacyCuRunSubject, RunBudget,
     RunContractError, RunIdentity, RunIdentityScope, RunTerminalStatus,
@@ -1039,7 +1039,7 @@ impl FactSnapshot {
                 }
                 None
             }
-            EffectiveRunIdentityScope::Declared(_) => Some(admit_action_fact(identity, receipt).map_err(
+            EffectiveRunIdentityScope::Declared(_) => Some(admit_action_fact_with_origin(identity, receipt, origin).map_err(
                 |error| invalid_record(index, format!("{}：{}", error.code, error.message)),
             )?),
         };
@@ -1714,7 +1714,7 @@ impl<B: FactLogBackend> FactStore for AppendOnlyFactStore<B> {
             // `admit_action_origin` 完成——本方法没有该上下文，**不得**在此假装做过第二层。
             origin.validate_structure().map_err(FactStoreError::Contract)?;
         }
-        let admission = admit_action_fact(&fact.identity, &fact.receipt).map_err(|error| {
+        let admission = admit_action_fact_with_origin(&fact.identity, &fact.receipt, fact.origin.as_ref()).map_err(|error| {
             // 身份与回执的 action_id 不一致是身份冲突，其余按契约错误透出。
             if error.code == "identity_conflict" {
                 FactStoreError::IdentityConflict {

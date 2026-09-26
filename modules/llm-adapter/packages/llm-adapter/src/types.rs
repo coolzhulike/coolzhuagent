@@ -187,6 +187,8 @@ pub enum OutputContentBlock {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Usage {
+    // Anthropic 的 message_delta 常只提供累计输出；调用方须合并 start 快照。
+    #[serde(default)]
     pub input_tokens: u32,
     #[serde(default)]
     pub cache_creation_input_tokens: u32,

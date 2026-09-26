@@ -383,12 +383,15 @@ impl ParentRunLink {
 #[serde(deny_unknown_fields)]
 pub struct RunIdentity {
     pub workspace_id: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub room_id: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub session_id: String,
     /// 公开轮次 ID。
     ///
     /// 只有**确认**宿主侧的 `ChatTurnGuard.turn_id` 正是这个公开轮次 ID 之后，
     /// 才允许把它直接映射到这里；guard 持有的是内部 turn id，核对不了就不得拿它顶替。
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub public_turn_id: String,
     pub run_id: String,
     /// 不适用（turn 级事实）时必须缺省；`None` 序列化时省略 / 存储为 NULL。
@@ -964,6 +967,50 @@ pub fn admit_action_fact(
     }
 }
 
+/// Goal 动作的身份依据是显式来源里的真实阶段上下文；聊天身份从不被伪造为占位值。
+/// 此函数只准入已经发生的事实。新输入资格仍须先走宿主的 `admit_action_origin` 活 claim 核验。
+pub fn admit_action_fact_with_origin(identity: &RunIdentity, receipt: &ActionReceipt,
+    origin: Option<&ActionOrigin>) -> Result<ActionIdentityAdmission, RunContractError> {
+    let Some(origin) = origin else { return admit_action_fact(identity, receipt); };
+    let ActionContext::GoalPhase(context) = &origin.context else { return admit_action_fact(identity, receipt); };
+    validate_goal_action_projection(identity, origin)?;
+    receipt.validate()?;
+    if identity.action_id() != Some(receipt.action_id.as_str()) {
+        return Err(RunContractError::identity_conflict("action_id", "Goal 回执与动作身份不符"));
+    }
+    let input_may_have_started = receipt.may_have_started_input();
+    if input_may_have_started && identity.owner_epoch.is_none() {
+        return Ok(ActionIdentityAdmission::PreservedWithAnomaly { anomaly: identity_anomaly(
+            RunContractError::incomplete_identity("owner_epoch"), vec!["owner_epoch".into()], identity, true) });
+    }
+    let _ = context;
+    Ok(ActionIdentityAdmission::Admitted { gains_input_qualification: input_may_have_started })
+}
+
+/// 在 Permit 之前运行，保证同一份冻结身份确实能被事实层序列化并读回。
+pub fn validate_goal_action_projection(identity: &RunIdentity, origin: &ActionOrigin) -> Result<(), RunContractError> {
+    origin.validate_structure()?;
+    let ActionContext::GoalPhase(context) = &origin.context else {
+        return Err(RunContractError::identity_conflict("context", "预期 Goal 阶段来源"));
+    };
+    identity.ensure_declared_scope(RunIdentityScope::StepAction)?;
+    if context.hierarchy != RunIdentityScope::StepAction || identity.workspace_id != context.workspace_id
+        || identity.run_id != context.run_id || identity.room_id != context.room_id.as_deref().unwrap_or("")
+        || identity.session_id != context.session_id.as_deref().unwrap_or("") || !identity.public_turn_id.is_empty()
+        || identity.parent_run.is_some() || identity.action_id() != Some(origin.action_id.as_str())
+        || identity.request_attempt_id != origin.request_attempt_id
+        || origin.tool_call_id.as_ref().is_some_and(|tool| identity.tool_call_id.as_ref() != Some(tool)) {
+        return Err(RunContractError::identity_conflict("goal_phase", "Goal 来源与持久身份投影不符；不得复用聊天轮次"));
+    }
+    for dimension in [IdentityDimension::WorkspaceId, IdentityDimension::RunId, IdentityDimension::StepId,
+        IdentityDimension::RequestAttemptId, IdentityDimension::ToolCallId, IdentityDimension::ActionId] {
+        let value = identity.dimension_value(dimension).ok_or_else(|| RunContractError::incomplete_identity(dimension))?;
+        identity.validate_dimension_value(dimension, value)?;
+    }
+    if let Some(epoch) = &identity.owner_epoch { identity.validate_dimension_value(IdentityDimension::OwnerEpoch, epoch.as_str())?; }
+    Ok(())
+}
+
 /// 身份缺口是否"可以带着异常保留"。
 ///
 /// 只有**动作维度 / epoch 的缺失**（`incomplete_identity`）才是"已经发生的事实缺了身份"；
@@ -1255,6 +1302,8 @@ mod action_origin_contract {
         pub phase_id: String,
         /// **本次阶段尝试**的真实运行 id（阶段重试会产生新的运行尝试，见 [`Self::is_same_attempt_as`]）。
         pub phase_run_id: String,
+        /// 本次已接受阶段的真实 claim，重试换代后旧动作不能获得新输入资格。
+        pub claim_token: String,
         /// 工作区归属（非可选：Goal 一定在某工作区里执行）。
         pub workspace_id: String,
         /// 真实存在的房间 / 会话关联；自主 Goal 可以为 `None`（**不造占位值**）。
@@ -1276,6 +1325,7 @@ mod action_origin_contract {
                 ("goal_phase.goal_id", &self.goal_id),
                 ("goal_phase.phase_id", &self.phase_id),
                 ("goal_phase.phase_run_id", &self.phase_run_id),
+                ("goal_phase.claim_token", &self.claim_token),
                 ("goal_phase.workspace_id", &self.workspace_id),
                 ("goal_phase.run_id", &self.run_id),
             ] {
@@ -1303,6 +1353,7 @@ mod action_origin_contract {
             self.goal_id == other.goal_id
                 && self.phase_id == other.phase_id
                 && self.phase_run_id == other.phase_run_id
+                && self.claim_token == other.claim_token
         }
     }
 
@@ -2332,11 +2383,11 @@ mod action_origin_contract {
                 // 再在此处改为真实核对；在那之前，任何 Goal 阶段来源都**进不来**。
                 ActionContext::GoalPhase(context) => {
                     context.validate_structure()?;
-                    return Err(RunContractError::action_source_not_established(format!(
-                        "Goal 阶段动作的来源暂不能被受理：宿主尚未能按真实阶段运行 `{}`（goal `{}` / phase `{}`）核对强父关系；\
-                         在补齐之前不得放行，也不得改用 ControlPlane 或 UserDirect 绕过",
-                        context.phase_run_id, context.goal_id, context.phase_id
-                    )));
+                    let recorded = authority.goal_phase_context(&context.phase_run_id).ok_or_else(||
+                        RunContractError::action_source_not_established(format!("宿主未核对到当前真实 Goal {} / 阶段 {} / 运行 {} 与 claim", context.goal_id, context.phase_id, context.phase_run_id)))?;
+                    if recorded != context {
+                        return Err(RunContractError::action_origin_conflict("goal_phase", "声明的 Goal 阶段/claim/工作区/CU 运行与宿主记录不符"));
+                    }
                 }
             }
 
@@ -2618,6 +2669,8 @@ mod action_origin_contract {
     /// （只信传入的字符串正是本节要禁止的做法）。测试与进程内事实用
     /// [`TrustedOriginContext`]。
     pub trait ActionOriginAuthority {
+        /// 由宿主对真实运行和当前 claim 联合查询得到；默认不支持即拒绝。
+        fn goal_phase_context(&self, _phase_run_id: &str) -> Option<&GoalPhaseActionContext> { None }
         /// 宿主当前的聊天上下文（工作区 / 房间 / 会话 / 公开轮次）。
         fn conversation_scope(&self) -> Option<&RunScopeContext>;
         fn run_relation(&self, run_id: &str) -> Option<&RunRelationRecord>;
@@ -6935,6 +6988,7 @@ mod tests {
             goal_id: "goal-1".to_string(),
             phase_id: "phase-implement".to_string(),
             phase_run_id: phase_run_id.to_string(),
+            claim_token: "phase-claim-1".to_string(),
             workspace_id: "ws-0123456789abcdef".to_string(),
             room_id: None,
             session_id: None,

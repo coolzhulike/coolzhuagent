@@ -167,6 +167,7 @@ fn run_desktop_automation_job(
     prompt: String,
     tx: &Sender<DesktopAutomationEvent>,
 ) -> Result<DesktopAutomationResult, String> {
+    require_host_input_authorization()?;
     config.apply_process_env();
     ensure_live_mode()?;
     let mode = classify_desktop_automation_mode(&prompt);
@@ -282,6 +283,12 @@ fn run_desktop_automation_job(
         "桌面代理在 {} 步内未能完成任务, 请缩小范围后重试.",
         ctx.max_steps
     ))
+}
+
+fn require_host_input_authorization() -> Result<(), String> {
+    // 旧桌面控制台没有动作登记、真实取消和宿主许可上下文；不能借用主控制台的身份，
+    // 也不能在受控原生入口拒绝后改走 UIA Invoke 或焦点脚本。入口处明确拒绝整次任务。
+    Err("此旧版桌面自动化入口尚未接入执行授权，请在主控制台聊天室发起桌面操作任务。".into())
 }
 fn request_next_action(
     ctx: &DesktopAutomationContext,

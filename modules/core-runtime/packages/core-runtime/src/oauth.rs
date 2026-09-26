@@ -1,10 +1,8 @@
 use std::collections::BTreeMap;
-use std::fs;
 use std::io;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 
 use crate::config::OAuthConfig;
@@ -259,36 +257,55 @@ pub fn credentials_path() -> io::Result<PathBuf> {
     Ok(credentials_home_dir()?.join("credentials.json"))
 }
 
-pub fn load_oauth_credentials() -> io::Result<Option<OAuthTokenSet>> {
+/// 版本在登录、刷新、注销时均推进，给跨进程刷新提供比较并交换依据。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OAuthCredentialsSnapshot {
+    pub token_set: Option<OAuthTokenSet>,
+    pub revision: u64,
+}
+
+pub fn load_oauth_credentials_snapshot() -> io::Result<OAuthCredentialsSnapshot> {
     let path = credentials_path()?;
-    let root = read_credentials_root(&path)?;
-    let Some(oauth) = root.get("oauth") else {
-        return Ok(None);
-    };
-    if oauth.is_null() {
-        return Ok(None);
+    for _ in 0..3 {
+        let snapshot = crate::oauth_store::read(&path)?;
+        let tokens = snapshot.data.as_ref().map(|value| serde_json::from_value::<StoredOAuthCredentials>(value.clone()))
+            .transpose().map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "OAuth 凭据结构无效"))?;
+        if snapshot.needs_migration {
+            if let Some(tokens) = tokens {
+                let serialized = serde_json::to_value(&tokens).map_err(|_| io::Error::other("OAuth 凭据编码失败"))?;
+                // 只有旧格式成功解析、新保护数据成功原子发布之后才替换原值。
+                if !crate::oauth_store::save(&path, Some(&serialized), Some(snapshot.revision))? { continue; }
+                return Ok(OAuthCredentialsSnapshot { token_set: Some(tokens.into()), revision: snapshot.revision + 1 });
+            }
+        }
+        return Ok(OAuthCredentialsSnapshot { token_set: tokens.map(Into::into), revision: snapshot.revision });
     }
-    let stored = serde_json::from_value::<StoredOAuthCredentials>(oauth.clone())
-        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
-    Ok(Some(stored.into()))
+    Err(io::Error::new(io::ErrorKind::WouldBlock, "OAuth 凭据正在变更，请重试"))
+}
+
+pub fn load_oauth_credentials() -> io::Result<Option<OAuthTokenSet>> {
+    Ok(load_oauth_credentials_snapshot()?.token_set)
 }
 
 pub fn save_oauth_credentials(token_set: &OAuthTokenSet) -> io::Result<()> {
-    let path = credentials_path()?;
-    let mut root = read_credentials_root(&path)?;
-    root.insert(
-        "oauth".to_string(),
-        serde_json::to_value(StoredOAuthCredentials::from(token_set.clone()))
-            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?,
-    );
-    write_credentials_root(&path, &root)
+    let value = serde_json::to_value(StoredOAuthCredentials::from(token_set.clone())).map_err(|_| io::Error::other("OAuth 凭据编码失败"))?;
+    crate::oauth_store::save(&credentials_path()?, Some(&value), None)?;
+    Ok(())
+}
+
+pub fn save_oauth_credentials_if_revision(token_set: &OAuthTokenSet, expected_revision: u64) -> io::Result<bool> {
+    let value = serde_json::to_value(StoredOAuthCredentials::from(token_set.clone())).map_err(|_| io::Error::other("OAuth 凭据编码失败"))?;
+    crate::oauth_store::save(&credentials_path()?, Some(&value), Some(expected_revision))
+}
+
+/// 刷新仅持有独立 refresh 锁；登录/注销可以修改文件并让迟到刷新 CAS 失败。
+pub fn acquire_oauth_refresh_guard() -> io::Result<std::fs::File> {
+    crate::oauth_store::lock(&credentials_path()?, true)
 }
 
 pub fn clear_oauth_credentials() -> io::Result<()> {
-    let path = credentials_path()?;
-    let mut root = read_credentials_root(&path)?;
-    root.remove("oauth");
-    write_credentials_root(&path, &root)
+    crate::oauth_store::save(&credentials_path()?, None, None)?;
+    Ok(())
 }
 
 pub fn parse_oauth_callback_request_target(target: &str) -> Result<OAuthCallbackParams, String> {
@@ -326,39 +343,6 @@ fn generate_random_token(bytes: usize) -> io::Result<String> {
 
 fn credentials_home_dir() -> io::Result<PathBuf> {
     Ok(crate::config::default_config_home())
-}
-
-fn read_credentials_root(path: &PathBuf) -> io::Result<Map<String, Value>> {
-    match fs::read_to_string(path) {
-        Ok(contents) => {
-            if contents.trim().is_empty() {
-                return Ok(Map::new());
-            }
-            serde_json::from_str::<Value>(&contents)
-                .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?
-                .as_object()
-                .cloned()
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "credentials file must contain a JSON object",
-                    )
-                })
-        }
-        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(Map::new()),
-        Err(error) => Err(error),
-    }
-}
-
-fn write_credentials_root(path: &PathBuf, root: &Map<String, Value>) -> io::Result<()> {
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    let rendered = serde_json::to_string_pretty(&Value::Object(root.clone()))
-        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
-    let temp_path = path.with_extension("json.tmp");
-    fs::write(&temp_path, format!("{rendered}\n"))?;
-    fs::rename(temp_path, path)
 }
 
 fn base64url_encode(bytes: &[u8]) -> String {
@@ -544,7 +528,9 @@ mod tests {
         let _env = ScopedEnv::new(vec![env_set("CLAW_CONFIG_HOME", &config_home)]);
         let path = credentials_path().expect("credentials path");
         std::fs::create_dir_all(path.parent().expect("parent")).expect("create parent");
-        std::fs::write(&path, "{\"other\":\"value\"}\n").expect("seed credentials");
+        std::fs::write(&path, r#"{"other":"value","oauth":{"accessToken":"legacy-access","refreshToken":null}}"#).expect("seed credentials");
+        assert_eq!(load_oauth_credentials().unwrap().unwrap().access_token, "legacy-access");
+        #[cfg(windows)] assert!(!std::fs::read_to_string(&path).unwrap().contains("legacy-access"));
 
         let token_set = OAuthTokenSet {
             access_token: "access-token".to_string(),
@@ -560,8 +546,11 @@ mod tests {
         let saved = std::fs::read_to_string(&path).expect("read saved file");
         assert!(saved.contains("\"other\": \"value\""));
         assert!(saved.contains("\"oauth\""));
+        #[cfg(windows)] { assert!(!saved.contains("access-token")); assert!(saved.contains("windows_dpapi_v1")); }
 
+        let before_logout = super::load_oauth_credentials_snapshot().unwrap().revision;
         clear_oauth_credentials().expect("clear credentials");
+        assert!(!super::save_oauth_credentials_if_revision(&OAuthTokenSet { access_token: "late-refresh".into(), refresh_token: None, expires_at: None, scopes: vec![] }, before_logout).unwrap());
         assert_eq!(load_oauth_credentials().expect("load cleared"), None);
         let cleared = std::fs::read_to_string(&path).expect("read cleared file");
         assert!(cleared.contains("\"other\": \"value\""));

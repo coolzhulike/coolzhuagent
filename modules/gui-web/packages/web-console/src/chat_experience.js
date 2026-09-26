@@ -11,7 +11,16 @@ window.CoolzhuChatExperience = (() => {
     node.addEventListener("click", action); return node;
   };
   const note = (text) => { const node = document.createElement("p"); node.textContent = text; return node; };
-  function report(error) { const target = qs("chat-activity-label"); if (target) target.textContent = error?.message || String(error); }
+  function clearReport() { qs("chat-feedback")?.remove(); }
+  function report(error) {
+    // 运行过程收起后，环境切换/定位失败仍须可见，不能写到隐藏的过程标签。
+    clearReport();
+    const target = document.createElement("div"); target.className = "chat-feedback";
+    target.dataset.role = "chat-feedback"; target.setAttribute("role", "alert");
+    target.append(note(error?.message || String(error)), button("关闭", clearReport));
+    if (state.popup) state.popup.append(target);
+    else document.querySelector(".chat-main-column .composer")?.before(target);
+  }
   const workspaceKey = () => activeWorkspaceKey || "default";
   const scopeSnapshot = () => ({ room: activeChatRoomId, workspace: workspaceKey(), version: state.scopeVersion });
   const scopeMatches = scope => scope.room === activeChatRoomId && scope.workspace === workspaceKey() && scope.version === state.scopeVersion;
@@ -115,12 +124,12 @@ window.CoolzhuChatExperience = (() => {
     }
     panel.querySelector('input, button')?.focus();
   }
+  function rememberReasoning(id, value) {
+    state.reasoning.set(id, String(value || "").slice(-6000));
+    while (state.reasoning.size > 8) state.reasoning.delete(state.reasoning.keys().next().value);
+  }
   function activeThinking() {
-    const texts = [...state.reasoning.values()].filter(Boolean);
-    const panel = qs("chat-live-reasoning"); if (!panel) return;
-    panel.hidden = !texts.length;
-    qs("chat-live-reasoning-text").textContent = texts.join("\n").slice(-6000);
-    panel.scrollTop = panel.scrollHeight;
+    window.CoolzhuRunActivity?.thinking([...state.reasoning.values()].filter(Boolean).join("\n"));
   }
   const toolStatusLabels = { requested: "等待执行", running: "执行中", completed: "已完成", failed: "失败", interrupted: "已中止", "not-executed": "未执行", unknown: "状态未确认" };
   const toolTerminalStates = new Set(["completed", "failed", "interrupted", "not-executed", "unknown"]);
@@ -136,15 +145,9 @@ window.CoolzhuChatExperience = (() => {
     return paths.length ? `相关文件：${paths.join("；")}` : "";
   }
   function renderToolStates() {
-    const details = qs("chat-tool-results"); if (!details) return;
-    details.hidden = !state.tools.size;
-    qs("chat-tool-count").textContent = `工具调用 · ${state.tools.size} 次${state.tools.size > 30 ? "（显示最近 30 次）" : ""}`;
-    const rows = [...state.tools.entries()].slice(-30).map(([id, value]) => {
-      const row = note(`${value.name} · ${toolStatusLabels[value.status] || value.status}${value.summary ? `：${value.summary}` : ""}`);
-      row.dataset.toolStatusId = id; row.dataset.toolStatus = value.status; return row;
-    });
-    qs("chat-tool-result-list").replaceChildren(...rows);
-    if (rows.length) qs("chat-activity-label").textContent = rows.at(-1).textContent;
+    const rows = [...state.tools.values()].filter(value => !toolTerminalStates.has(value.status))
+      .map(value => `${value.name} · ${toolStatusLabels[value.status] || value.status}${value.summary ? `：${value.summary}` : ""}`);
+    window.CoolzhuRunActivity?.tools(rows);
   }
   function toolStatus(message) {
     const text = String(message.content || message.text || "");
@@ -171,7 +174,7 @@ window.CoolzhuChatExperience = (() => {
   function intercept(message, streaming = false) {
     const kind = String(message?.kind || "").trim().toLowerCase().replaceAll("_", "-");
     if (kind === "reasoning") {
-      if (streaming) state.reasoning.set(message.id, String(message.content || ""));
+      if (streaming) rememberReasoning(message.id, message.content);
       else state.reasoning.delete(message.id);
       activeThinking(); return true;
     }
@@ -192,13 +195,13 @@ window.CoolzhuChatExperience = (() => {
     if (event === "started") {
       if (data?.chat_room_id && data.chat_room_id !== activeChatRoomId) return true;
       state.streamScope = {...scopeSnapshot(), turn: String(data?.turn_id || "")};
-      state.turnStarted = Date.now(); state.reasoning.clear(); state.tools.clear(); activeThinking();
-      qs("chat-tool-results").hidden = true; qs("chat-activity-label").textContent = "正在思考…";
+      clearReport(); state.turnStarted = Date.now(); state.reasoning.clear(); state.tools.clear(); activeThinking();
+      window.CoolzhuRunActivity?.start(); qs("chat-activity-label").textContent = "正在思考…";
       clearInterval(state.timer);
       state.timer = setInterval(() => { qs("chat-turn-time").textContent = `本轮 ${duration(Date.now() - state.turnStarted)}`; }, 200);
     } else if (event === "message_delta" && data?.kind === "reasoning") {
       if (String(data.delta || "").startsWith("模型请求工具：")) { toolStatus({id:data.id,content:data.delta}); return true; }
-      state.reasoning.set(data.id, (state.reasoning.get(data.id) || "") + (data.delta || "")); activeThinking(); return true;
+      rememberReasoning(data.id, (state.reasoning.get(data.id) || "") + (data.delta || "")); activeThinking(); return true;
     } else if (event === "message_delta") {
       state.reasoning.clear(); activeThinking(); qs("chat-activity-label").textContent = "正在回复…";
     } else if (event === "done" || event === "error") {
@@ -210,16 +213,18 @@ window.CoolzhuChatExperience = (() => {
     }
     return false;
   }
-  function finish() { clearInterval(state.timer); state.timer = null; state.streamScope = null; state.reasoning.clear(); state.pendingMessages.clear(); activeThinking(); }
+  function finish() { window.CoolzhuRunActivity?.finish(); clearInterval(state.timer); state.timer = null; state.streamScope = null; state.reasoning.clear(); state.pendingMessages.clear(); activeThinking(); }
   function roomChanged(roomId) {
     const workspace = workspaceKey();
     if (state.room === roomId && state.workspace === workspace) return;
     state.room = roomId; state.workspace = workspace; state.scopeVersion++; state.locateVersion++;
+    clearReport();
+    window.CoolzhuWorkspacePanels?.scopeChanged();
     state.searchVersion++; state.searchOffset = 0; clearTimeout(state.searchTimer);
     finish(); state.tools.clear(); state.turnStarted = 0; state.timings = {}; state.indices = {};
     const hide = role => { const node = qs(role); if (node) node.hidden = true; };
-    hide("chat-tool-results"); hide("chat-return-latest"); hide("chat-history-more");
-    qs("chat-tool-result-list")?.replaceChildren(); qs("chat-history-results")?.replaceChildren();
+    hide("chat-return-latest"); hide("chat-history-more");
+    qs("chat-history-results")?.replaceChildren();
     qs("chat-usage-list")?.replaceChildren();
     for (const role of ["chat-turn-time", "chat-history-count", "chat-usage-note"]) { const node = qs(role); if (node) node.textContent = ""; }
     const label = qs("chat-activity-label"); if (label) label.textContent = "就绪";
@@ -249,17 +254,21 @@ window.CoolzhuChatExperience = (() => {
     const room = activeChatRoomId; if (!room) return;
     const scope = scopeSnapshot();
     try {
-      const response = await requestJson(`/api/chat/rooms/${encodeURIComponent(room)}/insights`);
+      const ids = [...(chatMessageList()?.querySelectorAll(".message[data-message-id]") || [])].slice(-500).map(node => node.dataset.messageId);
+      const response = await requestJson(`/api/chat/rooms/${encodeURIComponent(room)}/insights?message_ids=${encodeURIComponent(ids.join(","))}`);
       if (!scopeMatches(scope)) return;
       state.timings = response.timings || {}; state.indices = response.indices || {}; annotate();
       const list = qs("chat-usage-list"); if (!list) return;
       const rows = response.usage || [];
       list.replaceChildren();
       const sums = rows.reduce((sum, row) => ({input:sum.input + row.input_tokens, output:sum.output + row.output_tokens, requests:sum.requests + row.requests}), {input:0,output:0,requests:0});
-      list.append(note(rows.length ? `输入 ${sums.input.toLocaleString()} · 输出 ${sums.output.toLocaleString()} token · ${sums.requests} 次请求` : "暂无接口用量记录"));
+      const knownTotal = (field, sum) => rows.some(row => row[field] != null) ? sum.toLocaleString() : "未知";
+      list.append(note(rows.length ? `已知输入 ${knownTotal("input_tokens", sums.input)} · 已知输出 ${knownTotal("output_tokens", sums.output)} token · ${sums.requests} 次请求` : "暂无接口用量记录"));
       for (const row of rows) {
         const name = sessionRegistry.sessions?.find(session => session.id === row.session_id)?.display_name || row.session_id;
-        list.append(note(`${name}：输入 ${row.input_tokens.toLocaleString()} / 输出 ${row.output_tokens.toLocaleString()}；缓存读取 ${row.cache_read_tokens.toLocaleString()} / 写入 ${row.cache_write_tokens.toLocaleString()}`));
+        const tokens = value => value == null ? "未知" : Number(value).toLocaleString();
+        list.append(note(`${name}：输入 ${tokens(row.input_tokens)} / 输出 ${tokens(row.output_tokens)}；缓存读取 ${tokens(row.cache_read_tokens)} / 写入 ${tokens(row.cache_write_tokens)}`));
+        list.append(note(`请求 ${row.requests || 0} · 网络尝试 ${row.attempts || 0} · 失败或中断 ${row.failed_attempts || 0} · 进行中 ${row.pending_attempts || 0} · 用量未完整提供 ${row.partial_usage_attempts || 0}${row.legacy_records ? ` · 旧版用量记录 ${row.legacy_records}` : ""}`));
       }
       qs("chat-usage-note").textContent = response.note;
     } catch (error) { const list = qs("chat-usage-list"); if (scopeMatches(scope) && list) list.textContent = `用量加载失败：${error.message}`; }
@@ -271,13 +280,14 @@ window.CoolzhuChatExperience = (() => {
     if (!append) state.searchOffset = 0;
     const query = qs("chat-history-query")?.value || "";
     const list = qs("chat-history-results");
+    if (!append && list) list.textContent = "正在检索完整历史…";
     try {
       const response = await requestJson(`/api/chat/rooms/${encodeURIComponent(room)}/search?q=${encodeURIComponent(query)}&offset=${state.searchOffset}&limit=50`);
       if (version !== state.searchVersion || !scopeMatches(scope)) return;
       if (!append) list.replaceChildren();
       qs("chat-history-count").textContent = `${response.total} 条${query ? "匹配记录" : "消息"}`;
       for (const item of response.items) {
-        const entry = button(`#${item.index} · ${item.author} · ${new Date(item.created_at).toLocaleString("zh-CN")}\n${item.snippet}`, () => { if (scopeMatches(scope)) void locate(item.id); });
+        const entry = button(`#${item.index} · ${String(item.author || "").trim() || "你"} · ${new Date(item.created_at).toLocaleString("zh-CN")}\n${item.snippet}`, () => { if (scopeMatches(scope)) void locate(item.id); });
         entry.className = "chat-history-result"; entry.dataset.locateMessage = item.id; list.append(entry);
       }
       if (!response.items.length && !append) list.append(note("没有匹配的记录。"));
@@ -294,7 +304,10 @@ window.CoolzhuChatExperience = (() => {
         const response = await requestJson(`/api/chat/rooms/${encodeURIComponent(room)}/search?around=${encodeURIComponent(id)}`);
         if (!scopeMatches(scope) || version !== state.locateVersion) return;
         const list = chatMessageList(); list.replaceChildren();
-        for (const message of response.messages) upsertMessage(message);
+        for (const [offset, message] of response.messages.entries()) {
+          state.indices[message.id] = (response.start_index || Math.max(1, response.position - 20)) + offset;
+          upsertMessage(message);
+        }
         messagePaging = {roomId:room, hasMore:response.has_older, nextBefore:response.messages[0]?.id};
         updateLoadOlderButton(); qs("chat-return-latest").hidden = false;
         article = list.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
@@ -386,6 +399,6 @@ window.CoolzhuChatExperience = (() => {
     });
     window.addEventListener("resize", () => closePopup());
   }
-  return {init,popup,closePopup,intercept,streamEvent,finish,prepareDelta,refreshInsights,annotate,openHistory,search,duration,syncModelSession,roomChanged,
+  return {init,popup,closePopup,intercept,streamEvent,finish,prepareDelta,refreshInsights,annotate,openHistory,search,locate,duration,syncModelSession,roomChanged,
     get changingEnvironment() { return state.switching; }};
 })();

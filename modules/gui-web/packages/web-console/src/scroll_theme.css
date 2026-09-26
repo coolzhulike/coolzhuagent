@@ -1,0 +1,72 @@
+/* 山水只在外围，阅读面保持实底；沿用玉石图标及原有武侠美术。 */
+body.ui-3d {
+  --jade-ink:#EDF1E8;
+  --jade-muted:#ADBBAF;
+  --jade-accent:#B8D9C6;
+  --jade-gold:#C2A46D;
+  --jade-panel:#101F1B;
+  --jade-input:#071512;
+  --ink:var(--jade-ink);
+  --muted:var(--jade-muted);
+  --text-muted:var(--jade-muted);
+  background:#071512;
+}
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-main-column,
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-window-panel > .chat-right-rail,
+body.ui-3d .chat-tool-host-content,
+body.ui-3d .workspace-content-panel { background:#101F1B; color:#EDF1E8; }
+body.ui-3d .chat-atmosphere-layer,
+body.ui-3d .chat-main-column .chat-atmosphere { display:none; }
+body.ui-3d .message-list { background:#101F1B; }
+body.ui-3d .chat-main-column .composer { background:#071512; }
+body.ui-3d .shell.ui-redesign { background:linear-gradient(#071512ba,#071512c9),url("../assets/ui-redesign/chat-backgrounds/wuxia-bamboo-moonlit-chat-stage-v2.png") center / cover; }
+body.ui-3d .workbench-quick-rail .window-tab.is-active { background:linear-gradient(145deg,#2E6B53,#163E2F); border-color:#B8D9C6; }
+body.ui-3d .chat-history-toolbar button,
+body.ui-3d .chat-run-activity,
+body.ui-3d .chat-activity-stream { color:#ADBBAF; }
+
+/* 状态栏固定单行；安全放行始终保留，长路径和归属信息仅做省略。 */
+body.ui-3d .shell.ui-redesign > .global-system-bar {
+  display:flex; flex-wrap:nowrap; align-items:center; gap:12px;
+  height:26px; min-height:26px; padding:1px 8px; box-sizing:border-box;
+  overflow:hidden; color:#ADBBAF; background:#071512; border-color:#426451;
+}
+body.ui-3d .global-system-bar > span { flex:0 1 auto; min-width:0; line-height:20px; }
+body.ui-3d .global-system-bar > span:first-child { max-width:22%; }
+body.ui-3d .global-system-bar > span:nth-child(2) { flex:0 0 auto; }
+body.ui-3d .global-system-bar > span:nth-child(3) { max-width:18%; }
+body.ui-3d .global-system-bar > span:nth-child(4) { flex:1 1 100px; }
+body.ui-3d .global-system-bar > span > span { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+body.ui-3d .global-system-bar > button {
+  flex:0 0 auto; width:auto; min-width:66px; max-width:110px;
+  height:21px; min-height:21px; margin:0; padding:0 8px;
+  font:500 11px/19px "Microsoft YaHei UI",sans-serif; color:#EDF1E8;
+  border:1px solid #587B66; border-radius:5px; background:#163E2F;
+  box-shadow:none; white-space:nowrap;
+}
+body.ui-3d .global-system-bar > button[hidden] { display:none; }
+@media (max-width:900px) {
+  body.ui-3d .shell.ui-redesign > .global-system-bar { gap:8px; }
+  body.ui-3d .global-system-bar > span > b { display:none; }
+}
+/* 环境下拉沿用纵向列表；顶层摘要仍为横排。 */
+body.ui-3d .environment-popover .chat-room-select-wrap,
+body.ui-3d .environment-popover .environment-options {
+  display:flex; flex-direction:column; gap:8px; width:100%; min-width:0;
+}
+body.ui-3d .environment-popover .chat-room-search-field {
+  display:flex; align-items:center; gap:8px; width:100%; min-width:0;
+}
+body.ui-3d .environment-popover .chat-room-search-field > input { flex:1; min-width:0; }
+body.ui-3d .environment-popover .chat-room-dropdown { display:flex; flex-direction:column; gap:5px; min-width:0; }
+body.ui-3d .environment-popover .chat-room-dropdown .chat-room-nav-item {
+  display:flex; align-items:center; gap:8px; width:100%; min-height:40px;
+  padding:9px 11px; color:#EDF1E8; background:#101F1B; border:1px solid #476453;
+  text-align:left; text-shadow:none; box-shadow:none;
+}
+body.ui-3d .environment-popover .chat-room-dropdown .chat-room-nav-item.is-active,
+body.ui-3d .environment-popover button[aria-pressed="true"] {
+  color:#EDF1E8; background:#214B39; border-color:#B8D9C6; box-shadow:inset 3px 0 #B8D9C6;
+}
+body.ui-3d .environment-popover button:hover { color:#EDF1E8; background:#193A2C; border-color:#B8D9C6; }
+body.ui-3d .environment-popover .chat-room-nav-item > span { min-width:0; overflow-wrap:anywhere; }

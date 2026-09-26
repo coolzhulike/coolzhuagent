@@ -13,6 +13,7 @@ use crate::cleanup::{
     unix_ms, CleanupDeadline, CleanupPolicy, CleanupReleaseStatus, HelperCleanupFacts,
 };
 use runtime::{ActionReceipt, EffectStatus, GoalVerdict, InputDelivery, InputReleaseStatus};
+use crate::prepared_input::{NativeInputAuthorization, NativeInputCompletion, PreparedInputSession, SupervisedHelperChild};
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::path::Path;
@@ -346,6 +347,7 @@ impl StrokeFailureKind {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StrokeFailure {
     pub message: String,
+    pub helper_process: Option<runtime::ProcessInstanceEvidence>,
     /// helper 是否已收到请求、可能已经注入过输入。`false` 表示**可以证明**输入前就失败了。
     pub input_possible: bool,
     /// 进度记录的读取结果：可信事实 / 不可信（带原因）/ 没有记录。
@@ -416,6 +418,7 @@ impl StrokeFailure {
         let input_status = derive_input_status(&delivery);
         Self {
             message,
+            helper_process: None,
             input_possible,
             fact_read,
             helper_reported_release_failure,
@@ -659,17 +662,54 @@ pub fn controlled_drag_path(
     timeout: Duration,
     cancelled: &dyn Fn() -> bool,
 ) -> Result<HelperInputFacts, StrokeFailure> {
+    controlled_drag_path_impl(window, bounds, points, duration_ms, timeout, cancelled, None).map(|outcome| outcome.facts)
+}
+
+#[derive(Debug)]
+pub struct NativeStrokeOutcome {
+    pub facts: HelperInputFacts,
+    pub helper_process: Option<runtime::ProcessInstanceEvidence>,
+    pub process_exit_confirmed: bool,
+}
+
+pub fn controlled_drag_path_authorized(
+    window: StrokeWindow,
+    bounds: [i32; 4],
+    points: &[MousePoint],
+    duration_ms: u64,
+    timeout: Duration,
+    cancelled: &dyn Fn() -> bool,
+    authorization: &dyn NativeInputAuthorization,
+) -> Result<NativeStrokeOutcome, StrokeFailure> {
+    controlled_drag_path_impl(window, bounds, points, duration_ms, timeout, cancelled, Some(authorization))
+}
+
+fn controlled_drag_path_impl(
+    window: StrokeWindow,
+    bounds: [i32; 4],
+    points: &[MousePoint],
+    duration_ms: u64,
+    timeout: Duration,
+    cancelled: &dyn Fn() -> bool,
+    authorization: Option<&dyn NativeInputAuthorization>,
+) -> Result<NativeStrokeOutcome, StrokeFailure> {
     validate_stroke(window, bounds, points, duration_ms).map_err(StrokeFailure::before_input)?;
     if cancelled() {
         return Err(StrokeFailure::before_input("stroke_cancelled: 输入开始前已取消"));
+    }
+    if !cfg!(test) && authorization.is_none() {
+        return Err(StrokeFailure::before_input("input_authorization_required: 桌面笔画尚未绑定宿主执行许可"));
     }
     let run = run_helper(
         serde_json::json!({"mode":"stroke", "window":window, "bounds":bounds, "points":points, "duration_ms":duration_ms}),
         timeout,
         cancelled,
         StrokeRunCapacity::OrdinaryAction,
+        authorization,
     )?;
-    confirmed_success_facts(points.len(), &run.request_id, run.fact_read)
+    let facts = confirmed_success_facts(points.len(), &run.request_id, run.fact_read)
+        .map_err(|mut failure| { failure.helper_process = run.helper_process; failure })?;
+    Ok(NativeStrokeOutcome { facts, helper_process: run.helper_process, process_exit_confirmed: true })
 }
 
 /// 只截取当前已绑定窗口的真实屏幕像素，不绘制或导入任何图片。
@@ -690,6 +730,7 @@ pub fn capture_window_image(
         timeout,
         &|| false,
         StrokeRunCapacity::OrdinaryAction,
+        None,
     )
     .map_err(|failure| failure.message)?;
     // 截图结果优先用**增量协议记录**（不依赖 EOF）：孙进程持有管道写端时，
@@ -721,6 +762,7 @@ enum StrokeRunCapacity {
 /// 一次受控 helper 调用的成功结果。
 #[derive(Debug)]
 struct HelperRun {
+    helper_process: Option<runtime::ProcessInstanceEvidence>,
     output: String,
     /// 本次请求的身份（helper 必须在进度记录里原样回写它）。
     request_id: String,
@@ -754,6 +796,7 @@ fn run_helper(
     timeout: Duration,
     cancelled: &dyn Fn() -> bool,
     capacity: StrokeRunCapacity,
+    authorization: Option<&dyn NativeInputAuthorization>,
 ) -> Result<HelperRun, StrokeFailure> {
     if !cfg!(windows) {
         return Err(StrokeFailure::before_input("受控桌面输入仅支持 Windows"));
@@ -793,11 +836,13 @@ fn run_helper(
         SEQUENCE.fetch_add(1, Ordering::Relaxed)
     );
     let cancel_file = std::env::temp_dir().join(format!("coolzhu-stroke-cancel-{request_id}"));
+    let mut prepared = authorization.map(|_| PreparedInputSession::new(&request_id, timeout));
     // 进度文件只承载 helper 自己写出的输入事实；删除发生在读完事实之后。
     let progress_file = cancel_file.with_extension("progress.json");
     request["request_id"] = serde_json::json!(request_id);
     request["cancel_file"] = serde_json::json!(cancel_file.to_string_lossy());
     request["progress_file"] = serde_json::json!(progress_file.to_string_lossy());
+    if let Some(prepared) = prepared.as_ref() { prepared.apply_request(&mut request); }
     let script = format!("$ErrorActionPreference='Stop'; $OutputEncoding=[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'\n{}\n'@\n{}", include_str!("input_stroke_native.cs"), HELPER_ENTRY);
     let mut command = Command::new("powershell.exe");
     command
@@ -810,9 +855,13 @@ fn run_helper(
         use std::os::windows::process::CommandExt;
         command.creation_flags(0x0800_0000);
     }
-    let mut child = command
-        .spawn()
+    let (child, job) = windows_process_guard::ChildProcessJob::spawn_managed(&mut command)
         .map_err(|error| StrokeFailure::before_input(format!("无法启动受控输入 helper: {error}")))?;
+    let mut child = SupervisedHelperChild::new(child, job, &cancel_file);
+    let helper_identity = windows_process_guard::capture_child_process_identity(&child).ok();
+    let helper_process = helper_identity.as_ref().map(|identity| runtime::ProcessInstanceEvidence {
+        pid: identity.pid(), creation_time_filetime: identity.creation_time_filetime(),
+    });
     let mut stdin = child
         .stdin
         .take()
@@ -900,6 +949,7 @@ fn run_helper(
     // 截图模式的协议记录：轮询期间增量收下（不依赖 EOF），收尾后再补一次。
     let capture_mode = request["mode"] == "capture";
     let mut capture_record: Option<serde_json::Value> = None;
+    let mut authorization_error = None;
     let status = loop {
         match child.try_wait() {
             Ok(Some(status)) => break Ok(status),
@@ -913,11 +963,18 @@ fn run_helper(
         }
         // 增量协议记录（**不依赖 EOF**）：截图模式的成功回执是一条压缩 JSON 记录，
         // 只要它已经成行到达，就先收下——即使孙进程仍持有管道写端、读取线程还没见到 EOF。
+        if authorization_error.is_none() {
+            if let (Some(prepared), Some(authorization)) = (prepared.as_mut(), authorization) {
+                if let Err(error) = prepared.poll(authorization, helper_identity.as_ref(), &script, cancelled, &mut child) {
+                    authorization_error = Some(error);
+                }
+            }
+        }
         if capture_record.is_none() && capture_mode {
             let snapshot = super::helper_pipes::snapshot_text(&out_reader);
             capture_record = capture_record_from_lines(&super::complete_lines(snapshot.as_bytes()));
         }
-        if cancellation_at.is_none() && (cancelled() || started.elapsed() >= timeout) {
+        if cancellation_at.is_none() && (authorization_error.is_some() || cancelled() || started.elapsed() >= timeout) {
             // 独立哨兵文件只承载取消信号，不接收任何用户代码或命令。
             let _ = std::fs::write(&cancel_file, b"cancel");
             cancellation_at = Some(Instant::now());
@@ -973,9 +1030,10 @@ fn run_helper(
         helper_exited_ok,
         is_helper_lost(forced_kill, helper_exited_ok, helper_reported_failure),
     );
+    let input_possible = prepared.as_ref().is_none_or(|prepared| prepared.notified);
     let derivation_inputs = StrokeFailure::derivation_inputs_for(
         cause.kind(),
-        true,
+        input_possible,
         stroke_mode,
         &fact_read,
         helper_reported_release_failure,
@@ -1043,15 +1101,27 @@ fn run_helper(
         // **不**据此改写释放义务（不伪造"释放未知"）。
         pipe: Some(pipe_facts),
     });
-    if let Some(message) = cause.message(&errors_text, stroke_mode) {
-        let failure = StrokeFailure::derive(
+    if let Some(authorization) = authorization {
+        if let Err(error) = authorization.completed(&NativeInputCompletion {
+            request_id: request_id.clone(), process: helper_process,
+            execute_notified: prepared.as_ref().is_some_and(|prepared| prepared.notified),
+            process_exit_confirmed: exit_confirmed,
+            input_release: release_state.release_status(),
+            trusted_final: fact_read.trusted().is_some_and(|facts| facts.phase == HelperFactPhase::Final),
+            error: authorization_error.clone().or_else(|| cause.message(&errors_text, stroke_mode)),
+        }) { authorization_error = Some(format!("输入完成对账失败: {error}")); }
+    }
+    if let Some(message) = authorization_error.map(|error| format!("input_authorization_failed: {error}"))
+        .or_else(|| cause.message(&errors_text, stroke_mode)) {
+        let mut failure = StrokeFailure::derive(
             message,
-            true,
+            input_possible,
             fact_read,
             helper_reported_release_failure,
             exit_confirmed,
             independent_release_confirmed,
         );
+        failure.helper_process = helper_process;
         return Err(match cleanup_facts {
             Some(cleanup) => failure.with_cleanup(cleanup),
             None => failure,
@@ -1061,6 +1131,7 @@ fn run_helper(
     // `output` 只作诊断用途保留（已收到的字节按 UTF-8 宽松解码）；
     // 截图结果优先用**增量**协议记录，不用"等 EOF 才拿得到"的整段文本。
     Ok(HelperRun {
+        helper_process,
         output: output.to_string(),
         request_id,
         fact_read,
@@ -1076,6 +1147,7 @@ fn run_helper(
     _timeout: Duration,
     _cancelled: &dyn Fn() -> bool,
     _capacity: StrokeRunCapacity,
+    _authorization: Option<&dyn NativeInputAuthorization>,
 ) -> Result<HelperRun, StrokeFailure> {
     Err(StrokeFailure::before_input("受控桌面输入仅支持 Windows"))
 }
@@ -1261,11 +1333,13 @@ fn emergency_release(
         timeout,
         &|| false,
         capacity,
+        None,
     )
         .map(|_| ())
         .map_err(|failure| StrokeFailure {
             // 独立释放失败不注入路径输入，但内层事实（如果有）不得被丢弃。
             message: format!("mouse_release_failed: 独立释放失败: {}", failure.message),
+            helper_process: failure.helper_process,
             input_possible: failure.input_possible,
             fact_read: failure.fact_read,
             helper_reported_release_failure: failure.helper_reported_release_failure,
@@ -1281,14 +1355,30 @@ fn emergency_release(
 const HELPER_ENTRY: &str = r#"
 $r=[Console]::In.ReadToEnd()|ConvertFrom-Json
 if($r.mode -eq 'release') { [CoolzhuStroke.Native]::EmergencyRelease(); 'released'; exit }
+$progress=$null
+if($r.progress_file){ $progress=[CoolzhuStroke.FileProgress]::new([string]$r.progress_file,[string]$r.request_id) }
+if($r.two_phase_helper){
+ $q=[string]$r.ready_file;$m=[string]$r.permit_file;$n=[string]$r.two_phase_nonce
+ function DenyStrokeInput($e){if($progress){$progress.Report('final',$false,0,$false,$false,$true)};throw $e}
+ if(!$q -or !$m -or !$n -or !$r.input_deadline_unix_ms){DenyStrokeInput 'rejected_permit: missing handshake fields'}
+ [IO.File]::WriteAllText($q+'.tmp',(@{type='ready';helper_protocol_version=1;nonce=$n;pid=$PID;timestamp_unix_ms=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()}|ConvertTo-Json -Compress));[IO.File]::Move($q+'.tmp',$q)
+ while($true){
+  if((Test-Path -LiteralPath ([string]$r.cancel_file)) -or [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() -ge [long]$r.input_deadline_unix_ms){DenyStrokeInput 'stroke_cancelled: awaiting permit'}
+  if(Test-Path -LiteralPath $m){
+   try{$v=[IO.File]::ReadAllText($m)|ConvertFrom-Json}catch{DenyStrokeInput 'rejected_permit: invalid JSON'}
+   if($v.type -cne 'execute' -or $v.nonce -cne $n -or [string]::IsNullOrWhiteSpace($v.permit_id) -or [string]::IsNullOrWhiteSpace($v.attempt_id) -or [string]::IsNullOrWhiteSpace($v.executor_instance_id)){DenyStrokeInput 'rejected_permit: invalid session'}
+   if(!$v.expires_at_unix_ms){DenyStrokeInput 'rejected_permit: missing expiry'}
+   [CoolzhuStroke.Deadline]::At=[Math]::Min([long]$r.input_deadline_unix_ms,[long]$v.expires_at_unix_ms);[CoolzhuStroke.Deadline]::Check()
+   break
+  };Start-Sleep -Milli 20
+ }
+}
 if($r.mock_scenario){ [CoolzhuStroke.MockChecks]::RunScenario([string]$r.mock_scenario,[string]$r.progress_file,[string]$r.request_id); 'released'; exit }
 $w=$r.window
 $native=[CoolzhuStroke.Native]::new([long]$w.handle,[uint32]$w.process_id,[int[]]$w.rect,[uint32]$w.dpi,[string]$r.cancel_file)
 if($r.mode -eq 'capture') { $native.Capture()|ConvertTo-Json -Compress; exit }
 if($r.mode -ne 'stroke') { throw 'unsupported helper mode' }
 $points=@($r.points|ForEach-Object{[CoolzhuStroke.Point]::new([int]$_.x,[int]$_.y)})
-$progress=$null
-if($r.progress_file){ $progress=[CoolzhuStroke.FileProgress]::new([string]$r.progress_file,[string]$r.request_id) }
 [CoolzhuStroke.Engine]::RunWithProgress($native,[CoolzhuStroke.Point[]]$points,[int[]]$r.bounds,[int]$r.duration_ms,$progress)
 'released'
 "#;
@@ -1297,6 +1387,44 @@ if($r.progress_file){ $progress=[CoolzhuStroke.FileProgress]::new([string]$r.pro
 mod tests {
     use super::*;
     use crate::ComputerUseRetryOwner;
+
+    #[test]
+    #[cfg(windows)]
+    fn prepared_stroke_binding_waits_for_authorization_and_returns_same_identity() {
+        use crate::prepared_input::{NativeInputPermit, PreparedNativeInput};
+        struct Port { deny: bool, seen: std::cell::RefCell<Option<runtime::ProcessInstanceEvidence>> }
+        impl NativeInputAuthorization for Port {
+            fn authorize(&self, prepared: &PreparedNativeInput) -> Result<NativeInputPermit, String> {
+                self.seen.replace(Some(prepared.process));
+                if self.deny { return Err("笔画授权拒绝".into()) }
+                Ok(NativeInputPermit { permit_id: "stroke-permit".into(), attempt_id: "stroke-attempt".into(), executor_instance_id: "stroke-executor".into(), expires_at_unix_ms: prepared.deadline_unix_ms })
+            }
+            fn dispatch(&self, _: &PreparedNativeInput, _: &NativeInputPermit, notify: &mut dyn FnMut() -> Result<(), String>) -> Result<(), String> { notify() }
+            fn completed(&self, completion: &NativeInputCompletion) -> Result<(), String> {
+                assert_eq!(completion.process, *self.seen.borrow());
+                assert!(completion.process_exit_confirmed);
+                assert!(completion.trusted_final);
+                assert_eq!(completion.execute_notified, !self.deny);
+                Ok(())
+            }
+        }
+        for deny in [true, false] {
+            let port = Port { deny, seen: Default::default() };
+            let result = run_helper(serde_json::json!({"mode":"stroke","mock_scenario":"success"}), Duration::from_secs(20), &|| false, StrokeRunCapacity::OrdinaryAction, Some(&port));
+            let identity = port.seen.borrow().expect("真实笔画 helper 必须先 READY");
+            if deny {
+                let failure = result.expect_err("未经授权不能画线");
+                assert!(!failure.input_possible);
+                assert!(failure.message.contains("笔画授权拒绝"));
+                assert_eq!(failure.helper_process, Some(identity));
+                assert_eq!(failure.release_state.release_status(), InputReleaseStatus::NotNeeded);
+            } else {
+                let run = result.expect("获准的内存笔画应成功");
+                assert_eq!(run.helper_process, Some(identity));
+                assert_eq!(run.fact_read.trusted().unwrap().injected_points, 3);
+            }
+        }
+    }
 
     fn window() -> StrokeWindow {
         StrokeWindow {
@@ -1577,6 +1705,7 @@ mod tests {
             Duration::from_secs(20),
             &|| false,
             StrokeRunCapacity::OrdinaryAction,
+            None,
         )
         .expect_err("身份校验失败必须失败");
         assert_eq!(failure.kind(), StrokeFailureKind::Stale, "必须保持确定性 Stale");
@@ -1791,6 +1920,7 @@ mod tests {
             Duration::from_secs(20),
             &|| false,
             StrokeRunCapacity::OrdinaryAction,
+            None,
         )
         .expect_err("helper 报告释放失败时必须失败")
     }

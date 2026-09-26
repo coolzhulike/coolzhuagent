@@ -9,6 +9,7 @@ using System.Drawing.Imaging;
 using System.Security.Cryptography;
 using System.Collections.Generic;
 namespace CoolzhuStroke {
+ public static class Deadline { public static long At; public static void Check(){if(At>0&&DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()>=At)throw new Exception("stroke_cancelled: permit expired");} }
  public struct Point { public int X,Y; public Point(int x,int y){X=x;Y=y;} }
  public interface Driver { void Check(); void Move(Point p); void Down(); void Up(); void Wait(int ms); }
  // 输入事实的接收端。Engine 在每一步被确认之后汇报，字段语义与 Rust 侧 HelperInputFacts 一一对应。
@@ -117,6 +118,7 @@ namespace CoolzhuStroke {
   readonly Stopwatch watch=Stopwatch.StartNew();
   public Native(long h,uint p,int[] r,uint d,string c){handle=new IntPtr(h);pid=p;rect=r;dpi=d;cancel=c;if(SetThreadDpiAwarenessContext(new IntPtr(-4))==IntPtr.Zero)throw new Exception("dpi_context_failed: 无法设置物理像素坐标上下文");}
   public void Check(){
+   Deadline.Check();
    if(File.Exists(cancel)||(GetAsyncKeyState(0x1B)&0x8000)!=0||watch.ElapsedMilliseconds>7000)throw new Exception("stroke_cancelled");
    uint p; RECT r;var foreground=GetForegroundWindow();bool pidAvailable=GetWindowThreadProcessId(handle,out p)!=0;bool rectAvailable=GetWindowRect(handle,out r);uint actualDpi=GetDpiForWindow(handle);
    string mismatch=IdentityCheck.Difference(handle.ToInt64(),foreground.ToInt64(),pid,p,rect,new int[]{r.Left,r.Top,r.Right-r.Left,r.Bottom-r.Top},dpi,actualDpi,pidAvailable,rectAvailable);
@@ -235,6 +237,7 @@ namespace CoolzhuStroke {
    var pts=new Point[]{new Point(10,10),new Point(20,20),new Point(30,30)};var bounds=new int[]{0,0,100,100};
    Mock driver;
    if(scenario=="release_failure")driver=new Mock{FailMove=2,FailRelease=true};
+   else if(scenario=="success")driver=new Mock();
    else if(scenario=="identity_failure")driver=new Mock{FailCheck=true};
    else throw new Exception("unsupported mock scenario: "+scenario);
    var sink=new FileProgress(ProgressFile(path),requestId);

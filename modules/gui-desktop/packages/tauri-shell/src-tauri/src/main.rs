@@ -1,5 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod browser_panel;
+mod recovery_confirmation;
+
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 #[cfg(windows)]
@@ -161,6 +164,7 @@ fn startup_performance_requested(args: &[String]) -> bool {
 }
 
 fn main() {
+    recovery_confirmation::initialize();
     if let Err(error) = diagnostics::init("coolzhu-tauri-shell") {
         diagnostics::error_event(
             DIAGNOSTICS_MODULE,
@@ -208,20 +212,37 @@ fn main() {
             }
         }))
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![
-            toggle_console,
-            show_console_command,
-            hide_console_command,
-            quit_app,
-            start_pet_dragging,
-            report_throne_zone,
-            stabilize_pet_window_command,
-            pet_status,
-            set_pet_action,
-            pet_drop_uploaded,
-            browser_window_command,
-            open_browser_window
-        ])
+        .manage(browser_panel::PanelStore::default())
+        .invoke_handler(|invoke| {
+            let caller = invoke.message.webview_ref();
+            if !caller.url().ok().is_some_and(|url| {
+                browser_panel::trusted_custom_command(
+                    caller.label(),
+                    &url,
+                    invoke.message.command(),
+                )
+            }) {
+                invoke.resolver.reject("此页面无权调用桌面应用命令");
+                return true;
+            }
+            let handler: fn(tauri::ipc::Invoke<tauri::Wry>) -> bool = tauri::generate_handler![
+                toggle_console,
+                show_console_command,
+                hide_console_command,
+                quit_app,
+                start_pet_dragging,
+                report_throne_zone,
+                stabilize_pet_window_command,
+                pet_status,
+                set_pet_action,
+                pet_drop_uploaded,
+                browser_window_command,
+                open_browser_window,
+                browser_panel::browser_panel_command,
+                recovery_confirmation::confirm_recovery
+            ];
+            handler(invoke)
+        })
         .setup(|app| {
             let handle = app.handle().clone();
             if let Err(error) = build_tray(&handle) {
@@ -384,7 +405,7 @@ fn arm_startup_performance_fallback(app: &AppHandle) {
                 .and_then(|window| window.is_visible().ok())
                 .unwrap_or(false);
             let console_visible = app_for_main
-                .get_webview_window(CONSOLE_LABEL)
+                .get_window(CONSOLE_LABEL)
                 .and_then(|window| window.is_visible().ok())
                 .unwrap_or(false);
             if performance_visible && !console_visible {
@@ -460,7 +481,8 @@ fn build_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn build_console_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    if app.get_webview_window(CONSOLE_LABEL).is_some() {
+    browser_panel::pin_console_origin();
+    if app.get_window(CONSOLE_LABEL).is_some() {
         return Ok(());
     }
 
@@ -480,10 +502,17 @@ fn build_console_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error
     .prevent_overflow_with_margin(tauri::LogicalSize::new(16.0, 16.0))
     .visible(false)
     .focused(true)
+    .on_navigation(browser_panel::trusted_console_url)
     .build()?;
 
     let app_for_close = app.clone();
     console.on_window_event(move |event| {
+        if matches!(
+            event,
+            WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. }
+        ) {
+            browser_panel::invalidate(&app_for_close, "window-resized");
+        }
         if let WindowEvent::CloseRequested { api, .. } = event {
             // 标题栏的关闭按钮必须真的退出。原实现是 prevent_close + hide：窗口消失了，
             // 但 Tauri 进程、托盘和 8765 上的 agent 全部继续驻留，用户看到的就是
@@ -491,6 +520,7 @@ fn build_console_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error
             // 不再借用窗口关闭语义。
             // 先 prevent_close 再回收：避免窗口关闭触发主循环退出、抢在回收 web-console 之前。
             api.prevent_close();
+            browser_panel::invalidate(&app_for_close, "closed");
             quit_application(&app_for_close);
         }
     });
@@ -573,7 +603,7 @@ fn build_pet_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 
 fn show_console(app: &AppHandle) {
     hide_startup_performance(app);
-    if app.get_webview_window(CONSOLE_LABEL).is_none() {
+    if app.get_window(CONSOLE_LABEL).is_none() {
         if let Err(error) = build_console_window(app) {
             diagnostics::error_event(
                 DIAGNOSTICS_MODULE,
@@ -588,14 +618,14 @@ fn show_console(app: &AppHandle) {
         }
     }
 
-    if let Some(console) = app.get_webview_window(CONSOLE_LABEL) {
+    if let Some(console) = app.get_window(CONSOLE_LABEL) {
         present_console(&console);
     }
     emit_pet_status(app, "success", "控制台已显示");
 }
 
 fn hide_console(app: &AppHandle) {
-    if let Some(console) = app.get_webview_window(CONSOLE_LABEL) {
+    if let Some(console) = app.get_window(CONSOLE_LABEL) {
         console.hide().ok();
     }
     emit_pet_status(app, "idle", "控制台已隐藏");
@@ -630,7 +660,7 @@ fn hide_pet(app: &AppHandle) {
 }
 
 fn do_toggle_console(app: &AppHandle) -> ConsoleState {
-    if app.get_webview_window(CONSOLE_LABEL).is_none() {
+    if app.get_window(CONSOLE_LABEL).is_none() {
         if let Err(error) = build_console_window(app) {
             diagnostics::error_event(
                 DIAGNOSTICS_MODULE,
@@ -645,7 +675,7 @@ fn do_toggle_console(app: &AppHandle) -> ConsoleState {
         }
     }
 
-    if let Some(console) = app.get_webview_window(CONSOLE_LABEL) {
+    if let Some(console) = app.get_window(CONSOLE_LABEL) {
         let decision = console_toggle_decision(
             console.is_visible().unwrap_or(false),
             console.is_minimized().unwrap_or(false),
@@ -800,7 +830,7 @@ fn report_throne_zone(
     device_pixel_ratio: f64,
 ) -> Result<(), String> {
     let console = app
-        .get_webview_window(CONSOLE_LABEL)
+        .get_window(CONSOLE_LABEL)
         .ok_or_else(|| "Console window not found".to_string())?;
     let origin = console
         .inner_position()
@@ -856,7 +886,7 @@ fn handle_pet_drag_release(app: &tauri::AppHandle) {
         let _ = pet.set_position(PhysicalPosition::new(x, y));
         PET_CROWNED.store(true, std::sync::atomic::Ordering::SeqCst);
         emit_pet_status(app, "crowned", "已登上王座");
-        if let Some(console) = app.get_webview_window(CONSOLE_LABEL) {
+        if let Some(console) = app.get_window(CONSOLE_LABEL) {
             let _ = console.emit(
                 "pet-throne",
                 PetThroneEvent {
@@ -870,7 +900,7 @@ fn handle_pet_drag_release(app: &tauri::AppHandle) {
         let was_crowned = PET_CROWNED.swap(false, std::sync::atomic::Ordering::SeqCst);
         emit_pet_status(app, "idle", "拖拽已结束");
         if was_crowned {
-            if let Some(console) = app.get_webview_window(CONSOLE_LABEL) {
+            if let Some(console) = app.get_window(CONSOLE_LABEL) {
                 let _ = console.emit(
                     "pet-throne",
                     PetThroneEvent {
@@ -1274,14 +1304,19 @@ fn emit_pet_status_payload(app: &AppHandle, status: &PetStatus) {
     }
 }
 
-fn navigate_console_to_current_web_gui(console: &tauri::WebviewWindow) {
+fn navigate_console_to_current_web_gui(console: &tauri::Window) {
     let url = format!("{}/", gui_web_url().trim_end_matches('/'));
     if let Ok(url) = Url::parse(&url) {
-        console.navigate(url).ok();
+        if let Some(view) = console.app_handle().get_webview(CONSOLE_LABEL) {
+            // 显示已有控制台不能重新加载同一页面，否则会丢失输入中的草稿。
+            if view.url().ok().as_ref() != Some(&url) {
+                view.navigate(url).ok();
+            }
+        }
     }
 }
 
-fn present_console(console: &tauri::WebviewWindow) {
+fn present_console(console: &tauri::Window) {
     navigate_console_to_current_web_gui(console);
     console.unminimize().ok();
     console.show().ok();
@@ -1307,14 +1342,15 @@ fn console_toggle_decision(
 }
 
 fn gui_web_url() -> String {
-    let value = std::fs::read_to_string(std::env::temp_dir().join("coolzhu-gui-web-url.txt"))
+    let value = std::env::var("COOLZHU_GUI_WEB_URL")
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
         .or_else(|| {
-            std::env::var("COOLZHU_GUI_WEB_URL")
+            std::fs::read_to_string(std::env::temp_dir().join("coolzhu-gui-web-url.txt"))
                 .ok()
-                .filter(|value| !value.trim().is_empty())
+                .map(|value| value.trim().to_string())
+                .filter(|value| !value.is_empty())
         })
         .unwrap_or_else(|| DEFAULT_GUI_WEB_URL.to_string());
     normalize_gui_web_url(&value)

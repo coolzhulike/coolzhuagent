@@ -58,6 +58,23 @@ fn lock_unless_reentrant() -> Option<std::sync::MutexGuard<'static, ()>> {
     }
 }
 
+/// 读取进程级环境的异步测试可在整个操作期间持有此守卫，避免另一条测试中途换根。
+pub(crate) struct ProcessEnvReadGuard {
+    _lock: Option<std::sync::MutexGuard<'static, ()>>,
+}
+
+impl Drop for ProcessEnvReadGuard {
+    fn drop(&mut self) {
+        LIVE_GUARDS.with(|depth| depth.set(depth.get().saturating_sub(1)));
+    }
+}
+
+pub(crate) fn hold_for_read() -> ProcessEnvReadGuard {
+    let lock = lock_unless_reentrant();
+    LIVE_GUARDS.with(|depth| depth.set(depth.get() + 1));
+    ProcessEnvReadGuard { _lock: lock }
+}
+
 /// 一个环境变量的恢复守卫；**持有进程环境锁直到它被析构**。
 ///
 /// 字段顺序即析构顺序：`Drop::drop`（恢复环境）先执行，之后 `_lock` 才释放。

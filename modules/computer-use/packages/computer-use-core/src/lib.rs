@@ -5,6 +5,7 @@ pub mod cleanup;
 pub mod contracts;
 pub mod controller;
 pub mod input;
+pub mod prepared_input;
 pub mod supervisor;
 
 pub use budget::{CuBudgetFacts, CuDeadline, RootDeadline, RootDeadlineState};

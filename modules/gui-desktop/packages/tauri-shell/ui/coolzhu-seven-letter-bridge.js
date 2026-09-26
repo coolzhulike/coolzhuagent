@@ -15,7 +15,7 @@
   function createBridge(options = {}) {
     const documentRef = options.documentRef || (root && root.document) || null;
     const windowRef = options.windowRef || (documentRef && documentRef.defaultView) || root || null;
-    const playerApi = options.playerApi || (root && root.CoolzhuSevenLetterStartupPlayer) || null;
+    const playerApi = options.playerApi || (root && root.CoolzhuScrollStartupPlayer) || null;
     const manifest = options.manifest || (root && root.CoolzhuSevenLetterManifest) || null;
     const canvas = options.canvas || (documentRef && documentRef.getElementById(options.canvasId || "launch-performance-canvas"));
     const skipButton = options.skipButton || (documentRef && documentRef.getElementById(options.skipId || "launch-performance-skip"));
@@ -24,6 +24,15 @@
     let started = false;
     let finished = false;
     let listenersInstalled = false;
+    let watchdogId = 0;
+    let mode = options.mode || "";
+    if (!mode) {
+      try { mode = new URLSearchParams(windowRef.location?.search || "").get("mode") || ""; } catch (_) { /* 测试或受限宿主 */ }
+    }
+    if (!["first", "daily", "restore"].includes(mode)) {
+      try { mode = windowRef.localStorage?.getItem("coolzhu.scroll-startup.seen.v1") ? "daily" : "first"; }
+      catch (_) { mode = "daily"; }
+    }
 
     function clearPresentation() {
       if (canvas && typeof canvas.getContext === "function") {
@@ -83,6 +92,10 @@
     function finalize(reason) {
       if (finished) return false;
       finished = true;
+      windowRef?.clearTimeout?.(watchdogId);
+      if (["completed", "skipped", "reduced-motion"].includes(reason)) {
+        try { windowRef.localStorage?.setItem("coolzhu.scroll-startup.seen.v1", "1"); } catch (_) { /* 存储失败不影响启动 */ }
+      }
       removeListeners();
       clearPresentation();
       dispatchCompletion(reason);
@@ -133,11 +146,13 @@
     function start() {
       if (started || finished) return instance;
       started = true;
+      if (mode === "restore") { finalize("restored"); return null; }
       if (!playerApi || typeof playerApi.createStartupPlayer !== "function" || !manifest || !canvas) {
         finalize("resource-error");
         return null;
       }
       installListeners();
+      watchdogId = windowRef?.setTimeout?.(() => requestFinish("presentation-timeout"), 7000) || 0;
       const reducedMotion = options.reducedMotion !== undefined
         ? options.reducedMotion === true
         : Boolean(windowRef?.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
@@ -148,8 +163,9 @@
           windowRef,
           canvas,
           assets: options.assets,
+          mode,
           reducedMotion,
-          reducedMotionDelayMs: 300,
+          reducedMotionDelayMs: 120,
         });
         instance.start();
       } catch (error) {

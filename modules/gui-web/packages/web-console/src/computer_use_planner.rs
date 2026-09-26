@@ -578,7 +578,7 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
     ///
     /// 超时（预算到期）时：结束等待与继续执行资格，**不得**触发新的动作，也**不得**
     /// 再补发一次请求（补发等于在预算之外启动一个新的模型操作）。底层请求**不被取消**，
-    /// 它真实到达时其 usage 由 [`LateUsageRecorder`] 作为**迟到事实**记账。
+    /// 它真实到达时仍由随任务存活的请求观察器记账。
     async fn request_model(&self, agent: &crate::AgentSessionDto, prompt: &str, images: &[String], system: &str,
         kind: &str, remaining: Duration) -> Result<(api::MessageResponse, u64), ComputerUseError> {
         self.check_cancelled()?;
@@ -596,15 +596,10 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         }
         let request = crate::agent_planner_message_request(agent, assembly.messages, system.to_string(), 4096);
         let started_at = planner_now_ms();
-        let client = crate::provider_client_for_agent(agent).map_err(|error| planner_backend_error(format!("planner client: {error}")))?;
-        let recorder = LateUsageRecorder {
-            session_id: agent.id.clone(),
-            room_id: self.room_id.clone(),
-            turn_id: self.turn_id.clone(),
-            call_id: self.call_id.clone(),
-            kind: kind.to_string(),
-        };
-        let pending = dispatch_model_request(client, request, recorder);
+        let client = crate::request_usage::observe(crate::provider_client_for_agent(agent), &agent.id,
+            self.room_id.as_deref(),Some(&self.turn_id),Some(&self.call_id),kind)
+            .map_err(|error| planner_backend_error(format!("planner client: {error}")))?;
+        let pending = dispatch_model_request(client, request);
         let response = tokio::select! {
             received = tokio::time::timeout(budget, pending) => match received {
                 Ok(Ok(Ok(response))) => response,
@@ -620,8 +615,6 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
                 return Err(planner_backend_error("planner cancellation signal changed unexpectedly"));
             }
         };
-        crate::chat_insights::record_usage_with_context(&agent.id, self.room_id.as_deref(), &response.usage,
-            Some(&crate::chat_insights::UsageContext { turn_id: &self.turn_id, call_id: &self.call_id, kind }));
         self.check_cancelled()?;
         if response.content.iter().any(|block| matches!(block, api::OutputContentBlock::ToolUse { .. })) {
             return Err(invalid_plan("internal planner returned a tool call; no nested tool was executed"));
@@ -780,56 +773,20 @@ fn planner_now_ms() -> u64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis().min(u64::MAX as u128) as u64
 }
 
-/// 迟到事实记录器：请求只发出一次，但请求的**真实完成时刻**可能晚于预算到期。
-///
-/// 等待方在预算到期后会被丢弃；此时响应回到这里，只把真实 usage 记账，
-/// **不**产生任何动作、也**不**重新发起请求。
-struct LateUsageRecorder {
-    session_id: String,
-    room_id: Option<String>,
-    turn_id: String,
-    call_id: String,
-    kind: String,
-}
-
-impl LateUsageRecorder {
-    fn record(&self, usage: &api::Usage) {
-        crate::chat_insights::record_usage_with_context(
-            &self.session_id,
-            self.room_id.as_deref(),
-            usage,
-            Some(&crate::chat_insights::UsageContext {
-                turn_id: &self.turn_id,
-                call_id: &self.call_id,
-                kind: &self.kind,
-            }),
-        );
-    }
-}
-
 /// 把一次模型请求交给独立任务执行，并返回等待通道。
 ///
 /// 这样做的原因是"停止等待"与"底层工作已停止"是两件事：
 /// 预算到期只会让调用方放弃等待，**不会**取消已经发出的请求；
-/// 响应回到任务时，如果等待方已经不在了，就由 [`LateUsageRecorder`] 记录迟到事实。
+/// 请求观察器随底层任务存活，等待方退出后仍记录迟到事实。
 fn dispatch_model_request(
     client: crate::ProviderClient,
     request: api::MessageRequest,
-    recorder: LateUsageRecorder,
 ) -> tokio::sync::oneshot::Receiver<Result<api::MessageResponse, api::ApiError>> {
     let (sender, receiver) = tokio::sync::oneshot::channel();
+    // 观察器随底层任务存活；放弃等待不丢迟到事实，也不重复写成功响应。
     tokio::spawn(async move {
-        let response = client.send_message(&request).await;
-        match sender.send(response) {
-            // 等待方还在：由调用方按既有路径记账，避免重复计数。
-            Ok(()) => {}
-            // 等待方已经放弃（预算到期）：只把真实 usage 记为迟到事实。
-            Err(response) => {
-                if let Ok(response) = response {
-                    recorder.record(&response.usage);
-                }
-            }
-        }
+        let response=client.send_message(&request).await;
+        let _=sender.send(response);
     });
     receiver
 }

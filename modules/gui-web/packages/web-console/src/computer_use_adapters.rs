@@ -369,6 +369,15 @@ pub(crate) trait DesktopBridge: Send + Sync {
         expected: &DesktopSnapshot,
         remaining: std::time::Duration,
     ) -> Result<StepExecution, ComputerUseError>;
+    fn execute_authorized(
+        &self,
+        action: &ComputerUseAction,
+        expected: &DesktopSnapshot,
+        remaining: std::time::Duration,
+        _authorization: &dyn computer_use::prepared_input::NativeInputAuthorization,
+    ) -> Result<StepExecution, ComputerUseError> {
+        self.execute(action, expected, remaining)
+    }
     fn verify(
         &self,
         criteria: &[String],
@@ -460,6 +469,38 @@ impl<B: DesktopBridge> ComputerUseAdapter for DesktopComputerUseAdapter<B> {
         action: &ComputerUseAction,
         expected_generation: u64,
         remaining: std::time::Duration,
+    ) -> Result<StepExecution, ComputerUseError> {
+        self.act_inner(action, expected_generation, remaining, None)
+    }
+
+    fn act_authorized(
+        &self,
+        action: &ComputerUseAction,
+        expected_generation: u64,
+        remaining: std::time::Duration,
+        authorization: &dyn computer_use::prepared_input::NativeInputAuthorization,
+    ) -> Result<StepExecution, ComputerUseError> {
+        self.act_inner(action, expected_generation, remaining, Some(authorization))
+    }
+
+    fn verify(
+        &self,
+        criteria: &[String],
+        before: &Observation,
+        after: &Observation,
+        remaining: std::time::Duration,
+    ) -> Result<Verification, ComputerUseError> {
+        self.bridge.verify(criteria, before, after, remaining)
+    }
+}
+
+impl<B: DesktopBridge> DesktopComputerUseAdapter<B> {
+    fn act_inner(
+        &self,
+        action: &ComputerUseAction,
+        expected_generation: u64,
+        remaining: std::time::Duration,
+        authorization: Option<&dyn computer_use::prepared_input::NativeInputAuthorization>,
     ) -> Result<StepExecution, ComputerUseError> {
         let pre_input = |error: ComputerUseError| pre_input_rejection(error, self.surface(), action);
         if !self.capabilities().supports(action.kind) {
@@ -560,17 +601,10 @@ impl<B: DesktopBridge> ComputerUseAdapter for DesktopComputerUseAdapter<B> {
         }
         // 一次观察只授权一次输入尝试；成功或失败后都需要重新观察。
         *self.observed.lock().expect("desktop observation lock") = None;
-        self.bridge.execute(action, &current, remaining)
-    }
-
-    fn verify(
-        &self,
-        criteria: &[String],
-        before: &Observation,
-        after: &Observation,
-        remaining: std::time::Duration,
-    ) -> Result<Verification, ComputerUseError> {
-        self.bridge.verify(criteria, before, after, remaining)
+        match authorization {
+            Some(port) => self.bridge.execute_authorized(action, &current, remaining, port),
+            None => self.bridge.execute(action, &current, remaining),
+        }
     }
 }
 

@@ -297,6 +297,21 @@ pub(crate) fn apply_session_migration_v25_tool_call_registry(
     Ok(())
 }
 
+/// v27：执行 id 与 provider 关联 id 分离；旧行保留 NULL，不反推历史请求。
+pub(crate) fn apply_session_migration_v27_tool_call_source(connection: &Connection) -> rusqlite::Result<()> {
+    let current: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    let columns = connection.prepare("PRAGMA table_info(tool_calls)")?
+        .query_map([], |row| row.get::<_, String>(1))?.collect::<rusqlite::Result<Vec<_>>>()?;
+    for name in ["provider_tool_call_id", "source_request_key"] {
+        if !columns.iter().any(|column| column == name) {
+            // 列名完全来自上面的宿主常量。
+            connection.execute_batch(&format!("ALTER TABLE tool_calls ADD COLUMN {name} TEXT"))?;
+        }
+    }
+    if current < 27 { connection.execute_batch("PRAGMA user_version = 27;")?; }
+    Ok(())
+}
+
 /// v26：**清理事故登记**（`CleanupIncidentRecord` 形态）。
 ///
 /// 为什么需要它：`ActionSource::SafetyCleanup` 要求"核对到 incident + 原动作 + 恢复资格"才成立，
@@ -1819,29 +1834,8 @@ impl ComputerUseRunStore {
         connection.execute_batch(
             "PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;",
         )?;
-        // 与主入口共用的前置规则（超前版本拒绝），必须在任何补列/建表之前。
-        ensure_session_schema_not_from_the_future(&connection)?;
-        apply_session_migration_v11(&connection)?;
-        // PR-02A：执行器现在真的会写**动作事实**，因此事实日志表（v21 建，属 main.rs 阶梯）
-        // 也必须在这条独立打开路径上可用——否则事实写入会以 `no such table: fact_log_records`
-        // 失败，而失败发生在"已经动手之后"，这正是最不该出现的位置。
-        // 与 v22/v23 同例：调用**同一批函数**，不另写一份。
-        crate::apply_session_migration_v21(&connection)?;
-        // 与 v11 同例：本文件拥有的表由本文件补齐归属列，独立打开 store（不经 main.rs 阶梯）
-        // 时也必须可用，否则接纳处会因为"没有那一列"而写不进真实归属。
-        // 注意：这三步与 main.rs 阶梯调用的是**同一批函数**（不是另写一份），前置规则也共用
-        // `ensure_session_schema_not_from_the_future`，避免两套阶梯逐渐漂移。
-        apply_session_migration_v22(&connection)?;
-        // 同例：收敛列/表也由本文件拥有，独立打开 store（不经 main.rs 阶梯）时也必须可用；
-        // 否则收敛写入会以 `no such column` fail-closed（登记前后行为一致，不留半套事实）。
-        apply_session_migration_v23_legacy_run_convergence(&connection)?;
-        // 同例（PR-02A）：动作来源核对的登记表也由本文件拥有——独立打开 store 时它必须可用，
-        // 否则"登记规划 attempt"会以 `no such table` 失败，来源核对就退化成"查不到"。
-        apply_session_migration_v24_action_origin_ledger(&connection)?;
-        // 同例（PR-02B）：工具调用登记表也由本文件拥有——来源核对读它，缺表会退化成"查不到"。
-        apply_session_migration_v25_tool_call_registry(&connection)?;
-        // 同例：清理事故登记也由本文件拥有（SafetyCleanup 来源核对读它）。
-        apply_session_migration_v26_cleanup_incidents(&connection)?;
+        // 所有打开路径复用唯一完整阶梯，先备份再事务迁移。
+        crate::initialize_session_schema(&connection)?;
         Ok(Self::from_connection(connection))
     }
 
@@ -2264,7 +2258,7 @@ impl ComputerUseRunStore {
 
     /// **登记一次工具调用**（PR-02B）：在派发边界写入，只有那里才知道"哪个工具、什么参数、属于哪个运行"。
     ///
-    /// 幂等：同一 `tool_call_id` 重复登记只更新状态与时间（provider 重试同一 id 时不重复建行）。
+    /// 只有首次插入才能取得执行资格。重复 id（包括同主重试）返回约束错误，绝不改写旧调用。
     pub(crate) fn register_tool_call(
         &self,
         tool_call_id: &str,
@@ -2279,10 +2273,7 @@ impl ComputerUseRunStore {
             "INSERT INTO tool_calls
                  (tool_call_id, run_id, request_attempt_id, tool_name, arguments_digest,
                   status, created_at_unix_ms, updated_at_unix_ms)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?7)
-             ON CONFLICT(tool_call_id) DO UPDATE SET
-                 status = excluded.status,
-                 updated_at_unix_ms = excluded.updated_at_unix_ms",
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?7)",
             params![
                 tool_call_id,
                 run_id,
@@ -2293,6 +2284,20 @@ impl ComputerUseRunStore {
                 now_ms() as i64
             ],
         )?;
+        Ok(())
+    }
+
+    /// 新模型调用原子保存宿主执行 id 与原 provider 关联；未知传输 attempt 保持 NULL。
+    pub(crate) fn register_model_tool_call(
+        &self, source: &crate::tool_invocation_identity::ModelToolIdentity, run_id: Option<&str>,
+        tool_name: &str, arguments_digest: &str,
+    ) -> rusqlite::Result<()> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        connection.execute("INSERT INTO tool_calls
+            (tool_call_id,run_id,request_attempt_id,tool_name,arguments_digest,status,created_at_unix_ms,updated_at_unix_ms,provider_tool_call_id,source_request_key)
+            VALUES (?1,?2,NULL,?3,?4,'dispatched',?5,?5,?6,?7)",
+            params![source.execution_id,run_id,tool_name,arguments_digest,now_ms() as i64,
+                source.provider_tool_call_id,source.source_request_key])?;
         Ok(())
     }
 
@@ -4441,50 +4446,27 @@ mod tests {
         assert!(incident.eligible_at_unix_ms.is_some(), "资格时间必须留痕");
     }
 
-    /// **PR-02B**：工具调用登记——幂等（同 id 更新状态而非新建行）、可读回、参数只存摘要。
+    /// 登记是执行前置条件：重复/异主 id 不得拿到新的执行资格或覆盖原事实。
     #[test]
-    fn tool_call_registry_is_idempotent_and_keeps_only_a_digest() {
+    fn tool_call_registry_rejects_replay_and_foreign_owner_without_mutation() {
         let store = temp_store();
-        store
-            .register_tool_call(
-                "toolu-1",
-                Some("run-1"),
-                None,
-                "computer_use_perform",
-                "digest-abc",
-                "dispatched",
-            )
-            .expect("登记");
-        let dispatched = store.tool_call_record("toolu-1").unwrap().expect("可读回");
-        assert_eq!(dispatched.status, "dispatched");
-        assert_eq!(dispatched.run_id.as_deref(), Some("run-1"));
-        assert_eq!(
-            dispatched.request_attempt_id, None,
-            "产生该工具调用的模型请求未知 ⇒ 必须留空（不得拿最近一次请求顶替）"
-        );
-
-        // 收尾：同 id 只更新状态与时间，不新建行。
-        store
-            .register_tool_call(
-                "toolu-1",
-                Some("run-1"),
-                None,
-                "computer_use_perform",
-                "digest-abc",
-                "completed",
-            )
-            .expect("收尾");
-        assert_eq!(
-            store.tool_calls_for_run("run-1").unwrap().len(),
-            1,
-            "同一 tool_call_id 只能有一行"
-        );
-        let completed = store.tool_call_record("toolu-1").unwrap().expect("可读回");
-        assert_eq!(completed.status, "completed");
-        assert_eq!(completed.created_at_unix_ms, dispatched.created_at_unix_ms);
-        // 未登记 ⇒ 关系不成立（这是"不得伪造工具归属"的唯一判据）。
-        assert!(!store.tool_call_is_registered("toolu-unknown").unwrap());
-        assert!(store.tool_call_is_registered("toolu-1").unwrap());
+        store.register_tool_call("toolu-1", Some("run-1"), None,
+            "computer_use_perform", "digest-abc", "dispatched").unwrap();
+        let before = store.tool_call_record("toolu-1").unwrap().unwrap();
+        for (run, name, digest, status) in [
+            ("run-1", "computer_use_perform", "digest-abc", "dispatched"),
+            ("run-2", "write_file", "different", "completed"),
+        ] {
+            assert!(store.register_tool_call("toolu-1", Some(run), None, name, digest, status).is_err());
+        }
+        let after = store.tool_call_record("toolu-1").unwrap().unwrap();
+        assert_eq!(after.run_id, before.run_id);
+        assert_eq!(after.tool_name, before.tool_name);
+        assert_eq!(after.arguments_digest, before.arguments_digest);
+        assert_eq!(after.status, "dispatched");
+        assert_eq!(after.updated_at_unix_ms, before.updated_at_unix_ms);
+        assert!(store.tool_calls_for_run("run-2").unwrap().is_empty());
+        assert_eq!(after.request_attempt_id, None, "未知请求维度不得用最近请求补齐");
     }
 
     /// **CU-01「请求状态」**：无 usage 的请求**同样**要有 attempt 记录（不得被当成"请求不存在"）。

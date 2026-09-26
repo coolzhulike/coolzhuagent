@@ -143,7 +143,7 @@ mod tests {
     }
 
     #[tokio::test(flavor = "current_thread")]
-    async fn provider_identity_reaches_computer_use_tool_result() {
+    async fn scoped_execution_identity_reaches_computer_use_tool_result() {
         let _guard = crate::tests::config_test_guard();
         let mut config = crate::WorkspaceConfig::default();
         config.model.enable_llm_tools = true;
@@ -174,8 +174,11 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(result.provider_tool_call_id.as_deref(), Some("toolu_abc"));
-        assert!(result.call_id.ends_with("toolu_abc"));
+        let execution = crate::tool_invocation_identity::ModelToolIdentity::from_source(
+            None, "turn-1/direct-dispatch", "toolu_abc",
+        ).expect("稳定的宿主执行身份");
+        assert_eq!(result.provider_tool_call_id.as_deref(), Some(execution.execution_id.as_str()));
+        assert!(result.call_id.ends_with(&execution.execution_id));
         assert_eq!(response.route, "computer-use-task-controller");
         assert!(!result.goal_achieved);
         assert!(result.error.is_some());

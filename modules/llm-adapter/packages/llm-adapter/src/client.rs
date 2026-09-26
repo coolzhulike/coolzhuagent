@@ -90,6 +90,24 @@ impl ProviderClient {
         }
     }
 
+    #[must_use]
+    #[allow(deprecated)]
+    pub fn with_request_observer(self, observer: std::sync::Arc<dyn crate::RequestObserver>) -> Self {
+        match self {
+            Self::ClawApi(client) => Self::ClawApi(client.with_request_observer(observer)),
+            Self::Anthropic(client) => Self::Anthropic(client.with_request_observer(observer)),
+            Self::Xai(client) => Self::Xai(client.with_request_observer(observer)),
+            Self::OpenAi(client) => Self::OpenAi(client.with_request_observer(observer)),
+            Self::ZhipuAi(client) => Self::ZhipuAi(client.with_request_observer(observer)),
+            Self::AlibabaBailian(client) => Self::AlibabaBailian(client.with_request_observer(observer)),
+            Self::AlibabaCloud(client) => Self::AlibabaCloud(client.with_request_observer(observer)),
+            Self::BaiduQianfan(client) => Self::BaiduQianfan(client.with_request_observer(observer)),
+            Self::ByteDanceArk(client) => Self::ByteDanceArk(client.with_request_observer(observer)),
+            Self::DeepSeek(client) => Self::DeepSeek(client.with_request_observer(observer)),
+            Self::Custom(client) => Self::Custom(client.with_request_observer(observer)),
+        }
+    }
+
     pub fn from_model(model: &str) -> Result<Self, ApiError> {
         Self::from_model_with_default_auth(model, None)
     }
@@ -424,6 +442,13 @@ impl MessageStream {
         match &self.inner {
             MessageStreamKind::ClawApi(stream) => stream.request_id(),
             MessageStreamKind::OpenAiCompat(stream) => stream.request_id(),
+        }
+    }
+
+    pub fn usage_evidence(&self) -> crate::UsageEvidence {
+        match &self.inner {
+            MessageStreamKind::ClawApi(stream) => stream.usage_evidence(),
+            MessageStreamKind::OpenAiCompat(stream) => stream.usage_evidence(),
         }
     }
 

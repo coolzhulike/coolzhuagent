@@ -8,6 +8,7 @@ use glob::Pattern;
 use regex::RegexBuilder;
 use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
+use crate::conditional_file::{file_content_version, lock_file_mutation, publish_locked, read_expected, FileContentVersion};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TextFilePayload {
@@ -20,12 +21,23 @@ pub struct TextFilePayload {
     pub start_line: usize,
     #[serde(rename = "totalLines")]
     pub total_lines: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub character_range: Option<CharacterRange>,
+}
+
+/// 字符偏移按 Unicode scalar 计数，避免长单行结果只能整行回读。
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CharacterRange {
+    pub offset: usize,
+    pub length: usize,
+    pub total: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ReadFileOutput {
     #[serde(rename = "type")]
     pub kind: String,
+    pub version: FileContentVersion,
     pub file: TextFilePayload,
 }
 
@@ -46,6 +58,7 @@ pub struct StructuredPatchHunk {
 pub struct WriteFileOutput {
     #[serde(rename = "type")]
     pub kind: String,
+    pub version: FileContentVersion,
     #[serde(rename = "filePath")]
     pub file_path: String,
     pub content: String,
@@ -59,6 +72,7 @@ pub struct WriteFileOutput {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EditFileOutput {
+    pub version: FileContentVersion,
     #[serde(rename = "filePath")]
     pub file_path: String,
     #[serde(rename = "oldString")]
@@ -145,25 +159,53 @@ pub fn read_file(
 
     Ok(ReadFileOutput {
         kind: String::from("text"),
+        version: file_content_version(content.as_bytes()),
         file: TextFilePayload {
             file_path: absolute_path.to_string_lossy().into_owned(),
             content: selected,
             num_lines: end_index.saturating_sub(start_index),
             start_line: start_index.saturating_add(1),
             total_lines: lines.len(),
+            character_range: None,
         },
     })
 }
 
-pub fn write_file(path: &str, content: &str) -> io::Result<WriteFileOutput> {
+pub fn read_file_character_range(path: &str, offset: usize, max_chars: usize) -> io::Result<ReadFileOutput> {
+    if !(1..=6000).contains(&max_chars) {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "max_chars 必须介于 1 与 6000"));
+    }
+    let path = normalize_path(path)?;
+    let content = fs::read_to_string(&path)?;
+    let total = content.chars().count();
+    let offset = offset.min(total);
+    let selected: String = content.chars().skip(offset).take(max_chars).collect();
+    let start_line = content.chars().take(offset).filter(|c| *c == '\n').count() + 1;
+    Ok(ReadFileOutput {
+        kind: "text".into(),
+        version: file_content_version(content.as_bytes()),
+        file: TextFilePayload {
+            file_path: path.to_string_lossy().into_owned(),
+            num_lines: selected.lines().count(), start_line, total_lines: content.lines().count(),
+            character_range: Some(CharacterRange { offset, length: selected.chars().count(), total }),
+            content: selected,
+        },
+    })
+}
+
+pub fn write_file(path: &str, content: &str, expected_version: Option<&str>) -> io::Result<WriteFileOutput> {
     let absolute_path = normalize_path_allow_missing(path)?;
-    let original_file = fs::read_to_string(&absolute_path).ok();
     if let Some(parent) = absolute_path.parent() {
         fs::create_dir_all(parent)?;
     }
-    fs::write(&absolute_path, content)?;
+    let absolute_path = normalize_path_allow_missing(path)?;
+    let _lock = lock_file_mutation(&absolute_path)?;
+    let original_file = read_expected(&absolute_path, expected_version)?
+        .map(String::from_utf8).transpose().map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+    publish_locked(&absolute_path, content.as_bytes(), expected_version)?;
 
     Ok(WriteFileOutput {
+        version: file_content_version(content.as_bytes()),
         kind: if original_file.is_some() {
             String::from("update")
         } else {
@@ -182,9 +224,16 @@ pub fn edit_file(
     old_string: &str,
     new_string: &str,
     replace_all: bool,
+    expected_version: Option<&str>,
 ) -> io::Result<EditFileOutput> {
     let absolute_path = normalize_path(path)?;
-    let original_file = fs::read_to_string(&absolute_path)?;
+    let _lock = lock_file_mutation(&absolute_path)?;
+    let original_file = String::from_utf8(read_expected(&absolute_path, expected_version)?
+        .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TargetNotFound: 文件不存在"))?)
+        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+    if old_string.is_empty() {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "AmbiguousMatch: old_string 不能为空"));
+    }
     if old_string == new_string {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -194,18 +243,22 @@ pub fn edit_file(
     if !original_file.contains(old_string) {
         return Err(io::Error::new(
             io::ErrorKind::NotFound,
-            "old_string not found in file",
+            "TargetNotFound: old_string not found in file",
         ));
     }
 
+    if !replace_all && original_file.matches(old_string).count() != 1 {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "AmbiguousMatch: old_string 匹配多处；补充上下文或明确 replace_all"));
+    }
     let updated = if replace_all {
         original_file.replace(old_string, new_string)
     } else {
         original_file.replacen(old_string, new_string, 1)
     };
-    fs::write(&absolute_path, &updated)?;
+    publish_locked(&absolute_path, updated.as_bytes(), expected_version)?;
 
     Ok(EditFileOutput {
+        version: file_content_version(updated.as_bytes()),
         file_path: absolute_path.to_string_lossy().into_owned(),
         old_string: old_string.to_owned(),
         new_string: new_string.to_owned(),
@@ -494,7 +547,7 @@ mod tests {
     #[test]
     fn reads_and_writes_files() {
         let path = temp_path("read-write.txt");
-        let write_output = write_file(path.to_string_lossy().as_ref(), "one\ntwo\nthree")
+        let write_output = write_file(path.to_string_lossy().as_ref(), "one\ntwo\nthree", None)
             .expect("write should succeed");
         assert_eq!(write_output.kind, "create");
 
@@ -506,11 +559,46 @@ mod tests {
     #[test]
     fn edits_file_contents() {
         let path = temp_path("edit.txt");
-        write_file(path.to_string_lossy().as_ref(), "alpha beta alpha")
+        let created = write_file(path.to_string_lossy().as_ref(), "alpha beta alpha", None)
             .expect("initial write should succeed");
-        let output = edit_file(path.to_string_lossy().as_ref(), "alpha", "omega", true)
+        let output = edit_file(path.to_string_lossy().as_ref(), "alpha", "omega", true, Some(&created.version.sha256))
             .expect("edit should succeed");
         assert!(output.replace_all);
+    }
+
+    #[test]
+    fn conditional_edit_preserves_external_changes_and_rejects_ambiguous_matches() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("版本.txt");
+        let path = path.to_str().unwrap();
+        let original = write_file(path, "\u{feff}甲\r\n甲\r\n", None).unwrap();
+        let partial = read_file(path, Some(1), Some(1)).unwrap();
+        assert_eq!(original.version, partial.version);
+        assert!(write_file(path, "不能覆盖", None).unwrap_err().to_string().contains("ExpectedVersionRequired"));
+        assert!(edit_file(path, "甲", "乙", false, Some(&partial.version.sha256)).unwrap_err().to_string().contains("AmbiguousMatch"));
+        std::fs::write(path, "外部编辑\r\n").unwrap();
+        assert!(write_file(path, "过期内容", Some(&partial.version.sha256)).unwrap_err().to_string().contains("VersionMismatch"));
+        assert_eq!(std::fs::read_to_string(path).unwrap(), "外部编辑\r\n");
+        let current = read_file(path, None, None).unwrap();
+        let edited = edit_file(path, "外部", "新", false, Some(&current.version.sha256)).unwrap();
+        assert_eq!(std::fs::read_to_string(path).unwrap(), "新编辑\r\n");
+        assert_ne!(edited.version, current.version);
+    }
+
+    #[test]
+    fn conditional_writers_cannot_both_publish_the_same_read_version() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("并发.txt").to_string_lossy().into_owned();
+        let version = write_file(&path, "基线", None).unwrap().version.sha256;
+        let start = std::sync::Arc::new(std::sync::Barrier::new(3));
+        let jobs: Vec<_> = ["编辑甲", "编辑乙"].into_iter().map(|content| {
+            let path = path.clone(); let version = version.clone(); let start = start.clone();
+            std::thread::spawn(move || { start.wait(); write_file(&path, content, Some(&version)).is_ok() })
+        }).collect();
+        start.wait();
+        let successes = jobs.into_iter().map(|job| job.join().unwrap()).filter(|success| *success).count();
+        assert_eq!(successes, 1);
+        assert!(["编辑甲", "编辑乙"].contains(&std::fs::read_to_string(path).unwrap().as_str()));
     }
 
     #[test]
@@ -521,6 +609,7 @@ mod tests {
         write_file(
             file.to_string_lossy().as_ref(),
             "fn main() {\n println!(\"hello\");\n}\n",
+            None,
         )
         .expect("file write should succeed");
 

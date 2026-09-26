@@ -726,6 +726,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "color_quant"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
+
+[[package]]
 name = "combine"
 version = "4.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -774,6 +780,7 @@ dependencies = [
 name = "coolzhu-app-launcher"
 version = "0.2.0"
 dependencies = [
+ "coolzhu-windows-process-guard",
  "serde_json",
 ]
 
@@ -797,7 +804,7 @@ version = "0.2.0"
 
 [[package]]
 name = "coolzhu-command-line"
-version = "0.2.16"
+version = "0.2.17"
 dependencies = [
  "coolzhu-command-router",
  "coolzhu-compatibility-harness",
@@ -807,6 +814,7 @@ dependencies = [
  "coolzhu-tool-registry",
  "crossterm",
  "pulldown-cmark",
+ "reqwest",
  "rustyline",
  "serde_json",
  "syntect",
@@ -839,6 +847,7 @@ dependencies = [
  "coolzhu-windows-process-guard",
  "serde",
  "serde_json",
+ "sha2",
  "tempfile",
  "tokio",
 ]
@@ -849,12 +858,15 @@ version = "0.2.0"
 dependencies = [
  "coolzhu-language-service",
  "coolzhu-plugin-system",
+ "coolzhu-windows-process-guard",
+ "encoding_rs",
  "getrandom 0.3.4",
  "glob",
  "regex",
  "serde",
  "serde_json",
  "sha2",
+ "tempfile",
  "tokio",
  "walkdir",
 ]
@@ -1004,6 +1016,7 @@ dependencies = [
  "futures-util",
  "getrandom 0.3.4",
  "http-body-util",
+ "image",
  "once_cell",
  "regex",
  "reqwest",
@@ -1025,6 +1038,7 @@ dependencies = [
 name = "coolzhu-windows-process-guard"
 version = "0.2.0"
 dependencies = [
+ "tokio",
  "windows-sys 0.61.2",
 ]
 
@@ -1731,6 +1745,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gif"
+version = "0.14.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee8cfcc411d9adbbaba82fb72661cc1bcca13e8bba98b364e62b2dba8f960159"
+dependencies = [
+ "color_quant",
+ "weezl",
+]
+
+[[package]]
 name = "gl_generator"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2157,10 +2181,25 @@ checksum = "85ab80394333c02fe689eaf900ab500fbd0c2213da414687ebf995a65d5a6104"
 dependencies = [
  "bytemuck",
  "byteorder-lite",
+ "color_quant",
+ "gif",
+ "image-webp",
  "moxcms",
  "num-traits",
  "png",
  "tiff",
+ "zune-core",
+ "zune-jpeg",
+]
+
+[[package]]
+name = "image-webp"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "525e9ff3e1a4be2fbea1fdf0e98686a6d98b4d8f937e1bf7402245af1909e8c3"
+dependencies = [
+ "byteorder-lite",
+ "quick-error",
 ]
 
 [[package]]

@@ -1,8 +1,9 @@
+use crate::request_observer::{RequestObservation, UsageEvidence};
 use std::collections::{HashMap, VecDeque};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use runtime::{
-    load_oauth_credentials, save_oauth_credentials, OAuthConfig, OAuthRefreshRequest,
+    load_oauth_credentials, OAuthConfig, OAuthRefreshRequest,
     OAuthTokenExchangeRequest,
 };
 use serde::Deserialize;
@@ -119,6 +120,7 @@ pub struct ClawApiClient {
     initial_backoff: Duration,
     max_backoff: Duration,
     request_parameters: crate::RequestParameters,
+    request_observer: Option<std::sync::Arc<dyn crate::RequestObserver>>,
     /// **连接级兼容能力位**（裁决 COMPAT-ID §2.3）：允许顶层 message ID **缺失**（显式为"未提供"）。
     ///
     /// 三条边界照抄裁决：① 默认 `false` ⇒ **官方直连与未启用的连接保持严格**；
@@ -195,6 +197,7 @@ impl ClawApiClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            request_observer: None,
             allow_missing_top_level_message_id: allow_missing_message_id_from_env(),
         }
     }
@@ -211,6 +214,7 @@ impl ClawApiClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            request_observer: None,
             allow_missing_top_level_message_id: allow_missing_message_id_from_env(),
         }
     }
@@ -276,6 +280,10 @@ impl ClawApiClient {
     }
 
     #[must_use]
+    pub fn with_request_observer(mut self, observer: std::sync::Arc<dyn crate::RequestObserver>) -> Self {
+        self.request_observer=Some(observer); self
+    }
+
     pub fn with_request_parameters(mut self, parameters: crate::RequestParameters) -> Self {
         self.request_parameters = parameters;
         self
@@ -344,9 +352,11 @@ impl ClawApiClient {
         };
         // 约束 7：guard 在**实际发出请求之前**登记，非流式请求同样覆盖完整请求生命周期。
         let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::NonStreaming);
-        let response = match self.send_with_retry(&request, &guard).await {
+        let mut observation = RequestObservation::new(self.request_observer.clone());
+        let response = match self.send_with_retry(&request, &guard, &mut observation).await {
             Ok(response) => response,
             Err(error) => {
+                observation.fail(&error);
                 guard.settle_from_error(&error);
                 return Err(error);
             }
@@ -360,16 +370,19 @@ impl ClawApiClient {
             Err(error) => {
                 // 响应体读取失败：正文未完整拿到 → 远端结果未知，不归零。
                 let error = ApiError::from(error);
+                observation.fail(&error);
                 guard.settle_from_error(&error);
                 return Err(error);
             }
         };
+        observation.usage(UsageEvidence::anthropic(body.get("usage").unwrap_or(&serde_json::Value::Null)));
         let mut response = match decode_message_response_body(
             body,
             self.allow_missing_top_level_message_id,
         ) {
             Ok(response) => response,
             Err(error) => {
+                observation.fail(&error);
                 guard.settle_from_error(&error);
                 return Err(error);
             }
@@ -378,6 +391,7 @@ impl ClawApiClient {
             response.request_id = request_id;
         }
         // 完整响应体已解析 → 协议级完整结束事实。
+        observation.finish("completed");
         guard.settle(TerminationFact::ProtocolCompletion);
         Ok(response)
     }
@@ -393,9 +407,11 @@ impl ClawApiClient {
         .with_streaming();
         // 约束 7：guard 在**实际发出请求之前**登记；握手完成后随流对象转移。
         let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::Streaming);
-        let response = match self.send_with_retry(&request, &guard).await {
+        let mut observation = RequestObservation::new(self.request_observer.clone());
+        let response = match self.send_with_retry(&request, &guard, &mut observation).await {
             Ok(response) => response,
             Err(error) => {
+                observation.fail(&error);
                 guard.settle_from_error(&error);
                 return Err(error);
             }
@@ -409,6 +425,7 @@ impl ClawApiClient {
             pending: VecDeque::new(),
             done: false,
             protocol_end_observed: false,
+            observation,
             guard,
         })
     }
@@ -428,6 +445,7 @@ impl ClawApiClient {
         let response = self
             .http
             .post(&config.token_url)
+            .timeout(Duration::from_secs(30))
             .header("content-type", "application/x-www-form-urlencoded")
             .form(&request.form_params())
             .send()
@@ -448,6 +466,7 @@ impl ClawApiClient {
         let response = self
             .http
             .post(&config.token_url)
+            .timeout(Duration::from_secs(30))
             .header("content-type", "application/x-www-form-urlencoded")
             .form(&request.form_params())
             .send()
@@ -461,46 +480,33 @@ impl ClawApiClient {
     }
 
     async fn send_with_retry(
-        &self,
-        request: &MessageRequest,
-        guard: &InFlightGuard,
+        &self, request: &MessageRequest, guard: &InFlightGuard, observation: &mut RequestObservation,
     ) -> Result<reqwest::Response, ApiError> {
         let mut attempts = 0;
-        let mut last_error: Option<ApiError>;
-
         loop {
             attempts += 1;
-            match self.send_raw_request(request, guard).await {
-                Ok(response) => match expect_success(response).await {
-                    Ok(response) => return Ok(response),
-                    Err(error) if error.is_retryable() && attempts <= self.max_retries + 1 => {
-                        last_error = Some(error);
-                    }
-                    Err(error) => return Err(error),
-                },
-                Err(error) if error.is_retryable() && attempts <= self.max_retries + 1 => {
-                    last_error = Some(error);
+            observation.begin(attempts);
+            let outcome = match self.send_raw_request(request, guard, observation).await {
+                Ok(response) => expect_success(response).await,
+                Err(error) => Err(error),
+            };
+            match outcome {
+                Ok(response) => return Ok(response),
+                Err(error) => {
+                    observation.fail(&error);
+                    if !error.is_retryable() { return Err(error); }
+                    if attempts > self.max_retries { return Err(ApiError::RetriesExhausted { attempts, last_error: Box::new(error) }); }
+                    tokio::time::sleep(self.backoff_for_attempt(attempts)?).await;
                 }
-                Err(error) => return Err(error),
             }
-
-            if attempts > self.max_retries {
-                break;
-            }
-
-            tokio::time::sleep(self.backoff_for_attempt(attempts)?).await;
         }
-
-        Err(ApiError::RetriesExhausted {
-            attempts,
-            last_error: Box::new(last_error.expect("retry loop must capture an error")),
-        })
     }
 
     async fn send_raw_request(
         &self,
         request: &MessageRequest,
         guard: &InFlightGuard,
+        observation: &mut RequestObservation,
     ) -> Result<reqwest::Response, ApiError> {
         let request_url = match &self.endpoint {
             Some(endpoint) => endpoint.clone(),
@@ -520,6 +526,7 @@ impl ClawApiClient {
         validate_anthropic_image_sources(&payload)?;
         request_builder = request_builder.json(&payload);
         // 请求即将发出：登记从"尚未派发"推进到"已派发·流处理中"。
+        observation.dispatch();
         guard.mark_dispatched();
         request_builder.send().await.map_err(ApiError::from)
     }
@@ -725,38 +732,32 @@ fn resolve_saved_oauth_token_set(
     config: &OAuthConfig,
     token_set: OAuthTokenSet,
 ) -> Result<OAuthTokenSet, ApiError> {
-    if !oauth_token_is_expired(&token_set) {
-        return Ok(token_set);
-    }
-    let Some(refresh_token) = token_set.refresh_token.clone() else {
-        return Err(ApiError::ExpiredOAuthToken);
-    };
+    if !oauth_token_is_expired(&token_set) { return Ok(token_set); }
+    // 不在凭据写锁内等待网络；独立刷新锁避免旋转 refresh_token 被并发消费。
+    let _refresh = runtime::acquire_oauth_refresh_guard().map_err(ApiError::from)?;
+    let snapshot = runtime::load_oauth_credentials_snapshot().map_err(ApiError::from)?;
+    let current = snapshot.token_set.ok_or_else(|| ApiError::Auth("OAuth 会话已注销，未使用旧刷新令牌".into()))?;
+    let token_set = OAuthTokenSet { access_token: current.access_token, refresh_token: current.refresh_token,
+        expires_at: current.expires_at, scopes: current.scopes };
+    if !oauth_token_is_expired(&token_set) { return Ok(token_set); }
+    let Some(refresh_token) = token_set.refresh_token.clone() else { return Err(ApiError::ExpiredOAuthToken); };
     let client = ClawApiClient::from_auth(AuthSource::None).with_base_url(read_base_url());
     let refreshed = client_runtime_block_on(async {
-        client
-            .refresh_oauth_token(
-                config,
-                &OAuthRefreshRequest::from_config(
-                    config,
-                    refresh_token,
-                    Some(token_set.scopes.clone()),
-                ),
-            )
-            .await
+        client.refresh_oauth_token(config, &OAuthRefreshRequest::from_config(config, refresh_token, Some(token_set.scopes.clone()))).await
     })?;
-    let resolved = OAuthTokenSet {
-        access_token: refreshed.access_token,
-        refresh_token: refreshed.refresh_token.or(token_set.refresh_token),
-        expires_at: refreshed.expires_at,
-        scopes: refreshed.scopes,
-    };
-    save_oauth_credentials(&runtime::OAuthTokenSet {
-        access_token: resolved.access_token.clone(),
-        refresh_token: resolved.refresh_token.clone(),
-        expires_at: resolved.expires_at,
-        scopes: resolved.scopes.clone(),
-    })
-    .map_err(ApiError::from)?;
+    let resolved = OAuthTokenSet { access_token: refreshed.access_token,
+        refresh_token: refreshed.refresh_token.or(token_set.refresh_token), expires_at: refreshed.expires_at, scopes: refreshed.scopes };
+    if !runtime::save_oauth_credentials_if_revision(&runtime::OAuthTokenSet {
+        access_token: resolved.access_token.clone(), refresh_token: resolved.refresh_token.clone(),
+        expires_at: resolved.expires_at, scopes: resolved.scopes.clone(),
+    }, snapshot.revision).map_err(ApiError::from)? {
+        let current = runtime::load_oauth_credentials().map_err(ApiError::from)?
+            .ok_or_else(|| ApiError::Auth("OAuth 刷新期间会话已注销，未恢复旧凭据".into()))?;
+        let current = OAuthTokenSet { access_token: current.access_token, refresh_token: current.refresh_token,
+            expires_at: current.expires_at, scopes: current.scopes };
+        if oauth_token_is_expired(&current) { return Err(ApiError::Auth("OAuth 刷新期间凭据已变化，请重新连接".into())); }
+        return Ok(current);
+    }
     Ok(resolved)
 }
 
@@ -862,6 +863,7 @@ pub struct MessageStream {
     protocol_end_observed: bool,
     /// 在途登记：随流对象的生命周期结束（Drop 只能结束本地持有，不证明远端已停算）。
     guard: InFlightGuard,
+    observation: RequestObservation,
 }
 
 impl MessageStream {
@@ -882,7 +884,15 @@ impl MessageStream {
         self.guard.mark_remote_result_unknown()
     }
 
+    pub fn usage_evidence(&self) -> UsageEvidence { self.observation.evidence() }
+
     pub async fn next_event(&mut self) -> Result<Option<StreamEvent>, ApiError> {
+        let result=self.next_event_inner().await;
+        if let Err(error)=&result { self.observation.fail(error); }
+        result
+    }
+
+    async fn next_event_inner(&mut self) -> Result<Option<StreamEvent>, ApiError> {
         loop {
             if let Some(event) = self.pending.pop_front() {
                 return Ok(Some(event));
@@ -891,6 +901,7 @@ impl MessageStream {
             if self.done {
                 // 先收尾解析尾部残留帧，再看是否拿到了协议级结束事实。
                 let remaining = self.parser.finish()?;
+                self.observation.usage(self.parser.usage_evidence());
                 self.note_protocol_end(&remaining);
                 self.settle_stream_termination();
                 self.pending.extend(remaining);
@@ -903,10 +914,12 @@ impl MessageStream {
             match self.response.chunk().await? {
                 Some(chunk) => {
                     let events = self.parser.push(&chunk)?;
+                    self.observation.usage(self.parser.usage_evidence());
                     self.note_protocol_end(&events);
                     if self.protocol_end_observed {
                         // 已取得协议级完整结束事实：立即结清远端请求状态（不必等连接关闭）。
                         self.guard.settle(TerminationFact::ProtocolCompletion);
+                        self.observation.finish("completed");
                     }
                     self.pending.extend(events);
                 }
@@ -928,11 +941,13 @@ impl MessageStream {
     }
 
     /// 流真正结束时结清：有协议完整结束事实 → 结清；否则断流 → 远端结果未知。
-    fn settle_stream_termination(&self) {
+    fn settle_stream_termination(&mut self) {
         if self.protocol_end_observed {
             self.guard.settle(TerminationFact::ProtocolCompletion);
+                        self.observation.finish("completed");
         } else {
             self.guard.mark_remote_result_unknown();
+            self.observation.finish("remote_unknown");
         }
     }
 }
@@ -1574,6 +1589,7 @@ mod tests {
                         &client.endpoint_identity(),
                         RequestMode::NonStreaming,
                     ),
+                    &mut crate::request_observer::RequestObservation::new(None),
                 )
                 .await
                 .expect_err("无效来源应在发送前失败");
@@ -1644,6 +1660,7 @@ mod tests {
                 .send_raw_request(
                     &request,
                     &InFlightGuard::register(&client.endpoint_identity(), RequestMode::NonStreaming),
+                    &mut crate::request_observer::RequestObservation::new(None),
                 )
                 .await
                 .expect("本地协议请求成功");

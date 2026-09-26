@@ -3,6 +3,11 @@
 import http from 'node:http';
 import { createCipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import { DeliveryCursor } from './lib/clawbot-ilink-delivery.mjs';
+import { fetchJsonBounded } from './lib/clawbot-ilink-http.mjs';
+import { receiveIlinkImages, MAX_TOTAL_IMAGE_BYTES } from './lib/clawbot-ilink-media.mjs';
 
 import {
   normalizeIlinkGroupEvent,
@@ -46,6 +51,8 @@ const state = {
   sessionStarted: false,
   lastError: null,
   contextByPeer: new Map(),
+  updatesInFlight: false,
+  delivery: null,
 };
 
 function jsonResponse(res, status, payload) {
@@ -68,7 +75,12 @@ function textResponse(res, status, body) {
 function readBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', (chunk) => chunks.push(chunk));
+    let bytes = 0;
+    req.on('data', (chunk) => {
+      bytes += chunk.length;
+      if (bytes > 1024 * 1024) { reject(new Error('provider 请求体超过 1 MiB 限制')); req.destroy(); return; }
+      chunks.push(chunk);
+    });
     req.on('end', () => {
       const raw = Buffer.concat(chunks).toString('utf8');
       if (!raw.trim()) {
@@ -148,37 +160,17 @@ async function ensureSessionStarted() {
 }
 
 async function fetchJson(url, options = {}, timeoutMs = requestTimeoutMs) {
-  const controller = timeoutMs > 0 ? new AbortController() : null;
-  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
-  let response;
-  try {
-    response = await fetch(url, {
-      ...options,
-      ...(controller ? { signal: controller.signal } : {}),
-    });
-  } catch (error) {
-    if (error?.name === 'AbortError') {
-      const timeoutError = new Error(`iLink request timed out after ${timeoutMs}ms`);
-      timeoutError.code = 'ETIMEDOUT';
-      throw timeoutError;
-    }
-    throw error;
-  } finally {
-    if (timer) clearTimeout(timer);
+  return fetchJsonBounded(url, options, timeoutMs);
+}
+
+async function deliveryCursor() {
+  const identity = createHash('sha256').update(JSON.stringify([accountId, state.botBaseUrl, state.botToken])).digest('hex');
+  if (!state.delivery || state.delivery.identity !== identity) {
+    const owner = createHash('sha256').update(JSON.stringify([accountId, ilinkBaseUrl, bindHost, bindPort])).digest('hex');
+    const file = process.env.CLAWBOT_ILINK_CURSOR_FILE || join(process.env.LOCALAPPDATA || homedir(), 'coolzhuagent', 'clawbot', `cursor-${owner}.json`);
+    state.delivery = await new DeliveryCursor(file, identity).load();
   }
-  const text = await response.text();
-  let payload = {};
-  if (text.trim()) {
-    try {
-      payload = JSON.parse(text);
-    } catch (error) {
-      throw new Error(`iLink returned non-json ${response.status}: ${text.slice(0, 300)}`);
-    }
-  }
-  if (!response.ok) {
-    throw new Error(`iLink HTTP ${response.status}: ${JSON.stringify(payload).slice(0, 500)}`);
-  }
-  return payload;
+  return state.delivery;
 }
 
 async function uploadEncryptedFile(url, encrypted) {
@@ -333,11 +325,12 @@ function extractText(message) {
   return null;
 }
 
-function mapInbound(message, nowMs) {
+async function mapInbound(message, nowMs, remainingBytes) {
   const identity = normalizeIlinkInboundIdentity(message, state.ilinkBotId || accountId);
   const peerId = identity.peerId;
   const contextToken = message.context_token || message.contextToken || null;
   if (contextToken) state.contextByPeer.set(peerId, contextToken);
+  const mediaRefs = await receiveIlinkImages(message, { cdnBaseUrl: ilinkCdnBaseUrl, timeoutMs: requestTimeoutMs, maxTotalBytes: remainingBytes });
   return {
     source: 'weixin_user',
     hop_count: 0,
@@ -354,10 +347,10 @@ function mapInbound(message, nowMs) {
       group_event: normalizeIlinkGroupEvent(message, state.ilinkBotId || accountId),
       raw_payload_summary: summarizeIlinkInboundPayload(message),
       context_token: contextToken,
-      external_msg_id: String(message.client_id || message.msg_id || message.msgid || message.id || randomUUID()),
-      kind: 'text',
+      external_msg_id: String(message.message_id || message.client_id || message.msg_id || message.msgid || message.id || `payload-${createHash('sha256').update(JSON.stringify(message)).digest('hex')}`),
+      kind: mediaRefs.length ? 'image' : 'text',
       text: extractText(message),
-      media_refs: [],
+      media_refs: mediaRefs,
       received_at_ms: Number(message.create_time_ms || message.createTimeMs || message.timestamp_ms || nowMs),
     },
   };
@@ -365,35 +358,45 @@ function mapInbound(message, nowMs) {
 
 async function pollUpdates(nowMs) {
   if (!state.botToken) {
-    return [];
+    return { updates: [], delivery_id: null };
   }
   await ensureSessionStarted();
+  const delivery = await deliveryCursor();
+  if (delivery.pending) return delivery.pending;
   let payload;
   try {
     payload = await fetchJson(`${state.botBaseUrl}/ilink/bot/getupdates`, {
       method: 'POST',
       headers: ilinkHeaders(),
       body: JSON.stringify({
-        get_updates_buf: state.updatesCursor || '',
+        get_updates_buf: delivery.record.cursor,
         base_info: baseInfo(),
       }),
     }, state.longPollTimeoutMs);
   } catch (error) {
     if (error?.code === 'ETIMEDOUT') {
-      return [];
+      return { updates: [], delivery_id: null };
     }
     throw error;
   }
   if (payload.ret && payload.ret !== 0) {
     throw new Error(`iLink getupdates ret=${payload.ret} errcode=${payload.errcode || ''} errmsg=${payload.errmsg || ''}`);
   }
-  state.updatesCursor = payload.get_updates_buf || payload.getUpdatesBuf || state.updatesCursor || '';
   const suggestedTimeoutMs = Number(payload.longpolling_timeout_ms || payload.longPollingTimeoutMs || 0);
   if (suggestedTimeoutMs > 0) {
     state.longPollTimeoutMs = Math.min(60_000, Math.max(1_000, suggestedTimeoutMs));
   }
   const messages = payload.msgs || payload.messages || payload.updates || [];
-  return messages.map((message) => mapInbound(message, nowMs));
+  if (!Array.isArray(messages) || messages.length > 128) throw new Error('iLink 消息批次超限，未推进游标');
+  const inbound = [];
+  let remainingBytes = MAX_TOTAL_IMAGE_BYTES;
+  for (const message of messages) {
+    const mapped = await mapInbound(message, nowMs, remainingBytes);
+    remainingBytes -= mapped.message.media_refs.reduce((sum, media) => sum + (media.size_bytes || 0), 0);
+    inbound.push(mapped);
+  }
+  if (!state.botToken || state.delivery !== delivery) throw new Error('微信账号在接收过程中已切换，未确认批次');
+  return delivery.stage(inbound, payload.get_updates_buf || payload.getUpdatesBuf || delivery.record.cursor);
 }
 
 async function sendText(payload) {
@@ -556,6 +559,7 @@ async function handle(req, res) {
         await notifySession('stop');
       }
       state.botToken = '';
+      state.delivery = null;
       state.ilinkBotId = null;
       state.ilinkUserId = null;
       state.updatesCursor = '';
@@ -566,8 +570,23 @@ async function handle(req, res) {
       return;
     }
     if (req.method === 'GET' && url.pathname === '/updates') {
-      const updates = await pollUpdates(Number(url.searchParams.get('since_ms') || Date.now()));
-      jsonResponse(res, 200, { updates });
+      if (state.updatesInFlight) { jsonResponse(res, 409, { error: '已有微信消息接收任务进行中' }); return; }
+      state.updatesInFlight = true;
+      try {
+        const batch = await pollUpdates(Number(url.searchParams.get('since_ms') || Date.now()));
+        jsonResponse(res, 200, { updates: batch.updates, delivery_id: batch.delivery_id });
+      } finally { state.updatesInFlight = false; }
+      return;
+    }
+    if (req.method === 'POST' && url.pathname === '/updates/ack') {
+      if (state.updatesInFlight) { jsonResponse(res, 409, { error: '微信批次正在处理' }); return; }
+      state.updatesInFlight = true;
+      try {
+        const body = await readBody(req);
+        if (!state.botToken || body.account_id !== accountId) { jsonResponse(res, 409, { error: '微信批次账号不匹配' }); return; }
+        await (await deliveryCursor()).acknowledge(body.delivery_id);
+        jsonResponse(res, 200, { ok: true });
+      } finally { state.updatesInFlight = false; }
       return;
     }
     if (req.method === 'POST' && url.pathname === '/send_text') {

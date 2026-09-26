@@ -103,6 +103,13 @@ pub(crate) fn assess_input_resource(
     // 阻断分两类：**未获人工放行**的（真的挡路）与被最新放行决定覆盖的（operator 已承担）。
     // 只有前者构成拒绝理由——否则"人工放行"就成了一句空话（PR-01／P0-1）。
     let open_blocks = store.unacknowledged_open_block_ids(resource_scope)?.len();
+    #[cfg(windows)]
+    let has_unsettled_native_execution = {
+        let snapshot=store.native_recovery_store().snapshot(resource_scope).map_err(InputSafetyStoreError::Sqlite)?;
+        snapshot.has_unsettled_execution()
+    };
+    #[cfg(not(windows))]
+    let has_unsettled_native_execution=false;
     let mut pending_recovery_operations = 0usize;
     for outcome in store.reconcile_recovery_operations_on_startup()? {
         // **只把 `NeedsReacquire` 算作"待对账"**：`StillAuthorized` 表示该操作正由**活着的**
@@ -137,7 +144,9 @@ pub(crate) fn assess_input_resource(
     };
     let acknowledged_runs = acknowledged_runs.len();
     let human_review_required = store.human_review_required_operations()?.len();
-    let refusal = if open_blocks > 0 {
+    let refusal = if has_unsettled_native_execution {
+        Some("仍有未确认退出的原生执行者或在途输入许可".to_string())
+    } else if open_blocks > 0 {
         Some("该资源仍有未获放行的阻断事实".to_string())
     } else if pending_recovery_operations > 0 {
         Some("该资源上仍有尚未提交的恢复操作".to_string())
@@ -177,6 +186,9 @@ pub(crate) fn assess_and_open_input_resource(
         &["open_new_input"],
         std::time::Duration::from_secs(2),
     )?;
+    #[cfg(windows)]
+    coordinator.store().native_recovery_store().quarantine_unsettled_on_startup(resource_scope)
+        .map_err(|error|CoordinatorError::Store(InputSafetyStoreError::Sqlite(error)))?;
     let state = coordinator
         .store()
         .reopen_new_input_authorized(resource_scope, coordinator.control())
@@ -258,6 +270,9 @@ pub(crate) fn run_startup_input_safety(
         std::time::Duration::from_secs(2),
     )?;
     let mut converged = 0usize;
+    #[cfg(windows)]
+    coordinator.store().native_recovery_store().quarantine_unsettled_on_startup(&resource_scope)
+        .map_err(|error|CoordinatorError::Store(InputSafetyStoreError::Sqlite(error)))?;
     let mut refused = 0usize;
     let mut settled = 0usize;
     for run in &candidates {

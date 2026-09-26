@@ -59,13 +59,17 @@ impl DesktopBridge for DesktopNativeBridge {
         request: &computer_use::ComputerUseRequest,
         remaining: std::time::Duration,
     ) -> Result<DesktopSnapshot, ComputerUseError> {
+        if (self.cancelled)() || remaining.is_zero() {
+            return Err(cancelled_error());
+        }
         let target = request.target.as_ref();
         let application = target.and_then(|target| target.application.as_deref());
         let window = target.and_then(|target| target.window.as_deref());
-        if uia_resolver::focus_window_by_hint(application, window, Some(&request.objective))
-            .map_err(map_uia_error)?
-            .is_some()
-        {
+        // 正式运行已持有桌面 owner；此处只用 Win32/UIA 选择观察窗口，不合成键鼠输入。
+        let selected_window = uia_resolver::focus_window_by_hint(
+            application, window, Some(&request.objective),
+        ).map_err(map_uia_error)?;
+        if selected_window.is_some() {
             std::thread::sleep(Duration::from_millis(120));
         }
         let snapshot = snapshot_foreground_window(UIA_ELEMENT_LIMIT).map_err(map_uia_error)?;
@@ -142,6 +146,7 @@ impl DesktopBridge for DesktopNativeBridge {
                     snapshot.elements.len()
                 ),
                 frame_marker,
+                format!("observation_window_selection:{selected_window:?}:uia_win32_no_synthetic_input"),
             ],
         })
     }
@@ -151,6 +156,73 @@ impl DesktopBridge for DesktopNativeBridge {
         action: &ComputerUseAction,
         expected: &DesktopSnapshot,
         remaining: std::time::Duration,
+    ) -> Result<StepExecution, ComputerUseError> {
+        self.execute_inner(action, expected, remaining, None)
+    }
+
+    fn execute_authorized(
+        &self,
+        action: &ComputerUseAction,
+        expected: &DesktopSnapshot,
+        remaining: std::time::Duration,
+        authorization: &dyn computer_use::prepared_input::NativeInputAuthorization,
+    ) -> Result<StepExecution, ComputerUseError> {
+        self.execute_inner(action, expected, remaining, Some(authorization))
+    }
+
+    fn verify(
+        &self,
+        criteria: &[String],
+        before: &Observation,
+        after: &Observation,
+        _remaining: std::time::Duration,
+    ) -> Result<Verification, ComputerUseError> {
+        let image_changed = before
+            .state
+            .pointer("/image/sha256")
+            .zip(after.state.pointer("/image/sha256"))
+            .is_some_and(|(a, b)| a != b);
+        // 截图路径、编码与时间戳不参与 UIA 文本成功匹配，避免证据元数据伪装成成功。
+        let before_desktop = before.state.get("desktop").unwrap_or(&before.state);
+        let after_desktop = after.state.get("desktop").unwrap_or(&after.state);
+        let visible_progress =
+            image_changed || before_desktop.get("elements") != after_desktop.get("elements");
+        let corpus = after_desktop
+            .get("elements")
+            .unwrap_or(&JsonValue::Null)
+            .to_string()
+            .to_lowercase();
+        let achieved = !criteria.is_empty()
+            && criteria
+                .iter()
+                .all(|criterion| criterion_visible(criterion, &corpus));
+        Ok(Verification {
+            achieved,
+            visible_progress,
+            summary: if achieved {
+                "desktop success criteria are visible in the fresh UIA snapshot".to_string()
+            } else if visible_progress {
+                "desktop UI changed but success criteria are not all visible".to_string()
+            } else {
+                "desktop UIA snapshot shows no visible progress".to_string()
+            },
+            evidence: after
+                .evidence
+                .iter()
+                .cloned()
+                .chain(std::iter::once(format!("image_changed:{image_changed}")))
+                .collect(),
+        })
+    }
+}
+
+impl DesktopNativeBridge {
+    fn execute_inner(
+        &self,
+        action: &ComputerUseAction,
+        expected: &DesktopSnapshot,
+        remaining: std::time::Duration,
+        authorization: Option<&dyn computer_use::prepared_input::NativeInputAuthorization>,
     ) -> Result<StepExecution, ComputerUseError> {
         // 回执身份：受信执行链按动作内容计算，消费者据此判断事实是否属于当前动作。
         let action_id = action_attempt_id(computer_use::ComputerUseSurface::Desktop, action);
@@ -194,7 +266,6 @@ impl DesktopBridge for DesktopNativeBridge {
             .and_then(JsonValue::as_i64)
             .and_then(|value| isize::try_from(value).ok())
             .ok_or_else(|| stale("foreground window identity is missing"))?;
-        uia_resolver::focus_window(native_window_handle).map_err(map_uia_error)?;
 
         // 输入动作一律走受控原生输入生命周期：输入前身份/权限/scope 校验 → 登记释放义务 →
         // 受监督执行 → 阶段回执 → 取消/超时/失败收尾 → 静止与释放对账。
@@ -208,6 +279,10 @@ impl DesktopBridge for DesktopNativeBridge {
         };
         let attempt =
             computer_use::input::NativeInputAttempt::with_window(identity, &*self.cancelled);
+        let attempt = match authorization {
+            Some(port) => attempt.with_authorization(port),
+            None => attempt,
+        };
         match action.kind {
             ComputerUseActionKind::Click => {
                 let outcome = controlled_input(
@@ -394,14 +469,18 @@ impl DesktopBridge for DesktopNativeBridge {
                         blocked("invalid_stroke_path", error)
                             .with_receipt(pre_input_receipt(&action_id, true))
                     })?;
-                let result = computer_use::input::controlled_drag_path(
-                    identity,
-                    rect,
-                    &points,
-                    duration_ms,
-                    clamp_stage_timeout(remaining, Duration::from_secs(10)),
-                    &*self.cancelled,
-                );
+                let result = match authorization {
+                    Some(port) => computer_use::input::controlled_drag_path_authorized(
+                        identity, rect, &points, duration_ms,
+                        clamp_stage_timeout(remaining, Duration::from_secs(10)),
+                        &*self.cancelled, port,
+                    ).map(|outcome| outcome.facts),
+                    None => computer_use::input::controlled_drag_path(
+                        identity, rect, &points, duration_ms,
+                        clamp_stage_timeout(remaining, Duration::from_secs(10)),
+                        &*self.cancelled,
+                    ),
+                };
                 // 成功和可恢复失败都尝试留后图；截图本身不会移动鼠标或改变画布。
                 let after = capture_image(identity, remaining);
                 let facts = match result {
@@ -439,51 +518,6 @@ impl DesktopBridge for DesktopNativeBridge {
                 .with_receipt(pre_input_receipt(&action_id, false)))
             }
         }
-    }
-
-    fn verify(
-        &self,
-        criteria: &[String],
-        before: &Observation,
-        after: &Observation,
-        _remaining: std::time::Duration,
-    ) -> Result<Verification, ComputerUseError> {
-        let image_changed = before
-            .state
-            .pointer("/image/sha256")
-            .zip(after.state.pointer("/image/sha256"))
-            .is_some_and(|(a, b)| a != b);
-        // 截图路径、编码与时间戳不参与 UIA 文本成功匹配，避免证据元数据伪装成成功。
-        let before_desktop = before.state.get("desktop").unwrap_or(&before.state);
-        let after_desktop = after.state.get("desktop").unwrap_or(&after.state);
-        let visible_progress =
-            image_changed || before_desktop.get("elements") != after_desktop.get("elements");
-        let corpus = after_desktop
-            .get("elements")
-            .unwrap_or(&JsonValue::Null)
-            .to_string()
-            .to_lowercase();
-        let achieved = !criteria.is_empty()
-            && criteria
-                .iter()
-                .all(|criterion| criterion_visible(criterion, &corpus));
-        Ok(Verification {
-            achieved,
-            visible_progress,
-            summary: if achieved {
-                "desktop success criteria are visible in the fresh UIA snapshot".to_string()
-            } else if visible_progress {
-                "desktop UI changed but success criteria are not all visible".to_string()
-            } else {
-                "desktop UIA snapshot shows no visible progress".to_string()
-            },
-            evidence: after
-                .evidence
-                .iter()
-                .cloned()
-                .chain(std::iter::once(format!("image_changed:{image_changed}")))
-                .collect(),
-        })
     }
 }
 

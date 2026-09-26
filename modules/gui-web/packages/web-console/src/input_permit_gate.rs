@@ -89,9 +89,8 @@ pub(crate) struct IssuedExecutionPermit {
     pub recovery_epoch: u64,
     /// **已核实的执行者实例 id**（`None` = 尚未就绪）。
     ///
-    /// 按 2026-09-26 裁决"先补 8.3c 生产者、再接 consume"：在真实执行者身份可生产之前，
-    /// 本字段保持 `None`，且 `recheck_and_consume` 会据此**明确拒绝**——
-    /// 绝不用尝试身份或任何相似字符串顶替（与 B-121／B-124 同源的原则）。
+    /// 正式签发绑定 READY 后已登记、已核实的真实 helper；缺失时消费明确拒绝，
+    /// 不用尝试身份或相似字符串顶替。
     pub executor_instance_id: Option<String>,
     root: PathBuf,
     scope: InputSafetyResourceScope,
@@ -102,6 +101,10 @@ impl IssuedExecutionPermit {
     ///
     /// 复核失败 ⇒ 拒绝（调用方必须放弃这次输入）；消费失败同样拒绝。
     pub(crate) fn recheck_and_consume(&self) -> Result<InputPermitState, PermitGateRefusal> {
+        self.recheck_and_consume_at(crate::unix_timestamp_millis())
+    }
+
+    pub(crate) fn recheck_and_consume_at(&self, now_unix_ms: u64) -> Result<InputPermitState, PermitGateRefusal> {
         let store = InputSafetyStore::open_at(&self.root)
             .map_err(|error| PermitGateRefusal::Store(error.to_string()))?;
         let current = store
@@ -132,11 +135,11 @@ impl IssuedExecutionPermit {
         };
         store
             .permit_store()
-            .consume_permit(
+            .consume_for_native_input(
                 &self.permit_id,
                 budget,
                 PermitExecutorBinding::Verified(executor_instance_id),
-                0,
+                now_unix_ms,
             )
             .map_err(|error| match error {
                 PermitStoreError::StaleGateRevision { .. }
@@ -156,10 +159,48 @@ impl IssuedExecutionPermit {
 pub(crate) struct PermitGate;
 
 impl PermitGate {
+    /// 生产签发只接受已经核实且受监督的实例，期限与 owner 由本次接纳上下文提供。
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn issue_bound(
+        root: &Path, scope: &InputSafetyResourceScope, attempt: &ExecutionAttemptId,
+        frozen_action_digest: &str, owner_id: &str, executor_instance_id: &str,
+        expires_at_unix_ms: u64, now_unix_ms: u64,
+    ) -> Result<IssuedExecutionPermit, PermitGateRefusal> {
+        if expires_at_unix_ms <= now_unix_ms {
+            return Err(PermitGateRefusal::StaleOrRefused("输入期限已经耗尽".into()));
+        }
+        let store = InputSafetyStore::open_at(root).map_err(|error| PermitGateRefusal::Store(error.to_string()))?;
+        let state = store.resource_state(scope).map_err(|error| PermitGateRefusal::Store(error.to_string()))?;
+        if !state.accepts_new_input || state.state != runtime::ResourceSafetyState::Safe {
+            return Err(PermitGateRefusal::StaleOrRefused("资源尚未允许新输入".into()));
+        }
+        let executor = store.executor_store().load_executor(executor_instance_id)
+            .map_err(|error| PermitGateRefusal::Store(error.to_string()))?;
+        if executor.state != runtime::ExecutorInstanceState::VerifiedAlive || !executor.supervision_bound
+            || !executor.creation_identity_complete() || executor.scope != *scope || executor.action_id != attempt.parent_action_id {
+            return Err(PermitGateRefusal::StaleOrRefused("执行者实例与本次动作/资源不符或未核实".into()));
+        }
+        let permit = InputPermit {
+            permit_id: format!("permit-{}", attempt.stable_key()),
+            action_id: attempt.parent_action_id.clone(), execution_attempt_id: attempt.clone(), scope: scope.clone(),
+            execution_context_ref: attempt.step_identity.clone(), frozen_action_digest: frozen_action_digest.into(),
+            gate_revision: state.revision, issued_owner_id: owner_id.into(), issued_epoch: state.recovery_epoch,
+            expires_at_unix_ms, executor_instance_id: Some(executor_instance_id.into()),
+            state: InputPermitState::PendingActivation, revision: 1, revocation_reason: None,
+        };
+        // 同一次尝试绝不返回新资格，即使已有行尚未消费；caller必须终止当前helper。
+        store.permit_store().register_pending(&permit, InputPermitState::PendingActivation, now_unix_ms)
+            .map_err(|error| PermitGateRefusal::StaleOrRefused(error.to_string()))?;
+        Ok(IssuedExecutionPermit { permit_id: permit.permit_id, attempt_key: attempt.stable_key(),
+            gate_revision: state.revision, recovery_epoch: state.recovery_epoch,
+            executor_instance_id: Some(executor_instance_id.into()), root: root.into(), scope: scope.clone() })
+    }
+
     /// 为一次执行尝试签发许可。
     ///
     /// `observation_generation`／`step_identity`／`attempt_sequence` **必须来自执行接纳层**
     /// （本函数不接受"从动作内容反推"的调用方式；身份不由内容决定，这是 §B-121 的结论）。
+    #[cfg(test)]
     pub(crate) fn issue(
         root: Option<&Path>,
         scope: &InputSafetyResourceScope,

@@ -31,6 +31,7 @@ use crate::computer_use_store::ComputerUseRunStore;
 pub(crate) struct ProductionActionOriginAuthority {
     /// 冻结的会话上下文：来自接纳时的冻结值，**不是**"当前工作区"。
     conversation_scope: Option<RunScopeContext>,
+    goal_phase_context: Option<runtime::GoalPhaseActionContext>,
     /// 运行关联（按 run_id）。工作区未记录的历史行**不构造**记录——不拿当前工作区顶替。
     run_relations: BTreeMap<String, RunRelationRecord>,
     /// 产生某动作执行计划的规划请求（按 action_id）：`plan_producer`。
@@ -79,6 +80,7 @@ impl ProductionActionOriginAuthority {
     ) -> Result<Self, String> {
         let mut authority = Self {
             conversation_scope,
+            goal_phase_context: None,
             run_relations: BTreeMap::new(),
             plan_producers: BTreeMap::new(),
             known_requests: BTreeMap::new(),
@@ -154,6 +156,19 @@ impl ProductionActionOriginAuthority {
         Ok(authority)
     }
 
+    /// 当前 Goal claim 与 CU 落库归属都必须匹配；不按同房间的最近运行寻找父关系。
+    pub(crate) fn with_goal_parent(mut self, store: &ComputerUseRunStore, call_id: &str,
+        parent: &crate::goal_execution_parent::FrozenGoalPhaseParent) -> Result<Self, String> {
+        parent.validate_live()?;
+        let run = store.load(call_id).map_err(|error| error.to_string())?.ok_or("Goal CU 运行登记不存在")?;
+        if run.workspace.workspace_id() != Some(parent.workspace_id.as_str())
+            || run.session_id != parent.session_id || run.chat_room_id.as_deref() != Some(parent.room_id.as_str()) {
+            return Err("Goal 阶段与 CU 运行的真实归属不一致".into());
+        }
+        self.goal_phase_context = Some(parent.action_context(call_id));
+        Ok(self)
+    }
+
     /// 只读探测：本快照里有没有"该动作所属的工具调用"。
     ///
     /// 调用方（执行器）据此决定**是否声称** `tool_call_id`：契约对"有真实工具调用关系却漏传"
@@ -179,6 +194,9 @@ impl ProductionActionOriginAuthority {
 }
 
 impl ActionOriginAuthority for ProductionActionOriginAuthority {
+    fn goal_phase_context(&self, phase_run_id: &str) -> Option<&runtime::GoalPhaseActionContext> {
+        self.goal_phase_context.as_ref().filter(|context| context.phase_run_id == phase_run_id)
+    }
     fn conversation_scope(&self) -> Option<&RunScopeContext> {
         self.conversation_scope.as_ref()
     }

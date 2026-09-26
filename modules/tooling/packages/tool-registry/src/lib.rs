@@ -316,13 +316,15 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
         },
         ToolSpec {
             name: "read_file",
-            description: "Read a text file from the workspace. Returns content with line numbers. For large files, read in chunks via offset/limit instead of the whole file. Prefer absolute paths or paths relative to the workspace root.",
+            description: "Read a text file from the workspace. Returns content and version.sha256 of the FULL original byte stream. Pass that hash as expected_version when editing or overwriting. For large files use line offset/limit, or character_offset/max_chars for long single lines (Unicode characters, max 6000). Do not mix line and character ranges. Prefer absolute paths or paths relative to the workspace root.",
             input_schema: json!({
                 "type": "object",
                 "properties": {
                     "path": { "type": "string" },
                     "offset": { "type": "integer", "minimum": 0 },
-                    "limit": { "type": "integer", "minimum": 1 }
+                    "limit": { "type": "integer", "minimum": 1 },
+                    "character_offset": { "type": "integer", "minimum": 0 },
+                    "max_chars": { "type": "integer", "minimum": 1, "maximum": 6000 }
                 },
                 "required": ["path"],
                 "additionalProperties": false
@@ -331,12 +333,13 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
         },
         ToolSpec {
             name: "write_file",
-            description: "Write a text file in the workspace, creating it or fully overwriting existing content. For targeted changes to an existing file prefer edit_file, or read_file first before overwriting. Content must be the complete file text.",
+            description: "Write complete text to a workspace file. New files need no expected_version. Existing files REQUIRE expected_version from the latest read_file version.sha256; if changed, reread and reconsider the edit. Prefer edit_file for targeted changes.",
             input_schema: json!({
                 "type": "object",
                 "properties": {
                     "path": { "type": "string" },
-                    "content": { "type": "string" }
+                    "content": { "type": "string" },
+                    "expected_version": { "type": "string", "description": "Full original file version.sha256 returned by read_file. Required when overwriting an existing file." }
                 },
                 "required": ["path", "content"],
                 "additionalProperties": false
@@ -352,7 +355,8 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
                     "path": { "type": "string" },
                     "old_string": { "type": "string" },
                     "new_string": { "type": "string" },
-                    "replace_all": { "type": "boolean" }
+                    "replace_all": { "type": "boolean" },
+                    "expected_version": { "type": "string", "description": "Full original file version.sha256 returned by read_file. Required for every edit." }
                 },
                 "required": ["path", "old_string", "new_string"],
                 "additionalProperties": false
@@ -662,12 +666,19 @@ fn run_bash(mut input: BashCommandInput) -> Result<String, String> {
 
 #[allow(clippy::needless_pass_by_value)]
 fn run_read_file(input: ReadFileInput) -> Result<String, String> {
+    if input.character_offset.is_some() || input.max_chars.is_some() {
+        if input.offset.is_some() || input.limit.is_some() {
+            return Err("行范围和字符范围不能混用".into());
+        }
+        return to_pretty_json(runtime::read_file_character_range(&input.path,
+            input.character_offset.unwrap_or(0), input.max_chars.unwrap_or(4000)).map_err(io_to_string)?);
+    }
     to_pretty_json(read_file(&input.path, input.offset, input.limit).map_err(io_to_string)?)
 }
 
 #[allow(clippy::needless_pass_by_value)]
 fn run_write_file(input: WriteFileInput) -> Result<String, String> {
-    to_pretty_json(write_file(&input.path, &input.content).map_err(io_to_string)?)
+    to_pretty_json(write_file(&input.path, &input.content, input.expected_version.as_deref()).map_err(io_to_string)?)
 }
 
 #[allow(clippy::needless_pass_by_value)]
@@ -678,6 +689,7 @@ fn run_edit_file(input: EditFileInput) -> Result<String, String> {
             &input.old_string,
             &input.new_string,
             input.replace_all.unwrap_or(false),
+            input.expected_version.as_deref(),
         )
         .map_err(io_to_string)?,
     )
@@ -761,12 +773,15 @@ struct ReadFileInput {
     path: String,
     offset: Option<usize>,
     limit: Option<usize>,
+    character_offset: Option<usize>,
+    max_chars: Option<usize>,
 }
 
 #[derive(Debug, Deserialize)]
 struct WriteFileInput {
     path: String,
     content: String,
+    expected_version: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -775,6 +790,7 @@ struct EditFileInput {
     old_string: String,
     new_string: String,
     replace_all: Option<bool>,
+    expected_version: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1211,6 +1227,7 @@ struct ReplOutput {
     exit_code: i32,
     #[serde(rename = "durationMs")]
     duration_ms: u128,
+    interrupted: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -3165,21 +3182,26 @@ fn execute_repl(input: ReplInput) -> Result<ReplOutput, String> {
     if input.code.trim().is_empty() {
         return Err(String::from("code must not be empty"));
     }
-    let _ = input.timeout_ms;
     let runtime = resolve_repl_runtime(&input.language)?;
     let started = Instant::now();
-    let output = Command::new(runtime.program)
-        .args(runtime.args)
-        .arg(&input.code)
-        .output()
+    let mut command = Command::new(runtime.program);
+    command.args(runtime.args).arg(&input.code);
+    let managed = runtime::managed_process::output(&mut command, input.timeout_ms.map(Duration::from_millis))
         .map_err(|error| error.to_string())?;
+    let output = managed.output;
+    let mut stderr = decode_console_output(&output.stderr);
+    if let Some(reason) = managed.interruption {
+        if !stderr.is_empty() { stderr.push('\n'); }
+        stderr.push_str(&format!("REPL 已停止，原因：{reason:?}；受管进程已退出"));
+    }
 
     Ok(ReplOutput {
         language: input.language,
         stdout: decode_console_output(&output.stdout),
-        stderr: decode_console_output(&output.stderr),
-        exit_code: output.status.code().unwrap_or(1),
+        stderr,
+        exit_code: if managed.interruption.is_some() { 124 } else { output.status.code().unwrap_or(1) },
         duration_ms: started.elapsed().as_millis(),
+        interrupted: managed.interruption.is_some(),
     })
 }
 
@@ -3657,96 +3679,33 @@ fn execute_shell_command(
     }
 
     let mut process = std::process::Command::new(shell);
-    process
-        .arg("-NoProfile")
-        .arg("-NonInteractive")
-        .arg("-Command")
-        .arg(command);
-    process
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped());
-    if let Some(cwd) = cwd {
-        process.current_dir(cwd);
+    process.arg("-NoProfile").arg("-NonInteractive").arg("-Command").arg(command);
+    if let Some(cwd) = cwd { process.current_dir(cwd); }
+    let managed = runtime::managed_process::output(&mut process, timeout.map(Duration::from_millis))?;
+    let output = managed.output;
+    let mut stderr = decode_console_output(&output.stderr);
+    if let Some(reason) = managed.interruption {
+        if !stderr.is_empty() { stderr.push('\n'); }
+        stderr.push_str(&match reason {
+            runtime::managed_process::Interruption::TimedOut => format!("Command exceeded timeout of {} ms", timeout.unwrap_or(0)),
+            runtime::managed_process::Interruption::Cancelled => "Command cancelled; managed process exited".to_string(),
+        });
     }
-
-    if let Some(timeout_ms) = timeout {
-        let mut child = process.spawn()?;
-        let started = Instant::now();
-        loop {
-            if let Some(status) = child.try_wait()? {
-                let output = child.wait_with_output()?;
-                return Ok(runtime::BashCommandOutput {
-                    stdout: decode_console_output(&output.stdout),
-                    stderr: decode_console_output(&output.stderr),
-                    raw_output_path: None,
-                    interrupted: false,
-                    is_image: None,
-                    background_task_id: None,
-                    backgrounded_by_user: None,
-                    assistant_auto_backgrounded: None,
-                    dangerously_disable_sandbox: None,
-                    return_code_interpretation: status
-                        .code()
-                        .filter(|code| *code != 0)
-                        .map(|code| format!("exit_code:{code}")),
-                    no_output_expected: Some(output.stdout.is_empty() && output.stderr.is_empty()),
-                    structured_content: None,
-                    persisted_output_path: None,
-                    persisted_output_size: None,
-                    sandbox_status: None,
-                });
-            }
-            if started.elapsed() >= Duration::from_millis(timeout_ms) {
-                let _ = child.kill();
-                let output = child.wait_with_output()?;
-                let stderr = decode_console_output(&output.stderr);
-                let stderr = if stderr.trim().is_empty() {
-                    format!("Command exceeded timeout of {timeout_ms} ms")
-                } else {
-                    format!(
-                        "{}
-Command exceeded timeout of {timeout_ms} ms",
-                        stderr.trim_end()
-                    )
-                };
-                return Ok(runtime::BashCommandOutput {
-                    stdout: decode_console_output(&output.stdout),
-                    stderr,
-                    raw_output_path: None,
-                    interrupted: true,
-                    is_image: None,
-                    background_task_id: None,
-                    backgrounded_by_user: None,
-                    assistant_auto_backgrounded: None,
-                    dangerously_disable_sandbox: None,
-                    return_code_interpretation: Some(String::from("timeout")),
-                    no_output_expected: Some(false),
-                    structured_content: None,
-                    persisted_output_path: None,
-                    persisted_output_size: None,
-                    sandbox_status: None,
-                });
-            }
-            std::thread::sleep(Duration::from_millis(10));
-        }
-    }
-
-    let output = process.output()?;
+    let return_code_interpretation = managed.interruption.map(|reason| match reason {
+        runtime::managed_process::Interruption::TimedOut => "timeout".to_string(),
+        runtime::managed_process::Interruption::Cancelled => "cancelled".to_string(),
+    }).or_else(|| output.status.code().filter(|code| *code != 0).map(|code| format!("exit_code:{code}")));
     Ok(runtime::BashCommandOutput {
         stdout: decode_console_output(&output.stdout),
-        stderr: decode_console_output(&output.stderr),
+        stderr,
         raw_output_path: None,
-        interrupted: false,
+        interrupted: managed.interruption.is_some(),
         is_image: None,
         background_task_id: None,
         backgrounded_by_user: None,
         assistant_auto_backgrounded: None,
         dangerously_disable_sandbox: None,
-        return_code_interpretation: output
-            .status
-            .code()
-            .filter(|code| *code != 0)
-            .map(|code| format!("exit_code:{code}")),
+        return_code_interpretation,
         no_output_expected: Some(output.stdout.is_empty() && output.stderr.is_empty()),
         structured_content: None,
         persisted_output_path: None,
@@ -5847,7 +5806,7 @@ mod tests {
 
         let write_update = execute_tool(
             "write_file",
-            &json!({ "path": "nested/demo.txt", "content": "alpha\nbeta\ngamma\n" }),
+            &json!({ "path": "nested/demo.txt", "content": "alpha\nbeta\ngamma\n", "expected_version": write_create_output["version"]["sha256"] }),
         )
         .expect("write update should succeed");
         let write_update_output: serde_json::Value =
@@ -5886,7 +5845,7 @@ mod tests {
 
         let edit_once = execute_tool(
             "edit_file",
-            &json!({ "path": "nested/demo.txt", "old_string": "alpha", "new_string": "omega" }),
+            &json!({ "path": "nested/demo.txt", "old_string": "alpha", "new_string": "omega", "expected_version": read_full_output["version"]["sha256"] }),
         )
         .expect("single edit should succeed");
         let edit_once_output: serde_json::Value = serde_json::from_str(&edit_once).expect("json");
@@ -5896,18 +5855,19 @@ mod tests {
             "omega\nbeta\ngamma\n"
         );
 
-        execute_tool(
+        let reset = execute_tool(
             "write_file",
-            &json!({ "path": "nested/demo.txt", "content": "alpha\nbeta\nalpha\n" }),
-        )
-        .expect("reset file");
+            &json!({ "path": "nested/demo.txt", "content": "alpha\nbeta\nalpha\n", "expected_version": edit_once_output["version"]["sha256"] }),
+        ).expect("reset file");
+        let reset: serde_json::Value = serde_json::from_str(&reset).unwrap();
         let edit_all = execute_tool(
             "edit_file",
             &json!({
                 "path": "nested/demo.txt",
                 "old_string": "alpha",
                 "new_string": "omega",
-                "replace_all": true
+                "replace_all": true,
+                "expected_version": reset["version"]["sha256"]
             }),
         )
         .expect("replace all should succeed");
@@ -5920,14 +5880,14 @@ mod tests {
 
         let edit_same = execute_tool(
             "edit_file",
-            &json!({ "path": "nested/demo.txt", "old_string": "omega", "new_string": "omega" }),
+            &json!({ "path": "nested/demo.txt", "old_string": "omega", "new_string": "omega", "expected_version": edit_all_output["version"]["sha256"] }),
         )
         .expect_err("identical old/new should fail");
         assert!(edit_same.contains("must differ"));
 
         let edit_missing = execute_tool(
             "edit_file",
-            &json!({ "path": "nested/demo.txt", "old_string": "missing", "new_string": "omega" }),
+            &json!({ "path": "nested/demo.txt", "old_string": "missing", "new_string": "omega", "expected_version": edit_all_output["version"]["sha256"] }),
         )
         .expect_err("missing substring should fail");
         assert!(edit_missing.contains("old_string not found"));
@@ -6130,6 +6090,21 @@ mod tests {
         assert_eq!(output["language"], "python");
         assert_eq!(output["exitCode"], 0);
         assert!(output["stdout"].as_str().expect("stdout").contains('2'));
+    }
+
+    #[test]
+    fn repl_timeout_is_enforced_after_the_program_really_started() {
+        let _guard = env_lock().lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        let started = std::time::Instant::now();
+        let result = execute_tool("REPL", &json!({"language":"python",
+            "code":"import time; print('started', flush=True); time.sleep(4); print('late', flush=True)",
+            "timeout_ms":1000})).expect("超时应返回真实退出回执");
+        let output: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(output["interrupted"], true);
+        assert_eq!(output["exitCode"], 124);
+        assert!(output["stdout"].as_str().unwrap().contains("started"));
+        assert!(!output["stdout"].as_str().unwrap().contains("late"));
+        assert!(started.elapsed() < Duration::from_secs(3));
     }
 
     /// 建一个"桩 PowerShell"：把 `-Command` 之后的第一个参数原样回显为 `pwsh:<参数>`。

@@ -12,6 +12,14 @@ use crate::wechat_group::{
 
 const OUTBOX_CLAIM_LEASE_MS: u64 = 30_000;
 
+/// 拒绝提醒的节流与入站终态、反馈队列必须一起提交。
+pub struct ClawbotDenialNotice<'a> {
+    pub group_id: &'a str,
+    pub member_id: &'a str,
+    pub code: &'a str,
+    pub window_ms: u64,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ClawbotLoginState {
@@ -898,6 +906,56 @@ impl ClawbotGatewayStore {
             )
             .map_err(|error| format!("写入 ClawBot outbox 失败：{error}"))?;
         Ok(self.connection.last_insert_rowid())
+    }
+
+    /// 一个本地事务保存结果和所有待发送页，避免“终态已落盘、反馈却未入队”。
+    /// 这不宣称远端发送 exactly-once；模型执行中断仍保持原有未知事实，绝不重放工具。
+    pub fn commit_inbox_feedback(
+        &self,
+        id: i64,
+        state: InboxState,
+        detail: &str,
+        artifacts: &[WechatArtifactRef],
+        messages: &[ClawbotOutboundMessage],
+        denial_notice: Option<ClawbotDenialNotice<'_>>,
+        now_ms: u64,
+    ) -> Result<Vec<i64>, String> {
+        if !state.is_terminal() { return Err("反馈提交必须有明确的入站终态".into()); }
+        let transaction = self.connection.unchecked_transaction()
+            .map_err(|error| format!("开始 ClawBot 结果事务失败：{error}"))?;
+        let current = self.inbox_by_id(id)?;
+        if current.state.is_terminal() || current.request_state.is_terminal() {
+            return Err("该入站请求已有终态，不得再次提交或发送反馈".into());
+        }
+        for message in messages {
+            if message.account_id != current.account_id || message.peer_id != current.peer_id
+                || message.source_external_msg_id.as_deref() != Some(current.external_msg_id.as_str()) {
+                return Err("反馈目标与原入站请求不符，事务已撤销".into());
+            }
+        }
+        let request_state = request_state_for_inbox_state(&state);
+        let failed = state != InboxState::Completed;
+        let result_json = serde_json::to_string(&WechatCommandResult {
+            request_id: current.request_id,
+            state: request_state,
+            code: if failed { error_code_from_feedback(detail) } else { "ok".into() },
+            summary: detail.to_owned(), details: Vec::new(), artifacts: artifacts.to_vec(),
+            retryable: false,
+        }).map_err(|error| format!("序列化微信结果失败：{error}"))?;
+        self.update_inbox(id, state, Some(&result_json), failed.then_some(detail), now_ms)?;
+        let notify = match denial_notice {
+            Some(notice) => self.claim_denial_notice_window(&current.account_id, notice.group_id,
+                notice.member_id, notice.code, now_ms, notice.window_ms)?,
+            None => true,
+        };
+        let mut outbox_ids = Vec::new();
+        if notify {
+            for (index, message) in messages.iter().enumerate() {
+                outbox_ids.push(self.enqueue_outbox(message, now_ms.saturating_add(index as u64))?);
+            }
+        }
+        transaction.commit().map_err(|error| format!("提交微信结果与反馈失败：{error}"))?;
+        Ok(outbox_ids)
     }
 
     pub fn mark_outbox_failed(
@@ -2265,6 +2323,35 @@ mod tests {
             body: body.to_string(),
             file: None,
         }
+    }
+
+    #[test]
+    fn inbox_result_and_feedback_rollback_together_and_survive_reopen() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("feedback.sqlite3");
+        let store = ClawbotGatewayStore::open(&path).unwrap();
+        let InboxRegistration::Accepted(inbox) = store.register_inbox(&inbound("msg-1", "{}"), 1).unwrap()
+            else { panic!("应首次接收"); };
+        store.mark_inbox_dispatching(inbox.id, 2).unwrap();
+        // 真正让第二页 SQLite INSERT 失败，不能仅测试参数预检。
+        store.connection.execute_batch("CREATE TRIGGER fail_feedback BEFORE INSERT ON clawbot_outbox WHEN NEW.body='bad' BEGIN SELECT RAISE(ABORT, 'fault'); END;").unwrap();
+        let denied = || Some(ClawbotDenialNotice { group_id: "g", member_id: "m", code: "denied", window_ms: 60_000 });
+        assert!(store.commit_inbox_feedback(inbox.id, InboxState::Rejected, "denied", &[],
+            &[outbound("first"), outbound("bad")], denied(), 10).is_err());
+        assert_eq!(store.inbox_item(inbox.id).unwrap().state, InboxState::Dispatching);
+        assert_eq!(store.metrics().unwrap().outbox_pending, 0);
+        let notices: i64 = store.connection.query_row("SELECT COUNT(*) FROM clawbot_denial_notices", [], |r| r.get(0)).unwrap();
+        assert_eq!(notices, 0, "事务失败不能先占用拒绝提醒窗口");
+        let mut wrong_peer = outbound("wrong"); wrong_peer.peer_id = "another-peer".into();
+        assert!(store.commit_inbox_feedback(inbox.id, InboxState::Completed, "ok", &[], &[wrong_peer], None, 11).is_err());
+        let ids = store.commit_inbox_feedback(inbox.id, InboxState::Completed, "ok", &[], &[outbound("complete")], None, 12).unwrap();
+        assert_eq!(ids.len(), 1);
+        drop(store);
+        let reopened = ClawbotGatewayStore::open(&path).unwrap();
+        assert_eq!(reopened.inbox_item(inbox.id).unwrap().state, InboxState::Completed);
+        assert_eq!(reopened.metrics().unwrap().outbox_pending, 1);
+        assert!(reopened.commit_inbox_feedback(inbox.id, InboxState::Completed, "ok", &[], &[outbound("complete")], None, 13).is_err());
+        assert_eq!(reopened.metrics().unwrap().outbox_pending, 1, "重复终态不能再入队");
     }
 
     #[test]

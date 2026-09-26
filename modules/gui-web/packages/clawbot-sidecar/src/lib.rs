@@ -157,11 +157,19 @@ pub enum ClawbotMessageKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ClawbotGroupEventKind { BotAdded, BotRemoved }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ClawbotMediaRef {
     pub media_id: String,
     pub file_name: Option<String>,
     pub mime_type: Option<String>,
     pub size_bytes: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_base64: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -177,6 +185,8 @@ pub struct ClawbotInboundMessage {
     pub sender_name: Option<String>,
     #[serde(default)]
     pub is_group: bool,
+    #[serde(default)]
+    pub group_event: Option<ClawbotGroupEventKind>,
     #[serde(default)]
     pub mentioned_bot: bool,
     #[serde(default)]
@@ -361,6 +371,8 @@ pub trait ClawbotProvider: Clone + Send + Sync + 'static {
         config: &ClawbotSidecarConfig,
         now_ms: u64,
     ) -> Result<Vec<ClawbotInboundEnvelope>, String>;
+    /// 新协议只在整批已被 gateway 接纳后确认；旧 provider 保持显式兼容。
+    fn acknowledge_updates(&self, _config: &ClawbotSidecarConfig) -> Result<(), String> { Ok(()) }
     fn send_text(&self, item: &ClawbotOutboxItem) -> Result<ProviderSendReceipt, String>;
     fn send_message(&self, item: &ClawbotOutboxItem) -> Result<ProviderSendReceipt, String> {
         self.send_text(item)
@@ -594,6 +606,7 @@ impl ClawbotProvider for MockClawbotProvider {
                 sender_id: Some("mock-peer".to_string()),
                 sender_name: Some("Mock 微信联系人".to_string()),
                 is_group: false,
+                group_event: None,
                 mentioned_bot: false,
                 mentions: Vec::new(),
                 raw_payload_summary: None,
@@ -621,11 +634,12 @@ impl ClawbotProvider for MockClawbotProvider {
 #[derive(Debug, Clone)]
 pub struct HttpClawbotProvider {
     config: HttpClawbotProviderConfig,
+    pending_delivery: Arc<Mutex<Option<(String, String)>>>,
 }
 
 impl HttpClawbotProvider {
     pub fn new(config: HttpClawbotProviderConfig) -> Self {
-        Self { config }
+        Self { config, pending_delivery: Arc::new(Mutex::new(None)) }
     }
 
     fn endpoint(&self, path: &str) -> String {
@@ -678,6 +692,8 @@ struct HttpLogoutRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct HttpUpdatesResponse {
     updates: Vec<ClawbotInboundEnvelope>,
+    #[serde(default)]
+    delivery_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -780,10 +796,32 @@ impl ClawbotProvider for HttpClawbotProvider {
             .send()
             .map_err(|error| self.redact_error(format!("请求 provider updates 失败：{error}")))?
             .error_for_status()
-            .map_err(|error| self.redact_error(format!("provider updates 返回错误：{error}")))?
-            .json::<HttpUpdatesResponse>()
-            .map_err(|error| self.redact_error(format!("解析 provider updates 失败：{error}")))?;
+            .map_err(|error| self.redact_error(format!("provider updates 返回错误：{error}")))?;
+        use std::io::Read;
+        const MAX_BATCH_BYTES: u64 = 48 * 1024 * 1024;
+        if response.content_length().is_some_and(|size| size > MAX_BATCH_BYTES) { return Err("provider 消息批次超过大小限制".into()); }
+        let mut bytes = Vec::new();
+        response.take(MAX_BATCH_BYTES + 1).read_to_end(&mut bytes)
+            .map_err(|error| self.redact_error(format!("读取 provider updates 失败：{error}")))?;
+        if bytes.len() as u64 > MAX_BATCH_BYTES { return Err("provider 消息批次超过大小限制".into()); }
+        let response: HttpUpdatesResponse = serde_json::from_slice(&bytes)
+            .map_err(|error| format!("解析 provider updates 失败：{error}"))?;
+        if response.updates.len() > 128 { return Err("provider 消息批次超过数量限制".into()); }
+        *self.pending_delivery.lock().map_err(|_| "provider 确认锁损坏")? = response.delivery_id.map(|id| (config.account_id.clone(), id));
         Ok(response.updates)
+    }
+
+    fn acknowledge_updates(&self, config: &ClawbotSidecarConfig) -> Result<(), String> {
+        let pending = self.pending_delivery.lock().map_err(|_| "provider 确认锁损坏")?.clone();
+        let Some((account, id)) = pending else { return Ok(()); };
+        if account != config.account_id { return Err("provider 确认账号已变化".into()); }
+        self.request(reqwest::Method::POST, "/updates/ack")
+            .json(&serde_json::json!({"account_id":account,"delivery_id":id})).send()
+            .map_err(|error| self.redact_error(format!("确认 provider 消息失败：{error}")))?
+            .error_for_status().map_err(|error| self.redact_error(format!("provider 拒绝批次确认：{error}")))?;
+        let mut current = self.pending_delivery.lock().map_err(|_| "provider 确认锁损坏")?;
+        if current.as_ref() == Some(&(account, id)) { *current = None; }
+        Ok(())
     }
 
     fn send_text(&self, item: &ClawbotOutboxItem) -> Result<ProviderSendReceipt, String> {
@@ -861,6 +899,9 @@ impl AnyClawbotProvider {
 }
 
 impl ClawbotProvider for AnyClawbotProvider {
+    fn acknowledge_updates(&self, config: &ClawbotSidecarConfig) -> Result<(), String> {
+        match self { Self::Mock(provider) => provider.acknowledge_updates(config), Self::Http(provider) => provider.acknowledge_updates(config) }
+    }
     fn health(&self, config: &ClawbotSidecarConfig) -> ClawbotProviderHealth {
         match self {
             Self::Mock(provider) => provider.health(config),
@@ -1016,6 +1057,7 @@ pub struct SidecarRuntime<P> {
     gateway: GatewayClient,
     last_tick_error: Arc<Mutex<Option<String>>>,
     tick_lock: Arc<tokio::sync::Mutex<()>>,
+    pending_inbound: Arc<Mutex<std::collections::VecDeque<ClawbotInboundEnvelope>>>,
 }
 
 impl<P: ClawbotProvider> SidecarRuntime<P> {
@@ -1028,6 +1070,7 @@ impl<P: ClawbotProvider> SidecarRuntime<P> {
             gateway,
             last_tick_error: Arc::new(Mutex::new(None)),
             tick_lock: Arc::new(tokio::sync::Mutex::new(())),
+            pending_inbound: Arc::new(Mutex::new(std::collections::VecDeque::new())),
         }
     }
 
@@ -1100,13 +1143,22 @@ impl<P: ClawbotProvider> SidecarRuntime<P> {
         let mut summary = ClawbotTickSummary::default();
         let provider = self.provider.clone();
         let config = self.config.clone();
-        let updates = tokio::task::spawn_blocking(move || provider.poll_updates(&config, now_ms))
-            .await
-            .map_err(|error| format!("ClawBot provider 拉取入站消息任务崩溃：{error}"))??;
-        for envelope in updates {
+        let has_pending = !self.pending_inbound.lock().map_err(|_| "微信待投递锁损坏")?.is_empty();
+        if !has_pending {
+            let updates = tokio::task::spawn_blocking(move || provider.poll_updates(&config, now_ms))
+                .await.map_err(|error| format!("ClawBot provider 拉取入站消息任务崩溃：{error}"))??;
+            self.pending_inbound.lock().map_err(|_| "微信待投递锁损坏")?.extend(updates);
+        }
+        loop {
+            let envelope = self.pending_inbound.lock().map_err(|_| "微信待投递锁损坏")?.front().cloned();
+            let Some(envelope) = envelope else { break; };
             self.gateway.dispatch_inbound(&envelope).await?;
+            self.pending_inbound.lock().map_err(|_| "微信待投递锁损坏")?.pop_front();
             summary.inbound_dispatched += 1;
         }
+        let provider = self.provider.clone(); let config = self.config.clone();
+        tokio::task::spawn_blocking(move || provider.acknowledge_updates(&config)).await
+            .map_err(|error| format!("ClawBot 批次确认任务崩溃：{error}"))??;
         for item in self.gateway.claim_outbox(self.config.outbox_limit).await? {
             let provider = self.provider.clone();
             let provider_item = item.clone();
@@ -1241,6 +1293,7 @@ mod tests {
         requests: Mutex<Vec<(String, Value)>>,
         outbox: Mutex<Vec<ClawbotOutboxItem>>,
         inbound_delay_ms: AtomicU64,
+        fail_next_inbound: std::sync::atomic::AtomicBool,
     }
 
     async fn capture_login(
@@ -1258,7 +1311,7 @@ mod tests {
     async fn capture_inbound(
         State(capture): State<Arc<GatewayCapture>>,
         Json(payload): Json<Value>,
-    ) -> Json<Value> {
+    ) -> axum::response::Response {
         let delay_ms = capture.inbound_delay_ms.load(Ordering::SeqCst);
         if delay_ms > 0 {
             tokio::time::sleep(Duration::from_millis(delay_ms)).await;
@@ -1268,7 +1321,10 @@ mod tests {
             .lock()
             .expect("capture lock")
             .push(("inbound_dispatch".to_string(), payload));
-        Json(json!({"status": "accepted"}))
+        if capture.fail_next_inbound.swap(false, Ordering::SeqCst) {
+            return (StatusCode::SERVICE_UNAVAILABLE, "故障注入：尚未接纳").into_response();
+        }
+        Json(json!({"status": "accepted"})).into_response()
     }
 
     async fn claim_outbox(
@@ -1333,6 +1389,8 @@ mod tests {
         send_paths: Mutex<Vec<String>>,
         send_text_status: Mutex<Option<u16>>,
         updates_delay_ms: AtomicU64,
+        poll_count: AtomicU64,
+        ack_count: AtomicU64,
     }
 
     async fn provider_health(
@@ -1376,11 +1434,13 @@ mod tests {
     }
 
     async fn provider_updates(State(capture): State<Arc<ProviderCapture>>) -> Json<Value> {
+        capture.poll_count.fetch_add(1, Ordering::SeqCst);
         let delay_ms = capture.updates_delay_ms.load(Ordering::SeqCst);
         if delay_ms > 0 {
             tokio::time::sleep(Duration::from_millis(delay_ms)).await;
         }
         Json(json!({
+            "delivery_id": "test-delivery-1",
             "updates": [{
                 "source": "weixin_user",
                 "hop_count": 0,
@@ -1392,6 +1452,7 @@ mod tests {
                     "sender_id": "member-http",
                     "sender_name": "HTTP 群成员",
                     "is_group": true,
+                    "group_event": "bot_removed",
                     "mentioned_bot": true,
                     "mentions": ["wx-http"],
                     "raw_payload_summary": "{\"keys\":[\"conversation_id\",\"sender_id\"]}",
@@ -1450,11 +1511,19 @@ mod tests {
         Json(json!({"provider_message_id": "provider-file-1"}))
     }
 
+    async fn provider_ack(State(capture): State<Arc<ProviderCapture>>, Json(payload): Json<Value>) -> Json<Value> {
+        assert_eq!(payload["delivery_id"], "test-delivery-1");
+        assert_eq!(payload["account_id"], "wx-http");
+        capture.ack_count.fetch_add(1, Ordering::SeqCst);
+        Json(json!({"ok":true}))
+    }
+
     async fn test_provider(capture: Arc<ProviderCapture>) -> String {
         let app = Router::new()
             .route("/health", get(provider_health))
             .route("/login/refresh", post(provider_refresh_login))
             .route("/updates", get(provider_updates))
+            .route("/updates/ack", post(provider_ack))
             .route("/send_text", post(provider_send_text))
             .route("/send_file", post(provider_send_file))
             .with_state(capture);
@@ -1587,6 +1656,7 @@ mod tests {
         );
         assert_eq!(updates[0].message.sender_id.as_deref(), Some("member-http"));
         assert!(updates[0].message.is_group);
+        assert_eq!(updates[0].message.group_event, Some(ClawbotGroupEventKind::BotRemoved));
         assert!(updates[0].message.mentioned_bot);
         assert_eq!(updates[0].message.mentions, vec!["wx-http"]);
         assert_eq!(receipt.provider_message_id, "provider-sent-1");
@@ -1864,6 +1934,27 @@ mod tests {
         assert_eq!(report.state, ClawbotLoginState::AwaitingScan);
         let requests = gateway_capture.requests.lock().expect("capture lock");
         assert!(requests.iter().any(|(kind, _)| kind == "login_report"));
+    }
+
+    #[tokio::test]
+    async fn inbound_http_failure_retains_batch_and_only_then_acknowledges_cursor() {
+        let provider_capture = Arc::new(ProviderCapture::default());
+        let gateway_capture = Arc::new(GatewayCapture::default());
+        gateway_capture.fail_next_inbound.store(true, Ordering::SeqCst);
+        let runtime = SidecarRuntime::new(ClawbotSidecarConfig {
+            account_id: "wx-http".into(), gateway_base_url: test_gateway(gateway_capture.clone()).await,
+            ..ClawbotSidecarConfig::default()
+        }, HttpClawbotProvider::new(HttpClawbotProviderConfig {
+            base_url: test_provider(provider_capture.clone()).await, bearer_token: None
+        }));
+        assert!(runtime.tick(100).await.is_err());
+        assert_eq!(provider_capture.ack_count.load(Ordering::SeqCst), 0);
+        assert_eq!(runtime.tick(200).await.unwrap().inbound_dispatched, 1);
+        assert_eq!(provider_capture.poll_count.load(Ordering::SeqCst), 1);
+        assert_eq!(provider_capture.ack_count.load(Ordering::SeqCst), 1);
+        let requests = gateway_capture.requests.lock().unwrap();
+        let messages: Vec<_> = requests.iter().filter(|(name, _)| name == "inbound_dispatch").map(|(_, payload)| payload).collect();
+        assert_eq!(messages.len(), 2); assert_eq!(messages[0], messages[1]);
     }
 
     #[tokio::test]

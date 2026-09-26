@@ -9,6 +9,7 @@ mod providers;
 mod registry;
 mod reasoning;
 mod request_parameters;
+mod request_observer;
 mod resolver;
 mod sse;
 mod types;
@@ -44,6 +45,7 @@ pub use providers::{
 };
 pub use registry::{ModelRegistry, ResolvedModel};
 pub use request_parameters::RequestParameters;
+pub use request_observer::{RequestObserver, RequestAttemptSnapshot, UsageEvidence};
 pub use reasoning::{
     parse_legacy_reasoning_effort, parse_reasoning_effort, reasoning_capability_catalog,
     reasoning_capability_for_provider, reasoning_model_aliases, resolve_legacy_reasoning,

@@ -6,6 +6,7 @@ mod bootstrap;
 mod compact;
 mod config;
 mod conversation;
+mod conditional_file;
 mod fact_store;
 mod file_ops;
 mod hooks;
@@ -17,9 +18,11 @@ mod mcp_client;
 mod mcp_stdio;
 mod memory;
 mod oauth;
+mod oauth_store;
 mod permission_gate;
 mod permissions;
 mod prompt;
+pub mod managed_process;
 mod recovery;
 mod remote;
 mod run_contract;
@@ -100,10 +103,11 @@ pub use run_contract::{
     LEGACY_CU_RUN_SOURCE_DATABASE_IDENTITY_NOT_PAST_ATTRIBUTION,
 };
 pub use file_ops::{
-    edit_file, glob_search, grep_search, read_file, write_file, EditFileOutput, GlobSearchOutput,
+    edit_file, glob_search, grep_search, read_file, read_file_character_range, write_file, EditFileOutput, GlobSearchOutput,
     GrepSearchInput, GrepSearchOutput, ReadFileOutput, StructuredPatchHunk, TextFilePayload,
     WriteFileOutput,
 };
+pub use conditional_file::{file_content_version, replace_file_if_version, FileContentVersion};
 pub use hooks::{
     HookEvent, HookRunResult, HookRunner, HOOK_CAPABILITY_POST_TOOL_USE,
     HOOK_CAPABILITY_PRE_TOOL_USE,
@@ -139,6 +143,8 @@ pub use memory::{
     MemoryLayer, MemoryWriteDecision,
 };
 pub use oauth::{
+    acquire_oauth_refresh_guard, load_oauth_credentials_snapshot,
+    save_oauth_credentials_if_revision, OAuthCredentialsSnapshot,
     clear_oauth_credentials, code_challenge_s256, credentials_path, generate_pkce_pair,
     generate_state, load_oauth_credentials, loopback_redirect_uri, parse_oauth_callback_query,
     parse_oauth_callback_request_target, save_oauth_credentials, OAuthAuthorizationRequest,
@@ -163,11 +169,11 @@ pub use remote::{
     DEFAULT_SESSION_TOKEN_PATH, DEFAULT_SYSTEM_CA_BUNDLE, NO_PROXY_HOSTS, UPSTREAM_PROXY_ENV_KEYS,
 };
 pub use run_contract::{
-    admit_action_fact, admit_action_origin, is_placeholder_identity_value, ActionContext,
+    admit_action_fact, admit_action_fact_with_origin, validate_goal_action_projection, admit_action_origin, is_placeholder_identity_value, ActionContext,
     ActionIdentityAdmission, ActionOrigin, ActionOriginAdmission, ActionOriginAuthority,
     ActionReceipt, ActionSource, CancelOrigin, ContextKind, ControlPlaneContext,
     ControlPlaneOperations, ConversationActionContext, EffectStatus, EffectiveRunIdentityScope,
-    GoalVerdict, HostCausalMetadata, HostRunOutcome, IdentityAnomaly, IdentityDimension,
+    GoalPhaseActionContext, GoalVerdict, HostCausalMetadata, HostRunOutcome, IdentityAnomaly, IdentityDimension,
     InputDelivery, InputOwnerEpoch, InputReleaseStatus, ParentRunLink, PartialObservation,
     PlannedActionEnvelope, PlannedAttemptRegistry, PlannedRequestAttempt, RetryOwner, RunBudget,
     RunClaimToken, RunContractError, RunIdentity, RunIdentityScope, RunParentRelation,

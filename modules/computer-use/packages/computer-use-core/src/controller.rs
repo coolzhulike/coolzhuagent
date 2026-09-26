@@ -77,6 +77,16 @@ pub trait ComputerUseAdapter: Send + Sync {
         expected_generation: u64,
         remaining: std::time::Duration,
     ) -> Result<StepExecution, ComputerUseError>;
+    /// 桌面实现必须把授权端口传给原生 helper；浏览器及内存适配器仍使用各自的执行路径。
+    fn act_authorized(
+        &self,
+        action: &ComputerUseAction,
+        expected_generation: u64,
+        remaining: std::time::Duration,
+        _authorization: &dyn crate::prepared_input::NativeInputAuthorization,
+    ) -> Result<StepExecution, ComputerUseError> {
+        self.act(action, expected_generation, remaining)
+    }
     fn verify(
         &self,
         criteria: &[String],

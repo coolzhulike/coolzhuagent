@@ -579,6 +579,11 @@ impl InputSafetyStore {
         crate::input_permit_store::ExecutorStore::new(&self.connection)
     }
 
+    #[cfg(windows)]
+    pub(crate) fn native_recovery_store(&self) -> crate::native_recovery_store::NativeRecoveryStore<'_> {
+        crate::native_recovery_store::NativeRecoveryStore::new(self, &self.connection)
+    }
+
     /// **仅供测试**：拿底层连接（许可/执行者存储适配器在同一库上工作）。
     ///
     /// 刻意只在测试构建里存在：生产代码不需要绕过 store 的写入口，
@@ -1816,6 +1821,10 @@ impl InputSafetyStore {
         guard: &RecoveryControlGuard,
     ) -> Result<InputSafetyResourceState, InputSafetyStoreError> {
         self.require_recovery_authorization(scope, guard)?;
+        #[cfg(windows)]
+        if self.native_recovery_store().snapshot(scope).map_err(InputSafetyStoreError::Sqlite)?.has_unsettled_execution() {
+            return Err(InputSafetyStoreError::Sqlite("仍有未确认退出的执行者、在途许可或未被人工接受的未知输入结果".into()));
+        }
         if self.has_open_resource_block(scope)? {
             return Err(InputSafetyStoreError::Sqlite(
                 "仍有未关闭的阻断事实：不得开放新输入".to_string(),
@@ -1881,17 +1890,15 @@ impl InputSafetyStore {
 // Phase 2（PR-RD4-02B）：跨进程资源协调器 + 可信 RecoveryControlGuard（第八轮 §3）
 // ---------------------------------------------------------------------------
 
-/// 恢复协调的**资源范围**：物理输入资源 = `windows-session-{id}` + `physical-input-resource`。
-///
-/// **不是** workspace／session_id／turn_id（裁决 §3）——否则同一桌面会因不同 workspace
-/// 拿到两把互不相干的锁。
+/// 测试夹具的独立锁后缀；生产恢复必须与真实输入取得同一把物理锁。
+#[cfg(test)]
 pub(crate) const PHYSICAL_INPUT_RESOURCE: &str = "physical-input-resource";
 
-/// 本机的恢复协调范围字符串。
+/// 本机的恢复协调范围与 ScopedInputOwnership 完全一致；额外后缀会错误地拿到另一把锁。
 pub(crate) fn recovery_coordination_scope() -> Result<String, InputSafetyStoreError> {
     let session = windows_process_guard::current_interactive_session_scope()
         .map_err(|error| InputSafetyStoreError::Sqlite(format!("取交互会话 scope 失败：{error}")))?;
-    Ok(format!("{session}|{PHYSICAL_INPUT_RESOURCE}"))
+    Ok(session)
 }
 
 /// 本进程实例的协调者身份：**每次启动都不同**（重启必须重新取权，不得沿用旧 token）。

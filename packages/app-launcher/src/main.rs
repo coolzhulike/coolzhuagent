@@ -12,6 +12,10 @@
 //! 6. 复用或拉起 Web Console（隐藏窗口、stdio 重定向）并轮询健康；健康就绪后**回读后台实际使用
 //!    的路径**写入自检，再拉起 Tauri shell（`--web-console-pid=<pid>`）。
 
+mod startup_diagnostics;
+#[cfg(windows)]
+mod native_recovery;
+
 use std::collections::HashMap;
 use std::env;
 use std::ffi::OsString;
@@ -47,16 +51,36 @@ COOLZHU-AGENT.exe [<package-launcher.json>] [选项]
   --list-candidates             只读列出工作区候选与来源（不启动）
   --print-resolved-paths        解析并打印本次启动路径快照后退出（不启动）
   --user-state-dir <绝对路径>   覆盖用户级选择根（仅隔离测试/受控运维；不得从 log_dir 推导）
+  --no-error-dialog             启动失败时只输出诊断，不显示错误窗口（用于自动化）
   -h, --help                    显示本帮助
 
 用户级选择固定落在 %LOCALAPPDATA%\\CoolzhuAgent\\launcher-user.json，不随 MSI 覆盖。
 ";
 
 fn main() -> ExitCode {
-    let cli = match CliOptions::parse(env::args_os().skip(1)) {
+    let args: Vec<OsString> = env::args_os().skip(1).collect();
+    let suppress_dialog = args.iter().any(|arg| {
+        matches!(
+            arg.to_str(),
+            Some(
+                "--no-error-dialog"
+                    | "--list-candidates"
+                    | "--print-resolved-paths"
+                    | "--select-workspace"
+                    | "--help"
+                    | "-h"
+            )
+        )
+    });
+    let cli = match CliOptions::parse(args.into_iter()) {
         Ok(cli) => cli,
         Err(message) => {
             eprintln!("package-launcher: 参数错误：{message}\n\n{USAGE}");
+            if !suppress_dialog {
+                startup_diagnostics::show_message(
+                    "启动参数不正确。请检查快捷方式的目标与参数，或从命令行运行 --help 查看说明。",
+                );
+            }
             return ExitCode::FAILURE;
         }
     };
@@ -69,11 +93,17 @@ fn main() -> ExitCode {
         Ok(path) => path,
         Err(err) => {
             eprintln!("package-launcher: could not resolve current executable: {err}");
+            if !suppress_dialog {
+                startup_diagnostics::show_message(
+                    "无法定位 Coolzhu Agent 安装目录，请检查快捷方式或重新安装程序。",
+                );
+            }
             return ExitCode::FAILURE;
         }
     };
 
-    match run(&config_path, &cli) {
+    let mut failure_context = startup_diagnostics::FailureContext::new(&config_path);
+    match run(&config_path, &cli, &mut failure_context) {
         Ok(RunOutcome::Started(outcome)) => {
             eprintln!(
                 "package-launcher: web-console pid={} tauri pid={}",
@@ -94,9 +124,16 @@ fn main() -> ExitCode {
             );
             ExitCode::SUCCESS
         }
-        Ok(RunOutcome::CandidatesListed) | Ok(RunOutcome::ResolvedPathsPrinted) => ExitCode::SUCCESS,
+        Ok(RunOutcome::CandidatesListed) | Ok(RunOutcome::ResolvedPathsPrinted) => {
+            ExitCode::SUCCESS
+        }
         Err(err) => {
             eprintln!("package-launcher: startup failed: {err}");
+            let message = failure_context.message(&err);
+            eprintln!("{message}");
+            if !cli.no_error_dialog && !suppress_dialog {
+                startup_diagnostics::show_message(&message);
+            }
             ExitCode::FAILURE
         }
     }
@@ -111,6 +148,7 @@ struct CliOptions {
     list_candidates: bool,
     print_resolved_paths: bool,
     help: bool,
+    no_error_dialog: bool,
 }
 
 impl CliOptions {
@@ -143,6 +181,7 @@ impl CliOptions {
                 }
                 "--list-candidates" => options.list_candidates = true,
                 "--print-resolved-paths" => options.print_resolved_paths = true,
+                "--no-error-dialog" => options.no_error_dialog = true,
                 "-h" | "--help" => options.help = true,
                 other if other.starts_with("--") => {
                     return Err(format!("未知选项 {other}"));
@@ -212,7 +251,11 @@ fn expand_cli_workspace(raw: &Path, flag: &str) -> Result<PathBuf, LaunchError> 
     })
 }
 
-fn run(config_path: &Path, cli: &CliOptions) -> Result<RunOutcome, LaunchError> {
+fn run(
+    config_path: &Path,
+    cli: &CliOptions,
+    failure_context: &mut startup_diagnostics::FailureContext,
+) -> Result<RunOutcome, LaunchError> {
     let config_dir = config_path
         .parent()
         .map(Path::to_path_buf)
@@ -221,6 +264,7 @@ fn run(config_path: &Path, cli: &CliOptions) -> Result<RunOutcome, LaunchError> 
         LaunchError::ConfigInvalid(format!("could not read {}: {error}", config_path.display()))
     })?;
     let config = LauncherConfig::from_json(&config_text, &config_dir)?;
+    failure_context.configure(&config);
 
     // 用户级启动选择的位置：%LOCALAPPDATA%\CoolzhuAgent（或显式隔离覆盖）。**不看 log_dir。**
     let user_state_root = user_state_root_for(
@@ -259,7 +303,8 @@ fn run(config_path: &Path, cli: &CliOptions) -> Result<RunOutcome, LaunchError> 
     // 显式建立/修订用户级选择（恢复入口）：成功即退出。
     if let Some(target) = &cli.select_workspace {
         let target = expand_cli_workspace(target, "--select-workspace")?;
-        let revision = select_workspace(&user_state_root, &target, &RealWorkspaceAccess, timestamp)?;
+        let revision =
+            select_workspace(&user_state_root, &target, &RealWorkspaceAccess, timestamp)?;
         return Ok(RunOutcome::SelectionRecorded {
             revision,
             path: target,
@@ -331,9 +376,9 @@ fn run(config_path: &Path, cli: &CliOptions) -> Result<RunOutcome, LaunchError> 
         .map(|note| format!("[{}] {}", note.code, note.message))
         .collect::<Vec<_>>();
     notes.extend(
-        inherited
-            .iter()
-            .map(|name| format!("[inherited_data_path_override] cleared {name} for child processes")),
+        inherited.iter().map(|name| {
+            format!("[inherited_data_path_override] cleared {name} for child processes")
+        }),
     );
 
     // 落库/采用选择（失败只告警：不阻断启动，也不谎称"选择已保存"）。
@@ -381,7 +426,7 @@ fn run(config_path: &Path, cli: &CliOptions) -> Result<RunOutcome, LaunchError> 
     let now_fn = move || start.elapsed();
     let sleep_fn = |duration: Duration| std::thread::sleep(duration);
 
-    let mut spawner = RealSpawner::default();
+    let mut spawner = RealSpawner::for_health_url(&config.health_url);
     let health_url = config.health_url.clone();
     let mut probe = || http_probe(&health_url);
     let mut observe = || {
@@ -395,6 +440,7 @@ fn run(config_path: &Path, cli: &CliOptions) -> Result<RunOutcome, LaunchError> 
             port: identity.reported_port,
         })
     };
+    failure_context.web_attempt_started();
     let open = launch(
         &config,
         &decision.resolved,
@@ -455,7 +501,7 @@ fn forward_existing_console(
         args.push("--show-console".to_string());
     }
     let tauri_log_file = config.log_dir.join("tauri.stdout.log");
-    let mut spawner = RealSpawner::default();
+    let mut spawner = RealSpawner::for_health_url(&config.health_url);
     spawner.spawn_tauri(&config.tauri, &args, resolved, &tauri_log_file)
 }
 
@@ -663,6 +709,18 @@ fn hidden_powershell(script: &str) -> Result<std::process::Output, LaunchError> 
 #[derive(Default)]
 struct RealSpawner {
     children: HashMap<u32, Child>,
+    console_url: Option<String>,
+    #[cfg(windows)]
+    web_identity: Option<windows_process_guard::ProcessIdentity>,
+}
+
+impl RealSpawner {
+    fn for_health_url(health_url: &str) -> Self {
+        let console_url = health_url.split_once("://").map(|(scheme, tail)| {
+            format!("{scheme}://{}", tail.split('/').next().unwrap_or(tail))
+        });
+        Self { console_url, ..Self::default() }
+    }
 }
 
 impl LaunchSpawner for RealSpawner {
@@ -693,6 +751,8 @@ impl LaunchSpawner for RealSpawner {
         apply_hidden_window(&mut cmd);
 
         let child = cmd.spawn().map_err(LaunchError::WebConsoleSpawn)?;
+        #[cfg(windows)]
+        { self.web_identity = windows_process_guard::capture_child_process_identity(&child).ok(); }
         let pid = child.id();
         self.children.insert(pid, child);
         Ok(pid)
@@ -707,7 +767,7 @@ impl LaunchSpawner for RealSpawner {
     ) -> Result<u32, LaunchError> {
         let stdout = fs::File::create(log_file).map_err(LaunchError::TauriSpawn)?;
         let stderr_path = log_file.with_file_name(TAURI_STDERR_LOG);
-        let stderr = fs::File::create(stderr_path).map_err(LaunchError::TauriSpawn)?;
+        let stderr = fs::File::create(&stderr_path).map_err(LaunchError::TauriSpawn)?;
         let mut cmd = Command::new(&spec.path);
         cmd.args(args)
             .envs(launch_environment(resolved))
@@ -715,11 +775,26 @@ impl LaunchSpawner for RealSpawner {
             .stdin(Stdio::null())
             .stdout(Stdio::from(stdout))
             .stderr(Stdio::from(stderr));
+        if let Some(url) = self.console_url.as_deref() {
+            // 本次已通过健康检查的后台优先于全局临时文件，避免多个实例串到错误窗口。
+            cmd.env("COOLZHU_GUI_WEB_URL", url);
+        }
         for name in overridden_data_path_envs() {
             cmd.env_remove(name);
         }
         let child = cmd.spawn().map_err(LaunchError::TauriSpawn)?;
         let pid = child.id();
+        #[cfg(windows)]
+        if let Some(server) = self.web_identity.as_ref() {
+            if let Err(error) = native_recovery::register_shell(server, &child) {
+                // 恢复资格登记失败不阻止普通聊天启动，也不会降级成未经验证的恢复入口。
+                use std::io::Write;
+                if let Ok(mut log) = fs::OpenOptions::new().append(true).open(&stderr_path) {
+                    let reason = error.to_string().replace(['\r', '\n'], " ");
+                    let _ = writeln!(log, "原生恢复通道未接通：{reason}；聊天可继续，恢复须从完整桌面启动器重新启动。");
+                }
+            }
+        }
         self.children.insert(pid, child);
         Ok(pid)
     }
@@ -807,11 +882,7 @@ mod tests {
         assert!(CliOptions::parse(vec![OsString::from("--nope")].into_iter()).is_err());
         assert!(CliOptions::parse(vec![OsString::from("--workspace")].into_iter()).is_err());
         assert!(CliOptions::parse(
-            vec![
-                OsString::from("a.json"),
-                OsString::from("b.json")
-            ]
-            .into_iter()
+            vec![OsString::from("a.json"), OsString::from("b.json")].into_iter()
         )
         .is_err());
     }
