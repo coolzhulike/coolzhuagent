@@ -1601,6 +1601,107 @@ mod tests {
         }
     }
 
+
+    // -----------------------------------------------------------------------
+    // B126-T2／T4／T5（§六 §九）：执行者绑定在 consume 阶段必须被**核对**
+    // T1（真实身份消费通过）与 T3（PID 复用判定）需要生产者；T3 的判定机制已在
+    // 契约 `classify_executor_instance` 的用例里钉住。
+    // -----------------------------------------------------------------------
+
+    /// **B126-T2**：许可绑定 A，却拿伪造的 id 去消费 ⇒ 拒绝（`PermitExecutorMismatch`）。
+    #[test]
+    fn b126_t2_a_forged_executor_id_cannot_consume_the_permit() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        let permits = store.permit_store();
+        permits
+            .register_pending(&permit("permit-1", "action-1"), InputPermitState::PendingActivation, 1)
+            .expect("登记（测试辅助在登记时绑定 exec-1）");
+        let outcome = permits.consume_permit(
+            "permit-1",
+            budget(),
+            PermitExecutorBinding::Verified("fake-executor"),
+            2,
+        );
+        match outcome {
+            Err(PermitStoreError::PermitExecutorMismatch {
+                permit_executor,
+                current_executor,
+            }) => {
+                assert_eq!(permit_executor.as_deref(), Some("exec-1"));
+                assert_eq!(current_executor, "fake-executor");
+            }
+            other => panic!("伪造执行者 id 必须被拒为 PermitExecutorMismatch：{other:?}"),
+        }
+        // 拒绝后许可仍是待激活：不因为一次伪造尝试而改变状态。
+        assert_eq!(
+            permits.load_permit("permit-1").expect("load").state,
+            InputPermitState::PendingActivation
+        );
+    }
+
+    /// **B126-T4**：许可**没有**绑定执行者（`null`）⇒ **不能**消费。
+    #[test]
+    fn b126_t4_a_permit_without_an_executor_cannot_be_consumed() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        let permits = store.permit_store();
+        let mut unbound = permit("permit-1", "action-1");
+        unbound.executor_instance_id = None;
+        permits
+            .register_pending(&unbound, InputPermitState::PendingActivation, 1)
+            .expect("登记未绑定执行者的许可（§3.2 允许 pending 阶段不绑定）");
+        let outcome = permits.consume_permit(
+            "permit-1",
+            budget(),
+            PermitExecutorBinding::Verified("exec-1"),
+            2,
+        );
+        match outcome {
+            Err(PermitStoreError::PermitExecutorMismatch {
+                permit_executor, ..
+            }) => assert_eq!(permit_executor, None, "缺执行者必须如实报告为未绑定"),
+            other => panic!("缺执行者时不得消费：{other:?}"),
+        }
+    }
+
+    /// **B126-T5**：签发之后、消费之前**执行者身份变了** ⇒ 拒绝。
+    ///
+    /// 场景：许可绑定 exec-A；恢复流程把执行者替换成 exec-B（登记 revision 前进），
+    /// 此时拿 exec-B 去消费必须失败——因为许可说的是"允许 exec-A 产生输入"。
+    #[test]
+    fn b126_t5_executor_change_between_issue_and_consume_is_refused() {
+        let root = temp_root();
+        let store = InputSafetyStore::open_at(root.path()).expect("open");
+        let permits = store.permit_store();
+        permits
+            .register_pending(&permit("permit-1", "action-1"), InputPermitState::PendingActivation, 1)
+            .expect("登记：绑定 exec-1");
+        // 执行者被替换（真实登记由 8.3c 生产者做；此处只驱动"身份已不是原来那个"）。
+        let replaced = permits.consume_permit(
+            "permit-1",
+            budget(),
+            PermitExecutorBinding::Verified("exec-2"),
+            2,
+        );
+        assert!(
+            matches!(replaced, Err(PermitStoreError::PermitExecutorMismatch { .. })),
+            "签发后执行者变了，必须拒绝：{replaced:?}"
+        );
+        // 而原来那个执行者仍然可以消费（说明拒绝的是"换了身份"，不是把许可作废）。
+        assert_eq!(
+            permits
+                .consume_permit(
+                    "permit-1",
+                    budget(),
+                    PermitExecutorBinding::Verified("exec-1"),
+                    3
+                )
+                .expect("原执行者仍可消费"),
+            InputPermitState::DispatchCommitted
+        );
+    }
+
     /// **使能步骤验收**：许可的签发与消费都能经**生产可达的窄口**（`store.permit_store()`）完成，
     /// 而不是只能在测试里自造连接。这条直接解掉 8.2c 的接线阻塞。
     #[test]
