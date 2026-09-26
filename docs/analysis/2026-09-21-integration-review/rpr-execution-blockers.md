@@ -3892,6 +3892,42 @@ Permit production binding 未开始／input switch ⛔ 禁止。
 （1 ignored＝真实调用评测）、core-runtime **347/0**、linkage 8/0、`cargo build --workspace` ✅。
 未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-147 8.3c-A-helper-runtime Step 1 落地：脚本两相段（opt-in）＋**真实 helper 门禁抓住了命令行超限**
+
+**做法（按裁决 §三 Step 1）**：只改 `NATIVE_INPUT_HELPER_ENTRY` 一处常量，插入点在 `$progress` 之后、
+`[CoolzhuNative.Engine]::Run(` 之前（**未移动** cancel／progress 初始化与 cleanup——它们已经过旧路径验证）。
+两相段 **opt-in**（`if($r.two_phase_helper)`，该字段默认不存在 ⇒ **绝不执行**）：写 `ready_file`
+（type／协议版本／nonce＝`request_id`／`$PID`／时间戳）→ 有界等待（**先 cancel**，落回 `Engine::Run`
+由既有 driver 按 `stroke_cancelled` 处理；**再 permit**，nonce 不匹配则 `exit 4` 拒绝输入；`-Milli 20` 轮询）。
+
+**验收方式按裁决 §三 改对了**：**不再用静态解析**，而是用**现有的真实 helper 测试套件**作门禁
+（`computer-use-core` 的 130 条测试真的会启动 PowerShell helper 跑这段脚本）。
+
+**门禁立刻抓到一个静态解析永远发现不了的问题（本项最有价值的产出）**：
+
+```
+命令行（含终止符）达到 31501 单元，超过软门槛 31000 单元：留给动态部分的余量不足 0 个单元
+```
+
+⇒ 我第一版两相段**太长**，把 `-Command <script>` 的命令行顶超限 **501 单元**。
+**这不是语法问题，是命令行长预算问题**——静态 `scriptblock::Create` 永远不会报它。
+压缩后（短变量名、单行拼接、复用既有 `-Milli` 缩写）通过，脚本 UTF-16 单元数 2139。
+
+**验收结果**：`computer-use-core` **130/0**（含命令行门禁）；web-console **1215/0**
+（1 ignored＝真实调用评测）；module_linkage_smoke 8/0。
+⇒ **旧路径未受影响已被真实执行证明**（不是被静态检查"看起来通过"）。
+
+**仍未做**：**T6-A／T6-B／T6-C**——它们要**启用 opt-in** 才能驱动新路径，而当前 `native_run`
+不接受外部注入 `two_phase_helper`／`ready_file`／`permit_file`，需要一层**宿主侧测试管道**
+（只传测试参数，不改生产语义）。这一层属 Phase 1 剩余，与 T6-A/B/C 同批。
+
+**顺带记录一处环境现象**：本轮 `cargo build --workspace` 中 rustc 崩过一次
+（`STATUS_STACK_BUFFER_OVERRUN`），但同一 crate 的 `cargo test` 随即 **1215/0 通过**，
+复跑 `cargo build --workspace` 亦通过 ⇒ 判定为**编译器偶发崩溃**，非代码问题（如实登记，不作"已修复"）。
+
+**本轮未接** `ExecutorStore`／`PermitGate`／`:228`；未写生产 permit；未迁移真实库、未解除隔离、
+未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。
