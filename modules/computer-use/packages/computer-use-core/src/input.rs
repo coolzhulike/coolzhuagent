@@ -4801,7 +4801,31 @@ foreach($mode in @(0,1,2,3)) {{
         /// 口径（第七轮 §5.1 纠正）：配额是**含终止空字符在内**的 32,767 个 **UTF-16 单元**；
         /// 断言按单元数做，且**分别输出**"测试版（含两个测试接缝）"与"正式版（去掉接缝）"
         /// 两条命令行的长度。
-        #[test]
+            /// **B128-T2（防回退结构守卫）**：两相段的 nonce 来源**必须**是调用方提供的
+    /// `$r.two_phase_nonce`，**不得**回退到由 helper 内部生成的 `request_id`。
+    ///
+    /// 为什么需要它：本轮改动只有一行，将来很容易有人为了「少传一个字段」把它绑回 `request_id` ——
+    /// 那会让「nonce 属于本会话」沦为**自指检查**，T11（旧 permit 串用）与 nonce 校验同时失效。
+    /// 这里守的是**来源绑定**这条不变式（不是脚本行为），所以静态断言是合适的手段。
+    #[test]
+    fn two_phase_block_takes_its_nonce_from_the_caller_supplied_field() {
+        let script = NATIVE_INPUT_HELPER_ENTRY;
+        let start = script.find("if($r.two_phase_helper){").expect("两相段必须存在");
+        let end = script[start..].find("if($sp[1])").expect("两相段必须结束于既有初始化之前") + start;
+        let block = &script[start..end];
+        assert!(
+            block.contains("$r.two_phase_nonce"),
+            "两相段的 nonce 必须取自 $r.two_phase_nonce（调用方提供的会话身份）"
+        );
+        assert!(
+            !block.contains("request_id"),
+            "两相段不得引用 request_id 作为 nonce 来源：它由 helper 内部生成、调用方无法预知，             用它做授权校验会让防串用变成自指检查（见台账 §B-149）"
+        );
+        let run_at = script.find("[CoolzhuNative.Engine]::Run(").expect("输入调用必须存在");
+        assert!(end < run_at, "两相段必须早于 Engine::Run");
+    }
+
+#[test]
         fn native_helper_stays_within_the_windows_command_line_limit() {
             let script = native_helper_script();
             let command = native_helper_command(&script);

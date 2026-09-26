@@ -4023,6 +4023,30 @@ computer-use-core／web-console／core-runtime 三门禁。**四项完成 Phase 
 web-console **1215/0**（1 ignored＝真实调用评测）、core-runtime **347/0**、linkage 8/0、
 `cargo build --workspace` ✅。未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
 
+### B-151 B128-T2 落地：防回退结构守卫（两相段不得用 `request_id` 作 nonce 来源）
+
+**裁决口径（§七）**：增加结构测试，检查 helper 脚本中**不存在**「以 `request_id` 作为 READY／permit／
+EXECUTE 的 nonce 来源」。理由：本轮改动只有一行，将来很容易有人为了「少传一个字段」绑回 `request_id`，
+从而让「nonce 属于本会话」沦为**自指检查**，T11 与 nonce 校验同时失效。
+
+**交付**（`input.rs` 的 `input::tests::native_lifecycle` 模块，与命令行门禁测试**同模块**）：
+`two_phase_block_takes_its_nonce_from_the_caller_supplied_field` —— 从脚本切出两相段
+（`if($r.two_phase_helper){` → `if($sp[1])` 之前），断言 ① 段内**必须**含 `$r.two_phase_nonce`；
+② 段内**不得**出现 `request_id`；③ 该段仍**早于** `[CoolzhuNative.Engine]::Run(`。
+
+**变异验证 1/1**：把 `$n=[string]$r.two_phase_nonce` 改回 `$r.request_id` ⇒ 守卫立刻红
+（报「两相段不得引用 request_id 作为 nonce 来源」），确认这条守卫是活的。
+
+**过程的两次自伤（如实记录）**：① 第一次我把测试插到文件里**第一处** `#[cfg(test)] mod tests {`
+之后，破坏了编译（`cannot find function helper_pipes::supervise_stdout`）——说明那个位置并非我以为的
+上下文；**立即 `git checkout` 回退**保证树绿（130/0），再重新锚定到**命令行门禁测试所在模块**
+（同模块 ⇒ 作用域正确）后成功。② 教训与既有纪律一致：**大文件插代码必须锚在已知同模块的既有符号上**，
+不能按「第一个匹配」落位。
+
+**门禁**：computer-use-core **131/0**（增 1 条）、web-console **1215/0**（1 ignored＝真实调用评测）、
+core-runtime **347/0**、module_linkage_smoke 8/0。**未改脚本语义**（只加测试）；未接
+`ExecutorStore`／`PermitGate`／`:228`；未迁移真实库、未解除隔离、未启动真实输入、未提权、未安装、未推送。
+
 ## C. 需要新裁决的问题（非裁决文档已覆盖，由本轮发现）
 
 > **第七轮已裁决（2026-09-25）**：本节的 §C-1..§C-15 **选择待定全部关闭**，§C-16..§C-27 亦已有结论。**逐项生效结论与 G1–G6 稳定门禁文本的权威正文见 `round7-rulings-and-gates.md`**（不再引用"第几轮 §几"）。

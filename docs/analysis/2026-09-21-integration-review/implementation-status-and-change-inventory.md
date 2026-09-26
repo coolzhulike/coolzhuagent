@@ -287,7 +287,7 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 | --- | --- | --- |
 | `8.3c-A-contract` | 六态许可、`ExecutionAttemptId`、两相生命周期、握手协议、ready/permit 文件协议、五条异常语义、协议版本与切换前门禁 | ✅ |
 | `8.3c-A-host-ready` | `await_helper_ready`（有界等待；**文件存在 ≠ READY**；非本次会话 nonce 拒绝；非法信号**立即 `Rejected`** 不转 `Timeout`） | ✅ |
-| `8.3c-A-helper-runtime` | 脚本两相段（**opt-in**，默认不执行）＋ nonce 来源改为**调用方**提供的 `two_phase_nonce` | 🟡 **Step 2/3 完成**；Step 1（测试注入）与 Step 4（T6-A/B/C、T11、B128-T1）待做 |
+| `8.3c-A-helper-runtime` | 脚本两相段（**opt-in**，默认不执行）＋ nonce 来源改为**调用方**提供的 `two_phase_nonce`；**B128-T2 防回退结构守卫**（两相段不得用 `request_id` 作 nonce 来源，变异 1/1） | 🟡 **Step 2/3 ＋ T2 守卫完成**；Step 1（测试注入 `two_phase_nonce`）与 Step 4（T6-A/B/C、T11、B128-T1）待做 |
 | `8.3c-A-executor-bind` | `ExecutorStore` 登记 ＋ `PermitGate` 真绑定 ＋ permit 通知 | ⏳ 未开始（裁决冻结） |
 | `8.3c-A-input-switch` | `controlled_*` 一次性切换／`computer_use_executor.rs:228` | ⛔ **禁止** |
 
@@ -305,12 +305,13 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 - **8.3c-1**：helper 身份在**存活时**捕获并经 `NativeInputOutcome` 暴露（§B-132）
 - **8.3c-A host-ready**：`await_helper_ready`（§B-143）
 - **helper-runtime Step 2/3**：`two_phase_nonce`（§B-150）
+- **B128-T2 防回退守卫**：结构断言「两相段不得用 request_id 作 nonce 来源」（§B-151）
 
 ### 9.3 门禁基线（**每轮必须不低于此**）
 
 | 目标 | 结果 |
 | --- | --- |
-| `cargo test -p coolzhu-computer-use-core` | **130 / 0**（含命令行长度门禁 `ScriptCommandLineBudget < 31000`） |
+| `cargo test -p coolzhu-computer-use-core` | **131 / 0**（含命令行长度门禁 `ScriptCommandLineBudget < 31000` 与 B128-T2 防回退守卫） |
 | `cargo test -p coolzhu-web-console` | **1215 / 0**（1 ignored＝真实调用评测） |
 | `cargo test -p coolzhu-core-runtime` | **347 / 0** |
 | `cargo test --test module_linkage_smoke` | 8 / 0 |
