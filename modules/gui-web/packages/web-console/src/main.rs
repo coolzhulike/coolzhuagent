@@ -79847,8 +79847,11 @@ attach: last_assistant
     }
 
     #[test]
-    fn web_frontend_chat_context_controls_live_in_compact_left_sidebar() {
+    fn web_frontend_chat_context_controls_keep_top_permission_and_left_sidebar() {
         assert!(WEB_INDEX_HTML.contains("class=\"chat-left-rail\""));
+        assert!(WEB_INDEX_HTML.contains("class=\"top-chat-context\""));
+        assert!(WEB_INDEX_HTML.contains("top-chat-permissions\" data-sidebar-group=\"room-permissions\""));
+        assert!(WEB_INDEX_HTML.contains("class=\"top-chat-permission-dialog\" role=\"dialog\""));
         assert!(WEB_INDEX_HTML.contains("data-sidebar-group=\"chat-actions\""));
         assert!(WEB_INDEX_HTML.contains("data-sidebar-group=\"conversation-list\""));
         assert!(WEB_INDEX_HTML.contains("data-sidebar-group=\"recipient-targets\""));
@@ -79857,6 +79860,8 @@ attach: last_assistant
         assert!(WEB_INDEX_HTML.contains("data-action=\"chat-permission-save\""));
         assert!(WEB_INDEX_HTML.contains("data-action=\"chat-workspace-edit\""));
         assert!(WEB_INDEX_HTML.contains("data-role=\"chat-permission-select\""));
+        assert_eq!(WEB_INDEX_HTML.matches("data-role=\"chat-permission-select\"").count(), 1);
+        assert_eq!(WEB_INDEX_HTML.matches("data-action=\"chat-permission-save\"").count(), 1);
         assert!(WEB_INDEX_HTML.contains("data-role=\"chat-workspace-path\""));
         assert!(WEB_APP_JS.contains("async function saveChatRoomPermission"));
         assert!(WEB_APP_JS.contains("function setChatWorkspacePath"));
@@ -79880,28 +79885,6 @@ attach: last_assistant
         assert!(!WEB_INDEX_HTML.contains("data-chat-filter="));
         assert!(!WEB_STYLES_CSS.contains("chat-filter-chips"));
         assert!(WEB_INDEX_HTML.contains("class=\"chat-main-column\""));
-        let chat_actions = WEB_INDEX_HTML
-            .find("data-sidebar-group=\"chat-actions\"")
-            .expect("chat actions group exists");
-        let conversation_list = WEB_INDEX_HTML
-            .find("data-sidebar-group=\"conversation-list\"")
-            .expect("conversation list group exists");
-        let recipients = WEB_INDEX_HTML
-            .find("data-sidebar-group=\"recipient-targets\"")
-            .expect("recipient group exists");
-        let permissions = WEB_INDEX_HTML
-            .find("data-sidebar-group=\"room-permissions\"")
-            .expect("permission group exists");
-        let workspace = WEB_INDEX_HTML
-            .find("data-sidebar-group=\"workspace-settings\"")
-            .expect("workspace group exists");
-        assert!(
-            chat_actions < conversation_list
-                && conversation_list < recipients
-                && recipients < permissions
-                && permissions < workspace,
-            "chat sidebar must keep room management, recipients, permission and workspace order"
-        );
         assert!(!WEB_STYLES_CSS.contains(".chat-compact-actions {\n  margin-top: auto;"));
         assert!(WEB_STYLES_CSS.contains("--top-region-height: 48px"));
         assert!(WEB_STYLES_CSS.contains("--quick-rail-width: clamp(52px, 3.75vw, 60px)"));

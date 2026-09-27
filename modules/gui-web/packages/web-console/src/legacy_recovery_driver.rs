@@ -517,6 +517,40 @@ mod tests {
         InputSafetyResourceScope::parse("windows-session-recovery").expect("scope")
     }
 
+    /// 每个用例的临时目录给出唯一协调范围，避免测试触碰真实交互会话的输入锁。
+    fn isolated_coordination_scope(safety_root: &Path) -> String {
+        format!("legacy-recovery-test|{}", safety_root.display())
+    }
+
+    fn run_with_isolated_coordinator(
+        inputs: &LegacyRecoveryInputs<'_>,
+    ) -> Result<LegacyRecoveryReport, CoordinatorError> {
+        assert!(inputs.coordinator.is_none(), "夹具只替换未注入的协调器");
+        let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+            inputs.input_safety_root,
+            &isolated_coordination_scope(inputs.input_safety_root),
+            inputs.resource_scope,
+            inputs.recovery_operation_id,
+            &["converge_legacy_cu_run"],
+            std::time::Duration::from_secs(2),
+        )?;
+        let report = run_legacy_recovery(&LegacyRecoveryInputs {
+            session_db_path: inputs.session_db_path,
+            input_safety_root: inputs.input_safety_root,
+            coordination_scope: inputs.coordination_scope,
+            coordinator: Some(&coordinator),
+            resource_scope: inputs.resource_scope,
+            run: inputs.run,
+            recovery_operation_id: inputs.recovery_operation_id,
+            recovery_service_instance: inputs.recovery_service_instance,
+            source_database_identity: inputs.source_database_identity,
+            observed_commit_candidate: inputs.observed_commit_candidate,
+            independent_safety_check: inputs.independent_safety_check,
+        });
+        coordinator.relinquish().expect("测试协调器必须释放");
+        report
+    }
+
     /// 重放：上次中断留下的操作（绑在**已失效**的 epoch 上）必须被重新绑定并继续。
     ///
     /// 现场背景：驱动按 `run.call_id` 命名操作 id，而 `put_recovery_operation` 刻意只推进
@@ -547,8 +581,9 @@ mod tests {
             .expect("候选存在");
 
         // 模拟"上次启动中断"：取得资格 → 登记操作 → **释放资格**，操作行留在旧 epoch 上且未提交。
-        let previous = InputSafetyCoordinator::begin(
+        let previous = InputSafetyCoordinator::begin_with_coordination_scope(
             &safety_root,
+            &isolated_coordination_scope(&safety_root),
             &scope(),
             "recovery-legacy-replay",
             &["converge_legacy_cu_run"],
@@ -558,10 +593,20 @@ mod tests {
         let previous_epoch = previous.control().epoch();
         previous.relinquish().expect("release previous epoch");
 
+        // 断言时须仍持有新资格；本例在检查 epoch 后才显式释放。
+        let current_coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+            &safety_root,
+            &isolated_coordination_scope(&safety_root),
+            &scope(),
+            "recovery-legacy-replay",
+            &["converge_legacy_cu_run"],
+            std::time::Duration::from_secs(2),
+        )
+        .expect("current coordinator");
         let report = run_legacy_recovery(&LegacyRecoveryInputs {
             session_db_path: &session_db,
             input_safety_root: &safety_root,
-            coordinator: None,
+            coordinator: Some(&current_coordinator),
             coordination_scope: "windows-session-recovery|physical-input-resource",
             resource_scope: &scope(),
             run: &run,
@@ -597,6 +642,7 @@ mod tests {
             operation.recovery_epoch, current.epoch,
             "重放必须把旧操作重新绑定到当前 epoch"
         );
+        current_coordinator.relinquish().expect("release current epoch");
     }
 
     /// **Recovery-P0-T1（验收）**：遗留运行 owner 永久未知 ⇒
@@ -617,7 +663,7 @@ mod tests {
             .find(|run| run.call_id == "legacy-cu-unknown-owner")
             .expect("候选存在");
 
-        let report = run_legacy_recovery(&LegacyRecoveryInputs {
+        let report = run_with_isolated_coordinator(&LegacyRecoveryInputs {
             session_db_path: &session_db,
             input_safety_root: &safety_root,
             coordinator: None,
@@ -704,14 +750,14 @@ mod tests {
                 independent_safety_check: None,
             }
         }
-        let first = run_legacy_recovery(&inputs_for(&session_db, &safety_root, &scope(), &run)).expect("首次");
+        let first = run_with_isolated_coordinator(&inputs_for(&session_db, &safety_root, &scope(), &run)).expect("首次");
         assert!(matches!(first.disposition, LegacyRecoveryDisposition::RefusedBeforeWrite { .. }));
 
         let safety = crate::input_safety_store::InputSafetyStore::open_at(&safety_root).expect("safety");
         let blocks_after_first = safety.open_block_count(&scope()).expect("blocks");
         drop(safety);
 
-        let second = run_legacy_recovery(&inputs_for(&session_db, &safety_root, &scope(), &run)).expect("第二遍");
+        let second = run_with_isolated_coordinator(&inputs_for(&session_db, &safety_root, &scope(), &run)).expect("第二遍");
         match second.disposition {
             LegacyRecoveryDisposition::AlreadySettled { disposition } => {
                 assert_eq!(disposition, RecoveryDisposition::HumanReviewRequired);
@@ -753,7 +799,7 @@ mod tests {
             .find(|run| run.call_id == "legacy-cu-1")
             .expect("候选存在");
 
-        let report = run_legacy_recovery(&LegacyRecoveryInputs {
+        let report = run_with_isolated_coordinator(&LegacyRecoveryInputs {
             session_db_path: &session_db,
             input_safety_root: &safety_root,
             coordinator: None,
@@ -816,7 +862,7 @@ mod tests {
             .next()
             .expect("候选存在");
 
-        let report = run_legacy_recovery(&LegacyRecoveryInputs {
+        let report = run_with_isolated_coordinator(&LegacyRecoveryInputs {
             session_db_path: &session_db,
             input_safety_root: &safety_root,
             coordinator: None,
@@ -869,7 +915,7 @@ mod tests {
             .next()
             .expect("候选存在");
 
-        let report = run_legacy_recovery(&LegacyRecoveryInputs {
+        let report = run_with_isolated_coordinator(&LegacyRecoveryInputs {
             session_db_path: &session_db,
             input_safety_root: &safety_root,
             coordinator: None,
