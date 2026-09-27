@@ -775,6 +775,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # Windows CI 的 stdout/stderr 可能是 cp1252，中文状态行必须显式按 UTF-8 输出。
+    sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
     try:
         main()
     except Exception as error:

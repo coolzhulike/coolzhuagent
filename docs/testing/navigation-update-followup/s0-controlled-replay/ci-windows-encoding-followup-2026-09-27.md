@@ -1,0 +1,7 @@
+# S0 回放 Windows CI 输出编码补验
+
+PR #68 初始提交 `f1d80e341cf5c026fc15dd9eed24dda961fd4ac2` 的 [push job](https://github.com/coolzhulike/coolzhuagent/actions/runs/36328884064/job/108646859389) 与 [pull_request job](https://github.com/coolzhulike/coolzhuagent/actions/runs/36328957320/job/108647068550) 都完成 Web 构建，随后在 `Replay six S0 cases and three fixture rejections` 步骤失败，后续测试被跳过。push job 原始日志下载至本机 `tmp/candidate-0.2.22/ci-push-job.log`，SHA-256 `521D34FCE98BB9D01B7E101271F6A9F087F0AF61777365443876224E2C01BAB8`；失败行是 Python `UnicodeEncodeError: 'charmap' codec can't encode characters in position 3-7`。该位置对应脚本打印首条中文“回放通过”状态，属于 runner 标准输出编码错误；初轮 CI 因此**不能**证明其余场景通过或失败。
+
+修复只在 `tests/integration/s0_controlled_replay.py` 入口将 `stdout`、`stderr` 明确配置为 UTF-8，保持录制白名单、请求断言、进程清理、敏感值脱敏和六类加三拒绝逻辑不变。本机以 `PYTHONIOENCODING=cp1252` 模拟受限输出编码，驱动同次 0.2.22 release Web 载荷 `package/bin/coolzhu-web-console.exe`，退出码 0。[脱敏摘要](ci-release-cp1252-summary-2026-09-27.json)记录六类正向路径和三种拒绝均达到预期；摘要 SHA-256 `7D9AB106194A33DB1C1E5F72D911431FC194AC4102FEA46A173A5E8118707D57`。Web SHA-256 仍是 `F9C08D440CA00DD78855A1B759C3FD3586031A9340A52859AA5B1EB4DA8A384A`；本机过程日志留在忽略目录 `tmp/candidate-0.2.22/s0-cp1252.log`，SHA-256 `FB8A56EEE2D5219466A1FB0BC3D2FAC0F28F5768B8F507D0E280022784D85205`。
+
+0.2.22 MSI 和产品二进制未改、未重包。其发布报告中的源码快照 `4669762e542b491ebb13578df9492076fd52ee3500ac88d9f529e911392514d0` 是**打包当时**的源码身份；本次之后测试驱动源码变化，不能再称当前全树仍与该快照一致。远端 CI 是否通过，以此修复提交后的新检查结果为准。
