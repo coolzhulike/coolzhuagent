@@ -6407,6 +6407,8 @@ impl FullAccessGrantStatus {
 
 #[derive(Debug, Clone, Deserialize)]
 struct ChatRoomPermissionUpdateRequest {
+    #[serde(default)]
+    expected_workspace: String,
     permission_profile: String,
     #[serde(default)]
     risk_acknowledged: bool,
@@ -16860,6 +16862,8 @@ async fn api_update_chat_room_permission(
 ) -> ApiResult<Json<ChatRoomPermissionStatus>> {
     let _pin = workspace_activity::pin_workspace()
         .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+    // pin 防止处理中途切工程；请求发起时的工程仍需由客户端声明并与当前工程核对。
+    let _verified_workspace = bound_project_mutation_root(&payload.expected_workspace)?;
     let room_name = chat_room_name_for_permission(&room_id)?;
     let permission_profile = validate_chat_room_permission_update(&payload)?;
     set_chat_room_permission_profile_sqlite(
@@ -78368,6 +78372,7 @@ attach: last_assistant
     #[test]
     fn chat_room_full_access_requires_both_risk_confirmations() {
         let missing_ack = super::ChatRoomPermissionUpdateRequest {
+            expected_workspace: String::new(),
             permission_profile: super::ROOM_PERMISSION_FULL_ACCESS.to_string(),
             risk_acknowledged: false,
             confirmed_twice: true,
@@ -78375,6 +78380,7 @@ attach: last_assistant
         assert!(super::validate_chat_room_permission_update(&missing_ack).is_err());
 
         let missing_confirmation = super::ChatRoomPermissionUpdateRequest {
+            expected_workspace: String::new(),
             permission_profile: super::ROOM_PERMISSION_FULL_ACCESS.to_string(),
             risk_acknowledged: true,
             confirmed_twice: false,
@@ -78382,6 +78388,7 @@ attach: last_assistant
         assert!(super::validate_chat_room_permission_update(&missing_confirmation).is_err());
 
         let revoke = super::ChatRoomPermissionUpdateRequest {
+            expected_workspace: String::new(),
             permission_profile: super::ROOM_PERMISSION_WORKSPACE_WRITE.to_string(),
             risk_acknowledged: false,
             confirmed_twice: false,

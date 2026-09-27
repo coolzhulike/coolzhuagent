@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "web_sha256": "f8159f050ee047dc2626db479d7d1ef00d52396e7d0ce8d1fab20b677cf25261",
+  "negative_http_409": [
+    "stale A",
+    "missing",
+    "wrong path"
+  ],
+  "b_permission_unchanged_after_negatives": true,
+  "a_and_b_correct_scope_saved": true,
+  "real_web": true,
+  "workspaces": "two temporary main-room workspaces"
+}

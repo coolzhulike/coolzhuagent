@@ -25,6 +25,7 @@
   </head>
   <body class="ui-3d">
     <main class="shell ui-redesign" aria-label="COOLZHU CODE 控制台">
+      <div class="scroll-frame-gems" aria-hidden="true"><span class="scroll-frame-gem-top"></span><span class="scroll-frame-gem-bottom"></span></div>
       <section class="layout-top-region" aria-label="顶部状态区">
         <section class="brand-banner" aria-label="COOLZHU">
           <div class="brand-banner-art" aria-hidden="true"></div>
@@ -63,6 +64,20 @@
               <img src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" />
             </button>
           </div>
+          <details class="chat-sidebar-group chat-room-permissions top-chat-permissions" data-sidebar-group="room-permissions" aria-label="当前聊天室权限">
+            <summary><span>权限</span><strong class="chat-permission-status" data-role="chat-permission-status">未选择</strong></summary>
+            <div class="top-chat-permission-dialog" role="dialog" aria-label="选择当前聊天室权限">
+              <label for="chat-permission-select">当前聊天室权限</label>
+              <div class="chat-permission-controls">
+                <select id="chat-permission-select" class="chat-permission-select" data-role="chat-permission-select" aria-label="选择当前聊天室权限">
+                  <option value="workspace-write">目录权限（默认）</option>
+                  <option value="full-access">完全访问（双重确认）</option>
+                </select>
+                <button class="mini-button" data-action="chat-permission-save" type="button"><img src="./assets/icons-wuxia/check.svg" alt="" />应用</button>
+              </div>
+              <small data-role="chat-permission-hint">请选择聊天室后设置权限。</small>
+            </div>
+          </details>
           <div class="chat-top-statuses" data-role="chat-top-statuses" aria-label="聊天室状态">
             <span class="chat-top-status-indicator chat-top-status-ready is-dim" data-role="chat-top-status-ready" data-state="idle" role="img" aria-label="系统健康：等待自检" title="系统健康：等待自检">
               <img src="./assets/ui-redesign/p6/status-jade-ready-v1.png" alt="" aria-hidden="true" />
@@ -643,17 +658,6 @@
                       </div>
                       <p data-role="agent-target-warning" role="alert" hidden></p>
                     </section>
-                    <section class="chat-sidebar-group chat-room-permissions" data-sidebar-group="room-permissions" aria-label="聊天室权限">
-                      <header><strong>聊天室权限</strong><span class="chat-permission-status" data-role="chat-permission-status">工作区写入</span></header>
-                      <div class="chat-permission-controls">
-                        <select class="chat-permission-select" data-role="chat-permission-select" aria-label="选择聊天室权限">
-                          <option value="workspace-write">工作区写入（默认）</option>
-                          <option value="full-access">完全访问（双重确认）</option>
-                        </select>
-                        <button class="mini-button" data-action="chat-permission-save" type="button"><img src="./assets/icons-wuxia/check.svg" alt="" />应用</button>
-                      </div>
-                      <small data-role="chat-permission-hint">权限只对当前聊天室生效；完全访问仍需要双重确认。</small>
-                    </section>
                     <section class="chat-sidebar-group chat-workspace-settings" data-sidebar-group="workspace-settings" aria-label="聊天室工作目录">
                       <header><strong>聊天室工作目录</strong></header>
                       <div class="chat-workspace-control">
@@ -725,7 +729,7 @@
                   </div>
                 </div>
                 <section class="chat-panel">
-                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-action="chat-trace-open" type="button">运行轨迹</button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button></div>
+                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-action="chat-trace-open" type="button">运行轨迹 / 安全详情<span class="chat-trace-safety-badge" data-role="chat-trace-safety-badge" hidden></span></button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button></div>
                   <div class="message-list" data-role="chat-message-list" data-chat-window-lines="50">
                     <div class="chat-message-empty-state" data-role="chat-message-empty-state" role="status">
                       <span aria-hidden="true"><img src="./assets/icons-wuxia/chat.svg" alt="" /></span>
@@ -889,8 +893,21 @@
 
           <article class="workbench-window" data-window-id="schedules" aria-label="定时任务"><div class="window-panel workspace-content-panel" data-role="schedules-panel"></div></article>
           <article class="workbench-window" data-window-id="preview" aria-label="内容预览"><div class="window-panel workspace-content-panel" data-role="content-preview"></div></article>
-          <article class="workbench-window" data-window-id="trace" aria-label="运行轨迹"><div class="window-panel workspace-content-panel">
+          <article class="workbench-window" data-window-id="trace" aria-label="运行轨迹与安全详情"><div class="window-panel workspace-content-panel">
             <div class="workspace-panel-toolbar"><strong>当前聊天室的运行轨迹</strong><button type="button" data-role="chat-trace-refresh">刷新</button></div>
+            <details class="system-safety-details" data-role="system-safety-details" open>
+              <summary>连接与输入安全详情</summary>
+              <footer class="global-system-bar" data-role="global-system-bar" aria-label="全局系统状态栏">
+                <span><b>工作区</b><span data-role="system-workspace">—</span></span>
+                <span><i class="system-dot is-pending" data-role="system-status-dot" role="img" aria-label="系统连接状态：连接中"></i><b>连接</b><span class="is-pending" data-role="system-connection" aria-live="polite">连接中</span></span>
+                <span><b>会话</b><span data-role="system-sessions">—</span></span>
+                <span><b>归属/恢复</b><span data-role="system-attribution">—</span></span>
+                <button type="button" data-role="release-isolation" hidden
+                  title="记录人工放行决定（署名／理由／证据）；不会删除事故记录，也不会重置安全库">放行隔离…</button>
+                <button type="button" data-role="cu-runs"
+                  title="列出最近的 Computer Use 运行及其事实摘要（每步输入状态／计数／基线／事故）">CU 运行…</button>
+              </footer>
+            </details>
             <p data-role="chat-trace-status" role="status"></p><div data-role="chat-trace-items"></div><button data-role="chat-trace-more" type="button" hidden>查看更早过程</button>
           </div></article>
 
@@ -1474,17 +1491,6 @@
 
         </section>
       </section>
-
-      <footer class="global-system-bar" data-role="global-system-bar" aria-label="全局系统状态栏">
-        <span><b>工作区</b><span data-role="system-workspace">—</span></span>
-        <span><i class="system-dot is-pending" data-role="system-status-dot" role="img" aria-label="系统连接状态：连接中"></i><b>连接</b><span class="is-pending" data-role="system-connection" aria-live="polite">连接中</span></span>
-        <span><b>会话</b><span data-role="system-sessions">—</span></span>
-        <span><b>归属/恢复</b><span data-role="system-attribution">—</span></span>
-        <button type="button" data-role="release-isolation" hidden
-          title="记录人工放行决定（署名／理由／证据）；不会删除事故记录，也不会重置安全库">放行隔离…</button>
-        <button type="button" data-role="cu-runs"
-          title="列出最近的 Computer Use 运行及其事实摘要（每步输入状态／计数／基线／事故）">CU 运行…</button>
-      </footer>
 
       <aside class="tool-approval-panel" data-role="tool-approval-panel" role="dialog" aria-labelledby="tool-approval-title" hidden>
         <header>

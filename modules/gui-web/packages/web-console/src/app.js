@@ -380,6 +380,12 @@ document.addEventListener("DOMContentLoaded", () => {
   actionButtons.get("chat-room-rename")?.addEventListener("click", renameSelectedChatRoom);
   actionButtons.get("chat-room-delete")?.addEventListener("click", deleteSelectedChatRoom);
   actionButtons.get("chat-permission-save")?.addEventListener("click", saveChatRoomPermission);
+  const topChatPermissions = document.querySelector(".top-chat-permissions");
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !topChatPermissions?.open) return;
+    event.preventDefault();
+    closeTopChatPermissions({ focusSummary: true });
+  }, true);
   actionButtons.get("chat-workspace-edit")?.addEventListener("click", () => beginWorkspaceEdit('[data-role="chat-workspace-path"]'));
   actionButtons.get("overview-agent-settings")?.addEventListener("click", focusChatAgentTargets);
   actionButtons.get("project-refresh")?.addEventListener("click", () => loadProjectTree());
@@ -412,6 +418,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("click", (event) => {
+    if (topChatPermissions?.open && !topChatPermissions.contains(event.target)) {
+      closeTopChatPermissions();
+    }
     if (!event.target.closest(".session-select-wrap")) {
       setSessionListOpen(false);
     }
@@ -445,6 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     saveComposerDraft();
+    closeTopChatPermissions();
     activeChatRoomId = option.dataset.roomId;
     await openSelectedChatRoom();
   });
@@ -5468,50 +5478,88 @@ async function refreshProtectedPaths() {
   }
 }
 
+function closeTopChatPermissions({ focusSummary = false } = {}) {
+  const details = document.querySelector(".top-chat-permissions");
+  if (!details?.open) return;
+  details.open = false;
+  if (focusSummary) details.querySelector("summary")?.focus({ preventScroll: true });
+}
+
+function chatPermissionStatusKnown(roomId = activeChatRoomId) {
+  return Boolean(roomId && projectWorkspaceScope && taskFullAccessStatus?.room_id === roomId
+    && !taskFullAccessStatus.error && !taskFullAccessStatus.loading);
+}
+
 async function refreshFullAccessStatus() {
-  if (!activeChatRoomId) {
-    taskFullAccessStatus = { full_access: false, permission_profile: "workspace-write" };
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  const requestSerial = ++chatPermissionRequestSerial;
+  if (!roomId) {
+    closeTopChatPermissions();
+    taskRenderFullAccessStatus({});
     return;
   }
+  taskRenderFullAccessStatus({ room_id: roomId, loading: true });
   try {
-    taskFullAccessStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`);
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
+    taskRenderFullAccessStatus(status);
   } catch (error) {
-    taskRenderFullAccessStatus({ active: false, error: error.message, ttl_secs_remaining: 0 });
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
+    taskRenderFullAccessStatus({ room_id: roomId, error: error.message });
   }
 }
 
+let chatPermissionRequestSerial = 0;
+function chatPermissionRequestCurrent(roomId, scope, requestSerial) {
+  return activeChatRoomId === roomId && projectRequestScopeCurrent(scope) && chatPermissionRequestSerial === requestSerial;
+}
+
 function taskRenderFullAccessStatus(status = {}) {
-  const debugOpen = Boolean(status.dev_open_permissions);
-  const active = Boolean(debugOpen || status.effective_full_access || status.full_access || status.permission_profile === "full-access");
-  const permissionProfile = status.permission_profile || (active ? "full-access" : "workspace-write");
-  setBindText("tasks.fullAccessStatus", debugOpen ? "已启用 · 调试完全访问" : active ? "已启用 · 当前聊天室" : "未启用 · 工作区范围");
+  const hasRoom = Boolean(activeChatRoomId);
+  const known = hasRoom && Boolean(projectWorkspaceScope) && status.room_id === activeChatRoomId && !status.error && !status.loading;
+  const debugOpen = known && Boolean(status.dev_open_permissions);
+  const active = known && Boolean(debugOpen || status.effective_full_access || status.full_access || status.permission_profile === "full-access");
+  const permissionProfile = known ? status.permission_profile || (active ? "full-access" : "workspace-write") : "workspace-write";
+  setBindText("tasks.fullAccessStatus", !hasRoom ? "未选择聊天室" : !known ? "状态未知" : active ? "已启用 · 完全访问" : "未启用 · 工作区范围");
   const permissionSelect = document.querySelector('[data-role="chat-permission-select"]');
   const permissionStatus = document.querySelector('[data-role="chat-permission-status"]');
   const permissionHint = document.querySelector('[data-role="chat-permission-hint"]');
   if (permissionSelect) {
     permissionSelect.value = permissionProfile;
-    permissionSelect.disabled = !activeChatRoomId;
+    permissionSelect.disabled = !known;
+  }
+  const permissionSaveButton = actionButtons.get("chat-permission-save");
+  if (permissionSaveButton && !permissionSaveButton.classList.contains("is-busy")) {
+    permissionSaveButton.disabled = !known;
   }
   if (permissionStatus) {
-    permissionStatus.textContent = debugOpen ? "调试完全访问" : active ? "完全访问" : "工作区写入";
+    permissionStatus.textContent = !hasRoom ? "未选择" : !known ? "状态未知" : active ? "完全访问" : "目录权限";
   }
   if (permissionHint) {
-    permissionHint.textContent = debugOpen
-      ? "调试完全访问已开启；下方房间权限设置在关闭调试开放权限后生效。模型工具开关仍单独生效。"
+    permissionHint.textContent = !hasRoom
+      ? "请选择聊天室后设置权限。"
+      : !known
+      ? status.loading ? "正在读取当前聊天室权限，请稍后。" : "权限状态未能读取，请刷新后重试。"
+      : debugOpen
+      ? "工程已开启调试完全访问；房间选项将在关闭调试开放权限后生效。模型工具开关仍单独生效。"
       : permissionProfile === "full-access"
       ? "当前聊天室已启用完全访问；撤销或切换权限需要经过安全确认。"
       : "权限只对当前聊天室生效；启用完全访问仍需双重确认。";
+    permissionHint.title = permissionHint.textContent;
   }
   const roomName = status.room_name || chatRoomRegistry.rooms?.find((item) => item.id === activeChatRoomId)?.name;
   const roomEl = document.querySelector('[data-role="authorization-selected-room"]');
   const scopeEl = document.querySelector('[data-role="authorization-scope"]');
   const riskEl = document.querySelector('[data-role="authorization-risk"]');
-  if (roomEl) roomEl.textContent = roomName || "尚未选择聊天室";
-  if (scopeEl) scopeEl.textContent = debugOpen ? "当前工程调试完全访问" : active ? "当前聊天室可完全访问" : "当前聊天室限工作区访问";
+  if (roomEl) roomEl.textContent = hasRoom ? roomName || "当前聊天室" : "尚未选择聊天室";
+  if (scopeEl) scopeEl.textContent = !hasRoom ? "尚未选择聊天室" : !known ? "权限状态未知" : debugOpen ? "当前工程调试完全访问" : active ? "当前聊天室可完全访问" : "当前聊天室限工作区访问";
   if (riskEl) {
-    riskEl.textContent = debugOpen
+    riskEl.textContent = !hasRoom
+      ? "请选择聊天室后查看权限。"
+      : !known
+      ? "权限状态未知，已暂停更改；请刷新后重试。"
+      : debugOpen
       ? "调试开放权限由工程配置 tool.dev_open_permissions 控制；撤销房间授权不会关闭调试开放权限。"
       : active
       ? "此聊天室已启用完全访问；应用重启后再次选择该聊天室时会恢复该权限。"
@@ -5521,9 +5569,11 @@ function taskRenderFullAccessStatus(status = {}) {
   panel?.classList.toggle("is-active", active);
   setWorkbenchMotionState("tasks", WORKBENCH_MOTION_STATES.tasks, active);
   const revoke = actionButtons.get("full-access-revoke");
-  if (revoke) {
-    revoke.disabled = !(status.full_access || status.permission_profile === "full-access");
+  if (revoke && !revoke.classList.contains("is-busy")) {
+    revoke.disabled = !known || !(status.full_access || status.permission_profile === "full-access");
   }
+  const enable = actionButtons.get("full-access-enable");
+  if (enable && !enable.classList.contains("is-busy")) enable.disabled = !known;
   taskFullAccessStatus = status;
   renderChatRightRailStatus();
 }
@@ -5531,13 +5581,20 @@ function taskRenderFullAccessStatus(status = {}) {
 async function saveChatRoomPermission(event) {
   const button = event?.currentTarget || actionButtons.get("chat-permission-save");
   const select = document.querySelector('[data-role="chat-permission-select"]');
-  if (!activeChatRoomId || !select) {
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  if (!roomId || !select) {
+    return;
+  }
+  if (!chatPermissionStatusKnown(roomId) || !scope.workspace) {
+    addMessage({ author: "聊天室权限", text: "权限状态未知，请刷新后再保存。", kind: "thought", icon: "error-log" });
     return;
   }
   const selectedProfile = select.value === "full-access" ? "full-access" : "workspace-write";
   const currentProfile = taskFullAccessStatus.permission_profile || "workspace-write";
   if (selectedProfile === currentProfile) {
     taskRenderFullAccessStatus(taskFullAccessStatus);
+    closeTopChatPermissions();
     return;
   }
   let riskAcknowledged = false;
@@ -5550,39 +5607,56 @@ async function saveChatRoomPermission(event) {
       return;
     }
   }
+  if (activeChatRoomId !== roomId || !projectRequestScopeCurrent(scope)) return;
+  const requestSerial = ++chatPermissionRequestSerial;
   setBusy(button, true, "保存中");
   try {
-    taskFullAccessStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`, {
+    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        expected_workspace: scope.workspace,
         permission_profile: selectedProfile,
         risk_acknowledged: riskAcknowledged,
         confirmed_twice: confirmedTwice,
       }),
     });
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) {
+      if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
+      return;
+    }
+    taskRenderFullAccessStatus(status);
+    closeTopChatPermissions();
     await refreshToolAudit();
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     select.value = currentProfile;
     taskRenderFullAccessStatus(taskFullAccessStatus);
     addMessage({ author: "聊天室权限", text: `权限保存失败：${error.message}`, kind: "thought", icon: "error-log" });
+    void refreshFullAccessStatus();
   } finally {
     setBusy(button, false);
+    if (button) button.disabled = !chatPermissionStatusKnown();
   }
 }
 
 async function refreshChatRoomDiagnosticsPreferences() {
-  if (!activeChatRoomId) {
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  const requestSerial = ++chatPermissionRequestSerial;
+  if (!roomId) {
     activeChatRoomDiagnostics = { enabled: true, auto_refresh: false, show_stream_interrupts: true, show_details: true };
     return activeChatRoomDiagnostics;
   }
   try {
-    activeChatRoomDiagnostics = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/diagnostics`);
+    const diagnostics = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/diagnostics`);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return activeChatRoomDiagnostics;
+    activeChatRoomDiagnostics = diagnostics;
     if (activeChatRoomDiagnostics.enabled && activeChatRoomDiagnostics.auto_refresh) {
       void diagnosticsWindowRefresh({ silent: true });
     }
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return activeChatRoomDiagnostics;
     console.warn("聊天室诊断偏好读取失败", error);
   }
   return activeChatRoomDiagnostics;
@@ -5590,16 +5664,20 @@ async function refreshChatRoomDiagnosticsPreferences() {
 
 async function openChatRoomDiagnosticsSettings(event) {
   const button = event?.currentTarget || actionButtons.get("chat-room-diagnostics");
-  if (!activeChatRoomId) {
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  if (!roomId || !scope.workspace) {
     addMessage({ author: "聊天室诊断", text: "请先选择聊天室。", kind: "thought", icon: "error-log" });
     return;
   }
+  const requestSerial = ++chatPermissionRequestSerial;
   setBusy(button, true, "读取中");
   try {
     const [data, permission] = await Promise.all([
-      requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/diagnostics`),
-      requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`),
+      requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/diagnostics`),
+      requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`),
     ]);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     document.querySelector(".chat-room-diagnostics-modal")?.remove();
     const modal = document.createElement("div");
     modal.className = "task-chain-modal chat-room-diagnostics-modal";
@@ -5630,17 +5708,26 @@ async function openChatRoomDiagnosticsSettings(event) {
     modal.querySelector("[data-diagnostics-save]")?.addEventListener("click", async (saveEvent) => {
       const saveButton = saveEvent.currentTarget;
       const status = modal.querySelector('[data-role="diagnostics-save-status"]');
+      if (!modal.isConnected || activeChatRoomId !== roomId || !projectRequestScopeCurrent(scope)) {
+        close();
+        return;
+      }
+      const saveSerial = ++chatPermissionRequestSerial;
       const payload = {};
       modal.querySelectorAll("[data-diagnostics-field]").forEach((input) => {
         payload[input.dataset.diagnosticsField] = Boolean(input.checked);
       });
       setBusy(saveButton, true, "保存中");
       try {
-        const saved = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/diagnostics`, {
+        const saved = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/diagnostics`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+          close();
+          return;
+        }
         const permissionSelect = modal.querySelector("[data-diagnostics-permission]");
         if (permissionSelect && permissionSelect.value !== (permission.permission_profile || "workspace-write")) {
           const selectedProfile = permissionSelect.value;
@@ -5649,23 +5736,39 @@ async function openChatRoomDiagnosticsSettings(event) {
           if (selectedProfile === "full-access" && (!riskAck || !confirmedTwice)) {
             throw new Error("完全访问未完成双重确认，已保持原权限");
           }
-          await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`, {
+          if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+            close();
+            return;
+          }
+          const permissionStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ permission_profile: selectedProfile, risk_acknowledged: riskAck, confirmed_twice: confirmedTwice }),
+            body: JSON.stringify({ expected_workspace: scope.workspace, permission_profile: selectedProfile, risk_acknowledged: riskAck, confirmed_twice: confirmedTwice }),
           });
+          if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+            close();
+            if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
+            return;
+          }
+          taskRenderFullAccessStatus(permissionStatus);
         }
         activeChatRoomDiagnostics = saved;
         if (status) status.textContent = `已保存 · ${new Date((saved.updated_at || Date.now())).toLocaleTimeString()}`;
         refreshAuthorizationSelectedRoom();
       } catch (error) {
+        if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+          close();
+          return;
+        }
         if (status) status.textContent = `保存失败：${error.message}`;
+        void refreshFullAccessStatus();
       } finally {
         setBusy(saveButton, false);
       }
     });
     document.body.append(modal);
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     addMessage({ author: "聊天室诊断", text: `读取诊断设置失败：${error.message}`, kind: "thought", icon: "error-log" });
   } finally {
     setBusy(button, false);
@@ -5674,11 +5777,17 @@ async function openChatRoomDiagnosticsSettings(event) {
 
 async function enableFullAccessGrant(event) {
   const button = event?.currentTarget || actionButtons.get("full-access-enable");
-  if (!activeChatRoomId) {
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  if (!roomId) {
     addMessage({ author: "工具权限", text: "请先选择聊天室，再启用完全访问。", kind: "thought", icon: "error-log" });
     return;
   }
-  const roomName = chatRoomRegistry.rooms?.find((item) => item.id === activeChatRoomId)?.name || activeChatRoomId;
+  if (!chatPermissionStatusKnown(roomId) || !scope.workspace) {
+    addMessage({ author: "工具权限", text: "权限状态未知，请刷新后再授权。", kind: "thought", icon: "error-log" });
+    return;
+  }
+  const roomName = chatRoomRegistry.rooms?.find((item) => item.id === roomId)?.name || roomId;
   const ok = window.confirm(`确认向聊天室“${roomName}”授予持续有效的完全访问权限？撤销前，该聊天室可执行任意命令和文件写入。`);
   if (!ok) {
     return;
@@ -5687,44 +5796,68 @@ async function enableFullAccessGrant(event) {
   if (!confirmedTwice) {
     return;
   }
+  if (activeChatRoomId !== roomId || !projectRequestScopeCurrent(scope)) return;
+  const requestSerial = ++chatPermissionRequestSerial;
   setBusy(button, true, "授权中");
   try {
-    taskFullAccessStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`, {
+    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        expected_workspace: scope.workspace,
         permission_profile: "full-access",
         confirmed_twice: confirmedTwice,
         risk_acknowledged: ok,
       }),
     });
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) {
+      if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
+      return;
+    }
+    taskRenderFullAccessStatus(status);
+    closeTopChatPermissions();
     await refreshToolAudit();
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     addMessage({ author: "工具权限", text: `完全访问授权失败：${error.message}`, kind: "thought", icon: "error-log" });
+    void refreshFullAccessStatus();
   } finally {
     setBusy(button, false);
+    if (button) button.disabled = !chatPermissionStatusKnown();
   }
 }
 
 async function revokeFullAccessGrant(event) {
   const button = event?.currentTarget || actionButtons.get("full-access-revoke");
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  if (!roomId || !chatPermissionStatusKnown(roomId) || !scope.workspace) {
+    addMessage({ author: "工具权限", text: "权限状态未知，请刷新后再撤销。", kind: "thought", icon: "error-log" });
+    return;
+  }
+  const requestSerial = ++chatPermissionRequestSerial;
   setBusy(button, true, "撤销中");
   try {
-    if (!activeChatRoomId) {
-      throw new Error("当前没有已选择的聊天室");
-    }
-    taskFullAccessStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`, {
+    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ permission_profile: "workspace-write" }),
+      body: JSON.stringify({ expected_workspace: scope.workspace, permission_profile: "workspace-write" }),
     });
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) {
+      if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
+      return;
+    }
+    taskRenderFullAccessStatus(status);
+    closeTopChatPermissions();
     await refreshToolAudit();
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     addMessage({ author: "工具权限", text: `完全访问撤销失败：${error.message}`, kind: "thought", icon: "error-log" });
+    void refreshFullAccessStatus();
   } finally {
     setBusy(button, false);
+    if (button) button.disabled = !chatPermissionStatusKnown()
+      || !(taskFullAccessStatus.full_access || taskFullAccessStatus.permission_profile === "full-access");
   }
 }
 
@@ -8183,6 +8316,7 @@ async function refreshSystemInfo() {
     setSystemInfoText("system-sessions", "—");
     setSystemInfoText("system-attribution", "—");
     setSystemConnectionState("error", "未连接", `本地后端未连接：${error.message}`);
+    syncSystemSafetyBadge({ unavailable: true });
     setOverviewWorkspaceName("");
   }
 }
@@ -8201,11 +8335,27 @@ async function refreshAttributionAndRecovery() {
       attributionDetailText(surface)
     );
     syncReleaseIsolationButton(surface?.input_safety_recovery);
+    syncSystemSafetyBadge(surface?.input_safety_recovery);
     bindComputerUseRunsButton();
   } catch (error) {
     setSystemInfoText("system-attribution", "归属状态未知", error.message);
     syncReleaseIsolationButton(null);
+    syncSystemSafetyBadge({ unavailable: true });
   }
+}
+
+function syncSystemSafetyBadge(safety) {
+  const badge = document.querySelector('[data-role="chat-trace-safety-badge"]');
+  if (!badge) return;
+  const label = !safety || safety.unavailable
+    ? "状态未知"
+    : safety.accepts_new_input === false
+    ? "输入隔离"
+    : Number(safety.human_review_required ?? 0) > 0
+    ? "待人工复核"
+    : "";
+  badge.textContent = label;
+  badge.hidden = !label;
 }
 
 function describeAttributionAndRecovery(surface) {
@@ -8635,6 +8785,8 @@ async function refreshWorkspaceBoundState(workspace) {
 }
 
 function resetWorkspaceBoundUiState(workspace) {
+  closeTopChatPermissions();
+  document.querySelector(".chat-room-diagnostics-modal")?.remove();
   if (projectWorkspaceScope) ideWorkspaceStates.set(projectWorkspaceScope, ideState);
   projectInvalidateWorkspaceRequests(workspace);
   if (projectTreeClickTimer) {
@@ -9072,7 +9224,9 @@ function syncActiveSessionSummary(session) {
 async function loadChatRooms() {
   const registry = await requestJson("/api/chat/rooms");
   chatRoomRegistry = registry;
+  closeTopChatPermissions();
   activeChatRoomId = registry.active_room_id ?? registry.rooms[0]?.id ?? null;
+  taskRenderFullAccessStatus(activeChatRoomId ? { room_id: activeChatRoomId, loading: true } : {});
   clearStaleApprovalForActiveScope();
   renderChatRoomList(registry.rooms, activeChatRoomId);
 
@@ -11484,8 +11638,11 @@ function setChatRightRailStatusValue(role, value, title = "") {
 }
 
 function chatRightRailPermissionLabel(status = {}) {
+  if (!activeChatRoomId) return "未选择";
+  if (!projectWorkspaceScope || status.room_id !== activeChatRoomId || status.error || status.loading) return "状态未知";
+  if (status.dev_open_permissions) return "完全访问";
   const profile = String(status.permission_profile || "").toLowerCase();
-  if (profile === "full-access" || status.full_access) {
+  if (profile === "full-access" || status.full_access || status.effective_full_access) {
     return "完全访问";
   }
   if (profile === "workspace-write") {
@@ -15102,9 +15259,12 @@ function renderChatRoomList(rooms, activeId) {
 }
 
 async function openSelectedChatRoom() {
+  closeTopChatPermissions();
+  document.querySelector(".chat-room-diagnostics-modal")?.remove();
   if (!activeChatRoomId) {
     return;
   }
+  taskRenderFullAccessStatus({ room_id: activeChatRoomId, loading: true });
   clearStaleApprovalForActiveScope();
   const result = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/activate`, { method: "POST" });
   activeChatRoomId = result.room.id;

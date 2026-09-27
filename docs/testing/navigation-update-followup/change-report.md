@@ -1,6 +1,6 @@
 # 后续改动报告与针对性验收入口
 
-更新日期：2026-09-27。分支：`codex/navigation-update-followup`。[Draft PR #68](https://github.com/coolzhulike/coolzhuagent/pull/68) 已提交 PR #67 合并后的新增修改。当前已正常升级安装 **0.2.22**，原稿视觉、窄窗及内嵌网页增量验收完成；四项任务未总体完成。
+更新日期：2026-09-28。分支：`codex/navigation-update-followup`。[Draft PR #68](https://github.com/coolzhulike/coolzhuagent/pull/68) 承接 PR #67 合并后的新增修改。当前已正常升级安装 **0.2.23**，六项发布门、856个载荷核对、10/10安装身份及首次启动前数据比较通过。底部诊断行移入运行详情、卷框圆饰等比、Logo金饰完整，权限入口在当前聊天室旁统一显示“完全访问”；正常、最大化、903×551和只读权限/运行详情图已由主会话审阅。网页缩放/关闭及运行后数据核对也已完成，11张安装图已逐张审阅；附件、配置、消息和权限未变，正常记忆访问/接管字段单列。本轮提交及新head持续检查另计。最新范围见 [023 验收矩阵](../release-0.2.23/functional-verification-and-test-design.md)，四项任务未总体完成。
 
 ## 当前进度入口
 
@@ -10,11 +10,11 @@
 
 显式模型类型被名称覆盖、图片生成失败被误记完成的修复已完成离线编译、3 项定向测试及 11 个真实 Web 受控场景，包括多模态转述、原图直传、生成失败和取消。见 [模型修复与测试设计报告](model-media-routing-narrow-fix-2026-09-27.md)。六类 S0 路径与三个夹具拒绝负例在 debug 与同次 022 release Web 本机通过，见 [CI 接线和本机证据](s0-controlled-replay/ci-integration-2026-09-27.md)。远端首轮遇 Windows 中文输出编码失败；测试驱动修正为 UTF-8 后，本机 cp1252 模拟及新 head 的两条远端 S0 步骤均通过，见 [CI 编码修复](s0-controlled-replay/ci-windows-encoding-followup-2026-09-27.md)。最终远端状态以 PR Checks 为准，前版失败与新通过使用各自身份。
 
-当前构建、安装与本轮原生增量已收口，后续测试设计请从 [022 模块说明和验收矩阵](../release-0.2.22/functional-verification-and-test-design.md) 开始。指定审查页当前 Pro 不可选，新总体补审未发送，见 [可用性记录](../../analysis/2026-09-27-pro-model-availability-note.md)。Paint 真实画线仍待本人正式复核；真实微信、混合 DPI、非 stdio MCP、远端插件安装及自动下载安装更新按各自未交付/未验证范围保留，不能合并判为通过，PR 保留 Draft。
+022 构建、安装与原生增量保留独立身份；后续三项修正不能用 [022 模块说明和验收矩阵](../release-0.2.22/functional-verification-and-test-design.md) 追认通过。远端 `9eae50e` 的 push 检查通过、PR 检查失败在 Goal 命令测试；原断言未保留具体错误，新探针仅增加诊断与测试预算，产品执行时限不变，待新提交验证，见 [CI 探针记录](ci-goal-command-probe-2026-09-27.md)。指定审查页当前 Pro 不可选，新总体补审未发送，见 [可用性记录](../../analysis/2026-09-27-pro-model-availability-note.md)。Paint 真实画线仍待本人正式复核；真实微信、混合 DPI、非 stdio MCP、远端插件安装及自动下载安装更新按各自未交付/未验证范围保留，不能合并判为通过，PR 保留 Draft。
 
 ## 历史实施与证据记录
 
-下方保留各构建当时的事实；其中“最新进度”“新包待验”“尚未生成”等均指该历史时点。当前安装身份以上述入口和 0.2.22 报告为准，不能用新身份追认旧实验。
+下方保留各构建当时的事实；其中“最新进度”“新包待验”“尚未生成”等均指该历史时点。当前安装身份以上述入口和 0.2.23 报告为准，不能用新身份追认旧实验。
 
 最新进度：0.2.18 已正常升级安装，10/10 关键产物身份一致，启动前数据清单对比一致；CLI/子 Agent、Goal 工程固定、视觉用量归属、MCP stdio 四项安装版隔离实操均首轮通过，见 [安装版执行报告](installed-0.2.18-isolated-e2e.md)。原生窗口实操仍在进行，不能将上述执行链路通过替代全部界面验收。下文保留各历史构建的证据层级。
 

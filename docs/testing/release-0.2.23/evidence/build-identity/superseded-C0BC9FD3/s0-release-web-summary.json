@@ -1,0 +1,78 @@
+{
+  "kind": "new_s0_controlled_suite",
+  "passed": true,
+  "web_sha256": "f8159f050ee047dc2626db479d7d1ef00d52396e7d0ce8d1fab20b677cf25261",
+  "case_count": 6,
+  "negative_count": 3,
+  "results": [
+    {
+      "run": "run-8abfec34ab7b",
+      "case": "BASE-STREAM-TOOL-PAIR",
+      "status": "completed",
+      "requests": 2,
+      "final_seen": true
+    },
+    {
+      "run": "run-44a2aba1bbb8",
+      "case": "BASE-NONSTREAM-TOOL-PAIR",
+      "status": "completed",
+      "requests": 2,
+      "final_seen": true
+    },
+    {
+      "run": "run-512ccdf9d399",
+      "case": "BASE-LONG-FILE-TASK",
+      "status": "completed",
+      "requests": 2,
+      "final_seen": true
+    },
+    {
+      "run": "run-ce9631271db3",
+      "case": "BASE-IMAGE-ROUTING",
+      "status": [
+        "completed",
+        "completed"
+      ],
+      "requests": 3,
+      "final_seen": true
+    },
+    {
+      "run": "run-2080ab07b75c",
+      "case": "BASE-EMPTY-SUMMARY",
+      "status": "failed",
+      "requests": 1,
+      "final_seen": true
+    },
+    {
+      "run": "run-d65b44bbd84f",
+      "case": "BASE-CROSS-TURN-FILTER",
+      "status": [
+        "completed",
+        "completed"
+      ],
+      "requests": 3,
+      "final_seen": true
+    },
+    {
+      "run": "run-6941db0879db",
+      "case": "BASE-STREAM-TOOL-PAIR",
+      "negative": "unknown_fingerprint",
+      "status": "failed",
+      "persisted_call_count": 0
+    },
+    {
+      "run": "run-eecee5b63a18",
+      "case": "BASE-STREAM-TOOL-PAIR",
+      "negative": "changed_arguments",
+      "status": "failed",
+      "persisted_call_count": 0
+    },
+    {
+      "run": "run-2ccc0b0b3562",
+      "case": "BASE-STREAM-TOOL-PAIR",
+      "negative": "outside_tmp_target",
+      "status": "failed",
+      "persisted_call_count": 0
+    }
+  ]
+}
