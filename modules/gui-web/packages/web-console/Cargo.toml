@@ -28,12 +28,15 @@ async-stream = "0.3"
 futures-core = "0.3"
 futures-util = "0.3"
 getrandom.workspace = true
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
 runtime.workspace = true
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.32", features = ["bundled", "backup"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 serde = { version = "1", features = ["derive"] }
 serde_json.workspace = true
+sha2 = "0.10"
 toml = "0.8"
+tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "process", "fs", "time", "sync"] }
 tokio-tungstenite = { version = "0.28", features = ["rustls-tls-webpki-roots"] }
 tracing = "0.1"
@@ -48,8 +51,12 @@ windows-process-guard = { package = "coolzhu-windows-process-guard", path = "../
 
 [dev-dependencies]
 http-body-util = "0.1"
-tempfile = "3"
 tower = { version = "0.5", features = ["util"] }
+
+# 仅测试目标开启 guard 的故障注入接缝（`revoke_owner_for_test`）。
+# 刻意放在 dev-dependencies：发布构建（cargo build / cargo tree --no-dev）不得出现该 feature。
+[target.'cfg(windows)'.dev-dependencies]
+windows-process-guard = { package = "coolzhu-windows-process-guard", path = "../windows-process-guard", features = ["test-support"] }
 
 [lints]
 workspace = true

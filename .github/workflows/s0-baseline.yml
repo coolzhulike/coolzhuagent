@@ -1,0 +1,23 @@
+name: S0 baseline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  web-console-baseline:
+    name: Web console baseline
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build web console
+        run: cargo build -p coolzhu-web-console
+      - name: Run web console regression tests
+        run: cargo test -p coolzhu-web-console --bin coolzhu-web-console
+      - name: Verify S0 fixture contract
+        run: cargo test --test s0_fixture_contract
+      - name: Verify workspace linkage
+        run: cargo test --test module_linkage_smoke

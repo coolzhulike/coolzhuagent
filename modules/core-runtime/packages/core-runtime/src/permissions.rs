@@ -10,6 +10,12 @@ pub enum PermissionMode {
     DangerFullAccess,
     Prompt,
     Allow,
+    /// 未知/动态工具没有任何权威最低权限元数据。
+    ///
+    /// 闸门必须 fail-closed 并给出明确配置错误；不得回退成 `ReadOnly` 之类的
+    /// 低权限档位（那会让未声明的写路径被自动放行）。放在末位以保持既有
+    /// 档位的大小关系不变。
+    Unspecified,
 }
 
 impl PermissionMode {
@@ -21,7 +27,20 @@ impl PermissionMode {
             Self::DangerFullAccess => "danger-full-access",
             Self::Prompt => "prompt",
             Self::Allow => "allow",
+            Self::Unspecified => "unspecified",
         }
+    }
+
+    /// 是否缺少权威最低权限元数据（未知/动态工具）。
+    #[must_use]
+    pub fn is_unspecified(self) -> bool {
+        matches!(self, Self::Unspecified)
+    }
+
+    /// 缺少元数据时的统一拒绝原因；用于闸门与策略层保持同一措辞。
+    #[must_use]
+    pub fn missing_metadata_reason(tool_name: &str) -> String {
+        format!("tool '{tool_name}' has no declared minimum-permission metadata (configuration error)")
     }
 }
 
@@ -122,7 +141,7 @@ impl PermissionPolicy {
         self.tool_requirements
             .get(tool_name)
             .copied()
-            .unwrap_or(PermissionMode::DangerFullAccess)
+            .unwrap_or(PermissionMode::Unspecified)
     }
 
     #[must_use]
@@ -134,6 +153,13 @@ impl PermissionPolicy {
     ) -> PermissionOutcome {
         let current_mode = self.active_mode();
         let required_mode = self.required_mode_for(tool_name);
+        // 未知/动态工具：明确配置错误，fail-closed。即使处于 Allow 模式也不放行，
+        // 否则等于恢复了"未知工具低权限回退"。
+        if required_mode.is_unspecified() {
+            return PermissionOutcome::Deny {
+                reason: PermissionMode::missing_metadata_reason(tool_name),
+            };
+        }
         if current_mode == PermissionMode::Allow || current_mode >= required_mode {
             return PermissionOutcome::Allow;
         }
@@ -268,5 +294,50 @@ mod tests {
             policy.authorize("bash", "echo hi", Some(&mut prompter)),
             PermissionOutcome::Deny { reason } if reason == "not now"
         ));
+    }
+
+    /// S1.4 真值表：未声明最低权限的工具在所有档位下都必须给出明确配置错误。
+    /// 尤其是 `Allow`——它表示"不做拦截"，若在这里放行，就等于恢复了
+    /// "未知工具低权限回退"。
+    #[test]
+    fn undeclared_tool_is_a_configuration_error_in_every_mode() {
+        for mode in [
+            PermissionMode::ReadOnly,
+            PermissionMode::WorkspaceWrite,
+            PermissionMode::DangerFullAccess,
+            PermissionMode::Prompt,
+            PermissionMode::Allow,
+        ] {
+            let policy = PermissionPolicy::new(mode);
+            let outcome = policy.authorize("dynamic_tool_without_metadata", "{}", None);
+            assert!(
+                matches!(
+                    &outcome,
+                    PermissionOutcome::Deny { reason }
+                        if reason.contains("minimum-permission metadata")
+                ),
+                "mode {mode:?} must deny an undeclared tool with a metadata error, got {outcome:?}"
+            );
+        }
+    }
+
+    /// 已声明工具的行为必须保持不变（S1.4 回滚要求：保留已知兼容行为）。
+    #[test]
+    fn declared_tools_keep_their_existing_decisions() {
+        let policy = PermissionPolicy::new(PermissionMode::WorkspaceWrite)
+            .with_tool_requirement("read_file", PermissionMode::ReadOnly)
+            .with_tool_requirement("write_file", PermissionMode::WorkspaceWrite);
+        assert_eq!(
+            policy.authorize("read_file", "{}", None),
+            PermissionOutcome::Allow
+        );
+        assert_eq!(
+            policy.authorize("write_file", "{}", None),
+            PermissionOutcome::Allow
+        );
+        assert_eq!(
+            policy.required_mode_for("read_file"),
+            PermissionMode::ReadOnly
+        );
     }
 }

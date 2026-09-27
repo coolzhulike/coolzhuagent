@@ -1,0 +1,39 @@
+{
+  "label": "image-direct",
+  "room": "room-1789827905794",
+  "elapsed_ms": 3900,
+  "answer": "从左到右的图形及颜色：\n\n1. 三角形 —— 红色\n2. 圆形 —— 蓝色\n3. 正方形 —— 黄色\n\n图片下方的英文数字标记为：**JADE-7382**\n\n---\nContext usage: 0.1% (1440/1000000 input tokens; source=remote). Local estimate: 1630 tokens; local prompt budget: 1630/848976 tokens; history truncated: false.\nContext turn: 000000000000000418d6beff5a3b3820; Context snapshot: ctx-b29c5be73bf10407; history source: chat_room.messages; history loaded: 0; memory revision: mem-93e2e0cd6e8d9486",
+  "errors": [],
+  "failure": null,
+  "run": {
+    "run_id": "run-chat-3246efbbacf73683019eb29426269b128656e8a679d07bc6",
+    "kind": "chat_turn",
+    "workspace_id": "ws-19c397ce5cedaa94",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1789827905794",
+    "goal_id": null,
+    "phase_id": null,
+    "turn_id": "chat-turn-1789827905844-1",
+    "provider_turn_id": null,
+    "state": "completed",
+    "stop_reason": null,
+    "created_at": 1789827905846,
+    "started_at": 1789827905853,
+    "stop_requested_at": null,
+    "heartbeat_at": 1789827905853,
+    "finished_at": 1789827909717
+  },
+  "events": 48,
+  "tool_calls": 0,
+  "tool_results": 0,
+  "usage": [
+    {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 1440,
+      "output_tokens": 131,
+      "requests": 1,
+      "session_id": "session-1779459149988"
+    }
+  ]
+}

@@ -57,10 +57,24 @@ pub(super) fn project_dto(message: &ChatMessageDto) -> Option<ChatMessageDto> {
 pub(super) fn project_memory(bead: &MemoryBeadDto) -> Option<MemoryBeadDto> {
     // 旧压缩记录没有逐消息 kind / origin ID，无法安全证明其正文不含思考；只停止自动召回，不删除。
     if bead.source == "context:auto-compact" { return None; }
-    if bead.source != "chat-room:auto-extract" { return Some(bead.clone()); }
+    if bead.source == "context:auto-compact:v2" {
+        let mut context = bead.clone();
+        context.kind = "context-summary".into();
+        context.confidence = context.confidence.min(0.4);
+        context.summary = format!("[历史会话摘要，未经独立验证] {}", context.summary);
+        return Some(context);
+    }
+    if bead.pinned || bead.source != "chat-room:auto-extract" { return Some(bead.clone()); }
     // 旧自动 decision 分支只由 reasoning 产生；用户手工 decision 不受影响。
     if bead.kind == "decision" { return None; }
-    if bead.kind != "tool" { return Some(bead.clone()); }
+    if bead.kind != "tool" {
+        // 旧版按模型回复中的关键词把自述升到 L3；召回投影降级，不篡改原始审计。
+        let mut unverified = bead.clone();
+        unverified.kind = "chat".into();
+        unverified.layer = "L4".into();
+        unverified.confidence = unverified.confidence.min(0.25);
+        return Some(unverified);
+    }
     let (_, content) = bead.summary.split_once(": ")?;
     if content.starts_with("工具执行事实：") { return Some(bead.clone()); }
     let message = PersistedChatMessage { id: bead.origin_message_id.clone().unwrap_or_default(),
@@ -178,11 +192,16 @@ mod tests {
         let mut manual = automatic.clone(); manual.source = "manual".into();
         assert_eq!(project_memory(&manual).unwrap().summary, manual.summary);
         let mut reply = automatic.clone(); reply.kind = "experience".into(); reply.summary = "用户最终答复的有效经验".into();
-        assert!(project_memory(&reply).is_some());
+        let recalled = project_memory(&reply).unwrap();
+        assert_eq!(recalled.layer, "L4");
+        assert_eq!(recalled.kind, "chat");
+        assert!(recalled.confidence <= 0.25);
         let mut compact = automatic.clone(); compact.source = "context:auto-compact".into();
         assert!(project_memory(&compact).is_none());
         compact.source = "context:auto-compact:v2".into();
-        assert!(project_memory(&compact).is_some());
+        let context = project_memory(&compact).unwrap();
+        assert!(context.summary.contains("未经独立验证"));
+        assert_eq!(context.kind, "context-summary");
         assert!(evaluate_auto_memory_candidate(&chat_message_dto_from_persisted(&message("thought", "reasoning", "PRIVATE-THINKING"))).is_none());
         let tool = message("tool", "tool-summary", r#"工具 `write_file` 已完成：{"path":"artifact.html","content":"PRIVATE-CODE"}"#);
         let projected = project_dto(&chat_message_dto_from_persisted(&tool)).unwrap();
@@ -308,7 +327,7 @@ mod tests {
         assert!(history.iter().any(|m| m.kind == "reasoning"), "原审计仍保存");
         assert!(history.iter().any(|m| m.kind == "tool-result"));
         let agent = isolated.agent("target-text");
-        call_agent_model_with_tool_loop(&agent, "只需简短确认上轮文件产物", &[], &history, None, None).await.unwrap();
+        call_agent_model_with_tool_loop(&agent, "只需简短确认上轮文件产物", &[], &history, None, None, None).await.unwrap();
         let requests = captures.lock().unwrap();
         let next = requests[3]["messages"].to_string();
         assert!(!next.contains("GENUINE-REASONING-ONLY"), "下一轮合成请求仍含内部思考：{next}");

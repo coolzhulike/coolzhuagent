@@ -1,0 +1,160 @@
+{
+  "status": "degraded",
+  "generated_at_ms": 1789828631753,
+  "showui": {
+    "backend": "showui",
+    "status": "skipped",
+    "available": false,
+    "requires_model": true,
+    "reason": "ShowUI 服务不可用（port_reachable=false, service_running=false）"
+  },
+  "observations": [
+    {
+      "backend": "browser_dom",
+      "priority": 0,
+      "status": "skipped",
+      "available": false,
+      "requires_model": false,
+      "reason": "浏览器扩展/native host 未连接，网页任务等待连接或转人工确认"
+    },
+    {
+      "backend": "uia",
+      "priority": 10,
+      "status": "available",
+      "available": true,
+      "requires_model": false,
+      "reason": "Windows UI Automation：按窗口、控件类型、Name、AutomationId 进行确定性定位"
+    },
+    {
+      "backend": "ocr_template",
+      "priority": 20,
+      "status": "available",
+      "available": true,
+      "requires_model": false,
+      "reason": "无模型模板后端已启用；当前支持颜色按钮模板，未识别文本时显式跳过 OCR"
+    },
+    {
+      "backend": "local_vlm",
+      "priority": 30,
+      "status": "skipped",
+      "available": false,
+      "requires_model": true,
+      "reason": "本地视觉模型端点不可达；不因缺少 ShowUI 阻断 UIA/template"
+    },
+    {
+      "backend": "remote_vlm",
+      "priority": 40,
+      "status": "skipped",
+      "available": false,
+      "requires_model": true,
+      "reason": "未配置远程视觉 provider；可由 Agnes 会话按需提供视觉理解"
+    },
+    {
+      "backend": "manual_confirmation",
+      "priority": 90,
+      "status": "available",
+      "available": true,
+      "requires_model": false,
+      "reason": "所有自动定位失败时返回 dry-run 计划并等待人工确认"
+    }
+  ],
+  "surfaces": [
+    {
+      "surface": "desktop",
+      "status": "available",
+      "available": true,
+      "reason": "Windows desktop input adapter is available; UIA/截图仍需运行时目标。",
+      "actions": [
+        {
+          "action": "click",
+          "supported": true,
+          "requires_confirmation": true
+        },
+        {
+          "action": "double_click",
+          "supported": true,
+          "requires_confirmation": true
+        },
+        {
+          "action": "text_input",
+          "supported": true,
+          "requires_confirmation": true
+        },
+        {
+          "action": "scroll",
+          "supported": true,
+          "requires_confirmation": true
+        },
+        {
+          "action": "key_combination",
+          "supported": true,
+          "requires_confirmation": true
+        }
+      ]
+    },
+    {
+      "surface": "browser",
+      "status": "skipped",
+      "available": false,
+      "reason": "浏览器扩展/native host 未连接，等待用户安装并连接扩展。",
+      "actions": [
+        {
+          "action": "click",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "text_input",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "select",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "check",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "submit",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "scroll",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "drag",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "slider_drag",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "key_combination",
+          "supported": false,
+          "requires_confirmation": true
+        },
+        {
+          "action": "multiple_tabs",
+          "supported": false,
+          "requires_confirmation": true
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "推荐定位链路：Browser DOM（独立 surface）→ UIA → OCR/template → 本地/远程视觉 → 人工确认。",
+    "execute=false 的 dry-run、截图和坐标映射不依赖 ShowUI；真实输入仍需安全闸门和人工确认。",
+    "本机未检测到可用 ShowUI 本地模型，已将视觉 grounding 标记为 skipped，不把它伪报为可用。",
+    "浏览器扩展/native host 未连接，DOM computer-use 能力保持 skipped。"
+  ]
+}

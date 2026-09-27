@@ -1,0 +1,11 @@
+# 语料库保真：迁移素材必须**逐字节**保留。
+#
+# 理由：`manifest.json` 为每个迁移文件记录了 `sha256` 作为溯源凭据；而本机
+# `core.autocrlf=true`、仓库根 `.gitattributes` 又有 `*.json text eol=lf`，
+# 检出/提交时的行尾归一化会改写字节，使已记录的摘要失效。这里用 `-text`
+# （不做文本处理、不做行尾转换）把语料库固定在原始字节上。
+#
+# 本文件比仓库根 `.gitattributes` 更深，按 git 的"就近优先"规则胜出。
+samples/** -text
+tools/** -text
+images/** binary

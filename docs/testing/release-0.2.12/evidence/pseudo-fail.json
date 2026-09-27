@@ -1,0 +1,49 @@
+{
+  "accepted_agent_ids": [
+    "session-1789825015524"
+  ],
+  "messages": [
+    {
+      "id": "msg-1789825023913-user",
+      "author": "",
+      "role": "user",
+      "target": "Release 0.2.12 隔离验收(mock-release-2026)",
+      "content": "请直接输出HTML [release-pseudo-fail]；不要执行文件操作。",
+      "kind": "text",
+      "attachments": []
+    },
+    {
+      "id": "msg-1789825028535-0",
+      "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+      "role": "assistant",
+      "target": "聊天",
+      "content": "本轮未能完成原请求：请直接输出HTML [release-pseudo-fail]；不要执行文件操作。。模型未提供可用的最终答案；未执行的工具请求和正文中的工具调用标记均未执行。请调整会话模型的工具策略或重试。\n\n---\nContext usage: 0.3% (100/32768 input tokens; source=remote). Local estimate: 1139 tokens; local prompt budget: 1139/26829 tokens; history truncated: false.\nContext turn: 000000000000000a18d6bc60589cf3d8; Context snapshot: ctx-d468b8d2f0f1bd2b; history source: chat_room.messages; history loaded: 0; memory revision: mem-1c8341fe9fdb6c80",
+      "kind": "assistant-reply",
+      "attachments": []
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-1789825023913-0",
+      "owner_agent": "Release 0.2.12 隔离验收(mock-release-2026)",
+      "executor_agent": "Release 0.2.12 隔离验收(mock-release-2026)",
+      "status": "模型已回",
+      "visible_in_chat": true,
+      "timeout_ms": 20000,
+      "summary": "模型在正文中输出了未执行的工具调用标记"
+    },
+    {
+      "id": "task-1789825023913-0-tool",
+      "owner_agent": "Release 0.2.12 隔离验收(mock-release-2026)",
+      "executor_agent": "系统工具执行 Agent",
+      "status": "已触发 computer-use 工具侧路",
+      "visible_in_chat": true,
+      "timeout_ms": 15000,
+      "summary": "@Release 0.2.12 隔离验收 请求键鼠/CLI 工具执行"
+    }
+  ],
+  "notes": [
+    "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+    "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+  ]
+}

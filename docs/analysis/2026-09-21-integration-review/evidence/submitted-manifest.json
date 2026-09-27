@@ -1,0 +1,35 @@
+{
+  "recorded_at": "2026-09-20T17:12:15.349946+00:00",
+  "requested_model": "GPT6 Pro",
+  "observed_ui_model": "6 Pro",
+  "conversation_url": "https://chatgpt.com/c/WEB:c0e54898-9078-4b74-8245-e0099c33619c",
+  "submission_verified": true,
+  "method": "ChatGPT 聊天页面，5份附件；提交后显示停止回答按钮",
+  "attachments": [
+    {
+      "name": "01-coolzhu-dsh-架构差异与整合决策.md",
+      "bytes": 166091,
+      "sha256": "3be52b769d144e6d5edcc10e7eb92c8ae099595b865cb7e8b0d3c9d37d4ca51d"
+    },
+    {
+      "name": "02-coolzhu-dsh-功能全量清单.md",
+      "bytes": 76057,
+      "sha256": "a77b9b5c56bd0f9ce2fa1fa248791113ce6c42ac259b948975b0a611cf3ce67b"
+    },
+    {
+      "name": "03-coolzhu-zcode-Computer-Use差异与Paint专项.md",
+      "bytes": 32105,
+      "sha256": "c89032fdc97e29c738e2b9a752f102fd9772f7ae8e3e95c995b9e080dc9a0f2f"
+    },
+    {
+      "name": "release-0.2.14-agent-fixes-report.md",
+      "bytes": 14841,
+      "sha256": "ac4c5545c3a11582334647d85786646846d58b2437d4658711d1ae4365bc4848"
+    },
+    {
+      "name": "review-request.md",
+      "bytes": 6199,
+      "sha256": "7098bc4c10fafcf84cdb65613aef4693892646177fe1e699ce77d4ef864af859"
+    }
+  ]
+}

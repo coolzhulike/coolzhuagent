@@ -1,1 +1,11 @@
-{"web_console": {"executable": "../bin/coolzhu-web-console.exe", "args": []}, "tauri": {"executable": "../bin/coolzhu-tauri-shell.exe", "args": []}, "health_url": "http://127.0.0.1:8765/api/diagnostics/health", "health_timeout_secs": 30, "health_poll_interval_ms": 500, "log_dir": "%LOCALAPPDATA%\\CoolzhuAgent\\logs\\package-launcher", "runtime_dir": "%USERPROFILE%\\coolzhuagent"}
+{
+  "launcher_config_version": 2,
+  "web_console": { "executable": "../bin/coolzhu-web-console.exe", "args": [] },
+  "tauri": { "executable": "../bin/coolzhu-tauri-shell.exe", "args": [] },
+  "health_url": "http://127.0.0.1:8765/api/diagnostics/health",
+  "health_timeout_secs": 30,
+  "health_poll_interval_ms": 500,
+  "log_dir": "%LOCALAPPDATA%\\CoolzhuAgent\\logs\\package-launcher",
+  "runtime_dir": "%USERPROFILE%\\coolzhuagent",
+  "runtime_dir_note": "工作区默认建议值：仅用于「尚无既有有效选择」的新用户首次初始化，按实际运行用户的用户目录上下文解析模板（不在构建机替换成绝对路径）。已保存的用户级选择（%LOCALAPPDATA%\\CoolzhuAgent\\launcher-user.json）优先且不随 MSI 覆盖；诊断日志按 log_dir 走 LocalAppData，与工作区不要求同根。缺失/空值/未解析变量是配置错误，不会从 log_dir 推导工作区。"
+}

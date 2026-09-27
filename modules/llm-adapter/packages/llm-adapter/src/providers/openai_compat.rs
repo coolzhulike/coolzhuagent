@@ -1,3 +1,4 @@
+use crate::request_observer::{RequestObservation, UsageEvidence};
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::time::Duration;
 
@@ -5,6 +6,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 
 use crate::error::ApiError;
+use crate::inflight::{EndpointIdentity, InFlightGuard, RequestMode, SettleOutcome, TerminationFact};
 use crate::resolver::{EndpointResolver, ProviderProtocol};
 use crate::reasoning::{resolve_reasoning, ReasoningWire};
 use crate::types::{
@@ -220,6 +222,7 @@ pub struct OpenAiCompatClient {
     initial_backoff: Duration,
     max_backoff: Duration,
     request_parameters: crate::RequestParameters,
+    request_observer: Option<std::sync::Arc<dyn crate::RequestObserver>>,
 }
 
 impl OpenAiCompatClient {
@@ -241,6 +244,7 @@ impl OpenAiCompatClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            request_observer: None,
         }
     }
 
@@ -267,6 +271,10 @@ impl OpenAiCompatClient {
     }
 
     #[must_use]
+    pub fn with_request_observer(mut self, observer: std::sync::Arc<dyn crate::RequestObserver>) -> Self {
+        self.request_observer=Some(observer); self
+    }
+
     pub fn with_request_parameters(mut self, parameters: crate::RequestParameters) -> Self {
         self.request_parameters = parameters;
         self
@@ -296,6 +304,25 @@ impl OpenAiCompatClient {
         self
     }
 
+    /// 连接 / 服务身份：来自真实已解析配置（resolver 解析出的端点）+ 托管实例记录。
+    ///
+    /// 不含密钥，也不由端口号推导进程所有权（RPR-11a 约束 4）。
+    #[must_use]
+    pub fn endpoint_identity(&self) -> EndpointIdentity {
+        EndpointIdentity::from_resolved_config(
+            self.config.provider_id(),
+            &self.resolved_endpoint(),
+        )
+    }
+
+    /// 本次连接实际会请求的端点（与 `send_raw_request` 使用同一套解析）。
+    #[must_use]
+    pub fn resolved_endpoint(&self) -> String {
+        self.endpoint
+            .clone()
+            .unwrap_or_else(|| chat_completions_endpoint(&self.base_url))
+    }
+
     pub async fn send_message(
         &self,
         request: &MessageRequest,
@@ -305,13 +332,44 @@ impl OpenAiCompatClient {
             stream: false,
             ..request.clone()
         };
-        let response = self.send_with_retry(&request).await?;
+        // 约束 7：guard 在**实际发出请求之前**登记，非流式请求同样覆盖完整请求生命周期。
+        let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::NonStreaming);
+        let mut observation = RequestObservation::new(self.request_observer.clone());
+        let response = match self.send_with_retry(&request, &guard, &mut observation).await {
+            Ok(response) => response,
+            Err(error) => {
+                observation.fail(&error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
         let request_id = request_id_from_headers(response.headers());
-        let payload = response.json::<ChatCompletionResponse>().await?;
-        let mut normalized = normalize_response(&request.model, payload)?;
+        let payload = match response.json::<ChatCompletionResponse>().await {
+            Ok(payload) => payload,
+            Err(error) => {
+                // 响应体读取失败：正文未完整拿到 → 远端结果未知，不归零。
+                let error = ApiError::from(error);
+                observation.fail(&error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
+        if let Some(usage)=&payload.usage { observation.usage(usage.evidence()); }
+        let mut normalized = match normalize_response(&request.model, payload) {
+            Ok(normalized) => normalized,
+            Err(error) => {
+                // 完整响应已拿到但不符合预期结构：仍是协议级完整结束事实。
+                observation.fail(&error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
         if normalized.request_id.is_none() {
             normalized.request_id = request_id;
         }
+        // 完整响应体已解析 → 协议级完整结束事实。
+        observation.finish("completed");
+        guard.settle(TerminationFact::ProtocolCompletion);
         Ok(normalized)
     }
 
@@ -324,7 +382,17 @@ impl OpenAiCompatClient {
             ..request.clone()
         }
         .with_streaming();
-        let response = self.send_with_retry(&request).await?;
+        // 约束 7：guard 在**实际发出请求之前**登记；握手完成后随流对象转移。
+        let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::Streaming);
+        let mut observation = RequestObservation::new(self.request_observer.clone());
+        let response = match self.send_with_retry(&request, &guard, &mut observation).await {
+            Ok(response) => response,
+            Err(error) => {
+                observation.fail(&error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
         Ok(MessageStream {
             request_id: request_id_from_headers(response.headers()),
             response,
@@ -332,6 +400,9 @@ impl OpenAiCompatClient {
             pending: VecDeque::new(),
             done: false,
             state: StreamState::new(request.model.clone()),
+            protocol_end_observed: false,
+            observation,
+            guard,
         })
     }
 
@@ -343,41 +414,35 @@ impl OpenAiCompatClient {
     }
 
     async fn send_with_retry(
-        &self,
-        request: &MessageRequest,
+        &self, request: &MessageRequest, guard: &InFlightGuard, observation: &mut RequestObservation,
     ) -> Result<reqwest::Response, ApiError> {
         let mut attempts = 0;
-
-        let last_error = loop {
+        loop {
             attempts += 1;
-            let retryable_error = match self.send_raw_request(request).await {
-                Ok(response) => match expect_success(response).await {
-                    Ok(response) => return Ok(response),
-                    Err(error) if error.is_retryable() && attempts <= self.max_retries + 1 => error,
-                    Err(error) => return Err(error),
-                },
-                Err(error) if error.is_retryable() && attempts <= self.max_retries + 1 => error,
-                Err(error) => return Err(error),
+            observation.begin(attempts);
+            let outcome = match self.send_raw_request(request, guard, observation).await {
+                Ok(response) => expect_success(response).await,
+                Err(error) => Err(error),
             };
-
-            if attempts > self.max_retries {
-                break retryable_error;
+            match outcome {
+                Ok(response) => return Ok(response),
+                Err(error) => {
+                    observation.fail(&error);
+                    if !error.is_retryable() { return Err(error); }
+                    if attempts > self.max_retries { return Err(ApiError::RetriesExhausted { attempts, last_error: Box::new(error) }); }
+                    tokio::time::sleep(self.backoff_for_attempt(attempts)?).await;
+                }
             }
-
-            tokio::time::sleep(self.backoff_for_attempt(attempts)?).await;
-        };
-
-        Err(ApiError::RetriesExhausted {
-            attempts,
-            last_error: Box::new(last_error),
-        })
+        }
     }
 
     async fn send_raw_request(
         &self,
         request: &MessageRequest,
+        guard: &InFlightGuard,
+        observation: &mut RequestObservation,
     ) -> Result<reqwest::Response, ApiError> {
-        let request_url = self.endpoint.clone().unwrap_or_else(|| chat_completions_endpoint(&self.base_url));
+        let request_url = self.resolved_endpoint();
         diagnostics::debug(
             "api.openai_compat",
             "send_request",
@@ -403,6 +468,9 @@ impl OpenAiCompatClient {
         {
             request_builder = request_builder.bearer_auth(api_key);
         }
+        // 请求即将发出：登记从"尚未派发"推进到"已派发·流处理中"。
+        observation.dispatch();
+        guard.mark_dispatched();
         request_builder.send().await.map_err(ApiError::from)
     }
 
@@ -422,6 +490,11 @@ impl OpenAiCompatClient {
 
 impl Provider for OpenAiCompatClient {
     type Stream = MessageStream;
+
+    /// 覆盖默认实现：OpenAiCompatClient 持有真实已解析配置，能给出确定的服务身份。
+    fn endpoint_identity(&self) -> EndpointIdentity {
+        self.endpoint_identity()
+    }
 
     fn send_message<'a>(
         &'a self,
@@ -446,6 +519,13 @@ pub struct MessageStream {
     pending: VecDeque<StreamEvent>,
     done: bool,
     state: StreamState,
+    /// 是否已从**协议**观测到完整结束事实（`finish_reason` 或 `[DONE]`）。
+    ///
+    /// 注意：`StreamState::finish()` 合成的 `message_stop` 是本端补全，不算远端事实。
+    protocol_end_observed: bool,
+    /// 在途登记：随流对象的生命周期结束（Drop 只能结束本地持有，不证明远端已停算）。
+    guard: InFlightGuard,
+    observation: RequestObservation,
 }
 
 impl MessageStream {
@@ -454,13 +534,34 @@ impl MessageStream {
         self.request_id.as_deref()
     }
 
+    /// 与上层包装共享同一条在途登记（不新增登记）。
+    pub(crate) fn inflight_guard(&self) -> InFlightGuard {
+        self.guard.clone()
+    }
+
+    /// 消费者放弃等待（超时/取消）但仍持有流 → 记为远端结果未知，**不是归零**。
+    ///
+    /// 之后若仍取得可信结束事实，会以迟到事实对账（不重新执行任务）。
+    pub fn mark_remote_result_unknown(&self) -> SettleOutcome {
+        self.guard.mark_remote_result_unknown()
+    }
+
+    pub fn usage_evidence(&self) -> UsageEvidence { self.observation.evidence() }
+
     pub async fn next_event(&mut self) -> Result<Option<StreamEvent>, ApiError> {
+        let result=self.next_event_inner().await;
+        if let Err(error)=&result { self.observation.fail(error); }
+        result
+    }
+
+    async fn next_event_inner(&mut self) -> Result<Option<StreamEvent>, ApiError> {
         loop {
             if let Some(event) = self.pending.pop_front() {
                 return Ok(Some(event));
             }
 
             if self.done {
+                self.settle_stream_termination();
                 self.pending.extend(self.state.finish()?);
                 if let Some(event) = self.pending.pop_front() {
                     return Ok(Some(event));
@@ -470,8 +571,21 @@ impl MessageStream {
 
             match self.response.chunk().await? {
                 Some(chunk) => {
-                    for parsed in self.parser.push(&chunk)? {
-                        self.pending.extend(self.state.ingest_chunk(parsed)?);
+                    let parsed = self.parser.push(&chunk)?;
+                    if parsed.saw_done {
+                        self.protocol_end_observed = true;
+                    }
+                    for chunk in parsed.chunks {
+                        if let Some(usage)=&chunk.usage { self.observation.usage(usage.evidence()); }
+                        self.pending.extend(self.state.ingest_chunk(chunk)?);
+                        if self.state.protocol_end_observed {
+                            self.protocol_end_observed = true;
+                        }
+                    }
+                    if self.protocol_end_observed {
+                        // 已取得协议级完整结束事实：立即结清远端请求状态（不必等连接关闭）。
+                        self.guard.settle(TerminationFact::ProtocolCompletion);
+                        self.observation.finish("completed");
                     }
                 }
                 None => {
@@ -480,6 +594,24 @@ impl MessageStream {
             }
         }
     }
+
+    /// 流真正结束时结清：有协议完整结束事实 → 结清；否则断流 → 远端结果未知。
+    fn settle_stream_termination(&mut self) {
+        if self.protocol_end_observed {
+            self.guard.settle(TerminationFact::ProtocolCompletion);
+                        self.observation.finish("completed");
+        } else {
+            self.guard.mark_remote_result_unknown();
+            self.observation.finish("remote_unknown");
+        }
+    }
+}
+
+/// SSE 帧解析结果：区分"chunk"、"协议结束标记 `[DONE]`"与"忽略"。
+#[derive(Debug, Default)]
+struct SseChunkBatch {
+    chunks: Vec<ChatCompletionChunk>,
+    saw_done: bool,
 }
 
 #[derive(Debug, Default)]
@@ -492,17 +624,19 @@ impl OpenAiSseParser {
         Self::default()
     }
 
-    fn push(&mut self, chunk: &[u8]) -> Result<Vec<ChatCompletionChunk>, ApiError> {
+    fn push(&mut self, chunk: &[u8]) -> Result<SseChunkBatch, ApiError> {
         self.buffer.extend_from_slice(chunk);
-        let mut events = Vec::new();
+        let mut batch = SseChunkBatch::default();
 
         while let Some(frame) = next_sse_frame(&mut self.buffer) {
-            if let Some(event) = parse_sse_frame(&frame)? {
-                events.push(event);
+            match parse_sse_frame(&frame)? {
+                SseFrame::Chunk(chunk) => batch.chunks.push(chunk),
+                SseFrame::Done => batch.saw_done = true,
+                SseFrame::Ignored => {}
             }
         }
 
-        Ok(events)
+        Ok(batch)
     }
 }
 
@@ -515,6 +649,8 @@ struct StreamState {
     text_started: bool,
     text_finished: bool,
     finished: bool,
+    /// 是否在**协议层面**看到过结束事实（`finish_reason`）；`finish()` 的本地补全不算。
+    protocol_end_observed: bool,
     stop_reason: Option<String>,
     usage: Option<Usage>,
     tool_calls: BTreeMap<u32, ToolCallState>,
@@ -530,6 +666,7 @@ impl StreamState {
             text_started: false,
             text_finished: false,
             finished: false,
+            protocol_end_observed: false,
             stop_reason: None,
             usage: None,
             tool_calls: BTreeMap::new(),
@@ -542,7 +679,11 @@ impl StreamState {
             self.message_started = true;
             events.push(StreamEvent::MessageStart(MessageStartEvent {
                 message: MessageResponse {
-                    id: chunk.id.clone(),
+                    // COMPAT-ID：OpenAI 兼容路线的 `id` 语义与 Anthropic 顶层 message id 不同
+                    // （这条路线实测会返回空串），因此这里把空串归一为**未提供**而不是拒绝——
+                    // 拒绝会打断一条本来可用的路线；这与"Anthropic 形状顶层 id 空串仍拒绝"并不矛盾
+                    // （两者是不同协议的不同字段）。
+                    id: (!chunk.id.trim().is_empty()).then(|| chunk.id.clone()),
                     kind: "message".to_string(),
                     role: "assistant".to_string(),
                     content: Vec::new(),
@@ -561,12 +702,9 @@ impl StreamState {
         }
 
         if let Some(usage) = chunk.usage {
-            self.usage = Some(Usage {
-                input_tokens: usage.prompt_tokens,
-                cache_creation_input_tokens: 0,
-                cache_read_input_tokens: 0,
-                output_tokens: usage.completion_tokens,
-            });
+            let mut evidence=self.usage.take().map(|u| UsageEvidence {input_tokens:Some(u.input_tokens),output_tokens:Some(u.output_tokens),cache_read_tokens:Some(u.cache_read_input_tokens),cache_write_tokens:Some(u.cache_creation_input_tokens)}).unwrap_or_default();
+            evidence.merge(usage.evidence());
+            self.usage=Some(evidence.usage());
         }
 
         for choice in chunk.choices {
@@ -631,6 +769,8 @@ impl StreamState {
             }
 
             if let Some(finish_reason) = choice.finish_reason {
+                // 协议级结束事实：finish_reason 出现即远端已给出完整结束判据。
+                self.protocol_end_observed = true;
                 self.stop_reason = Some(normalize_finish_reason(&finish_reason));
                 if finish_reason == "tool_calls" {
                     for state in self.tool_calls.values_mut() {
@@ -812,10 +952,22 @@ struct ResponseToolFunction {
 
 #[derive(Debug, Deserialize)]
 struct OpenAiUsage {
-    #[serde(default)]
-    prompt_tokens: u32,
-    #[serde(default)]
-    completion_tokens: u32,
+    prompt_tokens: Option<u32>,
+    completion_tokens: Option<u32>,
+    prompt_tokens_details: Option<OpenAiPromptDetails>,
+    prompt_cache_hit_tokens: Option<u32>,
+    cache_read_input_tokens: Option<u32>,
+    cache_creation_input_tokens: Option<u32>,
+}
+#[derive(Debug, Deserialize)]
+struct OpenAiPromptDetails { cached_tokens: Option<u32> }
+impl OpenAiUsage {
+    fn evidence(&self) -> UsageEvidence { UsageEvidence {
+        input_tokens:self.prompt_tokens,output_tokens:self.completion_tokens,
+        cache_read_tokens:self.prompt_tokens_details.as_ref().and_then(|v|v.cached_tokens)
+            .or(self.prompt_cache_hit_tokens).or(self.cache_read_input_tokens),
+        cache_write_tokens:self.cache_creation_input_tokens,
+    } }
 }
 
 #[derive(Debug, Deserialize)]
@@ -1168,7 +1320,8 @@ fn normalize_response(
     }
 
     Ok(MessageResponse {
-        id: response.id,
+        // 同流式：OpenAI 兼容路线的空 id ⇒ 未提供（不拒绝）。
+        id: (!response.id.trim().is_empty()).then(|| response.id),
         kind: "message".to_string(),
         role: choice.message.role,
         content,
@@ -1177,24 +1330,21 @@ fn normalize_response(
             .finish_reason
             .map(|value| normalize_finish_reason(&value)),
         stop_sequence: None,
-        usage: Usage {
-            input_tokens: response
-                .usage
-                .as_ref()
-                .map_or(0, |usage| usage.prompt_tokens),
-            cache_creation_input_tokens: 0,
-            cache_read_input_tokens: 0,
-            output_tokens: response
-                .usage
-                .as_ref()
-                .map_or(0, |usage| usage.completion_tokens),
-        },
+        usage: response.usage.as_ref().map(|u|u.evidence().usage()).unwrap_or_else(||UsageEvidence::default().usage()),
         request_id: None,
     })
 }
 
 fn parse_tool_arguments(arguments: &str) -> Value {
     serde_json::from_str(arguments).unwrap_or_else(|_| json!({ "raw": arguments }))
+}
+
+/// SSE 帧解析结果：区分 chunk、协议结束标记 `[DONE]` 与忽略帧。
+#[derive(Debug)]
+enum SseFrame {
+    Chunk(ChatCompletionChunk),
+    Done,
+    Ignored,
 }
 
 fn next_sse_frame(buffer: &mut Vec<u8>) -> Option<String> {
@@ -1215,10 +1365,10 @@ fn next_sse_frame(buffer: &mut Vec<u8>) -> Option<String> {
     Some(String::from_utf8_lossy(&frame[..frame_len]).into_owned())
 }
 
-fn parse_sse_frame(frame: &str) -> Result<Option<ChatCompletionChunk>, ApiError> {
+fn parse_sse_frame(frame: &str) -> Result<SseFrame, ApiError> {
     let trimmed = frame.trim();
     if trimmed.is_empty() {
-        return Ok(None);
+        return Ok(SseFrame::Ignored);
     }
 
     let mut data_lines = Vec::new();
@@ -1231,14 +1381,14 @@ fn parse_sse_frame(frame: &str) -> Result<Option<ChatCompletionChunk>, ApiError>
         }
     }
     if data_lines.is_empty() {
-        return Ok(None);
+        return Ok(SseFrame::Ignored);
     }
     let payload = data_lines.join("\n");
     if payload == "[DONE]" {
-        return Ok(None);
+        return Ok(SseFrame::Done);
     }
     serde_json::from_str(&payload)
-        .map(Some)
+        .map(SseFrame::Chunk)
         .map_err(ApiError::from)
 }
 
@@ -1361,7 +1511,6 @@ mod tests {
         ToolResultContentBlock,
     };
     use serde_json::json;
-    use std::sync::{Mutex, OnceLock};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpListener;
 
@@ -1739,7 +1888,7 @@ mod tests {
     #[test]
     fn missing_xai_api_key_is_provider_specific() {
         let _lock = env_lock();
-        std::env::remove_var("XAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("XAI_API_KEY");
         let error = OpenAiCompatClient::from_env(OpenAiCompatConfig::xai())
             .expect_err("missing key should error");
         assert!(matches!(
@@ -1770,14 +1919,14 @@ mod tests {
     #[test]
     fn zhipu_config_prefers_provider_specific_env_vars() {
         let _lock = env_lock();
-        std::env::remove_var("ZAI_BASE_URL");
-        std::env::remove_var("BIGMODEL_BASE_URL");
-        std::env::remove_var("OPENAI_BASE_URL");
-        std::env::set_var("OPENAI_BASE_URL", "https://fallback.example/v1");
-        std::env::set_var("ZAI_BASE_URL", "https://zhipu.example/v4");
-        std::env::set_var("BIGMODEL_API_KEY", "bigmodel-key");
-        std::env::remove_var("ZAI_API_KEY");
-        std::env::remove_var("OPENAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("ZAI_BASE_URL");
+        let _scoped_env = crate::test_env::remove("BIGMODEL_BASE_URL");
+        let _scoped_env = crate::test_env::remove("OPENAI_BASE_URL");
+        let _scoped_env = crate::test_env::set("OPENAI_BASE_URL", Some("https://fallback.example/v1"));
+        let _scoped_env = crate::test_env::set("ZAI_BASE_URL", Some("https://zhipu.example/v4"));
+        let _scoped_env = crate::test_env::set("BIGMODEL_API_KEY", Some("bigmodel-key"));
+        let _scoped_env = crate::test_env::remove("ZAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("OPENAI_API_KEY");
 
         let client = OpenAiCompatClient::from_env(OpenAiCompatConfig::zhipu())
             .expect("zhipu config should accept fallback credentials");
@@ -1788,9 +1937,9 @@ mod tests {
         );
         drop(client);
 
-        std::env::remove_var("ZAI_BASE_URL");
-        std::env::remove_var("BIGMODEL_API_KEY");
-        std::env::remove_var("OPENAI_BASE_URL");
+        let _scoped_env = crate::test_env::remove("ZAI_BASE_URL");
+        let _scoped_env = crate::test_env::remove("BIGMODEL_API_KEY");
+        let _scoped_env = crate::test_env::remove("OPENAI_BASE_URL");
     }
 
     #[tokio::test(flavor = "current_thread")]
@@ -1832,8 +1981,8 @@ mod tests {
                 .expect("response should write");
         });
 
-        std::env::set_var("ZAI_API_KEY", "zhipu-test-key");
-        std::env::set_var("ZAI_BASE_URL", format!("http://{address}/v1"));
+        let _scoped_env = crate::test_env::set("ZAI_API_KEY", Some("zhipu-test-key"));
+        let _scoped_env = crate::test_env::set("ZAI_BASE_URL", Some(format!("http://{address}/v1")));
 
         let client = OpenAiCompatClient::from_env(OpenAiCompatConfig::zhipu())
             .expect("zhipu client should build");
@@ -1857,8 +2006,8 @@ mod tests {
         assert_eq!(response.usage.output_tokens, 7);
 
         server.await.expect("server task should finish");
-        std::env::remove_var("ZAI_API_KEY");
-        std::env::remove_var("ZAI_BASE_URL");
+        let _scoped_env = crate::test_env::remove("ZAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("ZAI_BASE_URL");
     }
 
     async fn read_http_request(socket: &mut tokio::net::TcpStream) -> String {
@@ -1908,10 +2057,7 @@ mod tests {
     }
 
     fn env_lock() -> std::sync::MutexGuard<'static, ()> {
-        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| Mutex::new(()))
-            .lock()
-            .expect("env lock")
+        crate::process_env_lock()
     }
 
     #[test]

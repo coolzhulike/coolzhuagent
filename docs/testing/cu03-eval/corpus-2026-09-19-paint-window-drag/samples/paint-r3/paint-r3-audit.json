@@ -1,0 +1,524 @@
+{
+  "format_version": 1,
+  "privacy": "local_ids_and_screenshot_paths_no_message_bodies",
+  "schema_version": 20,
+  "read_only": true,
+  "snapshot_consistency": "single SQLite read transaction including WAL",
+  "missing_schema_columns": {},
+  "notes": [
+    "step.started_at_ms 在 adapter.act 前持久化，completed_at_ms 在 act 返回时记录；它们含重新观察及后截图耗时，不是鼠标物理 down/up 精确时间。",
+    "visible_progress 与像素变化均不等同目标达成；以 terminal.goal_achieved 及验证状态共同判断。",
+    "usage 是服务端已返回的非零事实；失败请求可能已有用量，没有记录不表示请求免费或未发送。",
+    "没有 call/turn 的聊天用量单独归集，不推断归属某次 CU。",
+    "缺少观察几何记录时不能重建窗口 rect/DPI 或屏幕绝对笔画；这里只报告记录的相对点。",
+    "不读取会话正文，不输出 thinking、原图 data_url、凭据；公开版身份为本报告内编号。"
+  ],
+  "runs": [
+    {
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "surface": "desktop",
+      "state": "blocked",
+      "timing": {
+        "started_offset_ms": 0,
+        "completed_offset_ms": 57916,
+        "elapsed_ms": 57916,
+        "started_at_ms": 1789832764220,
+        "completed_at_ms": 1789832822136,
+        "started_utc": "2026-09-19T15:46:04.220000+00:00",
+        "completed_utc": "2026-09-19T15:47:02.136000+00:00"
+      },
+      "stored_action_count": 0,
+      "stored_replan_count": 0,
+      "terminal": {
+        "present": true,
+        "status": "blocked",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error_code": "no_progress",
+        "evidence": [
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152,
+            "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "hwnd-13f0682",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152,
+            "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "hwnd-13f0682",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-003",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-004",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152,
+            "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "hwnd-13f0682",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152,
+            "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "hwnd-13f0682",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-005",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-004",
+            "kind": "other_reference_or_semantic_text_redacted"
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152,
+            "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "hwnd-13f0682",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-001",
+            "kind": "screenshot",
+            "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+            "width": 2560,
+            "height": 1152,
+            "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+          },
+          {
+            "reference": "evidence-002",
+            "kind": "uia_snapshot",
+            "window_reference": "hwnd-13f0682",
+            "element_count": 283
+          },
+          {
+            "reference": "evidence-006",
+            "kind": "other_reference_or_semantic_text_redacted"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "index": 0,
+          "generation": 1,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "target_kind": "uia_element",
+          "target": "uia-951f959f29c11d9f",
+          "action": {
+            "valid_object": true,
+            "kind": "click",
+            "done": null,
+            "target_kind": "uia_element",
+            "redacted_fields": true,
+            "duration_ms": null
+          },
+          "timing": {
+            "started_offset_ms": 20327,
+            "completed_offset_ms": 22607,
+            "elapsed_ms": 2280,
+            "started_at_ms": 1789832784547,
+            "completed_at_ms": 1789832786827,
+            "started_utc": "2026-09-19T15:46:24.547000+00:00",
+            "completed_utc": "2026-09-19T15:46:26.827000+00:00"
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+              "width": 2560,
+              "height": 1152,
+              "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "hwnd-13f0682",
+              "element_count": 283
+            }
+          ],
+          "after_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+              "width": 2560,
+              "height": 1152,
+              "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "hwnd-13f0682",
+              "element_count": 283
+            },
+            {
+              "reference": "evidence-005",
+              "kind": "other_reference_or_semantic_text_redacted"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "generation": 2,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "target_kind": "uia_element",
+          "target": "uia-951f959f29c11d9f",
+          "action": {
+            "valid_object": true,
+            "kind": "click",
+            "done": null,
+            "target_kind": "uia_element",
+            "redacted_fields": true,
+            "duration_ms": null
+          },
+          "timing": {
+            "started_offset_ms": 41253,
+            "completed_offset_ms": 43569,
+            "elapsed_ms": 2316,
+            "started_at_ms": 1789832805473,
+            "completed_at_ms": 1789832807789,
+            "started_utc": "2026-09-19T15:46:45.473000+00:00",
+            "completed_utc": "2026-09-19T15:46:47.789000+00:00"
+          },
+          "visible_progress": false,
+          "before_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+              "width": 2560,
+              "height": 1152,
+              "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "hwnd-13f0682",
+              "element_count": 283
+            }
+          ],
+          "after_evidence": [
+            {
+              "reference": "evidence-001",
+              "kind": "screenshot",
+              "sha256": "81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4",
+              "width": 2560,
+              "height": 1152,
+              "local_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\evidence\\captures\\computer-use\\window-25508-81fbd6bb840131722deae5efd3c3b645edab87f3a3a0e92c92901a87c5e315f4.png"
+            },
+            {
+              "reference": "evidence-002",
+              "kind": "uia_snapshot",
+              "window_reference": "hwnd-13f0682",
+              "element_count": 283
+            },
+            {
+              "reference": "evidence-006",
+              "kind": "other_reference_or_semantic_text_redacted"
+            }
+          ]
+        }
+      ],
+      "recorded_step_count": 2,
+      "recorded_action_types": {
+        "click": 2
+      },
+      "audit_flags": []
+    }
+  ],
+  "planner_diagnostics": [
+    {
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 1,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 4940,
+        "completed_offset_ms": 11882,
+        "elapsed_ms": 6942,
+        "started_at_ms": 1789832769160,
+        "completed_at_ms": 1789832776102,
+        "started_utc": "2026-09-19T15:46:09.160000+00:00",
+        "completed_utc": "2026-09-19T15:46:16.102000+00:00"
+      },
+      "diagnostic_id": 1,
+      "model": "qwen3.8-flash"
+    },
+    {
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 1,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "click",
+        "done": false,
+        "target_kind": "uia_element",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 11936,
+        "completed_offset_ms": 20324,
+        "elapsed_ms": 8388,
+        "started_at_ms": 1789832776156,
+        "completed_at_ms": 1789832784544,
+        "started_utc": "2026-09-19T15:46:16.156000+00:00",
+        "completed_utc": "2026-09-19T15:46:24.544000+00:00"
+      },
+      "diagnostic_id": 2,
+      "model": "qwen3.8-flash"
+    },
+    {
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 2,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 23816,
+        "completed_offset_ms": 34259,
+        "elapsed_ms": 10443,
+        "started_at_ms": 1789832788036,
+        "completed_at_ms": 1789832798479,
+        "started_utc": "2026-09-19T15:46:28.036000+00:00",
+        "completed_utc": "2026-09-19T15:46:38.479000+00:00"
+      },
+      "diagnostic_id": 3,
+      "model": "qwen3.8-flash"
+    },
+    {
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 2,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "click",
+        "done": false,
+        "target_kind": "uia_element",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 34315,
+        "completed_offset_ms": 41251,
+        "elapsed_ms": 6936,
+        "started_at_ms": 1789832798535,
+        "completed_at_ms": 1789832805471,
+        "started_utc": "2026-09-19T15:46:38.535000+00:00",
+        "completed_utc": "2026-09-19T15:46:45.471000+00:00"
+      },
+      "diagnostic_id": 4,
+      "model": "qwen3.8-flash"
+    },
+    {
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "request_kind": "computer_use_verification",
+      "purpose": "视觉 Agent 检查目标与前后变化",
+      "generation": 3,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": null,
+        "done": null,
+        "target_kind": "redacted_or_other",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 44745,
+        "completed_offset_ms": 51752,
+        "elapsed_ms": 7007,
+        "started_at_ms": 1789832808965,
+        "completed_at_ms": 1789832815972,
+        "started_utc": "2026-09-19T15:46:48.965000+00:00",
+        "completed_utc": "2026-09-19T15:46:55.972000+00:00"
+      },
+      "diagnostic_id": 5,
+      "model": "qwen3.8-flash"
+    },
+    {
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "request_kind": "computer_use_planning",
+      "purpose": "根据当前观察规划下一步",
+      "generation": 3,
+      "error_code": null,
+      "response_structure": {
+        "valid_object": true,
+        "kind": "click",
+        "done": false,
+        "target_kind": "uia_element",
+        "redacted_fields": true,
+        "duration_ms": null
+      },
+      "timing": {
+        "started_offset_ms": 51808,
+        "completed_offset_ms": 57913,
+        "elapsed_ms": 6105,
+        "started_at_ms": 1789832816028,
+        "completed_at_ms": 1789832822133,
+        "started_utc": "2026-09-19T15:46:56.028000+00:00",
+        "completed_utc": "2026-09-19T15:47:02.133000+00:00"
+      },
+      "diagnostic_id": 6,
+      "model": "qwen3.8-flash"
+    }
+  ],
+  "usage_groups": [
+    {
+      "scope": "chat_or_other_unattributed",
+      "request_kind": "unattributed",
+      "room": "room-1789832757453",
+      "turn": null,
+      "call": null,
+      "session": "session-1779459149988",
+      "recorded_requests": 2,
+      "input_tokens": 5858,
+      "output_tokens": 557,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "cu_linked",
+      "request_kind": "computer_use_verification",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "recorded_requests": 3,
+      "input_tokens": 75470,
+      "output_tokens": 756,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    {
+      "scope": "cu_linked",
+      "request_kind": "computer_use_planning",
+      "room": "room-1789832757453",
+      "turn": "000000000000000418d6c3690bf2a194",
+      "call": "cu-session-1779459149988-000000000000000418d6c3690bf2a194-call_f41b7399776d4482b168134f",
+      "session": "session-1779459149988",
+      "recorded_requests": 3,
+      "input_tokens": 72894,
+      "output_tokens": 685,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  ],
+  "database_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-agent-fixes\\runtime\\.coolzhu\\web-sessions.sqlite3",
+  "summary": {
+    "run_count": 1,
+    "run_states": {
+      "blocked": 1
+    },
+    "step_count": 2,
+    "diagnostic_count": 6,
+    "diagnostic_errors": {},
+    "usage_record_count": 8,
+    "usage_totals": {
+      "input_tokens": 154222,
+      "output_tokens": 1998,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "cu_usage_totals": {
+      "input_tokens": 148364,
+      "output_tokens": 1441,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    }
+  }
+}

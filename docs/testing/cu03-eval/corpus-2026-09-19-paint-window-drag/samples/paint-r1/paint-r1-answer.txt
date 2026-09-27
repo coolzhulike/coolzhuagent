@@ -1,0 +1,17 @@
+已按要求调用了一次 `computer_use_perform`（surface=desktop，target.window="无标题 - 画图"），但执行**失败**，未能完成绘制。如实报告如下：
+
+**执行结果**
+- 状态：`failed`（阶段：`observation`，即操作尚未开始，在截图观察环节就失败了）
+- 错误码：`input_failed`
+- 错误信息：`stale_observation: 窗口身份、位置或DPI已变化` —— 系统在捕获目标窗口前发现"无标题 - 画图"窗口的身份、位置或 DPI 与已记录的观察状态不一致（例如窗口移动、失焦、被其他窗口覆盖，或 DPI 缩放发生了变化）。
+
+**画布实际状态**
+- 动作计数为 0，步骤完成数为 0：**没有在画布上产生任何笔画**，不满足"至少两条可见新笔画"的成功标准。
+- 没有使用脚本、绘图代码、导入或粘贴图片——完全符合约束，但绘制本身未发生。
+
+**建议**
+按照当前的工具策略，本次失败的调用对这一轮而言是终止性的，我不会在同一轮内换用其他工具重试。若该画图窗口仍然打开，请您确认它处于可见、未被移动的最小化/遮挡状态（或重新激活/置顶该窗口后再让我重试一次），我即可再次发起同一 `computer_use_perform` 调用尝试手绘海绵宝宝。
+
+---
+Context usage: 0.2% (2689/1000000 input tokens; source=remote). Local estimate: 1347 tokens; local prompt budget: 1347/848976 tokens; history truncated: false.
+Context turn: 000000000000000718d6c2633aa5badc; Context snapshot: ctx-26cf8886afdd3a82; history source: chat_room.messages; history loaded: 0; memory revision: mem-117b117a330cfb18

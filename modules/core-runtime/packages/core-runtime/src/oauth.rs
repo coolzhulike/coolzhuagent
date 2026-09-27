@@ -1,10 +1,8 @@
 use std::collections::BTreeMap;
-use std::fs;
 use std::io;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 
 use crate::config::OAuthConfig;
@@ -259,36 +257,55 @@ pub fn credentials_path() -> io::Result<PathBuf> {
     Ok(credentials_home_dir()?.join("credentials.json"))
 }
 
-pub fn load_oauth_credentials() -> io::Result<Option<OAuthTokenSet>> {
+/// 版本在登录、刷新、注销时均推进，给跨进程刷新提供比较并交换依据。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OAuthCredentialsSnapshot {
+    pub token_set: Option<OAuthTokenSet>,
+    pub revision: u64,
+}
+
+pub fn load_oauth_credentials_snapshot() -> io::Result<OAuthCredentialsSnapshot> {
     let path = credentials_path()?;
-    let root = read_credentials_root(&path)?;
-    let Some(oauth) = root.get("oauth") else {
-        return Ok(None);
-    };
-    if oauth.is_null() {
-        return Ok(None);
+    for _ in 0..3 {
+        let snapshot = crate::oauth_store::read(&path)?;
+        let tokens = snapshot.data.as_ref().map(|value| serde_json::from_value::<StoredOAuthCredentials>(value.clone()))
+            .transpose().map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "OAuth 凭据结构无效"))?;
+        if snapshot.needs_migration {
+            if let Some(tokens) = tokens {
+                let serialized = serde_json::to_value(&tokens).map_err(|_| io::Error::other("OAuth 凭据编码失败"))?;
+                // 只有旧格式成功解析、新保护数据成功原子发布之后才替换原值。
+                if !crate::oauth_store::save(&path, Some(&serialized), Some(snapshot.revision))? { continue; }
+                return Ok(OAuthCredentialsSnapshot { token_set: Some(tokens.into()), revision: snapshot.revision + 1 });
+            }
+        }
+        return Ok(OAuthCredentialsSnapshot { token_set: tokens.map(Into::into), revision: snapshot.revision });
     }
-    let stored = serde_json::from_value::<StoredOAuthCredentials>(oauth.clone())
-        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
-    Ok(Some(stored.into()))
+    Err(io::Error::new(io::ErrorKind::WouldBlock, "OAuth 凭据正在变更，请重试"))
+}
+
+pub fn load_oauth_credentials() -> io::Result<Option<OAuthTokenSet>> {
+    Ok(load_oauth_credentials_snapshot()?.token_set)
 }
 
 pub fn save_oauth_credentials(token_set: &OAuthTokenSet) -> io::Result<()> {
-    let path = credentials_path()?;
-    let mut root = read_credentials_root(&path)?;
-    root.insert(
-        "oauth".to_string(),
-        serde_json::to_value(StoredOAuthCredentials::from(token_set.clone()))
-            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?,
-    );
-    write_credentials_root(&path, &root)
+    let value = serde_json::to_value(StoredOAuthCredentials::from(token_set.clone())).map_err(|_| io::Error::other("OAuth 凭据编码失败"))?;
+    crate::oauth_store::save(&credentials_path()?, Some(&value), None)?;
+    Ok(())
+}
+
+pub fn save_oauth_credentials_if_revision(token_set: &OAuthTokenSet, expected_revision: u64) -> io::Result<bool> {
+    let value = serde_json::to_value(StoredOAuthCredentials::from(token_set.clone())).map_err(|_| io::Error::other("OAuth 凭据编码失败"))?;
+    crate::oauth_store::save(&credentials_path()?, Some(&value), Some(expected_revision))
+}
+
+/// 刷新仅持有独立 refresh 锁；登录/注销可以修改文件并让迟到刷新 CAS 失败。
+pub fn acquire_oauth_refresh_guard() -> io::Result<std::fs::File> {
+    crate::oauth_store::lock(&credentials_path()?, true)
 }
 
 pub fn clear_oauth_credentials() -> io::Result<()> {
-    let path = credentials_path()?;
-    let mut root = read_credentials_root(&path)?;
-    root.remove("oauth");
-    write_credentials_root(&path, &root)
+    crate::oauth_store::save(&credentials_path()?, None, None)?;
+    Ok(())
 }
 
 pub fn parse_oauth_callback_request_target(target: &str) -> Result<OAuthCallbackParams, String> {
@@ -326,39 +343,6 @@ fn generate_random_token(bytes: usize) -> io::Result<String> {
 
 fn credentials_home_dir() -> io::Result<PathBuf> {
     Ok(crate::config::default_config_home())
-}
-
-fn read_credentials_root(path: &PathBuf) -> io::Result<Map<String, Value>> {
-    match fs::read_to_string(path) {
-        Ok(contents) => {
-            if contents.trim().is_empty() {
-                return Ok(Map::new());
-            }
-            serde_json::from_str::<Value>(&contents)
-                .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?
-                .as_object()
-                .cloned()
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "credentials file must contain a JSON object",
-                    )
-                })
-        }
-        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(Map::new()),
-        Err(error) => Err(error),
-    }
-}
-
-fn write_credentials_root(path: &PathBuf, root: &Map<String, Value>) -> io::Result<()> {
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    let rendered = serde_json::to_string_pretty(&Value::Object(root.clone()))
-        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
-    let temp_path = path.with_extension("json.tmp");
-    fs::write(&temp_path, format!("{rendered}\n"))?;
-    fs::rename(temp_path, path)
 }
 
 fn base64url_encode(bytes: &[u8]) -> String {
@@ -452,6 +436,7 @@ mod tests {
         parse_oauth_callback_request_target, save_oauth_credentials, OAuthAuthorizationRequest,
         OAuthConfig, OAuthRefreshRequest, OAuthTokenExchangeRequest, OAuthTokenSet,
     };
+    use crate::test_env::{env_set, ScopedEnv};
 
     fn sample_config() -> OAuthConfig {
         OAuthConfig {
@@ -462,10 +447,6 @@ mod tests {
             manual_redirect_url: Some("https://console.test/oauth/callback".to_string()),
             scopes: vec!["org:read".to_string(), "user:write".to_string()],
         }
-    }
-
-    fn env_lock() -> std::sync::MutexGuard<'static, ()> {
-        crate::test_env_lock()
     }
 
     fn temp_config_home() -> std::path::PathBuf {
@@ -533,14 +514,23 @@ mod tests {
         );
     }
 
+    /// I2（P-08 裁决）：本用例是 `oauth.rs` 里**唯一**写进程环境变量的点，改用本 crate
+    /// 已有的「统一锁 + RAII guard」，**不新增第二把锁**；OAuth 语义不变。
+    ///
+    /// 改前是手写 `set_var("CLAW_CONFIG_HOME", ...) → ... → 末尾 remove_var(...)`：
+    /// 一旦用例中途 panic 或提前返回，末尾的清理语句执行不到，测试值就留在**当前测试进程的
+    /// 后续执行**里（不是"用户系统环境变量被永久修改"）。而 `credentials_path()` →
+    /// `config::default_config_home()` 优先读 `CLAW_CONFIG_HOME`，后续用例会静默把凭据
+    /// 读写落到本用例的临时目录。guard 用 `Option<OsString>` 无损保存三态原值。
     #[test]
     fn oauth_credentials_round_trip_and_clear_preserves_other_fields() {
-        let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
+        let _env = ScopedEnv::new(vec![env_set("CLAW_CONFIG_HOME", &config_home)]);
         let path = credentials_path().expect("credentials path");
         std::fs::create_dir_all(path.parent().expect("parent")).expect("create parent");
-        std::fs::write(&path, "{\"other\":\"value\"}\n").expect("seed credentials");
+        std::fs::write(&path, r#"{"other":"value","oauth":{"accessToken":"legacy-access","refreshToken":null}}"#).expect("seed credentials");
+        assert_eq!(load_oauth_credentials().unwrap().unwrap().access_token, "legacy-access");
+        #[cfg(windows)] assert!(!std::fs::read_to_string(&path).unwrap().contains("legacy-access"));
 
         let token_set = OAuthTokenSet {
             access_token: "access-token".to_string(),
@@ -556,14 +546,64 @@ mod tests {
         let saved = std::fs::read_to_string(&path).expect("read saved file");
         assert!(saved.contains("\"other\": \"value\""));
         assert!(saved.contains("\"oauth\""));
+        #[cfg(windows)] { assert!(!saved.contains("access-token")); assert!(saved.contains("windows_dpapi_v1")); }
 
+        let before_logout = super::load_oauth_credentials_snapshot().unwrap().revision;
         clear_oauth_credentials().expect("clear credentials");
+        assert!(!super::save_oauth_credentials_if_revision(&OAuthTokenSet { access_token: "late-refresh".into(), refresh_token: None, expires_at: None, scopes: vec![] }, before_logout).unwrap());
         assert_eq!(load_oauth_credentials().expect("load cleared"), None);
         let cleared = std::fs::read_to_string(&path).expect("read cleared file");
         assert!(cleared.contains("\"other\": \"value\""));
         assert!(!cleared.contains("\"oauth\""));
 
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        std::fs::remove_dir_all(config_home).expect("cleanup temp dir");
+    }
+
+    /// 回归（P-08/I2）：I2 那个作用域必须做到「**提前返回**也恢复三态」，
+    /// 且恢复之后生产读取路径 `credentials_path()` 不得再指向本用例的临时目录。
+    ///
+    /// 判别性：改前是手写 `set_var` + 末尾 `remove_var`；下面 `probe` 里的提前返回
+    /// **走不到**末尾清理语句，于是"恢复后"的对照断言会失败。
+    /// 对照用"进入作用域前"的实测值，因此本机环境本来就设了 CLAW_CONFIG_HOME / CLAW_PROFILE 也不会误判。
+    #[test]
+    fn oauth_config_home_restores_on_early_return_and_path_is_clean() {
+        fn probe(config_home: &std::path::Path) -> std::path::PathBuf {
+            let _env = ScopedEnv::new(vec![env_set("CLAW_CONFIG_HOME", config_home)]);
+            let path = credentials_path().expect("credentials path");
+            // 作用域内确实被重定向了 —— 否则下面的"恢复后"断言没有判别力。
+            assert!(
+                path.starts_with(config_home),
+                "作用域内 credentials_path 必须落在临时 config home 下，实际 {}",
+                path.display()
+            );
+            // 提前返回（`return`，不是 panic）：末尾没有任何手写恢复语句可依赖。
+            return path;
+        }
+
+        let config_home = temp_config_home();
+        std::fs::create_dir_all(&config_home).expect("create temp config home");
+
+        // 全程持本 crate 的统一锁（空目标 guard）：基线读与事后对照读都必须排他进行，
+        // 否则并发的环境用例（CLAW_CONFIG_HOME / CLAW_PROFILE 都会影响 credentials_path）会让对照失真。
+        let _lock = ScopedEnv::new(vec![]);
+
+        let before = std::env::var_os("CLAW_CONFIG_HOME");
+        let baseline_path = credentials_path().expect("baseline credentials path");
+
+        let scoped_path = probe(&config_home);
+        assert!(scoped_path.starts_with(&config_home));
+
+        assert_eq!(
+            std::env::var_os("CLAW_CONFIG_HOME"),
+            before,
+            "提前返回后 CLAW_CONFIG_HOME 必须三态还原"
+        );
+        assert_eq!(
+            credentials_path().expect("credentials path after scope"),
+            baseline_path,
+            "恢复后生产读取路径不得再指向作用域内的临时目录"
+        );
+
         std::fs::remove_dir_all(config_home).expect("cleanup temp dir");
     }
 

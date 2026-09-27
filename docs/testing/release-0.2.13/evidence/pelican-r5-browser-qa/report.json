@@ -1,0 +1,187 @@
+{
+  "input": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-qwen\\evidence\\pelican-r5.html",
+  "inputSha256": "f13cb35d1fc089dbd4c629d9f6b1427e2c9c1074c6aa65b40e21a45820e97add",
+  "output": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-qwen\\pelican-r5-browser-qa",
+  "console": [],
+  "pageErrors": [],
+  "blockedRequests": [],
+  "checks": {
+    "visibleSvg": true,
+    "svgChangesOverTime": true,
+    "pauseFreezesSvg": true,
+    "speedControlAcceptsChange": true,
+    "noPageErrors": true,
+    "noConsoleErrors": true,
+    "selfContained": true
+  },
+  "passed": true,
+  "title": "鹈鹕骑自行车 · Pelican Cycling Loop",
+  "controls": [
+    {
+      "index": 0,
+      "tag": "button",
+      "role": null,
+      "type": "button",
+      "text": "⏸ 暂停",
+      "ariaLabel": "",
+      "title": "",
+      "labels": "",
+      "value": "",
+      "min": "",
+      "max": "",
+      "step": "",
+      "options": [],
+      "visible": true,
+      "disabled": false
+    },
+    {
+      "index": 1,
+      "tag": "input",
+      "role": null,
+      "type": "range",
+      "text": "",
+      "ariaLabel": "",
+      "title": "",
+      "labels": "速度\n1.00×",
+      "value": "1",
+      "min": "0.5",
+      "max": "2",
+      "step": "0.05",
+      "options": [],
+      "visible": true,
+      "disabled": false
+    },
+    {
+      "index": 2,
+      "tag": "button",
+      "role": null,
+      "type": "button",
+      "text": "↺ 恢复默认",
+      "ariaLabel": "",
+      "title": "",
+      "labels": "",
+      "value": "",
+      "min": "",
+      "max": "",
+      "step": "",
+      "options": [],
+      "visible": true,
+      "disabled": false
+    },
+    {
+      "index": 3,
+      "tag": "input",
+      "role": null,
+      "type": "checkbox",
+      "text": "",
+      "ariaLabel": "",
+      "title": "",
+      "labels": "减少动态",
+      "value": "on",
+      "min": "",
+      "max": "",
+      "step": "",
+      "options": [],
+      "visible": true,
+      "disabled": false
+    }
+  ],
+  "svg": [
+    {
+      "viewBox": "0 0 800 500",
+      "width": 1184,
+      "height": 740,
+      "childElements": 129,
+      "text": "Pelican Cycling — pure SVG loop · no external assets"
+    }
+  ],
+  "animationBefore": [],
+  "frames": {
+    "first": {
+      "sha256": "3dbe8c80146d4b977ed2d3cd61ca9df0b6e62510ec31c10298a0b0fa294f26fd",
+      "svgIndex": 0,
+      "area": 876160
+    },
+    "second": {
+      "sha256": "f6ecd0354e537d6f069a24386aaddc8e7b45ec5f62b762c9aa825e909eb3d16a",
+      "svgIndex": 0,
+      "area": 876160
+    },
+    "sampleIntervalMs": 780
+  },
+  "pause": {
+    "control": {
+      "index": 0,
+      "tag": "button",
+      "role": null,
+      "type": "button",
+      "text": "⏸ 暂停",
+      "ariaLabel": "",
+      "title": "",
+      "labels": "",
+      "value": "",
+      "min": "",
+      "max": "",
+      "step": "",
+      "options": [],
+      "visible": true,
+      "disabled": false
+    },
+    "first": {
+      "sha256": "098b6be19dd85ba0762d19a22ad418f50c6b979b44d6eb8d8c22c0f059287502",
+      "svgIndex": 0,
+      "area": 876160
+    },
+    "second": {
+      "sha256": "098b6be19dd85ba0762d19a22ad418f50c6b979b44d6eb8d8c22c0f059287502",
+      "svgIndex": 0,
+      "area": 876160
+    },
+    "verified": true,
+    "animations": [],
+    "resumedControl": {
+      "index": 0,
+      "tag": "button",
+      "role": null,
+      "type": "button",
+      "text": "▶ 播放",
+      "ariaLabel": "",
+      "title": "",
+      "labels": "",
+      "value": "",
+      "min": "",
+      "max": "",
+      "step": "",
+      "options": [],
+      "visible": true,
+      "disabled": false
+    }
+  },
+  "speed": {
+    "control": {
+      "index": 1,
+      "tag": "input",
+      "role": null,
+      "type": "range",
+      "text": "",
+      "ariaLabel": "",
+      "title": "",
+      "labels": "速度\n1.00×",
+      "value": "1",
+      "min": "0.5",
+      "max": "2",
+      "step": "0.05",
+      "options": [],
+      "visible": true,
+      "disabled": false
+    },
+    "requestedValue": "1.6500000000000001",
+    "actualValue": "1.65",
+    "beforeProfile": [],
+    "afterProfile": [],
+    "valueChanges": true,
+    "behaviorVerified": false,
+    "note": "值变化已验证；未发现可量化的 Web Animations 速度变化，若页面用 requestAnimationFrame 则需结合产物实现或人工观察确认速度效果。"
+  },
+  "visualReviewRequired": "截图必须人工确认鹈鹕、单车及美观；自动验收不把 SVG 元素存在等同于绘制内容正确。"
+}

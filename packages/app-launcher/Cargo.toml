@@ -16,5 +16,8 @@ path = "src/main.rs"
 [dependencies]
 serde_json.workspace = true
 
+[target.'cfg(windows)'.dependencies]
+windows-process-guard = { package = "coolzhu-windows-process-guard", path = "../../modules/gui-web/packages/windows-process-guard" }
+
 [lints]
 workspace = true

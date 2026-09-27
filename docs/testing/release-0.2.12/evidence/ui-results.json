@@ -1,0 +1,84 @@
+{
+  "ui-settings-verification": [
+    {
+      "case": "切换当前 Agent",
+      "popover": true,
+      "settingsStillVisible": true
+    },
+    {
+      "case": "切换工程目录",
+      "popover": true,
+      "settingsStillVisible": true
+    },
+    {
+      "case": "切换当前聊天室",
+      "popover": true,
+      "settingsStillVisible": true
+    },
+    {
+      "case": "settings",
+      "viewport": [
+        1280,
+        720
+      ],
+      "horizontalOverflow": false,
+      "leftRail": "none",
+      "toolTitles": [
+        "none",
+        "none",
+        "none"
+      ],
+      "moduleReady": true,
+      "brokenVisibleImages": []
+    },
+    {
+      "case": "settings",
+      "viewport": [
+        1024,
+        600
+      ],
+      "horizontalOverflow": false,
+      "leftRail": "none",
+      "toolTitles": [
+        "none",
+        "none",
+        "none"
+      ],
+      "moduleReady": true,
+      "brokenVisibleImages": []
+    },
+    {
+      "case": "settings",
+      "viewport": [
+        760,
+        600
+      ],
+      "horizontalOverflow": false,
+      "leftRail": "none",
+      "toolTitles": [
+        "none",
+        "none",
+        "none"
+      ],
+      "moduleReady": true,
+      "brokenVisibleImages": []
+    }
+  ],
+  "ui-stream-verification": {
+    "during": "正在思考\n正在检查安装版隔离任务。",
+    "afterReasoningVisible": false,
+    "messages": 6,
+    "status": "本轮完成"
+  },
+  "ui-search-usage-verification": {
+    "hits": 2,
+    "located": 1,
+    "usage": "输入 500 · 输出 100 token · 5 次请求\n\nRelease 0.2.12 隔离验收(mock-release-2026)：输入 500 / 输出 100；缓存读取 0 / 写入 0",
+    "reasoningVisible": false,
+    "ordinaryMessageCount": 6,
+    "toolActivity": ""
+  },
+  "ui-tool-status-verification": {
+    "activity": "模型请求工具：read_file\n\n工具 `read_file` 已完成：工具 `read_file` 已执行：read_file: { \"type\": \"text\", \"file\": { \"filePath\": \"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\Desktop\\\\coolzhuagent\\\\tmp\\\\2026-09-19-release\\\\acceptance\\\\mock-note.txt\", \"content\": \"安装版隔离验收：READ_FILE_RELEASE_OK_20260919\\n仅为合成文件，无用户数据。\", \"numLi\n\ntool_call_id: tool-call-fb9ab90fb13b4405 tool_name: read_file route: runtime-executed status: completed summary: tool_name: read_file route: runtime-executed status: ok permission_gate: allow-auto elapsed_ms: 0 input: {\"limit\":8,\"offset\":0,\"path\":\"C:\\\\Users\\\\zhupu\\\\Desktop\\\\coolz"
+  }
+}

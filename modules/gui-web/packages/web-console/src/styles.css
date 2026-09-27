@@ -8203,7 +8203,7 @@ body.ui-3d .ui-redesign .session-select-dropdown .session-option[aria-selected="
   outline-offset: 2px;
 }
 
-body.ui-3d .ui-redesign button:not(.avatar-select-trigger):not(.avatar-choice):not(.window-tab):not(.link-button):not(.agent-dropdown-trigger):not(.chat-main-action):not(.chat-rail-toggle):not(.chat-rail-overlay-close):not(.overview-workspace-name):not(.chat-right-tab):not(.chat-right-footer-action) > img,
+body.ui-3d .ui-redesign button:not(.avatar-select-trigger):not(.avatar-choice):not(.window-tab):not(.link-button):not(.agent-dropdown-trigger):not(.chat-main-action):not(.chat-rail-toggle):not(.chat-rail-overlay-close):not(.overview-workspace-name):not(.chat-right-tab):not(.chat-right-footer-action):not(.chat-media-preview-button) > img,
 body.ui-3d .ui-redesign .icon-line > img,
 body.ui-3d .ui-redesign h2 > img,
 body.ui-3d .ui-redesign .auth-tier-head > img {

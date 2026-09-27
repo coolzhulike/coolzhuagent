@@ -1,0 +1,257 @@
+[
+  {
+    "file": "coolzhu.toml",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\clawbot-channel.json",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\clawbot-gateway.sqlite3",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\tool-audit.jsonl",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\web-sessions.json",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\web-sessions.json.bak-20260723-012954",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\web-sessions.sqlite3",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\web-sessions.sqlite3.bak-20260723-012954",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\web-sessions.sqlite3.bak-20260918-211646",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\2026-06-06-real-desktop-vision-voice-v1-desktop-capture.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\2026-06-12-desktop-vision-voice-desktop-capture.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778334178607-f5c9fafc4b18af62-png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778342832740-f5c9fafc4b18af62-png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778343514464-f5c9fafc4b18af62-png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778352763893-f5c9fafc4b18af62-png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778353366641-f5c9fafc4b18af62-png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778353865128-7eedfc7e275fb0f2-UI____.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778354200765-7eedfc7e275fb0f2-UI____.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778354628056-7eedfc7e275fb0f2-UI____.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778356874198-7eedfc7e275fb0f2-UI____.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778358031908-7eedfc7e275fb0f2-UI____.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1778358134529-7eedfc7e275fb0f2-UI____.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1780527279768-c05107ddac3ddf73-drop-test.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1780528348871-d0d2835865694923-drop-img.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1780528348872-47b27be90d3b0f5d-drop-clip.mp4",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1780573454609-7826dbd6c3537b42-selftest.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1780573818767-b2439029d2108413-testaa.txt",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1780574621663-5d927432799b7339-preview-test.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1780847740234-05824a5593bb7e6c-test-ref.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1780931992640-90ea7841eb8b7578-agnes-vision-shot.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1781653505063-10ed88f27708b0d2-2026-06-17_074441.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1782302489245-53d0aac35f2273e4-2026-06-24_200016.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1782302536000-53d0aac35f2273e4-2026-06-24_200016.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1782343725444-f3c4bfbe1d5d71e4-ChatGPT_Image_2026_6_24__21_13_49.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1782344020280-53d0aac35f2273e4-2026-06-24_200016.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1782425775854-f3c4bfbe1d5d71e4-ChatGPT_Image_2026_6_24__21_13_49.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1782482680755-3fceee203e938569-wuxia-swordsman-soulslike-3d-model-sheet-20260626.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1782483169955-3fceee203e938569-wuxia-swordsman-soulslike-3d-model-sheet-20260626.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1782635766737-e9ed2251a5d026af-2026-06-28_163308.png",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1783171424891-88003d250ff8fd66-large.bin",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1783252548959-88003d250ff8fd66-large.bin",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1784725375695-88003d250ff8fd66-large.bin",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1784822888876-88003d250ff8fd66-large.bin",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1784827779494-88003d250ff8fd66-large.bin",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\att-1786292589661-88003d250ff8fd66-large.bin",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\testaa-1.txt",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\attachments\\testaa.txt",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\ide-index\\files.json",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\ide-index\\meta.json",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\ide-index\\symbols.json",
+    "exists": true,
+    "match": true
+  },
+  {
+    "file": ".coolzhu\\logs\\local-gemma.log",
+    "exists": true,
+    "match": true
+  }
+]

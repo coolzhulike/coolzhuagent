@@ -19,38 +19,99 @@ use std::time::Duration;
 
 use serde_json::{json, Value};
 
+pub mod launch_paths;
+pub mod service_identity;
+
+pub use launch_paths::{
+    ActionOutcome, CandidateSource, ConfigSnapshot, DataPathBinding, ExplicitSelection,
+    LauncherUserSelection, LauncherUserState, LaunchPathDecision, LaunchPathInputs,
+    ObservedBackground, ProcessLogPath, ResolutionAction, ResolutionNote, ResolutionSource,
+    ResolvedLaunchPaths, WorkspaceAccess, WorkspaceAccessProbe, WorkspaceCandidate,
+    WorkspaceDataEvidence,
+};
+pub use service_identity::{ReuseDecision, ReuseVerification, ServiceIdentity};
+
+/// 工作区内的业务数据目录名（与 web-console 的 `DATA_DIR_NAME` 同名同义）。
+pub(crate) const DATA_DIR_NAME: &str = ".coolzhu";
+/// 工作区配置文件（与 web-console 的 `CONFIG_FILE_NAME` 同名同义）。
+pub(crate) const CONFIG_FILE_NAME: &str = "coolzhu.toml";
+
 pub const WEB_CONSOLE_MANAGED_ENV: &str = "COOLZHU_DESKTOP_SHELL_MANAGED";
 pub const WEB_CONSOLE_RUNTIME_ENV: &str = "COOLZHU_RUNTIME_DIR";
 pub const WEB_CONSOLE_SESSION_DB_ENV: &str = "COOLZHU_WEB_SESSION_DB";
 pub const WEB_CONSOLE_SESSION_STORE_ENV: &str = "COOLZHU_WEB_SESSION_STORE";
 pub const WEB_CONSOLE_ATTACHMENT_STORE_ENV: &str = "COOLZHU_WEB_ATTACHMENT_STORE";
+/// **输入安全存储根**（第八轮 §2 批准新增）。
+///
+/// 生产路径**必须注入**；子进程缺失该变量时按 `root_not_injected` **直接 fail closed**，
+/// **不得**回退到 `%USERPROFILE%\.coolzhu` 之类的自造路径——否则测试环境会污染生产路径。
+pub const INPUT_SAFETY_STATE_ROOT_ENV: &str = "COOLZHU_INPUT_SAFETY_STATE_ROOT";
+
+/// 本次启动与所有子进程共享的启动标识（"同一份已解析结果"）。
+pub const LAUNCH_ID_ENV: &str = "COOLZHU_LAUNCH_ID";
+/// 用户级启动选择根（子进程只读使用，不得据此重算业务路径）。
+pub const USER_STATE_ROOT_ENV: &str = "COOLZHU_USER_STATE_ROOT";
+/// 本次工作区解析来源（自检/诊断可见）。
+pub const RESOLUTION_SOURCE_ENV: &str = "COOLZHU_LAUNCH_RESOLUTION_SOURCE";
 
 pub fn web_console_environment() -> [(&'static str, &'static str); 1] {
     [(WEB_CONSOLE_MANAGED_ENV, "1")]
 }
 
-/// 安装启动器显式指定运行态数据目录，避免会话、附件和兼容 JSON
-/// 随安装目录/开发工作区变化。直接 `cargo run` 不经过该函数，因此开发态仍沿用工作区。
-pub fn web_console_runtime_environment(runtime_dir: &Path) -> [(OsString, OsString); 4] {
-    let state_dir = runtime_dir.join(".coolzhu");
-    [
+/// 子进程共享的启动环境。
+///
+/// **只固定工作区根**（`COOLZHU_RUNTIME_DIR`）：业务数据根（会话库/附件/兼容 JSON）一律由
+/// 工作区配置解析，launcher 不再注入 `COOLZHU_WEB_SESSION_DB` 之类的覆盖——否则会静默忽略
+/// `paths.data_dir` 覆盖，而 UI/诊断仍显示"已按配置打开"（P08）。
+///
+/// `COOLZHU_WEB_SESSION_DB` / `_STORE` / `_ATTACHMENT_STORE` 若从父环境继承进来会被**显式清除**
+/// 并记录（`scrubbed_inherited_overrides`），不静默忽略。
+pub fn launch_environment(resolved: &ResolvedLaunchPaths) -> Vec<(OsString, OsString)> {
+    vec![
         (
             OsString::from(WEB_CONSOLE_RUNTIME_ENV),
-            runtime_dir.as_os_str().to_os_string(),
+            resolved.workspace_root.as_os_str().to_os_string(),
         ),
         (
-            OsString::from(WEB_CONSOLE_SESSION_DB_ENV),
-            state_dir.join("web-sessions.sqlite3").into_os_string(),
+            OsString::from(LAUNCH_ID_ENV),
+            OsString::from(resolved.launch_id.as_str()),
         ),
         (
-            OsString::from(WEB_CONSOLE_SESSION_STORE_ENV),
-            state_dir.join("web-sessions.json").into_os_string(),
+            OsString::from(USER_STATE_ROOT_ENV),
+            resolved.user_state_root.as_os_str().to_os_string(),
         ),
         (
-            OsString::from(WEB_CONSOLE_ATTACHMENT_STORE_ENV),
-            state_dir.join("attachments").into_os_string(),
+            OsString::from(RESOLUTION_SOURCE_ENV),
+            OsString::from(resolved.resolution_source.as_str()),
+        ),
+        // 输入安全存储根（用户级、跨工作区）：取自 ResolvedLaunchPaths 的既有契约字段，
+        // **不**在此另行推导目录名。web-console 侧缺失即 fail-closed（第八轮 §2）。
+        (
+            OsString::from(INPUT_SAFETY_STATE_ROOT_ENV),
+            resolved.input_safety_state_root.as_os_str().to_os_string(),
         ),
     ]
+}
+
+/// 必须从子进程环境里清除的、会越过工作区配置的继承覆盖。
+pub fn overridden_data_path_envs() -> [&'static str; 3] {
+    [
+        WEB_CONSOLE_SESSION_DB_ENV,
+        WEB_CONSOLE_SESSION_STORE_ENV,
+        WEB_CONSOLE_ATTACHMENT_STORE_ENV,
+    ]
+}
+
+/// 检查父环境里是否残留会越过工作区配置的覆盖（启动时记录，不静默忽略）。
+pub fn inherited_data_path_overrides<F>(mut env_lookup: F) -> Vec<String>
+where
+    F: FnMut(&str) -> Option<OsString>,
+{
+    overridden_data_path_envs()
+        .into_iter()
+        .filter(|name| env_lookup(name).is_some_and(|value| !value.is_empty()))
+        .map(str::to_string)
+        .collect()
 }
 
 /// Outcome of a single health probe.
@@ -156,6 +217,49 @@ pub enum LaunchError {
     TauriSpawn(std::io::Error),
     /// The log directory or self-check file could not be written.
     Persistence(std::io::Error),
+    /// 已声明/已保存/候选的工作区不可用：**明确阻断，不静默回退到其它目录**。
+    WorkspaceUnavailable {
+        role: String,
+        path: PathBuf,
+        source: String,
+        detail: String,
+        remedy: String,
+    },
+    /// 需要用户明确一次工作区选择（恢复入口）。
+    WorkspaceSelectionRequired {
+        reason: String,
+        candidates: Vec<WorkspaceCandidate>,
+        remedy: String,
+    },
+    /// 多个可信候选都有数据：**禁止自动选择/合并/删除**。
+    WorkspaceSelectionAmbiguous {
+        candidates: Vec<WorkspaceCandidate>,
+        remedy: String,
+    },
+    /// 用户级选择文件不可读/损坏/schema 不受支持：不静默忽略。
+    SelectionStore {
+        path: PathBuf,
+        detail: String,
+        remedy: String,
+    },
+    /// 选择更新冲突（revision 不匹配）：**保持旧选择**，不在内存里先宣布成功。
+    SelectionConflict {
+        path: PathBuf,
+        expected_revision: u64,
+        actual_revision: u64,
+    },
+    /// 另一个启动器正在改选择（锁超时）：报冲突，不覆盖别人的写。
+    SelectionLocked {
+        path: PathBuf,
+        lock: PathBuf,
+        waited_ms: u64,
+    },
+    /// 复用既有后台服务时身份/绑定不匹配：**报告冲突、不静默连接、不按端口杀进程**。
+    ServiceConflict {
+        port: u16,
+        reason: String,
+        details: Vec<String>,
+    },
 }
 
 impl std::fmt::Display for LaunchError {
@@ -174,6 +278,75 @@ impl std::fmt::Display for LaunchError {
             ),
             Self::TauriSpawn(e) => write!(f, "failed to spawn tauri shell: {e}"),
             Self::Persistence(e) => write!(f, "failed to persist launcher self-check: {e}"),
+            Self::WorkspaceUnavailable {
+                role,
+                path,
+                source,
+                detail,
+                remedy,
+            } => write!(
+                f,
+                "工作区不可用（{role}）：{} [来源 {source}]：{detail}。已阻断启动，不会创建替代工作区。\n修正入口：{remedy}",
+                path.display()
+            ),
+            Self::WorkspaceSelectionRequired {
+                reason,
+                candidates,
+                remedy,
+            } => write!(
+                f,
+                "需要一次明确的工作区选择：{reason}\n候选：\n{}\n修正入口：{remedy}",
+                launch_paths::render_candidates(candidates)
+            ),
+            Self::WorkspaceSelectionAmbiguous {
+                candidates,
+                remedy,
+            } => write!(
+                f,
+                "发现多个含数据的工作区候选，拒绝自动选择（不按时间/容量/数量挑选，不合并，不删除）：\n{}\n修正入口：{remedy}",
+                launch_paths::render_candidates(candidates)
+            ),
+            Self::SelectionStore {
+                path,
+                detail,
+                remedy,
+            } => write!(
+                f,
+                "用户级启动选择不可用：{}：{detail}\n修正入口：{remedy}",
+                path.display()
+            ),
+            Self::SelectionConflict {
+                path,
+                expected_revision,
+                actual_revision,
+            } => write!(
+                f,
+                "用户级启动选择更新冲突：{}（期望 revision={expected_revision}，实际 revision={actual_revision}）。已保持旧选择，未写入任何变更",
+                path.display()
+            ),
+            Self::SelectionLocked {
+                path,
+                lock,
+                waited_ms,
+            } => write!(
+                f,
+                "用户级启动选择被另一个启动器占用（等待 {waited_ms}ms 超时）：{}（锁 {}）。已保持旧选择，未覆盖对方的写",
+                path.display(),
+                lock.display()
+            ),
+            Self::ServiceConflict {
+                port,
+                reason,
+                details,
+            } => write!(
+                f,
+                "端口 {port} 上的服务不可复用：{reason}\n{}（不会静默连接，也不会按端口杀进程）",
+                if details.is_empty() {
+                    String::new()
+                } else {
+                    format!("依据：{}", details.join("；"))
+                }
+            ),
         }
     }
 }
@@ -197,6 +370,17 @@ pub struct ExecutableSpec {
 }
 
 /// Fully resolved launcher configuration.
+///
+/// # `runtime_dir` 的现行含义（本轮不改名）
+///
+/// - `config_schema_version >= 2`：`runtime_dir` = **工作区默认建议值**，
+///   只用于"尚未建立有效选择"的首次初始化。**缺失/空值/未解析变量/非法路径 = 配置错误**，
+///   **不会**自动从 `log_dir` 推导。
+/// - `config_schema_version == 1`（或根本没有该键的旧包配置）：保留可识别的兼容解析；
+///   缺键时从 `log_dir` 推导的结果只作为**迁移信息/候选**（`legacy_log_dir_derived_workspace`），
+///   不再是新版本常规的隐式数据源。
+///
+/// **不得**通过删除 `runtime_dir` 来"统一目录"：删除只改变选源，不会迁移已有数据。
 #[derive(Debug, Clone)]
 pub struct LauncherConfig {
     pub web_console: ExecutableSpec,
@@ -204,8 +388,14 @@ pub struct LauncherConfig {
     pub health_url: String,
     pub health_timeout: Duration,
     pub health_poll_interval: Duration,
-    /// 安装态子进程的可写工作目录。默认从 log_dir 推导到 LocalAppData/CoolzhuAgent。
-    pub runtime_dir: PathBuf,
+    /// 随包配置 schema 版本（缺键 = 旧版配置，按 v1 兼容处理）。
+    pub config_schema_version: u64,
+    /// 随包配置声明的默认工作区（仅首次初始化用；v1 存在该键时也在此）。
+    pub packaged_default_workspace: Option<PathBuf>,
+    /// v1 兼容：旧配置缺 `runtime_dir` 时从 `log_dir` 推导的结果（**仅迁移候选**）。
+    pub legacy_log_dir_derived_workspace: Option<PathBuf>,
+    /// v1 兼容：`runtime_dir` 键存在但取值未通过校验时的原始文本（诊断用）。
+    pub declared_runtime_dir_text: Option<String>,
     pub log_dir: PathBuf,
     /// Always `<log_dir>/package-selfcheck-last.json`.
     pub selfcheck_file: PathBuf,
@@ -251,10 +441,49 @@ impl LauncherConfig {
             .and_then(|v| v.as_u64())
             .ok_or_else(|| LaunchError::ConfigInvalid("missing health_poll_interval_ms".into()))?;
         let log_dir = Self::parse_path(&value, "log_dir", config_dir, &mut env_lookup)?;
-        let runtime_dir = match value.get("runtime_dir").and_then(|v| v.as_str()) {
-            Some(raw) => resolve_config_path_text(raw, config_dir, &mut env_lookup)?,
-            None => default_runtime_dir_from_log_dir(&log_dir),
-        };
+        let config_schema_version = value
+            .get("launcher_config_version")
+            .and_then(Value::as_u64)
+            .unwrap_or(1);
+        if config_schema_version > launch_paths::LAUNCHER_CONFIG_SCHEMA_VERSION {
+            return Err(LaunchError::ConfigInvalid(format!(
+                "launcher_config_version={config_schema_version} 高于本启动器支持的 {}：请使用匹配版本的启动器",
+                launch_paths::LAUNCHER_CONFIG_SCHEMA_VERSION
+            )));
+        }
+
+        // 缺键语义按配置版本分流（**不混用**）：
+        // - v2：`runtime_dir` 必须明确；缺失/空值/未解析变量/非法路径 = 配置错误，不推导。
+        // - v1：保留可识别的兼容解析；缺键才推导，且推导结果只作迁移候选。
+        let (packaged_default_workspace, declared_runtime_dir_text, legacy_log_dir_derived_workspace) =
+            if config_schema_version >= launch_paths::LAUNCHER_CONFIG_SCHEMA_VERSION {
+                let raw = value
+                    .get(launch_paths::RUNTIME_DIR_KEY)
+                    .and_then(Value::as_str)
+                    .map(str::trim)
+                    .filter(|raw| !raw.is_empty())
+                    .ok_or_else(|| {
+                        LaunchError::ConfigInvalid(format!(
+                            "新版打包配置（launcher_config_version={config_schema_version}）缺少 {} 或取值为空：这是配置错误，不会从 log_dir 推导工作区",
+                            launch_paths::RUNTIME_DIR_KEY
+                        ))
+                    })?;
+                let resolved = resolve_config_path_text(raw, config_dir, &mut env_lookup)?;
+                (Some(resolved), Some(raw.to_string()), None)
+            } else {
+                match value.get(launch_paths::RUNTIME_DIR_KEY).and_then(Value::as_str) {
+                    Some(raw) if !raw.trim().is_empty() => {
+                        let resolved = resolve_config_path_text(raw, config_dir, &mut env_lookup)?;
+                        (Some(resolved), Some(raw.trim().to_string()), None)
+                    }
+                    _ => (
+                        None,
+                        None,
+                        // ⑤ 兼容支路：只识别旧行为与迁移候选，不再作为常规数据源。
+                        Some(default_runtime_dir_from_log_dir(&log_dir)),
+                    ),
+                }
+            };
         let selfcheck_file = log_dir.join("package-selfcheck-last.json");
 
         Ok(Self {
@@ -263,7 +492,10 @@ impl LauncherConfig {
             health_url,
             health_timeout: Duration::from_secs(health_timeout_secs),
             health_poll_interval: Duration::from_millis(health_poll_interval_ms),
-            runtime_dir,
+            config_schema_version,
+            packaged_default_workspace,
+            legacy_log_dir_derived_workspace,
+            declared_runtime_dir_text,
             log_dir,
             selfcheck_file,
         })
@@ -309,6 +541,15 @@ impl LauncherConfig {
     }
 }
 
+/// ⑤ 兼容支路：**仅服务旧版（`launcher_config_version < 2`）且 `runtime_dir` 键缺失的配置**。
+///
+/// 从 `log_dir` 反推工作区（`%LOCALAPPDATA%\CoolzhuAgent\logs\package-launcher` ⇒ `%LOCALAPPDATA%\CoolzhuAgent`）。
+///
+/// 边界（必须保持）：
+/// - **只在**旧配置缺 `runtime_dir` 时被调用；新版本（v2）缺键是**配置错误**，不走这里。
+/// - 结果只作为**迁移候选/迁移信息**输出（见 `LaunchPathInputs::legacy_log_dir_derived_workspace`），
+///   **不再作为新版本常规的隐式数据源切换**，也**不因为修改 `log_dir` 就改变已建立的工作区**。
+/// - "删掉 `runtime_dir` 键就会回到 LocalAppData"**不是正式修复建议**：删除只改变选源，不迁移已有数据。
 fn default_runtime_dir_from_log_dir(log_dir: &Path) -> PathBuf {
     let is_launcher_log_dir = log_dir
         .file_name()
@@ -340,7 +581,7 @@ fn resolve_config_path_text(
     Ok(resolve_config_relative(Path::new(&expanded), config_dir))
 }
 
-fn expand_os_env_placeholders(
+pub(crate) fn expand_os_env_placeholders(
     raw: &str,
     env_lookup: &mut dyn FnMut(&str) -> Option<OsString>,
 ) -> Result<String, LaunchError> {
@@ -433,6 +674,8 @@ pub fn build_tauri_args(web_console_pid: u32, extra_args: &[String]) -> Vec<Stri
 }
 
 /// Self-check record persisted after each launch attempt.
+///
+/// 自检**同时记录**"请求的路径"与"后台实际使用的路径"（`resolved`）——只打印配置值不足以证明生效。
 #[derive(Debug, Clone)]
 pub struct SelfcheckPayload {
     pub ok: bool,
@@ -441,6 +684,37 @@ pub struct SelfcheckPayload {
     pub health_url: String,
     pub error: Option<String>,
     pub timestamp_ms: u64,
+    /// 本次已解析结果（含 requested / observed 两段路径）。
+    pub resolved: Option<ResolvedLaunchPaths>,
+    /// 复用判定证据（若发生）。
+    pub reuse: Option<ReuseVerification>,
+    /// 本次解析/落库过程的诊断（迁移信息、被忽略的候选、动作结果）。
+    pub notes: Vec<String>,
+}
+
+impl SelfcheckPayload {
+    /// 只带基本字段的自检（兼容既有调用点）。
+    #[must_use]
+    pub fn basic(
+        ok: bool,
+        web_console_pid: Option<u32>,
+        tauri_pid: Option<u32>,
+        health_url: String,
+        error: Option<String>,
+        timestamp_ms: u64,
+    ) -> Self {
+        Self {
+            ok,
+            web_console_pid,
+            tauri_pid,
+            health_url,
+            error,
+            timestamp_ms,
+            resolved: None,
+            reuse: None,
+            notes: Vec::new(),
+        }
+    }
 }
 
 /// Write the self-check JSON file atomically, creating `log_dir` first.
@@ -457,6 +731,9 @@ pub fn write_selfcheck(
         "health_url": payload.health_url,
         "error": payload.error,
         "timestamp_ms": payload.timestamp_ms,
+        "resolved_launch_paths": payload.resolved.as_ref().map(ResolvedLaunchPaths::to_json),
+        "reuse_verification": payload.reuse.as_ref().map(ReuseVerification::to_json),
+        "resolution_notes": payload.notes,
     });
     let mut tmp = selfcheck_file.to_path_buf();
     tmp.set_extension("json.tmp");
@@ -474,13 +751,15 @@ pub fn write_selfcheck(
 ///
 /// Implementations: a real one backed by `std::process::Command` (in the
 /// binary) and fakes in tests.
+///
+/// 子进程使用**同一份** [`ResolvedLaunchPaths`] 快照（不能各自根据 cwd/日志目录重新猜）。
 pub trait LaunchSpawner {
     /// Spawn the Web Console hidden with stdout/stderr redirected to `log_file`.
     /// Returns the spawned child PID.
     fn spawn_web_console(
         &mut self,
         spec: &ExecutableSpec,
-        runtime_dir: &Path,
+        resolved: &ResolvedLaunchPaths,
         log_file: &Path,
     ) -> Result<u32, LaunchError>;
     /// Spawn the Tauri shell with the given (already pid-injected) args.
@@ -489,7 +768,7 @@ pub trait LaunchSpawner {
         &mut self,
         spec: &ExecutableSpec,
         args: &[String],
-        runtime_dir: &Path,
+        resolved: &ResolvedLaunchPaths,
         log_file: &Path,
     ) -> Result<u32, LaunchError>;
     /// 回收本次 launcher 刚拉起的进程；失败路径必须调用，避免隐藏进程占用端口。
@@ -497,10 +776,12 @@ pub trait LaunchSpawner {
 }
 
 /// Result of a successful bring-up.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct LaunchOutcome {
     pub web_console_pid: u32,
     pub tauri_pid: u32,
+    /// 启动完成后的最终快照（含**后台实际使用**的路径回读结果）。
+    pub resolved: ResolvedLaunchPaths,
 }
 
 /// Run the full bring-up sequence using injected collaborators.
@@ -510,14 +791,20 @@ pub struct LaunchOutcome {
 /// shell with `--web-console-pid=<pid>`, and persists a self-check record. On
 /// any failure a failed self-check is still written when possible and the error
 /// is surfaced.
+///
+/// `resolved` 是**本次启动唯一的路径权威**（解析只做一次，子进程共享）；
+/// `observe` 在健康就绪后回读"后台实际使用的路径"，写进自检的 observed 段。
 #[allow(clippy::too_many_arguments)]
 pub fn launch<L, N, S>(
     config: &LauncherConfig,
+    resolved: &ResolvedLaunchPaths,
     spawner: &mut L,
     probe: &mut dyn FnMut() -> ProbeOutcome,
     now_fn: N,
     sleep_fn: S,
     timestamp_ms: u64,
+    observe: &mut dyn FnMut() -> Option<ObservedBackground>,
+    notes: &[String],
 ) -> Result<LaunchOutcome, LaunchError>
 where
     L: LaunchSpawner,
@@ -537,11 +824,25 @@ where
         });
     }
 
-    fs::create_dir_all(&config.runtime_dir).map_err(LaunchError::Persistence)?;
+    // 工作区目录在解析阶段已被证明可用（或已显式初始化）；这里只补日志目录。
     fs::create_dir_all(&config.log_dir).map_err(LaunchError::Persistence)?;
     let log_file = config.log_dir.join("web-console.stdout.log");
 
-    let web_pid = spawner.spawn_web_console(&config.web_console, &config.runtime_dir, &log_file)?;
+    let web_pid = spawner.spawn_web_console(&config.web_console, resolved, &log_file)?;
+
+    let failed_payload = |error_text: String,
+                              web_console_pid: Option<u32>,
+                              tauri_pid: Option<u32>| SelfcheckPayload {
+        ok: false,
+        web_console_pid,
+        tauri_pid,
+        health_url: config.health_url.clone(),
+        error: Some(error_text),
+        timestamp_ms,
+        resolved: None,
+        reuse: None,
+        notes: notes.to_vec(),
+    };
 
     if let Err(e) = poll_health(
         &config.health_url,
@@ -556,26 +857,25 @@ where
             Some(cleanup) => format!("{e}; web console cleanup failed: {cleanup}"),
             None => e.to_string(),
         };
-        let payload = SelfcheckPayload {
-            ok: false,
-            web_console_pid: Some(web_pid),
-            tauri_pid: None,
-            health_url: config.health_url.clone(),
-            error: Some(error_text),
-            timestamp_ms,
-        };
+        let payload = failed_payload(error_text, Some(web_pid), None);
         let _ = write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload);
         return Err(e);
     }
 
+    // 健康就绪：回读后台实际使用的路径（只打印配置值不足以证明生效）。
+    let observed = observe();
+    let resolved = match &observed {
+        Some(observed) => resolved.with_observations(observed),
+        None => resolved.clone(),
+    };
+    eprintln!("package-launcher: 解析结果快照");
+    for line in resolved.display_lines() {
+        eprintln!("  {line}");
+    }
+
     let tauri_args = build_tauri_args(web_pid, &config.tauri.args);
     let tauri_log_file = config.log_dir.join("tauri.stdout.log");
-    let tauri_pid = match spawner.spawn_tauri(
-        &config.tauri,
-        &tauri_args,
-        &config.runtime_dir,
-        &tauri_log_file,
-    ) {
+    let tauri_pid = match spawner.spawn_tauri(&config.tauri, &tauri_args, &resolved, &tauri_log_file) {
         Ok(pid) => pid,
         Err(e) => {
             let cleanup_error = spawner.terminate_process(web_pid).err();
@@ -583,14 +883,7 @@ where
                 Some(cleanup) => format!("{e}; web console cleanup failed: {cleanup}"),
                 None => e.to_string(),
             };
-            let payload = SelfcheckPayload {
-                ok: false,
-                web_console_pid: Some(web_pid),
-                tauri_pid: None,
-                health_url: config.health_url.clone(),
-                error: Some(error_text),
-                timestamp_ms,
-            };
+            let payload = failed_payload(error_text, Some(web_pid), None);
             let _ = write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload);
             return Err(e);
         }
@@ -603,6 +896,9 @@ where
         health_url: config.health_url.clone(),
         error: None,
         timestamp_ms,
+        resolved: Some(resolved.clone()),
+        reuse: None,
+        notes: notes.to_vec(),
     };
     if let Err(error) = write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload) {
         let _ = spawner.terminate_process(tauri_pid);
@@ -613,6 +909,7 @@ where
     Ok(LaunchOutcome {
         web_console_pid: web_pid,
         tauri_pid,
+        resolved,
     })
 }
 
@@ -650,7 +947,7 @@ pub fn http_probe(url: &str) -> ProbeOutcome {
 }
 
 /// Parse an `http://host:port/path` URL into its parts.
-fn parse_http_url(url: &str) -> Option<(String, u16, String)> {
+pub(crate) fn parse_http_url(url: &str) -> Option<(String, u16, String)> {
     let rest = url.strip_prefix("http://")?;
     let (authority, path) = match rest.find('/') {
         Some(i) => (&rest[..i], &rest[i..]),
@@ -718,13 +1015,96 @@ mod tests {
         );
         assert_eq!(cfg.health_timeout, Duration::from_secs(12));
         assert_eq!(cfg.health_poll_interval, Duration::from_millis(250));
-        assert_eq!(cfg.runtime_dir, config_dir.join("../tmp"));
+        // v1 配置（无 launcher_config_version）缺 runtime_dir ⇒ 兼容支路：只作迁移候选，不是工作区权威。
+        assert!(cfg.packaged_default_workspace.is_none());
+        assert_eq!(
+            cfg.legacy_log_dir_derived_workspace,
+            Some(config_dir.join("../tmp"))
+        );
+        assert_eq!(cfg.config_schema_version, 1);
         assert_eq!(cfg.log_dir, config_dir.join("../tmp/logs/package-launcher"));
         assert_eq!(
             cfg.selfcheck_file,
             config_dir
                 .join("../tmp/logs/package-launcher")
                 .join("package-selfcheck-last.json")
+        );
+    }
+
+    // P07：新版配置缺 `runtime_dir` = 配置错误（不自动从 log_dir 推导），并拒绝未知的高版本 schema。
+    #[test]
+    fn v2_config_requires_explicit_runtime_dir_and_rejects_newer_schema() {
+        let config_dir = Path::new("C:/repo/config");
+        let missing_key = r#"{
+            "launcher_config_version": 2,
+            "web_console": {"executable": "C:/abs/web.exe", "args": []},
+            "tauri": {"executable": "C:/abs/tauri.exe", "args": []},
+            "health_url": "http://127.0.0.1:1/health",
+            "health_timeout_secs": 1,
+            "health_poll_interval_ms": 1,
+            "log_dir": "C:/abs/logs/package-launcher"
+        }"#;
+        let error = LauncherConfig::from_json(missing_key, config_dir).unwrap_err();
+        let text = error.to_string();
+        assert!(text.contains("runtime_dir"), "{text}");
+        assert!(text.contains("不会从 log_dir 推导"), "{text}");
+
+        let empty_value = missing_key.replace(
+            "\"log_dir\"",
+            "\"runtime_dir\": \"   \",\n            \"log_dir\"",
+        );
+        assert!(LauncherConfig::from_json(&empty_value, config_dir).is_err());
+
+        let unresolved = missing_key.replace(
+            "\"log_dir\"",
+            "\"runtime_dir\": \"%NOPE%\\\\ws\",\n            \"log_dir\"",
+        );
+        assert!(LauncherConfig::from_json(&unresolved, config_dir).is_err());
+
+        let newer_schema = missing_key.replace(
+            "\"launcher_config_version\": 2",
+            "\"launcher_config_version\": 99",
+        );
+        assert!(LauncherConfig::from_json(&newer_schema, config_dir).is_err());
+    }
+
+    // 旧版配置存在 `runtime_dir`：仍作为旧有效选择被识别（升级后继续打开原选择）。
+    #[test]
+    fn v1_config_with_runtime_dir_keeps_declared_workspace_as_legacy_origin() {
+        let config_dir = Path::new("C:/repo/package/config");
+        let cfg_text = r#"{
+            "web_console": {"executable": "../bin/coolzhu-web-console.exe", "args": []},
+            "tauri": {"executable": "../bin/coolzhu-tauri-shell.exe", "args": []},
+            "health_url": "http://127.0.0.1:1/health",
+            "health_timeout_secs": 1,
+            "health_poll_interval_ms": 1,
+            "log_dir": "%LOCALAPPDATA%/CoolzhuAgent/logs/package-launcher",
+            "runtime_dir": "%USERPROFILE%/coolzhuagent"
+        }"#;
+
+        let cfg = LauncherConfig::from_json_with_env(cfg_text, config_dir, |name| match name {
+            "LOCALAPPDATA" => Some(std::ffi::OsString::from("C:/Users/me/AppData/Local")),
+            "USERPROFILE" => Some(std::ffi::OsString::from("C:/Users/me")),
+            _ => None,
+        })
+        .unwrap();
+
+        assert_eq!(cfg.config_schema_version, 1);
+        assert_eq!(
+            cfg.log_dir,
+            PathBuf::from("C:/Users/me/AppData/Local/CoolzhuAgent/logs/package-launcher")
+        );
+        assert_eq!(
+            cfg.packaged_default_workspace,
+            Some(PathBuf::from("C:/Users/me/coolzhuagent"))
+        );
+        assert_eq!(
+            cfg.legacy_log_dir_derived_workspace, None,
+            "存在 runtime_dir 时不得再走 log_dir 推导"
+        );
+        assert_eq!(
+            cfg.selfcheck_file,
+            cfg.log_dir.join("package-selfcheck-last.json")
         );
     }
 
@@ -742,7 +1122,10 @@ mod tests {
         let cfg = LauncherConfig::from_json(cfg_text, config_dir).unwrap();
         assert_eq!(cfg.web_console.path, PathBuf::from("C:/abs/web.exe"));
         assert_eq!(cfg.tauri.path, PathBuf::from("C:/abs/tauri.exe"));
-        assert_eq!(cfg.runtime_dir, PathBuf::from("C:/abs"));
+        assert_eq!(
+            cfg.legacy_log_dir_derived_workspace,
+            Some(PathBuf::from("C:/abs"))
+        );
         assert_eq!(cfg.log_dir, PathBuf::from("C:/abs/logs"));
     }
 
@@ -768,8 +1151,8 @@ mod tests {
             PathBuf::from("C:/Users/me/AppData/Local/CoolzhuAgent/logs/package-launcher")
         );
         assert_eq!(
-            cfg.runtime_dir,
-            PathBuf::from("C:/Users/me/AppData/Local/CoolzhuAgent")
+            cfg.legacy_log_dir_derived_workspace,
+            Some(PathBuf::from("C:/Users/me/AppData/Local/CoolzhuAgent"))
         );
         assert_eq!(
             cfg.selfcheck_file,
@@ -903,43 +1286,87 @@ mod tests {
     }
 
     #[test]
-    fn web_console_runtime_environment_stays_under_runtime_dir() {
-        let runtime_dir = PathBuf::from(r"C:\Users\me\AppData\Local\CoolzhuAgent");
-        let vars = web_console_runtime_environment(&runtime_dir)
+    fn launch_environment_pins_only_the_workspace_and_shares_the_snapshot() {
+        let resolved = test_resolved_paths(PathBuf::from(r"C:\Users\me\coolzhuagent"));
+        let vars = launch_environment(&resolved)
             .into_iter()
             .collect::<std::collections::HashMap<_, _>>();
 
         assert_eq!(
             vars.get(&OsString::from(WEB_CONSOLE_RUNTIME_ENV)),
-            Some(&runtime_dir.as_os_str().to_os_string())
-        );
-        assert_eq!(
-            vars.get(&OsString::from(WEB_CONSOLE_SESSION_DB_ENV)),
             Some(
-                &runtime_dir
-                    .join(".coolzhu")
-                    .join("web-sessions.sqlite3")
+                &PathBuf::from(r"C:\Users\me\coolzhuagent")
                     .into_os_string()
             )
         );
+        // 业务数据根由工作区配置决定：launcher 不再注入会越过它的覆盖（P08）。
+        for name in [
+            WEB_CONSOLE_SESSION_DB_ENV,
+            WEB_CONSOLE_SESSION_STORE_ENV,
+            WEB_CONSOLE_ATTACHMENT_STORE_ENV,
+        ] {
+            assert!(
+                vars.get(&OsString::from(name)).is_none(),
+                "{name} 不得由 launcher 固定"
+            );
+        }
         assert_eq!(
-            vars.get(&OsString::from(WEB_CONSOLE_SESSION_STORE_ENV)),
-            Some(
-                &runtime_dir
-                    .join(".coolzhu")
-                    .join("web-sessions.json")
-                    .into_os_string()
-            )
+            vars.get(&OsString::from(LAUNCH_ID_ENV)),
+            Some(&OsString::from("launch-test"))
         );
         assert_eq!(
-            vars.get(&OsString::from(WEB_CONSOLE_ATTACHMENT_STORE_ENV)),
-            Some(
-                &runtime_dir
-                    .join(".coolzhu")
-                    .join("attachments")
-                    .into_os_string()
-            )
+            vars.get(&OsString::from(RESOLUTION_SOURCE_ENV)),
+            Some(&OsString::from("explicit_this_launch"))
         );
+        assert_eq!(
+            vars.get(&OsString::from(USER_STATE_ROOT_ENV)),
+            Some(&OsString::from(r"C:\Users\me\AppData\Local\CoolzhuAgent"))
+        );
+        // 第八轮 §2：输入安全存储根必须注入，且与 resolved 的契约字段逐字一致。
+        assert_eq!(
+            vars.get(&OsString::from(INPUT_SAFETY_STATE_ROOT_ENV)),
+            Some(&resolved.input_safety_state_root.as_os_str().to_os_string()),
+            "输入安全存储根必须由 launcher 注入（生产路径不得缺失）"
+        );
+    }
+
+    #[test]
+    fn inherited_data_path_overrides_are_detected_for_scrubbing() {
+        let found = inherited_data_path_overrides(|name| {
+            (name == WEB_CONSOLE_SESSION_DB_ENV).then(|| OsString::from("D:/elsewhere/db.sqlite3"))
+        });
+        assert_eq!(found, vec![WEB_CONSOLE_SESSION_DB_ENV.to_string()]);
+        assert!(inherited_data_path_overrides(|_| None).is_empty());
+        assert_eq!(
+            overridden_data_path_envs(),
+            [
+                WEB_CONSOLE_SESSION_DB_ENV,
+                WEB_CONSOLE_SESSION_STORE_ENV,
+                WEB_CONSOLE_ATTACHMENT_STORE_ENV
+            ]
+        );
+    }
+
+    fn test_resolved_paths(workspace_root: PathBuf) -> ResolvedLaunchPaths {
+        ResolvedLaunchPaths {
+            launch_id: "launch-test".into(),
+            package_identity: "coolzhu-app-launcher/0.2.0+test".into(),
+            config_schema_version: 2,
+            selection_revision: 0,
+            workspace_id: None,
+            workspace_root,
+            data_dir_binding: launch_paths::DataPathBinding::WorkspaceConfigAuthority,
+            requested_session_db: None,
+            observed_session_db: None,
+            observed_workspace: None,
+            observed_build_version: None,
+            user_state_root: PathBuf::from(r"C:\Users\me\AppData\Local\CoolzhuAgent"),
+            input_safety_state_root: PathBuf::from(
+                r"C:\Users\me\AppData\Local\CoolzhuAgent\input-safety",
+            ),
+            per_process_log_paths: Vec::new(),
+            resolution_source: launch_paths::ResolutionSource::ExplicitThisLaunch,
+        }
     }
 
     #[test]
@@ -947,13 +1374,18 @@ mod tests {
         let tmp = temp_dir_unique("selfcheck");
         let log_dir = tmp.join("logs");
         let selfcheck = log_dir.join("package-selfcheck-last.json");
+        let resolved = test_resolved_paths(PathBuf::from(r"C:\ws"));
         let payload = SelfcheckPayload {
-            ok: true,
-            web_console_pid: Some(42),
-            tauri_pid: Some(7),
-            health_url: "http://127.0.0.1:1/health".into(),
-            error: None,
-            timestamp_ms: 1234,
+            resolved: Some(resolved),
+            notes: vec!["[selection] persisted".into()],
+            ..SelfcheckPayload::basic(
+                true,
+                Some(42),
+                Some(7),
+                "http://127.0.0.1:1/health".into(),
+                None,
+                1234,
+            )
         };
         write_selfcheck(&selfcheck, &log_dir, &payload).unwrap();
 
@@ -966,6 +1398,13 @@ mod tests {
         assert_eq!(v["health_url"], "http://127.0.0.1:1/health");
         assert_eq!(v["error"], Value::Null);
         assert_eq!(v["timestamp_ms"], 1234);
+        // 自检必须同时可读"请求的路径"与"后台实际使用的路径"。
+        assert_eq!(
+            v["resolved_launch_paths"]["requested"]["workspace_root"],
+            Value::String(r"C:\ws".to_string())
+        );
+        assert_eq!(v["resolved_launch_paths"]["observed"]["session_db"], Value::Null);
+        assert_eq!(v["resolution_notes"][0], "[selection] persisted");
     }
 
     #[test]
@@ -973,19 +1412,20 @@ mod tests {
         let tmp = temp_dir_unique("selfcheck-fail");
         let log_dir = tmp.join("logs");
         let selfcheck = log_dir.join("package-selfcheck-last.json");
-        let payload = SelfcheckPayload {
-            ok: false,
-            web_console_pid: Some(42),
-            tauri_pid: None,
-            health_url: "http://127.0.0.1:1/health".into(),
-            error: Some("boom".into()),
-            timestamp_ms: 9,
-        };
+        let payload = SelfcheckPayload::basic(
+            false,
+            Some(42),
+            None,
+            "http://127.0.0.1:1/health".into(),
+            Some("boom".into()),
+            9,
+        );
         write_selfcheck(&selfcheck, &log_dir, &payload).unwrap();
         let v: Value = serde_json::from_str(&fs::read_to_string(&selfcheck).unwrap()).unwrap();
         assert_eq!(v["ok"], false);
         assert_eq!(v["tauri_pid"], Value::Null);
         assert_eq!(v["error"], "boom");
+        assert!(v["resolved_launch_paths"].is_null());
     }
 
     struct FakeSpawner {
@@ -994,9 +1434,10 @@ mod tests {
         web_calls: u32,
         tauri_calls: u32,
         last_tauri_args: Vec<String>,
-        last_web_runtime_dir: Option<PathBuf>,
-        last_tauri_runtime_dir: Option<PathBuf>,
+        last_web_workspace: Option<PathBuf>,
+        last_tauri_workspace: Option<PathBuf>,
         last_tauri_log: Option<PathBuf>,
+        last_web_launch_id: Option<String>,
         terminated_pids: Vec<u32>,
         fail_tauri_spawn: bool,
     }
@@ -1009,9 +1450,10 @@ mod tests {
                 web_calls: 0,
                 tauri_calls: 0,
                 last_tauri_args: Vec::new(),
-                last_web_runtime_dir: None,
-                last_tauri_runtime_dir: None,
+                last_web_workspace: None,
+                last_tauri_workspace: None,
                 last_tauri_log: None,
+                last_web_launch_id: None,
                 terminated_pids: Vec::new(),
                 fail_tauri_spawn: false,
             }
@@ -1022,23 +1464,24 @@ mod tests {
         fn spawn_web_console(
             &mut self,
             _spec: &ExecutableSpec,
-            runtime_dir: &Path,
+            resolved: &ResolvedLaunchPaths,
             _log_file: &Path,
         ) -> Result<u32, LaunchError> {
             self.web_calls += 1;
-            self.last_web_runtime_dir = Some(runtime_dir.to_path_buf());
+            self.last_web_workspace = Some(resolved.workspace_root.clone());
+            self.last_web_launch_id = Some(resolved.launch_id.clone());
             Ok(self.web_pid)
         }
         fn spawn_tauri(
             &mut self,
             _spec: &ExecutableSpec,
             args: &[String],
-            runtime_dir: &Path,
+            resolved: &ResolvedLaunchPaths,
             log_file: &Path,
         ) -> Result<u32, LaunchError> {
             self.tauri_calls += 1;
             self.last_tauri_args = args.to_vec();
-            self.last_tauri_runtime_dir = Some(runtime_dir.to_path_buf());
+            self.last_tauri_workspace = Some(resolved.workspace_root.clone());
             self.last_tauri_log = Some(log_file.to_path_buf());
             if self.fail_tauri_spawn {
                 return Err(LaunchError::TauriSpawn(io::Error::other(
@@ -1064,10 +1507,6 @@ mod tests {
 
     fn config_with_paths(web: PathBuf, tauri: PathBuf, log_dir: PathBuf) -> LauncherConfig {
         let selfcheck_file = log_dir.join("package-selfcheck-last.json");
-        let runtime_dir = log_dir
-            .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_else(|| log_dir.clone());
         LauncherConfig {
             web_console: ExecutableSpec {
                 path: web,
@@ -1080,10 +1519,29 @@ mod tests {
             health_url: "http://127.0.0.1:1/health".into(),
             health_timeout: Duration::from_millis(100),
             health_poll_interval: Duration::from_millis(10),
-            runtime_dir,
+            config_schema_version: 2,
+            packaged_default_workspace: Some(
+                log_dir
+                    .parent()
+                    .map(Path::to_path_buf)
+                    .unwrap_or_else(|| log_dir.clone()),
+            ),
+            legacy_log_dir_derived_workspace: None,
+            declared_runtime_dir_text: Some("%TEST%\\workspace".into()),
             log_dir,
             selfcheck_file,
         }
+    }
+
+    /// 在临时目录里造一个"已解析、已存在的工作区"，供 `launch` 测试使用。
+    fn workspace_for(label: &str) -> ResolvedLaunchPaths {
+        let dir = temp_dir_unique(label);
+        fs::create_dir_all(&dir).unwrap();
+        test_resolved_paths(dir)
+    }
+
+    fn no_observation() -> Option<ObservedBackground> {
+        None
     }
 
     #[test]
@@ -1095,9 +1553,20 @@ mod tests {
             tauri,
             log_dir,
         );
+        let resolved = workspace_for("ws-missing-web");
         let mut spawner = FakeSpawner::new(11, 22);
         let mut probe = || ProbeOutcome::Ready;
-        let res = launch(&cfg, &mut spawner, &mut probe, || Duration::ZERO, |_| {}, 0);
+        let res = launch(
+            &cfg,
+            &resolved,
+            &mut spawner,
+            &mut probe,
+            || Duration::ZERO,
+            |_| {},
+            0,
+            &mut no_observation,
+            &[],
+        );
         assert!(matches!(
             res,
             Err(LaunchError::ExecutableMissing {
@@ -1118,9 +1587,20 @@ mod tests {
             temp_dir_unique("no-tauri").join("missing.exe"),
             log_dir,
         );
+        let resolved = workspace_for("ws-missing-tauri");
         let mut spawner = FakeSpawner::new(11, 22);
         let mut probe = || ProbeOutcome::Ready;
-        let res = launch(&cfg, &mut spawner, &mut probe, || Duration::ZERO, |_| {}, 0);
+        let res = launch(
+            &cfg,
+            &resolved,
+            &mut spawner,
+            &mut probe,
+            || Duration::ZERO,
+            |_| {},
+            0,
+            &mut no_observation,
+            &[],
+        );
         assert!(matches!(
             res,
             Err(LaunchError::ExecutableMissing { role: "tauri", .. })
@@ -1133,6 +1613,7 @@ mod tests {
         let tauri = touch_executable("tauri-ok");
         let log_dir = temp_dir_unique("log-ok");
         let cfg = config_with_paths(web, tauri, log_dir.clone());
+        let resolved = workspace_for("ws-ok");
         let mut spawner = FakeSpawner::new(111, 222);
 
         let probes = std::cell::Cell::new(0u32);
@@ -1146,13 +1627,26 @@ mod tests {
             }
         };
         let clock = std::cell::Cell::new(Duration::ZERO);
+        let mut observe = || {
+            Some(ObservedBackground {
+                workspace: Some(PathBuf::from(r"C:\observed\ws")),
+                session_db: Some(PathBuf::from(r"C:\observed\ws\agent-data\web-sessions.sqlite3")),
+                build_version: Some("abc1234 · 2026-09-25".into()),
+                health_status: Some("ok".into()),
+                active_sessions: Some(2),
+                port: Some(8765),
+            })
+        };
         let res = launch(
             &cfg,
+            &resolved,
             &mut spawner,
             &mut probe,
             || clock.get(),
             |d: Duration| clock.set(clock.get() + d),
             999,
+            &mut observe,
+            &["[test] note".to_string()],
         );
 
         let outcome = res.expect("launch should succeed");
@@ -1160,13 +1654,18 @@ mod tests {
         assert_eq!(outcome.tauri_pid, 222);
         assert_eq!(spawner.web_calls, 1);
         assert_eq!(spawner.tauri_calls, 1);
+        // 子进程共享同一份快照（工作区根与 launch_id 一致）。
         assert_eq!(
-            spawner.last_web_runtime_dir.as_deref(),
-            Some(cfg.runtime_dir.as_path())
+            spawner.last_web_workspace.as_deref(),
+            Some(resolved.workspace_root.as_path())
         );
         assert_eq!(
-            spawner.last_tauri_runtime_dir.as_deref(),
-            Some(cfg.runtime_dir.as_path())
+            spawner.last_tauri_workspace.as_deref(),
+            Some(resolved.workspace_root.as_path())
+        );
+        assert_eq!(
+            spawner.last_web_launch_id.as_deref(),
+            Some(resolved.launch_id.as_str())
         );
         assert!(spawner.terminated_pids.is_empty());
         assert_eq!(
@@ -1177,6 +1676,12 @@ mod tests {
             spawner.last_tauri_log,
             Some(cfg.log_dir.join("tauri.stdout.log"))
         );
+        // 回读结果进入返回值（后台实际使用的路径，而不是配置值）。
+        assert_eq!(
+            outcome.resolved.observed_workspace.as_deref(),
+            Some(Path::new(r"C:\observed\ws"))
+        );
+        assert!(outcome.resolved.data_dir_override_observed());
 
         let v: Value =
             serde_json::from_str(&fs::read_to_string(&cfg.selfcheck_file).unwrap()).unwrap();
@@ -1184,6 +1689,11 @@ mod tests {
         assert_eq!(v["web_console_pid"], 111);
         assert_eq!(v["tauri_pid"], 222);
         assert_eq!(v["timestamp_ms"], 999);
+        assert_eq!(
+            v["resolved_launch_paths"]["observed"]["build_version"],
+            "abc1234 · 2026-09-25"
+        );
+        assert_eq!(v["resolution_notes"][0], "[test] note");
     }
 
     #[test]
@@ -1192,17 +1702,21 @@ mod tests {
         let tauri = touch_executable("tauri-timeout");
         let log_dir = temp_dir_unique("log-timeout");
         let cfg = config_with_paths(web, tauri, log_dir.clone());
+        let resolved = workspace_for("ws-timeout");
         let mut spawner = FakeSpawner::new(555, 666);
 
         let clock = std::cell::Cell::new(Duration::ZERO);
         let mut probe = || ProbeOutcome::NotReady;
         let res = launch(
             &cfg,
+            &resolved,
             &mut spawner,
             &mut probe,
             || clock.get(),
             |d: Duration| clock.set(clock.get() + d),
             7,
+            &mut no_observation,
+            &[],
         );
 
         assert!(matches!(res, Err(LaunchError::HealthTimeout { .. })));
@@ -1225,17 +1739,21 @@ mod tests {
         let tauri = touch_executable("tauri-spawn-fail");
         let log_dir = temp_dir_unique("log-tauri-spawn-fail");
         let cfg = config_with_paths(web, tauri, log_dir);
+        let resolved = workspace_for("ws-tauri-fail");
         let mut spawner = FakeSpawner::new(701, 702);
         spawner.fail_tauri_spawn = true;
         let mut probe = || ProbeOutcome::Ready;
 
         let result = launch(
             &cfg,
+            &resolved,
             &mut spawner,
             &mut probe,
             || Duration::ZERO,
             |_| {},
             12,
+            &mut no_observation,
+            &[],
         );
 
         assert!(matches!(result, Err(LaunchError::TauriSpawn(_))));
@@ -1251,16 +1769,20 @@ mod tests {
         let log_dir = temp_dir_unique("log-selfcheck-fail");
         let mut cfg = config_with_paths(web, tauri, log_dir.clone());
         cfg.selfcheck_file = log_dir;
+        let resolved = workspace_for("ws-selfcheck-fail");
         let mut spawner = FakeSpawner::new(801, 802);
         let mut probe = || ProbeOutcome::Ready;
 
         let result = launch(
             &cfg,
+            &resolved,
             &mut spawner,
             &mut probe,
             || Duration::ZERO,
             |_| {},
             13,
+            &mut no_observation,
+            &[],
         );
 
         assert!(matches!(result, Err(LaunchError::Persistence(_))));

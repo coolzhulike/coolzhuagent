@@ -63,6 +63,8 @@ uia_resolver = { package = "coolzhu-uia-resolver", path = "modules/vision/packag
 
 [dev-dependencies]
 computer-use.workspace = true
+# 8.4 崩溃装置（tests/crash_harness_smoke.rs）：每次运行独立的临时根。
+tempfile = "3"
 plugins.workspace = true
 runtime.workspace = true
 serde_json.workspace = true

@@ -1,6 +1,9 @@
 mod init;
 mod input;
 mod render;
+mod shared_chat;
+mod shared_chat_binding;
+mod stream_facts;
 
 use std::collections::BTreeSet;
 use std::env;
@@ -19,7 +22,7 @@ use api::{
     detect_provider_kind, max_tokens_for_model as api_max_tokens_for_model,
     resolve_model_alias as api_resolve_model_alias, resolve_startup_auth_source, AuthSource,
     ClawApiClient, ContentBlockDelta, InputContentBlock, InputMessage, MessageRequest,
-    MessageResponse, OutputContentBlock, ProviderClient, ProviderKind,
+    OutputContentBlock, ProviderClient, ProviderKind,
     StreamEvent as ApiStreamEvent, ToolChoice, ToolDefinition, ToolResultContentBlock,
 };
 
@@ -119,8 +122,16 @@ fn load_config_to_env() -> Result<Option<String>, Box<dyn std::error::Error>> {
 }
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let configured_default_model = load_config_to_env()?;
-    let args: Vec<String> = env::args().skip(1).collect();
+    let mut args: Vec<String> = env::args().skip(1).collect();
+    // 旧同步引擎仅作为明确选择的兼容入口；默认提示词/REPL 使用已绑定的共享服务。
+    let legacy_runtime = args.first().is_some_and(|arg| arg == "--legacy-runtime");
+    if legacy_runtime { args.remove(0); }
+    // 共享聊天显式选择已存在的模型会话和聊天室，不导入或改写旧 .claw 配置。
+    if args.first().is_some_and(|arg| arg == "chat") {
+        if legacy_runtime { return Err("chat 使用共享服务，不能与 --legacy-runtime 混用".into()); }
+        return shared_chat::run(&args[1..]);
+    }
+    let configured_default_model = if legacy_runtime { load_config_to_env()? } else { None };
     let model_source = if has_explicit_model_flag(&args) {
         ModelSelectionSource::ExplicitFlag
     } else if configured_default_model.is_some() {
@@ -132,7 +143,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         || parse_args(&args),
         |model| parse_args_with_default_model(&args, model),
     )?;
-    if model_source == ModelSelectionSource::BuiltInDefault
+    if legacy_runtime && model_source == ModelSelectionSource::BuiltInDefault
         && matches!(&action, CliAction::Prompt { .. } | CliAction::Repl { .. })
     {
         eprintln!("{}", render_builtin_model_notice(DEFAULT_MODEL));
@@ -154,8 +165,15 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             output_format,
             allowed_tools,
             permission_mode,
-        } => initialize_live_cli(model, allowed_tools, permission_mode, model_source)?
-            .run_turn_with_output(&prompt, output_format)?,
+        } => {
+            if legacy_runtime {
+                initialize_live_cli(model, allowed_tools, permission_mode, model_source)?
+                    .run_turn_with_output(&prompt, output_format)?;
+            } else {
+                shared_chat::reject_local_overrides(&args)?;
+                shared_chat::run_bound_prompt(&prompt, output_format == CliOutputFormat::Json)?;
+            }
+        },
         CliAction::Login => run_login()?,
         CliAction::Logout => run_logout()?,
         CliAction::Init => run_init()?,
@@ -163,7 +181,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             model,
             allowed_tools,
             permission_mode,
-        } => run_repl(model, allowed_tools, permission_mode, model_source)?,
+        } => {
+            if legacy_runtime { run_repl(model, allowed_tools, permission_mode, model_source)?; }
+            else { shared_chat::reject_local_overrides(&args)?; shared_chat::run_bound_repl()?; }
+        },
         CliAction::Help => print_help(),
     }
     Ok(())
@@ -3322,12 +3343,22 @@ impl ApiClient for DefaultRuntimeClient {
             let mut events = Vec::new();
             let mut pending_tool: Option<(String, String, String)> = None;
             let mut saw_stop = false;
+            let mut facts = stream_facts::StreamFacts::default();
 
-            while let Some(event) = stream
-                .next_event()
-                .await
-                .map_err(|error| RuntimeError::new(error.to_string()))?
-            {
+            loop {
+                let received = stream.next_event().await;
+                facts.merge(stream.usage_evidence());
+                let event = match received {
+                    Ok(Some(event)) => event,
+                    Ok(None) => break,
+                    Err(error) => {
+                        if let Some(rendered) = markdown_stream.flush(&renderer) {
+                            write!(out, "{rendered}").and_then(|()| out.flush())
+                                .map_err(|error| RuntimeError::new(error.to_string()))?;
+                        }
+                        return Err(facts.incomplete(&error.to_string()));
+                    }
+                };
                 match event {
                     ApiStreamEvent::MessageStart(start) => {
                         for block in start.message.content {
@@ -3392,14 +3423,7 @@ impl ApiClient for DefaultRuntimeClient {
                             events.push(AssistantEvent::ToolUse { id, name, input });
                         }
                     }
-                    ApiStreamEvent::MessageDelta(delta) => {
-                        events.push(AssistantEvent::Usage(TokenUsage {
-                            input_tokens: delta.usage.input_tokens,
-                            output_tokens: delta.usage.output_tokens,
-                            cache_creation_input_tokens: 0,
-                            cache_read_input_tokens: 0,
-                        }));
-                    }
+                    ApiStreamEvent::MessageDelta(_) => {}
                     ApiStreamEvent::MessageStop(_) => {
                         saw_stop = true;
                         if let Some(rendered) = markdown_stream.flush(&renderer) {
@@ -3407,41 +3431,27 @@ impl ApiClient for DefaultRuntimeClient {
                                 .and_then(|()| out.flush())
                                 .map_err(|error| RuntimeError::new(error.to_string()))?;
                         }
-                        events.push(AssistantEvent::MessageStop);
                     }
                 }
             }
 
-            if !saw_stop
-                && events.iter().any(|event| {
-                    matches!(event, AssistantEvent::TextDelta(text) if !text.is_empty())
-                        || matches!(
-                            event,
-                            AssistantEvent::ReasoningDelta { text, redacted: false }
-                                if !text.is_empty()
-                        )
-                        || matches!(event, AssistantEvent::ToolUse { .. })
-                })
-            {
-                events.push(AssistantEvent::MessageStop);
+            if let Some(rendered) = markdown_stream.flush(&renderer) {
+                write!(out, "{rendered}").and_then(|()| out.flush())
+                    .map_err(|error| RuntimeError::new(error.to_string()))?;
             }
-
-            if events
-                .iter()
-                .any(|event| matches!(event, AssistantEvent::MessageStop))
-            {
-                return Ok(events);
+            if !saw_stop {
+                return Err(facts.incomplete("连接已结束，但没有收到 message_stop"));
             }
-
-            let response = self
-                .client
-                .send_message(&MessageRequest {
-                    stream: false,
-                    ..message_request.clone()
-                })
-                .await
-                .map_err(|error| RuntimeError::new(error.to_string()))?;
-            response_to_events(response, out)
+            // OpenAI 兼容适配器可能在 EOF 本地合成 stop；只接受远端协议结束事实。
+            if stream.inflight_status().terminal_fact != Some(api::TerminationFact::ProtocolCompletion) {
+                return Err(facts.incomplete("只有本地流结束标记，未收到供应商协议的完成确认"));
+            }
+            if pending_tool.is_some() {
+                return Err(facts.incomplete("工具参数块未闭合"));
+            }
+            if let Some(usage) = facts.usage() { events.push(AssistantEvent::Usage(usage)); }
+            events.push(AssistantEvent::MessageStop);
+            Ok(events)
         })
     }
 }
@@ -4062,30 +4072,6 @@ fn push_output_block(
     Ok(())
 }
 
-fn response_to_events(
-    response: MessageResponse,
-    out: &mut (impl Write + ?Sized),
-) -> Result<Vec<AssistantEvent>, RuntimeError> {
-    let mut events = Vec::new();
-    let mut pending_tool = None;
-
-    for block in response.content {
-        push_output_block(block, out, &mut events, &mut pending_tool, false)?;
-        if let Some((id, name, input)) = pending_tool.take() {
-            events.push(AssistantEvent::ToolUse { id, name, input });
-        }
-    }
-
-    events.push(AssistantEvent::Usage(TokenUsage {
-        input_tokens: response.usage.input_tokens,
-        output_tokens: response.usage.output_tokens,
-        cache_creation_input_tokens: response.usage.cache_creation_input_tokens,
-        cache_read_input_tokens: response.usage.cache_read_input_tokens,
-    }));
-    events.push(AssistantEvent::MessageStop);
-    Ok(events)
-}
-
 struct CliToolExecutor {
     renderer: TerminalRenderer,
     emit_output: bool,
@@ -4243,7 +4229,9 @@ fn required_permission_for_cli_tool(
         .into_iter()
         .find(|(name, _)| name == tool_name)
         .map(|(_, permission)| permission)
-        .unwrap_or(PermissionMode::DangerFullAccess)
+        // 未知/动态工具没有权威最低权限元数据：交给闸门 fail-closed。
+        // 旧实现默认 DangerFullAccess，等于按最高权限放行未声明的工具。
+        .unwrap_or(PermissionMode::Unspecified)
 }
 
 fn cli_runtime_grant(permission_mode: PermissionMode) -> (bool, bool) {
@@ -4252,6 +4240,8 @@ fn cli_runtime_grant(permission_mode: PermissionMode) -> (bool, bool) {
             (true, true)
         }
         PermissionMode::WorkspaceWrite | PermissionMode::ReadOnly => (false, false),
+        // 缺元数据不授予任何临时授权；工具本身已由闸门拒绝。
+        PermissionMode::Unspecified => (false, false),
     }
 }
 
@@ -4361,6 +4351,10 @@ fn print_help_to(out: &mut impl Write) -> io::Result<()> {
     )?;
     writeln!(out)?;
     writeln!(out, "Commands")?;
+    writeln!(out, "  coolzhu-cli chat --session ID --room ID --prompt TEXT")?;
+    writeln!(out, "    复用当前工程已启动的桌面聊天服务；chat --help 查看选项。")?;
+    writeln!(out, "  coolzhu-cli chat bind --session ID --room ID   绑定默认聊天/REPL 的真实目标")?;
+    writeln!(out, "  coolzhu-cli --legacy-runtime ...              显式使用旧 .claw 同步引擎")?;
     writeln!(
         out,
         "  coolzhu-cli dump-manifests            Read upstream TS sources and print extracted counts"
@@ -4482,16 +4476,16 @@ mod tests {
         parse_git_status_metadata, permission_policy, print_help_to, push_output_block,
         render_builtin_model_notice, render_config_report, render_memory_report,
         render_model_initialization_error, render_repl_help, render_unknown_repl_command,
-        render_version_report, resolve_model_alias, response_to_events,
+        render_version_report, resolve_model_alias,
         resume_supported_slash_commands, slash_command_completion_candidates, status_context,
         CliAction, CliOutputFormat, CliToolExecutor, InternalPromptProgressEvent,
         InternalPromptProgressState, ModelSelectionSource, SlashCommand, StatusUsage, BUILD_DATE,
         BUILD_TARGET, DEFAULT_MODEL, GIT_SHA, PRODUCT_NAME, VERSION,
     };
-    use api::{MessageResponse, OutputContentBlock, Usage};
+    use api::OutputContentBlock;
     use plugins::{PluginTool, PluginToolDefinition, PluginToolPermission};
     use runtime::{
-        AssistantEvent, ContentBlock, ContextEngineMode, ConversationMessage, MessageRole,
+        ContentBlock, ContextEngineMode, ConversationMessage, MessageRole,
         PermissionMode, ToolExecutor,
     };
     use serde_json::json;
@@ -5500,119 +5494,4 @@ mod tests {
         );
     }
 
-    #[test]
-    fn response_to_events_preserves_empty_object_json_input_outside_streaming() {
-        let mut out = Vec::new();
-        let events = response_to_events(
-            MessageResponse {
-                id: "msg-1".to_string(),
-                kind: "message".to_string(),
-                model: "claude-opus-4-6".to_string(),
-                role: "assistant".to_string(),
-                content: vec![OutputContentBlock::ToolUse {
-                    id: "tool-1".to_string(),
-                    name: "read_file".to_string(),
-                    input: json!({}),
-                }],
-                stop_reason: Some("tool_use".to_string()),
-                stop_sequence: None,
-                usage: Usage {
-                    input_tokens: 1,
-                    output_tokens: 1,
-                    cache_creation_input_tokens: 0,
-                    cache_read_input_tokens: 0,
-                },
-                request_id: None,
-            },
-            &mut out,
-        )
-        .expect("response conversion should succeed");
-
-        assert!(matches!(
-            &events[0],
-            AssistantEvent::ToolUse { name, input, .. }
-                if name == "read_file" && input == "{}"
-        ));
-    }
-
-    #[test]
-    fn response_to_events_preserves_non_empty_json_input_outside_streaming() {
-        let mut out = Vec::new();
-        let events = response_to_events(
-            MessageResponse {
-                id: "msg-2".to_string(),
-                kind: "message".to_string(),
-                model: "claude-opus-4-6".to_string(),
-                role: "assistant".to_string(),
-                content: vec![OutputContentBlock::ToolUse {
-                    id: "tool-2".to_string(),
-                    name: "read_file".to_string(),
-                    input: json!({ "path": "rust/Cargo.toml" }),
-                }],
-                stop_reason: Some("tool_use".to_string()),
-                stop_sequence: None,
-                usage: Usage {
-                    input_tokens: 1,
-                    output_tokens: 1,
-                    cache_creation_input_tokens: 0,
-                    cache_read_input_tokens: 0,
-                },
-                request_id: None,
-            },
-            &mut out,
-        )
-        .expect("response conversion should succeed");
-
-        assert!(matches!(
-            &events[0],
-            AssistantEvent::ToolUse { name, input, .. }
-                if name == "read_file" && input == "{\"path\":\"rust/Cargo.toml\"}"
-        ));
-    }
-
-    #[test]
-    fn response_to_events_renders_thinking_blocks() {
-        let mut out = Vec::new();
-        let events = response_to_events(
-            MessageResponse {
-                id: "msg-3".to_string(),
-                kind: "message".to_string(),
-                model: "claude-opus-4-6".to_string(),
-                role: "assistant".to_string(),
-                content: vec![
-                    OutputContentBlock::Thinking {
-                        thinking: "step 1".to_string(),
-                        signature: Some("sig_123".to_string()),
-                    },
-                    OutputContentBlock::Text {
-                        text: "Final answer".to_string(),
-                    },
-                ],
-                stop_reason: Some("end_turn".to_string()),
-                stop_sequence: None,
-                usage: Usage {
-                    input_tokens: 1,
-                    output_tokens: 1,
-                    cache_creation_input_tokens: 0,
-                    cache_read_input_tokens: 0,
-                },
-                request_id: None,
-            },
-            &mut out,
-        )
-        .expect("response conversion should succeed");
-
-        assert!(matches!(
-            &events[0],
-            AssistantEvent::ReasoningDelta { text, redacted: false }
-                if text == "step 1"
-        ));
-        assert!(matches!(
-            &events[1],
-            AssistantEvent::TextDelta(text) if text == "Final answer"
-        ));
-        assert!(String::from_utf8(out)
-            .expect("utf8")
-            .contains("[reasoning] step 1"));
-    }
 }

@@ -742,7 +742,8 @@ mod tests {
         render_instruction_content, render_instruction_files, truncate_instruction_content,
         ContextFile, ProjectContext, SystemPromptBuilder, SYSTEM_PROMPT_DYNAMIC_BOUNDARY,
     };
-    use crate::config::{ConfigLoader, ContextEngineMode};
+    use crate::config::{active_profile_name, ConfigLoader, ContextEngineMode};
+    use crate::test_env::{env_set, ScopedEnv};
     use std::fs;
     use std::path::{Path, PathBuf};
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -757,6 +758,31 @@ mod tests {
 
     fn env_lock() -> std::sync::MutexGuard<'static, ()> {
         crate::test_env_lock()
+    }
+
+    /// 回归（RPR-01）：作用域内 panic（unwind）时 cwd 必须被恢复。
+    ///
+    /// 对应缺陷：用例手写 `set_current_dir(root) ... set_current_dir(previous)`，
+    /// panic 会跳过恢复语句，把进程 cwd 留在临时目录里（锁是 poison-tolerant，后续用例静默受影响）。
+    #[test]
+    fn scoped_current_dir_restores_cwd_when_scope_panics() {
+        let _guard = env_lock();
+        let before = std::env::current_dir().expect("cwd before");
+        let root = temp_dir();
+        fs::create_dir_all(&root).expect("create root");
+
+        let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _cwd = crate::ScopedCurrentDir::enter(&root);
+            panic!("模拟用例中途断言失败");
+        }));
+        assert!(panicked.is_err(), "作用域内的 panic 必须继续向外传播");
+
+        assert_eq!(
+            std::env::current_dir().expect("cwd after panic"),
+            before,
+            "panic（unwind）后进程 cwd 必须回到进入前的目录"
+        );
+        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
@@ -923,13 +949,16 @@ mod tests {
         )
         .expect("write settings");
 
-        let _guard = env_lock();
-        let previous = std::env::current_dir().expect("cwd");
-        let original_home = std::env::var("HOME").ok();
-        let original_claw_home = std::env::var("CLAW_CONFIG_HOME").ok();
-        std::env::set_var("HOME", &root);
-        std::env::set_var("CLAW_CONFIG_HOME", root.join("missing-home"));
-        std::env::set_current_dir(&root).expect("change cwd");
+        // RPR-01b：进程环境变量改用本 crate 的统一锁 + RAII guard 收口。
+        // 改前是手写 `set_var(HOME/CLAW_CONFIG_HOME) → ... → 末尾恢复`：一旦用例中途 panic
+        // （断言失败/expect 失败），末尾的恢复语句执行不到，测试值就留在**当前测试进程**里，
+        // 后续用例会静默读到错值（锁是 poison-tolerant 的，连"被毒化"这个信号也被吞掉）。
+        // 原值用 Option<OsString> 保存，无损区分「原来不存在 / 原来为空串 / 原来有值」。
+        let _env = ScopedEnv::new(vec![
+            env_set("HOME", &root),
+            env_set("CLAW_CONFIG_HOME", root.join("missing-home")),
+        ]);
+        let _cwd = crate::ScopedCurrentDir::enter(&root);
         let prompt = super::load_system_prompt(&root, "2026-03-31", "linux", "6.8", None)
             .expect("system prompt should load")
             .join(
@@ -937,17 +966,8 @@ mod tests {
 
 ",
             );
-        std::env::set_current_dir(previous).expect("restore cwd");
-        if let Some(value) = original_home {
-            std::env::set_var("HOME", value);
-        } else {
-            std::env::remove_var("HOME");
-        }
-        if let Some(value) = original_claw_home {
-            std::env::set_var("CLAW_CONFIG_HOME", value);
-        } else {
-            std::env::remove_var("CLAW_CONFIG_HOME");
-        }
+        // 提前恢复 cwd：必须在最后 remove_dir_all(root) 之前（Windows 上不能删当前目录）。
+        drop(_cwd);
 
         assert!(prompt.contains("Project rules"));
         assert!(prompt.contains("permissionMode"));
@@ -965,11 +985,32 @@ mod tests {
         )
         .expect("write settings");
 
+        // RPR-01b：本用例要经 `ConfigLoader::load()` 读**进程级**环境覆盖
+        // （`CLAW_PROFILE` / `CLAW_CONTEXT_ENGINE` / `CLAW_FAST_MODE`，见 config.rs 中
+        // `profile_override_from_env` / `context_engine_override_from_env` / `fast_mode_override_from_env`），
+        // 而 config.rs 的两个用例会在统一锁内把这些变量临时改成 bench/minimal/true。
+        // 改前本用例**不占锁**：并发的写入会让这里的 load() 读到作用域内的测试值，
+        // 于是渲染结果随调度变化（`system_prompt_respects_focused_fast_agent_settings`
+        // 已证明 fast_mode 会改变渲染结果）⇒ 断言会间歇性失败。
+        // 空目标 guard = 只占统一锁、不改环境；嵌套时复用已持有的令牌。
+        let _read = ScopedEnv::new(vec![]);
+
         let project_context =
             ProjectContext::discover(&root, "2026-03-31").expect("context should load");
         let config = ConfigLoader::new(&root, root.join("missing-home"))
             .load()
             .expect("config should load");
+        // 判别性（RPR-01b）：上面 guard **持锁**读到的环境真值，必须在配置被消费前先取下来
+        // （`with_runtime_config` 会拿走 `config` 的所有权）。少了 guard 时，并发的 env 覆盖用例
+        // （config.rs 的两个）可能让 load() 读到作用域内的 `CLAW_PROFILE=bench`，
+        // 而这一句读的是作用域结束后的真值 ⇒ 两者不等即失败。这里刻意复用生产自己的读取入口
+        // `active_profile_name()`（环境覆盖的同一个来源），而不是在测试里重写一遍解析规则。
+        let loaded_profile = config.agent().profile().to_string();
+        assert_eq!(
+            loaded_profile,
+            active_profile_name(),
+            "持锁期间 load() 得到的 profile 必须与环境真值一致（不一致说明读到了并发作用域内的测试值）"
+        );
         let prompt = SystemPromptBuilder::new()
             .with_output_style("Concise", "Prefer short answers.")
             .with_os("linux", "6.8")
@@ -1038,7 +1079,6 @@ mod tests {
 
     #[test]
     fn system_prompt_respects_focused_fast_agent_settings() {
-        let _guard = env_lock();
         let root = temp_dir();
         let home = root.join("home");
         let project = root.join("project");
@@ -1056,10 +1096,11 @@ mod tests {
         )
         .expect("write agent config");
 
-        let original_home = std::env::var("HOME").ok();
-        let original_claw_home = std::env::var("CLAW_CONFIG_HOME").ok();
-        std::env::set_var("HOME", &home);
-        std::env::set_var("CLAW_CONFIG_HOME", home.join(".claw"));
+        // RPR-01b：同 load_system_prompt 用例，环境变量改为统一锁 + RAII guard 收口。
+        let _env = ScopedEnv::new(vec![
+            env_set("HOME", &home),
+            env_set("CLAW_CONFIG_HOME", home.join(".claw")),
+        ]);
 
         let prompt = super::load_system_prompt(
             &project,
@@ -1070,17 +1111,6 @@ mod tests {
         )
         .expect("system prompt should load")
         .join("\n\n");
-
-        if let Some(value) = original_home {
-            std::env::set_var("HOME", value);
-        } else {
-            std::env::remove_var("HOME");
-        }
-        if let Some(value) = original_claw_home {
-            std::env::set_var("CLAW_CONFIG_HOME", value);
-        } else {
-            std::env::remove_var("CLAW_CONFIG_HOME");
-        }
 
         assert!(prompt.contains("Context engine: focused"));
         assert!(prompt.contains("Fast mode: enabled"));

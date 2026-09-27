@@ -4,9 +4,6 @@ use std::process::{Command, Stdio};
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
-use tokio::process::Command as TokioCommand;
-use tokio::runtime::Builder;
-use tokio::time::timeout;
 
 use crate::sandbox::{
     build_linux_sandbox_command, resolve_sandbox_status_for_request, FilesystemIsolationMode,
@@ -99,55 +96,38 @@ pub fn execute_bash(input: BashCommandInput) -> io::Result<BashCommandOutput> {
         });
     }
 
-    let runtime = Builder::new_current_thread().enable_all().build()?;
-    runtime.block_on(execute_bash_async(input, sandbox_status, cwd))
+    execute_bash_managed(input, sandbox_status, cwd)
 }
 
-async fn execute_bash_async(
+fn execute_bash_managed(
     input: BashCommandInput,
     sandbox_status: SandboxStatus,
     cwd: std::path::PathBuf,
 ) -> io::Result<BashCommandOutput> {
-    let mut command = prepare_tokio_command(&input.command, &cwd, &sandbox_status, true);
-
-    let output_result = if let Some(timeout_ms) = input.timeout {
-        match timeout(Duration::from_millis(timeout_ms), command.output()).await {
-            Ok(result) => (result?, false),
-            Err(_) => {
-                return Ok(BashCommandOutput {
-                    stdout: String::new(),
-                    stderr: format!("Command exceeded timeout of {timeout_ms} ms"),
-                    raw_output_path: None,
-                    interrupted: true,
-                    is_image: None,
-                    background_task_id: None,
-                    backgrounded_by_user: None,
-                    assistant_auto_backgrounded: None,
-                    dangerously_disable_sandbox: input.dangerously_disable_sandbox,
-                    return_code_interpretation: Some(String::from("timeout")),
-                    no_output_expected: Some(true),
-                    structured_content: None,
-                    persisted_output_path: None,
-                    persisted_output_size: None,
-                    sandbox_status: Some(sandbox_status),
-                });
-            }
-        }
-    } else {
-        (command.output().await?, false)
-    };
-
-    let (output, interrupted) = output_result;
-    let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
-    let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+    let mut command = prepare_command(&input.command, &cwd, &sandbox_status, true);
+    let managed = crate::managed_process::output(&mut command, input.timeout.map(Duration::from_millis))?;
+    let output = managed.output;
+    let interrupted = managed.interruption.is_some();
+    let stdout = crate::managed_process::decode_console_output(&output.stdout);
+    let mut stderr = crate::managed_process::decode_console_output(&output.stderr);
+    if let Some(reason) = managed.interruption {
+        if !stderr.is_empty() { stderr.push('\n'); }
+        stderr.push_str(&match reason {
+            crate::managed_process::Interruption::TimedOut => format!("Command exceeded timeout of {} ms", input.timeout.unwrap_or(0)),
+            crate::managed_process::Interruption::Cancelled => "Command cancelled; managed process exited".to_string(),
+        });
+    }
     let no_output_expected = Some(stdout.trim().is_empty() && stderr.trim().is_empty());
-    let return_code_interpretation = output.status.code().and_then(|code| {
+    let return_code_interpretation = managed.interruption.map(|reason| match reason {
+        crate::managed_process::Interruption::TimedOut => "timeout".to_string(),
+        crate::managed_process::Interruption::Cancelled => "cancelled".to_string(),
+    }).or_else(|| output.status.code().and_then(|code| {
         if code == 0 {
             None
         } else {
             Some(format!("exit_code:{code}"))
         }
-    });
+    }));
 
     Ok(BashCommandOutput {
         stdout,
@@ -210,44 +190,6 @@ fn prepare_command(
     #[cfg(not(windows))]
     let mut prepared = {
         let mut prepared = Command::new("sh");
-        prepared.arg("-lc").arg(command);
-        prepared
-    };
-    prepared.current_dir(cwd);
-    if sandbox_status.filesystem_active {
-        prepared.env("HOME", cwd.join(".sandbox-home"));
-        prepared.env("TMPDIR", cwd.join(".sandbox-tmp"));
-    }
-    prepared
-}
-
-fn prepare_tokio_command(
-    command: &str,
-    cwd: &std::path::Path,
-    sandbox_status: &SandboxStatus,
-    create_dirs: bool,
-) -> TokioCommand {
-    if create_dirs {
-        prepare_sandbox_dirs(cwd);
-    }
-
-    if let Some(launcher) = build_linux_sandbox_command(command, cwd, sandbox_status) {
-        let mut prepared = TokioCommand::new(launcher.program);
-        prepared.args(launcher.args);
-        prepared.current_dir(cwd);
-        prepared.envs(launcher.env);
-        return prepared;
-    }
-
-    #[cfg(windows)]
-    let mut prepared = {
-        let mut prepared = TokioCommand::new("cmd");
-        prepared.arg("/C").arg(command);
-        prepared
-    };
-    #[cfg(not(windows))]
-    let mut prepared = {
-        let mut prepared = TokioCommand::new("sh");
         prepared.arg("-lc").arg(command);
         prepared
     };

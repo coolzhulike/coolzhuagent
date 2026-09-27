@@ -21,12 +21,24 @@ use crate::desktop_anchor::{
     AnchorInventory, AnchorScope, UiAnchor,
 };
 use crate::desktop_capture::capture_latest_desktop_snapshot_now;
-use crate::input_backend::{
-    click_point as inject_click_point, hold_virtual_key as inject_hold_virtual_key,
-    move_mouse_relative as inject_move_mouse_relative,
-    press_virtual_key as inject_press_virtual_key, scroll_wheel as inject_scroll_wheel,
-    send_virtual_key_combo as inject_send_virtual_key_combo, type_text as inject_type_text,
+/// 受控输入入口（PR-03／P0-3）。
+///
+/// 为什么不再用"无生命周期原语"（`input::click_point` / `type_text` / `press_virtual_key` …）：
+/// 那些函数没有预留、没有回执、没有**释放义务登记**、也没有收尾对账——自动化中途失败可能在
+/// 桌面上留下按下的键或按钮，而**没有任何事实可对账**（这正是 P0-3 说的"事实不一致风险"）。
+/// 受控入口把 validate → reserve → execute → receipt → cleanup → settlement 一次做完。
+use computer_use::input::{
+    controlled_click, controlled_hold_key, controlled_key_combo, controlled_move_mouse_relative,
+    controlled_press_key, controlled_scroll, controlled_type_text, NativeInputAttempt,
 };
+
+/// 本 agent 目前**没有**取消信号：这里如实传"永不取消"。
+///
+/// 引入取消（例如实时协助被用户打断）时，应当把真实信号接到这里来，
+/// 而不是让"永不取消"继续冒充"没有取消需求"。
+fn native_input_attempt() -> impl Fn() -> bool {
+    || false
+}
 
 const MAX_AUTOMATION_STEPS: usize = 6;
 const MAX_REALTIME_ASSIST_STEPS: usize = 8;
@@ -155,6 +167,7 @@ fn run_desktop_automation_job(
     prompt: String,
     tx: &Sender<DesktopAutomationEvent>,
 ) -> Result<DesktopAutomationResult, String> {
+    require_host_input_authorization()?;
     config.apply_process_env();
     ensure_live_mode()?;
     let mode = classify_desktop_automation_mode(&prompt);
@@ -270,6 +283,12 @@ fn run_desktop_automation_job(
         "桌面代理在 {} 步内未能完成任务, 请缩小范围后重试.",
         ctx.max_steps
     ))
+}
+
+fn require_host_input_authorization() -> Result<(), String> {
+    // 旧桌面控制台没有动作登记、真实取消和宿主许可上下文；不能借用主控制台的身份，
+    // 也不能在受控原生入口拒绝后改走 UIA Invoke 或焦点脚本。入口处明确拒绝整次任务。
+    Err("此旧版桌面自动化入口尚未接入执行授权，请在主控制台聊天室发起桌面操作任务。".into())
 }
 fn request_next_action(
     ctx: &DesktopAutomationContext,
@@ -1730,12 +1749,29 @@ if ($target.TryGetCurrentPattern([System.Windows.Automation.LegacyIAccessiblePat
     Ok(output.trim().eq_ignore_ascii_case("OK"))
 }
 
+/// 受控入口的调用样板：本 agent 的输入一律经它进出（不再直接调无生命周期原语）。
+fn controlled_call(
+    run: impl FnOnce(&NativeInputAttempt<'_>) -> Result<(), String>,
+) -> Result<(), String> {
+    let cancelled = native_input_attempt();
+    let attempt = NativeInputAttempt::without_identity(&cancelled);
+    run(&attempt)
+}
+
 fn click_point(x: i32, y: i32, clicks: u32) -> Result<(), String> {
-    inject_click_point(x, y, clicks, Duration::from_secs(6))
+    controlled_call(|attempt| {
+        controlled_click(x, y, clicks, attempt, Duration::from_secs(6))
+            .map(|_outcome| ())
+            .map_err(|failure| failure.to_string())
+    })
 }
 
 fn scroll_wheel(delta: i32) -> Result<(), String> {
-    inject_scroll_wheel(delta, Duration::from_secs(6))
+    controlled_call(|attempt| {
+        controlled_scroll(delta, attempt, Duration::from_secs(6))
+            .map(|_outcome| ())
+            .map_err(|failure| failure.to_string())
+    })
 }
 
 fn focus_window(title: &str) -> Result<(), String> {
@@ -1930,13 +1966,21 @@ $y = [int]($bounds.Bottom - 28)
 }
 
 fn type_text(text: &str) -> Result<(), String> {
-    inject_type_text(text, Duration::from_secs(8))
+    controlled_call(|attempt| {
+        controlled_type_text(text, attempt, Duration::from_secs(8))
+            .map(|_outcome| ())
+            .map_err(|failure| failure.to_string())
+    })
 }
 
 fn press_key(key: &str) -> Result<(), String> {
     let virtual_key =
         virtual_key_code(key).ok_or_else(|| format!("unsupported key_press token: {key}"))?;
-    inject_press_virtual_key(virtual_key, Duration::from_secs(6))
+    controlled_call(|attempt| {
+        controlled_press_key(virtual_key, attempt, Duration::from_secs(6))
+            .map(|_outcome| ())
+            .map_err(|failure| failure.to_string())
+    })
 }
 
 fn send_hotkey(keys: &[String]) -> Result<(), String> {
@@ -1946,11 +1990,20 @@ fn send_hotkey(keys: &[String]) -> Result<(), String> {
 fn hold_key(key: &str, hold_ms: u64) -> Result<(), String> {
     let virtual_key =
         virtual_key_code(key).ok_or_else(|| format!("unsupported hold_key token: {key}"))?;
-    inject_hold_virtual_key(virtual_key, hold_ms, Duration::from_secs(6))
+    controlled_call(|attempt| {
+        controlled_hold_key(virtual_key, hold_ms, attempt, Duration::from_secs(6))
+            .map(|_outcome| ())
+            .map_err(|failure| failure.to_string())
+    })
 }
 
 fn move_mouse_relative(dx: i32, dy: i32) -> Result<(), String> {
-    inject_move_mouse_relative(dx, dy, Duration::from_secs(6))
+    // 受控相对移动：位置由 helper 在同一段受监督运行里读，并落盘"光标移动过"的事实。
+    controlled_call(|attempt| {
+        controlled_move_mouse_relative(dx, dy, attempt, Duration::from_secs(6))
+            .map(|_outcome| ())
+            .map_err(|failure| failure.to_string())
+    })
 }
 
 fn send_key_combo(keys: &[String]) -> Result<(), String> {
@@ -1986,7 +2039,11 @@ fn send_key_combo(keys: &[String]) -> Result<(), String> {
         ordered_codes.push(code);
     }
 
-    inject_send_virtual_key_combo(&ordered_codes, Duration::from_secs(6))
+    controlled_call(|attempt| {
+        controlled_key_combo(&ordered_codes, attempt, Duration::from_secs(6))
+            .map(|_outcome| ())
+            .map_err(|failure| failure.to_string())
+    })
 }
 
 fn probe_visible_windows() -> Result<Vec<DesktopWindowSummary>, String> {

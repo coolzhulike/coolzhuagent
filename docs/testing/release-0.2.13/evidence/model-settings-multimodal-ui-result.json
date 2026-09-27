@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "默认继承与有效策略",
+    "true/false/null 保存并重新读取",
+    "保留旧 model_type",
+    "密钥留空不覆盖",
+    "选择即时标记草稿",
+    "Qwen3.8 精确清单的三种模式提示",
+    "Omni/未知后缀/路径前缀/其他模型保留旧提示",
+    "Anthropic 不触发 Qwen 映射",
+    "无页面异常"
+  ],
+  "modelRequests": 0,
+  "settingsSaves": 3
+}

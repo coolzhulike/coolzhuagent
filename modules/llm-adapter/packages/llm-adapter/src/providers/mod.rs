@@ -3,6 +3,7 @@ use std::future::Future;
 use std::pin::Pin;
 
 use crate::error::ApiError;
+use crate::inflight::EndpointIdentity;
 use crate::types::{MessageRequest, MessageResponse};
 
 pub mod claw_provider;
@@ -12,6 +13,17 @@ pub type ProviderFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, ApiError>
 
 pub trait Provider {
     type Stream;
+
+    /// 连接 / 服务身份查询（RPR-11a）。
+    ///
+    /// 默认实现返回 [`EndpointIdentity::unsupported`]（"身份未知 / 不支持"）。
+    /// 该默认值在排空判定里**必须导致该连接不能自动切换**，
+    /// **不得**被解释成"没有在途请求"（见 `crate::inflight::DrainVerdict::IdentityUnknown`）。
+    ///
+    /// 有真实已解析配置的 provider 应覆盖本方法，返回不含密钥的端点身份。
+    fn endpoint_identity(&self) -> EndpointIdentity {
+        EndpointIdentity::unsupported()
+    }
 
     fn send_message<'a>(
         &'a self,
@@ -679,8 +691,68 @@ pub fn model_token_limit(model: &str) -> ModelTokenLimit {
 mod tests {
     use super::{
         context_tokens_for_model, detect_provider_kind, max_tokens_for_model, model_token_limit,
-        resolve_model_alias, ProviderKind,
+        resolve_model_alias, Provider, ProviderFuture, ProviderKind,
     };
+    use crate::error::ApiError;
+    use crate::inflight::{drain_verdict_for, local_endpoint_inflight, DrainVerdict,
+        EndpointIdentitySource};
+    use crate::types::{MessageRequest, MessageResponse};
+
+    /// 未覆盖身份查询的 provider（模拟"身份未知/不支持"的连接）。
+    struct IdentitylessProvider;
+
+    impl Provider for IdentitylessProvider {
+        type Stream = ();
+
+        fn send_message<'a>(
+            &'a self,
+            _request: &'a MessageRequest,
+        ) -> ProviderFuture<'a, MessageResponse> {
+            Box::pin(async { Err(ApiError::UnsupportedCapability { capability: "test".into() }) })
+        }
+
+        fn stream_message<'a>(&'a self, _request: &'a MessageRequest) -> ProviderFuture<'a, ()> {
+            Box::pin(async { Err(ApiError::UnsupportedCapability { capability: "test".into() }) })
+        }
+    }
+
+    /// RPR-11a 约束 3：trait 默认身份是"未知/不支持"，
+    /// 该默认值必须导致**不能自动切换**，不得被解释成"没有在途请求"。
+    #[test]
+    fn provider_default_identity_is_unknown_and_blocks_automatic_switch() {
+        let identity = IdentitylessProvider.endpoint_identity();
+        assert!(!identity.is_known());
+        assert_eq!(identity.source(), EndpointIdentitySource::Unsupported);
+        assert_eq!(identity.key(), None);
+
+        // 用确定性的**空快照**表达"零在途 + 身份未知"：仍必须拒绝自动切换。
+        let empty = crate::inflight::EndpointInFlightStatus {
+            identity: identity.clone(),
+            in_flight: 0,
+            remote_result_unknown: 0,
+            settled: 0,
+            in_flight_attempts: Vec::new(),
+            recent_settled: Vec::new(),
+        };
+        let verdict = drain_verdict_for(&identity, &empty);
+        assert_eq!(
+            verdict,
+            DrainVerdict::IdentityUnknown,
+            "零在途 + 未知身份 ≠ 可自动切换"
+        );
+        assert!(!verdict.permits_automatic_switch());
+        assert_ne!(verdict, DrainVerdict::ClientSettled);
+
+        let report = crate::inflight::EndpointDrainReport {
+            status: empty,
+            verdict,
+            waited: std::time::Duration::ZERO,
+        };
+        assert!(!report.client_drained());
+        assert!(!report.permits_automatic_switch());
+        // 不依赖进程级注册表的具体计数：只断言该身份下的判定语义。
+        let _ = local_endpoint_inflight(&identity);
+    }
 
     #[test]
     fn resolves_grok_aliases() {

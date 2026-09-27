@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-09-19T13:52:38.1771499Z",
+  "browser_session_closed": "release-installed",
+  "stopped": [
+    {
+      "role": "server",
+      "pid": 520,
+      "port": 18775,
+      "executable": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "creation_date": "2026-09-19T06:51:42.821597-07:00",
+      "command_line": "\"C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe\""
+    },
+    {
+      "role": "mock",
+      "pid": 24756,
+      "port": 18776,
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "creation_date": "2026-09-19T06:34:08.343874-07:00",
+      "command_line": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-release\\acceptance\\mock-openai.cjs\" "
+    }
+  ],
+  "user_service_touched": false
+}

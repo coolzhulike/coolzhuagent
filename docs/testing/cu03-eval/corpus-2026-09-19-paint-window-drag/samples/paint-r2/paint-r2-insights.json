@@ -1,0 +1,22 @@
+{
+  "indices": {
+    "msg-1789832662694-user": 1,
+    "msg-1789832662723-0": 2
+  },
+  "note": "从此版本开始累计接口已返回且适配器可解析的用量；无 usage 的请求与此前历史不计入。缓存字段单列，不重复相加；未提供或未解析的缓存明细显示 0。",
+  "room_id": "room-1789832662281",
+  "source": "provider_reported",
+  "timings": {
+    "msg-1789832662723-0": 19537
+  },
+  "usage": [
+    {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 6503,
+      "output_tokens": 1000,
+      "requests": 3,
+      "session_id": "session-1779459149988"
+    }
+  ]
+}

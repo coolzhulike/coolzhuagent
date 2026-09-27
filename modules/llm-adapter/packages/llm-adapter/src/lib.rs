@@ -1,12 +1,15 @@
 mod client;
+mod message_id;
 mod config;
 mod embeddings;
 mod error;
+mod inflight;
 mod model_info;
 mod providers;
 mod registry;
 mod reasoning;
 mod request_parameters;
+mod request_observer;
 mod resolver;
 mod sse;
 mod types;
@@ -19,6 +22,13 @@ pub use client::{
 pub use config::{load_config, AdapterConfig, ModelConfig, ProviderConfig};
 pub use embeddings::embed_texts;
 pub use error::ApiError;
+pub use inflight::{
+    clear_managed_instance, drain_reports_permit_automatic_switch, drain_verdict_for,
+    local_endpoint_drain, local_endpoint_drain_all, local_endpoint_inflight,
+    record_managed_instance, AttemptPhase, AttemptStatus, DrainVerdict, EndpointDrainReport,
+    EndpointIdentity, EndpointIdentitySource, EndpointInFlightStatus, InFlightGuard, RequestMode,
+    SettleOutcome, TerminationFact,
+};
 pub use model_info::{
     Modality, ModelCost, ModelInfo, ModelLimit, ModelModalities, ModelStatus, ProviderInfo,
 };
@@ -35,6 +45,7 @@ pub use providers::{
 };
 pub use registry::{ModelRegistry, ResolvedModel};
 pub use request_parameters::RequestParameters;
+pub use request_observer::{RequestObserver, RequestAttemptSnapshot, UsageEvidence};
 pub use reasoning::{
     parse_legacy_reasoning_effort, parse_reasoning_effort, reasoning_capability_catalog,
     reasoning_capability_for_provider, reasoning_model_aliases, resolve_legacy_reasoning,
@@ -47,12 +58,33 @@ pub use resolver::{
     AuthPolicy, EndpointResolver, ProviderProtocol, RequestCapability, ResolvedProviderRoute,
 };
 pub use sse::{parse_frame, SseParser};
+pub use message_id::{
+    normalize_top_level_message_id, MissingMessageIdShape, ALLOW_MISSING_MESSAGE_ID_RULE,
+};
 pub use types::{
     ContentBlockDelta, ContentBlockDeltaEvent, ContentBlockStartEvent, ContentBlockStopEvent,
     InputContentBlock, InputMessage, MessageDelta, MessageDeltaEvent, MessageRequest,
     MessageResponse, MessageStartEvent, MessageStopEvent, OutputContentBlock, StreamEvent,
     ToolChoice, ToolDefinition, ToolResultContentBlock, Usage,
 };
+
+/// 测试用的**进程级**环境锁：全 crate 共用一把。
+///
+/// 进程环境（`set_var` / `remove_var`）是全局状态，各测试模块若各持一把锁，跨模块
+/// 的变更仍会并发；这里与 `tool-registry` 的 `process_state_lock` 采用同一约定。
+///
+/// 取锁容忍毒化（`PoisonError::into_inner`）：某个用例持锁 panic 后，不应把所有
+/// 后续用例级联变成 `PoisonError` 失败。
+#[cfg(test)]
+pub(crate) fn process_env_lock() -> std::sync::MutexGuard<'static, ()> {
+    static LOCK: std::sync::OnceLock<std::sync::Mutex<()>> = std::sync::OnceLock::new();
+    LOCK.get_or_init(|| std::sync::Mutex::new(()))
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+}
+
+#[cfg(test)]
+mod test_env;
 
 #[cfg(test)]
 mod resolver_contract_tests {

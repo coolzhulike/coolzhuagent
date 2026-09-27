@@ -1,0 +1,8 @@
+{
+  "session_id": "session-1779459149988",
+  "target_agent_ids": [
+    "session-1779459149988"
+  ],
+  "chat_room_id": "room-1789828631771",
+  "text": "请调用 computer_use_perform，surface=desktop。已经准备了一个新的空白画图窗口，target.window=\"无标题 - 画图\"。先通过UIA选择铅笔或画笔工具并选择黄色，只操作这个窗口。success_criteria为画笔或铅笔已选中且黄色成为当前颜色。constraints为只使用正式computer_use_perform，不运行脚本或命令，不生成、导入、粘贴图片，不处理其它窗口；如果失败报告工具准确终态和原因，不换工具重试。"
+}

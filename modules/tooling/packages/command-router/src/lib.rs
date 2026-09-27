@@ -1860,8 +1860,6 @@ mod tests {
     use std::env;
     #[cfg(unix)]
     use std::os::unix::fs::PermissionsExt;
-    #[cfg(unix)]
-    use std::sync::{Mutex, OnceLock};
 
     fn temp_dir(label: &str) -> PathBuf {
         let nanos = SystemTime::now()
@@ -1871,12 +1869,111 @@ mod tests {
         std::env::temp_dir().join(format!("commands-plugin-{label}-{nanos}"))
     }
 
+    /// 打印一行**不被 libtest 捕获**的输出（只给隔离子进程回报哨兵用，故 `#[cfg(unix)]`）。
+    ///
+    /// 直接写 `std::io::stdout()` 不经过 `print!` 的输出捕获通道，因此父进程无论是否加
+    /// `--nocapture` 都能看到子进程真的执行到了断言体（防"过滤条件写错 ⇒ 0 个用例跑过"的假绿）。
     #[cfg(unix)]
-    fn env_lock() -> std::sync::MutexGuard<'static, ()> {
-        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| Mutex::new(()))
-            .lock()
-            .expect("env lock")
+    fn announce_env(line: &str) {
+        use std::io::Write;
+        let mut stdout = std::io::stdout();
+        let _ = writeln!(stdout, "{line}");
+        let _ = stdout.flush();
+    }
+
+    /// **显式环境例外**：需要真实外部可执行文件（`git`）的用例必须先调用本函数。
+    ///
+    /// ## 本 crate 测试已声明的环境要求
+    ///
+    /// 1. `PATH` 上有可执行的 `git`（`git --version` 成功退出）——`branch_and_worktree_commands_manage_git_state`
+    ///    与 `commit_command_stages_and_commits_changes` 需要它；`#[cfg(unix)]` 的
+    ///    `commit_push_pr_command_commits_pushes_and_creates_pr` 也需要（它在隔离子进程里跑，
+    ///    见该用例的环境隔离说明）；
+    /// 2. `std::env::temp_dir()`（Windows 上是 `TEMP`/`TMP`）必须可写：所有用例的仓库、
+    ///    插件目录与生产侧临时文件都建在它下面；
+    /// 3. `git` 不支持 `init -b main` 时由 `init_git_repo` 走 `git init` + `branch -m main` 回退。
+    ///
+    /// **未**自动探测、但会影响结果的机器级 git 配置（满足不了时不得为了变绿而放宽断言）：
+    /// `commit.gpgsign`、`init.templateDir`、`core.hooksPath`、`core.excludesfile`、
+    /// `core.autocrlf` / `core.safecrlf`、`user.useConfigOnly`。它们导致的失败是**真实信号**：
+    /// 该机器上这些用例无法按预期运行，要查的是机器配置，不是测试。
+    ///
+    /// ## 缺前置时为什么是**失败**而不是跳过（RPR-01b 裁决 §5.2）
+    ///
+    /// 改前这里是 `require_git_or_skip`＋`if !.. { return; }`：libtest 把"什么都没做就返回"
+    /// 报成 **ok**，于是**没有 git 的机器**上 `cargo test -p coolzhu-command-router` 照样显示
+    /// `19 passed`，门禁拿到的是一片绿，而"git 相关命令在本机一个断言都没跑"完全不可见 ——
+    /// 这正是裁决禁止的"用 skip 令发布门禁全绿"：
+    /// §5.2 表"该能力属**当前发布必验范围** ⇒ 缺前置 ⇒ 验收未完成，不能用 skip 令发布门禁全绿"；
+    /// 组合用例表"新代码误将失败改标环境跳过 ⇒ 门禁**拒绝**这种分类变化"。
+    ///
+    /// 现在缺前置**明确失败**：真实探测得到的退出状态 / spawn 错误、被探测的程序名、
+    /// 以及"这不是产品缺陷、而是本机前置缺失 ⇒ 该能力在本机验收未完成"都写进 panic 消息，
+    /// 并以 `[env-missing]` 前缀开头，使其可被**独立统计**（数失败输出里的该前缀行）。
+    /// 这里**保留**上一轮 RD4-10 有独立价值的部分：真实探测、环境要求声明、
+    /// 以及"探针必须能判别缺失"的负向验证（见 [`missing_program_probe_is_discriminating`]）。
+    fn require_program_or_fail(test_name: &str, program: &str) {
+        if let Err(reason) = program_probe(program, &["--version"]) {
+            panic!("{}", env_missing_message(test_name, program, &reason));
+        }
+    }
+
+    /// 真实探测：启动 `program` 并检查退出状态。`Err` 带上**可读原因**（不是布尔）。
+    fn program_probe(program: &str, args: &[&str]) -> Result<(), String> {
+        match Command::new(program).args(args).output() {
+            Ok(output) if output.status.success() => Ok(()),
+            Ok(output) => Err(format!(
+                "`{program} {}` 退出状态 {:?}",
+                args.join(" "),
+                output.status.code()
+            )),
+            Err(error) => Err(format!("无法执行 `{program}`（{error}）")),
+        }
+    }
+
+    /// `[env-missing]` 文案即**分类契约**：门禁/独立统计按此前缀识别"前置缺失、未验证"，
+    /// 与"断言失败"分开报告。单独成函数是为了让前缀与措辞可被用例断言钉住。
+    fn env_missing_message(test_name: &str, program: &str, reason: &str) -> String {
+        format!(
+            "[env-missing] {test_name}: 本机未验证——{reason}。\
+             本用例需要真实可用的 `{program}`，缺前置时它**不验证任何本 crate 的行为**，\
+             因此**不是通过**：该能力在本机**验收未完成**（这也不是产品缺陷）。\
+             独立统计口径：数失败输出里的 [env-missing] 行。"
+        )
+    }
+
+    /// 判别性（RPR-01b）：前置探测**不是恒真**——一个不可能存在的可执行文件名必须被判为"不满足"，
+    /// 且原因里必须带上被探测的程序名；同一个探测函数对**确实存在**的可执行文件必须判为"满足"。
+    ///
+    /// 这正是上一轮 RD4-10 手工做过的那次负向验证（"把探针程序名改成不存在的可执行文件"），
+    /// 这里把它固化成**可执行断言**，同时把 `[env-missing]` 分类契约钉住 ——
+    /// 而不是只留一段一次性手工记录。对照组用测试二进制自身＋`--list`
+    /// （`env::current_exe()` 必然存在；**不能**用无参数调用，那会递归重跑整个测试套件）。
+    #[test]
+    fn missing_program_probe_is_discriminating() {
+        let absent = "claw-rpr01b-absent-executable";
+        let reason = program_probe(absent, &["--version"]).expect_err("不存在的程序不得判为满足");
+        assert!(
+            reason.contains(absent),
+            "缺前置的原因必须指明被探测的程序名：{reason}"
+        );
+
+        let exe = std::env::current_exe().expect("current exe");
+        assert!(
+            program_probe(&exe.to_string_lossy(), &["--list"]).is_ok(),
+            "同一探测对确实存在的可执行文件必须判为满足（对照组）"
+        );
+
+        let message = env_missing_message("some_test", "git", &reason);
+        assert!(
+            message.starts_with("[env-missing] some_test:"),
+            "分类契约：前缀 + 用例名：{message}"
+        );
+        assert!(message.contains("git"), "必须指明缺的是什么程序：{message}");
+        assert!(
+            message.contains("验收未完成"),
+            "必须如实说明这是未验证而不是产品缺陷：{message}"
+        );
     }
 
     fn run_command(cwd: &Path, program: &str, args: &[&str]) -> String {
@@ -1929,6 +2026,21 @@ mod tests {
         run_command(&root, "git", &["commit", "-m", "chore: seed repo"]);
         root
     }
+
+    /// 隔离子进程的**显式**环境契约（父进程用 `Command::env` 提供，子进程只读）：
+    /// 区分"子进程身份"、夹具位置与"断言体已执行"的哨兵。
+    ///
+    /// 这样做的好处正是裁决要求的"避免改变父测试进程的环境"：`PATH`/`SAFEUSER` 只出现在
+    /// 子进程的环境块里，父测试进程全程不变（用例结尾直接断言）。
+    #[cfg(unix)]
+    const ISOLATED_CHILD_ENV: &str = "CLAW_RPR01B_ISOLATED_CHILD";
+    #[cfg(unix)]
+    const ISOLATED_REPO_ENV: &str = "CLAW_RPR01B_ISOLATED_REPO";
+    #[cfg(unix)]
+    const ISOLATED_GH_LOG_ENV: &str = "CLAW_RPR01B_ISOLATED_GH_LOG";
+    /// 子进程在执行到断言体时回报的哨兵（绕过 libtest 捕获的裸 stdout 行）。
+    #[cfg(unix)]
+    const ISOLATED_BODY_SENTINEL: &str = "[rpr01b-isolated-body-ran]";
 
     #[cfg(unix)]
     fn init_bare_repo(label: &str) -> PathBuf {
@@ -2668,6 +2780,8 @@ mod tests {
     #[test]
     fn branch_and_worktree_commands_manage_git_state() {
         // given
+        // 显式环境例外：本用例需要真实 `git`（见 `require_program_or_fail` 的环境要求声明）。
+        require_program_or_fail("branch_and_worktree_commands_manage_git_state", "git");
         let repo = init_git_repo("branch-worktree");
         let worktree_path = repo
             .parent()
@@ -2718,6 +2832,8 @@ mod tests {
     #[test]
     fn commit_command_stages_and_commits_changes() {
         // given
+        // 显式环境例外：本用例需要真实 `git`（见 `require_program_or_fail` 的环境要求声明）。
+        require_program_or_fail("commit_command_stages_and_commits_changes", "git");
         let repo = init_git_repo("commit-command");
         fs::write(repo.join("notes.txt"), "hello\n").expect("write notes");
 
@@ -2735,11 +2851,41 @@ mod tests {
         let _ = fs::remove_dir_all(repo);
     }
 
+    /// ## Unix 子项的环境隔离（RPR-01b 裁决：Unix 不得只加一把局部锁就宣称线程安全）
+    ///
+    /// `handle_commit_push_pr_slash_command` 会在**本进程**里解析 `PATH`（判断/启动 `gh`），
+    /// `build_branch_name` 还会读 `SAFEUSER` / `USER` 拼分支名；生产 API **没有**环境注入接缝，
+    /// 所以要在父测试进程里构造这个场景就只能 `set_var`。改前正是那样写的：
+    /// `env::set_var("PATH"/"SAFEUSER")` + 末尾手写恢复，且它那把 `env_lock` **只有本用例持**，
+    /// 别处按 `PATH` 找 `git`/`sh` 的用例并不持锁 —— 断言失败或提前返回时，
+    /// **当前测试进程的后续执行**就会一直读到被写入的 PATH/SAFEUSER（直到恢复或进程结束）。
+    /// 注意措辞：污染的是**本测试进程后续执行**，不是用户系统环境变量被永久改写。
+    ///
+    /// 裁决给的方向是"必须改进程级环境时，复用同一进程统一锁 + RAII；**Unix 尤其不能只加一把
+    /// 局部锁就宣称线程安全完整**（其它线程与依赖库可能直接读环境）⇒ 这类测试**优先用隔离子进程**"。
+    /// 因此这里不再改父进程环境：父用例只准备夹具，再用 [`Command::env`] 把 `PATH`/`SAFEUSER`
+    /// **显式**交给一个只跑本用例的隔离子进程；子进程改的也只是它自己的环境。
+    ///
+    /// 假绿防护：父用例断言子进程退出成功、断言子进程输出了哨兵行、且断言子进程报告
+    /// `1 passed` —— 过滤条件写错导致"0 个用例跑过"会被这三点抓住。
     #[cfg(unix)]
     #[test]
     fn commit_push_pr_command_commits_pushes_and_creates_pr() {
-        // given
-        let _guard = env_lock();
+        // 子进程分支：环境已由父进程用 Command::env 显式给定，这里只做真实断言。
+        // 必须**同时**看到身份标志与夹具位置才走断言体：万一外层环境漏进了身份标志而没有夹具，
+        // 走父分支（自己建夹具）比拿着空路径去断言安全。
+        if env::var_os(ISOLATED_CHILD_ENV).is_some() && env::var_os(ISOLATED_REPO_ENV).is_some() {
+            run_commit_push_pr_body();
+            return;
+        }
+
+        // 父分支：只准备夹具，**全程不改本进程任何环境变量**。
+        let path_before = env::var_os("PATH");
+        let safeuser_before = env::var_os("SAFEUSER");
+
+        // 本用例需要真实 `git`（显式环境例外；缺前置 ⇒ 明确失败，不跳过）。
+        require_program_or_fail("commit_push_pr_command_commits_pushes_and_creates_pr", "git");
+
         let repo = init_git_repo("commit-push-pr");
         let remote = init_bare_repo("commit-push-pr-remote");
         run_command(
@@ -2759,15 +2905,69 @@ mod tests {
         let gh_log = fake_bin.join("gh.log");
         write_fake_gh(&fake_bin, &gh_log, "https://example.com/pr/123");
 
-        let previous_path = env::var_os("PATH");
-        let mut new_path = fake_bin.display().to_string();
-        if let Some(path) = &previous_path {
-            new_path.push(':');
-            new_path.push_str(&path.to_string_lossy());
+        // 子进程 PATH：桩目录 + 父进程原 PATH（父进程自身**不变**）。
+        let mut isolated_path = fake_bin.display().to_string();
+        if let Some(path) = &path_before {
+            isolated_path.push(':');
+            isolated_path.push_str(&path.to_string_lossy());
         }
-        env::set_var("PATH", &new_path);
-        let previous_safeuser = env::var_os("SAFEUSER");
-        env::set_var("SAFEUSER", "tester");
+
+        let exe = env::current_exe().expect("current exe");
+        let output = Command::new(exe)
+            .args([
+                "--exact",
+                "tests::commit_push_pr_command_commits_pushes_and_creates_pr",
+                "--nocapture",
+            ])
+            .env(ISOLATED_CHILD_ENV, "1")
+            .env(ISOLATED_REPO_ENV, &repo)
+            .env(ISOLATED_GH_LOG_ENV, &gh_log)
+            .env("PATH", &isolated_path)
+            .env("SAFEUSER", "tester")
+            .output()
+            .expect("isolated child should run");
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            output.status.success(),
+            "隔离子进程必须成功：status={:?}\nstdout={stdout}\nstderr={stderr}",
+            output.status.code()
+        );
+        assert!(
+            stdout.contains(ISOLATED_BODY_SENTINEL),
+            "隔离子进程必须真的执行到断言体（防过滤条件写错导致的假绿）：\nstdout={stdout}\nstderr={stderr}"
+        );
+        assert!(
+            stdout.contains("1 passed"),
+            "隔离子进程必须恰好跑过这一条用例：\nstdout={stdout}\nstderr={stderr}"
+        );
+
+        // 父进程环境全程未变——本用例不再需要任何锁，因为根本没有人改进程环境。
+        assert_eq!(
+            env::var_os("PATH"),
+            path_before,
+            "I6：不得改动父测试进程的 PATH"
+        );
+        assert_eq!(
+            env::var_os("SAFEUSER"),
+            safeuser_before,
+            "I6：不得改动父测试进程的 SAFEUSER"
+        );
+
+        let _ = fs::remove_dir_all(repo);
+        let _ = fs::remove_dir_all(remote);
+        let _ = fs::remove_dir_all(fake_bin);
+    }
+
+    /// 只在隔离子进程里执行的断言体：`gh` 由子进程 `PATH` 上的桩提供，`SAFEUSER=tester` 决定分支名。
+    #[cfg(unix)]
+    fn run_commit_push_pr_body() {
+        let repo = PathBuf::from(env::var(ISOLATED_REPO_ENV).expect("isolated repo env"));
+        let gh_log = PathBuf::from(env::var(ISOLATED_GH_LOG_ENV).expect("isolated gh log env"));
+
+        // 先回报哨兵：父进程据此判定"断言体真的跑了"（直接写 stdout，绕过 libtest 捕获）。
+        announce_env(ISOLATED_BODY_SENTINEL);
 
         let request = CommitPushPrRequest {
             commit_message: Some("feat: add feature file".to_string()),
@@ -2790,20 +2990,5 @@ mod tests {
         assert_eq!(message.trim(), "feat: add feature file");
         assert!(gh_invocations.contains("pr create"));
         assert!(gh_invocations.contains("--base main"));
-
-        if let Some(path) = previous_path {
-            env::set_var("PATH", path);
-        } else {
-            env::remove_var("PATH");
-        }
-        if let Some(safeuser) = previous_safeuser {
-            env::set_var("SAFEUSER", safeuser);
-        } else {
-            env::remove_var("SAFEUSER");
-        }
-
-        let _ = fs::remove_dir_all(repo);
-        let _ = fs::remove_dir_all(remote);
-        let _ = fs::remove_dir_all(fake_bin);
     }
 }

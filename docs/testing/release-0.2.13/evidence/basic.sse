@@ -1,0 +1,81 @@
+event: started
+data: {"turn_id":"chat-turn-1789827818935-0","run_id":"run-chat-1c51852b8c2cf72f8129a161edde6fa30365ffe7144363ae"}
+
+event: message
+data: {"id":"msg-1789827818935-user","author":"","role":"user","target":"qwen(qwen3.8-flash)","content":"这是基本会话连通性测试。请计算17乘以23，并在同一行写出结果和标记 QWEN_SESSION_OK。不需要工具，不要生成代码。","kind":"text","attachments":[]}
+
+event: message_start
+data: {"id":"msg-1789827818957-0-thinking","author":"qwen(qwen3.8-flash) 推理","role":"assistant","target":"推理卡片","content":"","kind":"reasoning","attachments":[]}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":"The"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" user asks"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" me to calculate "}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":"17 × "}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":"23 and write"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" the result with the"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" marker Q"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":"WEN_SESSION_OK"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" on the same line"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":". No tools needed"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":", no code."}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":"\n\n17 ×"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" 23 ="}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" 391"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":"\n\nI'll write"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" the result and marker"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0-thinking","kind":"reasoning","delta":" on one line."}
+
+event: message_start
+data: {"id":"msg-1789827818957-0","author":"qwen(qwen3.8-flash)","role":"assistant","target":"聊天","content":"","kind":"assistant-reply","attachments":[]}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0","kind":"assistant-reply","delta":"391"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0","kind":"assistant-reply","delta":" QWEN_SESSION"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0","kind":"assistant-reply","delta":"_OK"}
+
+event: message_delta
+data: {"id":"msg-1789827818957-0","kind":"assistant-reply","delta":"\n\n---\nContext usage: 0.1% (1063/1000000 input tokens; source=remote). Local estimate: 1080 tokens; local prompt budget: 1080/848976 tokens; history truncated: false.\nContext turn: 000000000000000118d6beeb1e168b60; Context snapshot: ctx-680a10434f0477bb; history source: chat_room.messages; history loaded: 0; memory revision: mem-382472eb669613f8"}
+
+event: message_done
+data: {"id":"msg-1789827818957-0","author":"qwen(qwen3.8-flash)","role":"assistant","target":"聊天","content":"391 QWEN_SESSION_OK\n\n---\nContext usage: 0.1% (1063/1000000 input tokens; source=remote). Local estimate: 1080 tokens; local prompt budget: 1080/848976 tokens; history truncated: false.\nContext turn: 000000000000000118d6beeb1e168b60; Context snapshot: ctx-680a10434f0477bb; history source: chat_room.messages; history loaded: 0; memory revision: mem-382472eb669613f8","kind":"assistant-reply","attachments":[]}
+
+event: done
+data: {"turn_id":"chat-turn-1789827818935-0","run_id":"run-chat-1c51852b8c2cf72f8129a161edde6fa30365ffe7144363ae","status":"completed","accepted_agent_ids":["session-1779459149988"],"tasks":[{"id":"task-1789827818957-0","owner_agent":"qwen(qwen3.8-flash)","executor_agent":"qwen(qwen3.8-flash)","status":"模型已回","visible_in_chat":true,"timeout_ms":20000,"summary":"会话 Agent 已按当前 Provider/Model 配置完成真实模型调用"}]}
+

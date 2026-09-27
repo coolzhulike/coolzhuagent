@@ -1,3 +1,41 @@
+# ============================================================================
+# 本文件的前向基线（2026-09-26 重建，依据见 docs/analysis/.../rpr-execution-blockers.md §B-110）
+#
+# 背景：2026-09-25 18:57 一次 `git add -A` 之后，本文件被**未先查看即覆盖**。
+# 覆盖前的内容已从**本仓库对象库**找回（不可达 blob 7869d60a…，创建于 18:57；
+# 而覆盖发生在 18:58——时序与前缀都吻合）。找回的内容里有一条**全仓**规则
+# `* text=auto eol=lf`，是此前重建时**遗漏**的那一条，现按原文恢复。
+#
+# 规则逐条依据：
+#   `* text=auto eol=lf`        ← 覆盖前原文所有（本次恢复的遗漏规则）
+#   下面 /modules/... 两行       ← 覆盖前原文所有（web-console 内嵌资源用 LF 匹配）
+#   `*.rs/.ps1/.toml/.json/.md` ← 重建时新增（理由见其上方注释；现已成为冗余，
+#                                  但保留：显式声明比依赖 text=auto 的探测更可预期）
+#   `*.png/.ico/.msi/.dll/.exe/.sqlite3 binary` ← 覆盖前原文所有
+#
+# 未做、且本工单明令不做：`git add --renormalize .`、`gc`、`prune`、`reset --hard`、`clean`。
+# 生效性已用 `git check-attr` / `git ls-files --eol` 核对（不把"文件存在"当"规则生效"）。
+# ============================================================================
+
+# 全仓：换行按仓库内字节原样保留。本仓库若干测试用 include_str! 把 **LF 本身**当作被断言对象
+# （例：modules/gui-web/packages/windows-process-guard/src/pipe.rs 的文本钉住断言），
+# 检出时被转成 CRLF 会直接判红；因此统一声明 eol=lf，避免 core.autocrlf 在检出时改写工作区字节。
+* text=auto eol=lf
+
 # web-console 将前端资源以内嵌字符串编译进 Rust，契约测试按 LF 匹配多行片段。
 /modules/gui-web/packages/web-console/src/app.js text eol=lf
 /modules/gui-web/packages/web-console/src/styles.css text eol=lf
+
+# 以下由 RD4（输入安全链 + PKG 完整性 + 安装准备）追加：与上一条同样的理由，
+# 但**显式列出扩展名**，不依赖 `text=auto` 的探测结果（探测受内容启发式影响）。
+*.rs text eol=lf
+*.ps1 text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.png binary
+*.ico binary
+*.msi binary
+*.dll binary
+*.exe binary
+*.sqlite3 binary

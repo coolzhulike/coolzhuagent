@@ -1,0 +1,50 @@
+{
+  "version": "0.2.13",
+  "exit_code": 0,
+  "msi_sha256": "88F84ECB461A8978FCA528849A732A030DE5AAE11699E28ABC8CC0D8B03B4D75",
+  "stopped_pids": [
+    29464,
+    14084
+  ],
+  "userdata_files_before": 51,
+  "userdata_files_after": 51,
+  "userdata_unchanged": true,
+  "binary_checks": [
+    {
+      "path": "COOLZHU-AGENT.exe",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-browser-native-host.exe",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-clawbot-sidecar.exe",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-cli.exe",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-computer-use-check.exe",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-latest-desktop-vision.exe",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-tauri-shell.exe",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-vision-smoke.exe",
+      "match": true
+    },
+    {
+      "path": "bin\\coolzhu-web-console.exe",
+      "match": true
+    }
+  ]
+}

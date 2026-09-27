@@ -1113,6 +1113,7 @@ mod tests {
     };
     use crate::json::JsonValue;
     use crate::sandbox::FilesystemIsolationMode;
+    use crate::test_env::{env_set, ScopedEnv};
     use std::fs;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1124,12 +1125,23 @@ mod tests {
         std::env::temp_dir().join(format!("runtime-config-{nanos}"))
     }
 
-    fn env_lock() -> std::sync::MutexGuard<'static, ()> {
-        crate::test_env_lock()
+    /// 只取本 crate **统一锁**、不改环境的读取侧 guard（P-08 补充隔离）。
+    ///
+    /// 本模块几乎所有用例都经 `ConfigLoader::load()` 读进程环境（`parse_optional_agent_config`
+    /// 末尾的 `CLAW_PROFILE` / `CLAW_CONTEXT_ENGINE` / `CLAW_FAST_MODE` 覆盖段），
+    /// 而写环境的用例（见 `env_overrides_agent_runtime_config`）持同一把锁 —— 读取侧也必须持锁，
+    /// 否则写侧作用域内的测试值会被并发用例读到（实测过：`parses_agent_runtime_config`
+    /// 读到 "bench" 而不是配置里的 "daily-zhipu"）。
+    ///
+    /// 用空目标 [`ScopedEnv`]（令牌式、可嵌套复用）而不是裸 `test_env_lock()`：
+    /// 后者不会登记线程局部持有标记，同线程再建 [`ScopedEnv`] 会二次加锁自锁。
+    fn env_read_lock() -> ScopedEnv {
+        ScopedEnv::new(vec![])
     }
 
     #[test]
     fn rejects_non_object_settings_files() {
+        let _lock = env_read_lock();
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");
@@ -1149,6 +1161,7 @@ mod tests {
 
     #[test]
     fn loads_and_merges_claw_code_config_files_by_precedence() {
+        let _lock = env_read_lock();
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");
@@ -1225,6 +1238,7 @@ mod tests {
 
     #[test]
     fn parses_sandbox_config() {
+        let _lock = env_read_lock();
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");
@@ -1263,6 +1277,7 @@ mod tests {
 
     #[test]
     fn parses_typed_mcp_and_oauth_config() {
+        let _lock = env_read_lock();
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");
@@ -1354,6 +1369,7 @@ mod tests {
 
     #[test]
     fn parses_plugin_config_from_enabled_plugins() {
+        let _lock = env_read_lock();
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");
@@ -1392,6 +1408,7 @@ mod tests {
 
     #[test]
     fn parses_plugin_config() {
+        let _lock = env_read_lock();
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");
@@ -1444,6 +1461,7 @@ mod tests {
 
     #[test]
     fn parses_agent_runtime_config() {
+        let _lock = env_read_lock();
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");
@@ -1473,18 +1491,28 @@ mod tests {
         fs::remove_dir_all(root).expect("cleanup temp dir");
     }
 
+    /// I1（P-08 裁决）：本用例是 `config.rs` 里**唯一**写进程环境变量的点，改用本 crate
+    /// 已有的「统一锁 + RAII guard」，**不新增第二把锁**；产品语义（三个变量如何覆盖配置）不变。
+    ///
+    /// 改前是手写 `set_var(...) → ... → 末尾 remove_var(...)`：一旦用例中途 panic 或提前返回，
+    /// 末尾的清理语句执行不到，测试值就留在**当前测试进程的后续执行**里
+    /// （不是"用户系统环境变量被永久修改"）。而 `ConfigLoader::load()` 末尾正好读这三个变量做覆盖
+    /// （见 `parse_optional_agent_config` 最后的 `profile_override_from_env` /
+    /// `context_engine_override_from_env` / `fast_mode_override_from_env`），
+    /// 于是后续用例会静默读到 "bench"/"minimal"/"true"。
+    /// guard 用 `Option<OsString>` 保存原值，无损区分「原来不存在 / 原来为空串 / 原来有值」。
     #[test]
     fn env_overrides_agent_runtime_config() {
-        let _guard = env_lock();
+        let _env = ScopedEnv::new(vec![
+            env_set("CLAW_PROFILE", "bench"),
+            env_set("CLAW_CONTEXT_ENGINE", "minimal"),
+            env_set("CLAW_FAST_MODE", "true"),
+        ]);
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");
         fs::create_dir_all(cwd.join(".claw")).expect("project config dir");
         fs::create_dir_all(&home).expect("home config dir");
-
-        std::env::set_var("CLAW_PROFILE", "bench");
-        std::env::set_var("CLAW_CONTEXT_ENGINE", "minimal");
-        std::env::set_var("CLAW_FAST_MODE", "true");
 
         let loaded = ConfigLoader::new(&cwd, &home)
             .load()
@@ -1494,14 +1522,94 @@ mod tests {
         assert_eq!(loaded.agent().context_engine(), ContextEngineMode::Minimal);
         assert!(loaded.agent().fast_mode());
 
-        std::env::remove_var("CLAW_PROFILE");
-        std::env::remove_var("CLAW_CONTEXT_ENGINE");
-        std::env::remove_var("CLAW_FAST_MODE");
+        fs::remove_dir_all(root).expect("cleanup temp dir");
+    }
+
+    /// 回归（P-08/I1）：I1 那个作用域必须做到「**提前返回**也恢复三态」，
+    /// 且恢复之后生产读取路径（`ConfigLoader::load()` 末尾的 env 覆盖段）不得再看到作用域内的值。
+    ///
+    /// 判别性：改前是手写 `set_var` + 末尾 `remove_var`；`enter_scope_and_return_early` 里的
+    /// 提前返回**根本走不到**末尾清理语句，于是下面两个断言会失败（本用例就是把这个差异
+    /// 变成可执行断言，而不是只在注释里声称）。
+    /// 断言用"进入作用域前"的实测基线做对照，因此本机环境里本来就设了 CLAW_* 也不会误判。
+    #[test]
+    fn config_env_overrides_restore_on_early_return_and_do_not_leak_into_later_loads() {
+        fn enter_scope_and_return_early(
+            cwd: &std::path::Path,
+            home: &std::path::Path,
+        ) -> (String, ContextEngineMode, bool) {
+            let _env = ScopedEnv::new(vec![
+                env_set("CLAW_PROFILE", "bench"),
+                env_set("CLAW_CONTEXT_ENGINE", "minimal"),
+                env_set("CLAW_FAST_MODE", "true"),
+            ]);
+            let loaded = ConfigLoader::new(cwd, home)
+                .load()
+                .expect("config should load");
+            // 作用域内确实看到测试值 —— 否则下面的"恢复后没有残留"就没有判别力。
+            assert_eq!(loaded.agent().profile(), "bench");
+            // 提前返回（`return`，不是 panic）：末尾没有任何手写恢复语句可依赖。
+            return (
+                loaded.agent().profile().to_string(),
+                loaded.agent().context_engine(),
+                loaded.agent().fast_mode(),
+            );
+        }
+
+        let root = temp_dir();
+        let cwd = root.join("project");
+        let home = root.join("home").join(".claw");
+        fs::create_dir_all(cwd.join(".claw")).expect("project config dir");
+        fs::create_dir_all(&home).expect("home config dir");
+
+        // 全程持本 crate 的统一锁（只占锁、不改环境）：下面的基线读与事后对照读
+        // 都必须排他进行，否则并发的 I1 用例（持同一把锁、正把 CLAW_PROFILE 设成 bench）会让对照失真。
+        // 内层 guard 走嵌套复用令牌，不会二次加锁。
+        let _lock = env_read_lock();
+
+        // 基线：进入作用域前先实测「三态原值」与「生产读取路径的结果」，用于事后对照。
+        let before_profile = std::env::var_os("CLAW_PROFILE");
+        let before_context_engine = std::env::var_os("CLAW_CONTEXT_ENGINE");
+        let before_fast_mode = std::env::var_os("CLAW_FAST_MODE");
+        let baseline = ConfigLoader::new(&cwd, &home).load().expect("baseline load");
+        let baseline_profile = baseline.agent().profile().to_string();
+        let baseline_context_engine = baseline.agent().context_engine();
+        let baseline_fast_mode = baseline.agent().fast_mode();
+
+        let (profile, context_engine, fast_mode) = enter_scope_and_return_early(&cwd, &home);
+        assert_eq!(profile, "bench");
+        assert_eq!(context_engine, ContextEngineMode::Minimal);
+        assert!(fast_mode);
+
+        // 三态还原：三个变量都回到作用域前的原状态（不存在 / 空串 / 有值 均无损）。
+        assert_eq!(
+            std::env::var_os("CLAW_PROFILE"),
+            before_profile,
+            "提前返回后 CLAW_PROFILE 必须三态还原"
+        );
+        assert_eq!(
+            std::env::var_os("CLAW_CONTEXT_ENGINE"),
+            before_context_engine,
+            "提前返回后 CLAW_CONTEXT_ENGINE 必须三态还原"
+        );
+        assert_eq!(
+            std::env::var_os("CLAW_FAST_MODE"),
+            before_fast_mode,
+            "提前返回后 CLAW_FAST_MODE 必须三态还原"
+        );
+
+        // 生产读取路径不得仍读到作用域内写入的测试值。
+        let after = ConfigLoader::new(&cwd, &home).load().expect("load after");
+        assert_eq!(after.agent().profile(), baseline_profile);
+        assert_eq!(after.agent().context_engine(), baseline_context_engine);
+        assert_eq!(after.agent().fast_mode(), baseline_fast_mode);
+
         fs::remove_dir_all(root).expect("cleanup temp dir");
     }
 
     #[test]
     fn rejects_invalid_mcp_server_shapes() {
+        let _lock = env_read_lock();
         let root = temp_dir();
         let cwd = root.join("project");
         let home = root.join("home").join(".claw");

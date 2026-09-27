@@ -130,6 +130,7 @@ let showUiServiceStatus = {
   disabled: false,
 };
 let activeOverviewVisionAgent = null;
+let visionUnderstandingAgents = [];
 let activeWorkspaceKey = "default";
 const CHAT_LAYOUT_STORAGE_PREFIX = "coolzhu.chat.layout.v1.";
 const CHAT_LAYOUT_COMPACT_MEDIA = "(max-width: 980px)";
@@ -192,8 +193,11 @@ let clawbotLoginPollTimer = null;
 let clawbotLoginPollInFlight = false;
 let handoffDrawerOpen = false;
 const CHAT_TOOL_WINDOW_META = Object.freeze({
+  schedules: Object.freeze({ label: "定时任务", kicker: "自动执行", asset: "./assets/icons-wuxia/tasks.svg" }),
+  preview: Object.freeze({ label: "内容预览", kicker: "文件与媒体", asset: "./assets/icons-wuxia/file.svg" }),
+  trace: Object.freeze({ label: "运行轨迹", kicker: "过程记录", asset: "./assets/icons-wuxia/route-plan.svg" }),
   history: Object.freeze({ label: "聊天记录", kicker: "搜索与定位", asset: "./assets/icons-wuxia/search.svg" }),
-  usage: Object.freeze({ label: "Token 用量", kicker: "使用统计", asset: "./assets/icons-wuxia/model-scroll.svg" }),
+  usage: Object.freeze({ label: "统计信息", kicker: "使用统计", asset: "./assets/icons-wuxia/model-scroll.svg" }),
   project: Object.freeze({ label: "工程目录", kicker: "工程工具", asset: "./assets/icons-wuxia/project.svg" }),
   tasks: Object.freeze({ label: "任务中心", kicker: "任务工具", asset: "./assets/icons-wuxia/tasks.svg" }),
   terminal: Object.freeze({ label: "终端", kicker: "开发工具", asset: "./assets/icons-wuxia/terminal.svg" }),
@@ -285,12 +289,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   actionButtons.get("stt-dictate")?.addEventListener("click", sttDictateToggle);
   actionButtons.get("tts-speak")?.addEventListener("click", ttsSpeakLastMessage);
-  actionButtons.get("chat-tool-back")?.addEventListener("click", () => {
-    closeChatToolWindow({ focusChat: false, restoreTab: true, focusReturnTab: true });
-  });
-  actionButtons.get("chat-tool-close")?.addEventListener("click", () => {
-    closeChatToolWindow({ focusChat: true, restoreTab: true });
-  });
+  actionButtons.get("chat-tool-back")?.addEventListener("click", () => window.CoolzhuWorkspacePanels?.home());
+  actionButtons.get("chat-tool-close")?.addEventListener("click", () => window.CoolzhuWorkspacePanels?.home());
   actionButtons.get("allowed-root-add")?.addEventListener("click", allowedRootAdd);
   actionButtons.get("clawbot-refresh")?.addEventListener("click", () => refreshClawbotWindow({ silent: false }));
   actionButtons.get("clawbot-login-refresh")?.addEventListener("click", refreshClawbotLogin);
@@ -449,7 +449,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 视觉理解模型选择：设置窗口与总览共用同一 handler，选中即设为当前视觉理解会话（可随时更换）。
   const onVisionAgentChange = async (event) => {
-    const agentId = event.target.value;
+    const select = event.target;
+    const agentId = select.value;
+    select.disabled = true;
     try {
       await requestJson("/api/config/vision-agent", {
         method: "POST",
@@ -458,8 +460,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       await refreshState();
     } catch (error) {
+      renderVisionAgentSelect(activeOverviewVisionAgent);
       addMessage({ author: "视觉Agent", text: `切换失败：${error.message}`, kind: "thought", icon: "error-log" });
-    }
+    } finally { select.disabled = false; }
   };
   document.querySelector('[data-role="settings-vision-agent"]')?.addEventListener("change", onVisionAgentChange);
   document.querySelector('[data-role="overview-vision-agent"]')?.addEventListener("change", onVisionAgentChange);
@@ -3580,10 +3583,12 @@ function restoreChatLayoutState(workspaceKey = activeWorkspaceKey, options = {})
   chatLayoutState = {
     workspaceKey: key,
     left: chatLayoutPanelState(stored?.left),
-    right: chatLayoutPanelState(stored?.right),
+    // 工作区在启动后异步恢复；首页不重新展开旧版协作栏，主动打开的面板仍保留。
+    right: chatToolWindowId || pendingChatToolWindowRequest ? "open" : "closed",
     focus: stored?.focus === true,
     leftWidth: normalizeChatLayoutWidth("left", stored?.leftWidth, elements),
-    rightWidth: normalizeChatLayoutWidth("right", stored?.rightWidth, elements),
+    // 预览宽度按会话保存；旧工作区布局仅在尚未加载该作用域时作为兜底。
+    rightWidth: normalizeChatLayoutWidth("right", window.CoolzhuWorkspacePanels?.currentWidth() ?? stored?.rightWidth, elements),
     narrowOpen: preservedNarrowOpen,
   };
   applyChatLayoutState({ persist: false, preserveScroll: options.preserveScroll !== false });
@@ -3945,6 +3950,7 @@ function setChatLayoutWidth(side, value, options = {}) {
     return;
   }
   chatLayoutState[`${side}Width`] = normalizeChatLayoutWidth(side, value);
+  if (side === "right" && options.persist !== false) window.CoolzhuWorkspacePanels?.widthChanged(chatLayoutState.rightWidth);
   applyChatLayoutState({
     persist: options.persist !== false,
     preserveScroll: options.preserveScroll !== false,
@@ -4019,6 +4025,7 @@ function beginChatLayoutSeparatorDrag(side, separator, event) {
       // 捕获已自动释放。
     }
     chatLayoutDragCleanup = null;
+    if (side === "right") window.CoolzhuWorkspacePanels?.widthChanged(chatLayoutState.rightWidth);
     persistChatLayoutState();
     scheduleChatMessageScrollRestore(anchor);
   };
@@ -4081,6 +4088,7 @@ function initializeChatLayout() {
     persistChatLayoutState();
   });
   restoreChatLayoutState(activeWorkspaceKey, { preserveScroll: false });
+  if (!pendingChatToolWindowRequest) { chatLayoutState.right = "closed"; applyChatLayoutState({persist:false,preserveScroll:true}); }
   flushPendingChatToolWindowRequest();
 }
 
@@ -7915,9 +7923,13 @@ function taskRenderAuditSummary(entries = []) {
 
 async function refreshState() {
   try {
-    const state = await requestJson("/api/state");
+    const [state, vision] = await Promise.all([
+      requestJson("/api/state"), requestJson("/api/agents/understanding"),
+    ]);
     setText("overview.activeAgentCount", String(state.overview?.active_agent_count ?? 0));
-    activeOverviewVisionAgent = state.overview?.vision_agent ?? null;
+    // 下拉框只反映实际保存的视觉配置，候选能力由后端按会话参数解析。
+    visionUnderstandingAgents = (vision.agents || []).map(agent => ({...agent, id:agent.session_id}));
+    activeOverviewVisionAgent = visionUnderstandingAgents.find(agent => agent.id === vision.active_session_id) || null;
     renderVisionAgentSelect(activeOverviewVisionAgent);
     setText("overview.chatRoomCount", String(state.overview?.chat_room_count ?? 0));
     updateActiveWorkspaceKey(composerDraftWorkspaceKey(state.workspace));
@@ -7978,14 +7990,204 @@ async function refreshSystemInfo() {
     setSystemInfoText("system-port", info.port ? `:${info.port}` : "—");
     setSystemInfoText("system-build", info.build_version);
     setSystemInfoText("system-sessions", `${info.active_sessions ?? 0} 个`);
+    await refreshAttributionAndRecovery();
     setOverviewWorkspaceName(info.workspace);
   } catch (error) {
     setSystemInfoText("system-workspace", "后端未连接", error.message);
     setSystemInfoText("system-port", "—");
     setSystemInfoText("system-build", "—");
     setSystemInfoText("system-sessions", "—");
+    setSystemInfoText("system-attribution", "—");
     setSystemConnectionState("error", "未连接", `本地后端未连接：${error.message}`);
     setOverviewWorkspaceName("");
+  }
+}
+
+// RD4-05：归属／恢复呈现。三类“未确认”状态必须**如实**显示，不得显示成已完成：
+// - 历史归属未记录（迁移前写入的运行，本就不会被补值）；
+// - 遗留运行待收敛（收敛需先满足恢复前置条件）；
+// - 非终态运行行：**它不等于提交失败**——正在执行的轮次也在这里；只有“执行已结束但终态提交失败”时
+//   才会以这种形式残留，且不会被报成已完成（恢复走既有 orphan 收敛）。
+async function refreshAttributionAndRecovery() {
+  try {
+    const surface = await requestJson("/api/system/attribution-and-recovery");
+    setSystemInfoText(
+      "system-attribution",
+      describeAttributionAndRecovery(surface),
+      attributionDetailText(surface)
+    );
+    syncReleaseIsolationButton(surface?.input_safety_recovery);
+    bindComputerUseRunsButton();
+  } catch (error) {
+    setSystemInfoText("system-attribution", "归属状态未知", error.message);
+    syncReleaseIsolationButton(null);
+  }
+}
+
+function describeAttributionAndRecovery(surface) {
+  const state = String(surface?.computer_use_store_state || "");
+  if (state === "not-initialized") return "归属存储未初始化";
+  if (state === "unreadable") return "归属存储不可读";
+  const legacy = Number(surface?.legacy_unconverged_runs ?? 0);
+  const intents = Number(surface?.pending_convergence_intents ?? 0);
+  const live = Array.isArray(surface?.live_runtime_runs) ? surface.live_runtime_runs.length : 0;
+  return (
+    `历史归属未记录待收敛 ${legacy} · 收敛待对账 ${intents} · 非终态运行行 ${live}` +
+    describeInputSafetyRecovery(surface?.input_safety_recovery)
+  );
+}
+
+// 输入安全恢复（PR-01／P0-1）：把“还在办（待对账）”“在等人（待人工复核）”“真的挡路
+// （未获放行的阻断／未获接受的遗留运行）”**分开**报。合并成一个“待处理 N”会掩盖到底在等谁——
+// 那正是“一个无法判定的遗留运行导致永久隔离”长期不被发现的原因（台账 §B-80）。
+function describeInputSafetyRecovery(safety) {
+  if (!safety) return "";
+  if (safety.unavailable) {
+    return " · 输入安全库不可读（不代表没有待办）";
+  }
+  const pending = Number(safety.pending_recovery_operations ?? 0);
+  const human = Number(safety.human_review_required ?? 0);
+  const blocks = Number(safety.unacknowledged_open_blocks ?? 0);
+  const runs = Number(safety.unacknowledged_legacy_runs ?? 0);
+  return ` · 待对账恢复 ${pending} · 待人工复核 ${human} · 未获放行阻断 ${blocks} · 待收敛遗留 ${runs}`;
+}
+
+// 只有“真的挡路”的项才需要放行；纯 pending（还在办）不该提示人工介入。
+function inputSafetyNeedsRelease(safety) {
+  if (!safety || safety.unavailable) return false;
+  return (
+    Number(safety.unacknowledged_open_blocks ?? 0) > 0 ||
+    Number(safety.unacknowledged_legacy_runs ?? 0) > 0
+  );
+}
+
+function syncReleaseIsolationButton(safety) {
+  const button = document.querySelector('[data-role="release-isolation"]');
+  if (!button) return;
+  const needed = inputSafetyNeedsRelease(safety);
+  button.hidden = !needed;
+  button.onclick = needed ? () => void releaseInputIsolation() : null;
+}
+
+// 人工恢复只收理由；确认和身份由可信桌面宿主产生，网页不持有证明或自报责任人。
+async function releaseInputIsolation() {
+  const invoke = tauriInvoke();
+  if (!invoke) {
+    window.alert("请从 CoolzhuAgent 桌面窗口进行输入安全恢复。普通浏览器不能代替原生人工确认。");
+    return;
+  }
+  const button = document.querySelector('[data-role="release-isolation"]');
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+  try {
+    const surface = await requestJson("/api/system/attribution-and-recovery");
+    const safety = surface?.input_safety_recovery;
+    if (!inputSafetyNeedsRelease(safety)) {
+      window.alert("当前没有需要人工接受的阻断或遗留运行；待对账、待复核不等同于已允许输入。");
+      return;
+    }
+    const reason = (window.prompt("恢复理由（写清已核查的依据；下一步由桌面原生窗口确认）", "") || "").trim();
+    if (!reason) return;
+    const challenge = await requestJson("/api/system/recovery-challenge", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reason, evidence_refs: [],
+        acknowledged_block_ids: safety.unacknowledged_block_ids || [],
+        acknowledged_run_ids: safety.unacknowledged_run_ids || [],
+      }),
+    });
+    if (!challenge.native_available || !challenge.challenge_id) {
+      throw new Error(challenge.native_unavailable_reason || "可信桌面确认尚未就绪，输入保持隔离。");
+    }
+    const result = await invoke("confirm_recovery", { challengeId: challenge.challenge_id });
+    window.alert(`已记录人工决定 ${result.decision_id || ""}\n结果：${result.outcome || "等待机器重新评估"}\n${result.message || "人工决定不等于已经解除输入隔离。"}`);
+  } catch (error) {
+    window.alert(`恢复未完成：${error?.message || error}\n当前输入状态以机器重新评估结果为准。`);
+  } finally {
+    if (button) button.disabled = false;
+    await refreshAttributionAndRecovery();
+  }
+}
+
+function attributionDetailText(surface) {
+  const note = String(surface?.recovery_entry_note || "").trim();
+  const base =
+    "非终态运行行包含正在执行的轮次；“执行已结束但终态提交失败”时该轮会残留在这里，" +
+    "不会被报成已完成。历史归属未记录是迁移前的真实缺口，不会被补值。" +
+    "输入安全恢复分三态：待对账（还在办）／待人工复核（等人）／未获放行的阻断（真的挡路，可由人工放行解除）。" +
+    "人工决定由桌面原生确认记录可信身份与理由，不删除事故记录、不重置安全库；是否开放输入仍由机器重新评估。";
+  const safety = surface?.input_safety_recovery;
+  const release = safety?.latest_release
+    ? `最近放行：${safety.latest_release.operator}（epoch ${safety.latest_release.release_epoch}）`
+    : "尚无人工放行记录。";
+  const body = `${base}
+${release}`;
+  return note ? `${body}
+${note}` : body;
+}
+
+// CU-01 的 UI 落列：列出最近的 CU 运行及其事实摘要。
+//
+// 为什么要有它：单个运行的报告要 call_id，而界面此前没有「选一个运行」的位置。
+// 这里把列表与每条的事实摘要（每步输入状态计数／统一计数／基线是否成对／未确认释放事故数）
+// 一次说清；**不谎报**——库不可读时如实说，而不是给一份空列表。
+async function showComputerUseRuns() {
+  let payload;
+  try {
+    payload = await requestJson("/api/computer-use/runs?limit=20");
+  } catch (error) {
+    addMessage({
+      author: "Computer Use 运行",
+      text: `读取运行列表失败：${error.message}`,
+      kind: "thought",
+      icon: "monitor-on",
+    });
+    return;
+  }
+  if (payload?.unavailable) {
+    addMessage({
+      author: "Computer Use 运行",
+      text: `运行库不可用：${payload.unavailable}`,
+      kind: "thought",
+      icon: "monitor-on",
+    });
+    return;
+  }
+  const runs = Array.isArray(payload?.runs) ? payload.runs : [];
+  if (runs.length === 0) {
+    addMessage({
+      author: "Computer Use 运行",
+      text: "还没有 Computer Use 运行记录。",
+      kind: "bot",
+      icon: "monitor-on",
+    });
+    return;
+  }
+  const lines = runs.map((run) => {
+    const statuses = run.step_status_counts || {};
+    const statusText = ["complete", "partial", "unknown", "none"]
+      .map((key) => `${key}:${Number(statuses[key] || 0)}`)
+      .join(" ");
+    const evidence = `基线${run.has_baseline ? "有" : "无"}/末帧${run.has_final_frame ? "有" : "无"}`;
+    return (
+      `· ${run.call_id}（${run.state}）` +
+      ` 尝试${run.attempts} 已发送${run.input_sent} 部分${run.partial_input} 验收通过${run.verified_steps}` +
+      ` ｜ 每步 ${statusText} ｜ ${evidence} ｜ 未确认释放事故 ${run.cleanup_incidents}`
+    );
+  });
+  addMessage({
+    author: "Computer Use 运行",
+    text: `最近 ${runs.length} 次运行（部分／未知都**不会**算作完成，也不会自动重放）：
+${lines.join("\n")}`,
+    kind: "bot",
+    icon: "monitor-on",
+  });
+}
+
+function bindComputerUseRunsButton() {
+  const button = document.querySelector('[data-role="cu-runs"]');
+  if (button) {
+    button.onclick = () => void showComputerUseRuns();
   }
 }
 
@@ -8103,25 +8305,20 @@ function renderVisionAgentSelect(activeVisionAgent) {
     document.querySelector('[data-role="overview-vision-agent"]'),
   ].filter(Boolean);
   if (!selects.length) return;
-  const sessions = sessionRegistry?.sessions || [];
   selects.forEach((select) => {
     select.replaceChildren();
     const noneOpt = document.createElement("option");
     noneOpt.value = "";
-    noneOpt.textContent = "未配置";
+    noneOpt.textContent = "未配置 · 请选择视觉模型";
     select.append(noneOpt);
-    sessions.forEach((session) => {
-      const mt = session.model_type || MODEL_TYPE_MAP[session.model] || "text";
-      // coolzhu 本地模型（Gemma 4 12B，端口 8082）是多模态，纳入视觉理解候选。
-      const isLocalModel = `${session.base_url || ""}${session.endpoint || ""}`.includes(":8082");
-      if (mt === "vision" || mt === "multimodal" || mt === "video" || isLocalModel) {
-        const opt = document.createElement("option");
-        opt.value = session.id;
-        opt.textContent = session.display_name || session.name;
-        select.append(opt);
-      }
+    visionUnderstandingAgents.forEach((session) => {
+      const opt = document.createElement("option");
+      opt.value = session.id;
+      opt.textContent = session.display_name || session.name || session.id;
+      select.append(opt);
     });
-    select.value = activeVisionAgent?.id || "";
+    const configured = activeVisionAgent?.id || "";
+    select.value = visionUnderstandingAgents.some(session => session.id === configured) ? configured : "";
   });
 }
 
@@ -8264,6 +8461,7 @@ function resetWorkspaceBoundUiState(workspace) {
   activeChatRoomId = null;
   clearStaleApprovalForActiveScope();
   activeOverviewVisionAgent = null;
+  visionUnderstandingAgents = [];
   taskFullAccessStatus = { full_access: false, permission_profile: "workspace-write" };
   selectedProjectPath = "";
   projectTreeRoot = null;
@@ -8636,6 +8834,7 @@ async function loadSessions() {
 }
 
 function syncActiveSessionSummary(session) {
+  window.CoolzhuWorkspacePanels?.scopeChanged();
   if (!session) {
     setText("session.active", "暂无会话");
     setText("agent.current", "暂无会话");
@@ -9776,7 +9975,8 @@ function browserWindowClassifyTarget(url) {
     return "iframePreview";
   }
   if (/^https?:/i.test(value)) {
-    return browserWindowIsLoopback(value) ? "iframePreview" : "systemBrowser";
+    if (!browserWindowIsLoopback(value) && window.CoolzhuNativeBrowserPanel?.available()) return "nativePanel";
+    return "iframePreview";
   }
   return "iframePreview";
 }
@@ -9852,6 +10052,15 @@ async function browserWindowOpenSystem(url) {
 }
 
 const browserHosts = {
+  nativePanel: {
+    open: url => window.CoolzhuNativeBrowserPanel.navigate(url),
+    navigate: url => window.CoolzhuNativeBrowserPanel.navigate(url),
+    back: () => window.CoolzhuNativeBrowserPanel.back(),
+    forward: () => window.CoolzhuNativeBrowserPanel.forward(),
+    reload: () => window.CoolzhuNativeBrowserPanel.reload(),
+    stop: () => window.CoolzhuNativeBrowserPanel.stop(),
+    close: () => window.CoolzhuNativeBrowserPanel.close(),
+  },
   iframePreview: {
     async open(url) {
       return this.navigate(url);
@@ -10024,7 +10233,7 @@ async function browserWindowNavigate() {
   browserWindowUpdateNavigationControls();
   try {
     const result = await browserHosts[activeBrowserHostName].navigate(url);
-    if (result?.opened && result.opened !== "iframe") {
+    if (result?.opened && !["iframe", "nativePanel", "blocked"].includes(result.opened)) {
       browserWindowSetStatus(`已用${browserOpenedHowLabel(result.opened)}打开：${url}`);
     }
   } catch (error) {
@@ -10062,6 +10271,7 @@ function browserWindowStop() {
 }
 
 async function browserWindowOpenExternal() {
+  await window.CoolzhuNativeBrowserPanel?.close();
   const input = document.querySelector('[data-role="browser-window-input"]');
   const frame = document.querySelector('[data-role="browser-window-frame"]');
   const status = document.querySelector('[data-role="browser-window-status"]');
@@ -10145,7 +10355,7 @@ async function runBrowserBridgeDiagnostic(action, button) {
   }
 }
 
-// Static contract sample: browserWindowClassifyTarget("https://www.baidu.com") === "systemBrowser";
+// 外站先尝试当前内容宿主；受站点嵌入策略限制时明确显示原因。
 // Static contract sample: browserWindowClassifyTarget("http://127.0.0.1:8765/health") === "iframePreview";
 
 function terminalWindowOutcomeText(outcome = {}, pendingCallId = "") {
@@ -10512,6 +10722,7 @@ function openChatToolWindow(windowId, options = {}) {
     chatLayoutState.narrowOpen = chatLayoutIsNarrow() ? "right" : null;
     applyChatLayoutState({ persist: true, preserveScroll: true });
     setChatToolHostMeta(windowId);
+    window.CoolzhuWorkspacePanels?.panelOpened();
     setChatRightRailTab("tools", { internal: true });
     if (options.focus !== false) {
       focusChatToolWindow();
@@ -10555,6 +10766,7 @@ function openChatToolWindow(windowId, options = {}) {
   });
   node.classList.add("is-active");
   chatToolWindowId = windowId;
+  window.CoolzhuWorkspacePanels?.panelOpened();
   workbench.dataset.activeWindow = "chat";
   workbench.dataset.activeTool = windowId;
   workbench.classList.remove("is-folded");
@@ -10583,6 +10795,7 @@ function openChatToolWindow(windowId, options = {}) {
 }
 
 function closeChatToolWindow(options = {}) {
+  window.CoolzhuWorkspacePanels?.beforeClose(chatToolWindowId);
   const node = chatToolWindowId ? chatToolWindowNode(chatToolWindowId) : null;
   const returnTab = chatToolReturnTab;
   if (node) {
@@ -13017,7 +13230,7 @@ async function loadToolsCatalog() {
 
 // 「计划配置」入口：切换到任务窗口并展开模块自检列的「调度诊断」折叠卡。
 function openDispatchDiagnostics() {
-  document.querySelector('[data-window-target="tasks"]')?.click();
+  openChatToolWindow("tasks");
   const card = document.querySelector('[data-role="dispatch-diagnostic"]');
   if (card) {
     card.open = true;
@@ -14523,7 +14736,9 @@ async function pollLocalModelsMode(requestedMode, initialStatus = null) {
   while (Date.now() < deadline) {
     const host = document.querySelector('[data-role="local-models"]');
     status = await requestJson("/api/local-models/status");
-    if (requestedMode === "off" || status.active_mode === requestedMode) {
+    // `off` **不是**"立即完成"：它是目标状态，不证明排空通过。必须等后端把它如实呈现为
+    // 当前模式（`shutdown_incomplete` 时后端根本不会关闭，因此这里也就等不到 off）。
+    if (status.active_mode === requestedMode) {
       await renderLocalModelsSwitch(status);
       return status;
     }
@@ -14654,6 +14869,15 @@ async function renderLocalModelsSwitch(prefetchedStatus = null) {
           body: JSON.stringify({ mode }),
         });
         await renderLocalModelsSwitch(switched);
+        if (switched && switched.outcome === "shutdown_incomplete") {
+          // 排空未确认 ⇒ 后端**没有**执行关闭/切换：不得继续按目标状态等待或显示 off。
+          appendLocalModelsMessage(
+            document.querySelector('[data-role="local-models"]'),
+            `${switched.message || "关闭/切换未完成"}（ShutdownIncomplete：未执行关闭，当前仍为 ${localModeLabel(switched.active_mode)}）`,
+            true,
+          );
+          return;
+        }
         await pollLocalModelsMode(mode, switched);
       } catch (error) {
         await renderLocalModelsSwitch();
@@ -14874,7 +15098,7 @@ function renderToolDetail(item, source = "catalog") {
     box.append(noteList);
   }
 
-  // 上下文成本估算 + 本地源加载状态。远程 marketplace 下载尚未实现，不在这里承诺安装。
+  // 上下文成本估算 + 本地目录扫描状态。远程 marketplace 下载尚未实现，不在这里承诺安装或加载。
   const costLine = document.createElement("div");
   costLine.className = "tool-detail-cost";
   costLine.textContent = `上下文成本估算：约 ${estimateContextCost(item)} 词元`;
@@ -14914,41 +15138,10 @@ function renderToolLoadStatusBox(item) {
   localStatus.className = "tool-will-install";
   const childCount = (item.children || []).length;
   localStatus.textContent = childCount
-    ? `本地源已发现：${childCount} 个子工具。此操作只确认加载状态，不下载或远程安装。`
-    : "本地源已发现。此操作只确认加载状态，不下载或远程安装。";
+    ? `本地源已发现：${childCount} 个子工具。目录扫描不等于运行时已加载；当前未提供安装或加载操作。`
+    : "本地源已发现。目录扫描不等于运行时已加载；当前未提供安装或加载操作。";
   statusBox.append(localStatus);
-
-  const confirmButton = document.createElement("button");
-  confirmButton.type = "button";
-  confirmButton.className = "mini-button tool-install-btn";
-  confirmButton.textContent = "确认已加载";
-  confirmButton.addEventListener("click", () => confirmCatalogItemLoaded(item, statusBox, confirmButton));
-  statusBox.append(confirmButton);
   return statusBox;
-}
-
-async function confirmCatalogItemLoaded(item, statusBox, button) {
-  setBusy(button, true, "查询中");
-  try {
-    const response = await fetch("/api/plugins/install", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id: item.id, category_id: item.category_id || "", scope: "local" }),
-    });
-    const data = await response.json().catch(() => ({}));
-    statusBox.querySelectorAll(".tool-install-result").forEach((node) => node.remove());
-    const note = document.createElement("div");
-    note.className = response.ok ? "tool-install-result" : "tool-install-result is-error";
-    note.textContent = data.message || (response.ok ? "本地加载状态已确认。" : `查询失败：HTTP ${response.status}`);
-    statusBox.append(note);
-  } catch (error) {
-    const note = document.createElement("div");
-    note.className = "tool-install-result is-error";
-    note.textContent = `加载状态查询失败：${error && error.message ? error.message : error}`;
-    statusBox.append(note);
-  } finally {
-    setBusy(button, false);
-  }
 }
 
 function onToolCatalogClick(event) {
@@ -17464,6 +17657,25 @@ async function loadIdeDiffFiles(left, right) {
 }
 
 function initializeWorkbenchWindows() {
+  window.CoolzhuNativeBrowserPanel?.init({
+    scope: () => ({workspace:activeWorkspaceKey,room:activeChatRoomId}),
+    frame: () => browserWindowElements().frame,
+    active: () => chatToolWindowId === "browser",
+    status: browserWindowSetStatus,
+    url: url => { const {input,frame} = browserWindowElements(); if (input) input.value = url; if (frame) frame.dataset.currentUrl = url; window.CoolzhuWorkspacePanels?.browserLocation(url); },
+  });
+  window.CoolzhuWorkspacePanels?.init({
+    scope: () => ({ workspace: activeWorkspaceKey, room: activeChatRoomId, session: activeSessionId }),
+    defaultWidth: CHAT_LAYOUT_DEFAULT_WIDTHS.right,
+    setWidth: width => setChatLayoutWidth("right", width, {persist:false,preserveScroll:true}),
+    active: () => chatToolWindowId,
+    open: id => openChatToolWindow(id),
+    close: () => closeChatToolWindow({ focusChat: true, restoreTab: false, restoreLayout: false, discardLayoutSnapshot: true }),
+    collapse: () => { chatLayoutState.right = "closed"; chatLayoutState.narrowOpen = null; applyChatLayoutState({persist:true,preserveScroll:true}); },
+    refreshSchedules: () => refreshTaskSchedules(),
+    refreshWechat: () => refreshClawbotWindow({silent:false}),
+    openBrowser: async url => { openChatToolWindow("browser"); const input = document.querySelector('[data-role="browser-window-input"]'); if (input) input.value = url; await browserWindowNavigate(); },
+  });
   const workbench = document.querySelector('[data-role="workbench"]');
   if (!workbench) {
     return;
@@ -17475,7 +17687,6 @@ function initializeWorkbenchWindows() {
   const tabs = Array.from(document.querySelectorAll("[data-window-target]"));
   const windows = Array.from(document.querySelectorAll("[data-window-id]"));
   const chatQuickLayoutControls = workbench.querySelector('[data-role="chat-quick-layout-controls"]');
-  const windowDockMore = workbench.querySelector('[data-role="window-dock-more"]');
   const requestedWindow = new URLSearchParams(location.search).get("window");
   const requestedFocus = new URLSearchParams(location.search).get("focus");
   const validWindows = new Set(windows.map((windowNode) => windowNode.dataset.windowId).filter(Boolean));
@@ -17490,48 +17701,12 @@ function initializeWorkbenchWindows() {
   if (chatQuickLayoutControls) {
     chatQuickLayoutControls.hidden = false;
   }
-  if (windowDockMore && !requestedToolWindow) {
-    windowDockMore.open = false;
-  }
-  if (windowDockMore) {
-    const windowDockMoreSummary = windowDockMore.querySelector("summary");
-    windowDockMoreSummary?.addEventListener("keydown", (event) => {
-      if (event.key !== "Tab" || event.shiftKey || !windowDockMore.open) {
-        return;
-      }
-      const firstMenuButton = Array.from(
-        windowDockMore.querySelectorAll(".window-dock-secondary [data-window-target]:not([disabled])"),
-      ).find((button) => !button.hidden && button.getClientRects().length > 0);
-      if (!firstMenuButton) {
-        return;
-      }
-      event.preventDefault();
-      firstMenuButton.focus({ preventScroll: true });
-    });
-  }
   windows.forEach((windowNode) => {
     windowNode.classList.toggle("is-active", windowNode.dataset.windowId === "chat");
   });
   updateWorkbenchToolDock("chat");
 
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.windowTarget;
-      if (target === "chat") {
-        closeChatToolWindow({ focusChat: true, restoreTab: true });
-      } else {
-        openChatToolWindow(target);
-      }
-    });
-    tab.addEventListener("dblclick", () => {
-      const target = tab.dataset.windowTarget;
-      if (target === "chat") {
-        closeChatToolWindow({ focusChat: true, restoreTab: true });
-      } else {
-        openChatToolWindow(target);
-      }
-    });
-  });
+  tabs.forEach(tab => tab.addEventListener("click", () => window.CoolzhuWorkspacePanels?.navigate(tab.dataset.windowTarget)));
 
   if (requestedToolWindow) {
     queueChatToolWindowRequest(requestedToolWindow);
@@ -17813,78 +17988,21 @@ function setSendButtonRunning(running) {
   button.setAttribute("aria-label", running ? "中止当前回复；服务端将停止后续模型轮次、工具派发与后续写回" : button.dataset.label);
 }
 
-// 异步视频：pending 消息按内嵌 task_id 轮询 /api/videos/{task_id}，完成后把消息替换为视频。
-const videoPollingTasks = new Set();
+// 视频状态与停止等待由独立模块管理，后端状态仍为唯一事实来源。
 function scheduleVideoPolling(messageId) {
-  if (!messageId || videoPollingTasks.has(messageId)) return;
-  videoPollingTasks.add(messageId);
-  const startedAt = Date.now();
-  let attempts = 0;
-  const maxAttempts = 260; // 260 * 5s ≈ 21 分钟，略大于后端轮询上限
-  const stop = (timer) => {
-    clearInterval(timer);
-    videoPollingTasks.delete(messageId);
-  };
-  const tick = async (timer) => {
-    attempts += 1;
-    if (attempts > maxAttempts) {
-      stop(timer);
-      videoRuntimeTasks.delete(messageId);
-      refreshVideoTaskCard();
-      return;
-    }
-    let data;
-    try {
-      const resp = await fetch(`/api/videos/${encodeURIComponent(messageId)}`);
-      if (!resp.ok) return;
-      data = await resp.json();
-    } catch {
-      return;
-    }
-    if (!data) return;
-    // 遗留中断任务：job 已丢失（app 重启）→ 停止轮询、移出任务卡片、消息不再停留"生成中"。
-    if (data.status === "unknown") {
-      stop(timer);
-      videoRuntimeTasks.delete(messageId);
-      refreshVideoTaskCard();
-      const article = chatMessageList()?.querySelector(`[data-message-id="${CSS.escape(messageId)}"]`);
-      const contentEl = article?.querySelector('[data-role="message-content"]');
-      if (contentEl && /生成中/.test(contentEl.textContent || "")) {
-        renderRichText(contentEl, "（视频生成任务已中断，请重新发起）");
-      }
-      return;
-    }
-    // 更新任务卡片：视频任务进度 + 等待时长（用后端 created_at 折算，跨刷新仍准确）。
-    const elapsedStart = Number(data.elapsed_ms) > 0 ? Date.now() - Number(data.elapsed_ms) : startedAt;
-    const progress = Math.max(0, Math.min(100, Number(data.progress) || 0));
-    const cardStatus = data.status === "completed" ? "完成" : (data.status === "failed" ? "失败" : "运行中");
-    videoRuntimeTasks.set(messageId, {
-      id: `video-${messageId}`,
-      owner_agent: "视频生成",
-      executor_agent: "视频生成",
-      status: cardStatus,
-      summary: data.status === "failed"
-        ? `视频生成失败：${compactGoalText(data.error || "未知错误", 40)}`
-        : (data.status === "completed" ? "视频生成完成" : `视频生成中 ${progress}%`),
-      startedAt: elapsedStart,
-      timeout_ms: 0,
-    });
-    refreshVideoTaskCard();
-    if (data.status === "completed" && data.url) {
-      stop(timer);
-      applyVideoToMessage(messageId, data.url);
-      // 完成态短暂保留后从任务卡片移除（不遗留）。
-      window.setTimeout(() => { videoRuntimeTasks.delete(messageId); refreshVideoTaskCard(); }, 4000);
-    } else if (data.status === "failed") {
-      stop(timer);
-      const article = chatMessageList()?.querySelector(`[data-message-id="${CSS.escape(messageId)}"]`);
-      const contentEl = article?.querySelector('[data-role="message-content"]');
-      if (contentEl) renderRichText(contentEl, `视频生成失败：${data.error || "未知错误"}`);
-      window.setTimeout(() => { videoRuntimeTasks.delete(messageId); refreshVideoTaskCard(); }, 6000);
-    }
-  };
-  const timer = setInterval(() => tick(timer), 5000);
-  tick(timer); // 立即第一次轮询，不等首个 5s
+  window.CoolzhuVideoWait?.start(messageId, {
+    scope: () => ({workspace:activeWorkspaceKey,room:activeChatRoomId}),
+    matches: scope => scope.workspace === activeWorkspaceKey && scope.room === activeChatRoomId,
+    article: id => chatMessageList()?.querySelector(`[data-message-id="${CSS.escape(id)}"]`),
+    content: (id,text) => {
+      const article = chatMessageList()?.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
+      const content = article?.querySelector('[data-role="message-content"]');
+      if (content) renderRichText(content,text);
+    },
+    completed: applyVideoToMessage,
+    task: (id,value) => { videoRuntimeTasks.set(id,value); refreshVideoTaskCard(); },
+    clearTask: id => { videoRuntimeTasks.delete(id); refreshVideoTaskCard(); },
+  });
 }
 
 function applyVideoToMessage(messageId, url) {
@@ -18081,7 +18199,7 @@ function richTextNodes(text) {
 }
 
 function appendInlineRichText(parent, text) {
-  const pattern = /(!?\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))|(https?:\/\/[^\s<>"')]+)|(`[^`]+`)|(\*\*[^*]+\*\*)/g;
+  const pattern = /(!?\[([^\]]+)\]\((<[^>]+>|[^)\r\n]+)\))|(https?:\/\/[^\s<>"')]+)|(`[^`]+`)|(\*\*[^*]+\*\*)/g;
   let lastIndex = 0;
   for (const match of text.matchAll(pattern)) {
     if (match.index > lastIndex) {
@@ -18090,7 +18208,7 @@ function appendInlineRichText(parent, text) {
     if (match[1]) {
       const isImage = match[1].startsWith("!");
       const label = match[2];
-      const url = cleanupUrl(match[3]);
+      const url = cleanupUrl(match[3].replace(/^<|>$/g, ""));
       const attachmentKind = attachmentKindForUrl(url, { forceImage: isImage });
       if (attachmentKind) {
         appendRichMedia(parent, url, label || url, attachmentKind);
@@ -18122,18 +18240,18 @@ function appendInlineRichText(parent, text) {
 }
 
 function appendRichMedia(parent, url, label, kind) {
+  const ref = window.CoolzhuContentPreview?.reference(url, label, `${kind}/*`);
+  if (!ref) { parent.append(document.createTextNode(label || url)); return; }
   if (kind === "audio") {
     parent.append(richAudioNode(url, label));
     return;
   }
-  // 图片/视频也内联渲染（与附件区 renderAttachments 同款），仅对 http/https/blob/file 安全协议。
-  const parsed = safeUrl(url);
-  const canInline = parsed && ["http:", "https:", "blob:", "file:"].includes(parsed.protocol);
-  if (canInline && kind === "image") {
+  // 本地引用通过工程内容接口，不让浏览器把相对文件路径误当静态页面地址。
+  if (kind === "image") {
     parent.append(richImageNode(url, label));
     return;
   }
-  if (canInline && kind === "video") {
+  if (kind === "video") {
     parent.append(richVideoNode(url, label));
     return;
   }
@@ -18142,12 +18260,27 @@ function appendRichMedia(parent, url, label, kind) {
   parent.append(link);
 }
 
+function chatMediaSource(url, kind) {
+  const ref = window.CoolzhuContentPreview?.reference(url, "", `${kind}/*`);
+  return ref?.file ? `/api/project/file/content?path=${encodeURIComponent(ref.locator)}` : ref?.locator || "";
+}
+
+function chatMediaPreviewButton(url, label, kind) {
+  const button = document.createElement("button");
+  button.type = "button"; button.className = "chat-media-preview-button";
+  button.dataset.contentRef = url; button.dataset.contentLabel = label;
+  button.dataset.contentMime = `${kind}/*`;
+  button.setAttribute("aria-label", `在侧栏查看${kind === "image" ? "图片" : "视频"}：${label}`);
+  button.title = button.getAttribute("aria-label");
+  return button;
+}
+
 function richAudioNode(url, label) {
   const frame = document.createElement("span");
   frame.className = "rich-media-frame is-audio";
   const audio = document.createElement("audio");
   audio.className = "rich-media-control";
-  audio.src = url;
+  audio.src = chatMediaSource(url, "audio");
   audio.controls = true;
   audio.preload = "metadata";
   frame.append(audio, richLinkNode(url, label || "打开音频"));
@@ -18159,35 +18292,41 @@ function richImageNode(url, label) {
   frame.className = "rich-media-frame is-image";
   const image = document.createElement("img");
   image.className = "rich-media-control";
-  image.src = url;
+  image.src = chatMediaSource(url, "image");
   image.alt = label || "图片";
   image.loading = "lazy";
   const link = richLinkNode(url, label || "打开图片");
+  const preview = chatMediaPreviewButton(url, label || "图片", "image");
+  preview.append(image);
   // 图片加载失败时回退为纯链接，避免破图。
   image.addEventListener("error", () => {
     frame.classList.add("is-failed");
-    image.remove();
+    preview.remove();
   });
-  frame.append(image, link);
+  frame.append(preview, link);
   return frame;
+}
+
+function chatVideoReference(url, label) {
+  const preview = chatMediaPreviewButton(url, label || "视频", "video");
+  preview.classList.add("is-video-reference");
+  const icon = document.createElement("span"); icon.className = "chat-video-reference-icon";
+  icon.textContent = "▷"; icon.setAttribute("aria-hidden", "true");
+  const name = document.createElement("span"); name.textContent = label || "视频";
+  preview.append(icon, name); return preview;
 }
 
 function richVideoNode(url, label) {
   const frame = document.createElement("span");
   frame.className = "rich-media-frame is-video";
-  const video = document.createElement("video");
-  video.className = "rich-media-control";
-  video.src = url;
-  video.controls = true;
-  video.playsInline = true;
-  video.preload = "metadata"; // 仅取元数据，不自动下载全片，也不自动播放
-  frame.append(video, richLinkNode(url, label || "打开视频"));
+  frame.append(chatVideoReference(url, label || "视频"));
   return frame;
 }
 
 function richLinkNode(url, label) {
-  const link = document.createElement("a");
-  link.href = url;
+  const ref = window.CoolzhuContentPreview?.reference(url, label);
+  const link = document.createElement(ref ? "a" : "span");
+  if (ref) { link.href = ref.file ? "#" : ref.locator; link.dataset.contentRef = ref.locator; link.dataset.contentLabel = label; }
   link.target = "_blank";
   link.rel = "noreferrer noopener";
   link.textContent = label;
@@ -18209,7 +18348,7 @@ function renderAttachments(container, attachments = []) {
       frame.className = "attachment-media-frame";
       const audio = document.createElement("audio");
       audio.className = "attachment-preview";
-      audio.src = url;
+      audio.src = chatMediaSource(url, "audio");
       audio.controls = true;
       audio.preload = "metadata";
       frame.append(audio, attachmentLink(attachment, "打开音频"));
@@ -18222,28 +18361,21 @@ function renderAttachments(container, attachments = []) {
       const link = attachmentLink(attachment, "打开图片");
       const image = document.createElement("img");
       image.className = "attachment-preview";
-      image.src = url;
+      image.src = chatMediaSource(url, "image");
       image.alt = attachment.name || "图片附件";
       image.loading = "lazy";
+      const preview = chatMediaPreviewButton(url, attachment.name || "图片附件", "image");
+      preview.append(image);
       image.addEventListener("error", () => {
         frame.classList.add("is-failed");
-        image.remove();
+        preview.remove();
       });
-      frame.append(image, link);
+      frame.append(preview, link);
       container.append(frame);
       return;
     }
     if (canPreviewUrl && kind === "video") {
-      const frame = document.createElement("span");
-      frame.className = "attachment-media-frame";
-      const video = document.createElement("video");
-      video.className = "attachment-preview";
-      video.src = url;
-      video.controls = true;
-      video.playsInline = true;
-      video.preload = "metadata";
-      frame.append(video, attachmentLink(attachment, "打开视频"));
-      container.append(frame);
+      container.append(chatVideoReference(url, attachment.name || "视频附件"));
       return;
     }
     container.append(attachmentLink(attachment, attachment.kind || "链接"));
@@ -18288,7 +18420,7 @@ function isImageUrl(url) {
 function isVideoUrl(url) {
   const parsed = safeUrl(url || "");
   const path = parsed?.pathname?.toLowerCase() || String(url || "").toLowerCase();
-  return /\.(mp4|mov|m4v|ogv)(?:[?#].*)?$/i.test(url || "")
+  return /\.(mp4|webm|mov|m4v|ogv)(?:[?#].*)?$/i.test(url || "")
     || /\/video\/(mp4|webm|mov|m4v|ogv)$/i.test(path)
     || /[?&](format|type)=(mp4|mov|m4v|ogv)(?:&|$)/i.test(url || "");
 }
@@ -18359,6 +18491,9 @@ function attachmentLink(attachment, label) {
     link.style.textDecoration = "line-through";
   }
   link.className = "attachment-chip";
+  link.dataset.contentRef = attachment.url || "";
+  link.dataset.contentMime = attachment.mime_type || attachment.mime || "";
+  link.dataset.contentLabel = attachment.name || label;
   link.target = "_blank";
   link.rel = "noreferrer noopener";
   link.textContent = `${label}: ${attachment.name || parsed?.hostname || "附件"}`;

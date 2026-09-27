@@ -7,8 +7,10 @@ use windows::Win32::System::Com::{
 };
 use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId};
 use windows::Win32::UI::Accessibility::{
-    CUIAutomation, IUIAutomation, IUIAutomationElement, IUIAutomationTextPattern,
-    IUIAutomationValuePattern, TreeScope_Subtree, UIA_TextPatternId, UIA_ValuePatternId,
+    CUIAutomation, IUIAutomation, IUIAutomationElement, IUIAutomationSelectionItemPattern,
+    IUIAutomationTextPattern, IUIAutomationTogglePattern, IUIAutomationValuePattern,
+    TreeScope_Subtree, UIA_SelectionItemPatternId, UIA_TextPatternId, UIA_TogglePatternId,
+    UIA_ValuePatternId,
 };
 use windows::Win32::UI::HiDpi::{
     GetDpiForWindow, SetThreadDpiAwarenessContext, DPI_AWARENESS_CONTEXT,
@@ -187,6 +189,54 @@ fn element_snapshot(
         name.as_deref(),
         &control_type,
     );
+    // CU-05：四个状态各按"该元素**支持**的模式"读取；不支持 ⇒ `None`（不是 false）。
+    let selection_item = unsafe {
+        element
+            .GetCurrentPatternAs::<IUIAutomationSelectionItemPattern>(UIA_SelectionItemPatternId)
+    }
+    .ok();
+    let is_selected = selection_item
+        .as_ref()
+        .and_then(|pattern| unsafe { pattern.CurrentIsSelected() }.ok())
+        .map(|value| value.as_bool());
+    let has_keyboard_focus = unsafe { element.CurrentHasKeyboardFocus() }
+        .ok()
+        .map(|value| value.as_bool());
+    let toggle_pattern = unsafe {
+        element.GetCurrentPatternAs::<IUIAutomationTogglePattern>(UIA_TogglePatternId)
+    }
+    .ok();
+    let toggle_state = toggle_pattern
+        .as_ref()
+        .and_then(|pattern| unsafe { pattern.CurrentToggleState() }.ok())
+        .map(|state| crate::toggle_state_name(state.0).to_string());
+    // CU-05：支持的模式用**逐个探测**得到——本 crate 固定的 windows 版本**没有**
+    // `GetSupportedPatterns`，因此这里只探测本项目关心的四种模式（value／text／selection_item／
+    // toggle），**不臆测**未探测的模式。要拿全量需升级 windows crate（另开工单）。
+    let mut patterns = Vec::new();
+    for (supported, name) in [
+        (
+            unsafe {
+                element.GetCurrentPatternAs::<IUIAutomationValuePattern>(UIA_ValuePatternId)
+            }
+            .is_ok(),
+            "value",
+        ),
+        (
+            unsafe {
+                element.GetCurrentPatternAs::<IUIAutomationTextPattern>(UIA_TextPatternId)
+            }
+            .is_ok(),
+            "text",
+        ),
+        (selection_item.is_some(), "selection_item"),
+        (toggle_pattern.is_some(), "toggle"),
+    ] {
+        if supported {
+            patterns.push(name.to_string());
+        }
+    }
+    patterns.sort();
     Some(UiaElementSnapshot {
         reference,
         process_id,
@@ -199,6 +249,10 @@ fn element_snapshot(
         bounding_rect,
         is_offscreen,
         is_enabled,
+        is_selected,
+        has_keyboard_focus,
+        toggle_state,
+        patterns,
     })
 }
 

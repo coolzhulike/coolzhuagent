@@ -1,18 +1,32 @@
 use crate::{
-    ActionFingerprint, ComputerUseAction, ComputerUseBudgets, ComputerUseCapabilities,
-    ComputerUseError, ComputerUseRequest, ComputerUseResult, ComputerUseRetryOwner,
-    ComputerUseRunState, ComputerUseStage, ComputerUseSurface, ComputerUseTerminalStatus,
-    Observation, RunBudgetGuard, StepExecution, Verification,
+    ActionFingerprint, CleanupReleaseStatus, CleanupReport, ComputerUseAction, ComputerUseBudgets,
+    ComputerUseCapabilities, ComputerUseError, ComputerUseRequest, ComputerUseResult,
+    ComputerUseRetryOwner, ComputerUseRunState, ComputerUseStage, ComputerUseSurface,
+    ComputerUseTerminalStatus, CuBudgetFacts, CuDeadline, Observation, RunBudgetGuard,
+    StepExecution, Verification,
 };
 use serde_json::Value as JsonValue;
 
 pub type PlannerFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
 
+/// 规划者：所有可能直接或间接发起模型调用的方法都**必须**接收剩余预算。
+///
+/// `remaining` 与本 crate 的 [`ComputerUseAdapter`] 使用同一个类型与单位
+/// （`std::time::Duration`，单调 deadline 的剩余量），不允许再造毫秒/秒/时长的第二套约定。
+///
+/// 实现方必须遵守：
+///
+/// 1. **不得**忽略 `remaining`（本 trait 刻意不为任何方法提供"为了兼容而忽略 remaining"
+///    的默认实现）；
+/// 2. 输入为零或不足以开始该阶段时返回**预算不足**，且模型 HTTP 请求次数必须为**零**；
+/// 3. 一次调用内部有多个子请求时必须**连续扣减**：第二个请求拿到的是第一个请求消耗后的
+///    余量，不能各自拿到入口时的同一份完整 remaining。
 pub trait ComputerUsePlanner: Send + Sync {
     fn classify<'a>(
         &'a self,
         request: &'a ComputerUseRequest,
         observation: &'a Observation,
+        remaining: std::time::Duration,
     ) -> PlannerFuture<'a, Result<ComputerUseSurface, ComputerUseError>>;
 
     fn next_action<'a>(
@@ -20,34 +34,65 @@ pub trait ComputerUsePlanner: Send + Sync {
         request: &'a ComputerUseRequest,
         observation: &'a Observation,
         step: usize,
+        remaining: std::time::Duration,
     ) -> PlannerFuture<'a, Result<Option<ComputerUseAction>, ComputerUseError>>;
 
-    /// 宿主可用最新视觉证据复核适配器结果；默认保留已有纯 DOM/测试行为。
+    /// 宿主可用最新视觉证据复核适配器结果。
+    ///
+    /// 该方法是模型请求的入口之一（`ComputerUseSurface::Desktop` 上的每次验收都会发请求），
+    /// 因此同样必须收紧到 `remaining` 以内；本 trait **不提供**忽略 remaining 的默认实现。
     fn verify<'a>(
         &'a self,
-        _request: &'a ComputerUseRequest,
-        _before: &'a Observation,
-        _after: &'a Observation,
+        request: &'a ComputerUseRequest,
+        before: &'a Observation,
+        after: &'a Observation,
         verification: Verification,
-    ) -> PlannerFuture<'a, Result<Verification, ComputerUseError>> {
-        Box::pin(async move { Ok(verification) })
+        remaining: std::time::Duration,
+    ) -> PlannerFuture<'a, Result<Verification, ComputerUseError>>;
+
+    /// 最近一次**产生执行计划**的模型请求 attempt（宿主因果元数据）。
+    ///
+    /// 执行器在写动作事实时用它构造 `ActionOrigin` 的模型规划来源；因此这里给出的必须是
+    /// **真实规划请求**的身份。默认返回 `None` 表示"不知道"——**不得**用 provider trace、
+    /// 外层工具调用的 call id 或"最近一次请求"顶替（第三轮裁决第 14.6 项：接口上已有 attempt
+    /// 概念，不代表可以用近似物冒充）。
+    fn last_plan_request_attempt(&self) -> Option<runtime::PlannedRequestAttempt> {
+        None
     }
 }
 
 pub trait ComputerUseAdapter: Send + Sync {
     fn surface(&self) -> ComputerUseSurface;
     fn capabilities(&self) -> ComputerUseCapabilities;
-    fn observe(&self, request: &ComputerUseRequest) -> Result<Observation, ComputerUseError>;
+    /// `remaining` 是本 run 单调 deadline 的剩余预算；实现方**必须**用它收紧自己的
+    /// 子请求超时上限（§2.3「子请求上限不超过剩余预算」），不得用固定常量硬顶。
+    fn observe(
+        &self,
+        request: &ComputerUseRequest,
+        remaining: std::time::Duration,
+    ) -> Result<Observation, ComputerUseError>;
     fn act(
         &self,
         action: &ComputerUseAction,
         expected_generation: u64,
+        remaining: std::time::Duration,
     ) -> Result<StepExecution, ComputerUseError>;
+    /// 桌面实现必须把授权端口传给原生 helper；浏览器及内存适配器仍使用各自的执行路径。
+    fn act_authorized(
+        &self,
+        action: &ComputerUseAction,
+        expected_generation: u64,
+        remaining: std::time::Duration,
+        _authorization: &dyn crate::prepared_input::NativeInputAuthorization,
+    ) -> Result<StepExecution, ComputerUseError> {
+        self.act(action, expected_generation, remaining)
+    }
     fn verify(
         &self,
         criteria: &[String],
         before: &Observation,
         after: &Observation,
+        remaining: std::time::Duration,
     ) -> Result<Verification, ComputerUseError>;
 }
 
@@ -307,6 +352,11 @@ pub struct ComputerUseController<P, A, E, C> {
     clock: C,
     budgets: ComputerUseBudgets,
     approval_policy: Option<Box<dyn ComputerUseApprovalPolicy>>,
+    /// 由宿主在任务**被接纳并进入调度**时建立的唯一 CU 截止时间。
+    ///
+    /// 未显式设置时，控制器退化为"在 `run` 入口建立"，此时租约等待/模型切换的耗时
+    /// 不在预算内——这是宿主尚未接线的情形，不是"没有预算"。
+    cu_deadline: Option<CuDeadline>,
 }
 
 impl<P, A, E, C> ComputerUseController<P, A, E, C>
@@ -325,7 +375,18 @@ where
             clock,
             budgets,
             approval_policy: None,
+            cu_deadline: None,
         }
+    }
+
+    /// 接收宿主在任务被接纳时建立的 CU 截止时间。
+    ///
+    /// 建立点必须早于该任务的租约等待、模型切换、初始观察与规划请求，否则这些耗时
+    /// 会从预算里消失。此后观察、规划、验收、重试、重规划与受限恢复共用它。
+    #[must_use]
+    pub fn with_cu_deadline(mut self, deadline: CuDeadline) -> Self {
+        self.cu_deadline = Some(deadline);
+        self
     }
 
     /// 设置宿主审批策略。未设置时，所有需要明确审批的动作都会在输入前阻断。
@@ -344,6 +405,11 @@ where
     }
 
     #[must_use]
+    pub const fn planner(&self) -> &P {
+        &self.planner
+    }
+
+    #[must_use]
     pub const fn event_sink(&self) -> &E {
         &self.events
     }
@@ -354,6 +420,7 @@ where
         context: ComputerUseRunContext,
     ) -> ComputerUseResult {
         self.events.state_changed(ComputerUseRunState::Requested);
+        let run_facts = self.run_facts();
         if let Err(error) = request.validate() {
             return self.terminal(
                 &context,
@@ -364,18 +431,19 @@ where
                 0,
                 Vec::new(),
                 crate::SupervisorSnapshot::default(),
+                &run_facts,
             );
         }
 
-        let started_at_ms = self.clock.now_ms();
-        let mut guard = RunBudgetGuard::new(self.budgets, started_at_ms);
+        let mut guard = RunBudgetGuard::with_deadline(self.budgets, run_facts.deadline);
         let mut attempts = 0usize;
         let mut steps_completed = 0usize;
         let mut evidence = Vec::new();
         let mut stale_recovered = false;
 
         self.events.state_changed(ComputerUseRunState::Observing);
-        let mut observation = match self.adapter.observe(request) {
+        let remaining = std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
+        let mut observation = match self.adapter.observe(request, remaining) {
             Ok(observation) => observation,
             Err(error) => {
                 return self.terminal(
@@ -387,13 +455,16 @@ where
                     steps_completed,
                     evidence,
                     guard.snapshot(),
+                    &run_facts,
                 );
             }
         };
         evidence.extend(observation.evidence.clone());
 
         let surface = if request.surface == ComputerUseSurface::Auto {
-            match self.planner.classify(request, &observation).await {
+            let remaining =
+                std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
+            match self.planner.classify(request, &observation, remaining).await {
                 Ok(surface) => surface,
                 Err(error) => {
                     return self.terminal(
@@ -405,6 +476,7 @@ where
                         steps_completed,
                         evidence,
                         guard.snapshot(),
+                        &run_facts,
                     );
                 }
             }
@@ -427,6 +499,7 @@ where
                 steps_completed,
                 evidence,
                 guard.snapshot(),
+                &run_facts,
             );
         }
         if observation.surface != surface {
@@ -442,17 +515,24 @@ where
                 steps_completed,
                 evidence,
                 guard.snapshot(),
+                &run_facts,
             );
         }
 
         self.events.state_changed(ComputerUseRunState::Verifying);
-        let initial_verification = match self
-            .adapter
-            .verify(&request.success_criteria, &observation, &observation)
-        {
-            Ok(verification) => self.planner.verify(request, &observation, &observation, verification).await,
-            Err(error) => Err(error),
-        };
+        let remaining = std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
+        let initial_verification =
+            match self
+                .adapter
+                .verify(&request.success_criteria, &observation, &observation, remaining)
+            {
+                Ok(verification) => {
+                    self.planner
+                        .verify(request, &observation, &observation, verification, remaining)
+                        .await
+                }
+                Err(error) => Err(error),
+            };
         match initial_verification {
             Ok(verification) => {
                 evidence.extend(verification.evidence.clone());
@@ -465,6 +545,7 @@ where
                         steps_completed,
                         evidence,
                         guard.snapshot(),
+                        &run_facts,
                     );
                 }
             }
@@ -478,15 +559,18 @@ where
                     steps_completed,
                     evidence,
                     guard.snapshot(),
+                    &run_facts,
                 );
             }
         }
 
         loop {
             self.events.state_changed(ComputerUseRunState::Planning);
+            let remaining =
+                std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
             let action = match self
                 .planner
-                .next_action(request, &observation, attempts)
+                .next_action(request, &observation, attempts, remaining)
                 .await
             {
                 Ok(Some(action)) => action,
@@ -504,6 +588,7 @@ where
                         steps_completed,
                         evidence,
                         guard.snapshot(),
+                        &run_facts,
                     );
                 }
                 Err(error) => {
@@ -516,6 +601,7 @@ where
                         steps_completed,
                         evidence,
                         guard.snapshot(),
+                        &run_facts,
                     );
                 }
             };
@@ -535,6 +621,7 @@ where
                     steps_completed,
                     evidence,
                     guard.snapshot(),
+                    &run_facts,
                 );
             }
 
@@ -577,6 +664,7 @@ where
                         steps_completed,
                         evidence,
                         guard.snapshot(),
+                        &run_facts,
                     );
                 }
                 self.events.state_changed(ComputerUseRunState::PolicyCheck);
@@ -600,14 +688,23 @@ where
                     steps_completed,
                     evidence,
                     guard.snapshot(),
+                    &run_facts,
                 );
             }
 
             attempts = attempts.saturating_add(1);
             self.events.state_changed(ComputerUseRunState::Executing);
-            let execution = match self.adapter.act(&action, observation.generation) {
+            let remaining = std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
+            let execution = match self.adapter.act(&action, observation.generation, remaining) {
                 Ok(execution) => execution,
-                Err(error) if error.code == "stale_observation" && !stale_recovered => {
+                // 允许一次重新观察的前提是"还没注入输入"。回执若表明输入可能已经发出
+                // （含身份不匹配或自相矛盾的协议异常），重新规划等于在未知按键状态下重放输入，
+                // 因此直接按终态失败处理，不做静默恢复。
+                Err(error)
+                    if error.code == "stale_observation"
+                        && !stale_recovered
+                        && !error.receipt_shows_input_may_have_been_sent(&crate::contracts::action_attempt_id(surface, &action)) =>
+                {
                     if let Err(budget_error) = guard.record_replan() {
                         return self.terminal(
                             &context,
@@ -618,11 +715,13 @@ where
                             steps_completed,
                             evidence,
                             guard.snapshot(),
+                            &run_facts,
                         );
                     }
                     stale_recovered = true;
                     self.events.state_changed(ComputerUseRunState::Observing);
-                    observation = match self.adapter.observe(request) {
+                    let remaining = std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
+                    observation = match self.adapter.observe(request, remaining) {
                         Ok(observation) => observation,
                         Err(observe_error) => {
                             return self.terminal(
@@ -634,6 +733,7 @@ where
                                 steps_completed,
                                 evidence,
                                 guard.snapshot(),
+                                &run_facts,
                             );
                         }
                     };
@@ -650,6 +750,7 @@ where
                         steps_completed,
                         evidence,
                         guard.snapshot(),
+                        &run_facts,
                     );
                 }
             };
@@ -668,12 +769,14 @@ where
                     steps_completed,
                     evidence,
                     guard.snapshot(),
+                    &run_facts,
                 );
             }
             steps_completed = steps_completed.saturating_add(1);
 
             self.events.state_changed(ComputerUseRunState::Observing);
-            let next_observation = match self.adapter.observe(request) {
+            let remaining = std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
+            let next_observation = match self.adapter.observe(request, remaining) {
                 Ok(observation) => observation,
                 Err(error) => {
                     return self.terminal(
@@ -685,19 +788,23 @@ where
                         steps_completed,
                         evidence,
                         guard.snapshot(),
+                        &run_facts,
                     );
                 }
             };
             evidence.extend(next_observation.evidence.clone());
 
             self.events.state_changed(ComputerUseRunState::Verifying);
-            let adapter_verification = self.adapter.verify(
-                &request.success_criteria,
-                &observation,
-                &next_observation,
-            );
+            let remaining = std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
+            let adapter_verification =
+                self.adapter
+                    .verify(&request.success_criteria, &observation, &next_observation, remaining);
             let checked_verification = match adapter_verification {
-                Ok(verification) => self.planner.verify(request, &observation, &next_observation, verification).await,
+                Ok(verification) => {
+                    self.planner
+                        .verify(request, &observation, &next_observation, verification, remaining)
+                        .await
+                }
                 Err(error) => Err(error),
             };
             let verification = match checked_verification {
@@ -712,6 +819,7 @@ where
                         steps_completed,
                         evidence,
                         guard.snapshot(),
+                        &run_facts,
                     );
                 }
             };
@@ -726,6 +834,7 @@ where
                     steps_completed,
                     evidence,
                     guard.snapshot(),
+                    &run_facts,
                 );
             }
             observation = next_observation;
@@ -743,6 +852,7 @@ where
         steps_completed: usize,
         evidence: Vec<String>,
         supervisor: crate::SupervisorSnapshot,
+        run_facts: &RunFacts,
     ) -> ComputerUseResult {
         let status = if error.code == "cancelled" {
             ComputerUseTerminalStatus::Cancelled
@@ -760,6 +870,8 @@ where
             ComputerUseTerminalStatus::Cancelled => ComputerUseRunState::Cancelled,
             ComputerUseTerminalStatus::TimedOut => ComputerUseRunState::TimedOut,
         });
+        let stop_observed_at_ms = self.clock.now_ms();
+        let cleanup = self.cleanup_report(run_facts, status, stage, &error, stop_observed_at_ms);
         ComputerUseResult {
             call_id: context.call_id.clone(),
             provider_tool_call_id: context.provider_tool_call_id.clone(),
@@ -773,7 +885,57 @@ where
             steps_completed,
             evidence,
             supervisor,
+            cu_budget: Some(run_facts.cu_budget),
+            cleanup,
         }
+    }
+
+    /// 收尾报告：把业务截止时刻、停止新业务输入时刻、收尾起止时刻、释放状态与是否隔离
+    /// **分开**记录。收尾允许有限超出业务期限，但不得借收尾继续规划或重做任务。
+    ///
+    /// `release` 的取值只依据可确认的事实：helper 层给出的事实优先，其次看该次失败携带的
+    /// 回执与阶段（输入前的失败没有释放义务）；**确认不了就写未确认**，绝不承诺"释放一定成功"。
+    fn cleanup_report(
+        &self,
+        run_facts: &RunFacts,
+        status: ComputerUseTerminalStatus,
+        stage: ComputerUseStage,
+        error: &ComputerUseError,
+        now_ms: u64,
+    ) -> Option<CleanupReport> {
+        let helper = error.cleanup().copied();
+        let release = match helper {
+            Some(facts) => facts.release,
+            None => match error.receipt() {
+                Some(receipt) => match receipt.input_release {
+                    runtime::InputReleaseStatus::Released => CleanupReleaseStatus::Confirmed,
+                    runtime::InputReleaseStatus::NotNeeded => CleanupReleaseStatus::NotNeeded,
+                    runtime::InputReleaseStatus::Unknown => CleanupReleaseStatus::Unconfirmed,
+                },
+                // 没有回执时，只有"输入阶段之前就结束"的失败才能声明没有释放义务。
+                None if stage == ComputerUseStage::Execution => CleanupReleaseStatus::Unconfirmed,
+                None => CleanupReleaseStatus::NotNeeded,
+            },
+        };
+        let needs_report = matches!(
+            status,
+            ComputerUseTerminalStatus::Cancelled | ComputerUseTerminalStatus::TimedOut
+        ) || helper.is_some()
+            || release.quarantines();
+        if !needs_report {
+            return None;
+        }
+        let stopped_at = helper.map_or(now_ms, |facts| facts.stopped_new_input_at_ms);
+        let cleanup_started_at = helper.map_or(stopped_at, |facts| facts.cleanup_started_at_ms);
+        let cleanup_finished_at = helper.map_or(now_ms, |facts| facts.cleanup_finished_at_ms);
+        Some(CleanupReport::assemble(
+            run_facts.deadline.cu_deadline_ms(),
+            stopped_at,
+            cleanup_started_at,
+            cleanup_finished_at,
+            release,
+            helper,
+        ))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -786,6 +948,7 @@ where
         steps_completed: usize,
         evidence: Vec<String>,
         supervisor: crate::SupervisorSnapshot,
+        run_facts: &RunFacts,
     ) -> ComputerUseResult {
         self.events.state_changed(ComputerUseRunState::Succeeded);
         ComputerUseResult {
@@ -801,8 +964,32 @@ where
             steps_completed,
             evidence,
             supervisor,
+            cu_budget: Some(run_facts.cu_budget),
+            cleanup: None,
         }
     }
+
+    /// 本次 run 的固定事实：唯一 CU 截止时间及其可序列化投影。
+    ///
+    /// 截止时间在 `run` 入口只解析一次；宿主若在任务被接纳时已经建立它（推荐），
+    /// 这里使用的就是那一个——租约等待、模型切换、初始观察与规划全部落在同一个预算内。
+    fn run_facts(&mut self) -> RunFacts {
+        let deadline = self
+            .cu_deadline
+            .unwrap_or_else(|| {
+                CuDeadline::establish_without_root(&self.budgets, self.clock.now_ms())
+            });
+        RunFacts {
+            deadline,
+            cu_budget: deadline.facts(),
+        }
+    }
+}
+
+/// 一次 run 的固定预算事实。
+struct RunFacts {
+    deadline: CuDeadline,
+    cu_budget: CuBudgetFacts,
 }
 
 #[cfg(test)]
@@ -833,6 +1020,7 @@ mod tests {
             &'a self,
             _request: &'a ComputerUseRequest,
             _observation: &'a Observation,
+            _remaining: std::time::Duration,
         ) -> PlannerFuture<'a, Result<ComputerUseSurface, ComputerUseError>> {
             Box::pin(async move { Ok(self.surface) })
         }
@@ -842,8 +1030,20 @@ mod tests {
             _request: &'a ComputerUseRequest,
             _observation: &'a Observation,
             _step: usize,
+            _remaining: std::time::Duration,
         ) -> PlannerFuture<'a, Result<Option<ComputerUseAction>, ComputerUseError>> {
             Box::pin(async move { self.actions.lock().unwrap().pop_front().unwrap_or(Ok(None)) })
+        }
+
+        fn verify<'a>(
+            &'a self,
+            _request: &'a ComputerUseRequest,
+            _before: &'a Observation,
+            _after: &'a Observation,
+            verification: Verification,
+            _remaining: std::time::Duration,
+        ) -> PlannerFuture<'a, Result<Verification, ComputerUseError>> {
+            Box::pin(async move { Ok(verification) })
         }
     }
 
@@ -865,7 +1065,11 @@ mod tests {
             self.capabilities
         }
 
-        fn observe(&self, _request: &ComputerUseRequest) -> Result<Observation, ComputerUseError> {
+        fn observe(
+        &self,
+        _request: &ComputerUseRequest,
+        _remaining: std::time::Duration,
+    ) -> Result<Observation, ComputerUseError> {
             self.observations
                 .lock()
                 .unwrap()
@@ -877,6 +1081,7 @@ mod tests {
             &self,
             _action: &ComputerUseAction,
             _expected_generation: u64,
+            _remaining: std::time::Duration,
         ) -> Result<StepExecution, ComputerUseError> {
             self.action_count.fetch_add(1, Ordering::SeqCst);
             self.executions
@@ -891,6 +1096,7 @@ mod tests {
             _criteria: &[String],
             _before: &Observation,
             _after: &Observation,
+            _remaining: std::time::Duration,
         ) -> Result<Verification, ComputerUseError> {
             self.verifications
                 .lock()
@@ -980,6 +1186,7 @@ mod tests {
             input_sent: true,
             summary: summary.into(),
             evidence: vec![summary.into()],
+            ..StepExecution::default()
         }
     }
 
@@ -1409,6 +1616,101 @@ mod tests {
         assert_eq!(result.supervisor.replan_count, 1);
     }
 
+    /// RPR-04b 行为变更：`stale_observation` 的"重新观察一次"只适用于确认还没注入输入的情形。
+    /// 回执一旦表明输入可能已经发出，继续规划等于在未知按键状态下重放输入。
+    #[tokio::test]
+    async fn stale_error_with_injected_input_receipt_is_not_silently_replanned() {
+        use runtime::{ActionReceipt, EffectStatus, GoalVerdict, InputDelivery, InputReleaseStatus};
+
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(vec![Ok(Some(click())), Ok(Some(click()))].into()),
+        };
+        let action = click();
+        let receipt = ActionReceipt {
+            action_id: crate::contracts::action_attempt_id(ComputerUseSurface::Browser, &action),
+            input_delivery: InputDelivery::Sent,
+            partial: Some(true),
+            path_completed: Some(false),
+            confirmed_point_count: Some(1),
+            effect: EffectStatus::NotObserved,
+            goal_verdict: GoalVerdict::NotChecked,
+            input_release: InputReleaseStatus::Released,
+        };
+        receipt.validate().expect("测试回执必须自洽");
+        let stale = ComputerUseError::recoverable("stale_observation", "surface changed mid input")
+            .with_receipt(receipt);
+        let adapter = adapter(
+            vec![
+                Ok(observation(1, "before")),
+                Ok(observation(2, "refreshed")),
+            ],
+            vec![Ok(verification(false, false, "not yet"))],
+        );
+        *adapter.executions.lock().unwrap() = vec![Err(stale), Ok(execution("second input"))].into();
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert_eq!(result.status, ComputerUseTerminalStatus::Failed);
+        // 只注入过一次：没有重新观察、没有第二次输入，也没有重规划。
+        assert_eq!(controller.adapter().action_count.load(Ordering::SeqCst), 1);
+        assert_eq!(result.supervisor.replan_count, 0);
+        let error = result.error.expect("必须留下终态失败");
+        assert_eq!(error.code, "stale_observation");
+        assert_eq!(
+            error.receipt().and_then(|receipt| receipt.confirmed_point_count),
+            Some(1),
+            "部分输入事实必须原样留在终态错误里"
+        );
+    }
+
+    /// 身份不匹配的回执属于协议异常：同样不得触发静默重放。
+    #[tokio::test]
+    async fn stale_error_with_a_mismatched_receipt_is_not_silently_replanned() {
+        use runtime::{ActionReceipt, EffectStatus, GoalVerdict, InputDelivery, InputReleaseStatus};
+
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(vec![Ok(Some(click()))].into()),
+        };
+        let receipt = ActionReceipt {
+            action_id: "browser:submit:0000000000000000".to_string(),
+            input_delivery: InputDelivery::MayHaveBeenSent,
+            partial: None,
+            path_completed: None,
+            confirmed_point_count: None,
+            effect: EffectStatus::NotObserved,
+            goal_verdict: GoalVerdict::NotChecked,
+            input_release: InputReleaseStatus::Unknown,
+        };
+        let stale = ComputerUseError::recoverable("stale_observation", "surface changed")
+            .with_receipt(receipt);
+        let adapter = adapter(
+            vec![Ok(observation(1, "before")), Ok(observation(2, "refreshed"))],
+            vec![Ok(verification(false, false, "not yet"))],
+        );
+        *adapter.executions.lock().unwrap() = vec![Err(stale), Ok(execution("second input"))].into();
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert_eq!(result.status, ComputerUseTerminalStatus::Failed);
+        assert_eq!(controller.adapter().action_count.load(Ordering::SeqCst), 1);
+    }
+
     #[tokio::test]
     async fn repeated_no_progress_stops_before_a_third_input() {
         let planner = FakePlanner {
@@ -1497,5 +1799,535 @@ mod tests {
         assert_eq!(context.call_id, "cu-root");
         accepts_planner(&planner);
         accepts_adapter(&adapter);
+    }
+
+    // ---- S1.5：每阶段取消 / 超时故障注入 ----
+
+    /// 宿主取消以 `cancelled` 错误码到达；控制器必须把它当作终态，
+    /// 且不得再产生任何新输入。
+    fn cancelled_error() -> ComputerUseError {
+        ComputerUseError::new(
+            "cancelled",
+            "host cancelled the run",
+            false,
+            ComputerUseRetryOwner::None,
+        )
+    }
+
+    fn adapter_with_executions(
+        observations: Vec<Result<Observation, ComputerUseError>>,
+        executions: Vec<Result<StepExecution, ComputerUseError>>,
+        verifications: Vec<Result<Verification, ComputerUseError>>,
+    ) -> FakeAdapter {
+        FakeAdapter {
+            surface: ComputerUseSurface::Browser,
+            capabilities: ComputerUseCapabilities {
+                click: true,
+                ..ComputerUseCapabilities::default()
+            },
+            observations: Mutex::new(observations.into()),
+            executions: Mutex::new(executions.into()),
+            verifications: Mutex::new(verifications.into()),
+            action_count: AtomicUsize::new(0),
+        }
+    }
+
+    #[tokio::test]
+    async fn cancellation_during_observation_is_terminal_without_input() {
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(VecDeque::new()),
+        };
+        let adapter = adapter(vec![Err(cancelled_error())], vec![]);
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert_eq!(result.status, ComputerUseTerminalStatus::Cancelled);
+        assert_eq!(result.stage, ComputerUseStage::Observation);
+        assert_eq!(
+            controller.adapter().action_count.load(Ordering::SeqCst),
+            0,
+            "cancellation before planning must not inject input"
+        );
+    }
+
+    #[tokio::test]
+    async fn cancellation_during_planning_is_terminal_without_input() {
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(vec![Err(cancelled_error())].into()),
+        };
+        let adapter = adapter(
+            vec![Ok(observation(1, "before"))],
+            // 前置校验（目标是否已达成）先于规划发生，必须给它一个"未达成"结果。
+            vec![Ok(verification(false, false, "not yet"))],
+        );
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert_eq!(result.status, ComputerUseTerminalStatus::Cancelled);
+        assert_eq!(result.stage, ComputerUseStage::Planning);
+        assert_eq!(
+            controller.adapter().action_count.load(Ordering::SeqCst),
+            0,
+            "cancellation during planning must not inject input"
+        );
+    }
+
+    #[tokio::test]
+    async fn cancellation_during_execution_is_terminal_cancelled() {
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(vec![Ok(Some(click())), Ok(None)].into()),
+        };
+        let adapter = adapter_with_executions(
+            vec![Ok(observation(1, "before")), Ok(observation(2, "after"))],
+            vec![Err(cancelled_error())],
+            vec![Ok(verification(false, false, "not yet"))],
+        );
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert_eq!(result.status, ComputerUseTerminalStatus::Cancelled);
+        assert_eq!(result.error.as_ref().unwrap().code, "cancelled");
+        assert_eq!(
+            controller.adapter().action_count.load(Ordering::SeqCst),
+            1,
+            "the cancelled execution must not be retried or followed by another input"
+        );
+    }
+
+    #[tokio::test]
+    async fn cancellation_during_verification_is_terminal_cancelled() {
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(vec![Ok(Some(click())), Ok(None)].into()),
+        };
+        let adapter = adapter_with_executions(
+            vec![Ok(observation(1, "before")), Ok(observation(2, "after"))],
+            vec![Ok(execution("input sent"))],
+            vec![
+                Ok(verification(false, false, "not yet")),
+                Err(cancelled_error()),
+            ],
+        );
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert_eq!(result.status, ComputerUseTerminalStatus::Cancelled);
+        assert_eq!(result.error.as_ref().unwrap().code, "cancelled");
+        assert!(!result.goal_achieved);
+        assert_eq!(
+            controller.adapter().action_count.load(Ordering::SeqCst),
+            1,
+            "a cancelled verification must not trigger a second action"
+        );
+    }
+
+    /// deadline 到期后不得再产生业务动作：预算守卫在**动作前**判定，
+    /// 因此时钟一越过 deadline，首个动作就必须被拒绝且零输入。
+    #[tokio::test]
+    async fn deadline_expiry_before_first_action_performs_no_input() {
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(vec![Ok(Some(click())), Ok(None)].into()),
+        };
+        let adapter = adapter(
+            vec![Ok(observation(1, "before"))],
+            // 前置校验必须"未达成"，否则 run 会在首个动作前正常结束，测不到 deadline。
+            vec![Ok(verification(false, false, "not yet"))],
+        );
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets {
+                // TickClock 每次自增 1ms；timeout_ms = 1 时首个动作前已到期。
+                timeout_ms: 1,
+                ..crate::ComputerUseBudgets::default()
+            },
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert_eq!(result.error.as_ref().unwrap().code, "deadline_exceeded");
+        assert!(!result.goal_achieved);
+        assert_eq!(
+            controller.adapter().action_count.load(Ordering::SeqCst),
+            0,
+            "an expired deadline must not allow a new business action"
+        );
+    }
+
+    // ---- RPR-11c：CU 截止时间、planner 剩余预算、收尾报告 ----
+
+    /// 记录每次调用收到的剩余预算（毫秒），并可选地在规划时"消耗"一段时间。
+    #[derive(Default)]
+    struct BudgetRecordingPlanner {
+        surface: ComputerUseSurface,
+        /// 每次模型调用之前推进的毫秒数（模拟模型请求/切换耗时）。
+        burn_before_each_call_ms: u64,
+        seen_remaining_ms: Mutex<Vec<u64>>,
+        clock: std::sync::Arc<AtomicUsize>,
+    }
+
+    impl BudgetRecordingPlanner {
+        fn new(clock: std::sync::Arc<AtomicUsize>) -> Self {
+            Self {
+                surface: ComputerUseSurface::Browser,
+                burn_before_each_call_ms: 0,
+                seen_remaining_ms: Mutex::new(Vec::new()),
+                clock,
+            }
+        }
+
+        fn record(&self, remaining: std::time::Duration) {
+            if self.burn_before_each_call_ms > 0 {
+                let now = self.clock.load(Ordering::SeqCst) as u64;
+                self.clock.store(
+                    usize::try_from(now + self.burn_before_each_call_ms).unwrap_or(usize::MAX),
+                    Ordering::SeqCst,
+                );
+            }
+            self.seen_remaining_ms
+                .lock()
+                .unwrap()
+                .push(remaining.as_millis().min(u128::from(u64::MAX)) as u64);
+        }
+
+        fn seen(&self) -> Vec<u64> {
+            self.seen_remaining_ms.lock().unwrap().clone()
+        }
+    }
+
+    impl ComputerUsePlanner for BudgetRecordingPlanner {
+        fn classify<'a>(
+            &'a self,
+            _request: &'a ComputerUseRequest,
+            _observation: &'a Observation,
+            remaining: std::time::Duration,
+        ) -> PlannerFuture<'a, Result<ComputerUseSurface, ComputerUseError>> {
+            self.record(remaining);
+            Box::pin(async move { Ok(self.surface) })
+        }
+
+        fn next_action<'a>(
+            &'a self,
+            _request: &'a ComputerUseRequest,
+            _observation: &'a Observation,
+            _step: usize,
+            remaining: std::time::Duration,
+        ) -> PlannerFuture<'a, Result<Option<ComputerUseAction>, ComputerUseError>> {
+            self.record(remaining);
+            Box::pin(async move { Ok(None) })
+        }
+
+        fn verify<'a>(
+            &'a self,
+            _request: &'a ComputerUseRequest,
+            _before: &'a Observation,
+            _after: &'a Observation,
+            verification: Verification,
+            remaining: std::time::Duration,
+        ) -> PlannerFuture<'a, Result<Verification, ComputerUseError>> {
+            self.record(remaining);
+            Box::pin(async move { Ok(verification) })
+        }
+    }
+
+    /// 单调时钟的共享游标：既能推进时间，也能让规划者看到真实剩余。
+    fn advancing_clock() -> (std::sync::Arc<AtomicUsize>, SharedClock) {
+        let shared = std::sync::Arc::new(AtomicUsize::new(0));
+        (
+            shared.clone(),
+            SharedClock {
+                cursor: shared,
+                step_ms: 1,
+            },
+        )
+    }
+
+    struct SharedClock {
+        cursor: std::sync::Arc<AtomicUsize>,
+        step_ms: usize,
+    }
+
+    impl ComputerUseClock for SharedClock {
+        fn now_ms(&mut self) -> u64 {
+            self.cursor.fetch_add(self.step_ms, Ordering::SeqCst) as u64
+        }
+    }
+
+    /// 规划者收到的剩余预算来自**控制器建立的 CU 截止时间**：起点提前，
+    /// 剩余就必须相应减少——模型切换/租约等待的耗时不允许被隐藏。
+    #[tokio::test]
+    async fn planner_receives_the_remaining_of_the_established_cu_deadline() {
+        let budgets = crate::ComputerUseBudgets {
+            timeout_ms: 10_000,
+            ..crate::ComputerUseBudgets::default()
+        };
+        // 任务在 1_000ms 被接纳并建立截止时间（= 11_000ms）；控制器在 3_000ms 才开始跑。
+        let deadline = crate::CuDeadline::establish_without_root(&budgets, 1_000);
+        let (cursor, clock) = advancing_clock();
+        cursor.store(3_000, Ordering::SeqCst);
+        let planner = BudgetRecordingPlanner::new(cursor.clone());
+        let adapter = adapter(
+            vec![Ok(observation(1, "before"))],
+            vec![Ok(verification(false, false, "not yet"))],
+        );
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            clock,
+            budgets,
+        )
+        .with_cu_deadline(deadline);
+
+        let result = controller.run(&request(), context()).await;
+
+        let seen = controller.planner().seen();
+        assert!(!seen.is_empty(), "规划者必须收到剩余预算");
+        assert!(
+            seen.iter().all(|remaining| *remaining < 10_000),
+            "接纳到开始执行之间的 2_000ms 必须从预算里扣掉，实际收到的剩余：{seen:?}"
+        );
+        assert_eq!(
+            result.cu_budget.unwrap().cu_deadline_established_at_ms,
+            Some(1_000),
+            "运行记录必须保留接纳时建立的截止时间，而不是控制器入口的时刻"
+        );
+    }
+
+    /// 规划者连续收到递减的剩余：同一个 run 内第二次调用不许重新起算。
+    #[tokio::test]
+    async fn consecutive_planner_calls_see_strictly_decreasing_remaining() {
+        let budgets = crate::ComputerUseBudgets {
+            timeout_ms: 10_000,
+            ..crate::ComputerUseBudgets::default()
+        };
+        let (cursor, clock) = advancing_clock();
+        let mut planner = BudgetRecordingPlanner::new(cursor.clone());
+        // 每次模型调用之前推进 500ms：等价于"模型切换/规划耗时计入预算"。
+        planner.burn_before_each_call_ms = 500;
+        let adapter = adapter(
+            vec![Ok(observation(1, "before")), Ok(observation(2, "after"))],
+            vec![
+                Ok(verification(false, false, "not yet")),
+                Ok(verification(false, false, "still not")),
+            ],
+        );
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            clock,
+            budgets,
+        );
+
+        let _ = controller.run(&request(), context()).await;
+
+        let seen = controller.planner().seen();
+        assert!(
+            seen.len() >= 2,
+            "本 run 至少要有初始验收 + 规划两次模型请求，实际：{seen:?}"
+        );
+        assert!(
+            seen.windows(2).all(|pair| pair[1] < pair[0]),
+            "同一 run 内的连续请求必须看到严格递减的剩余：{seen:?}"
+        );
+    }
+
+    /// 内部恢复（stale 后重新观察）不重置时钟，也不允许触发新的模型请求。
+    #[tokio::test]
+    async fn internal_recovery_does_not_reset_the_remaining_budget() {
+        let budgets = crate::ComputerUseBudgets {
+            timeout_ms: 10_000,
+            ..crate::ComputerUseBudgets::default()
+        };
+        let (cursor, clock) = advancing_clock();
+        let mut planner = BudgetRecordingPlanner::new(cursor.clone());
+        planner.burn_before_each_call_ms = 400;
+        let adapter = adapter(
+            vec![
+                Ok(observation(1, "before")),
+                Ok(observation(2, "refreshed")),
+                Ok(observation(3, "after")),
+            ],
+            vec![
+                Ok(verification(false, false, "not yet")),
+                Ok(verification(false, false, "still not")),
+            ],
+        );
+        *adapter.executions.lock().unwrap() =
+            vec![Err(ComputerUseError::recoverable(
+                "stale_observation",
+                "surface changed before input",
+            ))]
+            .into();
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            clock,
+            budgets,
+        );
+
+        let _ = controller.run(&request(), context()).await;
+
+        let seen = controller.planner().seen();
+        assert!(seen.len() >= 2);
+        assert!(
+            seen.windows(2).all(|pair| pair[1] < pair[0]),
+            "重新观察不得把剩余预算重置回起点：{seen:?}"
+        );
+        assert!(cursor.load(Ordering::SeqCst) < 10_000);
+    }
+
+    /// 未确认释放必须按"未知即隔离"记录：收尾报告的五项分开给出，且不承诺释放成功。
+    #[tokio::test]
+    async fn unconfirmed_release_is_reported_as_quarantined_cleanup() {
+        use runtime::{ActionReceipt, EffectStatus, GoalVerdict, InputDelivery, InputReleaseStatus};
+
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(vec![Ok(Some(click())), Ok(None)].into()),
+        };
+        let adapter = adapter(
+            vec![Ok(observation(1, "before")), Ok(observation(2, "after"))],
+            vec![
+                Ok(verification(false, false, "not yet")),
+                Ok(verification(false, false, "still not")),
+            ],
+        );
+        // helper 失联：路径只注入了一部分，释放未确认。
+        let action = click();
+        let receipt = ActionReceipt {
+            action_id: crate::contracts::action_attempt_id(ComputerUseSurface::Browser, &action),
+            input_delivery: InputDelivery::Sent,
+            partial: Some(true),
+            path_completed: Some(false),
+            confirmed_point_count: Some(1),
+            effect: EffectStatus::NotObserved,
+            goal_verdict: GoalVerdict::NotChecked,
+            input_release: InputReleaseStatus::Unknown,
+        };
+        receipt.validate().expect("样例回执必须自洽");
+        *adapter.executions.lock().unwrap() = vec![Err(ComputerUseError::new(
+            "helper_lost",
+            "helper did not confirm release",
+            true,
+            ComputerUseRetryOwner::System,
+        )
+        .with_receipt(receipt))]
+        .into();
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert_eq!(result.status, ComputerUseTerminalStatus::Failed);
+        let cleanup = result.cleanup.expect("未确认释放必须留下收尾报告");
+        assert_eq!(cleanup.release.as_str(), "unconfirmed");
+        assert!(cleanup.quarantined, "未知即隔离");
+        assert_eq!(
+            cleanup.business_deadline_ms,
+            result.cu_budget.unwrap().cu_deadline_ms.unwrap(),
+            "业务截止时刻必须就是本次 CU 的截止时间"
+        );
+        assert!(cleanup.cleanup_finished_at_ms >= cleanup.cleanup_started_at_ms);
+    }
+
+    /// 输入前的取消没有释放义务，但同样要分别给出停止输入/收尾时刻。
+    #[tokio::test]
+    async fn cancellation_before_input_reports_cleanup_without_release_obligation() {
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(VecDeque::new()),
+        };
+        let adapter = adapter(vec![Err(cancelled_error())], vec![]);
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        let cleanup = result.cleanup.expect("取消必须留下收尾报告");
+        assert_eq!(cleanup.release.as_str(), "not_needed");
+        assert!(!cleanup.quarantined);
+        assert_eq!(
+            cleanup.new_business_input_stopped_at_ms,
+            cleanup.cleanup_started_at_ms
+        );
+    }
+
+    /// 成功的 run 不写收尾报告，但必须写 CU 预算事实。
+    #[tokio::test]
+    async fn successful_run_records_budget_facts_without_a_cleanup_report() {
+        let planner = FakePlanner {
+            surface: ComputerUseSurface::Browser,
+            actions: Mutex::new(vec![Ok(Some(click()))].into()),
+        };
+        let adapter = adapter(
+            vec![Ok(observation(1, "before")), Ok(observation(2, "success"))],
+            vec![
+                Ok(verification(false, false, "not yet")),
+                Ok(verification(true, true, "success visible")),
+            ],
+        );
+        let mut controller = ComputerUseController::new(
+            planner,
+            adapter,
+            RecordingEvents::default(),
+            TickClock::default(),
+            crate::ComputerUseBudgets::default(),
+        );
+
+        let result = controller.run(&request(), context()).await;
+
+        assert!(result.goal_achieved);
+        assert!(result.cleanup.is_none());
+        let facts = result.cu_budget.expect("成功路径也必须写预算事实");
+        assert_eq!(facts.root_deadline_state.as_str(), "not_wired");
+        assert_eq!(facts.root_deadline, crate::RootDeadline::Absent);
+        assert!(facts.is_accepted());
     }
 }

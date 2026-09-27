@@ -1,0 +1,5 @@
+391 QWEN_SESSION_OK
+
+---
+Context usage: 0.1% (1063/1000000 input tokens; source=remote). Local estimate: 1080 tokens; local prompt budget: 1080/848976 tokens; history truncated: false.
+Context turn: 000000000000000118d6beeb1e168b60; Context snapshot: ctx-680a10434f0477bb; history source: chat_room.messages; history loaded: 0; memory revision: mem-382472eb669613f8

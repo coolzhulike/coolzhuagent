@@ -121,6 +121,14 @@ impl GlobalToolRegistry {
             if !seen_plugin_names.insert(name.clone()) {
                 return Err(format!("duplicate plugin tool name `{name}`"));
             }
+            // 权限元数据缺失或非法：注册期就明确报错，不把问题留到首个调用
+            // （旧实现会在调用期 panic，等于用崩溃代替配置错误）。
+            let permission = tool.required_permission();
+            if !is_supported_plugin_permission(permission) {
+                return Err(format!(
+                    "plugin tool `{name}` declares unsupported permission `{permission}`; expected read-only, workspace-write or danger-full-access"
+                ));
+            }
         }
 
         Ok(Self { plugin_tools })
@@ -246,13 +254,24 @@ fn normalize_tool_name(value: &str) -> String {
     value.trim().replace('-', "_").to_ascii_lowercase()
 }
 
+/// 插件声明的权限串 → 档位。
+///
+/// 未知串**不再 panic**（那会让首个调用直接把进程带走），而是返回
+/// `PermissionMode::Unspecified`：闸门据此给出明确配置错误并 fail-closed。
+/// 注册期另有校验，正常情况下不会走到这里。
 fn permission_mode_from_plugin(value: &str) -> PermissionMode {
     match value {
         "read-only" => PermissionMode::ReadOnly,
         "workspace-write" => PermissionMode::WorkspaceWrite,
         "danger-full-access" => PermissionMode::DangerFullAccess,
-        other => panic!("unsupported plugin permission: {other}"),
+        _ => PermissionMode::Unspecified,
     }
+}
+
+/// 插件权限串是否可识别；注册期用它拒绝带非法权限声明的插件。
+#[must_use]
+pub fn is_supported_plugin_permission(value: &str) -> bool {
+    !permission_mode_from_plugin(value).is_unspecified()
 }
 
 fn bash_tool_description() -> &'static str {
@@ -297,13 +316,15 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
         },
         ToolSpec {
             name: "read_file",
-            description: "Read a text file from the workspace. Returns content with line numbers. For large files, read in chunks via offset/limit instead of the whole file. Prefer absolute paths or paths relative to the workspace root.",
+            description: "Read a text file from the workspace. Returns content and version.sha256 of the FULL original byte stream. Pass that hash as expected_version when editing or overwriting. For large files use line offset/limit, or character_offset/max_chars for long single lines (Unicode characters, max 6000). Do not mix line and character ranges. Prefer absolute paths or paths relative to the workspace root.",
             input_schema: json!({
                 "type": "object",
                 "properties": {
                     "path": { "type": "string" },
                     "offset": { "type": "integer", "minimum": 0 },
-                    "limit": { "type": "integer", "minimum": 1 }
+                    "limit": { "type": "integer", "minimum": 1 },
+                    "character_offset": { "type": "integer", "minimum": 0 },
+                    "max_chars": { "type": "integer", "minimum": 1, "maximum": 6000 }
                 },
                 "required": ["path"],
                 "additionalProperties": false
@@ -312,12 +333,13 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
         },
         ToolSpec {
             name: "write_file",
-            description: "Write a text file in the workspace, creating it or fully overwriting existing content. For targeted changes to an existing file prefer edit_file, or read_file first before overwriting. Content must be the complete file text.",
+            description: "Write complete text to a workspace file. New files need no expected_version. Existing files REQUIRE expected_version from the latest read_file version.sha256; if changed, reread and reconsider the edit. Prefer edit_file for targeted changes.",
             input_schema: json!({
                 "type": "object",
                 "properties": {
                     "path": { "type": "string" },
-                    "content": { "type": "string" }
+                    "content": { "type": "string" },
+                    "expected_version": { "type": "string", "description": "Full original file version.sha256 returned by read_file. Required when overwriting an existing file." }
                 },
                 "required": ["path", "content"],
                 "additionalProperties": false
@@ -333,7 +355,8 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
                     "path": { "type": "string" },
                     "old_string": { "type": "string" },
                     "new_string": { "type": "string" },
-                    "replace_all": { "type": "boolean" }
+                    "replace_all": { "type": "boolean" },
+                    "expected_version": { "type": "string", "description": "Full original file version.sha256 returned by read_file. Required for every edit." }
                 },
                 "required": ["path", "old_string", "new_string"],
                 "additionalProperties": false
@@ -643,12 +666,19 @@ fn run_bash(mut input: BashCommandInput) -> Result<String, String> {
 
 #[allow(clippy::needless_pass_by_value)]
 fn run_read_file(input: ReadFileInput) -> Result<String, String> {
+    if input.character_offset.is_some() || input.max_chars.is_some() {
+        if input.offset.is_some() || input.limit.is_some() {
+            return Err("行范围和字符范围不能混用".into());
+        }
+        return to_pretty_json(runtime::read_file_character_range(&input.path,
+            input.character_offset.unwrap_or(0), input.max_chars.unwrap_or(4000)).map_err(io_to_string)?);
+    }
     to_pretty_json(read_file(&input.path, input.offset, input.limit).map_err(io_to_string)?)
 }
 
 #[allow(clippy::needless_pass_by_value)]
 fn run_write_file(input: WriteFileInput) -> Result<String, String> {
-    to_pretty_json(write_file(&input.path, &input.content).map_err(io_to_string)?)
+    to_pretty_json(write_file(&input.path, &input.content, input.expected_version.as_deref()).map_err(io_to_string)?)
 }
 
 #[allow(clippy::needless_pass_by_value)]
@@ -659,6 +689,7 @@ fn run_edit_file(input: EditFileInput) -> Result<String, String> {
             &input.old_string,
             &input.new_string,
             input.replace_all.unwrap_or(false),
+            input.expected_version.as_deref(),
         )
         .map_err(io_to_string)?,
     )
@@ -742,12 +773,15 @@ struct ReadFileInput {
     path: String,
     offset: Option<usize>,
     limit: Option<usize>,
+    character_offset: Option<usize>,
+    max_chars: Option<usize>,
 }
 
 #[derive(Debug, Deserialize)]
 struct WriteFileInput {
     path: String,
     content: String,
+    expected_version: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -756,6 +790,7 @@ struct EditFileInput {
     old_string: String,
     new_string: String,
     replace_all: Option<bool>,
+    expected_version: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1192,6 +1227,7 @@ struct ReplOutput {
     exit_code: i32,
     #[serde(rename = "durationMs")]
     duration_ms: u128,
+    interrupted: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -3146,21 +3182,26 @@ fn execute_repl(input: ReplInput) -> Result<ReplOutput, String> {
     if input.code.trim().is_empty() {
         return Err(String::from("code must not be empty"));
     }
-    let _ = input.timeout_ms;
     let runtime = resolve_repl_runtime(&input.language)?;
     let started = Instant::now();
-    let output = Command::new(runtime.program)
-        .args(runtime.args)
-        .arg(&input.code)
-        .output()
+    let mut command = Command::new(runtime.program);
+    command.args(runtime.args).arg(&input.code);
+    let managed = runtime::managed_process::output(&mut command, input.timeout_ms.map(Duration::from_millis))
         .map_err(|error| error.to_string())?;
+    let output = managed.output;
+    let mut stderr = decode_console_output(&output.stderr);
+    if let Some(reason) = managed.interruption {
+        if !stderr.is_empty() { stderr.push('\n'); }
+        stderr.push_str(&format!("REPL 已停止，原因：{reason:?}；受管进程已退出"));
+    }
 
     Ok(ReplOutput {
         language: input.language,
         stdout: decode_console_output(&output.stdout),
-        stderr: decode_console_output(&output.stderr),
-        exit_code: output.status.code().unwrap_or(1),
+        stderr,
+        exit_code: if managed.interruption.is_some() { 124 } else { output.status.code().unwrap_or(1) },
         duration_ms: started.elapsed().as_millis(),
+        interrupted: managed.interruption.is_some(),
     })
 }
 
@@ -3444,10 +3485,28 @@ fn iso8601_timestamp() -> String {
     iso8601_now()
 }
 
+/// 本进程的命令搜索目录集合（等价于改前 `find_command_path` 里那次
+/// `std::env::var_os("PATH")` 读取）。
+///
+/// P-08/I6：只把「PATH 从哪里来」收敛成一个函数 —— 生产入口仍读本进程环境，
+/// 测试改为向 [`find_command_path_in`] 显式传入路径集合。
+fn process_command_search_paths() -> Option<Vec<PathBuf>> {
+    std::env::var_os("PATH").map(|path| std::env::split_paths(&path).collect())
+}
+
 #[allow(clippy::needless_pass_by_value)]
 fn execute_powershell(input: PowerShellInput) -> std::io::Result<runtime::BashCommandOutput> {
-    let _ = &input.description;
+    // 生产入口：搜索范围 = 本进程 PATH，行为与改前一致。
     let shell = detect_powershell_shell()?;
+    run_powershell_command(input, shell)
+}
+
+/// PowerShell 执行的公共实现（两个入口共用）：只负责 timeout 语义与 spawn。
+fn run_powershell_command(
+    input: PowerShellInput,
+    shell: String,
+) -> std::io::Result<runtime::BashCommandOutput> {
+    let _ = &input.description;
     // timeout 语义为「秒」（schema 已标 SECONDS），底层 execute_shell_command 按毫秒判定，故 ×1000；
     // 上限 3600 秒避免误填超大值。历史 bug：曾把秒值直接当毫秒，模型传 30/60 即在几十毫秒内超时（runtime-timeout）。
     let timeout_ms = input
@@ -3462,10 +3521,38 @@ fn execute_powershell(input: PowerShellInput) -> std::io::Result<runtime::BashCo
     )
 }
 
+/// P-08/I6 **测试接缝**：与 [`execute_powershell`] 走同一个执行实现，
+/// 只是"用哪个 shell"由**显式路径集合**查得 —— 不读本进程 PATH，于是用例不必再改父进程环境
+/// （也就没有改进程环境的污染面与互斥需求）。
+#[cfg(test)]
+fn execute_powershell_with_search_paths(
+    input: PowerShellInput,
+    search_paths: Option<&[PathBuf]>,
+) -> std::io::Result<runtime::BashCommandOutput> {
+    let shell = detect_powershell_shell_in(search_paths)?;
+    run_powershell_command(input, shell)
+}
+
+/// 生产入口：搜索范围 = 本进程 PATH（先委托公开入口 `find_command_path` 读环境）。
 fn detect_powershell_shell() -> std::io::Result<String> {
-    if let Some(shell) = find_command_path("pwsh") {
+    detect_powershell_shell_with(find_command_path)
+}
+
+/// 在**显式给出**的搜索目录集合里定位 PowerShell 可执行文件（P-08/I6 注入接缝，见
+/// [`execute_powershell_with_search_paths`]）。
+#[cfg(test)]
+fn detect_powershell_shell_in(search_paths: Option<&[PathBuf]>) -> std::io::Result<String> {
+    detect_powershell_shell_with(|command| find_command_path_in(command, search_paths))
+}
+
+/// 「`pwsh` 优先、再 `powershell`」这一查找顺序与错误文案的**单一份**实现，
+/// 生产入口与注入接缝共用（避免两处顺序/文案各自漂移）。
+fn detect_powershell_shell_with(
+    lookup: impl Fn(&str) -> Option<String>,
+) -> std::io::Result<String> {
+    if let Some(shell) = lookup("pwsh") {
         Ok(shell)
-    } else if let Some(shell) = find_command_path("powershell") {
+    } else if let Some(shell) = lookup("powershell") {
         Ok(shell)
     } else {
         Err(std::io::Error::new(
@@ -3475,7 +3562,22 @@ fn detect_powershell_shell() -> std::io::Result<String> {
     }
 }
 
+/// 命令解析入口（公开入口）：搜索范围取自本进程环境，随后**原样委托**给纯查找函数。
+/// 行为与改前一致：`find_command_path(c) == find_command_path_in(c, 本进程 PATH)`。
 fn find_command_path(command: &str) -> Option<String> {
+    find_command_path_in(command, process_command_search_paths().as_deref())
+}
+
+/// 纯查找（P-08/I6 注入接缝）：只在 `search_paths` 给出的目录集合里查找 `command`，
+/// **不读也不改**本进程 PATH；`search_paths == None` 表示"本进程环境里没有 PATH"。
+///
+/// 命令解析政策与改前**逐字一致**（本次不借机调整）：
+/// - Windows：`command` 自带路径分隔符 → 直接判该路径是否为文件；否则按 PATHEXT 扩展名
+///   逐目录检索（`command` 已带扩展名则不再追加）。
+/// - 其它平台：仍委托 `sh -lc "command -v <command>"` 判定（保留 shell 自己的解析政策，
+///   含 alias / function / 内建），只是把这份显式路径集合作为**子进程** PATH 传给它
+///   （`None` 时不覆写子进程环境，维持旧语义）。
+fn find_command_path_in(command: &str, search_paths: Option<&[PathBuf]>) -> Option<String> {
     #[cfg(windows)]
     {
         let command_path = Path::new(command);
@@ -3497,8 +3599,7 @@ fn find_command_path(command: &str) -> Option<String> {
                 .collect::<Vec<_>>()
         };
 
-        let path = std::env::var_os("PATH")?;
-        for dir in std::env::split_paths(&path) {
+        for dir in search_paths.unwrap_or(&[]) {
             for extension in &extensions {
                 let candidate = dir.join(format!("{command}{extension}"));
                 if candidate.is_file() {
@@ -3511,13 +3612,28 @@ fn find_command_path(command: &str) -> Option<String> {
 
     #[cfg(not(windows))]
     {
-        std::process::Command::new("sh")
+        let mut probe = std::process::Command::new("sh");
+        probe
             .arg("-lc")
-            .arg(format!("command -v {command} >/dev/null 2>&1"))
-            .status()
-            .map(|status| status.success())
-            .unwrap_or(false)
-            .then(|| command.to_string())
+            .arg(format!("command -v {command} 2>/dev/null"))
+            .stdin(std::process::Stdio::null());
+        if let Some(paths) = search_paths {
+            if let Ok(joined) = std::env::join_paths(paths) {
+                probe.env("PATH", joined);
+            }
+        }
+        let output = probe.output().ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        // shell 自己报告的解析结果：是文件就用它（避免执行侧再隐式读一遍父进程 PATH，
+        // 也让"显式路径集合"对查找与执行两侧同时生效）；否则（alias / function / 内建）
+        // 维持改前行为，把命令名原样交给执行侧。
+        let resolved = decode_console_output(&output.stdout).trim().to_string();
+        if resolved.is_empty() || !Path::new(&resolved).is_file() {
+            return Some(command.to_string());
+        }
+        Some(resolved)
     }
 }
 
@@ -3563,96 +3679,33 @@ fn execute_shell_command(
     }
 
     let mut process = std::process::Command::new(shell);
-    process
-        .arg("-NoProfile")
-        .arg("-NonInteractive")
-        .arg("-Command")
-        .arg(command);
-    process
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped());
-    if let Some(cwd) = cwd {
-        process.current_dir(cwd);
+    process.arg("-NoProfile").arg("-NonInteractive").arg("-Command").arg(command);
+    if let Some(cwd) = cwd { process.current_dir(cwd); }
+    let managed = runtime::managed_process::output(&mut process, timeout.map(Duration::from_millis))?;
+    let output = managed.output;
+    let mut stderr = decode_console_output(&output.stderr);
+    if let Some(reason) = managed.interruption {
+        if !stderr.is_empty() { stderr.push('\n'); }
+        stderr.push_str(&match reason {
+            runtime::managed_process::Interruption::TimedOut => format!("Command exceeded timeout of {} ms", timeout.unwrap_or(0)),
+            runtime::managed_process::Interruption::Cancelled => "Command cancelled; managed process exited".to_string(),
+        });
     }
-
-    if let Some(timeout_ms) = timeout {
-        let mut child = process.spawn()?;
-        let started = Instant::now();
-        loop {
-            if let Some(status) = child.try_wait()? {
-                let output = child.wait_with_output()?;
-                return Ok(runtime::BashCommandOutput {
-                    stdout: decode_console_output(&output.stdout),
-                    stderr: decode_console_output(&output.stderr),
-                    raw_output_path: None,
-                    interrupted: false,
-                    is_image: None,
-                    background_task_id: None,
-                    backgrounded_by_user: None,
-                    assistant_auto_backgrounded: None,
-                    dangerously_disable_sandbox: None,
-                    return_code_interpretation: status
-                        .code()
-                        .filter(|code| *code != 0)
-                        .map(|code| format!("exit_code:{code}")),
-                    no_output_expected: Some(output.stdout.is_empty() && output.stderr.is_empty()),
-                    structured_content: None,
-                    persisted_output_path: None,
-                    persisted_output_size: None,
-                    sandbox_status: None,
-                });
-            }
-            if started.elapsed() >= Duration::from_millis(timeout_ms) {
-                let _ = child.kill();
-                let output = child.wait_with_output()?;
-                let stderr = decode_console_output(&output.stderr);
-                let stderr = if stderr.trim().is_empty() {
-                    format!("Command exceeded timeout of {timeout_ms} ms")
-                } else {
-                    format!(
-                        "{}
-Command exceeded timeout of {timeout_ms} ms",
-                        stderr.trim_end()
-                    )
-                };
-                return Ok(runtime::BashCommandOutput {
-                    stdout: decode_console_output(&output.stdout),
-                    stderr,
-                    raw_output_path: None,
-                    interrupted: true,
-                    is_image: None,
-                    background_task_id: None,
-                    backgrounded_by_user: None,
-                    assistant_auto_backgrounded: None,
-                    dangerously_disable_sandbox: None,
-                    return_code_interpretation: Some(String::from("timeout")),
-                    no_output_expected: Some(false),
-                    structured_content: None,
-                    persisted_output_path: None,
-                    persisted_output_size: None,
-                    sandbox_status: None,
-                });
-            }
-            std::thread::sleep(Duration::from_millis(10));
-        }
-    }
-
-    let output = process.output()?;
+    let return_code_interpretation = managed.interruption.map(|reason| match reason {
+        runtime::managed_process::Interruption::TimedOut => "timeout".to_string(),
+        runtime::managed_process::Interruption::Cancelled => "cancelled".to_string(),
+    }).or_else(|| output.status.code().filter(|code| *code != 0).map(|code| format!("exit_code:{code}")));
     Ok(runtime::BashCommandOutput {
         stdout: decode_console_output(&output.stdout),
-        stderr: decode_console_output(&output.stderr),
+        stderr,
         raw_output_path: None,
-        interrupted: false,
+        interrupted: managed.interruption.is_some(),
         is_image: None,
         background_task_id: None,
         backgrounded_by_user: None,
         assistant_auto_backgrounded: None,
         dangerously_disable_sandbox: None,
-        return_code_interpretation: output
-            .status
-            .code()
-            .filter(|code| *code != 0)
-            .map(|code| format!("exit_code:{code}")),
+        return_code_interpretation,
         no_output_expected: Some(output.stdout.is_empty() && output.stderr.is_empty()),
         structured_content: None,
         persisted_output_path: None,
@@ -3722,6 +3775,7 @@ fn parse_skill_description(contents: &str) -> Option<String> {
 mod tests {
     use std::collections::BTreeMap;
     use std::collections::BTreeSet;
+    use std::ffi::OsString;
     use std::fs;
     use std::io::{Read, Write};
     use std::net::{SocketAddr, TcpListener};
@@ -3732,10 +3786,12 @@ mod tests {
 
     use super::{
         agent_permission_policy, allowed_tools_for_subagent, base64url_decode, decode_bing_redirect,
-        execute_agent_with_spawn, execute_tool, final_assistant_text, mvp_tool_specs,
-        persist_agent_terminal_state, push_output_block, AgentInput, AgentJob, SubagentToolExecutor,
-        WebSearchConfig, DEFAULT_SEARCH_TOTAL_BUDGET_MS, DEFAULT_WEB_SEARCH_BASE_URL,
-        MAX_SEARCH_ATTEMPT_TIMEOUT_MS, MAX_SEARCH_BUDGET_MS, MAX_SEARCH_CONNECT_TIMEOUT_MS,
+        detect_powershell_shell_in, execute_agent_with_spawn, execute_powershell_with_search_paths,
+        execute_tool, final_assistant_text, find_command_path, find_command_path_in,
+        mvp_tool_specs, persist_agent_terminal_state, push_output_block, AgentInput, AgentJob,
+        PowerShellInput, SubagentToolExecutor, WebSearchConfig, DEFAULT_SEARCH_TOTAL_BUDGET_MS,
+        DEFAULT_WEB_SEARCH_BASE_URL, MAX_SEARCH_ATTEMPT_TIMEOUT_MS, MAX_SEARCH_BUDGET_MS,
+        MAX_SEARCH_CONNECT_TIMEOUT_MS,
     };
     use api::OutputContentBlock;
     use runtime::{ApiRequest, AssistantEvent, ConversationRuntime, RuntimeError, Session};
@@ -3746,8 +3802,275 @@ mod tests {
         LOCK.get_or_init(|| Mutex::new(()))
     }
 
+    /// `env_lock` 与 [`process_state_lock`] 是**同一把**进程状态锁的两个名字（RPR-01b 裁决第 1 条：
+    /// 不得每个模块各建一把锁）。改 cwd / 改进程环境的用例都必须先持有它。
     fn env_lock() -> &'static Mutex<()> {
         process_state_lock()
+    }
+
+    /// 打印一行**不被 libtest 捕获**的输出（本 crate 自己的一份，各 crate 不共享 util）。
+    ///
+    /// 环境例外必须对"通过的运行"也可见：libtest 会捕获通过用例的 `println!`，
+    /// 只写进被捕获的缓冲就等于**静默通过**。直接写 `std::io::stdout()` 不经过捕获通道。
+    fn announce_env(line: &str) {
+        use std::io::Write;
+        let mut stdout = std::io::stdout();
+        let _ = writeln!(stdout, "{line}");
+        let _ = stdout.flush();
+    }
+
+    /// **显式环境例外**：需要真实 PowerShell 的用例必须先调用本函数。
+    ///
+    /// ## 本 crate 测试已声明的环境要求（除本项外都为"环境无关"）
+    ///
+    /// 1. `std::env::temp_dir()`（Windows 上是 `TEMP`/`TMP`）必须可写：各用例的临时工作区、
+    ///    桩目录与夹具都建在它下面；
+    /// 2. 一般用例**不需要**真实 PowerShell —— `powershell_runs_via_stub_shell` 与
+    ///    `powershell_errors_when_shell_is_missing` 走**显式注入的搜索路径集合**（P-08/I6 接缝），
+    ///    只有 `powershell_timeout_treated_as_seconds` 需要真实 shell（它验证的是超时口径本身）；
+    /// 3. 需要 `git` 的用例：`discover_with_git_*` 不在本 crate（见 core-runtime）。
+    ///
+    /// ## 为什么是"声明式跳过"（RPR-01b 裁决 §5.2）
+    ///
+    /// 改前这里是裸 `if detect_powershell_shell().is_err() { return; }`：libtest 把
+    /// "什么都没做就返回"报成 **ok**，门禁看不到"本机未验证"这个事实。PowerShell 属
+    /// **平台/外部可执行依赖**（非 Windows 默认没有），裁决 §5.2 表允许
+    /// "可选外部依赖缺失且**前置有真实探测** ⇒ 明确跳过并**独立统计**"，因此这里保留跳过，
+    /// 但补齐三件事：① 前置是真实探测；② 打印绕过捕获的 `[env-skip]` 行，写明原因、
+    /// 被探测的对象与"本机不验证任何行为、**不是通过**"；③ 独立统计口径 = 数 `[env-skip]` 行。
+    /// PowerShell 属**执行环境依赖**，不是可选依赖：产品的原生输入 helper 本身就经
+    /// `powershell.exe -Command` 内联执行，缺它意味着**本机无法执行 CU**。
+    ///
+    /// 因此本机缺 PowerShell 时**必须失败**（第八轮裁决 §5：PowerShell → fail），
+    /// 不得记成"跳过"——那会让发布门禁在一台根本跑不了 CU 的机器上变绿。
+    fn require_powershell_or_fail(test_name: &str) {
+        if let Err(error) = super::detect_powershell_shell() {
+            panic!(
+                "[env-missing] {test_name}: 找不到可用的 PowerShell 可执行文件（{error}）。本用例需要真实 shell 才能验证超时口径；缺前置时它不验证任何行为，因此不是通过，而是验收未完成（不是产品缺陷，是执行环境无效）。Windows 上请确认 PATH 里的 pwsh/powershell 可用。"
+            );
+        }
+    }
+
+    // ==== RPR-01b：进程环境变量的「统一锁 + RAII guard」 ====
+
+    /// 恢复环境变量失败时的全局留痕（裁决第 5 条：不得被 poison-tolerant 取锁静默吞掉）。
+    static ENV_RESTORE_FAILED: std::sync::atomic::AtomicBool =
+        std::sync::atomic::AtomicBool::new(false);
+
+    fn env_restore_failures() -> &'static Mutex<Vec<String>> {
+        static FAILURES: OnceLock<Mutex<Vec<String>>> = OnceLock::new();
+        FAILURES.get_or_init(|| Mutex::new(Vec::new()))
+    }
+
+    fn record_env_restore_failure(details: &[String]) {
+        ENV_RESTORE_FAILED.store(true, std::sync::atomic::Ordering::SeqCst);
+        env_restore_failures()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .extend(details.iter().cloned());
+        // 正确措辞（裁决第 6 条）：污染的是**当前测试进程的后续执行**，
+        // 直到恢复（本进程内无法恢复时即进程结束）。不是"用户系统环境变量被永久修改"。
+        eprintln!(
+            "RPR-01b：恢复进程环境变量失败（本进程后续执行可能仍读到被写入的值，直到恢复或进程结束）：{}",
+            details.join("; ")
+        );
+    }
+
+    /// 前序有恢复失败时**响亮地**失败：拒绝在可能被污染的环境上继续跑依赖进程级环境解析的用例。
+    fn assert_no_env_restore_failure() {
+        if !ENV_RESTORE_FAILED.load(std::sync::atomic::Ordering::SeqCst) {
+            return;
+        }
+        let details = env_restore_failures()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .join("; ");
+        panic!(
+            "RPR-01b：前序用例恢复环境变量失败（{details}），本进程环境可能仍被污染；\
+             拒绝在脏环境下继续（poison-tolerant 取锁不得把该信号吞掉）。"
+        );
+    }
+
+    /// 测试专用：清除「恢复失败」标志。调用方必须**已持有**统一锁令牌 ——
+    /// 此时其它线程都阻塞在锁上（标志检查在真锁内进行），故清标志不存在竞争窗口。
+    fn clear_env_restore_failure_for_test() {
+        ENV_RESTORE_FAILED.store(false, std::sync::atomic::Ordering::SeqCst);
+        env_restore_failures()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clear();
+    }
+
+    fn env_restore_failure_recorded() -> bool {
+        ENV_RESTORE_FAILED.load(std::sync::atomic::Ordering::SeqCst)
+    }
+
+    thread_local! {
+        /// 当前线程是否已持有统一锁（用于识别嵌套 guard，避免二次加锁自锁）。
+        static ENV_LOCK_HELD: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    }
+
+    /// 统一锁的持有令牌（裁决第 4 条：嵌套 guard 复用已持有的锁令牌）。
+    ///
+    /// `owned == None` 表示本 guard 复用了**本线程**外层已持有的锁，不负责释放也不再加锁 ——
+    /// `std::sync::Mutex` 不可重入，嵌套时第二次加锁会直接自锁。
+    ///
+    /// 注意：嵌套识别靠的是令牌自己的线程局部标记，**裸 `env_lock().lock()` 不会被识别**。
+    /// 因此同一线程里不要"令牌 + 裸取锁"混用（会自锁）；只需要互斥、不改进程环境时用裸取锁，
+    /// 需要改环境时用本令牌 / [`ScopedEnv`]，二者不要叠在同一线程（本次迁移时就踩过一次：
+    /// `powershell_runs_via_stub_shell` 残留了一行裸 `env_lock()`，直接自锁挂住整个用例）。
+    struct EnvLockToken {
+        owned: Option<std::sync::MutexGuard<'static, ()>>,
+    }
+
+    impl EnvLockToken {
+        fn acquire() -> Self {
+            if ENV_LOCK_HELD.with(std::cell::Cell::get) {
+                // 嵌套：复用外层令牌。仍需检查恢复失败标志 —— 此时本线程持有真锁，
+                // 其它线程都阻塞在锁上，故不存在"并发观察到标志"的竞争窗口。
+                assert_no_env_restore_failure();
+                return Self { owned: None };
+            }
+            // 先拿锁，再检查标志：panic 时线程局部状态（HELD）尚未置位，保持干净。
+            let guard = env_lock()
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            assert_no_env_restore_failure();
+            ENV_LOCK_HELD.with(|held| held.set(true));
+            Self { owned: Some(guard) }
+        }
+
+        /// 是否复用了本线程外层已持有的锁令牌（嵌套场景为 `true`）。
+        fn is_reentrant(&self) -> bool {
+            self.owned.is_none()
+        }
+    }
+
+    impl Drop for EnvLockToken {
+        fn drop(&mut self) {
+            if self.owned.is_some() {
+                ENV_LOCK_HELD.with(|held| held.set(false));
+            }
+            // `owned` 的 MutexGuard 随后自动析构释放锁：poison 语义与旧用例保持一致
+            // （持锁用例 panic → 锁被毒化 → 后续用例仍可用 poison-tolerant 方式取锁，
+            //  但真正的"环境恢复失败"改由上面的标志响亮暴露，不再被吞掉）。
+        }
+    }
+
+    /// 设置/移除一个环境变量，把 std 在非法名字（空 / 含 '=' / 含 NUL）、值含 NUL 时的 panic
+    /// 收敛成 `Err`：恢复路径运行在 `Drop` 里，绝不能让 std 的 panic 直接逃逸出去
+    /// （若此刻正 unwind，二次 panic 会直接 abort 整个测试进程）。
+    fn apply_env(name: &str, target: Option<&OsString>) -> Result<(), String> {
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| match target {
+            Some(value) => std::env::set_var(name, value),
+            None => std::env::remove_var(name),
+        }));
+        result.map_err(|_| format!("{name}: set/remove 环境变量时 panic（名字非法或值含 NUL）"))
+    }
+
+    fn env_set(
+        name: &'static str,
+        value: impl AsRef<std::ffi::OsStr>,
+    ) -> (&'static str, Option<OsString>) {
+        (name, Some(value.as_ref().to_os_string()))
+    }
+
+    /// 目标状态 = 「不存在」（注意与「存在但为空串」不同，后者用 `env_set(name, "")`）。
+    fn env_unset(name: &'static str) -> (&'static str, Option<OsString>) {
+        (name, None)
+    }
+
+    /// RAII 版**进程级**环境变量作用域。
+    ///
+    /// 用法：
+    /// ```ignore
+    /// let _env = ScopedEnv::new(vec![env_set("HOME", &home), env_unset("CLAW_CONFIG_HOME")]);
+    /// ```
+    ///
+    /// 保证：
+    /// 1. **持锁区间**：从「读原值之前」到「全部恢复之后」一直持有统一锁令牌（Drop 体先恢复、字段后释放锁）；
+    /// 2. **三态无损**（裁决第 2 条）：原值用 `Option<OsString>` 保存，区分「原来不存在」(`None`)、
+    ///    「原来为空串」(`Some(OsString::new())`)、「原来有值」（不用空串冒充"不存在"）；
+    /// 3. **部分失败回滚**（裁决第 3 条）：多变量构造时先把"原值"登记进 `self`，再改值；
+    ///    中途失败（panic）时 `self` 已是构造函数的局部变量，析构会恢复**已改动**的部分；
+    /// 4. **嵌套复用令牌**（裁决第 4 条）：见 [`EnvLockToken`]；
+    /// 5. **恢复失败不静默**（裁决第 5 条）：见 [`record_env_restore_failure`]。
+    ///
+    /// 边界（裁决第 7 条）：RAII 只覆盖**栈展开（unwind）**路径。`std::process::abort`、
+    /// `libc::_exit` / `pthread_exit` 等不展开栈的终止方式**不会**运行析构函数，
+    /// 因此本 guard 不承诺"任何情况下都必定恢复"；这类终止方式下进程本身已结束或环境已被放弃。
+    struct ScopedEnv {
+        /// 先声明锁令牌：`ScopedEnv::drop` 体（恢复）跑完之后，字段才按声明顺序析构（释放锁）。
+        lock: EnvLockToken,
+        originals: Vec<(&'static str, Option<OsString>)>,
+    }
+
+    impl ScopedEnv {
+        fn new(targets: Vec<(&'static str, Option<OsString>)>) -> Self {
+            // 先登记原值再改值：登记与改值之间没有可 panic 的语句，
+            // 因此"已登记但未改值"的条目恢复起来只是把原值写回一遍，幂等无害。
+            let mut scope = Self {
+                lock: EnvLockToken::acquire(),
+                originals: Vec::with_capacity(targets.len()),
+            };
+            for (name, target) in targets {
+                let original = std::env::var_os(name);
+                scope.originals.push((name, original));
+                if let Err(error) = apply_env(name, target.as_ref()) {
+                    // apply 失败时该变量状态未变（std 在真正改动前就 panic 了），
+                    // 撤销刚登记的恢复项，避免对非法名字做一次注定失败的"恢复"。
+                    scope.originals.pop();
+                    panic!("ScopedEnv 设置环境变量失败：{error}");
+                }
+            }
+            scope
+        }
+
+        /// 测试专用：直接注入「原值」而不做任何 set —— 用于构造"恢复必然失败"的路径
+        /// （std 的 `set_var`/`remove_var` 对合法名字几乎不会失败，只能注入非法名字来复现该分支）。
+        fn with_injected_originals(originals: Vec<(&'static str, Option<OsString>)>) -> Self {
+            Self {
+                lock: EnvLockToken::acquire(),
+                originals,
+            }
+        }
+
+        /// 本 guard 是否嵌套复用了外层锁令牌。
+        fn is_reentrant(&self) -> bool {
+            self.lock.is_reentrant()
+        }
+
+        /// 已保存的原值（`None` = 该变量没有登记；`Some(None)` = 原来不存在）。
+        fn original_of(&self, name: &str) -> Option<&Option<OsString>> {
+            self.originals
+                .iter()
+                .find(|(candidate, _)| *candidate == name)
+                .map(|(_, original)| original)
+        }
+    }
+
+    impl Drop for ScopedEnv {
+        fn drop(&mut self) {
+            let mut failures = Vec::new();
+            // 逆序恢复：后设的先回退，覆盖同一变量被登记两次的情形。
+            for (name, original) in self.originals.iter().rev() {
+                if let Err(error) = apply_env(name, original.as_ref()) {
+                    failures.push(error);
+                }
+            }
+            if failures.is_empty() {
+                return;
+            }
+            record_env_restore_failure(&failures);
+            // 非 unwind 路径（正常返回时的析构）可以安全 panic：立刻让用例失败，绝不静默；
+            // unwind 路径不能二次 panic（会 abort 整个测试进程），改为上面"留痕 + 标志 + 阻塞后续"。
+            if !std::thread::panicking() {
+                panic!(
+                    "ScopedEnv 恢复环境变量失败：{}（进程环境与本进程后续执行可能仍被污染）",
+                    failures.join("; ")
+                );
+            }
+        }
     }
 
     fn temp_path(name: &str) -> PathBuf {
@@ -3770,36 +4093,474 @@ mod tests {
         config
     }
 
+    /// RAII 版的进程 cwd 切换：进入 `path`，离开作用域时恢复原 cwd 并清理临时目录。
+    ///
+    /// 历史写法是每个用例手写 `let original = current_dir(); set_current_dir(root); ...;
+    /// set_current_dir(original)`。一旦用例中途 panic（断言/expect 失败），末尾的恢复语句根本执行不到：
+    /// 进程 cwd 永久停在一个临时目录里。又因为 env_lock 是 poison-tolerant 的，后续用例不会报"锁被毒化"，
+    /// 而是**静默**在错误 cwd 下运行（凡从 cwd 推导路径的代码都会拿到错误结果）。
+    /// 交给 Drop 恢复，unwind 路径同样收口。
     struct ScopedCurrentDir {
         original: PathBuf,
+        /// 作用域结束时删除的目录。通常是 `path` 本身；cwd 只是临时目录子目录时传外层根，
+        /// 避免"用例末尾的 remove_dir_all 被 panic 跳过"导致临时目录残留。
+        cleanup: PathBuf,
         path: PathBuf,
     }
 
     impl ScopedCurrentDir {
         fn enter(path: PathBuf) -> Self {
+            Self::enter_in(path.clone(), path)
+        }
+
+        /// 进入 `path`，但作用域结束时只清理 `cleanup`（`cleanup` 应包含 `path`）。
+        fn enter_in(path: PathBuf, cleanup: PathBuf) -> Self {
             let original = std::env::current_dir().expect("current dir");
-            std::env::set_current_dir(&path).expect("set current dir");
-            Self { original, path }
+            if let Err(error) = std::env::set_current_dir(&path) {
+                panic!("set current dir to {}: {error}", path.display());
+            }
+            Self {
+                original,
+                cleanup,
+                path,
+            }
         }
     }
 
     impl Drop for ScopedCurrentDir {
         fn drop(&mut self) {
-            std::env::set_current_dir(&self.original).expect("restore current dir");
-            let _ = fs::remove_dir_all(&self.path);
+            // 这里绝不能 panic：用例正在 unwind 时二次 panic 会直接 abort 整个测试进程，
+            // 那时连"把 cwd 还回去"都做不到（其它用例一起陪葬）。恢复失败只能尽力而为 + 留痕。
+            if let Err(error) = std::env::set_current_dir(&self.original) {
+                eprintln!(
+                    "ScopedCurrentDir 恢复进程 cwd 失败：{} -> {}：{error}",
+                    self.path.display(),
+                    self.original.display()
+                );
+            }
+            let _ = fs::remove_dir_all(&self.cleanup);
         }
     }
 
+    /// 回归（RPR-01）：作用域内 panic（unwind）时也必须恢复 cwd 并清理临时目录。
+    ///
+    /// 对应缺陷：用例手写 `set_current_dir(root) ... set_current_dir(original)`，
+    /// panic 会跳过恢复语句，把进程 cwd 留在临时目录里（已用临时用例复现过）。
+    #[test]
+    fn scoped_current_dir_restores_cwd_when_scope_panics() {
+        let _guard = env_lock()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let before = std::env::current_dir().expect("cwd before");
+        let root = temp_path("rpr01-panic-restore");
+        fs::create_dir_all(&root).expect("create root");
+
+        let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _cwd = ScopedCurrentDir::enter(root.clone());
+            let inside = std::env::current_dir().expect("cwd inside");
+            assert_eq!(
+                inside.canonicalize().expect("canonical inside"),
+                root.canonicalize().expect("canonical root"),
+                "作用域内 cwd 应指向临时目录"
+            );
+            panic!("模拟用例中途断言失败");
+        }));
+        assert!(panicked.is_err(), "作用域内的 panic 必须继续向外传播");
+
+        assert_eq!(
+            std::env::current_dir().expect("cwd after panic"),
+            before,
+            "panic（unwind）后进程 cwd 必须回到进入前的目录"
+        );
+        assert!(!root.exists(), "panic 后临时目录也必须被清理");
+    }
+
+    /// 回归（RPR-01）：Drop 不得 panic —— 原目录已被删（或压根不可达）时只能尽力而为。
+    ///
+    /// 对应缺陷：`Drop` 里 `set_current_dir(..).expect("restore current dir")` 在 unwind 过程中
+    /// 二次 panic 会 abort 整个测试进程。改前本用例必失败（panic: restore current dir / NotFound）。
+    #[test]
+    fn scoped_current_dir_drop_never_panics_when_original_is_gone() {
+        let _guard = env_lock()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let before = std::env::current_dir().expect("cwd before");
+        let cleanup = temp_path("rpr01-drop-survives");
+        fs::create_dir_all(&cleanup).expect("create cleanup");
+
+        // 直接构造"原目录不存在"的作用域，模拟恢复失败的路径。
+        {
+            let _cwd = ScopedCurrentDir {
+                original: temp_path("rpr01-missing-original"),
+                cleanup: cleanup.clone(),
+                path: cleanup.clone(),
+            };
+        }
+
+        assert_eq!(
+            std::env::current_dir().expect("cwd after drop"),
+            before,
+            "恢复失败时不得改动 cwd"
+        );
+        assert!(!cleanup.exists(), "清理仍然要执行");
+    }
+
+    /// 回归（RPR-01）：持锁用例 panic（锁被毒化）后，其它用例仍必须能取到锁，
+    /// 且不会看到残留的临时 cwd —— 即"poison 不级联 + cwd 无脏状态"。
+    ///
+    /// 注意：本用例会**故意毒化** process_state_lock，断言 poison-tolerant 取锁有效后，
+    /// 用 `clear_poison` 复原，不给其它用例留下额外全局状态。
+    #[test]
+    fn poisoned_process_state_lock_does_not_cascade_or_leak_cwd() {
+        // RPR-01b 修正：原实现在**未持锁**时快照 `before`、也在未持锁时做最终断言，
+        // 会与并发的"改 cwd 用例"互相看见对方的临时目录，从而随机失败
+        // （实测第一遍 `cargo test -p coolzhu-tool-registry` 就在这里挂过一次）。
+        // 现在两次读 cwd 都在持有统一锁令牌时进行：
+        //   - 基线快照前必须持锁，否则 `before` 可能是别的用例的临时目录；
+        //   - 最终断言同样持锁，否则断言之间可能被并发用例改掉 cwd。
+        let before = {
+            let token = EnvLockToken::acquire();
+            let before = std::env::current_dir().expect("cwd before");
+            drop(token);
+            before
+        };
+        let root = temp_path("rpr01-poison");
+        fs::create_dir_all(&root).expect("create root");
+
+        // 故意在**持锁**状态下 panic（这里用裸 env_lock 而非令牌：本线程此刻不持锁，
+        // 令牌会自动判为嵌套/复用而不真正加锁，反而构造不出"持锁用例失败"）。
+        let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _guard = env_lock()
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let _cwd = ScopedCurrentDir::enter(root.clone());
+            panic!("模拟持锁用例失败");
+        }));
+        assert!(panicked.is_err(), "panic 必须向外传播");
+        assert!(
+            env_lock().is_poisoned(),
+            "持锁用例 panic 后锁必须真的被毒化，否则本用例对 poison 行为没有判别力"
+        );
+
+        // 锁被毒化后仍可获取（否则后续用例会连锁失败）；下面的断言都在持锁状态下进行。
+        {
+            let _token = EnvLockToken::acquire();
+            assert_eq!(
+                std::env::current_dir().expect("cwd after poisoned scope"),
+                before,
+                "持锁用例 panic 后不得残留临时 cwd"
+            );
+            assert!(!root.exists(), "临时目录必须已清理");
+        }
+        env_lock().clear_poison();
+    }
+
+    /// 回归（RPR-01b）：正常返回（作用域自然结束）时，三态原值全部无损恢复。
+    ///
+    /// 判别性：改前那种 `set_var(...)` + 末尾手写 restore 的写法区分不出
+    /// 「原来不存在」和「原来为空串」（旧 Config 用例用 `var().ok()` 读原值，空串被当成不存在），
+    /// 本用例直接断言保存下来的原值三态各不相同。
+    #[test]
+    fn scoped_env_restores_all_three_original_states_on_normal_drop() {
+        // 外层 guard：把"人肉构造"的三种原状态在用例结束时清干净（顺便验证自身恢复）。
+        let outer = ScopedEnv::new(vec![
+            env_unset("CLAW_RPR01B_MISSING"),
+            env_set("CLAW_RPR01B_EMPTY", ""),
+            env_set("CLAW_RPR01B_VALUE", "original"),
+        ]);
+        assert!(!outer.is_reentrant(), "最外层 guard 必须真正持有统一锁");
+        assert_eq!(std::env::var_os("CLAW_RPR01B_MISSING"), None);
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_EMPTY"),
+            Some(OsString::from(""))
+        );
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_VALUE"),
+            Some(OsString::from("original"))
+        );
+
+        {
+            // 内层 guard：三种原状态分别是「不存在」「空串」「有值」，改写后 Drop 必须逐一还原。
+            let inner = ScopedEnv::new(vec![
+                env_set("CLAW_RPR01B_MISSING", "now-set"),
+                env_unset("CLAW_RPR01B_EMPTY"),
+                env_set("CLAW_RPR01B_VALUE", "changed"),
+            ]);
+            assert!(inner.is_reentrant(), "嵌套 guard 必须复用外层令牌（不再加锁）");
+            assert_eq!(
+                inner.original_of("CLAW_RPR01B_MISSING"),
+                Some(&None),
+                "原来不存在必须记为 None"
+            );
+            assert_eq!(
+                inner.original_of("CLAW_RPR01B_EMPTY"),
+                Some(&Some(OsString::from(""))),
+                "原来为空串必须记为 Some(\"\")，不得退化成 None"
+            );
+            assert_eq!(
+                inner.original_of("CLAW_RPR01B_VALUE"),
+                Some(&Some(OsString::from("original")))
+            );
+            assert_eq!(
+                std::env::var_os("CLAW_RPR01B_MISSING"),
+                Some(OsString::from("now-set"))
+            );
+            assert_eq!(std::env::var_os("CLAW_RPR01B_EMPTY"), None);
+            assert_eq!(
+                std::env::var_os("CLAW_RPR01B_VALUE"),
+                Some(OsString::from("changed"))
+            );
+        }
+
+        assert_eq!(std::env::var_os("CLAW_RPR01B_MISSING"), None, "回到「不存在」");
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_EMPTY"),
+            Some(OsString::from("")),
+            "回到「存在但为空串」"
+        );
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_VALUE"),
+            Some(OsString::from("original")),
+            "回到「原来有值」"
+        );
+    }
+
+    /// 回归（RPR-01b）：作用域内**提前返回**（`return` / `?` 传播）同样必须恢复。
+    /// 判别性：改前的手写 restore 写在函数末尾，提前返回根本走不到。
+    #[test]
+    fn scoped_env_restores_on_early_return() {
+        fn probe() -> Result<(), String> {
+            let _env = ScopedEnv::new(vec![env_set("CLAW_RPR01B_EARLY", "in-scope")]);
+            assert_eq!(
+                std::env::var_os("CLAW_RPR01B_EARLY"),
+                Some(OsString::from("in-scope"))
+            );
+            return Err(String::from("提前返回"));
+        }
+
+        let _holder = ScopedEnv::new(vec![env_unset("CLAW_RPR01B_EARLY")]);
+        assert_eq!(std::env::var_os("CLAW_RPR01B_EARLY"), None);
+
+        assert_eq!(probe(), Err(String::from("提前返回")));
+
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_EARLY"),
+            None,
+            "提前返回后必须恢复到作用域前的状态"
+        );
+    }
+
+    /// 回归（RPR-01b）：受控 panic / 栈展开后必须恢复，且**后续执行**（含生产代码读取路径）
+    /// 看到的环境与进入作用域前完全一致。
+    /// 判别性：改前 panic 会跳过末尾手写 restore，进程环境里会残留作用域内的值。
+    #[test]
+    fn scoped_env_restores_on_panic_and_keeps_later_readers_consistent() {
+        let _holder = ScopedEnv::new(vec![env_unset("CLAW_TODO_STORE")]);
+        let before = std::env::var_os("CLAW_TODO_STORE");
+        assert_eq!(before, None);
+
+        let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _env = ScopedEnv::new(vec![env_set("CLAW_TODO_STORE", "rpr01b-dirty-todos.json")]);
+            assert_eq!(
+                std::env::var_os("CLAW_TODO_STORE"),
+                Some(OsString::from("rpr01b-dirty-todos.json"))
+            );
+            panic!("模拟作用域内断言失败");
+        }));
+        assert!(panicked.is_err(), "作用域内的 panic 必须继续向外传播");
+
+        assert_eq!(
+            std::env::var_os("CLAW_TODO_STORE"),
+            before,
+            "panic（unwind）后必须恢复到进入作用域前的三态"
+        );
+        // 生产读取路径（todo_store_path 会优先读 CLAW_TODO_STORE）不得再看到作用域内的临时值。
+        assert_ne!(
+            super::todo_store_path().expect("todo store path"),
+            PathBuf::from("rpr01b-dirty-todos.json"),
+            "panic 后生产读取路径不得仍读到作用域内写入的值"
+        );
+        assert!(
+            !env_restore_failure_recorded(),
+            "正常 unwind 恢复不应留下任何'恢复失败'记录"
+        );
+    }
+
+    /// 判别性对照（RPR-01b）：**旧写法**（裸 `set_var` + 末尾手写 restore）在 panic 后确实残留，
+    /// 而 [`ScopedEnv`] 同样的 panic 场景下不残留 —— 本用例把这个差异做成可执行的断言，
+    /// 而不是只在注释里声称"改前会残留"。
+    ///
+    /// 说明：对照实验需要自己收尾（旧写法没有守卫），所以结尾手动 remove_var。
+    #[test]
+    fn naive_manual_restore_leaks_on_panic_which_scoped_env_prevents() {
+        let _env = ScopedEnv::new(vec![
+            env_unset("CLAW_RPR01B_NAIVE"),
+            env_unset("CLAW_RPR01B_GUARDED"),
+        ]);
+
+        // (1) 旧写法：set 之后 panic → 末尾的 restore 永远执行不到 → 测试值留在进程环境里。
+        let naive = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            std::env::set_var("CLAW_RPR01B_NAIVE", "leaked");
+            panic!("模拟断言失败：后面的手写 restore 被跳过");
+        }));
+        assert!(naive.is_err());
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_NAIVE"),
+            Some(OsString::from("leaked")),
+            "旧写法在 panic 后确实把测试值留在了本进程环境里（这正是要消除的缺陷）"
+        );
+        std::env::remove_var("CLAW_RPR01B_NAIVE"); // 旧写法没有守卫，只能手动收尾
+
+        // (2) 同样的 panic 场景，guard 收口的变量不留残留。
+        let guarded = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _inner = ScopedEnv::new(vec![env_set("CLAW_RPR01B_GUARDED", "leaked")]);
+            panic!("模拟断言失败");
+        }));
+        assert!(guarded.is_err());
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_GUARDED"),
+            None,
+            "guard 在同样的 panic 下必须已经恢复（与上面的旧写法形成对照）"
+        );
+    }
+
+    /// 回归（RPR-01b 裁决第 3 条）：多变量构造**中途失败**时，已经修改的部分也必须恢复。
+    /// 判别性：改前是裸 `set_var(A); set_var(BAD);`，panic 后 A 会永久留在本进程环境里
+    /// （直到进程结束），后续用例就会读到 A 的测试值。
+    #[test]
+    fn scoped_env_rolls_back_applied_vars_when_later_construction_fails() {
+        let _holder = ScopedEnv::new(vec![
+            env_unset("CLAW_RPR01B_PARTIAL_A"),
+            env_unset("CLAW_RPR01B_PARTIAL_B"),
+        ]);
+        let before_a = std::env::var_os("CLAW_RPR01B_PARTIAL_A");
+        let before_b = std::env::var_os("CLAW_RPR01B_PARTIAL_B");
+        assert_eq!(before_a, None);
+        assert_eq!(before_b, None);
+
+        let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _env = ScopedEnv::new(vec![
+                env_set("CLAW_RPR01B_PARTIAL_A", "applied-before-failure"),
+                env_set("CLAW_RPR01B_PARTIAL_B", "also-applied"),
+                // 非法名字（含 '='）：std 会在真正改动前 panic，构造在此中断。
+                env_set("CLAW_RPR01B=BAD", "invalid"),
+            ]);
+        }));
+        assert!(panicked.is_err(), "非法名字必须让构造 panic（不得静默跳过）");
+
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_PARTIAL_A"),
+            before_a,
+            "构造失败前已应用的第一个变量必须被回滚"
+        );
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_PARTIAL_B"),
+            before_b,
+            "构造失败前已应用的第二个变量必须被回滚"
+        );
+    }
+
+    /// 回归（RPR-01b 裁决第 4 条）：嵌套 guard 复用已持有的锁令牌 —— 内层不再加锁，
+    /// 因此不会自锁（若回归成"每个 guard 各加一次锁"，本用例会**死锁**而不是失败）。
+    /// 同时验证恢复顺序：内层先回到内层写入前的值，外层最后回到最初的原值。
+    #[test]
+    fn scoped_env_nested_guards_reuse_lock_token_and_restore_inner_first() {
+        let outer = ScopedEnv::new(vec![env_set("CLAW_RPR01B_NEST", "outer")]);
+        assert!(!outer.is_reentrant(), "最外层 guard 必须持有真锁");
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_NEST"),
+            Some(OsString::from("outer"))
+        );
+
+        {
+            let inner = ScopedEnv::new(vec![env_set("CLAW_RPR01B_NEST", "inner")]);
+            assert!(inner.is_reentrant(), "嵌套 guard 必须复用外层锁令牌");
+            assert_eq!(
+                std::env::var_os("CLAW_RPR01B_NEST"),
+                Some(OsString::from("inner"))
+            );
+        }
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_NEST"),
+            Some(OsString::from("outer")),
+            "内层先恢复到自己进入前的值"
+        );
+
+        drop(outer);
+        assert_eq!(
+            std::env::var_os("CLAW_RPR01B_NEST"),
+            None,
+            "外层最后恢复到最初的原值（不存在）"
+        );
+    }
+
+    /// 回归（RPR-01b 裁决第 5 条）：恢复失败**不得**被 poison-tolerant 取锁静默吞掉。
+    ///
+    /// 做法：注入一个"原值无法恢复"的作用域（名字非法 → set/remove 都 panic），
+    /// 断言 (1) 非 unwind 路径下 Drop 立刻响亮失败、(2) 全局留痕置位、
+    /// (3) **下一次取锁（含嵌套复用路径）拒绝在脏环境上继续**。
+    /// 这是"改前"做不到的：旧写法既不认识"恢复失败"，poison-tolerant 取锁又会把唯一信号吞掉。
+    #[test]
+    fn env_restore_failure_is_not_swallowed_by_poison_tolerant_lock() {
+        // 全程持有令牌：标志的置位/清除都在锁内，其它线程此时阻塞在锁上，不存在竞争窗口。
+        let token = EnvLockToken::acquire();
+        clear_env_restore_failure_for_test();
+        assert!(!env_restore_failure_recorded());
+
+        let dropped = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            // 注入非法名字当"原值"：Drop 恢复时必然失败。
+            let _broken =
+                ScopedEnv::with_injected_originals(vec![("CLAW_RPR01B=BAD", Some(OsString::from("x")))]);
+        }));
+        assert!(
+            dropped.is_err(),
+            "非 unwind 路径下恢复失败必须立刻让用例失败（不得静默）"
+        );
+        assert!(
+            env_restore_failure_recorded(),
+            "恢复失败必须留下全局记录，供后续用例拒绝在脏环境上继续"
+        );
+
+        // 下一次取锁（这里走嵌套复用路径，最坏情况）必须响亮 panic，而不是静默返回。
+        let reused = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| EnvLockToken::acquire()));
+        assert!(
+            reused.is_err(),
+            "存在未处理的恢复失败时，取锁必须响亮失败（poison-tolerant 也不得吞掉）"
+        );
+
+        // 复原全局状态（仍在持锁状态），不给其它用例留下"恢复失败"记录。
+        clear_env_restore_failure_for_test();
+        assert!(!env_restore_failure_recorded());
+        drop(token);
+    }
+
+    /// 回归：`timeout` 必须按**秒**解释（改前被当毫秒，命令必超时）。
+    ///
+    /// ## 时间预算为什么是 10 秒（RPR-01b：30 轮重复运行暴露的真实 flake）
+    ///
+    /// 改前用 `timeout: Some(2)` 跑 `Start-Sleep -Milliseconds 500; Write-Output ok`：
+    /// 这 2 秒要同时覆盖 **pwsh 启动 + 500ms 睡眠 + 输出**。本机重载（兄弟工单并行编译）时
+    /// pwsh 启动就能吃掉 1.5 秒以上 —— 实测 30 轮里 **2 轮**以
+    /// `stdout="" stderr="Command exceeded timeout of 2000 ms"` 失败，属**负载导致的假失败**
+    /// （同一断言、同一原因，重跑即绿）。
+    ///
+    /// 这里只放宽**墙钟预算**，不放宽判据：本用例防的回归是"秒被当成毫秒"，
+    /// 10 秒 vs 10 毫秒仍然判然有别（误读成 10ms 时连 pwsh 启动都过不去，必然超时 ⇒ 仍红），
+    /// 因此**判别力不减**；命令真挂住时最坏多等 10 秒（有界），随后仍由断言判失败。
     #[test]
     fn powershell_timeout_treated_as_seconds() {
-        use super::{detect_powershell_shell, execute_powershell, PowerShellInput};
-        if detect_powershell_shell().is_err() {
-            return; // 无 PowerShell 环境跳过该集成测试
-        }
+        use super::execute_powershell;
+        // 显式环境例外：需要真实 PowerShell（缺前置 ⇒ 声明式跳过并独立统计，绝不静默通过）。
+        require_powershell_or_fail("powershell_timeout_treated_as_seconds");
+        // RPR-01：cwd: None 意味着子进程继承**进程 cwd**，等价于读一次进程全局状态；
+        // 必须与改动 cwd 的用例互斥，否则可能继承到正被删除的临时目录（os error 267）。
+        let _guard = env_lock()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let out = execute_powershell(PowerShellInput {
             command: "Start-Sleep -Milliseconds 500; Write-Output ok".to_string(),
             cwd: None,
-            timeout: Some(2), // 2 秒；修复前被当 2ms，命令必超时
+            timeout: Some(10), // 10 秒；改前被当 10ms（更早是 2ms），命令必超时
             description: None,
             run_in_background: None,
         })
@@ -3812,7 +4573,7 @@ mod tests {
         );
         assert!(
             !out.stderr.contains("exceeded timeout"),
-            "应在 2 秒内完成、不超时: {:?}",
+            "应在 10 秒内完成、不超时（超时说明 timeout 被按毫秒解释，或本机异常缓慢）: {:?}",
             out.stderr
         );
     }
@@ -4363,11 +5124,10 @@ mod tests {
 
     #[test]
     fn todo_write_persists_and_returns_previous_state() {
-        let _guard = env_lock()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let path = temp_path("todos.json");
-        std::env::set_var("CLAW_TODO_STORE", &path);
+        // RPR-01b：CLAW_TODO_STORE 是**进程级解析**（生产代码 todo_store_path 在本进程读它），
+        // 故用统一锁 + RAII guard 收口，而不是手写 set→restore（panic 会跳过 restore）。
+        let _env = ScopedEnv::new(vec![env_set("CLAW_TODO_STORE", &path)]);
 
         let first = execute_tool(
             "TodoWrite",
@@ -4393,7 +5153,6 @@ mod tests {
             }),
         )
         .expect("TodoWrite should succeed");
-        std::env::remove_var("CLAW_TODO_STORE");
         let _ = std::fs::remove_file(path);
 
         let second_output: serde_json::Value = serde_json::from_str(&second).expect("valid json");
@@ -4410,11 +5169,9 @@ mod tests {
 
     #[test]
     fn todo_write_rejects_invalid_payloads_and_sets_verification_nudge() {
-        let _guard = env_lock()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let path = temp_path("todos-errors.json");
-        std::env::set_var("CLAW_TODO_STORE", &path);
+        // RPR-01b：同上，进程级环境变量改用统一锁 + RAII guard。
+        let _env = ScopedEnv::new(vec![env_set("CLAW_TODO_STORE", &path)]);
 
         let empty = execute_tool("TodoWrite", &json!({ "todos": [] }))
             .expect_err("empty todos should fail");
@@ -4454,7 +5211,6 @@ mod tests {
             }),
         )
         .expect("completed todos should succeed");
-        std::env::remove_var("CLAW_TODO_STORE");
         let _ = fs::remove_file(path);
 
         let output: serde_json::Value = serde_json::from_str(&nudge).expect("valid json");
@@ -4463,9 +5219,6 @@ mod tests {
 
     #[test]
     fn skill_loads_local_skill_prompt() {
-        let _guard = env_lock()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let codex_home = temp_path("skill-home");
         let skill_dir = codex_home.join("skills").join("help");
         fs::create_dir_all(&skill_dir).expect("create skill dir");
@@ -4474,8 +5227,9 @@ mod tests {
             "Guide on using oh-my-codex plugin\n",
         )
         .expect("write skill");
-        let previous_codex_home = std::env::var_os("CODEX_HOME");
-        std::env::set_var("CODEX_HOME", &codex_home);
+        // RPR-01b：CODEX_HOME 由生产代码 resolve_skill_path 在**本进程**读取（进程级解析），
+        // 原值改用 guard 的 Option<OsString> 无损保存（改前手写分支区分不出"空串"和"不存在"）。
+        let _env = ScopedEnv::new(vec![env_set("CODEX_HOME", &codex_home)]);
 
         let result = execute_tool(
             "Skill",
@@ -4508,10 +5262,6 @@ mod tests {
             normalize_path(dollar_output["path"].as_str().expect("path"))
                 .ends_with("/help/SKILL.md")
         );
-        match previous_codex_home {
-            Some(value) => std::env::set_var("CODEX_HOME", value),
-            None => std::env::remove_var("CODEX_HOME"),
-        }
         let _ = fs::remove_dir_all(codex_home);
     }
 
@@ -4550,11 +5300,9 @@ mod tests {
 
     #[test]
     fn agent_persists_handoff_metadata() {
-        let _guard = env_lock()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let dir = temp_path("agent-store");
-        std::env::set_var("CLAW_AGENT_STORE", &dir);
+        // RPR-01b：CLAW_AGENT_STORE 由 agent_store_dir 在本进程读取（进程级解析）→ 统一锁 + guard。
+        let _env = ScopedEnv::new(vec![env_set("CLAW_AGENT_STORE", &dir)]);
         let captured = Arc::new(Mutex::new(None::<AgentJob>));
         let captured_for_spawn = Arc::clone(&captured);
 
@@ -4574,7 +5322,6 @@ mod tests {
             },
         )
         .expect("Agent should succeed");
-        std::env::remove_var("CLAW_AGENT_STORE");
 
         assert_eq!(manifest.name, "ship-audit");
         assert_eq!(manifest.subagent_type.as_deref(), Some("Explore"));
@@ -4627,11 +5374,9 @@ mod tests {
 
     #[test]
     fn agent_fake_runner_can_persist_completion_and_failure() {
-        let _guard = env_lock()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let dir = temp_path("agent-runner");
-        std::env::set_var("CLAW_AGENT_STORE", &dir);
+        // RPR-01b：同上，进程级环境变量改用统一锁 + RAII guard（原来手写 set→remove）。
+        let _env = ScopedEnv::new(vec![env_set("CLAW_AGENT_STORE", &dir)]);
 
         let completed = execute_agent_with_spawn(
             AgentInput {
@@ -4713,7 +5458,6 @@ mod tests {
         assert!(spawn_error_manifest.contains("\"status\": \"failed\""));
         assert!(spawn_error_manifest.contains("thread creation failed"));
 
-        std::env::remove_var("CLAW_AGENT_STORE");
         let _ = std::fs::remove_dir_all(dir);
     }
 
@@ -4963,6 +5707,12 @@ mod tests {
 
     #[test]
     fn bash_tool_reports_success_exit_failure_timeout_and_background() {
+        // 本用例会以进程 cwd 启动子 shell：必须与所有改动 cwd/env 的用例互斥，
+        // 否则并发的 set_current_dir + remove_dir_all 会让 cwd 短暂指向已删除目录，
+        // 子进程启动报 "目录名称无效 (os error 267)"。
+        let _guard = env_lock()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let success = execute_tool("bash", &json!({ "command": shell_success_command() }))
             .expect("bash should succeed");
         let success_output: serde_json::Value = serde_json::from_str(&success).expect("json");
@@ -5041,8 +5791,8 @@ mod tests {
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         let root = temp_path("fs-suite");
         fs::create_dir_all(&root).expect("create root");
-        let original_dir = std::env::current_dir().expect("cwd");
-        std::env::set_current_dir(&root).expect("set cwd");
+        // RPR-01：cwd 改用 RAII 收口（手写 save/restore 会被中途 panic 跳过，把进程 cwd 留在临时目录里）。
+        let _cwd = ScopedCurrentDir::enter(root.clone());
 
         let write_create = execute_tool(
             "write_file",
@@ -5056,7 +5806,7 @@ mod tests {
 
         let write_update = execute_tool(
             "write_file",
-            &json!({ "path": "nested/demo.txt", "content": "alpha\nbeta\ngamma\n" }),
+            &json!({ "path": "nested/demo.txt", "content": "alpha\nbeta\ngamma\n", "expected_version": write_create_output["version"]["sha256"] }),
         )
         .expect("write update should succeed");
         let write_update_output: serde_json::Value =
@@ -5095,7 +5845,7 @@ mod tests {
 
         let edit_once = execute_tool(
             "edit_file",
-            &json!({ "path": "nested/demo.txt", "old_string": "alpha", "new_string": "omega" }),
+            &json!({ "path": "nested/demo.txt", "old_string": "alpha", "new_string": "omega", "expected_version": read_full_output["version"]["sha256"] }),
         )
         .expect("single edit should succeed");
         let edit_once_output: serde_json::Value = serde_json::from_str(&edit_once).expect("json");
@@ -5105,18 +5855,19 @@ mod tests {
             "omega\nbeta\ngamma\n"
         );
 
-        execute_tool(
+        let reset = execute_tool(
             "write_file",
-            &json!({ "path": "nested/demo.txt", "content": "alpha\nbeta\nalpha\n" }),
-        )
-        .expect("reset file");
+            &json!({ "path": "nested/demo.txt", "content": "alpha\nbeta\nalpha\n", "expected_version": edit_once_output["version"]["sha256"] }),
+        ).expect("reset file");
+        let reset: serde_json::Value = serde_json::from_str(&reset).unwrap();
         let edit_all = execute_tool(
             "edit_file",
             &json!({
                 "path": "nested/demo.txt",
                 "old_string": "alpha",
                 "new_string": "omega",
-                "replace_all": true
+                "replace_all": true,
+                "expected_version": reset["version"]["sha256"]
             }),
         )
         .expect("replace all should succeed");
@@ -5129,20 +5880,17 @@ mod tests {
 
         let edit_same = execute_tool(
             "edit_file",
-            &json!({ "path": "nested/demo.txt", "old_string": "omega", "new_string": "omega" }),
+            &json!({ "path": "nested/demo.txt", "old_string": "omega", "new_string": "omega", "expected_version": edit_all_output["version"]["sha256"] }),
         )
         .expect_err("identical old/new should fail");
         assert!(edit_same.contains("must differ"));
 
         let edit_missing = execute_tool(
             "edit_file",
-            &json!({ "path": "nested/demo.txt", "old_string": "missing", "new_string": "omega" }),
+            &json!({ "path": "nested/demo.txt", "old_string": "missing", "new_string": "omega", "expected_version": edit_all_output["version"]["sha256"] }),
         )
         .expect_err("missing substring should fail");
         assert!(edit_missing.contains("old_string not found"));
-
-        std::env::set_current_dir(&original_dir).expect("restore cwd");
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
@@ -5152,8 +5900,8 @@ mod tests {
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         let root = temp_path("search-suite");
         fs::create_dir_all(root.join("nested")).expect("create root");
-        let original_dir = std::env::current_dir().expect("cwd");
-        std::env::set_current_dir(&root).expect("set cwd");
+        // RPR-01：cwd 改用 RAII 收口（手写 save/restore 会被中途 panic 跳过）。
+        let _cwd = ScopedCurrentDir::enter(root.clone());
 
         fs::write(
             root.join("nested/lib.rs"),
@@ -5212,9 +5960,6 @@ mod tests {
         )
         .expect_err("invalid regex should fail");
         assert!(!grep_error.is_empty());
-
-        std::env::set_current_dir(&original_dir).expect("restore cwd");
-        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
@@ -5262,9 +6007,6 @@ mod tests {
 
     #[test]
     fn config_reads_and_writes_supported_values() {
-        let _guard = env_lock()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let root = std::env::temp_dir().join(format!(
             "claw-config-{}",
             std::time::SystemTime::now()
@@ -5282,12 +6024,17 @@ mod tests {
         )
         .expect("write global settings");
 
-        let original_home = std::env::var("HOME").ok();
-        let original_config_home = std::env::var("CLAW_CONFIG_HOME").ok();
-        let original_dir = std::env::current_dir().expect("cwd");
-        std::env::set_var("HOME", &home);
-        std::env::remove_var("CLAW_CONFIG_HOME");
-        std::env::set_current_dir(&cwd).expect("set cwd");
+        // RPR-01b：HOME / CLAW_CONFIG_HOME 由 config_home_dir 在**本进程**读取（进程级解析），
+        // 改用统一锁 + RAII guard。改前用 `var().ok()` 读原值，把「原来为空串」误当成
+        // 「原来不存在」，恢复时会写成 remove_var；guard 用 Option<OsString> 三态无损。
+        // 「原来不存在」这一态正是这里要的：清掉 CLAW_CONFIG_HOME 让全局配置落到 HOME/.claw。
+        let _env = ScopedEnv::new(vec![
+            env_set("HOME", &home),
+            env_unset("CLAW_CONFIG_HOME"),
+        ]);
+        // RPR-01：cwd 用 RAII 收口（cwd 只是 root 的子目录，故连 root 一起交给 guard 清理），
+        // 避免用例中途 panic 时把进程 cwd 留在临时目录、且临时目录残留。
+        let _cwd = ScopedCurrentDir::enter_in(cwd.clone(), root.clone());
 
         let get = execute_tool("Config", &json!({"setting": "verbose"})).expect("get config");
         let get_output: serde_json::Value = serde_json::from_str(&get).expect("json");
@@ -5314,16 +6061,7 @@ mod tests {
         let unknown_output: serde_json::Value = serde_json::from_str(&unknown).expect("json");
         assert_eq!(unknown_output["success"], false);
 
-        std::env::set_current_dir(&original_dir).expect("restore cwd");
-        match original_home {
-            Some(value) => std::env::set_var("HOME", value),
-            None => std::env::remove_var("HOME"),
-        }
-        match original_config_home {
-            Some(value) => std::env::set_var("CLAW_CONFIG_HOME", value),
-            None => std::env::remove_var("CLAW_CONFIG_HOME"),
-        }
-        let _ = std::fs::remove_dir_all(root);
+        // 环境变量与 root 目录的清理都交给 _env / _cwd 两个 guard 的 Drop。
     }
 
     #[test]
@@ -5338,6 +6076,11 @@ mod tests {
 
     #[test]
     fn repl_executes_python_code() {
+        // RPR-01：REPL 子进程继承**进程 cwd**（等价于读一次进程全局状态），
+        // 必须与改动 cwd 的用例互斥。
+        let _guard = env_lock()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let result = execute_tool(
             "REPL",
             &json!({"language": "python", "code": "print(1 + 1)", "timeout_ms": 500}),
@@ -5350,18 +6093,24 @@ mod tests {
     }
 
     #[test]
-    fn powershell_runs_via_stub_shell() {
-        let _guard = env_lock()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        let dir = std::env::temp_dir().join(format!(
-            "claw-pwsh-bin-{}",
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("time")
-                .as_nanos()
-        ));
-        std::fs::create_dir_all(&dir).expect("create dir");
+    fn repl_timeout_is_enforced_after_the_program_really_started() {
+        let _guard = env_lock().lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        let started = std::time::Instant::now();
+        let result = execute_tool("REPL", &json!({"language":"python",
+            "code":"import time; print('started', flush=True); time.sleep(4); print('late', flush=True)",
+            "timeout_ms":1000})).expect("超时应返回真实退出回执");
+        let output: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(output["interrupted"], true);
+        assert_eq!(output["exitCode"], 124);
+        assert!(output["stdout"].as_str().unwrap().contains("started"));
+        assert!(!output["stdout"].as_str().unwrap().contains("late"));
+        assert!(started.elapsed() < Duration::from_secs(3));
+    }
+
+    /// 建一个"桩 PowerShell"：把 `-Command` 之后的第一个参数原样回显为 `pwsh:<参数>`。
+    /// 返回脚本路径（Windows: `pwsh.cmd`；其它平台: `pwsh`，已置可执行位）。
+    fn write_stub_pwsh(dir: &std::path::Path) -> PathBuf {
+        std::fs::create_dir_all(dir).expect("create dir");
         #[cfg(windows)]
         let script = dir.join("pwsh.cmd");
         #[cfg(not(windows))]
@@ -5401,61 +6150,157 @@ printf 'pwsh:%s' "$1"
                 .status()
                 .expect("chmod");
         }
-        let original_path = std::env::var("PATH").unwrap_or_default();
-        let separator = if cfg!(windows) { ";" } else { ":" };
-        std::env::set_var(
-            "PATH",
-            format!("{}{}{}", dir.display(), separator, original_path),
-        );
-
-        let result = execute_tool(
-            "PowerShell",
-            &json!({"command": "Write-Output hello", "timeout": 1000}),
-        )
-        .expect("PowerShell should succeed");
-
-        let background = execute_tool(
-            "PowerShell",
-            &json!({"command": "Write-Output hello", "run_in_background": true}),
-        )
-        .expect("PowerShell background should succeed");
-
-        std::env::set_var("PATH", original_path);
-        let _ = std::fs::remove_dir_all(dir);
-
-        let output: serde_json::Value = serde_json::from_str(&result).expect("json");
-        assert_eq!(output["stdout"], "pwsh:Write-Output hello");
-        assert!(output["stderr"].as_str().expect("stderr").is_empty());
-
-        let background_output: serde_json::Value = serde_json::from_str(&background).expect("json");
-        assert!(background_output["backgroundTaskId"].as_str().is_some());
-        assert_eq!(background_output["backgroundedByUser"], true);
-        assert_eq!(background_output["assistantAutoBackgrounded"], false);
+        script
     }
 
-    #[test]
-    fn powershell_errors_when_shell_is_missing() {
-        let _guard = env_lock()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        let original_path = std::env::var("PATH").unwrap_or_default();
-        let empty_dir = std::env::temp_dir().join(format!(
-            "claw-empty-bin-{}",
+    fn temp_bin_dir(prefix: &str) -> PathBuf {
+        std::env::temp_dir().join(format!(
+            "{prefix}-{}",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .expect("time")
                 .as_nanos()
-        ));
-        std::fs::create_dir_all(&empty_dir).expect("create empty dir");
-        std::env::set_var("PATH", empty_dir.display().to_string());
+        ))
+    }
 
-        let err = execute_tool("PowerShell", &json!({"command": "Write-Output hello"}))
+    /// P-08/I6：**注入显式路径集合**，不再改父进程 PATH。
+    ///
+    /// 改前（RPR-01b）把桩目录 prepend 到本进程 PATH，再用 guard 恢复：本质仍是"改进程环境"，
+    /// 需要与所有读/写进程环境的用例互斥，且恢复失败时会污染本进程后续执行。
+    /// 现在搜索范围由 `execute_powershell_with_search_paths` 显式传入，桩目录**只**出现在这份集合里，
+    /// 父进程 PATH 全程不变（用例结尾直接断言）。
+    #[test]
+    fn powershell_runs_via_stub_shell() {
+        let dir = temp_bin_dir("claw-pwsh-bin");
+        let _script = write_stub_pwsh(&dir);
+
+        let path_before = std::env::var_os("PATH");
+        let search_paths = vec![dir.clone()];
+        let run = |input: &serde_json::Value| {
+            // 保留原先经 JSON 构造入参的覆盖（`from_value::<PowerShellInput>` 的语义不因本用例改变）。
+            let input: PowerShellInput =
+                serde_json::from_value(input.clone()).expect("parse PowerShell input");
+            execute_powershell_with_search_paths(input, Some(&search_paths))
+        };
+
+        let result = run(&json!({"command": "Write-Output hello", "timeout": 1000}))
+            .expect("PowerShell should succeed");
+        let background = run(&json!({"command": "Write-Output hello", "run_in_background": true}))
+            .expect("PowerShell background should succeed");
+
+        let _ = std::fs::remove_dir_all(&dir);
+
+        // 断言与改前逐条对齐（原来断言的是 execute_tool 返回的 JSON，这里断言同一结构的序列化结果）。
+        let output = serde_json::to_value(&result).expect("json");
+        assert_eq!(output["stdout"], "pwsh:Write-Output hello");
+        assert!(output["stderr"].as_str().expect("stderr").is_empty());
+
+        let background_output = serde_json::to_value(&background).expect("json");
+        assert!(background_output["backgroundTaskId"].as_str().is_some());
+        assert_eq!(background_output["backgroundedByUser"], true);
+        assert_eq!(background_output["assistantAutoBackgrounded"], false);
+
+        // 回归（P-08/I6）：用例执行前后父进程 PATH 值必须一致 —— 不再需要（也不允许）改父进程环境。
+        assert_eq!(
+            std::env::var_os("PATH"),
+            path_before,
+            "I6：注入路径集合后，本用例不得改动父进程 PATH"
+        );
+        assert!(
+            !std::env::var_os("PATH")
+                .unwrap_or_default()
+                .to_string_lossy()
+                .contains("claw-pwsh-bin"),
+            "I6：桩目录不得出现在父进程 PATH 里（命中必须来自注入的路径集合）"
+        );
+    }
+
+    /// P-08/I6：注入**只有一个空目录**的路径集合 → 必须报"找不到 PowerShell"。
+    ///
+    /// 判别性：即使本机装了真 PowerShell，本用例也必须失败于"找不到"，
+    /// 因为搜索范围完全由注入集合决定；改前只能靠改成进程 PATH 来构造同样的场景。
+    #[test]
+    fn powershell_errors_when_shell_is_missing() {
+        let empty_dir = temp_bin_dir("claw-empty-bin");
+        std::fs::create_dir_all(&empty_dir).expect("create empty dir");
+
+        let path_before = std::env::var_os("PATH");
+        let search_paths = vec![empty_dir.clone()];
+        let input: PowerShellInput =
+            serde_json::from_value(json!({"command": "Write-Output hello"})).expect("parse input");
+
+        let err = execute_powershell_with_search_paths(input, Some(&search_paths))
             .expect_err("PowerShell should fail when shell is missing");
 
-        std::env::set_var("PATH", original_path);
-        let _ = std::fs::remove_dir_all(empty_dir);
+        let _ = std::fs::remove_dir_all(&empty_dir);
 
-        assert!(err.contains("PowerShell executable not found"));
+        let message = err.to_string();
+        assert!(
+            message.contains("PowerShell executable not found"),
+            "err={message}"
+        );
+        assert_eq!(
+            std::env::var_os("PATH"),
+            path_before,
+            "I6：注入路径集合后，本用例不得改动父进程 PATH"
+        );
+    }
+
+    /// 回归（P-08/I6）：查找接缝是**纯查找** —— 搜索范围完全由参数决定，
+    /// 用例不需要、也不得改动父进程环境（PATH / PATHEXT 全程不变）。
+    ///
+    /// 判别性：把桩目录写进注入集合（该目录并不在进程 PATH 里）后查找必须命中；
+    /// 空集合必须查不到；生产入口 `find_command_path` 与接缝是同一实现（同一个"委托人"）。
+    #[test]
+    fn command_lookup_seam_never_touches_process_env() {
+        let path_before = std::env::var_os("PATH");
+        let pathext_before = std::env::var_os("PATHEXT");
+
+        let dir = temp_bin_dir("claw-pwsh-seam");
+        let script = write_stub_pwsh(&dir);
+        let injected = vec![dir.clone()];
+
+        // (1) 命中：只可能来自注入集合（桩目录不在进程 PATH 中）。
+        // 注意扩展名大小写由 PATHEXT 决定（Windows 下命中 `pwsh.CMD`），故按"所在目录 + 文件名主体"断言。
+        let found = find_command_path_in("pwsh", Some(&injected)).expect("stub pwsh must be found");
+        let found_path = std::path::Path::new(&found);
+        assert!(found_path.is_file(), "命中的必须是文件：{found}");
+        assert_eq!(
+            found_path.parent(),
+            script.parent(),
+            "命中的必须是注入集合里的那个桩：{found}"
+        );
+        assert_eq!(
+            found_path.file_stem().and_then(|stem| stem.to_str()),
+            Some("pwsh")
+        );
+        // 注入集合里没有的命令 → 查不到（不改环境也能构造"缺失"场景）。
+        assert_eq!(
+            find_command_path_in("claw-rpr01b-absent-cmd", Some(&injected)),
+            None
+        );
+        // 空集合 → 查不到（Windows: 无目录可扫；其它平台: 子进程 PATH 为空）。
+        assert_eq!(find_command_path_in("pwsh", Some(&[])), None);
+
+        // (2) PowerShell 探测：空集合 → 与改前同一句错误文案。
+        let err = detect_powershell_shell_in(Some(&[])).expect_err("empty search set must fail");
+        assert!(
+            err.to_string().contains("PowerShell executable not found"),
+            "err={err}"
+        );
+
+        // (3) 生产入口的委托关系：同一个查找语义（命令名不存在 → None，读数取自进程 PATH）。
+        assert_eq!(find_command_path("claw-rpr01b-absent-cmd"), None);
+
+        let _ = std::fs::remove_dir_all(&dir);
+
+        // (4) 全程未动父进程环境。
+        assert_eq!(std::env::var_os("PATH"), path_before, "I6：不得改动 PATH");
+        assert_eq!(
+            std::env::var_os("PATHEXT"),
+            pathext_before,
+            "I6：不得改动 PATHEXT"
+        );
     }
 
     struct TestServer {
@@ -5480,6 +6325,9 @@ printf 'pwsh:%s' "$1"
 
                 match listener.accept() {
                     Ok((mut stream, _)) => {
+                        // 同上：非阻塞 listener 的 accepted socket 会继承非阻塞模式，
+                        // 必须显式恢复阻塞读，否则请求未到就 WouldBlock 而 panic。
+                        stream.set_nonblocking(false).expect("restore blocking read");
                         let mut buffer = [0_u8; 4096];
                         let size = stream.read(&mut buffer).expect("read request");
                         let request = String::from_utf8_lossy(&buffer[..size]).into_owned();

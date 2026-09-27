@@ -1,4 +1,5 @@
 use crate::error::ApiError;
+use crate::inflight::{AttemptStatus, EndpointIdentity, InFlightGuard, SettleOutcome};
 use crate::providers::claw_provider::{self, AuthSource, ClawApiClient};
 use crate::providers::openai_compat::{self, OpenAiCompatClient, OpenAiCompatConfig};
 use crate::providers::{Provider, ProviderKind};
@@ -17,6 +18,12 @@ async fn stream_via_provider<P: Provider>(
     request: &MessageRequest,
 ) -> Result<P::Stream, ApiError> {
     provider.stream_message(request).await
+}
+
+/// 统一走 `Provider` trait 取身份：任何未来的 provider 只要覆盖 trait 方法就会被尊重，
+/// 未覆盖的实现自然落到 trait 默认的"身份未知/不支持"（不可自动切换）。
+fn identity_via_provider<P: Provider>(provider: &P) -> EndpointIdentity {
+    provider.endpoint_identity()
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +87,24 @@ impl ProviderClient {
             Self::ByteDanceArk(client) => Self::ByteDanceArk(client.with_request_parameters(parameters)),
             Self::DeepSeek(client) => Self::DeepSeek(client.with_request_parameters(parameters)),
             Self::Custom(client) => Self::Custom(client.with_request_parameters(parameters)),
+        }
+    }
+
+    #[must_use]
+    #[allow(deprecated)]
+    pub fn with_request_observer(self, observer: std::sync::Arc<dyn crate::RequestObserver>) -> Self {
+        match self {
+            Self::ClawApi(client) => Self::ClawApi(client.with_request_observer(observer)),
+            Self::Anthropic(client) => Self::Anthropic(client.with_request_observer(observer)),
+            Self::Xai(client) => Self::Xai(client.with_request_observer(observer)),
+            Self::OpenAi(client) => Self::OpenAi(client.with_request_observer(observer)),
+            Self::ZhipuAi(client) => Self::ZhipuAi(client.with_request_observer(observer)),
+            Self::AlibabaBailian(client) => Self::AlibabaBailian(client.with_request_observer(observer)),
+            Self::AlibabaCloud(client) => Self::AlibabaCloud(client.with_request_observer(observer)),
+            Self::BaiduQianfan(client) => Self::BaiduQianfan(client.with_request_observer(observer)),
+            Self::ByteDanceArk(client) => Self::ByteDanceArk(client.with_request_observer(observer)),
+            Self::DeepSeek(client) => Self::DeepSeek(client.with_request_observer(observer)),
+            Self::Custom(client) => Self::Custom(client.with_request_observer(observer)),
         }
     }
 
@@ -264,6 +289,21 @@ impl ProviderClient {
         }
     }
 
+    /// **连接级兼容位**（COMPAT-ID）：允许顶层 message ID 缺失（显式为"未提供"）。
+    ///
+    /// 默认严格；只有显式启用才放宽，且**只**对 Anthropic/ClawApi 这条形态生效
+    /// （OpenAI 兼容路线的 `id` 语义不同，不走这个开关）。不硬编码任何代理域名。
+    #[must_use]
+    pub fn with_allow_missing_top_level_message_id(self, allow: bool) -> Self {
+        match self {
+            Self::ClawApi(client) | Self::Anthropic(client) => {
+                Self::Anthropic(client.with_allow_missing_top_level_message_id(allow))
+            }
+            // 其它 provider 的响应形态没有这一处差异：原样返回（**不**放宽它们的解析）。
+            other => other,
+        }
+    }
+
     pub async fn send_message(
         &self,
         request: &MessageRequest,
@@ -290,9 +330,11 @@ impl ProviderClient {
         request: &MessageRequest,
     ) -> Result<MessageStream, ApiError> {
         match self {
-            Self::ClawApi(client) | Self::Anthropic(client) => stream_via_provider(client, request)
-                .await
-                .map(MessageStream::ClawApi),
+            Self::ClawApi(client) | Self::Anthropic(client) => {
+                let stream = stream_via_provider(client, request).await?;
+                let guard = stream.inflight_guard();
+                Ok(MessageStream::new(MessageStreamKind::ClawApi(stream), guard))
+            }
             #[allow(deprecated)]
             Self::Xai(client)
             | Self::OpenAi(client)
@@ -302,9 +344,35 @@ impl ProviderClient {
             | Self::BaiduQianfan(client)
             | Self::ByteDanceArk(client)
             | Self::DeepSeek(client)
-            | Self::Custom(client) => stream_via_provider(client, request)
-                .await
-                .map(MessageStream::OpenAiCompat),
+            | Self::Custom(client) => {
+                let stream = stream_via_provider(client, request).await?;
+                let guard = stream.inflight_guard();
+                Ok(MessageStream::new(
+                    MessageStreamKind::OpenAiCompat(stream),
+                    guard,
+                ))
+            }
+        }
+    }
+
+    /// 连接 / 服务身份查询（RPR-11a）。
+    ///
+    /// 未覆盖 [`Provider::endpoint_identity`] 的 provider 仍返回"身份未知/不支持"，
+    /// 该值在排空判定里**必须导致不能自动切换**。
+    #[must_use]
+    pub fn endpoint_identity(&self) -> EndpointIdentity {
+        match self {
+            Self::ClawApi(client) | Self::Anthropic(client) => identity_via_provider(client),
+            #[allow(deprecated)]
+            Self::Xai(client)
+            | Self::OpenAi(client)
+            | Self::ZhipuAi(client)
+            | Self::AlibabaBailian(client)
+            | Self::AlibabaCloud(client)
+            | Self::BaiduQianfan(client)
+            | Self::ByteDanceArk(client)
+            | Self::DeepSeek(client)
+            | Self::Custom(client) => identity_via_provider(client),
         }
     }
 }
@@ -349,7 +417,21 @@ fn configure_openai_client(
 }
 
 #[derive(Debug)]
-pub enum MessageStream {
+/// 统一流对象：**持有内部 provider 流 + 生命周期 guard**（RPR-11a 约束 1、2）。
+///
+/// * 对外使用面不变：仍然只有 [`MessageStream::next_event`] / [`MessageStream::request_id`]。
+/// * guard 在**请求发出之前**登记（在 provider 内部），握手完成后随内部流对象转移到本结构体；
+///   本结构体析构只结束**本地**在途持有，**不**证明远端已停止计算。
+/// * 消费者放弃等待（超时/取消）但仍持有流时，可用 [`MessageStream::mark_remote_result_unknown`]
+///   把该次请求登记为"远端结果未知"，而不是归零。
+pub struct MessageStream {
+    inner: MessageStreamKind,
+    /// 与 `inner` 共享同一条在途登记（最后一个持有者析构时按 Drop 规则收尾）。
+    guard: InFlightGuard,
+}
+
+#[derive(Debug)]
+enum MessageStreamKind {
     ClawApi(claw_provider::MessageStream),
     OpenAiCompat(openai_compat::MessageStream),
 }
@@ -357,17 +439,49 @@ pub enum MessageStream {
 impl MessageStream {
     #[must_use]
     pub fn request_id(&self) -> Option<&str> {
-        match self {
-            Self::ClawApi(stream) => stream.request_id(),
-            Self::OpenAiCompat(stream) => stream.request_id(),
+        match &self.inner {
+            MessageStreamKind::ClawApi(stream) => stream.request_id(),
+            MessageStreamKind::OpenAiCompat(stream) => stream.request_id(),
+        }
+    }
+
+    pub fn usage_evidence(&self) -> crate::UsageEvidence {
+        match &self.inner {
+            MessageStreamKind::ClawApi(stream) => stream.usage_evidence(),
+            MessageStreamKind::OpenAiCompat(stream) => stream.usage_evidence(),
         }
     }
 
     pub async fn next_event(&mut self) -> Result<Option<StreamEvent>, ApiError> {
-        match self {
-            Self::ClawApi(stream) => stream.next_event().await,
-            Self::OpenAiCompat(stream) => stream.next_event().await,
+        match &mut self.inner {
+            MessageStreamKind::ClawApi(stream) => stream.next_event().await,
+            MessageStreamKind::OpenAiCompat(stream) => stream.next_event().await,
         }
+    }
+
+    /// 消费者放弃等待（超时/取消）但仍持有流 → 记为**远端结果未知**，不是归零。
+    ///
+    /// 之后若仍取得可信结束事实，会以迟到事实对账（不重新执行任务）。
+    pub fn mark_remote_result_unknown(&self) -> SettleOutcome {
+        self.guard.mark_remote_result_unknown()
+    }
+
+    /// 本次流所属的**连接/服务身份**（身份未知时不参与自动切换）。
+    #[must_use]
+    pub fn endpoint_identity(&self) -> &EndpointIdentity {
+        self.guard.identity()
+    }
+
+    /// 只读在途状态快照。
+    #[must_use]
+    pub fn inflight_status(&self) -> AttemptStatus {
+        self.guard.status()
+    }
+}
+
+impl MessageStream {
+    fn new(inner: MessageStreamKind, guard: InFlightGuard) -> Self {
+        Self { inner, guard }
     }
 }
 
@@ -392,7 +506,6 @@ pub fn read_zhipu_base_url() -> String {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-    use std::sync::{Mutex, OnceLock};
 
     use crate::config::{AdapterConfig, ModelConfig, ProviderConfig};
     use crate::providers::{detect_provider_kind, resolve_model_alias, ProviderKind};
@@ -529,7 +642,7 @@ mod tests {
                 .expect("response should write");
         });
 
-        std::env::set_var("ZAI_API_KEY", "zhipu-test-key");
+        let _scoped_env = crate::test_env::set("ZAI_API_KEY", Some("zhipu-test-key"));
         let registry = ModelRegistry::with_config(AdapterConfig {
             providers: HashMap::from([(
                 "zhipuai".to_string(),
@@ -566,7 +679,7 @@ mod tests {
 
         assert_eq!(response.model, "glm-api-id");
         server.await.expect("server task should finish");
-        std::env::remove_var("ZAI_API_KEY");
+        let _scoped_env = crate::test_env::remove("ZAI_API_KEY");
     }
 
     #[tokio::test(flavor = "current_thread")]
@@ -664,9 +777,6 @@ mod tests {
     }
 
     fn env_lock() -> std::sync::MutexGuard<'static, ()> {
-        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| Mutex::new(()))
-            .lock()
-            .expect("env lock")
+        crate::process_env_lock()
     }
 }

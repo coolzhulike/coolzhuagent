@@ -353,9 +353,29 @@ mod tests {
             Path::new("/workspace"),
         );
 
-        if let Some(launcher) =
-            build_linux_sandbox_command("printf hi", Path::new("/workspace"), &status)
-        {
+        let launcher = build_linux_sandbox_command("printf hi", Path::new("/workspace"), &status);
+
+        // RPR-01b：改前只有 `if let Some(launcher) = ... { 断言 }` —— 在**非 Linux** 平台上
+        // `build_linux_sandbox_command` 必然返回 None，断言体一次都不执行，用例却报 **ok**：
+        // 一个"什么都没验证"的通过被计进门禁（裁决 §5.2 表：测试平台确实不适用 ⇒
+        // 明确记录不适用、**不计运行通过**）。
+        //
+        // 现在先把"该函数**是否**产出启动器"这条契约钉成断言（两个平台都必须成立、都必须执行）：
+        // 返回 `Some` 当且仅当 平台是 Linux 且 enabled 且 至少一项隔离真正生效。
+        let expected_launcher = cfg!(target_os = "linux")
+            && status.enabled
+            && (status.namespace_active || status.network_active);
+        assert_eq!(
+            launcher.is_some(),
+            expected_launcher,
+            "产出启动器的条件必须与函数契约一致（platform={}, enabled={}, namespace_active={}, network_active={}）",
+            std::env::consts::OS,
+            status.enabled,
+            status.namespace_active,
+            status.network_active
+        );
+
+        if let Some(launcher) = launcher {
             assert_eq!(launcher.program, "unshare");
             assert!(launcher.args.iter().any(|arg| arg == "--mount"));
             assert!(launcher.args.iter().any(|arg| arg == "--net") == status.network_active);

@@ -14,6 +14,8 @@ use computer_use::{
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
+
+use crate::computer_use_adapters::clamp_stage_timeout;
 use serde_json::{json, Value as JsonValue};
 use tokio::sync::mpsc as tokio_mpsc;
 
@@ -60,6 +62,7 @@ impl BrowserBridgeBroker {
 
     fn request(
         &self,
+        remaining: std::time::Duration,
         make: impl FnOnce(String) -> BridgeRequest,
     ) -> Result<BridgeResponse, ComputerUseError> {
         let request_id = format!(
@@ -101,7 +104,8 @@ impl BrowserBridgeBroker {
                 .map(|mut pending| pending.remove(&request_id));
             return Err(extension_unavailable());
         }
-        let response = wait_for_bridge_response(&rx, BRIDGE_TIMEOUT).map_err(|error| {
+        let timeout = clamp_stage_timeout(remaining, BRIDGE_TIMEOUT);
+        let response = wait_for_bridge_response(&rx, timeout).map_err(|error| {
             self.pending
                 .lock()
                 .ok()
@@ -109,7 +113,10 @@ impl BrowserBridgeBroker {
             match error {
                 mpsc::RecvTimeoutError::Timeout => backend_error(
                     "browser_bridge_timeout",
-                    "browser extension did not respond within 10 seconds",
+                    format!(
+                        "browser extension did not respond within {} ms (remaining budget capped)",
+                        timeout.as_millis()
+                    ),
                 ),
                 mpsc::RecvTimeoutError::Disconnected => extension_unavailable(),
             }
@@ -400,13 +407,13 @@ impl BrowserNativeBridge {
 }
 
 impl BrowserBridge for BrowserNativeBridge {
-    fn snapshot(&self) -> Result<BrowserSnapshot, ComputerUseError> {
+    fn snapshot(&self, remaining: std::time::Duration) -> Result<BrowserSnapshot, ComputerUseError> {
         let pinned_tab_id = self
             .tab_id
             .lock()
             .map_err(|_| backend_error("browser_bridge_failed", "tab lease lock failed"))?
             .clone();
-        let response = broker().request(|request_id| BridgeRequest::Snapshot {
+        let response = broker().request(remaining, |request_id| BridgeRequest::Snapshot {
             request_id,
             reply_token: None,
             tab_id: pinned_tab_id.clone(),
@@ -478,6 +485,7 @@ impl BrowserBridge for BrowserNativeBridge {
         &self,
         action: &ComputerUseAction,
         expected: &BrowserSnapshot,
+        remaining: std::time::Duration,
     ) -> Result<StepExecution, ComputerUseError> {
         if matches!(
             action.kind,
@@ -485,7 +493,8 @@ impl BrowserBridge for BrowserNativeBridge {
                 | ComputerUseActionKind::ActivateTab
                 | ComputerUseActionKind::CloseTab
         ) {
-            return self.execute_tab_action(action);
+            // tab 生命周期动作同样受剩余预算约束：不能在这里丢掉 remaining 用满常量上限。
+            return self.execute_tab_action(action, remaining);
         }
         let document_id = expected
             .state
@@ -502,7 +511,7 @@ impl BrowserBridge for BrowserNativeBridge {
             .ok_or_else(|| ComputerUseError::recoverable("stale_observation", "tab id missing"))?
             .to_string();
         let browser_action = browser_action(action)?;
-        let response = broker().request(|request_id| BridgeRequest::Act {
+        let response = broker().request(remaining, |request_id| BridgeRequest::Act {
             request_id,
             reply_token: None,
             tab_id: Some(tab_id),
@@ -515,6 +524,7 @@ impl BrowserBridge for BrowserNativeBridge {
             evidence: vec![response
                 .evidence
                 .unwrap_or_else(|| format!("dom_action:{:?}:{}", action.kind, action.target))],
+            ..StepExecution::default()
         })
     }
 
@@ -523,6 +533,7 @@ impl BrowserBridge for BrowserNativeBridge {
         criteria: &[String],
         before: &Observation,
         after: &Observation,
+        _remaining: std::time::Duration,
     ) -> Result<Verification, ComputerUseError> {
         let visible_progress =
             before.state != after.state || before.surface_identity != after.surface_identity;
@@ -550,6 +561,7 @@ impl BrowserNativeBridge {
     fn execute_tab_action(
         &self,
         action: &ComputerUseAction,
+        remaining: std::time::Duration,
     ) -> Result<StepExecution, ComputerUseError> {
         let string_argument = |name: &str| {
             action
@@ -582,7 +594,7 @@ impl BrowserNativeBridge {
         tab_action
             .validate()
             .map_err(|code| blocked(code, "browser tab action failed validation"))?;
-        let response = broker().request(|request_id| BridgeRequest::Tab {
+        let response = broker().request(clamp_stage_timeout(remaining, BRIDGE_TIMEOUT), |request_id| BridgeRequest::Tab {
             request_id,
             reply_token: None,
             action: tab_action,
@@ -637,6 +649,7 @@ impl BrowserNativeBridge {
             evidence: vec![response
                 .evidence
                 .unwrap_or_else(|| format!("tab_action:{:?}", action.kind))],
+            ..StepExecution::default()
         })
     }
 }
@@ -996,7 +1009,7 @@ pub(crate) fn health() -> BrowserBridgeHealth {
 }
 
 pub(crate) fn probe_snapshot() -> BrowserBridgeProbe {
-    match broker().request(|request_id| BridgeRequest::Snapshot {
+    match broker().request(std::time::Duration::from_secs(30), |request_id| BridgeRequest::Snapshot {
         request_id,
         reply_token: None,
         tab_id: None,
@@ -1078,7 +1091,7 @@ pub(crate) fn self_test(request: BrowserBridgeSelfTestRequest) -> BrowserBridgeS
         return owned_page_action_self_test(&kind, value, url);
     }
     let bridge = BrowserNativeBridge::default();
-    let before = match bridge.snapshot() {
+    let before = match bridge.snapshot(std::time::Duration::from_secs(30)) {
         Ok(snapshot) => snapshot,
         Err(error) => return BrowserBridgeSelfTestResponse::failed(kind, "observe", error, None),
     };
@@ -1088,13 +1101,13 @@ pub(crate) fn self_test(request: BrowserBridgeSelfTestRequest) -> BrowserBridgeS
             return BrowserBridgeSelfTestResponse::failed(kind, "plan", error, Some(&before));
         }
     };
-    let execution = match bridge.execute(&action, &before) {
+    let execution = match bridge.execute(&action, &before, std::time::Duration::from_secs(30)) {
         Ok(execution) => execution,
         Err(error) => {
             return BrowserBridgeSelfTestResponse::failed(kind, "execute", error, Some(&before));
         }
     };
-    let after = match bridge.snapshot() {
+    let after = match bridge.snapshot(std::time::Duration::from_secs(30)) {
         Ok(snapshot) => snapshot,
         Err(error) => {
             let mut response =
@@ -1110,6 +1123,7 @@ pub(crate) fn self_test(request: BrowserBridgeSelfTestRequest) -> BrowserBridgeS
             &browser_self_test_criteria(&kind, value),
             &before_observation,
             &after_observation,
+            std::time::Duration::from_secs(30),
         )
         .unwrap_or_else(|error| Verification {
             achieved: false,
@@ -1167,7 +1181,7 @@ fn owned_page_action_self_test(
     requested_url: &str,
 ) -> BrowserBridgeSelfTestResponse {
     let bridge = BrowserNativeBridge::default();
-    let original = match optional_original_snapshot(bridge.snapshot()) {
+    let original = match optional_original_snapshot(bridge.snapshot(std::time::Duration::from_secs(30))) {
         Ok(snapshot) => snapshot,
         Err(error) => return BrowserBridgeSelfTestResponse::failed(kind, "observe", error, None),
     };
@@ -1185,7 +1199,7 @@ fn owned_page_action_self_test(
         }
         None => None,
     };
-    let open_execution = match bridge.execute_tab_action(&tab_open_action(requested_url)) {
+    let open_execution = match bridge.execute_tab_action(&tab_open_action(requested_url), BRIDGE_TIMEOUT) {
         Ok(execution) => execution,
         Err(error) => {
             return BrowserBridgeSelfTestResponse::failed(kind, "open", error, original.as_ref())
@@ -1214,18 +1228,19 @@ fn owned_page_action_self_test(
             .map_err(|error| ("plan".to_string(), error))?;
         action_evidence.extend(
             bridge
-                .execute(&action, &before)
+                .execute(&action, &before, std::time::Duration::from_secs(30))
                 .map_err(|error| ("execute".to_string(), error))?
                 .evidence,
         );
         let after = bridge
-            .snapshot()
+            .snapshot(std::time::Duration::from_secs(30))
             .map_err(|error| ("verify_observe".to_string(), error))?;
         let verification = bridge
             .verify(
                 &browser_self_test_criteria(kind, value),
                 &browser_snapshot_observation(&before),
                 &browser_snapshot_observation(&after),
+                std::time::Duration::from_secs(30),
             )
             .map_err(|error| ("verify".to_string(), error))?;
 
@@ -1235,12 +1250,12 @@ fn owned_page_action_self_test(
                     .execute_tab_action(&tab_id_action(
                         ComputerUseActionKind::ActivateTab,
                         original_tab_id,
-                    ))
+                    ), BRIDGE_TIMEOUT)
                     .map_err(|error| ("restore_original".to_string(), error))?
                     .evidence,
             );
             let restored = bridge
-                .snapshot()
+                .snapshot(std::time::Duration::from_secs(30))
                 .map_err(|error| ("observe_restored".to_string(), error))?;
             if snapshot_tab_id(&restored).as_deref() != Some(original_tab_id) {
                 return Err((
@@ -1257,7 +1272,7 @@ fn owned_page_action_self_test(
                 .execute_tab_action(&tab_id_action(
                     ComputerUseActionKind::CloseTab,
                     &opened_tab_id,
-                ))
+                ), BRIDGE_TIMEOUT)
                 .map_err(|error| ("close_owned".to_string(), error))?
                 .evidence,
         );
@@ -1323,7 +1338,7 @@ fn tab_lifecycle_self_test(
         );
     };
     let bridge = BrowserNativeBridge::default();
-    let before = match optional_original_snapshot(bridge.snapshot()) {
+    let before = match optional_original_snapshot(bridge.snapshot(std::time::Duration::from_secs(30))) {
         Ok(Some(snapshot)) => snapshot,
         Ok(None) => return restricted_tab_lifecycle_self_test(kind, requested_url, &bridge),
         Err(error) => return BrowserBridgeSelfTestResponse::failed(kind, "observe", error, None),
@@ -1337,7 +1352,7 @@ fn tab_lifecycle_self_test(
         );
     };
     let open = tab_open_action(requested_url);
-    let open_execution = match bridge.execute_tab_action(&open) {
+    let open_execution = match bridge.execute_tab_action(&open, BRIDGE_TIMEOUT) {
         Ok(execution) => execution,
         Err(error) => {
             return BrowserBridgeSelfTestResponse::failed(kind, "open", error, Some(&before))
@@ -1370,12 +1385,12 @@ fn tab_lifecycle_self_test(
         let activate_original = tab_id_action(ComputerUseActionKind::ActivateTab, &original_tab_id);
         action_evidence.extend(
             bridge
-                .execute_tab_action(&activate_original)
+                .execute_tab_action(&activate_original, BRIDGE_TIMEOUT)
                 .map_err(|error| ("activate_original".to_string(), error))?
                 .evidence,
         );
         let original_again = bridge
-            .snapshot()
+            .snapshot(std::time::Duration::from_secs(30))
             .map_err(|error| ("observe_original".to_string(), error))?;
         if snapshot_tab_id(&original_again).as_deref() != Some(original_tab_id.as_str()) {
             return Err((
@@ -1390,7 +1405,7 @@ fn tab_lifecycle_self_test(
         let activate_opened = tab_id_action(ComputerUseActionKind::ActivateTab, &opened_tab_id);
         action_evidence.extend(
             bridge
-                .execute_tab_action(&activate_opened)
+                .execute_tab_action(&activate_opened, BRIDGE_TIMEOUT)
                 .map_err(|error| ("activate_opened".to_string(), error))?
                 .evidence,
         );
@@ -1399,22 +1414,22 @@ fn tab_lifecycle_self_test(
 
         action_evidence.extend(
             bridge
-                .execute_tab_action(&activate_original)
+                .execute_tab_action(&activate_original, BRIDGE_TIMEOUT)
                 .map_err(|error| ("restore_original".to_string(), error))?
                 .evidence,
         );
         let _restored = bridge
-            .snapshot()
+            .snapshot(std::time::Duration::from_secs(30))
             .map_err(|error| ("observe_restored".to_string(), error))?;
         let close_opened = tab_id_action(ComputerUseActionKind::CloseTab, &opened_tab_id);
         action_evidence.extend(
             bridge
-                .execute_tab_action(&close_opened)
+                .execute_tab_action(&close_opened, BRIDGE_TIMEOUT)
                 .map_err(|error| ("close_owned".to_string(), error))?
                 .evidence,
         );
         let after = bridge
-            .snapshot()
+            .snapshot(std::time::Duration::from_secs(30))
             .map_err(|error| ("verify_closed".to_string(), error))?;
         if snapshot_tab_id(&after).as_deref() != Some(original_tab_id.as_str()) {
             return Err((
@@ -1463,7 +1478,7 @@ fn restricted_tab_lifecycle_self_test(
     requested_url: &str,
     bridge: &BrowserNativeBridge,
 ) -> BrowserBridgeSelfTestResponse {
-    let first_open = match bridge.execute_tab_action(&tab_open_action(requested_url)) {
+    let first_open = match bridge.execute_tab_action(&tab_open_action(requested_url), BRIDGE_TIMEOUT) {
         Ok(execution) => execution,
         Err(error) => return BrowserBridgeSelfTestResponse::failed(kind, "open", error, None),
     };
@@ -1497,7 +1512,7 @@ fn restricted_tab_lifecycle_self_test(
 
         action_evidence.extend(
             bridge
-                .execute_tab_action(&tab_open_action(requested_url))
+                .execute_tab_action(&tab_open_action(requested_url), BRIDGE_TIMEOUT)
                 .map_err(|error| ("open_second_owned".to_string(), error))?
                 .evidence,
         );
@@ -1541,7 +1556,7 @@ fn restricted_tab_lifecycle_self_test(
                 .execute_tab_action(&tab_id_action(
                     ComputerUseActionKind::ActivateTab,
                     &first_tab_id,
-                ))
+                ), BRIDGE_TIMEOUT)
                 .map_err(|error| ("activate_first_owned".to_string(), error))?
                 .evidence,
         );
@@ -1562,7 +1577,7 @@ fn restricted_tab_lifecycle_self_test(
                 .execute_tab_action(&tab_id_action(
                     ComputerUseActionKind::ActivateTab,
                     &second_tab_id,
-                ))
+                ), BRIDGE_TIMEOUT)
                 .map_err(|error| ("activate_second_owned".to_string(), error))?
                 .evidence,
         );
@@ -1583,7 +1598,7 @@ fn restricted_tab_lifecycle_self_test(
                 .execute_tab_action(&tab_id_action(
                     ComputerUseActionKind::ActivateTab,
                     &first_tab_id,
-                ))
+                ), BRIDGE_TIMEOUT)
                 .map_err(|error| ("activate_first_for_close".to_string(), error))?
                 .evidence,
         );
@@ -1592,7 +1607,7 @@ fn restricted_tab_lifecycle_self_test(
                 .execute_tab_action(&tab_id_action(
                     ComputerUseActionKind::CloseTab,
                     &second_tab_id,
-                ))
+                ), BRIDGE_TIMEOUT)
                 .map_err(|error| ("close_second_owned".to_string(), error))?
                 .evidence,
         );
@@ -1613,7 +1628,7 @@ fn restricted_tab_lifecycle_self_test(
                 .execute_tab_action(&tab_id_action(
                     ComputerUseActionKind::CloseTab,
                     &first_tab_id,
-                ))
+                ), BRIDGE_TIMEOUT)
                 .map_err(|error| ("close_first_owned".to_string(), error))?
                 .evidence,
         );
@@ -1666,7 +1681,7 @@ fn snapshot_for_url(
 ) -> Result<BrowserSnapshot, ComputerUseError> {
     retry_snapshot_for_url(
         expected_url,
-        || bridge.snapshot(),
+        || bridge.snapshot(std::time::Duration::from_secs(30)),
         |delay| std::thread::sleep(delay),
     )
 }
@@ -1699,17 +1714,23 @@ where
             sleep(Duration::from_millis(*delay_ms));
         }
     }
-    let last_error = last_error
-        .map(|error| format!("{}: {}", error.code, error.message))
-        .unwrap_or_else(|| "no snapshot response".to_string());
-    Err(ComputerUseError::recoverable(
+    // 多层包装不得丢回执：内层失败携带的输入事实必须跟着外层错误一起留给上层。
+    let (last_error, last_receipt) = match last_error {
+        Some(error) => (format!("{}: {}", error.code, error.message), error.receipt),
+        None => ("no snapshot response".to_string(), None),
+    };
+    let mut timeout = ComputerUseError::recoverable(
         "browser_snapshot_timeout",
         format!(
             "opened tab did not reach expected URL {expected_url} after {} attempts; \
              last_error={last_error}",
             SNAPSHOT_RETRY_BACKOFF_MS.len() + 1
         ),
-    ))
+    );
+    if let Some(receipt) = last_receipt {
+        timeout = timeout.with_receipt(receipt);
+    }
+    Err(timeout)
 }
 
 fn tab_open_action(url: &str) -> ComputerUseAction {
@@ -1761,7 +1782,8 @@ fn best_effort_restore_and_close_owned_tabs(
     opened_tab_ids: &[String],
 ) {
     for action in self_test_cleanup_actions(original_tab_id, opened_tab_ids) {
-        let _ = bridge.execute_tab_action(&action);
+        // 自检收尾是独立于 CU 运行的诊断路径，没有 CU 剩余预算可依，用桥自身的常量上限。
+        let _ = bridge.execute_tab_action(&action, BRIDGE_TIMEOUT);
     }
 }
 
@@ -2274,6 +2296,44 @@ mod tests {
         assert_eq!(delays, SNAPSHOT_RETRY_BACKOFF_MS);
         assert!(error.message.contains("after 6 attempts"));
         assert!(error.message.contains("tab_navigation_pending"));
+    }
+
+    /// RPR-04b：重试包装不得丢掉内层错误携带的回执（多层包装丢事实 = 上层退回猜测）。
+    #[test]
+    fn snapshot_url_retry_keeps_the_inner_receipt_through_the_wrapper() {
+        let receipt = runtime::ActionReceipt {
+            action_id: "browser:open_tab:abc".to_string(),
+            input_delivery: runtime::InputDelivery::Sent,
+            partial: Some(true),
+            path_completed: None,
+            confirmed_point_count: None,
+            effect: runtime::EffectStatus::NotObserved,
+            goal_verdict: runtime::GoalVerdict::NotChecked,
+            input_release: runtime::InputReleaseStatus::Unknown,
+        };
+        receipt.validate().expect("样例回执必须自洽");
+
+        let error = retry_snapshot_for_url(
+            "https://example.test/ready",
+            || {
+                Err(ComputerUseError::recoverable(
+                    "stale_document",
+                    "document changed while waiting for the tab",
+                )
+                .with_receipt(receipt.clone()))
+            },
+            |_| {},
+        )
+        .unwrap_err();
+
+        assert_eq!(error.code, "browser_snapshot_timeout");
+        assert_eq!(
+            error.receipt(),
+            Some(&receipt),
+            "包装后的错误必须仍然带着内层的输入事实"
+        );
+        assert!(!error.receipt_matches("browser:open_tab:other"));
+        assert!(error.receipt_matches("browser:open_tab:abc"));
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]

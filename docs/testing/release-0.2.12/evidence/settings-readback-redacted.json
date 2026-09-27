@@ -1,0 +1,21 @@
+{
+  "parameters": {
+    "base_url": "http://127.0.0.1:18776/v1",
+    "computer_use_enabled": false,
+    "context_window": 32768,
+    "enable_llm_tools": true,
+    "endpoint": "http://127.0.0.1:18776/v1/chat/completions",
+    "llm_tool_exposure": "all",
+    "max_output_tokens": 2048,
+    "protocol": "openai_chat_completions",
+    "reasoning_mode": "effort",
+    "temperature": 0.35,
+    "thinking_budget": null,
+    "tool_allowlist": [
+      "read_file"
+    ],
+    "top_p": 0.9
+  },
+  "session_id": "session-1789825015524",
+  "reasoning_effort": "high"
+}

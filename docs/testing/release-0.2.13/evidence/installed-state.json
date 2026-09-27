@@ -1,0 +1,12 @@
+{
+  "registered": [
+    {
+      "DisplayName": "COOLZHU CODE Agent",
+      "DisplayVersion": "0.2.13"
+    }
+  ],
+  "web_pid": 15396,
+  "tauri_pid": 19688,
+  "web_executable": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "web_sha256": "9CC3F8DDE92C440F2C9C631EABB9FDD6EB3651C1D82D8D04C53627537FF47BCC"
+}

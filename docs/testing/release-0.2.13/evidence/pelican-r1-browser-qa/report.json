@@ -1,0 +1,45 @@
+{
+  "input": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-qwen\\evidence\\pelican-r1.html",
+  "inputSha256": "9d68c556b467802b4deeb20af698b0f5cce5c44e1b2e90f0f8da9ca78d71586c",
+  "output": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-qwen\\pelican-r1-browser-qa",
+  "console": [],
+  "pageErrors": [],
+  "blockedRequests": [],
+  "checks": {
+    "visibleSvg": false,
+    "svgChangesOverTime": false,
+    "pauseFreezesSvg": false,
+    "speedControlAcceptsChange": false,
+    "noPageErrors": true,
+    "noConsoleErrors": true,
+    "selfContained": true
+  },
+  "passed": false,
+  "title": "鹈鹕骑自行车 · Pelican Cycling Loop",
+  "controls": [],
+  "svg": [
+    {
+      "viewBox": "0 0 800 500",
+      "width": 0,
+      "height": 0,
+      "childElements": 129,
+      "text": "Pelican Cycling — pure SVG loop · no scripts · no external assets"
+    }
+  ],
+  "animationBefore": [],
+  "frames": {
+    "first": null,
+    "second": null,
+    "sampleIntervalMs": 780
+  },
+  "pause": {
+    "control": null,
+    "verified": false
+  },
+  "speed": {
+    "control": null,
+    "valueChanges": false,
+    "behaviorVerified": false
+  },
+  "visualReviewRequired": "截图必须人工确认鹈鹕、单车及美观；自动验收不把 SVG 元素存在等同于绘制内容正确。"
+}

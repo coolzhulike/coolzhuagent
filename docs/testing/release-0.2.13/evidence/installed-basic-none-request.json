@@ -1,0 +1,8 @@
+{
+  "session_id": "session-1779459149988",
+  "target_agent_ids": [
+    "session-1779459149988"
+  ],
+  "chat_room_id": "room-1789827818904",
+  "text": "这是安装后关闭思考的基本对话测试。只回复9乘13的结果和标记 QWEN_NO_THINK_OK。"
+}

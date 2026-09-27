@@ -58,6 +58,10 @@ pub struct ClawbotMediaRef {
     pub file_name: Option<String>,
     pub mime_type: Option<String>,
     pub size_bytes: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_base64: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -236,7 +240,7 @@ impl ClawbotChannelState {
         ClawbotStatus {
             channel: CLAWBOT_CHANNEL_ID.to_string(),
             status: ClawbotRuntimeStatus::Disabled,
-            capabilities: vec!["text".to_string()],
+            capabilities: vec!["text".to_string(), "image".to_string()],
             commands: command_registry()
                 .iter()
                 .map(|command| ClawbotCommandDescriptor {

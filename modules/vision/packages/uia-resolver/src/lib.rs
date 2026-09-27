@@ -38,6 +38,20 @@ pub struct UiaElementSnapshot {
     pub bounding_rect: BBoxPx,
     pub is_offscreen: bool,
     pub is_enabled: bool,
+    /// **CU-05（P1）**：元素是否被选中。
+    ///
+    /// `None` = **该元素不支持选择模式**（不是"没选中"）。把"不支持"写成 `false` 会让
+    /// 调用方以为"知道它没被选中"，从而做出错误判断（例如对不可选项重试点击）。
+    pub is_selected: Option<bool>,
+    /// 是否拥有键盘焦点（`CurrentHasKeyboardFocus`，几乎所有元素都可读）。
+    pub has_keyboard_focus: Option<bool>,
+    /// 开关状态：`"on"` / `"off"` / `"indeterminate"`；`None` = 不支持开关模式。
+    pub toggle_state: Option<String>,
+    /// 该元素支持的 UIA 模式名（排序后的稳定字符串）。
+    ///
+    /// 用途：让上层能判断"这个元素支持什么操作"（可切换？可选中？可输入？），
+    /// 而不是靠 control_type 猜。
+    pub patterns: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -60,6 +74,11 @@ pub struct UiaHit {
     pub is_offscreen: bool,
     pub is_enabled: bool,
     pub confidence: f32,
+    /// 与 [`UiaElementSnapshot`] 同口径：`None` = 不支持该模式（不是 `false`）。
+    pub is_selected: Option<bool>,
+    pub has_keyboard_focus: Option<bool>,
+    pub toggle_state: Option<String>,
+    pub patterns: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -171,6 +190,63 @@ pub fn resolve_query(
     Ok(first)
 }
 
+/// **CU-05**：UIA `ToggleState` 数值 → 稳定字符串。
+///
+/// 认不出的取值一律 `"unknown"`（**不**回落到 off：未知不得被读成"关着"）。
+#[must_use]
+pub const fn toggle_state_name(state: i32) -> &'static str {
+    match state {
+        0 => "off",
+        1 => "on",
+        2 => "indeterminate",
+        _ => "unknown",
+    }
+}
+
+/// **CU-05**：UIA `PatternId` → 模式名（只覆盖本项目关心的与常见的；其余给 `pattern-<id>`）。
+///
+/// 给未知 id 一个可追溯的占位（`pattern-<id>`）而不是空串：空串会让"支持但没名字"与
+/// "不支持"混在一起。
+#[must_use]
+pub fn pattern_name(pattern_id: i32) -> String {
+    match pattern_id {
+        10000 => "invoke".to_string(),
+        10001 => "selection".to_string(),
+        10002 => "value".to_string(),
+        10003 => "range_value".to_string(),
+        10004 => "scroll".to_string(),
+        10005 => "expand_collapse".to_string(),
+        10006 => "grid".to_string(),
+        10007 => "grid_item".to_string(),
+        10008 => "multiple_view".to_string(),
+        10009 => "window".to_string(),
+        10010 => "selection_item".to_string(),
+        10011 => "dock".to_string(),
+        10012 => "table".to_string(),
+        10013 => "table_item".to_string(),
+        10014 => "text".to_string(),
+        10015 => "toggle".to_string(),
+        10016 => "transform".to_string(),
+        10017 => "scroll_item".to_string(),
+        10018 => "legacy_iaccessible".to_string(),
+        10019 => "annotation".to_string(),
+        10020 => "drag".to_string(),
+        10021 => "text2".to_string(),
+        10022 => "text_child".to_string(),
+        10023 => "text_edit".to_string(),
+        other => format!("pattern-{other}"),
+    }
+}
+
+/// 该元素是否**可被判定为选中/开关**（供上层区分"没选中"与"不支持"）。
+///
+/// 判据是"支持相应模式"，而不是"字段不是 None"——字段为 None 恰恰意味着无法判定。
+#[must_use]
+pub fn selection_and_toggle_supported(patterns: &[String]) -> (bool, bool) {
+    let has = |name: &str| patterns.iter().any(|pattern| pattern == name);
+    (has("selection_item"), has("toggle"))
+}
+
 pub fn resolve_system_control(id: SystemControlId) -> Result<UiaHit, UiaError> {
     #[cfg(windows)]
     {
@@ -272,6 +348,12 @@ Write-Output "OK|$msg"
                 is_offscreen: offscreen,
                 is_enabled: enabled,
                 confidence: if offscreen { 0.0 } else { 0.99 },
+                // CU-05：这条路径（内置 PowerShell 脚本）**不读取**状态与模式 —— 如实为
+                // `None`/空，而不是给一个看起来"读到了但都是 false"的结果。
+                is_selected: None,
+                has_keyboard_focus: None,
+                toggle_state: None,
+                patterns: Vec::new(),
             });
         }
     }
@@ -311,8 +393,65 @@ mod tests {
                 },
                 is_offscreen: false,
                 is_enabled: true,
+                is_selected: Some(true),
+                has_keyboard_focus: Some(true),
+                toggle_state: None,
+                patterns: vec!["text".to_string(), "value".to_string()],
             }],
         }
+    }
+
+    /// **CU-05**：状态语义必须可分辨——**不支持**（`None`）不得被读成"没选中/关着"。
+    #[test]
+    fn element_state_distinguishes_unsupported_from_false() {
+        // 开关状态：认不出的取值 ⇒ "unknown"，**不**回落到 off。
+        assert_eq!(toggle_state_name(0), "off");
+        assert_eq!(toggle_state_name(1), "on");
+        assert_eq!(toggle_state_name(2), "indeterminate");
+        assert_eq!(
+            toggle_state_name(7),
+            "unknown",
+            "未知取值不得被读成 off（那会让上层以为知道它关着）"
+        );
+        // 模式名：未知 id 给可追溯占位，不返回空串（空串会与"不支持"混淆）。
+        assert_eq!(pattern_name(10015), "toggle");
+        assert_eq!(pattern_name(10010), "selection_item");
+        assert_eq!(pattern_name(10014), "text");
+        assert_eq!(pattern_name(999_999), "pattern-999999");
+        // 支持性判定看"支持的模式"，而不是"字段不是 None"。
+        let (selectable, toggleable) = selection_and_toggle_supported(&[
+            "text".to_string(),
+            "selection_item".to_string(),
+        ]);
+        assert!(selectable, "支持 selection_item ⇒ 可判定选中");
+        assert!(!toggleable, "不支持 toggle ⇒ 不得声称可判定开关状态");
+    }
+
+    /// **CU-05**：快照里的状态原样传给命中结果（`None` 保持 `None`，不被填成 false）。
+    #[test]
+    fn query_preserves_element_state_including_unknowns() {
+        let snapshot = query_snapshot();
+        let element = &snapshot.elements[0];
+        assert_eq!(element.is_selected, Some(true));
+        assert_eq!(element.has_keyboard_focus, Some(true));
+        assert_eq!(element.toggle_state, None, "不支持开关 ⇒ 保持 None");
+        assert_eq!(element.patterns, vec!["text".to_string(), "value".to_string()]);
+        let hit = resolve_query(
+            &snapshot,
+            &UiaQuery {
+                process_id: Some(1200),
+                window_name: None,
+                element_name: Some("文本编辑器".to_string()),
+                automation_id: None,
+                class_name: None,
+                control_type: None,
+            },
+        )
+        .expect("唯一匹配");
+        assert_eq!(hit.is_selected, Some(true));
+        assert_eq!(hit.has_keyboard_focus, Some(true));
+        assert_eq!(hit.toggle_state, None);
+        assert_eq!(hit.patterns.len(), 2);
     }
 
     #[test]

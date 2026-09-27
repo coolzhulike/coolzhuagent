@@ -332,11 +332,16 @@ pub fn runtime_tool_execute(invoke: ToolInvoke, ctx: &RuntimeToolContext<'_>) ->
     );
 
     match gate.decision {
-        PermissionDecision::Deny => ToolOutcome::rejected(
-            &invoke,
-            gate,
-            format!("tool '{}' denied by permission gate", invoke.tool_name),
-        ),
+        PermissionDecision::Deny => {
+            // 缺少最低权限元数据是配置错误，不能压成泛化的"denied"——审计与回灌
+            // 给模型的原因必须能指向真正的问题。
+            let summary = if gate.required.is_unspecified() {
+                format!("tool '{}' rejected: {}", invoke.tool_name, gate.reason)
+            } else {
+                format!("tool '{}' denied by permission gate", invoke.tool_name)
+            };
+            ToolOutcome::rejected(&invoke, gate, summary)
+        }
         PermissionDecision::RequireApproval | PermissionDecision::RequireConfirm => {
             ToolOutcome::dry_run_only(
                 &invoke,

@@ -214,6 +214,16 @@ pub fn evaluate_permission(
     session_grant: &SessionGrantView,
     profile: PermissionProfile,
 ) -> PermissionGateReport {
+    // 0) 未知/动态工具缺少最低权限元数据：明确配置错误，fail-closed。
+    //    先于 FullAccess 分支返回，避免 dev-open / full-access 把它放行——
+    //    这里要拒绝的不是"权限不够"，而是"根本没有权威元数据可判定"。
+    if required.is_unspecified() {
+        return PermissionGateReport::deny(
+            required,
+            PermissionMode::missing_metadata_reason(&invoke.tool_name),
+        );
+    }
+
     let (authorized, confirmed_twice) = session_grant.combine_with_invoke(invoke);
 
     let mut workspace_relative = true;
@@ -320,6 +330,12 @@ fn apply_standard_permission(
     affected_paths: Vec<String>,
 ) -> PermissionGateReport {
     match required {
+        // 缺少最低权限元数据：明确配置错误，不按任何档位放行。
+        // 纵深防御——正常入口已在 `evaluate_permission` 顶部拒绝（那里带工具名）。
+        PermissionMode::Unspecified => PermissionGateReport::deny(
+            required,
+            "tool has no declared minimum-permission metadata (configuration error)",
+        ),
         PermissionMode::ReadOnly | PermissionMode::Allow => {
             if !has_path_targets || workspace_relative {
                 PermissionGateReport {

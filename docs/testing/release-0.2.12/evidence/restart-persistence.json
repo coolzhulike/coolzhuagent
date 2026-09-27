@@ -1,0 +1,68 @@
+{
+  "tested_at": "2026-09-19T13:51:43.934Z",
+  "scope": "0.2.12安装版18775隔离实例重启",
+  "passed": true,
+  "checks": [
+    {
+      "name": "仅替换本次安装版server进程",
+      "passed": true
+    },
+    {
+      "name": "模拟模型PID保持不变",
+      "passed": true
+    },
+    {
+      "name": "重启未发出额外模型请求",
+      "passed": true
+    },
+    {
+      "name": "usage请求数与所有token字段持久化",
+      "passed": true
+    },
+    {
+      "name": "每条回复耗时持久化",
+      "passed": true
+    },
+    {
+      "name": "消息索引持久化",
+      "passed": true
+    },
+    {
+      "name": "关键词搜索结果持久化",
+      "passed": true
+    },
+    {
+      "name": "完整正文记录与排序持久化",
+      "passed": true
+    },
+    {
+      "name": "around定位内容持久化",
+      "passed": true
+    },
+    {
+      "name": "模型参数和有效容量持久化",
+      "passed": true
+    },
+    {
+      "name": "工作区身份与数据作用域保持",
+      "passed": true
+    }
+  ],
+  "old_server_pid": 26048,
+  "new_server_pid": 520,
+  "mock_pid": 24756,
+  "usage": {
+    "requests": 5,
+    "input_tokens": 500,
+    "output_tokens": 100
+  },
+  "visible_messages": 6,
+  "search_matches": 2,
+  "timing_entries": 3,
+  "unchanged_mock_requests": 11,
+  "evidence": [
+    "acceptance/restart-before.json",
+    "acceptance/restart-after.json"
+  ],
+  "services_kept_running": true
+}

@@ -1,0 +1,207 @@
+{
+  "captured_at": "2026-09-19T13:51:30.873Z",
+  "workspace": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-release\\acceptance",
+  "session": "session-1789825015524",
+  "room": "room-1789825015543",
+  "insights": {
+    "indices": {
+      "msg-1789825015596-user": 1,
+      "msg-1789825015610-0": 2,
+      "msg-1789825018126-user": 3,
+      "msg-1789825018142-0": 4,
+      "msg-1789825415345-user": 5,
+      "msg-1789825415364-0": 6
+    },
+    "note": "从此版本开始累计接口已返回且适配器可解析的用量；无 usage 的请求与此前历史不计入。缓存字段单列，不重复相加；未提供或未解析的缓存明细显示 0。",
+    "room_id": "room-1789825015543",
+    "source": "provider_reported",
+    "timings": {
+      "msg-1789825015610-0": 2510,
+      "msg-1789825018142-0": 2446,
+      "msg-1789825415364-0": 2515
+    },
+    "usage": [
+      {
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "input_tokens": 500,
+        "output_tokens": 100,
+        "requests": 5,
+        "session_id": "session-1789825015524"
+      }
+    ]
+  },
+  "search": {
+    "has_more": false,
+    "items": [
+      {
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "created_at": 1789825417810,
+        "id": "msg-1789825415364-0",
+        "index": 6,
+        "role": "assistant",
+        "snippet": "已读取隔离验收文件。READ_FILE_RELEASE_OK_20260919。工具结果应显示在独立状态区。"
+      },
+      {
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "created_at": 1789825018057,
+        "id": "msg-1789825015610-0",
+        "index": 2,
+        "role": "assistant",
+        "snippet": "已读取隔离验收文件。READ_FILE_RELEASE_OK_20260919。工具结果应显示在独立状态区。"
+      }
+    ],
+    "message_count": 6,
+    "total": 2
+  },
+  "fullSearch": {
+    "has_more": false,
+    "items": [
+      {
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "created_at": 1789825417810,
+        "id": "msg-1789825415364-0",
+        "index": 6,
+        "role": "assistant",
+        "snippet": "已读取隔离验收文件。READ_FILE_RELEASE_OK_20260919。工具结果应显示在独立状态区。"
+      },
+      {
+        "author": "",
+        "created_at": 1789825415356,
+        "id": "msg-1789825415345-user",
+        "index": 5,
+        "role": "user",
+        "snippet": "模拟工具验收 [mock-tool]：请读取隔离文件并报告标记。"
+      },
+      {
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "created_at": 1789825020535,
+        "id": "msg-1789825018142-0",
+        "index": 4,
+        "role": "assistant",
+        "snippet": "TOOLS_DISABLED_RELEASE_OK：没有收到 read_file 定义，未执行文件操作。"
+      },
+      {
+        "author": "",
+        "created_at": 1789825018135,
+        "id": "msg-1789825018126-user",
+        "index": 3,
+        "role": "user",
+        "snippet": "模拟工具验收 [mock-tool] [release-off]：请读取隔离文件。"
+      },
+      {
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "created_at": 1789825018057,
+        "id": "msg-1789825015610-0",
+        "index": 2,
+        "role": "assistant",
+        "snippet": "已读取隔离验收文件。READ_FILE_RELEASE_OK_20260919。工具结果应显示在独立状态区。"
+      },
+      {
+        "author": "",
+        "created_at": 1789825015604,
+        "id": "msg-1789825015596-user",
+        "index": 1,
+        "role": "user",
+        "snippet": "模拟工具验收 [mock-tool]：请调用 read_file 读取隔离验收文件并报告标记。"
+      }
+    ],
+    "message_count": 6,
+    "total": 6
+  },
+  "around": {
+    "found": true,
+    "has_newer": false,
+    "has_older": false,
+    "messages": [
+      {
+        "attachments": [],
+        "author": "",
+        "content": "模拟工具验收 [mock-tool]：请调用 read_file 读取隔离验收文件并报告标记。",
+        "created_at": 1789825015604,
+        "id": "msg-1789825015596-user",
+        "kind": "text",
+        "role": "user",
+        "target": "Release 0.2.12 隔离验收(mock-release-2026)"
+      },
+      {
+        "attachments": [],
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "content": "已读取隔离验收文件。READ_FILE_RELEASE_OK_20260919。工具结果应显示在独立状态区。\n\n---\nContext usage: 0.3% (100/32768 input tokens; source=remote). Local estimate: 1060 tokens; local prompt budget: 1060/26829 tokens; history truncated: false.\nContext turn: 000000000000000118d6bc5e69990ac0; Context snapshot: ctx-48c5df1b0ab8b564; history source: chat_room.messages; history loaded: 0; memory revision: mem-29669c1cec0960ad",
+        "created_at": 1789825018057,
+        "id": "msg-1789825015610-0",
+        "kind": "assistant-reply",
+        "role": "assistant",
+        "target": "聊天"
+      },
+      {
+        "attachments": [],
+        "author": "",
+        "content": "模拟工具验收 [mock-tool] [release-off]：请读取隔离文件。",
+        "created_at": 1789825018135,
+        "id": "msg-1789825018126-user",
+        "kind": "text",
+        "role": "user",
+        "target": "Release 0.2.12 隔离验收(mock-release-2026)"
+      },
+      {
+        "attachments": [],
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "content": "TOOLS_DISABLED_RELEASE_OK：没有收到 read_file 定义，未执行文件操作。\n\n---\nContext usage: 0.3% (100/32768 input tokens; source=remote). Local estimate: 1526 tokens; local prompt budget: 1526/26829 tokens; history truncated: false.\nContext turn: 000000000000000418d6bc5f00806a00; Context snapshot: ctx-10607c049d75152b; history source: chat_room.messages; history loaded: 5; memory revision: mem-1fd23b6380db8274",
+        "created_at": 1789825020535,
+        "id": "msg-1789825018142-0",
+        "kind": "assistant-reply",
+        "role": "assistant",
+        "target": "聊天"
+      },
+      {
+        "attachments": [],
+        "author": "",
+        "content": "模拟工具验收 [mock-tool]：请读取隔离文件并报告标记。",
+        "created_at": 1789825415356,
+        "id": "msg-1789825415345-user",
+        "kind": "text",
+        "role": "user",
+        "target": "Release 0.2.12 隔离验收(mock-release-2026)"
+      },
+      {
+        "attachments": [],
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "content": "已读取隔离验收文件。READ_FILE_RELEASE_OK_20260919。工具结果应显示在独立状态区。\n\n---\nContext usage: 0.3% (100/32768 input tokens; source=remote). Local estimate: 1649 tokens; local prompt budget: 1649/26829 tokens; history truncated: false.\nContext turn: 000000000000001118d6bcbb7cc5b758; Context snapshot: ctx-73d3d91f9d1e383b; history source: chat_room.messages; history loaded: 8; memory revision: mem-4e48de75fe58868f",
+        "created_at": 1789825417810,
+        "id": "msg-1789825415364-0",
+        "kind": "assistant-reply",
+        "role": "assistant",
+        "target": "聊天"
+      }
+    ],
+    "position": 6,
+    "total": 6
+  },
+  "settings": {
+    "session_id": "session-1789825015524",
+    "reasoning_effort": "high",
+    "parameters": {
+      "base_url": "http://127.0.0.1:18776/v1",
+      "computer_use_enabled": false,
+      "context_window": 32768,
+      "enable_llm_tools": true,
+      "endpoint": "http://127.0.0.1:18776/v1/chat/completions",
+      "llm_tool_exposure": "all",
+      "max_output_tokens": 2048,
+      "protocol": "openai_chat_completions",
+      "reasoning_mode": "effort",
+      "temperature": 0.35,
+      "thinking_budget": null,
+      "tool_allowlist": [
+        "read_file"
+      ],
+      "top_p": 0.9
+    },
+    "effective_context_window": 32768,
+    "effective_max_output_tokens": 2048
+  },
+  "server_pid": 26048,
+  "mock_pid": 24756,
+  "mock_request_count": 11
+}

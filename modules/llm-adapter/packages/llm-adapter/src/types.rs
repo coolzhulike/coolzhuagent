@@ -132,7 +132,16 @@ pub enum ToolChoice {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MessageResponse {
-    pub id: String,
+    /// 顶层 provider 消息 ID。**可缺省**：第三方兼容端点可能不返回它（裁决 COMPAT-ID）。
+    ///
+    /// `None` = **未提供**（不是空串、也不是伪造身份）；归一化与拒绝规则见
+    /// [`crate::message_id::normalize_top_level_message_id`] —— 空串/全空白仍然**拒绝**，
+    /// 只有"缺失/null + 连接级兼容位"才是 `None`。
+    ///
+    /// 它**不**替代本地请求 attempt、工具调用 ID 或动作去重身份：缺它不应让其它身份消失，
+    /// 其它身份也不得回填到它上面。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     #[serde(rename = "type")]
     pub kind: String,
     pub role: String,
@@ -178,6 +187,8 @@ pub enum OutputContentBlock {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Usage {
+    // Anthropic 的 message_delta 常只提供累计输出；调用方须合并 start 快照。
+    #[serde(default)]
     pub input_tokens: u32,
     #[serde(default)]
     pub cache_creation_input_tokens: u32,

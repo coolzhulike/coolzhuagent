@@ -8,7 +8,17 @@
       "target": "bin/coolzhu-web-console.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "-p", "coolzhu-web-console", "--bin", "coolzhu-web-console", "--offline", "--target-dir", "modules/gui-web/target"],
+        "args": [
+          "build",
+          "--locked",
+          "-p",
+          "coolzhu-web-console",
+          "--bin",
+          "coolzhu-web-console",
+          "--offline",
+          "--target-dir",
+          "modules/gui-web/target"
+        ],
         "working_dir": "."
       }
     },
@@ -18,7 +28,17 @@
       "target": "bin/coolzhu-browser-native-host.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "-p", "coolzhu-web-console", "--bin", "coolzhu-browser-native-host", "--offline", "--target-dir", "modules/gui-web/target"],
+        "args": [
+          "build",
+          "--locked",
+          "-p",
+          "coolzhu-web-console",
+          "--bin",
+          "coolzhu-browser-native-host",
+          "--offline",
+          "--target-dir",
+          "modules/gui-web/target"
+        ],
         "working_dir": "."
       }
     },
@@ -28,7 +48,17 @@
       "target": "bin/coolzhu-clawbot-sidecar.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "-p", "coolzhu-clawbot-sidecar", "--bin", "coolzhu-clawbot-sidecar", "--offline", "--target-dir", "modules/gui-web/target"],
+        "args": [
+          "build",
+          "--locked",
+          "-p",
+          "coolzhu-clawbot-sidecar",
+          "--bin",
+          "coolzhu-clawbot-sidecar",
+          "--offline",
+          "--target-dir",
+          "modules/gui-web/target"
+        ],
         "working_dir": "."
       }
     },
@@ -38,7 +68,17 @@
       "target": "bin/coolzhu-cli.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "-p", "coolzhu-command-line", "--bin", "coolzhu-cli", "--offline", "--target-dir", "modules/cli/target"],
+        "args": [
+          "build",
+          "--locked",
+          "-p",
+          "coolzhu-command-line",
+          "--bin",
+          "coolzhu-cli",
+          "--offline",
+          "--target-dir",
+          "modules/cli/target"
+        ],
         "working_dir": "."
       }
     },
@@ -48,7 +88,17 @@
       "target": "bin/coolzhu-computer-use-check.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "-p", "coolzhu-computer-use-core", "--bin", "coolzhu-computer-use-check", "--offline", "--target-dir", "modules/computer-use/target"],
+        "args": [
+          "build",
+          "--locked",
+          "-p",
+          "coolzhu-computer-use-core",
+          "--bin",
+          "coolzhu-computer-use-check",
+          "--offline",
+          "--target-dir",
+          "modules/computer-use/target"
+        ],
         "working_dir": "."
       }
     },
@@ -58,7 +108,17 @@
       "target": "bin/coolzhu-vision-smoke.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "-p", "coolzhu-vision-service", "--bin", "coolzhu-vision-smoke", "--offline", "--target-dir", "modules/vision/target"],
+        "args": [
+          "build",
+          "--locked",
+          "-p",
+          "coolzhu-vision-service",
+          "--bin",
+          "coolzhu-vision-smoke",
+          "--offline",
+          "--target-dir",
+          "modules/vision/target"
+        ],
         "working_dir": "."
       }
     },
@@ -68,7 +128,17 @@
       "target": "bin/coolzhu-latest-desktop-vision.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "-p", "coolzhu-vision-service", "--bin", "coolzhu-latest-desktop-vision", "--offline", "--target-dir", "modules/vision/target"],
+        "args": [
+          "build",
+          "--locked",
+          "-p",
+          "coolzhu-vision-service",
+          "--bin",
+          "coolzhu-latest-desktop-vision",
+          "--offline",
+          "--target-dir",
+          "modules/vision/target"
+        ],
         "working_dir": "."
       }
     },
@@ -78,14 +148,53 @@
       "target": "bin/coolzhu-tauri-shell.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "--manifest-path", "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml", "--bin", "coolzhu-tauri-shell", "--offline", "--target-dir", "modules/gui-desktop/target/tauri-shell"],
-        "working_dir": "."
+        "args": [
+          "build",
+          "--locked",
+          "--manifest-path",
+          "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml",
+          "--bin",
+          "coolzhu-tauri-shell",
+          "--offline",
+          "--target-dir",
+          "modules/gui-desktop/target/tauri-shell",
+          "--message-format=json-render-diagnostics"
+        ],
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
       "id": "gui-desktop.webview2-loader",
-      "source": "modules/gui-desktop/target/tauri-shell/{profile}/WebView2Loader.dll",
-      "target": "bin/WebView2Loader.dll"
+      "source": "modules/gui-desktop/target/package-inputs/windows-x64/{profile}/WebView2Loader.dll",
+      "target": "bin/WebView2Loader.dll",
+      "export": {
+        "kind": "cargo-build-script-output",
+        "producer_package": "webview2-com-sys",
+        "architecture": "x64",
+        "build_entry_artifact": "gui-desktop.tauri-shell",
+        "build_root": "modules/gui-desktop/target/tauri-shell/{profile}",
+        "producer_arch_directory": "x64",
+        "producer_file_name": "WebView2Loader.dll",
+        "build_entry_manifest": "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml",
+        "lockfile": "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock",
+        "receipt": "modules/gui-desktop/target/package-inputs/windows-x64/{profile}/webview2-loader-export.json",
+        "source_identity": {
+          "files": [
+            "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml",
+            "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock",
+            "modules/gui-desktop/packages/tauri-shell/src-tauri/build.rs",
+            "modules/gui-desktop/packages/tauri-shell/src-tauri/tauri.conf.json",
+            "modules/gui-desktop/packages/tauri-shell/src-tauri/capabilities/default.json"
+          ],
+          "directories": [
+            "modules/gui-desktop/packages/tauri-shell/src-tauri/src"
+          ],
+          "exclude_patterns": [
+            "/(gen|target)/"
+          ]
+        }
+      }
     },
     {
       "id": "package.app-launcher",
@@ -93,7 +202,15 @@
       "target": "COOLZHU-AGENT.exe",
       "build": {
         "command": "cargo",
-        "args": ["build", "-p", "coolzhu-app-launcher", "--bin", "COOLZHU-AGENT", "--offline"],
+        "args": [
+          "build",
+          "--locked",
+          "-p",
+          "coolzhu-app-launcher",
+          "--bin",
+          "COOLZHU-AGENT",
+          "--offline"
+        ],
         "working_dir": "."
       }
     }
@@ -166,6 +283,262 @@
       "id": "documentation.command-line",
       "source": "docs/command-line.md",
       "target": "docs/command-line.md"
+    }
+  ],
+  "build_inputs": {
+    "note": "build_input_digest 显式登记的构建输入：锁文件（含独立 Tauri 项目自己的 Cargo.lock）、构建入口声明、安装器定义、包声明。scripts/lib/build-identity.ps1 会把清单里没有的构建入口文件按 artifact.export 自动补齐。",
+    "files": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "config/package-manifest.json",
+      "config/package-launcher.json",
+      "installer/Product.wxs",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/build.rs",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/tauri.conf.json",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/capabilities/default.json"
+    ]
+  },
+  "release_policy": {
+    "note": "发布资格政策（RD4-06 / 第六轮裁决 §三）：不稳定输入所生成的包维持拒绝发布，但必须输出失败诊断。这里只声明**范围与落点**；门禁实现与判定口径的唯一实现在 scripts/lib/build-identity.ps1，调用方是 scripts/package-all.ps1。",
+    "release_eligible_requires": [
+      "declared_source_snapshot_scope",
+      "declared_roots_present",
+      "source_input_stability",
+      "build_input_stability",
+      "artifact_provenance"
+    ],
+    "release_eligible_rule": "任一门的 result 不是 pass（fail 或 not-confirmed）⇒ release_eligible=false。not-confirmed 表示『未能确认是否受影响』，不是通过，也不允许用 quiescent=false 之类的字段补一张可发布收据。",
+    "no_build_policy": "--no-build 只接受『匹配快照、配置与产物』的有效收据：导出物必须有与本次配置/产物/构建入口源码身份匹配的导出记录；此外每个产物的内容身份必须能在产物—快照关联记录里找到绑定到**本次**源码快照摘要与构建输入摘要的条目。关联缺失时状态是 not-confirmed（不乐观放行），失败运行登记过的禁用内容身份一律拒绝（[ARTIFACT-REVOKED]）。",
+    "failure_diagnostics": {
+      "root": "tmp/package-reports/failures",
+      "quarantine_root": "tmp/package-failures",
+      "auto_promotion": "never",
+      "covers": "运行 ID / 阶段与失败原因 / 声明的源码与构建输入范围 / 已观察到的输入变化 / 各阶段退出码 / 已产生但未获准发布的临时产物 / release_eligible=false",
+      "must_not": [
+        "覆盖上一份成功报告",
+        "更新 latest-<config>.json 最新有效包指针",
+        "进入签名/安装/分发"
+      ]
+    },
+    "artifact_release_status_store": "tmp/package-reports/artifact-release-status.json",
+    "artifact_release_status_note": "associations = 通过构建后校验的产物内容身份与源码快照/构建输入摘要的绑定；revocations = 失败运行登记的禁用内容身份；runs = 最近运行结果台账（不替代 latest 指针）。",
+    "evidence_kind_for_diffs": "observed-between-two-samples",
+    "evidence_kind_note": "前后两次采样的差异一律标为『已观察变化』，不得称为完整写入历史。",
+    "non_build_input_paths": [
+      {
+        "pattern": "(^|/)tmp/package-reports(/|$)",
+        "reason": "打包报告/指针/保留索引/失败诊断（打包输出，不是构建输入）"
+      },
+      {
+        "pattern": "(^|/)tmp/package-failures(/|$)",
+        "reason": "失败隔离区（临时产物，与可发布产物分区且永不自动晋升）"
+      },
+      {
+        "pattern": "(^|/)tmp/source-snapshots(/|$)",
+        "reason": "源码快照冻结记录（诊断/核对用，不是构建输入）"
+      },
+      {
+        "pattern": "(^|/)tmp/package-backups(/|$)",
+        "reason": "旧产物备份（不是构建输入）"
+      },
+      {
+        "pattern": "(^|/)tmp/logs(/|$)",
+        "reason": "构建/运行日志输出（已声明不属于构建输入：其变化不得被误判为源码变化）"
+      },
+      {
+        "pattern": "(^|/)modules/[^/]+/target(/|$)",
+        "reason": "各模块独立构建输出目录（其身份由 payload_digest 与产物—快照关联记录承担）"
+      },
+      {
+        "pattern": "(^|/)package(/|$)",
+        "reason": "打包输出目录（可发布产物本身，不是构建输入）"
+      },
+      {
+        "pattern": "(^|/)tmp/package-freeze(/|$)",
+        "reason": "RD4-06 准备阶段的冻结记录与冻结指针（准备阶段输出，不是构建输入）"
+      },
+      {
+        "pattern": "(^|/)tmp/package-consume(/|$)",
+        "reason": "PKG-L07c 本次消费的独立 staging（消费阶段派生输出，不是构建输入）"
+      }
+    ],
+    "external_path_dependency_note": "工作区外/生成类的构建依赖在 source_snapshot.external_path_dependencies 显式登记为 not-followed；它们的变化不在本政策的可观察范围内，因此不得据此声称输入稳定。",
+    "preparation_phase": {
+      "note": "RD4-06 准备/冻结分离（第七轮裁决 §3.1）：准备阶段解析/更新依赖、生成必要配置、展示变化并确认，然后冻结完整输入快照；正式构建阶段只消费冻结输入，任一声明输入改变即拒绝发布。",
+      "prepare_switch": "-Prepare（准备阶段；产出冻结记录并更新 tmp/package-freeze/latest-<config>.json）",
+      "build_switch": "-FreezeRecordPath <冻结记录>（正式构建阶段消费冻结输入；不提供时在构建开始处自冻结，记为 self-frozen-at-build-start）",
+      "confirm_switch": "-AcceptPreparationChanges（准备阶段显式确认『输入确实变化且接受』；未给出时发现变化即拒绝）",
+      "update_dependencies_switch": "-UpdateDependencies（允许准备阶段解析并更新锁定内容；默认只做 --locked --offline 只读核对）",
+      "cargo_lock_semantics": {
+        "prepare": "cargo metadata --format-version 1 --locked --offline（只读解析核对；确需更新锁定内容必须显式 -UpdateDependencies）",
+        "build": "--locked --offline（等价 --frozen：锁定 + 离线）；锁文件在构建期被改写即失败",
+        "no_whitelist": "不设 Cargo.lock / tauri.conf.json 的构建中变更白名单"
+      },
+      "steps": [],
+      "steps_note": "准备阶段需要执行的生成步骤（id / command / args / working_dir / generates[]）。当前仓库没有需要生成的第一方配置：tauri.conf.json 是**声明的构建输入**（不是生成物），因此不列入 generates；若将来引入生成器，必须在此声明并把生成物计入冻结输入。",
+      "generated_config_rule": "能在准备阶段生成的配置在准备阶段生成，生成后**计入冻结输入**（摘要进入 freeze_id）；正式构建阶段改写即拒绝发布。",
+      "derived_outputs": [
+        {
+          "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/gen",
+          "generated_by": "tauri-build（构建期重写 schemas）",
+          "reason": "构建中产生的中间输出；放在声明位置并记录生成来源，不属于冻结输入",
+          "within_declared_output_root": true
+        },
+        {
+          "path": "modules/*/target",
+          "generated_by": "cargo（逐 crate 构建输出）",
+          "reason": "各模块独立构建输出目录；其身份由 payload_digest 与导出/消费收据承担",
+          "within_declared_output_root": true
+        },
+        {
+          "path": "modules/gui-desktop/target/package-inputs/windows-x64/{profile}",
+          "generated_by": "scripts/lib/webview2-loader.ps1（稳定导出槽位 + 代次档案 + 当前有效代次指针）",
+          "reason": "导出槽位的派生输出：产物、代次档案与槽位指针；消费端按明确 generation 读取并复制到本次独立 staging",
+          "within_declared_output_root": true
+        },
+        {
+          "path": "tmp/package-consume",
+          "generated_by": "scripts/package-all.ps1（PKG-L07c 消费 staging）",
+          "reason": "本次打包消费导出产物时的独立 staging；报告只从本次固定消费收据生成",
+          "within_declared_output_root": true
+        },
+        {
+          "path": "tmp/package-freeze",
+          "generated_by": "scripts/package-all.ps1（RD4-06 冻结记录与指针）",
+          "reason": "准备阶段的冻结记录/指针落点；不是构建输入",
+          "within_declared_output_root": true
+        }
+      ],
+      "input_set_mutation_policy": "冻结输入清单不得在构建阶段被改写或删减：发现输入被改写后把它从清单移除以换取 release_eligible=true 是不允许的；冻结记录是内容寻址的一次性记录。",
+      "diagnostics_requirement": "诊断与报告必须显著列出**实际改变的路径、前后摘要、发生阶段**与 release_eligible=false。"
+    }
+  },
+  "source_snapshot": {
+    "schema": 1,
+    "note": "第一方源码与构建资源快照的声明边界（source_snapshot_digest）。纳入判定为「声明 roots 下除排除项之外的一切」，因此新增/删除文件都会进入快照差异；排除分类见 scripts/lib/build-identity.ps1 的 SourceSnapshotDefaultExcludePatterns。",
+    "roots": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "package.json",
+      "package.ps1",
+      "src",
+      "modules",
+      "packages",
+      "installer",
+      "scripts",
+      "config",
+      "skills",
+      "tests",
+      ".coolzhu/plugins",
+      "docs/user-guide",
+      "docs/command-line.md",
+      "docs/design-assets"
+    ],
+    "allow_path_patterns": [
+      "(^|/)\\.coolzhu/plugins/"
+    ],
+    "extra_exclude_path_patterns": [],
+    "allow_reparse_points": [],
+    "known_source_extensions": [
+      ".rs",
+      ".cs",
+      ".csproj",
+      ".sln",
+      ".props",
+      ".targets",
+      ".manifest",
+      ".js",
+      ".mjs",
+      ".cjs",
+      ".ts",
+      ".tsx",
+      ".jsx",
+      ".html",
+      ".htm",
+      ".css",
+      ".scss",
+      ".json",
+      ".toml",
+      ".lock",
+      ".yaml",
+      ".yml",
+      ".ini",
+      ".conf",
+      ".config",
+      ".md",
+      ".txt",
+      ".py",
+      ".ps1",
+      ".psm1",
+      ".psd1",
+      ".sh",
+      ".cmd",
+      ".bat",
+      ".wxs",
+      ".wxi",
+      ".xml",
+      ".vcxproj",
+      ".rc",
+      ".png",
+      ".svg",
+      ".ico",
+      ".gif",
+      ".webp",
+      ".jpg",
+      ".jpeg",
+      ".bmp",
+      ".wav",
+      ".mp3",
+      ".webm",
+      ".mp4",
+      ".ogg",
+      ".woff",
+      ".woff2",
+      ".ttf",
+      ".gitignore",
+      ".gitattributes",
+      ".editorconfig"
+    ],
+    "external_path_dependencies": [
+      {
+        "path": "tmp/tools/dotnet",
+        "reason": "build-msi.ps1 在缺少系统 .NET SDK 时使用的本地 dotnet（安装器工具链，非第一方源码）",
+        "handling": "registered-only-not-followed"
+      },
+      {
+        "path": "tmp/tools/wix",
+        "reason": "WiX 5.0.2 本地工具目录（生成 MSI 的工具，非第一方源码）",
+        "handling": "registered-only-not-followed"
+      },
+      {
+        "path": "modules/*/target",
+        "reason": "各 crate 的独立构建输出目录（无关历史 target，不进入源码快照；其身份由 payload_digest 承担）",
+        "handling": "registered-only-not-followed"
+      }
+    ]
+  },
+  "external_build_inputs": [
+    {
+      "id": "cargo-registry:webview2-com-sys",
+      "type": "external-build-input",
+      "source": {
+        "registry": "crates.io",
+        "registry_source": "https://github.com/rust-lang/crates.io-index",
+        "crate": "webview2-com-sys",
+        "version": "0.38.2",
+        "checksum": "381336cfffd772377d291702245447a5251a2ffa5bad679c99e61bc48bacbf9c",
+        "checksum_authority": "Cargo.lock",
+        "checksum_lockfile": "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock"
+      },
+      "artifacts": [
+        "WebView2Loader.dll"
+      ],
+      "artifact_ids": [
+        "gui-desktop.webview2-loader"
+      ],
+      "note": "第三方 crate 的构建脚本产物（WebView2Loader.dll 随 webview2-com-sys 分发）。登记为**外部构建输入**：来源、版本与 checksum 固定，收据记 external_inputs_verified；不把它当成第一方源码，也不放宽来源校验。"
     }
   ]
 }

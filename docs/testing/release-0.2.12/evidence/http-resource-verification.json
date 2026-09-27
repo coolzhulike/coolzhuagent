@@ -1,0 +1,175 @@
+{
+  "checked_at": "2026-09-19T13:41:02.188Z",
+  "base": "http://127.0.0.1:18775",
+  "static_root": "C:\\Program Files\\CoolzhuAgent\\modules\\gui-web\\packages\\web-console",
+  "source_fallback_disabled": true,
+  "pass": 15,
+  "fail": 0,
+  "results": [
+    {
+      "path": "index.html",
+      "url": "http://127.0.0.1:18775/",
+      "status": 200,
+      "bytes": 122689,
+      "content_type": "text/html; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "3059FF01069A77EBFB310682B2C3B6ACBF4EAC3B84E4EB9A8F76E786342D5D2E",
+      "actual_sha256": "3059FF01069A77EBFB310682B2C3B6ACBF4EAC3B84E4EB9A8F76E786342D5D2E",
+      "pass": true
+    },
+    {
+      "path": "src/app.js",
+      "url": "http://127.0.0.1:18775/src/app.js",
+      "status": 200,
+      "bytes": 765343,
+      "content_type": "application/javascript; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "372880EE21FBC26C96CB99668B60D3BD5A2F3D6899F9C21171FF4BE991E28B43",
+      "actual_sha256": "372880EE21FBC26C96CB99668B60D3BD5A2F3D6899F9C21171FF4BE991E28B43",
+      "pass": true
+    },
+    {
+      "path": "src/styles.css",
+      "url": "http://127.0.0.1:18775/src/styles.css",
+      "status": 200,
+      "bytes": 455926,
+      "content_type": "text/css; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "65AF4F23206E321B1022A4B5F7425476A4F7554108FC3D281A5599E1BA969021",
+      "actual_sha256": "65AF4F23206E321B1022A4B5F7425476A4F7554108FC3D281A5599E1BA969021",
+      "pass": true
+    },
+    {
+      "path": "src/chat_experience.js",
+      "url": "http://127.0.0.1:18775/src/chat_experience.js",
+      "status": 200,
+      "bytes": 24393,
+      "content_type": "application/javascript; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "B35B71BACA50A17C6D5D7DF2F5D6906359F7363C43F6C264AC51235B66FC4239",
+      "actual_sha256": "B35B71BACA50A17C6D5D7DF2F5D6906359F7363C43F6C264AC51235B66FC4239",
+      "pass": true
+    },
+    {
+      "path": "src/chat_experience.css",
+      "url": "http://127.0.0.1:18775/src/chat_experience.css",
+      "status": 200,
+      "bytes": 8150,
+      "content_type": "text/css; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "EE10E49D6FA125F8DAA2572E441B5ED8FAAEBA963B602232B9AA315090154E53",
+      "actual_sha256": "EE10E49D6FA125F8DAA2572E441B5ED8FAAEBA963B602232B9AA315090154E53",
+      "pass": true
+    },
+    {
+      "path": "src/model_settings.js",
+      "url": "http://127.0.0.1:18775/src/model_settings.js",
+      "status": 200,
+      "bytes": 17463,
+      "content_type": "application/javascript; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "ED5AC479BA2F8FAABE6F4655AC61ACE3D1CE0F78EEFB4391AF87869A2AA9F5B9",
+      "actual_sha256": "ED5AC479BA2F8FAABE6F4655AC61ACE3D1CE0F78EEFB4391AF87869A2AA9F5B9",
+      "pass": true
+    },
+    {
+      "path": "src/model_settings.css",
+      "url": "http://127.0.0.1:18775/src/model_settings.css",
+      "status": 200,
+      "bytes": 7131,
+      "content_type": "text/css; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "9C3336BD756D5B4C8A10A30071AA56EDC70728B8FDBBD5F38CDA86EB7C842A5D",
+      "actual_sha256": "9C3336BD756D5B4C8A10A30071AA56EDC70728B8FDBBD5F38CDA86EB7C842A5D",
+      "pass": true
+    },
+    {
+      "path": "src/wuxia_layout.css",
+      "url": "http://127.0.0.1:18775/src/wuxia_layout.css",
+      "status": 200,
+      "bytes": 31591,
+      "content_type": "text/css; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "B45394AF22583B468DE15B801D29D8D6C69F9097D8B13B414520F66F6837339A",
+      "actual_sha256": "B45394AF22583B468DE15B801D29D8D6C69F9097D8B13B414520F66F6837339A",
+      "pass": true
+    },
+    {
+      "path": "src/realtime_voice_capture.js",
+      "url": "http://127.0.0.1:18775/src/realtime_voice_capture.js",
+      "status": 200,
+      "bytes": 19343,
+      "content_type": "application/javascript; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "79EE7CACC520DAA47C161A453EF90842273DFC14504A5B0BC34FE72F58D22B42",
+      "actual_sha256": "79EE7CACC520DAA47C161A453EF90842273DFC14504A5B0BC34FE72F58D22B42",
+      "pass": true
+    },
+    {
+      "path": "src/realtime_audio_output.js",
+      "url": "http://127.0.0.1:18775/src/realtime_audio_output.js",
+      "status": 200,
+      "bytes": 7010,
+      "content_type": "application/javascript; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "36A5D8DB5041183EF0D89FF382A3B1770AEACC69AC8219178A7992A5EA870629",
+      "actual_sha256": "36A5D8DB5041183EF0D89FF382A3B1770AEACC69AC8219178A7992A5EA870629",
+      "pass": true
+    },
+    {
+      "path": "src/stt_tail_capture.js",
+      "url": "http://127.0.0.1:18775/src/stt_tail_capture.js",
+      "status": 200,
+      "bytes": 6711,
+      "content_type": "application/javascript; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "60E1D84C3CF8FF2B5865CC71AC96518DD0FAC3400954524D1372DE74368A6A62",
+      "actual_sha256": "60E1D84C3CF8FF2B5865CC71AC96518DD0FAC3400954524D1372DE74368A6A62",
+      "pass": true
+    },
+    {
+      "path": "tests/fixtures/computer-use-browser.html",
+      "url": "http://127.0.0.1:18775/tests/fixtures/computer-use-browser.html",
+      "status": 200,
+      "bytes": 3151,
+      "content_type": "text/html; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "6DB258239989EA26A6B475D65834D3CA9CD8C438E6D2AECFA0FE20D66BC26D88",
+      "actual_sha256": "6DB258239989EA26A6B475D65834D3CA9CD8C438E6D2AECFA0FE20D66BC26D88",
+      "pass": true
+    },
+    {
+      "path": "assets/bamboo-banner-wind.js",
+      "url": "http://127.0.0.1:18775/assets/bamboo-banner-wind.js",
+      "status": 200,
+      "bytes": 19747,
+      "content_type": "application/javascript; charset=utf-8",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "AF95D24D45BEDC043C4EA9DA8999A08E63E2EBBF1DC4AAD5EB48D4DD7B32F1C2",
+      "actual_sha256": "AF95D24D45BEDC043C4EA9DA8999A08E63E2EBBF1DC4AAD5EB48D4DD7B32F1C2",
+      "pass": true
+    },
+    {
+      "path": "assets/icons-wuxia/chat.svg",
+      "url": "http://127.0.0.1:18775/assets/icons-wuxia/chat.svg",
+      "status": 200,
+      "bytes": 253,
+      "content_type": "image/svg+xml",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "8727335C1AFDD5A667249CDA2CCCF91AF62200AB41CFE884DE11770158C62C09",
+      "actual_sha256": "8727335C1AFDD5A667249CDA2CCCF91AF62200AB41CFE884DE11770158C62C09",
+      "pass": true
+    },
+    {
+      "path": "assets/ui-redesign/chat-backgrounds/wuxia-bamboo-moonlit-chat-stage-v2.png",
+      "url": "http://127.0.0.1:18775/assets/ui-redesign/chat-backgrounds/wuxia-bamboo-moonlit-chat-stage-v2.png",
+      "status": 200,
+      "bytes": 2169366,
+      "content_type": "image/png",
+      "cache_control": "no-cache, no-store, must-revalidate",
+      "expected_sha256": "E80A43CA4E171947D9979C2DB7186FF963C47E27F6ED175C3B9AB789C80FBA27",
+      "actual_sha256": "E80A43CA4E171947D9979C2DB7186FF963C47E27F6ED175C3B9AB789C80FBA27",
+      "pass": true
+    }
+  ]
+}

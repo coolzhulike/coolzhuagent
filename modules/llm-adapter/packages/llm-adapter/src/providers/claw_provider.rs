@@ -1,13 +1,15 @@
+use crate::request_observer::{RequestObservation, UsageEvidence};
 use std::collections::{HashMap, VecDeque};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use runtime::{
-    load_oauth_credentials, save_oauth_credentials, OAuthConfig, OAuthRefreshRequest,
+    load_oauth_credentials, OAuthConfig, OAuthRefreshRequest,
     OAuthTokenExchangeRequest,
 };
 use serde::Deserialize;
 
 use crate::error::ApiError;
+use crate::inflight::{EndpointIdentity, InFlightGuard, RequestMode, SettleOutcome, TerminationFact};
 
 use super::{canonical_claude_model_id, Provider, ProviderFuture};
 use crate::resolver::{EndpointResolver, ProviderProtocol};
@@ -118,6 +120,59 @@ pub struct ClawApiClient {
     initial_backoff: Duration,
     max_backoff: Duration,
     request_parameters: crate::RequestParameters,
+    request_observer: Option<std::sync::Arc<dyn crate::RequestObserver>>,
+    /// **连接级兼容能力位**（裁决 COMPAT-ID §2.3）：允许顶层 message ID **缺失**（显式为"未提供"）。
+    ///
+    /// 三条边界照抄裁决：① 默认 `false` ⇒ **官方直连与未启用的连接保持严格**；
+    /// ② **不硬编码任何代理域名**、不按模型名（是否 Claude）猜测，只由构造方显式启用；
+    /// ③ 它只作用于这一处差异——`tool_use.id`／`tool_result.tool_use_id` 的配对**仍然严格**。
+    ///
+    /// 启用方式（二者其一）：构造时 `with_allow_missing_top_level_message_id(true)`，
+    /// 或进程环境 `COOLZHU_ALLOW_MISSING_MESSAGE_ID=1`（由宿主/启动器按其连接配置注入，
+    /// 因此"哪个连接启用"是配置事实，不是代码常量）。
+    allow_missing_top_level_message_id: bool,
+}
+
+/// 启用"允许缺失顶层 message ID"的环境变量名（宿主按连接配置注入；**不含域名**）。
+pub const ALLOW_MISSING_MESSAGE_ID_ENV: &str = "COOLZHU_ALLOW_MISSING_MESSAGE_ID";
+
+/// 读环境里的兼容位：认不出的取值一律 `false`（**严格**是默认，失败方向是拒绝）。
+#[must_use]
+fn allow_missing_message_id_from_env() -> bool {
+    matches!(
+        std::env::var(ALLOW_MISSING_MESSAGE_ID_ENV).as_deref(),
+        Ok("1") | Ok("true") | Ok("TRUE") | Ok("yes")
+    )
+}
+
+/// **COMPAT-ID 的唯一解码点**（纯函数：吃原始响应 JSON，产出 `MessageResponse`）。
+///
+/// 顺序刻意如此：**先**判定顶层 message ID，**再**反序列化——否则 `#[serde(default)]` 会把
+/// "缺失"静默吃掉，"严格模式拒绝缺失"就无法实现（裁决 §2.2 的整张表都是为了这件事）。
+///
+/// 本函数只处理这一处差异：其余字段仍按 `MessageResponse` 的原规则校验；`tool_use.id`／
+/// `tool_result.tool_use_id` 的配对不在这里放宽（配对错误 ⇒ 不执行工具，由调用方保证）。
+pub fn decode_message_response_body(
+    mut body: serde_json::Value,
+    allow_missing_top_level_message_id: bool,
+) -> Result<MessageResponse, ApiError> {
+    match crate::message_id::normalize_top_level_message_id(
+        crate::message_id::top_level_message_id_value(&body),
+        allow_missing_top_level_message_id,
+    )? {
+        (Some(id), _) => {
+            body["id"] = serde_json::Value::String(id);
+        }
+        (None, _shape) => {
+            // 兼容路径：去掉 `id` ⇒ `MessageResponse.id = None` = **未提供**。
+            // 本库不打日志（静默库）；诊断由调用方记录（provider_message_id / compatibility_rule /
+            // local_request_attempt 三元组）。
+            if let Some(object) = body.as_object_mut() {
+                object.remove("id");
+            }
+        }
+    }
+    serde_json::from_value::<MessageResponse>(body).map_err(ApiError::from)
 }
 
 /// 带超时的 HTTP 客户端：避免上游挂起导致请求 await 无限期阻塞（与 openai_compat 一致，#6 根因之一）。
@@ -142,6 +197,8 @@ impl ClawApiClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            request_observer: None,
+            allow_missing_top_level_message_id: allow_missing_message_id_from_env(),
         }
     }
 
@@ -157,11 +214,26 @@ impl ClawApiClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            request_observer: None,
+            allow_missing_top_level_message_id: allow_missing_message_id_from_env(),
         }
     }
 
     pub fn from_env() -> Result<Self, ApiError> {
         Ok(Self::from_auth(AuthSource::from_env_or_saved()?).with_base_url(read_base_url()))
+    }
+
+    /// 显式启用"允许缺失顶层 message ID"（连接级；默认严格）。
+    #[must_use]
+    pub fn with_allow_missing_top_level_message_id(mut self, allow: bool) -> Self {
+        self.allow_missing_top_level_message_id = allow;
+        self
+    }
+
+    /// 当前连接是否允许缺失顶层 message ID（诊断/请求快照用）。
+    #[must_use]
+    pub const fn allows_missing_top_level_message_id(&self) -> bool {
+        self.allow_missing_top_level_message_id
     }
 
     #[must_use]
@@ -208,6 +280,10 @@ impl ClawApiClient {
     }
 
     #[must_use]
+    pub fn with_request_observer(mut self, observer: std::sync::Arc<dyn crate::RequestObserver>) -> Self {
+        self.request_observer=Some(observer); self
+    }
+
     pub fn with_request_parameters(mut self, parameters: crate::RequestParameters) -> Self {
         self.request_parameters = parameters;
         self
@@ -242,6 +318,29 @@ impl ClawApiClient {
         &self.auth
     }
 
+    /// 连接 / 服务身份：来自真实已解析配置（resolver 解析出的 Anthropic messages 端点）
+    /// + 托管实例记录。不含密钥，也不由端口号推导进程所有权（RPR-11a 约束 4）。
+    #[must_use]
+    pub fn endpoint_identity(&self) -> EndpointIdentity {
+        EndpointIdentity::from_resolved_config("claw-api", &self.resolved_endpoint())
+    }
+
+    /// 本次连接实际会请求的端点（与 `send_raw_request` 使用同一套解析）。
+    ///
+    /// 仅供身份识别使用：解析失败时回退到 `base_url`（发送路径仍会返回 `ConfigError`）。
+    #[must_use]
+    pub fn resolved_endpoint(&self) -> String {
+        match &self.endpoint {
+            Some(endpoint) => endpoint.clone(),
+            None => EndpointResolver::resolve(
+                &self.base_url,
+                ProviderProtocol::AnthropicMessages,
+                None,
+            )
+            .unwrap_or_else(|_| self.base_url.clone()),
+        }
+    }
+
     pub async fn send_message(
         &self,
         request: &MessageRequest,
@@ -251,15 +350,49 @@ impl ClawApiClient {
             stream: false,
             ..request.clone()
         };
-        let response = self.send_with_retry(&request).await?;
+        // 约束 7：guard 在**实际发出请求之前**登记，非流式请求同样覆盖完整请求生命周期。
+        let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::NonStreaming);
+        let mut observation = RequestObservation::new(self.request_observer.clone());
+        let response = match self.send_with_retry(&request, &guard, &mut observation).await {
+            Ok(response) => response,
+            Err(error) => {
+                observation.fail(&error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
         let request_id = request_id_from_headers(response.headers());
-        let mut response = response
-            .json::<MessageResponse>()
-            .await
-            .map_err(ApiError::from)?;
+        // COMPAT-ID：**先**把响应体取成原始 JSON，用归一化器判定顶层 message ID
+        // （缺失/null 在严格模式下是明确协议错误；空串/错误类型两种模式都拒绝），
+        // **再**反序列化成 `MessageResponse`。这样"缺失"不会被 serde 默认值悄悄吃掉。
+        let body: serde_json::Value = match response.json().await {
+            Ok(body) => body,
+            Err(error) => {
+                // 响应体读取失败：正文未完整拿到 → 远端结果未知，不归零。
+                let error = ApiError::from(error);
+                observation.fail(&error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
+        observation.usage(UsageEvidence::anthropic(body.get("usage").unwrap_or(&serde_json::Value::Null)));
+        let mut response = match decode_message_response_body(
+            body,
+            self.allow_missing_top_level_message_id,
+        ) {
+            Ok(response) => response,
+            Err(error) => {
+                observation.fail(&error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
         if response.request_id.is_none() {
             response.request_id = request_id;
         }
+        // 完整响应体已解析 → 协议级完整结束事实。
+        observation.finish("completed");
+        guard.settle(TerminationFact::ProtocolCompletion);
         Ok(response)
     }
 
@@ -272,13 +405,28 @@ impl ClawApiClient {
             ..request.clone()
         }
         .with_streaming();
-        let response = self.send_with_retry(&request).await?;
+        // 约束 7：guard 在**实际发出请求之前**登记；握手完成后随流对象转移。
+        let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::Streaming);
+        let mut observation = RequestObservation::new(self.request_observer.clone());
+        let response = match self.send_with_retry(&request, &guard, &mut observation).await {
+            Ok(response) => response,
+            Err(error) => {
+                observation.fail(&error);
+                guard.settle_from_error(&error);
+                return Err(error);
+            }
+        };
         Ok(MessageStream {
             request_id: request_id_from_headers(response.headers()),
             response,
-            parser: SseParser::new(),
+            parser: SseParser::with_allow_missing_top_level_message_id(
+                self.allow_missing_top_level_message_id,
+            ),
             pending: VecDeque::new(),
             done: false,
+            protocol_end_observed: false,
+            observation,
+            guard,
         })
     }
 
@@ -297,6 +445,7 @@ impl ClawApiClient {
         let response = self
             .http
             .post(&config.token_url)
+            .timeout(Duration::from_secs(30))
             .header("content-type", "application/x-www-form-urlencoded")
             .form(&request.form_params())
             .send()
@@ -317,6 +466,7 @@ impl ClawApiClient {
         let response = self
             .http
             .post(&config.token_url)
+            .timeout(Duration::from_secs(30))
             .header("content-type", "application/x-www-form-urlencoded")
             .form(&request.form_params())
             .send()
@@ -330,48 +480,39 @@ impl ClawApiClient {
     }
 
     async fn send_with_retry(
-        &self,
-        request: &MessageRequest,
+        &self, request: &MessageRequest, guard: &InFlightGuard, observation: &mut RequestObservation,
     ) -> Result<reqwest::Response, ApiError> {
         let mut attempts = 0;
-        let mut last_error: Option<ApiError>;
-
         loop {
             attempts += 1;
-            match self.send_raw_request(request).await {
-                Ok(response) => match expect_success(response).await {
-                    Ok(response) => return Ok(response),
-                    Err(error) if error.is_retryable() && attempts <= self.max_retries + 1 => {
-                        last_error = Some(error);
-                    }
-                    Err(error) => return Err(error),
-                },
-                Err(error) if error.is_retryable() && attempts <= self.max_retries + 1 => {
-                    last_error = Some(error);
+            observation.begin(attempts);
+            let outcome = match self.send_raw_request(request, guard, observation).await {
+                Ok(response) => expect_success(response).await,
+                Err(error) => Err(error),
+            };
+            match outcome {
+                Ok(response) => return Ok(response),
+                Err(error) => {
+                    observation.fail(&error);
+                    if !error.is_retryable() { return Err(error); }
+                    if attempts > self.max_retries { return Err(ApiError::RetriesExhausted { attempts, last_error: Box::new(error) }); }
+                    tokio::time::sleep(self.backoff_for_attempt(attempts)?).await;
                 }
-                Err(error) => return Err(error),
             }
-
-            if attempts > self.max_retries {
-                break;
-            }
-
-            tokio::time::sleep(self.backoff_for_attempt(attempts)?).await;
         }
-
-        Err(ApiError::RetriesExhausted {
-            attempts,
-            last_error: Box::new(last_error.expect("retry loop must capture an error")),
-        })
     }
 
     async fn send_raw_request(
         &self,
         request: &MessageRequest,
+        guard: &InFlightGuard,
+        observation: &mut RequestObservation,
     ) -> Result<reqwest::Response, ApiError> {
         let request_url = match &self.endpoint {
             Some(endpoint) => endpoint.clone(),
-            None => EndpointResolver::resolve(&self.base_url, ProviderProtocol::AnthropicMessages, None)?,
+            None => {
+                EndpointResolver::resolve(&self.base_url, ProviderProtocol::AnthropicMessages, None)?
+            }
         };
         let request_builder = self
             .http
@@ -384,6 +525,9 @@ impl ClawApiClient {
         self.request_parameters.apply(&mut payload, request.reasoning_effort.as_deref(), true);
         validate_anthropic_image_sources(&payload)?;
         request_builder = request_builder.json(&payload);
+        // 请求即将发出：登记从"尚未派发"推进到"已派发·流处理中"。
+        observation.dispatch();
+        guard.mark_dispatched();
         request_builder.send().await.map_err(ApiError::from)
     }
 
@@ -588,38 +732,32 @@ fn resolve_saved_oauth_token_set(
     config: &OAuthConfig,
     token_set: OAuthTokenSet,
 ) -> Result<OAuthTokenSet, ApiError> {
-    if !oauth_token_is_expired(&token_set) {
-        return Ok(token_set);
-    }
-    let Some(refresh_token) = token_set.refresh_token.clone() else {
-        return Err(ApiError::ExpiredOAuthToken);
-    };
+    if !oauth_token_is_expired(&token_set) { return Ok(token_set); }
+    // 不在凭据写锁内等待网络；独立刷新锁避免旋转 refresh_token 被并发消费。
+    let _refresh = runtime::acquire_oauth_refresh_guard().map_err(ApiError::from)?;
+    let snapshot = runtime::load_oauth_credentials_snapshot().map_err(ApiError::from)?;
+    let current = snapshot.token_set.ok_or_else(|| ApiError::Auth("OAuth 会话已注销，未使用旧刷新令牌".into()))?;
+    let token_set = OAuthTokenSet { access_token: current.access_token, refresh_token: current.refresh_token,
+        expires_at: current.expires_at, scopes: current.scopes };
+    if !oauth_token_is_expired(&token_set) { return Ok(token_set); }
+    let Some(refresh_token) = token_set.refresh_token.clone() else { return Err(ApiError::ExpiredOAuthToken); };
     let client = ClawApiClient::from_auth(AuthSource::None).with_base_url(read_base_url());
     let refreshed = client_runtime_block_on(async {
-        client
-            .refresh_oauth_token(
-                config,
-                &OAuthRefreshRequest::from_config(
-                    config,
-                    refresh_token,
-                    Some(token_set.scopes.clone()),
-                ),
-            )
-            .await
+        client.refresh_oauth_token(config, &OAuthRefreshRequest::from_config(config, refresh_token, Some(token_set.scopes.clone()))).await
     })?;
-    let resolved = OAuthTokenSet {
-        access_token: refreshed.access_token,
-        refresh_token: refreshed.refresh_token.or(token_set.refresh_token),
-        expires_at: refreshed.expires_at,
-        scopes: refreshed.scopes,
-    };
-    save_oauth_credentials(&runtime::OAuthTokenSet {
-        access_token: resolved.access_token.clone(),
-        refresh_token: resolved.refresh_token.clone(),
-        expires_at: resolved.expires_at,
-        scopes: resolved.scopes.clone(),
-    })
-    .map_err(ApiError::from)?;
+    let resolved = OAuthTokenSet { access_token: refreshed.access_token,
+        refresh_token: refreshed.refresh_token.or(token_set.refresh_token), expires_at: refreshed.expires_at, scopes: refreshed.scopes };
+    if !runtime::save_oauth_credentials_if_revision(&runtime::OAuthTokenSet {
+        access_token: resolved.access_token.clone(), refresh_token: resolved.refresh_token.clone(),
+        expires_at: resolved.expires_at, scopes: resolved.scopes.clone(),
+    }, snapshot.revision).map_err(ApiError::from)? {
+        let current = runtime::load_oauth_credentials().map_err(ApiError::from)?
+            .ok_or_else(|| ApiError::Auth("OAuth 刷新期间会话已注销，未恢复旧凭据".into()))?;
+        let current = OAuthTokenSet { access_token: current.access_token, refresh_token: current.refresh_token,
+            expires_at: current.expires_at, scopes: current.scopes };
+        if oauth_token_is_expired(&current) { return Err(ApiError::Auth("OAuth 刷新期间凭据已变化，请重新连接".into())); }
+        return Ok(current);
+    }
     Ok(resolved)
 }
 
@@ -694,6 +832,11 @@ fn request_id_from_headers(headers: &reqwest::header::HeaderMap) -> Option<Strin
 impl Provider for ClawApiClient {
     type Stream = MessageStream;
 
+    /// 覆盖默认实现：ClawApiClient 持有真实已解析配置，能给出确定的服务身份。
+    fn endpoint_identity(&self) -> EndpointIdentity {
+        self.endpoint_identity()
+    }
+
     fn send_message<'a>(
         &'a self,
         request: &'a MessageRequest,
@@ -716,6 +859,11 @@ pub struct MessageStream {
     parser: SseParser,
     pending: VecDeque<StreamEvent>,
     done: bool,
+    /// 是否已从**协议**观测到完整结束事实（Anthropic Messages 的 `message_stop`）。
+    protocol_end_observed: bool,
+    /// 在途登记：随流对象的生命周期结束（Drop 只能结束本地持有，不证明远端已停算）。
+    guard: InFlightGuard,
+    observation: RequestObservation,
 }
 
 impl MessageStream {
@@ -724,14 +872,38 @@ impl MessageStream {
         self.request_id.as_deref()
     }
 
+    /// 与上层包装共享同一条在途登记（不新增登记）。
+    pub(crate) fn inflight_guard(&self) -> InFlightGuard {
+        self.guard.clone()
+    }
+
+    /// 消费者放弃等待（超时/取消）但仍持有流 → 记为远端结果未知，**不是归零**。
+    ///
+    /// 之后若仍取得可信结束事实，会以迟到事实对账（不重新执行任务）。
+    pub fn mark_remote_result_unknown(&self) -> SettleOutcome {
+        self.guard.mark_remote_result_unknown()
+    }
+
+    pub fn usage_evidence(&self) -> UsageEvidence { self.observation.evidence() }
+
     pub async fn next_event(&mut self) -> Result<Option<StreamEvent>, ApiError> {
+        let result=self.next_event_inner().await;
+        if let Err(error)=&result { self.observation.fail(error); }
+        result
+    }
+
+    async fn next_event_inner(&mut self) -> Result<Option<StreamEvent>, ApiError> {
         loop {
             if let Some(event) = self.pending.pop_front() {
                 return Ok(Some(event));
             }
 
             if self.done {
+                // 先收尾解析尾部残留帧，再看是否拿到了协议级结束事实。
                 let remaining = self.parser.finish()?;
+                self.observation.usage(self.parser.usage_evidence());
+                self.note_protocol_end(&remaining);
+                self.settle_stream_termination();
                 self.pending.extend(remaining);
                 if let Some(event) = self.pending.pop_front() {
                     return Ok(Some(event));
@@ -741,12 +913,41 @@ impl MessageStream {
 
             match self.response.chunk().await? {
                 Some(chunk) => {
-                    self.pending.extend(self.parser.push(&chunk)?);
+                    let events = self.parser.push(&chunk)?;
+                    self.observation.usage(self.parser.usage_evidence());
+                    self.note_protocol_end(&events);
+                    if self.protocol_end_observed {
+                        // 已取得协议级完整结束事实：立即结清远端请求状态（不必等连接关闭）。
+                        self.guard.settle(TerminationFact::ProtocolCompletion);
+                        self.observation.finish("completed");
+                    }
+                    self.pending.extend(events);
                 }
                 None => {
                     self.done = true;
                 }
             }
+        }
+    }
+
+    /// Anthropic Messages 的协议级完整结束事实是 `message_stop`。
+    fn note_protocol_end(&mut self, events: &[StreamEvent]) {
+        if events
+            .iter()
+            .any(|event| matches!(event, StreamEvent::MessageStop(_)))
+        {
+            self.protocol_end_observed = true;
+        }
+    }
+
+    /// 流真正结束时结清：有协议完整结束事实 → 结清；否则断流 → 远端结果未知。
+    fn settle_stream_termination(&mut self) {
+        if self.protocol_end_observed {
+            self.guard.settle(TerminationFact::ProtocolCompletion);
+                        self.observation.finish("completed");
+        } else {
+            self.guard.mark_remote_result_unknown();
+            self.observation.finish("remote_unknown");
         }
     }
 }
@@ -792,10 +993,128 @@ struct ApiErrorBody {
 
 #[cfg(test)]
 mod tests {
+
+    /// 合法的响应底稿（含一个工具调用块，用于验证"工具 ID 仍严格"）。
+    fn response_body(id: serde_json::Value) -> serde_json::Value {
+        let mut body = serde_json::json!({
+            "type": "message",
+            "role": "assistant",
+            "content": [
+                {"type": "text", "text": "ok"},
+                {"type": "tool_use", "id": "toolu_1", "name": "read_file", "input": {"path": "a"}}
+            ],
+            "model": "claude-sonnet-4-6",
+            "stop_reason": "tool_use",
+            "usage": {"input_tokens": 3, "output_tokens": 2}
+        });
+        match id {
+            serde_json::Value::Null => {}
+            value => body["id"] = value,
+        }
+        body
+    }
+
+    /// **COMPAT-ID §2.2 表（在真实解码点上验一遍）**：严格/兼容两模式 × 五种输入。
+    #[test]
+    fn message_id_normalization_at_the_real_decode_point() {
+        // ① 正常非空字符串：两种模式都原值保留。
+        for allow in [false, true] {
+            let decoded = super::decode_message_response_body(
+                response_body(serde_json::json!("msg_01ABC")),
+                allow,
+            )
+            .expect("有效 ID 必须成功");
+            assert_eq!(decoded.id.as_deref(), Some("msg_01ABC"));
+        }
+        // ② 顶层缺失：严格 ⇒ 拒绝；兼容 ⇒ None（未提供）。
+        assert!(
+            super::decode_message_response_body(response_body(serde_json::Value::Null), false)
+                .is_err(),
+            "严格模式必须拒绝缺 ID 的响应"
+        );
+        let decoded =
+            super::decode_message_response_body(response_body(serde_json::Value::Null), true)
+                .expect("兼容模式接受缺失");
+        assert_eq!(decoded.id, None, "缺失必须显式为 None（不是空串）");
+        // 正文与用量必须**等价**（唯一差异是身份字段）。
+        assert_eq!(decoded.usage.input_tokens, 3);
+        assert_eq!(decoded.model, "claude-sonnet-4-6");
+        // ③ 顶层 null：严格 ⇒ 拒绝；兼容 ⇒ None。
+        assert!(
+            super::decode_message_response_body(response_body(serde_json::json!(null)), false)
+                .is_err()
+        );
+        assert_eq!(
+            super::decode_message_response_body(response_body(serde_json::json!(null)), true)
+                .expect("兼容模式接受 null")
+                .id,
+            None
+        );
+        // ④ 空串/全空白：**两种模式都拒绝**。
+        for bad in [serde_json::json!(""), serde_json::json!("   ")] {
+            for allow in [false, true] {
+                assert!(
+                    super::decode_message_response_body(response_body(bad.clone()), allow).is_err(),
+                    "空串/全空白必须拒绝（allow={allow}）"
+                );
+            }
+        }
+        // ⑤ 错误类型：两种模式都拒绝。
+        for bad in [serde_json::json!(7), serde_json::json!({"x": 1})] {
+            for allow in [false, true] {
+                assert!(
+                    super::decode_message_response_body(response_body(bad.clone()), allow).is_err()
+                );
+            }
+        }
+    }
+
+    /// **错误响应体不得被解码成成功消息**（错误 JSON / 缺必需字段一律拒绝）。
+    #[test]
+    fn error_bodies_never_decode_as_success() {
+        for body in [
+            serde_json::json!({"type": "error", "error": {"type": "overloaded_error", "message": "busy"}}),
+            serde_json::json!({"type": "message", "id": "msg_x"}),
+            serde_json::json!("not an object"),
+        ] {
+            assert!(
+                super::decode_message_response_body(body.clone(), true).is_err(),
+                "错误体不得当成成功消息：{body}"
+            );
+        }
+    }
+
+    /// **工具调用 ID 仍严格**：工具块的 `id` 缺失 ⇒ 解码即失败（`tool_use.id` 是必填）；
+    /// 兼容位**只**放宽顶层 message ID，不放宽工具配对。
+    #[test]
+    fn tool_use_id_stays_strict_under_the_compat_flag() {
+        for allow in [false, true] {
+            let mut body = response_body(serde_json::Value::Null);
+            body["content"][1].as_object_mut().expect("object").remove("id");
+            assert!(
+                super::decode_message_response_body(body, allow).is_err(),
+                "缺 tool_use.id 必须拒绝（allow={allow}）：工具配对不得被兼容位放宽"
+            );
+        }
+        // 有工具 ID 时，缺顶层 ID 的兼容解码必须**保留**工具块与它的 id。
+        let decoded =
+            super::decode_message_response_body(response_body(serde_json::Value::Null), true)
+                .expect("兼容解码");
+        let tool = decoded
+            .content
+            .iter()
+            .find_map(|block| match block {
+                crate::types::OutputContentBlock::ToolUse { id, name, .. } => Some((id.clone(), name.clone())),
+                _ => None,
+            })
+            .expect("工具块必须保留");
+        assert_eq!(tool.0, "toolu_1", "工具调用 ID 必须原样保留（兼容位不碰它）");
+        assert_eq!(tool.1, "read_file");
+    }
+
     use super::{ALT_REQUEST_ID_HEADER, REQUEST_ID_HEADER};
     use std::io::{Read, Write};
     use std::net::TcpListener;
-    use std::sync::{Mutex, OnceLock};
     use std::thread;
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -806,13 +1125,11 @@ mod tests {
         resolve_saved_oauth_token, resolve_startup_auth_source, AuthSource, ClawApiClient,
         OAuthTokenSet,
     };
+    use crate::inflight::{InFlightGuard, RequestMode};
     use crate::types::{ContentBlockDelta, InputContentBlock, InputMessage, MessageRequest};
 
     fn env_lock() -> std::sync::MutexGuard<'static, ()> {
-        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| Mutex::new(()))
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+        crate::process_env_lock()
     }
 
     fn temp_config_home() -> std::path::PathBuf {
@@ -867,9 +1184,9 @@ mod tests {
     #[test]
     fn read_api_key_requires_presence() {
         let _guard = env_lock();
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
-        std::env::remove_var("ANTHROPIC_API_KEY");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::remove("CLAW_CONFIG_HOME");
         let error = super::read_api_key().expect_err("missing key should error");
         assert!(matches!(
             error,
@@ -880,35 +1197,35 @@ mod tests {
     #[test]
     fn read_api_key_requires_non_empty_value() {
         let _guard = env_lock();
-        std::env::set_var("ANTHROPIC_AUTH_TOKEN", "");
-        std::env::remove_var("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::set("ANTHROPIC_AUTH_TOKEN", Some(""));
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
         let error = super::read_api_key().expect_err("empty key should error");
         assert!(matches!(
             error,
             crate::error::ApiError::MissingCredentials { .. }
         ));
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
     }
 
     #[test]
     fn read_api_key_prefers_api_key_env() {
         let _guard = env_lock();
-        std::env::set_var("ANTHROPIC_AUTH_TOKEN", "auth-token");
-        std::env::set_var("ANTHROPIC_API_KEY", "legacy-key");
+        let _scoped_env = crate::test_env::set("ANTHROPIC_AUTH_TOKEN", Some("auth-token"));
+        let _scoped_env = crate::test_env::set("ANTHROPIC_API_KEY", Some("legacy-key"));
         assert_eq!(
             super::read_api_key().expect("api key should load"),
             "legacy-key"
         );
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
-        std::env::remove_var("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
     }
 
     #[test]
     fn read_auth_token_reads_auth_token_env() {
         let _guard = env_lock();
-        std::env::set_var("ANTHROPIC_AUTH_TOKEN", "auth-token");
+        let _scoped_env = crate::test_env::set("ANTHROPIC_AUTH_TOKEN", Some("auth-token"));
         assert_eq!(super::read_auth_token().as_deref(), Some("auth-token"));
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
     }
 
     #[test]
@@ -926,22 +1243,22 @@ mod tests {
     #[test]
     fn auth_source_from_env_combines_api_key_and_bearer_token() {
         let _guard = env_lock();
-        std::env::set_var("ANTHROPIC_AUTH_TOKEN", "auth-token");
-        std::env::set_var("ANTHROPIC_API_KEY", "legacy-key");
+        let _scoped_env = crate::test_env::set("ANTHROPIC_AUTH_TOKEN", Some("auth-token"));
+        let _scoped_env = crate::test_env::set("ANTHROPIC_API_KEY", Some("legacy-key"));
         let auth = AuthSource::from_env().expect("env auth");
         assert_eq!(auth.api_key(), Some("legacy-key"));
         assert_eq!(auth.bearer_token(), Some("auth-token"));
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
-        std::env::remove_var("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
     }
 
     #[test]
     fn auth_source_from_saved_oauth_when_env_absent() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
-        std::env::remove_var("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::set("CLAW_CONFIG_HOME", Some(&config_home));
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
         save_oauth_credentials(&runtime::OAuthTokenSet {
             access_token: "saved-access-token".to_string(),
             refresh_token: Some("refresh".to_string()),
@@ -954,7 +1271,7 @@ mod tests {
         assert_eq!(auth.bearer_token(), Some("saved-access-token"));
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        let _scoped_env = crate::test_env::remove("CLAW_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -978,9 +1295,9 @@ mod tests {
     fn resolve_saved_oauth_token_refreshes_expired_credentials() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
-        std::env::remove_var("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::set("CLAW_CONFIG_HOME", Some(&config_home));
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
         save_oauth_credentials(&runtime::OAuthTokenSet {
             access_token: "expired-access-token".to_string(),
             refresh_token: Some("refresh-token".to_string()),
@@ -1002,7 +1319,7 @@ mod tests {
         assert_eq!(stored.access_token, "refreshed-token");
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        let _scoped_env = crate::test_env::remove("CLAW_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -1010,9 +1327,9 @@ mod tests {
     fn resolve_startup_auth_source_uses_saved_oauth_without_loading_config() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
-        std::env::remove_var("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::set("CLAW_CONFIG_HOME", Some(&config_home));
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
         save_oauth_credentials(&runtime::OAuthTokenSet {
             access_token: "saved-access-token".to_string(),
             refresh_token: Some("refresh".to_string()),
@@ -1026,7 +1343,7 @@ mod tests {
         assert_eq!(auth.bearer_token(), Some("saved-access-token"));
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        let _scoped_env = crate::test_env::remove("CLAW_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -1034,9 +1351,9 @@ mod tests {
     fn resolve_startup_auth_source_errors_when_refreshable_token_lacks_config() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
-        std::env::remove_var("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::set("CLAW_CONFIG_HOME", Some(&config_home));
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
         save_oauth_credentials(&runtime::OAuthTokenSet {
             access_token: "expired-access-token".to_string(),
             refresh_token: Some("refresh-token".to_string()),
@@ -1058,7 +1375,7 @@ mod tests {
         assert_eq!(stored.refresh_token.as_deref(), Some("refresh-token"));
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        let _scoped_env = crate::test_env::remove("CLAW_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -1066,9 +1383,9 @@ mod tests {
     fn resolve_saved_oauth_token_preserves_refresh_token_when_refresh_response_omits_it() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
-        std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
-        std::env::remove_var("ANTHROPIC_API_KEY");
+        let _scoped_env = crate::test_env::set("CLAW_CONFIG_HOME", Some(&config_home));
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_AUTH_TOKEN");
+        let _scoped_env = crate::test_env::remove("ANTHROPIC_API_KEY");
         save_oauth_credentials(&runtime::OAuthTokenSet {
             access_token: "expired-access-token".to_string(),
             refresh_token: Some("refresh-token".to_string()),
@@ -1091,7 +1408,7 @@ mod tests {
         assert_eq!(stored.refresh_token.as_deref(), Some("refresh-token"));
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        let _scoped_env = crate::test_env::remove("CLAW_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -1265,7 +1582,16 @@ mod tests {
             "javascript:invalid",
             "",
         ] {
-            let error = client.send_raw_request(&image_request(&[invalid])).await
+            let error = client
+                .send_raw_request(
+                    &image_request(&[invalid]),
+                    &InFlightGuard::register(
+                        &client.endpoint_identity(),
+                        RequestMode::NonStreaming,
+                    ),
+                    &mut crate::request_observer::RequestObservation::new(None),
+                )
+                .await
                 .expect_err("无效来源应在发送前失败");
             assert!(matches!(error, crate::error::ApiError::ConfigError { .. }));
             assert!(!error.is_retryable());
@@ -1292,6 +1618,9 @@ mod tests {
                         Err(error) => panic!("等待本地协议请求失败: {error}"),
                     }
                 };
+                // 非阻塞 listener 在 Windows 上会让 accept 出来的 socket **也**是非阻塞；
+                // 只设读超时不改阻塞模式的话，数据未到就返回 WouldBlock（曾造成偶发 panic）。
+                stream.set_nonblocking(false).expect("恢复阻塞读");
                 stream.set_read_timeout(Some(Duration::from_secs(5))).expect("读取期限");
                 let mut bytes = Vec::new();
                 let (header_end, content_length) = loop {
@@ -1325,9 +1654,16 @@ mod tests {
                 "https://example.test/image.png",
             ]);
             request.stream = streaming;
-            let response = ClawApiClient::from_auth(AuthSource::None)
-                .with_base_url(format!("http://{address}"))
-                .send_raw_request(&request).await.expect("本地协议请求成功");
+            let client = ClawApiClient::from_auth(AuthSource::None)
+                .with_base_url(format!("http://{address}"));
+            let response = client
+                .send_raw_request(
+                    &request,
+                    &InFlightGuard::register(&client.endpoint_identity(), RequestMode::NonStreaming),
+                    &mut crate::request_observer::RequestObservation::new(None),
+                )
+                .await
+                .expect("本地协议请求成功");
             assert!(response.status().is_success());
             let payload = receiver.join().expect("接收线程结束");
             assert_eq!(payload["messages"][0]["content"][1], serde_json::json!({

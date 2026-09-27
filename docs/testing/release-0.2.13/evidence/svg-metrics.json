@@ -1,0 +1,61 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "elapsed_ms": 185463,
+      "tool_results": 2,
+      "request_delta": 3,
+      "input_delta": 51258,
+      "output_delta": 14352,
+      "run_state": "completed"
+    },
+    {
+      "round": 2,
+      "elapsed_ms": 173581,
+      "tool_results": 9,
+      "request_delta": 10,
+      "input_delta": 350374,
+      "output_delta": 11932,
+      "run_state": "completed"
+    },
+    {
+      "round": 3,
+      "elapsed_ms": 94234,
+      "tool_results": 8,
+      "request_delta": 7,
+      "input_delta": 225516,
+      "output_delta": 4529,
+      "run_state": "completed"
+    },
+    {
+      "round": 4,
+      "elapsed_ms": 134231,
+      "tool_results": 9,
+      "request_delta": 9,
+      "input_delta": 387357,
+      "output_delta": 5816,
+      "run_state": "completed"
+    },
+    {
+      "round": 5,
+      "elapsed_ms": 70126,
+      "tool_results": 7,
+      "request_delta": 7,
+      "input_delta": 315495,
+      "output_delta": 2149,
+      "run_state": "completed"
+    }
+  ],
+  "total_seconds": 657.635,
+  "total_tools": 35,
+  "total_usage": [
+    {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 1330000,
+      "output_tokens": 38778,
+      "requests": 36,
+      "session_id": "session-1779459149988"
+    }
+  ]
+}

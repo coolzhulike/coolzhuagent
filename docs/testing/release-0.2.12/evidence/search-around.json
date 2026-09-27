@@ -1,0 +1,46 @@
+{
+  "search": {
+    "has_more": false,
+    "items": [
+      {
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "created_at": 1789825018057,
+        "id": "msg-1789825015610-0",
+        "index": 2,
+        "role": "assistant",
+        "snippet": "已读取隔离验收文件。READ_FILE_RELEASE_OK_20260919。工具结果应显示在独立状态区。"
+      }
+    ],
+    "message_count": 2,
+    "total": 1
+  },
+  "around": {
+    "found": true,
+    "has_newer": false,
+    "has_older": false,
+    "messages": [
+      {
+        "attachments": [],
+        "author": "",
+        "content": "模拟工具验收 [mock-tool]：请调用 read_file 读取隔离验收文件并报告标记。",
+        "created_at": 1789825015604,
+        "id": "msg-1789825015596-user",
+        "kind": "text",
+        "role": "user",
+        "target": "Release 0.2.12 隔离验收(mock-release-2026)"
+      },
+      {
+        "attachments": [],
+        "author": "Release 0.2.12 隔离验收(mock-release-2026)",
+        "content": "已读取隔离验收文件。READ_FILE_RELEASE_OK_20260919。工具结果应显示在独立状态区。\n\n---\nContext usage: 0.3% (100/32768 input tokens; source=remote). Local estimate: 1060 tokens; local prompt budget: 1060/26829 tokens; history truncated: false.\nContext turn: 000000000000000118d6bc5e69990ac0; Context snapshot: ctx-48c5df1b0ab8b564; history source: chat_room.messages; history loaded: 0; memory revision: mem-29669c1cec0960ad",
+        "created_at": 1789825018057,
+        "id": "msg-1789825015610-0",
+        "kind": "assistant-reply",
+        "role": "assistant",
+        "target": "聊天"
+      }
+    ],
+    "position": 2,
+    "total": 2
+  }
+}

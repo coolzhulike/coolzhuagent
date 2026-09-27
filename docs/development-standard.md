@@ -61,7 +61,9 @@ cargo test -p <package-name> --offline
 - 统一执行 `.\package.ps1 all -Configuration debug` 或 `npm run package:all` 完成独立编译和汇总。正式运行入口统一使用 `package/run.ps1`，不得直接依赖各模块临时构建目录。
 - 汇总前必须比较源二进制的修改时间与 SHA-256。仅当内容变化时替换 `package/bin` 中的旧文件，并将旧文件备份到 `package/backup/<二进制名>/`。
 - 同名二进制备份按时间戳命名，仅保留最近 10 次；清理范围必须限定在该二进制自己的备份目录。
-- `package/package-report.json` 必须记录构建配置、源路径、目标路径、复制状态和 SHA-256，供并行 agent 判断模块是否产生新构建。
+- `tmp/package-reports/package-report-<config>-<stamp>.json`（**实际落点**，由 `scripts/package-all.ps1` 写出；同目录下还有 `latest-<config>.json` 指针与 `retention-index.json` 保留索引）必须记录构建配置、源路径、目标路径、复制状态和 SHA-256，供并行 agent 判断模块是否产生新构建。
+- 该报告还必须携带 `report_identity`（唯一 `report_id` + 可重算的 `content_sha256`）与三个分开的身份（`source_snapshot_digest` / `build_input_digest` / `payload_digest`，见 `docs/analysis/2026-09-21-integration-review/build-identity-and-report-governance.md`），并被包内 `payload-inventory.json` 与 `dist/CoolzhuAgent-<version>-installer-report.json` 引用。
+- 已被正式发布引用的报告受 `scripts/package-report-retention.ps1` 保护（`-Action Verify|Protect|Prune`）：普通临时清理只能删除未被索引的报告，索引缺失或损坏时**拒绝清理**；`build-msi.ps1` 出包后自动 `Protect -Archive` 到 `docs/testing/release-<version>/evidence/build-identity/`。
 - package 脚本和全量验证脚本必须设置明确的命令超时；输出统一写入 `tmp/logs/`，失败时以日志定位，不得静默吞掉 stderr。
 
 ## 用户可见功能验证规范（2026-06-18 新增）

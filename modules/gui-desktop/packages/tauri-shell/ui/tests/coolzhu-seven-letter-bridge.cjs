@@ -1,165 +1,84 @@
 "use strict";
-
+// 只检查启动生命周期与宿主边界；画面与动作必须由实际桌面截图验收。
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const bridge = require("../coolzhu-seven-letter-bridge.js");
-const player = require("../seven-letter-startup-player.js");
+const player = require("../scroll-startup-player.js");
 const manifest = require("../coolzhu-seven-letter-manifest.js");
 
-const normalizedManifest = player.normalizeManifest(manifest);
-assert.equal(normalizedManifest.word, "COOLZHU");
-assert.equal(normalizedManifest.letters.length, 7);
-assert.ok(normalizedManifest.letters.every((letter) => letter.frames.length === 5));
-assert.ok(normalizedManifest.letters.every((letter) => letter.glyphRect.width < 1254 && letter.glyphRect.height < 1254));
-assert.ok(normalizedManifest.letters.every((letter) => letter.reveal.coreColor === "#0c915b"));
-assert.ok(normalizedManifest.letters.every((letter) => letter.reveal.borderColor === "#e2b85d"));
-assert.equal(normalizedManifest.background.source.src, "assets/p83-coolzhu/scroll-shanhe-v1.png");
-assert.equal(normalizedManifest.background.revealMode, "center-out");
-assert.equal(normalizedManifest.background.revealMs, 600);
-assert.equal(normalizedManifest.timing.introMs, 600, "卷轴展开期间不得显示演员");
-assert.equal(player.timelineStateAt(normalizedManifest, 0).showActor, false);
-assert.equal(player.timelineStateAt(normalizedManifest, 600).showActor, true);
-const expectedSlotCenters = [164, 402, 652, 877, 1091, 1319, 1540];
-const expectedActorCenters = [164, 402, 652, 877, 1091, 1319, 1495];
-normalizedManifest.letters.forEach((letter, index) => {
-  const slot = letter.glyphSlot;
-  const sourceAspect = letter.glyphRect.width / letter.glyphRect.height;
-  const targetAspect = slot.width / slot.height;
-  assert.ok(Math.abs(sourceAspect - targetAspect) < 1e-9, `${letter.glyph} 字形槽必须保持源宽高比`);
-  assert.ok(Math.abs(slot.x + slot.width / 2 - expectedSlotCenters[index]) < 1e-9, `${letter.glyph} 字位中心必须固定`);
-  assert.equal(letter.actorSlot.actorX, expectedActorCenters[index], `${letter.glyph} 人物锚点应使用独立动作落点`);
-  assert.equal(slot.y, 320, `${letter.glyph} 字形应垂直居中到 y=320`);
-  assert.equal(slot.height, 240, `${letter.glyph} 字形槽高度应统一为 240`);
-  assert.equal(letter.actorSlot.footY, 700, `${letter.glyph} 人物支撑脚基线应落在 700`);
-  for (const frame of letter.frames) {
-    const placement = player.actorPlacement(letter, frame, letter.actorSlot);
-    assert.ok(placement.swordTip, `${letter.glyph} ${frame.id} 应有剑尖地标`);
-    assert.ok(
-      placement.swordTip.y >= slot.y - 100 && placement.swordTip.y <= slot.y + slot.height + 100,
-      `${letter.glyph} ${frame.id} 剑尖不得脱离当前字形活动区`
-    );
-    if (index === 6) {
-      assert.ok(placement.x + placement.width <= 1680, `${letter.glyph} ${frame.id} 人物右缘不得越出 1680 画布`);
-    }
-  }
-});
-const uiRoot = path.resolve(__dirname, "..");
-for (const source of player.sourceList(normalizedManifest)) {
-  assert.equal(fs.existsSync(path.join(uiRoot, source)), true, `启动素材缺失: ${source}`);
-}
-assert.ok(player.sourceList(normalizedManifest).includes("assets/p83-coolzhu/scroll-shanhe-v1.png"));
-const launchHtml = fs.readFileSync(path.join(uiRoot, "launch-performance.html"), "utf8");
-const launchCss = fs.readFileSync(path.join(uiRoot, "launch-performance.css"), "utf8");
-const playerSource = fs.readFileSync(path.join(uiRoot, "seven-letter-startup-player.js"), "utf8");
-assert.match(launchHtml, /<script defer src="\.\/seven-letter-startup-player\.js"><\/script>/);
-assert.match(launchHtml, /<script defer src="\.\/coolzhu-seven-letter-manifest\.js"><\/script>/);
-assert.match(launchHtml, /<script defer src="\.\/coolzhu-seven-letter-bridge\.js"><\/script>/);
-assert.doesNotMatch(launchHtml, /<script[^>]+launch-performance\.js[^>]*><\/script>/, "旧十一字模块不得作为启动页面脚本");
-assert.match(launchCss, /display:\s*grid/);
-assert.match(launchCss, /place-items:\s*center/);
-assert.match(launchCss, /width:\s*auto/);
-assert.match(launchCss, /height:\s*auto/);
-assert.match(launchCss, /max-width:\s*100%/);
-assert.match(launchCss, /max-height:\s*100%/);
-assert.match(launchCss, /object-fit:\s*contain/);
-assert.doesNotMatch(playerSource, /canvas\.style\.width\s*=\s*`\$\{manifest\.canvas\.width\}px`/, "播放器不得写入固定 CSS 宽度");
-assert.doesNotMatch(playerSource, /canvas\.style\.height\s*=\s*`\$\{manifest\.canvas\.height\}px`/, "播放器不得写入固定 CSS 高度");
-
-function containSize(width, height) {
-  const scale = Math.min(width / 1680, height / 900);
-  return [1680 * scale, 900 * scale];
-}
-const desktopFit = containSize(1440, 900);
-assert.ok(Math.abs(desktopFit[0] - 1440) < 1e-9 && Math.abs(desktopFit[1] - 771.4285714285714) < 1e-9, "1440×900 必须等比完整容纳 1680×900");
-const minimumFit = containSize(900, 520);
-assert.ok(Math.abs(minimumFit[0] - 900) < 1e-9 && Math.abs(minimumFit[1] - 482.14285714285717) < 1e-9, "900×520 最小窗口必须等比完整容纳 1680×900");
-
 function eventTarget() {
-  const listeners = new Map();
+  const handlers = new Map();
   return {
-    addEventListener(type, callback) { listeners.set(type, callback); },
-    removeEventListener(type) { listeners.delete(type); },
-    dispatch(type, event = {}) { listeners.get(type)?.({ type, ...event }); },
+    addEventListener(type, fn) { handlers.set(type, fn); },
+    removeEventListener(type) { handlers.delete(type); },
+    dispatchEvent(event) { handlers.get(event.type)?.(event); return true; },
   };
 }
+function harness(options = {}) {
+  const events=[], nativeEvents=[], timers=new Map(), frames=new Map(); let nextId=1;
+  const documentRef=eventTarget(), storage=new Map();
+  const windowRef={
+    Image: class { set src(value) { this.url=value; } }, // 有意悬置，覆盖资源超时与加载前退出。
+    CustomEvent: class {constructor(type, init) {this.type=type; this.detail=init.detail;}},
+    setTimeout(fn, delay) { const id=nextId++; timers.set(id,{fn,delay}); return id; },
+    clearTimeout(id) {timers.delete(id);},
+    requestAnimationFrame(fn) {const id=nextId++; frames.set(id,fn); return id;},
+    cancelAnimationFrame(id) {frames.delete(id);},
+    localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)},
+    __TAURI__:{event:{emit(type, detail) {nativeEvents.push({type,detail}); return Promise.resolve();}}},
+  };
+  const dispatch=documentRef.dispatchEvent;
+  documentRef.dispatchEvent=event=>{events.push(event); return dispatch(event);};
+  const context=new Proxy({globalAlpha:1}, {get:(target,key)=>key in target?target[key]:()=>{}});
+  const canvas={width:1680,height:900,style:{},getContext:()=>context,setAttribute(){}}, root={style:{}};
+  const skipButton={...eventTarget(),style:{}};
+  const controller=bridge.createBridge({documentRef,windowRef,canvas,presentationRoot:root,skipButton,playerApi:player,manifest,mode:"first",...options});
+  return {controller,documentRef,windowRef,events,nativeEvents,canvas,root,skipButton,storage,timers,frames,
+    expire(delay) { const hit=[...timers].find(([,timer])=>timer.delay===delay); assert.ok(hit,`缺少 ${delay}ms 定时器`); timers.delete(hit[0]); hit[1].fn(); },
+    tick(time) {const callbacks=[...frames.values()]; frames.clear(); callbacks.forEach(fn=>fn(time));},
+    completed() {return events.filter(event=>event.type===bridge.COMPLETE_EVENT);},
+  };
+}
+function completedOnce(h,reason) {
+  assert.equal(h.completed().length,1);
+  assert.equal(h.completed()[0].detail.reason,reason);
+  assert.equal(h.nativeEvents.length,1);
+  assert.equal(h.nativeEvents[0].detail.consoleVisible,false);
+  assert.equal(h.canvas.hidden,true);
+  assert.equal(h.root.hidden,true);
+  assert.equal(h.controller.isFinished(),true);
+  assert.equal(h.timers.size,0);
+  assert.equal(h.frames.size,0);
+}
+async function main() {
+  const sources=[manifest.background.source.src,...manifest.actor.frames.map(frame=>frame.src),...manifest.letters.map(letter=>letter.glyphSource.src)];
+  for (const source of new Set(sources)) assert.ok(fs.existsSync(path.join(__dirname,"..",source)),`缺少生产素材：${source}`);
 
-const documentTarget = eventTarget();
-const documentEvents = [];
-const nativeEvents = [];
-const documentRef = {
-  ...documentTarget,
-  defaultView: null,
-  dispatchEvent(event) {
-    documentEvents.push(event);
-    documentTarget.dispatch(event.type, event);
-    return true;
-  },
-};
-const windowRef = {
-  CustomEvent: class CustomEvent {
-    constructor(type, init) { this.type = type; this.detail = init.detail; }
-  },
-  __TAURI__: {
-    event: {
-      emit(type, payload) {
-        nativeEvents.push({ type, payload });
-        return Promise.resolve();
-      },
-    },
-  },
-};
-documentRef.defaultView = windowRef;
+  const skipped=harness(); skipped.controller.start();
+  skipped.documentRef.dispatchEvent({type:"keydown",key:"Escape",preventDefault(){}});
+  skipped.skipButton.dispatchEvent({type:"click"}); skipped.controller.finish("skipped");
+  completedOnce(skipped,"skipped");
 
-const canvasContext = {
-  save() {}, restore() {}, setTransform() {}, clearRect() {},
-};
-const canvas = {
-  width: 1680,
-  height: 900,
-  hidden: false,
-  style: {},
-  getContext() { return canvasContext; },
-  setAttribute() {},
-};
-const skipButton = { hidden: false, disabled: false, style: {}, ...eventTarget() };
-const presentationRoot = { hidden: false, style: {} };
-let playerOptions = null;
-const playerApi = {
-  createStartupPlayer(options) {
-    playerOptions = options;
-    return {
-      start() { return true; },
-      stop(reason) {
-        options.documentRef.dispatchEvent({
-          type: options.manifest.completeEvent,
-          detail: { reason },
-        });
-        return true;
-      },
-    };
-  },
-};
+  const reduced=harness({reducedMotion:true}); reduced.controller.start();
+  assert.equal([...reduced.timers.values()].some(timer=>timer.delay===2000),false,"减少动态效果不得等待图像");
+  reduced.expire(120); completedOnce(reduced,"reduced-motion");
 
-const instance = bridge.createBridge({
-  documentRef,
-  windowRef,
-  playerApi,
-  manifest: { letters: [] },
-  canvas,
-  skipButton,
-  presentationRoot,
-}).start();
-assert.ok(instance);
-assert.equal(playerOptions.manifest.completeEvent, bridge.INTERNAL_EVENT);
-skipButton.dispatch("click");
+  const missing=harness(); missing.controller.start(); missing.expire(2000);
+  completedOnce(missing,"resource-timeout");
 
-const domCompletion = documentEvents.find((event) => event.type === bridge.COMPLETE_EVENT);
-assert.equal(domCompletion.detail.reason, "skipped");
-assert.equal(nativeEvents.length, 1, "Tauri 宿主应收到一次完成事件");
-assert.equal(nativeEvents[0].type, bridge.COMPLETE_EVENT);
-assert.equal(nativeEvents[0].payload.reason, "skipped");
-assert.equal(canvas.hidden, true);
-assert.equal(presentationRoot.hidden, true);
+  const restore=harness({mode:"restore"}); assert.equal(restore.controller.start(),null);
+  completedOnce(restore,"restored");
 
-console.log("coolzhu-seven-letter-bridge contracts: PASS");
+  const full=harness({assets:{}}); full.controller.start(); await Promise.resolve();
+  full.tick(100); full.tick(4700); completedOnce(full,"completed");
+  assert.equal(full.storage.get("coolzhu.scroll-startup.seen.v1"),"1");
+
+  const daily=harness({mode:"daily",assets:{}}); daily.controller.start(); await Promise.resolve();
+  daily.tick(100); daily.tick(1080); completedOnce(daily,"completed");
+
+  const broken=harness({playerApi:{createStartupPlayer(){throw new Error("创建失败");}}});
+  broken.controller.start(); completedOnce(broken,"resource-error");
+  console.log("启动生命周期：完整 / 日常 / Esc / 减少动态 / 资源超时 / 恢复 / 创建失败，全部通过。");
+}
+main().catch(error=>{console.error(error); process.exitCode=1;});

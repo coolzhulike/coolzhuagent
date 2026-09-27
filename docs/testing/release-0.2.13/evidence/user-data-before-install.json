@@ -1,0 +1,257 @@
+[
+  {
+    "path": "coolzhu.toml",
+    "length": 4674,
+    "sha256": "E2F49AF2AAF3A974D8718F4F4EB93FCEAD8C824014DE6FBD2E41B56AA8E0991E"
+  },
+  {
+    "path": ".coolzhu\\clawbot-channel.json",
+    "length": 1683,
+    "sha256": "A0C9C982CBE3F3A2B24CC400A5E7CDD6AD84318DF330ED003107912A4475DF44"
+  },
+  {
+    "path": ".coolzhu\\clawbot-gateway.sqlite3",
+    "length": 253952,
+    "sha256": "90A5956780819DFC293CD79BBA69447DBE27DAAAA242B75CADAD12273434E82A"
+  },
+  {
+    "path": ".coolzhu\\tool-audit.jsonl",
+    "length": 1051432,
+    "sha256": "7B31D74622D05BC8196FF9D5C7B0FB4C80CD71D4504EA8BCF3543D7E6B3361FB"
+  },
+  {
+    "path": ".coolzhu\\web-sessions.json",
+    "length": 2108516,
+    "sha256": "BCE94451470DBD1151A918A8A4F692EF2F032BDDE8FA7181D2A3B90588D06C19"
+  },
+  {
+    "path": ".coolzhu\\web-sessions.json.bak-20260723-012954",
+    "length": 2216378,
+    "sha256": "E100C49F14E014DCDC256FDE29FFEB00157938D1B4C9661A2CE7E848D8D23D15"
+  },
+  {
+    "path": ".coolzhu\\web-sessions.sqlite3",
+    "length": 3842048,
+    "sha256": "65A9D221E386BAF49317673D5D6FB78B0D384CEC5F57963DAA6B6A42531FDBD8"
+  },
+  {
+    "path": ".coolzhu\\web-sessions.sqlite3.bak-20260723-012954",
+    "length": 3702784,
+    "sha256": "A6980058E25973EF44BF1CFCB83961E600FF6B42EB78B8A10DD2FBD162A285BA"
+  },
+  {
+    "path": ".coolzhu\\web-sessions.sqlite3.bak-20260918-211646",
+    "length": 3833856,
+    "sha256": "DEA2349750CAFA34D1DC0F3B9240268CD66D1E5984E267A54B2F5815F36FE5B2"
+  },
+  {
+    "path": ".coolzhu\\attachments\\2026-06-06-real-desktop-vision-voice-v1-desktop-capture.png",
+    "length": 681776,
+    "sha256": "682F3DCA3657B329B22748C0BF8A74C375F82DE57270EF0E0DC4FFA106A64DF4"
+  },
+  {
+    "path": ".coolzhu\\attachments\\2026-06-12-desktop-vision-voice-desktop-capture.png",
+    "length": 292579,
+    "sha256": "CC04E1B9CC5B84E0AFEF96B56264E345B05AF8D6BC44F3BC10DE5CE5AFB05BA2"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778334178607-f5c9fafc4b18af62-png",
+    "length": 1006944,
+    "sha256": "0AF578A01F2CB8F010F564B504A7B8B923CB1D451344C8FB017C20191C9B514C"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778342832740-f5c9fafc4b18af62-png",
+    "length": 1006944,
+    "sha256": "0AF578A01F2CB8F010F564B504A7B8B923CB1D451344C8FB017C20191C9B514C"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778343514464-f5c9fafc4b18af62-png",
+    "length": 1006944,
+    "sha256": "0AF578A01F2CB8F010F564B504A7B8B923CB1D451344C8FB017C20191C9B514C"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778352763893-f5c9fafc4b18af62-png",
+    "length": 1006944,
+    "sha256": "0AF578A01F2CB8F010F564B504A7B8B923CB1D451344C8FB017C20191C9B514C"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778353366641-f5c9fafc4b18af62-png",
+    "length": 1006944,
+    "sha256": "0AF578A01F2CB8F010F564B504A7B8B923CB1D451344C8FB017C20191C9B514C"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778353865128-7eedfc7e275fb0f2-UI____.png",
+    "length": 1877128,
+    "sha256": "F0680DA2310D898ABAC86A98CE76C6391774B1272BACABBD98D331A30E418DC2"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778354200765-7eedfc7e275fb0f2-UI____.png",
+    "length": 1877128,
+    "sha256": "F0680DA2310D898ABAC86A98CE76C6391774B1272BACABBD98D331A30E418DC2"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778354628056-7eedfc7e275fb0f2-UI____.png",
+    "length": 1877128,
+    "sha256": "F0680DA2310D898ABAC86A98CE76C6391774B1272BACABBD98D331A30E418DC2"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778356874198-7eedfc7e275fb0f2-UI____.png",
+    "length": 1877128,
+    "sha256": "F0680DA2310D898ABAC86A98CE76C6391774B1272BACABBD98D331A30E418DC2"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778358031908-7eedfc7e275fb0f2-UI____.png",
+    "length": 1877128,
+    "sha256": "F0680DA2310D898ABAC86A98CE76C6391774B1272BACABBD98D331A30E418DC2"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1778358134529-7eedfc7e275fb0f2-UI____.png",
+    "length": 1877128,
+    "sha256": "F0680DA2310D898ABAC86A98CE76C6391774B1272BACABBD98D331A30E418DC2"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1780527279768-c05107ddac3ddf73-drop-test.png",
+    "length": 19,
+    "sha256": "7D30C6C8261672A89C6C26DF46C44A2B6FAB587F2311B82E1903DC088F2FB424"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1780528348871-d0d2835865694923-drop-img.png",
+    "length": 12,
+    "sha256": "347211519AFCE41AF8884361D67C5119EFA40218D3DB3F51AFCEFE5DC59048A1"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1780528348872-47b27be90d3b0f5d-drop-clip.mp4",
+    "length": 12,
+    "sha256": "BE71EB5AC4B192C44A892B24117B76189D180F977B24C9DAE1AA36F240903EA8"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1780573454609-7826dbd6c3537b42-selftest.png",
+    "length": 18,
+    "sha256": "68506A59430D9077A68CE75CF1C37D03F8D98B72701261DB8C1475002CEF8FE9"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1780573818767-b2439029d2108413-testaa.txt",
+    "length": 36,
+    "sha256": "B03227E26BA6BEB31CE0342A15E9039BC97CB55615E201A87388A2238009E850"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1780574621663-5d927432799b7339-preview-test.png",
+    "length": 24,
+    "sha256": "DD5B5501EBBE52D6055C5B43DF320C80DBAEA71F7AD6B838D8FFAA09B5DCC9CF"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1780847740234-05824a5593bb7e6c-test-ref.png",
+    "length": 70,
+    "sha256": "A4DD28DB6E6D3FC0D43CDBEF1E8EF161B353CE67D27E81D400F796BC77045AE6"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1780931992640-90ea7841eb8b7578-agnes-vision-shot.png",
+    "length": 126584,
+    "sha256": "5C40B31A2B0130223DDEBDE50B134DEAE79B212B8BA0716687B39E4E28BBFBDE"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1781653505063-10ed88f27708b0d2-2026-06-17_074441.png",
+    "length": 471560,
+    "sha256": "1F721BF9FD1C57C28A70AE32CC2BEC6765524177F315AF1519295D1EB2E5FAAC"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1782302489245-53d0aac35f2273e4-2026-06-24_200016.png",
+    "length": 91160,
+    "sha256": "FA81E08036197EA033EE257233F835A80640BABF78ED47B775DC65426865077E"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1782302536000-53d0aac35f2273e4-2026-06-24_200016.png",
+    "length": 91160,
+    "sha256": "FA81E08036197EA033EE257233F835A80640BABF78ED47B775DC65426865077E"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1782343725444-f3c4bfbe1d5d71e4-ChatGPT_Image_2026_6_24__21_13_49.png",
+    "length": 2411128,
+    "sha256": "BA7D324597482F24A4F2552E757BAFE262711D90FFE82A1A35A792692904EC6F"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1782344020280-53d0aac35f2273e4-2026-06-24_200016.png",
+    "length": 91160,
+    "sha256": "FA81E08036197EA033EE257233F835A80640BABF78ED47B775DC65426865077E"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1782425775854-f3c4bfbe1d5d71e4-ChatGPT_Image_2026_6_24__21_13_49.png",
+    "length": 2411128,
+    "sha256": "BA7D324597482F24A4F2552E757BAFE262711D90FFE82A1A35A792692904EC6F"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1782482680755-3fceee203e938569-wuxia-swordsman-soulslike-3d-model-sheet-20260626.png",
+    "length": 2878777,
+    "sha256": "A0155501224AD9E2D77688A4AF0E093AA6256D12CBB0A3AFF4C2E9AF36760129"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1782483169955-3fceee203e938569-wuxia-swordsman-soulslike-3d-model-sheet-20260626.png",
+    "length": 2878777,
+    "sha256": "A0155501224AD9E2D77688A4AF0E093AA6256D12CBB0A3AFF4C2E9AF36760129"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1782635766737-e9ed2251a5d026af-2026-06-28_163308.png",
+    "length": 756294,
+    "sha256": "20AAA2FC9F66C4334BC4AED1902E6087B9ABE4529294DB9357BD02C6926B0E39"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1783171424891-88003d250ff8fd66-large.bin",
+    "length": 3145728,
+    "sha256": "3BEA8A9A07C1E8DCAA4C1B816815C35A29B4FB585BA6ECC70EA44840A794CFB3"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1783252548959-88003d250ff8fd66-large.bin",
+    "length": 3145728,
+    "sha256": "3BEA8A9A07C1E8DCAA4C1B816815C35A29B4FB585BA6ECC70EA44840A794CFB3"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1784725375695-88003d250ff8fd66-large.bin",
+    "length": 3145728,
+    "sha256": "3BEA8A9A07C1E8DCAA4C1B816815C35A29B4FB585BA6ECC70EA44840A794CFB3"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1784822888876-88003d250ff8fd66-large.bin",
+    "length": 3145728,
+    "sha256": "3BEA8A9A07C1E8DCAA4C1B816815C35A29B4FB585BA6ECC70EA44840A794CFB3"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1784827779494-88003d250ff8fd66-large.bin",
+    "length": 3145728,
+    "sha256": "3BEA8A9A07C1E8DCAA4C1B816815C35A29B4FB585BA6ECC70EA44840A794CFB3"
+  },
+  {
+    "path": ".coolzhu\\attachments\\att-1786292589661-88003d250ff8fd66-large.bin",
+    "length": 3145728,
+    "sha256": "3BEA8A9A07C1E8DCAA4C1B816815C35A29B4FB585BA6ECC70EA44840A794CFB3"
+  },
+  {
+    "path": ".coolzhu\\attachments\\testaa-1.txt",
+    "length": 36,
+    "sha256": "B03227E26BA6BEB31CE0342A15E9039BC97CB55615E201A87388A2238009E850"
+  },
+  {
+    "path": ".coolzhu\\attachments\\testaa.txt",
+    "length": 17,
+    "sha256": "07FB8BAF583B8B7AFBD40DF010C5A0294588AAA5A3F31120704A9B98651B8FB0"
+  },
+  {
+    "path": ".coolzhu\\ide-index\\files.json",
+    "length": 98056,
+    "sha256": "D8F81E8796AD1C802A8B61814F3F700B125103C74993D12E3E8EA08674EE2FE0"
+  },
+  {
+    "path": ".coolzhu\\ide-index\\meta.json",
+    "length": 82621,
+    "sha256": "5C68EAC86F6508504C631D47AE146989EFCD584E7F0DBEB45104D45F3C4592BF"
+  },
+  {
+    "path": ".coolzhu\\ide-index\\symbols.json",
+    "length": 1842363,
+    "sha256": "D609421C7C8A9A1940EBDDD920F31D883C67389615B8249BB4127C6A8D47C1E1"
+  },
+  {
+    "path": ".coolzhu\\logs\\local-gemma.log",
+    "length": 68664,
+    "sha256": "9A383DA3CB0354F78DD1861298B62D9C6D3BCBDF4F1B28E24390A2BE358BC8AF"
+  }
+]

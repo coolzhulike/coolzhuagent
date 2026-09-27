@@ -1,0 +1,132 @@
+{
+  "context": {
+    "base": "http://127.0.0.1:18775",
+    "mock": "http://127.0.0.1:18776",
+    "root": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-09-19-release\\acceptance",
+    "session": "session-1789825015524",
+    "room": "room-1789825015543",
+    "pseudo-ok": "room-1789825020576",
+    "pseudo-fail": "room-1789825023902",
+    "forbidden": "room-1789825028566"
+  },
+  "results": [
+    {
+      "name": "model-settings-save-and-roundtrip",
+      "status": "PASS",
+      "evidence": {
+        "session": "session-1789825015524",
+        "parameters": {
+          "base_url": "http://127.0.0.1:18776/v1",
+          "computer_use_enabled": false,
+          "context_window": 32768,
+          "enable_llm_tools": true,
+          "endpoint": "http://127.0.0.1:18776/v1/chat/completions",
+          "llm_tool_exposure": "all",
+          "max_output_tokens": 2048,
+          "protocol": "openai_chat_completions",
+          "reasoning_mode": "effort",
+          "temperature": 0.35,
+          "thinking_budget": null,
+          "tool_allowlist": [
+            "read_file"
+          ],
+          "top_p": 0.9
+        }
+      }
+    },
+    {
+      "name": "installed-embedded-styles-and-effective-permissions",
+      "status": "PASS",
+      "evidence": {
+        "static_root": "C:\\Program Files\\CoolzhuAgent\\modules\\gui-web\\packages\\web-console",
+        "permission_profile": "workspace-write",
+        "effective_permission_profile": "full-access"
+      }
+    },
+    {
+      "name": "stream-read-file-thought-before-answer-two-requests",
+      "status": "PASS",
+      "evidence": {
+        "calls": 2,
+        "usage": {
+          "requests": 2,
+          "input": 200,
+          "output": 40
+        },
+        "thinking_ms": 3,
+        "answer_ms": 2477,
+        "tool_result_events": 1
+      }
+    },
+    {
+      "name": "history-search-around-and-internal-result-filter",
+      "status": "PASS",
+      "evidence": {
+        "matches": 1,
+        "position": 2,
+        "visible_messages": 2
+      }
+    },
+    {
+      "name": "tools-disabled-does-not-expose-despite-dev-open",
+      "status": "PASS",
+      "evidence": {
+        "calls": 1,
+        "toolNames": [],
+        "dev_open_permissions": true
+      }
+    },
+    {
+      "name": "pseudo-ok-bounded-recovery-stream",
+      "status": "PASS",
+      "evidence": {
+        "calls": 2,
+        "original_retained": true,
+        "no_file_created": true,
+        "usage": {
+          "requests": 2,
+          "input": 200,
+          "output": 40
+        }
+      }
+    },
+    {
+      "name": "pseudo-fail-bounded-recovery-nonstream",
+      "status": "PASS",
+      "evidence": {
+        "calls": 2,
+        "original_retained": true,
+        "no_file_created": true,
+        "usage": {
+          "requests": 2,
+          "input": 200,
+          "output": 40
+        }
+      }
+    },
+    {
+      "name": "forbidden-bounded-recovery-stream",
+      "status": "PASS",
+      "evidence": {
+        "calls": 2,
+        "original_retained": true,
+        "no_file_created": true,
+        "usage": {
+          "requests": 2,
+          "input": 200,
+          "output": 40
+        }
+      }
+    }
+  ],
+  "pass": 8,
+  "fail": 0,
+  "not_tested": [
+    "真实本地模型",
+    "真实桌面操作",
+    "取消与断线故障注入",
+    "进程重启后持久性",
+    "页面显示由主任务浏览器验证"
+  ],
+  "services_kept_running": true
+}

@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-09-21T15:04:30.527769+00:00",
+  "status": "文档交付；产品测试未执行",
+  "conversation_url": "https://chatgpt.com/c/6ab013c6-8dc4-83ea-a220-a33c9940783f",
+  "files": [
+    {
+      "name": "01-coolzhu-dsh-架构差异与整合决策.md",
+      "bytes": 167905,
+      "sha256": "26b0160295fa2426e67bdcf5e8e3992d06800ee237b147333df21d451341d248",
+      "desktop_identical": true
+    },
+    {
+      "name": "02-coolzhu-dsh-功能全量清单.md",
+      "bytes": 77134,
+      "sha256": "b912147c1a8825341f3af8f2f0be0f12e322e530e132a2eb355bb881d102b520",
+      "desktop_identical": true
+    },
+    {
+      "name": "03-coolzhu-zcode-Computer-Use差异与Paint专项.md",
+      "bytes": 33515,
+      "sha256": "a9f4d50051868efc1b502f1ce9f2ae922caf800e7bf81044cfd96222350eaca9",
+      "desktop_identical": true
+    },
+    {
+      "name": "04-coolzhuagent-整合改进执行计划.md",
+      "bytes": 81093,
+      "sha256": "8b1964bc4eacb2b299e59aa51d6c1880fd29672843be1036698b0c85af1b450a",
+      "desktop_identical": true
+    },
+    {
+      "name": "05-GPT6-Pro审查记录与意见采纳.md",
+      "bytes": 9564,
+      "sha256": "c8c7b6a7f7fdc9221f6e58805209e831364402a569e11ef77f6ecdfe298bb318",
+      "desktop_identical": true
+    },
+    {
+      "name": "06-coolzhuagent-整合验收测试矩阵.md",
+      "bytes": 71747,
+      "sha256": "14d29bfaea5efbe8484e0a1af5f4def7a64dc0630a4e0afe8020dbaecc3c6d9e",
+      "desktop_identical": true
+    }
+  ]
+}

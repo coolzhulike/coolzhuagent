@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     ComputerUseBudgets, ComputerUseError, ComputerUseRequest, ComputerUseResult,
-    ComputerUseRetryOwner, ComputerUseTerminalStatus, SupervisorSnapshot,
+    ComputerUseRetryOwner, ComputerUseTerminalStatus, CuDeadline, SupervisorSnapshot,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -173,7 +173,7 @@ impl ActionFingerprint {
 #[derive(Debug)]
 pub struct RunBudgetGuard {
     budgets: ComputerUseBudgets,
-    started_at_ms: u64,
+    deadline: CuDeadline,
     action_count: usize,
     replan_count: usize,
     no_progress_count: usize,
@@ -182,11 +182,24 @@ pub struct RunBudgetGuard {
 }
 
 impl RunBudgetGuard {
+    /// 以"起点 + CU 任务预算"建立守卫（未接线根 deadline）。
+    ///
+    /// 生产路径应当优先用 [`RunBudgetGuard::with_deadline`]：截止时间必须在任务**被接纳并
+    /// 进入调度**时建立，早于租约等待、模型切换、初始观察与规划请求。
     #[must_use]
     pub fn new(budgets: ComputerUseBudgets, started_at_ms: u64) -> Self {
+        Self::with_deadline(
+            budgets,
+            CuDeadline::establish_without_root(&budgets, started_at_ms),
+        )
+    }
+
+    /// 用已经建立的 CU 截止时间构造：同一任务的所有阶段共用它，内部恢复不重置。
+    #[must_use]
+    pub fn with_deadline(budgets: ComputerUseBudgets, deadline: CuDeadline) -> Self {
         Self {
             budgets,
-            started_at_ms,
+            deadline,
             action_count: 0,
             replan_count: 0,
             no_progress_count: 0,
@@ -195,12 +208,27 @@ impl RunBudgetGuard {
         }
     }
 
+    /// 本 run 唯一的 CU 截止时间（含 `root_deadline_state` / `root_deadline` 事实）。
+    #[must_use]
+    pub const fn deadline(&self) -> CuDeadline {
+        self.deadline
+    }
+
+    /// 单调 deadline 的剩余预算（毫秒，饱和到 0）。
+    ///
+    /// §2.3 要求"一个单调 deadline 贯穿观察、规划、验收和输入，**子请求上限不超过
+    /// 剩余预算**"，因此每个阶段发起子请求前都必须按这个值收紧自己的超时上限。
+    #[must_use]
+    pub fn remaining_ms(&self, now_ms: u64) -> u64 {
+        self.deadline.remaining_ms(now_ms)
+    }
+
     pub fn before_action(
         &mut self,
         fingerprint: &ActionFingerprint,
         now_ms: u64,
     ) -> Result<(), ComputerUseError> {
-        if now_ms.saturating_sub(self.started_at_ms) >= self.budgets.timeout_ms {
+        if self.deadline.is_expired_at(now_ms) {
             return Err(self.stop("deadline_exceeded", "computer-use deadline exceeded"));
         }
         if self.no_progress_count >= self.budgets.max_no_progress_steps {
@@ -296,6 +324,8 @@ mod tests {
             steps_completed: 0,
             evidence: vec![],
             supervisor: SupervisorSnapshot::default(),
+            cu_budget: None,
+            cleanup: None,
         }
     }
 
@@ -354,6 +384,45 @@ mod tests {
         );
     }
 
+    /// S1.5：同一动作对**同一观察代际**重复，即使每次都报告可见进展，也必须被签名界
+    /// 挡住——此时 `no_progress` 不会触发（可见进展会把无进展计数清零），所以这条
+    /// 规则是独立存在的。对应 §2.2「确认执行部分路径后不能整段重放」：**重新观察**
+    /// 之后才允许再试，原样重放不行。
+    #[test]
+    fn repeated_identical_action_against_the_same_observation_is_blocked_despite_progress() {
+        let mut budget = RunBudgetGuard::new(ComputerUseBudgets::default(), 1_000);
+        let fingerprint = ActionFingerprint::new("desktop", 7, "click", "save", "{}");
+
+        // max_same_signature 默认 2：前两次允许，且每次都算"可见进展"。
+        assert!(budget.before_action(&fingerprint, 1_001).is_ok());
+        budget.after_verification(true);
+        assert!(budget.before_action(&fingerprint, 1_002).is_ok());
+        budget.after_verification(true);
+        assert_eq!(
+            budget.snapshot().no_progress_count,
+            0,
+            "可见进展不得累加无进展计数，否则会把签名界误当成 no_progress 界"
+        );
+
+        let error = budget
+            .before_action(&fingerprint, 1_003)
+            .expect_err("identical replay against the same observation must be blocked");
+        assert_eq!(error.code, "no_progress");
+        assert!(
+            error.message.contains("identical action signature"),
+            "必须是签名界而不是无进展界；实际为：{}",
+            error.message
+        );
+        assert!(
+            budget.snapshot().circuit_open,
+            "命中签名界必须打开熔断，后续动作不得再发"
+        );
+
+        // 换一个观察代际（即"重新观察之后"）允许再次尝试。
+        let fresh = ActionFingerprint::new("desktop", 8, "click", "save", "{}");
+        assert!(budget.before_action(&fresh, 1_004).is_ok());
+    }
+
     #[test]
     fn action_replan_and_deadline_budgets_are_hard_limits() {
         let budgets = ComputerUseBudgets {
@@ -403,5 +472,43 @@ mod tests {
             supervisor.before_run(&key),
             crate::BeforeRunDecision::Proceed
         );
+    }
+
+    /// CU 截止时间在任务被接纳时建立；守卫构造得再晚，也不能把之前的时间还回去。
+    #[test]
+    fn guard_uses_the_deadline_established_at_acceptance_not_its_own_construction() {
+        let budgets = ComputerUseBudgets {
+            timeout_ms: 2_000,
+            ..ComputerUseBudgets::default()
+        };
+        let deadline = CuDeadline::establish_without_root(&budgets, 100);
+        let guard = RunBudgetGuard::with_deadline(budgets, deadline);
+
+        assert_eq!(guard.deadline().established_at_ms(), 100);
+        assert_eq!(guard.deadline().cu_deadline_ms(), 2_100);
+        assert_eq!(guard.remaining_ms(100), 2_000);
+        // 租约等待 / 模型切换 / 初始观察消耗的 1_400ms 必须计入预算。
+        assert_eq!(guard.remaining_ms(1_500), 600);
+        assert_eq!(guard.remaining_ms(9_999), 0);
+        assert_eq!(guard.deadline().root_deadline_state().as_str(), "not_wired");
+        assert_eq!(guard.deadline().root_deadline().unix_ms(), None);
+    }
+
+    /// 内部恢复（重新观察）不得重置时钟：剩余预算是从同一个截止时间算出来的。
+    #[test]
+    fn internal_recovery_never_resets_the_deadline_clock() {
+        let budgets = ComputerUseBudgets {
+            timeout_ms: 2_000,
+            ..ComputerUseBudgets::default()
+        };
+        let guard = RunBudgetGuard::with_deadline(
+            budgets,
+            CuDeadline::establish_without_root(&budgets, 1_000),
+        );
+        let before_recovery = guard.remaining_ms(2_000);
+        let after_recovery = guard.remaining_ms(2_000);
+        assert_eq!(before_recovery, after_recovery);
+        assert_eq!(after_recovery, 1_000);
+        assert!(guard.remaining_ms(3_500) < after_recovery);
     }
 }
