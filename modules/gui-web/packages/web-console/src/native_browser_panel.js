@@ -18,12 +18,19 @@ window.CoolzhuNativeBrowserPanel = (() => {
   function visibleBounds(scale) {
     const frame = adapter.frame();
     if (!frame || !frame.getClientRects().length || !adapter.active()) return null;
+    const host = frame.closest(".chat-right-rail");
+    if (host) {
+      const panel = host.closest(".chat-window-panel");
+      const style = getComputedStyle(host);
+      // 折叠栏仍有布局矩形；原生子视图不能依据矩形继续覆盖主聊天。
+      if (panel?.dataset.rightCollapsed === "true" || host.getAttribute("aria-hidden") === "true"
+        || host.inert || host.hasAttribute("inert") || style.visibility !== "visible" || style.display === "none") return null;
+    }
     const rect = frame.getBoundingClientRect();
     if (rect.width < 100 || rect.height < 80) return null;
     const overlays = document.querySelectorAll('[role="dialog"],dialog[open],.tool-detail-modal');
     if ([...overlays].some(node => node.getClientRects().length && getComputedStyle(node).visibility !== "hidden")) return null;
     const convert = value => ({x:Math.round(value.x*scale), y:Math.round(value.y*scale), width:Math.round(value.width*scale), height:Math.round(value.height*scale)});
-    const host = frame.closest(".chat-right-rail");
     return {bounds:convert(rect),host_bounds:host ? convert(host.getBoundingClientRect()) : undefined};
   }
   function display(state) {
@@ -62,7 +69,7 @@ window.CoolzhuNativeBrowserPanel = (() => {
     if (!invoke()) return;
     window.__TAURI__?.event?.listen("browser-panel-state", event => display(event.payload)).catch(error => adapter.status(`浏览器状态监听不可用：${error.message}`));
     const frame = adapter.frame(); if (frame) new ResizeObserver(scheduleLayout).observe(frame);
-    new MutationObserver(scheduleLayout).observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["hidden","class","open","style"]});
+    new MutationObserver(scheduleLayout).observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["hidden","class","open","style","data-right-collapsed","aria-hidden","inert"]});
     window.addEventListener("resize", scheduleLayout);
     window.addEventListener("beforeunload", () => { if (current) void send({action:"close",scope:current.scope}); });
   }

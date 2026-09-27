@@ -2700,14 +2700,14 @@ mod tests {
         assert!(install.message.contains("installed demo@external"));
         assert!(install.message.contains("Name             demo"));
         assert!(install.message.contains("Version          1.0.0"));
-        assert!(install.message.contains("Status           enabled"));
+        assert!(install.message.contains("Status           disabled"));
 
         let list = handle_plugins_slash_command(Some("list"), None, &mut manager)
             .expect("list command should succeed");
         assert!(!list.reload_runtime);
         assert!(list.message.contains("demo"));
         assert!(list.message.contains("v1.0.0"));
-        assert!(list.message.contains("enabled"));
+        assert!(list.message.contains("disabled"));
 
         let _ = fs::remove_dir_all(config_home);
         let _ = fs::remove_dir_all(source_root);
@@ -2884,7 +2884,10 @@ mod tests {
         let safeuser_before = env::var_os("SAFEUSER");
 
         // 本用例需要真实 `git`（显式环境例外；缺前置 ⇒ 明确失败，不跳过）。
-        require_program_or_fail("commit_push_pr_command_commits_pushes_and_creates_pr", "git");
+        require_program_or_fail(
+            "commit_push_pr_command_commits_pushes_and_creates_pr",
+            "git",
+        );
 
         let repo = init_git_repo("commit-push-pr");
         let remote = init_bare_repo("commit-push-pr-remote");

@@ -120,7 +120,8 @@ mod tests {
             },
         ]);
 
-        let selected = crate::select_tools_for_request(tools, true, 8_192, true)
+        let selected = crate::select_tools_for_request(tools, true, 8_192, true,
+            2_048, "测试系统提示", &[])
             .expect("小上下文仍保留文件和 UI 的合法工具入口");
 
         let names = selected.iter().map(|tool| tool.name.as_str()).collect::<Vec<_>>();
@@ -138,6 +139,9 @@ mod tests {
             true,
             8_192,
             false,
+            2_048,
+            "测试系统提示",
+            &[],
         );
         assert!(selected.is_none());
     }
@@ -160,6 +164,7 @@ mod tests {
             Some("session-1"),
             Some("toolu_abc"),
             Some("turn-1"),
+            None,
             None,
             None,
         )

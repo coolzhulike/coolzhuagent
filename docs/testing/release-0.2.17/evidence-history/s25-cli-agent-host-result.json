@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-27",
+  "fixture": "隔离工作区、随机本机 Web 端口、本机假模型；所有会话与内容均为合成测试数据",
+  "binary_hashes": "运行当时未采集，不能由后来重编译的文件回填",
+  "cli_exit_code": 0,
+  "chat_done": {
+    "status": "completed",
+    "public_run_id": "run-chat-85cd89c7865c735aa3672393349b3aadeb3f3a37c7867f04",
+    "public_turn_id": "chat-turn-1790473349360-0",
+    "session_id": "session-1790473348655",
+    "room_id": "room-1790473348677"
+  },
+  "agent_tool_events": [
+    "requested",
+    "running",
+    "completed"
+  ],
+  "agent_tool_result": {
+    "status": "completed",
+    "result": "CLI-AGENT-E2E-CHILD-OK",
+    "parent_run_id": "run-chat-85cd89c7865c735aa3672393349b3aadeb3f3a37c7867f04",
+    "parent_tool_call_id": "tool-2c2a547e524c11f822b924c78db52fe6ff28c45f7ff78804abadf11b3da1803b",
+    "session_id": "session-1790473348655",
+    "room_id": "room-1790473348677",
+    "internal_model_turn_id": "000000000000000118d90a06626e7864"
+  },
+  "model_request_count": 3,
+  "usage_rows": [
+    {
+      "request_kind": "chat",
+      "status": "completed",
+      "session_id": "session-1790473348655",
+      "turn_id": "000000000000000118d90a06626e7864"
+    },
+    {
+      "request_kind": "child_agent",
+      "status": "completed",
+      "session_id": "session-1790473348655",
+      "room_id": "room-1790473348677",
+      "turn_id": "000000000000000118d90a06626e7864",
+      "call_id": "tool-2c2a547e524c11f822b924c78db52fe6ff28c45f7ff78804abadf11b3da1803b",
+      "input_tokens": 11,
+      "output_tokens": 7
+    },
+    {
+      "request_kind": "tool_feedback",
+      "status": "completed",
+      "session_id": "session-1790473348655",
+      "turn_id": "chat-turn-1790473349360-0"
+    }
+  ],
+  "note": "内部模型 turn 与公开聊天 turn 是两套标识；child_agent 与发起它的首个父模型请求共享内部 turn，并另通过 parent_run_id、parent_tool_call_id 关联公开运行和工具调用。"
+}

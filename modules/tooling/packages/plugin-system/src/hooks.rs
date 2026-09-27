@@ -538,6 +538,12 @@ mod tests {
         manager
             .install(second_source_root.to_str().expect("utf8 path"))
             .expect("second plugin install should succeed");
+        manager
+            .enable("first@external")
+            .expect("explicit enable first");
+        manager
+            .enable("second@external")
+            .expect("explicit enable second");
         let registry = manager.plugin_registry().expect("registry should build");
 
         // P2-2：显式授权（未授权时 hook 不运行——本用例要测的正是"运行"）。

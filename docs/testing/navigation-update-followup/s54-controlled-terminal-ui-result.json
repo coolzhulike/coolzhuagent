@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-27",
+  "fixture": "隔离工作区、随机本机端口、合成 Agent 与聊天室、独立 Playwright 会话",
+  "binary_sha256": "dfd39612cd2d689e6cf4e87de9b0c421682d1be33137d854a4ce8f5d2479d8ce",
+  "console_errors": 0,
+  "chinese_output_visible": true,
+  "directory_changed_to_deep": true,
+  "command_file_created": true,
+  "same_scope_restored_after_reload": true,
+  "sixty_second_command_started": true,
+  "sixty_second_command_interrupted_before_late_effect": true,
+  "shell_accepted_next_command": true,
+  "closed_status_visible": true,
+  "browser_and_test_service_closed": true,
+  "note": "页面第一次 15 秒长命令在点击中断前自然完成，不能算中断证据；随后另用 60 秒命令验证，启动文件存在、中断后 late 文件持续不存在、后续 resumed 文件存在。"
+}

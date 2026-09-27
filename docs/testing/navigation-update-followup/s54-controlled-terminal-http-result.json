@@ -1,0 +1,14 @@
+{
+  "binary_sha256": "310f214d3ef55efcd8dc59377ce3ab839f2d4d3e259f49fb1e3e951971504819",
+  "port": 62316,
+  "created_and_reconnected": true,
+  "default_permission_denied": true,
+  "chinese_command_executed": true,
+  "cursor_no_duplicate": true,
+  "wrong_room_denied": true,
+  "downgraded_write_and_output_denied": true,
+  "downgraded_interrupt_and_close_allowed": true,
+  "ctrl_c_stopped_long_command_and_shell_resumed": true,
+  "closed_status_absent": true,
+  "room_switch_revoked_old_handle": true
+}

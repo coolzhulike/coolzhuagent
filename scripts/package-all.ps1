@@ -142,7 +142,7 @@ if (-not (Test-Path -LiteralPath $manifestPath)) {
   throw "package manifest not found: $manifestPath"
 }
 
-$manifestData = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+$manifestData = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-IdentityJson
 $packageResourceExcludedPathPattern = '(?i)(^|[/\\])(\.coolzhu|\.git|\.claude|\.superpowers|__pycache__|backups?(?:-[^/\\]+)?|tmp|logs?|sessions?)([/\\]|$)|web-sessions|coolzhu\.toml$|package-report\.json$|(^|[/\\])\.env($|\.)|\.(sqlite3?|db)(-(wal|shm|journal))?$|\.(pyc|pyo|bak|old|orig|rej|pem|key|pfx|p12)$|(^|[/\\])(credentials?|secrets?|token-cache|credential-cache|access-token|refresh-token|session-token|auth-token)(\.[^/\\]+)?$'
 $packageRootCandidate = if ($PackageRoot) {
   if ([System.IO.Path]::IsPathRooted($PackageRoot)) { $PackageRoot } else { Join-Path $repo $PackageRoot }
@@ -1102,10 +1102,10 @@ if ($Prepare) {
   $previousFreezePointer = Join-Path (Get-PackageInputFreezeRoot -RepoPath $repoPath) ('latest-{0}.json' -f $Configuration)
   if (Test-Path -LiteralPath $previousFreezePointer -PathType Leaf) {
     try {
-      $previousPointerDocument = Get-Content -Raw -LiteralPath $previousFreezePointer -Encoding UTF8 | ConvertFrom-Json
+      $previousPointerDocument = Get-Content -Raw -LiteralPath $previousFreezePointer -Encoding UTF8 | ConvertFrom-IdentityJson
       $previousFreezeFull = Resolve-RepoPath ([string]$previousPointerDocument.freeze_record)
       if (Test-Path -LiteralPath $previousFreezeFull -PathType Leaf) {
-        $previousFreezeDocument = Get-Content -Raw -LiteralPath $previousFreezeFull -Encoding UTF8 | ConvertFrom-Json
+        $previousFreezeDocument = Get-Content -Raw -LiteralPath $previousFreezeFull -Encoding UTF8 | ConvertFrom-IdentityJson
       }
     } catch {
       Write-Warning ('上一次冻结记录无法解析（按"无历史"处理）：{0}' -f (($_.Exception.Message -split "`r?`n")[0]))
@@ -2466,4 +2466,3 @@ return [pscustomobject]$pointer
   }
   throw $augmentedFailureMessage
 }
-

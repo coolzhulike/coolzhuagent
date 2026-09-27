@@ -1,0 +1,6 @@
+{"event":"started","run_id":"run-chat-85cd89c7865c735aa3672393349b3aadeb3f3a37c7867f04","turn_id":"chat-turn-1790473349360-0","room_id":"room-1790473348677"}
+{"event":"tool_status","tool_name":"Agent","status":"requested","public_call_id":"tool-call-07aeb0b350d62849"}
+{"event":"tool_status","tool_name":"Agent","status":"running","public_call_id":"tool-call-07aeb0b350d62849"}
+{"event":"tool_status","tool_name":"Agent","status":"completed","public_call_id":"tool-call-07aeb0b350d62849"}
+{"event":"tool_result_excerpt","tool_name":"Agent","status":"completed","result":"CLI-AGENT-E2E-CHILD-OK","parent_run_id":"run-chat-85cd89c7865c735aa3672393349b3aadeb3f3a37c7867f04","parent_tool_call_id":"tool-2c2a547e524c11f822b924c78db52fe6ff28c45f7ff78804abadf11b3da1803b","session_id":"session-1790473348655","room_id":"room-1790473348677"}
+{"event":"done","status":"completed","run_id":"run-chat-85cd89c7865c735aa3672393349b3aadeb3f3a37c7867f04","turn_id":"chat-turn-1790473349360-0"}

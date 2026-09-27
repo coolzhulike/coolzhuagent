@@ -225,6 +225,12 @@ body.ui-3d .chat-tool-host-content > .project-workbench-window .ide-preview-body
 body.ui-3d .chat-tool-host-content > .project-workbench-window :is(.file-preview-text, .ide-outline) { min-height: 0; height: auto; overflow: auto; background: #081b16; border-color: #426451; }
 body.ui-3d .chat-tool-host-content > .project-workbench-window .file-preview-text { font: 13px/1.6 "Cascadia Code", Consolas, "Microsoft YaHei", monospace; color: #e1eee5; }
 body.ui-3d .chat-tool-host-content > .project-workbench-window .ide-outline-empty { font: 12px/1.5 "Microsoft YaHei UI", sans-serif; color: var(--jade-muted); }
+body.ui-3d .chat-tool-host-content > .project-workbench-window .ide-tabbar > .project-directory-toggle { flex: 0 0 auto; min-height: 26px; padding: 3px 9px; border: 1px solid #49695b; border-radius: 5px; color: #edf5ee; background: #19392b; font: 12px/1.4 "Microsoft YaHei UI", sans-serif; cursor: pointer; }
+body.ui-3d .chat-tool-host-content > .project-workbench-window .ide-tabbar > .project-directory-toggle[aria-expanded="true"] { background: #2e6b53; }
+body.ui-3d .chat-tool-host-content > .project-workbench-window .ide-preview-body { grid-template-rows: minmax(0, 1fr) minmax(160px, .38fr); overflow: hidden; }
+body.ui-3d .chat-tool-host-content > .project-workbench-window .ide-preview-body > .ide-outline { max-height: none; }
+body.ui-3d .chat-tool-host-content > .project-workbench-window .ide-outline-list { flex: 1 1 auto; }
+body.ui-3d .chat-tool-host-content > .project-workbench-window .lsp-preview-results:not([hidden]) { flex: 2 1 auto; min-height: 76px; max-height: none; }
 /* 命令占整行，超时、运行、清空并列；输出保留主要高度。 */
 body.ui-3d .chat-tool-host-content > .terminal-workbench-window .terminal-window-command { grid-template-columns: minmax(0, 1fr) 90px 38px; gap: 8px; align-items: end; }
 body.ui-3d .chat-tool-host-content > .terminal-workbench-window .terminal-command-input { grid-column: 1 / -1; }
@@ -281,6 +287,10 @@ body.ui-3d .chat-tool-host-content > .browser-workbench-window .browser-window-b
   body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .project-splitter { grid-column: 1; grid-row: 2; }
   body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .file-preview-pane { grid-column: 1; grid-row: 3; }
   body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .project-command-rail > .ide-toolbar { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout.has-open-file:not(.show-directory) { grid-template-rows: 0 0 minmax(0, 1fr); gap: 0; }
+  body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout.has-open-file:not(.show-directory) > .project-command-rail,
+  body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout.has-open-file:not(.show-directory) > .project-splitter { display: none; }
+  body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout.has-open-file.show-directory { grid-template-rows: minmax(180px, 42%) 5px minmax(0, 1fr); }
 }
 
 @media (max-width: 1180px) {

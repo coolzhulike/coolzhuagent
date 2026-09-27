@@ -1,0 +1,17 @@
+{
+  "exe_sha256": "8969352151eae80d12e15cccd2bf65e0508f99d73b192eb8b80ae0705bf92e44",
+  "web_port": 18770,
+  "due_count_in_config": 1,
+  "task_id": "schedule-1790478739647-130c7cfbfe53b059",
+  "scheduled_for_ms": 1790478739647,
+  "config_status": "scheduled",
+  "config_last_error": null,
+  "occurrence": {
+    "id": "schedule-1790478739647-130c7cfbfe53b059",
+    "scheduled_for_ms": 1790478739647,
+    "state": "unknown",
+    "message": "本次触发已领取，执行中或中断后结果未知，未重复执行"
+  },
+  "claim_state": "running",
+  "claim_has_outcome": false
+}

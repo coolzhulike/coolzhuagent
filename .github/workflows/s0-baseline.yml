@@ -10,11 +10,22 @@ jobs:
   web-console-baseline:
     name: Web console baseline
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - uses: dtolnay/rust-toolchain@stable
       - name: Build web console
         run: cargo build -p coolzhu-web-console
+      - name: Replay six S0 cases and three fixture rejections
+        shell: pwsh
+        run: |
+          python tests/integration/s0_controlled_replay.py `
+            --web-binary target/debug/coolzhu-web-console.exe `
+            --output-dir "$env:RUNNER_TEMP/s0-controlled-replay" `
+            --all
       - name: Run web console regression tests
         run: cargo test -p coolzhu-web-console --bin coolzhu-web-console
       - name: Verify S0 fixture contract

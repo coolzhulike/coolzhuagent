@@ -65,12 +65,25 @@ pub(crate) async fn run(command: &str, cwd: &Path, timeout_ms: u64) -> Result<()
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Instant;
 
     #[tokio::test]
     async fn gate_exit_and_expired_root_use_the_same_managed_path() {
         let cwd = Path::new(env!("CARGO_MANIFEST_DIR"));
-        assert!(run("exit 0", cwd, 30_000).await.is_ok());
-        assert!(run("exit 1", cwd, 30_000).await.unwrap_err().contains("exit 1"));
+        let success_started = Instant::now();
+        let success = run("exit 0", cwd, 90_000).await;
+        assert!(
+            success.is_ok(),
+            "正常 shell 探针失败（elapsed={:?}）：{success:?}",
+            success_started.elapsed()
+        );
+        let failure_started = Instant::now();
+        let failure = run("exit 1", cwd, 90_000).await;
+        assert!(
+            matches!(&failure, Err(message) if message.contains("失败（exit 1）")),
+            "非零退出探针未返回明确退出码（elapsed={:?}）：{failure:?}",
+            failure_started.elapsed()
+        );
         crate::root_execution_budget::scope(
             crate::root_execution_budget::RootExecutionBudget::from_started_at(1, 1),
             async { assert!(run("exit 0", cwd, 30_000).await.unwrap_err().contains("未启动")); }

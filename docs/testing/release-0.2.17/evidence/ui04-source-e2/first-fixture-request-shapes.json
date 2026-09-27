@@ -1,0 +1,64 @@
+[
+  {
+    "stream": true,
+    "max_tokens": 32000,
+    "tool_names": [
+      "tools_semantic_dispatch",
+      "chat_handoff",
+      "bash",
+      "read_file",
+      "write_file",
+      "edit_file",
+      "glob_search",
+      "grep_search",
+      "WebFetch",
+      "WebSearch",
+      "TodoWrite",
+      "Skill",
+      "Agent",
+      "NotebookEdit",
+      "Sleep",
+      "SendUserMessage",
+      "Config",
+      "StructuredOutput",
+      "REPL",
+      "PowerShell"
+    ],
+    "roles": [
+      "system",
+      "user"
+    ]
+  },
+  {
+    "stream": false,
+    "max_tokens": 32000,
+    "tool_names": [
+      "tools_semantic_dispatch",
+      "chat_handoff",
+      "bash",
+      "read_file",
+      "write_file",
+      "edit_file",
+      "glob_search",
+      "grep_search",
+      "WebFetch",
+      "WebSearch",
+      "TodoWrite",
+      "Skill",
+      "Agent",
+      "NotebookEdit",
+      "Sleep",
+      "SendUserMessage",
+      "Config",
+      "StructuredOutput",
+      "REPL",
+      "PowerShell"
+    ],
+    "roles": [
+      "system",
+      "user",
+      "assistant",
+      "tool"
+    ]
+  }
+]

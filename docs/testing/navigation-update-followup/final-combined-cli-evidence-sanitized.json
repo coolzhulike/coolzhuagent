@@ -1,0 +1,107 @@
+{
+  "test": "final-debug-cli-web-agent-host",
+  "web_sha256": "d6209492d550bb49f44b728f370f5a04d53516f6c159cc0bd77580275d138c9c",
+  "cli_sha256": "0a7c38a32c72ac8e20c0ada29d00c3c29b4b2fbb704087dee9ec313cfd0c1a06",
+  "cli_exit": 0,
+  "run_id": "run-chat-5dc3f8c8f450e1c8e42f2390745c5515461f3ddc32513203",
+  "public_turn_id": "chat-turn-1790482241437-0",
+  "done_status": "completed",
+  "model_requests": 3,
+  "child_usage": [
+    {
+      "request_kind": "child_agent",
+      "status": "completed",
+      "session_id": "session-1790482240703",
+      "room_id": "room-1790482240749",
+      "call_id": "tool-61cbc9860d2cddc779b7ab2ec0b6635c8ee0ecacd38e02c4c501bb8b6635965f",
+      "input_tokens": 11,
+      "output_tokens": 7
+    }
+  ],
+  "trace_purposes": [
+    "chat",
+    "child_agent",
+    "tool_feedback"
+  ],
+  "child_answer_seen": true,
+  "parent_answer_seen": true,
+  "events": [
+    {
+      "event": "started",
+      "tool_name": null,
+      "status": null,
+      "contains_child_marker": false,
+      "contains_parent_marker": false
+    },
+    {
+      "event": "message",
+      "tool_name": null,
+      "status": null,
+      "contains_child_marker": false,
+      "contains_parent_marker": false
+    },
+    {
+      "event": "tool_status",
+      "tool_name": "Agent",
+      "status": "requested",
+      "contains_child_marker": false,
+      "contains_parent_marker": false
+    },
+    {
+      "event": "tool_status",
+      "tool_name": "Agent",
+      "status": "running",
+      "contains_child_marker": false,
+      "contains_parent_marker": false
+    },
+    {
+      "event": "tool_status",
+      "tool_name": "Agent",
+      "status": "completed",
+      "contains_child_marker": false,
+      "contains_parent_marker": false
+    },
+    {
+      "event": "message",
+      "tool_name": null,
+      "status": null,
+      "contains_child_marker": false,
+      "contains_parent_marker": false
+    },
+    {
+      "event": "message",
+      "tool_name": null,
+      "status": null,
+      "contains_child_marker": true,
+      "contains_parent_marker": false
+    },
+    {
+      "event": "message_replace",
+      "tool_name": null,
+      "status": null,
+      "contains_child_marker": false,
+      "contains_parent_marker": true
+    },
+    {
+      "event": "message_delta",
+      "tool_name": null,
+      "status": null,
+      "contains_child_marker": false,
+      "contains_parent_marker": false
+    },
+    {
+      "event": "message_done",
+      "tool_name": null,
+      "status": null,
+      "contains_child_marker": false,
+      "contains_parent_marker": true
+    },
+    {
+      "event": "done",
+      "tool_name": null,
+      "status": "completed",
+      "contains_child_marker": false,
+      "contains_parent_marker": false
+    }
+  ]
+}

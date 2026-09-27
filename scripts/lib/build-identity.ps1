@@ -30,6 +30,19 @@
 $script:BuildIdentitySchema = 1
 $script:IdentityHashAlgorithm = 'SHA256'
 
+# 发布报告的内容身份以 JSON 中的原始字符串为准。PS 7.5+ 默认把 ISO 时间解析为
+# DateTime，会改写摘要叶子；Windows PowerShell 5.1 无 DateKind 且默认保留字符串。
+function ConvertFrom-IdentityJson {
+  param([Parameter(Mandatory = $true, ValueFromPipeline = $true)][string]$Json)
+  process {
+    if ((Get-Command ConvertFrom-Json).Parameters.ContainsKey('DateKind')) {
+      $Json | ConvertFrom-Json -DateKind String
+    } else {
+      $Json | ConvertFrom-Json
+    }
+  }
+}
+
 <#
   默认排除规则（单一事实来源）。
   设计依据：
@@ -666,7 +679,7 @@ function Write-SourceSnapshotFreezeRecord {
   if (Test-Path -LiteralPath $path -PathType Leaf) {
     $existing = $null
     try {
-      $existing = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-Json
+      $existing = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-IdentityJson
     } catch {
       throw (New-IdentityFailureException -Category 'SOURCE-SNAPSHOT-FREEZE-CORRUPT' `
         -Detail "冻结记录无法解析：$path（$($_.Exception.Message)）" `
@@ -931,6 +944,9 @@ function Add-IdentityCanonicalLeaf {
     $Lines.Add(('{0}={1}' -f $Path, $Value))
     return
   }
+  if ($Value -is [datetime] -or $Value -is [datetimeoffset]) {
+    throw [System.InvalidOperationException]::new("报告摘要要求原始 JSON 日期字符串，不能把 DateTime 重新格式化：$Path")
+  }
   if ($Value -is [System.Collections.IDictionary]) {
     foreach ($key in @($Value.Keys)) {
       $childPath = $(if ($Path) { '{0}.{1}' -f $Path, $key } else { [string]$key })
@@ -995,7 +1011,7 @@ function Get-NormalizedPackageReportHash {
   )
 
   $json = $Report | ConvertTo-Json -Depth $Depth
-  $normalized = $json | ConvertFrom-Json
+  $normalized = $json | ConvertFrom-IdentityJson
   return Get-PackageReportContentHash -Report $normalized
 }
 
@@ -1196,7 +1212,7 @@ function Read-PackageArtifactReleaseStatus {
     return [pscustomobject]@{ path = $path; exists = $false; document = $document }
   }
   try {
-    $parsed = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-Json
+    $parsed = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-IdentityJson
   } catch {
     throw (New-IdentityFailureException -Category 'ARTIFACT-RELEASE-STATUS-INVALID' `
       -Detail "产物释放状态库无法解析：$path（$($_.Exception.Message)）" `
@@ -2146,7 +2162,7 @@ function Read-PackageLatestPointerState {
   $state.exists = $true
   $state.file_sha256 = Get-IdentityFileHash -Path $path
   try {
-    $parsed = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-Json
+    $parsed = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-IdentityJson
   } catch {
     $state.report_id = 'unparsable-pointer'
     return [pscustomobject]$state
@@ -2356,7 +2372,7 @@ function Write-PackageInputFreezeRecord {
   $reused = $false
   if (Test-Path -LiteralPath $path -PathType Leaf) {
     $existing = $null
-    try { $existing = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-Json } catch { $existing = $null }
+    try { $existing = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-IdentityJson } catch { $existing = $null }
     if (-not $existing -or [string]$existing.freeze_id -ne [string]$Document.freeze_id) {
       throw (New-IdentityFailureException -Category 'INPUT-FREEZE-CORRUPT' `
         -Detail ("冻结记录 {0} 已存在且内容与本次冻结不一致（freeze_id={1}）" -f $path, [string]$Document.freeze_id) `
@@ -2406,7 +2422,7 @@ function Read-PackageInputFreezeRecord {
       -Remediation '先跑准备阶段（-Prepare）产出冻结记录，再在正式构建阶段用 -FreezeRecordPath 消费它')
   }
   try {
-    return (Get-Content -Raw -LiteralPath $Path -Encoding UTF8 | ConvertFrom-Json)
+    return (Get-Content -Raw -LiteralPath $Path -Encoding UTF8 | ConvertFrom-IdentityJson)
   } catch {
     throw (New-IdentityFailureException -Category 'INPUT-FREEZE-CORRUPT' `
       -Detail ("冻结记录无法解析：{0}（{1}）" -f $Path, $_.Exception.Message) `

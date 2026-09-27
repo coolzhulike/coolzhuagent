@@ -24,7 +24,8 @@
     container.classList.add("model-settings");
     container.innerHTML = `
       <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2><p>连接、思考、上下文和工具，在一个页面中配置。</p></div><button type="button" data-ms-action="new" class="ms-secondary">新建会话</button></div>
-      <label class="ms-session-picker">编辑会话<select data-ms="session-select" aria-label="选择要配置的会话"></select></label>
+      <label class="ms-session-picker">编辑配置的会话<select data-ms="session-select" aria-label="选择要编辑配置的会话"></select></label>
+      <p class="ms-hint">此处查看或保存配置不会改变聊天发送对象；请在顶栏选择发送对象。</p>
       <form data-ms="form" autocomplete="off">
         <fieldset data-ms="fields">
           <section class="ms-section"><div class="ms-section-title"><span>01</span><h3>连接</h3></div>

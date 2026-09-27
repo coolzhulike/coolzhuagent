@@ -85,7 +85,7 @@ function Read-RetentionIndex {
       -Remediation '先执行 -Action Protect 登记被正式发布引用的报告，或人工确认没有任何发布证据后再清理')
   }
   try {
-    $parsed = Get-Content -Raw -LiteralPath $indexPath -Encoding UTF8 | ConvertFrom-Json
+    $parsed = Get-Content -Raw -LiteralPath $indexPath -Encoding UTF8 | ConvertFrom-IdentityJson
   } catch {
     throw (New-IdentityFailureException -Category 'RETENTION-INDEX-INVALID' `
       -Detail "保留索引无法解析：$indexPath（$($_.Exception.Message)）" `
@@ -125,7 +125,7 @@ function Get-ArchivedReportIdentitySet {
   if (-not (Test-Path -LiteralPath $archiveRoot -PathType Container)) { return $identities }
   foreach ($manifest in @(Get-ChildItem -Path (Join-Path $archiveRoot 'release-*\evidence\build-identity\*\package-report-files.json') -File -ErrorAction SilentlyContinue)) {
     try {
-      $parsed = Get-Content -Raw -LiteralPath $manifest.FullName -Encoding UTF8 | ConvertFrom-Json
+      $parsed = Get-Content -Raw -LiteralPath $manifest.FullName -Encoding UTF8 | ConvertFrom-IdentityJson
     } catch {
       continue
     }
@@ -181,7 +181,7 @@ function Invoke-RetentionVerify {
 
     if ($entry.report_content_sha256) {
       try {
-        $report = Get-Content -Raw -LiteralPath $found -Encoding UTF8 | ConvertFrom-Json
+        $report = Get-Content -Raw -LiteralPath $found -Encoding UTF8 | ConvertFrom-IdentityJson
         [void](Assert-PackageReportContentHash -Report $report)
       } catch {
         $problems.Add(("report_id={0} 的内容哈希无法重算：{1}" -f $reportId, ($_.Exception.Message -split "`n")[0]))
@@ -213,7 +213,7 @@ function Invoke-RetentionProtect {
       -Remediation '确认报告已由 scripts/package-all.ps1 生成')
   }
 
-  $report = Get-Content -Raw -LiteralPath $fullReportPath -Encoding UTF8 | ConvertFrom-Json
+  $report = Get-Content -Raw -LiteralPath $fullReportPath -Encoding UTF8 | ConvertFrom-IdentityJson
   # 裁决第 2、9 条：**失败诊断**与 release_eligible=false 的报告不是可发布收据，
   # 不得被 Protect 成"发布证据"（否则等于用失败报告给混合输入产物补一张收据）。
   # 治理前的历史报告没有该字段 ⇒ 不据此外推（保持既有证据链可登记）。
@@ -402,7 +402,7 @@ function Invoke-RetentionPrune {
     }
     $parsed = $null
     try {
-      $parsed = Get-Content -Raw -LiteralPath $file.FullName -Encoding UTF8 | ConvertFrom-Json
+      $parsed = Get-Content -Raw -LiteralPath $file.FullName -Encoding UTF8 | ConvertFrom-IdentityJson
     } catch {
       $kept.Add(("{0} (无法解析，停手不删)" -f $file.Name))
       continue

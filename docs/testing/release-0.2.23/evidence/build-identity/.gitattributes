@@ -1,0 +1,2 @@
+# 构建收据记录原始文件 SHA-256；此目录的 JSON 保留生成时的原始字节。
+*.json -text whitespace=cr-at-eol

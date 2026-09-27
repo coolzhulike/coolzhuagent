@@ -1,0 +1,222 @@
+{
+  "exe_sha256": "dfd39612cd2d689e6cf4e87de9b0c421682d1be33137d854a4ce8f5d2479d8ce",
+  "port": 18769,
+  "http_initial": {
+    "session_ids_distinct": true,
+    "room_id": "room-1790478683528",
+    "message_count": 2,
+    "execution_failed": null
+  },
+  "initial_db": {
+    "schema": 27,
+    "quick_check": "ok",
+    "sessions": 3,
+    "session_names": [
+      "主 Agent",
+      "乙会话",
+      "甲会话"
+    ],
+    "protected_key_count": 1,
+    "plaintext_key_count": 0,
+    "rooms": 3,
+    "chinese_message_count": 2,
+    "attachment_message_count": 1,
+    "runtime_run_status_counts": {
+      "completed": 1
+    },
+    "v27_columns": [
+      "provider_tool_call_id",
+      "source_request_key"
+    ]
+  },
+  "initial_secret_scan": [
+    {
+      "kind": "web-sessions.sqlite3",
+      "exists": true,
+      "fake_marker_bytes": false
+    },
+    {
+      "kind": "web-sessions.sqlite3-wal",
+      "exists": false,
+      "fake_marker_bytes": false
+    },
+    {
+      "kind": "web-sessions.json",
+      "exists": true,
+      "fake_marker_bytes": false
+    },
+    {
+      "kind": "coolzhu.toml",
+      "exists": true,
+      "fake_marker_bytes": false
+    }
+  ],
+  "before_migration": {
+    "schema": 26,
+    "quick_check": "ok",
+    "sessions": 3,
+    "session_names": [
+      "主 Agent",
+      "乙会话",
+      "甲会话"
+    ],
+    "protected_key_count": 0,
+    "plaintext_key_count": 1,
+    "rooms": 3,
+    "chinese_message_count": 2,
+    "attachment_message_count": 1,
+    "runtime_run_status_counts": {
+      "completed": 1
+    },
+    "v27_columns": []
+  },
+  "before_migration_secret_scan": [
+    {
+      "kind": "web-sessions.sqlite3",
+      "exists": true,
+      "fake_marker_bytes": true
+    },
+    {
+      "kind": "web-sessions.sqlite3-wal",
+      "exists": false,
+      "fake_marker_bytes": false
+    },
+    {
+      "kind": "web-sessions.json",
+      "exists": true,
+      "fake_marker_bytes": false
+    },
+    {
+      "kind": "coolzhu.toml",
+      "exists": true,
+      "fake_marker_bytes": false
+    }
+  ],
+  "migration_http": {
+    "sessions": 3,
+    "room_messages": 2
+  },
+  "after_migration": {
+    "schema": 27,
+    "quick_check": "ok",
+    "sessions": 3,
+    "session_names": [
+      "主 Agent",
+      "乙会话",
+      "甲会话"
+    ],
+    "protected_key_count": 1,
+    "plaintext_key_count": 0,
+    "rooms": 3,
+    "chinese_message_count": 2,
+    "attachment_message_count": 1,
+    "runtime_run_status_counts": {
+      "completed": 1
+    },
+    "v27_columns": [
+      "provider_tool_call_id",
+      "source_request_key"
+    ]
+  },
+  "after_migration_secret_scan": [
+    {
+      "kind": "web-sessions.sqlite3",
+      "exists": true,
+      "fake_marker_bytes": false
+    },
+    {
+      "kind": "web-sessions.sqlite3-wal",
+      "exists": false,
+      "fake_marker_bytes": false
+    },
+    {
+      "kind": "web-sessions.json",
+      "exists": true,
+      "fake_marker_bytes": false
+    },
+    {
+      "kind": "coolzhu.toml",
+      "exists": true,
+      "fake_marker_bytes": false
+    }
+  ],
+  "backup_count": 1,
+  "pre_migration_backup": {
+    "schema": 26,
+    "quick_check": "ok",
+    "sessions": 3,
+    "session_names": [
+      "主 Agent",
+      "乙会话",
+      "甲会话"
+    ],
+    "protected_key_count": 0,
+    "plaintext_key_count": 1,
+    "rooms": 3,
+    "chinese_message_count": 2,
+    "attachment_message_count": 1,
+    "runtime_run_status_counts": {
+      "completed": 1
+    },
+    "v27_columns": []
+  },
+  "pre_migration_backup_fake_marker_bytes": true,
+  "pre_migration_backup_sha256": "65fa8f60a321c08674ca2617b905394ff4b0ff4691888b6e751b52f3adc71b54",
+  "restore_http": {
+    "sessions": 3,
+    "room_messages": 2
+  },
+  "restored_db": {
+    "schema": 27,
+    "quick_check": "ok",
+    "sessions": 3,
+    "session_names": [
+      "主 Agent",
+      "乙会话",
+      "甲会话"
+    ],
+    "protected_key_count": 1,
+    "plaintext_key_count": 0,
+    "rooms": 3,
+    "chinese_message_count": 2,
+    "attachment_message_count": 1,
+    "runtime_run_status_counts": {
+      "completed": 1
+    },
+    "v27_columns": [
+      "provider_tool_call_id",
+      "source_request_key"
+    ]
+  },
+  "future_start_rejected": true,
+  "future_storage_before": {
+    "web-sessions.sqlite3": {
+      "exists": true,
+      "sha256": "56ead32664122ab98cda751522c6faf0fb80a9e7eb7960490f97247e6cec87c0"
+    },
+    "web-sessions.sqlite3-wal": {
+      "exists": false,
+      "sha256": null
+    },
+    "web-sessions.sqlite3-shm": {
+      "exists": false,
+      "sha256": null
+    }
+  },
+  "future_storage_after": {
+    "web-sessions.sqlite3": {
+      "exists": true,
+      "sha256": "56ead32664122ab98cda751522c6faf0fb80a9e7eb7960490f97247e6cec87c0"
+    },
+    "web-sessions.sqlite3-wal": {
+      "exists": false,
+      "sha256": null
+    },
+    "web-sessions.sqlite3-shm": {
+      "exists": false,
+      "sha256": null
+    }
+  },
+  "future_storage_unchanged": true,
+  "future_schema": 99
+}

@@ -1,0 +1,89 @@
+{
+  "web_sha256": "4af5a03acc09ca4f7fbcf6c14af5e01d60d8c5105a7b7fff8ac9fd8bc8f9f965",
+  "room_id": "room-1790485793389",
+  "turn_id": "chat-turn-1790485793430-0",
+  "run_id": "run-chat-388ba13561540bbe71a410aff2bfbdd0d903b5eade8d42bb",
+  "vision_session_id": "session-1790485793295",
+  "target_session_id": "session-1790485793321",
+  "model_requests": [
+    {
+      "model": "fixture-vision",
+      "stream": false,
+      "has_image": true,
+      "has_description": false
+    },
+    {
+      "model": "fixture-text",
+      "stream": true,
+      "has_image": false,
+      "has_description": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": true,
+      "has_image": false,
+      "has_description": false
+    }
+  ],
+  "usage_rows": [
+    {
+      "purpose": "vision_description",
+      "session_id": "session-1790485793295",
+      "room_id": "room-1790485793389",
+      "turn_id": "000000000000000118d91557c090689c",
+      "run_id": "run-chat-388ba13561540bbe71a410aff2bfbdd0d903b5eade8d42bb",
+      "call_id": null,
+      "input_tokens": 11,
+      "output_tokens": 7,
+      "attempt_id": "request-1790485793538-22436-1:1",
+      "status": "completed"
+    },
+    {
+      "purpose": "chat",
+      "session_id": "session-1790485793321",
+      "room_id": "room-1790485793389",
+      "turn_id": "000000000000000118d91557c090689c",
+      "run_id": "run-chat-388ba13561540bbe71a410aff2bfbdd0d903b5eade8d42bb",
+      "call_id": null,
+      "input_tokens": 5,
+      "output_tokens": 3,
+      "attempt_id": "request-1790485793687-22436-2:1",
+      "status": "completed"
+    }
+  ],
+  "trace_purposes": [
+    "vision_description",
+    "chat"
+  ],
+  "trace_attempt_ids": [
+    "request-1790485793538-22436-1:1",
+    "request-1790485793687-22436-2:1"
+  ],
+  "answer_seen": true,
+  "reasoning_only": {
+    "room_id": "room-1790485793979",
+    "event_kinds": [
+      "started",
+      "message",
+      "message_start",
+      "message_delta",
+      "message_replace",
+      "error",
+      "done"
+    ],
+    "reasoning_items": [
+      {
+        "kind": "reasoning",
+        "marker_seen": true
+      }
+    ],
+    "final_items": [
+      {
+        "kind": "assistant-error",
+        "content": "模型已结束，但未返回可显示的回答或工具调用"
+      }
+    ],
+    "diagnostic_event_seen": true,
+    "raw_stream_marker_seen": true
+  }
+}

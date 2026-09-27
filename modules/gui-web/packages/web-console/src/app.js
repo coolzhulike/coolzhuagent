@@ -111,6 +111,12 @@ let visionRealtimeSelectedElementKey = "";
 let goalRoleRegistry = { roles: [], commander_session_id: null, generated_at: null };
 let activeSessionId = null;
 let activeChatRoomId = null;
+const terminalWindowState = {
+  handle: null, cursor: 0, scopeKey: "", pollTimer: 0, resizeTimer: 0,
+  busy: false, closed: false, epoch: 0, vtMode: "text", vtCsi: "",
+  vtLines: [], vtRow: 0, vtColumn: 0, vtEraseBlank: false, vtTruncated: false,
+  lastSize: "",
+};
 let activeChatRoomDiagnostics = { enabled: true, auto_refresh: false, show_stream_interrupts: true, show_details: true };
 let activeChatAbortController = null;
 let activeServerTurnId = null;
@@ -202,6 +208,9 @@ const CHAT_TOOL_WINDOW_META = Object.freeze({
   tasks: Object.freeze({ label: "任务中心", kicker: "任务工具", asset: "./assets/icons-wuxia/tasks.svg" }),
   terminal: Object.freeze({ label: "终端", kicker: "开发工具", asset: "./assets/icons-wuxia/terminal.svg" }),
   browser: Object.freeze({ label: "浏览器", kicker: "浏览工具", asset: "./assets/icons-wuxia/browser.svg" }),
+  skills: Object.freeze({ label: "SKILL", kicker: "本地目录", asset: "./assets/icons-wuxia/skill-star.svg" }),
+  "plugin-market": Object.freeze({ label: "插件市场", kicker: "本地目录", asset: "./assets/icons-wuxia/package-crate.svg" }),
+  "app-update": Object.freeze({ label: "升级更新", kicker: "版本检查", asset: "./assets/icons-wuxia/refresh.svg" }),
   settings: Object.freeze({ label: "设置", kicker: "控制工具", asset: "./assets/icons-wuxia/settings.svg" }),
   clawbot: Object.freeze({ label: "微信连接", kicker: "连接工具", asset: "./assets/icons-wuxia/link.svg" }),
   memory: Object.freeze({ label: "记忆知识", kicker: "知识工具", asset: "./assets/icons-wuxia/memory.svg" }),
@@ -215,10 +224,35 @@ let chatToolWindowOrigin = null;
 let chatToolReturnTab = "collaboration";
 let chatToolLayoutSnapshot = null;
 let pendingChatToolWindowRequest = null;
+const quickCatalogRequestSerial = { skills: 0, "plugin-market": 0 };
+let appUpdateRequestSerial = 0;
+let appUpdateCheckInFlight = false;
 let selectedProjectPath = "";
 let selectedProjectKind = "";
 let projectTreeRoot = null;
+let projectWorkspaceScope = "";
+let projectWorkspaceGeneration = 0;
+let projectTreeRequestSerial = 0;
+let projectFileOpenSerial = 0;
+let projectLineWindowSerial = 0;
+let projectFileSaveSerial = 0;
+let projectDiffRequestSerial = 0;
 const expandedProjectPaths = new Set();
+function projectRequestScope() {
+  return { workspace: projectWorkspaceScope, generation: projectWorkspaceGeneration };
+}
+function projectRequestScopeCurrent(scope) {
+  return scope.generation === projectWorkspaceGeneration && scope.workspace === projectWorkspaceScope;
+}
+function projectInvalidateWorkspaceRequests(workspace) {
+  projectWorkspaceScope = String(workspace || "");
+  projectWorkspaceGeneration += 1;
+  projectTreeRequestSerial += 1;
+  projectFileOpenSerial += 1;
+  projectLineWindowSerial += 1;
+  projectFileSaveSerial += 1;
+  projectDiffRequestSerial += 1;
+}
 // IDE 工程窗口 · 阶段D：View/Diff 合并按钮状态机（plan §4.6）
 let ideViewDiffMode = "view"; // "view" | "diff"
 let ideDiffLeft = "";  // 当前 diff 左侧文件相对路径
@@ -230,6 +264,7 @@ let ideDiffRight = ""; // 当前 diff 右侧文件相对路径
 const IDE_TAB_MAX = 12;
 const IDE_TABS_STORAGE_KEY = "coolzhu.ide.tabs.v1";
 let ideState = { tabs: [], activeTabId: null };
+const ideWorkspaceStates = new Map();
 let memoryWindowBeads = [];
 let memoryWindowSelectedBeadId = null;
 let memoryWindowSummary = null;
@@ -345,6 +380,12 @@ document.addEventListener("DOMContentLoaded", () => {
   actionButtons.get("chat-room-rename")?.addEventListener("click", renameSelectedChatRoom);
   actionButtons.get("chat-room-delete")?.addEventListener("click", deleteSelectedChatRoom);
   actionButtons.get("chat-permission-save")?.addEventListener("click", saveChatRoomPermission);
+  const topChatPermissions = document.querySelector(".top-chat-permissions");
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !topChatPermissions?.open) return;
+    event.preventDefault();
+    closeTopChatPermissions({ focusSummary: true });
+  }, true);
   actionButtons.get("chat-workspace-edit")?.addEventListener("click", () => beginWorkspaceEdit('[data-role="chat-workspace-path"]'));
   actionButtons.get("overview-agent-settings")?.addEventListener("click", focusChatAgentTargets);
   actionButtons.get("project-refresh")?.addEventListener("click", () => loadProjectTree());
@@ -377,6 +418,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("click", (event) => {
+    if (topChatPermissions?.open && !topChatPermissions.contains(event.target)) {
+      closeTopChatPermissions();
+    }
     if (!event.target.closest(".session-select-wrap")) {
       setSessionListOpen(false);
     }
@@ -410,6 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     saveComposerDraft();
+    closeTopChatPermissions();
     activeChatRoomId = option.dataset.roomId;
     await openSelectedChatRoom();
   });
@@ -443,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
     agentTrigger.click();
   });
   document.querySelector('[data-role="agent-targets"]')?.addEventListener("change", () => {
+    setAgentTargetWarning("");
     updateAgentTriggerText();
     persistAgentTargets(activeChatRoomId);
   });
@@ -554,16 +600,38 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   actionButtons.get("terminal-window-run")?.addEventListener("click", terminalWindowRunPowerShell);
   actionButtons.get("terminal-window-clear")?.addEventListener("click", terminalWindowClear);
+  actionButtons.get("terminal-window-interrupt")?.addEventListener("click", terminalWindowInterrupt);
+  actionButtons.get("terminal-window-close")?.addEventListener("click", terminalWindowClose);
+  const terminalOutput = document.querySelector('[data-role="terminal-window-output"]');
+  if (terminalOutput && typeof ResizeObserver === "function") {
+    new ResizeObserver(() => terminalWindowResizeSoon()).observe(terminalOutput);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) window.clearTimeout(terminalWindowState.resizeTimer);
+    else terminalWindowResizeSoon();
+  });
+  actionButtons.get("skills-catalog-refresh")?.addEventListener("click", () => refreshQuickCatalogWindow("skills"));
+  actionButtons.get("plugin-market-refresh")?.addEventListener("click", () => refreshQuickCatalogWindow("plugin-market"));
+  actionButtons.get("app-update-check")?.addEventListener("click", () => refreshAppUpdateStatus({ check: true }));
   actionButtons.get("self-update-plan-refresh")?.addEventListener("click", refreshSelfUpdatePlan);
   document.querySelector('[data-role="project-tree"]')?.addEventListener("click", onProjectTreeClick);
   document.querySelector('[data-role="project-tree"]')?.addEventListener("dblclick", onProjectTreeDblClick);
   document.querySelector('[data-role="project-tree"]')?.addEventListener("contextmenu", onProjectTreeContextMenu);
+  actionButtons.get("lsp-preview-start")?.addEventListener("click", startLspPreview);
+  actionButtons.get("lsp-preview-refresh")?.addEventListener("click", () => refreshLspPreviewDiagnostics());
+  actionButtons.get("lsp-preview-definition")?.addEventListener("click", () => navigateLspPreview("definition"));
+  actionButtons.get("lsp-preview-references")?.addEventListener("click", () => navigateLspPreview("references"));
+  actionButtons.get("lsp-preview-close")?.addEventListener("click", closeLspPreview);
+  document.querySelector('[data-role="project-file-preview"]')?.addEventListener("click", captureLspPreviewPosition);
+  document.querySelector('[data-role="project-file-preview"]')?.addEventListener("keyup", captureLspPreviewPosition);
   document.querySelector('[data-bind="project.path"]')?.addEventListener("dblclick", beginWorkspaceEdit);
   document.querySelector('[data-role="overview-workspace-name"]')?.addEventListener("click", focusChatWorkspaceSettings);
 
   window.addEventListener("resize", positionAvatarPicker);
   window.addEventListener("beforeunload", (event) => {
-    if (ideState.tabs.some((tab) => tab.dirty)) {
+    const hasUnsavedFile = ideState.tabs.some((tab) => tab.dirty)
+      || Array.from(ideWorkspaceStates.values()).some((state) => state.tabs.some((tab) => tab.dirty));
+    if (hasUnsavedFile) {
       event.preventDefault();
       event.returnValue = "";
     }
@@ -1885,6 +1953,97 @@ async function refreshSelfUpdatePlan() {
     }
   } finally {
     setBusy(button, false);
+  }
+}
+
+const APP_UPDATE_STATUS_LABELS = Object.freeze({
+  not_checked: "尚未检查更新",
+  checking: "正在检查正式发布版本…",
+  up_to_date: "已是当前渠道的最新正式版本",
+  update_available: "有可用更新",
+  unavailable: "当前渠道无法判断是否有更新",
+  check_failed: "检查更新失败",
+  no_published_release: "尚无正式发布版本",
+});
+
+function officialReleasePageUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    if (url.protocol !== "https:" || url.hostname !== "github.com" || url.username || url.password) {
+      return null;
+    }
+    if (!/^\/coolzhulike\/coolzhuagent\/releases(?:\/(?:latest|tag\/[^/]+))?\/?$/.test(url.pathname)) {
+      return null;
+    }
+    return url.href;
+  } catch (_) {
+    return null;
+  }
+}
+
+function renderAppUpdateStatus(data = {}) {
+  const setRole = (role, value) => {
+    const node = document.querySelector(`[data-role="${role}"]`);
+    if (node) node.textContent = value;
+  };
+  const channel = data.channel === "release" ? "正式发行版" : data.channel === "development" ? "开发构建" : "未知";
+  const currentVersion = data.current_version || (data.channel === "development" ? "未知（开发构建）" : "未知");
+  const checkedMillis = Number(data.checked_at);
+  const checkedDate = data.checked_at != null && Number.isFinite(checkedMillis) && checkedMillis > 0
+    ? new Date(checkedMillis)
+    : null;
+  const checkedAt = checkedDate && !Number.isNaN(checkedDate.getTime())
+    ? checkedDate.toLocaleString("zh-CN")
+    : "尚未检查";
+  const state = APP_UPDATE_STATUS_LABELS[data.status] || "更新状态未知";
+  const hasPublishedRelease = ["up_to_date", "update_available", "unavailable"].includes(data.status)
+    && Boolean(data.latest_version);
+  setRole("app-update-current-version", currentVersion);
+  setRole("app-update-build-version", data.build_version || "未知");
+  setRole("app-update-channel", channel);
+  setRole("app-update-latest-version", hasPublishedRelease ? data.latest_version : "尚未确认");
+  setRole("app-update-checked-at", checkedAt);
+  setRole("app-update-state", state);
+  setRole("app-update-message", data.message || "");
+  const release = document.querySelector('[data-role="app-update-release"]');
+  const releaseUrl = hasPublishedRelease ? officialReleasePageUrl(data.release_url) : null;
+  if (release) {
+    release.hidden = !releaseUrl;
+    if (releaseUrl) release.href = releaseUrl;
+    else release.removeAttribute("href");
+  }
+  const railButton = document.querySelector('.quick-rail-update[data-window-target="app-update"]');
+  if (railButton) railButton.dataset.updateStatus = data.status || "unknown";
+}
+
+async function refreshAppUpdateStatus({ check = false } = {}) {
+  if (appUpdateCheckInFlight) return;
+  const serial = ++appUpdateRequestSerial;
+  const button = actionButtons.get("app-update-check");
+  const state = document.querySelector('[data-role="app-update-state"]');
+  if (check) {
+    appUpdateCheckInFlight = true;
+    setBusy(button, true, "检查中");
+  }
+  if (state) state.textContent = check ? "正在检查正式发布版本…" : "正在读取更新状态…";
+  try {
+    const result = await requestJson(
+      check ? "/api/system/app-update/check" : "/api/system/app-update",
+      check ? { method: "POST" } : undefined,
+    );
+    if (serial === appUpdateRequestSerial) renderAppUpdateStatus(result);
+  } catch (error) {
+    if (serial === appUpdateRequestSerial) {
+      renderAppUpdateStatus({
+        status: "check_failed",
+        message: `更新状态读取失败：${error.message}`,
+      });
+    }
+  } finally {
+    if (check) {
+      appUpdateCheckInFlight = false;
+      setBusy(button, false);
+    }
   }
 }
 
@@ -4177,8 +4336,13 @@ async function respondToApproval(kind, scope) {
     session_id: activeScope.session_id,
     chat_room_id: activeScope.chat_room_id,
   };
+  const needsSecondConfirmation = kind === "approve"
+    && (activeRecord || listRecord)?.permission?.decision === "require-confirm";
+  if (needsSecondConfirmation && !window.confirm(
+    `此操作需要再次确认。\n\n${(activeRecord || listRecord)?.tool_name || "工具调用"}\n\n确认后才会执行。`,
+  )) return;
   const body = kind === "approve"
-    ? { call_id: callId, scope: scope || "once", confirmed_twice: false, ...scopedFields }
+    ? { call_id: callId, scope: scope || "once", confirmed_twice: needsSecondConfirmation, ...scopedFields }
     : { call_id: callId, reason: "user-rejected", ...scopedFields };
   try {
     const res = await fetch(url, {
@@ -4190,7 +4354,13 @@ async function respondToApproval(kind, scope) {
       console.warn("[tool-approval]", url, res.status);
       return;
     }
+    const response = kind === "approve" ? await res.json() : null;
     hideApprovalPanel();
+    if (response?.outcome?.tool_name?.startsWith("mcp-")
+      || response?.outcome?.tool_name?.startsWith("mcp__")) {
+      setMcpOutput(response.outcome);
+      void refreshMcpServers({ silent: true });
+    }
     // 审批完成后刷新审计记录，给用户"刚刚做了什么"的即时反馈
     refreshToolAudit();
     refreshPendingApprovals();
@@ -4709,7 +4879,13 @@ function taskRenderSchedules(registry = {}, error = null) {
   renderTaskScheduleGoalOptions();
   taskScheduleSyncTaskKindVisibility();
   const list = document.querySelector('[data-role="task-schedule-list"]');
-  setBindText("tasks.scheduleDue", `${registry.due_count || 0} 项待执行`);
+  const occurrences = Array.isArray(registry.occurrences) ? registry.occurrences : [];
+  const occurrenceById = new Map(occurrences.map((item) => [item.id, item]));
+  const dueCount = Math.max(0, Number(registry.due_count) || 0);
+  const reviewCount = Math.min(dueCount, occurrences.length);
+  setBindText("tasks.scheduleDue", reviewCount
+    ? `${dueCount - reviewCount} 项可执行 · ${reviewCount} 项待核对`
+    : `${dueCount} 项待执行`);
   if (!list) {
     return;
   }
@@ -4762,6 +4938,10 @@ function taskRenderSchedules(registry = {}, error = null) {
   tasks.forEach((task) => {
     const item = document.createElement("article");
     item.className = `task-schedule-item is-${task.status || "scheduled"}`;
+    const occurrence = occurrenceById.get(task.id);
+    const occurrenceLine = occurrence && Number(occurrence.scheduled_for_ms) === Number(task.run_at_ms)
+      ? `<small class="task-schedule-error"><img class="wuxia-inline-icon" src="./assets/icons-wuxia/alert-triangle.svg" alt="" /> ${escapeHtml(occurrence.message || "执行状态暂不可用，请核查")}</small>`
+      : "";
     const isGoal = task.task_kind === "goal";
     const kindBadge = isGoal
       ? '<img class="wuxia-inline-icon" src="./assets/icons-wuxia/tasks.svg" alt="" /> 目标推进'
@@ -4780,6 +4960,7 @@ function taskRenderSchedules(registry = {}, error = null) {
         <p>${escapeHtml(task.content || "")}</p>
         ${goalLine}
         <small>${escapeHtml(taskScheduleMetaLine(task, describeSchedule))}</small>
+        ${occurrenceLine}
         ${errLine}
       </div>
       <button type="button" class="task-schedule-delete" data-schedule-delete="${escapeHtml(task.id || "")}">删除</button>
@@ -5297,50 +5478,88 @@ async function refreshProtectedPaths() {
   }
 }
 
+function closeTopChatPermissions({ focusSummary = false } = {}) {
+  const details = document.querySelector(".top-chat-permissions");
+  if (!details?.open) return;
+  details.open = false;
+  if (focusSummary) details.querySelector("summary")?.focus({ preventScroll: true });
+}
+
+function chatPermissionStatusKnown(roomId = activeChatRoomId) {
+  return Boolean(roomId && projectWorkspaceScope && taskFullAccessStatus?.room_id === roomId
+    && !taskFullAccessStatus.error && !taskFullAccessStatus.loading);
+}
+
 async function refreshFullAccessStatus() {
-  if (!activeChatRoomId) {
-    taskFullAccessStatus = { full_access: false, permission_profile: "workspace-write" };
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  const requestSerial = ++chatPermissionRequestSerial;
+  if (!roomId) {
+    closeTopChatPermissions();
+    taskRenderFullAccessStatus({});
     return;
   }
+  taskRenderFullAccessStatus({ room_id: roomId, loading: true });
   try {
-    taskFullAccessStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`);
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
+    taskRenderFullAccessStatus(status);
   } catch (error) {
-    taskRenderFullAccessStatus({ active: false, error: error.message, ttl_secs_remaining: 0 });
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
+    taskRenderFullAccessStatus({ room_id: roomId, error: error.message });
   }
 }
 
+let chatPermissionRequestSerial = 0;
+function chatPermissionRequestCurrent(roomId, scope, requestSerial) {
+  return activeChatRoomId === roomId && projectRequestScopeCurrent(scope) && chatPermissionRequestSerial === requestSerial;
+}
+
 function taskRenderFullAccessStatus(status = {}) {
-  const debugOpen = Boolean(status.dev_open_permissions);
-  const active = Boolean(debugOpen || status.effective_full_access || status.full_access || status.permission_profile === "full-access");
-  const permissionProfile = status.permission_profile || (active ? "full-access" : "workspace-write");
-  setBindText("tasks.fullAccessStatus", debugOpen ? "已启用 · 调试完全访问" : active ? "已启用 · 当前聊天室" : "未启用 · 工作区范围");
+  const hasRoom = Boolean(activeChatRoomId);
+  const known = hasRoom && Boolean(projectWorkspaceScope) && status.room_id === activeChatRoomId && !status.error && !status.loading;
+  const debugOpen = known && Boolean(status.dev_open_permissions);
+  const active = known && Boolean(debugOpen || status.effective_full_access || status.full_access || status.permission_profile === "full-access");
+  const permissionProfile = known ? status.permission_profile || (active ? "full-access" : "workspace-write") : "workspace-write";
+  setBindText("tasks.fullAccessStatus", !hasRoom ? "未选择聊天室" : !known ? "状态未知" : active ? "已启用 · 完全访问" : "未启用 · 工作区范围");
   const permissionSelect = document.querySelector('[data-role="chat-permission-select"]');
   const permissionStatus = document.querySelector('[data-role="chat-permission-status"]');
   const permissionHint = document.querySelector('[data-role="chat-permission-hint"]');
   if (permissionSelect) {
     permissionSelect.value = permissionProfile;
-    permissionSelect.disabled = !activeChatRoomId;
+    permissionSelect.disabled = !known;
+  }
+  const permissionSaveButton = actionButtons.get("chat-permission-save");
+  if (permissionSaveButton && !permissionSaveButton.classList.contains("is-busy")) {
+    permissionSaveButton.disabled = !known;
   }
   if (permissionStatus) {
-    permissionStatus.textContent = debugOpen ? "调试完全访问" : active ? "完全访问" : "工作区写入";
+    permissionStatus.textContent = !hasRoom ? "未选择" : !known ? "状态未知" : active ? "完全访问" : "目录权限";
   }
   if (permissionHint) {
-    permissionHint.textContent = debugOpen
-      ? "调试完全访问已开启；下方房间权限设置在关闭调试开放权限后生效。模型工具开关仍单独生效。"
+    permissionHint.textContent = !hasRoom
+      ? "请选择聊天室后设置权限。"
+      : !known
+      ? status.loading ? "正在读取当前聊天室权限，请稍后。" : "权限状态未能读取，请刷新后重试。"
+      : debugOpen
+      ? "工程已开启调试完全访问；房间选项将在关闭调试开放权限后生效。模型工具开关仍单独生效。"
       : permissionProfile === "full-access"
       ? "当前聊天室已启用完全访问；撤销或切换权限需要经过安全确认。"
       : "权限只对当前聊天室生效；启用完全访问仍需双重确认。";
+    permissionHint.title = permissionHint.textContent;
   }
   const roomName = status.room_name || chatRoomRegistry.rooms?.find((item) => item.id === activeChatRoomId)?.name;
   const roomEl = document.querySelector('[data-role="authorization-selected-room"]');
   const scopeEl = document.querySelector('[data-role="authorization-scope"]');
   const riskEl = document.querySelector('[data-role="authorization-risk"]');
-  if (roomEl) roomEl.textContent = roomName || "尚未选择聊天室";
-  if (scopeEl) scopeEl.textContent = debugOpen ? "当前工程调试完全访问" : active ? "当前聊天室可完全访问" : "当前聊天室限工作区访问";
+  if (roomEl) roomEl.textContent = hasRoom ? roomName || "当前聊天室" : "尚未选择聊天室";
+  if (scopeEl) scopeEl.textContent = !hasRoom ? "尚未选择聊天室" : !known ? "权限状态未知" : debugOpen ? "当前工程调试完全访问" : active ? "当前聊天室可完全访问" : "当前聊天室限工作区访问";
   if (riskEl) {
-    riskEl.textContent = debugOpen
+    riskEl.textContent = !hasRoom
+      ? "请选择聊天室后查看权限。"
+      : !known
+      ? "权限状态未知，已暂停更改；请刷新后重试。"
+      : debugOpen
       ? "调试开放权限由工程配置 tool.dev_open_permissions 控制；撤销房间授权不会关闭调试开放权限。"
       : active
       ? "此聊天室已启用完全访问；应用重启后再次选择该聊天室时会恢复该权限。"
@@ -5350,9 +5569,11 @@ function taskRenderFullAccessStatus(status = {}) {
   panel?.classList.toggle("is-active", active);
   setWorkbenchMotionState("tasks", WORKBENCH_MOTION_STATES.tasks, active);
   const revoke = actionButtons.get("full-access-revoke");
-  if (revoke) {
-    revoke.disabled = !(status.full_access || status.permission_profile === "full-access");
+  if (revoke && !revoke.classList.contains("is-busy")) {
+    revoke.disabled = !known || !(status.full_access || status.permission_profile === "full-access");
   }
+  const enable = actionButtons.get("full-access-enable");
+  if (enable && !enable.classList.contains("is-busy")) enable.disabled = !known;
   taskFullAccessStatus = status;
   renderChatRightRailStatus();
 }
@@ -5360,13 +5581,20 @@ function taskRenderFullAccessStatus(status = {}) {
 async function saveChatRoomPermission(event) {
   const button = event?.currentTarget || actionButtons.get("chat-permission-save");
   const select = document.querySelector('[data-role="chat-permission-select"]');
-  if (!activeChatRoomId || !select) {
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  if (!roomId || !select) {
+    return;
+  }
+  if (!chatPermissionStatusKnown(roomId) || !scope.workspace) {
+    addMessage({ author: "聊天室权限", text: "权限状态未知，请刷新后再保存。", kind: "thought", icon: "error-log" });
     return;
   }
   const selectedProfile = select.value === "full-access" ? "full-access" : "workspace-write";
   const currentProfile = taskFullAccessStatus.permission_profile || "workspace-write";
   if (selectedProfile === currentProfile) {
     taskRenderFullAccessStatus(taskFullAccessStatus);
+    closeTopChatPermissions();
     return;
   }
   let riskAcknowledged = false;
@@ -5379,39 +5607,56 @@ async function saveChatRoomPermission(event) {
       return;
     }
   }
+  if (activeChatRoomId !== roomId || !projectRequestScopeCurrent(scope)) return;
+  const requestSerial = ++chatPermissionRequestSerial;
   setBusy(button, true, "保存中");
   try {
-    taskFullAccessStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`, {
+    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        expected_workspace: scope.workspace,
         permission_profile: selectedProfile,
         risk_acknowledged: riskAcknowledged,
         confirmed_twice: confirmedTwice,
       }),
     });
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) {
+      if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
+      return;
+    }
+    taskRenderFullAccessStatus(status);
+    closeTopChatPermissions();
     await refreshToolAudit();
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     select.value = currentProfile;
     taskRenderFullAccessStatus(taskFullAccessStatus);
     addMessage({ author: "聊天室权限", text: `权限保存失败：${error.message}`, kind: "thought", icon: "error-log" });
+    void refreshFullAccessStatus();
   } finally {
     setBusy(button, false);
+    if (button) button.disabled = !chatPermissionStatusKnown();
   }
 }
 
 async function refreshChatRoomDiagnosticsPreferences() {
-  if (!activeChatRoomId) {
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  const requestSerial = ++chatPermissionRequestSerial;
+  if (!roomId) {
     activeChatRoomDiagnostics = { enabled: true, auto_refresh: false, show_stream_interrupts: true, show_details: true };
     return activeChatRoomDiagnostics;
   }
   try {
-    activeChatRoomDiagnostics = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/diagnostics`);
+    const diagnostics = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/diagnostics`);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return activeChatRoomDiagnostics;
+    activeChatRoomDiagnostics = diagnostics;
     if (activeChatRoomDiagnostics.enabled && activeChatRoomDiagnostics.auto_refresh) {
       void diagnosticsWindowRefresh({ silent: true });
     }
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return activeChatRoomDiagnostics;
     console.warn("聊天室诊断偏好读取失败", error);
   }
   return activeChatRoomDiagnostics;
@@ -5419,16 +5664,20 @@ async function refreshChatRoomDiagnosticsPreferences() {
 
 async function openChatRoomDiagnosticsSettings(event) {
   const button = event?.currentTarget || actionButtons.get("chat-room-diagnostics");
-  if (!activeChatRoomId) {
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  if (!roomId || !scope.workspace) {
     addMessage({ author: "聊天室诊断", text: "请先选择聊天室。", kind: "thought", icon: "error-log" });
     return;
   }
+  const requestSerial = ++chatPermissionRequestSerial;
   setBusy(button, true, "读取中");
   try {
     const [data, permission] = await Promise.all([
-      requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/diagnostics`),
-      requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`),
+      requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/diagnostics`),
+      requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`),
     ]);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     document.querySelector(".chat-room-diagnostics-modal")?.remove();
     const modal = document.createElement("div");
     modal.className = "task-chain-modal chat-room-diagnostics-modal";
@@ -5459,17 +5708,26 @@ async function openChatRoomDiagnosticsSettings(event) {
     modal.querySelector("[data-diagnostics-save]")?.addEventListener("click", async (saveEvent) => {
       const saveButton = saveEvent.currentTarget;
       const status = modal.querySelector('[data-role="diagnostics-save-status"]');
+      if (!modal.isConnected || activeChatRoomId !== roomId || !projectRequestScopeCurrent(scope)) {
+        close();
+        return;
+      }
+      const saveSerial = ++chatPermissionRequestSerial;
       const payload = {};
       modal.querySelectorAll("[data-diagnostics-field]").forEach((input) => {
         payload[input.dataset.diagnosticsField] = Boolean(input.checked);
       });
       setBusy(saveButton, true, "保存中");
       try {
-        const saved = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/diagnostics`, {
+        const saved = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/diagnostics`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+          close();
+          return;
+        }
         const permissionSelect = modal.querySelector("[data-diagnostics-permission]");
         if (permissionSelect && permissionSelect.value !== (permission.permission_profile || "workspace-write")) {
           const selectedProfile = permissionSelect.value;
@@ -5478,23 +5736,39 @@ async function openChatRoomDiagnosticsSettings(event) {
           if (selectedProfile === "full-access" && (!riskAck || !confirmedTwice)) {
             throw new Error("完全访问未完成双重确认，已保持原权限");
           }
-          await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`, {
+          if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+            close();
+            return;
+          }
+          const permissionStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ permission_profile: selectedProfile, risk_acknowledged: riskAck, confirmed_twice: confirmedTwice }),
+            body: JSON.stringify({ expected_workspace: scope.workspace, permission_profile: selectedProfile, risk_acknowledged: riskAck, confirmed_twice: confirmedTwice }),
           });
+          if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+            close();
+            if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
+            return;
+          }
+          taskRenderFullAccessStatus(permissionStatus);
         }
         activeChatRoomDiagnostics = saved;
         if (status) status.textContent = `已保存 · ${new Date((saved.updated_at || Date.now())).toLocaleTimeString()}`;
         refreshAuthorizationSelectedRoom();
       } catch (error) {
+        if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+          close();
+          return;
+        }
         if (status) status.textContent = `保存失败：${error.message}`;
+        void refreshFullAccessStatus();
       } finally {
         setBusy(saveButton, false);
       }
     });
     document.body.append(modal);
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     addMessage({ author: "聊天室诊断", text: `读取诊断设置失败：${error.message}`, kind: "thought", icon: "error-log" });
   } finally {
     setBusy(button, false);
@@ -5503,11 +5777,17 @@ async function openChatRoomDiagnosticsSettings(event) {
 
 async function enableFullAccessGrant(event) {
   const button = event?.currentTarget || actionButtons.get("full-access-enable");
-  if (!activeChatRoomId) {
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  if (!roomId) {
     addMessage({ author: "工具权限", text: "请先选择聊天室，再启用完全访问。", kind: "thought", icon: "error-log" });
     return;
   }
-  const roomName = chatRoomRegistry.rooms?.find((item) => item.id === activeChatRoomId)?.name || activeChatRoomId;
+  if (!chatPermissionStatusKnown(roomId) || !scope.workspace) {
+    addMessage({ author: "工具权限", text: "权限状态未知，请刷新后再授权。", kind: "thought", icon: "error-log" });
+    return;
+  }
+  const roomName = chatRoomRegistry.rooms?.find((item) => item.id === roomId)?.name || roomId;
   const ok = window.confirm(`确认向聊天室“${roomName}”授予持续有效的完全访问权限？撤销前，该聊天室可执行任意命令和文件写入。`);
   if (!ok) {
     return;
@@ -5516,44 +5796,68 @@ async function enableFullAccessGrant(event) {
   if (!confirmedTwice) {
     return;
   }
+  if (activeChatRoomId !== roomId || !projectRequestScopeCurrent(scope)) return;
+  const requestSerial = ++chatPermissionRequestSerial;
   setBusy(button, true, "授权中");
   try {
-    taskFullAccessStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`, {
+    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        expected_workspace: scope.workspace,
         permission_profile: "full-access",
         confirmed_twice: confirmedTwice,
         risk_acknowledged: ok,
       }),
     });
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) {
+      if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
+      return;
+    }
+    taskRenderFullAccessStatus(status);
+    closeTopChatPermissions();
     await refreshToolAudit();
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     addMessage({ author: "工具权限", text: `完全访问授权失败：${error.message}`, kind: "thought", icon: "error-log" });
+    void refreshFullAccessStatus();
   } finally {
     setBusy(button, false);
+    if (button) button.disabled = !chatPermissionStatusKnown();
   }
 }
 
 async function revokeFullAccessGrant(event) {
   const button = event?.currentTarget || actionButtons.get("full-access-revoke");
+  const roomId = activeChatRoomId;
+  const scope = projectRequestScope();
+  if (!roomId || !chatPermissionStatusKnown(roomId) || !scope.workspace) {
+    addMessage({ author: "工具权限", text: "权限状态未知，请刷新后再撤销。", kind: "thought", icon: "error-log" });
+    return;
+  }
+  const requestSerial = ++chatPermissionRequestSerial;
   setBusy(button, true, "撤销中");
   try {
-    if (!activeChatRoomId) {
-      throw new Error("当前没有已选择的聊天室");
-    }
-    taskFullAccessStatus = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/permissions`, {
+    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ permission_profile: "workspace-write" }),
+      body: JSON.stringify({ expected_workspace: scope.workspace, permission_profile: "workspace-write" }),
     });
-    taskRenderFullAccessStatus(taskFullAccessStatus);
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) {
+      if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
+      return;
+    }
+    taskRenderFullAccessStatus(status);
+    closeTopChatPermissions();
     await refreshToolAudit();
   } catch (error) {
+    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     addMessage({ author: "工具权限", text: `完全访问撤销失败：${error.message}`, kind: "thought", icon: "error-log" });
+    void refreshFullAccessStatus();
   } finally {
     setBusy(button, false);
+    if (button) button.disabled = !chatPermissionStatusKnown()
+      || !(taskFullAccessStatus.full_access || taskFullAccessStatus.permission_profile === "full-access");
   }
 }
 
@@ -7198,7 +7502,7 @@ function selectedAgentRecords(registry = agentRegistry) {
   const byId = new Map(agents.map((agent) => [String(agent?.id || ""), agent]));
   return getSelectedAgentIds()
     .map((agentId) => byId.get(String(agentId)))
-    .filter(Boolean);
+    .filter(canSendToAgent);
 }
 
 function renderOverviewMascot() {
@@ -7224,20 +7528,22 @@ function renderOverviewMascot() {
   const selectedNames = selectedAgents
     .map((candidate) => candidate?.display_name || candidate?.name || candidate?.id)
     .filter(Boolean);
+  const needsConfirmation = document.querySelector('[data-role="agent-target-warning"]')?.dataset.requiresConfirmation === "true";
   const hasRecipientControls = Boolean(document.querySelector('[data-role="agent-targets"]'));
-  const labelText = selectedNames.length
+  const targetLabel = selectedNames.length
     ? selectedNames.join("、")
     : hasRecipientControls
       ? "未配置"
       : agent?.display_name || agent?.name || "未配置";
+  const labelText = needsConfirmation ? `${targetLabel}（需确认）` : targetLabel;
   image.title = selectedNames.length
     ? `当前发送对象：${selectedNames.join("、")}`
-    : agent?.display_name || agent?.name || "智能体概览";
+    : hasRecipientControls ? "当前发送对象未配置" : agent?.display_name || agent?.name || "智能体概览";
   if (label) {
     label.textContent = labelText;
     label.title = selectedNames.length
-      ? `当前发送对象：${selectedNames.join("、")}`
-      : agent?.id || agent?.name || "当前 Agent";
+      ? `当前发送对象：${selectedNames.join("、")}${needsConfirmation ? "；历史选择包含不可用对象，请重新确认" : ""}`
+      : "当前发送对象未配置";
   }
   image.closest(".overview-mascot")?.style.setProperty("--avatar-theme", avatarThemeForPath(avatar));
 }
@@ -7922,10 +8228,20 @@ function taskRenderAuditSummary(entries = []) {
 }
 
 async function refreshState() {
+  const requestedProjectGeneration = projectWorkspaceGeneration;
   try {
     const [state, vision] = await Promise.all([
       requestJson("/api/state"), requestJson("/api/agents/understanding"),
     ]);
+    if (requestedProjectGeneration !== projectWorkspaceGeneration) return;
+    if (projectWorkspaceScope !== String(state.workspace || "")) {
+      if (projectWorkspaceScope) {
+        resetWorkspaceBoundUiState(state.workspace);
+      } else {
+        projectInvalidateWorkspaceRequests(state.workspace);
+        restoreIdeTabsOnInit();
+      }
+    }
     setText("overview.activeAgentCount", String(state.overview?.active_agent_count ?? 0));
     // 下拉框只反映实际保存的视觉配置，候选能力由后端按会话参数解析。
     visionUnderstandingAgents = (vision.agents || []).map(agent => ({...agent, id:agent.session_id}));
@@ -7943,6 +8259,7 @@ async function refreshState() {
     setText("tools.plugins", state.tools.plugins);
     setText("stability.mode", state.stability.mode);
   } catch (error) {
+    if (requestedProjectGeneration !== projectWorkspaceGeneration) return;
     addMessage({
       author: "系统消息",
       text: `后端暂未连接：${error.message}`,
@@ -7999,6 +8316,7 @@ async function refreshSystemInfo() {
     setSystemInfoText("system-sessions", "—");
     setSystemInfoText("system-attribution", "—");
     setSystemConnectionState("error", "未连接", `本地后端未连接：${error.message}`);
+    syncSystemSafetyBadge({ unavailable: true });
     setOverviewWorkspaceName("");
   }
 }
@@ -8017,11 +8335,27 @@ async function refreshAttributionAndRecovery() {
       attributionDetailText(surface)
     );
     syncReleaseIsolationButton(surface?.input_safety_recovery);
+    syncSystemSafetyBadge(surface?.input_safety_recovery);
     bindComputerUseRunsButton();
   } catch (error) {
     setSystemInfoText("system-attribution", "归属状态未知", error.message);
     syncReleaseIsolationButton(null);
+    syncSystemSafetyBadge({ unavailable: true });
   }
+}
+
+function syncSystemSafetyBadge(safety) {
+  const badge = document.querySelector('[data-role="chat-trace-safety-badge"]');
+  if (!badge) return;
+  const label = !safety || safety.unavailable
+    ? "状态未知"
+    : safety.accepts_new_input === false
+    ? "输入隔离"
+    : Number(safety.human_review_required ?? 0) > 0
+    ? "待人工复核"
+    : "";
+  badge.textContent = label;
+  badge.hidden = !label;
 }
 
 function describeAttributionAndRecovery(surface) {
@@ -8043,13 +8377,18 @@ function describeAttributionAndRecovery(surface) {
 function describeInputSafetyRecovery(safety) {
   if (!safety) return "";
   if (safety.unavailable) {
-    return " · 输入安全库不可读（不代表没有待办）";
+    return " · 输入安全状态不可读，当前输入状态未知（不代表没有待办或已开放）";
   }
   const pending = Number(safety.pending_recovery_operations ?? 0);
   const human = Number(safety.human_review_required ?? 0);
   const blocks = Number(safety.unacknowledged_open_blocks ?? 0);
   const runs = Number(safety.unacknowledged_legacy_runs ?? 0);
-  return ` · 待对账恢复 ${pending} · 待人工复核 ${human} · 未获放行阻断 ${blocks} · 待收敛遗留 ${runs}`;
+  const inputState = safety.accepts_new_input === true
+    ? "当前输入已开放"
+    : safety.accepts_new_input === false
+      ? `当前输入仍隔离（资源状态：${safety.resource_state === "unknown" ? "未知" : safety.resource_state === "isolated" ? "隔离" : safety.resource_state || "未确认"}）`
+      : "当前输入状态未知（不代表已开放）";
+  return ` · 待对账恢复 ${pending} · 待本人复核 ${human} · 未获放行阻断 ${blocks} · 待收敛遗留 ${runs} · ${inputState}`;
 }
 
 // 只有“真的挡路”的项才需要放行；纯 pending（还在办）不该提示人工介入。
@@ -8446,6 +8785,33 @@ async function refreshWorkspaceBoundState(workspace) {
 }
 
 function resetWorkspaceBoundUiState(workspace) {
+  closeTopChatPermissions();
+  document.querySelector(".chat-room-diagnostics-modal")?.remove();
+  if (projectWorkspaceScope) ideWorkspaceStates.set(projectWorkspaceScope, ideState);
+  projectInvalidateWorkspaceRequests(workspace);
+  if (projectTreeClickTimer) {
+    clearTimeout(projectTreeClickTimer);
+    projectTreeClickTimer = null;
+  }
+  if (ideOmniState.debounceTimer) {
+    window.clearTimeout(ideOmniState.debounceTimer);
+    ideOmniState.debounceTimer = 0;
+  }
+  ideOmniState.pendingSeq += 1;
+  if (ideOmniState.input) ideOmniState.input.value = "";
+  hideIdeOmniResults();
+  ideState = { tabs: [], activeTabId: null };
+  ideEditorState = { path: "", startLine: 1, lineCount: 0, truncated: false, editable: false };
+  ideViewDiffMode = "view";
+  ideDiffLeft = "";
+  ideDiffRight = "";
+  updateIdeModeToggleButton();
+  syncIdeDiffPathsUI();
+  ideOutlineSeq += 1;
+  void updateLspPreviewForFile("");
+  setBusy(actionButtons.get("project-refresh"), false);
+  setBusy(actionButtons.get("project-save"), false);
+  setWorkbenchMotionState("project", WORKBENCH_MOTION_STATES.project, false);
   updateActiveWorkspaceKey(composerDraftWorkspaceKey(workspace), { preserveScroll: false });
   agentRegistry = { agents: [], active_agent_ids: [] };
   sessionRegistry = { sessions: [], active_session_id: null, max_sessions: 10 };
@@ -8493,6 +8859,7 @@ function resetWorkspaceBoundUiState(workspace) {
   setText("chat.current", "加载中");
   clearChatMessagesUi();
   clearComposerAttachments();
+  restoreIdeTabsOnInit();
 
   const input = document.querySelector('[data-role="message-input"]');
   if (input) {
@@ -8753,7 +9120,7 @@ async function loadAgents() {
   try {
     const registry = await requestJson("/api/agents");
     agentRegistry = registry;
-    const selectable = registry.agents.filter((agent) => agent.selectable);
+    const selectable = registry.agents.filter(canSendToAgent);
     const active = selectable.find((agent) => registry.active_agent_ids.includes(agent.id)) ?? selectable[0];
 
     setText("agent.current", active ? `${active.name} (${active.model})` : "未选择");
@@ -8857,7 +9224,9 @@ function syncActiveSessionSummary(session) {
 async function loadChatRooms() {
   const registry = await requestJson("/api/chat/rooms");
   chatRoomRegistry = registry;
+  closeTopChatPermissions();
   activeChatRoomId = registry.active_room_id ?? registry.rooms[0]?.id ?? null;
+  taskRenderFullAccessStatus(activeChatRoomId ? { room_id: activeChatRoomId, loading: true } : {});
   clearStaleApprovalForActiveScope();
   renderChatRoomList(registry.rooms, activeChatRoomId);
 
@@ -8865,7 +9234,7 @@ async function loadChatRooms() {
   if (active) {
     updateChatRoomTrigger(active.name);
     restoreAgentTargets(
-      agentRegistry.agents.filter((agent) => agent.selectable),
+      agentRegistry.agents.filter(canSendToAgent),
       agentRegistry.active_agent_ids,
       active.id,
     );
@@ -8879,6 +9248,7 @@ async function loadChatRooms() {
     clearChatMessagesUi("暂无聊天室");
   }
   await refreshPendingApprovals();
+  void terminalWindowRestore();
 }
 
 function clearChatMessagesUi(label = "暂无聊天记录") {
@@ -10394,66 +10764,335 @@ function terminalWindowOutcomeText(outcome = {}, pendingCallId = "") {
   return lines.join("\n\n");
 }
 
-async function terminalWindowRunPowerShell() {
-  const command = document.querySelector('[data-role="terminal-command"]')?.value?.trim();
+function terminalWindowScope() {
+  if (!activeSessionId || !activeChatRoomId) return null;
+  return { session_id: activeSessionId, room_id: activeChatRoomId };
+}
+
+function terminalWindowScopeKey(scope) {
+  return scope ? `${activeWorkspaceKey}\u001f${scope.room_id}\u001f${scope.session_id}` : "";
+}
+
+function terminalWindowStatus(message) {
+  const status = document.querySelector('[data-role="terminal-window-status"]');
+  if (status) status.textContent = message;
+}
+
+function terminalWindowStopPolling() {
+  if (terminalWindowState.pollTimer) window.clearTimeout(terminalWindowState.pollTimer);
+  terminalWindowState.pollTimer = 0;
+}
+
+function terminalWindowReset(scopeKey = "") {
+  terminalWindowStopPolling();
+  if (terminalWindowState.resizeTimer) window.clearTimeout(terminalWindowState.resizeTimer);
+  terminalWindowState.resizeTimer = 0;
+  terminalWindowState.handle = null;
+  terminalWindowState.cursor = 0;
+  terminalWindowState.scopeKey = scopeKey;
+  terminalWindowState.closed = false;
+  terminalWindowResetProjection();
+  terminalWindowState.lastSize = "";
+  terminalWindowState.epoch += 1;
   const output = document.querySelector('[data-role="terminal-window-output"]');
-  const raw = document.querySelector('[data-role="terminal-window-raw"]');
-  if (!command) {
-    if (output) output.textContent = "请输入 PowerShell 命令。";
+  if (output) output.textContent = "启动后可在当前工程目录运行 PowerShell 命令。";
+  terminalWindowStatus("终端尚未启动");
+}
+
+function terminalWindowResetProjection() {
+  terminalWindowState.vtMode = "text";
+  terminalWindowState.vtCsi = "";
+  terminalWindowState.vtLines = [];
+  terminalWindowState.vtRow = 0;
+  terminalWindowState.vtColumn = 0;
+  terminalWindowState.vtEraseBlank = false;
+  terminalWindowState.vtTruncated = false;
+}
+
+function terminalWindowWriteCharacter(char) {
+  const state = terminalWindowState;
+  while (state.vtLines.length <= state.vtRow) state.vtLines.push([]);
+  const cells = state.vtLines[state.vtRow];
+  while (cells.length < state.vtColumn) cells.push(" ");
+  cells[state.vtColumn] = char;
+  state.vtColumn += 1;
+  state.vtEraseBlank = false;
+  if (cells.length > 110000) {
+    cells.splice(0, 20000);
+    state.vtColumn = Math.max(0, state.vtColumn - 20000);
+    state.vtTruncated = true;
+  }
+}
+
+function terminalWindowProjectCsi(command, parameters) {
+  const state = terminalWindowState;
+  const first = Number.parseInt(parameters.split(";")[0], 10);
+  if (command === "H" || command === "f") {
+    const parts = parameters.split(";");
+    state.vtRow = Math.min(1000, Math.max(0, (Number.parseInt(parts[0], 10) || 1) - 1));
+    state.vtColumn = Math.min(1000, Math.max(0, (Number.parseInt(parts[1], 10) || 1) - 1));
+    // PSReadLine 从首页重绘当前屏幕；旧屏幕的长输出和空白尾行不再属于本轮画面。
+    if (state.vtRow === 0 && state.vtColumn === 0) state.vtLines = [];
+    state.vtEraseBlank = false;
+  } else if (command === "J" && first === 2) {
+    state.vtLines = [];
+    state.vtRow = 0;
+    state.vtColumn = 0;
+    state.vtEraseBlank = false;
+  } else if (command === "K") {
+    const line = state.vtLines[state.vtRow];
+    if (line !== undefined) {
+      if (first === 2) line.length = 0;
+      else if (first === 1) line.fill(" ", 0, Math.min(state.vtColumn + 1, line.length));
+      else line.length = Math.min(line.length, state.vtColumn);
+    }
+    // PowerShell 用 K + CRLF 清理屏幕余下行；这些行不是新的命令输出。
+    state.vtEraseBlank = !state.vtLines[state.vtRow]?.length;
+  }
+}
+
+function terminalWindowProjectionText(text) {
+  // 只投影文字与基本光标/擦除操作；颜色、窗口标题等终端控制序列不显示。
+  const state = terminalWindowState;
+  for (const char of String(text || "")) {
+    const code = char.charCodeAt(0);
+    const mode = state.vtMode;
+    if (mode === "csi") {
+      if (code >= 0x40 && code <= 0x7e) {
+        terminalWindowProjectCsi(char, state.vtCsi);
+        state.vtCsi = "";
+        state.vtMode = "text";
+      } else if (state.vtCsi.length < 24) state.vtCsi += char;
+      continue;
+    }
+    if (mode === "string") {
+      if (char === "\x07") state.vtMode = "text";
+      else if (char === "\x1b") state.vtMode = "string-esc";
+      continue;
+    }
+    if (mode === "string-esc") {
+      state.vtMode = char === "\\" ? "text" : (char === "\x1b" ? "string-esc" : "string");
+      continue;
+    }
+    if (mode === "esc-one") { state.vtMode = "text"; continue; }
+    if (mode === "esc") {
+      state.vtMode = char === "[" ? "csi"
+        : "]_PX^".includes(char) ? "string"
+          : "()#".includes(char) ? "esc-one" : "text";
+      if (char === "[") state.vtCsi = "";
+      continue;
+    }
+    if (char === "\x1b") { state.vtMode = "esc"; continue; }
+    if (char === "\b") { state.vtColumn = Math.max(0, state.vtColumn - 1); continue; }
+    if (char === "\r") { state.vtColumn = 0; continue; }
+    if (char === "\n") {
+      state.vtRow += 1;
+      state.vtColumn = 0;
+      if (!state.vtEraseBlank) {
+        while (state.vtLines.length <= state.vtRow) state.vtLines.push([]);
+      }
+      state.vtEraseBlank = false;
+      if (state.vtLines.length > 6000) {
+        state.vtLines.splice(0, 1000);
+        state.vtRow = Math.max(0, state.vtRow - 1000);
+        state.vtTruncated = true;
+      }
+      continue;
+    }
+    if (char === "\t") {
+      do { terminalWindowWriteCharacter(" "); } while (state.vtColumn % 8);
+    } else if (code >= 0x20 && code !== 0x7f) terminalWindowWriteCharacter(char);
+  }
+  let length = state.vtLines.reduce((total, line) => total + line.length + 1, 0);
+  let drop = 0;
+  while ((state.vtLines.length - drop > 5000 || length > 100000)
+      && state.vtLines.length - drop > 1) {
+    length -= state.vtLines[drop].length + 1;
+    drop += 1;
+  }
+  if (drop) {
+    state.vtLines.splice(0, drop);
+    state.vtRow = Math.max(0, state.vtRow - drop);
+    state.vtTruncated = true;
+  }
+  if (state.vtLines.length === 1 && state.vtLines[0].length > 100000) {
+    const removed = state.vtLines[0].length - 100000;
+    state.vtLines[0].splice(0, removed);
+    state.vtColumn = Math.max(0, state.vtColumn - removed);
+    state.vtTruncated = true;
+  }
+  return `${state.vtTruncated ? "[较早输出已省略]\n" : ""}${state.vtLines.map((line) => line.join("")).join("\n")}`;
+}
+
+function terminalWindowResizeSoon() {
+  if (terminalWindowState.resizeTimer) window.clearTimeout(terminalWindowState.resizeTimer);
+  if (document.hidden || !terminalWindowState.handle || terminalWindowState.closed) return;
+  terminalWindowState.resizeTimer = window.setTimeout(() => { void terminalWindowResize(); }, 180);
+}
+
+async function terminalWindowResize() {
+  terminalWindowState.resizeTimer = 0;
+  const scope = terminalWindowScope();
+  const output = document.querySelector('[data-role="terminal-window-output"]');
+  if (!scope || !output || document.hidden || !output.getClientRects().length
+      || !terminalWindowState.handle || terminalWindowState.closed) return;
+  const cols = Math.max(40, Math.min(200, Math.floor(output.clientWidth / 8)));
+  const rows = Math.max(10, Math.min(80, Math.floor(output.clientHeight / 18)));
+  const size = `${cols}x${rows}`;
+  if (terminalWindowState.lastSize === size) return;
+  const handle = terminalWindowState.handle;
+  try {
+    await requestJson(`/api/terminal/${encodeURIComponent(handle)}/resize`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...scope, cols, rows }),
+    });
+    if (handle === terminalWindowState.handle) terminalWindowState.lastSize = size;
+  } catch (error) {
+    if (handle === terminalWindowState.handle && error.status === 409) terminalWindowReset(terminalWindowScopeKey(scope));
+  }
+}
+
+function terminalWindowApply(response, { replace = false } = {}) {
+  if (replace) terminalWindowResetProjection();
+  if (response?.handle) terminalWindowState.handle = response.handle;
+  if (Number.isSafeInteger(response?.next_cursor)) terminalWindowState.cursor = response.next_cursor;
+  terminalWindowState.closed = !!response?.closed;
+  const output = document.querySelector('[data-role="terminal-window-output"]');
+  if (output) {
+    const raw = typeof response?.text === "string" ? response.text : "";
+    if (replace || raw || response?.truncated) {
+      const wasAtBottom = output.scrollHeight - output.clientHeight - output.scrollTop <= 24;
+      if (response?.truncated) terminalWindowState.vtTruncated = true;
+      const projected = terminalWindowProjectionText(raw);
+      if (projected !== output.textContent) {
+        output.textContent = projected;
+        if (replace || wasAtBottom) output.scrollTop = output.scrollHeight;
+      }
+    }
+  }
+  terminalWindowStatus(response?.message || (response?.closed ? "终端已退出" : "终端正在运行"));
+  if (response?.closed) terminalWindowStopPolling();
+  else terminalWindowResizeSoon();
+}
+
+function terminalWindowSchedulePoll(delay = 450) {
+  terminalWindowStopPolling();
+  if (!terminalWindowState.handle) return;
+  terminalWindowState.pollTimer = window.setTimeout(() => { void terminalWindowPoll(); }, delay);
+}
+
+async function terminalWindowPoll() {
+  const scope = terminalWindowScope();
+  if (!scope || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey || !terminalWindowState.handle) {
+    terminalWindowReset(terminalWindowScopeKey(scope));
     return;
   }
-  const timeout = Number(document.querySelector('[data-role="terminal-timeout-ms"]')?.value || 30000);
-  const button = actionButtons.get("terminal-window-run");
-  setBusy(button, true, "执行中");
-  output?.classList.add("is-running");
-  setWorkbenchMotionState("terminal", WORKBENCH_MOTION_STATES.terminal, true);
+  const handle = terminalWindowState.handle;
+  const params = new URLSearchParams({ ...scope, cursor: String(terminalWindowState.cursor) });
   try {
-    const response = await requestJson("/api/tools/runtime-execute", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tool_name: "PowerShell",
-        input: {
-          command,
-          timeout_ms: Number.isFinite(timeout) ? timeout : 30000,
-        },
-        session_id: activeSessionId,
-      }),
-    });
-    if (output) {
-      output.textContent = terminalWindowOutcomeText(response.outcome, response.pending_call_id);
-    }
-    if (raw) {
-      raw.textContent = JSON.stringify(response, null, 2);
-    }
-    await taskRefreshWindow();
+    const response = await requestJson(`/api/terminal/${encodeURIComponent(handle)}/output?${params}`);
+    if (handle !== terminalWindowState.handle || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey) return;
+    terminalWindowApply(response);
+    if (!response.closed) terminalWindowSchedulePoll();
   } catch (error) {
-    if (output) {
-      output.textContent = `PowerShell 执行失败：${error.message}`;
+    if (handle !== terminalWindowState.handle) return;
+    terminalWindowStatus(error.message || "终端连接中断");
+    if (error.status === 409) terminalWindowReset(terminalWindowScopeKey(scope));
+    else if (error.status !== 403) terminalWindowSchedulePoll(1500);
+  }
+}
+
+async function terminalWindowRestore() {
+  const scope = terminalWindowScope();
+  const scopeKey = terminalWindowScopeKey(scope);
+  if (scopeKey !== terminalWindowState.scopeKey) terminalWindowReset(scopeKey);
+  if (!scope) return;
+  const epoch = terminalWindowState.epoch;
+  try {
+    const params = new URLSearchParams(scope);
+    const response = await requestJson(`/api/terminal?${params}`);
+    if (epoch !== terminalWindowState.epoch) return;
+    if (!response.active || !response.handle) return;
+    terminalWindowApply(response, { replace: true });
+    if (!response.closed) terminalWindowSchedulePoll();
+  } catch (error) {
+    if (epoch === terminalWindowState.epoch) terminalWindowStatus(error.message || "终端状态不可用");
+  }
+}
+
+async function terminalWindowRunPowerShell() {
+  if (terminalWindowState.busy) return;
+  const scope = terminalWindowScope();
+  if (!scope) { terminalWindowStatus("请先选择当前 Agent 和聊天室"); return; }
+  const scopeKey = terminalWindowScopeKey(scope);
+  if (scopeKey !== terminalWindowState.scopeKey) terminalWindowReset(scopeKey);
+  const command = document.querySelector('[data-role="terminal-command"]')?.value || "";
+  const button = actionButtons.get("terminal-window-run");
+  terminalWindowState.busy = true;
+  setBusy(button, true, "运行中");
+  try {
+    if (terminalWindowState.handle && terminalWindowState.closed) {
+      await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/close`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
+      });
+      terminalWindowReset(scopeKey);
     }
-    if (raw) {
-      raw.textContent = String(error?.stack || error?.message || error);
+    if (!terminalWindowState.handle) {
+      const started = await requestJson("/api/terminal/start", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...scope, cols: 90, rows: 30 }),
+      });
+      if (scopeKey !== terminalWindowScopeKey(terminalWindowScope())) return;
+      terminalWindowApply(started, { replace: true });
     }
+    if (command.trim()) {
+      await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/input`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...scope, text: `${command.replace(/\r?\n/g, "\r\n")}\r\n` }),
+      });
+      terminalWindowSchedulePoll(50);
+    } else {
+      terminalWindowSchedulePoll();
+    }
+  } catch (error) {
+    terminalWindowStatus(error.message || "终端运行失败");
   } finally {
-    output?.classList.remove("is-running");
-    setWorkbenchMotionState("terminal", WORKBENCH_MOTION_STATES.terminal, false);
+    terminalWindowState.busy = false;
     setBusy(button, false);
   }
 }
 
-async function terminalWindowRun() {
-  return terminalWindowRunPowerShell();
+async function terminalWindowRun() { return terminalWindowRunPowerShell(); }
+
+async function terminalWindowInterrupt() {
+  const scope = terminalWindowScope();
+  if (!scope || !terminalWindowState.handle) return;
+  try {
+    await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/interrupt`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
+    });
+    terminalWindowStatus("正在中断当前命令…");
+    terminalWindowSchedulePoll(50);
+  } catch (error) { terminalWindowStatus(error.message || "中断失败"); }
+}
+
+async function terminalWindowClose() {
+  const scope = terminalWindowScope();
+  if (!scope || !terminalWindowState.handle) return;
+  terminalWindowStopPolling();
+  try {
+    await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/close`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
+    });
+    terminalWindowReset(terminalWindowScopeKey(scope));
+    terminalWindowStatus("终端已关闭");
+  } catch (error) { terminalWindowStatus(error.message || "关闭失败"); }
 }
 
 function terminalWindowClear() {
   const output = document.querySelector('[data-role="terminal-window-output"]');
-  const raw = document.querySelector('[data-role="terminal-window-raw"]');
-  if (output) {
-    output.textContent = "PowerShell 输出已清空。";
-  }
-  if (raw) {
-    raw.textContent = "尚未执行。";
-  }
+  terminalWindowResetProjection();
+  if (output) output.textContent = "";
 }
 
 async function loadChatRoomMessages(roomId, { before = null, appendOlder = false } = {}) {
@@ -10593,6 +11232,17 @@ function updateWorkbenchToolDock(activeTarget = "chat") {
     tab.classList.toggle("is-active", active);
     tab.setAttribute("aria-pressed", String(active));
   });
+  const more = document.querySelector('[data-role="window-dock-more"]');
+  const moreActive = Boolean(more?.querySelector(`.window-tab[data-window-target="${activeTarget}"]`));
+  more?.querySelector("summary")?.classList.toggle("is-active", moreActive);
+}
+
+function refreshQuickWorkbenchWindow(windowId) {
+  if (windowId === "skills" || windowId === "plugin-market") {
+    void refreshQuickCatalogWindow(windowId);
+  } else if (windowId === "app-update") {
+    void refreshAppUpdateStatus();
+  }
 }
 
 function chatToolWindowNode(windowId) {
@@ -10724,6 +11374,7 @@ function openChatToolWindow(windowId, options = {}) {
     setChatToolHostMeta(windowId);
     window.CoolzhuWorkspacePanels?.panelOpened();
     setChatRightRailTab("tools", { internal: true });
+    refreshQuickWorkbenchWindow(windowId);
     if (options.focus !== false) {
       focusChatToolWindow();
     }
@@ -10782,6 +11433,7 @@ function openChatToolWindow(windowId, options = {}) {
   applyChatLayoutState({ persist: true, preserveScroll: true });
   setChatToolHostMeta(windowId);
   setChatRightRailTab("tools", { internal: true });
+  refreshQuickWorkbenchWindow(windowId);
   if (windowId === "memory") {
     void memoryWindowRefresh().catch((error) => {
       console.warn("memory window refresh failed", error);
@@ -10986,8 +11638,11 @@ function setChatRightRailStatusValue(role, value, title = "") {
 }
 
 function chatRightRailPermissionLabel(status = {}) {
+  if (!activeChatRoomId) return "未选择";
+  if (!projectWorkspaceScope || status.room_id !== activeChatRoomId || status.error || status.loading) return "状态未知";
+  if (status.dev_open_permissions) return "完全访问";
   const profile = String(status.permission_profile || "").toLowerCase();
-  if (profile === "full-access" || status.full_access) {
+  if (profile === "full-access" || status.full_access || status.effective_full_access) {
     return "完全访问";
   }
   if (profile === "workspace-write") {
@@ -13228,6 +13883,63 @@ async function loadToolsCatalog() {
   }
 }
 
+function renderQuickCatalogItem(item, kind) {
+  const card = document.createElement("article");
+  card.className = "quick-catalog-item";
+  const title = document.createElement("strong");
+  title.textContent = item.display_name || item.name || item.id || "未命名条目";
+  const source = document.createElement("small");
+  source.textContent = [
+    item.source_label || item.source || "来源未知",
+    kind === "plugin-market" ? "安装状态未核验" : "目录已发现",
+  ].join(" · ");
+  const summary = document.createElement("p");
+  summary.textContent = item.summary || "暂无说明。";
+  card.append(title, source, summary);
+  if (item.id) {
+    const detail = document.createElement("button");
+    detail.type = "button";
+    detail.textContent = "查看详情";
+    detail.addEventListener("click", () => showToolDetailModal(item.id));
+    card.append(detail);
+  }
+  return card;
+}
+
+async function refreshQuickCatalogWindow(kind) {
+  if (kind !== "skills" && kind !== "plugin-market") return;
+  const serial = ++quickCatalogRequestSerial[kind];
+  const isSkill = kind === "skills";
+  const prefix = isSkill ? "skills-catalog" : "plugin-market";
+  const list = document.querySelector(`[data-role="${prefix}-list"]`);
+  const status = document.querySelector(`[data-role="${prefix}-status"]`);
+  const button = actionButtons.get(isSkill ? "skills-catalog-refresh" : "plugin-market-refresh");
+  const directory = document.querySelector('[data-role="plugin-market-directory-state"]');
+  if (!list || !status) return;
+  list.replaceChildren();
+  status.textContent = "正在读取本地目录…";
+  if (!isSkill && directory) directory.textContent = "读取中";
+  setBusy(button, true, "读取中");
+  try {
+    const catalog = await requestJson("/api/tools/catalog");
+    if (serial !== quickCatalogRequestSerial[kind]) return;
+    const category = (catalog.categories || []).find((entry) => entry.id === (isSkill ? "skills" : "plugins"));
+    if (!category) throw new Error("目录响应缺少对应分类");
+    const items = Array.isArray(category.items) ? category.items : [];
+    if (!isSkill && directory) directory.textContent = items.length ? "本地目录可读" : "本地目录可读，暂无条目";
+    status.textContent = isSkill
+      ? (items.length ? `发现 ${items.length} 个本地 SKILL；目录发现不代表当前 Agent 已加载。` : "目录可读，暂无已发现的 SKILL。")
+      : (items.length ? `发现 ${items.length} 个本地插件条目；安装状态尚无法核验。` : "本地目录暂无已发现的插件；远端市场尚未接入。");
+    list.replaceChildren(...items.map((item) => renderQuickCatalogItem(item, kind)));
+  } catch (error) {
+    if (serial !== quickCatalogRequestSerial[kind]) return;
+    if (!isSkill && directory) directory.textContent = "目录不可用";
+    status.textContent = `目录不可用：${error.message}`;
+  } finally {
+    if (serial === quickCatalogRequestSerial[kind]) setBusy(button, false);
+  }
+}
+
 // 「计划配置」入口：切换到任务窗口并展开模块自检列的「调度诊断」折叠卡。
 function openDispatchDiagnostics() {
   openChatToolWindow("tasks");
@@ -13335,7 +14047,7 @@ function renderMcpServers(registry = mcpServerRegistry) {
     } else {
       servers.forEach((server) => {
         const card = document.createElement("article");
-        card.className = `tool-mcp-server${server.connected ? " is-connected" : ""}${server.enabled === false ? " is-disabled" : ""}`;
+        card.className = `tool-mcp-server${server.connected ? " is-connected" : ""}${server.enabled === false || server.supported === false ? " is-disabled" : ""}`;
         const copy = document.createElement("div");
         copy.className = "tool-mcp-server-copy";
         const name = document.createElement("strong");
@@ -13344,7 +14056,7 @@ function renderMcpServers(registry = mcpServerRegistry) {
         meta.textContent = [
           server.id,
           server.transport || "stdio",
-          server.connected ? `已连接 · ${server.tool_count || 0} tools` : "未连接",
+          server.supported === false ? "当前版本不支持此传输" : server.connected ? `已连接 · ${server.tool_count || 0} tools` : "未连接",
         ].filter(Boolean).join(" · ");
         const command = document.createElement("code");
         command.textContent = server.command || "未配置命令";
@@ -13357,8 +14069,8 @@ function renderMcpServers(registry = mcpServerRegistry) {
         action.dataset.mcpAction = server.connected ? "disconnect" : "connect";
         action.dataset.serverId = server.id || "";
         action.textContent = server.connected ? "断开" : "连接";
-        action.disabled = !server.id || server.enabled === false;
-        action.title = server.enabled === false ? "该 server 在配置中已禁用。" : "";
+        action.disabled = !server.id || server.enabled === false || server.supported === false;
+        action.title = server.enabled === false ? "该 server 在配置中已禁用。" : server.supported === false ? "当前仅支持 stdio 传输。" : "";
         card.append(copy, action);
         list.append(card);
       });
@@ -13429,14 +14141,23 @@ async function onMcpServerListClick(event) {
   )) {
     return;
   }
+  if (!activeSessionId || !activeChatRoomId) {
+    setMcpOutput("请先选择当前会话和聊天室。", { error: true });
+    return;
+  }
   setBusy(button, true, action === "connect" ? "连接中" : "断开中");
   setMcpOutput(`${action === "connect" ? "正在连接" : "正在断开"} ${serverId}…`);
   try {
     const response = await requestJson(
       `/api/mcp/servers/${encodeURIComponent(serverId)}/${action}`,
-      { method: "POST" },
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: activeSessionId, chat_room_id: activeChatRoomId }),
+      },
     );
     setMcpOutput(response);
+    if (response?.pending_call_id) await refreshPendingApprovals();
     await refreshMcpServers({ silent: true });
   } catch (error) {
     setMcpOutput(`${action === "connect" ? "连接" : "断开"}失败：${error.message}`, { error: true });
@@ -13454,6 +14175,10 @@ async function runMcpCall(event) {
     setMcpOutput("请选择已连接的 server，并填写工具名。", { error: true });
     return;
   }
+  if (!activeSessionId || !activeChatRoomId) {
+    setMcpOutput("请先选择当前会话和聊天室。", { error: true });
+    return;
+  }
   let argumentsValue;
   try {
     argumentsValue = JSON.parse(rawArguments);
@@ -13462,7 +14187,7 @@ async function runMcpCall(event) {
     return;
   }
   const confirmation = [
-    "确认执行原始 MCP 工具调用？",
+    "确认提交 MCP 工具调用？后端会核对权限，必要时再请求审批。",
     `server: ${serverId}`,
     `tool: ${tool}`,
     `arguments:\n${JSON.stringify(argumentsValue, null, 2)}`,
@@ -13477,9 +14202,13 @@ async function runMcpCall(event) {
     const response = await requestJson("/api/mcp/call", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ server_id: serverId, tool, arguments: argumentsValue }),
+      body: JSON.stringify({
+        server_id: serverId, tool, arguments: argumentsValue,
+        session_id: activeSessionId, chat_room_id: activeChatRoomId,
+      }),
     });
     setMcpOutput(response);
+    if (response?.pending_call_id) await refreshPendingApprovals();
   } catch (error) {
     setMcpOutput(`MCP 调用失败：${error.message}`, { error: true });
   } finally {
@@ -13780,6 +14509,15 @@ async function sendMessage({ replaceActive = false } = {}) {
     input?.focus();
     return;
   }
+  const sendTargetIds = getSelectedAgentIds();
+  const targetError = agentTargetSelectionError(sendTargetIds);
+  if (targetError) {
+    addMessage({ author: "发送对象", text: targetError, kind: "thought", icon: "warn-log" });
+    if (!document.querySelector('.environment-popover[aria-label="选择发送对象"]')) focusChatAgentTargets();
+    return;
+  }
+  const sendSessionId = activeSessionId;
+  const sendChatRoomId = activeChatRoomId;
 
   const button = actionButtons.get("send-message");
   const abortController = new AbortController();
@@ -13799,9 +14537,9 @@ async function sendMessage({ replaceActive = false } = {}) {
   try {
     const pendingAttachments = await uploadComposerAttachments();
     payload = {
-      session_id: activeSessionId,
-      chat_room_id: activeChatRoomId,
-      target_agent_ids: getSelectedAgentIds(),
+      session_id: sendSessionId,
+      chat_room_id: sendChatRoomId,
+      target_agent_ids: sendTargetIds,
       text,
       selected_message_ids: Array.from(selectedMessageIds),
       attachments: [...attachmentsFromText(text), ...pendingAttachments],
@@ -14404,10 +15142,14 @@ function readPersistedAgentTargets(roomId = activeChatRoomId) {
       return null;
     }
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed.map(String) : null;
+    if (!Array.isArray(parsed)) {
+      console.warn("发送对象恢复失败：已保存的名单不是数组");
+      return undefined;
+    }
+    return parsed.map(String);
   } catch (error) {
     console.warn("发送对象恢复失败:", error);
-    return null;
+    return undefined;
   }
 }
 
@@ -14422,29 +15164,51 @@ function persistAgentTargets(roomId = activeChatRoomId) {
   }
 }
 
+function setAgentTargetWarning(message, requiresConfirmation = false) {
+  const warning = document.querySelector('[data-role="agent-target-warning"]');
+  if (!warning) return;
+  warning.textContent = message;
+  warning.hidden = !message;
+  warning.dataset.requiresConfirmation = String(Boolean(requiresConfirmation));
+}
+
 function restoreAgentTargets(agents, fallbackIds = [], roomId = activeChatRoomId) {
   const validIds = new Set((Array.isArray(agents) ? agents : []).map((agent) => String(agent.id)));
   const savedIds = readPersistedAgentTargets(roomId);
-  const restoredIds = (savedIds || []).filter((id) => validIds.has(id));
+  const invalidSavedList = savedIds === undefined;
+  const restoredIds = (Array.isArray(savedIds) ? savedIds : []).filter((id) => validIds.has(id));
+  const unavailableIds = (Array.isArray(savedIds) ? savedIds : []).filter((id) => !validIds.has(id));
   const fallbackTargets = (Array.isArray(fallbackIds) ? fallbackIds : [])
     .map(String)
     .filter((id) => validIds.has(id));
-  const selectedIds = restoredIds.length
+  // 首次进入沿用可用的默认目标；已有选择即使变空，也不能静默换成别的 Agent。
+  const selectedIds = savedIds !== null
     ? restoredIds
     : (fallbackTargets.length ? fallbackTargets : Array.from(validIds).slice(0, 1));
   const selected = new Set(selectedIds);
   document.querySelectorAll('[data-role="agent-targets"] input[type="checkbox"]').forEach((checkbox) => {
     checkbox.checked = selected.has(checkbox.value);
   });
+  const warning = invalidSavedList
+    ? "之前保存的发送名单已损坏，请重新选择发送对象后再发送。"
+    : unavailableIds.length
+      ? "之前选择的部分发送对象已不可用。请在此重新确认发送名单后再发送。"
+    : selectedIds.length ? "" : "尚未选择发送对象，请先选择。";
+  setAgentTargetWarning(warning, invalidSavedList || unavailableIds.length > 0);
   updateAgentTriggerText();
+  if (savedIds === null && roomId && selectedIds.length) persistAgentTargets(roomId);
 }
 
 function setSingleAgentTarget(agentId) {
-  document.querySelectorAll('[data-role="agent-targets"] input[type="checkbox"]').forEach((checkbox) => {
+  const checkboxes = Array.from(document.querySelectorAll('[data-role="agent-targets"] input[type="checkbox"]'));
+  if (!checkboxes.some((checkbox) => checkbox.value === agentId && !checkbox.disabled)) return false;
+  checkboxes.forEach((checkbox) => {
     checkbox.checked = checkbox.value === agentId;
   });
+  setAgentTargetWarning("");
   updateAgentTriggerText();
   persistAgentTargets(activeChatRoomId);
+  return true;
 }
 
 function renderChatRoomList(rooms, activeId) {
@@ -14495,9 +15259,12 @@ function renderChatRoomList(rooms, activeId) {
 }
 
 async function openSelectedChatRoom() {
+  closeTopChatPermissions();
+  document.querySelector(".chat-room-diagnostics-modal")?.remove();
   if (!activeChatRoomId) {
     return;
   }
+  taskRenderFullAccessStatus({ room_id: activeChatRoomId, loading: true });
   clearStaleApprovalForActiveScope();
   const result = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/activate`, { method: "POST" });
   activeChatRoomId = result.room.id;
@@ -14505,7 +15272,7 @@ async function openSelectedChatRoom() {
   renderChatRoomList(chatRoomRegistry.rooms, activeChatRoomId);
   updateChatRoomTrigger(result.room.name);
   restoreAgentTargets(
-    agentRegistry.agents.filter((agent) => agent.selectable),
+    agentRegistry.agents.filter(canSendToAgent),
     agentRegistry.active_agent_ids,
     activeChatRoomId,
   );
@@ -15563,7 +16330,25 @@ function renderProfile(result) {
 
 function getSelectedAgentIds() {
   const checked = document.querySelectorAll('[data-role="agent-targets"] input[type="checkbox"]:checked');
-  return Array.from(checked).map((checkbox) => checkbox.value);
+  return Array.from(checked).filter((checkbox) => !checkbox.disabled).map((checkbox) => checkbox.value);
+}
+
+function canSendToAgent(agent) {
+  return agent?.selectable === true && agent?.enabled === true;
+}
+
+function agentTargetSelectionError(targetIds = getSelectedAgentIds()) {
+  if (!targetIds.length) return "尚未选择发送对象，请先在顶栏选择。";
+  const selectableIds = new Set((agentRegistry?.agents || [])
+    .filter(canSendToAgent)
+    .map((agent) => String(agent.id)));
+  if (targetIds.some((id) => !selectableIds.has(id))) {
+    return "发送名单包含已不可用的 Agent，请重新确认。";
+  }
+  const warning = document.querySelector('[data-role="agent-target-warning"]');
+  return warning?.dataset.requiresConfirmation === "true"
+    ? warning.textContent || "历史发送名单已变化，请重新确认。"
+    : "";
 }
 
 function updateAgentTriggerText() {
@@ -15571,22 +16356,25 @@ function updateAgentTriggerText() {
   if (!trigger) {
     return;
   }
-  const checked = document.querySelectorAll('[data-role="agent-targets"] input[type="checkbox"]:checked');
-  const names = Array.from(checked).map((checkbox) => {
-    const agent = agentRegistry?.agents?.find((a) => a.id === checkbox.value);
-    return agent?.display_name || agent?.name || checkbox.value;
+  const selectedIds = getSelectedAgentIds();
+  const names = selectedIds.map((id) => {
+    const agent = agentRegistry?.agents?.find((candidate) => candidate.id === id);
+    return agent?.display_name || agent?.name || id;
   });
   const label = document.createElement("span");
   label.textContent = names.length ? names.join(", ") : "选择发送对象";
   trigger.replaceChildren(label, wuxiaIconElement("chevron", "agent-trigger-chevron"));
-  const overviewLabel = document.querySelector('[data-role="overview-agent-label"]');
-  if (overviewLabel) {
-    overviewLabel.textContent = names.length ? names.join("、") : "未配置";
-    overviewLabel.title = names.length ? `当前发送对象：${names.join("、")}` : "当前发送对象未配置";
+  const targetDescription = names.length ? `将发送给：${names.join("、")}` : "尚未选择发送对象";
+  const sendButton = actionButtons.get("send-message");
+  if (sendButton) {
+    sendButton.title = targetDescription;
+    sendButton.setAttribute("aria-label", `发送消息。${targetDescription}`);
   }
   const overviewTrigger = document.querySelector('[data-role="overview-agent-trigger"]');
   if (overviewTrigger) {
-    overviewTrigger.dataset.selectedAgentIds = Array.from(checked).map((checkbox) => checkbox.value).join(",");
+    overviewTrigger.dataset.selectedAgentIds = selectedIds.join(",");
+    overviewTrigger.title = targetDescription;
+    overviewTrigger.setAttribute("aria-label", `选择发送对象。${targetDescription}`);
   }
   renderOverviewMascot();
 }
@@ -15717,6 +16505,240 @@ function highlightLineFragment(lineText, keywords) {
 const IDE_EDITOR_MAX_BYTES = 200 * 1024;
 const IDE_EDITOR_LINE_WINDOW = 400;
 let ideEditorState = { path: "", startLine: 1, lineCount: 0, truncated: false, editable: false };
+let lspPreviewState = { path: "", handle: "", line: 1, character: 1, seq: 0, startSeq: 0 };
+
+function lspPreviewNode(role) {
+  return document.querySelector(`[data-role="lsp-preview-${role}"]`);
+}
+
+function setLspPreviewStatus(message) {
+  const node = lspPreviewNode("status");
+  if (node) node.textContent = message;
+}
+
+function showLspPreviewResults(title, items = []) {
+  const panel = lspPreviewNode("results");
+  if (!panel) return;
+  panel.hidden = false;
+  const heading = document.createElement("strong");
+  heading.textContent = title;
+  if (!items.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "暂无结果。";
+    panel.replaceChildren(heading, empty);
+    return;
+  }
+  const rows = items.map((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = item.label;
+    button.addEventListener("click", () => { void goToLspPreviewLocation(item.path, item.line, item.character); });
+    return button;
+  });
+  panel.replaceChildren(heading, ...rows);
+}
+
+function renderLspPreviewControls({ configured = false, running = false, handle = "", message = "" } = {}) {
+  const toolbar = lspPreviewNode("toolbar");
+  if (!toolbar) return;
+  toolbar.hidden = !lspPreviewState.path;
+  lspPreviewState.handle = running ? String(handle || "") : "";
+  setLspPreviewStatus(message || (running ? "Rust 语言服务已启动" : "Rust 语言服务未启动"));
+  const start = actionButtons.get("lsp-preview-start");
+  if (start) {
+    start.hidden = running;
+    start.textContent = configured ? "启动 Rust 服务" : "配置并启动 Rust 服务";
+  }
+  for (const name of ["refresh", "definition", "references", "close"]) {
+    const button = actionButtons.get(`lsp-preview-${name}`);
+    if (button) button.hidden = !running;
+  }
+  const position = lspPreviewNode("position");
+  if (position) position.hidden = !running;
+}
+
+async function updateLspPreviewForFile(path) {
+  const seq = ++lspPreviewState.seq;
+  lspPreviewState.path = /\.rs$/i.test(path || "") ? path : "";
+  lspPreviewState.line = 1;
+  lspPreviewState.character = 1;
+  lspPreviewNode("results")?.setAttribute("hidden", "");
+  if (!lspPreviewState.path) {
+    renderLspPreviewControls();
+    return;
+  }
+  try {
+    const status = await requestJson("/api/lsp/status");
+    if (seq !== lspPreviewState.seq || path !== lspPreviewState.path) return;
+    renderLspPreviewControls(status);
+    if (status.running && status.handle) void refreshLspPreviewDiagnostics();
+  } catch (error) {
+    if (seq === lspPreviewState.seq) renderLspPreviewControls({ message: error.message });
+  }
+}
+
+async function startLspPreview() {
+  const path = lspPreviewState.path;
+  if (!path) return;
+  const startSeq = ++lspPreviewState.startSeq;
+  const projectScope = projectRequestScope();
+  const expectedWorkspace = projectScope.workspace;
+  const layoutWorkspaceKey = activeWorkspaceKey;
+  const sessionId = activeSessionId;
+  const chatRoomId = activeChatRoomId;
+  const scopeCurrent = () => layoutWorkspaceKey === activeWorkspaceKey
+    && projectRequestScopeCurrent(projectScope)
+    && sessionId === activeSessionId && chatRoomId === activeChatRoomId
+    && path === lspPreviewState.path && startSeq === lspPreviewState.startSeq;
+  if (!sessionId || !chatRoomId || !expectedWorkspace) {
+    setLspPreviewStatus("请先选择当前工程、Agent 和聊天室");
+    return;
+  }
+  if (activeIdeViewTab()?.dirty) {
+    setLspPreviewStatus("请先保存当前文件，再启动语言服务分析磁盘内容");
+    return;
+  }
+  const button = actionButtons.get("lsp-preview-start");
+  if (button) button.disabled = true;
+  setLspPreviewStatus("正在启动 Rust 语言服务…");
+  try {
+    const status = await requestJson("/api/lsp/status");
+    if (!scopeCurrent()) return;
+    if (!status.configured) {
+      await requestJson("/api/lsp/configure", {
+        method: "POST", body: JSON.stringify({ preset: "rust-analyzer" }),
+      });
+      if (!scopeCurrent()) return;
+    }
+    const started = await requestJson("/api/lsp/start", {
+      method: "POST", body: JSON.stringify({
+        path, session_id: sessionId, chat_room_id: chatRoomId,
+        expected_workspace: expectedWorkspace,
+      }),
+    });
+    if (!scopeCurrent() || path !== lspPreviewState.path) return;
+    renderLspPreviewControls(started);
+    await refreshLspPreviewDiagnostics();
+  } catch (error) {
+    if (scopeCurrent()) setLspPreviewStatus(error.message);
+  } finally {
+    if (button && startSeq === lspPreviewState.startSeq) button.disabled = false;
+  }
+}
+
+async function refreshLspPreviewDiagnostics(retry = 0) {
+  const { handle, path, seq } = lspPreviewState;
+  if (!handle || !path) return;
+  if (activeIdeViewTab()?.dirty) {
+    setLspPreviewStatus("当前文件未保存，请保存后刷新诊断");
+    return;
+  }
+  try {
+    const result = await requestJson("/api/lsp/diagnostics", {
+      method: "POST", body: JSON.stringify({ handle, path }),
+    });
+    if (seq !== lspPreviewState.seq || handle !== lspPreviewState.handle) return;
+    const diagnostics = Array.isArray(result.diagnostics) ? result.diagnostics : [];
+    showLspPreviewResults(`诊断 · ${diagnostics.length}`, diagnostics.map((item) => ({
+      path,
+      line: Number(item.line) || 1,
+      character: Number(item.character) || 1,
+      label: `${item.line}:${item.character} ${item.severity || "提示"} · ${item.message || ""}`,
+    })));
+    if (!diagnostics.length && retry < 4) {
+      window.setTimeout(() => { void refreshLspPreviewDiagnostics(retry + 1); }, 1600);
+    }
+  } catch (error) {
+    if (seq === lspPreviewState.seq) {
+      if (error.status === 409) renderLspPreviewControls({ configured: true, message: "语言服务已停止，请重新启动" });
+      else setLspPreviewStatus(error.message);
+    }
+  }
+}
+
+function captureLspPreviewPosition(event) {
+  if (!lspPreviewState.handle || !lspPreviewState.path) return;
+  const textarea = event.target.closest?.(".ide-edit-surface");
+  if (textarea) {
+    const before = textarea.value.slice(0, textarea.selectionStart);
+    const lines = before.split("\n");
+    lspPreviewState.line = lines.length;
+    lspPreviewState.character = lines.at(-1).length + 1;
+  } else {
+    const row = event.target.closest?.(".code-line");
+    if (!row) return;
+    lspPreviewState.line = Number(row.dataset.line) || 1;
+    lspPreviewState.character = 1;
+    const code = row.querySelector(".line-code");
+    const caret = document.caretPositionFromPoint?.(event.clientX, event.clientY);
+    const legacyCaret = !caret ? document.caretRangeFromPoint?.(event.clientX, event.clientY) : null;
+    const node = caret?.offsetNode || legacyCaret?.startContainer;
+    const offset = caret?.offset ?? legacyCaret?.startOffset;
+    if (code && node && code.contains(node) && Number.isInteger(offset)) {
+      const range = document.createRange();
+      range.setStart(code, 0);
+      range.setEnd(node, offset);
+      lspPreviewState.character = range.toString().length + 1;
+    }
+  }
+  const position = lspPreviewNode("position");
+  if (position) position.textContent = `${lspPreviewState.line}:${lspPreviewState.character}`;
+}
+
+async function navigateLspPreview(kind) {
+  const { handle, path, line, character, seq } = lspPreviewState;
+  if (!handle || !path) return;
+  const tab = activeIdeViewTab();
+  if (tab?.dirty) {
+    setLspPreviewStatus("请先保存文件，再查询定义或引用");
+    return;
+  }
+  try {
+    const result = await requestJson("/api/lsp/navigation", {
+      method: "POST", body: JSON.stringify({ handle, path, line, character, kind }),
+    });
+    if (seq !== lspPreviewState.seq || handle !== lspPreviewState.handle) return;
+    const locations = Array.isArray(result.locations) ? result.locations : [];
+    showLspPreviewResults(kind === "definition" ? `定义 · ${locations.length}` : `引用 · ${locations.length}`,
+      locations.map((item) => ({
+        path: item.path,
+        line: Number(item.line) || 1,
+        character: Number(item.character) || 1,
+        label: `${item.path}:${item.line}:${item.character}`,
+      })));
+  } catch (error) {
+    if (seq === lspPreviewState.seq) setLspPreviewStatus(error.message);
+  }
+}
+
+async function goToLspPreviewLocation(path, line, character = 1) {
+  const scope = projectRequestScope();
+  const tab = selectedProjectPath !== path ? await openProjectFile(path) : activeIdeViewTab();
+  if (!projectRequestScopeCurrent(scope) || !tab || activeIdeViewTab() !== tab || tab.path !== path) return;
+  const textarea = document.querySelector('[data-role="ide-edit-surface"]');
+  if (textarea && selectedProjectPath === path) {
+    const lines = textarea.value.split("\n");
+    const lineIndex = Math.min(Math.max(0, line - 1), lines.length - 1);
+    const offset = lines.slice(0, lineIndex).reduce((sum, value) => sum + value.length + 1, 0)
+      + Math.min(Math.max(0, character - 1), lines[lineIndex].length);
+    textarea.focus();
+    textarea.setSelectionRange(offset, offset);
+    captureLspPreviewPosition({ target: textarea });
+  } else {
+    jumpToIdeLine(line, { smooth: true });
+  }
+}
+
+async function closeLspPreview() {
+  const handle = lspPreviewState.handle;
+  if (!handle) return;
+  try {
+    await requestJson("/api/lsp/close", { method: "POST", body: JSON.stringify({ handle }) });
+    await updateLspPreviewForFile(lspPreviewState.path);
+  } catch (error) {
+    setLspPreviewStatus(error.message);
+  }
+}
 
 // 文件内容渲染：委托 renderIdeEditor（行号双栏 + :n 跳转）。保留原函数名兼容旧调用点。
 function renderProjectContent(content, lang, meta = "") {
@@ -15858,7 +16880,7 @@ function ideSetOperationStatus(message, kind = "") {
 
 function activeIdeViewTab() {
   const tab = ideState.tabs.find((item) => item.id === ideState.activeTabId);
-  return tab?.kind === "view" ? tab : null;
+  return tab?.kind === "view" && tab.workspaceScope === projectWorkspaceScope ? tab : null;
 }
 
 function updateIdeSaveButton() {
@@ -16027,12 +17049,26 @@ function flashIdeLine(row) {
 }
 
 async function fetchIdeLineWindow(path, lineNo) {
+  const scope = projectRequestScope();
+  const requestSerial = ++projectLineWindowSerial;
+  const tab = activeIdeViewTab();
+  const content = tab?.payload?.content;
+  const isCurrent = () => projectRequestScopeCurrent(scope)
+    && requestSerial === projectLineWindowSerial
+    && activeIdeViewTab() === tab
+    && tab?.path === path
+    && !tab.dirty
+    && tab.payload?.content === content
+    && ideEditorState.path === path
+    && !ideEditorState.editable;
+  if (!isCurrent()) return;
   const start = Math.max(1, lineNo - IDE_EDITOR_LINE_WINDOW);
   const end = lineNo + IDE_EDITOR_LINE_WINDOW;
   try {
     const meta = await requestJson(
       `/api/project/file/meta?path=${encodeURIComponent(path)}`
     );
+    if (!isCurrent()) return;
     if (!meta.previewable) {
       updateProjectPreview(
         "此文件为二进制文件或体积过大，无法在窗口中预览。",
@@ -16042,6 +17078,7 @@ async function fetchIdeLineWindow(path, lineNo) {
     }
     const url = `/api/project/file?path=${encodeURIComponent(path)}&start_line=${start}&end_line=${end}`;
     const response = await requestJson(url);
+    if (!isCurrent()) return;
     const metaText = `${meta.relative_path} · ${formatFileSize(meta.file_size)} · 行 ${response.start_line}-${response.end_line}/${response.total_lines || "?"}`;
     renderIdeEditor(response.content, {
       lang: syntaxLangForPath(path),
@@ -16053,7 +17090,7 @@ async function fetchIdeLineWindow(path, lineNo) {
       truncationNote: `已加载行 ${response.start_line}-${response.end_line}（共 ${response.total_lines || "?"} 行），:行号 可继续跳转`,
     });
   } catch (error) {
-    updateProjectPreview(error.message, "行窗口读取失败");
+    if (isCurrent()) updateProjectPreview(error.message, "行窗口读取失败");
   }
 }
 
@@ -16084,7 +17121,9 @@ async function openViewTab(path, { line = null, smooth = true } = {}) {
   if (!path) {
     return;
   }
-  await openProjectFile(path);
+  const scope = projectRequestScope();
+  const tab = await openProjectFile(path);
+  if (!projectRequestScopeCurrent(scope) || !tab || activeIdeViewTab() !== tab) return;
   if (line && line > 0) {
     // openProjectFile 已从头渲染；目标行若不在已载段，jumpToIdeLine 会按行窗口远程加载。
     jumpToIdeLine(line, { smooth });
@@ -16463,7 +17502,7 @@ async function ideCtrlClickJump(word) {
       `/api/project/symbols?query=${encodeURIComponent(word)}&limit=50`
     );
   } catch (error) {
-    renderIdeOmniError(error.message || "symbol search failed");
+    if (mySeq === ideOmniState.pendingSeq) renderIdeOmniError(error.message || "symbol search failed");
     return;
   }
   if (mySeq !== ideOmniState.pendingSeq) {
@@ -16667,6 +17706,9 @@ function renderProjectDiffView(rows, meta = "") {
 }
 
 async function loadProjectTree(path = "") {
+  const scope = projectRequestScope();
+  const requestSerial = ++projectTreeRequestSerial;
+  const isCurrent = () => projectRequestScopeCurrent(scope) && requestSerial === projectTreeRequestSerial;
   const button = actionButtons.get("project-refresh");
   setBusy(button, true, "加载中");
   setWorkbenchMotionState("project", WORKBENCH_MOTION_STATES.project, true);
@@ -16676,6 +17718,7 @@ async function loadProjectTree(path = "") {
       url += `&path=${encodeURIComponent(path)}`;
     }
     const response = await requestJson(url);
+    if (!isCurrent() || (scope.workspace && response.workspace !== scope.workspace)) return;
     projectTreeRoot = response.root;
     setText("project.path", response.workspace);
     setChatWorkspacePath(response.workspace);
@@ -16695,12 +17738,15 @@ async function loadProjectTree(path = "") {
       );
     }
   } catch (error) {
+    if (!isCurrent()) return;
     projectTreeRoot = null;
     renderProjectApiTree([]);
     updateProjectPreview(error.message, "项目目录树加载失败");
   } finally {
-    setWorkbenchMotionState("project", WORKBENCH_MOTION_STATES.project, false);
-    setBusy(button, false);
+    if (isCurrent()) {
+      setWorkbenchMotionState("project", WORKBENCH_MOTION_STATES.project, false);
+      setBusy(button, false);
+    }
   }
 }
 
@@ -16964,13 +18010,18 @@ async function onProjectTreeDblClick(event) {
 async function openProjectFile(path = selectedProjectPath, { forceReload = false } = {}) {
   if (!path) {
     updateProjectPreview("请先从项目目录树中选择文件。", "尚未选择文件");
-    return;
+    return null;
   }
+  const scope = projectRequestScope();
+  const requestSerial = ++projectFileOpenSerial;
+  projectLineWindowSerial += 1;
+  const isCurrent = () => projectRequestScopeCurrent(scope)
+    && requestSerial === projectFileOpenSerial && selectedProjectPath === path;
   const cached = findIdeTabByKind("view", path, "");
   if (!forceReload && cached?.dirty && cached.payload?.editable) {
     activateIdeTab(cached.id);
     ideSetOperationStatus(`保留未保存编辑：${path}`);
-    return;
+    return cached;
   }
   const previousPath = selectedProjectPath;
   const previousKind = selectedProjectKind;
@@ -16979,15 +18030,19 @@ async function openProjectFile(path = selectedProjectPath, { forceReload = false
   syncProjectTreeSelection();
   try {
     const meta = await requestJson(`/api/project/file/meta?path=${encodeURIComponent(path)}`);
+    if (!isCurrent()) return null;
     const metaText = `${meta.relative_path} · ${formatFileSize(meta.file_size)}${meta.binary ? " · 二进制" : ""}`;
     if (!meta.previewable) {
       updateProjectPreview("此文件为二进制文件或体积过大，无法在窗口中预览。", metaText);
-      return;
+      void updateLspPreviewForFile("");
+      return null;
     }
     const readLimit = meta.editable
       ? Math.max(1, Math.min(Number(meta.file_size) + 3, Number(meta.max_edit_bytes) || 262144))
       : 65536;
     const response = await requestJson(`/api/project/file?path=${encodeURIComponent(path)}&offset=0&limit=${readLimit}`);
+    if (!isCurrent()) return null;
+    if (findIdeTabByKind("view", path, "")?.dirty) return null;
     const suffix = !meta.editable && response.next_offset
       ? `\n\n[预览内容已截断，下次读取位置：${response.next_offset}]`
       : "";
@@ -17019,11 +18074,16 @@ async function openProjectFile(path = selectedProjectPath, { forceReload = false
     }
     renderIdeTabbar();
     updateIdeSaveButton();
+    void updateLspPreviewForFile(path);
+    return tab;
   } catch (error) {
+    if (!isCurrent()) return null;
     selectedProjectPath = previousPath;
     selectedProjectKind = previousKind;
     syncProjectTreeSelection();
     updateProjectPreview(error.message, "文件预览失败");
+    void updateLspPreviewForFile("");
+    return null;
   }
 }
 
@@ -17037,26 +18097,44 @@ async function saveActiveIdeFile() {
     ideSetOperationStatus(`无需保存：${tab.path}`);
     return true;
   }
+  const scope = projectRequestScope();
+  const requestSerial = ++projectFileSaveSerial;
+  const originState = ideState;
+  const payload = tab.payload;
+  const submittedContent = payload.content;
+  const submittedRevision = payload.revision;
+  const isCurrent = () => projectRequestScopeCurrent(scope) && requestSerial === projectFileSaveSerial;
+  const tabStillExists = () => originState.tabs.includes(tab)
+    && tab.workspaceScope === scope.workspace && tab.payload === payload;
   const button = actionButtons.get("project-save");
   setBusy(button, true, "保存中");
   try {
     const result = await requestJson("/api/project/file", {
       method: "PUT",
       body: JSON.stringify({
+        expected_workspace: scope.workspace,
         path: tab.path,
-        content: tab.payload.content,
-        revision: tab.payload.revision,
+        content: submittedContent,
+        revision: submittedRevision,
       }),
     });
-    tab.payload.revision = result.revision || tab.payload.revision;
-    tab.payload.savedContent = tab.payload.content;
-    tab.dirty = false;
-    renderIdeTabbar();
-    updateIdeSaveButton();
-    ideSetOperationStatus(`已保存：${tab.path}`, "success");
-    return true;
+    if (!tabStillExists()) return false;
+    payload.revision = result.revision || payload.revision;
+    payload.savedContent = submittedContent;
+    tab.dirty = payload.content !== submittedContent;
+    if (isCurrent()) {
+      renderIdeTabbar();
+      updateIdeSaveButton();
+      if (activeIdeViewTab() === tab) {
+        ideSetOperationStatus(tab.dirty ? `已保存提交时版本，后续编辑仍未保存：${tab.path}` : `已保存：${tab.path}`, "success");
+      }
+    }
+    return isCurrent();
   } catch (error) {
-    if (error.status === 409) {
+    if (!isCurrent() || !tabStillExists() || activeIdeViewTab() !== tab) return false;
+    if (error.status === 409 && error.body?.error === "工程目录已变化，请刷新工程文件后重试") {
+      ideSetOperationStatus(error.body.error, "error");
+    } else if (error.status === 409) {
       ideSetOperationStatus(`保存冲突：${tab.path} 已被外部修改。`, "error");
       if (window.confirm("文件已被外部修改。是否放弃当前编辑并重新加载磁盘版本？")) {
         tab.dirty = false;
@@ -17067,8 +18145,10 @@ async function saveActiveIdeFile() {
     }
     return false;
   } finally {
-    setBusy(button, false);
-    updateIdeSaveButton();
+    if (isCurrent()) {
+      setBusy(button, false);
+      updateIdeSaveButton();
+    }
   }
 }
 
@@ -17079,6 +18159,7 @@ function currentProjectParentPath() {
 }
 
 async function createProjectEntry(kind) {
+  const scope = projectRequestScope();
   const parentPath = currentProjectParentPath();
   const label = kind === "dir" ? "目录" : "文件";
   const name = window.prompt(`在 ${parentPath || "工作区根目录"} 新建${label}：`, kind === "dir" ? "新建文件夹" : "新建文件.txt");
@@ -17086,97 +18167,112 @@ async function createProjectEntry(kind) {
   try {
     const result = await requestJson("/api/project/entry", {
       method: "POST",
-      body: JSON.stringify({ parent_path: parentPath, name, kind }),
+      body: JSON.stringify({ expected_workspace: scope.workspace, parent_path: parentPath, name, kind }),
     });
+    if (!projectRequestScopeCurrent(scope)) return;
     ideSetOperationStatus(`${result.message}：${result.path}`, "success");
     await loadProjectTree(projectTreeRoot?.relative_path || "");
+    if (!projectRequestScopeCurrent(scope)) return;
     selectedProjectPath = result.path;
     selectedProjectKind = kind;
     if (kind === "file") await openProjectFile(result.path);
   } catch (error) {
-    ideSetOperationStatus(`新建失败：${error.message}`, "error");
+    if (projectRequestScopeCurrent(scope)) ideSetOperationStatus(`新建失败：${error.message}`, "error");
   }
 }
 
 async function renameSelectedProjectEntry() {
+  const scope = projectRequestScope();
+  const originState = ideState;
   const path = selectedProjectPath;
   if (!path) {
     ideSetOperationStatus("请先选择要重命名的文件或目录。", "error");
     return;
   }
-  const tab = ideState.tabs.find((item) => item.kind === "view" && item.path === path);
+  const tab = originState.tabs.find((item) => item.workspaceScope === scope.workspace && item.kind === "view" && item.path === path);
   if (tab?.dirty) {
     if (!window.confirm("当前文件有未保存修改。先保存再重命名？")) return;
     setIdeActiveTab(tab.id);
     if (!(await saveActiveIdeFile())) return;
   }
+  if (!projectRequestScopeCurrent(scope)) return;
   const newName = window.prompt("输入新名称：", ideBaseName(path));
   if (!newName || newName === ideBaseName(path)) return;
   try {
     const result = await requestJson("/api/project/entry", {
       method: "PATCH",
       body: JSON.stringify({
+        expected_workspace: scope.workspace,
         path,
         new_name: newName,
         revision: tab?.payload?.revision || null,
       }),
     });
     const oldPrefix = `${path}/`;
-    ideState.tabs.forEach((item) => {
+    originState.tabs.forEach((item) => {
+      if (item.workspaceScope !== scope.workspace) return;
       if (item.path === path) item.path = result.path;
       else if (item.path.startsWith(oldPrefix)) item.path = `${result.path}/${item.path.slice(oldPrefix.length)}`;
       if (item.right === path) item.right = result.path;
       else if (item.right?.startsWith(oldPrefix)) item.right = `${result.path}/${item.right.slice(oldPrefix.length)}`;
       item.title = ideTabTitleOf(item);
     });
+    persistIdeTabsForScope(scope.workspace, originState);
+    if (!projectRequestScopeCurrent(scope)) return;
     selectedProjectPath = result.path;
-    persistIdeTabs();
     renderIdeTabbar();
     ideSetOperationStatus(`已重命名：${result.path}`, "success");
     await loadProjectTree(projectTreeRoot?.relative_path || "");
+    if (!projectRequestScopeCurrent(scope)) return;
     if (selectedProjectKind === "file") await openProjectFile(result.path, { forceReload: true });
   } catch (error) {
-    ideSetOperationStatus(`重命名失败：${error.message}`, "error");
+    if (projectRequestScopeCurrent(scope)) ideSetOperationStatus(`重命名失败：${error.message}`, "error");
   }
 }
 
 async function deleteSelectedProjectEntry() {
+  const scope = projectRequestScope();
+  const originState = ideState;
   const path = selectedProjectPath;
   if (!path) {
     ideSetOperationStatus("请先选择要删除的文件或目录。", "error");
     return;
   }
-  const affected = ideState.tabs.filter((item) => item.path === path || item.path.startsWith(`${path}/`));
+  const affected = originState.tabs.filter((item) => item.workspaceScope === scope.workspace
+    && (item.path === path || item.path.startsWith(`${path}/`)));
   if (affected.some((item) => item.dirty)) {
     if (!window.confirm("删除会丢弃相关标签中的未保存修改，仍要继续吗？")) return;
   }
   const recursive = selectedProjectKind === "dir";
   if (!window.confirm(`确定删除${recursive ? "目录及其全部内容" : "文件"}“${path}”？此操作不可撤销。`)) return;
-  const currentTab = ideState.tabs.find((item) => item.kind === "view" && item.path === path);
+  const currentTab = originState.tabs.find((item) => item.workspaceScope === scope.workspace && item.kind === "view" && item.path === path);
   try {
     await requestJson("/api/project/entry", {
       method: "DELETE",
       body: JSON.stringify({
+        expected_workspace: scope.workspace,
         path,
         revision: currentTab?.payload?.revision || null,
         recursive,
         confirm: true,
       }),
     });
-    ideState.tabs = ideState.tabs.filter(
-      (item) => !(item.path === path || item.path.startsWith(`${path}/`) || item.right === path || item.right?.startsWith(`${path}/`)),
+    originState.tabs = originState.tabs.filter(
+      (item) => item.workspaceScope !== scope.workspace
+        || !(item.path === path || item.path.startsWith(`${path}/`) || item.right === path || item.right?.startsWith(`${path}/`)),
     );
-    ideState.activeTabId = ideState.tabs[0]?.id || null;
+    originState.activeTabId = originState.tabs[0]?.id || null;
+    persistIdeTabsForScope(scope.workspace, originState);
+    if (!projectRequestScopeCurrent(scope)) return;
     selectedProjectPath = "";
     selectedProjectKind = "";
-    persistIdeTabs();
     renderIdeTabbar();
     if (ideState.activeTabId) activateIdeTab(ideState.activeTabId);
     else updateProjectPreview("从左侧目录树选择文件进行查看或编辑。", "查看");
     ideSetOperationStatus(`已删除：${path}`, "success");
     await loadProjectTree(projectTreeRoot?.relative_path || "");
   } catch (error) {
-    ideSetOperationStatus(`删除失败：${error.message}`, "error");
+    if (projectRequestScopeCurrent(scope)) ideSetOperationStatus(`删除失败：${error.message}`, "error");
   }
 }
 
@@ -17215,6 +18311,8 @@ async function enterIdeDiffMode() {
     updateProjectPreview("先在目录树选择一个文件，再切换到对比。", "对比需要当前文件");
     return;
   }
+  projectFileOpenSerial += 1;
+  projectLineWindowSerial += 1;
   ideDiffLeft = left;
   ideDiffRight = left; // 默认 self-diff：左右同路径 → 双栏同内容
   ideViewDiffMode = "diff";
@@ -17224,6 +18322,7 @@ async function enterIdeDiffMode() {
 }
 
 async function exitIdeDiffMode() {
+  projectDiffRequestSerial += 1;
   ideViewDiffMode = "view";
   updateIdeModeToggleButton();
   // 回 view：重新打开左侧文件的普通视图。
@@ -17303,22 +18402,28 @@ function ideTabKey(tab) {
 
 function findIdeTabByKind(kind, path, right = "") {
   const key = `${kind}|${path || ""}|${right || ""}`;
-  return ideState.tabs.find((tab) => ideTabKey(tab) === key) || null;
+  return ideState.tabs.find((tab) => tab.workspaceScope === projectWorkspaceScope && ideTabKey(tab) === key) || null;
 }
 
-function persistIdeTabs() {
+function ideTabsStorageKey(workspaceScope = projectWorkspaceScope) {
+  return `${IDE_TABS_STORAGE_KEY}.${encodeURIComponent(workspaceScope)}`;
+}
+
+function persistIdeTabsForScope(workspaceScope, state) {
+  if (!workspaceScope) return;
   try {
-    const data = ideState.tabs.map((tab) => ({
+    const data = state.tabs.filter((tab) => tab.workspaceScope === workspaceScope).map((tab) => ({
       id: tab.id,
       kind: tab.kind,
       title: tab.title,
       path: tab.path,
       right: tab.right || "",
-      active: tab.id === ideState.activeTabId,
+      workspaceScope: tab.workspaceScope,
+      active: tab.id === state.activeTabId,
     }));
     sessionStorage.setItem(
-      IDE_TABS_STORAGE_KEY,
-      JSON.stringify({ tabs: data, activeTabId: ideState.activeTabId }),
+      ideTabsStorageKey(workspaceScope),
+      JSON.stringify({ workspaceScope, tabs: data, activeTabId: state.activeTabId }),
     );
   } catch (_e) {
     /* sessionStorage 不可用时静默降级（刷新存活即可，不入后端） */
@@ -17326,19 +18431,22 @@ function persistIdeTabs() {
 }
 
 function restoreIdeTabsFromStorage() {
+  if (!projectWorkspaceScope) return;
   try {
-    const raw = sessionStorage.getItem(IDE_TABS_STORAGE_KEY);
+    const raw = sessionStorage.getItem(ideTabsStorageKey());
     if (!raw) return;
     const data = JSON.parse(raw);
-    if (!data || !Array.isArray(data.tabs)) return;
+    if (!data || data.workspaceScope !== projectWorkspaceScope || !Array.isArray(data.tabs)) return;
     ideState.tabs = data.tabs
-      .filter((tab) => tab && (tab.kind === "view" || tab.kind === "diff") && tab.path)
+      .filter((tab) => tab && tab.workspaceScope === projectWorkspaceScope
+        && (tab.kind === "view" || tab.kind === "diff") && tab.path)
       .map((tab) => ({
         id: tab.id || ideTabNewId(),
         kind: tab.kind,
         title: tab.title || ideTabTitleOf(tab),
         path: tab.path,
         right: tab.right || "",
+        workspaceScope: projectWorkspaceScope,
         active: false,
         payload: null,
       }));
@@ -17379,11 +18487,25 @@ function renderIdeTabbar() {
     return;
   }
   bar.replaceChildren();
+  const layout = bar.closest(".project-layout");
+  layout?.classList.toggle("has-open-file", ideState.tabs.length > 0);
   if (!ideState.tabs.length) {
     bar.classList.add("is-empty");
+    layout?.classList.remove("show-directory");
     return;
   }
   bar.classList.remove("is-empty");
+  const directoryToggle = document.createElement("button");
+  directoryToggle.type = "button";
+  directoryToggle.className = "project-directory-toggle";
+  directoryToggle.textContent = "目录";
+  directoryToggle.title = "展开或收起工程目录";
+  directoryToggle.setAttribute("aria-expanded", String(layout?.classList.contains("show-directory")));
+  directoryToggle.addEventListener("click", () => {
+    const expanded = layout?.classList.toggle("show-directory") || false;
+    directoryToggle.setAttribute("aria-expanded", String(expanded));
+  });
+  bar.append(directoryToggle);
   ideState.tabs.forEach((tab) => {
     const el = document.createElement("button");
     el.type = "button";
@@ -17432,6 +18554,7 @@ function setIdeActiveTab(id, { skipRender = false } = {}) {
     tab.active = tab.id === id;
   });
   ideState.activeTabId = id;
+  document.querySelector('[data-role="ide-tabbar"]')?.closest(".project-layout")?.classList.remove("show-directory");
   const active = ideState.tabs.find((tab) => tab.id === id) || null;
   // 全局 mode 跟随激活 tab 的 kind（plan §4.7）。
   ideViewDiffMode = active ? active.kind : "view";
@@ -17453,6 +18576,7 @@ function openIdeViewTab(path, { payload = null } = {}) {
       id: ideTabNewId(),
       kind: "view",
       path,
+      workspaceScope: projectWorkspaceScope,
       right: "",
       title: ideBaseName(path),
       active: false,
@@ -17476,7 +18600,7 @@ function openIdeDiffTab(left, right, { payload = null, updateInPlace = false } =
   let tab = null;
   if (updateInPlace && ideState.activeTabId) {
     const active = ideState.tabs.find((t) => t.id === ideState.activeTabId);
-    if (active && active.kind === "diff") {
+    if (active && active.kind === "diff" && active.workspaceScope === projectWorkspaceScope) {
       // 当前激活的就是 diff tab：原地更新右栏（plan §4.6 右输入换文件）。
       active.path = left;
       active.right = rightPath;
@@ -17491,6 +18615,7 @@ function openIdeDiffTab(left, right, { payload = null, updateInPlace = false } =
         id: ideTabNewId(),
         kind: "diff",
         path: left,
+        workspaceScope: projectWorkspaceScope,
         right: rightPath,
         title,
         active: false,
@@ -17548,6 +18673,9 @@ function activateIdeTab(id) {
   if (!tab) {
     return;
   }
+  projectFileOpenSerial += 1;
+  projectLineWindowSerial += 1;
+  projectDiffRequestSerial += 1;
   setIdeActiveTab(id);
   // 按 tab.kind 切 mode 并同步关联状态，再渲染对应视图。
   if (tab.kind === "diff") {
@@ -17561,6 +18689,8 @@ function activateIdeTab(id) {
     syncProjectTreeSelection();
   }
   renderIdeTabContent(tab);
+  if (tab.payload && tab.kind === "view") void updateLspPreviewForFile(tab.path);
+  else if (tab.kind === "diff") void updateLspPreviewForFile("");
 }
 
 function closeIdeTab(id) {
@@ -17598,9 +18728,23 @@ function closeIdeTab(id) {
 
 // 刷新还原：恢复 tabbar 并激活上次激活的 tab（无 payload，按需重新拉取内容）。
 function restoreIdeTabsOnInit() {
-  restoreIdeTabsFromStorage();
+  // 未确认当前工程前，旧版无作用域的标签记录不能归到任何工程。
+  if (!projectWorkspaceScope) return;
+  const inMemory = ideWorkspaceStates.get(projectWorkspaceScope);
+  if (inMemory) {
+    ideState = inMemory;
+  } else {
+    ideState = { tabs: [], activeTabId: null };
+    restoreIdeTabsFromStorage();
+  }
   renderIdeTabbar();
+  updateIdeSaveButton();
   if (!ideState.activeTabId) {
+    ideViewDiffMode = "view";
+    ideDiffLeft = "";
+    ideDiffRight = "";
+    updateIdeModeToggleButton();
+    syncIdeDiffPathsUI();
     return;
   }
   const tab = ideState.tabs.find((t) => t.id === ideState.activeTabId);
@@ -17608,14 +18752,19 @@ function restoreIdeTabsOnInit() {
     return;
   }
   if (tab.kind === "diff") {
+    ideViewDiffMode = "diff";
     ideDiffLeft = tab.path;
     ideDiffRight = tab.right || tab.path;
-    syncIdeDiffPathsUI();
   } else {
+    ideViewDiffMode = "view";
+    ideDiffLeft = "";
+    ideDiffRight = "";
     selectedProjectPath = tab.path;
     selectedProjectKind = "file";
     syncProjectTreeSelection();
   }
+  updateIdeModeToggleButton();
+  syncIdeDiffPathsUI();
   renderIdeTabContent(tab);
 }
 
@@ -17624,10 +18773,14 @@ async function loadIdeDiffFiles(left, right) {
     updateProjectPreview("请输入两个要对比的文件路径。", "文件对比");
     return;
   }
+  const scope = projectRequestScope();
+  const requestSerial = ++projectDiffRequestSerial;
+  const isCurrent = () => projectRequestScopeCurrent(scope) && requestSerial === projectDiffRequestSerial;
   try {
     const diffResp = await requestJson(
       `/api/project/diff-files?left=${encodeURIComponent(left)}&right=${encodeURIComponent(right)}`,
     );
+    if (!isCurrent()) return;
     let rows = parseUnifiedDiffRows(diffResp.diff || "");
     let metaText = `对比：${diffResp.left || left} ↔ ${diffResp.right || right}`;
     if (diffResp.truncated) {
@@ -17639,6 +18792,7 @@ async function loadIdeDiffFiles(left, right) {
         requestJson(`/api/project/file?path=${encodeURIComponent(left)}&offset=0&limit=65536`),
         requestJson(`/api/project/file?path=${encodeURIComponent(right)}&offset=0&limit=65536`),
       ]);
+      if (!isCurrent()) return;
       rows = diffAlignLines(
         (leftFile.content || "").split("\n"),
         (rightFile.content || "").split("\n"),
@@ -17652,8 +18806,12 @@ async function loadIdeDiffFiles(left, right) {
     // 阶段E：打开/激活 diff tab 并缓存 rows，切换回来时免重新拉取（右栏换文件时原地更新）。
     openIdeDiffTab(left, right, { payload: { rows, meta: metaText }, updateInPlace: true });
   } catch (error) {
-    updateProjectPreview(error.message, "文件对比失败");
+    if (isCurrent()) updateProjectPreview(error.message, "文件对比失败");
   }
+}
+
+function persistIdeTabs() {
+  persistIdeTabsForScope(projectWorkspaceScope, ideState);
 }
 
 function initializeWorkbenchWindows() {

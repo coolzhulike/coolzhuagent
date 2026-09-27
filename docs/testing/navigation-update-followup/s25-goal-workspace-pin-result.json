@@ -1,0 +1,9 @@
+{
+  "binary_sha256": "dfd39612cd2d689e6cf4e87de9b0c421682d1be33137d854a4ce8f5d2479d8ce",
+  "isolated_model_requests": 1,
+  "goal_run_http_status": 200,
+  "workspace_change_during_phase": 409,
+  "workspace_change_after_phase": 200,
+  "stayed_in_original_workspace_while_running": true,
+  "switched_to_other_workspace_after_completion": true
+}

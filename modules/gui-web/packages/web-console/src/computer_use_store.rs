@@ -15,7 +15,7 @@ use runtime::{
     LegacyCuRunSideEffectLimits, LegacyCuRunSubject, LegacyResourceScope, LegacyRunControlState,
     LegacyRunHistoricalOutcome, LegacyRunInputResourceState,
 };
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{params, Connection, OpenFlags, OptionalExtension};
 
 pub(crate) fn apply_session_migration_v11(connection: &Connection) -> rusqlite::Result<()> {
     let current: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
@@ -181,6 +181,16 @@ pub(crate) fn ensure_session_schema_not_from_the_future(
         )));
     }
     Ok(())
+}
+
+/// 已存在的库先通过只读连接检查有效版本，再允许写连接调整 journal 模式。
+/// WAL/hot journal 的只读打开由 SQLite 决定；读不到时直接报错，不按旧版本猜测。
+pub(crate) fn preflight_existing_session_schema(path: &std::path::Path) -> rusqlite::Result<()> {
+    if !path.exists() {
+        return Ok(());
+    }
+    let connection = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    ensure_session_schema_not_from_the_future(&connection)
 }
 
 /// v22：`computer_use_runs` 增加**可空**工作区归属列（裁决 §5.1）。
@@ -1830,7 +1840,9 @@ impl ComputerUseRunStore {
     }
 
     pub(crate) fn open(path: &std::path::Path) -> rusqlite::Result<Self> {
+        preflight_existing_session_schema(path)?;
         let connection = Connection::open(path)?;
+        ensure_session_schema_not_from_the_future(&connection)?;
         connection.execute_batch(
             "PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;",
         )?;

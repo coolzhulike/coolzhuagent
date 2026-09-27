@@ -1,0 +1,122 @@
+{
+  "workspace": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\mcp-model-e2e-4ba526dcb7",
+  "web_sha256": "02d2cc8d0cdcfc9ac4b84710e48d5df19fda3adba932307187b76b3fdb7fec06",
+  "default_model_limit": false,
+  "limit_before": {
+    "session_id": "session-1790478393638",
+    "model": "local-mcp",
+    "context_window": 64000,
+    "max_output_tokens": 64000,
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "overridden": false
+  },
+  "limit_effective": {
+    "session_id": "session-1790478393638",
+    "model": "local-mcp",
+    "context_window": 65536,
+    "max_output_tokens": 2048,
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "overridden": true
+  },
+  "management_session": "session-1790478393608",
+  "target_session": "session-1790478393638",
+  "room": "room-1790478393653",
+  "connected_tool_count": 13,
+  "server_status": [
+    {
+      "id": "official",
+      "connected": true,
+      "tool_count": 13
+    }
+  ],
+  "model_requests": 2,
+  "first_tool_names": [
+    "tools_semantic_dispatch",
+    "chat_handoff",
+    "bash",
+    "read_file",
+    "write_file",
+    "edit_file",
+    "glob_search",
+    "grep_search",
+    "WebFetch",
+    "WebSearch",
+    "TodoWrite",
+    "Skill",
+    "Agent",
+    "NotebookEdit",
+    "Sleep",
+    "SendUserMessage",
+    "Config",
+    "StructuredOutput",
+    "REPL",
+    "PowerShell",
+    "mcp__official__echo",
+    "mcp__official__get-annotated-message",
+    "mcp__official__get-env",
+    "mcp__official__get-resource-links",
+    "mcp__official__get-resource-reference",
+    "mcp__official__get-structured-content",
+    "mcp__official__get-sum",
+    "mcp__official__get-tiny-image",
+    "mcp__official__gzip-file-as-resource",
+    "mcp__official__toggle-simulated-logging",
+    "mcp__official__toggle-subscriber-updates",
+    "mcp__official__trigger-long-running-operation",
+    "mcp__official__simulate-research-query"
+  ],
+  "selected_mcp_count": 13,
+  "request_shapes": [
+    {
+      "keys": [
+        "max_tokens",
+        "messages",
+        "model",
+        "stream",
+        "tool_choice",
+        "tools"
+      ],
+      "stream": false,
+      "tool_count": 33,
+      "max_tokens": 2048,
+      "model": "local-mcp",
+      "roles": [
+        "system",
+        "user"
+      ]
+    },
+    {
+      "keys": [
+        "max_tokens",
+        "messages",
+        "model",
+        "stream",
+        "tool_choice",
+        "tools"
+      ],
+      "stream": false,
+      "tool_count": 33,
+      "max_tokens": 2048,
+      "model": "local-mcp",
+      "roles": [
+        "system",
+        "user",
+        "assistant",
+        "tool"
+      ]
+    }
+  ],
+  "feedback_seen_by_model": true,
+  "final_seen": true,
+  "response_keys": [
+    "accepted_agent_ids",
+    "messages",
+    "notes",
+    "run_id",
+    "status",
+    "tasks",
+    "turn_id"
+  ]
+}

@@ -18,7 +18,9 @@ mod tests {
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     use lsp_types::{DiagnosticSeverity, Position};
+    use serde_json::{json, Value};
 
+    use crate::client::LspClient;
     use crate::{LspManager, LspServerConfig};
 
     fn temp_dir(label: &str) -> PathBuf {
@@ -90,6 +92,7 @@ mod tests {
         fs::write(
             &script_path,
             r#"import json
+import os
 import sys
 
 
@@ -160,6 +163,19 @@ while True:
     elif method == "textDocument/didSave":
         continue
     elif method == "textDocument/definition":
+        if os.environ.get("LSP_MOCK_HANG_ON_DEFINITION") == "1":
+            continue
+        if os.environ.get("LSP_MOCK_CLOSE_ON_DEFINITION") == "1":
+            break
+        write_message({
+            "jsonrpc": "2.0",
+            "id": message["id"],
+            "method": "workspace/unimplemented",
+            "params": {},
+        })
+        reply = read_message()
+        if reply is None or reply.get("id") != message["id"] or reply.get("error", {}).get("code") != -32601:
+            break
         uri = message["params"]["textDocument"]["uri"]
         write_message({
             "jsonrpc": "2.0",
@@ -288,7 +304,8 @@ while True:
 
     #[tokio::test(flavor = "current_thread")]
     async fn renders_runtime_context_enrichment_for_prompt_usage() {
-        let python = require_python_interpreter("renders_runtime_context_enrichment_for_prompt_usage");
+        let python =
+            require_python_interpreter("renders_runtime_context_enrichment_for_prompt_usage");
 
         // given
         let root = temp_dir("prompt");
@@ -332,5 +349,165 @@ while True:
 
         manager.shutdown().await.expect("shutdown should succeed");
         fs::remove_dir_all(root).expect("temp workspace should be removed");
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn server_eof_releases_pending_request_without_restarting() {
+        let python =
+            require_python_interpreter("server_eof_releases_pending_request_without_restarting");
+        let root = temp_dir("eof");
+        fs::create_dir_all(&root).expect("workspace root");
+        let script = write_mock_server_script(&root);
+        let source = root.join("main.rs");
+        fs::write(&source, "fn main() {}\n").expect("source file");
+        let manager = LspManager::new(vec![LspServerConfig {
+            name: "mock".to_string(),
+            command: python,
+            args: vec![script.display().to_string()],
+            env: BTreeMap::from([("LSP_MOCK_CLOSE_ON_DEFINITION".to_string(), "1".to_string())]),
+            workspace_root: root.clone(),
+            initialization_options: None,
+            extension_to_language: BTreeMap::from([(".rs".to_string(), "rust".to_string())]),
+        }])
+        .expect("manager");
+
+        let result = tokio::time::timeout(
+            Duration::from_secs(3),
+            manager.go_to_definition(&source, Position::new(0, 0)),
+        )
+        .await
+        .expect("EOF should resolve pending promptly");
+        assert!(result.is_err());
+        let again = manager
+            .go_to_definition(&source, Position::new(0, 0))
+            .await
+            .expect_err("stopped server must not restart implicitly");
+        assert!(again.to_string().contains("stopped"));
+        manager.shutdown().await.expect("shutdown");
+        fs::remove_dir_all(root).expect("cleanup");
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn request_timeout_stops_unresponsive_server() {
+        let python = require_python_interpreter("request_timeout_stops_unresponsive_server");
+        let root = temp_dir("timeout");
+        fs::create_dir_all(&root).expect("workspace root");
+        let script = write_mock_server_script(&root);
+        let client = LspClient::connect(LspServerConfig {
+            name: "mock".to_string(),
+            command: python,
+            args: vec![script.display().to_string()],
+            env: BTreeMap::from([("LSP_MOCK_HANG_ON_DEFINITION".to_string(), "1".to_string())]),
+            workspace_root: root.clone(),
+            initialization_options: None,
+            extension_to_language: BTreeMap::from([(".rs".to_string(), "rust".to_string())]),
+        })
+        .await
+        .expect("connect");
+        let error = client
+            .request_with_timeout::<Value>(
+                "textDocument/definition",
+                json!({}),
+                Duration::from_millis(150),
+            )
+            .await
+            .expect_err("unresponsive server must time out");
+        assert!(error.to_string().contains("exceeded"));
+        assert!(!client.is_alive());
+        fs::remove_dir_all(root).expect("cleanup");
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn document_outside_configured_workspace_is_rejected_before_spawn() {
+        let root = temp_dir("workspace-boundary");
+        let outside = temp_dir("workspace-outside");
+        fs::create_dir_all(&root).expect("workspace root");
+        fs::create_dir_all(&outside).expect("outside root");
+        let source = outside.join("main.rs");
+        fs::write(&source, "fn main() {}\n").expect("outside source");
+        let manager = LspManager::new(vec![LspServerConfig {
+            name: "not-started".to_string(),
+            command: "intentionally-missing-language-server".to_string(),
+            args: Vec::new(),
+            env: BTreeMap::new(),
+            workspace_root: root.clone(),
+            initialization_options: None,
+            extension_to_language: BTreeMap::from([(".rs".to_string(), "rust".to_string())]),
+        }])
+        .expect("manager");
+        let error = manager
+            .open_document(&source, "fn main() {}\n")
+            .await
+            .expect_err("out of workspace file must be rejected");
+        assert!(error.to_string().contains("outside configured workspace"));
+        fs::remove_dir_all(root).expect("cleanup workspace");
+        fs::remove_dir_all(outside).expect("cleanup outside");
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    #[ignore = "需显式运行：本机 rust-analyzer、Rust 工具链与临时工作区"]
+    async fn real_rust_analyzer_initializes_navigates_and_stops() {
+        let analyzer = Command::new("rust-analyzer")
+            .arg("--version")
+            .output()
+            .expect("[env-missing] rust-analyzer must be installed for real LSP test");
+        assert!(analyzer.status.success(), "rust-analyzer --version failed");
+        let root = temp_dir("real-rust-analyzer");
+        fs::create_dir_all(root.join("src")).expect("workspace src");
+        fs::write(
+            root.join("Cargo.toml"),
+            "[package]\nname = \"lsp-real-test\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        )
+        .expect("workspace manifest");
+        let source = root.join("src").join("lib.rs");
+        fs::write(
+            &source,
+            "fn helper() -> i32 { 1 }\npub fn answer() -> i32 { helper() }\npub fn broken() { let = ; }\n",
+        )
+        .expect("workspace source");
+        let manager = LspManager::new(vec![LspServerConfig {
+            name: "rust-analyzer".to_string(),
+            command: "rust-analyzer".to_string(),
+            args: Vec::new(),
+            env: BTreeMap::new(),
+            workspace_root: root.clone(),
+            initialization_options: None,
+            extension_to_language: BTreeMap::from([(".rs".to_string(), "rust".to_string())]),
+        }])
+        .expect("manager");
+        manager
+            .sync_document_from_disk(&source)
+            .await
+            .expect("real server document sync");
+        tokio::time::timeout(Duration::from_secs(60), async {
+            loop {
+                if manager
+                    .collect_workspace_diagnostics()
+                    .await
+                    .expect("real diagnostics")
+                    .total_diagnostics()
+                    > 0
+                {
+                    break;
+                }
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
+        })
+        .await
+        .expect("real server should publish syntax diagnostics");
+        let definitions = manager
+            .go_to_definition(&source, Position::new(1, 26))
+            .await
+            .expect("real definition");
+        assert!(definitions
+            .iter()
+            .any(|location| location.path == source && location.start_line() == 1));
+        let references = manager
+            .find_references(&source, Position::new(1, 26), true)
+            .await
+            .expect("real references");
+        assert!(!references.is_empty());
+        manager.shutdown().await.expect("real server shutdown");
+        fs::remove_dir_all(root).expect("cleanup real workspace");
     }
 }

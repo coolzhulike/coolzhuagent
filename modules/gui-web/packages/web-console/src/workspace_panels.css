@@ -1,5 +1,5 @@
 /* 内容工作区只覆盖新宿主，继续使用玉石、竹林和清晰的正文对比度。 */
-body.ui-3d .workbench-quick-rail .window-dock { display:flex; flex-direction:column; justify-content:flex-start; }
+body.ui-3d .workbench-quick-rail .window-dock { display:flex; flex:1 1 auto; min-height:0; flex-direction:column; justify-content:flex-start; }
 body.ui-3d .workbench-quick-rail { display:flex; flex-direction:column; }
 body.ui-3d .workbench-quick-rail .window-tab { position:relative; flex-shrink:0; }
 body.ui-3d .workbench-quick-rail .window-tab > span { display:none; }
@@ -34,6 +34,46 @@ body.ui-3d .workbench-window .chat-media-preview-button { display:block; width:a
 body.ui-3d .workbench-window .chat-media-preview-button > :is(img,video) { display:block; max-width:100%; width:auto; height:auto; margin:0; }
 body.ui-3d .workbench-window .chat-media-preview-button:focus-visible { outline:2px solid #B8D9C6; outline-offset:3px; }
 @media (prefers-reduced-motion:reduce) { .chat-activity-stream { scroll-behavior:auto; } }
+
+/* 更多入口在可滚动的上半轨；更新按钮始终留在轨道底部。 */
+body.ui-3d .workbench-quick-rail > .quick-rail-update { margin:0 auto; flex:0 0 36px; }
+body.ui-3d .workbench-quick-rail .window-dock-more { margin-top:0; }
+body.ui-3d .workbench-quick-rail > .quick-rail-update::after {
+  content:""; position:absolute; right:4px; top:3px; width:6px; height:6px;
+  border-radius:50%; background:transparent;
+}
+body.ui-3d .workbench-quick-rail > .quick-rail-update[data-update-status="update_available"]::after {
+  background:#D7B66B; box-shadow:0 0 0 1px #183429;
+}
+body.ui-3d .window-dock-more > summary.window-tab { margin:0 auto; }
+body.ui-3d .window-dock-more[open] > summary.window-tab,
+body.ui-3d .window-dock-more > summary.window-tab.is-active { background:#285742; border-color:#B8D9C6; }
+body.ui-3d .window-dock-more .window-dock-secondary { max-width:100%; }
+
+body.ui-3d .quick-catalog-panel,
+body.ui-3d .app-update-panel { width:100%; max-width:100%; min-width:0; }
+.quick-panel-intro { margin:0 0 14px; color:#D4E5D9; font-size:13px; line-height:1.6; }
+.quick-catalog-facts { display:flex; flex-wrap:wrap; gap:6px 14px; margin:0 0 12px; color:#D4E5D9; font-size:12px; }
+.quick-catalog-facts b { color:#EDF1E8; font-weight:600; }
+.quick-catalog-list { display:grid; gap:10px; margin-top:12px; }
+.quick-catalog-item { display:grid; gap:7px; padding:11px; border:1px solid #587B66; border-radius:8px; background:rgba(11,34,28,.94); color:#EDF1E8; }
+.quick-catalog-item strong { font-size:14px; overflow-wrap:anywhere; }
+.quick-catalog-item small { color:#C5D7C8; font-size:12px; overflow-wrap:anywhere; }
+.quick-catalog-item p { margin:0; font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
+body.ui-3d .quick-catalog-item button { justify-self:start; min-height:30px; }
+.app-update-facts { display:grid; gap:8px; margin:0 0 15px; }
+.app-update-facts > div { display:grid; grid-template-columns:minmax(90px,36%) minmax(0,1fr); gap:8px; padding:8px 10px; border:1px solid #49695B; border-radius:6px; background:rgba(10,31,26,.85); }
+.app-update-facts dt { color:#C5D7C8; font-size:12px; }
+.app-update-facts dd { margin:0; color:#EDF1E8; font-size:13px; overflow-wrap:anywhere; }
+.app-update-state { margin:0 0 6px; color:#EDF1E8; font-weight:700; }
+.app-update-message { min-height:1.5em; margin:0 0 12px; color:#D4E5D9; font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
+.app-update-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.app-update-actions a { display:inline-flex; align-items:center; min-height:34px; padding:5px 10px; box-sizing:border-box; border:1px solid #86B49A; border-radius:6px; color:#EDF1E8; background:#19392B; font-size:13px; text-decoration:none; }
+.app-update-actions a[hidden] { display:none; }
+.app-update-actions a:hover { background:#285742; }
+.app-update-actions a:focus-visible { outline:2px solid #B8D9C6; outline-offset:2px; }
+.app-update-scope { display:block; color:#C5D7C8; font-size:12px; line-height:1.5; }
+@media (max-width:480px) { .app-update-facts > div { grid-template-columns:1fr; gap:3px; } }
 
 /* 正文仅保留紧凑引用；图片原尺寸与视频播放交给右栏。 */
 body.ui-3d .workbench-window .rich-media-frame { display:inline-flex; flex-direction:column; align-items:flex-start; vertical-align:middle; gap:4px; margin:5px 8px 5px 0; max-width:min(240px,100%); }
@@ -80,3 +120,89 @@ body.ui-3d .workspace-preview-tabs > .workspace-preview-source {
 .video-wait-control button { width:auto; height:auto; min-height:30px; padding:4px 10px; color:#EDF1E8; background:#183D30; border:1px solid #679980; border-radius:6px; font:inherit; font-size:12px; line-height:1.5; }
 .video-wait-control button:disabled { color:#ADBBAF; border-color:#486451; cursor:default; }
 .video-wait-control small { max-width:100%; color:#ADBBAF; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.lsp-preview-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(112, 143, 137, 0.25);
+  font-size: 11px;
+}
+
+.lsp-preview-toolbar[hidden],
+.lsp-preview-toolbar button[hidden],
+.lsp-preview-results[hidden] {
+  display: none;
+}
+
+.lsp-preview-toolbar [data-role="lsp-preview-status"] {
+  flex: 1 1 170px;
+}
+
+.lsp-preview-toolbar button {
+  border: 1px solid rgba(112, 143, 137, 0.45);
+  border-radius: 6px;
+  background: rgba(31, 60, 55, 0.65);
+  color: inherit;
+  padding: 3px 7px;
+  cursor: pointer;
+}
+
+.lsp-preview-toolbar button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.lsp-preview-results {
+  border-top: 1px solid rgba(112, 143, 137, 0.25);
+  margin-top: 8px;
+  padding: 8px;
+  max-height: 40%;
+  overflow: auto;
+  font-size: 11px;
+}
+
+.lsp-preview-results strong { display: block; margin-bottom: 5px; }
+.lsp-preview-results button {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 4px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.lsp-preview-results button:hover { background: rgba(112, 143, 137, 0.2); }
+
+/* 终端保持一条持续的 PowerShell 会话；输出区独立滚动，操作区始终可见。 */
+.terminal-workbench-window .terminal-window-panel {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+}
+body.ui-3d .chat-tool-host-content > .terminal-workbench-window .terminal-console-shell > .terminal-window-panel {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.terminal-window-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px;
+  color: #d7ffcf;
+  font-size: 11px;
+}
+.terminal-window-controls { display: flex; gap: 5px; }
+.terminal-window-controls button { min-width: 46px; }
+.terminal-workbench-window .terminal-window-command,
+body.ui-3d .terminal-window-command {
+  grid-template-columns: minmax(0, 1fr) 92px 38px;
+}
+.terminal-workbench-window .terminal-window-command textarea { width: 100%; }
+@media (max-width: 620px) {
+  .terminal-workbench-window .terminal-window-command,
+  body.ui-3d .terminal-window-command { grid-template-columns: minmax(0, 1fr) 72px 38px; }
+}

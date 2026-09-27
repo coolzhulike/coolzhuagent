@@ -9,27 +9,26 @@
   const ease = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
   const between = (time, start, end) => ease((time - start) / (end - start));
   const lerp = (left, right, progress) => left + (right - left) * progress;
-  // 每个姿态是真实整人帧，锚点校正到鞋底；轨迹明确经历沉身、前移、抬升、落脚与回稳。
+  // 四个整人姿态按鞋底锚点单帧切换；位移连续，不叠画两个头或冒充骨骼动作。
   const poses = [
-    {time:1050, frame:0, x:328, y:696, angle:-0.04, scale:1},
-    {time:1280, frame:0, x:330, y:712, angle:-0.10, scale:0.96},
-    {time:1480, frame:1, x:347, y:695, angle:0.045, scale:1.02},
-    {time:1700, frame:2, x:380, y:670, angle:0.08, scale:1.03},
-    {time:1900, frame:4, x:409, y:691, angle:0.025, scale:1},
-    {time:2100, frame:3, x:415, y:711, angle:-0.03, scale:0.96},
-    {time:2320, frame:1, x:419, y:698, angle:0, scale:1},
+    {time:1050, frame:0, x:294, y:699, angle:-0.04, scale:1},
+    {time:1260, frame:0, x:296, y:714, angle:-0.10, scale:0.96},
+    {time:1470, frame:1, x:330, y:665, angle:0.035, scale:1.02},
+    {time:1690, frame:1, x:371, y:641, angle:0.075, scale:1.04},
+    {time:1860, frame:2, x:406, y:656, angle:0.055, scale:1.02},
+    {time:2070, frame:2, x:427, y:708, angle:-0.05, scale:0.97},
+    {time:2310, frame:3, x:431, y:699, angle:0, scale:1},
   ];
-  const feet = [[320,560],[320,576],[320,573],[320,483],[320,476]];
   function motionAt(time) {
-    if (time <= poses[0].time) return {...poses[0],nextFrame:poses[0].frame,mix:0};
+    if (time <= poses[0].time) return {...poses[0]};
     for (let index=1; index<poses.length; index++) {
       const right=poses[index], left=poses[index-1];
       if (time <= right.time) {
         const progress=between(time,left.time,right.time);
-        return {x:lerp(left.x,right.x,progress),y:lerp(left.y,right.y,progress),angle:lerp(left.angle,right.angle,progress),scale:lerp(left.scale,right.scale,progress),frame:left.frame,nextFrame:right.frame,mix:clamp((time-right.time+90)/90)};
+        return {x:lerp(left.x,right.x,progress),y:lerp(left.y,right.y,progress),angle:lerp(left.angle,right.angle,progress),scale:lerp(left.scale,right.scale,progress),frame:progress<0.5?left.frame:right.frame};
       }
     }
-    return {...poses.at(-1),nextFrame:poses.at(-1).frame,mix:0};
+    return {...poses.at(-1)};
   }
   function createStartupPlayer(options = {}) {
     const manifest = options.manifest;
@@ -104,15 +103,13 @@
     }
     function actor(time,alpha) {
       const motion=motionAt(time);
-      const draw=(index,weight)=>{
-        const image=assets?.[actorFrames[index].src]; if (!image || weight<=0) return;
-        const scale=0.25*motion.scale, foot=feet[index];
-        context.save(); context.globalAlpha*=alpha*weight;
-        context.translate(motion.x,motion.y); context.rotate(motion.angle);
-        context.drawImage(image,-foot[0]*scale,-foot[1]*scale,640*scale,640*scale);
-        context.restore();
-      };
-      draw(motion.frame,1-motion.mix); draw(motion.nextFrame,motion.mix);
+      const frame=actorFrames[motion.frame], image=assets?.[frame.src];
+      if (!image || alpha<=0) return motion;
+      const rect=frame.sourceRect, anchor=frame.anchor, scale=0.37*motion.scale;
+      context.save(); context.globalAlpha*=alpha;
+      context.translate(motion.x,motion.y); context.rotate(motion.angle);
+      context.drawImage(image,rect.x,rect.y,rect.width,rect.height,-anchor.x*scale,-anchor.y*scale,rect.width*scale,rect.height*scale);
+      context.restore();
       return motion;
     }
     function seal(alpha) {
@@ -147,7 +144,9 @@
       const logoAlpha=daily?between(elapsed,30,330):reduced?1:between(elapsed,1550,2500);
       logo(logoAlpha); ambience(presentationTime,progress);
       let motion=null;
-      if (!reduced && !daily && elapsed>=1050) motion=actor(elapsed,between(elapsed,1050,1190));
+      if (!reduced && !daily && elapsed>=1050 && elapsed<2780) {
+        motion=actor(elapsed,between(elapsed,1050,1190)*(1-between(elapsed,2400,2780)));
+      }
       seal(daily?between(elapsed,130,480):reduced?1:between(elapsed,2350,2700));
       context.restore();
       lastScene={state:getState(),scrollProgress:progress,logoAlpha,actor:motion,sealText:"酷朱"};

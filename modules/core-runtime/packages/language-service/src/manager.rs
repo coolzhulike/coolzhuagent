@@ -23,7 +23,13 @@ impl LspManager {
         let mut configs_by_name = BTreeMap::new();
         let mut extension_map = BTreeMap::new();
 
-        for config in server_configs {
+        for mut config in server_configs {
+            config.workspace_root = config.workspace_root.canonicalize()?;
+            if config.name.trim().is_empty() || config.command.trim().is_empty() {
+                return Err(LspError::Protocol(
+                    "LSP server name and command must be nonempty".to_string(),
+                ));
+            }
             for extension in config.extension_to_language.keys() {
                 let normalized = normalize_extension(extension);
                 if let Some(existing_server) =
@@ -55,31 +61,30 @@ impl LspManager {
     }
 
     pub async fn open_document(&self, path: &Path, text: &str) -> Result<(), LspError> {
-        self.client_for_path(path)
-            .await?
-            .open_document(path, text)
-            .await
+        let (client, path) = self.client_for_path(path).await?;
+        client.open_document(&path, text).await
     }
 
     pub async fn sync_document_from_disk(&self, path: &Path) -> Result<(), LspError> {
-        let contents = std::fs::read_to_string(path)?;
-        self.change_document(path, &contents).await?;
-        self.save_document(path).await
+        let (client, path) = self.client_for_path(path).await?;
+        let contents = std::fs::read_to_string(&path)?;
+        client.change_document(&path, &contents).await?;
+        client.save_document(&path).await
     }
 
     pub async fn change_document(&self, path: &Path, text: &str) -> Result<(), LspError> {
-        self.client_for_path(path)
-            .await?
-            .change_document(path, text)
-            .await
+        let (client, path) = self.client_for_path(path).await?;
+        client.change_document(&path, text).await
     }
 
     pub async fn save_document(&self, path: &Path) -> Result<(), LspError> {
-        self.client_for_path(path).await?.save_document(path).await
+        let (client, path) = self.client_for_path(path).await?;
+        client.save_document(&path).await
     }
 
     pub async fn close_document(&self, path: &Path) -> Result<(), LspError> {
-        self.client_for_path(path).await?.close_document(path).await
+        let (client, path) = self.client_for_path(path).await?;
+        client.close_document(&path).await
     }
 
     pub async fn go_to_definition(
@@ -87,11 +92,10 @@ impl LspManager {
         path: &Path,
         position: Position,
     ) -> Result<Vec<SymbolLocation>, LspError> {
-        let mut locations = self
-            .client_for_path(path)
-            .await?
-            .go_to_definition(path, position)
-            .await?;
+        let (client, path) = self.client_for_path(path).await?;
+        let mut locations = client.go_to_definition(&path, position).await?;
+        locations
+            .retain(|location| location_within_workspace(&location.path, client.workspace_root()));
         dedupe_locations(&mut locations);
         Ok(locations)
     }
@@ -102,11 +106,12 @@ impl LspManager {
         position: Position,
         include_declaration: bool,
     ) -> Result<Vec<SymbolLocation>, LspError> {
-        let mut locations = self
-            .client_for_path(path)
-            .await?
-            .find_references(path, position, include_declaration)
+        let (client, path) = self.client_for_path(path).await?;
+        let mut locations = client
+            .find_references(&path, position, include_declaration)
             .await?;
+        locations
+            .retain(|location| location_within_workspace(&location.path, client.workspace_root()));
         dedupe_locations(&mut locations);
         Ok(locations)
     }
@@ -123,13 +128,16 @@ impl LspManager {
 
         for client in clients {
             for (uri, diagnostics) in client.diagnostics_snapshot().await {
-                let Ok(path) = url::Url::parse(&uri).and_then(|url| {
+                let Ok(uri_path) = url::Url::parse(&uri).and_then(|url| {
                     url.to_file_path()
                         .map_err(|()| url::ParseError::RelativeUrlWithoutBase)
                 }) else {
                     continue;
                 };
-                if diagnostics.is_empty() {
+                let Ok(path) = uri_path.canonicalize() else {
+                    continue;
+                };
+                if diagnostics.is_empty() || !path.starts_with(client.workspace_root()) {
                     continue;
                 }
                 files.push(FileDiagnostics {
@@ -142,6 +150,12 @@ impl LspManager {
 
         files.sort_by(|left, right| left.path.cmp(&right.path));
         Ok(WorkspaceDiagnostics { files })
+    }
+
+    /// 仅报告已实际启动且读循环仍存活的服务；不因配置存在而暗示服务可用。
+    pub async fn is_running(&self) -> bool {
+        let clients = self.clients.lock().await;
+        !clients.is_empty() && clients.values().all(|client| client.is_alive())
     }
 
     pub async fn context_enrichment(
@@ -169,7 +183,11 @@ impl LspManager {
         Ok(())
     }
 
-    async fn client_for_path(&self, path: &Path) -> Result<Arc<LspClient>, LspError> {
+    async fn client_for_path(
+        &self,
+        path: &Path,
+    ) -> Result<(Arc<LspClient>, std::path::PathBuf), LspError> {
+        let path = path.canonicalize()?;
         let extension = path
             .extension()
             .map(|extension| normalize_extension(extension.to_string_lossy().as_ref()))
@@ -180,20 +198,37 @@ impl LspManager {
             .cloned()
             .ok_or_else(|| LspError::UnsupportedDocument(path.to_path_buf()))?;
 
-        let mut clients = self.clients.lock().await;
-        if let Some(client) = clients.get(&server_name) {
-            return Ok(client.clone());
-        }
-
         let config = self
             .server_configs
             .get(&server_name)
             .cloned()
             .ok_or_else(|| LspError::UnknownServer(server_name.clone()))?;
+        if !path.starts_with(&config.workspace_root) {
+            return Err(LspError::Protocol(format!(
+                "document is outside configured workspace: {}",
+                path.display()
+            )));
+        }
+
+        let mut clients = self.clients.lock().await;
+        if let Some(client) = clients.get(&server_name) {
+            if !client.is_alive() {
+                return Err(LspError::Protocol(format!(
+                    "language server `{server_name}` stopped; close and reopen the workspace to retry"
+                )));
+            }
+            return Ok((client.clone(), path));
+        }
+
         let client = Arc::new(LspClient::connect(config).await?);
         clients.insert(server_name, client.clone());
-        Ok(client)
+        Ok((client, path))
     }
+}
+
+fn location_within_workspace(path: &Path, workspace: &Path) -> bool {
+    path.canonicalize()
+        .is_ok_and(|canonical| canonical.starts_with(workspace))
 }
 
 fn dedupe_locations(locations: &mut Vec<SymbolLocation>) {

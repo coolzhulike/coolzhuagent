@@ -3,8 +3,8 @@
 //! `TargetPathsExtractor` 从工具入参中解析出它将要读 / 写 / 执行的路径集合，供
 //! `core-runtime::permission_gate::evaluate_permission` 判断是否越出 workspace
 //! 或命中 Protected 规则。`bash` / `PowerShell` / `REPL` / `Agent` 等无法
-//! 静态分析命令内容的工具会优先抽取 `cwd` 作为执行边界；没有 `cwd` 时返回空
-//! `Vec<PathTarget>`，由闸门视为 workspace 外。
+//! 静态分析命令内容的工具始终返回空 `Vec<PathTarget>`，由闸门视为范围未知。
+//! `cwd` 只是启动目录，不证明命令无法访问目录外文件。
 //!
 //! 该模块只解析 JSON 入参、返回 `PathTarget`，不读文件系统，便于 TDD。
 //!
@@ -21,17 +21,11 @@ pub trait TargetPathsExtractor: Send + Sync {
     fn extract(&self, input: &Value) -> Vec<PathTarget>;
 }
 
-/// `bash` / `PowerShell` / `REPL` / `Agent`：命令内容无法可靠静态分析，使用 cwd 做边界。
+/// `bash` / `PowerShell` / `REPL` / `Agent`：无法从启动目录证明实际访问范围。
 pub struct OpaqueCommandExtractor;
 impl TargetPathsExtractor for OpaqueCommandExtractor {
-    fn extract(&self, input: &Value) -> Vec<PathTarget> {
-        input
-            .get("cwd")
-            .and_then(Value::as_str)
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .map(|cwd| vec![PathTarget::new(PathBuf::from(cwd), PathAccess::Execute)])
-            .unwrap_or_default()
+    fn extract(&self, _input: &Value) -> Vec<PathTarget> {
+        Vec::new()
     }
 }
 
@@ -93,7 +87,7 @@ impl TargetPathsExtractor for NoPathExtractor {
     }
 }
 
-/// 根据工具名称返回对应抽取器。未知工具回退到 `OpaqueCommandExtractor`。
+/// 根据工具名称返回对应抽取器；未知工具的最低权限另由门禁元数据拒绝。
 #[must_use]
 pub fn extractor_for(tool_name: &str) -> Box<dyn TargetPathsExtractor> {
     match tool_name {
@@ -120,15 +114,41 @@ mod tests {
     }
 
     #[test]
-    fn opaque_command_uses_cwd_as_execute_boundary() {
-        let e = extractor_for("PowerShell");
-        let out = e.extract(&json!({
-            "command": "Get-ChildItem",
-            "cwd": "C:/workspace"
-        }));
-        assert_eq!(out.len(), 1);
-        assert_eq!(out[0].access, PathAccess::Execute);
-        assert_eq!(out[0].raw.to_string_lossy(), "C:/workspace");
+    fn opaque_command_cwd_does_not_prove_workspace_boundary() {
+        for name in ["bash", "PowerShell", "REPL", "Agent"] {
+            let targets = extractor_for(name).extract(&json!({
+                "command": "Get-Content C:/outside/secret.txt",
+                "cwd": "C:/workspace"
+            }));
+            assert!(targets.is_empty(), "{name} 的 cwd 不能冒充文件系统隔离");
+        }
+    }
+
+    #[test]
+    fn workspace_auto_shell_with_workspace_cwd_still_needs_confirm() {
+        let input = json!({"command": "Get-Content C:/outside/secret.txt", "cwd": "C:/workspace"});
+        let targets = extractor_for("PowerShell").extract(&input);
+        let mut invoke = runtime::ToolInvoke {
+            call_id: "cwd-gate-test".to_string(), tool_name: "PowerShell".to_string(), input,
+            caller: runtime::ToolCaller::Llm, workspace_id: "test-workspace".to_string(),
+            session_id: None, user_authorized: false, user_confirmed_twice: false,
+        };
+        let evaluate = |invoke: &runtime::ToolInvoke, profile| runtime::evaluate_permission(
+            invoke, runtime::PermissionMode::DangerFullAccess, &targets,
+            std::path::Path::new("C:/workspace"), &[],
+            &runtime::SessionGrantView::default(), profile,
+        );
+        let report = evaluate(&invoke, runtime::PermissionProfile::WorkspaceAuto);
+        assert_eq!(report.decision, runtime::PermissionDecision::RequireConfirm);
+        assert!(!report.workspace_relative);
+        invoke.user_authorized = true;
+        invoke.user_confirmed_twice = true;
+        assert_eq!(evaluate(&invoke, runtime::PermissionProfile::WorkspaceAuto).decision,
+            runtime::PermissionDecision::AllowApproved);
+        invoke.user_authorized = false;
+        invoke.user_confirmed_twice = false;
+        assert_eq!(evaluate(&invoke, runtime::PermissionProfile::FullAccess).decision,
+            runtime::PermissionDecision::AllowAuto);
     }
 
     #[test]

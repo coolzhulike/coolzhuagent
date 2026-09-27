@@ -40,6 +40,19 @@ $script:LoaderCurrentPointerPrefix = '.loader-current-'
 $script:LoaderGenerationRecordSchema = 1
 $script:LoaderSlotPointerSchema = 1
 
+# 收据哈希以 JSON 原始字符串为准。PS 7.5+ 默认把 ISO 日期转成 DateTime，
+# 回读时必须禁用该转换；Windows PowerShell 5.1 没有 DateKind，但默认保留字符串。
+function ConvertFrom-LoaderJson {
+  param([Parameter(Mandatory = $true, ValueFromPipeline = $true)][string]$Json)
+  process {
+    if ((Get-Command ConvertFrom-Json).Parameters.ContainsKey('DateKind')) {
+      $Json | ConvertFrom-Json -DateKind String
+    } else {
+      $Json | ConvertFrom-Json
+    }
+  }
+}
+
 function New-LoaderFailureText {
   param(
     [Parameter(Mandatory = $true)][string]$Category,
@@ -134,6 +147,9 @@ function Get-LoaderDigestLeafLines {
   if ($Value -is [string]) {
     $lines.Add("$Prefix=$Value")
     return $lines
+  }
+  if ($Value -is [datetime] -or $Value -is [datetimeoffset]) {
+    throw [System.InvalidOperationException]::new("Loader 摘要要求原始 JSON 日期字符串，不能展开 DateTime：$Prefix")
   }
   if ($Value -is [bool]) {
     $lines.Add(("$Prefix=" + $(if ($Value) { 'true' } else { 'false' })))
@@ -548,7 +564,7 @@ function Read-LoaderPublishHolder {
       $reader.Dispose()
     }
     if (-not $raw) { return $null }
-    return ($raw | ConvertFrom-Json)
+    return ($raw | ConvertFrom-LoaderJson)
   } catch {
     return $null
   } finally {
@@ -845,7 +861,7 @@ function Read-LoaderSlotPointer {
 
   if (-not (Test-Path -LiteralPath $Slot.pointer_path -PathType Leaf)) { return $null }
   try {
-    return (Get-Content -Raw -LiteralPath $Slot.pointer_path -Encoding UTF8 | ConvertFrom-Json)
+    return (Get-Content -Raw -LiteralPath $Slot.pointer_path -Encoding UTF8 | ConvertFrom-LoaderJson)
   } catch {
     throw (New-LoaderFailureException `
       -Category 'POINTER-INVALID' `
@@ -891,7 +907,7 @@ function Publish-LoaderGeneration {
     # 已存在同代次档案：内容摘要必须相同（幂等重放）；否则是"同一 generation 对应不同
     # 收据内容"的冲突，必须拒绝而不是覆盖。
     $existing = $null
-    try { $existing = Get-Content -Raw -LiteralPath $generationRecordPath -Encoding UTF8 | ConvertFrom-Json } catch { $existing = $null }
+    try { $existing = Get-Content -Raw -LiteralPath $generationRecordPath -Encoding UTF8 | ConvertFrom-LoaderJson } catch { $existing = $null }
     $existingDigest = $(if ($existing) { Get-LoaderReceiptDigest -Receipt $existing } else { $null })
     if ([string]$existingDigest -ne [string]$receiptDigest) {
       throw (New-LoaderFailureException `
@@ -923,7 +939,7 @@ function Publish-LoaderGeneration {
     Remove-LoaderFileIfExists -Path $declaredTemp
   }
   # 声明收据落地后立即核对（同一排他保护内）：它必须就是本代次收据。
-  $declaredOnDisk = Get-Content -Raw -LiteralPath $Receipt.publication.declared_receipt_path -Encoding UTF8 | ConvertFrom-Json
+  $declaredOnDisk = Get-Content -Raw -LiteralPath $Receipt.publication.declared_receipt_path -Encoding UTF8 | ConvertFrom-LoaderJson
   if ([string]$declaredOnDisk.publication.generation -ne $generation -or
       [string](Get-LoaderReceiptDigest -Receipt $declaredOnDisk) -ne [string]$receiptDigest) {
     throw (New-LoaderFailureException `
@@ -1046,7 +1062,7 @@ function Get-LoaderBuildMessageRecords {
     if (-not $trimmed.Contains($needle)) { continue }
     $message = $null
     try {
-      $message = $trimmed | ConvertFrom-Json
+      $message = $trimmed | ConvertFrom-LoaderJson
     } catch {
       continue
     }
@@ -1847,7 +1863,7 @@ function Resolve-LoaderGenerationUnderLock {
 
   $declaredReceipt = $null
   try {
-    $declaredReceipt = Get-Content -Raw -LiteralPath $receiptPath -Encoding UTF8 | ConvertFrom-Json
+    $declaredReceipt = Get-Content -Raw -LiteralPath $receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
   } catch {
     throw (New-LoaderFailureException `
       -Category 'RECEIPT-INVALID' -ArtifactId $artifactId -Target $target -Profile $profile `
@@ -1960,7 +1976,7 @@ function Resolve-LoaderGenerationUnderLock {
       -Remediation '执行正常构建重新发布；不要删除代次档案里的收据')
   }
   $generationRecord = $null
-  try { $generationRecord = Get-Content -Raw -LiteralPath $generationRecordPath -Encoding UTF8 | ConvertFrom-Json } catch { $generationRecord = $null }
+  try { $generationRecord = Get-Content -Raw -LiteralPath $generationRecordPath -Encoding UTF8 | ConvertFrom-LoaderJson } catch { $generationRecord = $null }
   if (-not $generationRecord) {
     throw (New-LoaderFailureException `
       -Category 'RECEIPT-INVALID' -ArtifactId $artifactId -Target $target -Profile $profile `
@@ -2308,4 +2324,3 @@ function Use-LoaderExportGeneration {
     Exit-LoaderPublishSlot -Lock $lock
   }
 }
-

@@ -10184,7 +10184,7 @@ body.ui-3d .project-layout > .file-preview-pane {
   min-width: 0;
   min-height: 0;
   display: grid;
-  grid-template-rows: 28px minmax(0, 1fr);
+  grid-template-rows: 30px auto auto minmax(0, 1fr);
   gap: 6px;
   padding: 8px;
   overflow: hidden;
