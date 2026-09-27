@@ -1,0 +1,129 @@
+{
+  "kind": "installed_019_isolated_web_nonstream_vs_cli_stream_agent",
+  "web_sha256": "3bd24917095b44ed856a6087151a0acb3029e77a6bec09e47e345179c5aad042",
+  "cli_sha256": "98bae8dd1573628b1d84b82436aeb4638e45224581172856f11b4a08b4c87590",
+  "nonstream_web": {
+    "model_requests": 3,
+    "provider_stream_flags": [
+      false,
+      false,
+      false
+    ],
+    "trace_purposes": [
+      "chat",
+      "child_agent",
+      "tool_feedback"
+    ],
+    "usage": [
+      {
+        "kind": "chat",
+        "status": "completed",
+        "input": 5,
+        "output": 3,
+        "attempt_present": true,
+        "room_matches": true
+      },
+      {
+        "kind": "child_agent",
+        "status": "completed",
+        "input": 11,
+        "output": 7,
+        "attempt_present": true,
+        "room_matches": true
+      },
+      {
+        "kind": "tool_feedback",
+        "status": "completed",
+        "input": 6,
+        "output": 4,
+        "attempt_present": true,
+        "room_matches": true
+      }
+    ],
+    "distinct_usage_attempts": 3,
+    "child_answer_seen": false,
+    "parent_answer_seen": true,
+    "response_status": "completed",
+    "response_keys": [
+      "accepted_agent_ids",
+      "messages",
+      "notes",
+      "run_id",
+      "status",
+      "tasks",
+      "turn_id"
+    ],
+    "response_messages": [
+      {
+        "kind": "text",
+        "role": "user",
+        "child_marker": false,
+        "parent_marker": false
+      },
+      {
+        "kind": "assistant-reply",
+        "role": "assistant",
+        "child_marker": false,
+        "parent_marker": true
+      }
+    ]
+  },
+  "cli_stream": {
+    "model_requests": 3,
+    "provider_stream_flags": [
+      true,
+      false,
+      false
+    ],
+    "trace_purposes": [
+      "chat",
+      "child_agent",
+      "tool_feedback"
+    ],
+    "usage": [
+      {
+        "kind": "chat",
+        "status": "completed",
+        "input": 5,
+        "output": 3,
+        "attempt_present": true,
+        "room_matches": true
+      },
+      {
+        "kind": "child_agent",
+        "status": "completed",
+        "input": 11,
+        "output": 7,
+        "attempt_present": true,
+        "room_matches": true
+      },
+      {
+        "kind": "tool_feedback",
+        "status": "completed",
+        "input": 6,
+        "output": 4,
+        "attempt_present": true,
+        "room_matches": true
+      }
+    ],
+    "distinct_usage_attempts": 3,
+    "child_answer_seen": true,
+    "parent_answer_seen": true,
+    "cli_exit": 0,
+    "done_status": "completed",
+    "sse_event_types": [
+      "started",
+      "message",
+      "tool_status",
+      "tool_status",
+      "tool_status",
+      "message",
+      "message",
+      "message_replace",
+      "message_delta",
+      "message_done",
+      "done"
+    ]
+  },
+  "equivalent_usage_and_trace": true
+}

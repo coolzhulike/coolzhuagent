@@ -15,5 +15,8 @@ serde_json.workspace = true
 tokio = { version = "1", features = ["io-util", "macros", "process", "rt", "rt-multi-thread", "sync", "time"] }
 url = "2"
 
+[target.'cfg(windows)'.dependencies]
+coolzhu-windows-process-guard = { path = "../../../gui-web/packages/windows-process-guard" }
+
 [lints]
 workspace = true

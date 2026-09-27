@@ -63,7 +63,7 @@ window.CoolzhuChatExperience = (() => {
     if (state.trigger === trigger) { closePopup(true); return; }
     closePopup(); state.trigger = trigger;
     const panel = document.createElement("section"); panel.className = "environment-popover";
-    panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", {room:"切换聊天室",agent:"切换 Agent",workspace:"切换工程目录"}[kind]);
+    panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", {room:"切换聊天室",agent:"选择发送对象",workspace:"切换工程目录"}[kind]);
     const head = document.createElement("header"); head.append(note(panel.getAttribute("aria-label")), button("关闭", () => closePopup(true)));
     panel.append(head); document.body.append(panel); state.popup = panel;
     trigger?.setAttribute("aria-expanded", "true"); trigger?.setAttribute("aria-haspopup", "dialog");
@@ -87,22 +87,38 @@ window.CoolzhuChatExperience = (() => {
       }, true);
     } else if (kind === "agent") {
       const list = document.createElement("div"); list.className = "environment-options";
+      const selectedTargetIds = getSelectedAgentIds();
+      const selectableIds = new Set((agentRegistry?.agents || []).filter(canSendToAgent).map(agent => agent.id));
       for (const session of sessionRegistry.sessions || []) {
         const item = button(`${session.display_name} · ${session.model || "未配置模型"}`, async () => {
           await changeEnvironment(async () => {
             const previous = activeSessionId;
-            try { activeSessionId = session.id; await openSelectedSession(); setSingleAgentTarget(session.id); closePopup(); }
+            try {
+              activeSessionId = session.id;
+              await openSelectedSession();
+              if (!setSingleAgentTarget(session.id)) { report("该 Agent 已不可用，请重新选择发送对象。"); return; }
+              // 顶栏明确选定单目标时，同步干净的配置编辑器；保留未保存的草稿。
+              if (state.modelSettings && !state.modelSettings.dirty) {
+                void state.modelSettings.select(session.id).catch(error => report(error));
+              }
+              closePopup();
+            }
             catch (error) { activeSessionId = previous; report(error); }
           });
         });
-        item.setAttribute("aria-pressed", String(session.id === activeSessionId)); list.append(item);
+        item.disabled = !selectableIds.has(session.id);
+        if (item.disabled) item.title = "当前不可作为发送对象";
+        item.setAttribute("aria-pressed", String(selectedTargetIds.length === 1 && selectedTargetIds[0] === session.id));
+        list.append(item);
       }
-      panel.append(list, note("协作发送对象（可多选）"));
+      panel.append(list, note("点击上方会话将仅发送给该 Agent；下方可勾选多个发送对象。"));
       moveInto('[data-sidebar-group="recipient-targets"]', panel);
       const wrap = panel.querySelector(".agent-dropdown-wrap"); wrap?.classList.add("open");
       panel.append(button("配置模型参数…", () => { closePopup(); openChatToolWindow("settings"); }));
     } else {
-      const current = qs("overview-workspace-name")?.dataset.workspacePath || qs("chat-workspace-path")?.title || "";
+      const selectedWorkspace = qs("overview-workspace-name")?.dataset.workspacePath || "";
+      const current = selectedWorkspace || qs("chat-workspace-path")?.title || "";
+      const selectedWorkspaceKey = workspaceKey();
       let recent = [];
       try { recent = JSON.parse(localStorage.getItem("coolzhu.recent-workspaces") || "[]"); } catch { /* 首次使用 */ }
       const paths = [...new Set([current, ...(Array.isArray(recent) ? recent : [])].filter(Boolean))].slice(0, 8);
@@ -118,9 +134,21 @@ window.CoolzhuChatExperience = (() => {
         });
       };
       const errorNode = note(""); errorNode.setAttribute("role", "alert");
-      paths.forEach(path => panel.append(button(path, () => void apply(path))));
+      paths.forEach(path => panel.append(button(path, () => {
+        // 仅当前已选工程生成的快捷项可免重载；旧弹层或尚未取得真实路径时走原切换流程。
+        if (selectedWorkspace && path === selectedWorkspace && !state.switching
+          && workspaceKey() === selectedWorkspaceKey
+          && qs("overview-workspace-name")?.dataset.workspacePath === selectedWorkspace) {
+          closePopup(true);
+          return;
+        }
+        void apply(path);
+      })));
       input.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); void apply(input.value); } });
       panel.append(input, button("切换目录", () => void apply(input.value)), errorNode);
+      const browse = button("浏览当前工程文件…", () => { closePopup(); openChatToolWindow("project"); });
+      browse.disabled = !selectedWorkspace;
+      panel.append(browse);
     }
     panel.querySelector('input, button')?.focus();
   }
@@ -330,7 +358,7 @@ window.CoolzhuChatExperience = (() => {
   function syncModelSession(id, { force = false } = {}) {
     const scopeLabel = qs("session-extra-scope");
     const selected = sessionRegistry.sessions?.find(session => session.id === id);
-    if (scopeLabel) scopeLabel.textContent = `当前 Agent：${selected?.display_name || selected?.name || id || "未选择"}；与上方“编辑会话”的选择独立。`;
+    if (scopeLabel) scopeLabel.textContent = `当前管理的会话：${selected?.display_name || selected?.name || id || "未选择"}；与上方“编辑配置的会话”独立，发送对象以顶栏为准。`;
     const saveAvatar = qs("session-avatar-save"); if (saveAvatar && !state.avatarSaving) saveAvatar.disabled = !id;
     if (!state.initialized) return;
     // 工程隔离优先：销毁旧作用域表单，避免同名会话 ID 或旧草稿跨工程保存。

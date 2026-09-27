@@ -1,4 +1,12 @@
 mod hooks;
+mod install_transaction;
+
+#[cfg(test)]
+use install_transaction::TransactionFault;
+use install_transaction::{
+    checked_install_root, checked_metadata_path, checked_plugin_record_destination,
+    reject_reparse_chain, remove_managed_dir, OperationKind, OPERATION_DIR_NAME,
+};
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::{Display, Formatter};
@@ -761,6 +769,8 @@ impl PluginManagerConfig {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PluginManager {
     config: PluginManagerConfig,
+    #[cfg(test)]
+    transaction_fault: Option<TransactionFault>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -863,6 +873,8 @@ pub enum PluginError {
     InvalidManifest(String),
     NotFound(String),
     CommandFailed(String),
+    Busy(String),
+    RecoveryPending(String),
 }
 
 impl Display for PluginError {
@@ -881,7 +893,9 @@ impl Display for PluginError {
             }
             Self::InvalidManifest(message)
             | Self::NotFound(message)
-            | Self::CommandFailed(message) => write!(f, "{message}"),
+            | Self::CommandFailed(message)
+            | Self::Busy(message)
+            | Self::RecoveryPending(message) => write!(f, "{message}"),
         }
     }
 }
@@ -903,7 +917,11 @@ impl From<serde_json::Error> for PluginError {
 impl PluginManager {
     #[must_use]
     pub fn new(config: PluginManagerConfig) -> Self {
-        Self { config }
+        Self {
+            config,
+            #[cfg(test)]
+            transaction_fault: None,
+        }
     }
 
     #[must_use]
@@ -935,8 +953,13 @@ impl PluginManager {
     }
 
     pub fn plugin_registry(&self) -> Result<PluginRegistry, PluginError> {
+        let (_root, _lock) = self.lock_and_recover()?;
+        self.plugin_registry_locked()
+    }
+
+    fn plugin_registry_locked(&self) -> Result<PluginRegistry, PluginError> {
         Ok(PluginRegistry::new(
-            self.discover_plugins()?
+            self.discover_plugins_locked()?
                 .into_iter()
                 .map(|plugin| {
                     let enabled = self.is_enabled(plugin.metadata());
@@ -951,10 +974,16 @@ impl PluginManager {
     }
 
     pub fn list_installed_plugins(&self) -> Result<Vec<PluginSummary>, PluginError> {
-        Ok(self.installed_plugin_registry()?.summaries())
+        let (_root, _lock) = self.lock_and_recover()?;
+        Ok(self.installed_plugin_registry_locked()?.summaries())
     }
 
     pub fn discover_plugins(&self) -> Result<Vec<PluginDefinition>, PluginError> {
+        let (_root, _lock) = self.lock_and_recover()?;
+        self.discover_plugins_locked()
+    }
+
+    fn discover_plugins_locked(&self) -> Result<Vec<PluginDefinition>, PluginError> {
         self.sync_bundled_plugins()?;
         let mut plugins = builtin_plugins();
         plugins.extend(self.discover_installed_plugins()?);
@@ -976,50 +1005,25 @@ impl PluginManager {
     }
 
     pub fn install(&mut self, source: &str) -> Result<InstallOutcome, PluginError> {
-        let install_source = parse_install_source(source)?;
-        let temp_root = self.install_root().join(".tmp");
-        let staged_source = materialize_source(&install_source, &temp_root)?;
-        let cleanup_source = matches!(install_source, PluginInstallSource::GitUrl { .. });
-        let manifest = load_plugin_from_directory(&staged_source)?;
-
-        let plugin_id = plugin_id(&manifest.name, EXTERNAL_MARKETPLACE);
-        let install_path = self.install_root().join(sanitize_plugin_id(&plugin_id));
-        if install_path.exists() {
-            fs::remove_dir_all(&install_path)?;
+        let (root, _lock) = self.lock_and_recover()?;
+        let source = parse_install_source(source)?;
+        let outcome =
+            self.replace_plugin_locked(&root, OperationKind::Install, Some(source), None)?;
+        if let Some(enabled) = outcome.enabled_state {
+            self.config
+                .enabled_plugins
+                .insert(outcome.plugin_id.clone(), enabled);
         }
-        copy_dir_all(&staged_source, &install_path)?;
-        if cleanup_source {
-            let _ = fs::remove_dir_all(&staged_source);
-        }
-
-        let now = unix_time_ms();
-        let record = InstalledPluginRecord {
-            kind: PluginKind::External,
-            id: plugin_id.clone(),
-            name: manifest.name,
-            version: manifest.version.clone(),
-            description: manifest.description,
-            install_path: install_path.clone(),
-            source: install_source,
-            installed_at_unix_ms: now,
-            updated_at_unix_ms: now,
-        };
-
-        let mut registry = self.load_registry()?;
-        registry.plugins.insert(plugin_id.clone(), record);
-        self.store_registry(&registry)?;
-        self.write_enabled_state(&plugin_id, Some(true))?;
-        self.config.enabled_plugins.insert(plugin_id.clone(), true);
-
         Ok(InstallOutcome {
-            plugin_id,
-            version: manifest.version,
-            install_path,
+            plugin_id: outcome.plugin_id,
+            version: outcome.new_version,
+            install_path: outcome.install_path,
         })
     }
 
     pub fn enable(&mut self, plugin_id: &str) -> Result<(), PluginError> {
-        self.ensure_known_plugin(plugin_id)?;
+        let (_root, _lock) = self.lock_and_recover()?;
+        self.ensure_known_plugin_locked(plugin_id)?;
         self.write_enabled_state(plugin_id, Some(true))?;
         self.config
             .enabled_plugins
@@ -1028,7 +1032,8 @@ impl PluginManager {
     }
 
     pub fn disable(&mut self, plugin_id: &str) -> Result<(), PluginError> {
-        self.ensure_known_plugin(plugin_id)?;
+        let (_root, _lock) = self.lock_and_recover()?;
+        self.ensure_known_plugin_locked(plugin_id)?;
         self.write_enabled_state(plugin_id, Some(false))?;
         self.config
             .enabled_plugins
@@ -1037,6 +1042,7 @@ impl PluginManager {
     }
 
     pub fn uninstall(&mut self, plugin_id: &str) -> Result<(), PluginError> {
+        let (root, _lock) = self.lock_and_recover()?;
         let mut registry = self.load_registry()?;
         let record = registry.plugins.remove(plugin_id).ok_or_else(|| {
             PluginError::NotFound(format!("plugin `{plugin_id}` is not installed"))
@@ -1047,9 +1053,8 @@ impl PluginManager {
                 "plugin `{plugin_id}` is bundled and managed automatically; disable it instead"
             )));
         }
-        if record.install_path.exists() {
-            fs::remove_dir_all(&record.install_path)?;
-        }
+        checked_plugin_record_destination(&root, plugin_id, &record.install_path)?;
+        remove_managed_dir(&root, &record.install_path)?;
         self.store_registry(&registry)?;
         self.write_enabled_state(plugin_id, None)?;
         self.config.enabled_plugins.remove(plugin_id);
@@ -1057,40 +1062,19 @@ impl PluginManager {
     }
 
     pub fn update(&mut self, plugin_id: &str) -> Result<UpdateOutcome, PluginError> {
-        let mut registry = self.load_registry()?;
-        let record = registry.plugins.get(plugin_id).cloned().ok_or_else(|| {
-            PluginError::NotFound(format!("plugin `{plugin_id}` is not installed"))
-        })?;
-
-        let temp_root = self.install_root().join(".tmp");
-        let staged_source = materialize_source(&record.source, &temp_root)?;
-        let cleanup_source = matches!(record.source, PluginInstallSource::GitUrl { .. });
-        let manifest = load_plugin_from_directory(&staged_source)?;
-
-        if record.install_path.exists() {
-            fs::remove_dir_all(&record.install_path)?;
+        let (root, _lock) = self.lock_and_recover()?;
+        let outcome =
+            self.replace_plugin_locked(&root, OperationKind::Update, None, Some(plugin_id))?;
+        if let Some(enabled) = outcome.enabled_state {
+            self.config
+                .enabled_plugins
+                .insert(outcome.plugin_id.clone(), enabled);
         }
-        copy_dir_all(&staged_source, &record.install_path)?;
-        if cleanup_source {
-            let _ = fs::remove_dir_all(&staged_source);
-        }
-
-        let updated_record = InstalledPluginRecord {
-            version: manifest.version.clone(),
-            description: manifest.description,
-            updated_at_unix_ms: unix_time_ms(),
-            ..record.clone()
-        };
-        registry
-            .plugins
-            .insert(plugin_id.to_string(), updated_record);
-        self.store_registry(&registry)?;
-
         Ok(UpdateOutcome {
-            plugin_id: plugin_id.to_string(),
-            old_version: record.version,
-            new_version: manifest.version,
-            install_path: record.install_path,
+            plugin_id: outcome.plugin_id,
+            old_version: outcome.old_version.unwrap_or_default(),
+            new_version: outcome.new_version,
+            install_path: outcome.install_path,
         })
     }
 
@@ -1121,6 +1105,15 @@ impl PluginManager {
         for record in registry.plugins.values() {
             if seen_paths.contains(&record.install_path) {
                 continue;
+            }
+            if record
+                .install_path
+                .starts_with(self.install_root().join(OPERATION_DIR_NAME))
+            {
+                return Err(PluginError::RecoveryPending(format!(
+                    "插件 registry 指向操作暂存目录，已停止发现：{}",
+                    record.install_path.display()
+                )));
             }
             if !record.install_path.exists() || plugin_manifest_path(&record.install_path).is_err()
             {
@@ -1176,7 +1169,7 @@ impl PluginManager {
         Ok(plugins)
     }
 
-    fn installed_plugin_registry(&self) -> Result<PluginRegistry, PluginError> {
+    fn installed_plugin_registry_locked(&self) -> Result<PluginRegistry, PluginError> {
         self.sync_bundled_plugins()?;
         Ok(PluginRegistry::new(
             self.discover_installed_plugins()?
@@ -1198,7 +1191,7 @@ impl PluginManager {
         let bundled_plugins = discover_plugin_dirs(&bundled_root)?;
         let mut registry = self.load_registry()?;
         let mut changed = false;
-        let install_root = self.install_root();
+        let install_root = checked_install_root(&self.install_root())?;
         let mut active_bundled_ids = BTreeSet::new();
 
         for source_root in bundled_plugins {
@@ -1206,7 +1199,6 @@ impl PluginManager {
             let plugin_id = plugin_id(&manifest.name, BUNDLED_MARKETPLACE);
             active_bundled_ids.insert(plugin_id.clone());
             let install_path = install_root.join(sanitize_plugin_id(&plugin_id));
-            let now = unix_time_ms();
             let existing_record = registry.plugins.get(&plugin_id);
             let installed_copy_is_valid =
                 install_path.exists() && load_plugin_from_directory(&install_path).is_ok();
@@ -1224,28 +1216,13 @@ impl PluginManager {
                 continue;
             }
 
-            if install_path.exists() {
-                fs::remove_dir_all(&install_path)?;
-            }
-            copy_dir_all(&source_root, &install_path)?;
-
-            let installed_at_unix_ms =
-                existing_record.map_or(now, |record| record.installed_at_unix_ms);
-            registry.plugins.insert(
-                plugin_id.clone(),
-                InstalledPluginRecord {
-                    kind: PluginKind::Bundled,
-                    id: plugin_id,
-                    name: manifest.name,
-                    version: manifest.version,
-                    description: manifest.description,
-                    install_path,
-                    source: PluginInstallSource::LocalPath { path: source_root },
-                    installed_at_unix_ms,
-                    updated_at_unix_ms: now,
-                },
-            );
-            changed = true;
+            self.replace_plugin_locked(
+                &install_root,
+                OperationKind::BundledSync,
+                Some(PluginInstallSource::LocalPath { path: source_root }),
+                None,
+            )?;
+            registry = self.load_registry()?;
         }
 
         let stale_bundled_ids = registry
@@ -1259,9 +1236,8 @@ impl PluginManager {
 
         for plugin_id in stale_bundled_ids {
             if let Some(record) = registry.plugins.remove(&plugin_id) {
-                if record.install_path.exists() {
-                    fs::remove_dir_all(&record.install_path)?;
-                }
+                checked_plugin_record_destination(&install_root, &plugin_id, &record.install_path)?;
+                remove_managed_dir(&install_root, &record.install_path)?;
                 changed = true;
             }
         }
@@ -1284,8 +1260,8 @@ impl PluginManager {
             })
     }
 
-    fn ensure_known_plugin(&self, plugin_id: &str) -> Result<(), PluginError> {
-        if self.plugin_registry()?.contains(plugin_id) {
+    fn ensure_known_plugin_locked(&self, plugin_id: &str) -> Result<(), PluginError> {
+        if self.plugin_registry_locked()?.contains(plugin_id) {
             Ok(())
         } else {
             Err(PluginError::NotFound(format!(
@@ -1295,7 +1271,7 @@ impl PluginManager {
     }
 
     fn load_registry(&self) -> Result<InstalledPluginRegistry, PluginError> {
-        let path = self.registry_path();
+        let path = checked_metadata_path(&self.registry_path())?;
         match fs::read_to_string(&path) {
             Ok(contents) if contents.trim().is_empty() => Ok(InstalledPluginRegistry::default()),
             Ok(contents) => Ok(serde_json::from_str(&contents)?),
@@ -1307,10 +1283,11 @@ impl PluginManager {
     }
 
     fn store_registry(&self, registry: &InstalledPluginRegistry) -> Result<(), PluginError> {
-        let path = self.registry_path();
+        let path = checked_metadata_path(&self.registry_path())?;
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
         }
+        reject_reparse_chain(&path)?;
         fs::write(path, serde_json::to_string_pretty(registry)?)?;
         Ok(())
     }
@@ -1320,7 +1297,8 @@ impl PluginManager {
         plugin_id: &str,
         enabled: Option<bool>,
     ) -> Result<(), PluginError> {
-        update_settings_json(&self.settings_path(), |root| {
+        let path = checked_metadata_path(&self.settings_path())?;
+        update_settings_json(&path, |root| {
             let enabled_plugins = ensure_object(root, "enabledPlugins");
             match enabled {
                 Some(value) => {
@@ -1913,7 +1891,11 @@ fn discover_plugin_dirs(root: &Path) -> Result<Vec<PathBuf>, PluginError> {
         Ok(entries) => {
             let mut paths = Vec::new();
             for entry in entries {
-                let path = entry?.path();
+                let entry = entry?;
+                let path = entry.path();
+                if entry.file_name().to_string_lossy().starts_with('.') {
+                    continue;
+                }
                 if path.is_dir() && plugin_manifest_path(&path).is_ok() {
                     paths.push(path);
                 }
@@ -1954,28 +1936,15 @@ fn unix_time_ms() -> u128 {
         .as_millis()
 }
 
-fn copy_dir_all(source: &Path, destination: &Path) -> Result<(), PluginError> {
-    fs::create_dir_all(destination)?;
-    for entry in fs::read_dir(source)? {
-        let entry = entry?;
-        let target = destination.join(entry.file_name());
-        if entry.file_type()?.is_dir() {
-            copy_dir_all(&entry.path(), &target)?;
-        } else {
-            fs::copy(entry.path(), target)?;
-        }
-    }
-    Ok(())
-}
-
 fn update_settings_json(
     path: &Path,
     mut update: impl FnMut(&mut Map<String, Value>),
 ) -> Result<(), PluginError> {
+    let path = checked_metadata_path(path)?;
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
-    let mut root = match fs::read_to_string(path) {
+    let mut root = match fs::read_to_string(&path) {
         Ok(contents) if !contents.trim().is_empty() => serde_json::from_str::<Value>(&contents)?,
         Ok(_) => Value::Object(Map::new()),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Value::Object(Map::new()),
@@ -1989,6 +1958,7 @@ fn update_settings_json(
         ))
     })?;
     update(object);
+    reject_reparse_chain(&path)?;
     fs::write(path, serde_json::to_string_pretty(&root)?)?;
     Ok(())
 }
@@ -2006,7 +1976,7 @@ fn ensure_object<'a>(root: &'a mut Map<String, Value>, key: &str) -> &'a mut Map
 mod tests {
     use super::*;
 
-    fn temp_dir(label: &str) -> PathBuf {
+    pub(super) fn temp_dir(label: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .expect("time should be after epoch")
@@ -2014,7 +1984,7 @@ mod tests {
         std::env::temp_dir().join(format!("plugins-{label}-{nanos}"))
     }
 
-    fn write_file(path: &Path, contents: &str) {
+    pub(super) fn write_file(path: &Path, contents: &str) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).expect("parent dir");
         }
@@ -2066,7 +2036,7 @@ mod tests {
         );
     }
 
-    fn write_external_plugin(root: &Path, name: &str, version: &str) {
+    pub(super) fn write_external_plugin(root: &Path, name: &str, version: &str) {
         write_file(
             root.join("hooks").join("pre.sh").as_path(),
             "#!/bin/sh\nprintf 'pre'\n",
@@ -2182,7 +2152,12 @@ mod tests {
         "#!/bin/sh\nINPUT=$(cat)\nprintf '{\"plugin\":\"%s\",\"tool\":\"%s\",\"input\":%s}\\n' \"$CLAW_PLUGIN_ID\" \"$CLAW_TOOL_NAME\" \"$INPUT\"\n"
     }
 
-    fn write_bundled_plugin(root: &Path, name: &str, version: &str, default_enabled: bool) {
+    pub(super) fn write_bundled_plugin(
+        root: &Path,
+        name: &str,
+        version: &str,
+        default_enabled: bool,
+    ) {
         write_file(
             root.join(MANIFEST_RELATIVE_PATH).as_path(),
             format!(
@@ -2193,7 +2168,7 @@ mod tests {
         );
     }
 
-    fn load_enabled_plugins(path: &Path) -> BTreeMap<String, bool> {
+    pub(super) fn load_enabled_plugins(path: &Path) -> BTreeMap<String, bool> {
         let contents = fs::read_to_string(path).expect("settings should exist");
         let root: Value = serde_json::from_str(&contents).expect("settings json");
         root.get("enabledPlugins")
@@ -2496,6 +2471,12 @@ mod tests {
             .list_plugins()
             .expect("list plugins")
             .iter()
+            .any(|plugin| plugin.metadata.id == "demo@external" && !plugin.enabled));
+        manager.enable("demo@external").expect("enable should work");
+        assert!(manager
+            .list_plugins()
+            .expect("list plugins")
+            .iter()
             .any(|plugin| plugin.metadata.id == "demo@external" && plugin.enabled));
 
         let hooks = manager.aggregated_hooks().expect("hooks should aggregate");
@@ -2620,7 +2601,7 @@ mod tests {
         let stale_install_path = config_home
             .join("plugins")
             .join("installed")
-            .join("stale-bundled-external");
+            .join(sanitize_plugin_id("stale@bundled"));
         write_bundled_plugin(&bundled_root.join("active"), "active", "0.1.0", false);
         write_file(
             stale_install_path.join(MANIFEST_RELATIVE_PATH).as_path(),
@@ -2914,6 +2895,9 @@ mod tests {
         let install = manager
             .install(source_root.to_str().expect("utf8 path"))
             .expect("install should succeed");
+        manager
+            .enable("lifecycle-demo@external")
+            .expect("explicit enable should succeed");
         let log_path = install.install_path.join("lifecycle.log");
 
         let registry = manager.plugin_registry().expect("registry should build");
@@ -2939,6 +2923,9 @@ mod tests {
         manager
             .install(source_root.to_str().expect("utf8 path"))
             .expect("install should succeed");
+        manager
+            .enable("tool-demo@external")
+            .expect("explicit enable should succeed");
 
         let tools = manager.aggregated_tools().expect("tools should aggregate");
         let tool = tools

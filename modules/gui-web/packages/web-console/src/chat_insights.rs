@@ -241,14 +241,25 @@ pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Que
             let mut tools_statement = connection.prepare("SELECT tool_call_id,tool_name,status,created_at_unix_ms,updated_at_unix_ms FROM tool_calls WHERE run_id=?1 ORDER BY created_at_unix_ms,tool_call_id").map_err(sqlite_api_error)?;
             let calls = tools_statement.query_map(params![run_id], |row| Ok(json!({"call_id":row.get::<_,String>(0)?,"tool_name":row.get::<_,String>(1)?,"status":row.get::<_,String>(2)?,"started_at":row.get::<_,i64>(3)?,"updated_at":row.get::<_,i64>(4)?}))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
             run["calls"] = json!(calls);
-            if let Some(turn_id) = run["turn_id"].as_str() {
-                let mut usage_statement = connection.prepare("SELECT attempt_id,call_id,request_kind,status,input_tokens,output_tokens,usage_known_mask FROM chat_usage_events WHERE workspace_id=?1 AND room_id=?2 AND turn_id=?3 AND attempt_id IS NOT NULL ORDER BY created_at,id").map_err(sqlite_api_error)?;
-                let usage = usage_statement.query_map(params![workspace,room_id,turn_id], |row| {
-                    let mask: i64 = row.get::<_,Option<i64>>(6)?.unwrap_or(0);
-                    Ok(json!({"attempt_id":row.get::<_,String>(0)?,"call_id":row.get::<_,Option<String>>(1)?,"purpose":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,"input_tokens":if mask&1!=0 {Some(row.get::<_,i64>(4)?)} else {None},"output_tokens":if mask&2!=0 {Some(row.get::<_,i64>(5)?)} else {None}}))
-                }).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
-                run["requests"] = json!(usage);
-            }
+            let mut usage_statement = connection.prepare("SELECT u.attempt_id,u.call_id,u.request_kind,u.status,
+                    u.input_tokens,u.output_tokens,u.usage_known_mask,u.turn_id
+                FROM chat_usage_events u
+                WHERE u.workspace_id=?1 AND u.room_id=?2 AND u.attempt_id IS NOT NULL
+                  AND (u.run_id=?3 OR (u.run_id IS NULL AND (
+                    u.turn_id=?4 OR EXISTS (
+                      SELECT 1 FROM tool_calls c WHERE c.tool_call_id=u.call_id AND c.run_id=?3
+                    )
+                  )))
+                ORDER BY u.created_at,u.id").map_err(sqlite_api_error)?;
+            let usage = usage_statement.query_map(params![workspace,room_id,run_id,run["turn_id"].as_str()], |row| {
+                let mask: i64 = row.get::<_,Option<i64>>(6)?.unwrap_or(0);
+                Ok(json!({"attempt_id":row.get::<_,String>(0)?,"call_id":row.get::<_,Option<String>>(1)?,
+                    "purpose":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,
+                    "source_turn_id":row.get::<_,Option<String>>(7)?,
+                    "input_tokens":if mask&1!=0 {Some(row.get::<_,i64>(4)?)} else {None},
+                    "output_tokens":if mask&2!=0 {Some(row.get::<_,i64>(5)?)} else {None}}))
+            }).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
+            run["requests"] = json!(usage);
         }
         let next_before = if has_more { runs.last().and_then(|run| run["run_id"].as_str()).map(str::to_string) } else { None };
         Ok(json!({"runs":runs,"has_more":has_more,"next_before":next_before,"source":"runtime_runs/tool_calls/chat_usage_events"}))

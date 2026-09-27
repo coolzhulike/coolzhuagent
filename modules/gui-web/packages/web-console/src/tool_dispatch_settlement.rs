@@ -85,7 +85,7 @@ mod tests {
         let input = serde_json::json!({"path": output, "content": "must never be written"});
         let result = crate::tool_invocation_identity::scope("request-one".into(),
             crate::run_model_tool_dispatch_for_session_with_identity("write_file", &input,
-            None, Some("collision"), None, None, Some(&parent))).await;
+            None, Some("collision"), None, None, Some(&parent), None)).await;
         assert!(result.is_err());
         assert!(!output.exists());
         let original = store.tool_call_record(&source.execution_id).unwrap().unwrap();
@@ -95,7 +95,7 @@ mod tests {
         parent.runtime_db_path = Some(root.path().to_path_buf()); // 目录不是可写的 SQLite 文件。
         assert!(crate::tool_invocation_identity::scope("request-two".into(),
             crate::run_model_tool_dispatch_for_session_with_identity("write_file", &input,
-            None, Some("new-call"), None, None, Some(&parent))).await.is_err());
+            None, Some("new-call"), None, None, Some(&parent), None)).await.is_err());
         assert!(!output.exists());
     }
 

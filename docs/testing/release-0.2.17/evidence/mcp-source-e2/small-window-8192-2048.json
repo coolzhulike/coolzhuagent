@@ -1,0 +1,103 @@
+{
+  "workspace": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\mcp-model-e2e-1192b1d9de",
+  "web_sha256": "dfd39612cd2d689e6cf4e87de9b0c421682d1be33137d854a4ce8f5d2479d8ce",
+  "default_model_limit": false,
+  "limit_before": {
+    "session_id": "session-1790478779421",
+    "model": "local-mcp",
+    "context_window": 64000,
+    "max_output_tokens": 64000,
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "overridden": false
+  },
+  "limit_effective": {
+    "session_id": "session-1790478779421",
+    "model": "local-mcp",
+    "context_window": 8192,
+    "max_output_tokens": 2048,
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "overridden": true
+  },
+  "management_session": "session-1790478779394",
+  "target_session": "session-1790478779421",
+  "room": "room-1790478779454",
+  "connected_tool_count": 13,
+  "server_status": [
+    {
+      "id": "official",
+      "connected": true,
+      "tool_count": 13
+    }
+  ],
+  "model_requests": 2,
+  "first_tool_names": [
+    "tools_semantic_dispatch",
+    "bash",
+    "read_file",
+    "write_file",
+    "edit_file",
+    "glob_search",
+    "grep_search",
+    "WebFetch",
+    "WebSearch",
+    "PowerShell",
+    "mcp__official__echo",
+    "mcp__official__get-annotated-message",
+    "mcp__official__get-env",
+    "mcp__official__get-resource-links"
+  ],
+  "selected_mcp_count": 4,
+  "request_shapes": [
+    {
+      "keys": [
+        "max_tokens",
+        "messages",
+        "model",
+        "stream",
+        "tool_choice",
+        "tools"
+      ],
+      "stream": false,
+      "tool_count": 14,
+      "max_tokens": 2048,
+      "model": "local-mcp",
+      "roles": [
+        "system",
+        "user"
+      ]
+    },
+    {
+      "keys": [
+        "max_tokens",
+        "messages",
+        "model",
+        "stream",
+        "tool_choice",
+        "tools"
+      ],
+      "stream": false,
+      "tool_count": 14,
+      "max_tokens": 2048,
+      "model": "local-mcp",
+      "roles": [
+        "system",
+        "user",
+        "assistant",
+        "tool"
+      ]
+    }
+  ],
+  "feedback_seen_by_model": true,
+  "final_seen": true,
+  "response_keys": [
+    "accepted_agent_ids",
+    "messages",
+    "notes",
+    "run_id",
+    "status",
+    "tasks",
+    "turn_id"
+  ]
+}

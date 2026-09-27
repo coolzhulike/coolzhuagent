@@ -36,8 +36,10 @@ use windows_sys::Win32::System::Threading::{
 mod pipe;
 mod local_control;
 mod async_process;
+mod conpty;
 mod secret_protection;
 pub use secret_protection::{protect_user_secret, unprotect_user_secret};
+pub use conpty::{ConPtyOutput, ManagedConPty};
 pub use local_control::{LocalProcessPeer, LocalRecoveryPipeServer, process_peer_identity,
     recovery_pipe_name, local_recovery_pipe_request};
 
@@ -834,7 +836,11 @@ impl ChildProcessJob {
 
     /// Assign a spawned child process to this job.
     pub fn assign(&self, child: &Child) -> io::Result<()> {
-        let process_handle = child.as_raw_handle() as HANDLE;
+        self.assign_handle(child.as_raw_handle() as HANDLE)
+    }
+
+    /// ConPTY 直接使用 Win32 CreateProcessW 时仍须沿用同一先挂 Job 边界。
+    pub(crate) fn assign_handle(&self, process_handle: HANDLE) -> io::Result<()> {
         let result = unsafe { AssignProcessToJobObject(self.handle as HANDLE, process_handle) };
         if result == 0 {
             Err(io::Error::last_os_error())

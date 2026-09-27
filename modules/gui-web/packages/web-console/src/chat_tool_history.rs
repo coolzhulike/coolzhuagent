@@ -327,7 +327,7 @@ mod tests {
         assert!(history.iter().any(|m| m.kind == "reasoning"), "原审计仍保存");
         assert!(history.iter().any(|m| m.kind == "tool-result"));
         let agent = isolated.agent("target-text");
-        call_agent_model_with_tool_loop(&agent, "只需简短确认上轮文件产物", &[], &history, None, None, None).await.unwrap();
+        call_agent_model_with_tool_loop(&agent, "只需简短确认上轮文件产物", &[], &history, None, None, None, None).await.unwrap();
         let requests = captures.lock().unwrap();
         let next = requests[3]["messages"].to_string();
         assert!(!next.contains("GENUINE-REASONING-ONLY"), "下一轮合成请求仍含内部思考：{next}");

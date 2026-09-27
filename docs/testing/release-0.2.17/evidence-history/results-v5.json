@@ -1,0 +1,376 @@
+{
+  "fixture_counts": [
+    10000,
+    100000
+  ],
+  "database_bytes": 158949376,
+  "exe_sha256": "d9f8ce1e5ad340c652b4265b7e3e1a965c911621bac4043703ed16d0143a44b6",
+  "cases": [
+    {
+      "count": 10000,
+      "scenario": "search_hit",
+      "first_ms": 10193.7,
+      "warm_median_ms": 23.03,
+      "warm_max_ms": 30.82,
+      "response_bytes": 6465,
+      "facts": {
+        "total": 10,
+        "message_count": 10000,
+        "has_more": false
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "search_miss",
+      "first_ms": 9.3,
+      "warm_median_ms": 24.51,
+      "warm_max_ms": 33.17,
+      "response_bytes": 61,
+      "facts": {
+        "total": 0,
+        "message_count": 10000,
+        "has_more": false
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "around_old",
+      "first_ms": 10.97,
+      "warm_median_ms": 42.01,
+      "warm_max_ms": 52.83,
+      "response_bytes": 52963,
+      "facts": {
+        "total": 10000,
+        "position": 1,
+        "found": true,
+        "returned_messages": 41
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "around_working_set_boundary",
+      "first_ms": 46.02,
+      "warm_median_ms": 41.78,
+      "warm_max_ms": 46.17,
+      "response_bytes": 53136,
+      "facts": {
+        "total": 10000,
+        "position": 8000,
+        "found": true,
+        "returned_messages": 41
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "search_unicode",
+      "first_ms": 19.55,
+      "warm_median_ms": 19.8,
+      "warm_max_ms": 28.62,
+      "response_bytes": 3259,
+      "facts": {
+        "total": 5,
+        "message_count": 10000,
+        "has_more": false
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "search_turkish",
+      "first_ms": 32.11,
+      "warm_median_ms": 25.19,
+      "warm_max_ms": 28.02,
+      "response_bytes": 3259,
+      "facts": {
+        "total": 5,
+        "message_count": 10000,
+        "has_more": false
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "search_sharp_s",
+      "first_ms": 34.48,
+      "warm_median_ms": 21.39,
+      "warm_max_ms": 37.78,
+      "response_bytes": 3259,
+      "facts": {
+        "total": 5,
+        "message_count": 10000,
+        "has_more": false
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "search_emoji",
+      "first_ms": 18.08,
+      "warm_median_ms": 18.13,
+      "warm_max_ms": 40.39,
+      "response_bytes": 3259,
+      "facts": {
+        "total": 5,
+        "message_count": 10000,
+        "has_more": false
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "around_tail",
+      "first_ms": 10.25,
+      "warm_median_ms": 16.03,
+      "warm_max_ms": 28.53,
+      "response_bytes": 33703,
+      "facts": {
+        "total": 10000,
+        "position": 9995,
+        "found": true,
+        "returned_messages": 26
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "message_page",
+      "first_ms": 12.61,
+      "warm_median_ms": 12.67,
+      "warm_max_ms": 55.4,
+      "response_bytes": 129379,
+      "facts": {
+        "has_more": true,
+        "returned_messages": 100
+      }
+    },
+    {
+      "count": 10000,
+      "scenario": "insights",
+      "first_ms": 23.7,
+      "warm_median_ms": 23.72,
+      "warm_max_ms": 37.2,
+      "response_bytes": 2707,
+      "facts": {
+        "message_count": 10000,
+        "index_count": 100
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "search_hit",
+      "first_ms": 142.1,
+      "warm_median_ms": 154.31,
+      "warm_max_ms": 174.33,
+      "response_bytes": 32262,
+      "facts": {
+        "total": 100,
+        "message_count": 100002,
+        "has_more": true
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "search_miss",
+      "first_ms": 38.25,
+      "warm_median_ms": 38.59,
+      "warm_max_ms": 42.45,
+      "response_bytes": 62,
+      "facts": {
+        "total": 0,
+        "message_count": 100002,
+        "has_more": false
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "around_old",
+      "first_ms": 24.11,
+      "warm_median_ms": 42.26,
+      "warm_max_ms": 69.52,
+      "response_bytes": 53005,
+      "facts": {
+        "total": 100002,
+        "position": 1,
+        "found": true,
+        "returned_messages": 41
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "around_working_set_boundary",
+      "first_ms": 46.67,
+      "warm_median_ms": 63.08,
+      "warm_max_ms": 74.69,
+      "response_bytes": 53262,
+      "facts": {
+        "total": 100002,
+        "position": 98000,
+        "found": true,
+        "returned_messages": 41
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "search_unicode",
+      "first_ms": 159.01,
+      "warm_median_ms": 194.84,
+      "warm_max_ms": 217.95,
+      "response_bytes": 32246,
+      "facts": {
+        "total": 50,
+        "message_count": 100002,
+        "has_more": false
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "search_turkish",
+      "first_ms": 190.45,
+      "warm_median_ms": 188.36,
+      "warm_max_ms": 194.94,
+      "response_bytes": 32246,
+      "facts": {
+        "total": 50,
+        "message_count": 100002,
+        "has_more": false
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "search_sharp_s",
+      "first_ms": 153.09,
+      "warm_median_ms": 162.9,
+      "warm_max_ms": 166.93,
+      "response_bytes": 32246,
+      "facts": {
+        "total": 50,
+        "message_count": 100002,
+        "has_more": false
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "search_emoji",
+      "first_ms": 154.46,
+      "warm_median_ms": 149.96,
+      "warm_max_ms": 155.8,
+      "response_bytes": 32246,
+      "facts": {
+        "total": 50,
+        "message_count": 100002,
+        "has_more": false
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "around_tail",
+      "first_ms": 44.03,
+      "warm_median_ms": 42.4,
+      "warm_max_ms": 62.62,
+      "response_bytes": 34457,
+      "facts": {
+        "total": 100002,
+        "position": 99995,
+        "found": true,
+        "returned_messages": 28
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "message_page",
+      "first_ms": 11.89,
+      "warm_median_ms": 24.55,
+      "warm_max_ms": 33.81,
+      "response_bytes": 127766,
+      "facts": {
+        "has_more": true,
+        "returned_messages": 100
+      }
+    },
+    {
+      "count": 100000,
+      "scenario": "insights",
+      "first_ms": 178.04,
+      "warm_median_ms": 195.63,
+      "warm_max_ms": 218.39,
+      "response_bytes": 3043,
+      "facts": {
+        "message_count": 100002,
+        "index_count": 100
+      }
+    }
+  ],
+  "startup_ms": 5905.76,
+  "counts_after_startup": [
+    [
+      "perf-10000",
+      10000
+    ],
+    [
+      "perf-100000",
+      100000
+    ]
+  ],
+  "cross_room_cursor_status": 404,
+  "cold_send_receipt": {
+    "status": "completed",
+    "run_id": "run-chat-71b237f18168b9bf2bdcbdeeb99997a14e21de7abd507b98",
+    "turn_id": "chat-turn-1790429821524-0"
+  },
+  "trace_source": {
+    "run_id": "run-chat-71b237f18168b9bf2bdcbdeeb99997a14e21de7abd507b98",
+    "source_message_id": "msg-1790429821524-user",
+    "passed": true
+  },
+  "cold_concurrent_send": {
+    "cold_search_ms": 662.99,
+    "cold_search_matches": 10,
+    "send_ms": 1654.78,
+    "send_response_keys": [
+      "turn_id",
+      "run_id",
+      "status",
+      "accepted_agent_ids",
+      "messages",
+      "tasks",
+      "notes"
+    ],
+    "committed_messages_matching_input": 2,
+    "passed": true
+  },
+  "after_real_send": {
+    "response_keys": [
+      "turn_id",
+      "run_id",
+      "status",
+      "accepted_agent_ids",
+      "messages",
+      "tasks",
+      "notes"
+    ],
+    "needle_before": 100,
+    "needle_after": 100,
+    "message_count_after": 100004,
+    "sqlite_counts": [
+      [
+        "perf-10000",
+        10000
+      ],
+      [
+        "perf-100000",
+        100004
+      ]
+    ],
+    "passed": true
+  },
+  "derived_index_removed_before_restart": true,
+  "fts_facts": {
+    "sqlite_version": "3.50.4",
+    "indexed_rows": 110042,
+    "dirty_rows": 0,
+    "database_bytes": 380223488
+  },
+  "restart": {
+    "needle_count": 100,
+    "message_count": 100004,
+    "oldest_found": true,
+    "oldest_position": 1,
+    "unicode_matches": 50,
+    "passed": true
+  }
+}

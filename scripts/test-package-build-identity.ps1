@@ -285,7 +285,7 @@ function Get-ReleasePolicyFailureDiagnostic {
 
   $files = @(Get-ChildItem -LiteralPath $Case.failureRoot -Filter '*.json' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTimeUtc -Descending)
   if ($files.Count -eq 0) { return $null }
-  return (Get-Content -Raw -LiteralPath $files[0].FullName -Encoding UTF8 | ConvertFrom-Json)
+  return (Get-Content -Raw -LiteralPath $files[0].FullName -Encoding UTF8 | ConvertFrom-IdentityJson)
 }
 
 try {
@@ -294,9 +294,38 @@ try {
   }
   New-Item -ItemType Directory -Force -Path $fixtureRoot | Out-Null
 
+  # 报告哈希也必须保留 JSON 时间字面量，不得让宿主自动转成 DateTime 后重新格式化。
+  $dateReportDigests = [System.Collections.Generic.List[string]]::new()
+  $dateReportRoundtripOk = $true
+  foreach ($dateText in @('2026-09-27T04:20:00Z', '2026-09-27T04:20:00.000+00:00')) {
+    $dateReport = [ordered]@{
+      generated_at = $dateText
+      report_identity = [ordered]@{ content_sha256 = $null }
+    }
+    $beforeDigest = Get-PackageReportContentHash -Report $dateReport
+    $datePath = Join-Path $fixtureRoot ("date-report-{0}.json" -f $dateReportDigests.Count)
+    Write-FixtureText -Path $datePath -Text ($dateReport | ConvertTo-Json -Depth 6)
+    $readReport = Get-Content -Raw -LiteralPath $datePath -Encoding UTF8 | ConvertFrom-IdentityJson
+    $afterDigest = Get-PackageReportContentHash -Report $readReport
+    $dateReportRoundtripOk = $dateReportRoundtripOk -and
+      ($readReport.generated_at -is [string]) -and
+      ([string]$readReport.generated_at -ceq $dateText) -and
+      ($afterDigest -eq $beforeDigest)
+    $dateReportDigests.Add($afterDigest)
+  }
+  Assert-Case -Id 'I00-date-text-roundtrip' -Condition ($dateReportRoundtripOk -and $dateReportDigests.Count -eq 2 -and $dateReportDigests[0] -ne $dateReportDigests[1]) `
+    -Detail '报告写入回读后内容摘要相同，不同 ISO 字面量保持不同身份'
+  $dateObjectRejected = $true
+  foreach ($dateObject in @([datetime]::UtcNow, [datetimeoffset]::UtcNow)) {
+    try { [void](Get-PackageReportContentHash -Report ([pscustomobject]@{ generated_at = $dateObject })); $dateObjectRejected = $false }
+    catch { if ($_.Exception.Message -notmatch 'DateTime') { $dateObjectRejected = $false } }
+  }
+  Assert-Case -Id 'I00-date-object-rejected' -Condition $dateObjectRejected `
+    -Detail '日期对象明确拒绝进入报告摘要，避免静默改写'
+
   # ======================================================== I01/I05 快照语义 ==
   $basic = New-IdentityCase -Name 'basic'
-  $scope = Get-SourceSnapshotScope -ManifestData (Get-Content -Raw -LiteralPath $basic.manifestPath -Encoding UTF8 | ConvertFrom-Json)
+  $scope = Get-SourceSnapshotScope -ManifestData (Get-Content -Raw -LiteralPath $basic.manifestPath -Encoding UTF8 | ConvertFrom-IdentityJson)
   $snapA = New-SourceSnapshot -RepoPath $workspaceFull -Scope $scope
 
   $included = @(
@@ -400,7 +429,7 @@ try {
     -Detail ("被排除命名（tmp）经 allow_path_patterns 显式放行后进入快照：{0}" -f $allowRel)
 
   # ================================== I04 真实 scope 覆盖 Tauri 独立构建入口与锁文件 ==
-  $realManifest = Get-Content -Raw -LiteralPath (Join-Path $workspaceFull 'config/package-manifest.json') -Encoding UTF8 | ConvertFrom-Json
+  $realManifest = Get-Content -Raw -LiteralPath (Join-Path $workspaceFull 'config/package-manifest.json') -Encoding UTF8 | ConvertFrom-IdentityJson
   $realScope = Get-SourceSnapshotScope -ManifestData $realManifest
   $realEntries = Get-SourceSnapshotEntries -RepoPath $workspaceFull -Scope $realScope
   $realSet = @{}
@@ -443,7 +472,7 @@ try {
     host_target = 'x86_64-pc-windows-msvc'
     build_target = 'x86_64-pc-windows-msvc'
   }
-  $identityManifest = Get-Content -Raw -LiteralPath $basic.manifestPath -Encoding UTF8 | ConvertFrom-Json
+  $identityManifest = Get-Content -Raw -LiteralPath $basic.manifestPath -Encoding UTF8 | ConvertFrom-IdentityJson
   $snapIdentity = New-SourceSnapshot -RepoPath $workspaceFull -Scope (Get-SourceSnapshotScope -ManifestData $identityManifest)
   $descriptorsA = Get-BuildInputDescriptors -RepoPath $workspaceFull -ManifestData $identityManifest -ManifestPath $basic.manifestPath -Configuration 'debug' -CargoIdentity $cargoIdentity -SourceSnapshotDigest $snapIdentity.source_snapshot_digest
   $buildInputA = Get-BuildInputDigest -DescriptorLines $descriptorsA
@@ -475,13 +504,14 @@ try {
 
   # ============================================================== I07 收据口径 ==
   $vcs = Get-VcsReferenceState -RepoPath $workspaceFull
-  $dirtyIsNotFalse = -not ($vcs.dirty_against_commit -is [bool])
-  Assert-Case -Id 'I07a-vcs-state-untracked-snapshot' -Condition (
-    $vcs.vcs_state -eq 'untracked_snapshot' -and
-    $null -eq $vcs.source_commit -and
-    $vcs.dirty_against_commit -eq 'not_evaluable' -and
-    $dirtyIsNotFalse) `
-    -Detail ("vcs_state={0} source_commit={1} dirty_against_commit={2}（未跟踪的变更 **不**写成 dirty=false）vcs_reference_commit={3}" -f $vcs.vcs_state, $(if ($null -eq $vcs.source_commit) { 'null' } else { 'set' }), $vcs.dirty_against_commit, $(if ($vcs.vcs_reference_commit) { $vcs.vcs_reference_commit.Substring(0, 12) } else { '(none)' }))
+  $vcsShapeValid = if ($vcs.vcs_state -eq 'untracked_snapshot') {
+    $null -eq $vcs.source_commit -and $vcs.dirty_against_commit -eq 'not_evaluable' -and
+      -not ($vcs.dirty_against_commit -is [bool])
+  } elseif ($vcs.vcs_state -eq 'tracked_worktree') {
+    [string]$vcs.source_commit -match '^[0-9a-f]{40}$' -and $vcs.dirty_against_commit -is [bool]
+  } else { $false }
+  Assert-Case -Id 'I07a-vcs-state-shape' -Condition $vcsShapeValid `
+    -Detail ("vcs_state={0} source_commit={1} dirty_against_commit={2}（未跟踪快照不能伪装成干净提交）vcs_reference_commit={3}" -f $vcs.vcs_state, $(if ($null -eq $vcs.source_commit) { 'null' } else { 'set' }), $vcs.dirty_against_commit, $(if ($vcs.vcs_reference_commit) { $vcs.vcs_reference_commit.Substring(0, 12) } else { '(none)' }))
 
   # ==================================== I08/I09/I10 package-all 全流程（成功） ==
   $success = New-IdentityCase -Name 'pipeline-ok'
@@ -490,7 +520,7 @@ try {
   Assert-Case -Id 'I08a-report-written' -Condition (Test-Path -LiteralPath $success.reportPath -PathType Leaf) `
     -Detail ("报告落点沿用既有命名：{0}" -f (Get-RelFixturePath $success.reportPath))
 
-  $report = Get-Content -Raw -LiteralPath $success.reportPath -Encoding UTF8 | ConvertFrom-Json
+  $report = Get-Content -Raw -LiteralPath $success.reportPath -Encoding UTF8 | ConvertFrom-IdentityJson
   $reportIdShape = ([string]$report.report_identity.report_id) -match '^pkg-report-debug-[0-9]{8}-[0-9]{9}-[0-9a-f]{8}$'
   Assert-Case -Id 'I08b-report-unique-id' -Condition $reportIdShape `
     -Detail ("报告唯一 ID：{0}" -f $report.report_identity.report_id)
@@ -506,12 +536,12 @@ try {
     -Detail ("报告内容哈希可从落盘文档重算：{0}{1}" -f $report.report_identity.content_sha256, $(if ($hashVerifyError) { " (error: $hashVerifyError)" } else { '' }))
 
   $tamperedPath = Join-Path $success.caseRoot 'report-tampered.json'
-  $tamperedText = (Get-Content -Raw -LiteralPath $success.reportPath -Encoding UTF8).Replace('"configuration":  "debug"', '"configuration":  "release"')
+  $tamperedText = ([regex]'("configuration"\s*:\s*)"debug"').Replace((Get-Content -Raw -LiteralPath $success.reportPath -Encoding UTF8), '$1"release"', 1)
   [System.IO.File]::WriteAllText($tamperedPath, $tamperedText, [System.Text.UTF8Encoding]::new($false))
   $tamperRejected = $false
   $tamperMessage = ''
   try {
-    [void](Assert-PackageReportContentHash -Report (Get-Content -Raw -LiteralPath $tamperedPath -Encoding UTF8 | ConvertFrom-Json))
+    [void](Assert-PackageReportContentHash -Report (Get-Content -Raw -LiteralPath $tamperedPath -Encoding UTF8 | ConvertFrom-IdentityJson))
   } catch {
     $tamperRejected = ($_.Exception.Message -match 'REPORT-CONTENT-MISMATCH')
     $tamperMessage = ($_.Exception.Message -split "`n")[0]
@@ -523,7 +553,7 @@ try {
   Assert-Case -Id 'I10a-payload-inventory-inside-payload' -Condition (Test-Path -LiteralPath $inventoryPath -PathType Leaf) `
     -Detail '载荷清单写在暂存包内（分发的载荷自身携带可核对的载荷身份与报告引用）'
 
-  $inventory = Get-Content -Raw -LiteralPath $inventoryPath -Encoding UTF8 | ConvertFrom-Json
+  $inventory = Get-Content -Raw -LiteralPath $inventoryPath -Encoding UTF8 | ConvertFrom-IdentityJson
   Assert-Case -Id 'I10b-inventory-references-report' -Condition (
     [string]$inventory.report_ref.report_id -eq [string]$report.report_identity.report_id -and
     [string]$inventory.report_ref.content_sha256 -eq [string]$report.report_identity.content_sha256) `
@@ -549,7 +579,7 @@ try {
     -Detail ("载荷清单覆盖暂存包全部文件（{0} 个，排除清单载体自身以免自引用）：{1}" -f $inventoryFiles.Count, ($inventoryFiles -join ', '))
 
   $pointerExists = Test-Path -LiteralPath $success.pointerPath -PathType Leaf
-  $pointer = if ($pointerExists) { Get-Content -Raw -LiteralPath $success.pointerPath -Encoding UTF8 | ConvertFrom-Json } else { $null }
+  $pointer = if ($pointerExists) { Get-Content -Raw -LiteralPath $success.pointerPath -Encoding UTF8 | ConvertFrom-IdentityJson } else { $null }
   Assert-Case -Id 'I08c-report-pointer-and-post-build-verification' -Condition (
     $pointerExists -and
     [string]$pointer.report_id -eq [string]$report.report_identity.report_id -and
@@ -559,9 +589,9 @@ try {
     -Detail ("latest 指针与构建后复核同时成立：post_build_verification.identical={0} method={1}" -f $report.source_snapshot.post_build_verification.identical, $report.source_snapshot.post_build_verification.method)
 
   Assert-Case -Id 'I08d-report-vcs-fields' -Condition (
-    [string]$report.build_context.vcs_state -eq 'untracked_snapshot' -and
-    $null -eq $report.build_context.source_commit -and
-    [string]$report.build_context.dirty_against_commit -eq 'not_evaluable') `
+    [string]$report.build_context.vcs_state -eq [string]$vcs.vcs_state -and
+    [string]$report.build_context.source_commit -eq [string]$vcs.source_commit -and
+    [string]$report.build_context.dirty_against_commit -eq [string]$vcs.dirty_against_commit) `
     -Detail ("报告里的 VCS 口径：vcs_state={0} source_commit={1} dirty_against_commit={2}" -f $report.build_context.vcs_state, $(if ($null -eq $report.build_context.source_commit) { 'null' } else { 'set' }), $report.build_context.dirty_against_commit)
 
   # ================================ I11 构建期间源码变化必须 fail-closed ======
@@ -644,7 +674,7 @@ try {
   # ---- 稳定条件：出可发布收据（构建模式 + --no-build 都要能回答"能不能发布"）----
   $releaseStable = New-ReleasePolicyCase -Name 'release-stable'
   & $packageScript -Manifest $releaseStable.manifestPath -Configuration debug -ReportPath $releaseStable.reportPath -PackageRoot $releaseStable.packagePath | Out-Null
-  $stableReport = Get-Content -Raw -LiteralPath $releaseStable.reportPath -Encoding UTF8 | ConvertFrom-Json
+  $stableReport = Get-Content -Raw -LiteralPath $releaseStable.reportPath -Encoding UTF8 | ConvertFrom-IdentityJson
   $stableGates = @($stableReport.release_eligibility.gates)
   Assert-Case -Id 'I13j-stable-run-is-release-eligible' -Condition (
     $stableReport.release_eligible -eq $true -and
@@ -668,7 +698,7 @@ try {
 
   # ---- --no-build：必须消费"匹配快照"的关联记录 ----
   & $packageScript -Manifest $releaseStable.manifestPath -Configuration debug -ReportPath $releaseStable.reportPath -PackageRoot $releaseStable.packagePath -SkipBuild | Out-Null
-  $noBuildReport = Get-Content -Raw -LiteralPath $releaseStable.reportPath -Encoding UTF8 | ConvertFrom-Json
+  $noBuildReport = Get-Content -Raw -LiteralPath $releaseStable.reportPath -Encoding UTF8 | ConvertFrom-IdentityJson
   $noBuildProvenance = @($noBuildReport.release_eligibility.artifact_provenance)
   Assert-Case -Id 'I13n-no-build-requires-snapshot-association' -Condition (
     $noBuildProvenance.Count -ge 1 -and
@@ -740,7 +770,7 @@ try {
   # ---- 未声明源码快照范围 ⇒ "未能确认"，不乐观放行 ----
   $undeclaredScope = New-ReleasePolicyCase -Name 'release-no-declared-scope' -OmitSourceSnapshotScope
   & $packageScript -Manifest $undeclaredScope.manifestPath -Configuration debug -ReportPath $undeclaredScope.reportPath -PackageRoot $undeclaredScope.packagePath | Out-Null
-  $undeclaredReport = Get-Content -Raw -LiteralPath $undeclaredScope.reportPath -Encoding UTF8 | ConvertFrom-Json
+  $undeclaredReport = Get-Content -Raw -LiteralPath $undeclaredScope.reportPath -Encoding UTF8 | ConvertFrom-IdentityJson
   Assert-Case -Id 'I13v-undeclared-scope-is-not-optimistically-eligible' -Condition (
     (Test-IdentityFalseValue -Value $undeclaredReport.release_eligible) -and
     [string]$undeclaredReport.release_eligibility.live_worktree_changed -eq 'not-confirmed' -and
@@ -749,8 +779,8 @@ try {
 
   # ---- 范围规则本身要可审查：声明路径的分类 ----
   . (Join-Path $workspaceFull 'scripts/lib/build-identity.ps1')
-  $classificationScope = Get-SourceSnapshotScope -ManifestData (Get-Content -Raw -LiteralPath $releaseStable.manifestPath -Encoding UTF8 | ConvertFrom-Json)
-  $nonBuildInputPatterns = @(Get-PackageNonBuildInputDeclarations -ManifestData (Get-Content -Raw -LiteralPath $releaseStable.manifestPath -Encoding UTF8 | ConvertFrom-Json) | ForEach-Object { $_.pattern })
+  $classificationScope = Get-SourceSnapshotScope -ManifestData (Get-Content -Raw -LiteralPath $releaseStable.manifestPath -Encoding UTF8 | ConvertFrom-IdentityJson)
+  $nonBuildInputPatterns = @(Get-PackageNonBuildInputDeclarations -ManifestData (Get-Content -Raw -LiteralPath $releaseStable.manifestPath -Encoding UTF8 | ConvertFrom-IdentityJson) | ForEach-Object { $_.pattern })
   $declaredBuildInputs = @((Get-RelFixturePath (Join-Path $releaseStable.caseRoot 'build-inputs/toolchain.json')))
   $inScopeClassification = Get-PackagePathClassification -Path ((Get-RelFixturePath $releaseStable.sourceRoot) + '/crate/src/lib.rs') -Scope $classificationScope -BuildInputFiles $declaredBuildInputs -NonBuildInputPatterns $nonBuildInputPatterns
   Assert-Case -Id 'I13w-in-scope-path-classified-correctly' -Condition ([string]$inScopeClassification.classification -eq 'in-declared-source-snapshot-scope') `
@@ -898,7 +928,7 @@ try {
   $failDiagnostics = @(Get-ChildItem -LiteralPath (Join-Path $failForNoBuild.caseRoot 'failures') -Filter 'package-report-failure-*.json' -File -ErrorAction SilentlyContinue)
   $failDiagnosticDoc = $null
   if ($failDiagnostics.Count -gt 0) {
-    $failDiagnosticDoc = Get-Content -Raw -LiteralPath $failDiagnostics[0].FullName -Encoding UTF8 | ConvertFrom-Json
+    $failDiagnosticDoc = Get-Content -Raw -LiteralPath $failDiagnostics[0].FullName -Encoding UTF8 | ConvertFrom-IdentityJson
   }
   Assert-Case -Id 'I14a-no-build-has-no-valid-release-receipt-after-failure' -Condition (
     ($failError -match 'BUILD-INPUT-CHANGED') -and
@@ -1015,7 +1045,7 @@ try {
     param([object]$Case)
     $files = @(Get-ChildItem -LiteralPath $Case.prepareRoot -Filter 'package-prepare-debug-*.json' -File -ErrorAction SilentlyContinue | Sort-Object Name -Descending)
     if ($files.Count -eq 0) { return $null }
-    return (Get-Content -Raw -LiteralPath $files[0].FullName -Encoding UTF8 | ConvertFrom-Json)
+    return (Get-Content -Raw -LiteralPath $files[0].FullName -Encoding UTF8 | ConvertFrom-IdentityJson)
   }
 
   # ---- 准备阶段：冻结输入快照，且不构建、不产出可发布包 ----
@@ -1023,12 +1053,12 @@ try {
   $prepareError = Invoke-PrepareRun -Case $prepareCase
   $prepareRecord = Get-LatestPrepareRecord -Case $prepareCase
   $prepareFreezePointer = Join-Path $workspaceFull 'tmp/package-freeze/latest-debug.json'
-  $preparePointerDoc = $(if (Test-Path -LiteralPath $prepareFreezePointer -PathType Leaf) { Get-Content -Raw -LiteralPath $prepareFreezePointer -Encoding UTF8 | ConvertFrom-Json } else { $null })
+  $preparePointerDoc = $(if (Test-Path -LiteralPath $prepareFreezePointer -PathType Leaf) { Get-Content -Raw -LiteralPath $prepareFreezePointer -Encoding UTF8 | ConvertFrom-IdentityJson } else { $null })
   $prepareFreezeDoc = $null
   if ($prepareRecord -and $prepareRecord.freeze -and $prepareRecord.freeze.path) {
     $prepareFreezeFullPath = Join-Path $workspaceFull ([string]$prepareRecord.freeze.path).Replace('/', '\')
     if (Test-Path -LiteralPath $prepareFreezeFullPath -PathType Leaf) {
-      $prepareFreezeDoc = Get-Content -Raw -LiteralPath $prepareFreezeFullPath -Encoding UTF8 | ConvertFrom-Json
+      $prepareFreezeDoc = Get-Content -Raw -LiteralPath $prepareFreezeFullPath -Encoding UTF8 | ConvertFrom-IdentityJson
     }
   }
   Assert-Case -Id 'I15a-prepare-freezes-inputs' -Condition (
@@ -1064,7 +1094,7 @@ try {
   } catch {
     $frozenBuildError = $_.Exception.Message
   }
-  $frozenBuildReport = $(if (Test-Path -LiteralPath $prepareCase.reportPath -PathType Leaf) { Get-Content -Raw -LiteralPath $prepareCase.reportPath -Encoding UTF8 | ConvertFrom-Json } else { $null })
+  $frozenBuildReport = $(if (Test-Path -LiteralPath $prepareCase.reportPath -PathType Leaf) { Get-Content -Raw -LiteralPath $prepareCase.reportPath -Encoding UTF8 | ConvertFrom-IdentityJson } else { $null })
   $frozenGate = $(if ($frozenBuildReport) { @($frozenBuildReport.release_eligibility.gates | Where-Object { $_.gate -eq 'frozen_inputs' })[0] } else { $null })
   Assert-Case -Id 'I15c-build-consumes-frozen-record' -Condition (
     -not $frozenBuildError -and
@@ -1092,7 +1122,7 @@ try {
   $frozenChangeDiagnostic = $null
   $frozenChangeDiagnostics = @(Get-ChildItem -LiteralPath (Join-Path $frozenChangeCase.caseRoot 'failures') -Filter 'package-report-failure-*.json' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTimeUtc -Descending)
   if ($frozenChangeDiagnostics.Count -gt 0) {
-    $frozenChangeDiagnostic = Get-Content -Raw -LiteralPath $frozenChangeDiagnostics[0].FullName -Encoding UTF8 | ConvertFrom-Json
+    $frozenChangeDiagnostic = Get-Content -Raw -LiteralPath $frozenChangeDiagnostics[0].FullName -Encoding UTF8 | ConvertFrom-IdentityJson
   }
   $changeEntry = $(if ($frozenChangeDiagnostic) { @($frozenChangeDiagnostic.changed_paths | Where-Object { [string]$_.path -match 'toolchain\.json' })[0] } else { $null })
   Assert-Case -Id 'I15d-frozen-input-change-refused' -Condition (
@@ -1124,7 +1154,7 @@ try {
   if ($generatedPrepareRecord -and $generatedPrepareRecord.freeze.path) {
     $generatedFreezeFull = Join-Path $workspaceFull ([string]$generatedPrepareRecord.freeze.path).Replace('/', '\')
     if (Test-Path -LiteralPath $generatedFreezeFull -PathType Leaf) {
-      $generatedFreezeDoc = Get-Content -Raw -LiteralPath $generatedFreezeFull -Encoding UTF8 | ConvertFrom-Json
+      $generatedFreezeDoc = Get-Content -Raw -LiteralPath $generatedFreezeFull -Encoding UTF8 | ConvertFrom-IdentityJson
     }
   }
   $generatedListed = $(if ($generatedFreezeDoc) { @($generatedFreezeDoc.generated_configs | Where-Object { [string]$_.path -match 'generated/toolchain\.json' })[0] } else { $null })
@@ -1146,7 +1176,7 @@ try {
   $generatedDiagnostic = $null
   $generatedDiagnostics = @(Get-ChildItem -LiteralPath (Join-Path $generatedCase.caseRoot 'failures') -Filter 'package-report-failure-*.json' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTimeUtc -Descending)
   if ($generatedDiagnostics.Count -gt 0) {
-    $generatedDiagnostic = Get-Content -Raw -LiteralPath $generatedDiagnostics[0].FullName -Encoding UTF8 | ConvertFrom-Json
+    $generatedDiagnostic = Get-Content -Raw -LiteralPath $generatedDiagnostics[0].FullName -Encoding UTF8 | ConvertFrom-IdentityJson
   }
   $generatedChangeEntry = $(if ($generatedDiagnostic) { @($generatedDiagnostic.changed_paths | Where-Object { [string]$_.path -match 'generated/toolchain\.json' })[0] } else { $null })
   Assert-Case -Id 'I15e2-generated-config-rewrite-refused' -Condition (
@@ -1166,7 +1196,7 @@ try {
   $confirmRefusedDiagnostic = $null
   $confirmDiagnostics = @(Get-ChildItem -LiteralPath (Join-Path $confirmCase.caseRoot 'failures') -Filter 'package-report-failure-*.json' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTimeUtc -Descending)
   if ($confirmDiagnostics.Count -gt 0) {
-    $confirmRefusedDiagnostic = Get-Content -Raw -LiteralPath $confirmDiagnostics[0].FullName -Encoding UTF8 | ConvertFrom-Json
+    $confirmRefusedDiagnostic = Get-Content -Raw -LiteralPath $confirmDiagnostics[0].FullName -Encoding UTF8 | ConvertFrom-IdentityJson
   }
   $confirmDiagnosticEntry = $(if ($confirmRefusedDiagnostic) { @($confirmRefusedDiagnostic.changed_paths | Where-Object { [string]$_.path -match 'toolchain\.json' })[0] } else { $null })
   Assert-Case -Id 'I15f-prepare-change-requires-explicit-confirmation' -Condition (
@@ -1192,7 +1222,7 @@ try {
   if ($confirmedRecord -and $confirmedRecord.freeze.path) {
     $confirmedFreezeFull = Join-Path $workspaceFull ([string]$confirmedRecord.freeze.path).Replace('/', '\')
     if (Test-Path -LiteralPath $confirmedFreezeFull -PathType Leaf) {
-      $confirmedFreezeDoc = Get-Content -Raw -LiteralPath $confirmedFreezeFull -Encoding UTF8 | ConvertFrom-Json
+      $confirmedFreezeDoc = Get-Content -Raw -LiteralPath $confirmedFreezeFull -Encoding UTF8 | ConvertFrom-IdentityJson
     }
   }
   Assert-Case -Id 'I15f2-confirmed-changes-are-recorded-then-frozen' -Condition (

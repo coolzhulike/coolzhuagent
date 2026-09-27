@@ -125,7 +125,7 @@ pub use mcp_client::{
     McpRemoteTransport, McpSdkTransport, McpStdioTransport,
 };
 pub use mcp_stdio::{
-    spawn_mcp_stdio_process, JsonRpcError, JsonRpcId, JsonRpcRequest, JsonRpcResponse,
+    spawn_mcp_stdio_process, spawn_mcp_stdio_process_in_dir, JsonRpcError, JsonRpcId, JsonRpcRequest, JsonRpcResponse,
     ManagedMcpTool, McpInitializeClientInfo, McpInitializeParams, McpInitializeResult,
     McpInitializeServerInfo, McpListResourcesParams, McpListResourcesResult, McpListToolsParams,
     McpListToolsResult, McpReadResourceParams, McpReadResourceResult, McpResource,

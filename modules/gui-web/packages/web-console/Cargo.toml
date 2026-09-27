@@ -30,10 +30,13 @@ futures-util = "0.3"
 getrandom.workspace = true
 image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
 runtime.workspace = true
+lsp.workspace = true
+lsp-types.workspace = true
 rusqlite = { version = "0.32", features = ["bundled", "backup"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 serde = { version = "1", features = ["derive"] }
 serde_json.workspace = true
+semver = "1"
 sha2 = "0.10"
 toml = "0.8"
 tempfile = "3"

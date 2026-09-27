@@ -26,19 +26,19 @@
   <body class="ui-3d">
     <main class="shell ui-redesign" aria-label="COOLZHU CODE 控制台">
       <section class="layout-top-region" aria-label="顶部状态区">
-        <section class="brand-banner" aria-label="COOLZHU CODE">
+        <section class="brand-banner" aria-label="COOLZHU">
           <div class="brand-banner-art" aria-hidden="true"></div>
-          <span class="brand-banner-title">COOLZHU CODE</span>
+          <span class="brand-banner-title">COOLZHU</span>
         </section>
-        <article class="top-status-card overview-card" aria-label="当前 Agent 与工作区">
+        <article class="top-status-card overview-card" aria-label="发送对象与工作区">
           <div class="overview-identity">
             <figure class="overview-mascot" aria-label="当前 Agent 头像">
               <img data-role="overview-mascot-avatar" src="./assets/avatars/wuxia-v3/bamboo-swordsman.png" alt="" />
             </figure>
             <div class="overview-identity-copy">
               <div class="overview-field overview-agent-field">
-                <span class="overview-field-label">当前 Agent</span>
-                <button class="overview-agent-name" data-role="overview-agent-trigger" data-action="overview-agent-settings" type="button" aria-label="切换当前 Agent" title="切换当前 Agent" aria-haspopup="dialog" aria-expanded="false">
+                <span class="overview-field-label">发送对象</span>
+                <button class="overview-agent-name" data-role="overview-agent-trigger" data-action="overview-agent-settings" type="button" aria-label="选择发送对象" title="选择发送对象" aria-haspopup="dialog" aria-expanded="false">
                   <span data-role="overview-agent-label">未配置</span>
                   <img src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" />
                 </button>
@@ -87,7 +87,17 @@
             <button class="window-tab" data-window-target="settings" data-window-icon="settings" type="button" title="设置" aria-label="设置" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/settings.svg" alt="" aria-hidden="true" /><span>设置</span></button>
             <button class="window-tab" data-window-target="usage" data-window-icon="model-scroll" type="button" title="统计信息" aria-label="统计信息" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/model-scroll.svg" alt="" aria-hidden="true" /><span>统计信息</span></button>
             <button class="window-tab" data-window-target="clawbot" data-window-icon="link" type="button" title="微信连接" aria-label="微信连接" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/link.svg" alt="" aria-hidden="true" /><span>微信连接</span></button>
+            <details class="window-dock-more" data-role="window-dock-more">
+              <summary class="window-tab" data-window-icon="more-vertical" title="更多" aria-label="更多快捷功能" aria-controls="window-dock-secondary" aria-expanded="false"><img class="window-icon" src="./assets/icons-wuxia/more-vertical.svg" alt="" aria-hidden="true" /><span>更多</span></summary>
+              <div id="window-dock-secondary" class="window-dock-secondary" role="group" aria-label="更多快捷功能">
+                <button class="window-tab" data-window-target="browser" data-window-icon="browser" type="button" title="浏览器" aria-label="浏览器" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /><span>浏览器</span></button>
+                <button class="window-tab" data-window-target="terminal" data-window-icon="terminal" type="button" title="终端" aria-label="终端" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/terminal.svg" alt="" aria-hidden="true" /><span>终端</span></button>
+                <button class="window-tab" data-window-target="skills" data-window-icon="skill-star" type="button" title="SKILL" aria-label="SKILL" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/skill-star.svg" alt="" aria-hidden="true" /><span>SKILL</span></button>
+                <button class="window-tab" data-window-target="plugin-market" data-window-icon="package-crate" type="button" title="插件市场" aria-label="插件市场" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/package-crate.svg" alt="" aria-hidden="true" /><span>插件市场</span></button>
+              </div>
+            </details>
           </nav>
+          <button class="window-tab quick-rail-update" data-window-target="app-update" data-window-icon="refresh" type="button" title="升级更新" aria-label="升级更新" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/refresh.svg" alt="" aria-hidden="true" /><span>升级更新</span></button>
         </aside>
         <section class="workbench-stage">
           <article class="workbench-window project-workbench-window" data-window-id="project" data-window-theme="treasure-map" aria-label="工程目录窗口">
@@ -122,11 +132,21 @@
               <section class="file-preview-pane">
                 <div class="ide-tabbar" data-role="ide-tabbar" aria-label="文件标签条"></div>
                 <div class="project-file-meta" data-role="project-file-meta">请选择文件进行预览。</div>
+                <div class="lsp-preview-toolbar" data-role="lsp-preview-toolbar" hidden>
+                  <span data-role="lsp-preview-status">Rust 语言服务未启动</span>
+                  <button type="button" data-action="lsp-preview-start">配置并启动</button>
+                  <button type="button" data-action="lsp-preview-refresh" hidden>刷新诊断</button>
+                  <button type="button" data-action="lsp-preview-definition" hidden>跳转定义</button>
+                  <button type="button" data-action="lsp-preview-references" hidden>查找引用</button>
+                  <button type="button" data-action="lsp-preview-close" hidden>关闭</button>
+                  <span data-role="lsp-preview-position" hidden>1:1</span>
+                </div>
                 <div class="ide-preview-body">
                   <pre class="file-preview-text" data-role="project-file-preview">从左侧目录树选择文件预览；快捷键：Ctrl+P 搜文件 · @ 搜符号 · :行号 跳转。</pre>
                   <aside class="ide-outline" data-role="ide-outline" aria-label="符号大纲">
                     <header class="ide-outline-head"><strong>大纲</strong><span data-role="ide-outline-count">0</span></header>
                     <div class="ide-outline-list" data-role="ide-outline-list"><div class="ide-outline-empty">选择文件查看符号大纲。</div></div>
+                    <section class="lsp-preview-results" data-role="lsp-preview-results" aria-label="语言服务诊断与跳转结果" hidden></section>
                   </aside>
                 </div>
               </section>
@@ -137,7 +157,7 @@
             <div class="window-panel settings-layout">
               <section class="settings-section" data-role="unified-model-settings" aria-label="统一模型会话参数"></section>
               <section class="settings-section session-settings">
-                <h2>当前 Agent · 生命周期</h2>
+                <h2>会话生命周期 · 与发送对象独立</h2>
                 <div data-role="session-extra-controls" class="session-extra-controls"></div>
                 <div class="session-select-wrap">
                   <button type="button" class="session-select-trigger" data-role="session-trigger" aria-controls="session-list" aria-expanded="false" aria-haspopup="listbox">尚未选择会话</button>
@@ -621,6 +641,7 @@
                         <button class="agent-dropdown-trigger" data-role="agent-trigger" type="button" aria-controls="chat-agent-targets" aria-expanded="false">选择发送对象</button>
                         <div id="chat-agent-targets" class="agent-dropdown-list" data-role="agent-targets"></div>
                       </div>
+                      <p data-role="agent-target-warning" role="alert" hidden></p>
                     </section>
                     <section class="chat-sidebar-group chat-room-permissions" data-sidebar-group="room-permissions" aria-label="聊天室权限">
                       <header><strong>聊天室权限</strong><span class="chat-permission-status" data-role="chat-permission-status">工作区写入</span></header>
@@ -932,21 +953,57 @@
           <article class="workbench-window terminal-workbench-window" data-window-id="terminal" data-window-theme="reactor-console" aria-label="终端窗口">
             <div class="terminal-console-shell">
               <div class="window-panel terminal-window-panel">
-                <pre class="terminal-window-output" data-role="terminal-window-output">当前工程目录中的 PowerShell 已就绪。</pre>
-                <details class="terminal-window-details">
-                  <summary>执行详情</summary>
-                  <pre data-role="terminal-window-raw">尚未执行命令。</pre>
-                </details>
-                <section class="terminal-window-command" aria-label="受控工具命令">
-                  <label class="terminal-command-input"><span>PS</span><textarea data-role="terminal-command" spellcheck="false">Get-ChildItem</textarea></label>
-                  <label class="terminal-timeout-input"><span>超时（毫秒）</span><input data-role="terminal-timeout-ms" value="30000" inputmode="numeric" /></label>
+                <div class="terminal-window-toolbar">
+                  <span data-role="terminal-window-status">终端尚未启动</span>
+                  <div class="terminal-window-controls">
+                    <button class="mini-button" data-action="terminal-window-interrupt" type="button" title="中断当前命令">中断</button>
+                    <button class="mini-button" data-action="terminal-window-close" type="button" title="关闭终端">关闭</button>
+                  </div>
+                </div>
+                <pre class="terminal-window-output" data-role="terminal-window-output">启动后可在当前工程目录运行 PowerShell 命令。</pre>
+                <section class="terminal-window-command" aria-label="交互式 PowerShell 命令">
+                  <label class="terminal-command-input"><span>PS</span><textarea data-role="terminal-command" spellcheck="false" placeholder="输入 PowerShell 命令"></textarea></label>
                   <button class="pixel-button wide is-primary-control" data-action="terminal-window-run" type="button"><img src="./assets/icons-wuxia/terminal.svg" alt="" />运行</button>
-                  <button class="mini-button terminal-clear-inline" data-action="terminal-window-clear" type="button" title="清空输出"><img src="./assets/icons-wuxia/delete.svg" alt="" /></button>
+                  <button class="mini-button terminal-clear-inline" data-action="terminal-window-clear" type="button" title="清空当前显示"><img src="./assets/icons-wuxia/delete.svg" alt="" /></button>
                 </section>
               </div>
             </div>
           </article>
 
+          <article class="workbench-window catalog-workbench-window" data-window-id="skills" aria-label="SKILL 目录">
+            <div class="window-panel workspace-content-panel quick-catalog-panel">
+              <div class="workspace-panel-toolbar"><strong>SKILL 目录</strong><button data-action="skills-catalog-refresh" type="button">刷新目录</button></div>
+              <p class="quick-panel-intro">查看当前工作区已发现的本地 SKILL。目录发现不代表已加载到当前 Agent。</p>
+              <p data-role="skills-catalog-status" role="status">尚未读取目录。</p>
+              <div class="quick-catalog-list" data-role="skills-catalog-list"></div>
+            </div>
+          </article>
+          <article class="workbench-window catalog-workbench-window" data-window-id="plugin-market" aria-label="插件市场">
+            <div class="window-panel workspace-content-panel quick-catalog-panel">
+              <div class="workspace-panel-toolbar"><strong>插件市场</strong><button data-action="plugin-market-refresh" type="button">刷新目录</button></div>
+              <p class="quick-panel-intro">当前只提供本地插件目录。远端市场与安装服务尚未接入。</p>
+              <div class="quick-catalog-facts"><span>目录状态：<b data-role="plugin-market-directory-state">尚未读取</b></span><span>已安装状态：<b data-role="plugin-market-installed-state">暂无可核验清单</b></span></div>
+              <p data-role="plugin-market-status" role="status">尚未读取目录。</p>
+              <div class="quick-catalog-list" data-role="plugin-market-list"></div>
+            </div>
+          </article>
+          <article class="workbench-window app-update-workbench-window" data-window-id="app-update" aria-label="升级更新">
+            <div class="window-panel workspace-content-panel app-update-panel">
+              <div class="workspace-panel-toolbar"><strong>升级更新</strong></div>
+              <p class="quick-panel-intro">检查官方正式发布版本。检查不会下载、安装或重启应用。</p>
+              <dl class="app-update-facts">
+                <div><dt>当前版本</dt><dd data-role="app-update-current-version">正在读取…</dd></div>
+                <div><dt>构建标识</dt><dd data-role="app-update-build-version">—</dd></div>
+                <div><dt>安装渠道</dt><dd data-role="app-update-channel">—</dd></div>
+                <div><dt>最新正式版本</dt><dd data-role="app-update-latest-version">—</dd></div>
+                <div><dt>上次检查</dt><dd data-role="app-update-checked-at">尚未检查</dd></div>
+              </dl>
+              <p class="app-update-state" data-role="app-update-state" role="status">正在读取更新状态…</p>
+              <p class="app-update-message" data-role="app-update-message"></p>
+              <div class="app-update-actions"><button data-action="app-update-check" type="button">检查更新</button><a data-role="app-update-release" target="_blank" rel="noopener noreferrer" hidden>查看正式发布页</a></div>
+              <small class="app-update-scope">当前仅提供版本检查与发布页入口；应用内下载安装尚未提供。</small>
+            </div>
+          </article>
           <article class="workbench-window tasks-workbench-window" data-window-id="tasks" data-window-theme="vault-access" aria-label="任务与授权窗口">
             <div class="window-panel task-window-panel">
               <div class="task-permission-layout">

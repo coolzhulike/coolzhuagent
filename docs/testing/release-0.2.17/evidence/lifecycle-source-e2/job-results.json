@@ -1,0 +1,65 @@
+{
+  "exe_sha256": "dfd39612cd2d689e6cf4e87de9b0c421682d1be33137d854a4ce8f5d2479d8ce",
+  "web_port": 18770,
+  "mock_port": 18771,
+  "settled_run_http": [
+    {
+      "id": "schedule-1790478734772-8117b6399077727f",
+      "status": "executed",
+      "message": ""
+    }
+  ],
+  "after_settled_claims": [
+    {
+      "task_id": "schedule-1790478734772-8117b6399077727f",
+      "scheduled_for_ms": 1790478734772,
+      "state": "settled",
+      "has_result": true
+    }
+  ],
+  "after_settled_mock_receipts": 1,
+  "during_hold_claims": [
+    {
+      "task_id": "schedule-1790478734772-8117b6399077727f",
+      "scheduled_for_ms": 1790478734772,
+      "state": "settled",
+      "has_result": true
+    },
+    {
+      "task_id": "schedule-1790478739647-130c7cfbfe53b059",
+      "scheduled_for_ms": 1790478739647,
+      "state": "running",
+      "has_result": false
+    }
+  ],
+  "during_hold_mock_receipts": 2,
+  "interrupted_request_result": {
+    "error_type": "ConnectionResetError"
+  },
+  "after_restart_run_http": [
+    {
+      "id": "schedule-1790478739647-130c7cfbfe53b059",
+      "status": "unknown",
+      "message": "本次触发已领取（running）；执行可能仍在运行或已中断，未重复调用模型或工具"
+    }
+  ],
+  "after_restart_claims": [
+    {
+      "task_id": "schedule-1790478734772-8117b6399077727f",
+      "scheduled_for_ms": 1790478734772,
+      "state": "settled",
+      "has_result": true
+    },
+    {
+      "task_id": "schedule-1790478739647-130c7cfbfe53b059",
+      "scheduled_for_ms": 1790478739647,
+      "state": "running",
+      "has_result": false
+    }
+  ],
+  "after_restart_mock_receipts": 2,
+  "schedule_status_after_restart": {
+    "schedule-1790478734772-8117b6399077727f": "executed",
+    "schedule-1790478739647-130c7cfbfe53b059": "scheduled"
+  }
+}

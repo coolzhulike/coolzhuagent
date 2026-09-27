@@ -1,0 +1,11 @@
+{
+  "base_url": "http://127.0.0.1:60549",
+  "workspace": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\ui04-stream-8664f8940a",
+  "web_pid": 32388,
+  "agent_a": "session-1790479983126",
+  "agent_b": "session-1790479983175",
+  "room_one": "room-1790479983220",
+  "room_two": "room-1790479983263",
+  "binary_sha256": "dfd39612cd2d689e6cf4e87de9b0c421682d1be33137d854a4ce8f5d2479d8ce",
+  "model_fixture": "本地 OpenAI 兼容 SSE：首轮 read_file，次轮 5 行 reasoning_content 后正文"
+}

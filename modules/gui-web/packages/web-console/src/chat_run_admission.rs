@@ -49,6 +49,18 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
     if let Some(parent) = parent.as_mut() {
         parent.root_budget = Some(root_budget.clone());
         parent.runtime_db_path = Some(db_path.clone());
+        let snapshots = result.targets.iter().filter_map(|agent| {
+            match crate::host_child_agent::HostModelSnapshot::capture(
+                agent, Some(&result.chat_room_id), parent,
+            ) {
+                Ok(snapshot) => Some((agent.id.clone(), Arc::new(snapshot))),
+                Err(error) => {
+                    crate::diag_log(&format!("[HOST-AGENT] 接纳时无法解析会话 {} 的子执行配置：{error}", agent.id));
+                    None
+                }
+            }
+        }).collect();
+        parent.host_model_snapshots = Arc::new(snapshots);
     }
     crate::chat_insights::record_source_messages(&db_path, &run_id, &result.messages).map_err(crate::sqlite_api_error)?;
     Ok(AcceptedChatRun { turn_id, run_id, claim_token, db_path, cancellation, root_budget, parent, guard })

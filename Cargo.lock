@@ -915,6 +915,7 @@ dependencies = [
 name = "coolzhu-language-service"
 version = "0.2.0"
 dependencies = [
+ "coolzhu-windows-process-guard",
  "lsp-types",
  "serde",
  "serde_json",
@@ -1005,6 +1006,7 @@ dependencies = [
  "coolzhu-computer-use-core",
  "coolzhu-core-runtime",
  "coolzhu-diagnostics",
+ "coolzhu-language-service",
  "coolzhu-llm-adapter",
  "coolzhu-plugin-system",
  "coolzhu-tool-registry",
@@ -1017,10 +1019,12 @@ dependencies = [
  "getrandom 0.3.4",
  "http-body-util",
  "image",
+ "lsp-types",
  "once_cell",
  "regex",
  "reqwest",
  "rusqlite",
+ "semver",
  "serde",
  "serde_json",
  "sha2",
@@ -1038,6 +1042,7 @@ dependencies = [
 name = "coolzhu-windows-process-guard"
 version = "0.2.0"
 dependencies = [
+ "tempfile",
  "tokio",
  "windows-sys 0.61.2",
 ]

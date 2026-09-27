@@ -158,7 +158,7 @@ function Assert-StagedExportedArtifacts {
 
     . (Join-Path $workspace 'scripts/lib/webview2-loader.ps1')
     $manifestPath = Join-Path $workspace 'config/package-manifest.json'
-    $manifestData = Get-Content -Raw -LiteralPath $manifestPath -Encoding UTF8 | ConvertFrom-Json
+    $manifestData = Get-Content -Raw -LiteralPath $manifestPath -Encoding UTF8 | ConvertFrom-IdentityJson
     $summaries = [System.Collections.Generic.List[object]]::new()
     foreach ($artifact in @($manifestData.artifacts)) {
         if (-not $artifact.export) { continue }
@@ -167,7 +167,7 @@ function Assert-StagedExportedArtifacts {
         if (-not (Test-Path -LiteralPath $receiptPath -PathType Leaf)) {
             throw ("[RECEIPT-MISSING] artifact={0} target={1} profile={2}`ndetail: 缺少导出记录 {3}`nnext: 先执行正常构建打包（scripts/package-all.ps1）生成导出与记录；不要手工复制文件到 package" -f [string]$artifact.id, [string]$artifact.target, $ConfigurationName, $receiptPath)
         }
-        $receipt = Get-Content -Raw -LiteralPath $receiptPath -Encoding UTF8 | ConvertFrom-Json
+        $receipt = Get-Content -Raw -LiteralPath $receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
         if (-not (Test-Path -LiteralPath $stagedPath -PathType Leaf)) {
             throw ("[SOURCE-MISSING] artifact={0} target={1} profile={2}`ndetail: staging 缺少导出物 {3}`nnext: 重新执行打包" -f [string]$artifact.id, [string]$artifact.target, $ConfigurationName, $stagedPath)
         }
@@ -240,7 +240,7 @@ $inventoryPath = Join-Path $packageRoot 'payload-inventory.json'
 if (-not (Test-Path -LiteralPath $inventoryPath -PathType Leaf)) {
     throw ("[PKG-ROOT-BINDING-MISSING] profile={0}`ndetail: 包根内没有 payload-inventory.json：{1}`nnext: 用 scripts/package-all.ps1 生成包根后再生成 MSI（不要手搓包根，也不要用别处的报告）" -f $Configuration, $inventoryPath)
 }
-$payloadInventory = Get-Content -Raw -LiteralPath $inventoryPath -Encoding UTF8 | ConvertFrom-Json
+$payloadInventory = Get-Content -Raw -LiteralPath $inventoryPath -Encoding UTF8 | ConvertFrom-IdentityJson
 $packageRootIdentity = "{0}@{1}" -f ([string]$payloadInventory.report_ref.report_id), ([string]$payloadInventory.payload_digest)
 Write-Host ("package root identity: {0}" -f $packageRootIdentity)
 Write-Host ("package root: {0} (inventory payload_digest={1} files={2})" -f $payloadInventory.package_root, $payloadInventory.payload_digest, $payloadInventory.file_count)
@@ -253,7 +253,7 @@ $referencedReportPath = Join-Path $workspacePath ($reportRefPath.Replace('/', '\
 if (-not (Test-Path -LiteralPath $referencedReportPath -PathType Leaf)) {
     throw ("[REPORT-REF-MISSING] profile={0}`ndetail: 包根清单指向的报告不存在：{1}`nnext: 重新执行 scripts/package-all.ps1 生成包根与报告" -f $Configuration, $referencedReportPath)
 }
-$referencedReport = Get-Content -Raw -LiteralPath $referencedReportPath -Encoding UTF8 | ConvertFrom-Json
+$referencedReport = Get-Content -Raw -LiteralPath $referencedReportPath -Encoding UTF8 | ConvertFrom-IdentityJson
 # 引用必须可核对：内容哈希重算通过才允许写进 installer report。
 $verifiedReportIdentity = Assert-PackageReportContentHash -Report $referencedReport
 

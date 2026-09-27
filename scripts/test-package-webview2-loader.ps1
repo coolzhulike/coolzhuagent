@@ -292,7 +292,7 @@ function New-FixtureContext {
     [switch]$NoMessages
   )
 
-  $manifest = Get-Content -Raw -LiteralPath $Fixture.manifestPath -Encoding UTF8 | ConvertFrom-Json
+  $manifest = Get-Content -Raw -LiteralPath $Fixture.manifestPath -Encoding UTF8 | ConvertFrom-LoaderJson
   $artifact = @($manifest.artifacts | Where-Object { $_.id -eq 'gui-desktop.webview2-loader' })[0]
   $export = $artifact.export
   $messages = if ($NoMessages) { @() } else { @(Get-Content -LiteralPath $Fixture.messageFile -Encoding UTF8) }
@@ -345,7 +345,7 @@ function Invoke-PackageFixture {
     & $packageScript @arguments | Out-Null
     if (Test-Path -LiteralPath $Fixture.reportPath -PathType Leaf) {
       $result.ReportExists = $true
-      $result.Report = Get-Content -Raw -LiteralPath $Fixture.reportPath -Encoding UTF8 | ConvertFrom-Json
+      $result.Report = Get-Content -Raw -LiteralPath $Fixture.reportPath -Encoding UTF8 | ConvertFrom-LoaderJson
     }
   } catch {
     $result.Error = $_.Exception.Message
@@ -357,7 +357,7 @@ function Invoke-PackageFixture {
 
 function Get-StagedLoaderPath {
   param([object]$Fixture)
-  $manifest = Get-Content -Raw -LiteralPath $Fixture.manifestPath -Encoding UTF8 | ConvertFrom-Json
+  $manifest = Get-Content -Raw -LiteralPath $Fixture.manifestPath -Encoding UTF8 | ConvertFrom-LoaderJson
   $artifact = @($manifest.artifacts | Where-Object { $_.id -eq 'gui-desktop.webview2-loader' })[0]
   return Join-Path $Fixture.packagePath ([string]$artifact.target).Replace('/', '\')
 }
@@ -447,7 +447,7 @@ function Add-Record {
 }
 
 function New-ExportContext {
-  $manifest = Get-Content -Raw -LiteralPath $ManifestPath -Encoding UTF8 | ConvertFrom-Json
+  $manifest = Get-Content -Raw -LiteralPath $ManifestPath -Encoding UTF8 | ConvertFrom-LoaderJson
   $artifact = @($manifest.artifacts | Where-Object { [string]$_.id -eq $ArtifactId })[0]
   $export = $artifact.export
   $entryManifest = [string]$export.build_entry_manifest
@@ -663,7 +663,7 @@ function Read-L07cWorkerRecords {
   if (-not (Test-Path -LiteralPath $LogPath)) { return $records }
   foreach ($line in @(Get-Content -LiteralPath $LogPath -Encoding UTF8)) {
     if (-not $line.Trim()) { continue }
-    try { $records += ($line | ConvertFrom-Json) } catch { }
+    try { $records += ($line | ConvertFrom-LoaderJson) } catch { }
   }
   return $records
 }
@@ -729,7 +729,9 @@ function Start-L07cWorker {
   }
 
   $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-  $startInfo.FileName = 'powershell.exe'
+  # 与父测试使用同一 PowerShell 宿主；PS7 启动 WinPS5 会继承不兼容的模块搜索环境，
+  # 使工作者连 Get-FileHash 都找不到，误报成暂存文件消失。
+  $startInfo.FileName = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
   $startInfo.Arguments = (($argumentList | ForEach-Object {
         if ([string]$_ -match '[\s"]') { '"' + ([string]$_ -replace '"', '\"') + '"' } else { [string]$_ }
       }) -join ' ')
@@ -1012,7 +1014,7 @@ function Invoke-L07cExporterRaceCase {
   $finalState = ''
   $finalSlotKey = ''
   if (Test-Path -LiteralPath $bundle.fixture.receiptPath -PathType Leaf) {
-    $receipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+    $receipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
     $finalGeneration = [string]$receipt.publication.generation
     $finalReceiptSha = [string]$receipt.file_identity.stable_export_sha256
     $finalState = [string]$receipt.publication.state
@@ -1079,7 +1081,7 @@ function Invoke-L07cIncompleteGenerationCase {
   $seedSha = Get-L07cSha $bundle.fixture.stablePath
   $seedReceiptSha = ''
   if (Test-Path -LiteralPath $bundle.fixture.receiptPath -PathType Leaf) {
-    $seedReceipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+    $seedReceipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
     $seedReceiptSha = [string]$seedReceipt.file_identity.stable_export_sha256
   }
 
@@ -1100,7 +1102,7 @@ function Invoke-L07cIncompleteGenerationCase {
   $afterExitSha = Get-L07cSha $bundle.fixture.stablePath
   $afterExitReceiptSha = ''
   if (Test-Path -LiteralPath $bundle.fixture.receiptPath -PathType Leaf) {
-    $afterExitReceipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+    $afterExitReceipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
     $afterExitReceiptSha = [string]$afterExitReceipt.file_identity.stable_export_sha256
   }
 
@@ -1132,7 +1134,7 @@ function Invoke-L07cIncompleteGenerationCase {
   $finalSha = Get-L07cSha $bundle.fixture.stablePath
   $finalReceiptSha = ''
   if (Test-Path -LiteralPath $bundle.fixture.receiptPath -PathType Leaf) {
-    $finalReceipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+    $finalReceipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
     $finalReceiptSha = [string]$finalReceipt.file_identity.stable_export_sha256
   }
   $leftovers = @(Get-L07cSlotFiles -Directory $slotDir)
@@ -1315,7 +1317,7 @@ function Invoke-L07cLoserIsolationCase {
   $finalDll = Get-L07cSha $bundle.fixture.stablePath
   $finalReceipt = ''
   if (Test-Path -LiteralPath $bundle.fixture.receiptPath -PathType Leaf) {
-    $receiptObject = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+    $receiptObject = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
     $finalReceipt = [string]$receiptObject.file_identity.stable_export_sha256
   }
   if ($finalReceipt -ne $finalDll) { $winnerProblems += ("赢家完成后的代次不自洽：dll={0} receipt={1}" -f $finalDll, $finalReceipt) }
@@ -1394,7 +1396,7 @@ function Invoke-L07cDistinctSlotsCase {
     $dll = Get-L07cSha $bundle.fixture.stablePath
     $receipt = ''
     if (Test-Path -LiteralPath $bundle.fixture.receiptPath -PathType Leaf) {
-      $receiptObject = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+      $receiptObject = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
       $receipt = [string]$receiptObject.file_identity.stable_export_sha256
     }
     if ($dll -ne $receipt) { $problems += ("槽位相互污染或代次不自洽：{0} dll={1} receipt={2}" -f $bundle.fixture.name, $dll, $receipt) }
@@ -1430,7 +1432,7 @@ function Invoke-L07cSourceInputChangedCase {
   $seedCompletion = Complete-L07cWorker -Worker $seedWorker -TimeoutMilliseconds 120000
   $seedReceiptSha = ''
   if (Test-Path -LiteralPath $bundle.fixture.receiptPath -PathType Leaf) {
-    $seedReceiptObject = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+    $seedReceiptObject = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
     $seedReceiptSha = [string]$seedReceiptObject.file_identity.stable_export_sha256
   }
   $receiptShaBeforeMutation = Get-L07cSha $bundle.fixture.receiptPath
@@ -1571,7 +1573,7 @@ function Invoke-L07dLoserNoWriteAccessCase {
   # 前置：先有一代完整代次（G0），使槽位处于"有当前有效代次"的状态。
   $seed = Invoke-L07dWorkerOnce -CaseRoot $caseRoot -WorkerScript $WorkerScript -Bundle $bundle `
     -Mode 'export' -MessageFile $bundle.messageA -LogName 'seed.jsonl' -ExpectedSha $bundle.producerShaA -HostSuffix ($Token + '-seed')
-  $seedPointer = $(if (Test-Path -LiteralPath $slot.pointer_path) { Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-Json } else { $null })
+  $seedPointer = $(if (Test-Path -LiteralPath $slot.pointer_path) { Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-LoaderJson } else { $null })
   $seedGeneration = $(if ($seedPointer) { [string]$seedPointer.generation } else { '' })
   $seedRecordPath = $(if ($seedGeneration) { Get-L07dGenerationRecordPath -Bundle $bundle -Generation $seedGeneration } else { '' })
   $seedRecordSha = $(if ($seedRecordPath -and (Test-Path -LiteralPath $seedRecordPath)) { Get-L07cSha $seedRecordPath } else { '' })
@@ -1638,7 +1640,7 @@ function Invoke-L07dLoserNoWriteAccessCase {
   $forgedCategory = ''
   $archiveShaAfterForge = ''
   if ($winnerGeneration) {
-    $liveReceipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+    $liveReceipt = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
     # 只改一个"非身份类"字段：generation 保持正确，但收据内容已变。
     $liveReceipt.dependency_identity.producer_selection_evidence = 'forged-by-a-failed-competitor'
     Write-FixtureText -Path $bundle.fixture.receiptPath -Text ($liveReceipt | ConvertTo-Json -Depth 20)
@@ -1656,7 +1658,7 @@ function Invoke-L07dLoserNoWriteAccessCase {
     if (-not $forgedRejected) { $winnerProblems += '失败方的伪造收据被消费端接受了' }
     # 代次档案仍应是"赢家那一代"的原内容（伪造没有写进档案）。
     $winnerRecordSha = $(if ($winnerRecord) { [string]$winnerRecord.receipt_digest } else { '' })
-    $archiveReceipt = $(if (Test-Path -LiteralPath $archiveRecordPath) { Get-Content -Raw -LiteralPath $archiveRecordPath -Encoding UTF8 | ConvertFrom-Json } else { $null })
+    $archiveReceipt = $(if (Test-Path -LiteralPath $archiveRecordPath) { Get-Content -Raw -LiteralPath $archiveRecordPath -Encoding UTF8 | ConvertFrom-LoaderJson } else { $null })
     if ($archiveReceipt) {
       $recomputed = Get-LoaderReceiptDigest -Receipt $archiveReceipt
       if ($winnerRecordSha -and $recomputed -ne $winnerRecordSha) {
@@ -1686,7 +1688,7 @@ function Invoke-L07dExitBetweenReceiptAndPointerCase {
 
   $seed = Invoke-L07dWorkerOnce -CaseRoot $caseRoot -WorkerScript $WorkerScript -Bundle $bundle `
     -Mode 'export' -MessageFile $bundle.messageA -LogName 'seed.jsonl' -ExpectedSha $bundle.producerShaA -HostSuffix ($Token + '-seed')
-  $seedPointer = $(if (Test-Path -LiteralPath $slot.pointer_path) { Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-Json } else { $null })
+  $seedPointer = $(if (Test-Path -LiteralPath $slot.pointer_path) { Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-LoaderJson } else { $null })
   $seedGeneration = $(if ($seedPointer) { [string]$seedPointer.generation } else { '' })
   $seedPointerSha = Get-L07cSha $slot.pointer_path
   $seedDllSha = Get-L07cSha $bundle.fixture.stablePath
@@ -1714,7 +1716,7 @@ function Invoke-L07dExitBetweenReceiptAndPointerCase {
   }
   # 盘上：产物是 B 的字节、声明收据是新一代、指针仍是上一代 ⇒ 这就是"不完整代次"
   if ((Get-L07cSha $bundle.fixture.stablePath) -ne $bundle.producerShaB) { $problems += '夹具前提不成立：产物不是被杀进程那一代的字节' }
-  $declaredReceipt = $(if (Test-Path -LiteralPath $bundle.fixture.receiptPath) { Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json } else { $null })
+  $declaredReceipt = $(if (Test-Path -LiteralPath $bundle.fixture.receiptPath) { Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson } else { $null })
   if (-not $declaredReceipt -or [string]$declaredReceipt.publication.generation -eq $seedGeneration) {
     $problems += '夹具前提不成立：声明收据没有进入新一代'
   }
@@ -1738,7 +1740,7 @@ function Invoke-L07dExitBetweenReceiptAndPointerCase {
   if (-not $recovery.record -or -not $recovery.record.ok) {
     $problems += ('被杀进程留下的锁没有被回收（后续发布者无法发布）：{0}' -f $(if ($recovery.record) { $recovery.record.error_message } else { '没有记录' }))
   } else {
-    $finalPointer = Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-Json
+    $finalPointer = Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-LoaderJson
     if ([string]$finalPointer.generation -ne [string]$recovery.record.generation) {
       $problems += '回收后的指针没有指向新发布的有效代次'
     }
@@ -1788,7 +1790,7 @@ function Invoke-L07dConsumeG1ThenPublishG2Case {
   # G2：导出 B（槽位合法更新到新一代次）。
   $g2 = Invoke-L07dWorkerOnce -CaseRoot $caseRoot -WorkerScript $WorkerScript -Bundle $bundle `
     -Mode 'export' -MessageFile $bundle.messageB -LogName 'g2.jsonl' -ExpectedSha $bundle.producerShaB -HostSuffix ($Token + '-g2')
-  $finalPointer = $(if (Test-Path -LiteralPath $slot.pointer_path) { Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-Json } else { $null })
+  $finalPointer = $(if (Test-Path -LiteralPath $slot.pointer_path) { Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-LoaderJson } else { $null })
   $finalGeneration = $(if ($finalPointer) { [string]$finalPointer.generation } else { '' })
 
   if (-not $g2.record -or -not $g2.record.ok) {
@@ -1805,7 +1807,7 @@ function Invoke-L07dConsumeG1ThenPublishG2Case {
   # G1 的报告依据必须仍然有效：从**保存下来的 G1 收据 + 本次独立 staging + 不可变代次档案**重建。
   if ($g1RecordPath -and (Test-Path -LiteralPath $g1RecordPath)) {
     if ((Get-L07cSha $g1RecordPath) -ne $g1RecordSha) { $problems += 'G1 的代次档案在槽位更新到 G2 之后被改写了' }
-    $g1Archive = Get-Content -Raw -LiteralPath $g1RecordPath -Encoding UTF8 | ConvertFrom-Json
+    $g1Archive = Get-Content -Raw -LiteralPath $g1RecordPath -Encoding UTF8 | ConvertFrom-LoaderJson
     $g1ReceiptDigest = Get-LoaderReceiptDigest -Receipt $g1Archive
     if ([string]$g1.record.consumption_receipt_digest -ne $g1ReceiptDigest) {
       $problems += 'G1 消费收据的 receipt_digest 无法从 G1 代次档案重算（报告字段与实际收据不一致）'
@@ -1866,7 +1868,7 @@ function Invoke-L07dGenerationCorrectContentMismatchCase {
   $categoryA = ''
   if ($recordPath -and (Test-Path -LiteralPath $recordPath)) {
     # (a) 改写代次档案：generation 保持不变，产物摘要换成 B 的字节。
-    $archive = Get-Content -Raw -LiteralPath $recordPath -Encoding UTF8 | ConvertFrom-Json
+    $archive = Get-Content -Raw -LiteralPath $recordPath -Encoding UTF8 | ConvertFrom-LoaderJson
     $archive.publication.artifact_digest = $bundle.producerShaB
     Write-FixtureText -Path $recordPath -Text ($archive | ConvertTo-Json -Depth 20)
     $consumeA = Invoke-L07dWorkerOnce -CaseRoot $caseRoot -WorkerScript $WorkerScript -Bundle $bundle `
@@ -1933,10 +1935,10 @@ function Invoke-L07dSameGenerationDifferentReceiptCase {
   if (-not $generation -or -not $seed.record.ok) { $problems += '前置代次没有建立' }
 
   # 往共享有效槽位写一份"同 generation、不同内容"的收据（模拟失败竞争者的收据）。
-  $declared = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json
+  $declared = Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
   $declared.dependency_identity.producer_selection_evidence = 'same-generation-different-receipt-body'
   Write-FixtureText -Path $bundle.fixture.receiptPath -Text ($declared | ConvertTo-Json -Depth 20)
-  $forgedReceiptDigest = Get-LoaderReceiptDigest -Receipt (Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-Json)
+  $forgedReceiptDigest = Get-LoaderReceiptDigest -Receipt (Get-Content -Raw -LiteralPath $bundle.fixture.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson)
 
   $category = ''
   $consume = Invoke-L07dWorkerOnce -CaseRoot $caseRoot -WorkerScript $WorkerScript -Bundle $bundle `
@@ -1950,10 +1952,10 @@ function Invoke-L07dSameGenerationDifferentReceiptCase {
   }
   if ($forgedReceiptDigest -eq $originalReceiptDigest) { $problems += '夹具前提不成立：伪造收据的内容摘要与原收据相同' }
   # 指针与代次档案必须保持原样（伪造者不得改写不可变记录）。
-  $pointer = Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-Json
+  $pointer = Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-LoaderJson
   if ([string]$pointer.receipt_digest -ne $originalReceiptDigest) { $problems += '槽位指针登记的 receipt_digest 被改写了' }
   $recordPath = Get-L07dGenerationRecordPath -Bundle $bundle -Generation $generation
-  $archive = Get-Content -Raw -LiteralPath $recordPath -Encoding UTF8 | ConvertFrom-Json
+  $archive = Get-Content -Raw -LiteralPath $recordPath -Encoding UTF8 | ConvertFrom-LoaderJson
   if ((Get-LoaderReceiptDigest -Receipt $archive) -ne $originalReceiptDigest) { $problems += '代次档案被改写（必须不可变）' }
 
   $detail = ("generation={0} forged_receipt_digest={1} conflict=GENERATION-CONFLICT archive_unchanged=true" -f $generation, $forgedReceiptDigest.Substring(0, 12))
@@ -1987,10 +1989,10 @@ function Invoke-L07dConsumptionFieldsMatchContentCase {
     $problems += ('固定消费流程失败：{0}' -f $(if ($consume.record) { $consume.record.error_message } else { '没有记录' }))
   } else {
     $record = $consume.record
-    $pointer = Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-Json
+    $pointer = Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-LoaderJson
     $generation = [string]$record.generation
     $recordPath = $(if ($generation) { Get-L07dGenerationRecordPath -Bundle $bundle -Generation $generation } else { '' })
-    $archive = $(if ($recordPath -and (Test-Path -LiteralPath $recordPath)) { Get-Content -Raw -LiteralPath $recordPath -Encoding UTF8 | ConvertFrom-Json } else { $null })
+    $archive = $(if ($recordPath -and (Test-Path -LiteralPath $recordPath)) { Get-Content -Raw -LiteralPath $recordPath -Encoding UTF8 | ConvertFrom-LoaderJson } else { $null })
     $stagedPath = [string]$record.consumed_staging_absolute
 
     if (-not $generation) { $problems += '消费收据没有明确 generation' }
@@ -2086,7 +2088,7 @@ function Invoke-L07dPackageReportGenerationBindingCase {
       $stagedLoader = Get-StagedLoaderPath -Fixture $fixture
       $stagedSha = Get-L07cSha $stagedLoader
       $slot = Get-LoaderPublishSlot -Destination $fixture.stablePath -RepoPath $workspaceFull -Target 'bin/WebView2Loader.dll' -Profile 'debug'
-      $pointer = $(if (Test-Path -LiteralPath $slot.pointer_path) { Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-Json } else { $null })
+      $pointer = $(if (Test-Path -LiteralPath $slot.pointer_path) { Get-Content -Raw -LiteralPath $slot.pointer_path -Encoding UTF8 | ConvertFrom-LoaderJson } else { $null })
       # 字段 → 实际消费内容的一致性（逐条重算）
       if ([string]$entry.artifact_digest -ne $stagedSha) {
         $problems += ('报告 artifact_digest 与包内实际字节不一致：{0} != {1}' -f $entry.artifact_digest, $stagedSha)
@@ -2108,7 +2110,7 @@ function Invoke-L07dPackageReportGenerationBindingCase {
       $entryReceipt = $(if ($entry.receipt) { Join-Path $workspaceFull ([string]$entry.receipt).Replace('/', '\') } else { '' })
       $archivePath = $(if ($entry.generation) { Resolve-LoaderGenerationRecordPath -Slot $slot -Generation ([string]$entry.generation) } else { '' })
       if ($archivePath -and (Test-Path -LiteralPath $archivePath)) {
-        $archive = Get-Content -Raw -LiteralPath $archivePath -Encoding UTF8 | ConvertFrom-Json
+        $archive = Get-Content -Raw -LiteralPath $archivePath -Encoding UTF8 | ConvertFrom-LoaderJson
         $archiveDigest = Get-LoaderReceiptDigest -Receipt $archive
         if ([string]$entry.receipt_digest -ne $archiveDigest) {
           $problems += '报告 receipt_digest 无法从代次档案重算'
@@ -2247,6 +2249,36 @@ try {
     return
   }
 
+  # JSON 收据回读必须保留时间的原始字面量；PS 7.5+ 默认转 DateTime 会使摘要递归溢出。
+  $dateDigests = [System.Collections.Generic.List[string]]::new()
+  $dateRoundtripOk = $true
+  foreach ($dateText in @('2026-09-27T04:20:00Z', '2026-09-27T04:20:00.000+00:00')) {
+    $dateReceipt = [ordered]@{
+      generated_at = $dateText
+      publication = [ordered]@{ receipt_committed_utc = $dateText; receipt_digest = $null }
+    }
+    $beforeDigest = Get-LoaderReceiptDigest -Receipt $dateReceipt
+    $datePath = Join-Path $fixtureRoot ("date-receipt-{0}.json" -f $dateDigests.Count)
+    Write-FixtureText -Path $datePath -Text ($dateReceipt | ConvertTo-Json -Depth 6)
+    $readReceipt = Get-Content -Raw -LiteralPath $datePath -Encoding UTF8 | ConvertFrom-LoaderJson
+    $afterDigest = Get-LoaderReceiptDigest -Receipt $readReceipt
+    $dateRoundtripOk = $dateRoundtripOk -and
+      ($readReceipt.generated_at -is [string]) -and
+      ([string]$readReceipt.generated_at -ceq $dateText) -and
+      ([string]$readReceipt.publication.receipt_committed_utc -ceq $dateText) -and
+      ($afterDigest -eq $beforeDigest)
+    $dateDigests.Add($afterDigest)
+  }
+  Add-CaseResult -Id 'L00-date-text-roundtrip' -Status $(if ($dateRoundtripOk -and $dateDigests.Count -eq 2 -and $dateDigests[0] -ne $dateDigests[1]) { 'PASS' } else { 'FAIL' }) `
+    -Detail '收据写入回读后摘要相同，且不同 ISO 字面量保持不同身份'
+  $dateObjectRejected = $true
+  foreach ($dateObject in @([datetime]::UtcNow, [datetimeoffset]::UtcNow)) {
+    try { [void](Get-LoaderReceiptDigest -Receipt ([pscustomobject]@{ generated_at = $dateObject })); $dateObjectRejected = $false }
+    catch { if ($_.Exception.Message -notmatch 'DateTime') { $dateObjectRejected = $false } }
+  }
+  Add-CaseResult -Id 'L00-date-object-rejected' -Status $(if ($dateObjectRejected) { 'PASS' } else { 'FAIL' }) `
+    -Detail '日期对象明确拒绝进入收据摘要，避免无界属性递归'
+
   # ---------------------------------------------------------------- L01 -----
   # 声明位置 / 稳定导出位置存在旧手工 DLL ⇒ 不能仅凭存在采用。
   $l01 = New-LoaderFixture -Name 'l01-manual-dll-no-receipt' -Producers @() -MessageProducerIndexes @()
@@ -2337,7 +2369,7 @@ try {
   ) -MessageProducerIndexes @(0)
   $l03cContext = New-FixtureContext -Fixture $l03c -BuildStartedOffsetMinutes -1
   [void](Export-LoaderArtifact -Context $l03cContext)
-  $staleJson = Get-Content -Raw -LiteralPath $l03c.receiptPath -Encoding UTF8 | ConvertFrom-Json
+  $staleJson = Get-Content -Raw -LiteralPath $l03c.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
   $staleJson.build_identity.source_identity_sha256 = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
   Write-FixtureText -Path $l03c.receiptPath -Text ($staleJson | ConvertTo-Json -Depth 12)
   $l03cResult = Invoke-PackageFixture -Fixture $l03c -SkipBuild
@@ -2507,7 +2539,7 @@ try {
   # ------------------------------------------------------------ L10/L11 -----
   # L10：收据必须把 Loader 来源与 WebView2 Runtime 前置**分开登记**，不得把 Runtime 问题伪称成 Loader 来源失败
   $l10Context = New-FixtureContext -Fixture $l05 -BuildStartedOffsetMinutes -1
-  $l10Receipt = Get-Content -Raw -LiteralPath $l05.receiptPath -Encoding UTF8 | ConvertFrom-Json
+  $l10Receipt = Get-Content -Raw -LiteralPath $l05.receiptPath -Encoding UTF8 | ConvertFrom-LoaderJson
   if ($l10Receipt.runtime_dependency.webview2_runtime_asserted -ne $false -or -not $l10Receipt.runtime_dependency.note) {
     Add-CaseResult -Id 'L10-runtime-registered-separately' -Status 'FAIL' -Detail 'receipt must register the WebView2 Runtime precondition separately from the loader source'
   } else {
@@ -2517,7 +2549,7 @@ try {
 
   # L11：删除 DLL 的候选变更必须先完成消费者与原生窗口审计。这里先钉住"仍在发布"的事实，
   #      任何删除都必须显式改动本断言 + manifest，不能静默消失。
-  $realManifest = Get-Content -Raw -LiteralPath (Join-Path $workspace 'config/package-manifest.json') -Encoding UTF8 | ConvertFrom-Json
+  $realManifest = Get-Content -Raw -LiteralPath (Join-Path $workspace 'config/package-manifest.json') -Encoding UTF8 | ConvertFrom-LoaderJson
   $realLoaderArtifact = @($realManifest.artifacts | Where-Object { $_.id -eq 'gui-desktop.webview2-loader' })
   if ($realLoaderArtifact.Count -ne 1) {
     Add-CaseResult -Id 'L11-loader-still-shipped-tripwire' -Status 'FAIL' -Detail 'the loader artifact disappeared from the manifest without the consumer audit'
@@ -2571,7 +2603,7 @@ try {
       }
       if ($l04Producer) {
         $l04ProducerDll = Join-Path (Join-Path $l04Producer.out_dir 'x64') 'WebView2Loader.dll'
-        $l04RealManifest = Get-Content -Raw -LiteralPath (Join-Path $workspace 'config/package-manifest.json') -Encoding UTF8 | ConvertFrom-Json
+        $l04RealManifest = Get-Content -Raw -LiteralPath (Join-Path $workspace 'config/package-manifest.json') -Encoding UTF8 | ConvertFrom-LoaderJson
         $l04Artifact = @($l04RealManifest.artifacts | Where-Object { $_.id -eq 'gui-desktop.webview2-loader' })[0]
         $l04Export = $l04Artifact.export
         $l04Export.build_root = Get-FixtureRelative $l04TargetDir

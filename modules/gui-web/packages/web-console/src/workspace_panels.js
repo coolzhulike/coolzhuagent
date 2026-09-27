@@ -109,7 +109,49 @@ window.CoolzhuWorkspacePanels = (() => {
     activationVersion++; api.close(); api.collapse(); renderTabs();
     qs("message-input")?.focus({preventScroll:true});
   }
+  function initMoreDock() {
+    const more = qs("window-dock-more");
+    const trigger = more?.querySelector("summary");
+    const items = Array.from(more?.querySelectorAll(".window-dock-secondary [data-window-target]") || []);
+    if (!more || !trigger || !items.length) return;
+    const close = (restoreFocus = false) => {
+      if (!more.open) return;
+      more.open = false;
+      trigger.setAttribute("aria-expanded", "false");
+      if (restoreFocus) trigger.focus({preventScroll:true});
+    };
+    more.addEventListener("toggle", () => trigger.setAttribute("aria-expanded", String(more.open)));
+    more.addEventListener("keydown", event => {
+      if (event.key === "Escape" && more.open) {
+        event.preventDefault(); event.stopPropagation(); close(true); return;
+      }
+      if (event.target === trigger && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+        event.preventDefault();
+        more.open = true;
+        (event.key === "ArrowDown" ? items[0] : items[items.length - 1]).focus({preventScroll:true});
+        return;
+      }
+      const index = items.indexOf(event.target);
+      if (index < 0) return;
+      let next = index;
+      if (event.key === "ArrowDown") next = (index + 1) % items.length;
+      else if (event.key === "ArrowUp") next = (index + items.length - 1) % items.length;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = items.length - 1;
+      else return;
+      event.preventDefault();
+      items[next].focus({preventScroll:true});
+    });
+    document.addEventListener("pointerdown", event => {
+      if (more.open && !more.contains(event.target)) close();
+    }, true);
+    document.addEventListener("focusin", event => {
+      if (more.open && !more.contains(event.target)) close();
+    });
+  }
   function navigate(id) {
+    const more = qs("window-dock-more");
+    if (more) more.open = false;
     if (id === "chat") { home(); return; }
     api.open(id);
     if (id === "schedules") void api.refreshSchedules();
@@ -221,6 +263,7 @@ window.CoolzhuWorkspacePanels = (() => {
   function init(adapter) {
     if (api) return; api = adapter; scopeId = scopeKey();
     restoreTabs();
+    initMoreDock();
     qs("preview-tabs-reopen")?.addEventListener("click", showRestoredTabs);
     const schedules = document.querySelector('[data-role="task-schedule-section"]');
     const scheduleHost = qs("schedules-panel"); if (schedules && scheduleHost) scheduleHost.append(schedules);

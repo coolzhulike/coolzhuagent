@@ -1,0 +1,12 @@
+[
+  {"id":"mcp-everything","name":"MCP Everything（协议验证）","category":"00-验证","command":"cmd","args":["/c","npx","-y","@modelcontextprotocol/server-everything"],"enabled":true,"notes":"官方测试 server：验证 initialize/tools/list/tools/call 全链路（实测 13 工具）"},
+  {"id":"godot-mcp","name":"Godot MCP（游戏开发）","category":"02-游戏开发","command":"cmd","args":["/c","npx","-y","godot-mcp"],"enabled":true,"notes":"npm godot-mcp@0.1.6+；实测 14 工具；未装引擎时连接自检可用，引擎类工具如实报错"},
+  {"id":"blender-mcp","name":"Blender MCP（建模）","category":"01-CAD-3D","command":"uv","args":["tool","run","blender-mcp"],"enabled":false,"notes":"PyPI blender-mcp@1.6.2（ahujasid 官方）；需先安装 uv，并在 Blender 中启用 addon/socket 后于 workspace 配置开启"},
+  {"id":"mobile-mcp","name":"Mobile MCP（应用开发）","category":"03-应用开发","command":"cmd","args":["/c","npx","-y","@mobilenext/mobile-mcp@latest"],"enabled":true,"notes":"npm @mobilenext/mobile-mcp@0.0.59；调用需 adb + 设备/模拟器"},
+  {"id":"kicad-mcp","name":"KiCad MCP（EDA）","category":"04-EDA","command":"cmd","args":["/c","npx","-y","kicad-mcp"],"enabled":true,"notes":"npm kicad-mcp@0.1.6（python wrapper，首次拉依赖较慢）；调用需 KiCad 9+"},
+  {"id":"obsidian-mcp","name":"Obsidian MCP（笔记）","category":"05-笔记","command":"cmd","args":["/c","npx","-y","mcp-obsidian","knowledge\\obsidian-vault"],"enabled":false,"notes":"npm mcp-obsidian@1.0.0：路径相对当前 workspace；请创建 knowledge/obsidian-vault 或在 workspace mcp_servers.json 配置真实 vault 后开启"},
+  {"id":"resolve-mcp","name":"DaVinci Resolve MCP（视频编辑）","category":"06-视频编辑","command":"cmd","args":["/c","npx","-y","davinci-resolve-mcp"],"enabled":false,"notes":"npm davinci-resolve-mcp@2.45.0：依赖 anyio 未声明且需 Resolve Studio 脚本环境；宿主就绪后于 workspace 配置开启"},
+  {"id":"ableton-mcp","name":"Ableton MCP（音频编辑）","category":"07-音频编辑","command":"uv","args":["tool","run","ableton-mcp"],"enabled":false,"notes":"PyPI ableton-mcp@1.2.0（ahujasid 官方）；需先安装 uv、配置 Ableton Live Remote Script 后于 workspace 配置开启"},
+  {"id":"minimax-mcp","name":"MiniMax MCP（视频/图像生成）","category":"08-视频生成","command":"uv","args":["tool","run","minimax-mcp"],"env":{"MINIMAX_API_KEY":"","MINIMAX_API_HOST":"https://api.minimaxi.com"},"enabled":false,"notes":"PyPI minimax-mcp@0.0.18（官方）：需先安装 uv，并在 workspace mcp_servers.json 配置 MINIMAX_API_KEY 后开启，勿硬编码密钥"},
+  {"id":"yahoo-finance-mcp","name":"Yahoo Finance MCP（金融量化）","category":"09-金融量化","command":"cmd","args":["/c","npx","-y","yahoo-finance-mcp"],"enabled":true,"notes":"npm yahoo-finance-mcp@1.6.2：行情/历史/财报，免 API Key 可直接冒烟"}
+]

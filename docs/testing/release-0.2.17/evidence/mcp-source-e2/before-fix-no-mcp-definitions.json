@@ -1,0 +1,61 @@
+{
+  "workspace": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\mcp-model-e2e-32e6b37a79",
+  "web_sha256": "21083a80f4ab51f5aff073fc8ab32b3ad8581b467ecff4d02d135a6ad088c44c",
+  "management_session": "session-1790477475903",
+  "target_session": "session-1790477475921",
+  "room": "room-1790477475940",
+  "connected_tool_count": 13,
+  "server_status": [
+    {
+      "id": "official",
+      "connected": true,
+      "tool_count": 13
+    }
+  ],
+  "model_requests": 2,
+  "first_tool_names": [],
+  "request_shapes": [
+    {
+      "keys": [
+        "max_tokens",
+        "messages",
+        "model",
+        "stream"
+      ],
+      "stream": false,
+      "tool_count": 0,
+      "model": "local-mcp",
+      "roles": [
+        "system",
+        "user"
+      ]
+    },
+    {
+      "keys": [
+        "max_tokens",
+        "messages",
+        "model",
+        "stream"
+      ],
+      "stream": false,
+      "tool_count": 0,
+      "model": "local-mcp",
+      "roles": [
+        "system",
+        "user",
+        "user"
+      ]
+    }
+  ],
+  "feedback_seen_by_model": false,
+  "final_seen": true,
+  "response_keys": [
+    "accepted_agent_ids",
+    "messages",
+    "notes",
+    "run_id",
+    "status",
+    "tasks",
+    "turn_id"
+  ]
+}

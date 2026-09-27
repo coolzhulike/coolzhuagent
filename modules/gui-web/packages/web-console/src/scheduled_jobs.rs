@@ -1,6 +1,7 @@
 //! 定时任务单次触发的持久领取；配置仍负责计划，数据库负责已经领取和发生的事实。
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{params, Connection, OpenFlags, OptionalExtension};
 
 // 保留定时器调用名，所有入口共享同一工程活动锁。
 pub(crate) use crate::workspace_activity::{pin_workspace, begin_workspace_change};
@@ -22,6 +23,79 @@ pub(crate) struct JobClaim {
     scheduled_for_ms: i64,
     token: String,
     finished: bool,
+}
+
+/// 列表只读投影的领取事实。它不表示进程当前仍存活。
+pub(crate) struct CurrentClaim {
+    pub state: String,
+    pub fingerprint_matches: bool,
+    pub has_outcome: bool,
+}
+
+pub(crate) struct CurrentClaimLookup {
+    pub task_id: String,
+    pub scheduled_for_ms: u64,
+    pub fingerprint: String,
+}
+
+/// 一次只读连接、一次精确键查询；超过 SQLite 默认参数上限时拒绝投影而不猜状态。
+pub(crate) fn read_current_claims(
+    path: &Path,
+    workspace_id: &str,
+    lookups: &[CurrentClaimLookup],
+) -> Result<Vec<Option<CurrentClaim>>, String> {
+    if lookups.is_empty() { return Ok(Vec::new()); }
+    if lookups.len() > 400 {
+        return Err("当前到期任务过多，执行状态暂不可用；请分批核查".into());
+    }
+    match std::fs::metadata(path) {
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok((0..lookups.len()).map(|_| None).collect());
+        }
+        Err(error) => return Err(format!("定时任务执行库不可读取：{error}")),
+    }
+    let connection = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_ONLY)
+        .map_err(|error| format!("定时任务执行库只读打开失败：{error}"))?;
+    connection.busy_timeout(std::time::Duration::from_millis(250))
+        .map_err(|error| error.to_string())?;
+    let version: i64 = connection.pragma_query_value(None, "user_version", |row| row.get(0))
+        .map_err(|error| error.to_string())?;
+    if version > 1 {
+        return Err("定时任务执行库来自较新版本，领取状态暂不可用".into());
+    }
+    let mut sql = String::from("SELECT task_id,scheduled_for_ms,fingerprint,state,outcome_json \
+        FROM scheduled_job_attempts WHERE workspace_id=?1 AND (");
+    let mut values = vec![rusqlite::types::Value::Text(workspace_id.to_string())];
+    let mut scheduled_for = Vec::with_capacity(lookups.len());
+    for (index, lookup) in lookups.iter().enumerate() {
+        if index > 0 { sql.push_str(" OR "); }
+        sql.push_str(&format!("(task_id=?{} AND scheduled_for_ms=?{})", 2 * index + 2, 2 * index + 3));
+        let instant = i64::try_from(lookup.scheduled_for_ms)
+            .map_err(|_| "定时时刻超出范围".to_string())?;
+        values.push(rusqlite::types::Value::Text(lookup.task_id.clone()));
+        values.push(rusqlite::types::Value::Integer(instant));
+        scheduled_for.push(instant);
+    }
+    sql.push(')');
+    let mut statement = connection.prepare(&sql)
+        .map_err(|error| format!("定时任务领取状态查询失败：{error}"))?;
+    let rows = statement.query_map(rusqlite::params_from_iter(values.iter()), |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?,
+            row.get::<_, String>(2)?, row.get::<_, String>(3)?,
+            row.get::<_, Option<String>>(4)?.is_some()))
+    }).map_err(|error| format!("定时任务领取状态查询失败：{error}"))?;
+    let mut found = HashMap::new();
+    for row in rows {
+        let (task_id, instant, fingerprint, state, has_outcome) = row
+            .map_err(|error| format!("定时任务领取状态读取失败：{error}"))?;
+        found.insert((task_id, instant), (fingerprint, state, has_outcome));
+    }
+    Ok(lookups.iter().zip(scheduled_for).map(|(lookup, instant)| {
+        found.get(&(lookup.task_id.clone(), instant)).map(|(prior_fingerprint, state, has_outcome)| CurrentClaim {
+            state: state.clone(), fingerprint_matches: prior_fingerprint == &lookup.fingerprint, has_outcome: *has_outcome,
+        })
+    }).collect())
 }
 fn open(path: &Path) -> Result<Connection, String> {
     if let Some(parent) = path.parent() { std::fs::create_dir_all(parent).map_err(|e| e.to_string())?; }
@@ -109,6 +183,30 @@ mod tests {
         drop(other);
         assert!(matches!(claim(&path, JobKey { workspace_id:"ws-two", ..key() }, "original", 104).unwrap(), ClaimResult::Blocked(_)));
         assert!(claim(&path, JobKey { workspace_id:"ws-two", scheduled_for_ms:101, ..key() }, "original", 105).is_ok());
+    }
+    #[test]
+    fn list_projection_reads_only_the_exact_occurrence_without_initializing_storage() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("jobs.sqlite3");
+        let lookup = |instant, fingerprint: &str| CurrentClaimLookup {
+            task_id: "task-one".into(), scheduled_for_ms: instant, fingerprint: fingerprint.into(),
+        };
+        assert!(read_current_claims(&path, "ws-one", &[lookup(100, "original")]).unwrap()[0].is_none());
+        assert!(!path.exists());
+        let ClaimResult::Acquired(first) = claim(&path, key(), "original", 100).unwrap() else { panic!(); };
+        let mut current = read_current_claims(&path, "ws-one", &[
+            lookup(100, "original"), lookup(101, "original"), lookup(100, "changed"),
+        ]).unwrap();
+        assert!(current[1].is_none());
+        assert!(!current[2].as_ref().unwrap().fingerprint_matches);
+        let current = current.remove(0).unwrap();
+        assert_eq!(current.state, "running");
+        assert!(current.fingerprint_matches);
+        assert!(!current.has_outcome);
+        first.finish(r#"{"executed":true}"#).unwrap();
+        let settled = read_current_claims(&path, "ws-one", &[lookup(100, "original")]).unwrap().remove(0).unwrap();
+        assert_eq!(settled.state, "settled");
+        assert!(settled.has_outcome);
     }
     #[test]
     fn workspace_cannot_change_between_acceptance_and_result_projection() {

@@ -1,0 +1,60 @@
+{
+  "version": "0.2.18",
+  "binary_identity": {
+    "web_sha256": "581822BE7B8EAC97A9CC6AF1B64AEA5F5BA2369CE13445682FE0154D71CA1081",
+    "cli_sha256": "0EB7B9135C69CE99815A92260454BC5F97FFF3ECA62B94B5FDB343F366F6555F"
+  },
+  "isolated_runs": [
+    {
+      "scenario": "cli_web_child_agent_usage",
+      "attempts": 1,
+      "passed": 1,
+      "failed": 0,
+      "cli_exit": 0,
+      "model_requests": 3,
+      "parent_answer_seen": true,
+      "child_answer_seen": true,
+      "trace_purposes_once": ["chat", "child_agent", "tool_feedback"],
+      "child_usage_rows": 1,
+      "child_input_tokens": 11,
+      "child_output_tokens": 7
+    },
+    {
+      "scenario": "goal_workspace_pin",
+      "attempts": 1,
+      "passed": 1,
+      "failed": 0,
+      "workspace_change_during_phase_http": 409,
+      "workspace_change_after_phase_http": 200,
+      "stayed_in_original_workspace": true
+    },
+    {
+      "scenario": "vision_to_text_usage",
+      "attempts": 1,
+      "passed": 1,
+      "failed": 0,
+      "vision_request_has_image": true,
+      "text_request_has_description": true,
+      "vision_usage_rows": 1,
+      "vision_tokens": [11, 7],
+      "chat_usage_rows": 1,
+      "chat_tokens": [5, 3],
+      "same_room_run_and_internal_turn": true,
+      "trace_attempts_unique": true,
+      "reasoning_only_final_contains_reasoning_marker": false
+    },
+    {
+      "scenario": "mcp_stdio_model_feedback",
+      "attempts": 1,
+      "passed": 1,
+      "failed": 0,
+      "connected_official_sdk_tools": 13,
+      "management_to_target_dispatch": true,
+      "model_requests": 2,
+      "feedback_seen_by_model": true,
+      "final_answer_seen": true,
+      "default_context_window": 64000,
+      "request_max_tokens": 32000
+    }
+  ]
+}
