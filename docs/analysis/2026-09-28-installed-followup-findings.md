@@ -35,3 +35,5 @@ GitHub核对：PR #68已合并，主分支合并提交为`abaf055`；本轮新�
 ## 026 构建补充
 
 上述微信生命周期及状态修订、新窗口请求版本防护已纳入0.2.26候选，六项构建门、MSI绑定及安全扫描通过，尚未安装/原生验收。显式外部sidecar保留原连接契约；旧协议未提供provider类型时仅显示未确认，不把展示名称当身份。既有ClawbotChannelState::status()的Disabled是通道能力原状态，本轮未改，不可当作sidecar健康结论。新窗口回调来源差异/时序根因没有证实，NAV02503继续开放。详见[026改动与待验报告](../testing/release-0.2.26/functional-verification-and-test-design.md)。
+
+本轮已提交草稿 [PR #69](https://github.com/coolzhulike/coolzhuagent/pull/69)，首批源码与证据提交为2830570；不代表已合并、发布或完成原生验收。
