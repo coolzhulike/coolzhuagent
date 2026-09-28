@@ -302,23 +302,28 @@ impl PluginTool {
         self.required_permission.as_str()
     }
 
-    pub fn execute(&self, input: &Value) -> Result<String, PluginError> {
-        let input_json = input.to_string();
+    /// 只构造插件协议命令；宿主负责权限评估、受控执行和取消回收。
+    #[must_use]
+    pub fn process_command(&self, input: &Value) -> Command {
         let mut process = Command::new(&self.command);
-        process
-            .args(&self.args)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+        process.args(&self.args)
             .env("CLAW_PLUGIN_ID", &self.plugin_id)
             .env("CLAW_PLUGIN_NAME", &self.plugin_name)
             .env("CLAW_TOOL_NAME", &self.definition.name)
-            .env("CLAW_TOOL_INPUT", &input_json);
+            .env("CLAW_TOOL_INPUT", input.to_string());
         if let Some(root) = &self.root {
-            process
-                .current_dir(root)
-                .env("CLAW_PLUGIN_ROOT", root.display().to_string());
+            process.current_dir(root).env("CLAW_PLUGIN_ROOT", root.display().to_string());
         }
+        process
+    }
+
+    pub fn execute(&self, input: &Value) -> Result<String, PluginError> {
+        let input_json = input.to_string();
+        let mut process = self.process_command(input);
+        process
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
 
         let mut child = process.spawn()?;
         if let Some(stdin) = child.stdin.as_mut() {

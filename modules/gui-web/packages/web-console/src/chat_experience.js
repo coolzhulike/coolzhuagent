@@ -86,35 +86,9 @@ window.CoolzhuChatExperience = (() => {
         });
       }, true);
     } else if (kind === "agent") {
-      const list = document.createElement("div"); list.className = "environment-options";
-      const selectedTargetIds = getSelectedAgentIds();
-      const selectableIds = new Set((agentRegistry?.agents || []).filter(canSendToAgent).map(agent => agent.id));
-      for (const session of sessionRegistry.sessions || []) {
-        const item = button(`${session.display_name} · ${session.model || "未配置模型"}`, async () => {
-          await changeEnvironment(async () => {
-            const previous = activeSessionId;
-            try {
-              activeSessionId = session.id;
-              await openSelectedSession();
-              if (!setSingleAgentTarget(session.id)) { report("该 Agent 已不可用，请重新选择发送对象。"); return; }
-              // 顶栏明确选定单目标时，同步干净的配置编辑器；保留未保存的草稿。
-              if (state.modelSettings && !state.modelSettings.dirty) {
-                void state.modelSettings.select(session.id).catch(error => report(error));
-              }
-              closePopup();
-            }
-            catch (error) { activeSessionId = previous; report(error); }
-          });
-        });
-        item.disabled = !selectableIds.has(session.id);
-        if (item.disabled) item.title = "当前不可作为发送对象";
-        item.setAttribute("aria-pressed", String(selectedTargetIds.length === 1 && selectedTargetIds[0] === session.id));
-        list.append(item);
-      }
-      panel.append(list, note("点击上方会话将仅发送给该 Agent；下方可勾选多个发送对象。"));
       moveInto('[data-sidebar-group="recipient-targets"]', panel);
       const wrap = panel.querySelector(".agent-dropdown-wrap"); wrap?.classList.add("open");
-      panel.append(button("配置模型参数…", () => { closePopup(); openChatToolWindow("settings"); }));
+      panel.querySelector('[data-role="agent-trigger"]')?.setAttribute("aria-expanded", "true");
     } else {
       const selectedWorkspace = qs("overview-workspace-name")?.dataset.workspacePath || "";
       const current = selectedWorkspace || qs("chat-workspace-path")?.title || "";
@@ -345,15 +319,45 @@ window.CoolzhuChatExperience = (() => {
     } catch (error) { if (scopeMatches(scope) && version === state.locateVersion) report(error); }
   }
   function openHistory() { openChatToolWindow("history"); void search(); }
+  function describeRecipientEditor(targetIds = getSelectedAgentIds()) {
+    const note = qs("unified-model-settings")?.querySelector('[data-ms="target-note"]');
+    if (!note) return;
+    const editor = state.modelSettings;
+    const selected = sessionRegistry.sessions?.find(session => session.id === editor?.sessionId);
+    const editorName = selected?.display_name || selected?.name || (editor?.sessionId ? "当前会话" : "新会话");
+    const targetNames = targetIds.map(id => sessionRegistry.sessions?.find(session => session.id === id)?.display_name || id);
+    if (!targetIds.length) note.textContent = `尚未选择发送对象；当前编辑：${editorName}。保存配置不会改变发送对象。`;
+    else if (targetIds.length === 1) {
+      note.textContent = editor?.dirty && editor?.sessionId !== targetIds[0]
+        ? `当前发送给 ${targetNames[0]}；${editorName} 有未保存的草稿，已保留。请先保存或明确切换下方编辑会话。`
+        : `当前发送给 ${targetNames[0]}；当前编辑：${editorName}。`;
+    } else note.textContent = `当前发送给 ${targetNames.join("、")}；当前只编辑 ${editorName}，保存不会批量修改其他发送对象。可用上方列表选择编辑会话。`;
+  }
+  function recipientTargetsChanged(targetIds = getSelectedAgentIds()) {
+    if (!state.initialized || !state.modelSettings) return;
+    const editor = state.modelSettings;
+    const validTargets = targetIds.filter(id => sessionRegistry.sessions?.some(session => session.id === id));
+    const preferred = validTargets.length === 1 ? validTargets[0]
+      : validTargets.includes(editor.sessionId) ? editor.sessionId : validTargets[0];
+    if (preferred && editor.sessionId !== preferred && !editor.dirty) {
+      void editor.select(preferred).catch(error => report(error));
+    }
+    describeRecipientEditor(targetIds);
+  }
   function mountModelSettings(id) {
+    const selectedTargets = getSelectedAgentIds();
+    const preferred = selectedTargets.length === 1 ? selectedTargets[0] : selectedTargets.includes(id) ? id : selectedTargets[0] || id;
     state.modelWorkspace = workspaceKey(); state.modelActiveId = id;
     state.modelSettings = window.CoolzhuModelSettings?.mount(qs("unified-model-settings"), {
-      sessionId: id,
+      sessionId: preferred,
+      onSelected: () => describeRecipientEditor(),
+      onChanged: () => describeRecipientEditor(),
       onSaved: async () => {
         try { await loadSessions(); await loadAgents(); await loadGoalRoles(); }
         catch (error) { report(`参数已保存，但界面刷新失败：${error.message}`); }
       },
     });
+    describeRecipientEditor();
   }
   function syncModelSession(id, { force = false } = {}) {
     const scopeLabel = qs("session-extra-scope");
@@ -363,14 +367,14 @@ window.CoolzhuChatExperience = (() => {
     if (!state.initialized) return;
     // 工程隔离优先：销毁旧作用域表单，避免同名会话 ID 或旧草稿跨工程保存。
     if (state.modelWorkspace !== workspaceKey() || !state.modelSettings) { mountModelSettings(id); return; }
-    const previousActive = state.modelActiveId; state.modelActiveId = id;
+    state.modelActiveId = id;
     const editor = state.modelSettings;
     const container = qs("unified-model-settings");
-    if (!force && (editor.dirty || container?.contains(document.activeElement))) return;
-    // 编辑器可查看另一会话；普通列表刷新不能把它强制拉回当前 Agent。
-    const editingAnother = editor.sessionId && editor.sessionId !== previousActive && editor.sessionId !== id;
-    const retained = editingAnother && sessionRegistry.sessions?.some(session => session.id === editor.sessionId);
-    void editor.refresh(!force && retained ? editor.sessionId : id).catch(error => report(error));
+    if (!force && (editor.dirty || container?.contains(document.activeElement))) { describeRecipientEditor(); return; }
+    const selectedTargets = getSelectedAgentIds();
+    const preferred = selectedTargets.length === 1 ? selectedTargets[0]
+      : selectedTargets.includes(editor.sessionId) ? editor.sessionId : selectedTargets[0] || id;
+    void editor.refresh(preferred).then(() => describeRecipientEditor()).catch(error => report(error));
   }
   function mountExtraControls() {
     const container = qs("session-extra-controls"); if (!container) return;
@@ -401,10 +405,6 @@ window.CoolzhuChatExperience = (() => {
   }
   function init() {
     if (state.initialized) return; state.initialized = true;
-    // 保留已有权限/协作能力，将其放入右侧环境设置，不留下第二条聊天导航。
-    const destination = qs("chat-environment-settings");
-    const advanced = document.querySelector('[data-sidebar-group="advanced-config"]');
-    if (destination && advanced) { destination.append(advanced); advanced.open = true; }
     mountExtraControls(); mountModelSettings(activeSessionId); syncModelSession(activeSessionId);
     document.querySelectorAll('[data-action="chat-history-open"]').forEach(node => node.addEventListener("click", openHistory));
     qs("chat-history-query")?.addEventListener("input", () => { clearTimeout(state.searchTimer); state.searchTimer = setTimeout(() => void search(), 180); });
@@ -427,6 +427,6 @@ window.CoolzhuChatExperience = (() => {
     });
     window.addEventListener("resize", () => closePopup());
   }
-  return {init,popup,closePopup,intercept,streamEvent,finish,prepareDelta,refreshInsights,annotate,openHistory,search,locate,duration,syncModelSession,roomChanged,
+  return {init,popup,closePopup,intercept,streamEvent,finish,prepareDelta,refreshInsights,annotate,openHistory,search,locate,duration,syncModelSession,recipientTargetsChanged,roomChanged,
     get changingEnvironment() { return state.switching; }};
 })();

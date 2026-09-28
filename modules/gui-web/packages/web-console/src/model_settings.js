@@ -6,9 +6,16 @@
   const triOptions = `${option("", "沿用工程设置")}${option("true", "开启")}${option("false", "关闭")}`;
   const efforts = [["auto", "自动"], ["none", "关闭"], ["minimal", "极简"], ["low", "低"], ["medium", "中"], ["high", "高"], ["xhigh", "超高"], ["max", "最大"]];
   async function request(path, body, method, signal) {
-    const response = await fetch(path, body === undefined ? { signal } : {
-      method: method || "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal,
-    });
+    let response;
+    try {
+      response = await fetch(path, body === undefined ? { signal } : {
+        method: method || "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal,
+      });
+    } catch (error) {
+      const pathname = new URL(path, window.location.href).pathname;
+      throw new Error(error?.name === "AbortError" ? `${pathname} 请求已取消或超时`
+        : `${pathname} 未获得 HTTP 响应：${error?.message || "本地服务连接失败"}`);
+    }
     const value = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(value.error?.message || value.error || value.message || `请求失败 (${response.status})`);
     return value;
@@ -18,14 +25,14 @@
     if (typeof container === "string") container = document.querySelector(container);
     if (!container) return null;
     container.__modelSettings?.destroy();
-    let sessions = [], selectedId = options.sessionId || null, snapshot = null, loadSequence = 0, disposed = false;
+    let sessions = [], selectedId = options.sessionId || null, snapshot = null, loadSequence = 0, refreshSequence = 0, editSequence = 0, disposed = false;
     let busy = false, dirty = false;
     let discovery = null, discoverySequence = 0, discoveryController = null, discovering = false;
     container.classList.add("model-settings");
     container.innerHTML = `
-      <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2><p>连接、思考、上下文和工具，在一个页面中配置。</p></div><button type="button" data-ms-action="new" class="ms-secondary">新建会话</button></div>
+      <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2><p>为当前聊天室选择模型，配置连接、上下文与思考参数。</p></div><button type="button" data-ms-action="new" class="ms-secondary">新建会话</button></div>
       <label class="ms-session-picker">编辑配置的会话<select data-ms="session-select" aria-label="选择要编辑配置的会话"></select></label>
-      <p class="ms-hint">此处查看或保存配置不会改变聊天发送对象；请在顶栏选择发送对象。</p>
+      <p class="ms-hint" data-ms="target-note">选择发送对象后，此处显示当前编辑的模型会话。</p>
       <form data-ms="form" autocomplete="off">
         <fieldset data-ms="fields">
           <section class="ms-section"><div class="ms-section-title"><span>01</span><h3>连接</h3></div>
@@ -66,7 +73,7 @@
               <label>采样范围 · Top P<input data-ms="top-p" type="number" min="0.01" max="1" step="0.01" placeholder="模型默认"></label>
             </div><p class="ms-hint" data-ms="reasoning-hint"></p>
           </section>
-          <section class="ms-section"><div class="ms-section-title"><span>04</span><h3>工具能力</h3></div>
+          <section class="ms-section" hidden><div class="ms-section-title"><span>04</span><h3>工具能力</h3></div>
             <div class="ms-grid">
               <label>模型工具调用<select data-ms="enable-tools">${triOptions}</select></label>
               <label>电脑操作<select data-ms="computer-use">${triOptions}</select></label>
@@ -244,6 +251,7 @@
       set("tool-exposure", p.llm_tool_exposure); set("tool-allowlist", (p.tool_allowlist || []).join("\n"));
       updateDynamicFields(); resetDiscovery(); dirty = false;
       status(selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
+      options.onSelected?.(selectedId);
     }
 
     function renderSessionOptions() {
@@ -253,9 +261,11 @@
 
     async function select(sessionId) {
       if (busy) return;
+      editSequence++;
       resetDiscovery();
       selectedId = sessionId || null;
       renderSessionOptions();
+      options.onSelected?.(selectedId);
       const sequence = ++loadSequence;
       if (!selectedId) { fill(null); el("fields").disabled = false; el("save").disabled = false; return; }
       el("fields").disabled = true; el("save").disabled = true;
@@ -274,13 +284,17 @@
     }
 
     async function refresh(sessionId = selectedId) {
-      if (disposed) return;
+      if (disposed || busy || dirty) return;
+      const sequence = ++refreshSequence, editAtStart = editSequence;
       try {
         const registry = await request("/api/sessions");
-        if (disposed) return;
+        if (disposed || sequence !== refreshSequence || editAtStart !== editSequence || dirty) return;
         sessions = registry.sessions || [];
         await select(sessionId || registry.active_session_id || sessions[0]?.id || null);
-      } catch (error) { if (!disposed) status(`读取会话失败：${error.message}`, true); }
+      } catch (error) {
+        if (!disposed && sequence === refreshSequence && editAtStart === editSequence && !dirty)
+          status(`读取会话失败：${error.message}`, true);
+      }
     }
 
     async function save(event) {
@@ -290,16 +304,12 @@
       const session = { name: value("name"), model: value("model"), model_type: value("model-type"), reasoning_effort: value("reasoning-effort") };
       if (value("api-key") || el("clear-key").checked) session.api_key_ref = el("clear-key").checked ? "" : value("api-key");
       const parameters = {
+        ...(snapshot?.parameters || {}),
         protocol: value("protocol"), base_url: value("base-url"), endpoint: value("endpoint") || "",
         context_window: number("context") || 0, max_output_tokens: number("output") || 0,
         temperature: number("temperature"), top_p: number("top-p"),
         supports_multimodal: tri("supports-multimodal"),
         reasoning_mode: value("reasoning-mode"), thinking_budget: value("reasoning-mode") === "budget" ? number("thinking-budget") : null,
-        enable_llm_tools: tri("enable-tools"), computer_use_enabled: tri("computer-use"),
-        turn_timeout_ms: number("turn-timeout") == null ? null : Math.round(number("turn-timeout") * 60000),
-        llm_tool_exposure: value("tool-exposure") || null,
-        tool_allowlist: value("tool-exposure") === "whitelist" && value("tool-allowlist")
-          ? [...new Set(value("tool-allowlist").split(/[\n,，]+/).map(s => s.trim()).filter(Boolean))] : null,
       };
       busy = true; el("save").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
       status("正在保存…");
@@ -327,7 +337,7 @@
     }
 
     const markDirty = () => {
-      dirty = true; status("有未保存的更改。"); options.onChanged?.(selectedId);
+      dirty = true; editSequence++; status("有未保存的更改。"); options.onChanged?.(selectedId);
     };
     // input 即时保护尚未失焦的草稿，避免列表自动刷新覆盖第一次键入。
     const discoveryInputs = new Set(["base-url", "endpoint", "protocol", "api-key", "clear-key", "discovery-no-key"]);
@@ -367,7 +377,7 @@
     container.addEventListener("input", onInput); container.addEventListener("change", onChange); container.addEventListener("click", onClick);
     const api = {
       refresh, select, newSession: () => select(null), get sessionId() { return selectedId; }, get dirty() { return dirty; },
-      destroy() { disposed = true; loadSequence++; discoverySequence++; discoveryController?.abort(); container.removeEventListener("input", onInput); container.removeEventListener("change", onChange); container.removeEventListener("click", onClick); el("form")?.removeEventListener("submit", save); },
+      destroy() { disposed = true; loadSequence++; refreshSequence++; discoverySequence++; discoveryController?.abort(); container.removeEventListener("input", onInput); container.removeEventListener("change", onChange); container.removeEventListener("click", onClick); el("form")?.removeEventListener("submit", save); },
     };
     container.__modelSettings = api;
     void refresh(selectedId);

@@ -36,9 +36,10 @@ window.CoolzhuNativeBrowserPanel = (() => {
   function display(state) {
     if (!current || state.scope !== current.scope) return;
     current.mounted = state.active;
-    if (state.url) { current.url = state.url; adapter.url(state.url); }
+    current.hidden = state.hidden === true;
+    if (state.url && !current.needsNavigation) { current.url = state.url; adapter.url(state.url); }
     if (state.error) adapter.status(`网页载入失败：${state.error}`);
-    else if (state.reason === "window-resized") { current.mounted = false; scheduleLayout(); }
+    else if (state.reason === "window-resized") scheduleLayout();
     else if (state.active) adapter.status(state.loading ? `正在载入 ${state.url}` : state.title || state.url);
   }
   function scheduleLayout() {
@@ -54,14 +55,20 @@ window.CoolzhuNativeBrowserPanel = (() => {
       if (current !== target) return;
       const geometry = visibleBounds(scale);
       if (!geometry) {
-        if (target.mounted) { await send({action:"close",scope:target.scope}); target.mounted = false; }
+        if (target.mounted && !target.hidden) {
+          display(await send({action:"hide",scope:target.scope}));
+        }
         return;
       }
       const key = JSON.stringify(geometry);
-      if (target.mounted && target.boundsKey === key) return;
-      const state = await send({action:target.mounted ? "resize" : "navigate",scope:target.scope,url:target.url,...geometry});
+      if (target.mounted && !target.hidden && target.boundsKey === key && !target.needsNavigation) return;
+      const navigate = !target.mounted || target.needsNavigation;
+      const requestedUrl = target.url;
+      const revision = target.navigationRevision;
+      const state = await send({action:navigate ? "navigate" : "resize",scope:target.scope,url:requestedUrl,...geometry});
       if (current !== target) return;
-      target.boundsKey = key; display(state);
+      if (revision !== target.navigationRevision) return;
+      target.boundsKey = key; target.needsNavigation = false; display(state);
     });
   }
   function init(api) {
@@ -78,11 +85,36 @@ window.CoolzhuNativeBrowserPanel = (() => {
     if (!previous || !invoke()) return;
     await enqueue(() => send({action:"close",scope:previous.scope}));
   }
+  async function suspend() {
+    const target = current;
+    if (!target || !invoke()) return;
+    await enqueue(async () => {
+      if (current !== target || !target.mounted || target.hidden) return;
+      const state = await send({action:"hide",scope:target.scope});
+      if (current === target) display(state);
+    });
+  }
+  function resume() {
+    if (current?.contextKey === JSON.stringify(adapter.scope())) scheduleLayout();
+  }
   async function navigate(url) {
     if (!invoke()) throw new Error("当前窗口不支持桌面浏览器");
-    await close();
-    const scope = JSON.stringify({context:adapter.scope(),generation:++generation});
-    current = {scope,url,mounted:false,boundsKey:null};
+    const contextKey = JSON.stringify(adapter.scope());
+    if (current?.contextKey === contextKey) {
+      current.url = url;
+      current.needsNavigation = true;
+      current.navigationRevision++;
+      await synchronize();
+      return {opened:"nativePanel"};
+    }
+    const previous = current;
+    current = null;
+    const requestGeneration = ++generation;
+    if (previous) await enqueue(() => send({action:"close",scope:previous.scope}));
+    // 首次或跨工程连续导航时，仅最后一次请求能创建新的原生视图。
+    if (requestGeneration !== generation) return {opened:"nativePanel"};
+    const scope = JSON.stringify({context:adapter.scope(),generation:requestGeneration});
+    current = {scope,contextKey,url,mounted:false,hidden:false,boundsKey:null,needsNavigation:true,navigationRevision:1};
     const frame = adapter.frame(); if (frame) frame.src = "about:blank";
     await synchronize();
     return {opened:"nativePanel"};
@@ -94,5 +126,5 @@ window.CoolzhuNativeBrowserPanel = (() => {
       display(await send({action,scope:target.scope}));
     });
   }
-  return {init,navigate,close,available:() => Boolean(invoke()),back:()=>action("back"),forward:()=>action("forward"),reload:()=>action("reload"),stop:()=>action("stop")};
+  return {init,navigate,close,suspend,resume,available:() => Boolean(invoke()),back:()=>action("back"),forward:()=>action("forward"),reload:()=>action("reload"),stop:()=>action("stop")};
 })();

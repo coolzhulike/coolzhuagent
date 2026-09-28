@@ -22,6 +22,7 @@
     <script src="./src/realtime_audio_output.js" defer></script>
     <script src="./src/stt_tail_capture.js" defer></script>
     <script src="./src/app.js" defer></script>
+    <script src="./src/dsh_market.js" defer></script>
   </head>
   <body class="ui-3d">
     <main class="shell ui-redesign" aria-label="COOLZHU CODE 控制台">
@@ -171,7 +172,7 @@
           <article class="workbench-window settings-workbench-window" data-window-id="settings" data-window-theme="engine-room" aria-label="设置窗口">
             <div class="window-panel settings-layout">
               <section class="settings-section" data-role="unified-model-settings" aria-label="统一模型会话参数"></section>
-              <section class="settings-section session-settings">
+              <section class="settings-section session-settings" hidden>
                 <h2>会话生命周期 · 与发送对象独立</h2>
                 <div data-role="session-extra-controls" class="session-extra-controls"></div>
                 <div class="session-select-wrap">
@@ -259,8 +260,8 @@
                 </div>
               </section>
 
-              <section class="settings-section" data-role="chat-environment-settings" aria-label="权限与协作设置"></section>
-              <section class="settings-section tool-settings">
+              <section class="settings-section" data-role="chat-environment-settings" aria-label="权限与协作设置" hidden></section>
+              <section class="settings-section tool-settings" hidden>
                 <h2>工具与审批</h2>
                 <div class="tool-inventory-list" aria-label="工具与审批状态">
                   <article class="tool-inventory-row" data-tool-inventory="local-model">
@@ -371,7 +372,7 @@
                 </div>
               </section>
 
-              <section class="settings-section audio-settings">
+              <section class="settings-section audio-settings" hidden>
                 <h2>TTS / STT</h2>
                 <p><span>听写</span><b data-bind="audio.stt">待启动</b></p>
                 <p><span>朗读</span><b data-bind="audio.tts">待启动</b></p>
@@ -926,42 +927,11 @@
                 <button class="mini-button is-primary-control" data-action="browser-window-go" type="button"><img src="./assets/icons-wuxia/search.svg" alt="" />打开</button>
                 <button class="mini-button" data-action="browser-window-reload" type="button"><img src="./assets/icons-wuxia/refresh.svg" alt="" />刷新</button>
                 <button class="mini-button" data-action="browser-window-stop" type="button"><img src="./assets/icons-wuxia/stop.svg" alt="" />停止</button>
-                <button class="mini-button" data-action="browser-window-open-external" type="button"><img src="./assets/icons-wuxia/link.svg" alt="" />独立窗口</button>
               </section>
-              <details class="browser-utility-drawer">
-                <summary>高级代理设置</summary>
-                <section class="browser-proxy-config" data-role="browser-proxy-config" aria-label="浏览器代理配置">
-                  <label><input data-role="browser-proxy-system" type="checkbox" checked /> 使用系统代理</label>
-                  <input data-role="browser-proxy-url" placeholder="http://127.0.0.1:7897（留空自动探测）" spellcheck="false" />
-                  <input data-role="browser-proxy-bypass" placeholder="localhost;127.0.0.1" spellcheck="false" />
-                  <button class="mini-button is-primary-control" data-action="browser-proxy-save" type="button"><img src="./assets/icons-wuxia/save.svg" alt="" />保存</button>
-                  <span data-role="browser-proxy-status">代理配置尚未加载。</span>
-                </section>
-              </details>
-              <details class="browser-utility-drawer browser-bridge-diagnostics">
-                <summary>浏览器桥接诊断</summary>
-                <section class="browser-bridge-diagnostic-body" aria-label="浏览器桥接诊断">
-                  <label class="browser-bridge-target"><span>验证页地址</span><input data-role="browser-bridge-target-url" type="url" value="" spellcheck="false" /></label>
-                  <label><span>场景</span><select data-role="browser-bridge-self-test-kind">
-                    <option value="slider">滑块</option>
-                    <option value="drag">拖拽</option>
-                    <option value="key">Ctrl+A</option>
-                    <option value="enter">Enter 独立键</option>
-                    <option value="tab_lifecycle">多标签页生命周期</option>
-                  </select></label>
-                  <label><span>滑块值</span><input data-role="browser-bridge-self-test-value" type="number" min="0" max="100" value="80" /></label>
-                  <div class="browser-bridge-actions">
-                    <button class="mini-button" data-action="browser-bridge-health" type="button">连接检查</button>
-                    <button class="mini-button" data-action="browser-bridge-probe" type="button">能力探测</button>
-                    <button class="mini-button is-primary-control" data-action="browser-bridge-self-test" type="button">安全预演</button>
-                  </div>
-                  <pre data-role="browser-bridge-output">等待诊断。安全预演只应指向本地、可逆的验证页。</pre>
-                </section>
-              </details>
               <section class="browser-window-body">
                 <iframe class="browser-window-frame" data-role="browser-window-frame" title="浏览器预览" sandbox="allow-forms allow-scripts allow-same-origin allow-popups"></iframe>
                 <aside class="browser-window-status" data-role="browser-window-status">
-                  输入网址或关键词，在右侧浏览器打开。需要登录或单独浏览时，可选择“独立窗口”。
+                  输入网址或关键词，在右侧浏览器打开。
                 </aside>
               </section>
             </div>
@@ -990,7 +960,7 @@
           <article class="workbench-window catalog-workbench-window" data-window-id="skills" aria-label="SKILL 目录">
             <div class="window-panel workspace-content-panel quick-catalog-panel">
               <div class="workspace-panel-toolbar"><strong>SKILL 目录</strong><button data-action="skills-catalog-refresh" type="button">刷新目录</button></div>
-              <p class="quick-panel-intro">查看当前工作区已发现的本地 SKILL。目录发现不代表已加载到当前 Agent。</p>
+              <p class="quick-panel-intro">查看当前工程的 SKILL 内容，选用后进入普通聊天的工作指引。</p>
               <p data-role="skills-catalog-status" role="status">尚未读取目录。</p>
               <div class="quick-catalog-list" data-role="skills-catalog-list"></div>
             </div>
@@ -998,7 +968,19 @@
           <article class="workbench-window catalog-workbench-window" data-window-id="plugin-market" aria-label="插件市场">
             <div class="window-panel workspace-content-panel quick-catalog-panel">
               <div class="workspace-panel-toolbar"><strong>插件市场</strong><button data-action="plugin-market-refresh" type="button">刷新目录</button></div>
-              <p class="quick-panel-intro">当前只提供本地插件目录。远端市场与安装服务尚未接入。</p>
+              <p class="quick-panel-intro">浏览 DSH 社区插件，并管理当前工程已安装插件。远程插件尚未支持直接安装，可查看详情和兼容性。</p>
+              <section class="dsh-market" aria-label="DSH 社区目录">
+                <header class="dsh-market-heading"><strong>DSH 社区目录</strong><small>来源：awesome-dsh-plugin.com</small></header>
+                <div class="dsh-market-controls">
+                  <label><span>搜索插件</span><input data-role="dsh-market-search" type="search" maxlength="160" placeholder="名称、作者或描述" /></label>
+                  <label><span>分类</span><select data-role="dsh-market-category"><option value="">全部分类</option></select></label>
+                  <button data-action="dsh-market-search" type="button">搜索</button>
+                </div>
+                <p data-role="dsh-market-status" role="status">打开市场后读取远程目录。</p>
+                <div class="dsh-market-list" data-role="dsh-market-list"></div>
+                <div class="dsh-market-pagination"><button data-action="dsh-market-prev" type="button">上一页</button><span data-role="dsh-market-page">—</span><button data-action="dsh-market-next" type="button">下一页</button></div>
+              </section>
+              <h3 class="dsh-market-local-heading">当前工程原生插件</h3>
               <div class="quick-catalog-facts"><span>目录状态：<b data-role="plugin-market-directory-state">尚未读取</b></span><span>已安装状态：<b data-role="plugin-market-installed-state">暂无可核验清单</b></span></div>
               <p data-role="plugin-market-status" role="status">尚未读取目录。</p>
               <div class="quick-catalog-list" data-role="plugin-market-list"></div>

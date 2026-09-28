@@ -1,0 +1,31 @@
+﻿{
+    "generated_at_utc":  "2026-09-28T07:47:53.0714104Z",
+    "all":  true,
+    "assertions":  {
+                       "list_first24_status_200":  true,
+                       "list_first24_count_24":  true,
+                       "search_result_status_200":  true,
+                       "search_result_contains_target":  true,
+                       "category_status_200":  true,
+                       "category_items_all_match":  true,
+                       "page2_status_200":  true,
+                       "page2_is_two":  true,
+                       "page1_page2_disjoint":  true,
+                       "detail_status_200":  true,
+                       "detail_id_matches_item":  true,
+                       "compatibility_status_200":  true,
+                       "compatibility_status_incompatible":  true,
+                       "compatibility_installable_false":  true,
+                       "compatibility_reason_present":  true,
+                       "wrong_workspace_409":  true,
+                       "missing_detail_404":  true,
+                       "utf8_list_status_200":  true,
+                       "utf8_list_contains_chinese":  true,
+                       "utf8_chinese_search_status_200":  true,
+                       "utf8_chinese_search_all_match":  true,
+                       "utf8_detail_id_matches":  true,
+                       "utf8_compat_status_incompatible":  true,
+                       "utf8_compat_installable_false":  true,
+                       "utf8_compat_reason_is_decoded":  true
+                   }
+}

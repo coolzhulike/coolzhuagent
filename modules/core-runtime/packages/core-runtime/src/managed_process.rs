@@ -1,6 +1,6 @@
 //! 同步工具的窄执行控制。调用者持有取消令牌，进程执行器负责退出与输出回收。
 use std::cell::RefCell;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::process::{Child, Command, Output, Stdio};
 use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
 use std::time::{Duration, Instant};
@@ -88,17 +88,27 @@ fn read_pipe(mut pipe: impl Read) -> io::Result<Vec<u8>> {
 /// Windows 命令在执行首条指令前进入 Job；超时、取消或宿主退出均关闭整个子树。
 /// 非 Windows 当前保证直接子进程回收，不宣称具有 Windows Job 的子树隔离能力。
 pub fn output(command: &mut Command, timeout: Option<Duration>) -> io::Result<ManagedOutput> {
+    output_with_input(command, timeout, None)
+}
+
+/// 插件协议同时通过环境变量和 stdin 交付 JSON；写入由独立线程持有，取消时随受控子树关闭。
+pub fn output_with_input(command: &mut Command, timeout: Option<Duration>, input: Option<Vec<u8>>) -> io::Result<ManagedOutput> {
     let control = CURRENT.with(|slot| slot.borrow().clone())
         .unwrap_or_else(|| ExecutionControl::new(None, None)).with_timeout(timeout);
     if control.interruption().is_some() {
         return Err(io::Error::new(io::ErrorKind::Interrupted, "执行已取消或截止，未启动进程"));
     }
-    command.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    command.stdin(if input.is_some() { Stdio::piped() } else { Stdio::null() })
+        .stdout(Stdio::piped()).stderr(Stdio::piped());
     #[cfg(windows)]
     let (child, job) = windows_process_guard::ChildProcessJob::spawn_managed(command)?;
     #[cfg(not(windows))]
     let child = command.spawn()?;
     let mut owned = OwnedChild { child, #[cfg(windows)] job: Some(job) };
+    let stdin_writer = input.map(|bytes| {
+        let mut stdin = owned.child.stdin.take().expect("stdin 配置为管道");
+        std::thread::spawn(move || stdin.write_all(&bytes))
+    });
     // 必须在等待进程退出前同时读取两个 pipe，否则较大输出会阻塞子进程。
     let stdout = owned.child.stdout.take().expect("stdout 配置为管道");
     let stderr = owned.child.stderr.take().expect("stderr 配置为管道");
@@ -117,6 +127,11 @@ pub fn output(command: &mut Command, timeout: Option<Duration>) -> io::Result<Ma
     };
     let stdout = stdout_reader.join().map_err(|_| io::Error::other("stdout 读取线程异常"))??;
     let stderr = stderr_reader.join().map_err(|_| io::Error::other("stderr 读取线程异常"))??;
+    if let Some(writer) = stdin_writer {
+        let write_result = writer.join().map_err(|_| io::Error::other("stdin 写入线程异常"))?;
+        // 受控中止会关闭 pipe；预期 BrokenPipe 不得抹掉已确认的取消/超时事实。
+        if interruption.is_none() { write_result?; }
+    }
     Ok(ManagedOutput { output: Output { status, stdout, stderr }, interruption })
 }
 

@@ -17807,3 +17807,39 @@ body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout >
 body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .project-command-rail > .ide-diff-paths[hidden] {
   display: none;
 }
+/* 设置扩展栏只展示当前会话的模型配置；保留旧控件节点供迁移期间的事件兼容。 */
+.settings-workbench-window .settings-layout > .settings-section[hidden] {
+  display: none !important;
+}
+/* DSH 社区目录沿用市场窗口的玉石底色，和工程原生插件分区显示。 */
+.catalog-workbench-window .dsh-market {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  margin: 10px 0 18px;
+  border: 1px solid #6b9278;
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(15, 52, 39, .96), rgba(9, 29, 27, .96));
+  color: #edf1e8;
+}
+.dsh-market-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dsh-market-heading strong { font-size: 16px; }
+.dsh-market-heading small { color: #c5d7c8; }
+.dsh-market-controls { display: flex; align-items: end; gap: 9px; flex-wrap: wrap; }
+.dsh-market-controls label { display: grid; gap: 4px; min-width: min(180px, 100%); flex: 1; color: #d4e5d9; font-size: 12px; }
+.dsh-market-controls input, .dsh-market-controls select {
+  min-height: 34px; width: 100%; padding: 5px 8px; border: 1px solid #739a80;
+  border-radius: 6px; background: #0b211b; color: #edf1e8;
+}
+.dsh-market-controls button, .dsh-market-pagination button, .dsh-market-item button, .dsh-market-detail-card button {
+  min-height: 34px; padding: 5px 10px; border: 1px solid #8ab28d; border-radius: 6px;
+  background: #1d4937; color: #f3f4e9; cursor: pointer;
+}
+.dsh-market button:disabled, .dsh-market-detail-card button:disabled { opacity: .55; cursor: default; }
+.dsh-market [data-role="dsh-market-status"] { margin: 0; line-height: 1.5; color: #d3e5d7; }
+.dsh-market-list { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); }
+.dsh-market-item { align-content: start; }
+.dsh-market-item button { justify-self: start; }
+.dsh-market-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.dsh-market-local-heading { margin: 12px 0 8px; color: #edf1e8; font-size: 15px; }
+.dsh-market-detail-card p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; }

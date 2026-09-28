@@ -23,6 +23,8 @@ mod permission_gate;
 mod permissions;
 mod prompt;
 pub mod managed_process;
+mod plugin_manager_config;
+pub use plugin_manager_config::plugin_manager_for_workspace;
 mod recovery;
 mod remote;
 mod run_contract;
