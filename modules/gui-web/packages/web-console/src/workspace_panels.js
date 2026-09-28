@@ -96,7 +96,10 @@ window.CoolzhuWorkspacePanels = (() => {
     const host = qs("content-preview"); if (!host) return;
     host.replaceChildren(element("p", "已保留当前会话的预览标签。点击上方标签重新打开内容；网页和媒体不会自动载入或播放。"));
   }
-  function panelOpened() { renderTabs(); }
+  function panelOpened() {
+    renderTabs();
+    if (api.active() === "browser") window.CoolzhuNativeBrowserPanel?.resume();
+  }
   function browserLocation(url) {
     if (api.active() !== "browser" || !/^https?:/i.test(url)) return;
     const tab = tabs.find(item => item.id === selectedTab); if (!tab || tab.ref.kind !== "web") return;
@@ -105,8 +108,8 @@ window.CoolzhuWorkspacePanels = (() => {
     const next = tabKey(tab.ref); tabs = tabs.filter(item => item === tab || item.id !== next); tab.id = next; selectedTab = next;
     saveTabs(); renderTabs();
   }
-  function home() {
-    activationVersion++; api.close(); api.collapse(); renderTabs();
+  function home(options = {}) {
+    activationVersion++; api.close({disposeBrowser:options.disposeBrowser === true}); api.collapse(); renderTabs();
     qs("message-input")?.focus({preventScroll:true});
   }
   function initMoreDock() {
@@ -158,8 +161,13 @@ window.CoolzhuWorkspacePanels = (() => {
     if (id === "clawbot") void api.refreshWechat();
     if (id === "trace") void loadTrace();
   }
-  function beforeClose(id) {
-    if (id === "browser") void window.CoolzhuNativeBrowserPanel?.close().catch(() => {});
+  function beforeClose(id, options = {}) {
+    if (id === "browser") {
+      const native = window.CoolzhuNativeBrowserPanel;
+      void (options.disposeBrowser ? native?.close() : native?.suspend())?.catch(() => {});
+      const frame = document.querySelector('[data-role="browser-window-frame"]');
+      if (frame) { frame.src = "about:blank"; delete frame.dataset.currentUrl; }
+    }
     if (id === "preview") window.CoolzhuContentPreview?.dispose();
     if (id === "trace") { traceController?.abort(); traceController = null; }
   }
@@ -170,6 +178,8 @@ window.CoolzhuWorkspacePanels = (() => {
     saveTabs(); scopeId = next; activationVersion++;
     window.CoolzhuVideoWait?.scopeChanged();
     void window.CoolzhuNativeBrowserPanel?.close().catch(() => {});
+    const browserFrame = document.querySelector('[data-role="browser-window-frame"]');
+    if (browserFrame) { browserFrame.src = "about:blank"; delete browserFrame.dataset.currentUrl; }
     window.CoolzhuContentPreview?.dispose(); traceController?.abort(); traceBefore = null;
     qs("chat-trace-items")?.replaceChildren();
     if (["preview", "trace", "browser"].includes(api.active())) home();

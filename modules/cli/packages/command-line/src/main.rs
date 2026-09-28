@@ -33,11 +33,11 @@ use commands::{
 };
 use compat_harness::{extract_manifest, UpstreamPaths};
 use init::initialize_repo;
-use plugins::{PluginHooks, PluginManager, PluginManagerConfig};
+use plugins::{PluginHooks, PluginManager};
 use render::{MarkdownStreamState, Spinner, TerminalRenderer};
 use runtime::{
     active_profile_name, clear_oauth_credentials, default_protected_rules, generate_pkce_pair,
-    generate_state, load_system_prompt, parse_oauth_callback_request_target, runtime_tool_execute,
+    generate_state, load_system_prompt, parse_oauth_callback_request_target, plugin_manager_for_workspace, runtime_tool_execute,
     save_oauth_credentials, ApiClient, ApiRequest, AssistantEvent, CompactionConfig, ConfigLoader,
     ConfigSource, ContentBlock, ContextEngineMode, ConversationMessage, ConversationRuntime,
     MessageRole, OAuthAuthorizationRequest, OAuthConfig, OAuthTokenExchangeRequest,
@@ -2821,35 +2821,7 @@ fn build_plugin_manager(
     loader: &ConfigLoader,
     runtime_config: &runtime::RuntimeConfig,
 ) -> PluginManager {
-    let plugin_settings = runtime_config.plugins();
-    let mut plugin_config = PluginManagerConfig::new(loader.config_home().to_path_buf());
-    plugin_config.enabled_plugins = plugin_settings.enabled_plugins().clone();
-    plugin_config.external_dirs = plugin_settings
-        .external_directories()
-        .iter()
-        .map(|path| resolve_plugin_path(cwd, loader.config_home(), path))
-        .collect();
-    plugin_config.install_root = plugin_settings
-        .install_root()
-        .map(|path| resolve_plugin_path(cwd, loader.config_home(), path));
-    plugin_config.registry_path = plugin_settings
-        .registry_path()
-        .map(|path| resolve_plugin_path(cwd, loader.config_home(), path));
-    plugin_config.bundled_root = plugin_settings
-        .bundled_root()
-        .map(|path| resolve_plugin_path(cwd, loader.config_home(), path));
-    PluginManager::new(plugin_config)
-}
-
-fn resolve_plugin_path(cwd: &Path, config_home: &Path, value: &str) -> PathBuf {
-    let path = PathBuf::from(value);
-    if path.is_absolute() {
-        path
-    } else if value.starts_with('.') {
-        cwd.join(path)
-    } else {
-        config_home.join(path)
-    }
+    plugin_manager_for_workspace(cwd, loader, runtime_config)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

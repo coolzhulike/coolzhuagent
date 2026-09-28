@@ -1,0 +1,2 @@
+# 构建收据含原文件字节哈希，保留换行并按 CRLF 校验。
+*.json -text whitespace=cr-at-eol

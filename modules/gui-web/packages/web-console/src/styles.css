@@ -17807,3 +17807,7 @@ body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout >
 body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .project-command-rail > .ide-diff-paths[hidden] {
   display: none;
 }
+/* 设置扩展栏只展示当前会话的模型配置；保留旧控件节点供迁移期间的事件兼容。 */
+.settings-workbench-window .settings-layout > .settings-section[hidden] {
+  display: none !important;
+}

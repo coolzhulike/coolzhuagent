@@ -1,5 +1,7 @@
 mod action_origin_authority;
 mod app_update;
+mod extension_market;
+mod plugin_runtime;
 mod mcp_host;
 mod lsp_host;
 #[cfg(windows)]
@@ -30,6 +32,7 @@ mod credential_store;
 mod clawbot_channel;
 mod clawbot_media;
 mod clawbot_gateway;
+mod clawbot_sidecar_runtime;
 mod computer_use_adapters;
 mod computer_use_desktop_bridge;
 // CU03-CORPUS：历史语料库的"不许把合成说成历史回放"等口径的可执行守卫。
@@ -1367,6 +1370,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("COOLZHU AGENT Web 控制台已启动: {url}");
     persist_gui_web_url(&url);
     set_showui_console_url(&url);
+    clawbot_sidecar_runtime::start(&url);
     if desktop_shell_managed_by_launcher() {
         info!("桌面壳由 package launcher 管理，Web Console 跳过自动拉起桌宠");
     } else {
@@ -1387,6 +1391,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .await;
     shutdown_local_model_services_on_exit();
+    clawbot_sidecar_runtime::stop();
     let _ = terminate_showui_service_process();
     match server_result {
         Ok(()) => Ok(()),
@@ -1969,7 +1974,6 @@ fn app() -> Router {
             post(api_voice_monitor_toggle),
         )
         .route("/api/tools/catalog", get(api_tools_catalog))
-        .route("/api/plugins/install", post(api_plugins_install))
         .route("/api/mcp/servers", get(mcp_host::api_mcp_servers))
         .route(
             "/api/mcp/servers/{server_id}/connect",
@@ -2127,6 +2131,7 @@ fn app() -> Router {
             post(api_safe_drag_select_test),
         )
         .merge(terminal_host::routes())
+        .merge(extension_market::routes())
         .route("/", get(static_index))
         .route("/{*path}", get(static_file))
 }
@@ -3528,6 +3533,10 @@ fn registry_executor_status_from_output(tool_name: &str, text: &str) -> ToolOutc
 /// 工具返回 `PermissionMode::Unspecified`，由闸门给出明确配置错误并 fail-closed；
 /// 不得回退成 `ReadOnly`——`ReadOnly` 走自动放行，等于让未声明的工具静默通过。
 fn required_permission_for_tool(tool_name: &str) -> PermissionMode {
+    if plugin_runtime::is_plugin_name(tool_name) {
+        // 外部脚本没有文件系统沙箱；清单的自报只读等级不能降低实际授权门槛。
+        return PermissionMode::DangerFullAccess;
+    }
     mvp_tool_specs()
         .into_iter()
         .find(|spec| spec.name == tool_name)
@@ -12625,10 +12634,10 @@ struct CatalogSourceRoot {
 
 fn plugin_source_roots() -> Vec<CatalogSourceRoot> {
     let mut roots = Vec::new();
-    let cwd = codex_project_root();
+    let cwd = active_workspace_path();
     roots.push(CatalogSourceRoot {
         source: "local",
-        label: "当前 codex".to_string(),
+        label: "当前工程".to_string(),
         path: cwd.join(".coolzhu").join("plugins"),
     });
     let opencode = opencode_master_project_root()
@@ -12646,15 +12655,15 @@ fn plugin_source_roots() -> Vec<CatalogSourceRoot> {
 
 fn skill_source_roots() -> Vec<CatalogSourceRoot> {
     let mut roots = Vec::new();
-    let cwd = codex_project_root();
+    let cwd = active_workspace_path();
     roots.push(CatalogSourceRoot {
         source: "local",
-        label: "当前 codex".to_string(),
+        label: "当前工程".to_string(),
         path: cwd.join(".coolzhu").join("skills"),
     });
     roots.push(CatalogSourceRoot {
         source: "project",
-        label: "当前 codex 内置".to_string(),
+        label: "当前工程内置".to_string(),
         path: cwd.join("skills"),
     });
     let opencode = opencode_master_project_root()
@@ -13826,6 +13835,10 @@ struct ClawbotSidecarHealthDto {
     available: bool,
     sidecar_version: String,
     gateway_base_url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    instance_nonce: Option<String>,
+    #[serde(default)]
+    provider_kind: Option<String>,
     provider: Option<ClawbotSidecarProviderHealthDto>,
     last_tick_error: Option<String>,
     error: Option<String>,
@@ -14467,33 +14480,7 @@ async fn refresh_clawbot_login_now() -> ApiResult<clawbot_gateway::ClawbotLoginS
     Ok(snapshot)
 }
 
-#[cfg(test)]
-fn clawbot_sidecar_url_override_for_test() -> &'static Mutex<Option<String>> {
-    static OVERRIDE: OnceLock<Mutex<Option<String>>> = OnceLock::new();
-    OVERRIDE.get_or_init(|| Mutex::new(None))
-}
-
-#[cfg(test)]
-fn current_clawbot_sidecar_url_override_for_test() -> Option<String> {
-    clawbot_sidecar_url_override_for_test()
-        .lock()
-        .ok()
-        .and_then(|url| url.clone())
-}
-
-#[cfg(test)]
-fn replace_clawbot_sidecar_url_override_for_test(url: Option<String>) -> Option<String> {
-    let mut guard = clawbot_sidecar_url_override_for_test()
-        .lock()
-        .unwrap_or_else(|error| error.into_inner());
-    std::mem::replace(&mut *guard, url)
-}
-
 fn clawbot_sidecar_base_url() -> String {
-    #[cfg(test)]
-    if let Some(url) = current_clawbot_sidecar_url_override_for_test() {
-        return url;
-    }
     env::var("COOLZHU_CLAWBOT_SIDECAR_URL").unwrap_or_else(|_| "http://127.0.0.1:8787".to_string())
 }
 
@@ -14501,6 +14488,9 @@ async fn call_clawbot_sidecar_login_refresh(
     generation: u64,
     now_ms: u64,
 ) -> ClawbotSidecarLoginRefreshResult {
+    if let Err(error) = clawbot_sidecar_runtime::connection() {
+        return ClawbotSidecarLoginRefreshResult::Error(error);
+    }
     let sidecar_url = clawbot_sidecar_base_url();
     let refresh_url = format!("{}/login/refresh", sidecar_url.trim_end_matches('/'));
     let client = match reqwest::Client::builder()
@@ -14642,6 +14632,10 @@ async fn api_clawbot_gateway_metrics() -> ApiResult<Json<clawbot_gateway::Clawbo
 }
 
 async fn api_clawbot_sidecar_health() -> ApiResult<Json<ClawbotSidecarHealthDto>> {
+    let connection = match clawbot_sidecar_runtime::connection() {
+        Ok(connection) => connection,
+        Err(error) => return Ok(Json(clawbot_sidecar_unavailable(error))),
+    };
     let sidecar_url = clawbot_sidecar_base_url();
     let health_url = format!("{}/health", sidecar_url.trim_end_matches('/'));
     let client = reqwest::Client::builder()
@@ -14658,6 +14652,26 @@ async fn api_clawbot_sidecar_health() -> ApiResult<Json<ClawbotSidecarHealthDto>
         Ok(response) => match response.error_for_status() {
             Ok(ok) => match ok.json::<ClawbotSidecarHealthDto>().await {
                 Ok(mut health) => {
+                    if let Err(error) = clawbot_sidecar_runtime::connection() {
+                        return Ok(Json(clawbot_sidecar_unavailable(error)));
+                    }
+                    if let clawbot_sidecar_runtime::SidecarConnection::Owned { gateway_url, nonce } = connection {
+                        if health.gateway_base_url.trim_end_matches('/') != gateway_url
+                            || health.sidecar_version != env!("CARGO_PKG_VERSION")
+                            || health.instance_nonce.as_deref() != Some(nonce.as_str())
+                            || health.provider_kind.as_deref() != Some("http")
+                        {
+                            return Ok(Json(clawbot_sidecar_unavailable(
+                                "微信辅助服务响应与本应用启动实例不匹配".to_string(),
+                            )));
+                        }
+                    }
+                    if health.provider_kind.as_deref() == Some("mock") {
+                        return Ok(Json(clawbot_sidecar_unavailable(
+                            "当前连接的是模拟微信服务，未启用真实微信连接".to_string(),
+                        )));
+                    }
+                    health.instance_nonce = None;
                     health.error = None;
                     Ok(Json(health))
                 }
@@ -14680,6 +14694,8 @@ fn clawbot_sidecar_unavailable(error: String) -> ClawbotSidecarHealthDto {
         available: false,
         sidecar_version: "unknown".to_string(),
         gateway_base_url: String::new(),
+        instance_nonce: None,
+        provider_kind: None,
         provider: None,
         last_tick_error: None,
         error: Some(error),
@@ -20478,37 +20494,6 @@ async fn api_harness_metrics() -> ApiResult<Json<HarnessMetricsResponse>> {
         l1_supervisor_triggers: HARNESS_L1_TRIGGERS.load(std::sync::atomic::Ordering::Relaxed),
         idempotent_request_hits: HARNESS_IDEMPOTENT_HITS.load(std::sync::atomic::Ordering::Relaxed),
     }))
-}
-
-#[derive(Debug, Deserialize)]
-struct PluginInstallRequest {
-    id: String,
-    #[serde(default)]
-    category_id: String,
-    #[serde(default)]
-    scope: Option<String>,
-}
-
-/// 远程插件安装尚未接入。
-///
-/// 工具目录中的本地插件/skill 只表示已被目录扫描发现；它不等价于已安装、已加载或
-/// 已获运行时授权。此前该端点无副作用却返回 `installed=true`，会制造假成功，因此
-/// 在实现实际安装事务前显式返回 501。
-async fn api_plugins_install(
-    Json(payload): Json<PluginInstallRequest>,
-) -> ApiResult<Json<JsonValue>> {
-    if payload.id.trim().is_empty() {
-        return Err(api_error(StatusCode::BAD_REQUEST, "缺少安装项 id"));
-    }
-    let requested_category = payload.category_id.trim();
-    let requested_scope = payload.scope.as_deref().unwrap_or("未指定");
-    Err(api_error(
-        StatusCode::NOT_IMPLEMENTED,
-        &format!(
-            "插件安装尚未实现：未对“{}”执行下载、复制、注册或加载（category={}，scope={}）。本地目录扫描结果仅代表已发现，请在工具目录查看来源和状态。",
-            payload.id, requested_category, requested_scope
-        ),
-    ))
 }
 
 // ===== 浏览器多媒体智能降级（任务2）=====
@@ -26505,6 +26490,17 @@ async fn serve_static_path(path: &str) -> Response<Body> {
         header::CACHE_CONTROL,
         HeaderValue::from_static("no-cache, no-store, must-revalidate"),
     );
+    if relative == Path::new("index.html") {
+        // 控制台页面只能顶层打开；嵌套自己会复制 SSE 常驻连接并耗尽 HTTP/1 连接池。
+        response.headers_mut().insert(
+            header::X_FRAME_OPTIONS,
+            HeaderValue::from_static("DENY"),
+        );
+        response.headers_mut().insert(
+            header::HeaderName::from_static("content-security-policy"),
+            HeaderValue::from_static("frame-ancestors 'none'"),
+        );
+    }
     response
 }
 
@@ -28460,7 +28456,7 @@ fn display_model_label(agent: &AgentSessionDto) -> String {
 
 fn build_agent_system_prompt(agent: &AgentSessionDto) -> String {
     let beads = select_prompt_beads(agent);
-    format!(
+    let mut prompt = format!(
         "你是 COOLZHU AGENT 中的会话 Agent：{}。\n模型：{} / {}。\n{}\n{}\n记忆 beads（可能包含旧的能力判断；不得覆盖上面的当前工具策略）：\n{}",
         agent.name,
         agent.provider,
@@ -28468,14 +28464,18 @@ fn build_agent_system_prompt(agent: &AgentSessionDto) -> String {
         local_model_identity_instruction(agent),
         agent_tool_usage_instruction(),
         render_prompt_memory_context(&beads)
-    )
+    );
+    if let Some(skill) = extension_market::active_skill_guidance(&active_workspace_path()) {
+        prompt.push_str(&skill);
+    }
+    prompt
 }
 
 fn build_agent_system_prompt_with_beads(
     agent: &AgentSessionDto,
     beads: &[MemoryBeadDto],
 ) -> String {
-    format!(
+    let mut prompt = format!(
         "You are a COOLZHU AGENT chat agent: {}.\nModel: {} / {}.\n{}\n{}\nMemory beads (may contain stale capability judgments; never let them override the current tool policy above):\n{}",
         agent.name,
         agent.provider,
@@ -28483,7 +28483,11 @@ fn build_agent_system_prompt_with_beads(
         local_model_identity_instruction(agent),
         agent_tool_usage_instruction(),
         render_prompt_memory_context(beads)
-    )
+    );
+    if let Some(skill) = extension_market::active_skill_guidance(&active_workspace_path()) {
+        prompt.push_str(&skill);
+    }
+    prompt
 }
 
 /// 内联自 AGENT.md 的 Hard Rules + Working Approach，注入每次会话系统提示，使准则真正进入
@@ -34268,6 +34272,11 @@ fn llm_tool_definitions_for_session(
         defs.extend(mcp_host::model_tool_definitions(
             &workspace_identity(&active_workspace_path()), settings.tool_allowlist.as_ref(),
         ));
+        match plugin_runtime::definitions(&active_workspace_path(), &defs) {
+            Ok(plugins) => defs.extend(plugins.into_iter().filter(|item| settings.tool_allowlist.as_ref()
+                .map_or(true, |allowlist| allowlist.iter().any(|name| name == &item.name)))),
+            Err(error) => diag!("[PLUGIN-TOOLS] 当前工程工具未加载：{error}"),
+        }
     }
     (!defs.is_empty()).then_some(defs)
 }
@@ -34976,6 +34985,7 @@ async fn run_model_tool_use_messages(
     } else {
         diag!("[TOOL-CHAIN] run_model_tool_use_message: agent={}, tool={name}, tool_use_id={tool_use_id}, input={input}", agent.name);
     }
+
     let scoped_turn_id = current_turn_trace();
     let dispatch_turn_id = turn_id
         .map(str::to_string)
@@ -35190,6 +35200,7 @@ async fn run_model_tool_dispatch_within_root(
             "computer_use.perform" => COMPUTER_USE_TOOL_NAME,
             "tools.semantic_dispatch" => "tools_semantic_dispatch",
             "chat.handoff" => "chat_handoff",
+            _ if plugin_runtime::is_plugin_name(name) => name,
             other => other,
         };
         let definitions = llm_tool_definitions_for_session(session_id, chat_room_id);
@@ -35210,6 +35221,20 @@ async fn run_model_tool_dispatch_within_root(
         let outcome = mcp_host::call_from_model(
             name, input, caller_session_id, chat_room_id, provider_tool_call_id, turn_id, parent,
         ).await?;
+        return Ok(tool_outcome_to_dispatch_response(name, input, outcome));
+    }
+
+    if plugin_runtime::is_plugin_name(name) {
+        let workspace_root = match host_scope {
+            Some(host_child_agent::HostToolScope::Child(child)) => child.workspace_root.clone(),
+            _ => active_workspace_path(),
+        };
+        if parent.is_none_or(|parent| parent.workspace_id.as_str() != workspace_identity(&workspace_root)) {
+            return Err(api_error(StatusCode::CONFLICT,
+                "插件工具缺少与当前工程一致的父运行身份，未执行"));
+        }
+        let outcome = invoke_through_runtime_for_session_in_workspace(name, input,
+            caller_session_id, chat_room_id, Some(&workspace_root)).await;
         return Ok(tool_outcome_to_dispatch_response(name, input, outcome));
     }
 
@@ -35807,14 +35832,16 @@ async fn invoke_through_runtime_for_session_in_workspace(
         user_confirmed_twice: false,
     };
 
+    let plugin_executor = if plugin_runtime::is_plugin_name(name) {
+        match plugin_runtime::executor(&workspace_root, name) {
+            Ok(executor) => executor,
+            Err(error) => return runtime_tool_failed_outcome(&invoke, error),
+        }
+    } else { None };
+
     let timeout_ms = tool_timeout_ms_for(name, input);
-    let outcome = execute_runtime_tool_with_timeout(
-        invoke.clone(),
-        workspace_root.clone(),
-        timeout_ms,
-        chat_room_id.map(str::to_string),
-    )
-    .await;
+    let outcome = runtime_tool_supervision::execute_with_executor(invoke.clone(), workspace_root.clone(),
+        timeout_ms, chat_room_id.map(str::to_string), plugin_executor).await;
 
     diagnostics::info(
         "perm",
@@ -68068,21 +68095,6 @@ attach: last_assistant
         SessionDbPathTestGuard { previous }
     }
 
-    struct ClawbotSidecarUrlTestGuard {
-        previous: Option<String>,
-    }
-
-    impl Drop for ClawbotSidecarUrlTestGuard {
-        fn drop(&mut self) {
-            super::replace_clawbot_sidecar_url_override_for_test(self.previous.take());
-        }
-    }
-
-    fn scoped_clawbot_sidecar_url(url: &str) -> ClawbotSidecarUrlTestGuard {
-        let previous = super::replace_clawbot_sidecar_url_override_for_test(Some(url.to_string()));
-        ClawbotSidecarUrlTestGuard { previous }
-    }
-
     struct WorkspaceScopeTestGuard {
         previous_config: super::WorkspaceConfig,
         previous_workspace: std::path::PathBuf,
@@ -85321,21 +85333,6 @@ attach: last_assistant
     }
 
     #[tokio::test]
-    async fn plugin_install_endpoint_never_reports_a_noop_as_installed() {
-        let error = super::api_plugins_install(Json(super::PluginInstallRequest {
-            id: "sample-plugin".to_string(),
-            category_id: "plugins".to_string(),
-            scope: Some("local".to_string()),
-        }))
-        .await
-        .expect_err("未实现的安装入口不能返回成功");
-
-        assert_eq!(error.0, axum::http::StatusCode::NOT_IMPLEMENTED);
-        assert!((error.1).0.error.contains("尚未实现"));
-        assert!(!(error.1).0.error.contains("已加载即可用"));
-    }
-
-    #[tokio::test]
     async fn s0_fixture_server_drives_real_web_model_entrypoints_without_tool_side_effects() {
         let _lock = config_test_guard();
 
@@ -90209,11 +90206,10 @@ attach: last_assistant
     }
 
     #[tokio::test]
-    async fn clawbot_reconnect_waits_for_sidecar_and_reports_real_failure() {
+    async fn clawbot_reconnect_reports_unconfigured_service_without_claiming_success() {
         let _config_guard = config_test_guard();
         let temp = tempfile::tempdir().expect("temp workspace");
         let _workspace_guard = WorkspaceScopeTestGuard::install(temp.path());
-        let _sidecar_url = scoped_clawbot_sidecar_url("http://127.0.0.1:1");
         let binding = crate::clawbot_channel::ClawbotConversationBinding {
             account_id: "wx-main".to_string(),
             peer_id: "peer-reconnect".to_string(),
@@ -90242,9 +90238,9 @@ attach: last_assistant
             Some("full-access"),
         )
         .await
-        .expect_err("不可达 sidecar 必须作为真实失败反馈，不能伪报重连成功");
+        .expect_err("未配置真实微信服务必须作为失败反馈，不能伪报重连成功");
         assert_eq!(error.code, "sidecar_reconnect_failed");
-        assert!(error.message.contains("127.0.0.1:1"));
+        assert!(error.message.contains("未配置真实微信服务"));
 
         let _ = std::mem::replace(
             &mut *super::clawbot_channel_state()

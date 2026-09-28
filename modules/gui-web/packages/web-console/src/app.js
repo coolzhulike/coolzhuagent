@@ -227,6 +227,7 @@ let pendingChatToolWindowRequest = null;
 const quickCatalogRequestSerial = { skills: 0, "plugin-market": 0 };
 let appUpdateRequestSerial = 0;
 let appUpdateCheckInFlight = false;
+let lastAppUpdateStatus = null;
 let selectedProjectPath = "";
 let selectedProjectKind = "";
 let projectTreeRoot = null;
@@ -298,7 +299,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeChatLayout();
   initializeBridgeVisualEffects();
   initClawbotSegments();
-  initializeBrowserBridgeTargetUrl();
 
   actionButtons.get("capture")?.addEventListener("click", captureDesktop);
   actionButtons.get("stability-run")?.addEventListener("click", runStability);
@@ -325,7 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
   actionButtons.get("stt-dictate")?.addEventListener("click", sttDictateToggle);
   actionButtons.get("tts-speak")?.addEventListener("click", ttsSpeakLastMessage);
   actionButtons.get("chat-tool-back")?.addEventListener("click", () => window.CoolzhuWorkspacePanels?.home());
-  actionButtons.get("chat-tool-close")?.addEventListener("click", () => window.CoolzhuWorkspacePanels?.home());
+  actionButtons.get("chat-tool-close")?.addEventListener("click", () => window.CoolzhuWorkspacePanels?.home({disposeBrowser:true}));
   actionButtons.get("allowed-root-add")?.addEventListener("click", allowedRootAdd);
   actionButtons.get("clawbot-refresh")?.addEventListener("click", () => refreshClawbotWindow({ silent: false }));
   actionButtons.get("clawbot-login-refresh")?.addEventListener("click", refreshClawbotLogin);
@@ -347,7 +347,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("beforeunload", releaseVoiceResourcesOnUnload);
   initTtsVoiceSelector();
   initAudioDeviceSelectors();
-  startRealtimeSessionEventStream();
   document.querySelectorAll('[data-action="audio-realtime-start"]').forEach((node) => {
     node.addEventListener("click", audioRealtimeStart);
   });
@@ -491,6 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setAgentTargetWarning("");
     updateAgentTriggerText();
     persistAgentTargets(activeChatRoomId);
+    window.CoolzhuChatExperience?.recipientTargetsChanged(getSelectedAgentIds());
   });
 
   // 视觉理解模型选择：设置窗口与总览共用同一 handler，选中即设为当前视觉理解会话（可随时更换）。
@@ -581,17 +581,6 @@ document.addEventListener("DOMContentLoaded", () => {
   actionButtons.get("browser-window-back")?.addEventListener("click", browserWindowBack);
   actionButtons.get("browser-window-forward")?.addEventListener("click", browserWindowForward);
   actionButtons.get("browser-window-stop")?.addEventListener("click", browserWindowStop);
-  actionButtons.get("browser-window-open-external")?.addEventListener("click", browserWindowOpenExternal);
-  actionButtons.get("browser-proxy-save")?.addEventListener("click", browserProxySave);
-  actionButtons.get("browser-bridge-health")?.addEventListener("click", (event) => {
-    runBrowserBridgeDiagnostic("health", event.currentTarget);
-  });
-  actionButtons.get("browser-bridge-probe")?.addEventListener("click", (event) => {
-    runBrowserBridgeDiagnostic("probe", event.currentTarget);
-  });
-  actionButtons.get("browser-bridge-self-test")?.addEventListener("click", (event) => {
-    runBrowserBridgeDiagnostic("self-test", event.currentTarget);
-  });
   document.querySelector('[data-role="browser-window-input"]')?.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -839,7 +828,6 @@ function visionWindowInitialize() {
     plan: "等待屏幕描述、目标定位或闭环操作结果……",
   });
   visionWindowRefreshAll({ silent: true });
-  startVisionRealtimeEventStream();
 }
 
 async function visionWindowRefreshAll(options = {}) {
@@ -1082,6 +1070,7 @@ function visionWindowRenderCapabilities(response) {
 
 function visionWindowRenderRealtimeStatus(response) {
   visionRealtimeLastStatus = { ...visionRealtimeLastStatus, ...response };
+  syncVisionRealtimeEventStream();
   syncVisionRealtimeTask(visionRealtimeLastStatus);
   setWorkbenchMotionState(
     "vision",
@@ -1387,8 +1376,17 @@ function startVisionRealtimeEventStream() {
       // ignore close failures
     }
     visionRealtimeEventSource = null;
-    window.setTimeout(startVisionRealtimeEventStream, 2500);
+    window.setTimeout(syncVisionRealtimeEventStream, 2500);
   };
+}
+
+function syncVisionRealtimeEventStream() {
+  if (visionRealtimeLastStatus?.loop_running) {
+    startVisionRealtimeEventStream();
+  } else if (visionRealtimeEventSource) {
+    visionRealtimeEventSource.close();
+    visionRealtimeEventSource = null;
+  }
 }
 
 function startRealtimeSessionEventStream() {
@@ -1434,8 +1432,17 @@ function startRealtimeSessionEventStream() {
       // ignore close failures
     }
     realtimeSessionEventSource = null;
-    window.setTimeout(startRealtimeSessionEventStream, 2500);
+    window.setTimeout(syncRealtimeSessionEventStream, 2500);
   };
+}
+
+function syncRealtimeSessionEventStream() {
+  if (realtimeSessionRunning || audioRealtimeRunning) {
+    startRealtimeSessionEventStream();
+  } else if (realtimeSessionEventSource) {
+    realtimeSessionEventSource.close();
+    realtimeSessionEventSource = null;
+  }
 }
 
 function handleRealtimeSessionEvent(kind, event) {
@@ -1465,6 +1472,7 @@ function handleRealtimeSessionEvent(kind, event) {
     };
   } else if (kind === "session_stopped") {
     realtimeSessionRunning = false;
+    audioRealtimeRunning = false;
     realtimeSessionStatus = {
       ...realtimeSessionStatus,
       running: false,
@@ -1606,6 +1614,7 @@ function handleRealtimeSessionEvent(kind, event) {
   }
   renderRealtimeSessionStatus(realtimeSessionStatus);
   syncRealtimeSessionTask(realtimeSessionStatus);
+  if (kind === "session_stopped") syncRealtimeSessionEventStream();
   if (!isLocalEvent) {
     scheduleRealtimeSessionEventRefresh();
   }
@@ -2021,25 +2030,36 @@ async function refreshAppUpdateStatus({ check = false } = {}) {
   const serial = ++appUpdateRequestSerial;
   const button = actionButtons.get("app-update-check");
   const state = document.querySelector('[data-role="app-update-state"]');
+  const message = document.querySelector('[data-role="app-update-message"]');
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), check ? 18000 : 8000);
   if (check) {
     appUpdateCheckInFlight = true;
     setBusy(button, true, "检查中");
   }
   if (state) state.textContent = check ? "正在检查正式发布版本…" : "正在读取更新状态…";
+  if (message) message.textContent = "";
   try {
     const result = await requestJson(
       check ? "/api/system/app-update/check" : "/api/system/app-update",
-      check ? { method: "POST" } : undefined,
+      { method: check ? "POST" : "GET", signal: controller.signal },
     );
-    if (serial === appUpdateRequestSerial) renderAppUpdateStatus(result);
+    if (serial === appUpdateRequestSerial) {
+      lastAppUpdateStatus = result;
+      renderAppUpdateStatus(result);
+    }
   } catch (error) {
     if (serial === appUpdateRequestSerial) {
       renderAppUpdateStatus({
+        ...lastAppUpdateStatus,
         status: "check_failed",
-        message: `更新状态读取失败：${error.message}`,
+        message: controller.signal.aborted
+          ? "更新检查超时。请确认本地服务是否仍在运行后重试。"
+          : `更新状态读取失败：${error.message}`,
       });
     }
   } finally {
+    window.clearTimeout(timeout);
     if (check) {
       appUpdateCheckInFlight = false;
       setBusy(button, false);
@@ -2141,7 +2161,6 @@ async function refreshAll() {
     ["clawbot", () => refreshClawbotWindow({ silent: true })],
     ["task schedules", refreshTaskSchedules],
     ["realtime session", refreshRealtimeSessionStatus],
-    ["browser proxy", browserProxyLoad],
     ["self update", refreshSelfUpdatePlan],
     ["module selfcheck", refreshModuleSelfcheckRows],
     ["authorization room", refreshAuthorizationSelectedRoom],
@@ -2491,7 +2510,8 @@ async function refreshClawbotWindow({ silent = false } = {}) {
     let contacts = [];
     let administrator = null;
     const accountId = String(gatewayLogin?.account_id || "").trim();
-    const loginOnline = String(gatewayLogin?.state || "").toLowerCase() === "online";
+    const loginOnline = String(gatewayLogin?.state || "").toLowerCase() === "online"
+      && clawbotProviderOnline(sidecarHealth);
     if (loginOnline && accountId) {
       const accountQuery = encodeURIComponent(accountId);
       [contacts, administrator] = await Promise.all([
@@ -2549,6 +2569,7 @@ function renderClawbotWindow() {
 function clawbotLoggedInAccountId() {
   const login = clawbotChannel.gatewayLogin || {};
   return String(login.state || "").toLowerCase() === "online"
+    && clawbotProviderOnline(clawbotChannel.sidecarHealth)
     ? String(login.account_id || "").trim()
     : "";
 }
@@ -2641,7 +2662,7 @@ async function clearClawbotAdministrator() {
 function renderClawbotSidecarState() {
   const health = clawbotChannel.sidecarHealth || {};
   const provider = health.provider || {};
-  const available = Boolean(health.available);
+  const available = Boolean(health.available && health.provider_kind === "http");
   const connected = !health.error && Boolean(health.sidecar_version || health.provider || health.gateway_base_url);
   const providerStatus = provider.online ? "provider 在线" : "provider 未在线";
   setClawbotText(
@@ -2649,7 +2670,7 @@ function renderClawbotSidecarState() {
     available ? "可用" : (connected ? "sidecar 已连接" : "sidecar 不可用"),
   );
   const detail = connected
-    ? `版本 ${health.sidecar_version || "unknown"} · ${providerStatus}${provider.last_error ? ` · ${provider.last_error}` : ""}${health.last_tick_error ? ` · tick：${health.last_tick_error}` : ""}`
+    ? `版本 ${health.sidecar_version || "unknown"} · ${health.provider_kind === "http" ? providerStatus : "真实服务身份未确认"}${provider.last_error ? ` · ${provider.last_error}` : ""}${health.last_tick_error ? ` · tick：${health.last_tick_error}` : ""}`
     : (health.error || provider.last_error || health.last_tick_error || "sidecar 不可用：未收到 sidecar 健康响应。");
   setClawbotText("clawbot-sidecar-detail", detail);
   setClawbotText(
@@ -2661,11 +2682,27 @@ function renderClawbotSidecarState() {
   card?.classList.toggle("is-error", !connected);
 }
 
+function clawbotSidecarConnected(health = clawbotChannel.sidecarHealth) {
+  return Boolean(health && !health.error && health.sidecar_version && health.provider);
+}
+
+function clawbotProviderOnline(health = clawbotChannel.sidecarHealth) {
+  return clawbotSidecarConnected(health) && health.provider_kind === "http"
+    && Boolean(health.available && health.provider?.online);
+}
+
 function renderClawbotGatewayState() {
   const login = clawbotChannel.gatewayLogin || {};
   const metrics = clawbotChannel.gatewayMetrics || {};
   const state = String(login.state || "logged_out").toLowerCase();
-  setClawbotText("clawbot-login-state", clawbotLoginLabel(state));
+  const connected = clawbotSidecarConnected();
+  const verifiedProvider = connected && clawbotChannel.sidecarHealth?.provider_kind === "http";
+  const liveOnline = state === "online" && clawbotProviderOnline();
+  setClawbotText("clawbot-login-state", state === "online" && !liveOnline
+    ? (verifiedProvider ? "历史登录，当前离线" : "历史登录，服务未确认")
+    : state === "awaiting_scan" && !verifiedProvider
+      ? "服务未确认，二维码不可用"
+      : clawbotLoginLabel(state));
   setClawbotText("clawbot-inbox-completed", metrics.inbox_completed ?? 0);
   setClawbotText("clawbot-outbox-pending", metrics.outbox_pending ?? 0);
   setClawbotText("clawbot-outbox-dead-letter", metrics.outbox_dead_letter ?? 0);
@@ -2680,7 +2717,7 @@ function renderClawbotGatewayState() {
   const generatedQrData = !qrData && qrUrl ? clawbotLiteappQrDataUrl(qrUrl) : "";
   const visibleQrData = qrData || generatedQrData;
   if (qrImage) {
-    if (visibleQrData && state === "awaiting_scan") {
+    if (visibleQrData && state === "awaiting_scan" && verifiedProvider) {
       qrImage.src = visibleQrData;
       qrImage.alt = generatedQrData ? "微信扫码登录二维码" : "微信连接登录二维码";
       qrImage.hidden = false;
@@ -2694,13 +2731,17 @@ function renderClawbotGatewayState() {
     qrLink.hidden = true;
   }
   if (qrHint) {
-    qrHint.hidden = Boolean(visibleQrData && state === "awaiting_scan");
-    qrHint.textContent = state === "refresh_requested"
+    qrHint.hidden = Boolean(visibleQrData && state === "awaiting_scan" && verifiedProvider);
+    qrHint.textContent = !verifiedProvider && state !== "logged_out"
+      ? "当前真实微信服务未确认可用；已保存的登录状态和二维码不能证明微信仍在线。"
+      : state === "refresh_requested"
       ? "刷新请求已提交，等待 sidecar 上报二维码。"
       : state === "expired"
         ? "二维码已过期，请重新刷新。"
-        : state === "online"
+        : liveOnline
           ? `已登录${login.account_id ? `：${login.account_id}` : ""}`
+          : state === "online"
+            ? "历史登录记录存在，但当前真实微信服务未确认可用。"
           : qrUrl && state === "awaiting_scan"
             ? "二维码链接过长或生成失败，请刷新二维码后重试。"
           : state === "error"
@@ -2714,8 +2755,8 @@ function renderClawbotGatewayState() {
       : `generation=${login.generation ?? 0} · 凭据仅由 sidecar 持有`,
   );
   const qrCard = document.querySelector(".clawbot-qr-card");
-  qrCard?.classList.toggle("is-online", state === "online");
-  qrCard?.classList.toggle("is-error", state === "error" || state === "expired");
+  qrCard?.classList.toggle("is-online", liveOnline);
+  qrCard?.classList.toggle("is-error", !verifiedProvider || state === "error" || state === "expired");
 }
 
 function clawbotLoginNeedsPolling(state) {
@@ -2731,18 +2772,23 @@ function stopClawbotLoginPolling() {
 
 function setClawbotLoginStatusOutput(login = clawbotChannel.gatewayLogin || {}) {
   const state = String(login?.state || "").toLowerCase();
-  if (state === "awaiting_scan") {
+  if (state === "awaiting_scan" && clawbotSidecarConnected()
+    && clawbotChannel.sidecarHealth?.provider_kind === "http") {
     setClawbotOutput("clawbot-preview-output", "二维码已刷新；请直接在微信连接登录卡片中用微信扫码。");
+  } else if (state === "awaiting_scan") {
+    setClawbotOutput("clawbot-preview-output", "二维码记录已更新，但当前真实微信服务未确认可用，请刷新服务状态。");
   } else if (state === "error") {
     setClawbotOutput(
       "clawbot-preview-output",
       `刷新微信连接二维码失败：${login?.last_error || "sidecar 未返回可用登录状态"}`,
     );
-  } else if (state === "online") {
+  } else if (state === "online" && clawbotProviderOnline()) {
     setClawbotOutput(
       "clawbot-preview-output",
       `微信连接已登录${login?.account_id ? `：${login.account_id}` : ""}`,
     );
+  } else if (state === "online") {
+    setClawbotOutput("clawbot-preview-output", "已保存的登录记录存在，但当前真实微信服务未确认可用。");
   } else {
     setClawbotOutput("clawbot-preview-output", `微信连接登录状态已更新：${clawbotLoginLabel(state)}`);
   }
@@ -2754,10 +2800,13 @@ async function pollClawbotLoginOnce() {
   }
   clawbotLoginPollInFlight = true;
   try {
-    clawbotChannel.gatewayLogin = await requestJson("/api/channels/clawbot/gateway/login/poll", {
-      method: "POST",
-      body: JSON.stringify({}),
-    });
+    [clawbotChannel.gatewayLogin, clawbotChannel.sidecarHealth] = await Promise.all([
+      requestJson("/api/channels/clawbot/gateway/login/poll", {
+        method: "POST",
+        body: JSON.stringify({}),
+      }),
+      requestJson("/api/channels/clawbot/sidecar/health"),
+    ]);
     renderClawbotGatewayState();
     if (!clawbotLoginNeedsPolling(clawbotChannel.gatewayLogin?.state)) {
       stopClawbotLoginPolling();
@@ -2786,6 +2835,7 @@ async function refreshClawbotLogin() {
       method: "POST",
       body: JSON.stringify({}),
     });
+    clawbotChannel.sidecarHealth = await requestJson("/api/channels/clawbot/sidecar/health");
     renderClawbotGatewayState();
     const loginState = clawbotChannel.gatewayLogin?.state || "";
     if (clawbotLoginNeedsPolling(loginState)) {
@@ -5127,7 +5177,9 @@ const GOAL_EVENT_NAMES = [
   "completed",
   "iteration",
 ];
-const GOAL_EVENT_STREAM_LIMIT = 2;
+// HTTP/1 同源连接通常只有 6 槽：审批/视觉/语音最多 3 条，加 Goal 1 条，
+// 保留模型流式和普通 API 各 1 条；其它 Goal 由 2 秒轮询补齐。
+const GOAL_EVENT_STREAM_LIMIT = 1;
 const GOAL_REFRESH_POLL_MS = 2000;
 const GOAL_EVENT_STREAM_CLOSED_STATUSES = new Set(["completed", "cancelled", "paused", "failed", "skipped"]);
 
@@ -10339,13 +10391,25 @@ function browserWindowIsLoopback(url) {
   }
 }
 
+function browserWindowIsConsoleOrigin(url) {
+  try {
+    const target = new URL(url);
+    const consoleUrl = new URL(window.location.href);
+    return target.origin === consoleUrl.origin
+      || (browserWindowIsLoopback(target.href) && browserWindowIsLoopback(consoleUrl.href)
+        && target.port === consoleUrl.port);
+  } catch {
+    return false;
+  }
+}
+
 function browserWindowClassifyTarget(url) {
   const value = String(url || "").trim();
   if (/^(about:|file:)/i.test(value)) {
     return "iframePreview";
   }
   if (/^https?:/i.test(value)) {
-    if (!browserWindowIsLoopback(value) && window.CoolzhuNativeBrowserPanel?.available()) return "nativePanel";
+    if (!browserWindowIsConsoleOrigin(value) && window.CoolzhuNativeBrowserPanel?.available()) return "nativePanel";
     return "iframePreview";
   }
   return "iframePreview";
@@ -10524,20 +10588,9 @@ const browserHosts = {
       return this.navigate(url);
     },
     async navigate(url) {
-      try {
-        await browserWindowInvokeCommand("Navigate", url);
-        browserWindowSetStatus(`已用独立浏览器窗口打开：${url}`);
-        return { opened: "tauri" };
-      } catch (error) {
-        console.warn('browser_window_command Navigate 失败，降级系统浏览器', error);
-        browserWindowSetStatus(`独立浏览器窗口打开失败（${error.message}），正在降级到系统默认浏览器…`);
-        const opened = await browserHosts.systemBrowser.open(url);
-        return {
-          opened: opened?.opened || opened,
-          degraded_from: "tauri",
-          error: error.message,
-        };
-      }
+      await browserWindowInvokeCommand("Navigate", url);
+      browserWindowSetStatus(`已用独立浏览器窗口打开：${url}`);
+      return { opened: "tauri" };
     },
     async back() {
       return browserWindowInvokeTauriControl("Back", "后退");
@@ -10594,14 +10647,22 @@ async function browserWindowNavigate() {
   if (!frame) {
     return;
   }
+  if (browserWindowIsConsoleOrigin(url)) {
+    browserWindowSetStatus("当前控制台不能在浏览器预览中再次打开，请输入其他网页地址。");
+    return;
+  }
   pulseWorkbenchMotionState("browser", WORKBENCH_MOTION_STATES.browser, 1450);
   if (input) {
     input.value = url === 'about:blank' ? '' : url;
   }
   frame.dataset.currentUrl = url;
-  activeBrowserHostName = browserWindowClassifyTarget(url);
-  browserWindowUpdateNavigationControls();
+  const nextHost = browserWindowClassifyTarget(url);
   try {
+    if (activeBrowserHostName === "nativePanel" && nextHost !== "nativePanel") {
+      await window.CoolzhuNativeBrowserPanel?.close();
+    }
+    activeBrowserHostName = nextHost;
+    browserWindowUpdateNavigationControls();
     const result = await browserHosts[activeBrowserHostName].navigate(url);
     if (result?.opened && !["iframe", "nativePanel", "blocked"].includes(result.opened)) {
       browserWindowSetStatus(`已用${browserOpenedHowLabel(result.opened)}打开：${url}`);
@@ -10641,7 +10702,6 @@ function browserWindowStop() {
 }
 
 async function browserWindowOpenExternal() {
-  await window.CoolzhuNativeBrowserPanel?.close();
   const input = document.querySelector('[data-role="browser-window-input"]');
   const frame = document.querySelector('[data-role="browser-window-frame"]');
   const status = document.querySelector('[data-role="browser-window-status"]');
@@ -10651,6 +10711,7 @@ async function browserWindowOpenExternal() {
   }
   try {
     const result = await browserWindowOpenIndependent(url);
+    await window.CoolzhuNativeBrowserPanel?.close();
     const how = result?.opened || "popup";
     activeBrowserHostName = how === "tauri" ? "tauriWebview2" : "systemBrowser";
     browserWindowUpdateNavigationControls();
@@ -11447,7 +11508,7 @@ function openChatToolWindow(windowId, options = {}) {
 }
 
 function closeChatToolWindow(options = {}) {
-  window.CoolzhuWorkspacePanels?.beforeClose(chatToolWindowId);
+  window.CoolzhuWorkspacePanels?.beforeClose(chatToolWindowId, {disposeBrowser:options.disposeBrowser === true});
   const node = chatToolWindowId ? chatToolWindowNode(chatToolWindowId) : null;
   const returnTab = chatToolReturnTab;
   if (node) {
@@ -13883,25 +13944,102 @@ async function loadToolsCatalog() {
   }
 }
 
-function renderQuickCatalogItem(item, kind) {
+function showQuickCatalogDetail(title, content) {
+  document.querySelector('[data-role="quick-catalog-detail"]')?.remove();
+  const overlay = document.createElement("div");
+  overlay.className = "tool-detail-modal";
+  overlay.dataset.role = "quick-catalog-detail";
+  overlay.addEventListener("click", event => { if (event.target === overlay) overlay.remove(); });
+  const card = document.createElement("div");
+  card.className = "tool-detail-card";
+  const header = document.createElement("header");
+  const heading = document.createElement("strong");
+  heading.textContent = title;
+  const close = document.createElement("button");
+  close.type = "button";
+  close.textContent = "关闭";
+  close.addEventListener("click", () => overlay.remove());
+  header.append(heading, close);
+  const body = document.createElement("pre");
+  body.textContent = content;
+  card.append(header, body);
+  overlay.append(card);
+  document.body.append(overlay);
+}
+
+async function quickCatalogMutation(kind, path, payload, button) {
+  const status = document.querySelector(`[data-role="${kind === "skills" ? "skills-catalog" : "plugin-market"}-status"]`);
+  const workspaceKey = activeWorkspaceKey;
+  setBusy(button, true, "处理中");
+  try {
+    await requestJson(path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+    if (workspaceKey !== activeWorkspaceKey) return;
+    await refreshQuickCatalogWindow(kind);
+  } catch (error) {
+    if (status && workspaceKey === activeWorkspaceKey) status.textContent = `操作失败：${error.message}`;
+  } finally {
+    setBusy(button, false);
+  }
+}
+
+function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
   const card = document.createElement("article");
   card.className = "quick-catalog-item";
   const title = document.createElement("strong");
-  title.textContent = item.display_name || item.name || item.id || "未命名条目";
+  title.textContent = item.name || item.id || "未命名条目";
   const source = document.createElement("small");
-  source.textContent = [
-    item.source_label || item.source || "来源未知",
-    kind === "plugin-market" ? "安装状态未核验" : "目录已发现",
-  ].join(" · ");
+  source.textContent = kind === "skills"
+    ? `${item.source} · ${item.selected ? "已选用到当前工程聊天" : "未选用"}`
+    : `${item.source} · ${item.version || "版本未知"} · ${item.kind === "builtin" ? "内置" : item.installed ? "已安装" : "本地候选"} · ${item.loaded_in_chat ? "工具已接入" : "聊天未加载"}`;
   const summary = document.createElement("p");
-  summary.textContent = item.summary || "暂无说明。";
+  summary.textContent = item.description || "暂无说明。";
   card.append(title, source, summary);
-  if (item.id) {
+  if (kind === "skills") {
     const detail = document.createElement("button");
     detail.type = "button";
-    detail.textContent = "查看详情";
-    detail.addEventListener("click", () => showToolDetailModal(item.id));
+    detail.textContent = "查看内容";
+    detail.addEventListener("click", async () => {
+      setBusy(detail, true, "读取中");
+      try {
+        const response = await requestJson(`/api/extension-market/skills/${encodeURIComponent(item.id)}`);
+        if (response.workspace_id !== workspaceId || workspaceKey !== activeWorkspaceKey) throw new Error("工程目录已切换，请刷新");
+        showQuickCatalogDetail(item.name, response.content);
+      } catch (error) {
+        if (workspaceKey === activeWorkspaceKey) document.querySelector('[data-role="skills-catalog-status"]').textContent = `内容读取失败：${error.message}`;
+      } finally { setBusy(detail, false); }
+    });
     card.append(detail);
+    const select = document.createElement("button");
+    select.type = "button";
+    select.textContent = item.selected ? "停用" : "选用";
+    select.addEventListener("click", () => quickCatalogMutation("skills", "/api/extension-market/skills/select",
+      {expected_workspace:workspaceId, selected_id:item.selected ? null : item.id}, select));
+    card.append(select);
+  } else if (item.installable) {
+    const install = document.createElement("button");
+    install.type = "button";
+    install.textContent = "安装";
+    install.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/install",
+      {expected_workspace:workspaceId,id:item.id}, install));
+    card.append(install);
+  } else if (item.manageable) {
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.textContent = item.enabled ? "停用" : "启用";
+    toggle.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
+      {expected_workspace:workspaceId,id:item.id,action:item.enabled ? "disable" : "enable"}, toggle));
+    const update = document.createElement("button");
+    update.type = "button";
+    update.textContent = "更新";
+    update.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
+      {expected_workspace:workspaceId,id:item.id,action:"update"}, update));
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "卸载";
+    remove.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
+      {expected_workspace:workspaceId,id:item.id,action:"uninstall"}, remove));
+    card.append(toggle);
+    if (item.kind === "external") card.append(update, remove);
   }
   return card;
 }
@@ -13909,6 +14047,7 @@ function renderQuickCatalogItem(item, kind) {
 async function refreshQuickCatalogWindow(kind) {
   if (kind !== "skills" && kind !== "plugin-market") return;
   const serial = ++quickCatalogRequestSerial[kind];
+  const workspaceKey = activeWorkspaceKey;
   const isSkill = kind === "skills";
   const prefix = isSkill ? "skills-catalog" : "plugin-market";
   const list = document.querySelector(`[data-role="${prefix}-list"]`);
@@ -13921,22 +14060,26 @@ async function refreshQuickCatalogWindow(kind) {
   if (!isSkill && directory) directory.textContent = "读取中";
   setBusy(button, true, "读取中");
   try {
-    const catalog = await requestJson("/api/tools/catalog");
-    if (serial !== quickCatalogRequestSerial[kind]) return;
-    const category = (catalog.categories || []).find((entry) => entry.id === (isSkill ? "skills" : "plugins"));
-    if (!category) throw new Error("目录响应缺少对应分类");
-    const items = Array.isArray(category.items) ? category.items : [];
-    if (!isSkill && directory) directory.textContent = items.length ? "本地目录可读" : "本地目录可读，暂无条目";
+    const catalog = await requestJson(isSkill ? "/api/extension-market/skills" : "/api/extension-market/plugins");
+    if (serial !== quickCatalogRequestSerial[kind] || workspaceKey !== activeWorkspaceKey) return;
+    const workspaceId = catalog.workspace_id;
+    const items = isSkill ? (catalog.skills || []) : [...(catalog.plugins || []), ...(catalog.candidates || []).filter(candidate =>
+      !(catalog.plugins || []).some(plugin => plugin.name === candidate.name && plugin.installed)).map(candidate => ({...candidate,installed:false,enabled:false,loaded_in_chat:false,kind:"external",installable:true,manageable:false}))];
+    if (!isSkill && directory) directory.textContent = items.length ? "目录可读" : "暂无本地条目";
+    const installed = (catalog.plugins || []).filter(item => item.installed).length;
+    const installedState = document.querySelector('[data-role="plugin-market-installed-state"]');
+    if (!isSkill && installedState) installedState.textContent = `${installed} 个已安装`;
     status.textContent = isSkill
-      ? (items.length ? `发现 ${items.length} 个本地 SKILL；目录发现不代表当前 Agent 已加载。` : "目录可读，暂无已发现的 SKILL。")
-      : (items.length ? `发现 ${items.length} 个本地插件条目；安装状态尚无法核验。` : "本地目录暂无已发现的插件；远端市场尚未接入。");
-    list.replaceChildren(...items.map((item) => renderQuickCatalogItem(item, kind)));
+      ? (items.length ? `当前工程发现 ${items.length} 个 SKILL；选用后会进入普通聊天提示。` : "当前工程暂无可用 SKILL。")
+      : (catalog.runtime_error ? `插件运行时未加载：${catalog.runtime_error}`
+        : items.length ? `当前工程发现 ${items.length} 个插件；安装、启用和聊天执行权限分别生效。` : "当前工程暂无插件候选或已安装项。");
+    list.replaceChildren(...items.map(item => renderQuickCatalogItem(item, kind, workspaceId, workspaceKey)));
   } catch (error) {
-    if (serial !== quickCatalogRequestSerial[kind]) return;
+    if (serial !== quickCatalogRequestSerial[kind] || workspaceKey !== activeWorkspaceKey) return;
     if (!isSkill && directory) directory.textContent = "目录不可用";
     status.textContent = `目录不可用：${error.message}`;
   } finally {
-    if (serial === quickCatalogRequestSerial[kind]) setBusy(button, false);
+    if (serial === quickCatalogRequestSerial[kind] || workspaceKey !== activeWorkspaceKey) setBusy(button, false);
   }
 }
 
@@ -15196,6 +15339,7 @@ function restoreAgentTargets(agents, fallbackIds = [], roomId = activeChatRoomId
     : selectedIds.length ? "" : "尚未选择发送对象，请先选择。";
   setAgentTargetWarning(warning, invalidSavedList || unavailableIds.length > 0);
   updateAgentTriggerText();
+  window.CoolzhuChatExperience?.recipientTargetsChanged(selectedIds);
   if (savedIds === null && roomId && selectedIds.length) persistAgentTargets(roomId);
 }
 
@@ -18828,7 +18972,7 @@ function initializeWorkbenchWindows() {
     setWidth: width => setChatLayoutWidth("right", width, {persist:false,preserveScroll:true}),
     active: () => chatToolWindowId,
     open: id => openChatToolWindow(id),
-    close: () => closeChatToolWindow({ focusChat: true, restoreTab: false, restoreLayout: false, discardLayoutSnapshot: true }),
+    close: options => closeChatToolWindow({ focusChat: true, restoreTab: false, restoreLayout: false, discardLayoutSnapshot: true, ...options }),
     collapse: () => { chatLayoutState.right = "closed"; chatLayoutState.narrowOpen = null; applyChatLayoutState({persist:true,preserveScroll:true}); },
     refreshSchedules: () => refreshTaskSchedules(),
     refreshWechat: () => refreshClawbotWindow({silent:false}),
@@ -18994,7 +19138,14 @@ function safeErrorBody(text) {
 }
 
 async function requestJson(url, init) {
-  const response = await fetch(url, withDefaultJsonHeaders(init));
+  const pathname = new URL(url, window.location.href).pathname;
+  let response;
+  try {
+    response = await fetch(url, withDefaultJsonHeaders(init));
+  } catch (error) {
+    if (error?.name === "AbortError") throw new Error(`${pathname} 请求已取消或超时`);
+    throw new Error(`${pathname} 未获得 HTTP 响应：${error?.message || "本地服务连接失败"}`);
+  }
   const text = await response.text();
   let data = {};
   if (text) {
@@ -19671,6 +19822,7 @@ async function refreshRealtimeSessionStatus() {
       : backendStatus;
     realtimeSessionStatus = status;
     realtimeSessionRunning = Boolean(status.running);
+    syncRealtimeSessionEventStream();
     renderRealtimeSessionStatus(status);
     syncRealtimeSessionTask(status);
     setRealtimeSessionButtons(realtimeSessionRunning);
@@ -19712,6 +19864,7 @@ async function realtimeSessionStart() {
     });
     realtimeSessionStatus = status;
     realtimeSessionRunning = true;
+    syncRealtimeSessionEventStream();
     renderRealtimeSessionStatus(status);
     syncRealtimeSessionTask(status);
     await audioRealtimeStart({ backendStarted: true, status });
@@ -19752,6 +19905,7 @@ async function realtimeSessionStop() {
   } finally {
     realtimeSessionRunning = false;
     audioRealtimeRunning = false;
+    syncRealtimeSessionEventStream();
     realtimeVoiceCaptureDegradation = null;
     audioRealtimeAutoTtsEnabled = false;
     isDictating = false;
@@ -20345,6 +20499,7 @@ async function refreshAudioStatus() {
     );
     setText("audio.realtime", realtime.running ? "运行中" : "待启动");
     audioRealtimeRunning = Boolean(realtime.running);
+    syncRealtimeSessionEventStream();
     if (audioRealtimeRunning || !audioRealtimeAwaitingReplyTts) {
       audioRealtimeAutoTtsEnabled = Boolean(realtime.auto_tts_reply);
     }
@@ -20416,6 +20571,7 @@ async function stopAudioRealtimeState({ keepAutoTtsPending = false } = {}) {
   await releaseRealtimeAudioOutputResources();
   const status = await requestJson("/api/audio/realtime/stop", { method: "POST" });
   audioRealtimeRunning = false;
+  syncRealtimeSessionEventStream();
   if (!keepAutoTtsPending) {
     audioRealtimeAutoTtsEnabled = false;
     audioRealtimeAwaitingReplyTts = false;
@@ -20470,6 +20626,7 @@ async function rollbackRealtimeAudioStart({ backendStarted = false } = {}) {
     if (backendStarted) realtimeSessionRunning = false;
     realtimeVoiceCaptureDegradation = null;
     audioRealtimeRunning = false;
+    syncRealtimeSessionEventStream();
     audioRealtimeAutoTtsEnabled = false;
     audioRealtimeAwaitingReplyTts = false;
     audioRealtimeResumeAfterTts = false;
@@ -20493,6 +20650,7 @@ async function audioRealtimeStart({ backendStarted = false, status = null } = {}
       realtimeStatus = await requestJson("/api/audio/realtime/status");
     }
     audioRealtimeRunning = Boolean(realtimeStatus?.audio_realtime_running ?? realtimeStatus?.running ?? true);
+    syncRealtimeSessionEventStream();
     if (!audioRealtimeRunning) {
       throw new Error(realtimeStatus?.last_error || "后端实时语音会话未进入运行状态");
     }
@@ -20573,6 +20731,7 @@ async function audioRealtimeStart({ backendStarted = false, status = null } = {}
     await refreshAudioStatus();
     audioRealtimeRunning = false;
     if (backendStarted) realtimeSessionRunning = false;
+    syncRealtimeSessionEventStream();
     setText("audio.realtime", "待启动");
     setAudioRealtimeButtons(false);
     setRealtimeSessionButtons(false);
@@ -21617,6 +21776,7 @@ async function sttFinishDictation(recordedBlob = null, extension = "webm") {
         await stopAudioRealtimeState();
       } catch (_) {
         audioRealtimeRunning = false;
+        syncRealtimeSessionEventStream();
         setText("audio.realtime", "待启动");
       }
     }

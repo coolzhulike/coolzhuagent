@@ -511,7 +511,7 @@ fn build_console_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error
             event,
             WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. }
         ) {
-            browser_panel::invalidate(&app_for_close, "window-resized");
+            browser_panel::suspend(&app_for_close, "window-resized");
         }
         if let WindowEvent::CloseRequested { api, .. } = event {
             // 标题栏的关闭按钮必须真的退出。原实现是 prevent_close + hide：窗口消失了，

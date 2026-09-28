@@ -37,6 +37,16 @@ pub(super) async fn execute(
     timeout_ms: u64,
     chat_room_id: Option<String>,
 ) -> ToolOutcome {
+    execute_with_executor(invoke, workspace_root, timeout_ms, chat_room_id, None).await
+}
+
+pub(super) async fn execute_with_executor(
+    invoke: ToolInvoke,
+    workspace_root: PathBuf,
+    timeout_ms: u64,
+    chat_room_id: Option<String>,
+    executor: Option<Arc<dyn ToolInvocationExecutor>>,
+) -> ToolOutcome {
     static SEQUENCE: AtomicU64 = AtomicU64::new(1);
     let id = SEQUENCE.fetch_add(1, Ordering::Relaxed);
     {
@@ -64,8 +74,13 @@ pub(super) async fn execute(
             return runtime_tool_failed_outcome(&invoke_for_worker,
                 "工具在开始前已取消或截止，未执行".into());
         }
-        with_execution_control(worker_control, || execute_runtime_tool_blocking(
-            invoke_for_worker, workspace_root, chat_room_id, scheduled_grant))
+        with_execution_control(worker_control, || match executor {
+            Some(executor) => execute_runtime_tool_blocking_with_executor(
+                invoke_for_worker, workspace_root, chat_room_id, scheduled_grant,
+                executor.as_ref()),
+            None => execute_runtime_tool_blocking(
+                invoke_for_worker, workspace_root, chat_room_id, scheduled_grant),
+        })
     });
     tokio::spawn(async move {
         let outcome = worker.await.unwrap_or_else(|error| runtime_tool_failed_outcome(
