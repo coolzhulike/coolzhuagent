@@ -2510,8 +2510,7 @@ async function refreshClawbotWindow({ silent = false } = {}) {
     let contacts = [];
     let administrator = null;
     const accountId = String(gatewayLogin?.account_id || "").trim();
-    const loginOnline = String(gatewayLogin?.state || "").toLowerCase() === "online"
-      && clawbotProviderOnline(sidecarHealth);
+    const loginOnline = String(gatewayLogin?.state || "").toLowerCase() === "online";
     if (loginOnline && accountId) {
       const accountQuery = encodeURIComponent(accountId);
       [contacts, administrator] = await Promise.all([
@@ -2569,7 +2568,6 @@ function renderClawbotWindow() {
 function clawbotLoggedInAccountId() {
   const login = clawbotChannel.gatewayLogin || {};
   return String(login.state || "").toLowerCase() === "online"
-    && clawbotProviderOnline(clawbotChannel.sidecarHealth)
     ? String(login.account_id || "").trim()
     : "";
 }
@@ -2662,7 +2660,7 @@ async function clearClawbotAdministrator() {
 function renderClawbotSidecarState() {
   const health = clawbotChannel.sidecarHealth || {};
   const provider = health.provider || {};
-  const available = Boolean(health.available && health.provider_kind === "http");
+  const available = Boolean(health.available);
   const connected = !health.error && Boolean(health.sidecar_version || health.provider || health.gateway_base_url);
   const providerStatus = provider.online ? "provider 在线" : "provider 未在线";
   setClawbotText(
@@ -2670,7 +2668,7 @@ function renderClawbotSidecarState() {
     available ? "可用" : (connected ? "sidecar 已连接" : "sidecar 不可用"),
   );
   const detail = connected
-    ? `版本 ${health.sidecar_version || "unknown"} · ${health.provider_kind === "http" ? providerStatus : "真实服务身份未确认"}${provider.last_error ? ` · ${provider.last_error}` : ""}${health.last_tick_error ? ` · tick：${health.last_tick_error}` : ""}`
+    ? `版本 ${health.sidecar_version || "unknown"} · ${providerStatus}${provider.last_error ? ` · ${provider.last_error}` : ""}${health.last_tick_error ? ` · tick：${health.last_tick_error}` : ""}`
     : (health.error || provider.last_error || health.last_tick_error || "sidecar 不可用：未收到 sidecar 健康响应。");
   setClawbotText("clawbot-sidecar-detail", detail);
   setClawbotText(
@@ -2682,27 +2680,11 @@ function renderClawbotSidecarState() {
   card?.classList.toggle("is-error", !connected);
 }
 
-function clawbotSidecarConnected(health = clawbotChannel.sidecarHealth) {
-  return Boolean(health && !health.error && health.sidecar_version && health.provider);
-}
-
-function clawbotProviderOnline(health = clawbotChannel.sidecarHealth) {
-  return clawbotSidecarConnected(health) && health.provider_kind === "http"
-    && Boolean(health.available && health.provider?.online);
-}
-
 function renderClawbotGatewayState() {
   const login = clawbotChannel.gatewayLogin || {};
   const metrics = clawbotChannel.gatewayMetrics || {};
   const state = String(login.state || "logged_out").toLowerCase();
-  const connected = clawbotSidecarConnected();
-  const verifiedProvider = connected && clawbotChannel.sidecarHealth?.provider_kind === "http";
-  const liveOnline = state === "online" && clawbotProviderOnline();
-  setClawbotText("clawbot-login-state", state === "online" && !liveOnline
-    ? (verifiedProvider ? "历史登录，当前离线" : "历史登录，服务未确认")
-    : state === "awaiting_scan" && !verifiedProvider
-      ? "服务未确认，二维码不可用"
-      : clawbotLoginLabel(state));
+  setClawbotText("clawbot-login-state", clawbotLoginLabel(state));
   setClawbotText("clawbot-inbox-completed", metrics.inbox_completed ?? 0);
   setClawbotText("clawbot-outbox-pending", metrics.outbox_pending ?? 0);
   setClawbotText("clawbot-outbox-dead-letter", metrics.outbox_dead_letter ?? 0);
@@ -2717,7 +2699,7 @@ function renderClawbotGatewayState() {
   const generatedQrData = !qrData && qrUrl ? clawbotLiteappQrDataUrl(qrUrl) : "";
   const visibleQrData = qrData || generatedQrData;
   if (qrImage) {
-    if (visibleQrData && state === "awaiting_scan" && verifiedProvider) {
+    if (visibleQrData && state === "awaiting_scan") {
       qrImage.src = visibleQrData;
       qrImage.alt = generatedQrData ? "微信扫码登录二维码" : "微信连接登录二维码";
       qrImage.hidden = false;
@@ -2731,17 +2713,13 @@ function renderClawbotGatewayState() {
     qrLink.hidden = true;
   }
   if (qrHint) {
-    qrHint.hidden = Boolean(visibleQrData && state === "awaiting_scan" && verifiedProvider);
-    qrHint.textContent = !verifiedProvider && state !== "logged_out"
-      ? "当前真实微信服务未确认可用；已保存的登录状态和二维码不能证明微信仍在线。"
-      : state === "refresh_requested"
+    qrHint.hidden = Boolean(visibleQrData && state === "awaiting_scan");
+    qrHint.textContent = state === "refresh_requested"
       ? "刷新请求已提交，等待 sidecar 上报二维码。"
       : state === "expired"
         ? "二维码已过期，请重新刷新。"
-        : liveOnline
+        : state === "online"
           ? `已登录${login.account_id ? `：${login.account_id}` : ""}`
-          : state === "online"
-            ? "历史登录记录存在，但当前真实微信服务未确认可用。"
           : qrUrl && state === "awaiting_scan"
             ? "二维码链接过长或生成失败，请刷新二维码后重试。"
           : state === "error"
@@ -2755,8 +2733,8 @@ function renderClawbotGatewayState() {
       : `generation=${login.generation ?? 0} · 凭据仅由 sidecar 持有`,
   );
   const qrCard = document.querySelector(".clawbot-qr-card");
-  qrCard?.classList.toggle("is-online", liveOnline);
-  qrCard?.classList.toggle("is-error", !verifiedProvider || state === "error" || state === "expired");
+  qrCard?.classList.toggle("is-online", state === "online");
+  qrCard?.classList.toggle("is-error", state === "error" || state === "expired");
 }
 
 function clawbotLoginNeedsPolling(state) {
@@ -2772,23 +2750,18 @@ function stopClawbotLoginPolling() {
 
 function setClawbotLoginStatusOutput(login = clawbotChannel.gatewayLogin || {}) {
   const state = String(login?.state || "").toLowerCase();
-  if (state === "awaiting_scan" && clawbotSidecarConnected()
-    && clawbotChannel.sidecarHealth?.provider_kind === "http") {
+  if (state === "awaiting_scan") {
     setClawbotOutput("clawbot-preview-output", "二维码已刷新；请直接在微信连接登录卡片中用微信扫码。");
-  } else if (state === "awaiting_scan") {
-    setClawbotOutput("clawbot-preview-output", "二维码记录已更新，但当前真实微信服务未确认可用，请刷新服务状态。");
   } else if (state === "error") {
     setClawbotOutput(
       "clawbot-preview-output",
       `刷新微信连接二维码失败：${login?.last_error || "sidecar 未返回可用登录状态"}`,
     );
-  } else if (state === "online" && clawbotProviderOnline()) {
+  } else if (state === "online") {
     setClawbotOutput(
       "clawbot-preview-output",
       `微信连接已登录${login?.account_id ? `：${login.account_id}` : ""}`,
     );
-  } else if (state === "online") {
-    setClawbotOutput("clawbot-preview-output", "已保存的登录记录存在，但当前真实微信服务未确认可用。");
   } else {
     setClawbotOutput("clawbot-preview-output", `微信连接登录状态已更新：${clawbotLoginLabel(state)}`);
   }
@@ -2800,13 +2773,10 @@ async function pollClawbotLoginOnce() {
   }
   clawbotLoginPollInFlight = true;
   try {
-    [clawbotChannel.gatewayLogin, clawbotChannel.sidecarHealth] = await Promise.all([
-      requestJson("/api/channels/clawbot/gateway/login/poll", {
-        method: "POST",
-        body: JSON.stringify({}),
-      }),
-      requestJson("/api/channels/clawbot/sidecar/health"),
-    ]);
+    clawbotChannel.gatewayLogin = await requestJson("/api/channels/clawbot/gateway/login/poll", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
     renderClawbotGatewayState();
     if (!clawbotLoginNeedsPolling(clawbotChannel.gatewayLogin?.state)) {
       stopClawbotLoginPolling();
@@ -2835,7 +2805,6 @@ async function refreshClawbotLogin() {
       method: "POST",
       body: JSON.stringify({}),
     });
-    clawbotChannel.sidecarHealth = await requestJson("/api/channels/clawbot/sidecar/health");
     renderClawbotGatewayState();
     const loginState = clawbotChannel.gatewayLogin?.state || "";
     if (clawbotLoginNeedsPolling(loginState)) {
@@ -14046,6 +14015,7 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
 
 async function refreshQuickCatalogWindow(kind) {
   if (kind !== "skills" && kind !== "plugin-market") return;
+  if (kind === "plugin-market") window.dispatchEvent(new Event("dsh-market-refresh"));
   const serial = ++quickCatalogRequestSerial[kind];
   const workspaceKey = activeWorkspaceKey;
   const isSkill = kind === "skills";

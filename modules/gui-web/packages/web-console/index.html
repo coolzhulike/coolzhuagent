@@ -22,6 +22,7 @@
     <script src="./src/realtime_audio_output.js" defer></script>
     <script src="./src/stt_tail_capture.js" defer></script>
     <script src="./src/app.js" defer></script>
+    <script src="./src/dsh_market.js" defer></script>
   </head>
   <body class="ui-3d">
     <main class="shell ui-redesign" aria-label="COOLZHU CODE 控制台">
@@ -967,7 +968,19 @@
           <article class="workbench-window catalog-workbench-window" data-window-id="plugin-market" aria-label="插件市场">
             <div class="window-panel workspace-content-panel quick-catalog-panel">
               <div class="workspace-panel-toolbar"><strong>插件市场</strong><button data-action="plugin-market-refresh" type="button">刷新目录</button></div>
-              <p class="quick-panel-intro">管理当前工程的本地插件。安装与启用不等于获得聊天执行权限。</p>
+              <p class="quick-panel-intro">浏览 DSH 社区插件，并管理当前工程已安装插件。远程插件尚未支持直接安装，可查看详情和兼容性。</p>
+              <section class="dsh-market" aria-label="DSH 社区目录">
+                <header class="dsh-market-heading"><strong>DSH 社区目录</strong><small>来源：awesome-dsh-plugin.com</small></header>
+                <div class="dsh-market-controls">
+                  <label><span>搜索插件</span><input data-role="dsh-market-search" type="search" maxlength="160" placeholder="名称、作者或描述" /></label>
+                  <label><span>分类</span><select data-role="dsh-market-category"><option value="">全部分类</option></select></label>
+                  <button data-action="dsh-market-search" type="button">搜索</button>
+                </div>
+                <p data-role="dsh-market-status" role="status">打开市场后读取远程目录。</p>
+                <div class="dsh-market-list" data-role="dsh-market-list"></div>
+                <div class="dsh-market-pagination"><button data-action="dsh-market-prev" type="button">上一页</button><span data-role="dsh-market-page">—</span><button data-action="dsh-market-next" type="button">下一页</button></div>
+              </section>
+              <h3 class="dsh-market-local-heading">当前工程原生插件</h3>
               <div class="quick-catalog-facts"><span>目录状态：<b data-role="plugin-market-directory-state">尚未读取</b></span><span>已安装状态：<b data-role="plugin-market-installed-state">暂无可核验清单</b></span></div>
               <p data-role="plugin-market-status" role="status">尚未读取目录。</p>
               <div class="quick-catalog-list" data-role="plugin-market-list"></div>

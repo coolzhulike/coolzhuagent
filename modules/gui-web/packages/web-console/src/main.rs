@@ -1,6 +1,7 @@
 mod action_origin_authority;
 mod app_update;
 mod extension_market;
+mod dsh_market;
 mod plugin_runtime;
 mod mcp_host;
 mod lsp_host;
@@ -32,7 +33,6 @@ mod credential_store;
 mod clawbot_channel;
 mod clawbot_media;
 mod clawbot_gateway;
-mod clawbot_sidecar_runtime;
 mod computer_use_adapters;
 mod computer_use_desktop_bridge;
 // CU03-CORPUS：历史语料库的"不许把合成说成历史回放"等口径的可执行守卫。
@@ -1370,7 +1370,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("COOLZHU AGENT Web 控制台已启动: {url}");
     persist_gui_web_url(&url);
     set_showui_console_url(&url);
-    clawbot_sidecar_runtime::start(&url);
     if desktop_shell_managed_by_launcher() {
         info!("桌面壳由 package launcher 管理，Web Console 跳过自动拉起桌宠");
     } else {
@@ -1391,7 +1390,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .await;
     shutdown_local_model_services_on_exit();
-    clawbot_sidecar_runtime::stop();
     let _ = terminate_showui_service_process();
     match server_result {
         Ok(()) => Ok(()),
@@ -13835,10 +13833,6 @@ struct ClawbotSidecarHealthDto {
     available: bool,
     sidecar_version: String,
     gateway_base_url: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    instance_nonce: Option<String>,
-    #[serde(default)]
-    provider_kind: Option<String>,
     provider: Option<ClawbotSidecarProviderHealthDto>,
     last_tick_error: Option<String>,
     error: Option<String>,
@@ -14480,7 +14474,33 @@ async fn refresh_clawbot_login_now() -> ApiResult<clawbot_gateway::ClawbotLoginS
     Ok(snapshot)
 }
 
+#[cfg(test)]
+fn clawbot_sidecar_url_override_for_test() -> &'static Mutex<Option<String>> {
+    static OVERRIDE: OnceLock<Mutex<Option<String>>> = OnceLock::new();
+    OVERRIDE.get_or_init(|| Mutex::new(None))
+}
+
+#[cfg(test)]
+fn current_clawbot_sidecar_url_override_for_test() -> Option<String> {
+    clawbot_sidecar_url_override_for_test()
+        .lock()
+        .ok()
+        .and_then(|url| url.clone())
+}
+
+#[cfg(test)]
+fn replace_clawbot_sidecar_url_override_for_test(url: Option<String>) -> Option<String> {
+    let mut guard = clawbot_sidecar_url_override_for_test()
+        .lock()
+        .unwrap_or_else(|error| error.into_inner());
+    std::mem::replace(&mut *guard, url)
+}
+
 fn clawbot_sidecar_base_url() -> String {
+    #[cfg(test)]
+    if let Some(url) = current_clawbot_sidecar_url_override_for_test() {
+        return url;
+    }
     env::var("COOLZHU_CLAWBOT_SIDECAR_URL").unwrap_or_else(|_| "http://127.0.0.1:8787".to_string())
 }
 
@@ -14488,9 +14508,6 @@ async fn call_clawbot_sidecar_login_refresh(
     generation: u64,
     now_ms: u64,
 ) -> ClawbotSidecarLoginRefreshResult {
-    if let Err(error) = clawbot_sidecar_runtime::connection() {
-        return ClawbotSidecarLoginRefreshResult::Error(error);
-    }
     let sidecar_url = clawbot_sidecar_base_url();
     let refresh_url = format!("{}/login/refresh", sidecar_url.trim_end_matches('/'));
     let client = match reqwest::Client::builder()
@@ -14632,10 +14649,6 @@ async fn api_clawbot_gateway_metrics() -> ApiResult<Json<clawbot_gateway::Clawbo
 }
 
 async fn api_clawbot_sidecar_health() -> ApiResult<Json<ClawbotSidecarHealthDto>> {
-    let connection = match clawbot_sidecar_runtime::connection() {
-        Ok(connection) => connection,
-        Err(error) => return Ok(Json(clawbot_sidecar_unavailable(error))),
-    };
     let sidecar_url = clawbot_sidecar_base_url();
     let health_url = format!("{}/health", sidecar_url.trim_end_matches('/'));
     let client = reqwest::Client::builder()
@@ -14652,26 +14665,6 @@ async fn api_clawbot_sidecar_health() -> ApiResult<Json<ClawbotSidecarHealthDto>
         Ok(response) => match response.error_for_status() {
             Ok(ok) => match ok.json::<ClawbotSidecarHealthDto>().await {
                 Ok(mut health) => {
-                    if let Err(error) = clawbot_sidecar_runtime::connection() {
-                        return Ok(Json(clawbot_sidecar_unavailable(error)));
-                    }
-                    if let clawbot_sidecar_runtime::SidecarConnection::Owned { gateway_url, nonce } = connection {
-                        if health.gateway_base_url.trim_end_matches('/') != gateway_url
-                            || health.sidecar_version != env!("CARGO_PKG_VERSION")
-                            || health.instance_nonce.as_deref() != Some(nonce.as_str())
-                            || health.provider_kind.as_deref() != Some("http")
-                        {
-                            return Ok(Json(clawbot_sidecar_unavailable(
-                                "微信辅助服务响应与本应用启动实例不匹配".to_string(),
-                            )));
-                        }
-                    }
-                    if health.provider_kind.as_deref() == Some("mock") {
-                        return Ok(Json(clawbot_sidecar_unavailable(
-                            "当前连接的是模拟微信服务，未启用真实微信连接".to_string(),
-                        )));
-                    }
-                    health.instance_nonce = None;
                     health.error = None;
                     Ok(Json(health))
                 }
@@ -14694,8 +14687,6 @@ fn clawbot_sidecar_unavailable(error: String) -> ClawbotSidecarHealthDto {
         available: false,
         sidecar_version: "unknown".to_string(),
         gateway_base_url: String::new(),
-        instance_nonce: None,
-        provider_kind: None,
         provider: None,
         last_tick_error: None,
         error: Some(error),
@@ -59702,10 +59693,12 @@ pub(crate) mod tests {
             .iter()
             .find(|category| category.id == "plugins")
             .expect("plugins category should exist");
-        assert!(plugins
-            .items
-            .iter()
-            .any(|item| item.item.source == "local-plugin"));
+        // 当前工程允许没有插件目录；有条目时必须来自实际扫描源，且目录阶段不可执行。
+        assert!(plugins.items.iter().all(|item| {
+            matches!(item.item.source.as_str(), "local-plugin" | "opencode-candidate")
+                && !item.item.executable_now
+                && item.item.category_id == "plugins"
+        }));
     }
 
     #[test]
@@ -68093,6 +68086,21 @@ attach: last_assistant
         let sqlite_path = data_dir.join("web-sessions.sqlite3");
         let previous = super::replace_session_db_path_override_for_test(Some(sqlite_path));
         SessionDbPathTestGuard { previous }
+    }
+
+    struct ClawbotSidecarUrlTestGuard {
+        previous: Option<String>,
+    }
+
+    impl Drop for ClawbotSidecarUrlTestGuard {
+        fn drop(&mut self) {
+            super::replace_clawbot_sidecar_url_override_for_test(self.previous.take());
+        }
+    }
+
+    fn scoped_clawbot_sidecar_url(url: &str) -> ClawbotSidecarUrlTestGuard {
+        let previous = super::replace_clawbot_sidecar_url_override_for_test(Some(url.to_string()));
+        ClawbotSidecarUrlTestGuard { previous }
     }
 
     struct WorkspaceScopeTestGuard {
@@ -80481,7 +80489,7 @@ attach: last_assistant
         for required_html in [
             "class=\"chat-compact-actions\"",
             "class=\"project-command-rail\"",
-            "class=\"browser-utility-drawer\"",
+            "class=\"window-panel browser-window-panel\"",
             "class=\"terminal-console-shell\"",
             "class=\"task-permission-layout\"",
             "data-role=\"module-selfcheck\"",
@@ -80499,6 +80507,7 @@ attach: last_assistant
             WEB_STYLES_CSS.contains(".chat-workbench-window .composer::before {\n  content: none;")
         );
         assert!(WEB_APP_JS.contains("[data-role=\"module-selfcheck\"]"));
+        assert!(!WEB_INDEX_HTML.contains("browser-utility-drawer"));
     }
 
     #[test]
@@ -85188,7 +85197,8 @@ attach: last_assistant
 
     #[test]
     fn web_frontend_goal_event_streams_are_limited_to_active_goals() {
-        assert!(WEB_APP_JS.contains("const GOAL_EVENT_STREAM_LIMIT = 2"));
+        assert!(WEB_APP_JS.contains("const GOAL_EVENT_STREAM_LIMIT = 1"));
+        assert!(WEB_APP_JS.contains("const GOAL_REFRESH_POLL_MS = 2000"));
         assert!(WEB_APP_JS.contains("const GOAL_EVENT_STREAM_CLOSED_STATUSES"));
         assert!(WEB_APP_JS.contains("\"paused\""));
         assert!(WEB_APP_JS.contains("\"failed\""));
@@ -85228,9 +85238,8 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("function terminalWindowRunPowerShell"));
         assert!(WEB_APP_JS.contains("/api/terminal/start"));
         assert!(WEB_APP_JS.contains("/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/input"));
-        assert!(WEB_INDEX_HTML.contains("data-role=\"browser-proxy-config\""));
-        assert!(WEB_APP_JS.contains("/api/browser/proxy"));
-        assert!(WEB_APP_JS.contains("function browserProxySave"));
+        assert!(!WEB_INDEX_HTML.contains("data-role=\"browser-proxy-config\""));
+        assert!(!WEB_INDEX_HTML.contains("data-action=\"browser-proxy-save\""));
         assert!(WEB_INDEX_HTML.contains("data-action=\"browser-window-forward\""));
         assert!(WEB_INDEX_HTML.contains("data-action=\"browser-window-stop\""));
         let browser_toolbar = WEB_INDEX_HTML
@@ -85246,7 +85255,6 @@ attach: last_assistant
             "browser-window-go",
             "browser-window-reload",
             "browser-window-stop",
-            "browser-window-open-external",
         ] {
             let position = browser_toolbar
                 .find(action)
@@ -85263,6 +85271,8 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("systemBrowser"));
         assert!(WEB_APP_JS.contains("function browserWindowClassifyTarget"));
         assert!(WEB_APP_JS.contains("browserWindowClassifyTarget(url)"));
+        assert!(WEB_INDEX_HTML.contains("src=\"./src/native_browser_panel.js\""));
+        assert!(!browser_toolbar.contains("browser-window-open-external"));
         assert!(WEB_APP_JS.contains("browser.search_engine_url"));
         assert!(WEB_APP_JS.contains("https://www.baidu.com/s?wd={query}"));
         assert!(!WEB_APP_JS.contains("https://www.bing.com/search?q="));
@@ -85305,12 +85315,11 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("/api/mcp/call"));
         assert!(WEB_APP_JS.contains("window.confirm(confirmation)"));
 
-        assert!(WEB_INDEX_HTML.contains("data-action=\"browser-bridge-health\""));
-        assert!(WEB_INDEX_HTML.contains("data-action=\"browser-bridge-probe\""));
-        assert!(WEB_INDEX_HTML.contains("data-action=\"browser-bridge-self-test\""));
-        assert!(WEB_APP_JS.contains("/api/computer-use/browser/self-test"));
-        assert!(WEB_APP_JS.contains("function initializeBrowserBridgeTargetUrl"));
-        assert!(WEB_APP_JS.contains("/tests/fixtures/computer-use-browser.html"));
+        assert!(!WEB_INDEX_HTML.contains("data-action=\"browser-bridge-health\""));
+        assert!(!WEB_INDEX_HTML.contains("data-action=\"browser-bridge-probe\""));
+        assert!(!WEB_INDEX_HTML.contains("data-action=\"browser-bridge-self-test\""));
+        assert!(WEB_INDEX_HTML.contains("data-role=\"browser-window-input\""));
+        assert!(WEB_INDEX_HTML.contains("data-action=\"browser-window-go\""));
         assert!(WEB_APP_JS.contains("browserWindowUpdateNavigationControls"));
         assert!(WEB_APP_JS.contains("系统默认浏览器由外部进程管理"));
         assert!(WEB_INDEX_HTML.contains("data-action=\"safe-context-menu-test\""));
@@ -90206,10 +90215,11 @@ attach: last_assistant
     }
 
     #[tokio::test]
-    async fn clawbot_reconnect_reports_unconfigured_service_without_claiming_success() {
+    async fn clawbot_reconnect_waits_for_sidecar_and_reports_real_failure() {
         let _config_guard = config_test_guard();
         let temp = tempfile::tempdir().expect("temp workspace");
         let _workspace_guard = WorkspaceScopeTestGuard::install(temp.path());
+        let _sidecar_url = scoped_clawbot_sidecar_url("http://127.0.0.1:1");
         let binding = crate::clawbot_channel::ClawbotConversationBinding {
             account_id: "wx-main".to_string(),
             peer_id: "peer-reconnect".to_string(),
@@ -90238,9 +90248,9 @@ attach: last_assistant
             Some("full-access"),
         )
         .await
-        .expect_err("未配置真实微信服务必须作为失败反馈，不能伪报重连成功");
+        .expect_err("不可达 sidecar 必须作为真实失败反馈，不能伪报重连成功");
         assert_eq!(error.code, "sidecar_reconnect_failed");
-        assert!(error.message.contains("未配置真实微信服务"));
+        assert!(error.message.contains("127.0.0.1:1"));
 
         let _ = std::mem::replace(
             &mut *super::clawbot_channel_state()

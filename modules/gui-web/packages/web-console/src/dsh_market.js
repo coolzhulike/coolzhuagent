@@ -1,0 +1,226 @@
+// DSH 目录只做远程发现；所有目录字符串作为文本显示，不执行来源里的安装命令。
+(() => {
+  const host = document.querySelector('[data-window-id="plugin-market"] .dsh-market');
+  if (!host) return;
+
+  const search = host.querySelector('[data-role="dsh-market-search"]');
+  const category = host.querySelector('[data-role="dsh-market-category"]');
+  const status = host.querySelector('[data-role="dsh-market-status"]');
+  const list = host.querySelector('[data-role="dsh-market-list"]');
+  const pageLabel = host.querySelector('[data-role="dsh-market-page"]');
+  const prev = host.querySelector('[data-action="dsh-market-prev"]');
+  const next = host.querySelector('[data-action="dsh-market-next"]');
+  const searchButton = host.querySelector('[data-action="dsh-market-search"]');
+  const state = { page: 1, pages: 1, serial: 0, loaded: false, loading: false,
+    workspaceKey: null, abort: null, suppressOpen: false };
+
+  function workspaceKey() {
+    return typeof activeWorkspaceKey === "string" ? activeWorkspaceKey : "";
+  }
+
+  async function readJson(url, options = {}, timeoutMs = 20000) {
+    const controller = new AbortController();
+    const upstream = options.signal;
+    const cancel = () => controller.abort();
+    if (upstream?.aborted) cancel();
+    else upstream?.addEventListener("abort", cancel, { once: true });
+    const timeout = setTimeout(cancel, timeoutMs);
+    try { return await requestJson(url, { ...options, signal: controller.signal }); }
+    finally { clearTimeout(timeout); upstream?.removeEventListener("abort", cancel); }
+  }
+
+  function element(tag, text, className) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    node.textContent = text == null ? "" : String(text);
+    return node;
+  }
+
+  function safeGitHubRepository(value, owner) {
+    try {
+      const url = new URL(value);
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (url.protocol !== "https:" || url.hostname !== "github.com" || url.port ||
+          url.search || url.hash || parts.length !== 2 || parts[0] !== owner ||
+          !parts.every(part => /^[A-Za-z0-9._-]{1,100}$/.test(part))) return null;
+      return url.href;
+    } catch { return null; }
+  }
+
+  function showDetail(item, detail) {
+    document.querySelector('[data-role="dsh-market-detail"]')?.remove();
+    const overlay = element("div", "", "tool-detail-modal dsh-market-modal");
+    overlay.dataset.role = "dsh-market-detail";
+    overlay.dataset.workspaceKey = workspaceKey();
+    const card = element("div", "", "tool-detail-card dsh-market-detail-card");
+    const heading = element("header", "");
+    heading.append(element("strong", item.name || item.id));
+    const close = element("button", "关闭");
+    close.type = "button";
+    close.addEventListener("click", () => overlay.remove());
+    heading.append(close);
+    card.append(heading);
+    card.append(element("p", `${item.owner || "作者未知"} · ${item.version || "版本未提供"} · ${(item.categories || []).join("、") || "未分类"}`));
+    card.append(element("p", detail.description_zh || detail.description_en || item.description || "暂无说明。"));
+    card.append(element("p", `仓库：${detail.repository || "未提供"}`));
+    const repository = safeGitHubRepository(detail.repository, item.owner);
+    if (repository) {
+      const open = element("button", "在内置浏览器打开仓库");
+      open.type = "button";
+      open.addEventListener("click", async () => {
+        open.disabled = true;
+        try {
+          overlay.remove();
+          openChatToolWindow("browser");
+          const input = document.querySelector('[data-role="browser-window-input"]');
+          if (!input) throw new Error("浏览器地址栏不可用");
+          input.value = repository;
+          await browserWindowNavigate();
+        } catch (error) { status.textContent = `仓库打开失败：${error.message}`; }
+        finally { open.disabled = false; }
+      });
+      card.append(open);
+    }
+    card.append(element("p", `npm 包：${detail.npm || "未提供"}`));
+    card.append(element("p", "兼容状态：尚未核验。DSH 的 Node/Cordis 插件不能直接作为 COOLZHU 原生插件运行。", "dsh-market-compatibility"));
+    const compatibility = card.querySelector(".dsh-market-compatibility");
+    const check = element("button", "检查原生清单");
+    check.type = "button";
+    check.addEventListener("click", async () => {
+      const key = workspaceKey();
+      if (overlay.dataset.workspaceKey !== key) {
+        overlay.remove();
+        status.textContent = "工程已切换，请刷新目录后重新打开详情。";
+        return;
+      }
+      check.disabled = true;
+      compatibility.textContent = "正在检查仓库清单…";
+      try {
+        const result = await readJson("/api/extension-market/dsh/compatibility", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expected_workspace: detail.workspace_id, id: item.id })
+        }, 30000);
+        if (key !== workspaceKey() || result.workspace_id !== detail.workspace_id) throw new Error("工程已切换，请重新打开详情");
+        const label = result.status === "incompatible" ? "当前仓库不兼容" :
+          result.status === "manifest_found_unverified" ? "发现原生清单，仍待完整校验" : "兼容性未知";
+        compatibility.textContent = `${label}：${result.reason || "没有更多信息"}`;
+      } catch (error) {
+        compatibility.textContent = `检查失败：${error.message}`;
+      } finally { check.disabled = false; }
+    });
+    card.append(check);
+    overlay.append(card);
+    overlay.addEventListener("click", event => { if (event.target === overlay) overlay.remove(); });
+    document.body.append(overlay);
+  }
+
+  function renderItem(item, response, key) {
+    const card = element("article", "", "quick-catalog-item dsh-market-item");
+    card.append(element("strong", item.name || "未命名插件"));
+    const meta = [item.owner || "作者未知", item.version || "版本未提供",
+      (item.categories || []).join("、") || "未分类", item.deprecated ? "目录标记已弃用" : "兼容性待核验"];
+    card.append(element("small", meta.join(" · ")));
+    card.append(element("p", item.description || "暂无说明。"));
+    const detailButton = element("button", "查看详情与兼容性");
+    detailButton.type = "button";
+    detailButton.addEventListener("click", async () => {
+      detailButton.disabled = true;
+      try {
+        const detail = await readJson(`/api/extension-market/dsh/detail?id=${encodeURIComponent(item.id)}`);
+        if (key !== workspaceKey() || detail.workspace_id !== response.workspace_id) throw new Error("工程已切换，请刷新目录");
+        showDetail(item, detail);
+      } catch (error) { status.textContent = `详情读取失败：${error.message}`; }
+      finally { detailButton.disabled = false; }
+    });
+    card.append(detailButton);
+    return card;
+  }
+
+  function updateCategories(categories, selected) {
+    category.replaceChildren(new Option("全部分类", ""));
+    for (const entry of categories || []) {
+      if (typeof entry.id !== "string" || typeof entry.name !== "string") continue;
+      category.append(new Option(entry.name, entry.id));
+    }
+    category.value = selected;
+  }
+
+  async function load(force = false) {
+    const serial = ++state.serial;
+    const key = workspaceKey();
+    state.workspaceKey = key;
+    state.abort?.abort();
+    const controller = new AbortController();
+    state.abort = controller;
+    state.loading = true;
+    searchButton.disabled = true;
+    prev.disabled = true;
+    next.disabled = true;
+    status.textContent = force ? "正在刷新远程目录…" : "正在读取远程目录…";
+    const selected = category.value;
+    const params = new URLSearchParams({ q: search.value.trim(), category: selected, page: String(state.page) });
+    if (force) params.set("refresh", "true");
+    try {
+      const response = await readJson(`/api/extension-market/dsh?${params}`, { signal: controller.signal });
+      if (serial !== state.serial || key !== workspaceKey()) return;
+      updateCategories(response.categories, selected);
+      state.page = response.page || 1;
+      state.pages = response.page_count || 1;
+      state.loaded = true;
+      list.replaceChildren(...(response.items || []).map(item => renderItem(item, response, key)));
+      if (!response.items?.length) list.append(element("p", "当前筛选条件没有结果。"));
+      const prefix = response.stale ? "远程刷新失败，显示上次读取的目录" : "目录已读取";
+      status.textContent = `${prefix} · 源更新于 ${response.updated || "未知日期"} · 找到 ${response.total || 0} 项。${response.warning || ""}`;
+      pageLabel.textContent = `第 ${state.page} / ${state.pages} 页`;
+      prev.disabled = state.page <= 1;
+      next.disabled = state.page >= state.pages;
+    } catch (error) {
+      if (serial !== state.serial || key !== workspaceKey()) return;
+      status.textContent = state.loaded ? `远程目录读取失败；以下为上次显示的结果：${error.message}` : `远程目录读取失败：${error.message}`;
+      if (!state.loaded) {
+        list.replaceChildren();
+        pageLabel.textContent = "—";
+      }
+    } finally {
+      if (serial === state.serial) {
+        state.loading = false;
+        searchButton.disabled = false;
+        prev.disabled = !state.loaded || state.page <= 1;
+        next.disabled = !state.loaded || state.page >= state.pages;
+        state.abort = null;
+      }
+    }
+  }
+
+  function openMarket() {
+    if (state.suppressOpen || (state.loading && state.workspaceKey === workspaceKey())) return;
+    if (!state.loaded || state.workspaceKey !== workspaceKey()) {
+      state.page = 1;
+      state.loaded = false;
+      list.replaceChildren();
+      load(false);
+    }
+  }
+
+  searchButton.addEventListener("click", () => { state.page = 1; load(false); });
+  search.addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); state.page = 1; load(false); }
+  });
+  category.addEventListener("change", () => { state.page = 1; load(false); });
+  prev.addEventListener("click", () => { if (state.page > 1) { state.page--; load(false); } });
+  next.addEventListener("click", () => { if (state.page < state.pages) { state.page++; load(false); } });
+  document.querySelectorAll('[data-window-target="plugin-market"]').forEach(button =>
+    button.addEventListener("click", openMarket));
+  document.querySelector('[data-action="plugin-market-refresh"]')?.addEventListener("click", () => {
+    state.suppressOpen = true;
+    setTimeout(() => { state.suppressOpen = false; }, 0);
+    load(true);
+  }, { capture: true });
+  window.addEventListener("dsh-market-refresh", () => {
+    const modal = document.querySelector('[data-role="dsh-market-detail"]');
+    if (modal && modal.dataset.workspaceKey !== workspaceKey()) modal.remove();
+    openMarket();
+  });
+  prev.disabled = true;
+  next.disabled = true;
+})();

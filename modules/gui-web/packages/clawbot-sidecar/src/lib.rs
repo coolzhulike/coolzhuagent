@@ -121,9 +121,6 @@ pub struct ClawbotSidecarHealth {
     pub available: bool,
     pub sidecar_version: String,
     pub gateway_base_url: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub instance_nonce: Option<String>,
-    pub provider_kind: String,
     pub provider: ClawbotProviderHealth,
     pub last_tick_error: Option<String>,
 }
@@ -1098,9 +1095,6 @@ impl<P: ClawbotProvider> SidecarRuntime<P> {
                 && last_tick_error.is_none(),
             sidecar_version: env!("CARGO_PKG_VERSION").to_string(),
             gateway_base_url: self.config.gateway_base_url.clone(),
-            instance_nonce: env::var("COOLZHU_CLAWBOT_INSTANCE_NONCE").ok(),
-            provider_kind: env::var("COOLZHU_CLAWBOT_PROVIDER_KIND")
-                .unwrap_or_else(|_| "mock".to_string()),
             provider,
             last_tick_error,
         }

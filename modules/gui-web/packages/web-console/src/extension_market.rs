@@ -11,6 +11,7 @@ pub(super) fn routes() -> Router {
         .route("/api/extension-market/skills", get(list_skills))
         .route("/api/extension-market/skills/{id}", get(skill_detail))
         .route("/api/extension-market/skills/select", post(select_skill))
+        .merge(dsh_market::routes())
 }
 
 #[derive(Serialize)]
