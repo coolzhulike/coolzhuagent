@@ -1,0 +1,428 @@
+  - heading "你说：" [level=4]
+  - generic: 新增 Devin 接入的窄架构审查。用户要求将 app.devin.ai 作为 provider，API_KEY 先随机占位等待本人填充、真实模型与会话由本人测试；若协议无法兼容则用插件。用户最新要求不再使用子代理，当前主会话自行实现和测试。官方 2026-09-30 文档：https://docs.devin.ai/api-reference/overview；https://docs.devin.ai/v3-openapi.yaml；https://docs.devin.ai/work-with-devin/devin-mcp。公开 v3 SessionCreateRequest 仅 prompt、devin_mode(normal/fast/lite/ultra/fusion)、repos/playbook/ACU等，无通用 model_id/temperature/reasoning_effort；云会话异步创建、消息与读取状态，不是 chat/completions。官方 MCP 是 Streamable HTTP，现项目 MCP Host 仅 stdio。拟采用独立 Devin 云会话插件适配模块，不塞进 ProviderClient；插件市场中给配置与手动会话入口，密钥复用 DPAPI 密文存储，随机占位明确标识、占位时阻止网络请求；固定官方 HTTPS API，redirect=none、25s单次超时、响应1MiB上限、不自动重试POST/不轮询无限等待；本地工作区隔离，模型工具经现有权限门禁使用 create/get/messages/send，前端手动请求须校验当前工程身份；远端会话ID必须本地登记于当前工程后才能继续发送，避免跨工程误发。除用户可选devin_mode外，其它API字段省略用官方默认；不把mode宣称模型ID或思考程度，后两项API未支持则明确由用户在Devin官方页面选择，不能伪参数。结果异步状态不记成已完成，也不假造token统计；对本地文件不自动上传、不由云Agent控制本地Paint。请裁定最小实现结构/必须防的重复创建和身份竞态/实际用户手测范围。不扩大远程MCP宿主、不建第二套模型运行器，也不宣称现有四项总体完成。
+  - generic: …
+  - button "显示更多":
+    - generic: 显示更多
+  - button "复制消息":
+  - button "共享提示":
+  - button "编辑消息":
+  - heading "ChatGPT 说：" [level=4]
+  - heading "Devin 接入窄架构审查结论" [level=1]
+  - paragraph:
+    - text: 说明：本轮基于你提供的 Devin API 核查事实，并结合官方 API 文档确认接口形态。Devin v3 API 的 session 创建是组织级 session API，核心输入包含 prompt、devin_mode、repos、playbook 等字段，并非 OpenAI chat/completions 风格模型调用接口；官方文档也将 session、playbook、knowledge 等作为 API 资源管理。
+    - 'link "Devin Docs: API Overview, https://docs.devin.ai/api-reference/overview?utm_source=chatgpt.com, 另外 1 个来源"':
+      - /url: https://docs.devin.ai/api-reference/overview?utm_source=chatgpt.com
+      - generic: Devin Docs
+      - generic: "+1"
+  - heading "总体裁决" [level=2]
+  - paragraph: 批准当前方向：
+  - blockquote:
+    - paragraph:
+      - strong: Devin 应作为独立云会话插件/外部 Agent 适配，而不是 ProviderClient 的一个模型。
+  - paragraph: 不建议：
+  - list:
+    - listitem: 塞入现有 Model Provider；
+    - listitem: 伪造 model_id；
+    - listitem: 伪造 temperature/reasoning_effort；
+    - listitem: 新建第二套本地 Agent Runtime；
+    - listitem: 把 Devin MCP 强行塞进当前 stdio MCP Host。
+  - paragraph: 原因：
+  - paragraph: Devin session 语义本质是：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: coolzhu | | create/send/get v Devin cloud session | v async agent lifecycle
+  - paragraph: 不是：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: chat request | v completion response
+  - separator
+  - heading "一、最小实现结构" [level=1]
+  - paragraph: 推荐：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: DevinPlugin | + DevinConfig | + DevinSessionAdapter | + DevinClient | + Local Binding Store
+  - separator
+  - heading "1. DevinClient" [level=2]
+  - paragraph: 只负责：
+  - paragraph: 官方 API：
+  - list:
+    - listitem: create session；
+    - listitem: get session；
+    - listitem: list/get messages；
+    - listitem: send message。
+  - paragraph: 不要负责：
+  - list:
+    - listitem: 本地权限；
+    - listitem: workspace；
+    - listitem: UI；
+    - listitem: Agent runtime。
+  - separator
+  - heading "2. DevinSessionAdapter" [level=2]
+  - paragraph: 负责：
+  - paragraph: 把 Devin session 映射到 coolzhu 事实。
+  - paragraph: 例如：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: CoolzhuRun | | + external_provider=devin | + external_session_id
+  - separator
+  - paragraph: 必须保存：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: local_run_id devin_session_id workspace_id created_by created_at status
+  - separator
+  - heading "二、不要进入 ProviderClient" [level=1]
+  - paragraph: 明确否决：
+  - paragraph: 类似：
+  - generic: JSON
+  - button "启用自动换行":
+  - button "复制":
+  - code: "{ model:\"devin\", temperature:0.7 }"
+  - button:
+  - paragraph: 这种设计。
+  - paragraph: 原因：
+  - paragraph: Devin 不暴露：
+  - list:
+    - listitem: 通用 model_id；
+    - listitem: temperature；
+    - listitem: reasoning_effort。
+  - paragraph: 你已经确认这一点。
+  - separator
+  - paragraph: 正确：
+  - paragraph: 用户选择：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: "Provider: Devin Mode: normal/fast/lite/ultra/fusion"
+  - separator
+  - paragraph: 不要显示：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: "Model: Devin Ultra"
+  - paragraph: 因为：
+  - paragraph: mode 不是模型 ID。
+  - paragraph:
+    - text: 官方文档中 devin_mode 表示 session agent mode（normal/fast/lite/ultra/fusion），不是通用模型选择参数。
+    - 'link "Devin Docs: Create Session, https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions?utm_source=chatgpt.com"':
+      - /url: https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions?utm_source=chatgpt.com
+      - generic: Devin Docs
+  - separator
+  - heading "三、API_KEY 占位边界" [level=1]
+  - paragraph: 方案可接受：
+  - paragraph: 允许：
+  - paragraph: 配置界面存在：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: "API Key: <placeholder>"
+  - paragraph: 但必须：
+  - paragraph: 状态明确：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: "CredentialState: Missing Placeholder Valid Invalid"
+  - separator
+  - heading "必须禁止" [level=2]
+  - paragraph: 占位：
+  - paragraph: ↓
+  - paragraph: 网络请求。
+  - paragraph: 例如：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Bearer PLACEHOLDER
+  - paragraph: 发出去。
+  - separator
+  - paragraph: 应该：
+  - paragraph: 请求前：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: "if credential != Valid: reject locally"
+  - separator
+  - heading "四、密钥存储" [level=1]
+  - paragraph: 批准：
+  - paragraph: 复用：
+  - list:
+    - listitem: DPAPI；
+    - listitem: 现有密钥存储路径。
+  - paragraph: 不要：
+  - paragraph: 新建：
+  - paragraph: Devin 专用 secret 系统。
+  - separator
+  - heading "五、workspace 绑定" [level=1]
+  - paragraph: 这是最大风险点。
+  - paragraph: Devin 是远端 Agent。
+  - paragraph: 必须避免：
+  - paragraph: “云 session 跑错工程”。
+  - separator
+  - paragraph: 推荐：
+  - paragraph: 本地绑定：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - text: DevinSessionBinding
+    - text: "{ devin_session_id, workspace_id, project_scope, created_from_room, owner_user }"
+  - separator
+  - paragraph: 发送 message 前：
+  - paragraph: 检查：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: current workspace == binding workspace
+  - separator
+  - paragraph: 不匹配：
+  - paragraph: 拒绝。
+  - separator
+  - paragraph: 不要：
+  - paragraph: 用户切工程后：
+  - paragraph: 继续发送旧 Devin session。
+  - separator
+  - heading "六、重复创建风险" [level=1]
+  - paragraph: 这是必须重点防的。
+  - paragraph: 云 session 是有成本和生命周期的。
+  - paragraph: 不能：
+  - paragraph: 每次：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - text: 打开窗口
+    - text: ↓
+    - text: create session
+  - separator
+  - paragraph: 最小规则：
+  - paragraph: 创建前：
+  - paragraph: 检查：
+  - paragraph: 当前：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: workspace + user + purpose
+  - paragraph: 是否已有活动 session。
+  - separator
+  - paragraph: 但不要复杂化。
+  - paragraph: 第一版：
+  - paragraph: 只做：
+  - paragraph: 显式：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Create Devin Session
+  - paragraph: 按钮。
+  - paragraph: 创建后：
+  - paragraph: 保存本地绑定。
+  - separator
+  - paragraph: 禁止：
+  - paragraph: 自动隐式创建。
+  - separator
+  - heading "七、异步状态边界" [level=1]
+  - paragraph: Devin session：
+  - paragraph: 不能映射成：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: completed
+  - paragraph: 直到官方状态确认。
+  - separator
+  - paragraph: 本地状态建议：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Created Running Waiting Succeeded Failed Unknown
+  - separator
+  - paragraph: 不要：
+  - paragraph: POST成功：
+  - paragraph: 直接：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: run completed
+  - separator
+  - separator
+  - heading "八、usage/token 统计" [level=1]
+  - paragraph: 正确：
+  - paragraph: 不伪造。
+  - paragraph: 因为：
+  - paragraph: Devin 不等价：
+  - paragraph: 本地 token stream。
+  - separator
+  - paragraph: 不要：
+  - paragraph: 生成：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: input_tokens output_tokens
+  - paragraph: 假数据。
+  - separator
+  - paragraph: 可以：
+  - paragraph: 记录：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: external_session_id provider_status timestamps
+  - separator
+  - heading "九、文件与本地工作区边界" [level=1]
+  - paragraph: 你的方案正确：
+  - blockquote:
+    - paragraph: 不自动上传本地文件，不让云 Agent 控制本地 Paint。
+  - paragraph: 保持。
+  - separator
+  - paragraph: 特别注意：
+  - paragraph: 如果未来支持 repo：
+  - paragraph: 必须明确：
+  - paragraph: 来源：
+  - list:
+    - listitem: 用户授权；
+    - listitem: Devin repo 绑定；
+    - listitem: Git provider。
+  - paragraph: 不能：
+  - paragraph: coolzhu 本地路径：
+  - paragraph: 直接上传。
+  - separator
+  - heading "十、Devin MCP 边界" [level=1]
+  - paragraph: 当前：
+  - paragraph: Devin 官方 MCP 是 Streamable HTTP，而现有 MCP Host 仅 stdio。
+  - paragraph: 因此：
+  - paragraph: 不要：
+  - paragraph: 现在强行接入。
+  - separator
+  - paragraph: 不建议：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - text: Devin MCP
+    - text: ↓
+    - text: stdio adapter
+    - text: ↓
+    - text: MCP Host
+  - paragraph: 作为第一步。
+  - paragraph: 这会引入：
+  - list:
+    - listitem: HTTP streaming；
+    - listitem: OAuth/认证；
+    - listitem: remote session；
+    - listitem: cancellation。
+  - separator
+  - paragraph: 第一版：
+  - paragraph: 使用官方 API。
+  - separator
+  - paragraph: 未来：
+  - paragraph: 如果支持 Devin MCP：
+  - paragraph: 作为新的 transport capability。
+  - paragraph: 不是当前 S5.3 stdio 扩展。
+  - separator
+  - heading "十一、最小用户手测范围" [level=1]
+  - paragraph: 不需要真实复杂项目。
+  - paragraph: 建议：
+  - heading "D1 配置" [level=2]
+  - list:
+    - listitem: 输入真实 API key；
+    - listitem: placeholder 阻止请求。
+  - separator
+  - heading "D2 创建" [level=2]
+  - paragraph: 创建一次：
+  - paragraph: 验证：
+  - list:
+    - listitem: session id；
+    - listitem: 本地绑定。
+  - separator
+  - heading "D3 查看状态" [level=2]
+  - paragraph: 验证：
+  - list:
+    - listitem: running；
+    - listitem: completed；
+    - listitem: failed。
+  - separator
+  - heading "D4 发送消息" [level=2]
+  - paragraph: 验证：
+  - list:
+    - listitem: 同 session；
+    - listitem: workspace 一致。
+  - separator
+  - heading "D5 切工程" [level=2]
+  - paragraph: 创建：
+  - paragraph: 工程 A Devin session。
+  - paragraph: 切：
+  - paragraph: 工程 B。
+  - paragraph: 验证：
+  - paragraph: 不能继续发送 A session。
+  - separator
+  - heading "D6 失败" [level=2]
+  - paragraph: 模拟：
+  - list:
+    - listitem: key错误；
+    - listitem: timeout；
+    - listitem: API错误。
+  - paragraph: 验证：
+  - paragraph: 不是 completed。
+  - separator
+  - heading "十二、必须避免的假完成" [level=1]
+  - paragraph: 不要声明：
+  - list:
+    - listitem: “Devin 已成为模型 provider”；
+    - listitem: “Devin 已接入四项 Agent runtime”；
+    - listitem: “支持所有 MCP”；
+    - listitem: “支持本地文件 Agent 控制”。
+  - paragraph: 准确描述：
+  - blockquote:
+    - paragraph: 已增加 Devin 云会话插件接入能力。
+  - separator
+  - heading "最终裁决" [level=1]
+  - paragraph: 批准最小路线：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: Coolzhu | + Devin Plugin | + API Client | + Session Binding | + Status Adapter
+  - paragraph: 必须保持：
+  - list:
+    - listitem: Devin 不进入 ProviderClient。
+    - listitem: mode 不伪装 model。
+    - listitem: placeholder key 不联网。
+    - listitem: session 必须绑定 workspace。
+    - listitem: 不自动创建重复云 session。
+    - listitem: 不伪造 token/usage。
+    - listitem: 不自动上传本地文件。
+    - listitem: 不接当前 stdio MCP Host。
+  - paragraph: 第一版目标：
+  - blockquote:
+    - paragraph: “用户可配置 Devin、创建和管理远端 session，并在当前工程边界内安全交互。”
+  - paragraph: 而不是：
+  - blockquote:
+    - paragraph: “把 Devin 改造成 coolzhu 内置模型。”
+  - paragraph: 该范围符合“不重耦合、不扩第二套运行时”的原则。
+  - button "复制":
+  - button "评价回复":
+  - button "分享":
+  - button "朗读":
+  - button "重新生成回复":
+  - button "更多操作":
+  - generic: ChatGPT 可能会出错。请核查重要信息。
+  - button [active]:
+  - heading "最新一条回复" [level=4]
+  - status
+  - button "添加文件等内容":
+  - textbox "询问 ChatGPT":
+    - paragraph: 询问 ChatGPT
+  - button "选择 ChatGPT 模型":
+    - generic: 极高
+  - button "听写":
+  - button "开始语音":
+- status
+- status: 回答已完成
