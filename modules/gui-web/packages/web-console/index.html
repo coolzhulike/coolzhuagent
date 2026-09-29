@@ -23,6 +23,7 @@
     <script src="./src/stt_tail_capture.js" defer></script>
     <script src="./src/app.js" defer></script>
     <script src="./src/dsh_market.js" defer></script>
+    <script src="./src/devin_plugin.js" defer></script>
   </head>
   <body class="ui-3d">
     <main class="shell ui-redesign" aria-label="COOLZHU CODE 控制台">
@@ -981,6 +982,24 @@
                 <div class="dsh-market-pagination"><button data-action="dsh-market-prev" type="button">上一页</button><span data-role="dsh-market-page">—</span><button data-action="dsh-market-next" type="button">下一页</button></div>
               </section>
               <h3 class="dsh-market-local-heading">当前工程原生插件</h3>
+              <details class="devin-plugin-panel dsh-market" data-role="devin-plugin-panel">
+                <summary>Devin 云会话 · 配置与手动测试</summary>
+                <p>通过官方 API 连接独立的云端 Agent 会话。模型选择与思考程度以 Devin 官方界面的实际能力为准；公开 API 未提供对应参数。其它参数沿用官方默认。</p>
+                <form data-role="devin-config-form" class="dsh-market-controls">
+                  <label><span>启用云会话插件</span><input data-role="devin-enabled" type="checkbox" /></label>
+                  <label><span>组织 ID</span><input data-role="devin-org" placeholder="org-…" maxlength="180" autocomplete="off" /></label>
+                  <label><span>Agent 模式（不是模型 ID）</span><select data-role="devin-mode"><option value="">官方默认</option><option value="normal">Normal</option><option value="fast">Fast</option><option value="lite">Lite</option><option value="ultra">Ultra</option><option value="fusion">Fusion</option></select></label>
+                  <label><span>API Key · 留空保留已存值</span><input data-role="devin-key" type="password" maxlength="4096" autocomplete="new-password" placeholder="随机占位值等待本人替换" /></label>
+                  <button data-action="devin-save" type="submit">保存配置</button><button data-action="devin-refresh" type="button">刷新</button>
+                </form>
+                <p data-role="devin-status" role="status">展开后读取当前工程配置；占位密钥不会发送到网络。</p>
+                <label>当前工程已绑定的云会话<select data-role="devin-session"><option value="">尚未选择</option></select></label>
+                <label>消息或新任务<textarea data-role="devin-text" rows="3" maxlength="65536" placeholder="填写发送到 Devin 的内容；新建会话可能消耗 ACU"></textarea></label>
+                <div class="dsh-market-controls"><button data-action="devin-create" type="button">创建云会话</button><button data-action="devin-send" type="button">发送消息</button><button data-action="devin-get" type="button">读取状态</button><button data-action="devin-messages" type="button">读取消息</button><button data-action="devin-next" type="button" disabled>下一页消息</button><button data-action="devin-open" type="button">打开官方会话</button></div>
+                <details><summary>关联官网已有会话（用于恢复结果未知的创建）</summary><input data-role="devin-bind-id" placeholder="devin-…" maxlength="180" /><button data-action="devin-bind" type="button">验证并关联</button></details>
+                <p data-role="devin-result" role="status"></p>
+                <div data-role="devin-output" class="devin-plugin-output"></div>
+              </details>
               <div class="quick-catalog-facts"><span>目录状态：<b data-role="plugin-market-directory-state">尚未读取</b></span><span>已安装状态：<b data-role="plugin-market-installed-state">暂无可核验清单</b></span></div>
               <p data-role="plugin-market-status" role="status">尚未读取目录。</p>
               <div class="quick-catalog-list" data-role="plugin-market-list"></div>

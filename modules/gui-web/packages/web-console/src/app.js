@@ -3779,6 +3779,9 @@ function updateActiveWorkspaceKey(nextKey, options = {}) {
   const normalized = String(nextKey || "default").trim() || "default";
   const previous = activeWorkspaceKey;
   activeWorkspaceKey = normalized;
+  if (previous !== normalized) {
+    window.dispatchEvent(new CustomEvent("coolzhu-workspace-changed", { detail: { workspaceId: normalized } }));
+  }
   if (!chatLayoutInitialized) {
     return;
   }
