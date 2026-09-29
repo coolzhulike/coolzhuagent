@@ -145,7 +145,11 @@ pub fn trusted_custom_command(label: &str, url: &Url, command: &str) -> bool {
                 | "set_pet_action"
                 | "pet_drop_uploaded"
         ),
-        // 开机演出仅使用 capability 限定的事件接口，不需要应用自定义命令。
+        super::STARTUP_PERFORMANCE_LABEL
+            if super::trusted_startup_performance_url(url) =>
+        {
+            command == "report_startup_performance"
+        }
         _ => false,
     }
 }
@@ -830,6 +834,41 @@ mod tests {
             "console",
             &Url::parse(super::super::DEFAULT_GUI_WEB_URL).unwrap(),
             "unregistered_command"
+        ));
+    }
+
+    #[test]
+    fn startup_report_command_requires_exact_performance_webview_and_page() {
+        let page = super::super::startup_performance_url().unwrap();
+        assert!(trusted_custom_command(
+            "launch-performance",
+            &page,
+            "report_startup_performance"
+        ));
+        assert!(trusted_custom_command(
+            "launch-performance",
+            &Url::parse(&format!("{page}?mode=first")).unwrap(),
+            "report_startup_performance"
+        ));
+        assert!(!trusted_custom_command(
+            "console",
+            &page,
+            "report_startup_performance"
+        ));
+        assert!(!trusted_custom_command(
+            "launch-performance",
+            &Url::parse("https://example.com/launch-performance.html").unwrap(),
+            "report_startup_performance"
+        ));
+        assert!(!trusted_custom_command(
+            "launch-performance",
+            &Url::parse(&format!("{page}?mode=first&secret=1")).unwrap(),
+            "report_startup_performance"
+        ));
+        assert!(!trusted_custom_command(
+            "launch-performance",
+            &page,
+            "quit_app"
         ));
     }
 

@@ -5,13 +5,15 @@ mod recovery_confirmation;
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 use std::sync::{Mutex, OnceLock};
+use std::time::Instant;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Listener, Manager, PhysicalPosition, Url, WebviewWindowBuilder,
+    AppHandle, Emitter, Manager, PhysicalPosition, Url, WebviewWindowBuilder,
     WindowEvent,
 };
 
@@ -20,7 +22,6 @@ const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const CONSOLE_LABEL: &str = "console";
 const PET_LABEL: &str = "pet";
 const STARTUP_PERFORMANCE_LABEL: &str = "launch-performance";
-const STARTUP_PERFORMANCE_COMPLETE_EVENT: &str = "launch-performance-complete";
 const STARTUP_PERFORMANCE_FALLBACK_MS: u64 = 15_000;
 const EXTERNAL_BROWSER_LABEL: &str = "external-browser";
 const DEFAULT_GUI_WEB_URL: &str = "http://127.0.0.1:8765";
@@ -35,6 +36,8 @@ static WEB_CONSOLE_PARENT_MONITOR_STARTED: std::sync::atomic::AtomicBool =
 static PET_NATIVE_DRAG_RELEASE_WATCHER_ACTIVE: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 static PET_CROWNED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+static STARTUP_PERFORMANCE_STARTED_AT: OnceLock<Instant> = OnceLock::new();
+static STARTUP_PERFORMANCE_FINISHED: AtomicBool = AtomicBool::new(false);
 static THRONE_ZONE: OnceLock<Mutex<Option<ThroneZone>>> = OnceLock::new();
 static BROWSER_RUNTIME_STATE: OnceLock<Mutex<BrowserRuntimeState>> = OnceLock::new();
 
@@ -239,7 +242,8 @@ fn main() {
                 browser_window_command,
                 open_browser_window,
                 browser_panel::browser_panel_command,
-                recovery_confirmation::confirm_recovery
+                recovery_confirmation::confirm_recovery,
+                report_startup_performance
             ];
             handler(invoke)
         })
@@ -289,7 +293,6 @@ fn main() {
             let handled_pet_action = handle_pet_action_args(&handle, &startup_args);
             let visibility = startup_visibility(&startup_args);
             if startup_performance_requested(&startup_args) {
-                install_startup_performance_completion_handler(&handle);
                 match build_startup_performance_window(&handle) {
                     Ok(()) => arm_startup_performance_fallback(&handle),
                     Err(error) => {
@@ -304,6 +307,7 @@ fn main() {
                             ],
                         );
                         show_console(&handle);
+                        log_startup_performance_handoff(&handle, "window-build-failed");
                     }
                 }
             } else if visibility.show_console {
@@ -338,18 +342,142 @@ fn startup_performance_url() -> Result<Url, Box<dyn std::error::Error>> {
     Ok(Url::parse(raw)?)
 }
 
+fn trusted_startup_performance_url(url: &Url) -> bool {
+    let Ok(expected) = startup_performance_url() else {
+        return false;
+    };
+    let mut base = url.clone();
+    let mode_allowed = matches!(base.query(), None | Some("mode=first" | "mode=daily" | "mode=restore"));
+    base.set_query(None);
+    mode_allowed && base.fragment().is_none() && base == expected
+}
+
 fn hide_startup_performance(app: &AppHandle) {
     if let Some(performance) = app.get_webview_window(STARTUP_PERFORMANCE_LABEL) {
         performance.hide().ok();
     }
 }
 
-fn install_startup_performance_completion_handler(app: &AppHandle) {
-    let app_for_event = app.clone();
-    app.listen(STARTUP_PERFORMANCE_COMPLETE_EVENT, move |_event| {
-        hide_startup_performance(&app_for_event);
-        show_console(&app_for_event);
-    });
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct StartupPerformanceReport {
+    phase: String,
+    mode: String,
+    reduced_motion: bool,
+    elapsed_ms: u64,
+    frame_count: u32,
+    reason: Option<String>,
+}
+
+fn valid_startup_performance_report(report: &StartupPerformanceReport) -> bool {
+    let phase = report.phase.as_str();
+    let reason = report.reason.as_deref();
+    matches!(phase, "started" | "assets_ready" | "first_frame" | "finished")
+        && matches!(report.mode.as_str(), "first" | "daily" | "restore")
+        && report.elapsed_ms <= STARTUP_PERFORMANCE_FALLBACK_MS
+        && report.frame_count <= 15_000
+        && if phase == "finished" {
+            matches!(
+                reason,
+                Some(
+                    "completed"
+                        | "skipped"
+                        | "reduced-motion"
+                        | "resource-timeout"
+                        | "resource-error"
+                        | "presentation-timeout"
+                        | "restored"
+                )
+            )
+        } else {
+            reason.is_none()
+        }
+}
+
+fn log_startup_performance_handoff(app: &AppHandle, route: &str) {
+    let console_visible = app
+        .get_window(CONSOLE_LABEL)
+        .and_then(|window| window.is_visible().ok())
+        .unwrap_or(false);
+    diagnostics::info(
+        DIAGNOSTICS_MODULE,
+        "startup_performance_handoff",
+        "Startup performance handed off to console",
+        &[
+            ("route", route.to_string()),
+            ("console_visible", console_visible.to_string()),
+        ],
+    );
+    if !console_visible {
+        diagnostics::error(
+            DIAGNOSTICS_MODULE,
+            "startup_performance_handoff_failed",
+            "Console was not visible after startup performance handoff",
+            &[("route", route.to_string())],
+        );
+    }
+}
+
+#[tauri::command]
+fn report_startup_performance(
+    app: AppHandle,
+    webview: tauri::Webview,
+    report: StartupPerformanceReport,
+) -> Result<(), String> {
+    if webview.label() != STARTUP_PERFORMANCE_LABEL
+        || !webview.url().ok().is_some_and(|url| trusted_startup_performance_url(&url))
+    {
+        diagnostics::warn(
+            DIAGNOSTICS_MODULE,
+            "startup_performance_report_rejected",
+            "Startup performance report came from an unexpected webview",
+            &[],
+        );
+        return Err("非演出页不能上报启动结果".to_string());
+    }
+    if !valid_startup_performance_report(&report) {
+        diagnostics::warn(
+            DIAGNOSTICS_MODULE,
+            "startup_performance_report_rejected",
+            "Startup performance report contained invalid fields",
+            &[],
+        );
+        return Err("启动演出报告字段无效".to_string());
+    }
+    if report.phase == "finished" && STARTUP_PERFORMANCE_FINISHED.swap(true, Ordering::SeqCst) {
+        return Err("启动演出已结束".to_string());
+    }
+
+    let host_elapsed_ms = STARTUP_PERFORMANCE_STARTED_AT
+        .get()
+        .map(|started| started.elapsed().as_millis())
+        .unwrap_or(0);
+    let performance_visible = app
+        .get_webview_window(STARTUP_PERFORMANCE_LABEL)
+        .and_then(|window| window.is_visible().ok())
+        .unwrap_or(false);
+    diagnostics::info(
+        DIAGNOSTICS_MODULE,
+        "startup_performance_phase",
+        "Startup performance lifecycle report",
+        &[
+            ("phase", report.phase.clone()),
+            ("mode", report.mode),
+            ("reason", report.reason.unwrap_or_default()),
+            ("reduced_motion", report.reduced_motion.to_string()),
+            ("page_elapsed_ms", report.elapsed_ms.to_string()),
+            ("host_elapsed_ms", host_elapsed_ms.to_string()),
+            ("frame_count", report.frame_count.to_string()),
+            ("performance_visible", performance_visible.to_string()),
+        ],
+    );
+
+    if report.phase == "finished" {
+        hide_startup_performance(&app);
+        show_console(&app);
+        log_startup_performance_handoff(&app, "reported-finish");
+    }
+    Ok(())
 }
 
 fn build_startup_performance_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
@@ -360,6 +488,7 @@ fn build_startup_performance_window(app: &AppHandle) -> Result<(), Box<dyn std::
     // 不能使用 WebviewUrl::App：本项目 devUrl 指向外部 web-console，开发态会把
     // launch-performance.html 错误地拼到 8765。直接走平台对应的 Tauri 资源协议，
     // 开发/发布都从 tauri-shell 的 frontendDist 读取这张本地演出页及其素材。
+    STARTUP_PERFORMANCE_STARTED_AT.get_or_init(Instant::now);
     let launch_url = startup_performance_url()?;
     let performance = WebviewWindowBuilder::new(
         app,
@@ -380,12 +509,20 @@ fn build_startup_performance_window(app: &AppHandle) -> Result<(), Box<dyn std::
     .focused(true)
     .build()?;
 
+    diagnostics::info(
+        DIAGNOSTICS_MODULE,
+        "startup_performance_window_created",
+        "Startup performance window was created",
+        &[("pid", std::process::id().to_string())],
+    );
+
     let app_for_close = app.clone();
     performance.on_window_event(move |event| {
         if let WindowEvent::CloseRequested { api, .. } = event {
             api.prevent_close();
             hide_startup_performance(&app_for_close);
             show_console(&app_for_close);
+            log_startup_performance_handoff(&app_for_close, "window-close");
         }
     });
 
@@ -424,6 +561,7 @@ fn arm_startup_performance_fallback(app: &AppHandle) {
                 );
                 hide_startup_performance(&app_for_main);
                 show_console(&app_for_main);
+                log_startup_performance_handoff(&app_for_main, "host-timeout");
             }
         });
     });
@@ -1975,6 +2113,35 @@ mod tests {
         } else {
             assert_eq!(url, "tauri://localhost/launch-performance.html");
         }
+    }
+
+    #[test]
+    fn startup_performance_reports_accept_only_bounded_lifecycle_fields() {
+        let mut report = super::StartupPerformanceReport {
+            phase: "first_frame".to_string(),
+            mode: "daily".to_string(),
+            reduced_motion: false,
+            elapsed_ms: 250,
+            frame_count: 1,
+            reason: None,
+        };
+        assert!(super::valid_startup_performance_report(&report));
+        report.phase = "finished".to_string();
+        report.reason = Some("completed".to_string());
+        assert!(super::valid_startup_performance_report(&report));
+        report.reason = Some("arbitrary user text".to_string());
+        assert!(!super::valid_startup_performance_report(&report));
+        report.reason = Some("resource-error".to_string());
+        report.elapsed_ms = 15_001;
+        assert!(!super::valid_startup_performance_report(&report));
+        report.elapsed_ms = 500;
+        report.frame_count = 1_656;
+        assert!(super::valid_startup_performance_report(&report));
+        report.frame_count = 15_001;
+        assert!(!super::valid_startup_performance_report(&report));
+        report.frame_count = 1;
+        report.mode = "unknown".to_string();
+        assert!(!super::valid_startup_performance_report(&report));
     }
 
     #[test]
