@@ -2028,6 +2028,32 @@ pub(crate) async fn execute_with_current_runtime(
             ),
         );
     }
+    // 房间必须来自已与父运行核对的冻结上下文。调用方可省略房间，但若提供了另一个
+    // 房间，不得借它的授权执行当前父运行；也不能仅凭调用方房间补全缺失的冻结身份。
+    let Some(origin_room_id) = parent.room_id.as_deref() else {
+        return terminal_result(
+            identity,
+            ComputerUseSurface::Auto,
+            ComputerUseStage::IntentGuard,
+            ComputerUseError::blocked(
+                "parent_context_identity_missing",
+                "computer-use requires a verified originating chat room in the frozen parent context",
+                ComputerUseRetryOwner::User,
+            ),
+        );
+    };
+    if chat_room_id.is_some_and(|room_id| room_id != origin_room_id) {
+        return terminal_result(
+            identity,
+            ComputerUseSurface::Auto,
+            ComputerUseStage::IntentGuard,
+            ComputerUseError::blocked(
+                "computer_use_room_context_mismatch",
+                "computer-use caller chat room differs from the verified parent run room",
+                ComputerUseRetryOwner::User,
+            ),
+        );
+    }
     if let Some(goal) = parent.goal_phase.as_ref() {
         if let Err(error) = goal.validate_live() {
             return terminal_result(identity, ComputerUseSurface::Auto, ComputerUseStage::IntentGuard,
@@ -2101,22 +2127,16 @@ pub(crate) async fn execute_with_current_runtime(
         },
         cancelled: cancelled.clone(),
     };
-    let planner = CurrentSessionComputerUsePlanner::with_context(identity, chat_room_id, &store)
+    let planner = CurrentSessionComputerUsePlanner::with_context(identity, Some(origin_room_id), &store)
         .with_cancelled(cancelled.clone());
     // PR-02A：四维会话上下文同样取自**接纳时冻结**的父上下文（与工作区归属同一来源）。
     // 任一维缺失就不构造——宁可让动作来源核对 fail-closed，也不用"当前房间/会话"顶替。
-    // 房间维度取调用方给的房间，缺省时**回落到冻结上下文里的房间**——两者都是权威值，
-    // 回落不会放宽核对（都不是"当前房间"式的猜测），却能避免合法调用被误判成"缺上下文"。
-    let conversation_scope = chat_room_id
-        .or(parent.room_id.as_deref())
-        .and_then(|room_id| {
-            Some(runtime::RunScopeContext::new(
-                parent.workspace_id.as_str(),
-                room_id,
-                parent.session_id.as_deref()?,
-                parent.public_turn_id.as_deref()?,
-            ))
-        });
+    // 房间维度与授权复核、持久化均沿用同一个已核对的冻结房间。
+    let conversation_scope = parent.session_id.as_deref()
+        .zip(parent.public_turn_id.as_deref())
+        .map(|(session_id, turn_id)| runtime::RunScopeContext::new(
+            parent.workspace_id.as_str(), origin_room_id, session_id, turn_id,
+        ));
     let executor =
         ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets(), workspace)
             .with_cancelled(cancelled)
@@ -2132,7 +2152,7 @@ pub(crate) async fn execute_with_current_runtime(
     let executor = executor.with_provider_tool_call_id(&identity.provider_tool_call_id);
     // 授权复核也读**同一份冻结的库路径**：运行期间切换工作区不会把这次复核指向另一个库。
     let room_grant =
-        crate::room_permission_grant_view_for_path(&admission_db_path, chat_room_id);
+        crate::room_permission_grant_view_for_path(&admission_db_path, Some(origin_room_id));
     if !room_grant.session_authorized || !room_grant.session_confirmed_twice {
         let result = terminal_result(
             identity,
@@ -2148,13 +2168,13 @@ pub(crate) async fn execute_with_current_runtime(
             input,
             identity,
             ComputerUseSurface::Auto,
-            chat_room_id,
+            Some(origin_room_id),
             &result,
         );
         return result;
     }
     executor
-        .execute_in_room_with_full_access(input, identity, chat_room_id)
+        .execute_in_room_with_full_access(input, identity, Some(origin_room_id))
         .await
 }
 
@@ -2191,7 +2211,7 @@ mod tests")
         assert!(runtime.contains("ProductionAdapterFactory"));
         assert!(runtime.contains("room_permission_grant_view_for_path"));
         assert!(runtime.contains("computer_use_room_full_access_required"));
-        assert!(runtime.contains("execute_in_room_with_full_access(input, identity, chat_room_id)"));
+        assert!(runtime.contains("execute_in_room_with_full_access(input, identity, Some(origin_room_id))"));
     }
 
     #[test]
@@ -5729,6 +5749,61 @@ mod tests")
                 .workspace_id(),
             Some("ws-0123456789abcdef")
         );
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn originating_room_fallback_uses_frozen_room_and_rejects_cross_room_grant() {
+        let _guard = crate::tests::config_test_guard();
+        let directory = tempfile::TempDir::new().unwrap();
+        let db_path = directory.path().join("web-sessions.sqlite3");
+        let _db = SessionDbPathGuard::install(db_path.clone());
+        seed_relation_complete_admission(
+            &db_path, "ws-0123456789abcdef", "room-1", "session-1", "run-room-scope",
+        );
+        // 另一个房间即使明确获准，也不能为父运行所属的 room-1 提供 CU 授权。
+        crate::set_chat_room_permission_profile_sqlite(
+            &db_path, "room-2", crate::ROOM_PERMISSION_FULL_ACCESS,
+        ).unwrap();
+        let _safety_root = open_input_resource_for_test(&directory.path().join("input-safety"));
+        let parent = crate::FrozenParentContext::new(
+            "test-fixture", "ws-0123456789abcdef", Some("room-1"),
+            Some("session-1"), None, Some("run-room-scope"),
+        ).unwrap();
+
+        let fallback_identity = identity("room-fallback");
+        let fallback = execute_with_current_runtime(
+            &input("browser"), &fallback_identity, None, Some(&parent),
+        ).await;
+        assert_eq!(fallback.status, ComputerUseTerminalStatus::Blocked);
+        assert_eq!(fallback.error.as_ref().map(|error| error.code.as_str()),
+            Some("computer_use_room_full_access_required"));
+        assert_eq!(fallback.steps_completed, 0);
+        let store = ComputerUseRunStore::open(&db_path).unwrap();
+        assert_eq!(store.load(&fallback_identity.call_id).unwrap().unwrap().chat_room_id.as_deref(),
+            Some("room-1"));
+
+        let cross_room_identity = identity("cross-room-grant");
+        let cross_room = execute_with_current_runtime(
+            &input("browser"), &cross_room_identity, Some("room-2"), Some(&parent),
+        ).await;
+        assert_eq!(cross_room.error.as_ref().map(|error| error.code.as_str()),
+            Some("computer_use_room_context_mismatch"));
+        assert_eq!(cross_room.attempts, 0);
+        assert_eq!(cross_room.steps_completed, 0);
+        assert!(store.load(&cross_room_identity.call_id).unwrap().is_none());
+
+        let parent_without_room = crate::FrozenParentContext::new(
+            "test-fixture", "ws-0123456789abcdef", None,
+            Some("session-1"), None, Some("run-room-scope"),
+        ).unwrap();
+        let missing_room_identity = identity("missing-frozen-room");
+        let missing_room = execute_with_current_runtime(
+            &input("browser"), &missing_room_identity, Some("room-2"), Some(&parent_without_room),
+        ).await;
+        assert_eq!(missing_room.error.as_ref().map(|error| error.code.as_str()),
+            Some("parent_context_identity_missing"));
+        assert_eq!(missing_room.steps_completed, 0);
+        assert!(store.load(&missing_room_identity.call_id).unwrap().is_none());
     }
 
     /// **第八轮 §1.4**：CU 是正式输入入口，因此**必须**经共享输入安全库检查资源状态——

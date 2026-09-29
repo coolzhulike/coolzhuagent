@@ -130,14 +130,17 @@ namespace CoolzhuStroke {
   public void Down(){Check();Flag(0x0002);}
   public void Up(){Exception last=null;for(int i=0;i<3;i++){try{Flag(0x0004);return;}catch(Exception e){last=e;Thread.Sleep(10);}}throw last;}
   public void Wait(int ms){for(int left=ms;left>0;){Check();int slice=Math.Min(left,10);Thread.Sleep(slice);left-=slice;}Check();}
-  public object Capture(){
+  public object Capture(string outputPath){
    Check(); int left=GetSystemMetrics(76),top=GetSystemMetrics(77),width=GetSystemMetrics(78),height=GetSystemMetrics(79);
    int x=Math.Max(rect[0],left),y=Math.Max(rect[1],top),w=Math.Min(rect[0]+rect[2],left+width)-x,h=Math.Min(rect[1]+rect[3],top+height)-y;
    if(w<=0||h<=0)throw new Exception("capture_out_of_bounds: 窗口没有可见屏幕区域");
    using(var bitmap=new Bitmap(w,h))using(var g=Graphics.FromImage(bitmap))using(var stream=new MemoryStream()){
     g.CopyFromScreen(x,y,0,0,new Size(w,h),CopyPixelOperation.SourceCopy);Check();bitmap.Save(stream,ImageFormat.Png);
     RECT client;var origin=new Point(0,0);if(!GetClientRect(handle,out client)||!ClientToScreen(handle,ref origin))throw new Exception("client_bounds_failed");
-    var bytes=stream.ToArray();using(var hash=SHA256.Create()){return new {data_url="data:image/png;base64,"+Convert.ToBase64String(bytes),width=w,height=h,screen_rect=new int[]{x,y,w,h},client_rect=new int[]{origin.X,origin.Y,client.Right-client.Left,client.Bottom-client.Top},sha256=BitConverter.ToString(hash.ComputeHash(bytes)).Replace("-","").ToLowerInvariant()};}
+    var bytes=stream.ToArray();
+    if(String.IsNullOrEmpty(outputPath)||bytes.Length==0||bytes.Length>80*1024*1024)throw new Exception("capture_size_invalid: PNG 超出截图传输上限");
+    using(var output=new FileStream(outputPath,FileMode.CreateNew,FileAccess.Write,FileShare.None)){output.Write(bytes,0,bytes.Length);output.Flush(true);}
+    using(var hash=SHA256.Create()){return new {width=w,height=h,screen_rect=new int[]{x,y,w,h},client_rect=new int[]{origin.X,origin.Y,client.Right-client.Left,client.Bottom-client.Top},bytes_len=bytes.Length,sha256=BitConverter.ToString(hash.ComputeHash(bytes)).Replace("-","").ToLowerInvariant()};}
    }
   }
  }

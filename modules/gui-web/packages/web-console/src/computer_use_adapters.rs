@@ -3,11 +3,13 @@ use std::sync::{
     Mutex,
 };
 
+use base64::Engine;
 use computer_use::{
     ComputerUseAction, ComputerUseAdapter, ComputerUseCapabilities, ComputerUseError,
     ComputerUseRequest, ComputerUseRetryOwner, ComputerUseSurface, Observation, StepExecution,
     Verification,
 };
+use sha2::{Digest, Sha256};
 use serde_json::{json, Value as JsonValue};
 
 use crate::computer_use_frame::{rect_from_json, FrameRef};
@@ -357,6 +359,55 @@ impl DesktopSnapshot {
     }
 }
 
+/// 只在截图画布拖拽的输入前检查中使用：完整比较已绑定客户端操作容器的像素。
+/// PNG、摘要或几何无法核实时返回 None，调用方必须拒绝输入。
+fn bound_client_pixels_unchanged(
+    before: &DesktopSnapshot,
+    after: &DesktopSnapshot,
+    recorded: &FrameRef,
+    live: &FrameRef,
+) -> Option<bool> {
+    fn pixels(snapshot: &DesktopSnapshot, frame: &FrameRef) -> Option<image::RgbaImage> {
+        let encoded = snapshot.state.pointer("/image/data_url")?.as_str()?
+            .strip_prefix("data:image/png;base64,")?;
+        // 截图 helper 已有像素与传输上限；这里再限制解码输入，避免异常快照占用无界内存。
+        if encoded.len() > 112 * 1024 * 1024 { return None; }
+        let bytes = base64::engine::general_purpose::STANDARD.decode(encoded).ok()?;
+        if bytes.len() > 80 * 1024 * 1024
+            || format!("{:x}", Sha256::digest(&bytes)) != frame.image_sha256 { return None; }
+        // 先按 PNG IHDR 核尺寸与像素上限，避免解码后才发现压缩炸弹。
+        if bytes.get(..8)? != b"\x89PNG\r\n\x1a\n"
+            || bytes.get(12..16)? != b"IHDR"
+            || u32::from_be_bytes(bytes.get(16..20)?.try_into().ok()?) != frame.image_width
+            || u32::from_be_bytes(bytes.get(20..24)?.try_into().ok()?) != frame.image_height
+            || frame.image_width.checked_mul(frame.image_height)? > 16_777_216 { return None; }
+        let image = image::load_from_memory_with_format(&bytes, image::ImageFormat::Png).ok()?;
+        if image.width() != frame.image_width || image.height() != frame.image_height { return None; }
+        Some(image.to_rgba8())
+    }
+
+    if !recorded.container_inside_image() || !live.container_inside_image()
+        || recorded.screen_rect[2] != i32::try_from(recorded.image_width).ok()?
+        || recorded.screen_rect[3] != i32::try_from(recorded.image_height).ok()?
+        || live.screen_rect[2] != i32::try_from(live.image_width).ok()?
+        || live.screen_rect[3] != i32::try_from(live.image_height).ok()? { return None; }
+    if recorded.image_width != live.image_width || recorded.image_height != live.image_height
+        || recorded.screen_rect != live.screen_rect || recorded.canvas_rect != live.canvas_rect {
+        return Some(false);
+    }
+    let before_pixels = pixels(before, recorded)?;
+    let after_pixels = pixels(after, live)?;
+    let [x, y, width, height] = recorded.canvas_rect;
+    let x = u32::try_from(x.checked_sub(recorded.screen_rect[0])?).ok()?;
+    let y = u32::try_from(y.checked_sub(recorded.screen_rect[1])?).ok()?;
+    let width = u32::try_from(width).ok()?;
+    let height = u32::try_from(height).ok()?;
+    let right = x.checked_add(width)?;
+    Some((y..y.checked_add(height)?).all(|row| {
+        (x..right).all(|column| before_pixels.get_pixel(column, row) == after_pixels.get_pixel(column, row))
+    }))
+}
+
 pub(crate) trait DesktopBridge: Send + Sync {
     fn snapshot(
         &self,
@@ -548,22 +599,11 @@ impl<B: DesktopBridge> DesktopComputerUseAdapter<B> {
                 .and_then(JsonValue::as_str)
                 == Some(action.target.as_str());
             if screenshot_target {
-                if expected.1.state.pointer("/image/sha256").is_none()
-                    || expected.1.state.pointer("/image/sha256")
-                        != current.state.pointer("/image/sha256")
-                {
-                    return Err(pre_input(stale_observation(
-                        "截图画布已变化，需重新观察后规划笔画",
-                    )));
-                }
-                // CU-04 帧绑定补的一格：上面只比了**图像内容**，没有比**坐标容器**。
-                // 窗口矩形不变、图像内容不变时 client_rect 仍可能变化 ⇒ canvas_rect 变 ⇒
-                // 同一组 0..1 点落到不同物理区域。既有检查看不出这一类，这里按可分辨原因拒绝。
-                //
-                // 比较的两端刻意选择：**观察当时记下的**绑定（`frame_binding:` 证据，
-                // 由快照层写入）对**当前实时**绑定。这样核对的正是"规划时用的那一帧"
-                // 与"现在这一帧"，而不是两次实时重算（那只能证明现在和现在一样）。
+                // 先核实规划帧证据与两次快照各自绑定，再比较几何与客户端操作容器的
+                // 所有像素。容器外的窗口边缘变化不会使尚未发送的笔画过期。
                 let recorded = expected.1.evidence.iter().find_map(|item| FrameRef::parse(item));
+                let expected_bound = expected.1.state.get("canvas_rect").and_then(rect_from_json)
+                    .and_then(|container| FrameRef::bind(&expected.1.state, &expected.1.evidence, container).ok());
                 let live = current
                     .state
                     .get("canvas_rect")
@@ -571,12 +611,15 @@ impl<B: DesktopBridge> DesktopComputerUseAdapter<B> {
                     .and_then(|container| {
                         FrameRef::bind(&current.state, &current.evidence, container).ok()
                     });
-                // 只在两边都可用时比较：几何不全或绑定缺失由快照层的
-                // `frame_binding:unbindable` 如实记录，不在这里新增拒绝。
-                if let (Some(recorded), Some(live)) = (recorded, live) {
-                    if let Some(mismatch) = recorded.classify(&live) {
-                        return Err(pre_input(stale_observation(mismatch.reason())));
+                if let (Some(recorded), Some(expected_bound), Some(live)) = (recorded, expected_bound, live) {
+                    if recorded == expected_bound
+                        && bound_client_pixels_unchanged(&expected.1, &current, &recorded, &live) == Some(true) {
+                        // 输入身份、帧几何与客户端操作容器的像素都仍有效。
+                    } else {
+                        return Err(pre_input(stale_observation("客户端操作容器或帧绑定已变化，需重新观察后规划笔画")));
                     }
+                } else {
+                    return Err(pre_input(stale_observation("截图帧绑定缺失，无法确认笔画输入仍有效")));
                 }
             } else {
                 let target = |state: &JsonValue| {
@@ -1010,13 +1053,43 @@ mod tests {
 
     #[test]
     fn desktop_canvas_requires_fresh_image_and_consumes_generation_once() {
-        let mut first = desktop_snapshot("window-1", 144);
-        first.state = json!({"canvas_target":"window-canvas:1","canvas_rect":[0,40,800,560],"image":{"data_url":"data:image/png;base64,mock","sha256":"same"}});
-        for changed in [false, true] {
-            let mut second = first.clone();
-            if changed {
-                second.state["image"]["sha256"] = json!("changed");
-            }
+        fn canvas_snapshot(pixels: image::RgbaImage, canvas: [i32; 4]) -> DesktopSnapshot {
+            let mut png = std::io::Cursor::new(Vec::new());
+            image::DynamicImage::ImageRgba8(pixels).write_to(&mut png, image::ImageFormat::Png).unwrap();
+            let bytes = png.into_inner();
+            let sha256 = format!("{:x}", Sha256::digest(&bytes));
+            let frame = FrameRef {
+                image_sha256: sha256.clone(), image_width: 16, image_height: 12,
+                screen_rect: [0, 0, 16, 12], canvas_rect: canvas,
+            };
+            let mut snapshot = desktop_snapshot("window-1", 144);
+            snapshot.state = json!({
+                "canvas_target":"window-canvas:1", "canvas_rect":canvas,
+                "image":{"data_url":format!("data:image/png;base64,{}", base64::engine::general_purpose::STANDARD.encode(&bytes)),
+                    "sha256":sha256,"width":16,"height":12,"screen_rect":[0,0,16,12]}
+            });
+            snapshot.evidence = vec![format!("screenshot:test.png:sha256={sha256}:16x12"), frame.evidence()];
+            snapshot
+        }
+
+        let blank = image::RgbaImage::from_pixel(16, 12, image::Rgba([255, 255, 255, 255]));
+        let first = canvas_snapshot(blank.clone(), [2, 2, 12, 8]);
+        let mut outside = blank.clone();
+        outside.put_pixel(7, 11, image::Rgba([0, 0, 0, 255]));
+        let mut inside = blank.clone();
+        inside.put_pixel(7, 7, image::Rgba([0, 0, 0, 255]));
+        let mut identity = first.clone();
+        identity.dpi = 96;
+        let mut missing_binding = first.clone();
+        missing_binding.evidence.clear();
+        for (name, second, allowed) in [
+            ("unchanged", first.clone(), true),
+            ("outside_client", canvas_snapshot(outside, [2, 2, 12, 8]), true),
+            ("inside_client", canvas_snapshot(inside, [2, 2, 12, 8]), false),
+            ("changed_geometry", canvas_snapshot(blank.clone(), [2, 3, 12, 8]), false),
+            ("changed_identity", identity, false),
+            ("missing_binding", missing_binding, false),
+        ] {
             let adapter = DesktopComputerUseAdapter::new(FakeDesktopBridge {
                 snapshots: Mutex::new(vec![first.clone(), second].into()),
                 action_count: AtomicUsize::new(0),
@@ -1025,22 +1098,24 @@ mod tests {
             let observed = adapter
                 .observe(&request("desktop", json!({"application":"paint"})), std::time::Duration::from_secs(30))
                 .unwrap();
-            assert_eq!(observed.state["image"]["sha256"], "same");
+            assert_eq!(observed.state["image"]["sha256"], first.state["image"]["sha256"]);
             assert!(observed.state["desktop"].get("image").is_none());
             let mut draw = action(ComputerUseActionKind::Drag);
             draw.target = "window-canvas:1".into();
             draw.arguments = json!({"points":[[0.1,0.2],[0.8,0.9]],"duration_ms":100});
             let result = adapter.act(&draw, observed.generation, std::time::Duration::from_secs(30));
-            if changed {
-                assert_eq!(result.unwrap_err().code, "stale_observation");
-                assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 0);
+            if !allowed {
+                let error = result.expect_err(name);
+                assert_eq!(error.code, "stale_observation", "{name}");
+                assert_eq!(error.receipt().unwrap().input_delivery, runtime::InputDelivery::NotSent, "{name}");
+                assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 0, "{name}");
             } else {
-                assert!(result.is_ok());
+                assert!(result.is_ok(), "{name}: {result:?}");
                 assert_eq!(
                     adapter.act(&draw, observed.generation, std::time::Duration::from_secs(30)).unwrap_err().code,
                     "stale_observation"
                 );
-                assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 1);
+                assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 1, "{name}");
             }
         }
     }

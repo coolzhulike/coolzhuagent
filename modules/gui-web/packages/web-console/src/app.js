@@ -5539,9 +5539,9 @@ function chatPermissionRequestCurrent(roomId, scope, requestSerial) {
 function taskRenderFullAccessStatus(status = {}) {
   const hasRoom = Boolean(activeChatRoomId);
   const known = hasRoom && Boolean(projectWorkspaceScope) && status.room_id === activeChatRoomId && !status.error && !status.loading;
-  const debugOpen = known && Boolean(status.dev_open_permissions);
-  const active = known && Boolean(debugOpen || status.effective_full_access || status.full_access || status.permission_profile === "full-access");
-  const permissionProfile = known ? status.permission_profile || (active ? "full-access" : "workspace-write") : "workspace-write";
+  // 顶栏与授权详情描述当前聊天室已保存的授权；工程调试开放不等于 CU 房间授权。
+  const active = known && status.permission_profile === "full-access" && status.full_access === true;
+  const permissionProfile = known ? status.permission_profile || "workspace-write" : "workspace-write";
   setBindText("tasks.fullAccessStatus", !hasRoom ? "未选择聊天室" : !known ? "状态未知" : active ? "已启用 · 完全访问" : "未启用 · 工作区范围");
   const permissionSelect = document.querySelector('[data-role="chat-permission-select"]');
   const permissionStatus = document.querySelector('[data-role="chat-permission-status"]');
@@ -5556,14 +5556,17 @@ function taskRenderFullAccessStatus(status = {}) {
   }
   if (permissionStatus) {
     permissionStatus.textContent = !hasRoom ? "未选择" : !known ? "状态未知" : active ? "完全访问" : "目录权限";
+    permissionStatus.title = known && status.dev_open_permissions && !active
+      ? "工程默认开放不代表当前聊天室已授权桌面操作；computer-use 仍需本聊天室的完全访问授权。"
+      : permissionStatus.textContent;
   }
   if (permissionHint) {
     permissionHint.textContent = !hasRoom
       ? "请选择聊天室后设置权限。"
       : !known
       ? status.loading ? "正在读取当前聊天室权限，请稍后。" : "权限状态未能读取，请刷新后重试。"
-      : debugOpen
-      ? "工程已开启调试完全访问；房间选项将在关闭调试开放权限后生效。模型工具开关仍单独生效。"
+      : status.dev_open_permissions && !active
+      ? "工程默认开放不代表当前聊天室已授权桌面操作；如需 computer-use，请为本聊天室选择完全访问并完成双重确认。"
       : permissionProfile === "full-access"
       ? "当前聊天室已启用完全访问；撤销或切换权限需要经过安全确认。"
       : "权限只对当前聊天室生效；启用完全访问仍需双重确认。";
@@ -5574,14 +5577,14 @@ function taskRenderFullAccessStatus(status = {}) {
   const scopeEl = document.querySelector('[data-role="authorization-scope"]');
   const riskEl = document.querySelector('[data-role="authorization-risk"]');
   if (roomEl) roomEl.textContent = hasRoom ? roomName || "当前聊天室" : "尚未选择聊天室";
-  if (scopeEl) scopeEl.textContent = !hasRoom ? "尚未选择聊天室" : !known ? "权限状态未知" : debugOpen ? "当前工程调试完全访问" : active ? "当前聊天室可完全访问" : "当前聊天室限工作区访问";
+  if (scopeEl) scopeEl.textContent = !hasRoom ? "尚未选择聊天室" : !known ? "权限状态未知" : active ? "当前聊天室可完全访问" : "当前聊天室限工作区访问";
   if (riskEl) {
     riskEl.textContent = !hasRoom
       ? "请选择聊天室后查看权限。"
       : !known
       ? "权限状态未知，已暂停更改；请刷新后重试。"
-      : debugOpen
-      ? "调试开放权限由工程配置 tool.dev_open_permissions 控制；撤销房间授权不会关闭调试开放权限。"
+      : status.dev_open_permissions && !active
+      ? "工程默认开放不代表当前聊天室已授权桌面操作；computer-use 需单独授予该聊天室完全访问。"
       : active
       ? "此聊天室已启用完全访问；应用重启后再次选择该聊天室时会恢复该权限。"
       : "完全访问权限按聊天室分别保存；启用后，该聊天室可执行任意命令和文件写入。";
@@ -11670,9 +11673,8 @@ function setChatRightRailStatusValue(role, value, title = "") {
 function chatRightRailPermissionLabel(status = {}) {
   if (!activeChatRoomId) return "未选择";
   if (!projectWorkspaceScope || status.room_id !== activeChatRoomId || status.error || status.loading) return "状态未知";
-  if (status.dev_open_permissions) return "完全访问";
   const profile = String(status.permission_profile || "").toLowerCase();
-  if (profile === "full-access" || status.full_access || status.effective_full_access) {
+  if (profile === "full-access" && status.full_access === true) {
     return "完全访问";
   }
   if (profile === "workspace-write") {

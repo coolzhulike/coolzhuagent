@@ -13,6 +13,7 @@ runtime.workspace = true
 serde = { version = "1", features = ["derive"] }
 serde_json.workspace = true
 sha2 = "0.10"
+base64 = "0.22"
 
 # 原生线程/管道监督接口（有界管道读取、同步 I/O 取消、残留登记）。
 # 该 crate 是 `#![cfg(windows)]`：受控输入本身就是 Windows 专用路径，其他平台拿到空 crate。
@@ -23,6 +24,7 @@ windows-process-guard = { package = "coolzhu-windows-process-guard", path = "../
 # 8.3c-A Phase 1：READY 等待/校验的用例需要临时目录。
 tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt"] }
+png = "0.17"
 
 [[bin]]
 name = "coolzhu-computer-use-check"

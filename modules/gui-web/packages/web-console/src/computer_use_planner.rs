@@ -459,6 +459,27 @@ fn insufficient_budget(stage: &str, remaining: Duration) -> ComputerUseError {
     )
 }
 
+/// 请求已发出后，当前模型子请求的等待限额到期。这里的 `limit` 只表示
+/// `min(阶段剩余, PLANNER_TIMEOUT)`，不能据此声称整次 computer-use 的预算耗尽。
+fn model_stage_timeout(stage: &str, limit: Duration) -> ComputerUseError {
+    tracing::warn!(
+        stage,
+        wait_limit_ms = limit.as_millis() as u64,
+        reason = "model_request_stage_wait_expired",
+        model_request_sent = true,
+        "computer-use model request exceeded its stage wait limit"
+    );
+    ComputerUseError::blocked(
+        "stage_timeout",
+        format!(
+            "{stage} model request exceeded its {} ms stage wait limit; the request was sent, \
+             and any late response cannot produce an action",
+            limit.as_millis()
+        ),
+        ComputerUseRetryOwner::None,
+    )
+}
+
 /// 统一的阶段预算判定：`min(剩余, 阶段上限)`，低于门限即拒绝。
 ///
 /// 这里刻意只做 `min`（`clamp_stage_timeout`），**没有下限回扩**：剩余 0 就是 0。
@@ -608,7 +629,7 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
                 Ok(Err(error)) => return Err(planner_backend_error(format!("planner provider failed: {error}"))),
                 // 到期：结束等待。等待结束**不等于**底层工作已经停止；
                 // 迟到结果只作为事实被记账，永远不会变成新动作的来源。
-                Err(_) => return Err(insufficient_budget(kind, Duration::ZERO)),
+                Err(_) => return Err(model_stage_timeout(kind, budget)),
             },
             _ = async { loop { if (self.cancelled)() { break; } tokio::time::sleep(Duration::from_millis(50)).await; } } => {
                 self.check_cancelled()?;
@@ -2972,6 +2993,17 @@ mod tests {
         assert_eq!(MIN_STAGE_BUDGET, Duration::from_millis(500));
     }
 
+    #[test]
+    fn sent_request_timeout_reports_only_its_stage_wait_limit() {
+        let error = model_stage_timeout("computer_use_planning", PLANNER_TIMEOUT);
+        assert_eq!(error.code, "stage_timeout");
+        assert!(!error.retryable);
+        assert!(error.message.contains("20000 ms stage wait limit"));
+        assert!(error.message.contains("the request was sent"));
+        assert!(!error.message.contains("remaining computer-use budget"));
+        assert!(!error.message.contains("no model request was sent"));
+    }
+
     /// 零预算：**需要模型请求**的阶段不开始，且模型 HTTP 请求次数为零；
     /// 不发请求的本地判定（表面分类）不被该门限阻止。
     #[tokio::test]
@@ -3088,7 +3120,11 @@ mod tests {
             .plan(&request, &before, 0, Duration::from_millis(600))
             .await
             .expect_err("600ms 预算内不可能完成 700ms 的请求");
-        assert_eq!(error.code, "budget_exhausted");
+        assert_eq!(error.code, "stage_timeout");
+        assert!(error.message.contains("600 ms stage wait limit"), "{}", error.message);
+        assert!(error.message.contains("the request was sent"), "{}", error.message);
+        assert!(!error.message.contains("remaining computer-use budget"), "{}", error.message);
+        assert!(!error.message.contains("no model request was sent"), "{}", error.message);
         assert_eq!(
             server.request_count(),
             1,
