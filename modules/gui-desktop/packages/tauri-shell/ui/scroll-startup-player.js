@@ -43,7 +43,7 @@
     const width=1680, height=900;
     let assets = options.assets || null;
     let active = false, finished = false, frameId=0, timerId=0, loadTimer=0, startedAt=null;
-    let elapsed = 0, lastScene = null;
+    let elapsed = 0, lastScene = null, frameCount = 0;
     const actorFrames=manifest.actor.frames;
     const sources=[...new Set([manifest.background.source.src,...manifest.letters.map(letter=>letter.glyphSource.src),...actorFrames.map(frame=>frame.src)])];
     const cancel = () => {
@@ -60,7 +60,7 @@
       if (EventClass) documentRef?.dispatchEvent?.(new EventClass(manifest.completeEvent || "coolzhu-seven-letter-startup-internal",{detail:{reason,error,state:getState()}}));
       return true;
     }
-    function getState() { return {elapsedMs:elapsed,totalDurationMs:duration,completed:elapsed>=duration,mode:daily?"daily":"first",phase:elapsed>=duration?"done":daily?"daily":elapsed<1250?"unfold":elapsed<2500?"sword-and-logo":elapsed<3350?"hold":"handoff"}; }
+    function getState() { return {elapsedMs:elapsed,totalDurationMs:duration,frameCount,completed:elapsed>=duration,mode:daily?"daily":"first",phase:elapsed>=duration?"done":daily?"daily":elapsed<1250?"unfold":elapsed<2500?"sword-and-logo":elapsed<3350?"hold":"handoff"}; }
     function background(progress) {
       const image=assets?.[manifest.background.source.src];
       context.fillStyle="#071512"; context.fillRect(0,0,width,height);
@@ -156,6 +156,8 @@
       if (!active || finished) return;
       if (startedAt === null) startedAt=timestamp;
       renderAt(timestamp-startedAt);
+      frameCount++;
+      if (frameCount === 1) options.onFirstFrame?.();
       if (elapsed>=duration) finish("completed");
       else frameId=windowRef.requestAnimationFrame(tick);
     }
@@ -176,6 +178,7 @@
       load().then(loaded=>{
         if (!active || finished) return;
         windowRef.clearTimeout(loadTimer); loadTimer=0; assets=loaded;
+        options.onAssetsReady?.();
         frameId=windowRef.requestAnimationFrame(tick);
       }).catch(error=>finish("resource-error",error));
       return true;

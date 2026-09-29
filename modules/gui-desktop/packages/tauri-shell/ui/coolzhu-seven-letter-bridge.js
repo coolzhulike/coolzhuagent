@@ -25,6 +25,8 @@
     let finished = false;
     let listenersInstalled = false;
     let watchdogId = 0;
+    let startedAt = null;
+    let nativeReports = Promise.resolve();
     let mode = options.mode || "";
     if (!mode) {
       try { mode = new URLSearchParams(windowRef.location?.search || "").get("mode") || ""; } catch (_) { /* 测试或受限宿主 */ }
@@ -60,6 +62,28 @@
       }
     }
 
+    const reducedMotion = options.reducedMotion !== undefined
+      ? options.reducedMotion === true
+      : Boolean(windowRef?.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+    const now = () => typeof windowRef?.performance?.now === "function" ? windowRef.performance.now() : Date.now();
+
+    function reportNative(phase, reason, state) {
+      const core = windowRef?.__TAURI__?.core;
+      if (typeof core?.invoke !== "function") {
+        windowRef?.console?.error?.("启动演出无法上报宿主：Tauri invoke 不可用");
+        return;
+      }
+      const report = {
+        phase, mode, reducedMotion,
+        elapsedMs: Math.max(0, Math.round(now() - startedAt)),
+        frameCount: state?.frameCount || 0,
+        reason: reason || null,
+      };
+      // 保持原生诊断顺序；任一上报失败时明确报错，宿主的 15 秒兜底仍会接管。
+      nativeReports = nativeReports.then(() => core.invoke("report_startup_performance", { report }))
+        .catch(error => { windowRef?.console?.error?.("启动演出上报宿主失败", error); });
+    }
+
     function dispatchCompletion(reason) {
       const detail = Object.freeze({ reason, consoleVisible: false });
       if (documentRef && typeof documentRef.dispatchEvent === "function") {
@@ -67,16 +91,6 @@
         if (windowRef && typeof windowRef.CustomEvent === "function") event = new windowRef.CustomEvent(COMPLETE_EVENT, { detail });
         else if (typeof CustomEvent === "function") event = new CustomEvent(COMPLETE_EVENT, { detail });
         if (event) documentRef.dispatchEvent(event);
-      }
-      // Tauri 窗口需要把同一个完成契约送到 Rust 宿主；普通浏览器/Node 环境没有该 API 时只保留 DOM 事件。
-      const tauriEvent = windowRef && windowRef.__TAURI__ && windowRef.__TAURI__.event;
-      if (tauriEvent && typeof tauriEvent.emit === "function") {
-        try {
-          const pending = tauriEvent.emit(COMPLETE_EVENT, detail);
-          if (pending && typeof pending.catch === "function") pending.catch(() => {});
-        } catch (_) {
-          // 独立浏览器预览或权限尚未就绪时不阻断启动动画收尾。
-        }
       }
     }
 
@@ -89,7 +103,7 @@
       skipButton?.removeEventListener?.("click", onSkipClick);
     }
 
-    function finalize(reason) {
+    function finalize(reason, state) {
       if (finished) return false;
       finished = true;
       windowRef?.clearTimeout?.(watchdogId);
@@ -98,6 +112,7 @@
       }
       removeListeners();
       clearPresentation();
+      reportNative("finished", reason, state || instance?.getState?.());
       dispatchCompletion(reason);
       return true;
     }
@@ -114,7 +129,7 @@
 
     function onPlayerFinished(event) {
       const reason = event && event.detail && event.detail.reason ? event.detail.reason : "resource-error";
-      finalize(reason);
+      finalize(reason, event?.detail?.state);
     }
 
     function onSkipClick() {
@@ -146,6 +161,8 @@
     function start() {
       if (started || finished) return instance;
       started = true;
+      startedAt = now();
+      reportNative("started");
       if (mode === "restore") { finalize("restored"); return null; }
       if (!playerApi || typeof playerApi.createStartupPlayer !== "function" || !manifest || !canvas) {
         finalize("resource-error");
@@ -153,9 +170,6 @@
       }
       installListeners();
       watchdogId = windowRef?.setTimeout?.(() => requestFinish("presentation-timeout"), 7000) || 0;
-      const reducedMotion = options.reducedMotion !== undefined
-        ? options.reducedMotion === true
-        : Boolean(windowRef?.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
       try {
         instance = playerApi.createStartupPlayer({
           manifest: { ...manifest, completeEvent: INTERNAL_EVENT },
@@ -166,6 +180,8 @@
           mode,
           reducedMotion,
           reducedMotionDelayMs: 120,
+          onAssetsReady: () => reportNative("assets_ready"),
+          onFirstFrame: () => reportNative("first_frame", null, instance?.getState?.()),
         });
         instance.start();
       } catch (error) {

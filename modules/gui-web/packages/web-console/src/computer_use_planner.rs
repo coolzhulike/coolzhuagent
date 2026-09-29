@@ -773,12 +773,22 @@ struct VisualVerdict { progress: bool, criteria: Vec<VisualCriterion> }
 struct VisualCriterion { index: usize, met: bool, evidence: String }
 
 fn parse_visual_verification(raw: &str, count: usize, before: &Observation, after: &Observation) -> Result<computer_use::Verification, ComputerUseError> {
-    let invalid = || ComputerUseError::blocked("invalid_verification", "visual judge did not return bounded evidence for every criterion", ComputerUseRetryOwner::Model);
-    if raw.len() > 16 * 1024 { return Err(invalid()); }
-    let verdict: VisualVerdict = serde_json::from_str(raw).map_err(|_| invalid())?;
+    let invalid = |message| ComputerUseError::blocked("invalid_verification", message, ComputerUseRetryOwner::Model);
+    if raw.len() > 16 * 1024 { return Err(invalid("visual judge response exceeded verification size limit")); }
+    let verdict: VisualVerdict = serde_json::from_str(raw).map_err(|error: serde_json::Error| {
+        if error.is_syntax() || error.is_eof() {
+            invalid("visual judge returned invalid JSON")
+        } else {
+            invalid("visual judge response did not match verification schema")
+        }
+    })?;
     let indices = verdict.criteria.iter().map(|criterion| criterion.index).collect::<HashSet<_>>();
-    if count == 0 || verdict.criteria.len() != count || indices.len() != count || indices.iter().any(|index| *index >= count)
-        || verdict.criteria.iter().any(|criterion| criterion.evidence.trim().is_empty() || criterion.evidence.len() > 2048) { return Err(invalid()); }
+    if count == 0 || verdict.criteria.len() != count || indices.len() != count || indices.iter().any(|index| *index >= count) {
+        return Err(invalid("visual judge did not return exactly one result for every criterion"));
+    }
+    if verdict.criteria.iter().any(|criterion| criterion.evidence.trim().is_empty() || criterion.evidence.len() > 2048) {
+        return Err(invalid("visual judge did not return bounded evidence for every criterion"));
+    }
     let before_hash = before.state.pointer("/image/sha256").and_then(JsonValue::as_str).filter(|value| !value.is_empty());
     let after_hash = after.state.pointer("/image/sha256").and_then(JsonValue::as_str).filter(|value| !value.is_empty());
     let changed = before_hash.zip(after_hash).is_some_and(|(before,after)| before != after);
@@ -2180,6 +2190,21 @@ mod tests {
         assert!(!parse_visual_verification(&positive.replace("\"met\":true", "\"met\":false"), 1, &before, &after).unwrap().achieved);
         assert!(parse_visual_verification(positive, 2, &before, &after).is_err());
         assert!(parse_visual_verification(r#"{"progress":true,"criteria":[{"index":0,"met":true,"evidence":""}]}"#, 1, &before, &after).is_err());
+    }
+
+    #[test]
+    fn visual_verification_reports_json_syntax_and_criterion_errors_separately() {
+        let observation = image_observation(1, "same");
+        let syntax = parse_visual_verification("{invalid", 1, &observation, &observation).unwrap_err();
+        assert_eq!(syntax.code, "invalid_verification");
+        assert_eq!(syntax.message, "visual judge returned invalid JSON");
+
+        let missing = parse_visual_verification(r#"{"progress":false,"criteria":[]}"#, 1, &observation, &observation).unwrap_err();
+        assert_eq!(missing.code, "invalid_verification");
+        assert_eq!(missing.message, "visual judge did not return exactly one result for every criterion");
+
+        let blank = parse_visual_verification(r#"{"progress":false,"criteria":[{"index":0,"met":false,"evidence":""}]}"#, 1, &observation, &observation).unwrap_err();
+        assert_eq!(blank.message, "visual judge did not return bounded evidence for every criterion");
     }
 
     #[tokio::test]
