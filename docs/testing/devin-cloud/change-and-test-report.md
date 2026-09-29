@@ -6,6 +6,12 @@
 
 核对资料：[官方 API 概览](https://docs.devin.ai/api-reference/overview)、[v3 OpenAPI](https://docs.devin.ai/v3-openapi.yaml)、[Devin MCP](https://docs.devin.ai/work-with-devin/devin-mcp)、[CLI 模型设置](https://docs.devin.ai/cli/models)。公开创建 schema 没有通用 `model_id`、`temperature`、`reasoning_effort`。CLI 的模型/思考设置不能据此推定云 REST 有相同能力。首版不伪造这些参数；模型选择、思考程度由用户按官方产品实际提供的能力手动核验。
 
+### 用户确认点：本地能力集成尚未实现
+
+本版没有达到现有模型会话使用 coolzhuagent SKILL、插件、上下文和记忆的完整能力。接入方向是本地模型调用 Devin 云端会话；Devin 不能反向调用本地工具注册表或 SKILL。手动面板发送的只有填写的任务/消息，没有自动注入聊天室历史、工程资料或记忆检索结果。SQLite 中只保存云会话绑定、状态及请求账本，没有接入本地记忆检索/写入/压缩生命周期。
+
+“复用权限、工具链与轨迹”限定为本地调用 Devin 这一层，不能据此宣称 Devin 云端已接管本地完整 Agent 能力。若目标是与当前模型会话等价，需要重新审查完整会话适配、反向工具桥接及上下文/记忆接线，不能用当前云 session 插件替代验收。PR72 保持草稿，0.2.30 候选不能作为这些能力已完成的版本交付。
+
 已在用户指定的既有 ChatGPT 审查会话讨论风险，结论支持插件方案，要求工程隔离、占位密钥不联网、避免重复创建、保留真实远端状态。留档为 [审查内容](architecture-review-dom.txt) 与 [审查画面](architecture-review.png)。页面只显示“极高”思考强度，本轮未独立核实该会话的具体模型名称。
 
 ## 功能与职责
