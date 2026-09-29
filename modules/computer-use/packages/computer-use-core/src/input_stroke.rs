@@ -15,8 +15,10 @@ use crate::cleanup::{
 use runtime::{ActionReceipt, EffectStatus, GoalVerdict, InputDelivery, InputReleaseStatus};
 use crate::prepared_input::{NativeInputAuthorization, NativeInputCompletion, PreparedInputSession, SupervisedHelperChild};
 use serde::{Deserialize, Serialize};
-use std::io::Write;
-use std::path::Path;
+use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
+use sha2::{Digest, Sha256};
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
@@ -712,6 +714,52 @@ fn controlled_drag_path_impl(
     Ok(NativeStrokeOutcome { facts, helper_process: run.helper_process, process_exit_confirmed: true })
 }
 
+const MAX_CAPTURE_PIXELS: i64 = 16_777_216;
+// 32 位像素的 PNG（含编码开销）限定在 80 MiB；大图走临时文件，不占通用 stdout 缓冲。
+const MAX_CAPTURE_PNG_BYTES: u64 = 80 * 1024 * 1024;
+
+struct CaptureSpool {
+    directory: PathBuf,
+    image: PathBuf,
+}
+
+impl CaptureSpool {
+    fn new() -> Result<Self, String> {
+        static SEQUENCE: AtomicU64 = AtomicU64::new(0);
+        let nonce = format!(
+            "{}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos(),
+            SEQUENCE.fetch_add(1, Ordering::Relaxed),
+        );
+        let directory = std::env::temp_dir().join(format!("coolzhu-capture-{nonce}"));
+        std::fs::create_dir(&directory)
+            .map_err(|error| format!("无法建立截图临时目录: {error}"))?;
+        let image = directory.join("image.png");
+        Ok(Self { directory, image })
+    }
+
+    fn cleanup(&self) -> Result<(), String> {
+        match std::fs::remove_file(&self.image) {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(format!("截图临时文件清理失败: {error}")),
+        }
+        std::fs::remove_dir(&self.directory)
+            .map_err(|error| format!("截图临时目录清理失败: {error}"))
+    }
+}
+
+impl Drop for CaptureSpool {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.image);
+        let _ = std::fs::remove_dir(&self.directory);
+    }
+}
+
 /// 只截取当前已绑定窗口的真实屏幕像素，不绘制或导入任何图片。
 ///
 /// 截图模式不注入任何输入，因此不存在需要保留的输入事实；失败只保留文本。
@@ -721,31 +769,88 @@ pub fn capture_window_image(
 ) -> Result<serde_json::Value, String> {
     if window.rect[2] <= 0
         || window.rect[3] <= 0
-        || i64::from(window.rect[2]) * i64::from(window.rect[3]) > 16_777_216
+        || i64::from(window.rect[2]) * i64::from(window.rect[3]) > MAX_CAPTURE_PIXELS
     {
         return Err("窗口截图尺寸无效或超过 1600 万像素".into());
     }
+    let spool = CaptureSpool::new()?;
     let run = run_helper(
-        serde_json::json!({"mode":"capture", "window":window}),
+        serde_json::json!({"mode":"capture", "window":window, "capture_file":spool.image}),
         timeout,
         &|| false,
         StrokeRunCapacity::OrdinaryAction,
         None,
-    )
-    .map_err(|failure| failure.message)?;
-    // 截图结果优先用**增量协议记录**（不依赖 EOF）：孙进程持有管道写端时，
-    // "等整段文本"会拿不到结果，而已经成行到达的记录仍然可用。
-    if let Some(record) = run.capture_record {
-        return Ok(record);
+    ).map_err(|failure| failure.message);
+    // run_helper 的所有出口均已等到 helper 退出（异常出口会先 kill + wait），
+    // 此时才能读回和删除可能含桌面内容的临时文件。
+    let result = run.and_then(|run| {
+        if run.pipe.is_some_and(|facts| facts.truncated) {
+            return Err(format!("窗口截图回执被管道截断（缺口：{:?}）", run.pipe));
+        }
+        // 截图结果优先用**增量协议记录**（不依赖 EOF）：孙进程持有管道写端时，
+        // "等整段文本"会拿不到结果，而已经成行到达的记录仍然可用。
+        if let Some(record) = run.capture_record {
+            return hydrate_capture_record(record, &spool.image, window);
+        }
+        // 没有可解析的完整记录：如实报缺口，**不**把"没有记录"当成"零尺寸截图"。
+        let pipe = run
+            .pipe
+            .map(|facts| format!("{facts:?}"))
+            .unwrap_or_else(|| "无管道事实".to_string());
+        let record = serde_json::from_str(run.output.trim()).map_err(|error| {
+            format!("窗口截图结果无效（缺口：{pipe}）: {error}")
+        })?;
+        hydrate_capture_record(record, &spool.image, window)
+    });
+    let cleanup = spool.cleanup();
+    match (result, cleanup) {
+        (_, Err(error)) => Err(error),
+        (result, Ok(())) => result,
     }
-    // 没有可解析的完整记录：如实报缺口，**不**把"没有记录"当成"零尺寸截图"。
-    let pipe = run
-        .pipe
-        .map(|facts| format!("{facts:?}"))
-        .unwrap_or_else(|| "无管道事实".to_string());
-    serde_json::from_str(run.output.trim()).map_err(|error| {
-        format!("窗口截图结果无效（缺口：{pipe}）: {error}")
-    })
+}
+
+fn hydrate_capture_record(
+    mut record: serde_json::Value,
+    image_path: &Path,
+    window: StrokeWindow,
+) -> Result<serde_json::Value, String> {
+    let width = record["width"].as_i64().ok_or("截图回执缺少宽度")?;
+    let height = record["height"].as_i64().ok_or("截图回执缺少高度")?;
+    let length = record["bytes_len"].as_u64().ok_or("截图回执缺少字节数")?;
+    let expected_hash = record["sha256"].as_str().ok_or("截图回执缺少 SHA-256")?;
+    let screen_rect = record["screen_rect"].as_array().ok_or("截图回执缺少屏幕边界")?;
+    let client_rect = record["client_rect"].as_array().ok_or("截图回执缺少客户区边界")?;
+    if width <= 0 || height <= 0 || width > i64::from(window.rect[2])
+        || height > i64::from(window.rect[3]) || width * height > MAX_CAPTURE_PIXELS
+        || length == 0 || length > MAX_CAPTURE_PNG_BYTES
+        || expected_hash.len() != 64 || !expected_hash.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || screen_rect.len() != 4 || screen_rect[2].as_i64() != Some(width)
+        || screen_rect[3].as_i64() != Some(height)
+        || !screen_rect.iter().all(|part| part.as_i64().is_some())
+        || client_rect.len() != 4 || !client_rect.iter().all(|part| part.as_i64().is_some())
+    {
+        return Err("截图回执尺寸、边界或摘要无效".into());
+    }
+    let file = std::fs::File::open(image_path)
+        .map_err(|error| format!("截图临时文件不可读: {error}"))?;
+    let mut bytes = Vec::new();
+    file.take(MAX_CAPTURE_PNG_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| format!("截图临时文件读取失败: {error}"))?;
+    if bytes.len() as u64 != length || bytes.len() < 24
+        || &bytes[..8] != b"\x89PNG\r\n\x1a\n"
+        || &bytes[12..16] != b"IHDR"
+        || u32::from_be_bytes(bytes[16..20].try_into().unwrap_or_default()) as i64 != width
+        || u32::from_be_bytes(bytes[20..24].try_into().unwrap_or_default()) as i64 != height
+    {
+        return Err("截图临时文件长度或 PNG 尺寸与回执不符".into());
+    }
+    let actual_hash = format!("{:x}", Sha256::digest(&bytes));
+    if !actual_hash.eq_ignore_ascii_case(expected_hash) {
+        return Err("截图临时文件 SHA-256 与回执不符".into());
+    }
+    record["data_url"] = serde_json::json!(format!("data:image/png;base64,{}", BASE64_STANDARD.encode(&bytes)));
+    Ok(record)
 }
 
 /// 一次受控笔画 helper 运行的读取器容量来源（§C-21 选②）。
@@ -862,18 +967,13 @@ fn run_helper(
     let helper_process = helper_identity.as_ref().map(|identity| runtime::ProcessInstanceEvidence {
         pid: identity.pid(), creation_time_filetime: identity.creation_time_filetime(),
     });
-    let mut stdin = child
-        .stdin
-        .take()
-        .ok_or_else(|| StrokeFailure::before_input("helper stdin 不可用"))?;
-    let stdout = child
-        .stdout
-        .take()
-        .ok_or_else(|| StrokeFailure::before_input("helper stdout 不可用"))?;
-    let stderr = child
-        .stderr
-        .take()
-        .ok_or_else(|| StrokeFailure::before_input("helper stderr 不可用"))?;
+    let (Some(mut stdin), Some(stdout), Some(stderr)) =
+        (child.stdin.take(), child.stdout.take(), child.stderr.take())
+    else {
+        let _ = child.kill();
+        let _ = child.wait();
+        return Err(StrokeFailure::before_input("helper 标准管道不可用"));
+    };
     // 读取线程由原生监督器持有（`windows-process-guard` 的有界管道读取器）：
     // 只看"已经可读"的字节，**不发出无界阻塞的读取**，因此读取线程的退出条件
     // 与"孙进程是否仍持有管道写端"无关。旧实现的无界 `join()` 正是在这里被拖住：
@@ -1376,7 +1476,7 @@ if($r.two_phase_helper){
 if($r.mock_scenario){ [CoolzhuStroke.MockChecks]::RunScenario([string]$r.mock_scenario,[string]$r.progress_file,[string]$r.request_id); 'released'; exit }
 $w=$r.window
 $native=[CoolzhuStroke.Native]::new([long]$w.handle,[uint32]$w.process_id,[int[]]$w.rect,[uint32]$w.dpi,[string]$r.cancel_file)
-if($r.mode -eq 'capture') { $native.Capture()|ConvertTo-Json -Compress; exit }
+if($r.mode -eq 'capture') { $native.Capture([string]$r.capture_file)|ConvertTo-Json -Compress; exit }
 if($r.mode -ne 'stroke') { throw 'unsupported helper mode' }
 $points=@($r.points|ForEach-Object{[CoolzhuStroke.Point]::new([int]$_.x,[int]$_.y)})
 [CoolzhuStroke.Engine]::RunWithProgress($native,[CoolzhuStroke.Point[]]$points,[int[]]$r.bounds,[int]$r.duration_ms,$progress)
@@ -1387,6 +1487,44 @@ $points=@($r.points|ForEach-Object{[CoolzhuStroke.Point]::new([int]$_.x,[int]$_.
 mod tests {
     use super::*;
     use crate::ComputerUseRetryOwner;
+
+    #[test]
+    #[cfg(windows)]
+    fn capture_receipt_transfers_png_larger_than_pipe_limit() {
+        let mut pixels = vec![0_u8; 512 * 512 * 4];
+        let mut random = 0x1234_5678_u32;
+        for byte in &mut pixels {
+            random ^= random << 13;
+            random ^= random >> 17;
+            random ^= random << 5;
+            *byte = random as u8;
+        }
+        let mut png_bytes = Vec::new();
+        {
+            let mut encoder = png::Encoder::new(&mut png_bytes, 512, 512);
+            encoder.set_color(png::ColorType::Rgba);
+            encoder.set_depth(png::BitDepth::Eight);
+            let mut writer = encoder.write_header().expect("PNG 头");
+            writer.write_image_data(&pixels).expect("PNG 像素");
+        }
+        assert!(png_bytes.len() > 256 * 1024);
+        let spool = CaptureSpool::new().expect("截图临时目录");
+        std::fs::write(&spool.image, &png_bytes).expect("落盘 PNG");
+        let metadata = serde_json::json!({
+            "width":512,"height":512,"screen_rect":[0,0,512,512],
+            "client_rect":[0,0,512,512],"bytes_len":png_bytes.len(),
+            "sha256":format!("{:x}", Sha256::digest(&png_bytes)),
+        });
+        let stdout = format!("{metadata}\n");
+        assert!(stdout.len() < 256 * 1024);
+        let record = capture_record_from_lines(&super::super::complete_lines(stdout.as_bytes()))
+            .expect("完整、无需 EOF 的元数据行");
+        let window = StrokeWindow { handle: 1, process_id: 1, rect: [0,0,512,512], dpi: 96 };
+        let image = hydrate_capture_record(record, &spool.image, window).expect("完整截图回执");
+        let encoded = image["data_url"].as_str().unwrap().strip_prefix("data:image/png;base64,").unwrap();
+        assert_eq!(BASE64_STANDARD.decode(encoded).unwrap(), png_bytes);
+        drop(spool);
+    }
 
     #[test]
     #[cfg(windows)]
