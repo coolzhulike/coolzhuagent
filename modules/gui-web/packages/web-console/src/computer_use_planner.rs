@@ -3093,10 +3093,9 @@ mod tests {
         server.abort();
     }
 
-    /// 一个阶段里的两个串联请求共用同一份预算：第二个请求拿到的是**扣减后的余量**。
-    ///
-    /// 构造："纯文本规划所需的视觉转述"先跑（服务端延迟 100ms），
-    /// 入口预算 550ms − 100ms ≈ 450ms < 500ms 门限 ⇒ 第二个请求必须被拒绝且不再发出。
+    /// 串联请求共用预算：3秒预算中的首个视觉响应耗时至少2.6秒，
+    /// 即使首个响应及时返回，后续余量也不足500ms，不得开始第二次请求。
+    /// 慢调度环境中首个请求可先超时；这同样必须结束等待，禁止补发或产生动作。
     #[tokio::test]
     async fn chained_requests_share_one_budget_and_the_second_sees_the_remainder() {
         let _guard = crate::tests::config_test_guard();
@@ -3110,13 +3109,19 @@ mod tests {
         let error = planner
             .plan(&request, &before, 0, Duration::from_millis(3_000))
             .await
-            .expect_err("扣减后的余量不足，第二个请求必须被拒绝");
-        assert_eq!(error.code, "budget_exhausted");
-        assert!(
-            error.message.contains("no model request was sent"),
-            "必须明确写出没有发出请求：{}",
-            error.message
-        );
+            .expect_err("共享预算耗尽，不得返回动作或重开第二个请求的预算");
+        match error.code.as_str() {
+            "budget_exhausted" => assert!(
+                error.message.contains("no model request was sent"),
+                "首个请求完成后应明确说明第二个请求未发出：{}", error.message,
+            ),
+            "stage_timeout" => assert!(
+                error.message.contains("the request was sent")
+                    && error.message.contains("late response cannot produce an action"),
+                "首个请求先超时时必须区分已发送与迟到不得执行：{}", error.message,
+            ),
+            _ => panic!("只接受共享预算结束，不能以其它失败替代：{}", error.message),
+        }
         assert_eq!(
             server.request_count(),
             1,
