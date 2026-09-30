@@ -1,2 +1,2 @@
 # 构建收据按原始字节归档，避免换行转换改变绑定哈希。
-*.json -text
+*.json -text whitespace=cr-at-eol
