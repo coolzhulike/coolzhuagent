@@ -1997,6 +1997,43 @@ impl ComputerUseRunStore {
         result: &ComputerUseResult,
     ) -> rusqlite::Result<bool> {
         let connection = self.connection.lock().expect("computer-use store lock");
+        Self::finish_on_connection(&connection, call_id, expected_version, result)
+    }
+
+    /// 在同一个写事务内核验成功资格并提交实际结果；不能把事务外的父状态当作权威。
+    pub(crate) fn finish_checked(
+        &self,
+        call_id: &str,
+        expected_version: u64,
+        result: &ComputerUseResult,
+        check: impl FnOnce(&Connection, &ComputerUseResult) -> rusqlite::Result<ComputerUseResult>,
+    ) -> rusqlite::Result<Option<ComputerUseResult>> {
+        let mut connection = self.connection.lock().expect("computer-use store lock");
+        let transaction = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+        let eligible: bool = transaction.query_row(
+            "SELECT EXISTS(SELECT 1 FROM computer_use_runs WHERE call_id=?1 AND state_version=?2 AND terminal_result_json IS NULL)",
+            params![call_id, expected_version], |row| row.get(0),
+        )?;
+        if !eligible { return Ok(None); }
+        let actual = check(&transaction, result)?;
+        // 判定只能收紧终态，不能替换调用身份。
+        if actual.call_id != result.call_id || actual.provider_tool_call_id != result.provider_tool_call_id
+            || actual.surface != result.surface {
+            return Err(rusqlite::Error::InvalidQuery);
+        }
+        if !Self::finish_on_connection(&transaction, call_id, expected_version, &actual)? {
+            return Ok(None);
+        }
+        transaction.commit()?;
+        Ok(Some(actual))
+    }
+
+    fn finish_on_connection(
+        connection: &Connection,
+        call_id: &str,
+        expected_version: u64,
+        result: &ComputerUseResult,
+    ) -> rusqlite::Result<bool> {
         // CU-01：终态回填的权威计数**必须**在写入前从步骤行求出（同一把锁内，不另开连接）。
         let counts = Self::run_counts_on(&connection, call_id)?;
         let result_json = serde_json::to_string(result)

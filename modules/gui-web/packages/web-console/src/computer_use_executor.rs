@@ -799,6 +799,8 @@ pub(crate) struct ComputerUseExecutor<'a> {
     root_budget: Option<crate::root_execution_budget::RootExecutionBudget>,
     goal_parent: Option<crate::goal_execution_parent::FrozenGoalPhaseParent>,
     turn_scope: crate::computer_use_turn_scope::ComputerUseTurnScope,
+    /// 原生只读成功落库时沿同库事务再次裁决冻结父运行，不能依赖事务外的 S2 查询。
+    native_browser_parent: Option<crate::FrozenParentContext>,
     /// 接纳时冻结的工作区归属。**非 `Option`**：执行器在类型层面无法"没有归属"，
     /// 且构造后没有任何 setter——运行中不存在改写它的入口。
     workspace: CuWorkspaceAttribution,
@@ -831,6 +833,7 @@ impl<'a> ComputerUseExecutor<'a> {
             root_budget: crate::root_execution_budget::current(),
             goal_parent: None,
             turn_scope: crate::computer_use_turn_scope::ComputerUseTurnScope::default(),
+            native_browser_parent: None,
             workspace,
             conversation: None,
             provider_tool_call_id: String::new(),
@@ -877,6 +880,11 @@ impl<'a> ComputerUseExecutor<'a> {
     #[must_use]
     fn with_turn_scope(mut self, scope: crate::computer_use_turn_scope::ComputerUseTurnScope) -> Self {
         self.turn_scope = scope;
+        self
+    }
+
+    fn with_native_browser_parent(mut self, parent: Option<crate::FrozenParentContext>) -> Self {
+        self.native_browser_parent = parent;
         self
     }
 
@@ -1449,9 +1457,28 @@ impl<'a> ComputerUseExecutor<'a> {
         result: &ComputerUseResult,
         state_version: u64,
     ) -> ComputerUseResult {
-        match self.store.finish(&result.call_id, state_version, result) {
-            Ok(true) => result.clone(),
-            Ok(false) => self
+        let persisted = if result.goal_achieved && result.surface == ComputerUseSurface::Browser
+            && (self.native_browser_parent.is_some() || self.turn_scope.native_browser_read_only()) {
+            self.store.finish_checked(&result.call_id, state_version, result, |connection, proposed| {
+                let mut actual = proposed.clone();
+                if let Err(error) = self.native_readonly_success_check(connection, proposed) {
+                    actual.status = if error.code == "cancelled" { ComputerUseTerminalStatus::Cancelled }
+                        else if error.code == "deadline_exceeded" { ComputerUseTerminalStatus::TimedOut }
+                        else { ComputerUseTerminalStatus::Blocked };
+                    actual.stage = ComputerUseStage::Supervisor;
+                    actual.goal_achieved = false;
+                    actual.summary = error.message.clone();
+                    actual.error = Some(error);
+                }
+                Ok(actual)
+            })
+        } else {
+            self.store.finish(&result.call_id, state_version, result)
+                .map(|written| written.then(|| result.clone()))
+        };
+        match persisted {
+            Ok(Some(actual)) => actual,
+            Ok(None) => self
                 .store
                 .load(&result.call_id)
                 .ok()
@@ -1494,6 +1521,47 @@ impl<'a> ComputerUseExecutor<'a> {
                 )
             }
         }
+    }
+
+    /// 调用方已取得 BEGIN IMMEDIATE；父停止提交与 CU 成功在同库中有确定顺序。
+    /// 页面证据的时效点仍是 S2，不试图把 UI 生命周期与 SQLite 组成原子事务。
+    fn native_readonly_success_check(
+        &self,
+        connection: &rusqlite::Connection,
+        result: &ComputerUseResult,
+    ) -> Result<(), ComputerUseError> {
+        let changed = || ComputerUseError::blocked("native_browser_parent_changed",
+            "原生只读任务的冻结父运行或数据库已失效，不能提交成功", ComputerUseRetryOwner::None);
+        let parent = self.native_browser_parent.as_ref().ok_or_else(changed)?;
+        let expected_db = parent.runtime_db_path.as_ref().and_then(|path| path.canonicalize().ok())
+            .ok_or_else(changed)?;
+        let actual_db: String = connection.query_row("SELECT file FROM pragma_database_list WHERE name='main'",
+            [], |row| row.get(0)).map_err(|_| changed())?;
+        if std::path::Path::new(&actual_db).canonicalize().ok().as_ref() != Some(&expected_db) {
+            return Err(changed());
+        }
+        let deadline: i64 = connection.query_row("SELECT deadline_ms FROM computer_use_runs WHERE call_id=?1",
+            [&result.call_id], |row| row.get(0)).map_err(|_| changed())?;
+        if deadline <= 0 || now_ms() >= deadline as u64
+            || self.root_budget.as_ref().is_some_and(|budget| budget.is_expired())
+            || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
+            return Err(ComputerUseError::blocked("deadline_exceeded",
+                "原生只读任务在成功提交前已超过执行时限", ComputerUseRetryOwner::None));
+        }
+        match crate::validate_frozen_parent_relations_on_connection(connection, parent) {
+            Ok(()) => {},
+            Err(crate::FrozenRelationViolation::ParentRunNotExecutable { state })
+                if matches!(state.as_str(), "stop_requested" | "interrupted") => return Err(cancelled_error()),
+            Err(_) => return Err(changed()),
+        }
+        // 内存取消与单调预算紧贴提交检查；不声称它们与 SQLite 字段联合原子。
+        if (self.cancelled)() { return Err(cancelled_error()); }
+        if now_ms() >= deadline as u64 || self.root_budget.as_ref().is_some_and(|budget| budget.is_expired())
+            || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
+            return Err(ComputerUseError::blocked("deadline_exceeded",
+                "原生只读任务在成功提交前已超过执行时限", ComputerUseRetryOwner::None));
+        }
+        Ok(())
     }
 }
 
@@ -2173,7 +2241,8 @@ pub(crate) async fn execute_with_current_runtime(
         ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets(), workspace)
             .with_cancelled(cancelled)
             .with_root_budget(root_budget)
-            .with_turn_scope(parent.computer_use_turn_scope);
+            .with_turn_scope(parent.computer_use_turn_scope)
+            .with_native_browser_parent(adapters.native_browser_parent.clone());
     let executor = match conversation_scope {
         Some(scope) => executor.with_conversation_scope(scope),
         None => executor,
@@ -2478,6 +2547,93 @@ mod tests")
 
     fn identity(provider: &str) -> ToolCallIdentity {
         ToolCallIdentity::from_provider(provider, "session-1", "turn-1")
+    }
+
+    /// 仅验证真实 SQLite 落库边界，不调用模型或软件，不作为 Browser Use 实操验收。
+    #[test]
+    fn native_readonly_terminal_commit_respects_parent_stop_deadline_and_database() {
+        for mode in ["active", "stop", "expired", "memory_cancel", "other_database", "missing_parent"] {
+            let temp = tempfile::Builder::new().prefix("readonly-terminal-").tempdir_in("tmp").unwrap();
+            let db = temp.path().join("sessions.sqlite3");
+            let workspace = "ws-00000000000000ff";
+            seed_relation_complete_admission(&db, workspace, "room-1", "session-1", "parent-run");
+            if mode == "stop" {
+                crate::interrupt_runtime_run_sqlite(&db, "parent-run", Some("test-stop")).unwrap();
+            }
+            let mut parent = crate::FrozenParentContext::new("sqlite-terminal-test", workspace,
+                Some("room-1"), Some("session-1"), Some("turn-1"), Some("parent-run")).unwrap();
+            parent.runtime_db_path = Some(if mode == "other_database" {
+                let other = temp.path().join("other.sqlite3");
+                std::fs::write(&other, b"").unwrap(); other
+            } else { db.clone() });
+            let store = ComputerUseRunStore::open(&db).unwrap();
+            let identity = identity("readonly-terminal");
+            assert!(store.create_run(&NewComputerUseRun {
+                call_id:identity.call_id.clone(), provider_tool_call_id:Some(identity.provider_tool_call_id.clone()),
+                session_id:identity.session_id.clone(), turn_id:identity.turn_id.clone(), chat_room_id:Some("room-1".into()),
+                idempotency_key:identity.call_id.clone(), objective_json:"{}".into(), surface:ComputerUseSurface::Browser,
+                deadline_ms:if mode=="expired" {1} else {now_ms()+60_000}, created_at_ms:now_ms(),
+                workspace:CuWorkspaceAttribution::from_parent_run(&parent.workspace_id),
+            }).unwrap());
+            let mut proposed = terminal_result(&identity, ComputerUseSurface::Browser, ComputerUseStage::Terminal, cancelled_error());
+            proposed.status = ComputerUseTerminalStatus::Succeeded;
+            proposed.goal_achieved = true;
+            proposed.error = None;
+            proposed.summary = "只读页面事实已在S2核对".into();
+            proposed.evidence = vec!["native-observation:receipt".into()];
+            let planner = FakePlanner::one_click();
+            let factory = factory(false);
+            let executor = ComputerUseExecutor::new(&planner, &factory, &store, ComputerUseBudgets::default(),
+                CuWorkspaceAttribution::from_parent_run(&parent.workspace_id))
+                .with_native_browser_parent((mode != "missing_parent").then_some(parent))
+                .with_turn_scope(crate::computer_use_turn_scope::ComputerUseTurnScope::from_current_user("内置浏览器，不得发送输入"))
+                .with_root_budget(None)
+                .with_cancelled(Arc::new(move || mode == "memory_cancel"));
+            let actual = executor.finish_at_version(&proposed, 0);
+            let expected = match mode {
+                "active" => ComputerUseTerminalStatus::Succeeded,
+                "stop" | "memory_cancel" => ComputerUseTerminalStatus::Cancelled,
+                "expired" => ComputerUseTerminalStatus::TimedOut,
+                _ => ComputerUseTerminalStatus::Blocked,
+            };
+            assert_eq!(actual.status, expected, "落库模式={mode}");
+            assert_eq!(actual.goal_achieved, mode == "active");
+            assert_eq!(actual.evidence, proposed.evidence, "收紧结果仍保留观察凭据");
+            assert_eq!(store.load(&identity.call_id).unwrap().unwrap().terminal_result, Some(actual.clone()));
+            assert_eq!(executor.finish_at_version(&proposed, 0), actual, "迟到成功不能覆盖既有终态");
+            if mode == "active" {
+                crate::interrupt_runtime_run_sqlite(&db, "parent-run", Some("after-success")).unwrap();
+                assert_eq!(executor.finish_at_version(&proposed, 0), actual, "成功先提交后保留原CU事实");
+            }
+        }
+    }
+
+    /// 第二连接不能插入父状态写入，证明检查与 CU 提交处在同一真实写事务中。
+    #[test]
+    fn native_readonly_terminal_transaction_excludes_parent_writer_until_commit() {
+        let temp = tempfile::Builder::new().prefix("readonly-cas-").tempdir_in("tmp").unwrap();
+        let db = temp.path().join("sessions.sqlite3");
+        let store = ComputerUseRunStore::open(&db).unwrap();
+        let other = crate::open_session_connection(&db).unwrap();
+        other.busy_timeout(std::time::Duration::ZERO).unwrap();
+        let mut parent = crate::FrozenParentContext::new("sqlite-cas-test", "ws-00000000000000ff", None, None, None, None).unwrap();
+        parent.runtime_db_path = Some(db.clone());
+        let identity = identity("readonly-cas");
+        assert!(store.create_run(&NewComputerUseRun {
+            call_id:identity.call_id.clone(), provider_tool_call_id:Some(identity.provider_tool_call_id.clone()),
+            session_id:identity.session_id.clone(), turn_id:identity.turn_id.clone(), chat_room_id:None,
+            idempotency_key:identity.call_id.clone(), objective_json:"{}".into(), surface:ComputerUseSurface::Browser,
+            deadline_ms:now_ms()+60_000, created_at_ms:now_ms(), workspace:CuWorkspaceAttribution::from_parent_run(&parent.workspace_id),
+        }).unwrap());
+        let proposed = terminal_result(&identity, ComputerUseSurface::Browser, ComputerUseStage::Supervisor, cancelled_error());
+        let actual = store.finish_checked(&identity.call_id, 0, &proposed, |_, proposed| {
+            let error = other.execute("UPDATE runtime_runs SET state='stop_requested'", []).unwrap_err();
+            assert!(matches!(error, rusqlite::Error::SqliteFailure(ref failure, _) if matches!(failure.code,
+                rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked)));
+            Ok(proposed.clone())
+        }).unwrap();
+        assert_eq!(actual, Some(proposed));
+        other.execute("UPDATE runtime_runs SET state='stop_requested'", []).unwrap();
     }
 
     /// **正式输入入口的共享状态前置**：注入输入安全库根，并按资格把该资源开放。

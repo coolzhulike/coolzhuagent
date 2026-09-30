@@ -712,6 +712,20 @@ fn validate_frozen_parent_relations(
     }
     let connection = open_session_connection(db_path)
         .map_err(|_| FrozenRelationViolation::ParentRunUnknown(run_id.to_string()))?;
+    validate_frozen_parent_relations_on_connection(&connection, context)
+}
+
+/// 复用调用方的事务连接：CU 成功提交与父运行取消必须由同库事务裁决。
+fn validate_frozen_parent_relations_on_connection(
+    connection: &Connection,
+    context: &FrozenParentContext,
+) -> Result<(), FrozenRelationViolation> {
+    let Some(run_id) = context.parent_run_id.as_deref() else {
+        return Err(FrozenRelationViolation::MissingRequiredIdentity {
+            dimension: "父运行",
+            entry: context.entry,
+        });
+    };
     // 房间与会话：存在性必须由库回答（房间能力/授权仍由既有门负责，不在此重复）。
     if let Some(room_id) = context.room_id.as_deref() {
         let exists: bool = connection
@@ -739,7 +753,7 @@ fn validate_frozen_parent_relations(
             return Err(FrozenRelationViolation::SessionUnknown(session_id.to_string()));
         }
     }
-    let run = query_runtime_run_sqlite(db_path, run_id)
+    let run = query_runtime_run_connection(connection, run_id)
         .ok()
         .flatten()
         .ok_or_else(|| FrozenRelationViolation::ParentRunUnknown(run_id.to_string()))?;

@@ -1,0 +1,64 @@
+  - heading "ChatGPT 说：" [level=4]
+  - paragraph:
+    - text: 是，
+    - strong: 如果 040 的真机验收包含“取消 first-wins”这一项，我建议装包前补这个最终提交仲裁；这是当前唯一仍应视为阻断的点。
+  - paragraph:
+    - text: 你补充的事实已经证明 COM 线程归属和面板生命周期检查没问题。剩余问题不是“会继续执行输入”，而是
+    - strong: 审计语义可能自相矛盾
+    - text: ：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: parent stop_requested 已先提交 ↓ CU row 仍未 terminal ↓ readonly success 进入 store.finish ↓ CU 写 goal=true ↓ parent 最终 interrupted
+  - paragraph: 这样虽然父运行不会继续工具，但会留下“父运行已取消、子 CU 却成功”的真实竞态。对于你正在验收的 readonly/cancel 语义，这不应留给真机碰概率。
+  - paragraph:
+    - text: 最小修改只放在
+    - strong: CU 成功终态提交入口
+    - text: ，不改 verifier、不做第三次 AX：
+  - list:
+    - listitem: 对 goal=true / readonly success 这类成功终态，在 store.finish 写入前重新读取冻结的 parent run。
+    - text: 若 parent 与 CU 在同一 SQLite 库，最好把“检查 parent 仍 accepted/running、stop_requested=false”和 CU UPDATE ... terminal_result_json IS NULL 放进
+    - strong: 同一个现有 BEGIN IMMEDIATE 事务
+    - text: 。这样 parent stop 的事务和 CU success 有明确线性顺序。
+    - listitem: deadline/budget 在最终提交前再检查一次；如果有持久化权威字段，就在同一事务读。若只是运行时 deadline，则紧贴成功事务入口检查，不要伪称它具有跨表原子性。
+    - text: 若父已停止/超时，
+    - strong: 不得写 goal=true
+    - text: ；应收敛到现有 Cancelled/TimedOut/Interrupted 对应语义，或让已有父终态胜出，而不是制造新的“verification_failed”。
+  - paragraph: 必须坚持的线性化语义建议就一句：
+  - blockquote:
+    - paragraph:
+      - strong: S2 成功是“页面证据 freshness”的线性化点；最终 CU success 事务是“任务成功终态”的线性化点。
+  - paragraph: 因此，不需要再把“面板在 S2 后 1ms 隐藏”也要求跨 UI/DB 原子化。S2 当时已经证明快照新鲜即可。真正必须 first-wins 的是：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: parent cancel/timeout commit vs CU success commit
+  - paragraph: 谁先取得并提交权威终态，谁赢。
+  - paragraph:
+    - text: 如果 parent/CU
+    - strong: 不在同一 SQLite 数据库
+    - text: ，那再加一次普通查询仍不能声称严格 first-wins；这种情况下要么明确接受较弱语义，要么另做仲裁。但按你描述的“跨表”情况，如果确实同库，现有 Immediate 事务就是最窄落点。
+  - paragraph:
+    - text: 所以裁定是：
+    - strong: 先补这一处，再发布/安装 040，然后做真实 Qwen readonly + cancel 实操。
+    - text: Happy-path 只读本身已经没有新的技术阻断，但带取消验收的 040 不建议明知存在该竞态还先装。
+  - button "复制":
+  - button "评价回复":
+  - button "分享":
+  - button "朗读":
+  - button "重新生成回复":
+  - button "更多操作":
+  - generic: ChatGPT 可能会出错。请核查重要信息。
+  - button "滚动到底部":
+  - heading "最新一条回复" [level=4]
+  - status
+  - button "添加文件等内容":
+  - textbox "询问 ChatGPT":
+    - paragraph: 询问 ChatGPT
+  - button "选择 ChatGPT 模型":
+    - generic: 极高
+  - button "听写":
+  - button "开始语音":
+- status
+- status
+- status: 回答已完成
