@@ -12,7 +12,7 @@ impl ComputerUseTurnScope {
         let native_browser = ["内置浏览器", "builtin browser", "built-in browser"]
             .iter().any(|name| text.contains(name));
         let explicit_no_input = ["不得发送输入", "不要发送输入", "不发送输入",
-            "不点击、不滚动、不输入", "do not send input"]
+            "不点击、不滚动、不输入", "不得点击、滚动或输入", "禁止点击、滚动或输入", "do not send input"]
             .iter().any(|restriction| text.contains(restriction));
         Self { native_browser_read_only: native_browser && explicit_no_input }
     }
@@ -63,6 +63,14 @@ mod tests {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(!scope.native_browser_read_only());
             assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_ok());
+        }
+    }
+    #[test]
+    fn readonly_browser_accepts_the_current_combined_chinese_restriction() {
+        for text in ["内置浏览器，不得点击、滚动或输入", "内置浏览器，禁止点击、滚动或输入"] {
+            let scope = ComputerUseTurnScope::from_current_user(text);
+            assert!(scope.native_browser_read_only());
+            assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());
         }
     }
 }

@@ -18,6 +18,7 @@ mod browser_bridge;
 mod browser_bridge_protocol;
 mod native_browser_host;
 mod native_browser_adapter;
+mod native_browser_verification;
 mod computer_use_activity;
 mod computer_use_turn_scope;
 mod chat_insights;
@@ -34153,7 +34154,7 @@ fn computer_use_tool_definition() -> ToolDefinition {
         // 会让 DeepSeek / 百炼等直接 400 拒绝整个请求，退化成本地回退文案。
         name: COMPUTER_USE_TOOL_NAME.to_string(),
         description: Some(
-            "Complete one user-authorized desktop or browser UI task. Do not use this tool for shell commands, code execution, or file editing. Describe the goal and observable success criteria; the runtime owns observation, planning, bounded input, and verification."
+            "Complete one user-authorized desktop or browser UI task. Do not use this tool for shell commands, code execution, or file editing. Describe the goal and observable success criteria; the runtime owns observation, planning, bounded input, and verification. For browser tasks, including the built-in side-panel browser, use target.url only; never add target.application or target.window alongside a URL."
                 .to_string(),
         ),
         input_schema: json!({
