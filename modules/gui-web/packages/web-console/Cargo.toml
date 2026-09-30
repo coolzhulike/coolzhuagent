@@ -27,6 +27,7 @@ walkdir = "2"
 async-stream = "0.3"
 futures-core = "0.3"
 futures-util = "0.3"
+flate2 = "1"
 getrandom.workspace = true
 image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
 runtime.workspace = true

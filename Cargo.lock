@@ -1016,6 +1016,7 @@ dependencies = [
  "coolzhu-vision-service",
  "coolzhu-windows-process-guard",
  "encoding_rs",
+ "flate2",
  "futures-core",
  "futures-util",
  "getrandom 0.3.4",

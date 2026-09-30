@@ -295,6 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-action]").forEach((node) => {
     actionButtons.set(node.dataset.action, node);
   });
+  initializeIconControls();
   initializeWorkbenchWindows();
   initializeChatLayout();
   initializeBridgeVisualEffects();
@@ -2008,7 +2009,6 @@ function renderAppUpdateStatus(data = {}) {
   const hasPublishedRelease = ["up_to_date", "update_available", "unavailable"].includes(data.status)
     && Boolean(data.latest_version);
   setRole("app-update-current-version", currentVersion);
-  setRole("app-update-build-version", data.build_version || "未知");
   setRole("app-update-channel", channel);
   setRole("app-update-latest-version", hasPublishedRelease ? data.latest_version : "尚未确认");
   setRole("app-update-checked-at", checkedAt);
@@ -8947,6 +8947,9 @@ const WUXIA_ICON_ALLOW_LIST = new Set([
   "chevron",
   "delete",
   "stop",
+  "send", "refresh", "search", "browser", "terminal", "check", "file", "settings",
+  "save", "plus", "upload", "package-crate", "crosshair", "shield", "tasks", "context-ring",
+  "maximize", "media", "vision", "diff", "link", "folder", "rename",
 ]);
 
 function wuxiaIconElement(name, className = "wuxia-inline-icon") {
@@ -8964,9 +8967,75 @@ function setWuxiaIconOnly(node, name, label) {
   if (!node) {
     return;
   }
+  // 权限异常徽记属于用户必须看到的状态，不能随按钮文案一起移除。
+  const badge = node.querySelector('[data-role="chat-trace-safety-badge"]');
   node.replaceChildren(wuxiaIconElement(name, "wuxia-icon-only"));
+  if (badge) node.append(badge);
+  node.dataset.iconOnly = "true";
+  node.dataset.label = label;
   node.setAttribute("aria-label", label);
   node.title = label;
+}
+
+// 仅转换固定操作控件，保留模型、工程、聊天室等选择器的当前值文字。
+function initializeIconControls() {
+  const actions = {
+    "send-message": ["send", "发送消息"],
+    "chat-tool-back": ["chevron", "返回此前的右栏视图"],
+    "chat-tool-close": ["stop", "关闭当前工具"],
+    "browser-window-back": ["chevron", "后退"],
+    "browser-window-forward": ["chevron", "前进"],
+    "browser-window-go": ["search", "打开网址"],
+    "browser-window-reload": ["refresh", "刷新网页"],
+    "browser-window-stop": ["stop", "停止加载"],
+    "skills-catalog-refresh": ["refresh", "刷新 SKILL 目录"],
+    "plugin-market-refresh": ["refresh", "刷新插件目录"],
+    "dsh-market-search": ["search", "搜索插件"],
+    "dsh-market-prev": ["chevron", "上一页"],
+    "dsh-market-next": ["chevron", "下一页"],
+    "app-update-check": ["refresh", "检查更新"],
+    "terminal-window-interrupt": ["stop", "中断当前命令"],
+    "terminal-window-close": ["stop", "关闭终端"],
+    "terminal-window-run": ["terminal", "运行命令"],
+    "chat-history-open": ["search", "搜索聊天记录与消息索引"],
+    "chat-trace-open": ["context-ring", "查看运行轨迹与安全详情"],
+    "task-schedule-create": ["plus", "添加定时任务"],
+    "task-schedule-run-due": ["send", "运行到期任务"],
+    "task-schedule-relay-timeout-save": ["save", "保存接力超时"],
+    "session-save": ["save", "保存模型会话配置"],
+    "session-create": ["plus", "新建模型会话"],
+    "session-reset": ["refresh", "重置模型会话"],
+    "session-delete": ["delete", "删除模型会话"],
+    "message-load-older": ["chevron", "加载更早消息"],
+    "terminal-window-clear": ["delete", "清空终端显示"],
+    "project-mode-toggle": ["diff", "切换到文件对比"],
+    "project-save": ["save", "保存当前文件"],
+    "project-new-file": ["file", "新建文件"],
+    "project-new-dir": ["folder", "新建目录"],
+    "project-rename": ["rename", "重命名文件或目录"],
+    "project-delete": ["delete", "删除文件或目录"],
+    "project-refresh": ["refresh", "刷新工程文件"],
+    "project-symbol-index": ["search", "构建符号索引"],
+    "lsp-preview-start": ["settings", "配置并启动语言服务"],
+    "lsp-preview-refresh": ["refresh", "刷新语言服务诊断"],
+    "lsp-preview-definition": ["crosshair", "跳转定义"],
+    "lsp-preview-references": ["search", "查找引用"],
+    "lsp-preview-close": ["stop", "关闭语言服务预览"],
+  };
+  for (const [action, [icon, label]] of Object.entries(actions)) {
+    setWuxiaIconOnly(actionButtons.get(action), icon, label);
+  }
+  setWuxiaIconOnly(document.querySelector('[data-role="chat-usage-refresh"]'), "refresh", "刷新统计");
+  const roles = {
+    "chat-trace-refresh": ["refresh", "刷新运行轨迹"],
+    "chat-trace-more": ["chevron", "查看更早轮次"],
+    "chat-history-more": ["chevron", "加载更多聊天记录"],
+    "chat-return-latest": ["chevron", "回到最新消息"],
+    "preview-tabs-reopen": ["file", "打开已保留的预览标签"],
+  };
+  for (const [role, [icon, label]] of Object.entries(roles)) {
+    setWuxiaIconOnly(document.querySelector(`[data-role="${role}"]`), icon, label);
+  }
 }
 
 function sessionByAuthor(author) {
@@ -12352,11 +12421,7 @@ function updateLoadOlderButton() {
   }
   button.disabled = !messagePaging.hasMore;
   button.classList.toggle("is-disabled", !messagePaging.hasMore);
-  if (!messagePaging.hasMore) {
-    button.textContent = "无更早历史";
-  } else {
-    button.textContent = "加载更早";
-  }
+  setWuxiaIconOnly(button, "chevron", messagePaging.hasMore ? "加载更早消息" : "无更早消息");
 }
 
 function onComposerFilesSelected(event) {
@@ -13928,7 +13993,7 @@ function showQuickCatalogDetail(title, content) {
   heading.textContent = title;
   const close = document.createElement("button");
   close.type = "button";
-  close.textContent = "关闭";
+  setWuxiaIconOnly(close, "stop", "关闭内容详情");
   close.addEventListener("click", () => overlay.remove());
   header.append(heading, close);
   const body = document.createElement("pre");
@@ -13968,7 +14033,7 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
   if (kind === "skills") {
     const detail = document.createElement("button");
     detail.type = "button";
-    detail.textContent = "查看内容";
+    setWuxiaIconOnly(detail, "file", "查看 SKILL 内容");
     detail.addEventListener("click", async () => {
       setBusy(detail, true, "读取中");
       try {
@@ -13982,31 +14047,33 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
     card.append(detail);
     const select = document.createElement("button");
     select.type = "button";
-    select.textContent = item.selected ? "停用" : "选用";
+    setWuxiaIconOnly(select, item.selected ? "stop" : "check", item.selected ? "停用 SKILL" : "选用 SKILL");
+    select.setAttribute("aria-pressed", String(item.selected));
     select.addEventListener("click", () => quickCatalogMutation("skills", "/api/extension-market/skills/select",
       {expected_workspace:workspaceId, selected_id:item.selected ? null : item.id}, select));
     card.append(select);
   } else if (item.installable) {
     const install = document.createElement("button");
     install.type = "button";
-    install.textContent = "安装";
+    setWuxiaIconOnly(install, "package-crate", "安装本地插件候选");
     install.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/install",
       {expected_workspace:workspaceId,id:item.id}, install));
     card.append(install);
   } else if (item.manageable) {
     const toggle = document.createElement("button");
     toggle.type = "button";
-    toggle.textContent = item.enabled ? "停用" : "启用";
+    setWuxiaIconOnly(toggle, item.enabled ? "stop" : "check", item.enabled ? "停用插件" : "启用插件");
+    toggle.setAttribute("aria-pressed", String(item.enabled));
     toggle.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
       {expected_workspace:workspaceId,id:item.id,action:item.enabled ? "disable" : "enable"}, toggle));
     const update = document.createElement("button");
     update.type = "button";
-    update.textContent = "更新";
+    setWuxiaIconOnly(update, "refresh", "更新插件");
     update.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
       {expected_workspace:workspaceId,id:item.id,action:"update"}, update));
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.textContent = "卸载";
+    setWuxiaIconOnly(remove, "delete", "卸载插件");
     remove.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
       {expected_workspace:workspaceId,id:item.id,action:"uninstall"}, remove));
     card.append(toggle);
@@ -18405,18 +18472,14 @@ function toggleIdeViewDiffMode() {
 
 function updateIdeModeToggleButton() {
   const button = actionButtons.get("project-mode-toggle");
-  const label = document.querySelector('[data-role="ide-mode-toggle-label"]');
-  const icon = document.querySelector('[data-role="ide-mode-toggle-icon"]');
   const paths = document.querySelector('[data-role="ide-diff-paths"]');
   if (ideViewDiffMode === "diff") {
     button?.classList.add("is-active");
-    if (label) label.textContent = "查看";
-    if (icon) icon.src = iconUrl("vision");
+    setWuxiaIconOnly(button, "vision", "切换到文件查看");
     if (paths) paths.hidden = false;
   } else {
     button?.classList.remove("is-active");
-    if (label) label.textContent = "对比";
-    if (icon) icon.src = iconUrl("diff");
+    setWuxiaIconOnly(button, "diff", "切换到文件对比");
     if (paths) paths.hidden = true;
   }
 }
@@ -19232,6 +19295,12 @@ function setBusy(button, busy, label) {
   }
   button.disabled = busy;
   button.classList.toggle("is-busy", busy);
+  if (button.dataset.iconOnly === "true") {
+    const accessibleLabel = busy ? `${button.dataset.label}：${label || "处理中"}` : button.dataset.label;
+    button.title = accessibleLabel;
+    button.setAttribute("aria-label", accessibleLabel);
+    return;
+  }
   const textNode = Array.from(button.childNodes).find(
     (node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim(),
   );
@@ -19265,7 +19334,7 @@ function setSendButtonRunning(running) {
   }
   button.title = running
     ? "中止当前回复；服务端将停止后续模型轮次、工具派发与后续写回"
-    : "";
+    : button.dataset.label;
   button.setAttribute("aria-label", running ? "中止当前回复；服务端将停止后续模型轮次、工具派发与后续写回" : button.dataset.label);
 }
 

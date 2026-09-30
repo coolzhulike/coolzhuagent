@@ -8,6 +8,9 @@ window.CoolzhuChatExperience = (() => {
   const duration = (ms) => ms < 60000 ? `${(ms / 1000).toFixed(1)} 秒` : `${Math.floor(ms / 60000)} 分 ${Math.floor(ms / 1000) % 60} 秒`;
   const button = (label, action) => {
     const node = document.createElement("button"); node.type = "button"; node.textContent = label;
+    // 列表条目保留名称；固定操作使用图标，避免抹掉工程路径或消息搜索结果。
+    const icons = {"关闭":"stop", "切换目录":"check", "浏览当前工程文件…":"folder", "保存当前 Agent 头像":"save"};
+    if (icons[label]) setWuxiaIconOnly(node, icons[label], label);
     node.addEventListener("click", action); return node;
   };
   const note = (text) => { const node = document.createElement("p"); node.textContent = text; return node; };

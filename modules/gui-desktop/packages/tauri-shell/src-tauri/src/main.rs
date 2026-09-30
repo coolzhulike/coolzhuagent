@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod browser_panel;
+mod console_shell;
 mod recovery_confirmation;
 
 use serde::{Deserialize, Serialize};
@@ -214,7 +215,7 @@ fn main() {
                 show_console(app);
             }
         }))
-        .plugin(tauri_plugin_shell::init())
+        .plugin(console_shell::init())
         .manage(browser_panel::PanelStore::default())
         .invoke_handler(|invoke| {
             let caller = invoke.message.webview_ref();
@@ -496,6 +497,7 @@ fn build_startup_performance_window(app: &AppHandle) -> Result<(), Box<dyn std::
         tauri::WebviewUrl::CustomProtocol(launch_url),
     )
     .title("COOLZHU")
+    .background_color(tauri::utils::config::Color(7, 23, 16, 255))
     .inner_size(1440.0, 900.0)
     .min_inner_size(900.0, 520.0)
     .center()

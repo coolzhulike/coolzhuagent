@@ -79,7 +79,7 @@ pub struct PanelStore {
 }
 
 // 启动后固定信任来源；不能由之后发生的临时文件变化扩大 IPC 的信任边界。
-fn console_origin() -> Option<&'static Url> {
+pub(super) fn console_origin() -> Option<&'static Url> {
     static ORIGIN: OnceLock<Option<Url>> = OnceLock::new();
     ORIGIN
         .get_or_init(|| {

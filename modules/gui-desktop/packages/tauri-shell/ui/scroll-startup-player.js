@@ -39,7 +39,9 @@
     const windowRef = options.windowRef || root;
     const documentRef = options.documentRef || root.document;
     const daily = options.mode === "daily";
-    const duration = daily ? 980 : 4600;
+    // 日常启动也播放完整动作；两种模式只压缩展开和收势，不省略人物。
+    const duration = daily ? 6500 : 7800;
+    const sceneDuration = 7800;
     const width=1680, height=900;
     let assets = options.assets || null;
     let active = false, finished = false, frameId=0, timerId=0, loadTimer=0, startedAt=null;
@@ -60,7 +62,7 @@
       if (EventClass) documentRef?.dispatchEvent?.(new EventClass(manifest.completeEvent || "coolzhu-seven-letter-startup-internal",{detail:{reason,error,state:getState()}}));
       return true;
     }
-    function getState() { return {elapsedMs:elapsed,totalDurationMs:duration,frameCount,completed:elapsed>=duration,mode:daily?"daily":"first",phase:elapsed>=duration?"done":daily?"daily":elapsed<1250?"unfold":elapsed<2500?"sword-and-logo":elapsed<3350?"hold":"handoff"}; }
+    function getState() { const sceneTime=elapsed*sceneDuration/duration; return {elapsedMs:elapsed,totalDurationMs:duration,frameCount,completed:elapsed>=duration,mode:daily?"daily":"first",phase:elapsed>=duration?"done":sceneTime<1400?"unfold":sceneTime<5700?"sword-and-logo":sceneTime<6700?"hold":"handoff"}; }
     function background(progress) {
       const image=assets?.[manifest.background.source.src];
       context.fillStyle="#071512"; context.fillRect(0,0,width,height);
@@ -136,18 +138,23 @@
       if (canvas.width!==width || canvas.height!==height) { canvas.width=width; canvas.height=height; }
       context.clearRect(0,0,width,height);
       const reduced=options.reducedMotion === true;
-      const presentationTime=daily?2600:elapsed;
-      const progress=daily||reduced?1:between(elapsed,280,1250);
-      const fade=reduced?1:daily?1-between(elapsed,800,980):1-between(elapsed,3350,4600);
+      const presentationTime=elapsed*sceneDuration/duration;
+      const progress=reduced?1:between(presentationTime,280,1400);
+      const fade=reduced?1:1-between(presentationTime,6700,7800);
       context.save(); context.globalAlpha=fade;
       background(progress);
-      const logoAlpha=daily?between(elapsed,30,330):reduced?1:between(elapsed,1550,2500);
+      const logoAlpha=reduced?1:between(presentationTime,1800,3500);
       logo(logoAlpha); ambience(presentationTime,progress);
       let motion=null;
-      if (!reduced && !daily && elapsed>=1050 && elapsed<2780) {
-        motion=actor(elapsed,between(elapsed,1050,1190)*(1-between(elapsed,2400,2780)));
+      if (!reduced && presentationTime>=1400 && presentationTime<5700) {
+        // 蓄势、腾跃、出剑、回身收剑；轨迹往返连续，完整姿态只画一帧。
+        const actionProgress=clamp((presentationTime-1400)/3600);
+        const round=Math.min(1,Math.floor(actionProgress*2));
+        const roundProgress=actionProgress*2-round;
+        const actionTime=round===0?1050+roundProgress*1260:2310-roundProgress*1260;
+        motion=actor(actionTime,between(presentationTime,1400,1700)*(1-between(presentationTime,5200,5700)));
       }
-      seal(daily?between(elapsed,130,480):reduced?1:between(elapsed,2350,2700));
+      seal(reduced?1:between(presentationTime,5000,5700));
       context.restore();
       lastScene={state:getState(),scrollProgress:progress,logoAlpha,actor:motion,sealText:"酷朱"};
       return lastScene;

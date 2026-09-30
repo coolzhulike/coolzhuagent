@@ -56,6 +56,7 @@
     const heading = element("header", "");
     heading.append(element("strong", item.name || item.id));
     const close = element("button", "关闭");
+    setWuxiaIconOnly(close, "stop", "关闭插件详情");
     close.type = "button";
     close.addEventListener("click", () => overlay.remove());
     heading.append(close);
@@ -66,6 +67,7 @@
     const repository = safeGitHubRepository(detail.repository, item.owner);
     if (repository) {
       const open = element("button", "在内置浏览器打开仓库");
+      setWuxiaIconOnly(open, "browser", "在内置浏览器打开仓库");
       open.type = "button";
       open.addEventListener("click", async () => {
         open.disabled = true;
@@ -85,6 +87,7 @@
     card.append(element("p", "兼容状态：尚未核验。DSH 的 Node/Cordis 插件不能直接作为 COOLZHU 原生插件运行。", "dsh-market-compatibility"));
     const compatibility = card.querySelector(".dsh-market-compatibility");
     const check = element("button", "检查原生清单");
+    setWuxiaIconOnly(check, "check", "检查原生清单兼容性");
     check.type = "button";
     check.addEventListener("click", async () => {
       const key = workspaceKey();
@@ -99,7 +102,7 @@
         const result = await readJson("/api/extension-market/dsh/compatibility", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ expected_workspace: detail.workspace_id, id: item.id })
-        }, 30000);
+        }, 120000);
         if (key !== workspaceKey() || result.workspace_id !== detail.workspace_id) throw new Error("工程已切换，请重新打开详情");
         const label = result.status === "incompatible" ? "当前仓库不兼容" :
           result.status === "manifest_found_unverified" ? "发现原生清单，仍待完整校验" : "兼容性未知";
@@ -122,11 +125,12 @@
     card.append(element("small", meta.join(" · ")));
     card.append(element("p", item.description || "暂无说明。"));
     const detailButton = element("button", "查看详情与兼容性");
+    setWuxiaIconOnly(detailButton, "file", "查看详情与兼容性");
     detailButton.type = "button";
     detailButton.addEventListener("click", async () => {
       detailButton.disabled = true;
       try {
-        const detail = await readJson(`/api/extension-market/dsh/detail?id=${encodeURIComponent(item.id)}`);
+        const detail = await readJson(`/api/extension-market/dsh/detail?id=${encodeURIComponent(item.id)}`, {}, 100000);
         if (key !== workspaceKey() || detail.workspace_id !== response.workspace_id) throw new Error("工程已切换，请刷新目录");
         showDetail(item, detail);
       } catch (error) { status.textContent = `详情读取失败：${error.message}`; }
@@ -161,7 +165,8 @@
     const params = new URLSearchParams({ q: search.value.trim(), category: selected, page: String(state.page) });
     if (force) params.set("refresh", "true");
     try {
-      const response = await readJson(`/api/extension-market/dsh?${params}`, { signal: controller.signal });
+      // 后端完整目录下载最多 90 秒；前端先超时会使真实目录永远无法显示。
+      const response = await readJson(`/api/extension-market/dsh?${params}`, { signal: controller.signal }, 100000);
       if (serial !== state.serial || key !== workspaceKey()) return;
       updateCategories(response.categories, selected);
       state.page = response.page || 1;

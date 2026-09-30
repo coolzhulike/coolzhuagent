@@ -72,6 +72,9 @@ window.CoolzhuContentPreview = (() => {
     const previous = node("button", "上个"); previous.type = "button";
     const next = node("button", "下个"); next.type = "button";
     const copy = node("button", "复制本页"); copy.type = "button";
+    setWuxiaIconOnly(previous, "chevron", "上一个匹配行");
+    setWuxiaIconOnly(next, "chevron", "下一个匹配行");
+    setWuxiaIconOnly(copy, "file", "复制本页内容");
     const status = node("small", ""); status.setAttribute("role", "status");
     const pre = node("pre"); pre.className = "content-preview-text has-line-numbers"; pre.tabIndex = 0; pre.setAttribute("aria-label", "文件内容与行号");
     const allLines = String(text || "").split("\n"); const lines = allLines.slice(0,2000); const first = options.startLine || 1;
@@ -104,6 +107,7 @@ window.CoolzhuContentPreview = (() => {
     if (options.onLine) {
       const jump = node("input"); jump.type = "number"; jump.min = "1"; jump.max = String(options.totalLines || 1); jump.value = String(options.targetLine || first); jump.setAttribute("aria-label", "跳转到文件行号");
       const go = node("button", "跳转行"); go.type = "button";
+      setWuxiaIconOnly(go, "crosshair", "跳转到指定行");
       const action = () => { const line = Number(jump.value); if (Number.isSafeInteger(line) && line >= 1 && line <= Number(jump.max)) options.onLine(line); };
       go.addEventListener("click", action); jump.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); action(); } }); toolbar.append(jump, go);
     }
@@ -115,6 +119,9 @@ window.CoolzhuContentPreview = (() => {
   function attachImageControls(heading, content, image) {
     const toolbar = node("div"); toolbar.className = "content-preview-image-tools";
     const zoomOut = node("button", "−"); const zoomIn = node("button", "+"); const fit = node("button", "适应"); const actual = node("button", "原尺寸");
+    zoomOut.title = "缩小图片"; zoomIn.title = "放大图片";
+    setWuxiaIconOnly(fit, "maximize", "图片适应窗口");
+    setWuxiaIconOnly(actual, "crosshair", "显示图片原尺寸");
     const status = node("small", "适应窗口"); status.setAttribute("role", "status"); let scale = null;
     const apply = value => {
       scale = value; content.classList.toggle("is-image-zoomed", scale !== null);
@@ -132,6 +139,8 @@ window.CoolzhuContentPreview = (() => {
     const toolbar = node("div"); toolbar.className = "content-preview-switch";
     const code = node("button", "源码"); code.type = "button"; code.setAttribute("aria-pressed", "true");
     const preview = node("button", "预览"); preview.type = "button"; preview.setAttribute("aria-pressed", "false");
+    setWuxiaIconOnly(code, "file", "查看源码");
+    setWuxiaIconOnly(preview, "browser", "显示隔离预览");
     const notice = node("small", "隔离预览，脚本仅在预览内运行");
     toolbar.append(code, preview, notice); heading.append(toolbar);
     const sourceNodes = Array.from(content.childNodes); let completeSource = null; let modeVersion = 0;
@@ -187,6 +196,7 @@ window.CoolzhuContentPreview = (() => {
         heading.append(node("small", `第 ${data.start_line || 1}–${data.end_line || 1} 行 / 共 ${data.total_lines || "未知"} 行 · 只读`));
         if (data.end_line < data.total_lines) {
           const next = node("button", "继续读取后续内容"); next.type = "button";
+          setWuxiaIconOnly(next, "chevron", "继续读取后续内容");
           next.addEventListener("click", () => void open(container, {...ref,line:data.end_line + 21}, options));
           content.append(next);
         }

@@ -17840,6 +17840,45 @@ body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout >
 .dsh-market-list { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); }
 .dsh-market-item { align-content: start; }
 .dsh-market-item button { justify-self: start; }
+/* 固定操作只显示图标，命名仍由 aria-label 与悬停提示提供。 */
+body.ui-3d button[data-icon-only="true"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 6px;
+  gap: 0;
+}
+body.ui-3d button[data-icon-only="true"] > img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  pointer-events: none;
+}
+body.ui-3d [data-action="browser-window-forward"] > img,
+body.ui-3d [data-action="dsh-market-next"] > img { transform: rotate(-90deg); }
+body.ui-3d [data-action="browser-window-back"] > img,
+body.ui-3d [data-action="dsh-market-prev"] > img { transform: rotate(90deg); }
+body.ui-3d .ui-redesign .chat-main-column .composer {
+  grid-template-columns: 40px minmax(0, 1fr) 44px 42px;
+}
+body.ui-3d .ui-redesign .chat-main-column .composer [data-action="send-message"][data-icon-only="true"] {
+  min-width: 44px;
+  width: 44px;
+  flex: 0 0 44px;
+}
 .dsh-market-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .dsh-market-local-heading { margin: 12px 0 8px; color: #edf1e8; font-size: 15px; }
 .dsh-market-detail-card p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; }
+/* SKILL 与市场详情沿用玉石底色，避免旧工具弹窗的蓝灰配色突兀。 */
+body.ui-3d [data-role="quick-catalog-detail"] .tool-detail-card,
+body.ui-3d [data-role="dsh-market-detail"] .tool-detail-card {
+  background: #10251d;
+  border-color: #739a80;
+  color: #edf1e8;
+}
+body.ui-3d [data-role="quick-catalog-detail"] pre {
+  background: #091a15;
+  color: #e1eadf;
+}
