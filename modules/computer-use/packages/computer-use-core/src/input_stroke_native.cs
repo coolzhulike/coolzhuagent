@@ -99,6 +99,15 @@ namespace CoolzhuStroke {
    try{ progress.Report(phase,cursorMoved,injectedPoints,buttonDown,pathCompleted,released); }catch{}
   }
  }
+ // 将物理像素映射到虚拟桌面绝对输入；定位像素中心，避免落在相邻像素边界。
+ public static class MouseMovePacket {
+  public const uint Flags=0x0001|0x2000|0x4000|0x8000; // MOVE、NOCOALESCE、VIRTUALDESK、ABSOLUTE
+  public static int AbsoluteAxis(int coordinate,int origin,int extent){
+   long offset=(long)coordinate-origin;
+   if(extent<=0||offset<0||offset>=extent)throw new Exception("stroke_out_of_bounds: 虚拟桌面坐标无效");
+   return (int)((offset*65536+32768)/extent);
+  }
+ }
  public class Native:Driver {
   [StructLayout(LayoutKind.Sequential)] struct RECT { public int Left,Top,Right,Bottom; }
   [StructLayout(LayoutKind.Sequential)] struct MOUSEINPUT { public int dx,dy; public uint data,flags,time; public UIntPtr extra; }
@@ -110,21 +119,34 @@ namespace CoolzhuStroke {
   [DllImport("user32.dll")] static extern bool ClientToScreen(IntPtr h,ref Point p);
   [DllImport("user32.dll")] static extern uint GetDpiForWindow(IntPtr h);
   [DllImport("user32.dll")] static extern IntPtr SetThreadDpiAwarenessContext(IntPtr c);
-  [DllImport("user32.dll")] static extern bool SetCursorPos(int x,int y);
   [DllImport("user32.dll")] static extern uint SendInput(uint n,INPUT[] input,int size);
   [DllImport("user32.dll")] static extern short GetAsyncKeyState(int key);
   [DllImport("user32.dll")] static extern int GetSystemMetrics(int key);
-  readonly IntPtr handle; readonly uint pid,dpi; readonly int[] rect; readonly string cancel;
+  readonly IntPtr handle; readonly uint pid,dpi; readonly int[] rect,desktop; readonly string cancel;
   readonly Stopwatch watch=Stopwatch.StartNew();
-  public Native(long h,uint p,int[] r,uint d,string c){handle=new IntPtr(h);pid=p;rect=r;dpi=d;cancel=c;if(SetThreadDpiAwarenessContext(new IntPtr(-4))==IntPtr.Zero)throw new Exception("dpi_context_failed: 无法设置物理像素坐标上下文");}
+  public Native(long h,uint p,int[] r,uint d,string c){
+   handle=new IntPtr(h);pid=p;rect=r;dpi=d;cancel=c;
+   if(SetThreadDpiAwarenessContext(new IntPtr(-4))==IntPtr.Zero)throw new Exception("dpi_context_failed: 无法设置物理像素坐标上下文");
+   desktop=new int[]{GetSystemMetrics(76),GetSystemMetrics(77),GetSystemMetrics(78),GetSystemMetrics(79)};
+   if(desktop[2]<=0||desktop[3]<=0)throw new Exception("stroke_out_of_bounds: 虚拟桌面尺寸无效");
+  }
   public void Check(){
    Deadline.Check();
    if(File.Exists(cancel)||(GetAsyncKeyState(0x1B)&0x8000)!=0||watch.ElapsedMilliseconds>7000)throw new Exception("stroke_cancelled");
    uint p; RECT r;var foreground=GetForegroundWindow();bool pidAvailable=GetWindowThreadProcessId(handle,out p)!=0;bool rectAvailable=GetWindowRect(handle,out r);uint actualDpi=GetDpiForWindow(handle);
    string mismatch=IdentityCheck.Difference(handle.ToInt64(),foreground.ToInt64(),pid,p,rect,new int[]{r.Left,r.Top,r.Right-r.Left,r.Bottom-r.Top},dpi,actualDpi,pidAvailable,rectAvailable);
    if(mismatch.Length>0)throw new Exception("stale_observation: "+mismatch);
+   for(int i=0;i<4;i++)if(desktop[i]!=GetSystemMetrics(76+i))throw new Exception("stale_observation: 虚拟桌面布局已改变");
   }
-  public void Move(Point p){Check();if(!SetCursorPos(p.X,p.Y))throw new Exception("cursor_move_failed");}
+  public void Move(Point p){
+   Check();var input=new INPUT();
+   input.mouse.dx=MouseMovePacket.AbsoluteAxis(p.X,desktop[0],desktop[2]);
+   input.mouse.dy=MouseMovePacket.AbsoluteAxis(p.Y,desktop[1],desktop[3]);
+   input.mouse.flags=MouseMovePacket.Flags;
+   // 每个规划点都是独立输入事件，不能由默认 WM_MOUSEMOVE 合并丢失折角。
+   // SendInput 接纳不代表绘图成功；最终仍由原始画布截图验证。
+   if(SendInput(1,new INPUT[]{input},Marshal.SizeOf(typeof(INPUT)))!=1)throw new Exception("cursor_move_failed: SendInput 未接纳移动事件");
+  }
   static void Flag(uint f){var input=new INPUT();input.mouse.flags=f;if(SendInput(1,new INPUT[]{input},Marshal.SizeOf(typeof(INPUT)))!=1)throw new Exception("SendInput failed");}
   public static void EmergencyRelease(){Flag(0x0004);}
   public void Down(){Check();Flag(0x0002);}
@@ -252,6 +274,16 @@ namespace CoolzhuStroke {
    if(thrown!=null)throw thrown;
   }
   public static string Run(){
+   // 坐标映射只做纯计算检查，不向 Windows 注入输入。
+   if(MouseMovePacket.AbsoluteAxis(0,0,2560)!=12||MouseMovePacket.AbsoluteAxis(2559,0,2560)!=65523)throw new Exception("pixel centre mapping");
+   foreach(int pixel in new int[]{-2560,-2000,-1}) {
+    int absolute=MouseMovePacket.AbsoluteAxis(pixel,-2560,2560);
+    if((long)absolute*2560/65536-2560!=pixel)throw new Exception("negative desktop origin mapping");
+   }
+   foreach(int pixel in new int[]{-2561,0}) {
+    bool rejected=false;try{MouseMovePacket.AbsoluteAxis(pixel,-2560,2560);}catch{rejected=true;}
+    if(!rejected)throw new Exception("virtual desktop boundary must reject before input");
+   }
    var pts=new Point[]{new Point(10,10),new Point(20,20),new Point(30,30)};var bounds=new int[]{0,0,100,100};
    var ok=new Mock();Engine.Run(ok,pts,bounds,20);if(String.Join(";",ok.Events.ToArray())!="move:10,10;down;move:20,20;move:30,30;up")throw new Exception("event order");
    foreach(var m in new Mock[]{new Mock{FailMove=2},new Mock{Cancel=true},new Mock{PartialDown=true}}){bool failed=false;try{Engine.Run(m,pts,bounds,20);}catch{failed=true;}if(!failed||m.Events[m.Events.Count-1]!="up")throw new Exception("release guarantee");}

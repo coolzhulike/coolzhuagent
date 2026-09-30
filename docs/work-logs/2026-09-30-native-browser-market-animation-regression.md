@@ -63,3 +63,5 @@ fee79d7 的两条远端检查已通过。再次视觉核查发现启动页右下
 ## 035真实候选与轮次边界修复
 
 用户批准后仅关闭核验过的另一项目8765服务，原bind不变，正常启动035候选。G轮真实Qwen1次drag/1 verified/succeeded，102像素短线、2560×1440原图四边静态泛光和准确顶部文字，结束撤除/released、前后safe。H0派发，I漏success_criteria/0输入；海绵宝宝未完成。用户右栏网页截图真实可见。J明确只读浏览器，却实际续接历史Paint两次drag/released，0浏览器观察，blocked/no_progress。定位到历史失败回复过滤丢失结束边界及CU缺本轮只读限制。已修上下文投影保留结束标记、原审计不变；接纳冻结本轮明确限制，CU前置拒绝桌面target并强制原生只读。两项先确认断言失败再修，新增3项局部回归，无新增模型夹具。离线build通过，完整结果以turn-scope-full-test.log为准。新修复不在035 MSI，待后续正常候选实测。
+
+036正常发布6门通过、关键10/10/收据/MSI匹配，7bdb1b6双CI成功。L真Qwen新独立Paint允许输入，三点L路径只落起终斜线，1drag/3点接纳/path_completed/released；后视觉JSON597字节Syntax失败，blocked/invalid_verification，0 verified。结束activity=false/lease=0、safe且未确认0，不算L或头像通过。仅受控连续移动改SendInput MOVE_NOCOALESCE/ABSOLUTE/VIRTUALDESK，冻结虚拟桌面布局、纯计算拒越界/支持负原点，不降帧守卫。离线build退出0、core140/0；须037正常候选真Qwen新任务看原图。Browser重新打开准备尚待用户回复，没有伪登记宿主或外抓替代。

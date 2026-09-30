@@ -1,3 +1,5 @@
+> **2026-09-30 036新路径缺陷 / 037执行侧修复**：036正常6门出包、859载荷/10关键产物哈希匹配，最新7bdb1b6双CI成功。L新独立真Qwen三点L形路径，记录1拖动/3点接纳/released，但原图仅起终斜线；另有视觉JSON无效，blocked，不能以模型能力解释全部失败。受控移动拟改SendInput禁止事件合并，保留许可/取消/帧守卫；离线build退出0、computer-use-core140/0，需正常037真实新任务截图验收。正式安装仍034，Browser Use输入、DSH远程运行、海绵宝宝及四项总体仍未通过。见[037报告](../../testing/release-0.2.37/change-report-and-targeted-test-plan.md)。
+
 > **2026-09-30 J轮任务边界缺陷**：实际只读内置网页请求误续接历史Paint，2次真实drag/released、0浏览器观察。已定位历史失败回复过滤丢失轮次结束边界，以及CU准入未冻结本轮原文的只读限制。后续源码修复在接纳/历史投影/适配器选路落实边界，035 MSI不含新修复。见[真实失败报告](../../testing/release-0.2.35/candidate-joint/browser-j-task-boundary-failure.md)。不能据用户可见网页截图称Browser Use通过。
 
 > **2026-09-30 035候选真实落笔与静态提示通过**：用户明确批准关闭其它项目8765服务后，未改原bind、经正常启动器运行035候选。真Qwen G轮1真实drag/1 verified、succeeded/goal_achieved=true，原图102像素黑线；全桌面API2560×1440，完整四边泛光和准确顶部文字可见，结束后撤除、实际输入released，前后safe。H轮0派发，I轮模型漏必填success_criteria、0输入，海绵宝宝未完成，不掩盖模型失败。正式安装仍034，035安装、多屏/取消、审批徽记UI、Browser Use输入和DSH远程运行尚待验收。见[真实步骤与原图](../../testing/release-0.2.35/candidate-joint/paint-g-and-indicator-acceptance.md)。四项总体验收仍开放。
