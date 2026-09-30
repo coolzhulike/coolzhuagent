@@ -49,6 +49,7 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
     if let Some(parent) = parent.as_mut() {
         parent.root_budget = Some(root_budget.clone());
         parent.runtime_db_path = Some(db_path.clone());
+        parent.computer_use_turn_scope = crate::computer_use_turn_scope::ComputerUseTurnScope::from_current_user(&result.user_content);
         let snapshots = result.targets.iter().filter_map(|agent| {
             match crate::host_child_agent::HostModelSnapshot::capture(
                 agent, Some(&result.chat_room_id), parent,

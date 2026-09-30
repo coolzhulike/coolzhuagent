@@ -1,0 +1,12 @@
+{
+  "workspace_path": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+  "workspace_id": "ws-992cca993bc1a1a0",
+  "workspace_id_is_canonical": true,
+  "session_db_path": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.sqlite3",
+  "session_schema_version": 27,
+  "supported_session_schema_version": 27,
+  "computer_use_store_state": "ready",
+  "legacy_unconverged_runs": 2,
+  "build_version": "7b653d2df95c · 2026-09-30",
+  "port": 8765
+}

@@ -1,0 +1,68 @@
+//! 本轮用户明确提出的原生网页只读边界；不从历史、记忆或模型参数创建权限。
+use computer_use::{ComputerUseError, ComputerUseRequest, ComputerUseRetryOwner, ComputerUseSurface};
+
+#[derive(Debug, Clone, Copy, Default)]
+pub(super) struct ComputerUseTurnScope {
+    native_browser_read_only: bool,
+}
+
+impl ComputerUseTurnScope {
+    pub(super) fn from_current_user(text: &str) -> Self {
+        let text = text.to_ascii_lowercase();
+        let native_browser = ["内置浏览器", "builtin browser", "built-in browser"]
+            .iter().any(|name| text.contains(name));
+        let explicit_no_input = ["不得发送输入", "不要发送输入", "不发送输入",
+            "不点击、不滚动、不输入", "do not send input"]
+            .iter().any(|restriction| text.contains(restriction));
+        Self { native_browser_read_only: native_browser && explicit_no_input }
+    }
+
+    pub(super) fn native_browser_read_only(self) -> bool {
+        self.native_browser_read_only
+    }
+
+    pub(super) fn validate(self, request: &ComputerUseRequest) -> Result<(), ComputerUseError> {
+        if !self.native_browser_read_only {
+            return Ok(());
+        }
+        let desktop_target = request.target.as_ref().is_some_and(|target|
+            target.application.is_some() || target.window.is_some());
+        let browser_target = request.target.as_ref().is_some_and(|target|
+            target.url.as_ref().is_some_and(|url| !url.trim().is_empty()));
+        if desktop_target || request.surface == ComputerUseSurface::Desktop
+            || (request.surface == ComputerUseSurface::Auto && !browser_target) {
+            return Err(ComputerUseError::blocked(
+                "current_turn_readonly_browser_required",
+                "本轮用户明确要求原生内置浏览器只读；禁止继续历史桌面任务。请使用 browser surface。",
+                ComputerUseRetryOwner::Model,
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn request(surface: &str, target: serde_json::Value) -> ComputerUseRequest {
+        serde_json::from_value(serde_json::json!({"objective":"历史任务", "surface":surface,
+            "target":target, "success_criteria":["目标可见"], "constraints":[]})).unwrap()
+    }
+    #[test]
+    fn current_readonly_browser_rejects_historical_paint_before_adapter_creation() {
+        let scope = ComputerUseTurnScope::from_current_user("内置浏览器，不点击、不滚动、不输入");
+        let error = scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).unwrap_err();
+        assert_eq!(error.code, "current_turn_readonly_browser_required");
+        assert!(scope.validate(&request("auto", serde_json::json!({"application":"mspaint"}))).is_err());
+        assert!(scope.validate(&request("browser", serde_json::json!({"url":"https://example.com/"}))).is_ok());
+        assert!(scope.validate(&request("auto", serde_json::json!({"url":"https://example.com/"}))).is_ok());
+    }
+    #[test]
+    fn ordinary_paint_and_browser_actions_are_not_reclassified_by_history_words() {
+        for text in ["在Paint画一条线", "在内置浏览器先观察再点击链接", "内置浏览器不要点击按钮，使用键盘输入"] {
+            let scope = ComputerUseTurnScope::from_current_user(text);
+            assert!(!scope.native_browser_read_only());
+            assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_ok());
+        }
+    }
+}

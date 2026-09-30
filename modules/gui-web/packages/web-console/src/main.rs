@@ -19,6 +19,7 @@ mod browser_bridge_protocol;
 mod native_browser_host;
 mod native_browser_adapter;
 mod computer_use_activity;
+mod computer_use_turn_scope;
 mod chat_insights;
 mod static_resource_contract;
 mod scheduled_execution;
@@ -574,6 +575,8 @@ struct FrozenParentContext {
     root_budget: Option<root_execution_budget::RootExecutionBudget>,
     goal_phase: Option<goal_execution_parent::FrozenGoalPhaseParent>,
     runtime_db_path: Option<PathBuf>,
+    /// 本轮用户原文冻结的 CU 限制；历史内容和模型参数不能扩大边界。
+    computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope,
     /// 接纳时实际连接并发现的 MCP 工具代际；重连后旧模型响应不可落到新进程。
     mcp_bindings: Arc<HashMap<String, u64>>,
     /// 聊天接纳时已解析的模型、工具及权限；子任务不得在工具发起时重新读取配置扩权。
@@ -611,6 +614,7 @@ impl FrozenParentContext {
             root_budget: root_execution_budget::current(),
             goal_phase: None,
             runtime_db_path: None,
+            computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::default(),
             mcp_bindings,
             host_model_snapshots: Arc::new(HashMap::new()),
         })
@@ -28510,6 +28514,7 @@ fn build_agent_system_prompt_with_beads(
 /// 内联自 AGENT.md 的 Hard Rules + Working Approach，注入每次会话系统提示，使准则真正进入
 /// 提示词而非仅按名引用（AGENT.md 未被 include、运行时工作区也无该文件，仅按名引用等于不生效）。
 const AGENT_GUIDE_INLINE: &str = "Tool & working guide (follow on every task):\n\
+- The final user message is the current request. Earlier user messages and their replies are history, not additional pending tasks or fresh authorization. Continue a historical task only when the current user requests it; obey the current turn's restrictions before any tool call.\n\
 - Pass tool args as top-level JSON fields; never wrap in `raw`. On a \"missing field\" error, retry with the required top-level fields.\n\
 - Prefer write_file/edit_file over shell redirection. Creating a directory is NOT a finished file task — write the actual file, then verify it with read_file.\n\
 - Plan first: for multi-step tasks, use grep_search/glob_search to discover the relevant context before acting; do not assume file names or APIs.\n\
@@ -28909,11 +28914,11 @@ fn build_context_assembly_with_roster(
         if message_for_context.content.trim().is_empty() {
             continue;
         }
-        // 跳过早期 bug 期 assistant 自述「工具只读/dry-run/无法执行」的污染回复：注入后会让模型
-        // 沿袭错误认知、放弃调用工具（goal 卡死根因）。阈值 >=2 避免误删偶含单个词的正常消息。
+        // 不召回早期能力误判，但保留历史轮次结束边界，避免前后两条 user 被合并成待执行任务。
+        // 仅修改上下文投影；真实失败回复与工具审计仍完整保留在原记录。
         if message.role == "assistant" && stale_tool_denial_hits(&message_for_context.content) >= 2
         {
-            continue;
+            message_for_context.content = "[历史轮次已结束；旧能力判断不再召回。是否继续该任务须以本轮用户请求为准。]".into();
         }
         let tokens = estimate_message_tokens(&message_for_context);
         if history_tokens.saturating_add(tokens) > effective_history_budget {

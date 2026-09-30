@@ -1,3 +1,9 @@
+> **2026-09-30 J轮任务边界缺陷**：实际只读内置网页请求误续接历史Paint，2次真实drag/released、0浏览器观察。已定位历史失败回复过滤丢失轮次结束边界，以及CU准入未冻结本轮原文的只读限制。后续源码修复在接纳/历史投影/适配器选路落实边界，035 MSI不含新修复。见[真实失败报告](../../testing/release-0.2.35/candidate-joint/browser-j-task-boundary-failure.md)。不能据用户可见网页截图称Browser Use通过。
+
+> **2026-09-30 035候选真实落笔与静态提示通过**：用户明确批准关闭其它项目8765服务后，未改原bind、经正常启动器运行035候选。真Qwen G轮1真实drag/1 verified、succeeded/goal_achieved=true，原图102像素黑线；全桌面API2560×1440，完整四边泛光和准确顶部文字可见，结束后撤除、实际输入released，前后safe。H轮0派发，I轮模型漏必填success_criteria、0输入，海绵宝宝未完成，不掩盖模型失败。正式安装仍034，035安装、多屏/取消、审批徽记UI、Browser Use输入和DSH远程运行尚待验收。见[真实步骤与原图](../../testing/release-0.2.35/candidate-joint/paint-g-and-indicator-acceptance.md)。四项总体验收仍开放。
+
+> **2026-09-30 035出包与实操前置条件（历史时点）**：正常发布链035完成、6门通过，关键产物10/10及MSI/归档哈希独立核验通过；7b653d2两条远端检查均success。035含静态泛光与物理DPI截图修复，当时未安装、Paint未落笔。复测前发现另一项目Python占用127.0.0.1:8765、覆盖当时034监听0.0.0.0的地址；正式034本轮实例已正常关闭，Paint/其它项目保留。临时改运行端口并启动候选被自动审批拒绝，理由仅blocked by policy，整条命令未执行、原bind仍0.0.0.0:8765。随后按用户批准释放原端口，原配置启动成功，没有重试被拒绝的临时改端口动作。详见[035交接与矩阵](../../testing/release-0.2.35/change-report-and-targeted-test-plan.md)。
+
 > **2026-09-30 正式034实操与035最小修复**：034安装10/10匹配、正常入口safe，真实Qwen成功选中Paint画笔，23.677秒规划正常继续；后续拖线被自身泛光呼吸动画污染客户端截图而拒绝，画布空白。已撤销呼吸动画，保留完整帧守卫和静态边光；修复全桌面截图DPI，真实脚本采2560×1440，旧图仅1707×960。Web完整1271/0/2忽略51.09秒、Tauri59/0；f3e3f8d两项CI成功，新修复待新候选真Qwen联合复测。见 [034实图与根因](../../testing/release-0.2.34/installed-joint/paint-f-and-indicator-interference.md)、[035定向计划](../../testing/release-0.2.35/change-report-and-targeted-test-plan.md)。四项未总体验收，微信不改不测、Devin暂缓。
 
 > **2026-09-30 034出包交接**：0.2.34沿正常release链完成构建，6门通过、暂存10/10及MSI/归档哈希核对通过；包含共享CU剩余预算和当前审批徽记修复。正式安装仍033，当前safe，无需重复历史放行。最新完整Web1271/0/2忽略；be496远端同一时序检查失败已仅修订测试，新的远端结果待核。安装与实操矩阵见 [034报告](../../testing/release-0.2.34/change-report-and-targeted-test-plan.md)。Paint实际落笔、完整泛光、Browser Use原生输入、DSH远程安装运行与四项总体验收仍开放。

@@ -130,6 +130,26 @@ pub(super) fn project(message: &PersistedChatMessage) -> Option<PersistedChatMes
 mod tests {
     use super::*;
     #[test]
+    fn omitted_historical_failure_keeps_previous_turn_boundary() {
+        let _lock = crate::tests::config_test_guard();
+        let isolated = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");
+        let agent = isolated.agent("target-text");
+        let mut user = message("old-user", "text", "在Paint画头像");
+        user.role = "user".into();
+        let old_reply = message("old-reply", "assistant-reply", "blocked，只读，无法实际执行 PRIVATE-OLD-DENIAL");
+        let history = vec![user, old_reply];
+        let assembly = build_context_assembly(&agent, &history, "内置浏览器，不点击、不滚动、不输入", &[], ContextBuildOptions {
+            history_token_budget: 200, memory_token_budget: 0, max_prompt_tokens: 8000,
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
+        });
+        assert_eq!(assembly.messages.len(), 3, "旧回复被过滤也必须保留上一轮结束边界");
+        let actual = format!("{:?}", assembly.messages);
+        assert!(actual.contains("历史轮次已结束"));
+        assert!(!actual.contains("PRIVATE-OLD-DENIAL"));
+        assert!(history[1].content.contains("PRIVATE-OLD-DENIAL"), "原始审计保持不变");
+    }
+
+    #[test]
     fn computer_use_claim_without_current_dispatch_is_not_execution_evidence() {
         let task = "只用 computer_use_perform 在画图画布拖动一条线";
         assert!(unexecuted_computer_use_notice(task, false).is_some());

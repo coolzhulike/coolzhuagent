@@ -798,6 +798,7 @@ pub(crate) struct ComputerUseExecutor<'a> {
     cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
     root_budget: Option<crate::root_execution_budget::RootExecutionBudget>,
     goal_parent: Option<crate::goal_execution_parent::FrozenGoalPhaseParent>,
+    turn_scope: crate::computer_use_turn_scope::ComputerUseTurnScope,
     /// 接纳时冻结的工作区归属。**非 `Option`**：执行器在类型层面无法"没有归属"，
     /// 且构造后没有任何 setter——运行中不存在改写它的入口。
     workspace: CuWorkspaceAttribution,
@@ -829,6 +830,7 @@ impl<'a> ComputerUseExecutor<'a> {
             cancelled: Arc::new(|| false),
             root_budget: crate::root_execution_budget::current(),
             goal_parent: None,
+            turn_scope: crate::computer_use_turn_scope::ComputerUseTurnScope::default(),
             workspace,
             conversation: None,
             provider_tool_call_id: String::new(),
@@ -869,6 +871,12 @@ impl<'a> ComputerUseExecutor<'a> {
     #[must_use]
     pub(crate) fn with_provider_tool_call_id(mut self, provider_tool_call_id: &str) -> Self {
         self.provider_tool_call_id = provider_tool_call_id.to_string();
+        self
+    }
+
+    #[must_use]
+    fn with_turn_scope(mut self, scope: crate::computer_use_turn_scope::ComputerUseTurnScope) -> Self {
+        self.turn_scope = scope;
         self
     }
 
@@ -1046,6 +1054,12 @@ impl<'a> ComputerUseExecutor<'a> {
                 ComputerUseStage::IntentGuard,
                 limit_input_correction(error, invalid_inputs),
             );
+            self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
+            return result;
+        }
+
+        if let Err(error) = self.turn_scope.validate(&request) {
+            let result = terminal_result(identity, request.surface, ComputerUseStage::IntentGuard, error);
             self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
             return result;
         }
@@ -2138,9 +2152,11 @@ pub(crate) async fn execute_with_current_runtime(
             allow_multiple_tabs: config.browser.allow_multiple_tabs,
         },
         cancelled: cancelled.clone(),
-        native_browser_parent: input.get("objective").and_then(JsonValue::as_str)
+        native_browser_parent: if parent.computer_use_turn_scope.native_browser_read_only() {
+            Some(parent.clone())
+        } else { input.get("objective").and_then(JsonValue::as_str)
             .filter(|objective| ["内置浏览器", "右栏浏览器", "右侧浏览器", "右侧扩展栏浏览器", "builtin browser", "built-in browser"]
-                .iter().any(|name| objective.to_ascii_lowercase().contains(name))).map(|_| parent.clone()),
+                .iter().any(|name| objective.to_ascii_lowercase().contains(name))).map(|_| parent.clone()) },
     };
     let planner = CurrentSessionComputerUsePlanner::with_context(identity, Some(origin_room_id), &store)
         .with_cancelled(cancelled.clone());
@@ -2155,7 +2171,8 @@ pub(crate) async fn execute_with_current_runtime(
     let executor =
         ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets(), workspace)
             .with_cancelled(cancelled)
-            .with_root_budget(root_budget);
+            .with_root_budget(root_budget)
+            .with_turn_scope(parent.computer_use_turn_scope);
     let executor = match conversation_scope {
         Some(scope) => executor.with_conversation_scope(scope),
         None => executor,
