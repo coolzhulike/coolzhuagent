@@ -1,4 +1,4 @@
-> **2026-09-30 037发布完成 / 启动待用户操作**：连续移动修复正常出包、6门/10关键产物/859载荷和MSI哈希通过；实际036关闭前activity=false/safe/待恢复0，Paint保留。启动037的整条操作被自动审批拒绝（仅blocked by policy，未执行），未重试、未改端口；已请用户正常启动并重开原生网页。037尚无运行/真Qwen证据，折角修复不能算已验收。见[037报告及验证矩阵](../../testing/release-0.2.37/change-report-and-targeted-test-plan.md)。
+> **2026-09-30 当前真实回归（037候选，正式仍034）**：用户正常启动037后已核验运行身份/10产物。N原生只读保持browser、0桌面输入，但native_browser_unavailable，无页面正文；M点击前控件引用失效、未拖动；O真实Qwen三点连续路径在原图画出L形折角、released，主屏完整静态泛光和准确英文运行时可见/结束撤除，但视觉回复Syntax无效，整轮仍blocked；P闭合请求0派发，未执行。输入安全实际safe、待恢复/未确认0，不需要再审批。M暴露的输入前NotSent回执与非拖动UIA时效守卫已修源码，离线build/完整Web1276/0/2忽略通过，尚不在037包内。后续可操作窗口列表无控制台，已请用户显示右栏页面。a8b0fa8两条远端CI已success；四项、Browser Use输入、闭合/海绵宝宝、DSH远程插件运行及最终安装仍未通过。见[真实回归与原图](../../testing/release-0.2.37/candidate-joint/native-browser-and-paint-n-m-o.md)。下方为历史时点。
 
 > **2026-09-30 036新路径缺陷 / 037执行侧修复**：036正常6门出包、859载荷/10关键产物哈希匹配，最新7bdb1b6双CI成功。L新独立真Qwen三点L形路径，记录1拖动/3点接纳/released，但原图仅起终斜线；另有视觉JSON无效，blocked，不能以模型能力解释全部失败。受控移动拟改SendInput禁止事件合并，保留许可/取消/帧守卫；离线build退出0、computer-use-core140/0，需正常037真实新任务截图验收。正式安装仍034，Browser Use输入、DSH远程运行、海绵宝宝及四项总体仍未通过。见[037报告](../../testing/release-0.2.37/change-report-and-targeted-test-plan.md)。
 

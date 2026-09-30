@@ -1,0 +1,28 @@
+{
+  "call_id": "cu-session-1779459149988-000000000000000a18da1bca52ebb290-tool-e1004f1fcbc3a8be8bc77f19ad3209ca99ea4e6acafbbfc92d761fd0e6d21088",
+  "unavailable": null,
+  "attempts": 1,
+  "input_sent": 1,
+  "partial_input": 0,
+  "verified_steps": 0,
+  "baseline_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-13c839ee52284684e7972e1178ebf7ad9f9a5862180e29e2b6efcbe56a48b7fa.png:sha256=13c839ee52284684e7972e1178ebf7ad9f9a5862180e29e2b6efcbe56a48b7fa:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=13c839ee52284684e7972e1178ebf7ad9f9a5862180e29e2b6efcbe56a48b7fa:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+  "final_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-f6f306ba07cd1dfce978c493f1aa338fec9951b5c0373b392fe1036af24abd0e.png:sha256=f6f306ba07cd1dfce978c493f1aa338fec9951b5c0373b392fe1036af24abd0e:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=175\",\"frame_binding:sha256=f6f306ba07cd1dfce978c493f1aa338fec9951b5c0373b392fe1036af24abd0e:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+  "steps": [
+    {
+      "step_index": 0,
+      "status": "input_sent_observed",
+      "input_status": "complete",
+      "may_claim_complete": true,
+      "forbids_automatic_replay": false,
+      "error_code": null
+    }
+  ],
+  "requests": [
+    {
+      "attempt_key": "cu-session-1779459149988-000000000000000a18da1bca52ebb290-tool-e1004f1fcbc3a8be8bc77f19ad3209ca99ea4e6acafbbfc92d761fd0e6d21088#computer_use_planning:step-0#attempt-1",
+      "action_id": "desktop:window-canvas:15c08ae:5e7dd8b67e2843a6",
+      "has_usage_fact": false
+    }
+  ],
+  "cleanup_incidents": []
+}

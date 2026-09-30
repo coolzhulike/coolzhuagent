@@ -1,0 +1,34 @@
+{
+  "unavailable": null,
+  "resource_scope": "windows-session-1",
+  "resource_state": "safe",
+  "accepts_new_input": true,
+  "pending_recovery_operations": 0,
+  "human_review_required": 2,
+  "unacknowledged_open_blocks": 0,
+  "unacknowledged_legacy_runs": 0,
+  "acknowledged_legacy_runs": 2,
+  "human_review_operations": [
+    {
+      "recovery_operation_id": "startup-recovery-cu-session-1781738898772-000000000000000118bdb1027b2478e0-call_ea30b56c5ec44e898fce7353",
+      "stage": "r5_incident_established",
+      "disposition": "human_review_required",
+      "recorded_at_unix_ms": 1790335188522
+    },
+    {
+      "recovery_operation_id": "startup-recovery-cu-session-1789804322149-000000000000000118d6a9a0fcc1349c-rpO0wuINWlivnmBZeYz48T7iLk5bFSaF",
+      "stage": "r5_incident_established",
+      "disposition": "human_review_required",
+      "recorded_at_unix_ms": 1790335188543
+    }
+  ],
+  "unacknowledged_block_ids": [],
+  "unacknowledged_run_ids": [],
+  "latest_release": {
+    "decision_id": "release-1790753178017-1790753178017039300",
+    "operator": "S-1-5-21-1268417434-179321985-1489660346-1001",
+    "reason": "测试允许",
+    "release_epoch": 25,
+    "decided_at_unix_ms": 1790753178017
+  }
+}
