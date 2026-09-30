@@ -1,0 +1,440 @@
+- heading "Browser Use / Paint 窄审结论（0.2.32阶段）" [level=1]
+  - paragraph: 说明：本轮基于你提供的实证审查，不将：
+  - list:
+    - listitem: 安装成功；
+    - listitem: 哈希一致；
+    - listitem: 离线编译；
+    - listitem: 单元/接口检查；
+  - paragraph: 等同于真实模型操作验收。
+  - separator
+  - heading "一、Paint 本轮“0工具但复述历史 blocked”问题" [level=1]
+  - heading "结论" [level=2]
+  - paragraph:
+    - text: 该问题应修，但属于
+    - strong: 执行事实归属/回复可信度问题
+    - text: ，不是输入安全放宽问题。
+  - paragraph: 当前事实：
+  - list:
+    - text: 真实 Qwen 请求：
+    - list:
+      - listitem: 1 次；
+    - text: 工具登记：
+    - list:
+      - listitem: 0 次；
+    - listitem: 模型回复复述历史 blocked 回执；
+    - listitem: 当前输入资源仍隔离。
+  - paragraph: 因此：
+  - paragraph: 不能记录为：
+  - list:
+    - listitem: 工具失败；
+    - listitem: Paint动作失败；
+    - listitem: 输入拒绝。
+  - paragraph: 准确：
+  - blockquote:
+    - paragraph: 本轮没有产生真实工具执行，模型输出引用了历史执行状态。
+  - separator
+  - heading "1. proposed 修复方向" [level=1]
+  - paragraph: 批准：
+  - blockquote:
+    - paragraph: 根据本轮真实 dispatch/tool execution record 判断执行事实，而不是解析模型文本。
+  - separator
+  - paragraph: 正确边界：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - text: model response
+    - text: ≠
+    - text: execution fact
+  - separator
+  - paragraph: 应该依据：
+  - list:
+    - listitem: tool dispatch record；
+    - listitem: tool call id；
+    - listitem: run/turn binding；
+    - listitem: execution result。
+  - separator
+  - heading "2. “0工具提示”误报风险" [level=1]
+  - paragraph: 需要避免：
+  - paragraph: 所有：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: tool_count=0
+  - paragraph: 都提示失败。
+  - paragraph: 因为存在：
+  - heading "正常情况" [level=2]
+  - paragraph: 例如：
+  - list:
+    - listitem: 普通问答；
+    - listitem: 解释型请求；
+    - listitem: 配置查询；
+    - listitem: 规划。
+  - paragraph: 这些不需要工具。
+  - separator
+  - paragraph: 因此必须有“预期需要工具”的条件。
+  - separator
+  - paragraph: 建议：
+  - paragraph: 只有：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: requested_action_type + recognized actionable intent + no dispatch
+  - paragraph: 才提示：
+  - blockquote:
+    - paragraph: 未执行。
+  - separator
+  - paragraph: 不要：
+  - paragraph: 根据：
+  - paragraph: “提到 Paint”
+  - paragraph: 就认为：
+  - paragraph: 必须执行。
+  - separator
+  - heading "3. 最小判断条件" [level=1]
+  - paragraph: 推荐：
+  - paragraph: 增加已有 run 内事实：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: execution_expectation
+  - paragraph: 而不是新系统。
+  - paragraph: 例如：
+  - paragraph: 已有 tool planner 输出：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: requires_action=true
+  - paragraph: 则：
+  - paragraph: 检查：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: requires_action=true AND tool_dispatch_count=0 AND assistant_claims_execution
+  - paragraph: 才生成提示。
+  - separator
+  - separator
+  - heading "4. 历史回执提示" [level=1]
+  - paragraph: 批准。
+  - paragraph: 需要区分：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: current turn fact
+  - paragraph: 和：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: history reference
+  - paragraph: 例如：
+  - paragraph: 模型说：
+  - paragraph: “之前被阻止”。
+  - paragraph: 不能变成：
+  - paragraph: “当前已被阻止”。
+  - separator
+  - paragraph: 建议：
+  - paragraph: 最终提示：
+  - blockquote:
+    - paragraph: 当前轮未检测到对应工具执行记录，以下内容可能来自历史上下文，不代表本轮执行结果。
+  - separator
+  - heading "二、只读 Browser Use 通道审查" [level=1]
+  - heading "总体判断" [level=2]
+  - paragraph: 当前只读阶段设计方向合理。
+  - paragraph: 没有发现必须阻断接线的问题。
+  - paragraph: 但有几个必须补的小边界。
+  - separator
+  - heading "1. Accessibility 内容敏感风险" [level=1]
+  - paragraph: 当前：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - text: Accessibility.getFullAXTree(depth=6)
+    - text: ↓
+    - text: role/name
+  - paragraph: 风险：
+  - paragraph: name 仍可能包含：
+  - list:
+    - listitem: 用户姓名；
+    - listitem: 邮件；
+    - listitem: 订单号；
+    - listitem: 页面私密文本；
+    - listitem: 密码输入附近 label。
+  - paragraph: 即使不取 value/properties，也不能认为无敏感内容。
+  - separator
+  - heading "最小修正" [level=2]
+  - paragraph: 不要扩大过滤系统。
+  - paragraph: 只需：
+  - paragraph: 增加：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: AX snapshot sensitivity boundary
+  - paragraph: 至少：
+  - list:
+    - listitem: 最大节点数；
+    - listitem: 最大文本长度；
+    - listitem: 敏感字段脱敏策略。
+  - separator
+  - paragraph: 你已有：
+  - list:
+    - listitem: 128 nodes；
+    - listitem: 单字段256字符；
+  - paragraph: 保留。
+  - paragraph: 补：
+  - paragraph: 禁止直接认为：
+  - paragraph: AX name = safe。
+  - separator
+  - heading "2. COM 初始分配 1MiB 风险" [level=1]
+  - paragraph: 当前：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - text: COM wrapper -> String
+    - text: ↓
+    - text: 限制原文1MiB
+  - paragraph: 顺序需要注意。
+  - paragraph: 如果：
+  - paragraph: COM 层先完整构造巨大字符串，
+  - paragraph: 再 truncate：
+  - paragraph: 保护太晚。
+  - separator
+  - paragraph: 正确：
+  - paragraph: 限制应尽量靠近：
+  - paragraph: 读取边界。
+  - paragraph: 例如：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - text: CDP/COM response
+    - text: ↓
+    - text: size check
+    - text: ↓
+    - text: String conversion
+  - separator
+  - paragraph: 不是：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: huge String ↓ truncate
+  - separator
+  - heading "3. pending 观察请求取消后旧请求占用" [level=1]
+  - paragraph: 当前：
+  - list:
+    - listitem: 单 pending；
+    - listitem: 心跳领取；
+    - listitem: cancel/timeout 清 pending。
+  - paragraph: 方向正确。
+  - paragraph: 风险：
+  - paragraph: 取消路径必须保证：
+  - paragraph: 旧 lease 不会阻塞下一观察。
+  - separator
+  - paragraph: 需要确认：
+  - paragraph: 取消：
+  - paragraph: 必须原子：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: pending ↓ cancelled/expired ↓ new observation allowed
+  - separator
+  - paragraph: 不能：
+  - paragraph: 出现：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: old pending remains
+  - paragraph: 导致：
+  - paragraph: 后续模型永远拿不到 snapshot。
+  - separator
+  - heading "4. SPA变化风险" [level=1]
+  - paragraph: 当前：
+  - paragraph: 已正确承认：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code:
+    - generic: navigation_revision ≠ SPA DOM revision
+  - paragraph: 这是正确口径。
+  - separator
+  - paragraph: 必须保持：
+  - paragraph: 不能声称：
+  - paragraph: URL/title一致：
+  - paragraph: 就代表 DOM 未变化。
+  - separator
+  - paragraph: 下一阶段加入：
+  - paragraph: document/node validity：
+  - paragraph: 合理。
+  - separator
+  - heading "三、当前只读 Browser Use 不应验收为通过" [level=1]
+  - paragraph: 当前能力：
+  - paragraph: 可以描述：
+  - blockquote:
+    - paragraph: 内置浏览器只读观察通道已具备。
+  - paragraph: 不能描述：
+  - blockquote:
+    - paragraph: Browser Use 已通过。
+  - paragraph: 原因：
+  - paragraph: 缺：
+  - list:
+    - listitem: 动作执行；
+    - listitem: 输入；
+    - listitem: node identity；
+    - listitem: action cancellation；
+    - listitem: dangerous action approval。
+  - separator
+  - heading "四、输入实现前不能验收的内容" [level=1]
+  - paragraph: 明确：
+  - paragraph: 以下不能算完成：
+  - heading "1. 模型浏览器操作" [level=2]
+  - paragraph: 缺：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: snapshot ↓ model decision ↓ typed action ↓ result
+  - separator
+  - heading "2. 点击成功" [level=2]
+  - paragraph: 不能用：
+  - list:
+    - listitem: DOM存在；
+    - listitem: AX节点存在；
+  - paragraph: 证明。
+  - separator
+  - heading "3. 输入成功" [level=2]
+  - paragraph: 必须经过：
+  - paragraph: 现有：
+  - list:
+    - listitem: input safety；
+    - listitem: permission；
+    - listitem: executor；
+    - listitem: cancellation。
+  - separator
+  - heading "4. 危险动作" [level=2]
+  - paragraph: 必须：
+  - paragraph: 审批链。
+  - paragraph: 例如：
+  - list:
+    - listitem: 登录；
+    - listitem: 删除；
+    - listitem: 提交；
+    - listitem: 发布。
+  - separator
+  - heading "五、后续最低执行闭环" [level=1]
+  - paragraph: 不建议直接实现所有动作。
+  - paragraph: 最低：
+  - heading "BU-R1 Snapshot" [level=2]
+  - paragraph: 真实：
+  - paragraph: 右栏 WebView。
+  - paragraph: 模型收到：
+  - paragraph: 受限 snapshot。
+  - separator
+  - heading "BU-R2 Click" [level=2]
+  - paragraph: 只支持：
+  - paragraph: 低风险点击。
+  - paragraph: 例如：
+  - list:
+    - listitem: 普通链接；
+    - listitem: UI按钮。
+  - separator
+  - heading "BU-R3 Verify" [level=2]
+  - paragraph: 动作后：
+  - paragraph: 重新 snapshot。
+  - paragraph: 确认：
+  - paragraph: 不是：
+  - paragraph: “调用成功”。
+  - paragraph: 而是：
+  - paragraph: 状态变化事实。
+  - separator
+  - heading "BU-R4 Cancel" [level=2]
+  - paragraph: 动作过程中：
+  - paragraph: 取消。
+  - paragraph: 验证：
+  - paragraph: 无迟到 COM/UI 操作。
+  - separator
+  - heading "BU-R5 Scope" [level=2]
+  - paragraph: 切：
+  - list:
+    - listitem: room；
+    - listitem: workspace；
+    - listitem: browser resource。
+  - paragraph: 旧 action：
+  - paragraph: 拒绝。
+  - separator
+  - heading "六、当前 Browser Use 不能做的事情" [level=1]
+  - paragraph: 明确保持：
+  - paragraph: 不做：
+  - list:
+    - listitem: 任意 JS；
+    - listitem: selector 注入；
+    - listitem: Chrome 自动切换；
+    - listitem: 绕 input safety；
+    - listitem: 用 DOM snapshot 判定成功；
+    - listitem: 自动执行危险提交。
+  - separator
+  - heading "七、0.2.32状态口径" [level=1]
+  - paragraph: 建议：
+  - paragraph: 当前记录：
+  - heading "已有：" [level=2]
+  - list:
+    - listitem: 安装身份通过；
+    - listitem: Browser Use 只读适配代码接入；
+    - listitem: Snapshot约束存在。
+  - heading "未完成：" [level=2]
+  - list:
+    - listitem: 真模型 Browser Use；
+    - listitem: action执行；
+    - listitem: 输入安全闭环；
+    - listitem: Paint恢复。
+  - separator
+  - heading "最终裁决" [level=1]
+  - heading "必要修复" [level=2]
+  - heading "Paint" [level=3]
+  - paragraph: 修：
+  - list:
+    - listitem: 不从模型文本判断执行结果；
+    - listitem: 依据本轮 dispatch/tool fact；
+    - listitem: 历史回执与当前轮隔离。
+  - separator
+  - heading "Browser Use" [level=3]
+  - paragraph: 只读阶段：
+  - paragraph: 可继续。
+  - paragraph: 补：
+  - list:
+    - listitem: AX内容不要默认安全；
+    - listitem: COM截断尽量前移；
+    - listitem: pending取消必须释放；
+    - listitem: 不把navigation revision当DOM revision。
+  - separator
+  - heading "当前不需要：" [level=2]
+  - list:
+    - listitem: 新浏览器框架；
+    - listitem: 新执行runtime；
+    - listitem: 新权限系统。
+  - paragraph: 下一阶段真正的 Browser Use 验收门槛：
+  - blockquote:
+    - paragraph:
+      - strong: 真实 launcher 启动 → 模型收到受限snapshot → 类型化动作 → 输入/权限检查 → WebView变化事实 → 取消无迟到动作。
+  - paragraph: 在此之前，0.2.32只能记录为“只读桥接准备完成”，不能称 Browser Use 通过。
+  - button "复制":
+  - button "评价回复":
+  - button "分享":
+  - button "朗读":
+  - button "重新生成回复":
+  - button "更多操作":
+  - generic: ChatGPT 可能会出错。请核查重要信息。
+  - button [active]:
+  - heading "最新一条回复" [level=4]
+  - status
+  - button "添加文件等内容":
+  - textbox "询问 ChatGPT":
+    - paragraph: 询问 ChatGPT
+  - button "选择 ChatGPT 模型":
+    - generic: 极高
+  - button "听写":
+  - button "开始语音":
+- status
+- status
+- status
+- status: 回答已完成

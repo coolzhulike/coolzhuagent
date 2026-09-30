@@ -1,0 +1,151 @@
+{
+  "run": {
+    "call_id": "cu-session-1779459149988-000000000000000218da0fa1e39e6664-tool-61f3474a8624bb4fd8ec504776f33c80d1a377816457319cda23608e5339049f",
+    "state": "succeeded",
+    "action_count": 1,
+    "replan_count": 0,
+    "created_at_ms": 1790761000745,
+    "updated_at_ms": 1790761043219
+  },
+  "terminal": {
+    "status": "succeeded",
+    "goal_achieved": true,
+    "attempts": 1,
+    "steps_completed": 1
+  },
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da0fa1e39e6664-tool-61f3474a8624bb4fd8ec504776f33c80d1a377816457319cda23608e5339049f",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:15c08ae",
+      "action_fingerprint": "b01a25601f261c95",
+      "status": "verified",
+      "error_code": null,
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-fdd2587562cba3803f1f967a432c1346ea0f2b0d4223404be8179b6313faeefb.png:sha256=fdd2587562cba3803f1f967a432c1346ea0f2b0d4223404be8179b6313faeefb:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=fdd2587562cba3803f1f967a432c1346ea0f2b0d4223404be8179b6313faeefb:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-49e390fceac246296e9129714c7753d47bec217ab9c76657948a48edbab0a43a.png:sha256=49e390fceac246296e9129714c7753d47bec217ab9c76657948a48edbab0a43a:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=175\",\"frame_binding:sha256=49e390fceac246296e9129714c7753d47bec217ab9c76657948a48edbab0a43a:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\",\"visual_verification:generation=2:image_changed=true:criteria_met=1/1\"]",
+      "visible_progress": 1,
+      "started_at_ms": 1790761028828,
+      "completed_at_ms": 1790761031880,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 2,
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "input_release_status": "released"
+    }
+  ],
+  "actions": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da0fa1e39e6664-tool-61f3474a8624bb4fd8ec504776f33c80d1a377816457319cda23608e5339049f",
+      "step_index": 0,
+      "action_json": "{\"arguments\":{\"duration_ms\":500,\"points\":[[0.48,0.591],[0.519,0.591]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:15c08ae\"}"
+    }
+  ],
+  "requests": [
+    {
+      "request_kind": "computer_use_verification",
+      "logical_request_id": "request-1790761004082-26872-2",
+      "status": "completed",
+      "dispatched": 1,
+      "created_at": 1790761004087,
+      "finished_at": 1790761011522,
+      "input_tokens": 18885,
+      "output_tokens": 270
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "logical_request_id": "request-1790761011545-26872-3",
+      "status": "completed",
+      "dispatched": 1,
+      "created_at": 1790761011549,
+      "finished_at": 1790761028821,
+      "input_tokens": 19659,
+      "output_tokens": 1266
+    },
+    {
+      "request_kind": "computer_use_verification",
+      "logical_request_id": "request-1790761032896-26872-4",
+      "status": "completed",
+      "dispatched": 1,
+      "created_at": 1790761032900,
+      "finished_at": 1790761043215,
+      "input_tokens": 21473,
+      "output_tokens": 519
+    }
+  ],
+  "activity_during": {
+    "active": true,
+    "lease_ms": 1800
+  },
+  "activity_after": {
+    "active": false,
+    "lease_ms": 0
+  },
+  "safety": {
+    "before": {
+      "resource_state": "safe",
+      "accepts_new_input": true,
+      "pending_recovery_operations": 0,
+      "unacknowledged_open_blocks": 0,
+      "unacknowledged_legacy_runs": 0
+    },
+    "after": {
+      "resource_state": "safe",
+      "accepts_new_input": true,
+      "pending_recovery_operations": 0,
+      "unacknowledged_open_blocks": 0,
+      "unacknowledged_legacy_runs": 0
+    }
+  },
+  "image_provenance": {
+    "01-desktop-active-glow.png": {
+      "source": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\candidate-035-regression\\desktop-01.png",
+      "sha256": "0942178cde2358997948736d7a551e4a415edb9a131256ce91dd6a866ee4f327",
+      "dimensions": [
+        2560,
+        1440
+      ]
+    },
+    "02-desktop-after-line.png": {
+      "source": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\candidate-035-regression\\desktop-02.png",
+      "sha256": "8148f7d755a87590b37460662337c512790c9c613835aaf454e893e4f3a1dcaa",
+      "dimensions": [
+        2560,
+        1440
+      ]
+    },
+    "03-paint-before-line.png": {
+      "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30496-fdd2587562cba3803f1f967a432c1346ea0f2b0d4223404be8179b6313faeefb.png",
+      "sha256": "fdd2587562cba3803f1f967a432c1346ea0f2b0d4223404be8179b6313faeefb",
+      "dimensions": [
+        2560,
+        1152
+      ]
+    },
+    "04-paint-after-line.png": {
+      "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30496-49e390fceac246296e9129714c7753d47bec217ab9c76657948a48edbab0a43a.png",
+      "sha256": "49e390fceac246296e9129714c7753d47bec217ab9c76657948a48edbab0a43a",
+      "dimensions": [
+        2560,
+        1152
+      ]
+    },
+    "canvas_change": {
+      "region_in_original": [
+        600,
+        300,
+        1900,
+        1050
+      ],
+      "bbox_in_original": [
+        1228,
+        690,
+        1330,
+        694
+      ]
+    }
+  }
+}

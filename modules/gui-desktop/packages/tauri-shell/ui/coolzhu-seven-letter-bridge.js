@@ -169,7 +169,7 @@
         return null;
       }
       installListeners();
-      watchdogId = windowRef?.setTimeout?.(() => requestFinish("presentation-timeout"), 7000) || 0;
+      watchdogId = windowRef?.setTimeout?.(() => requestFinish("presentation-timeout"), 11000) || 0;
       try {
         instance = playerApi.createStartupPlayer({
           manifest: { ...manifest, completeEvent: INTERNAL_EVENT },

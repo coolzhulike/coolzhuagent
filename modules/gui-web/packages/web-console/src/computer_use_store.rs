@@ -193,6 +193,38 @@ pub(crate) fn preflight_existing_session_schema(path: &std::path::Path) -> rusql
     ensure_session_schema_not_from_the_future(&connection)
 }
 
+/// 两个会话库入口共用连接配置。仅重试无业务副作用的日志模式切换。
+/// SQLite 的共享锁升级可能立即返回 BUSY，不一定调用 busy handler。
+pub(crate) fn configure_session_connection(connection: &Connection) -> rusqlite::Result<()> {
+    let wait = std::time::Duration::from_secs(5);
+    connection.busy_timeout(wait)?;
+    connection.execute_batch("PRAGMA foreign_keys = ON;")?;
+    let deadline = std::time::Instant::now() + wait;
+    loop {
+        connection.busy_timeout(deadline.saturating_duration_since(std::time::Instant::now()))?;
+        let result = connection.query_row("PRAGMA journal_mode", [], |row| row.get::<_, String>(0))
+            .and_then(|mode| {
+                // 已经是 WAL 就不再请求模式切换；内存库保留原行为。
+                if mode.eq_ignore_ascii_case("wal") || mode.eq_ignore_ascii_case("memory") {
+                    Ok(())
+                } else {
+                    connection.execute_batch("PRAGMA journal_mode = WAL;")
+                }
+            });
+        match result {
+            Err(rusqlite::Error::SqliteFailure(ref error, _))
+                if error.code == rusqlite::ErrorCode::DatabaseBusy && std::time::Instant::now() < deadline => {
+                std::thread::sleep(std::time::Duration::from_millis(10)
+                    .min(deadline.saturating_duration_since(std::time::Instant::now())));
+            }
+            outcome => {
+                connection.busy_timeout(wait)?;
+                return outcome;
+            }
+        }
+    }
+}
+
 /// v22：`computer_use_runs` 增加**可空**工作区归属列（裁决 §5.1）。
 ///
 /// - 可空是给**历史行**留的：迁移之前写入的运行没有归属记录，读回时必须呈现"历史归属未记录"，
@@ -1828,6 +1860,61 @@ pub(crate) fn sanitized_action_json(raw: &str) -> String {
     }
 }
 
+/// 验收诊断仅保留结构与长度；不保存证据原文、截图、思考、URL或未知字段名。
+/// 不能复用动作脱敏规则，否则 progress/criteria 被全部删除，无法定位验收失败。
+pub(crate) fn sanitized_verification_json(raw: &str) -> String {
+    use serde_json::{json, Value};
+    fn value_type(value: Option<&Value>) -> &'static str {
+        match value {
+            None => "missing",
+            Some(Value::Null) => "null",
+            Some(Value::Bool(_)) => "boolean",
+            Some(Value::Number(_)) => "number",
+            Some(Value::String(_)) => "string",
+            Some(Value::Array(_)) => "array",
+            Some(Value::Object(_)) => "object",
+        }
+    }
+    if raw.len() > 16 * 1024 {
+        return json!({"omitted":"response_too_large","bytes":raw.len()}).to_string();
+    }
+    let value: Value = match serde_json::from_str(raw) {
+        Ok(value) => value,
+        Err(error) => {
+            return json!({"omitted":"invalid_json","bytes":raw.len(),
+                "error_category":format!("{:?}",error.classify()),
+                "error_line":error.line(),"error_column":error.column()}).to_string();
+        }
+    };
+    let criteria = value.get("criteria").and_then(Value::as_array);
+    let rows = criteria.into_iter().flatten().take(128).enumerate().map(|(position, criterion)| {
+        let evidence = criterion.get("evidence").and_then(Value::as_str);
+        json!({"position":position,"type":value_type(Some(criterion)),
+            "index":criterion.get("index").and_then(Value::as_u64),
+            "index_type":value_type(criterion.get("index")),
+            "met":criterion.get("met").and_then(Value::as_bool),
+            "met_type":value_type(criterion.get("met")),
+            "evidence_type":value_type(criterion.get("evidence")),
+            "evidence_chars":evidence.map(|text|text.chars().count()),
+            "evidence_bytes":evidence.map(str::len),
+            "evidence_blank":evidence.map(|text|text.trim().is_empty()),
+            "evidence_exceeds_limit":evidence.map(|text|text.chars().count()>512),
+            "unknown_field_count":criterion.as_object().map(|object|object.keys()
+                .filter(|key|!matches!(key.as_str(),"index"|"met"|"evidence")).count())})
+    }).collect::<Vec<_>>();
+    let result = json!({"bytes":raw.len(),"root_type":value_type(Some(&value)),
+        "progress":value.get("progress").and_then(Value::as_bool),
+        "progress_type":value_type(value.get("progress")),
+        "criteria_type":value_type(value.get("criteria")),
+        "criteria_count":criteria.map(Vec::len),"criteria":rows,
+        "unknown_field_count":value.as_object().map(|object|object.keys()
+            .filter(|key|!matches!(key.as_str(),"progress"|"criteria")).count())}).to_string();
+    if result.len() > 16 * 1024 {
+        json!({"omitted":"sanitized_response_too_large","bytes":raw.len(),
+            "criteria_count":criteria.map(Vec::len)}).to_string()
+    } else { result }
+}
+
 pub(crate) struct ComputerUseRunStore {
     connection: Mutex<Connection>,
 }
@@ -1840,12 +1927,7 @@ impl ComputerUseRunStore {
     }
 
     pub(crate) fn open(path: &std::path::Path) -> rusqlite::Result<Self> {
-        preflight_existing_session_schema(path)?;
-        let connection = Connection::open(path)?;
-        ensure_session_schema_not_from_the_future(&connection)?;
-        connection.execute_batch(
-            "PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;",
-        )?;
+        let connection = crate::open_session_connection(path)?;
         // 所有打开路径复用唯一完整阶梯，先备份再事务迁移。
         crate::initialize_session_schema(&connection)?;
         Ok(Self::from_connection(connection))
@@ -3552,6 +3634,34 @@ mod tests {
     use super::*;
     use crate::ConfigComputerUse;
 
+    #[test]
+    fn concurrent_first_open_preserves_all_tool_registrations() {
+        // 重现首次并发打开，使用真实 SQLite；不涉及模型或桌面动作。
+        for round in 0..8 {
+            let root = tempfile::tempdir().unwrap();
+            let path = root.path().join("session.sqlite3");
+            let barrier = std::sync::Arc::new(std::sync::Barrier::new(6));
+            std::thread::scope(|scope| {
+                let mut workers = Vec::new();
+                for worker in 0..6 {
+                    let path = path.clone();
+                    let barrier = barrier.clone();
+                    workers.push(scope.spawn(move || {
+                        barrier.wait();
+                        let store = ComputerUseRunStore::open(&path)
+                            .unwrap_or_else(|error| panic!("首次并发打开失败 round={round} worker={worker}: {error:?}"));
+                        store.register_tool_call(&format!("call-{worker}"), None, None,
+                            "read_file", "digest", "dispatched").unwrap();
+                    }));
+                }
+                for worker in workers { worker.join().unwrap(); }
+            });
+            let connection = crate::open_session_connection(&path).unwrap();
+            assert_eq!(connection.query_row("SELECT COUNT(*) FROM tool_calls", [],
+                |row| row.get::<_, i64>(0)).unwrap(), 6);
+        }
+    }
+
     fn failed_result(code: &str) -> ComputerUseResult {
         ComputerUseResult {
             call_id: "cu-1".into(),
@@ -3645,6 +3755,25 @@ mod tests {
                 .contains("window-canvas:abc123")
         );
         assert!(!sanitized_action_json(r#"{"target":"window-canvas:SECRET"}"#).contains("SECRET"));
+    }
+
+    #[test]
+    fn verification_diagnostic_preserves_failure_structure_without_private_evidence() {
+        let raw = r#"{"progress":false,"criteria":[{"index":0,"met":false,"evidence":""},{"index":1,"met":false,"evidence":"私密图片内容 SECRET","SECRET-FIELD":"SECRET"}],"api_key":"SECRET"}"#;
+        let diagnostic = sanitized_verification_json(raw);
+        assert!(!diagnostic.contains("SECRET"));
+        assert!(!diagnostic.contains("私密"));
+        let value: serde_json::Value = serde_json::from_str(&diagnostic).unwrap();
+        assert_eq!(value["criteria_count"], 2);
+        assert_eq!(value["criteria"][0]["evidence_blank"], true);
+        assert_eq!(value["criteria"][1]["met"], false);
+        assert_eq!(value["criteria"][1]["unknown_field_count"], 1);
+        let malformed = sanitized_verification_json("{SECRET");
+        assert!(!malformed.contains("SECRET"));
+        assert_eq!(serde_json::from_str::<serde_json::Value>(&malformed).unwrap()["omitted"], "invalid_json");
+        let large = serde_json::json!({"progress":false,"criteria":(0..128)
+            .map(|index|serde_json::json!({"index":index,"met":false,"evidence":""})).collect::<Vec<_>>()});
+        assert!(sanitized_verification_json(&large.to_string()).len() <= 16 * 1024);
     }
 
     #[test]

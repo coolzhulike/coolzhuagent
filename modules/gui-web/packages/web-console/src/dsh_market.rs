@@ -1,12 +1,16 @@
 //! DSH 社区目录只用于发现。目录文本与仓库链接都不是本机插件安装授权。
 use super::*;
 use futures_util::StreamExt;
+use std::io::Read;
 
 const CATALOG_URL: &str = "https://awesome-dsh-plugin.com/plugins.json";
 const CATALOG_LIMIT: usize = 16 * 1024 * 1024;
 const MANIFEST_LIMIT: usize = 64 * 1024;
 const PAGE_SIZE: usize = 24;
 const CACHE_AGE: Duration = Duration::from_secs(300);
+// 完整社区目录约 5 MB，直连慢速链路的下载不能沿用小清单的 15 秒预算。
+const CATALOG_TIMEOUT: Duration = Duration::from_secs(90);
+const MANIFEST_TIMEOUT: Duration = Duration::from_secs(15);
 
 #[derive(Clone, Deserialize)]
 struct DshEntry {
@@ -56,18 +60,20 @@ pub(super) fn routes() -> Router {
         )
 }
 
-fn dsh_client() -> ApiResult<reqwest::Client> {
+fn dsh_client(timeout: Duration) -> ApiResult<reqwest::Client> {
     reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
-        .timeout(Duration::from_secs(15))
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(timeout)
         .user_agent("coolzhu-web-console/DSH-directory")
         .build()
         .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "无法创建市场目录连接"))
 }
 
-async fn dsh_get_limited(url: &str, limit: usize) -> ApiResult<Option<Vec<u8>>> {
-    let response = dsh_client()?
+async fn dsh_get_limited(url: &str, limit: usize, timeout: Duration) -> ApiResult<Option<Vec<u8>>> {
+    let response = dsh_client(timeout)?
         .get(url)
+        .header(reqwest::header::ACCEPT_ENCODING, "gzip")
         .send()
         .await
         .map_err(|_| api_error(StatusCode::BAD_GATEWAY, "市场来源连接失败或超时"))?;
@@ -83,16 +89,44 @@ async fn dsh_get_limited(url: &str, limit: usize) -> ApiResult<Option<Vec<u8>>> 
     {
         return Err(api_error(StatusCode::BAD_GATEWAY, "市场响应超过大小限制"));
     }
+    let compressed = match response.headers().get(reqwest::header::CONTENT_ENCODING) {
+        None => false,
+        Some(value) if value.as_bytes().eq_ignore_ascii_case(b"identity") => false,
+        Some(value) if value.as_bytes().eq_ignore_ascii_case(b"gzip") => true,
+        _ => return Err(api_error(StatusCode::BAD_GATEWAY, "市场响应编码不受支持")),
+    };
     let mut result = Vec::new();
     let mut stream = response.bytes_stream();
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|_| api_error(StatusCode::BAD_GATEWAY, "市场响应读取中断"))?;
+        let chunk = chunk.map_err(|error| {
+            if error.is_timeout() {
+                api_error(StatusCode::GATEWAY_TIMEOUT, "市场下载超时，请稍后重试")
+            } else {
+                api_error(StatusCode::BAD_GATEWAY, "市场响应读取中断")
+            }
+        })?;
         if result.len().saturating_add(chunk.len()) > limit {
             return Err(api_error(StatusCode::BAD_GATEWAY, "市场响应超过大小限制"));
         }
         result.extend_from_slice(&chunk);
     }
+    if compressed {
+        result = dsh_decode_gzip(&result, limit)?;
+    }
     Ok(Some(result))
+}
+
+fn dsh_decode_gzip(bytes: &[u8], limit: usize) -> ApiResult<Vec<u8>> {
+    // 传输体和解压体分别限长，不能让压缩响应绕过原有 16 MB/64 KB 门限。
+    let mut decoded = Vec::new();
+    flate2::read::GzDecoder::new(bytes)
+        .take(limit.saturating_add(1) as u64)
+        .read_to_end(&mut decoded)
+        .map_err(|_| api_error(StatusCode::BAD_GATEWAY, "市场压缩响应无效"))?;
+    if decoded.len() > limit {
+        return Err(api_error(StatusCode::BAD_GATEWAY, "市场响应超过大小限制"));
+    }
+    Ok(decoded)
 }
 
 fn dsh_parse_catalog(bytes: &[u8]) -> ApiResult<DshCatalog> {
@@ -132,7 +166,7 @@ async fn dsh_catalog(force: bool) -> ApiResult<(Arc<DshCatalog>, bool, Option<St
         }
     }
     let fresh = async {
-        let bytes = dsh_get_limited(CATALOG_URL, CATALOG_LIMIT)
+        let bytes = dsh_get_limited(CATALOG_URL, CATALOG_LIMIT, CATALOG_TIMEOUT)
             .await?
             .ok_or_else(|| api_error(StatusCode::BAD_GATEWAY, "市场目录不存在"))?;
         dsh_parse_catalog(&bytes)
@@ -410,14 +444,14 @@ async fn dsh_compatibility(
     let check = async {
         let repository_url = format!("https://api.github.com/repos/{owner}/{repo}");
         if !matches!(
-            dsh_get_limited(&repository_url, MANIFEST_LIMIT).await,
+            dsh_get_limited(&repository_url, MANIFEST_LIMIT, MANIFEST_TIMEOUT).await,
             Ok(Some(_))
         ) {
             return ("unknown", "GitHub 仓库不可访问，无法判断清单是否存在。");
         }
         for path in ["plugin.json", ".claw-plugin/plugin.json"] {
             let url = format!("https://api.github.com/repos/{owner}/{repo}/contents/{path}");
-            match dsh_get_limited(&url, MANIFEST_LIMIT).await {
+            match dsh_get_limited(&url, MANIFEST_LIMIT, MANIFEST_TIMEOUT).await {
                 Ok(None) => continue,
                 Err(_) => return ("unknown", "GitHub 清单读取失败，无法判断兼容性。"),
                 Ok(Some(bytes)) => {
@@ -469,6 +503,17 @@ fn dsh_decode_manifest(bytes: &[u8]) -> Option<JsonValue> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn dsh_gzip_is_bounded_and_rejects_corruption() {
+        use std::io::Write;
+        let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        encoder.write_all(b"real catalog payload shape").unwrap();
+        let bytes = encoder.finish().unwrap();
+        assert_eq!(dsh_decode_gzip(&bytes, 128).unwrap(), b"real catalog payload shape");
+        assert!(dsh_decode_gzip(&bytes, 4).is_err());
+        assert!(dsh_decode_gzip(&bytes[..bytes.len() - 3], 128).is_err());
+    }
 
     #[test]
     fn dsh_repo_rejects_untrusted_url_shapes() {

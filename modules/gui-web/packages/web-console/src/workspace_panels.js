@@ -49,11 +49,11 @@ window.CoolzhuWorkspacePanels = (() => {
     const bar = qs("preview-tabs"); if (!bar) return;
     bar.replaceChildren();
     bar.hidden = !tabs.length || !["preview", "browser"].includes(api.active());
-    const reopen = qs("preview-tabs-reopen"); if (reopen) { reopen.hidden = !tabs.length; reopen.textContent = `预览标签 (${tabs.length})`; }
+    const reopen = qs("preview-tabs-reopen"); if (reopen) { reopen.hidden = !tabs.length; setWuxiaIconOnly(reopen, "file", `打开已保留的预览标签 (${tabs.length})`); }
     const selected = tabs.find(tab => tab.id === selectedTab);
     if (selected?.ref.sourceMessageId) {
       const source = element("button", "来源"); source.type = "button"; source.className = "workspace-preview-source";
-      source.title = "回到引用此内容的聊天消息";
+      setWuxiaIconOnly(source, "chat", "回到引用此内容的聊天消息");
       source.addEventListener("click", () => { home(); void window.CoolzhuChatExperience?.locate(selected.ref.sourceMessageId); }); bar.append(source);
     }
     for (const tab of tabs) {
@@ -62,6 +62,7 @@ window.CoolzhuWorkspacePanels = (() => {
       select.title = tab.ref.locator; select.setAttribute("role", "tab"); select.setAttribute("aria-selected", String(tab.id === selectedTab));
       select.addEventListener("click", () => void activateTab(tab.id));
       const close = element("button", "×"); close.type = "button"; close.className = "workspace-preview-tab-close"; close.setAttribute("aria-label", `关闭 ${tab.ref.label}`);
+      close.title = `关闭 ${tab.ref.label}`;
       close.addEventListener("click", () => closeTab(tab.id)); item.append(select, close); bar.append(item);
     }
   }
@@ -234,6 +235,7 @@ window.CoolzhuWorkspacePanels = (() => {
       archive.append(element("summary","历史思考与原始过程记录（独立存档）"));
       const archiveItems = element("div"); archiveItems.dataset.role = "chat-trace-archive";
       const more = element("button","查看更早原始记录"); more.type = "button"; more.dataset.role = "chat-trace-archive-more"; more.hidden = true;
+      setWuxiaIconOnly(more, "chevron", "查看更早原始记录");
       more.addEventListener("click", () => void loadArchive(true,traceController.signal,key).catch(error => { if (error.name !== "AbortError" && scopeKey() === key) status.textContent = error.message; }));
       archive.append(archiveItems,more); items.append(runs,archive);
       void loadArchive(false,signal,key).catch(error => { if (error.name !== "AbortError" && scopeKey() === key) archiveItems.textContent = error.message; });
@@ -253,6 +255,7 @@ window.CoolzhuWorkspacePanels = (() => {
         row.append(element("small",`轮次 ${run.turn_id || "未记录"} · ${run.run_id}`));
         if (run.source_message_id) {
           const locate=element("button","定位本轮提问"); locate.type="button";
+          setWuxiaIconOnly(locate, "crosshair", "定位本轮提问");
           locate.addEventListener("click",()=>{ home(); void window.CoolzhuChatExperience?.locate(run.source_message_id); }); row.append(locate);
         }
         if (run.stop_reason) row.append(element("p",run.stop_reason));
@@ -265,7 +268,7 @@ window.CoolzhuWorkspacePanels = (() => {
         runHost.append(row);
       }
       traceBefore = data.next_before; qs("chat-trace-more").hidden = !data.has_more;
-      qs("chat-trace-more").textContent = "查看更早轮次";
+      setWuxiaIconOnly(qs("chat-trace-more"), "chevron", "查看更早轮次");
       status.textContent = runHost.childElementCount ? `已显示 ${runHost.childElementCount} 个运行轮次 · 工具调用按真实调用 ID 去重` : "暂无结构化运行轮次；历史思考与原始记录仍可在下方查看。";
     } catch (error) { if (error.name !== "AbortError" && scopeKey() === key) status.textContent = `运行轨迹加载失败：${error.message}`; }
   }

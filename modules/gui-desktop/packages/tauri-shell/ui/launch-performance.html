@@ -9,7 +9,11 @@
   <body>
     <main id="launch-performance" aria-label="酷朱山水卷轴启动演出">
       <canvas id="launch-performance-canvas" aria-hidden="true"></canvas>
-      <button id="launch-performance-skip" type="button" data-skip-launch aria-label="跳过启动演出">跳过</button>
+      <button id="launch-performance-skip" type="button" data-skip-launch aria-label="跳过启动演出" title="跳过启动演出">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="m5 5 8 7-8 7M19 5v14" />
+        </svg>
+      </button>
     </main>
     <!-- 同一幅卷轴展开，保留原COOLZHU字形与Q版整人姿态；不再逐字书写。 -->
     <script defer src="./scroll-startup-player.js"></script>

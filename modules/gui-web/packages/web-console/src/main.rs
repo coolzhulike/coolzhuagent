@@ -16,6 +16,10 @@ mod host_child_agent;
 mod audio;
 mod browser_bridge;
 mod browser_bridge_protocol;
+mod native_browser_host;
+mod native_browser_adapter;
+mod computer_use_activity;
+mod computer_use_turn_scope;
 mod chat_insights;
 mod static_resource_contract;
 mod scheduled_execution;
@@ -571,6 +575,8 @@ struct FrozenParentContext {
     root_budget: Option<root_execution_budget::RootExecutionBudget>,
     goal_phase: Option<goal_execution_parent::FrozenGoalPhaseParent>,
     runtime_db_path: Option<PathBuf>,
+    /// 本轮用户原文冻结的 CU 限制；历史内容和模型参数不能扩大边界。
+    computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope,
     /// 接纳时实际连接并发现的 MCP 工具代际；重连后旧模型响应不可落到新进程。
     mcp_bindings: Arc<HashMap<String, u64>>,
     /// 聊天接纳时已解析的模型、工具及权限；子任务不得在工具发起时重新读取配置扩权。
@@ -608,6 +614,7 @@ impl FrozenParentContext {
             root_budget: root_execution_budget::current(),
             goal_phase: None,
             runtime_db_path: None,
+            computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::default(),
             mcp_bindings,
             host_model_snapshots: Arc::new(HashMap::new()),
         })
@@ -2130,6 +2137,8 @@ fn app() -> Router {
         )
         .merge(terminal_host::routes())
         .merge(extension_market::routes())
+        .merge(native_browser_host::routes())
+        .merge(computer_use_activity::routes())
         .route("/", get(static_index))
         .route("/{*path}", get(static_file))
 }
@@ -19990,6 +19999,16 @@ async fn api_chat_send_stream(
                 &tool_result_summaries,
                 &mut diagnostic_note,
             );
+            if let Some(notice) = chat_tool_history::unexecuted_computer_use_notice(
+                &result.user_content, !tool_result_summaries.is_empty(),
+            ) {
+                // 流式正文只是模型自述；收尾时用真实派发事实校正，不额外请求模型或补发工具。
+                assistant_message.content = format!("{notice}\n\n{}", assistant_message.content);
+                diagnostic_note = Some(notice.to_string());
+                terminal_status = ChatTurnStatus::Failed;
+                assistant_started = true;
+                yield Ok(sse_json_event("message_replace", &assistant_message));
+            }
             if let Some(delta) =
                 append_context_footer(&mut assistant_message.content, context_footer.as_deref())
             {
@@ -28379,6 +28398,11 @@ async fn call_agent_model_with_tool_loop(
         if final_answer.trim().is_empty() {
             final_answer = tool_result_fallback_answer(&tool_result_summaries).unwrap_or_default();
         }
+        let unexecuted_notice = chat_tool_history::unexecuted_computer_use_notice(prompt, model_tool_calls_executed);
+        if let Some(notice) = unexecuted_notice {
+            final_answer = format!("{notice}\n\n{final_answer}");
+            last_diagnostic = Some(notice.to_string());
+        }
         let policy = context_lifecycle_policy();
         let context_usage = context_usage_snapshot_for_assembly_with_usage(
             agent,
@@ -28387,7 +28411,7 @@ async fn call_agent_model_with_tool_loop(
             policy,
         );
         return Ok(AgentModelResponse {
-                    execution_failed: false,
+                    execution_failed: unexecuted_notice.is_some(),
             answer_text: final_answer,
             reasoning_text: all_reasoning,
             tool_requests: Vec::new(),
@@ -28413,10 +28437,16 @@ async fn call_agent_model_with_tool_loop(
         best_remote_usage.as_ref(),
         policy,
     );
+    let mut answer_text = terminal_supervisor_answer.filter(|answer| !answer.trim().is_empty())
+        .or_else(|| tool_result_fallback_answer(&tool_result_summaries)).unwrap_or_default();
+    let unexecuted_notice = chat_tool_history::unexecuted_computer_use_notice(prompt, model_tool_calls_executed);
+    if let Some(notice) = unexecuted_notice {
+        answer_text = format!("{notice}\n\n{answer_text}");
+        last_diagnostic = Some(notice.to_string());
+    }
     Ok(AgentModelResponse {
-                    execution_failed: false,
-        answer_text: terminal_supervisor_answer.filter(|answer| !answer.trim().is_empty())
-            .or_else(|| tool_result_fallback_answer(&tool_result_summaries)).unwrap_or_default(),
+        execution_failed: unexecuted_notice.is_some(),
+        answer_text,
         reasoning_text: all_reasoning,
         tool_requests: Vec::new(),
         tool_write_executed,
@@ -28484,6 +28514,7 @@ fn build_agent_system_prompt_with_beads(
 /// 内联自 AGENT.md 的 Hard Rules + Working Approach，注入每次会话系统提示，使准则真正进入
 /// 提示词而非仅按名引用（AGENT.md 未被 include、运行时工作区也无该文件，仅按名引用等于不生效）。
 const AGENT_GUIDE_INLINE: &str = "Tool & working guide (follow on every task):\n\
+- The final user message is the current request. Earlier user messages and their replies are history, not additional pending tasks or fresh authorization. Continue a historical task only when the current user requests it; obey the current turn's restrictions before any tool call.\n\
 - Pass tool args as top-level JSON fields; never wrap in `raw`. On a \"missing field\" error, retry with the required top-level fields.\n\
 - Prefer write_file/edit_file over shell redirection. Creating a directory is NOT a finished file task — write the actual file, then verify it with read_file.\n\
 - Plan first: for multi-step tasks, use grep_search/glob_search to discover the relevant context before acting; do not assume file names or APIs.\n\
@@ -28883,11 +28914,11 @@ fn build_context_assembly_with_roster(
         if message_for_context.content.trim().is_empty() {
             continue;
         }
-        // 跳过早期 bug 期 assistant 自述「工具只读/dry-run/无法执行」的污染回复：注入后会让模型
-        // 沿袭错误认知、放弃调用工具（goal 卡死根因）。阈值 >=2 避免误删偶含单个词的正常消息。
+        // 不召回早期能力误判，但保留历史轮次结束边界，避免前后两条 user 被合并成待执行任务。
+        // 仅修改上下文投影；真实失败回复与工具审计仍完整保留在原记录。
         if message.role == "assistant" && stale_tool_denial_hits(&message_for_context.content) >= 2
         {
-            continue;
+            message_for_context.content = "[历史轮次已结束；旧能力判断不再召回。是否继续该任务须以本轮用户请求为准。]".into();
         }
         let tokens = estimate_message_tokens(&message_for_context);
         if history_tokens.saturating_add(tokens) > effective_history_budget {
@@ -33154,7 +33185,7 @@ fn messages_allow_computer_use(messages: &[InputMessage]) -> bool {
 fn request_tool_policy_instruction(tools: Option<&[ToolDefinition]>) -> String {
     match tools.filter(|definitions| !definitions.is_empty()) {
         Some(definitions) => format!(
-            "当前请求可调用工具仅限：{}。权限开放不代表其它工具可用。纯生成文本、HTML、SVG 时直接输出内容；只有用户要求实际保存文件才调用写入工具。工具调用必须走结构化协议，禁止在正文伪造 <tool_call>。",
+            "当前请求可调用工具仅限：{}。权限开放不代表其它工具可用。纯生成文本、HTML、SVG 时直接输出内容；只有用户要求实际保存文件才调用写入工具。工具调用必须走结构化协议，禁止在正文伪造 <tool_call>。历史工具执行事实只属于历史轮次，不能当作本轮回执；本轮尚未收到结构化 ToolResult 时，必须说明操作尚未执行，禁止虚构本轮调用次数、错误码或执行结果。",
             tool_definition_names(definitions)),
         None => "当前请求禁止调用任何工具。直接用最终答案完成原始任务，禁止输出 <tool_call> 或声称文件已写入、命令已执行。若任务确需外部操作，说明尚未执行并提供可用的文本内容。".to_string(),
     }
@@ -36280,6 +36311,18 @@ async fn capture_desktop(path: &Path) -> ApiResult<()> {
     {
         let script = format!(
             r#"
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class DesktopCaptureDpi {{
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
+}}
+'@
+# 先建立物理像素上下文，避免高DPI下只截取桌面左上角。
+$previousDpiContext = [DesktopCaptureDpi]::SetThreadDpiAwarenessContext([IntPtr](-4))
+if ($previousDpiContext -eq [IntPtr]::Zero) {{ throw '无法建立桌面截图的物理像素上下文' }}
+try {{
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
@@ -36289,6 +36332,9 @@ $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bound
 $bitmap.Save('{}', [System.Drawing.Imaging.ImageFormat]::Png)
 $graphics.Dispose()
 $bitmap.Dispose()
+}} finally {{
+    [void][DesktopCaptureDpi]::SetThreadDpiAwarenessContext($previousDpiContext)
+}}
 "#,
             path.display().to_string().replace('\'', "''")
         );
@@ -41760,13 +41806,7 @@ fn open_session_connection(path: &Path) -> rusqlite::Result<Connection> {
     computer_use_store::preflight_existing_session_schema(path)?;
     let connection = Connection::open(path)?;
     computer_use_store::ensure_session_schema_not_from_the_future(&connection)?;
-    connection.execute_batch(
-        r#"
-        PRAGMA foreign_keys = ON;
-        PRAGMA journal_mode = WAL;
-        PRAGMA busy_timeout = 5000;
-        "#,
-    )?;
+    computer_use_store::configure_session_connection(&connection)?;
     Ok(connection)
 }
 
@@ -82632,8 +82672,7 @@ attach: last_assistant
             WEB_APP_JS.contains("[\"vision\", \"vision\"]"),
             "dynamic view mode must keep using icons-wuxia/vision.svg"
         );
-        assert!(WEB_APP_JS.contains("icon.src = iconUrl(\"diff\")"));
-        assert!(WEB_APP_JS.contains("icon.src = iconUrl(\"vision\")"));
+        // 统一图标控件可替换直接赋值语句；上方继续核验实际别名与打包资源。
         assert!(WEB_APP_JS.contains("return DEFAULT_PACKAGED_ICON_URL;"));
         assert!(
             !WEB_INDEX_HTML.contains("assets/icons/")

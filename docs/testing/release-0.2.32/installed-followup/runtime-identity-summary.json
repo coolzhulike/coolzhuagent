@@ -1,0 +1,9 @@
+{
+  "build_version": "65d7f5f12705 · 2026-09-30",
+  "port": 8765,
+  "workspace_id_is_canonical": true,
+  "session_schema_version": 27,
+  "supported_session_schema_version": 27,
+  "computer_use_store_state": "ready",
+  "installed_executable_root": "C:/Program Files/CoolzhuAgent/bin"
+}

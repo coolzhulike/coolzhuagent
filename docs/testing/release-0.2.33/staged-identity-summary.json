@@ -1,0 +1,51 @@
+{
+  "version": "0.2.33",
+  "scope": "暂存包身份，非正式安装验收",
+  "checked_at": "2026-09-30T15:20:09.9973702+08:00",
+  "artifacts": [
+    {
+      "id": "gui-web.web-console",
+      "matches": true
+    },
+    {
+      "id": "gui-web.browser-native-host",
+      "matches": true
+    },
+    {
+      "id": "gui-web.clawbot-sidecar",
+      "matches": true
+    },
+    {
+      "id": "cli.command-line",
+      "matches": true
+    },
+    {
+      "id": "computer-use.preflight-check",
+      "matches": true
+    },
+    {
+      "id": "vision.smoke",
+      "matches": true
+    },
+    {
+      "id": "vision.latest-desktop",
+      "matches": true
+    },
+    {
+      "id": "gui-desktop.tauri-shell",
+      "matches": true
+    },
+    {
+      "id": "gui-desktop.webview2-loader",
+      "matches": true
+    },
+    {
+      "id": "package.app-launcher",
+      "matches": true
+    }
+  ],
+  "msi_sha256": "3F6DC3E2B364460ECC0E28076DD9B82382F9D6207110CC939F33A4CF7F32DAFB",
+  "installed": false,
+  "functional_paint_accepted": false,
+  "functional_indicator_accepted": false
+}

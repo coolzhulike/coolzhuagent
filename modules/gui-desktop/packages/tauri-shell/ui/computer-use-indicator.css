@@ -1,0 +1,10 @@
+* { box-sizing: border-box; pointer-events: none; user-select: none; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+.glow { position: fixed; inset: 0; border: 2px solid rgba(155,235,195,.78); border-radius: 9px;
+  box-shadow: inset 0 0 9px 3px rgba(81,196,152,.56), inset 0 0 24px 5px rgba(82,189,145,.2); }
+.banner { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 30px);
+  padding: 8px 20px; border: 1px solid #9ee0be; border-radius: 18px; background: rgba(9,37,28,.96);
+  color: #eefaf2; font: 600 13px/1.4 "Segoe UI", sans-serif; text-align: center;
+  box-shadow: 0 0 16px rgba(85,201,152,.4); white-space: nowrap; }
+/* 活动边光保持静态：呼吸动画会进入真实截图，导致未变化的客户端在笔画前被判为过期。
+   保留完整帧校验，不忽略边缘、不隐藏截图中的提示层；显隐只随真实执行租约变化。 */

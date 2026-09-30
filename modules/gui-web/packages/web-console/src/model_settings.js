@@ -85,6 +85,14 @@
         </fieldset>
         <div class="ms-footer"><p data-ms="status" role="status" aria-live="polite">正在读取配置…</p><button type="submit" data-ms="save" class="ms-primary">保存配置</button></div>
       </form>`;
+    const controls = {
+      new: ["plus", "新建模型会话"], discover: ["search", "获取远程模型"],
+      "adopt-model": ["check", "使用所选模型"], "adopt-capability": ["vision", "采用所选模型的图片能力"],
+    };
+    for (const [action, [icon, label]] of Object.entries(controls)) {
+      setWuxiaIconOnly(container.querySelector(`[data-ms-action="${action}"]`), icon, label);
+    }
+    setWuxiaIconOnly(container.querySelector('[data-ms="save"]'), "save", "保存模型会话配置");
     const el = key => container.querySelector(`[data-ms="${key}"]`);
     const value = key => el(key).value.trim();
     const set = (key, data) => { el(key).value = data ?? ""; };

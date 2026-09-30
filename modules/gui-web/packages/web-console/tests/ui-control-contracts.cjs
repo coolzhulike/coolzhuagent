@@ -191,7 +191,7 @@ const sessionOptionSource = extractBalancedBlock(
   `document.querySelector('[data-role="session-list"]')?.addEventListener("click", async (event) =>`,
 );
 const sessionKeydownSource = extractBalancedBlock(
-  appSource,
+  appSource.slice(appSource.indexOf("const setSessionListOpen =")),
   'document.addEventListener("keydown", (event) =>',
 );
 assert.match(sessionStateSource, /sessionWrap\?\.classList\.toggle\("open", isOpen\)/);

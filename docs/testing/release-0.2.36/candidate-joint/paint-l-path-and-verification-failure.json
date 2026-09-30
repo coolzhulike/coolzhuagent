@@ -1,0 +1,178 @@
+{
+  "parent_turn_id": "chat-turn-1790764115028-0",
+  "parent_run_id": "run-chat-dc9411046d72f7b0c65d6d279b72a11454aacce0a46e6220",
+  "request": "CANDIDATE-036-PAINT-PATH-20260930-L：这是新的独立Paint路径验收，允许本轮在当前无标题画图白色画布内用黑色画笔发送输入。不要续接历史头像或网页任务。只调用一次正式结构化computer_use_perform，surface=desktop，target.application=mspaint，objective是在现有短线附近的空白区域连续拖动一条简单L形折线（水平段加竖直段，每段约100像素，不闭合），success_criteria必须包含白画布可见一条连接的L形黑线；constraints包含仅当前Paint白画布、不清除已有内容、不保存文件、不写代码/脚本、不用终端、不切浏览器、不改权限。由真实截图自行选画布位置和规划点；动作前后观察验证，按真实回执报告输入和释放。质量不要求，不能把只有点或直线当L形通过；失败就如实报告，不用其它工具重试。",
+  "run": {
+    "call_id": "cu-session-1779459149988-000000000000000218da12798f9f56d8-tool-f9a48e75cb7b0437ff62867fe804e21a1ad537873fc394d8072175acdc330851",
+    "surface": "desktop",
+    "state": "blocked",
+    "action_count": 1,
+    "replan_count": 0,
+    "created_at_ms": 1790764125863,
+    "updated_at_ms": 1790764178965
+  },
+  "terminal": {
+    "status": "blocked",
+    "stage": "verification",
+    "goal_achieved": false,
+    "attempts": 1,
+    "steps_completed": 1,
+    "error": {
+      "code": "invalid_verification",
+      "message": "visual judge returned invalid JSON",
+      "retryable": false,
+      "retry_owner": "model"
+    }
+  },
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da12798f9f56d8-tool-f9a48e75cb7b0437ff62867fe804e21a1ad537873fc394d8072175acdc330851",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:15c08ae",
+      "action_fingerprint": "a2222623731b9290",
+      "status": "input_sent_observed",
+      "error_code": null,
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-619c80cfdd6904978fec5e13bba1d91b663a5a915ced2353674b3a7956240b03.png:sha256=619c80cfdd6904978fec5e13bba1d91b663a5a915ced2353674b3a7956240b03:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=619c80cfdd6904978fec5e13bba1d91b663a5a915ced2353674b3a7956240b03:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-3ea7abd323c91d9a691e0e197f9e40120e932a1cb34b472717b69ef7259efc88.png:sha256=3ea7abd323c91d9a691e0e197f9e40120e932a1cb34b472717b69ef7259efc88:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=175\",\"frame_binding:sha256=3ea7abd323c91d9a691e0e197f9e40120e932a1cb34b472717b69ef7259efc88:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "visible_progress": 0,
+      "started_at_ms": 1790764158645,
+      "completed_at_ms": 1790764163288,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 3,
+      "effect_status": null,
+      "goal_verdict": null,
+      "input_release_status": "released"
+    }
+  ],
+  "actions": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da12798f9f56d8-tool-f9a48e75cb7b0437ff62867fe804e21a1ad537873fc394d8072175acdc330851",
+      "step_index": 0,
+      "action_json": "{\"arguments\":{\"duration_ms\":1500,\"points\":[[0.449,0.542],[0.488,0.542],[0.488,0.633]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:15c08ae\"}"
+    }
+  ],
+  "report": {
+    "call_id": "cu-session-1779459149988-000000000000000218da12798f9f56d8-tool-f9a48e75cb7b0437ff62867fe804e21a1ad537873fc394d8072175acdc330851",
+    "unavailable": null,
+    "attempts": 1,
+    "input_sent": 1,
+    "partial_input": 0,
+    "verified_steps": 0,
+    "baseline_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-619c80cfdd6904978fec5e13bba1d91b663a5a915ced2353674b3a7956240b03.png:sha256=619c80cfdd6904978fec5e13bba1d91b663a5a915ced2353674b3a7956240b03:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=619c80cfdd6904978fec5e13bba1d91b663a5a915ced2353674b3a7956240b03:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+    "final_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-3ea7abd323c91d9a691e0e197f9e40120e932a1cb34b472717b69ef7259efc88.png:sha256=3ea7abd323c91d9a691e0e197f9e40120e932a1cb34b472717b69ef7259efc88:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=175\",\"frame_binding:sha256=3ea7abd323c91d9a691e0e197f9e40120e932a1cb34b472717b69ef7259efc88:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+    "steps": [
+      {
+        "step_index": 0,
+        "status": "input_sent_observed",
+        "input_status": "complete",
+        "may_claim_complete": true,
+        "forbids_automatic_replay": false,
+        "error_code": null
+      }
+    ],
+    "requests": [
+      {
+        "attempt_key": "cu-session-1779459149988-000000000000000218da12798f9f56d8-tool-f9a48e75cb7b0437ff62867fe804e21a1ad537873fc394d8072175acdc330851#computer_use_planning:step-0#attempt-1",
+        "action_id": "desktop:window-canvas:15c08ae:32d8e2771a23ba60",
+        "has_usage_fact": false
+      }
+    ],
+    "cleanup_incidents": []
+  },
+  "invalid_verdict_projection": {
+    "bytes": 597,
+    "error_category": "Syntax",
+    "error_column": 465,
+    "error_line": 1,
+    "omitted": "invalid_json"
+  },
+  "activity_after": {
+    "active": false,
+    "lease_ms": 0
+  },
+  "safety_after": {
+    "unavailable": null,
+    "resource_scope": "windows-session-1",
+    "resource_state": "safe",
+    "accepts_new_input": true,
+    "pending_recovery_operations": 0,
+    "human_review_required": 2,
+    "unacknowledged_open_blocks": 0,
+    "unacknowledged_legacy_runs": 0,
+    "acknowledged_legacy_runs": 2,
+    "human_review_operations": [
+      {
+        "recovery_operation_id": "startup-recovery-cu-session-1781738898772-000000000000000118bdb1027b2478e0-call_ea30b56c5ec44e898fce7353",
+        "stage": "r5_incident_established",
+        "disposition": "human_review_required",
+        "recorded_at_unix_ms": 1790335188522
+      },
+      {
+        "recovery_operation_id": "startup-recovery-cu-session-1789804322149-000000000000000118d6a9a0fcc1349c-rpO0wuINWlivnmBZeYz48T7iLk5bFSaF",
+        "stage": "r5_incident_established",
+        "disposition": "human_review_required",
+        "recorded_at_unix_ms": 1790335188543
+      }
+    ],
+    "unacknowledged_block_ids": [],
+    "unacknowledged_run_ids": [],
+    "latest_release": {
+      "decision_id": "release-1790753178017-1790753178017039300",
+      "operator": "S-1-5-21-1268417434-179321985-1489660346-1001",
+      "reason": "测试允许",
+      "release_epoch": 25,
+      "decided_at_unix_ms": 1790753178017
+    }
+  },
+  "runtime_identity": {
+    "workspace_path": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "workspace_id_is_canonical": true,
+    "session_db_path": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.sqlite3",
+    "session_schema_version": 27,
+    "supported_session_schema_version": 27,
+    "computer_use_store_state": "ready",
+    "legacy_unconverged_runs": 2,
+    "build_version": "7bdb1b68dae2 · 2026-09-30",
+    "port": 8765
+  },
+  "image_provenance": {
+    "01-paint-before-l.png": {
+      "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30496-619c80cfdd6904978fec5e13bba1d91b663a5a915ced2353674b3a7956240b03.png",
+      "sha256": "619c80cfdd6904978fec5e13bba1d91b663a5a915ced2353674b3a7956240b03",
+      "dimensions": [
+        2560,
+        1152
+      ]
+    },
+    "02-paint-after-l-corner-missing.png": {
+      "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30496-3ea7abd323c91d9a691e0e197f9e40120e932a1cb34b472717b69ef7259efc88.png",
+      "sha256": "3ea7abd323c91d9a691e0e197f9e40120e932a1cb34b472717b69ef7259efc88",
+      "dimensions": [
+        2560,
+        1152
+      ]
+    },
+    "03-desktop-l-active.png": {
+      "source": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\candidate-036-regression\\desktop-l-active.png",
+      "sha256": "51b586ac9243ef441a41aeae311e20059c9cce1214508e784a270d96f979b507",
+      "dimensions": [
+        2560,
+        1440
+      ]
+    },
+    "04-desktop-after-l.png": {
+      "source": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\candidate-036-regression\\desktop-after-l.png",
+      "sha256": "e94de8efd2c0c8c62ba5d118654edbb16f07d3cf799ecc72cea20030f06053b6",
+      "dimensions": [
+        2560,
+        1440
+      ]
+    }
+  },
+  "acceptance": "未通过：模型规划三点L形，宿主记录3点接纳/释放，原始截图只有起点至终点斜线；视觉JSON另失败。不可把输入回执当L形或头像验收。"
+}

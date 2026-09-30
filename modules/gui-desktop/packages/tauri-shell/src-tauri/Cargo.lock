@@ -502,10 +502,18 @@ name = "coolzhu-diagnostics"
 version = "0.2.0"
 
 [[package]]
+name = "coolzhu-native-browser-protocol"
+version = "0.2.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "coolzhu-tauri-shell"
 version = "0.2.0"
 dependencies = [
  "coolzhu-diagnostics",
+ "coolzhu-native-browser-protocol",
  "coolzhu-windows-process-guard",
  "png",
  "reqwest 0.12.28",
@@ -516,6 +524,9 @@ dependencies = [
  "tauri-plugin-shell",
  "tauri-plugin-single-instance",
  "tokio",
+ "webview2-com",
+ "windows",
+ "windows-core 0.61.2",
  "windows-sys 0.61.2",
 ]
 

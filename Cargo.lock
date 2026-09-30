@@ -946,6 +946,13 @@ name = "coolzhu-monitor"
 version = "0.2.0"
 
 [[package]]
+name = "coolzhu-native-browser-protocol"
+version = "0.2.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "coolzhu-orchestrator"
 version = "0.2.0"
 
@@ -1010,12 +1017,14 @@ dependencies = [
  "coolzhu-diagnostics",
  "coolzhu-language-service",
  "coolzhu-llm-adapter",
+ "coolzhu-native-browser-protocol",
  "coolzhu-plugin-system",
  "coolzhu-tool-registry",
  "coolzhu-uia-resolver",
  "coolzhu-vision-service",
  "coolzhu-windows-process-guard",
  "encoding_rs",
+ "flate2",
  "futures-core",
  "futures-util",
  "getrandom 0.3.4",

@@ -1,0 +1,30 @@
+{
+  "h": {
+    "turn_id": "chat-turn-1790761161437-1",
+    "run_id": "run-chat-16b9c8a9f83605dd4b95606fac5661bb3019d13f2e0e5449",
+    "chat_status": "failed",
+    "new_computer_use_dispatched": false,
+    "fact": "没有新CU登记，模型正文复述旧blocked/attempts，宿主明确标记0派发，不能当作本轮执行事实"
+  },
+  "i": {
+    "turn_id": "chat-turn-1790761442926-2",
+    "run_id": "run-chat-07704146535948a470976bea09cab90ecd0988c3295d1e74",
+    "chat_status": "completed",
+    "call_id": "cu-session-1779459149988-000000000000000b18da100b6cdf46b4-tool-4f123fa2b272254d5a5b3d2049c291069c6fcec8559a0d0be991454a068e1aae",
+    "report": {
+      "call_id": "cu-session-1779459149988-000000000000000b18da100b6cdf46b4-tool-4f123fa2b272254d5a5b3d2049c291069c6fcec8559a0d0be991454a068e1aae",
+      "unavailable": null,
+      "attempts": 0,
+      "input_sent": 0,
+      "partial_input": 0,
+      "verified_steps": 0,
+      "baseline_evidence_ref": null,
+      "final_evidence_ref": null,
+      "steps": [],
+      "requests": [],
+      "cleanup_incidents": []
+    },
+    "fact": "新的结构化调用漏success_criteria，准入拒绝，0动作，不改原工具schema、不补发隐藏动作"
+  },
+  "boundary": "G轮通过短线/静态提示/正常释放；H/I不通过海绵宝宝，不将模型叙述当真实步骤"
+}

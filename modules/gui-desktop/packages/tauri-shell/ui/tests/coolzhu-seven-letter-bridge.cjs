@@ -75,13 +75,13 @@ async function main() {
   await completedOnce(restore,"restored");
 
   const full=harness({assets:{}}); full.controller.start(); await Promise.resolve();
-  full.tick(100); full.tick(4700); await completedOnce(full,"completed");
+  full.tick(100); full.tick(7900); await completedOnce(full,"completed");
   assert.deepEqual(full.nativeReports.map(entry=>entry.report.phase),["started","assets_ready","first_frame","finished"]);
   assert.equal(full.nativeReports.at(-1).report.frameCount,2);
   assert.equal(full.storage.get("coolzhu.scroll-startup.seen.v1"),"1");
 
   const daily=harness({mode:"daily",assets:{}}); daily.controller.start(); await Promise.resolve();
-  daily.tick(100); daily.tick(1080); await completedOnce(daily,"completed");
+  daily.tick(100); daily.tick(6600); await completedOnce(daily,"completed");
 
   const broken=harness({playerApi:{createStartupPlayer(){throw new Error("创建失败");}}});
   broken.controller.start(); await completedOnce(broken,"resource-error");

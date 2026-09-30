@@ -1,0 +1,42 @@
+[
+  {
+    "id": "gui-web.web-console",
+    "matches": true
+  },
+  {
+    "id": "gui-web.browser-native-host",
+    "matches": true
+  },
+  {
+    "id": "gui-web.clawbot-sidecar",
+    "matches": true
+  },
+  {
+    "id": "cli.command-line",
+    "matches": true
+  },
+  {
+    "id": "computer-use.preflight-check",
+    "matches": true
+  },
+  {
+    "id": "vision.smoke",
+    "matches": true
+  },
+  {
+    "id": "vision.latest-desktop",
+    "matches": true
+  },
+  {
+    "id": "gui-desktop.tauri-shell",
+    "matches": true
+  },
+  {
+    "id": "gui-desktop.webview2-loader",
+    "matches": true
+  },
+  {
+    "id": "package.app-launcher",
+    "matches": true
+  }
+]

@@ -1,0 +1,112 @@
+{
+  "parent_turn_id": "chat-turn-1790761787576-3",
+  "parent_run_id": "run-chat-2b92d822222a70501e2de372cd93167af75fe0e217d5a83c",
+  "request": "CANDIDATE-035-BROWSER-READ-20260930-J：用户已在当前聊天室的右侧内置浏览器打开https://example.com/并保持可见。请现在只读观察该真实原生页面，不点击、不滚动、不输入、不切其它应用、不打开外部浏览器、不使用搜索/终端/网络抓取替代。通过一次正式结构化computer_use_perform调用，完整参数为objective（观察当前右栏网页并读取标题、一段正文及Learn more链接）、surface=browser、target.url=https://example.com/、success_criteria非空字符串数组（取得当前真实页面标题与正文和链接）、constraints数组（只读观察、不得发送输入、不得外部浏览器或其它工具）。请按真实回执报告是否确实观察到该页面及内容，未实现的输入或目标验证就明确说未实现，不能从用户截图或历史回执猜测页面结果。",
+  "run": {
+    "call_id": "cu-session-1779459149988-000000000000000e18da105ba8b7a924-tool-37de8d4363c1f5a446cf04d7cf01d7786daa1c9aa90caca376bf07bab60373a0",
+    "surface": "desktop",
+    "state": "blocked",
+    "action_count": 2,
+    "replan_count": 0,
+    "created_at_ms": 1790761819965,
+    "updated_at_ms": 1790761915485
+  },
+  "terminal": {
+    "status": "blocked",
+    "goal_achieved": false,
+    "attempts": 2,
+    "steps_completed": 2,
+    "error": {
+      "code": "no_progress",
+      "message": "no visible progress after repeated actions",
+      "retryable": false,
+      "retry_owner": "none"
+    }
+  },
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000e18da105ba8b7a924-tool-37de8d4363c1f5a446cf04d7cf01d7786daa1c9aa90caca376bf07bab60373a0",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:15c08ae",
+      "action_fingerprint": "cc0637f0d6e2cb39",
+      "status": "completed_unverified",
+      "error_code": null,
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e.png:sha256=f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e.png:sha256=f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\",\"visual_verification:generation=2:image_changed=false:criteria_met=1/4\"]",
+      "visible_progress": 0,
+      "started_at_ms": 1790761851662,
+      "completed_at_ms": 1790761855819,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 18,
+      "effect_status": "inconclusive",
+      "goal_verdict": "failed",
+      "input_release_status": "released"
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000000e18da105ba8b7a924-tool-37de8d4363c1f5a446cf04d7cf01d7786daa1c9aa90caca376bf07bab60373a0",
+      "step_index": 1,
+      "observation_generation": 2,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:15c08ae",
+      "action_fingerprint": "5f9bce5613e7b1e1",
+      "status": "completed_unverified",
+      "error_code": null,
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e.png:sha256=f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-43b1e08bd29d690beec2ae858c764f19ed3d754e2e737677e9671fba2273d5f0.png:sha256=43b1e08bd29d690beec2ae858c764f19ed3d754e2e737677e9671fba2273d5f0:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=175\",\"frame_binding:sha256=43b1e08bd29d690beec2ae858c764f19ed3d754e2e737677e9671fba2273d5f0:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\",\"visual_verification:generation=3:image_changed=true:criteria_met=1/4\"]",
+      "visible_progress": 0,
+      "started_at_ms": 1790761886772,
+      "completed_at_ms": 1790761891739,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 17,
+      "effect_status": "inconclusive",
+      "goal_verdict": "failed",
+      "input_release_status": "released"
+    }
+  ],
+  "actions": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000e18da105ba8b7a924-tool-37de8d4363c1f5a446cf04d7cf01d7786daa1c9aa90caca376bf07bab60373a0",
+      "step_index": 0,
+      "action_json": "{\"arguments\":{\"duration_ms\":1200,\"points\":[[0.232,0.232],[0.232,0.232],[0.27,0.232],[0.31,0.232],[0.35,0.232],[0.39,0.232],[0.39,0.29],[0.39,0.35],[0.39,0.41],[0.39,0.469],[0.35,0.469],[0.31,0.469],[0.27,0.469],[0.232,0.469],[0.232,0.41],[0.232,0.35],[0.232,0.29],[0.232,0.232]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:15c08ae\"}"
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000000e18da105ba8b7a924-tool-37de8d4363c1f5a446cf04d7cf01d7786daa1c9aa90caca376bf07bab60373a0",
+      "step_index": 1,
+      "action_json": "{\"arguments\":{\"duration_ms\":1500,\"points\":[[0.55,0.3],[0.6,0.3],[0.65,0.3],[0.7,0.3],[0.72,0.3],[0.72,0.35],[0.72,0.4],[0.72,0.45],[0.72,0.52],[0.67,0.52],[0.62,0.52],[0.57,0.52],[0.55,0.52],[0.55,0.47],[0.55,0.42],[0.55,0.37],[0.55,0.3]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:15c08ae\"}"
+    }
+  ],
+  "image_provenance": {
+    "05-unexpected-paint-before-browser-j.png": {
+      "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30496-f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e.png",
+      "sha256": "f22c7a121d1cd07e9b0a8a464a21d175c19e4ffd9f8fad81fad2610814cd673e",
+      "dimensions": [
+        2560,
+        1152
+      ]
+    },
+    "06-unexpected-paint-after-browser-j.png": {
+      "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30496-43b1e08bd29d690beec2ae858c764f19ed3d754e2e737677e9671fba2273d5f0.png",
+      "sha256": "43b1e08bd29d690beec2ae858c764f19ed3d754e2e737677e9671fba2273d5f0",
+      "dimensions": [
+        2560,
+        1152
+      ]
+    },
+    "07-user-native-browser-visible.png": {
+      "source": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\codex-clipboard-0656676b-9fb9-4fe4-836a-dc8bfc1b40c7.png",
+      "sha256": "3cad4687f1793bd0ff38a8463582c1fdb2258404a239d68763f5d9d82ea8d3fa",
+      "dimensions": [
+        795,
+        900
+      ]
+    }
+  },
+  "browser_observations": 0,
+  "note": "本轮只读浏览器请求误续接历史Paint；两个真实拖动均释放，不能作为浏览器或海绵宝宝验收通过。"
+}
