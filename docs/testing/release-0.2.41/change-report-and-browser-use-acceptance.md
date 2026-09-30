@@ -22,7 +22,26 @@
 
 ## 工程验证与构建身份
 
-最终终态源码离线Web build退出0（30.50秒）。新增两项必要的SQLite边界回归均通过：真实父停止入口先提交、成功先提交、预算过期、内存取消、另库/缺父归属及迟到结果；第二连接写入在成功判定事务内被SQLite拒绝、事务完成后可写。完整Web回归1283通过、0失败、2项既有忽略（42.56秒），另lib8/0、宿主静态契约1/0。保留132条既有编译警告。它们不调用模型或软件，不替代截图验收。最终安装包身份待本轮完成后补入。
+最终终态源码离线Web build退出0（30.50秒）。新增两项必要的SQLite边界回归均通过：真实父停止入口先提交、成功先提交、预算过期、内存取消、另库/缺父归属及迟到结果；第二连接写入在成功判定事务内被SQLite拒绝、事务完成后可写。完整Web回归1283通过、0失败、2项既有忽略（42.56秒），另lib8/0、宿主静态契约1/0。保留132条既有编译警告。它们不调用模型或软件，不替代截图验收。正常release安装包已完成并独立核验；下表为本次真实构建身份。
+
+安装包：[CoolzhuAgent-0.2.41.msi](C:/Users/zhupu/Desktop/coolzhuagent/dist/CoolzhuAgent-0.2.41.msi)。大小246762877字节。此前040保留历史，不推荐用其验本补丁。
+
+| 身份 | 实际值 |
+|---|---|
+| MSI SHA-256 | `ad00c97057aa717300fe4f5fcdbb6d964ee0bd36bc6f3780ab2c88cc3d5612fa` |
+| 构建报告ID | `pkg-report-release-20261001-012315274-8e7346e0` |
+| 源快照摘要 | `4515395f72a402833179f6566adcec7f12ce704aa523d805f9ed353ae43f104e` |
+| 构建输入摘要 | `e30d67e3ccfc954de4b73ec3a84ffeb63f81ca3dadcca151b80f68dd81b4ecac` |
+| 载荷摘要 | `a28ea06af7b52908a8be4dfacf18dcf7941e4ce501ca904c84f2baf95ae9bf72` |
+| 源参考提交 | `4f7a46fc86f6bb7b43fdeaefb5784987fb3217ae`，dirty工作树；仅种子，源码权威为快照 |
+| 构建时源码稳定性 | 构建前后逐文件一致；不是clean commit build |
+| 发布门/产物/载荷 | 6/6 pass；10/10源与独立暂存文件摘要一致；859文件 |
+| 内容扫描 | safe=true，0发现 |
+| 暂存位置 | `tmp/candidate-041-package`；没有覆盖运行中的`package/` |
+
+六份原始JSON与字节保留规则已[归档](evidence/build-identity/pkg-report-release-20261001-012315274-8e7346e0/package-report.json)，包括安装报告、包报告、文件证据、载荷清单、内容扫描和独立暂存核验。原WebView2Loader沿其实际producer输出复用且摘要匹配，不称全部产物重新生成。最终源码提交4f7a46f的远端检查尚在运行，结果以PR最新Checks为准。
+
+终态窄审的[完整页面文本](../release-0.2.40/review/20261001-readonly-terminal-review-dom.txt)及[最新结论可见的原始截图](../release-0.2.40/review/20261001-readonly-terminal-review-visible.png)已保存；此前同名无visible截图位置未包含最新回复，不能拿它单独核验结论。
 
 当前实际进程仍037（Web18960/Tauri26096，原工作区ws-992cca993bc1a1a0），不得拿旧进程测本补丁。041尚未安装/启动；此前候选启动的自动审查只返回blocked by policy，未换入口绕过。当前无需重复历史安全放行。
 
