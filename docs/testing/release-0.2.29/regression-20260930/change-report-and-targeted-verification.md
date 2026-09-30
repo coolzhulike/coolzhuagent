@@ -30,6 +30,7 @@
 | 默认 `_blank` 普通链接 | 开发候选原生通过 | `candidate-browser/02-default-blank-c.jpg`，目标 C 在右栏显示 |
 | `noopener` 链接 | 开发候选原生通过 | `candidate-browser/03-noopener-c.jpg` |
 | 保留 opener 的链接 | 开发候选原生通过 | `candidate-browser/04-opener-c.jpg` |
+| 命名窗口、脚本开页 | 开发候选人工原生操作通过 | `candidate-browser/07-named-target-c.jpg`、`08-script-window-open-c.jpg`；目标 C 及地址 `/c` 均在右栏显示，不计为模型 Browser Use 通过 |
 | 设置、真实模型查询 | 候选原生通过读取/查询 | `candidate-panels/01-settings-loaded.jpg`、`02-real-model-discovery.jpg`；百炼返回 261 项；未改 Key/Base URL、未保存参数 |
 | 统计 | 候选原生通过读取 | `candidate-panels/03-real-usage.jpg`；当时真实历史 19 请求，输入 160356、输出 6913、缓存 54784；不是完整计费账单 |
 | 更新检查 | 候选原生检查完成 | `candidate-panels/04-update-final.jpg`；尚无正式稳定发布，检查后按钮恢复；不把开发构建版本字段作为正式包验证 |
@@ -69,4 +70,4 @@ DSH 根因证据：真实目录源更新 2026-09-29、4392 项、未压缩 52813
 
 ## 仍开放的工作
 
-右栏原生 Browser Use 实施及真实 Qwen 验收、CU Paint、DSH 远程 Node/Cordis 插件安装/运行适配、动画完整安装版验收、尚未覆盖的侧栏/生命周期边界，以及新正式包/安装身份与远端 CI。不能将本报告或单项代码编译作为四项任务总体完成。
+右栏原生 Browser Use 实施及真实 Qwen 验收、CU Paint、DSH 远程 Node/Cordis 插件安装/运行适配、动画完整安装版验收、尚未覆盖的侧栏/生命周期边界，以及安装身份与远端 CI。0.2.31 已完整构建，六项打包门通过，尚未安装；打包目录启动遇到 Windows 防火墙提示，需用户自行处理。PR #73 首轮 CI 中旧测试要求已删除的直接图标赋值语句，失败于此单项；已删除重复的语句形态检查，保留资源/别名校验，继续验证。身份和交接见 [0.2.31 包交接](../../release-0.2.31/package-handoff-and-verification.md)。不能将本报告或单项代码编译作为四项任务总体完成。

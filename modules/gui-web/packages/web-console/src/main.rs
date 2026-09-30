@@ -82632,8 +82632,7 @@ attach: last_assistant
             WEB_APP_JS.contains("[\"vision\", \"vision\"]"),
             "dynamic view mode must keep using icons-wuxia/vision.svg"
         );
-        assert!(WEB_APP_JS.contains("icon.src = iconUrl(\"diff\")"));
-        assert!(WEB_APP_JS.contains("icon.src = iconUrl(\"vision\")"));
+        // 统一图标控件可替换直接赋值语句；上方继续核验实际别名与打包资源。
         assert!(WEB_APP_JS.contains("return DEFAULT_PACKAGED_ICON_URL;"));
         assert!(
             !WEB_INDEX_HTML.contains("assets/icons/")

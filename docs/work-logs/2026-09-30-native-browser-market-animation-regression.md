@@ -11,3 +11,7 @@
 真实Qwen Browser Use两轮未通过；第二轮正常启动器根注入有效，输入资源isolated revision=12，0步/0动作。没有清库或代为放行。已在既有审核聊天核查独立原生适配方案并记录职责、取消/代次风险与九项实操标准；原生DOM动作桥尚未实施。
 
 详细范围、失败证据与供其它模型设计测试的入口见 [改动报告](../testing/release-0.2.29/regression-20260930/change-report-and-targeted-verification.md)、[Browser Use审查计划](../analysis/2026-09-30-native-browser-use-review-and-plan.md)。四项任务尚未总体通过，CU Paint和原生Browser Use不以聊天轮结束或零动作判成功。
+
+后续补齐命名窗口和脚本开页两张人工原生操作图，五种新窗口场景均在右栏显示 C。0.2.31 完整 release 构建和六项发布门通过，MSI 已生成但未安装；打包目录首次启动遇到防火墙提示，交由用户处理，完整动画暂未验收。PR #73 首条 CI 为 1262 passed / 1 failed / 2 ignored，失败为旧图标赋值语句断言；删除重复语句检查，保留真实资产校验。包身份与后续实操矩阵见 [0.2.31 交接](../testing/release-0.2.31/package-handoff-and-verification.md)。
+
+CI 跟进补丁离线构建通过，完整 Web 回归为 1263 passed / 0 failed / 2 ignored；该结果不覆盖原生 UI 或真实模型动作验收，也不能代替远端最新提交检查。
