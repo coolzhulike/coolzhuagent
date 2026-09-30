@@ -3617,6 +3617,8 @@ function chatMessageList() {
 // 流式通道异常或中止后，收口当前聊天室残留的视觉扫描标记。
 function clearChatStreamingMarkers() {
   window.CoolzhuChatExperience?.finish();
+  // 正常结束/中止后重读资源事实，新的隔离不能继续沿用启动时的徽记。
+  void refreshAttributionAndRecovery();
   const list = chatMessageList();
   if (!list) {
     return;
@@ -8350,9 +8352,12 @@ async function refreshSystemInfo() {
 // - 遗留运行待收敛（收敛需先满足恢复前置条件）；
 // - 非终态运行行：**它不等于提交失败**——正在执行的轮次也在这里；只有“执行已结束但终态提交失败”时
 //   才会以这种形式残留，且不会被报成已完成（恢复走既有 orphan 收敛）。
+let systemSafetyRefreshSerial = 0;
 async function refreshAttributionAndRecovery() {
+  const serial = ++systemSafetyRefreshSerial;
   try {
     const surface = await requestJson("/api/system/attribution-and-recovery");
+    if (serial !== systemSafetyRefreshSerial) return;
     setSystemInfoText(
       "system-attribution",
       describeAttributionAndRecovery(surface),
@@ -8362,6 +8367,7 @@ async function refreshAttributionAndRecovery() {
     syncSystemSafetyBadge(surface?.input_safety_recovery);
     bindComputerUseRunsButton();
   } catch (error) {
+    if (serial !== systemSafetyRefreshSerial) return;
     setSystemInfoText("system-attribution", "归属状态未知", error.message);
     syncReleaseIsolationButton(null);
     syncSystemSafetyBadge({ unavailable: true });
@@ -8371,15 +8377,22 @@ async function refreshAttributionAndRecovery() {
 function syncSystemSafetyBadge(safety) {
   const badge = document.querySelector('[data-role="chat-trace-safety-badge"]');
   if (!badge) return;
-  const label = !safety || safety.unavailable
-    ? "状态未知"
-    : safety.accepts_new_input === false
-    ? "输入隔离"
-    : Number(safety.human_review_required ?? 0) > 0
-    ? "待人工复核"
-    : "";
+  // human_review_required 是保留的历史处置记录数；放行不删除记录，不能把它当当前待办。
+  const unknown = !safety || safety.unavailable;
+  const reviews = Number(safety?.unacknowledged_open_blocks ?? 0)
+    + Number(safety?.unacknowledged_legacy_runs ?? 0);
+  const pending = Number(safety?.pending_recovery_operations ?? 0);
+  const label = unknown ? "状态未知"
+    : reviews > 0 ? `待人工复核 ${reviews}`
+    : pending > 0 ? "恢复处理中"
+    : safety.accepts_new_input === false ? "输入隔离"
+    : safety.accepts_new_input === true && safety.resource_state === "safe" ? ""
+    : "状态未知";
   badge.textContent = label;
   badge.hidden = !label;
+  badge.classList.toggle("needs-attention", !unknown && (reviews > 0 || (pending === 0 && safety.accepts_new_input === false)));
+  badge.setAttribute("role", !unknown && reviews > 0 ? "alert" : "status");
+  badge.setAttribute("aria-live", "polite");
 }
 
 function describeAttributionAndRecovery(surface) {
@@ -8412,7 +8425,7 @@ function describeInputSafetyRecovery(safety) {
     : safety.accepts_new_input === false
       ? `当前输入仍隔离（资源状态：${safety.resource_state === "unknown" ? "未知" : safety.resource_state === "isolated" ? "隔离" : safety.resource_state || "未确认"}）`
       : "当前输入状态未知（不代表已开放）";
-  return ` · 待对账恢复 ${pending} · 待本人复核 ${human} · 未获放行阻断 ${blocks} · 待收敛遗留 ${runs} · ${inputState}`;
+  return ` · 待对账恢复 ${pending} · 历史人工复核记录 ${human} · 未获放行阻断 ${blocks} · 待收敛遗留 ${runs} · ${inputState}`;
 }
 
 // 只有“真的挡路”的项才需要放行；纯 pending（还在办）不该提示人工介入。
@@ -11452,6 +11465,7 @@ function queueChatToolWindowRequest(windowId) {
 function openChatToolWindow(windowId, options = {}) {
   if (windowId === "usage") void window.CoolzhuChatExperience?.refreshInsights();
   if (windowId === "history") void window.CoolzhuChatExperience?.search();
+  if (windowId === "trace") void refreshAttributionAndRecovery();
   if (!CHAT_TOOL_WINDOW_IDS.has(windowId)) {
     return false;
   }

@@ -70,6 +70,26 @@ body.ui-3d .chat-history-toolbar .chat-trace-safety-badge {
   display:inline-flex; margin-left:7px; padding:1px 5px; border:1px solid #b39058;
   border-radius:5px; color:#ead2a0; font-size:10px; line-height:1.3;
 }
+/* 当前待审批醒目提示；已放行的历史记录不点亮。减弱动态时保留静态高对比边框。 */
+body.ui-3d .chat-history-toolbar .chat-trace-safety-badge.needs-attention {
+  padding:4px 8px; color:#fff0c5; background:#493717; border:1px solid #e6c272;
+  font-size:12px; font-weight:700; text-decoration:none;
+  box-shadow:0 0 0 2px #b390584d; animation:approval-attention 2.4s ease-in-out infinite;
+}
+body.ui-3d .tool-approval-panel:not([hidden]) {
+  border:2px solid #e6c272; background:#10251dfa; color:#edf1e8;
+  box-shadow:0 8px 28px #0009,0 0 0 3px #b390584d;
+}
+body.ui-3d .tool-approval-panel > header { font-size:16px; color:#fff0c5; font-weight:700; }
+body.ui-3d .tool-approval-panel .approval-badge {
+  background:#493717; border-color:#e6c272; color:#fff0c5; font-weight:700;
+}
+@keyframes approval-attention {
+  50% { box-shadow:0 0 0 3px #b3905873,0 0 12px #e6c27255; }
+}
+@media (prefers-reduced-motion:reduce) {
+  body.ui-3d .chat-history-toolbar .chat-trace-safety-badge.needs-attention { animation:none; }
+}
 @media (max-width:760px) {
   body.ui-3d .system-safety-details > .global-system-bar { grid-template-columns:1fr; }
   body.ui-3d .system-safety-details .global-system-bar > span:nth-child(4) { grid-column:1; }

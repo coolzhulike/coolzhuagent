@@ -2,6 +2,8 @@
 
 日期：2026-09-30。当前主会话独立实现与测试，无子代理。微信不改不测，Devin暂缓。**本文件是出包及测试设计交接，不是功能验收通过报告。**
 
+> 最新跟进：用户已安装033并放行；正式目录10/10产物匹配、安全资源safe且接受新输入。真实Qwen D轮缺成功标准，E轮已采Paint原图但规划在20秒限制处到期，真实请求23.858秒后完成、0输入，Paint仍未通过。预算与历史复核徽记修复将进入034候选。详见 [安装实操与根因报告](installed-joint/installed-regression-and-paint-findings.md)。下文“尚未安装”等为原出包时点，不能再当当前状态。
+
 ## 构建身份
 
 正常 `scripts/build-msi.ps1 -Version 0.2.33 -Configuration release` 退出0；原发布链六项资格门全部pass，release_eligible=true，包根报告及载荷绑定核对通过。10个产物来源可确认，859个载荷文件、323395029字节。MSI为 `dist/CoolzhuAgent-0.2.33.msi`，246726013字节，SHA-256：`3F6DC3E2B364460ECC0E28076DD9B82382F9D6207110CC939F33A4CF7F32DAFB`。

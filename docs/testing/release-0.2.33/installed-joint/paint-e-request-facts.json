@@ -1,0 +1,30 @@
+[
+  {
+    "request_kind": "computer_use_verification",
+    "logical_request_id": "request-1790754978516-21540-5",
+    "attempt_id": "request-1790754978516-21540-5:1",
+    "status": "completed",
+    "dispatched": 1,
+    "http_status": null,
+    "created_at": 1790754978521,
+    "finished_at": 1790754996705,
+    "input_tokens": 18709,
+    "output_tokens": 125,
+    "usage_known_mask": 7,
+    "elapsed_ms": 18184
+  },
+  {
+    "request_kind": "computer_use_planning",
+    "logical_request_id": "request-1790754996737-21540-6",
+    "attempt_id": "request-1790754996737-21540-6:1",
+    "status": "completed",
+    "dispatched": 1,
+    "http_status": null,
+    "created_at": 1790754996741,
+    "finished_at": 1790755020599,
+    "input_tokens": 19483,
+    "output_tokens": 308,
+    "usage_known_mask": 7,
+    "elapsed_ms": 23858
+  }
+]

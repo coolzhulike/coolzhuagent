@@ -1,5 +1,7 @@
 # Windows CU 活动泛光与 Paint 联合验收方案
 
+> 最新033正式跟进：10/10安装身份已核，用户已人工放行、当前资源safe。E轮真实Qwen采集Paint截图可见边光，但模型规划在agent固定20秒等待处到期；真实请求23.858秒正常返回，0输入、空白画布。完整提示文字/命中/焦点/取消等仍待联合实操，预算及徽记修复进入034候选。详见 [实操报告](../testing/release-0.2.33/installed-joint/installed-regression-and-paint-findings.md)。下方保留各历史时点，不再以历史isolated作为当前阻断原因。
+
 日期：2026-09-30。新增需求来自用户：模型调用 compute use 时在整个 Windows 四周泛光，顶部显示 **Coolzhu Agent is using your computer**。先按现有架构设计、审查，再实施；与真实 Qwen Paint 绘画一起验收。当前主会话独立实施，不使用子代理。
 
 ## 当前架构与最小接线
