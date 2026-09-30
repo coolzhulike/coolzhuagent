@@ -1828,6 +1828,61 @@ pub(crate) fn sanitized_action_json(raw: &str) -> String {
     }
 }
 
+/// 验收诊断仅保留结构与长度；不保存证据原文、截图、思考、URL或未知字段名。
+/// 不能复用动作脱敏规则，否则 progress/criteria 被全部删除，无法定位验收失败。
+pub(crate) fn sanitized_verification_json(raw: &str) -> String {
+    use serde_json::{json, Value};
+    fn value_type(value: Option<&Value>) -> &'static str {
+        match value {
+            None => "missing",
+            Some(Value::Null) => "null",
+            Some(Value::Bool(_)) => "boolean",
+            Some(Value::Number(_)) => "number",
+            Some(Value::String(_)) => "string",
+            Some(Value::Array(_)) => "array",
+            Some(Value::Object(_)) => "object",
+        }
+    }
+    if raw.len() > 16 * 1024 {
+        return json!({"omitted":"response_too_large","bytes":raw.len()}).to_string();
+    }
+    let value: Value = match serde_json::from_str(raw) {
+        Ok(value) => value,
+        Err(error) => {
+            return json!({"omitted":"invalid_json","bytes":raw.len(),
+                "error_category":format!("{:?}",error.classify()),
+                "error_line":error.line(),"error_column":error.column()}).to_string();
+        }
+    };
+    let criteria = value.get("criteria").and_then(Value::as_array);
+    let rows = criteria.into_iter().flatten().take(128).enumerate().map(|(position, criterion)| {
+        let evidence = criterion.get("evidence").and_then(Value::as_str);
+        json!({"position":position,"type":value_type(Some(criterion)),
+            "index":criterion.get("index").and_then(Value::as_u64),
+            "index_type":value_type(criterion.get("index")),
+            "met":criterion.get("met").and_then(Value::as_bool),
+            "met_type":value_type(criterion.get("met")),
+            "evidence_type":value_type(criterion.get("evidence")),
+            "evidence_chars":evidence.map(|text|text.chars().count()),
+            "evidence_bytes":evidence.map(str::len),
+            "evidence_blank":evidence.map(|text|text.trim().is_empty()),
+            "evidence_exceeds_limit":evidence.map(|text|text.chars().count()>512),
+            "unknown_field_count":criterion.as_object().map(|object|object.keys()
+                .filter(|key|!matches!(key.as_str(),"index"|"met"|"evidence")).count())})
+    }).collect::<Vec<_>>();
+    let result = json!({"bytes":raw.len(),"root_type":value_type(Some(&value)),
+        "progress":value.get("progress").and_then(Value::as_bool),
+        "progress_type":value_type(value.get("progress")),
+        "criteria_type":value_type(value.get("criteria")),
+        "criteria_count":criteria.map(Vec::len),"criteria":rows,
+        "unknown_field_count":value.as_object().map(|object|object.keys()
+            .filter(|key|!matches!(key.as_str(),"progress"|"criteria")).count())}).to_string();
+    if result.len() > 16 * 1024 {
+        json!({"omitted":"sanitized_response_too_large","bytes":raw.len(),
+            "criteria_count":criteria.map(Vec::len)}).to_string()
+    } else { result }
+}
+
 pub(crate) struct ComputerUseRunStore {
     connection: Mutex<Connection>,
 }
@@ -3645,6 +3700,25 @@ mod tests {
                 .contains("window-canvas:abc123")
         );
         assert!(!sanitized_action_json(r#"{"target":"window-canvas:SECRET"}"#).contains("SECRET"));
+    }
+
+    #[test]
+    fn verification_diagnostic_preserves_failure_structure_without_private_evidence() {
+        let raw = r#"{"progress":false,"criteria":[{"index":0,"met":false,"evidence":""},{"index":1,"met":false,"evidence":"私密图片内容 SECRET","SECRET-FIELD":"SECRET"}],"api_key":"SECRET"}"#;
+        let diagnostic = sanitized_verification_json(raw);
+        assert!(!diagnostic.contains("SECRET"));
+        assert!(!diagnostic.contains("私密"));
+        let value: serde_json::Value = serde_json::from_str(&diagnostic).unwrap();
+        assert_eq!(value["criteria_count"], 2);
+        assert_eq!(value["criteria"][0]["evidence_blank"], true);
+        assert_eq!(value["criteria"][1]["met"], false);
+        assert_eq!(value["criteria"][1]["unknown_field_count"], 1);
+        let malformed = sanitized_verification_json("{SECRET");
+        assert!(!malformed.contains("SECRET"));
+        assert_eq!(serde_json::from_str::<serde_json::Value>(&malformed).unwrap()["omitted"], "invalid_json");
+        let large = serde_json::json!({"progress":false,"criteria":(0..128)
+            .map(|index|serde_json::json!({"index":index,"met":false,"evidence":""})).collect::<Vec<_>>()});
+        assert!(sanitized_verification_json(&large.to_string()).len() <= 16 * 1024);
     }
 
     #[test]

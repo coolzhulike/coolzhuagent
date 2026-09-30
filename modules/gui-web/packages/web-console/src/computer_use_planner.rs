@@ -646,7 +646,11 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
     fn diagnostic(&self, agent: &crate::AgentSessionDto, observation: &Observation, kind: &str,
         response: &api::MessageResponse, raw: &str, error: Option<&ComputerUseError>, started_at: u64) -> Result<(), ComputerUseError> {
         if let Some(store) = self.store {
-            let sanitized = crate::computer_use_store::sanitized_action_json(raw);
+            let sanitized = if kind == "computer_use_verification" {
+                crate::computer_use_store::sanitized_verification_json(raw)
+            } else {
+                crate::computer_use_store::sanitized_action_json(raw)
+            };
             store.record_planner_diagnostic(&crate::computer_use_store::PlannerDiagnostic {
                 call_id: &self.call_id, turn_id: &self.turn_id, room_id: self.room_id.as_deref(), session_id: &agent.id,
                 request_kind: kind, observation_generation: observation.generation, model: &agent.model,
@@ -752,7 +756,8 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         let prompt = json!({"objective":request.objective,"target":request.target,"constraints":request.constraints,
             "success_criteria":request.success_criteria,"image_order":if images.len()==2 {"before, after"} else {"current"},
             "observation_generation":after.generation,"observation":bounded_observation(&after.state),
-            "instruction":"逐项检查最新图片中的可见目标。文字仅提供控件引用；不能把目标文字出现在UIA里当作目标完成。画图任务必须看见实际画布笔画。遮挡、不确定或无法识别都应met=false。progress仅在图片显示任务实际进展时true。",
+            "instruction":"逐项检查最新图片中的可见目标。文字仅提供控件引用；不能把目标文字出现在UIA里当作目标完成。画图任务必须看见实际画布笔画。遮挡、不确定或无法识别都应met=false。失败项也必须填写非空evidence，说明实际可见事实或无法核实的原因，不能省略或填空串。criteria按success_criteria顺序使用从0开始的index，不增加或遗漏。progress仅在图片显示任务实际进展时true。只输出JSON，不加代码围栏或解释。",
+            "response_example":{"progress":false,"criteria":(0..request.success_criteria.len()).map(|index|json!({"index":index,"met":false,"evidence":"最新截图尚未提供本项成功标准已达成的可见证据。"})).collect::<Vec<_>>()},
             "response_schema":{"type":"object","additionalProperties":false,"required":["progress","criteria"],"properties":{
                 "progress":{"type":"boolean"},"criteria":{"type":"array","minItems":request.success_criteria.len(),"maxItems":request.success_criteria.len(),
                     "items":{"type":"object","additionalProperties":false,"required":["index","met","evidence"],"properties":{"index":{"type":"integer","minimum":0},"met":{"type":"boolean"},"evidence":{"type":"string","minLength":1,"maxLength":512}}}}}}}).to_string();
@@ -786,7 +791,7 @@ fn parse_visual_verification(raw: &str, count: usize, before: &Observation, afte
     if count == 0 || verdict.criteria.len() != count || indices.len() != count || indices.iter().any(|index| *index >= count) {
         return Err(invalid("visual judge did not return exactly one result for every criterion"));
     }
-    if verdict.criteria.iter().any(|criterion| criterion.evidence.trim().is_empty() || criterion.evidence.len() > 2048) {
+    if verdict.criteria.iter().any(|criterion| criterion.evidence.trim().is_empty() || criterion.evidence.chars().count() > 512) {
         return Err(invalid("visual judge did not return bounded evidence for every criterion"));
     }
     let before_hash = before.state.pointer("/image/sha256").and_then(JsonValue::as_str).filter(|value| !value.is_empty());
@@ -2205,6 +2210,10 @@ mod tests {
 
         let blank = parse_visual_verification(r#"{"progress":false,"criteria":[{"index":0,"met":false,"evidence":""}]}"#, 1, &observation, &observation).unwrap_err();
         assert_eq!(blank.message, "visual judge did not return bounded evidence for every criterion");
+        // schema 的 512 上限是字符而非 UTF-8 字节；仍拒绝过长证据，不截短后当有效。
+        let verdict = |evidence:String| json!({"progress":false,"criteria":[{"index":0,"met":false,"evidence":evidence}]}).to_string();
+        assert!(parse_visual_verification(&verdict("画".repeat(512)), 1, &observation, &observation).is_ok());
+        assert!(parse_visual_verification(&verdict("画".repeat(513)), 1, &observation, &observation).is_err());
     }
 
     #[tokio::test]

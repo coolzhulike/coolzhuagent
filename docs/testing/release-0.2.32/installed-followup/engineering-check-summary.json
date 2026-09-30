@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-09-30T14:09:53.2921324+08:00",
+  "scope": "开发源码工程检查，不是安装包功能验收",
+  "web_build": "offline exit 0",
+  "tauri_build": "offline exit 0",
+  "web_final_serial": {
+    "passed": 1268,
+    "ignored": 2,
+    "seconds": 59.43,
+    "failed": 0
+  },
+  "web_final_parallel": {
+    "passed": 1268,
+    "ignored": 2,
+    "seconds": 33.78,
+    "failed": 0
+  },
+  "web_first_parallel": {
+    "passed": 1267,
+    "ignored": 2,
+    "root_cause_fixed": false,
+    "failure": "unknown-tool: database is locked",
+    "failed": 1
+  },
+  "tauri_full": {
+    "failed": 0,
+    "passed": 59
+  },
+  "module_linkage": {
+    "failed": 0,
+    "passed": 8
+  },
+  "functional_browser_use_accepted": false,
+  "functional_paint_accepted": false,
+  "installed_package_contains_new_code": false
+}

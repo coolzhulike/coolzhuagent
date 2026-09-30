@@ -1,0 +1,10 @@
+{
+  "resource_state": "isolated",
+  "accepts_new_input": false,
+  "pending_recovery_operations": 0,
+  "human_review_required": 2,
+  "unacknowledged_open_blocks": 2,
+  "unacknowledged_legacy_runs": 2,
+  "acknowledged_legacy_runs": 0,
+  "interpretation": "独立只读状态，不是 Paint C 轮工具回执；没有执行人工放行。"
+}

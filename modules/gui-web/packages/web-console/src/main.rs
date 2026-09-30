@@ -17,6 +17,7 @@ mod audio;
 mod browser_bridge;
 mod browser_bridge_protocol;
 mod native_browser_host;
+mod native_browser_adapter;
 mod chat_insights;
 mod static_resource_contract;
 mod scheduled_execution;
@@ -19992,6 +19993,16 @@ async fn api_chat_send_stream(
                 &tool_result_summaries,
                 &mut diagnostic_note,
             );
+            if let Some(notice) = chat_tool_history::unexecuted_computer_use_notice(
+                &result.user_content, !tool_result_summaries.is_empty(),
+            ) {
+                // 流式正文只是模型自述；收尾时用真实派发事实校正，不额外请求模型或补发工具。
+                assistant_message.content = format!("{notice}\n\n{}", assistant_message.content);
+                diagnostic_note = Some(notice.to_string());
+                terminal_status = ChatTurnStatus::Failed;
+                assistant_started = true;
+                yield Ok(sse_json_event("message_replace", &assistant_message));
+            }
             if let Some(delta) =
                 append_context_footer(&mut assistant_message.content, context_footer.as_deref())
             {
@@ -28381,6 +28392,11 @@ async fn call_agent_model_with_tool_loop(
         if final_answer.trim().is_empty() {
             final_answer = tool_result_fallback_answer(&tool_result_summaries).unwrap_or_default();
         }
+        let unexecuted_notice = chat_tool_history::unexecuted_computer_use_notice(prompt, model_tool_calls_executed);
+        if let Some(notice) = unexecuted_notice {
+            final_answer = format!("{notice}\n\n{final_answer}");
+            last_diagnostic = Some(notice.to_string());
+        }
         let policy = context_lifecycle_policy();
         let context_usage = context_usage_snapshot_for_assembly_with_usage(
             agent,
@@ -28389,7 +28405,7 @@ async fn call_agent_model_with_tool_loop(
             policy,
         );
         return Ok(AgentModelResponse {
-                    execution_failed: false,
+                    execution_failed: unexecuted_notice.is_some(),
             answer_text: final_answer,
             reasoning_text: all_reasoning,
             tool_requests: Vec::new(),
@@ -28415,10 +28431,16 @@ async fn call_agent_model_with_tool_loop(
         best_remote_usage.as_ref(),
         policy,
     );
+    let mut answer_text = terminal_supervisor_answer.filter(|answer| !answer.trim().is_empty())
+        .or_else(|| tool_result_fallback_answer(&tool_result_summaries)).unwrap_or_default();
+    let unexecuted_notice = chat_tool_history::unexecuted_computer_use_notice(prompt, model_tool_calls_executed);
+    if let Some(notice) = unexecuted_notice {
+        answer_text = format!("{notice}\n\n{answer_text}");
+        last_diagnostic = Some(notice.to_string());
+    }
     Ok(AgentModelResponse {
-                    execution_failed: false,
-        answer_text: terminal_supervisor_answer.filter(|answer| !answer.trim().is_empty())
-            .or_else(|| tool_result_fallback_answer(&tool_result_summaries)).unwrap_or_default(),
+        execution_failed: unexecuted_notice.is_some(),
+        answer_text,
         reasoning_text: all_reasoning,
         tool_requests: Vec::new(),
         tool_write_executed,
@@ -33156,7 +33178,7 @@ fn messages_allow_computer_use(messages: &[InputMessage]) -> bool {
 fn request_tool_policy_instruction(tools: Option<&[ToolDefinition]>) -> String {
     match tools.filter(|definitions| !definitions.is_empty()) {
         Some(definitions) => format!(
-            "当前请求可调用工具仅限：{}。权限开放不代表其它工具可用。纯生成文本、HTML、SVG 时直接输出内容；只有用户要求实际保存文件才调用写入工具。工具调用必须走结构化协议，禁止在正文伪造 <tool_call>。",
+            "当前请求可调用工具仅限：{}。权限开放不代表其它工具可用。纯生成文本、HTML、SVG 时直接输出内容；只有用户要求实际保存文件才调用写入工具。工具调用必须走结构化协议，禁止在正文伪造 <tool_call>。历史工具执行事实只属于历史轮次，不能当作本轮回执；本轮尚未收到结构化 ToolResult 时，必须说明操作尚未执行，禁止虚构本轮调用次数、错误码或执行结果。",
             tool_definition_names(definitions)),
         None => "当前请求禁止调用任何工具。直接用最终答案完成原始任务，禁止输出 <tool_call> 或声称文件已写入、命令已执行。若任务确需外部操作，说明尚未执行并提供可用的文本内容。".to_string(),
     }

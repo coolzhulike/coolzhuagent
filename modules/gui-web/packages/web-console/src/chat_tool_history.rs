@@ -1,6 +1,18 @@
 //! 聊天工具状态与跨轮历史投影。原始审计仍保存，模型历史只带必要事实。
 use super::*;
 
+/// 只核验宿主本轮派发事实，不从模型正文或历史回执推断执行，更不补发隐藏工具。
+pub(super) fn unexecuted_computer_use_notice(prompt: &str, dispatched: bool) -> Option<&'static str> {
+    // 保守排除说明型问题：出现“网页点击”等术语不能把知识问答标作未完成实操。
+    let lower = prompt.trim().to_ascii_lowercase();
+    if ["请解释", "解释", "请介绍", "介绍", "请说明", "什么是", "为什么", "如何", "怎样", "请制定", "制定", "规划", "请规划", "explain", "what is", "how to", "plan"]
+        .iter().any(|prefix| lower.starts_with(prefix)) { return None; }
+    // 当前只校正用户明确指定 CU 入口的执行请求；不要把“制作带点击按钮的网页”误报成实操失败。
+    (!dispatched && text_mentions_computer_use_entry(&lower)
+        && text_has_computer_use_intent(prompt) && vision_request_has_action_intent(prompt))
+        .then_some("本轮尚未执行桌面或浏览器操作：模型没有发起可执行的结构化工具调用。以下是模型回复，其中的工具状态描述未经本轮工具回执验证。")
+}
+
 pub(super) fn call_id(agent_id: &str, turn_key: &str, tool_use_id: &str) -> String {
     format!("tool-call-{:016x}", hash_bytes(format!("{agent_id}\u{1f}{turn_key}\u{1f}{tool_use_id}").as_bytes()))
 }
@@ -117,6 +129,15 @@ pub(super) fn project(message: &PersistedChatMessage) -> Option<PersistedChatMes
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn computer_use_claim_without_current_dispatch_is_not_execution_evidence() {
+        let task = "只用 computer_use_perform 在画图画布拖动一条线";
+        assert!(unexecuted_computer_use_notice(task, false).is_some());
+        assert!(unexecuted_computer_use_notice(task, true).is_none());
+        for question in ["解释 computer_use_perform 的权限", "请解释网页点击原理", "how to click a browser button", "不要调用 computer_use_perform，只描述拖动步骤", "禁止使用任何工具，解释网页点击原理", "请生成 SVG 文本", "制作带点击按钮的网页", "请制定 computer_use_perform 点击网页的方案"] {
+            assert!(unexecuted_computer_use_notice(question, false).is_none(), "不应把说明请求当执行：{question}");
+        }
+    }
     fn message(id: &str, kind: &str, content: &str) -> PersistedChatMessage {
         PersistedChatMessage { id: id.into(), author: "系统工具执行 Agent".into(), role: "assistant".into(),
             target: "聊天".into(), content: content.into(), kind: kind.into(), attachments: Vec::new(), created_at: 1 }

@@ -1917,6 +1917,7 @@ struct ProductionAdapterFactory {
     browser_enabled: bool,
     browser_policy: BrowserComputerUsePolicy,
     cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
+    native_browser_parent: Option<crate::FrozenParentContext>,
 }
 
 impl ComputerUseAdapterFactory for ProductionAdapterFactory {
@@ -1940,6 +1941,12 @@ impl ComputerUseAdapterFactory for ProductionAdapterFactory {
                 )))
             }
             ComputerUseSurface::Browser if self.browser_enabled => {
+                if let Some(parent) = self.native_browser_parent.as_ref() {
+                    return Ok(DynComputerUseAdapter::new(BrowserComputerUseAdapter::with_policy(
+                        crate::native_browser_adapter::NativePanelReadBridge::new(parent.clone(), self.cancelled.clone()),
+                        self.browser_policy,
+                    )));
+                }
                 BrowserNativeBridge::preflight()?;
                 Ok(DynComputerUseAdapter::new(
                     BrowserComputerUseAdapter::with_policy(
@@ -2126,6 +2133,9 @@ pub(crate) async fn execute_with_current_runtime(
             allow_multiple_tabs: config.browser.allow_multiple_tabs,
         },
         cancelled: cancelled.clone(),
+        native_browser_parent: input.get("objective").and_then(JsonValue::as_str)
+            .filter(|objective| ["内置浏览器", "右栏浏览器", "右侧浏览器", "右侧扩展栏浏览器", "builtin browser", "built-in browser"]
+                .iter().any(|name| objective.to_ascii_lowercase().contains(name))).map(|_| parent.clone()),
     };
     let planner = CurrentSessionComputerUsePlanner::with_context(identity, Some(origin_room_id), &store)
         .with_cancelled(cancelled.clone());
