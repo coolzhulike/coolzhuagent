@@ -1,0 +1,178 @@
+  - heading "ChatGPT 说：" [level=4]
+  - paragraph: 可以按当前方案继续，但我建议在 039 真机验收前补 4 个窄边界；都不需要 DOM 镜像、新循环或新权限体系。
+  - heading "1. 语义 verifier 只能判“任务是否满足”，绝不能成为授权或浏览器事实来源" [level=2]
+  - paragraph: 你现在的分层是对的：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: 宿主 AX 快照 = 事实 冻结 readonly = 权限边界 verification model = 对既有事实做语义判定
+  - paragraph: 必须保持。尤其不能出现：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: "verifier: met=true → 认为页面仍有效 → 认为节点可信 → 认为允许交互"
+  - paragraph:
+    - text: 建议 verifier 调用固定为
+    - strong: 纯文本、无 tools、无 Browser/CU 能力、无页面指令执行权
+    - text: ；AX 文本一律作为“不可信页面内容”。同一个 Qwen 做 verification 可以接受，因为这里只是在判“这份冻结证据是否满足用户的只读问题”，并不把它当第二个安全主体。
+  - paragraph: criteria[].evidence 最好要求引用/概括实际 AX 节点内容，而不是允许自由补充事实；最终 observed_page 仍只能来自宿主快照。
+  - separator
+  - heading "2. “读标题/正文”可以作为独立只读验收通过，但必须和 Browser Use 交互验收分开" [level=2]
+  - paragraph: 这点可以明确：
+  - paragraph: 如果 039 安装版真实链满足：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: 用户明确 readonly 请求 → 当前 native browser resource → 有效 AX 快照 → verifier 对冻结快照判定全部 criteria met → 结束前宿主 freshness 再确认
+  - paragraph: 那么可以记为：
+  - blockquote:
+    - paragraph:
+      - strong: Browser Use：只读网页理解场景通过。
+  - paragraph: 可以覆盖诸如：
+  - list:
+    - listitem: 读取页面标题；
+    - listitem: 提取正文；
+    - listitem: 回答页面内容问题。
+  - paragraph: 但不能写成：
+  - blockquote:
+    - paragraph: Browser Use 全部通过。
+  - paragraph: 因为仍未证明：
+  - list:
+    - listitem: click；
+    - listitem: type；
+    - listitem: scroll；
+    - listitem: navigation；
+    - listitem: 危险提交；
+    - listitem: 输入取消后的迟到动作。
+  - paragraph: 你拟定的 notice 很重要，建议作为机器可识别的 capability 事实而不仅是一句 UI 文案，例如保留 input_supported=false，避免后续层把“read task succeeded”错误解释成“browser control succeeded”。
+  - separator
+  - heading "3. verifier 返回后必须做一次宿主 freshness 复核；当前条件下仅比较 URL 不够" [level=2]
+  - paragraph:
+    - text: 这是我认为
+    - strong: 必须在真机前补齐
+    - text: 的一项。
+  - paragraph: 当前风险窗口：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: AX snapshot S1 → 发给 Qwen verifier → 页面 SPA 更新 / panel隐藏 / room切换 → verifier 返回 met=true → final success
+  - paragraph: URL 可以完全没变。
+  - paragraph: 因此 final 成功前至少重新检查：
+  - list:
+    - listitem: 同一个 browser resource；
+    - listitem: host/resource generation 未变；
+    - listitem: room/workspace/run ownership 未变；
+    - listitem: panel 仍是允许的 readonly target；
+    - listitem: 未取消/未超时；
+    - listitem: URL 仍精确一致；
+    - listitem: 原 observation lease/ID 仍当前。
+  - paragraph:
+    - text: 而对于 SPA，因为你已经正确承认 navigation_revision != DOM revision，
+    - strong: 目前最小可靠办法是重新取一次同规格、受限的 AX snapshot
+    - text: ，生成宿主侧 fingerprint 后与 S1 比较。
+  - paragraph: 不需要完整 DOM diff。可以对你已经投影后的受限事实做稳定摘要，例如：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: url title truncated [(role,name), ...]
+  - paragraph: 若前后不一致：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: StaleObservation
+  - paragraph: 本轮只读任务不成功；不要让 verifier 的旧 met=true 覆盖它，也不必自动开第二轮模型循环。
+  - paragraph: 这样既解决 SPA，也不引入新的 document-version 系统。
+  - separator
+  - heading "4. 事实大小、失败回传和诊断脱敏需要再收紧一点" [level=2]
+  - heading "原始 COM/CDP 响应" [level=3]
+  - paragraph: 你已有：
+  - list:
+    - listitem: depth 6；
+    - listitem: 128 nodes；
+    - listitem: 单字段 256 chars；
+    - listitem: 原文 1 MiB；
+    - listitem: 2 秒等待。
+  - paragraph: 方向正确。
+  - paragraph:
+    - text: 唯一要确认的是：
+    - strong: 1 MiB 限制应尽可能在把返回值复制成巨大 Rust/String 对象之前生效
+    - text: 。如果 WebView2 API 本身只能先给完整字符串，那就如实记录这是峰值内存上限无法完全前移，不要称“输入分配严格≤1MiB”。
+  - heading "observed_page" [level=3]
+  - paragraph: 最终回传不要把整个 128×256 的快照无条件重复塞进 assistant message。建议保持：
+  - list:
+    - listitem: URL；
+    - listitem: host title；
+    - listitem: node count；
+    - listitem: truncated；
+    - listitem: 有界的相关 observation excerpt / 引用。
+  - paragraph: 完整受限 snapshot 可以留 trace，但 trace 也应按现有敏感诊断策略处理。
+  - heading "redaction" [level=3]
+  - paragraph: AX name 不是天然安全字段，它可能包含：
+  - list:
+    - listitem: 邮件地址；
+    - listitem: 姓名；
+    - listitem: 订单信息；
+    - listitem: 页面中的私密正文。
+  - paragraph: 最小要求不是另造 DLP，而是：
+  - list:
+    - listitem: 不进普通 debug 日志；
+    - listitem: 错误日志只记 request/resource ID、计数、hash/截断状态；
+    - listitem: verifier 原始响应不整段落日志；
+    - listitem: 最终用户正文只返回完成任务所需内容。
+  - heading "失败语义" [level=3]
+  - paragraph: 至少区分：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: ObservationUnavailable ObservationStale VerificationInvalid VerificationFailed Cancelled TimedOut
+  - paragraph: 不要把：
+  - list:
+    - listitem: JSON schema 错；
+    - listitem: AX 为空；
+    - listitem: 页面已经变化；
+  - paragraph: 统称为 verification_failed，否则后面容易误以为“模型判断页面内容不满足”。
+  - separator
+  - heading "039 真机最小验收" [level=2]
+  - paragraph: 安装版真正能关闭“只读 Browser Use”前，我建议只要求 5 个行为事实：
+  - list:
+    - strong: 正常 launcher 路径
+    - text: 下，真 Qwen 对当前右栏页面获得 native-ax 观察，而不是历史 evidence。
+    - listitem: 一个“读标题/正文”的纯只读任务，模型最终答案能由 observed_page 实际证据支持，input_supported=false 全程不变。
+    - text: observation 取得后人为改变 SPA 内容但保持 URL 不变，旧 verification
+    - strong: 不能
+    - text: 判任务成功。
+    - listitem: observation 后切 room、隐藏 browser panel 或取消 run，迟到 verifier 返回不能产生成功终态。
+    - listitem: surface_conflict 仍保持严格：URL + window 这种冲突请求继续 0 observation，不通过自动修正参数来“帮模型成功”。
+  - paragraph: 通过后可以写：
+  - blockquote:
+    - paragraph:
+      - strong: 安装版真模型内置浏览器只读观察与页面理解通过。
+  - paragraph: 仍不能写：
+  - blockquote:
+    - paragraph:
+      - strong: Browser Use 输入操作通过。
+  - paragraph: 后者至少要等下一阶段 click → 重新观察验证 → cancel/scope失效无迟到动作 的真实闭环。
+  - paragraph:
+    - text: 所以当前方案没有架构级阻断；我认为必须补的核心只有一个：
+    - strong: verification 后的宿主重新采样/freshness 复核
+    - text: 。其余主要是事实与诊断边界收紧。
+  - button "复制":
+  - button "评价回复":
+  - button "分享":
+  - button "朗读":
+  - button "重新生成回复":
+  - button "更多操作":
+  - generic: ChatGPT 可能会出错。请核查重要信息。
+  - button "滚动到底部":
+  - heading "最新一条回复" [level=4]
+  - status
+  - button "添加文件等内容":
+  - textbox "询问 ChatGPT":
+    - paragraph: 询问 ChatGPT
+  - button "选择 ChatGPT 模型":
+    - generic: 极高
+  - button "听写":
+  - button "开始语音":
+- status
+- status
+- status: 回答已完成

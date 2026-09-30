@@ -189,9 +189,16 @@ async fn receive_observation(headers: HeaderMap, Json(reply): Json<ObservationRe
     Ok(StatusCode::NO_CONTENT)
 }
 
+pub(super) struct NativeObservation {
+    pub resource: PanelResource,
+    pub page: PageObservation,
+    pub host_id: String,
+    pub request_id: String,
+}
+
 /// 只允许已有父运行内部调用。未生产接线时没有公共接口能凭页面文本创建请求。
 pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
-    cancelled: &dyn Fn() -> bool) -> Result<(PanelResource, PageObservation), String> {
+    cancelled: &dyn Fn() -> bool) -> Result<NativeObservation, String> {
     let db = parent.runtime_db_path.as_ref().ok_or("native_browser_parent_missing")?;
     crate::validate_frozen_parent_relations(db, parent).map_err(|_| "native_browser_parent_changed")?;
     if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
@@ -234,7 +241,8 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
                     host.host_id == reply.host_id && host.seen.elapsed() < Duration::from_millis(LEASE_MILLIS)
                     && host.resource.as_ref().is_some_and(|(workspace, resource)| workspace == &parent.workspace_id && resource == &reply.resource)));
                 if !current_matches { break Err("native_browser_resource_changed".into()); }
-                break reply.observation.map(|observation| (reply.resource, observation))
+                break reply.observation.map(|page| NativeObservation {resource:reply.resource,
+                    page, host_id:reply.host_id, request_id:reply.request_id})
                     .ok_or_else(|| reply.error.unwrap_or_else(|| "native_observation_failed".into()));
             },
             Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {},

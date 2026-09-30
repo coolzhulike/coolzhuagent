@@ -1899,8 +1899,10 @@ pub(crate) fn sanitized_verification_json(raw: &str) -> String {
             "evidence_bytes":evidence.map(str::len),
             "evidence_blank":evidence.map(|text|text.trim().is_empty()),
             "evidence_exceeds_limit":evidence.map(|text|text.chars().count()>512),
+            "node_indices_count":criterion.get("node_indices").and_then(Value::as_array).map(Vec::len),
+            "node_indices_type":value_type(criterion.get("node_indices")),
             "unknown_field_count":criterion.as_object().map(|object|object.keys()
-                .filter(|key|!matches!(key.as_str(),"index"|"met"|"evidence")).count())})
+                .filter(|key|!matches!(key.as_str(),"index"|"met"|"evidence"|"node_indices")).count())})
     }).collect::<Vec<_>>();
     let result = json!({"bytes":raw.len(),"root_type":value_type(Some(&value)),
         "progress":value.get("progress").and_then(Value::as_bool),

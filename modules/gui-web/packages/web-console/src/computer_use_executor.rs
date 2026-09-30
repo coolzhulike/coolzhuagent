@@ -2159,7 +2159,8 @@ pub(crate) async fn execute_with_current_runtime(
                 .iter().any(|name| objective.to_ascii_lowercase().contains(name))).map(|_| parent.clone()) },
     };
     let planner = CurrentSessionComputerUsePlanner::with_context(identity, Some(origin_room_id), &store)
-        .with_cancelled(cancelled.clone());
+        .with_cancelled(cancelled.clone())
+        .with_native_browser_parent(adapters.native_browser_parent.clone());
     // PR-02A：四维会话上下文同样取自**接纳时冻结**的父上下文（与工作区归属同一来源）。
     // 任一维缺失就不构造——宁可让动作来源核对 fail-closed，也不用"当前房间/会话"顶替。
     // 房间维度与授权复核、持久化均沿用同一个已核对的冻结房间。
