@@ -58,3 +58,15 @@
 `BROWSE-USE-20260930-B`：改用正常启动器启动临时候选，真实 Qwen 第 19/20 条，09:55:05—09:55:18，13.9 秒。工具在 `intent_guard` 返回 `input_safety_resource_not_accepting_new_input`，资源 `isolated revision=12`，0 步、0 动作、`goal_achieved=false`、`retry_owner=user`。启动器根注入已经生效，但现有隔离事实仍然有效；不能清库或由测试者自行放行。模型没有完成读标题、输入或点击。
 
 轨迹运行 `run-chat-d44a62a920648aab11cde6dd3c06e0a18d08d5154da7920f` 的聊天轮为 completed；其真实工具登记 `tool-b62dd8935cb549ac1647e89b3e37072e5c4dadacb6d8b09db472276dd393a3cb` 为 failed。**聊天轮结束不等于浏览器任务成功**。实操截图：`docs/testing/release-0.2.29/regression-20260930/candidate-browser/06-qwen-browser-use-isolated.jpg`。
+
+## 实施前代码复核补充
+
+0.2.31 构建后的只读复核发现，不能直接把现有 Chrome socket 改接 WebView2：
+
+- `BrowserBridgeBroker.connection` 当前是单个连接；`handle_native_socket` 的 Hello 只有 nonce，连接建立后会覆盖前一个 sender。原生面板必须拥有独立后端登记和绑定，不能与 Chrome 互相抢连接；类型化请求需明确后端，选择失败不能自动回退另一浏览器。
+- 前端 `native_browser_panel.js` 的 scope 来自 `{context:{workspace:activeWorkspaceKey,room:activeChatRoomId},generation}`，只用于展示生命周期。CU 使用经 SQLite 权威关系核对的父运行 `workspace_id` 和 `room_id`。前端工作区键不能直接充当 CU 的冻结工作区身份，字符串相同不等于已核验。
+- `ProductionAdapterFactory` 在每次生产执行接纳时创建，可携带已经核对的父运行上下文和取消信号；不需要为了原生浏览器修改所有测试适配器的 `build(surface)` 接口。宿主登记的面板环境必须经后台权威映射后与该上下文匹配，模型和外部网页均不能提供授权来源。
+- 当前 Chrome 协议 `valid_tab_id` 仅接受最多 32 个数字；原生 label `browser-panel-N` 不是该协议的合法 tab。原生后端须有明确资源类型及代次，不改宽该校验以混用两个资源命名空间。
+- `browser_panel_command`、`with_webview` 已分别负责主控制台来源校验和 COM 所在线程。原生工具适配模块应从宿主内部调用能力，不能新增给外部网页的 Tauri command，也不能向模型开放任意 JS/CDP。
+
+这些是实施约束及未完成接口，不能以文档存在当作完成第 1 阶段。后续实现顺序仍为资源/运输、只读快照、类型化动作、取消生命周期、工具接线、真实截图验收；不得先开放输入再补身份绑定。
