@@ -33,3 +33,4 @@ fee79d7 的两条远端检查已通过。再次视觉核查发现启动页右下
 
 离线Web/Tauri build退出0；Tauri完整59/0。Web并行完整检查首轮1267/1/2 ignored，既有unknown-tool例遇database is locked；独立例和串行完整1268/0/2 ignored通过，最终修改后再核。保留失败记录，不以工程检查当真模型验收。证据与测试矩阵见 [安装跟进增量报告](../testing/release-0.2.32/installed-followup/change-report-and-targeted-verification.md)。未代为放行，微信不改不测，Devin暂缓，四项仍未总体完成。
 并发完整复查又在Sleep工具登记入口遇锁；新增真实SQLite首次并发打开检查，修补前两次重现，临时阶段诊断定位PRAGMA journal_mode切换（诊断已移除）。会话库打开入口统一连接配置，先设置busy等待，已WAL跳过切换；仅模式初始化BUSY总计5秒限时等待，不重试工具动作、业务写入或迁移事务。离线build退出0；最新完整Web1269/0/2忽略35.58秒、Tauri59/0、module_linkage8/0、tool-registry check退出0。48次并发打开/登记全部保留；不把工程检查算真实模型验收。前一提交86ad08f远端CI36676903841成功。只读安全复查仍isolated/2条待人工复核，Paint新原生图05空白，无新模型请求/绘图/放行。
+后续输入方案已提交原审核会话并收到六项实际决策，文本/页面截图归档。主会话采纳先完成正常启动候选的真Qwen只读观察，再启用输入；宿主冻结浏览器目标、短期节点映射、动作前采样/命中核验、逐步动作、复用既有CU gate/in-flight事实。补充非submit不保证低风险，不能从网页文字授权；节点存在/URL相同不保证SPA目标语义未变。032隔离状态尚未解除，仍未执行新输入或发布新MSI。

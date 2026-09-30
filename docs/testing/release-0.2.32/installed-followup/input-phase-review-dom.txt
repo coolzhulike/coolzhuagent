@@ -1,0 +1,267 @@
+  - heading "ChatGPT 说：" [level=4]
+  - heading "Browser Use 输入阶段窄审结论" [level=1]
+  - heading "总体裁决" [level=2]
+  - paragraph: 当前不建议直接进入真实输入动作实现。
+  - paragraph: 建议顺序：
+  - blockquote:
+    - paragraph:
+      - strong: 先完成正常 launcher 启动下的 Qwen 真模型只读观察实操，再进入类型化输入接线。
+  - paragraph: 原因：
+  - paragraph: 当前只读桥已经有：
+  - list:
+    - listitem: 资源绑定；
+    - listitem: snapshot 限制；
+    - listitem: action=false；
+    - listitem: 生命周期控制。
+  - paragraph: 下一阶段输入属于高风险边界，必须先证明：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: 真实模型 ↓ 只读观察 ↓ 理解当前页面 ↓ 生成动作意图
+  - paragraph: 这条链路没有：
+  - list:
+    - listitem: 历史回执污染；
+    - listitem: 错 scope；
+    - listitem: 错 browser resource；
+    - listitem: 非预期页面内容。
+  - paragraph: 不能用代码通过替代真实观察。
+  - separator
+  - heading "决策 1：先完成真 Qwen 只读观察验收" [level=1]
+  - paragraph: 批准。
+  - paragraph: 最低验收：
+  - paragraph: 不是测试 snapshot API，而是：
+  - paragraph: 真实：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: launcher启动 + Qwen请求 + 右栏浏览器 + AX snapshot + 模型回复
+  - paragraph: 确认：
+  - list:
+    - listitem: snapshot 来自当前 browser resource；
+    - listitem: run/room/workspace 对齐；
+    - text: 模型未获得：
+    - list:
+      - listitem: JS；
+      - listitem: selector；
+      - listitem: 任意网页命令；
+    - listitem: 页面变化后旧 snapshot 不被误用。
+  - separator
+  - heading "决策 2：Browser target 必须由宿主冻结" [level=1]
+  - paragraph: 批准。
+  - paragraph: 保持：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: 用户选择 browser panel ↓ host resolves BrowserResource ↓ model action only references resource
+  - paragraph: 禁止：
+  - paragraph: 模型：
+  - list:
+    - listitem: 选择浏览器；
+    - listitem: 创建新浏览器；
+    - listitem: 改 URL scope；
+    - listitem: 指定外部 Chrome。
+  - separator
+  - paragraph: objective 只能描述：
+  - paragraph: “要完成什么”。
+  - paragraph: 不能决定：
+  - paragraph: “操作哪个浏览器”。
+  - separator
+  - heading "决策 3：node identity 采用短期宿主映射，不暴露 DOM 身份" [level=1]
+  - paragraph: 批准。
+  - paragraph: 推荐最小模型：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: AX backendDOMNodeId ↓ host internal map ↓ random short-lived nodeID
+  - paragraph: 动作只接受：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: nodeID
+  - paragraph: 不接受：
+  - list:
+    - listitem: CSS selector；
+    - listitem: XPath；
+    - listitem: JS；
+    - listitem: backendDOMNodeId。
+  - separator
+  - paragraph: 动作前：
+  - paragraph: 重新验证：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: nodeID + browser_resource_id + generation + navigation_revision + document_identity
+  - paragraph: 任一变化：
+  - paragraph: 拒绝。
+  - separator
+  - heading "决策 4：SPA 有效期不要追求完整 DOM diff" [level=1]
+  - paragraph: 批准保守方案。
+  - paragraph: 不建议现在实现：
+  - paragraph: 完整 DOM 版本系统。
+  - paragraph: 最小：
+  - paragraph: 动作前重新 snapshot 比较。
+  - paragraph: 至少比较：
+  - list:
+    - listitem: resource generation；
+    - listitem: navigation revision；
+    - listitem: node 是否仍存在；
+    - listitem: box model 是否有效。
+  - separator
+  - paragraph: 注意：
+  - paragraph: URL 相同不能作为有效性证明。
+  - paragraph: 例如：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: /app?id=1 内部状态已变化
+  - paragraph: 仍可能：
+  - paragraph: 旧节点失效。
+  - separator
+  - heading "决策 5：动作实现顺序保持低风险递进" [level=1]
+  - paragraph: 批准：
+  - paragraph: 不要一开始实现全部 Browser Use。
+  - paragraph: 顺序：
+  - heading "第一阶段" [level=2]
+  - paragraph: 仅：
+  - list:
+    - listitem: click。
+  - paragraph: 限制：
+  - list:
+    - listitem: 非提交按钮；
+    - listitem: 非危险区域。
+  - separator
+  - heading "第二阶段" [level=2]
+  - paragraph: type。
+  - paragraph: 增加：
+  - list:
+    - listitem: 输入框识别；
+    - listitem: 敏感字段判断。
+  - separator
+  - heading "第三阶段" [level=2]
+  - paragraph: scroll/navigation。
+  - separator
+  - paragraph: 暂不：
+  - list:
+    - listitem: 密码输入；
+    - listitem: 登录；
+    - listitem: 提交；
+    - listitem: 删除；
+    - listitem: 购买；
+    - listitem: 发布。
+  - separator
+  - heading "决策 6：输入必须复用现有 CU gate，不新增执行器" [level=1]
+  - paragraph: 批准。
+  - paragraph: 链路应为：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Browser Action ↓ existing CU execution loop ↓ permission/resource check ↓ input lock ↓ final recheck ↓ physical input
+  - separator
+  - paragraph: 禁止：
+  - paragraph: Browser Use 自己：
+  - list:
+    - listitem: spawn input executor；
+    - listitem: 新建权限；
+    - listitem: 新建锁；
+    - listitem: 新建 recovery。
+  - separator
+  - heading "取消与in-flight边界" [level=1]
+  - paragraph: 这是必须保持严格的地方。
+  - heading "Observation" [level=2]
+  - paragraph: 可以：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: cancel ↓ drop pending snapshot
+  - separator
+  - heading "Input action" [level=2]
+  - paragraph: 不能：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: cancel ↓ delete pending ↓ 认为没执行
+  - separator
+  - paragraph: 因为：
+  - paragraph: 可能已经：
+  - list:
+    - listitem: mouse down；
+    - listitem: key down；
+    - listitem: COM调用发出。
+  - separator
+  - paragraph: 正确：
+  - paragraph: 状态：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Pending ↓ Dispatching ↓ Dispatched ↓ Completed or Unknown
+  - separator
+  - paragraph: 取消后：
+  - paragraph: 只禁止：
+  - paragraph: 后续动作。
+  - paragraph: 不声称：
+  - paragraph: 已回滚。
+  - separator
+  - heading "7. mouse/keyboard 收敛要求" [level=1]
+  - paragraph: 必须保留：
+  - paragraph: 如果：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: mouse down
+  - paragraph: 已经发生：
+  - paragraph: 但：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: mouse up
+  - paragraph: 未知。
+  - paragraph: 结果：
+  - paragraph: 不能继续自动执行。
+  - paragraph: 进入：
+  - paragraph: 已有隔离/人工处理路径。
+  - separator
+  - paragraph: 不要：
+  - paragraph: 自动 retry。
+  - separator
+  - heading "当前不需要做" [level=1]
+  - paragraph: 不需要：
+  - list:
+    - listitem: 新 Browser runtime；
+    - listitem: 新 Agent executor；
+    - listitem: 新权限系统；
+    - listitem: 全 DOM 镜像；
+    - listitem: 全 SPA 状态同步。
+  - separator
+  - heading "最终 6 条实施决策" [level=1]
+  - list:
+    - strong: 先完成真实 Qwen launcher 启动下的只读观察验收，再开始输入动作。
+    - strong: 浏览器资源由宿主冻结，模型不可选择目标 browser。
+    - strong: 节点使用短期 host nodeID 映射，动作前重新验证 generation/navigation/document。
+    - strong: SPA 不做完整 DOM 版本系统，先采用动作前重新采样 + 有限有效性检查。
+    - strong: 动作按 click → type → scroll/navigation 渐进，不实现危险提交自动化。
+    - strong: 复用现有 CU permission/input/recovery 链，不新增 Browser Use 执行器；in-flight 输入取消只能阻止后续，不能假称未发生。
+  - paragraph: 当前状态：
+  - blockquote:
+    - paragraph: Browser Use 只读能力接近验收；输入能力尚未开始，不应因为只读链通过而提前宣布 Browser Use 完成。
+  - button "复制":
+  - button "评价回复":
+  - button "分享":
+  - button "朗读":
+  - button "重新生成回复":
+  - button "更多操作":
+  - button "来源":
+  - generic: ChatGPT 可能会出错。请核查重要信息。
+  - button "滚动到底部":
+  - heading "最新一条回复" [level=4]
+  - status
+  - button "添加文件等内容":
+  - textbox "询问 ChatGPT" [active]:
+    - paragraph: ，
+  - button "选择 ChatGPT 模型":
+    - generic: 极高
+  - button "听写":
+  - button "发送":
+- status
+- status
+- status
+- status: 回答已完成
