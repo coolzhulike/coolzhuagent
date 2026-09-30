@@ -226,6 +226,12 @@ impl<B> BrowserComputerUseAdapter<B> {
     pub(crate) const fn bridge(&self) -> &B {
         &self.bridge
     }
+
+    /// 只读接线阶段不能借用完整浏览器的动作能力声明来误导规划器。
+    pub(crate) fn read_only(mut self) -> Self {
+        self.capabilities = ComputerUseCapabilities::default();
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -935,6 +941,15 @@ mod tests {
                 .act(&action(kind), observation.generation, std::time::Duration::from_secs(30))
                 .expect_err("disabled action must be rejected");
             assert_eq!(error.code, "unsupported_action");
+        }
+        assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 0);
+        // 原生只读阶段还须关闭默认 navigate/click/text 等基本能力；观察仍保留。
+        let adapter = adapter.read_only();
+        assert_eq!(adapter.capabilities(), ComputerUseCapabilities::default());
+        for kind in [ComputerUseActionKind::Navigate, ComputerUseActionKind::Click,
+            ComputerUseActionKind::TextInput, ComputerUseActionKind::Scroll, ComputerUseActionKind::Submit] {
+            assert_eq!(adapter.act(&action(kind), observation.generation, std::time::Duration::from_secs(30))
+                .expect_err("只读后端不能派发任何动作").code, "unsupported_action");
         }
         assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 0);
     }

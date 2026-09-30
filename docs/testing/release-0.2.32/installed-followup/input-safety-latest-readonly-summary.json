@@ -1,0 +1,11 @@
+{
+  "accepts_new_input": false,
+  "mouse_drawing_performed": false,
+  "source": "正式安装版只读状态查询；不是新一轮工具回执",
+  "unacknowledged_open_blocks": 2,
+  "checked_at": "2026-09-30T14:35:29.9654797+08:00",
+  "latest_release": null,
+  "model_request_sent_this_recheck": false,
+  "resource_state": "isolated",
+  "human_review_required": 2
+}

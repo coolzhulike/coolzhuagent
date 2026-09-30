@@ -41784,13 +41784,7 @@ fn open_session_connection(path: &Path) -> rusqlite::Result<Connection> {
     computer_use_store::preflight_existing_session_schema(path)?;
     let connection = Connection::open(path)?;
     computer_use_store::ensure_session_schema_not_from_the_future(&connection)?;
-    connection.execute_batch(
-        r#"
-        PRAGMA foreign_keys = ON;
-        PRAGMA journal_mode = WAL;
-        PRAGMA busy_timeout = 5000;
-        "#,
-    )?;
+    computer_use_store::configure_session_connection(&connection)?;
     Ok(connection)
 }
 

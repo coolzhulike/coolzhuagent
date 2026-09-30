@@ -1945,7 +1945,7 @@ impl ComputerUseAdapterFactory for ProductionAdapterFactory {
                     return Ok(DynComputerUseAdapter::new(BrowserComputerUseAdapter::with_policy(
                         crate::native_browser_adapter::NativePanelReadBridge::new(parent.clone(), self.cancelled.clone()),
                         self.browser_policy,
-                    )));
+                    ).read_only()));
                 }
                 BrowserNativeBridge::preflight()?;
                 Ok(DynComputerUseAdapter::new(

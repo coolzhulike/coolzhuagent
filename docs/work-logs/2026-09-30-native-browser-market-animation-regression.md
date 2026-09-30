@@ -27,6 +27,9 @@ fee79d7 的两条远端检查已通过。再次视觉核查发现启动页右下
 
 后续12:03实核正式目录0.2.32安装成功，10/10关键产物一致，正常启动使用Program Files后台/桌面壳，原工作区与配置未覆盖。真实Qwen Paint C轮仅1次模型请求、0次工具登记，模型却自述本轮唯一CU blocked并引用旧事实；只读SQLite与轨迹均证实0调用。纠正报告：该轮不是工具真实失败，独立安全采样仍isolated不能补造回执。Paint最新截图空白，未验收。
 
+只读适配最后审视发现默认浏览器能力仍声明click/type等，已将原生只读路径动作能力全部置false，既有能力边界用例补输入前unsupported_action/0派发，桥接仍兜底拒绝。新代码不代表032安装包具备此修复。当前后端选择来自明确native objective，后续有输入前必须冻结宿主后端选择，不能依赖模型复述。
+
 已在原审查会话提交新增事实/只读接线风险，并收到实际回复。新代码增加本轮0派发校正（显式CU动作请求，排除问答/规划/网页生成，流式与普通/恢复路径均接线）、有界不含正文的验收解析诊断；原生观察经独立宿主broker、冻结父运行/room/workspace与取消校验接入现有CU。固定AX采集只取role/name，在UTF-16转换前限长262144码元，解析前1MiB，128节点、256字符字段；返回复核资源与URL，pending由取消与Drop释放。无输入、无执行节点ID、无达成验证，不转Chrome，不放开网页权限，不在032 MSI中。
 
 离线Web/Tauri build退出0；Tauri完整59/0。Web并行完整检查首轮1267/1/2 ignored，既有unknown-tool例遇database is locked；独立例和串行完整1268/0/2 ignored通过，最终修改后再核。保留失败记录，不以工程检查当真模型验收。证据与测试矩阵见 [安装跟进增量报告](../testing/release-0.2.32/installed-followup/change-report-and-targeted-verification.md)。未代为放行，微信不改不测，Devin暂缓，四项仍未总体完成。
+并发完整复查又在Sleep工具登记入口遇锁；新增真实SQLite首次并发打开检查，修补前两次重现，临时阶段诊断定位PRAGMA journal_mode切换（诊断已移除）。会话库打开入口统一连接配置，先设置busy等待，已WAL跳过切换；仅模式初始化BUSY总计5秒限时等待，不重试工具动作、业务写入或迁移事务。离线build退出0；最新完整Web1269/0/2忽略35.58秒、Tauri59/0、module_linkage8/0、tool-registry check退出0。48次并发打开/登记全部保留；不把工程检查算真实模型验收。前一提交86ad08f远端CI36676903841成功。只读安全复查仍isolated/2条待人工复核，Paint新原生图05空白，无新模型请求/绘图/放行。

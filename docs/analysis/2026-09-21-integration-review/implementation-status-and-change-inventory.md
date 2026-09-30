@@ -1,3 +1,5 @@
+> **2026-09-30 并发登记与只读能力复核**：原生只读适配器全部动作能力已关闭。首次并发启用SQLite WAL重现锁错误，统一两个会话库入口、先设置等待时限、已WAL跳过切换；仅日志模式初始化的BUSY限时等待，不重试业务动作。修补后最新Web完整并发1269/0/2忽略、Tauri59/0、模块接线8/0、tool-registry离线check通过。正式032安全状态仍isolated、待人工复核2条，Paint再次原生截图空白；未追加模型绘图，不算实操通过。新代码仍未打包安装。详见 [最新跟进报告](../../testing/release-0.2.32/installed-followup/change-report-and-targeted-verification.md)。以下保留前一时点。
+
 > **2026-09-30 正式安装跟进最新入口**：0.2.32已在正式目录安装，10/10关键产物一致，正常入口后台身份确认。真实Qwen Paint C轮只有1次模型请求、0次工具登记，模型复述历史blocked；该轮不是真实工具门禁失败，画布空白，仍未验收。新增本轮0派发提示、验收解析有界诊断及原生只读AX观察接线均在源码中，未计入032 MSI。Web/Tauri离线build通过；最终串行Web1268/0/2忽略、Tauri59/0，首轮并行database is locked失败如实保留。原生输入、文档/节点有效期、目标验证、真实Browser Use/Paint及DSH远程运行仍开放，四项未总体通过。详见 [安装跟进报告与测试矩阵](../../testing/release-0.2.32/installed-followup/change-report-and-targeted-verification.md)。以下保留历史入口。
 
 > **2026-09-30 最新原生验收入口**：0.2.32 完整构建、六项发布门、10/10 暂存身份通过；包源65d7f5f两条远端CI成功。原启动器冷启动取得展卷、Q版舞剑/收势、Logo/朱印停留及聊天室交接连续图，日常实际演出6500ms，打包版该项通过。正式安装目录重新核对仍0.2.29，不能称0.2.32已安装。详见 [0.2.32报告](../../testing/release-0.2.32/package-handoff-and-verification.md)。后续源码已开始原生浏览器宿主登记阶段，不包含在032 MSI内；快照、动作与真实Qwen/Paint、DSH远程运行仍开放，四项未总体完成。以下保留历史入口。

@@ -25,11 +25,15 @@
 | 原生观察协议 | `native-browser-protocol` | 独立原生资源身份及固定观察请求/回复，拒绝未知字段；无方法名、脚本或 selector 参数。 |
 | 后台观察 broker | Web `native_browser_host.rs` | 认证宿主、单 pending、128位随机请求ID、冻结父运行/聊天室/工程校验、租约/资源匹配；取消/超时释放，Drop 再兜底只清本请求，迟到回包拒绝。失效时保留已认证序号高水位，防旧登记复活。 |
 | WebView2 观察 | Tauri `native_browser_host.rs`、`native_browser_observation.rs` | 心跳独立领取，只调用固定 AX 方法。UI线程派发前和回调后核资源，再核实际URL；在 UTF-16 转 String 前拒绝超过262144码元的响应，解析前另限制1MiB；最多128节点，仅role/name，无value/properties，字段256字符，等待2秒。 |
-| 现有 CU 接线 | `native_browser_adapter.rs`、`computer_use_executor.rs` | 明确内置浏览器 objective 才选绑定原生只读适配器。缺资源即失败，绝不自动转 Chrome。`input_supported=false`，无可执行节点ID；动作返回未实现，verify不把快照当目标达成。 |
+| 现有 CU 接线 | `native_browser_adapter.rs`、`computer_use_executor.rs`、`computer_use_adapters.rs` | 明确内置浏览器 objective 才选绑定原生只读适配器。缺资源即失败，绝不自动转 Chrome。`input_supported=false`，全部动作能力为false，无可执行节点ID；适配器在输入前返回unsupported_action，原生桥再兜底返回未实现，verify不把快照当目标达成。 |
 
 0工具校正是保守的本轮零派发校正，**不是通用真假回复检测器**：没有显式 CU 入口的自然语言请求、已经调用其它工具但缺目标 CU 的情况仍需要后续按具体工具事实核对；任何真实工具派发也不等于已完成目标。
 
 AX 的 name/title 仍可能含私密文本；仅排除 value/properties **不代表脱敏完成**。本阶段仅在用户授权的测试页面验证。后续用于私密页面前必须明确数据发送范围和敏感字段处理，不能把页面内容当授权。导航代次不是 SPA 内容代次；只读快照不提供输入所需的节点有效期。
+
+最后代码审视补正原生只读路径的能力声明：复用浏览器适配器时原先还继承了可点击/输入等默认能力，现将所有动作能力关闭，既有能力边界检查补入输入前拒绝及0派发断言。原生后端当前选择依据模型结构化objective的明确内置目标；后续输入实现前还须把用户选择冻结为宿主后端类型，不能只依赖模型复述目标。
+
+会话库首次并发初始化另已修补：两个打开入口共用连接配置，先设置等待时限，已为WAL时不重复切换；只有日志模式初始化的SQLite BUSY在总计5秒内等待，不重试迁移事务、业务写入或工具动作。此前完整并发检查再次在Sleep入口出现数据库锁；追加真实SQLite首次并发打开检查，在修补前重现并定位至日志模式切换，修补后48次并发打开及登记均通过。前向schema拒绝、备份与事务迁移保持原有边界。
 
 固定方法依据 [CDP Accessibility 官方契约](https://chromedevtools.github.io/devtools-protocol/tot/Accessibility/) 与 [WebView2 CallDevToolsProtocolMethod 官方接口](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.3856.49)。不开放远程调试端口或外部网页 Tauri 权限。
 
@@ -42,6 +46,10 @@ AX 的 name/title 仍可能含私密文本；仅排除 value/properties **不代
 ## 工程检查与功能测试设计入口
 
 工程检查属于代码边界验证，不替代真实模型操作。本轮 Web 与 Tauri 离线 build 均退出0；Tauri完整检查59通过。Web完整首轮并行检查1267通过、1失败、2忽略，失败为既有 unknown-tool 用例 `database is locked`；该例独立重查通过，随后串行完整检查1268通过、0失败、2忽略。最终修改后完整串行检查1268通过、0失败、2忽略（59.43秒），按CI相同并行方式重查也为1268通过、0失败、2忽略（33.78秒）；不能隐去首轮失败或据此声称并发锁风险已经根治。模块接线8通过，严格验收相关7通过；真实模型功能仍按下表状态。
+
+上述为前一提交时点。能力补正后并发检查又有1项Sleep入口数据库锁失败，因而没有将一次重试通过当作闭环。日志模式初始化修补后，最新离线build退出0；Web完整并发检查 **1269通过、0失败、2忽略（35.58秒）**，桌面端 **59通过（1.18秒）**，tool-registry离线check退出0，模块接线 **8通过（2.11秒）**。新增检查只覆盖真实SQLite并发初始化，不使用模型夹具，也不是桌面功能验收。前一提交86ad08f远端CI运行36676903841成功；新增修补需以其自身提交的远端结果为准。
+
+再次只读查询正式安装版仍为isolated、accepts_new_input=false、待人工复核2条；无最新解除事实。本轮没有追加模型绘图请求或鼠标绘图。新截图 [Paint再次核对](05-paint-readonly-recheck.jpg) 仍为空白；拍摄前只激活Paint窗口，未改变画布或工具。
 
 | 验证项 | 必须实际验证的行为 | 当前状态 |
 | --- | --- | --- |

@@ -1,19 +1,13 @@
 {
-  "checked_at": "2026-09-30T14:09:53.2921324+08:00",
+  "checked_at": "2026-09-30T14:35:29.9318281+08:00",
   "scope": "开发源码工程检查，不是安装包功能验收",
   "web_build": "offline exit 0",
   "tauri_build": "offline exit 0",
-  "web_final_serial": {
-    "passed": 1268,
-    "ignored": 2,
-    "seconds": 59.43,
-    "failed": 0
-  },
   "web_final_parallel": {
-    "passed": 1268,
+    "seconds": 35.58,
+    "failed": 0,
     "ignored": 2,
-    "seconds": 33.78,
-    "failed": 0
+    "passed": 1269
   },
   "web_first_parallel": {
     "passed": 1267,
@@ -23,14 +17,51 @@
     "failed": 1
   },
   "tauri_full": {
+    "seconds": 1.18,
     "failed": 0,
     "passed": 59
   },
   "module_linkage": {
+    "seconds": 2.11,
     "failed": 0,
     "passed": 8
   },
   "functional_browser_use_accepted": false,
   "functional_paint_accepted": false,
-  "installed_package_contains_new_code": false
+  "installed_package_contains_new_code": false,
+  "web_prior_serial": {
+    "passed": 1268,
+    "ignored": 2,
+    "seconds": 59.43,
+    "failed": 0
+  },
+  "web_prior_parallel": {
+    "passed": 1268,
+    "ignored": 2,
+    "seconds": 33.78,
+    "failed": 0
+  },
+  "web_capability_parallel_before_db_fix": {
+    "failure": "Sleep: database is locked",
+    "failed": 1,
+    "ignored": 2,
+    "passed": 1267
+  },
+  "db_first_open_baseline": {
+    "failed": 1,
+    "reproduced_stage": "PRAGMA journal_mode WAL",
+    "passed": 0
+  },
+  "db_first_open_after_fix": {
+    "failed": 0,
+    "registrations_preserved": 48,
+    "passed": 1,
+    "concurrent_opens": 48
+  },
+  "tool_registry_check": "offline exit 0",
+  "remote_ci_prior_commit": {
+    "run_id": 36676903841,
+    "conclusion": "success",
+    "sha": "86ad08f335cd62e623283b8e0673008df7d053d0"
+  }
 }
