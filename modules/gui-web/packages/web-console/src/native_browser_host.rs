@@ -41,6 +41,17 @@ fn registry() -> &'static Mutex<Option<RegisteredHost>> {
     REGISTRY.get_or_init(|| Mutex::new(None))
 }
 
+fn readable_host(host: Option<&RegisteredHost>) -> Result<&RegisteredHost, &'static str> {
+    let host = host.ok_or("native_browser_host_unavailable")?;
+    if host.seen.elapsed() >= Duration::from_millis(LEASE_MILLIS) {
+        return Err("native_browser_resource_changed");
+    }
+    if host.resource.is_none() {
+        return Err("native_browser_panel_unavailable");
+    }
+    Ok(host)
+}
+
 fn token_path() -> Option<PathBuf> {
     #[cfg(test)]
     {
@@ -192,7 +203,7 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
     let (sender, receiver) = std::sync::mpsc::channel();
     {
         let registered = registry().lock().map_err(|_| "native_browser_unavailable")?;
-        let host = registered.as_ref().ok_or("native_browser_unavailable")?;
+        let host = readable_host(registered.as_ref()).map_err(str::to_string)?;
         let (workspace, resource) = host.resource.as_ref().ok_or("native_browser_unavailable")?;
         if host.seen.elapsed() >= Duration::from_millis(LEASE_MILLIS)
             || workspace != &parent.workspace_id || parent.room_id.as_deref() != Some(resource.room_id.as_str()) {
@@ -236,6 +247,16 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn browser_observation_distinguishes_disconnected_host_from_unavailable_panel() {
+        assert_eq!(readable_host(None).err(), Some("native_browser_host_unavailable"));
+        let current = RegisteredHost {host_id:"native-host-0123456789".into(), sequence:7,
+            seen:Instant::now(), resource:None};
+        assert_eq!(readable_host(Some(&current)).err(), Some("native_browser_panel_unavailable"));
+        let expired = RegisteredHost {seen:Instant::now() - Duration::from_millis(LEASE_MILLIS), ..current};
+        assert_eq!(readable_host(Some(&expired)).err(), Some("native_browser_resource_changed"));
+    }
 
     #[test]
     fn browser_host_auth_never_accepts_empty_or_chrome_nonce() {

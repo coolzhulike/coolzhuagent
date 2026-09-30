@@ -519,13 +519,21 @@ fn current_reply(store: &PanelStore) -> Result<PanelReply, String> {
 
 /// 只供宿主内部资源登记使用；不新增网页可调用命令。
 pub(super) fn input_resource(app: &AppHandle) -> Option<native_browser_protocol::PanelResource> {
+    // 页面驻留不等于可用；隐藏或最小化主窗口必须撤销原生观察资格。
+    let console = app.get_window(super::CONSOLE_LABEL)?;
+    let visible = console.is_visible().ok()?;
+    let minimized = console.is_minimized().ok()?;
+    let store = app.state::<PanelStore>();
+    let state = store.state.lock().ok()?;
+    visible_panel_resource(&state, visible, minimized)
+}
+
+fn visible_panel_resource(state: &PanelState, console_visible: bool, console_minimized: bool) -> Option<native_browser_protocol::PanelResource> {
     #[derive(Deserialize)]
     struct Scope { context: ScopeContext }
     #[derive(Deserialize)]
     struct ScopeContext { workspace_path: String, room: String }
-    let store = app.state::<PanelStore>();
-    let state = store.state.lock().ok()?;
-    if !state.reply.active || state.reply.hidden || state.reply.loading || state.reply.destroyed {
+    if !console_visible || console_minimized || !state.reply.active || state.reply.hidden || state.reply.loading || state.reply.destroyed {
         return None;
     }
     let scope: Scope = serde_json::from_str(&state.reply.scope).ok()?;
@@ -815,6 +823,24 @@ pub async fn browser_panel_command(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hidden_or_minimized_console_cannot_register_a_resident_page() {
+        let state = PanelState {
+            generation: 7,
+            navigation_revision: 1,
+            label: Some("browser-panel-7".into()),
+            reply: PanelReply {
+                active: true,
+                scope: r#"{"context":{"workspace_path":"workspace","room":"room-1"}}"#.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        assert!(visible_panel_resource(&state, true, false).is_some());
+        assert!(visible_panel_resource(&state, false, false).is_none());
+        assert!(visible_panel_resource(&state, true, true).is_none());
+    }
 
     #[test]
     fn external_navigation_rejects_privileged_schemes_credentials_and_console_aliases() {
