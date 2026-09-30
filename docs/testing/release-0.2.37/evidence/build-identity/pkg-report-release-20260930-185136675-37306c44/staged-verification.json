@@ -1,0 +1,108 @@
+{
+  "version": "0.2.37",
+  "report_id": "pkg-report-release-20260930-185136675-37306c44",
+  "release_eligible": true,
+  "gates": [
+    {
+      "gate": "declared_source_snapshot_scope",
+      "result": "pass",
+      "evidence": "declared_by=config/package-manifest.json#source_snapshot; roots=16",
+      "note": ""
+    },
+    {
+      "gate": "source_input_stability",
+      "result": "pass",
+      "evidence": "pre=4dbb0bcbef821aaf471284ebab3e37649974fa549468fa69bb3c1bb353d4a49e post=4dbb0bcbef821aaf471284ebab3e37649974fa549468fa69bb3c1bb353d4a49e；两次采样逐文件一致",
+      "note": ""
+    },
+    {
+      "gate": "declared_roots_present",
+      "result": "pass",
+      "evidence": "声明 roots 全部存在（范围可枚举）",
+      "note": ""
+    },
+    {
+      "gate": "build_input_stability",
+      "result": "pass",
+      "evidence": "pre=11d83f74471c3f80b7350b9d9721cc279d486d31baafbc045da5f87f10703e25 post=11d83f74471c3f80b7350b9d9721cc279d486d31baafbc045da5f87f10703e25",
+      "note": ""
+    },
+    {
+      "gate": "artifact_provenance",
+      "result": "pass",
+      "evidence": "全部 10 个产物的来源可确认",
+      "note": ""
+    },
+    {
+      "gate": "frozen_inputs",
+      "result": "pass",
+      "evidence": "mode=self-frozen-at-build-start; freeze_id=11d83f74471c3f80b7350b9d9721cc279d486d31baafbc045da5f87f10703e25",
+      "note": "未提供 -FreezeRecordPath：本次构建在自身开始处自冻结输入（单阶段运行）；稳定性由构建前后两次采样逐项一致证明"
+    }
+  ],
+  "msi_hash_matches": true,
+  "archived_report_hash_matches": true,
+  "archived_inventory_hash_matches": true,
+  "staged_artifacts": [
+    {
+      "id": "gui-web.web-console",
+      "target": "bin/coolzhu-web-console.exe",
+      "sha256": "3D8178D8019A037B72ECB1C03551B0EA44D5A3869B347ED16E69A0B58B3C4614",
+      "matches": true
+    },
+    {
+      "id": "gui-web.browser-native-host",
+      "target": "bin/coolzhu-browser-native-host.exe",
+      "sha256": "295F0D96718941E7313F566696AE42F49BC083755336C0B0C71A40459DCDB50A",
+      "matches": true
+    },
+    {
+      "id": "gui-web.clawbot-sidecar",
+      "target": "bin/coolzhu-clawbot-sidecar.exe",
+      "sha256": "7C9CBA54D8DFC5248865414748E2E0BD9340839C888C2267007E2B90CAA32FC9",
+      "matches": true
+    },
+    {
+      "id": "cli.command-line",
+      "target": "bin/coolzhu-cli.exe",
+      "sha256": "C935CFA7848044F7F8FFE8D5667055974BA65B8810A549AE71F0E062938A22E7",
+      "matches": true
+    },
+    {
+      "id": "computer-use.preflight-check",
+      "target": "bin/coolzhu-computer-use-check.exe",
+      "sha256": "2C47D46FDA9BA2ED804B64F7664A74C6F566C9B0F735F52CF469BF68C44951FE",
+      "matches": true
+    },
+    {
+      "id": "vision.smoke",
+      "target": "bin/coolzhu-vision-smoke.exe",
+      "sha256": "FBFCFA58331ABDF833D62F4A344B0F1D29D9731B1270BD392B15AA74069A0826",
+      "matches": true
+    },
+    {
+      "id": "vision.latest-desktop",
+      "target": "bin/coolzhu-latest-desktop-vision.exe",
+      "sha256": "BD2C67551C5F36AC383BDD558CE722CC6DF077F70364149510B0DE403A6C3645",
+      "matches": true
+    },
+    {
+      "id": "gui-desktop.tauri-shell",
+      "target": "bin/coolzhu-tauri-shell.exe",
+      "sha256": "5AA9794A29BE6ADCE60B52CF34BBFAE46B448AEE7F46294E693882863E83728D",
+      "matches": true
+    },
+    {
+      "id": "gui-desktop.webview2-loader",
+      "target": "bin/WebView2Loader.dll",
+      "sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C",
+      "matches": true
+    },
+    {
+      "id": "package.app-launcher",
+      "target": "COOLZHU-AGENT.exe",
+      "sha256": "DBDCED4DA6B0E8E3F7B1CEFCB7BEA9CE3B3E26564E628484B5EF11ABC05EA04B",
+      "matches": true
+    }
+  ]
+}

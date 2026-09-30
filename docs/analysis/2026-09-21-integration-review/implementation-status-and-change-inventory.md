@@ -1,3 +1,5 @@
+> **2026-09-30 037发布完成 / 启动待用户操作**：连续移动修复正常出包、6门/10关键产物/859载荷和MSI哈希通过；实际036关闭前activity=false/safe/待恢复0，Paint保留。启动037的整条操作被自动审批拒绝（仅blocked by policy，未执行），未重试、未改端口；已请用户正常启动并重开原生网页。037尚无运行/真Qwen证据，折角修复不能算已验收。见[037报告及验证矩阵](../../testing/release-0.2.37/change-report-and-targeted-test-plan.md)。
+
 > **2026-09-30 036新路径缺陷 / 037执行侧修复**：036正常6门出包、859载荷/10关键产物哈希匹配，最新7bdb1b6双CI成功。L新独立真Qwen三点L形路径，记录1拖动/3点接纳/released，但原图仅起终斜线；另有视觉JSON无效，blocked，不能以模型能力解释全部失败。受控移动拟改SendInput禁止事件合并，保留许可/取消/帧守卫；离线build退出0、computer-use-core140/0，需正常037真实新任务截图验收。正式安装仍034，Browser Use输入、DSH远程运行、海绵宝宝及四项总体仍未通过。见[037报告](../../testing/release-0.2.37/change-report-and-targeted-test-plan.md)。
 
 > **2026-09-30 J轮任务边界缺陷**：实际只读内置网页请求误续接历史Paint，2次真实drag/released、0浏览器观察。已定位历史失败回复过滤丢失轮次结束边界，以及CU准入未冻结本轮原文的只读限制。后续源码修复在接纳/历史投影/适配器选路落实边界，035 MSI不含新修复。见[真实失败报告](../../testing/release-0.2.35/candidate-joint/browser-j-task-boundary-failure.md)。不能据用户可见网页截图称Browser Use通过。
