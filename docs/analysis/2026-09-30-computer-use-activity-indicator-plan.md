@@ -48,3 +48,5 @@ Tauri新增独立 `computer_use_indicator`：每个实际显示器一个透明�
 工程结果：Web及Tauri离线build通过；Web完整并行检查 **1270通过、0失败、2忽略（36.09秒）**，Tauri **59通过、0失败（2.17秒）**，模块接线 **8通过（2.66秒）**。新增生命周期检查覆盖正常Drop、异常展开、过期和未认证读取，不能代替桌面实操。审核实录见 [回复](../testing/release-0.2.32/installed-followup/activity-indicator-review-dom.txt) 与 [截图](../testing/release-0.2.32/installed-followup/07-activity-indicator-review.jpg)。
 
 当前正式0.2.32输入资源仍isolated，待人工复核2条，Paint画布空白。新功能尚未安装/实操通过，不能计入既有验收。计划随后随正常发布链出候选包，再由真实Qwen与Paint共同验收；不从测试接口人工点亮泛光冒充通过。多显示器/DPI、焦点、鼠标命中、实际取消均待实操。测试者不自动放行或清安全库；微信不改不测，Devin暂缓。
+
+后续出包已完成：正常release发布链生成 **0.2.33候选MSI**，退出0、六项发布资格门通过、暂存产物10/10身份匹配；仍未安装实操。[候选改动报告与联合验收交接](../testing/release-0.2.33/change-report-and-paint-indicator-handoff.md)。
