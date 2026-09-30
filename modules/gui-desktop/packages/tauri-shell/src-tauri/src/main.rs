@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod browser_panel;
+mod native_browser_host;
 mod console_shell;
 mod recovery_confirmation;
 
@@ -290,6 +291,7 @@ fn main() {
                 return Err(error);
             }
             let startup_args: Vec<String> = std::env::args().collect();
+            native_browser_host::start(&handle);
             spawn_web_console_parent_monitor_if_requested(&handle, &startup_args);
             let handled_pet_action = handle_pet_action_args(&handle, &startup_args);
             let visibility = startup_visibility(&startup_args);

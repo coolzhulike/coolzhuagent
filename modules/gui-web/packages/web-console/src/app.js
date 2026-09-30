@@ -18995,7 +18995,7 @@ function persistIdeTabs() {
 
 function initializeWorkbenchWindows() {
   window.CoolzhuNativeBrowserPanel?.init({
-    scope: () => ({workspace:activeWorkspaceKey,room:activeChatRoomId}),
+    scope: () => ({workspace:activeWorkspaceKey,workspace_path:projectWorkspaceScope,room:activeChatRoomId}),
     frame: () => browserWindowElements().frame,
     active: () => chatToolWindowId === "browser",
     status: browserWindowSetStatus,

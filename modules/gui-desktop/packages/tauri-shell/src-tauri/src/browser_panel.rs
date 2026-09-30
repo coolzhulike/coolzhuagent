@@ -517,6 +517,28 @@ fn current_reply(store: &PanelStore) -> Result<PanelReply, String> {
         .map_err(|_| "网页状态不可用".into())
 }
 
+/// 只供宿主内部资源登记使用；不新增网页可调用命令。
+pub(super) fn input_resource(app: &AppHandle) -> Option<native_browser_protocol::PanelResource> {
+    #[derive(Deserialize)]
+    struct Scope { context: ScopeContext }
+    #[derive(Deserialize)]
+    struct ScopeContext { workspace_path: String, room: String }
+    let store = app.state::<PanelStore>();
+    let state = store.state.lock().ok()?;
+    if !state.reply.active || state.reply.hidden || state.reply.loading || state.reply.destroyed {
+        return None;
+    }
+    let scope: Scope = serde_json::from_str(&state.reply.scope).ok()?;
+    let resource = native_browser_protocol::PanelResource {
+        workspace_path: scope.context.workspace_path,
+        room_id: scope.context.room,
+        label: state.label.clone()?,
+        generation: state.generation,
+        navigation_revision: state.navigation_revision,
+    };
+    resource.valid_shape().then_some(resource)
+}
+
 fn view_for_scope(
     app: &AppHandle,
     store: &PanelStore,

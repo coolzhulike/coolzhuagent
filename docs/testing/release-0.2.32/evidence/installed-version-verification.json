@@ -1,0 +1,78 @@
+{
+  "checked_at": "2026-09-30T11:26:35.4647406+08:00",
+  "installed_cli_version": "0.2.29",
+  "expected_package_version": "0.2.32",
+  "installation_accepted": false,
+  "artifacts": [
+    {
+      "artifact_id": "gui-web.web-console",
+      "target": "bin/coolzhu-web-console.exe",
+      "expected_032_sha256": "F4B64FECFFA6BE86DB2E41F6059F1B5FBDE282D3B5A26242D67A2AA1E6246E80",
+      "installed_sha256": "0CDAA81CAA9E4C3F5BD09BC3095E57A4F1A24445C0614DF955F090BAE4EA33AA",
+      "matches_032": false
+    },
+    {
+      "artifact_id": "gui-web.browser-native-host",
+      "target": "bin/coolzhu-browser-native-host.exe",
+      "expected_032_sha256": "74E9587227DDBCF0FFD156121BDEF5BD2D7CF4689D374D32C34CB3E05A16D596",
+      "installed_sha256": "E6DF2E2932EC25884DAC5C87A1B08093D73518A13389D2F1508594959169DF78",
+      "matches_032": false
+    },
+    {
+      "artifact_id": "gui-web.clawbot-sidecar",
+      "target": "bin/coolzhu-clawbot-sidecar.exe",
+      "expected_032_sha256": "7C9CBA54D8DFC5248865414748E2E0BD9340839C888C2267007E2B90CAA32FC9",
+      "installed_sha256": "7C9CBA54D8DFC5248865414748E2E0BD9340839C888C2267007E2B90CAA32FC9",
+      "matches_032": true
+    },
+    {
+      "artifact_id": "cli.command-line",
+      "target": "bin/coolzhu-cli.exe",
+      "expected_032_sha256": "7F48CB2785C9D20CC09E7D93A0D071A6055E87379069B3C299E7C941768F5560",
+      "installed_sha256": "92722D1414DE33A7A6DFCCC1561A19232B5FA9CC4168380EEA28D1EAFB940424",
+      "matches_032": false
+    },
+    {
+      "artifact_id": "computer-use.preflight-check",
+      "target": "bin/coolzhu-computer-use-check.exe",
+      "expected_032_sha256": "646774B82BBF34A40A450D76FFD829C04740114015F93AFBD10DCB8945B991DF",
+      "installed_sha256": "646774B82BBF34A40A450D76FFD829C04740114015F93AFBD10DCB8945B991DF",
+      "matches_032": true
+    },
+    {
+      "artifact_id": "vision.smoke",
+      "target": "bin/coolzhu-vision-smoke.exe",
+      "expected_032_sha256": "FBFCFA58331ABDF833D62F4A344B0F1D29D9731B1270BD392B15AA74069A0826",
+      "installed_sha256": "FBFCFA58331ABDF833D62F4A344B0F1D29D9731B1270BD392B15AA74069A0826",
+      "matches_032": true
+    },
+    {
+      "artifact_id": "vision.latest-desktop",
+      "target": "bin/coolzhu-latest-desktop-vision.exe",
+      "expected_032_sha256": "BD2C67551C5F36AC383BDD558CE722CC6DF077F70364149510B0DE403A6C3645",
+      "installed_sha256": "BD2C67551C5F36AC383BDD558CE722CC6DF077F70364149510B0DE403A6C3645",
+      "matches_032": true
+    },
+    {
+      "artifact_id": "gui-desktop.tauri-shell",
+      "target": "bin/coolzhu-tauri-shell.exe",
+      "expected_032_sha256": "08E3E2F8DE51929A24896D9A589E7C0AAE5B60DC0CFBB44A6F5F01F9E72FAF96",
+      "installed_sha256": "A00A3F1A3E9E800E6C6A115161EA546FE068B76FBC5BF63F86F47EE30E8EBD7A",
+      "matches_032": false
+    },
+    {
+      "artifact_id": "gui-desktop.webview2-loader",
+      "target": "bin/WebView2Loader.dll",
+      "expected_032_sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C",
+      "installed_sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C",
+      "matches_032": true
+    },
+    {
+      "artifact_id": "package.app-launcher",
+      "target": "COOLZHU-AGENT.exe",
+      "expected_032_sha256": "9EB0F2FED449762F33BCC5A04AFC46A67A28B9FF5FDA217ED009C98D5DEEE102",
+      "installed_sha256": "818CC0D3CB5E395BFA265270973B8EAC6587614D0081527F68F68DEE206AC4DD",
+      "matches_032": false
+    }
+  ]
+}

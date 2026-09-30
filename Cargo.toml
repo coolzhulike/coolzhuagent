@@ -19,6 +19,7 @@ members = [
     "modules/vision/packages/vision-service",
     "modules/vision/packages/uia-resolver",
     "modules/computer-use/packages/computer-use-core",
+    "modules/computer-use/packages/native-browser-protocol",
     "modules/gui-web/packages/web-console",
     "modules/gui-web/packages/clawbot-sidecar",
     "modules/gui-web/packages/windows-process-guard",

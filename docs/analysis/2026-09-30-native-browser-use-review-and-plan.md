@@ -4,6 +4,10 @@
 
 ## 结论与范围
 
+2026-09-30 后续实施：原生宿主资源登记已经进入代码。新增独立 `native-browser-protocol` 契约和两端 `native_browser_host` 模块，后台按真实工程路径和只读 SQLite 房间关系解析身份；宿主仅登记可见、完成加载的面板。独立随机凭据按服务端口隔离、750ms 心跳和3秒租约，重放序列/另一活宿主拒绝；测试凭据只写 tmp，不轮换真实宿主令牌。没有新增网页 IPC 或任意 JS 接口。此为第1阶段的资源/登记部分，**请求派发、DOM快照、类型化输入、父运行与取消接线尚未完成**，不能称已实现模型 Browser Use。代码跟进不在已经归档的0.2.32 MSI内。
+
+3秒租约仅判断连接存活，不能代替输入派发时核验。后续输入仍须在宿主所在线程即时确认可见性、聊天室/工程、instance generation 和 document revision，并核对冻结父运行。租约存在不授予输入权限，也不能以心跳空档为旧动作继续执行的理由。
+
 右栏 WebView2 的人工浏览能力与模型 Browser Use 是不同验收项。当前模型链路的 `BrowserNativeBridge` 连接 Chrome 扩展及 Native Messaging Host，尚没有右栏 WebView2 的 DOM 快照/类型化动作适配。右栏新窗口链接修复不能代替模型操作验收。
 
 本计划仅补这项缺口，不建立第二套 Agent 循环，不自动切换到 Chrome，不扩大外部网页的 Tauri 或 Shell 权限。微信保持原功能且不测试。Devin 依用户要求暂缓，依据另见 `../testing/devin-cloud/official-integration-decision-2026-09-30.md`。

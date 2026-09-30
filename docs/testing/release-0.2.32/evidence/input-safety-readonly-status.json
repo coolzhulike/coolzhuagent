@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-09-30T11:45:14.8891768+08:00",
+  "package_version": "0.2.32",
+  "unavailable": null,
+  "resource_state": "isolated",
+  "accepts_new_input": false,
+  "pending_recovery_operations": 0,
+  "human_review_required": 2,
+  "unacknowledged_open_blocks": 2,
+  "unacknowledged_legacy_runs": 2,
+  "acknowledged_legacy_runs": 0
+}

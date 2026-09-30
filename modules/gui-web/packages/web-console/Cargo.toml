@@ -18,6 +18,7 @@ api.workspace = true
 axum = { version = "0.8", features = ["multipart", "ws"] }
 base64 = "0.22"
 computer-use.workspace = true
+native-browser-protocol = { package = "coolzhu-native-browser-protocol", path = "../../../computer-use/packages/native-browser-protocol" }
 diagnostics.workspace = true
 encoding_rs = "0.8"
 # IDE 工程窗口 · 符号索引（plan 阶段A）：正则提取符号 + once_cell 静态编译正则 + walkdir 遍历工作区。
