@@ -1,0 +1,328 @@
+  - heading "ChatGPT 说：" [level=4]
+  - heading "Computer Use 活动提示层窄审查结论" [level=1]
+  - heading "总体裁决" [level=2]
+  - paragraph:
+    - text: 当前方案方向正确，可以作为
+    - strong: 展示层补充
+    - text: 实施。
+  - paragraph: 核心原则批准：
+  - blockquote:
+    - paragraph: 一个真实 CU 活动事实源驱动一个展示器；展示不是权限，不是执行证明，不是成功证明。
+  - paragraph: 不建议：
+  - list:
+    - listitem: 新建 CU runtime；
+    - listitem: 新建权限系统；
+    - listitem: 用亮灯代替输入安全；
+    - listitem: 用动画状态推断模型正在操作。
+  - separator
+  - heading "一、活动租约设计审查" [level=1]
+  - heading "结论：可接受，且必须绑定真实执行阶段" [level=2]
+  - paragraph: 你的 RAII activity lease 边界正确。
+  - paragraph: 关键是：
+  - paragraph:
+    - strong: 创建时机必须足够晚。
+  - paragraph: 不能：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: 模型请求 computer_use ↓ 亮灯
+  - paragraph: 否则：
+  - list:
+    - listitem: 模型只是提出意图；
+    - listitem: 工具可能被拒；
+    - listitem: 输入可能没有发生。
+  - separator
+  - paragraph: 正确：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: tool call accepted ↓ parent run/call verified ↓ permission gate passed ↓ input ownership acquired ↓ adapter ready ↓ create activity lease ↓ show indicator
+  - separator
+  - paragraph: 以下情况不能显示：
+  - list:
+    - listitem: 0 tool dispatch；
+    - listitem: input safety reject；
+    - listitem: stale cached response；
+    - listitem: historical blocked message。
+  - separator
+  - heading "二、Activity 与执行事实分离" [level=1]
+  - paragraph: 批准：
+  - paragraph: 活动契约只包含：
+  - paragraph: 例如：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: active lease_id run_id call_id deadline
+  - paragraph: 不要包含：
+  - list:
+    - listitem: prompt；
+    - listitem: 模型内容；
+    - listitem: screenshot；
+    - listitem: key；
+    - listitem: action payload。
+  - separator
+  - paragraph: 原因：
+  - paragraph: 这是 UI 信号，不是调试窗口。
+  - separator
+  - heading "三、租约生命周期必须严格" [level=1]
+  - paragraph: 推荐状态：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Created ↓ Active ↓ Released
+  - paragraph: 异常：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Active ↓ Expired/Unknown
+  - separator
+  - paragraph: 不要：
+  - paragraph: 后端崩溃：
+  - paragraph: 继续亮。
+  - separator
+  - paragraph: 你的：
+  - blockquote:
+    - paragraph: TTL过期撤销
+  - paragraph: 正确。
+  - separator
+  - paragraph: 但注意：
+  - paragraph: TTL 只能代表：
+  - paragraph: “没有收到活动确认”。
+  - paragraph: 不能代表：
+  - paragraph: “输入一定停止”。
+  - paragraph: 如果存在未知释放：
+  - paragraph: 保持：
+  - paragraph: 进入已有 recovery。
+  - separator
+  - heading "四、取消时序风险" [level=1]
+  - paragraph: 必须明确：
+  - paragraph: 取消不是：
+  - paragraph: 立即证明停止。
+  - paragraph: 正确：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Cancel requested ↓ existing CU cancel path ↓ adapter cleanup ↓ activity revoke
+  - separator
+  - paragraph: 不要：
+  - paragraph: 收到取消：
+  - paragraph: 立即隐藏：
+  - paragraph: 但物理输入仍可能结束中。
+  - separator
+  - paragraph: 建议：
+  - paragraph: 显示层：
+  - paragraph: 可以有极短：
+  - paragraph: “ending”状态。
+  - paragraph: 或者：
+  - paragraph: 等待已有执行事实释放。
+  - separator
+  - heading "五、心跳运输边界" [level=1]
+  - paragraph: 批准：
+  - paragraph: 复用宿主认证心跳运输。
+  - paragraph: 不要：
+  - paragraph: 浏览器 IPC。
+  - separator
+  - paragraph: 必须保持：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Host | authenticated activity channel | Indicator
+  - separator
+  - paragraph: Indicator 不应该知道：
+  - list:
+    - listitem: 模型；
+    - listitem: 浏览器；
+    - listitem: Paint；
+    - listitem: prompt。
+  - separator
+  - heading "六、多个显示器窗口风险" [level=1]
+  - paragraph: 方向正确。
+  - paragraph: 需要几个细节：
+  - heading "1. 文字位置" [level=2]
+  - paragraph: 要求：
+  - paragraph: “顶部显示”。
+  - paragraph: 需明确：
+  - paragraph: 是：
+  - list:
+    - listitem: 主屏顶部；
+    - listitem: 每个屏顶部。
+  - paragraph: 你当前选择：
+  - blockquote:
+    - paragraph: 每个显示器泛光，文字仅主屏。
+  - paragraph: 可以。
+  - separator
+  - heading "2. DPI" [level=2]
+  - paragraph: 必须使用：
+  - paragraph: 实际 monitor bounds。
+  - paragraph: 不要：
+  - paragraph: 主窗口坐标。
+  - separator
+  - paragraph: 避免：
+  - paragraph: 高 DPI：
+  - list:
+    - listitem: 偏移；
+    - listitem: 覆盖错误窗口。
+  - separator
+  - heading "七、透明窗口安全边界" [level=1]
+  - paragraph: 批准：
+  - paragraph: 窗口：
+  - list:
+    - listitem: transparent；
+    - listitem: borderless；
+    - listitem: no taskbar；
+    - listitem: no focus；
+    - listitem: click-through。
+  - separator
+  - paragraph: 补充：
+  - paragraph: 必须确认：
+  - paragraph: 不会：
+  - list:
+    - listitem: 接收键盘；
+    - listitem: 成为 active window；
+    - listitem: 改变 foreground window。
+  - separator
+  - paragraph: 尤其 Paint：
+  - paragraph: 必须保持：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: foreground owner
+  - paragraph: 不变化。
+  - separator
+  - heading "八、Indicator 页面边界" [level=1]
+  - paragraph: 批准：
+  - paragraph: 静态页面。
+  - paragraph: 必须：
+  - paragraph: 无：
+  - list:
+    - listitem: invoke；
+    - listitem: command；
+    - listitem: external navigation；
+    - listitem: input controls。
+  - separator
+  - paragraph: 原因：
+  - paragraph: 这是显示器，不是控制面板。
+  - separator
+  - heading "九、不能和 Browser Use 混合" [level=1]
+  - paragraph: 你特别指出：
+  - blockquote:
+    - paragraph: 不把浏览器资源登记和 CU 执行器职责混合。
+  - paragraph: 批准。
+  - paragraph: 例如：
+  - paragraph: Browser Use：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: BrowserResource
+  - paragraph: CU：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: InputExecutionResource
+  - paragraph: 二者都可能触发 indicator，但来源必须不同。
+  - paragraph: 不要：
+  - paragraph: 浏览器 snapshot：
+  - paragraph: 导致电脑正在使用提示。
+  - separator
+  - heading "十、真实 Paint 验收门槛" [level=1]
+  - paragraph: 必须同时满足：
+  - heading "A. 活动事实" [level=2]
+  - paragraph: 存在：
+  - paragraph: 真实：
+  - list:
+    - listitem: Qwen tool call；
+    - listitem: dispatch；
+    - listitem: input ownership。
+  - separator
+  - heading "B. 指示器" [level=2]
+  - paragraph: 看到：
+  - paragraph: 准确文字：
+  - button "启用自动换行":
+  - button "复制":
+  - code: Coolzhu Agent is using your computer
+  - separator
+  - heading "C. 实际动作" [level=2]
+  - paragraph: Paint：
+  - paragraph: 真实：
+  - list:
+    - listitem: 打开；
+    - listitem: 落笔；
+    - listitem: 产生线条。
+  - separator
+  - heading "D. 安全" [level=2]
+  - paragraph: 验证：
+  - list:
+    - listitem: 取消；
+    - listitem: 拒绝；
+    - listitem: 输入隔离。
+  - separator
+  - heading "E. 不影响控制" [level=2]
+  - paragraph: 期间：
+  - list:
+    - listitem: 鼠标命中正常；
+    - listitem: Paint焦点正常；
+    - listitem: indicator不抢焦点。
+  - separator
+  - heading "十一、必须先处理的风险排序" [level=1]
+  - paragraph: 建议顺序：
+  - heading "P0" [level=2]
+  - paragraph: 活动租约创建时机。
+  - paragraph: 必须避免：
+  - paragraph: “模型想操作”就亮。
+  - separator
+  - heading "P1" [level=2]
+  - paragraph: 取消/异常释放。
+  - paragraph: 必须避免：
+  - paragraph: “亮灯但输入仍未知”。
+  - separator
+  - heading "P2" [level=2]
+  - paragraph: 透明窗口不抢焦点/鼠标。
+  - paragraph: 必须真实验证。
+  - separator
+  - heading "P3" [level=2]
+  - paragraph: 多显示器/DPI。
+  - separator
+  - heading "十二、不需要做的事情" [level=1]
+  - paragraph: 不需要：
+  - list:
+    - listitem: 新权限模型；
+    - listitem: 新 CU scheduler；
+    - listitem: 新 UI runtime；
+    - listitem: 新 recovery 系统。
+  - separator
+  - heading "最终裁决" [level=1]
+  - paragraph: 批准当前最小方案：
+  - generic: 纯文本
+  - button "启用自动换行":
+  - button "复制":
+  - code: Existing CU execution loop ↓ Activity Lease ↓ Authenticated Activity Signal ↓ Indicator Window
+  - paragraph: 必须保持：
+  - list:
+    - listitem: 活动信号来自真实执行阶段，不来自模型意图。
+    - listitem: Indicator 不具有权限含义。
+    - listitem: Indicator 不证明动作成功。
+    - listitem: 取消/未知释放沿用现有安全恢复。
+    - listitem: 不影响 Paint 焦点和输入。
+    - listitem: 最终验收必须是真 Qwen + Paint 实际绘制，不是亮灯演示。
+  - paragraph: 当前输入资源仍隔离，不应因为加入展示层而改变放行逻辑。
+  - button "复制":
+  - button "评价回复":
+  - button "分享":
+  - button "朗读":
+  - button "重新生成回复":
+  - button "更多操作":
+  - generic: ChatGPT 可能会出错。请核查重要信息。
+  - button "滚动到底部":
+  - heading "最新一条回复" [level=4]
+  - status
+  - button "添加文件等内容":
+  - textbox "询问 ChatGPT" [active]:
+    - paragraph: 询问 ChatGPT
+  - button "选择 ChatGPT 模型":
+    - generic: 极高
+  - button "听写":
+  - button "开始语音":
+- status
+- status
+- status
+- status: 回答已完成

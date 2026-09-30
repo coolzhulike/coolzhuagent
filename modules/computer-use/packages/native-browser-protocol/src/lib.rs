@@ -7,6 +7,24 @@ pub const MAX_OBSERVATION_BYTES: usize = 262_144;
 pub const TOKEN_FILE: &str = "native-browser-host-token";
 pub const MAX_STATE_BYTES: usize = 4096;
 pub const LEASE_MILLIS: u64 = 3000;
+pub const ACTIVITY_PATH: &str = "/api/native-computer-use/activity";
+pub const ACTIVITY_LEASE_MILLIS: u64 = 1800;
+pub const MAX_ACTIVITY_BYTES: usize = 1024;
+
+/// 仅展示当前真实执行活动，不包含模型内容、权限或目标达成声明。
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ComputerUseActivityReceipt {
+    pub active: bool,
+    pub lease_ms: u64,
+}
+
+impl ComputerUseActivityReceipt {
+    pub fn valid_shape(&self) -> bool {
+        if self.active { (1..=ACTIVITY_LEASE_MILLIS).contains(&self.lease_ms) }
+        else { self.lease_ms == 0 }
+    }
+}
 
 pub fn token_filename(port: u16) -> String {
     format!("{TOKEN_FILE}-{port}")

@@ -1,13 +1,13 @@
 {
-  "checked_at": "2026-09-30T14:35:29.9318281+08:00",
+  "checked_at": "2026-09-30T15:11:30.0357715+08:00",
   "scope": "开发源码工程检查，不是安装包功能验收",
   "web_build": "offline exit 0",
   "tauri_build": "offline exit 0",
   "web_final_parallel": {
-    "seconds": 35.58,
+    "passed": 1270,
     "failed": 0,
     "ignored": 2,
-    "passed": 1269
+    "seconds": 36.09
   },
   "web_first_parallel": {
     "passed": 1267,
@@ -17,14 +17,14 @@
     "failed": 1
   },
   "tauri_full": {
-    "seconds": 1.18,
+    "passed": 59,
     "failed": 0,
-    "passed": 59
+    "seconds": 2.17
   },
   "module_linkage": {
-    "seconds": 2.11,
+    "passed": 8,
     "failed": 0,
-    "passed": 8
+    "seconds": 2.66
   },
   "functional_browser_use_accepted": false,
   "functional_paint_accepted": false,
@@ -63,5 +63,13 @@
     "run_id": 36676903841,
     "conclusion": "success",
     "sha": "86ad08f335cd62e623283b8e0673008df7d053d0"
-  }
+  },
+  "web_before_activity": {
+    "seconds": 35.58,
+    "failed": 0,
+    "ignored": 2,
+    "passed": 1269
+  },
+  "functional_activity_indicator_accepted": false,
+  "activity_plan_reviewed": true
 }

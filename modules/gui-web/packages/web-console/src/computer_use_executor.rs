@@ -1293,6 +1293,11 @@ impl<'a> ComputerUseExecutor<'a> {
             }
         };
 
+        // 真实执行阶段才发布展示租约；被拒绝、历史缓存及适配器故障不会亮灯。
+        // 取消请求不提前撤销：控制器收尾/Drop后释放；光效不是物理释放证明。
+        let _activity = (adapter.capabilities() != ComputerUseCapabilities::default())
+            .then(|| crate::computer_use_activity::ActivityLease::begin(cu_deadline.remaining(now_ms())));
+
         let adapter = TracingAdapter {
             inner: adapter,
             store: self.store,

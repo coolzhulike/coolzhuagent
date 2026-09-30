@@ -18,6 +18,7 @@ mod browser_bridge;
 mod browser_bridge_protocol;
 mod native_browser_host;
 mod native_browser_adapter;
+mod computer_use_activity;
 mod chat_insights;
 mod static_resource_contract;
 mod scheduled_execution;
@@ -2133,6 +2134,7 @@ fn app() -> Router {
         .merge(terminal_host::routes())
         .merge(extension_market::routes())
         .merge(native_browser_host::routes())
+        .merge(computer_use_activity::routes())
         .route("/", get(static_index))
         .route("/{*path}", get(static_file))
 }

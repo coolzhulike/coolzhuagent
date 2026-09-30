@@ -76,7 +76,7 @@ pub(super) fn routes() -> Router {
         .route(OBSERVATION_PATH, post(receive_observation).layer(DefaultBodyLimit::max(MAX_OBSERVATION_BYTES)))
 }
 
-fn authenticated(headers: &HeaderMap) -> bool {
+pub(super) fn authenticated(headers: &HeaderMap) -> bool {
     let Some(value) = headers.get("authorization").and_then(|header| header.to_str().ok())
         .and_then(|header| header.strip_prefix("Bearer ")) else { return false; };
     let Ok(token) = host_token() else { return false; };

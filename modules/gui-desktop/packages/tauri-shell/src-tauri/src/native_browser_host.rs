@@ -3,11 +3,13 @@
 use std::{io::Read, path::PathBuf, time::{Duration, SystemTime, UNIX_EPOCH}};
 use native_browser_protocol::{token_filename, HostReceipt, HostState, ObservationReply, STATE_PATH, OBSERVATION_PATH};
 use tauri::AppHandle;
+use native_browser_protocol::{ComputerUseActivityReceipt, ACTIVITY_PATH, MAX_ACTIVITY_BYTES};
 
 pub(super) fn start(app: &AppHandle) {
     let Some(origin) = super::browser_panel::console_origin() else { return; };
     let Ok(endpoint) = origin.join(STATE_PATH) else { return; };
     let Ok(observation_endpoint) = origin.join(OBSERVATION_PATH) else { return; };
+    let Ok(activity_endpoint) = origin.join(ACTIVITY_PATH) else { return; };
     let Ok(client) = reqwest::Client::builder().no_proxy()
         .redirect(reqwest::redirect::Policy::none()).timeout(Duration::from_secs(2)).build() else { return; };
     let Some(port) = endpoint.port_or_known_default() else { return; };
@@ -16,9 +18,11 @@ pub(super) fn start(app: &AppHandle) {
     let app = app.clone();
     let boot = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_nanos();
     let host_id = format!("native-{}-{boot:x}", std::process::id());
+    super::computer_use_indicator::start_watchdog(&app);
     tauri::async_runtime::spawn(async move {
         let mut sequence = 0u64;
         loop {
+            let mut activity = None;
             sequence = sequence.saturating_add(1);
             // 后台重启会换令牌，宿主逐次读取；不持久化到前端或诊断日志。
             let token = std::fs::File::open(&token_path).and_then(|file| {
@@ -52,9 +56,32 @@ pub(super) fn start(app: &AppHandle) {
                             }
                         }
                     }
+                    // 活动展示与浏览器资源登记独立；不要求打开浏览器，也不接收网页命令。
+                    let started = std::time::Instant::now();
+                    if let Ok(response) = client.get(activity_endpoint.clone()).bearer_auth(&token).send().await {
+                        activity = read_activity(response, started).await;
+                    }
                 }
             }
+            super::computer_use_indicator::refresh(&app, activity);
             tokio::time::sleep(Duration::from_millis(750)).await;
         }
     });
+}
+
+async fn read_activity(mut response: reqwest::Response, started: std::time::Instant) -> Option<ComputerUseActivityReceipt> {
+    if !response.status().is_success() || response.content_length().is_some_and(|size| size > MAX_ACTIVITY_BYTES as u64) {
+        return None;
+    }
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response.chunk().await.ok()? {
+        if chunk.len() > MAX_ACTIVITY_BYTES.saturating_sub(bytes.len()) { return None; }
+        bytes.extend_from_slice(&chunk);
+    }
+    let mut receipt: ComputerUseActivityReceipt = serde_json::from_slice(&bytes).ok()?;
+    if !receipt.valid_shape() { return None; }
+    // 扣除整个往返耗时，迟到活动回包不能重新获得完整展示租约。
+    receipt.lease_ms = receipt.lease_ms.saturating_sub(started.elapsed().as_millis().min(u64::MAX as u128) as u64);
+    receipt.active = receipt.active && receipt.lease_ms > 0;
+    Some(receipt)
 }

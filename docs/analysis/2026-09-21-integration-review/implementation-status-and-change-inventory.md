@@ -1,3 +1,5 @@
+> **2026-09-30 新增Windows CU泛光**：已先方案审查再接入源码，实际CU活动作用域→认证短租约→独立透明提示窗；主屏准确文字，所有屏幕四边玉石泛光。只读观察/0调用/拒绝不亮，显示不替代权限和输入释放事实。最终Web1270/0/2忽略、Tauri59/0、模块接线8/0；未安装实操，须与真实Qwen Paint联合验收。详见 [新增计划](../2026-09-30-computer-use-activity-indicator-plan.md)。下方保留此前时点。
+
 > **2026-09-30 并发登记与只读能力复核**：原生只读适配器全部动作能力已关闭。首次并发启用SQLite WAL重现锁错误，统一两个会话库入口、先设置等待时限、已WAL跳过切换；仅日志模式初始化的BUSY限时等待，不重试业务动作。修补后最新Web完整并发1269/0/2忽略、Tauri59/0、模块接线8/0、tool-registry离线check通过。正式032安全状态仍isolated、待人工复核2条，Paint再次原生截图空白；未追加模型绘图，不算实操通过。新代码仍未打包安装。详见 [最新跟进报告](../../testing/release-0.2.32/installed-followup/change-report-and-targeted-verification.md)。以下保留前一时点。
 
 > **2026-09-30 正式安装跟进最新入口**：0.2.32已在正式目录安装，10/10关键产物一致，正常入口后台身份确认。真实Qwen Paint C轮只有1次模型请求、0次工具登记，模型复述历史blocked；该轮不是真实工具门禁失败，画布空白，仍未验收。新增本轮0派发提示、验收解析有界诊断及原生只读AX观察接线均在源码中，未计入032 MSI。Web/Tauri离线build通过；最终串行Web1268/0/2忽略、Tauri59/0，首轮并行database is locked失败如实保留。原生输入、文档/节点有效期、目标验证、真实Browser Use/Paint及DSH远程运行仍开放，四项未总体通过。详见 [安装跟进报告与测试矩阵](../../testing/release-0.2.32/installed-followup/change-report-and-targeted-verification.md)。以下保留历史入口。
