@@ -73,3 +73,5 @@ fee79d7 的两条远端检查已通过。再次视觉核查发现启动页右下
 N保持browser/0桌面输入，native_browser_unavailable未取得页面。M首次click引用不在新快照、0drag，原回执unknown但实际safe/待恢复0/未确认0。UIA引用生成含树索引；输入前仅Drag检查控件，普通Click只比窗口，且bridge控件解析错误未带NotSent，这是Agent侧明确缺口。按边界修复：非Drag UIA唯一引用/定位身份/边界变化在适配器stale拒绝，复用既有一次重观察；执行器控件解析/可用性/边界/窗口缺失在helper前明确NotSent/NotNeeded，helper后错误保持真实事实，不泛化零输入。两项先红后绿，无模型夹具；离线build22.07秒退出0、Web1276/0/2忽略35.71秒，另lib8/静态1通过。新修复不在037运行包。
 
 启用本轮原生computer-use技能检查窗口。无Coolzhu可操作窗口、Paint最小化；刷新恢复Paint后发现文字工具选中。只准备铅笔，未触画布；一次索引准备报geometry unavailable，重新截图选择明确工具栏铅笔。O新独立真Qwen三点drag形成L形直角，1500ms/path_completed/released，原始前后2560×1152及全桌面2560×1440归档。活动四边静态泛光与准确英文可见，结束撤除/lease0/safe。后视觉657字节Syntax第1行511列，无原文，不推断语法来源、整轮保持blocked/goalfalse。P闭合任务模型0派发，实际最新CU仍O，记录失败不隐式补发。用户当前无需额外审批，已异步请其显示控制台并保持原生右栏；没有借新工具重试被拒绝启动。a8b0fa8双CI均success；报告/台账/桌面计划同步。Browser Use、闭合/海绵宝宝、DSH远程运行及总体仍未验收。
+
+远端复核发现#73在21:01已合并，当前输入前修复不在其中。保留继承029文档修改，从origin/main建立codex/cu-preinput-followup-20260930，仅承接本轮提交（b3777c6），创建Draft PR #74。#73说明恢复合并时点的原范围，新改动/原图在#74。新检查需独立核验，不沿用a8的CI结论。
