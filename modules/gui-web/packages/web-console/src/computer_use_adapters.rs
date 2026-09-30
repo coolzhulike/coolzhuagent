@@ -597,6 +597,30 @@ impl<B: DesktopBridge> DesktopComputerUseAdapter<B> {
                 "foreground window, process, DPI, or window rectangle changed before input",
             )));
         }
+        if action.kind != computer_use::ComputerUseActionKind::Drag
+            && action.target.starts_with("uia-")
+        {
+            // 引用来自规划快照，不能只核对窗口后就在新树上盲目执行。引用消失、
+            // 重复或控件身份/边界变化均零输入拒绝，交由既有有界重观察重新规划。
+            let target = |state: &JsonValue| {
+                let mut matches = state.get("elements").and_then(JsonValue::as_array)
+                    .into_iter().flatten().filter(|element| {
+                        element["reference"].as_str() == Some(action.target.as_str())
+                    });
+                let element = matches.next()?.clone();
+                matches.next().is_none().then_some(element)
+            };
+            let before = target(&expected.1.state);
+            let live = target(&current.state);
+            let unchanged = before.as_ref().zip(live.as_ref()).is_some_and(|(before, live)| {
+                // 焦点、选择态和 value 属于可变内容，不是控件定位身份。
+                ["reference", "name", "automation_id", "class_name", "control_type",
+                    "rect", "enabled", "offscreen"].iter().all(|key| before[*key] == live[*key])
+            });
+            if !unchanged {
+                return Err(pre_input(stale_observation("UIA 控件引用或边界已变化，需重新观察后规划")));
+            }
+        }
         if action.kind == computer_use::ComputerUseActionKind::Drag {
             let screenshot_target = expected
                 .1
@@ -1155,6 +1179,39 @@ mod tests {
             "stale_observation"
         );
         assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 0);
+    }
+
+    #[test]
+    fn desktop_uia_click_target_must_remain_unique_and_bound_to_current_geometry() {
+        let mut first = desktop_snapshot("window-1", 96);
+        first.state = json!({"elements":[{"reference":"uia-pencil","name":"铅笔",
+            "rect":[10,20,30,30],"enabled":true,"offscreen":false,"keyboard_focus":false}]});
+        let mut focused = first.clone();
+        focused.state["elements"][0]["keyboard_focus"] = json!(true);
+        let mut moved = first.clone();
+        moved.state["elements"][0]["rect"][0] = json!(50);
+        let mut missing = first.clone();
+        missing.state["elements"] = json!([]);
+        let mut duplicate = first.clone();
+        duplicate.state["elements"].as_array_mut().unwrap().push(first.state["elements"][0].clone());
+        for (live, allowed) in [(focused, true), (moved, false), (missing, false), (duplicate, false)] {
+            let adapter = DesktopComputerUseAdapter::new(FakeDesktopBridge {
+                snapshots: Mutex::new(vec![first.clone(), live].into()),
+                action_count: AtomicUsize::new(0),
+            });
+            let observed = adapter.observe(&request("desktop", json!({"application":"paint"})),
+                std::time::Duration::from_secs(1)).unwrap();
+            let mut click = action(ComputerUseActionKind::Click);
+            click.target = "uia-pencil".into();
+            let result = adapter.act(&click, observed.generation, std::time::Duration::from_secs(1));
+            if allowed { assert!(result.is_ok()); }
+            else {
+                let error = result.expect_err("旧控件不能进入执行器");
+                assert_eq!(error.code, "stale_observation");
+                assert_eq!(error.receipt().unwrap().input_delivery, runtime::InputDelivery::NotSent);
+                assert_eq!(adapter.bridge().action_count.load(Ordering::SeqCst), 0);
+            }
+        }
     }
 
     /// RPR-04b §2.4：适配器层"输入前"的拒绝必须自带明确未发送的回执，

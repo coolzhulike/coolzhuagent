@@ -1,0 +1,36 @@
+{
+  "computer_use_runs": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da14f374f21268-tool-8fcb88183542c759da13ecb560852a7f3aa5260a4230e60f89533cf9ee3c8a75",
+      "provider_tool_call_id": "tool-8fcb88183542c759da13ecb560852a7f3aa5260a4230e60f89533cf9ee3c8a75",
+      "turn_id": "000000000000000218da14f374f21268",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "idempotency_key": "session-1779459149988\u001f000000000000000218da14f374f21268\u001fbrowser\u001f只读观察用户已在当前聊天室右栏内置浏览器中打开的 https://example.com/ 原生页面，读取并报告页面标题、一段正文文字以及页面上 \"learn more\" 链接的文本/地址。\u001f||https://example.com/|\u001f取得当前真实页面标题|取得当前真实页面正文段落文字|取得当前真实页面上 learn more 链接的文本与地址\u001f仅只读观察，不得点击、滚动、输入或发送任何输入|只使用当前内置浏览器，不得打开外部浏览器|不得切换到其它应用|不得使用搜索、终端、网络抓取或其它工具替代|不得修改配置或权限",
+      "objective_json": "{\"constraints\":[\"仅只读观察，不得点击、滚动、输入或发送任何输入\",\"只使用当前内置浏览器，不得打开外部浏览器\",\"不得切换到其它应用\",\"不得使用搜索、终端、网络抓取或其它工具替代\",\"不得修改配置或权限\"],\"objective\":\"只读观察用户已在当前聊天室右栏内置浏览器中打开的 https://example.com/ 原生页面，读取并报告页面标题、一段正文文字以及页面上 \\\"Learn more\\\" 链接的文本/地址。\",\"success_criteria\":[\"取得当前真实页面标题\",\"取得当前真实页面正文段落文字\",\"取得当前真实页面上 Learn more 链接的文本与地址\"],\"surface\":\"browser\",\"target\":{\"url\":\"https://example.com/\"}}",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 4,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1790766968484,
+      "terminal_result_json": "{\"call_id\":\"cu-session-1779459149988-000000000000000218da14f374f21268-tool-8fcb88183542c759da13ecb560852a7f3aa5260a4230e60f89533cf9ee3c8a75\",\"provider_tool_call_id\":\"tool-8fcb88183542c759da13ecb560852a7f3aa5260a4230e60f89533cf9ee3c8a75\",\"status\":\"blocked\",\"stage\":\"observation\",\"goal_achieved\":false,\"surface\":\"browser\",\"summary\":\"内置浏览器观察不可用或环境已变化\",\"error\":{\"code\":\"native_browser_unavailable\",\"message\":\"内置浏览器观察不可用或环境已变化\",\"retryable\":false,\"retry_owner\":\"user\"},\"attempts\":0,\"steps_completed\":0,\"evidence\":[],\"supervisor\":{\"circuit_open\":false,\"action_count\":0,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1790767737517}},\"cu_deadline_ms\":1790766968484,\"cu_deadline_established_at_ms\":1790766848484,\"cu_budget_ms\":120000}}",
+      "created_at_ms": 1790766848484,
+      "updated_at_ms": 1790766848495,
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null
+    }
+  ],
+  "computer_use_steps": [],
+  "computer_use_step_details": [],
+  "computer_use_planner_diagnostics": [],
+  "chat_usage_events": []
+}

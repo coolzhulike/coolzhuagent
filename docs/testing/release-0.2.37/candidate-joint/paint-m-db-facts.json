@@ -1,0 +1,143 @@
+{
+  "computer_use_runs": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+      "provider_tool_call_id": "tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+      "turn_id": "000000000000000518da1524243ddf74",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "idempotency_key": "session-1779459149988\u001f000000000000000518da1524243ddf74\u001fdesktop\u001f在当前已打开的“无标题 - 画图”白色画布上，用现有黑色画笔，在已有线条以外的空白区域，通过一次连续鼠标拖动（按下→水平移动约100像素→转折竖直移动约100像素→释放，中途不抬笔）绘制一条l形黑色折线，形成可见的直角折角，不闭合。\u001fmspaint|无标题 - 画图||\u001f画布上可见一条由水平段和竖直段在端点相连构成的l形黑色折线，有明显折角，非斜线或点|画布上原有的线条和内容未被清除|没有保存或覆盖任何文件，窗口标题仍为“无标题 - 画图”\u001f只在当前paint白色画布区域内操作|不清除或覆盖已有画布内容|不保存、不导出、不覆盖文件|不使用代码、脚本、终端|不切换到浏览器或其它应用窗口|不修改任何设置或权限|拖动中途不抬笔，一次连续完成l形路径|位置和路径点依据本轮真实截图决定",
+      "objective_json": "{\"constraints\":[\"只在当前Paint白色画布区域内操作\",\"不清除或覆盖已有画布内容\",\"不保存、不导出、不覆盖文件\",\"不使用代码、脚本、终端\",\"不切换到浏览器或其它应用窗口\",\"不修改任何设置或权限\",\"拖动中途不抬笔，一次连续完成L形路径\",\"位置和路径点依据本轮真实截图决定\"],\"objective\":\"在当前已打开的“无标题 - 画图”白色画布上，用现有黑色画笔，在已有线条以外的空白区域，通过一次连续鼠标拖动（按下→水平移动约100像素→转折竖直移动约100像素→释放，中途不抬笔）绘制一条L形黑色折线，形成可见的直角折角，不闭合。\",\"success_criteria\":[\"画布上可见一条由水平段和竖直段在端点相连构成的L形黑色折线，有明显折角，非斜线或点\",\"画布上原有的线条和内容未被清除\",\"没有保存或覆盖任何文件，窗口标题仍为“无标题 - 画图”\"],\"surface\":\"desktop\",\"target\":{\"application\":\"mspaint\",\"window\":\"无标题 - 画图\"}}",
+      "surface": "desktop",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1790767178843,
+      "terminal_result_json": "{\"call_id\":\"cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914\",\"provider_tool_call_id\":\"tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914\",\"status\":\"blocked\",\"stage\":\"execution\",\"goal_achieved\":false,\"surface\":\"desktop\",\"summary\":\"UIA reference is not present in the expected snapshot\",\"error\":{\"code\":\"target_not_found\",\"message\":\"UIA reference is not present in the expected snapshot\",\"retryable\":false,\"retry_owner\":\"model\"},\"attempts\":1,\"steps_completed\":0,\"evidence\":[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0.png:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\",\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0.png:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\",\"visual_verification:generation=1:image_changed=false:criteria_met=2/3\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":1,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1790767946613}},\"cu_deadline_ms\":1790767178843,\"cu_deadline_established_at_ms\":1790767058843,\"cu_budget_ms\":120000},\"cleanup\":{\"business_deadline_ms\":1790767178843,\"new_business_input_stopped_at_ms\":1790767089491,\"cleanup_started_at_ms\":1790767089491,\"cleanup_finished_at_ms\":1790767089491,\"release\":\"unconfirmed\",\"quarantined\":true,\"exceeded_business_deadline\":false}}",
+      "created_at_ms": 1790767058843,
+      "updated_at_ms": 1790767089491,
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null
+    }
+  ],
+  "computer_use_steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "uia-48806277d4f816e6",
+      "action_fingerprint": "568f073660a31e5f",
+      "status": "failed",
+      "error_code": "target_not_found",
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0.png:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": null,
+      "visible_progress": 0,
+      "started_at_ms": 1790767088600,
+      "completed_at_ms": 1790767089489,
+      "input_delivery": "may_have_been_sent",
+      "partial": null,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": null,
+      "goal_verdict": null,
+      "input_release_status": "unknown"
+    }
+  ],
+  "computer_use_step_details": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+      "step_index": 0,
+      "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-48806277d4f816e6\"}"
+    }
+  ],
+  "computer_use_planner_diagnostics": [
+    {
+      "id": 22,
+      "call_id": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+      "turn_id": "000000000000000518da1524243ddf74",
+      "room_id": "room-1790469689319",
+      "session_id": "session-1779459149988",
+      "request_kind": "computer_use_verification",
+      "observation_generation": 1,
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-3795116b-5754-95a3-b4f4-e76478fe8d46",
+      "response_json": "{\"bytes\":534,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":190,\"evidence_chars\":66,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":false,\"met_type\":\"boolean\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0},{\"evidence_blank\":false,\"evidence_bytes\":87,\"evidence_chars\":29,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":1,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"position\":1,\"type\":\"object\",\"unknown_field_count\":0},{\"evidence_blank\":false,\"evidence_bytes\":114,\"evidence_chars\":40,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":2,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"position\":2,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":3,\"criteria_type\":\"array\",\"progress\":false,\"progress_type\":\"boolean\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+      "error_code": null,
+      "started_at_ms": 1790767063281,
+      "completed_at_ms": 1790767071347
+    },
+    {
+      "id": 23,
+      "call_id": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+      "turn_id": "000000000000000518da1524243ddf74",
+      "room_id": "room-1790469689319",
+      "session_id": "session-1779459149988",
+      "request_kind": "computer_use_planning",
+      "observation_generation": 1,
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-b3463893-641f-9448-9d11-6edf7943c337",
+      "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"uia-48806277d4f816e6\"},\"done\":false,\"redacted_fields\":true}",
+      "error_code": null,
+      "started_at_ms": 1790767071371,
+      "completed_at_ms": 1790767088595
+    }
+  ],
+  "chat_usage_events": [
+    {
+      "id": 438,
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "room_id": "room-1790469689319",
+      "session_id": "session-1779459149988",
+      "created_at": 1790767063289,
+      "input_tokens": 19009,
+      "output_tokens": 260,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "turn_id": "000000000000000518da1524243ddf74",
+      "call_id": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+      "request_kind": "computer_use_verification",
+      "logical_request_id": "request-1790767063281-18960-4",
+      "attempt_id": "request-1790767063281-18960-4:1",
+      "attempt_no": 1,
+      "status": "completed",
+      "dispatched": 1,
+      "usage_known_mask": 7,
+      "http_status": null,
+      "finished_at": 1790767071346,
+      "run_id": null
+    },
+    {
+      "id": 444,
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "room_id": "room-1790469689319",
+      "session_id": "session-1779459149988",
+      "created_at": 1790767071378,
+      "input_tokens": 19733,
+      "output_tokens": 1273,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "turn_id": "000000000000000518da1524243ddf74",
+      "call_id": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+      "request_kind": "computer_use_planning",
+      "logical_request_id": "request-1790767071372-18960-5",
+      "attempt_id": "request-1790767071372-18960-5:1",
+      "attempt_no": 1,
+      "status": "completed",
+      "dispatched": 1,
+      "usage_known_mask": 7,
+      "http_status": null,
+      "finished_at": 1790767088593,
+      "run_id": null
+    }
+  ]
+}

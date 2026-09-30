@@ -1,0 +1,28 @@
+{
+  "call_id": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914",
+  "unavailable": null,
+  "attempts": 1,
+  "input_sent": 0,
+  "partial_input": 0,
+  "verified_steps": 0,
+  "baseline_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0.png:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+  "final_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0.png:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=65d4b89a54ff7e980014bb33af31378a5d94c72cb090a0497651bf8b9867d9b0:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+  "steps": [
+    {
+      "step_index": 0,
+      "status": "failed",
+      "input_status": "unknown",
+      "may_claim_complete": false,
+      "forbids_automatic_replay": true,
+      "error_code": "target_not_found"
+    }
+  ],
+  "requests": [
+    {
+      "attempt_key": "cu-session-1779459149988-000000000000000518da1524243ddf74-tool-d7f85f1d31389c7719dc1392a1d7b68efd8db7df663642a8f823b77100cae914#computer_use_planning:step-0#attempt-1",
+      "action_id": "desktop:uia-48806277d4f816e6:d18f747db5a1fc34",
+      "has_usage_fact": false
+    }
+  ],
+  "cleanup_incidents": []
+}
