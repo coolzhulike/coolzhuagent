@@ -44,12 +44,14 @@ body {
   position: fixed;
   right: 22px;
   bottom: 20px;
-  min-width: 56px;
-  min-height: 34px;
-  padding: 7px 14px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
   border: 1px solid rgba(232, 193, 104, 0.62);
   border-radius: 999px;
-  color: rgba(248, 238, 203, 0.9);
+  color: #bed9c7;
   background: rgba(18, 35, 32, 0.62);
   box-shadow: 0 5px 18px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 250, 222, 0.16);
   cursor: pointer;
