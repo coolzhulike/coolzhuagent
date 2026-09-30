@@ -1,0 +1,22 @@
+[
+  {
+    "before": "9d26e015df0adfd3a787bb1c046681d92492375d26866940ff3c874f6e59ce94",
+    "after": "27251a341f58326f6088779ac100993d07c740e96352f4315ae79b9bc58e1624",
+    "client_changed": 76696,
+    "client_inner_changed": 0,
+    "white_visible_canvas_changed": 0,
+    "left_edge_changed": 38353,
+    "right_edge_changed": 38343,
+    "bottom_edge_changed": 0
+  },
+  {
+    "before": "4a261d3136946ba6ac187a9b2965fe5be4767fa09ae6100308b1c90dc88dff2b",
+    "after": "1bca466314a47b1de69fe5c81b1e12584b35ccba38c1ed0ad6147e0c9173a431",
+    "client_changed": 38360,
+    "client_inner_changed": 0,
+    "white_visible_canvas_changed": 0,
+    "left_edge_changed": 19728,
+    "right_edge_changed": 18632,
+    "bottom_edge_changed": 0
+  }
+]

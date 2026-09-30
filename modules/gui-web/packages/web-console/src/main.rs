@@ -36306,6 +36306,18 @@ async fn capture_desktop(path: &Path) -> ApiResult<()> {
     {
         let script = format!(
             r#"
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class DesktopCaptureDpi {{
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
+}}
+'@
+# 先建立物理像素上下文，避免高DPI下只截取桌面左上角。
+$previousDpiContext = [DesktopCaptureDpi]::SetThreadDpiAwarenessContext([IntPtr](-4))
+if ($previousDpiContext -eq [IntPtr]::Zero) {{ throw '无法建立桌面截图的物理像素上下文' }}
+try {{
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
@@ -36315,6 +36327,9 @@ $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bound
 $bitmap.Save('{}', [System.Drawing.Imaging.ImageFormat]::Png)
 $graphics.Dispose()
 $bitmap.Dispose()
+}} finally {{
+    [void][DesktopCaptureDpi]::SetThreadDpiAwarenessContext($previousDpiContext)
+}}
 "#,
             path.display().to_string().replace('\'', "''")
         );

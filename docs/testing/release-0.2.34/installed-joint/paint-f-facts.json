@@ -1,0 +1,156 @@
+{
+  "call_id": "cu-session-1779459149988-000000000000000218da0d944b4ab32c-tool-69fd8b423ad1cc6b6665567b4cd5590424d99384a595126d04f5b88a4aecabbb",
+  "state": "failed",
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da0d944b4ab32c-tool-69fd8b423ad1cc6b6665567b4cd5590424d99384a595126d04f5b88a4aecabbb",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "uia-99c039b87cb951c3",
+      "action_fingerprint": "75e32ae70f02d012",
+      "status": "completed_unverified",
+      "error_code": null,
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-2f80ac916022c25088abd63b94c7d1c0fabfa921a33be4212ce9c227e07aea83.png:sha256=2f80ac916022c25088abd63b94c7d1c0fabfa921a33be4212ce9c227e07aea83:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=172\",\"frame_binding:sha256=2f80ac916022c25088abd63b94c7d1c0fabfa921a33be4212ce9c227e07aea83:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-9d26e015df0adfd3a787bb1c046681d92492375d26866940ff3c874f6e59ce94.png:sha256=9d26e015df0adfd3a787bb1c046681d92492375d26866940ff3c874f6e59ce94:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=9d26e015df0adfd3a787bb1c046681d92492375d26866940ff3c874f6e59ce94:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\",\"visual_verification:generation=2:image_changed=true:criteria_met=0/1\"]",
+      "visible_progress": 0,
+      "started_at_ms": 1790758764025,
+      "completed_at_ms": 1790758769447,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": "inconclusive",
+      "goal_verdict": "failed",
+      "input_release_status": "released"
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da0d944b4ab32c-tool-69fd8b423ad1cc6b6665567b4cd5590424d99384a595126d04f5b88a4aecabbb",
+      "step_index": 1,
+      "observation_generation": 2,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:15c08ae",
+      "action_fingerprint": "81fe33cf4b363d80",
+      "status": "failed",
+      "error_code": "stale_observation",
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-9d26e015df0adfd3a787bb1c046681d92492375d26866940ff3c874f6e59ce94.png:sha256=9d26e015df0adfd3a787bb1c046681d92492375d26866940ff3c874f6e59ce94:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=9d26e015df0adfd3a787bb1c046681d92492375d26866940ff3c874f6e59ce94:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": null,
+      "visible_progress": 0,
+      "started_at_ms": 1790758795867,
+      "completed_at_ms": 1790758797802,
+      "input_delivery": "not_sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": null,
+      "goal_verdict": null,
+      "input_release_status": "not_needed"
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da0d944b4ab32c-tool-69fd8b423ad1cc6b6665567b4cd5590424d99384a595126d04f5b88a4aecabbb",
+      "step_index": 2,
+      "observation_generation": 3,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:15c08ae",
+      "action_fingerprint": "7742a58598ce9407",
+      "status": "failed",
+      "error_code": "stale_observation",
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30496-4a261d3136946ba6ac187a9b2965fe5be4767fa09ae6100308b1c90dc88dff2b.png:sha256=4a261d3136946ba6ac187a9b2965fe5be4767fa09ae6100308b1c90dc88dff2b:2560x1152\",\"uia_snapshot:hwnd-15c08ae:elements=174\",\"frame_binding:sha256=4a261d3136946ba6ac187a9b2965fe5be4767fa09ae6100308b1c90dc88dff2b:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(22808750):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": null,
+      "visible_progress": 0,
+      "started_at_ms": 1790758823373,
+      "completed_at_ms": 1790758825127,
+      "input_delivery": "not_sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": null,
+      "goal_verdict": null,
+      "input_release_status": "not_needed"
+    }
+  ],
+  "actions": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da0d944b4ab32c-tool-69fd8b423ad1cc6b6665567b4cd5590424d99384a595126d04f5b88a4aecabbb",
+      "step_index": 0,
+      "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"uia-99c039b87cb951c3\"}"
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da0d944b4ab32c-tool-69fd8b423ad1cc6b6665567b4cd5590424d99384a595126d04f5b88a4aecabbb",
+      "step_index": 1,
+      "action_json": "{\"arguments\":{\"duration_ms\":800,\"points\":[[0.48,0.591],[0.519,0.591]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:15c08ae\"}"
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da0d944b4ab32c-tool-69fd8b423ad1cc6b6665567b4cd5590424d99384a595126d04f5b88a4aecabbb",
+      "step_index": 2,
+      "action_json": "{\"arguments\":{\"duration_ms\":500,\"points\":[[0.48,0.591],[0.519,0.591]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"window-canvas:15c08ae\"}"
+    }
+  ],
+  "requests": [
+    {
+      "request_kind": "computer_use_verification",
+      "logical_request_id": "request-1790758747823-10916-2",
+      "attempt_id": "request-1790758747823-10916-2:1",
+      "status": "completed",
+      "dispatched": 1,
+      "http_status": null,
+      "created_at": 1790758747827,
+      "finished_at": 1790758756037,
+      "input_tokens": 18691,
+      "output_tokens": 304,
+      "usage_known_mask": 7
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "logical_request_id": "request-1790758756079-10916-3",
+      "attempt_id": "request-1790758756079-10916-3:1",
+      "status": "completed",
+      "dispatched": 1,
+      "http_status": null,
+      "created_at": 1790758756085,
+      "finished_at": 1790758764018,
+      "input_tokens": 19465,
+      "output_tokens": 363,
+      "usage_known_mask": 7
+    },
+    {
+      "request_kind": "computer_use_verification",
+      "logical_request_id": "request-1790758771272-10916-4",
+      "attempt_id": "request-1790758771272-10916-4:1",
+      "status": "completed",
+      "dispatched": 1,
+      "http_status": null,
+      "created_at": 1790758771277,
+      "finished_at": 1790758778286,
+      "input_tokens": 21348,
+      "output_tokens": 155,
+      "usage_known_mask": 7
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "logical_request_id": "request-1790758778336-10916-5",
+      "attempt_id": "request-1790758778336-10916-5:1",
+      "status": "completed",
+      "dispatched": 1,
+      "http_status": null,
+      "created_at": 1790758778346,
+      "finished_at": 1790758795855,
+      "input_tokens": 19708,
+      "output_tokens": 1446,
+      "usage_known_mask": 7
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "logical_request_id": "request-1790758799679-10916-6",
+      "attempt_id": "request-1790758799679-10916-6:1",
+      "status": "completed",
+      "dispatched": 1,
+      "http_status": null,
+      "created_at": 1790758799689,
+      "finished_at": 1790758823366,
+      "input_tokens": 19702,
+      "output_tokens": 1951,
+      "usage_known_mask": 7
+    }
+  ]
+}
