@@ -68561,6 +68561,12 @@ attach: last_assistant
     #[test]
     fn run_model_tool_dispatch_semantic_legacy_execution_is_retired() {
         let _guard = config_test_guard();
+        let _dev_open = DevOpenPermissionsTestGuard::enable();
+        // 退休入口检查也会经过调用登记，不能与并发用例共用默认会话库。
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let data_dir = tmp.path().join(super::DATA_DIR_NAME);
+        std::fs::create_dir_all(&data_dir).expect("mkdir");
+        let _session_db_env = scoped_session_db_env(&data_dir);
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
@@ -68571,7 +68577,7 @@ attach: last_assistant
                 &serde_json::json!({ "intent": "点击左上" }),
             ))
             .expect_err("旧闭环评测执行入口必须拒绝");
-        assert_eq!(error.0, super::StatusCode::GONE);
+        assert_eq!(error.0, super::StatusCode::GONE, "实际拒绝信息：{}", error.1.error);
         assert!(error.1.error.contains("已停用"));
     }
 

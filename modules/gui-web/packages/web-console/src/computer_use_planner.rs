@@ -692,7 +692,9 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
             let mut sanitized: JsonValue = serde_json::from_str(&sanitized)
                 .map_err(|_| planner_backend_error("planner diagnostic sanitization failed"))?;
             if observation.surface == ComputerUseSurface::Browser {
-                sanitized["observation_facts"] = diagnostic_observation_facts(observation);
+                if let Some(object) = sanitized.as_object_mut() {
+                    object.insert("observation_facts".into(), diagnostic_observation_facts(observation));
+                }
             }
             let sanitized = sanitized.to_string();
             store.record_planner_diagnostic(&crate::computer_use_store::PlannerDiagnostic {
