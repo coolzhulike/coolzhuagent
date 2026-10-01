@@ -1,0 +1,395 @@
+{
+  "test": "BU050-TEXT-BA",
+  "runtime": {
+    "id": "run-chat-ff29575d6355d5afc82352c7443a5b39f8e40985b919ae11",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790831844296-0",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790831894372,
+    "created_at": 1790831844306
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "provider_tool_call_id": "tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "turn_id": "000000000000000218da501306a4165c",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 16,
+      "action_count": 2,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790831853493,
+      "updated_at_ms": 1790831888217,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+        "provider_tool_call_id": "tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"aa9be4bfbc975e75f2f2912ae845366c\",\"freshness_confirmed\":true,\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":3,\"observation_id\":\"e2ee2a0e0445cbef050f3ce82a942b0d\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":26,\"nodes\":[{\"index\":13,\"name\":\"当前输入：BU050-BA-竹林\",\"role\":\"StaticText\"}],\"title\":\"普通文本输入页面\",\"truncated\":false,\"url\":\"http://127.0.0.1:63653/text.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":468.6666870117187}},\"ungrounded_positive_count\":0}",
+        "attempts": 2,
+        "steps_completed": 2,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:1f0a4e0cbaa1470a2742650d7438773e",
+          "native-ax:1:0",
+          "native-observation:1f0a4e0cbaa1470a2742650d7438773e",
+          "native-input:08266e69806c6b37d7d95a626cc751a5",
+          "native-ax:1:0",
+          "native-observation:cdf856578871e0081e5ef81ed70a21c9",
+          "native-ax:1:0",
+          "native-observation:cdf856578871e0081e5ef81ed70a21c9",
+          "native-ax:1:0",
+          "native-observation:5e1b4f66ab0266020ae639a35ba9522f",
+          "native-input:2afe4e9dc4ae4f47e50dd14624512c8e",
+          "native-ax:1:0",
+          "native-observation:e2ee2a0e0445cbef050f3ce82a942b0d",
+          "native-ax:1:0",
+          "native-observation:e2ee2a0e0445cbef050f3ce82a942b0d",
+          "native-ax:1:0",
+          "native-observation:aa9be4bfbc975e75f2f2912ae845366c"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 2,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790832744296
+            }
+          },
+          "cu_deadline_ms": 1790831973493,
+          "cu_deadline_established_at_ms": 1790831853493,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅在当前本地内置浏览器页面操作",
+          "不提交表单",
+          "不滚动、不导航",
+          "不修改文件",
+          "不使用外部浏览器、HTTP抓取、终端或其它工具替代",
+          "失败立即停止，同轮不重新调用"
+        ],
+        "objective": "在当前右栏内置浏览器页面 http://127.0.0.1:63653/text.html 中，点击标签为“本轮验收文本”的普通输入框取得焦点，然后输入文本 BU050-BA-竹林，并确认页面回显显示“当前输入：BU050-BA-竹林”。",
+        "success_criteria": [
+          "页面回显实际出现“当前输入：BU050-BA-竹林”"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63653/text.html"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-e34e218f-dc60-9918-98c9-22b32981c715",
+      "error_code": null,
+      "started_at_ms": 1790831854112,
+      "completed_at_ms": 1790831861330,
+      "response": {
+        "action": {
+          "arguments": {},
+          "kind": "click",
+          "target": "dom-cb0ee77292c6d029ebd16406440d33f3"
+        },
+        "done": false,
+        "observation_facts": {
+          "candidate_count": 4,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 24,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 2,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-3b57b5c2-9aef-964c-a17d-745fb6d22fe4",
+      "error_code": null,
+      "started_at_ms": 1790831863876,
+      "completed_at_ms": 1790831869183,
+      "response": {
+        "bytes": 239,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 160,
+            "evidence_chars": 62,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": 2,
+            "node_indices_type": "array",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "observation_facts": {
+          "candidate_count": 4,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 24,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 2,
+          "truncated": false
+        },
+        "progress": null,
+        "progress_type": "missing",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-3f53777e-d07f-9263-90d1-3d52e2c636a5",
+      "error_code": null,
+      "started_at_ms": 1790831869203,
+      "completed_at_ms": 1790831879494,
+      "response": {
+        "action": {
+          "arguments": {
+            "redacted_fields": true
+          },
+          "kind": "text_input",
+          "target": "dom-adb8a39e4632bf20994246fbacdd0b70"
+        },
+        "done": false,
+        "observation_facts": {
+          "candidate_count": 4,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 24,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 2,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-384b418c-7d88-9b4e-9e5c-ac9455ae89bd",
+      "error_code": null,
+      "started_at_ms": 1790831882161,
+      "completed_at_ms": 1790831888209,
+      "response": {
+        "bytes": 101,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 30,
+            "evidence_chars": 16,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": 1,
+            "node_indices_type": "array",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "observation_facts": {
+          "candidate_count": 4,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 26,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 2,
+          "truncated": false
+        },
+        "progress": null,
+        "progress_type": "missing",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000218da501306a4165c",
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 2066,
+      "output_tokens": 280,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000218da501306a4165c",
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 915,
+      "output_tokens": 242,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000218da501306a4165c",
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 2126,
+      "output_tokens": 501,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000218da501306a4165c",
+      "call_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 961,
+      "output_tokens": 290,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790831844296-0",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-ff29575d6355d5afc82352c7443a5b39f8e40985b919ae11",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 30809,
+      "output_tokens": 212,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-cb0ee77292c6d029ebd16406440d33f3",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "input_release_status": "released",
+      "effect_status": "inconclusive",
+      "goal_verdict": "failed",
+      "started_at_ms": 1790831861334,
+      "completed_at_ms": 1790831863099,
+      "native_dispatch_state": "released",
+      "native_ticket_id": "394c51c68ebe76f600ce5b6c36819a15",
+      "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"dadac9da573728a25392de69ad57ccc7\",\"host_id\":\"native-ee0c4d26dd9b245891d9a1a2de7d2626\",\"process\":{\"instance_id\":\"6ec57cf8bdb17c60a8206b6fb0f40fc9\",\"boot_id\":\"ee0c4d26dd9b245891d9a1a2de7d2626\",\"pid\":21764,\"creation_time_filetime\":134353052354049366,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\coolzhuagent\",\"room_id\":\"room-1790469689319\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-cb0ee77292c6d029ebd16406440d33f3:6c4ea74fe68ec9fe#gen1#cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99:step-0#attempt1\",\"ticket_id\":\"394c51c68ebe76f600ce5b6c36819a15\",\"observation_id\":\"1f0a4e0cbaa1470a2742650d7438773e\",\"document_token\":\"0b90323bee64f76079c0467f456313d1\",\"node_id\":\"cb0ee77292c6d029ebd16406440d33f3\",\"input_kind\":\"click\"}"
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99",
+      "step_index": 1,
+      "observation_generation": 2,
+      "action_type": "text_input",
+      "normalized_target": "dom-adb8a39e4632bf20994246fbacdd0b70",
+      "status": "verified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "input_release_status": "not_needed",
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "started_at_ms": 1790831879497,
+      "completed_at_ms": 1790831881395,
+      "native_dispatch_state": "acknowledged_no_held_input",
+      "native_ticket_id": "2705fa9299aa4a51eb5f610ebc56ff5c",
+      "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"dadac9da573728a25392de69ad57ccc7\",\"host_id\":\"native-ee0c4d26dd9b245891d9a1a2de7d2626\",\"process\":{\"instance_id\":\"6ec57cf8bdb17c60a8206b6fb0f40fc9\",\"boot_id\":\"ee0c4d26dd9b245891d9a1a2de7d2626\",\"pid\":21764,\"creation_time_filetime\":134353052354049366,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\coolzhuagent\",\"room_id\":\"room-1790469689319\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-adb8a39e4632bf20994246fbacdd0b70:b8f9725309cbc590#gen2#cu-session-1779459149988-000000000000000218da501306a4165c-tool-c06c4dd2667309e29b318dd54a9b5ce870ced903ca514684b153f1ce612a1d99:step-1#attempt1\",\"ticket_id\":\"2705fa9299aa4a51eb5f610ebc56ff5c\",\"observation_id\":\"cdf856578871e0081e5ef81ed70a21c9\",\"document_token\":\"0b90323bee64f76079c0467f456313d1\",\"node_id\":\"adb8a39e4632bf20994246fbacdd0b70\",\"input_kind\":\"text\"}"
+    }
+  ]
+}

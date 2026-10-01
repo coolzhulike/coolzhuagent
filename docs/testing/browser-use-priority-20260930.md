@@ -1,4 +1,4 @@
-> **2026-10-01 当前049正式回归**：已正常安装049，唯一版本、正式10/10产物、859载荷摘要核验通过。真实Qwen-AZ输入失败：零动作、页面仍空，但验收模型met=true导致工具错误返回succeeded。请求目标正确，按同屏软件图和账本判失败。已补原生正向证据原文核对及初始交互零动作守卫，源码离线编译及完整回归1293/0/2既有忽略通过，准备新包；修正尚不在049安装包内。e624462远端PR与push均成功。048导航通过仍限于048，不借历史结果验收新包。Browser Use输入、Paint闭合/海绵宝宝、DSH远程实际安装运行和四项总体仍未验收，PR74 Draft。原Qwen/medium/百炼地址/密钥不变，微信不改不测、Devin搁置；主会话独立执行，Pro复审暂停。详见[049报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.49/change-report-and-targeted-test-plan.md)。下方为历史时点。
+> **2026-10-01 当前050正式回归**：正常安装050及六门、859载荷、10/10关键产物核验通过。真实原Qwen BA文字输入通过（点击+text_input两动作，实际回显）；BB导航通过（一动作，网址及标记吻合）。BC参数类型错误零动作拒绝，BD“右栏原生浏览器”同义词未识别而走旧扩展后端；聊天所述历史隔离不等于真实当前状态，当前输入开放。已补同义词边界，离线编译和4项入口检查通过，准备051复验；修正不在050包内。e5efb83远端PR与push均成功。Browser Use其余回归、Paint闭合/海绵宝宝及全屏提示、DSH远程实际安装运行、四项总体仍开放，PR74 Draft。原Qwen/medium/百炼地址/密钥不变，微信不动、Devin搁置；主会话独立执行，Pro复审暂停。详见[050报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.50/change-report-and-targeted-test-plan.md)。下方为历史时点。
 
 # Browser Use 优先闭环：可见资源边界与下一步实操
 
