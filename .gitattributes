@@ -39,3 +39,6 @@
 *.dll binary
 *.exe binary
 *.sqlite3 binary
+
+# 发布证据以原始报告字节计算摘要，不能在提交/检出时改写其换行。
+/docs/testing/release-*/evidence/build-identity/**/*.json -text
