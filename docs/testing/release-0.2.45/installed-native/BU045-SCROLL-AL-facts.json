@@ -1,0 +1,170 @@
+{
+  "test": "BU045-SCROLL-AL",
+  "runtime": {
+    "id": "run-chat-b77243cf9badcbf2fdac809819bd6052e45d0ee18b64ce0b",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790823507697-0",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790823550968,
+    "created_at": 1790823507707
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "provider_tool_call_id": "tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "turn_id": "000000000000000218da487e03a79984",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790823515545,
+      "updated_at_ms": 1790823539278,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+        "provider_tool_call_id": "tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"e21e8f8e9686e6e525591f038a8af153\",\"freshness_confirmed\":true,\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"dc36968d9cf3472d07da70c1549c981b\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":48,\"nodes\":[{\"index\":12,\"name\":\"实际页面滚动位置：\",\"role\":\"StaticText\"},{\"index\":13,\"name\":\"289\",\"role\":\"StaticText\"},{\"index\":14,\"name\":\" CSS像素\",\"role\":\"InlineTextBox\"}],\"title\":\"网页滚动验收\",\"truncated\":false,\"url\":\"http://127.0.0.1:58420/scroll.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":289.3333435058594,\"width\":468.6666870117187}}}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:435437b279ee49873f3994bfb5bbf320",
+          "native-ax:1:1",
+          "native-observation:435437b279ee49873f3994bfb5bbf320",
+          "native-ax:1:1",
+          "native-observation:ac6eac61092840b2f4c014550ff898d4",
+          "native-input:0bd6bfc0cb1507d1675b11ac4388ec3d",
+          "native-ax:1:1",
+          "native-observation:dc36968d9cf3472d07da70c1549c981b",
+          "native-ax:1:1",
+          "native-observation:dc36968d9cf3472d07da70c1549c981b",
+          "native-ax:1:1",
+          "native-observation:e21e8f8e9686e6e525591f038a8af153"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790824407697
+            }
+          },
+          "cu_deadline_ms": 1790823635545,
+          "cu_deadline_established_at_ms": 1790823515545,
+          "cu_budget_ms": 120000
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-59d19577-c971-9496-80b9-28e59c6cb15a",
+      "error_code": null,
+      "started_at_ms": 1790823515865,
+      "completed_at_ms": 1790823524088
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-c349482e-41e2-9319-b0da-b81599f73284",
+      "error_code": null,
+      "started_at_ms": 1790823524116,
+      "completed_at_ms": 1790823529763
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-684d751b-b3c2-9785-b11e-1c2dfa8ca012",
+      "error_code": null,
+      "started_at_ms": 1790823532474,
+      "completed_at_ms": 1790823539275
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000218da487e03a79984",
+      "call_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 1105,
+      "output_tokens": 431,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000218da487e03a79984",
+      "call_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 1901,
+      "output_tokens": 293,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000218da487e03a79984",
+      "call_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 1123,
+      "output_tokens": 355,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790823507697-0",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b77243cf9badcbf2fdac809819bd6052e45d0ee18b64ce0b",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 24046,
+      "output_tokens": 265,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "scroll",
+      "normalized_target": "dom-482c3cb7e61b97ab79921db217c2846a",
+      "status": "verified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "input_release_status": "not_needed",
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "started_at_ms": 1790823529768,
+      "completed_at_ms": 1790823531702,
+      "native_dispatch_state": "acknowledged_no_held_input",
+      "native_ticket_id": "2bf35297d44d5fae714825a2644bb5e1",
+      "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"f5adc8bc6cccac0dff268a6d4b862ae1\",\"host_id\":\"native-8ec8c4a14df07c9a52448172d41798f7\",\"process\":{\"instance_id\":\"d7b4778ca3431dd844f11c137c1ccce4\",\"boot_id\":\"8ec8c4a14df07c9a52448172d41798f7\",\"pid\":25000,\"creation_time_filetime\":134352969819480761,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\coolzhuagent\",\"room_id\":\"room-1790469689319\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":1}},\"attempt_key\":\"browser:dom-482c3cb7e61b97ab79921db217c2846a:d1f8bfc17fbc009d#gen1#cu-session-1779459149988-000000000000000218da487e03a79984-tool-5ea5eb9f8b084416cf6914692260027c2003e8e20a8f219e9f1edc67bb51d8fa:step-0#attempt1\",\"ticket_id\":\"2bf35297d44d5fae714825a2644bb5e1\",\"observation_id\":\"435437b279ee49873f3994bfb5bbf320\",\"document_token\":\"8916fa44994b81fcddc30ba2d873d2b1\",\"node_id\":\"482c3cb7e61b97ab79921db217c2846a\",\"input_kind\":\"scroll\"}"
+    }
+  ]
+}

@@ -21,14 +21,17 @@ Web离线build退出0（34.31秒）；Shell离线build退出0（23.98秒）。�
 
 ## 包与软件验收
 
-正常release包待构建与独立核验；不复用044包身份。正式045须六门、源码稳定、10关键产物、完整载荷及MSI/归档报告摘要通过，正常安装后核正式进程和监听。
+正常release构建与独立核验通过，报告`pkg-report-release-20261001-102523661-6dfb9189`。MSI 246930813字节，SHA256 `f83287014d64ba47a0cf02738e64652e07d4df3926af15a07873e26b82cd128a`；源码快照`e07e736fb16bd42bd41d27b9ac214890ab306abd85a93b43ccf02a09f96675ce`，载荷摘要`d3775c4952bd1fc51f51173a3e67ed9ee0e6db3877b618cdc0f1b862ad966bc0`。六发布门、10关键产物、859文件/324140518字节的完整载荷与归档原件摘要均通过，内容扫描safe且0 findings。种子HEAD不代替当前源码快照。
+
+Windows Installer正常安装返回0，注册唯一045。2026-10-01 10:56首次启动后核实正式Shell PID25000、Web PID29980，8765唯一监听归Web，安装目录10关键产物摘要与包报告一致。11:00正常重启后为Shell30328/Web30716，重新核验10产物及唯一监听通过，[安装事实](installed-native/installed-artifacts.json)保存最新身份。[包证据](evidence/build-identity/pkg-report-release-20261001-102523661-6dfb9189/staged-verification.json)保存原件。旧本地样本服务已停止，正常重启静态HTML服务至127.0.0.1:58420；真实Qwen测试前通过右栏正常载入新地址，未修改模型、Base URL或API KEY。
 
 | 用例 | 前置与触发 | 通过证据 | 状态 |
 |---|---|---|---|
-| BU045-SCROLL-AL | 原房间、原Qwen、当前普通长页位置0；恰好一次向下Scroll amount1 | 实际page_y>0、顶部正数、1步、Sent/NotNeeded、动作后新观察，前后原图 | 待正式安装实操 |
-| BU045-READONLY | 同一实际页面，禁止全部输入 | cap0、步骤/动作0、真实标题/实际位置，原图与账本 | 待实操 |
-| BU045-RESTART | 完成动作后正常退出启动 | settled持久面板不新建错误在途阻断；safe且待人工复核不复现 | 待实操 |
+| BU045-SCROLL-AL | 原房间、原Qwen、当前普通长页位置0；恰好一次向下Scroll amount1 | 实际page_y=289.3333435058594、顶部289、1 verified步骤、sent/not_needed/effect_observed/passed、动作后generation2新观察，前后原图 | 正式045真实Qwen通过，父completed，CU succeeded/goal=true；43.3秒 |
+| BU045-READONLY-AM | 同一实际页面，禁止全部输入 | input_supported=false、步骤/动作0、真实标题和page_y=289.3333435058594，原图与账本 | 正式045真实Qwen通过，父completed，CU succeeded/goal=true，2/2标准；25秒 |
+| BU045-RESTART | 完成动作后正常退出启动 | settled持久面板不新建错误在途阻断；safe且待人工复核不复现 | 正常退出/启动通过，safe/accepts=true，待恢复0、未确认阻断0、未确认遗留0、已接受遗留2；没有新增审批 |
 | REC045-FOLLOWUP | 新正常审批无新增遗留清单 | 历史接受不丢失，新未声明运行仍拒绝 | 工程通过，正式触发待验；不人为破坏生产输入 |
+| BU045-RESOURCE-AN | 已取得原生观察且在模型验证/规划期间正常关闭右栏 | 原计划输入前重新观察失败，blocked/goal=false，0实际动作/步骤、not_sent/not_needed、禁止重试，原图 | 正式045安全拒绝通过，返回native_observation_timeout；关闭前原生观察及真实Qwen规划均已完成，不计点击目标成功 |
 | BU-TYPE/NAV | 焦点/selection、敏感字段及新文档身份 | 真实Qwen输入/导航、准确效果、范围/资格回执、原图 | 尚未实现 |
 | CU-PAINT | Browser优先项后正常Paint | 连续闭合轮廓/简易海绵宝宝、释放、有效图像验收；四边泛光、准确英文提示、结束撤除原图 | 尚未续测 |
 

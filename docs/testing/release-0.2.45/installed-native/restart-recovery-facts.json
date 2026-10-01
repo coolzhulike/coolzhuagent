@@ -1,0 +1,13 @@
+{
+  "version": "0.2.45",
+  "observed_at": "2026-10-01T03:00:56.7900518Z",
+  "method": "滚动及只读父运行完成后，通过标题栏正常退出及正式入口正常启动；未直接改数据库",
+  "resource_state": "safe",
+  "accepts_new_input": true,
+  "pending_recovery_operations": 0,
+  "unacknowledged_open_blocks": 0,
+  "unacknowledged_legacy_runs": 0,
+  "acknowledged_legacy_runs": 2,
+  "unacknowledged_block_ids": [],
+  "unacknowledged_run_ids": []
+}
