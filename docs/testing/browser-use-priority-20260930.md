@@ -1,4 +1,4 @@
-> **2026-10-01 当前050正式回归**：正常安装050及六门、859载荷、10/10关键产物核验通过。真实原Qwen BA文字输入通过（点击+text_input两动作，实际回显）；BB导航通过（一动作，网址及标记吻合）。BC参数类型错误零动作拒绝，BD“右栏原生浏览器”同义词未识别而走旧扩展后端；聊天所述历史隔离不等于真实当前状态，当前输入开放。已补同义词边界，离线编译和4项入口检查通过，准备051复验；修正不在050包内。e5efb83远端PR与push均成功。Browser Use其余回归、Paint闭合/海绵宝宝及全屏提示、DSH远程实际安装运行、四项总体仍开放，PR74 Draft。原Qwen/medium/百炼地址/密钥不变，微信不动、Devin搁置；主会话独立执行，Pro复审暂停。详见[050报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.50/change-report-and-targeted-test-plan.md)。下方为历史时点。
+> **2026-10-01 当前051正式回归**：正常安装051，六门/859载荷/10关键产物核验通过。真实原Qwen BE一次点击0→1、BF一次滚动0→289.3333、BI只读零动作通过；BL在输入预检中点中止，父interrupted、native_input_cancelled/not_sent、计数仍0，停止行为通过。BG斜线只读识别失败、BH拆分文本原文被拒、BM输入投递措辞误判外发均按失败保留；BI/BJ/BK过晚取消和BM关闭未覆盖目标场景。已补三处职责内修正，Core完整140/0、冻结后Web完整1293/0/2既有忽略及lib8/宿主接线1通过。新修正不在051包内，准备052。b52ff1b远端PR/push均成功。Browser Use整体、Paint闭合/海绵宝宝及全屏提示、DSH远程实际安装运行、四项总体仍开放，PR74 Draft。原Qwen/medium/百炼地址/密钥保持，微信不动、Devin搁置，主会话独立执行，Pro复审暂停。详见[051报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.51/change-report-and-targeted-test-plan.md)。下方为历史时点。
 
 # Browser Use 优先闭环：可见资源边界与下一步实操
 

@@ -45,7 +45,15 @@ struct Criterion { index: usize, met: bool, evidence: String, node_indices: Vec<
 fn grounded_positive(criterion: &Criterion, page: &PageObservation) -> bool {
     let quote = criterion.evidence.trim();
     if !criterion.node_indices.is_empty() {
-        return criterion.node_indices.iter().any(|index| page.nodes[*index].name.contains(quote));
+        if criterion.node_indices.iter().any(|index| page.nodes[*index].name.contains(quote)) {
+            return true;
+        }
+        // 普通HTML常把同一句话拆成连续文本节点；只允许按宿主顺序原样拼接，不能补字或改值。
+        let indices: Vec<_> = criterion.node_indices.iter().copied().collect::<std::collections::BTreeSet<_>>()
+            .into_iter().collect();
+        return indices.len() > 1 && indices.windows(2).all(|pair| pair[1] == pair[0] + 1)
+            && indices.iter().all(|index| matches!(page.nodes[*index].role.as_str(), "StaticText" | "InlineTextBox"))
+            && indices.iter().map(|index| page.nodes[*index].name.as_str()).collect::<String>().contains(quote);
     }
     page.title.contains(quote) || page.url.contains(quote) || page.viewport.as_ref().is_some_and(|viewport|
         [viewport.page_x, viewport.page_y, viewport.width, viewport.height].iter().any(|value| value.to_string() == quote))
@@ -166,6 +174,16 @@ mod tests {
             "target":{"url":"https://example.invalid/"},"success_criteria":["读标题"]})).unwrap();
         let title = r#"{"criteria":[{"index":0,"met":true,"evidence":"文本输入","node_indices":[]}]}"#;
         assert!(finish(title,&title_request,&observation).unwrap().achieved);
+        observation.state["page"]["nodes"] = json!([
+            {"role":"StaticText","name":"实际页面滚动位置："},
+            {"role":"StaticText","name":"289"},
+            {"role":"InlineTextBox","name":" CSS像素"}]);
+        let split = r#"{"criteria":[{"index":0,"met":true,"evidence":"实际页面滚动位置：289 CSS像素","node_indices":[0,1,2]}]}"#;
+        assert!(finish(split,&request,&observation).unwrap().achieved);
+        assert!(!finish(&split.replace("289 CSS", "999 CSS"),&request,&observation).unwrap().achieved);
+        assert!(!finish(&split.replace("[0,1,2]", "[0,2]"),&request,&observation).unwrap().achieved);
+        observation.state["page"]["nodes"][1]["role"] = json!("button");
+        assert!(!finish(split,&request,&observation).unwrap().achieved);
     }
 
     #[test]

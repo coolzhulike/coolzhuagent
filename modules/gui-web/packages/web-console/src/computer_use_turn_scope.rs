@@ -13,7 +13,7 @@ impl ComputerUseTurnScope {
         let native_browser = ["内置浏览器", "内置网页", "内置页", "右栏浏览器", "右栏网页", "右栏页面",
             "右栏原生浏览器", "右侧原生浏览器", "右侧浏览器", "右侧网页", "右侧扩展栏浏览器", "builtin browser", "built-in browser"]
             .iter().any(|name| text.contains(name));
-        let explicit_no_input = ["不得发送输入", "不要发送输入", "不发送输入",
+        let explicit_no_input = ["不得发送输入", "不要发送输入", "不发送输入", "不发送任何输入", "不作任何输入",
             "不点击、不滚动、不输入", "不得点击、滚动或输入", "禁止点击、滚动或输入", "do not send input"]
             .iter().any(|restriction| text.contains(restriction)) || forbids_all_browser_input(&text);
         Self { native_browser, native_browser_read_only: native_browser && explicit_no_input }
@@ -45,9 +45,10 @@ impl ComputerUseTurnScope {
     }
 }
 
-/// 三类输入全部被禁止时，顺序与顿号/“或”不改变边界；不把只禁点击误当纯只读。
+/// 三类输入全部被禁止时，顺序与分隔符不改变边界；不把只禁点击误当纯只读。
 fn forbids_all_browser_input(text: &str) -> bool {
-    let compact: String = text.chars().filter(|c| !c.is_whitespace()).collect();
+    let compact: String = text.chars().filter(|c| !c.is_whitespace())
+        .map(|c| if c == '/' || c == '／' { '、' } else { c }).collect();
     let orders = [["点击", "输入", "滚动"], ["点击", "滚动", "输入"],
         ["滚动", "输入", "点击"], ["滚动", "点击", "输入"],
         ["输入", "点击", "滚动"], ["输入", "滚动", "点击"]];
@@ -80,7 +81,8 @@ mod tests {
             assert!(!scope.native_browser_read_only());
             assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_ok());
         }
-        for text in ["在内置浏览器先观察再点击链接", "内置浏览器不要点击按钮，使用键盘输入", "在右栏浏览器点击下一页"] {
+        for text in ["在内置浏览器先观察再点击链接", "内置浏览器不要点击按钮，使用键盘输入", "在右栏浏览器点击下一页",
+            "右栏原生浏览器禁止点击/滚动，允许输入"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(scope.native_browser());
             assert!(!scope.native_browser_read_only());
@@ -92,7 +94,9 @@ mod tests {
     fn readonly_browser_accepts_the_current_combined_chinese_restriction() {
         for text in ["内置浏览器，不得点击、滚动或输入", "内置浏览器，禁止点击、滚动或输入",
             "内置浏览器，不得点击、输入、滚动", "内置浏览器，不要滚动、输入或点击",
-            "内置浏览器，禁止输入、 点击 、滚动"] {
+            "内置浏览器，禁止输入、 点击 、滚动", "右栏原生浏览器禁止点击/输入/滚动/导航/提交",
+            "右侧原生浏览器禁止输入／滚动／点击", "右栏原生浏览器，不发送任何输入",
+            "右栏原生浏览器，不作任何输入"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(scope.native_browser_read_only());
             assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());

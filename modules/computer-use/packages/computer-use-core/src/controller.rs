@@ -140,7 +140,7 @@ fn host_sensitive_semantic_category(
     observation: &Observation,
 ) -> Option<&'static str> {
     let mut corpus = String::new();
-    push_bounded_semantic_text(&mut corpus, &request.objective);
+    push_bounded_semantic_text(&mut corpus, &normalize_objective_input_delivery(&request.objective));
     push_bounded_semantic_text(&mut corpus, &action.target);
 
     let mut remaining_argument_strings = 32usize;
@@ -152,6 +152,24 @@ fn host_sensitive_semantic_category(
     collect_target_node_text(&observation.state, &action.target, &mut corpus);
 
     classify_sensitive_semantics(&corpus)
+}
+
+/// 意图中“发送一次普通点击”描述输入投递，不是外发消息；目标节点和动作参数仍原样审查。
+/// 仅识别句尾/分隔符前的完整机械输入宾语，“发送一次点击结果”等外发宾语不得豁免。
+fn normalize_objective_input_delivery(text: &str) -> String {
+    let mut normalized = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(offset) = rest.find("发送") {
+        normalized.push_str(&rest[..offset]);
+        let following = &rest[offset + "发送".len()..];
+        let mechanical = ["一次普通点击", "一次鼠标点击", "一次点击", "鼠标输入", "键盘输入"]
+            .iter().any(|object| following.strip_prefix(object).is_some_and(|tail|
+                tail.trim_start().chars().next().is_none_or(|c| "，。；：,.;:!?！？)）".contains(c))));
+        normalized.push_str(if mechanical { "执行" } else { "发送" });
+        rest = following;
+    }
+    normalized.push_str(rest);
+    normalized
 }
 
 fn push_bounded_semantic_text(corpus: &mut String, text: &str) {
@@ -1433,7 +1451,7 @@ mod tests {
             ),
             (
                 "action_target_send",
-                request_with_objective("完成消息操作"),
+                request_with_objective("每一步只发送一次普通点击，操作当前按钮"),
                 click_target("send-message"),
                 observation_with_state(
                     1,
@@ -1501,7 +1519,7 @@ mod tests {
 
     #[tokio::test]
     async fn ordinary_harmless_click_is_not_falsely_blocked_by_host_semantics() {
-        let request = request_with_objective("展开帮助详情");
+        let request = request_with_objective("每一步只发送一次普通点击，不批量点击，展开帮助详情");
         let planner = FakePlanner {
             surface: ComputerUseSurface::Browser,
             actions: Mutex::new(vec![Ok(Some(click_target("dom-42")))].into()),
@@ -1565,6 +1583,9 @@ mod tests {
             ("password field", "credential_or_secret"),
         ] {
             assert_eq!(classify_sensitive_semantics(corpus), Some(expected));
+        }
+        for objective in ["发送一次点击结果给他人", "发送一次普通点击 结果给他人", "发送鼠标输入记录", "发送一次普通点击，发布消息"] {
+            assert_eq!(classify_sensitive_semantics(&normalize_objective_input_delivery(objective)), Some("external_communication"));
         }
 
         let request = request_with_objective("完成下一步");
