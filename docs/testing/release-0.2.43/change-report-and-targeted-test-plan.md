@@ -25,13 +25,17 @@ AH本轮有真实CU，但原文“当前右栏页面/当前内置页”未匹配
 
 ## 技术审查及边界
 
-既有[技术审查会话](https://chatgpt.com/c/6ab013c6-8dc4-83ea-a220-a33c9940783f)的补充回复确认：Scroll可先实施；WebView实例generation和同实例navigation_revision的两层身份满足要求；wheel必须由宿主生成坐标、废止旧观察，回执只描述动作事实。Type下一步需执行前真实焦点、可编辑性及selection复核；Navigation最后实施，请求受理与新文档完成分别记录。[审查结论截图](../release-0.2.42/type-scroll-navigation-followup-review.png)是方案证据，不是软件通过。页面仅显示“极高”，未核完整模型版本，不宣称GPT6 Pro总体审核通过。
+既有[技术审查会话](https://chatgpt.com/c/6ab013c6-8dc4-83ea-a220-a33c9940783f)的补充回复确认：Scroll可先实施；WebView实例generation和同实例navigation_revision的两层身份满足要求；wheel必须由宿主生成坐标、废止旧观察，回执只描述动作事实。Type下一步需执行前真实焦点、可编辑性及selection复核；Navigation最后实施，请求受理与新文档完成分别记录。[审查结论截图](../release-0.2.42/type-scroll-navigation-followup-review.png)是方案证据，不是软件通过。随后打开模型菜单核实：当前选中“最新”，Pro为不可选；[现场截图](review-model-current-and-pro-unavailable.png)归档。用户说明额度限制，并明确“先不审核，直接执行”；因此暂停指定Pro审核，不再将切换模型作为实施或测试的前置条件，由主会话继续审查、实现和真实回归。上述既有意见不称GPT6 Pro审核。
 
 当前只支持Click与顶层viewport内有界wheel；没有自动寻找嵌套滚动容器，不宣称复杂页面均可操作。iframe/shadow、文字输入、导航、提交及其它输入能力仍不开放。网页显示能力和模型操作能力分别验收。
 
 ## 工程、构建和安装状态
 
-离线Web build通过（1分19秒，133条既有warning），Shell build通过（31.60秒，1条既有warning）。完整Web回归1290通过、0失败、2项既有忽略（44.62秒），另lib8通过/宿主静态1通过；Shell64通过、0失败；模块接线8通过、0失败；tool-registry离线check通过。正常发布包尚未生成，实际运行仍为正式042。不能将工程检查计为Scroll软件通过。
+离线Web build通过（1分19秒，133条既有warning），Shell build通过（31.60秒，1条既有warning）。完整Web回归1290通过、0失败、2项既有忽略（44.62秒），另lib8通过/宿主静态1通过；Shell64通过、0失败；模块接线8通过、0失败；tool-registry离线check通过。不能将工程检查计为Scroll软件通过。
+
+正常release构建完成，六个发布门全部pass，源码快照在构建期间未变化；十个关键产物和完整859文件（324109798字节）的暂存摘要及大小独立核验一致，内容扫描safe/0 findings。最终MSI为`dist/CoolzhuAgent-0.2.43.msi`，246914429字节，SHA256为`941c8b7948d10208dd911cff6a7147acd2d7a015d337a236bbfad297187b9e70`。原始报告和完整清单见[evidence/build-identity/pkg-report-release-20261001-094443635-ec618160](evidence/build-identity/pkg-report-release-20261001-094443635-ec618160/)，源码权威摘要为`a755a4833cc5a7f40a3bf05f90357049baf3a96e20ff287c2f3093ab0dfab411`，不以dirty工作树的HEAD替代。
+
+用户已正常安装并启动。已核验唯一注册版本0.2.43、Program Files内十个产物匹配、正式Shell PID32548/Web PID26896及8765监听归属一致，见[安装身份](installed-native/installed-artifacts.json)。真实Qwen AJ在CU登记前被错误重启隔离挡住，零动作、页面位置仍0，Scroll不通过。已定位持久面板恢复分支与历史任务混用，后续源码修复不属于043 MSI；详见[043真实回归及缺口](installed-native/acceptance-and-open-issues.md)。
 
 ## 可交给其它模型设计测试的矩阵
 
@@ -39,8 +43,8 @@ AH本轮有真实CU，但原文“当前右栏页面/当前内置页”未匹配
 
 | 用例 | 实际操作 | 判断及证据要求 | 状态 |
 |---|---|---|---|
-| BU043-ROUTE | 重发AH同义原文任务，仅指当前内置页 | 原生AX观察、PersistentNativePanel绑定，不能出现旧extension_unavailable；若模型没有结构化调用则不计通过 | 待安装实测 |
-| BU043-SCROLL | Qwen观察普通长页，从page_y=0向下有界滚动 | 真实Scroll step、方向/量、ticket/attempt/executor；ACK和not_needed；新观察page_y增加、旧节点失效；目标逐项判断；前后原图 | 待安装实测 |
+| BU043-ROUTE | 重发AH同义原文任务，仅指当前内置页 | 原生AX观察、PersistentNativePanel绑定，不能出现旧extension_unavailable；若模型没有结构化调用则不计通过 | AJ门禁前阻断，尚未验证 |
+| BU043-SCROLL | Qwen观察普通长页，从page_y=0向下有界滚动 | 真实Scroll step、方向/量、ticket/attempt/executor；ACK和not_needed；新观察page_y增加、旧节点失效；目标逐项判断；前后原图 | AJ零动作、不通过；后续包回验 |
 | BU043-NOOP | 在无法继续滚动的页面执行有界wheel | ACK只能证明投递；没有位置/页面事实变化就不能把“滚动完成”或goal当真 | 待安装实测 |
 | BU043-READONLY | 明确禁止全部输入，只读新页面 | cap0/动作0，不能因为Scroll新增而开放输入；页面位置正确，原图/账本 | 待安装实测 |
 | BU043-CANCEL | 模型已进入verifying/规划后正常中止，在claim前提交 | 父interrupted及stop时点、CU cancelled/goal=false/0派发；无迟到成功写回；结束提示撤除 | 待安装实测；042 AI已通过自身范围 |

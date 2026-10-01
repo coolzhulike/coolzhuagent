@@ -28842,7 +28842,9 @@ fn build_context_assembly_with_roster(
         .image_token_estimate
         .saturating_mul(image_urls_for_prompt.len().min(u32::MAX as usize) as u32);
     let mut current_user_text_for_prompt = current_user_text.to_string();
-    let mut text_user_tokens = estimate_bead_tokens(&current_user_text_for_prompt);
+    let current_turn_boundary = chat_tool_history::current_turn_boundary(room_history);
+    let current_boundary_tokens = current_turn_boundary.map(estimate_bead_tokens).unwrap_or(0);
+    let mut text_user_tokens = estimate_bead_tokens(&current_user_text_for_prompt).saturating_add(current_boundary_tokens);
 
     // 先剔除低优先级记忆，再处理极端超长用户输入，确保 system + current user 本身不突破硬预算。
     while system_tokens
@@ -28863,9 +28865,9 @@ fn build_context_assembly_with_roster(
         if text_user_tokens > available_user_text_tokens {
             current_user_text_for_prompt = truncate_text_to_estimated_token_budget(
                 current_user_text,
-                available_user_text_tokens,
+                available_user_text_tokens.saturating_sub(current_boundary_tokens),
             );
-            text_user_tokens = estimate_bead_tokens(&current_user_text_for_prompt);
+            text_user_tokens = estimate_bead_tokens(&current_user_text_for_prompt).saturating_add(current_boundary_tokens);
             truncated = true;
         }
         if system_tokens
@@ -29014,7 +29016,7 @@ fn build_context_assembly_with_roster(
         .iter()
         .map(input_message_from_persisted)
         .collect::<Vec<_>>();
-    let current_user = if image_urls_for_prompt.is_empty() {
+    let mut current_user = if image_urls_for_prompt.is_empty() {
         InputMessage::user_text(current_user_text_for_prompt.clone())
     } else {
         diag!(
@@ -29027,6 +29029,9 @@ fn build_context_assembly_with_roster(
             image_urls_for_prompt.iter().cloned(),
         )
     };
+    if let Some(boundary) = current_turn_boundary {
+        current_user.content.insert(0, InputContentBlock::Text { text: boundary.into() });
+    }
     messages.push(current_user);
 
     let total = system_tokens

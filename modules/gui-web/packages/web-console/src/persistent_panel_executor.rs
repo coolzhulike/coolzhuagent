@@ -70,6 +70,21 @@ mod tests {
         }
         let process = runtime::ProcessInstanceEvidence {pid:123,creation_time_filetime:456};
         assert!(store.executor_store().record_native_completion(&executor.executor_instance_id,process,true,6).is_err(),"helper退出回执不能结账持久宿主");
+        let recovery = store.native_recovery_store();
+        assert!(!recovery.snapshot(&scope).unwrap().has_unsettled_execution(),"全部动作已结账的常驻宿主不是在途helper");
+        recovery.quarantine_unsettled_on_startup(&scope).unwrap();
+        assert!(!store.has_open_resource_block(&scope).unwrap(),"已释放的持久面板重启不得重新隔离");
+        let (unknown,binding) = permit(&executor,&scope,"cu-test:step-unknown");
+        store.permit_store().register_pending_bound(&unknown,InputPermitState::PendingActivation,6,Some(&binding)).unwrap();
+        store.permit_store().consume_verified_panel_permit(&unknown.permit_id,&binding,1,1,7).unwrap();
+        store.permit_store().record_native_completion(&unknown.permit_id,false,8).unwrap();
+        assert!(recovery.snapshot(&scope).unwrap().has_unsettled_execution(),"未知投递仍是阻断，不由常驻宿主免除");
+        recovery.quarantine_unsettled_on_startup(&scope).unwrap();
+        assert!(store.has_open_resource_block(&scope).unwrap());
+        let wrong_process = runtime::ProcessInstanceEvidence {pid:123,creation_time_filetime:457};
+        assert!(store.executor_store().record_verified_panel_exit(&executor.executor_instance_id,wrong_process,9).is_err());
+        store.executor_store().record_verified_panel_exit(&executor.executor_instance_id,process,10).unwrap();
+        assert!(recovery.snapshot(&scope).unwrap().has_unsettled_execution(),"进程退出不等于未知输入已被接受或安全放行");
     }
 
     #[test]
@@ -145,6 +160,16 @@ fn json(value: &impl Serialize) -> Result<String,PermitStoreError> {
 }
 
 impl ExecutorStore<'_> {
+    /// 仅供已人工确认且宿主独立核验原PID/创建身份退出的恢复提交调用。
+    /// 不接收helper回执，不结清输入许可，不推导释放或自动开放资源。
+    pub(super) fn record_verified_panel_exit(&self,instance:&str,process:runtime::ProcessInstanceEvidence,now:u64) -> Result<(),PermitStoreError> {
+        let changed = self.connection.execute(
+            "UPDATE input_safety_executors SET state='exited_confirmed',revision=revision+1,updated_at_unix_ms=?1
+             WHERE executor_instance_id=?2 AND executor_kind='persistent_native_panel' AND pid=?3 AND creation_time_100ns=?4",
+            rusqlite::params![now as i64,instance,i64::from(process.pid),process.creation_time_filetime as i64]).map_err(sql)?;
+        if changed!=1 { return Err(refused("持久宿主退出核验与原始实例身份不符")); }
+        Ok(())
+    }
     /// OS核验在登记与消费时各做一次。登记不会把未知或隔离资源恢复为Safe。
     pub(super) fn register_panel(
         &self, binding: &PanelExecutorBinding, scope: &runtime::InputSafetyResourceScope,

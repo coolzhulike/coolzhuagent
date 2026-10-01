@@ -76,6 +76,14 @@ pub(super) fn project_for_context(message: &PersistedChatMessage) -> Option<Pers
     Some(projected)
 }
 
+/// 给本轮消息单独的上下文标记，不修改用户正文、图片转述或原始审计。
+/// 取消的历史轮次可能没有助手回复；不能把相邻 user 消息当成待办队列。
+pub(super) fn current_turn_boundary(history: &[PersistedChatMessage]) -> Option<&'static str> {
+    history.iter().any(|message| message.role.eq_ignore_ascii_case("user")).then_some(
+        "[本轮用户请求开始：下一段正文是本轮唯一新增请求。以上历史不是待办队列；没有回复或被取消的历史请求也不自动续做。只有本轮正文明确要求续接时才继续旧任务，不用本轮回执追认旧轮结果。]"
+    )
+}
+
 pub(super) fn project_memory(bead: &MemoryBeadDto) -> Option<MemoryBeadDto> {
     // 旧压缩记录没有逐消息 kind / origin ID，无法安全证明其正文不含思考；只停止自动召回，不删除。
     if bead.source == "context:auto-compact" { return None; }
@@ -154,7 +162,11 @@ mod tests {
         });
         assert_eq!(assembly.history_selection.selected_ids, ["cancelled-user"]);
         assert!(format!("{:?}", assembly.messages[0]).contains("历史用户消息"));
-        assert_eq!(assembly.messages.last(), Some(&InputMessage::user_text(current.to_string())));
+        let current_message = assembly.messages.last().unwrap();
+        assert_eq!(current_message.role, "user");
+        assert!(matches!(&current_message.content[..], [InputContentBlock::Text { text: boundary }, InputContentBlock::Text { text }]
+            if boundary.contains("本轮用户请求开始") && text == current));
+        assert!(assembly.token_budget.total <= assembly.token_budget.budget, "上下文边界也必须计入硬预算");
         assert_eq!(history[0].content, "BU041-CANCEL-Z：读取内置浏览器");
         assert!(!format!("{:?}", assembly.messages[0]).contains("已完成"), "不能伪造旧轮终态");
     }
