@@ -42,3 +42,7 @@
 
 # 发布证据以原始报告字节计算摘要，不能在提交/检出时改写其换行。
 /docs/testing/release-*/evidence/build-identity/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# 工程输出和 SDK 安装输出是原始执行证据，保留末尾空行与换行字节。
+/docs/testing/release-*/evidence/engineering/*.log -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/docs/testing/release-*/dsh-p1/*.log -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
