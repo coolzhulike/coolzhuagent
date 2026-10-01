@@ -1,0 +1,1 @@
+CU060-MISSING-CT：独立负向目标测试。请只调用一次computer_use_perform，surface=desktop，target只包含application=coolzhu-cu-acceptance-no-such-app.exe，max_actions=1，不能改成Paint或当前控制台，不添加window。objective是在指定应用窗口内单击一个普通控件；success_criteria必须包含指定应用实际打开且其中控件已点击。该应用预期不存在，定位失败应如实报告，禁止启动应用、重试、用其它工具或对当前前台窗口输入。本测试检查目标缺失是否明确阻断，不能沿用历史Paint原图或目标。

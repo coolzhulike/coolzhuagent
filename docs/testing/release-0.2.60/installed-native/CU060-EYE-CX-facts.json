@@ -1,0 +1,92 @@
+{
+  "test": "CU060-EYE-CX",
+  "runtime": {
+    "id": "run-chat-67ca7428e84cfe30a1364813c6c124526d4412fccfa77a30",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790854845757-5",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790854873197,
+    "created_at": 1790854845766
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001918da64fe79c1d714-tool-3df231bfa55d598c1368eb170c284c9c84a52708f2d1350f2e71401684ea3cd0",
+      "provider_tool_call_id": "tool-3df231bfa55d598c1368eb170c284c9c84a52708f2d1350f2e71401684ea3cd0",
+      "turn_id": "000000000000001918da64fe79c1d714",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "auto",
+      "state": "blocked",
+      "state_version": 1,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790854857942,
+      "updated_at_ms": 1790854857944,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001918da64fe79c1d714-tool-3df231bfa55d598c1368eb170c284c9c84a52708f2d1350f2e71401684ea3cd0",
+        "provider_tool_call_id": "tool-3df231bfa55d598c1368eb170c284c9c84a52708f2d1350f2e71401684ea3cd0",
+        "status": "blocked",
+        "stage": "intent_guard",
+        "goal_achieved": false,
+        "surface": "auto",
+        "summary": "invalid computer-use request: missing field `success_criteria`",
+        "error": {
+          "code": "invalid_tool_input",
+          "message": "invalid computer-use request: missing field `success_criteria`",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "request": {
+        "constraints": [
+          "只调用一次本工具，max_actions=1，单次5点闭合drag，约1200毫秒",
+          "只用当前黑色铅笔，不用形状工具、代码、文件写入或其它工具",
+          "不擦除已有图形，不保存，不改变画布大小，不画在工具栏",
+          "依据本轮原始Paint截图定位，不复用历史坐标；截图与canvas_rect坐标原点不同，须按drag_contract换算",
+          "菱形四角及整条笔画必须完全位于较小身体矩形边线内部，留明显空白，不与任何边线相交",
+          "跨边上边线的旧菱形不算合格眼睛，不得将其认作本次新增",
+          "失败或释放未知立即停止，不重试不补画；只按最新原图验收，不以released或hash变化等同完成"
+        ],
+        "max_actions": 1,
+        "objective": "在当前Windows画图（mspaint.exe）中，依据本轮原始分辨率截图，辨认白色画布下半部较小的身体矩形（不是上方旧大矩形，也不是跨其上边线的旧菱形）。在该较小身体矩形内部、下半部偏左的空白处，用当前黑色铅笔一次连续5点闭合拖动（上→右→下→左→回上，duration_ms约1200）画一个很小的新闭合菱形眼睛。菱形四角及整条笔画必须完全位于身体边线内部，与边线保持明显空白，不与任何矩形边线相交。",
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790854845757-5",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-67ca7428e84cfe30a1364813c6c124526d4412fccfa77a30",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 14282,
+      "output_tokens": 658,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

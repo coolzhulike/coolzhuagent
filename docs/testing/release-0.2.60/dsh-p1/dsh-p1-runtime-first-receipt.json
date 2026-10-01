@@ -1,0 +1,110 @@
+{
+  "startedAt": "2026-10-01T11:49:23.772Z",
+  "node": "v24.15.0",
+  "scope": "真实插件 SDK 依赖探针；不代表正式安装或 Qwen 模型调用通过",
+  "module": {
+    "name": "@deepseek-ai/dsh-tool-calculator",
+    "inject": [
+      "tools"
+    ]
+  },
+  "operations": [
+    {
+      "name": "真实服务加载",
+      "states": [
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "name": "真实工具执行",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "96"
+          }
+        ],
+        "value": 96
+      }
+    },
+    {
+      "name": "实际表达式拒绝",
+      "result": {
+        "isError": true,
+        "error": {
+          "message": "Invalid character \".\" at position 7"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: Invalid character \".\" at position 7"
+          }
+        ]
+      }
+    },
+    {
+      "name": "真实 AbortSignal 预取消",
+      "result": {
+        "isError": true,
+        "error": {
+          "message": "tool call aborted before dispatch",
+          "info": {
+            "name": "AbortError",
+            "code": "ABORTED_BEFORE_DISPATCH"
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: tool call aborted before dispatch"
+          }
+        ]
+      }
+    },
+    {
+      "name": "停用后定义撤销与拒绝",
+      "state": 4,
+      "schemas": [],
+      "result": {
+        "isError": true,
+        "error": {
+          "message": "unknown tool \"calculator\"",
+          "info": {
+            "name": "ToolNotFoundError",
+            "code": "UNKNOWN_TOOL"
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: unknown tool \"calculator\""
+          }
+        ]
+      }
+    }
+  ],
+  "schemas": [
+    {
+      "name": "calculator",
+      "description": "Evaluate a mathematical expression safely. Supports +, -, *, /, %, **, parentheses, and functions: abs, ceil, floor, round, max, min, sqrt, pow, log, log2, log10, exp, sin, cos, tan, PI, E.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string",
+            "description": "Mathematical expression, e.g. \"15 + 27 * sqrt(9)\""
+          }
+        },
+        "required": [
+          "expression"
+        ]
+      }
+    }
+  ],
+  "passed": true,
+  "rootDisposed": false,
+  "finishedAt": "2026-10-01T11:49:23.783Z"
+}

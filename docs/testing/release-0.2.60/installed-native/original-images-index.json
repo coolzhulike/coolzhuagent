@@ -1,0 +1,124 @@
+{
+  "images": [
+    {
+      "path": "installed-native/00-installed-console.jpg",
+      "bytes": 178810,
+      "sha256": "5f0aa9b05ac783bb918dcb73a21de4a9382ed5b2fdd17c643fc1733ab72608ad",
+      "width": 1443,
+      "height": 897
+    },
+    {
+      "path": "installed-native/01-paint-during-model.jpg",
+      "bytes": 69187,
+      "sha256": "89817893314c2d901809e2c4dab6432eb15b57b49bf3b138606d67912788dece",
+      "width": 1695,
+      "height": 762
+    },
+    {
+      "path": "installed-native/02-paint-terminal-preview.jpg",
+      "bytes": 68589,
+      "sha256": "bc484d195a621fda08d3579992548037a1875fa0c77c45c4086c52eafda44227",
+      "width": 1695,
+      "height": 762
+    },
+    {
+      "path": "installed-native/03-paint-body-native-01.png",
+      "bytes": 280444,
+      "sha256": "c8d48987fe48f15ec4e73e80837a76fc2b8bb7141a1411a3388c25a737a04390",
+      "width": 2560,
+      "height": 1152
+    },
+    {
+      "path": "installed-native/03-paint-body-native-02.png",
+      "bytes": 302631,
+      "sha256": "0e269c73b76a4784b91f4f040cc045bd12eae8c13dc8eae499cd723bb5b9da47",
+      "width": 2560,
+      "height": 1152
+    },
+    {
+      "path": "installed-native/04-paint-completed-console.jpg",
+      "bytes": 196948,
+      "sha256": "a92c041cf2620140c54bd3e8bce3cef1833e0ca7b016b6767838734c6b26fa21",
+      "width": 1443,
+      "height": 897
+    },
+    {
+      "path": "installed-native/05-missing-invalid-parameters-console.jpg",
+      "bytes": 197321,
+      "sha256": "9c9fd17cedb577c523bdbb4d185f2a7979fec7437fb43cefc5e905c717a3334f",
+      "width": 1443,
+      "height": 897
+    },
+    {
+      "path": "installed-native/06-missing-target-zero-input-console.jpg",
+      "bytes": 195934,
+      "sha256": "5957691eaef1790de86f1fb227c3efda7001f6a5951544a0b5a21863d595c29a",
+      "width": 1443,
+      "height": 897
+    },
+    {
+      "path": "installed-native/07-browser-before-zero.jpg",
+      "bytes": 197932,
+      "sha256": "51fbf5e813bec0237a5ea42d87c96909c12533df01d9442851d8aea5968352e2",
+      "width": 1443,
+      "height": 897
+    },
+    {
+      "path": "installed-native/08-browser-after-one.jpg",
+      "bytes": 190253,
+      "sha256": "b3542cebb915a8dc4db6ea2f2f24bb54e3d4c8aaeaf868c724d9feceb324b240",
+      "width": 1443,
+      "height": 897
+    },
+    {
+      "path": "installed-native/09-paint-components-live-preview.jpg",
+      "bytes": 70162,
+      "sha256": "5e12e99948735549bfadb10da93a6afe186e92ffd646d2f7a7925b0e359727d4",
+      "width": 1695,
+      "height": 762
+    },
+    {
+      "path": "installed-native/10-paint-components-native-01.png",
+      "bytes": 276985,
+      "sha256": "3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7",
+      "width": 2560,
+      "height": 1152
+    },
+    {
+      "path": "installed-native/10-paint-components-native-02.png",
+      "bytes": 299137,
+      "sha256": "fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea",
+      "width": 2560,
+      "height": 1152
+    },
+    {
+      "path": "installed-native/10-paint-components-native-03.png",
+      "bytes": 298816,
+      "sha256": "d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020",
+      "width": 2560,
+      "height": 1152
+    },
+    {
+      "path": "installed-native/11-paint-false-positive-stopped-console.jpg",
+      "bytes": 211677,
+      "sha256": "cfce924bbe8a1e7f1d124120b5a33cfb017b3b78047720c68caa6e33d745eb90",
+      "width": 1443,
+      "height": 897
+    },
+    {
+      "path": "installed-native/12-paint-missing-criteria-console.jpg",
+      "bytes": 199694,
+      "sha256": "20899678d5156c309dd366daaed460e18fb6587c7a2bf46cbc79625f9f954e9c",
+      "width": 1443,
+      "height": 897
+    },
+    {
+      "path": "installed-native/activity-060-CS/desktop-active.png",
+      "bytes": 692818,
+      "sha256": "cdd30011a523c3bbd1de89c3b425791349199512f2ee589a038192f5c749b9cd",
+      "width": 2560,
+      "height": 1440
+    }
+  ],
+  "notice": "截图按原字节归档；缩小预览不可代替原始分辨率细线验收。"
+}

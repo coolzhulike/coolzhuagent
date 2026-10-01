@@ -1,0 +1,490 @@
+{
+  "test": "CU060-SPONGE-CW",
+  "runtime": {
+    "id": "run-chat-b29f78a669f17b3efde017419bab54cf88087592744a4b85",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790854597252-4",
+    "state": "interrupted",
+    "stop_requested_at": 1790854738795,
+    "finished_at": 1790854738832,
+    "created_at": 1790854597263
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "provider_tool_call_id": "tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "turn_id": "000000000000001318da64c49d200ddc",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "succeeded",
+      "state_version": 13,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790854607834,
+      "updated_at_ms": 1790854680044,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+        "provider_tool_call_id": "tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "desktop",
+        "summary": "最新原图逐项确认目标已达成",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7.png:sha256=3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7.png:sha256=3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/1",
+          "native_stroke:window-canvas:8890a54:points=5:duration_ms=1200:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-410bfd294e13f0b5f63692e032956312c4c07548b0107b64be315b46ade3fd46.png:sha256=410bfd294e13f0b5f63692e032956312c4c07548b0107b64be315b46ade3fd46:2560x1152",
+          "mapping:frame_binding:sha256=410bfd294e13f0b5f63692e032956312c4c07548b0107b64be315b46ade3fd46:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-f5608d124c9fadbfe5164d539cff3aa3ac43977f425ba9a42569c9535a1c8ab4.png:sha256=f5608d124c9fadbfe5164d539cff3aa3ac43977f425ba9a42569c9535a1c8ab4:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea.png:sha256=fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea.png:sha256=fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=2:image_changed=true:criteria_met=1/1"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790855497252
+            }
+          },
+          "cu_deadline_ms": 1790854727834,
+          "cu_deadline_established_at_ms": 1790854607834,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只允许一次5点连续拖动",
+          "只用当前黑色铅笔，不用形状工具、代码或其它工具",
+          "不擦除、不保存、不改变画布",
+          "失败或释放未知立即停止，不重试"
+        ],
+        "max_actions": 1,
+        "objective": "在当前Windows画图白色画布下半部刚画出的较小闭合矩形（新身体，不是上方旧大矩形）内部上半部的左侧，用当前黑色铅笔画一只闭合菱形眼睛：一次连续拖动，依次经过上、右、下、左四个角点再回到上角点，共5点，duration_ms约1200。依据本轮Paint原始分辨率截图自主定位，不使用旧坐标，笔画必须落在白色画布内该小矩形中，不能画在工具栏。",
+        "success_criteria": [
+          "最新Paint原图中，白色画布下半部的较小闭合矩形内部上半部左侧实际出现一个新增闭合菱形眼睛"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-c75d8bba24df6c4299ca43d995544ce55f237f521be0b1fe7b704bacfcd1dd42",
+      "provider_tool_call_id": "tool-c75d8bba24df6c4299ca43d995544ce55f237f521be0b1fe7b704bacfcd1dd42",
+      "turn_id": "000000000000001318da64c49d200ddc",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "succeeded",
+      "state_version": 6,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790854689484,
+      "updated_at_ms": 1790854712445,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-c75d8bba24df6c4299ca43d995544ce55f237f521be0b1fe7b704bacfcd1dd42",
+        "provider_tool_call_id": "tool-c75d8bba24df6c4299ca43d995544ce55f237f521be0b1fe7b704bacfcd1dd42",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "desktop",
+        "summary": "最新原图逐项确认目标已达成",
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020.png:sha256=d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020.png:sha256=d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=1/1"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790855497252
+            }
+          },
+          "cu_deadline_ms": 1790854809484,
+          "cu_deadline_established_at_ms": 1790854689484,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只允许一次5点连续拖动",
+          "只用当前黑色铅笔，不用形状工具、代码或其它工具",
+          "不擦除、不保存、不改变画布",
+          "不得触碰已画好的左眼和身体矩形",
+          "失败或释放未知立即停止，不重试"
+        ],
+        "max_actions": 1,
+        "objective": "在当前Windows画图白色画布下半部较小闭合矩形（新身体）内部上半部的右侧，与已有左眼分开的位置，用当前黑色铅笔画第二只闭合菱形眼睛：一次连续拖动，依次经过上、右、下、左四个角点再回到上角点，共5点，duration_ms约1200。依据本轮Paint最新原图自主定位，不使用旧坐标，笔画必须落在白色画布内该小矩形中，不能画在工具栏。",
+        "success_criteria": [
+          "最新Paint原图中，该较小矩形身体内部上半部右侧出现一只与左眼分开的新增闭合菱形眼睛"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-c54fd7bc90ebc1bc51e5e559e29805e5c4ebc1fab8243a62267d0783edf98594",
+      "provider_tool_call_id": "tool-c54fd7bc90ebc1bc51e5e559e29805e5c4ebc1fab8243a62267d0783edf98594",
+      "turn_id": "000000000000001318da64c49d200ddc",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "blocked",
+      "state_version": 1,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790854733286,
+      "updated_at_ms": 1790854733289,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-c54fd7bc90ebc1bc51e5e559e29805e5c4ebc1fab8243a62267d0783edf98594",
+        "provider_tool_call_id": "tool-c54fd7bc90ebc1bc51e5e559e29805e5c4ebc1fab8243a62267d0783edf98594",
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "computer-use call budget for this model turn is exhausted",
+        "error": {
+          "code": "recursive_call_blocked",
+          "message": "computer-use call budget for this model turn is exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "request": {
+        "constraints": [
+          "只允许一次3点连续拖动",
+          "只用当前黑色铅笔，不用形状工具、代码或其它工具",
+          "不擦除、不保存、不改变画布",
+          "不得触碰已画好的眼睛和身体矩形",
+          "失败或释放未知立即停止，不重试"
+        ],
+        "max_actions": 1,
+        "objective": "在当前Windows画图白色画布下半部较小闭合矩形（新身体）内部、两只菱形眼睛下方，用当前黑色铅笔画一条折线笑嘴：一次连续拖动，依次经过左端点、下方中点、右端点共3点。依据本轮Paint最新原图自主定位，不使用旧坐标，笔画必须落在白色画布内该小矩形中，不能画在工具栏。",
+        "success_criteria": [
+          "最新Paint原图中，该身体内部两眼下方实际出现一条新增的折线笑嘴"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-a37299bd-c4f1-9538-a1f0-a55ddef2c256",
+      "error_code": null,
+      "started_at_ms": 1790854610919,
+      "completed_at_ms": 1790854620729,
+      "response": {
+        "bytes": 332,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 255,
+            "evidence_chars": 85,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": false,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-938c8901-641a-9975-abd2-3fb5e8e1e591",
+      "error_code": null,
+      "started_at_ms": 1790854620772,
+      "completed_at_ms": 1790854651100,
+      "response": {
+        "action": {
+          "arguments": {
+            "duration_ms": 1200,
+            "points": [
+              [
+                0.385,
+                0.63
+              ],
+              [
+                0.415,
+                0.66
+              ],
+              [
+                0.385,
+                0.69
+              ],
+              [
+                0.355,
+                0.66
+              ],
+              [
+                0.385,
+                0.63
+              ]
+            ]
+          },
+          "kind": "drag",
+          "target": "window-canvas:8890a54"
+        },
+        "done": false
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-4c549bc9-bb4c-9cb0-9613-bcd5d80e7dc7",
+      "error_code": null,
+      "started_at_ms": 1790854660256,
+      "completed_at_ms": 1790854680041,
+      "response": {
+        "bytes": 311,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 236,
+            "evidence_chars": 82,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": true,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-c75d8bba24df6c4299ca43d995544ce55f237f521be0b1fe7b704bacfcd1dd42",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-03408a16-603d-9a54-b624-4660eb0d17f7",
+      "error_code": null,
+      "started_at_ms": 1790854695888,
+      "completed_at_ms": 1790854712444,
+      "response": {
+        "bytes": 417,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 342,
+            "evidence_chars": 114,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": true,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000001318da64c49d200ddc",
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 18891,
+      "output_tokens": 476,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000001318da64c49d200ddc",
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19773,
+      "output_tokens": 1920,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000001318da64c49d200ddc",
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 21487,
+      "output_tokens": 705,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000001318da64c49d200ddc",
+      "call_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-c75d8bba24df6c4299ca43d995544ce55f237f521be0b1fe7b704bacfcd1dd42",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19021,
+      "output_tokens": 907,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790854597252-4",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b29f78a669f17b3efde017419bab54cf88087592744a4b85",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 15610,
+      "output_tokens": 343,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790854597252-4",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b29f78a669f17b3efde017419bab54cf88087592744a4b85",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 16920,
+      "output_tokens": 1020,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790854597252-4",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b29f78a669f17b3efde017419bab54cf88087592744a4b85",
+      "status": "remote_unknown",
+      "dispatched": 1,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000001318da64c49d200ddc-tool-d13a372f9e4825d6aff30e3fc2c4f2eb0e55e915da1d86e1a9253338fcbfc59d",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:8890a54",
+      "status": "verified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "input_release_status": "released",
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "started_at_ms": 1790854651106,
+      "completed_at_ms": 1790854657495,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ]
+}

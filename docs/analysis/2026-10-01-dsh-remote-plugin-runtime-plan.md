@@ -1,6 +1,21 @@
 # DSH 远程插件安装与运行适配实施方案
 
-2026-10-01。主会话根据现有代码与 DSH 官方固定源码审查；GPT-6 Pro 补审按用户决定暂停。本文是实施方案，不代表远程插件已安装或运行成功。
+2026-10-01。主会话根据现有代码与 DSH 官方固定源码审查；GPT-6 Pro 补审按用户决定暂停。本文是实施方案；P1 首包已在隔离临时目录验证，正式远程安装和模型调用尚未完成。
+
+## P1 首包实际结果与版本决策
+
+真实候选为 [omdsh-dev/dsh-tool-calculator](https://github.com/omdsh-dev/dsh-tool-calculator/tree/b2007a13f06bcf75bf07b9d277ee8d434a316490)，固定 commit b2007a13f06bcf75bf07b9d277ee8d434a316490，版本0.0.1、private=true。不能用同名 npm 包假定已公开发行，P2 应接确认的固定 Git/source bundle。原始 package、三个可执行 lib 文件、patch 和 MIT 许可证已逐项 Git blob/SHA256 核验，没有重写计算器或造 ctx 服务。
+
+| 真实对象 | 必须服务及配置 | 已验证范围 |
+|---|---|---|
+| Calculator module | inject=['tools']；没有 Config；注册 calculator，expression 为必填 string，输出 number | 官方 defineTool、真实数学解析器；正常96/非法表达式拒绝 |
+| 官方 ToolRuntime 0.1.1-rc.2 | inject=['systemPrompt']；mode='native' | schemas/execute；真正预取消 AbortSignal；停用 UNKNOWN_TOOL |
+| 官方 SystemPrompt 0.1.1-rc.2 | 不依赖另一服务；关闭 DSH 身份及运行上下文注入 | 为真实 ToolRuntime 提供注册服务，不接管 Coolzhu 提示词/记忆 |
+| Cordis 4.0.1 Context/Fiber | 官方注册与资源生命周期 | 三个子 fiber dispose 后全部 DISPOSED、注册表0、两个服务消失 |
+
+旧0.0.1-rc.1依赖图含公共源无法取得的dsh-type-meta；没有force或假服务跳过。按真实候选锁文件固定DSH SDK 0.1.1-rc.2、Cordis4.0.1、Schemastery3.18.1、Cosmokit1.8.2，17依赖均从公共npm来源安装且不运行安装脚本，保存精确锁文件/SHA512，并独立下载核对dsh-tools tarball完整性。SDK npm版本不冒充下文历史DSH Git commit的完全同一源码。
+
+原始收据、依赖矩阵、真实工具定义、执行结果、取消、释放以及第一探针对根dispose语义的误判均保留于[060 P1证据](../testing/release-0.2.60/dsh-p1/dsh-p1-runtime-receipt.json)。根fiber的dispose实际是restart，不能仅以根仍ACTIVE认定插件未释放；最终按子fiber、注册表和服务消失核验。未启动DSH AgentLoop、未传入模型密钥、未修改正式依赖。P1仅首个独立工具包通过，未知服务仍不兼容；正式安装、Qwen工具暴露/运行及其它类别包均不能由此追认。
 
 ## 当前差距与方案结论
 
@@ -58,4 +73,4 @@
 
 通过标准是安装版实际页面截图、真实远程固定包文件身份、真实 Qwen 的结构化调用与本轮结果，以及停用/取消后的执行事实。首批覆盖：查找与空结果；检查不激活包；正常安装；同包并发；网络失败；取消安装与重启恢复；启用失败；工具重名；真实模型执行；取消执行；停用期间拒绝新调用；跨工程隔离；卸载失败保留状态。优先实操和少量关键生命周期测试，不能写大量镜像单元用例替代这些结果。
 
-当前已通过社区目录读取、搜索与不兼容说明；P1–P5 仍未完成。因此“插件市场与 DSH 一致，能安装并调用远程插件”的需求保持开放，不能由已有本地原生插件通过结果追认。
+当前已通过社区目录读取、搜索与不兼容说明，P1首个真实独立工具包的依赖/加载/执行/预取消/dispose验证通过；P2–P5正式安装、真实Qwen工具桥及市场页面仍未完成。因此“插件市场与DSH一致，能安装并调用远程插件”的需求保持开放，不能由已有本地原生插件或临时P1通过结果追认。

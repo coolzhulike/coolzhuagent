@@ -1,0 +1,99 @@
+{
+  "test": "CU060-MISSING-CU",
+  "runtime": {
+    "id": "run-chat-b0bdcc8026aa39769da04abbabba2152088a6fc835da8dc9",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790854307398-2",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790854321702,
+    "created_at": 1790854307412
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000b18da64812165ae88-tool-83a675fad9a8ba55d6a39cb73cdc40493ecaccf75e49c08278046d6591444fdb",
+      "provider_tool_call_id": "tool-83a675fad9a8ba55d6a39cb73cdc40493ecaccf75e49c08278046d6591444fdb",
+      "turn_id": "000000000000000b18da64812165ae88",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "blocked",
+      "state_version": 4,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790854313519,
+      "updated_at_ms": 1790854314709,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000b18da64812165ae88-tool-83a675fad9a8ba55d6a39cb73cdc40493ecaccf75e49c08278046d6591444fdb",
+        "provider_tool_call_id": "tool-83a675fad9a8ba55d6a39cb73cdc40493ecaccf75e49c08278046d6591444fdb",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "UIA target was not found",
+        "error": {
+          "code": "target_not_found",
+          "message": "UIA target was not found",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790855207398
+            }
+          },
+          "cu_deadline_ms": 1790854433519,
+          "cu_deadline_established_at_ms": 1790854313519,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "不启动该应用",
+          "不回退到当前前台窗口或Paint",
+          "不使用其它工具",
+          "失败立即停止不重试"
+        ],
+        "max_actions": 1,
+        "objective": "在指定应用 coolzhu-cu-acceptance-no-such-app.exe 的窗口内单击一个普通控件",
+        "success_criteria": [
+          "指定应用实际打开且其中控件已点击"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "coolzhu-cu-acceptance-no-such-app.exe"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790854307398-2",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b0bdcc8026aa39769da04abbabba2152088a6fc835da8dc9",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 12638,
+      "output_tokens": 249,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

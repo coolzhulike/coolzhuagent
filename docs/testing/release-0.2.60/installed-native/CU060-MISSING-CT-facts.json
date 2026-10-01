@@ -1,0 +1,84 @@
+{
+  "test": "CU060-MISSING-CT",
+  "runtime": {
+    "id": "run-chat-04accdea96dd84a2e4f3a1cccc13d18bc94cd157421de22c",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790854100736-1",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790854119507,
+    "created_at": 1790854100746
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000818da6451020a55c8-tool-980767cda189bba958f84546e62fa3554843f171a155ce6060f942e37a8e94b8",
+      "provider_tool_call_id": "tool-980767cda189bba958f84546e62fa3554843f171a155ce6060f942e37a8e94b8",
+      "turn_id": "000000000000000818da6451020a55c8",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "auto",
+      "state": "blocked",
+      "state_version": 1,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790854105591,
+      "updated_at_ms": 1790854105593,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000818da6451020a55c8-tool-980767cda189bba958f84546e62fa3554843f171a155ce6060f942e37a8e94b8",
+        "provider_tool_call_id": "tool-980767cda189bba958f84546e62fa3554843f171a155ce6060f942e37a8e94b8",
+        "status": "blocked",
+        "stage": "intent_guard",
+        "goal_achieved": false,
+        "surface": "auto",
+        "summary": "invalid computer-use request: unknown field `maxActions`, expected one of `objective`, `surface`, `target`, `success_criteria`, `constraints`, `max_actions`",
+        "error": {
+          "code": "invalid_tool_input",
+          "message": "invalid computer-use request: unknown field `maxActions`, expected one of `objective`, `surface`, `target`, `success_criteria`, `constraints`, `max_actions`",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "request": {
+        "maxActions": "1",
+        "objective": "在指定应用窗口内单击一个普通控件",
+        "successCriteria": "[\"指定应用实际打开且其中控件已点击\"]",
+        "surface": "desktop",
+        "target": {
+          "application": "coolzhu-cu-acceptance-no-such-app.exe"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790854100736-1",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-04accdea96dd84a2e4f3a1cccc13d18bc94cd157421de22c",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 12059,
+      "output_tokens": 620,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}
