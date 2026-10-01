@@ -1,0 +1,90 @@
+{
+  "version": "0.2.44",
+  "install_date": "20261001",
+  "msi_sha256": "530cae3a5a516dfe6bb9662c07a10690621d0f87d69c552569a9e1bd1423694e",
+  "package_report_id": "pkg-report-release-20261001-100455084-cdda5eac",
+  "artifacts": [
+    {
+      "id": "gui-web.web-console",
+      "target": "bin/coolzhu-web-console.exe",
+      "sha256": "c47a1d18beb07ac6ca234d096fc69113c701f366546cb061c250135bc6b9a0cf",
+      "verified": true
+    },
+    {
+      "id": "gui-web.browser-native-host",
+      "target": "bin/coolzhu-browser-native-host.exe",
+      "sha256": "9b24adb6b4071e3f0bda357be6ddc7026ecf02bde0cd908e4bd68aff53313a40",
+      "verified": true
+    },
+    {
+      "id": "gui-web.clawbot-sidecar",
+      "target": "bin/coolzhu-clawbot-sidecar.exe",
+      "sha256": "7c9cba54d8dfc5248865414748e2e0bd9340839c888c2267007e2b90caa32fc9",
+      "verified": true
+    },
+    {
+      "id": "cli.command-line",
+      "target": "bin/coolzhu-cli.exe",
+      "sha256": "66930c8ecefe35b583aff0229d109c4db4454b1474e884c3047aabb6bc6b0558",
+      "verified": true
+    },
+    {
+      "id": "computer-use.preflight-check",
+      "target": "bin/coolzhu-computer-use-check.exe",
+      "sha256": "024da57d308688a280189f675cadfe5f58955e13e46fbe3b1eaf3f14c913bac6",
+      "verified": true
+    },
+    {
+      "id": "vision.smoke",
+      "target": "bin/coolzhu-vision-smoke.exe",
+      "sha256": "114d45cff4f50cda3d292a0fbeb41847ff46092a1722350f63e29e061968258f",
+      "verified": true
+    },
+    {
+      "id": "vision.latest-desktop",
+      "target": "bin/coolzhu-latest-desktop-vision.exe",
+      "sha256": "62352fd5b364281e620bcb5cb75565dab01a5b3aa44516ad122ca847548cfff6",
+      "verified": true
+    },
+    {
+      "id": "gui-desktop.tauri-shell",
+      "target": "bin/coolzhu-tauri-shell.exe",
+      "sha256": "9b7c26b253dc0ff0c42e8923fa717cf701abed1679a37b20d2d8f05648da87b9",
+      "verified": true
+    },
+    {
+      "id": "gui-desktop.webview2-loader",
+      "target": "bin/WebView2Loader.dll",
+      "sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+      "verified": true
+    },
+    {
+      "id": "package.app-launcher",
+      "target": "COOLZHU-AGENT.exe",
+      "sha256": "dbb70907a53024227aedc48a7a3cafacf8ae2d0a91cf381dbc2d4428787cea80",
+      "verified": true
+    }
+  ],
+  "processes": [
+    {
+      "Id": 26928,
+      "ProcessName": "coolzhu-tauri-shell",
+      "Path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "StartTime": "2026-10-01T10:06:33.18789+08:00"
+    },
+    {
+      "Id": 2852,
+      "ProcessName": "coolzhu-web-console",
+      "Path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "StartTime": "2026-10-01T10:06:32.3496387+08:00"
+    }
+  ],
+  "listener": [
+    {
+      "LocalAddress": "0.0.0.0",
+      "LocalPort": 8765,
+      "OwningProcess": 2852
+    }
+  ],
+  "verified_at": "2026-10-01T02:06:54.0112302Z"
+}

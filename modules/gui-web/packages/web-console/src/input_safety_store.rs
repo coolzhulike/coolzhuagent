@@ -1642,15 +1642,27 @@ impl InputSafetyStore {
         })
     }
 
-    /// 最近一次放行决定所**接受**的未收敛遗留运行（operator 已明确承担其风险）。
+    /// 同一资源范围内所有放行决定已明确接受的遗留运行。
+    /// 决定是追加事实；后续只处理新阻断的空列表不能撤销既有接受，也不能接受未来的新运行。
     pub(crate) fn acknowledged_run_ids(
         &self,
         scope: &InputSafetyResourceScope,
     ) -> Result<Vec<String>, InputSafetyStoreError> {
-        Ok(self
-            .latest_release_decision(scope)?
-            .map(|decision| decision.acknowledged_run_ids)
-            .unwrap_or_default())
+        let mut statement = self
+            .connection
+            .prepare(
+                "SELECT acknowledged_run_ids_json FROM input_safety_release_decisions
+                 WHERE scope = ?1",
+            )
+            .map_err(sqlite_error)?;
+        let rows = statement
+            .query_map([scope.as_str()], |row| row.get::<_, String>(0))
+            .map_err(sqlite_error)?;
+        let mut accepted = std::collections::BTreeSet::new();
+        for row in rows {
+            accepted.extend(split_lines(&row.map_err(sqlite_error)?));
+        }
+        Ok(accepted.into_iter().collect())
     }
 
     /// 某 scope 上**未结账**（处置 `Pending`）的恢复操作：只有它们算"待对账"。
@@ -2507,13 +2519,49 @@ mod tests {
                 &ReleaseIsolationDecision {
                     decision_id: "release-2".to_string(),
                     acknowledged_block_ids: vec!["block-a".to_string()],
-                    ..named
+                    ..named.clone()
                 },
                 coordinator.control(),
             )
             .err()
             .expect("已关闭的阻断不得再次放行");
         assert!(bogus.to_string().contains("不得放行未声明的阻断"), "{bogus}");
+
+        // ⑦ 新决定没有遗留运行，不得抹掉此前已明确接受的历史风险。
+        let empty_followup = ReleaseIsolationDecision {
+            decision_id: "release-empty-followup".to_string(),
+            acknowledged_block_ids: vec![],
+            acknowledged_run_ids: vec![],
+            ..named.clone()
+        };
+        store
+            .release_isolation_authorized(&empty_followup, coordinator.control())
+            .expect("空清单后续决定");
+        assert_eq!(
+            store.acknowledged_run_ids(&scope).expect("累计已接受运行"),
+            vec!["legacy-cu-1".to_string()]
+        );
+        let other_scope = unique_scope("release-other");
+        assert!(store.acknowledged_run_ids(&other_scope).expect("另一资源范围").is_empty());
+        // 去重、累计只包含逐条声明的运行；不扩大到新运行，仍保留未声明阻断。
+        store
+            .release_isolation_authorized(
+                &ReleaseIsolationDecision {
+                    decision_id: "release-more-runs".to_string(),
+                    acknowledged_run_ids: vec!["legacy-cu-2".to_string(), "legacy-cu-1".to_string()],
+                    ..empty_followup
+                },
+                coordinator.control(),
+            )
+            .expect("追加逐条接受");
+        assert_eq!(
+            store.acknowledged_run_ids(&scope).expect("去重累计"),
+            vec!["legacy-cu-1".to_string(), "legacy-cu-2".to_string()]
+        );
+        assert_eq!(
+            store.unacknowledged_open_block_ids(&scope).expect("仍未获放行"),
+            vec!["block-b".to_string()]
+        );
     }
 
     /// **PR-01**：v1 库**就地升级**到 v2（加列 + 建新表），旧行按"仍在办"读回——**不另建空库**。

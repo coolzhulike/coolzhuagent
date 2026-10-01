@@ -2,7 +2,9 @@
 use std::{collections::VecDeque, sync::{Mutex, OnceLock}, time::{Duration, Instant}};
 use native_browser_protocol::{NodeHandle, PanelResource};
 
-const NODE_LEASE: Duration = Duration::from_secs(20);
+// 引用只绑定观察，不授予输入资格。初始验证加规划可超过20秒；保留至默认CU总预算上限。
+// 真实节点/文档/命中仍在预检与执行前重检，一次性执行票据继续只有2秒，动作后撤销旧引用。
+const NODE_LEASE: Duration = Duration::from_secs(120);
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct DocumentIdentity { pub frame_id:String, pub loader_id:String, pub backend_root:i64 }
 impl DocumentIdentity {
@@ -78,6 +80,9 @@ mod tests {
         let observation = "00000000000000000000000000000001";
         let (token,handles) = cache.register(&resource,&document,observation,&[(0,9,"button".into(),"下一页".into())]).unwrap();
         let id = &handles[0].node_id;
+        assert_eq!(cache.resolve(&resource,&document,observation,&token,id).unwrap().backend_node,9);
+        // 模拟真实AK的验证与规划等待，不睡眠；普通等待不得让尚未执行的观察引用先过期。
+        cache.observations[0].expires -= Duration::from_secs(25);
         assert_eq!(cache.resolve(&resource,&document,observation,&token,id).unwrap().backend_node,9);
         assert!(cache.resolve(&resource,&document,observation,&token,"00000000000000000000000000000000").is_err());
         assert!(cache.resolve(&resource,&DocumentIdentity {loader_id:"replacement".into(),..document.clone()},observation,&token,id).is_err());
