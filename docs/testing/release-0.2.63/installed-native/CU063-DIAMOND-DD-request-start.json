@@ -1,0 +1,8 @@
+{
+  "before_ms": 1790860046561,
+  "room_id": "room-1790567510595",
+  "session_id": "session-1779459149988",
+  "test": "CU063-DIAMOND-DD",
+  "timeout_seconds": 120,
+  "prompt": "CU063-DIAMOND-DD：新独立 Paint 实操，验证既有许可声明误分类修复。仅调用一次 computer_use_perform，完整使用正式六项字段：objective、surface、target、success_criteria、constraints、max_actions。objective 必须保留这个开头：“用户已明确授权本次 Paint 手绘测试。”，其后描述：根据本轮新鲜截图，辨认真正白色画布中央偏下的未画线区域，用已选中的黑色铅笔手绘一个新的小闭合菱形。surface=desktop；target 只指定 application=mspaint.exe；success_criteria 为字符串数组，要求本轮新鲜原图可见新增小菱形的四条边闭合、整体在白色画布内、与所有旧线条分离；constraints 为字符串数组：仅用一笔五点连续鼠标拖动、起终点一致；先由原图定位真实白色画布，不把 window-canvas 的窗口容器范围当成白色画布；不用历史坐标、形状工具、导入或代码；不擦除、不保存、不调整画布、不用其它工具；结果不确定或失败立即停止、不重试、不再调用 CU；仅输入 released 或画面变化不算图形完成。max_actions 数字1。最终报告本轮实际新笔画是否完成和停止原因，不能将旧菱形当成新增成果；这不是完整海绵宝宝验收。\n"
+}

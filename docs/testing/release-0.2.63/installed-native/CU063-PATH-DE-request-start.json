@@ -1,0 +1,8 @@
+{
+  "before_ms": 1790860222894,
+  "room_id": "room-1790567510595",
+  "session_id": "session-1779459149988",
+  "test": "CU063-PATH-DE",
+  "timeout_seconds": 120,
+  "prompt": "CU063-PATH-DE：这是新独立 Paint 输入回归，当前没有 W 形图案；只调用一次 computer_use_perform。完整正式六项：objective 开头原样写“用户已明确授权本次 Paint 手绘测试。”，后面写：根据本轮新鲜原图，在真实白色画布底部的中央留白内，用已选黑色铅笔新画一条小 W 形折线，五个点依次上、下、上、下、上，整笔在白色画布内且远离旧图；surface=desktop；target 仅含 application=mspaint.exe；success_criteria 字符串数组要求本轮实际发生一次新拖动、原图可见白画布底部新增 W 形折线而非任一旧菱形、五点轨迹全部落在白画布内且与旧线条分离；constraints 字符串数组要求只用一笔五点连续鼠标拖动约1200ms、不用历史坐标/代码/导入/形状工具/其它工具、不擦除或保存、不改变画布、失败或结果不确定立即停止不重试不再调用CU；max_actions 为数字1。初验不能把旧菱形或旧矩形当成 W 形，零动作不算本次新画完成。最终如实报告输入事实和新原图结果；本轮不称完整海绵宝宝通过。"
+}

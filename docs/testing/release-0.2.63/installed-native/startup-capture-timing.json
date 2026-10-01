@@ -1,0 +1,9 @@
+{
+  "launcher": {
+    "elapsed_ms": 14241,
+    "error": "Error: launched app did not expose a targetable window: {6D809377-6AF0-444B-8957-A3773F02200E}\\CoolzhuAgent\\COOLZHU-AGENT.exe"
+  },
+  "captured_animation_frames": 0,
+  "formal_window_id": 658180394,
+  "notice": "启动API等待后已进入控制台；不能据此追认动画帧验收。"
+}
