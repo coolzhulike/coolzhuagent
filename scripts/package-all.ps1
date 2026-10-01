@@ -37,6 +37,7 @@ $repoPrefix = $repoPath + [System.IO.Path]::DirectorySeparatorChar
 . (Join-Path $repo 'scripts/lib/webview2-loader.ps1')
 # 构建身份与报告治理（三身份分离 / 报告 ID+内容哈希 / 保留规则 / 失败诊断与发布资格）。
 . (Join-Path $repo 'scripts/lib/build-identity.ps1')
+. (Join-Path $repo 'scripts/lib/dsh-runtime.ps1')
 
 # ---------------------------------------------------------------------------
 # 本次运行 ID 与阶段追踪。
@@ -218,6 +219,16 @@ foreach ($releaseItem in @($manifestData.artifacts) + @($manifestData.resources)
   if (-not $fullTarget.StartsWith($packageChildPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "release output must stay inside PackageRoot: $fullTarget"
   }
+}
+
+# 必需的第三方DSH资源在清理旧包根之前核验；准备阶段也不隐式下载/改写运行时锁。
+foreach ($runtimeResource in @($manifestData.resources | Where-Object { [string]$_.id -eq 'tooling.dsh-runtime' })) {
+  if ($runtimeResource.optional -eq $true -or [string]$runtimeResource.verifier -ne 'dsh-fixed-runtime-v1') {
+    throw 'DSH运行资源必须使用固定核验契约且不可声明为optional'
+  }
+  Set-PackageStage -Stage 'dsh-runtime-preflight' -Detail '固定Node/SDK完整文件集合'
+  $runtimeReceipt = Invoke-DshRuntimeVerification -Repo $repoPath -Root (Join-Path $repoPath ([string]$runtimeResource.source))
+  Add-PackageStageRecord -Stage 'dsh-runtime-preflight' -Outcome 'completed' -Detail ('files={0}; bytes={1}; lock_sha256={2}' -f $runtimeReceipt.file_count, $runtimeReceipt.total_bytes, $runtimeReceipt.lock_sha256) | Out-Null
 }
 
 # 每次从空 staging 开始，杜绝 manifest 已删除 artifact、旧脚本和旧资源继续被 WiX 收集。
@@ -880,6 +891,10 @@ function Copy-PackageResource {
     }
     throw "resource source missing for $($Resource.id): $source"
   }
+  if ([string]$Resource.id -eq 'tooling.dsh-runtime') {
+    # 第一方脚本绑定本次冻结源码；第三方文件逐一匹配受审查锁，不能只比较package-lock摘要。
+    Invoke-DshRuntimeVerification -Repo $repoPath -Root $source | Out-Null
+  }
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
   Assert-PackageChildPath -Path $target
   if ((Get-Item -LiteralPath $source).PSIsContainer) {
@@ -902,6 +917,10 @@ function Copy-PackageResource {
       Remove-Item -LiteralPath $target -Recurse -Force
     }
     Copy-Item -LiteralPath $source -Destination $target -Force
+  }
+  if ([string]$Resource.id -eq 'tooling.dsh-runtime') {
+    $runtimeReceipt = Invoke-DshRuntimeVerification -Repo $repoPath -Root $target
+    Add-PackageStageRecord -Stage 'dsh-runtime-payload-verification' -Outcome 'completed' -Detail ('files={0}; bytes={1}; lock_sha256={2}' -f $runtimeReceipt.file_count, $runtimeReceipt.total_bytes, $runtimeReceipt.lock_sha256) | Out-Null
   }
   Write-Host "resource $($Resource.id): $source -> $target"
 }

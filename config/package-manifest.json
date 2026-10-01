@@ -217,6 +217,12 @@
   ],
   "resources": [
     {
+      "id": "tooling.dsh-runtime",
+      "source": "tmp/dsh-runtime/windows-x64",
+      "target": "bin/dsh-runtime",
+      "verifier": "dsh-fixed-runtime-v1"
+    },
+    {
       "id": "package.launcher-config",
       "source": "config/package-launcher.json",
       "target": "config/package-launcher.json"
@@ -290,6 +296,11 @@
     "files": [
       "Cargo.toml",
       "Cargo.lock",
+      "config/dsh-runtime-lock.json",
+      "modules/tooling/packages/dsh-plugin-host/package.json",
+      "modules/tooling/packages/dsh-plugin-host/package-lock.json",
+      "scripts/prepare-dsh-runtime.py",
+      "scripts/lib/dsh-runtime.ps1",
       "config/package-manifest.json",
       "config/package-launcher.json",
       "installer/Product.wxs",
@@ -502,6 +513,11 @@
       ".editorconfig"
     ],
     "external_path_dependencies": [
+      {
+        "path": "tmp/dsh-runtime/windows-x64",
+        "reason": "固定官方Node及17个SDK依赖：由config/dsh-runtime-lock.json完整文件表和首次核验的官方归档身份独立校验，复制前后核验；不是第一方源码",
+        "handling": "verified-fixed-runtime-resource"
+      },
       {
         "path": "tmp/tools/dotnet",
         "reason": "build-msi.ps1 在缺少系统 .NET SDK 时使用的本地 dotnet（安装器工具链，非第一方源码）",
