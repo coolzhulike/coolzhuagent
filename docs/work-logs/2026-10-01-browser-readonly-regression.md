@@ -1,3 +1,5 @@
+> **2026-10-01 固定远程下载后续**：真实官方计算器22文件及全部Git目录/文件身份经同一下载函数核验，默认停用安装，修复Windows扩展路径的Node入口崩溃后实际计算96；404/运行中取消确认清理并保留旧状态。最终Core/Web build、插件37、Web主1297（0失败/2忽略，另8+1）及链接8通过；e0524d1两CI均通过，本轮新提交另核。来源解析、正式按钮、固定运行时、启用快照/真实Qwen和DSH特定提交后故障仍开放，063 MSI不含新增代码。Paint仍待安全隔离人工复核，完整绘画未通过。详见[远程下载审查](C:/Users/zhupu/Desktop/coolzhuagent/docs/analysis/2026-10-01-dsh-remote-download-review.md)与063报告；下方为历史时点。
+
 > **2026-10-01 DSH静态安装实施**：真实官方计算器默认停用安装已工程通过，摘要失败保留旧包/登记/设置；安装到新目录后经来源绑定的生产Rust/Node桥实际计算96，回执外真实依赖导入拒绝并清理。三crate离线build、插件37项、Web主回归1297项（0失败/2忽略）、另两个Web二进制8+1及模块链接8项均通过。远程下载/正式市场/固定运行时分发/启用快照/真实Qwen调用仍未接入，0.2.63 MSI不含本次代码，DSH整项开放。正式控制台安全隔离仍待人工复核，Paint未继续。详见[静态安装审查](C:/Users/zhupu/Desktop/coolzhuagent/docs/analysis/2026-10-01-dsh-static-install-review.md)与063报告；下方为历史时点。
 
 > **2026-10-01 063 DH与最新源码核验**：45f2fd6两条远端检查均通过。DH真实Qwen单击遇网页8秒处理、超过宿主3秒释放确认时限，结果unknown并停止/隔离，目标失败；网页随后计数1不追认。观察/关闭均晚于释放，按下至释放期间关闭竞争仍未覆盖。22张原始图片及失败事实已保留，当前安全隔离待人工复核，Paint未继续。supervisor一次尝试预算与持久零次确认投递是不同维度。DSH宿主/进程桥仅工程通过，正式安装/接线仍开放。详见[063报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.63/change-report-and-targeted-test-plan.md)。下方为历史时点。

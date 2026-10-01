@@ -2,6 +2,7 @@ mod action_origin_authority;
 mod app_update;
 mod extension_market;
 mod dsh_market;
+mod dsh_source_download;
 mod plugin_runtime;
 mod mcp_host;
 mod lsp_host;

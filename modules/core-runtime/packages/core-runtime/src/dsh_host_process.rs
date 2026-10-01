@@ -62,6 +62,34 @@ fn error(code: &str, message: impl Into<String>) -> HostError {
 }
 fn io_error(cause: io::Error) -> HostError { error("host_io_failed", cause.to_string()) }
 
+/// Windows canonicalize 的扩展路径可用于文件IO，但 Node 的入口模块解析不接受该前缀。
+/// 只转换实际磁盘/UNC前缀，保留 OsStr 内容；不放行其它设备命名空间。
+fn node_module_path(path: &Path) -> Result<PathBuf, HostError> {
+    #[cfg(windows)]
+    {
+        use std::path::{Component, Prefix};
+        let mut components = path.components();
+        if let Some(Component::Prefix(prefix)) = components.next() {
+            let mut normalized = match prefix.kind() {
+                Prefix::VerbatimDisk(disk) => PathBuf::from(format!("{}:\\", char::from(disk))),
+                Prefix::VerbatimUNC(server, share) => {
+                    let mut root = PathBuf::from(r"\\");
+                    root.push(server);
+                    root.push(share);
+                    root
+                }
+                Prefix::Verbatim(_) | Prefix::DeviceNS(_) => return Err(error("host_request_invalid", "Node入口不能使用设备命名空间路径")),
+                _ => return Ok(path.to_path_buf()),
+            };
+            for component in components {
+                if !matches!(component, Component::RootDir) { normalized.push(component.as_os_str()); }
+            }
+            return Ok(normalized);
+        }
+    }
+    Ok(path.to_path_buf())
+}
+
 fn read_message(directory: &Path, name: &str) -> Result<Option<Value>, HostError> {
     let file = directory.join(name);
     let metadata = match fs::symlink_metadata(&file) {
@@ -145,6 +173,8 @@ fn exchange(paths: &HostPaths, receipt: &Value, config: &Value, context: &CallCo
         || !paths.plugin_root.is_absolute() || !paths.plugin_root.is_dir() {
         return Err(error("host_request_invalid", "宿主路径、时限或父运行身份无效"));
     }
+    let entry_script = node_module_path(&paths.entry_script)?;
+    let plugin_root = node_module_path(&paths.plugin_root)?;
     let directory = tempfile::Builder::new().prefix("coolzhu-dsh-call-").tempdir().map_err(io_error)?;
     let mut nonce_bytes = [0_u8; 24];
     getrandom::fill(&mut nonce_bytes).map_err(|_| error("host_identity_failed", "无法生成调用身份"))?;
@@ -158,10 +188,10 @@ fn exchange(paths: &HostPaths, receipt: &Value, config: &Value, context: &CallCo
     };
     publish(directory.path(), "request.json", &envelope(json!({
         "mode": if execution.is_some() {"execute"} else {"describe"},
-        "deadline_ms":deadline_ms, "root":paths.plugin_root, "receipt":receipt, "config":config,
+        "deadline_ms":deadline_ms, "root":plugin_root, "receipt":receipt, "config":config,
     })))?;
     let mut command = Command::new(&paths.node_binary);
-    command.arg(&paths.entry_script).arg(directory.path()).current_dir(&paths.plugin_root)
+    command.arg(&entry_script).arg(directory.path()).current_dir(&paths.plugin_root)
         .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     // 不继承模型密钥、预载脚本或用户搜索路径；仅保留 Node/Windows 运行需要的系统和临时目录。
     let environment = ["SystemRoot", "WINDIR", "TEMP", "TMP"].into_iter()

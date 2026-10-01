@@ -81,11 +81,12 @@ impl DshPackage {
         Ok(())
     }
 
-    fn source_path(root: &Path, relative: &str) -> Result<PathBuf, PluginError> {
+    /// 下载层与静态安装共享路径规则，落盘前拒绝 Windows 别名、设备及宿主目录。
+    pub fn validate_source_path(relative: &str) -> Result<(), PluginError> {
         if relative.is_empty()
             || relative.len() > 240
             || relative.chars().any(char::is_control)
-            || relative.contains(['\\', ':'])
+            || relative.contains(['\\', ':', '<', '>', '"', '|', '?', '*'])
             || relative
                 .split('/')
                 .any(|p| p.is_empty() || p == "." || p == ".." || p.ends_with(['.', ' ']))
@@ -94,9 +95,38 @@ impl DshPackage {
             || relative
                 .split('/')
                 .any(|p| matches!(p.to_ascii_lowercase().as_str(), "node_modules" | ".git"))
+            || relative.split('/').any(|part| {
+                let stem = part
+                    .split('.')
+                    .next()
+                    .unwrap_or_default()
+                    .to_ascii_uppercase();
+                matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL")
+                    || ["COM", "LPT"].iter().any(|prefix| {
+                        stem.strip_prefix(prefix).is_some_and(|suffix| {
+                            suffix.chars().count() == 1
+                                && suffix
+                                    .chars()
+                                    .next()
+                                    .is_some_and(|c| matches!(c, '1'..='9' | '¹' | '²' | '³'))
+                        })
+                    })
+            })
         {
             return Err(invalid("DSH 来源文件路径无效或占用宿主登记文件"));
         }
+        Ok(())
+    }
+
+    pub fn validate_source_root(root: &Path) -> Result<(), PluginError> {
+        if !root.is_absolute() || !root.is_dir() {
+            return Err(invalid("DSH 来源目录须为绝对路径"));
+        }
+        reject_reparse_chain(root)
+    }
+
+    fn source_path(root: &Path, relative: &str) -> Result<PathBuf, PluginError> {
+        Self::validate_source_path(relative)?;
         let result = root.join(relative);
         reject_reparse_chain(&result)?;
         let metadata = fs::symlink_metadata(&result)?;
@@ -120,15 +150,12 @@ impl DshPackage {
 
     pub fn verify(&self, root: &Path) -> Result<(), PluginError> {
         self.validate_identity()?;
-        if !root.is_absolute() || !root.is_dir() {
-            return Err(invalid("DSH 来源目录须为绝对路径"));
-        }
-        reject_reparse_chain(root)?;
+        Self::validate_source_root(root)?;
         let mut seen = BTreeSet::new();
         let mut total = 0_u64;
         let mut metadata = None;
         for item in &self.receipt.files {
-            if !seen.insert(item.path.to_ascii_lowercase()) {
+            if !seen.insert(item.path.to_lowercase()) {
                 return Err(invalid("DSH 文件身份重复"));
             }
             let bytes = Self::read_file(root, item)?;
