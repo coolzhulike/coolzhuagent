@@ -1,0 +1,128 @@
+{
+  "version": "0.2.54",
+  "msi": "dist/CoolzhuAgent-0.2.54.msi",
+  "msi_sha256": "805593866db73fb148d7f56348a93073f3aca5c339c8edb48f76b793cba3cc27",
+  "msi_bytes": 247000445,
+  "report_id": "pkg-report-release-20261001-151412194-e6facb87",
+  "source_snapshot_digest": "2de4f1d92dbf4f3de4621b1429923b99410b0f217bff5a12dd8b4a765c6bd644",
+  "payload_digest": "14946a1d04e2852ab925a19b11e7e9c40760de996efc7875f18533e93c898e1a",
+  "file_count": 859,
+  "gates": [
+    {
+      "gate": "declared_source_snapshot_scope",
+      "result": "pass",
+      "evidence": "declared_by=config/package-manifest.json#source_snapshot; roots=16",
+      "note": ""
+    },
+    {
+      "gate": "source_input_stability",
+      "result": "pass",
+      "evidence": "pre=2de4f1d92dbf4f3de4621b1429923b99410b0f217bff5a12dd8b4a765c6bd644 post=2de4f1d92dbf4f3de4621b1429923b99410b0f217bff5a12dd8b4a765c6bd644；两次采样逐文件一致",
+      "note": ""
+    },
+    {
+      "gate": "declared_roots_present",
+      "result": "pass",
+      "evidence": "声明 roots 全部存在（范围可枚举）",
+      "note": ""
+    },
+    {
+      "gate": "build_input_stability",
+      "result": "pass",
+      "evidence": "pre=0a53e55ad1379c87d8a55b5edfcb07b452992f7c6d05b32032f202710c14f36f post=0a53e55ad1379c87d8a55b5edfcb07b452992f7c6d05b32032f202710c14f36f",
+      "note": ""
+    },
+    {
+      "gate": "artifact_provenance",
+      "result": "pass",
+      "evidence": "全部 10 个产物的来源可确认",
+      "note": ""
+    },
+    {
+      "gate": "frozen_inputs",
+      "result": "pass",
+      "evidence": "mode=self-frozen-at-build-start; freeze_id=0a53e55ad1379c87d8a55b5edfcb07b452992f7c6d05b32032f202710c14f36f",
+      "note": "未提供 -FreezeRecordPath：本次构建在自身开始处自冻结输入（单阶段运行）；稳定性由构建前后两次采样逐项一致证明"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "gui-web.web-console",
+      "target": "bin/coolzhu-web-console.exe",
+      "sha256": "65f4123d86b66b0a12c6e9a0081fa208a0238e2e24bdeda9fc0dc011b259d484",
+      "source_sha256": "65f4123d86b66b0a12c6e9a0081fa208a0238e2e24bdeda9fc0dc011b259d484",
+      "verified": true
+    },
+    {
+      "id": "gui-web.browser-native-host",
+      "target": "bin/coolzhu-browser-native-host.exe",
+      "sha256": "5567cd928904ebb851a4144f02243c20ab82e030ec45854c21ac1ba85dae1cec",
+      "source_sha256": "5567cd928904ebb851a4144f02243c20ab82e030ec45854c21ac1ba85dae1cec",
+      "verified": true
+    },
+    {
+      "id": "gui-web.clawbot-sidecar",
+      "target": "bin/coolzhu-clawbot-sidecar.exe",
+      "sha256": "7c9cba54d8dfc5248865414748e2e0bd9340839c888c2267007e2b90caa32fc9",
+      "source_sha256": "7c9cba54d8dfc5248865414748e2e0bd9340839c888c2267007e2b90caa32fc9",
+      "verified": true
+    },
+    {
+      "id": "cli.command-line",
+      "target": "bin/coolzhu-cli.exe",
+      "sha256": "569631a86f101eb7fefe29162345d6e1ce4db04c5171108d7232c5750ac0e7c1",
+      "source_sha256": "569631a86f101eb7fefe29162345d6e1ce4db04c5171108d7232c5750ac0e7c1",
+      "verified": true
+    },
+    {
+      "id": "computer-use.preflight-check",
+      "target": "bin/coolzhu-computer-use-check.exe",
+      "sha256": "dfdbfcb7ea19143fdfd7b324815a229ddc6516c2298e75d7843a28e028e9e89a",
+      "source_sha256": "dfdbfcb7ea19143fdfd7b324815a229ddc6516c2298e75d7843a28e028e9e89a",
+      "verified": true
+    },
+    {
+      "id": "vision.smoke",
+      "target": "bin/coolzhu-vision-smoke.exe",
+      "sha256": "51630a9cc0e23781126db3d45fd841f374b050ffdcb019d94e104164b0954499",
+      "source_sha256": "51630a9cc0e23781126db3d45fd841f374b050ffdcb019d94e104164b0954499",
+      "verified": true
+    },
+    {
+      "id": "vision.latest-desktop",
+      "target": "bin/coolzhu-latest-desktop-vision.exe",
+      "sha256": "7fdce7deba82064a5078119b41acea776e46caec4fe22c410c48b2c5dae42cc8",
+      "source_sha256": "7fdce7deba82064a5078119b41acea776e46caec4fe22c410c48b2c5dae42cc8",
+      "verified": true
+    },
+    {
+      "id": "gui-desktop.tauri-shell",
+      "target": "bin/coolzhu-tauri-shell.exe",
+      "sha256": "37ac54c9b7a0289ac38910e1e406d88b48ac4315b54f6c3da7a513ad24ef8d7e",
+      "source_sha256": "37ac54c9b7a0289ac38910e1e406d88b48ac4315b54f6c3da7a513ad24ef8d7e",
+      "verified": true
+    },
+    {
+      "id": "gui-desktop.webview2-loader",
+      "target": "bin/WebView2Loader.dll",
+      "sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+      "source_sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+      "verified": true
+    },
+    {
+      "id": "package.app-launcher",
+      "target": "COOLZHU-AGENT.exe",
+      "sha256": "903b8ac66989041760cdd76ddd623ac6c1b576a3b7a1487a63e08b9c20e8c9c0",
+      "source_sha256": "903b8ac66989041760cdd76ddd623ac6c1b576a3b7a1487a63e08b9c20e8c9c0",
+      "verified": true
+    }
+  ],
+  "archive_hashes_verified": true,
+  "safety_safe": true,
+  "package_root": "tmp/candidate-054-package",
+  "payload_files_verified": true,
+  "payload_total_bytes": 324494310,
+  "installed": false,
+  "running_candidate": "0.2.53",
+  "browser_use_accepted": false
+}

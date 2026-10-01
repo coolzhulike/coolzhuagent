@@ -1,0 +1,26 @@
+[
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d0bb90924007090b80f442ce379b5fb4c28835167484f230fa969e8ef3c3576b.png",
+    "target": "07-paint-bx-native-verification.png",
+    "sha256": "d0bb90924007090b80f442ce379b5fb4c28835167484f230fa969e8ef3c3576b",
+    "bytes": 296298
+  },
+  {
+    "source": "tmp\\browser-use-priority\\activity-056-PAINT-BX-live\\desktop-active.png",
+    "target": "08-paint-bx-desktop-active.png",
+    "sha256": "c057f3bb4d6cd06b43013a765df4bdc6fa7100f8eb0b026b3dfc3305f0f8caaa",
+    "bytes": 683515
+  },
+  {
+    "source": "tmp\\browser-use-priority\\activity-056-PAINT-BX-live\\activity-during.json",
+    "target": "paint-bx-activity-during.json",
+    "sha256": "268ee56a1d3cf1ec6d49d3f487a1191108029a4175ba0ff6b4898af5e3c10508",
+    "bytes": 45
+  },
+  {
+    "source": "tmp\\browser-use-priority\\activity-056-PAINT-BX-live\\capture-during.json",
+    "target": "paint-bx-capture-during.json",
+    "sha256": "c41c886b7cd0c312dd49d14bc3e06cf8bc1a12757927196e87d8b8da0f4a4097",
+    "bytes": 210
+  }
+]

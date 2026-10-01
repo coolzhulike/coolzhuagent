@@ -1,0 +1,97 @@
+[
+  {
+    "ts_ms": 1790844438806,
+    "level": "INFO",
+    "app": "coolzhu-tauri-shell",
+    "module": "tauri-shell",
+    "event": "startup_performance_window_created",
+    "message": "Startup performance window was created",
+    "fields": {
+      "pid": "18636"
+    }
+  },
+  {
+    "ts_ms": 1790844439009,
+    "level": "INFO",
+    "app": "coolzhu-tauri-shell",
+    "module": "tauri-shell",
+    "event": "startup_performance_phase",
+    "message": "Startup performance lifecycle report",
+    "fields": {
+      "phase": "started",
+      "mode": "daily",
+      "reason": "",
+      "reduced_motion": "false",
+      "page_elapsed_ms": "0",
+      "host_elapsed_ms": "516",
+      "frame_count": "0",
+      "performance_visible": "true"
+    }
+  },
+  {
+    "ts_ms": 1790844439017,
+    "level": "INFO",
+    "app": "coolzhu-tauri-shell",
+    "module": "tauri-shell",
+    "event": "startup_performance_phase",
+    "message": "Startup performance lifecycle report",
+    "fields": {
+      "phase": "assets_ready",
+      "mode": "daily",
+      "reason": "",
+      "reduced_motion": "false",
+      "page_elapsed_ms": "167",
+      "host_elapsed_ms": "523",
+      "frame_count": "0",
+      "performance_visible": "true"
+    }
+  },
+  {
+    "ts_ms": 1790844439225,
+    "level": "INFO",
+    "app": "coolzhu-tauri-shell",
+    "module": "tauri-shell",
+    "event": "startup_performance_phase",
+    "message": "Startup performance lifecycle report",
+    "fields": {
+      "phase": "first_frame",
+      "mode": "daily",
+      "reason": "",
+      "reduced_motion": "false",
+      "page_elapsed_ms": "380",
+      "host_elapsed_ms": "732",
+      "frame_count": "1",
+      "performance_visible": "true"
+    }
+  },
+  {
+    "ts_ms": 1790844445722,
+    "level": "INFO",
+    "app": "coolzhu-tauri-shell",
+    "module": "tauri-shell",
+    "event": "startup_performance_phase",
+    "message": "Startup performance lifecycle report",
+    "fields": {
+      "phase": "finished",
+      "mode": "daily",
+      "reason": "completed",
+      "reduced_motion": "false",
+      "page_elapsed_ms": "6876",
+      "host_elapsed_ms": "7228",
+      "frame_count": "1487",
+      "performance_visible": "true"
+    }
+  },
+  {
+    "ts_ms": 1790844445759,
+    "level": "INFO",
+    "app": "coolzhu-tauri-shell",
+    "module": "tauri-shell",
+    "event": "startup_performance_handoff",
+    "message": "Startup performance handed off to console",
+    "fields": {
+      "route": "reported-finish",
+      "console_visible": "true"
+    }
+  }
+]

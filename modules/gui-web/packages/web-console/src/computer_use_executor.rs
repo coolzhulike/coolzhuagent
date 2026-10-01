@@ -1036,7 +1036,7 @@ impl<'a> ComputerUseExecutor<'a> {
             .map_or(ComputerUseSurface::Auto, |request| request.surface);
 
         let request = match parsed {
-            Ok(request) => normalize_request_for_verification(request),
+            Ok(request) => request,
             Err(error) => {
                 let result = terminal_result(
                     identity,
@@ -1062,6 +1062,13 @@ impl<'a> ComputerUseExecutor<'a> {
             }
         };
 
+        if let Err(error) = self.turn_scope.validate(&request) {
+            let result = terminal_result(identity, request.surface, ComputerUseStage::IntentGuard, error);
+            self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
+            return result;
+        }
+
+        let request = normalize_request_for_verification(request);
         if let Err(error) = request.validate() {
             let result = terminal_result(
                 identity,
@@ -1069,12 +1076,6 @@ impl<'a> ComputerUseExecutor<'a> {
                 ComputerUseStage::IntentGuard,
                 limit_input_correction(error, invalid_inputs),
             );
-            self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
-            return result;
-        }
-
-        if let Err(error) = self.turn_scope.validate(&request) {
-            let result = terminal_result(identity, request.surface, ComputerUseStage::IntentGuard, error);
             self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
             return result;
         }
@@ -2248,7 +2249,7 @@ pub(crate) async fn execute_with_current_runtime(
         ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets(), workspace)
             .with_cancelled(cancelled)
             .with_root_budget(root_budget)
-            .with_turn_scope(parent.computer_use_turn_scope)
+            .with_turn_scope(parent.computer_use_turn_scope.clone())
             .with_native_browser_parent(adapters.native_browser_parent.clone());
     let executor = match conversation_scope {
         Some(scope) => executor.with_conversation_scope(scope),

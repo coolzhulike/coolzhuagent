@@ -1,0 +1,63 @@
+{
+  "source": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\browser-use-priority\\startup-056-joint-final",
+  "archived_frames": [
+    {
+      "file": "frame-01.png",
+      "capture_modified_at": 1790844439670,
+      "at": 1790844439771,
+      "sha256": "1ce2569e82c3e0b160ae23636e726e7b9da0b2be849c76cf3c3312d980f154ae",
+      "bytes": 1230091
+    },
+    {
+      "file": "frame-02.png",
+      "capture_modified_at": 1790844440612,
+      "at": 1790844440706,
+      "sha256": "27ffb0ec28f47250be6f8b289fe30ad63ee5966ce7a35025ad67cf7162981054",
+      "bytes": 4653179
+    },
+    {
+      "file": "frame-03.png",
+      "capture_modified_at": 1790844441514,
+      "at": 1790844441596,
+      "sha256": "399b0595c7c6f0040027b4f7785a14f29bbb9eb8efac7e9c94f18f7da7ec4be4",
+      "bytes": 4842499
+    },
+    {
+      "file": "frame-04.png",
+      "capture_modified_at": 1790844442437,
+      "at": 1790844442571,
+      "sha256": "b68b7a5acabfb62a902db3864d4bc1652d8bcbffdc7c6da65e7e7dfaab67a468",
+      "bytes": 4904267
+    },
+    {
+      "file": "frame-05.png",
+      "capture_modified_at": 1790844443405,
+      "at": 1790844443465,
+      "sha256": "cb936c94559cb6029d853da8cf364ed6f494446c3af409e612c8d3dfbde596c7",
+      "bytes": 4897222
+    },
+    {
+      "file": "frame-06.png",
+      "capture_modified_at": 1790844444315,
+      "at": 1790844444371,
+      "sha256": "88a75158fa85a0cf0fcb3dd04574bce1074d11f2e2ed0a5fe2a9661212a9b638",
+      "bytes": 4835496
+    },
+    {
+      "file": "frame-07.png",
+      "capture_modified_at": 1790844445196,
+      "at": 1790844445237,
+      "sha256": "d093a299d2fd396ebb8b2da3eaa842872be810c0316afac443a8a7bbaee15396",
+      "bytes": 4609822
+    },
+    {
+      "file": "frame-08.png",
+      "capture_modified_at": 1790844446024,
+      "at": 1790844446094,
+      "sha256": "e0b8ad091b531c41dc6b4664ace6238b532f9bb3ba6c0ec75947d10a2d990a83",
+      "bytes": 2404388
+    }
+  ],
+  "captured_frames": 24,
+  "note": "保存首八张原始全桌面截图，其后十六张均为控制台；不裁切、不补帧、不重绘。"
+}

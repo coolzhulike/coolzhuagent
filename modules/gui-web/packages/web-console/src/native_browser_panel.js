@@ -1,6 +1,6 @@
 /* 桌面右栏浏览器：网页驻留于无宿主权限的独立 WebView，DOM 只负责位置与导航。 */
 window.CoolzhuNativeBrowserPanel = (() => {
-  let adapter, current = null, serial = Promise.resolve(), generation = 0, frameRequested = false;
+  let adapter, current = null, closedTarget = null, serial = Promise.resolve(), generation = 0, frameRequested = false;
   const invoke = () => window.__TAURI__?.core?.invoke;
   const enqueue = operation => { const next = serial.then(operation); serial = next.catch(() => {}); return next; };
   const send = command => invoke()("browser_panel_command", {command});
@@ -82,6 +82,8 @@ window.CoolzhuNativeBrowserPanel = (() => {
   }
   async function close() {
     const previous = current; current = null; generation++;
+    // 显式关闭销毁原生资源；仅保留同工程、同聊天室再次打开时的地址。
+    if (previous) closedTarget = {contextKey:previous.contextKey,url:previous.url};
     if (!previous || !invoke()) return;
     await enqueue(() => send({action:"close",scope:previous.scope}));
   }
@@ -95,10 +97,17 @@ window.CoolzhuNativeBrowserPanel = (() => {
     });
   }
   function resume() {
-    if (current?.contextKey === JSON.stringify(adapter.scope())) scheduleLayout();
+    const contextKey = JSON.stringify(adapter.scope());
+    if (current?.contextKey === contextKey) {
+      scheduleLayout();
+    } else if (!current && closedTarget?.contextKey === contextKey) {
+      // 只响应打开浏览器的界面操作；新视图重新登记资格，不续发旧输入。
+      void navigate(closedTarget.url).catch(error => adapter.status(`浏览器打开失败：${error.message}`));
+    }
   }
   async function navigate(url) {
     if (!invoke()) throw new Error("当前窗口不支持桌面浏览器");
+    closedTarget = null;
     const contextKey = JSON.stringify(adapter.scope());
     if (current?.contextKey === contextKey) {
       current.url = url;

@@ -21081,6 +21081,8 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         messages,
         tasks: Vec::new(),
         user_content,
+        // 原始本轮正文冻结执行边界；拼接的引用历史、群发上下文不得创建本轮工具契约。
+        computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::from_current_user(text),
         chat_room_id,
         conversation_session_id,
         attachment_count,
@@ -31749,6 +31751,7 @@ struct PreparedChatDispatch {
     #[allow(dead_code)]
     tasks: Vec<AgentTaskDto>,
     user_content: String,
+    computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope,
     chat_room_id: String,
     conversation_session_id: Option<String>,
     attachment_count: usize,

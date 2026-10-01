@@ -1,0 +1,49 @@
+{
+  "started_at": 1790844109357,
+  "frames": [
+    {
+      "file": "11-startup-daily-01.jpg",
+      "at": 1790844114688,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 57608940,
+        "title": "COOLZHU"
+      },
+      "width": 1443,
+      "height": 899
+    },
+    {
+      "file": "11-startup-daily-02.jpg",
+      "at": 1790844115190,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 57608940,
+        "title": "COOLZHU"
+      },
+      "width": 1443,
+      "height": 899
+    },
+    {
+      "file": "11-startup-daily-03.jpg",
+      "at": 1790844115640,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 57608940,
+        "title": "COOLZHU"
+      },
+      "width": 1443,
+      "height": 899
+    },
+    {
+      "file": "11-startup-daily-04.jpg",
+      "at": 1790844116098,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 57608940,
+        "title": "COOLZHU"
+      },
+      "width": 1443,
+      "height": 899
+    }
+  ]
+}

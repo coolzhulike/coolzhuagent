@@ -1,0 +1,125 @@
+{
+  "duration_seconds": 25.0424197,
+  "frames": [
+    {
+      "file": "frame-01.png",
+      "capture_modified_at": 1790844439670,
+      "at": 1790844439771
+    },
+    {
+      "file": "frame-02.png",
+      "capture_modified_at": 1790844440612,
+      "at": 1790844440706
+    },
+    {
+      "file": "frame-03.png",
+      "capture_modified_at": 1790844441514,
+      "at": 1790844441596
+    },
+    {
+      "file": "frame-04.png",
+      "capture_modified_at": 1790844442437,
+      "at": 1790844442571
+    },
+    {
+      "file": "frame-05.png",
+      "capture_modified_at": 1790844443405,
+      "at": 1790844443465
+    },
+    {
+      "file": "frame-06.png",
+      "capture_modified_at": 1790844444315,
+      "at": 1790844444371
+    },
+    {
+      "file": "frame-07.png",
+      "capture_modified_at": 1790844445196,
+      "at": 1790844445237
+    },
+    {
+      "file": "frame-08.png",
+      "capture_modified_at": 1790844446024,
+      "at": 1790844446094
+    },
+    {
+      "file": "frame-09.png",
+      "capture_modified_at": 1790844446828,
+      "at": 1790844446950
+    },
+    {
+      "file": "frame-10.png",
+      "capture_modified_at": 1790844447685,
+      "at": 1790844447808
+    },
+    {
+      "file": "frame-11.png",
+      "capture_modified_at": 1790844448545,
+      "at": 1790844448604
+    },
+    {
+      "file": "frame-12.png",
+      "capture_modified_at": 1790844449349,
+      "at": 1790844449398
+    },
+    {
+      "file": "frame-13.png",
+      "capture_modified_at": 1790844450148,
+      "at": 1790844450210
+    },
+    {
+      "file": "frame-14.png",
+      "capture_modified_at": 1790844450953,
+      "at": 1790844451000
+    },
+    {
+      "file": "frame-15.png",
+      "capture_modified_at": 1790844451755,
+      "at": 1790844451812
+    },
+    {
+      "file": "frame-16.png",
+      "capture_modified_at": 1790844452555,
+      "at": 1790844452627
+    },
+    {
+      "file": "frame-17.png",
+      "capture_modified_at": 1790844453376,
+      "at": 1790844453460
+    },
+    {
+      "file": "frame-18.png",
+      "capture_modified_at": 1790844454214,
+      "at": 1790844454344
+    },
+    {
+      "file": "frame-19.png",
+      "capture_modified_at": 1790844455088,
+      "at": 1790844455135
+    },
+    {
+      "file": "frame-20.png",
+      "capture_modified_at": 1790844455879,
+      "at": 1790844455921
+    },
+    {
+      "file": "frame-21.png",
+      "capture_modified_at": 1790844456658,
+      "at": 1790844456725
+    },
+    {
+      "file": "frame-22.png",
+      "capture_modified_at": 1790844457489,
+      "at": 1790844457548
+    },
+    {
+      "file": "frame-23.png",
+      "capture_modified_at": 1790844458290,
+      "at": 1790844458423
+    },
+    {
+      "file": "frame-24.png",
+      "capture_modified_at": 1790844459188,
+      "at": 1790844459225
+    }
+  ]
+}
