@@ -74,7 +74,10 @@ window.CoolzhuNativeBrowserPanel = (() => {
   function init(api) {
     if (adapter) return; adapter = api;
     if (!invoke()) return;
-    window.__TAURI__?.event?.listen("browser-panel-state", event => display(event.payload)).catch(error => adapter.status(`浏览器状态监听不可用：${error.message}`));
+    // 桌面壳仅向主 WebView 发送状态；全局 listen 的 Any 目标收不到该定向事件。
+    const nativeView = window.__TAURI__?.webview?.getCurrentWebview?.();
+    if (nativeView) nativeView.listen("browser-panel-state", event => display(event.payload)).catch(error => adapter.status(`浏览器状态监听不可用：${error.message}`));
+    else adapter.status("浏览器状态监听不可用");
     const frame = adapter.frame(); if (frame) new ResizeObserver(scheduleLayout).observe(frame);
     new MutationObserver(scheduleLayout).observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["hidden","class","open","style","data-right-collapsed","aria-hidden","inert"]});
     window.addEventListener("resize", scheduleLayout);
