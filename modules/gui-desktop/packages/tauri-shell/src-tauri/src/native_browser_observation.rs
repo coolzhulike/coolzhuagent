@@ -71,7 +71,7 @@ pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observati
         let name = bounded_text(node.get("name"),256);
         if role.is_empty() && name.is_empty() { continue; }
         if index >= page.nodes.len() { break; }
-        if ["RootWebArea","button","link","textbox","checkbox","radio","combobox"].contains(&role.as_str())
+        if ["RootWebArea","button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str())
             && node.get("frameId").and_then(serde_json::Value::as_str).is_none_or(|frame| frame == stamp.frame_id) {
             if let Some(backend) = node.get("backendDOMNodeId").and_then(serde_json::Value::as_i64).filter(|id| ordinary_nodes.contains(id)) {
                 candidates.push((index,backend,role,name));

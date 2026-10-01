@@ -4,19 +4,26 @@ use native_browser_protocol::{PanelClickTarget, PanelInputCommand, PanelInputOut
 use tauri::{AppHandle, Manager};
 use super::native_browser_target::{self, VerifiedTarget};
 
-#[derive(Clone,Copy,PartialEq,Eq)]
-enum Operation { Click, Scroll { direction: ScrollDirection, amount: u8 } }
+#[derive(Clone,PartialEq,Eq)]
+enum Operation { Click, Scroll { direction: ScrollDirection, amount: u8 }, Text(String), Navigate(String) }
 impl Operation {
     fn for_command(command: &PanelInputCommand) -> Self {
         match command {
             PanelInputCommand::PrepareClick {..} | PanelInputCommand::ExecuteClick {..} => Self::Click,
             PanelInputCommand::PrepareScroll {direction,amount,..} | PanelInputCommand::ExecuteScroll {direction,amount,..} => Self::Scroll {direction:*direction,amount:*amount},
+            PanelInputCommand::PrepareText {text,..} | PanelInputCommand::ExecuteText {text,..} => Self::Text(text.clone()),
+            PanelInputCommand::PrepareNavigate {url,..} | PanelInputCommand::ExecuteNavigate {url,..} => Self::Navigate(url.clone()),
         }
     }
-    async fn verify(self,app:&AppHandle,request:&PanelInputRequest,target:&PanelClickTarget) -> Result<VerifiedTarget,String> {
+    async fn verify(&self,app:&AppHandle,request:&PanelInputRequest,target:&PanelClickTarget) -> Result<VerifiedTarget,String> {
         match self {
             Self::Click => native_browser_target::verify(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
             Self::Scroll {..} => native_browser_target::verify_viewport(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
+            Self::Text(_) => super::native_browser_editor::verify(app,&request.resource,target).await,
+            Self::Navigate(url) => {
+                super::browser_panel::native_destination(url)?;
+                native_browser_target::verify_document(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await
+            },
         }
     }
 }
@@ -37,11 +44,12 @@ fn random_id() -> Result<String,String> {
 pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInputRequest) -> PanelInputReply {
     let mut reply = PanelInputReply {host_id,request_id:request.request_id.clone(),resource:request.resource.clone(),
         outcome:PanelInputOutcome::NotDispatched,ticket_id:None,expires_at_unix_ms:None,
-        attempt_id:None,executor_instance_id:None,down_confirmed:false,up_confirmed:false,error:None};
+        attempt_id:None,executor_instance_id:None,down_confirmed:false,up_confirmed:false,navigation:None,error:None};
     if !request.valid_shape() { reply.error=Some("native_input_invalid".into()); return reply; }
     let operation=Operation::for_command(&request.command);
     match &request.command {
-        PanelInputCommand::PrepareClick {target} | PanelInputCommand::PrepareScroll {target,..} => {
+        PanelInputCommand::PrepareClick {target} | PanelInputCommand::PrepareScroll {target,..}
+        | PanelInputCommand::PrepareText {target,..} | PanelInputCommand::PrepareNavigate {target,..} => {
             let result = operation.verify(app,&request,target).await;
             match result {
                 Ok(verified) => {
@@ -63,7 +71,9 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
             }
         },
         PanelInputCommand::ExecuteClick {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
-        | PanelInputCommand::ExecuteScroll {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..} => {
+        | PanelInputCommand::ExecuteScroll {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
+        | PanelInputCommand::ExecuteText {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
+        | PanelInputCommand::ExecuteNavigate {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..} => {
             reply.ticket_id=Some(ticket_id.clone());reply.attempt_id=Some(attempt_id.clone());reply.executor_instance_id=Some(executor_instance_id.clone());
             if IN_FLIGHT.compare_exchange(false,true,std::sync::atomic::Ordering::SeqCst,std::sync::atomic::Ordering::SeqCst).is_err() {
                 reply.error=Some("native_input_busy".into());return reply;
@@ -79,13 +89,19 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
             let checked = operation.verify(app,&request,target).await;
             let verified = match checked {
                 Ok(value) if value.document == ticket.verified.document && value.node.backend_node == ticket.verified.node.backend_node
-                    && value.x == ticket.verified.x && value.y == ticket.verified.y && value.viewport == ticket.verified.viewport => value,
+                    && value.x == ticket.verified.x && value.y == ticket.verified.y && value.viewport == ticket.verified.viewport
+                    && value.editor == ticket.verified.editor => value,
                 Ok(_) => { reply.error=Some("native_browser_node_changed".into());return reply; },
                 Err(error) => { reply.error=Some(error);return reply; },
             };
             let (outcome,down,up) = match operation {
                 Operation::Click => click(app,verified,*expires_at_unix_ms).await,
                 Operation::Scroll {direction,amount} => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
+                Operation::Text(text) => (super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await,false,false),
+                Operation::Navigate(url) => {
+                    let (outcome,navigation)=super::native_browser_edit_input::navigate(app,verified,url,*expires_at_unix_ms).await;
+                    reply.navigation=navigation;(outcome,false,false)
+                },
             };
             let _ = super::native_browser_nodes::retire();
             reply.outcome=outcome;reply.down_confirmed=down;reply.up_confirmed=up;

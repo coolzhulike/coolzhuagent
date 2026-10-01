@@ -2042,7 +2042,7 @@ impl ComputerUseAdapterFactory for ProductionAdapterFactory {
                         crate::native_browser_adapter::NativePanelReadBridge::new(parent.clone(), self.cancelled.clone()),
                         self.browser_policy,
                     );
-                    return Ok(DynComputerUseAdapter::new(if parent.computer_use_turn_scope.native_browser_read_only() {adapter.read_only()} else {adapter.native_click_scroll()}));
+                    return Ok(DynComputerUseAdapter::new(if parent.computer_use_turn_scope.native_browser_read_only() {adapter.read_only()} else {adapter.native_interaction()}));
                 }
                 BrowserNativeBridge::preflight()?;
                 Ok(DynComputerUseAdapter::new(

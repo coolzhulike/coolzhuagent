@@ -23,8 +23,12 @@ pub(super) fn observed_page(request: &ComputerUseRequest, observation: &Observat
     let observed: PageObservation = serde_json::from_value(json!({"url":page["url"],"title":page["title"],
         "nodes":page["nodes"],"truncated":page["truncated"],"viewport":page["viewport"]}))
         .map_err(|_| unavailable("native page facts are invalid"))?;
+    let requested=request.target.as_ref().and_then(|target| target.url.as_deref());
+    let authorized_navigation=interactive && page.get("authorized_navigation").and_then(|value|
+        serde_json::from_value::<crate::native_browser_adapter::AuthorizedNavigation>(value.clone()).ok())
+        .is_some_and(|nav|Some(nav.original_url.as_str())==requested && nav.matches_page(page));
     if !observed.valid_shape() || observed.nodes.is_empty()
-        || request.target.as_ref().and_then(|target| target.url.as_deref()) != Some(observed.url.as_str()) {
+        || (requested != Some(observed.url.as_str()) && !authorized_navigation) {
         return Err(unavailable("observed page does not match the requested URL or has no facts"));
     }
     Ok(observed)
@@ -148,6 +152,30 @@ mod tests {
         fresh.state = page;
         fresh.state.as_object_mut().unwrap().remove("host_id");
         assert!(ensure_fresh(&observation, &fresh).is_err());
+    }
+
+    #[test]
+    fn navigation_url_change_needs_exact_settled_source_and_destination() {
+        let request:ComputerUseRequest=serde_json::from_value(json!({"objective":"导航","surface":"browser","target":{"url":"https://example.invalid/"},"success_criteria":["新页"]})).unwrap();
+        let source=native_browser_protocol::PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:1};
+        let mut destination=source.clone();destination.navigation_revision=2;
+        let nav=crate::native_browser_adapter::AuthorizedNavigation {original_url:"https://example.invalid/".into(),host_id:"native-host-one".into(),source,
+            receipt:native_browser_protocol::PanelNavigationReceipt {destination,url:"https://example.invalid/next".into()}};
+        let mut observation=Observation {generation:2,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),evidence:vec!["native-observation:2".into()],
+            state:json!({"page":{"backend":"native-panel","read_only_request":false,"input_supported":true,"url":"https://example.invalid/next","title":"新页",
+                "nodes":[{"role":"heading","name":"新页"}],"truncated":false,"host_id":"native-host-one","workspace_path":"workspace","room_id":"room-1",
+                "resource":"browser-panel-1","generation":1,"navigation_revision":2}})};
+        assert!(observed_page(&request,&observation).is_err());
+        observation.state["page"]["authorized_navigation"]=json!(nav);
+        assert!(observed_page(&request,&observation).is_ok());
+        observation.state["page"]["navigation_revision"]=json!(3);
+        assert!(observed_page(&request,&observation).is_err(),"同地址再次导航也不能复用授权来源");
+        observation.state["page"]["navigation_revision"]=json!(2);
+        observation.state["page"]["host_id"]=json!("replacement-host");
+        assert!(observed_page(&request,&observation).is_err());
+        observation.state["page"]["host_id"]=json!("native-host-one");
+        observation.state["page"]["read_only_request"]=json!(true);
+        assert!(observed_page(&request,&observation).is_err(),"只读任务不能借用交互导航回执");
     }
 
     #[test]

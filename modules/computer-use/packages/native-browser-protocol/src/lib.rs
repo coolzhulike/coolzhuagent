@@ -131,11 +131,36 @@ pub enum PanelInputCommand {
     ExecuteClick { target: PanelClickTarget, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id:String, expires_at_unix_ms: u64 },
     PrepareScroll { target: PanelClickTarget, direction: ScrollDirection, amount: u8 },
     ExecuteScroll { target: PanelClickTarget, direction: ScrollDirection, amount: u8, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
+    PrepareText { target: PanelClickTarget, text: String },
+    ExecuteText { target: PanelClickTarget, text: String, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
+    PrepareNavigate { target: PanelClickTarget, url: String },
+    ExecuteNavigate { target: PanelClickTarget, url: String, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all="snake_case")]
-pub enum PanelInputKind { #[default] Click, Scroll }
+pub enum PanelInputKind { #[default] Click, Scroll, Text, Navigate }
+
+pub fn valid_input_text(text: &str) -> bool {
+    !text.is_empty() && text.len() <= 2048 && !text.chars().any(|c| c.is_control() && c != '\n' && c != '\t')
+}
+pub fn valid_navigation_url(url: &str) -> bool {
+    !url.is_empty() && url.len() <= 2048 && !url.chars().any(char::is_control)
+        && (url.starts_with("https://") || url.starts_with("http://"))
+}
+
+/// 导航回执仍结算源动作；新资源只用于后续重新观察，不复用源文档节点。
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct PanelNavigationReceipt { pub destination: PanelResource, pub url: String }
+impl PanelNavigationReceipt {
+    pub fn matches_source(&self, source: &PanelResource) -> bool {
+        self.destination.valid_shape() && valid_navigation_url(&self.url)
+            && self.destination.workspace_path == source.workspace_path && self.destination.room_id == source.room_id
+            && self.destination.label == source.label && self.destination.generation == source.generation
+            && source.navigation_revision.checked_add(1) == Some(self.destination.navigation_revision)
+    }
+}
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all="snake_case")]
@@ -152,9 +177,15 @@ impl PanelInputRequest {
         opaque_id(&self.request_id) && self.resource.valid_shape() && match &self.command {
             PanelInputCommand::PrepareClick {target} => target.valid_shape(),
             PanelInputCommand::PrepareScroll {target,amount,..} => target.valid_shape() && (1..=5).contains(amount),
+            PanelInputCommand::PrepareText {target,text} => target.valid_shape() && valid_input_text(text),
+            PanelInputCommand::PrepareNavigate {target,url} => target.valid_shape() && valid_navigation_url(url),
+            PanelInputCommand::ExecuteText {text,..} if !valid_input_text(text) => false,
+            PanelInputCommand::ExecuteNavigate {url,..} if !valid_navigation_url(url) => false,
             PanelInputCommand::ExecuteScroll {amount,..} if !(1..=5).contains(amount) => false,
             PanelInputCommand::ExecuteClick {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms}
-            | PanelInputCommand::ExecuteScroll {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..} =>
+            | PanelInputCommand::ExecuteScroll {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..}
+            | PanelInputCommand::ExecuteText {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..}
+            | PanelInputCommand::ExecuteNavigate {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..} =>
                 target.valid_shape() && opaque_id(ticket_id) && opaque_id(executor_instance_id) && *expires_at_unix_ms > 0
                     && [permit_id,attempt_id].into_iter().all(|s| !s.is_empty() && s.len() <= 2048 && !s.chars().any(char::is_control)),
         }
@@ -179,11 +210,14 @@ pub struct PanelInputReply {
     pub executor_instance_id: Option<String>,
     pub down_confirmed: bool,
     pub up_confirmed: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub navigation: Option<PanelNavigationReceipt>,
     pub error: Option<String>,
 }
 impl PanelInputReply {
     pub fn valid_shape(&self) -> bool {
         opaque_id(&self.request_id) && self.resource.valid_shape()
+            && self.navigation.as_ref().is_none_or(|nav| self.outcome == PanelInputOutcome::Acknowledged && nav.matches_source(&self.resource))
             && (16..=96).contains(&self.host_id.len())
             && self.host_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
             && self.ticket_id.as_deref().is_none_or(opaque_id)

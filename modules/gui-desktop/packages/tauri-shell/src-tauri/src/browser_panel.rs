@@ -174,6 +174,29 @@ fn validate_url(value: &str, origin: Option<&Url>) -> Result<Url, String> {
     Ok(url)
 }
 
+pub(super) fn native_destination(value:&str) -> Result<Url,String> {
+    if !native_browser_protocol::valid_navigation_url(value) {return Err("native_browser_navigation_invalid".into());}
+    let url=validate_url(value,console_origin()).map_err(|_|"native_browser_navigation_invalid")?;
+    // 协议与回执使用同一个规范地址，避免大小写、默认端口等别名产生假匹配。
+    if url.as_str()!=value {return Err("native_browser_navigation_not_canonical".into());}
+    Ok(url)
+}
+
+/// 仅供已取得单次输入许可的宿主UI闭包使用；不导出新的网页IPC命令。
+pub(super) fn begin_native_navigation(app:&AppHandle,source:&native_browser_protocol::PanelResource,url:&Url)
+    -> Result<native_browser_protocol::PanelNavigationReceipt,String> {
+    if input_resource(app).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
+    let store=app.state::<PanelStore>();
+    let mut state=store.state.lock().map_err(|_|"native_browser_unavailable")?;
+    if visible_panel_resource(&state,true,false).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
+    let revision=source.navigation_revision.checked_add(1).ok_or("native_browser_navigation_invalid")?;
+    state.navigation_revision=revision;
+    state.pending_navigation=Some(PendingNavigation {revision,requested_url:url.to_string(),requested_observed:false,redirect_url:None,from_popup:false});
+    state.reply.url=Some(url.to_string());state.reply.loading=true;state.reply.error=None;
+    let mut destination=source.clone();destination.navigation_revision=revision;
+    Ok(native_browser_protocol::PanelNavigationReceipt {destination,url:url.to_string()})
+}
+
 fn clamp_bounds(bounds: PanelBounds, width: f64, height: f64) -> Result<PanelBounds, String> {
     clamp_host_bounds(bounds, None, width, height)
 }

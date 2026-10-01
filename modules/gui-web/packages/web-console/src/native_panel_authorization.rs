@@ -30,7 +30,8 @@ impl<'a,'broker> HostPanelAuthorization<'a,'broker> {
             && r.resource==claimed.binding.executor.resource && match (claimed.binding.input_kind,r.outcome) {
                 (_,PanelInputOutcome::NotDispatched) => true,
                 (native_browser_protocol::PanelInputKind::Click,PanelInputOutcome::Released) => true,
-                (native_browser_protocol::PanelInputKind::Scroll,PanelInputOutcome::Acknowledged) => true,
+                (native_browser_protocol::PanelInputKind::Scroll | native_browser_protocol::PanelInputKind::Text
+                    | native_browser_protocol::PanelInputKind::Navigate,PanelInputOutcome::Acknowledged) => true,
                 _ => false,
             });
         let result=(|| {
@@ -40,7 +41,7 @@ impl<'a,'broker> HostPanelAuthorization<'a,'broker> {
                 Some(PanelInputOutcome::Released)=>"released",
                 Some(PanelInputOutcome::Acknowledged)=>"acknowledged_no_held_input",
                 Some(PanelInputOutcome::NotDispatched)=>"aborted_before_input",
-                _ if claimed.binding.input_kind==native_browser_protocol::PanelInputKind::Scroll=>"dispatch_unknown_no_held_input",
+                _ if claimed.binding.input_kind!=native_browser_protocol::PanelInputKind::Click=>"dispatch_unknown_no_held_input",
                 _=>"release_unknown",
             };
             self.store.settle_panel_attempt(self.call_id,self.index,&claimed.binding.ticket_id,phase)?;

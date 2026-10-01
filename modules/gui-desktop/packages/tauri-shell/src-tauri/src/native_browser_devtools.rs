@@ -10,9 +10,12 @@ pub(super) enum ReadMethod {
     BoxModel(i64),
     LayoutMetrics,
     HitTest(i32, i32),
+    ResolveEditor(i64),
+    EditorState(String),
+    ReleaseEditor(String),
 }
 impl ReadMethod {
-    fn request(&self) -> (&'static str, String) {
+    pub(super) fn request(&self) -> (&'static str, String) {
         match self {
             Self::FrameTree => ("Page.getFrameTree", "{}".into()),
             Self::Document => ("DOM.getDocument", r#"{"depth":0,"pierce":false}"#.into()),
@@ -23,6 +26,11 @@ impl ReadMethod {
             Self::HitTest(x, y) => ("DOM.getNodeForLocation", serde_json::json!({
                 "x":x,"y":y,"includeUserAgentShadowDOM":false,"ignorePointerEventsNone":false
             }).to_string()),
+            Self::ResolveEditor(node) => ("DOM.resolveNode", serde_json::json!({"backendNodeId":node,"objectGroup":"coolzhu-native-editor"}).to_string()),
+            Self::EditorState(object) => ("Runtime.callFunctionOn", serde_json::json!({
+                "objectId":object,"functionDeclaration":super::native_browser_editor::READ_EDITOR,
+                "returnByValue":true,"throwOnSideEffect":true,"silent":true}).to_string()),
+            Self::ReleaseEditor(object) => ("Runtime.releaseObject",serde_json::json!({"objectId":object}).to_string()),
         }
     }
 }

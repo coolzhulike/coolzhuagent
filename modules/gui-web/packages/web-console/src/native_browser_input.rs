@@ -37,7 +37,8 @@ async fn receive(headers:HeaderMap,Json(reply):Json<PanelInputReply>) -> Result<
 
 fn phase_matches(command:&native_browser_protocol::PanelInputCommand,reply:&PanelInputReply) -> bool {
     match command {
-        native_browser_protocol::PanelInputCommand::PrepareClick {..} | native_browser_protocol::PanelInputCommand::PrepareScroll {..} =>
+        native_browser_protocol::PanelInputCommand::PrepareClick {..} | native_browser_protocol::PanelInputCommand::PrepareScroll {..}
+        | native_browser_protocol::PanelInputCommand::PrepareText {..} | native_browser_protocol::PanelInputCommand::PrepareNavigate {..} =>
             matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Prepared|native_browser_protocol::PanelInputOutcome::NotDispatched)
                 && reply.attempt_id.is_none() && reply.executor_instance_id.is_none(),
         native_browser_protocol::PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..} =>
@@ -45,12 +46,22 @@ fn phase_matches(command:&native_browser_protocol::PanelInputCommand,reply:&Pane
                 && reply.ticket_id.as_deref()==Some(ticket_id.as_str())
                 && reply.attempt_id.as_deref()==Some(attempt_id.as_str())
                 && reply.executor_instance_id.as_deref()==Some(executor_instance_id.as_str()),
-        native_browser_protocol::PanelInputCommand::ExecuteScroll {ticket_id,attempt_id,executor_instance_id,..} =>
+        native_browser_protocol::PanelInputCommand::ExecuteScroll {ticket_id,attempt_id,executor_instance_id,..}
+        | native_browser_protocol::PanelInputCommand::ExecuteText {ticket_id,attempt_id,executor_instance_id,..}
+        | native_browser_protocol::PanelInputCommand::ExecuteNavigate {ticket_id,attempt_id,executor_instance_id,..} =>
             matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Acknowledged|native_browser_protocol::PanelInputOutcome::DispatchUnknown|native_browser_protocol::PanelInputOutcome::NotDispatched)
                 && !reply.down_confirmed && !reply.up_confirmed
                 && reply.ticket_id.as_deref()==Some(ticket_id.as_str())
                 && reply.attempt_id.as_deref()==Some(attempt_id.as_str())
-                && reply.executor_instance_id.as_deref()==Some(executor_instance_id.as_str()),
+                && reply.executor_instance_id.as_deref()==Some(executor_instance_id.as_str())
+                && match command {
+                    native_browser_protocol::PanelInputCommand::ExecuteNavigate {url,..} => {
+                        if reply.outcome == native_browser_protocol::PanelInputOutcome::Acknowledged {
+                            reply.navigation.as_ref().is_some_and(|nav| nav.url == *url && nav.matches_source(&reply.resource))
+                        } else { reply.navigation.is_none() }
+                    },
+                    _ => reply.navigation.is_none(),
+                },
     }
 }
 pub(super) fn request(host_id:&str,request:PanelInputRequest,remaining:Duration,cancelled:Option<&dyn Fn()->bool>) -> Result<PanelInputReply,String> {
@@ -92,9 +103,19 @@ mod tests {
             attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};
         let mut reply=PanelInputReply {host_id:"native-host-0123456789".into(),request_id:"6".repeat(32),resource,
             outcome:PanelInputOutcome::Acknowledged,ticket_id:Some("4".repeat(32)),expires_at_unix_ms:None,
-            attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),down_confirmed:false,up_confirmed:false,error:None};
+            attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),down_confirmed:false,up_confirmed:false,navigation:None,error:None};
         assert!(reply.valid_shape() && phase_matches(&scroll,&reply));
         assert!(!phase_matches(&click,&reply));
+        let nav=PanelInputCommand::ExecuteNavigate {target:PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)},
+            url:"https://example.invalid/next".into(),ticket_id:"4".repeat(32),permit_id:"permit-1".into(),attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};
+        assert!(!phase_matches(&nav,&reply),"普通ACK不能伪造导航目标资源");
+        let mut destination=reply.resource.clone();destination.navigation_revision+=1;
+        reply.navigation=Some(PanelNavigationReceipt {destination,url:"https://example.invalid/next".into()});
+        assert!(reply.valid_shape() && phase_matches(&nav,&reply));
+        assert!(!phase_matches(&scroll,&reply),"导航回执不能借用于滚动");
+        reply.navigation.as_mut().unwrap().destination.room_id="other-room".into();
+        assert!(!reply.valid_shape() && !phase_matches(&nav,&reply));
+        reply.navigation=None;
         reply.up_confirmed=true;
         assert!(!reply.valid_shape() && !phase_matches(&scroll,&reply));
         reply.up_confirmed=false;
