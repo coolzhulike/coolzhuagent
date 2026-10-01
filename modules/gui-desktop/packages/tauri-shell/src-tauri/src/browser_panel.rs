@@ -527,7 +527,7 @@ pub fn invalidate(app: &AppHandle, reason: &str) {
         (state.label.take(), state.reply.clone())
     };
     if let Some(view) = label.and_then(|label| app.get_webview(&label)) {
-        let _ = view.close();
+        super::native_browser_input::retire_view(view);
     }
     emit(app, &reply);
 }

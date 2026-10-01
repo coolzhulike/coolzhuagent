@@ -1,4 +1,4 @@
-> **2026-10-01 当前051正式回归**：正常安装051，六门/859载荷/10关键产物核验通过。真实原Qwen BE一次点击0→1、BF一次滚动0→289.3333、BI只读零动作通过；BL在输入预检中点中止，父interrupted、native_input_cancelled/not_sent、计数仍0，停止行为通过。BG斜线只读识别失败、BH拆分文本原文被拒、BM输入投递措辞误判外发均按失败保留；BI/BJ/BK过晚取消和BM关闭未覆盖目标场景。已补三处职责内修正，Core完整140/0、冻结后Web完整1293/0/2既有忽略及lib8/宿主接线1通过。新修正不在051包内，准备052。b52ff1b远端PR/push均成功。Browser Use整体、Paint闭合/海绵宝宝及全屏提示、DSH远程实际安装运行、四项总体仍开放，PR74 Draft。原Qwen/medium/百炼地址/密钥保持，微信不动、Devin搁置，主会话独立执行，Pro复审暂停。详见[051报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.51/change-report-and-targeted-test-plan.md)。下方为历史时点。
+> **2026-10-01 当前052正式回归**：正常安装052，六门/859载荷/10关键产物核验通过。真实原Qwen BN斜线只读与连续文本原文引用2/2、0动作通过；BO保留“发送一次普通点击”措辞，1次点击0→1、2/2通过。BP执行中关闭未通过：前两次已释放，第三次may_have_been_sent/unknown，终态blocked且没有后续步骤，待复核1条；不能称释放已确认。已按职责补后台未交付请求撤销和桌面延后销毁，Web/Shell离线build通过，完整Web1294/0/2既有忽略、lib8/宿主接线1及Shell64/0通过，准备053，修正尚不在052包内。8e11cf6远端PR/push检查均success。错误源URL、关闭复验、Paint闭合/海绵宝宝及全屏提示、DSH远程实际安装运行和四项总体仍开放，PR74 Draft。原Qwen/medium/百炼地址/密钥保持，微信不动、Devin搁置，主会话独立执行，Pro复审暂停。详见[052报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.52/change-report-and-targeted-test-plan.md)。下方为历史时点。
 
 # Browser Use只读回归与Agent修复
 

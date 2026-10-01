@@ -28,9 +28,19 @@ impl Operation {
     }
 }
 struct Ticket { target: PanelClickTarget, operation: Operation, verified: VerifiedTarget, expiry: Instant, expires_ms: u64 }
-static IN_FLIGHT:std::sync::atomic::AtomicBool=std::sync::atomic::AtomicBool::new(false);
-struct Flight;
-impl Drop for Flight {fn drop(&mut self) {IN_FLIGHT.store(false,std::sync::atomic::Ordering::SeqCst);}}
+fn execution_gate() -> &'static tokio::sync::Mutex<()> {
+    static VALUE:OnceLock<tokio::sync::Mutex<()>>=OnceLock::new();
+    VALUE.get_or_init(||tokio::sync::Mutex::new(()))
+}
+
+/// 资格已撤销后隐藏原视图，等待当前执行清理完成；不阻塞 UI 或重新启用资源。
+pub(super) fn retire_view(view:tauri::Webview) {
+    let _=view.hide();
+    tauri::async_runtime::spawn(async move {
+        let _execution=execution_gate().lock().await;
+        let _=view.close();
+    });
+}
 fn tickets() -> &'static Mutex<HashMap<String,Ticket>> {
     static VALUE: OnceLock<Mutex<HashMap<String,Ticket>>> = OnceLock::new();
     VALUE.get_or_init(|| Mutex::new(HashMap::new()))
@@ -75,10 +85,9 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
         | PanelInputCommand::ExecuteText {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
         | PanelInputCommand::ExecuteNavigate {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..} => {
             reply.ticket_id=Some(ticket_id.clone());reply.attempt_id=Some(attempt_id.clone());reply.executor_instance_id=Some(executor_instance_id.clone());
-            if IN_FLIGHT.compare_exchange(false,true,std::sync::atomic::Ordering::SeqCst,std::sync::atomic::Ordering::SeqCst).is_err() {
+            let Ok(_execution)=execution_gate().try_lock() else {
                 reply.error=Some("native_input_busy".into());return reply;
-            }
-            let _flight=Flight;
+            };
             // 先取走，一次性消费；失配、过期或重检失败均不能复活此票据。
             let ticket = tickets().lock().ok().and_then(|mut cache| cache.remove(ticket_id));
             let Some(ticket) = ticket else { reply.error=Some("native_input_ticket_missing".into());return reply; };

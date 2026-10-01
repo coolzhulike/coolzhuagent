@@ -17,9 +17,37 @@ pub(super) fn routes() -> Router {
     Router::new().route(INPUT_PATH,post(receive).layer(DefaultBodyLimit::max(MAX_INPUT_BYTES)))
 }
 pub(super) fn deliver(host_id:&str,resource:Option<&PanelResource>) -> Option<PanelInputRequest> {
-    let mut value=pending().lock().ok()?;let value=value.as_mut()?;
-    if value.delivered || value.host_id!=host_id || resource!=Some(&value.request.resource) { return None; }
-    value.delivered=true;Some(value.request.clone())
+    let mut value=pending().lock().ok()?;
+    stage_delivery(&mut value,host_id,resource)
+}
+
+fn stage_delivery(value:&mut Option<Pending>,host_id:&str,resource:Option<&PanelResource>) -> Option<PanelInputRequest> {
+    let request=value.as_ref()?;
+    if request.delivered || request.host_id!=host_id { return None; }
+    if resource!=Some(&request.request.resource) {
+        // 同一认证宿主已撤销资源，且请求从未领取；此锁是零交付屏障。
+        // 已领取的请求绝不走这里，仍须等待真实释放回执，不能靠关闭推导释放。
+        let request=value.take()?;
+        let mut reply=PanelInputReply {host_id:request.host_id,request_id:request.request.request_id,
+            resource:request.request.resource,outcome:native_browser_protocol::PanelInputOutcome::NotDispatched,
+            ticket_id:None,expires_at_unix_ms:None,attempt_id:None,executor_instance_id:None,
+            down_confirmed:false,up_confirmed:false,navigation:None,error:Some("native_browser_resource_changed".into())};
+        use native_browser_protocol::PanelInputCommand;
+        match request.request.command {
+            PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..}
+            | PanelInputCommand::ExecuteScroll {ticket_id,attempt_id,executor_instance_id,..}
+            | PanelInputCommand::ExecuteText {ticket_id,attempt_id,executor_instance_id,..}
+            | PanelInputCommand::ExecuteNavigate {ticket_id,attempt_id,executor_instance_id,..} => {
+                reply.ticket_id=Some(ticket_id);reply.attempt_id=Some(attempt_id);reply.executor_instance_id=Some(executor_instance_id);
+            },
+            _ => {},
+        }
+        let _=request.sender.send(reply);
+        return None;
+    }
+    let request=value.as_mut()?;
+    request.delivered=true;
+    Some(request.request.clone())
 }
 async fn receive(headers:HeaderMap,Json(reply):Json<PanelInputReply>) -> Result<StatusCode,StatusCode> {
     if !crate::native_browser_host::authenticated(&headers) { return Err(StatusCode::UNAUTHORIZED); }
@@ -92,6 +120,30 @@ pub(super) fn random_id() -> Result<String,String> {
 mod tests {
     use super::*;
     use native_browser_protocol::*;
+
+    #[test]
+    fn resource_withdrawal_proves_zero_delivery_only_before_host_receives_request() {
+        let resource=PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:1};
+        let command=PanelInputCommand::ExecuteClick {target:PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)},
+            ticket_id:"4".repeat(32),permit_id:"permit-1".into(),attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};
+        let request=PanelInputRequest {request_id:"6".repeat(32),resource:resource.clone(),command:command.clone()};
+        let (sender,receiver)=std::sync::mpsc::channel();
+        let mut pending=Some(Pending {host_id:"native-host-0123456789".into(),request:request.clone(),delivered:false,sender});
+        assert!(stage_delivery(&mut pending,"native-other-0123456789",None).is_none());
+        assert!(pending.is_some() && receiver.try_recv().is_err(),"其它宿主不能撤销原动作");
+        assert!(stage_delivery(&mut pending,"native-host-0123456789",None).is_none());
+        let reply=receiver.try_recv().expect("未领取请求必须立即以零交付事实结账");
+        assert!(reply.valid_shape() && phase_matches(&command,&reply));
+        assert_eq!(reply.outcome,PanelInputOutcome::NotDispatched);
+        assert_eq!(reply.resource,resource);
+        assert!(!reply.down_confirmed && !reply.up_confirmed && pending.is_none());
+
+        let (sender,receiver)=std::sync::mpsc::channel();
+        let mut pending=Some(Pending {host_id:"native-host-0123456789".into(),request,delivered:false,sender});
+        assert!(stage_delivery(&mut pending,"native-host-0123456789",Some(&resource)).is_some());
+        assert!(stage_delivery(&mut pending,"native-host-0123456789",None).is_none());
+        assert!(pending.as_ref().unwrap().delivered && receiver.try_recv().is_err(),"领取后关闭不能伪造未派发或释放回执");
+    }
 
     #[test]
     fn wheel_ack_cannot_settle_click_or_claim_mouse_release() {
