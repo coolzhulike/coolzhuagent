@@ -10,7 +10,7 @@ pub(super) fn bounded_text(value: Option<&serde_json::Value>, limit: usize) -> S
 fn project_tree(value: &serde_json::Value) -> Result<PageObservation,String> {
     let nodes = value.get("nodes").and_then(serde_json::Value::as_array).ok_or("native_observation_invalid")?;
     let mut result = PageObservation {url:String::new(),title:String::new(),nodes:Vec::new(),truncated:false,
-        document_token:None,node_handles:Vec::new()};
+        document_token:None,node_handles:Vec::new(),viewport:None};
     for node in nodes {
         if node.get("ignored").and_then(serde_json::Value::as_bool) != Some(false) { continue; }
         let role = bounded_text(node.get("role"),64);
@@ -49,6 +49,15 @@ pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observati
     // 仅采顶层已核实frame；第一阶段不提供iframe/shadow-document可操作引用。
     let tree = native_browser_devtools::read(app,expected,ReadMethod::Accessibility(stamp.frame_id.clone())).await?;
     let mut page = project_tree(&tree)?;
+    let metrics = native_browser_devtools::read(app,expected,ReadMethod::LayoutMetrics).await?;
+    let viewport = &metrics["cssVisualViewport"];
+    let number = |key| viewport[key].as_f64().ok_or("native_browser_viewport_invalid");
+    let viewport = native_browser_protocol::PageViewport {
+        page_x:number("pageX")?, page_y:number("pageY")?,
+        width:number("clientWidth")?, height:number("clientHeight")?,
+    };
+    if !viewport.valid_shape() { return Err("native_browser_viewport_invalid".into()); }
+    page.viewport = Some(viewport);
     let ordinary_nodes = regular_document_nodes(&native_browser_devtools::read(app,expected,ReadMethod::DocumentNodes).await?);
     if document(app,expected).await? != stamp || super::browser_panel::input_resource(app).as_ref() != Some(expected)
         || app.get_webview(&expected.label).and_then(|view| view.url().ok()).as_ref().map(|url| url.as_str()) != Some(url.as_str()) {
@@ -62,7 +71,7 @@ pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observati
         let name = bounded_text(node.get("name"),256);
         if role.is_empty() && name.is_empty() { continue; }
         if index >= page.nodes.len() { break; }
-        if ["button","link","textbox","checkbox","radio","combobox"].contains(&role.as_str())
+        if ["RootWebArea","button","link","textbox","checkbox","radio","combobox"].contains(&role.as_str())
             && node.get("frameId").and_then(serde_json::Value::as_str).is_none_or(|frame| frame == stamp.frame_id) {
             if let Some(backend) = node.get("backendDOMNodeId").and_then(serde_json::Value::as_i64).filter(|id| ordinary_nodes.contains(id)) {
                 candidates.push((index,backend,role,name));

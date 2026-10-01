@@ -105,6 +105,7 @@ pub struct PanelInputPreparation {
     pub process: native_browser_protocol::HostIdentity,
     pub resource: native_browser_protocol::PanelResource,
     pub target: native_browser_protocol::PanelClickTarget,
+    pub input_kind: native_browser_protocol::PanelInputKind,
     pub ticket_id: String,
     pub expires_at_unix_ms: u64,
 }

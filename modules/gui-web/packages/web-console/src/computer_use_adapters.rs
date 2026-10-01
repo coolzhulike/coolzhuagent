@@ -237,8 +237,8 @@ impl<B> BrowserComputerUseAdapter<B> {
         self
     }
 
-    pub(crate) fn native_click_only(mut self) -> Self {
-        self.capabilities=ComputerUseCapabilities {click:true,..ComputerUseCapabilities::default()};self
+    pub(crate) fn native_click_scroll(mut self) -> Self {
+        self.capabilities=ComputerUseCapabilities {click:true,scroll:true,..ComputerUseCapabilities::default()};self
     }
 }
 

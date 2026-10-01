@@ -10,7 +10,8 @@ pub(super) struct ComputerUseTurnScope {
 impl ComputerUseTurnScope {
     pub(super) fn from_current_user(text: &str) -> Self {
         let text = text.to_ascii_lowercase();
-        let native_browser = ["内置浏览器", "右栏浏览器", "右侧浏览器", "右侧扩展栏浏览器", "builtin browser", "built-in browser"]
+        let native_browser = ["内置浏览器", "内置网页", "内置页", "右栏浏览器", "右栏网页", "右栏页面",
+            "右侧浏览器", "右侧网页", "右侧扩展栏浏览器", "builtin browser", "built-in browser"]
             .iter().any(|name| text.contains(name));
         let explicit_no_input = ["不得发送输入", "不要发送输入", "不发送输入",
             "不点击、不滚动、不输入", "不得点击、滚动或输入", "禁止点击、滚动或输入", "do not send input"]
@@ -95,6 +96,18 @@ mod tests {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(scope.native_browser_read_only());
             assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());
+        }
+    }
+    #[test]
+    fn current_panel_page_request_uses_native_backend_without_reclassifying_other_panels() {
+        let scope = ComputerUseTurnScope::from_current_user(
+            "在当前右栏页面点击增加次数一次，只操作当前内置页，不输入、不滚动、不导航");
+        assert!(scope.native_browser());
+        assert!(!scope.native_browser_read_only());
+        assert!(scope.validate(&request("browser", serde_json::json!({"url":"http://127.0.0.1:57159/click.html"}))).is_ok());
+        assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());
+        for text in ["在右栏设置修改模型参数", "在Chrome点击网页，右栏显示统计", "在Paint绘图，右栏显示运行轨迹"] {
+            assert!(!ComputerUseTurnScope::from_current_user(text).native_browser());
         }
     }
 }

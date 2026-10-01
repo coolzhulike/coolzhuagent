@@ -1,0 +1,106 @@
+{
+  "test": "BU042-RESOURCE-AE",
+  "runtime": {
+    "id": "run-chat-d7ededc764c4119617d93280846bc81ed6df01caa62b8943",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790817234395-3",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790817262825,
+    "created_at": 1790817234403
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001018da42c96442f2bc-tool-399a6438f12c4f04d90a2992e8d7b06690dc1d42e4c04c23c4e88166b4c72dac",
+      "provider_tool_call_id": "tool-399a6438f12c4f04d90a2992e8d7b06690dc1d42e4c04c23c4e88166b4c72dac",
+      "turn_id": "000000000000001018da42c96442f2bc",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 6,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790817240149,
+      "updated_at_ms": 1790817256278,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001018da42c96442f2bc-tool-399a6438f12c4f04d90a2992e8d7b06690dc1d42e4c04c23c4e88166b4c72dac",
+        "provider_tool_call_id": "tool-399a6438f12c4f04d90a2992e8d7b06690dc1d42e4c04c23c4e88166b4c72dac",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+        "error": {
+          "code": "native_browser_panel_unavailable",
+          "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:3:0",
+          "native-observation:14214d1e20621509d23f556eb4bec6ed"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790818134395
+            }
+          },
+          "cu_deadline_ms": 1790817360149,
+          "cu_deadline_established_at_ms": 1790817240149,
+          "cu_budget_ms": 120000
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001018da42c96442f2bc-tool-399a6438f12c4f04d90a2992e8d7b06690dc1d42e4c04c23c4e88166b4c72dac",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-8e1ace5d-f460-98e5-93ad-0f48f69fbb9f",
+      "error_code": "native_browser_panel_unavailable",
+      "started_at_ms": 1790817240347,
+      "completed_at_ms": 1790817256276
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000001018da42c96442f2bc",
+      "call_id": "cu-session-1779459149988-000000000000001018da42c96442f2bc-tool-399a6438f12c4f04d90a2992e8d7b06690dc1d42e4c04c23c4e88166b4c72dac",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 579,
+      "output_tokens": 613,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790817234395-3",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-d7ededc764c4119617d93280846bc81ed6df01caa62b8943",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 21295,
+      "output_tokens": 293,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

@@ -110,7 +110,7 @@ pub struct HostReceipt {
     pub input: Option<PanelInputRequest>,
 }
 
-/// 两阶段类型化点击。协议没有任意脚本、CDP方法名或外部坐标字段。
+/// 两阶段类型化输入。协议没有任意脚本、CDP方法名或外部坐标字段。
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct PanelClickTarget {
@@ -129,7 +129,17 @@ impl PanelClickTarget {
 pub enum PanelInputCommand {
     PrepareClick { target: PanelClickTarget },
     ExecuteClick { target: PanelClickTarget, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id:String, expires_at_unix_ms: u64 },
+    PrepareScroll { target: PanelClickTarget, direction: ScrollDirection, amount: u8 },
+    ExecuteScroll { target: PanelClickTarget, direction: ScrollDirection, amount: u8, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
 }
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all="snake_case")]
+pub enum PanelInputKind { #[default] Click, Scroll }
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all="snake_case")]
+pub enum ScrollDirection { Up, Down, Left, Right }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PanelInputRequest {
@@ -141,7 +151,10 @@ impl PanelInputRequest {
     pub fn valid_shape(&self) -> bool {
         opaque_id(&self.request_id) && self.resource.valid_shape() && match &self.command {
             PanelInputCommand::PrepareClick {target} => target.valid_shape(),
-            PanelInputCommand::ExecuteClick {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms} =>
+            PanelInputCommand::PrepareScroll {target,amount,..} => target.valid_shape() && (1..=5).contains(amount),
+            PanelInputCommand::ExecuteScroll {amount,..} if !(1..=5).contains(amount) => false,
+            PanelInputCommand::ExecuteClick {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms}
+            | PanelInputCommand::ExecuteScroll {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..} =>
                 target.valid_shape() && opaque_id(ticket_id) && opaque_id(executor_instance_id) && *expires_at_unix_ms > 0
                     && [permit_id,attempt_id].into_iter().all(|s| !s.is_empty() && s.len() <= 2048 && !s.chars().any(char::is_control)),
         }
@@ -150,7 +163,7 @@ impl PanelInputRequest {
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all="snake_case")]
-pub enum PanelInputOutcome { Prepared, NotDispatched, Released, ReleaseUnknown }
+pub enum PanelInputOutcome { Prepared, NotDispatched, Released, ReleaseUnknown, Acknowledged, DispatchUnknown }
 
 /// 认证通道回执是动作事实，不声明网页任务已完成。
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -184,6 +197,11 @@ impl PanelInputReply {
                 PanelInputOutcome::NotDispatched => !self.down_confirmed && !self.up_confirmed,
                 PanelInputOutcome::Released => self.ticket_id.is_some() && self.attempt_id.is_some() && self.executor_instance_id.is_some()
                     && self.down_confirmed && self.up_confirmed && self.error.is_none(),
+                // wheel没有按住输入；此回执只证明投递ACK，不伪造按下/释放或滚动目标达成。
+                PanelInputOutcome::Acknowledged => self.ticket_id.is_some() && self.attempt_id.is_some() && self.executor_instance_id.is_some()
+                    && !self.down_confirmed && !self.up_confirmed && self.error.is_none(),
+                PanelInputOutcome::DispatchUnknown => self.ticket_id.is_some() && self.attempt_id.is_some() && self.executor_instance_id.is_some()
+                    && !self.down_confirmed && !self.up_confirmed && self.error.is_some(),
                 PanelInputOutcome::ReleaseUnknown => true,
             }
     }
@@ -211,11 +229,30 @@ pub struct PageObservation {
     pub title: String,
     pub nodes: Vec<ObservedNode>,
     pub truncated: bool,
+    /// 宿主采集的CSS视口与滚动偏移；AX节点存在不等于位于可见视口。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub viewport: Option<PageViewport>,
     /// 文档身份只暴露随机宿主引用；frame/loader/backend DOM ID保留在桌面内存。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub document_token: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub node_handles: Vec<NodeHandle>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PageViewport {
+    pub page_x: f64,
+    pub page_y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+impl PageViewport {
+    pub fn valid_shape(&self) -> bool {
+        [self.page_x, self.page_y].into_iter().all(|v| v.is_finite() && v.abs() <= 1e9)
+            && [self.width, self.height].into_iter().all(|v| v.is_finite() && v > 0.0 && v <= 32768.0)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -229,6 +266,7 @@ pub fn opaque_id(value: &str) -> bool {
 impl PageObservation {
     pub fn valid_shape(&self) -> bool {
         self.url.len() <= 4096 && (self.url.starts_with("http://") || self.url.starts_with("https://"))
+            && self.viewport.as_ref().is_none_or(PageViewport::valid_shape)
             && !self.url.chars().any(char::is_control) && self.title.chars().count() <= 256
             && !self.title.chars().any(char::is_control)
             && self.document_token.as_deref().is_none_or(opaque_id)

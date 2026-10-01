@@ -16,6 +16,7 @@ pub(super) struct VerifiedTarget {
     pub node: NodeBinding,
     pub x: i32,
     pub y: i32,
+    pub viewport: Value,
 }
 
 fn current_node(tree: &Value, document: &DocumentIdentity, node: &NodeBinding) -> Result<(), String> {
@@ -103,7 +104,34 @@ pub(super) async fn verify(
         || started.elapsed() >= std::time::Duration::from_secs(2) {
         return Err("native_browser_target_changed".into());
     }
-    Ok(VerifiedTarget { resource: resource.clone(), document, node, x, y })
+    Ok(VerifiedTarget { resource: resource.clone(), document, node, x, y, viewport:second_metrics["cssVisualViewport"].clone() })
+}
+
+/// 只允许顶层可见viewport；模型选择RootWebArea随机引用，坐标由宿主生成。
+pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,observation_id:&str,document_token:&str,node_id:&str) -> Result<VerifiedTarget,String> {
+    let started=std::time::Instant::now();
+    let document=native_browser_observation::document(app,resource).await?;
+    let node=native_browser_nodes::resolve(resource,&document,observation_id,document_token,node_id)?;
+    if node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_scroll_target_invalid".into());}
+    let tree=native_browser_devtools::read(app,resource,ReadMethod::Accessibility(document.frame_id.clone())).await?;
+    current_node(&tree,&document,&node)?;
+    let metrics=native_browser_devtools::read(app,resource,ReadMethod::LayoutMetrics).await?;
+    let viewport=metrics["cssVisualViewport"].clone();
+    let width=viewport["clientWidth"].as_f64().filter(|v|v.is_finite() && *v>2.0 && *v<=32768.0).ok_or("native_browser_target_geometry_invalid")?;
+    let height=viewport["clientHeight"].as_f64().filter(|v|v.is_finite() && *v>2.0 && *v<=32768.0).ok_or("native_browser_target_geometry_invalid")?;
+    let (x,y)=((width/2.0).round() as i32,(height/2.0).round() as i32);
+    let hit=native_browser_devtools::read(app,resource,ReadMethod::HitTest(x,y)).await?;
+    let dom=native_browser_devtools::read(app,resource,ReadMethod::DocumentNodes).await?;
+    if hit["frameId"].as_str()!=Some(document.frame_id.as_str())
+        || !hit["backendNodeId"].as_i64().is_some_and(|id|regular_document_nodes(&dom).contains(&id)) {
+        return Err("native_browser_target_hit_mismatch".into());
+    }
+    let fresh=native_browser_devtools::read(app,resource,ReadMethod::LayoutMetrics).await?;
+    if fresh["cssVisualViewport"]!=viewport || native_browser_observation::document(app,resource).await?!=document
+        || super::browser_panel::input_resource(app).as_ref()!=Some(resource) || started.elapsed()>=std::time::Duration::from_secs(2) {
+        return Err("native_browser_target_changed".into());
+    }
+    Ok(VerifiedTarget {resource:resource.clone(),document,node,x,y,viewport})
 }
 
 #[cfg(test)]

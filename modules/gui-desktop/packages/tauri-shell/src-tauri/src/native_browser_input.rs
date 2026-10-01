@@ -1,10 +1,26 @@
 //! 持久WebView宿主的单次点击；预检票据不授予输入权限，按下后必须尝试释放。
 use std::{collections::HashMap, sync::{Mutex, OnceLock}, time::{Duration, Instant, SystemTime, UNIX_EPOCH}};
-use native_browser_protocol::{PanelClickTarget, PanelInputCommand, PanelInputOutcome, PanelInputReply, PanelInputRequest};
+use native_browser_protocol::{PanelClickTarget, PanelInputCommand, PanelInputOutcome, PanelInputReply, PanelInputRequest, ScrollDirection};
 use tauri::{AppHandle, Manager};
 use super::native_browser_target::{self, VerifiedTarget};
 
-struct Ticket { target: PanelClickTarget, verified: VerifiedTarget, expiry: Instant, expires_ms: u64 }
+#[derive(Clone,Copy,PartialEq,Eq)]
+enum Operation { Click, Scroll { direction: ScrollDirection, amount: u8 } }
+impl Operation {
+    fn for_command(command: &PanelInputCommand) -> Self {
+        match command {
+            PanelInputCommand::PrepareClick {..} | PanelInputCommand::ExecuteClick {..} => Self::Click,
+            PanelInputCommand::PrepareScroll {direction,amount,..} | PanelInputCommand::ExecuteScroll {direction,amount,..} => Self::Scroll {direction:*direction,amount:*amount},
+        }
+    }
+    async fn verify(self,app:&AppHandle,request:&PanelInputRequest,target:&PanelClickTarget) -> Result<VerifiedTarget,String> {
+        match self {
+            Self::Click => native_browser_target::verify(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
+            Self::Scroll {..} => native_browser_target::verify_viewport(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
+        }
+    }
+}
+struct Ticket { target: PanelClickTarget, operation: Operation, verified: VerifiedTarget, expiry: Instant, expires_ms: u64 }
 static IN_FLIGHT:std::sync::atomic::AtomicBool=std::sync::atomic::AtomicBool::new(false);
 struct Flight;
 impl Drop for Flight {fn drop(&mut self) {IN_FLIGHT.store(false,std::sync::atomic::Ordering::SeqCst);}}
@@ -23,9 +39,10 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
         outcome:PanelInputOutcome::NotDispatched,ticket_id:None,expires_at_unix_ms:None,
         attempt_id:None,executor_instance_id:None,down_confirmed:false,up_confirmed:false,error:None};
     if !request.valid_shape() { reply.error=Some("native_input_invalid".into()); return reply; }
+    let operation=Operation::for_command(&request.command);
     match &request.command {
-        PanelInputCommand::PrepareClick {target} => {
-            let result = native_browser_target::verify(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await;
+        PanelInputCommand::PrepareClick {target} | PanelInputCommand::PrepareScroll {target,..} => {
+            let result = operation.verify(app,&request,target).await;
             match result {
                 Ok(verified) => {
                     let result = (|| {
@@ -34,7 +51,7 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
                         let mut cache = tickets().lock().map_err(|_| "native_input_unavailable")?;
                         cache.retain(|_,ticket| ticket.expiry > Instant::now());
                         if cache.len() >= 4 { return Err("native_input_busy".to_string()); }
-                        cache.insert(id.clone(),Ticket {target:target.clone(),verified,expiry:Instant::now()+Duration::from_secs(2),expires_ms});
+                        cache.insert(id.clone(),Ticket {target:target.clone(),operation,verified,expiry:Instant::now()+Duration::from_secs(2),expires_ms});
                         Ok((id,expires_ms))
                     })();
                     match result {
@@ -45,7 +62,8 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
                 Err(error) => reply.error=Some(error),
             }
         },
-        PanelInputCommand::ExecuteClick {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..} => {
+        PanelInputCommand::ExecuteClick {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
+        | PanelInputCommand::ExecuteScroll {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..} => {
             reply.ticket_id=Some(ticket_id.clone());reply.attempt_id=Some(attempt_id.clone());reply.executor_instance_id=Some(executor_instance_id.clone());
             if IN_FLIGHT.compare_exchange(false,true,std::sync::atomic::Ordering::SeqCst,std::sync::atomic::Ordering::SeqCst).is_err() {
                 reply.error=Some("native_input_busy".into());return reply;
@@ -55,23 +73,73 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
             let ticket = tickets().lock().ok().and_then(|mut cache| cache.remove(ticket_id));
             let Some(ticket) = ticket else { reply.error=Some("native_input_ticket_missing".into());return reply; };
             if ticket.expiry <= Instant::now() || now() >= *expires_at_unix_ms || *expires_at_unix_ms > ticket.expires_ms
-                || ticket.target != *target || ticket.verified.resource != request.resource {
+                || ticket.target != *target || ticket.operation != operation || ticket.verified.resource != request.resource {
                 reply.error=Some("native_input_ticket_stale".into());return reply;
             }
-            let checked = native_browser_target::verify(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await;
+            let checked = operation.verify(app,&request,target).await;
             let verified = match checked {
                 Ok(value) if value.document == ticket.verified.document && value.node.backend_node == ticket.verified.node.backend_node
-                    && value.x == ticket.verified.x && value.y == ticket.verified.y => value,
+                    && value.x == ticket.verified.x && value.y == ticket.verified.y && value.viewport == ticket.verified.viewport => value,
                 Ok(_) => { reply.error=Some("native_browser_node_changed".into());return reply; },
                 Err(error) => { reply.error=Some(error);return reply; },
             };
-            let (outcome,down,up) = click(app,verified,*expires_at_unix_ms).await;
+            let (outcome,down,up) = match operation {
+                Operation::Click => click(app,verified,*expires_at_unix_ms).await,
+                Operation::Scroll {direction,amount} => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
+            };
             let _ = super::native_browser_nodes::retire();
             reply.outcome=outcome;reply.down_confirmed=down;reply.up_confirmed=up;
-            if outcome != PanelInputOutcome::Released { reply.error=Some("native_input_not_confirmed".into()); }
+            if !matches!(outcome,PanelInputOutcome::Released|PanelInputOutcome::Acknowledged) { reply.error=Some("native_input_not_confirmed".into()); }
         },
     }
     reply
+}
+
+/// wheel仅投递一个有界事件，不按住鼠标或键盘；ACK不推导页面实际滚动或goal达成。
+async fn wheel(app:&AppHandle,target:VerifiedTarget,direction:ScrollDirection,amount:u8,expires_ms:u64) -> PanelInputOutcome {
+    if now()>=expires_ms || super::browser_panel::input_resource(app).as_ref()!=Some(&target.resource) {
+        return PanelInputOutcome::NotDispatched;
+    }
+    #[cfg(windows)]
+    {
+        use webview2_com::{CoTaskMemPWSTR,Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler};
+        use super::native_browser_devtools::bounded_callback;
+        let Some(view)=app.get_webview(&target.resource.label) else {return PanelInputOutcome::NotDispatched;};
+        let vertical=matches!(direction,ScrollDirection::Up|ScrollDirection::Down);
+        let extent=target.viewport[if vertical {"clientHeight"} else {"clientWidth"}].as_f64().unwrap_or(0.0);
+        let delta=(extent/2.0).clamp(120.0,600.0)*f64::from(amount);
+        let delta=if matches!(direction,ScrollDirection::Up|ScrollDirection::Left) {-delta} else {delta};
+        let parameters=serde_json::json!({"type":"mouseWheel","x":target.x,"y":target.y,"buttons":0,
+            "deltaX":if vertical {0.0} else {delta},"deltaY":if vertical {delta} else {0.0}}).to_string();
+        let (sender,receiver)=tokio::sync::oneshot::channel();
+        let sender=std::sync::Arc::new(Mutex::new(Some(sender)));
+        let app_ui=app.clone();
+        let queued=view.with_webview(move |platform| {
+            let finish=|value| {if let Ok(mut s)=sender.lock() {if let Some(s)=s.take() {let _=s.send(value);}}};
+            if now()>=expires_ms || super::browser_panel::input_resource(&app_ui).as_ref()!=Some(&target.resource) {
+                finish(PanelInputOutcome::NotDispatched);return;
+            }
+            let core=match unsafe {platform.controller().CoreWebView2()} {
+                Ok(core)=>core,Err(_)=>{finish(PanelInputOutcome::NotDispatched);return;}
+            };
+            let callback_sender=sender.clone();
+            let handler:ICoreWebView2CallDevToolsProtocolMethodCompletedHandler=bounded_callback::Handler(Box::new(move |status,text| {
+                let ack=status.is_ok() && unsafe {bounded_callback::read(text)}.is_ok_and(|raw|
+                    serde_json::from_str::<serde_json::Value>(&raw).is_ok_and(|v|v.as_object().is_some_and(|v|v.is_empty())));
+                if let Ok(mut s)=callback_sender.lock() {if let Some(s)=s.take() {
+                    let _=s.send(if ack {PanelInputOutcome::Acknowledged} else {PanelInputOutcome::DispatchUnknown});
+                }} Ok(())
+            })).into();
+            let method=CoTaskMemPWSTR::from("Input.dispatchMouseEvent");let params=CoTaskMemPWSTR::from(parameters.as_str());
+            if unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*params.as_ref().as_pcwstr(),&handler)}.is_err() {
+                finish(PanelInputOutcome::DispatchUnknown);
+            }
+        });
+        if queued.is_err() {return PanelInputOutcome::DispatchUnknown;}
+        tokio::time::timeout(Duration::from_secs(3),receiver).await.ok().and_then(Result::ok).unwrap_or(PanelInputOutcome::DispatchUnknown)
+    }
+    #[cfg(not(windows))]
+    {let _=(direction,amount);PanelInputOutcome::NotDispatched}
 }
 
 /// 按下/释放使用同一个原始controller。导航或取消不能截断释放；COM入队不等于回执成功。

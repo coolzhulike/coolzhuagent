@@ -27,13 +27,20 @@ impl<'a,'broker> HostPanelAuthorization<'a,'broker> {
             && r.ticket_id.as_deref()==Some(claimed.binding.ticket_id.as_str())
             && r.attempt_id.as_deref()==Some(claimed.binding.attempt_key.as_str())
             && r.executor_instance_id.as_deref()==Some(claimed.binding.executor.executor_instance_id.as_str())
-            && r.resource==claimed.binding.executor.resource && matches!(r.outcome,PanelInputOutcome::Released|PanelInputOutcome::NotDispatched));
+            && r.resource==claimed.binding.executor.resource && match (claimed.binding.input_kind,r.outcome) {
+                (_,PanelInputOutcome::NotDispatched) => true,
+                (native_browser_protocol::PanelInputKind::Click,PanelInputOutcome::Released) => true,
+                (native_browser_protocol::PanelInputKind::Scroll,PanelInputOutcome::Acknowledged) => true,
+                _ => false,
+            });
         let result=(|| {
             let store=InputSafetyStore::open_at(&self.context.root).map_err(|e|e.to_string())?;
             store.permit_store().record_native_completion(&claimed.permit,known,crate::unix_timestamp_millis()).map_err(|e|e.to_string())?;
             let phase=match reply.filter(|_|known).map(|r|r.outcome) {
                 Some(PanelInputOutcome::Released)=>"released",
+                Some(PanelInputOutcome::Acknowledged)=>"acknowledged_no_held_input",
                 Some(PanelInputOutcome::NotDispatched)=>"aborted_before_input",
+                _ if claimed.binding.input_kind==native_browser_protocol::PanelInputKind::Scroll=>"dispatch_unknown_no_held_input",
                 _=>"release_unknown",
             };
             self.store.settle_panel_attempt(self.call_id,self.index,&claimed.binding.ticket_id,phase)?;
@@ -43,7 +50,7 @@ impl<'a,'broker> HostPanelAuthorization<'a,'broker> {
         })();
         if !known || result.is_err() {
             let _=crate::native_input_authorization::isolate_panel_unknown(&self.context.root,&self.context.scope,
-                &claimed.binding.ticket_id,"持久面板释放或结算未确认，禁止自动重放");
+                &claimed.binding.ticket_id,"持久面板投递、释放或结算未确认，禁止自动重放");
             return Err(result.err().unwrap_or_else(||"持久面板动作释放未确认".into()));
         }
         result
@@ -66,7 +73,7 @@ impl NativeInputAuthorization for HostPanelAuthorization<'_,'_> {
         let executor_id=format!("{:x}",hash.finalize())[..32].to_string();
         let executor=PanelExecutorBinding {kind:InputExecutorKind::PersistentNativePanel,executor_instance_id:executor_id.clone(),host_id:host,process,resource:p.resource.clone()};
         let attempt=ExecutionAttemptId::new(&self.context.action_id,self.context.observation_generation,&self.context.step_identity,1).map_err(|e|e.to_string())?;
-        let binding=PanelPermitBinding {executor,attempt_key:attempt.stable_key(),ticket_id:p.ticket_id.clone(),observation_id:p.target.observation_id.clone(),document_token:p.target.document_token.clone(),node_id:p.target.node_id.clone()};
+        let binding=PanelPermitBinding {executor,attempt_key:attempt.stable_key(),ticket_id:p.ticket_id.clone(),observation_id:p.target.observation_id.clone(),document_token:p.target.document_token.clone(),node_id:p.target.node_id.clone(),input_kind:p.input_kind};
         let store=InputSafetyStore::open_at(&self.context.root).map_err(|e|e.to_string())?;
         store.executor_store().register_panel(&binding.executor,&self.context.scope,&crate::input_safety_store::coordinator_instance_identity(),now).map_err(|e|e.to_string())?;
         let state=store.resource_state(&self.context.scope).map_err(|e|e.to_string())?;

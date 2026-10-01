@@ -38,7 +38,7 @@ mod tests {
             issued_epoch:1,expires_at_unix_ms:1000,executor_instance_id:Some(executor.executor_instance_id.clone()),
             state:InputPermitState::PendingActivation,revision:1,revocation_reason:None};
         let binding = PanelPermitBinding {executor:executor.clone(),attempt_key:attempt.stable_key(),ticket_id:"4".repeat(32),
-            observation_id:"5".repeat(32),document_token:"6".repeat(32),node_id:"7".repeat(32)};
+            observation_id:"5".repeat(32),document_token:"6".repeat(32),node_id:"7".repeat(32),input_kind:Default::default()};
         (permit,binding)
     }
     fn store() -> (tempfile::TempDir,InputSafetyStore,InputSafetyResourceScope) {
@@ -110,6 +110,9 @@ pub(super) struct PanelPermitBinding {
     pub observation_id: String,
     pub document_token: String,
     pub node_id: String,
+    /// 旧click记录保持原含义；新回执不能把wheel ACK当成mouse release。
+    #[serde(default)]
+    pub input_kind: native_browser_protocol::PanelInputKind,
 }
 impl PanelPermitBinding {
     pub(super) fn valid_shape(&self) -> bool {

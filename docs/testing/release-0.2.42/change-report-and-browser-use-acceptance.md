@@ -48,7 +48,7 @@
 | 载荷摘要 | `4418c2c4eff11343cb39791a1f4e0117210b3d0cfe229e95076aafd934acf8d5` |
 | 参考提交 | `e284355b6e2c0556a36defe213c0c0088c15969e`，dirty工作树；参考种子，源码权威为快照 |
 
-更新前真实父运行无未完成任务，正常窗口关闭已退出安装目录Web/Tauri。自动静默升级返回1603；日志定位为RemoveExistingProducts内旧版InstallInitialize错误1730（必须Administrator才能移除旧产品）。未修改系统权限或重试绕过；注册安装仍041。已请用户手动安装042并处理系统提权。用户随后已手动安装并启动；安装日期20261001，安装目录10/10关键文件与本包摘要一致，Web PID7984监听8765、Tauri PID19360均来自Program Files正式目录；[安装收据](installed-native/installed-artifacts.json)已归档。安装与进程身份通过，真实Qwen点击尚未开始。当前自动读取现场曾短暂出现控制台窗口后隐藏，后台持续运行；启动日志记录动画正常finished并交接console_visible=true，未据此推断窗口隐藏原因，已请用户保持控制台显示。普通网页服务为临时本地57159，进程32432；新页面click.html仅一个按钮/计数，无外部提交或模型响应。
+更新前真实父运行无未完成任务，正常窗口关闭已退出安装目录Web/Tauri。自动静默升级返回1603；日志定位为RemoveExistingProducts内旧版InstallInitialize错误1730（必须Administrator才能移除旧产品）。未修改系统权限或重试绕过；注册安装仍041。已请用户手动安装042并处理系统提权。用户随后已手动安装并启动；安装日期20261001，安装目录10/10关键文件与本包摘要一致，Web PID7984监听8765、Tauri PID19360均来自Program Files正式目录；[安装收据](installed-native/installed-artifacts.json)已归档。安装与进程身份通过，控制台已恢复可见并在原工程、原验收聊天室完成真实Qwen操作。普通网页服务为临时本地57159，进程32432；click.html仅一个按钮/计数，无外部提交或模型响应。主会话未点击计数按钮。BU042-CLICK-AB由真实Qwen执行1次Click，计数0→1，按下/释放Released，CU succeeded/goal=true、父completed；AC新版只读通过；AE在S1后关闭页面，S2拒旧资源、零输入通过；AI真实取消后父interrupted、CU cancelled/goal=false、0动作通过。AH措辞未识别原生后端而进入旧扩展路径，暴露的路由缺口已修源码、尚未安装。AD关闭过晚，AF未调用工具而引用历史取消，AG判断JSON先失败后才中止，三者均不计目标场景通过。详见[真实操作记录与原图](installed-native/acceptance-and-open-issues.md)。源码提交589260e两项远端检查success，不外推后续提交。
 
 ## 可直接转为测试用例的验收矩阵（实际执行状态）
 
@@ -56,13 +56,13 @@
 
 | 用例 | 操作与判断标准 | 证据要求 | 当前状态 |
 |---|---|---|---|
-| BU042-IDENTITY | 正常安装后版本/文件身份/进程目录一致 | MSI与产物摘要、安装收据 | 正式安装10/10文件与运行进程核验通过；控制台可操作状态待恢复 |
-| BU042-CLICK | Qwen在右栏click.html点击“增加次数”一次 | 次数0→1原图；真实CU Click、按下/释放、动作终态、S2 goal；无替代浏览器 | 待实操 |
-| BU042-READONLY | 完整中文禁用动作任务只读页面 | 本轮cap0/动作0/正确AX答案原图 | 待新版回归 |
-| BU042-CANCEL | 本步claim前父取消先提交 | 无输入；cancelled/goal=false；迟到回执不改终态 | 工程边界已测，真实交互待验 |
-| BU042-RESOURCE | S1后关闭/隐藏/换环境或改变文档 | 旧目标拒绝；无错误输入；真实时序早于核验点 | 待验；041 AA关闭晚于S2不算通过 |
+| BU042-IDENTITY | 正常安装后版本/文件身份/进程目录一致 | MSI与产物摘要、安装收据 | 正式安装10/10文件与运行进程核验通过，原控制台可操作 |
+| BU042-CLICK | Qwen在右栏click.html点击“增加次数”一次 | 次数0→1原图；真实CU Click、按下/释放、动作终态、S2 goal；无替代浏览器 | AB通过：1次Click、计数0→1、Released、CU/goal及父完成均核验 |
+| BU042-READONLY | 完整中文禁用动作任务只读页面 | 本轮cap0/动作0/正确AX答案原图 | AC通过：新版只读cap0/动作0，正确读标题、按钮与次数1 |
+| BU042-CANCEL | 本步claim前父取消先提交 | 无输入；cancelled/goal=false；迟到回执不改终态 | AI通过：真实CU verifying期间正常中止，父stop先于CU cancelled提交，0动作；AF/AG/AH尝试不计 |
+| BU042-RESOURCE | S1后关闭/隐藏/换环境或改变文档 | 旧目标拒绝；无错误输入；真实时序早于核验点 | AE只读关闭通过：关闭发生在S1后/S2前，拒旧面板、动作0；AD太晚不计。交互派发期间/环境切换仍待验 |
 | BU042-RECEIPT | ticket/attempt/executor失配、到期或未知回执 | 不重放；Unknown沿既有隔离；原动作释放不被新资源覆盖 | 工程检查，不能伪造生产回执冒充实操 |
-| BU042-TYPE/SCROLL/NAV | 后续真实文字输入、滚动与导航 | 每项独立动作/页面结果/截图与释放事实 | 本阶段未实现，不算通过 |
+| BU042-TYPE/SCROLL/NAV | 后续真实文字输入、滚动与导航 | 每项独立动作/页面结果/截图与释放事实 | 042不含后续动作；Scroll已进入后续源码、未安装实测；Type/Nav未实现，不算通过 |
 | CU042-PAINT | Browser闭环后Qwen在Paint绘画 | 闭合轮廓及简易海绵宝宝、真实释放、四边泛光/准确顶部提示和结束撤除 | 尚未续测 |
 
 DSH远程插件实际安装运行与四项总体审核仍开放；微信保留不动不测试；Devin搁置。PR74保持Draft。不能把点击第一阶段或工程回归扩写为完整Browser Use/四项总体验收通过。

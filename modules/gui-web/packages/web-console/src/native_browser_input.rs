@@ -30,19 +30,28 @@ async fn receive(headers:HeaderMap,Json(reply):Json<PanelInputReply>) -> Result<
     if !request.delivered || request.host_id!=reply.host_id || request.request.request_id!=reply.request_id
         || request.request.resource!=reply.resource { return Err(StatusCode::CONFLICT); }
     // 回执阶段和执行实例也必须与原始请求相符，不能把预检回执用于执行结算。
-    let phase_matches = match &request.request.command {
-        native_browser_protocol::PanelInputCommand::PrepareClick {..} =>
+    if !phase_matches(&request.request.command,&reply) { return Err(StatusCode::CONFLICT); }
+    value.take().ok_or(StatusCode::CONFLICT)?.sender.send(reply).map_err(|_|StatusCode::CONFLICT)?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+fn phase_matches(command:&native_browser_protocol::PanelInputCommand,reply:&PanelInputReply) -> bool {
+    match command {
+        native_browser_protocol::PanelInputCommand::PrepareClick {..} | native_browser_protocol::PanelInputCommand::PrepareScroll {..} =>
             matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Prepared|native_browser_protocol::PanelInputOutcome::NotDispatched)
                 && reply.attempt_id.is_none() && reply.executor_instance_id.is_none(),
         native_browser_protocol::PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..} =>
-            reply.outcome!=native_browser_protocol::PanelInputOutcome::Prepared
+            matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Released|native_browser_protocol::PanelInputOutcome::ReleaseUnknown|native_browser_protocol::PanelInputOutcome::NotDispatched)
                 && reply.ticket_id.as_deref()==Some(ticket_id.as_str())
                 && reply.attempt_id.as_deref()==Some(attempt_id.as_str())
                 && reply.executor_instance_id.as_deref()==Some(executor_instance_id.as_str()),
-    };
-    if !phase_matches { return Err(StatusCode::CONFLICT); }
-    value.take().ok_or(StatusCode::CONFLICT)?.sender.send(reply).map_err(|_|StatusCode::CONFLICT)?;
-    Ok(StatusCode::NO_CONTENT)
+        native_browser_protocol::PanelInputCommand::ExecuteScroll {ticket_id,attempt_id,executor_instance_id,..} =>
+            matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Acknowledged|native_browser_protocol::PanelInputOutcome::DispatchUnknown|native_browser_protocol::PanelInputOutcome::NotDispatched)
+                && !reply.down_confirmed && !reply.up_confirmed
+                && reply.ticket_id.as_deref()==Some(ticket_id.as_str())
+                && reply.attempt_id.as_deref()==Some(attempt_id.as_str())
+                && reply.executor_instance_id.as_deref()==Some(executor_instance_id.as_str()),
+    }
 }
 pub(super) fn request(host_id:&str,request:PanelInputRequest,remaining:Duration,cancelled:Option<&dyn Fn()->bool>) -> Result<PanelInputReply,String> {
     if !request.valid_shape() { return Err("native_input_invalid".into()); }
@@ -66,4 +75,35 @@ pub(super) fn request(host_id:&str,request:PanelInputRequest,remaining:Duration,
 pub(super) fn random_id() -> Result<String,String> {
     let mut bytes=[0u8;16];getrandom::fill(&mut bytes).map_err(|_|"native_input_unavailable")?;
     Ok(bytes.iter().map(|b|format!("{b:02x}")).collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use native_browser_protocol::*;
+
+    #[test]
+    fn wheel_ack_cannot_settle_click_or_claim_mouse_release() {
+        let target=PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)};
+        let resource=PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:1};
+        let click=PanelInputCommand::ExecuteClick {target:target.clone(),ticket_id:"4".repeat(32),permit_id:"permit-1".into(),
+            attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};
+        let scroll=PanelInputCommand::ExecuteScroll {target,direction:ScrollDirection::Down,amount:1,ticket_id:"4".repeat(32),permit_id:"permit-1".into(),
+            attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};
+        let mut reply=PanelInputReply {host_id:"native-host-0123456789".into(),request_id:"6".repeat(32),resource,
+            outcome:PanelInputOutcome::Acknowledged,ticket_id:Some("4".repeat(32)),expires_at_unix_ms:None,
+            attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),down_confirmed:false,up_confirmed:false,error:None};
+        assert!(reply.valid_shape() && phase_matches(&scroll,&reply));
+        assert!(!phase_matches(&click,&reply));
+        reply.up_confirmed=true;
+        assert!(!reply.valid_shape() && !phase_matches(&scroll,&reply));
+        reply.up_confirmed=false;
+        reply.attempt_id=Some("other-attempt".into());
+        assert!(!phase_matches(&scroll,&reply));
+        reply.attempt_id=Some("attempt-1".into());
+        reply.outcome=PanelInputOutcome::DispatchUnknown;
+        reply.error=Some("native_input_not_confirmed".into());
+        assert!(reply.valid_shape() && phase_matches(&scroll,&reply));
+        assert!(!phase_matches(&click,&reply));
+    }
 }
