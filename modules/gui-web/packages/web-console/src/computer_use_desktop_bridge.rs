@@ -73,6 +73,9 @@ impl DesktopBridge for DesktopNativeBridge {
             std::thread::sleep(Duration::from_millis(120));
         }
         let snapshot = snapshot_foreground_window(UIA_ELEMENT_LIMIT).map_err(map_uia_error)?;
+        if selected_window.is_some_and(|handle| handle != snapshot.native_window_handle) {
+            return Err(stale("观察时前台窗口已经偏离指定目标；未对其它窗口规划或发送输入"));
+        }
         let webview2_overlay = snapshot.elements.iter().any(|element| {
             element.class_name.as_deref().is_some_and(|class_name| {
                 let class_name = class_name.to_ascii_lowercase();

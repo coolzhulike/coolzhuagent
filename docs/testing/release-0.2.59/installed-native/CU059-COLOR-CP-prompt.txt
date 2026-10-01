@@ -1,0 +1,1 @@
+CU059-COLOR-CP：新一轮，只执行本轮任务。调用一次 computer_use_perform，参数为 {"success_criteria":["颜色1黑色被选中"],"objective":"选择Paint的颜色1黑色","surface":"desktop","target":{"application":"mspaint.exe"},"constraints":["只单击颜色1黑色，不绘画，不保存，不重试"],"max_actions":1}。必填的success_criteria必须原样提交，依据本次原图定位及验收。

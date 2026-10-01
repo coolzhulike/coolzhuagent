@@ -1,0 +1,1 @@
+CU059-COLOR-CQ：新的普通自然语言任务。只调用一次computer_use_perform，在当前Windows画图选择颜色1黑色作为绘画颜色。成功条件是最新原图中Color 1 black选中；请求必须包含success_criteria数组。max_actions设置1，只单击一次，不在画布落笔，不保存，不用其它工具，失败立即停止。依据新鲜原图自行定位，禁止复用历史坐标或历史目标。
