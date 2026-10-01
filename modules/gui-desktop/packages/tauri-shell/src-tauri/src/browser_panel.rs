@@ -797,6 +797,11 @@ pub async fn browser_panel_command(
                     let _ = view.close();
                     return Err("网页创建期间窗口或聊天室已变化".into());
                 }
+                // 新建视图也必须显式显示；不能仅凭创建成功登记为可见资源。
+                if view.show().is_err() {
+                    invalidate(&app, "show-failed");
+                    return Err("无法显示网页预览".into());
+                }
             }
             Err(_) => {
                 update(&app, generation, |reply| {

@@ -1,0 +1,14 @@
+{
+  "version": "0.2.53",
+  "observed_at": "2026-10-01T07:09:13.2867181Z",
+  "actor": "主会话按用户明确授权操作原生确认",
+  "decision_id_from_native_ui": "release-1790837634389-1790837634389924600",
+  "accepts_new_input": true,
+  "resource_state": "safe",
+  "pending_recovery_operations": 0,
+  "human_review_required": 5,
+  "unacknowledged_open_blocks": 0,
+  "unacknowledged_legacy_runs": 0,
+  "latest_release_epoch": 48,
+  "history_preserved": true
+}
