@@ -3,6 +3,10 @@
 mod browser_panel;
 mod native_browser_host;
 mod native_browser_observation;
+mod native_browser_devtools;
+mod native_browser_nodes;
+mod native_browser_target;
+mod native_browser_input;
 mod computer_use_indicator;
 mod console_shell;
 mod recovery_confirmation;

@@ -79,6 +79,13 @@ impl Drop for SupervisedHelperChild {
 /// authorize 必须在输入 lease 外执行；dispatch 只在短 lease 中复核并调用一次 notify，
 /// 不得在该临界区访问数据库、等待 helper 或重试。未调用 notify 的成功返回也算拒绝。
 pub trait NativeInputAuthorization {
+    /// 持久面板专用分支，不适用helper READY/Job/退出契约。默认拒绝，不能借旧授权降级。
+    fn claim_panel(&self, _preparation: &PanelInputPreparation) -> Result<NativeInputPermit,String> {
+        Err("持久面板授权未接线".into())
+    }
+    fn completed_panel(&self, _reply: Option<&native_browser_protocol::PanelInputReply>) -> Result<(),String> {
+        Err("持久面板结算未接线".into())
+    }
     fn authorize(&self, prepared: &PreparedNativeInput) -> Result<NativeInputPermit, String>;
     fn dispatch(
         &self,
@@ -90,6 +97,16 @@ pub trait NativeInputAuthorization {
     fn completed(&self, _completion: &NativeInputCompletion) -> Result<(), String> {
         Ok(())
     }
+}
+
+/// core只传递协议事实，不访问会话库或签发许可。
+pub struct PanelInputPreparation {
+    pub host_id: String,
+    pub process: native_browser_protocol::HostIdentity,
+    pub resource: native_browser_protocol::PanelResource,
+    pub target: native_browser_protocol::PanelClickTarget,
+    pub ticket_id: String,
+    pub expires_at_unix_ms: u64,
 }
 
 /// helper 由原有输入引擎持有与监督；此对象只拥有这一次握手文件和一次性通知状态。

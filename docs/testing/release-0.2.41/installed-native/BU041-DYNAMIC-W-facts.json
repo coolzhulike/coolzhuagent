@@ -1,0 +1,105 @@
+{
+  "test": "BU041-DYNAMIC-W",
+  "runtime": {
+    "id": "run-chat-800f7f7c412716c1f9f76759b5e4e31d67c10484409640fa",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790790539839-4",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790790567322,
+    "created_at": 1790790539848
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001218da2a8217432b44-tool-53bbfbf59353d039281dd0274421306f029ebfda028dfae2eee75cec546eec02",
+      "provider_tool_call_id": "tool-53bbfbf59353d039281dd0274421306f029ebfda028dfae2eee75cec546eec02",
+      "turn_id": "000000000000001218da2a8217432b44",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 6,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790790547211,
+      "updated_at_ms": 1790790559260,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001218da2a8217432b44-tool-53bbfbf59353d039281dd0274421306f029ebfda028dfae2eee75cec546eec02",
+        "provider_tool_call_id": "tool-53bbfbf59353d039281dd0274421306f029ebfda028dfae2eee75cec546eec02",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "原生页面或宿主环境在模型验收期间已变化，本轮旧观察不能作为成功证据",
+        "error": {
+          "code": "native_browser_observation_stale",
+          "message": "原生页面或宿主环境在模型验收期间已变化，本轮旧观察不能作为成功证据",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:6b79b7ec0befb03b8403fc80cf09672e"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790791439839
+            }
+          },
+          "cu_deadline_ms": 1790790667211,
+          "cu_deadline_established_at_ms": 1790790547211,
+          "cu_budget_ms": 120000
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001218da2a8217432b44-tool-53bbfbf59353d039281dd0274421306f029ebfda028dfae2eee75cec546eec02",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-66205bcf-3f99-99d4-a1ea-4015ecafeb5a",
+      "error_code": "native_browser_observation_stale",
+      "started_at_ms": 1790790547871,
+      "completed_at_ms": 1790790559253
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000001218da2a8217432b44",
+      "call_id": "cu-session-1779459149988-000000000000001218da2a8217432b44-tool-53bbfbf59353d039281dd0274421306f029ebfda028dfae2eee75cec546eec02",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 656,
+      "output_tokens": 491,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790790539839-4",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-800f7f7c412716c1f9f76759b5e4e31d67c10484409640fa",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 17039,
+      "output_tokens": 394,
+      "http_status": null
+    }
+  ]
+}

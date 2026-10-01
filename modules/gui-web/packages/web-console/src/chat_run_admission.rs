@@ -50,6 +50,9 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
         parent.root_budget = Some(root_budget.clone());
         parent.runtime_db_path = Some(db_path.clone());
         parent.computer_use_turn_scope = crate::computer_use_turn_scope::ComputerUseTurnScope::from_current_user(&result.user_content);
+        if parent.computer_use_turn_scope.native_browser() {
+            parent.native_browser_binding = Some(crate::native_browser_host::capture_panel_binding(parent));
+        }
         let snapshots = result.targets.iter().filter_map(|agent| {
             match crate::host_child_agent::HostModelSnapshot::capture(
                 agent, Some(&result.chat_room_id), parent,

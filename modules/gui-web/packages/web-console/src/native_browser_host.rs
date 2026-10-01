@@ -2,7 +2,7 @@
 //! 固定只读观察与短租约；不提供输入接口，也不回退 Chrome，登记不是 Browser Use 验收。
 use std::{path::PathBuf, sync::{Mutex, OnceLock}, time::{Duration, Instant}};
 use axum::{extract::DefaultBodyLimit, http::{HeaderMap, StatusCode}, routing::post, Json, Router};
-use native_browser_protocol::{token_filename, HostReceipt, HostState, ObservationReply, ObservationRequest,
+use native_browser_protocol::{token_filename, HostIdentity, HostReceipt, HostState, ObservationReply, ObservationRequest,
     PageObservation, PanelResource, LEASE_MILLIS, MAX_STATE_BYTES, MAX_OBSERVATION_BYTES, STATE_PATH, OBSERVATION_PATH};
 
 struct PendingObservation {
@@ -31,6 +31,7 @@ impl Drop for PendingObservationGuard {
 
 struct RegisteredHost {
     host_id: String,
+    identity: Option<HostIdentity>,
     sequence: u64,
     seen: Instant,
     resource: Option<(crate::CanonicalWorkspaceId, PanelResource)>,
@@ -85,6 +86,7 @@ pub(super) fn routes() -> Router {
     let _ = host_token();
     Router::new().route(STATE_PATH, post(register).layer(DefaultBodyLimit::max(MAX_STATE_BYTES)))
         .route(OBSERVATION_PATH, post(receive_observation).layer(DefaultBodyLimit::max(MAX_OBSERVATION_BYTES)))
+        .merge(crate::native_browser_input::routes())
 }
 
 pub(super) fn authenticated(headers: &HeaderMap) -> bool {
@@ -132,6 +134,16 @@ fn resolve_resource(resource: PanelResource) -> Result<(crate::CanonicalWorkspac
 async fn register(headers: HeaderMap, Json(state): Json<HostState>) -> Result<Json<HostReceipt>, StatusCode> {
     if !authenticated(&headers) { return Err(StatusCode::UNAUTHORIZED); }
     if !state.valid_shape() { return Err(StatusCode::BAD_REQUEST); }
+    if state.identity.as_ref().is_some_and(|identity|
+        state.host_id != format!("native-{}", identity.boot_id) || verify_process(identity).is_err()) {
+        // 有身份却验证失败时撤销资源，不沿用上一条有效资源。
+        let mut registered = registry().lock().map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
+        if registered.as_ref().is_some_and(|host| host.host_id == state.host_id && state.sequence > host.sequence) {
+            *registered = Some(RegisteredHost {host_id:state.host_id, identity:None,
+                sequence:state.sequence, seen:Instant::now(),resource:None});
+        }
+        return Err(StatusCode::CONFLICT);
+    }
     let mut registered = registry().lock().map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
     if let Some(current) = registered.as_ref() {
         if !accepts_sequence(current, &state, current.seen.elapsed()) {
@@ -143,12 +155,12 @@ async fn register(headers: HeaderMap, Json(state): Json<HostState>) -> Result<Js
         Ok(resource) => resource,
         Err(error) => {
             // 撤销资源时仍保留已认证宿主的序号，避免旧有效消息在错误后复活。
-            *registered = Some(RegisteredHost {host_id:state.host_id, sequence:state.sequence,
+            *registered = Some(RegisteredHost {host_id:state.host_id, identity:state.identity, sequence:state.sequence,
                 seen:Instant::now(), resource:None});
             return Err(error);
         }
     };
-    *registered = Some(RegisteredHost {host_id:state.host_id, sequence:state.sequence, seen:Instant::now(), resource});
+    *registered = Some(RegisteredHost {host_id:state.host_id, identity:state.identity, sequence:state.sequence, seen:Instant::now(), resource});
     let resource_registered = registered.as_ref().is_some_and(|host| host.resource.is_some());
     let observation = pending().lock().ok().and_then(|mut pending| {
         let request = pending.as_mut()?;
@@ -160,7 +172,8 @@ async fn register(headers: HeaderMap, Json(state): Json<HostState>) -> Result<Js
         request.delivered = true;
         Some(request.request.clone())
     });
-    Ok(Json(HostReceipt {accepted:true, resource_registered, observation}))
+    let input=registered.as_ref().and_then(|host| crate::native_browser_input::deliver(&host.host_id,host.resource.as_ref().map(|(_,r)|r)));
+    Ok(Json(HostReceipt {accepted:true, resource_registered, observation,input}))
 }
 
 async fn receive_observation(headers: HeaderMap, Json(reply): Json<ObservationReply>) -> Result<StatusCode, StatusCode> {
@@ -196,10 +209,81 @@ pub(super) struct NativeObservation {
     pub request_id: String,
 }
 
+/// 冻结面板身份，不把 URL/导航修订当文档身份；同一面板合法导航后仍须重新观察。
+#[derive(Debug, Clone)]
+pub(super) struct FrozenPanelBinding {
+    host_id: String,
+    identity: Option<HostIdentity>,
+    workspace: crate::CanonicalWorkspaceId,
+    resource: PanelResource,
+}
+
+impl FrozenPanelBinding {
+    fn matches(&self, host_id: &str, identity: Option<&HostIdentity>, workspace: &crate::CanonicalWorkspaceId, resource: &PanelResource) -> bool {
+        self.host_id == host_id && &self.workspace == workspace
+            && self.identity.as_ref() == identity
+            && self.resource.workspace_path == resource.workspace_path
+            && self.resource.room_id == resource.room_id && self.resource.label == resource.label
+            && self.resource.generation == resource.generation
+    }
+}
+
+pub(super) fn capture_panel_binding(parent: &crate::FrozenParentContext) -> Result<FrozenPanelBinding, String> {
+    let registered = registry().lock().map_err(|_| "native_browser_unavailable")?;
+    let host = readable_host(registered.as_ref()).map_err(str::to_string)?;
+    let (workspace, resource) = host.resource.as_ref().ok_or("native_browser_panel_unavailable")?;
+    if workspace != &parent.workspace_id || parent.room_id.as_deref() != Some(resource.room_id.as_str()) {
+        return Err("native_browser_resource_changed".into());
+    }
+    Ok(FrozenPanelBinding {host_id:host.host_id.clone(),identity:host.identity.clone(),workspace:workspace.clone(),resource:resource.clone()})
+}
+
+/// 输入必须有真实OS宿主身份；旧版无identity仅保留只读兼容。
+pub(super) fn input_process(parent:&crate::FrozenParentContext,resource:&PanelResource) -> Result<(String,HostIdentity),String> {
+    let frozen=parent.native_browser_binding.as_ref().ok_or("native_browser_binding_missing")?.as_ref().map_err(Clone::clone)?;
+    let registered=registry().lock().map_err(|_|"native_browser_unavailable")?;
+    let host=readable_host(registered.as_ref()).map_err(str::to_string)?;
+    let (workspace,current)=host.resource.as_ref().ok_or("native_browser_unavailable")?;
+    if current!=resource || workspace!=&parent.workspace_id || parent.room_id.as_deref()!=Some(resource.room_id.as_str())
+        || !frozen.matches(&host.host_id,host.identity.as_ref(),workspace,current) { return Err("native_browser_resource_changed".into()); }
+    let process=host.identity.clone().ok_or("native_browser_executor_unverified")?;
+    verify_process(&process)?;Ok((host.host_id.clone(),process))
+}
+
+/// 登记和每次未来输入消费均须调用；独立认证令牌不替代实际OS实例证据。
+pub(super) fn verify_process(identity: &HostIdentity) -> Result<(), String> {
+    if !identity.valid_shape() { return Err("native_browser_executor_unverified".into()); }
+    #[cfg(windows)]
+    {
+        let process = windows_process_guard::capture_live_process_identity(identity.pid)
+            .map_err(|_| "native_browser_executor_unverified")?;
+        let actual = process.image_path().map(PathBuf::from).and_then(|path| path.canonicalize().ok())
+            .ok_or("native_browser_executor_unverified")?;
+        let claimed = PathBuf::from(&identity.canonical_executable).canonicalize()
+            .map_err(|_| "native_browser_executor_unverified")?;
+        let own = std::env::current_exe().map_err(|_| "native_browser_executor_unverified")?;
+        let sibling = own.parent().map(|parent| parent.join("coolzhu-tauri-shell.exe"))
+            .and_then(|path| path.canonicalize().ok());
+        // 正式包只信任同bin目录；源码运行沿用固定构建候选目录，不读取网页指定的路径。
+        let trusted = if let Some(sibling) = sibling { actual == sibling } else {
+            crate::desktop_pet_executable_candidates(std::path::Path::new(env!("CARGO_MANIFEST_DIR")), Some(&own))
+                .iter().filter_map(|path| path.canonicalize().ok()).any(|path| path == actual)
+        };
+        if process.creation_time_filetime() != identity.creation_time_filetime || actual != claimed || !trusted {
+            return Err("native_browser_executor_unverified".into());
+        }
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    { Err("native_browser_executor_unsupported".into()) }
+}
+
 /// 只允许已有父运行内部调用。未生产接线时没有公共接口能凭页面文本创建请求。
 pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
     cancelled: &dyn Fn() -> bool) -> Result<NativeObservation, String> {
     let db = parent.runtime_db_path.as_ref().ok_or("native_browser_parent_missing")?;
+    let frozen = parent.native_browser_binding.as_ref().ok_or("native_browser_binding_missing")?
+        .as_ref().map_err(Clone::clone)?;
     crate::validate_frozen_parent_relations(db, parent).map_err(|_| "native_browser_parent_changed")?;
     if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
         return Err("native_observation_cancelled".into());
@@ -213,7 +297,8 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
         let host = readable_host(registered.as_ref()).map_err(str::to_string)?;
         let (workspace, resource) = host.resource.as_ref().ok_or("native_browser_unavailable")?;
         if host.seen.elapsed() >= Duration::from_millis(LEASE_MILLIS)
-            || workspace != &parent.workspace_id || parent.room_id.as_deref() != Some(resource.room_id.as_str()) {
+            || workspace != &parent.workspace_id || parent.room_id.as_deref() != Some(resource.room_id.as_str())
+            || !frozen.matches(&host.host_id, host.identity.as_ref(), workspace, resource) {
             return Err("native_browser_resource_changed".into());
         }
         let mut pending = pending().lock().map_err(|_| "native_observation_unavailable")?;
@@ -239,7 +324,8 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
                 }
                 let current_matches = registry().lock().is_ok_and(|registered| registered.as_ref().is_some_and(|host|
                     host.host_id == reply.host_id && host.seen.elapsed() < Duration::from_millis(LEASE_MILLIS)
-                    && host.resource.as_ref().is_some_and(|(workspace, resource)| workspace == &parent.workspace_id && resource == &reply.resource)));
+                    && host.resource.as_ref().is_some_and(|(workspace, resource)| workspace == &parent.workspace_id
+                        && resource == &reply.resource && frozen.matches(&host.host_id, host.identity.as_ref(), workspace, resource))));
                 if !current_matches { break Err("native_browser_resource_changed".into()); }
                 break reply.observation.map(|page| NativeObservation {resource:reply.resource,
                     page, host_id:reply.host_id, request_id:reply.request_id})
@@ -259,7 +345,7 @@ mod tests {
     #[test]
     fn browser_observation_distinguishes_disconnected_host_from_unavailable_panel() {
         assert_eq!(readable_host(None).err(), Some("native_browser_host_unavailable"));
-        let current = RegisteredHost {host_id:"native-host-0123456789".into(), sequence:7,
+        let current = RegisteredHost {host_id:"native-host-0123456789".into(), identity:None, sequence:7,
             seen:Instant::now(), resource:None};
         assert_eq!(readable_host(Some(&current)).err(), Some("native_browser_panel_unavailable"));
         let expired = RegisteredHost {seen:Instant::now() - Duration::from_millis(LEASE_MILLIS), ..current};
@@ -283,15 +369,34 @@ mod tests {
         assert!(serde_json::from_str::<HostState>(r#"{"host_id":"host-012345678901","sequence":1,"resource":null,"javascript":"alert(1)"}"#).is_err());
         assert!(serde_json::from_str::<ObservationRequest>(r#"{"request_id":"01234567890123456789012345678901","resource":null,"method":"Runtime.evaluate"}"#).is_err());
         let oversized = PageObservation {url:"https://example.invalid/".into(), title:String::new(),
-            nodes:vec![native_browser_protocol::ObservedNode {role:"button".into(),name:"字".repeat(257)}], truncated:false};
+            nodes:vec![native_browser_protocol::ObservedNode {role:"button".into(),name:"字".repeat(257)}], truncated:false,
+            document_token:None,node_handles:Vec::new()};
         assert!(!oversized.valid_shape());
     }
 
     #[test]
+    fn frozen_panel_binding_rejects_replacement_without_rejecting_same_panel_navigation() {
+        let workspace = crate::canonical_workspace_identity("ws-00000000000000ff").unwrap();
+        let resource = PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),
+            label:"browser-panel-7".into(),generation:7,navigation_revision:1};
+        let binding = FrozenPanelBinding {host_id:"native-host-0123456789".into(),identity:None,workspace:workspace.clone(),resource:resource.clone()};
+        let mut live = resource.clone();
+        live.navigation_revision = 2;
+        assert!(binding.matches(&binding.host_id, None, &workspace, &live));
+        assert!(!binding.matches("native-host-replacement", None, &workspace, &live));
+        live.generation = 8; live.label = "browser-panel-8".into();
+        assert!(!binding.matches(&binding.host_id, None, &workspace, &live));
+        live = resource.clone(); live.room_id = "room-2".into();
+        assert!(!binding.matches(&binding.host_id, None, &workspace, &live));
+        live = resource; live.workspace_path = "another-workspace".into();
+        assert!(!binding.matches(&binding.host_id, None, &workspace, &live));
+    }
+
+    #[test]
     fn native_host_lease_rejects_replay_and_competing_host() {
-        let current = RegisteredHost {host_id:"native-host-0123456789".into(), sequence:7,
+        let current = RegisteredHost {host_id:"native-host-0123456789".into(), identity:None, sequence:7,
             seen:Instant::now(), resource:None};
-        let mut state = HostState {host_id:current.host_id.clone(), sequence:7, resource:None};
+        let mut state = HostState {host_id:current.host_id.clone(), sequence:7, identity:None, resource:None};
         assert!(!accepts_sequence(&current, &state, Duration::ZERO));
         assert!(!accepts_sequence(&current, &state, Duration::from_millis(LEASE_MILLIS)));
         state.sequence = 8;

@@ -1,28 +1,31 @@
-//! 本轮用户明确提出的原生网页只读边界；不从历史、记忆或模型参数创建权限。
+//! 本轮用户明确提出的原生网页边界；不从历史、记忆或模型参数选择后端或创建权限。
 use computer_use::{ComputerUseError, ComputerUseRequest, ComputerUseRetryOwner, ComputerUseSurface};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub(super) struct ComputerUseTurnScope {
+    native_browser: bool,
     native_browser_read_only: bool,
 }
 
 impl ComputerUseTurnScope {
     pub(super) fn from_current_user(text: &str) -> Self {
         let text = text.to_ascii_lowercase();
-        let native_browser = ["内置浏览器", "builtin browser", "built-in browser"]
+        let native_browser = ["内置浏览器", "右栏浏览器", "右侧浏览器", "右侧扩展栏浏览器", "builtin browser", "built-in browser"]
             .iter().any(|name| text.contains(name));
         let explicit_no_input = ["不得发送输入", "不要发送输入", "不发送输入",
             "不点击、不滚动、不输入", "不得点击、滚动或输入", "禁止点击、滚动或输入", "do not send input"]
-            .iter().any(|restriction| text.contains(restriction));
-        Self { native_browser_read_only: native_browser && explicit_no_input }
+            .iter().any(|restriction| text.contains(restriction)) || forbids_all_browser_input(&text);
+        Self { native_browser, native_browser_read_only: native_browser && explicit_no_input }
     }
+
+    pub(super) fn native_browser(self) -> bool { self.native_browser }
 
     pub(super) fn native_browser_read_only(self) -> bool {
         self.native_browser_read_only
     }
 
     pub(super) fn validate(self, request: &ComputerUseRequest) -> Result<(), ComputerUseError> {
-        if !self.native_browser_read_only {
+        if !self.native_browser {
             return Ok(());
         }
         let desktop_target = request.target.as_ref().is_some_and(|target|
@@ -32,13 +35,24 @@ impl ComputerUseTurnScope {
         if desktop_target || request.surface == ComputerUseSurface::Desktop
             || (request.surface == ComputerUseSurface::Auto && !browser_target) {
             return Err(ComputerUseError::blocked(
-                "current_turn_readonly_browser_required",
-                "本轮用户明确要求原生内置浏览器只读；禁止继续历史桌面任务。请使用 browser surface。",
+                if self.native_browser_read_only { "current_turn_readonly_browser_required" } else { "current_turn_native_browser_required" },
+                "本轮用户明确选择原生内置浏览器；禁止改为桌面或继续历史任务。请使用 browser surface。",
                 ComputerUseRetryOwner::Model,
             ));
         }
         Ok(())
     }
+}
+
+/// 三类输入全部被禁止时，顺序与顿号/“或”不改变边界；不把只禁点击误当纯只读。
+fn forbids_all_browser_input(text: &str) -> bool {
+    let compact: String = text.chars().filter(|c| !c.is_whitespace()).collect();
+    let orders = [["点击", "输入", "滚动"], ["点击", "滚动", "输入"],
+        ["滚动", "输入", "点击"], ["滚动", "点击", "输入"],
+        ["输入", "点击", "滚动"], ["输入", "滚动", "点击"]];
+    ["不得", "禁止", "不要"].iter().any(|prefix| orders.iter().any(|[first, second, third]|
+        [format!("{prefix}{first}、{second}、{third}"),
+         format!("{prefix}{first}、{second}或{third}")].iter().any(|restriction| compact.contains(restriction))))
 }
 
 #[cfg(test)]
@@ -59,15 +73,25 @@ mod tests {
     }
     #[test]
     fn ordinary_paint_and_browser_actions_are_not_reclassified_by_history_words() {
-        for text in ["在Paint画一条线", "在内置浏览器先观察再点击链接", "内置浏览器不要点击按钮，使用键盘输入"] {
+        for text in ["在Paint画一条线", "在Chrome先观察再点击链接"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
+            assert!(!scope.native_browser());
             assert!(!scope.native_browser_read_only());
             assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_ok());
+        }
+        for text in ["在内置浏览器先观察再点击链接", "内置浏览器不要点击按钮，使用键盘输入", "在右栏浏览器点击下一页"] {
+            let scope = ComputerUseTurnScope::from_current_user(text);
+            assert!(scope.native_browser());
+            assert!(!scope.native_browser_read_only());
+            assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());
+            assert!(scope.validate(&request("browser", serde_json::json!({"url":"https://example.com/"}))).is_ok());
         }
     }
     #[test]
     fn readonly_browser_accepts_the_current_combined_chinese_restriction() {
-        for text in ["内置浏览器，不得点击、滚动或输入", "内置浏览器，禁止点击、滚动或输入"] {
+        for text in ["内置浏览器，不得点击、滚动或输入", "内置浏览器，禁止点击、滚动或输入",
+            "内置浏览器，不得点击、输入、滚动", "内置浏览器，不要滚动、输入或点击",
+            "内置浏览器，禁止输入、 点击 、滚动"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(scope.native_browser_read_only());
             assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());

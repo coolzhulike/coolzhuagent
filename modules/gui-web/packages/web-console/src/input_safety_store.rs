@@ -450,6 +450,8 @@ impl InputSafetyStore {
         // v2 → v3：许可登记与执行者实例登记（8.2b／8.3b **共用一次**迁移）。
         crate::input_permit_store::ensure_v3_objects(connection)
             .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
+        crate::persistent_panel_executor::ensure_v4_objects(connection)
+            .map_err(|error| InputSafetyStoreError::Sqlite(error.to_string()))?;
         // 版本推进放在**所有对象就位之后**、且在同一事务内。
         if current < INPUT_SAFETY_SCHEMA_VERSION {
             connection

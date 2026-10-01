@@ -17,6 +17,10 @@ mod audio;
 mod browser_bridge;
 mod browser_bridge_protocol;
 mod native_browser_host;
+mod native_browser_input;
+#[cfg(windows)]
+mod native_panel_authorization;
+mod persistent_panel_executor;
 mod native_browser_adapter;
 mod native_browser_verification;
 mod computer_use_activity;
@@ -578,6 +582,8 @@ struct FrozenParentContext {
     runtime_db_path: Option<PathBuf>,
     /// 本轮用户原文冻结的 CU 限制；历史内容和模型参数不能扩大边界。
     computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope,
+    /// 用户选择原生浏览器时，在接纳模型请求之前冻结真实宿主与面板；登记失败也不得回退。
+    native_browser_binding: Option<Result<native_browser_host::FrozenPanelBinding, String>>,
     /// 接纳时实际连接并发现的 MCP 工具代际；重连后旧模型响应不可落到新进程。
     mcp_bindings: Arc<HashMap<String, u64>>,
     /// 聊天接纳时已解析的模型、工具及权限；子任务不得在工具发起时重新读取配置扩权。
@@ -616,6 +622,7 @@ impl FrozenParentContext {
             goal_phase: None,
             runtime_db_path: None,
             computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::default(),
+            native_browser_binding: None,
             mcp_bindings,
             host_model_snapshots: Arc::new(HashMap::new()),
         })
@@ -28924,7 +28931,7 @@ fn build_context_assembly_with_roster(
         if is_goal_temporary_persisted_message(message) {
             continue;
         }
-        let Some(mut message_for_context) = chat_tool_history::project(message) else { continue; };
+        let Some(mut message_for_context) = chat_tool_history::project_for_context(message) else { continue; };
         message_for_context.content = strip_context_usage_footer(&message_for_context.content);
         if message_for_context.content.trim().is_empty() {
             continue;
@@ -41958,6 +41965,7 @@ fn apply_session_schema_steps(connection: &Connection) -> rusqlite::Result<()> {
     // 清理事故登记（SafetyCleanup 来源核对）。
     computer_use_store::apply_session_migration_v26_cleanup_incidents(connection)?;
     computer_use_store::apply_session_migration_v27_tool_call_source(connection)?;
+    computer_use_store::apply_session_migration_v28_panel_dispatch(connection)?;
     Ok(())
 }
 
@@ -42229,7 +42237,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 27;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 28;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///

@@ -1,0 +1,2 @@
+# 构建身份收据按原始字节保留，避免换行规范化破坏已归档的摘要。
+*.json -text whitespace=cr-at-eol

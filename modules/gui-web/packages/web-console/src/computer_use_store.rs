@@ -1921,7 +1921,62 @@ pub(crate) struct ComputerUseRunStore {
     connection: Mutex<Connection>,
 }
 
+/// v28：既有步骤增加一次性面板派发字段，旧行保留NULL；与父停止仍使用同一会话库。
+pub(crate) fn apply_session_migration_v28_panel_dispatch(connection:&Connection) -> rusqlite::Result<()> {
+    let current:i64=connection.query_row("PRAGMA user_version",[],|row|row.get(0))?;
+    for definition in ["native_dispatch_state TEXT","native_ticket_id TEXT","native_binding_json TEXT"] {
+        ensure_computer_use_steps_column(connection,definition)?;
+    }
+    connection.execute_batch("CREATE UNIQUE INDEX IF NOT EXISTS idx_cu_native_ticket ON computer_use_steps(native_ticket_id) WHERE native_ticket_id IS NOT NULL;")?;
+    if current<28 { connection.execute_batch("PRAGMA user_version=28;")?; }
+    Ok(())
+}
+
 impl ComputerUseRunStore {
+    pub(crate) fn prepare_panel_attempt(&self,call_id:&str,index:u64,ticket:&str,binding:&str) -> Result<(),String> {
+        let connection=self.connection.lock().map_err(|_|"步骤存储锁损坏")?;
+        let count=connection.execute("UPDATE computer_use_steps SET native_dispatch_state='pending',native_ticket_id=?1,native_binding_json=?2
+            WHERE run_id=?3 AND step_index=?4 AND status='executing' AND native_dispatch_state IS NULL",
+            params![ticket,binding,call_id,index as i64]).map_err(|e|e.to_string())?;
+        if count!=1 { return Err("步骤不存在或已经预检/派发".into()); } Ok(())
+    }
+
+    /// 物理派发的业务边界：父停止、权限和本步Pending在同库写事务内裁决。
+    pub(crate) fn claim_panel_attempt(&self,parent:&crate::FrozenParentContext,call_id:&str,index:u64,
+        ticket:&str,binding:&str,expires:u64,cancelled:&dyn Fn()->bool) -> Result<(),String> {
+        let mut connection=self.connection.lock().map_err(|_|"步骤存储锁损坏")?;
+        // 此窄事务不能等待长时间争锁；失败直接拒绝，不回放许可。
+        connection.busy_timeout(std::time::Duration::from_millis(50)).map_err(|e|e.to_string())?;
+        let result=(|| {
+            let tx=connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).map_err(|e|e.to_string())?;
+            let actual:String=tx.query_row("SELECT file FROM pragma_database_list WHERE name='main'",[],|row|row.get(0)).map_err(|e|e.to_string())?;
+            if parent.runtime_db_path.as_ref().and_then(|p|p.canonicalize().ok()) != std::path::Path::new(&actual).canonicalize().ok()
+                || parent.runtime_db_path.is_none() { return Err("父会话库已经变化".into()); }
+            crate::validate_frozen_parent_relations_on_connection(&tx,parent).map_err(|_|"父运行已取消或环境已变化")?;
+            let allowed:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM chat_room_permissions WHERE room_id=?1 AND permission_profile=?2)",
+                params![parent.room_id.as_deref(),crate::ROOM_PERMISSION_FULL_ACCESS],|row|row.get(0)).map_err(|e|e.to_string())?;
+            if !allowed || cancelled() || parent.root_budget.as_ref().is_some_and(|b|b.is_expired()) || crate::unix_timestamp_millis()>=expires {
+                return Err("派发前取消、权限收紧或期限耗尽".into());
+            }
+            let changed=tx.execute("UPDATE computer_use_steps SET native_dispatch_state='dispatching'
+                WHERE run_id=?1 AND step_index=?2 AND native_dispatch_state='pending' AND native_ticket_id=?3 AND native_binding_json=?4
+                AND EXISTS(SELECT 1 FROM computer_use_runs r WHERE r.call_id=?1 AND r.state='executing' AND r.terminal_result_json IS NULL
+                    AND r.deadline_ms>?5 AND r.chat_room_id=?6 AND r.session_id=?7 AND r.workspace_id=?8)",
+                params![call_id,index as i64,ticket,binding,crate::unix_timestamp_millis() as i64,parent.room_id.as_deref(),parent.session_id.as_deref(),parent.workspace_id.as_str()])
+                .map_err(|e|e.to_string())?;
+            if changed!=1 { return Err("本次步骤派发资格已失效或已经消费".into()); }
+            tx.commit().map_err(|e|e.to_string())
+        })();
+        let _=connection.busy_timeout(std::time::Duration::from_secs(5));result
+    }
+
+    pub(crate) fn settle_panel_attempt(&self,call_id:&str,index:u64,ticket:&str,outcome:&str) -> Result<(),String> {
+        let connection=self.connection.lock().map_err(|_|"步骤存储锁损坏")?;
+        let changed=connection.execute("UPDATE computer_use_steps SET native_dispatch_state=?1 WHERE run_id=?2 AND step_index=?3
+            AND native_ticket_id=?4 AND native_dispatch_state IN ('pending','dispatching')",
+            params![outcome,call_id,index as i64,ticket]).map_err(|e|e.to_string())?;
+        if changed!=1 { return Err("派发回执不能覆盖既有结算".into()); } Ok(())
+    }
     pub(crate) fn from_connection(connection: Connection) -> Self {
         Self {
             connection: Mutex::new(connection),

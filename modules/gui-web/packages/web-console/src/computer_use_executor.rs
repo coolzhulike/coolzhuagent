@@ -130,6 +130,7 @@ struct TracingAdapter<'a> {
     inner: DynComputerUseAdapter,
     store: &'a ComputerUseRunStore,
     call_id: String,
+    native_browser_parent: Option<crate::FrozenParentContext>,
     /// 规划请求身份的**唯一合法来源**（PR-02A）。trait 的方法文档明确：写动作事实时用它构造
     /// `ActionOrigin` 的模型规划来源，**不得**用 provider trace、外层工具调用 id 或"最近一次请求"顶替。
     planner: &'a dyn ComputerUsePlanner,
@@ -300,7 +301,13 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
                         remaining.as_millis().min(u128::from(u64::MAX)) as u64,
                     )),
                 };
-                match crate::native_input_authorization::HostNativeInputAuthorization::new(
+                if let Some(parent)=self.native_browser_parent.as_ref() {
+                    match crate::native_panel_authorization::HostPanelAuthorization::new(context,parent,self.store,&self.call_id,index as u64,lease,&*self.cancelled) {
+                        Ok(port)=>self.inner.act_authorized(action,expected_generation,remaining,&port),
+                        Err(reason)=>Err(ComputerUseError::blocked("native_input_authorization_unavailable",reason,ComputerUseRetryOwner::None)
+                            .with_receipt(computer_use::input::pre_input_receipt(&expected_action_id,false))),
+                    }
+                } else { match crate::native_input_authorization::HostNativeInputAuthorization::new(
                     context, lease, &*self.cancelled,
                 ) {
                     Ok(port) => {
@@ -312,7 +319,7 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
                     Err(reason) => Err(ComputerUseError::blocked(
                         "native_input_authorization_unavailable", reason, ComputerUseRetryOwner::None,
                     )),
-                }
+                } }
             }
             // 浏览器适配器没有桌面输入；真实原生 bridge 的无端口调用在 core 中明确拒绝。
             // 正式 CU 入口在接纳时已检查宿主根，不能从这里补造许可或进程身份。
@@ -1249,7 +1256,8 @@ impl<'a> ComputerUseExecutor<'a> {
         }
 
         #[cfg(windows)]
-        let desktop_input_lease = if surface == ComputerUseSurface::Desktop {
+        let desktop_input_lease = if surface == ComputerUseSurface::Desktop
+            || (surface==ComputerUseSurface::Browser && self.native_browser_parent.as_ref().is_some_and(|parent| !parent.computer_use_turn_scope.native_browser_read_only())) {
             let scope = match windows_process_guard::current_interactive_session_scope() {
                 Ok(scope) => scope,
                 Err(error) => {
@@ -1324,6 +1332,7 @@ impl<'a> ComputerUseExecutor<'a> {
             inner: adapter,
             store: self.store,
             call_id: identity.call_id.clone(),
+            native_browser_parent:self.native_browser_parent.clone(),
             planner: self.planner,
             conversation: self.conversation.clone(),
             goal_parent: self.goal_parent.clone(),
@@ -2029,10 +2038,11 @@ impl ComputerUseAdapterFactory for ProductionAdapterFactory {
             }
             ComputerUseSurface::Browser if self.browser_enabled => {
                 if let Some(parent) = self.native_browser_parent.as_ref() {
-                    return Ok(DynComputerUseAdapter::new(BrowserComputerUseAdapter::with_policy(
+                    let adapter=BrowserComputerUseAdapter::with_policy(
                         crate::native_browser_adapter::NativePanelReadBridge::new(parent.clone(), self.cancelled.clone()),
                         self.browser_policy,
-                    ).read_only()));
+                    );
+                    return Ok(DynComputerUseAdapter::new(if parent.computer_use_turn_scope.native_browser_read_only() {adapter.read_only()} else {adapter.native_click_only()}));
                 }
                 BrowserNativeBridge::preflight()?;
                 Ok(DynComputerUseAdapter::new(
@@ -2220,11 +2230,8 @@ pub(crate) async fn execute_with_current_runtime(
             allow_multiple_tabs: config.browser.allow_multiple_tabs,
         },
         cancelled: cancelled.clone(),
-        native_browser_parent: if parent.computer_use_turn_scope.native_browser_read_only() {
-            Some(parent.clone())
-        } else { input.get("objective").and_then(JsonValue::as_str)
-            .filter(|objective| ["内置浏览器", "右栏浏览器", "右侧浏览器", "右侧扩展栏浏览器", "builtin browser", "built-in browser"]
-                .iter().any(|name| objective.to_ascii_lowercase().contains(name))).map(|_| parent.clone()) },
+        // 后端仅取接纳时冻结的本轮用户选择；模型 objective 无权挑选或切换执行后端。
+        native_browser_parent: parent.computer_use_turn_scope.native_browser().then(|| parent.clone()),
     };
     let planner = CurrentSessionComputerUsePlanner::with_context(identity, Some(origin_room_id), &store)
         .with_cancelled(cancelled.clone())
@@ -2604,6 +2611,41 @@ mod tests")
             if mode == "active" {
                 crate::interrupt_runtime_run_sqlite(&db, "parent-run", Some("after-success")).unwrap();
                 assert_eq!(executor.finish_at_version(&proposed, 0), actual, "成功先提交后保留原CU事实");
+            }
+        }
+    }
+
+    /// 实际SQLite派发契约：停止先提交、权限收紧、票据失配与重放均不允许新的派发。
+    #[test]
+    fn persistent_panel_dispatch_cas_uses_frozen_parent_permission_and_one_ticket() {
+        for mode in ["active","stopped","restricted","wrong_ticket"] {
+            let temp=tempfile::Builder::new().prefix("panel-cas-").tempdir_in("tmp").unwrap();
+            let db=temp.path().join("sessions.sqlite3");let workspace="ws-00000000000000ff";
+            seed_relation_complete_admission(&db,workspace,"room-1","session-1","parent-run");
+            crate::set_chat_room_permission_profile_sqlite(&db,"room-1",crate::ROOM_PERMISSION_FULL_ACCESS).unwrap();
+            let mut parent=crate::FrozenParentContext::new("panel-cas-test",workspace,Some("room-1"),Some("session-1"),None,Some("parent-run")).unwrap();
+            parent.runtime_db_path=Some(db.clone());
+            let store=ComputerUseRunStore::open(&db).unwrap();let call="panel-cas-run";
+            assert!(store.create_run(&NewComputerUseRun {call_id:call.into(),provider_tool_call_id:Some("test-tool".into()),
+                session_id:"session-1".into(),turn_id:"turn-1".into(),chat_room_id:Some("room-1".into()),idempotency_key:call.into(),
+                objective_json:"{}".into(),surface:ComputerUseSurface::Browser,deadline_ms:now_ms()+60000,created_at_ms:now_ms(),
+                workspace:CuWorkspaceAttribution::from_parent_run(&parent.workspace_id)}).unwrap());
+            assert!(store.transition(call,0,ComputerUseRunState::Executing,now_ms()).unwrap());
+            let read=crate::open_session_connection(&db).unwrap();
+            read.execute("INSERT INTO computer_use_steps(run_id,step_index,observation_generation,action_type,normalized_target,action_fingerprint,status,started_at_ms)
+                VALUES(?1,1,1,'click','dom-test','frozen-click','executing',1)",[call]).unwrap();
+            let ticket="a".repeat(32);store.prepare_panel_attempt(call,1,&ticket,"exact-binding").unwrap();
+            if mode=="stopped" {crate::interrupt_runtime_run_sqlite(&db,"parent-run",Some("stop-before-claim")).unwrap();}
+            if mode=="restricted" {crate::set_chat_room_permission_profile_sqlite(&db,"room-1",crate::ROOM_PERMISSION_WORKSPACE_WRITE).unwrap();}
+            let actual_ticket=if mode=="wrong_ticket" {"b".repeat(32)} else {ticket.clone()};
+            let result=store.claim_panel_attempt(&parent,call,1,&actual_ticket,"exact-binding",now_ms()+2000,&||false);
+            assert_eq!(result.is_ok(),mode=="active","模式={mode}");
+            let state:String=read.query_row("SELECT native_dispatch_state FROM computer_use_steps WHERE run_id=?1",[call],|row|row.get(0)).unwrap();
+            assert_eq!(state,if mode=="active" {"dispatching"} else {"pending"});
+            if mode=="active" {
+                assert!(store.claim_panel_attempt(&parent,call,1,&ticket,"exact-binding",now_ms()+2000,&||false).is_err());
+                store.settle_panel_attempt(call,1,&ticket,"released").unwrap();
+                assert!(store.settle_panel_attempt(call,1,&ticket,"release_unknown").is_err(),"迟到事件不能反改已结算动作");
             }
         }
     }

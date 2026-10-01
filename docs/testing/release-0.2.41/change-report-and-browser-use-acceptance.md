@@ -39,23 +39,25 @@
 | 内容扫描 | safe=true，0发现 |
 | 暂存位置 | `tmp/candidate-041-package`；没有覆盖运行中的`package/` |
 
-六份原始JSON与字节保留规则已[归档](evidence/build-identity/pkg-report-release-20261001-012315274-8e7346e0/package-report.json)，包括安装报告、包报告、文件证据、载荷清单、内容扫描和独立暂存核验。原WebView2Loader沿其实际producer输出复用且摘要匹配，不称全部产物重新生成。最终源码提交4f7a46f的远端检查尚在运行，结果以PR最新Checks为准。
+六份原始JSON与字节保留规则已[归档](evidence/build-identity/pkg-report-release-20261001-012315274-8e7346e0/package-report.json)，包括安装报告、包报告、文件证据、载荷清单、内容扫描和独立暂存核验。原WebView2Loader沿其实际producer输出复用且摘要匹配，不称全部产物重新生成。提交e284355的两项远端Web baseline检查已成功（运行36751433570、36751426381）；后续修改另核最新Checks。
 
 终态窄审的[完整页面文本](../release-0.2.40/review/20261001-readonly-terminal-review-dom.txt)及[最新结论可见的原始截图](../release-0.2.40/review/20261001-readonly-terminal-review-visible.png)已保存；此前同名无visible截图位置未包含最新回复，不能拿它单独核验结论。
 
-当前实际进程仍037（Web18960/Tauri26096，原工作区ws-992cca993bc1a1a0），不得拿旧进程测本补丁。041尚未安装/启动；此前候选启动的自动审查只返回blocked by policy，未换入口绕过。当前无需重复历史安全放行。
+用户正常安装并打开控制台后，已核验正式安装版本0.2.41、安装日期20261001、安装目录10/10关键产物与本包摘要匹配。实际进程为安装目录Web12104/Tauri27804，8765由Web12104监听。保持原工程`C:/Users/zhupu/coolzhuagent`、房间`room-1790469689319`及Qwen会话`session-1779459149988`，百炼Base URL、密钥、medium和多模态配置未改。身份收据见[安装核验](installed-native/installed-artifacts.json)。历史blocked by policy未绕过；本轮正常启动没有要求重复安全放行。
 
 ## 安装后真模型验收
 
 | 编号 | 前置与操作 | 必须记录的事实与截图 | 状态 |
 |---|---|---|---|
-| BU041-IDENTITY | 正常安装与启动，原工程/房间/Qwen配置 | 包摘要、源快照、10产物、运行身份；原配置与附件保全；原生控制台 | 待完成 |
-| BU041-READ | 右栏打开普通HTML，真Qwen只读标题/标记/正文，不在提示中给答案 | 当前native-ax、S1/S2独立ID、同宿主/工程/房间；回复由宿主事实支撑；0输入；真实窗口图 | 待完成 |
-| BU041-SPA | S1后在同URL改变普通页面文字 | S2变化拒绝旧判定，不成功、不自动重发 | 待完成 |
-| BU041-ENV | S1后隐藏/最小化/关闭面板或切工程/房间 | 可观察资源失效，不能跨环境成功；真实轨迹与原生图 | 待完成 |
-| BU041-CANCEL | 模型判断或重采样时从正常运行界面取消 | 父停止已先提交时CU不可goal=true；实际Cancelled/TimedOut；迟到结果不覆盖、无新模型/输入 | 待完成 |
+| BU041-IDENTITY | 正常安装与启动，原工程/房间/Qwen配置 | 包摘要、10产物、安装目录进程和原生控制台；未改Qwen配置 | 已核验 |
+| BU041-READ | 右栏打开普通HTML，真Qwen只读标题/标记/正文，不在提示中给答案 | S轮3/3标准、S1/S2独立ID、实际回复与网页一致、0输入、原图03 | 通过本项；不代表交互通过 |
+| BU041-SPA | S1后在同URL改变普通页面文字 | W轮自动时间网页同URL变化，native_browser_observation_stale/goal=false/0输入，原图05 | 动态变化拒绝通过；V人工点击晚于S2，不计覆盖 |
+| BU041-ENV | S1后隐藏/最小化/关闭面板或切工程/房间 | X关闭晚于S2，未命中目标窗口；Y无已载入页面即panel_unavailable | S1后资源失效仍待验；不得用Y替代 |
+| BU041-CANCEL | 模型判断或重采样时从正常运行界面取消 | Z在verifying时中止，父stop先落库、CU cancelled/goal=false/0输入；迟到Qwen完成未覆盖，原图07 | 本轮取消先提交通过；不代表输入进行中取消通过 |
 | BU041-CONFLICT | browser同时给URL和window/application | surface_conflict、0观察/输入，不自动换目标 | 待完成 |
 | BU041-INPUT | 只读通过后按已审方案接入类型化click/type/scroll/navigation | 短期节点、派发前资源/权限/取消/输入锁、释放回执、真Qwen前后截图 | 尚未实施 |
 | CU041-PAINT | Browser闭环后，真实Qwen在Paint作画 | 闭合轮廓与简易海绵宝宝、释放与视觉判定、四边泛光和英文提示、结束撤除 | 尚未续画 |
 
 工程检查与软件验收分开记录。真实Qwen不合法JSON、模型不执行或资源错误均如实失败；不换模型或用夹具填补。旧L形/人工页面导航/旧037结果不能作为本包通过证据。四项任务未总体完成，DSH远程插件实际安装运行等开放项保留，微信不改不测，Devin暂缓，PR74保持Draft。
+
+本轮逐轮事实、截图及未覆盖原因见[实操记录与开放问题](installed-native/acceptance-and-open-issues.md)。T轮暴露中文三种禁用动作排列未被识别的Agent问题，源码已扩展有限明确措辞、离线Web build通过、3项必要边界测试通过；该补丁尚未安装，不能追认T成功。U/V对“当前内容”选错宿主节点，目标字段回答仍不通过；稳定标题/标记/颜色的S与同URL动态拒绝的W不受该结论替代。

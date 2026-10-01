@@ -186,6 +186,10 @@ pub(crate) fn clamp_stage_timeout(
 }
 
 pub(crate) trait BrowserBridge: Send + Sync {
+    fn execute_authorized(&self,action:&ComputerUseAction,expected:&BrowserSnapshot,current:&BrowserSnapshot,
+        remaining:std::time::Duration,_authorization:&dyn computer_use::prepared_input::NativeInputAuthorization) -> Result<StepExecution,ComputerUseError> {
+        let _=expected;self.execute(action,current,remaining)
+    }
     fn snapshot(&self, remaining: std::time::Duration) -> Result<BrowserSnapshot, ComputerUseError>;
     fn execute(
         &self,
@@ -232,6 +236,10 @@ impl<B> BrowserComputerUseAdapter<B> {
         self.capabilities = ComputerUseCapabilities::default();
         self
     }
+
+    pub(crate) fn native_click_only(mut self) -> Self {
+        self.capabilities=ComputerUseCapabilities {click:true,..ComputerUseCapabilities::default()};self
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -272,6 +280,17 @@ impl Default for BrowserComputerUsePolicy {
 }
 
 impl<B: BrowserBridge> ComputerUseAdapter for BrowserComputerUseAdapter<B> {
+    fn act_authorized(&self,action:&ComputerUseAction,expected_generation:u64,remaining:std::time::Duration,
+        authorization:&dyn computer_use::prepared_input::NativeInputAuthorization) -> Result<StepExecution,ComputerUseError> {
+        let reject=|e|pre_input_rejection(e,self.surface(),action);
+        if !self.capabilities.supports(action.kind) { return Err(reject(unsupported_action(action))); }
+        let expected=self.observed.lock().expect("browser observation lock").clone()
+            .filter(|(generation,_)|*generation==expected_generation).ok_or_else(||reject(stale_observation("browser observation generation changed")))?;
+        let current=self.bridge.snapshot(remaining).map_err(reject)?;
+        if !expected.1.same_input_identity(&current) { return Err(reject(stale_observation("browser identity changed before input"))); }
+        // 旧观察的节点票据不能被新快照中的随机引用替换；bridge单独重检实际节点。
+        self.bridge.execute_authorized(action,&expected.1,&current,remaining,authorization)
+    }
     fn surface(&self) -> ComputerUseSurface {
         ComputerUseSurface::Browser
     }

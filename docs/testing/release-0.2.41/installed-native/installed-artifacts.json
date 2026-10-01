@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-10-01T01:31:51.2247380+08:00",
+  "version": "0.2.41",
+  "install_root": "C:\\Program Files\\CoolzhuAgent",
+  "matches": 10,
+  "total": 10,
+  "artifacts": [
+    {
+      "id": "gui-web.web-console",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "expected": "1e6ba00ddb4476952c96690036fbbe10b9df0d60eb1053fb41c65066b14c0f39",
+      "actual": "1e6ba00ddb4476952c96690036fbbe10b9df0d60eb1053fb41c65066b14c0f39",
+      "matches": true
+    },
+    {
+      "id": "gui-web.browser-native-host",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-browser-native-host.exe",
+      "expected": "295f0d96718941e7313f566696ae42f49bc083755336c0b0c71a40459dcdb50a",
+      "actual": "295f0d96718941e7313f566696ae42f49bc083755336c0b0c71a40459dcdb50a",
+      "matches": true
+    },
+    {
+      "id": "gui-web.clawbot-sidecar",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-clawbot-sidecar.exe",
+      "expected": "7c9cba54d8dfc5248865414748e2e0bd9340839c888c2267007e2b90caa32fc9",
+      "actual": "7c9cba54d8dfc5248865414748e2e0bd9340839c888c2267007e2b90caa32fc9",
+      "matches": true
+    },
+    {
+      "id": "cli.command-line",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-cli.exe",
+      "expected": "9f699e1bb28f1b2f60ada303b4503a345e2790e22298673013f1d6c5d6611681",
+      "actual": "9f699e1bb28f1b2f60ada303b4503a345e2790e22298673013f1d6c5d6611681",
+      "matches": true
+    },
+    {
+      "id": "computer-use.preflight-check",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-computer-use-check.exe",
+      "expected": "2c47d46fda9ba2ed804b64f7664a74c6f566c9b0f735f52cf469bf68c44951fe",
+      "actual": "2c47d46fda9ba2ed804b64f7664a74c6f566c9b0f735f52cf469bf68c44951fe",
+      "matches": true
+    },
+    {
+      "id": "vision.smoke",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-vision-smoke.exe",
+      "expected": "fbfcfa58331abdf833d62f4a344b0f1d29d9731b1270bd392b15aa74069a0826",
+      "actual": "fbfcfa58331abdf833d62f4a344b0f1d29d9731b1270bd392b15aa74069a0826",
+      "matches": true
+    },
+    {
+      "id": "vision.latest-desktop",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-latest-desktop-vision.exe",
+      "expected": "bd2c67551c5f36ac383bdd558ce722cc6df077f70364149510b0de403a6c3645",
+      "actual": "bd2c67551c5f36ac383bdd558ce722cc6df077f70364149510b0de403a6c3645",
+      "matches": true
+    },
+    {
+      "id": "gui-desktop.tauri-shell",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "expected": "8bee5b4a111fe547fdd7cd91d4cc061c847a0f09511d6528275cf4ee4b4d25d7",
+      "actual": "8bee5b4a111fe547fdd7cd91d4cc061c847a0f09511d6528275cf4ee4b4d25d7",
+      "matches": true
+    },
+    {
+      "id": "gui-desktop.webview2-loader",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\WebView2Loader.dll",
+      "expected": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+      "actual": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+      "matches": true
+    },
+    {
+      "id": "package.app-launcher",
+      "path": "C:\\Program Files\\CoolzhuAgent\\COOLZHU-AGENT.exe",
+      "expected": "01568b054d26203ecd20c61b437a4b4ca2a52177f009b3f132c592cdba2cb5b1",
+      "actual": "01568b054d26203ecd20c61b437a4b4ca2a52177f009b3f132c592cdba2cb5b1",
+      "matches": true
+    }
+  ]
+}
