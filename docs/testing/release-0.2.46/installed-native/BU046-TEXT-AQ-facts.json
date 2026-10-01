@@ -1,0 +1,75 @@
+{
+  "test": "BU046-TEXT-AQ",
+  "runtime": {
+    "id": "run-chat-b5613e3ffdeafd64fc53bac6deae462e1589f1cbf4fc3ba2",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790826105055-2",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790826121872,
+    "created_at": 1790826105065
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18da4adac074bd2c-tool-afedfe279bc8e7a7fbe7c505b3f3d98748e7875378dce49e91487d2bb1877038",
+      "provider_tool_call_id": "tool-afedfe279bc8e7a7fbe7c505b3f3d98748e7875378dce49e91487d2bb1877038",
+      "turn_id": "000000000000000c18da4adac074bd2c",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 1,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790826112676,
+      "updated_at_ms": 1790826112678,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000c18da4adac074bd2c-tool-afedfe279bc8e7a7fbe7c505b3f3d98748e7875378dce49e91487d2bb1877038",
+        "provider_tool_call_id": "tool-afedfe279bc8e7a7fbe7c505b3f3d98748e7875378dce49e91487d2bb1877038",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "Coolzhu browser extension/native host is not connected",
+        "error": {
+          "code": "extension_unavailable",
+          "message": "Coolzhu browser extension/native host is not connected",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790826105055-2",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b5613e3ffdeafd64fc53bac6deae462e1589f1cbf4fc3ba2",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 25553,
+      "output_tokens": 245,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

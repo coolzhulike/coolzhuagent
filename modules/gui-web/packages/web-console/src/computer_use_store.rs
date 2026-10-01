@@ -190,6 +190,8 @@ pub(crate) fn preflight_existing_session_schema(path: &std::path::Path) -> rusql
         return Ok(());
     }
     let connection = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    // 首次并发打开可能正在切换 WAL；只读版本检查也必须等待 SQLite 锁。
+    connection.busy_timeout(std::time::Duration::from_secs(5))?;
     ensure_session_schema_not_from_the_future(&connection)
 }
 

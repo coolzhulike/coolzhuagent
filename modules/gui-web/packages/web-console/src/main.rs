@@ -35159,6 +35159,16 @@ async fn run_model_tool_dispatch_for_session_with_identity(
     parent: Option<&FrozenParentContext>,
     host_scope: Option<&host_child_agent::HostToolScope>,
 ) -> ApiResult<ToolDispatchResponse> {
+    // 缺必需 CU 来源时先拒绝，不访问默认数据库或登记匿名工具调用。
+    let normalized = name.replace('-', "_");
+    if normalized == "computer_use.perform" || normalized == "computer_use_perform" {
+        let missing_call = provider_tool_call_id.is_none_or(|value| value.trim().is_empty());
+        let missing_session = caller_session_id.is_none_or(|value| value.trim().is_empty());
+        let missing_turn = turn_id.is_none_or(|value| value.trim().is_empty());
+        if missing_call || missing_session || missing_turn {
+            return Ok(computer_use_context_incomplete_response(missing_call, missing_session, missing_turn));
+        }
+    }
     let budget = parent.and_then(|parent| parent.root_budget.clone()).or_else(root_execution_budget::current);
     if budget.as_ref().is_some_and(|budget| budget.is_expired()) {
         return Err(api_error(StatusCode::REQUEST_TIMEOUT, root_execution_budget::EXPIRED_REASON));
@@ -41832,6 +41842,8 @@ fn load_session_state_from_sqlite(path: &Path) -> Result<Option<PersistedSession
 fn open_session_connection(path: &Path) -> rusqlite::Result<Connection> {
     computer_use_store::preflight_existing_session_schema(path)?;
     let connection = Connection::open(path)?;
+    // 版本读取在连接配置之前，不能沿用 SQLite 默认的零等待。
+    connection.busy_timeout(Duration::from_secs(5))?;
     computer_use_store::ensure_session_schema_not_from_the_future(&connection)?;
     computer_use_store::configure_session_connection(&connection)?;
     Ok(connection)

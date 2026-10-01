@@ -621,7 +621,15 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         }
         let request = crate::agent_planner_message_request(agent, assembly.messages, system.to_string(), 4096);
         let started_at = planner_now_ms();
-        let client = crate::request_usage::observe(crate::provider_client_for_agent(agent), &agent.id,
+        let client = crate::provider_client_for_agent(agent).and_then(|client| {
+            // CU 子请求都是 JSON 协议；不改变当前会话的思考层级，不引入格式修复重试。
+            let schema = serde_json::from_str::<JsonValue>(prompt).ok().and_then(|value| value.get("response_schema").cloned());
+            match api::ResponseFormat::for_qwen38(&agent.model, schema, !images.is_empty()) {
+                Some(format) => client.with_response_format(format),
+                None => Ok(client),
+            }
+        });
+        let client = crate::request_usage::observe(client, &agent.id,
             self.room_id.as_deref(),Some(&self.turn_id),Some(&self.call_id),kind)
             .map_err(|error| planner_backend_error(format!("planner client: {error}")))?;
         // 请求/context/客户端准备同样消耗本阶段余量；不能从发请求时重开完整预算。
