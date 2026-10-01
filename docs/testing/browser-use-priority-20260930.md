@@ -1,4 +1,4 @@
-> **2026-10-01 当前048正式回归**：已正常安装048，正式10/10产物、859载荷摘要核验通过。原Qwen-AY一次真实navigate成功，目标URL与第二页标记截图一致，2/2标准及goal=true。AX文字输入失败：两个实际click均sent/released，没有text_input，空框原图仍为空；第三次click规划被no_progress保护拒绝。已定位缺少聚焦观察与上一步动作种类，完成最小源码补充，尚不在048包中；不传原值/选区、不自动填写、不放松安全或验收阈值。ffd0ce7远端PR成功、push共享预算测试失败，正在修正计时测试合法零请求分支并准备新包复测。Browser Use输入、Paint闭合/海绵宝宝、DSH远程实际安装运行和四项总体仍未验收，PR74 Draft。原模型/medium/百炼地址/密钥不变，微信不改不测、Devin搁置；主会话独立执行，Pro复审暂停。详见[048报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.48/change-report-and-targeted-test-plan.md)。下方为历史时点。
+> **2026-10-01 当前049正式回归**：已正常安装049，唯一版本、正式10/10产物、859载荷摘要核验通过。真实Qwen-AZ输入失败：零动作、页面仍空，但验收模型met=true导致工具错误返回succeeded。请求目标正确，按同屏软件图和账本判失败。已补原生正向证据原文核对及初始交互零动作守卫，源码离线编译及完整回归1293/0/2既有忽略通过，准备新包；修正尚不在049安装包内。e624462远端PR与push均成功。048导航通过仍限于048，不借历史结果验收新包。Browser Use输入、Paint闭合/海绵宝宝、DSH远程实际安装运行和四项总体仍未验收，PR74 Draft。原Qwen/medium/百炼地址/密钥不变，微信不改不测、Devin搁置；主会话独立执行，Pro复审暂停。详见[049报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.49/change-report-and-targeted-test-plan.md)。下方为历史时点。
 
 # Browser Use 优先闭环：可见资源边界与下一步实操
 

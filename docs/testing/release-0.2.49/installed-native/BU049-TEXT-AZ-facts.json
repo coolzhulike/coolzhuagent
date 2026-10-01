@@ -1,0 +1,171 @@
+{
+  "test": "BU049-TEXT-AZ",
+  "runtime": {
+    "id": "run-chat-d205ce10923b74329d0d7b719ac57b867fe29ebb7ca10c48",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790830813339-0",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790830844861,
+    "created_at": 1790830813350
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da4f22fd8dde68-tool-46dab90e071e361598afddab687ce167aa7cd54d71b372a5b2fa474885278165",
+      "provider_tool_call_id": "tool-46dab90e071e361598afddab687ce167aa7cd54d71b372a5b2fa474885278165",
+      "turn_id": "000000000000000218da4f22fd8dde68",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 6,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790830821033,
+      "updated_at_ms": 1790830830599,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000218da4f22fd8dde68-tool-46dab90e071e361598afddab687ce167aa7cd54d71b372a5b2fa474885278165",
+        "provider_tool_call_id": "tool-46dab90e071e361598afddab687ce167aa7cd54d71b372a5b2fa474885278165",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"d670f4d0e99a271fe3b87ff6b47400ae\",\"freshness_confirmed\":true,\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":1,\"observation_id\":\"b0ade2a76dfb3c7776da53df647cac23\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":24,\"nodes\":[{\"index\":13,\"name\":\"当前输入：空\",\"role\":\"StaticText\"},{\"index\":21,\"name\":\"当前输入：空\",\"role\":\"InlineTextBox\"}],\"title\":\"普通文本输入页面\",\"truncated\":false,\"url\":\"http://127.0.0.1:63653/text.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":468.6666870117187}}}",
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:b0ade2a76dfb3c7776da53df647cac23",
+          "native-ax:1:0",
+          "native-observation:b0ade2a76dfb3c7776da53df647cac23",
+          "native-ax:1:0",
+          "native-observation:d670f4d0e99a271fe3b87ff6b47400ae"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790831713339
+            }
+          },
+          "cu_deadline_ms": 1790830941033,
+          "cu_deadline_established_at_ms": 1790830821033,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅在该本地页面操作，不提交表单",
+          "不滚动、不导航、不修改文件",
+          "不使用外部浏览器、HTTP抓取、终端或其它工具替代",
+          "最多一次点击和一次文本输入",
+          "失败立即停止，同轮不重新调用"
+        ],
+        "objective": "在当前右侧内置浏览器页面 http://127.0.0.1:63653/text.html 上，点击标签为“本轮验收文本”的普通输入框使其获得焦点，然后输入文本 BU049-AZ-竹林，并确认页面“当前输入”回显显示 BU049-AZ-竹林。",
+        "success_criteria": [
+          "页面“当前输入”实际回显显示 BU049-AZ-竹林"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63653/text.html"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da4f22fd8dde68-tool-46dab90e071e361598afddab687ce167aa7cd54d71b372a5b2fa474885278165",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-d5478aeb-6de1-9893-9fb1-dc8d3b0184d1",
+      "error_code": null,
+      "started_at_ms": 1790830821657,
+      "completed_at_ms": 1790830830592,
+      "response": {
+        "bytes": 144,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 61,
+            "evidence_chars": 27,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": 2,
+            "node_indices_type": "array",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "observation_facts": {
+          "candidate_count": 4,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 24,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 2,
+          "truncated": false
+        },
+        "progress": null,
+        "progress_type": "missing",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000218da4f22fd8dde68",
+      "call_id": "cu-session-1779459149988-000000000000000218da4f22fd8dde68-tool-46dab90e071e361598afddab687ce167aa7cd54d71b372a5b2fa474885278165",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 853,
+      "output_tokens": 389,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790830813339-0",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-d205ce10923b74329d0d7b719ac57b867fe29ebb7ca10c48",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 29886,
+      "output_tokens": 725,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}
