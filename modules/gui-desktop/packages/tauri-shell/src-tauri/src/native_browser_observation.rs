@@ -7,10 +7,16 @@ pub(super) fn bounded_text(value: Option<&serde_json::Value>, limit: usize) -> S
     value.and_then(|value| value.get("value")).and_then(serde_json::Value::as_str)
         .unwrap_or_default().chars().filter(|c| !c.is_control()).take(limit).collect()
 }
+fn focused_editor(node: &serde_json::Value, role: &str) -> bool {
+    matches!(role, "textbox" | "searchbox")
+        && node.get("properties").and_then(serde_json::Value::as_array).is_some_and(|properties|
+            properties.iter().any(|property| property["name"] == "focused"
+                && property.pointer("/value/value").and_then(serde_json::Value::as_bool) == Some(true)))
+}
 fn project_tree(value: &serde_json::Value) -> Result<PageObservation,String> {
     let nodes = value.get("nodes").and_then(serde_json::Value::as_array).ok_or("native_observation_invalid")?;
     let mut result = PageObservation {url:String::new(),title:String::new(),nodes:Vec::new(),truncated:false,
-        document_token:None,node_handles:Vec::new(),viewport:None};
+        document_token:None,node_handles:Vec::new(),viewport:None,focused_node_index:None};
     for node in nodes {
         if node.get("ignored").and_then(serde_json::Value::as_bool) != Some(false) { continue; }
         let role = bounded_text(node.get("role"),64);
@@ -64,6 +70,7 @@ pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observati
         return Err("native_browser_document_changed".into());
     }
     let mut candidates = Vec::new();
+    let mut focused_editors = Vec::new();
     let mut index = 0;
     for node in tree["nodes"].as_array().ok_or("native_observation_invalid")? {
         if node["ignored"].as_bool() != Some(false) { continue; }
@@ -75,12 +82,17 @@ pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observati
             && node.get("frameId").and_then(serde_json::Value::as_str).is_none_or(|frame| frame == stamp.frame_id) {
             if let Some(backend) = node.get("backendDOMNodeId").and_then(serde_json::Value::as_i64).filter(|id| ordinary_nodes.contains(id)) {
                 candidates.push((index,backend,role,name));
+                // 只读取类型化focused布尔值，绝不透传value或整个AX properties。
+                if focused_editor(node, &page.nodes[index].role) {
+                    focused_editors.push(index);
+                }
             }
         }
         index += 1;
     }
     let (token,handles) = super::native_browser_nodes::register(expected,&stamp,observation_id,&candidates)?;
     page.url = url; page.document_token = Some(token); page.node_handles = handles;
+    page.focused_node_index = (focused_editors.len() == 1).then(|| focused_editors[0]);
     if page.valid_shape() { Ok(page) } else { Err("native_observation_invalid".into()) }
 }
 
@@ -98,6 +110,18 @@ mod tests {
         let text = serde_json::to_string(&page).unwrap();
         assert!(page.valid_shape()); assert_eq!(page.title,"主页面");
         assert!(!text.contains("SECRET") && !text.contains("HIDDEN"));
+        let focus = serde_json::json!({"properties":[{"name":"focused","value":{"value":true}},
+            {"name":"value","value":{"value":"SECRET"}}]});
+        assert!(focused_editor(&focus,"textbox"));
+        assert!(!focused_editor(&focus,"button"));
+        assert!(!focused_editor(&serde_json::json!({"properties":[{"name":"focused","value":{"value":"true"}}]}),"textbox"));
+        page.document_token = Some("a".repeat(32));
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32)});
+        page.focused_node_index = Some(1);
+        assert!(page.valid_shape());
+        page.focused_node_index = Some(0);
+        assert!(!page.valid_shape());
+        page.focused_node_index = None;
         page.node_handles.push(native_browser_protocol::NodeHandle {index:999,node_id:"0".repeat(32)});
         assert!(!page.valid_shape());
         let dom = serde_json::json!({"root":{"backendNodeId":1,"children":[{"backendNodeId":2,

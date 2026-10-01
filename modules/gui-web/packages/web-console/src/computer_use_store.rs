@@ -1627,6 +1627,8 @@ pub(crate) struct RecentComputerUseRun {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct RunStepReportRow {
     pub step_index: usize,
+    /// 从已有动作列解析的白名单类型；未知历史值不进入模型反馈。
+    pub action_kind: Option<computer_use::ComputerUseActionKind>,
     pub status: String,
     /// 协议异常子类（`receipt_identity_mismatch` / `receipt_self_contradictory`）等。
     pub error_code: Option<String>,
@@ -2606,13 +2608,14 @@ impl ComputerUseRunStore {
         let mut statement = connection.prepare(
             "SELECT step_index, status, error_code, input_delivery, partial, path_completed,
                     confirmed_point_count, effect_status, goal_verdict, input_release_status,
-                    visible_progress
+                    visible_progress, action_type
                FROM computer_use_steps WHERE run_id = ?1 ORDER BY step_index",
         )?;
         let rows = statement
             .query_map([call_id], |row| {
                 Ok(RunStepReportRow {
                     step_index: row.get::<_, i64>(0)? as usize,
+                    action_kind: serde_json::from_value(serde_json::Value::String(row.get::<_, String>(11)?)).ok(),
                     status: row.get(1)?,
                     error_code: row.get(2)?,
                     input_delivery: row.get(3)?,

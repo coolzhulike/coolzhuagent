@@ -35,6 +35,7 @@ Coordinates are forbidden except bounded relative canvas points explicitly allow
 Desktop drag points are relative to the selected target rectangle; window-canvas points use desktop.canvas_rect, not the full screenshot. Follow desktop.drag_contract.
 The window-canvas target covers the entire visible client area, including toolbars and other controls; it does not identify the actual drawing area. Locate the drawing area visually using image.screen_rect and desktop.canvas_rect, then express points relative to desktop.canvas_rect. Never assume its top edge is the start of a drawing canvas.
 Browser actions must use DOM references. Desktop actions must use UI Automation references, except drag may use the explicit canvas_target from the latest desktop observation.
+For browser text entry, click the intended textbox once to focus it. On a fresh observation with focused=true, choose text_input on that new textbox reference; do not repeat the successful focus click. A focus click is preparation and does not itself satisfy the text goal. previous_step_feedback.action_kind describes the actual preceding action, never an intended action.
 For browser navigation, target.url is the current source page; take the requested destination from objective and use it as arguments.url on the latest RootWebArea reference.
 Browser drag requires arguments.drop_target as a DOM reference; browser slider_drag requires value 0-100; key_combination requires allowlisted keys.
 Browser tab lifecycle actions use target "browser-tabs": open_tab requires arguments.url, activate_tab and close_tab require arguments.tab_id.
@@ -1099,6 +1100,7 @@ fn bounded_step_feedback(previous: &crate::computer_use_store::RunStepReportRow)
     };
     json!({
         "step_index": previous.step_index,
+        "action_kind": previous.action_kind,
         "status": bounded_text(&previous.status),
         "input_status": input_status.as_str(),
         "may_claim_complete": input_status.may_claim_complete(),
@@ -1839,6 +1841,7 @@ mod tests {
                    verdict: Option<&str>,
                    progress: bool| crate::computer_use_store::RunStepReportRow {
             step_index: 0,
+            action_kind: Some(ComputerUseActionKind::Click),
             status: status.to_string(),
             error_code: None,
             input_delivery: delivery.map(str::to_string),
@@ -2073,6 +2076,7 @@ mod tests {
         // 反馈版：附上上一步事实。
         let previous = crate::computer_use_store::RunStepReportRow {
             step_index: 3,
+            action_kind: Some(ComputerUseActionKind::Drag),
             status: "input_sent".to_string(),
             error_code: None,
             input_delivery: Some("sent".to_string()),
@@ -2122,6 +2126,7 @@ mod tests {
                    verdict: Option<&str>,
                    progress: bool| crate::computer_use_store::RunStepReportRow {
             step_index: 3,
+            action_kind: Some(ComputerUseActionKind::Click),
             status: status.to_string(),
             error_code: error_code.map(str::to_string),
             input_delivery: delivery.map(str::to_string),
@@ -3222,7 +3227,7 @@ mod tests {
 
     /// 串联请求共用预算：3秒预算中的首个视觉响应耗时至少2.6秒，
     /// 即使首个响应及时返回，后续余量也不足500ms，不得开始第二次请求。
-    /// 慢调度环境中首个请求可先超时；这同样必须结束等待，禁止补发或产生动作。
+    /// 慢调度环境中准备阶段可耗尽预算，或首个请求先超时；都禁止补发或产生动作。
     #[tokio::test]
     async fn chained_requests_share_one_budget_and_the_second_sees_the_remainder() {
         let _guard = crate::tests::config_test_guard();
@@ -3249,19 +3254,16 @@ mod tests {
             ),
             _ => panic!("只接受共享预算结束，不能以其它失败替代：{}", error.message),
         }
-        assert_eq!(
-            server.request_count(),
-            1,
-            "只允许发出第一个（视觉转述）请求；第二个请求拿到的是扣减后的余量，因此不得发出"
-        );
-        let first = server.captured.lock().unwrap()[0].clone();
-        assert!(
-            first["messages"][0]["content"]
-                .as_str()
-                .unwrap_or("")
-                .contains("截图观察者"),
-            "第一个请求应当是视觉转述"
-        );
+        let captured = server.captured.lock().unwrap().clone();
+        assert!(captured.len() <= 1,
+            "共享预算内最多只有首个视觉转述请求，第二个请求绝不能发出：{}", captured.len());
+        if let Some(first) = captured.first() {
+            assert!(first["messages"][0]["content"].as_str().unwrap_or("").contains("截图观察者"),
+                "首个实际收到的请求必须是视觉转述，不能跳到动作规划");
+        } else if error.code == "budget_exhausted" {
+            assert!(error.message.contains("computer_use_visual_description"),
+                "零请求时应在视觉转述准备阶段耗尽预算，不能称第二请求已结束：{}", error.message);
+        }
         drop(state);
         server.abort();
     }

@@ -271,6 +271,9 @@ pub struct PageObservation {
     pub document_token: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub node_handles: Vec<NodeHandle>,
+    /// 仅投影宿主AX确认聚焦的普通编辑节点索引，不携带原值、选区或其它属性。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub focused_node_index: Option<usize>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -309,6 +312,9 @@ impl PageObservation {
             && self.node_handles.iter().all(|handle| handle.index < self.nodes.len() && opaque_id(&handle.node_id))
             && self.node_handles.iter().map(|handle| handle.index).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()
             && self.node_handles.iter().map(|handle| &handle.node_id).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()
+            && self.focused_node_index.is_none_or(|index| self.nodes.get(index)
+                .is_some_and(|node| matches!(node.role.as_str(), "textbox" | "searchbox"))
+                && self.node_handles.iter().any(|handle| handle.index == index))
             && self.nodes.len() <= 128 && self.nodes.iter().all(|node|
             node.role.chars().count() <= 64 && node.name.chars().count() <= 256
             && !node.role.chars().any(char::is_control) && !node.name.chars().any(char::is_control))
