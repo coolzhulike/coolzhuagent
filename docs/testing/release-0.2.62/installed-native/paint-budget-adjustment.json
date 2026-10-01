@@ -1,0 +1,23 @@
+{
+  "changes": [
+    {
+      "field": "computer_use.controller.timeout_seconds",
+      "old": 120,
+      "new": 300,
+      "other_config_values_unchanged": true,
+      "reason": "既有配置允许5–300秒；独立真实模型多步测试，权限和重试额度未变",
+      "before_sha256": "6aa516435210a8e592821243c1a89ba2b37cb9bb7f3e6ac09d246524ba714a69",
+      "after_sha256": "ed2edd3b1c4410c4c58d30dea28bf4a9226af2c852d197e7159fb5d4caedfd4f"
+    },
+    {
+      "field": "computer_use.controller.timeout_seconds",
+      "old": 300,
+      "new": 120,
+      "other_config_values_unchanged": true,
+      "reason": "独立对照结束，逐值核验后恢复原始字节；未保留测试配置",
+      "before_sha256": "ed2edd3b1c4410c4c58d30dea28bf4a9226af2c852d197e7159fb5d4caedfd4f",
+      "after_sha256": "6aa516435210a8e592821243c1a89ba2b37cb9bb7f3e6ac09d246524ba714a69",
+      "exact_original_bytes_restored": true
+    }
+  ]
+}

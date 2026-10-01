@@ -1,0 +1,321 @@
+{
+  "test": "CU062-SPONGE-DB",
+  "runtime": {
+    "id": "run-chat-3fe3a913eb9df4356d3a44708a50f653463a25952ec86622",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790858160108-1",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790858298619,
+    "created_at": 1790858160120
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da680228fe92ac-tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+      "provider_tool_call_id": "tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+      "turn_id": "000000000000000718da680228fe92ac",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "blocked",
+      "state_version": 13,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790858169297,
+      "updated_at_ms": 1790858289314,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000718da680228fe92ac-tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+        "provider_tool_call_id": "tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "computer_use_verification model request exceeded its 18389 ms stage wait limit; the request was sent, and any late response cannot produce an action",
+        "error": {
+          "code": "stage_timeout",
+          "message": "computer_use_verification model request exceeded its 18389 ms stage wait limit; the request was sent, and any late response cannot produce an action",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-885f4c94266e6bba63c6d57cceae9af595cc1a68773912a776ff98737b8e6891.png:sha256=885f4c94266e6bba63c6d57cceae9af595cc1a68773912a776ff98737b8e6891:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=885f4c94266e6bba63c6d57cceae9af595cc1a68773912a776ff98737b8e6891:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-885f4c94266e6bba63c6d57cceae9af595cc1a68773912a776ff98737b8e6891.png:sha256=885f4c94266e6bba63c6d57cceae9af595cc1a68773912a776ff98737b8e6891:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=885f4c94266e6bba63c6d57cceae9af595cc1a68773912a776ff98737b8e6891:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/5",
+          "native_stroke:window-canvas:8890a54:points=5:duration_ms=1200:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-ba7ef33571c9e5acbbe98d78b1b7796a37a6834d3db8cd95a2f34b8e247a6a28.png:sha256=ba7ef33571c9e5acbbe98d78b1b7796a37a6834d3db8cd95a2f34b8e247a6a28:2560x1152",
+          "mapping:frame_binding:sha256=ba7ef33571c9e5acbbe98d78b1b7796a37a6834d3db8cd95a2f34b8e247a6a28:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-61db136358e26838c681a0e48ef4b0d1e9146d4cc2aa2bbd726282c5995f3938.png:sha256=61db136358e26838c681a0e48ef4b0d1e9146d4cc2aa2bbd726282c5995f3938:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-41572e91840ea119bcb36d751d1867e292e942dac9f66c3a586aeb589d189798.png:sha256=41572e91840ea119bcb36d751d1867e292e942dac9f66c3a586aeb589d189798:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=41572e91840ea119bcb36d751d1867e292e942dac9f66c3a586aeb589d189798:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790859060108
+            }
+          },
+          "cu_deadline_ms": 1790858289297,
+          "cu_deadline_established_at_ms": 1790858169297,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "依据本轮原始分辨率新鲜截图自主定位，不使用历史坐标",
+          "只用当前黑色铅笔，不用形状工具、代码、文件写入或其它工具",
+          "不擦除、不保存、不改变画布大小",
+          "不把路径释放或图像hash改变当作图形完成，必须按最新原图逐项验收",
+          "任何一笔失败或结果不确定立即停止，不重试、不补画该部件",
+          "本任务只调用一次computer_use_perform"
+        ],
+        "max_actions": 6,
+        "objective": "在当前Windows画图（mspaint.exe）的白色画布右半部空白区域，用已选中的黑色铅笔手动画一个新的简化海绵宝宝。可依序最多6次连续拖动：①在右半部空白处一次5点闭合拖动画身体矩形（上→右→下→左→回上，约1200ms）；②身体内部上半部左侧一次5点闭合拖动画左眼菱形；③身体内部上半部右侧一次5点闭合拖动画右眼菱形（与左眼分开）；④两眼下方身体内部一次3点连续拖动画折线笑嘴；⑤身体底边下方一次2点拖动画左腿；⑥身体底边下方一次2点拖动画右腿（与左腿分开）。每笔约1200毫秒，全部笔画必须落在白色画布绘图区内，不能借用或触碰旧线条。",
+        "success_criteria": [
+          "本次最新原图中可见新增的闭合矩形身体",
+          "身体内部有两个分开的闭合菱形眼睛",
+          "两眼下方有折线笑嘴",
+          "身体底边下方有两条分开的腿",
+          "全部新笔画均落在白色绘图区且未借用旧线条"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da680228fe92ac-tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-c9c2df86-42d0-98dd-87f8-37f450f9aff9",
+      "error_code": null,
+      "started_at_ms": 1790858173811,
+      "completed_at_ms": 1790858239331,
+      "response": {
+        "bytes": 664,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 114,
+            "evidence_chars": 38,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          },
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 99,
+            "evidence_chars": 33,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 1,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 1,
+            "type": "object",
+            "unknown_field_count": 0
+          },
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 51,
+            "evidence_chars": 17,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 2,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 2,
+            "type": "object",
+            "unknown_field_count": 0
+          },
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 57,
+            "evidence_chars": 19,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 3,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 3,
+            "type": "object",
+            "unknown_field_count": 0
+          },
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 90,
+            "evidence_chars": 30,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 4,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 4,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 5,
+        "criteria_type": "array",
+        "progress": false,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da680228fe92ac-tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-28aef1f4-3ccc-9a75-be0d-a06affe704e1",
+      "error_code": null,
+      "started_at_ms": 1790858239360,
+      "completed_at_ms": 1790858262648,
+      "response": {
+        "action": {
+          "arguments": {
+            "duration_ms": 1200,
+            "points": [
+              [
+                0.55,
+                0.25
+              ],
+              [
+                0.75,
+                0.25
+              ],
+              [
+                0.75,
+                0.65
+              ],
+              [
+                0.55,
+                0.65
+              ],
+              [
+                0.55,
+                0.25
+              ]
+            ]
+          },
+          "kind": "drag",
+          "target": "window-canvas:8890a54"
+        },
+        "done": false
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000718da680228fe92ac",
+      "call_id": "cu-session-1779459149988-000000000000000718da680228fe92ac-tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19154,
+      "output_tokens": 6363,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000718da680228fe92ac",
+      "call_id": "cu-session-1779459149988-000000000000000718da680228fe92ac-tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19936,
+      "output_tokens": 1589,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000718da680228fe92ac",
+      "call_id": "cu-session-1779459149988-000000000000000718da680228fe92ac-tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 21754,
+      "output_tokens": 1108,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790858160108-1",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-3fe3a913eb9df4356d3a44708a50f653463a25952ec86622",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 17671,
+      "output_tokens": 458,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000718da680228fe92ac-tool-42dc1c3b9a26996d762276606a521b91d3be5e35761619e2e8c9b137954b2a86",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:8890a54",
+      "status": "input_sent_observed",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "input_release_status": "released",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1790858262656,
+      "completed_at_ms": 1790858268492,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ]
+}

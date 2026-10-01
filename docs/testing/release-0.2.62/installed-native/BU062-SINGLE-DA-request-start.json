@@ -1,0 +1,6 @@
+{
+  "before_ms": 1790857716443,
+  "room_id": "room-1790567510595",
+  "session_id": "session-1779459149988",
+  "prompt": "BU062-SINGLE-DA：新安装版独立Browser Use回归。请只调用一次computer_use_perform，按正式schema填写六项：objective是“在当前右栏原生浏览器单击增加次数把次数从0变为1”；surface是browser；target只含url=http://127.0.0.1:63653/click.html；success_criteria是字符串数组，值为“最新页面实际显示次数：1”；constraints是字符串数组，要求仅一次单击、不导航、不输入、不滚动、不用其它工具、失败即停止不重试；max_actions是数字1。当前真实次数0，请依据本轮新鲜网页观察选择按钮并验证，不能使用桌面UIA或历史坐标，不能把排队或输入释放当成功。严格只调用一次，按真实页面报告。"
+}

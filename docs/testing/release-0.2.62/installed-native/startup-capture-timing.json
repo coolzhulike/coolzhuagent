@@ -1,0 +1,8 @@
+{
+  "launch_start_ms": 1790857276980,
+  "launch_outcome": {
+    "ok": false,
+    "message": "launched app did not expose a targetable window: {6D809377-6AF0-444B-8957-A3773F02200E}\\CoolzhuAgent\\COOLZHU-AGENT.exe"
+  },
+  "frames": []
+}

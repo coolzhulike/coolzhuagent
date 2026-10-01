@@ -140,7 +140,8 @@ fn host_sensitive_semantic_category(
     observation: &Observation,
 ) -> Option<&'static str> {
     let mut corpus = String::new();
-    push_bounded_semantic_text(&mut corpus, &normalize_objective_input_delivery(&request.objective));
+    let objective = normalize_objective_preapproval_claim(&request.objective);
+    push_bounded_semantic_text(&mut corpus, &normalize_objective_input_delivery(&objective));
     push_bounded_semantic_text(&mut corpus, &action.target);
 
     let mut remaining_argument_strings = 32usize;
@@ -152,6 +153,21 @@ fn host_sensitive_semantic_category(
     collect_target_node_text(&observation.state, &action.target, &mut corpus);
 
     classify_sensitive_semantics(&corpus)
+}
+
+/// 开头的既有许可声明不是“执行授权”；只改前缀动词，任务、目标和参数仍完整审查。
+/// 该规整不生成批准，也不能豁免声明之后的安装、授权、删除或外发动作。
+fn normalize_objective_preapproval_claim(text: &str) -> String {
+    let text = text.trim_start();
+    for (claim, neutral) in [
+        ("用户已明确授权本次", "用户已明确许可本次"),
+        ("用户已授权本次", "用户已许可本次"),
+    ] {
+        if let Some(rest) = text.strip_prefix(claim) {
+            return format!("{neutral}{rest}");
+        }
+    }
+    text.to_owned()
 }
 
 /// 意图中“发送一次普通点击”描述输入投递，不是外发消息；目标节点和动作参数仍原样审查。
@@ -1660,6 +1676,45 @@ mod tests {
             ),
             Some("authorization_or_installation")
         );
+    }
+
+    #[test]
+    fn preapproval_claim_is_not_an_authorization_action_or_an_approval_bypass() {
+        let observation = observation_with_state(1, json!({"page":{"nodes":[]}}));
+        let action = click_target("window-canvas:8890a54");
+        for objective in [
+            "用户已明确授权本次 Paint 手绘测试。在白色画布内拖动绘画",
+            "用户已授权本次鼠标拖动。在画布内画一个闭合矩形",
+        ] {
+            assert_eq!(host_sensitive_semantic_category(
+                &request_with_objective(objective), &action, &observation,
+            ), None);
+        }
+        for (operation, category) in [
+            ("安装浏览器扩展", "authorization_or_installation"),
+            ("点击授权按钮", "authorization_or_installation"),
+            ("删除文件", "destructive_change"),
+            ("支付订单", "purchase_or_payment"),
+            ("发送消息给他人", "external_communication"),
+            ("输入 API key", "credential_or_secret"),
+        ] {
+            let objective = format!("用户已明确授权本次{operation}");
+            assert_eq!(host_sensitive_semantic_category(
+                &request_with_objective(&objective), &action, &observation,
+            ), Some(category), "{operation}");
+        }
+        let request = request_with_objective("用户已明确授权本次鼠标点击");
+        let sensitive_node = observation_with_state(1, json!({"page":{"nodes":[
+            {"reference":"dom-9", "name":"授权访问"}
+        ]}}));
+        assert_eq!(host_sensitive_semantic_category(
+            &request, &click_target("dom-9"), &sensitive_node,
+        ), Some("authorization_or_installation"));
+        let mut parameter_action = action;
+        parameter_action.arguments = json!({"label":"用户已明确授权本次访问"});
+        assert_eq!(host_sensitive_semantic_category(
+            &request, &parameter_action, &observation,
+        ), Some("authorization_or_installation"));
     }
 
     #[tokio::test]
