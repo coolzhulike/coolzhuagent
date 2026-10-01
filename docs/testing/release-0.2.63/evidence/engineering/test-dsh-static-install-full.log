@@ -1,0 +1,81 @@
+   Compiling coolzhu-plugin-system v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\tooling\packages\plugin-system)
+warning: unused import: `HookAuthorizationService`
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:425:34
+    |
+425 |     use super::{AllowHookEvents, HookAuthorizationService, HookRunResult, HookRunner};
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+warning: `coolzhu-plugin-system` (lib test) generated 1 warning (run `cargo fix --lib -p coolzhu-plugin-system --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.49s
+     Running unittests src\lib.rs (target\debug\deps\plugins-7388dab70e144614.exe)
+
+running 37 tests
+test tests::installed_plugin_discovery_keeps_registry_entries_outside_install_root ... ok
+test tests::installed_plugin_discovery_prunes_stale_registry_entries ... ok
+test install_transaction::tests::untrusted_journal_path_blocks_recovery_without_touching_outside_directory ... ok
+test tests::load_plugin_from_directory_accumulates_multiple_validation_errors ... ok
+test tests::list_installed_plugins_scans_install_root_without_registry_entries ... ok
+test hooks::tests::unconfigured_authorization_prevents_plugin_hooks_from_running ... ok
+test tests::list_installed_plugins_scans_packaged_manifests_in_install_root ... ok
+test hooks::tests::pre_tool_use_denies_when_plugin_hook_exits_two ... ok
+test tests::load_plugin_from_directory_defaults_optional_fields ... ok
+test tests::load_plugin_from_directory_rejects_invalid_permissions ... ok
+test tests::auto_installs_bundled_plugins_into_the_registry ... ok
+test tests::load_plugin_from_directory_rejects_duplicate_permissions_and_commands ... ok
+test tests::load_plugin_from_directory_rejects_missing_tool_or_command_paths ... ok
+test tests::load_plugin_from_directory_reads_root_manifest_and_validates_entries ... ok
+test tests::load_plugin_from_directory_rejects_invalid_tool_required_permission ... ok
+test tests::load_plugin_from_directory_validates_required_fields ... ok
+test tests::load_plugin_from_directory_supports_packaged_manifest_path ... ok
+test tests::validates_plugin_source_before_install ... ok
+test install_transaction::tests::manager_lock_rejects_competing_operation_before_mutation ... ok
+test tests::bundled_sync_prunes_removed_bundled_registry_entries ... ok
+test install_transaction::tests::uninstall_rejects_registry_path_outside_managed_root ... ok
+test tests::rejects_plugin_sources_with_missing_hook_paths ... ok
+test install_transaction::tests::missing_backup_blocks_discovery_instead_of_exposing_half_install ... ok
+test tests::persists_bundled_plugin_disable_state_across_reloads ... ok
+test tests::default_bundled_root_loads_repo_bundles_as_installed_plugins ... ok
+test tests::persists_bundled_plugin_enable_state_across_reloads ... ok
+test tests::discovers_builtin_and_bundled_plugins ... ok
+test install_transaction::tests::bundled_refresh_failure_preserves_old_copy_and_explicit_enable_state ... ok
+test tests::aggregates_and_executes_plugin_tools ... ok
+test install_transaction::tests::update_preserves_disabled_and_enabled_state ... ok
+test tests::plugin_registry_tracks_enabled_state_and_lookup ... ok
+test tests::installs_enables_updates_and_uninstalls_external_plugins ... ok
+test install_transaction::tests::interrupted_directory_swap_recovers_before_discovery ... ok
+test tests::plugin_registry_runs_initialize_and_shutdown_for_enabled_plugins ... ok
+test hooks::tests::collects_and_runs_hooks_from_enabled_plugins ... ok
+test install_transaction::tests::transaction_stage_registry_and_settings_failures_keep_old_install ... ok
+test tests::default_bundled_root_exposes_cli_anything_bridge_tools ... ok
+
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.11s
+
+   Doc-tests plugins
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

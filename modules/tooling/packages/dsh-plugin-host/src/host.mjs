@@ -6,6 +6,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { readFile, realpath, lstat } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { bindSourceImports } from './source_imports.mjs';
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 const MAX_SOURCE_BYTES = 32 * 1024 * 1024;
@@ -131,80 +132,88 @@ export async function loadPluginHost({ root, receipt, config = {} }) {
   receipt = jsonSnapshot(receipt);
   const canonicalRoot = await realpath(root);
   const verified = await verifyReceipt(canonicalRoot, receipt);
-  const imported = await import(pathToFileURL(verified.entry).href);
-  const module = imported.default ?? imported;
-  if (!module || typeof module !== 'object' || !Object.hasOwn(module, 'apply')
-      || typeof module.apply !== 'function' || module.name !== receipt.name) {
-    fail('MODULE_UNSUPPORTED', '包入口不是当前支持的单一 DSH 工具模块');
-  }
-  const required = requiredServices(module);
-  const unknown = required.filter(name => !SUPPORTED_PLUGIN_SERVICES.has(name));
-  if (unknown.length) fail('SERVICE_UNSUPPORTED', `宿主尚未提供服务：${unknown.join('、')}`);
-  const ctx = new Context();
-  const fibers = [];
-  var disposed = false;
-  var active = false;
-  var activePromise;
-  var disposePromise;
-  const lifetime = new AbortController();
-  const consumedCalls = new Set();
-  const generation = randomUUID();
-  async function dispose() {
-    disposePromise ??= (async () => {
-      disposed = true;
-      lifetime.abort();
-      if (activePromise) await bounded(activePromise.catch(() => {}), 1000, 'CALL_DRAIN_INCOMPLETE');
-      // 官方根 fiber.dispose 是 restart；逐一释放真实子 fiber 并核对服务撤销。
-      for (const fiber of fibers.toReversed()) await bounded(fiber.dispose(), 1000, 'DISPOSE_INCOMPLETE');
-      if (fibers.some(f => f.state !== 4) || ctx.registry.size !== 0 || ctx.tools || ctx.systemPrompt) {
-        fail('DISPOSE_INCOMPLETE', '插件或官方服务尚未完整释放');
-      }
-    })();
-    return await disposePromise;
-  }
+  const imports = bindSourceImports(canonicalRoot, receipt);
   try {
-    fibers.push(await ctx.plugin(SystemPrompt, { includeHarnessIdentity: false, includeRuntimeContext: false }));
-    fibers.push(await ctx.plugin(ToolRuntime, { mode: 'native' }));
-    fibers.push(await ctx.plugin(module, jsonSnapshot(config, 64 * 1024)));
-    if (fibers.some(f => f.state !== 2)) fail('LOAD_FAILED', 'DSH 模块未进入可运行状态');
-    const tools = toolManifest(ctx.tools.schemas());
-    const manifest = jsonSnapshot({ protocol: 1, generation, revision: verified.revision,
-      plugin: { name: receipt.name, version: receipt.version }, services: ['tools'], tools });
-    return {
-      manifest,
-      async execute({ call_id, generation: expectedGeneration, revision, name, arguments: args, signal }) {
-        if (disposed) fail('HOST_DISPOSED', '插件已停用，调用被拒绝');
-        if (active) fail('HOST_BUSY', '单次插件宿主已有执行中的调用');
-        if (expectedGeneration !== generation || revision !== verified.revision) fail('HOST_STALE', '插件版本或宿主世代已变化');
-        if (typeof call_id !== 'string' || !call_id || call_id.length > 192 || consumedCalls.has(call_id)) {
-          fail('CALL_ALREADY_USED', '调用身份无效或已使用，禁止自动重放');
-        }
-        if (!(signal instanceof AbortSignal)) fail('SIGNAL_REQUIRED', '插件调用必须绑定宿主取消信号');
-        if (!tools.some(tool => tool.name === name)) fail('TOOL_UNAVAILABLE', '本次插件未实际注册此工具');
-        const input = jsonSnapshot(args, 64 * 1024);
-        // 首个 await 前占用调用资格；来源校验期间也不能插入另一调用或绕过停用收尾。
-        active = true;
-        activePromise = (async () => {
-          // 注册清单和执行绑定同一个实际来源修订，不只比较可重复使用的语义版本号。
-          if ((await verifyReceipt(canonicalRoot, receipt)).revision !== verified.revision) {
-            fail('SOURCE_CHANGED', '插件身份变化，未执行');
-          }
-          if (disposed) fail('HOST_DISPOSED', '来源校验期间插件已停用，未执行');
-          consumedCalls.add(call_id);
-          const result = await ctx.tools.execute({ callId: call_id, name, arguments: input,
-            signal: AbortSignal.any([signal, lifetime.signal]) });
-          // 不传播 concludeTurn 或 additionalContexts 为控制指令；权限与上下文仍由 Rust 所有。
-          return jsonSnapshot({ isError: result.isError, content: result.content,
-            ...(result.isError ? { error: result.error } : { value: result.value }) });
-        })();
+    const imported = await import(pathToFileURL(verified.entry).href);
+    const module = imported.default ?? imported;
+    if (!module || typeof module !== 'object' || !Object.hasOwn(module, 'apply')
+        || typeof module.apply !== 'function' || module.name !== receipt.name) {
+      fail('MODULE_UNSUPPORTED', '包入口不是当前支持的单一 DSH 工具模块');
+    }
+    const required = requiredServices(module);
+    const unknown = required.filter(name => !SUPPORTED_PLUGIN_SERVICES.has(name));
+    if (unknown.length) fail('SERVICE_UNSUPPORTED', `宿主尚未提供服务：${unknown.join('、')}`);
+    const ctx = new Context();
+    const fibers = [];
+    var disposed = false;
+    var active = false;
+    var activePromise;
+    var disposePromise;
+    const lifetime = new AbortController();
+    const consumedCalls = new Set();
+    const generation = randomUUID();
+    async function dispose() {
+      disposePromise ??= (async () => {
+        disposed = true;
+        lifetime.abort();
         try {
-          return await activePromise;
-        } finally { active = false; activePromise = undefined; }
-      },
-      dispose,
-    };
+          if (activePromise) await bounded(activePromise.catch(() => {}), 1000, 'CALL_DRAIN_INCOMPLETE');
+          // 官方根 fiber.dispose 是 restart；逐一释放真实子 fiber 并核对服务撤销。
+          for (const fiber of fibers.toReversed()) await bounded(fiber.dispose(), 1000, 'DISPOSE_INCOMPLETE');
+          if (fibers.some(f => f.state !== 4) || ctx.registry.size !== 0 || ctx.tools || ctx.systemPrompt) {
+            fail('DISPOSE_INCOMPLETE', '插件或官方服务尚未完整释放');
+          }
+        } finally { imports.deregister(); }
+      })();
+      return await disposePromise;
+    }
+    try {
+      fibers.push(await ctx.plugin(SystemPrompt, { includeHarnessIdentity: false, includeRuntimeContext: false }));
+      fibers.push(await ctx.plugin(ToolRuntime, { mode: 'native' }));
+      fibers.push(await ctx.plugin(module, jsonSnapshot(config, 64 * 1024)));
+      if (fibers.some(f => f.state !== 2)) fail('LOAD_FAILED', 'DSH 模块未进入可运行状态');
+      const tools = toolManifest(ctx.tools.schemas());
+      const manifest = jsonSnapshot({ protocol: 1, generation, revision: verified.revision,
+        plugin: { name: receipt.name, version: receipt.version }, services: ['tools'], tools });
+      return {
+        manifest,
+        async execute({ call_id, generation: expectedGeneration, revision, name, arguments: args, signal }) {
+          if (disposed) fail('HOST_DISPOSED', '插件已停用，调用被拒绝');
+          if (active) fail('HOST_BUSY', '单次插件宿主已有执行中的调用');
+          if (expectedGeneration !== generation || revision !== verified.revision) fail('HOST_STALE', '插件版本或宿主世代已变化');
+          if (typeof call_id !== 'string' || !call_id || call_id.length > 192 || consumedCalls.has(call_id)) {
+            fail('CALL_ALREADY_USED', '调用身份无效或已使用，禁止自动重放');
+          }
+          if (!(signal instanceof AbortSignal)) fail('SIGNAL_REQUIRED', '插件调用必须绑定宿主取消信号');
+          if (!tools.some(tool => tool.name === name)) fail('TOOL_UNAVAILABLE', '本次插件未实际注册此工具');
+          const input = jsonSnapshot(args, 64 * 1024);
+          // 首个 await 前占用调用资格；来源校验期间也不能插入另一调用或绕过停用收尾。
+          active = true;
+          activePromise = (async () => {
+            // 注册清单和执行绑定同一个实际来源修订，不只比较可重复使用的语义版本号。
+            if ((await verifyReceipt(canonicalRoot, receipt)).revision !== verified.revision) {
+              fail('SOURCE_CHANGED', '插件身份变化，未执行');
+            }
+            if (disposed) fail('HOST_DISPOSED', '来源校验期间插件已停用，未执行');
+            consumedCalls.add(call_id);
+            const result = await ctx.tools.execute({ callId: call_id, name, arguments: input,
+              signal: AbortSignal.any([signal, lifetime.signal]) });
+            // 不传播 concludeTurn 或 additionalContexts 为控制指令；权限与上下文仍由 Rust 所有。
+            return jsonSnapshot({ isError: result.isError, content: result.content,
+              ...(result.isError ? { error: result.error } : { value: result.value }) });
+          })();
+          try {
+            return await activePromise;
+          } finally { active = false; activePromise = undefined; }
+        },
+        dispose,
+      };
+    } catch (error) {
+      try { await dispose(); } catch (cleanup) { error.cleanupCode = cleanup.code ?? 'DISPOSE_INCOMPLETE'; }
+      throw error;
+    }
   } catch (error) {
-    try { await dispose(); } catch (cleanup) { error.cleanupCode = cleanup.code ?? 'DISPOSE_INCOMPLETE'; }
+    imports.deregister();
     throw error;
   }
 }

@@ -1,5 +1,7 @@
 mod hooks;
 mod install_transaction;
+mod dsh_package;
+pub use dsh_package::{DshPackage, DshSourceReceipt, DshSourceFile};
 
 #[cfg(test)]
 use install_transaction::TransactionFault;
@@ -67,6 +69,7 @@ pub struct PluginMetadata {
     pub source: String,
     pub default_enabled: bool,
     pub root: Option<PathBuf>,
+    pub dsh: Option<DshPackage>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -127,6 +130,8 @@ pub struct PluginManifest {
     pub tools: Vec<PluginToolManifest>,
     #[serde(default)]
     pub commands: Vec<PluginCommandManifest>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dsh: Option<DshPackage>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -236,6 +241,8 @@ struct RawPluginManifest {
     pub tools: Vec<RawPluginToolManifest>,
     #[serde(default)]
     pub commands: Vec<PluginCommandManifest>,
+    #[serde(default)]
+    pub dsh: Option<DshPackage>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -360,6 +367,7 @@ fn default_tool_permission_label() -> String {
 pub enum PluginInstallSource {
     LocalPath { path: PathBuf },
     GitUrl { url: String },
+    DshBundle { repository: String, commit: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1029,6 +1037,9 @@ impl PluginManager {
     pub fn enable(&mut self, plugin_id: &str) -> Result<(), PluginError> {
         let (_root, _lock) = self.lock_and_recover()?;
         self.ensure_known_plugin_locked(plugin_id)?;
+        if self.plugin_registry_locked()?.get(plugin_id).is_some_and(|p| p.metadata().dsh.is_some()) {
+            return Err(PluginError::CommandFailed("DSH 包已安装但工具宿主尚未接入启用流程，未启用".into()));
+        }
         self.write_enabled_state(plugin_id, Some(true))?;
         self.config
             .enabled_plugins
@@ -1255,6 +1266,8 @@ impl PluginManager {
     }
 
     fn is_enabled(&self, metadata: &PluginMetadata) -> bool {
+        // 静态安装不代表工具已加载；宿主启用事务接入前不采纳外部设置中的启用位。
+        if metadata.dsh.is_some() { return false; }
         self.config
             .enabled_plugins
             .get(&metadata.id)
@@ -1329,6 +1342,7 @@ pub fn builtin_plugins() -> Vec<PluginDefinition> {
             source: BUILTIN_MARKETPLACE.to_string(),
             default_enabled: false,
             root: None,
+            dsh: None,
         },
         hooks: PluginHooks::default(),
         lifecycle: PluginLifecycle::default(),
@@ -1352,6 +1366,7 @@ fn load_plugin_definition(
         source,
         default_enabled: manifest.default_enabled,
         root: Some(root.to_path_buf()),
+        dsh: manifest.dsh,
     };
     let hooks = resolve_hooks(root, &manifest.hooks);
     let lifecycle = resolve_lifecycle(root, &manifest.lifecycle);
@@ -1451,6 +1466,15 @@ fn build_plugin_manifest(
         return Err(PluginError::ManifestValidation(errors));
     }
 
+    if let Some(package) = &raw.dsh {
+        package.verify(root)?;
+        if raw.name != package.registration_name() || raw.version != package.receipt.version
+            || raw.default_enabled || !raw.hooks.is_empty() || !raw.lifecycle.is_empty()
+            || !tools.is_empty() || !commands.is_empty() || permissions != [PluginPermission::Execute] {
+            return Err(PluginError::InvalidManifest("DSH 包不能混入原生进程工具、钩子或默认启用".into()));
+        }
+    }
+
     Ok(PluginManifest {
         name: raw.name,
         version: raw.version,
@@ -1461,6 +1485,7 @@ fn build_plugin_manifest(
         lifecycle: raw.lifecycle,
         tools,
         commands,
+        dsh: raw.dsh,
     })
 }
 
@@ -1871,6 +1896,8 @@ fn materialize_source(
     fs::create_dir_all(temp_root)?;
     match source {
         PluginInstallSource::LocalPath { path } => Ok(path.clone()),
+        PluginInstallSource::DshBundle { .. } => Err(PluginError::CommandFailed(
+            "固定 DSH 来源须先由下载层核验后提交暂存包，不能用普通更新拉取浮动版本".into())),
         PluginInstallSource::GitUrl { url } => {
             let destination = temp_root.join(format!("plugin-{}", unix_time_ms()));
             let output = Command::new("git")
@@ -1931,6 +1958,7 @@ fn describe_install_source(source: &PluginInstallSource) -> String {
     match source {
         PluginInstallSource::LocalPath { path } => path.display().to_string(),
         PluginInstallSource::GitUrl { url } => url.clone(),
+        PluginInstallSource::DshBundle { repository, commit } => format!("{repository}/tree/{commit}"),
     }
 }
 

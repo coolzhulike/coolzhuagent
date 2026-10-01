@@ -10,6 +10,8 @@
 
 安装回执包含 protocol=1、name/version、entry、sdk_lock_sha256 和每个来源文件的 path/sha256。路径禁止逃逸与链接；实际注册的工具才进入清单，每次执行重新核对来源修订。安装器需另完成全树文件身份、依赖包完整性、事务与默认停用；此宿主不自行下载或安装。
 
+`source_imports.mjs` 使用 Node 官方同步模块钩子，将首批支持的 SDK 导入固定到宿主自身依赖，包内相对导入必须属于核验回执，加载使用核验后的原始字节。安装目录不需要自己的 node_modules，也不使用工作区的同名依赖。未知裸包、Node内置模块与未核验文件导入暂不兼容；这是来源绑定，不是第三方代码的安全沙箱。模块钩子加载失败及 dispose 收尾时撤销。[Node官方接口](https://nodejs.org/api/module.html#moduleregisterhooksoptions)标注版本与稳定性，当前工程实测 Node24.15.0，正式分发仍需固定并核验完整运行时。
+
 ## 接口与生命周期
 
 - `src/host.mjs` 导出 loadPluginHost，返回实际 manifest、execute 和 dispose。execute 要求本宿主 generation/revision、唯一 call_id 和真实 AbortSignal；来源校验开始前锁住单次执行资格，停用期间拒绝新输入。
@@ -22,3 +24,5 @@
 `tests/real-plugin.mjs` 必须输入真实固定来源插件目录，核验官方工具定义、计算96、无效表达式、预取消、世代/修订/重放拒绝、校验期间并发及停用、真实 fiber/service 释放。它不造 SDK 或模型。
 
 Core 的 `dsh_plugin_probe` example 接收 Node绝对路径、process.mjs绝对路径、真实插件目录、来源回执JSON和输出文件，驱动同一个生产进程桥，核验实际计算96、冻结修订变更拒绝和根预取消。当前这里只验证工程链路；市场事务、正式资源打包、停用/卸载按钮、真实Qwen工具暴露和调用仍需随后完成。
+
+Plugin-system 的 `install_dsh` 已复用现有跨进程写锁、同卷暂存/交换和恢复日志。只复制回执中的来源文件并生成独立 DSH 登记，不造原生进程工具、执行 npm 脚本或默认启用；固定来源不能通过普通更新入口转为浮动版本。`dsh_install_probe` 以真实官方包验证安装、静态文件身份及摘要失败时旧状态不变；从实际安装后的新目录通过同一 Rust/Node 进程桥计算96。远程下载、正式市场按钮、宿主启用快照和真实模型调用仍未接入，因此不能把该静态安装入口称作完整市场安装能力。

@@ -26,6 +26,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &json!({"expression":"1 + 1"}), Duration::from_secs(30)).expect_err("旧来源身份不能投递");
     assert_eq!(stale.code, "host_stale");
     assert!(stale.cleanup_confirmed);
+    // 真实包仍完整，删去回执中的实际依赖文件；新进程必须拒绝未核验的相对导入。
+    let mut incomplete_receipt = receipt.clone();
+    incomplete_receipt["files"].as_array_mut().ok_or("回执文件列表缺失")?
+        .retain(|item| item["path"] != "lib/evaluate.js");
+    let missing_dependency = dsh_host_process::describe(&paths, &incomplete_receipt, &json!({}), &context,
+        Duration::from_secs(30)).expect_err("包内实际依赖不得脱离来源回执");
+    assert_eq!(missing_dependency.code, "host_failed");
+    assert!(missing_dependency.message.contains("不属于已核验来源文件"));
+    assert!(missing_dependency.cleanup_confirmed);
     let control = ExecutionControl::new(None, None);
     control.cancel();
     let cancelled = managed_process::with_execution_control(control, || dsh_host_process::execute(
@@ -34,8 +43,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(cancelled.code, "host_io_failed");
     let report = json!({"passed":true, "notice":"真实官方计算器与生产Rust/Node进程桥的工程核验，不是正式市场或Qwen会话验收",
         "source":receipt, "manifest":manifest, "context":context, "result":result,
-        "stale":stale, "pre_cancelled":cancelled});
+        "stale":stale, "missing_dependency":missing_dependency, "pre_cancelled":cancelled});
     std::fs::write(&args[4], serde_json::to_vec_pretty(&report)?)?;
-    println!("真实插件进程加载、执行96、旧修订拒绝、根取消拒绝均通过");
+    println!("真实插件进程加载、执行96、旧修订/未核验导入拒绝、根取消拒绝均通过");
     Ok(())
 }

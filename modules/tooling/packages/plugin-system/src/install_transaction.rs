@@ -207,6 +207,17 @@ impl PluginManager {
         install_source: Option<PluginInstallSource>,
         update_id: Option<&str>,
     ) -> Result<TransactionOutcome, PluginError> {
+        self.replace_prepared_locked(root, kind, install_source, update_id, None)
+    }
+
+    pub(super) fn replace_prepared_locked(
+        &self,
+        root: &Path,
+        kind: OperationKind,
+        install_source: Option<PluginInstallSource>,
+        update_id: Option<&str>,
+        prepared_dsh: Option<(&Path, &DshPackage, &str)>,
+    ) -> Result<TransactionOutcome, PluginError> {
         let mut registry = self.load_registry()?;
         let updating = if let Some(update_id) = update_id {
             Some(registry.plugins.get(update_id).cloned().ok_or_else(|| {
@@ -221,8 +232,6 @@ impl PluginManager {
         let operation_dir = create_operation_dir(root)?;
         let journal_path = operation_dir.join(OPERATION_JOURNAL_NAME);
         let result = (|| {
-            let materialized = materialize_source(&source, &operation_dir)?;
-            let source_manifest = load_plugin_from_directory(&materialized)?;
             let stage = checked_managed_path(root, &operation_dir.join("stage"))?;
             #[cfg(test)]
             if self.transaction_fault == Some(TransactionFault::BeforeStageCopy) {
@@ -230,8 +239,18 @@ impl PluginManager {
                     "测试注入暂存复制失败",
                 )));
             }
-            copy_dir_all(&materialized, &stage)?;
-            verify_staged_copy(&materialized, &stage)?;
+            let source_manifest = if let Some((source_root, package, description)) = prepared_dsh {
+                package.stage(source_root, &stage, description)?
+            } else {
+                let materialized = materialize_source(&source, &operation_dir)?;
+                let source_manifest = load_plugin_from_directory(&materialized)?;
+                if source_manifest.dsh.is_some() {
+                    return Err(PluginError::InvalidManifest("DSH 包须通过静态核验安装入口，不能混用原生安装".into()));
+                }
+                copy_dir_all(&materialized, &stage)?;
+                verify_staged_copy(&materialized, &stage)?;
+                source_manifest
+            };
             let manifest = load_plugin_from_directory(&stage)?;
             if manifest != source_manifest {
                 return Err(PluginError::CommandFailed(
@@ -269,6 +288,12 @@ impl PluginManager {
             }
             let old_record = registry.plugins.get(&plugin_id).cloned();
             if let Some(record) = &old_record {
+                if let Some((_, package, _)) = prepared_dsh {
+                    if !matches!(&record.source, PluginInstallSource::DshBundle { repository, .. }
+                        if repository == &package.repository) {
+                        return Err(PluginError::InvalidManifest("登记 ID 已属于其它运行类型或来源，未覆盖".into()));
+                    }
+                }
                 if checked_install_destination(root, &record.install_path)? != target {
                     return Err(PluginError::CommandFailed(format!(
                         "registry 中的旧安装路径与目标不符，已拒绝覆盖：{}",

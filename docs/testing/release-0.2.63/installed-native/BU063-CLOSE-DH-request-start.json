@@ -1,0 +1,5 @@
+{
+  "before_ms": 1790863273238,
+  "prompt": "BU063-CLOSE-DH：正式安装版新独立Browser Use关闭边界测试。只调用一次computer_use_perform，完整使用正式六项字段：objective是在当前右栏原生浏览器单击增加次数把次数从0变为1；surface=browser；target只含url=http://127.0.0.1:63655/slow.html；success_criteria为字符串数组，要求本轮新鲜页面实际显示次数：1；constraints为字符串数组：只允许一次单击，不导航、不输入、不滚动、不用其它工具；页面关闭或任何失败立即结束，不重开、不重试、不补发；不能把投递或输入释放当目标完成；max_actions数字1。当前真实次数0，用本轮新鲜网页观察选按钮及验证，不用桌面UIA或历史坐标。关闭后不得认领已关闭网页目标通过，如实报告实际输入、释放、清理和停止事实。",
+  "room_id": "room-1790567510595"
+}

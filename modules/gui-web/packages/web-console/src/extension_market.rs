@@ -31,9 +31,10 @@ struct PluginEntry {
 
 fn plugin_entry(summary: PluginSummary, installed: bool, loaded: bool) -> PluginEntry {
     let metadata = summary.metadata;
+    let name = metadata.dsh.as_ref().map_or_else(|| metadata.name.clone(), |p| p.receipt.name.clone());
     PluginEntry {
         id: metadata.id,
-        name: metadata.name,
+        name,
         version: metadata.version,
         description: metadata.description,
         source: metadata.source,
