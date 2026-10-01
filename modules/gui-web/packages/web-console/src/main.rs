@@ -28550,6 +28550,7 @@ const COMPUTER_USE_OPERATION_CONSTRAINTS: &str = "Computer-use operation constra
 - Use `computer_use_perform` as the only model-facing entry point for desktop or browser actions. Never fall back to `tools_semantic_dispatch`, `computer.left_click`, or another legacy computer tool.\n\
 - A `failed`, `blocked`, `timed_out`, `cancelled`, or error ToolResult is terminal for computer use in the current user turn. Report its exact status and error code; do not retry through a different tool name.\n\
 - Declare `surface=desktop|browser` before acting and use the tool for that surface only.\n\
+- For browser tasks, `target.url` identifies the CURRENT source page, not the desired destination. Put a navigation destination in the objective; the runtime planner supplies it as the navigate action's `arguments.url`.\n\
 - Obtain a fresh screenshot immediately before every coordinate-based action. Never guess coordinates or reuse coordinates after the UI changes.\n\
 - After every click, keypress, text input, drag, or scroll, capture again and verify the visible result before continuing.\n\
 - Treat WebView2 and other embedded-browser overlays as separate surfaces; if the target is obscured or belongs to another surface, stop and report the blocker.\n\
@@ -34180,7 +34181,7 @@ fn computer_use_tool_definition() -> ToolDefinition {
         // 会让 DeepSeek / 百炼等直接 400 拒绝整个请求，退化成本地回退文案。
         name: COMPUTER_USE_TOOL_NAME.to_string(),
         description: Some(
-            "Complete one user-authorized desktop or browser UI task. Do not use this tool for shell commands, code execution, or file editing. Describe the goal and observable success criteria; the runtime owns observation, planning, bounded input, and verification. For browser tasks, including the built-in side-panel browser, use target.url only; never add target.application or target.window alongside a URL."
+            "Complete one user-authorized desktop or browser UI task. Do not use this tool for shell commands, code execution, or file editing. Describe the goal and observable success criteria; the runtime owns observation, planning, bounded input, and verification. For browser tasks, including the built-in side-panel browser, target.url identifies the CURRENT source page, not a desired destination. Describe the destination in objective and success_criteria; the runtime planner uses it in the navigate action's arguments.url. Never add target.application or target.window alongside a URL."
                 .to_string(),
         ),
         input_schema: json!({
@@ -34201,7 +34202,7 @@ fn computer_use_tool_definition() -> ToolDefinition {
                     "properties": {
                         "application": { "type": "string" },
                         "window": { "type": "string" },
-                        "url": { "type": "string" },
+                        "url": { "type": "string", "description": "URL of the currently open source page. Do not put a requested navigation destination here; describe that destination in objective and success_criteria." },
                         "element": { "type": "string" }
                     },
                     "additionalProperties": false

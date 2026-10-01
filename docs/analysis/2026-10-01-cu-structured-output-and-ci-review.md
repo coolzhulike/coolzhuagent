@@ -8,7 +8,7 @@
 
 依据百炼官方[结构化输出](https://www.alibabacloud.com/help/en/model-studio/qwen-structured-output)，Qwen3.8 Flash 支持 JSON Object/Schema；多模态输入不执行 Schema 约束。官方[工具调用](https://www.alibabacloud.com/help/en/model-studio/qwen-function-calling)说明思考开启时不支持强制 tool_choice object，因此不采用强制工具返回，也不关闭思考。经 agent-reach 网页读取归档于 tmp/browser-use-priority/qwen-*-official.txt。
 
-Provider 适配器新增单次请求 ResponseFormat，与会话参数分离，不改持久配置。CU 的 Qwen3.8 纯文本验收发送既有 schema 和 strict=true；图像验收及无 schema 的规划请求发送 JSON Object。其余模型保持原行为，Anthropic 协议不静默接受未实现格式。没有二次模型格式修复请求，也没有动作重放。
+Provider 适配器新增单次请求 ResponseFormat，与会话参数分离，不改持久配置。047 实际对所有带 schema 的 Qwen3.8 纯文本 CU 请求发送 strict=true Schema，包括根 oneOf 动作规划；图像请求和无 schema 请求发送 JSON Object。此前“无 schema 的规划请求”措辞未准确解释当前规划其实带 schema；047 连续规划停步后，下一轮改为固定验收 Schema、动作规划 JSON Object 的明确分工。其余模型保持原行为，Anthropic 协议不静默接受未实现格式。没有二次模型格式修复请求，也没有动作重放。
 
 格式约束不表示事实正确。既有 deny_unknown_fields、标准数量与索引、证据上限、节点范围、输入前检查、动作回执和验收前后新取样继续裁决；图像仍须来自真实原图。正式新包必须重新实测文字输入、导航及 Paint，工程测试不能代替软件截图。
 

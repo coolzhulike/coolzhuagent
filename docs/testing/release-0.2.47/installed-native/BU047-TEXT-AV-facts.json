@@ -1,0 +1,130 @@
+{
+  "test": "BU047-TEXT-AV",
+  "runtime": {
+    "id": "run-chat-41dd9caabe8c92b91732458b6db79fba4edc1dc813f39a82",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790827845708-3",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790827871784,
+    "created_at": 1790827845720
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000d18da4c700a555e10-tool-99a534547cdb4294e03da007686f1b71a92321517de6e7ec0aa8aeeb237ba7ea",
+      "provider_tool_call_id": "tool-99a534547cdb4294e03da007686f1b71a92321517de6e7ec0aa8aeeb237ba7ea",
+      "turn_id": "000000000000000d18da4c700a555e10",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 7,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790827851441,
+      "updated_at_ms": 1790827866115,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000d18da4c700a555e10-tool-99a534547cdb4294e03da007686f1b71a92321517de6e7ec0aa8aeeb237ba7ea",
+        "provider_tool_call_id": "tool-99a534547cdb4294e03da007686f1b71a92321517de6e7ec0aa8aeeb237ba7ea",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "planner stopped before all success criteria were verified",
+        "error": {
+          "code": "verification_failed",
+          "message": "planner stopped before all success criteria were verified",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:976133574f55f69d1ff0da88e5ff91ae",
+          "native-ax:1:0",
+          "native-observation:976133574f55f69d1ff0da88e5ff91ae",
+          "native-ax:1:0",
+          "native-observation:ae920ec73042a3778f962cad31a7997c"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790828745708
+            }
+          },
+          "cu_deadline_ms": 1790827971441,
+          "cu_deadline_established_at_ms": 1790827851441,
+          "cu_budget_ms": 120000
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000d18da4c700a555e10-tool-99a534547cdb4294e03da007686f1b71a92321517de6e7ec0aa8aeeb237ba7ea",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-a28e13cc-0917-934d-8328-4c6a2b804e52",
+      "error_code": null,
+      "started_at_ms": 1790827851631,
+      "completed_at_ms": 1790827860766
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000d18da4c700a555e10-tool-99a534547cdb4294e03da007686f1b71a92321517de6e7ec0aa8aeeb237ba7ea",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-b27ece6d-c542-9e96-b571-50e0e2c9839c",
+      "error_code": null,
+      "started_at_ms": 1790827860788,
+      "completed_at_ms": 1790827866113
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000d18da4c700a555e10",
+      "call_id": "cu-session-1779459149988-000000000000000d18da4c700a555e10-tool-99a534547cdb4294e03da007686f1b71a92321517de6e7ec0aa8aeeb237ba7ea",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 861,
+      "output_tokens": 402,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000d18da4c700a555e10",
+      "call_id": "cu-session-1779459149988-000000000000000d18da4c700a555e10-tool-99a534547cdb4294e03da007686f1b71a92321517de6e7ec0aa8aeeb237ba7ea",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 1951,
+      "output_tokens": 145,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790827845708-3",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-41dd9caabe8c92b91732458b6db79fba4edc1dc813f39a82",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 27488,
+      "output_tokens": 290,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

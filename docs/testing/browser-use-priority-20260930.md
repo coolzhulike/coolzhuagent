@@ -1,3 +1,5 @@
+> **2026-10-01 当前047实操与后续修正**：正式047安装10/10与859载荷摘要匹配，f033a40远端push/PR两检查SUCCESS。真实原Qwen五轮中，AS/AV文字输入及AW源地址明确导航均在规划done=true时零动作结束，验收JSON正常；AT目的地址误填target.url被拒，AU零真实派发。字段及URL原图仍未达到目标，不能称Browser Use完整通过。源URL工具说明、规划JSON Object/固定验收Schema分工和仅计数的内部脱敏诊断已修源码，尚不在047包中，后续正常构建安装复测。此前042点击、045滚动/只读、046明确地址导航证据仅在各版本范围有效。Paint闭合/海绵宝宝、DSH远程实际安装运行与四项总体仍开放，PR74 Draft。原Qwen/medium/百炼地址/密钥不变，微信不改不测、Devin搁置，主会话独立执行，Pro复审按用户要求暂停。详见[047报告](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.47/change-report-and-targeted-test-plan.md)。下方为历史时点。
+
 # Browser Use 优先闭环：可见资源边界与下一步实操
 
 > **2026-10-01当前045正式回归**：正常release六门通过、859载荷及安装10/10身份匹配。真实原Qwen AL单次Scroll通过：page_y从0至289.3333，1步sent/not_needed/effect_observed/passed，父completed/CU succeeded；AM只读2/2、cap0、0动作/步骤通过；正常退出重启safe且待恢复/未复核均0、历史接受2仍保留，没有新增审批。044 AK过期失败与首轮工程互斥9失败保留；空闲完整Web1290/0/2既有忽略、Shell64/0，节点有界120秒、执行票据仍2秒。4002a5b远端两检查SUCCESS，新提交另核。Type/Nav尚未实现，交互资源变化、DSH远程实际安装运行、Paint闭合/海绵宝宝与四项总体仍开放，PR74 Draft。原Qwen/medium/百炼地址/密钥不变，微信不改不测、Devin搁置，不用子代理，Pro复审按用户要求暂缓。常规审批按授权自主正常操作。详见[045实操及缺口](C:/Users/zhupu/Desktop/coolzhuagent/docs/testing/release-0.2.45/installed-native/acceptance-and-open-issues.md)。下方为历史时点。

@@ -1852,7 +1852,14 @@ pub(crate) fn sanitized_action_json(raw: &str) -> String {
         return json!({"omitted":"response_too_large","bytes":raw.len()}).to_string();
     }
     let result = serde_json::from_str::<Value>(raw)
-        .map(|value| clean(&value, ""))
+        .map(|value| {
+            let mut sanitized = clean(&value, "");
+            // 仅保留规划器协议里的已知停步码，不保存自由文本 summary。
+            if value["done"] == true && value["summary"] == "blocked: target_not_found" {
+                sanitized["planner_stop_code"] = json!("target_not_found");
+            }
+            sanitized
+        })
         .unwrap_or_else(|_| json!({"omitted":"invalid_json","bytes":raw.len()}))
         .to_string();
     if result.len() > 16 * 1024 {
@@ -3851,6 +3858,8 @@ mod tests {
                 .contains("window-canvas:abc123")
         );
         assert!(!sanitized_action_json(r#"{"target":"window-canvas:SECRET"}"#).contains("SECRET"));
+        assert!(sanitized_action_json(r#"{"done":true,"summary":"blocked: target_not_found"}"#).contains("planner_stop_code"));
+        assert!(!sanitized_action_json(r#"{"done":true,"summary":"SECRET-PAGE-CONTENT"}"#).contains("SECRET-PAGE-CONTENT"));
     }
 
     #[test]

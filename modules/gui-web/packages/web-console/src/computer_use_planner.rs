@@ -35,6 +35,7 @@ Coordinates are forbidden except bounded relative canvas points explicitly allow
 Desktop drag points are relative to the selected target rectangle; window-canvas points use desktop.canvas_rect, not the full screenshot. Follow desktop.drag_contract.
 The window-canvas target covers the entire visible client area, including toolbars and other controls; it does not identify the actual drawing area. Locate the drawing area visually using image.screen_rect and desktop.canvas_rect, then express points relative to desktop.canvas_rect. Never assume its top edge is the start of a drawing canvas.
 Browser actions must use DOM references. Desktop actions must use UI Automation references, except drag may use the explicit canvas_target from the latest desktop observation.
+For browser navigation, target.url is the current source page; take the requested destination from objective and use it as arguments.url on the latest RootWebArea reference.
 Browser drag requires arguments.drop_target as a DOM reference; browser slider_drag requires value 0-100; key_combination requires allowlisted keys.
 Browser tab lifecycle actions use target "browser-tabs": open_tab requires arguments.url, activate_tab and close_tab require arguments.tab_id.
 If no safe action exists, return {"done":true,"summary":"blocked: target_not_found"}."#;
@@ -117,6 +118,26 @@ fn bounded_observation(state: &JsonValue) -> JsonValue {
     let mut observation = compact(state, &mut budget, &mut omitted);
     if let Some(object) = observation.as_object_mut() { object.insert("omitted_items".into(), json!(omitted)); }
     observation
+}
+
+/// 仅记录宿主观察的数量与布尔能力；不保存页面正文、控件名、值、网址或节点凭据。
+fn diagnostic_observation_facts(observation: &Observation) -> JsonValue {
+    let nodes = observation.state.pointer("/page/nodes").and_then(JsonValue::as_array);
+    let elements = observation.state.pointer("/page/elements").and_then(JsonValue::as_array);
+    let role_count = |roles: &[&str]| elements.map_or(0, |items| items.iter().filter(|node| {
+        node.get("role").and_then(JsonValue::as_str).is_some_and(|role| roles.contains(&role))
+    }).count());
+    let capabilities = observation.state.get("capabilities")
+        .and_then(|value| serde_json::from_value::<computer_use::ComputerUseCapabilities>(value.clone()).ok());
+    json!({
+        "node_count": nodes.map_or(0, Vec::len),
+        "candidate_count": elements.map_or(0, Vec::len),
+        "textbox_candidate_count": role_count(&["textbox", "searchbox"]),
+        "root_candidate_count": role_count(&["RootWebArea"]),
+        "truncated": observation.state.pointer("/page/truncated").and_then(JsonValue::as_bool),
+        "input_supported": observation.state.pointer("/page/input_supported").and_then(JsonValue::as_bool),
+        "capabilities": capabilities,
+    })
 }
 
 #[derive(Debug)]
@@ -622,8 +643,11 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         let request = crate::agent_planner_message_request(agent, assembly.messages, system.to_string(), 4096);
         let started_at = planner_now_ms();
         let client = crate::provider_client_for_agent(agent).and_then(|client| {
-            // CU 子请求都是 JSON 协议；不改变当前会话的思考层级，不引入格式修复重试。
-            let schema = serde_json::from_str::<JsonValue>(prompt).ok().and_then(|value| value.get("response_schema").cloned());
+            // 固定验收对象使用 Schema；动作联合用 JSON Object，并保持原本地严格解析与接地检查。
+            // 不把尚未实测的根 oneOf 传给供应商，不改变思考层级或引入格式修复重试。
+            let schema = matches!(kind, "computer_use_verification" | "computer_use_browser_readonly_verification")
+                .then(|| serde_json::from_str::<JsonValue>(prompt).ok().and_then(|value| value.get("response_schema").cloned()))
+                .flatten();
             match api::ResponseFormat::for_qwen38(&agent.model, schema, !images.is_empty()) {
                 Some(format) => client.with_response_format(format),
                 None => Ok(client),
@@ -665,6 +689,12 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
             } else {
                 crate::computer_use_store::sanitized_action_json(raw)
             };
+            let mut sanitized: JsonValue = serde_json::from_str(&sanitized)
+                .map_err(|_| planner_backend_error("planner diagnostic sanitization failed"))?;
+            if observation.surface == ComputerUseSurface::Browser {
+                sanitized["observation_facts"] = diagnostic_observation_facts(observation);
+            }
+            let sanitized = sanitized.to_string();
             store.record_planner_diagnostic(&crate::computer_use_store::PlannerDiagnostic {
                 call_id: &self.call_id, turn_id: &self.turn_id, room_id: self.room_id.as_deref(), session_id: &agent.id,
                 request_kind: kind, observation_generation: observation.generation, model: &agent.model,
@@ -1744,6 +1774,24 @@ fn extract_bounded_marker_token(source: &str) -> Option<String> {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn browser_observation_diagnostic_omits_page_content_and_node_credentials() {
+        let observation = Observation {
+            generation: 1, surface: ComputerUseSurface::Browser, surface_identity: "SECRET-RESOURCE".into(),
+            state: json!({"page": {"url":"https://private.invalid/SECRET", "title":"SECRET-TITLE",
+                "nodes":[{"role":"textbox","name":"SECRET-NAME"}],
+                "elements":[{"role":"textbox","reference":"dom-SECRET","name":"SECRET-NAME"}],
+                "input_supported":true,"truncated":false,"document_token":"SECRET-TOKEN"},
+                "capabilities":{"click":true,"text_input":true,"SECRET-FIELD":"SECRET"}}),
+            evidence: vec!["SECRET-EVIDENCE".into()],
+        };
+        let diagnostic = diagnostic_observation_facts(&observation);
+        assert_eq!(diagnostic["node_count"],1);
+        assert_eq!(diagnostic["candidate_count"],1);
+        assert_eq!(diagnostic["textbox_candidate_count"],1);
+        assert!(!diagnostic.to_string().contains("SECRET"));
+    }
 
     /// 裁决第 14.6 项：规划请求的 attempt 必须是**真实复合键**（run#逻辑请求#重试序号），
     /// 重试得到新 attempt；身份不成立时保持未知，**不得**编造。

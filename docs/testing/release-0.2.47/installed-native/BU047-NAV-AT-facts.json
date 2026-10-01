@@ -1,0 +1,85 @@
+{
+  "test": "BU047-NAV-AT",
+  "runtime": {
+    "id": "run-chat-b897bda835d21b0b9a8902cd74e3e3758f5f7121a4920d16",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790827323213-1",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790827338646,
+    "created_at": 1790827323221
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da4bf66078d198-tool-d28e2e48256b663bf2ed7ad026270c6ca5f80ec9b1be742decf737ac067f6541",
+      "provider_tool_call_id": "tool-d28e2e48256b663bf2ed7ad026270c6ca5f80ec9b1be742decf737ac067f6541",
+      "turn_id": "000000000000000718da4bf66078d198",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 6,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790827329980,
+      "updated_at_ms": 1790827330488,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000718da4bf66078d198-tool-d28e2e48256b663bf2ed7ad026270c6ca5f80ec9b1be742decf737ac067f6541",
+        "provider_tool_call_id": "tool-d28e2e48256b663bf2ed7ad026270c6ca5f80ec9b1be742decf737ac067f6541",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "observed page does not match the requested URL or has no facts",
+        "error": {
+          "code": "native_browser_observation_unavailable",
+          "message": "observed page does not match the requested URL or has no facts",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:9308c8ea5489f51f203a22f88bf38207"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790828223213
+            }
+          },
+          "cu_deadline_ms": 1790827449980,
+          "cu_deadline_established_at_ms": 1790827329980,
+          "cu_budget_ms": 120000
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790827323213-1",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b897bda835d21b0b9a8902cd74e3e3758f5f7121a4920d16",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 26467,
+      "output_tokens": 413,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}
