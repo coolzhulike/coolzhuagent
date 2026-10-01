@@ -1066,6 +1066,7 @@ fn planning_prompt(
 ) -> JsonValue {
     json!({"schema_version":1,"surface":observation.surface,"step":step,
         "objective":request.objective,"target":request.target,"constraints":request.constraints,
+        "max_actions":request.max_actions,
         "success_criteria":request.success_criteria,"observation_generation":observation.generation,
         "capabilities":capabilities,"observation":bounded_observation(&observation.state),
         "response_schema":planner_response_schema(observation.surface,capabilities),
@@ -1979,6 +1980,7 @@ mod tests {
             target: None,
             success_criteria: vec!["画布出现新线条".to_string()],
             constraints: vec!["不要点工具栏".to_string()],
+            max_actions: None,
         };
         let fixtures = paint_like_observations();
         let mut rows = Vec::new();
@@ -2051,6 +2053,7 @@ mod tests {
             target: None,
             success_criteria: vec!["画布出现新线条".to_string()],
             constraints: vec!["不要点工具栏".to_string()],
+            max_actions: None,
         };
         // 占位观察（结构取自真实桌面观测的形态：window/elements/canvas_rect/image）。
         let observation = |step: u64| Observation {

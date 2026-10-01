@@ -453,7 +453,11 @@ where
             );
         }
 
-        let mut guard = RunBudgetGuard::with_deadline(self.budgets, run_facts.deadline);
+        let mut budgets = self.budgets;
+        if let Some(max_actions) = request.max_actions {
+            budgets.max_actions = budgets.max_actions.min(max_actions);
+        }
+        let mut guard = RunBudgetGuard::with_deadline(budgets, run_facts.deadline);
         let mut attempts = 0usize;
         let mut steps_completed = 0usize;
         let mut evidence = Vec::new();
@@ -583,6 +587,19 @@ where
         }
 
         loop {
+            if let Err(error) = guard.before_planning(self.clock.now_ms()) {
+                return self.terminal(
+                    &context,
+                    surface,
+                    ComputerUseStage::Supervisor,
+                    error,
+                    attempts,
+                    steps_completed,
+                    evidence,
+                    guard.snapshot(),
+                    &run_facts,
+                );
+            }
             self.events.state_changed(ComputerUseRunState::Planning);
             let remaining =
                 std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
@@ -1273,6 +1290,8 @@ mod tests {
 
     #[tokio::test]
     async fn verified_goal_is_the_only_success_path() {
+        let mut request = request();
+        request.max_actions = Some(1);
         let planner = FakePlanner {
             surface: ComputerUseSurface::Browser,
             actions: Mutex::new(vec![Ok(Some(click()))].into()),
@@ -1292,12 +1311,54 @@ mod tests {
             crate::ComputerUseBudgets::default(),
         );
 
-        let result = controller.run(&request(), context()).await;
+        let result = controller.run(&request, context()).await;
 
         assert_eq!(result.status, ComputerUseTerminalStatus::Succeeded);
         assert!(result.goal_achieved);
         assert_eq!(result.steps_completed, 1);
         assert_eq!(result.provider_tool_call_id.as_deref(), Some("tool-call-1"));
+    }
+
+    #[tokio::test]
+    async fn request_action_limit_stops_before_another_plan_and_cannot_expand_host_budget() {
+        for (requested, host_limit) in [(1, 12), (99, 1)] {
+            let mut request = request_with_objective("展开帮助详情");
+            request.max_actions = Some(requested);
+            let planner = FakePlanner {
+                surface: ComputerUseSurface::Browser,
+                actions: Mutex::new(vec![
+                    Ok(Some(click_target("help-1"))),
+                    Ok(Some(click_target("help-2"))),
+                ].into()),
+            };
+            let adapter = adapter(
+                vec![Ok(observation(1, "before")), Ok(observation(2, "changed"))],
+                vec![
+                    Ok(verification(false, false, "not yet")),
+                    Ok(verification(false, true, "changed but incomplete")),
+                ],
+            );
+            let mut controller = ComputerUseController::new(
+                planner,
+                adapter,
+                RecordingEvents::default(),
+                TickClock::default(),
+                crate::ComputerUseBudgets {
+                    max_actions: host_limit,
+                    ..crate::ComputerUseBudgets::default()
+                },
+            );
+            let result = controller.run(&request, context()).await;
+            assert_eq!(result.status, ComputerUseTerminalStatus::Blocked);
+            assert_eq!(result.stage, ComputerUseStage::Supervisor);
+            assert_eq!(result.error.as_ref().unwrap().code, "budget_exhausted");
+            assert_eq!(result.error.as_ref().unwrap().retry_owner, ComputerUseRetryOwner::None);
+            assert!(!result.goal_achieved);
+            assert_eq!(result.supervisor.action_count, 1);
+            assert_eq!(controller.adapter().action_count.load(Ordering::SeqCst), 1);
+            assert!(controller.adapter().verifications.lock().unwrap().is_empty());
+            assert_eq!(controller.planner().actions.lock().unwrap().len(), 1);
+        }
     }
 
     #[tokio::test]

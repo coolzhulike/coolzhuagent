@@ -113,6 +113,24 @@
       "bytes": 308510,
       "sha256": "e505f52bcdfb70806525dca4ee225325942dbba118ea9be5006d7b8114eac8c6",
       "role": "原始实操截图"
+    },
+    {
+      "file": "13-browser-ck-before.jpg",
+      "bytes": 198623,
+      "sha256": "aae58b5d4ebe87eec40807dff25a5b340b87b8ab88cd256331137563dda28389",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "14-browser-ck-down-already-released.jpg",
+      "bytes": 220725,
+      "sha256": "da485d5f3e007d17c1e6557e79cdc89b87a3df7a2c213becd84f1ced95cf1e06",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "15-browser-cl-panel-closed.jpg",
+      "bytes": 191405,
+      "sha256": "4e083015e86a74069d1c79b95e0056c0689d8ba591f1bacfe9c6fc248aebb699",
+      "role": "原始实操截图"
     }
   ],
   "unchanged_raw_bytes": true

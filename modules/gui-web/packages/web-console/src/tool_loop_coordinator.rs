@@ -95,6 +95,8 @@ mod tests {
             serde_json::json!(["auto", "desktop", "browser"])
         );
         let properties = schema["properties"].as_object().unwrap();
+        assert_eq!(properties["max_actions"]["type"], "integer");
+        assert_eq!(properties["max_actions"]["minimum"], 1);
         for forbidden in ["x", "y", "execute", "approved", "retry", "max_retries"] {
             assert!(
                 !properties.contains_key(forbidden),

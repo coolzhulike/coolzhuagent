@@ -602,6 +602,7 @@ impl<B: DesktopBridge> DesktopComputerUseAdapter<B> {
                     target: None,
                     success_criteria: Vec::new(),
                     constraints: Vec::new(),
+                    max_actions: None,
                 },
                 remaining,
             )

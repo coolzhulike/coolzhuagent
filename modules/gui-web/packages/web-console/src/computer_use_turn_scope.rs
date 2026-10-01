@@ -100,7 +100,8 @@ mod tests {
     }
     #[test]
     fn explicit_current_request_rejects_old_goal_even_on_the_same_browser() {
-        let current = request("browser", serde_json::json!({"url":"https://example.com/"}));
+        let mut current = request("browser", serde_json::json!({"url":"https://example.com/"}));
+        current.max_actions = Some(1);
         let scope = ComputerUseTurnScope::from_current_user(&format!(
             "在内置浏览器调用 computer_use_perform，参数为{}。仅处理本轮。", serde_json::to_string(&current).unwrap()));
         assert!(scope.validate(&current).is_ok());
@@ -111,6 +112,11 @@ mod tests {
         assert_eq!(error.retry_owner, ComputerUseRetryOwner::None);
         old = current.clone();
         old.constraints.push("移除本轮停止边界".into());
+        assert!(scope.validate(&old).is_err());
+        old = current.clone();
+        old.max_actions = Some(2);
+        assert!(scope.validate(&old).is_err());
+        old.max_actions = None;
         assert!(scope.validate(&old).is_err());
     }
     #[test]

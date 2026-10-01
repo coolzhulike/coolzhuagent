@@ -1,0 +1,8 @@
+{
+  "test": "BU058-CLOSE-CL",
+  "after": 1790850521727,
+  "page": "http://127.0.0.1:63654/slow.html",
+  "room_id": "room-1790567510595",
+  "model": "qwen3.8-flash",
+  "thinking": "medium"
+}

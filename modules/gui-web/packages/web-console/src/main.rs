@@ -34220,6 +34220,11 @@ fn computer_use_tool_definition() -> ToolDefinition {
                     "type": "array",
                     "items": { "type": "string" },
                     "default": []
+                },
+                "max_actions": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Hard upper bound on action attempts in this call; can only reduce the host budget. Set to 1 when the user authorizes only one click, input, or continuous drawing stroke. Verification still runs after the final action; an unverified goal stops without another action."
                 }
             },
             "required": ["objective", "success_criteria"],

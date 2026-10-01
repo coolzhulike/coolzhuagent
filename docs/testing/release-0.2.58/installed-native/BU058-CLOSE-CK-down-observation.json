@@ -1,0 +1,25 @@
+{
+  "observed_ms": 1790850428655,
+  "events": [
+    {
+      "kind": "pointerdown",
+      "page_ms": 1790850425913,
+      "server_ms": 1790850425920
+    },
+    {
+      "kind": "pointerdown_handler_finished",
+      "page_ms": 1790850428414,
+      "server_ms": 1790850428416
+    },
+    {
+      "kind": "pointerup",
+      "page_ms": 1790850428415,
+      "server_ms": 1790850428418
+    },
+    {
+      "kind": "click",
+      "page_ms": 1790850428415,
+      "server_ms": 1790850428419
+    }
+  ]
+}

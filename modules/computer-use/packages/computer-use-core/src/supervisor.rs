@@ -223,11 +223,8 @@ impl RunBudgetGuard {
         self.deadline.remaining_ms(now_ms)
     }
 
-    pub fn before_action(
-        &mut self,
-        fingerprint: &ActionFingerprint,
-        now_ms: u64,
-    ) -> Result<(), ComputerUseError> {
+    /// 已用尽动作或时间预算时不再调用规划模型，执行后的验收仍由控制器完成。
+    pub fn before_planning(&mut self, now_ms: u64) -> Result<(), ComputerUseError> {
         if self.deadline.is_expired_at(now_ms) {
             return Err(self.stop("deadline_exceeded", "computer-use deadline exceeded"));
         }
@@ -237,6 +234,15 @@ impl RunBudgetGuard {
         if self.action_count >= self.budgets.max_actions {
             return Err(self.stop("budget_exhausted", "computer-use action budget exhausted"));
         }
+        Ok(())
+    }
+
+    pub fn before_action(
+        &mut self,
+        fingerprint: &ActionFingerprint,
+        now_ms: u64,
+    ) -> Result<(), ComputerUseError> {
+        self.before_planning(now_ms)?;
         if self
             .signatures
             .get(fingerprint)
