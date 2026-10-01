@@ -1,0 +1,95 @@
+{
+  "context": {
+    "call_id": "real-calculator-normal",
+    "room_id": "engineering-probe",
+    "run_id": "process-probe-26200",
+    "workspace_id": "real-plugin-process-probe"
+  },
+  "manifest": {
+    "generation": "b8ddca3e-d388-4f63-b693-e0d1d8a4cd17",
+    "plugin": {
+      "name": "@deepseek-ai/dsh-tool-calculator",
+      "version": "0.0.1"
+    },
+    "protocol": 1,
+    "revision": "9440c99410fda802f397b3f7d20de753cf6333d02142c7e753826a52dcc37e94",
+    "services": [
+      "tools"
+    ],
+    "tools": [
+      {
+        "description": "Evaluate a mathematical expression safely. Supports +, -, *, /, %, **, parentheses, and functions: abs, ceil, floor, round, max, min, sqrt, pow, log, log2, log10, exp, sin, cos, tan, PI, E.",
+        "input_schema": {
+          "properties": {
+            "expression": {
+              "description": "Mathematical expression, e.g. \"15 + 27 * sqrt(9)\"",
+              "type": "string"
+            }
+          },
+          "required": [
+            "expression"
+          ],
+          "type": "object"
+        },
+        "name": "calculator"
+      }
+    ]
+  },
+  "notice": "真实官方计算器与生产Rust/Node进程桥的工程核验，不是正式市场或Qwen会话验收",
+  "passed": true,
+  "pre_cancelled": {
+    "cleanup_confirmed": false,
+    "code": "host_io_failed",
+    "interruption": null,
+    "message": "执行已取消或截止，未启动协议进程"
+  },
+  "result": {
+    "content": [
+      {
+        "text": "96",
+        "type": "text"
+      }
+    ],
+    "isError": false,
+    "value": 96
+  },
+  "source": {
+    "entry": "lib/index.js",
+    "files": [
+      {
+        "path": "cordis.patch.yml",
+        "sha256": "5834fe61638c9233852a1082ea95791e44fc666c7d179f60433266b5261ad610"
+      },
+      {
+        "path": "lib/evaluate.js",
+        "sha256": "3f0bfded394d92c98c18e187a6508e71b1d303494f847e3f9eebf9c93feb03c8"
+      },
+      {
+        "path": "lib/index.js",
+        "sha256": "0ce87ab34729a9295e019881267bbd4c81d39e670c1cfed01adbf24ac4b3f727"
+      },
+      {
+        "path": "lib/invariant.js",
+        "sha256": "71ceeaaccbe6f05339d88c84421f927957a34cecd1e7aac99846b29bdf142d5c"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "8bda1ee96ffdbd04ee68ecb89ba02c1010398f8d081218d809ecf817d45b18a9"
+      },
+      {
+        "path": "package.json",
+        "sha256": "d139ea27436ead18c9495b24a0fd8ab3e32b3f948f273e0374301bb3f3a9c0bc"
+      }
+    ],
+    "name": "@deepseek-ai/dsh-tool-calculator",
+    "protocol": 1,
+    "sdk_lock_sha256": "af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+    "version": "0.0.1"
+  },
+  "stale": {
+    "cleanup_confirmed": true,
+    "code": "host_stale",
+    "interruption": null,
+    "message": "启用插件来源或工具定义已变化，未执行"
+  }
+}

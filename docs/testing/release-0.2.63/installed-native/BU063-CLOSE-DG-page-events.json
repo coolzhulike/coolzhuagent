@@ -1,0 +1,22 @@
+[
+  {
+    "kind": "pointerdown",
+    "page_ms": 1790861331157,
+    "server_ms": 1790861331160
+  },
+  {
+    "kind": "pointerdown_handler_finished",
+    "page_ms": 1790861333657,
+    "server_ms": 1790861333662
+  },
+  {
+    "kind": "pointerup",
+    "page_ms": 1790861333658,
+    "server_ms": 1790861333662
+  },
+  {
+    "kind": "click",
+    "page_ms": 1790861333659,
+    "server_ms": 1790861333664
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "test": "BU063-CLOSE-DG",
+  "before_ms": 1790861317686,
+  "room_id": "room-1790567510595",
+  "session_id": "session-1779459149988",
+  "prompt": "BU063-CLOSE-DG：正式安装版新独立Browser Use边界测试。只调用一次computer_use_perform，使用正式六项字段：objective是在当前右栏原生浏览器单击增加次数把次数从0变为1；surface=browser；target只含url=http://127.0.0.1:63654/slow.html；success_criteria为字符串数组，要求本轮新鲜页面实际显示次数：1；constraints为字符串数组，只允许一次单击增加次数、不导航、不输入、不滚动、不用其它工具，页面关闭或任何失败立即结束，不重开、不重试、不补发；max_actions数字1。当前真实次数0。用本轮新鲜网页观察选按钮及验证，不能把输入释放当目标完成。如果右栏页面关闭，要记录实际输入和释放事实并停止，不能认领已关闭网页目标通过。"
+}

@@ -78,6 +78,27 @@
       "sha256": "d1e27aa1f90713fa3b7da6a4316ff26abf95671cf39f3bb4d57dbbb4b0608043"
     },
     {
+      "path": "installed-native/12-browser-DG-request-start.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 205657,
+      "sha256": "8aa17f628fb13bb83c5963431f4a63dba0287a49f74e591c4d71c5c2008f47a2"
+    },
+    {
+      "path": "installed-native/13-browser-DG-pointer-down-observed.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 212161,
+      "sha256": "064ff0a0feba52e5eaec244df964c89e18e90b37a8e55e6e7349489b3f0670b4"
+    },
+    {
+      "path": "installed-native/14-browser-DG-right-rail-closed.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 188717,
+      "sha256": "2cfc1dad217be4dad6bac640ca252d7be0deedab7820ebf45534232e9814df0f"
+    },
+    {
       "path": "installed-native/DD-original-236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679.png",
       "width": 2560,
       "height": 1152,

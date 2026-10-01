@@ -2391,7 +2391,10 @@ mod tests {
         let request: ComputerUseRequest = serde_json::from_value(json!({"objective":"选画笔","surface":"desktop","target":{"window":"测试画图"},
             "constraints":["不要离开窗口"],"success_criteria":["黄色笔画可见"]})).unwrap();
         let before = image_observation(1,"before");
-        planner.plan(&request,&before,0,Duration::from_secs(10)).await.unwrap();
+        // 本用例验证协议与记账，不验证墙钟耗时；给 Windows 并行测试的配置锁和客户端准备留出余量。
+        // 最小余量、零请求及串联请求的共享预算由下方专门的预算用例验证，生产预算不变。
+        let protocol_test_budget = Duration::from_secs(120);
+        planner.plan(&request,&before,0,protocol_test_budget).await.unwrap();
         let requests = std::mem::take(&mut *captured.lock().unwrap());
         assert_eq!(requests.len(),2);
         assert_eq!(requests[0]["model"],"default-vision");
@@ -2405,7 +2408,7 @@ mod tests {
         assert!(requests.iter().all(|request| request.get("tools").is_none() && !request.to_string().contains("直接用最终答案完成原始任务")));
         crate::workspace_config().lock().unwrap().session_model_limits.entry("target-text".into()).or_default().supports_multimodal = Some(true);
         invalid.store(true,Ordering::SeqCst);
-        assert_eq!(planner.plan(&request,&before,1,Duration::from_secs(10)).await.unwrap_err().code,"invalid_plan");
+        assert_eq!(planner.plan(&request,&before,1,protocol_test_budget).await.unwrap_err().code,"invalid_plan");
         let native = captured.lock().unwrap().pop().unwrap();
         assert!(native.to_string().contains("data:image/png;base64,iVBORw0KGgo="));
         let connection = rusqlite::Connection::open(crate::default_session_sqlite_path()).unwrap();
@@ -2414,7 +2417,7 @@ mod tests {
         let diagnostic:String = connection.query_row("SELECT response_json FROM computer_use_planner_diagnostics WHERE error_code='invalid_plan' ORDER BY id DESC LIMIT 1",[],|row|row.get(0)).unwrap();
         assert!(diagnostic.contains("\"action\":\"click\"")); assert!(!diagnostic.contains("NEVER-PERSIST") && !diagnostic.contains("data:image"));
         invalid.store(false,Ordering::SeqCst);
-        let verified = planner.verify_visual(&request,&before,&image_observation(2,"after"),computer_use::Verification {achieved:false,visible_progress:false,summary:String::new(),evidence:vec![]},Duration::from_secs(10)).await.unwrap();
+        let verified = planner.verify_visual(&request,&before,&image_observation(2,"after"),computer_use::Verification {achieved:false,visible_progress:false,summary:String::new(),evidence:vec![]},protocol_test_budget).await.unwrap();
         assert!(verified.achieved);
         let judge = captured.lock().unwrap().pop().unwrap();
         assert_eq!(judge["messages"].as_array().unwrap().last().unwrap()["content"].as_array().unwrap().iter().filter(|part|part["type"]=="image_url").count(),2);
