@@ -1,0 +1,10 @@
+{
+  "version": "0.2.57",
+  "installer_exit_code": 0,
+  "exit_code_source": "正常Windows Installer日志：MainEngineThread is returning 0",
+  "installer_log": "tmp/browser-use-priority/install-057-interactive.log",
+  "initial_quiet_attempt_exit_code": 1603,
+  "initial_quiet_failure": "移除旧版错误1730",
+  "initial_failure_receipt": "quiet-install-failure-receipt.json",
+  "verified_at": "2026-10-01T09:13:09.1986144Z"
+}

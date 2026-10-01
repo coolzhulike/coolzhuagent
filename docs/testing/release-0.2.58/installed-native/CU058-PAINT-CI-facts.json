@@ -1,0 +1,284 @@
+{
+  "test": "CU058-PAINT-CI",
+  "runtime": {
+    "id": "run-chat-a76ad75aca0ceb4ad68deb67113af5e399743436c2496b5d",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790849425591-2",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790849503863,
+    "created_at": 1790849425599
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "provider_tool_call_id": "tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "turn_id": "000000000000000a18da60107ccaaa78",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "succeeded",
+      "state_version": 13,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790849431858,
+      "updated_at_ms": 1790849498265,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+        "provider_tool_call_id": "tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "desktop",
+        "summary": "最新原图逐项确认目标已达成",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-e8772a1f3ce86c0dbf4c8d6f60185864cd0919d31533a71103845f7f8c79084a.png:sha256=e8772a1f3ce86c0dbf4c8d6f60185864cd0919d31533a71103845f7f8c79084a:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=e8772a1f3ce86c0dbf4c8d6f60185864cd0919d31533a71103845f7f8c79084a:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-e8772a1f3ce86c0dbf4c8d6f60185864cd0919d31533a71103845f7f8c79084a.png:sha256=e8772a1f3ce86c0dbf4c8d6f60185864cd0919d31533a71103845f7f8c79084a:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=e8772a1f3ce86c0dbf4c8d6f60185864cd0919d31533a71103845f7f8c79084a:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/1",
+          "native_stroke:window-canvas:8890a54:points=5:duration_ms=1200:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-dd443cf34d2508cf2a9c04fb5e1e438ab5f3426cd0e7ed27cf27fdaad359e1b8.png:sha256=dd443cf34d2508cf2a9c04fb5e1e438ab5f3426cd0e7ed27cf27fdaad359e1b8:2560x1152",
+          "mapping:frame_binding:sha256=dd443cf34d2508cf2a9c04fb5e1e438ab5f3426cd0e7ed27cf27fdaad359e1b8:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-80d3a0b49371ff10ddc91e51bb5565e36e9e732ff4dcb420584dce3d739abeca.png:sha256=80d3a0b49371ff10ddc91e51bb5565e36e9e732ff4dcb420584dce3d739abeca:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-eb79a9fa86978ce5bd5e53ea38605a0dd7735c2f10ee9eeff1e2825925101bb6.png:sha256=eb79a9fa86978ce5bd5e53ea38605a0dd7735c2f10ee9eeff1e2825925101bb6:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=eb79a9fa86978ce5bd5e53ea38605a0dd7735c2f10ee9eeff1e2825925101bb6:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-eb79a9fa86978ce5bd5e53ea38605a0dd7735c2f10ee9eeff1e2825925101bb6.png:sha256=eb79a9fa86978ce5bd5e53ea38605a0dd7735c2f10ee9eeff1e2825925101bb6:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=eb79a9fa86978ce5bd5e53ea38605a0dd7735c2f10ee9eeff1e2825925101bb6:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=2:image_changed=true:criteria_met=1/1"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790850325591
+            }
+          },
+          "cu_deadline_ms": 1790849551858,
+          "cu_deadline_established_at_ms": 1790849431858,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只用一次drag，不使用形状工具、代码或其它工具，不擦除、不保存",
+          "输入失败或释放未知即停止，同轮不再次调用computer_use_perform"
+        ],
+        "objective": "在画布中央最大黑色闭合矩形的内部上半部画一个小菱形眼睛。根据当前原图定位，只用当前黑色铅笔，一次5点连续闭合drag，依次经过上右下左再回上，duration_ms为1200。不要画在矩形外。",
+        "success_criteria": [
+          "最新原图中，最大矩形内部上半部实际出现一个新增闭合小菱形"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "画图",
+          "window": "无标题 - 画图"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-61759f5f-58dc-945d-9653-596dec6492b3",
+      "error_code": null,
+      "started_at_ms": 1790849436819,
+      "completed_at_ms": 1790849444454,
+      "response": {
+        "bytes": 212,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 135,
+            "evidence_chars": 45,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": false,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-5fa0382a-ee6c-97e4-820f-20bb4d93e3a5",
+      "error_code": null,
+      "started_at_ms": 1790849444481,
+      "completed_at_ms": 1790849480189,
+      "response": {
+        "action": {
+          "arguments": {
+            "duration_ms": 1200,
+            "points": [
+              [
+                0.38,
+                0.32
+              ],
+              [
+                0.4,
+                0.34
+              ],
+              [
+                0.42,
+                0.32
+              ],
+              [
+                0.4,
+                0.3
+              ],
+              [
+                0.38,
+                0.32
+              ]
+            ]
+          },
+          "kind": "drag",
+          "target": "window-canvas:8890a54"
+        },
+        "done": false
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-f920fbf4-88c6-9632-8c11-b2a58ea928c6",
+      "error_code": null,
+      "started_at_ms": 1790849488168,
+      "completed_at_ms": 1790849498262,
+      "response": {
+        "bytes": 210,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 135,
+            "evidence_chars": 45,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": true,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000a18da60107ccaaa78",
+      "call_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 18848,
+      "output_tokens": 287,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000a18da60107ccaaa78",
+      "call_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19725,
+      "output_tokens": 3089,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000a18da60107ccaaa78",
+      "call_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 21431,
+      "output_tokens": 433,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790849425591-2",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-a76ad75aca0ceb4ad68deb67113af5e399743436c2496b5d",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 9702,
+      "output_tokens": 208,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000a18da60107ccaaa78-tool-78ddc2c7836774d783d5247e55e298f98d95e409a876ec48c128b3b433a80bf2",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:8890a54",
+      "status": "verified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "input_release_status": "released",
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "started_at_ms": 1790849480195,
+      "completed_at_ms": 1790849485922,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ]
+}

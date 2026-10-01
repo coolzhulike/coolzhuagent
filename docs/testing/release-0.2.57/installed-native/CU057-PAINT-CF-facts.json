@@ -1,0 +1,249 @@
+{
+  "test": "CU057-PAINT-CF",
+  "runtime": {
+    "id": "run-chat-8fe2dcc1ec9be4d30800ffa8a2117f1a7cb5a4b34622bc5e",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790848054369-6",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790848188673,
+    "created_at": 1790848054377
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001b18da5ed139107618-tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+      "provider_tool_call_id": "tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+      "turn_id": "000000000000001b18da5ed139107618",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "cancelled",
+      "state_version": 11,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790848061077,
+      "updated_at_ms": 1790848181920,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001b18da5ed139107618-tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+        "provider_tool_call_id": "tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+        "status": "cancelled",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "笔画已取消；受控桌面操作失败: Exception calling \"RunWithProgress\" with \"5\" argument(s): \"stroke_cancelled: permit expired\"\r\nAt line:330 char:1\r\n+ [CoolzhuStroke.Engine]::RunWithProgress($native,[CoolzhuStroke.Point[ ...\r\n+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException\r\n    + FullyQualifiedErrorId : Exception；释放义务=settled：收尾=未进入收尾；screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d7c0642fd8f4d7f3b17a3f3f378d7e038b4131831dc67ca1c7f825510751da09.png:sha256=d7c0642fd8f4d7f3b17a3f3f378d7e038b4131831dc67ca1c7f825510751da09:2560x1152;mapping=frame_binding:sha256=5dc174f97bd5451ec38bc064fbae744b6422f443d1ef68b7cb4452a9417689e1:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+        "error": {
+          "code": "cancelled",
+          "message": "笔画已取消；受控桌面操作失败: Exception calling \"RunWithProgress\" with \"5\" argument(s): \"stroke_cancelled: permit expired\"\r\nAt line:330 char:1\r\n+ [CoolzhuStroke.Engine]::RunWithProgress($native,[CoolzhuStroke.Point[ ...\r\n+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException\r\n    + FullyQualifiedErrorId : Exception；释放义务=settled：收尾=未进入收尾；screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d7c0642fd8f4d7f3b17a3f3f378d7e038b4131831dc67ca1c7f825510751da09.png:sha256=d7c0642fd8f4d7f3b17a3f3f378d7e038b4131831dc67ca1c7f825510751da09:2560x1152;mapping=frame_binding:sha256=5dc174f97bd5451ec38bc064fbae744b6422f443d1ef68b7cb4452a9417689e1:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "desktop:window-canvas:8890a54:48a978920f88ef12",
+            "input_delivery": "sent",
+            "partial": true,
+            "path_completed": false,
+            "confirmed_point_count": 3,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "released"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-736c81ff34e3766895f04a39021de5d4fa8b28e146f3390900f7f9ddbbdc368e.png:sha256=736c81ff34e3766895f04a39021de5d4fa8b28e146f3390900f7f9ddbbdc368e:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=736c81ff34e3766895f04a39021de5d4fa8b28e146f3390900f7f9ddbbdc368e:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-736c81ff34e3766895f04a39021de5d4fa8b28e146f3390900f7f9ddbbdc368e.png:sha256=736c81ff34e3766895f04a39021de5d4fa8b28e146f3390900f7f9ddbbdc368e:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=736c81ff34e3766895f04a39021de5d4fa8b28e146f3390900f7f9ddbbdc368e:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/1"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790848954369
+            }
+          },
+          "cu_deadline_ms": 1790848181077,
+          "cu_deadline_established_at_ms": 1790848061077,
+          "cu_budget_ms": 120000
+        },
+        "cleanup": {
+          "business_deadline_ms": 1790848181077,
+          "new_business_input_stopped_at_ms": 1790848181920,
+          "cleanup_started_at_ms": 1790848181920,
+          "cleanup_finished_at_ms": 1790848181920,
+          "release": "confirmed",
+          "quarantined": false,
+          "exceeded_business_deadline": true
+        }
+      },
+      "request": {
+        "constraints": [
+          "只操作已打开的Windows画图，不运行代码，不用形状工具，不保存文件，不用其它工具",
+          "最多两次drag，每次5点闭合路径，每步之后重新观察；已有矩形不得擦除",
+          "输入或释放未知及失败时停止，同轮不再次调用computer_use_perform"
+        ],
+        "objective": "根据本轮画图截图定位已有黑色闭合大矩形，在矩形内部上半部绘制两个彼此分开的闭合小菱形作为简化海绵宝宝的眼睛。只用当前黑色铅笔；每个眼睛使用一次连续五点闭合拖动，经过上、右、下、左四个角点，再回到上角点，duration_ms为1200到1500；每个约为大矩形宽度的十分之一。总共两次drag，不能用两点直线代替闭合笔画，不能画在工具栏上。",
+        "success_criteria": [
+          "最新画布实际可见两个分开的闭合小菱形，位于已有大矩形内部上半部"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "画图",
+          "window": "无标题 - 画图"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001b18da5ed139107618-tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-912bb83b-4fec-9bff-b76e-9413845033a7",
+      "error_code": null,
+      "started_at_ms": 1790848066212,
+      "completed_at_ms": 1790848074308,
+      "response": {
+        "bytes": 209,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 132,
+            "evidence_chars": 44,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": false,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000001b18da5ed139107618-tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-43163c5c-06af-93ab-8b6c-da7f24c93925",
+      "error_code": null,
+      "started_at_ms": 1790848074333,
+      "completed_at_ms": 1790848177324,
+      "response": {
+        "action": {
+          "arguments": {
+            "duration_ms": 1400,
+            "points": [
+              [
+                0.22,
+                0.25
+              ],
+              [
+                0.24,
+                0.28
+              ],
+              [
+                0.22,
+                0.31
+              ],
+              [
+                0.2,
+                0.28
+              ],
+              [
+                0.22,
+                0.25
+              ]
+            ]
+          },
+          "kind": "drag",
+          "target": "window-canvas:8890a54"
+        },
+        "done": false
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000001b18da5ed139107618",
+      "call_id": "cu-session-1779459149988-000000000000001b18da5ed139107618-tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 18918,
+      "output_tokens": 214,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000001b18da5ed139107618",
+      "call_id": "cu-session-1779459149988-000000000000001b18da5ed139107618-tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19795,
+      "output_tokens": 9860,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790848054369-6",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-8fe2dcc1ec9be4d30800ffa8a2117f1a7cb5a4b34622bc5e",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 8606,
+      "output_tokens": 217,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000001b18da5ed139107618-tool-ac96a2498d326fb18df5ce5c862259774e840031c3c551dd791a5439fa5cdc2b",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:8890a54",
+      "status": "failed",
+      "error_code": "cancelled",
+      "input_delivery": "sent",
+      "partial": 1,
+      "path_completed": 0,
+      "confirmed_point_count": 3,
+      "input_release_status": "released",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1790848177330,
+      "completed_at_ms": 1790848181917,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ]
+}

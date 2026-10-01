@@ -1,0 +1,91 @@
+{
+  "test": "CU058-PAINT-CH",
+  "runtime": {
+    "id": "run-chat-da9acca5c4a4bc80837aab4c7cf9e37bdb59feb2c469c9ee",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790849339751-1",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790849356769,
+    "created_at": 1790849339760
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da5ffc805d8d7c-tool-a8ccbad379350e94c0b09ff7f6e2903880aba9454bcfe03cc41d0836ed293fa4",
+      "provider_tool_call_id": "tool-a8ccbad379350e94c0b09ff7f6e2903880aba9454bcfe03cc41d0836ed293fa4",
+      "turn_id": "000000000000000718da5ffc805d8d7c",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "blocked",
+      "state_version": 1,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790849346342,
+      "updated_at_ms": 1790849346344,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000718da5ffc805d8d7c-tool-a8ccbad379350e94c0b09ff7f6e2903880aba9454bcfe03cc41d0836ed293fa4",
+        "provider_tool_call_id": "tool-a8ccbad379350e94c0b09ff7f6e2903880aba9454bcfe03cc41d0836ed293fa4",
+        "status": "blocked",
+        "stage": "intent_guard",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "本轮用户已明确给出 computer_use_perform 参数；模型调用与本轮目标、对象、成功条件或约束不一致，未执行任何操作。",
+        "error": {
+          "code": "current_turn_computer_use_request_mismatch",
+          "message": "本轮用户已明确给出 computer_use_perform 参数；模型调用与本轮目标、对象、成功条件或约束不一致，未执行任何操作。",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "request": {
+        "constraints": [
+          "只操作已打开的Windows画图，不运行代码，不用形状工具，不保存文件，不用其它工具",
+          "最多一次drag，5点闭合路径，之后重新观察；已有矩形不得擦除",
+          "输入或释放未知及失败时停止，同轮不再次调用computer_use_perform"
+        ],
+        "objective": "根据本轮画图截图定位已有黑色闭合大矩形，在矩形内部上半部绘制一个小闭合菱形（上、右、下、左四个角点再回到上角点的连续五点闭合拖动，duration_ms 1200-1500，约为大矩形宽度十分之一），用当前黑色铅笔，不画在工具栏上。",
+        "success_criteria": [
+          "最新画布实际可见一个闭合小菱形，位于已有大矩形内部上半部"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "画图",
+          "window": "无标题 - 画图"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790849339751-1",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-da9acca5c4a4bc80837aab4c7cf9e37bdb59feb2c469c9ee",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 7683,
+      "output_tokens": 427,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

@@ -1,0 +1,119 @@
+{
+  "images": [
+    {
+      "file": "01-installed-console.jpg",
+      "bytes": 196877,
+      "sha256": "c8a18dcc99db3925b627b966555893fc987d3cbb10918ba0a902338d5fe1424e",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "02-browser-before-cg.jpg",
+      "bytes": 194849,
+      "sha256": "cc9147707187b4b2d1bb065117b13da9a9265d14972cfbae18e1e50208a7abc3",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "03-browser-cg-single-click-passed.jpg",
+      "bytes": 193483,
+      "sha256": "f7d1bfbd90663b5edd26a7e44e139ba5588e8eaeeae93e1922cce2ac68713dab",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "04-paint-before-ch-desktop.png",
+      "bytes": 636033,
+      "sha256": "226f233440c93a83765c17e77d698d2befd002974643885c73c907ddfed3fef7",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "05-paint-ch-parameters-refused.jpg",
+      "bytes": 204608,
+      "sha256": "64b07917e87e7dcb45d51bd700582f0d9569f37811012ef2a22549b2258d8a53",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "06-paint-ci-desktop-active.png",
+      "bytes": 693830,
+      "sha256": "1eb4527510b5484623368f6ada55fc9bf88ba81e3f32b45088ad905258733e14",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "07-paint-ci-desktop-after.png",
+      "bytes": 637150,
+      "sha256": "dcfb2f2693110956000bf7251276abaf9b37f5d5b6386b23ab2e9a0dd55e06c3",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "08-paint-ci-console-passed.jpg",
+      "bytes": 203583,
+      "sha256": "c245084e0ac33edb77b3d342b3782f934ce508cdfad9aedecfdd030b51d5d9cd",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "09-paint-ci-native-after.png",
+      "bytes": 300458,
+      "sha256": "80d3a0b49371ff10ddc91e51bb5565e36e9e732ff4dcb420584dce3d739abeca",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "09-paint-ci-native-before.png",
+      "bytes": 279459,
+      "sha256": "dd443cf34d2508cf2a9c04fb5e1e438ab5f3426cd0e7ed27cf27fdaad359e1b8",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "10-paint-cj-window-after.jpg",
+      "bytes": 67228,
+      "sha256": "aba0331493f6332711eb9faec705447f05f8c6eb7f6a2170e05d8b98e0d67d88",
+      "role": "旧帧/窗口观测，非绘画成功证据"
+    },
+    {
+      "file": "11-paint-cj-console-terminal.jpg",
+      "bytes": 203142,
+      "sha256": "a6713830576647ecc7242ca3f72340bf681f194f3de0bd592bd42e711f067072",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "12-paint-cj-native-01.png",
+      "bytes": 279791,
+      "sha256": "a00d44a5b79d4ce2155ab5a81f051e97649df982acd6c54ee73baa793a715fc3",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "12-paint-cj-native-02.png",
+      "bytes": 279883,
+      "sha256": "0077dee445f32c33e9d5e763b5045c0579659cfdde49d537da16b079d3c43a3a",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "12-paint-cj-native-03.png",
+      "bytes": 303738,
+      "sha256": "4038831e38b13ae5ea89f64faf0a4c26bd86087e3beff5e1233c782e9134c387",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "12-paint-cj-native-04.png",
+      "bytes": 304160,
+      "sha256": "b320ecc1f6d7023ea360d2c91d4872ffe8d497a34c52f7232241c74770f44fd6",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "12-paint-cj-native-05.png",
+      "bytes": 304253,
+      "sha256": "e90d2f02bd6fface0957eb47f271de668bcfb47de5722ed98f404ba06e1ffa93",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "12-paint-cj-native-06.png",
+      "bytes": 308076,
+      "sha256": "8254cd2739dfa9da62cd4168e3695293022ce65a70ca11238a69a4781b527bcf",
+      "role": "原始实操截图"
+    },
+    {
+      "file": "12-paint-cj-native-07.png",
+      "bytes": 308510,
+      "sha256": "e505f52bcdfb70806525dca4ee225325942dbba118ea9be5006d7b8114eac8c6",
+      "role": "原始实操截图"
+    }
+  ],
+  "unchanged_raw_bytes": true
+}

@@ -1,0 +1,1 @@
+BU058-SINGLE-CG 新独立任务。仅调用一次computer_use_perform，参数为{"surface":"browser","target":{"url":"http://127.0.0.1:63653/click.html"},"objective":"在当前右栏原生浏览器只单击一次增加次数，使次数从0变成1。","success_criteria":["页面实际显示次数：1"],"constraints":["只单击一次，不输入不滚动不导航，不使用其它工具；失败即停止不重试"]}。success_criteria必填，严格按本轮参数执行；按真实网页结果简短报告。

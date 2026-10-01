@@ -80,10 +80,11 @@ window.CoolzhuNativeBrowserPanel = (() => {
     window.addEventListener("resize", scheduleLayout);
     window.addEventListener("beforeunload", () => { if (current) void send({action:"close",scope:current.scope}); });
   }
-  async function close() {
+  async function close({forgetTarget = false} = {}) {
     const previous = current; current = null; generation++;
     // 显式关闭销毁原生资源；仅保留同工程、同聊天室再次打开时的地址。
-    if (previous) closedTarget = {contextKey:previous.contextKey,url:previous.url};
+    if (forgetTarget) closedTarget = null;
+    else if (previous) closedTarget = {contextKey:previous.contextKey,url:previous.url};
     if (!previous || !invoke()) return;
     await enqueue(() => send({action:"close",scope:previous.scope}));
   }

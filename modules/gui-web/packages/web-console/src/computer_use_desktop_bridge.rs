@@ -613,6 +613,12 @@ fn stroke_failure_error(
             retryable,
             ComputerUseRetryOwner::None,
         ),
+        "deadline_exceeded" => ComputerUseError::new(
+            "deadline_exceeded",
+            format!("笔画输入期限已到期；{message}"),
+            false,
+            ComputerUseRetryOwner::None,
+        ),
         _ if !retryable => {
             ComputerUseError::blocked(code, message, ComputerUseRetryOwner::None)
         }
@@ -703,6 +709,12 @@ fn native_failure_error_with_prior(
         computer_use::input::StrokeFailureKind::Cancelled => ComputerUseError::new(
             "cancelled",
             format!("受控原生输入已取消或超时：{failure}；{evidence}"),
+            false,
+            ComputerUseRetryOwner::None,
+        ),
+        computer_use::input::StrokeFailureKind::DeadlineExceeded => ComputerUseError::new(
+            "deadline_exceeded",
+            format!("受控原生输入期限已到期：{failure}；{evidence}"),
             false,
             ComputerUseRetryOwner::None,
         ),
@@ -1423,6 +1435,35 @@ mod tests {
         assert!(error.receipt_shows_input_may_have_been_sent("desktop:stroke:abc"));
     }
 
+    /// 正式版 CF 回归：期限到期不得记为人工取消，也不得抹掉部分输入或释放风险。
+    #[test]
+    fn expired_stroke_preserves_partial_input_and_release_priority() {
+        use computer_use::input::{helper_failure_receipt, StrokeFailure};
+
+        for (released, expected_code, expected_release) in [
+            (Some(true), "deadline_exceeded", InputReleaseStatus::Released),
+            (None, "mouse_release_failed", InputReleaseStatus::Unknown),
+        ] {
+            let failure = StrokeFailure::after_input(
+                "受控桌面操作失败: stroke_cancelled: permit expired",
+                stroke_facts_read(3, true, false, released),
+            );
+            let receipt = helper_failure_receipt("desktop:stroke:expired", &failure);
+            receipt.validate().expect("到期回执必须自洽");
+            let error = super::stroke_failure_error(&failure, &receipt, "after:img");
+            assert_eq!(error.code, expected_code);
+            assert!(!error.retryable);
+            assert_eq!(error.retry_owner, ComputerUseRetryOwner::None);
+            assert!(error.message.contains("stroke_cancelled: permit expired"));
+            let receipt = error.receipt().expect("必须保留实际输入事实");
+            assert_eq!(receipt.input_delivery, InputDelivery::Sent);
+            assert_eq!(receipt.partial, Some(true));
+            assert_eq!(receipt.path_completed, Some(false));
+            assert_eq!(receipt.confirmed_point_count, Some(3));
+            assert_eq!(receipt.input_release, expected_release);
+        }
+    }
+
     /// CU-F01 §6／§8：旧记录里的 `NotSent + input_release = Unknown` 仍可读取与复核，
     /// 但它**不是**零输入证明——消费者必须按"可能已发送"处理，不得静默放行。
     #[test]
@@ -1671,6 +1712,10 @@ mod tests {
         assert_eq!(
             super::classify_stroke_failure("stroke_cancelled: 已取消或超时"),
             ("cancelled", false)
+        );
+        assert_eq!(
+            super::classify_stroke_failure("stroke_cancelled: permit expired"),
+            ("deadline_exceeded", false)
         );
         assert_eq!(
             super::classify_stroke_failure("stale_observation: 窗口已变化"),

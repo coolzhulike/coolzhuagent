@@ -1,0 +1,51 @@
+[
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-a00d44a5b79d4ce2155ab5a81f051e97649df982acd6c54ee73baa793a715fc3.png",
+    "target": "docs\\testing\\release-0.2.58\\installed-native\\12-paint-cj-native-01.png",
+    "sha256": "a00d44a5b79d4ce2155ab5a81f051e97649df982acd6c54ee73baa793a715fc3",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-0077dee445f32c33e9d5e763b5045c0579659cfdde49d537da16b079d3c43a3a.png",
+    "target": "docs\\testing\\release-0.2.58\\installed-native\\12-paint-cj-native-02.png",
+    "sha256": "0077dee445f32c33e9d5e763b5045c0579659cfdde49d537da16b079d3c43a3a",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-4038831e38b13ae5ea89f64faf0a4c26bd86087e3beff5e1233c782e9134c387.png",
+    "target": "docs\\testing\\release-0.2.58\\installed-native\\12-paint-cj-native-03.png",
+    "sha256": "4038831e38b13ae5ea89f64faf0a4c26bd86087e3beff5e1233c782e9134c387",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-b320ecc1f6d7023ea360d2c91d4872ffe8d497a34c52f7232241c74770f44fd6.png",
+    "target": "docs\\testing\\release-0.2.58\\installed-native\\12-paint-cj-native-04.png",
+    "sha256": "b320ecc1f6d7023ea360d2c91d4872ffe8d497a34c52f7232241c74770f44fd6",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-e90d2f02bd6fface0957eb47f271de668bcfb47de5722ed98f404ba06e1ffa93.png",
+    "target": "docs\\testing\\release-0.2.58\\installed-native\\12-paint-cj-native-05.png",
+    "sha256": "e90d2f02bd6fface0957eb47f271de668bcfb47de5722ed98f404ba06e1ffa93",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-8254cd2739dfa9da62cd4168e3695293022ce65a70ca11238a69a4781b527bcf.png",
+    "target": "docs\\testing\\release-0.2.58\\installed-native\\12-paint-cj-native-06.png",
+    "sha256": "8254cd2739dfa9da62cd4168e3695293022ce65a70ca11238a69a4781b527bcf",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-e505f52bcdfb70806525dca4ee225325942dbba118ea9be5006d7b8114eac8c6.png",
+    "target": "docs\\testing\\release-0.2.58\\installed-native\\12-paint-cj-native-07.png",
+    "sha256": "e505f52bcdfb70806525dca4ee225325942dbba118ea9be5006d7b8114eac8c6",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  }
+]

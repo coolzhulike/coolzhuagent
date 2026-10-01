@@ -1,0 +1,87 @@
+{
+  "test": "BU057-CLOSE-CD",
+  "runtime": {
+    "id": "run-chat-b3ec673a39894e51f6a481edb4b700c8f7a5b640684d211e",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790847748348-4",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790847762193,
+    "created_at": 1790847748356
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001018da5e89fa6f6a00-tool-91205ce82683d726e7a5ba0d14b0cddf545f629d362f2a1f6a64efee5666825c",
+      "provider_tool_call_id": "tool-91205ce82683d726e7a5ba0d14b0cddf545f629d362f2a1f6a64efee5666825c",
+      "turn_id": "000000000000001018da5e89fa6f6a00",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "auto",
+      "state": "blocked",
+      "state_version": 1,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790847754924,
+      "updated_at_ms": 1790847754926,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001018da5e89fa6f6a00-tool-91205ce82683d726e7a5ba0d14b0cddf545f629d362f2a1f6a64efee5666825c",
+        "provider_tool_call_id": "tool-91205ce82683d726e7a5ba0d14b0cddf545f629d362f2a1f6a64efee5666825c",
+        "status": "blocked",
+        "stage": "intent_guard",
+        "goal_achieved": false,
+        "surface": "auto",
+        "summary": "invalid computer-use request: missing field `success_criteria`",
+        "error": {
+          "code": "invalid_tool_input",
+          "message": "invalid computer-use request: missing field `success_criteria`",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "request": {
+        "constraints": [
+          "只操作当前右栏原生浏览器；每步单击一次后重新观察",
+          "面板关闭或资源变化立即停止，不重开、不自动重试",
+          "禁止输入、滚动、导航、提交和其它工具"
+        ],
+        "objective": "在当前右栏原生浏览器逐次单击增加次数按钮，从0增加到7。",
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63653/click.html"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790847748348-4",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b3ec673a39894e51f6a481edb4b700c8f7a5b640684d211e",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 6179,
+      "output_tokens": 290,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

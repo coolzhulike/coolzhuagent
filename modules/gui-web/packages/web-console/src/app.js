@@ -10484,6 +10484,15 @@ function browserWindowSetStatus(text) {
   }
 }
 
+function browserWindowResetContext() {
+  const { input, frame } = browserWindowElements();
+  if (input) input.value = "";
+  if (frame) { frame.src = "about:blank"; delete frame.dataset.currentUrl; }
+  browserWindowSetStatus("");
+  activeBrowserHostName = window.CoolzhuNativeBrowserPanel?.available() ? "nativePanel" : "iframePreview";
+  browserWindowUpdateNavigationControls();
+}
+
 const BROWSER_NAVIGATION_ACTIONS = ["back", "forward", "reload", "stop"];
 
 function browserWindowUpdateNavigationControls(hostName = activeBrowserHostName) {
@@ -19025,6 +19034,7 @@ function initializeWorkbenchWindows() {
     collapse: () => { chatLayoutState.right = "closed"; chatLayoutState.narrowOpen = null; applyChatLayoutState({persist:true,preserveScroll:true}); },
     refreshSchedules: () => refreshTaskSchedules(),
     refreshWechat: () => refreshClawbotWindow({silent:false}),
+    resetBrowser: browserWindowResetContext,
     openBrowser: async url => { openChatToolWindow("browser"); const input = document.querySelector('[data-role="browser-window-input"]'); if (input) input.value = url; await browserWindowNavigate(); },
   });
   const workbench = document.querySelector('[data-role="workbench"]');
