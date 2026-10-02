@@ -43,6 +43,25 @@ pub enum ProviderClient {
 }
 
 impl ProviderClient {
+    /// 显式输出格式只用于 OpenAI Chat Completions 兼容协议；不静默忽略。
+    pub fn with_response_format(self, format: crate::ResponseFormat) -> Result<Self, ApiError> {
+        Ok(match self {
+            Self::ClawApi(_) | Self::Anthropic(_) => return Err(ApiError::ConfigError {
+                path: "response_format".into(), message: "当前协议未接入 response_format".into(),
+            }),
+            Self::Xai(client) => Self::Xai(client.with_response_format(format)),
+            Self::OpenAi(client) => Self::OpenAi(client.with_response_format(format)),
+            Self::ZhipuAi(client) => Self::ZhipuAi(client.with_response_format(format)),
+            Self::AlibabaBailian(client) => Self::AlibabaBailian(client.with_response_format(format)),
+            #[allow(deprecated)]
+            Self::AlibabaCloud(client) => Self::AlibabaCloud(client.with_response_format(format)),
+            Self::BaiduQianfan(client) => Self::BaiduQianfan(client.with_response_format(format)),
+            Self::ByteDanceArk(client) => Self::ByteDanceArk(client.with_response_format(format)),
+            Self::DeepSeek(client) => Self::DeepSeek(client.with_response_format(format)),
+            Self::Custom(client) => Self::Custom(client.with_response_format(format)),
+        })
+    }
+
     /// 按显式协议构造会话连接，不要求模型提前进入内置目录。
     pub fn from_session_endpoint(
         model: &str,

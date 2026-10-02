@@ -1,0 +1,13 @@
+{
+  "call_id": "cu-session-1779459149988-000000000000000218da14f374f21268-tool-8fcb88183542c759da13ecb560852a7f3aa5260a4230e60f89533cf9ee3c8a75",
+  "unavailable": null,
+  "attempts": 0,
+  "input_sent": 0,
+  "partial_input": 0,
+  "verified_steps": 0,
+  "baseline_evidence_ref": null,
+  "final_evidence_ref": null,
+  "steps": [],
+  "requests": [],
+  "cleanup_incidents": []
+}

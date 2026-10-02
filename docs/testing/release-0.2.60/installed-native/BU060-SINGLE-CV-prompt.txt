@@ -1,0 +1,1 @@
+BU060-SINGLE-CV：新安装版原生Browser Use正向回归，不提供工具JSON。只调用一次computer_use_perform，surface设browser，target.url为http://127.0.0.1:63653/click.html，max_actions为数字1。当前右栏原生浏览器页面次数为0，请只单击一次增加次数按钮使次数变为1。success_criteria必须为字符串数组，包含最新页面实际显示次数：1。只操作当前右栏页面，不导航、不输入、不滚动、不用其它工具，不重试。必须依据本轮新鲜网页观察选择按钮并验证，不用桌面UIA代替browser，不把动作释放等同完成。失败立即结束，如实报告。

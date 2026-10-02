@@ -1,11 +1,14 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-use windows::Win32::Foundation::{BOOL, HWND, LPARAM, RECT};
+use windows::Win32::Foundation::{CloseHandle, BOOL, HWND, LPARAM, RECT};
 use windows::Win32::System::Com::{
     CoCreateInstance, CoInitializeEx, CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED,
 };
-use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId};
+use windows::Win32::System::Threading::{
+    AttachThreadInput, GetCurrentThreadId, OpenProcess, QueryFullProcessImageNameW,
+    PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
+};
 use windows::Win32::UI::Accessibility::{
     CUIAutomation, IUIAutomation, IUIAutomationElement, IUIAutomationSelectionItemPattern,
     IUIAutomationTextPattern, IUIAutomationTogglePattern, IUIAutomationValuePattern,
@@ -23,6 +26,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
 };
 
 use super::{BBoxPx, UiaElementSnapshot, UiaError, UiaWindowSnapshot};
+use super::window_target::{unique_window, WindowTarget};
 
 /// GetWindowRect 在 unaware 线程上会返回逻辑坐标，UIA 和截图 helper 则使用物理坐标。
 /// guard 仅覆盖同步观察；不能跨线程转移，也不能改变进程内其它 GUI 线程的 DPI 模式。
@@ -313,27 +317,11 @@ pub(crate) fn focus_window_by_hint_impl(
     window: Option<&str>,
     objective: Option<&str>,
 ) -> Result<Option<isize>, UiaError> {
-    let mut hints = Vec::new();
-    if let Some(application) = application.map(str::trim).filter(|value| !value.is_empty()) {
-        hints.push(application.to_ascii_lowercase());
-    }
-    if let Some(window) = window.map(str::trim).filter(|value| !value.is_empty()) {
-        hints.push(window.to_ascii_lowercase());
-    }
-    if objective.is_some_and(|value| {
-        let lower = value.to_ascii_lowercase();
-        lower.contains("notepad") || value.contains("记事本")
-    }) {
-        hints.push("notepad".to_string());
-        hints.push("记事本".to_string());
-    }
-    hints.sort();
-    hints.dedup();
-    if hints.is_empty() {
+    let Some(target) = WindowTarget::from_hints(application, window, objective) else {
         return Ok(None);
-    }
+    };
 
-    let mut search = WindowHintSearch { hints, best: None };
+    let mut search = WindowHintSearch { target, matches: Vec::new() };
     unsafe {
         EnumWindows(
             Some(enum_window_for_hint),
@@ -341,9 +329,7 @@ pub(crate) fn focus_window_by_hint_impl(
         )
     }
     .map_err(|error| UiaError::QueryError(format!("EnumWindows: {error}")))?;
-    let Some((_, handle)) = search.best else {
-        return Ok(None);
-    };
+    let handle = unique_window(&search.matches)?;
     let hwnd = HWND(handle as *mut core::ffi::c_void);
     if let Ok(uia) = init_uia() {
         if let Ok(element) = unsafe { uia.ElementFromHandle(hwnd) } {
@@ -355,8 +341,8 @@ pub(crate) fn focus_window_by_hint_impl(
 }
 
 struct WindowHintSearch {
-    hints: Vec<String>,
-    best: Option<(i32, isize)>,
+    target: WindowTarget,
+    matches: Vec<isize>,
 }
 
 unsafe extern "system" fn enum_window_for_hint(hwnd: HWND, lparam: LPARAM) -> BOOL {
@@ -366,25 +352,26 @@ unsafe extern "system" fn enum_window_for_hint(hwnd: HWND, lparam: LPARAM) -> BO
     let search = unsafe { &mut *(lparam.0 as *mut WindowHintSearch) };
     let name = window_text(hwnd);
     let class_name = window_class(hwnd);
-    let haystack = format!("{name} {class_name}").to_ascii_lowercase();
-    let mut score = 0;
-    for hint in &search.hints {
-        if hint == "notepad" {
-            if haystack.contains("notepad") {
-                score += 6;
-            }
-        } else if hint == "记事本" {
-            if name.contains("记事本") {
-                score += 6;
-            }
-        } else if haystack.contains(hint) || name.contains(hint) {
-            score += 4;
-        }
-    }
-    if score > 0 && search.best.is_none_or(|(best_score, _)| score > best_score) {
-        search.best = Some((score, hwnd.0 as isize));
+    let executable = window_executable(hwnd);
+    if search.target.matches(executable.as_deref(), &name, &class_name) {
+        search.matches.push(hwnd.0 as isize);
     }
     BOOL(1)
+}
+
+/// 只查询窗口所属进程的可执行路径；查询失败不把标题当作进程身份。
+fn window_executable(hwnd: HWND) -> Option<String> {
+    let mut process_id = 0u32;
+    unsafe { GetWindowThreadProcessId(hwnd, Some(&mut process_id)) };
+    let process = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, process_id) }.ok()?;
+    let mut buffer = vec![0u16; 32_768];
+    let mut length = buffer.len() as u32;
+    let result = unsafe {
+        QueryFullProcessImageNameW(process, PROCESS_NAME_WIN32, windows::core::PWSTR(buffer.as_mut_ptr()), &mut length)
+    };
+    let _ = unsafe { CloseHandle(process) };
+    result.ok()?;
+    Some(String::from_utf16_lossy(&buffer[..length as usize]))
 }
 
 fn window_text(hwnd: HWND) -> String {

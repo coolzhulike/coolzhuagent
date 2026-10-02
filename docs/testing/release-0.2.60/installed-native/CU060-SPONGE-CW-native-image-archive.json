@@ -1,0 +1,23 @@
+[
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7.png",
+    "target": "docs\\testing\\release-0.2.60\\installed-native\\10-paint-components-native-01.png",
+    "sha256": "3a3a0feba287fd2f97b072714007b7571adf4ec898d01ef597d347acaa0064c7",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea.png",
+    "target": "docs\\testing\\release-0.2.60\\installed-native\\10-paint-components-native-02.png",
+    "sha256": "fc0497a2bfaf69dd7f78dcd5e7748eaf285845e26ab8b66c5ce97be5705f31ea",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020.png",
+    "target": "docs\\testing\\release-0.2.60\\installed-native\\10-paint-components-native-03.png",
+    "sha256": "d2fd8ece89ca6889e69d8d7017c4c481edbcf3c6f06e7416292114caf0169020",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "images": [
+    {
+      "path": "installed-native/01-search-one-result.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 199539,
+      "sha256": "2b297ce473f4656d0cdb20c504c4f69c63d15f0458ca08c150a3168dd0114d97"
+    },
+    {
+      "path": "installed-native/02-search-located-real-message.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 204314,
+      "sha256": "6102b0632ea8e7bc7607054eb886bdce0d6dd65879c0b8744eb90f8d4b00d35e"
+    },
+    {
+      "path": "installed-native/03-real-chat-url-open-native-browser.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 206965,
+      "sha256": "e09b5ec2475a516ea25ab38642a4a257895fb311c1fc22dc937f482bca397649"
+    },
+    {
+      "path": "installed-native/04-qwen-browser-use-start.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 198302,
+      "sha256": "cffdb888c6ca89bbcff1e945cbef6a0f81204799b81767ca1371cf90fae86504"
+    },
+    {
+      "path": "installed-native/05-qwen-omitted-objective-zero-input.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 220821,
+      "sha256": "243fc247cd4b519d8d8731b3c2dfaef397962a28d8930fd0e1e53f6b2919f03b"
+    },
+    {
+      "path": "installed-native/06-qwen-browser-complete-request-start.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 222851,
+      "sha256": "c356b391dc00b163a4e888e988f0eee905fc828be9c0e57d090ab2a9519fe61d"
+    },
+    {
+      "path": "installed-native/07-qwen-browser-use-real-one-click-pass.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 197773,
+      "sha256": "e60c5594eb1cd803382de7aaa614686820551d9d44f676b169579aaaa010f36e"
+    }
+  ],
+  "notice": "原始截图；未补画、裁切或改写失败结果。"
+}

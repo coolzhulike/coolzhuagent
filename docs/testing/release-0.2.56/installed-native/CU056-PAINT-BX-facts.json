@@ -1,0 +1,287 @@
+{
+  "test": "CU056-PAINT-BX",
+  "runtime": {
+    "id": "run-chat-f42d13cb6073e3c4d95237c6875df8c7437f5235a62c095e",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790842854220-1",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790842928686,
+    "created_at": 1790842854228
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "provider_tool_call_id": "tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "turn_id": "000000000000000718da5a1678445a44",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "succeeded",
+      "state_version": 13,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790842864512,
+      "updated_at_ms": 1790842919531,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+        "provider_tool_call_id": "tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "desktop",
+        "summary": "最新原图逐项确认目标已达成",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-21d3fd4f4b973dd2901dfa44eca501cb3bc72940aa89ec0e648a527268bd9df9.png:sha256=21d3fd4f4b973dd2901dfa44eca501cb3bc72940aa89ec0e648a527268bd9df9:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=21d3fd4f4b973dd2901dfa44eca501cb3bc72940aa89ec0e648a527268bd9df9:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-21d3fd4f4b973dd2901dfa44eca501cb3bc72940aa89ec0e648a527268bd9df9.png:sha256=21d3fd4f4b973dd2901dfa44eca501cb3bc72940aa89ec0e648a527268bd9df9:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=21d3fd4f4b973dd2901dfa44eca501cb3bc72940aa89ec0e648a527268bd9df9:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/1",
+          "native_stroke:window-canvas:8890a54:points=5:duration_ms=1350:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-1528bc20ce083f0b1ec9a3394fd75d1d2f11e11fc097528c98b161d2395a94a9.png:sha256=1528bc20ce083f0b1ec9a3394fd75d1d2f11e11fc097528c98b161d2395a94a9:2560x1152",
+          "mapping:frame_binding:sha256=1528bc20ce083f0b1ec9a3394fd75d1d2f11e11fc097528c98b161d2395a94a9:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-9c4b19891446db98d315aabccde3a7f34b698afb6cb90a16ea599e71f6796891.png:sha256=9c4b19891446db98d315aabccde3a7f34b698afb6cb90a16ea599e71f6796891:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d0bb90924007090b80f442ce379b5fb4c28835167484f230fa969e8ef3c3576b.png:sha256=d0bb90924007090b80f442ce379b5fb4c28835167484f230fa969e8ef3c3576b:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=d0bb90924007090b80f442ce379b5fb4c28835167484f230fa969e8ef3c3576b:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d0bb90924007090b80f442ce379b5fb4c28835167484f230fa969e8ef3c3576b.png:sha256=d0bb90924007090b80f442ce379b5fb4c28835167484f230fa969e8ef3c3576b:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=d0bb90924007090b80f442ce379b5fb4c28835167484f230fa969e8ef3c3576b:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=2:image_changed=true:criteria_met=1/1"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790843754220
+            }
+          },
+          "cu_deadline_ms": 1790842984512,
+          "cu_deadline_established_at_ms": 1790842864512,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅操作已经打开的Windows画图，不运行代码，不改文件，不用其它工具代绘",
+          "仅在本轮真实观察的白色画布内绘制，不能画在工具栏或控制台上",
+          "不使用形状工具，不单独四次拖动，使用一次5点闭合连续drag",
+          "没有可见闭合证据不得声称成功；输入或释放未知时停止",
+          "失败停止，同轮不再次调用computer_use_perform"
+        ],
+        "objective": "在已打开的Windows画图的白色画布中央，使用当前黑色铅笔，实际用一次连续五点拖动描绘一个闭合矩形：四个不同角点，最后回到第一个点。矩形约为画布宽度的四分之一、高度的四分之一，避开工具栏和画布边缘；根据本轮截图自行定位真实画布，不猜测坐标。该次drag的duration_ms使用1200到1500毫秒。完成后重新观察实际画布验证闭合四条边。",
+        "success_criteria": [
+          "最新画布截图实际可见四条黑色边构成的闭合矩形"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "画图",
+          "window": "无标题 - 画图"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-7dae6a0f-e201-9d78-942b-d0492863487c",
+      "error_code": null,
+      "started_at_ms": 1790842869657,
+      "completed_at_ms": 1790842877601,
+      "response": {
+        "bytes": 254,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 177,
+            "evidence_chars": 59,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": false,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-a8054250-9c42-9c40-8490-de885826b0b0",
+      "error_code": null,
+      "started_at_ms": 1790842877627,
+      "completed_at_ms": 1790842901837,
+      "response": {
+        "action": {
+          "arguments": {
+            "duration_ms": 1350,
+            "points": [
+              [
+                0.271,
+                0.27
+              ],
+              [
+                0.646,
+                0.27
+              ],
+              [
+                0.646,
+                0.73
+              ],
+              [
+                0.271,
+                0.73
+              ],
+              [
+                0.271,
+                0.27
+              ]
+            ]
+          },
+          "kind": "drag",
+          "target": "window-canvas:8890a54"
+        },
+        "done": false
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-02135c36-e448-972a-987a-70e9cc91ecfe",
+      "error_code": null,
+      "started_at_ms": 1790842909685,
+      "completed_at_ms": 1790842919528,
+      "response": {
+        "bytes": 341,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 228,
+            "evidence_chars": 76,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": true,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000718da5a1678445a44",
+      "call_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 18917,
+      "output_tokens": 190,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000718da5a1678445a44",
+      "call_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19794,
+      "output_tokens": 2035,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000718da5a1678445a44",
+      "call_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 21525,
+      "output_tokens": 380,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790842854220-1",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-f42d13cb6073e3c4d95237c6875df8c7437f5235a62c095e",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 40362,
+      "output_tokens": 448,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000718da5a1678445a44-tool-90ea41bbaff0aa9d79531be076d47aed2c3a2e12c961dea6d7aa8a32b365ab33",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:8890a54",
+      "status": "verified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "input_release_status": "released",
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "started_at_ms": 1790842901841,
+      "completed_at_ms": 1790842907651,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ]
+}

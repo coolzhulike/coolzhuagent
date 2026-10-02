@@ -13,6 +13,7 @@ runtime.workspace = true
 serde = { version = "1", features = ["derive"] }
 serde_json.workspace = true
 sha2 = "0.10"
+native-browser-protocol = { package = "coolzhu-native-browser-protocol", path = "../native-browser-protocol" }
 base64 = "0.22"
 
 # 原生线程/管道监督接口（有界管道读取、同步 I/O 取消、残留登记）。

@@ -140,7 +140,8 @@ fn host_sensitive_semantic_category(
     observation: &Observation,
 ) -> Option<&'static str> {
     let mut corpus = String::new();
-    push_bounded_semantic_text(&mut corpus, &request.objective);
+    let objective = normalize_objective_preapproval_claim(&request.objective);
+    push_bounded_semantic_text(&mut corpus, &normalize_objective_input_delivery(&objective));
     push_bounded_semantic_text(&mut corpus, &action.target);
 
     let mut remaining_argument_strings = 32usize;
@@ -152,6 +153,39 @@ fn host_sensitive_semantic_category(
     collect_target_node_text(&observation.state, &action.target, &mut corpus);
 
     classify_sensitive_semantics(&corpus)
+}
+
+/// 开头的既有许可声明不是“执行授权”；只改前缀动词，任务、目标和参数仍完整审查。
+/// 该规整不生成批准，也不能豁免声明之后的安装、授权、删除或外发动作。
+fn normalize_objective_preapproval_claim(text: &str) -> String {
+    let text = text.trim_start();
+    for (claim, neutral) in [
+        ("用户已明确授权本次", "用户已明确许可本次"),
+        ("用户已授权本次", "用户已许可本次"),
+    ] {
+        if let Some(rest) = text.strip_prefix(claim) {
+            return format!("{neutral}{rest}");
+        }
+    }
+    text.to_owned()
+}
+
+/// 意图中“发送一次普通点击”描述输入投递，不是外发消息；目标节点和动作参数仍原样审查。
+/// 仅识别句尾/分隔符前的完整机械输入宾语，“发送一次点击结果”等外发宾语不得豁免。
+fn normalize_objective_input_delivery(text: &str) -> String {
+    let mut normalized = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(offset) = rest.find("发送") {
+        normalized.push_str(&rest[..offset]);
+        let following = &rest[offset + "发送".len()..];
+        let mechanical = ["一次普通点击", "一次鼠标点击", "一次点击", "鼠标输入", "键盘输入"]
+            .iter().any(|object| following.strip_prefix(object).is_some_and(|tail|
+                tail.trim_start().chars().next().is_none_or(|c| "，。；：,.;:!?！？)）".contains(c))));
+        normalized.push_str(if mechanical { "执行" } else { "发送" });
+        rest = following;
+    }
+    normalized.push_str(rest);
+    normalized
 }
 
 fn push_bounded_semantic_text(corpus: &mut String, text: &str) {
@@ -435,7 +469,11 @@ where
             );
         }
 
-        let mut guard = RunBudgetGuard::with_deadline(self.budgets, run_facts.deadline);
+        let mut budgets = self.budgets;
+        if let Some(max_actions) = request.max_actions {
+            budgets.max_actions = budgets.max_actions.min(max_actions);
+        }
+        let mut guard = RunBudgetGuard::with_deadline(budgets, run_facts.deadline);
         let mut attempts = 0usize;
         let mut steps_completed = 0usize;
         let mut evidence = Vec::new();
@@ -565,6 +603,19 @@ where
         }
 
         loop {
+            if let Err(error) = guard.before_planning(self.clock.now_ms()) {
+                return self.terminal(
+                    &context,
+                    surface,
+                    ComputerUseStage::Supervisor,
+                    error,
+                    attempts,
+                    steps_completed,
+                    evidence,
+                    guard.snapshot(),
+                    &run_facts,
+                );
+            }
             self.events.state_changed(ComputerUseRunState::Planning);
             let remaining =
                 std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
@@ -1255,6 +1306,8 @@ mod tests {
 
     #[tokio::test]
     async fn verified_goal_is_the_only_success_path() {
+        let mut request = request();
+        request.max_actions = Some(1);
         let planner = FakePlanner {
             surface: ComputerUseSurface::Browser,
             actions: Mutex::new(vec![Ok(Some(click()))].into()),
@@ -1274,12 +1327,54 @@ mod tests {
             crate::ComputerUseBudgets::default(),
         );
 
-        let result = controller.run(&request(), context()).await;
+        let result = controller.run(&request, context()).await;
 
         assert_eq!(result.status, ComputerUseTerminalStatus::Succeeded);
         assert!(result.goal_achieved);
         assert_eq!(result.steps_completed, 1);
         assert_eq!(result.provider_tool_call_id.as_deref(), Some("tool-call-1"));
+    }
+
+    #[tokio::test]
+    async fn request_action_limit_stops_before_another_plan_and_cannot_expand_host_budget() {
+        for (requested, host_limit) in [(1, 12), (99, 1)] {
+            let mut request = request_with_objective("展开帮助详情");
+            request.max_actions = Some(requested);
+            let planner = FakePlanner {
+                surface: ComputerUseSurface::Browser,
+                actions: Mutex::new(vec![
+                    Ok(Some(click_target("help-1"))),
+                    Ok(Some(click_target("help-2"))),
+                ].into()),
+            };
+            let adapter = adapter(
+                vec![Ok(observation(1, "before")), Ok(observation(2, "changed"))],
+                vec![
+                    Ok(verification(false, false, "not yet")),
+                    Ok(verification(false, true, "changed but incomplete")),
+                ],
+            );
+            let mut controller = ComputerUseController::new(
+                planner,
+                adapter,
+                RecordingEvents::default(),
+                TickClock::default(),
+                crate::ComputerUseBudgets {
+                    max_actions: host_limit,
+                    ..crate::ComputerUseBudgets::default()
+                },
+            );
+            let result = controller.run(&request, context()).await;
+            assert_eq!(result.status, ComputerUseTerminalStatus::Blocked);
+            assert_eq!(result.stage, ComputerUseStage::Supervisor);
+            assert_eq!(result.error.as_ref().unwrap().code, "budget_exhausted");
+            assert_eq!(result.error.as_ref().unwrap().retry_owner, ComputerUseRetryOwner::None);
+            assert!(!result.goal_achieved);
+            assert_eq!(result.supervisor.action_count, 1);
+            assert_eq!(controller.adapter().action_count.load(Ordering::SeqCst), 1);
+            assert!(controller.adapter().verifications.lock().unwrap().is_empty());
+            assert_eq!(controller.planner().actions.lock().unwrap().len(), 1);
+        }
     }
 
     #[tokio::test]
@@ -1433,7 +1528,7 @@ mod tests {
             ),
             (
                 "action_target_send",
-                request_with_objective("完成消息操作"),
+                request_with_objective("每一步只发送一次普通点击，操作当前按钮"),
                 click_target("send-message"),
                 observation_with_state(
                     1,
@@ -1501,7 +1596,7 @@ mod tests {
 
     #[tokio::test]
     async fn ordinary_harmless_click_is_not_falsely_blocked_by_host_semantics() {
-        let request = request_with_objective("展开帮助详情");
+        let request = request_with_objective("每一步只发送一次普通点击，不批量点击，展开帮助详情");
         let planner = FakePlanner {
             surface: ComputerUseSurface::Browser,
             actions: Mutex::new(vec![Ok(Some(click_target("dom-42")))].into()),
@@ -1566,6 +1661,9 @@ mod tests {
         ] {
             assert_eq!(classify_sensitive_semantics(corpus), Some(expected));
         }
+        for objective in ["发送一次点击结果给他人", "发送一次普通点击 结果给他人", "发送鼠标输入记录", "发送一次普通点击，发布消息"] {
+            assert_eq!(classify_sensitive_semantics(&normalize_objective_input_delivery(objective)), Some("external_communication"));
+        }
 
         let request = request_with_objective("完成下一步");
         let mut action = click_target("dom-9");
@@ -1578,6 +1676,45 @@ mod tests {
             ),
             Some("authorization_or_installation")
         );
+    }
+
+    #[test]
+    fn preapproval_claim_is_not_an_authorization_action_or_an_approval_bypass() {
+        let observation = observation_with_state(1, json!({"page":{"nodes":[]}}));
+        let action = click_target("window-canvas:8890a54");
+        for objective in [
+            "用户已明确授权本次 Paint 手绘测试。在白色画布内拖动绘画",
+            "用户已授权本次鼠标拖动。在画布内画一个闭合矩形",
+        ] {
+            assert_eq!(host_sensitive_semantic_category(
+                &request_with_objective(objective), &action, &observation,
+            ), None);
+        }
+        for (operation, category) in [
+            ("安装浏览器扩展", "authorization_or_installation"),
+            ("点击授权按钮", "authorization_or_installation"),
+            ("删除文件", "destructive_change"),
+            ("支付订单", "purchase_or_payment"),
+            ("发送消息给他人", "external_communication"),
+            ("输入 API key", "credential_or_secret"),
+        ] {
+            let objective = format!("用户已明确授权本次{operation}");
+            assert_eq!(host_sensitive_semantic_category(
+                &request_with_objective(&objective), &action, &observation,
+            ), Some(category), "{operation}");
+        }
+        let request = request_with_objective("用户已明确授权本次鼠标点击");
+        let sensitive_node = observation_with_state(1, json!({"page":{"nodes":[
+            {"reference":"dom-9", "name":"授权访问"}
+        ]}}));
+        assert_eq!(host_sensitive_semantic_category(
+            &request, &click_target("dom-9"), &sensitive_node,
+        ), Some("authorization_or_installation"));
+        let mut parameter_action = action;
+        parameter_action.arguments = json!({"label":"用户已明确授权本次访问"});
+        assert_eq!(host_sensitive_semantic_category(
+            &request, &parameter_action, &observation,
+        ), Some("authorization_or_installation"));
     }
 
     #[tokio::test]

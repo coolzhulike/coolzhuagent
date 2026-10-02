@@ -1,0 +1,16 @@
+{
+  "observed_at": "2026-10-01T02:15:18.3885333Z",
+  "version": "0.2.44",
+  "resource_state": "safe",
+  "accepts_new_input": true,
+  "pending_recovery_operations": 0,
+  "human_review_required": 5,
+  "unacknowledged_open_blocks": 0,
+  "unacknowledged_legacy_runs": 0,
+  "acknowledged_legacy_runs": 2,
+  "unacknowledged_block_ids": [],
+  "unacknowledged_run_ids": [],
+  "latest_decision_id": "release-1790820715362-1790820715362717400",
+  "method": "正常理由输入框与桌面原生确认；未直接修改运行数据库",
+  "known_defect": "当前044最近一条审批的空运行列表会覆盖早期接受；本次通过第二次正常确认恢复。累计读取修复待后续正式包。"
+}

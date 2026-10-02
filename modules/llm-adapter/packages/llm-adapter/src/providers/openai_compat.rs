@@ -222,6 +222,7 @@ pub struct OpenAiCompatClient {
     initial_backoff: Duration,
     max_backoff: Duration,
     request_parameters: crate::RequestParameters,
+    response_format: Option<crate::ResponseFormat>,
     request_observer: Option<std::sync::Arc<dyn crate::RequestObserver>>,
 }
 
@@ -244,6 +245,7 @@ impl OpenAiCompatClient {
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
             request_parameters: crate::RequestParameters::default(),
+            response_format: None,
             request_observer: None,
         }
     }
@@ -277,6 +279,12 @@ impl OpenAiCompatClient {
 
     pub fn with_request_parameters(mut self, parameters: crate::RequestParameters) -> Self {
         self.request_parameters = parameters;
+        self
+    }
+
+    #[must_use]
+    pub fn with_response_format(mut self, format: crate::ResponseFormat) -> Self {
+        self.response_format = Some(format);
         self
     }
 
@@ -456,6 +464,7 @@ impl OpenAiCompatClient {
         self.request_parameters.validate_for_model(&request.model, request.reasoning_effort.as_deref(), false)?;
         let mut payload = build_chat_completion_request_for(self.config.provider_id(), request);
         self.request_parameters.apply(&mut payload, request.reasoning_effort.as_deref(), false);
+        if let Some(format) = &self.response_format { format.apply(&mut payload); }
         let mut request_builder = self
             .http
             .post(&request_url)

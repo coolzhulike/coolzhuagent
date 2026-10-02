@@ -1,0 +1,16 @@
+[
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-8287158eceb7dff5fba1d18bb7ec241262ae4a185303f462c3f2012bfe078212.png",
+    "target": "docs\\testing\\release-0.2.59\\installed-native\\09-paint-color-native-01.png",
+    "sha256": "8287158eceb7dff5fba1d18bb7ec241262ae4a185303f462c3f2012bfe078212",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-7164993b05ce4e7f867720eec4fc3d4068b03f7b901143a61fa98e55529211f8.png",
+    "target": "docs\\testing\\release-0.2.59\\installed-native\\09-paint-color-native-02.png",
+    "sha256": "7164993b05ce4e7f867720eec4fc3d4068b03f7b901143a61fa98e55529211f8",
+    "dimensions": "2560x1152",
+    "byte_copy_verified": true
+  }
+]

@@ -14,6 +14,8 @@ fn decode_console_output(bytes: &[u8]) -> String {
 
 #[cfg(windows)]
 mod windows_impl;
+#[cfg(any(windows, test))]
+mod window_target;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct UiaQuery {
@@ -126,6 +128,7 @@ pub fn focus_window(native_window_handle: isize) -> Result<(), UiaError> {
     }
 }
 
+/// 无目标时返回 None；有目标但找不到或不唯一时返回错误，禁止退回前台窗口。
 pub fn focus_window_by_hint(
     application: Option<&str>,
     window: Option<&str>,

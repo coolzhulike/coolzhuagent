@@ -1,0 +1,42 @@
+{
+  "test": "BU058-CLOSE-CL",
+  "events": [
+    {
+      "kind": "pointerdown",
+      "page_ms": 1790850537483,
+      "server_ms": 1790850537485
+    },
+    {
+      "kind": "pointerdown_handler_finished",
+      "page_ms": 1790850539983,
+      "server_ms": 1790850539987
+    },
+    {
+      "kind": "pointerup",
+      "page_ms": 1790850539983,
+      "server_ms": 1790850539988
+    },
+    {
+      "kind": "click",
+      "page_ms": 1790850539984,
+      "server_ms": 1790850539989
+    }
+  ],
+  "cu": "cu-session-1779459149988-000000000000001d18da610fbab9aeec-tool-67958761937ffebc5058063ca18386dc6373e46593eeb4b2d864d9276c9b3ec9",
+  "parent_finished_ms": 1790850553514,
+  "close_during_press_verified": false,
+  "close": {
+    "close_started_ms": 1790850560419,
+    "close_finished_ms": 1790850560500,
+    "down_observation": {
+      "observed_ms": 1790850537514,
+      "events": [
+        {
+          "kind": "pointerdown",
+          "page_ms": 1790850537483,
+          "server_ms": 1790850537485
+        }
+      ]
+    }
+  }
+}

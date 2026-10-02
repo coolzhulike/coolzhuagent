@@ -296,6 +296,8 @@ pub enum StrokeFailureKind {
     /// helper 明确报释放失败，或 helper 退出后补发释放仍失败。
     ReleaseUnconfirmed,
     Cancelled,
+    /// helper 明确报告输入许可到期；与人工取消分开，不能继续重放。
+    DeadlineExceeded,
     Stale,
     /// 被本进程强杀，或非零退出且没有给出任何原因。
     HelperLost,
@@ -308,6 +310,8 @@ impl StrokeFailureKind {
     pub fn classify(message: &str) -> Self {
         if message.contains("mouse_release_failed") || message.contains("input_release_unconfirmed") {
             Self::ReleaseUnconfirmed
+        } else if message.contains("stroke_cancelled: permit expired") {
+            Self::DeadlineExceeded
         } else if message.contains("stroke_cancelled") {
             Self::Cancelled
         } else if message.contains("stale_observation") {
@@ -324,6 +328,7 @@ impl StrokeFailureKind {
         match self {
             Self::ReleaseUnconfirmed => "mouse_release_failed",
             Self::Cancelled => "cancelled",
+            Self::DeadlineExceeded => "deadline_exceeded",
             Self::Stale => "stale_observation",
             Self::HelperLost => "helper_lost",
             Self::Failed => "input_failed",
@@ -334,7 +339,7 @@ impl StrokeFailureKind {
     /// "释放未确认"必须隔离，`retryable` 只是分类信息，不是重放授权。
     #[must_use]
     pub const fn retryable(self) -> bool {
-        !matches!(self, Self::ReleaseUnconfirmed | Self::Cancelled)
+        !matches!(self, Self::ReleaseUnconfirmed | Self::Cancelled | Self::DeadlineExceeded)
     }
 }
 
@@ -2373,6 +2378,12 @@ mod tests {
                 false,
             ),
             ("stroke_cancelled: 已取消或超时", "cancelled", false),
+            ("stroke_cancelled: permit expired", "deadline_exceeded", false),
+            (
+                "stroke_cancelled: permit expired; mouse_release_failed: Up() 失败",
+                "mouse_release_failed",
+                false,
+            ),
             ("stale_observation: 窗口已变化", "stale_observation", true),
             ("helper_lost: 未正常结束且未给出原因", "helper_lost", true),
             ("受控桌面操作失败: boom", "input_failed", true),

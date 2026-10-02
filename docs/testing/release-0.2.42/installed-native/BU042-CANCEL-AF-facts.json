@@ -1,0 +1,18 @@
+{
+  "test": "BU042-CANCEL-AF",
+  "runtime": {
+    "id": "run-chat-7dd07ad7ce8e64af1222da8b8d84cb705765f3a9e2d29f1a",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790817333111-4",
+    "state": "failed",
+    "stop_requested_at": null,
+    "finished_at": 1790817341495,
+    "created_at": 1790817333121
+  },
+  "computer_use": [],
+  "diagnostics": [],
+  "usage": [],
+  "steps": []
+}

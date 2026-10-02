@@ -1,0 +1,1 @@
+CU059-COLOR-CO：新的独立Paint准备任务。只调用一次 computer_use_perform，参数为 {"objective":"在当前Windows画图选择颜色1黑色作为当前铅笔绘画颜色","surface":"desktop","target":{"application":"mspaint.exe","window":"无标题 - 画图"},"success_criteria":["最新原图中颜色1黑色控件处于当前选中状态"],"constraints":["只允许一次单击颜色1黑色，不在画布落笔，不用其它工具，不保存","失败立即停止，不重试"],"max_actions":1}。逐字使用参数，根据最新原图自主定位，不使用历史坐标。

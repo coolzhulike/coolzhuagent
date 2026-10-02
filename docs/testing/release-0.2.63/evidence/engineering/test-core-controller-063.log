@@ -1,0 +1,71 @@
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+   Compiling coolzhu-computer-use-core v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\computer-use\packages\computer-use-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.85s
+     Running unittests src\lib.rs (target\debug\deps\computer_use-b7d038e0205659e7.exe)
+
+running 27 tests
+test controller::tests::adapter_errors_keep_retry_ownership_for_the_model_result ... ok
+test controller::tests::cancellation_before_input_reports_cleanup_without_release_obligation ... ok
+test controller::tests::cancellation_during_execution_is_terminal_cancelled ... ok
+test controller::tests::cancellation_during_observation_is_terminal_without_input ... ok
+test controller::tests::cancellation_during_planning_is_terminal_without_input ... ok
+test controller::tests::cancellation_during_verification_is_terminal_cancelled ... ok
+test controller::tests::consecutive_planner_calls_see_strictly_decreasing_remaining ... ok
+test controller::tests::controller_contracts_are_exported_from_crate_root ... ok
+test controller::tests::deadline_expiry_before_first_action_performs_no_input ... ok
+test controller::tests::explicit_host_approval_allows_the_exact_risky_action_to_execute ... ok
+test controller::tests::host_semantic_classifier_covers_arguments_authorization_install_and_secrets ... ok
+test controller::tests::host_semantics_cannot_be_bypassed_by_a_broad_approval_policy ... ok
+test controller::tests::internal_recovery_does_not_reset_the_remaining_budget ... ok
+test controller::tests::ordinary_harmless_click_is_not_falsely_blocked_by_host_semantics ... ok
+test controller::tests::planner_receives_the_remaining_of_the_established_cu_deadline ... ok
+test controller::tests::preapproval_claim_is_not_an_authorization_action_or_an_approval_bypass ... ok
+test controller::tests::repeated_no_progress_stops_before_a_third_input ... ok
+test controller::tests::request_action_limit_stops_before_another_plan_and_cannot_expand_host_budget ... ok
+test controller::tests::risky_actions_without_host_approval_are_blocked_before_input ... ok
+test controller::tests::stale_error_with_a_mismatched_receipt_is_not_silently_replanned ... ok
+test controller::tests::stale_error_with_injected_input_receipt_is_not_silently_replanned ... ok
+test controller::tests::stale_observation_is_reobserved_once_by_the_controller ... ok
+test controller::tests::successful_input_without_verified_goal_is_a_failure ... ok
+test controller::tests::successful_run_records_budget_facts_without_a_cleanup_report ... ok
+test controller::tests::unconfirmed_release_is_reported_as_quarantined_cleanup ... ok
+test controller::tests::unsupported_action_is_blocked_before_input ... ok
+test controller::tests::verified_goal_is_the_only_success_path ... ok
+
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 115 filtered out; finished in 0.01s
+
+     Running unittests src\bin\check.rs (target\debug\deps\coolzhu_computer_use_check-4d3db023c3122da2.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

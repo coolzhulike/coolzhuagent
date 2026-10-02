@@ -1,0 +1,2 @@
+# 原始构建收据保持字节及换行，便于核对绑定摘要。
+*.json -text whitespace=cr-at-eol

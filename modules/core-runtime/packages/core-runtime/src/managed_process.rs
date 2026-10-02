@@ -79,6 +79,38 @@ impl OwnedChild {
 
 impl Drop for OwnedChild { fn drop(&mut self) { let _ = self.stop(); } }
 
+/// 有独立协议的子进程仍复用同一 Job、根取消与截止控制；不把 stdout 当协议。
+/// 调用者必须轮询 interruption，先通知协议取消再有界收尾；Drop 始终关闭子树。
+pub struct ProtocolChild {
+    owned: OwnedChild,
+    control: ExecutionControl,
+}
+
+impl ProtocolChild {
+    pub fn spawn(command: &mut Command, timeout: Duration) -> io::Result<Self> {
+        let control = current_execution_control()
+            .unwrap_or_else(|| ExecutionControl::new(None, None)).with_timeout(Some(timeout));
+        if control.interruption().is_some() {
+            return Err(io::Error::new(io::ErrorKind::Interrupted, "执行已取消或截止，未启动协议进程"));
+        }
+        #[cfg(windows)]
+        let (child, job) = windows_process_guard::ChildProcessJob::spawn_managed(command)?;
+        #[cfg(not(windows))]
+        let child = command.spawn()?;
+        Ok(Self { owned: OwnedChild { child, #[cfg(windows)] job: Some(job) }, control })
+    }
+
+    #[must_use]
+    pub fn interruption(&self) -> Option<Interruption> { self.control.interruption() }
+
+    pub fn try_wait(&mut self) -> io::Result<Option<std::process::ExitStatus>> {
+        self.owned.child.try_wait()
+    }
+
+    /// 包括仍在运行的孙进程；返回前回收直接子进程，不把发出 kill 当作已退出。
+    pub fn stop(&mut self) -> io::Result<std::process::ExitStatus> { self.owned.stop() }
+}
+
 fn read_pipe(mut pipe: impl Read) -> io::Result<Vec<u8>> {
     let mut bytes = Vec::new();
     pipe.read_to_end(&mut bytes)?;

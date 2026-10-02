@@ -190,6 +190,8 @@ pub(crate) fn preflight_existing_session_schema(path: &std::path::Path) -> rusql
         return Ok(());
     }
     let connection = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    // 首次并发打开可能正在切换 WAL；只读版本检查也必须等待 SQLite 锁。
+    connection.busy_timeout(std::time::Duration::from_secs(5))?;
     ensure_session_schema_not_from_the_future(&connection)
 }
 
@@ -1625,6 +1627,8 @@ pub(crate) struct RecentComputerUseRun {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct RunStepReportRow {
     pub step_index: usize,
+    /// 从已有动作列解析的白名单类型；未知历史值不进入模型反馈。
+    pub action_kind: Option<computer_use::ComputerUseActionKind>,
     pub status: String,
     /// 协议异常子类（`receipt_identity_mismatch` / `receipt_self_contradictory`）等。
     pub error_code: Option<String>,
@@ -1850,7 +1854,14 @@ pub(crate) fn sanitized_action_json(raw: &str) -> String {
         return json!({"omitted":"response_too_large","bytes":raw.len()}).to_string();
     }
     let result = serde_json::from_str::<Value>(raw)
-        .map(|value| clean(&value, ""))
+        .map(|value| {
+            let mut sanitized = clean(&value, "");
+            // 仅保留规划器协议里的已知停步码，不保存自由文本 summary。
+            if value["done"] == true && value["summary"] == "blocked: target_not_found" {
+                sanitized["planner_stop_code"] = json!("target_not_found");
+            }
+            sanitized
+        })
         .unwrap_or_else(|_| json!({"omitted":"invalid_json","bytes":raw.len()}))
         .to_string();
     if result.len() > 16 * 1024 {
@@ -1899,8 +1910,10 @@ pub(crate) fn sanitized_verification_json(raw: &str) -> String {
             "evidence_bytes":evidence.map(str::len),
             "evidence_blank":evidence.map(|text|text.trim().is_empty()),
             "evidence_exceeds_limit":evidence.map(|text|text.chars().count()>512),
+            "node_indices_count":criterion.get("node_indices").and_then(Value::as_array).map(Vec::len),
+            "node_indices_type":value_type(criterion.get("node_indices")),
             "unknown_field_count":criterion.as_object().map(|object|object.keys()
-                .filter(|key|!matches!(key.as_str(),"index"|"met"|"evidence")).count())})
+                .filter(|key|!matches!(key.as_str(),"index"|"met"|"evidence"|"node_indices")).count())})
     }).collect::<Vec<_>>();
     let result = json!({"bytes":raw.len(),"root_type":value_type(Some(&value)),
         "progress":value.get("progress").and_then(Value::as_bool),
@@ -1919,7 +1932,62 @@ pub(crate) struct ComputerUseRunStore {
     connection: Mutex<Connection>,
 }
 
+/// v28：既有步骤增加一次性面板派发字段，旧行保留NULL；与父停止仍使用同一会话库。
+pub(crate) fn apply_session_migration_v28_panel_dispatch(connection:&Connection) -> rusqlite::Result<()> {
+    let current:i64=connection.query_row("PRAGMA user_version",[],|row|row.get(0))?;
+    for definition in ["native_dispatch_state TEXT","native_ticket_id TEXT","native_binding_json TEXT"] {
+        ensure_computer_use_steps_column(connection,definition)?;
+    }
+    connection.execute_batch("CREATE UNIQUE INDEX IF NOT EXISTS idx_cu_native_ticket ON computer_use_steps(native_ticket_id) WHERE native_ticket_id IS NOT NULL;")?;
+    if current<28 { connection.execute_batch("PRAGMA user_version=28;")?; }
+    Ok(())
+}
+
 impl ComputerUseRunStore {
+    pub(crate) fn prepare_panel_attempt(&self,call_id:&str,index:u64,ticket:&str,binding:&str) -> Result<(),String> {
+        let connection=self.connection.lock().map_err(|_|"步骤存储锁损坏")?;
+        let count=connection.execute("UPDATE computer_use_steps SET native_dispatch_state='pending',native_ticket_id=?1,native_binding_json=?2
+            WHERE run_id=?3 AND step_index=?4 AND status='executing' AND native_dispatch_state IS NULL",
+            params![ticket,binding,call_id,index as i64]).map_err(|e|e.to_string())?;
+        if count!=1 { return Err("步骤不存在或已经预检/派发".into()); } Ok(())
+    }
+
+    /// 物理派发的业务边界：父停止、权限和本步Pending在同库写事务内裁决。
+    pub(crate) fn claim_panel_attempt(&self,parent:&crate::FrozenParentContext,call_id:&str,index:u64,
+        ticket:&str,binding:&str,expires:u64,cancelled:&dyn Fn()->bool) -> Result<(),String> {
+        let mut connection=self.connection.lock().map_err(|_|"步骤存储锁损坏")?;
+        // 此窄事务不能等待长时间争锁；失败直接拒绝，不回放许可。
+        connection.busy_timeout(std::time::Duration::from_millis(50)).map_err(|e|e.to_string())?;
+        let result=(|| {
+            let tx=connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).map_err(|e|e.to_string())?;
+            let actual:String=tx.query_row("SELECT file FROM pragma_database_list WHERE name='main'",[],|row|row.get(0)).map_err(|e|e.to_string())?;
+            if parent.runtime_db_path.as_ref().and_then(|p|p.canonicalize().ok()) != std::path::Path::new(&actual).canonicalize().ok()
+                || parent.runtime_db_path.is_none() { return Err("父会话库已经变化".into()); }
+            crate::validate_frozen_parent_relations_on_connection(&tx,parent).map_err(|_|"父运行已取消或环境已变化")?;
+            let allowed:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM chat_room_permissions WHERE room_id=?1 AND permission_profile=?2)",
+                params![parent.room_id.as_deref(),crate::ROOM_PERMISSION_FULL_ACCESS],|row|row.get(0)).map_err(|e|e.to_string())?;
+            if !allowed || cancelled() || parent.root_budget.as_ref().is_some_and(|b|b.is_expired()) || crate::unix_timestamp_millis()>=expires {
+                return Err("派发前取消、权限收紧或期限耗尽".into());
+            }
+            let changed=tx.execute("UPDATE computer_use_steps SET native_dispatch_state='dispatching'
+                WHERE run_id=?1 AND step_index=?2 AND native_dispatch_state='pending' AND native_ticket_id=?3 AND native_binding_json=?4
+                AND EXISTS(SELECT 1 FROM computer_use_runs r WHERE r.call_id=?1 AND r.state='executing' AND r.terminal_result_json IS NULL
+                    AND r.deadline_ms>?5 AND r.chat_room_id=?6 AND r.session_id=?7 AND r.workspace_id=?8)",
+                params![call_id,index as i64,ticket,binding,crate::unix_timestamp_millis() as i64,parent.room_id.as_deref(),parent.session_id.as_deref(),parent.workspace_id.as_str()])
+                .map_err(|e|e.to_string())?;
+            if changed!=1 { return Err("本次步骤派发资格已失效或已经消费".into()); }
+            tx.commit().map_err(|e|e.to_string())
+        })();
+        let _=connection.busy_timeout(std::time::Duration::from_secs(5));result
+    }
+
+    pub(crate) fn settle_panel_attempt(&self,call_id:&str,index:u64,ticket:&str,outcome:&str) -> Result<(),String> {
+        let connection=self.connection.lock().map_err(|_|"步骤存储锁损坏")?;
+        let changed=connection.execute("UPDATE computer_use_steps SET native_dispatch_state=?1 WHERE run_id=?2 AND step_index=?3
+            AND native_ticket_id=?4 AND native_dispatch_state IN ('pending','dispatching')",
+            params![outcome,call_id,index as i64,ticket]).map_err(|e|e.to_string())?;
+        if changed!=1 { return Err("派发回执不能覆盖既有结算".into()); } Ok(())
+    }
     pub(crate) fn from_connection(connection: Connection) -> Self {
         Self {
             connection: Mutex::new(connection),
@@ -1995,6 +2063,43 @@ impl ComputerUseRunStore {
         result: &ComputerUseResult,
     ) -> rusqlite::Result<bool> {
         let connection = self.connection.lock().expect("computer-use store lock");
+        Self::finish_on_connection(&connection, call_id, expected_version, result)
+    }
+
+    /// 在同一个写事务内核验成功资格并提交实际结果；不能把事务外的父状态当作权威。
+    pub(crate) fn finish_checked(
+        &self,
+        call_id: &str,
+        expected_version: u64,
+        result: &ComputerUseResult,
+        check: impl FnOnce(&Connection, &ComputerUseResult) -> rusqlite::Result<ComputerUseResult>,
+    ) -> rusqlite::Result<Option<ComputerUseResult>> {
+        let mut connection = self.connection.lock().expect("computer-use store lock");
+        let transaction = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+        let eligible: bool = transaction.query_row(
+            "SELECT EXISTS(SELECT 1 FROM computer_use_runs WHERE call_id=?1 AND state_version=?2 AND terminal_result_json IS NULL)",
+            params![call_id, expected_version], |row| row.get(0),
+        )?;
+        if !eligible { return Ok(None); }
+        let actual = check(&transaction, result)?;
+        // 判定只能收紧终态，不能替换调用身份。
+        if actual.call_id != result.call_id || actual.provider_tool_call_id != result.provider_tool_call_id
+            || actual.surface != result.surface {
+            return Err(rusqlite::Error::InvalidQuery);
+        }
+        if !Self::finish_on_connection(&transaction, call_id, expected_version, &actual)? {
+            return Ok(None);
+        }
+        transaction.commit()?;
+        Ok(Some(actual))
+    }
+
+    fn finish_on_connection(
+        connection: &Connection,
+        call_id: &str,
+        expected_version: u64,
+        result: &ComputerUseResult,
+    ) -> rusqlite::Result<bool> {
         // CU-01：终态回填的权威计数**必须**在写入前从步骤行求出（同一把锁内，不另开连接）。
         let counts = Self::run_counts_on(&connection, call_id)?;
         let result_json = serde_json::to_string(result)
@@ -2503,13 +2608,14 @@ impl ComputerUseRunStore {
         let mut statement = connection.prepare(
             "SELECT step_index, status, error_code, input_delivery, partial, path_completed,
                     confirmed_point_count, effect_status, goal_verdict, input_release_status,
-                    visible_progress
+                    visible_progress, action_type
                FROM computer_use_steps WHERE run_id = ?1 ORDER BY step_index",
         )?;
         let rows = statement
             .query_map([call_id], |row| {
                 Ok(RunStepReportRow {
                     step_index: row.get::<_, i64>(0)? as usize,
+                    action_kind: serde_json::from_value(serde_json::Value::String(row.get::<_, String>(11)?)).ok(),
                     status: row.get(1)?,
                     error_code: row.get(2)?,
                     input_delivery: row.get(3)?,
@@ -3755,6 +3861,8 @@ mod tests {
                 .contains("window-canvas:abc123")
         );
         assert!(!sanitized_action_json(r#"{"target":"window-canvas:SECRET"}"#).contains("SECRET"));
+        assert!(sanitized_action_json(r#"{"done":true,"summary":"blocked: target_not_found"}"#).contains("planner_stop_code"));
+        assert!(!sanitized_action_json(r#"{"done":true,"summary":"SECRET-PAGE-CONTENT"}"#).contains("SECRET-PAGE-CONTENT"));
     }
 
     #[test]

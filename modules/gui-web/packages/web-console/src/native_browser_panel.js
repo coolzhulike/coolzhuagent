@@ -1,6 +1,6 @@
 /* 桌面右栏浏览器：网页驻留于无宿主权限的独立 WebView，DOM 只负责位置与导航。 */
 window.CoolzhuNativeBrowserPanel = (() => {
-  let adapter, current = null, serial = Promise.resolve(), generation = 0, frameRequested = false;
+  let adapter, current = null, closedTarget = null, serial = Promise.resolve(), generation = 0, frameRequested = false;
   const invoke = () => window.__TAURI__?.core?.invoke;
   const enqueue = operation => { const next = serial.then(operation); serial = next.catch(() => {}); return next; };
   const send = command => invoke()("browser_panel_command", {command});
@@ -74,14 +74,20 @@ window.CoolzhuNativeBrowserPanel = (() => {
   function init(api) {
     if (adapter) return; adapter = api;
     if (!invoke()) return;
-    window.__TAURI__?.event?.listen("browser-panel-state", event => display(event.payload)).catch(error => adapter.status(`浏览器状态监听不可用：${error.message}`));
+    // 桌面壳仅向主 WebView 发送状态；全局 listen 的 Any 目标收不到该定向事件。
+    const nativeView = window.__TAURI__?.webview?.getCurrentWebview?.();
+    if (nativeView) nativeView.listen("browser-panel-state", event => display(event.payload)).catch(error => adapter.status(`浏览器状态监听不可用：${error.message}`));
+    else adapter.status("浏览器状态监听不可用");
     const frame = adapter.frame(); if (frame) new ResizeObserver(scheduleLayout).observe(frame);
     new MutationObserver(scheduleLayout).observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["hidden","class","open","style","data-right-collapsed","aria-hidden","inert"]});
     window.addEventListener("resize", scheduleLayout);
     window.addEventListener("beforeunload", () => { if (current) void send({action:"close",scope:current.scope}); });
   }
-  async function close() {
+  async function close({forgetTarget = false} = {}) {
     const previous = current; current = null; generation++;
+    // 显式关闭销毁原生资源；仅保留同工程、同聊天室再次打开时的地址。
+    if (forgetTarget) closedTarget = null;
+    else if (previous) closedTarget = {contextKey:previous.contextKey,url:previous.url};
     if (!previous || !invoke()) return;
     await enqueue(() => send({action:"close",scope:previous.scope}));
   }
@@ -95,10 +101,17 @@ window.CoolzhuNativeBrowserPanel = (() => {
     });
   }
   function resume() {
-    if (current?.contextKey === JSON.stringify(adapter.scope())) scheduleLayout();
+    const contextKey = JSON.stringify(adapter.scope());
+    if (current?.contextKey === contextKey) {
+      scheduleLayout();
+    } else if (!current && closedTarget?.contextKey === contextKey) {
+      // 只响应打开浏览器的界面操作；新视图重新登记资格，不续发旧输入。
+      void navigate(closedTarget.url).catch(error => adapter.status(`浏览器打开失败：${error.message}`));
+    }
   }
   async function navigate(url) {
     if (!invoke()) throw new Error("当前窗口不支持桌面浏览器");
+    closedTarget = null;
     const contextKey = JSON.stringify(adapter.scope());
     if (current?.contextKey === contextKey) {
       current.url = url;

@@ -1,0 +1,12 @@
+{
+  "before_ms": 1790863273238,
+  "down_event": {
+    "kind": "pointerdown",
+    "page_ms": 1790863289089,
+    "server_ms": 1790863289092
+  },
+  "observed_ms": 1790863297748,
+  "close_requested_ms": 1790863314079,
+  "close_returned_ms": 1790863314164,
+  "notice": "实际观察晚于8秒事件处理，需与pointerup及宿主输入结果比较，不追认关闭竞争命中。"
+}

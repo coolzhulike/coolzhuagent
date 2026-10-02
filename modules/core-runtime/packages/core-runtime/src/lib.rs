@@ -23,6 +23,8 @@ mod permission_gate;
 mod permissions;
 mod prompt;
 pub mod managed_process;
+pub mod dsh_host_process;
+pub mod dsh_runtime;
 mod plugin_manager_config;
 pub use plugin_manager_config::plugin_manager_for_workspace;
 mod recovery;

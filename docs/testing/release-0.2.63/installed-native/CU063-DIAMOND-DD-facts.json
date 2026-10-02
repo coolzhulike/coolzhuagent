@@ -1,0 +1,187 @@
+{
+  "test": "CU063-DIAMOND-DD",
+  "runtime": {
+    "id": "run-chat-e6ce8a58abe076f62acabb312e6c0c01a29b7b375f0f0c3e",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790860046675-0",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790860103221,
+    "created_at": 1790860046684
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da69b969d05dd4-tool-ab15f4cfa300b517762b2815e4ce545c6f8990a59722ac11a6e9e36000a0b66b",
+      "provider_tool_call_id": "tool-ab15f4cfa300b517762b2815e4ce545c6f8990a59722ac11a6e9e36000a0b66b",
+      "turn_id": "000000000000000218da69b969d05dd4",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "succeeded",
+      "state_version": 6,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790860054976,
+      "updated_at_ms": 1790860090658,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000218da69b969d05dd4-tool-ab15f4cfa300b517762b2815e4ce545c6f8990a59722ac11a6e9e36000a0b66b",
+        "provider_tool_call_id": "tool-ab15f4cfa300b517762b2815e4ce545c6f8990a59722ac11a6e9e36000a0b66b",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "desktop",
+        "summary": "最新原图逐项确认目标已达成",
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679.png:sha256=236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679.png:sha256=236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=3/3"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790860946675
+            }
+          },
+          "cu_deadline_ms": 1790860174976,
+          "cu_deadline_established_at_ms": 1790860054976,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅用一笔五点连续鼠标拖动，起终点一致",
+          "先由本轮新鲜原图定位真实白色画布，不把窗口容器范围当作白色画布",
+          "不使用历史坐标、形状工具、代码或导入",
+          "不擦除、不保存、不调整画布、不使用其它工具",
+          "结果不确定或失败立即停止，不重试，不再调用computer_use_perform",
+          "仅输入released或画面变化不算图形完成，必须以新鲜原图验收"
+        ],
+        "max_actions": 1,
+        "objective": "用户已明确授权本次 Paint 手绘测试。根据本轮新鲜截图，辨认真正白色画布中央偏下的未画线区域，用已选中的黑色铅笔手绘一个新的小闭合菱形。",
+        "success_criteria": [
+          "本轮新鲜原图可见新增小菱形的四条边闭合",
+          "菱形整体位于白色画布内",
+          "菱形与所有旧线条分离"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da69b969d05dd4-tool-ab15f4cfa300b517762b2815e4ce545c6f8990a59722ac11a6e9e36000a0b66b",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-48f6cea4-4e32-9e65-8cf0-f77587fd6fc3",
+      "error_code": null,
+      "started_at_ms": 1790860060681,
+      "completed_at_ms": 1790860090656,
+      "response": {
+        "bytes": 425,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 90,
+            "evidence_chars": 30,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          },
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 72,
+            "evidence_chars": 24,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 1,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 1,
+            "type": "object",
+            "unknown_field_count": 0
+          },
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 102,
+            "evidence_chars": 34,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 2,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 2,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 3,
+        "criteria_type": "array",
+        "progress": true,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000218da69b969d05dd4",
+      "call_id": "cu-session-1779459149988-000000000000000218da69b969d05dd4-tool-ab15f4cfa300b517762b2815e4ce545c6f8990a59722ac11a6e9e36000a0b66b",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 18943,
+      "output_tokens": 2197,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790860046675-0",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-e6ce8a58abe076f62acabb312e6c0c01a29b7b375f0f0c3e",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 18100,
+      "output_tokens": 514,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

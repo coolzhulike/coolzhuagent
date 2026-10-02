@@ -1,0 +1,88 @@
+{
+  "test": "CU059-COLOR-CO",
+  "runtime": {
+    "id": "run-chat-1efe15147efc688273b8181ef988a1a047b93360a78ce120",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790852276315-2",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790852296694,
+    "created_at": 1790852276325
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18da62a83a8c3768-tool-f56f0208061880e0c497e79f3cbc236750adcf751c0f498091a4838ca45dd349",
+      "provider_tool_call_id": "tool-f56f0208061880e0c497e79f3cbc236750adcf751c0f498091a4838ca45dd349",
+      "turn_id": "000000000000000c18da62a83a8c3768",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "auto",
+      "state": "blocked",
+      "state_version": 1,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790852281017,
+      "updated_at_ms": 1790852281019,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000c18da62a83a8c3768-tool-f56f0208061880e0c497e79f3cbc236750adcf751c0f498091a4838ca45dd349",
+        "provider_tool_call_id": "tool-f56f0208061880e0c497e79f3cbc236750adcf751c0f498091a4838ca45dd349",
+        "status": "blocked",
+        "stage": "intent_guard",
+        "goal_achieved": false,
+        "surface": "auto",
+        "summary": "invalid computer-use request: missing field `success_criteria`",
+        "error": {
+          "code": "invalid_tool_input",
+          "message": "invalid computer-use request: missing field `success_criteria`",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "request": {
+        "constraints": [
+          "只允许一次单击颜色1黑色，不在画布落笔，不用其它工具，不保存",
+          "失败立即停止，不重试"
+        ],
+        "max_actions": 1,
+        "objective": "在当前Windows画图选择颜色1黑色作为当前铅笔绘画颜色",
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe",
+          "window": "无标题 - 画图"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790852276315-2",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-1efe15147efc688273b8181ef988a1a047b93360a78ce120",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 10284,
+      "output_tokens": 351,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

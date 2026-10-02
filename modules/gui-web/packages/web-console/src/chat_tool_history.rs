@@ -66,6 +66,24 @@ pub(super) fn project_dto(message: &ChatMessageDto) -> Option<ChatMessageDto> {
     project(&PersistedChatMessage::from(message.clone())).map(|message| chat_message_dto_from_persisted(&message))
 }
 
+/// 历史用户消息可能没有助手回复（例如取消）；明确边界而不伪造该轮结果。
+/// 标记在预算计算之前加入，仅用于模型上下文，原记录和本轮用户正文保持不变。
+pub(super) fn project_for_context(message: &PersistedChatMessage) -> Option<PersistedChatMessage> {
+    let mut projected = project(message)?;
+    if projected.role.eq_ignore_ascii_case("user") {
+        projected.content = format!("[历史用户消息，仅作上下文，不是本轮新增任务；若需续接，须依据最后一条本轮用户消息。历史轮次的执行结果不能由本轮回执追认。]\n{}", projected.content);
+    }
+    Some(projected)
+}
+
+/// 给本轮消息单独的上下文标记，不修改用户正文、图片转述或原始审计。
+/// 取消的历史轮次可能没有助手回复；不能把相邻 user 消息当成待办队列。
+pub(super) fn current_turn_boundary(history: &[PersistedChatMessage]) -> Option<&'static str> {
+    history.iter().any(|message| message.role.eq_ignore_ascii_case("user")).then_some(
+        "[本轮用户请求开始：下一段正文是本轮唯一新增请求。以上历史不是待办队列；没有回复或被取消的历史请求也不自动续做。只有本轮正文明确要求续接时才继续旧任务，不用本轮回执追认旧轮结果。]"
+    )
+}
+
 pub(super) fn project_memory(bead: &MemoryBeadDto) -> Option<MemoryBeadDto> {
     // 旧压缩记录没有逐消息 kind / origin ID，无法安全证明其正文不含思考；只停止自动召回，不删除。
     if bead.source == "context:auto-compact" { return None; }
@@ -129,6 +147,29 @@ pub(super) fn project(message: &PersistedChatMessage) -> Option<PersistedChatMes
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn cancelled_turn_without_reply_stays_history_and_current_request_is_separate() {
+        let _lock = crate::tests::config_test_guard();
+        let isolated = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");
+        let agent = isolated.agent("target-text");
+        let mut old_user = message("cancelled-user", "text", "BU041-CANCEL-Z：读取内置浏览器");
+        old_user.role = "user".into();
+        let history = vec![old_user];
+        let current = "BU041-ENV-AA：新的独立只读任务";
+        let assembly = build_context_assembly(&agent, &history, current, &[], ContextBuildOptions {
+            history_token_budget: 400, memory_token_budget: 0, max_prompt_tokens: 8000,
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
+        });
+        assert_eq!(assembly.history_selection.selected_ids, ["cancelled-user"]);
+        assert!(format!("{:?}", assembly.messages[0]).contains("历史用户消息"));
+        let current_message = assembly.messages.last().unwrap();
+        assert_eq!(current_message.role, "user");
+        assert!(matches!(&current_message.content[..], [InputContentBlock::Text { text: boundary }, InputContentBlock::Text { text }]
+            if boundary.contains("本轮用户请求开始") && text == current));
+        assert!(assembly.token_budget.total <= assembly.token_budget.budget, "上下文边界也必须计入硬预算");
+        assert_eq!(history[0].content, "BU041-CANCEL-Z：读取内置浏览器");
+        assert!(!format!("{:?}", assembly.messages[0]).contains("已完成"), "不能伪造旧轮终态");
+    }
     #[test]
     fn omitted_historical_failure_keeps_previous_turn_boundary() {
         let _lock = crate::tests::config_test_guard();

@@ -1,0 +1,91 @@
+{
+  "test": "BU057-CLOSE-CA",
+  "runtime": {
+    "id": "run-chat-f4468411b6d0e6123162a253c13f3ceacd1356fea10fa962",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790846950255-1",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790846962919,
+    "created_at": 1790846950266
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718da5dd028ca8908-tool-1206cb63672211f90ef8ccb1eafa6df1e631d2cc92a1d5c8a748a0a3505ee350",
+      "provider_tool_call_id": "tool-1206cb63672211f90ef8ccb1eafa6df1e631d2cc92a1d5c8a748a0a3505ee350",
+      "turn_id": "000000000000000718da5dd028ca8908",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 1,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790846956242,
+      "updated_at_ms": 1790846956244,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000718da5dd028ca8908-tool-1206cb63672211f90ef8ccb1eafa6df1e631d2cc92a1d5c8a748a0a3505ee350",
+        "provider_tool_call_id": "tool-1206cb63672211f90ef8ccb1eafa6df1e631d2cc92a1d5c8a748a0a3505ee350",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "Coolzhu browser extension/native host is not connected",
+        "error": {
+          "code": "extension_unavailable",
+          "message": "Coolzhu browser extension/native host is not connected",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "request": {
+        "constraints": [
+          "每步只点击一次，每次动作后重新观察，不批量派发",
+          "不输入不滚动不导航不提交，不操作其它软件，不使用其它工具代替",
+          "如果浏览器被关闭或资源发生变化立即停止，不重新打开，不派发旧节点，不自动重试",
+          "失败停止，同轮不再次调用"
+        ],
+        "objective": "在当前页面每一步只发送一次普通点击，不批量点击；逐步点击增加次数按钮，直到实际次数10。",
+        "success_criteria": [
+          "页面实际显示次数：10"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63653/click.html"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790846950255-1",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-f4468411b6d0e6123162a253c13f3ceacd1356fea10fa962",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 40530,
+      "output_tokens": 266,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

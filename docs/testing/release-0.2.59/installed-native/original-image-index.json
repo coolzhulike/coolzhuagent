@@ -1,0 +1,80 @@
+{
+  "images": [
+    {
+      "file": "00-installed-console.jpg",
+      "bytes": 192257,
+      "sha256": "6bfb1e658ce276822e51f33df322ee6a127970ab60aa1164790456c4d86be656"
+    },
+    {
+      "file": "01-browser-counter-zero.jpg",
+      "bytes": 183211,
+      "sha256": "7136184a5075b28caf43ce840004fd89457456850ced90ecaf9f16b64ef349c4"
+    },
+    {
+      "file": "02-browser-limit-stopped-at-one.jpg",
+      "bytes": 191936,
+      "sha256": "396d179c59abaa5ee7ad9fea607223d908a7eb74de72959f2bf1721ced7c187d"
+    },
+    {
+      "file": "03-browser-limit-desktop-active.png",
+      "bytes": 1858800,
+      "sha256": "5d2fee40bba60c77ef1146c3e86e94aa325f26e6d6e5318e3343d728ee576c1c"
+    },
+    {
+      "file": "04-browser-single-click-two.jpg",
+      "bytes": 179111,
+      "sha256": "5aef7f5e8e40e8a8693c9c2e2690815cb7e47a9939e1b22e1b89c4acb4095fb9"
+    },
+    {
+      "file": "05-paint-before-model.jpg",
+      "bytes": 66838,
+      "sha256": "8301d1b0986506e416e5a81a53aeaf749dc6b11cf1551af43016d2307baaef56"
+    },
+    {
+      "file": "06-paint-color-invalid-request.jpg",
+      "bytes": 201817,
+      "sha256": "edcaf0f85dde5aca7556c339023de82812c7be86a52d963f35588b41428a9bf6"
+    },
+    {
+      "file": "07-paint-color-second-invalid-request.jpg",
+      "bytes": 191288,
+      "sha256": "5f4a5a9f9ad4225e32cc69d7788c9985cce04e4730f3eec349b60f005017245c"
+    },
+    {
+      "file": "08-paint-model-selected-black.jpg",
+      "bytes": 66717,
+      "sha256": "8cbb7c0ec03cf19b360fb5c5d30b7c5783cf8ce49f2a95288ffdb76dfb7ea39e"
+    },
+    {
+      "file": "09-paint-color-native-01.png",
+      "bytes": 275607,
+      "sha256": "8287158eceb7dff5fba1d18bb7ec241262ae4a185303f462c3f2012bfe078212"
+    },
+    {
+      "file": "09-paint-color-native-02.png",
+      "bytes": 276145,
+      "sha256": "7164993b05ce4e7f867720eec4fc3d4068b03f7b901143a61fa98e55529211f8"
+    },
+    {
+      "file": "11-paint-body-after-blocked.jpg",
+      "bytes": 66618,
+      "sha256": "5aab77cfc6e0b40df9ac329316019f05a8cbd649e4f1e68a5fb2e14448356819"
+    },
+    {
+      "file": "12-paint-body-blocked-console.jpg",
+      "bytes": 191915,
+      "sha256": "70edcb7225479e9a7ee35b18e5173954dab242891cdb09eb0fe3d3b802d47a39"
+    },
+    {
+      "file": "13-paint-body-native-01.png",
+      "bytes": 1600796,
+      "sha256": "1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09"
+    },
+    {
+      "file": "13-paint-body-native-02.png",
+      "bytes": 1600770,
+      "sha256": "2da5f7bf77e597e3e245e088458e320ad2f318030c4bcd92c473cef34a718c99"
+    }
+  ],
+  "unchanged_raw_bytes": true
+}

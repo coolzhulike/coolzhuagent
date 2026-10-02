@@ -1,0 +1,34 @@
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+   Compiling coolzhu-core-runtime v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\core-runtime\packages\core-runtime)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.61s
+     Running `target\debug\examples\dsh_plugin_probe.exe "C:/Program Files/nodejs/node.exe" C:/Users/zhupu/Desktop/coolzhuagent/modules/tooling/packages/dsh-plugin-host/src/process.mjs C:/Users/zhupu/Desktop/coolzhuagent/tmp/browser-use-priority/dsh-install-isolated-home\plugins\installed\dsh-6f1c04677b06992030e52a28-external C:/Users/zhupu/Desktop/coolzhuagent/tmp/browser-use-priority/dsh-static-install-receipt.json C:/Users/zhupu/Desktop/coolzhuagent/tmp/browser-use-priority/dsh-installed-process-receipt.json`
+真实插件进程加载、执行96、旧修订/未核验导入拒绝、根取消拒绝均通过

@@ -176,9 +176,12 @@ window.CoolzhuWorkspacePanels = (() => {
     if (!api) return;
     const next = scopeKey();
     if (scopeId === next) return;
+    // 切换发送模型仍属于同一聊天室；只在工程或聊天室改变时清理浏览器地址。
+    const browserContextChanged = scopeId.split("\u0000").slice(0, 2).join("\u0000") !== next.split("\u0000").slice(0, 2).join("\u0000");
     saveTabs(); scopeId = next; activationVersion++;
     window.CoolzhuVideoWait?.scopeChanged();
-    void window.CoolzhuNativeBrowserPanel?.close().catch(() => {});
+    void window.CoolzhuNativeBrowserPanel?.close({forgetTarget:browserContextChanged}).catch(() => {});
+    if (browserContextChanged) api.resetBrowser?.();
     const browserFrame = document.querySelector('[data-role="browser-window-frame"]');
     if (browserFrame) { browserFrame.src = "about:blank"; delete browserFrame.dataset.currentUrl; }
     window.CoolzhuContentPreview?.dispose(); traceController?.abort(); traceBefore = null;

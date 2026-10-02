@@ -1,0 +1,251 @@
+{
+  "test": "BU063-SINGLE-DF",
+  "runtime": {
+    "id": "run-chat-b2fd06cbbbe82b6f9a0c7aa25b20e7336da148a9f775cf5a",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790860720477-2",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790860747813,
+    "created_at": 1790860720487
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18da6a564b598734-tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+      "provider_tool_call_id": "tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+      "turn_id": "000000000000000c18da6a564b598734",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790860726972,
+      "updated_at_ms": 1790860739982,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000c18da6a564b598734-tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+        "provider_tool_call_id": "tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"c75467cfbacc4cba1541443cfdb4cfd6\",\"freshness_confirmed\":true,\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"bebb6e49c114ca59cf190770c551e293\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":14,\"nodes\":[{\"index\":8,\"name\":\"次数：1\",\"role\":\"StaticText\"}],\"title\":\"单次点击验收\",\"truncated\":false,\"url\":\"http://127.0.0.1:63653/click.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:161179c2c40fdd267f3458e96ecab4d8",
+          "native-ax:1:1",
+          "native-observation:161179c2c40fdd267f3458e96ecab4d8",
+          "native-input:176e3d8cedf81c726ed2169d4910a98f",
+          "native-ax:1:1",
+          "native-observation:bebb6e49c114ca59cf190770c551e293",
+          "native-ax:1:1",
+          "native-observation:bebb6e49c114ca59cf190770c551e293",
+          "native-ax:1:1",
+          "native-observation:c75467cfbacc4cba1541443cfdb4cfd6"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790861620477
+            }
+          },
+          "cu_deadline_ms": 1790860846972,
+          "cu_deadline_established_at_ms": 1790860726972,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅一次单击",
+          "不导航",
+          "不输入",
+          "不滚动",
+          "不用其它工具",
+          "失败即停止不重试"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏原生浏览器单击增加次数把次数从0变为1",
+        "success_criteria": [
+          "本轮新鲜页面实际显示次数：1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63653/click.html"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18da6a564b598734-tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-748b8bd5-7365-9bbf-a01b-66d0c8f3be7c",
+      "error_code": null,
+      "started_at_ms": 1790860727048,
+      "completed_at_ms": 1790860731565,
+      "response": {
+        "action": {
+          "arguments": {},
+          "kind": "click",
+          "target": "dom-9930dc1bcdf4bf39e598e152e6e4587a"
+        },
+        "done": false,
+        "observation_facts": {
+          "candidate_count": 2,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 14,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 0,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18da6a564b598734-tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-c8cac16c-f142-92d9-b0a6-4084516df17e",
+      "error_code": null,
+      "started_at_ms": 1790860733909,
+      "completed_at_ms": 1790860739975,
+      "response": {
+        "bytes": 80,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 10,
+            "evidence_chars": 4,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": true,
+            "met_type": "boolean",
+            "node_indices_count": 1,
+            "node_indices_type": "array",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "observation_facts": {
+          "candidate_count": 2,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 14,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 0,
+          "truncated": false
+        },
+        "progress": null,
+        "progress_type": "missing",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000c18da6a564b598734",
+      "call_id": "cu-session-1779459149988-000000000000000c18da6a564b598734-tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 1770,
+      "output_tokens": 127,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000000c18da6a564b598734",
+      "call_id": "cu-session-1779459149988-000000000000000c18da6a564b598734-tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 735,
+      "output_tokens": 284,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790860720477-2",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-b2fd06cbbbe82b6f9a0c7aa25b20e7336da148a9f775cf5a",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19020,
+      "output_tokens": 294,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000c18da6a564b598734-tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-9930dc1bcdf4bf39e598e152e6e4587a",
+      "status": "verified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "released",
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "started_at_ms": 1790860731569,
+      "completed_at_ms": 1790860733135,
+      "native_dispatch_state": "released",
+      "native_ticket_id": "971d6213f28955c1b432f2f04f14d995",
+      "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"c4a7d6c2b0331aee2fad7895c5618de3\",\"host_id\":\"native-2d4b21c023746266ff8d8afb601709c8\",\"process\":{\"instance_id\":\"c1b30e2ea0302550da324ac576c00f1b\",\"boot_id\":\"2d4b21c023746266ff8d8afb601709c8\",\"pid\":3864,\"creation_time_filetime\":134353335372030593,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\coolzhuagent\",\"room_id\":\"room-1790567510595\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":1}},\"attempt_key\":\"browser:dom-9930dc1bcdf4bf39e598e152e6e4587a:a4f10e11911c5960#gen1#cu-session-1779459149988-000000000000000c18da6a564b598734-tool-94fe0478455a567cd5a56a604ec9881c6d83bde7d49a08506ad75e77bdcf8607:step-0#attempt1\",\"ticket_id\":\"971d6213f28955c1b432f2f04f14d995\",\"observation_id\":\"161179c2c40fdd267f3458e96ecab4d8\",\"document_token\":\"24e3ab54f5f63d2c6ed79398e2334776\",\"node_id\":\"9930dc1bcdf4bf39e598e152e6e4587a\",\"input_kind\":\"click\"}"
+    }
+  ]
+}

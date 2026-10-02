@@ -1,0 +1,81 @@
+{
+  "test": "BU041-CANCEL-Z",
+  "runtime": {
+    "id": "run-chat-9aa322f3112edfa6f589ae40eccb3227b3fc5a7556d8f3bb",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790791020596-7",
+    "state": "interrupted",
+    "stop_requested_at": 1790791036047,
+    "finished_at": 1790791036059,
+    "created_at": 1790791020607
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001d18da2af206788c94-tool-1b1f236912603789213e9b39d37f4d49eaf703553c2016df93c9de078ab4b920",
+      "provider_tool_call_id": "tool-1b1f236912603789213e9b39d37f4d49eaf703553c2016df93c9de078ab4b920",
+      "turn_id": "000000000000001d18da2af206788c94",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "cancelled",
+      "state_version": 5,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790791029211,
+      "updated_at_ms": 1790791036069,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001d18da2af206788c94-tool-1b1f236912603789213e9b39d37f4d49eaf703553c2016df93c9de078ab4b920",
+        "provider_tool_call_id": "tool-1b1f236912603789213e9b39d37f4d49eaf703553c2016df93c9de078ab4b920",
+        "status": "cancelled",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "originating chat turn was interrupted; no further input is allowed",
+        "error": {
+          "code": "cancelled",
+          "message": "originating chat turn was interrupted; no further input is allowed",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790791920596
+            }
+          },
+          "cu_deadline_ms": 1790791149211,
+          "cu_deadline_established_at_ms": 1790791029211,
+          "cu_budget_ms": 120000
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "000000000000001d18da2af206788c94",
+      "call_id": "cu-session-1779459149988-000000000000001d18da2af206788c94-tool-1b1f236912603789213e9b39d37f4d49eaf703553c2016df93c9de078ab4b920",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 1000,
+      "output_tokens": 682,
+      "http_status": null
+    }
+  ]
+}

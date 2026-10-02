@@ -1,0 +1,18 @@
+{
+  "test": "BU047-NAV-AU",
+  "runtime": {
+    "id": "run-chat-8843d39cf7457c3d53744477db9e4551addf6b0263df4639",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790827383134-2",
+    "state": "failed",
+    "stop_requested_at": null,
+    "finished_at": 1790827445079,
+    "created_at": 1790827383145
+  },
+  "computer_use": [],
+  "diagnostics": [],
+  "usage": [],
+  "steps": []
+}

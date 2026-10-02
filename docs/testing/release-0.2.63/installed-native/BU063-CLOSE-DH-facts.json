@@ -1,0 +1,195 @@
+{
+  "test": "BU063-CLOSE-DH",
+  "runtime": {
+    "id": "run-chat-4c352daf1b253784c544f6f75033b0a118b74914599a629e",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790863273348-4",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790863301486,
+    "created_at": 1790863273360
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001618da6ca8b4c2bd90-tool-23c0306ac0651513fb36b3ecaa9621b659885bb0cbc70bd50f4c8ac44ce8fa94",
+      "provider_tool_call_id": "tool-23c0306ac0651513fb36b3ecaa9621b659885bb0cbc70bd50f4c8ac44ce8fa94",
+      "turn_id": "000000000000001618da6ca8b4c2bd90",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790863280754,
+      "updated_at_ms": 1790863292119,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001618da6ca8b4c2bd90-tool-23c0306ac0651513fb36b3ecaa9621b659885bb0cbc70bd50f4c8ac44ce8fa94",
+        "provider_tool_call_id": "tool-23c0306ac0651513fb36b3ecaa9621b659885bb0cbc70bd50f4c8ac44ce8fa94",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "持久面板动作释放未确认",
+        "error": {
+          "code": "native_input_outcome_unknown",
+          "message": "持久面板动作释放未确认",
+          "retryable": false,
+          "retry_owner": "user",
+          "receipt": {
+            "action_id": "browser:dom-ba9e2a5058df407d6339d16c1fcc06f5:9c43078d87427c17",
+            "input_delivery": "may_have_been_sent",
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "unknown"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:3:3",
+          "native-observation:7cfcb0b2fafec054b2a07c021e04c87a",
+          "native-ax:3:3",
+          "native-observation:7cfcb0b2fafec054b2a07c021e04c87a"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790864173348
+            }
+          },
+          "cu_deadline_ms": 1790863400754,
+          "cu_deadline_established_at_ms": 1790863280754,
+          "cu_budget_ms": 120000
+        },
+        "cleanup": {
+          "business_deadline_ms": 1790863400754,
+          "new_business_input_stopped_at_ms": 1790863292119,
+          "cleanup_started_at_ms": 1790863292119,
+          "cleanup_finished_at_ms": 1790863292119,
+          "release": "unconfirmed",
+          "quarantined": true,
+          "exceeded_business_deadline": false
+        }
+      },
+      "request": {
+        "constraints": [
+          "只允许一次单击",
+          "不导航、不输入、不滚动、不用其它工具",
+          "页面关闭或任何失败立即结束，不重开、不重试、不补发",
+          "不能把投递或输入释放当目标完成",
+          "用本轮新鲜网页观察选按钮及验证，不用桌面UIA或历史坐标"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏原生浏览器单击增加次数把次数从0变为1",
+        "success_criteria": [
+          "本轮新鲜页面实际显示次数：1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63655/slow.html"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001618da6ca8b4c2bd90-tool-23c0306ac0651513fb36b3ecaa9621b659885bb0cbc70bd50f4c8ac44ce8fa94",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-0274b553-24f7-9aa3-ac1e-884788454d15",
+      "error_code": null,
+      "started_at_ms": 1790863281513,
+      "completed_at_ms": 1790863287158,
+      "response": {
+        "action": {
+          "arguments": {},
+          "kind": "click",
+          "target": "dom-ba9e2a5058df407d6339d16c1fcc06f5"
+        },
+        "done": false,
+        "observation_facts": {
+          "candidate_count": 2,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 14,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 0,
+          "truncated": false
+        }
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000001618da6ca8b4c2bd90",
+      "call_id": "cu-session-1779459149988-000000000000001618da6ca8b4c2bd90-tool-23c0306ac0651513fb36b3ecaa9621b659885bb0cbc70bd50f4c8ac44ce8fa94",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 1811,
+      "output_tokens": 137,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790863273348-4",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-4c352daf1b253784c544f6f75033b0a118b74914599a629e",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 19957,
+      "output_tokens": 335,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000001618da6ca8b4c2bd90-tool-23c0306ac0651513fb36b3ecaa9621b659885bb0cbc70bd50f4c8ac44ce8fa94",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-ba9e2a5058df407d6339d16c1fcc06f5",
+      "status": "failed",
+      "error_code": "native_input_outcome_unknown",
+      "input_delivery": "may_have_been_sent",
+      "partial": null,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "unknown",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1790863287163,
+      "completed_at_ms": 1790863292107,
+      "native_dispatch_state": "release_unknown",
+      "native_ticket_id": "fd88ef6ac7802d80f61b9c375dbad320",
+      "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"842c211dd355372d12706653d03e6439\",\"host_id\":\"native-2d4b21c023746266ff8d8afb601709c8\",\"process\":{\"instance_id\":\"c1b30e2ea0302550da324ac576c00f1b\",\"boot_id\":\"2d4b21c023746266ff8d8afb601709c8\",\"pid\":3864,\"creation_time_filetime\":134353335372030593,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\coolzhuagent\",\"room_id\":\"room-1790567510595\",\"label\":\"browser-panel-3\",\"generation\":3,\"navigation_revision\":3}},\"attempt_key\":\"browser:dom-ba9e2a5058df407d6339d16c1fcc06f5:9c43078d87427c17#gen1#cu-session-1779459149988-000000000000001618da6ca8b4c2bd90-tool-23c0306ac0651513fb36b3ecaa9621b659885bb0cbc70bd50f4c8ac44ce8fa94:step-0#attempt1\",\"ticket_id\":\"fd88ef6ac7802d80f61b9c375dbad320\",\"observation_id\":\"7cfcb0b2fafec054b2a07c021e04c87a\",\"document_token\":\"46e29fe22d9ac3aff77d05c4e87c61c9\",\"node_id\":\"ba9e2a5058df407d6339d16c1fcc06f5\",\"input_kind\":\"click\"}"
+    }
+  ]
+}

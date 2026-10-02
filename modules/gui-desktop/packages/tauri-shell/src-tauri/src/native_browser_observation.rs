@@ -1,144 +1,132 @@
-//! 右栏 WebView2 的只读观察。固定 Accessibility 调用，不新增网页 IPC，不执行 JS。
+//! 原生网页观察：固定宿主读调用、实际文档身份与有限AX；不执行JS或发送输入。
 use native_browser_protocol::{ObservedNode, PageObservation, PanelResource};
 use tauri::{AppHandle, Manager};
+use super::{native_browser_devtools::{self,ReadMethod},native_browser_nodes::DocumentIdentity};
 
-#[cfg(windows)]
-mod bounded_callback {
-    use webview2_com::Microsoft::Web::WebView2::Win32::{
-        ICoreWebView2CallDevToolsProtocolMethodCompletedHandler,
-        ICoreWebView2CallDevToolsProtocolMethodCompletedHandler_Impl,
-    };
-    use windows::core::{implement, HRESULT, PCWSTR};
-
-    #[implement(ICoreWebView2CallDevToolsProtocolMethodCompletedHandler)]
-    pub(super) struct Handler(pub(super) Box<dyn Fn(HRESULT, &PCWSTR) -> windows::core::Result<()>>);
-
-    impl ICoreWebView2CallDevToolsProtocolMethodCompletedHandler_Impl for Handler_Impl {
-        fn Invoke(&self, status: HRESULT, text: &PCWSTR) -> windows::core::Result<()> {
-            (self.0)(status, text)
-        }
-    }
-
-    /// COM 保证返回值是调用期间有效的零终止字符串；在创建 Rust String 前限长。
-    pub(super) unsafe fn read(text: &PCWSTR) -> Result<String, String> {
-        if text.is_null() { return Err("native_observation_invalid".into()); }
-        // 最坏 UTF-8 字节数仍低于 project_tree 的 1MiB 上限，拒绝而非截断 JSON。
-        let limit = 262_144;
-        let mut length = 0;
-        while length <= limit {
-            if unsafe { *text.0.add(length) } == 0 {
-                return String::from_utf16(unsafe { std::slice::from_raw_parts(text.0, length) })
-                    .map_err(|_| "native_observation_invalid".into());
-            }
-            length += 1;
-        }
-        Err("native_observation_too_large".into())
-    }
-}
-
-fn bounded_text(value: Option<&serde_json::Value>, limit: usize) -> String {
+pub(super) fn bounded_text(value: Option<&serde_json::Value>, limit: usize) -> String {
     value.and_then(|value| value.get("value")).and_then(serde_json::Value::as_str)
-        .unwrap_or_default().chars().filter(|character| !character.is_control()).take(limit).collect()
+        .unwrap_or_default().chars().filter(|c| !c.is_control()).take(limit).collect()
 }
-
-fn project_tree(raw: &str) -> Result<PageObservation, String> {
-    if raw.len() > 1_048_576 { return Err("native_observation_too_large".into()); }
-    let value: serde_json::Value = serde_json::from_str(raw).map_err(|_| "native_observation_invalid")?;
-    let nodes = value.get("nodes").and_then(serde_json::Value::as_array)
-        .ok_or("native_observation_invalid")?;
-    let mut result = PageObservation {url:String::new(), title:String::new(), nodes:Vec::new(), truncated:false};
+fn focused_editor(node: &serde_json::Value, role: &str) -> bool {
+    matches!(role, "textbox" | "searchbox")
+        && node.get("properties").and_then(serde_json::Value::as_array).is_some_and(|properties|
+            properties.iter().any(|property| property["name"] == "focused"
+                && property.pointer("/value/value").and_then(serde_json::Value::as_bool) == Some(true)))
+}
+fn project_tree(value: &serde_json::Value) -> Result<PageObservation,String> {
+    let nodes = value.get("nodes").and_then(serde_json::Value::as_array).ok_or("native_observation_invalid")?;
+    let mut result = PageObservation {url:String::new(),title:String::new(),nodes:Vec::new(),truncated:false,
+        document_token:None,node_handles:Vec::new(),viewport:None,focused_node_index:None};
     for node in nodes {
         if node.get("ignored").and_then(serde_json::Value::as_bool) != Some(false) { continue; }
-        let role = bounded_text(node.get("role"), 64);
-        let name = bounded_text(node.get("name"), 256);
-        if role == "RootWebArea" { result.title = name.clone(); }
+        let role = bounded_text(node.get("role"),64);
+        let name = bounded_text(node.get("name"),256);
+        if role == "RootWebArea" && result.title.is_empty() { result.title = name.clone(); }
         if role.is_empty() && name.is_empty() { continue; }
         if result.nodes.len() == 128 { result.truncated = true; break; }
-        // 不提取 value、properties 或属性；name 仍是可能含私密文本的不可信页面内容。
-        result.nodes.push(ObservedNode {role, name});
+        // 不提取value/properties；name仍是可能含私密内容的不可信页面文字。
+        result.nodes.push(ObservedNode {role,name});
     }
     Ok(result)
 }
+pub(super) async fn document(app: &AppHandle, resource: &PanelResource) -> Result<DocumentIdentity,String> {
+    let frame = native_browser_devtools::read(app,resource,ReadMethod::FrameTree).await?;
+    let root = native_browser_devtools::read(app,resource,ReadMethod::Document).await?;
+    DocumentIdentity::from_host(&frame,&root)
+}
 
-pub(super) async fn observe(app: &AppHandle, expected: &PanelResource) -> Result<PageObservation, String> {
-    if super::browser_panel::input_resource(app).as_ref() != Some(expected) {
-        return Err("native_browser_resource_changed".into());
+pub(super) fn regular_document_nodes(tree: &serde_json::Value) -> std::collections::HashSet<i64> {
+    let mut found = std::collections::HashSet::new();
+    let Some(root) = tree.get("root") else { return found; };
+    let mut pending = vec![root];
+    while let Some(node) = pending.pop() {
+        // 只遍历children，不进入shadowRoots/contentDocument/pseudoElements。
+        if found.len() >= 2048 { return std::collections::HashSet::new(); }
+        if let Some(id) = node["backendNodeId"].as_i64().filter(|id| *id > 0) { found.insert(id); }
+        if let Some(children) = node["children"].as_array() { pending.extend(children); }
     }
-    #[cfg(windows)]
-    {
-        use webview2_com::{CoTaskMemPWSTR, Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler};
-        let view = app.get_webview(&expected.label).ok_or("native_browser_unavailable")?;
-        let url = view.url().map_err(|_| "native_browser_unavailable")?.to_string();
-        let (sender, receiver) = tokio::sync::oneshot::channel();
-        let sender = std::sync::Arc::new(std::sync::Mutex::new(Some(sender)));
-        let app_on_ui = app.clone();
-        let resource_on_ui = expected.clone();
-        view.with_webview(move |platform| {
-            // COM 派发前在所属 UI 线程再次核对资源；租约不是授权，也不替代这里的核对。
-            let send = |result| {
-                if let Ok(mut sender) = sender.lock() {
-                    if let Some(sender) = sender.take() { let _ = sender.send(result); }
+    found
+}
+pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observation_id: &str) -> Result<PageObservation,String> {
+    if super::browser_panel::input_resource(app).as_ref() != Some(expected) { return Err("native_browser_resource_changed".into()); }
+    let url = app.get_webview(&expected.label).ok_or("native_browser_unavailable")?
+        .url().map_err(|_| "native_browser_unavailable")?.to_string();
+    let stamp = document(app,expected).await?;
+    // 仅采顶层已核实frame；第一阶段不提供iframe/shadow-document可操作引用。
+    let tree = native_browser_devtools::read(app,expected,ReadMethod::Accessibility(stamp.frame_id.clone())).await?;
+    let mut page = project_tree(&tree)?;
+    let metrics = native_browser_devtools::read(app,expected,ReadMethod::LayoutMetrics).await?;
+    let viewport = &metrics["cssVisualViewport"];
+    let number = |key| viewport[key].as_f64().ok_or("native_browser_viewport_invalid");
+    let viewport = native_browser_protocol::PageViewport {
+        page_x:number("pageX")?, page_y:number("pageY")?,
+        width:number("clientWidth")?, height:number("clientHeight")?,
+    };
+    if !viewport.valid_shape() { return Err("native_browser_viewport_invalid".into()); }
+    page.viewport = Some(viewport);
+    let ordinary_nodes = regular_document_nodes(&native_browser_devtools::read(app,expected,ReadMethod::DocumentNodes).await?);
+    if document(app,expected).await? != stamp || super::browser_panel::input_resource(app).as_ref() != Some(expected)
+        || app.get_webview(&expected.label).and_then(|view| view.url().ok()).as_ref().map(|url| url.as_str()) != Some(url.as_str()) {
+        return Err("native_browser_document_changed".into());
+    }
+    let mut candidates = Vec::new();
+    let mut focused_editors = Vec::new();
+    let mut index = 0;
+    for node in tree["nodes"].as_array().ok_or("native_observation_invalid")? {
+        if node["ignored"].as_bool() != Some(false) { continue; }
+        let role = bounded_text(node.get("role"),64);
+        let name = bounded_text(node.get("name"),256);
+        if role.is_empty() && name.is_empty() { continue; }
+        if index >= page.nodes.len() { break; }
+        if ["RootWebArea","button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str())
+            && node.get("frameId").and_then(serde_json::Value::as_str).is_none_or(|frame| frame == stamp.frame_id) {
+            if let Some(backend) = node.get("backendDOMNodeId").and_then(serde_json::Value::as_i64).filter(|id| ordinary_nodes.contains(id)) {
+                candidates.push((index,backend,role,name));
+                // 只读取类型化focused布尔值，绝不透传value或整个AX properties。
+                if focused_editor(node, &page.nodes[index].role) {
+                    focused_editors.push(index);
                 }
-            };
-            if super::browser_panel::input_resource(&app_on_ui).as_ref() != Some(&resource_on_ui) {
-                send(Err("native_browser_resource_changed".into())); return;
             }
-            let callback_sender = sender.clone();
-            let callback_app = app_on_ui.clone();
-            let handler: ICoreWebView2CallDevToolsProtocolMethodCompletedHandler = bounded_callback::Handler(Box::new(move |status, text| {
-                let result = if status.is_err() {
-                    Err("native_observation_failed".into())
-                } else if super::browser_panel::input_resource(&callback_app).as_ref() != Some(&resource_on_ui) {
-                    Err("native_browser_resource_changed".into())
-                } else if callback_app.get_webview(&resource_on_ui.label)
-                    .and_then(|view| view.url().ok()).as_ref().map(|value| value.as_str()) != Some(url.as_str()) {
-                    Err("native_browser_resource_changed".into())
-                } else {
-                    // 在 UTF-16 转 String 前限长；只读结果也不写原始 CDP 响应到日志。
-                    unsafe { bounded_callback::read(text) }.and_then(|text| project_tree(&text)).and_then(|mut observation| {
-                        observation.url = url.clone();
-                        if observation.valid_shape() { Ok(observation) } else { Err("native_observation_invalid".into()) }
-                    })
-                };
-                if let Ok(mut sender) = callback_sender.lock() {
-                    if let Some(sender) = sender.take() { let _ = sender.send(result); }
-                }
-                Ok(())
-            })).into();
-            let method = CoTaskMemPWSTR::from("Accessibility.getFullAXTree");
-            let parameters = CoTaskMemPWSTR::from(r#"{"depth":6}"#);
-            let result = unsafe { platform.controller().CoreWebView2()
-                .and_then(|core| core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(), *parameters.as_ref().as_pcwstr(), &handler)) };
-            if result.is_err() { send(Err("native_observation_failed".into())); }
-        }).map_err(|_| "native_browser_unavailable".to_string())?;
-        tokio::time::timeout(std::time::Duration::from_secs(2), receiver).await
-            .map_err(|_| "native_observation_timeout".to_string())?
-            .map_err(|_| "native_observation_cancelled".to_string())?
+        }
+        index += 1;
     }
-    #[cfg(not(windows))]
-    { Err("native_observation_platform_unsupported".into()) }
+    let (token,handles) = super::native_browser_nodes::register(expected,&stamp,observation_id,&candidates)?;
+    page.url = url; page.document_token = Some(token); page.node_handles = handles;
+    page.focused_node_index = (focused_editors.len() == 1).then(|| focused_editors[0]);
+    if page.valid_shape() { Ok(page) } else { Err("native_observation_invalid".into()) }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn ax_projection_is_bounded_and_does_not_collect_input_values() {
-        let raw = r#"{"nodes":[{"ignored":false,"role":{"value":"textbox"},"name":{"value":"口令"},"value":{"value":"SECRET"},"properties":[{"name":"value","value":"SECRET"}]},{"ignored":true,"name":{"value":"HIDDEN"}},{"ignored":false,"role":{"value":"button"},"name":{"value":"查询"}}]}"#;
-        let mut observation = project_tree(raw).unwrap();
-        observation.url = "https://example.invalid/".into();
-        let json = serde_json::to_string(&observation).unwrap();
-        assert!(observation.valid_shape());
-        assert!(!json.contains("SECRET") && !json.contains("HIDDEN"));
-        assert_eq!(observation.nodes.len(), 2);
-        assert!(project_tree(&"x".repeat(1_048_577)).is_err());
-        #[cfg(windows)]
-        {
-            let normal: Vec<u16> = "页面".encode_utf16().chain(std::iter::once(0)).collect();
-            let oversized: Vec<u16> = std::iter::repeat_n(120u16, 262_145).chain(std::iter::once(0)).collect();
-            assert_eq!(unsafe { bounded_callback::read(&windows::core::PCWSTR(normal.as_ptr())) }.unwrap(), "页面");
-            assert!(unsafe { bounded_callback::read(&windows::core::PCWSTR(oversized.as_ptr())) }.is_err());
-            assert!(unsafe { bounded_callback::read(&windows::core::PCWSTR::null()) }.is_err());
-        }
+    fn ax_projection_omits_private_values_and_preserves_top_title() {
+        let raw = serde_json::json!({"nodes":[
+            {"ignored":false,"role":{"value":"RootWebArea"},"name":{"value":"主页面"}},
+            {"ignored":false,"role":{"value":"textbox"},"name":{"value":"口令"},"value":{"value":"SECRET"}},
+            {"ignored":true,"name":{"value":"HIDDEN"}},
+            {"ignored":false,"role":{"value":"RootWebArea"},"name":{"value":"子页面"}}]});
+        let mut page = project_tree(&raw).unwrap(); page.url = "https://example.invalid/".into();
+        let text = serde_json::to_string(&page).unwrap();
+        assert!(page.valid_shape()); assert_eq!(page.title,"主页面");
+        assert!(!text.contains("SECRET") && !text.contains("HIDDEN"));
+        let focus = serde_json::json!({"properties":[{"name":"focused","value":{"value":true}},
+            {"name":"value","value":{"value":"SECRET"}}]});
+        assert!(focused_editor(&focus,"textbox"));
+        assert!(!focused_editor(&focus,"button"));
+        assert!(!focused_editor(&serde_json::json!({"properties":[{"name":"focused","value":{"value":"true"}}]}),"textbox"));
+        page.document_token = Some("a".repeat(32));
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32)});
+        page.focused_node_index = Some(1);
+        assert!(page.valid_shape());
+        page.focused_node_index = Some(0);
+        assert!(!page.valid_shape());
+        page.focused_node_index = None;
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:999,node_id:"0".repeat(32)});
+        assert!(!page.valid_shape());
+        let dom = serde_json::json!({"root":{"backendNodeId":1,"children":[{"backendNodeId":2,
+            "shadowRoots":[{"backendNodeId":3}],"contentDocument":{"backendNodeId":4}}]}});
+        let ids = regular_document_nodes(&dom);
+        assert!(ids.contains(&1) && ids.contains(&2) && !ids.contains(&3) && !ids.contains(&4));
     }
 }

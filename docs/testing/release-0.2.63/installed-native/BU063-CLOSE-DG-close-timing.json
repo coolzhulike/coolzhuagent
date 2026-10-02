@@ -1,0 +1,11 @@
+{
+  "before_ms": 1790861317686,
+  "down_event": {
+    "kind": "pointerdown",
+    "page_ms": 1790861331157,
+    "server_ms": 1790861331160
+  },
+  "close_requested_ms": 1790861350638,
+  "close_returned_ms": 1790861350715,
+  "notice": "时序必须与原始页面pointerup比较，不由正在执行文案认定输入期间关闭。"
+}

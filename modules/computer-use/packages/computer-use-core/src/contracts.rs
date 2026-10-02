@@ -46,10 +46,20 @@ pub struct ComputerUseRequest {
     pub success_criteria: Vec<String>,
     #[serde(default)]
     pub constraints: Vec<String>,
+    /// 单次请求的动作尝试上限，只能收紧宿主预算；一次连续拖动计一个动作。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_actions: Option<usize>,
 }
 
 impl ComputerUseRequest {
     pub fn validate(&self) -> Result<(), ComputerUseError> {
+        if self.max_actions == Some(0) {
+            return Err(ComputerUseError::blocked(
+                "invalid_max_actions",
+                "max_actions must be at least 1",
+                ComputerUseRetryOwner::Model,
+            ));
+        }
         if self.objective.trim().is_empty() {
             return Err(ComputerUseError::blocked(
                 "invalid_objective",
@@ -514,6 +524,12 @@ mod tests {
             Some("notepad")
         );
         assert!(request.validate().is_ok());
+        assert_eq!(request.max_actions, None);
+        let mut bounded = request;
+        bounded.max_actions = Some(1);
+        assert!(bounded.validate().is_ok());
+        bounded.max_actions = Some(0);
+        assert_eq!(bounded.validate().unwrap_err().code, "invalid_max_actions");
     }
 
     #[test]

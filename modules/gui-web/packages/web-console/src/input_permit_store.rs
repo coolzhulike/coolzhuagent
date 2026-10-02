@@ -253,7 +253,7 @@ fn scope_of(raw: &str) -> Result<InputSafetyResourceScope, PermitStoreError> {
 
 /// 许可存储适配器。
 pub(crate) struct PermitStore<'a> {
-    connection: &'a Connection,
+    pub(super) connection: &'a Connection,
 }
 
 impl<'a> PermitStore<'a> {
@@ -264,7 +264,7 @@ impl<'a> PermitStore<'a> {
     /// 在一个**短事务**里读取—判断—写入（裁决 §3.3）。
     ///
     /// 用 `BEGIN IMMEDIATE` 建立写入顺序：拿不到写锁时**显式**返回写锁竞争，不重试到看起来成功。
-    fn in_immediate_transaction<T>(
+    pub(super) fn in_immediate_transaction<T>(
         &self,
         _operation: &'static str,
         run: impl FnOnce(&Connection) -> Result<T, PermitStoreError>,
@@ -301,6 +301,20 @@ impl<'a> PermitStore<'a> {
         defined_state: InputPermitState,
         now_unix_ms: u64,
     ) -> Result<(), PermitStoreError> {
+        self.register_pending_bound(permit, defined_state, now_unix_ms, None)
+    }
+
+    pub(super) fn register_pending_bound(
+        &self, permit: &InputPermit, defined_state: InputPermitState, now_unix_ms: u64,
+        panel: Option<&crate::persistent_panel_executor::PanelPermitBinding>,
+    ) -> Result<(), PermitStoreError> {
+        let binding = panel.map(|binding| {
+            if !binding.valid_shape() || permit.executor_instance_id.as_deref() != Some(binding.executor.executor_instance_id.as_str())
+                || permit.execution_attempt_id.stable_key() != binding.attempt_key {
+                return Err(PermitStoreError::ConditionNotMet {what:"持久面板绑定与许可尝试身份不符"});
+            }
+            serde_json::to_string(binding).map_err(|error| PermitStoreError::Sqlite(error.to_string()))
+        }).transpose()?;
         if defined_state != InputPermitState::PendingActivation {
             return Err(PermitStoreError::ConditionNotMet {
                 what: "登记路径只接受待激活状态（其它状态由转换路径产生）",
@@ -358,8 +372,8 @@ impl<'a> PermitStore<'a> {
                         gate_revision, issued_owner_id, issued_epoch,
                         expires_at_unix_ms, executor_instance_id, state, revision,
                         revocation_reason, updated_at_unix_ms,
-                        observation_generation, step_identity, attempt_sequence, execution_attempt_id
-                     ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18)",
+                        observation_generation, step_identity, attempt_sequence, execution_attempt_id, persistent_binding_json
+                     ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19)",
                     rusqlite::params![
                         permit.permit_id,
                         permit.action_id,
@@ -379,6 +393,7 @@ impl<'a> PermitStore<'a> {
                         permit.execution_attempt_id.step_identity,
                         permit.execution_attempt_id.attempt_sequence as i64,
                         permit.execution_attempt_id.stable_key(),
+                        binding,
                     ],
                 )
                 .map_err(sqlite_error)?;
@@ -537,7 +552,7 @@ impl<'a> PermitStore<'a> {
                        FROM input_safety_permits p
                        JOIN input_safety_resource_state r ON r.scope = p.scope
                        JOIN input_safety_executors e ON e.executor_instance_id = p.executor_instance_id
-                        AND e.scope = p.scope AND e.action_id = p.action_id
+                        AND e.scope = p.scope AND e.action_id = p.action_id AND e.executor_kind='ephemeral_helper'
                       WHERE p.permit_id = ?1 AND e.creation_time_100ns IS NOT NULL AND e.pid > 0",
                     [permit_id], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?)),
                 ).optional().map_err(sqlite_error)?;
@@ -815,7 +830,7 @@ fn read_permit_columns(
 
 /// 执行者登记存储适配器（8.3b）。
 pub(crate) struct ExecutorStore<'a> {
-    connection: &'a Connection,
+    pub(super) connection: &'a Connection,
 }
 
 impl<'a> ExecutorStore<'a> {
@@ -909,7 +924,7 @@ impl<'a> ExecutorStore<'a> {
                         SET state = ?1, revision = revision + 1,
                             creation_time_100ns = COALESCE(?2, creation_time_100ns),
                             supervision_bound = ?3, updated_at_unix_ms = ?4
-                      WHERE executor_instance_id = ?5",
+                      WHERE executor_instance_id = ?5 AND executor_kind='ephemeral_helper'",
                     rusqlite::params![
                         next.as_str(),
                         creation_time_100ns.map(|value| value as i64),
@@ -951,7 +966,7 @@ impl<'a> ExecutorStore<'a> {
                         host_launch_instance, action_id, pid, creation_time_100ns, user_session,
                         host_process_path, script_or_program_digest, protocol_version,
                         supervision_bound, state, revision
-                   FROM input_safety_executors WHERE executor_instance_id = ?1",
+                   FROM input_safety_executors WHERE executor_instance_id = ?1 AND executor_kind='ephemeral_helper'",
                 rusqlite::params![executor_instance_id],
                 |row| {
                     Ok((
@@ -1004,7 +1019,7 @@ impl<'a> ExecutorStore<'a> {
         process_exit_confirmed: bool, now_unix_ms: u64) -> Result<(), PermitStoreError> {
         let changed = self.connection.execute(
             "UPDATE input_safety_executors SET state=?1, revision=revision+1, updated_at_unix_ms=?2
-              WHERE executor_instance_id=?3 AND pid=?4 AND creation_time_100ns=?5",
+              WHERE executor_instance_id=?3 AND pid=?4 AND creation_time_100ns=?5 AND executor_kind='ephemeral_helper'",
             rusqlite::params![if process_exit_confirmed { ExecutorInstanceState::ExitedConfirmed.as_str() }
                 else { ExecutorInstanceState::UnverifiableUnknown.as_str() }, now_unix_ms as i64,
                 executor_instance_id, i64::from(process.pid), process.creation_time_filetime as i64],

@@ -73,6 +73,9 @@ impl DesktopBridge for DesktopNativeBridge {
             std::thread::sleep(Duration::from_millis(120));
         }
         let snapshot = snapshot_foreground_window(UIA_ELEMENT_LIMIT).map_err(map_uia_error)?;
+        if selected_window.is_some_and(|handle| handle != snapshot.native_window_handle) {
+            return Err(stale("观察时前台窗口已经偏离指定目标；未对其它窗口规划或发送输入"));
+        }
         let webview2_overlay = snapshot.elements.iter().any(|element| {
             element.class_name.as_deref().is_some_and(|class_name| {
                 let class_name = class_name.to_ascii_lowercase();
@@ -226,6 +229,10 @@ impl DesktopNativeBridge {
     ) -> Result<StepExecution, ComputerUseError> {
         // 回执身份：受信执行链按动作内容计算，消费者据此判断事实是否属于当前动作。
         let action_id = action_attempt_id(computer_use::ComputerUseSurface::Desktop, action);
+        // 仅输入准备阶段可证明未发送；helper 启动后的错误继续使用真实输入事实。
+        let pre_input = |error: ComputerUseError| error.with_receipt(pre_input_receipt(
+            &action_id, action.kind == ComputerUseActionKind::Drag,
+        ));
         if (self.cancelled)() {
             // 输入尚未开始：明确的"未发送"事实，而不是留给上层猜。
             return Err(cancelled_error().with_receipt(pre_input_receipt(&action_id, false)));
@@ -241,23 +248,23 @@ impl DesktopNativeBridge {
             fallback = json!({"rect":expected.state["canvas_rect"],"enabled":true,"offscreen":false,"control_type":"ScreenshotCanvas"});
             &fallback
         } else {
-            find_element(&expected.state, &action.target)?
+            find_element(&expected.state, &action.target).map_err(pre_input)?
         };
         if !element
             .get("enabled")
             .and_then(JsonValue::as_bool)
             .unwrap_or(false)
         {
-            return Err(blocked("target_disabled", "target element is disabled"));
+            return Err(pre_input(blocked("target_disabled", "target element is disabled")));
         }
         if element
             .get("offscreen")
             .and_then(JsonValue::as_bool)
             .unwrap_or(true)
         {
-            return Err(blocked("target_offscreen", "target element is offscreen"));
+            return Err(pre_input(blocked("target_offscreen", "target element is offscreen")));
         }
-        let rect = rect_from_element(element)?;
+        let rect = rect_from_element(element).map_err(pre_input)?;
         let x = rect[0].saturating_add(rect[2] / 2);
         let y = rect[1].saturating_add(rect[3] / 2);
         let native_window_handle = expected
@@ -265,7 +272,7 @@ impl DesktopNativeBridge {
             .pointer("/window/native_window_handle")
             .and_then(JsonValue::as_i64)
             .and_then(|value| isize::try_from(value).ok())
-            .ok_or_else(|| stale("foreground window identity is missing"))?;
+            .ok_or_else(|| pre_input(stale("foreground window identity is missing")))?;
 
         // 输入动作一律走受控原生输入生命周期：输入前身份/权限/scope 校验 → 登记释放义务 →
         // 受监督执行 → 阶段回执 → 取消/超时/失败收尾 → 静止与释放对账。
@@ -609,6 +616,12 @@ fn stroke_failure_error(
             retryable,
             ComputerUseRetryOwner::None,
         ),
+        "deadline_exceeded" => ComputerUseError::new(
+            "deadline_exceeded",
+            format!("笔画输入期限已到期；{message}"),
+            false,
+            ComputerUseRetryOwner::None,
+        ),
         _ if !retryable => {
             ComputerUseError::blocked(code, message, ComputerUseRetryOwner::None)
         }
@@ -699,6 +712,12 @@ fn native_failure_error_with_prior(
         computer_use::input::StrokeFailureKind::Cancelled => ComputerUseError::new(
             "cancelled",
             format!("受控原生输入已取消或超时：{failure}；{evidence}"),
+            false,
+            ComputerUseRetryOwner::None,
+        ),
+        computer_use::input::StrokeFailureKind::DeadlineExceeded => ComputerUseError::new(
+            "deadline_exceeded",
+            format!("受控原生输入期限已到期：{failure}；{evidence}"),
             false,
             ComputerUseRetryOwner::None,
         ),
@@ -1196,6 +1215,31 @@ mod tests {
     // 回执事实的断言需要取值枚举；生产代码只经由 `computer_use::input` 的构造函数。
     use runtime::InputDelivery;
 
+    /// 真实 M 轮在控件查找失败时尚未启动 helper，不能误报为未知输入/待释放。
+    #[test]
+    fn missing_uia_target_is_not_sent_before_native_input_starts() {
+        let action = ComputerUseAction {
+            kind: ComputerUseActionKind::Click,
+            target: "uia-missing".into(),
+            arguments: json!({}),
+            risk: computer_use::ComputerUseRiskClass::ReversibleLocal,
+        };
+        let snapshot = DesktopSnapshot {
+            window_id: "hwnd-1".into(), process_id: 1,
+            window_rect: [0, 0, 100, 100], dpi: 96,
+            webview2_overlay: false, state: json!({"elements":[]}), evidence: Vec::new(),
+        };
+        let error = DesktopNativeBridge::default()
+            .execute(&action, &snapshot, Duration::from_secs(1))
+            .expect_err("不存在的目标必须在输入前拒绝");
+        assert_eq!(error.code, "target_not_found");
+        let receipt = error.receipt().expect("输入前失败必须有事实回执");
+        receipt.validate().unwrap();
+        assert_eq!(receipt.input_delivery, InputDelivery::NotSent);
+        assert_eq!(receipt.input_release, InputReleaseStatus::NotNeeded);
+        assert!(error.receipt_matches(&action_attempt_id(computer_use::ComputerUseSurface::Desktop, &action)));
+    }
+
     #[test]
     fn successful_stroke_keeps_input_fact_when_after_capture_fails() {
         let before = json!({"sha256":"before","path":"before.png","width":10,"height":10});
@@ -1392,6 +1436,35 @@ mod tests {
             error.message
         );
         assert!(error.receipt_shows_input_may_have_been_sent("desktop:stroke:abc"));
+    }
+
+    /// 正式版 CF 回归：期限到期不得记为人工取消，也不得抹掉部分输入或释放风险。
+    #[test]
+    fn expired_stroke_preserves_partial_input_and_release_priority() {
+        use computer_use::input::{helper_failure_receipt, StrokeFailure};
+
+        for (released, expected_code, expected_release) in [
+            (Some(true), "deadline_exceeded", InputReleaseStatus::Released),
+            (None, "mouse_release_failed", InputReleaseStatus::Unknown),
+        ] {
+            let failure = StrokeFailure::after_input(
+                "受控桌面操作失败: stroke_cancelled: permit expired",
+                stroke_facts_read(3, true, false, released),
+            );
+            let receipt = helper_failure_receipt("desktop:stroke:expired", &failure);
+            receipt.validate().expect("到期回执必须自洽");
+            let error = super::stroke_failure_error(&failure, &receipt, "after:img");
+            assert_eq!(error.code, expected_code);
+            assert!(!error.retryable);
+            assert_eq!(error.retry_owner, ComputerUseRetryOwner::None);
+            assert!(error.message.contains("stroke_cancelled: permit expired"));
+            let receipt = error.receipt().expect("必须保留实际输入事实");
+            assert_eq!(receipt.input_delivery, InputDelivery::Sent);
+            assert_eq!(receipt.partial, Some(true));
+            assert_eq!(receipt.path_completed, Some(false));
+            assert_eq!(receipt.confirmed_point_count, Some(3));
+            assert_eq!(receipt.input_release, expected_release);
+        }
     }
 
     /// CU-F01 §6／§8：旧记录里的 `NotSent + input_release = Unknown` 仍可读取与复核，
@@ -1642,6 +1715,10 @@ mod tests {
         assert_eq!(
             super::classify_stroke_failure("stroke_cancelled: 已取消或超时"),
             ("cancelled", false)
+        );
+        assert_eq!(
+            super::classify_stroke_failure("stroke_cancelled: permit expired"),
+            ("deadline_exceeded", false)
         );
         assert_eq!(
             super::classify_stroke_failure("stale_observation: 窗口已变化"),

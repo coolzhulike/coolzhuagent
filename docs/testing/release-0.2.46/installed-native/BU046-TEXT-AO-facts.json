@@ -1,0 +1,106 @@
+{
+  "test": "BU046-TEXT-AO",
+  "runtime": {
+    "id": "run-chat-e2e0315d94b483a1d3af22f744572589c525cc0044666449",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790825916085-0",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790825938679,
+    "created_at": 1790825916096
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da4aaec318efe8-tool-270271185a1f7fade5732603888ecccb36691cdf7ac3b48c5bb3089c1cf3c255",
+      "provider_tool_call_id": "tool-270271185a1f7fade5732603888ecccb36691cdf7ac3b48c5bb3089c1cf3c255",
+      "turn_id": "000000000000000218da4aaec318efe8",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 6,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790825924853,
+      "updated_at_ms": 1790825930653,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000218da4aaec318efe8-tool-270271185a1f7fade5732603888ecccb36691cdf7ac3b48c5bb3089c1cf3c255",
+        "provider_tool_call_id": "tool-270271185a1f7fade5732603888ecccb36691cdf7ac3b48c5bb3089c1cf3c255",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "readonly judge returned invalid criteria JSON",
+        "error": {
+          "code": "native_browser_verification_invalid",
+          "message": "readonly judge returned invalid criteria JSON",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:9d0621cbe34cb60ea6f4f39ad8aad6c3"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790826816085
+            }
+          },
+          "cu_deadline_ms": 1790826044853,
+          "cu_deadline_established_at_ms": 1790825924853,
+          "cu_budget_ms": 120000
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000218da4aaec318efe8-tool-270271185a1f7fade5732603888ecccb36691cdf7ac3b48c5bb3089c1cf3c255",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-990f54e8-1d6d-99a4-98ba-c44acb0bd1a8",
+      "error_code": "native_browser_verification_invalid",
+      "started_at_ms": 1790825925433,
+      "completed_at_ms": 1790825930651
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000000218da4aaec318efe8",
+      "call_id": "cu-session-1779459149988-000000000000000218da4aaec318efe8-tool-270271185a1f7fade5732603888ecccb36691cdf7ac3b48c5bb3089c1cf3c255",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 857,
+      "output_tokens": 293,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790825916085-0",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-e2e0315d94b483a1d3af22f744572589c525cc0044666449",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 24552,
+      "output_tokens": 329,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

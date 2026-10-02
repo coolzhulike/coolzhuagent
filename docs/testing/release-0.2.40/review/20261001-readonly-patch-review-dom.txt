@@ -1,0 +1,45 @@
+  - heading "ChatGPT 说：" [level=4]
+  - paragraph: 可以进入 040 正常安装后的独立真 Qwen 只读实操。按你给出的实现事实，我没有看到还需要改架构的阻断；装包前只需要确认下面 3 个具体点，若现有实现已经满足，就不用再改代码。
+  - list:
+    - paragraph:
+      - strong: 确认 spawn_blocking 没有直接跨线程调用 WebView2 COM。
+      - text: NativePanelReadBridge 的实际 Accessibility.getFullAXTree 必须仍被 marshal/dispatch 到该 WebView 所属线程或既有宿主执行通道；spawn_blocking 最多等待结果。如果 COM/WebView2 对象被直接带进 Tokio blocking thread 调用，这是我认为唯一可能导致“编译全绿但真机立即失败”的技术阻断。若 bridge 本来就是向所属 UI/COM 线程派发，则此项关闭。
+    - paragraph:
+      - strong: S2 freshness 通过后，最终成功落账必须再服从既有 first-wins 终态。
+      - text: 当前已经在 S2 前后检查 cancel/budget，但仍存在很窄的窗口：
+      - text: S2一致 → cancel/room失效 → 写 goal=true。无需第三次 AX 读取，只需最终提交 readonly success 时用现有 run/call 状态做一次权威 CAS/终态检查，保证 Cancelled/TimedOut/失效 已先发生时，迟到的 verifier/S2 不能覆盖它。不要因为 freshness 已确认就绕过现有终态仲裁。
+    - paragraph:
+      - strong: 确认“当前面板仍可作为观察目标”属于 S1、S2 两次宿主检查，而不只是字段比较。
+      - text: 特别是隐藏/关闭右栏，如果它不会自动改变 generation，则 observe 本身必须拒绝不可用/非当前目标资源；否则可能出现“面板已经隐藏，但 S1/S2 字段恰好相同，仍判只读成功”。如果现有资源租约在 hide/close 时必然失效或 bump generation，这项同样已经满足。verification_failed、observation_stale、schema invalid 也应保持当前 readonly 请求的终止结果，不自动改 surface、补发观察或转 Chrome。
+  - paragraph:
+    - text: 其余你这轮收紧我认为已经足以进入真机：S1/S2 都来自宿主事实；verifier 无 tools，只返回合法节点索引；成功事实重新从宿主节点序列化；精确比较 role/name 能导致动态 SPA
+    - strong: 保守失败
+    - text: ，但这属于可接受的 false-stale，不是安全缺口；也没必要在这轮引入 DOM revision 或完整 DOM 镜像。
+  - paragraph:
+    - text: 因此，若上面三点中的线程归属、最终 first-wins、隐藏资源失效已经由现有代码保证，
+    - strong: 040 不需要再加补丁，可以直接安装并做独立真 Qwen 只读实操。
+  - paragraph: 本轮通过时的口径仍应限定为：
+  - blockquote:
+    - paragraph:
+      - strong: 安装版真模型内置浏览器只读观察/页面理解通过。
+  - paragraph: 不能延伸为 click/type/scroll Browser Use 通过，也不能用 1281/0/2、六门、哈希或 037 的运行结果代替 040 实操。
+  - button "复制":
+  - button "评价回复":
+  - button "分享":
+  - button "朗读":
+  - button "重新生成回复":
+  - button "更多操作":
+  - generic: ChatGPT 可能会出错。请核查重要信息。
+  - button "滚动到底部":
+  - heading "最新一条回复" [level=4]
+  - status
+  - button "添加文件等内容":
+  - textbox "询问 ChatGPT":
+    - paragraph: 询问 ChatGPT
+  - button "选择 ChatGPT 模型":
+    - generic: 极高
+  - button "听写":
+  - button "开始语音":
+- status
+- status
+- status: 回答已完成

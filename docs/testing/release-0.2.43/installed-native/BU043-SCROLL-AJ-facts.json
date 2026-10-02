@@ -1,0 +1,30 @@
+{
+  "test": "BU043-SCROLL-AJ",
+  "runtime": {
+    "id": "run-chat-a57f5391afdb401fd8cae9bfd124f34648436b27d94634ae",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790819331256-0",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790819359173,
+    "created_at": 1790819331270
+  },
+  "computer_use": [],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790819331256-0",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-a57f5391afdb401fd8cae9bfd124f34648436b27d94634ae",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 22913,
+      "output_tokens": 575,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

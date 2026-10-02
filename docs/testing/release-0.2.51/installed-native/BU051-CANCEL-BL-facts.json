@@ -1,0 +1,173 @@
+{
+  "test": "BU051-CANCEL-BL",
+  "runtime": {
+    "id": "run-chat-97f617dab4dba2bf5e1157f5f914e3ae27858306418659c7",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790834430507-7",
+    "state": "interrupted",
+    "stop_requested_at": 1790834451937,
+    "finished_at": 1790834451959,
+    "created_at": 1790834430518
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001f18da526d2e6a5af0-tool-fa89194811ad0519c1931ca1440cab1d44c52f8df01e5de739d1e680a78ca785",
+      "provider_tool_call_id": "tool-fa89194811ad0519c1931ca1440cab1d44c52f8df01e5de739d1e680a78ca785",
+      "turn_id": "000000000000001f18da526d2e6a5af0",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790834441469,
+      "updated_at_ms": 1790834451947,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001f18da526d2e6a5af0-tool-fa89194811ad0519c1931ca1440cab1d44c52f8df01e5de739d1e680a78ca785",
+        "provider_tool_call_id": "tool-fa89194811ad0519c1931ca1440cab1d44c52f8df01e5de739d1e680a78ca785",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检未完成，本次未发送输入",
+        "error": {
+          "code": "native_input_cancelled",
+          "message": "节点预检未完成，本次未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-3e374420c5d091ad180c484ffbd1a964:b4cb17a02bac8483",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:0722348a9ccd0e8ba8ea246498cee20d",
+          "native-ax:1:2",
+          "native-observation:0722348a9ccd0e8ba8ea246498cee20d"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790835330507
+            }
+          },
+          "cu_deadline_ms": 1790834561469,
+          "cu_deadline_established_at_ms": 1790834441469,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只操作当前右栏原生内置浏览器页面",
+          "不输入、不滚动、不导航、不提交",
+          "不操作其它应用或软件",
+          "不使用HTTP抓取、终端或其它工具替代",
+          "被中止或失败立即停止，同轮不再次调用"
+        ],
+        "objective": "在当前右栏原生内置浏览器页面 http://127.0.0.1:63653/click.html 上，点击“增加次数”按钮，使页面显示的实际次数从0增加，并在新原生观察中确认次数已增加且按钮仍存在。",
+        "success_criteria": [
+          "页面实际显示的次数大于0（已从0增加）",
+          "“增加次数”按钮在页面上仍存在"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63653/click.html"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001f18da526d2e6a5af0-tool-fa89194811ad0519c1931ca1440cab1d44c52f8df01e5de739d1e680a78ca785",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-b091f3ba-6657-9dcd-b8f0-90269cd9304a",
+      "error_code": null,
+      "started_at_ms": 1790834441547,
+      "completed_at_ms": 1790834450817,
+      "response": {
+        "action": {
+          "arguments": {},
+          "kind": "click",
+          "target": "dom-3e374420c5d091ad180c484ffbd1a964"
+        },
+        "done": false,
+        "observation_facts": {
+          "candidate_count": 2,
+          "capabilities": {
+            "check": false,
+            "click": true,
+            "double_click": false,
+            "drag": false,
+            "history": false,
+            "key_combinations": false,
+            "multiple_tabs": false,
+            "navigate": true,
+            "scroll": true,
+            "select": false,
+            "slider_drag": false,
+            "submit": false,
+            "text_input": true
+          },
+          "input_supported": true,
+          "node_count": 14,
+          "root_candidate_count": 1,
+          "textbox_candidate_count": 0,
+          "truncated": false
+        }
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000001f18da526d2e6a5af0",
+      "call_id": "cu-session-1779459149988-000000000000001f18da526d2e6a5af0-tool-fa89194811ad0519c1931ca1440cab1d44c52f8df01e5de739d1e680a78ca785",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 1848,
+      "output_tokens": 201,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000001f18da526d2e6a5af0-tool-fa89194811ad0519c1931ca1440cab1d44c52f8df01e5de739d1e680a78ca785",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-3e374420c5d091ad180c484ffbd1a964",
+      "status": "failed",
+      "error_code": "native_input_cancelled",
+      "input_delivery": "not_sent",
+      "input_release_status": "not_needed",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1790834450820,
+      "completed_at_ms": 1790834451944,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+BU057-CLOSE-CE：本轮任务仅调用一次computer_use_perform，参数为{"surface":"browser","target":{"url":"http://127.0.0.1:63653/click.html"},"objective":"在当前右栏原生浏览器点击增加次数至5，每次只单击一次，每步重新观察；如果面板被关闭立即停止，不重开不重试。","success_criteria":["页面实际显示次数：5"],"constraints":[]}。success_criteria是必填字段，必须完整包含。只操作这张本地网页，不输入不滚动不导航，不用其它工具。关闭或失败后如实报告。

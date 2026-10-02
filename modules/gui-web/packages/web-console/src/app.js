@@ -10484,6 +10484,15 @@ function browserWindowSetStatus(text) {
   }
 }
 
+function browserWindowResetContext() {
+  const { input, frame } = browserWindowElements();
+  if (input) input.value = "";
+  if (frame) { frame.src = "about:blank"; delete frame.dataset.currentUrl; }
+  browserWindowSetStatus("");
+  activeBrowserHostName = window.CoolzhuNativeBrowserPanel?.available() ? "nativePanel" : "iframePreview";
+  browserWindowUpdateNavigationControls();
+}
+
 const BROWSER_NAVIGATION_ACTIONS = ["back", "forward", "reload", "stop"];
 
 function browserWindowUpdateNavigationControls(hostName = activeBrowserHostName) {
@@ -19025,6 +19034,7 @@ function initializeWorkbenchWindows() {
     collapse: () => { chatLayoutState.right = "closed"; chatLayoutState.narrowOpen = null; applyChatLayoutState({persist:true,preserveScroll:true}); },
     refreshSchedules: () => refreshTaskSchedules(),
     refreshWechat: () => refreshClawbotWindow({silent:false}),
+    resetBrowser: browserWindowResetContext,
     openBrowser: async url => { openChatToolWindow("browser"); const input = document.querySelector('[data-role="browser-window-input"]'); if (input) input.value = url; await browserWindowNavigate(); },
   });
   const workbench = document.querySelector('[data-role="workbench"]');
@@ -19104,7 +19114,7 @@ function demoAttachmentsFromText(text) {
 }
 
 function extractUrls(text) {
-  const matches = text.match(/https?:\/\/[^\s<>"']+/g) || [];
+  const matches = text.match(/https?:\/\/[^\s<>"'，。；、！？：（）【】《》「」『』]+/g) || [];
   return Array.from(new Set(matches.map(cleanupUrl)));
 }
 
@@ -19563,7 +19573,8 @@ function richTextNodes(text) {
 }
 
 function appendInlineRichText(parent, text) {
-  const pattern = /(!?\[([^\]]+)\]\((<[^>]+>|[^)\r\n]+)\))|(https?:\/\/[^\s<>"')]+)|(`[^`]+`)|(\*\*[^*]+\*\*)/g;
+  // 裸网址遇中文句读即结束；明确 Markdown 链接仍保留原有目标解析。
+  const pattern = /(!?\[([^\]]+)\]\((<[^>]+>|[^)\r\n]+)\))|(https?:\/\/[^\s<>"')，。；、！？：（）【】《》「」『』]+)|(`[^`]+`)|(\*\*[^*]+\*\*)/g;
   let lastIndex = 0;
   for (const match of text.matchAll(pattern)) {
     if (match.index > lastIndex) {

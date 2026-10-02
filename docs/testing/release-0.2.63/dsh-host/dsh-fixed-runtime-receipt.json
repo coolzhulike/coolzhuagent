@@ -1,0 +1,70 @@
+{
+  "added_file": {
+    "code": "dsh_runtime_unverified",
+    "message": "运行时存在未登记的文件"
+  },
+  "changed_sdk": {
+    "code": "dsh_runtime_unverified",
+    "message": "运行时文件摘要不符，未启动宿主"
+  },
+  "elapsed_ms": 11097,
+  "manifest": {
+    "generation": "077be039-3117-4193-a7bc-efb6e9414f77",
+    "plugin": {
+      "name": "@deepseek-ai/dsh-tool-calculator",
+      "version": "0.0.1"
+    },
+    "protocol": 1,
+    "revision": "5776de868fd93644b18934c709cf6627d50a726d204af96627030533db2babd7",
+    "services": [
+      "tools"
+    ],
+    "tools": [
+      {
+        "description": "Evaluate a mathematical expression safely. Supports +, -, *, /, %, **, parentheses, and functions: abs, ceil, floor, round, max, min, sqrt, pow, log, log2, log10, exp, sin, cos, tan, PI, E.",
+        "input_schema": {
+          "properties": {
+            "expression": {
+              "description": "Mathematical expression, e.g. \"15 + 27 * sqrt(9)\"",
+              "type": "string"
+            }
+          },
+          "required": [
+            "expression"
+          ],
+          "type": "object"
+        },
+        "name": "calculator"
+      }
+    ]
+  },
+  "missing_sdk": {
+    "code": "dsh_runtime_unverified",
+    "message": "固定运行时文件缺失或总大小超限"
+  },
+  "notice": "固定运行资源与生产Rust/Node宿主的工程结果；不是正式MSI、市场按钮或真实Qwen验收",
+  "passed": true,
+  "pre_cancelled": {
+    "code": "dsh_runtime_interrupted",
+    "message": "父运行已取消或到期，未启动插件宿主"
+  },
+  "private_copy_cleanup_confirmed": true,
+  "result": {
+    "content": [
+      {
+        "text": "96",
+        "type": "text"
+      }
+    ],
+    "isError": false,
+    "value": 96
+  },
+  "runtime": {
+    "file_count": 290,
+    "node_version": "24.15.0",
+    "platform": "win32-x64",
+    "runtime_lock_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+    "sdk_lock_sha256": "af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+    "total_bytes": 93908058
+  }
+}

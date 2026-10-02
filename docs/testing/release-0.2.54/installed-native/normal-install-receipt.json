@@ -1,0 +1,8 @@
+{
+  "version": "0.2.54",
+  "installer_exit_code": 0,
+  "installer_log": "tmp/browser-use-priority/install-054.log",
+  "install_identity_receipt": "installed-artifacts.json",
+  "old_processes_before_install": [],
+  "old_listener_before_install": []
+}

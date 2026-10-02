@@ -39,7 +39,7 @@ use std::fmt;
 /// - v3（2026-09-26 8.2b／8.3b **联合**迁移）：`input_safety_permits`（六态许可登记）与
 ///   `input_safety_executors`（执行者实例登记）及其必要关联。两者**共用一次迁移**，
 ///   避免许可表与执行者表各自抢号、也避免中间版本表达不了两者关系。
-pub const INPUT_SAFETY_SCHEMA_VERSION: i64 = 3;
+pub const INPUT_SAFETY_SCHEMA_VERSION: i64 = 4;
 
 /// 存储身份前缀：`is-` + 32 位小写十六进制。
 pub const INPUT_SAFETY_STORE_ID_PREFIX: &str = "is-";
@@ -2823,7 +2823,7 @@ mod tests {
     /// **不是**按历史曾出现过的号猜、也**不是**运行时用"当前版本+1"动态生成。
     #[test]
     fn schema_version_is_independent_and_pinned() {
-        assert_eq!(INPUT_SAFETY_SCHEMA_VERSION, 3);
+        assert_eq!(INPUT_SAFETY_SCHEMA_VERSION, 4);
     }
 
     /// 存储身份的解析不放宽：前缀、长度、字符集都不做近似归一。

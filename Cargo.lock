@@ -845,6 +845,7 @@ version = "0.2.0"
 dependencies = [
  "base64",
  "coolzhu-core-runtime",
+ "coolzhu-native-browser-protocol",
  "coolzhu-windows-process-guard",
  "png 0.17.16",
  "serde",
@@ -962,6 +963,7 @@ version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]
@@ -1038,6 +1040,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
+ "sha1",
  "sha2",
  "tempfile",
  "tokio",

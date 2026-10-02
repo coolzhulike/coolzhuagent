@@ -1,0 +1,101 @@
+{
+  "test": "BU053-URL-BR",
+  "runtime": {
+    "id": "run-chat-3c8e2875225a9e4400ea54aaeea26abd461435449133c8ad",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790469689319",
+    "legacy_turn_id": "chat-turn-1790838331539-1",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790838348051,
+    "created_at": 1790838331550
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18da55f9762b87a8-tool-3750587edc7d832f615ddd75bf702d77d24644fb4265f692795cfc6c22821236",
+      "provider_tool_call_id": "tool-3750587edc7d832f615ddd75bf702d77d24644fb4265f692795cfc6c22821236",
+      "turn_id": "000000000000000c18da55f9762b87a8",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790469689319",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 6,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790838338765,
+      "updated_at_ms": 1790838338867,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000c18da55f9762b87a8-tool-3750587edc7d832f615ddd75bf702d77d24644fb4265f692795cfc6c22821236",
+        "provider_tool_call_id": "tool-3750587edc7d832f615ddd75bf702d77d24644fb4265f692795cfc6c22821236",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "observed page does not match the requested URL or has no facts",
+        "error": {
+          "code": "native_browser_observation_unavailable",
+          "message": "observed page does not match the requested URL or has no facts",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:3:0",
+          "native-observation:cc47048b4c7c8013fbcf270336152ae4"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790839231539
+            }
+          },
+          "cu_deadline_ms": 1790838458765,
+          "cu_deadline_established_at_ms": 1790838338765,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "不纠正target.url，不导航，不重新打开资源",
+          "失败停止，同轮不再次调用",
+          "不输入不滚动不提交，不操作其它软件，不使用其它工具代替",
+          "源URL不匹配必须拒绝且零输入停止"
+        ],
+        "objective": "在冻结源页点击增加次数按钮一次，使次数从0变为1。",
+        "success_criteria": [
+          "页面实际显示次数：1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63653/text.html"
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "usage": [
+    {
+      "turn_id": "chat-turn-1790838331539-1",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-3c8e2875225a9e4400ea54aaeea26abd461435449133c8ad",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 37154,
+      "output_tokens": 356,
+      "http_status": null
+    }
+  ],
+  "steps": []
+}

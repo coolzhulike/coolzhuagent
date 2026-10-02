@@ -1,0 +1,159 @@
+{
+  "images": [
+    {
+      "path": "installed-native/01-formal-start-handoff.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 185803,
+      "sha256": "5c65bb83f5a15f7b648b3c0231786da7fbf8c3a361e31ceff5d4ccc30b892619"
+    },
+    {
+      "path": "installed-native/02-paint-before-DD.jpg",
+      "width": 1695,
+      "height": 762,
+      "bytes": 68882,
+      "sha256": "516ee97b67870f5bb589826576e4fce1b0a39c16c6a925660f92536afad6879f"
+    },
+    {
+      "path": "installed-native/03-qwen-DD-request-start.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 186584,
+      "sha256": "00c2345f527b4b84cf66d13c8a476d87f5cd5a99777f265229de82289b962f83"
+    },
+    {
+      "path": "installed-native/04-DD-zero-input-model-misverification.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 201686,
+      "sha256": "22e435ad9e80b9c3e3ca4d4d6e09bb87a31124de1dd148f5f96a1b6a4ae3ed9b"
+    },
+    {
+      "path": "installed-native/05-DE-request-start.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 204587,
+      "sha256": "2fa9c932164b83297c958ffa07c269e60455580cdeec5f23f416d626344becec"
+    },
+    {
+      "path": "installed-native/06-DE-model-progress.jpg",
+      "width": 1695,
+      "height": 762,
+      "bytes": 72848,
+      "sha256": "269b8af7721056edc0837d82a24006ba1f76892dda13ccb870893aa487eadbc4"
+    },
+    {
+      "path": "installed-native/07-DE-real-new-W-path.jpg",
+      "width": 1695,
+      "height": 762,
+      "bytes": 72215,
+      "sha256": "a75fb5ae93d066c3854c46cec06d79ed5cb13db221c8451797de7f1d3bf4d74f"
+    },
+    {
+      "path": "installed-native/08-DE-result-console.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 191049,
+      "sha256": "0d87f205fd0d511421eb0c76aebc53527437f1dffde80b48d929a83ba50daa27"
+    },
+    {
+      "path": "installed-native/09-browser-DF-before-counter-zero.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 208028,
+      "sha256": "29cf9691d07f4bdc0745356034cbbfce0cd4fa53090cc2b8e51bf05a0ece9092"
+    },
+    {
+      "path": "installed-native/10-browser-DF-request-start.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 204894,
+      "sha256": "5460f82bd58bcbcbf291e5007d005220650cb6936fbf3c55d23b62c7bc74088a"
+    },
+    {
+      "path": "installed-native/11-browser-DF-real-counter-one.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 202837,
+      "sha256": "d1e27aa1f90713fa3b7da6a4316ff26abf95671cf39f3bb4d57dbbb4b0608043"
+    },
+    {
+      "path": "installed-native/12-browser-DG-request-start.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 205657,
+      "sha256": "8aa17f628fb13bb83c5963431f4a63dba0287a49f74e591c4d71c5c2008f47a2"
+    },
+    {
+      "path": "installed-native/13-browser-DG-pointer-down-observed.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 212161,
+      "sha256": "064ff0a0feba52e5eaec244df964c89e18e90b37a8e55e6e7349489b3f0670b4"
+    },
+    {
+      "path": "installed-native/14-browser-DG-right-rail-closed.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 188717,
+      "sha256": "2cfc1dad217be4dad6bac640ca252d7be0deedab7820ebf45534232e9814df0f"
+    },
+    {
+      "path": "installed-native/15-browser-DH-request-start.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 206627,
+      "sha256": "44a72d3bb2896185b1268719a09c72d00b6d5ef68a9e73a01ced79c10cf94b11"
+    },
+    {
+      "path": "installed-native/16-browser-DH-pointer-down-observed.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 217202,
+      "sha256": "cbad019e87e1b294fcc2ee19cad0984e59b569f8fa2cf206a5dfe811007da9db"
+    },
+    {
+      "path": "installed-native/17-browser-DH-right-rail-closed.jpg",
+      "width": 1443,
+      "height": 897,
+      "bytes": 202545,
+      "sha256": "222ed23b5e8a5531a7246f7442d7fbd1d24907721751486e3eba606537403a8c"
+    },
+    {
+      "path": "installed-native/DD-original-236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679.png",
+      "width": 2560,
+      "height": 1152,
+      "bytes": 283783,
+      "sha256": "236e8d46ea1762670aab8c20a803a594750d8987111b0745418b76b2f0294679"
+    },
+    {
+      "path": "installed-native/DE-original-5ad2527895a8cc65fb62a092a473ab511500b94e0a084b7d1aecc7ac63fc1971.png",
+      "width": 2560,
+      "height": 1152,
+      "bytes": 305875,
+      "sha256": "5ad2527895a8cc65fb62a092a473ab511500b94e0a084b7d1aecc7ac63fc1971"
+    },
+    {
+      "path": "installed-native/DE-original-756874225b05a99f3c51009bda97b9083d5a99055137dde061e7a822c60ba116.png",
+      "width": 2560,
+      "height": 1152,
+      "bytes": 284212,
+      "sha256": "756874225b05a99f3c51009bda97b9083d5a99055137dde061e7a822c60ba116"
+    },
+    {
+      "path": "installed-native/DE-original-97e5cffdc8882e43f62dd57c6ee70ee4dbc4c8cff9875f152b72bd118ad49c90.png",
+      "width": 2560,
+      "height": 1152,
+      "bytes": 306323,
+      "sha256": "97e5cffdc8882e43f62dd57c6ee70ee4dbc4c8cff9875f152b72bd118ad49c90"
+    },
+    {
+      "path": "installed-native/DE-original-a5a20e5a2da387a582dc3e3d3838d06e485a8d6aa9cd0faa34dfcb775d20adde.png",
+      "width": 2560,
+      "height": 1152,
+      "bytes": 284181,
+      "sha256": "a5a20e5a2da387a582dc3e3d3838d06e485a8d6aa9cd0faa34dfcb775d20adde"
+    }
+  ],
+  "notice": "原始截图，未补画/裁切；零输入误验不计通过。"
+}

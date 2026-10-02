@@ -1,0 +1,1 @@
+Error: HostError { code: "host_crashed", message: "宿主退出且无完整收尾回执", interruption: None, cleanup_confirmed: true }

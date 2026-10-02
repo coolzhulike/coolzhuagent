@@ -1,0 +1,16 @@
+[
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30024-1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09.png",
+    "target": "docs\\testing\\release-0.2.59\\installed-native\\13-paint-body-native-01.png",
+    "sha256": "1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09",
+    "dimensions": "2182x1355",
+    "byte_copy_verified": true
+  },
+  {
+    "source": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30024-2da5f7bf77e597e3e245e088458e320ad2f318030c4bcd92c473cef34a718c99.png",
+    "target": "docs\\testing\\release-0.2.59\\installed-native\\13-paint-body-native-02.png",
+    "sha256": "2da5f7bf77e597e3e245e088458e320ad2f318030c4bcd92c473cef34a718c99",
+    "dimensions": "2182x1355",
+    "byte_copy_verified": true
+  }
+]

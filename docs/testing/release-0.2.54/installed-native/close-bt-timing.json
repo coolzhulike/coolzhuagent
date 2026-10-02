@@ -1,0 +1,7 @@
+{
+  "request_after_ms": 1790839592916,
+  "first_ticket_observed_at_ms": 1790839611107,
+  "close_action_started_at_ms": 1790839633831,
+  "coverage": "awaiting_verification_between_steps",
+  "note": "监测首先捕获执行中票据；实际界面关闭较迟，须以步骤起止复核，不能据监测时点声称交付中关闭。"
+}

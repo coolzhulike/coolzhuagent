@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "notice": "工程探针调用package-all.ps1中的实际复制函数及资源过滤规则；不是完整发布门或MSI安装验收",
+  "resource_id": "tooling.dsh-runtime",
+  "target": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\browser-use-priority\\fixed-runtime-copy-022d2efdcc004d0a9319cd6da84b257e\\bin\\dsh-runtime",
+  "verification": {
+    "verified": true,
+    "platform": "win32-x64",
+    "file_count": 290,
+    "total_bytes": 93908058,
+    "lock_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+  },
+  "stages": [
+    {
+      "stage": "dsh-runtime-payload-verification",
+      "artifact_id": "",
+      "command": "",
+      "exit_code": "not-applicable",
+      "outcome": "completed",
+      "detail": "files=290; bytes=93908058; lock_sha256=a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "observed_ms": 1790850537514,
+  "events": [
+    {
+      "kind": "pointerdown",
+      "page_ms": 1790850537483,
+      "server_ms": 1790850537485
+    }
+  ]
+}

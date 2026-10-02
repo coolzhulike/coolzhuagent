@@ -139,6 +139,11 @@ mod tests {
     }
     #[test]
     fn native_recovery_inflight_requires_exit_and_preserves_unknown_outcome() {
+        for kind in ["ephemeral_helper", "persistent_native_panel"] {
+            inflight_requires_exit_and_preserves_unknown_outcome(kind);
+        }
+    }
+    fn inflight_requires_exit_and_preserves_unknown_outcome(kind: &str) {
         let root = tempfile::tempdir().unwrap();
         let scope = scope(root.path());
         let store = seed(root.path(), &scope);
@@ -200,6 +205,8 @@ mod tests {
             .register_pending(&permit, runtime::InputPermitState::PendingActivation, 1)
             .unwrap();
         // 故障注入：模拟宿主崩溃在消费后、完成回执前。断言由真实事务实现负责。
+        // 两种执行者均复用原事务回归；这里仅注入持久记录类别，不宣称实际OS已退出。
+        store.connection_for_test().execute("UPDATE input_safety_executors SET executor_kind=?1 WHERE executor_instance_id='executor'",[kind]).unwrap();
         store.connection_for_test().execute("UPDATE input_safety_permits SET state='dispatch_committed' WHERE permit_id='permit'",[]).unwrap();
         store
             .native_recovery_store()
@@ -261,12 +268,8 @@ mod tests {
             runtime::InputPermitState::OutcomeUnknown
         );
         assert_eq!(
-            store
-                .executor_store()
-                .load_executor("executor")
-                .unwrap()
-                .state,
-            runtime::ExecutorInstanceState::ExitedConfirmed
+            store.connection_for_test().query_row("SELECT state FROM input_safety_executors WHERE executor_instance_id='executor'", [], |row| row.get::<_,String>(0)).unwrap(),
+            "exited_confirmed"
         );
         assert!(
             store
@@ -323,6 +326,7 @@ pub(crate) struct RecoveryExecutor {
     pub created: Option<u64>,
     pub revision: u64,
     pub state: String,
+    pub kind: crate::persistent_panel_executor::InputExecutorKind,
 }
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct RecoveryPermit {
@@ -412,8 +416,10 @@ impl<'a> NativeRecoveryStore<'a> {
             .map_err(|e| e.to_string())?
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| e.to_string())?;
-        let mut statement = self.connection.prepare("SELECT executor_instance_id,pid,creation_time_100ns,revision,state FROM input_safety_executors e WHERE scope=?1 AND
-            (state!='exited_confirmed' OR EXISTS(SELECT 1 FROM input_safety_permits p WHERE p.executor_instance_id=e.executor_instance_id AND p.state NOT IN ('finished','revoked'))) ORDER BY executor_instance_id").map_err(|e| e.to_string())?;
+        // 持久宿主不以进程退出结算动作。已结清全部许可时不能仅因宿主常驻而判成在途输入；
+        // 未结许可仍纳入快照，未知/已消费动作保留隔离和人工核验，helper口径保持原样。
+        let mut statement = self.connection.prepare("SELECT executor_instance_id,pid,creation_time_100ns,revision,state,executor_kind FROM input_safety_executors e WHERE scope=?1 AND
+            ((executor_kind!='persistent_native_panel' AND state!='exited_confirmed') OR EXISTS(SELECT 1 FROM input_safety_permits p WHERE p.executor_instance_id=e.executor_instance_id AND p.scope=e.scope AND p.state NOT IN ('finished','revoked'))) ORDER BY executor_instance_id").map_err(|e| e.to_string())?;
         let executors = statement
             .query_map([scope.as_str()], |r| {
                 Ok(RecoveryExecutor {
@@ -422,6 +428,11 @@ impl<'a> NativeRecoveryStore<'a> {
                     created: r.get(2)?,
                     revision: r.get(3)?,
                     state: r.get(4)?,
+                    kind: match r.get::<_,String>(5)?.as_str() {
+                        "ephemeral_helper" => crate::persistent_panel_executor::InputExecutorKind::EphemeralHelper,
+                        "persistent_native_panel" => crate::persistent_panel_executor::InputExecutorKind::PersistentNativePanel,
+                        _ => return Err(rusqlite::Error::InvalidQuery),
+                    },
                 })
             })
             .map_err(|e| e.to_string())?
@@ -541,15 +552,13 @@ impl<'a> NativeRecoveryStore<'a> {
                     .find(|(id, _)| id == &executor.id)
                     .map(|(_, p)| p)
                     .ok_or("仍有执行者未确认退出，不得开放输入")?;
-                self.store
-                    .executor_store()
-                    .record_native_completion(
-                        &executor.id,
-                        *evidence,
-                        true,
-                        crate::unix_timestamp_millis(),
-                    )
-                    .map_err(|e| e.to_string())?;
+                let store = self.store.executor_store();
+                match executor.kind {
+                    crate::persistent_panel_executor::InputExecutorKind::EphemeralHelper => store.record_native_completion(
+                        &executor.id,*evidence,true,crate::unix_timestamp_millis()),
+                    crate::persistent_panel_executor::InputExecutorKind::PersistentNativePanel => store.record_verified_panel_exit(
+                        &executor.id,*evidence,crate::unix_timestamp_millis()),
+                }.map_err(|e| e.to_string())?;
             }
             let mut accepted_permits = Vec::new();
             for permit in &expected.permits {

@@ -11,6 +11,7 @@ name = "plugins"
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json.workspace = true
+sha2 = "0.10"
 
 [lints]
 workspace = true

@@ -1,0 +1,1 @@
+CU059-BODY-CR：新的Paint绘画任务。只调用一次computer_use_perform，surface=desktop、target.application=mspaint.exe、max_actions=1。在当前白色画布下半部的空白区域，用已选中的黑色铅笔画一个中等大小的闭合矩形，作为简化海绵宝宝的新身体。一次连续5点路径，回到起点，duration_ms约1200。success_criteria必须包含：最新原图白色画布下半部实际新增一个四边闭合的黑色矩形。自主依据本轮原图定位画布，不能把工具栏当画布；不复用旧坐标，不改变画布大小，不用形状工具、代码或其它工具，不擦除、不保存。失败立即结束，不补第二笔。

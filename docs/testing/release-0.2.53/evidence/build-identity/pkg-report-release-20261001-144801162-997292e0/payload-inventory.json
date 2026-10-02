@@ -1,0 +1,4337 @@
+{
+  "schema": 1,
+  "kind": "package-payload-inventory",
+  "generated_at": "2026-10-01T06:48:01.4066022Z",
+  "configuration": "release",
+  "package_root": "tmp/candidate-053-package",
+  "payload_digest": "d4ccc8bd36f9b1c2a00b9844035c2ad449338124af6fbfe6aa69dc481214c1ef",
+  "digest_scope": "本目录下除 payload-inventory.json 自身之外的全部文件；path|length|sha256 规范排序后 SHA256",
+  "file_count": 859,
+  "total_bytes": 324493798,
+  "self_carrier": {
+    "path": "payload-inventory.json",
+    "excluded_from_payload_digest": true,
+    "reason": "清单载体的内容哈希由报告与 installer report 登记；若把它算进 payload_digest 会形成自引用固定点"
+  },
+  "build_identity": {
+    "source_snapshot_digest": "a20bf1b7543fd8d0eaedc958eefe372a8d27aff097a3f7c9e50c85a2613afba3",
+    "build_input_digest": "45307c56db7424535db100c6f532b94b3e6ff6e3a9e256f0347d93485426029a",
+    "payload_digest": "d4ccc8bd36f9b1c2a00b9844035c2ad449338124af6fbfe6aa69dc481214c1ef"
+  },
+  "vcs": {
+    "vcs_state": "tracked_worktree",
+    "vcs_reference_commit": "c6488198e194d9ac2851256c66c0e29db8be2905",
+    "vcs_reference_commit_kind": "seed-reference-only",
+    "source_commit": "c6488198e194d9ac2851256c66c0e29db8be2905",
+    "source_commit_authority": "tracked-commit",
+    "dirty_against_commit": true
+  },
+  "report_ref": {
+    "report_id": "pkg-report-release-20261001-144801162-997292e0",
+    "report_path": "tmp/package-reports/package-report-release-20261001-144801162.json",
+    "content_sha256": "8a16a01dc948b27dac25a9ded83beb1ecb7daa24de6cbfabbd9c34837242c3bb",
+    "content_hash_algorithm": "sha256",
+    "content_hash_scope": "报告的全部叶子节点规范排序后取 SHA256；排除 report_identity.content_sha256"
+  },
+  "retention": {
+    "rule": "被正式发布引用的报告由 scripts/package-report-retention.ps1 保护（索引 tmp/package-reports/retention-index.json）或连同发布证据归档到 docs/testing/release-<version>/evidence/build-identity/",
+    "prune": "普通临时清理不得删除被索引保护的报告；Prune 只允许删除未被索引的报告"
+  },
+  "files": [
+    {
+      "path": "COOLZHU-AGENT.exe",
+      "length": 998400,
+      "sha256": "a26ee17d0abce95a3522385aac58cfbf9e5b11424134ad5c4e951944f401f494"
+    },
+    {
+      "path": "bin/coolzhu-browser-native-host.exe",
+      "length": 2851328,
+      "sha256": "5567cd928904ebb851a4144f02243c20ab82e030ec45854c21ac1ba85dae1cec"
+    },
+    {
+      "path": "bin/coolzhu-clawbot-sidecar.exe",
+      "length": 5672448,
+      "sha256": "7c9cba54d8dfc5248865414748e2e0bd9340839c888c2267007e2b90caa32fc9"
+    },
+    {
+      "path": "bin/coolzhu-cli.exe",
+      "length": 11679744,
+      "sha256": "f6531303ae7ba4c4f2e5527023190d9479de9ccb81f4ecdcc7793c6f0241ddbf"
+    },
+    {
+      "path": "bin/coolzhu-computer-use-check.exe",
+      "length": 394752,
+      "sha256": "dfdbfcb7ea19143fdfd7b324815a229ddc6516c2298e75d7843a28e028e9e89a"
+    },
+    {
+      "path": "bin/coolzhu-latest-desktop-vision.exe",
+      "length": 4472320,
+      "sha256": "7fdce7deba82064a5078119b41acea776e46caec4fe22c410c48b2c5dae42cc8"
+    },
+    {
+      "path": "bin/coolzhu-tauri-shell.exe",
+      "length": 85882880,
+      "sha256": "8d7cf4f13fabf9b0501867f449ac88bd2df759660c1963012e7986cda33d0fab"
+    },
+    {
+      "path": "bin/coolzhu-vision-smoke.exe",
+      "length": 4493824,
+      "sha256": "51630a9cc0e23781126db3d45fd841f374b050ffdcb019d94e104164b0954499"
+    },
+    {
+      "path": "bin/coolzhu-web-console.exe",
+      "length": 38254592,
+      "sha256": "4b240e3c3cbd89a9e073810492d158db8a32b15d5f19cbe584ab213afc296a7a"
+    },
+    {
+      "path": "bin/WebView2Loader.dll",
+      "length": 160320,
+      "sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c"
+    },
+    {
+      "path": "bin/tools/build-throne-cat-frames.ps1",
+      "length": 2557,
+      "sha256": "ee27fd41ff03988bc06711957bd1bce6090936e437c95393a7f6c0c3f5004a8f"
+    },
+    {
+      "path": "bin/tools/generate-layout-spec.ps1",
+      "length": 5242,
+      "sha256": "dd08c44abf88e080deb4463fd10e35e2daf86201226d177dd4eb9fc557ac830b"
+    },
+    {
+      "path": "bin/tools/goal_human_ack_scenario_e2e.py",
+      "length": 11653,
+      "sha256": "b651f4bd17df14b72c3a999f1568bdbb31cdbc10a36a04c0852861f8f70edcb6"
+    },
+    {
+      "path": "bin/tools/piper_speak.py",
+      "length": 3747,
+      "sha256": "2b10e610e93d6cab606c226085c3de35e08d2f324b14d6d512b57c78805665e2"
+    },
+    {
+      "path": "bin/tools/realtime_desktop_vision_voice_e2e.js",
+      "length": 20397,
+      "sha256": "4de89cd09843ea8834ab740dd94ec05074b047f2c47bd3737acdb516b9a5c3ea"
+    },
+    {
+      "path": "bin/tools/realtime_e2e_record.js",
+      "length": 10675,
+      "sha256": "dea8568f3139227b21ebd3ef81afa2ca7fd54f2651e1b69ac744bb36f7550cc8"
+    },
+    {
+      "path": "bin/tools/realtime_english_tutor_scenario_e2e.js",
+      "length": 14138,
+      "sha256": "7ae937960d3f4a60b396037b298d09cad7e4949750d37d55f057f8ad5f1c331e"
+    },
+    {
+      "path": "bin/tools/realtime_real_speech_e2e.js",
+      "length": 17321,
+      "sha256": "82d85dd9b294eca723a8c3c2e680794e2afe64980f095e3fd3665a48b0cc6a1d"
+    },
+    {
+      "path": "bin/tools/realtime_voice_capture_contract.test.mjs",
+      "length": 6829,
+      "sha256": "59c2611e469c6cfe088f801807d4c7a37f3472491c67be08469da94e4c7c0d3b"
+    },
+    {
+      "path": "bin/tools/realtime_voice_interrupt_scenario_e2e.js",
+      "length": 22248,
+      "sha256": "c5db18fe61cc1879ea4690df49b54db67370b00d88951509f15836b5b42a8831"
+    },
+    {
+      "path": "bin/tools/stt_tail_capture_contract.test.mjs",
+      "length": 851,
+      "sha256": "2bda5bb02f95f5b13da1e322c86ced329494282c7640f7fb967930a9e08f3f6b"
+    },
+    {
+      "path": "bin/tools/tts_text_contract.test.mjs",
+      "length": 5753,
+      "sha256": "6f97e6a690860ed7497bb28d9bcf31d0b5eee8ce27023e7f5741642a57955594"
+    },
+    {
+      "path": "bin/tools/whisper_transcribe.py",
+      "length": 3551,
+      "sha256": "140e3a9104d0592b011e2a422d48ee225b0306a0751e75382e82d34c6f66a6d0"
+    },
+    {
+      "path": "config/package-launcher.json",
+      "length": 925,
+      "sha256": "faad921c3e7069a066206f4dc9df07e1659c29b687d343477ae3a6e1628117b2"
+    },
+    {
+      "path": "config/package-manifest.json",
+      "length": 20719,
+      "sha256": "3d4606ef68b1fefc701c2bef8b0ac93f5640b55476ff6beae37d199735156729"
+    },
+    {
+      "path": "docs/command-line.md",
+      "length": 4994,
+      "sha256": "29355c3c3d5f0b4d552de95b33789c8b122faff65605a3af1b69f6c1344e5522"
+    },
+    {
+      "path": "docs/user-guide/guide.js",
+      "length": 2255,
+      "sha256": "b310a2a249373c93fe3852d50e82bdda31f7ace76358f9543e501ea2f94a7a1d"
+    },
+    {
+      "path": "docs/user-guide/index.html",
+      "length": 43017,
+      "sha256": "a5c7fadacdfef6f7d3d8400233cc936ff78440b93a33d10cbdb01291c65060ee"
+    },
+    {
+      "path": "docs/user-guide/provider-reasoning-compatibility.md",
+      "length": 6380,
+      "sha256": "0d1dafb04b3b553416f3f3b9d415c8e7cfdeda88db21e14add34722fcae5ff5a"
+    },
+    {
+      "path": "docs/user-guide/styles.css",
+      "length": 17597,
+      "sha256": "d912a4bf04e3c08866d949c18679b43072d2e1d4d198dde76d38c679bf657a25"
+    },
+    {
+      "path": "modules/browser-extension/content_script.js",
+      "length": 18064,
+      "sha256": "ed97edfb3e74be9c4596412bd24e2aa7a7eb07aad4db423b480247d9b6d4b025"
+    },
+    {
+      "path": "modules/browser-extension/extension-identity.json",
+      "length": 191,
+      "sha256": "634fb93ef6db74180ae435abac7a2d5ee3d6b15b086df4e49e8bebae61ebe4c7"
+    },
+    {
+      "path": "modules/browser-extension/manifest.json",
+      "length": 1025,
+      "sha256": "996852eed0056ce8a449f9f0274bc4259ea2b19bca3c785d1306bbb699c09c87"
+    },
+    {
+      "path": "modules/browser-extension/service_worker.js",
+      "length": 12696,
+      "sha256": "6854b314c3849d2794dd86de35082e843172b54d7264dd6a2457941c289c2db5"
+    },
+    {
+      "path": "modules/browser-extension/setup.html",
+      "length": 434,
+      "sha256": "d99fc2f569ad576ee2d753e413c22eeefe7a5b1a637877b861e8530b2d1d8e82"
+    },
+    {
+      "path": "modules/browser-extension/tests/browser_extension_contract.test.mjs",
+      "length": 15792,
+      "sha256": "8a70ab799a50f2a140972f8b591cf058dc5086ebf355ca5731ad3ed803d4360f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/computer-use-edges.html",
+      "length": 424,
+      "sha256": "358bb449822d23ee850039f3ddadc314ce9e9d42f1285a056b69c7eea35435f6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/computer-use-indicator.css",
+      "length": 960,
+      "sha256": "db2438dfc543a77f864ca35803ebde0723f41842f650f9e076804a973b938d2e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/computer-use-indicator.html",
+      "length": 486,
+      "sha256": "77648bcbff0f9ed6c11c6a229b046113ea4ce0c46fa5d8a0125b3638f9a48ded"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js",
+      "length": 8532,
+      "sha256": "6a4980a3c7a18e1989f1ed21db23b8783bfc1be0c652dcc30467c399597a25e1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-manifest.js",
+      "length": 1888,
+      "sha256": "b3eac84cea79c8aeb48d9b19e9622916c4a4ab8d895fdd247dd21f1804177803"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/launch-performance.css",
+      "length": 1494,
+      "sha256": "4ff31d5451ae0a289a05b6b16f4749a50cc5df2de2f2c205728b0df19aa9165b"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/launch-performance.html",
+      "length": 1152,
+      "sha256": "c9ab5d9c7e4863c4679bf361601eb1b5fa772e98e196ee02cf1e39a2efd66bdf"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/pet-mini.html",
+      "length": 29915,
+      "sha256": "e249408bc1594ef24c1dced0f8f544d52c7ce9dd66ff38dae9547ca92e0fa484"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/pet.gif",
+      "length": 192814,
+      "sha256": "f3f4c878afd649a38635eb9e409e6524efb9e2ebd79a78db3da73c73e7ac391f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/pet.html",
+      "length": 11919,
+      "sha256": "fb628406b4e8a2ded15fa8c16ea543b588f10243ed79632226571ef5e53a1f2f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md",
+      "length": 2771,
+      "sha256": "543a117a43e68c925926d7d24585905552c6f10ac2a313bd312864b1ee205ca8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js",
+      "length": 11040,
+      "sha256": "d6c81f1e2113f8a024ed43817ff0290f81760813f22c749691a6e96a44ef138f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-generated-clawd-actions.png",
+      "length": 1409809,
+      "sha256": "a8f9ea6fa27f614dd4a51afcb0a6bc847a85f373944336977f16d9a69530dbf6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-generated-performance-actions-2026-06-03.png",
+      "length": 1789664,
+      "sha256": "def3528f93e665ee50c0322d0829f3cf3928d246ee6cdc3b4debd9aa1117158a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-generated-superman-fly-2026-06-03.png",
+      "length": 1204221,
+      "sha256": "fb8af86c5adc5d67a66690520a02188edb607859d881168ae097e88135d726de"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-performance-actions-contact-2026-06-03.png",
+      "length": 405308,
+      "sha256": "db1bf8938e1bd98a7400ea0a7f5b7963e24944b00ac65a8c7bda2c4e9118052a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-sprite-sheet.png",
+      "length": 1744262,
+      "sha256": "944952d8cd61027b275a9cd26943821822ed4cbee0dd46d055111be918ba17b5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-theme.json",
+      "length": 7279,
+      "sha256": "31b8c9694ffe4961496629a6ba5b3c368b2ac5052e4eb19fcedb025eb34444d0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/status-bubbles.png",
+      "length": 1006944,
+      "sha256": "0af578a01f2cb8f010f564b504a7b8b923cb1d451344c8fb017c20191c9b514c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/scroll-shanhe-v1.png",
+      "length": 2357465,
+      "sha256": "0b477eea0e01799bfce0b0c6ec37c7d93f2beb827f2bef3832e28b10011d78f2"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/C-k0.png",
+      "length": 313489,
+      "sha256": "c192c6ae1891630be5ac6c51598a2d4cfc62e0b3e7a0bb8da9855e7c252782b9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/C-k1.png",
+      "length": 323630,
+      "sha256": "bccdc943604157aa60c3ff2b86f5d2d90d2afa4ec23d2e1463830406cbda63f5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/C-k2.png",
+      "length": 292531,
+      "sha256": "aba37c853340b29b172520e8398b05caa53957a85e3662761b1cd0eb0b4fd136"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/C-k3.png",
+      "length": 311487,
+      "sha256": "5ef0337f63c9fbcd42d485e96493cf4136edf682434dcca1b81611476d225d4f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/C-k4.png",
+      "length": 290259,
+      "sha256": "898d1b3b10010aa84d5558309338445a20dcb43e834bba79fee9284077fbd64e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/H-k0.png",
+      "length": 255684,
+      "sha256": "8c9c6f7ec283ef9e9177506ab70da4bb196a1af656de3320f96c664c0a639969"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/H-k1.png",
+      "length": 250017,
+      "sha256": "73ae8439931f290df2a4fc11b46570b0557095fa5d1f1031412dd14813b034a2"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/H-k2.png",
+      "length": 271121,
+      "sha256": "7d5583a27e72fdc0d6e4931bb82a906ff8da81981b711957774f0700cf5a7ab3"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/H-k3.png",
+      "length": 252980,
+      "sha256": "b1eb1ff3eeef6068f424ed61e9ed1032e9d8e6ff09a61bad13740fdd40d93e34"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/H-k4.png",
+      "length": 226419,
+      "sha256": "01efc863428951a9a60d597a3eff560056cbca93a44e4b9e7dde4de87fcfd726"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/L-k0.png",
+      "length": 321853,
+      "sha256": "d4148e8247093417ba99e94b48c6f95c78250bdfc518ba5c699697a81a9b7999"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/L-k1.png",
+      "length": 310199,
+      "sha256": "cda759f4a58433f15a8eedcd97e805fd0c456d8f0f4a888556f991414c7a99ec"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/L-k2.png",
+      "length": 300647,
+      "sha256": "acd216024acf84faa5c4f3199974f94f4d02fb012e9451822304e2078d745210"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/L-k3.png",
+      "length": 314778,
+      "sha256": "c645b8c4b1b990c2168ba0f970120a7a105f126ee3cc250957eed2bb37e8a171"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/L-k4.png",
+      "length": 221636,
+      "sha256": "d9ade01557aad235402ccb7be655c1adf02302c0cc6ab9424ce1a5a9a0ac833c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O1-k0.png",
+      "length": 333754,
+      "sha256": "394e69ca5f76264886506a46e8b3ffa93e4aaac3369a8b451cb78419b5585d62"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O1-k1.png",
+      "length": 350199,
+      "sha256": "f3ab2237d3569b7d2ba284466848fced3d8c94e0939902f92f3b52e6d441bc3d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O1-k2.png",
+      "length": 284827,
+      "sha256": "5c043e261dfc97d31ed14107bb53059d24345d1fd8c57f89197befa971714431"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O1-k3.png",
+      "length": 344426,
+      "sha256": "4c2fd22cfb41b2308483d60dd577c50276c112e2ec03c42d2285e09b1004fb85"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O1-k4.png",
+      "length": 350497,
+      "sha256": "23f8933f5ba4f7be1e8bd329e8e4579ffa11e8c18f95654a02da7ffac36cb763"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O2-k0.png",
+      "length": 313517,
+      "sha256": "db6acbc1902f30f46ec2ce04ccf57f1a902e899f5c9aaf3bc50c0956f3638a48"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O2-k1.png",
+      "length": 325062,
+      "sha256": "d7a13f1e92a58c8750d3a0cd62f6a791f99b2b5b0d83bd3ac77ee10c073fde6f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O2-k2.png",
+      "length": 359030,
+      "sha256": "287b1c616ac48cc9d476053cbd69f2ac8bafdea3a551e8ee9f23b0a9f7c16186"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O2-k3.png",
+      "length": 346751,
+      "sha256": "5d1a4c2e33f2043da4e1166c5b2b37c3c176ba1eb2795ee8dae51eeaf2637545"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/O2-k4.png",
+      "length": 324908,
+      "sha256": "457f96942e89cbd473e8181fe929c546ff26e4a580471f3f59fed230085d7273"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/swordsman-four-poses-v2.png",
+      "length": 1038651,
+      "sha256": "15b96ade3029b7b90f05c2a94d8bb93351b3bc622cc9e8635942825d30d33dbb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/U-k0.png",
+      "length": 363813,
+      "sha256": "b412a291b560c842d91ac7b83dd27b39ecd329c93ddcd4e78570b78cd28f1e9d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/U-k1.png",
+      "length": 317905,
+      "sha256": "a772117ac21345e24f0f41cef6e4ce6dae4c48c1cf57bd20c535c1081f43bb58"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/U-k2.png",
+      "length": 270120,
+      "sha256": "3054e07f053402760174fbca6ff71a82fc0e35b3e71d46f62e67b8f759f7ea86"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/U-k3.png",
+      "length": 282581,
+      "sha256": "91443a2f4adde402e202791574dafa2d37b9183b93153c22d0c15f1993e47cee"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/U-k4.png",
+      "length": 304349,
+      "sha256": "d3f4d33af26020b6ee36580741694f2c33c28fbf9198b3b614e54f42db14fc59"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/Z-k0.png",
+      "length": 286962,
+      "sha256": "925af7b4c150e4806779bd2136d76a875941bb481a457aa0b2d841adb93a7c25"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/Z-k1.png",
+      "length": 190583,
+      "sha256": "15766d996784c3e5e2987e5d653eb364c0b8ecfa4da0abb62988dcde34373546"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/Z-k2.png",
+      "length": 232428,
+      "sha256": "71615827aa2449193a4fe05c128362ea2d852c7f9bd5995e7f63af56b95aef03"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/Z-k3.png",
+      "length": 256827,
+      "sha256": "f3210408e5c0dfdf62563ed3a808d64463d516cf249175933541f853e7fd992d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/Z-k4.png",
+      "length": 190199,
+      "sha256": "db12798e6bdba622f1b4b11092b788ee251aacee1c09d4408c4b772ec98504c5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/glyphs/C.png",
+      "length": 1570970,
+      "sha256": "32e0a2b17250ae7c7a48b146cc1423f2bde09f2052c868c79bd3183543aa169a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/glyphs/H.png",
+      "length": 1283601,
+      "sha256": "225d75af01e605143ee4ea37f4ab2dc6eb055f516ed35f034f1279a1c64f262f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/glyphs/L.png",
+      "length": 885458,
+      "sha256": "1bb8c1d1885600b49d4a2072d310d3d3fda0ed1bad9eb400f49017d84c103e02"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/glyphs/O.png",
+      "length": 1595578,
+      "sha256": "62f0240db5b9087161373d7761018750527294d67d67dfa94e69a36786ad6013"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/glyphs/U.png",
+      "length": 1193704,
+      "sha256": "64e7714b52013c6479c98e4c48527555914b52dfef3511082ad7fe981b371b42"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/glyphs/Z.png",
+      "length": 1325233,
+      "sha256": "f67f79ec8e132b2f2280f153bded5b9619dc214016bf769ed2d0a5ea3a160e6c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention-0.png",
+      "length": 67660,
+      "sha256": "d15f86a2eb032e06a6a56741fcedafae6aed9a95cc00cfbd4a8eae215f2e0576"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention-1.png",
+      "length": 72761,
+      "sha256": "5cec095c46761eb505a5a6c2160bf4424d4e5134b95054aa3de393426da017ac"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention-2.png",
+      "length": 63876,
+      "sha256": "728ebcfd41c17c71cf0eddbadf3025221fd562ae6386d91047b228f790ff610c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention-3.png",
+      "length": 59533,
+      "sha256": "bb165a046cbbf330a1ac8125f7d9733d04d467f750a45e4d8cad87195f994793"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention-4.png",
+      "length": 60588,
+      "sha256": "2bbaeffe8d753fc48074d6a45527e6115859741c7b8c03225766b0b2ec016983"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention-5.png",
+      "length": 64224,
+      "sha256": "880dda56005ec3a71f9d5db300171cd12cd5fc06981886b7faac08d5441f9abb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention-6.png",
+      "length": 69075,
+      "sha256": "b78c340e97ef881d58fefadf8933041e4821135ca8743c478f8af71d457c5472"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention-7.png",
+      "length": 66826,
+      "sha256": "3cf10b2a7c7a74e75dd0c762f36b3c3ab99b6364a3c648dc3326a5e944c47725"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/attention.png",
+      "length": 67660,
+      "sha256": "d15f86a2eb032e06a6a56741fcedafae6aed9a95cc00cfbd4a8eae215f2e0576"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying-0.png",
+      "length": 71105,
+      "sha256": "b9ed8fa27641b9a953dfceeca23f0b6bae4a42348405f2ec8e062072ba766be1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying-1.png",
+      "length": 71712,
+      "sha256": "65ef68d3eec6f1947f69bcfbbed6e87dab6cde93496bd9e81a05eaa0d31f6729"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying-2.png",
+      "length": 72375,
+      "sha256": "db4abaa93dcd4c565724a3d46fab2e4d616685f270982c57d40e0cf74ab8bf22"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying-3.png",
+      "length": 72161,
+      "sha256": "f977ed873319a7f277ef6a910d1b1bc264b3d15f8e597f38cc981684dff6b7df"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying-4.png",
+      "length": 72529,
+      "sha256": "3614ba11f463fc5f34e3d8d30d114ef9eb4d51e9e2560a2560d4f820ce96d6aa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying-5.png",
+      "length": 73260,
+      "sha256": "d877a5105eb6195c7ef488c3c079a3dce19069f24f8a448d24c12dd354b7b780"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying-6.png",
+      "length": 70591,
+      "sha256": "d5eb9a144dd2c879669c58204cc33eb61c05122dfd5f38c604a958b6c35e3019"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying-7.png",
+      "length": 72320,
+      "sha256": "31afdd3dcfac0a29ceed18f5802451fa41d2f275c15b57c7f72fb20df49c2528"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/carrying.png",
+      "length": 71105,
+      "sha256": "b9ed8fa27641b9a953dfceeca23f0b6bae4a42348405f2ec8e062072ba766be1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned-0.png",
+      "length": 85126,
+      "sha256": "67aa233a7420e743797f7bd234c0328392ad23e7d2002b7c637a3e739bba08ee"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned-1.png",
+      "length": 86467,
+      "sha256": "f9f4e339b1747c8acc4a84af205efd4d5031e89753a0d782a01a370529a49c1b"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned-2.png",
+      "length": 87498,
+      "sha256": "5b1cbc8320f64f0b12b8e4fb7f24d5b7182f2daa238c8b77d3c12afb1e533207"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned-3.png",
+      "length": 89415,
+      "sha256": "b7995cdc2c129a7d3f0ff3a2dbe388dea377544f7f8afa6254df38482b0a1605"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned-4.png",
+      "length": 87237,
+      "sha256": "6bbcba186e6245bd2e63e097ea86fc371f4d15a72cdd9922825e7a69b0fd7c61"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned-5.png",
+      "length": 88363,
+      "sha256": "b67c2976db26598d7ff9f3a54ad166c04c46d3806fd269e7ff6b4af50a9849e8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned-6.png",
+      "length": 90617,
+      "sha256": "a9226c9ac55dc8c770492ea4baf44f5cd2ce87464ca58d347fce7b47d4bec97a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned-7.png",
+      "length": 83544,
+      "sha256": "e19c65e8b74b493c3bc572ae4d8b8730a817452a921d64f8bf083151f0780ebb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/crowned.png",
+      "length": 85126,
+      "sha256": "67aa233a7420e743797f7bd234c0328392ad23e7d2002b7c637a3e739bba08ee"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-0.png",
+      "length": 80761,
+      "sha256": "2f02c3055c2d2162dfd3170c34d854c3d2af1fc7a96682ab918ceb60562315eb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-1.png",
+      "length": 80680,
+      "sha256": "a66cc25269674640806dd9e8a8e0f219af09725c45608198ffa9226913e68205"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-2.png",
+      "length": 79618,
+      "sha256": "180a5f3322b62a28b102e7739303c032bc117e5f85829a50b32012019ea95ccf"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-3.png",
+      "length": 80613,
+      "sha256": "a8f23f2bd2f74d2dad555303fe60cb5ce3cd4447a570056693915d33b16abce1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-4.png",
+      "length": 80967,
+      "sha256": "4b5d17c566c0695342a719ceacfc946285d91114c5b6ec7b13e358b5b9501044"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-5.png",
+      "length": 81863,
+      "sha256": "2c533a875d62e629a94e3f5d87790daabad22868d7e80deafad3b1df86dde56c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-6.png",
+      "length": 81113,
+      "sha256": "662971539bb89fce9bea1858a7203db2b9103c6c9597e2432681ff85276367d7"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-7.png",
+      "length": 80410,
+      "sha256": "81128a226600a439c2b6ee0be658abcd45d8958f9d1ae53703475f866bc39a02"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-closed-0.png",
+      "length": 80515,
+      "sha256": "8aa19a75e858fd1359e56d2c72894a21e0ff355e03da6e1f478a685ab3c0da63"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-closed-1.png",
+      "length": 80448,
+      "sha256": "39e4d704932b19115ff59524a331df9b1c8f66887ef9d519f8e2b55885a628e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-closed-2.png",
+      "length": 79457,
+      "sha256": "a590177dcc10dd5f438f69957fd5ec258a4ea249a47b1fd4b43955760c11fac7"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-closed-3.png",
+      "length": 80333,
+      "sha256": "bd9baa8b846da1206816ee027bc491494ceaaa1283f1e783cc25efb03f466ec2"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-closed-4.png",
+      "length": 80679,
+      "sha256": "71b311934a34262673bc9038dc4d7291c74c84feb95f00eaafb5346b71a8f314"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-closed-5.png",
+      "length": 81660,
+      "sha256": "a98f2d4d9133cbaf18708f137716e952ce8543f5906be305d3b12e76d7ba9391"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-closed-6.png",
+      "length": 80898,
+      "sha256": "47af29cef220f00af957e7f836f850d3c57e1e45ac37d84414b1ea9798e7f969"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle-closed-7.png",
+      "length": 80165,
+      "sha256": "c01206df9d0a8d89bf5aa79fbcc17b00da86f274b499777abd49966496577b4a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/idle.png",
+      "length": 80761,
+      "sha256": "2f02c3055c2d2162dfd3170c34d854c3d2af1fc7a96682ab918ceb60562315eb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling-0.png",
+      "length": 93631,
+      "sha256": "0095476d3eb9d62cd15c9309fae347e151b0b2b669bcd0fcbd8d48d2ae5ce8fb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling-1.png",
+      "length": 94570,
+      "sha256": "3844e9595e93e51e184115f408c22adbe0e5169b184b4f8309c2fe3032fd58c1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling-2.png",
+      "length": 94039,
+      "sha256": "a7e135f9ed6eb84c1e8ca40d913e59bef51cf56a2fa9ff06be4fb6e3686f593c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling-3.png",
+      "length": 76322,
+      "sha256": "8543a43e95a38914f3fcd0ff8d5ef40810accbb8181eece9ecb633b6f1343bd6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling-4.png",
+      "length": 97843,
+      "sha256": "c13be131b0b6b64fdffe9612a09ea4f25add194012cf107f192da53e9503b913"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling-5.png",
+      "length": 92353,
+      "sha256": "7448f583a87cfda55376de4d7d6f83b14d5fbe9c85eb2d6965747b189ebd5af9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling-6.png",
+      "length": 96065,
+      "sha256": "2565d4f8085ef55945d78c3e2e380abdf51f553efff49361958e78629e406c99"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling-7.png",
+      "length": 94995,
+      "sha256": "c062310b4f899146c15bdcec8a77785950348866ee8fe440f96135e1e771a0ca"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/juggling.png",
+      "length": 93631,
+      "sha256": "0095476d3eb9d62cd15c9309fae347e151b0b2b669bcd0fcbd8d48d2ae5ce8fb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification-0.png",
+      "length": 77123,
+      "sha256": "90f2477cfae66443ec42ad070f59d1984bbcb59578c425d13696eb8c8d4755ac"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification-1.png",
+      "length": 78011,
+      "sha256": "aa431c785ef391f23d029b96fd0f11c5efc97ab78f371ea3125efd1aa9cfaa19"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification-2.png",
+      "length": 68533,
+      "sha256": "02a09a61a21b9d1d665d5f32284af3a9c288ed5c8041bae508c8a58d6ad8a39f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification-3.png",
+      "length": 69042,
+      "sha256": "66adc4334b505c08a6569259c18653a36ab64210e96d6d381552ac1839d5e2ee"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification-4.png",
+      "length": 71243,
+      "sha256": "ebe98e53291aa14160eb2c4a6d2a72644669df680e5ea4d09587dea2b12eef08"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification-5.png",
+      "length": 70453,
+      "sha256": "486b32aa77d9a72b22d8a78bc7c45e9ffcf1e882726cc22fbd849a746d677a5b"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification-6.png",
+      "length": 78054,
+      "sha256": "b6632469dea9a04e8e235cadddf871b9d4d362fc16164d7a79984fc70d2e5b36"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification-7.png",
+      "length": 78652,
+      "sha256": "faf07732bcc51489f9edeab7b13b9febb8e5eefb89893d47483d261da3956eb8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/notification.png",
+      "length": 77123,
+      "sha256": "90f2477cfae66443ec42ad070f59d1984bbcb59578c425d13696eb8c8d4755ac"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial-0.png",
+      "length": 82854,
+      "sha256": "b903ba47b0e920a077747103768a33901019f4cd23841988bcd90b5c96a750a1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial-1.png",
+      "length": 100420,
+      "sha256": "e1cc03a1499f91f0e2a39029682f7b86e0f9fba8053841f8a73d6036fa84b2b8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial-2.png",
+      "length": 88282,
+      "sha256": "06f58ec7b5bc5e2ac5d01f13007531e17593f1f148d57766f3c1f19a62a49cd6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial-3.png",
+      "length": 76336,
+      "sha256": "e4406ad8a320ed5c66101677ddffd10978e33c3a082328f31ab746638c40ff73"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial-4.png",
+      "length": 88282,
+      "sha256": "06f58ec7b5bc5e2ac5d01f13007531e17593f1f148d57766f3c1f19a62a49cd6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial-5.png",
+      "length": 100420,
+      "sha256": "e1cc03a1499f91f0e2a39029682f7b86e0f9fba8053841f8a73d6036fa84b2b8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial-6.png",
+      "length": 82854,
+      "sha256": "b903ba47b0e920a077747103768a33901019f4cd23841988bcd90b5c96a750a1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial-7.png",
+      "length": 76336,
+      "sha256": "e4406ad8a320ed5c66101677ddffd10978e33c3a082328f31ab746638c40ff73"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/perform_martial.png",
+      "length": 82854,
+      "sha256": "b903ba47b0e920a077747103768a33901019f4cd23841988bcd90b5c96a750a1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting-0.png",
+      "length": 55439,
+      "sha256": "03e4407166cc9a57ba0665a82b4b798b2dd667c59c42b8a4e73f82ee6f30e850"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting-1.png",
+      "length": 54314,
+      "sha256": "e02fbe632a8c0c6e925baf26e7e1c7b2c45cabab5063254c952d28836a08e1ec"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting-2.png",
+      "length": 55596,
+      "sha256": "9b31fa17e8a5a9cf79ef03cb3505b676d8b0e0ff7c66749b19254fd4a5e11ec9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting-3.png",
+      "length": 55042,
+      "sha256": "370d23d105cc43bac45879a87f62d8a6b0c0df1aac2864071b2d3d520949cdda"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting-4.png",
+      "length": 55241,
+      "sha256": "38aa4cb15460676fc5dd2d35f0dad356bc530e40cf91cc12caec2ab7caf749b9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting-5.png",
+      "length": 55422,
+      "sha256": "e2c213d2e4dc2ee5177ab065ab2d504191163b7f4e6b23466bf23655f3452ddd"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting-6.png",
+      "length": 55434,
+      "sha256": "b5b39872bd6b6560bf1b4d382211b51ee6489147e6e8fe231770bc9273b63c6a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting-7.png",
+      "length": 56742,
+      "sha256": "1c83b1104b31c5f1a55240742d3b98a018be9862ab2a2fbcf2c31ea19e7e145a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/resting.png",
+      "length": 55439,
+      "sha256": "03e4407166cc9a57ba0665a82b4b798b2dd667c59c42b8a4e73f82ee6f30e850"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping-0.png",
+      "length": 55439,
+      "sha256": "03e4407166cc9a57ba0665a82b4b798b2dd667c59c42b8a4e73f82ee6f30e850"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping-1.png",
+      "length": 54314,
+      "sha256": "e02fbe632a8c0c6e925baf26e7e1c7b2c45cabab5063254c952d28836a08e1ec"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping-2.png",
+      "length": 55596,
+      "sha256": "9b31fa17e8a5a9cf79ef03cb3505b676d8b0e0ff7c66749b19254fd4a5e11ec9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping-3.png",
+      "length": 55042,
+      "sha256": "370d23d105cc43bac45879a87f62d8a6b0c0df1aac2864071b2d3d520949cdda"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping-4.png",
+      "length": 55241,
+      "sha256": "38aa4cb15460676fc5dd2d35f0dad356bc530e40cf91cc12caec2ab7caf749b9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping-5.png",
+      "length": 55422,
+      "sha256": "e2c213d2e4dc2ee5177ab065ab2d504191163b7f4e6b23466bf23655f3452ddd"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping-6.png",
+      "length": 55434,
+      "sha256": "b5b39872bd6b6560bf1b4d382211b51ee6489147e6e8fe231770bc9273b63c6a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping-7.png",
+      "length": 56742,
+      "sha256": "1c83b1104b31c5f1a55240742d3b98a018be9862ab2a2fbcf2c31ea19e7e145a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sleeping.png",
+      "length": 55439,
+      "sha256": "03e4407166cc9a57ba0665a82b4b798b2dd667c59c42b8a4e73f82ee6f30e850"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success-0.png",
+      "length": 70412,
+      "sha256": "4dc717f94e9211dcb13207a1f8e30064defd7e7138a1011a82dae7591d1cdb0c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success-1.png",
+      "length": 70122,
+      "sha256": "2281a0cd123c8f2c01b541e19007a6dee1c46b4199c82b50547fd472852e624f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success-2.png",
+      "length": 72142,
+      "sha256": "f849c61f2976bcdb575b5a6273bf8523b2b4033f50be0b248fac746cd3ba4ff3"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success-3.png",
+      "length": 70788,
+      "sha256": "c447e23c845cd0938f94c2cd8ec646a0bf4a23c0092d9df4344a0121f074a9ad"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success-4.png",
+      "length": 73442,
+      "sha256": "282ca3fe479596f0b8e2efb1d0f640acb1eee88c0104fd734d2381959a685ffd"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success-5.png",
+      "length": 68502,
+      "sha256": "d897ffc485757bfb16add5a928d77354cbcee8e2d43f41d0651c57bdfe0fa8c0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success-6.png",
+      "length": 68384,
+      "sha256": "6e0da7992703943cf31b149e35299fc4e48e290ae0dde4be51fdc61f80332db3"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success-7.png",
+      "length": 70412,
+      "sha256": "4dc717f94e9211dcb13207a1f8e30064defd7e7138a1011a82dae7591d1cdb0c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/success.png",
+      "length": 70412,
+      "sha256": "4dc717f94e9211dcb13207a1f8e30064defd7e7138a1011a82dae7591d1cdb0c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping-0.png",
+      "length": 58658,
+      "sha256": "31825f0d0eca4d4cf103131361a545623ccf6c28d12b04bf1ad233233d548a30"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping-1.png",
+      "length": 64628,
+      "sha256": "ed499a652f6aa546822ecf063cfef1cbf993ff49093450857d485fad44f0d478"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping-2.png",
+      "length": 66185,
+      "sha256": "3577cc5800227b455a26eec9a01636f9afb25ca66b806859191425f8e57a9a9a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping-3.png",
+      "length": 63391,
+      "sha256": "faf56be09814e94f5e8caaa20ea4378326198b549c21bda4ebbeeca55ce980ff"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping-4.png",
+      "length": 61478,
+      "sha256": "afde9c8796003583cef472c4dc5090e8978d6a951fb9658ea2475454497bce80"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping-5.png",
+      "length": 63867,
+      "sha256": "589815c39553dcbfb7dd94bf887eb78382b1063b5bc801c8b7cbd340c94ad26c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping-6.png",
+      "length": 56726,
+      "sha256": "a17497e07e97217d08cbfbf9e2c999f4af2bd6e4fb2177974101357aeb87f9f4"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping-7.png",
+      "length": 59678,
+      "sha256": "d798ac1bdc3e6a12b911b641be9768f3fb24dde9f34486a1062bb140417b4846"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sweeping.png",
+      "length": 58658,
+      "sha256": "31825f0d0eca4d4cf103131361a545623ccf6c28d12b04bf1ad233233d548a30"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight-0.png",
+      "length": 63599,
+      "sha256": "4d19eca4a4384381ab71a137ef3dffc2a3f47804a1c68d07b95aa956525914f8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight-1.png",
+      "length": 63648,
+      "sha256": "ff1fb886762c9153df12f72428e1c0ca1117c0144c42e50d583f85406e282035"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight-2.png",
+      "length": 65414,
+      "sha256": "1f2fc762f7f9cc241298af1d33098a388c88c46fb58e3bacf54bc48486027d73"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight-3.png",
+      "length": 67147,
+      "sha256": "06e11c4c04193c5d1790cb5748b8b5d51cab5e5c60c1ef6b74509b41348a9532"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight-4.png",
+      "length": 64683,
+      "sha256": "51c6816cd49748262e1f0f7cce37627f0744112908f395782bd21690c9655704"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight-5.png",
+      "length": 56744,
+      "sha256": "9fa847ee19f5203b3adc2d71b9127dcfb4a48b987c4e2748bfa1d9201b772282"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight-6.png",
+      "length": 64647,
+      "sha256": "53b39696a3eb992fd2329bc2adbd2d2fdf498cb95660dd16e1f4fdc5d448629b"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight-7.png",
+      "length": 62456,
+      "sha256": "a6b10e16393eb093f10e5951d560bba3b766d5f90cf3e8f49990aec3be9cfe32"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/sword-flight.png",
+      "length": 63599,
+      "sha256": "4d19eca4a4384381ab71a137ef3dffc2a3f47804a1c68d07b95aa956525914f8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking-0.png",
+      "length": 77032,
+      "sha256": "2259fa5347ef4905c6dccfe0f731c8d2833034b20eccb445604cfa1cb8aa0360"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking-1.png",
+      "length": 77169,
+      "sha256": "7983a540df61960e0c950b769af6d30d83cf5505f745ea333fd363ddd119f6c7"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking-2.png",
+      "length": 77027,
+      "sha256": "8860fb6caa02e3c1b3bb0355fb2275f4659e9dd42c748c3c1f1a144ff0949b1a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking-3.png",
+      "length": 78514,
+      "sha256": "c3c511ec3c7f7dc7c899b5189f18cf53d358ccf9d4f6d7e97bb7f06f2d1d6abb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking-4.png",
+      "length": 78508,
+      "sha256": "f31d1e4008ac1e79b9623ff0619c875cb9f3ab819a2b803b6f067aa12b9e22e7"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking-5.png",
+      "length": 81891,
+      "sha256": "67f5a809eb7f43fa9d6b99cb9e5a1c381a445c19bf86db6ddeb90ee411b4afef"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking-6.png",
+      "length": 79545,
+      "sha256": "c78456692b98c3697513e1f14f624f42b78219457119aad00837a8073e4ba972"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking-7.png",
+      "length": 77628,
+      "sha256": "edd2f3f98361ba4ac501dd68ec64c612509f5e17f3346ed7fc6e09b71b487a55"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/thinking.png",
+      "length": 77032,
+      "sha256": "2259fa5347ef4905c6dccfe0f731c8d2833034b20eccb445604cfa1cb8aa0360"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/warning-0.png",
+      "length": 77819,
+      "sha256": "eb8b41b426fd9b3121fe80d05b9cbbc424995ced256897b76fd7424f39df55a9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/warning-1.png",
+      "length": 79866,
+      "sha256": "739aaf5c057358c926d4f9805929053c6621752f9d15bfc1439e503b049923dd"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/warning-2.png",
+      "length": 67332,
+      "sha256": "a4b7158b67131c74924d29fd03fb9c0cc4b386ed78ccc34285ea4dcd4565e726"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/warning-3.png",
+      "length": 69331,
+      "sha256": "65284a9e123a6c8c0bdb95f3c62f53349b6f427f67f176d750db1c65159db677"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/warning-4.png",
+      "length": 69382,
+      "sha256": "7fc51a9ec5866027283a410ec7f72a98c272e7c8d8a16a64269491f6d90261e6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/warning-5.png",
+      "length": 69409,
+      "sha256": "301eb5660b94f7e5e99040281040266a7b5d8600817df8d2680225dace0f284c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/warning-6.png",
+      "length": 79255,
+      "sha256": "62982e65ec60988ef852932d6211298307cef144b4deef417cf6ac19341cc7b8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/warning.png",
+      "length": 77819,
+      "sha256": "eb8b41b426fd9b3121fe80d05b9cbbc424995ced256897b76fd7424f39df55a9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working-0.png",
+      "length": 64381,
+      "sha256": "1f8d3f3028cb9057ab1882185fa103f3b272dae1f2a8ef04ccffb86f9a0173b2"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working-1.png",
+      "length": 63062,
+      "sha256": "ca59ca4fe8d4b567de3394eb9a118beb9099835f2b075932a223e8a461388f88"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working-2.png",
+      "length": 67807,
+      "sha256": "07b539b1019d8b83cdaab484b135d278ace2f3003b4d4308eda4735a341feb85"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working-3.png",
+      "length": 63042,
+      "sha256": "d7d62bf7b831edfa741d509a3b9bc783d9a1b5c1f79eeec68e1adba040bbc9cf"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working-4.png",
+      "length": 60716,
+      "sha256": "cb364806ff0029057226fb25d05ad6d8b773df7fb4d39a461ec9caf27983de73"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working-5.png",
+      "length": 64631,
+      "sha256": "b59e716ebe1c3785462418a611b6c06f20b0225d30cc89fece30dde6bc682ea4"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working-6.png",
+      "length": 65568,
+      "sha256": "47687a77dda9a1593895c6dbae663aeb9c918ccfe152de4b7ea464475f646dfb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working-7.png",
+      "length": 68972,
+      "sha256": "8a47737f88c57c9fe3d4cc0508a01ad09e28512841ceddf77394828762b4cff6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/working.png",
+      "length": 64381,
+      "sha256": "1f8d3f3028cb9057ab1882185fa103f3b272dae1f2a8ef04ccffb86f9a0173b2"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/attention-sheet.png",
+      "length": 1984141,
+      "sha256": "2ff6de1236072b2a5c6ebbe3b4441cf67c74eb4de92aff8f907ffb45b4dad7c6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/blink-sheet.png",
+      "length": 2055605,
+      "sha256": "9c68197059a206722576fbe98840bc9d4b1cea13fe27b51371276ac757900390"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/carrying-sheet.png",
+      "length": 1925094,
+      "sha256": "a6035ba3b0409ecca0a4fd9db3655320f71fe3b44497a034596e0d2c96a86a6e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/crowned-sheet.png",
+      "length": 2005156,
+      "sha256": "d5cb2cf5617028dcf1d15075b112586c7a1b1184d34b1c0f97d7f8aa8f058be3"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/idle-sheet.png",
+      "length": 1868288,
+      "sha256": "7ac596fb5ca54497dd0886f9de6a020cc5b8dead6b79fc683d9af35d1c30e722"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/juggling-sheet.png",
+      "length": 2091540,
+      "sha256": "353e9df90783ab6629e0ef9ad522fcff6915d8d07e6886962ea626fc6be2a474"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/notification-sheet.png",
+      "length": 2081974,
+      "sha256": "5832167574c5d0551ff115edd5b476fb34468eae4ff1a79232a0abf0c9491013"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/perform_martial-sheet.png",
+      "length": 2002649,
+      "sha256": "04a5f9dd0b353bc2e5d36f3b87f77b6280a4c04a75ffe017a5c3808eb60ca8ac"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/sleeping-sheet.png",
+      "length": 1955756,
+      "sha256": "30b87779184dee1a5a9420ecc7bd165e645f1976c80b311ae7a38d5551fde837"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/stabilize_pet_frames.py",
+      "length": 16200,
+      "sha256": "a26220c3a39cf4ab681410f19be15b78c88f74e25cac87f6387444af285a2ae2"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/success-sheet.png",
+      "length": 1971207,
+      "sha256": "c2e93223a8d8664496214fe96d0329af41bd8c15b79412c336f150b4b88c07dc"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/sweeping-sheet.png",
+      "length": 1917141,
+      "sha256": "c028a7ede705266cd39fcd7e611cbe7eff26f669a8ff6c9b05a2f8189277225f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/sword-flight-sheet.png",
+      "length": 1940131,
+      "sha256": "108747414144d0e3800358d6fc446b6d38125b10e2f0bc641dc0b955a4fa8951"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/thinking-sheet.png",
+      "length": 2071178,
+      "sha256": "b4b321e8c38c15823caf831aff86b92f7d125696e0f1856482eb0692482e23e2"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/warning-sheet.png",
+      "length": 2120391,
+      "sha256": "8dd5797829316344069736fb6ab3fc007d6f291255d32f69a294d154550d29f5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/generated-sheets-20260617/working-sheet.png",
+      "length": 1922440,
+      "sha256": "d5c34f27cb42b0fad9c5e38859b887fa409ac27152a00ec6c4a7130a3e45c45e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention-0.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention-1.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention-2.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention-3.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention-4.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention-5.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention-6.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention-7.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/attention.png",
+      "length": 59705,
+      "sha256": "c908a1323353fc1ebfef950cd9d095110f8a78557e198fd7b742d9bd5e906777"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink-0.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink-1.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink-2.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink-3.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink-4.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink-5.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink-6.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink-7.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/blink.png",
+      "length": 56062,
+      "sha256": "1924900bdfe22293eb7bb924fac9cb1573b6549df4339984d394acca6569fbb0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying-0.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying-1.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying-2.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying-3.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying-4.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying-5.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying-6.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying-7.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/carrying.png",
+      "length": 57894,
+      "sha256": "c4f2339a9153a5d3a1988a8d8d48630eea755efcc3c81ce9eedeaeb06c1ad14a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned-0.png",
+      "length": 41629,
+      "sha256": "401313f3fe9d2b8c46c07f37a71d960b3d9045beb5e7223a55dc7c05f23771f5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned-1.png",
+      "length": 47537,
+      "sha256": "10af08ae76358d6e6ea6958b0f6e8e6cef4d2dafa003992fef94edbb157e4c3d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned-2.png",
+      "length": 45919,
+      "sha256": "fe067def71b978188180d7e7ac039e427303501b8565d125a64e7211b6c78ea8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned-3.png",
+      "length": 46915,
+      "sha256": "1ccf95d733561189c9531fe2423291b957e42f9c4e70d9161d023837be914f0e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned-4.png",
+      "length": 43692,
+      "sha256": "59a521ad71463d903f3b4fbec6f6d01694dc460b314a5a23d4fda31987b257d8"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned-5.png",
+      "length": 44585,
+      "sha256": "d343efb9d9e9c04c3b25845ad49bee2bc39169aff21103975e8ad744815bd0d4"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned-6.png",
+      "length": 45012,
+      "sha256": "d6da56b4395686cb5fe7fc4057067a860edfe433faffaf33f44decd3c2a1fdf6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned-7.png",
+      "length": 46097,
+      "sha256": "65caffe0b8abe4659c25c3ae00f484d44184275c73ee65389410c7c439676e86"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/crowned.png",
+      "length": 41629,
+      "sha256": "401313f3fe9d2b8c46c07f37a71d960b3d9045beb5e7223a55dc7c05f23771f5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle-0.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle-1.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle-2.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle-3.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle-4.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle-5.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle-6.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle-7.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/idle.png",
+      "length": 58322,
+      "sha256": "436930f3dd30561a5c43df21ecfde84a505ab7b052437d9eb51cbd03c84b5efa"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling-0.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling-1.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling-2.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling-3.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling-4.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling-5.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling-6.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling-7.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/juggling.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification-0.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification-1.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification-2.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification-3.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification-4.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification-5.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification-6.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification-7.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/notification.png",
+      "length": 66516,
+      "sha256": "55a94afb6903b1b38e1e4b8fe6f2359ffe6cce47cb34e9d80b022fd3ceb0c041"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial-0.png",
+      "length": 58662,
+      "sha256": "146b05492883df4bb895324d3f599e49002533888ab2b256bff1f4d1fcfe6af0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial-1.png",
+      "length": 66996,
+      "sha256": "8bf9e0eac240bb2f689e04645ace319b95cf697d24f1024df7d3fe4e1d6bc1e2"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial-2.png",
+      "length": 66704,
+      "sha256": "e53e96ac4814402e164cb28f5f4b2443f50af786d06142b6a07c528d42cec187"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial-3.png",
+      "length": 99487,
+      "sha256": "f2f905cd0327a8c39723160bbe3b6add578a058210781b819b3232a1b8f631dc"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial-4.png",
+      "length": 82498,
+      "sha256": "9cef99cf1511b5eaceb4d350f7ab66191f34471af08125871ff745f6b78c8691"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial-5.png",
+      "length": 59340,
+      "sha256": "858d4a25b41573ed92c0e568f60b003717013551eeea8d8aa905ad7950a18720"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial-6.png",
+      "length": 101804,
+      "sha256": "0784c946315f3079cf60df418ac3195aa7a000a6ac41051a64c60a134ca1f073"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial-7.png",
+      "length": 60984,
+      "sha256": "973be851107f04f84975796e43c6005a9f437e245c14f209524c34f7d8e64bc9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/perform_martial.png",
+      "length": 58662,
+      "sha256": "146b05492883df4bb895324d3f599e49002533888ab2b256bff1f4d1fcfe6af0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting-0.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting-1.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting-2.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting-3.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting-4.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting-5.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting-6.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting-7.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/resting.png",
+      "length": 59649,
+      "sha256": "608fea835fa7cd6bfaadeaea5e72dcdaff4ed55d0d2edc6af1e261964d657437"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping-0.png",
+      "length": 70391,
+      "sha256": "6adca9d52afb4618cb4e66cd132418b2bc336ff054308758e9f0752e239c3f65"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping-1.png",
+      "length": 70363,
+      "sha256": "df7eda6aa2988048327eb62f5c693b61b573c8b7ed6e25d009d63b4de6ba2f32"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping-2.png",
+      "length": 70797,
+      "sha256": "d327d9a42bd85b40832a79bbcccc09da6991fe74d99fc61d0660903c1f1e2168"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping-3.png",
+      "length": 69739,
+      "sha256": "1472f4a873bef09131dfe9ebcf9a3950d104d1de61e5efe151b63fc74ef4d298"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping-4.png",
+      "length": 70340,
+      "sha256": "84a8f913a008f4315918d011af759d183d4efc291da3bf7e0b0ffb90519b7a6e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping-5.png",
+      "length": 70124,
+      "sha256": "ead594f184672b810f68d9a13e807a5c989571f94d515a05c4d0c13a92a281a1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping-6.png",
+      "length": 70203,
+      "sha256": "9782e3fed724dd13633e969463ac9d4babdf9bc4f77ba1f9be11a00e6e4ff0ae"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping-7.png",
+      "length": 70090,
+      "sha256": "e7cc766fca39030de6e52384017cc0499e888df87cdcac70a871d9a766ee3626"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sleeping.png",
+      "length": 70391,
+      "sha256": "6adca9d52afb4618cb4e66cd132418b2bc336ff054308758e9f0752e239c3f65"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success-0.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success-1.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success-2.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success-3.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success-4.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success-5.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success-6.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success-7.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/success.png",
+      "length": 66267,
+      "sha256": "c357e28baaeb3c04e24f52ff72e8fd11bf75b26e8f731ff108b3fbc11c4ad1e0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping-0.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping-1.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping-2.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping-3.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping-4.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping-5.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping-6.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping-7.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sweeping.png",
+      "length": 71315,
+      "sha256": "be90da31b736f5ba6677e2f8c0ea55bd6ca597c13411dfa6f2361229d494c88e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight-0.png",
+      "length": 70775,
+      "sha256": "f7ccc44e03f9c51a11c2bfacdfdfae5e9644e1a5ef20e6af1611ce91eb1d5fc1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight-1.png",
+      "length": 68225,
+      "sha256": "f54bb74d63e442d119e77b4b49d1788e4dec8bd0f6c2cb2b6fe354e49898628a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight-2.png",
+      "length": 79781,
+      "sha256": "dbf634bbf291b48dbc78a75d056f202b58cf4eddbc540c778f20fdfb76e5c783"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight-3.png",
+      "length": 62876,
+      "sha256": "4c7a4589dbf5a391af4e0e5476f4e3cdaf40fc670f09adb825cedb3c303be062"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight-4.png",
+      "length": 68483,
+      "sha256": "5b16b4a03e3a01780ab0f98fa204a21d6c8dfb9151b4a4f1436b8814f384bd54"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight-5.png",
+      "length": 65560,
+      "sha256": "f495c7b027fe7bd31724381503c73b0436cd9245862a4e3dc86d28b6829067a6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight-6.png",
+      "length": 67458,
+      "sha256": "8af573048dc6dedacc55f1c42931f60fbd3c9f23ef01408ecc8eda5b01f5782e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight-7.png",
+      "length": 55510,
+      "sha256": "f9f13a8614320de0407dee55ff9432ed1d8cf433dbfd5fa101e4f00c0f69d78a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/sword-flight.png",
+      "length": 70775,
+      "sha256": "f7ccc44e03f9c51a11c2bfacdfdfae5e9644e1a5ef20e6af1611ce91eb1d5fc1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking-0.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking-1.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking-2.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking-3.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking-4.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking-5.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking-6.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking-7.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/thinking.png",
+      "length": 57859,
+      "sha256": "6c3b6da4178d593e41572f52c093f95dc20f3d8c31c2f116d1ca3b0ea1c37e10"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/warning-0.png",
+      "length": 59706,
+      "sha256": "289b008fbf6e6bd8eb0e57f0652cb2f774eea6bc0e3f1371540cd6520bfffd0d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/warning-1.png",
+      "length": 59706,
+      "sha256": "289b008fbf6e6bd8eb0e57f0652cb2f774eea6bc0e3f1371540cd6520bfffd0d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/warning-2.png",
+      "length": 59706,
+      "sha256": "289b008fbf6e6bd8eb0e57f0652cb2f774eea6bc0e3f1371540cd6520bfffd0d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/warning-3.png",
+      "length": 59706,
+      "sha256": "289b008fbf6e6bd8eb0e57f0652cb2f774eea6bc0e3f1371540cd6520bfffd0d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/warning-4.png",
+      "length": 59706,
+      "sha256": "289b008fbf6e6bd8eb0e57f0652cb2f774eea6bc0e3f1371540cd6520bfffd0d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/warning-5.png",
+      "length": 59706,
+      "sha256": "289b008fbf6e6bd8eb0e57f0652cb2f774eea6bc0e3f1371540cd6520bfffd0d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/warning-6.png",
+      "length": 59706,
+      "sha256": "289b008fbf6e6bd8eb0e57f0652cb2f774eea6bc0e3f1371540cd6520bfffd0d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/warning.png",
+      "length": 59706,
+      "sha256": "289b008fbf6e6bd8eb0e57f0652cb2f774eea6bc0e3f1371540cd6520bfffd0d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working-0.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working-1.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working-2.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working-3.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working-4.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working-5.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working-6.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working-7.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-actions/original-left-hand-20260616/working.png",
+      "length": 63294,
+      "sha256": "c225339f71d6462ac0f58eb420a3f691aef7ec15f4d8ac08eddce45bd34f92ab"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-bubbles/idle.png",
+      "length": 161888,
+      "sha256": "666b3141ce63549c2d6350e72990042d55de160b271e073ff5b5e75bb11ea5ec"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-bubbles/success.png",
+      "length": 174411,
+      "sha256": "b168510e9341546cbf17ad6f63bd25f67bc8e5caae1306356b59e0c84f74326d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-bubbles/thinking.png",
+      "length": 165965,
+      "sha256": "f74621044c3b7a8c8faae2f6502e6096e8def771e133283f3e736fcc64510a96"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-bubbles/warning.png",
+      "length": 181463,
+      "sha256": "c2bc79cefb7cabccee1b5231c17ebb57b979fc4554da45aa236ffc2efedeba0f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-gif-frames/pet-0.png",
+      "length": 25363,
+      "sha256": "de272ecfc37c56557deff2e4eafbaab830a959204ab5e5596b24e7ad1761ccd5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-gif-frames/pet-1.png",
+      "length": 25407,
+      "sha256": "12cf5ba51f0b6ecdd1a9bcab662e401b73e311224b17739d762616a4a853ed84"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-gif-frames/pet-2.png",
+      "length": 25514,
+      "sha256": "216e63e6e4b1bfb85a631a9cffe6589f511e97cf7d4f1999ab1b3002b592b32b"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-gif-frames/pet-3.png",
+      "length": 25115,
+      "sha256": "750318567880accc584502753ca686ebec3e995e9d3ddd764eaac02430f52c87"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-gif-frames/pet-4.png",
+      "length": 24907,
+      "sha256": "559f964c38a67de70bf35e36f60cdd2db805d0abd3653fe37d2c315010e5fbc6"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-gif-frames/pet-5.png",
+      "length": 25194,
+      "sha256": "d61a9fb27f7a135820c1c2369e37b32c922f594ad05c4ad2e0458db3aa504b08"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/assets/pet-gif-frames/pet-6.png",
+      "length": 25916,
+      "sha256": "50e306341f2b685baf27324c53a300184ea9a507b5f3b8318f68b4e750629a4e"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs",
+      "length": 5683,
+      "sha256": "354452f55e0d14eb31d6dc8fbcfe234d0c87a5e284f10bd2c93409324ec862fc"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/bamboo-banner-wind.js",
+      "length": 19747,
+      "sha256": "af95d24d45bedc043c4ea9da8999a08e63e2ebbf1dc4aad5eb48d4dd7b32f1c2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/bamboo-leaves.js",
+      "length": 12352,
+      "sha256": "c638942b843c1a754fa8e8b010bbca1275c9946947a89234abd76ddd62f4efb9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/bridge3d.js",
+      "length": 6230,
+      "sha256": "87ef0a9db98ffaea402857018cc2a8983bf5dcb3e9efefde9b60a9b4701ef341"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/coolzhu-agent-icon-sheet.png",
+      "length": 1516871,
+      "sha256": "564bddf196a855152dda0c9e4417bea93b261e7ec95532c06d90110e3fc8379e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/throne-cat.js",
+      "length": 2123,
+      "sha256": "bbe85675974922ea716cdb1fefeeb4c4c27dc393cf01ca8ec96ad892db533eed"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/ai-core.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/alien-jelly.png",
+      "length": 30120,
+      "sha256": "5686a5ac59bc134236ad3e368c76543bfbee5dbc754d2a1cec1233176066ff7d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/astronaut-pixel.png",
+      "length": 31012,
+      "sha256": "ebca1a76add0869f615c3e01ee58d787e466f426749b325ce5fd81a62188aaa2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/cat-black.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/manifest.json",
+      "length": 761,
+      "sha256": "cd92fc8d16e0cf92d55ca5db9c08a1990638cc7107c210d88b15f4e22f93ad5f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/mushroom-butler.png",
+      "length": 5714,
+      "sha256": "346c5733ce32af52930d2ea4aff50d97a7d6d7aebe09ba1779bec9af4266198b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/robot-cyan.png",
+      "length": 31678,
+      "sha256": "a6a78b95316b2dc50d64325a92c77211a993696decc068dcb8ae473f6f478cbb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/robot-gold.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/robot-green.png",
+      "length": 5397,
+      "sha256": "a8923ec837f37b5e87db35332f9b8e284827a92dadca0157882ff3d58da20834"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/robot-purple.png",
+      "length": 32083,
+      "sha256": "fec790fc3c73effeb5cf861f411b061f41e27a06258e6925f59b7e69e88536e6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/robot-red.png",
+      "length": 30332,
+      "sha256": "cffee11a99ef11dbbf3855b4818d295fee4d58f76985a09cfbe0ece89b511ca0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/shiba-captain.png",
+      "length": 30424,
+      "sha256": "c4c856e0b4ad835b6aa6407a73f9d9e063a4cc34a250aed00ae507cd3c9374b1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/star-sprite.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/turtle-mechanic.png",
+      "length": 32540,
+      "sha256": "34b2f0e75791950e6c63825809ee4f95ad49a7e5aba23a463fe3bd7b59f184c5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-swordsman.png",
+      "length": 80613,
+      "sha256": "a8f23f2bd2f74d2dad555303fe60cb5ce3cd4447a570056693915d33b16abce1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/bamboo-swordsman.png",
+      "length": 351406,
+      "sha256": "962b6c5a5eafdf990fc649f5150f474fad86b48eb48854637fbd9a33c51b3b0a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/feather-guard.png",
+      "length": 354490,
+      "sha256": "4c6bd266274e7bcb589db87c1cf7b1fa8baab3b011d44f1a3dcaf0e03e2f33f9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/gold-commander.png",
+      "length": 344578,
+      "sha256": "0067eaf43cdedba57a7236e394009facc972d5b6e09def718f11453681cc9127"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/ink-shadow.png",
+      "length": 321768,
+      "sha256": "4c0d557828e3001ec45701b3de9137b2200eb65a42843fb22284475b1222e267"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/jade-strategist.png",
+      "length": 339136,
+      "sha256": "50ec9e5c8d35aa3075538dd99e4fa91ad874bf26bddffb39985ee9fd43b7d259"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/mechanist.png",
+      "length": 333835,
+      "sha256": "9897d34c4257384d8f6648a1336f73ca07ae9ffcae27c3d77f20b2458604efd6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/scripture-monk.png",
+      "length": 336024,
+      "sha256": "ef0b26a6dc32f5ce2fdca3780c31bc543759f63f02c697980c4b8867af56f148"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/source-sheet-v1.png",
+      "length": 2358190,
+      "sha256": "4675a07c31f006504d44a2b64253addf7a20c64415b0bf235b6a6b119fb898e1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/avatars/wuxia-v3/wandering-physician.png",
+      "length": 336827,
+      "sha256": "e5b28175bde207b3a3da9055e880a62e15d8ec01bebd8fc57aed2f535f699dc4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/backgrounds/coolzhu-code-stage.png",
+      "length": 1791714,
+      "sha256": "61a60ae2120e938f726f3d3d016dc5a8d43e06571318276a5cd2d4e4256487d8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/backgrounds/coolzhu-ui-design-reference.png",
+      "length": 2052752,
+      "sha256": "d2f034517330a18c67201fffa58f1adbc976b5f8eb10d853de3f88c54976fcc6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/backgrounds/coolzhu-ui-stage.png",
+      "length": 1923607,
+      "sha256": "85cf2d8615cb8e7e3fa36913ae4bbb50fb0ad9864ba9a3719ad2973d268b90e0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops/bottom-fail-area.png",
+      "length": 8765,
+      "sha256": "7ee8c5e704fb1f89ee15504aa246b379f345379faef2609d8dda7b5e85e6d86a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops/bottom-success-area.png",
+      "length": 9015,
+      "sha256": "ab9eed5d20cbd334eb0ac5505b36e0834ff7a5625b31743b00b28df3bb8d2687"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops/plugin-left.png",
+      "length": 12212,
+      "sha256": "84117f0538f105821ba1313017122004f33ba91e98f18e4055bdffd9078a2d74"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops/plugin-store-area.png",
+      "length": 13681,
+      "sha256": "73c77f5f37fff8c943948b1c554c037020950d82abde27acb07b6a355148efd6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops2/bottom-right.png",
+      "length": 46602,
+      "sha256": "a5c73085360e4694960edbb1ad0ed2a2a56371a07204a6f4fa7ddeeda0adccb7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops2/extension.png",
+      "length": 63174,
+      "sha256": "b0007bed7ac2e66210d9fac0124404077e147d9d9949685cc611d8b5342d3346"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops2/msg-actions.png",
+      "length": 58586,
+      "sha256": "850982c59c9124cb6e6715d9fccfdda6f8ba637ee70ce24541527c252dca7f22"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops3/bottom-all-right.png",
+      "length": 44734,
+      "sha256": "4381566e81643bb18af6abda11f8243fd4d6bc33514c8e979f5dde15ec520af1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops3/favorite-wide.png",
+      "length": 13829,
+      "sha256": "b02e516b97bf214a30c6a0e776dde0dc4b91889df13985d82afd757e059fa41a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops3/print-help-about.png",
+      "length": 18642,
+      "sha256": "f34853b8d402786aee6ffb0ffc263e39e6789ea7dc689f5105b5603da063f4b8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/debug-crops3/success-fail-wide.png",
+      "length": 18414,
+      "sha256": "6ec71dbef074d97b1ecffabc6565e8fbf30eb269eba718a07f8d37582897b87e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/about.png",
+      "length": 31905,
+      "sha256": "bd4271c6c5fe482dc8d1b8426ec3c197c610de5582d8aa8e0751975dab6b5cca"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/agent-blue.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/agent-green.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/agent-orange.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/agent-red.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/agent-yellow.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/camera.png",
+      "length": 32439,
+      "sha256": "cc616a95131f011f489f638f5acdc1e1e2ba2a4cc06f8b7bca853218ca7761fa"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/chart.png",
+      "length": 30269,
+      "sha256": "25c88640b5eb7fa767aa65a8b359fe96cc4f46d4fef0145fda42f85ee617cd00"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/chat.png",
+      "length": 32109,
+      "sha256": "8408ee66b022bd8474f4aceb6fbed8111b11a669d24fe2a76ffcdf0a5dd305f3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/cli.png",
+      "length": 27905,
+      "sha256": "855d1e91f334b538c14e2156c98bb6207c5879d7ff54552b26e1caa89c74261a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/code.png",
+      "length": 4498,
+      "sha256": "f4e1e54863e6dd9af08205341c168342e7dcaf859a7e6db869ac0b4ecac2111f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/collapse.png",
+      "length": 31326,
+      "sha256": "091a8d9b7040cbc9a7c461f31b958bd4064c92755caf61d3481616999058a492"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/combo-key.png",
+      "length": 31158,
+      "sha256": "a70d3489200e8bcabeea99c667de90508ea78212c88366d08de9342aa923972a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/copy.png",
+      "length": 8965,
+      "sha256": "8505a4697a6e8fd1fe5daffa35f1607ee4b5e9aaca46f38677558a1ac706dffc"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/delete.png",
+      "length": 29197,
+      "sha256": "0581494fa9026524c49d63c56f555d9ccea89aaf815774cab5d917491bc8f35d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/diagnostic-pressure-gauge.png",
+      "length": 97560,
+      "sha256": "9bda87d22298cfd0cd3719b8a96076699bc0ac4dd55d9a7c95e630ade83623b5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/diagnostic-spark.png",
+      "length": 86446,
+      "sha256": "40d8e4cfda3a6c8bd4487ac6b09915161063cdca29c3af7ef30263b05ab960a8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/double-click.png",
+      "length": 31396,
+      "sha256": "a27febeec5f762272da9e2a51d0de966b58f62d76bab956a3537ff84be14b4ef"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/download-square.png",
+      "length": 29493,
+      "sha256": "1beca8da71a1656833b47df621667bb128f5fa6eca6f50323856ec1b5ee5e4df"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/download.png",
+      "length": 29493,
+      "sha256": "1beca8da71a1656833b47df621667bb128f5fa6eca6f50323856ec1b5ee5e4df"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/drag.png",
+      "length": 3547,
+      "sha256": "87c3e5a15b9bbb3dc5b00593bb09e02624b278424ec9f07e7c94a5c468cf8a08"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/error-log.png",
+      "length": 34118,
+      "sha256": "2a753dbca59c01e519470bafc10b48610bedce0350df5e344e23936c0b37dd03"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/error.png",
+      "length": 32384,
+      "sha256": "46d0b967eec4d5e082177ea29c620a0106fb16da6984f669318c6fdc2865d320"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/export.png",
+      "length": 29463,
+      "sha256": "f90f8c3b5c0ed655b6bd4ea0088560c96cabf4d6ff448623187cb8bac4868b8e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/fail.png",
+      "length": 32384,
+      "sha256": "46d0b967eec4d5e082177ea29c620a0106fb16da6984f669318c6fdc2865d320"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/favorite.png",
+      "length": 4933,
+      "sha256": "14217d2a8a34b1e2b2ca86b1acf6987cd2e1f77c3746c6242a05f404d378df3e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/file-tree.png",
+      "length": 30142,
+      "sha256": "c29ed5f618865bc1ec956aafadbf0a082457c52b538342648dd1bfcaa9b09dd5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/file-type.png",
+      "length": 5218,
+      "sha256": "e1359b6afa08fe001c3f699c7a50f24b6ee59962928842e8a9ef5c371eecf2f2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/file.png",
+      "length": 4219,
+      "sha256": "a3cc382f9c9b2fca900569d37f3eecfa56fe605e1b3a5bc185f0ed25d254a675"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/filter.png",
+      "length": 3302,
+      "sha256": "a1a3b4b4b3be97922255eaa2758e13cdad5dcbe706866a6c194b42b94cbb8a30"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/folder.png",
+      "length": 28518,
+      "sha256": "e8bfc9470dc66732b649197c0ac6d8beddad665a72272403d0b4c631c0948788"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/fullscreen.png",
+      "length": 31326,
+      "sha256": "091a8d9b7040cbc9a7c461f31b958bd4064c92755caf61d3481616999058a492"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/git-added.png",
+      "length": 80833,
+      "sha256": "881ef6fab9f6210098235ada14574e95085d754f5a815dfff58151166e924b99"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/git-deleted.png",
+      "length": 77926,
+      "sha256": "b88447cb1947352c0fd6e187008aacb89ee7af7c3c26a247a1a367bc13863f0c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/git-modified.png",
+      "length": 76625,
+      "sha256": "3906804898a2277ff6e269672a513a46a4296dad8b57ef93c5f8dc2f7f60998a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/git-untracked.png",
+      "length": 76761,
+      "sha256": "e9a181e27d6ada681f2670f2c90a732e4042f6efa22ae95ce5ef3a8c6ec56ad7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/help.png",
+      "length": 31905,
+      "sha256": "bd4271c6c5fe482dc8d1b8426ec3c197c610de5582d8aa8e0751975dab6b5cca"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/image-preview.png",
+      "length": 32835,
+      "sha256": "2fc8a6019e09c81bfbeab47557d7c34661c0678545626043ca3246b0f4dda202"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/import.png",
+      "length": 29493,
+      "sha256": "1beca8da71a1656833b47df621667bb128f5fa6eca6f50323856ec1b5ee5e4df"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/info-log.png",
+      "length": 34118,
+      "sha256": "2a753dbca59c01e519470bafc10b48610bedce0350df5e344e23936c0b37dd03"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/info.png",
+      "length": 2900,
+      "sha256": "05091c03e3b5691752f7ad271e6fb46899143d9706204eb842965d28e6982594"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/inner-vision.png",
+      "length": 31678,
+      "sha256": "a6a78b95316b2dc50d64325a92c77211a993696decc068dcb8ae473f6f478cbb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/install.png",
+      "length": 29463,
+      "sha256": "f90f8c3b5c0ed655b6bd4ea0088560c96cabf4d6ff448623187cb8bac4868b8e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/keyboard.png",
+      "length": 31594,
+      "sha256": "039be078a6789b73f6160a9f19dcae03eaee7ee4415e10667a3082b89297970b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/like.png",
+      "length": 4140,
+      "sha256": "83466b34465a7eda9d48f312acf7e021ca768f78fbbee48084455275691116cb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/link.png",
+      "length": 4410,
+      "sha256": "80ddab2b7eeb0a3ae3e7bc4e1910cc7172ebd12016c66e870c84d0ae6de720db"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/loading.png",
+      "length": 30689,
+      "sha256": "ae223ee8f4e30a60c5d7c0938a624d52728abc01942e232324776deb507c2b95"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/lock.png",
+      "length": 4166,
+      "sha256": "9e627b66b0f0328b455d889f06eed81d982971becaf84f88ff570c396720211d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/log.png",
+      "length": 34118,
+      "sha256": "2a753dbca59c01e519470bafc10b48610bedce0350df5e344e23936c0b37dd03"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/manage-plugin.png",
+      "length": 30120,
+      "sha256": "5686a5ac59bc134236ad3e368c76543bfbee5dbc754d2a1cec1233176066ff7d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/mario.png",
+      "length": 5730,
+      "sha256": "a880cbb1d2072d693b8e2afde9a4400e30cc254645f26e8a94b494919bc0981a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/media-audio-wave.png",
+      "length": 81345,
+      "sha256": "0d50f145a6cb4530df4d1cedf565c0cf9f9a0c6f45979b5d3e8b494a5984b42c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/media-video-film.png",
+      "length": 89171,
+      "sha256": "0d4d4cea8d601efa103438c74b16037f0647e0719333684f72d874cf7ec5ac56"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/message-delete.png",
+      "length": 29197,
+      "sha256": "0581494fa9026524c49d63c56f555d9ccea89aaf815774cab5d917491bc8f35d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/microphone.png",
+      "length": 31358,
+      "sha256": "8ab6ec3d8e0640c8139611d2069b4ca4b190486b1436107ebce9e27e7f8eeb4c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/monitor-on.png",
+      "length": 31012,
+      "sha256": "ebca1a76add0869f615c3e01ee58d787e466f426749b325ce5fd81a62188aaa2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/mouse-left.png",
+      "length": 30003,
+      "sha256": "5649fd057b5b0605ef1920045955ac0ac8e932484637bc79d802d0671c0e488c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/mouse-move.png",
+      "length": 31128,
+      "sha256": "87ed51ce8906316abc7003682ce92ecef0dee5f0814350f8eae49a3a91eca294"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/mouse-right.png",
+      "length": 29964,
+      "sha256": "211d4dc9e1f7aca82231563ae887b7c9bfa6c97d15cc4c6946a13074e3f4d3dd"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/notify.png",
+      "length": 2809,
+      "sha256": "6f89e940e192767be2580f457962f15e73ab60998f707e0dda89a010b8433df5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/open-folder.png",
+      "length": 28518,
+      "sha256": "e8bfc9470dc66732b649197c0ac6d8beddad665a72272403d0b4c631c0948788"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/outer-vision.png",
+      "length": 32835,
+      "sha256": "2fc8a6019e09c81bfbeab47557d7c34661c0678545626043ca3246b0f4dda202"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/overview.png",
+      "length": 30269,
+      "sha256": "25c88640b5eb7fa767aa65a8b359fe96cc4f46d4fef0145fda42f85ee617cd00"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/permission-shield-lock.png",
+      "length": 94378,
+      "sha256": "046062ce9fc55ed39ddbd3638c294d6bfa138be7b1b0db39657efb0fd97ebac2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/permission-unlock.png",
+      "length": 82214,
+      "sha256": "94d866d43828054781a7e99b29fe9e42a097e9beff7369d7a3633abed74c6ff1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/permission-vault-dial.png",
+      "length": 97442,
+      "sha256": "f177767bfdf2ec0d6c2f3703c73957e89bc54df08364661d162693cd18bd3224"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/play-test.png",
+      "length": 28714,
+      "sha256": "4234ee2ecfeeff99658189400c0a33de33ac17b658a95fd6dccf017c534e19a8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/plugin-store.png",
+      "length": 30120,
+      "sha256": "5686a5ac59bc134236ad3e368c76543bfbee5dbc754d2a1cec1233176066ff7d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/plugin.png",
+      "length": 30120,
+      "sha256": "5686a5ac59bc134236ad3e368c76543bfbee5dbc754d2a1cec1233176066ff7d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/print.png",
+      "length": 3852,
+      "sha256": "978157d11a390c225d92b0e900d436602f151502d3b3c1eaf955efb8b8e4fd14"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/project-tree.png",
+      "length": 30142,
+      "sha256": "c29ed5f618865bc1ec956aafadbf0a082457c52b538342648dd1bfcaa9b09dd5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/puzzle.png",
+      "length": 30120,
+      "sha256": "5686a5ac59bc134236ad3e368c76543bfbee5dbc754d2a1cec1233176066ff7d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/question-block.png",
+      "length": 31905,
+      "sha256": "bd4271c6c5fe482dc8d1b8426ec3c197c610de5582d8aa8e0751975dab6b5cca"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/question.png",
+      "length": 31905,
+      "sha256": "bd4271c6c5fe482dc8d1b8426ec3c197c610de5582d8aa8e0751975dab6b5cca"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/refresh.png",
+      "length": 5103,
+      "sha256": "7ab81f889d2641ad71e1d5027db01bc5ebb69608977b45f94de7b92600aac64f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/rename.png",
+      "length": 31252,
+      "sha256": "55c1077d66b283428b66865361519483a0f0d80aec570bcd6bfe61ff34e4ac22"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/reset.png",
+      "length": 2435,
+      "sha256": "860af07e35c5209150b9e02e6db4cec5e764184e4e138e9ef53f727a996694d4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/resolution.png",
+      "length": 4645,
+      "sha256": "71f89f920a2e773720058ac743d63da30dd7c512be94cbd91f9d1e8688e77ddd"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/result.png",
+      "length": 32038,
+      "sha256": "a7fd5bd3f55ed13f7b34ae2e3ff976e9790e62ba35cb189b952e7af5fad22d28"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/robot-message.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/roi-off.png",
+      "length": 31326,
+      "sha256": "091a8d9b7040cbc9a7c461f31b958bd4064c92755caf61d3481616999058a492"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/roi-on.png",
+      "length": 31326,
+      "sha256": "091a8d9b7040cbc9a7c461f31b958bd4064c92755caf61d3481616999058a492"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/save-as.png",
+      "length": 28776,
+      "sha256": "9555257bb8e1ddb963a621e7b825281c86ffefe5db35db4d58aa38bbc99ae2c8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/save.png",
+      "length": 28776,
+      "sha256": "9555257bb8e1ddb963a621e7b825281c86ffefe5db35db4d58aa38bbc99ae2c8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/screen-cast.png",
+      "length": 31012,
+      "sha256": "ebca1a76add0869f615c3e01ee58d787e466f426749b325ce5fd81a62188aaa2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/search.png",
+      "length": 3207,
+      "sha256": "03411306cd0920fa6393883a982f5fc6753ba2653ebcbf8a0cb15dce85f65f69"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/send.png",
+      "length": 31787,
+      "sha256": "f01614255ee61fc8ffe344e006e933287205f0238d255de66ac0fab945eda8f7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/session-new.png",
+      "length": 30424,
+      "sha256": "c4c856e0b4ad835b6aa6407a73f9d9e063a4cc34a250aed00ae507cd3c9374b1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/session-open.png",
+      "length": 5714,
+      "sha256": "346c5733ce32af52930d2ea4aff50d97a7d6d7aebe09ba1779bec9af4266198b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/settings.png",
+      "length": 33229,
+      "sha256": "6f7114ded31070dffa987f6cee48ade8cf4a8f27b65ae7863054c1fc161a1c49"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/skill.png",
+      "length": 32083,
+      "sha256": "fec790fc3c73effeb5cf861f411b061f41e27a06258e6925f59b7e69e88536e6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/sort.png",
+      "length": 2650,
+      "sha256": "937938408a840e7ecb3a6ea00cc7c06ea473893c27b4f79159c8b0f55f54eade"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/speaker-on.png",
+      "length": 31152,
+      "sha256": "9ea2e51147217730c1f996315045fd70e8512d23093e9428a8504dd303e3fa74"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/speaker.png",
+      "length": 31152,
+      "sha256": "9ea2e51147217730c1f996315045fd70e8512d23093e9428a8504dd303e3fa74"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/start.png",
+      "length": 28714,
+      "sha256": "4234ee2ecfeeff99658189400c0a33de33ac17b658a95fd6dccf017c534e19a8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/stop-test.png",
+      "length": 27109,
+      "sha256": "a6120c6244523807a220e4ca2da047e05d48480a51b3a63d69ab9df88c5d5e99"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/stop.png",
+      "length": 27109,
+      "sha256": "a6120c6244523807a220e4ca2da047e05d48480a51b3a63d69ab9df88c5d5e99"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/success.png",
+      "length": 32038,
+      "sha256": "a7fd5bd3f55ed13f7b34ae2e3ff976e9790e62ba35cb189b952e7af5fad22d28"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/system-message.png",
+      "length": 32109,
+      "sha256": "8408ee66b022bd8474f4aceb6fbed8111b11a669d24fe2a76ffcdf0a5dd305f3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/task-list.png",
+      "length": 34118,
+      "sha256": "2a753dbca59c01e519470bafc10b48610bedce0350df5e344e23936c0b37dd03"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/text-message.png",
+      "length": 32109,
+      "sha256": "8408ee66b022bd8474f4aceb6fbed8111b11a669d24fe2a76ffcdf0a5dd305f3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/thinking.png",
+      "length": 3878,
+      "sha256": "1e6066ff5e8743e80c7823c37d212f98bb198310ec7acfe6666a394e29b0e8ce"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/trash.png",
+      "length": 29197,
+      "sha256": "0581494fa9026524c49d63c56f555d9ccea89aaf815774cab5d917491bc8f35d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/upload.png",
+      "length": 29463,
+      "sha256": "f90f8c3b5c0ed655b6bd4ea0088560c96cabf4d6ff448623187cb8bac4868b8e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/vision-crosshair.png",
+      "length": 87951,
+      "sha256": "94d583af3e8e65785b90ec7cafd5766b1c519cc0b66edd64e5155a4d163adcd1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/warn-log.png",
+      "length": 30332,
+      "sha256": "cffee11a99ef11dbbf3855b4818d295fee4d58f76985a09cfbe0ece89b511ca0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/warning.png",
+      "length": 30332,
+      "sha256": "cffee11a99ef11dbbf3855b4818d295fee4d58f76985a09cfbe0ece89b511ca0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/wheel.png",
+      "length": 32540,
+      "sha256": "34b2f0e75791950e6c63825809ee4f95ad49a7e5aba23a463fe3bd7b59f184c5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/wrench.png",
+      "length": 5397,
+      "sha256": "a8923ec837f37b5e87db35332f9b8e284827a92dadca0157882ff3d58da20834"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/zoom-in.png",
+      "length": 31326,
+      "sha256": "091a8d9b7040cbc9a7c461f31b958bd4064c92755caf61d3481616999058a492"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons/zoom-out.png",
+      "length": 31326,
+      "sha256": "091a8d9b7040cbc9a7c461f31b958bd4064c92755caf61d3481616999058a492"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/about.png",
+      "length": 4007,
+      "sha256": "044ab5d85ef844ba1304d7f7d8a2530da13c2b2c0e13f6d0f7ad90f8adec7af5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/agent-blue.png",
+      "length": 6697,
+      "sha256": "a0165da455644734f070f54bd845a3ee2ed0f60e87ebcbd9840e5c3319ecc1d9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/agent-green.png",
+      "length": 6682,
+      "sha256": "69f9c99de0b8a22e2d7c0bf79e7f3a8ec2d1fd016462c8a0880f1a59cdb3ce31"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/agent-orange.png",
+      "length": 6894,
+      "sha256": "f92d273b235ab571aacbea7a8b623a349b7130f7ede0987d3a80b1a98e23bca4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/agent-red.png",
+      "length": 6673,
+      "sha256": "ecdc8e313ee0fa431262124b95501bd8e0878553eb0b8bc20b60dc5e01749396"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/agent-yellow.png",
+      "length": 6956,
+      "sha256": "e4f208203319c3eeb3e27cf0260fbc454d38af50065f4d6815892072e0c0e68d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/camera.png",
+      "length": 32439,
+      "sha256": "cc616a95131f011f489f638f5acdc1e1e2ba2a4cc06f8b7bca853218ca7761fa"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/chat.png",
+      "length": 32109,
+      "sha256": "8408ee66b022bd8474f4aceb6fbed8111b11a669d24fe2a76ffcdf0a5dd305f3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/cli.png",
+      "length": 27905,
+      "sha256": "855d1e91f334b538c14e2156c98bb6207c5879d7ff54552b26e1caa89c74261a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/code.png",
+      "length": 6414,
+      "sha256": "5a2ea2fa7989322cfb7b2bd6664d4ccbbe30c5efba49eb2ec9943702a93fa2f5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/combo-key.png",
+      "length": 31158,
+      "sha256": "a70d3489200e8bcabeea99c667de90508ea78212c88366d08de9342aa923972a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/copy.png",
+      "length": 7124,
+      "sha256": "215f6ffd052fd1fd9932a8cb14839008eec7afb2694cc2fcc6919ca9df2462b4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/delete.png",
+      "length": 6042,
+      "sha256": "67f5b390ca49bfd939ae5c84aaf017c39c6cceda32be443e6e314008c7e0a2aa"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/double-click.png",
+      "length": 31396,
+      "sha256": "a27febeec5f762272da9e2a51d0de966b58f62d76bab956a3537ff84be14b4ef"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/download-square.png",
+      "length": 6328,
+      "sha256": "22a7f7a74c9ff584e45c0fa1c76612ad0e505862ff46e58c8b6b2ea1a8cda253"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/download.png",
+      "length": 29493,
+      "sha256": "1beca8da71a1656833b47df621667bb128f5fa6eca6f50323856ec1b5ee5e4df"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/drag.png",
+      "length": 5601,
+      "sha256": "fc61e901db98a9d1896b58d6ff01f208dba84c0a3e960b9456b9440bc3deb3ef"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/error-log.png",
+      "length": 7056,
+      "sha256": "0d69e91045553ba2b63615a516dd6bff6cac95315ed1a5f6b89ccc69618d7dec"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/export.png",
+      "length": 5538,
+      "sha256": "81ff34c5fce8526b61dcf09baf1297f2cd2947aed77024fba2a076cc109d9747"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/fail.png",
+      "length": 32384,
+      "sha256": "46d0b967eec4d5e082177ea29c620a0106fb16da6984f669318c6fdc2865d320"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/favorite.png",
+      "length": 4065,
+      "sha256": "2f6a0f01e0951232b090c628703f023eb78fa318c9924ac4f3dd4e2fc69f3a9b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/file-type.png",
+      "length": 7104,
+      "sha256": "50ce761b05e01eb5e3cc0d89ed228c637c276c432435542c3dd7d1dee21eb776"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/file.png",
+      "length": 6160,
+      "sha256": "79a501d2d659c7117ec844c01b1cf25fde931205151602bfaad340df0785b0cb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/filter.png",
+      "length": 5032,
+      "sha256": "f1971d6e9237d8eb048ccbd0221ba2e62380be185fedbf13af6f5682c4585205"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/folder.png",
+      "length": 28518,
+      "sha256": "e8bfc9470dc66732b649197c0ac6d8beddad665a72272403d0b4c631c0948788"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/fullscreen.png",
+      "length": 7079,
+      "sha256": "e900504239bbfa69daad4fbfc2ae993e7e02dd4c0c25442dda947a7fbcb1ad5f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/help.png",
+      "length": 5376,
+      "sha256": "63665f9a02bf83c5ea112bd3e87fdb2f8ff5dddb03699c7af78273fb053729a1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/image-preview.png",
+      "length": 32835,
+      "sha256": "2fc8a6019e09c81bfbeab47557d7c34661c0678545626043ca3246b0f4dda202"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/import.png",
+      "length": 5179,
+      "sha256": "e1229cad03b542f1611aa934b1e533061769416512668c073a6fe05b78ae75cf"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/info-log.png",
+      "length": 7240,
+      "sha256": "dc851b3b56df9b319d07a43e2d2474631e606be7d6bac9d6d9d444215c54f580"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/inner-vision.png",
+      "length": 31678,
+      "sha256": "a6a78b95316b2dc50d64325a92c77211a993696decc068dcb8ae473f6f478cbb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/install.png",
+      "length": 6674,
+      "sha256": "2836c41ee1dc5fa84d63cde6f4af7db500cda5d9f3402b178cdd2f4ae9bc5691"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/keyboard.png",
+      "length": 31594,
+      "sha256": "039be078a6789b73f6160a9f19dcae03eaee7ee4415e10667a3082b89297970b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/like.png",
+      "length": 3980,
+      "sha256": "7c0fe07a6bcb119a1e2522773b32f26a54994095014b8c543b2979c72bfadb9c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/link.png",
+      "length": 6080,
+      "sha256": "d4358d0560f8f1df252ee6b3c1a284a9215269dab40780ba938b85ddaaf288f6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/loading.png",
+      "length": 30689,
+      "sha256": "ae223ee8f4e30a60c5d7c0938a624d52728abc01942e232324776deb507c2b95"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/lock.png",
+      "length": 6374,
+      "sha256": "729c3198217391a69c95507fd6038c5d8c3cb10e09bdf86fa9c6913f4b6c304f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/log.png",
+      "length": 7199,
+      "sha256": "62a4795a83c386e814f68d433f26fa8bff1bf7addbf15c3b322ad987d672923b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/manage-plugin.png",
+      "length": 8418,
+      "sha256": "c62239ef55300279848fdca5d48ad56300dc0386385a0d09a828fd5b83101c45"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/mario.png",
+      "length": 6484,
+      "sha256": "84eb4096b127885fa6e5f23cc0cfdd584fa6152dd859223b6a395a719b9ff12a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/microphone.png",
+      "length": 31358,
+      "sha256": "8ab6ec3d8e0640c8139611d2069b4ca4b190486b1436107ebce9e27e7f8eeb4c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/monitor-on.png",
+      "length": 5701,
+      "sha256": "196944d772ad05814dea9516fee4a4a4ebd119738a0326d44e5062a57d4ad1b8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/mouse-left.png",
+      "length": 30003,
+      "sha256": "5649fd057b5b0605ef1920045955ac0ac8e932484637bc79d802d0671c0e488c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/mouse-move.png",
+      "length": 31128,
+      "sha256": "87ed51ce8906316abc7003682ce92ecef0dee5f0814350f8eae49a3a91eca294"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/mouse-right.png",
+      "length": 29964,
+      "sha256": "211d4dc9e1f7aca82231563ae887b7c9bfa6c97d15cc4c6946a13074e3f4d3dd"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/notify.png",
+      "length": 4470,
+      "sha256": "6abd40abb84ce6d68e567c3b29fc45929020bd3bbc2519db7d6f0011bb2f8575"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/open-folder.png",
+      "length": 7046,
+      "sha256": "b1285bb2d35759dc00d6bf8f6bcc62aaa2440052fb7a4fdb2294a4a9ce2ea1d7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/outer-vision.png",
+      "length": 7678,
+      "sha256": "1e2a360d0b48db336047d8737fb6d03f91b0c577d4d2f072ebd5f85127945c76"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/overview.png",
+      "length": 30269,
+      "sha256": "25c88640b5eb7fa767aa65a8b359fe96cc4f46d4fef0145fda42f85ee617cd00"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/play-test.png",
+      "length": 5106,
+      "sha256": "ed65a092c219112d2fc2ca70a9c7a02e72f1de38b968628b20cc2c12d95f383e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/plugin-store.png",
+      "length": 5579,
+      "sha256": "64616d4df20a7267fd40b18bd4209b912fdbedfabac4327ed02a929a71bd8ac7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/plugin.png",
+      "length": 30120,
+      "sha256": "5686a5ac59bc134236ad3e368c76543bfbee5dbc754d2a1cec1233176066ff7d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/print.png",
+      "length": 5810,
+      "sha256": "c3c05134dd615415dedf52dc73707e00f2c55a2be698d758bef649949b6dc00c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/project-tree.png",
+      "length": 30142,
+      "sha256": "c29ed5f618865bc1ec956aafadbf0a082457c52b538342648dd1bfcaa9b09dd5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/puzzle.png",
+      "length": 6671,
+      "sha256": "d3840693d2786904a84ceb92c90bcc37b1717438ac255edb8ebfa49110d4c71c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/question.png",
+      "length": 31905,
+      "sha256": "bd4271c6c5fe482dc8d1b8426ec3c197c610de5582d8aa8e0751975dab6b5cca"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/refresh.png",
+      "length": 6593,
+      "sha256": "beea852fd543a0a849b6659a76bc8e8a9517e82f9181c6247af17fe1b02b2641"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/rename.png",
+      "length": 31252,
+      "sha256": "55c1077d66b283428b66865361519483a0f0d80aec570bcd6bfe61ff34e4ac22"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/reset.png",
+      "length": 5096,
+      "sha256": "b9f43f86c504209ddb2c892dc71b1eb18d9911e10a5eb27e50ddb367748e528b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/resolution.png",
+      "length": 7053,
+      "sha256": "84b6d13287a8012ea856dbad6d5865871f4b8ba7341543d9259a6248ccc4760a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/result.png",
+      "length": 6027,
+      "sha256": "7d9a09dd38ca29cb76a12515b12e0122432c7c017be6618355e4fb38e40fd97f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/robot-message.png",
+      "length": 33409,
+      "sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/roi-off.png",
+      "length": 7585,
+      "sha256": "f6b7c10af74dad88a55be9719129b92c5b7ae1ede3bf79ce7c2b3d8a529f5d51"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/roi-on.png",
+      "length": 31326,
+      "sha256": "091a8d9b7040cbc9a7c461f31b958bd4064c92755caf61d3481616999058a492"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/save-as.png",
+      "length": 5148,
+      "sha256": "5963de63b75a54aa5f29d88029fda93dbec6c6d8a8f125f5e521982bad6f39d2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/save.png",
+      "length": 28776,
+      "sha256": "9555257bb8e1ddb963a621e7b825281c86ffefe5db35db4d58aa38bbc99ae2c8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/screen-cast.png",
+      "length": 31012,
+      "sha256": "ebca1a76add0869f615c3e01ee58d787e466f426749b325ce5fd81a62188aaa2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/search.png",
+      "length": 5338,
+      "sha256": "039d9c3a39616dc57e3e650e043a302a9871926e0418d63a01a2c56e2850aaed"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/send.png",
+      "length": 31787,
+      "sha256": "f01614255ee61fc8ffe344e006e933287205f0238d255de66ac0fab945eda8f7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/session-new.png",
+      "length": 30424,
+      "sha256": "c4c856e0b4ad835b6aa6407a73f9d9e063a4cc34a250aed00ae507cd3c9374b1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/session-open.png",
+      "length": 7052,
+      "sha256": "47ade168868dc476c0c79f1683436389f46dd47defd8dc3f5ac32311ec92c093"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/settings.png",
+      "length": 33229,
+      "sha256": "6f7114ded31070dffa987f6cee48ade8cf4a8f27b65ae7863054c1fc161a1c49"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/skill.png",
+      "length": 32083,
+      "sha256": "fec790fc3c73effeb5cf861f411b061f41e27a06258e6925f59b7e69e88536e6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/sort.png",
+      "length": 5001,
+      "sha256": "7936db1ec74932aada5174be5c4a49fed384ae2a415c169571b95a501f508b56"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/speaker-on.png",
+      "length": 7219,
+      "sha256": "2ec2543ac66a5b0849048f38e94c0dd6d5a9d32905e4861d4d5713c66a4dadbb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/speaker.png",
+      "length": 31152,
+      "sha256": "9ea2e51147217730c1f996315045fd70e8512d23093e9428a8504dd303e3fa74"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/start.png",
+      "length": 28714,
+      "sha256": "4234ee2ecfeeff99658189400c0a33de33ac17b658a95fd6dccf017c534e19a8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/stop-test.png",
+      "length": 4883,
+      "sha256": "c7fb06c71a2128a67f941c4a56ca9c0f5e1388f026fd7a8b3d68ed408d874486"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/stop.png",
+      "length": 27109,
+      "sha256": "a6120c6244523807a220e4ca2da047e05d48480a51b3a63d69ab9df88c5d5e99"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/success.png",
+      "length": 32038,
+      "sha256": "a7fd5bd3f55ed13f7b34ae2e3ff976e9790e62ba35cb189b952e7af5fad22d28"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/system-message.png",
+      "length": 7595,
+      "sha256": "7e1e4b6a4c3b36165784901f6c2e5b2fddbe1ddf15f9f72f12d46d507e9e4916"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/task-list.png",
+      "length": 34118,
+      "sha256": "2a753dbca59c01e519470bafc10b48610bedce0350df5e344e23936c0b37dd03"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/text-message.png",
+      "length": 7230,
+      "sha256": "9f5bb38c4ef8f822cebacfd278f97879669e358d358ce1b4f8aab9769ea6a9ea"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/thinking.png",
+      "length": 6071,
+      "sha256": "f03572fa69c006e056ede125caabbaf7091d79e2841166ff21d4288db9b4a9fc"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/trash.png",
+      "length": 29197,
+      "sha256": "0581494fa9026524c49d63c56f555d9ccea89aaf815774cab5d917491bc8f35d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/upload.png",
+      "length": 29463,
+      "sha256": "f90f8c3b5c0ed655b6bd4ea0088560c96cabf4d6ff448623187cb8bac4868b8e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/warn-log.png",
+      "length": 30332,
+      "sha256": "cffee11a99ef11dbbf3855b4818d295fee4d58f76985a09cfbe0ece89b511ca0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/wheel.png",
+      "length": 32540,
+      "sha256": "34b2f0e75791950e6c63825809ee4f95ad49a7e5aba23a463fe3bd7b59f184c5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/wrench.png",
+      "length": 6921,
+      "sha256": "d56865f6caaadb92dec9b9f4f7f8b7e20c4337ee2530029bf1be066565a46049"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/zoom-in.png",
+      "length": 5652,
+      "sha256": "b1592edc10af0957aeec2000a22fc26a0d71361f5abefa72c872e96edb1015c1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-raw/zoom-out.png",
+      "length": 5881,
+      "sha256": "17ea282e135650f526f7c69cb7664f0a80938a251db1578c5c0cc02253a4c401"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/alert-triangle.svg",
+      "length": 1086,
+      "sha256": "206ce7927383bcc0dde617d1ea100d8225e56df182c84abeb3c4ff26dd5c87b6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/archive.svg",
+      "length": 323,
+      "sha256": "5c8164dec29f6bff289d6f77be91372f523168e2c758ada1104be4f45f89f3e5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/branch.svg",
+      "length": 415,
+      "sha256": "dee7e61e8183190e9ec096fe0c2997e0289a0ca9138b26a78899dd1544f20d95"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/browser.svg",
+      "length": 348,
+      "sha256": "da8d0996aa863a8439f4ed156dbb827b964109e157ec7cc79eee90c94225fc94"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/camera.svg",
+      "length": 267,
+      "sha256": "336f52055d0eded573acf971c8f25c5814135c63295f83998a63191fbd3d2c1b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/chat.svg",
+      "length": 253,
+      "sha256": "8727335c1afdd5a667249cda2cccf91af62200ab41cfe884de11770158c62c09"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/check.svg",
+      "length": 254,
+      "sha256": "684e54a642c450398caaad9d3eccf174cf96d1a65e19ad3bc6291b54c44a1edd"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/chevron.svg",
+      "length": 240,
+      "sha256": "3fe95d9825b953517ea865219f523d0cfba015aaf8ab296d46e5a7c17d1387c6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/compute-use.svg",
+      "length": 452,
+      "sha256": "afbb0776a8a914e3932b3a0b20e21c29435ab12649afeb6ac57627b6ba3463b5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/context-ring.svg",
+      "length": 410,
+      "sha256": "b904b726f4b9c0cd6867febb557f087218ed582cefd6dbe75156bc338a1418f6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/crosshair.svg",
+      "length": 425,
+      "sha256": "dbd31d9564fdbafad5ddb6503c65ee6d42da9c7562306fe53d9aaa6eb389ec1a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/delete.svg",
+      "length": 271,
+      "sha256": "e19fd8cc8ab568d737c6199e745a7680551ebd1b1a86a6a29a82de1a0641da18"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/diff.svg",
+      "length": 333,
+      "sha256": "c919a0b4ae8f7973b84f133f4089b6c9841c7601b351cdb6f380d87c7ebf3526"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/file.svg",
+      "length": 261,
+      "sha256": "2fe89462b95c9910542f24f068d79aac1fc6ea0eb5c120463bec215bc18128c2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/folder.svg",
+      "length": 252,
+      "sha256": "ba4501f13ba8300c4ab17804ae3e7bfb99438f67f5355d7125b413261355a175"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/link.svg",
+      "length": 331,
+      "sha256": "f692fe98f8d4457abf817b672bb5594e2e1a133e7804f8be53c617f20c5d69ae"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/lock.svg",
+      "length": 291,
+      "sha256": "ab255c46677d64f9cdd402ddd3e487da76428c111eb78dc3305c9be658127141"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/logs.svg",
+      "length": 261,
+      "sha256": "b96493392280ea59fbe1ecde2c0bd6392386d3d04bbcdd8e76b8bf667f446d55"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/maximize.svg",
+      "length": 326,
+      "sha256": "aa4e9f0313ffbe0fcfb538ae73b141a76ce35abdb34205c591f2282100d9ff9d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/mcp-tools.svg",
+      "length": 343,
+      "sha256": "23492fd77317c9b9df405925c8eb4312635b865745be5f9df977924b3eca22fd"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/media.svg",
+      "length": 336,
+      "sha256": "a271aa37860e3e72826b6d6c2f7104c51a35b7c7d8b503aba6b284bda800d2e9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/memory.svg",
+      "length": 317,
+      "sha256": "fe6e823a74bf123bf59b7213cda0da8f81d58054411285422d673aa9245ea981"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/microphone.svg",
+      "length": 301,
+      "sha256": "5fb9cdf6ede1acb3837157642afd73b9a76193dced5cf3a913a18db33ff6d351"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/model-scroll.svg",
+      "length": 426,
+      "sha256": "397db063733f6399a383ea5552f498d5794952e1a61c7785279156209b554461"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/more-vertical.svg",
+      "length": 285,
+      "sha256": "872f26bfa8a65699530b1072997da402e46ce8dbd1fe7a2fe19a0eb6f5734d82"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/package-crate.svg",
+      "length": 1435,
+      "sha256": "e0c90ad74f2af3d29c5d7116290e7ac9afde3f0ab95149c20d25a5962756f016"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/pin.svg",
+      "length": 323,
+      "sha256": "48a38befba054e0c91b391f970e1adbbe338e2049e06d57624eac5c061755205"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/plus.svg",
+      "length": 255,
+      "sha256": "e2d3a40925886719af644f42174f9f0e92668c94687be93330a93fec1595dfb0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/project.svg",
+      "length": 317,
+      "sha256": "b2bc33a63f35aba86bbd7dc04028d616c18ee14ff176aa4c00533af0799a1da7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/queue.svg",
+      "length": 398,
+      "sha256": "06daa22229711c218660d7888610e652b1d6a5fc23e33edfbc5f8732c75ffdd9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/refresh.svg",
+      "length": 259,
+      "sha256": "faefe883fe4d7701c4c525ae45fd699cdfe5207c49b9b5247f0e0ace6499e069"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/rename.svg",
+      "length": 379,
+      "sha256": "3a01859130dec46d137a8140e44e55f7a10b445fe29af7bfd1d90b240daf9e68"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/route-plan.svg",
+      "length": 567,
+      "sha256": "6088612eb2132e444caa4ddc3e431d3a13d40b31f04bacbc6358cc97828a8456"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/save.svg",
+      "length": 261,
+      "sha256": "0e51b92cac9296fcf0895772a3e7cd713b5bbd9d6b40bcfdf87678d7641698bf"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/search.svg",
+      "length": 261,
+      "sha256": "a64db0355c4cda029bd5aac38dbfc1c8372c92a1db06f580007cc0ebbec445a4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/send.svg",
+      "length": 254,
+      "sha256": "2878f1ac8d2f19f3f8a9c8f40120573b84d33b772e7029d17add877c010db099"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/settings.svg",
+      "length": 394,
+      "sha256": "3ac0b849f49216ded1268d1449486875680479888537e7b6265e9f1786f635a8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/shield.svg",
+      "length": 437,
+      "sha256": "1d7909e283741e26298d39fc297f60d1f45678db0b9a22f479a59b35ccd40a1a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/skill-star.svg",
+      "length": 300,
+      "sha256": "36dae26b1657651cc6db77f70870cc4af477b1916513ed5e076aedb9e97a25e9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/speaker.svg",
+      "length": 394,
+      "sha256": "eff676ad0636d1852771aedf8d1af56f1270f561b4c29c6c3d28526c1952959c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/split-pane.svg",
+      "length": 315,
+      "sha256": "724e276117f5a6fdb1e5262c979c5f5b2216d6ee0e1f154911ca8daf72ff7ee5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/stop.svg",
+      "length": 399,
+      "sha256": "dc0c702c1f83443c72c6f6671583192b28150e549745169d63562225f5125f70"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/tasks.svg",
+      "length": 291,
+      "sha256": "88a5ec76a03596a1a6b2f1adca30fbd8679e4958e471691cecdb7e6834940fb6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/terminal.svg",
+      "length": 279,
+      "sha256": "77244f43709c9f17f69fdf22ad1a095c1f4f0e4777b4956af1cbf87d6fbe06e0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/unlock.svg",
+      "length": 291,
+      "sha256": "63827e557a6fddff162c03812b9dad54af92df673808effb4f56b7718f30b4fd"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/upload.svg",
+      "length": 255,
+      "sha256": "4262f0ed4e4a7ef0fc713979877c79bc9cb879f627114298077c464123657db9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/vision.svg",
+      "length": 299,
+      "sha256": "feb1901cdacc19121a379d711e4e9f1520d589b2c678b2835f822944d044f54b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/icons-wuxia/worktree.svg",
+      "length": 400,
+      "sha256": "03fc1efaa6326ad8377e0368a1cf2623db8fb5105944666f3624a1c4b42a45c6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet/pink-bird.gif",
+      "length": 192814,
+      "sha256": "f3f4c878afd649a38635eb9e409e6524efb9e2ebd79a78db3da73c73e7ac391f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink-0.png",
+      "length": 35550,
+      "sha256": "fc47eed71ac41363e0f742f61bc75651166c9e4b98428d90ec719ff84284a9c2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink-1.png",
+      "length": 34543,
+      "sha256": "95034d7ba4d9a90889ba50679c2de48db3cb31ac614b019bfe9b5d60757ec2da"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink-2.png",
+      "length": 34075,
+      "sha256": "d5c58d88abbd6cc7d4676effab06a55f789242e754fbc4b6a2dd4a1841df9d82"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink-3.png",
+      "length": 34765,
+      "sha256": "3146d0d6dbb7c921716a1e9a369c60f1b976a03d08f28d4cb662c03dec15d598"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink-4.png",
+      "length": 34120,
+      "sha256": "1f66196dac47afa02cc168c4ce9c2bd0aab2c70b9944c92dc3e220f3ba5e268e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink-5.png",
+      "length": 34383,
+      "sha256": "a65d7e0b01d3ba2577008552a7e7b473136297c538aef7c03086c2975ac60951"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink-6.png",
+      "length": 34462,
+      "sha256": "a607fe418d69460ede2bbf9d79d3252cc6f48abbfa8c0a75717c935f5d563b5a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink-7.png",
+      "length": 34934,
+      "sha256": "51966d156112efdcdde0d38d1b5b6f8bb40e5b5fe20e0fb127a7040c9b0ec46e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/blink.png",
+      "length": 35550,
+      "sha256": "fc47eed71ac41363e0f742f61bc75651166c9e4b98428d90ec719ff84284a9c2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle-0.png",
+      "length": 36607,
+      "sha256": "9af1e2e2c6ce8feeba35f40f04ce919ed0f395e6c71a29f96ce870b4a4bb5ee0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle-1.png",
+      "length": 36264,
+      "sha256": "5040c3491c86f1196091f3322d28cc8ca87cfc470c369bdb283c259acbd6f6a1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle-2.png",
+      "length": 35905,
+      "sha256": "ef15e72924532db38c4042913dfa1bb839d2dd771a4b2edcc73b6d904f9ea3db"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle-3.png",
+      "length": 35316,
+      "sha256": "5279b2d2ec7d3349ebadecc5ef6a15eb8ad1c953d05aba0cfc90e41ac93977f8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle-4.png",
+      "length": 36239,
+      "sha256": "24b28846d552b2cc9055d6d14224bbcd8df29ed5ca05406623b3422e2562eb81"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle-5.png",
+      "length": 35582,
+      "sha256": "636634debf07bda8d14ba8d16d7b9c33c7c194f77bc3d5e23366730d0af3bc9a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle-6.png",
+      "length": 36060,
+      "sha256": "aa8f05ad0e1cdd4979a1fe0bf7bbaba024d6dec7c1d6614590b74174534e03cd"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle-7.png",
+      "length": 35842,
+      "sha256": "fffc2a39cd7dd7448ad5b2c950838628ffc7982ddae22f41f24965c84b52ee00"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/idle.png",
+      "length": 36607,
+      "sha256": "9af1e2e2c6ce8feeba35f40f04ce919ed0f395e6c71a29f96ce870b4a4bb5ee0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping-0.png",
+      "length": 33916,
+      "sha256": "5cb0fbc35fb3beefbd84bc0cf49d7948f68450d9b558e035e72a405e6f55c58c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping-1.png",
+      "length": 34098,
+      "sha256": "b0a7147f46cfa725ca7df30e1fb6bb70f5c1df756d0f7fb7ba5287126c76a35e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping-2.png",
+      "length": 33464,
+      "sha256": "4e35f03d5c32445d41bbe09e391dad32833c638396cd2434a9f8a3f89cd776a5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping-3.png",
+      "length": 33830,
+      "sha256": "8e19bea28f6b4e1fcfef66f7b1c9d5de99aed33a4c1a19d2367596aeb04dca38"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping-4.png",
+      "length": 33496,
+      "sha256": "36ecc4efb45fa67b1fcd0a4d3b1d203b2362b694970b9b351197bd9f02e0df08"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping-5.png",
+      "length": 33200,
+      "sha256": "ed06eb5577386b7fd03d1d49849630be3de959f355b18fa9158de31cce4ffe4f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping-6.png",
+      "length": 33550,
+      "sha256": "f184fe5dd02400157b1acaa6c651ee9346fdc39e8de99e57bc42e98e390249df"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping-7.png",
+      "length": 34139,
+      "sha256": "24c1612f664a1e18eeec6b3da5054765a522f1eb38470a3236fbc8f83cfe89f6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/sleeping.png",
+      "length": 33916,
+      "sha256": "5cb0fbc35fb3beefbd84bc0cf49d7948f68450d9b558e035e72a405e6f55c58c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking-0.png",
+      "length": 34571,
+      "sha256": "4e8616074894187de0e24505cf87afb129351b71670ffbbb7433bfca970e40bf"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking-1.png",
+      "length": 34184,
+      "sha256": "e6c4b250c4178aba0ab96717b1255512aef3b5e71b3b875650e24535c31700f9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking-2.png",
+      "length": 34068,
+      "sha256": "1dd2565d3b4c629fa7ebf0fae81a40616d86331ff68ac0f1433a704f1627a4b1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking-3.png",
+      "length": 34279,
+      "sha256": "e12b0a67589ccd0d2e60eb9a89fbd24e24e62b876db289dad5e7793b24283b0c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking-4.png",
+      "length": 34652,
+      "sha256": "d91e6af3a79e279dbcf0c07519d8c85d43f5ae760587e43b994503f4b43707c3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking-5.png",
+      "length": 33945,
+      "sha256": "d3996cf04b016abf04626d8a913be119f933a8f59eae2267e6448bc9637bc3a8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking-6.png",
+      "length": 34135,
+      "sha256": "03bfacfeb01a4881fee4d59caf221a8fb738dc2bff605d004e09a843ec9b4c69"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking-7.png",
+      "length": 34504,
+      "sha256": "522421364837655f31c288dd52e4b721cc0d279c265e35b971ba72e9e3253ace"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-actions/thinking.png",
+      "length": 34571,
+      "sha256": "4e8616074894187de0e24505cf87afb129351b71670ffbbb7433bfca970e40bf"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-bubbles/idle.png",
+      "length": 161888,
+      "sha256": "666b3141ce63549c2d6350e72990042d55de160b271e073ff5b5e75bb11ea5ec"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-bubbles/success.png",
+      "length": 174411,
+      "sha256": "b168510e9341546cbf17ad6f63bd25f67bc8e5caae1306356b59e0c84f74326d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-bubbles/thinking.png",
+      "length": 165965,
+      "sha256": "f74621044c3b7a8c8faae2f6502e6096e8def771e133283f3e736fcc64510a96"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/pet-bubbles/warning.png",
+      "length": 181463,
+      "sha256": "c2bc79cefb7cabccee1b5231c17ebb57b979fc4554da45aa236ffc2efedeba0f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui/title-plaque.png",
+      "length": 36262,
+      "sha256": "05129af05238cba551e317ccfe55c0147ceb0ce86c506cc70de1074e1e4a98e6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bamboo-leaf-banner-v1.png",
+      "length": 197685,
+      "sha256": "91372d33335be00171a1aae33aa94d41f46b5320c17bc6d99371dc4bc18232b0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bamboo-wuxia-stage-bg-v1.png",
+      "length": 1928362,
+      "sha256": "9577264085e20c58ae8567763dad3fe6af28563e72eb5de7428db65dceedc6cb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/icon-groups-v2-sheet.png",
+      "length": 1590948,
+      "sha256": "dc0714b15d25367eed07fa4d5dae862b2e76a8597e0c0bfe4ada9eb3b7cb536c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/office-robot-sprites.png",
+      "length": 280790,
+      "sha256": "7149247ed5679e22a83c287fd85e35e08dcc5f2869ffaa6f7d1447fe1064ef7e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/office-status-bg.png",
+      "length": 2830102,
+      "sha256": "ff83a6c0260b02b949a8ed0019f830658c1fa8751242f73f66025b3f1393cbe8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/overview-jade-vortex.png",
+      "length": 2114488,
+      "sha256": "246331c308f146fbe834769cbe32647366188a1f4d9fc6177f29f21edce423d9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-banner-v2.png",
+      "length": 1874523,
+      "sha256": "355781ecacdb6ec863782eb00668786bc1a82057fc44773e81d48f7bdacb9ab0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-banner-v3-baked.png",
+      "length": 1885997,
+      "sha256": "4d6c759065c1e51ce41dcdda691c8f0b691598429fa4157e626e3780e5a48e18"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-banner-v4-guards.png",
+      "length": 2440796,
+      "sha256": "104704ca0ddd38bae0f66bcfd04b3922bb0e13da059928c062bedd514b775eb8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-banner-v5-safe.png",
+      "length": 2110768,
+      "sha256": "5a73e84449a580d1440037a418b6a893be988cac900c41f7306226133b655639"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-banner-v6-wide-sword.png",
+      "length": 2083318,
+      "sha256": "22522b300717ffe15fa84c8017a5477e70db86e48f557742be49ea629c6fc3bc"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/top-agent-card-frame.png",
+      "length": 90357,
+      "sha256": "f9dd50e8f2c59927bcc0d564c0a5bb8d0187132ce7e6f2a0a708aaef1ae895e9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/top-agent-icon.png",
+      "length": 4614,
+      "sha256": "c88f9aa60d13aa9ef44407d6381532d2b04d8e1f741c2d2a2de51562af8135fe"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/top-logo-banner-bg.png",
+      "length": 193278,
+      "sha256": "085b8b8a1f6c3b0f36d73714b297eac95511b84c3172e1592caae6787b08c6f8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/top-logo-banner-complete.png",
+      "length": 261177,
+      "sha256": "cdb7ce3f4fe49442b0af4d945f41fb99a6599461fee83fef5dfe7056837e1f20"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/top-star-icon.png",
+      "length": 1644,
+      "sha256": "f515f657f02bb35f5683bde3c62821814dde379e4cc331eff5332bc2ad698818"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/top-task-card-frame.png",
+      "length": 103977,
+      "sha256": "cde74484a71d08e2f88f79d62b376d05cf1c313a326022c6bf336239013a8a28"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/top-task-icon.png",
+      "length": 4288,
+      "sha256": "08c1746a398a59e8cfb36dac003d800d122f76f8f1721067f102859ca2c1a556"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/ui-redesign-asset-atlas.png",
+      "length": 2220970,
+      "sha256": "3493a62e5a14492f953c9fa8911895c787370d0220ac1872e3a5f4426a5e9832"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bamboo-leaves/leaf-01-flat.png",
+      "length": 6630,
+      "sha256": "3a71965f86c59e944c34caa187bf0009e438ee9104fab5e562d5bcc7bb10d4b8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bamboo-leaves/leaf-02-curl.png",
+      "length": 6914,
+      "sha256": "20dd12cb21930a83ef83e336d34a1cc0d13bf391e4d351a275febc919305a7e3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bamboo-leaves/leaf-03-twig.png",
+      "length": 7663,
+      "sha256": "830efb9b5bb1645c29463f9d62c67e785fd61f506b052326b8ca7f783cfbd2cb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bamboo-leaves/leaf-04-edge.png",
+      "length": 3729,
+      "sha256": "b4b0587ed8b772596ecf91b789375793c3e911e1960058e71251ffb9868ad83c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bamboo-leaves/leaf-05-spin.png",
+      "length": 9808,
+      "sha256": "200ed2ed9591947041b48442b5ec1da7251787336b338227581752fb1ea1275a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/banner-layers/layer0-sky-moon-mountains.png",
+      "length": 349437,
+      "sha256": "0d339230a471412adfa904990a334ed0fc32b4cd1c16512efe806b6954a727a4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/banner-layers/layer1-cloud-a.png",
+      "length": 42861,
+      "sha256": "95050617b10436f925ae72b3cc1ac3dffe565e3f8b3940e1173f52fed00f3231"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/banner-layers/layer1-cloud-b.png",
+      "length": 41666,
+      "sha256": "f26dee82a79534ff9cf4ff967b134222c5d1d06443e91d6d2be394ee27fac0e7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/banner-layers/layer2-bamboo-far.png",
+      "length": 327876,
+      "sha256": "959a34befa2428e376a2d83291436223695b3313149cabc83af445d4164ca431"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/banner-layers/layer3-bamboo-near-left.png",
+      "length": 93906,
+      "sha256": "dcd0991c65d0a9a463e39fcf670bfa90ca174545938bd398eb4579b1ab8feb29"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/banner-layers/layer3-bamboo-near-right.png",
+      "length": 127549,
+      "sha256": "16dcf3dfda0c3a63839041d6d154e0d5edd70ad060ada143ac5944ca6775cd3a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/banner-layers/layer4-logo-leaftext.png",
+      "length": 135465,
+      "sha256": "b9016e49b79a47d314bf255c934f28b2813bd073dfe6832a5a19db6643b18365"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/banner-layers/layer5-figure.png",
+      "length": 73653,
+      "sha256": "8d641fdb7802e10b9bee594544753698bb298ab3db4f8a5ab82314de4ae026e4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/bridge-scene-baked-crew.png",
+      "length": 2831060,
+      "sha256": "903027d863ccb5cb34afcd0eb44921f8abdb6b1917fd8dd90c20172a5ca14c70"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/bridge-scene.png",
+      "length": 2688597,
+      "sha256": "49e7a63fa4231e5287a7abf6470b9ef2322ce25da1c9cc8dcbc45e232a6e380a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/crew-astronaut-engineer.png",
+      "length": 75568,
+      "sha256": "0606101d7d84faf0b5c3ed3880b6c4af10d0bed3a47c6e4688a597de098be74a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/crew-astronaut-pilot.png",
+      "length": 71634,
+      "sha256": "e78e88b2297a1839090e3f4e635646e1b68f4f597fbe89fb36ba8a6e657aab20"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/crew-commander.png",
+      "length": 81629,
+      "sha256": "42d07058161fe1ac3eea0470ae90edda6e10ffeede56e52fc0b7b273c5c10d76"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/crew-communications.png",
+      "length": 71258,
+      "sha256": "1dbc7e17d9ddcd6ec88376efef5466f4dbb1e8697363a73c0e594e21775466b0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/crew-science-officer.png",
+      "length": 72761,
+      "sha256": "2940dd2da87c938ee7795d93ea28e5696a548debc7a1bb47d6f742f384323427"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/crew-security.png",
+      "length": 74131,
+      "sha256": "0228a6dedc0f05d1be5c38332af51a176966980744cd47b00ad238cb4a0305fe"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/hologram-earth-texture.png",
+      "length": 2451648,
+      "sha256": "52afda87304588994b41c349b006e767c9b7b0e24d957257b7d47ea33b6df18f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/bridge/starfield-flight-texture.png",
+      "length": 2033244,
+      "sha256": "bf48eb92ae9db1ba362553100bc745af7405df4f0f222e17196c79c3a2a10a30"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/chat-backgrounds/wuxia-bamboo-moonlit-chat-stage-v2.png",
+      "length": 2169366,
+      "sha256": "e80a43ca4e171947d9979c2db7186ff963c47e27f6ed175c3b9ab789c80fba27"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/concepts/chat-room-avatar-config-concept-2026-06-13.png",
+      "length": 1770678,
+      "sha256": "9547a542aa89b8224fdbc7cc8d1abe1fad26964d846dc37cfa2bafede7b30450"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/concepts/coolzhu-agent-asymmetric-bamboo-layout-concept-2026-08-24.png",
+      "length": 1569794,
+      "sha256": "e04c9715712910fbbe293ea5472e6dc5e5f3af1515817b9ffa0793ab08244108"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/concepts/spaceship-bridge-concept-2026-06-12.png",
+      "length": 2556042,
+      "sha256": "26657e95b53422b6d05b4ddd34c8d911e404d0549746dbec0faa2c47d781174b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/concepts/spaceship-bridge-v2-concept-2026-06-13.png",
+      "length": 2688597,
+      "sha256": "49e7a63fa4231e5287a7abf6470b9ef2322ce25da1c9cc8dcbc45e232a6e380a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/concepts/throne-metal-ui-concept-2026-06-12.png",
+      "length": 1926468,
+      "sha256": "29eadbc83bbac84d8cabe8c6a295f2020dd5c94023737922e5fcb03a0b824af8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/concepts/ui-layout-geometry-spec-2026-06-13.png",
+      "length": 86234,
+      "sha256": "93c2ccefc67677671e8e4ee0778130ac0dcd2f03c2c5c8a294df5b7a4973612c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/concepts/ui-redesign-v2-throne-overall-concept-2026-06-13.png",
+      "length": 1986995,
+      "sha256": "c5b5c3c6fab31598ddf52b02545e248b3c14e02c302b376a230ee816921802a7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p5/chat-watermark-jade-sword-v1.png",
+      "length": 1727424,
+      "sha256": "c0610f9edcb58ac22acfe4e25f5689974c440be5fd879f8e57a9bca6f7f48b4e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p5/topbar-three-plate-scroll-v1.png",
+      "length": 689177,
+      "sha256": "7954f690f2055a94efd2bbc958c4e534b37cb5fbc659b3948685f5a5f2a66f47"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p6/brand-banner-wuxia-v1.png",
+      "length": 1408207,
+      "sha256": "83835f8bf877de6473789cb8c480ea16cf77a159f96164bdc424dedcb239c220"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p6/source-brand-banner-wuxia-v1-original.png",
+      "length": 1770677,
+      "sha256": "e087f4abd00f439f2f9e0c646903e5dadc4adca3a98a0a93e9c8aefc1a7793d7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p6/SOURCE-MANIFEST.json",
+      "length": 2916,
+      "sha256": "e5ec67926aa1a63d79119f3e4af369f6c0e5b4b29612449d9b4ab9741dfe876e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p6/source-status-jade-ready-v1-original.png",
+      "length": 1836024,
+      "sha256": "a6d9e31c7d897c2968e057f7549888628f51cb04c7463713787c21ede16501c9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p6/source-status-vermilion-alert-v1-original.png",
+      "length": 1566473,
+      "sha256": "86e66363716e4932a9cf540f3ec8d7584c73171d7898dcc1f4ec301fe6739e83"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p6/status-jade-ready-v1.png",
+      "length": 85311,
+      "sha256": "4a1e372bba89bceb279ae13a3ff9691888aa70510a210bf566aa097043d8d16c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/p6/status-vermilion-alert-v1.png",
+      "length": 73451,
+      "sha256": "fc2c793fc828b70ac2289d3206b8542c78063d766432ecf8dfd6899cdd269198"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/scroll-frame/coolzhu-jade-wordmark-v1.png",
+      "length": 530440,
+      "sha256": "e3887921da8bacfa15421592f37b5f87506815fddadbedb08640fa8f87cb2c6b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/scroll-frame/original-bamboo-background-v1.png",
+      "length": 1679645,
+      "sha256": "4cc52fd6154024269b45801c35541cde2cd8e87c336f43a08c8919bdcbe7a7ff"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/scroll-frame/scroll-frame-v1.png",
+      "length": 1542278,
+      "sha256": "7277d593d6c691fab3c454c18e8ff0f7ece3c51d03eb37d85c7bdddf7167bee8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/stage/space-castle-extension.png",
+      "length": 2210340,
+      "sha256": "c137b239edbf35be16553176f50cc4f2e9d9be3af7d00240eae69453b8038e47"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/jade-success-sweep-v1.png",
+      "length": 467181,
+      "sha256": "f5923ac851c036af8d3cb4be9f13fe7d5cdd9bea144d30120943517fb10c0d53"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/rail-lantern-gold-v1.png",
+      "length": 38123,
+      "sha256": "12ce5a2f2096313567601aa58a3ed1bdffae860fb258e55de7c7443c3910f7f9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/README.md",
+      "length": 4681,
+      "sha256": "c334a079445939ab38a974799c7b837180e11cadca0bdfc443d278d75f613bbe"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/vermilion-seal-blank-v1.png",
+      "length": 59991,
+      "sha256": "c168eabee0bfdc3e26e80aeaabc6f733d6e3b3a5e551fb497116e9a03661f64a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/wuxia-controls-atlas-v1.json",
+      "length": 2911,
+      "sha256": "92a3e815edcca36987ec3ba11756418efbe8698d08f01d46c74af04e2dc93dd0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/wuxia-controls-atlas-v1.png",
+      "length": 1268490,
+      "sha256": "7666ac7ba9b652d6a70115a7e5ef8480422a77a2ac40d5456eb092b876a09851"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/approve-once-v1.png",
+      "length": 76889,
+      "sha256": "f82157778ae738db1c11bf9783a78dac438e15429dfedcd72574c1938f2a9d37"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/approve-rule-v1.png",
+      "length": 83489,
+      "sha256": "11050ffd914e99802d8914ccbbf601cbeddcfae5ce7c66cded40d18383b129ad"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/checkpoint-v1.png",
+      "length": 85765,
+      "sha256": "8a08d2605d81bdf71413812a8afee85b32c07091ea6fe822cd32b36f9dd85ad0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/focus-layout-v1.png",
+      "length": 56184,
+      "sha256": "fa49740db9318745bb2e0eca6115833f7d738cf57dd2d6a762a006134418a909"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/panel-left-close-v1.png",
+      "length": 74022,
+      "sha256": "bffb0af3ebf1f35078b5fdd729da27c74de7c5aef2d70adca6b77c7c77275539"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/panel-left-open-v1.png",
+      "length": 75989,
+      "sha256": "3f00291a3492001156ae60c932f27da3cbed8d2602c43525d210243702ca294b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/panel-right-close-v1.png",
+      "length": 74920,
+      "sha256": "3965967f33d703ca02626c3e771798079a3e385946618fc967e5f851d6d6e683"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/panel-right-open-v1.png",
+      "length": 75213,
+      "sha256": "fcc2949be270b49bc859bd8599aee833a824545436734d3a66d659390c501efc"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/pause-v1.png",
+      "length": 65173,
+      "sha256": "87f5875d835fca74425904caef3c0f14f891a6b565effa3ace53dedd35a63a39"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/queue-v1.png",
+      "length": 84553,
+      "sha256": "a575435e4069e3a7aad63aa3a0ffee286d17b812c10360522ef694e9a42a472a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/reject-feedback-v1.png",
+      "length": 77810,
+      "sha256": "5631efb103f0744a1ab4dec679947823cb6fb988c0dbe9a409668acc684f1e4f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/restore-both-v1.png",
+      "length": 90160,
+      "sha256": "3453ca70ea6407d7cfd23475c26501d6c5bc2c7816ec79e76cb2e2866e9af620"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/restore-chat-v1.png",
+      "length": 62272,
+      "sha256": "ac110d8373d8cefca54950993e2d3d241af1429a04e6c09c80e0505d178b5010"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/restore-code-v1.png",
+      "length": 82514,
+      "sha256": "e7872b264c5d840ea4e8d38a7c8d00bc375ed3e0be55366c905e62622f57b61f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/resume-v1.png",
+      "length": 58937,
+      "sha256": "0623b64677f5dea69db52656e8cbee76e6d8093fe111377b51ce1e0aaadb6cad"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/three-column/control-icons/steer-now-v1.png",
+      "length": 81084,
+      "sha256": "b2ada5b2b81281bf147fa00c3b9ec371d26475faafb0ef9e77868b581f79be89"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-cat/cat-01-sleep.png",
+      "length": 95952,
+      "sha256": "ecd6a1d384c456a08b0866bad78c41cedc6338f5da9235cd4b468491861c684a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-cat/cat-02-stretch.png",
+      "length": 111336,
+      "sha256": "efd25de4de83c329e9195a493d3e9267ef8e1ef1ab8ec7cb4ca683a10863e3a5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-cat/cat-03-groom.png",
+      "length": 108546,
+      "sha256": "d785a151cfe3ed6e300bec0a05f222c35e888521e95b5e6ef5aa6ab09d85dba0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-cat/cat-04-tail-left.png",
+      "length": 102392,
+      "sha256": "39194aa6a7585575648d0203ff4cfdd7d28a49227d2c1ac438eb1e792fa16595"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-cat/cat-05-tail-right.png",
+      "length": 102827,
+      "sha256": "b323b344fc660e406e9a514a71211b7aafebbe7bbc3044d537ae8099be6ff5b4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-cat/cat-06-look-back.png",
+      "length": 96259,
+      "sha256": "927d2bfaa90777d244202fc73da755d9156d1919c106e64f80f1f62040f15a21"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-cat/cat-07-rest.png",
+      "length": 99100,
+      "sha256": "49de3d22298bb8dcd18efceac16d32b18fd77d9252dd5a032d33b1c69f3480bc"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/ui-redesign/throne-cat/source-sheet.png",
+      "length": 1217302,
+      "sha256": "5f741c536cc877521d088a8a973ac11177e2d3602229600b057dd439c900f14e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/vendor/three.core.min.js",
+      "length": 384222,
+      "sha256": "6486aa0d719cfa87ec88dc47223b59b1fb8417a1a407fc0e52467c943e2f8cc9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/assets/vendor/three.module.min.js",
+      "length": 364998,
+      "sha256": "36a60b0120335f89a80a0dab70292292b0ec414b3d05e83cd09a3ea428c6712a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/build-throne-cat-frames.ps1",
+      "length": 2557,
+      "sha256": "ee27fd41ff03988bc06711957bd1bce6090936e437c95393a7f6c0c3f5004a8f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/generate-layout-spec.ps1",
+      "length": 5242,
+      "sha256": "dd08c44abf88e080deb4463fd10e35e2daf86201226d177dd4eb9fc557ac830b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/goal_human_ack_scenario_e2e.py",
+      "length": 11653,
+      "sha256": "b651f4bd17df14b72c3a999f1568bdbb31cdbc10a36a04c0852861f8f70edcb6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/piper_speak.py",
+      "length": 3747,
+      "sha256": "2b10e610e93d6cab606c226085c3de35e08d2f324b14d6d512b57c78805665e2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/realtime_desktop_vision_voice_e2e.js",
+      "length": 20397,
+      "sha256": "4de89cd09843ea8834ab740dd94ec05074b047f2c47bd3737acdb516b9a5c3ea"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/realtime_e2e_record.js",
+      "length": 10675,
+      "sha256": "dea8568f3139227b21ebd3ef81afa2ca7fd54f2651e1b69ac744bb36f7550cc8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/realtime_english_tutor_scenario_e2e.js",
+      "length": 14138,
+      "sha256": "7ae937960d3f4a60b396037b298d09cad7e4949750d37d55f057f8ad5f1c331e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/realtime_real_speech_e2e.js",
+      "length": 17321,
+      "sha256": "82d85dd9b294eca723a8c3c2e680794e2afe64980f095e3fd3665a48b0cc6a1d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/realtime_voice_capture_contract.test.mjs",
+      "length": 6829,
+      "sha256": "59c2611e469c6cfe088f801807d4c7a37f3472491c67be08469da94e4c7c0d3b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/realtime_voice_interrupt_scenario_e2e.js",
+      "length": 22248,
+      "sha256": "c5db18fe61cc1879ea4690df49b54db67370b00d88951509f15836b5b42a8831"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/stt_tail_capture_contract.test.mjs",
+      "length": 851,
+      "sha256": "2bda5bb02f95f5b13da1e322c86ced329494282c7640f7fb967930a9e08f3f6b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/tts_text_contract.test.mjs",
+      "length": 5753,
+      "sha256": "6f97e6a690860ed7497bb28d9bcf31d0b5eee8ce27023e7f5741642a57955594"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/tools/whisper_transcribe.py",
+      "length": 3551,
+      "sha256": "140e3a9104d0592b011e2a422d48ee225b0306a0751e75382e82d34c6f66a6d0"
+    },
+    {
+      "path": "modules/vision/resources/local-vlm/check-local-vlm.ps1",
+      "length": 2046,
+      "sha256": "c083e2702cb9f72cde6a6fdcd9e514ab86dccca83213cee7af121711feabed4f"
+    },
+    {
+      "path": "modules/vision/resources/local-vlm/coolzhu-local-vlm.template.json",
+      "length": 531,
+      "sha256": "a61683e7a9ee1a34c400de0de64d25cdfcb689ce2f59c33a64f668e450059bd3"
+    },
+    {
+      "path": "modules/vision/resources/local-vlm/start-local-vlm.ps1",
+      "length": 3813,
+      "sha256": "c50698cdf17f989aefb0a526ffb00cc30b7b53acf39c1d62c451a519bd3780ec"
+    },
+    {
+      "path": "modules/vision/resources/uidetr/README.md",
+      "length": 2335,
+      "sha256": "86ec060b87234a35dc1c9964519c86c917d5917e15684d7cbb0730c5c85dff78"
+    },
+    {
+      "path": "modules/vision/resources/uidetr/uidetr_service.py",
+      "length": 5019,
+      "sha256": "edb24876bc73cea6b0b654ce26c62eb806d2fd3c69cd1985cf367f16aca30a81"
+    }
+  ]
+}

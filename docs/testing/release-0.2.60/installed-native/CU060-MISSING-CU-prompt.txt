@@ -1,0 +1,1 @@
+CU060-MISSING-CU：新独立负向目标定位测试。只调用一次computer_use_perform。使用正式工具schema，字段名必须是success_criteria、max_actions（下划线格式）；success_criteria是JSON字符串数组，max_actions是数字1，不是字符串。surface设desktop，target只包含application=coolzhu-cu-acceptance-no-such-app.exe，不添加window。目标是在该指定应用窗口内单击普通控件；成功条件是指定应用实际打开且控件已点击。该应用预期不存在：不要启动它，不允许回退到前台控制台或Paint，不执行其它工具，不重试，不沿用旧原图。目标缺失应在定位阶段返回明确错误并零输入。只按实际执行结果报告，本轮失败立即停止。

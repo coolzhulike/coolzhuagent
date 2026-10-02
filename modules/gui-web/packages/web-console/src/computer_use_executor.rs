@@ -130,6 +130,7 @@ struct TracingAdapter<'a> {
     inner: DynComputerUseAdapter,
     store: &'a ComputerUseRunStore,
     call_id: String,
+    native_browser_parent: Option<crate::FrozenParentContext>,
     /// 规划请求身份的**唯一合法来源**（PR-02A）。trait 的方法文档明确：写动作事实时用它构造
     /// `ActionOrigin` 的模型规划来源，**不得**用 provider trace、外层工具调用 id 或"最近一次请求"顶替。
     planner: &'a dyn ComputerUsePlanner,
@@ -300,7 +301,13 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
                         remaining.as_millis().min(u128::from(u64::MAX)) as u64,
                     )),
                 };
-                match crate::native_input_authorization::HostNativeInputAuthorization::new(
+                if let Some(parent)=self.native_browser_parent.as_ref() {
+                    match crate::native_panel_authorization::HostPanelAuthorization::new(context,parent,self.store,&self.call_id,index as u64,lease,&*self.cancelled) {
+                        Ok(port)=>self.inner.act_authorized(action,expected_generation,remaining,&port),
+                        Err(reason)=>Err(ComputerUseError::blocked("native_input_authorization_unavailable",reason,ComputerUseRetryOwner::None)
+                            .with_receipt(computer_use::input::pre_input_receipt(&expected_action_id,false))),
+                    }
+                } else { match crate::native_input_authorization::HostNativeInputAuthorization::new(
                     context, lease, &*self.cancelled,
                 ) {
                     Ok(port) => {
@@ -312,7 +319,7 @@ impl ComputerUseAdapter for TracingAdapter<'_> {
                     Err(reason) => Err(ComputerUseError::blocked(
                         "native_input_authorization_unavailable", reason, ComputerUseRetryOwner::None,
                     )),
-                }
+                } }
             }
             // 浏览器适配器没有桌面输入；真实原生 bridge 的无端口调用在 core 中明确拒绝。
             // 正式 CU 入口在接纳时已检查宿主根，不能从这里补造许可或进程身份。
@@ -799,6 +806,8 @@ pub(crate) struct ComputerUseExecutor<'a> {
     root_budget: Option<crate::root_execution_budget::RootExecutionBudget>,
     goal_parent: Option<crate::goal_execution_parent::FrozenGoalPhaseParent>,
     turn_scope: crate::computer_use_turn_scope::ComputerUseTurnScope,
+    /// 原生只读成功落库时沿同库事务再次裁决冻结父运行，不能依赖事务外的 S2 查询。
+    native_browser_parent: Option<crate::FrozenParentContext>,
     /// 接纳时冻结的工作区归属。**非 `Option`**：执行器在类型层面无法"没有归属"，
     /// 且构造后没有任何 setter——运行中不存在改写它的入口。
     workspace: CuWorkspaceAttribution,
@@ -831,6 +840,7 @@ impl<'a> ComputerUseExecutor<'a> {
             root_budget: crate::root_execution_budget::current(),
             goal_parent: None,
             turn_scope: crate::computer_use_turn_scope::ComputerUseTurnScope::default(),
+            native_browser_parent: None,
             workspace,
             conversation: None,
             provider_tool_call_id: String::new(),
@@ -877,6 +887,11 @@ impl<'a> ComputerUseExecutor<'a> {
     #[must_use]
     fn with_turn_scope(mut self, scope: crate::computer_use_turn_scope::ComputerUseTurnScope) -> Self {
         self.turn_scope = scope;
+        self
+    }
+
+    fn with_native_browser_parent(mut self, parent: Option<crate::FrozenParentContext>) -> Self {
+        self.native_browser_parent = parent;
         self
     }
 
@@ -1021,7 +1036,7 @@ impl<'a> ComputerUseExecutor<'a> {
             .map_or(ComputerUseSurface::Auto, |request| request.surface);
 
         let request = match parsed {
-            Ok(request) => normalize_request_for_verification(request),
+            Ok(request) => request,
             Err(error) => {
                 let result = terminal_result(
                     identity,
@@ -1047,6 +1062,13 @@ impl<'a> ComputerUseExecutor<'a> {
             }
         };
 
+        if let Err(error) = self.turn_scope.validate(&request) {
+            let result = terminal_result(identity, request.surface, ComputerUseStage::IntentGuard, error);
+            self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
+            return result;
+        }
+
+        let request = normalize_request_for_verification(request);
         if let Err(error) = request.validate() {
             let result = terminal_result(
                 identity,
@@ -1054,12 +1076,6 @@ impl<'a> ComputerUseExecutor<'a> {
                 ComputerUseStage::IntentGuard,
                 limit_input_correction(error, invalid_inputs),
             );
-            self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
-            return result;
-        }
-
-        if let Err(error) = self.turn_scope.validate(&request) {
-            let result = terminal_result(identity, request.surface, ComputerUseStage::IntentGuard, error);
             self.create_and_finish(input, identity, request.surface, chat_room_id, &result);
             return result;
         }
@@ -1241,7 +1257,8 @@ impl<'a> ComputerUseExecutor<'a> {
         }
 
         #[cfg(windows)]
-        let desktop_input_lease = if surface == ComputerUseSurface::Desktop {
+        let desktop_input_lease = if surface == ComputerUseSurface::Desktop
+            || (surface==ComputerUseSurface::Browser && self.native_browser_parent.as_ref().is_some_and(|parent| !parent.computer_use_turn_scope.native_browser_read_only())) {
             let scope = match windows_process_guard::current_interactive_session_scope() {
                 Ok(scope) => scope,
                 Err(error) => {
@@ -1316,6 +1333,7 @@ impl<'a> ComputerUseExecutor<'a> {
             inner: adapter,
             store: self.store,
             call_id: identity.call_id.clone(),
+            native_browser_parent:self.native_browser_parent.clone(),
             planner: self.planner,
             conversation: self.conversation.clone(),
             goal_parent: self.goal_parent.clone(),
@@ -1449,9 +1467,28 @@ impl<'a> ComputerUseExecutor<'a> {
         result: &ComputerUseResult,
         state_version: u64,
     ) -> ComputerUseResult {
-        match self.store.finish(&result.call_id, state_version, result) {
-            Ok(true) => result.clone(),
-            Ok(false) => self
+        let persisted = if result.goal_achieved && result.surface == ComputerUseSurface::Browser
+            && (self.native_browser_parent.is_some() || self.turn_scope.native_browser_read_only()) {
+            self.store.finish_checked(&result.call_id, state_version, result, |connection, proposed| {
+                let mut actual = proposed.clone();
+                if let Err(error) = self.native_readonly_success_check(connection, proposed) {
+                    actual.status = if error.code == "cancelled" { ComputerUseTerminalStatus::Cancelled }
+                        else if error.code == "deadline_exceeded" { ComputerUseTerminalStatus::TimedOut }
+                        else { ComputerUseTerminalStatus::Blocked };
+                    actual.stage = ComputerUseStage::Supervisor;
+                    actual.goal_achieved = false;
+                    actual.summary = error.message.clone();
+                    actual.error = Some(error);
+                }
+                Ok(actual)
+            })
+        } else {
+            self.store.finish(&result.call_id, state_version, result)
+                .map(|written| written.then(|| result.clone()))
+        };
+        match persisted {
+            Ok(Some(actual)) => actual,
+            Ok(None) => self
                 .store
                 .load(&result.call_id)
                 .ok()
@@ -1494,6 +1531,47 @@ impl<'a> ComputerUseExecutor<'a> {
                 )
             }
         }
+    }
+
+    /// 调用方已取得 BEGIN IMMEDIATE；父停止提交与 CU 成功在同库中有确定顺序。
+    /// 页面证据的时效点仍是 S2，不试图把 UI 生命周期与 SQLite 组成原子事务。
+    fn native_readonly_success_check(
+        &self,
+        connection: &rusqlite::Connection,
+        result: &ComputerUseResult,
+    ) -> Result<(), ComputerUseError> {
+        let changed = || ComputerUseError::blocked("native_browser_parent_changed",
+            "原生只读任务的冻结父运行或数据库已失效，不能提交成功", ComputerUseRetryOwner::None);
+        let parent = self.native_browser_parent.as_ref().ok_or_else(changed)?;
+        let expected_db = parent.runtime_db_path.as_ref().and_then(|path| path.canonicalize().ok())
+            .ok_or_else(changed)?;
+        let actual_db: String = connection.query_row("SELECT file FROM pragma_database_list WHERE name='main'",
+            [], |row| row.get(0)).map_err(|_| changed())?;
+        if std::path::Path::new(&actual_db).canonicalize().ok().as_ref() != Some(&expected_db) {
+            return Err(changed());
+        }
+        let deadline: i64 = connection.query_row("SELECT deadline_ms FROM computer_use_runs WHERE call_id=?1",
+            [&result.call_id], |row| row.get(0)).map_err(|_| changed())?;
+        if deadline <= 0 || now_ms() >= deadline as u64
+            || self.root_budget.as_ref().is_some_and(|budget| budget.is_expired())
+            || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
+            return Err(ComputerUseError::blocked("deadline_exceeded",
+                "原生只读任务在成功提交前已超过执行时限", ComputerUseRetryOwner::None));
+        }
+        match crate::validate_frozen_parent_relations_on_connection(connection, parent) {
+            Ok(()) => {},
+            Err(crate::FrozenRelationViolation::ParentRunNotExecutable { state })
+                if matches!(state.as_str(), "stop_requested" | "interrupted") => return Err(cancelled_error()),
+            Err(_) => return Err(changed()),
+        }
+        // 内存取消与单调预算紧贴提交检查；不声称它们与 SQLite 字段联合原子。
+        if (self.cancelled)() { return Err(cancelled_error()); }
+        if now_ms() >= deadline as u64 || self.root_budget.as_ref().is_some_and(|budget| budget.is_expired())
+            || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
+            return Err(ComputerUseError::blocked("deadline_exceeded",
+                "原生只读任务在成功提交前已超过执行时限", ComputerUseRetryOwner::None));
+        }
+        Ok(())
     }
 }
 
@@ -1961,10 +2039,11 @@ impl ComputerUseAdapterFactory for ProductionAdapterFactory {
             }
             ComputerUseSurface::Browser if self.browser_enabled => {
                 if let Some(parent) = self.native_browser_parent.as_ref() {
-                    return Ok(DynComputerUseAdapter::new(BrowserComputerUseAdapter::with_policy(
+                    let adapter=BrowserComputerUseAdapter::with_policy(
                         crate::native_browser_adapter::NativePanelReadBridge::new(parent.clone(), self.cancelled.clone()),
                         self.browser_policy,
-                    ).read_only()));
+                    );
+                    return Ok(DynComputerUseAdapter::new(if parent.computer_use_turn_scope.native_browser_read_only() {adapter.read_only()} else {adapter.native_interaction()}));
                 }
                 BrowserNativeBridge::preflight()?;
                 Ok(DynComputerUseAdapter::new(
@@ -2152,14 +2231,12 @@ pub(crate) async fn execute_with_current_runtime(
             allow_multiple_tabs: config.browser.allow_multiple_tabs,
         },
         cancelled: cancelled.clone(),
-        native_browser_parent: if parent.computer_use_turn_scope.native_browser_read_only() {
-            Some(parent.clone())
-        } else { input.get("objective").and_then(JsonValue::as_str)
-            .filter(|objective| ["内置浏览器", "右栏浏览器", "右侧浏览器", "右侧扩展栏浏览器", "builtin browser", "built-in browser"]
-                .iter().any(|name| objective.to_ascii_lowercase().contains(name))).map(|_| parent.clone()) },
+        // 后端仅取接纳时冻结的本轮用户选择；模型 objective 无权挑选或切换执行后端。
+        native_browser_parent: parent.computer_use_turn_scope.native_browser().then(|| parent.clone()),
     };
     let planner = CurrentSessionComputerUsePlanner::with_context(identity, Some(origin_room_id), &store)
-        .with_cancelled(cancelled.clone());
+        .with_cancelled(cancelled.clone())
+        .with_native_browser_parent(adapters.native_browser_parent.clone());
     // PR-02A：四维会话上下文同样取自**接纳时冻结**的父上下文（与工作区归属同一来源）。
     // 任一维缺失就不构造——宁可让动作来源核对 fail-closed，也不用"当前房间/会话"顶替。
     // 房间维度与授权复核、持久化均沿用同一个已核对的冻结房间。
@@ -2172,7 +2249,8 @@ pub(crate) async fn execute_with_current_runtime(
         ComputerUseExecutor::new(&planner, &adapters, &store, config.budgets(), workspace)
             .with_cancelled(cancelled)
             .with_root_budget(root_budget)
-            .with_turn_scope(parent.computer_use_turn_scope);
+            .with_turn_scope(parent.computer_use_turn_scope.clone())
+            .with_native_browser_parent(adapters.native_browser_parent.clone());
     let executor = match conversation_scope {
         Some(scope) => executor.with_conversation_scope(scope),
         None => executor,
@@ -2477,6 +2555,128 @@ mod tests")
 
     fn identity(provider: &str) -> ToolCallIdentity {
         ToolCallIdentity::from_provider(provider, "session-1", "turn-1")
+    }
+
+    /// 仅验证真实 SQLite 落库边界，不调用模型或软件，不作为 Browser Use 实操验收。
+    #[test]
+    fn native_readonly_terminal_commit_respects_parent_stop_deadline_and_database() {
+        for mode in ["active", "stop", "expired", "memory_cancel", "other_database", "missing_parent"] {
+            let temp = tempfile::Builder::new().prefix("readonly-terminal-").tempdir_in("tmp").unwrap();
+            let db = temp.path().join("sessions.sqlite3");
+            let workspace = "ws-00000000000000ff";
+            seed_relation_complete_admission(&db, workspace, "room-1", "session-1", "parent-run");
+            if mode == "stop" {
+                crate::interrupt_runtime_run_sqlite(&db, "parent-run", Some("test-stop")).unwrap();
+            }
+            let mut parent = crate::FrozenParentContext::new("sqlite-terminal-test", workspace,
+                Some("room-1"), Some("session-1"), Some("turn-1"), Some("parent-run")).unwrap();
+            parent.runtime_db_path = Some(if mode == "other_database" {
+                let other = temp.path().join("other.sqlite3");
+                std::fs::write(&other, b"").unwrap(); other
+            } else { db.clone() });
+            let store = ComputerUseRunStore::open(&db).unwrap();
+            let identity = identity("readonly-terminal");
+            assert!(store.create_run(&NewComputerUseRun {
+                call_id:identity.call_id.clone(), provider_tool_call_id:Some(identity.provider_tool_call_id.clone()),
+                session_id:identity.session_id.clone(), turn_id:identity.turn_id.clone(), chat_room_id:Some("room-1".into()),
+                idempotency_key:identity.call_id.clone(), objective_json:"{}".into(), surface:ComputerUseSurface::Browser,
+                deadline_ms:if mode=="expired" {1} else {now_ms()+60_000}, created_at_ms:now_ms(),
+                workspace:CuWorkspaceAttribution::from_parent_run(&parent.workspace_id),
+            }).unwrap());
+            let mut proposed = terminal_result(&identity, ComputerUseSurface::Browser, ComputerUseStage::Terminal, cancelled_error());
+            proposed.status = ComputerUseTerminalStatus::Succeeded;
+            proposed.goal_achieved = true;
+            proposed.error = None;
+            proposed.summary = "只读页面事实已在S2核对".into();
+            proposed.evidence = vec!["native-observation:receipt".into()];
+            let planner = FakePlanner::one_click();
+            let factory = factory(false);
+            let executor = ComputerUseExecutor::new(&planner, &factory, &store, ComputerUseBudgets::default(),
+                CuWorkspaceAttribution::from_parent_run(&parent.workspace_id))
+                .with_native_browser_parent((mode != "missing_parent").then_some(parent))
+                .with_turn_scope(crate::computer_use_turn_scope::ComputerUseTurnScope::from_current_user("内置浏览器，不得发送输入"))
+                .with_root_budget(None)
+                .with_cancelled(Arc::new(move || mode == "memory_cancel"));
+            let actual = executor.finish_at_version(&proposed, 0);
+            let expected = match mode {
+                "active" => ComputerUseTerminalStatus::Succeeded,
+                "stop" | "memory_cancel" => ComputerUseTerminalStatus::Cancelled,
+                "expired" => ComputerUseTerminalStatus::TimedOut,
+                _ => ComputerUseTerminalStatus::Blocked,
+            };
+            assert_eq!(actual.status, expected, "落库模式={mode}");
+            assert_eq!(actual.goal_achieved, mode == "active");
+            assert_eq!(actual.evidence, proposed.evidence, "收紧结果仍保留观察凭据");
+            assert_eq!(store.load(&identity.call_id).unwrap().unwrap().terminal_result, Some(actual.clone()));
+            assert_eq!(executor.finish_at_version(&proposed, 0), actual, "迟到成功不能覆盖既有终态");
+            if mode == "active" {
+                crate::interrupt_runtime_run_sqlite(&db, "parent-run", Some("after-success")).unwrap();
+                assert_eq!(executor.finish_at_version(&proposed, 0), actual, "成功先提交后保留原CU事实");
+            }
+        }
+    }
+
+    /// 实际SQLite派发契约：停止先提交、权限收紧、票据失配与重放均不允许新的派发。
+    #[test]
+    fn persistent_panel_dispatch_cas_uses_frozen_parent_permission_and_one_ticket() {
+        for mode in ["active","stopped","restricted","wrong_ticket"] {
+            let temp=tempfile::Builder::new().prefix("panel-cas-").tempdir_in("tmp").unwrap();
+            let db=temp.path().join("sessions.sqlite3");let workspace="ws-00000000000000ff";
+            seed_relation_complete_admission(&db,workspace,"room-1","session-1","parent-run");
+            crate::set_chat_room_permission_profile_sqlite(&db,"room-1",crate::ROOM_PERMISSION_FULL_ACCESS).unwrap();
+            let mut parent=crate::FrozenParentContext::new("panel-cas-test",workspace,Some("room-1"),Some("session-1"),None,Some("parent-run")).unwrap();
+            parent.runtime_db_path=Some(db.clone());
+            let store=ComputerUseRunStore::open(&db).unwrap();let call="panel-cas-run";
+            assert!(store.create_run(&NewComputerUseRun {call_id:call.into(),provider_tool_call_id:Some("test-tool".into()),
+                session_id:"session-1".into(),turn_id:"turn-1".into(),chat_room_id:Some("room-1".into()),idempotency_key:call.into(),
+                objective_json:"{}".into(),surface:ComputerUseSurface::Browser,deadline_ms:now_ms()+60000,created_at_ms:now_ms(),
+                workspace:CuWorkspaceAttribution::from_parent_run(&parent.workspace_id)}).unwrap());
+            assert!(store.transition(call,0,ComputerUseRunState::Executing,now_ms()).unwrap());
+            let read=crate::open_session_connection(&db).unwrap();
+            read.execute("INSERT INTO computer_use_steps(run_id,step_index,observation_generation,action_type,normalized_target,action_fingerprint,status,started_at_ms)
+                VALUES(?1,1,1,'click','dom-test','frozen-click','executing',1)",[call]).unwrap();
+            let ticket="a".repeat(32);store.prepare_panel_attempt(call,1,&ticket,"exact-binding").unwrap();
+            if mode=="stopped" {crate::interrupt_runtime_run_sqlite(&db,"parent-run",Some("stop-before-claim")).unwrap();}
+            if mode=="restricted" {crate::set_chat_room_permission_profile_sqlite(&db,"room-1",crate::ROOM_PERMISSION_WORKSPACE_WRITE).unwrap();}
+            let actual_ticket=if mode=="wrong_ticket" {"b".repeat(32)} else {ticket.clone()};
+            let result=store.claim_panel_attempt(&parent,call,1,&actual_ticket,"exact-binding",now_ms()+2000,&||false);
+            assert_eq!(result.is_ok(),mode=="active","模式={mode}");
+            let state:String=read.query_row("SELECT native_dispatch_state FROM computer_use_steps WHERE run_id=?1",[call],|row|row.get(0)).unwrap();
+            assert_eq!(state,if mode=="active" {"dispatching"} else {"pending"});
+            if mode=="active" {
+                assert!(store.claim_panel_attempt(&parent,call,1,&ticket,"exact-binding",now_ms()+2000,&||false).is_err());
+                store.settle_panel_attempt(call,1,&ticket,"released").unwrap();
+                assert!(store.settle_panel_attempt(call,1,&ticket,"release_unknown").is_err(),"迟到事件不能反改已结算动作");
+            }
+        }
+    }
+
+    /// 第二连接不能插入父状态写入，证明检查与 CU 提交处在同一真实写事务中。
+    #[test]
+    fn native_readonly_terminal_transaction_excludes_parent_writer_until_commit() {
+        let temp = tempfile::Builder::new().prefix("readonly-cas-").tempdir_in("tmp").unwrap();
+        let db = temp.path().join("sessions.sqlite3");
+        let store = ComputerUseRunStore::open(&db).unwrap();
+        let other = crate::open_session_connection(&db).unwrap();
+        other.busy_timeout(std::time::Duration::ZERO).unwrap();
+        let mut parent = crate::FrozenParentContext::new("sqlite-cas-test", "ws-00000000000000ff", None, None, None, None).unwrap();
+        parent.runtime_db_path = Some(db.clone());
+        let identity = identity("readonly-cas");
+        assert!(store.create_run(&NewComputerUseRun {
+            call_id:identity.call_id.clone(), provider_tool_call_id:Some(identity.provider_tool_call_id.clone()),
+            session_id:identity.session_id.clone(), turn_id:identity.turn_id.clone(), chat_room_id:None,
+            idempotency_key:identity.call_id.clone(), objective_json:"{}".into(), surface:ComputerUseSurface::Browser,
+            deadline_ms:now_ms()+60_000, created_at_ms:now_ms(), workspace:CuWorkspaceAttribution::from_parent_run(&parent.workspace_id),
+        }).unwrap());
+        let proposed = terminal_result(&identity, ComputerUseSurface::Browser, ComputerUseStage::Supervisor, cancelled_error());
+        let actual = store.finish_checked(&identity.call_id, 0, &proposed, |_, proposed| {
+            let error = other.execute("UPDATE runtime_runs SET state='stop_requested'", []).unwrap_err();
+            assert!(matches!(error, rusqlite::Error::SqliteFailure(ref failure, _) if matches!(failure.code,
+                rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked)));
+            Ok(proposed.clone())
+        }).unwrap();
+        assert_eq!(actual, Some(proposed));
+        other.execute("UPDATE runtime_runs SET state='stop_requested'", []).unwrap();
     }
 
     /// **正式输入入口的共享状态前置**：注入输入安全库根，并按资格把该资源开放。

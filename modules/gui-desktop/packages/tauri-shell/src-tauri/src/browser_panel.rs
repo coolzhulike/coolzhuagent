@@ -174,6 +174,29 @@ fn validate_url(value: &str, origin: Option<&Url>) -> Result<Url, String> {
     Ok(url)
 }
 
+pub(super) fn native_destination(value:&str) -> Result<Url,String> {
+    if !native_browser_protocol::valid_navigation_url(value) {return Err("native_browser_navigation_invalid".into());}
+    let url=validate_url(value,console_origin()).map_err(|_|"native_browser_navigation_invalid")?;
+    // 协议与回执使用同一个规范地址，避免大小写、默认端口等别名产生假匹配。
+    if url.as_str()!=value {return Err("native_browser_navigation_not_canonical".into());}
+    Ok(url)
+}
+
+/// 仅供已取得单次输入许可的宿主UI闭包使用；不导出新的网页IPC命令。
+pub(super) fn begin_native_navigation(app:&AppHandle,source:&native_browser_protocol::PanelResource,url:&Url)
+    -> Result<native_browser_protocol::PanelNavigationReceipt,String> {
+    if input_resource(app).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
+    let store=app.state::<PanelStore>();
+    let mut state=store.state.lock().map_err(|_|"native_browser_unavailable")?;
+    if visible_panel_resource(&state,true,false).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
+    let revision=source.navigation_revision.checked_add(1).ok_or("native_browser_navigation_invalid")?;
+    state.navigation_revision=revision;
+    state.pending_navigation=Some(PendingNavigation {revision,requested_url:url.to_string(),requested_observed:false,redirect_url:None,from_popup:false});
+    state.reply.url=Some(url.to_string());state.reply.loading=true;state.reply.error=None;
+    let mut destination=source.clone();destination.navigation_revision=revision;
+    Ok(native_browser_protocol::PanelNavigationReceipt {destination,url:url.to_string()})
+}
+
 fn clamp_bounds(bounds: PanelBounds, width: f64, height: f64) -> Result<PanelBounds, String> {
     clamp_host_bounds(bounds, None, width, height)
 }
@@ -504,7 +527,7 @@ pub fn invalidate(app: &AppHandle, reason: &str) {
         (state.label.take(), state.reply.clone())
     };
     if let Some(view) = label.and_then(|label| app.get_webview(&label)) {
-        let _ = view.close();
+        super::native_browser_input::retire_view(view);
     }
     emit(app, &reply);
 }
@@ -519,13 +542,21 @@ fn current_reply(store: &PanelStore) -> Result<PanelReply, String> {
 
 /// 只供宿主内部资源登记使用；不新增网页可调用命令。
 pub(super) fn input_resource(app: &AppHandle) -> Option<native_browser_protocol::PanelResource> {
+    // 页面驻留不等于可用；隐藏或最小化主窗口必须撤销原生观察资格。
+    let console = app.get_window(super::CONSOLE_LABEL)?;
+    let visible = console.is_visible().ok()?;
+    let minimized = console.is_minimized().ok()?;
+    let store = app.state::<PanelStore>();
+    let state = store.state.lock().ok()?;
+    visible_panel_resource(&state, visible, minimized)
+}
+
+fn visible_panel_resource(state: &PanelState, console_visible: bool, console_minimized: bool) -> Option<native_browser_protocol::PanelResource> {
     #[derive(Deserialize)]
     struct Scope { context: ScopeContext }
     #[derive(Deserialize)]
     struct ScopeContext { workspace_path: String, room: String }
-    let store = app.state::<PanelStore>();
-    let state = store.state.lock().ok()?;
-    if !state.reply.active || state.reply.hidden || state.reply.loading || state.reply.destroyed {
+    if !console_visible || console_minimized || !state.reply.active || state.reply.hidden || state.reply.loading || state.reply.destroyed {
         return None;
     }
     let scope: Scope = serde_json::from_str(&state.reply.scope).ok()?;
@@ -766,6 +797,11 @@ pub async fn browser_panel_command(
                     let _ = view.close();
                     return Err("网页创建期间窗口或聊天室已变化".into());
                 }
+                // 新建视图也必须显式显示；不能仅凭创建成功登记为可见资源。
+                if view.show().is_err() {
+                    invalidate(&app, "show-failed");
+                    return Err("无法显示网页预览".into());
+                }
             }
             Err(_) => {
                 update(&app, generation, |reply| {
@@ -815,6 +851,24 @@ pub async fn browser_panel_command(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hidden_or_minimized_console_cannot_register_a_resident_page() {
+        let state = PanelState {
+            generation: 7,
+            navigation_revision: 1,
+            label: Some("browser-panel-7".into()),
+            reply: PanelReply {
+                active: true,
+                scope: r#"{"context":{"workspace_path":"workspace","room":"room-1"}}"#.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        assert!(visible_panel_resource(&state, true, false).is_some());
+        assert!(visible_panel_resource(&state, false, false).is_none());
+        assert!(visible_panel_resource(&state, true, true).is_none());
+    }
 
     #[test]
     fn external_navigation_rejects_privileged_schemes_credentials_and_console_aliases() {

@@ -1,0 +1,105 @@
+{
+  "images": [
+    {
+      "file": "01-browser-loaded.jpg",
+      "bytes": 202323,
+      "sha256": "53c758b0e1f3ed6ec4e047fcad027808dd9b90392659b9f6d2e34086260c1ea6"
+    },
+    {
+      "file": "02-browser-same-room-auto-reopen.jpg",
+      "bytes": 202642,
+      "sha256": "2010dbd65ff74fb18ec24e6d26cfa2e7887c06d0400a9930529dd7b611a7c256"
+    },
+    {
+      "file": "03-browser-cross-room-empty.jpg",
+      "bytes": 123076,
+      "sha256": "5bc85301ffdc4d40e58334c6fb7c2cf08e259fa08b9330a499bd21995152ad7d"
+    },
+    {
+      "file": "04-browser-before-workspace-switch.jpg",
+      "bytes": 202410,
+      "sha256": "70951c7d20cd8e371b6450bb9e9470cddbaeb198aba00ce3beb22cc852f5d9ee"
+    },
+    {
+      "file": "05-browser-cross-workspace-empty.jpg",
+      "bytes": 123374,
+      "sha256": "390e7677a9eb4617619d67c7a367950c1c0592cd0f8fafedc498d81733f88eff"
+    },
+    {
+      "file": "06-browser-qwen-single-click-completed.jpg",
+      "bytes": 194371,
+      "sha256": "15539bd39c8469e073e2c7253bce28dd696f0f0d92e4f31a0dde447052462855"
+    },
+    {
+      "file": "07-browser-close-attempt-no-input-host-unavailable.jpg",
+      "bytes": 189402,
+      "sha256": "4c31c7777bbff24dbbfe8d13fcb7b8140f3c9ab698da200d0dbbfead8065cf5c"
+    },
+    {
+      "file": "08-browser-cb-previous-parameters-refused.jpg",
+      "bytes": 199033,
+      "sha256": "1b173a4ce5b2b745ba45a2e02137a1559fedd0bd52128b0976183360951a13e1"
+    },
+    {
+      "file": "09-browser-cc-stale-goal-refused.jpg",
+      "bytes": 212019,
+      "sha256": "a78c7d1779b160218690f908f5187c40c17b8a4e8280da5ff79b086bcc0fb1e0"
+    },
+    {
+      "file": "10-browser-isolated-room-before.jpg",
+      "bytes": 158677,
+      "sha256": "395ae863adb2403a684c2c378c46dc633361a1fe79e0ebfcb170429a06b7281d"
+    },
+    {
+      "file": "11-browser-cd-isolated-room-refused.jpg",
+      "bytes": 193148,
+      "sha256": "8d2059023dcd34b3989e2dad3ad29e4e082c24def23ea3b9fbcffdd63a28c6ce"
+    },
+    {
+      "file": "12-browser-ce-panel-closed-during-task.jpg",
+      "bytes": 200226,
+      "sha256": "b2f91764bc56733f6fb6a5dfb48590cb8b4197c04b84f891980236fa131ad483"
+    },
+    {
+      "file": "13-browser-ce-terminal-after-close.jpg",
+      "bytes": 199172,
+      "sha256": "9b3967504cefcf3cd9cb8b1d2675d9c59d0877d8712be1f29e57b449d599aaa9"
+    },
+    {
+      "file": "14-paint-window-before-cf.jpg",
+      "bytes": 184468,
+      "sha256": "cb076d7312caf5a497b1e2e3927365e0ef841a76d9ea6fdfc212606a2f502ed1"
+    },
+    {
+      "file": "15-paint-foreground-before-cf.jpg",
+      "bytes": 65815,
+      "sha256": "81c454501209026c0a58a0e77f09a1f9919c1f945dc2231b6d2b39ad8ec0aa43"
+    },
+    {
+      "file": "16-paint-desktop-before-cf.png",
+      "bytes": 635775,
+      "sha256": "4fed67ebec5530a46861916392db082151a6fd7f56c97d6fcab75d28b1ffabf6"
+    },
+    {
+      "file": "17-paint-desktop-after-cf.png",
+      "bytes": 636140,
+      "sha256": "dfd071c93ddcdc3c72008f8ebc3a1664da2f3b02d30c1eb95e838be2943b4560"
+    },
+    {
+      "file": "18-paint-cf-desktop-active.png",
+      "bytes": 692720,
+      "sha256": "5230db5f7b2a8b92824740f6c8545bceb20ecc5e55b4323af9b999f6e6d261c3"
+    },
+    {
+      "file": "19-paint-cf-console-terminal.jpg",
+      "bytes": 197390,
+      "sha256": "fd0a552027df962e5ce202bb34844501506a422882c2f16c52c4244cc2eaee05"
+    },
+    {
+      "file": "20-paint-cf-native-failure.png",
+      "bytes": 272669,
+      "sha256": "d7c0642fd8f4d7f3b17a3f3f378d7e038b4131831dc67ca1c7f825510751da09"
+    }
+  ],
+  "unchanged_raw_bytes": true
+}

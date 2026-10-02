@@ -305,6 +305,25 @@ mod tests {
     use super::*;
     use crate::tests::{config_test_guard, context_test_agent, DevOpenPermissionsTestGuard};
 
+    /// 即使用例 panic，也恢复全局配置，避免后续用例访问已删除的临时目录。
+    struct HostTestEnvironment {
+        workspace: std::path::PathBuf,
+        config: crate::WorkspaceConfig,
+    }
+    impl HostTestEnvironment {
+        fn install(workspace: &Path, config: crate::WorkspaceConfig) -> Self {
+            let previous_workspace = std::mem::replace(&mut crate::workspace_state().lock().unwrap().current, workspace.to_path_buf());
+            let previous_config = std::mem::replace(&mut *crate::workspace_config().lock().unwrap(), config);
+            Self { workspace: previous_workspace, config: previous_config }
+        }
+    }
+    impl Drop for HostTestEnvironment {
+        fn drop(&mut self) {
+            *crate::workspace_config().lock().unwrap_or_else(std::sync::PoisonError::into_inner) = self.config.clone();
+            crate::workspace_state().lock().unwrap_or_else(std::sync::PoisonError::into_inner).current = self.workspace.clone();
+        }
+    }
+
     #[test]
     fn goal_phase_pin_blocks_workspace_change_and_rejects_stale_workspace() {
         let _guard = config_test_guard();
@@ -353,14 +372,10 @@ mod tests {
         let _guard = config_test_guard();
         let _dev_open = DevOpenPermissionsTestGuard::enable();
         let temp = tempfile::tempdir().unwrap();
-        let previous_workspace = {
-            let mut state = crate::workspace_state().lock().unwrap();
-            std::mem::replace(&mut state.current, temp.path().to_path_buf())
-        };
         let mut config = crate::WorkspaceConfig::default();
         config.model.enable_llm_tools = true;
         config.model.llm_tool_exposure = Some("all".to_string());
-        let previous_config = std::mem::replace(&mut *crate::workspace_config().lock().unwrap(), config);
+        let _environment = HostTestEnvironment::install(temp.path(), config);
         let started = Arc::new(tokio::sync::Notify::new());
         let release = Arc::new(tokio::sync::Notify::new());
         let router = axum::Router::new().route("/v1/chat/completions", axum::routing::post({
@@ -426,7 +441,8 @@ mod tests {
                 "allowed_tools":["write_file"]
             }), Some(&runner)).await
         });
-        tokio::time::timeout(std::time::Duration::from_secs(3), started.notified())
+        // 首次 SQLite 初始化和 HTTP 调度在繁忙 CI 上也计入等待；取消响应仍单独限时。
+        tokio::time::timeout(std::time::Duration::from_secs(30), started.notified())
             .await.expect("真实子模型请求应到达本地端点");
         {
             let connection = crate::open_session_connection(&db).unwrap();
@@ -458,8 +474,6 @@ mod tests {
         assert!(denied.is_err(), "失去原 claim 后实际工具派发必须拒绝");
         assert!(!denied_path.exists());
         server.abort();
-        *crate::workspace_config().lock().unwrap() = previous_config;
-        crate::workspace_state().lock().unwrap().current = previous_workspace;
     }
 
     #[tokio::test]
@@ -467,14 +481,10 @@ mod tests {
         let _guard = config_test_guard();
         let _dev_open = DevOpenPermissionsTestGuard::enable();
         let temp = tempfile::tempdir().unwrap();
-        let previous_workspace = {
-            let mut state = crate::workspace_state().lock().unwrap();
-            std::mem::replace(&mut state.current, temp.path().to_path_buf())
-        };
         let mut config = crate::WorkspaceConfig::default();
         config.model.enable_llm_tools = true;
         config.model.llm_tool_exposure = Some("all".to_string());
-        let previous_config = std::mem::replace(&mut *crate::workspace_config().lock().unwrap(), config);
+        let _environment = HostTestEnvironment::install(temp.path(), config);
         let slow_request_started = Arc::new(tokio::sync::Notify::new());
         let release_slow_request = Arc::new(tokio::sync::Notify::new());
         let router = axum::Router::new().route("/v1/chat/completions", axum::routing::post(
@@ -650,8 +660,6 @@ mod tests {
         assert_eq!(completed, 2, "取消与超时不能重复记为已完成请求");
         release_slow_request.notify_waiters();
         server.abort();
-        *crate::workspace_config().lock().unwrap() = previous_config;
-        crate::workspace_state().lock().unwrap().current = previous_workspace;
     }
 
 }

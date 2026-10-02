@@ -13,6 +13,16 @@ fn memory_blocks() -> &'static Mutex<HashSet<String>> {
     BLOCKS.get_or_init(|| Mutex::new(HashSet::new()))
 }
 
+/// 持久面板沿用既有输入阻断/人工恢复，不另造浏览器安全状态机。
+pub(super) fn isolate_panel_unknown(root:&std::path::Path,scope:&InputSafetyResourceScope,request:&str,reason:&str) -> Result<(),String> {
+    if let Ok(mut blocks)=memory_blocks().lock() { blocks.insert(scope.as_str().into()); }
+    let store=InputSafetyStore::open_at(root).map_err(|e|e.to_string())?;
+    let state=store.resource_state(scope).map_err(|e|e.to_string())?;
+    store.open_resource_block(&format!("native-panel-{request}"),scope,"native_executor_outcome_unknown",request).map_err(|e|e.to_string())?;
+    store.isolate_resource(scope,reason,Some(&coordinator_instance_identity()),state.recovery_epoch).map_err(|e|e.to_string())?;
+    Ok(())
+}
+
 /// 存储故障也不能放行；锁中毒按未知阻断处理，不恢复默认允许。
 pub(crate) fn memory_input_allowed(scope: &InputSafetyResourceScope) -> bool {
     memory_blocks().lock().map(|blocks| !blocks.contains(scope.as_str())).unwrap_or(false)

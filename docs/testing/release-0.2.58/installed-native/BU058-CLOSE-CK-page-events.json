@@ -1,0 +1,28 @@
+{
+  "test": "BU058-CLOSE-CK",
+  "events": [
+    {
+      "kind": "pointerdown",
+      "page_ms": 1790850425913,
+      "server_ms": 1790850425920
+    },
+    {
+      "kind": "pointerdown_handler_finished",
+      "page_ms": 1790850428414,
+      "server_ms": 1790850428416
+    },
+    {
+      "kind": "pointerup",
+      "page_ms": 1790850428415,
+      "server_ms": 1790850428418
+    },
+    {
+      "kind": "click",
+      "page_ms": 1790850428415,
+      "server_ms": 1790850428419
+    }
+  ],
+  "cu": "cu-session-1779459149988-000000000000001818da60f5ef6e4b80-tool-37d8f2d831c5141ae2128602557db0bcc564edf9dd828dc3e9dd453c049ec591",
+  "parent_finished_ms": 1790850446311,
+  "close_during_press_verified": false
+}

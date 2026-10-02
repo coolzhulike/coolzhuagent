@@ -1,0 +1,238 @@
+{
+  "test": "CU059-BODY-CR",
+  "runtime": {
+    "id": "run-chat-4d93739f328a5e69d1f3e6f7e002d92ebf694852c74aba18",
+    "workspace_id": "ws-992cca993bc1a1a0",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "legacy_turn_id": "chat-turn-1790852757872-5",
+    "state": "completed",
+    "stop_requested_at": null,
+    "finished_at": 1790852802798,
+    "created_at": 1790852757883
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001818da63185a35717c-tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+      "provider_tool_call_id": "tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+      "turn_id": "000000000000001818da63185a35717c",
+      "session_id": "session-1779459149988",
+      "chat_room_id": "room-1790567510595",
+      "workspace_id": "ws-992cca993bc1a1a0",
+      "surface": "desktop",
+      "state": "blocked",
+      "state_version": 12,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "created_at_ms": 1790852765541,
+      "updated_at_ms": 1790852795375,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001818da63185a35717c-tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+        "provider_tool_call_id": "tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "computer-use action budget exhausted",
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30024-1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09.png:sha256=1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09:2182x1355",
+          "uia_snapshot:hwnd-1d10948:elements=500",
+          "frame_binding:sha256=1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09:2182x1355:screen_rect=189,12,2182,1355:canvas_rect=200,57,2160,1299:container_inside_image=true",
+          "observation_window_selection:None:uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30024-1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09.png:sha256=1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09:2182x1355",
+          "uia_snapshot:hwnd-1d10948:elements=500",
+          "frame_binding:sha256=1a9e73b23ed02f75eab415aef4158fce90e0681f3d14af48ad378cd851ddba09:2182x1355:screen_rect=189,12,2182,1355:canvas_rect=200,57,2160,1299:container_inside_image=true",
+          "observation_window_selection:None:uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/1",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-30024-2da5f7bf77e597e3e245e088458e320ad2f318030c4bcd92c473cef34a718c99.png:sha256=2da5f7bf77e597e3e245e088458e320ad2f318030c4bcd92c473cef34a718c99:2182x1355",
+          "uia_snapshot:hwnd-1d10948:elements=500",
+          "frame_binding:sha256=2da5f7bf77e597e3e245e088458e320ad2f318030c4bcd92c473cef34a718c99:2182x1355:screen_rect=189,12,2182,1355:canvas_rect=200,57,2160,1299:container_inside_image=true",
+          "observation_window_selection:None:uia_win32_no_synthetic_input"
+        ],
+        "supervisor": {
+          "circuit_open": true,
+          "reason": "budget_exhausted",
+          "action_count": 1,
+          "replan_count": 1,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1790853657872
+            }
+          },
+          "cu_deadline_ms": 1790852885541,
+          "cu_deadline_established_at_ms": 1790852765541,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只调用一次computer_use_perform，max_actions=1",
+          "只用一次连续5点闭合拖动，约1200ms",
+          "不在画布外或工具栏落笔",
+          "不用形状工具、代码、文件写入或其它工具",
+          "不擦除、不保存",
+          "输入失败或释放未知立即停止，同轮不再次调用"
+        ],
+        "max_actions": 1,
+        "objective": "在当前Windows画图（mspaint.exe）白色画布下半部的空白区域，用已选中的黑色铅笔画一个中等大小的闭合矩形，作为简化海绵宝宝的新身体。一次连续5点闭合路径，依次经过四个角点后回到起点，duration_ms约1200。不在画布外落笔，不用形状工具，不保存。",
+        "success_criteria": [
+          "最新原图白色画布下半部实际出现一个新增的黑色闭合矩形"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001818da63185a35717c-tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-9121c9bd-d27e-9ce7-9e3c-683e262beba0",
+      "error_code": null,
+      "started_at_ms": 1790852769115,
+      "completed_at_ms": 1790852779624,
+      "response": {
+        "bytes": 335,
+        "criteria": [
+          {
+            "evidence_blank": false,
+            "evidence_bytes": 258,
+            "evidence_chars": 102,
+            "evidence_exceeds_limit": false,
+            "evidence_type": "string",
+            "index": 0,
+            "index_type": "number",
+            "met": false,
+            "met_type": "boolean",
+            "node_indices_count": null,
+            "node_indices_type": "missing",
+            "position": 0,
+            "type": "object",
+            "unknown_field_count": 0
+          }
+        ],
+        "criteria_count": 1,
+        "criteria_type": "array",
+        "progress": false,
+        "progress_type": "boolean",
+        "root_type": "object",
+        "unknown_field_count": 0
+      }
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000001818da63185a35717c-tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "provider_response_id": "chatcmpl-5d760c0f-cc85-92be-b7fd-a9118818f399",
+      "error_code": null,
+      "started_at_ms": 1790852779658,
+      "completed_at_ms": 1790852791090,
+      "response": {
+        "action": {
+          "arguments": {
+            "duration_ms": 1200,
+            "points": [
+              [
+                0.3,
+                0.6
+              ],
+              [
+                0.5,
+                0.6
+              ],
+              [
+                0.5,
+                0.8
+              ],
+              [
+                0.3,
+                0.8
+              ],
+              [
+                0.3,
+                0.6
+              ]
+            ]
+          },
+          "kind": "drag",
+          "target": "window-canvas:1d10948"
+        },
+        "done": false
+      }
+    }
+  ],
+  "usage": [
+    {
+      "turn_id": "000000000000001818da63185a35717c",
+      "call_id": "cu-session-1779459149988-000000000000001818da63185a35717c-tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+      "request_kind": "computer_use_verification",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 24154,
+      "output_tokens": 278,
+      "http_status": null
+    },
+    {
+      "turn_id": "000000000000001818da63185a35717c",
+      "call_id": "cu-session-1779459149988-000000000000001818da63185a35717c-tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+      "request_kind": "computer_use_planning",
+      "run_id": null,
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 25036,
+      "output_tokens": 352,
+      "http_status": null
+    },
+    {
+      "turn_id": "chat-turn-1790852757872-5",
+      "call_id": null,
+      "request_kind": "tool_feedback",
+      "run_id": "run-chat-4d93739f328a5e69d1f3e6f7e002d92ebf694852c74aba18",
+      "status": "completed",
+      "dispatched": 1,
+      "input_tokens": 12183,
+      "output_tokens": 238,
+      "http_status": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000001818da63185a35717c-tool-b10a7c5d6524bcf62a4d369e01f70fb50659df6f876a9e9cd750215407390531",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "window-canvas:1d10948",
+      "status": "failed",
+      "error_code": "stale_observation",
+      "input_delivery": "not_sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "not_needed",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1790852791094,
+      "completed_at_ms": 1790852793282,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ]
+}

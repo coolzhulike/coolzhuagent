@@ -1,0 +1,14 @@
+{
+  "close_started_ms": 1790850560419,
+  "close_finished_ms": 1790850560500,
+  "down_observation": {
+    "observed_ms": 1790850537514,
+    "events": [
+      {
+        "kind": "pointerdown",
+        "page_ms": 1790850537483,
+        "server_ms": 1790850537485
+      }
+    ]
+  }
+}

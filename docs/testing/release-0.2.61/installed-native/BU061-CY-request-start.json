@@ -1,0 +1,8 @@
+{
+  "label": "BU061-CY",
+  "before_ms": 1790856528091,
+  "room_id": "room-1790567510595",
+  "session_id": "session-1779459149988",
+  "prompt": "BU061-SINGLE-CY：新版独立Browser Use回归，不提供工具JSON。当前右栏原生浏览器已打开http://127.0.0.1:63653/click.html，页面实际次数为0。请只调用一次computer_use_perform，surface为browser，target只包含该完整url，max_actions为数字1，success_criteria必须为字符串数组，包含最新页面实际显示次数：1。只单击一次增加次数按钮，不导航、不输入、不滚动，不用其它工具、不重试。根据本轮新鲜网页观察选择按钮并验证结果，不用桌面UIA代替browser，不把点击排队或输入释放当作目标达成。失败立即停止，按真实页面报告。",
+  "model": "qwen3.8-flash"
+}

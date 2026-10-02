@@ -1,0 +1,1278 @@
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+   Compiling coolzhu-core-runtime v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\core-runtime\packages\core-runtime)
+   Compiling coolzhu-llm-adapter v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\llm-adapter\packages\llm-adapter)
+   Compiling coolzhu-computer-use-core v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\computer-use\packages\computer-use-core)
+   Compiling coolzhu-vision-service v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\vision\packages\vision-service)
+   Compiling coolzhu-tool-registry v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\tooling\packages\tool-registry)
+   Compiling coolzhu-uia-resolver v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\vision\packages\uia-resolver)
+   Compiling coolzhu-web-console v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\gui-web\packages\web-console)
+warning: unused import: `RelativeAnchor`
+   --> modules\gui-web\packages\web-console\src\main.rs:170:43
+    |
+170 |     InteractionScenario, MouseActionKind, RelativeAnchor, ResolutionCase, UiTargetKind,
+    |                                           ^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> modules\gui-web\packages\web-console\src\lsp_host.rs:480:9
+    |
+480 |     let mut stdout = child
+    |         ----^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable pattern
+     --> modules\gui-web\packages\web-console\src\main.rs:16331:9
+      |
+16331 |         _ => Err(ClawbotRuntimeCommandError::new(
+      |         ^ no value can reach this
+      |
+note: multiple earlier patterns match some of the same values
+     --> modules\gui-web\packages\web-console\src\main.rs:16331:9
+      |
+16008 |         clawbot_channel::ClawbotCommand::Help { .. } => {
+      |         -------------------------------------------- matches some of the same values
+...
+16019 |         clawbot_channel::ClawbotCommand::Unknown { input } => Err(ClawbotRuntimeCommandError::new(
+      |         -------------------------------------------------- matches some of the same values
+...
+16023 |         clawbot_channel::ClawbotCommand::Status => Ok(clawbot_runtime_command_ok(
+      |         --------------------------------------- matches some of the same values
+...
+16026 |         clawbot_channel::ClawbotCommand::ListRooms => {
+      |         ------------------------------------------ matches some of the same values
+...
+16331 |         _ => Err(ClawbotRuntimeCommandError::new(
+      |         ^ ...and 8 other patterns collectively make this unreachable
+      = note: `#[warn(unreachable_patterns)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `coordination_scope`
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2112:9
+     |
+2112 |         coordination_scope: &str,
+     |         ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_coordination_scope`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `timeout`
+     --> modules\gui-web\packages\web-console\src\main.rs:36717:17
+      |
+36717 |             let timeout = Duration::from_secs(8);
+      |                 ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_timeout`
+
+warning: value assigned to `used_real_model` is never read
+     --> modules\gui-web\packages\web-console\src\main.rs:19665:21
+      |
+19665 |                     used_real_model = true;
+      |                     ^^^^^^^^^^^^^^^^^^^^^^
+      |
+      = help: maybe it is overwritten before being read?
+      = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `room`
+     --> modules\gui-web\packages\web-console\src\main.rs:40438:18
+      |
+40438 |         let Some(room) = self.state.chat_rooms.iter().find(|room| room.id == room_id) else {
+      |                  ^^^^ help: if this is intentional, prefix it with an underscore: `_room`
+
+warning: function `register_chat_turn` is never used
+   --> modules\gui-web\packages\web-console\src\main.rs:418:4
+    |
+418 | fn register_chat_turn(
+    |    ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `set_chat_turn_status` is never used
+   --> modules\gui-web\packages\web-console\src\main.rs:514:4
+    |
+514 | fn set_chat_turn_status(turn_id: &str, requested: ChatTurnStatus) -> Option<ChatTurnStatus> {
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `new` is never used
+   --> modules\gui-web\packages\web-console\src\main.rs:842:8
+    |
+841 | impl ChatTurnGuard {
+    | ------------------ associated function in this implementation
+842 |     fn new(turn_id: String) -> Self {
+    |        ^^^
+
+warning: function `operator_authorization_available` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:2855:4
+     |
+2855 | fn operator_authorization_available() -> bool {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `RELEASE_REQUIRES_VERIFIED_OPERATOR` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:2860:7
+     |
+2860 | const RELEASE_REQUIRES_VERIFIED_OPERATOR: &str = "需要已登记的桌面控制台完成原生确认；普通浏览器不得凭署名放行，本次未记录放行决定...
+     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `configured_default_workspace_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:3438:4
+     |
+3438 | fn configured_default_workspace_path() -> PathBuf {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `env_truthy` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:3578:4
+     |
+3578 | fn env_truthy(name: &str) -> bool {
+     |    ^^^^^^^^^^
+
+warning: function `reload_workspace_config` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8565:4
+     |
+8565 | fn reload_workspace_config() {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_session_db_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8588:4
+     |
+8588 | fn config_session_db_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_session_json_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8592:4
+     |
+8592 | fn config_session_json_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_attachment_store_dir` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8596:4
+     |
+8596 | fn config_attachment_store_dir() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_pet_exe_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8642:4
+     |
+8642 | fn config_pet_exe_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `locate_request_from_tool_payload` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:25265:4
+      |
+25265 | fn locate_request_from_tool_payload(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `resolve_static_path` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:26542:4
+      |
+26542 | fn resolve_static_path(path: &str) -> Option<PathBuf> {
+      |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `default_reasoning_model` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:27678:4
+      |
+27678 | fn default_reasoning_model() -> String {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `opencode_master_project_path` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:27735:4
+      |
+27735 | fn opencode_master_project_path() -> Option<String> {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `context_build_options_for_agent_with_floor` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:29471:4
+      |
+29471 | fn context_build_options_for_agent_with_floor(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `tool_write_executed` and `model_tool_calls_executed` are never read
+     --> modules\gui-web\packages\web-console\src\main.rs:31736:5
+      |
+31731 | struct AgentModelResponse {
+      |        ------------------ fields in this struct
+...
+31736 |     tool_write_executed: bool,
+      |     ^^^^^^^^^^^^^^^^^^^
+31737 |     model_tool_calls_executed: bool,
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+      |
+      = note: `AgentModelResponse` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: fields `calls_vision` and `calls_tool` are never read
+     --> modules\gui-web\packages\web-console\src\main.rs:31762:5
+      |
+31746 | struct PreparedChatDispatch {
+      |        -------------------- fields in this struct
+...
+31762 |     calls_vision: bool,
+      |     ^^^^^^^^^^^^
+31763 |     calls_tool: bool,
+      |     ^^^^^^^^^^
+      |
+      = note: `PreparedChatDispatch` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: function `context_usage_footer_for_assembly_with_usage` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:31987:4
+      |
+31987 | fn context_usage_footer_for_assembly_with_usage(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:33014:4
+      |
+33014 | fn agent_message_request(agent: &AgentSessionDto, prompt: &str, stream: bool) -> MessageRequest {
+      |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_with_images` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:33018:4
+      |
+33018 | fn agent_message_request_with_images(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_with_history` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:33040:4
+      |
+33040 | fn agent_message_request_with_history(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_with_context` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:33049:4
+      |
+33049 | fn agent_message_request_with_context(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_with_context_messages` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:33072:4
+      |
+33072 | fn agent_message_request_with_context_messages(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_build` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:33104:4
+      |
+33104 | fn agent_message_request_build(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `llm_tool_definitions` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:34289:4
+      |
+34289 | fn llm_tool_definitions() -> Option<Vec<ToolDefinition>> {
+      |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `llm_tool_definitions_for_room` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:34293:4
+      |
+34293 | fn llm_tool_definitions_for_room(chat_room_id: Option<&str>) -> Option<Vec<ToolDefinition>> {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `llm_tool_definitions_for_permission` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:34297:4
+      |
+34297 | fn llm_tool_definitions_for_permission(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `run_model_tool_dispatch` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:35138:10
+      |
+35138 | async fn run_model_tool_dispatch(name: &str, input: &JsonValue) -> ApiResult<ToolDispatchResponse> {
+      |          ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `run_model_tool_dispatch_for_session` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:35142:10
+      |
+35142 | async fn run_model_tool_dispatch_for_session(
+      |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `run_chat_handoff_tool_dispatch` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:35463:10
+      |
+35463 | async fn run_chat_handoff_tool_dispatch(input: &JsonValue) -> ApiResult<ToolDispatchResponse> {
+      |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `invoke_through_runtime` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:35860:10
+      |
+35860 | async fn invoke_through_runtime(name: &str, input: &JsonValue) -> ToolOutcome {
+      |          ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `normalize` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:37819:8
+      |
+37818 | impl SessionStoreCapacity {
+      | ------------------------- method in this implementation
+37819 |     fn normalize(&mut self) {
+      |        ^^^^^^^^^
+
+warning: methods `record_goal_phase_model_result_at_path`, `record_goal_phase_model_result`, `append_chat_messages`, and `append_chat_room_messages` are never used
+     --> modules\gui-web\packages\web-console\src\main.rs:39730:8
+      |
+37982 | impl SessionStore {
+      | ----------------- methods in this implementation
+...
+39730 |     fn record_goal_phase_model_result_at_path(
+      |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+39758 |     fn record_goal_phase_model_result(
+      |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+41219 |     fn append_chat_messages(
+      |        ^^^^^^^^^^^^^^^^^^^^
+...
+41408 |     fn append_chat_room_messages(
+      |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `finalize_chat_runtime_run_sqlite` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:44008:4
+      |
+44008 | fn finalize_chat_runtime_run_sqlite(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `mark_goal_loop_progress` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:45882:4
+      |
+45882 | fn mark_goal_loop_progress(goal_id: &str, completed_steps: usize) {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `finish_goal_loop_status` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:45890:4
+      |
+45890 | fn finish_goal_loop_status(goal_id: &str, completed_steps: usize, stopped_reason: String) {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `goal_loop_status` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:45935:4
+      |
+45935 | fn goal_loop_status(goal_id: &str) -> GoalLoopStatusResponse {
+      |    ^^^^^^^^^^^^^^^^
+
+warning: fields `retry_count`, `max_retries`, and `blocked` are never read
+     --> modules\gui-web\packages\web-console\src\main.rs:46393:5
+      |
+46392 | struct PhaseRetryOutcome {
+      |        ----------------- fields in this struct
+46393 |     retry_count: u32,
+      |     ^^^^^^^^^^^
+46394 |     max_retries: u32,
+      |     ^^^^^^^^^^^
+46395 |     /// 已超重试上限 → phase 置 blocked、goal 暂停。
+46396 |     blocked: bool,
+      |     ^^^^^^^
+
+warning: function `apply_phase_fail_retry_connection` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:46413:4
+      |
+46413 | fn apply_phase_fail_retry_connection(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `SqliteMessagePage` is never constructed
+     --> modules\gui-web\packages\web-console\src\main.rs:49427:8
+      |
+49427 | struct SqliteMessagePage {
+      |        ^^^^^^^^^^^^^^^^^
+
+warning: struct `SqliteBeadPage` is never constructed
+     --> modules\gui-web\packages\web-console\src\main.rs:49433:8
+      |
+49433 | struct SqliteBeadPage {
+      |        ^^^^^^^^^^^^^^
+
+warning: function `query_session_messages_sqlite` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:49439:4
+      |
+49439 | fn query_session_messages_sqlite(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `query_chat_room_messages_sqlite` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:49470:4
+      |
+49470 | fn query_chat_room_messages_sqlite(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `query_memory_beads_sqlite` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:49501:4
+      |
+49501 | fn query_memory_beads_sqlite(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `search_session_messages_sqlite` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:49550:4
+      |
+49550 | fn search_session_messages_sqlite(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `system_control` is never read
+     --> modules\gui-web\packages\web-console\src\main.rs:54051:5
+      |
+54038 | struct ToolDispatchRequest {
+      |        ------------------- field in this struct
+...
+54051 |     system_control: Option<String>,
+      |     ^^^^^^^^^^^^^^
+      |
+      = note: `ToolDispatchRequest` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: function `realtime_streaming_risk` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:56275:4
+      |
+56275 | fn realtime_streaming_risk(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `for_action` and `has_plan_producer` are never used
+   --> modules\gui-web\packages\web-console\src\action_origin_authority.rs:61:19
+    |
+ 57 | impl ProductionActionOriginAuthority {
+    | ------------------------------------ associated items in this implementation
+...
+ 61 |     pub(crate) fn for_action(
+    |                   ^^^^^^^^^^
+...
+191 |     pub(crate) fn has_plan_producer(&self, action_id: &str) -> bool {
+    |                   ^^^^^^^^^^^^^^^^^
+
+warning: constant `MAX_FILE` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:17:7
+   |
+17 | const MAX_FILE: usize = 4 * 1024 * 1024;
+   |       ^^^^^^^^
+
+warning: constant `MAX_PACKAGE` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:18:7
+   |
+18 | const MAX_PACKAGE: u64 = 32 * 1024 * 1024;
+   |       ^^^^^^^^^^^
+
+warning: constant `MAX_TREE` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:19:7
+   |
+19 | const MAX_TREE: usize = 512 * 1024;
+   |       ^^^^^^^^
+
+warning: constant `MAX_LIFETIME` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:20:7
+   |
+20 | const MAX_LIFETIME: Duration = Duration::from_secs(120);
+   |       ^^^^^^^^^^^^
+
+warning: struct `DownloadError` is never constructed
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:23:12
+   |
+23 | pub struct DownloadError {
+   |            ^^^^^^^^^^^^^
+
+warning: function `error` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:34:4
+   |
+34 | fn error(code: &'static str, message: impl Into<String>) -> DownloadError {
+   |    ^^^^^
+
+warning: function `invalid` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:41:4
+   |
+41 | fn invalid(message: &str) -> DownloadError {
+   |    ^^^^^^^
+
+warning: function `digest` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:44:4
+   |
+44 | fn digest(value: &str, len: usize) -> bool {
+   |    ^^^^^^
+
+warning: struct `DownloadControl` is never constructed
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:52:12
+   |
+52 | pub struct DownloadControl {
+   |            ^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `check` are never used
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:57:12
+   |
+56 | impl DownloadControl {
+   | -------------------- associated items in this implementation
+57 |     pub fn new(deadline: Instant, cancelled: Arc<AtomicBool>) -> Result<Self, DownloadError> {
+   |            ^^^
+...
+67 |     fn check(&self) -> Result<(), DownloadError> {
+   |        ^^^^^
+
+warning: struct `SourceObject` is never constructed
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:82:12
+   |
+82 | pub struct SourceObject {
+   |            ^^^^^^^^^^^^
+
+warning: struct `GitTree` is never constructed
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:92:8
+   |
+92 | struct GitTree {
+   |        ^^^^^^^
+
+warning: struct `TreeIdentity` is never constructed
+  --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:98:8
+   |
+98 | struct TreeIdentity {
+   |        ^^^^^^^^^^^^
+
+warning: struct `GitCommit` is never constructed
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:102:8
+    |
+102 | struct GitCommit {
+    |        ^^^^^^^^^
+
+warning: struct `PreparedPackage` is never constructed
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:108:12
+    |
+108 | pub struct PreparedPackage {
+    |            ^^^^^^^^^^^^^^^
+
+warning: methods `path` and `discard` are never used
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:117:12
+    |
+116 | impl PreparedPackage {
+    | -------------------- methods in this implementation
+117 |     pub fn path(&self) -> &Path {
+    |            ^^^^
+...
+120 |     pub fn discard(self) -> Result<(), DownloadError> {
+    |            ^^^^^^^
+
+warning: struct `PackageData` is never constructed
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:127:8
+    |
+127 | struct PackageData {
+    |        ^^^^^^^^^^^
+
+warning: function `get` is never used
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:135:10
+    |
+135 | async fn get(
+    |          ^^^
+
+warning: function `repository_parts` is never used
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:190:4
+    |
+190 | fn repository_parts(repository: &str) -> Result<(&str, &str), DownloadError> {
+    |    ^^^^^^^^^^^^^^^^
+
+warning: function `object_hash` is never used
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:213:4
+    |
+213 | fn object_hash(kind: &str, bytes: &[u8]) -> String {
+    |    ^^^^^^^^^^^
+
+warning: function `verify_tree` is never used
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:221:4
+    |
+221 | fn verify_tree(tree: &GitTree, expected: &str) -> Result<(), DownloadError> {
+    |    ^^^^^^^^^^^
+
+warning: function `download` is never used
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:286:14
+    |
+286 | pub async fn download(
+    |              ^^^^^^^^
+
+warning: function `download_into` is never used
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:340:10
+    |
+340 | async fn download_into(
+    |          ^^^^^^^^^^^^^
+
+warning: field `server_info` is never read
+   --> modules\gui-web\packages\web-console\src\mcp_host.rs:121:5
+    |
+118 | struct McpConnection {
+    |        ------------- field in this struct
+...
+121 |     server_info: JsonValue,
+    |     ^^^^^^^^^^^
+
+warning: constant `NATIVE_MESSAGE_MAX_BYTES` is never used
+ --> modules\gui-web\packages\web-console\src\browser_bridge_protocol.rs:3:11
+  |
+3 | pub const NATIVE_MESSAGE_MAX_BYTES: usize = 1024 * 1024;
+  |           ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `BROWSER_BRIDGE_HOST_NAME` is never used
+ --> modules\gui-web\packages\web-console\src\browser_bridge_protocol.rs:4:11
+  |
+4 | pub const BROWSER_BRIDGE_HOST_NAME: &str = "com.coolzhu.agent.browser_bridge";
+  |           ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `BROWSER_EXTENSION_ID` is never used
+ --> modules\gui-web\packages\web-console\src\browser_bridge_protocol.rs:5:11
+  |
+5 | pub const BROWSER_EXTENSION_ID: &str = "akpgmkdkaofanikngahmfbhddpppicfi";
+  |           ^^^^^^^^^^^^^^^^^^^^
+
+warning: method `panel_binding` is never used
+   --> modules\gui-web\packages\web-console\src\persistent_panel_executor.rs:219:19
+    |
+162 | impl ExecutorStore<'_> {
+    | ---------------------- method in this implementation
+...
+219 |     pub(super) fn panel_binding(&self,instance: &str) -> Result<PanelExecutorBinding,PermitStoreError> {
+    |                   ^^^^^^^^^^^^^
+
+warning: associated function `weixin_user` is never used
+   --> modules\gui-web\packages\web-console\src\clawbot_channel.rs:118:12
+    |
+117 | impl ClawbotInboundEnvelope {
+    | --------------------------- associated function in this implementation
+118 |     pub fn weixin_user(message: ClawbotInboundMessage) -> Self {
+    |            ^^^^^^^^^^^
+
+warning: methods `mark_inbox_awaiting_approval`, `mark_inbox_cancelled`, `delete_group_member_grant`, and `list_group_audit` are never used
+    --> modules\gui-web\packages\web-console\src\clawbot_gateway.rs:763:12
+     |
+ 376 | impl ClawbotGatewayStore {
+     | ------------------------ methods in this implementation
+...
+ 763 |     pub fn mark_inbox_awaiting_approval(
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+ 828 |     pub fn mark_inbox_cancelled(
+     |            ^^^^^^^^^^^^^^^^^^^^
+...
+1212 |     pub fn delete_group_member_grant(
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1694 |     pub fn list_group_audit(
+     |            ^^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `bridge` are never used
+   --> modules\gui-web\packages\web-console\src\computer_use_adapters.rs:217:19
+    |
+216 | impl<B> BrowserComputerUseAdapter<B> {
+    | ------------------------------------ associated items in this implementation
+217 |     pub(crate) fn new(bridge: B) -> Self {
+    |                   ^^^
+...
+230 |     pub(crate) const fn bridge(&self) -> &B {
+    |                         ^^^^^^
+
+warning: method `bridge` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_adapters.rs:481:25
+    |
+472 | impl<B> DesktopComputerUseAdapter<B> {
+    | ------------------------------------ method in this implementation
+...
+481 |     pub(crate) const fn bridge(&self) -> &B {
+    |                         ^^^^^^
+
+warning: constant `CU03_SCORER_VERSION` is never used
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:20:11
+   |
+20 | pub const CU03_SCORER_VERSION: &str = "cu03-scorer-v2";
+   |           ^^^^^^^^^^^^^^^^^^^
+
+warning: constant `CU03_LEGACY_METRICS_VERSION` is never used
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:22:11
+   |
+22 | pub const CU03_LEGACY_METRICS_VERSION: &str = "metrics_v1";
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `MetricsV1` is never constructed
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:26:12
+   |
+26 | pub struct MetricsV1 {
+   |            ^^^^^^^^^
+
+warning: associated function `disclaimer` is never used
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:38:18
+   |
+35 | impl MetricsV1 {
+   | -------------- associated function in this implementation
+...
+38 |     pub const fn disclaimer() -> &'static str {
+   |                  ^^^^^^^^^^
+
+warning: enum `MetricVerdict` is never used
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:46:10
+   |
+46 | pub enum MetricVerdict {
+   |          ^^^^^^^^^^^^^
+
+warning: methods `is_violation` and `is_applicable` are never used
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:60:18
+   |
+58 | impl MetricVerdict {
+   | ------------------ methods in this implementation
+59 |     #[must_use]
+60 |     pub const fn is_violation(&self) -> bool {
+   |                  ^^^^^^^^^^^^
+...
+65 |     pub const fn is_applicable(&self) -> bool {
+   |                  ^^^^^^^^^^^^^
+
+warning: struct `PreviousStepFacts` is never constructed
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:72:12
+   |
+72 | pub struct PreviousStepFacts {
+   |            ^^^^^^^^^^^^^^^^^
+
+warning: struct `CaseLabels` is never constructed
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:91:12
+   |
+91 | pub struct CaseLabels {
+   |            ^^^^^^^^^^
+
+warning: method `can_judge_target_selection` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:107:12
+    |
+104 | impl CaseLabels {
+    | --------------- method in this implementation
+...
+107 |     pub fn can_judge_target_selection(&self) -> bool {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `Judgments` is never constructed
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:114:12
+    |
+114 | pub struct Judgments {
+    |            ^^^^^^^^^
+
+warning: struct `StructuralChecks` is never constructed
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:132:12
+    |
+132 | pub struct StructuralChecks {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: method `all_pass` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:145:12
+    |
+142 | impl StructuralChecks {
+    | --------------------- method in this implementation
+...
+145 |     pub fn all_pass(&self) -> bool {
+    |            ^^^^^^^^
+
+warning: function `observation_references` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:154:4
+    |
+154 | fn observation_references(state: &Value) -> std::collections::HashSet<String> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `action_kind` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:180:4
+    |
+180 | fn action_kind(action: &Value) -> Option<&str> {
+    |    ^^^^^^^^^^^
+
+warning: function `action_target` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:184:4
+    |
+184 | fn action_target(action: &Value) -> Option<&str> {
+    |    ^^^^^^^^^^^^^
+
+warning: function `structural_checks` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:190:8
+    |
+190 | pub fn structural_checks(
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `judge_target_selection` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:221:8
+    |
+221 | pub fn judge_target_selection(action: &Value, labels: &CaseLabels, judgments: Judgments) -> MetricVerdict {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `is_physical_input` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:274:4
+    |
+274 | fn is_physical_input(kind: &str) -> bool {
+    |    ^^^^^^^^^^^^^^^^^
+
+warning: function `judge_ineffective_repeat` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:280:8
+    |
+280 | pub fn judge_ineffective_repeat(action: &Value, labels: &CaseLabels, judgments: Judgments) -> MetricVerdict {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `judge_unreconciled_dangerous_replay` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:342:8
+    |
+342 | pub fn judge_unreconciled_dangerous_replay(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `ScorerCounters` is never constructed
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:403:12
+    |
+403 | pub struct ScorerCounters {
+    |            ^^^^^^^^^^^^^^
+
+warning: struct `MetricTally` is never constructed
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:418:12
+    |
+418 | pub struct MetricTally {
+    |            ^^^^^^^^^^^
+
+warning: methods `record` and `rate_report` are never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:426:19
+    |
+425 | impl MetricTally {
+    | ---------------- methods in this implementation
+426 |     pub(crate) fn record(&mut self, verdict: &MetricVerdict) {
+    |                   ^^^^^^
+...
+440 |     pub fn rate_report(&self) -> Value {
+    |            ^^^^^^^^^^^
+
+warning: function `score_batch` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:449:8
+    |
+449 | pub fn score_batch<'a>(
+    |        ^^^^^^^^^^^
+
+warning: methods `handles`, `execute`, and `execute_in_room` are never used
+   --> modules\gui-web\packages\web-console\src\computer_use_executor.rs:938:19
+    |
+826 | impl<'a> ComputerUseExecutor<'a> {
+    | -------------------------------- methods in this implementation
+...
+938 |     pub(crate) fn handles(&self, tool_name: &str) -> bool {
+    |                   ^^^^^^^
+...
+944 |     pub(crate) async fn execute(
+    |                         ^^^^^^^
+...
+952 |     pub(crate) async fn execute_in_room(
+    |                         ^^^^^^^^^^^^^^^
+
+warning: function `input_dispatch_refusal_error` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_executor.rs:1867:4
+     |
+1867 | fn input_dispatch_refusal_error(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `WrongCrop` is never constructed
+  --> modules\gui-web\packages\web-console\src\computer_use_frame.rs:93:5
+   |
+87 | pub(crate) enum FrameMismatch {
+   |                 ------------- variant in this enum
+...
+93 |     WrongCrop,
+   |     ^^^^^^^^^
+   |
+   = note: `FrameMismatch` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: method `classify` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_frame.rs:358:19
+    |
+213 | impl FrameRef {
+    | ------------- method in this implementation
+...
+358 |     pub(crate) fn classify(&self, other: &Self) -> Option<FrameMismatch> {
+    |                   ^^^^^^^^
+
+warning: field `summary` is never read
+   --> modules\gui-web\packages\web-console\src\computer_use_planner.rs:147:16
+    |
+145 | pub(crate) struct ParsedPlannerResponse {
+    |                   --------------------- field in this struct
+146 |     pub(crate) action: Option<ComputerUseAction>,
+147 |     pub(crate) summary: Option<String>,
+    |                ^^^^^^^
+    |
+    = note: `ParsedPlannerResponse` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: associated function `new` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_planner.rs:555:19
+    |
+554 | impl<'a> CurrentSessionComputerUsePlanner<'a> {
+    | --------------------------------------------- associated function in this implementation
+555 |     pub(crate) fn new(session_id: impl Into<String>) -> Self {
+    |                   ^^^
+
+warning: enum `StoredLegacyRunControlState` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_store.rs:566:17
+    |
+566 | pub(crate) enum StoredLegacyRunControlState {
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `continuation_allowed` and `as_str` are never used
+   --> modules\gui-web\packages\web-console\src\computer_use_store.rs:578:25
+    |
+573 | impl StoredLegacyRunControlState {
+    | -------------------------------- methods in this implementation
+...
+578 |     pub(crate) const fn continuation_allowed(self) -> bool {
+    |                         ^^^^^^^^^^^^^^^^^^^^
+...
+582 |     pub(crate) const fn as_str(self) -> &'static str {
+    |                         ^^^^^^
+
+warning: function `legacy_run_control_state_from_column` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_store.rs:592:4
+    |
+592 | fn legacy_run_control_state_from_column(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `code` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_store.rs:658:25
+    |
+657 | impl LegacyRunConvergencePrecondition {
+    | ------------------------------------- method in this implementation
+658 |     pub(crate) const fn code(&self) -> &'static str {
+    |                         ^^^^
+
+warning: enum `ReleaseResolutionOperator` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1328:17
+     |
+1328 | pub(crate) enum ReleaseResolutionOperator {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `as_str` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1338:25
+     |
+1337 | impl ReleaseResolutionOperator {
+     | ------------------------------ method in this implementation
+1338 |     pub(crate) const fn as_str(self) -> &'static str {
+     |                         ^^^^^^
+
+warning: struct `ReleaseResolutionRequest` is never constructed
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1349:19
+     |
+1349 | pub(crate) struct ReleaseResolutionRequest<'a> {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `ReleaseResolutionOutcome` is never constructed
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1366:19
+     |
+1366 | pub(crate) struct ReleaseResolutionOutcome {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `StoredReleaseResolution` is never constructed
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1382:19
+     |
+1382 | pub(crate) struct StoredReleaseResolution {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `scoped_epoch_on` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1464:4
+     |
+1464 | fn scoped_epoch_on(
+     |    ^^^^^^^^^^^^^^^
+
+warning: function `covered_run_ids_on` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1477:4
+     |
+1477 | fn covered_run_ids_on(
+     |    ^^^^^^^^^^^^^^^^^^
+
+warning: struct `InvalidResolutionRequest` is never constructed
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1493:8
+     |
+1493 | struct InvalidResolutionRequest(&'static str);
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `invalid_resolution_request` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1503:4
+     |
+1503 | fn invalid_resolution_request(message: &'static str) -> rusqlite::Error {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: multiple methods are never used
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:2131:19
+     |
+1946 | impl ComputerUseRunStore {
+     | ------------------------ methods in this implementation
+...
+2131 |     pub(crate) fn append_step(&self, step: &ComputerUseStepRecord) -> rusqlite::Result<bool> {
+     |                   ^^^^^^^^^^^
+...
+2359 |     pub(crate) fn cleanup_incident(
+     |                   ^^^^^^^^^^^^^^^^
+...
+2389 |     pub(crate) fn mark_cleanup_incident_recovery_eligible(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+2404 |     pub(crate) fn cleanup_incidents_for_tool_call(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+2571 |     pub(crate) fn tool_calls_for_run(
+     |                   ^^^^^^^^^^^^^^^^^^
+...
+2755 |     pub(crate) fn count_runs_for_turn(
+     |                   ^^^^^^^^^^^^^^^^^^^
+...
+2813 |     pub(crate) fn has_unconfirmed_release(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^
+...
+2840 |     pub(crate) fn resolve_unconfirmed_release(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+2960 |     pub(crate) fn release_resolutions(
+     |                   ^^^^^^^^^^^^^^^^^^^
+...
+3023 |     pub(crate) fn legacy_run_control_state(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+3115 |     pub(crate) fn plan_attempt_by_key(
+     |                   ^^^^^^^^^^^^^^^^^^^
+...
+3160 |     pub(crate) fn action_origin_rejection_count(&self, call_id: &str) -> rusqlite::Result<usize> {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+3213 |     pub(crate) fn legacy_run_convergences(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `RootNotInjected` is never constructed
+  --> modules\gui-web\packages\web-console\src\input_safety_store.rs:70:5
+   |
+68 | pub(crate) enum InputSafetyStoreError {
+   |                 --------------------- variant in this enum
+69 |     /// 宿主未注入状态根（不是"库不存在"，是"根本不知道库在哪"）。
+70 |     RootNotInjected,
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `InputSafetyStoreError` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `root` is never read
+   --> modules\gui-web\packages\web-console\src\input_safety_store.rs:214:5
+    |
+212 | pub(crate) struct InputSafetyStore {
+    |                   ---------------- field in this struct
+213 |     connection: Connection,
+214 |     root: PathBuf,
+    |     ^^^^
+
+warning: associated items `open_from_injection`, `root`, `event_count`, and `resolve_incident` are never used
+   --> modules\gui-web\packages\web-console\src\input_safety_store.rs:222:19
+    |
+220 | impl InputSafetyStore {
+    | --------------------- associated items in this implementation
+221 |     /// 按注入的根打开（未注入即 [`InputSafetyStoreError::RootNotInjected`]）。
+222 |     pub(crate) fn open_from_injection() -> Result<Self, InputSafetyStoreError> {
+    |                   ^^^^^^^^^^^^^^^^^^^
+...
+545 |     pub(crate) fn root(&self) -> &Path {
+    |                   ^^^^
+...
+598 |     pub(crate) fn event_count(&self) -> Result<usize, InputSafetyStoreError> {
+    |                   ^^^^^^^^^^^
+...
+750 |     pub(crate) fn resolve_incident(
+    |                   ^^^^^^^^^^^^^^^^
+
+warning: method `open_block_count` is never used
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:1797:19
+     |
+1071 | impl InputSafetyStore {
+     | --------------------- method in this implementation
+...
+1797 |     pub(crate) fn open_block_count(
+     |                   ^^^^^^^^^^^^^^^^
+
+warning: method `code` is never used
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:1935:25
+     |
+1933 | impl CoordinatorError {
+     | --------------------- method in this implementation
+1934 |     #[must_use]
+1935 |     pub(crate) const fn code(&self) -> &'static str {
+     |                         ^^^^
+
+warning: methods `allowed_actions` and `allows_action` are never used
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:1991:19
+     |
+1969 | impl RecoveryControlGuard {
+     | ------------------------- methods in this implementation
+...
+1991 |     pub(crate) fn allowed_actions(&self) -> &[String] {
+     |                   ^^^^^^^^^^^^^^^
+...
+1997 |     pub(crate) fn allows_action(&self, action: &str) -> bool {
+     |                   ^^^^^^^^^^^^^
+
+warning: field `abandoned` is never read
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2013:5
+     |
+2007 | pub(crate) struct InputSafetyCoordinator {
+     |                   ---------------------- field in this struct
+...
+2013 |     abandoned: bool,
+     |     ^^^^^^^^^
+
+warning: methods `observed_abandoned_lock` and `relinquish` are never used
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2180:25
+     |
+2016 | impl InputSafetyCoordinator {
+     | --------------------------- methods in this implementation
+...
+2180 |     pub(crate) const fn observed_abandoned_lock(&self) -> bool {
+     |                         ^^^^^^^^^^^^^^^^^^^^^^^
+...
+2185 |     pub(crate) fn relinquish(self) -> Result<(), InputSafetyStoreError> {
+     |                   ^^^^^^^^^^
+
+warning: methods `close_intake_and_revoke_pending`, `reconcile_outcome_unknown`, and `count_by_state` are never used
+   --> modules\gui-web\packages\web-console\src\input_permit_store.rs:653:19
+    |
+259 | impl<'a> PermitStore<'a> {
+    | ------------------------ methods in this implementation
+...
+653 |     pub(crate) fn close_intake_and_revoke_pending(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+703 |     pub(crate) fn reconcile_outcome_unknown(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+736 |     pub(crate) fn count_by_state(
+    |                   ^^^^^^^^^^^^^^
+
+warning: variants `RootNotInjected`, `ScopeUnavailable`, and `InvalidAttempt` are never constructed
+  --> modules\gui-web\packages\web-console\src\input_permit_gate.rs:37:5
+   |
+35 | pub(crate) enum PermitGateRefusal {
+   |                 ----------------- variants in this enum
+36 |     /// 宿主未注入输入安全库根：不得自行推导路径（与既有口径一致）。
+37 |     RootNotInjected,
+   |     ^^^^^^^^^^^^^^^
+38 |     /// 资源 scope 不可解析。
+39 |     ScopeUnavailable { reason: String },
+   |     ^^^^^^^^^^^^^^^^
+...
+43 |     InvalidAttempt { field: &'static str, reason: &'static str },
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `PermitGateRefusal` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: method `code` is never used
+  --> modules\gui-web\packages\web-console\src\input_permit_gate.rs:50:19
+   |
+48 | impl PermitGateRefusal {
+   | ---------------------- method in this implementation
+49 |     #[must_use]
+50 |     pub(crate) fn code(&self) -> &'static str {
+   |                   ^^^^
+
+warning: function `observe_in_workspace` is never used
+  --> modules\gui-web\packages\web-console\src\request_usage.rs:25:15
+   |
+25 | pub(super) fn observe_in_workspace(
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: field `established_at_unix_ms` is never read
+  --> modules\gui-web\packages\web-console\src\root_execution_budget.rs:12:5
+   |
+11 | pub(crate) struct RootExecutionBudget {
+   |                   ------------------- field in this struct
+12 |     established_at_unix_ms: u64,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `RootExecutionBudget` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `established_at_unix_ms` is never used
+  --> modules\gui-web\packages\web-console\src\root_execution_budget.rs:59:19
+   |
+29 | impl RootExecutionBudget {
+   | ------------------------ method in this implementation
+...
+59 |     pub(crate) fn established_at_unix_ms(&self) -> u64 { self.established_at_unix_ms }
+   |                   ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `admit` is never used
+  --> modules\gui-web\packages\web-console\src\tool_dispatch_settlement.rs:16:19
+   |
+14 | impl ToolDispatchSettlement {
+   | --------------------------- associated function in this implementation
+15 |     /// 首次登记成功才返回收尾所有权；失败者不能执行，也不能收尾另一调用的记录。
+16 |     pub(crate) fn admit(path: PathBuf, tool_call_id: String, run_id: Option<String>,
+   |                   ^^^^^
+
+warning: field `coordination_scope` is never read
+  --> modules\gui-web\packages\web-console\src\legacy_recovery_driver.rs:64:9
+   |
+59 | pub(crate) struct LegacyRecoveryInputs<'a> {
+   |                   -------------------- field in this struct
+...
+64 |     pub coordination_scope: &'a str,
+   |         ^^^^^^^^^^^^^^^^^^
+
+warning: function `assess_and_open_input_resource` is never used
+   --> modules\gui-web\packages\web-console\src\input_safety_opening.rs:170:15
+    |
+170 | pub(crate) fn assess_and_open_input_resource(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_native_message` is never used
+ --> modules\gui-web\packages\web-console\src\native_message.rs:7:8
+  |
+7 | pub fn encode_native_message<T: Serialize>(value: &T) -> Result<Vec<u8>, String> {
+  |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `decode_native_message` is never used
+  --> modules\gui-web\packages\web-console\src\native_message.rs:19:8
+   |
+19 | pub fn decode_native_message<T: DeserializeOwned>(reader: &mut impl Read) -> Result<T, String> {
+   |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `write_native_message` is never used
+  --> modules\gui-web\packages\web-console\src\native_message.rs:38:8
+   |
+38 | pub fn write_native_message<T: Serialize>(
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: field `is_wechat_group_admin` is never read
+   --> modules\gui-web\packages\web-console\src\wechat_authorization.rs:180:9
+    |
+173 | pub struct WechatAuthorizationContext<'a> {
+    |            -------------------------- field in this struct
+...
+180 |     pub is_wechat_group_admin: bool,
+    |         ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `WechatAuthorizationContext` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: variant `ToolsWrite` is never constructed
+  --> modules\gui-web\packages\web-console\src\wechat_command.rs:56:5
+   |
+48 | pub enum WechatCapability {
+   |          ---------------- variant in this enum
+...
+56 |     ToolsWrite,
+   |     ^^^^^^^^^^
+   |
+   = note: `WechatCapability` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variant `Workspaces` is never constructed
+  --> modules\gui-web\packages\web-console\src\wechat_command_runtime.rs:13:5
+   |
+ 7 | pub enum WechatCatalogKind {
+   |          ----------------- variant in this enum
+...
+13 |     Workspaces,
+   |     ^^^^^^^^^^
+   |
+   = note: `WechatCatalogKind` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: `coolzhu-web-console` (bin "coolzhu-web-console") generated 156 warnings (run `cargo fix --bin "coolzhu-web-console" -p coolzhu-web-console` to apply 5 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 27s

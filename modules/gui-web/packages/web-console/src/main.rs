@@ -2,6 +2,7 @@ mod action_origin_authority;
 mod app_update;
 mod extension_market;
 mod dsh_market;
+mod dsh_source_download;
 mod plugin_runtime;
 mod mcp_host;
 mod lsp_host;
@@ -17,7 +18,12 @@ mod audio;
 mod browser_bridge;
 mod browser_bridge_protocol;
 mod native_browser_host;
+mod native_browser_input;
+#[cfg(windows)]
+mod native_panel_authorization;
+mod persistent_panel_executor;
 mod native_browser_adapter;
+mod native_browser_verification;
 mod computer_use_activity;
 mod computer_use_turn_scope;
 mod chat_insights;
@@ -577,6 +583,8 @@ struct FrozenParentContext {
     runtime_db_path: Option<PathBuf>,
     /// 本轮用户原文冻结的 CU 限制；历史内容和模型参数不能扩大边界。
     computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope,
+    /// 用户选择原生浏览器时，在接纳模型请求之前冻结真实宿主与面板；登记失败也不得回退。
+    native_browser_binding: Option<Result<native_browser_host::FrozenPanelBinding, String>>,
     /// 接纳时实际连接并发现的 MCP 工具代际；重连后旧模型响应不可落到新进程。
     mcp_bindings: Arc<HashMap<String, u64>>,
     /// 聊天接纳时已解析的模型、工具及权限；子任务不得在工具发起时重新读取配置扩权。
@@ -615,6 +623,7 @@ impl FrozenParentContext {
             goal_phase: None,
             runtime_db_path: None,
             computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::default(),
+            native_browser_binding: None,
             mcp_bindings,
             host_model_snapshots: Arc::new(HashMap::new()),
         })
@@ -711,6 +720,20 @@ fn validate_frozen_parent_relations(
     }
     let connection = open_session_connection(db_path)
         .map_err(|_| FrozenRelationViolation::ParentRunUnknown(run_id.to_string()))?;
+    validate_frozen_parent_relations_on_connection(&connection, context)
+}
+
+/// 复用调用方的事务连接：CU 成功提交与父运行取消必须由同库事务裁决。
+fn validate_frozen_parent_relations_on_connection(
+    connection: &Connection,
+    context: &FrozenParentContext,
+) -> Result<(), FrozenRelationViolation> {
+    let Some(run_id) = context.parent_run_id.as_deref() else {
+        return Err(FrozenRelationViolation::MissingRequiredIdentity {
+            dimension: "父运行",
+            entry: context.entry,
+        });
+    };
     // 房间与会话：存在性必须由库回答（房间能力/授权仍由既有门负责，不在此重复）。
     if let Some(room_id) = context.room_id.as_deref() {
         let exists: bool = connection
@@ -738,7 +761,7 @@ fn validate_frozen_parent_relations(
             return Err(FrozenRelationViolation::SessionUnknown(session_id.to_string()));
         }
     }
-    let run = query_runtime_run_sqlite(db_path, run_id)
+    let run = query_runtime_run_connection(connection, run_id)
         .ok()
         .flatten()
         .ok_or_else(|| FrozenRelationViolation::ParentRunUnknown(run_id.to_string()))?;
@@ -21059,6 +21082,8 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         messages,
         tasks: Vec::new(),
         user_content,
+        // 原始本轮正文冻结执行边界；拼接的引用历史、群发上下文不得创建本轮工具契约。
+        computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::from_current_user(text),
         chat_room_id,
         conversation_session_id,
         attachment_count,
@@ -28528,6 +28553,7 @@ const COMPUTER_USE_OPERATION_CONSTRAINTS: &str = "Computer-use operation constra
 - Use `computer_use_perform` as the only model-facing entry point for desktop or browser actions. Never fall back to `tools_semantic_dispatch`, `computer.left_click`, or another legacy computer tool.\n\
 - A `failed`, `blocked`, `timed_out`, `cancelled`, or error ToolResult is terminal for computer use in the current user turn. Report its exact status and error code; do not retry through a different tool name.\n\
 - Declare `surface=desktop|browser` before acting and use the tool for that surface only.\n\
+- For browser tasks, `target.url` identifies the CURRENT source page, not the desired destination. Put a navigation destination in the objective; the runtime planner supplies it as the navigate action's `arguments.url`.\n\
 - Obtain a fresh screenshot immediately before every coordinate-based action. Never guess coordinates or reuse coordinates after the UI changes.\n\
 - After every click, keypress, text input, drag, or scroll, capture again and verify the visible result before continuing.\n\
 - Treat WebView2 and other embedded-browser overlays as separate surfaces; if the target is obscured or belongs to another surface, stop and report the blocker.\n\
@@ -28820,7 +28846,9 @@ fn build_context_assembly_with_roster(
         .image_token_estimate
         .saturating_mul(image_urls_for_prompt.len().min(u32::MAX as usize) as u32);
     let mut current_user_text_for_prompt = current_user_text.to_string();
-    let mut text_user_tokens = estimate_bead_tokens(&current_user_text_for_prompt);
+    let current_turn_boundary = chat_tool_history::current_turn_boundary(room_history);
+    let current_boundary_tokens = current_turn_boundary.map(estimate_bead_tokens).unwrap_or(0);
+    let mut text_user_tokens = estimate_bead_tokens(&current_user_text_for_prompt).saturating_add(current_boundary_tokens);
 
     // 先剔除低优先级记忆，再处理极端超长用户输入，确保 system + current user 本身不突破硬预算。
     while system_tokens
@@ -28841,9 +28869,9 @@ fn build_context_assembly_with_roster(
         if text_user_tokens > available_user_text_tokens {
             current_user_text_for_prompt = truncate_text_to_estimated_token_budget(
                 current_user_text,
-                available_user_text_tokens,
+                available_user_text_tokens.saturating_sub(current_boundary_tokens),
             );
-            text_user_tokens = estimate_bead_tokens(&current_user_text_for_prompt);
+            text_user_tokens = estimate_bead_tokens(&current_user_text_for_prompt).saturating_add(current_boundary_tokens);
             truncated = true;
         }
         if system_tokens
@@ -28909,7 +28937,7 @@ fn build_context_assembly_with_roster(
         if is_goal_temporary_persisted_message(message) {
             continue;
         }
-        let Some(mut message_for_context) = chat_tool_history::project(message) else { continue; };
+        let Some(mut message_for_context) = chat_tool_history::project_for_context(message) else { continue; };
         message_for_context.content = strip_context_usage_footer(&message_for_context.content);
         if message_for_context.content.trim().is_empty() {
             continue;
@@ -28992,7 +29020,7 @@ fn build_context_assembly_with_roster(
         .iter()
         .map(input_message_from_persisted)
         .collect::<Vec<_>>();
-    let current_user = if image_urls_for_prompt.is_empty() {
+    let mut current_user = if image_urls_for_prompt.is_empty() {
         InputMessage::user_text(current_user_text_for_prompt.clone())
     } else {
         diag!(
@@ -29005,6 +29033,9 @@ fn build_context_assembly_with_roster(
             image_urls_for_prompt.iter().cloned(),
         )
     };
+    if let Some(boundary) = current_turn_boundary {
+        current_user.content.insert(0, InputContentBlock::Text { text: boundary.into() });
+    }
     messages.push(current_user);
 
     let total = system_tokens
@@ -31721,6 +31752,7 @@ struct PreparedChatDispatch {
     #[allow(dead_code)]
     tasks: Vec<AgentTaskDto>,
     user_content: String,
+    computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope,
     chat_room_id: String,
     conversation_session_id: Option<String>,
     attachment_count: usize,
@@ -34153,7 +34185,7 @@ fn computer_use_tool_definition() -> ToolDefinition {
         // 会让 DeepSeek / 百炼等直接 400 拒绝整个请求，退化成本地回退文案。
         name: COMPUTER_USE_TOOL_NAME.to_string(),
         description: Some(
-            "Complete one user-authorized desktop or browser UI task. Do not use this tool for shell commands, code execution, or file editing. Describe the goal and observable success criteria; the runtime owns observation, planning, bounded input, and verification."
+            "Complete one user-authorized desktop or browser UI task. Do not use this tool for shell commands, code execution, or file editing. Describe the goal and observable success criteria; the runtime owns observation, planning, bounded input, and verification. For browser tasks, including the built-in side-panel browser, target.url identifies the CURRENT source page, not a desired destination. Describe the destination in objective and success_criteria; the runtime planner uses it in the navigate action's arguments.url. Never add target.application or target.window alongside a URL."
                 .to_string(),
         ),
         input_schema: json!({
@@ -34174,7 +34206,7 @@ fn computer_use_tool_definition() -> ToolDefinition {
                     "properties": {
                         "application": { "type": "string" },
                         "window": { "type": "string" },
-                        "url": { "type": "string" },
+                        "url": { "type": "string", "description": "URL of the currently open source page. Do not put a requested navigation destination here; describe that destination in objective and success_criteria." },
                         "element": { "type": "string" }
                     },
                     "additionalProperties": false
@@ -34189,6 +34221,11 @@ fn computer_use_tool_definition() -> ToolDefinition {
                     "type": "array",
                     "items": { "type": "string" },
                     "default": []
+                },
+                "max_actions": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Hard upper bound on action attempts in this call; can only reduce the host budget. Set to 1 when the user authorizes only one click, input, or continuous drawing stroke. Verification still runs after the final action; an unverified goal stops without another action."
                 }
             },
             "required": ["objective", "success_criteria"],
@@ -35132,6 +35169,16 @@ async fn run_model_tool_dispatch_for_session_with_identity(
     parent: Option<&FrozenParentContext>,
     host_scope: Option<&host_child_agent::HostToolScope>,
 ) -> ApiResult<ToolDispatchResponse> {
+    // 缺必需 CU 来源时先拒绝，不访问默认数据库或登记匿名工具调用。
+    let normalized = name.replace('-', "_");
+    if normalized == "computer_use.perform" || normalized == "computer_use_perform" {
+        let missing_call = provider_tool_call_id.is_none_or(|value| value.trim().is_empty());
+        let missing_session = caller_session_id.is_none_or(|value| value.trim().is_empty());
+        let missing_turn = turn_id.is_none_or(|value| value.trim().is_empty());
+        if missing_call || missing_session || missing_turn {
+            return Ok(computer_use_context_incomplete_response(missing_call, missing_session, missing_turn));
+        }
+    }
     let budget = parent.and_then(|parent| parent.root_budget.clone()).or_else(root_execution_budget::current);
     if budget.as_ref().is_some_and(|budget| budget.is_expired()) {
         return Err(api_error(StatusCode::REQUEST_TIMEOUT, root_execution_budget::EXPIRED_REASON));
@@ -41805,6 +41852,8 @@ fn load_session_state_from_sqlite(path: &Path) -> Result<Option<PersistedSession
 fn open_session_connection(path: &Path) -> rusqlite::Result<Connection> {
     computer_use_store::preflight_existing_session_schema(path)?;
     let connection = Connection::open(path)?;
+    // 版本读取在连接配置之前，不能沿用 SQLite 默认的零等待。
+    connection.busy_timeout(Duration::from_secs(5))?;
     computer_use_store::ensure_session_schema_not_from_the_future(&connection)?;
     computer_use_store::configure_session_connection(&connection)?;
     Ok(connection)
@@ -41943,6 +41992,7 @@ fn apply_session_schema_steps(connection: &Connection) -> rusqlite::Result<()> {
     // 清理事故登记（SafetyCleanup 来源核对）。
     computer_use_store::apply_session_migration_v26_cleanup_incidents(connection)?;
     computer_use_store::apply_session_migration_v27_tool_call_source(connection)?;
+    computer_use_store::apply_session_migration_v28_panel_dispatch(connection)?;
     Ok(())
 }
 
@@ -42214,7 +42264,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 27;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 28;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///
@@ -68520,6 +68570,12 @@ attach: last_assistant
     #[test]
     fn run_model_tool_dispatch_semantic_legacy_execution_is_retired() {
         let _guard = config_test_guard();
+        let _dev_open = DevOpenPermissionsTestGuard::enable();
+        // 退休入口检查也会经过调用登记，不能与并发用例共用默认会话库。
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let data_dir = tmp.path().join(super::DATA_DIR_NAME);
+        std::fs::create_dir_all(&data_dir).expect("mkdir");
+        let _session_db_env = scoped_session_db_env(&data_dir);
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
@@ -68530,7 +68586,7 @@ attach: last_assistant
                 &serde_json::json!({ "intent": "点击左上" }),
             ))
             .expect_err("旧闭环评测执行入口必须拒绝");
-        assert_eq!(error.0, super::StatusCode::GONE);
+        assert_eq!(error.0, super::StatusCode::GONE, "实际拒绝信息：{}", error.1.error);
         assert!(error.1.error.contains("已停用"));
     }
 
