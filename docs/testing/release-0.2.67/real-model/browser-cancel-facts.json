@@ -1,0 +1,122 @@
+{
+  "label": "browser-cancel",
+  "runtime": {
+    "id": "run-chat-4d166ad92fb2ec10c97d533849c5dd486360802a6cd1121e",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "interrupted",
+    "created_at": 1791102945704,
+    "finished_at": 1791102963520,
+    "legacy_turn_id": "chat-turn-1791102945696-6"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000002018db46a3bfefa180-tool-ec0b6d5b56d15c6dfb6d9dc158022b4b70b01737fd5e5c2db58d1822c58d0657",
+      "state": "cancelled",
+      "action_count": 1,
+      "replan_count": 0,
+      "created_at_ms": 1791102957362,
+      "updated_at_ms": 1791102965513,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000002018db46a3bfefa180-tool-ec0b6d5b56d15c6dfb6d9dc158022b4b70b01737fd5e5c2db58d1822c58d0657",
+        "provider_tool_call_id": "tool-ec0b6d5b56d15c6dfb6d9dc158022b4b70b01737fd5e5c2db58d1822c58d0657",
+        "status": "cancelled",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "originating chat turn was interrupted; no further input is allowed",
+        "error": {
+          "code": "cancelled",
+          "message": "originating chat turn was interrupted; no further input is allowed",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:3:2",
+          "native-observation:a268b5a3edf042aa28302e15442b204f",
+          "native-ax:3:2",
+          "native-observation:a268b5a3edf042aa28302e15442b204f",
+          "native-input:7cdc8c3ee95be6934917f6cecae6fcbd"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791103845696
+            }
+          },
+          "cu_deadline_ms": 1791103077362,
+          "cu_deadline_established_at_ms": 1791102957362,
+          "cu_budget_ms": 120000
+        },
+        "cleanup": {
+          "business_deadline_ms": 1791103077362,
+          "new_business_input_stopped_at_ms": 1791102965513,
+          "cleanup_started_at_ms": 1791102965513,
+          "cleanup_finished_at_ms": 1791102965513,
+          "release": "not_needed",
+          "quarantined": false,
+          "exceeded_business_deadline": false
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅一次单击",
+          "不导航、不输入、不滚动",
+          "不使用其它工具或桌面UIA",
+          "不使用历史坐标",
+          "父轮取消、页面关闭或任何失败立即结束，不重开、不重试、不补发",
+          "关闭后不可认领已关闭页面目标通过",
+          "不能把释放当作目标完成"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏网页单击增加次数，使次数由0变为1",
+        "success_criteria": [
+          "本轮最新页面实际显示次数：1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63657/boundary.html"
+        }
+      }
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000002018db46a3bfefa180-tool-ec0b6d5b56d15c6dfb6d9dc158022b4b70b01737fd5e5c2db58d1822c58d0657",
+      "step_index": 0,
+      "action_type": "click",
+      "status": "input_sent",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "released",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1791102961922,
+      "completed_at_ms": 1791102965508,
+      "native_dispatch_state": "released"
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000002018db46a3bfefa180-tool-ec0b6d5b56d15c6dfb6d9dc158022b4b70b01737fd5e5c2db58d1822c58d0657",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791102957424,
+      "completed_at_ms": 1791102961918
+    }
+  ],
+  "usage": []
+}

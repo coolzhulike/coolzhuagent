@@ -1,0 +1,119 @@
+{
+  "label": "browser-scroll",
+  "runtime": {
+    "id": "run-chat-4b4058b42db6f4fb45a6e3fa140e771d271862cb2eb212f3",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791102629077,
+    "finished_at": 1791102666277,
+    "legacy_turn_id": "chat-turn-1791102629067-3"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001118db465a0666a248-tool-d9014d189761ca71c56d96beabca8f9b2993d46a2bc22b7bee19603be58dfadb",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "created_at_ms": 1791102640505,
+      "updated_at_ms": 1791102658546,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000001118db465a0666a248-tool-d9014d189761ca71c56d96beabca8f9b2993d46a2bc22b7bee19603be58dfadb",
+        "provider_tool_call_id": "tool-d9014d189761ca71c56d96beabca8f9b2993d46a2bc22b7bee19603be58dfadb",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"5b8f1627cb43f1ef1808d854c4159eac\",\"freshness_confirmed\":true,\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"805b8101b956cef0f7b36281692b16fc\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":33,\"nodes\":[{\"index\":19,\"name\":\"实际页面滚动位置：266 CSS像素\",\"role\":\"StaticText\"}],\"title\":\"真实浏览器操作验收\",\"truncated\":false,\"url\":\"http://127.0.0.1:63657/click.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":266.0,\"width\":430.6666870117187}},\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:ce7a0d8e21f8ee31afeb15f73fa23502",
+          "native-ax:1:0",
+          "native-observation:ce7a0d8e21f8ee31afeb15f73fa23502",
+          "native-input:4c0b7621c86eb54bea527a6a896815b5",
+          "native-ax:1:0",
+          "native-observation:805b8101b956cef0f7b36281692b16fc",
+          "native-ax:1:0",
+          "native-observation:805b8101b956cef0f7b36281692b16fc",
+          "native-ax:1:0",
+          "native-observation:5b8f1627cb43f1ef1808d854c4159eac"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791103529067
+            }
+          },
+          "cu_deadline_ms": 1791102760505,
+          "cu_deadline_established_at_ms": 1791102640505,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅一次滚动，不点击、不输入、不导航",
+          "不使用其它工具或桌面UIA",
+          "不使用历史坐标",
+          "任何失败立即停止不重试",
+          "滚动回执不能替代实际页面数值"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏网页向下滚动，使实际页面滚动位置从0变为大于0",
+        "success_criteria": [
+          "本轮最新页面实际CSS滚动像素数大于0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63657/click.html"
+        }
+      }
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000001118db465a0666a248-tool-d9014d189761ca71c56d96beabca8f9b2993d46a2bc22b7bee19603be58dfadb",
+      "step_index": 0,
+      "action_type": "scroll",
+      "status": "verified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "not_needed",
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "started_at_ms": 1791102647069,
+      "completed_at_ms": 1791102649206,
+      "native_dispatch_state": "acknowledged_no_held_input"
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000001118db465a0666a248-tool-d9014d189761ca71c56d96beabca8f9b2993d46a2bc22b7bee19603be58dfadb",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791102640856,
+      "completed_at_ms": 1791102647065
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000001118db465a0666a248-tool-d9014d189761ca71c56d96beabca8f9b2993d46a2bc22b7bee19603be58dfadb",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791102650896,
+      "completed_at_ms": 1791102658538
+    }
+  ],
+  "usage": []
+}
