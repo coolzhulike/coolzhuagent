@@ -3,6 +3,7 @@ mod app_update;
 mod extension_market;
 mod dsh_market;
 mod dsh_source_download;
+mod devin_plugin;
 mod plugin_runtime;
 mod mcp_host;
 mod lsp_host;
@@ -2169,6 +2170,7 @@ fn app() -> Router {
         .merge(extension_market::routes())
         .merge(native_browser_host::routes())
         .merge(computer_use_activity::routes())
+        .merge(devin_plugin::routes())
         .route("/", get(static_index))
         .route("/{*path}", get(static_file))
 }

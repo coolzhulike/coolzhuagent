@@ -14,7 +14,7 @@ pub(super) fn routes() -> Router {
         .merge(dsh_market::routes())
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct PluginEntry {
     id: String,
     name: String,
@@ -81,10 +81,12 @@ fn plugin_catalog(workspace: &Path, manager: &plugins::PluginManager) -> ApiResu
         manager.aggregated_tools().map_err(plugin_error)?.into_iter()
             .map(|tool| tool.plugin_id().to_string()).collect::<HashSet<_>>()
     } else { HashSet::new() };
-    let plugins = manager.list_plugins().map_err(plugin_error)?.into_iter()
+    let mut plugins: Vec<PluginEntry> = manager.list_plugins().map_err(plugin_error)?.into_iter()
         .map(|item| { let is_installed = installed.contains(&item.metadata.id);
             let is_loaded = loaded.contains(&item.metadata.id);
             plugin_entry(item, is_installed, is_loaded) }).collect();
+    plugins.push(serde_json::from_value(devin_plugin::catalog(workspace))
+        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "Devin 插件目录信息无效"))?);
     Ok(PluginListResponse { workspace_id: workspace_identity(workspace),
         plugins, candidates: local_plugin_candidates(workspace), runtime_error })
 }
