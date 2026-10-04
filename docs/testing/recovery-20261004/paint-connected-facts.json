@@ -1,0 +1,110 @@
+{
+  "label": "paint-connected",
+  "runtime": {
+    "id": "run-chat-32a44038b1dd26df3290c7dc8f680c7827b7a4308af58446",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791095080807,
+    "finished_at": 1791095234610,
+    "legacy_turn_id": "chat-turn-1791095080799-2"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000d18db3f7c8ae0bd18-tool-48d7e0c18a08c8eb3b84e749928d7ec53f03c44a6c60d4b0709d730fa0ff0d59",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "created_at_ms": 1791095096264,
+      "updated_at_ms": 1791095226057,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000d18db3f7c8ae0bd18-tool-48d7e0c18a08c8eb3b84e749928d7ec53f03c44a6c60d4b0709d730fa0ff0d59",
+        "provider_tool_call_id": "tool-48d7e0c18a08c8eb3b84e749928d7ec53f03c44a6c60d4b0709d730fa0ff0d59",
+        "status": "blocked",
+        "stage": "approval",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "action Drag matches host-sensitive category authorization_or_installation and requires explicit host approval",
+        "error": {
+          "code": "approval_required",
+          "message": "action Drag matches host-sensitive category authorization_or_installation and requires explicit host approval",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d6b1310cea1b9a2c63bb4cc61593ec04fc8f4594a3d204819305016c19a44448.png:sha256=d6b1310cea1b9a2c63bb4cc61593ec04fc8f4594a3d204819305016c19a44448:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=d6b1310cea1b9a2c63bb4cc61593ec04fc8f4594a3d204819305016c19a44448:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-d6b1310cea1b9a2c63bb4cc61593ec04fc8f4594a3d204819305016c19a44448.png:sha256=d6b1310cea1b9a2c63bb4cc61593ec04fc8f4594a3d204819305016c19a44448:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=d6b1310cea1b9a2c63bb4cc61593ec04fc8f4594a3d204819305016c19a44448:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/5"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791095980799
+            }
+          },
+          "cu_deadline_ms": 1791095396264,
+          "cu_deadline_established_at_ms": 1791095096264,
+          "cu_budget_ms": 300000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只允许一次连续鼠标拖动，总时长约4000ms，允许多点和原路折返",
+          "只用当前黑色铅笔，不用形状工具、代码、导入、保存、擦除或其它工具",
+          "points 必须相对工具提供的 canvas_rect 换算，不得把白色画布自身相对坐标直接当 window-canvas 坐标，也不得把 window-canvas 容器范围当白色画布",
+          "依据本轮新鲜原始截图自主定位留白，不使用历史坐标",
+          "任一输入或验收不确定、失败或预算耗尽立即停止，不重试、不补发，本轮不再次调用 computer_use_perform",
+          "不把 path_completed、鼠标释放或图像hash变化当作绘画验收通过"
+        ],
+        "max_actions": 1,
+        "objective": "用户已明确授权本轮 Paint 手绘验收。根据本轮新鲜原始截图，辨认真实白色绘画区域（canvas_rect，不含工具栏和右侧灰色区），在其下部右侧留白内，用已选中的黑色铅笔以一次连续鼠标拖动（约4000ms，允许多点、部件间连接线和原路折返）画一个粗略但可辨认的简化海绵宝宝：闭合方形身体、身体内两个分开的闭合菱形眼睛、两眼下方折线笑嘴、身体底边下方两条腿。所有路径点必须依据工具提供的 canvas_rect 换算为 window-canvas 坐标，四周留余量，避开已有黑线，不跨入灰色区或工具栏。不使用历史坐标。",
+        "success_criteria": [
+          "本轮最新原图中白色绘画区域内实际出现一个新增闭合方形身体",
+          "身体内部可见两个分开的闭合菱形眼睛",
+          "两眼下方可见一条折线笑嘴",
+          "身体底边下方可见两条腿",
+          "全部新线条位于白色绘画区域内，未触碰工具栏、右侧灰色区，且与已有旧黑线分离不跨越"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    }
+  ],
+  "steps": [],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000d18db3f7c8ae0bd18-tool-48d7e0c18a08c8eb3b84e749928d7ec53f03c44a6c60d4b0709d730fa0ff0d59",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791095099364,
+      "completed_at_ms": 1791095145071
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000d18db3f7c8ae0bd18-tool-48d7e0c18a08c8eb3b84e749928d7ec53f03c44a6c60d4b0709d730fa0ff0d59",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791095145099,
+      "completed_at_ms": 1791095226053
+    }
+  ],
+  "usage": []
+}

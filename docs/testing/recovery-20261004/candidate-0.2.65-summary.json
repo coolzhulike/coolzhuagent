@@ -1,0 +1,57 @@
+{
+  "version": "0.2.65",
+  "msi": "dist/CoolzhuAgent-0.2.65-20261004-143722.msi",
+  "sha256": "4A94AD23F98B097FED65D1A1277A1DBC61D2088ACA80F36FC406915AFED0D4E7",
+  "build_identity": {
+    "schema": 1,
+    "source_snapshot_digest": "9212d6a21b251be11e1038e24284e8dcfcbb6d43f26c89581fef55211a321840",
+    "build_input_digest": "ef0358c3e296315b887def4137634db84ca97451b4ba45c13ecfde05ee53d084",
+    "payload_digest": "834a82285043d557e1e963ffb38fe8b8de6fb66ca32c3274e0b9dbcc06e75f3b",
+    "msi_payload_sha256": "4a94ad23f98b097fed65d1a1277a1dbc61d2088aca80f36fc406915afed0d4e7",
+    "note": "payload_digest 是 MSI 输入（暂存包）的文件清单摘要；msi_payload_sha256 是最终分发文件本身的摘要。两者一起回答\"最终生成和分发了哪些二进制与资源\"。"
+  },
+  "release_eligible": true,
+  "gates": [
+    {
+      "gate": "declared_source_snapshot_scope",
+      "result": "pass",
+      "evidence": "declared_by=config/package-manifest.json#source_snapshot; roots=16",
+      "note": ""
+    },
+    {
+      "gate": "source_input_stability",
+      "result": "pass",
+      "evidence": "pre=9212d6a21b251be11e1038e24284e8dcfcbb6d43f26c89581fef55211a321840 post=9212d6a21b251be11e1038e24284e8dcfcbb6d43f26c89581fef55211a321840；两次采样逐文件一致",
+      "note": ""
+    },
+    {
+      "gate": "declared_roots_present",
+      "result": "pass",
+      "evidence": "声明 roots 全部存在（范围可枚举）",
+      "note": ""
+    },
+    {
+      "gate": "build_input_stability",
+      "result": "pass",
+      "evidence": "pre=ef0358c3e296315b887def4137634db84ca97451b4ba45c13ecfde05ee53d084 post=ef0358c3e296315b887def4137634db84ca97451b4ba45c13ecfde05ee53d084",
+      "note": ""
+    },
+    {
+      "gate": "artifact_provenance",
+      "result": "pass",
+      "evidence": "全部 10 个产物的来源可确认",
+      "note": ""
+    },
+    {
+      "gate": "frozen_inputs",
+      "result": "pass",
+      "evidence": "mode=self-frozen-at-build-start; freeze_id=ef0358c3e296315b887def4137634db84ca97451b4ba45c13ecfde05ee53d084",
+      "note": "未提供 -FreezeRecordPath：本次构建在自身开始处自冻结输入（单阶段运行）；稳定性由构建前后两次采样逐项一致证明"
+    }
+  ],
+  "source_reference_commit": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "dirty_against_commit": true,
+  "wrapper_stale_last_exit_code": -1,
+  "msi_database_cab_verification_passed": true,
+  "installed": false
+}

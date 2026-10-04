@@ -289,6 +289,10 @@ pub(super) async fn challenge(
             "阻断集合已变化，请刷新恢复页面后重试",
         ));
     }
+    // 常驻浏览器与控制台共用进程，不能让用户先批准一个注定无法提交的申请。
+    // 这里只读核验；完整退出后仍须重新申请人工确认，不在此处清账或开放输入。
+    confirmed_executor_exits(&snapshot)
+        .map_err(|e| api_error(StatusCode::CONFLICT, &e))?;
     let now = unix_timestamp_millis();
     let challenge = Challenge {
         id: secret().map_err(|e| api_error(StatusCode::SERVICE_UNAVAILABLE, &e))?,
@@ -395,8 +399,22 @@ pub(super) fn commit_confirmed_release(
     if decision.scope.as_str() != confirmation.challenge.snapshot.scope {
         return Err("确认不能跨资源使用".into());
     }
+    // 申请时的检查不能替代提交时的 OS 身份复核。
+    let exits = confirmed_executor_exits(&confirmation.challenge.snapshot)?;
+    coordinator.store().native_recovery_store().commit_release(
+        &confirmation.challenge.snapshot,
+        decision,
+        coordinator.control(),
+        &exits,
+        confirmation.challenge.expires,
+    )
+}
+
+fn confirmed_executor_exits(
+    snapshot: &RecoverySnapshot,
+) -> Result<Vec<(String, runtime::ProcessInstanceEvidence)>, String> {
     let mut exits = Vec::new();
-    for executor in &confirmation.challenge.snapshot.executors {
+    for executor in &snapshot.executors {
         if executor.state == "exited_confirmed" {
             continue;
         }
@@ -413,10 +431,16 @@ pub(super) fn commit_confirmed_release(
             Err(error) => return Err(format!("执行者状态无法核查，保持隔离：{error}")),
         };
         if !exited {
-            return Err(format!(
-                "执行者 {} 仍在运行，须先停止并确认退出",
-                executor.id
-            ));
+            return Err(match executor.kind {
+                crate::persistent_panel_executor::InputExecutorKind::PersistentNativePanel => format!(
+                    "内置浏览器的旧操作仍绑定桌面宿主（PID {}）。请通过窗口右上角关闭按钮或托盘“退出”完整退出 CoolzhuAgent，再从桌面快捷方式重新启动后申请恢复。仅关闭浏览器扩展栏不能结束该宿主。历史未知结果将保留，重启不会自动放行输入。",
+                    executor.pid
+                ),
+                crate::persistent_panel_executor::InputExecutorKind::EphemeralHelper => format!(
+                    "执行者 {}（PID {}）仍在运行，请先停止当前任务并确认执行进程退出后再申请恢复；输入保持隔离。",
+                    executor.id, executor.pid
+                ),
+            });
         }
         exits.push((
             executor.id.clone(),
@@ -426,13 +450,7 @@ pub(super) fn commit_confirmed_release(
             },
         ));
     }
-    coordinator.store().native_recovery_store().commit_release(
-        &confirmation.challenge.snapshot,
-        decision,
-        coordinator.control(),
-        &exits,
-        confirmation.challenge.expires,
-    )
+    Ok(exits)
 }
 
 pub(super) fn settle_attempt(
@@ -466,6 +484,65 @@ pub(super) fn settle_attempt(
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn live_executor_snapshot() -> RecoverySnapshot {
+        let process = windows_process_guard::capture_live_process_identity(std::process::id())
+            .expect("读取真实测试进程身份");
+        RecoverySnapshot {
+            scope: "native-recovery-preflight-test".into(),
+            gate_revision: 1,
+            recovery_epoch: 1,
+            resource_epoch: 1,
+            blocks: vec![],
+            permits: vec![],
+            executors: vec![crate::native_recovery_store::RecoveryExecutor {
+                id: "live-executor".into(),
+                pid: process.pid(),
+                created: Some(process.creation_time_filetime()),
+                revision: 1,
+                state: "verified_alive".into(),
+                kind: crate::persistent_panel_executor::InputExecutorKind::PersistentNativePanel,
+            }],
+        }
+    }
+
+    #[test]
+    fn live_panel_requires_complete_restart_and_helper_requires_stop() {
+        // 用真实 OS 进程核验，不伪造退出、不向桌面发送任何输入。
+        let mut snapshot = live_executor_snapshot();
+        let before = snapshot.clone();
+        let error = confirmed_executor_exits(&snapshot).unwrap_err();
+        assert!(error.contains("完整退出 CoolzhuAgent") && error.contains("重启不会自动放行"));
+        assert!(error.contains("仅关闭浏览器扩展栏不能"));
+        assert_eq!(snapshot, before, "预检不得修改原始事实");
+        snapshot.executors[0].kind =
+            crate::persistent_panel_executor::InputExecutorKind::EphemeralHelper;
+        let error = confirmed_executor_exits(&snapshot).unwrap_err();
+        assert!(error.contains("停止当前任务") && !error.contains("完整退出 CoolzhuAgent"));
+    }
+
+    #[test]
+    fn gone_instance_and_reused_pid_produce_original_exit_evidence() {
+        let mut snapshot = live_executor_snapshot();
+        // PID 已复用时按原创建身份结账；不能将现在的进程身份写进旧记录。
+        snapshot.executors[0].created = Some(snapshot.executors[0].created.unwrap() + 1);
+        let exits = confirmed_executor_exits(&snapshot).unwrap();
+        assert_eq!(exits[0].1.creation_time_filetime, snapshot.executors[0].created.unwrap());
+        snapshot.executors[0].pid = 0xFFFF_FFF0; // Windows 不会分配的 PID。
+        let exits = confirmed_executor_exits(&snapshot).unwrap();
+        assert_eq!(exits[0].1.pid, 0xFFFF_FFF0);
+        assert_eq!(snapshot.executors[0].state, "verified_alive", "核验不直接清账");
+    }
+
+    #[test]
+    fn missing_process_identity_still_refuses_recovery() {
+        let mut snapshot = live_executor_snapshot();
+        snapshot.executors[0].created = None;
+        assert!(confirmed_executor_exits(&snapshot).unwrap_err().contains("创建身份"));
+        snapshot.executors[0].created = Some(1);
+        snapshot.executors[0].pid = 0;
+        assert!(confirmed_executor_exits(&snapshot).unwrap_err().contains("可信PID"));
+    }
+
     #[test]
     fn native_confirmation_is_single_use_payload_bound_and_expires() {
         let root = tempfile::tempdir().unwrap();
