@@ -1,0 +1,11 @@
+{
+  "base_manifest_sha256": "38925095c57a170269861a75130a705a50bf4290658bdfdd87552fa24dc2cbda",
+  "candidate_manifest_sha256": "ed315514fb6d99198fc1da500a0fc604bfac7a0aba23b5221564ab1f2da54d6e",
+  "changes": [
+    "独立固定资源source",
+    "包内清单source指向实际候选清单",
+    "外部固定资源声明对应source",
+    "构建输入增加候选清单"
+  ],
+  "unchanged": "全部artifact、安装target、源码roots、release gates和禁止规则"
+}

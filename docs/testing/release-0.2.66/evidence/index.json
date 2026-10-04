@@ -1,0 +1,382 @@
+{
+  "checked_at_utc": "2026-10-02T19:12:35.799096+00:00",
+  "version": "0.2.66",
+  "reference_head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "source_authority": "实际未提交工作树；冻结指前后逐文件身份检查，非隔离不可变副本构建",
+  "msi": "dist\\CoolzhuAgent-0.2.66.msi",
+  "msi_size": 275651099,
+  "msi_sha256": "ac7c1ec5c01b76f2132ce2a9276e3096389450b0be1b373f632e72f4bac52f25",
+  "signed": false,
+  "identities": {
+    "schema": 1,
+    "source_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "build_input_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "payload_digest": "6774c7836be01b075acbada8c0de6e48056c370f41b26a82f7ba2cffc3394e92",
+    "msi_payload_sha256": "ac7c1ec5c01b76f2132ce2a9276e3096389450b0be1b373f632e72f4bac52f25",
+    "note": "payload_digest 是 MSI 输入（暂存包）的文件清单摘要；msi_payload_sha256 是最终分发文件本身的摘要。两者一起回答\"最终生成和分发了哪些二进制与资源\"。"
+  },
+  "package_report_id": "pkg-report-release-20261003-030439336-f64432c7",
+  "source_file_count": 1283,
+  "source_bytes": 203730385,
+  "gates_passed": 6,
+  "proven_artifacts": 10,
+  "msi_files": 1150,
+  "msi_bytes": 419513712,
+  "inventory_files_excluding_itself": 1149,
+  "dsh_runtime": {
+    "verified": true,
+    "platform": "win32-x64",
+    "file_count": 290,
+    "total_bytes": 93908058,
+    "lock_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+  },
+  "upgrade_static_checked": true,
+  "actual_upgrade_performed": false,
+  "source_delta_from_065": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js",
+      "before": "6a4980a3c7a18e1989f1ed21db23b8783bfc1be0c652dcc30467c399597a25e1",
+      "after": "fe4d3565c557656b8e63b46e9b2c4ab6edab5f98916980838120a48e62af9c46"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md",
+      "before": "543a117a43e68c925926d7d24585905552c6f10ac2a313bd312864b1ee205ca8",
+      "after": "48dabf0bff35926073325671b1f021d57eb44f5200a86e41301cd0213650759f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js",
+      "before": "d6c81f1e2113f8a024ed43817ff0290f81760813f22c749691a6e96a44ef138f",
+      "after": "b6c369e5dcfa223ad0d2128f097a0b20a25132596f690c86e2a00d52778c0585"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs",
+      "before": "354452f55e0d14eb31d6dc8fbcfe234d0c87a5e284f10bd2c93409324ec862fc",
+      "after": "8e61b315189b65b94bc95de3f89d5ee5e5086d6f06c626d010e438d9fc7e2379"
+    }
+  ],
+  "test_binding": "manifest-and-test-binding.json",
+  "targeted_regression": {
+    "startup": "原有场景及三种异常场景通过",
+    "schema_upgrade": "1通过，0失败，0忽略，0.06秒",
+    "extracted_dsh_runtime": {
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "budget_log_sha256": "7f74864135760f579011c85106e1b85f872880caa92468c6adcc2ef2b278aeb1",
+      "test_sha256": "2fae34e310f4c360444a8891d5d73dad6ac79ca2d6f7c19e860b76fee0a3bb38",
+      "runtime_from_actual_msi": "tmp\\2026-10-02-final-msi\\offline-extraction-final\\layout\\CoolzhuAgent\\bin\\dsh-runtime",
+      "scope": "实际MSI的固定Node与生产Rust桥受控协议夹具；非安装/官方SDK/Qwen/GUI验收",
+      "node": {
+        "version_output": "v24.15.0",
+        "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5"
+      },
+      "cli": {
+        "version_output": "COOLZHU CODE Agent\n  Version          0.2.66\n  Git SHA          8181f08ae9c50d3e41aabd32a6af85343dcd92e8\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-02\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help",
+        "sha256": "bc0da20914fd20422235c1a0bd8c54e8644ef49b6f9082287802a1e9980458f6"
+      }
+    }
+  },
+  "preservation": {
+    "checked_at_utc": "2026-10-02T19:12:35.670828+00:00",
+    "previous_deliverables": [
+      {
+        "path": "dist\\CoolzhuAgent-0.2.63.msi",
+        "sha256": "91c9a256505bda4c6575788e50ed426b594db8cf2e6ce6a9c2b94a8a7d923de3",
+        "size": 247020925
+      },
+      {
+        "path": "dist\\CoolzhuAgent-0.2.63-installer-report.json",
+        "sha256": "992ce0fbbaf21b0a963a35ae2becfc1531b3990a4b34bacd1b8bb75c19c06558",
+        "size": 3616
+      },
+      {
+        "path": "dist\\CoolzhuAgent-0.2.63-package-safety.json",
+        "sha256": "7b79ae11bd75acbf7e10898d76a176f41792445e66a32e5d9f6d4e8beb91f4c1",
+        "size": 194
+      },
+      {
+        "path": "dist\\CoolzhuAgent-0.2.64.msi",
+        "sha256": "16052ec401960181853c5b02775e849185e225e70b11f8872a798a4e5d06688b",
+        "size": 275626523
+      },
+      {
+        "path": "dist\\CoolzhuAgent-0.2.64-installer-report.json",
+        "sha256": "87dfab09cb899b7d523700423faa5bc1a4b3fb05ee581d8e1492f673bbd52679",
+        "size": 3617
+      },
+      {
+        "path": "dist\\CoolzhuAgent-0.2.64-package-safety.json",
+        "sha256": "238efd1444164a71a4a466f23cf15d8cc85844d47863e43c53c2764a56c1664b",
+        "size": 195
+      },
+      {
+        "path": "dist\\CoolzhuAgent-0.2.65.msi",
+        "sha256": "fa80c6faf13383f926f03a4617b5a406918b9b602e2fbf08dbd2f7e89c35eb19",
+        "size": 275647003
+      },
+      {
+        "path": "dist\\CoolzhuAgent-0.2.65-installer-report.json",
+        "sha256": "25a0d0f9d1214932efdeec7fe8b5fcb53c66a1e6ca6c00bb19f3cc43c8de8ab9",
+        "size": 3617
+      },
+      {
+        "path": "dist\\CoolzhuAgent-0.2.65-package-safety.json",
+        "sha256": "6fc42a8b95c87d9b98c68d7ece38edbab7de57414f01bbf2f6fb441f0ff41133",
+        "size": 195
+      }
+    ],
+    "installed_binaries": [
+      {
+        "length": 38308864,
+        "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-web-console.exe",
+        "sha256": "fbd3080991f4888218b25ef36fda3a19bd1be994af57c4fd6fe63cb8707c6544"
+      },
+      {
+        "length": 85883392,
+        "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-tauri-shell.exe",
+        "sha256": "37ac54c9b7a0289ac38910e1e406d88b48ac4315b54f6c3da7a513ad24ef8d7e"
+      }
+    ],
+    "original_incidents": [
+      {
+        "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-facts.json",
+        "sha256": "a6b94db087789eb3e23380c0c244aedc890e4c7d2536cde0abb8a8ee63b8f981"
+      },
+      {
+        "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-page-events.json",
+        "sha256": "3d0f2e4b2477fdb4d2ab90aaf7d5a32702d11d7336abf347eea4be907383bab1"
+      },
+      {
+        "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-close-timing.json",
+        "sha256": "124adf361a2832b6d72901bafe47e491b701b1ad09e025923cfd254ceb58b89c"
+      }
+    ],
+    "codex_config_sha256": "3a946a45e2223faebb565c2323d358fa272fd51fabb17068e5085082804c6a5e",
+    "preexisting_workspace_file_count": 426,
+    "all_preexisting_workspace_files_unchanged": true,
+    "all_frozen_sources_still_match": true,
+    "installed_process_identity_unchanged": true,
+    "isolation_still_active": true
+  },
+  "artifacts": [
+    {
+      "file": "package-report.json",
+      "bytes": 53716,
+      "sha256": "148fd3a24b450921624a5e562ba7f2545b5126456caaa2d6b7ec3531e7f0b1a9",
+      "origin": "tmp/package-reports/package-report-release-20261003-030439336.json"
+    },
+    {
+      "file": "source-snapshot.json",
+      "bytes": 278229,
+      "sha256": "30494961b9a1e1cb7fc9a86f0e9739bca8cbd1d9a4c36b83da8f6422f4558a2b",
+      "origin": "tmp/source-snapshots/source-snapshot-6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd.json"
+    },
+    {
+      "file": "build-input-freeze.json",
+      "bytes": 12414,
+      "sha256": "37c08ae6f33990986853e98a80e72d16336e0b92b76e09015d0e39d7494609c9",
+      "origin": "tmp/package-freeze/package-input-freeze-release-2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f.json"
+    },
+    {
+      "file": "prepare-report.json",
+      "bytes": 4649,
+      "sha256": "c480d74663cd36a5baf9cb62031f0ba9aa0af934a8837457d1c75c82459fb414",
+      "origin": "tmp/package-reports/prepare/package-prepare-release-20261003-030008754.json"
+    },
+    {
+      "file": "payload-inventory.json",
+      "bytes": 253328,
+      "sha256": "e09dab1d137849b5005a79916f9ae25d9a54fb0ccbcdbca773f8ee51b96989df",
+      "origin": "tmp/candidate-066-package/payload-inventory.json"
+    },
+    {
+      "file": "installer-report.json",
+      "bytes": 3617,
+      "sha256": "60a89f53df1fa61d7c6224acdd562db4dca267c66067d049101432c4229a6cad",
+      "origin": "dist/CoolzhuAgent-0.2.66-installer-report.json"
+    },
+    {
+      "file": "package-safety.json",
+      "bytes": 195,
+      "sha256": "5165d3a597e17e85546a5fa19f55ae12d7ac7a67d01a98d308e405550ea6c94d",
+      "origin": "dist/CoolzhuAgent-0.2.66-package-safety.json"
+    },
+    {
+      "file": "candidate-manifest.json",
+      "bytes": 21559,
+      "sha256": "a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+      "origin": "config/package-manifest-0.2.66-candidate.json"
+    },
+    {
+      "file": "dsh-runtime-lock.json",
+      "bytes": 60864,
+      "sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+      "origin": "config/dsh-runtime-lock.json"
+    },
+    {
+      "file": "baseline.json",
+      "bytes": 87129,
+      "sha256": "57fe8831b75c5e4f837e71c2dc246a2f840885364a4ca17fd801f1ab486e9a1a",
+      "origin": "tmp/2026-10-02-final-msi/baseline.json"
+    },
+    {
+      "file": "prepare-pointer.json",
+      "bytes": 674,
+      "sha256": "4e5aec853a26e4009b2fdf47037e4854fccb260ffff9f06d9e53ec8da5272375",
+      "origin": "tmp/2026-10-02-final-msi/prepare-pointer.json"
+    },
+    {
+      "file": "prepare-outcome.json",
+      "bytes": 153,
+      "sha256": "a7bbc210f70604a066f2f06ccad74f854d8c3383d98c5d460cef9e3b6d53fed5",
+      "origin": "tmp/2026-10-02-final-msi/prepare-outcome.json"
+    },
+    {
+      "file": "package-pointer.json",
+      "bytes": 2198,
+      "sha256": "0ed03063c78f9cae76b856788f0850918d9888f8a5528488c0be58dbc5d3f9be",
+      "origin": "tmp/2026-10-02-final-msi/package-pointer.json"
+    },
+    {
+      "file": "build-outcome.json",
+      "bytes": 151,
+      "sha256": "dc2d851e2546daa136d18c3be962b134e434902d5a0d8483a70e0a04ea5dd171",
+      "origin": "tmp/2026-10-02-final-msi/build-outcome.json"
+    },
+    {
+      "file": "build.txt",
+      "bytes": 68354,
+      "sha256": "a5e620cca61c38afe1f4721b6b190308c9c143e674b2924bca8280892ebbc1ba",
+      "origin": "tmp/2026-10-02-final-msi/build.log"
+    },
+    {
+      "file": "manifest-contract.txt",
+      "bytes": 129,
+      "sha256": "a2e0d02012fa2f0b7410107c21216bff00cd83f9d1716d6e8d6295d8b68e57d4",
+      "origin": "tmp/2026-10-02-final-msi/manifest-contract.log"
+    },
+    {
+      "file": "manifest-and-test-binding.json",
+      "bytes": 26261,
+      "sha256": "a6301cb9a8d937c76296cc2f407a20fae7b3f16bdb04ccec8be7895046a5eac5",
+      "origin": "tmp/2026-10-02-final-msi/manifest-and-test-binding.json"
+    },
+    {
+      "file": "offline-msi-verification.json",
+      "bytes": 394178,
+      "sha256": "ffd2afcb8f7d42dd38e57e7e3ae29d1f322ae07b19249bfe8c42059a5b3bca20",
+      "origin": "tmp/2026-10-02-final-msi/offline-msi-verification.json"
+    },
+    {
+      "file": "extracted-runtime-verifier.txt",
+      "bytes": 172,
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322",
+      "origin": "tmp/2026-10-02-final-msi/extracted-runtime-verifier.txt"
+    },
+    {
+      "file": "preservation-verification.json",
+      "bytes": 3087,
+      "sha256": "807ef1c8418e87435893432fe1bcb4bd41f731260d9126f86f73caeb31dd78a5",
+      "origin": "tmp/2026-10-02-final-msi/preservation-verification.json"
+    },
+    {
+      "file": "startup-regression.txt",
+      "bytes": 341,
+      "sha256": "c64a75b4e5666aa9619a9ffaa1911a2ead13638322f56b93964ca0491d9a1c9c",
+      "origin": "tmp/2026-10-02-final-msi/startup-regression.log"
+    },
+    {
+      "file": "schema-upgrade-regression.txt",
+      "bytes": 211,
+      "sha256": "c6561ebb4070d79dc0225bd5f91a7b800e05d9fd84de32612bfc83d3af0bad35",
+      "origin": "tmp/2026-10-02-final-msi/schema-upgrade-regression.log"
+    },
+    {
+      "file": "extracted-runtime-budget.txt",
+      "bytes": 720,
+      "sha256": "7f74864135760f579011c85106e1b85f872880caa92468c6adcc2ef2b278aeb1",
+      "origin": "tmp/2026-10-02-final-msi/extracted-runtime-budget.log"
+    },
+    {
+      "file": "extracted-runtime-budget-result.json",
+      "bytes": 983,
+      "sha256": "a6f04b67b6203caa338196b60f075f2cd5d3d362073123f93c9f99afaef35c5c",
+      "origin": "tmp/2026-10-02-final-msi/extracted-runtime-budget-result.json"
+    },
+    {
+      "file": "installed-processes.json",
+      "bytes": 399,
+      "sha256": "f24cc1935507f296d207e09e2954bdebd4527fbb537ac1dd08a654bca5a77368",
+      "origin": "tmp/2026-10-02-final-msi/installed-processes.json"
+    },
+    {
+      "file": "input-safety-readonly.json",
+      "bytes": 2448,
+      "sha256": "30fc0d1cd561c5be69f6e2d716c8d73a81bff92c39c089d6324bcb96e6649988",
+      "origin": "tmp/2026-10-02-final-msi/input-safety-readonly.json"
+    },
+    {
+      "file": "wix-version.txt",
+      "bytes": 16,
+      "sha256": "560dcea85c6c9d1d0973090cb3bb706a6724d4132a29c150ae363f81e24fe1ac",
+      "origin": "tmp/2026-10-02-final-msi/wix-version.log"
+    },
+    {
+      "file": "runtime-source-verification.json",
+      "bytes": 172,
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322",
+      "origin": "tmp/2026-10-02-final-msi/runtime-source-verification.json"
+    },
+    {
+      "file": "runtime-copy-verification.json",
+      "bytes": 172,
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322",
+      "origin": "tmp/2026-10-02-final-msi/runtime-copy-verification.json"
+    },
+    {
+      "file": "diff-check.txt",
+      "bytes": 529,
+      "sha256": "40a326b23147613f99c0a4b6eec5bd00180f05ff1d6c23976df8f57fd24302b4",
+      "origin": "tmp/2026-10-02-final-msi/diff-check.log"
+    },
+    {
+      "file": "probe-extracted-initial-failure.txt",
+      "bytes": 531,
+      "sha256": "81d34f4c399705eaa6158f0101e400bc62bc9860b8a497c5c4ca7f1a24375237",
+      "origin": "tmp/2026-10-02-final-msi/probe-extracted-initial-failure.log"
+    },
+    {
+      "file": "probe-extracted.txt",
+      "bytes": 983,
+      "sha256": "a6f04b67b6203caa338196b60f075f2cd5d3d362073123f93c9f99afaef35c5c",
+      "origin": "tmp/2026-10-02-final-msi/probe-extracted.log"
+    },
+    {
+      "file": "extracted-node-version.txt",
+      "bytes": 10,
+      "sha256": "0696fc75ebdd632c8c328370653d4dddc37504bf96b32317a50d7189cc1a775f",
+      "origin": "tmp/2026-10-02-final-msi/extracted-node-version.log"
+    },
+    {
+      "file": "extracted-cli-version.txt",
+      "bytes": 249,
+      "sha256": "60ccb17450d66ec27b7c84a95c64bdb8f75d919e34a693b1111ede10d48c7265",
+      "origin": "tmp/2026-10-02-final-msi/extracted-cli-version.log"
+    }
+  ],
+  "not_executed": [
+    "MSI安装/升级/卸载",
+    "正式实例重启/结束进程",
+    "输入隔离恢复/人工复核签署",
+    "真实GUI与模型调用",
+    "GitHub上传或合并"
+  ],
+  "remaining": [
+    "Browser释放期间Close/Cancel/navigation真竞态",
+    "完整Paint绘画",
+    "安装后的DSH UI和真实Qwen",
+    "DSH专属提交后故障/重启恢复实操",
+    "启动演出连续原生画面",
+    "多屏DPI/点击穿透/泛光中止边界",
+    "总体审核"
+  ]
+}

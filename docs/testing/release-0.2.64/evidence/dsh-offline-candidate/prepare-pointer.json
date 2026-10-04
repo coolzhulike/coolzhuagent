@@ -1,0 +1,11 @@
+{
+  "phase": "prepare",
+  "run_id": "pkg-run-release-20261002-162815386-ac837368",
+  "freeze_record": "tmp/package-freeze/package-input-freeze-release-309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36.json",
+  "freeze_id": "309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36",
+  "changed_path_count": 0,
+  "generated_config_count": 0,
+  "prepare_report": "tmp/package-reports/prepare/package-prepare-release-20261002-162841116.json",
+  "release_eligible": false,
+  "next": "正式构建阶段：-FreezeRecordPath tmp/package-freeze/package-input-freeze-release-309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36.json"
+}

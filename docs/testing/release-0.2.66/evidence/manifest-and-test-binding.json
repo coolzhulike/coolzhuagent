@@ -1,0 +1,516 @@
+{
+  "candidate_version": "0.2.66",
+  "manifest_sha256": "a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+  "all_other_manifest_rules_equal_to_065": true,
+  "test_evidence": [
+    {
+      "index": "docs/testing/dsh-source-resolution-2026-10-02/evidence-index.json",
+      "index_sha256": "af4feed5be3083b535b64ac922d95058908c51f123b699db9b8499680026d931",
+      "sources": [
+        {
+          "file": "modules/gui-web/packages/web-console/src/main.rs",
+          "tested_sha256": "0cc8066fad1530fad6d8d17714bea533640516a7662727ac534883a609ad9131",
+          "current_sha256": "e08fa4e6feeb5a185d742e7103b87bfac550d05e66b44693e1ca74817ba1645b",
+          "matches": false
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+          "tested_sha256": "1450cb701c62043a64f5a700999cbc375016f184d89c32f71a4db385d57b2b77",
+          "current_sha256": "919b7e102ec772b2390a6204086ce4742310ed5a9388c98750dd33a72f05592c",
+          "matches": false
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_market.js",
+          "tested_sha256": "0e66a5c156184a1284aa05060a5845797c4814c7840c43a85b78dbfed0245f01",
+          "current_sha256": "9ed7d6bc46ab3f6b09fad881529e22e5453335235d3190c8adf33e916d2be6e9",
+          "matches": false
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+          "tested_sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f",
+          "current_sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+          "tested_sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e",
+          "current_sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/examples/dsh_source_resolution_probe.rs",
+          "tested_sha256": "6a2961b2b61b7415dfe74b2c4d0ebb49a6a703624ced20978b2abeea287eaa74",
+          "current_sha256": "6a2961b2b61b7415dfe74b2c4d0ebb49a6a703624ced20978b2abeea287eaa74",
+          "matches": true
+        }
+      ],
+      "scope": "历史阶段证据；仅matches=true项目可直接关联，变更项需后续证据，不能把旧结果外推"
+    },
+    {
+      "index": "docs/testing/dsh-install-activation-2026-10-02/evidence-index.json",
+      "index_sha256": "e9fd91d8cf9b15edffd896854146aa955847986f04b18195dc7dc60c446f706e",
+      "sources": [
+        {
+          "file": "Cargo.lock",
+          "tested_sha256": "225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a",
+          "current_sha256": "225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a",
+          "matches": true
+        },
+        {
+          "file": "config/dsh-runtime-lock.json",
+          "tested_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+          "current_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+          "matches": true
+        },
+        {
+          "file": "modules/core-runtime/packages/core-runtime/src/dsh_runtime.rs",
+          "tested_sha256": "3f00a603c1c8088badd1d81523be53e1eb6bf09d2755119e7a58f288782d3f84",
+          "current_sha256": "3f00a603c1c8088badd1d81523be53e1eb6bf09d2755119e7a58f288782d3f84",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/main.rs",
+          "tested_sha256": "04dee23cb4476b16f89b46615489dffa824a319c58a4f040964c15dddc9a6b7a",
+          "current_sha256": "e08fa4e6feeb5a185d742e7103b87bfac550d05e66b44693e1ca74817ba1645b",
+          "matches": false
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+          "tested_sha256": "2a5afac1cdfa033db7a4785b02aeb29a8ce58dada718e90f6e6d30d08c0400dd",
+          "current_sha256": "919b7e102ec772b2390a6204086ce4742310ed5a9388c98750dd33a72f05592c",
+          "matches": false
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_market.js",
+          "tested_sha256": "9ed7d6bc46ab3f6b09fad881529e22e5453335235d3190c8adf33e916d2be6e9",
+          "current_sha256": "9ed7d6bc46ab3f6b09fad881529e22e5453335235d3190c8adf33e916d2be6e9",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+          "tested_sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f",
+          "current_sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+          "tested_sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e",
+          "current_sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+          "tested_sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b",
+          "current_sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+          "tested_sha256": "49a2c585b113c1fa5fdc9b1d4ca1a56546297ad73f48748aa89f9f3869e0f2f8",
+          "current_sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5",
+          "matches": false
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/examples/dsh_install_activation_probe.rs",
+          "tested_sha256": "3322333bbc03f8ef9211b65f022d9a7df38a3573255732dcd1284fd45653f5d2",
+          "current_sha256": "3322333bbc03f8ef9211b65f022d9a7df38a3573255732dcd1284fd45653f5d2",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/Cargo.toml",
+          "tested_sha256": "273ceb5c9a67e6cf0145fc018672be87d348af2c5fed2649ca57d063108ea592",
+          "current_sha256": "273ceb5c9a67e6cf0145fc018672be87d348af2c5fed2649ca57d063108ea592",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/src/lib.rs",
+          "tested_sha256": "2c9684adffb309ece33b2e8bdf33dc4b3d47374cb8148bf5dbe1ce253cb5ab84",
+          "current_sha256": "2c9684adffb309ece33b2e8bdf33dc4b3d47374cb8148bf5dbe1ce253cb5ab84",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/src/install_transaction.rs",
+          "tested_sha256": "3350c31afd83165822f17d8130fc3d01b1c7c3a549506f38d25e03c9b2423912",
+          "current_sha256": "3350c31afd83165822f17d8130fc3d01b1c7c3a549506f38d25e03c9b2423912",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/src/dsh_package.rs",
+          "tested_sha256": "2421fe593d905a64aa3403157bbd7187766c7c9ae77e58dc2604da80fcd7ea1b",
+          "current_sha256": "2421fe593d905a64aa3403157bbd7187766c7c9ae77e58dc2604da80fcd7ea1b",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/src/dsh_activation.rs",
+          "tested_sha256": "d3a100ceb08a4e376dc837223add9b08515cf0a949c296a812cb95b40633a102",
+          "current_sha256": "a93daa8bb8df34572250c4c39c3433a45e25df24d4c09df239061d604376d791",
+          "matches": false
+        },
+        {
+          "file": "modules/tooling/packages/dsh-plugin-host/package-lock.json",
+          "tested_sha256": "af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+          "current_sha256": "af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+          "matches": true
+        }
+      ],
+      "scope": "历史阶段证据；仅matches=true项目可直接关联，变更项需后续证据，不能把旧结果外推"
+    },
+    {
+      "index": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json",
+      "index_sha256": "fe3fcd7d6502e8fcda22989e20205e11aa0ca7ab11a3a73347c25255bba0b4d0",
+      "sources": [
+        {
+          "file": "Cargo.lock",
+          "tested_sha256": "225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a",
+          "current_sha256": "225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/Cargo.toml",
+          "tested_sha256": "273ceb5c9a67e6cf0145fc018672be87d348af2c5fed2649ca57d063108ea592",
+          "current_sha256": "273ceb5c9a67e6cf0145fc018672be87d348af2c5fed2649ca57d063108ea592",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/src/lib.rs",
+          "tested_sha256": "2c9684adffb309ece33b2e8bdf33dc4b3d47374cb8148bf5dbe1ce253cb5ab84",
+          "current_sha256": "2c9684adffb309ece33b2e8bdf33dc4b3d47374cb8148bf5dbe1ce253cb5ab84",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/src/install_transaction.rs",
+          "tested_sha256": "3350c31afd83165822f17d8130fc3d01b1c7c3a549506f38d25e03c9b2423912",
+          "current_sha256": "3350c31afd83165822f17d8130fc3d01b1c7c3a549506f38d25e03c9b2423912",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/src/dsh_package.rs",
+          "tested_sha256": "2421fe593d905a64aa3403157bbd7187766c7c9ae77e58dc2604da80fcd7ea1b",
+          "current_sha256": "2421fe593d905a64aa3403157bbd7187766c7c9ae77e58dc2604da80fcd7ea1b",
+          "matches": true
+        },
+        {
+          "file": "modules/tooling/packages/plugin-system/src/dsh_activation.rs",
+          "tested_sha256": "a93daa8bb8df34572250c4c39c3433a45e25df24d4c09df239061d604376d791",
+          "current_sha256": "a93daa8bb8df34572250c4c39c3433a45e25df24d4c09df239061d604376d791",
+          "matches": true
+        },
+        {
+          "file": "modules/core-runtime/packages/core-runtime/src/managed_process.rs",
+          "tested_sha256": "9074dc979bb47c1851cff7c4563feb1cf2f531fefa38ee652ed826657a5c07e4",
+          "current_sha256": "9074dc979bb47c1851cff7c4563feb1cf2f531fefa38ee652ed826657a5c07e4",
+          "matches": true
+        },
+        {
+          "file": "modules/core-runtime/packages/core-runtime/src/dsh_runtime.rs",
+          "tested_sha256": "3f00a603c1c8088badd1d81523be53e1eb6bf09d2755119e7a58f288782d3f84",
+          "current_sha256": "3f00a603c1c8088badd1d81523be53e1eb6bf09d2755119e7a58f288782d3f84",
+          "matches": true
+        },
+        {
+          "file": "modules/core-runtime/packages/core-runtime/src/dsh_host_process.rs",
+          "tested_sha256": "bed703e4139dcf6de69bc6fa561c7a96bb0a813833ceb4dbfb177f862fd14618",
+          "current_sha256": "bed703e4139dcf6de69bc6fa561c7a96bb0a813833ceb4dbfb177f862fd14618",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/main.rs",
+          "tested_sha256": "e08fa4e6feeb5a185d742e7103b87bfac550d05e66b44693e1ca74817ba1645b",
+          "current_sha256": "e08fa4e6feeb5a185d742e7103b87bfac550d05e66b44693e1ca74817ba1645b",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/app.js",
+          "tested_sha256": "67a46317f4338ccf729ae1ed4d9e13bcf3356edef15c81a74cab2831faa53e2b",
+          "current_sha256": "67a46317f4338ccf729ae1ed4d9e13bcf3356edef15c81a74cab2831faa53e2b",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/extension_market.rs",
+          "tested_sha256": "2f665a5220c08fe8bc156813d4f88ef623fc76a6e5f43b43e4e0a32e5f33796a",
+          "current_sha256": "2f665a5220c08fe8bc156813d4f88ef623fc76a6e5f43b43e4e0a32e5f33796a",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/plugin_runtime.rs",
+          "tested_sha256": "cde860b63ea79821f43083d8d82aea02dedab5b95a1f1abca2bf8dc567d6bab4",
+          "current_sha256": "cde860b63ea79821f43083d8d82aea02dedab5b95a1f1abca2bf8dc567d6bab4",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/host_child_agent.rs",
+          "tested_sha256": "c55c1502e2198b62011c6566c5525cca2842f3281add53529a3425240d02ccc5",
+          "current_sha256": "c55c1502e2198b62011c6566c5525cca2842f3281add53529a3425240d02ccc5",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs",
+          "tested_sha256": "568670e90f7d838396758bf8572e95c232d1872381d0f9ba63e7e7b3cf1271f0",
+          "current_sha256": "568670e90f7d838396758bf8572e95c232d1872381d0f9ba63e7e7b3cf1271f0",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+          "tested_sha256": "919b7e102ec772b2390a6204086ce4742310ed5a9388c98750dd33a72f05592c",
+          "current_sha256": "919b7e102ec772b2390a6204086ce4742310ed5a9388c98750dd33a72f05592c",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_market.js",
+          "tested_sha256": "9ed7d6bc46ab3f6b09fad881529e22e5453335235d3190c8adf33e916d2be6e9",
+          "current_sha256": "9ed7d6bc46ab3f6b09fad881529e22e5453335235d3190c8adf33e916d2be6e9",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+          "tested_sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f",
+          "current_sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+          "tested_sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e",
+          "current_sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+          "tested_sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b",
+          "current_sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+          "tested_sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5",
+          "current_sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_execution.rs",
+          "tested_sha256": "1f5de2ce32d5a304e44f8ba83307312538cdfeb0ecb07dd48c6ccfbac270c3ce",
+          "current_sha256": "1f5de2ce32d5a304e44f8ba83307312538cdfeb0ecb07dd48c6ccfbac270c3ce",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_web.rs",
+          "tested_sha256": "9d33b194ceaf3cc739e65472f8f40c69c25e69357b85b579d6e60a517c9b2ab3",
+          "current_sha256": "9d33b194ceaf3cc739e65472f8f40c69c25e69357b85b579d6e60a517c9b2ab3",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/dsh_web_tests.rs",
+          "tested_sha256": "68c1d6393d1da5c1d065510d8fa5ff09f256f86073d5269dd7891102e1cc522a",
+          "current_sha256": "68c1d6393d1da5c1d065510d8fa5ff09f256f86073d5269dd7891102e1cc522a",
+          "matches": true
+        },
+        {
+          "file": "config/dsh-runtime-lock.json",
+          "tested_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+          "current_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+          "matches": true
+        }
+      ],
+      "scope": "历史阶段证据；仅matches=true项目可直接关联，变更项需后续证据，不能把旧结果外推"
+    },
+    {
+      "index": "docs/testing/browser-lifecycle-aggregate-2026-10-02/evidence-index.json",
+      "index_sha256": "637b21c713402bb71fd95cf68a607a810bd11c6b84aea5dd419aa9eccc538324",
+      "sources": [
+        {
+          "file": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+          "tested_sha256": "5673b2629bca8266e851fbffd902963bb9a88ad4a4da9084c30ff2578d258b49",
+          "current_sha256": "5673b2629bca8266e851fbffd902963bb9a88ad4a4da9084c30ff2578d258b49",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-web/packages/web-console/src/computer_use_executor.rs",
+          "tested_sha256": "a02a31563d3a3945a9aa95a54db054116ec649a2a048f9fe59af714ebac36c49",
+          "current_sha256": "a02a31563d3a3945a9aa95a54db054116ec649a2a048f9fe59af714ebac36c49",
+          "matches": true
+        }
+      ],
+      "scope": "历史阶段证据；仅matches=true项目可直接关联，变更项需后续证据，不能把旧结果外推"
+    },
+    {
+      "index": "docs/testing/independent-boundaries-2026-10-02/evidence-index.json",
+      "index_sha256": "7beb570bb336b9e8c157eac26804094bfed2bca04403f631867d4e4eacb7b61d",
+      "sources": [
+        {
+          "file": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js",
+          "tested_sha256": "fe4d3565c557656b8e63b46e9b2c4ab6edab5f98916980838120a48e62af9c46",
+          "current_sha256": "fe4d3565c557656b8e63b46e9b2c4ab6edab5f98916980838120a48e62af9c46",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js",
+          "tested_sha256": "b6c369e5dcfa223ad0d2128f097a0b20a25132596f690c86e2a00d52778c0585",
+          "current_sha256": "b6c369e5dcfa223ad0d2128f097a0b20a25132596f690c86e2a00d52778c0585",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs",
+          "tested_sha256": "8e61b315189b65b94bc95de3f89d5ee5e5086d6f06c626d010e438d9fc7e2379",
+          "current_sha256": "8e61b315189b65b94bc95de3f89d5ee5e5086d6f06c626d010e438d9fc7e2379",
+          "matches": true
+        },
+        {
+          "file": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md",
+          "tested_sha256": "48dabf0bff35926073325671b1f021d57eb44f5200a86e41301cd0213650759f",
+          "current_sha256": "48dabf0bff35926073325671b1f021d57eb44f5200a86e41301cd0213650759f",
+          "matches": true
+        },
+        {
+          "file": "modules/core-runtime/packages/core-runtime/tests/dsh_deadline.rs",
+          "tested_sha256": "9656728211bef6024383777d7ca13ba682108c7529fda4ed428c70229710b745",
+          "current_sha256": "9656728211bef6024383777d7ca13ba682108c7529fda4ed428c70229710b745",
+          "matches": true
+        }
+      ],
+      "scope": "历史阶段证据；仅matches=true项目可直接关联，变更项需后续证据，不能把旧结果外推"
+    }
+  ],
+  "superseded_source_references": [
+    {
+      "index": "docs/testing/dsh-source-resolution-2026-10-02/evidence-index.json",
+      "file": "modules/gui-web/packages/web-console/src/main.rs",
+      "matching_later_index": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json"
+    },
+    {
+      "index": "docs/testing/dsh-source-resolution-2026-10-02/evidence-index.json",
+      "file": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+      "matching_later_index": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json"
+    },
+    {
+      "index": "docs/testing/dsh-source-resolution-2026-10-02/evidence-index.json",
+      "file": "modules/gui-web/packages/web-console/src/dsh_market.js",
+      "matching_later_index": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json"
+    },
+    {
+      "index": "docs/testing/dsh-install-activation-2026-10-02/evidence-index.json",
+      "file": "modules/gui-web/packages/web-console/src/main.rs",
+      "matching_later_index": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json"
+    },
+    {
+      "index": "docs/testing/dsh-install-activation-2026-10-02/evidence-index.json",
+      "file": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+      "matching_later_index": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json"
+    },
+    {
+      "index": "docs/testing/dsh-install-activation-2026-10-02/evidence-index.json",
+      "file": "modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+      "matching_later_index": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json"
+    },
+    {
+      "index": "docs/testing/dsh-install-activation-2026-10-02/evidence-index.json",
+      "file": "modules/tooling/packages/plugin-system/src/dsh_activation.rs",
+      "matching_later_index": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json"
+    }
+  ],
+  "current_reviewed_areas": {
+    "Browser": [
+      {
+        "file": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+        "sha256": "5673b2629bca8266e851fbffd902963bb9a88ad4a4da9084c30ff2578d258b49"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/computer_use_executor.rs",
+        "sha256": "a02a31563d3a3945a9aa95a54db054116ec649a2a048f9fe59af714ebac36c49"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_input.rs",
+        "sha256": "e09e81c39ab8b7cff67fb4f2806f88f4a68bc483e5b8293dbfc8763dcf50e852"
+      }
+    ],
+    "Paint": [
+      {
+        "file": "modules/computer-use/packages/computer-use-core/src/controller.rs",
+        "sha256": "a123af9287a29bf93242174de8db5922908f0d28f7eb66d52f7febb146e2575f"
+      }
+    ],
+    "DSH": [
+      {
+        "file": "modules/gui-web/packages/web-console/src/dsh_market.js",
+        "sha256": "9ed7d6bc46ab3f6b09fad881529e22e5453335235d3190c8adf33e916d2be6e9"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+        "sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+        "sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+        "sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/dsh_execution.rs",
+        "sha256": "1f5de2ce32d5a304e44f8ba83307312538cdfeb0ecb07dd48c6ccfbac270c3ce"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/dsh_web.rs",
+        "sha256": "9d33b194ceaf3cc739e65472f8f40c69c25e69357b85b579d6e60a517c9b2ab3"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/dsh_web_tests.rs",
+        "sha256": "68c1d6393d1da5c1d065510d8fa5ff09f256f86073d5269dd7891102e1cc522a"
+      },
+      {
+        "file": "modules/core-runtime/packages/core-runtime/src/dsh_host_process.rs",
+        "sha256": "bed703e4139dcf6de69bc6fa561c7a96bb0a813833ceb4dbfb177f862fd14618"
+      },
+      {
+        "file": "modules/core-runtime/packages/core-runtime/tests/dsh_deadline.rs",
+        "sha256": "9656728211bef6024383777d7ca13ba682108c7529fda4ed428c70229710b745"
+      }
+    ],
+    "动画": [
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js",
+        "sha256": "fe4d3565c557656b8e63b46e9b2c4ab6edab5f98916980838120a48e62af9c46"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js",
+        "sha256": "b6c369e5dcfa223ad0d2128f097a0b20a25132596f690c86e2a00d52778c0585"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs",
+        "sha256": "8e61b315189b65b94bc95de3f89d5ee5e5086d6f06c626d010e438d9fc7e2379"
+      }
+    ],
+    "泛光": [
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/computer_use_indicator.rs",
+        "sha256": "7aa45ee344a43fba2e7506756075c0c297e7d920f1a2f482b5a1ad804b2fea36"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/ui/computer-use-indicator.css",
+        "sha256": "db2438dfc543a77f864ca35803ebde0723f41842f650f9e076804a973b938d2e"
+      }
+    ],
+    "升级": [
+      {
+        "file": "installer/Product.wxs",
+        "sha256": "bf6f25db5b768ef9a883da8524a5ef4a6a86d553d66a1a1112e291e43a092af6"
+      },
+      {
+        "file": "scripts/build-msi.ps1",
+        "sha256": "b7b2b537f0467c000d29051d308dd478bd39cdffd318a3293e7d85429d8ad4a4"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/schema_upgrade.rs",
+        "sha256": "2c0c622d4f3bb0d7a3c8509456683a064ea4fa94f2b430cbc2f8b9339f22c14b"
+      }
+    ]
+  },
+  "schema_regression_binary": {
+    "path": "target/debug/deps/coolzhu_web_console-e88a3dde67eeefdd.exe",
+    "sha256": "30bcffbb8b2d32cd8d7c5e153933aa097d6dd80485eb268658eac7f487baed81",
+    "scope": "上一阶段相同Web/Rust源码测试二进制，仅运行schema_upgrade::tests，非正式实例"
+  },
+  "dsh_deadline_binary": {
+    "path": "target/debug/deps/dsh_deadline-14f2cf26bd9ac2fe.exe",
+    "sha256": "2fae34e310f4c360444a8891d5d73dad6ac79ca2d6f7c19e860b76fee0a3bb38"
+  }
+}

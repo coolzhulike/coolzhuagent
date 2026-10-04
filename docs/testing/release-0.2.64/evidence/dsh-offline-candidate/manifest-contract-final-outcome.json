@@ -1,0 +1,4 @@
+{
+  "command": "scripts/test-package-manifest.ps1",
+  "exit_code": 0
+}

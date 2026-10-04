@@ -1,0 +1,37 @@
+   Compiling coolzhu-plugin-system v0.2.0 (C:\Users\zhupu\Desktop\coolzhuagent\modules\tooling\packages\plugin-system)
+warning: unused import: `HookAuthorizationService`
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:425:34
+    |
+425 |     use super::{AllowHookEvents, HookAuthorizationService, HookRunResult, HookRunner};
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-plugin-system` (lib test) generated 1 warning (run `cargo fix --lib -p coolzhu-plugin-system --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.90s
+     Running unittests src\lib.rs (target\debug\deps\plugins-64328e0859dfcfb2.exe)
+
+running 6 tests
+test install_transaction::dsh_recovery_tests::subprocess_worker ... ignored, 仅由父测试以独立case目录启动；不是独立验收项
+真实Windows共享冲突：提交事实保留，释放测试文件句柄后仅清理孤儿目录
+子进程退出后恢复通过：existing=false fault=directory {"backup_present":false,"error":"测试模拟目录切换后的进程中断","journal_present":true,"ok":false,"operation_id":"op-1790968813695830100-32296-0","phase":"新目录已切换"}
+test install_transaction::dsh_recovery_tests::dsh_committed_orphan_sharing_violation_preserves_commit_until_cleanup_retry ... ok
+提交后孤儿清理保留新停用世代通过：existing=false {"backup_present":false,"error":null,"journal_present":false,"ok":true,"operation_id":"op-1790968813685356000-8528-0","phase":"settings 已写入"}
+写入失败精确回滚通过：BeforeStageCopy
+证据不足拒绝恢复且保留现场通过：journal
+子进程退出后恢复通过：existing=false fault=registry {"backup_present":false,"error":"测试模拟登记写入后中断","journal_present":true,"ok":false,"operation_id":"op-1790968813773645700-3100-0","phase":"registry 已写入"}
+子进程退出后恢复通过：existing=false fault=settings {"backup_present":false,"error":"测试模拟设置写入后中断","journal_present":true,"ok":false,"operation_id":"op-1790968813839125800-14284-0","phase":"settings 已写入"}
+提交后孤儿清理保留新停用世代通过：existing=true {"backup_present":true,"error":null,"journal_present":false,"ok":true,"operation_id":"op-1790968813835300100-20544-0","phase":"settings 已写入"}
+test install_transaction::dsh_recovery_tests::dsh_committed_orphan_cleanup_preserves_new_disabled_generation ... ok
+写入失败精确回滚通过：BeforeRegistryWrite
+证据不足拒绝恢复且保留现场通过：backup
+test install_transaction::dsh_recovery_tests::dsh_untrusted_journal_or_missing_backup_refuses_recovery_without_state_change ... ok
+子进程退出后恢复通过：existing=true fault=directory {"backup_present":true,"error":"测试模拟目录切换后的进程中断","journal_present":true,"ok":false,"operation_id":"op-1790968813958940700-3444-0","phase":"新目录已切换"}
+写入失败精确回滚通过：BeforeSettingsWrite
+test install_transaction::dsh_recovery_tests::dsh_write_failures_restore_enabled_snapshot_and_exact_metadata ... ok
+子进程退出后恢复通过：existing=true fault=registry {"backup_present":true,"error":"测试模拟登记写入后中断","journal_present":true,"ok":false,"operation_id":"op-1790968814079207900-14360-0","phase":"registry 已写入"}
+子进程退出后恢复通过：existing=true fault=settings {"backup_present":true,"error":"测试模拟设置写入后中断","journal_present":true,"ok":false,"operation_id":"op-1790968814192925600-19108-0","phase":"settings 已写入"}
+test install_transaction::dsh_recovery_tests::dsh_uncommitted_process_exit_restores_old_snapshot_or_removes_new_install ... ok
+
+test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 37 filtered out; finished in 0.61s
+

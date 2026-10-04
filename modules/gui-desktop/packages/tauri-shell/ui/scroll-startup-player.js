@@ -161,12 +161,17 @@
     }
     function tick(timestamp) {
       if (!active || finished) return;
-      if (startedAt === null) startedAt=timestamp;
-      renderAt(timestamp-startedAt);
-      frameCount++;
-      if (frameCount === 1) options.onFirstFrame?.();
-      if (elapsed>=duration) finish("completed");
-      else frameId=windowRef.requestAnimationFrame(tick);
+      try {
+        if (startedAt === null) startedAt=timestamp;
+        renderAt(timestamp-startedAt);
+        frameCount++;
+        if (frameCount === 1) options.onFirstFrame?.();
+        if (elapsed>=duration) finish("completed");
+        else frameId=windowRef.requestAnimationFrame(tick);
+      } catch (error) {
+        // 帧绘制失败立即收尾，不等待演出超时后才退出。
+        finish("resource-error",error);
+      }
     }
     function load() {
       if (assets) return Promise.resolve(assets);
