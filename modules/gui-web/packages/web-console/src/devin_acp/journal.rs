@@ -50,6 +50,9 @@ impl Journal {
                 protocol_stop TEXT, process_drained INTEGER NOT NULL DEFAULT 0,
                 model_json TEXT);"
         ).map_err(|_| fail("ACP 台账初始化失败。"))?;
+        journal.connection()?.execute_batch("CREATE TABLE IF NOT EXISTS devin_acp_retired_bindings (
+            remote_session_id TEXT PRIMARY KEY, binding_json TEXT NOT NULL);")
+            .map_err(|_|fail("ACP 历史绑定表初始化失败。"))?;
         // 兼容本地早期台账样本；只加可空回执列，不重写历史状态或解除执行锁。
         let mut connection = journal.connection()?;
         let tx = connection
@@ -162,6 +165,31 @@ impl Journal {
         Ok(scope)
     }
 
+    /// 用户显式重置上下文后建立新远端会话；历史绑定留档，未知或在途绝不解锁。
+    pub(super) fn rotate_idle_context(&self,scope:&ExecutionScope,binding:&Binding)->Result<(),String> {
+        let mut connection=self.connection()?;
+        let tx=connection.transaction_with_behavior(TransactionBehavior::Immediate).map_err(|_|fail("ACP 重置锁失败。"))?;
+        let old=tx.query_row("SELECT cwd,cli_identity,context_digest,remote_session_id,locked_attempt FROM devin_acp_bindings
+            WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3",params![scope.workspace_id,scope.room_id,scope.agent_id],
+            |row|Ok((row.get::<_,String>(0)?,row.get::<_,String>(1)?,row.get::<_,String>(2)?,row.get::<_,Option<String>>(3)?,row.get::<_,Option<String>>(4)?)))
+            .optional().map_err(|_|fail("ACP 重置绑定读取失败。"))?;
+        if let Some((cwd,cli,context,remote,locked))=old {
+            if context!=binding.context_digest {
+                if locked.is_some() {return Err(fail("ACP 旧执行仍在途或未知，不能重置绑定。"));}
+                if cli!=binding.cli_identity {return Err(fail("CLI 版本变化需要重新验收。"));}
+                if let Some(remote)=remote {
+                    let archive=serde_json::json!({"workspace_id":scope.workspace_id,"room_id":scope.room_id,
+                        "agent_id":scope.agent_id,"cwd":cwd,"cli_identity":cli,"context_digest":context,"remote_session_id":remote});
+                    tx.execute("INSERT INTO devin_acp_retired_bindings(remote_session_id,binding_json) VALUES(?1,?2)",
+                        params![remote,archive.to_string()]).map_err(|_|fail("ACP 旧会话归档失败。"))?;
+                }
+                tx.execute("DELETE FROM devin_acp_bindings WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3",
+                    params![scope.workspace_id,scope.room_id,scope.agent_id]).map_err(|_|fail("ACP 重置提交失败。"))?;
+            }
+        }
+        tx.commit().map_err(|_|fail("ACP 重置提交未确认。"))
+    }
+
     fn check(connection: &Connection, scope: &ExecutionScope) -> Result<(), String> {
         if !scope.accepts(scope) {
             return Err(fail("ACP 身份不完整。"));
@@ -219,6 +247,9 @@ impl Journal {
         if old.as_deref().is_some_and(|id| id != remote) {
             return Err(fail("ACP 会话绑定不能静默替换。"));
         }
+        let retired:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM devin_acp_retired_bindings WHERE remote_session_id=?1)",
+            [remote],|row|row.get(0)).map_err(|_|fail("ACP 历史会话身份核对失败。"))?;
+        if retired {return Err(fail("ACP 已重置的旧会话不能重新绑定。"));}
         let used_elsewhere: bool = tx
             .query_row(
                 "SELECT EXISTS(SELECT 1 FROM devin_acp_bindings WHERE remote_session_id=?1

@@ -128,7 +128,7 @@
       container.querySelector('[data-ms-action="discover"]').disabled = !canDiscover;
       el("discovery-status").classList.remove("ms-error");
       el("discovery-status").textContent = canDiscover
-        ? (devinConnection() ? "先登录 Devin，再获取账号模型；任务执行尚未就绪。此处查询不会创建任务。" : "点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。")
+        ? (devinConnection() ? "先登录 Devin，再选择免费的 SWE-2 进行聊天室文本会话。工具与附件尚未开放。" : "点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。")
         : "本地和内网模型保持手动填写；远程发现需要完整的 HTTP(S) 地址。";
     }
 
@@ -285,7 +285,7 @@
       set("turn-timeout", p.turn_timeout_ms == null ? "" : p.turn_timeout_ms / 60000);
       set("tool-exposure", p.llm_tool_exposure); set("tool-allowlist", (p.tool_allowlist || []).join("\n"));
       updateDynamicFields(); resetDiscovery(); dirty = false;
-      status(devinConnection() ? "Devin 配置已载入；任务执行尚未就绪，可先获取账号模型。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
+      status(devinConnection() ? "Devin 配置已载入；选择免费的 SWE-2 后可在聊天室发送文本。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
       options.onSelected?.(selectedId);
     }
 
@@ -368,7 +368,7 @@
         fill(result);
         const index = sessions.findIndex(s => s.id === selectedId);
         if (index >= 0) sessions[index] = result.session;
-        renderSessionOptions(); status(devin ? "已保存 Devin 配置；任务执行尚未就绪，可先获取账号模型。" : "已保存，对下一轮会话生效。");
+        renderSessionOptions(); status(devin ? "已保存 Devin 配置；选择此 Agent 后可在聊天室发送文本。工具与附件尚未开放。" : "已保存，对下一轮会话生效。");
         try { await options.onSaved?.(result.session, result); }
         catch (error) { if (!disposed) status(`配置已保存，但界面刷新失败：${error.message}`, true); }
         if (!disposed) container.dispatchEvent(new CustomEvent("model-settings-saved", { bubbles: true, detail: result }));

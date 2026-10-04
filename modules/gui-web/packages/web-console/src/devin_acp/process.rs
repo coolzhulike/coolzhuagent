@@ -18,6 +18,27 @@ pub(super) struct ManagedProcess {
 }
 
 impl ManagedProcess {
+    /// 经过固定版本/文件核对后的纯文本入口；不能传入任意 CLI 参数。
+    pub(super) async fn spawn_text_cli(
+        binary: &Path, cwd: &Path, config: &Path, model: &str,
+        journal: Journal, scope: ExecutionScope,
+    ) -> Result<(Self, SessionTransport<ChildStdin>), String> {
+        if !config.is_absolute() || !super::chat::supported_model(model) {
+            return Err("文本 CLI 配置或模型不受支持。".into());
+        }
+        let mut command = tokio::process::Command::new(binary);
+        command.args(["--config", config.to_str().ok_or("配置路径无效。")?,
+            "--permission-mode", "auto", "acp", "--model", model]);
+        // 只保留运行/官方凭据定位所需环境，不继承模型覆盖、付费回退、Hook 或外部密钥。
+        command.env_clear();
+        for name in ["SystemRoot","WINDIR","USERPROFILE","APPDATA","LOCALAPPDATA","PROGRAMDATA","TEMP","TMP"] {
+            if let Some(value) = std::env::var_os(name) { command.env(name,value); }
+        }
+        if let Some(system) = std::env::var_os("SystemRoot") {
+            command.env("PATH", Path::new(&system).join("System32"));
+        }
+        Self::spawn_command(command,cwd,journal,scope).await
+    }
     /// 正式入口不能通过环境变量开启。固定原生 CLI 的配置和旁路尚待验收。
     pub(super) async fn spawn_cli(
         _binary: &Path,
@@ -49,6 +70,12 @@ impl ManagedProcess {
         for name in ["DEVIN_MODEL", "DEVIN_REFUSAL_FALLBACK", "WINDSURF_API_KEY", "DEVIN_PERMISSION_MODE", "DEVIN_SANDBOX"] {
             command.env_remove(name);
         }
+        Self::spawn_command(command,cwd,journal,scope).await
+    }
+
+    async fn spawn_command(mut command: tokio::process::Command, cwd:&Path, journal:Journal, scope:ExecutionScope)
+        -> Result<(Self,SessionTransport<ChildStdin>),String> {
+        command.current_dir(cwd).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).kill_on_drop(true);
         #[cfg(windows)]
         let (mut child, job) =
             windows_process_guard::ChildProcessJob::spawn_managed_async(&mut command)

@@ -13289,7 +13289,7 @@ function renderSessionReasoningHint(resolution = null) {
   const hint = document.querySelector('[data-role="session-reasoning-hint"]');
   if (!hint) return;
   const selected = document.querySelector('[data-role="session-reasoning-effort"]')?.value || "auto";
-  if (sessionProviderValue() === "devin") { hint.textContent = "Devin 使用 CLI 登录；模型与思考能力待连接确认，任务执行尚未就绪。"; return; }
+  if (sessionProviderValue() === "devin") { hint.textContent = "Devin 使用 CLI 登录；聊天室支持免费 SWE-2 文本会话，工具与附件尚未开放。"; return; }
   const detail = reasoningOptionDetailsForForm().find((item) => item.value === selected);
   const configured = reasoningLabel(resolution?.requested || detail?.value || selected);
   const expected = reasoningLabel(resolution?.effective || detail?.effective || detail?.value || selected);

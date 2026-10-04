@@ -133,7 +133,7 @@ ACP prompt 超时或断连同样可能留下执行；没有停止事实时按未
 
 每阶段产出独立、可审查变更和验证记录，不再向 `main.rs` 填整套新后端。PR72 的大文件补丁需先在最新主线上逐段校准后拆分，Cloud 客户端与 ACP 使用同一服务但不同 transport/认证。
 
-关键现有定位已核对：`modules/llm-adapter/.../providers/mod.rs` 的 Provider 和 ProviderKind；`client.rs` 的 ProviderClient；web-console 的 `host_child_agent.rs`、`goal_execution_parent.rs`、`mcp_host.rs` 和上述聊天/上下文函数。第一阶段新增 `agent_session_backend.rs` 与 `devin_acp/{discovery,protocol,transport}.rs`，第二阶段新增 `devin_acp/{session,journal,bridge,process}.rs`。实际边界见第二阶段 work-log。正式入口接线、完整 scope 审批与 Cloud observer 仍待完成，不能把身份枚举或工程测试视为执行适配器已正式交付。
+关键现有定位已核对：`modules/llm-adapter/.../providers/mod.rs` 的 Provider 和 ProviderKind；`client.rs` 的 ProviderClient；web-console 的 `host_child_agent.rs`、`goal_execution_parent.rs`、`mcp_host.rs` 和上述聊天/上下文函数。第一阶段新增 `agent_session_backend.rs` 与 `devin_acp/{discovery,protocol,transport}.rs`，第二阶段新增 `devin_acp/{session,journal,bridge,process}.rs`。实际边界见第二阶段 work-log。正式聊天室文本入口已接通；完整 scope 审批、工具任务和 Cloud observer 仍待完成，不能把文本会话验收扩张为完整 Agent 工具执行交付。
 
 ## 8 验收任务与证据
 
@@ -165,10 +165,14 @@ ACP prompt 超时或断连同样可能留下执行；没有停止事实时按未
 
 按用户提供的 Devin 桌面路径找到内置原生 CLI，已核对版本 `devin 3000.10.48 (fcf7ba39)`、文件 SHA256 和 ACP 子命令。2026-10-04 已完成官方浏览器授权、真实认证核查与 721 项账号模型目录适配；SWE-2 三个变体均由目录标记 Free。使用 `swe-2-medium` 的真实 ACP 专项通过中文首轮回复、跨进程恢复前文与基础计算，三轮 requested/effective 一致、end_turn 与进程树排空明确。P0 的 Windows 内建旁路仍未完成完整验收。
 
-已落实独立 ACP 会话驱动、台账、文本/用量事件、取消和窄工具桥，工程测试包含真实本地文件 producer；正式聊天、Goal、子 Agent 接纳仍关闭。P0/P1/P2/P3 均只部分完成，P4–P5 尚未完成。旧配置连接继续禁止 prompt；真实生成专项只在显式开启的测试构建与临时工程运行，不构成正式入口已接通的证明。PR72 原有三次提交已通过保留双方历史的本地 merge 整合到最新主线，模块/路由/样式冲突逐处核对并同时保留；Cloud client/store 原基础保留，统一 observer 与上下文仍待补强。未使用收费模型、未发布或重新安装包含这些修改的安装包。详情见 [真实登录与 SWE-2 验收](../testing/devin-acp/real-validation-20261004.md) 和 [第二阶段实施记录](../work-logs/2026-10-04-devin-acp-session-and-tool-bridge.md)。
+已落实独立 ACP 会话驱动、台账、事件、取消和窄工具桥。2026-10-04 根据用户“模型接入聊天室才算完整验收”的要求补齐正式聊天室纯文本接线：使用既有单目标发送入口、共享运行接纳和消息流，从输入框真实发送并完成中文首轮、暗号续聊、页面刷新和后台重启后的计算；六条消息与三轮 ACP 模型/终态/排空回执均可核对。另一聊天室的真实非流式发送完成，远端绑定不同。旧配置只读连接仍不允许 prompt，真实聊天室使用新的文本执行适配器，不通过测试 fixture 或环境开关绕过正式入口。
+
+P1 的聊天室文本路径及 P2 的基本登录、模型选择、连续聊天和持久恢复已完成；完整工具执行、附件、Goal、群发/接力、子 Agent 仍关闭，P0/P3 的全面旁路与审批验收未完成，P4–P5 未完成。工具拒绝采用固定原生 CLI、独立工作目录、受控配置和不挂载工具；真实 read/write/exec 拒绝探测通过，不将其扩张为全面 OS 隔离通过。Devin 不进入 HTTP 工具循环或 HTTP 文本恢复，未知结果仍保留锁，未使用收费模型，未替换正式安装包。
+
+PR72 的原始 Cloud 基础代码和历史保持，统一 observer 与上下文仍待补强。最新结果见 [聊天室真实验收与截图](../testing/devin-acp/chatroom-acceptance-20261004.md)；此前后端专项记录保留于 [原真实登录与 ACP 专项](../testing/devin-acp/real-validation-20261004.md)。
 
 下一步实施按 P0 → P1 → P2 → P3 推进，Cloud 补强按共用底座后展开。产品目标已确定为 Agent 内统一使用，无须再把“是否只做插件面板”交回用户决定；仍需真实确认的事项为 CLI 可控性、账号能力、授权范围与预算。
 
-补充 P2 登录体验：插件市场与 Agent 模型设置共用“登录 Devin”入口，官方浏览器授权由受管本机进程执行，页面展示登录、等待、取消、超时、重试及真实认证状态。Windows 改用 ConPTY 确认官方默认浏览器选项，解决无输入而超时的问题；页面与 CLI 均已核对已登录。密码、令牌与原始授权输出不进入页面或会话 DTO。认证和纯文本真实验收已完成，完整工具隔离与统一 Agent 接线仍待实施。
+补充 P2 登录体验：插件市场与 Agent 模型设置共用“登录 Devin”入口，官方浏览器授权由受管本机进程执行，页面展示登录、等待、取消、超时、重试及真实认证状态。Windows 改用 ConPTY 确认官方默认浏览器选项，解决无输入而超时的问题；页面与 CLI 均已核对已登录。密码、令牌与原始授权输出不进入页面或会话 DTO。认证和纯文本真实验收已完成，聊天室真实文本接线和三轮界面验收已完成；完整工具隔离与 Goal/子 Agent 接线仍待实施。
 
 引用文档的历史“暂缓”与“只交方案”是原方案背景；本轮实际范围来自用户最新请求。此文件不替代后续真实任务授权，也不把拟议后端或尚未验证的能力写成已实现。

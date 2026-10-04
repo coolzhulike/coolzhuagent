@@ -1,5 +1,5 @@
 //! ACP 会话驱动：单一提示循环、有界消息队列、独立取消和逐条身份核对。
-//! 目前不挂载到聊天路由；原生 CLI 旁路验收通过前，正式接纳门保持关闭。
+//! 聊天路由仅使用经过验证的纯文本配置；工具任务使用独立的能力闸门。
 use super::{
     journal::Journal,
     protocol::{self, ExecutionScope, ModelSelection},
@@ -507,6 +507,10 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
         }
         guard.finished = true;
         outcome
+    }
+
+    pub(super) fn set_deadline(&mut self, deadline:tokio::time::Instant) {
+        self.deadline = deadline;
     }
 
     async fn drive(

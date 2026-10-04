@@ -30,7 +30,7 @@ impl AgentSessionBackend {
         match self {
             Self::LlmHttp => Ok(()),
             Self::DevinAcp => Err(api::ApiError::UnsupportedCapability {
-                capability: "Devin ACP 已接入配置和模型发现；本地工具桥与执行隔离尚未验收，当前不能发送 Agent 任务。请使用已就绪的服务商。".into(),
+                capability: "Devin ACP 已开放聊天室文本会话；不能进入 HTTP 工具循环，Goal、接力和子 Agent 尚未开放。".into(),
             }),
             Self::DevinCloud => Err(api::ApiError::UnsupportedCapability {
                 capability: "Devin Cloud 是远程会话后端，不能使用 HTTP 模型循环；统一远程委派尚未接入。".into(),
@@ -253,7 +253,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn devin_internal_goal_entry_rejects_before_demo_reply_or_tool_intent_fallback() {
+    async fn devin_internal_call_without_chat_run_rejects_before_demo_reply_or_tool_intent_fallback() {
         let response = super::super::agent_chat_response_within_root(
             &agent(),
             "执行命令并修改本地文件",
@@ -274,7 +274,7 @@ mod tests {
             "沿用根超时的阻止意图兜底控制标记"
         );
         assert!(response.context_usage.is_none());
-        assert!(response.answer_text.contains("尚未验收"));
+        assert!(response.answer_text.contains("缺少聊天室运行身份"));
     }
 
     #[tokio::test]

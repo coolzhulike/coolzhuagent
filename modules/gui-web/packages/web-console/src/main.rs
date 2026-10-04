@@ -19181,7 +19181,7 @@ async fn api_chat_send_stream(
             } else {
                 let stream_result = match await_chat_turn(
                     cancellation.as_ref(),
-                    stream_agent_model(
+                    CHAT_CANCELLATION.scope(Arc::clone(&cancellation), stream_agent_model(
                         agent,
                         &result.user_content,
                         &result.image_urls,
@@ -19191,7 +19191,7 @@ async fn api_chat_send_stream(
                         Some(&result.chat_room_id),
                         parent.as_ref().and_then(|context| context.parent_run_id.as_deref()),
                         parent.as_ref(),
-                    ),
+                    )),
                 )
                 .await
                 {
@@ -19344,7 +19344,7 @@ async fn api_chat_send_stream(
 
                         // EOF/本地合成的 MessageStop 不是服务端完成证明；缺证明时不得派发工具或补请求。
                         stream_failed = diagnostic_note.is_some()
-                            || model_stream.inflight_status().terminal_fact != Some(api::TerminationFact::ProtocolCompletion);
+                            || !model_stream.protocol_completed();
                         if stream_failed {
                             diagnostic_note.get_or_insert_with(|| "连接已结束，但未收到模型的完整结束标记；本轮保留已收到内容，未执行工具，也未重发请求".to_string());
                         }
@@ -19370,7 +19370,10 @@ async fn api_chat_send_stream(
                             stream_failed = true;
                             diagnostic_note = Some("模型已结束，但未返回可显示的回答或工具调用".to_string());
                         }
-                        stream_context_assembly = Some(assembly);
+                        // ACP 尚无已确认的 token 容量；不生成虚假的占用率或自动压缩远端会话。
+                        if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::LlmHttp {
+                            stream_context_assembly = Some(assembly);
+                        }
                     }
                     Err(error) => {
                         if cancellation.is_requested() {
@@ -19436,9 +19439,10 @@ async fn api_chat_send_stream(
                 retain_admitted_mcp_definitions(&mut request, parent.as_ref());
                 request.tools
             });
-            if model_text_requires_tool_recovery(&assistant_message.content, &result.user_content)
+            if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::LlmHttp
+                && (model_text_requires_tool_recovery(&assistant_message.content, &result.user_content)
                 || model_tool_calls.values().any(|(_, name, _)|
-                    !tool_call_name_is_exposed(name, streamed_request_tools.as_deref())) {
+                    !tool_call_name_is_exposed(name, streamed_request_tools.as_deref()))) {
                 diagnostic_note = Some("模型返回未开放的工具调用，已拒绝执行并尝试无工具回答".to_string());
                 let turn_key = result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn");
                 for (id, name, _) in model_tool_calls.values() {
@@ -21019,10 +21023,24 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         ));
     }
 
-    // 先于附件、消息持久化与工具接纳拒绝未就绪后端，演示模式也不能绕过。
+    // Devin 仅接纳单目标纯文本；工具、附件和远程委派仍由各自能力门拒绝。
+    let devin_text = targets.iter().any(|target| agent_session_backend::AgentSessionBackend::for_provider(&target.provider)
+        == agent_session_backend::AgentSessionBackend::DevinAcp);
+    if devin_text && !real_llm_enabled() {
+        return Err(api_error(StatusCode::SERVICE_UNAVAILABLE,"真实模型尚未启用；未创建 Devin 模拟回复。"));
+    }
+    if devin_text && (targets.len()!=1 || payload.attachments.as_ref().is_some_and(|items| !items.is_empty())) {
+        return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前支持单个 Agent 的聊天室文本会话；附件与群发尚未就绪。"));
+    }
     for target in &targets {
-        agent_session_backend::AgentSessionBackend::for_provider(&target.provider).require_http()
-            .map_err(|error| api_error(StatusCode::SERVICE_UNAVAILABLE, &error.to_string()))?;
+        if agent_session_backend::AgentSessionBackend::for_provider(&target.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+            if !devin_acp::chat::supported_model(&target.model) {
+                return Err(api_error(StatusCode::BAD_REQUEST,"请选择账号目录标记 Free 的 SWE-2 模型。"));
+            }
+        } else {
+            agent_session_backend::AgentSessionBackend::for_provider(&target.provider).require_http()
+                .map_err(|error| api_error(StatusCode::SERVICE_UNAVAILABLE, &error.to_string()))?;
+        }
     }
     let attachment_count = payload.attachments.as_ref().map_or(0, Vec::len);
     let attachments = payload.attachments.unwrap_or_default();
@@ -21046,6 +21064,10 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         calls_tool = calls_tool
             && room_tools
             && (semantic_action.as_deref() != Some("computer_use") || room_computer_use);
+    }
+    if devin_text {
+        let room_enabled=chat_room_capabilities_sqlite(&db_path,&chat_room_id).map_err(sqlite_api_error)?.0;
+        if !room_enabled {return Err(api_error(StatusCode::FORBIDDEN,"当前聊天室的真实模型调用已关闭。"));}
     }
     let (selected_history, context_history, context_rosters, active_vision_session_id) = {
         let store = session_store()
@@ -21082,12 +21104,12 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         &targets,
     );
     let user_content = compose_user_message_content(text, &reference_context);
-    let goal_trigger = prepare_goal_trigger_for_dispatch(
+    let goal_trigger = if devin_text { None } else { prepare_goal_trigger_for_dispatch(
         text,
         targets.first().copied(),
         &selectable_agents,
         active_vision_session_id.as_deref(),
-    );
+    ) };
 
     let user_kind = if attachments.is_empty() {
         "text"
@@ -27534,6 +27556,9 @@ async fn agent_chat_response_within_root(
     // 父运行接纳时冻结的上下文；缺省时工具链会 fail-closed 拒绝 CU，不会退化成「取当前工作区」。
     parent: Option<&FrozenParentContext>,
 ) -> AgentModelResponse {
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+        return devin_acp::chat::response(agent,prompt,context_history,collaboration_roster,chat_room_id,parent).await;
+    }
     if let Err(error) = agent_session_backend::AgentSessionBackend::for_provider(&agent.provider).require_http() {
         return AgentModelResponse {
             execution_failed: true, answer_text: error.to_string(), reasoning_text: String::new(),
@@ -30256,6 +30281,9 @@ fn map_input_point_to_capture(
 }
 
 fn real_model_error_hint(agent: &AgentSessionDto, error: &api::ApiError) -> String {
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+        return format!("Devin ACP 会话未完成：{error}。本轮未自动重试。");
+    }
     let diagnostics = agent_diagnostics(agent);
     match error {
         api::ApiError::MissingCredentials { .. } => format!(
@@ -32299,7 +32327,15 @@ async fn stream_agent_model(
     chat_room_id: Option<&str>,
     run_id: Option<&str>,
     parent: Option<&FrozenParentContext>,
-) -> Result<(api::MessageStream, ContextAssembly), api::ApiError> {
+) -> Result<(devin_acp::chat::ModelStream, ContextAssembly), api::ApiError> {
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+        if !image_urls.is_empty() { return Err(api::ApiError::UnsupportedCapability{capability:"Devin 图片输入尚未开放。".into()}); }
+        let mut assembly=build_context_assembly_with_roster(agent,context_history,prompt,&[],
+            context_build_options_for_agent_with_floor_and_room(agent,session_context_reset_floor(&agent.id),chat_room_id),collaboration_roster);
+        assembly.turn_id=Some(turn_id.into());
+        let stream=devin_acp::chat::start(agent,&assembly,parent).await?;
+        return Ok((stream,assembly));
+    }
     agent_session_backend::AgentSessionBackend::for_provider(&agent.provider).require_http()?;
     let image_input = multimodal_input::prepare(agent, prompt, image_urls, chat_room_id, Some(turn_id), run_id).await?;
     let mut assembly = build_context_assembly_with_roster(
@@ -32322,7 +32358,7 @@ async fn stream_agent_model(
     let stream = request_usage::observe_with_run(provider_client_for_agent(agent), &agent.id, chat_room_id, Some(turn_id), None, "chat", run_id)?
         .stream_message(&request)
         .await?;
-    Ok((stream, assembly))
+    Ok((devin_acp::chat::ModelStream::Http(stream), assembly))
 }
 
 fn provider_client_for_agent(agent: &AgentSessionDto) -> Result<ProviderClient, api::ApiError> {
@@ -51885,11 +51921,13 @@ impl PersistedSession {
             .requested
             .as_str()
             .to_string(),
-            reasoning_resolution: ReasoningResolutionDto::from(&reasoning_resolution_for_session(
+            reasoning_resolution: if agent_session_backend::AgentSessionBackend::for_provider(&self.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+                devin_acp::chat::reasoning_resolution()
+            } else { ReasoningResolutionDto::from(&reasoning_resolution_for_session(
                 &self.provider,
                 &self.model,
                 Some(&self.reasoning_effort),
-            )),
+            )) },
             api_key_status: if agent_session_backend::AgentSessionBackend::for_provider(&self.provider) == agent_session_backend::AgentSessionBackend::DevinAcp { "CLI 登录（未检查）".into() } else { api_key_configuration_status(&self.api_key_ref) },
             memory_mode: memory_mode_for_session(&self.id),
             active,

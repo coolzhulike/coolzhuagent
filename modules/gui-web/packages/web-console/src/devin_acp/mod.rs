@@ -1,4 +1,4 @@
-//! Devin 配置发现、ACP 会话及受控工具桥。真实 CLI 与原生 Windows 旁路验收前正式接纳保持关闭。
+//! Devin 配置、ACP 会话和受控工具桥。聊天室开放固定 CLI 的纯文本配置，工具任务仍关闭。
 pub(super) mod discovery;
 pub(super) mod auth;
 pub(super) mod bridge;
@@ -7,5 +7,6 @@ mod protocol;
 mod process;
 mod session;
 mod transport;
+pub(super) mod chat;
 #[cfg(all(test, windows))]
 mod real_smoke;

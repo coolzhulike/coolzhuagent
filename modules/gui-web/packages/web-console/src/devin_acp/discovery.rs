@@ -31,6 +31,7 @@ pub(crate) struct DiscoveryResponse {
     checked_at: u64,
     complete: bool,
     agent_execution_ready: bool,
+    text_chat_ready: bool,
     warnings: Vec<String>,
 }
 
@@ -214,7 +215,9 @@ pub(crate) async fn discover() -> super::super::ApiResult<Json<DiscoveryResponse
     let value: Value = serde_json::from_slice(&bytes)
         .map_err(|_| bad("Devin CLI 未返回合法 JSON 模型目录；请检查固定版本。"))?;
     let models = parse_catalog(&value).map_err(bad)?;
-    let mut warnings = vec!["目录可访问；尚未确认 ACP 会话的生效模型和能力。工具桥与执行隔离未验收，当前不能发送 Agent 任务。".into()];
+    let text_chat_ready = cfg!(windows) && version == super::chat::CLI_VERSION
+        && models.iter().any(|model|super::chat::supported_model(&model.id) && model.cost_tier.as_deref()==Some("Free"));
+    let mut warnings = vec!["聊天室支持免费 SWE-2 文本会话；每轮发送前核对 CLI 文件、免费目录与 ACP 生效模型。工具、附件、Goal 和子 Agent 尚未开放。".into()];
     if pinned.is_none() {
         warnings.push("CLI 版本尚未固定。完成验证后将 COOLZHU_DEVIN_CLI_VERSION 设置为此次 cli_version 的完整值。".into());
     }
@@ -229,6 +232,7 @@ pub(crate) async fn discover() -> super::super::ApiResult<Json<DiscoveryResponse
         checked_at: super::super::unix_timestamp_millis(),
         complete: true,
         agent_execution_ready: false,
+        text_chat_ready,
         warnings,
     }))
 }
