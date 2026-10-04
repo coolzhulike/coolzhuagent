@@ -64,7 +64,7 @@ impl DownloadControl {
             cancelled,
         })
     }
-    fn check(&self) -> Result<(), DownloadError> {
+    pub(crate) fn check(&self) -> Result<(), DownloadError> {
         if self.cancelled.load(Ordering::SeqCst) {
             return Err(error("download_cancelled", "来源下载已取消，未安装或启用"));
         }
@@ -114,6 +114,11 @@ pub struct PreparedPackage {
     pub declared_scripts: serde_json::Value,
 }
 impl PreparedPackage {
+    #[cfg(test)]
+    pub(crate) fn cleanup_fixture(directory: tempfile::TempDir, package: DshPackage) -> Self {
+        Self { directory, package, tree_sha: "a".repeat(40), objects: Vec::new(),
+            license: "isolated-test-fixture".into(), declared_scripts: serde_json::Value::Null }
+    }
     pub fn path(&self) -> &Path {
         self.directory.path()
     }
@@ -132,7 +137,7 @@ struct PackageData {
     declared_scripts: serde_json::Value,
 }
 
-async fn get(
+pub(crate) async fn get(
     client: &reqwest::Client,
     url: reqwest::Url,
     limit: usize,
@@ -187,7 +192,7 @@ async fn get(
     }
 }
 
-fn repository_parts(repository: &str) -> Result<(&str, &str), DownloadError> {
+pub(crate) fn repository_parts(repository: &str) -> Result<(&str, &str), DownloadError> {
     let parts = repository
         .strip_prefix("https://github.com/")
         .ok_or_else(|| invalid("仅支持公开GitHub HTTPS来源"))?

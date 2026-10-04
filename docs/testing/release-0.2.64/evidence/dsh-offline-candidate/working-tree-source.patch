@@ -1,0 +1,1002 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index a74df56..8966aea 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -964,6 +964,7 @@ dependencies = [
+  "serde",
+  "serde_json",
+  "sha2",
++ "tempfile",
+ ]
+ 
+ [[package]]
+diff --git a/modules/core-runtime/packages/core-runtime/src/dsh_host_process.rs b/modules/core-runtime/packages/core-runtime/src/dsh_host_process.rs
+index cb6c559..ee00374 100644
+--- a/modules/core-runtime/packages/core-runtime/src/dsh_host_process.rs
++++ b/modules/core-runtime/packages/core-runtime/src/dsh_host_process.rs
+@@ -165,6 +165,12 @@ pub fn execute(paths: &HostPaths, receipt: &Value, config: &Value, context: &Cal
+ 
+ fn exchange(paths: &HostPaths, receipt: &Value, config: &Value, context: &CallContext,
+     timeout: Duration, execution: Option<(&HostManifest, &str, &Value)>) -> Result<Value, HostError> {
++    let parent_control = crate::managed_process::current_execution_control();
++    if let Some(reason) = parent_control.as_ref().and_then(|control| control.interruption()) {
++        return Err(HostError { code: "host_interrupted".into(), message: "父调用已停止或截止，未启动宿主".into(),
++            interruption: Some(match reason { Interruption::Cancelled => "cancelled", Interruption::TimedOut => "timed_out" }.into()), cleanup_confirmed: false });
++    }
++    let timeout = parent_control.as_ref().and_then(|control| control.remaining()).map_or(timeout, |remaining| timeout.min(remaining));
+     if timeout.is_zero() || timeout > MAX_LIFETIME
+         || [&context.workspace_id, &context.room_id, &context.run_id, &context.call_id]
+             .iter().any(|text| text.is_empty() || text.len() > 192)
+diff --git a/modules/core-runtime/packages/core-runtime/src/dsh_runtime.rs b/modules/core-runtime/packages/core-runtime/src/dsh_runtime.rs
+index 5a46d27..c583d01 100644
+--- a/modules/core-runtime/packages/core-runtime/src/dsh_runtime.rs
++++ b/modules/core-runtime/packages/core-runtime/src/dsh_runtime.rs
+@@ -121,6 +121,9 @@ pub struct VerifiedRuntime {
+     pub total_bytes: u64,
+ }
+ impl VerifiedRuntime {
++    /// 长操作完成后重新核验同一来源，不能把旧资源核验当成新的启用资格。
++    pub fn reverify(&self) -> Result<Self, RuntimeError> { verify(&self.root) }
++
+     /// 调用者应在每次接纳/执行时重新核验；不可把旧核验结果当作新的执行资格。
+     pub fn paths(&self, plugin_root: PathBuf) -> HostPaths {
+         HostPaths {
+diff --git a/modules/core-runtime/packages/core-runtime/src/managed_process.rs b/modules/core-runtime/packages/core-runtime/src/managed_process.rs
+index 97d8ec9..3cf8a21 100644
+--- a/modules/core-runtime/packages/core-runtime/src/managed_process.rs
++++ b/modules/core-runtime/packages/core-runtime/src/managed_process.rs
+@@ -24,6 +24,19 @@ impl ExecutionControl {
+ 
+     pub fn cancel(&self) { self.cancelled.store(true, Ordering::Release); }
+ 
++    /// 追加资格撤销信号，保留已有取消令牌和单调截止；不能创建新的业务预算。
++    #[must_use]
++    pub fn with_additional_cancel(mut self, check: Arc<dyn Fn() -> bool + Send + Sync>) -> Self {
++        let previous = self.external_cancel.take();
++        self.external_cancel = Some(Arc::new(move || previous.as_ref().is_some_and(|old| old()) || check()));
++        self
++    }
++
++    #[must_use]
++    pub fn remaining(&self) -> Option<Duration> {
++        self.deadline.map(|deadline| deadline.saturating_duration_since(Instant::now()))
++    }
++
+     #[must_use]
+     pub fn interruption(&self) -> Option<Interruption> {
+         if self.cancelled.load(Ordering::Acquire)
+@@ -180,6 +193,27 @@ mod tests {
+     use super::*;
+     use std::path::PathBuf;
+ 
++    #[test]
++    fn additional_revocation_preserves_parent_cancel_and_deadline() {
++        let parent_cancel = Arc::new(AtomicBool::new(false));
++        let observed = parent_cancel.clone();
++        let parent = ExecutionControl::new(Some(Duration::from_secs(20)),
++            Some(Arc::new(move || observed.load(Ordering::Acquire))));
++        let derived = parent.clone().with_additional_cancel(Arc::new(|| false));
++        assert_eq!(derived.deadline, parent.deadline, "追加停用检查不能重置根截止");
++        parent_cancel.store(true, Ordering::Release);
++        assert_eq!(derived.interruption(), Some(Interruption::Cancelled));
++        parent_cancel.store(false, Ordering::Release);
++        parent.cancel();
++        assert_eq!(derived.interruption(), Some(Interruption::Cancelled), "原显式取消令牌必须共享");
++        let revoked = ExecutionControl::new(None, None).with_additional_cancel(Arc::new(|| true));
++        assert_eq!(revoked.interruption(), Some(Interruption::Cancelled));
++        let expired = ExecutionControl::new(Some(Duration::ZERO), None)
++            .with_additional_cancel(Arc::new(|| false));
++        assert_eq!(expired.interruption(), Some(Interruption::TimedOut));
++        assert_eq!(expired.remaining(), Some(Duration::ZERO));
++    }
++
+     fn fixture(name: &str) -> PathBuf {
+         let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+diff --git a/modules/gui-web/packages/web-console/src/app.js b/modules/gui-web/packages/web-console/src/app.js
+index 113a9e3..40539da 100644
+--- a/modules/gui-web/packages/web-console/src/app.js
++++ b/modules/gui-web/packages/web-console/src/app.js
+@@ -14031,9 +14031,14 @@ async function quickCatalogMutation(kind, path, payload, button) {
+   const workspaceKey = activeWorkspaceKey;
+   setBusy(button, true, "处理中");
+   try {
+-    await requestJson(path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
++    const result = await requestJson(path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+     if (workspaceKey !== activeWorkspaceKey) return;
+     await refreshQuickCatalogWindow(kind);
++    if (status && workspaceKey === activeWorkspaceKey && result?.pending_call_id) {
++      status.textContent = "已进入现有权限审批，尚未启用；请在权限面板核对并确认。来源或上下文变化后旧审批会被拒绝。";
++    } else if (status && workspaceKey === activeWorkspaceKey && result?.outcome && result.outcome.status !== "ok") {
++      status.textContent = result.outcome.summary_text || "操作未完成，请刷新后核对状态。";
++    }
+   } catch (error) {
+     if (status && workspaceKey === activeWorkspaceKey) status.textContent = `操作失败：${error.message}`;
+   } finally {
+@@ -14087,8 +14092,17 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
+     toggle.type = "button";
+     setWuxiaIconOnly(toggle, item.enabled ? "stop" : "check", item.enabled ? "停用插件" : "启用插件");
+     toggle.setAttribute("aria-pressed", String(item.enabled));
+-    toggle.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
+-      {expected_workspace:workspaceId,id:item.id,action:item.enabled ? "disable" : "enable"}, toggle));
++    toggle.addEventListener("click", () => {
++      if (item.dsh && !item.enabled) {
++        if (!window.confirm(`启用 ${item.name} 会运行其第三方代码来读取实际工具定义；后续调用仍需现有权限审批。确认启用当前已安装来源？`)) return;
++        quickCatalogMutation("plugin-market", "/api/extension-market/dsh/enable",
++          {expected_workspace:workspaceId,id:item.id,expected_source_sha256:item.dsh_source_sha256,
++            session_id:activeSessionId,chat_room_id:activeChatRoomId,config:{}}, toggle);
++      } else {
++        quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
++          {expected_workspace:workspaceId,id:item.id,action:item.enabled ? "disable" : "enable"}, toggle);
++      }
++    });
+     const update = document.createElement("button");
+     update.type = "button";
+     setWuxiaIconOnly(update, "refresh", "更新插件");
+@@ -14100,7 +14114,7 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
+     remove.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
+       {expected_workspace:workspaceId,id:item.id,action:"uninstall"}, remove));
+     card.append(toggle);
+-    if (item.kind === "external") card.append(update, remove);
++    if (item.kind === "external") { if (!item.dsh) card.append(update); card.append(remove); }
+   }
+   return card;
+ }
+diff --git a/modules/gui-web/packages/web-console/src/dsh_market.js b/modules/gui-web/packages/web-console/src/dsh_market.js
+index ee6dfab..95cbe11 100644
+--- a/modules/gui-web/packages/web-console/src/dsh_market.js
++++ b/modules/gui-web/packages/web-console/src/dsh_market.js
+@@ -48,17 +48,20 @@
+   }
+ 
+   function showDetail(item, detail) {
+-    document.querySelector('[data-role="dsh-market-detail"]')?.remove();
++    document.querySelector('[data-role="dsh-market-detail"]')?.dispatchEvent(new Event("dsh-market-close"));
+     const overlay = element("div", "", "tool-detail-modal dsh-market-modal");
+     overlay.dataset.role = "dsh-market-detail";
+     overlay.dataset.workspaceKey = workspaceKey();
++    const sourceAbort = new AbortController();
++    const closeDetail = () => { sourceAbort.abort(); overlay.remove(); };
++    overlay.addEventListener("dsh-market-close", closeDetail);
+     const card = element("div", "", "tool-detail-card dsh-market-detail-card");
+     const heading = element("header", "");
+     heading.append(element("strong", item.name || item.id));
+     const close = element("button", "关闭");
+     setWuxiaIconOnly(close, "stop", "关闭插件详情");
+     close.type = "button";
+-    close.addEventListener("click", () => overlay.remove());
++    close.addEventListener("click", closeDetail);
+     heading.append(close);
+     card.append(heading);
+     card.append(element("p", `${item.owner || "作者未知"} · ${item.version || "版本未提供"} · ${(item.categories || []).join("、") || "未分类"}`));
+@@ -72,7 +75,7 @@
+       open.addEventListener("click", async () => {
+         open.disabled = true;
+         try {
+-          overlay.remove();
++          closeDetail();
+           openChatToolWindow("browser");
+           const input = document.querySelector('[data-role="browser-window-input"]');
+           if (!input) throw new Error("浏览器地址栏不可用");
+@@ -92,7 +95,7 @@
+     check.addEventListener("click", async () => {
+       const key = workspaceKey();
+       if (overlay.dataset.workspaceKey !== key) {
+-        overlay.remove();
++        closeDetail();
+         status.textContent = "工程已切换，请刷新目录后重新打开详情。";
+         return;
+       }
+@@ -112,8 +115,70 @@
+       } finally { check.disabled = false; }
+     });
+     card.append(check);
++    const sourceCheck = element("button", "检查固定来源");
++    setWuxiaIconOnly(sourceCheck, "check", "检查 DSH 固定来源");
++    sourceCheck.type = "button";
++    const sourceStatus = element("p", "", "dsh-market-source-status");
++    let confirmedSource = null;
++    const install = element("button", "安装为停用状态");
++    setWuxiaIconOnly(install, "package-crate", "安装固定来源包（默认停用）");
++    install.type = "button";
++    install.disabled = true;
++    install.addEventListener("click", async () => {
++      const source = confirmedSource;
++      const key = workspaceKey();
++      if (!source || overlay.dataset.workspaceKey !== key) return;
++      install.disabled = true;
++      sourceCheck.disabled = true;
++      sourceStatus.textContent = "正在核对刚才确认的固定来源并安装为停用状态…";
++      try {
++        // 提交后关闭页面不自动重发；安装结果由持久目录核对，不跟随详情面板abort。
++        const result = await readJson("/api/extension-market/dsh/install", {
++          method: "POST", headers: { "Content-Type": "application/json" },
++          body: JSON.stringify({ expected_workspace: source.workspace_id, id: item.id,
++            commit: source.commit, expected_source_sha256: source.source_sha256 })
++        }, 150000);
++        confirmedSource = null;
++        if (overlay.isConnected && key === workspaceKey()) {
++          sourceStatus.textContent = result.installed === true
++            ? `已安装 ${result.name} ${result.version}，本次安装默认停用。${result.cleanup_confirmed ? "" : "来源暂存清理未确认，请查看诊断。"}请刷新本地插件目录核对当前状态；模型接线尚待验收。`
++            : "安装结果未确认，请刷新本地插件目录核对。";
++        }
++      } catch (error) {
++        confirmedSource = null;
++        if (overlay.isConnected && key === workspaceKey()) sourceStatus.textContent = `安装未正常完成：${error.message}。请刷新本地插件目录核对结果，不要自动重发。`;
++      } finally { sourceCheck.disabled = false; }
++    });
++    sourceStatus.setAttribute("role", "status");
++    sourceCheck.addEventListener("click", async () => {
++      const key = workspaceKey();
++      if (overlay.dataset.workspaceKey !== key) {
++        closeDetail();
++        status.textContent = "工程已切换，请刷新目录后重新打开详情。";
++        return;
++      }
++      sourceCheck.disabled = true;
++      confirmedSource = null;
++      install.disabled = true;
++      sourceStatus.textContent = "正在核验固定提交、包名与完整源码…";
++      try {
++        const result = await readJson("/api/extension-market/dsh/source", {
++          method: "POST", headers: { "Content-Type": "application/json" },
++          signal: sourceAbort.signal,
++          body: JSON.stringify({ expected_workspace: detail.workspace_id, id: item.id })
++        }, 125000);
++        if (!overlay.isConnected || key !== workspaceKey() || result.workspace_id !== detail.workspace_id) return;
++        if (result.status !== "source_verified") throw new Error("固定源码身份未确认");
++        confirmedSource = result;
++        install.disabled = result.static_installable !== true;
++        sourceStatus.textContent = `${result.name} · ${result.version} · ${result.license} · 修订 ${result.commit} · ${result.source_file_count} 个文件。${result.reason}`;
++      } catch (error) {
++        if (overlay.isConnected && key === workspaceKey()) sourceStatus.textContent = `固定来源检查失败：${error.message}`;
++      } finally { sourceCheck.disabled = false; }
++    });
++    card.append(sourceCheck, install, sourceStatus);
+     overlay.append(card);
+-    overlay.addEventListener("click", event => { if (event.target === overlay) overlay.remove(); });
++    overlay.addEventListener("click", event => { if (event.target === overlay) closeDetail(); });
+     document.body.append(overlay);
+   }
+ 
+@@ -223,7 +288,7 @@
+   }, { capture: true });
+   window.addEventListener("dsh-market-refresh", () => {
+     const modal = document.querySelector('[data-role="dsh-market-detail"]');
+-    if (modal && modal.dataset.workspaceKey !== workspaceKey()) modal.remove();
++    if (modal && modal.dataset.workspaceKey !== workspaceKey()) modal.dispatchEvent(new Event("dsh-market-close"));
+     openMarket();
+   });
+   prev.disabled = true;
+diff --git a/modules/gui-web/packages/web-console/src/dsh_market.rs b/modules/gui-web/packages/web-console/src/dsh_market.rs
+index a07a077..da31718 100644
+--- a/modules/gui-web/packages/web-console/src/dsh_market.rs
++++ b/modules/gui-web/packages/web-console/src/dsh_market.rs
+@@ -54,6 +54,9 @@ pub(super) fn routes() -> Router {
+     Router::new()
+         .route("/api/extension-market/dsh", get(dsh_list))
+         .route("/api/extension-market/dsh/detail", get(dsh_detail))
++        .route("/api/extension-market/dsh/source", post(dsh_source))
++        .route("/api/extension-market/dsh/install", post(dsh_install))
++        .route("/api/extension-market/dsh/enable", post(dsh_web::enable))
+         .route(
+             "/api/extension-market/dsh/compatibility",
+             post(dsh_compatibility),
+@@ -398,6 +401,145 @@ fn dsh_github_repo(entry: &DshEntry) -> Option<(String, String)> {
+     Some((owner.to_string(), repo.to_string()))
+ }
+ 
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct DshSourceRequest {
++    expected_workspace: String,
++    id: String,
++    commit: Option<String>,
++}
++
++async fn dsh_source(Json(request): Json<DshSourceRequest>) -> ApiResult<Json<JsonValue>> {
++    use dsh_source_download::{DownloadControl, DownloadError};
++    use sha2::{Digest, Sha256};
++    use std::sync::atomic::AtomicBool;
++    let workspace = active_workspace_path();
++    let assert_scope = || {
++        if request.expected_workspace != workspace_identity(&workspace)
++            || active_workspace_path() != workspace {
++            return Err(api_error(StatusCode::CONFLICT, "工程已切换，请重新检查固定来源"));
++        }
++        Ok(())
++    };
++    assert_scope()?;
++    if request.id.is_empty() || request.id.len() > 240 || request.commit.as_ref().is_some_and(|c| c.len() != 40) {
++        return Err(api_error(StatusCode::BAD_REQUEST, "来源条目或固定修订无效"));
++    }
++    // 只读检查也占用有界网络/暂存资源，拒绝堆积同进程并发下载。
++    static SOURCE_SLOTS: OnceLock<Arc<tokio::sync::Semaphore>> = OnceLock::new();
++    let _source_slot = SOURCE_SLOTS.get_or_init(|| Arc::new(tokio::sync::Semaphore::new(2)))
++        .clone().try_acquire_owned()
++        .map_err(|_| api_error(StatusCode::TOO_MANY_REQUESTS, "固定来源检查正忙，请稍后重试"))?;
++    let control = DownloadControl::new(Instant::now() + Duration::from_secs(120),
++        Arc::new(AtomicBool::new(false)))
++        .map_err(|e| api_error(StatusCode::BAD_REQUEST, &e.message))?;
++    let inspect = async {
++        let (catalog, stale, _) = dsh_catalog(false).await?;
++        assert_scope()?;
++        if stale { return Err(api_error(StatusCode::CONFLICT, "目录已过期，请成功刷新后再检查固定来源")); }
++        let entry = catalog.plugins.iter().find(|entry| dsh_id(entry) == request.id)
++            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "市场条目不存在"))?;
++        if entry.deprecated { return Err(api_error(StatusCode::BAD_REQUEST, "目录已标记弃用，未解析安装来源")); }
++        let candidate = dsh_source_resolve::SourceCandidate::new(&entry.owner, &entry.url, entry.npm.as_deref())
++            .map_err(|e| api_error(StatusCode::BAD_REQUEST, &e.message))?;
++        // SDK身份来自本次构建的宿主锁，页面不能指定本机源路径、SDK或运行命令。
++        let sdk_hash = format!("{:x}", Sha256::digest(include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
++            "/../../../tooling/packages/dsh-plugin-host/package-lock.json"))));
++        let prepared = dsh_source_resolve::prepare(&candidate, request.commit.as_deref(), &sdk_hash,
++            &std::env::temp_dir(), &control).await.map_err(|e| {
++                let status = match e.code {
++                    "download_timeout" => StatusCode::GATEWAY_TIMEOUT,
++                    "source_invalid" => StatusCode::UNPROCESSABLE_ENTITY,
++                    _ => StatusCode::BAD_GATEWAY,
++                };
++                api_error(status, &format!("固定来源检查失败：{}（暂存清理确认：{}）", e.message, e.cleanup_confirmed))
++            })?;
++        let response = json!({"workspace_id": request.expected_workspace, "id": request.id,
++            "status": "source_verified", "repository": prepared.package.repository,
++            "commit": prepared.package.commit, "tree_sha": prepared.tree_sha,
++            "name": prepared.package.receipt.name, "version": prepared.package.receipt.version,
++            "entry": prepared.package.receipt.entry, "license": prepared.license,
++            "source_file_count": prepared.package.receipt.files.len(),
++            "sdk_lock_sha256": prepared.package.receipt.sdk_lock_sha256,
++            "declared_scripts": prepared.declared_scripts,
++            "npm_identity_origin": if entry.npm.is_some() { "catalog_and_fixed_package_json" } else { "fixed_package_json" },
++            "source_sha256": prepared.package.source_fingerprint().map_err(|e| api_error(StatusCode::INTERNAL_SERVER_ERROR, &e.to_string()))?,
++            "compatibility": "unverified", "installable": false, "static_installable": true,
++            "reason": "固定源码已核验，可安装为停用状态；运行兼容与模型接线尚未验收。"});
++        prepared.discard().map_err(|e: DownloadError| api_error(StatusCode::INTERNAL_SERVER_ERROR, &e.message))?;
++        control.check().map_err(|e| api_error(StatusCode::GATEWAY_TIMEOUT, &e.message))?;
++        assert_scope()?;
++        Ok(Json(response))
++    };
++    tokio::time::timeout(Duration::from_secs(120), inspect).await
++        .map_err(|_| api_error(StatusCode::GATEWAY_TIMEOUT, "固定来源检查总预算已耗尽；未安装或启用"))?
++}
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct DshInstallRequest {
++    expected_workspace: String,
++    id: String,
++    commit: String,
++    expected_source_sha256: String,
++}
++
++async fn dsh_install(Json(request): Json<DshInstallRequest>) -> ApiResult<Json<JsonValue>> {
++    use dsh_source_download::DownloadControl;
++    use sha2::{Digest, Sha256};
++    use std::sync::atomic::AtomicBool;
++    let workspace = active_workspace_path();
++    if request.expected_workspace != workspace_identity(&workspace) {
++        return Err(api_error(StatusCode::CONFLICT, "工程已切换，请重新确认安装来源"));
++    }
++    if request.id.is_empty() || request.id.len() > 240 || request.commit.len() != 40
++        || request.expected_source_sha256.len() != 64
++        || !request.expected_source_sha256.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
++        return Err(api_error(StatusCode::BAD_REQUEST, "请先完成固定来源检查再安装"));
++    }
++    static INSTALL_SLOTS: OnceLock<Arc<tokio::sync::Semaphore>> = OnceLock::new();
++    let slot = INSTALL_SLOTS.get_or_init(|| Arc::new(tokio::sync::Semaphore::new(1)))
++        .clone().try_acquire_owned().map_err(|_| api_error(StatusCode::TOO_MANY_REQUESTS, "来源安装正忙，请稍后核对已安装目录"))?;
++    let control = DownloadControl::new(Instant::now() + Duration::from_secs(120), Arc::new(AtomicBool::new(false)))
++        .map_err(|e| api_error(StatusCode::BAD_REQUEST, &e.message))?;
++    let prepare = async {
++        let (catalog, stale, _) = dsh_catalog(false).await?;
++        if stale || active_workspace_path() != workspace {
++            return Err(api_error(StatusCode::CONFLICT, "目录或工程已变化，请重新检查固定来源"));
++        }
++        let entry = catalog.plugins.iter().find(|entry| dsh_id(entry) == request.id)
++            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "市场条目不存在"))?;
++        if entry.deprecated { return Err(api_error(StatusCode::BAD_REQUEST, "目录已弃用，未安装")); }
++        let candidate = dsh_source_resolve::SourceCandidate::new(&entry.owner, &entry.url, entry.npm.as_deref())
++            .map_err(|e| api_error(StatusCode::BAD_REQUEST, &e.message))?;
++        let sdk = format!("{:x}", Sha256::digest(include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
++            "/../../../tooling/packages/dsh-plugin-host/package-lock.json"))));
++        let prepared = dsh_source_resolve::prepare(&candidate, Some(&request.commit), &sdk,
++            &std::env::temp_dir(), &control).await
++            .map_err(|e| api_error(StatusCode::BAD_GATEWAY, &format!("安装前来源下载/核验失败：{e}")))?;
++        let description = dsh_description(entry);
++        let description = if description.trim().is_empty() { format!("DSH固定来源包 {}", entry.name) } else { description };
++        Ok((prepared, description))
++    };
++    let (prepared, description) = tokio::time::timeout(Duration::from_secs(120), prepare).await
++        .map_err(|_| api_error(StatusCode::GATEWAY_TIMEOUT, "安装前下载/核验超时，未进入安装事务"))??;
++    // 不在提交期间丢弃阻塞任务来假装取消。客户端断开后仍以原工程的持久登记为准。
++    let result = tokio::task::spawn_blocking(move || {
++        // 请求断开后阻塞提交仍可能继续；并发资格必须活到事务实际收尾。
++        let _slot = slot;
++        if active_workspace_path() != workspace || request.expected_workspace != workspace_identity(&workspace) {
++            return Err(api_error(StatusCode::CONFLICT, "提交前工程已切换，未安装"));
++        }
++        control.check().map_err(|e| api_error(StatusCode::GATEWAY_TIMEOUT, &e.message))?;
++        let mut manager = extension_market::manager(&workspace)?;
++        let receipt = dsh_install_service::install_confirmed(&mut manager, prepared,
++            &request.expected_source_sha256, &request.expected_workspace, &description)
++            .map_err(|e| api_error(StatusCode::BAD_REQUEST, &format!("安装事务未正常完成，请核对已安装目录：{e}")))?;
++        serde_json::to_value(receipt).map(Json).map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "安装回执序列化失败，请核对已安装目录"))
++    }).await.map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "安装结果未确认，请刷新已安装目录核对；不要自动重发"))?;
++    result
++}
++
+ fn dsh_repo_segment(value: &str) -> bool {
+     !value.is_empty()
+         && value.len() <= 100
+@@ -504,6 +646,23 @@ fn dsh_decode_manifest(bytes: &[u8]) -> Option<JsonValue> {
+ mod tests {
+     use super::*;
+ 
++    #[tokio::test]
++    async fn source_check_rejects_another_workspace_before_reading_catalog() {
++        let _env = crate::test_env::hold_for_read();
++        let error = dsh_source(Json(DshSourceRequest { expected_workspace: "not-current-workspace".into(),
++            id: "omdsh-dev/dsh-tool-calculator".into(), commit: None })).await.unwrap_err();
++        assert_eq!(error.0, StatusCode::CONFLICT);
++    }
++
++    #[tokio::test]
++    async fn install_rejects_another_workspace_before_reading_catalog() {
++        let _env = crate::test_env::hold_for_read();
++        let error = dsh_install(Json(DshInstallRequest { expected_workspace: "not-current-workspace".into(),
++            id: "omdsh-dev/dsh-tool-calculator".into(), commit: "b".repeat(40),
++            expected_source_sha256: "a".repeat(64) })).await.unwrap_err();
++        assert_eq!(error.0, StatusCode::CONFLICT);
++    }
++
+     #[test]
+     fn dsh_gzip_is_bounded_and_rejects_corruption() {
+         use std::io::Write;
+diff --git a/modules/gui-web/packages/web-console/src/dsh_source_download.rs b/modules/gui-web/packages/web-console/src/dsh_source_download.rs
+index d4a5aba..0f0a2be 100644
+--- a/modules/gui-web/packages/web-console/src/dsh_source_download.rs
++++ b/modules/gui-web/packages/web-console/src/dsh_source_download.rs
+@@ -64,7 +64,7 @@ impl DownloadControl {
+             cancelled,
+         })
+     }
+-    fn check(&self) -> Result<(), DownloadError> {
++    pub(crate) fn check(&self) -> Result<(), DownloadError> {
+         if self.cancelled.load(Ordering::SeqCst) {
+             return Err(error("download_cancelled", "来源下载已取消，未安装或启用"));
+         }
+@@ -132,7 +132,7 @@ struct PackageData {
+     declared_scripts: serde_json::Value,
+ }
+ 
+-async fn get(
++pub(crate) async fn get(
+     client: &reqwest::Client,
+     url: reqwest::Url,
+     limit: usize,
+@@ -187,7 +187,7 @@ async fn get(
+     }
+ }
+ 
+-fn repository_parts(repository: &str) -> Result<(&str, &str), DownloadError> {
++pub(crate) fn repository_parts(repository: &str) -> Result<(&str, &str), DownloadError> {
+     let parts = repository
+         .strip_prefix("https://github.com/")
+         .ok_or_else(|| invalid("仅支持公开GitHub HTTPS来源"))?
+diff --git a/modules/gui-web/packages/web-console/src/extension_market.rs b/modules/gui-web/packages/web-console/src/extension_market.rs
+index 6f5d412..38c39e0 100644
+--- a/modules/gui-web/packages/web-console/src/extension_market.rs
++++ b/modules/gui-web/packages/web-console/src/extension_market.rs
+@@ -27,11 +27,15 @@ struct PluginEntry {
+     installable: bool,
+     manageable: bool,
+     loaded_in_chat: bool,
++    dsh: bool,
++    dsh_source_sha256: Option<String>,
+ }
+ 
+ fn plugin_entry(summary: PluginSummary, installed: bool, loaded: bool) -> PluginEntry {
+     let metadata = summary.metadata;
+     let name = metadata.dsh.as_ref().map_or_else(|| metadata.name.clone(), |p| p.receipt.name.clone());
++    let dsh = metadata.dsh.is_some();
++    let dsh_source_sha256 = metadata.dsh.as_ref().and_then(|package| package.source_fingerprint().ok());
+     PluginEntry {
+         id: metadata.id,
+         name,
+@@ -44,6 +48,8 @@ fn plugin_entry(summary: PluginSummary, installed: bool, loaded: bool) -> Plugin
+         installable: false,
+         manageable: installed && metadata.kind != PluginKind::Builtin,
+         loaded_in_chat: loaded,
++        dsh,
++        dsh_source_sha256,
+     }
+ }
+ 
+@@ -77,13 +83,20 @@ fn plugin_catalog(workspace: &Path, manager: &plugins::PluginManager) -> ApiResu
+     let installed = manager.list_installed_plugins().map_err(plugin_error)?
+         .into_iter().map(|item| item.metadata.id).collect::<HashSet<_>>();
+     let runtime_error = plugin_runtime::definitions(workspace, &[]).err();
+-    let loaded = if runtime_error.is_none() {
++    let mut loaded = if runtime_error.is_none() {
+         manager.aggregated_tools().map_err(plugin_error)?.into_iter()
+             .map(|tool| tool.plugin_id().to_string()).collect::<HashSet<_>>()
+     } else { HashSet::new() };
++    if let Ok(bindings) = dsh_web::model_bindings(workspace) {
++        loaded.extend(bindings.into_values().map(|binding| binding.snapshot.plugin_id));
++    }
+     let plugins = manager.list_plugins().map_err(plugin_error)?.into_iter()
+-        .map(|item| { let is_installed = installed.contains(&item.metadata.id);
++        .map(|mut item| { let is_installed = installed.contains(&item.metadata.id);
+             let is_loaded = loaded.contains(&item.metadata.id);
++            if item.metadata.dsh.is_some() {
++                item.enabled = manager.dsh_snapshot(&item.metadata.id, &workspace_identity(workspace))
++                    .ok().flatten().is_some();
++            }
+             plugin_entry(item, is_installed, is_loaded) }).collect();
+     Ok(PluginListResponse { workspace_id: workspace_identity(workspace),
+         plugins, candidates: local_plugin_candidates(workspace), runtime_error })
+diff --git a/modules/gui-web/packages/web-console/src/host_child_agent.rs b/modules/gui-web/packages/web-console/src/host_child_agent.rs
+index 0b574be..8631fc7 100644
+--- a/modules/gui-web/packages/web-console/src/host_child_agent.rs
++++ b/modules/gui-web/packages/web-console/src/host_child_agent.rs
+@@ -93,8 +93,7 @@ impl HostModelSnapshot {
+             .collect();
+         let mut parent_definitions = llm_tool_definitions_for_session(&agent.id, room_id)
+             .unwrap_or_default();
+-        parent_definitions.retain(|definition| !definition.name.starts_with("mcp__")
+-            || parent.mcp_bindings.contains_key(&definition.name));
++        retain_admitted_plugin_definitions(&mut parent_definitions, Some(parent));
+         let parent_tools = parent_definitions.iter().map(|definition| definition.name.clone()).collect();
+         Ok(Self {
+             parent_model, override_models, parent_tools, parent_definitions,
+diff --git a/modules/gui-web/packages/web-console/src/main.rs b/modules/gui-web/packages/web-console/src/main.rs
+index 0ac73ea..38f2cbf 100644
+--- a/modules/gui-web/packages/web-console/src/main.rs
++++ b/modules/gui-web/packages/web-console/src/main.rs
+@@ -3,6 +3,11 @@ mod app_update;
+ mod extension_market;
+ mod dsh_market;
+ mod dsh_source_download;
++mod dsh_source_resolve;
++mod dsh_activation_host;
++mod dsh_install_service;
++mod dsh_execution;
++mod dsh_web;
+ mod plugin_runtime;
+ mod mcp_host;
+ mod lsp_host;
+@@ -587,6 +592,9 @@ struct FrozenParentContext {
+     native_browser_binding: Option<Result<native_browser_host::FrozenPanelBinding, String>>,
+     /// 接纳时实际连接并发现的 MCP 工具代际；重连后旧模型响应不可落到新进程。
+     mcp_bindings: Arc<HashMap<String, u64>>,
++    /// 接纳时的完整DSH快照和schema；新启用、重装或新定义不能补进旧父轮。
++    dsh_bindings: Arc<BTreeMap<String, dsh_execution::Binding>>,
++    dsh_permission: dsh_web::FrozenPermission,
+     /// 聊天接纳时已解析的模型、工具及权限；子任务不得在工具发起时重新读取配置扩权。
+     host_model_snapshots: Arc<HashMap<String, Arc<host_child_agent::HostModelSnapshot>>>,
+ }
+@@ -612,6 +620,8 @@ impl FrozenParentContext {
+                 .map(str::to_string)
+         };
+         let mcp_bindings = Arc::new(mcp_host::capture_model_bindings(workspace_id.as_str()));
++        let dsh_bindings = Arc::new(dsh_web::capture_parent_bindings(workspace_id.as_str()));
++        let dsh_permission = dsh_web::capture_permission(&dsh_bindings, workspace_id.as_str(), session_id, room_id);
+         Ok(Self {
+             entry,
+             workspace_id,
+@@ -625,6 +635,8 @@ impl FrozenParentContext {
+             computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::default(),
+             native_browser_binding: None,
+             mcp_bindings,
++            dsh_bindings,
++            dsh_permission,
+             host_model_snapshots: Arc::new(HashMap::new()),
+         })
+     }
+@@ -4019,6 +4031,8 @@ struct PendingApprovalRecord {
+     #[serde(skip)]
+     mcp_action: Option<mcp_host::McpPendingAction>,
+     #[serde(skip)]
++    dsh_action: Option<dsh_web::PendingAction>,
++    #[serde(skip)]
+     created_at: Instant,
+ }
+ 
+@@ -4085,6 +4099,17 @@ fn enqueue_pending_approval_for_room_with_mcp(
+     chat_room_id: Option<&str>,
+     mcp_action: Option<mcp_host::McpPendingAction>,
+ ) {
++    enqueue_pending_approval_custom(call_id, invoke, gate, chat_room_id, mcp_action, None);
++}
++
++fn enqueue_pending_approval_for_room_with_dsh(call_id: &str, invoke: &ToolInvoke,
++    gate: &runtime::PermissionGateReport, chat_room_id: Option<&str>, action: dsh_web::PendingAction) {
++    enqueue_pending_approval_custom(call_id, invoke, gate, chat_room_id, None, Some(action));
++}
++
++fn enqueue_pending_approval_custom(call_id: &str, invoke: &ToolInvoke,
++    gate: &runtime::PermissionGateReport, chat_room_id: Option<&str>,
++    mcp_action: Option<mcp_host::McpPendingAction>, dsh_action: Option<dsh_web::PendingAction>) {
+     let Ok(mut pending) = pending_approvals().lock() else {
+         return;
+     };
+@@ -4096,6 +4121,7 @@ fn enqueue_pending_approval_for_room_with_mcp(
+         caller: invoke.caller.as_str().to_string(),
+         workspace_id: invoke.workspace_id.clone(),
+         session_id: mcp_action.as_ref().and_then(mcp_host::McpPendingAction::approval_session_id)
++            .or_else(|| dsh_action.as_ref().map(dsh_web::PendingAction::approval_session_id))
+             .map(str::to_string).or_else(|| invoke.session_id.clone()),
+         chat_room_id: chat_room_id.map(str::to_string),
+         input_summary: build_input_summary(&invoke.tool_name, &invoke.input),
+@@ -4110,6 +4136,7 @@ fn enqueue_pending_approval_for_room_with_mcp(
+         invoke: invoke.clone(),
+         workspace_root: active_workspace_path(),
+         mcp_action,
++        dsh_action,
+         created_at: now,
+     };
+     pending.insert(call_id.to_string(), record.clone());
+@@ -6684,7 +6711,7 @@ async fn api_tools_approve(
+     };
+ 
+     let confirmed_twice = payload.confirmed_twice;
+-    let mut ttl_secs = if scope == "session" && record.mcp_action.is_none() {
++    let mut ttl_secs = if scope == "session" && record.mcp_action.is_none() && record.dsh_action.is_none() {
+         record_session_grant(
+             &record.workspace_id,
+             record.invoke.session_id.as_deref(),
+@@ -6697,7 +6724,7 @@ async fn api_tools_approve(
+     };
+ 
+     let outcome = execute_approved_pending_record(&record, confirmed_twice).await;
+-    if scope == "session" && record.mcp_action.is_some() && outcome.status == ToolOutcomeStatus::Ok {
++    if scope == "session" && (record.mcp_action.is_some() || record.dsh_action.is_some()) && outcome.status == ToolOutcomeStatus::Ok {
+         record_session_grant(
+             &record.workspace_id, record.invoke.session_id.as_deref(),
+             &record.tool_name, confirmed_twice,
+@@ -6729,6 +6756,12 @@ async fn execute_approved_pending_record(
+     record: &PendingApprovalRecord,
+     confirmed_twice: bool,
+ ) -> ToolOutcome {
++    if record.dsh_action.is_some() {
++        let outcome = dsh_web::execute_approved(record, confirmed_twice).await;
++        append_tool_audit_record(&record.invoke, &outcome);
++        emit_pet_event_for_tool_outcome(&record.tool_name, &outcome);
++        return outcome;
++    }
+     if record.mcp_action.is_some() {
+         let outcome = mcp_host::execute_approved_pending_record(record, confirmed_twice).await;
+         append_tool_audit_record(&record.invoke, &outcome);
+@@ -34342,11 +34375,17 @@ fn llm_tool_definitions_for_session(
+ 
+ fn retain_admitted_mcp_definitions(request: &mut MessageRequest, parent: Option<&FrozenParentContext>) {
+     if let Some(definitions) = request.tools.as_mut() {
+-        definitions.retain(|definition| !definition.name.starts_with("mcp__")
+-            || parent.is_some_and(|parent| parent.mcp_bindings.contains_key(&definition.name)));
++        retain_admitted_plugin_definitions(definitions, parent);
+         if definitions.is_empty() { request.tools = None; }
+     }
+ }
++fn retain_admitted_plugin_definitions(definitions: &mut Vec<ToolDefinition>, parent: Option<&FrozenParentContext>) {
++    definitions.retain(|definition| !definition.name.starts_with("mcp__")
++        || parent.is_some_and(|parent| parent.mcp_bindings.contains_key(&definition.name)));
++    definitions.retain(|definition| !definition.name.starts_with(dsh_execution::PREFIX)
++        || parent.and_then(|parent| parent.dsh_bindings.get(&definition.name)).is_some_and(|frozen|
++            frozen.definition.input_schema == definition.input_schema && frozen.definition.description == definition.description));
++}
+ 
+ fn llm_tool_definitions_with_settings(
+     granted_permission: PermissionMode,
+@@ -35170,6 +35209,13 @@ async fn run_model_tool_dispatch_for_session_with_identity(
+     host_scope: Option<&host_child_agent::HostToolScope>,
+ ) -> ApiResult<ToolDispatchResponse> {
+     // 缺必需 CU 来源时先拒绝，不访问默认数据库或登记匿名工具调用。
++    if name.starts_with(dsh_execution::PREFIX) && (parent.is_none()
++        || provider_tool_call_id.is_none_or(|id| id.trim().is_empty())
++        || caller_session_id.is_none_or(|id| id.trim().is_empty())
++        || chat_room_id.is_none_or(|id| id.trim().is_empty())
++        || turn_id.is_none_or(|id| id.trim().is_empty())) {
++        return Err(api_error(StatusCode::CONFLICT, "DSH缺少真实父轮/provider/会话/聊天室/轮次身份，未登记匿名调用"));
++    }
+     let normalized = name.replace('-', "_");
+     if normalized == "computer_use.perform" || normalized == "computer_use_perform" {
+         let missing_call = provider_tool_call_id.is_none_or(|value| value.trim().is_empty());
+@@ -35211,7 +35257,9 @@ async fn run_model_tool_dispatch_for_session_with_identity(
+     let _scope = if existing.is_none() { turn_id.map(|trace| ToolTurnCancellationScope::install(trace, cancellation.clone())) } else { None };
+     // CU/事实层的既有 provider_tool_call_id 字段兼容保存宿主执行id；raw值只作关联并已单独持久化。
+     let execution_call_id = source.as_ref().map(|source| source.execution_id.as_str());
+-    let run = run_model_tool_dispatch_within_root(name, input, caller_session_id, execution_call_id, turn_id, chat_room_id, parent, host_scope);
++    // 巨型分发future放到堆上，避免多层冻结上下文在默认线程栈上溢出；仍沿用同一预算和取消。
++    let run = Box::pin(run_model_tool_dispatch_within_root(name, input, caller_session_id, execution_call_id, turn_id, chat_room_id, parent, host_scope,
++        source.as_ref().map(|source| source.provider_tool_call_id.as_str()), &mut settlement));
+     let mut outcome = if let Some(budget) = budget {
+         match root_execution_budget::scope(budget.clone(), budget.run_cancellable(run, || { cancellation.request_timeout(); })).await {
+             Ok(result) => result,
+@@ -35219,11 +35267,16 @@ async fn run_model_tool_dispatch_for_session_with_identity(
+         }
+     } else { run.await };
+     let status = match &outcome {
++        Ok(result) if name.starts_with(dsh_execution::PREFIX)
++            && result.route == "runtime-dry-run"
++            && result.dispatch_plan.as_ref().is_some_and(|plan| plan.audit.requires_human_confirmation) => "awaiting_approval",
+         Ok(result) if !tool_loop_coordinator::terminal_status_is_error(&result.status) => "completed",
+         _ => "failed",
+     };
+-    settlement.finish(status).map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,
+-        &format!("工具已结束等待，但终态记录未确认：{error}；不可自动重试")))?;
++    if !settlement.is_settled() {
++        settlement.finish(status).map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,
++            &format!("工具已结束等待，但终态记录未确认：{error}；不可自动重试")))?;
++    }
+     if let Ok(response) = outcome.as_mut() {
+         if let Some(text) = response.tool_result_text.take() {
+             response.tool_result_text = Some(truncate_tool_result_for_context(text, parent));
+@@ -35241,8 +35294,10 @@ async fn run_model_tool_dispatch_within_root(
+     chat_room_id: Option<&str>,
+     parent: Option<&FrozenParentContext>,
+     host_scope: Option<&host_child_agent::HostToolScope>,
++    raw_provider_tool_call_id: Option<&str>,
++    settlement: &mut tool_dispatch_settlement::ToolDispatchSettlement,
+ ) -> ApiResult<ToolDispatchResponse> {
+-    if name.starts_with("mcp__") {
++    if name.starts_with("mcp__") || name.starts_with(dsh_execution::PREFIX) {
+         diag!("[TOOL-CHAIN] MCP 模型工具派发: name={name}, input=[已隐藏]");
+     } else {
+         diag!("[TOOL-CHAIN] run_model_tool_dispatch: name={name}, input={input}");
+@@ -35293,6 +35348,12 @@ async fn run_model_tool_dispatch_within_root(
+         return Ok(tool_outcome_to_dispatch_response(name, input, outcome));
+     }
+ 
++    if name.starts_with(dsh_execution::PREFIX) {
++        let outcome = dsh_web::call_from_model(name, input, caller_session_id, chat_room_id,
++            provider_tool_call_id, raw_provider_tool_call_id, turn_id, parent, settlement).await?;
++        return Ok(tool_outcome_to_dispatch_response(name, input, outcome));
++    }
++
+     if plugin_runtime::is_plugin_name(name) {
+         let workspace_root = match host_scope {
+             Some(host_child_agent::HostToolScope::Child(child)) => child.workspace_root.clone(),
+@@ -77717,6 +77778,7 @@ attach: last_assistant
+                 invoke: invoke.clone(),
+                 workspace_root: std::env::temp_dir(),
+                 mcp_action: None,
++                dsh_action: None,
+                 created_at: std::time::Instant::now(),
+             },
+         ));
+diff --git a/modules/gui-web/packages/web-console/src/plugin_runtime.rs b/modules/gui-web/packages/web-console/src/plugin_runtime.rs
+index aa16612..08c1162 100644
+--- a/modules/gui-web/packages/web-console/src/plugin_runtime.rs
++++ b/modules/gui-web/packages/web-console/src/plugin_runtime.rs
+@@ -28,10 +28,17 @@ pub(super) fn definitions(workspace: &Path, existing: &[ToolDefinition]) -> Resu
+         result.push(ToolDefinition { name, description: tool.definition().description.clone(),
+             input_schema: tool.definition().input_schema.clone() });
+     }
++    let dsh = dsh_web::model_bindings(workspace).unwrap_or_else(|error| {
++        diag_log(&format!("[DSH-TOOLS] 当前工具未加载：{error}")); BTreeMap::new()
++    });
++    for binding in dsh.into_values() {
++        if !seen.insert(binding.definition.name.clone()) { return Err("DSH工具与现有工具重名，未加载".into()); }
++        result.push(binding.definition);
++    }
+     Ok(result)
+ }
+ 
+-pub(super) fn is_plugin_name(name: &str) -> bool { name.starts_with(PREFIX) }
++pub(super) fn is_plugin_name(name: &str) -> bool { name.starts_with(PREFIX) || name.starts_with(dsh_execution::PREFIX) }
+ 
+ pub(super) fn executor(workspace: &Path, exposed: &str) -> Result<Option<Arc<dyn ToolInvocationExecutor>>, String> {
+     let Some(raw) = exposed.strip_prefix(PREFIX) else { return Ok(None); };
+diff --git a/modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs b/modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs
+index 744c0d9..103decc 100644
+--- a/modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs
++++ b/modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs
+@@ -12,6 +12,9 @@ pub(crate) struct ToolDispatchSettlement {
+     settled: bool,
+ }
+ impl ToolDispatchSettlement {
++    pub(crate) fn is_settled(&self) -> bool { self.settled }
++    /// 先持久化审批等待，再暴露审批事件；原派发不得覆盖随后审批领取/执行的投影。
++    pub(crate) fn handoff_approval(&mut self) -> Result<(), String> { self.finish("awaiting_approval") }
+     /// 首次登记成功才返回收尾所有权；失败者不能执行，也不能收尾另一调用的记录。
+     pub(crate) fn admit(path: PathBuf, tool_call_id: String, run_id: Option<String>,
+         tool_name: String, arguments_digest: String, root_budget: Option<RootExecutionBudget>) -> Result<Self, String> {
+diff --git a/modules/tooling/packages/plugin-system/Cargo.toml b/modules/tooling/packages/plugin-system/Cargo.toml
+index 14ce5f2..9f2ac08 100644
+--- a/modules/tooling/packages/plugin-system/Cargo.toml
++++ b/modules/tooling/packages/plugin-system/Cargo.toml
+@@ -12,6 +12,7 @@ name = "plugins"
+ serde = { version = "1", features = ["derive"] }
+ serde_json.workspace = true
+ sha2 = "0.10"
++tempfile = "3"
+ 
+ [lints]
+ workspace = true
+diff --git a/modules/tooling/packages/plugin-system/src/dsh_package.rs b/modules/tooling/packages/plugin-system/src/dsh_package.rs
+index c26e46d..1cbd4c5 100644
+--- a/modules/tooling/packages/plugin-system/src/dsh_package.rs
++++ b/modules/tooling/packages/plugin-system/src/dsh_package.rs
+@@ -47,6 +47,13 @@ fn hash(bytes: &[u8]) -> String {
+ }
+ 
+ impl DshPackage {
++    /// 固定来源确认摘要与文件顺序无关，不包含本机暂存路径或安装世代。
++    pub fn source_fingerprint(&self) -> Result<String, PluginError> {
++        let mut canonical = self.clone();
++        canonical.receipt.files.sort_by(|left, right| left.path.cmp(&right.path));
++        Ok(hash(&serde_json::to_vec(&canonical)?))
++    }
++
+     /// 注册 ID 不使用 scoped npm 名中的斜线；完整 npm 身份始终保留在 receipt。
+     #[must_use]
+     pub fn registration_name(&self) -> String {
+@@ -263,6 +270,7 @@ impl PluginManager {
+             .enabled_plugins
+             .insert(outcome.plugin_id.clone(), false);
+         Ok(InstallOutcome {
++            operation_id: outcome.operation_id,
+             plugin_id: outcome.plugin_id,
+             version: outcome.new_version,
+             install_path: outcome.install_path,
+diff --git a/modules/tooling/packages/plugin-system/src/install_transaction.rs b/modules/tooling/packages/plugin-system/src/install_transaction.rs
+index fad1637..3ea4d2c 100644
+--- a/modules/tooling/packages/plugin-system/src/install_transaction.rs
++++ b/modules/tooling/packages/plugin-system/src/install_transaction.rs
+@@ -32,6 +32,7 @@ struct OperationJournal {
+ 
+ #[derive(Debug)]
+ pub(super) struct TransactionOutcome {
++    pub(super) operation_id: String,
+     pub(super) plugin_id: String,
+     pub(super) old_version: Option<String>,
+     pub(super) new_version: String,
+@@ -339,6 +340,8 @@ impl PluginManager {
+             };
+             let now = unix_time_ms();
+             let old_version = old_record.as_ref().map(|record| record.version.clone());
++            let operation_id = operation_dir.file_name().and_then(|name| name.to_str())
++                .expect("new operation directory should have an ID").to_string();
+             let new_record = match kind {
+                 OperationKind::Install | OperationKind::BundledSync => InstalledPluginRecord {
+                     kind: if kind == OperationKind::BundledSync {
+@@ -356,8 +359,10 @@ impl PluginManager {
+                         .as_ref()
+                         .map_or(now, |record| record.installed_at_unix_ms),
+                     updated_at_unix_ms: now,
++                    installation_id: operation_id.clone(),
+                 },
+                 OperationKind::Update => InstalledPluginRecord {
++                    installation_id: operation_id.clone(),
+                     version: manifest.version.clone(),
+                     description: manifest.description.clone(),
+                     updated_at_unix_ms: now,
+@@ -365,11 +370,6 @@ impl PluginManager {
+                 },
+             };
+             registry.plugins.insert(plugin_id.clone(), new_record);
+-            let operation_id = operation_dir
+-                .file_name()
+-                .and_then(|name| name.to_str())
+-                .expect("new operation directory should have an ID")
+-                .to_string();
+             let journal = OperationJournal {
+                 version: 1,
+                 operation_id,
+@@ -385,6 +385,7 @@ impl PluginManager {
+             write_operation_journal(root, &operation_dir, &journal)?;
+             self.commit_staged_locked(root, &operation_dir, &journal, &registry, enabled)?;
+             Ok(TransactionOutcome {
++                operation_id: journal.operation_id,
+                 plugin_id,
+                 old_version,
+                 new_version: manifest.version,
+diff --git a/modules/tooling/packages/plugin-system/src/lib.rs b/modules/tooling/packages/plugin-system/src/lib.rs
+index 83271a1..b11844e 100644
+--- a/modules/tooling/packages/plugin-system/src/lib.rs
++++ b/modules/tooling/packages/plugin-system/src/lib.rs
+@@ -1,7 +1,9 @@
+ mod hooks;
+ mod install_transaction;
+ mod dsh_package;
++mod dsh_activation;
+ pub use dsh_package::{DshPackage, DshSourceReceipt, DshSourceFile};
++pub use dsh_activation::{DshActivationTicket, DshActivationSnapshot};
+ 
+ #[cfg(test)]
+ use install_transaction::TransactionFault;
+@@ -382,6 +384,9 @@ pub struct InstalledPluginRecord {
+     pub source: PluginInstallSource,
+     pub installed_at_unix_ms: u128,
+     pub updated_at_unix_ms: u128,
++    /// 每次安装/更新的真实事务身份；旧记录缺失时DSH保持未启用。
++    #[serde(default)]
++    pub installation_id: String,
+ }
+ 
+ #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+@@ -788,6 +793,7 @@ pub struct PluginManager {
+ 
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct InstallOutcome {
++    pub operation_id: String,
+     pub plugin_id: String,
+     pub version: String,
+     pub install_path: PathBuf,
+@@ -1028,6 +1034,7 @@ impl PluginManager {
+                 .insert(outcome.plugin_id.clone(), enabled);
+         }
+         Ok(InstallOutcome {
++            operation_id: outcome.operation_id,
+             plugin_id: outcome.plugin_id,
+             version: outcome.new_version,
+             install_path: outcome.install_path,
+@@ -1038,7 +1045,7 @@ impl PluginManager {
+         let (_root, _lock) = self.lock_and_recover()?;
+         self.ensure_known_plugin_locked(plugin_id)?;
+         if self.plugin_registry_locked()?.get(plugin_id).is_some_and(|p| p.metadata().dsh.is_some()) {
+-            return Err(PluginError::CommandFailed("DSH 包已安装但工具宿主尚未接入启用流程，未启用".into()));
++            return Err(PluginError::CommandFailed("DSH 启用必须由固定宿主完成真实描述并保存快照；普通启用入口不能直接打开，未启用".into()));
+         }
+         self.write_enabled_state(plugin_id, Some(true))?;
+         self.config
+@@ -1266,8 +1273,8 @@ impl PluginManager {
+     }
+ 
+     fn is_enabled(&self, metadata: &PluginMetadata) -> bool {
+-        // 静态安装不代表工具已加载；宿主启用事务接入前不采纳外部设置中的启用位。
+-        if metadata.dsh.is_some() { return false; }
++        // DSH只有来源/世代仍一致的真实宿主快照才采纳启用位，不采纳配置层伪造的true。
++        if metadata.dsh.is_some() { return self.dsh_snapshot_locked(&metadata.id, None).ok().flatten().is_some(); }
+         self.config
+             .enabled_plugins
+             .get(&metadata.id)
+@@ -1317,6 +1324,10 @@ impl PluginManager {
+     ) -> Result<(), PluginError> {
+         let path = checked_metadata_path(&self.settings_path())?;
+         update_settings_json(&path, |root| {
++            if enabled != Some(true) && plugin_id.starts_with("dsh-") {
++                ensure_object(root, "dshSnapshots").remove(plugin_id);
++                ensure_object(root, "dshLifecycleEpochs").insert(plugin_id.into(), Value::String(dsh_activation::new_epoch()));
++            }
+             let enabled_plugins = ensure_object(root, "enabledPlugins");
+             match enabled {
+                 Some(value) => {
+@@ -1992,7 +2003,12 @@ fn update_settings_json(
+     })?;
+     update(object);
+     reject_reparse_chain(&path)?;
+-    fs::write(path, serde_json::to_string_pretty(&root)?)?;
++    // 同卷临时文件+替换：启用位和DSH快照不能出现半份JSON。
++    use std::io::Write;
++    let mut temporary = tempfile::NamedTempFile::new_in(path.parent().ok_or_else(|| PluginError::InvalidManifest("设置路径缺少父目录".into()))?)?;
++    temporary.write_all(&serde_json::to_vec_pretty(&root)?)?;
++    temporary.as_file().sync_all()?;
++    temporary.persist(&path).map_err(|error| PluginError::Io(error.error))?;
+     Ok(())
+ }
+ 
+@@ -2665,6 +2681,7 @@ mod tests {
+                 },
+                 installed_at_unix_ms: 1,
+                 updated_at_unix_ms: 1,
++                installation_id: String::new(),
+             },
+         );
+         manager.store_registry(&registry).expect("store registry");
+@@ -2725,6 +2742,7 @@ mod tests {
+                 },
+                 installed_at_unix_ms: 1,
+                 updated_at_unix_ms: 1,
++                installation_id: String::new(),
+             },
+         );
+         manager.store_registry(&registry).expect("store registry");
+@@ -2771,6 +2789,7 @@ mod tests {
+                 },
+                 installed_at_unix_ms: 1,
+                 updated_at_unix_ms: 1,
++                installation_id: String::new(),
+             },
+         );
+         manager.store_registry(&registry).expect("store registry");

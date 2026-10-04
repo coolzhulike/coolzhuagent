@@ -1,0 +1,4 @@
+{
+  "exit_code": 0,
+  "command": "cargo test -p coolzhu-web-console --offline native_browser_input::tests -- --test-threads=1"
+}

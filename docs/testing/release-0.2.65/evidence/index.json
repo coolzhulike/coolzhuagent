@@ -1,0 +1,179 @@
+{
+  "checked_at_utc": "2026-10-02T11:39:38.013570+00:00",
+  "version": "0.2.65",
+  "msi": "dist\\CoolzhuAgent-0.2.65.msi",
+  "msi_size": 275647003,
+  "msi_sha256": "fa80c6faf13383f926f03a4617b5a406918b9b602e2fbf08dbd2f7e89c35eb19",
+  "signed": false,
+  "reference_head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "source_authority": "冻结的实际工作树，非干净HEAD",
+  "identities": {
+    "schema": 1,
+    "source_snapshot_digest": "528b32995570881438ca73e63b1430328b78ae5d6d21509fe5ae810eab9f891e",
+    "build_input_digest": "9a5e3f51f44415e6c6c5c14acbf924b9f4ed92118d7f599e28cdaf7ebd90e484",
+    "payload_digest": "022170edf6acbf242f08488214ca474a7b51989ea8b41e3ecfedbd3930f77eae",
+    "msi_payload_sha256": "fa80c6faf13383f926f03a4617b5a406918b9b602e2fbf08dbd2f7e89c35eb19",
+    "note": "payload_digest 是 MSI 输入（暂存包）的文件清单摘要；msi_payload_sha256 是最终分发文件本身的摘要。两者一起回答\"最终生成和分发了哪些二进制与资源\"。"
+  },
+  "package_report_id": "pkg-report-release-20261002-193445262-4b3afcd6",
+  "gates_passed": 6,
+  "proven_artifacts": 10,
+  "source_files": 1281,
+  "msi_files": 1150,
+  "msi_total_bytes": 419512141,
+  "inventory_files_excluding_inventory_itself": 1149,
+  "dsh_runtime": {
+    "verified": true,
+    "platform": "win32-x64",
+    "file_count": 290,
+    "total_bytes": 93908058,
+    "lock_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+  },
+  "test_reference": {
+    "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/evidence-index.json",
+    "sha256": "637b21c713402bb71fd95cf68a607a810bd11c6b84aea5dd419aa9eccc538324",
+    "matching_sources": [
+      {
+        "file": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+        "sha256": "5673b2629bca8266e851fbffd902963bb9a88ad4a4da9084c30ff2578d258b49",
+        "head_sha256": "84fd3c9d1c959cd53171dde6f2ce2aa3eae211dfafc71332625bc30ac1c7e19e",
+        "change_kind": "上一阶段生产期限修复与回归测试"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/computer_use_executor.rs",
+        "sha256": "a02a31563d3a3945a9aa95a54db054116ec649a2a048f9fe59af714ebac36c49",
+        "head_sha256": "88663d42f24ffa7aa683df29ce1560b573f76e486623320207e40e357c4da758",
+        "change_kind": "本阶段仅扩展已有测试的5种场景"
+      }
+    ],
+    "not_rerun_for_packaging": true
+  },
+  "preserved_previous_deliverables": true,
+  "installed_binaries_unchanged": true,
+  "original_incidents_unchanged": true,
+  "codex_config_unchanged": true,
+  "artifacts": [
+    {
+      "file": "package-report.json",
+      "size": 53721,
+      "sha256": "6233383f91fe09ad5cf73c2f99f187beacf1c7e8405ccbcfa7507cd55a0e7a93",
+      "origin": "tmp/package-reports/package-report-release-20261002-193445262.json"
+    },
+    {
+      "file": "source-snapshot.json",
+      "size": 277839,
+      "sha256": "a9dbf1aa5e1d655da7e4b891a265d98aac6627a4c05f77d19556de68e2a99da8",
+      "origin": "tmp/source-snapshots/source-snapshot-528b32995570881438ca73e63b1430328b78ae5d6d21509fe5ae810eab9f891e.json"
+    },
+    {
+      "file": "build-input-freeze.json",
+      "size": 12414,
+      "sha256": "cfbd630741b1a637278b4ce241552064569d97c4f99a2e70965edba3ee5a038c",
+      "origin": "tmp/package-freeze/package-input-freeze-release-9a5e3f51f44415e6c6c5c14acbf924b9f4ed92118d7f599e28cdaf7ebd90e484.json"
+    },
+    {
+      "file": "prepare-report.json",
+      "size": 4649,
+      "sha256": "bc782e4e9a2843f24ec1787e4298d852c58db251447b2e3110dd3cd4af249d3d",
+      "origin": "tmp/package-reports/prepare/package-prepare-release-20261002-193135638.json"
+    },
+    {
+      "file": "payload-inventory.json",
+      "size": 253328,
+      "sha256": "f78f7fe8e2d8f90d47e3a8278581abb9308375b99dd8677b69ecd2747a5f2165",
+      "origin": "tmp/candidate-065-package/payload-inventory.json"
+    },
+    {
+      "file": "installer-report.json",
+      "size": 3617,
+      "sha256": "25a0d0f9d1214932efdeec7fe8b5fcb53c66a1e6ca6c00bb19f3cc43c8de8ab9",
+      "origin": "dist/CoolzhuAgent-0.2.65-installer-report.json"
+    },
+    {
+      "file": "package-safety.json",
+      "size": 195,
+      "sha256": "6fc42a8b95c87d9b98c68d7ece38edbab7de57414f01bbf2f6fb441f0ff41133",
+      "origin": "dist/CoolzhuAgent-0.2.65-package-safety.json"
+    },
+    {
+      "file": "candidate-manifest.json",
+      "size": 22124,
+      "sha256": "d5acd871a014f50c0fd137a1f740bb34fc955d453a032b7b706900feeb7bd8d1",
+      "origin": "config/package-manifest-0.2.65-candidate.json"
+    },
+    {
+      "file": "dsh-runtime-lock.json",
+      "size": 60864,
+      "sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+      "origin": "config/dsh-runtime-lock.json"
+    },
+    {
+      "file": "prepare-pointer.json",
+      "size": 674,
+      "sha256": "82b33db6bfc626bf880109ba384e64d551e317cf4785d9e860899c67239cc0fd",
+      "origin": "tmp/2026-10-02-browser-msi/prepare-pointer.json"
+    },
+    {
+      "file": "prepare-outcome.json",
+      "size": 153,
+      "sha256": "7a70b0ec2230049349fd24acd4de333ce84b8b24b53b1bab7c42b52abdfb60ac",
+      "origin": "tmp/2026-10-02-browser-msi/prepare-outcome.json"
+    },
+    {
+      "file": "package-pointer.json",
+      "size": 2198,
+      "sha256": "0aed3d06356c0083b6c1cdaae03c2a824b4fbee61882d91e61fa2ebdca0a3563",
+      "origin": "tmp/2026-10-02-browser-msi/package-pointer.json"
+    },
+    {
+      "file": "build-outcome.json",
+      "size": 151,
+      "sha256": "72e98ca617fb4315693b8ddb631001cba418fc111b8b0168bdcfd68c352703bc",
+      "origin": "tmp/2026-10-02-browser-msi/build-outcome.json"
+    },
+    {
+      "file": "build.txt",
+      "size": 68225,
+      "sha256": "d8468e59135cfcb92f1e6f86a3ddfc594f8ed6b281f8c13052396c7b11c01631",
+      "origin": "tmp/2026-10-02-browser-msi/build.log"
+    },
+    {
+      "file": "manifest-contract.txt",
+      "size": 129,
+      "sha256": "a2e0d02012fa2f0b7410107c21216bff00cd83f9d1716d6e8d6295d8b68e57d4",
+      "origin": "tmp/2026-10-02-browser-msi/manifest-contract.log"
+    },
+    {
+      "file": "manifest-and-test-binding.json",
+      "size": 1202,
+      "sha256": "76077456b39da877a679d818e71b0995254601cfd1e5415595a7929ac2f38cb2",
+      "origin": "tmp/2026-10-02-browser-msi/manifest-and-test-binding.json"
+    },
+    {
+      "file": "offline-msi-verification.json",
+      "size": 392606,
+      "sha256": "6e5d3791bf4ba5a0e35ec47209afa93527f7b6acb1af92e832cafb553557bf4d",
+      "origin": "tmp/2026-10-02-browser-msi/offline-msi-verification.json"
+    },
+    {
+      "file": "extracted-runtime-verifier.txt",
+      "size": 172,
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322",
+      "origin": "tmp/2026-10-02-browser-msi/extracted-runtime-verifier.txt"
+    },
+    {
+      "file": "preservation-verification.json",
+      "size": 2446,
+      "sha256": "1c40559252b1cfeecff937ebc036e0cfc80f278b743fcfdcc273a4f15a0b4232",
+      "origin": "tmp/2026-10-02-browser-msi/preservation-verification.json"
+    }
+  ],
+  "not_executed": [
+    "安装/升级/卸载",
+    "重启正式实例",
+    "GUI输入/模型调用/Paint验收",
+    "GitHub上传",
+    "解除隔离"
+  ],
+  "remaining_boundary": "停在本地Windows CU恢复依赖点；真实释放期间Close/Cancel/navigation与完整功能仍未验收"
+}

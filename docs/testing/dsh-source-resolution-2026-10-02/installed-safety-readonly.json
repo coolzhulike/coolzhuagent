@@ -1,0 +1,12 @@
+{
+  "resource_scope": "windows-session-1",
+  "resource_state": "isolated",
+  "accepts_new_input": false,
+  "pending_recovery_operations": 0,
+  "human_review_required": 5,
+  "unacknowledged_open_blocks": 1,
+  "unacknowledged_legacy_runs": 0,
+  "unacknowledged_block_ids": [
+    "native-panel-fd88ef6ac7802d80f61b9c375dbad320"
+  ]
+}

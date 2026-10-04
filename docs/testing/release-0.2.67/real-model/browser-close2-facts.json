@@ -1,0 +1,120 @@
+{
+  "label": "browser-close2",
+  "runtime": {
+    "id": "run-chat-aef3dacc1ae4598dccdd74aeaacc9331fc0faccd780ba815",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791103034973,
+    "finished_at": 1791103074405,
+    "legacy_turn_id": "chat-turn-1791103034964-7"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000002318db46b8883936ec-tool-962dc8ff03f771e57807a8aad604c24b8752a9b1110ec3a0d866b16d9feacbe5",
+      "state": "blocked",
+      "action_count": 1,
+      "replan_count": 0,
+      "created_at_ms": 1791103045400,
+      "updated_at_ms": 1791103064569,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000002318db46b8883936ec-tool-962dc8ff03f771e57807a8aad604c24b8752a9b1110ec3a0d866b16d9feacbe5",
+        "provider_tool_call_id": "tool-962dc8ff03f771e57807a8aad604c24b8752a9b1110ec3a0d866b16d9feacbe5",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "内置浏览器观察不可用或环境已变化",
+        "error": {
+          "code": "native_observation_timeout",
+          "message": "内置浏览器观察不可用或环境已变化",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:3:2",
+          "native-observation:b8366278b3c6142184f83899684a38ba",
+          "native-ax:3:2",
+          "native-observation:b8366278b3c6142184f83899684a38ba",
+          "native-input:566f3110d47b16ab3e18ecdd9e3c9dc9",
+          "native-ax:3:2",
+          "native-observation:4b08d13dfe625cecdd6ff0d591640091"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791103934964
+            }
+          },
+          "cu_deadline_ms": 1791103165400,
+          "cu_deadline_established_at_ms": 1791103045400,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅一次单击、不导航、不输入、不滚动",
+          "不使用其它工具或桌面UIA，不使用历史坐标",
+          "页面关闭或任何失败立即结束，不重开、不重试、不补发，关闭后不可认领已关闭页面目标通过",
+          "不能把释放当作目标完成"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏网页单击增加次数，使次数由0变为1",
+        "success_criteria": [
+          "本轮最新页面实际显示次数：1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63657/boundary.html"
+        }
+      }
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000002318db46b8883936ec-tool-962dc8ff03f771e57807a8aad604c24b8752a9b1110ec3a0d866b16d9feacbe5",
+      "step_index": 0,
+      "action_type": "click",
+      "status": "input_sent_observed",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "released",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1791103049689,
+      "completed_at_ms": 1791103053390,
+      "native_dispatch_state": "released"
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000002318db46b8883936ec-tool-962dc8ff03f771e57807a8aad604c24b8752a9b1110ec3a0d866b16d9feacbe5",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791103046072,
+      "completed_at_ms": 1791103049685
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000002318db46b8883936ec-tool-962dc8ff03f771e57807a8aad604c24b8752a9b1110ec3a0d866b16d9feacbe5",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "error_code": "native_observation_timeout",
+      "started_at_ms": 1791103053663,
+      "completed_at_ms": 1791103064562
+    }
+  ],
+  "usage": []
+}

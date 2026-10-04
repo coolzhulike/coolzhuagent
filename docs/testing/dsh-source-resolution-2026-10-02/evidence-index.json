@@ -1,0 +1,111 @@
+{
+  "branch": "codex/cu-preinput-followup-20260930",
+  "source_files": [
+    {
+      "path": "modules/gui-web/packages/web-console/src/main.rs",
+      "sha256": "0cc8066fad1530fad6d8d17714bea533640516a7662727ac534883a609ad9131"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+      "sha256": "1450cb701c62043a64f5a700999cbc375016f184d89c32f71a4db385d57b2b77"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_market.js",
+      "sha256": "0e66a5c156184a1284aa05060a5845797c4814c7840c43a85b78dbfed0245f01"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+      "sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+      "sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/examples/dsh_source_resolution_probe.rs",
+      "sha256": "6a2961b2b61b7415dfe74b2c4d0ebb49a6a703624ced20978b2abeea287eaa74"
+    }
+  ],
+  "baseline_head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "evidence_files": [
+    {
+      "path": "build-final-result.json",
+      "bytes": 48,
+      "sha256": "c7451d48d7bbe1d18d35afa0a659bd226a281c5d6dd3b8ee875154f1f163c883"
+    },
+    {
+      "path": "build-final.txt",
+      "bytes": 46768,
+      "sha256": "8be71363e26ce4a097f124a8920ef689b4c32079ac5a1e71e57e2ce38f21b14e"
+    },
+    {
+      "path": "build.txt",
+      "bytes": 46768,
+      "sha256": "485ad1d052df00cb062d9b0e166bf2aae6967bf226f0154e1023587ba2ed3092"
+    },
+    {
+      "path": "installed-hashes-readonly.json",
+      "bytes": 347,
+      "sha256": "b31631bc232d9536e8501e0b02fa073f11941944f138f5e5fcdbeda399632b5e"
+    },
+    {
+      "path": "installed-identity-readonly.json",
+      "bytes": 129,
+      "sha256": "ae93c93b14dbe72867fba29ff827f302335004bfac766938cc034879b7f00e7d"
+    },
+    {
+      "path": "installed-safety-readonly.json",
+      "bytes": 343,
+      "sha256": "47c475c060f0852a15db81f874211ba3475b99fd475f7a99eee332a953b0f468"
+    },
+    {
+      "path": "module-linkage.txt",
+      "bytes": 2242,
+      "sha256": "3a37bb4107f91bc1ff68e17dac94456c5fd6fdea21623d4b5142ccd9b81949ab"
+    },
+    {
+      "path": "preservation-result.json",
+      "bytes": 241,
+      "sha256": "611d111d4630a36d9ad67045877491fbbf750853d227521807b9e8e9e545c412"
+    },
+    {
+      "path": "source-probe-network.txt",
+      "bytes": 84,
+      "sha256": "306f2d5deb05f455e351ad11313b71d435bb1835637a48c234ca70d2dc8a3da3"
+    },
+    {
+      "path": "source-probe-sandbox-failed.txt",
+      "bytes": 116,
+      "sha256": "f38b5f66fce597f67a734866d2f11466b3df4c07e441ee94012f05e227947b69"
+    },
+    {
+      "path": "source-receipt.json",
+      "bytes": 5055,
+      "sha256": "a604549279fc8d4581d4011ea9e099cace3ed778c7dcf7772f1a11d1c0a3e626"
+    },
+    {
+      "path": "tool-registry-check.txt",
+      "bytes": 1897,
+      "sha256": "f3af43b986dad5cc7dbf4dafae31360fc6b9e219d4acc6fa3bc811dae27a583c"
+    },
+    {
+      "path": "web-tests-final.txt",
+      "bytes": 135881,
+      "sha256": "e14271b2a4844bb1e1d3e69686daa7d0e4ec5972503bdc8bbdf9711e1037780a"
+    },
+    {
+      "path": "web-tests-isolated.txt",
+      "bytes": 136249,
+      "sha256": "d04b5781dbec3cb11638c9f53c0ee1ae7f9e41ac3593306b6969f8735464f37a"
+    },
+    {
+      "path": "web-tests.txt",
+      "bytes": 141361,
+      "sha256": "b9107e5be65079ffd077477a8047a189fd69155f2d962faeea4fe9c624a7f5bc"
+    }
+  ],
+  "schema": 1,
+  "scope": "未提交工作树工程核验，非安装版GUI/Qwen验收",
+  "gui_acceptance_performed": false,
+  "real_model_calls": 0
+}

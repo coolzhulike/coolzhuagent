@@ -1,0 +1,17 @@
+
+running 1 test
+
+thread 'dsh_web::tests::official_fixed_runtime_web_dispatch_and_stale_approval' (2276) panicked at modules\gui-web\packages\web-console\src\dsh_web_tests.rs:497:5:
+assertion `left == right` failed: 等待预算已耗尽；worker 已真实结束：dsh_runtime_interrupted：父运行已取消或到期，未启动插件宿主
+  left: Timeout
+ right: Ok
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dsh_web::tests::official_fixed_runtime_web_dispatch_and_stale_approval ... FAILED
+
+failures:
+
+failures:
+    dsh_web::tests::official_fixed_runtime_web_dispatch_and_stale_approval
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1304 filtered out; finished in 72.32s
+

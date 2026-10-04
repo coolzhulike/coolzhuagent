@@ -1,0 +1,16 @@
+{
+  "elapsed_ms": 390,
+  "outcome": {
+    "ok": true,
+    "result": {
+      "content": [
+        {
+          "text": "96",
+          "type": "text"
+        }
+      ],
+      "isError": false,
+      "value": 96
+    }
+  }
+}

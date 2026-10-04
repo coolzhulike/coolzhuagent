@@ -1,0 +1,2 @@
+RD4-06 prepare/freeze policy: locked cargo semantics + declared derived outputs + no mid-build whitelist
+PASS package-manifest

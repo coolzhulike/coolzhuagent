@@ -1,0 +1,12 @@
+[
+  {
+    "length": 38308864,
+    "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-web-console.exe",
+    "sha256": "fbd3080991f4888218b25ef36fda3a19bd1be994af57c4fd6fe63cb8707c6544"
+  },
+  {
+    "length": 85883392,
+    "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-tauri-shell.exe",
+    "sha256": "37ac54c9b7a0289ac38910e1e406d88b48ac4315b54f6c3da7a513ad24ef8d7e"
+  }
+]

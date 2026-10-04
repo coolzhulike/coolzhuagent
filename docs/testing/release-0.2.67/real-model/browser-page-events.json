@@ -1,0 +1,123 @@
+[
+  {
+    "kind": "load",
+    "value": "/click.html",
+    "page_ms": 1791101387856,
+    "server_ms": 1791101387860
+  },
+  {
+    "kind": "load",
+    "value": "/click.html",
+    "page_ms": 1791102205972,
+    "server_ms": 1791102205974
+  },
+  {
+    "kind": "pointerdown",
+    "page_ms": 1791102242993,
+    "server_ms": 1791102242995
+  },
+  {
+    "kind": "pointerup",
+    "page_ms": 1791102242993,
+    "server_ms": 1791102242997
+  },
+  {
+    "kind": "click",
+    "value": 1,
+    "page_ms": 1791102242994,
+    "server_ms": 1791102242998
+  },
+  {
+    "kind": "input",
+    "value": "B67-真实输入",
+    "page_ms": 1791102569095,
+    "server_ms": 1791102569098
+  },
+  {
+    "kind": "scroll",
+    "value": 266,
+    "page_ms": 1791102649201,
+    "server_ms": 1791102649204
+  },
+  {
+    "kind": "load",
+    "value": "/boundary.html",
+    "page_ms": 1791102768176,
+    "server_ms": 1791102768183
+  },
+  {
+    "kind": "pointerdown",
+    "page_ms": 1791102799062,
+    "server_ms": 1791102799064
+  },
+  {
+    "kind": "pointerdown_handler_finished",
+    "page_ms": 1791102801063,
+    "server_ms": 1791102801065
+  },
+  {
+    "kind": "pointerup",
+    "page_ms": 1791102801063,
+    "server_ms": 1791102801066
+  },
+  {
+    "kind": "click",
+    "value": 1,
+    "page_ms": 1791102801063,
+    "server_ms": 1791102801067
+  },
+  {
+    "kind": "load",
+    "value": "/boundary.html",
+    "page_ms": 1791102909941,
+    "server_ms": 1791102909944
+  },
+  {
+    "kind": "pointerdown",
+    "page_ms": 1791102963488,
+    "server_ms": 1791102963490
+  },
+  {
+    "kind": "pointerdown_handler_finished",
+    "page_ms": 1791102965489,
+    "server_ms": 1791102965491
+  },
+  {
+    "kind": "click",
+    "value": 1,
+    "page_ms": 1791102965490,
+    "server_ms": 1791102965493
+  },
+  {
+    "kind": "pointerup",
+    "page_ms": 1791102965490,
+    "server_ms": 1791102965492
+  },
+  {
+    "kind": "load",
+    "value": "/boundary.html",
+    "page_ms": 1791103033405,
+    "server_ms": 1791103033410
+  },
+  {
+    "kind": "pointerdown",
+    "page_ms": 1791103051375,
+    "server_ms": 1791103051377
+  },
+  {
+    "kind": "pointerdown_handler_finished",
+    "page_ms": 1791103053375,
+    "server_ms": 1791103053377
+  },
+  {
+    "kind": "pointerup",
+    "page_ms": 1791103053376,
+    "server_ms": 1791103053378
+  },
+  {
+    "kind": "click",
+    "value": 1,
+    "page_ms": 1791103053376,
+    "server_ms": 1791103053379
+  }
+]

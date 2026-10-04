@@ -1,0 +1,10 @@
+[
+  {
+    "Path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "Hash": "FBD3080991F4888218B25EF36FDA3A19BD1BE994AF57C4FD6FE63CB8707C6544"
+  },
+  {
+    "Path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "Hash": "37AC54C9B7A0289AC38910E1E406D88B48AC4315B54F6C3DA7A513AD24EF8D7E"
+  }
+]

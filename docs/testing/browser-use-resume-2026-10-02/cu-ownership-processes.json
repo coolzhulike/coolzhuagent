@@ -1,0 +1,14 @@
+[
+  {
+    "ProcessName": "node_repl",
+    "Id": 4328,
+    "StartTime": "2026-10-01T11:15:26.2506531+08:00",
+    "Path": "C:\\Users\\zhupu\\AppData\\Local\\OpenAI\\Codex\\runtimes\\cua_node\\154806497bb51bae\\bin\\node_repl.exe"
+  },
+  {
+    "ProcessName": "node_repl",
+    "Id": 31308,
+    "StartTime": "2026-10-01T11:15:26.1002603+08:00",
+    "Path": "C:\\Users\\zhupu\\AppData\\Local\\OpenAI\\Codex\\runtimes\\cua_node\\154806497bb51bae\\bin\\node_repl.exe"
+  }
+]

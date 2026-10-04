@@ -1,0 +1,9 @@
+{
+  "mode": "apply",
+  "field": "computer_use.controller.timeout_seconds",
+  "before_seconds": 120,
+  "after_seconds": 300,
+  "before_sha256": "6aa516435210a8e592821243c1a89ba2b37cb9bb7f3e6ac09d246524ba714a69",
+  "after_sha256": "ed2edd3b1c4410c4c58d30dea28bf4a9226af2c852d197e7159fb5d4caedfd4f",
+  "all_other_values_unchanged": true
+}

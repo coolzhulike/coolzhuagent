@@ -1,0 +1,196 @@
+{
+  "files": [
+    {
+      "file": "browser-before.jpg",
+      "sha256": "0816e42f95142d0935f6a46e3a559b6b9cfb095647073920f245ab149383dda0",
+      "bytes": 217257
+    },
+    {
+      "file": "browser-cancel-boundary.json",
+      "sha256": "42cdd7a95e76597da48de493170f90fdac1d0d001e19c63ff4b49cb0b6ea8cd8",
+      "bytes": 529
+    },
+    {
+      "file": "browser-cancel-facts.json",
+      "sha256": "aece15d231b5e7e09023f4dbce587f3d7ce266e55921bebd6b5d6c13e813d206",
+      "bytes": 4451
+    },
+    {
+      "file": "browser-cancel.jpg",
+      "sha256": "0d6ba8028f4d39cbc919e6568b524f19775d4b21b7dda78099bff06ef61f03b2",
+      "bytes": 218496
+    },
+    {
+      "file": "browser-click-facts.json",
+      "sha256": "c0444dc051130da15713ac4fd58d764230c02124b09ecbdff8ddc9a01a4aed68",
+      "bytes": 5195
+    },
+    {
+      "file": "browser-click.jpg",
+      "sha256": "a312289f9365957e707defbc244d5b3a2d9f88fe2c869e7afe6396bf5277018e",
+      "bytes": 217252
+    },
+    {
+      "file": "browser-close-after-release.jpg",
+      "sha256": "cec73f3fdeb91dfe1936b9bdaef4321e3629347f68e27e31f545bf510c040794",
+      "bytes": 197546
+    },
+    {
+      "file": "browser-close-facts.json",
+      "sha256": "3f8c164ac9249ff79b47ddae17147307c49df096383ff423fe7f88bbef345020",
+      "bytes": 5294
+    },
+    {
+      "file": "browser-close2-facts.json",
+      "sha256": "739c66d22a070ad3ba3fe987e6234f45a7cd01d313def19010dda1d12cd4706f",
+      "bytes": 4510
+    },
+    {
+      "file": "browser-navigation-facts.json",
+      "sha256": "09bd49fcab3f904b8f45ed0821b0fcb8c33456e3c10598861eb87bea80af6736",
+      "bytes": 5281
+    },
+    {
+      "file": "browser-navigation.jpg",
+      "sha256": "d1e0964ca5aa4eebc95bef5c21cd3b79833e319f6f103ef608665cfb2ac679f2",
+      "bytes": 206761
+    },
+    {
+      "file": "browser-page-events.json",
+      "sha256": "54233fdbe839357c31f55a5204cbd6b7d6de062387bb43f6573121d34919fbd3",
+      "bytes": 2495
+    },
+    {
+      "file": "browser-scroll-facts.json",
+      "sha256": "1c3d8bd0a9cac75e88d2ad15583c2c22f828f14f829cd6d0284f1b7dffbd0be8",
+      "bytes": 5249
+    },
+    {
+      "file": "browser-scroll.jpg",
+      "sha256": "33a18eb0decf8949fbf6ae08cc7a8f7f75226c86fd58b0bd5ad68919a37acae9",
+      "bytes": 210740
+    },
+    {
+      "file": "browser-text-budget-failed.jpg",
+      "sha256": "115dd743e8e5c6c042fc264b1bc8c07d42a38af8be0f601b01f107525dfb7e9f",
+      "bytes": 218273
+    },
+    {
+      "file": "browser-text-facts.json",
+      "sha256": "d1ce6852c6f95d0fadee7ac45b738622a4fb58a13c948a876f92c01bbba1b6a9",
+      "bytes": 4790
+    },
+    {
+      "file": "browser-text2-facts.json",
+      "sha256": "841c4099f3af42d1e7341e2d451903609198267341049237f9f8a630edbc6a63",
+      "bytes": 5332
+    },
+    {
+      "file": "browser-text2.jpg",
+      "sha256": "5de82fe61cd72de27b4111dc10fe6bef11aa957c44acc6487a112d014b6f713f",
+      "bytes": 221194
+    },
+    {
+      "file": "installed-identity.json",
+      "sha256": "10a7be38c9bbd9d3803505e3131d6cdfb80306fa683d32b2195136f18faf9f83",
+      "bytes": 112
+    },
+    {
+      "file": "paint-after.jpg",
+      "sha256": "5726a76a1baa22046a3a991111042dd2906a85d41b2ef6c7892ba74321d19669",
+      "bytes": 71775
+    },
+    {
+      "file": "paint-before.jpg",
+      "sha256": "9f11f17966d772bab253eab31df6a8a6739bfe355dc5c6a4aefc7e71f76135ca",
+      "bytes": 72200
+    },
+    {
+      "file": "paint-budget-apply.json",
+      "sha256": "5e5a6286e566fc37d8a2ec8d1692d05b7193facae2d09f4a231af6a152d17451",
+      "bytes": 343
+    },
+    {
+      "file": "paint-budget-restore.json",
+      "sha256": "a45f0ba6e047f62ced46d364933e76c4935b6c2460908adfc00c96458f2e20e1",
+      "bytes": 345
+    },
+    {
+      "file": "paint-complete-facts.json",
+      "sha256": "b4e6d3c119b1f4efe22f0ed9e86ba33cc49785fefd73e790f8a2cb849bfc8736",
+      "bytes": 8587
+    },
+    {
+      "file": "paint-complete-native-0.png",
+      "sha256": "ffce9b23700505c787c11b764f205795a54c85b52aa27830dd7d0564c0a0f202",
+      "bytes": 309575
+    },
+    {
+      "file": "paint-complete-native-1.png",
+      "sha256": "8329e2a9d10ce64aa4a1af86638c12fae70035ae7bf216affd74ec37b983c7f5",
+      "bytes": 314543
+    },
+    {
+      "file": "paint-complete-native-index.json",
+      "sha256": "4753a26f19510be2552799c820102545c410c3759275cbcbc3adfb2c4c98c6bd",
+      "bytes": 373
+    },
+    {
+      "file": "paint-mapped-facts.json",
+      "sha256": "5f7033e2ac6f97454fafdab9b3d958be642c32ebfe96003614273026c481d962",
+      "bytes": 14688
+    },
+    {
+      "file": "paint-mapped-final-maximized.jpg",
+      "sha256": "76138ed2131024f8d3644c511d72c5b2177553cdafa1fdd32f0e41212d3e36c9",
+      "bytes": 79533
+    },
+    {
+      "file": "paint-mapped-native-0.png",
+      "sha256": "1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79",
+      "bytes": 314906
+    },
+    {
+      "file": "paint-mapped-native-1.png",
+      "sha256": "50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98",
+      "bytes": 313832
+    },
+    {
+      "file": "paint-mapped-native-2.png",
+      "sha256": "bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a",
+      "bytes": 315119
+    },
+    {
+      "file": "paint-mapped-native-3.png",
+      "sha256": "37b334aada1bada3179944e74d6f7a327592efa383c807efd0f32bda82b6f998",
+      "bytes": 316913
+    },
+    {
+      "file": "paint-mapped-native-index.json",
+      "sha256": "cc786cc667eca37bf069971d3efe376d71299fbbaeb0999408557d69527882a1",
+      "bytes": 735
+    },
+    {
+      "file": "paint-running-01.jpg",
+      "sha256": "3fde91833c7bfa6d8e5ee2138d14a5d1852346736d31cff29e37ef465fe172b3",
+      "bytes": 72683
+    },
+    {
+      "file": "safety-after-browser.json",
+      "sha256": "c665646556e214479d97e270f1b05aa3ee7df657f2710dbed4f5af5bd11062f7",
+      "bytes": 171
+    },
+    {
+      "file": "safety-after-paint.json",
+      "sha256": "c665646556e214479d97e270f1b05aa3ee7df657f2710dbed4f5af5bd11062f7",
+      "bytes": 171
+    }
+  ],
+  "model": "qwen3.8-flash",
+  "installed_version": "0.2.67",
+  "notes": [
+    "不使用模型夹具",
+    "无原配置或密钥文件",
+    "Paint完整目标失败，不能以父completed替代"
+  ]
+}

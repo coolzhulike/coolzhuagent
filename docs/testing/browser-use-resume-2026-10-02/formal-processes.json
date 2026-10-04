@@ -1,0 +1,14 @@
+[
+  {
+    "pid": 3864,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "creation_time_filetime": 134353335372030593,
+    "name": "coolzhu-tauri-shell"
+  },
+  {
+    "pid": 2572,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "creation_time_filetime": 134353335363833026,
+    "name": "coolzhu-web-console"
+  }
+]

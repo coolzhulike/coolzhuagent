@@ -1,0 +1,142 @@
+diff --git a/modules/gui-web/packages/web-console/src/native_browser_input.rs b/modules/gui-web/packages/web-console/src/native_browser_input.rs
+index 2381749..1b73c36 100644
+--- a/modules/gui-web/packages/web-console/src/native_browser_input.rs
++++ b/modules/gui-web/packages/web-console/src/native_browser_input.rs
+@@ -3,7 +3,7 @@ use std::{sync::{Mutex,OnceLock},time::{Duration,Instant}};
+ use axum::{extract::DefaultBodyLimit,http::{HeaderMap,StatusCode},routing::post,Json,Router};
+ use native_browser_protocol::{PanelInputRequest,PanelInputReply,PanelResource,INPUT_PATH,MAX_INPUT_BYTES};
+ 
+-struct Pending { host_id:String,request:PanelInputRequest,delivered:bool,sender:std::sync::mpsc::Sender<PanelInputReply> }
++struct Pending { host_id:String,request:PanelInputRequest,delivered:bool,deadline:Instant,sender:std::sync::mpsc::Sender<PanelInputReply> }
+ fn pending() -> &'static Mutex<Option<Pending>> {
+     static VALUE:OnceLock<Mutex<Option<Pending>>>=OnceLock::new();VALUE.get_or_init(||Mutex::new(None))
+ }
+@@ -23,6 +23,8 @@ pub(super) fn deliver(host_id:&str,resource:Option<&PanelResource>) -> Option<Pa
+ 
+ fn stage_delivery(value:&mut Option<Pending>,host_id:&str,resource:Option<&PanelResource>) -> Option<PanelInputRequest> {
+     let request=value.as_ref()?;
++    // 等待线程到期后可能尚未获调度清理；宿主领取也必须遵守同一期限。
++    if Instant::now()>=request.deadline { return None; }
+     if request.delivered || request.host_id!=host_id { return None; }
+     if resource!=Some(&request.request.resource) {
+         // 同一认证宿主已撤销资源，且请求从未领取；此锁是零交付屏障。
+@@ -53,7 +55,12 @@ async fn receive(headers:HeaderMap,Json(reply):Json<PanelInputReply>) -> Result<
+     if !crate::native_browser_host::authenticated(&headers) { return Err(StatusCode::UNAUTHORIZED); }
+     if !reply.valid_shape() { return Err(StatusCode::BAD_REQUEST); }
+     let mut value=pending().lock().map_err(|_|StatusCode::SERVICE_UNAVAILABLE)?;
++    settle_reply(&mut value,reply)
++}
++fn settle_reply(value:&mut Option<Pending>,reply:PanelInputReply) -> Result<StatusCode,StatusCode> {
+     let request=value.as_ref().ok_or(StatusCode::CONFLICT)?;
++    // 迟到回执不能利用Guard尚未清理的窗口追认成功，也不能清掉其它请求。
++    if Instant::now()>=request.deadline { return Err(StatusCode::CONFLICT); }
+     // 导航/关闭不能抹掉原动作释放回执；只接受确切已派发请求对应的认证宿主回执。
+     if !request.delivered || request.host_id!=reply.host_id || request.request.request_id!=reply.request_id
+         || request.request.resource!=reply.resource { return Err(StatusCode::CONFLICT); }
+@@ -95,12 +102,13 @@ fn phase_matches(command:&native_browser_protocol::PanelInputCommand,reply:&Pane
+ pub(super) fn request(host_id:&str,request:PanelInputRequest,remaining:Duration,cancelled:Option<&dyn Fn()->bool>) -> Result<PanelInputReply,String> {
+     if !request.valid_shape() { return Err("native_input_invalid".into()); }
+     let (sender,receiver)=std::sync::mpsc::channel();let id=request.request_id.clone();
++    let start=Instant::now();let limit=remaining.min(Duration::from_secs(8));
+     {
+         let mut value=pending().lock().map_err(|_|"native_input_unavailable")?;
+         if value.is_some() { return Err("native_input_busy".into()); }
+-        *value=Some(Pending {host_id:host_id.into(),request,delivered:false,sender});
++        *value=Some(Pending {host_id:host_id.into(),request,delivered:false,deadline:start+limit,sender});
+     }
+-    let _guard=Guard(id);let start=Instant::now();let limit=remaining.min(Duration::from_secs(8));
++    let _guard=Guard(id);
+     loop {
+         if cancelled.is_some_and(|check|check()) { return Err("native_input_cancelled".into()); }
+         if start.elapsed()>=limit { return Err("native_input_receipt_timeout".into()); }
+@@ -128,7 +136,7 @@ mod tests {
+             ticket_id:"4".repeat(32),permit_id:"permit-1".into(),attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};
+         let request=PanelInputRequest {request_id:"6".repeat(32),resource:resource.clone(),command:command.clone()};
+         let (sender,receiver)=std::sync::mpsc::channel();
+-        let mut pending=Some(Pending {host_id:"native-host-0123456789".into(),request:request.clone(),delivered:false,sender});
++        let mut pending=Some(Pending {host_id:"native-host-0123456789".into(),request:request.clone(),delivered:false,deadline:Instant::now()+Duration::from_secs(8),sender});
+         assert!(stage_delivery(&mut pending,"native-other-0123456789",None).is_none());
+         assert!(pending.is_some() && receiver.try_recv().is_err(),"其它宿主不能撤销原动作");
+         assert!(stage_delivery(&mut pending,"native-host-0123456789",None).is_none());
+@@ -139,12 +147,80 @@ mod tests {
+         assert!(!reply.down_confirmed && !reply.up_confirmed && pending.is_none());
+ 
+         let (sender,receiver)=std::sync::mpsc::channel();
+-        let mut pending=Some(Pending {host_id:"native-host-0123456789".into(),request,delivered:false,sender});
++        let mut pending=Some(Pending {host_id:"native-host-0123456789".into(),request,delivered:false,deadline:Instant::now()+Duration::from_secs(8),sender});
+         assert!(stage_delivery(&mut pending,"native-host-0123456789",Some(&resource)).is_some());
+         assert!(stage_delivery(&mut pending,"native-host-0123456789",None).is_none());
+         assert!(pending.as_ref().unwrap().delivered && receiver.try_recv().is_err(),"领取后关闭不能伪造未派发或释放回执");
+     }
+ 
++    fn pending_click(deadline:Instant) -> (Option<Pending>,std::sync::mpsc::Receiver<PanelInputReply>,PanelInputReply) {
++        let resource=PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:1};
++        let command=PanelInputCommand::ExecuteClick {
++            target:PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)},
++            ticket_id:"4".repeat(32),permit_id:"permit-1".into(),attempt_id:"attempt-1".into(),
++            executor_instance_id:"5".repeat(32),expires_at_unix_ms:100,
++        };
++        let request=PanelInputRequest {request_id:"6".repeat(32),resource:resource.clone(),command};
++        let reply=PanelInputReply {host_id:"native-host-0123456789".into(),request_id:request.request_id.clone(),resource,
++            outcome:PanelInputOutcome::Released,ticket_id:Some("4".repeat(32)),expires_at_unix_ms:None,
++            attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),
++            down_confirmed:true,up_confirmed:true,navigation:None,error:None};
++        assert!(request.valid_shape() && reply.valid_shape());
++        let (sender,receiver)=std::sync::mpsc::channel();
++        (Some(Pending {host_id:reply.host_id.clone(),request,delivered:false,deadline,sender}),receiver,reply)
++    }
++
++    #[test]
++    fn expired_request_cannot_be_delivered_before_waiter_cleanup() {
++        // 模拟等待线程已到期但尚未获调度执行Guard；不用sleep制造不稳定竞争。
++        let (mut pending,receiver,reply)=pending_click(Instant::now());
++        assert!(stage_delivery(&mut pending,&reply.host_id,Some(&reply.resource)).is_none(),"到期请求不能因等待线程尚未清理而被宿主领取");
++        assert!(!pending.as_ref().unwrap().delivered);
++        assert!(receiver.try_recv().is_err(),"传输层不能伪造释放回执");
++    }
++
++    #[test]
++    fn expired_release_receipt_cannot_settle_before_waiter_cleanup() {
++        let (mut pending,receiver,reply)=pending_click(Instant::now());
++        pending.as_mut().unwrap().delivered=true;
++        assert_eq!(settle_reply(&mut pending,reply),Err(StatusCode::CONFLICT),"超过本请求回执期限，即使Guard尚未清理也不能追认成功");
++        assert!(pending.is_some() && receiver.try_recv().is_err());
++    }
++
++    #[test]
++    fn original_release_receipt_survives_close_and_navigation() {
++        for navigation in [false,true] {
++            let (mut pending,receiver,reply)=pending_click(Instant::now()+Duration::from_secs(8));
++            assert!(stage_delivery(&mut pending,&reply.host_id,Some(&reply.resource)).is_some());
++            let mut next=reply.resource.clone();next.navigation_revision+=1;
++            let current=if navigation {Some(&next)} else {None};
++            assert!(stage_delivery(&mut pending,&reply.host_id,current).is_none());
++            assert!(receiver.try_recv().is_err(),"领取后撤销资源不能冒充零交付");
++            assert_eq!(settle_reply(&mut pending,reply.clone()),Ok(StatusCode::NO_CONTENT));
++            assert_eq!(receiver.try_recv().unwrap().resource,reply.resource,"原动作按原资源结账");
++            assert_eq!(settle_reply(&mut pending,reply),Err(StatusCode::CONFLICT),"重复回执不得再次结算");
++        }
++    }
++
++    #[test]
++    fn late_receipt_cannot_consume_replacement_request() {
++        let (mut pending,receiver,old)=pending_click(Instant::now()+Duration::from_secs(8));
++        let active=pending.as_mut().unwrap();
++        active.request.request_id="7".repeat(32);
++        active.request.resource.navigation_revision+=1;
++        active.delivered=true;
++        let mut current=old.clone();current.request_id=active.request.request_id.clone();current.resource=active.request.resource.clone();
++        let mut stale_revision=current.clone();stale_revision.resource=old.resource.clone();
++        let mut wrong_attempt=current.clone();wrong_attempt.attempt_id=Some("previous-attempt".into());
++        let mut wrong_executor=current.clone();wrong_executor.executor_instance_id=Some("8".repeat(32));
++        for rejected in [old,stale_revision,wrong_attempt,wrong_executor] {
++            assert_eq!(settle_reply(&mut pending,rejected),Err(StatusCode::CONFLICT));
++            assert!(pending.is_some() && receiver.try_recv().is_err(),"旧回执不能吞掉新请求或串用执行资格");
++        }
++        assert_eq!(settle_reply(&mut pending,current),Ok(StatusCode::NO_CONTENT));
++        assert_eq!(receiver.try_recv().unwrap().resource.navigation_revision,2);
++    }
++
+     #[test]
+     fn wheel_ack_cannot_settle_click_or_claim_mouse_release() {
+         let target=PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)};
