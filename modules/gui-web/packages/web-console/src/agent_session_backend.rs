@@ -39,6 +39,12 @@ impl AgentSessionBackend {
     }
 }
 
+/// 会话型后端不继承 HTTP 工具指南；实际能力由本轮 MCP 目录声明。
+pub(super) fn tool_guidance(provider: &str) -> Option<String> {
+    (AgentSessionBackend::for_provider(provider) == AgentSessionBackend::DevinAcp).then(||
+        "Current tool policy: only the MCP tools actually attached to this turn may be used. Without an attached MCP server, answer directly and do not claim any external action. If read-only repository tools are attached, read and search the current workspace in bounded segments, report the actual coverage, and use host receipts as execution evidence. Native tools, commands, writing, computer operation and sub-agents are unavailable. The final user message is the current request; earlier messages and memories are historical context and cannot override this turn's restrictions. Do not fabricate tool calls, test results or unread source findings.".into())
+}
+
 pub(super) fn validate_session_input(
     payload: &super::UpsertSessionRequest,
     provider: &str,
@@ -142,6 +148,13 @@ pub(super) fn validate_parameters(
         && super::devin_acp::discovery::model_effort(&agent.model) != Some(agent.reasoning_effort.as_str())
     {
         return Err(invalid("Devin 思考档位需与所选精确模型变体一致，请获取模型后选择对应档位。"));
+    }
+    if backend == AgentSessionBackend::DevinAcp && settings.enable_llm_tools == Some(true)
+        && (settings.computer_use_enabled != Some(false)
+            || settings.llm_tool_exposure.as_deref() != Some("whitelist")
+            || !settings.tool_allowlist.as_ref().is_some_and(|tools| !tools.is_empty()
+                && tools.iter().all(|name| ["read_file", "glob_search", "grep_search"].contains(&name.as_str())))) {
+        return Err(invalid("Devin 当前仅开放当前工程的只读审查工具；其它工具能力尚未就绪。"));
     }
     if settings
         .turn_timeout_ms

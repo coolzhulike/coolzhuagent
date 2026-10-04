@@ -129,6 +129,17 @@ fn controlled_config() -> Value {
             "deny":["read","write","edit","exec","grep","glob","fetch","mcp","mcp__*"]}})
 }
 
+fn review_enabled(settings: &crate::SessionModelLimitOverride) -> Result<bool, String> {
+    if settings.enable_llm_tools != Some(true) { return Ok(false); }
+    if settings.computer_use_enabled != Some(false)
+        || settings.llm_tool_exposure.as_deref() != Some("whitelist")
+        || !settings.tool_allowlist.as_ref().is_some_and(|tools| !tools.is_empty()
+            && tools.iter().all(|name| super::bridge::REVIEW_TOOLS.contains(&name.as_str()))) {
+        return Err("Devin 目前只开放显式选择的仓库只读审查工具；电脑操作和其它工具尚未就绪。".into());
+    }
+    Ok(true)
+}
+
 fn absent_or_empty(path: &Path) -> Result<(), String> {
     if !path.exists() {
         return Ok(());
@@ -163,7 +174,12 @@ fn check_ambient_extensions() -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(test)]
 fn prepare_directory(key: &str) -> Result<(PathBuf, PathBuf), String> {
+    prepare_directory_with_tools(key, false)
+}
+
+fn prepare_directory_with_tools(key: &str, review: bool) -> Result<(PathBuf, PathBuf), String> {
     let base = PathBuf::from(std::env::var_os("LOCALAPPDATA").ok_or("无法定位会话缓存。")?)
         .join("CoolzhuAgent/devin-text-v1")
         .join(key);
@@ -175,7 +191,12 @@ fn prepare_directory(key: &str) -> Result<(PathBuf, PathBuf), String> {
     // 项目根标记阻止 CLI 向上发现用户工程的配置；这里不包含用户工程文件。
     std::fs::create_dir_all(cwd.join(".git")).map_err(|_| "无法固定 Devin 文本项目根。")?;
     let config = base.join("config.json");
-    let value = controlled_config();
+    let mut value = controlled_config();
+    if review {
+        // 仅此受控服务提供三项只读工具；全局 MCP、Hooks 仍在启动前排除。
+        value["permissions"] = json!({"allow":["mcp__coolzhu-agent__*"],"ask":[],
+            "deny":["read","write","edit","exec","grep","glob","fetch"]});
+    }
     let bytes = serde_json::to_vec(&value).map_err(|_| "文本配置编码失败。")?;
     std::fs::write(&config, &bytes).map_err(|_| "文本配置写入失败。")?;
     let project = json!({"permissions":value["permissions"],"read_config_from":value["read_config_from"],"hooks":{}});
@@ -193,7 +214,12 @@ fn prepare_directory(key: &str) -> Result<(PathBuf, PathBuf), String> {
     Ok((cwd, config))
 }
 
+#[cfg(test)]
 fn publish(event: Event, tx: &mpsc::Sender<Item>) -> io::Result<()> {
+    publish_with_tools(event, tx, false)
+}
+
+fn publish_with_tools(event: Event, tx: &mpsc::Sender<Item>, review: bool) -> io::Result<()> {
     if event.replay {
         return Ok(());
     }
@@ -213,6 +239,7 @@ fn publish(event: Event, tx: &mpsc::Sender<Item>) -> io::Result<()> {
             .map_err(|_| io::Error::other("聊天室已停止接收或消息队列超限。"))
         }
         // 文本会话绝不将远端工具自述转成宿主工具请求。
+        Update::ToolObservation { .. } if review => Ok(()),
         Update::ToolObservation { .. } => Err(io::Error::other(
             "文本会话出现工具调用；已停止，未执行宿主工具。",
         )),
@@ -272,6 +299,7 @@ pub(crate) async fn start(
     if !valid_model_id(&agent.model) {
         return Err(error("请从 Devin 账号目录选择有效的模型 ID。"));
     }
+    let review = review_enabled(&crate::session_model_settings_for(&agent.id)).map_err(error)?;
     check_ambient_extensions().map_err(error)?;
     let binary = super::discovery::binary().map_err(error)?;
     if tokio::fs::metadata(&binary)
@@ -320,7 +348,12 @@ pub(crate) async fn start(
     let key = digest(
         &serde_json::to_vec(&(parent.workspace_id.as_str(), room, &agent.id, reset)).unwrap(),
     );
-    let prompt = format!("你在 coolzhuagent 聊天室中进行纯文本会话。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。\n\n宿主系统上下文：\n{}\n\n本轮宿主消息快照（历史仅作参考；只回答最后一条用户消息）：\n{}",
+    let instructions = if review {
+        format!("你在 coolzhuagent 聊天室中审查当前工程。只开放 coolzhu-agent MCP 服务的 read_file、glob_search、grep_search，工程根目录为 {}。使用宿主工具分段读取源码；不允许原生文件工具、命令、写入、联网或子 Agent。工具执行事实以宿主回执为准。不要把未读代码称为已审查。", crate::active_workspace_path().display())
+    } else {
+        "你在 coolzhuagent 聊天室中进行纯文本会话。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。".into()
+    };
+    let prompt = format!("{}\n\n宿主系统上下文：\n{}\n\n本轮宿主消息快照（历史仅作参考；只回答最后一条用户消息）：\n{}", instructions,
         assembly.system_prompt, serde_json::to_string(&assembly.messages).map_err(|_| error("上下文编码失败。"))?);
     if prompt.len() > 768 * 1024 {
         return Err(error(
@@ -330,7 +363,7 @@ pub(crate) async fn start(
     if cancellation.is_requested() {
         return Err(error("本轮已停止，未提交 Devin 提示。"));
     }
-    let (cwd, config) = prepare_directory(&key).map_err(error)?;
+    let (cwd, config) = prepare_directory_with_tools(&key, review).map_err(error)?;
     // 消息、运行台账和 ACP 绑定使用同一冻结数据库；上下文重置使用独立绑定域，旧记录仍保留。
     let journal = Journal::open(db).map_err(error)?;
     let scope = ExecutionScope {
@@ -347,7 +380,8 @@ pub(crate) async fn start(
         remote_session_id: None,
         cwd: cwd.to_string_lossy().into(),
         cli_identity: CLI_VERSION.into(),
-        context_digest: format!("text-v1:{reset:?}"),
+        // 宿主已组装完整历史：每轮使用新远端会话，避免 load 历史和全量快照重复。
+        context_digest: format!("host-snapshot-v2:{reset:?}:{run}"),
     };
     journal
         .rotate_idle_context(&scope, &binding)
@@ -361,6 +395,7 @@ pub(crate) async fn start(
     let model = agent.model.clone();
     let (tx, events) = mpsc::channel(256);
     let token = cancellation.clone();
+    let review_parent = if review { Some(parent.clone()) } else { None };
     tokio::spawn(async move {
         let outcome = execute(
             &binary,
@@ -373,6 +408,7 @@ pub(crate) async fn start(
             deadline,
             token,
             &tx,
+            review_parent,
         )
         .await;
         let item = match outcome {
@@ -400,6 +436,7 @@ async fn execute(
     deadline: tokio::time::Instant,
     cancellation: Arc<ChatTurnCancellation>,
     tx: &mpsc::Sender<Item>,
+    review_parent: Option<FrozenParentContext>,
 ) -> Result<(), String> {
     let spawned =
         ManagedProcess::spawn_text_cli(binary, cwd, config, model, journal.clone(), claim.clone())
@@ -413,14 +450,18 @@ async fn execute(
         }
     };
     let outcome = async {
+        let bridge = if let Some(parent) = review_parent {
+            Some(super::bridge::ToolBridge::capture_review(parent, claim.clone(), journal.clone(), cancellation.clone())?.start().await?)
+        } else { None };
+        let review = bridge.is_some();
         let connect = SessionService::connect(
             transport,
             journal.clone(),
             claim.clone(),
             model,
-            vec![],
+            bridge.as_ref().map(|bridge| vec![bridge.config()]).unwrap_or_default(),
             deadline.min(tokio::time::Instant::now() + Duration::from_secs(30)),
-            |event| publish(event, tx),
+            |event| publish_with_tools(event, tx, review),
         );
         let mut session = tokio::select! { biased;
             _=cancellation.cancelled()=>return Err("Devin 配置期间已停止，未发送本轮。".into()),
@@ -430,7 +471,7 @@ async fn execute(
         session.set_deadline(deadline);
         let result = session
             .prompt(prompt, cancellation, Duration::from_secs(5), |event| {
-                publish(event, tx)
+                publish_with_tools(event, tx, review)
             })
             .await
             .map_err(|e| e.to_string())?;

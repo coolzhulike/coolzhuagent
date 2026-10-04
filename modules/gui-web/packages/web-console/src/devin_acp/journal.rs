@@ -53,6 +53,10 @@ impl Journal {
         journal.connection()?.execute_batch("CREATE TABLE IF NOT EXISTS devin_acp_retired_bindings (
             remote_session_id TEXT PRIMARY KEY, binding_json TEXT NOT NULL);")
             .map_err(|_|fail("ACP 历史绑定表初始化失败。"))?;
+        journal.connection()?.execute_batch("CREATE TABLE IF NOT EXISTS devin_acp_config_receipts (
+            attempt_id TEXT NOT NULL, stage TEXT NOT NULL, receipt_json TEXT NOT NULL,
+            PRIMARY KEY(attempt_id,stage));")
+            .map_err(|_| fail("ACP 配置回执表初始化失败。"))?;
         // 兼容本地早期台账样本；只加可空回执列，不重写历史状态或解除执行锁。
         let mut connection = journal.connection()?;
         let tx = connection
@@ -300,6 +304,22 @@ impl Journal {
         }
         tx.commit()
             .map_err(|_| fail("ACP 模型回执提交失败，不能发送任务。"))
+    }
+
+    /// 只记录模型配置投影；不保存 MCP 地址、Authorization 或其它配置原文。
+    pub(super) fn save_config_receipt(
+        &self, scope: &ExecutionScope, stage: &str, receipt: &serde_json::Value,
+    ) -> Result<(), String> {
+        if !matches!(stage, "initial" | "selected") { return Err(fail("ACP 配置回执阶段无效。")); }
+        let encoded = serde_json::to_string(receipt).map_err(|_| fail("ACP 配置回执编码失败。"))?;
+        if encoded.len() > 512 * 1024 { return Err(fail("ACP 配置回执超过限额。")); }
+        let mut connection = self.connection()?;
+        let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)
+            .map_err(|_| fail("ACP 配置回执锁失败。"))?;
+        Self::check(&tx, scope)?;
+        tx.execute("INSERT INTO devin_acp_config_receipts(attempt_id,stage,receipt_json) VALUES(?1,?2,?3)",
+            params![scope.attempt_id, stage, encoded]).map_err(|_| fail("ACP 配置回执保存失败。"))?;
+        tx.commit().map_err(|_| fail("ACP 配置回执提交失败。"))
     }
 
     pub(super) fn model(&self, scope: &ExecutionScope) -> Result<Option<ModelSelection>, String> {

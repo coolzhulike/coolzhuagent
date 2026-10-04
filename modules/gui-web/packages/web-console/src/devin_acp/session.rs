@@ -426,6 +426,8 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
             .save_remote(&scope, &remote)
             .map_err(|e| invalid(&e))?;
         for event in staged { sink(event)?; }
+        journal.save_config_receipt(&scope, "initial", &protocol::model_config_receipt(requested, result.get("configOptions")))
+            .map_err(|e| invalid(&e))?;
         let options = result
             .get("configOptions")
             .ok_or_else(|| invalid("ACP 会话未提供可确认的模型配置。"))?;
@@ -444,6 +446,8 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
                 )
             })
             .await?;
+        journal.save_config_receipt(&scope, "selected", &protocol::model_config_receipt(requested, result.get("configOptions")))
+            .map_err(|e| invalid(&e))?;
         let selection = protocol::confirmed_model(requested, &result).map_err(invalid)?;
         journal
             .save_model(&scope, &selection)

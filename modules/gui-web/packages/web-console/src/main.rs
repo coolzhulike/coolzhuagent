@@ -28610,7 +28610,7 @@ fn build_agent_system_prompt(agent: &AgentSessionDto) -> String {
         agent.provider,
         display_model_label(agent),
         local_model_identity_instruction(agent),
-        agent_tool_usage_instruction(),
+        agent_session_backend::tool_guidance(&agent.provider).unwrap_or_else(agent_tool_usage_instruction),
         render_prompt_memory_context(&beads)
     );
     if let Some(skill) = extension_market::active_skill_guidance(&active_workspace_path()) {
@@ -28629,7 +28629,7 @@ fn build_agent_system_prompt_with_beads(
         agent.provider,
         display_model_label(agent),
         local_model_identity_instruction(agent),
-        agent_tool_usage_instruction(),
+        agent_session_backend::tool_guidance(&agent.provider).unwrap_or_else(agent_tool_usage_instruction),
         render_prompt_memory_context(beads)
     );
     if let Some(skill) = extension_market::active_skill_guidance(&active_workspace_path()) {

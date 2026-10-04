@@ -71,6 +71,26 @@ fn option_has_value(options: &[Value], selected: &str) -> bool {
     })
 }
 
+pub(super) fn model_config_receipt(requested: &str, options: Option<&Value>) -> Value {
+    fn values(options: &[Value], output: &mut Vec<String>) {
+        for option in options {
+            if let Some(value) = option.get("value").and_then(Value::as_str) {
+                if super::chat::valid_model_id(value) { output.push(value.into()); }
+            }
+            if let Some(group) = option.get("options").and_then(Value::as_array) { values(group, output); }
+        }
+    }
+    let models = options.and_then(Value::as_array).map(|options| options.iter()
+        .filter(|option| option["category"] == "model").map(|option| {
+            let mut choices = Vec::new();
+            if let Some(options) = option.get("options").and_then(Value::as_array) { values(options, &mut choices); }
+            json!({"id":option.get("id").and_then(Value::as_str).filter(|id| super::chat::valid_model_id(id)),
+                "current":option.get("currentValue").and_then(Value::as_str).filter(|id| super::chat::valid_model_id(id)),
+                "values":choices})
+        }).collect::<Vec<_>>()).unwrap_or_default();
+    json!({"requested":requested,"model_options":models})
+}
+
 /// 只使用 category=model 的真实选项，不能把 mode 或 reasoning 当模型。
 pub(super) fn model_config(options: &Value) -> Result<(&str, &str, &[Value]), &'static str> {
     let options = options.as_array().ok_or("ACP 配置目录格式无效。")?;

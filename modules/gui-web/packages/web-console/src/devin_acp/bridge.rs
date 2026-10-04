@@ -19,6 +19,7 @@ const INITIAL_TOOLS: &[&str] = &[
     "grep_search",
     "bash",
 ];
+pub(super) const REVIEW_TOOLS: &[&str] = &["read_file", "glob_search", "grep_search"];
 
 tokio::task_local! {static FROZEN_POLICY:Arc<FrozenPolicy>;}
 thread_local! {static WORKER_POLICY:RefCell<Option<Arc<FrozenPolicy>>>=const{RefCell::new(None)};}
@@ -50,6 +51,7 @@ pub(crate) struct FrozenPolicy {
     rules: Vec<ProtectedRule>,
     grants: BTreeMap<String, SessionGrantView>,
     parent_claim: (Option<String>, String),
+    readonly: bool,
     /// 固定工程在 blocking worker 真实收尾前仍被持有。
     _pin: workspace_activity::WorkspacePin,
 }
@@ -168,6 +170,20 @@ impl ToolBridge {
         journal: Journal,
         cancellation: Arc<ChatTurnCancellation>,
     ) -> Result<Arc<Self>, String> {
+        Self::capture_mode(parent, scope, journal, cancellation, false)
+    }
+
+    pub(super) fn capture_review(
+        parent: FrozenParentContext, scope: ExecutionScope, journal: Journal,
+        cancellation: Arc<ChatTurnCancellation>,
+    ) -> Result<Arc<Self>, String> {
+        Self::capture_mode(parent, scope, journal, cancellation, true)
+    }
+
+    fn capture_mode(
+        parent: FrozenParentContext, scope: ExecutionScope, journal: Journal,
+        cancellation: Arc<ChatTurnCancellation>, readonly: bool,
+    ) -> Result<Arc<Self>, String> {
         let pin = workspace_activity::pin_workspace()?;
         let root = active_workspace_path();
         if !scope.accepts(&scope)
@@ -193,7 +209,7 @@ impl ToolBridge {
             .unwrap_or_default()
             .into_iter()
             .filter(|tool| {
-                INITIAL_TOOLS.contains(&tool.name.as_str())
+                (if readonly { REVIEW_TOOLS } else { INITIAL_TOOLS }).contains(&tool.name.as_str())
                     && required_permission_for_tool(&tool.name) <= permission
             })
             .collect::<Vec<_>>();
@@ -253,6 +269,7 @@ impl ToolBridge {
                 rules,
                 grants,
                 parent_claim,
+                readonly,
                 _pin: pin,
             }),
             definitions,
@@ -294,11 +311,13 @@ impl ToolBridge {
             .ok_or("桥请求 ID 无效。")?;
         let result = match method {
             "initialize" => {
-                if request["params"]["protocolVersion"].as_str() != Some(MCP_VERSION) {
+                if !request["params"]["protocolVersion"].as_str().is_some_and(|version|
+                    version.len() == 10 && version.bytes().all(|byte| byte.is_ascii_digit() || byte == b'-')) {
                     return Ok(Some(
-                        json!({"jsonrpc":"2.0","id":id,"error":{"code":-32602,"message":"仅支持已验证的 MCP 协议版本"}}),
+                        json!({"jsonrpc":"2.0","id":id,"error":{"code":-32602,"message":"MCP 协议版本无效"}}),
                     ));
                 }
+                // 客户端可提出更新版本；按协议回传本端支持的版本，由客户端确认兼容。
                 self.initialized.store(true, Ordering::Release);
                 json!({"protocolVersion":MCP_VERSION,"capabilities":{"tools":{"listChanged":false}},
                     "serverInfo":{"name":"coolzhu-agent-tools","version":env!("CARGO_PKG_VERSION")}})
@@ -342,6 +361,24 @@ impl ToolBridge {
         self.policy.tool_live(name)?;
         if !self.policy.grants.contains_key(name) {
             return Err("工具未在父接纳时开放。".into());
+        }
+        // 仓库审查只读且只能访问当前工程；完全访问权限也不会扩大此通道的范围。
+        if self.policy.readonly {
+            if !REVIEW_TOOLS.contains(&name) {
+                return Err("仓库审查未开放该工具。".into());
+            }
+            if name == "glob_search" {
+                // glob 的 pattern 也可携带路径；复用工程搜索的现有边界检查。
+                validate_workspace_relative_pattern(input.get("pattern").and_then(JsonValue::as_str).unwrap_or(""))
+                    .map_err(|_| "仓库审查的搜索模式不能越过当前工程。".to_string())?;
+            }
+            let root = self.policy.root.canonicalize().map_err(|_| "审查工程不可用。")?;
+            let target = input.get("path").and_then(JsonValue::as_str).map(PathBuf::from)
+                .unwrap_or_else(|| self.policy.root.clone());
+            let target = if target.is_absolute() { target } else { self.policy.root.join(target) };
+            if !target.canonicalize().map_err(|_| "审查路径不存在。")?.starts_with(&root) {
+                return Err("仓库审查不能读取当前工程之外的路径。".into());
+            }
         }
         if name == "bash"
             && (input.get("run_in_background").and_then(JsonValue::as_bool) == Some(true)
@@ -493,6 +530,18 @@ async fn http_rpc(
     headers: HeaderMap,
     Json(request): Json<JsonValue>,
 ) -> Response {
+    let method = match request["method"].as_str() {
+        Some("initialize") => "initialize", Some("notifications/initialized") => "initialized",
+        Some("tools/list") => "tools/list", Some("tools/call") => "tools/call",
+        Some("ping") => "ping", _ => "other",
+    };
+    let clean_version = |value: Option<&str>| value.filter(|value| value.len() == 10
+        && value.bytes().all(|byte| byte.is_ascii_digit() || byte == b'-')).unwrap_or("other").to_owned();
+    tracing::info!(method, request_protocol = %clean_version(request["params"]["protocolVersion"].as_str()),
+        header_protocol = %clean_version(headers.get("mcp-protocol-version").and_then(|value| value.to_str().ok())),
+        host_valid = headers.get("host").and_then(|value| value.to_str().ok()) == Some(host.as_str()),
+        token_valid = headers.get("authorization").and_then(|value| value.to_str().ok()) == Some(format!("Bearer {}", bridge.token).as_str()),
+        origin_present = headers.contains_key("origin"), "ACP 只读工具桥协议诊断");
     // CLI 无 Origin；拒绝浏览器页面请求和 DNS 重绑定。token 不作错误回显。
     if headers.contains_key("origin")
         || headers.get("host").and_then(|v| v.to_str().ok()) != Some(host.as_str())
@@ -625,6 +674,7 @@ mod tests {
                 rules: default_protected_rules(),
                 grants,
                 parent_claim: parent_claim(db, &scope.run_id).unwrap(),
+                readonly: false,
                 _pin: workspace_activity::pin_workspace().unwrap(),
             }),
             definitions,
@@ -918,7 +968,8 @@ mod tests {
         let url = config["url"].as_str().unwrap();
         let token = config["headers"][0]["value"].as_str().unwrap();
         let client = reqwest::Client::new();
-        let initialize = json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":MCP_VERSION}});
+        // 真实 Devin 客户端请求较新版本；服务应协商本端支持的版本。
+        let initialize = json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25"}});
         assert_eq!(
             client
                 .post(url)
