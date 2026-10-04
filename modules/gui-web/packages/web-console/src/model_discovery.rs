@@ -365,6 +365,10 @@ fn credential(request: &DiscoveryRequest) -> ApiResult<Option<String>> {
         session.to_agent_session(store.is_active(session_id))
     };
     let settings = session_model_settings_for(session_id);
+    if super::agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+        != super::agent_session_backend::AgentSessionBackend::LlmHttp {
+        return Err(invalid("Devin 使用 CLI 模型发现，不能继承 HTTP 查询凭据。"));
+    }
     if !same_target(
         &request.base_url,
         &model_settings_base_url(&agent, &settings),

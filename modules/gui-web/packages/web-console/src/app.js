@@ -3781,6 +3781,9 @@ function updateActiveWorkspaceKey(nextKey, options = {}) {
   const normalized = String(nextKey || "default").trim() || "default";
   const previous = activeWorkspaceKey;
   activeWorkspaceKey = normalized;
+  if (previous !== normalized) {
+    window.dispatchEvent(new CustomEvent("coolzhu-workspace-changed", { detail: { workspaceId: normalized } }));
+  }
   if (!chatLayoutInitialized) {
     return;
   }
@@ -12916,6 +12919,7 @@ const PROVIDER_DISPLAY_LABELS = Object.freeze({
   bytedance: "火山方舟",
   baidu: "百度千帆",
   deepseek: "DeepSeek",
+  devin: "Devin（配置预览）",
   custom: "自定义 / OpenAI-compatible",
 });
 
@@ -12928,6 +12932,8 @@ function canonicalProviderId(provider) {
   const compact = raw.toLowerCase().replace(/[\s_.()\-]/g, "");
   const compactMap = {
     deepseek: "deepseek",
+    devin: "devin",
+    devinacp: "devin",
     zhipuai: "zhipuai",
     zhipu: "zhipuai",
     zai: "zhipuai",
@@ -13081,6 +13087,7 @@ function renderProviderOptions(preferredProvider) {
       }
     });
   }
+  if (!providers.includes("devin")) providers.push("devin");
   if (!providers.length || !providers.includes(current)) providers.unshift(current);
   select.replaceChildren();
   providers.forEach((providerId) => {
@@ -13145,6 +13152,7 @@ function sessionProviderValue() {
 
 function sessionModelValueFromForm() {
   const provider = sessionProviderValue();
+  if (provider === "devin") return document.querySelector('[data-role="session-custom-model"]')?.value?.trim() || "";
   if (isCustomProvider(provider)) {
     const customModel = document.querySelector('[data-role="session-custom-model"]')?.value?.trim();
     return customModel || CUSTOM_PROVIDER_MODEL_FALLBACK;
@@ -13153,12 +13161,19 @@ function sessionModelValueFromForm() {
 }
 
 function updateCustomProviderFields() {
+  const devin = sessionProviderValue() === "devin";
   const custom = isCustomProvider(sessionProviderValue());
   document.querySelectorAll(".custom-provider-field").forEach((field) => {
-    field.hidden = !custom;
+    field.hidden = !(custom || (devin && field.querySelector('[data-role="session-custom-model"]')));
   });
+  const secret = document.querySelector('[data-role="session-api-secret"]');
+  if (secret) { secret.disabled = devin; secret.closest("label").hidden = devin; }
+  for (const role of ["session-context-window", "session-max-output"]) {
+    const input = document.querySelector(`[data-role="${role}"]`);
+    if (input) { input.disabled = devin; if (devin) { input.value = ""; input.placeholder = "待连接确认"; delete input.dataset.sessionId; } }
+  }
   const modelSelectField = document.querySelector('[data-role="session-model-select-field"]');
-  if (modelSelectField) modelSelectField.hidden = custom;
+  if (modelSelectField) modelSelectField.hidden = custom || devin;
   const customModel = document.querySelector('[data-role="session-custom-model"]');
   const modelSelect = document.querySelector('[data-role="session-model"]');
   if (custom && customModel && !customModel.value.trim()) {
@@ -13228,6 +13243,13 @@ function renderModelTypeSelect() {
   const model = sessionModelValueFromForm();
   const select = document.querySelector('[data-role="session-model-type"]');
   if (!select) return;
+  select.disabled = sessionProviderValue() === "devin";
+  if (select.disabled) {
+    const option = document.createElement("option");
+    option.value = "text"; option.textContent = "对话 / 代码（其他能力待确认）";
+    select.replaceChildren(option); select.value = "text";
+    return;
+  }
   const capability = modelCapabilityFor(sessionProviderValue(), model);
   const type = String(capability?.model_type || MODEL_TYPE_MAP[model] || mediaModelTypeFallback(model) || "text").toLowerCase();
   const current = select.value || (type === "vision" ? "vision" : type);
@@ -13267,6 +13289,7 @@ function renderSessionReasoningHint(resolution = null) {
   const hint = document.querySelector('[data-role="session-reasoning-hint"]');
   if (!hint) return;
   const selected = document.querySelector('[data-role="session-reasoning-effort"]')?.value || "auto";
+  if (sessionProviderValue() === "devin") { hint.textContent = "Devin 使用 CLI 登录；聊天室支持免费 SWE-2 文本会话，工具与附件尚未开放。"; return; }
   const detail = reasoningOptionDetailsForForm().find((item) => item.value === selected);
   const configured = reasoningLabel(resolution?.requested || detail?.value || selected);
   const expected = reasoningLabel(resolution?.effective || detail?.effective || detail?.value || selected);
@@ -13283,6 +13306,14 @@ function renderSessionReasoningHint(resolution = null) {
 function updateReasoningEffortOptions(preferredRequested = null, resolution = null) {
   const select = document.querySelector('[data-role="session-reasoning-effort"]');
   if (!select) return;
+  select.disabled = sessionProviderValue() === "devin";
+  if (select.disabled) {
+    const option = document.createElement("option");
+    option.value = "auto"; option.textContent = "供应商默认（待连接确认）";
+    select.replaceChildren(option); select.value = "auto";
+    renderSessionReasoningHint();
+    return;
+  }
   const details = reasoningOptionDetailsForForm();
   const current = String(preferredRequested || select.value || "auto").trim().toLowerCase();
   const visibleDetails = details.filter((item) => item.selectable !== false || item.value === current);
@@ -13310,9 +13341,9 @@ function sessionPayloadFromForm() {
     name: document.querySelector('[data-role="session-name"]')?.value ?? "",
     provider,
     model: sessionModelValueFromForm(),
-    model_type: document.querySelector('[data-role="session-model-type"]')?.value ?? "text",
+    model_type: provider === "devin" ? "text" : document.querySelector('[data-role="session-model-type"]')?.value ?? "text",
     avatar: currentAvatarPathFromForm(),
-    reasoning_effort: document.querySelector('[data-role="session-reasoning-effort"]')?.value ?? "auto",
+    reasoning_effort: provider === "devin" ? "auto" : document.querySelector('[data-role="session-reasoning-effort"]')?.value ?? "auto",
   };
   payload.base_url = customProvider
     ? (document.querySelector('[data-role="session-base-url"]')?.value?.trim() ?? "")
@@ -13320,7 +13351,7 @@ function sessionPayloadFromForm() {
   payload.endpoint = customProvider
     ? (document.querySelector('[data-role="session-endpoint"]')?.value?.trim() ?? "")
     : "";
-  if (apiInput?.dataset.saved !== "1" || apiSecret) payload.api_key_ref = apiSecret;
+  if (provider !== "devin" && (apiInput?.dataset.saved !== "1" || apiSecret)) payload.api_key_ref = apiSecret;
   return payload;
 }
 
@@ -13376,7 +13407,7 @@ function setSessionForm(session) {
   renderProviderOptions(providerId);
   if (provider) provider.value = providerId;
   if (model) model.value = session.model;
-  if (customModel) customModel.value = isCustomProvider(providerId) ? session.model : "";
+  if (customModel) customModel.value = isCustomProvider(providerId) || providerId === "devin" ? session.model : "";
   if (baseUrl) baseUrl.value = session.base_url || "";
   if (endpoint) endpoint.value = session.endpoint || "";
   setSessionAvatarForm(session.avatar || "");
@@ -13410,6 +13441,12 @@ function loadSessionModelLimit(sessionId) {
   if (!ctxEl || !outEl || !sessionId) {
     return;
   }
+  if (sessionProviderValue() === "devin") {
+    ctxEl.value = ""; outEl.value = "";
+    ctxEl.placeholder = "待连接确认"; outEl.placeholder = "待连接确认";
+    delete ctxEl.dataset.sessionId; delete outEl.dataset.sessionId;
+    return;
+  }
   ctxEl.dataset.sessionId = sessionId;
   outEl.dataset.sessionId = sessionId;
   ctxEl.value = "";
@@ -13440,6 +13477,7 @@ function loadSessionModelLimit(sessionId) {
 }
 
 async function persistSessionModelLimit(sessionId) {
+  if (sessionProviderValue() === "devin") return;
   const ctx = Number.parseInt(document.querySelector('[data-role="session-context-window"]')?.value, 10) || 0;
   const out = Number.parseInt(document.querySelector('[data-role="session-max-output"]')?.value, 10) || 0;
   return requestJson(`/api/sessions/${encodeURIComponent(sessionId)}/model-limit`, {
@@ -13817,11 +13855,24 @@ async function saveSelectedSession() {
   setBusy(button, true, "保存中");
   setWorkbenchMotionState("settings", WORKBENCH_MOTION_STATES.settings, true);
   try {
-    await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(sessionPayloadFromForm()),
-    });
+    const session = sessionPayloadFromForm();
+    const previous = sessionRegistry.sessions?.find(item => item.id === sessionId);
+    if (session.provider === "devin" || previous?.backend_kind === "devin_acp") {
+      const snapshot = await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}/model-settings`);
+      const devin = session.provider === "devin";
+      const parameters = { ...snapshot.parameters, backend_kind: devin ? "devin_acp" : "llm_http",
+        protocol: devin ? "devin_acp" : null, base_url: session.base_url || null, endpoint: session.endpoint || null,
+        temperature: null, top_p: null, reasoning_mode: "auto", thinking_budget: null,
+        context_window: 0, max_output_tokens: 0, supports_multimodal: null };
+      await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}/model-settings`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({session, parameters, expected_revision: snapshot.configuration_revision}),
+      });
+    } else {
+      await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(session),
+      });
+    }
     await persistSessionModelLimit(sessionId);
     await saveGoalRoleConfig(sessionId);
     await loadSessions();

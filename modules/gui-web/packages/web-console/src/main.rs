@@ -3,6 +3,7 @@ mod app_update;
 mod extension_market;
 mod dsh_market;
 mod dsh_source_download;
+mod devin_plugin;
 mod dsh_source_resolve;
 mod dsh_activation_host;
 mod dsh_install_service;
@@ -40,6 +41,8 @@ mod runtime_tool_supervision;
 mod chat_tool_history;
 mod multimodal_input;
 mod model_discovery;
+mod agent_session_backend;
+mod devin_acp;
 mod content_delivery;
 mod content_blob_store;
 mod tool_result_spill;
@@ -2005,6 +2008,11 @@ fn app() -> Router {
         )
         .route("/api/models/capabilities", get(api_model_capabilities))
         .route("/api/models/discover", post(model_discovery::discover))
+        .route("/api/backends/devin/status", get(devin_acp::discovery::status))
+        .route("/api/backends/devin/models", post(devin_acp::discovery::discover))
+        .route("/api/backends/devin/auth", get(devin_acp::auth::status))
+        .route("/api/backends/devin/auth/login", post(devin_acp::auth::start))
+        .route("/api/backends/devin/auth/cancel", post(devin_acp::auth::cancel))
         .route(
             "/api/audio/voice-monitor/status",
             get(api_voice_monitor_status),
@@ -2174,6 +2182,7 @@ fn app() -> Router {
         .merge(extension_market::routes())
         .merge(native_browser_host::routes())
         .merge(computer_use_activity::routes())
+        .merge(devin_plugin::routes())
         .route("/", get(static_index))
         .route("/{*path}", get(static_file))
 }
@@ -6992,6 +7001,8 @@ struct WorkspaceConfig {
 /// custom provider 会话的 token 限制覆盖项（按会话 id 生效）。字段为 0 表示该项不覆盖、沿用默认表。
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct SessionModelLimitOverride {
+    #[serde(default)]
+    backend_kind: Option<agent_session_backend::AgentSessionBackend>,
     #[serde(default)]
     context_window: u32,
     #[serde(default)]
@@ -13198,10 +13209,12 @@ async fn api_get_session_model_limit(
         let store = session_store()
             .lock()
             .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        store
-            .find_session(&session_id)
-            .map(|s| s.model.clone())
-            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?
+        let session = store.find_session(&session_id)
+            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
+        if agent_session_backend::AgentSessionBackend::for_provider(&session.provider) != agent_session_backend::AgentSessionBackend::LlmHttp {
+            return Err(api_error(StatusCode::BAD_REQUEST, "Devin 容量尚未协商，请使用模型与会话配置页查看状态。"));
+        }
+        session.model.clone()
     };
     let overridden = read_config(|c| {
         c.session_model_limits
@@ -13223,10 +13236,12 @@ async fn api_set_session_model_limit(
         let store = session_store()
             .lock()
             .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        store
-            .find_session(&session_id)
-            .map(|s| s.model.clone())
-            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?
+        let session = store.find_session(&session_id)
+            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
+        if agent_session_backend::AgentSessionBackend::for_provider(&session.provider) != agent_session_backend::AgentSessionBackend::LlmHttp {
+            return Err(api_error(StatusCode::BAD_REQUEST, "Devin 容量尚未协商，请使用模型与会话配置页查看状态。"));
+        }
+        session.model.clone()
     };
     // 上限保护，避免误填超大值导致预算计算异常。
     let ctx = payload.context_window.min(4_000_000);
@@ -13254,6 +13269,11 @@ struct SessionModelSettingsUpdateRequest {
 }
 
 fn model_settings_protocol(agent: &AgentSessionDto, settings: &SessionModelLimitOverride) -> &'static str {
+    match agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) {
+        agent_session_backend::AgentSessionBackend::DevinAcp => return "devin_acp",
+        agent_session_backend::AgentSessionBackend::DevinCloud => return "devin_cloud",
+        agent_session_backend::AgentSessionBackend::LlmHttp => {}
+    }
     match settings.protocol.as_deref() {
         Some("anthropic_messages") => "anthropic_messages",
         Some("openai_chat_completions") => "openai_chat_completions",
@@ -13265,6 +13285,7 @@ fn model_settings_protocol(agent: &AgentSessionDto, settings: &SessionModelLimit
 }
 
 fn model_settings_base_url(agent: &AgentSessionDto, settings: &SessionModelLimitOverride) -> String {
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) != agent_session_backend::AgentSessionBackend::LlmHttp { return String::new(); }
     settings.base_url.as_deref().filter(|value| !value.trim().is_empty())
         .or(agent.base_url.as_deref().filter(|value| !value.trim().is_empty()))
         .map(str::to_string)
@@ -13276,6 +13297,8 @@ fn model_settings_base_url(agent: &AgentSessionDto, settings: &SessionModelLimit
 }
 
 fn validate_session_model_settings(settings: &SessionModelLimitOverride, agent: &AgentSessionDto) -> ApiResult<()> {
+    agent_session_backend::validate_parameters(settings, agent)?;
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) != agent_session_backend::AgentSessionBackend::LlmHttp { return Ok(()); }
     let invalid = |message: &str| api_error(StatusCode::BAD_REQUEST, message);
     if !matches!(settings.protocol.as_deref(), None | Some("openai_chat_completions" | "anthropic_messages")) {
         return Err(invalid("不支持该模型协议"));
@@ -13428,15 +13451,18 @@ async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) 
     Ok(Json(json!({
         "session": session,
         "configuration_revision": configuration_revision,
+        "backend_kind": agent_session_backend::AgentSessionBackend::for_provider(&agent.provider),
+        "agent_execution_ready": agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp,
+        "model_selection": {"requested": agent.model, "effective": null, "resolved_model": null},
         "protocol": model_settings_protocol(&agent, &parameters),
         "base_url": model_settings_base_url(&agent, &parameters),
         "endpoint": parameters.endpoint.as_ref().or(agent.endpoint.as_ref()),
-        "default_context_window": defaults.context_tokens,
-        "default_max_output_tokens": defaults.max_output_tokens,
-        "effective_context_window": effective.0,
-        "effective_max_output_tokens": request_max_tokens_for_limit(effective),
-        "effective_supports_multimodal": multimodal_input::supports_images(&agent, &parameters),
-        "image_input_strategy": if multimodal_input::supports_images(&agent, &parameters) { "native" } else { "vision-description" },
+        "default_context_window": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(defaults.context_tokens) } else { None },
+        "default_max_output_tokens": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(defaults.max_output_tokens) } else { None },
+        "effective_context_window": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(effective.0) } else { None },
+        "effective_max_output_tokens": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(request_max_tokens_for_limit(effective)) } else { None },
+        "effective_supports_multimodal": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(multimodal_input::supports_images(&agent, &parameters)) } else { None },
+        "image_input_strategy": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) != agent_session_backend::AgentSessionBackend::LlmHttp { "unverified" } else if multimodal_input::supports_images(&agent, &parameters) { "native" } else { "vision-description" },
         "parameters": parameters
     })))
 }
@@ -13453,6 +13479,9 @@ async fn api_set_session_model_settings(
     if let Some(session) = payload.session.as_ref() {
         validate_reasoning_effort(session.reasoning_effort.as_deref())?;
         if let Some(avatar) = session.avatar.as_deref() { normalize_session_avatar(Some(avatar))?; }
+        if let Some(provider) = &session.provider { agent.provider = normalize_provider(Some(provider)); }
+        if let Some(model_type) = &session.model_type { agent.model_type = normalize_model_type(Some(model_type)); }
+        agent_session_backend::validate_session_input(session, &agent.provider)?;
         if let Some(model) = &session.model { agent.model = normalize_model(Some(model)); }
         if let Some(effort) = &session.reasoning_effort { agent.reasoning_effort = effort.clone(); }
     }
@@ -19185,7 +19214,7 @@ async fn api_chat_send_stream(
             } else {
                 let stream_result = match await_chat_turn(
                     cancellation.as_ref(),
-                    stream_agent_model(
+                    CHAT_CANCELLATION.scope(Arc::clone(&cancellation), stream_agent_model(
                         agent,
                         &result.user_content,
                         &result.image_urls,
@@ -19195,7 +19224,7 @@ async fn api_chat_send_stream(
                         Some(&result.chat_room_id),
                         parent.as_ref().and_then(|context| context.parent_run_id.as_deref()),
                         parent.as_ref(),
-                    ),
+                    )),
                 )
                 .await
                 {
@@ -19348,7 +19377,7 @@ async fn api_chat_send_stream(
 
                         // EOF/本地合成的 MessageStop 不是服务端完成证明；缺证明时不得派发工具或补请求。
                         stream_failed = diagnostic_note.is_some()
-                            || model_stream.inflight_status().terminal_fact != Some(api::TerminationFact::ProtocolCompletion);
+                            || !model_stream.protocol_completed();
                         if stream_failed {
                             diagnostic_note.get_or_insert_with(|| "连接已结束，但未收到模型的完整结束标记；本轮保留已收到内容，未执行工具，也未重发请求".to_string());
                         }
@@ -19374,7 +19403,10 @@ async fn api_chat_send_stream(
                             stream_failed = true;
                             diagnostic_note = Some("模型已结束，但未返回可显示的回答或工具调用".to_string());
                         }
-                        stream_context_assembly = Some(assembly);
+                        // ACP 尚无已确认的 token 容量；不生成虚假的占用率或自动压缩远端会话。
+                        if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::LlmHttp {
+                            stream_context_assembly = Some(assembly);
+                        }
                     }
                     Err(error) => {
                         if cancellation.is_requested() {
@@ -19440,9 +19472,10 @@ async fn api_chat_send_stream(
                 retain_admitted_mcp_definitions(&mut request, parent.as_ref());
                 request.tools
             });
-            if model_text_requires_tool_recovery(&assistant_message.content, &result.user_content)
+            if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::LlmHttp
+                && (model_text_requires_tool_recovery(&assistant_message.content, &result.user_content)
                 || model_tool_calls.values().any(|(_, name, _)|
-                    !tool_call_name_is_exposed(name, streamed_request_tools.as_deref())) {
+                    !tool_call_name_is_exposed(name, streamed_request_tools.as_deref()))) {
                 diagnostic_note = Some("模型返回未开放的工具调用，已拒绝执行并尝试无工具回答".to_string());
                 let turn_key = result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn");
                 for (id, name, _) in model_tool_calls.values() {
@@ -21023,6 +21056,25 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         ));
     }
 
+    // Devin 仅接纳单目标纯文本；工具、附件和远程委派仍由各自能力门拒绝。
+    let devin_text = targets.iter().any(|target| agent_session_backend::AgentSessionBackend::for_provider(&target.provider)
+        == agent_session_backend::AgentSessionBackend::DevinAcp);
+    if devin_text && !real_llm_enabled() {
+        return Err(api_error(StatusCode::SERVICE_UNAVAILABLE,"真实模型尚未启用；未创建 Devin 模拟回复。"));
+    }
+    if devin_text && (targets.len()!=1 || payload.attachments.as_ref().is_some_and(|items| !items.is_empty())) {
+        return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前支持单个 Agent 的聊天室文本会话；附件与群发尚未就绪。"));
+    }
+    for target in &targets {
+        if agent_session_backend::AgentSessionBackend::for_provider(&target.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+            if !devin_acp::chat::supported_model(&target.model) {
+                return Err(api_error(StatusCode::BAD_REQUEST,"请选择账号目录标记 Free 的 SWE-2 模型。"));
+            }
+        } else {
+            agent_session_backend::AgentSessionBackend::for_provider(&target.provider).require_http()
+                .map_err(|error| api_error(StatusCode::SERVICE_UNAVAILABLE, &error.to_string()))?;
+        }
+    }
     let attachment_count = payload.attachments.as_ref().map_or(0, Vec::len);
     let attachments = payload.attachments.unwrap_or_default();
     let image_urls = encode_attachment_images(&attachments)?;
@@ -21045,6 +21097,10 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         calls_tool = calls_tool
             && room_tools
             && (semantic_action.as_deref() != Some("computer_use") || room_computer_use);
+    }
+    if devin_text {
+        let room_enabled=chat_room_capabilities_sqlite(&db_path,&chat_room_id).map_err(sqlite_api_error)?.0;
+        if !room_enabled {return Err(api_error(StatusCode::FORBIDDEN,"当前聊天室的真实模型调用已关闭。"));}
     }
     let (selected_history, context_history, context_rosters, active_vision_session_id) = {
         let store = session_store()
@@ -21081,12 +21137,12 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         &targets,
     );
     let user_content = compose_user_message_content(text, &reference_context);
-    let goal_trigger = prepare_goal_trigger_for_dispatch(
+    let goal_trigger = if devin_text { None } else { prepare_goal_trigger_for_dispatch(
         text,
         targets.first().copied(),
         &selectable_agents,
         active_vision_session_id.as_deref(),
-    );
+    ) };
 
     let user_kind = if attachments.is_empty() {
         "text"
@@ -27533,6 +27589,18 @@ async fn agent_chat_response_within_root(
     // 父运行接纳时冻结的上下文；缺省时工具链会 fail-closed 拒绝 CU，不会退化成「取当前工作区」。
     parent: Option<&FrozenParentContext>,
 ) -> AgentModelResponse {
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+        return devin_acp::chat::response(agent,prompt,context_history,collaboration_roster,chat_room_id,parent).await;
+    }
+    if let Err(error) = agent_session_backend::AgentSessionBackend::for_provider(&agent.provider).require_http() {
+        return AgentModelResponse {
+            execution_failed: true, answer_text: error.to_string(), reasoning_text: String::new(),
+            tool_requests: Vec::new(), tool_write_executed: false,
+            // 沿用根超时的控制标记，阻止旧工具意图兜底；不产生工具执行事件。
+            model_tool_calls_executed: true, turn_id: TURN_TRACE.try_with(Clone::clone).unwrap_or_default(),
+            used_real_model: false, diagnostic_note: Some(error.to_string()), context_footer: None, context_usage: None,
+        };
+    }
     let room_real_llm = chat_room_id
         .and_then(|room_id| {
             chat_room_capabilities_sqlite(&default_session_sqlite_path(), room_id).ok()
@@ -28190,6 +28258,7 @@ async fn call_agent_model_with_tool_loop(
     parent: Option<&FrozenParentContext>,
     child_scope: Option<Arc<host_child_agent::HostChildScope>>,
 ) -> Result<AgentModelResponse, api::ApiError> {
+    agent_session_backend::AgentSessionBackend::for_provider(&agent.provider).require_http()?;
     let model_turn_scope = current_turn_trace().unwrap_or_else(|| diagnostics::TraceIdType::generate().to_hex());
     let image_input = multimodal_input::prepare(agent, prompt, image_urls, chat_room_id,
         Some(&model_turn_scope), parent.and_then(|context| context.parent_run_id.as_deref())).await?;
@@ -30245,6 +30314,9 @@ fn map_input_point_to_capture(
 }
 
 fn real_model_error_hint(agent: &AgentSessionDto, error: &api::ApiError) -> String {
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+        return format!("Devin ACP 会话未完成：{error}。本轮未自动重试。");
+    }
     let diagnostics = agent_diagnostics(agent);
     match error {
         api::ApiError::MissingCredentials { .. } => format!(
@@ -32288,7 +32360,16 @@ async fn stream_agent_model(
     chat_room_id: Option<&str>,
     run_id: Option<&str>,
     parent: Option<&FrozenParentContext>,
-) -> Result<(api::MessageStream, ContextAssembly), api::ApiError> {
+) -> Result<(devin_acp::chat::ModelStream, ContextAssembly), api::ApiError> {
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+        if !image_urls.is_empty() { return Err(api::ApiError::UnsupportedCapability{capability:"Devin 图片输入尚未开放。".into()}); }
+        let mut assembly=build_context_assembly_with_roster(agent,context_history,prompt,&[],
+            context_build_options_for_agent_with_floor_and_room(agent,session_context_reset_floor(&agent.id),chat_room_id),collaboration_roster);
+        assembly.turn_id=Some(turn_id.into());
+        let stream=devin_acp::chat::start(agent,&assembly,parent).await?;
+        return Ok((stream,assembly));
+    }
+    agent_session_backend::AgentSessionBackend::for_provider(&agent.provider).require_http()?;
     let image_input = multimodal_input::prepare(agent, prompt, image_urls, chat_room_id, Some(turn_id), run_id).await?;
     let mut assembly = build_context_assembly_with_roster(
         agent,
@@ -32310,10 +32391,14 @@ async fn stream_agent_model(
     let stream = request_usage::observe_with_run(provider_client_for_agent(agent), &agent.id, chat_room_id, Some(turn_id), None, "chat", run_id)?
         .stream_message(&request)
         .await?;
-    Ok((stream, assembly))
+    Ok((devin_acp::chat::ModelStream::Http(stream), assembly))
 }
 
 fn provider_client_for_agent(agent: &AgentSessionDto) -> Result<ProviderClient, api::ApiError> {
+    let backend = agent_session_backend::AgentSessionBackend::for_provider(&agent.provider);
+    backend.validate(session_model_settings_for(&agent.id).backend_kind)
+        .map_err(|message| api::ApiError::UnsupportedCapability { capability: message.into() })?;
+    backend.require_http()?;
     let provider_kind = api::provider_kind_from_name(&agent.provider)
         .unwrap_or_else(|| api::detect_provider_kind(&agent.model));
     let api_key = session_api_key(&agent.id);
@@ -36055,6 +36140,9 @@ fn execute_runtime_tool_blocking_with_executor(
     exec: &dyn ToolInvocationExecutor,
 ) -> ToolOutcome {
     tools::set_project_config_root(Some(workspace_root.clone()));
+    if let Some(policy) = devin_acp::bridge::worker_policy() {
+        if let Some(outcome) = policy.gate(&invoke, &workspace_root) { return outcome; }
+    }
     let dev_open = dev_open_tool_permissions_enabled();
     if dev_open {
         invoke.user_authorized = true;
@@ -40735,6 +40823,11 @@ impl SessionStore {
         let name = normalize_session_name(payload.name.as_deref(), self.state.sessions.len() + 1);
         let model = normalize_model(payload.model.as_deref());
         let provider = normalize_provider(payload.provider.as_deref());
+        agent_session_backend::validate_session_input(&payload, &provider)?;
+        if agent_session_backend::AgentSessionBackend::for_provider(&provider) != agent_session_backend::AgentSessionBackend::LlmHttp
+            && payload.model.as_deref().is_none_or(|value| value.trim().is_empty()) {
+            return Err(api_error(StatusCode::BAD_REQUEST, "请输入 Devin CLI 账号实际可用的模型 ID。"));
+        }
         let (base_url, endpoint) = custom_provider_urls(
             &provider,
             payload.base_url.as_deref(),
@@ -40865,6 +40958,9 @@ impl SessionStore {
         if let Some(avatar) = payload.avatar.as_deref() {
             normalize_session_avatar(Some(avatar))?;
         }
+        let existing = self.find_session(session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
+        let provider = payload.provider.as_deref().unwrap_or(&existing.provider);
+        agent_session_backend::validate_session_input(&payload, provider)?;
         let is_active = self.is_active(session_id);
         let Some(session) = self
             .state
@@ -51577,7 +51673,7 @@ impl Serialize for AgentSessionDto {
             Some(&self.reasoning_effort),
         );
         let resolution_dto = ReasoningResolutionDto::from(&resolution);
-        let mut state = serializer.serialize_struct("AgentSessionDto", 17)?;
+        let mut state = serializer.serialize_struct("AgentSessionDto", 18)?;
         state.serialize_field("id", &self.id)?;
         state.serialize_field("name", &self.name)?;
         state.serialize_field("display_name", &self.display_name)?;
@@ -51585,6 +51681,7 @@ impl Serialize for AgentSessionDto {
         state.serialize_field("model", &self.model)?;
         state.serialize_field("model_type", &self.model_type)?;
         state.serialize_field("provider", &self.provider)?;
+        state.serialize_field("backend_kind", &agent_session_backend::AgentSessionBackend::for_provider(&self.provider))?;
         state.serialize_field("base_url", &self.base_url)?;
         state.serialize_field("endpoint", &self.endpoint)?;
         state.serialize_field("reasoning_effort", &resolution.requested.as_str())?;
@@ -51861,6 +51958,7 @@ impl PersistedSession {
         let base_url = settings.base_url.or_else(|| self.base_url.clone());
         let endpoint = settings.endpoint.or_else(|| self.endpoint.clone());
         SessionSummaryDto {
+            backend_kind: agent_session_backend::AgentSessionBackend::for_provider(&self.provider),
             id: self.id.clone(),
             name: self.name.clone(),
             display_name: session_display_name_for(
@@ -51884,12 +51982,14 @@ impl PersistedSession {
             .requested
             .as_str()
             .to_string(),
-            reasoning_resolution: ReasoningResolutionDto::from(&reasoning_resolution_for_session(
+            reasoning_resolution: if agent_session_backend::AgentSessionBackend::for_provider(&self.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+                devin_acp::chat::reasoning_resolution()
+            } else { ReasoningResolutionDto::from(&reasoning_resolution_for_session(
                 &self.provider,
                 &self.model,
                 Some(&self.reasoning_effort),
-            )),
-            api_key_status: api_key_configuration_status(&self.api_key_ref),
+            )) },
+            api_key_status: if agent_session_backend::AgentSessionBackend::for_provider(&self.provider) == agent_session_backend::AgentSessionBackend::DevinAcp { "CLI 登录（未检查）".into() } else { api_key_configuration_status(&self.api_key_ref) },
             memory_mode: memory_mode_for_session(&self.id),
             active,
             updated_at: self.updated_at,
@@ -52084,6 +52184,7 @@ struct UnderstandingCapabilities {
 
 #[derive(Debug, Clone, Serialize)]
 struct SessionSummaryDto {
+    backend_kind: agent_session_backend::AgentSessionBackend,
     id: String,
     name: String,
     display_name: String,
@@ -79129,7 +79230,9 @@ attach: last_assistant
         assert!(
             outcome.summary_text.contains("exit_code")
                 || outcome.summary_text.contains("not recognized")
-                || outcome.summary_text.contains("not found"),
+                || outcome.summary_text.contains("not found")
+                // 中文 Windows 的真实 cmd 错误不能被误判为没有暴露失败原因。
+                || outcome.summary_text.contains("不是内部或外部命令"),
             "summary should expose the real shell failure: {}",
             outcome.summary_text
         );

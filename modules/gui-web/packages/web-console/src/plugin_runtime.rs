@@ -22,11 +22,18 @@ pub(super) fn definitions(workspace: &Path, existing: &[ToolDefinition]) -> Resu
     let mut result = Vec::new();
     for tool in loaded_tools(workspace)? {
         let name = exposed_name(&tool.definition().name)?;
+        if name.starts_with("plugin__devin_") {
+            return Err("外部插件使用了内置 Devin 工具保留名称，当前插件工具未加载".into());
+        }
         if !seen.insert(name.clone()) {
             return Err(format!("插件工具 `{name}` 与已有模型工具重名，当前插件工具未加载"));
         }
         result.push(ToolDefinition { name, description: tool.definition().description.clone(),
             input_schema: tool.definition().input_schema.clone() });
+    }
+    for tool in devin_plugin::definitions(workspace) {
+        if !seen.insert(tool.name.clone()) { return Err("Devin 工具与已有工具重名，未加载".into()); }
+        result.push(tool);
     }
     let dsh = dsh_web::model_bindings(workspace).unwrap_or_else(|error| {
         diag_log(&format!("[DSH-TOOLS] 当前工具未加载：{error}")); BTreeMap::new()
@@ -41,6 +48,7 @@ pub(super) fn definitions(workspace: &Path, existing: &[ToolDefinition]) -> Resu
 pub(super) fn is_plugin_name(name: &str) -> bool { name.starts_with(PREFIX) || name.starts_with(dsh_execution::PREFIX) }
 
 pub(super) fn executor(workspace: &Path, exposed: &str) -> Result<Option<Arc<dyn ToolInvocationExecutor>>, String> {
+    if exposed.starts_with("plugin__devin_") { return devin_plugin::executor(workspace, exposed); }
     let Some(raw) = exposed.strip_prefix(PREFIX) else { return Ok(None); };
     let selected = loaded_tools(workspace)?.into_iter().filter(|tool| tool.definition().name == raw)
         .collect::<Vec<_>>();

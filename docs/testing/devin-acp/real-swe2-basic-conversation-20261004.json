@@ -1,0 +1,44 @@
+{
+  "cli_version": "devin 3000.10.48 (fcf7ba39)",
+  "cost_source": "authenticated CLI catalog",
+  "cost_tier": "Free",
+  "scope": "临时工程内真实 ACP 文本与跨进程恢复；未开放正式聊天路由或工具",
+  "tests": [
+    {
+      "effective": "swe-2-medium",
+      "load_replay_events": 0,
+      "passed": true,
+      "process_drained": true,
+      "reply": "你好，已记住。",
+      "requested": "swe-2-medium",
+      "resolved_model": null,
+      "stop_reason": "end_turn",
+      "text_chunks": 5,
+      "turn": 1
+    },
+    {
+      "effective": "swe-2-medium",
+      "load_replay_events": 10,
+      "passed": true,
+      "process_drained": true,
+      "reply": "63e9d7aaac49c375",
+      "requested": "swe-2-medium",
+      "resolved_model": null,
+      "stop_reason": "end_turn",
+      "text_chunks": 4,
+      "turn": 2
+    },
+    {
+      "effective": "swe-2-medium",
+      "load_replay_events": 13,
+      "passed": true,
+      "process_drained": true,
+      "reply": "42",
+      "requested": "swe-2-medium",
+      "resolved_model": null,
+      "stop_reason": "end_turn",
+      "text_chunks": 1,
+      "turn": 3
+    }
+  ]
+}

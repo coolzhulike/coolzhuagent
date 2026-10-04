@@ -14,7 +14,7 @@ pub(super) fn routes() -> Router {
         .merge(dsh_market::routes())
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct PluginEntry {
     id: String,
     name: String,
@@ -90,7 +90,7 @@ fn plugin_catalog(workspace: &Path, manager: &plugins::PluginManager) -> ApiResu
     if let Ok(bindings) = dsh_web::model_bindings(workspace) {
         loaded.extend(bindings.into_values().map(|binding| binding.snapshot.plugin_id));
     }
-    let plugins = manager.list_plugins().map_err(plugin_error)?.into_iter()
+    let mut plugins: Vec<PluginEntry> = manager.list_plugins().map_err(plugin_error)?.into_iter()
         .map(|mut item| { let is_installed = installed.contains(&item.metadata.id);
             let is_loaded = loaded.contains(&item.metadata.id);
             if item.metadata.dsh.is_some() {
@@ -98,6 +98,8 @@ fn plugin_catalog(workspace: &Path, manager: &plugins::PluginManager) -> ApiResu
                     .ok().flatten().is_some();
             }
             plugin_entry(item, is_installed, is_loaded) }).collect();
+    plugins.push(serde_json::from_value(devin_plugin::catalog(workspace))
+        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "Devin 插件目录信息无效"))?);
     Ok(PluginListResponse { workspace_id: workspace_identity(workspace),
         plugins, candidates: local_plugin_candidates(workspace), runtime_error })
 }
@@ -295,4 +297,21 @@ pub(super) fn active_skill_guidance(workspace: &Path) -> Option<String> {
     let file = skill_file(workspace, &id).ok()?;
     let content = read_skill_content(&file).ok()?;
     Some(format!("\n\n当前工程已选用 SKILL ({id})：\n{content}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn builtin_devin_catalog_matches_market_entry_schema() {
+        // 使用真实内置目录生产者与市场消费类型，防止跨模块合入后目录接口整体读取失败。
+        let workspace = tempfile::tempdir().unwrap();
+        let entry: PluginEntry = serde_json::from_value(devin_plugin::catalog(workspace.path())).unwrap();
+        assert_eq!(entry.id, "devin-cloud@native");
+        assert!(entry.installed);
+        assert!(!entry.dsh);
+        assert!(entry.dsh_source_sha256.is_none());
+        assert!(!entry.enabled && !entry.loaded_in_chat);
+    }
 }

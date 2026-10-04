@@ -17882,3 +17882,13 @@ body.ui-3d [data-role="quick-catalog-detail"] pre {
   background: #091a15;
   color: #e1eadf;
 }
+.devin-plugin-panel { color: #edf1e8; }
+.devin-plugin-panel summary { cursor: pointer; color: #d6d7a2; }
+.devin-plugin-panel label { display: grid; gap: 5px; min-width: 0; }
+.devin-plugin-panel form.dsh-market-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); align-items: end; gap: 12px; }
+.devin-plugin-panel form label:has([data-role="devin-key"]), .devin-plugin-panel form label:has([data-role="devin-org"]) { grid-column: 1 / -1; }
+.devin-plugin-panel p { line-height: 1.5; overflow-wrap: anywhere; }
+.devin-plugin-panel input, .devin-plugin-panel select, .devin-plugin-panel textarea { max-width: 100%; background: #0b211b; color: #edf1e8; border: 1px solid #739a80; border-radius: 6px; padding: 8px; }
+.devin-plugin-panel input[type="checkbox"] { width: 20px; min-height: 20px; }
+.devin-plugin-output { max-height: 420px; overflow: auto; }
+.devin-plugin-output pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
