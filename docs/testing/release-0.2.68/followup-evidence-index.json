@@ -1,0 +1,120 @@
+{
+  "notice": "仅本轮新增或更新的实操证据，保留旧067索引及失败；不包含私人配置或密钥。",
+  "files": [
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-read-facts.json",
+      "size": 3316,
+      "sha256": "5dfe806b3c47b1633aad26c490e16caac56d59ef5706289884a1367c2d75d16c"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-replace-after.jpg",
+      "size": 192131,
+      "sha256": "d41452da9eb21e2a5b8247aecbd43db352b5b2f726ce3c7e67416d0efa90a59c"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-replace-facts.json",
+      "size": 5306,
+      "sha256": "a6cfce0a5adb3e33f75a5f546b9794158bbb8119c119f175824ca3aac077596b"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-replace-ui-time.json",
+      "size": 44,
+      "sha256": "35617e8b033ea3fbbec495245b605fbebee72999d45ed605123e024a7de36fba"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-ui-cancel-facts.json",
+      "size": 5497,
+      "sha256": "e2c2adc2e189782b3640c711e49026f7a3f83c94def04e2135af15878874bec5"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-ui-cancel-missed-completed.jpg",
+      "size": 209840,
+      "sha256": "5eb400a2c33b89c9e32a7e007ed3e38a91b21709e43498b062e592d5b12e200f"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-ui-cancel2-after.jpg",
+      "size": 202672,
+      "sha256": "2a13ceac11b13dfdf4f39d43f8d73d609bac3e55a8e204bfed4977ad1fff649d"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-ui-cancel2-facts.json",
+      "size": 2759,
+      "sha256": "a37cf88edb86f785cadbb9e92183e568d04259cd4839113a3ce9e592cae89c73"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/browser-ui-cancel2-running.jpg",
+      "size": 216644,
+      "sha256": "72f3a310b1bba94c7f0f1652f128590d14ae06c40e30216c892c2116a29a4109"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/paint-continuous-after.jpg",
+      "size": 66729,
+      "sha256": "c1007586a8ca67b50cf25f8699f23e97c8fa4a301723903d2d1952dab1c03e66"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/paint-continuous-before.jpg",
+      "size": 64938,
+      "sha256": "e51f286c157adf266db14f470f47a11faac61bbc11242e28c2abb0efaaebe1c4"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/paint-continuous-budget-apply.json",
+      "size": 343,
+      "sha256": "5e5a6286e566fc37d8a2ec8d1692d05b7193facae2d09f4a231af6a152d17451"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/paint-continuous-budget-restore.json",
+      "size": 345,
+      "sha256": "a45f0ba6e047f62ced46d364933e76c4935b6c2460908adfc00c96458f2e20e1"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/paint-continuous-facts.json",
+      "size": 6599,
+      "sha256": "eb838243d844dcd15ccb7043ea902b1747faca60b818659cb6cb1e3bf103a93f"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/paint-continuous-native-0.png",
+      "size": 270305,
+      "sha256": "a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/paint-continuous-native-index.json",
+      "size": 414,
+      "sha256": "819da0bc2b9bb17c75e57710433497c5b56487a7064d1ebb07e870b72e425395"
+    },
+    {
+      "path": "docs/testing/release-0.2.67/real-model/paint-continuous-running-01.jpg",
+      "size": 66490,
+      "sha256": "c30e348044068a4d6d43c7506cf2e37e8979081eea9df30ee6b666863d8d0015"
+    },
+    {
+      "path": "docs/testing/release-0.2.68/focus-layout-fix-build.txt",
+      "size": 46875,
+      "sha256": "057e57682277d440106d78e9636e86a6491c7dfa1b602d6e656567e435cdd736"
+    },
+    {
+      "path": "docs/testing/release-0.2.68/offline-msi-verification.json",
+      "size": 392606,
+      "sha256": "0ce140c7dad8c297d3b37ee99ed4b0e0ecbfa3c25a82af5dfae70b331b72880e"
+    },
+    {
+      "path": "docs/testing/release-0.2.68/readonly-fix-build.txt",
+      "size": 46758,
+      "sha256": "2bb650e7c9d3477ad0dab58b57f6e65be084202ce5af98d4b335575850b49de0"
+    },
+    {
+      "path": "docs/testing/release-0.2.68/readonly-fix-tests.txt",
+      "size": 23033,
+      "sha256": "ce7c01a3bead6c6d8c795ee0f33802a6417434b9f589d8eb52b8bca2186c7168"
+    },
+    {
+      "path": "docs/testing/release-0.2.68/real-model/candidate-receipt.json",
+      "size": 731,
+      "sha256": "6f6718db405ac9e3d920264e3a50b3773900977ade9592061a9b33f4e8d9df52"
+    },
+    {
+      "path": "docs/testing/release-0.2.68/real-model/candidate-running-identity.json",
+      "size": 381,
+      "sha256": "c669d1dd68d8a7a6aaf8f8798e2aad3a7a9cc814f456752fc930babe7366dd3b"
+    }
+  ]
+}

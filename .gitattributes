@@ -57,3 +57,8 @@
 
 # 正式实操原始JSON与截图索引保持原字节。
 /docs/testing/release-0.2.67/real-model/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# 068候选及本轮工程输出保存原始证据字节。
+/docs/testing/release-0.2.68/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/docs/testing/release-0.2.68/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/docs/testing/release-0.2.68/*.txt -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
