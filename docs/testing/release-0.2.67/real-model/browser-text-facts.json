@@ -1,0 +1,130 @@
+{
+  "label": "browser-text",
+  "runtime": {
+    "id": "run-chat-88222b33680fa23d024917824b39b2bdb491cb2aa49733c9",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791102469465,
+    "finished_at": 1791102513142,
+    "legacy_turn_id": "chat-turn-1791102469455-1"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718db4634ded35e30-tool-99a42bb41cd27fef5aca7293e429efba62db7a6ca86dbba7591a979a0920beb9",
+      "state": "blocked",
+      "action_count": 1,
+      "replan_count": 0,
+      "created_at_ms": 1791102480958,
+      "updated_at_ms": 1791102503395,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000718db4634ded35e30-tool-99a42bb41cd27fef5aca7293e429efba62db7a6ca86dbba7591a979a0920beb9",
+        "provider_tool_call_id": "tool-99a42bb41cd27fef5aca7293e429efba62db7a6ca86dbba7591a979a0920beb9",
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "computer-use action budget exhausted",
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:6ef903ff461ab7f1fd519396022a5f75",
+          "native-ax:1:0",
+          "native-observation:6ef903ff461ab7f1fd519396022a5f75",
+          "native-input:9ccdf7505585e35214dfa59d3f81e72f",
+          "native-ax:1:0",
+          "native-observation:45cab9e00a2f84b7364d0662fb67281d",
+          "native-ax:1:0",
+          "native-observation:45cab9e00a2f84b7364d0662fb67281d",
+          "native-ax:1:0",
+          "native-observation:3727f2c7cc263ec32164c6055d0bb7aa"
+        ],
+        "supervisor": {
+          "circuit_open": true,
+          "reason": "budget_exhausted",
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 1
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791103369455
+            }
+          },
+          "cu_deadline_ms": 1791102600958,
+          "cu_deadline_established_at_ms": 1791102480958,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅一次文本输入",
+          "不点击增加次数按钮",
+          "不滚动",
+          "不导航",
+          "不使用其它工具或桌面UIA",
+          "不使用历史坐标",
+          "任何失败立即停止不重试",
+          "输入回执不能替代实际页面结果",
+          "用本轮新鲜browser观察选择真实文本框，不能向网址栏输入"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏网页的输入验收文本框输入B67-真实输入",
+        "success_criteria": [
+          "本轮最新页面实际显示已输入：B67-真实输入"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63657/click.html"
+        }
+      }
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000718db4634ded35e30-tool-99a42bb41cd27fef5aca7293e429efba62db7a6ca86dbba7591a979a0920beb9",
+      "step_index": 0,
+      "action_type": "click",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "released",
+      "effect_status": "inconclusive",
+      "goal_verdict": "failed",
+      "started_at_ms": 1791102492680,
+      "completed_at_ms": 1791102494271,
+      "native_dispatch_state": "released"
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718db4634ded35e30-tool-99a42bb41cd27fef5aca7293e429efba62db7a6ca86dbba7591a979a0920beb9",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791102481346,
+      "completed_at_ms": 1791102492675
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718db4634ded35e30-tool-99a42bb41cd27fef5aca7293e429efba62db7a6ca86dbba7591a979a0920beb9",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791102495046,
+      "completed_at_ms": 1791102503387
+    }
+  ],
+  "usage": []
+}

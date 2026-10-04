@@ -1,7 +1,9 @@
 mod hooks;
 mod install_transaction;
 mod dsh_package;
+mod dsh_activation;
 pub use dsh_package::{DshPackage, DshSourceReceipt, DshSourceFile};
+pub use dsh_activation::{DshActivationTicket, DshActivationSnapshot};
 
 #[cfg(test)]
 use install_transaction::TransactionFault;
@@ -382,6 +384,9 @@ pub struct InstalledPluginRecord {
     pub source: PluginInstallSource,
     pub installed_at_unix_ms: u128,
     pub updated_at_unix_ms: u128,
+    /// 每次安装/更新的真实事务身份；旧记录缺失时DSH保持未启用。
+    #[serde(default)]
+    pub installation_id: String,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -788,6 +793,7 @@ pub struct PluginManager {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InstallOutcome {
+    pub operation_id: String,
     pub plugin_id: String,
     pub version: String,
     pub install_path: PathBuf,
@@ -1028,6 +1034,7 @@ impl PluginManager {
                 .insert(outcome.plugin_id.clone(), enabled);
         }
         Ok(InstallOutcome {
+            operation_id: outcome.operation_id,
             plugin_id: outcome.plugin_id,
             version: outcome.new_version,
             install_path: outcome.install_path,
@@ -1038,7 +1045,7 @@ impl PluginManager {
         let (_root, _lock) = self.lock_and_recover()?;
         self.ensure_known_plugin_locked(plugin_id)?;
         if self.plugin_registry_locked()?.get(plugin_id).is_some_and(|p| p.metadata().dsh.is_some()) {
-            return Err(PluginError::CommandFailed("DSH 包已安装但工具宿主尚未接入启用流程，未启用".into()));
+            return Err(PluginError::CommandFailed("DSH 启用必须由固定宿主完成真实描述并保存快照；普通启用入口不能直接打开，未启用".into()));
         }
         self.write_enabled_state(plugin_id, Some(true))?;
         self.config
@@ -1266,8 +1273,8 @@ impl PluginManager {
     }
 
     fn is_enabled(&self, metadata: &PluginMetadata) -> bool {
-        // 静态安装不代表工具已加载；宿主启用事务接入前不采纳外部设置中的启用位。
-        if metadata.dsh.is_some() { return false; }
+        // DSH只有来源/世代仍一致的真实宿主快照才采纳启用位，不采纳配置层伪造的true。
+        if metadata.dsh.is_some() { return self.dsh_snapshot_locked(&metadata.id, None).ok().flatten().is_some(); }
         self.config
             .enabled_plugins
             .get(&metadata.id)
@@ -1317,6 +1324,10 @@ impl PluginManager {
     ) -> Result<(), PluginError> {
         let path = checked_metadata_path(&self.settings_path())?;
         update_settings_json(&path, |root| {
+            if enabled != Some(true) && plugin_id.starts_with("dsh-") {
+                ensure_object(root, "dshSnapshots").remove(plugin_id);
+                ensure_object(root, "dshLifecycleEpochs").insert(plugin_id.into(), Value::String(dsh_activation::new_epoch()));
+            }
             let enabled_plugins = ensure_object(root, "enabledPlugins");
             match enabled {
                 Some(value) => {
@@ -1992,7 +2003,12 @@ fn update_settings_json(
     })?;
     update(object);
     reject_reparse_chain(&path)?;
-    fs::write(path, serde_json::to_string_pretty(&root)?)?;
+    // 同卷临时文件+替换：启用位和DSH快照不能出现半份JSON。
+    use std::io::Write;
+    let mut temporary = tempfile::NamedTempFile::new_in(path.parent().ok_or_else(|| PluginError::InvalidManifest("设置路径缺少父目录".into()))?)?;
+    temporary.write_all(&serde_json::to_vec_pretty(&root)?)?;
+    temporary.as_file().sync_all()?;
+    temporary.persist(&path).map_err(|error| PluginError::Io(error.error))?;
     Ok(())
 }
 
@@ -2665,6 +2681,7 @@ mod tests {
                 },
                 installed_at_unix_ms: 1,
                 updated_at_unix_ms: 1,
+                installation_id: String::new(),
             },
         );
         manager.store_registry(&registry).expect("store registry");
@@ -2725,6 +2742,7 @@ mod tests {
                 },
                 installed_at_unix_ms: 1,
                 updated_at_unix_ms: 1,
+                installation_id: String::new(),
             },
         );
         manager.store_registry(&registry).expect("store registry");
@@ -2771,6 +2789,7 @@ mod tests {
                 },
                 installed_at_unix_ms: 1,
                 updated_at_unix_ms: 1,
+                installation_id: String::new(),
             },
         );
         manager.store_registry(&registry).expect("store registry");

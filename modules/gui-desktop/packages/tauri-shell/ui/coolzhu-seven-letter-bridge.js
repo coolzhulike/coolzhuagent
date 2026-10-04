@@ -37,14 +37,19 @@
     }
 
     function clearPresentation() {
-      if (canvas && typeof canvas.getContext === "function") {
-        const context = canvas.getContext("2d");
-        if (context) {
-          if (typeof context.save === "function") context.save();
-          if (typeof context.setTransform === "function") context.setTransform(1, 0, 0, 1, 0, 0);
-          if (typeof context.clearRect === "function") context.clearRect(0, 0, Math.max(1, canvas.width || 1), Math.max(1, canvas.height || 1));
-          if (typeof context.restore === "function") context.restore();
+      try {
+        if (canvas && typeof canvas.getContext === "function") {
+          const context = canvas.getContext("2d");
+          if (context) {
+            if (typeof context.save === "function") context.save();
+            if (typeof context.setTransform === "function") context.setTransform(1, 0, 0, 1, 0, 0);
+            if (typeof context.clearRect === "function") context.clearRect(0, 0, Math.max(1, canvas.width || 1), Math.max(1, canvas.height || 1));
+            if (typeof context.restore === "function") context.restore();
+          }
         }
+      } catch (error) {
+        // 画布失效仍须隐藏演出并交还宿主，不能中断后续完成通知。
+        windowRef?.console?.error?.("启动演出清理画布失败", error);
       }
       if (canvas) {
         canvas.hidden = true;
@@ -182,10 +187,12 @@
           reducedMotionDelayMs: 120,
           onAssetsReady: () => reportNative("assets_ready"),
           onFirstFrame: () => reportNative("first_frame", null, instance?.getState?.()),
+          onError: error => windowRef?.console?.error?.("启动演出绘制或资源失败", error),
         });
         instance.start();
       } catch (error) {
-        finalize("resource-error");
+        windowRef?.console?.error?.("启动演出启动失败", error);
+        requestFinish("resource-error");
       }
       return instance;
     }

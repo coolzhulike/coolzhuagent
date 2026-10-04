@@ -32,6 +32,7 @@ struct OperationJournal {
 
 #[derive(Debug)]
 pub(super) struct TransactionOutcome {
+    pub(super) operation_id: String,
     pub(super) plugin_id: String,
     pub(super) old_version: Option<String>,
     pub(super) new_version: String,
@@ -46,6 +47,9 @@ pub(super) enum TransactionFault {
     BeforeRegistryWrite,
     BeforeSettingsWrite,
     LeaveAfterDirectorySwap,
+    LeaveAfterRegistryWrite,
+    LeaveAfterSettingsWrite,
+    LeaveAfterCommitBeforeCleanup,
 }
 
 impl PluginManager {
@@ -339,6 +343,8 @@ impl PluginManager {
             };
             let now = unix_time_ms();
             let old_version = old_record.as_ref().map(|record| record.version.clone());
+            let operation_id = operation_dir.file_name().and_then(|name| name.to_str())
+                .expect("new operation directory should have an ID").to_string();
             let new_record = match kind {
                 OperationKind::Install | OperationKind::BundledSync => InstalledPluginRecord {
                     kind: if kind == OperationKind::BundledSync {
@@ -356,8 +362,10 @@ impl PluginManager {
                         .as_ref()
                         .map_or(now, |record| record.installed_at_unix_ms),
                     updated_at_unix_ms: now,
+                    installation_id: operation_id.clone(),
                 },
                 OperationKind::Update => InstalledPluginRecord {
+                    installation_id: operation_id.clone(),
                     version: manifest.version.clone(),
                     description: manifest.description.clone(),
                     updated_at_unix_ms: now,
@@ -365,11 +373,6 @@ impl PluginManager {
                 },
             };
             registry.plugins.insert(plugin_id.clone(), new_record);
-            let operation_id = operation_dir
-                .file_name()
-                .and_then(|name| name.to_str())
-                .expect("new operation directory should have an ID")
-                .to_string();
             let journal = OperationJournal {
                 version: 1,
                 operation_id,
@@ -385,6 +388,7 @@ impl PluginManager {
             write_operation_journal(root, &operation_dir, &journal)?;
             self.commit_staged_locked(root, &operation_dir, &journal, &registry, enabled)?;
             Ok(TransactionOutcome {
+                operation_id: journal.operation_id,
                 plugin_id,
                 old_version,
                 new_version: manifest.version,
@@ -431,6 +435,10 @@ impl PluginManager {
             self.store_registry(registry)?;
             mark_operation_phase(root, operation_dir, "registry-written")?;
             #[cfg(test)]
+            if self.transaction_fault == Some(TransactionFault::LeaveAfterRegistryWrite) {
+                return Err(PluginError::RecoveryPending("测试模拟登记写入后中断".into()));
+            }
+            #[cfg(test)]
             if self.transaction_fault == Some(TransactionFault::BeforeSettingsWrite) {
                 return Err(PluginError::Io(std::io::Error::other(
                     "测试注入 settings 写入失败",
@@ -440,10 +448,15 @@ impl PluginManager {
                 self.write_enabled_state(&journal.plugin_id, Some(enabled))?;
                 mark_operation_phase(root, operation_dir, "settings-written")?;
             }
+            #[cfg(test)]
+            if self.transaction_fault == Some(TransactionFault::LeaveAfterSettingsWrite) {
+                return Err(PluginError::RecoveryPending("测试模拟设置写入后中断".into()));
+            }
             Ok(())
         })();
         #[cfg(test)]
-        if self.transaction_fault == Some(TransactionFault::LeaveAfterDirectorySwap) {
+        if matches!(self.transaction_fault, Some(TransactionFault::LeaveAfterDirectorySwap
+            | TransactionFault::LeaveAfterRegistryWrite | TransactionFault::LeaveAfterSettingsWrite)) {
             return commit;
         }
         if let Err(error) = commit {
@@ -469,6 +482,10 @@ impl PluginManager {
                 )));
             }
             return Err(PluginError::Io(error));
+        }
+        #[cfg(test)]
+        if self.transaction_fault == Some(TransactionFault::LeaveAfterCommitBeforeCleanup) {
+            return Ok(());
         }
         let _ = remove_managed_dir(root, operation_dir);
         Ok(())
@@ -832,6 +849,10 @@ fn enabled_from_settings_bytes(
         .and_then(|items| items.get(plugin_id))
         .and_then(Value::as_bool))
 }
+
+#[cfg(test)]
+#[path = "dsh_recovery_tests.rs"]
+mod dsh_recovery_tests;
 
 #[cfg(test)]
 mod tests {

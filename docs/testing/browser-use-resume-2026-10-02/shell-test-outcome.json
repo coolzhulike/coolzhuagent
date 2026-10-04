@@ -1,0 +1,4 @@
+{
+  "command": "cargo test --manifest-path modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml --offline --target-dir modules/gui-desktop/target/tauri-shell native_browser -- --test-threads=1",
+  "exit_code": 0
+}

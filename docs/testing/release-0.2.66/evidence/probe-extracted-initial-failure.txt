@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\zhupu\Desktop\coolzhuagent\tmp\2026-10-02-final-msi\probe-extracted.py", line 27, in <module>
+    if name=='cli':assert 'Version 0.2.66' in text,text
+                          ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: COOLZHU CODE Agent
+  Version          0.2.66
+  Git SHA          8181f08ae9c50d3e41aabd32a6af85343dcd92e8
+  Target           x86_64-pc-windows-msvc
+  Build date       2026-10-02
+
+Support
+  Help             coolzhu-cli --help
+  REPL             /help

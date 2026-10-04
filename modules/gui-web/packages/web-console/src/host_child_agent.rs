@@ -93,8 +93,7 @@ impl HostModelSnapshot {
             .collect();
         let mut parent_definitions = llm_tool_definitions_for_session(&agent.id, room_id)
             .unwrap_or_default();
-        parent_definitions.retain(|definition| !definition.name.starts_with("mcp__")
-            || parent.mcp_bindings.contains_key(&definition.name));
+        retain_admitted_plugin_definitions(&mut parent_definitions, Some(parent));
         let parent_tools = parent_definitions.iter().map(|definition| definition.name.clone()).collect();
         Ok(Self {
             parent_model, override_models, parent_tools, parent_definitions,

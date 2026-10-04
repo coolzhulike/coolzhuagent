@@ -54,6 +54,9 @@ pub(super) fn routes() -> Router {
     Router::new()
         .route("/api/extension-market/dsh", get(dsh_list))
         .route("/api/extension-market/dsh/detail", get(dsh_detail))
+        .route("/api/extension-market/dsh/source", post(dsh_source))
+        .route("/api/extension-market/dsh/install", post(dsh_install))
+        .route("/api/extension-market/dsh/enable", post(dsh_web::enable))
         .route(
             "/api/extension-market/dsh/compatibility",
             post(dsh_compatibility),
@@ -398,6 +401,145 @@ fn dsh_github_repo(entry: &DshEntry) -> Option<(String, String)> {
     Some((owner.to_string(), repo.to_string()))
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DshSourceRequest {
+    expected_workspace: String,
+    id: String,
+    commit: Option<String>,
+}
+
+async fn dsh_source(Json(request): Json<DshSourceRequest>) -> ApiResult<Json<JsonValue>> {
+    use dsh_source_download::{DownloadControl, DownloadError};
+    use sha2::{Digest, Sha256};
+    use std::sync::atomic::AtomicBool;
+    let workspace = active_workspace_path();
+    let assert_scope = || {
+        if request.expected_workspace != workspace_identity(&workspace)
+            || active_workspace_path() != workspace {
+            return Err(api_error(StatusCode::CONFLICT, "工程已切换，请重新检查固定来源"));
+        }
+        Ok(())
+    };
+    assert_scope()?;
+    if request.id.is_empty() || request.id.len() > 240 || request.commit.as_ref().is_some_and(|c| c.len() != 40) {
+        return Err(api_error(StatusCode::BAD_REQUEST, "来源条目或固定修订无效"));
+    }
+    // 只读检查也占用有界网络/暂存资源，拒绝堆积同进程并发下载。
+    static SOURCE_SLOTS: OnceLock<Arc<tokio::sync::Semaphore>> = OnceLock::new();
+    let _source_slot = SOURCE_SLOTS.get_or_init(|| Arc::new(tokio::sync::Semaphore::new(2)))
+        .clone().try_acquire_owned()
+        .map_err(|_| api_error(StatusCode::TOO_MANY_REQUESTS, "固定来源检查正忙，请稍后重试"))?;
+    let control = DownloadControl::new(Instant::now() + Duration::from_secs(120),
+        Arc::new(AtomicBool::new(false)))
+        .map_err(|e| api_error(StatusCode::BAD_REQUEST, &e.message))?;
+    let inspect = async {
+        let (catalog, stale, _) = dsh_catalog(false).await?;
+        assert_scope()?;
+        if stale { return Err(api_error(StatusCode::CONFLICT, "目录已过期，请成功刷新后再检查固定来源")); }
+        let entry = catalog.plugins.iter().find(|entry| dsh_id(entry) == request.id)
+            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "市场条目不存在"))?;
+        if entry.deprecated { return Err(api_error(StatusCode::BAD_REQUEST, "目录已标记弃用，未解析安装来源")); }
+        let candidate = dsh_source_resolve::SourceCandidate::new(&entry.owner, &entry.url, entry.npm.as_deref())
+            .map_err(|e| api_error(StatusCode::BAD_REQUEST, &e.message))?;
+        // SDK身份来自本次构建的宿主锁，页面不能指定本机源路径、SDK或运行命令。
+        let sdk_hash = format!("{:x}", Sha256::digest(include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
+            "/../../../tooling/packages/dsh-plugin-host/package-lock.json"))));
+        let prepared = dsh_source_resolve::prepare(&candidate, request.commit.as_deref(), &sdk_hash,
+            &std::env::temp_dir(), &control).await.map_err(|e| {
+                let status = match e.code {
+                    "download_timeout" => StatusCode::GATEWAY_TIMEOUT,
+                    "source_invalid" => StatusCode::UNPROCESSABLE_ENTITY,
+                    _ => StatusCode::BAD_GATEWAY,
+                };
+                api_error(status, &format!("固定来源检查失败：{}（暂存清理确认：{}）", e.message, e.cleanup_confirmed))
+            })?;
+        let response = json!({"workspace_id": request.expected_workspace, "id": request.id,
+            "status": "source_verified", "repository": prepared.package.repository,
+            "commit": prepared.package.commit, "tree_sha": prepared.tree_sha,
+            "name": prepared.package.receipt.name, "version": prepared.package.receipt.version,
+            "entry": prepared.package.receipt.entry, "license": prepared.license,
+            "source_file_count": prepared.package.receipt.files.len(),
+            "sdk_lock_sha256": prepared.package.receipt.sdk_lock_sha256,
+            "declared_scripts": prepared.declared_scripts,
+            "npm_identity_origin": if entry.npm.is_some() { "catalog_and_fixed_package_json" } else { "fixed_package_json" },
+            "source_sha256": prepared.package.source_fingerprint().map_err(|e| api_error(StatusCode::INTERNAL_SERVER_ERROR, &e.to_string()))?,
+            "compatibility": "unverified", "installable": false, "static_installable": true,
+            "reason": "固定源码已核验，可安装为停用状态；运行兼容与模型接线尚未验收。"});
+        prepared.discard().map_err(|e: DownloadError| api_error(StatusCode::INTERNAL_SERVER_ERROR, &e.message))?;
+        control.check().map_err(|e| api_error(StatusCode::GATEWAY_TIMEOUT, &e.message))?;
+        assert_scope()?;
+        Ok(Json(response))
+    };
+    tokio::time::timeout(Duration::from_secs(120), inspect).await
+        .map_err(|_| api_error(StatusCode::GATEWAY_TIMEOUT, "固定来源检查总预算已耗尽；未安装或启用"))?
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DshInstallRequest {
+    expected_workspace: String,
+    id: String,
+    commit: String,
+    expected_source_sha256: String,
+}
+
+async fn dsh_install(Json(request): Json<DshInstallRequest>) -> ApiResult<Json<JsonValue>> {
+    use dsh_source_download::DownloadControl;
+    use sha2::{Digest, Sha256};
+    use std::sync::atomic::AtomicBool;
+    let workspace = active_workspace_path();
+    if request.expected_workspace != workspace_identity(&workspace) {
+        return Err(api_error(StatusCode::CONFLICT, "工程已切换，请重新确认安装来源"));
+    }
+    if request.id.is_empty() || request.id.len() > 240 || request.commit.len() != 40
+        || request.expected_source_sha256.len() != 64
+        || !request.expected_source_sha256.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
+        return Err(api_error(StatusCode::BAD_REQUEST, "请先完成固定来源检查再安装"));
+    }
+    static INSTALL_SLOTS: OnceLock<Arc<tokio::sync::Semaphore>> = OnceLock::new();
+    let slot = INSTALL_SLOTS.get_or_init(|| Arc::new(tokio::sync::Semaphore::new(1)))
+        .clone().try_acquire_owned().map_err(|_| api_error(StatusCode::TOO_MANY_REQUESTS, "来源安装正忙，请稍后核对已安装目录"))?;
+    let control = DownloadControl::new(Instant::now() + Duration::from_secs(120), Arc::new(AtomicBool::new(false)))
+        .map_err(|e| api_error(StatusCode::BAD_REQUEST, &e.message))?;
+    let prepare = async {
+        let (catalog, stale, _) = dsh_catalog(false).await?;
+        if stale || active_workspace_path() != workspace {
+            return Err(api_error(StatusCode::CONFLICT, "目录或工程已变化，请重新检查固定来源"));
+        }
+        let entry = catalog.plugins.iter().find(|entry| dsh_id(entry) == request.id)
+            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "市场条目不存在"))?;
+        if entry.deprecated { return Err(api_error(StatusCode::BAD_REQUEST, "目录已弃用，未安装")); }
+        let candidate = dsh_source_resolve::SourceCandidate::new(&entry.owner, &entry.url, entry.npm.as_deref())
+            .map_err(|e| api_error(StatusCode::BAD_REQUEST, &e.message))?;
+        let sdk = format!("{:x}", Sha256::digest(include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
+            "/../../../tooling/packages/dsh-plugin-host/package-lock.json"))));
+        let prepared = dsh_source_resolve::prepare(&candidate, Some(&request.commit), &sdk,
+            &std::env::temp_dir(), &control).await
+            .map_err(|e| api_error(StatusCode::BAD_GATEWAY, &format!("安装前来源下载/核验失败：{e}")))?;
+        let description = dsh_description(entry);
+        let description = if description.trim().is_empty() { format!("DSH固定来源包 {}", entry.name) } else { description };
+        Ok((prepared, description))
+    };
+    let (prepared, description) = tokio::time::timeout(Duration::from_secs(120), prepare).await
+        .map_err(|_| api_error(StatusCode::GATEWAY_TIMEOUT, "安装前下载/核验超时，未进入安装事务"))??;
+    // 不在提交期间丢弃阻塞任务来假装取消。客户端断开后仍以原工程的持久登记为准。
+    let result = tokio::task::spawn_blocking(move || {
+        // 请求断开后阻塞提交仍可能继续；并发资格必须活到事务实际收尾。
+        let _slot = slot;
+        if active_workspace_path() != workspace || request.expected_workspace != workspace_identity(&workspace) {
+            return Err(api_error(StatusCode::CONFLICT, "提交前工程已切换，未安装"));
+        }
+        control.check().map_err(|e| api_error(StatusCode::GATEWAY_TIMEOUT, &e.message))?;
+        let mut manager = extension_market::manager(&workspace)?;
+        let receipt = dsh_install_service::install_confirmed(&mut manager, prepared,
+            &request.expected_source_sha256, &request.expected_workspace, &description)
+            .map_err(|e| api_error(StatusCode::BAD_REQUEST, &format!("安装事务未正常完成，请核对已安装目录：{e}")))?;
+        serde_json::to_value(receipt).map(Json).map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "安装回执序列化失败，请核对已安装目录"))
+    }).await.map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "安装结果未确认，请刷新已安装目录核对；不要自动重发"))?;
+    result
+}
+
 fn dsh_repo_segment(value: &str) -> bool {
     !value.is_empty()
         && value.len() <= 100
@@ -503,6 +645,23 @@ fn dsh_decode_manifest(bytes: &[u8]) -> Option<JsonValue> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn source_check_rejects_another_workspace_before_reading_catalog() {
+        let _env = crate::test_env::hold_for_read();
+        let error = dsh_source(Json(DshSourceRequest { expected_workspace: "not-current-workspace".into(),
+            id: "omdsh-dev/dsh-tool-calculator".into(), commit: None })).await.unwrap_err();
+        assert_eq!(error.0, StatusCode::CONFLICT);
+    }
+
+    #[tokio::test]
+    async fn install_rejects_another_workspace_before_reading_catalog() {
+        let _env = crate::test_env::hold_for_read();
+        let error = dsh_install(Json(DshInstallRequest { expected_workspace: "not-current-workspace".into(),
+            id: "omdsh-dev/dsh-tool-calculator".into(), commit: "b".repeat(40),
+            expected_source_sha256: "a".repeat(64) })).await.unwrap_err();
+        assert_eq!(error.0, StatusCode::CONFLICT);
+    }
 
     #[test]
     fn dsh_gzip_is_bounded_and_rejects_corruption() {

@@ -1,0 +1,137 @@
+{
+  "checked_at_utc": "2026-10-02T10:56:11.844044+00:00",
+  "thread_env": {
+    "CODEX_THREAD_ID": "01a0fadf-42a7-7117-821e-ccf121358007",
+    "CODEX_SESSION_ID": "01a0fadf-42a7-7117-821e-ccf121358007"
+  },
+  "config_sha256": "3a946a45e2223faebb565c2323d358fa272fd51fabb17068e5085082804c6a5e",
+  "node_version_probe": {
+    "exit_code": 0,
+    "stdout": "v24.21.0",
+    "stderr": ""
+  },
+  "binaries": [
+    {
+      "name": "node_repl.exe",
+      "bytes": 34047944,
+      "sha256": "2d066ffb358e2e111bc86772f4fced8eaef98e8f9a6f28b97fd874e8ec9b8e02"
+    },
+    {
+      "name": "node.exe",
+      "bytes": 93381936,
+      "sha256": "70d50ed42e14ea32ffde422cda4603c95cef61622206640c6d2f3485737b6e0a"
+    }
+  ],
+  "environment_ids_decoded": [
+    "ccarenv_6abc9097c9108191a5c41a4265ed1b3c",
+    "ccarenv_6abbfff9c70c8191805c03adad4fa87a"
+  ],
+  "selected_events": [
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 7185,
+      "event": "2026-10-02T03:39:28.142Z info [electron-message-handler] VM lifecycle environmentId=ccarenv_b64_Y2NhcmVudl82YWJjOTA5N2M5MTA4MTkxYTVjNDFhNDI2NWVkMWIzYw hostId=durable rendererWebContentsId=1 rendererWindowAppearance=primary rendererWindowFocused=false rendererWindowId=1 rendererWindowVisible=true threadId=01a0f094-d711-76e5-b92a-a4938a6f100a vmEvent=environment_disconnected vmProduct=orbit"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 7192,
+      "event": "2026-10-02T03:39:28.846Z info [electron-message-handler] VM lifecycle environmentId=ccarenv_b64_Y2NhcmVudl82YWJjOTA5N2M5MTA4MTkxYTVjNDFhNDI2NWVkMWIzYw hostId=durable rendererWebContentsId=1 rendererWindowAppearance=primary rendererWindowFocused=false rendererWindowId=1 rendererWindowVisible=true threadId=01a0f094-d711-76e5-b92a-a4938a6f100a vmEvent=environment_disconnected vmProduct=orbit"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 7196,
+      "event": "2026-10-02T03:39:39.537Z info [electron-message-handler] VM lifecycle environmentId=ccarenv_b64_Y2NhcmVudl82YWJjOTA5N2M5MTA4MTkxYTVjNDFhNDI2NWVkMWIzYw hostId=durable rendererWebContentsId=1 rendererWindowAppearance=primary rendererWindowFocused=false rendererWindowId=1 rendererWindowVisible=true threadId=01a0f094-d711-76e5-b92a-a4938a6f100a vmEvent=environment_connected vmProduct=orbit"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 7272,
+      "event": "2026-10-02T03:40:51.404Z info [electron-message-handler] VM lifecycle environmentId=ccarenv_b64_Y2NhcmVudl82YWJjOTA5N2M5MTA4MTkxYTVjNDFhNDI2NWVkMWIzYw hostId=durable rendererWebContentsId=1 rendererWindowAppearance=primary rendererWindowFocused=false rendererWindowId=1 rendererWindowVisible=true threadId=01a0f094-d711-76e5-b92a-a4938a6f100a vmEvent=environment_connected vmProduct=orbit"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 9135,
+      "event": "2026-10-02T04:15:31.187Z info [electron-message-handler] VM lifecycle environmentId=ccarenv_b64_Y2NhcmVudl82YWJjOTA5N2M5MTA4MTkxYTVjNDFhNDI2NWVkMWIzYw hostId=durable rendererWebContentsId=1 rendererWindowAppearance=primary rendererWindowFocused=false rendererWindowId=1 rendererWindowVisible=true threadId=01a0f094-d711-76e5-b92a-a4938a6f100a vmEvent=environment_disconnected vmProduct=orbit"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 9136,
+      "event": "2026-10-02T04:15:31.388Z info [electron-message-handler] VM lifecycle environmentId=ccarenv_b64_Y2NhcmVudl82YWJjOTA5N2M5MTA4MTkxYTVjNDFhNDI2NWVkMWIzYw hostId=durable rendererWebContentsId=1 rendererWindowAppearance=primary rendererWindowFocused=false rendererWindowId=1 rendererWindowVisible=true threadId=01a0f094-d711-76e5-b92a-a4938a6f100a vmEvent=environment_disconnected vmProduct=orbit"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 9140,
+      "event": "2026-10-02T04:15:34.144Z info [electron-message-handler] VM lifecycle environmentId=ccarenv_b64_Y2NhcmVudl82YWJjOTA5N2M5MTA4MTkxYTVjNDFhNDI2NWVkMWIzYw hostId=durable rendererWebContentsId=1 rendererWindowAppearance=primary rendererWindowFocused=false rendererWindowId=1 rendererWindowVisible=true threadId=01a0f094-d711-76e5-b92a-a4938a6f100a vmEvent=environment_connected vmProduct=orbit"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 9881,
+      "event": "2026-10-02T04:28:59.114Z info [electron-message-handler] maybe_resume_success activePermissionProfileChanged=false activePermissionProfileSource=default approvalPolicyChanged=false approvalPolicySource=default approvalsReviewerChanged=true approvalsReviewerSource=default assignedStreamRole=owner connectedEnvironmentIds=undefined conversationId=01a0fadf-42a7-7117-821e-ccf121358007 derivedActivePermissionProfile=null derivedApprovalPolicy=on-request derivedApprovalsReviewer=user derivedSandboxPolicy={\"type\":\"workspaceWrite\",\"networkAccess\":false,\"writableRootCount\":2,\"excludeTmpdirEnvVar\":false,\"excludeSlashTmp\":false} documentVisibilityState=visible environmentIds=[\"ccarenv_b64_Y2NhcmVudl82YWJiZmZmOWM3MGM4MTkxODA1YzAzYWRhZDRmYTg3YQ\"] hasCurrentPermissions=false hasExplicitPermissions=false hasLatestThreadSettings=false hasLatestTurnParams=false latestTurnId=01a0fadf-4d2c-753f-be9a-e9f0906cfe8d latestTurnStatus=inProgress markedStreaming=true rendererWebContentsId=1 rendererWindowAppearance=primary rendererWindowFocused=false rendererWindowId=1 rendererWindowVisible=true requestApprovalPolicy=null requestApprovalsReviewer=null requestPermissionProfile=null requestSandboxMode=null responseActivePermissionProfile=null responseApprovalPolicy=on-request responseApprovalsReviewer=auto_r"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 20813,
+      "event": "2026-10-02T08:23:37.724Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=unreal-mcp status=starting threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 20814,
+      "event": "2026-10-02T08:23:37.724Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=starting threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 20815,
+      "event": "2026-10-02T08:23:37.724Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_app status=starting threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 20816,
+      "event": "2026-10-02T08:23:40.080Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=codex_app status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 20817,
+      "event": "2026-10-02T08:23:40.080Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=cua_repl status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 20821,
+      "event": "2026-10-02T08:23:46.033Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=unreal-mcp status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "line": 20822,
+      "event": "2026-10-02T08:23:46.033Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-1.log",
+      "line": 6640,
+      "event": "2026-10-02T10:52:34.666Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-1.log",
+      "line": 6641,
+      "event": "2026-10-02T10:52:34.666Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+    }
+  ],
+  "cu_startup_error_code": null,
+  "cu_startup_failure_reason": null,
+  "parent_endpoint_os_source": "父会话明确报告为dot云端Linux；日志本身未声明OS或CU端点URI",
+  "live_window_enumeration": "未执行：当前工具目录无本地node_repl/CU入口",
+  "restart_attempted": false,
+  "restart_reason": "无会话内受支持重启工具；codex mcp --help无restart/reconnect命令",
+  "environment_mapping": {
+    "parent_thread": "01a0f094-d711-76e5-b92a-a4938a6f100a",
+    "parent_environment": "ccarenv_6abc9097c9108191a5c41a4265ed1b3c",
+    "current_thread": "01a0fadf-42a7-7117-821e-ccf121358007",
+    "current_environment": "ccarenv_6abbfff9c70c8191805c03adad4fa87a",
+    "log_host_id": "durable",
+    "endpoint_uri_or_os_in_log": null
+  },
+  "windows_application_error_probe": {
+    "from_utc": "2026-10-02T08:23:30Z",
+    "to_utc": "2026-10-02T08:24:00Z",
+    "level": 2,
+    "result": "NoMatchingEventsFound",
+    "does_not_prove_service_health": true
+  }
+}

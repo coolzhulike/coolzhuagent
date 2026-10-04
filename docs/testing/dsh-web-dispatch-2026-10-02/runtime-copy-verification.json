@@ -1,0 +1,15 @@
+{
+  "来源": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-10-02-dsh-activation\\runtime-copy",
+  "测试伴随目录": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-10-02-dsh-dispatch\\bin\\dsh-runtime",
+  "源目录核验": [
+    290,
+    93908058
+  ],
+  "副本核验": [
+    290,
+    93908058
+  ],
+  "runtime_lock_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+  "sdk_lock_sha256": "af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+  "用途": "独立工程测试，不是正式MSI"
+}

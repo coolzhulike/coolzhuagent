@@ -14082,9 +14082,14 @@ async function quickCatalogMutation(kind, path, payload, button) {
   const workspaceKey = activeWorkspaceKey;
   setBusy(button, true, "处理中");
   try {
-    await requestJson(path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+    const result = await requestJson(path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
     if (workspaceKey !== activeWorkspaceKey) return;
     await refreshQuickCatalogWindow(kind);
+    if (status && workspaceKey === activeWorkspaceKey && result?.pending_call_id) {
+      status.textContent = "已进入现有权限审批，尚未启用；请在权限面板核对并确认。来源或上下文变化后旧审批会被拒绝。";
+    } else if (status && workspaceKey === activeWorkspaceKey && result?.outcome && result.outcome.status !== "ok") {
+      status.textContent = result.outcome.summary_text || "操作未完成，请刷新后核对状态。";
+    }
   } catch (error) {
     if (status && workspaceKey === activeWorkspaceKey) status.textContent = `操作失败：${error.message}`;
   } finally {
@@ -14138,8 +14143,17 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
     toggle.type = "button";
     setWuxiaIconOnly(toggle, item.enabled ? "stop" : "check", item.enabled ? "停用插件" : "启用插件");
     toggle.setAttribute("aria-pressed", String(item.enabled));
-    toggle.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
-      {expected_workspace:workspaceId,id:item.id,action:item.enabled ? "disable" : "enable"}, toggle));
+    toggle.addEventListener("click", () => {
+      if (item.dsh && !item.enabled) {
+        if (!window.confirm(`启用 ${item.name} 会运行其第三方代码来读取实际工具定义；后续调用仍需现有权限审批。确认启用当前已安装来源？`)) return;
+        quickCatalogMutation("plugin-market", "/api/extension-market/dsh/enable",
+          {expected_workspace:workspaceId,id:item.id,expected_source_sha256:item.dsh_source_sha256,
+            session_id:activeSessionId,chat_room_id:activeChatRoomId,config:{}}, toggle);
+      } else {
+        quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
+          {expected_workspace:workspaceId,id:item.id,action:item.enabled ? "disable" : "enable"}, toggle);
+      }
+    });
     const update = document.createElement("button");
     update.type = "button";
     setWuxiaIconOnly(update, "refresh", "更新插件");
@@ -14151,7 +14165,7 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
     remove.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
       {expected_workspace:workspaceId,id:item.id,action:"uninstall"}, remove));
     card.append(toggle);
-    if (item.kind === "external") card.append(update, remove);
+    if (item.kind === "external") { if (!item.dsh) card.append(update); card.append(remove); }
   }
   return card;
 }

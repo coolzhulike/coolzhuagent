@@ -1,0 +1,19 @@
+{
+  "observation": {
+    "context": {
+      "call_id": "engineering-provider-handshake-cancel",
+      "room_id": "dsh-engineering-room",
+      "run_id": "dsh-engineering-run",
+      "workspace_id": "ws-4a1f65b0eafe2f75"
+    },
+    "execute_envelope_present": false,
+    "generation": "1c3a97bf-e335-4c3f-8c81-dbc75d034e3b",
+    "observed_real_node_handshake": true,
+    "scope": "仅证明真实握手后取消，不声称calculator函数已经执行"
+  },
+  "outcome": {
+    "cleanup_confirmed": true,
+    "code": "cancelled",
+    "error": "host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放"
+  }
+}

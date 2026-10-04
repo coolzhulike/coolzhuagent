@@ -99,7 +99,8 @@ pub(super) fn catalog(root: &Path) -> JsonValue {
     json!({"id":ID,"name":"Devin 云会话","version":"0.1.0",
         "description":"官方 v3 异步云端 Agent 会话；在本页独立配置。",
         "source":"内置会话插件","enabled":enabled,"installed":true,"kind":"builtin",
-        "installable":false,"manageable":false,"loaded_in_chat":loaded})
+        "installable":false,"manageable":false,"loaded_in_chat":loaded,
+        "dsh":false,"dsh_source_sha256":null})
 }
 
 pub(super) fn routes() -> Router {

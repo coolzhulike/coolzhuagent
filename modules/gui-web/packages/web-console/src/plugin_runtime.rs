@@ -35,10 +35,17 @@ pub(super) fn definitions(workspace: &Path, existing: &[ToolDefinition]) -> Resu
         if !seen.insert(tool.name.clone()) { return Err("Devin 工具与已有工具重名，未加载".into()); }
         result.push(tool);
     }
+    let dsh = dsh_web::model_bindings(workspace).unwrap_or_else(|error| {
+        diag_log(&format!("[DSH-TOOLS] 当前工具未加载：{error}")); BTreeMap::new()
+    });
+    for binding in dsh.into_values() {
+        if !seen.insert(binding.definition.name.clone()) { return Err("DSH工具与现有工具重名，未加载".into()); }
+        result.push(binding.definition);
+    }
     Ok(result)
 }
 
-pub(super) fn is_plugin_name(name: &str) -> bool { name.starts_with(PREFIX) }
+pub(super) fn is_plugin_name(name: &str) -> bool { name.starts_with(PREFIX) || name.starts_with(dsh_execution::PREFIX) }
 
 pub(super) fn executor(workspace: &Path, exposed: &str) -> Result<Option<Arc<dyn ToolInvocationExecutor>>, String> {
     if exposed.starts_with("plugin__devin_") { return devin_plugin::executor(workspace, exposed); }
