@@ -26,3 +26,8 @@
 068 MSI275642907字节，SHA256 a66a3918b232f032391151584f606c7a3e66a3fa31a9bb4602e4093d757ca598；冻结摘要f5d78ba4ccb3a81368ce328185c95b75f5a0959dc061204305b3fd159a674229。只读展开三个CAB，1150文件逐字节匹配，DSH290文件完整资源锁再次通过；没有执行安装器自定义动作。见[静态核验](offline-msi-verification.json)。
 
 正常关闭067后，启动同份068候选载荷，backend实际进程路径与SHA256匹配候选产物，工程保持原路径。正式安装目录未替换。Windows安全中心防火墙弹窗遮挡控制台，尚未继续068 GUI回归，待用户正常处理窗口；未代点安全权限或修改防火墙规则。见[运行身份](real-model/candidate-running-identity.json)和[候选收据](real-model/candidate-receipt.json)。
+
+
+## 远端交付
+
+核验发现PR76已于2026-10-04 09:37:25 UTC合并，仅含截至c761a91的前轮结果。本轮两修复及增量证据从最新main独立承接到codex/browser-cu-regression-20261004，Draft [PR77](https://github.com/coolzhulike/coolzhuagent/pull/77)，修复提交7925ce3；不修改已合并PR的历史交付范围。当前两生产源码与已构建068候选一致，之后增加的验收文档不改变该冻结候选的构建身份。
