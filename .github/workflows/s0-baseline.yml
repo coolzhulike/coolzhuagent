@@ -27,7 +27,9 @@ jobs:
             --output-dir "$env:RUNNER_TEMP/s0-controlled-replay" `
             --all
       - name: Run web console regression tests
-        run: cargo test -p coolzhu-web-console --bin coolzhu-web-console
+        # 多项 Windows 进程测试会启动 PowerShell；并发冷启动会挤占启动期限。
+        # 串行执行保留原有超时、取消和进程树清理断言，不放宽生产保护。
+        run: cargo test -p coolzhu-web-console --bin coolzhu-web-console -- --test-threads=1
       - name: Verify S0 fixture contract
         run: cargo test --test s0_fixture_contract
       - name: Verify workspace linkage
