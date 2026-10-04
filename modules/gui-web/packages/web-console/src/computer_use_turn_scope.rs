@@ -83,6 +83,12 @@ fn explicit_request_from_current_user(text: &str) -> Option<ComputerUseRequest> 
 fn forbids_all_browser_input(text: &str) -> bool {
     let compact: String = text.chars().filter(|c| !c.is_whitespace())
         .map(|c| if c == '/' || c == '／' { '、' } else { c }).collect();
+    // 日常表述常逐项重复否定词；仍要求三类输入都明确禁止，不能把部分限制当只读。
+    if ["点击", "输入", "滚动"].iter().all(|action|
+        ["不", "不得", "禁止", "不要"].iter().any(|prefix|
+            compact.contains(&format!("{prefix}{action}")))) {
+        return true;
+    }
     let orders = [["点击", "输入", "滚动"], ["点击", "滚动", "输入"],
         ["滚动", "输入", "点击"], ["滚动", "点击", "输入"],
         ["输入", "点击", "滚动"], ["输入", "滚动", "点击"]];
@@ -159,7 +165,8 @@ mod tests {
             "内置浏览器，不得点击、输入、滚动", "内置浏览器，不要滚动、输入或点击",
             "内置浏览器，禁止输入、 点击 、滚动", "右栏原生浏览器禁止点击/输入/滚动/导航/提交",
             "右侧原生浏览器禁止输入／滚动／点击", "右栏原生浏览器，不发送任何输入",
-            "右栏原生浏览器，不作任何输入"] {
+            "右栏原生浏览器，不作任何输入", "只读当前右栏网页，不点击、不输入、不滚动、不导航",
+            "内置浏览器，不要点击；禁止输入；不得滚动"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(scope.native_browser_read_only());
             assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());

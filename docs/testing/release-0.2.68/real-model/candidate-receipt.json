@@ -1,0 +1,14 @@
+{
+  "version": "0.2.68",
+  "mode": "候选载荷，未安装替换正式版",
+  "source_snapshot_digest": "f5d78ba4ccb3a81368ce328185c95b75f5a0959dc061204305b3fd159a674229",
+  "msi_sha256": "a66a3918b232f032391151584f606c7a3e66a3fa31a9bb4602e4093d757ca598",
+  "msi_size": 275642907,
+  "source_reference_commit": "7aef980f6dc6d015891917cc2433523bc3b32a56",
+  "package_identity": "pkg-report-release-20261004-175922252-ce661f0c@9ac8ed90b23ff81e99d59022f4bf26c9dcea6ea47f056bdb50fc1768a1d3dcc1",
+  "static_msi_verification_passed": true,
+  "gui_regression_status": "安全中心模态遮挡；尚未发起068真实模型任务",
+  "baseline_model": "qwen3.8-flash",
+  "thinking": "medium",
+  "agent_fix_tests_passed": 6
+}

@@ -424,3 +424,8 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 4. **需真实环境／资源**：§8.6 五项、操作员认证的原生验证、签名（证书）、`PKG-L07c-RACE`；
 5. **环境异常**：rustc 偶发 `STATUS_STACK_BUFFER_OVERRUN`（已按"环境异常"记录，见 §B-148）。
 6. **Step 4 的观测手段已有**（已核实）：mock 路径回传 `facts.injected_points`，"物理输入 = 0" 可直接断言，**无需新增管道**；写法配方见 handoff §3-ter 的「Step 4 测试写法配方」。
+
+
+## 2026-10-04 Browser/CU后续增量
+
+只读实测发现重复否定范围漏识别，已在068定向修复；Windows聚焦无条件还原最大化已改为只恢复最小化。Web离线编译通过，范围回归6项通过。普通UI取消规划中任务实拍通过；页面替换首轮晚于结束未命中，按住期间关闭/替换仍开放。独立新Paint在落笔前因观察变化拒绝，实际0输入、未画成；保留失败而不以父轮completed认成功。068统一载荷及MSI已构建，1150文件静态核验通过，已运行候选但未安装替换067；安全中心弹窗处理前不进行GUI回归。详细依据见release-0.2.67报告增量和release-0.2.68/browser-cu-regression-plan.md。本段仅为真实最新增量，不将既有历史章节或工程测试改写为全部验收通过。
