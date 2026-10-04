@@ -162,6 +162,8 @@ fn normalize_objective_preapproval_claim(text: &str) -> String {
     for (claim, neutral) in [
         ("用户已明确授权本次", "用户已明确许可本次"),
         ("用户已授权本次", "用户已许可本次"),
+        ("用户已明确授权本轮", "用户已明确许可本轮"),
+        ("用户已授权本轮", "用户已许可本轮"),
     ] {
         if let Some(rest) = text.strip_prefix(claim) {
             return format!("{neutral}{rest}");
@@ -1685,6 +1687,8 @@ mod tests {
         for objective in [
             "用户已明确授权本次 Paint 手绘测试。在白色画布内拖动绘画",
             "用户已授权本次鼠标拖动。在画布内画一个闭合矩形",
+            "用户已明确授权本轮 Paint 手绘验收。在画布内拖动绘画",
+            "用户已授权本轮鼠标拖动。在画布内画一个闭合矩形",
         ] {
             assert_eq!(host_sensitive_semantic_category(
                 &request_with_objective(objective), &action, &observation,
@@ -1698,10 +1702,12 @@ mod tests {
             ("发送消息给他人", "external_communication"),
             ("输入 API key", "credential_or_secret"),
         ] {
-            let objective = format!("用户已明确授权本次{operation}");
-            assert_eq!(host_sensitive_semantic_category(
-                &request_with_objective(&objective), &action, &observation,
-            ), Some(category), "{operation}");
+            for claim in ["用户已明确授权本次", "用户已明确授权本轮", "用户已授权本轮"] {
+                let objective = format!("{claim}{operation}");
+                assert_eq!(host_sensitive_semantic_category(
+                    &request_with_objective(&objective), &action, &observation,
+                ), Some(category), "{objective}");
+            }
         }
         let request = request_with_objective("用户已明确授权本次鼠标点击");
         let sensitive_node = observation_with_state(1, json!({"page":{"nodes":[
@@ -1712,6 +1718,10 @@ mod tests {
         ), Some("authorization_or_installation"));
         let mut parameter_action = action;
         parameter_action.arguments = json!({"label":"用户已明确授权本次访问"});
+        assert_eq!(host_sensitive_semantic_category(
+            &request, &parameter_action, &observation,
+        ), Some("authorization_or_installation"));
+        parameter_action.arguments = json!({"label":"用户已明确授权本轮访问"});
         assert_eq!(host_sensitive_semantic_category(
             &request, &parameter_action, &observation,
         ), Some("authorization_or_installation"));

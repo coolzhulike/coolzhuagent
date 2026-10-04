@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-04T14:08:57.3240772+08:00",
+  "resource_state": "safe",
+  "accepts_new_input": true,
+  "open_blocks": 0,
+  "pending": 0,
+  "latest_release": {
+    "decision_id": "release-1791094077093-1791094077093289600",
+    "operator": "S-1-5-21-1268417434-179321985-1489660346-1001",
+    "reason": "测试放行",
+    "release_epoch": 66,
+    "decided_at_unix_ms": 1791094077094
+  }
+}

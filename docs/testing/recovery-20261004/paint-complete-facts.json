@@ -1,0 +1,137 @@
+{
+  "label": "paint-complete",
+  "runtime": {
+    "id": "run-chat-e34de37ebfee28787ddefb610c721c5aafe00c5b4fb03d84",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791094592810,
+    "finished_at": 1791094731933,
+    "legacy_turn_id": "chat-turn-1791094592801-1"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718db3f0aebda7860-tool-85c6e51c9148a7716cb7eb055436c790c0fefbc6f45e3638a793e7768bddc9fd",
+      "state": "blocked",
+      "action_count": 1,
+      "replan_count": 0,
+      "created_at_ms": 1791094604042,
+      "updated_at_ms": 1791094724060,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000718db3f0aebda7860-tool-85c6e51c9148a7716cb7eb055436c790c0fefbc6f45e3638a793e7768bddc9fd",
+        "provider_tool_call_id": "tool-85c6e51c9148a7716cb7eb055436c790c0fefbc6f45e3638a793e7768bddc9fd",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "computer_use_verification model request exceeded its 18355 ms stage wait limit; the request was sent, and any late response cannot produce an action",
+        "error": {
+          "code": "stage_timeout",
+          "message": "computer_use_verification model request exceeded its 18355 ms stage wait limit; the request was sent, and any late response cannot produce an action",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-7f8412dd92e8e4312314a0d5a6ca2021bc8dee20ea8f888b9f4d0723ff70e8c4.png:sha256=7f8412dd92e8e4312314a0d5a6ca2021bc8dee20ea8f888b9f4d0723ff70e8c4:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=7f8412dd92e8e4312314a0d5a6ca2021bc8dee20ea8f888b9f4d0723ff70e8c4:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-7f8412dd92e8e4312314a0d5a6ca2021bc8dee20ea8f888b9f4d0723ff70e8c4.png:sha256=7f8412dd92e8e4312314a0d5a6ca2021bc8dee20ea8f888b9f4d0723ff70e8c4:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=7f8412dd92e8e4312314a0d5a6ca2021bc8dee20ea8f888b9f4d0723ff70e8c4:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/6",
+          "native_stroke:window-canvas:8890a54:points=5:duration_ms=1200:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-4a8ea562c41b64f4b36e6f8c23bba26c0544640aab592e9c63c7aeea34de871b.png:sha256=4a8ea562c41b64f4b36e6f8c23bba26c0544640aab592e9c63c7aeea34de871b:2560x1152",
+          "mapping:frame_binding:sha256=4a8ea562c41b64f4b36e6f8c23bba26c0544640aab592e9c63c7aeea34de871b:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-ea12690bbb015e29a6e5ad1bcf775ed1b355622f04e6260478168588123119da.png:sha256=ea12690bbb015e29a6e5ad1bcf775ed1b355622f04e6260478168588123119da:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-ea12690bbb015e29a6e5ad1bcf775ed1b355622f04e6260478168588123119da.png:sha256=ea12690bbb015e29a6e5ad1bcf775ed1b355622f04e6260478168588123119da:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=ea12690bbb015e29a6e5ad1bcf775ed1b355622f04e6260478168588123119da:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791095492801
+            }
+          },
+          "cu_deadline_ms": 1791094724042,
+          "cu_deadline_established_at_ms": 1791094604042,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只用鼠标连续拖动，不用形状工具、代码、导入或其它工具",
+          "不擦除、不保存、不改变画布",
+          "依据本轮新鲜原图定位，不复用历史坐标，不把工具栏当画布",
+          "不能把旧图当本次成果，不把输入释放或图像hash变化直接当验收",
+          "任一输入或验收不确定、失败或预算耗尽立即停止，不重试、不补发"
+        ],
+        "max_actions": 6,
+        "objective": "用户已明确授权本次 Paint 手绘测试。在当前Windows画图真实白色画布的右侧未画线留白内，手画一个新的简化海绵宝宝：依序六笔连续鼠标拖动——①5点闭合矩形身体、②5点闭合左眼菱形、③5点闭合右眼菱形、④3点折线笑嘴、⑤2点左腿、⑥2点右腿，每笔约1200ms，只用已选中的黑色铅笔。不要求美术质量，粗略可辨即可。必须依本轮原始分辨率新截图辨认留白，不使用历史坐标。",
+        "success_criteria": [
+          "本轮真实发生新绘制动作",
+          "最新原图可见新增闭合矩形身体",
+          "身体内部有两只分开的闭合菱形眼睛",
+          "两眼下方有一条折线笑嘴",
+          "身体下方有两条分开的短腿",
+          "全部新线条在白色画布内且不跨旧线"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000718db3f0aebda7860-tool-85c6e51c9148a7716cb7eb055436c790c0fefbc6f45e3638a793e7768bddc9fd",
+      "step_index": 0,
+      "action_type": "drag",
+      "status": "input_sent_observed",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "input_release_status": "released",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1791094699194,
+      "completed_at_ms": 1791094704052,
+      "native_dispatch_state": null
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718db3f0aebda7860-tool-85c6e51c9148a7716cb7eb055436c790c0fefbc6f45e3638a793e7768bddc9fd",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791094610721,
+      "completed_at_ms": 1791094630214
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000718db3f0aebda7860-tool-85c6e51c9148a7716cb7eb055436c790c0fefbc6f45e3638a793e7768bddc9fd",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791094630241,
+      "completed_at_ms": 1791094699188
+    }
+  ],
+  "usage": []
+}
