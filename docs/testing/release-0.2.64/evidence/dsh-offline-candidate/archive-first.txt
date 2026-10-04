@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\zhupu\Desktop\coolzhuagent\tmp\2026-10-02-dsh-msi\archive-evidence.py", line 71, in <module>
+    assert {p['path'].replace('\\','/').lower():p['sha256'] for p in prior_installed} == {p['path'].replace('\\','/').lower():p['sha256'] for p in current_installed}
+            ~^^^^^^^^
+KeyError: 'path'

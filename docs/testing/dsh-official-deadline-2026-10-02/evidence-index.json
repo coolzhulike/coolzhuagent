@@ -1,0 +1,159 @@
+{
+  "checked_at_utc": "2026-10-02T19:47:26.954256+00:00",
+  "head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "sources": [
+    {
+      "file": "modules/core-runtime/packages/core-runtime/tests/dsh_official_deadline.rs",
+      "sha256": "19d055b4123a9f6720982e7f6f90aa08373ba99f29dc178e68c3bd7259ceabd0"
+    },
+    {
+      "file": "modules/core-runtime/packages/core-runtime/tests/fixtures/dsh-official-entry.mjs",
+      "sha256": "e123c51361642522ba2c078ec390024330d38bf3a468e1fe6f5421703c8bac8f"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "run-01.txt",
+      "sha256": "46a4f80269bd1fc13257426e1406ee34dcdfd252b1a1e6fe55076c727f1472ab",
+      "bytes": 3165
+    },
+    {
+      "file": "run-02.txt",
+      "sha256": "67273a33835739ea8aa46a7c0d145df2871f1f177ce27469b9c0ee0917ec0f1f",
+      "bytes": 4589
+    },
+    {
+      "file": "run-03.txt",
+      "sha256": "edab40e7eca1f69aea4b845857897292ba84936e20f6c09470b05710d686b747",
+      "bytes": 1980
+    },
+    {
+      "file": "run-04.txt",
+      "sha256": "3adb97dbb827663190e3cc774c37e3b34f57083ab3bc69a96240229340b46c54",
+      "bytes": 1980
+    },
+    {
+      "file": "build.txt",
+      "sha256": "2cf83a54d8d3433ba885ee01f013bb0af86920157ab6fcccd9b25207c2fe99e4",
+      "bytes": 1413
+    },
+    {
+      "file": "diff-check.txt",
+      "sha256": "40a326b23147613f99c0a4b6eec5bd00180f05ff1d6c23976df8f57fd24302b4",
+      "bytes": 529
+    },
+    {
+      "file": "input-safety-readonly.json",
+      "sha256": "30fc0d1cd561c5be69f6e2d716c8d73a81bff92c39c089d6324bcb96e6649988",
+      "bytes": 2448
+    },
+    {
+      "file": "installed-processes.json",
+      "sha256": "b5d636846c3c1bd7a1cf07b90727eebca71c70111a32688d123708f7dfd288a0",
+      "bytes": 313
+    },
+    {
+      "file": "run-04/result.json",
+      "sha256": "338f40129f9851b9f3005db72c15703441475cd0ea85146cda3cf970b004c9a1",
+      "bytes": 23540
+    },
+    {
+      "file": "run-04/forced/entered.json",
+      "sha256": "bb716f2ae113d8cdb1a8ebbda089acd7e572a880934a27ddca679d843a2f8d9f",
+      "bytes": 4456
+    },
+    {
+      "file": "run-04/forced/probe-config.json",
+      "sha256": "9b11c108ff59be810821ffdf324610579ad3fdf9a3af18981522e43fbf9dab6f",
+      "bytes": 293
+    },
+    {
+      "file": "run-04/forced/rust-outcome.json",
+      "sha256": "8315ac227c29224f3edd35df6f9c90f70b15e777aedba3f0a5e2c90a363f135e",
+      "bytes": 273
+    },
+    {
+      "file": "run-04/late/entered.json",
+      "sha256": "498cfc4b9f9b4d22020018d97d796ee17e2e81105ca04aa981d7eb4ee414aa8a",
+      "bytes": 4451
+    },
+    {
+      "file": "run-04/late/probe-config.json",
+      "sha256": "c268ba70bf4ff1a31f6df4a5243422c119086445a21034643b50f2ac6cf03a9f",
+      "bytes": 291
+    },
+    {
+      "file": "run-04/late/resumed.json",
+      "sha256": "6ee7cc54627522e6cf55c2de77bce6309349afafb0aa628e89cdbef23b2a7eb4",
+      "bytes": 97
+    },
+    {
+      "file": "run-04/late/rust-outcome.json",
+      "sha256": "c08e4dcfb2d5d97df6606604dbaab0e8a99e5cc7970489a6e832681c33461f81",
+      "bytes": 273
+    },
+    {
+      "file": "run-04/late/terminal-copy.json",
+      "sha256": "d3130583383e546d624505f6031074ba0f90c4e39276f3604bdfb60643384e69",
+      "bytes": 502
+    },
+    {
+      "file": "run-04/normal/entered.json",
+      "sha256": "ceded8f1e1eae1ce2a489dc80fca3f99c553b093a43a483f4c7cc251f16b6f8a",
+      "bytes": 4455
+    },
+    {
+      "file": "run-04/normal/probe-config.json",
+      "sha256": "25e30a5c931fbb093c830208a61ac4b0cff44fe1be4ea40700cf98668e02ef15",
+      "bytes": 293
+    },
+    {
+      "file": "run-04/normal/resumed.json",
+      "sha256": "c8a544d01c892a15fb7a17f4689eec2d2a0e51dbe68f1103c2f48981a0322a31",
+      "bytes": 98
+    },
+    {
+      "file": "run-04/normal/rust-outcome.json",
+      "sha256": "96327010236d541ccd5adcba7faa820b8b34fc5cf3688e4efb4091c3054b9c70",
+      "bytes": 220
+    },
+    {
+      "file": "run-04/normal/terminal-copy.json",
+      "sha256": "3a45db28676c5e07178761f774991683ea93eeac087de7247f211ec47542be1f",
+      "bytes": 504
+    }
+  ],
+  "production_unchanged": true,
+  "candidate_066_unchanged_sha256": "ac7c1ec5c01b76f2132ce2a9276e3096389450b0be1b373f632e72f4bac52f25",
+  "test_result": {
+    "passed": 1,
+    "failed": 0,
+    "ignored": 0,
+    "cases": 3,
+    "normal_value": 96,
+    "late_executed_value": 96,
+    "late_parent_result": "timed_out",
+    "forced_cleanup_confirmed": true,
+    "ipc_directory_empty": true
+  },
+  "scope": "实际0.2.66 MSI解包固定运行时、官方calculator与SDK原字节；仅测试入口inspector在真实函数内暂停，非自然慢函数或GUI验收",
+  "preservation": {
+    "frozen_sources_unchanged_from_recovery": 1283,
+    "prior_workspace_files_preserved": true,
+    "old_evidence_and_deliverables_unchanged": true,
+    "installed_binaries_and_processes_unchanged": true,
+    "original_incident_and_config_unchanged": true,
+    "input_isolation_still_active": true
+  },
+  "supersedes_open_item": "dsh-recovery-2026-10-02/evidence-index.json remaining_independent_item",
+  "known_independent_engineering_items_remaining": [],
+  "not_executed": [
+    "正式MSI安装/升级/失败恢复",
+    "原执行者退出或解除输入隔离",
+    "市场真实UI与真实Qwen",
+    "Browser释放期间真实Close/Cancel/navigation",
+    "完整Paint绘画",
+    "动画连续画面和多屏/DPI泛光",
+    "GitHub上传"
+  ]
+}

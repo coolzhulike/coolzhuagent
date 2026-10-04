@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "kind": "package-report-latest-pointer",
+  "configuration": "release",
+  "generated_at": "2026-10-02T11:34:45.9486832Z",
+  "run_id": "pkg-run-release-20261002-193153696-a84d399b",
+  "report_id": "pkg-report-release-20261002-193445262-4b3afcd6",
+  "report_path": "tmp/package-reports/package-report-release-20261002-193445262.json",
+  "report_content_sha256": "ed47c4edd9e69ad5cb15dd433034d8d1c4a137f19a077352287f580d701fae9c",
+  "report_file_sha256": "6233383f91fe09ad5cf73c2f99f187beacf1c7e8405ccbcfa7507cd55a0e7a93",
+  "release_eligible": true,
+  "release_eligibility": {
+    "release_eligible": true,
+    "live_worktree_changed": false,
+    "build_snapshot_integrity": "verified-unchanged-live-tree",
+    "build_input_digest": "9a5e3f51f44415e6c6c5c14acbf924b9f4ed92118d7f599e28cdaf7ebd90e484",
+    "validation_snapshot_digest": "528b32995570881438ca73e63b1430328b78ae5d6d21509fe5ae810eab9f891e",
+    "reasons": [],
+    "limitations": []
+  },
+  "artifact_release_status": {
+    "store": "tmp/package-reports/artifact-release-status.json",
+    "associations_recorded": 10,
+    "revocations_cleared": 0
+  },
+  "payload_inventory": {
+    "path": "tmp/candidate-065-package/payload-inventory.json",
+    "file_sha256": "F78F7FE8E2D8F90D47E3A8278581ABB9308375B99DD8677B69ECD2747A5F2165",
+    "payload_digest": "022170edf6acbf242f08488214ca474a7b51989ea8b41e3ecfedbd3930f77eae",
+    "file_count": 1149,
+    "total_bytes": 419258813
+  },
+  "identities": {
+    "source_snapshot_digest": "528b32995570881438ca73e63b1430328b78ae5d6d21509fe5ae810eab9f891e",
+    "build_input_digest": "9a5e3f51f44415e6c6c5c14acbf924b9f4ed92118d7f599e28cdaf7ebd90e484",
+    "payload_digest": "022170edf6acbf242f08488214ca474a7b51989ea8b41e3ecfedbd3930f77eae",
+    "vcs_state": "tracked_worktree",
+    "vcs_reference_commit": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+    "dirty_against_commit": true
+  },
+  "source_snapshot_freeze_record": "tmp/source-snapshots/source-snapshot-528b32995570881438ca73e63b1430328b78ae5d6d21509fe5ae810eab9f891e.json",
+  "source_snapshot_freeze_record_sha256": "a9dbf1aa5e1d655da7e4b891a265d98aac6627a4c05f77d19556de68e2a99da8"
+}

@@ -1,0 +1,24 @@
+{
+  "at_ms": 1790970358443,
+  "terminal": {
+    "protocol": 1,
+    "nonce": "c9cf9323c74718232adbd0067d529ee937fc9032b72ce71b",
+    "context": {
+      "call_id": "official-normal",
+      "room_id": "engineering",
+      "run_id": "official-deadline-run",
+      "workspace_id": "isolated-official-deadline"
+    },
+    "status": "executed",
+    "result": {
+      "isError": false,
+      "content": [
+        {
+          "type": "text",
+          "text": "96"
+        }
+      ],
+      "value": 96
+    }
+  }
+}

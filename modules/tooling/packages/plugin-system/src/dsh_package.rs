@@ -47,6 +47,13 @@ fn hash(bytes: &[u8]) -> String {
 }
 
 impl DshPackage {
+    /// 固定来源确认摘要与文件顺序无关，不包含本机暂存路径或安装世代。
+    pub fn source_fingerprint(&self) -> Result<String, PluginError> {
+        let mut canonical = self.clone();
+        canonical.receipt.files.sort_by(|left, right| left.path.cmp(&right.path));
+        Ok(hash(&serde_json::to_vec(&canonical)?))
+    }
+
     /// 注册 ID 不使用 scoped npm 名中的斜线；完整 npm 身份始终保留在 receipt。
     #[must_use]
     pub fn registration_name(&self) -> String {
@@ -263,6 +270,7 @@ impl PluginManager {
             .enabled_plugins
             .insert(outcome.plugin_id.clone(), false);
         Ok(InstallOutcome {
+            operation_id: outcome.operation_id,
             plugin_id: outcome.plugin_id,
             version: outcome.new_version,
             install_path: outcome.install_path,

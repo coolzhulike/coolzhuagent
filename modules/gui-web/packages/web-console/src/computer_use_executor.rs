@@ -2619,7 +2619,7 @@ mod tests")
     /// 实际SQLite派发契约：停止先提交、权限收紧、票据失配与重放均不允许新的派发。
     #[test]
     fn persistent_panel_dispatch_cas_uses_frozen_parent_permission_and_one_ticket() {
-        for mode in ["active","stopped","restricted","wrong_ticket"] {
+        for mode in ["active","stopped","restricted","wrong_ticket","cancelled","expired","wrong_binding","stopped_after_claim","release_unknown"] {
             let temp=tempfile::Builder::new().prefix("panel-cas-").tempdir_in("tmp").unwrap();
             let db=temp.path().join("sessions.sqlite3");let workspace="ws-00000000000000ff";
             seed_relation_complete_admission(&db,workspace,"room-1","session-1","parent-run");
@@ -2639,14 +2639,30 @@ mod tests")
             if mode=="stopped" {crate::interrupt_runtime_run_sqlite(&db,"parent-run",Some("stop-before-claim")).unwrap();}
             if mode=="restricted" {crate::set_chat_room_permission_profile_sqlite(&db,"room-1",crate::ROOM_PERMISSION_WORKSPACE_WRITE).unwrap();}
             let actual_ticket=if mode=="wrong_ticket" {"b".repeat(32)} else {ticket.clone()};
-            let result=store.claim_panel_attempt(&parent,call,1,&actual_ticket,"exact-binding",now_ms()+2000,&||false);
-            assert_eq!(result.is_ok(),mode=="active","模式={mode}");
+            let actual_binding=if mode=="wrong_binding" {"previous-binding"} else {"exact-binding"};
+            let expiry=if mode=="expired" {now_ms()} else {now_ms()+2000};
+            let claimed=matches!(mode,"active"|"stopped_after_claim"|"release_unknown");
+            let result=store.claim_panel_attempt(&parent,call,1,&actual_ticket,actual_binding,expiry,&||mode=="cancelled");
+            assert_eq!(result.is_ok(),claimed,"模式={mode}");
             let state:String=read.query_row("SELECT native_dispatch_state FROM computer_use_steps WHERE run_id=?1",[call],|row|row.get(0)).unwrap();
-            assert_eq!(state,if mode=="active" {"dispatching"} else {"pending"});
-            if mode=="active" {
+            assert_eq!(state,if claimed {"dispatching"} else {"pending"});
+            if claimed {
                 assert!(store.claim_panel_attempt(&parent,call,1,&ticket,"exact-binding",now_ms()+2000,&||false).is_err());
-                store.settle_panel_attempt(call,1,&ticket,"released").unwrap();
-                assert!(store.settle_panel_attempt(call,1,&ticket,"release_unknown").is_err(),"迟到事件不能反改已结算动作");
+                if mode=="stopped_after_claim" {
+                    crate::interrupt_runtime_run_sqlite(&db,"parent-run",Some("stop-after-claim")).unwrap();
+                    // 父停止阻止后续输入，但不能丢弃原动作的释放结算。
+                    read.execute("INSERT INTO computer_use_steps(run_id,step_index,observation_generation,action_type,normalized_target,action_fingerprint,status,started_at_ms)
+                        VALUES(?1,2,2,'click','dom-next','next-click','executing',2)",[call]).unwrap();
+                    let next_ticket="c".repeat(32);
+                    store.prepare_panel_attempt(call,2,&next_ticket,"next-binding").unwrap();
+                    assert!(store.claim_panel_attempt(&parent,call,2,&next_ticket,"next-binding",now_ms()+2000,&||false).is_err(),"停止后不得派发下一步");
+                }
+                let outcome=if mode=="release_unknown" {"release_unknown"} else {"released"};
+                let late=if mode=="release_unknown" {"released"} else {"release_unknown"};
+                store.settle_panel_attempt(call,1,&ticket,outcome).unwrap();
+                assert!(store.settle_panel_attempt(call,1,&ticket,late).is_err(),"迟到事件不能反改已结算动作");
+                let stored:String=read.query_row("SELECT native_dispatch_state FROM computer_use_steps WHERE run_id=?1 AND step_index=1",[call],|row|row.get(0)).unwrap();
+                assert_eq!(stored,outcome,"未知释放不得被迟到成功覆盖，停止也不得丢掉原释放事实");
             }
         }
     }

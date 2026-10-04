@@ -12,6 +12,9 @@ pub(crate) struct ToolDispatchSettlement {
     settled: bool,
 }
 impl ToolDispatchSettlement {
+    pub(crate) fn is_settled(&self) -> bool { self.settled }
+    /// 先持久化审批等待，再暴露审批事件；原派发不得覆盖随后审批领取/执行的投影。
+    pub(crate) fn handoff_approval(&mut self) -> Result<(), String> { self.finish("awaiting_approval") }
     /// 首次登记成功才返回收尾所有权；失败者不能执行，也不能收尾另一调用的记录。
     pub(crate) fn admit(path: PathBuf, tool_call_id: String, run_id: Option<String>,
         tool_name: String, arguments_digest: String, root_budget: Option<RootExecutionBudget>) -> Result<Self, String> {

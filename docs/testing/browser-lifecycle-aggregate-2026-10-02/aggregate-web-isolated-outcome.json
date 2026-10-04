@@ -1,0 +1,18 @@
+{
+  "checked_at_utc": "2026-10-02T11:22:46.370860+00:00",
+  "exit_code": 0,
+  "command": [
+    "C:/Users/zhupu/.cargo/bin/cargo.exe",
+    "test",
+    "-p",
+    "coolzhu-web-console",
+    "--offline",
+    "--",
+    "--test-threads=1"
+  ],
+  "test_process_only_overrides": {
+    "COOLZHU_WEB_SESSION_DB": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-10-02-browser-resume\\aggregate-isolated-storage\\sessions.sqlite3",
+    "COOLZHU_WEB_SESSION_STORE": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-10-02-browser-resume\\aggregate-isolated-storage\\legacy.json",
+    "COOLZHU_WEB_ATTACHMENT_STORE": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\2026-10-02-browser-resume\\aggregate-isolated-storage\\attachments"
+  }
+}

@@ -24,6 +24,19 @@ impl ExecutionControl {
 
     pub fn cancel(&self) { self.cancelled.store(true, Ordering::Release); }
 
+    /// 追加资格撤销信号，保留已有取消令牌和单调截止；不能创建新的业务预算。
+    #[must_use]
+    pub fn with_additional_cancel(mut self, check: Arc<dyn Fn() -> bool + Send + Sync>) -> Self {
+        let previous = self.external_cancel.take();
+        self.external_cancel = Some(Arc::new(move || previous.as_ref().is_some_and(|old| old()) || check()));
+        self
+    }
+
+    #[must_use]
+    pub fn remaining(&self) -> Option<Duration> {
+        self.deadline.map(|deadline| deadline.saturating_duration_since(Instant::now()))
+    }
+
     #[must_use]
     pub fn interruption(&self) -> Option<Interruption> {
         if self.cancelled.load(Ordering::Acquire)
@@ -179,6 +192,27 @@ pub fn decode_console_output(bytes: &[u8]) -> String {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+
+    #[test]
+    fn additional_revocation_preserves_parent_cancel_and_deadline() {
+        let parent_cancel = Arc::new(AtomicBool::new(false));
+        let observed = parent_cancel.clone();
+        let parent = ExecutionControl::new(Some(Duration::from_secs(20)),
+            Some(Arc::new(move || observed.load(Ordering::Acquire))));
+        let derived = parent.clone().with_additional_cancel(Arc::new(|| false));
+        assert_eq!(derived.deadline, parent.deadline, "追加停用检查不能重置根截止");
+        parent_cancel.store(true, Ordering::Release);
+        assert_eq!(derived.interruption(), Some(Interruption::Cancelled));
+        parent_cancel.store(false, Ordering::Release);
+        parent.cancel();
+        assert_eq!(derived.interruption(), Some(Interruption::Cancelled), "原显式取消令牌必须共享");
+        let revoked = ExecutionControl::new(None, None).with_additional_cancel(Arc::new(|| true));
+        assert_eq!(revoked.interruption(), Some(Interruption::Cancelled));
+        let expired = ExecutionControl::new(Some(Duration::ZERO), None)
+            .with_additional_cancel(Arc::new(|| false));
+        assert_eq!(expired.interruption(), Some(Interruption::TimedOut));
+        assert_eq!(expired.remaining(), Some(Duration::ZERO));
+    }
 
     fn fixture(name: &str) -> PathBuf {
         let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();

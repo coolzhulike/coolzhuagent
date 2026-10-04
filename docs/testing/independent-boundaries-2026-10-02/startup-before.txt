@@ -1,0 +1,17 @@
+AssertionError [ERR_ASSERTION]: 画布异常不能阻断启动交接
++ actual - expected
+
++ [
++   '绘制异常：绘制异常',
++   '清理异常：清理异常'
++ ]
+- []
+
+    at main (C:\Users\zhupu\Desktop\coolzhuagent\modules\gui-desktop\packages\tauri-shell\ui\tests\coolzhu-seven-letter-bridge.cjs:116:10) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [Array],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}

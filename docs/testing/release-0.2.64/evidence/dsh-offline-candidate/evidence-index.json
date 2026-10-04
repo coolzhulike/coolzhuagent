@@ -1,0 +1,476 @@
+{
+  "generated_at_utc": "2026-10-02T08:45:22.505916+00:00",
+  "candidate_only": true,
+  "version": "0.2.64",
+  "configuration": "release",
+  "msi": {
+    "file": "dist/CoolzhuAgent-0.2.64.msi",
+    "size": 275626523,
+    "sha256": "16052ec401960181853c5b02775e849185e225e70b11f8872a798a4e5d06688b",
+    "signed": false
+  },
+  "source_authority": "实际未提交工作区源码冻结快照；HEAD仅参考，不声明等同干净提交",
+  "build_identity": {
+    "schema": 1,
+    "source_snapshot_digest": "909a647759f9d7a21aae22273df376a6b021b3e61b39d33df27722fa235e195d",
+    "build_input_digest": "309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36",
+    "payload_digest": "265a5c3067350eead9347edf90c63964c2880a1c4055cc9bccb077029cdfaff7",
+    "identity_questions": {
+      "source_snapshot_digest": "本次使用了哪份第一方源码和构建资源快照？",
+      "build_input_digest": "该快照配合什么锁文件、工具链、target、profile、features 和构建配置？",
+      "payload_digest": "最终生成和分发了哪些二进制与资源？"
+    },
+    "caveat": "历史来源可以未知；当前使用哪些字节必须可回答。三者仍不证明原始作者、历史提交链或跨机器逐字节可复现。",
+    "payload_digest_scope": "暂存包根目录下除 payload-inventory.json 自身之外的全部文件（path|length|sha256 规范排序后 SHA256）"
+  },
+  "release_engineering_gates": [
+    {
+      "gate": "declared_source_snapshot_scope",
+      "result": "pass",
+      "evidence": "declared_by=config/package-manifest.json#source_snapshot; roots=16",
+      "note": ""
+    },
+    {
+      "gate": "source_input_stability",
+      "result": "pass",
+      "evidence": "pre=909a647759f9d7a21aae22273df376a6b021b3e61b39d33df27722fa235e195d post=909a647759f9d7a21aae22273df376a6b021b3e61b39d33df27722fa235e195d；两次采样逐文件一致",
+      "note": ""
+    },
+    {
+      "gate": "declared_roots_present",
+      "result": "pass",
+      "evidence": "声明 roots 全部存在（范围可枚举）",
+      "note": ""
+    },
+    {
+      "gate": "build_input_stability",
+      "result": "pass",
+      "evidence": "pre=309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36 post=309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36",
+      "note": ""
+    },
+    {
+      "gate": "artifact_provenance",
+      "result": "pass",
+      "evidence": "全部 10 个产物的来源可确认",
+      "note": ""
+    },
+    {
+      "gate": "frozen_inputs",
+      "result": "pass",
+      "evidence": "freeze_id=309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36; mode=consumed-preparation-freeze-record; changed_paths=0",
+      "note": "正式构建阶段消费准备阶段冻结记录：任一声明输入改变即拒绝发布"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "untracked-source/config/package-manifest-0.2.64-candidate.json",
+      "source": "config/package-manifest-0.2.64-candidate.json",
+      "size": 22116,
+      "sha256": "ed315514fb6d99198fc1da500a0fc604bfac7a0aba23b5221564ab1f2da54d6e",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/gui-web/packages/web-console/examples/dsh_install_activation_probe.rs",
+      "source": "modules/gui-web/packages/web-console/examples/dsh_install_activation_probe.rs",
+      "size": 11314,
+      "sha256": "3322333bbc03f8ef9211b65f022d9a7df38a3573255732dcd1284fd45653f5d2",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/gui-web/packages/web-console/examples/dsh_source_resolution_probe.rs",
+      "source": "modules/gui-web/packages/web-console/examples/dsh_source_resolution_probe.rs",
+      "size": 3452,
+      "sha256": "6a2961b2b61b7415dfe74b2c4d0ebb49a6a703624ced20978b2abeea287eaa74",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+      "source": "modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+      "size": 3354,
+      "sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/gui-web/packages/web-console/src/dsh_execution.rs",
+      "source": "modules/gui-web/packages/web-console/src/dsh_execution.rs",
+      "size": 7959,
+      "sha256": "1f5de2ce32d5a304e44f8ba83307312538cdfeb0ecb07dd48c6ccfbac270c3ce",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+      "source": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+      "size": 2304,
+      "sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+      "source": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+      "size": 9036,
+      "sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/gui-web/packages/web-console/src/dsh_web.rs",
+      "source": "modules/gui-web/packages/web-console/src/dsh_web.rs",
+      "size": 27832,
+      "sha256": "9d33b194ceaf3cc739e65472f8f40c69c25e69357b85b579d6e60a517c9b2ab3",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/gui-web/packages/web-console/src/dsh_web_tests.rs",
+      "source": "modules/gui-web/packages/web-console/src/dsh_web_tests.rs",
+      "size": 26340,
+      "sha256": "68c1d6393d1da5c1d065510d8fa5ff09f256f86073d5269dd7891102e1cc522a",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "untracked-source/modules/tooling/packages/plugin-system/src/dsh_activation.rs",
+      "source": "modules/tooling/packages/plugin-system/src/dsh_activation.rs",
+      "size": 13058,
+      "sha256": "a93daa8bb8df34572250c4c39c3433a45e25df24d4c09df239061d604376d791",
+      "purpose": "冻结快照中新增未跟踪源码/候选清单，配合源码patch及HEAD参考核对"
+    },
+    {
+      "file": "prepare.txt",
+      "source": "tmp/2026-10-02-dsh-msi/prepare.log",
+      "size": 887,
+      "sha256": "c27881aa66e191b8290fe91f9b68a0d06a98ef0ef9d5a064245504a6a159a84a",
+      "purpose": "准备阶段解析与输入冻结"
+    },
+    {
+      "file": "build.txt",
+      "source": "tmp/2026-10-02-dsh-msi/build.log",
+      "size": 70916,
+      "sha256": "365d7920153c3bbff1b81a804dca219e2fe553c0fcc1285e00a4ee694f59a8b1",
+      "purpose": "正式冻结输入release构建与MSI日志"
+    },
+    {
+      "file": "prepare-pointer.json",
+      "source": "tmp/2026-10-02-dsh-msi/prepare-pointer.json",
+      "size": 674,
+      "sha256": "e0eea74be490bf43710f2960e4076b5a2eb5510c5577c18e9024070220d2c087",
+      "purpose": "准备冻结指针"
+    },
+    {
+      "file": "prepare-outcome.json",
+      "source": "tmp/2026-10-02-dsh-msi/prepare-outcome.json",
+      "size": 153,
+      "sha256": "ebe6f5febfa541d2f9e004253deb5718317bf3ae140f89486c2fee32f4c96b79",
+      "purpose": "准备实际结果"
+    },
+    {
+      "file": "package-pointer.json",
+      "source": "tmp/2026-10-02-dsh-msi/package-pointer.json",
+      "size": 2198,
+      "sha256": "f53a3b9d65ceb8846b8681b783336d30aa8af220a87df38ef40805b3722446d4",
+      "purpose": "本次独立包根绑定报告指针"
+    },
+    {
+      "file": "build-outcome.json",
+      "source": "tmp/2026-10-02-dsh-msi/build-outcome.json",
+      "size": 151,
+      "sha256": "d9fc41b4429096244b67c9f2923063df96633e483de40ffb85dee1f63f81a9b1",
+      "purpose": "构建实际起止和结果"
+    },
+    {
+      "file": "baseline.json",
+      "source": "tmp/2026-10-02-dsh-msi/baseline.json",
+      "size": 11269,
+      "sha256": "40a812209b4d861e0f38f9ed7fa2ed9e0e8f6f05a42cee95d886af77f0200aad",
+      "purpose": "开始时Git/旧0.2.63文件身份"
+    },
+    {
+      "file": "manifest-override.json",
+      "source": "tmp/2026-10-02-dsh-msi/manifest-override.json",
+      "size": 481,
+      "sha256": "9787a2f0dc998e987eaafeae526a4e1ae89b2fae6e4f509a7991fe7acfd34a6d",
+      "purpose": "独立候选清单改变范围"
+    },
+    {
+      "file": "source-runtime-verification.json",
+      "source": "tmp/2026-10-02-dsh-msi/source-runtime-verification.json",
+      "size": 172,
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322",
+      "purpose": "复制前固定资源完整核验"
+    },
+    {
+      "file": "offline-msi-verification.json",
+      "source": "tmp/2026-10-02-dsh-msi/offline-msi-verification.json",
+      "size": 392606,
+      "sha256": "f33fed1fcdcfc0f503a17b305b1a2542c54e648d61dcdbf1b754e013a5ae9401",
+      "purpose": "只读MSI/CAB全文件及安装布局核验"
+    },
+    {
+      "file": "offline-inspection-first.txt",
+      "source": "tmp/2026-10-02-dsh-msi/offline-inspection-first.log",
+      "size": 287,
+      "sha256": "2c04bfd2e140434945367f8fb3f9034e50be385eefe02620ef3ff52bb58fd96d",
+      "purpose": "首次离线检查短/长目录名解析失败，不替代最终结果"
+    },
+    {
+      "file": "archive-first.txt",
+      "source": "tmp/2026-10-02-dsh-msi/archive-first.log",
+      "size": 355,
+      "sha256": "61cfcd01958d82068e77d9a20aeb56e25cd98ad002604ebdd7a0561678735f55",
+      "purpose": "首次归档旧摘要字段名不匹配，修正后最终保留核验通过"
+    },
+    {
+      "file": "offline-inspection-final.txt",
+      "source": "tmp/2026-10-02-dsh-msi/offline-inspection-final.log",
+      "size": 1513,
+      "sha256": "9970b179a16cf4d19d7f4e68c9f859c6e76c7b65a5fc7d9191b596e292c218a9",
+      "purpose": "最终离线完整核验"
+    },
+    {
+      "file": "extracted-runtime-verifier.txt",
+      "source": "tmp/2026-10-02-dsh-msi/extracted-runtime-verifier.txt",
+      "size": 172,
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322",
+      "purpose": "实际MSI解包运行时完整资源再核验"
+    },
+    {
+      "file": "manifest-contract-final.txt",
+      "source": "tmp/2026-10-02-dsh-msi/manifest-contract-final.log",
+      "size": 129,
+      "sha256": "a2e0d02012fa2f0b7410107c21216bff00cd83f9d1716d6e8d6295d8b68e57d4",
+      "purpose": "清单契约检查最终子进程输出"
+    },
+    {
+      "file": "manifest-contract-final-outcome.json",
+      "source": "tmp/2026-10-02-dsh-msi/manifest-contract-final-outcome.json",
+      "size": 75,
+      "sha256": "48affc1f35a02bc41eb7d153db95655b77b3038c681a495daa924888aaa3c0fd",
+      "purpose": "清单契约检查子进程退出0"
+    },
+    {
+      "file": "final-checks.json",
+      "source": "tmp/2026-10-02-dsh-msi/final-checks.json",
+      "size": 34,
+      "sha256": "ebfc0f5a85f1ca4ce6b4520d11c55ab655d8667578d5e2de72a677bcc4c7ee1c",
+      "purpose": "最终diff检查退出0"
+    },
+    {
+      "file": "runtime-files.json",
+      "source": "tmp/2026-10-02-dsh-msi/runtime-files.json",
+      "size": 87718,
+      "sha256": "1c0cbe1b79e8bd59898681e3207472a337f099766c9daa573f4c846dfd896ed4",
+      "purpose": "MSI中的完整290固定资源文件大小与SHA256"
+    },
+    {
+      "file": "installed-readonly.json",
+      "source": "tmp/2026-10-02-dsh-msi/installed-readonly.json",
+      "size": 2764,
+      "sha256": "cbd92745493d8d8f60950c2c04437ba775e8b04908a491765912bc01159f9951",
+      "purpose": "正式API只读版本与隔离状态"
+    },
+    {
+      "file": "incident-executor-readonly.json",
+      "source": "tmp/2026-10-02-dsh-msi/incident-executor-readonly.json",
+      "size": 188,
+      "sha256": "4f1d52e67ef59232c0d1b4b20ed05473dbeebfdc1c209ba421feb7420d35d7fe",
+      "purpose": "原事故执行者存活创建身份"
+    },
+    {
+      "file": "installed-hashes-readonly.json",
+      "source": "tmp/2026-10-02-dsh-msi/installed-hashes-readonly.json",
+      "size": 389,
+      "sha256": "d03b5725111d96f79dae6d52cd0e571b6d9f8e950db93349d791679966a9c6f7",
+      "purpose": "正式二进制未替换"
+    },
+    {
+      "file": "working-tree-source.patch",
+      "source": "tmp/2026-10-02-dsh-msi/working-tree-source.patch",
+      "size": 55204,
+      "sha256": "a43e9bb124f7ae6511ed27fa4f46f1e94c5e77d0935caf53c25fd71482f5bbaf",
+      "purpose": "本轮包实际未提交已跟踪源码差异"
+    },
+    {
+      "file": "index-source.patch",
+      "source": "tmp/2026-10-02-dsh-msi/index-source.patch",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "purpose": "索引源码差异；本轮为空"
+    },
+    {
+      "file": "prepare-candidate.py",
+      "source": "tmp/2026-10-02-dsh-msi/prepare-candidate.py",
+      "size": 3069,
+      "sha256": "b88254b4d0e779e62518845fe1038df13fb8b4a6ecd6584138f0d3ce21c6147d",
+      "purpose": "独立候选资源/清单建立脚本"
+    },
+    {
+      "file": "build-candidate.ps1",
+      "source": "tmp/2026-10-02-dsh-msi/build-candidate.ps1",
+      "size": 2132,
+      "sha256": "40d86ab8b2d2de7e583269fe93db62b589b2a896aa484a9e90d113fbb4914703",
+      "purpose": "本轮准备与构建入口/编译环境"
+    },
+    {
+      "file": "inspect-msi.py",
+      "source": "tmp/2026-10-02-dsh-msi/inspect-msi.py",
+      "size": 9338,
+      "sha256": "290d90bbe3f5f49347d777169abc08d3ead7259937a4e1f6cec39d3b875fe8ec",
+      "purpose": "只读MSI/CAB核验实现"
+    },
+    {
+      "file": "archive-evidence.py",
+      "source": "tmp/2026-10-02-dsh-msi/archive-evidence.py",
+      "size": 9986,
+      "sha256": "dbaabd8c93706d6269146b097ca42fdece9451f4de1055219314111f85b84fb4",
+      "purpose": "证据归档与保留核验实现"
+    },
+    {
+      "file": "expand-1.txt",
+      "source": "tmp/2026-10-02-dsh-msi/expand-1.txt",
+      "size": 46054,
+      "sha256": "5fd8b2269f61754b597cd946a5221d83477bcb6548d759f5df4a240ec94edab3",
+      "purpose": "Windows原生CAB只解压输出；未执行MSI安装"
+    },
+    {
+      "file": "expand-2.txt",
+      "source": "tmp/2026-10-02-dsh-msi/expand-2.txt",
+      "size": 114494,
+      "sha256": "a48b0c65498e4ab89740653ae9b841cf4a8c8023bb1c414b3f1b97f9b9e5d8c2",
+      "purpose": "Windows原生CAB只解压输出；未执行MSI安装"
+    },
+    {
+      "file": "expand-3.txt",
+      "source": "tmp/2026-10-02-dsh-msi/expand-3.txt",
+      "size": 15932,
+      "sha256": "e3ccf8a17c7c1fc1cf61ce516d466f5e214b5f73178c3c368e89702de5a7baad",
+      "purpose": "Windows原生CAB只解压输出；未执行MSI安装"
+    },
+    {
+      "file": "source-snapshot-freeze.json",
+      "source": "tmp/source-snapshots/source-snapshot-909a647759f9d7a21aae22273df376a6b021b3e61b39d33df27722fa235e195d.json",
+      "size": 277648,
+      "sha256": "5c264aa1a634a281404f7bd6160d0710be96d4cf9b84d6d050c91558136258c8",
+      "purpose": "完整1280个源码文件及范围/逐文件SHA256"
+    },
+    {
+      "file": "input-freeze.json",
+      "source": "tmp/package-freeze/package-input-freeze-release-309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36.json",
+      "size": 12414,
+      "sha256": "9c5fb64544b8194070459d5e612c7875434819e5a55c2d15600301243273876a",
+      "purpose": "正式构建消费的48项冻结输入"
+    },
+    {
+      "file": "prepare-report.json",
+      "source": "tmp/package-reports/prepare/package-prepare-release-20261002-162841116.json",
+      "size": 4649,
+      "sha256": "7df8d66daf4e73dfae7b68c89701d34413d3d90d8bf884e132d58577da6cb5d6",
+      "purpose": "非发布准备记录"
+    },
+    {
+      "file": "package-report.json",
+      "source": "tmp/package-reports/package-report-release-20261002-163334775.json",
+      "size": 53709,
+      "sha256": "1671471f06e67fb03ab03a5642f6c03548a39cc025613eb38a4ee3945ccd2124",
+      "purpose": "有内容身份的实际候选包报告"
+    },
+    {
+      "file": "payload-inventory.json",
+      "source": "tmp/candidate-064-package/payload-inventory.json",
+      "size": 253328,
+      "sha256": "c681a868cab05686ed12295edff31dc00b443048dca647b0c28b95865053a436",
+      "purpose": "完整1149文件载荷表，不含自引用载体自身"
+    },
+    {
+      "file": "installer-report.json",
+      "source": "dist/CoolzhuAgent-0.2.64-installer-report.json",
+      "size": 3617,
+      "sha256": "87dfab09cb899b7d523700423faa5bc1a4b3fb05ee581d8e1492f673bbd52679",
+      "purpose": "MSI/包根/报告/快照绑定"
+    },
+    {
+      "file": "package-safety.json",
+      "source": "dist/CoolzhuAgent-0.2.64-package-safety.json",
+      "size": 195,
+      "sha256": "238efd1444164a71a4a466f23cf15d8cc85844d47863e43c53c2764a56c1664b",
+      "purpose": "候选包安全扫描1150文件、0发现"
+    },
+    {
+      "file": "dsh-runtime-lock.json",
+      "source": "config/dsh-runtime-lock.json",
+      "size": 60864,
+      "sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+      "purpose": "受审查第三方完整文件表和官方来源锁"
+    },
+    {
+      "file": "candidate-package-manifest.json",
+      "source": "config/package-manifest-0.2.64-candidate.json",
+      "size": 22116,
+      "sha256": "ed315514fb6d99198fc1da500a0fc604bfac7a0aba23b5221564ab1f2da54d6e",
+      "purpose": "实际候选清单，全部原发布门禁保留"
+    },
+    {
+      "file": "change-report-and-targeted-test-plan.md",
+      "source": "docs/testing/release-0.2.64/change-report-and-targeted-test-plan.md",
+      "size": 8001,
+      "sha256": "ba713ac7174bba70db964eba9333c1a4600282bbb01d9b02693dfa8f3e92db8c",
+      "purpose": "候选结果与未完成真实验收边界"
+    },
+    {
+      "file": "work-log.md",
+      "source": "docs/work-logs/2026-10-02-local-session-dsh-msi-candidate.md",
+      "size": 1717,
+      "sha256": "2c5756f041c9866360dbe2a4d6bf3c414f12e7335bd155cd52ab9d0e3cbfdcb2",
+      "purpose": "本轮中文工作记录"
+    }
+  ],
+  "preservation": {
+    "head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+    "branch": "codex/cu-preinput-followup-20260930",
+    "original_untracked_entries": 165,
+    "missing_original_entries": [],
+    "original_document_sha256": "c61b4f5cf565c5da15b70b40a6c6bfde48507e7cb2cc4e2fd03c2e348f034079",
+    "prior_delivery": [
+      {
+        "file": "dist\\CoolzhuAgent-0.2.63-installer-report.json",
+        "size": 3616,
+        "sha256": "992ce0fbbaf21b0a963a35ae2becfc1531b3990a4b34bacd1b8bb75c19c06558",
+        "unchanged": true
+      },
+      {
+        "file": "dist\\CoolzhuAgent-0.2.63-package-safety.json",
+        "size": 194,
+        "sha256": "7b79ae11bd75acbf7e10898d76a176f41792445e66a32e5d9f6d4e8beb91f4c1",
+        "unchanged": true
+      },
+      {
+        "file": "dist\\CoolzhuAgent-0.2.63.msi",
+        "size": 247020925,
+        "sha256": "91c9a256505bda4c6575788e50ed426b594db8cf2e6ce6a9c2b94a8a7d923de3",
+        "unchanged": true
+      }
+    ],
+    "phase3_sources_unchanged": 25,
+    "source_snapshot_files_reverified": 1280,
+    "formal_installed_binaries_unchanged": true,
+    "incident_references_unchanged": [
+      {
+        "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-facts.json",
+        "sha256": "a6b94db087789eb3e23380c0c244aedc890e4c7d2536cde0abb8a8ee63b8f981"
+      },
+      {
+        "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-page-events.json",
+        "sha256": "3d0f2e4b2477fdb4d2ab90aaf7d5a32702d11d7336abf347eea4be907383bab1"
+      },
+      {
+        "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-close-timing.json",
+        "sha256": "124adf361a2832b6d72901bafe47e491b701b1ad09e025923cfd254ceb58b89c"
+      }
+    ]
+  },
+  "not_verified": [
+    "真实安装/升级/卸载",
+    "正式启用按钮与原生审批UI",
+    "真实Qwen父轮工具回包",
+    "Goal缺接纳身份",
+    "Browser竞态边界",
+    "完整Paint",
+    "动画/泛光/总体"
+  ]
+}

@@ -1,0 +1,130 @@
+diff --git a/modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js b/modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js
+index 0ff6701..334e18d 100644
+--- a/modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js
++++ b/modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js
+@@ -37,14 +37,19 @@
+     }
+ 
+     function clearPresentation() {
+-      if (canvas && typeof canvas.getContext === "function") {
+-        const context = canvas.getContext("2d");
+-        if (context) {
+-          if (typeof context.save === "function") context.save();
+-          if (typeof context.setTransform === "function") context.setTransform(1, 0, 0, 1, 0, 0);
+-          if (typeof context.clearRect === "function") context.clearRect(0, 0, Math.max(1, canvas.width || 1), Math.max(1, canvas.height || 1));
+-          if (typeof context.restore === "function") context.restore();
++      try {
++        if (canvas && typeof canvas.getContext === "function") {
++          const context = canvas.getContext("2d");
++          if (context) {
++            if (typeof context.save === "function") context.save();
++            if (typeof context.setTransform === "function") context.setTransform(1, 0, 0, 1, 0, 0);
++            if (typeof context.clearRect === "function") context.clearRect(0, 0, Math.max(1, canvas.width || 1), Math.max(1, canvas.height || 1));
++            if (typeof context.restore === "function") context.restore();
++          }
+         }
++      } catch (error) {
++        // 画布失效仍须隐藏演出并交还宿主，不能中断后续完成通知。
++        windowRef?.console?.error?.("启动演出清理画布失败", error);
+       }
+       if (canvas) {
+         canvas.hidden = true;
+@@ -182,10 +187,12 @@
+           reducedMotionDelayMs: 120,
+           onAssetsReady: () => reportNative("assets_ready"),
+           onFirstFrame: () => reportNative("first_frame", null, instance?.getState?.()),
++          onError: error => windowRef?.console?.error?.("启动演出绘制或资源失败", error),
+         });
+         instance.start();
+       } catch (error) {
+-        finalize("resource-error");
++        windowRef?.console?.error?.("启动演出启动失败", error);
++        requestFinish("resource-error");
+       }
+       return instance;
+     }
+diff --git a/modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md b/modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md
+index 783a301..e23de98 100644
+--- a/modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md
++++ b/modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md
+@@ -8,6 +8,7 @@
+ - Esc、跳过按钮、演出区域点击均可退出；减少动态效果模式不等待图像加载，120 毫秒结束。
+ - 图片加载 2 秒超时/失败立即结束；桥接最多 11 秒看门狗保护。完成、取消和失败只发一次页面内 `launch-performance-complete`，保持 `consoleVisible:false`。原生交接通过演出页专用 `report_startup_performance` 命令完成；宿主校验调用 WebView 与资源 URL，并把开始、素材就绪、首帧、结束原因和交接结果写入既有诊断日志。命令失败时 15 秒宿主兜底仍显示主控制台。完成事件只代表演出结束，不代表后端服务 ready。
+ - 首帧诊断表示 Canvas 已执行绘制回调，并记录宿主接报时演出窗口是否可见；画面是否真正出现在屏幕上仍须用原生连续截图核验。
++- 绘制帧失败立即以 `resource-error` 收尾；减少动态模式的同步绘制失败也停止播放器。退出时即使画布清理抛错，仍隐藏演出、保留错误诊断并只通知宿主一次，不因清理失败打断交接。
+ - 1680×900 画布等比 contain；既有空白卷轴山水背景与设计聊天参考同属墨绿/金龙/玉柱色系，并非同一张图。
+ - 原字形整体宽约 57.7%、中心高 48%；Q版人物采用四个从同一透明图中按各自实际边界裁样的完整姿态。每帧保留源图长宽比，以独立鞋底锚点和连续重心轨迹合成，约 170–230 像素高（1680×900 画布的约 19–26%，随姿态变化），动作切换时只画一帧，无交叉叠头。它不是骨骼动画；中文宽度/动态骨骼插值均不在此演出范围。
+ - 朱印文字“酷朱”，放大为 126×144；低对比剑脊、竹叶、微雨辅助构图，不修改原字形。
+diff --git a/modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js b/modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js
+index 4d39b45..fa23492 100644
+--- a/modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js
++++ b/modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js
+@@ -161,12 +161,17 @@
+     }
+     function tick(timestamp) {
+       if (!active || finished) return;
+-      if (startedAt === null) startedAt=timestamp;
+-      renderAt(timestamp-startedAt);
+-      frameCount++;
+-      if (frameCount === 1) options.onFirstFrame?.();
+-      if (elapsed>=duration) finish("completed");
+-      else frameId=windowRef.requestAnimationFrame(tick);
++      try {
++        if (startedAt === null) startedAt=timestamp;
++        renderAt(timestamp-startedAt);
++        frameCount++;
++        if (frameCount === 1) options.onFirstFrame?.();
++        if (elapsed>=duration) finish("completed");
++        else frameId=windowRef.requestAnimationFrame(tick);
++      } catch (error) {
++        // 帧绘制失败立即收尾，不等待演出超时后才退出。
++        finish("resource-error",error);
++      }
+     }
+     function load() {
+       if (assets) return Promise.resolve(assets);
+diff --git a/modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs b/modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs
+index 68f264a..b06a2e9 100644
+--- a/modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs
++++ b/modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs
+@@ -31,7 +31,7 @@ function harness(options = {}) {
+   };
+   const dispatch=documentRef.dispatchEvent;
+   documentRef.dispatchEvent=event=>{events.push(event); return dispatch(event);};
+-  const context=new Proxy({globalAlpha:1}, {get:(target,key)=>key in target?target[key]:()=>{}});
++  const context=new Proxy({globalAlpha:1,...options.context}, {get:(target,key)=>key in target?target[key]:()=>{}});
+   const canvas={width:1680,height:900,style:{},getContext:()=>context,setAttribute(){}}, root={style:{}};
+   const skipButton={...eventTarget(),style:{}};
+   const controller=bridge.createBridge({documentRef,windowRef,canvas,presentationRoot:root,skipButton,playerApi:player,manifest,mode:"first",...options});
+@@ -89,6 +89,31 @@ async function main() {
+   const rejected=harness({nativeInvokeFailure:true}); rejected.controller.start();
+   rejected.controller.finish("skipped"); await completedOnce(rejected,"skipped");
+   assert.equal(rejected.errors.length,2,"原生上报失败不得静默吞掉");
++  const boundaryFailures=[];
++  for (const failure of ["绘制异常", "清理异常", "减少动态绘制异常"]) {
++    try {
++      let throwOnClear=failure === "减少动态绘制异常";
++      const h=harness({assets:{},reducedMotion:throwOnClear,context:{clearRect(){if (throwOnClear) throw new Error(failure);}}});
++      h.controller.start(); await Promise.resolve();
++      if (failure === "绘制异常") {
++        h.tick(100);
++        throwOnClear=true;
++        h.tick(200);
++      } else if (failure === "清理异常") {
++        throwOnClear=true;
++        h.documentRef.dispatchEvent({type:"keydown",key:"Escape",preventDefault(){}});
++      }
++      await completedOnce(h,failure === "清理异常" ? "skipped" : "resource-error");
++      assert.equal(h.controller.getInstance().isActive(),false);
++      assert.ok(h.errors.length>0,"异常须保留诊断，不能静默吞掉");
++      h.controller.finish("skipped"); h.tick(300);
++      assert.equal(h.completed().length,1,"失败和迟到回调不得重复完成");
++      console.log(`${failure}：退出、资源回收、宿主完成通知均通过。`);
++    } catch (error) {
++      boundaryFailures.push(`${failure}：${error.message}`);
++    }
++  }
++  assert.deepEqual(boundaryFailures,[],"画布异常不能阻断启动交接");
+   console.log("启动生命周期：完整 / 日常 / Esc / 减少动态 / 资源超时 / 恢复 / 创建失败，全部通过。");
+ }
+ main().catch(error=>{console.error(error); process.exitCode=1;});
