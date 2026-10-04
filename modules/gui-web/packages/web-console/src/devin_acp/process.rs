@@ -23,7 +23,7 @@ impl ManagedProcess {
         binary: &Path, cwd: &Path, config: &Path, model: &str,
         journal: Journal, scope: ExecutionScope,
     ) -> Result<(Self, SessionTransport<ChildStdin>), String> {
-        if !config.is_absolute() || !super::chat::supported_model(model) {
+        if !config.is_absolute() || !super::chat::valid_model_id(model) {
             return Err("文本 CLI 配置或模型不受支持。".into());
         }
         let mut command = tokio::process::Command::new(binary);

@@ -74,12 +74,11 @@ pub(super) fn validate_session_input(
     {
         return Err(invalid("Devin 会话不使用 HTTP Base URL 或 Endpoint。"));
     }
-    if payload
-        .reasoning_effort
-        .as_deref()
-        .is_some_and(|value| value != "auto")
-    {
-        return Err(invalid("Devin 思考参数尚未由 ACP 协商确认，请使用自动。"));
+    // 思考档位是模型目录中的精确变体，组合校验在参数保存及发送前执行。
+    if let Some(effort) = payload.reasoning_effort.as_deref() {
+        if effort != "auto" && payload.model.as_deref().and_then(super::devin_acp::discovery::model_effort) != Some(effort) {
+            return Err(invalid("Devin 思考档位需与所选精确模型变体一致。"));
+        }
     }
     if payload
         .model_type
@@ -130,7 +129,6 @@ pub(super) fn validate_parameters(
             .reasoning_mode
             .as_deref()
             .is_some_and(|value| value != "auto")
-        || agent.reasoning_effort != "auto"
         || settings.context_window != 0
         || settings.max_output_tokens != 0
         || settings.supports_multimodal == Some(true)
@@ -139,6 +137,11 @@ pub(super) fn validate_parameters(
         return Err(invalid(
             "Devin 尚未协商这些模型参数；请清空 HTTP 连接、采样、容量、图片和思考覆盖设置。",
         ));
+    }
+    if backend == AgentSessionBackend::DevinAcp && agent.reasoning_effort != "auto"
+        && super::devin_acp::discovery::model_effort(&agent.model) != Some(agent.reasoning_effort.as_str())
+    {
+        return Err(invalid("Devin 思考档位需与所选精确模型变体一致，请获取模型后选择对应档位。"));
     }
     if settings
         .turn_timeout_ms

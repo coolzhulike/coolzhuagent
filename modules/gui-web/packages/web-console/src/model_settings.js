@@ -27,7 +27,9 @@
     container.__modelSettings?.destroy();
     let sessions = [], selectedId = options.sessionId || null, snapshot = null, loadSequence = 0, refreshSequence = 0, editSequence = 0, disposed = false;
     let busy = false, dirty = false;
-    let discovery = null, discoverySequence = 0, discoveryController = null, discovering = false;
+    let discovery = null, devinCatalog = null, discoverySequence = 0, discoveryController = null, discovering = false;
+    const protocols = options.backendFilter === "devin_acp" ? [["devin_acp", "Devin · 账号登录"]]
+      : [["openai_chat_completions", "OpenAI Chat Completions"], ["anthropic_messages", "Anthropic Messages"], ["devin_acp", "Devin · 账号登录"]];
     container.classList.add("model-settings");
     container.innerHTML = `
       <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2><p>为当前聊天室选择模型，配置连接、上下文与思考参数。</p></div><button type="button" data-ms-action="new" class="ms-secondary">新建会话</button></div>
@@ -38,7 +40,7 @@
           <section class="ms-section"><div class="ms-section-title"><span>01</span><h3>连接</h3></div>
             <div class="ms-grid">
               <label>会话名称<input data-ms="name" required maxlength="32" placeholder="例如：日常助手"></label>
-              <label>通信协议<select data-ms="protocol"><option value="openai_chat_completions">OpenAI Chat Completions</option><option value="anthropic_messages">Anthropic Messages</option><option value="devin_acp">Devin · 账号登录</option></select></label>
+              <label>通信协议<select data-ms="protocol">${protocols.map(item => option(...item)).join("")}</select></label>
               <div class="ms-wide" data-ms="devin-auth" hidden></div>
               <label class="ms-wide">接口地址 · Base URL<input data-ms="base-url" type="url" required spellcheck="false" placeholder="https://api.example.com/v1"></label>
               <div class="ms-wide ms-discovery" aria-label="远程模型发现">
@@ -128,7 +130,7 @@
       container.querySelector('[data-ms-action="discover"]').disabled = !canDiscover;
       el("discovery-status").classList.remove("ms-error");
       el("discovery-status").textContent = canDiscover
-        ? (devinConnection() ? "先登录 Devin，再选择免费的 SWE-2 进行聊天室文本会话。工具与附件尚未开放。" : "点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。")
+        ? (devinConnection() ? "登录后获取账号的完整模型目录，选择模型及思考档位。" : "点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。")
         : "本地和内网模型保持手动填写；远程发现需要完整的 HTTP(S) 地址。";
     }
 
@@ -141,6 +143,8 @@
         ? `来源：官方资料（核对于 ${model.capability_checked_at}），查询未实测`
         : "来源：服务端目录，未实测";
       const detail = model ? [imageLabel(model), model.image_input == null ? "需手动确认" : source,
+        model.cost_summary || model.cost_tier || "",
+        model.reasoning_effort ? `思考档位 ${model.reasoning_effort}` : "",
         model.context_window ? `上下文 ${model.context_window.toLocaleString()} tokens` : "",
         model.max_output_tokens ? `输出上限 ${model.max_output_tokens.toLocaleString()} tokens` : ""].filter(Boolean).join(" · ") : "没有匹配的模型，可继续手动填写。";
       el("discovery-detail").textContent = detail;
@@ -179,6 +183,7 @@
         const result = await request(devinConnection() ? "/api/backends/devin/models" : "/api/models/discover", devinConnection() ? {} : body, "POST", controller.signal);
         if (disposed || sequence !== discoverySequence) return;
         discovery = result;
+        if (devinConnection()) { devinCatalog = result.models || []; updateDynamicFields(); }
         el("discovery-results").hidden = !result.models?.length;
         el("discovery-status").textContent = `${result.provider_hint || "远程服务"} · 已获取 ${result.models?.length || 0} 个模型${result.complete === false ? "（部分目录）" : ""}。 ${(result.warnings || []).join(" ")}`;
         renderCandidates();
@@ -206,12 +211,17 @@
         el(key).disabled = devin;
       }
       if (devin) {
-        el("reasoning-mode").innerHTML = option("auto", "待连接确认");
-        el("reasoning-effort").innerHTML = option("auto", "供应商默认");
-        el("reasoning-mode").disabled = true; el("reasoning-effort").disabled = true;
+        el("reasoning-mode").innerHTML = option("auto", "模型变体");
+        const model = devinCatalog?.find(item => item.id === value("model"));
+        const variants = model ? devinCatalog.filter(item => item.family === model.family && item.reasoning_effort) : [];
+        const selectedEffort = value("reasoning-effort");
+        const savedEffort = snapshot?.session?.model === value("model") ? snapshot.session.reasoning_effort : "auto";
+        el("reasoning-effort").innerHTML = option("auto", "所选模型默认") + efforts.filter(([id]) => variants.some(item => item.reasoning_effort === id) || !model && id === savedEffort && id !== "auto").map(item => option(...item)).join("");
+        set("reasoning-effort", variants.some(item => item.reasoning_effort === selectedEffort) || !model && selectedEffort === savedEffort ? selectedEffort : "auto");
+        el("reasoning-mode").disabled = true; el("reasoning-effort").disabled = !variants.length;
         el("budget-label").hidden = true; el("thinking-budget").required = false;
-        el("reasoning-hint").textContent = "思考与采样参数尚未由 Devin 会话确认。";
-        el("effective-limit").textContent = "上下文与输出容量尚未由 Devin 会话确认。";
+        el("reasoning-hint").textContent = "思考档位会选择账号目录中对应的精确模型变体；发送前核对 ACP 生效模型。温度等参数使用模型默认值。";
+        el("effective-limit").textContent = "上下文与输出容量使用 Devin 模型默认值。";
         el("multimodal-hint").textContent = "图片能力尚未确认。";
         el("key-hint").textContent = "使用本机 Devin CLI 登录，不使用 HTTP 密钥。";
         return;
@@ -265,7 +275,7 @@
       snapshot = data;
       const s = data?.session || {}, p = data?.parameters || {};
       set("name", s.name); set("model", s.model); set("model-type", s.model_type || "text");
-      set("protocol", data?.protocol || "openai_chat_completions");
+      set("protocol", data?.protocol || options.defaultProtocol || "openai_chat_completions");
       set("base-url", data?.base_url || "http://127.0.0.1:11434/v1"); set("endpoint", data?.endpoint);
       set("api-key", ""); el("clear-key").checked = false; el("discovery-no-key").checked = false;
       set("supports-multimodal", p.supports_multimodal == null ? "" : String(p.supports_multimodal));
@@ -285,7 +295,7 @@
       set("turn-timeout", p.turn_timeout_ms == null ? "" : p.turn_timeout_ms / 60000);
       set("tool-exposure", p.llm_tool_exposure); set("tool-allowlist", (p.tool_allowlist || []).join("\n"));
       updateDynamicFields(); resetDiscovery(); dirty = false;
-      status(devinConnection() ? "Devin 配置已载入；选择免费的 SWE-2 后可在聊天室发送文本。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
+      status(devinConnection() ? "Devin 配置已载入；选择账号模型后可在聊天室发送文本。工具与附件尚未开放。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
       options.onSelected?.(selectedId);
     }
 
@@ -324,8 +334,8 @@
       try {
         const registry = await request("/api/sessions");
         if (disposed || sequence !== refreshSequence || editAtStart !== editSequence || dirty) return;
-        sessions = registry.sessions || [];
-        await select(sessionId || registry.active_session_id || sessions[0]?.id || null);
+        sessions = (registry.sessions || []).filter(s => !options.backendFilter || s.backend_kind === options.backendFilter || (options.backendFilter === "devin_acp" && ["devin", "devin_acp", "devin-acp"].includes(s.provider)));
+        await select(sessions.some(s => s.id === sessionId) ? sessionId : sessions.some(s => s.id === registry.active_session_id) ? registry.active_session_id : sessions[0]?.id || null);
       } catch (error) {
         if (!disposed && sequence === refreshSequence && editAtStart === editSequence && !dirty)
           status(`读取会话失败：${error.message}`, true);
@@ -337,7 +347,7 @@
       if (busy || !el("form").reportValidity()) return;
       resetDiscovery();
       const devin = devinConnection();
-      const session = { name: value("name"), model: value("model"), model_type: devin ? "text" : value("model-type"), reasoning_effort: devin ? "auto" : value("reasoning-effort") };
+      const session = { name: value("name"), model: value("model"), model_type: devin ? "text" : value("model-type"), reasoning_effort: value("reasoning-effort") };
       if (devin) session.provider = "devin";
       else if (snapshot?.backend_kind === "devin_acp") session.provider = "custom";
       if (!devin && (value("api-key") || el("clear-key").checked)) session.api_key_ref = el("clear-key").checked ? "" : value("api-key");
@@ -389,7 +399,7 @@
       if (key === "discovery-filter") { renderCandidates(); return; }
       if (key === "discovery-model" || key === "discovery-no-key") return;
       if (discoveryInputs.has(key)) resetDiscovery();
-      if (key === "model") renderCandidateDetail();
+      if (key === "model") { renderCandidateDetail(); if (devinConnection()) { set("reasoning-effort", "auto"); updateDynamicFields(); } }
       if (el("form")?.contains(event.target)) markDirty();
     };
     const onChange = event => {
@@ -399,6 +409,11 @@
       if (key === "discovery-model") { renderCandidateDetail(); return; }
       if (discoveryInputs.has(key)) resetDiscovery();
       if (key === "discovery-no-key") return;
+      if (devinConnection() && key === "reasoning-effort" && value("reasoning-effort") !== "auto") {
+        const current = devinCatalog?.find(item => item.id === value("model"));
+        const variant = current && devinCatalog.find(item => item.family === current.family && item.reasoning_effort === value("reasoning-effort"));
+        if (variant) { set("model", variant.id); set("discovery-model", variant.id); renderCandidateDetail(); }
+      }
       updateDynamicFields(); markDirty();
     };
     const onClick = event => {
@@ -407,7 +422,7 @@
       if (action === "discover") void discoverModels();
       if (action === "adopt-model") {
         const model = selectedCandidate();
-        if (model) { set("model", model.id); updateDynamicFields(); renderCandidateDetail(); markDirty(); }
+        if (model) { set("model", model.id); if (devinConnection()) set("reasoning-effort", "auto"); updateDynamicFields(); if (devinConnection() && model.reasoning_effort) set("reasoning-effort", model.reasoning_effort); renderCandidateDetail(); markDirty(); }
       }
       if (action === "adopt-capability") {
         const model = selectedCandidate();
@@ -417,10 +432,12 @@
       }
     };
     el("form").addEventListener("submit", save);
+    const accountChanged = () => { devinCatalog = null; if (devinConnection()) { resetDiscovery(); updateDynamicFields(); } };
+    window.addEventListener?.("devin-account-changed", accountChanged);
     container.addEventListener("input", onInput); container.addEventListener("change", onChange); container.addEventListener("click", onClick);
     const api = {
       refresh, select, newSession: () => select(null), get sessionId() { return selectedId; }, get dirty() { return dirty; },
-      destroy() { disposed = true; loadSequence++; refreshSequence++; discoverySequence++; discoveryController?.abort(); devinAuth?.destroy(); container.removeEventListener("input", onInput); container.removeEventListener("change", onChange); container.removeEventListener("click", onClick); el("form")?.removeEventListener("submit", save); },
+      destroy() { disposed = true; loadSequence++; refreshSequence++; discoverySequence++; discoveryController?.abort(); devinAuth?.destroy(); window.removeEventListener?.("devin-account-changed", accountChanged); container.removeEventListener("input", onInput); container.removeEventListener("change", onChange); container.removeEventListener("click", onClick); el("form")?.removeEventListener("submit", save); },
     };
     container.__modelSettings = api;
     void refresh(selectedId);

@@ -25,23 +25,29 @@ fn error(message: impl Into<String>) -> api::ApiError {
     }
 }
 
-pub(crate) fn supported_model(model: &str) -> bool {
-    matches!(model, "swe-2-medium" | "swe-2-high" | "swe-2-max")
+pub(crate) fn valid_model_id(model: &str) -> bool {
+    !model.trim().is_empty() && model.len() <= 1024 && !model.chars().any(char::is_control)
 }
 
-pub(crate) fn reasoning_resolution() -> crate::ReasoningResolutionDto {
+pub(crate) fn reasoning_resolution(model: &str, requested: &str) -> crate::ReasoningResolutionDto {
+    let effort = super::discovery::model_effort(model).unwrap_or("auto");
+    let mut supported_options = vec![crate::ReasoningOptionDto {
+        value: "auto".into(), label: "所选模型默认".into(), note: None,
+    }];
+    if effort != "auto" {
+        supported_options.push(crate::ReasoningOptionDto {
+            value: effort.into(), label: effort.into(),
+            note: Some("此精确模型变体的档位；其它档位需重新获取账号模型目录。".into()),
+        });
+    }
     crate::ReasoningResolutionDto {
-        requested: "auto".into(),
-        effective: "auto".into(),
-        status: "unknown".into(),
-        strategy: "acp_negotiation".into(),
+        requested: requested.into(),
+        effective: effort.into(),
+        status: "pending".into(),
+        strategy: "acp_model_variant".into(),
         protocol: "devin_acp".into(),
-        reason: "使用 CLI 默认思考配置；未协商可覆盖参数。".into(),
-        supported_options: vec![crate::ReasoningOptionDto {
-            value: "auto".into(),
-            label: "自动".into(),
-            note: None,
-        }],
+        reason: "思考档位随精确模型变体选择；发送前由 ACP 核对生效 ID，其它参数沿用 CLI 默认。".into(),
+        supported_options,
     }
 }
 
@@ -187,17 +193,6 @@ fn prepare_directory(key: &str) -> Result<(PathBuf, PathBuf), String> {
     Ok((cwd, config))
 }
 
-fn is_free(catalog: &Value, model: &str) -> bool {
-    supported_model(model)
-        && catalog["families"].as_array().is_some_and(|families| {
-            families
-                .iter()
-                .filter_map(|family| family["variants"].as_array())
-                .flatten()
-                .any(|variant| variant["model_uid"] == model && variant["cost_tier"] == "Free")
-        })
-}
-
 fn publish(event: Event, tx: &mpsc::Sender<Item>) -> io::Result<()> {
     if event.replay {
         return Ok(());
@@ -274,8 +269,8 @@ pub(crate) async fn start(
     if cancellation.is_requested() {
         return Err(error("本轮已停止，未启动 Devin。"));
     }
-    if !supported_model(&agent.model) {
-        return Err(error("目前聊天室仅开放账号目录标记 Free 的 SWE-2 模型。"));
+    if !valid_model_id(&agent.model) {
+        return Err(error("请从 Devin 账号目录选择有效的模型 ID。"));
     }
     check_ambient_extensions().map_err(error)?;
     let binary = super::discovery::binary().map_err(error)?;
@@ -316,9 +311,9 @@ pub(crate) async fn start(
     .map_err(error)?;
     let catalog: Value =
         serde_json::from_slice(&catalog).map_err(|_| error("账号模型目录无效。"))?;
-    if !is_free(&catalog, &agent.model) {
+    if !super::discovery::catalog_contains(&catalog, &agent.model) {
         return Err(error(
-            "账号目录没有确认所选 SWE-2 为 Free；未发送提示，也未换模。",
+            "所选模型不在当前账号目录中；未发送提示，也未换模。",
         ));
     }
     let reset = crate::session_context_reset_floor(&agent.id);
@@ -563,7 +558,7 @@ mod tests {
         )
         .await
         .unwrap();
-        assert!(is_free(
+        assert!(super::super::discovery::catalog_contains(
             &serde_json::from_slice::<Value>(&catalog).unwrap(),
             "swe-2-medium"
         ));
@@ -672,13 +667,14 @@ mod tests {
         .unwrap();
     }
     #[test]
-    fn only_catalog_confirmed_free_swe2_is_admitted() {
+    fn only_actual_catalog_models_are_admitted_without_price_or_family_allowlist() {
         let catalog = json!({"families":[{"variants":[{"model_uid":"swe-2-medium","cost_tier":"Free"},
             {"model_uid":"swe-2-high","cost_tier":"Paid"},{"model_uid":"paid-model","cost_tier":"Free"}]}]});
-        assert!(is_free(&catalog, "swe-2-medium"));
-        assert!(!is_free(&catalog, "swe-2-high"));
-        assert!(!is_free(&catalog, "paid-model"));
-        assert!(!is_free(&json!({}), "swe-2-medium"));
+        assert!(super::super::discovery::catalog_contains(&catalog, "swe-2-medium"));
+        assert!(super::super::discovery::catalog_contains(&catalog, "swe-2-high"));
+        assert!(super::super::discovery::catalog_contains(&catalog, "paid-model"));
+        assert!(!super::super::discovery::catalog_contains(&catalog, "missing-model"));
+        assert!(!super::super::discovery::catalog_contains(&json!({}), "swe-2-medium"));
     }
     #[tokio::test]
     async fn replay_never_becomes_new_reply_and_eof_never_means_completion() {

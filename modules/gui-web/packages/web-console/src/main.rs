@@ -21067,8 +21067,8 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
     }
     for target in &targets {
         if agent_session_backend::AgentSessionBackend::for_provider(&target.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
-            if !devin_acp::chat::supported_model(&target.model) {
-                return Err(api_error(StatusCode::BAD_REQUEST,"请选择账号目录标记 Free 的 SWE-2 模型。"));
+            if !devin_acp::chat::valid_model_id(&target.model) {
+                return Err(api_error(StatusCode::BAD_REQUEST,"请选择 Devin 账号目录中的精确模型。"));
             }
         } else {
             agent_session_backend::AgentSessionBackend::for_provider(&target.provider).require_http()
@@ -51672,7 +51672,9 @@ impl Serialize for AgentSessionDto {
             &self.model,
             Some(&self.reasoning_effort),
         );
-        let resolution_dto = ReasoningResolutionDto::from(&resolution);
+        let resolution_dto = if agent_session_backend::AgentSessionBackend::for_provider(&self.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+            devin_acp::chat::reasoning_resolution(&self.model, &self.reasoning_effort)
+        } else { ReasoningResolutionDto::from(&resolution) };
         let mut state = serializer.serialize_struct("AgentSessionDto", 18)?;
         state.serialize_field("id", &self.id)?;
         state.serialize_field("name", &self.name)?;
@@ -51983,7 +51985,7 @@ impl PersistedSession {
             .as_str()
             .to_string(),
             reasoning_resolution: if agent_session_backend::AgentSessionBackend::for_provider(&self.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
-                devin_acp::chat::reasoning_resolution()
+                devin_acp::chat::reasoning_resolution(&self.model, &self.reasoning_effort)
             } else { ReasoningResolutionDto::from(&reasoning_resolution_for_session(
                 &self.provider,
                 &self.model,
