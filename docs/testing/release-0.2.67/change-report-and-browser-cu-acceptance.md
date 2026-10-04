@@ -31,14 +31,14 @@
 | 编号 | 软件实操 | 通过标准 | 当前状态 |
 | --- | --- | --- | --- |
 | B67-ID | 正常安装并启动 | 版本/关键产物摘要匹配新包，原工程与模型配置保持 | 通过，安装1150文件全部匹配 |
-| B67-READ | 真实Qwen只读右栏网页 | 来源标题和标记正确，0输入；原图对应当前页面 | 待新包实操 |
+| B67-READ | 真实Qwen只读右栏网页 | 来源标题和标记正确，0输入；原图对应当前页面 | 未通过：逐项否定未被识别，误走交互规划后 verification_failed；实际0输入。修复后待068真实复测 |
 | B67-CLICK | Qwen单击一次次数按钮 | 次数0→1，原生browser观察和输入回执匹配，无桌面UIA代替 | 通过；[原图](real-model/browser-click.jpg)、[父轮及步骤](real-model/browser-click-facts.json) |
 | B67-TEXT | Qwen向普通输入框输入指定文字 | 最新页面原图和可见输出一致；文字投递回执不能替代页面结果 | 独立第二轮通过；[原图](real-model/browser-text2.jpg)、[事实](real-model/browser-text2-facts.json)。首轮一次动作预算仅完成聚焦而耗尽，失败原图与事实保留 |
 | B67-SCROLL | Qwen向下滚动普通长页 | 实际CSS滚动数值大于0，回执无按住输入 | 通过，实际266 CSS像素；[原图](real-model/browser-scroll.jpg)、[事实](real-model/browser-scroll-facts.json) |
 | B67-NAV | Qwen导航至普通目标页 | URL、来源绑定、最新页面TARGET标记一致；历史页不冒充 | 通过；[原图](real-model/browser-navigation.jpg)、[事实](real-model/browser-navigation-facts.json) |
 | B67-CLOSE | 按下后至释放前关闭右栏页 | 原动作释放确证、无续发、目标不认成功、无新隔离；时间证明真正命中 | 未命中：两轮关闭均晚于释放。第二轮在验图前关闭，CU正确blocked且原输入released，无新隔离；不算释放竞争通过 |
-| B67-CANCEL | 输入交付期间取消父轮 | 收尾仍登记原释放事实；父/CU终态取消，迟到验图不覆盖，无续发 | 正式API边界通过：按下后19ms申请取消，父轮interrupted、CU cancelled；原输入随后released，无续发。普通UI取消按钮仍需单独实拍 |
-| B67-REPLACE | 输入期间切换/导航右栏 | 新资源不接旧输入；旧释放与新页面验收分离 | 待新包实操 |
+| B67-CANCEL | 输入交付期间取消父轮 | 收尾仍登记原释放事实；父/CU终态取消，迟到验图不覆盖，无续发 | 正式API边界通过：按下后19ms申请取消，父轮interrupted、CU cancelled；原输入随后released，无续发。普通UI停止按钮另在独立新任务规划期间通过，零输入；不代替UI按住期间取消 |
+| B67-REPLACE | 输入期间切换/导航右栏 | 新资源不接旧输入；旧释放与新页面验收分离 | 第一轮未命中：实际导航请求晚于父轮结束；不算通过 |
 | C67-PERM | 新独立普通Paint绘画 | 本轮新截图和目标窗口一致，完全访问不误报普通绘画需要授权 | 通过：本轮真实拖动sent、五点全部投递并released，未出现approval_required；绘画目标另判 |
 | C67-PAINT | Qwen在真实白色画布画简化海绵宝宝 | 新闭合身体、两只眼睛、笑嘴及两条腿实拍可见；原图独立复核，不能以released或image_changed替代 | 两轮均未通过。第二轮真实300秒完成三笔、每笔五点全部投递并released，但图形位置不合目标，缺笑嘴和腿，验图stage_timeout停止；详见下方 |
 | C67-GLOW | 与Paint联合实拍 | Windows四边泛光及准确文字“Coolzhu Agent is using your computer”；结束/取消撤除 | 日常分支有历史证据，新包及边界待实拍 |
@@ -60,3 +60,15 @@
 第二轮实际CU预算300000ms、根期限900000ms，三笔全部在真实画布目标uia-c049f188516a304d投递，每笔五点完整、未partial、released。模型逐笔规划/验图耗时长，第三笔之后剩余22639ms的验图请求超时，停止且不接纳迟到响应。整轮含父模型汇报334.598秒，不把它写成CU持续334秒。新增图形是三个矩形，眼睛位置与身体不匹配且与旧线重叠，没有新增笑嘴与两条腿，完整海绵宝宝失败。这里不是缺失执行接口：真实鼠标路径已执行；最终图形规划质量与共享预算是失败点。未换模型、未降低思考等级、未擦除或代画。后续若延长任务，需同时审查CU目前300秒上限、根预算及取消边界，不能静默解除时限。
 
 证据：[绑定父轮及三笔事实](real-model/paint-mapped-facts.json)、[本轮最新原生帧](real-model/paint-mapped-native-3.png)、[正常最大化后的独立截图](real-model/paint-mapped-final-maximized.jpg)、[原始帧索引](real-model/paint-mapped-native-index.json)。[配置恢复](real-model/paint-budget-restore.json)证明原文件字节完整恢复，并已正式重载120秒默认值。[最终安全核验](real-model/safety-after-paint.json)为safe、接受输入、待恢复0、未确认阻断0。运行时有四边泛光、结束后撤除；Paint处于非最大化时顶层提示在窗口截图裁剪之外，当前不将其算作完整英文提示与绘画的联合验收。
+
+## 同日后续实操与068修复交接
+
+只读独立任务父轮run-chat-8bf3822ec9aaaa4f9ce4773753575734370a045866d86c47，CU blocked/verification_failed、零动作。当前用户请求明确“不点击、不输入、不滚动”，范围解析漏识别重复否定，进入交互规划；068在当前用户请求的范围解析模块修复，不从网页或模型添加授权。见[原事实](real-model/browser-read-facts.json)。
+
+普通UI取消首次没有赶上，已正确保留为未命中。第二轮由正常消息框发送并点击停止：父轮run-chat-c92a7fdd1479b9f719a10969d63923223aa2dea076cdb3cf interrupted，CU cancelled，实际0输入且页面次数保持1；只覆盖规划期间取消。见[运行截图](real-model/browser-ui-cancel2-running.jpg)、[停止截图](real-model/browser-ui-cancel2-after.jpg)、[绑定事实](real-model/browser-ui-cancel2-facts.json)。
+
+替换第一轮父轮在1791107870284ms结束，普通UI目标页请求1791107879633ms，晚于原动作释放1791107848542ms及验图结束1791107862537ms；无法证明输入期间替换安全通过。见[绑定事实](real-model/browser-replace-facts.json)、[UI时刻](real-model/browser-replace-ui-time.json)、[目标页原图](real-model/browser-replace-after.jpg)。
+
+独立新Paint白画布仅保存准备文件用于唯一寻址，主会话没有代画。原Qwen medium规划单条连续路径，执行前stale_observation、not_sent、not_needed，实际动作0、白画布没有新增笔画；随后一次尝试预算耗尽，父轮completed不等于绘画通过。原CU预算300000ms、根期限900000ms；结束已恢复原配置字节并正式重载120秒。见[原生白画布](real-model/paint-continuous-native-0.png)、[步骤事实](real-model/paint-continuous-facts.json)、[配置恢复](real-model/paint-continuous-budget-restore.json)。此次观察变化拒绝与前次三笔已投递但图形错误是不同失败，不能混为缺执行接口或单纯模型问题。
+
+另定位Windows聚焦无条件SW_RESTORE改变最大化窗口布局，068仅恢复最小化窗口，保留输入前新鲜观察及前台身份校验。两项修复已离线编译通过、范围检查6项通过，真实GUI复测仍开放。068候选已构建及启动，正式安装目录仍067，不外推安装版结论。

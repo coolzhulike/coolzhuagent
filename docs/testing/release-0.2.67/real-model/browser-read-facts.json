@@ -1,0 +1,93 @@
+{
+  "label": "browser-read",
+  "runtime": {
+    "id": "run-chat-8bf3822ec9aaaa4f9ce4773753575734370a045866d86c47",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791107008043,
+    "finished_at": 1791107030523,
+    "legacy_turn_id": "chat-turn-1791107008034-10"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000003918db4a5595223f98-tool-a4d405864e4810f345effa817e498c2e75f2c974f0cf3c57a800f65da1231ae4",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "created_at_ms": 1791107018145,
+      "updated_at_ms": 1791107022593,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000003918db4a5595223f98-tool-a4d405864e4810f345effa817e498c2e75f2c974f0cf3c57a800f65da1231ae4",
+        "provider_tool_call_id": "tool-a4d405864e4810f345effa817e498c2e75f2c974f0cf3c57a800f65da1231ae4",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "planner stopped before all success criteria were verified",
+        "error": {
+          "code": "verification_failed",
+          "message": "planner stopped before all success criteria were verified",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:5:2",
+          "native-observation:f5400e78317571b7d0f84eb8016e4721",
+          "native-ax:5:2",
+          "native-observation:f5400e78317571b7d0f84eb8016e4721"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791107908034
+            }
+          },
+          "cu_deadline_ms": 1791107138145,
+          "cu_deadline_established_at_ms": 1791107018145,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只读观察，不点击、不输入、不滚动、不导航",
+          "不使用其它工具或桌面UIA",
+          "不使用历史坐标",
+          "任何失败立即停止不重试"
+        ],
+        "max_actions": 1,
+        "objective": "只读当前右栏网页，确认标题、当前页面标记SOURCE和次数0",
+        "success_criteria": [
+          "当前标题为真实浏览器操作验收",
+          "页面可见当前页面标记SOURCE",
+          "页面可见次数0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63657/boundary.html"
+        }
+      }
+    }
+  ],
+  "steps": [],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000003918db4a5595223f98-tool-a4d405864e4810f345effa817e498c2e75f2c974f0cf3c57a800f65da1231ae4",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791107018391,
+      "completed_at_ms": 1791107022591
+    }
+  ],
+  "usage": []
+}
