@@ -8,6 +8,28 @@ struct LedgerObserver {
     turn: Option<String>, run: Option<String>, call: Option<String>, kind: String, logical_id: String,
 }
 
+/// ACP 内部请求进入现有统计表；上下文占用不是输入/输出 token，未知用量保持未知。
+pub(super) fn record_acp_attempt(parent: &FrozenParentContext, session: &str, call: &str, kind: &str,
+    attempt: &str, status: &str, dispatched: bool) {
+    let result = (|| -> rusqlite::Result<()> {
+        let path = parent.runtime_db_path.as_deref().ok_or(rusqlite::Error::InvalidQuery)?;
+        let connection = open_session_connection(path)?;
+        chat_insights::ensure_tables(&connection)?;
+        let timestamp = unix_timestamp_millis() as i64;
+        connection.execute("INSERT INTO chat_usage_events
+            (workspace_id,room_id,session_id,created_at,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,
+             turn_id,run_id,call_id,request_kind,logical_request_id,attempt_id,attempt_no,status,dispatched,usage_known_mask,finished_at)
+            VALUES(?1,?2,?3,?4,0,0,0,0,?5,?6,?7,?8,?9,?9,1,?10,?11,0,?12)
+            ON CONFLICT(attempt_id) DO UPDATE SET status=excluded.status,dispatched=excluded.dispatched,
+              finished_at=COALESCE(finished_at,excluded.finished_at)",
+            params![parent.workspace_id.as_str(),parent.room_id.as_deref().unwrap_or(""),session,timestamp,
+                parent.public_turn_id,parent.parent_run_id,call,kind,format!("acp:{attempt}"),status,dispatched,
+                (status != "prepared").then_some(timestamp)])?;
+        Ok(())
+    })();
+    if let Err(error) = result { diag_log(&format!("[REQUEST-USAGE] ACP 请求事实保存失败: {error}")); }
+}
+
 pub(super) fn observe(
     client: Result<ProviderClient, api::ApiError>, session: &str, room: Option<&str>,
     turn: Option<&str>, call: Option<&str>, kind: &str,

@@ -78,6 +78,9 @@ fn render(app: &AppHandle, revision: u64) -> Result<(), Box<dyn std::error::Erro
         let label = format!("{PREFIX}{index}");
         let window = if let Some(window) = app.get_webview_window(&label) { window } else {
             let asset = if layout.primary {"computer-use-indicator.html"} else {"computer-use-edges.html"};
+            // 仅写运行日志，供多屏/DPI 排查；控制台界面不展示这些内部信息。
+            eprintln!("[cu-indicator] 创建 {label}: asset={asset}, x={}, y={}, width={}, height={}, scale={}",
+                layout.x, layout.y, layout.width, layout.height, f64::from_bits(layout.scale));
             // 与开机演出一样明确使用打包资源协议，避免devUrl指向8765而找不到静态页。
             #[cfg(any(windows, target_os = "android"))]
             let url = tauri::Url::parse(&format!("http://tauri.localhost/{asset}"))?;
@@ -100,7 +103,28 @@ fn render(app: &AppHandle, revision: u64) -> Result<(), Box<dyn std::error::Erro
         if !current(revision) || !state().lock().map_err(|_| "展示状态不可读")?
             .until.is_some_and(|until| until > Instant::now()) { return Ok(()); }
         if !window.is_visible()? { window.show()?; }
+        raise_without_focus(&window)?;
     }
     if current(revision) { state().lock().map_err(|_| "展示状态不可读")?.layouts = layouts; }
+    Ok(())
+}
+
+// 窗口切换后重申展示层级，不能激活提示窗或抢走绘图/输入焦点。
+#[cfg(windows)]
+fn raise_without_focus(window: &tauri::WebviewWindow) -> Result<(), Box<dyn std::error::Error>> {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        SetWindowPos, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE, SWP_NOACTIVATE,
+    };
+    let hwnd = window.hwnd()?;
+    if unsafe { SetWindowPos(hwnd.0 as _, HWND_TOPMOST, 0, 0, 0, 0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE) } == 0 {
+        return Err(std::io::Error::last_os_error().into());
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn raise_without_focus(window: &tauri::WebviewWindow) -> Result<(), Box<dyn std::error::Error>> {
+    window.set_always_on_top(true)?;
     Ok(())
 }

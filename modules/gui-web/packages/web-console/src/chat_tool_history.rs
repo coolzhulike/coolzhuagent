@@ -1,6 +1,19 @@
 //! 聊天工具状态与跨轮历史投影。原始审计仍保存，模型历史只带必要事实。
 use super::*;
 
+/// ACP 工具直接经 MCP 桥执行，不出现在 HTTP tool_use 列表中。
+/// 只读取同库、同父运行的正式 CU 台账；登记事实不等于输入或目标成功。
+pub(super) fn acp_computer_use_settlement(parent: &FrozenParentContext) -> rusqlite::Result<Option<bool>> {
+    let (Some(path), Some(run)) = (parent.runtime_db_path.as_deref(), parent.parent_run_id.as_deref()) else {
+        return Ok(None);
+    };
+    let connection = Connection::open_with_flags(path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    let mut statement = connection.prepare("SELECT status FROM tool_calls WHERE run_id=?1 AND tool_name='computer_use_perform'")?;
+    let statuses = statement.query_map([run], |row| row.get::<_, String>(0))?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    Ok((!statuses.is_empty()).then(|| statuses.iter().all(|status| status == "completed")))
+}
+
 /// 只核验宿主本轮派发事实，不从模型正文或历史回执推断执行，更不补发隐藏工具。
 pub(super) fn unexecuted_computer_use_notice(prompt: &str, dispatched: bool) -> Option<&'static str> {
     // 保守排除说明型问题：出现“网页点击”等术语不能把知识问答标作未完成实操。

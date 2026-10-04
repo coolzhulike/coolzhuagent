@@ -43,6 +43,7 @@
               <label>通信协议<select data-ms="protocol">${protocols.map(item => option(...item)).join("")}</select></label>
               <div class="ms-wide" data-ms="devin-auth" hidden></div>
               <label class="ms-wide" data-ms="devin-review-label" hidden><span><input type="checkbox" data-ms="devin-review">允许读取当前工程用于仓库审查</span><small>仅文件读取、查找与内容搜索；不开放写入、命令、电脑操作或原生 Devin 工具。</small></label>
+              <label class="ms-wide" data-ms="devin-computer-label" hidden><span><input type="checkbox" data-ms="devin-computer">允许 Computer Use</span><small>通过宿主操作浏览器与桌面；规划和验收使用所选模型，图片需由 ACP 声明支持。</small></label>
               <label class="ms-wide">接口地址 · Base URL<input data-ms="base-url" type="url" required spellcheck="false" placeholder="https://api.example.com/v1"></label>
               <div class="ms-wide ms-discovery" aria-label="远程模型发现">
                 <div class="ms-discovery-actions"><button type="button" data-ms-action="discover" class="ms-secondary">获取模型</button><label class="ms-checkbox"><input type="checkbox" data-ms="discovery-no-key">此次查询不使用密钥</label></div>
@@ -204,6 +205,7 @@
     function updateDynamicFields() {
       const devin = devinConnection();
       el("devin-review-label").hidden = !devin;
+      el("devin-computer-label").hidden = !devin;
       if (authVisible !== devin) { authVisible = devin; devinAuth?.setVisible(devin); }
       for (const key of ["base-url", "endpoint", "api-key", "clear-key", "discovery-no-key"]) {
         el(key).disabled = devin || (key === "clear-key" && !selectedId);
@@ -294,16 +296,19 @@
       set("reasoning-effort", s.reasoning_effort || "auto");
       set("thinking-budget", p.thinking_budget); set("temperature", p.temperature); set("top-p", p.top_p);
       set("enable-tools", p.enable_llm_tools == null ? "" : String(p.enable_llm_tools));
-      el("devin-review").checked = p.enable_llm_tools === true && p.computer_use_enabled === false
+      const reviewTools = (p.tool_allowlist || []).filter(name => ["read_file", "glob_search", "grep_search"].includes(name));
+      el("devin-review").checked = p.enable_llm_tools === true
         && p.llm_tool_exposure === "whitelist" && Array.isArray(p.tool_allowlist)
-        && p.tool_allowlist.length > 0 && p.tool_allowlist.every(name => ["read_file", "glob_search", "grep_search"].includes(name));
+        && reviewTools.length > 0 && p.tool_allowlist.every(name => ["read_file", "glob_search", "grep_search", "computer_use_perform"].includes(name));
+      el("devin-computer").checked = p.enable_llm_tools === true && p.computer_use_enabled === true
+        && p.llm_tool_exposure === "whitelist" && (p.tool_allowlist || []).includes("computer_use_perform");
       // 保存其它参数时保持既有只读子集，不悄悄扩大工具范围。
-      loadedReviewTools = el("devin-review").checked ? [...p.tool_allowlist] : [];
+      loadedReviewTools = el("devin-review").checked ? reviewTools : [];
       set("computer-use", p.computer_use_enabled == null ? "" : String(p.computer_use_enabled));
       set("turn-timeout", p.turn_timeout_ms == null ? "" : p.turn_timeout_ms / 60000);
       set("tool-exposure", p.llm_tool_exposure); set("tool-allowlist", (p.tool_allowlist || []).join("\n"));
       updateDynamicFields(); resetDiscovery(); dirty = false;
-      status(devinConnection() ? "Devin 配置已载入；可发送文本，或开启工程只读审查。其他工具与附件尚未开放。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
+      status(devinConnection() ? "Devin 配置已载入；可发送文本，开启工程只读审查或 Computer Use。聊天附件及其它工具尚未开放。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
       options.onSelected?.(selectedId);
     }
 
@@ -371,9 +376,12 @@
       if (devin) Object.assign(parameters, {
         base_url: null, endpoint: null, context_window: 0, max_output_tokens: 0,
         temperature: null, top_p: null, thinking_budget: null, reasoning_mode: "auto", supports_multimodal: null,
-        enable_llm_tools: el("devin-review").checked, computer_use_enabled: false,
-        llm_tool_exposure: "whitelist", tool_allowlist: el("devin-review").checked
-          ? (loadedReviewTools.length ? [...loadedReviewTools] : ["read_file", "glob_search", "grep_search"]) : [],
+        enable_llm_tools: el("devin-review").checked || el("devin-computer").checked,
+        computer_use_enabled: el("devin-computer").checked,
+        llm_tool_exposure: "whitelist", tool_allowlist: [
+          ...(el("devin-review").checked ? (loadedReviewTools.length ? [...loadedReviewTools] : ["read_file", "glob_search", "grep_search"]) : []),
+          ...(el("devin-computer").checked ? ["computer_use_perform"] : []),
+        ],
       });
       busy = true; el("save").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
       status("正在保存…");
@@ -389,7 +397,7 @@
         fill(result);
         const index = sessions.findIndex(s => s.id === selectedId);
         if (index >= 0) sessions[index] = result.session;
-        renderSessionOptions(); status(devin ? "已保存 Devin 配置；选择此 Agent 后可在聊天室发送文本，或开启工程只读审查。其他工具与附件尚未开放。" : "已保存，对下一轮会话生效。");
+        renderSessionOptions(); status(devin ? "已保存 Devin 配置；选择此 Agent 后可在聊天室发送文本、审查工程或执行 Computer Use，具体取决于上方选择。" : "已保存，对下一轮会话生效。");
         try { await options.onSaved?.(result.session, result); }
         catch (error) { if (!disposed) status(`配置已保存，但界面刷新失败：${error.message}`, true); }
         if (!disposed) container.dispatchEvent(new CustomEvent("model-settings-saved", { bubbles: true, detail: result }));

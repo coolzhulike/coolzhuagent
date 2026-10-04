@@ -28,6 +28,9 @@ pub(super) struct ExecutionScope {
     pub workspace_id: String,
     pub room_id: String,
     pub agent_id: String,
+    /// 内部规划与外层聊天共用真实身份，但不能占用同一远端会话锁。
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub lane: String,
     pub run_id: String,
     pub turn_id: String,
     pub attempt_id: String,
@@ -38,6 +41,7 @@ pub(super) struct ExecutionScope {
 impl ExecutionScope {
     pub(super) fn accepts(&self, incoming: &Self) -> bool {
         self == incoming
+            && matches!(self.lane.as_str(), "" | "internal")
             && self.owner_epoch > 0
             && self.generation > 0
             && [
@@ -219,6 +223,7 @@ mod tests {
             workspace_id: "w".into(),
             room_id: "r".into(),
             agent_id: "a".into(),
+            lane: String::new(),
             run_id: "run".into(),
             turn_id: "turn".into(),
             attempt_id: "attempt-1".into(),

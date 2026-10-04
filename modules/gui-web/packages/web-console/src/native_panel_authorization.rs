@@ -29,7 +29,7 @@ impl<'a,'broker> HostPanelAuthorization<'a,'broker> {
             && r.executor_instance_id.as_deref()==Some(claimed.binding.executor.executor_instance_id.as_str())
             && r.resource==claimed.binding.executor.resource && match (claimed.binding.input_kind,r.outcome) {
                 (_,PanelInputOutcome::NotDispatched) => true,
-                (native_browser_protocol::PanelInputKind::Click,PanelInputOutcome::Released) => true,
+                (native_browser_protocol::PanelInputKind::Click | native_browser_protocol::PanelInputKind::Keys,PanelInputOutcome::Released) => true,
                 (native_browser_protocol::PanelInputKind::Scroll | native_browser_protocol::PanelInputKind::Text
                     | native_browser_protocol::PanelInputKind::Navigate,PanelInputOutcome::Acknowledged) => true,
                 _ => false,
@@ -41,7 +41,7 @@ impl<'a,'broker> HostPanelAuthorization<'a,'broker> {
                 Some(PanelInputOutcome::Released)=>"released",
                 Some(PanelInputOutcome::Acknowledged)=>"acknowledged_no_held_input",
                 Some(PanelInputOutcome::NotDispatched)=>"aborted_before_input",
-                _ if claimed.binding.input_kind!=native_browser_protocol::PanelInputKind::Click=>"dispatch_unknown_no_held_input",
+                _ if !matches!(claimed.binding.input_kind,native_browser_protocol::PanelInputKind::Click | native_browser_protocol::PanelInputKind::Keys)=>"dispatch_unknown_no_held_input",
                 _=>"release_unknown",
             };
             self.store.settle_panel_attempt(self.call_id,self.index,&claimed.binding.ticket_id,phase)?;

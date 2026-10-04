@@ -15129,7 +15129,7 @@ function handleChatStreamEvent({ event, data }) {
     } else if (data?.status === "failed") {
       addMessage({
         author: "消息分发",
-        text: "本次回复未完成，服务端已结束该 turn。",
+        text: "本轮任务未完成，详情见回复与运行轨迹。",
         kind: "thought",
         icon: "error-log",
       });

@@ -18,6 +18,7 @@ const INITIAL_TOOLS: &[&str] = &[
     "glob_search",
     "grep_search",
     "bash",
+    "computer_use_perform",
 ];
 pub(super) const REVIEW_TOOLS: &[&str] = &["read_file", "glob_search", "grep_search"];
 
@@ -158,7 +159,8 @@ pub(super) struct ToolBridge {
     definitions: Vec<ToolDefinition>,
     token: String,
     initialized: AtomicBool,
-    calls: tokio::sync::Mutex<()>,
+    calls: Arc<tokio::sync::Mutex<()>>,
+    cu_job: std::sync::Mutex<Option<super::tool_wait::PendingTool>>,
     /// 仅承载 bridge 与监督者的本地取消映射，不复用另一个 turn 的 token。
     _cancel_scope: ToolTurnCancellationScope,
 }
@@ -213,7 +215,7 @@ impl ToolBridge {
                     && required_permission_for_tool(&tool.name) <= permission
             })
             .collect::<Vec<_>>();
-        // 此阶段只开放已知内置六类工具；插件、嵌套 Agent、CU 和 MCP 扩展仍需版本快照验收。
+        // 仅开放明确接入的内置工具；CU 复用异步控制器，插件与外部 MCP 尚未接入。
         let dev_open = dev_open_tool_permissions_enabled();
         let profile = if dev_open {
             PermissionProfile::FullAccess
@@ -275,7 +277,8 @@ impl ToolBridge {
             definitions,
             token: random_hex_identifier(64, "ACP 桥")?,
             initialized: AtomicBool::new(false),
-            calls: tokio::sync::Mutex::new(()),
+            calls: Arc::new(tokio::sync::Mutex::new(())),
+            cu_job: std::sync::Mutex::new(None),
             _cancel_scope: cancel_scope,
         }))
     }
@@ -324,8 +327,14 @@ impl ToolBridge {
             }
             "ping" => json!({}),
             "tools/list" if self.initialized.load(Ordering::Acquire) => {
-                json!({"tools":self.definitions.iter().map(|tool|
-                json!({"name":tool.name,"description":tool.description,"inputSchema":tool.input_schema})).collect::<Vec<_>>()})
+                let mut tools=self.definitions.iter().map(|tool|
+                    json!({"name":tool.name,"description":tool.description,"inputSchema":tool.input_schema})).collect::<Vec<_>>();
+                if self.policy.grants.contains_key("computer_use_perform") {
+                    tools.push(json!({"name":"computer_use_wait",
+                        "description":"等待 computer_use_perform 返回的同一 job_id。running 不是完成；继续等待到最终回执，禁止重复提交 perform。此工具不创建新的电脑动作任务。",
+                        "inputSchema":{"type":"object","properties":{"job_id":{"type":"string"}},"required":["job_id"],"additionalProperties":false}}));
+                }
+                json!({"tools":tools})
             }
             "tools/call" if self.initialized.load(Ordering::Acquire) => {
                 let name = request["params"]["name"]
@@ -338,7 +347,16 @@ impl ToolBridge {
                 if !input.is_object() {
                     return Err("桥工具参数必须是对象。".into());
                 }
-                self.call(id, name, &input).await?
+                match name {
+                    "computer_use_perform" => self.submit_cu(id,&input).await?,
+                    "computer_use_wait" => {
+                        self.policy.live()?;
+                        self.policy.tool_live("computer_use_perform")?;
+                        let job_id=input["job_id"].as_str().ok_or("等待工具缺少 job_id。")?;
+                        super::tool_wait::wait(&self.cu_job,job_id,Duration::from_secs(25)).await?
+                    },
+                    _ => self.call(id, name, &input).await?,
+                }
             }
             _ => {
                 return Ok(Some(
@@ -355,15 +373,66 @@ impl ToolBridge {
         name: &str,
         input: &JsonValue,
     ) -> Result<JsonValue, String> {
-        // 串行队列只约束本轮，阻止共享 MCP 连接的并发动作互相覆盖。
-        let _call = self.calls.lock().await;
+        dispatch(self.policy.clone(),self.calls.clone(),id,name,input).await
+    }
+
+    async fn submit_cu(&self,id:&JsonValue,input:&JsonValue) -> Result<JsonValue,String> {
         self.policy.live()?;
-        self.policy.tool_live(name)?;
-        if !self.policy.grants.contains_key(name) {
+        self.policy.tool_live("computer_use_perform")?;
+        let job_id={
+            let mut slot=self.cu_job.lock().map_err(|_|"CU 等待状态不可用。")?;
+            let existing=if let Some(job)=slot.as_ref() {
+                if &job.request_id == id && &job.input != input {
+                    return Err("同一工具请求不能变更参数。".into());
+                }
+                if &job.request_id == id || job.unfinished() && &job.input == input {
+                    Some(job.id.clone())
+                } else if job.unfinished() {
+                    return Err("已有 CU 任务未完成，请等待原 job_id；未重复派发。".into());
+                } else { None }
+            } else { None };
+            if let Some(job_id)=existing { job_id } else {
+                let job_id=random_hex_identifier(48,"CU 等待")?;
+                let policy=self.policy.clone(); let calls=self.calls.clone();
+                let request_id=id.clone(); let arguments=input.clone();
+                let future=async move { dispatch(policy,calls,&request_id,"computer_use_perform",&arguments).await };
+                *slot=Some(super::tool_wait::PendingTool::new(job_id.clone(),id.clone(),input.clone(),future));
+                job_id
+            }
+        };
+        super::tool_wait::wait(&self.cu_job,&job_id,Duration::from_secs(25)).await
+    }
+
+    /// 只在宿主显式持有桥对象时监听随机本机端口，不挂到主控制台路由。
+    pub(super) async fn start(self: Arc<Self>) -> Result<BridgeServer, String> {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .map_err(|_| "ACP 桥监听失败。")?;
+        let address = listener.local_addr().map_err(|_| "ACP 桥端口读取失败。")?;
+        let config = json!({"type":"http","name":"coolzhu-agent","url":format!("http://{address}/mcp"),
+            "headers":[{"name":"Authorization","value":format!("Bearer {}",self.token)}]});
+        let router = axum::Router::new()
+            .route("/mcp", post(http_rpc))
+            .layer(DefaultBodyLimit::max(1024 * 1024))
+            .with_state((self.clone(), address.to_string()));
+        let task = tokio::spawn(async move {
+            let _ = axum::serve(listener, router).await;
+        });
+        Ok(BridgeServer { config, task, bridge:self })
+    }
+}
+
+async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
+    id:&JsonValue,name:&str,input:&JsonValue) -> Result<JsonValue,String> {
+        // 串行队列只约束本轮，阻止共享 MCP 连接的并发动作互相覆盖。
+        let _call = calls.lock().await;
+        policy.live()?;
+        policy.tool_live(name)?;
+        if !policy.grants.contains_key(name) {
             return Err("工具未在父接纳时开放。".into());
         }
         // 仓库审查只读且只能访问当前工程；完全访问权限也不会扩大此通道的范围。
-        if self.policy.readonly {
+        if policy.readonly {
             if !REVIEW_TOOLS.contains(&name) {
                 return Err("仓库审查未开放该工具。".into());
             }
@@ -372,10 +441,10 @@ impl ToolBridge {
                 validate_workspace_relative_pattern(input.get("pattern").and_then(JsonValue::as_str).unwrap_or(""))
                     .map_err(|_| "仓库审查的搜索模式不能越过当前工程。".to_string())?;
             }
-            let root = self.policy.root.canonicalize().map_err(|_| "审查工程不可用。")?;
+            let root = policy.root.canonicalize().map_err(|_| "审查工程不可用。")?;
             let target = input.get("path").and_then(JsonValue::as_str).map(PathBuf::from)
-                .unwrap_or_else(|| self.policy.root.clone());
-            let target = if target.is_absolute() { target } else { self.policy.root.join(target) };
+                .unwrap_or_else(|| policy.root.clone());
+            let target = if target.is_absolute() { target } else { policy.root.join(target) };
             if !target.canonicalize().map_err(|_| "审查路径不存在。")?.starts_with(&root) {
                 return Err("仓库审查不能读取当前工程之外的路径。".into());
             }
@@ -389,7 +458,7 @@ impl ToolBridge {
         {
             return Err("ACP 桥尚未开放后台命令或沙箱旁路。".into());
         }
-        let scope = &self.policy.scope;
+        let scope = &policy.scope;
         let raw_id = serde_json::to_string(id).map_err(|_| "工具关联编号编码失败。")?;
         let source = serde_json::to_string(scope).map_err(|_| "工具身份编码失败。")?;
         let identity = tool_invocation_identity::ModelToolIdentity::from_source(
@@ -397,14 +466,30 @@ impl ToolBridge {
             &source,
             &raw_id,
         )?;
-        let budget = self
-            .policy
+        if name == "computer_use_perform" {
+            // CU 复用模型工具的异步入口，不进入同步工具 worker，也不另登记一份调用。
+            let invoke = ToolInvoke { call_id: identity.execution_id.clone(), tool_name: name.into(),
+                input: input.clone(), caller: ToolCaller::Llm, workspace_id: scope.workspace_id.clone(), session_id: Some(scope.agent_id.clone()),
+                user_authorized: false, user_confirmed_twice: false };
+            if let Some(outcome) = policy.gate(&invoke, &policy.root) {
+                return Ok(json!({"content":[{"type":"text","text":serde_json::to_string(&outcome).map_err(|_| "CU 拒绝回执编码失败。")?}],"isError":true}));
+            }
+            let run = tool_invocation_identity::scope(source,
+                run_model_tool_dispatch_for_session_with_identity(name, input, Some(&scope.agent_id),
+                    Some(&raw_id), Some(&scope.turn_id), Some(&scope.room_id), Some(&policy.parent), None));
+            let response = CHAT_CANCELLATION.scope(policy.cancellation.clone(), run)
+                .await.map_err(|(status, _)| format!("CU 宿主派发失败：{status}"))?;
+            let failed = response.status != "ok";
+            let text = serde_json::to_string(&response).map_err(|_| "CU 结果编码失败。")?;
+            return Ok(json!({"content":[{"type":"text","text":truncate_tool_result_for_context(text,Some(&policy.parent))}],"isError":failed}));
+        }
+        let budget = policy
             .parent
             .root_budget
             .clone()
             .ok_or("工具缺少根预算。")?;
         let mut settlement = register_tool_call_at_dispatch(
-            self.policy.journal.path(),
+            policy.journal.path(),
             &identity.execution_id,
             name,
             input,
@@ -426,13 +511,13 @@ impl ToolBridge {
         let timeout = budget.limit_ms(tool_timeout_ms_for(name, &invoke.input));
         let run = runtime_tool_supervision::execute(
             invoke.clone(),
-            self.policy.root.clone(),
+            policy.root.clone(),
             timeout,
             Some(scope.room_id.clone()),
         );
         let outcome = FROZEN_POLICY
             .scope(
-                self.policy.clone(),
+                policy.clone(),
                 TURN_TRACE.scope(
                     bridge_trace(scope)?,
                     root_execution_budget::scope(budget, run),
@@ -447,7 +532,7 @@ impl ToolBridge {
             .and_then(JsonValue::as_str)
             == Some("running_unconfirmed");
         if pending {
-            self.policy
+            policy
                 .journal
                 .transition(scope, &["submitted"], "unknown", None, false)?;
         }
@@ -459,36 +544,16 @@ impl ToolBridge {
             "failed"
         };
         if settlement.finish(status).is_err() {
-            let _ = self
-                .policy
+            let _ = policy
                 .journal
                 .transition(scope, &["submitted"], "unknown", None, false);
             return Err("工具已结束等待但落盘未确认，禁止重试。".into());
         }
         let is_error = outcome.status != ToolOutcomeStatus::Ok;
         let text = serde_json::to_string(&outcome).map_err(|_| "工具结果编码失败。")?;
-        let text = truncate_tool_result_for_context(text, Some(&self.policy.parent));
+        let text = truncate_tool_result_for_context(text, Some(&policy.parent));
         Ok(json!({"content":[{"type":"text","text":text}],"isError":is_error}))
     }
-
-    /// 只在宿主显式持有桥对象时监听随机本机端口，不挂到主控制台路由。
-    pub(super) async fn start(self: Arc<Self>) -> Result<BridgeServer, String> {
-        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
-            .await
-            .map_err(|_| "ACP 桥监听失败。")?;
-        let address = listener.local_addr().map_err(|_| "ACP 桥端口读取失败。")?;
-        let config = json!({"type":"http","name":"coolzhu-agent","url":format!("http://{address}/mcp"),
-            "headers":[{"name":"Authorization","value":format!("Bearer {}",self.token)}]});
-        let router = axum::Router::new()
-            .route("/mcp", post(http_rpc))
-            .layer(DefaultBodyLimit::max(1024 * 1024))
-            .with_state((self, address.to_string()));
-        let task = tokio::spawn(async move {
-            let _ = axum::serve(listener, router).await;
-        });
-        Ok(BridgeServer { config, task })
-    }
-}
 
 fn bridge_trace(scope: &ExecutionScope) -> Result<String, String> {
     let identity = tool_invocation_identity::ModelToolIdentity::from_source(
@@ -513,8 +578,12 @@ fn parent_claim(db: &Path, run: &str) -> Result<(Option<String>, String), String
 pub(super) struct BridgeServer {
     config: JsonValue,
     task: tokio::task::JoinHandle<()>,
+    bridge: Arc<ToolBridge>,
 }
 impl BridgeServer {
+    pub(super) fn has_pending(&self) -> bool {
+        self.bridge.cu_job.lock().map(|slot|slot.as_ref().is_some_and(|job|job.unfinished())).unwrap_or(true)
+    }
     pub(super) fn config(&self) -> JsonValue {
         self.config.clone()
     }
@@ -522,6 +591,8 @@ impl BridgeServer {
 impl Drop for BridgeServer {
     fn drop(&mut self) {
         self.task.abort();
+        // 终态、取消或服务退出都撤销尚未结束的 future；不会在 HTTP 断连后脱管输入。
+        self.bridge.cu_job.lock().unwrap_or_else(std::sync::PoisonError::into_inner).take();
     }
 }
 
@@ -557,6 +628,47 @@ async fn http_rpc(
             != Some(MCP_VERSION)
     {
         return StatusCode::BAD_REQUEST.into_response();
+    }
+    if method == "tools/call" && headers.get("accept").and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.split(',').any(|part| part.trim().split(';').next() == Some("text/event-stream"))) {
+        // 长程 CU 使用 Streamable HTTP：立即建立响应并持续输出等待心跳，
+        // 不让无响应正文触发客户端的 HTTP 空闲超时。没有 progressToken 时
+        // 只发 SSE 注释；有 token 才发协议进度，数值为实际等待毫秒数而非完成率。
+        let token = request["params"]["_meta"]["progressToken"].clone();
+        let request_id = request["id"].clone();
+        let stream = async_stream::stream! {
+            let started = tokio::time::Instant::now();
+            let pending = bridge.rpc(request);
+            tokio::pin!(pending);
+            let mut ticks = tokio::time::interval(Duration::from_secs(5));
+            ticks.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+            loop {
+                tokio::select! { biased;
+                    result = &mut pending => {
+                        let response = match result {
+                            Ok(Some(value)) => value,
+                            Ok(None) => break,
+                            Err(_) => json!({"jsonrpc":"2.0","id":request_id,
+                                "error":{"code":-32000,"message":"宿主工具未完成，请查看运行轨迹；未重试"}}),
+                        };
+                        yield Ok::<_, std::convert::Infallible>(Event::default().event("message").data(response.to_string()));
+                        break;
+                    },
+                    _ = ticks.tick() => {
+                        let elapsed = started.elapsed().as_millis().min(u128::from(u64::MAX)) as u64;
+                        if token.is_string() || token.is_i64() || token.is_u64() {
+                            let update = json!({"jsonrpc":"2.0","method":"notifications/progress",
+                                "params":{"progressToken":token,"progress":elapsed,
+                                    "message":"宿主工具执行中，等待最终回执"}});
+                            yield Ok(Event::default().event("message").data(update.to_string()));
+                        } else {
+                            yield Ok(Event::default().comment("宿主工具仍在等待最终回执"));
+                        }
+                    },
+                }
+            }
+        };
+        return Sse::new(stream).into_response();
     }
     match bridge.rpc(request).await {
         Ok(Some(result)) => Json(result).into_response(),
@@ -622,6 +734,7 @@ mod tests {
                     workspace_id: workspace_id.clone(),
                     room_id: "bridge-room".into(),
                     agent_id: "bridge-agent".into(),
+                    lane: String::new(),
                     run_id: "bridge-run".into(),
                     turn_id: "bridge-turn".into(),
                     attempt_id: "bridge-attempt".into(),
@@ -680,11 +793,47 @@ mod tests {
             definitions,
             token: random_hex_identifier(64, "fixture").unwrap(),
             initialized: AtomicBool::new(false),
-            calls: tokio::sync::Mutex::new(()),
+            calls: Arc::new(tokio::sync::Mutex::new(())),
+            cu_job: std::sync::Mutex::new(None),
             _cancel_scope: ToolTurnCancellationScope::install(&trace, cancellation),
         });
         (bridge, journal, scope)
     }
+    #[tokio::test]
+    async fn streamable_http_returns_single_real_tool_result_with_matching_request_id() {
+        let _guard = crate::tests::config_test_guard();
+        let dir=tempfile::tempdir().unwrap();
+        let db=dir.path().join("sessions.sqlite3");
+        let _env=Environment::install(dir.path(),&db);
+        let (bridge,journal,scope)=fixture(dir.path(),&db);
+        journal.transition(&scope,&["prepared"],"submitted",None,true).unwrap();
+        bridge.initialized.store(true,Ordering::Release);
+        let file=dir.path().join("read.txt");
+        std::fs::write(&file,"协议响应验收").unwrap();
+        let mut headers=HeaderMap::new();
+        headers.insert("host","127.0.0.1:12345".parse().unwrap());
+        headers.insert("authorization",format!("Bearer {}",bridge.token).parse().unwrap());
+        headers.insert("mcp-protocol-version",MCP_VERSION.parse().unwrap());
+        headers.insert("accept","application/json, text/event-stream".parse().unwrap());
+        let response=http_rpc(State((bridge.clone(),"127.0.0.1:12345".into())),headers,
+            Json(json!({"jsonrpc":"2.0","id":"real-read","method":"tools/call",
+                "params":{"name":"read_file","arguments":{"path":file},"_meta":{"progressToken":"progress-read"}}}))).await;
+        assert_eq!(response.headers()["content-type"],"text/event-stream");
+        let body=axum::body::to_bytes(response.into_body(),1024*1024).await.unwrap();
+        let text=std::str::from_utf8(&body).unwrap();
+        assert!(!text.contains(&bridge.token));
+        let messages=text.lines().filter_map(|line|line.strip_prefix("data: "))
+            .map(|line|serde_json::from_str::<JsonValue>(line).unwrap()).collect::<Vec<_>>();
+        let replies=messages.iter().filter(|value|value["id"]=="real-read").collect::<Vec<_>>();
+        assert_eq!(replies.len(),1);
+        assert_eq!(replies[0]["result"]["isError"],false);
+        assert!(replies[0].to_string().contains("协议响应验收"));
+        for value in messages.iter().filter(|value|value["method"]=="notifications/progress") {
+            assert_eq!(value["params"]["progressToken"],"progress-read");
+            assert!(value["params"].get("total").is_none());
+        }
+    }
+
     #[tokio::test]
     async fn bridge_uses_real_executor_and_ledger_and_blocks_duplicate_or_cancelled_writes() {
         let _guard = crate::tests::config_test_guard();

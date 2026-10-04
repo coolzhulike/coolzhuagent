@@ -2,6 +2,47 @@
 use std::path::PathBuf;
 use crate::root_execution_budget::RootExecutionBudget;
 
+/// HTTP 消费者断连后，CU 控制器已收尾且输入全部释放时，追加失败结账。
+/// 原步骤和 unknown 事实保留在事件里；不能据进程退出推断输入已释放。
+pub(crate) fn reconcile_drained_acp_cu(
+    connection: &rusqlite::Connection, run_id: &str, workspace_id: &str,
+    room_id: &str, agent_id: &str, turn_id: &str, source: &str,
+) -> Result<(), String> {
+    let tables: i64 = connection.query_row("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('tool_calls','computer_use_runs','computer_use_steps','runtime_run_events')", [], |row| row.get(0))
+        .map_err(|error| error.to_string())?;
+    if tables != 4 { return Ok(()); }
+    let mut pending = connection.prepare("SELECT scope_json FROM devin_acp_attempts WHERE process_drained=0")
+        .map_err(|error| error.to_string())?;
+    for raw in pending.query_map([], |row| row.get::<_, String>(0)).map_err(|error| error.to_string())? {
+        let other: serde_json::Value = serde_json::from_str(&raw.map_err(|error| error.to_string())?)
+            .map_err(|error| error.to_string())?;
+        if other["run_id"].as_str() == Some(run_id) { return Ok(()); }
+    }
+    let mut query = connection.prepare("SELECT t.tool_call_id,c.call_id FROM tool_calls t JOIN computer_use_runs c ON c.provider_tool_call_id=t.tool_call_id
+        WHERE t.run_id=?1 AND t.source_request_key=?2 AND t.tool_name='computer_use_perform'
+        AND t.status='cancelled_outcome_unknown' AND c.workspace_id=?3 AND c.chat_room_id=?4 AND c.session_id=?5 AND c.turn_id=?6
+        AND c.state='cancelled' AND c.terminal_result_json IS NOT NULL")
+        .map_err(|error| error.to_string())?;
+    let rows = query.query_map(rusqlite::params![run_id,source,workspace_id,room_id,agent_id,turn_id],
+        |row| Ok((row.get::<_,String>(0)?,row.get::<_,String>(1)?)))
+        .map_err(|error| error.to_string())?.collect::<Result<Vec<_>,_>>().map_err(|error| error.to_string())?;
+    for (tool, cu_run) in rows {
+        let uncertain: bool = connection.query_row("SELECT EXISTS(SELECT 1 FROM computer_use_steps WHERE run_id=?1 AND
+            (completed_at_ms IS NULL OR NOT COALESCE((input_delivery='sent' AND input_release_status IN ('released','not_needed'))
+                OR (input_delivery='not_sent' AND input_release_status='not_needed'),0)))", [&cu_run], |row| row.get(0))
+            .map_err(|error| error.to_string())?;
+        if uncertain { continue; }
+        let evidence = serde_json::json!({"tool_call_id":tool,"cu_run_id":cu_run,
+            "previous_status":"cancelled_outcome_unknown","settled_status":"failed",
+            "reason":"controller_cancelled_inputs_released_and_model_processes_drained"});
+        connection.execute("INSERT INTO runtime_run_events(run_id,event_type,payload_json,created_at) VALUES(?1,'tool.worker_settled',?2,?3)",
+            rusqlite::params![run_id,evidence.to_string(),crate::unix_timestamp_millis() as i64]).map_err(|error| error.to_string())?;
+        connection.execute("UPDATE tool_calls SET status='failed',updated_at_unix_ms=?1 WHERE tool_call_id=?2 AND status='cancelled_outcome_unknown'",
+            rusqlite::params![crate::unix_timestamp_millis() as i64,tool]).map_err(|error| error.to_string())?;
+    }
+    Ok(())
+}
+
 pub(crate) struct ToolDispatchSettlement {
     path: PathBuf,
     tool_call_id: String,
@@ -72,6 +113,44 @@ impl Drop for ToolDispatchSettlement {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn cancelled_cu_reconciliation_requires_release_exact_scope_and_drained_workers() {
+        let mut connection = rusqlite::Connection::open_in_memory().unwrap();
+        connection.execute_batch("CREATE TABLE tool_calls(tool_call_id TEXT,run_id TEXT,source_request_key TEXT,tool_name TEXT,status TEXT,updated_at_unix_ms INTEGER);
+            CREATE TABLE computer_use_runs(call_id TEXT,provider_tool_call_id TEXT,workspace_id TEXT,chat_room_id TEXT,session_id TEXT,turn_id TEXT,state TEXT,terminal_result_json TEXT);
+            CREATE TABLE computer_use_steps(run_id TEXT,completed_at_ms INTEGER,input_delivery TEXT,input_release_status TEXT);
+            CREATE TABLE runtime_run_events(run_id TEXT,event_type TEXT,payload_json TEXT,created_at INTEGER);
+            CREATE TABLE devin_acp_attempts(scope_json TEXT,process_drained INTEGER);
+            INSERT INTO tool_calls VALUES('tool','parent','source','computer_use_perform','cancelled_outcome_unknown',1);
+            INSERT INTO computer_use_runs VALUES('cu','tool','workspace','room','agent','turn','cancelled','{}');
+            INSERT INTO computer_use_steps VALUES('cu',2,'sent',NULL);
+            INSERT INTO devin_acp_attempts VALUES('{\"run_id\":\"parent\",\"lane\":\"internal\"}',0);").unwrap();
+        let status = |c: &rusqlite::Connection| c.query_row("SELECT status FROM tool_calls",[],|row|row.get::<_,String>(0)).unwrap();
+        for release in [None,Some("unknown"),Some("released")] {
+            connection.execute("UPDATE computer_use_steps SET input_release_status=?1",[release]).unwrap();
+            let tx=connection.transaction().unwrap();
+            reconcile_drained_acp_cu(&tx,"parent","workspace","room","agent","turn","source").unwrap();
+            tx.commit().unwrap();
+            assert_eq!(status(&connection),"cancelled_outcome_unknown");
+        }
+        connection.execute("UPDATE devin_acp_attempts SET process_drained=1",[]).unwrap();
+        for release in [None,Some("unknown")] {
+            connection.execute("UPDATE computer_use_steps SET input_release_status=?1",[release]).unwrap();
+            reconcile_drained_acp_cu(&connection,"parent","workspace","room","agent","turn","source").unwrap();
+            assert_eq!(status(&connection),"cancelled_outcome_unknown");
+        }
+        connection.execute("UPDATE computer_use_steps SET input_release_status='released'",[]).unwrap();
+        reconcile_drained_acp_cu(&connection,"parent","workspace","other-room","agent","turn","source").unwrap();
+        assert_eq!(status(&connection),"cancelled_outcome_unknown");
+        let tx=connection.transaction().unwrap();
+        reconcile_drained_acp_cu(&tx,"parent","workspace","room","agent","turn","source").unwrap();
+        tx.commit().unwrap();
+        assert_eq!(status(&connection),"failed");
+        let audit:String=connection.query_row("SELECT payload_json FROM runtime_run_events",[],|row|row.get(0)).unwrap();
+        assert!(audit.contains("cancelled_outcome_unknown"));
+        assert_eq!(connection.query_row("SELECT input_release_status FROM computer_use_steps",[],|row|row.get::<_,String>(0)).unwrap(),"released");
+    }
 
     /// 走真实通用工具入口；登记碰撞和库故障都发生在 write_file 副作用之前。
     #[tokio::test]
