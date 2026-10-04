@@ -27,11 +27,15 @@ struct PluginEntry {
     installable: bool,
     manageable: bool,
     loaded_in_chat: bool,
+    dsh: bool,
+    dsh_source_sha256: Option<String>,
 }
 
 fn plugin_entry(summary: PluginSummary, installed: bool, loaded: bool) -> PluginEntry {
     let metadata = summary.metadata;
     let name = metadata.dsh.as_ref().map_or_else(|| metadata.name.clone(), |p| p.receipt.name.clone());
+    let dsh = metadata.dsh.is_some();
+    let dsh_source_sha256 = metadata.dsh.as_ref().and_then(|package| package.source_fingerprint().ok());
     PluginEntry {
         id: metadata.id,
         name,
@@ -44,6 +48,8 @@ fn plugin_entry(summary: PluginSummary, installed: bool, loaded: bool) -> Plugin
         installable: false,
         manageable: installed && metadata.kind != PluginKind::Builtin,
         loaded_in_chat: loaded,
+        dsh,
+        dsh_source_sha256,
     }
 }
 
@@ -77,13 +83,20 @@ fn plugin_catalog(workspace: &Path, manager: &plugins::PluginManager) -> ApiResu
     let installed = manager.list_installed_plugins().map_err(plugin_error)?
         .into_iter().map(|item| item.metadata.id).collect::<HashSet<_>>();
     let runtime_error = plugin_runtime::definitions(workspace, &[]).err();
-    let loaded = if runtime_error.is_none() {
+    let mut loaded = if runtime_error.is_none() {
         manager.aggregated_tools().map_err(plugin_error)?.into_iter()
             .map(|tool| tool.plugin_id().to_string()).collect::<HashSet<_>>()
     } else { HashSet::new() };
+    if let Ok(bindings) = dsh_web::model_bindings(workspace) {
+        loaded.extend(bindings.into_values().map(|binding| binding.snapshot.plugin_id));
+    }
     let plugins = manager.list_plugins().map_err(plugin_error)?.into_iter()
-        .map(|item| { let is_installed = installed.contains(&item.metadata.id);
+        .map(|mut item| { let is_installed = installed.contains(&item.metadata.id);
             let is_loaded = loaded.contains(&item.metadata.id);
+            if item.metadata.dsh.is_some() {
+                item.enabled = manager.dsh_snapshot(&item.metadata.id, &workspace_identity(workspace))
+                    .ok().flatten().is_some();
+            }
             plugin_entry(item, is_installed, is_loaded) }).collect();
     Ok(PluginListResponse { workspace_id: workspace_identity(workspace),
         plugins, candidates: local_plugin_candidates(workspace), runtime_error })

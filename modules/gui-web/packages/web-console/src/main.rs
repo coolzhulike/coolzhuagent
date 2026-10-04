@@ -3,6 +3,11 @@ mod app_update;
 mod extension_market;
 mod dsh_market;
 mod dsh_source_download;
+mod dsh_source_resolve;
+mod dsh_activation_host;
+mod dsh_install_service;
+mod dsh_execution;
+mod dsh_web;
 mod plugin_runtime;
 mod mcp_host;
 mod lsp_host;
@@ -587,6 +592,9 @@ struct FrozenParentContext {
     native_browser_binding: Option<Result<native_browser_host::FrozenPanelBinding, String>>,
     /// 接纳时实际连接并发现的 MCP 工具代际；重连后旧模型响应不可落到新进程。
     mcp_bindings: Arc<HashMap<String, u64>>,
+    /// 接纳时的完整DSH快照和schema；新启用、重装或新定义不能补进旧父轮。
+    dsh_bindings: Arc<BTreeMap<String, dsh_execution::Binding>>,
+    dsh_permission: dsh_web::FrozenPermission,
     /// 聊天接纳时已解析的模型、工具及权限；子任务不得在工具发起时重新读取配置扩权。
     host_model_snapshots: Arc<HashMap<String, Arc<host_child_agent::HostModelSnapshot>>>,
 }
@@ -612,6 +620,8 @@ impl FrozenParentContext {
                 .map(str::to_string)
         };
         let mcp_bindings = Arc::new(mcp_host::capture_model_bindings(workspace_id.as_str()));
+        let dsh_bindings = Arc::new(dsh_web::capture_parent_bindings(workspace_id.as_str()));
+        let dsh_permission = dsh_web::capture_permission(&dsh_bindings, workspace_id.as_str(), session_id, room_id);
         Ok(Self {
             entry,
             workspace_id,
@@ -625,6 +635,8 @@ impl FrozenParentContext {
             computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::default(),
             native_browser_binding: None,
             mcp_bindings,
+            dsh_bindings,
+            dsh_permission,
             host_model_snapshots: Arc::new(HashMap::new()),
         })
     }
@@ -4019,6 +4031,8 @@ struct PendingApprovalRecord {
     #[serde(skip)]
     mcp_action: Option<mcp_host::McpPendingAction>,
     #[serde(skip)]
+    dsh_action: Option<dsh_web::PendingAction>,
+    #[serde(skip)]
     created_at: Instant,
 }
 
@@ -4085,6 +4099,17 @@ fn enqueue_pending_approval_for_room_with_mcp(
     chat_room_id: Option<&str>,
     mcp_action: Option<mcp_host::McpPendingAction>,
 ) {
+    enqueue_pending_approval_custom(call_id, invoke, gate, chat_room_id, mcp_action, None);
+}
+
+fn enqueue_pending_approval_for_room_with_dsh(call_id: &str, invoke: &ToolInvoke,
+    gate: &runtime::PermissionGateReport, chat_room_id: Option<&str>, action: dsh_web::PendingAction) {
+    enqueue_pending_approval_custom(call_id, invoke, gate, chat_room_id, None, Some(action));
+}
+
+fn enqueue_pending_approval_custom(call_id: &str, invoke: &ToolInvoke,
+    gate: &runtime::PermissionGateReport, chat_room_id: Option<&str>,
+    mcp_action: Option<mcp_host::McpPendingAction>, dsh_action: Option<dsh_web::PendingAction>) {
     let Ok(mut pending) = pending_approvals().lock() else {
         return;
     };
@@ -4096,6 +4121,7 @@ fn enqueue_pending_approval_for_room_with_mcp(
         caller: invoke.caller.as_str().to_string(),
         workspace_id: invoke.workspace_id.clone(),
         session_id: mcp_action.as_ref().and_then(mcp_host::McpPendingAction::approval_session_id)
+            .or_else(|| dsh_action.as_ref().map(dsh_web::PendingAction::approval_session_id))
             .map(str::to_string).or_else(|| invoke.session_id.clone()),
         chat_room_id: chat_room_id.map(str::to_string),
         input_summary: build_input_summary(&invoke.tool_name, &invoke.input),
@@ -4110,6 +4136,7 @@ fn enqueue_pending_approval_for_room_with_mcp(
         invoke: invoke.clone(),
         workspace_root: active_workspace_path(),
         mcp_action,
+        dsh_action,
         created_at: now,
     };
     pending.insert(call_id.to_string(), record.clone());
@@ -6684,7 +6711,7 @@ async fn api_tools_approve(
     };
 
     let confirmed_twice = payload.confirmed_twice;
-    let mut ttl_secs = if scope == "session" && record.mcp_action.is_none() {
+    let mut ttl_secs = if scope == "session" && record.mcp_action.is_none() && record.dsh_action.is_none() {
         record_session_grant(
             &record.workspace_id,
             record.invoke.session_id.as_deref(),
@@ -6697,7 +6724,7 @@ async fn api_tools_approve(
     };
 
     let outcome = execute_approved_pending_record(&record, confirmed_twice).await;
-    if scope == "session" && record.mcp_action.is_some() && outcome.status == ToolOutcomeStatus::Ok {
+    if scope == "session" && (record.mcp_action.is_some() || record.dsh_action.is_some()) && outcome.status == ToolOutcomeStatus::Ok {
         record_session_grant(
             &record.workspace_id, record.invoke.session_id.as_deref(),
             &record.tool_name, confirmed_twice,
@@ -6729,6 +6756,12 @@ async fn execute_approved_pending_record(
     record: &PendingApprovalRecord,
     confirmed_twice: bool,
 ) -> ToolOutcome {
+    if record.dsh_action.is_some() {
+        let outcome = dsh_web::execute_approved(record, confirmed_twice).await;
+        append_tool_audit_record(&record.invoke, &outcome);
+        emit_pet_event_for_tool_outcome(&record.tool_name, &outcome);
+        return outcome;
+    }
     if record.mcp_action.is_some() {
         let outcome = mcp_host::execute_approved_pending_record(record, confirmed_twice).await;
         append_tool_audit_record(&record.invoke, &outcome);
@@ -34342,10 +34375,16 @@ fn llm_tool_definitions_for_session(
 
 fn retain_admitted_mcp_definitions(request: &mut MessageRequest, parent: Option<&FrozenParentContext>) {
     if let Some(definitions) = request.tools.as_mut() {
-        definitions.retain(|definition| !definition.name.starts_with("mcp__")
-            || parent.is_some_and(|parent| parent.mcp_bindings.contains_key(&definition.name)));
+        retain_admitted_plugin_definitions(definitions, parent);
         if definitions.is_empty() { request.tools = None; }
     }
+}
+fn retain_admitted_plugin_definitions(definitions: &mut Vec<ToolDefinition>, parent: Option<&FrozenParentContext>) {
+    definitions.retain(|definition| !definition.name.starts_with("mcp__")
+        || parent.is_some_and(|parent| parent.mcp_bindings.contains_key(&definition.name)));
+    definitions.retain(|definition| !definition.name.starts_with(dsh_execution::PREFIX)
+        || parent.and_then(|parent| parent.dsh_bindings.get(&definition.name)).is_some_and(|frozen|
+            frozen.definition.input_schema == definition.input_schema && frozen.definition.description == definition.description));
 }
 
 fn llm_tool_definitions_with_settings(
@@ -35170,6 +35209,13 @@ async fn run_model_tool_dispatch_for_session_with_identity(
     host_scope: Option<&host_child_agent::HostToolScope>,
 ) -> ApiResult<ToolDispatchResponse> {
     // 缺必需 CU 来源时先拒绝，不访问默认数据库或登记匿名工具调用。
+    if name.starts_with(dsh_execution::PREFIX) && (parent.is_none()
+        || provider_tool_call_id.is_none_or(|id| id.trim().is_empty())
+        || caller_session_id.is_none_or(|id| id.trim().is_empty())
+        || chat_room_id.is_none_or(|id| id.trim().is_empty())
+        || turn_id.is_none_or(|id| id.trim().is_empty())) {
+        return Err(api_error(StatusCode::CONFLICT, "DSH缺少真实父轮/provider/会话/聊天室/轮次身份，未登记匿名调用"));
+    }
     let normalized = name.replace('-', "_");
     if normalized == "computer_use.perform" || normalized == "computer_use_perform" {
         let missing_call = provider_tool_call_id.is_none_or(|value| value.trim().is_empty());
@@ -35211,7 +35257,9 @@ async fn run_model_tool_dispatch_for_session_with_identity(
     let _scope = if existing.is_none() { turn_id.map(|trace| ToolTurnCancellationScope::install(trace, cancellation.clone())) } else { None };
     // CU/事实层的既有 provider_tool_call_id 字段兼容保存宿主执行id；raw值只作关联并已单独持久化。
     let execution_call_id = source.as_ref().map(|source| source.execution_id.as_str());
-    let run = run_model_tool_dispatch_within_root(name, input, caller_session_id, execution_call_id, turn_id, chat_room_id, parent, host_scope);
+    // 巨型分发future放到堆上，避免多层冻结上下文在默认线程栈上溢出；仍沿用同一预算和取消。
+    let run = Box::pin(run_model_tool_dispatch_within_root(name, input, caller_session_id, execution_call_id, turn_id, chat_room_id, parent, host_scope,
+        source.as_ref().map(|source| source.provider_tool_call_id.as_str()), &mut settlement));
     let mut outcome = if let Some(budget) = budget {
         match root_execution_budget::scope(budget.clone(), budget.run_cancellable(run, || { cancellation.request_timeout(); })).await {
             Ok(result) => result,
@@ -35219,11 +35267,16 @@ async fn run_model_tool_dispatch_for_session_with_identity(
         }
     } else { run.await };
     let status = match &outcome {
+        Ok(result) if name.starts_with(dsh_execution::PREFIX)
+            && result.route == "runtime-dry-run"
+            && result.dispatch_plan.as_ref().is_some_and(|plan| plan.audit.requires_human_confirmation) => "awaiting_approval",
         Ok(result) if !tool_loop_coordinator::terminal_status_is_error(&result.status) => "completed",
         _ => "failed",
     };
-    settlement.finish(status).map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,
-        &format!("工具已结束等待，但终态记录未确认：{error}；不可自动重试")))?;
+    if !settlement.is_settled() {
+        settlement.finish(status).map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,
+            &format!("工具已结束等待，但终态记录未确认：{error}；不可自动重试")))?;
+    }
     if let Ok(response) = outcome.as_mut() {
         if let Some(text) = response.tool_result_text.take() {
             response.tool_result_text = Some(truncate_tool_result_for_context(text, parent));
@@ -35241,8 +35294,10 @@ async fn run_model_tool_dispatch_within_root(
     chat_room_id: Option<&str>,
     parent: Option<&FrozenParentContext>,
     host_scope: Option<&host_child_agent::HostToolScope>,
+    raw_provider_tool_call_id: Option<&str>,
+    settlement: &mut tool_dispatch_settlement::ToolDispatchSettlement,
 ) -> ApiResult<ToolDispatchResponse> {
-    if name.starts_with("mcp__") {
+    if name.starts_with("mcp__") || name.starts_with(dsh_execution::PREFIX) {
         diag!("[TOOL-CHAIN] MCP 模型工具派发: name={name}, input=[已隐藏]");
     } else {
         diag!("[TOOL-CHAIN] run_model_tool_dispatch: name={name}, input={input}");
@@ -35290,6 +35345,12 @@ async fn run_model_tool_dispatch_within_root(
         let outcome = mcp_host::call_from_model(
             name, input, caller_session_id, chat_room_id, provider_tool_call_id, turn_id, parent,
         ).await?;
+        return Ok(tool_outcome_to_dispatch_response(name, input, outcome));
+    }
+
+    if name.starts_with(dsh_execution::PREFIX) {
+        let outcome = dsh_web::call_from_model(name, input, caller_session_id, chat_room_id,
+            provider_tool_call_id, raw_provider_tool_call_id, turn_id, parent, settlement).await?;
         return Ok(tool_outcome_to_dispatch_response(name, input, outcome));
     }
 
@@ -77717,6 +77778,7 @@ attach: last_assistant
                 invoke: invoke.clone(),
                 workspace_root: std::env::temp_dir(),
                 mcp_action: None,
+                dsh_action: None,
                 created_at: std::time::Instant::now(),
             },
         ));

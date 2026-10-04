@@ -1,0 +1,160 @@
+{
+  "checked_at_utc": "2026-10-02T11:26:04.091602+00:00",
+  "branch": "codex/cu-preinput-followup-20260930",
+  "head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "sources": [
+    {
+      "file": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+      "sha256": "5673b2629bca8266e851fbffd902963bb9a88ad4a4da9084c30ff2578d258b49",
+      "head_sha256": "84fd3c9d1c959cd53171dde6f2ce2aa3eae211dfafc71332625bc30ac1c7e19e",
+      "change_kind": "上一阶段生产期限修复与回归测试"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_executor.rs",
+      "sha256": "a02a31563d3a3945a9aa95a54db054116ec649a2a048f9fe59af714ebac36c49",
+      "head_sha256": "88663d42f24ffa7aa683df29ce1560b573f76e486623320207e40e357c4da758",
+      "change_kind": "本阶段仅扩展已有测试的5种场景"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "aggregate-web-tests.txt",
+      "size": 143049,
+      "sha256": "128e9971f791c0763dd6e82f6645feff72b5ce9b398e7d648d8e4dae9d687fc7"
+    },
+    {
+      "file": "aggregate-web-outcome.json",
+      "size": 26,
+      "sha256": "d0feb6c94c7210b18c93530dade2af6cccd099a8a57900eae5974d1a231e1826"
+    },
+    {
+      "file": "aggregate-linkage-tests.txt",
+      "size": 3066,
+      "sha256": "c3f30e14133ac6683923b6c8ac9568bd46bd52da05bc75a82b65450e59ba6b5c"
+    },
+    {
+      "file": "aggregate-linkage-outcome.json",
+      "size": 24,
+      "sha256": "75876e0e3f497cad271143ba85bd4f36569cd81195509043f860dab14265b716"
+    },
+    {
+      "file": "aggregate-shell-panel-tests.txt",
+      "size": 2289,
+      "sha256": "9c756135deee69753ddcad9fde72976857ec3ff467ba7db9c4e638a3432e8ef2"
+    },
+    {
+      "file": "aggregate-shell-panel-outcome.json",
+      "size": 24,
+      "sha256": "75876e0e3f497cad271143ba85bd4f36569cd81195509043f860dab14265b716"
+    },
+    {
+      "file": "aggregate-build.txt",
+      "size": 46758,
+      "sha256": "aedb980eccf5a44752c83f73829c356d84224419ac6a246c8ace0ea5f8bc312d"
+    },
+    {
+      "file": "aggregate-build-outcome.json",
+      "size": 24,
+      "sha256": "75876e0e3f497cad271143ba85bd4f36569cd81195509043f860dab14265b716"
+    },
+    {
+      "file": "aggregate-panel-cas.txt",
+      "size": 22390,
+      "sha256": "0c373cb42e81b47ef55c65caabc5a860871cceef4dc88cdb174df19aff578966"
+    },
+    {
+      "file": "aggregate-panel-cas-outcome.json",
+      "size": 24,
+      "sha256": "75876e0e3f497cad271143ba85bd4f36569cd81195509043f860dab14265b716"
+    },
+    {
+      "file": "aggregate-web-isolated.txt",
+      "size": 135677,
+      "sha256": "c9054fc955700c5c22b0a3de42e48a37d154bedeaeec86523b633366b85cc737"
+    },
+    {
+      "file": "aggregate-web-isolated-outcome.json",
+      "size": 748,
+      "sha256": "f78a8170c9e25c0737dd74ea399d76ef402c7e969a972fa6d17d86360ee00db3"
+    },
+    {
+      "file": "isolated-failures-outcome.json",
+      "size": 2391,
+      "sha256": "19fc218aced73f2d3ce7b13713f5d323594b76e178051b126f3ea8030d00b67f"
+    },
+    {
+      "file": "aggregate-test-change.patch",
+      "size": 4442,
+      "sha256": "9254cc2ac3c4fed36eda58f1aa66e45a93f2e391a22861b0aea37ae50902bbf8"
+    },
+    {
+      "file": "isolated-failure-rechecks.txt",
+      "size": 3576,
+      "sha256": "260cb49a0e008ef79e772893a014a7b1abe484a5eebc028c9e964f7dca001fd3"
+    }
+  ],
+  "initial_web_main": {
+    "exit_code": 101,
+    "passed": 1295,
+    "failed": 11,
+    "ignored": 3
+  },
+  "isolated_failure_rechecks": {
+    "passed": 11,
+    "failed": 0
+  },
+  "final_web_main": {
+    "exit_code": 0,
+    "passed": 1306,
+    "failed": 0,
+    "ignored": 3,
+    "seconds": 64.6
+  },
+  "final_web_lib": {
+    "passed": 8,
+    "failed": 0
+  },
+  "final_native_host": {
+    "passed": 1,
+    "failed": 0
+  },
+  "module_linkage": {
+    "passed": 8,
+    "failed": 0
+  },
+  "shell_browser_panel": {
+    "passed": 7,
+    "failed": 0,
+    "filtered": 57
+  },
+  "panel_cas_test": {
+    "passed": 1,
+    "failed": 0,
+    "scenarios": 9,
+    "new_scenarios": 5,
+    "also_in_final_full_suite": true
+  },
+  "build": {
+    "exit_code": 0,
+    "seconds": 15.78
+  },
+  "packages_unchanged": [
+    {
+      "file": "dist/CoolzhuAgent-0.2.63.msi",
+      "sha256": "91c9a256505bda4c6575788e50ed426b594db8cf2e6ce6a9c2b94a8a7d923de3",
+      "size": 247020925
+    },
+    {
+      "file": "dist/CoolzhuAgent-0.2.64.msi",
+      "sha256": "16052ec401960181853c5b02775e849185e225e70b11f8872a798a4e5d06688b",
+      "size": 275626523
+    }
+  ],
+  "package_source_warning": "0.2.64旧候选不含本次deadline修复；未重新打包安装",
+  "config_unchanged": true,
+  "original_incident_files_unchanged": true,
+  "real_gui_input_actions": 0,
+  "project_qwen_requests": 0,
+  "report": "docs/analysis/2026-10-02-browser-lifecycle-aggregate-review.md",
+  "report_sha256": "42843ee8300cd915664dc9a7b8982cb8f04e6532f4f1b1d1438c13130a21e38f"
+}

@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "kind": "package-input-freeze",
+  "freeze_id": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+  "configuration": "release",
+  "prepared_by_run_id": "pkg-run-release-20261003-025954385-2d95ead6",
+  "phase": "prepare",
+  "frozen_at_utc": "2026-10-02T19:00:08.7274061Z",
+  "package_manifest": "config/package-manifest-0.2.66-candidate.json",
+  "package_manifest_sha256": "a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+  "source_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+  "build_input_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+  "build_input_descriptor_lines": [
+    "schema=1",
+    "source_snapshot_digest=6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "profile=release",
+    "package_manifest=config/package-manifest-0.2.66-candidate.json|sha256=a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+    "cargo_version=cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+    "cargo_host_target=x86_64-pc-windows-msvc",
+    "cargo_build_target=x86_64-pc-windows-msvc",
+    "rustc=rustc 1.94.1 (e408947bf 2026-03-25)",
+    "env:CARGO_BUILD_TARGET=(unset)",
+    "env:RUSTFLAGS=(unset)",
+    "env:CARGO_ENCODED_RUSTFLAGS=(unset)",
+    "env:CARGO_HOME=(unset)",
+    "env:RUSTUP_TOOLCHAIN=(unset)",
+    "env:COOLZHU_RELEASE_VERSION=0.2.66",
+    "env:COOLZHU_BUILD_TARGET=x86_64-pc-windows-msvc",
+    "env:COOLZHU_BUILD_DATE=2026-10-02",
+    "workspace_config=.cargo/config.toml|absent",
+    "workspace_config=.cargo/config|absent",
+    "workspace_config=rust-toolchain.toml|absent",
+    "workspace_config=rust-toolchain|absent",
+    "workspace_config=.config/cargo.toml|absent",
+    "input_file=Cargo.toml|length=3413|sha256=9cc59f26d6ecdb7eeed06dd1ae5cfa6f9ebdbc48c8a208c50a3ecb75b3f8536d",
+    "input_file=Cargo.lock|length=139874|sha256=225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a",
+    "input_file=config/dsh-runtime-lock.json|length=60864|sha256=a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+    "input_file=modules/tooling/packages/dsh-plugin-host/package.json|length=1055|sha256=95df0940535ec8a0849a114318e14b5573d289e1b075f32dcb325712b1d8420e",
+    "input_file=modules/tooling/packages/dsh-plugin-host/package-lock.json|length=10810|sha256=af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+    "input_file=scripts/prepare-dsh-runtime.py|length=11349|sha256=59f3b52ca2770a6b7aa3b402ec04461d1e1a70427a546a3d1cc8af00aa84d7e1",
+    "input_file=scripts/lib/dsh-runtime.ps1|length=917|sha256=595dfb42bb0e1c106c4b9f9431feccafa53923766b42bbd6d354aaa0c4de2b8d",
+    "input_file=config/package-manifest.json|length=21451|sha256=38925095c57a170269861a75130a705a50bf4290658bdfdd87552fa24dc2cbda",
+    "input_file=config/package-launcher.json|length=925|sha256=faad921c3e7069a066206f4dc9df07e1659c29b687d343477ae3a6e1628117b2",
+    "input_file=installer/Product.wxs|length=5239|sha256=bf6f25db5b768ef9a883da8524a5ef4a6a86d553d66a1a1112e291e43a092af6",
+    "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml|length=1369|sha256=5d8d11c3d8af96c5654eb75dad7acf83bb9b2b3fd1f902c6e6fec9fe43c4c53c",
+    "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock|length=142916|sha256=f8409c59e5c779280bfa0db69a4542b29782192f010224acded99624245706b3",
+    "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/build.rs|length=637|sha256=9d8720103b57746a987e41f7e99604bf2870fa9289168674a93e8ac18306938a",
+    "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/tauri.conf.json|length=646|sha256=863b5631075528eb39f75cd9603283466eac454f3241ce2d74ab97d09976f57b",
+    "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/capabilities/default.json|length=463|sha256=62da62741bb874370582a745465c41d5219bb6305c0d0190cb8ab1680d496710",
+    "input_file=config/package-manifest-0.2.66-candidate.json|length=21559|sha256=a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+    "artifact=gui-web.web-console|profile=release|target_dir=modules/gui-web/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-web-console --bin coolzhu-web-console --offline --target-dir modules/gui-web/target",
+    "artifact=gui-web.browser-native-host|profile=release|target_dir=modules/gui-web/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-web-console --bin coolzhu-browser-native-host --offline --target-dir modules/gui-web/target",
+    "artifact=gui-web.clawbot-sidecar|profile=release|target_dir=modules/gui-web/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-clawbot-sidecar --bin coolzhu-clawbot-sidecar --offline --target-dir modules/gui-web/target",
+    "artifact=cli.command-line|profile=release|target_dir=modules/cli/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-command-line --bin coolzhu-cli --offline --target-dir modules/cli/target",
+    "artifact=computer-use.preflight-check|profile=release|target_dir=modules/computer-use/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-computer-use-core --bin coolzhu-computer-use-check --offline --target-dir modules/computer-use/target",
+    "artifact=vision.smoke|profile=release|target_dir=modules/vision/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-vision-service --bin coolzhu-vision-smoke --offline --target-dir modules/vision/target",
+    "artifact=vision.latest-desktop|profile=release|target_dir=modules/vision/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-vision-service --bin coolzhu-latest-desktop-vision --offline --target-dir modules/vision/target",
+    "artifact=gui-desktop.tauri-shell|profile=release|target_dir=modules/gui-desktop/target/tauri-shell|features=default|release_arg_appended=true|build_capture=cargo-json-messages|args=build --locked --manifest-path modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml --bin coolzhu-tauri-shell --offline --target-dir modules/gui-desktop/target/tauri-shell --message-format=json-render-diagnostics",
+    "artifact=gui-desktop.tauri-shell|package_selector=none",
+    "artifact=gui-desktop.webview2-loader|build=none",
+    "artifact=package.app-launcher|profile=release|target_dir=target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-app-launcher --bin COOLZHU-AGENT --offline"
+  ],
+  "build_input_file_facts": {
+    "Cargo.toml": {
+      "length": 3413,
+      "sha256": "9cc59f26d6ecdb7eeed06dd1ae5cfa6f9ebdbc48c8a208c50a3ecb75b3f8536d"
+    },
+    "Cargo.lock": {
+      "length": 139874,
+      "sha256": "225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a"
+    },
+    "config/dsh-runtime-lock.json": {
+      "length": 60864,
+      "sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+    },
+    "modules/tooling/packages/dsh-plugin-host/package.json": {
+      "length": 1055,
+      "sha256": "95df0940535ec8a0849a114318e14b5573d289e1b075f32dcb325712b1d8420e"
+    },
+    "modules/tooling/packages/dsh-plugin-host/package-lock.json": {
+      "length": 10810,
+      "sha256": "af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307"
+    },
+    "scripts/prepare-dsh-runtime.py": {
+      "length": 11349,
+      "sha256": "59f3b52ca2770a6b7aa3b402ec04461d1e1a70427a546a3d1cc8af00aa84d7e1"
+    },
+    "scripts/lib/dsh-runtime.ps1": {
+      "length": 917,
+      "sha256": "595dfb42bb0e1c106c4b9f9431feccafa53923766b42bbd6d354aaa0c4de2b8d"
+    },
+    "config/package-manifest.json": {
+      "length": 21451,
+      "sha256": "38925095c57a170269861a75130a705a50bf4290658bdfdd87552fa24dc2cbda"
+    },
+    "config/package-launcher.json": {
+      "length": 925,
+      "sha256": "faad921c3e7069a066206f4dc9df07e1659c29b687d343477ae3a6e1628117b2"
+    },
+    "installer/Product.wxs": {
+      "length": 5239,
+      "sha256": "bf6f25db5b768ef9a883da8524a5ef4a6a86d553d66a1a1112e291e43a092af6"
+    },
+    "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml": {
+      "length": 1369,
+      "sha256": "5d8d11c3d8af96c5654eb75dad7acf83bb9b2b3fd1f902c6e6fec9fe43c4c53c"
+    },
+    "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock": {
+      "length": 142916,
+      "sha256": "f8409c59e5c779280bfa0db69a4542b29782192f010224acded99624245706b3"
+    },
+    "modules/gui-desktop/packages/tauri-shell/src-tauri/build.rs": {
+      "length": 637,
+      "sha256": "9d8720103b57746a987e41f7e99604bf2870fa9289168674a93e8ac18306938a"
+    },
+    "modules/gui-desktop/packages/tauri-shell/src-tauri/tauri.conf.json": {
+      "length": 646,
+      "sha256": "863b5631075528eb39f75cd9603283466eac454f3241ce2d74ab97d09976f57b"
+    },
+    "modules/gui-desktop/packages/tauri-shell/src-tauri/capabilities/default.json": {
+      "length": 463,
+      "sha256": "62da62741bb874370582a745465c41d5219bb6305c0d0190cb8ab1680d496710"
+    },
+    "config/package-manifest-0.2.66-candidate.json": {
+      "length": 21559,
+      "sha256": "a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c"
+    }
+  },
+  "generated_configs": [],
+  "generated_config_rule": "能在准备阶段生成的配置在准备阶段生成，**生成后计入冻结输入**（其摘要进入 freeze_id）；正式构建阶段不得再改写它们",
+  "derived_outputs": [
+    {
+      "path": "tmp/package-consume/pkg-run-release-20261003-025954385-2d95ead6",
+      "generated_by": "scripts/package-all.ps1 (PKG-L07c consumption staging)",
+      "reason": "本次打包消费导出产物时的独立 staging：产物先复制到这里并复核内容身份，报告只从本次固定消费收据生成",
+      "within_declared_output_root": true
+    }
+  ],
+  "derived_output_rule": "需构建中产生的中间文件只能落在**已声明的派生输出位置**，并记录生成来源；派生输出不属于冻结输入，但必须与冻结输入区分登记",
+  "preparation": {
+    "dependency_resolution": {
+      "command": "cargo metadata --format-version 1 --locked --offline",
+      "mode": "read-only-locked-resolution-check",
+      "working_dir": ".",
+      "exit_code": 0,
+      "stdout_log": "tmp/logs/prepare-cargo-metadata-20261003-025959315.json",
+      "stderr_log": "tmp/logs/prepare-cargo-metadata-stderr-20261003-025959316.log",
+      "stderr_summary": "",
+      "failure": null,
+      "lockfile_modified_allowed": false,
+      "note": "准备阶段负责解析/更新依赖；正式构建阶段一律 --locked --offline，锁文件在构建期被改写即失败（不设白名单）"
+    },
+    "steps": [
+      ""
+    ],
+    "generated_config_count": 0
+  },
+  "cargo_lock_semantics": {
+    "prepare": "解析/更新依赖：默认只做只读解析核对（cargo metadata --locked --offline）；确需更新锁定内容时必须显式 -UpdateDependencies",
+    "build": "正式构建：--locked --offline（等价 --frozen：锁定 + 离线）；锁文件在构建期被改写即失败",
+    "no_whitelist": "--locked 在需要改锁文件时失败；本流程不提供\"构建中改锁文件\"的白名单"
+  },
+  "cargo_identity": {
+    "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+    "host_target": "x86_64-pc-windows-msvc",
+    "build_target": "x86_64-pc-windows-msvc"
+  },
+  "previous_freeze": null,
+  "changed_paths_at_prepare": [],
+  "changes_accepted": false,
+  "input_set_mutation_policy": "frozen：冻结输入清单不得在构建阶段被改写或删减（不允许\"发现输入被改写后把它从清单移除\"以换取 release_eligible=true）",
+  "downstream_rule": "正式构建阶段只消费本冻结输入；任一声明输入（含准备阶段生成的配置）改变即拒绝发布，并给出改变路径、前后摘要与发生阶段",
+  "immutable_build_snapshot": false,
+  "immutable_build_snapshot_note": "本流程仍从活动工作树构建；冻结记录登记的是\"构建被允许消费的输入集合\"，稳定性由构建前后两次独立采样逐项一致来证明"
+}

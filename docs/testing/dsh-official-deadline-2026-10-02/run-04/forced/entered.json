@@ -1,0 +1,107 @@
+{
+  "pid": 11492,
+  "mode": "forced",
+  "entered_at_ms": 1790970369766,
+  "deadline_ms": 1790970377540,
+  "context": {
+    "call_id": "official-forced",
+    "room_id": "engineering",
+    "run_id": "official-deadline-run",
+    "workspace_id": "isolated-official-deadline"
+  },
+  "source_sha256": "3f0bfded394d92c98c18e187a6508e71b1d303494f847e3f9eebf9c93feb03c8",
+  "line": 79,
+  "source_line": "let pos = 0;",
+  "frames": [
+    {
+      "function": "parse",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-dsh-activation/probe-final/fixed-source-copy/lib/evaluate.js",
+      "line": 79,
+      "column": 15
+    },
+    {
+      "function": "evaluate",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-dsh-activation/probe-final/fixed-source-copy/lib/evaluate.js",
+      "line": 184,
+      "column": 20
+    },
+    {
+      "function": "execute",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-dsh-activation/probe-final/fixed-source-copy/lib/index.js",
+      "line": 30,
+      "column": 42
+    },
+    {
+      "function": "execute",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/dsh-tools/lib/index.js",
+      "line": 865,
+      "column": 11
+    },
+    {
+      "function": "dispatchToolBody",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/dsh-tools/lib/index.js",
+      "line": 3181,
+      "column": 32
+    },
+    {
+      "function": "apply",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/cordis/lib/index.js",
+      "line": 120,
+      "column": 36
+    },
+    {
+      "function": "",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/dsh-tools/lib/index.js",
+      "line": 3202,
+      "column": 94
+    },
+    {
+      "function": "next",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/cordis/lib/index.js",
+      "line": 321,
+      "column": 33
+    },
+    {
+      "function": "waterfall",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/cordis/lib/index.js",
+      "line": 324,
+      "column": 10
+    },
+    {
+      "function": "dispatchScheduledExecution",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/dsh-tools/lib/index.js",
+      "line": 3202,
+      "column": 34
+    },
+    {
+      "function": "apply",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/cordis/lib/index.js",
+      "line": 120,
+      "column": 36
+    },
+    {
+      "function": "completeScheduledExecution",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/dsh-tools/lib/index.js",
+      "line": 3005,
+      "column": 35
+    },
+    {
+      "function": "apply",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/cordis/lib/index.js",
+      "line": 120,
+      "column": 36
+    },
+    {
+      "function": "",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/dsh-tools/lib/index.js",
+      "line": 3000,
+      "column": 57
+    },
+    {
+      "function": "prepareExecution",
+      "url": "file:///C:/Users/zhupu/Desktop/coolzhuagent/tmp/2026-10-02-final-msi/offline-extraction-final/layout/CoolzhuAgent/bin/dsh-runtime/host/node_modules/@deepseek-ai/dsh-tools/lib/index.js",
+      "line": 3134,
+      "column": 17
+    }
+  ]
+}

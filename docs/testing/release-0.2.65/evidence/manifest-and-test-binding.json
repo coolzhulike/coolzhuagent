@@ -1,0 +1,27 @@
+{
+  "candidate_version": "0.2.65",
+  "candidate_manifest_sha256": "d5acd871a014f50c0fd137a1f740bb34fc955d453a032b7b706900feeb7bd8d1",
+  "only_changes": [
+    "独立DSH资源来源",
+    "包内manifest引用候选manifest",
+    "外部资源声明更新",
+    "构建输入加入候选manifest"
+  ],
+  "all_other_manifest_rules_equal": true,
+  "frozen_tested_sources": [
+    {
+      "file": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+      "sha256": "5673b2629bca8266e851fbffd902963bb9a88ad4a4da9084c30ff2578d258b49",
+      "head_sha256": "84fd3c9d1c959cd53171dde6f2ce2aa3eae211dfafc71332625bc30ac1c7e19e",
+      "change_kind": "上一阶段生产期限修复与回归测试"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_executor.rs",
+      "sha256": "a02a31563d3a3945a9aa95a54db054116ec649a2a048f9fe59af714ebac36c49",
+      "head_sha256": "88663d42f24ffa7aa683df29ce1560b573f76e486623320207e40e357c4da758",
+      "change_kind": "本阶段仅扩展已有测试的5种场景"
+    }
+  ],
+  "source_snapshot_digest": "528b32995570881438ca73e63b1430328b78ae5d6d21509fe5ae810eab9f891e",
+  "source_file_count": 1281
+}

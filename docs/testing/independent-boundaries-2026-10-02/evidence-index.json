@@ -1,0 +1,163 @@
+{
+  "checked_at_utc": "2026-10-02T15:32:00.527662+00:00",
+  "branch": "codex/cu-preinput-followup-20260930",
+  "head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "sources": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js",
+      "sha256": "fe4d3565c557656b8e63b46e9b2c4ab6edab5f98916980838120a48e62af9c46",
+      "candidate_0_2_65_sha256": "6a4980a3c7a18e1989f1ed21db23b8783bfc1be0c652dcc30467c399597a25e1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js",
+      "sha256": "b6c369e5dcfa223ad0d2128f097a0b20a25132596f690c86e2a00d52778c0585",
+      "candidate_0_2_65_sha256": "d6c81f1e2113f8a024ed43817ff0290f81760813f22c749691a6e96a44ef138f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs",
+      "sha256": "8e61b315189b65b94bc95de3f89d5ee5e5086d6f06c626d010e438d9fc7e2379",
+      "candidate_0_2_65_sha256": "354452f55e0d14eb31d6dc8fbcfe234d0c87a5e284f10bd2c93409324ec862fc"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md",
+      "sha256": "48dabf0bff35926073325671b1f021d57eb44f5200a86e41301cd0213650759f",
+      "candidate_0_2_65_sha256": "543a117a43e68c925926d7d24585905552c6f10ac2a313bd312864b1ee205ca8"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/tests/dsh_deadline.rs",
+      "sha256": "9656728211bef6024383777d7ca13ba682108c7529fda4ed428c70229710b745",
+      "candidate_0_2_65_sha256": null
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "startup-before.txt",
+      "sha256": "175083710415aaf4e495d77370a24791c0cb142b1c5f929267eccd123f34e6e5",
+      "bytes": 468
+    },
+    {
+      "file": "startup-after.txt",
+      "sha256": "c64a75b4e5666aa9619a9ffaa1911a2ead13638322f56b93964ca0491d9a1c9c",
+      "bytes": 341
+    },
+    {
+      "file": "shell-build.txt",
+      "sha256": "ac4d5088f8a7e13d5b6064ff181a411d1baf923f8f0632e63723a5fa54e92038",
+      "bytes": 1153
+    },
+    {
+      "file": "core-build.txt",
+      "sha256": "85c3295d593047a2c577d6a78910af0a52dc3041bfbc35637e693ee94bb7a027",
+      "bytes": 1413
+    },
+    {
+      "file": "dsh-deadline.txt",
+      "sha256": "a9752d04f8f988593fa538481bbb6aeac8ec648bde954e8917e500452126531f",
+      "bytes": 2475
+    },
+    {
+      "file": "diff-check.txt",
+      "sha256": "40a326b23147613f99c0a4b6eec5bd00180f05ff1d6c23976df8f57fd24302b4",
+      "bytes": 529
+    },
+    {
+      "file": "installed-processes.json",
+      "sha256": "f24cc1935507f296d207e09e2954bdebd4527fbb537ac1dd08a654bca5a77368",
+      "bytes": 399
+    },
+    {
+      "file": "input-safety-readonly.json",
+      "sha256": "30fc0d1cd561c5be69f6e2d716c8d73a81bff92c39c089d6324bcb96e6649988",
+      "bytes": 2448
+    },
+    {
+      "file": "changes.patch",
+      "sha256": "4004fad1cc26cf9b9368757a8b4dba83f0aa528394715823bb72a390afa6cbfb",
+      "bytes": 8665
+    }
+  ],
+  "preserved_files": [
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\dist\\CoolzhuAgent-0.2.63-installer-report.json",
+      "sha256": "992ce0fbbaf21b0a963a35ae2becfc1531b3990a4b34bacd1b8bb75c19c06558"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\dist\\CoolzhuAgent-0.2.63-package-safety.json",
+      "sha256": "7b79ae11bd75acbf7e10898d76a176f41792445e66a32e5d9f6d4e8beb91f4c1"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\dist\\CoolzhuAgent-0.2.63.msi",
+      "sha256": "91c9a256505bda4c6575788e50ed426b594db8cf2e6ce6a9c2b94a8a7d923de3"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\dist\\CoolzhuAgent-0.2.64-installer-report.json",
+      "sha256": "87dfab09cb899b7d523700423faa5bc1a4b3fb05ee581d8e1492f673bbd52679"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\dist\\CoolzhuAgent-0.2.64-package-safety.json",
+      "sha256": "238efd1444164a71a4a466f23cf15d8cc85844d47863e43c53c2764a56c1664b"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\dist\\CoolzhuAgent-0.2.64.msi",
+      "sha256": "16052ec401960181853c5b02775e849185e225e70b11f8872a798a4e5d06688b"
+    },
+    {
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "sha256": "fbd3080991f4888218b25ef36fda3a19bd1be994af57c4fd6fe63cb8707c6544"
+    },
+    {
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "sha256": "37ac54c9b7a0289ac38910e1e406d88b48ac4315b54f6c3da7a513ad24ef8d7e"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\docs\\testing\\release-0.2.63\\installed-native\\BU063-CLOSE-DH-facts.json",
+      "sha256": "a6b94db087789eb3e23380c0c244aedc890e4c7d2536cde0abb8a8ee63b8f981"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\docs\\testing\\release-0.2.63\\installed-native\\BU063-CLOSE-DH-page-events.json",
+      "sha256": "3d0f2e4b2477fdb4d2ab90aaf7d5a32702d11d7336abf347eea4be907383bab1"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\docs\\testing\\release-0.2.63\\installed-native\\BU063-CLOSE-DH-close-timing.json",
+      "sha256": "124adf361a2832b6d72901bafe47e491b701b1ad09e025923cfd254ceb58b89c"
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.65.msi",
+      "sha256": "fa80c6faf13383f926f03a4617b5a406918b9b602e2fbf08dbd2f7e89c35eb19"
+    }
+  ],
+  "codex_config_unchanged": true,
+  "installed_processes_unchanged": true,
+  "original_isolation_still_active": true,
+  "tests": {
+    "startup_before_exit": 1,
+    "startup_after_exit": 0,
+    "startup_new_fault_scenarios": 3,
+    "dsh_deadline": {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "duration_seconds": 6.5,
+      "return_ms": 3034,
+      "scope": "固定Node、生产Rust桥和受控协议夹具，非官方SDK/Qwen验收"
+    },
+    "shell_build": {
+      "exit": 0,
+      "seconds": 32.86
+    },
+    "core_build": {
+      "exit": 0,
+      "seconds": 0.35
+    },
+    "diff_check_exit": 0
+  },
+  "candidate": "0.2.65未安装且不包含本轮动画修复；本轮未生成新MSI",
+  "not_executed": [
+    "真实GUI Browser/Paint验收",
+    "真实Qwen调用",
+    "解除隔离或签署复核",
+    "安装升级",
+    "正式实例重启",
+    "GitHub发布/合并"
+  ]
+}

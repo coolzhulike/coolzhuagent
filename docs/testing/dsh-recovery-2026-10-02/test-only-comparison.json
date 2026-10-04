@@ -1,0 +1,33 @@
+{
+  "reference_candidate": "0.2.66",
+  "production_unchanged": true,
+  "changed_existing_sources": [
+    {
+      "file": "modules/tooling/packages/plugin-system/src/install_transaction.rs",
+      "current_sha256": "6b2b90955adfb4cf17336731b381adc31a57d18187fb2ff2d68cf038f452cc29",
+      "candidate_066_sha256": "3350c31afd83165822f17d8130fc3d01b1c7c3a549506f38d25e03c9b2423912",
+      "after_removing_only_test_changes_sha256": "3350c31afd83165822f17d8130fc3d01b1c7c3a549506f38d25e03c9b2423912",
+      "production_unchanged": true
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+      "current_sha256": "69c50a801a8ab4d5edd556b4ac5d25be1f24c8963a48667b24361d4cfb4e48d8",
+      "candidate_066_sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f",
+      "after_removing_only_test_changes_sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f",
+      "production_unchanged": true
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+      "current_sha256": "f7fc46704880374f61a9b14165954ceb3d86fcb9c8546eb2b86a6ada9a873999",
+      "candidate_066_sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b",
+      "after_removing_only_test_changes_sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b",
+      "production_unchanged": true
+    }
+  ],
+  "new_test_file": {
+    "file": "modules/tooling/packages/plugin-system/src/dsh_recovery_tests.rs",
+    "sha256": "ecd86202f59033dc24aec90891ca4546f70e97d3d614f1db3f68894633d665c0",
+    "included_only_under_cfg_test": true
+  },
+  "other_frozen_files_unchanged": 1280
+}

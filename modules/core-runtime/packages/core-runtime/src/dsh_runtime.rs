@@ -121,6 +121,9 @@ pub struct VerifiedRuntime {
     pub total_bytes: u64,
 }
 impl VerifiedRuntime {
+    /// 长操作完成后重新核验同一来源，不能把旧资源核验当成新的启用资格。
+    pub fn reverify(&self) -> Result<Self, RuntimeError> { verify(&self.root) }
+
     /// 调用者应在每次接纳/执行时重新核验；不可把旧核验结果当作新的执行资格。
     pub fn paths(&self, plugin_root: PathBuf) -> HostPaths {
         HostPaths {

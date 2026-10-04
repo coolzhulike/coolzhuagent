@@ -1,0 +1,14 @@
+[
+  {
+    "Id": 3864,
+    "ProcessName": "coolzhu-tauri-shell",
+    "CreationTimeFiletime": 134353335372030593,
+    "Path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+  },
+  {
+    "Id": 2572,
+    "ProcessName": "coolzhu-web-console",
+    "CreationTimeFiletime": 134353335363833026,
+    "Path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe"
+  }
+]

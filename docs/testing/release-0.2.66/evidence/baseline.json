@@ -1,0 +1,1833 @@
+{
+  "checked_at_utc": "2026-10-02T18:58:27.998684+00:00",
+  "head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "preserved_files": [
+    {
+      "path": "dist\\CoolzhuAgent-0.2.63.msi",
+      "sha256": "91c9a256505bda4c6575788e50ed426b594db8cf2e6ce6a9c2b94a8a7d923de3",
+      "size": 247020925
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.63-installer-report.json",
+      "sha256": "992ce0fbbaf21b0a963a35ae2becfc1531b3990a4b34bacd1b8bb75c19c06558",
+      "size": 3616
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.63-package-safety.json",
+      "sha256": "7b79ae11bd75acbf7e10898d76a176f41792445e66a32e5d9f6d4e8beb91f4c1",
+      "size": 194
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.64.msi",
+      "sha256": "16052ec401960181853c5b02775e849185e225e70b11f8872a798a4e5d06688b",
+      "size": 275626523
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.64-installer-report.json",
+      "sha256": "87dfab09cb899b7d523700423faa5bc1a4b3fb05ee581d8e1492f673bbd52679",
+      "size": 3617
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.64-package-safety.json",
+      "sha256": "238efd1444164a71a4a466f23cf15d8cc85844d47863e43c53c2764a56c1664b",
+      "size": 195
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.65.msi",
+      "sha256": "fa80c6faf13383f926f03a4617b5a406918b9b602e2fbf08dbd2f7e89c35eb19",
+      "size": 275647003
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.65-installer-report.json",
+      "sha256": "25a0d0f9d1214932efdeec7fe8b5fcb53c66a1e6ca6c00bb19f3cc43c8de8ab9",
+      "size": 3617
+    },
+    {
+      "path": "dist\\CoolzhuAgent-0.2.65-package-safety.json",
+      "sha256": "6fc42a8b95c87d9b98c68d7ece38edbab7de57414f01bbf2f6fb441f0ff41133",
+      "size": 195
+    }
+  ],
+  "installed_files": [
+    {
+      "length": 38308864,
+      "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-web-console.exe",
+      "sha256": "fbd3080991f4888218b25ef36fda3a19bd1be994af57c4fd6fe63cb8707c6544"
+    },
+    {
+      "length": 85883392,
+      "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-tauri-shell.exe",
+      "sha256": "37ac54c9b7a0289ac38910e1e406d88b48ac4315b54f6c3da7a513ad24ef8d7e"
+    }
+  ],
+  "incidents": [
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-facts.json",
+      "sha256": "a6b94db087789eb3e23380c0c244aedc890e4c7d2536cde0abb8a8ee63b8f981"
+    },
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-page-events.json",
+      "sha256": "3d0f2e4b2477fdb4d2ab90aaf7d5a32702d11d7336abf347eea4be907383bab1"
+    },
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-close-timing.json",
+      "sha256": "124adf361a2832b6d72901bafe47e491b701b1ad09e025923cfd254ceb58b89c"
+    }
+  ],
+  "codex_config_sha256": "3a946a45e2223faebb565c2323d358fa272fd51fabb17068e5085082804c6a5e",
+  "preexisting_workspace_files": [
+    {
+      "path": ".playwright-cli/element-2026-09-27T03-02-39-106Z.png",
+      "sha256": "8c836a8790027acba096852c1128e6b0793ae280637ef23817aacf50e1a91ead"
+    },
+    {
+      "path": ".playwright-cli/element-2026-09-27T03-14-27-220Z.png",
+      "sha256": "bd0609ef83c2bb9895266394c273acb2164fdc041dbb969eeb6d5b89570c7e0f"
+    },
+    {
+      "path": ".playwright-cli/element-2026-09-27T03-29-01-542Z.png",
+      "sha256": "38994410d02fd2c30fa5aa2969b9880a10d77438bbf6d9758080a71a10a72db9"
+    },
+    {
+      "path": ".playwright-cli/element-2026-09-27T03-29-32-330Z.png",
+      "sha256": "c219a7b200d01540ac1ec13b82bf669d7910425803fc40e7ea60f1e24149fc5e"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-01-24-948Z.yml",
+      "sha256": "093b2fcc497b47ab8440f4c33a3be2f7885a82dc73be4c0efdd192dfb2f4ce66"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-01-45-383Z.yml",
+      "sha256": "8d862d0c8d284eb975a763ce017111abab62e775e28b293e5ba89dac6ffbe8c5"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-02-00-969Z.yml",
+      "sha256": "6b4578258f8f887d969220dc0ff824f980e703be2f9f301de53499eb7ce5aec9"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-02-23-439Z.yml",
+      "sha256": "151ff1634132943bc1a832baa931081a7147affef8bf2a25b5a8ab669a0b3df6"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-05-30-000Z.yml",
+      "sha256": "8c663da9d4e76a478c15a7d6b391d5aa98d1dd1e21230d8ab97c7f72dbf4826c"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-12-01-986Z.yml",
+      "sha256": "093b2fcc497b47ab8440f4c33a3be2f7885a82dc73be4c0efdd192dfb2f4ce66"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-12-17-553Z.yml",
+      "sha256": "ae29b14467e81dfe9c84f080765638b7457876f6bd5db010a1c4cf87c2495198"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-13-45-179Z.yml",
+      "sha256": "777b852246f0653eb73cab0258af4f45e1ad62b42c85581b0faf6d640ded7a1c"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-14-12-756Z.yml",
+      "sha256": "0d1a155a99337c206b7392ce5f5efa8094ed1d47a9d4a5fcd056bbf363cf2006"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-24-12-019Z.yml",
+      "sha256": "0b3bb579e4a0cb8c2b4e14f8459ea7015e3da6890fb9ef181dd09b891796aa38"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-25-44-640Z.yml",
+      "sha256": "f022401b9fb5d8e81371c1b929044d9f260d27cfd8da9be3590f361927b7f0a4"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-26-04-032Z.yml",
+      "sha256": "356dd57512b57fd1500285f160491c006678328dd00754dda38beff138127f30"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-26-25-075Z.yml",
+      "sha256": "d2724222f044d7a3ed01fe406d3da6c84aba17cc1555b7204d8ca832aa7669d3"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-26-57-631Z.yml",
+      "sha256": "de16297f5afd42966d6de8c603d3f336aae1a6f7d13f1f7e46a3219f6268216b"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-27-25-393Z.yml",
+      "sha256": "c2aa7f5bc4ac86e554a9e69065311a47c99daa8ec7d3fbfe343c42924f45101c"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-28-00-240Z.yml",
+      "sha256": "e15f87a43bc176dec5d8c6697485f8d28949351e400f70f4ae38d27477fbced9"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-28-13-193Z.yml",
+      "sha256": "2ae1bca1936c28da0f8a8b53350c6157b952c5bdf51ceed2c3176a58268e21f9"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-28-40-299Z.yml",
+      "sha256": "bba1f2426018d14cf9293411bf2bbbc65247f89db8415af816432883a413ebd7"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T03-29-21-074Z.yml",
+      "sha256": "13fe65cb73cf07a001dec6ae2e558d33b8eeb9e75e4f0b6ad3ccd8e24ab7ac6b"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T06-42-06-050Z.yml",
+      "sha256": "3120f82790b7cd8ce7de819951f3ef20be5e93242407d70c8af29bbc85598f2b"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T07-07-42-174Z.yml",
+      "sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T07-18-39-192Z.yml",
+      "sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T07-29-56-216Z.yml",
+      "sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T07-34-25-297Z.yml",
+      "sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T07-36-40-395Z.png",
+      "sha256": "fcd5271798461eed81f589c8878fd50d6f62ab2b447ef4ef560c34f9c5d69a17"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T07-38-56-651Z.png",
+      "sha256": "b9c2ccb1eabaf1aab3a9d075b783702a8c5f4f593147a784b33f10f7a7e43e96"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T07-39-27-841Z.yml",
+      "sha256": "63abf917c96e0a7fe1ad213a856db50752e8bd8fead461587663a6708ba88288"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T07-39-46-968Z.png",
+      "sha256": "c391249b8b39c40212b7a620bf08345842ed15c61f638da9fc60e62bcbb59aca"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T16-39-01-139Z.yml",
+      "sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T16-49-28-298Z.yml",
+      "sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T16-54-31-465Z.yml",
+      "sha256": "60353eb21781d7ec2f4ead582b1230c23d2b23890dc4f6410fb571071bce6b7c"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T16-55-13-121Z.yml",
+      "sha256": "81f826a19f6f9c8495fcd9e0956aeddcf1f15d7e02aa7d577e9a71de39b85b72"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T16-57-16-280Z.yml",
+      "sha256": "bc83dc55eb46e5208486d51f34354dbb28eeef698a13061578b9916f8ab87c20"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T16-59-38-879Z.yml",
+      "sha256": "63c6497d380497baf91508099fc14f1ab318d3e786ea7c002ca5d7ce77cc653c"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-00-20-804Z.yml",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-00-43-169Z.yml",
+      "sha256": "05b127906ed5c4f37eca9ce9c08a736656ea353771bb36a41fa4b519e10f054a"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-00-48-977Z.yml",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-01-12-154Z.yml",
+      "sha256": "3ae9833fed6b2b829b051531ad4883c58f8f43e19192159661222a15970bd3e9"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-01-34-548Z.yml",
+      "sha256": "4c8d956894c41d1a2899acac454a7a7b065e5a5b2b566668ccc07980aafb9c1c"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-03-07-835Z.yml",
+      "sha256": "6ef690bcbf9310b13ea8a10a4535c3ddf07ee2c73e62a910e977963882c01b4b"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-03-15-044Z.yml",
+      "sha256": "a98dc5d60b2ff5102efa1c236f293f3c34f1d07bd9f5cdca87e0c51354d04787"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-04-25-491Z.yml",
+      "sha256": "2591bbeb5f17d13c14334b3edca8c8475d327d4353c49893005ea4924e8056b1"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-04-45-452Z.yml",
+      "sha256": "01fce697d3f80d24bac015439d889d0945abd818376b7ba4566c65aa2eab4c2c"
+    },
+    {
+      "path": ".playwright-cli/page-2026-09-27T17-13-09-867Z.yml",
+      "sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a"
+    },
+    {
+      "path": "config/package-manifest-0.2.64-candidate.json",
+      "sha256": "ed315514fb6d99198fc1da500a0fc604bfac7a0aba23b5221564ab1f2da54d6e"
+    },
+    {
+      "path": "config/package-manifest-0.2.65-candidate.json",
+      "sha256": "d5acd871a014f50c0fd137a1f740bb34fc955d453a032b7b706900feeb7bd8d1"
+    },
+    {
+      "path": "docs/analysis/2026-09-21-integration-review/implementation-status-and-change-inventory.md",
+      "sha256": "920e9b348207eaa36cedadc2b7647635ceaaf1f81e58e14e1cc0822fe87f0d84"
+    },
+    {
+      "path": "docs/analysis/2026-10-02-browser-input-deadline-review.md",
+      "sha256": "e9d5ed3ba6d2028b13fa0a78094292abff7d992958c6bb10fd641585a5570fa7"
+    },
+    {
+      "path": "docs/analysis/2026-10-02-browser-lifecycle-aggregate-review.md",
+      "sha256": "42843ee8300cd915664dc9a7b8982cb8f04e6532f4f1b1d1438c13130a21e38f"
+    },
+    {
+      "path": "docs/analysis/2026-10-02-browser-use-cu-availability-review.md",
+      "sha256": "a915ff94a7d86bc65451c59524dc95139ddcb76f3f13140be8dcdf5d604ac5b3"
+    },
+    {
+      "path": "docs/analysis/2026-10-02-dsh-install-activation-review.md",
+      "sha256": "2d3886d4e63e6b99362f8828773885dd5caacea7683035317ca6b9a244ba1ec5"
+    },
+    {
+      "path": "docs/analysis/2026-10-02-dsh-source-resolution-review.md",
+      "sha256": "ab4b83be8096aa8f3501244c4b568fb4c829de6a5195bde1b4d70bf76684f21f"
+    },
+    {
+      "path": "docs/analysis/2026-10-02-dsh-web-dispatch-review.md",
+      "sha256": "ef43bec78126634b0512a7f3908808d33f26fcb170714ce4488b4031d2c0f361"
+    },
+    {
+      "path": "docs/analysis/2026-10-02-independent-boundaries-review.md",
+      "sha256": "dff0b7fe9dc04cb38c7b9af9e3435f1681d3a907584642c423e5f653cf782513"
+    },
+    {
+      "path": "docs/testing/browser-input-deadline-2026-10-02/build.txt",
+      "sha256": "d9232545ebce4fbea584aad3b79fd631bf5fe2d5a3906f45b73ebf0d9d34ec8a"
+    },
+    {
+      "path": "docs/testing/browser-input-deadline-2026-10-02/change.patch",
+      "sha256": "2fb352581274f73ad933393a1f4de46aca7137e80813383f5cfef0f9574615e7"
+    },
+    {
+      "path": "docs/testing/browser-input-deadline-2026-10-02/evidence-index.json",
+      "sha256": "5451a71a69d69bba79e9fd936ec84233641448b819c6d670ea1e440c53db1db0"
+    },
+    {
+      "path": "docs/testing/browser-input-deadline-2026-10-02/regression-before.txt",
+      "sha256": "661ec363eb24d8d54f60e83a7d306fac754ff95594d503cbbf3d36d5b44b52fd"
+    },
+    {
+      "path": "docs/testing/browser-input-deadline-2026-10-02/regression-fixture-before-guards.rs",
+      "sha256": "49b6a23801dc306b5e13c93cd7b2fccf0bce9d6229722225e0c1234ff7e26e60"
+    },
+    {
+      "path": "docs/testing/browser-input-deadline-2026-10-02/tests-after.txt",
+      "sha256": "e1d91318682610e07bd4dc0de9b174c5a2251a9fc91e7a7c20bb71ed9eabda3f"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-build-outcome.json",
+      "sha256": "75876e0e3f497cad271143ba85bd4f36569cd81195509043f860dab14265b716"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-build.txt",
+      "sha256": "aedb980eccf5a44752c83f73829c356d84224419ac6a246c8ace0ea5f8bc312d"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-linkage-outcome.json",
+      "sha256": "75876e0e3f497cad271143ba85bd4f36569cd81195509043f860dab14265b716"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-linkage-tests.txt",
+      "sha256": "c3f30e14133ac6683923b6c8ac9568bd46bd52da05bc75a82b65450e59ba6b5c"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-panel-cas-outcome.json",
+      "sha256": "75876e0e3f497cad271143ba85bd4f36569cd81195509043f860dab14265b716"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-panel-cas.txt",
+      "sha256": "0c373cb42e81b47ef55c65caabc5a860871cceef4dc88cdb174df19aff578966"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-shell-panel-outcome.json",
+      "sha256": "75876e0e3f497cad271143ba85bd4f36569cd81195509043f860dab14265b716"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-shell-panel-tests.txt",
+      "sha256": "9c756135deee69753ddcad9fde72976857ec3ff467ba7db9c4e638a3432e8ef2"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-test-change.patch",
+      "sha256": "9254cc2ac3c4fed36eda58f1aa66e45a93f2e391a22861b0aea37ae50902bbf8"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-web-isolated-outcome.json",
+      "sha256": "f78a8170c9e25c0737dd74ea399d76ef402c7e969a972fa6d17d86360ee00db3"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-web-isolated.txt",
+      "sha256": "c9054fc955700c5c22b0a3de42e48a37d154bedeaeec86523b633366b85cc737"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-web-outcome.json",
+      "sha256": "d0feb6c94c7210b18c93530dade2af6cccd099a8a57900eae5974d1a231e1826"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/aggregate-web-tests.txt",
+      "sha256": "128e9971f791c0763dd6e82f6645feff72b5ce9b398e7d648d8e4dae9d687fc7"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/evidence-index.json",
+      "sha256": "637b21c713402bb71fd95cf68a607a810bd11c6b84aea5dd419aa9eccc538324"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/isolated-failure-rechecks.txt",
+      "sha256": "260cb49a0e008ef79e772893a014a7b1abe484a5eebc028c9e964f7dca001fd3"
+    },
+    {
+      "path": "docs/testing/browser-lifecycle-aggregate-2026-10-02/isolated-failures-outcome.json",
+      "sha256": "19fc218aced73f2d3ce7b13713f5d323594b76e178051b126f3ea8030d00b67f"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/codex-features.txt",
+      "sha256": "1a3f0b4429eed46ea5d777eae75ffad54c3f0c94a8c31e618332a0893abfeb79"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/codex-version.txt",
+      "sha256": "72c604ff2b4e8e076d335590b590e01c09063d497421d4dae1d9608fe7d23a74"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/cu-local-diagnostics.json",
+      "sha256": "ba1c71a72d7d68bb506099af71ec2f5cb31804495ee85450a73b8d61068088ac"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/cu-ownership-probe.json",
+      "sha256": "eeb4ab64354308cb7927d1fda901712e0329fb0d6218690a08603d2f7fc6202a"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/cu-ownership-processes.json",
+      "sha256": "c230904f4a9b50f93522558f2766878e4e4ca1fa189439d9f55a387bd0df78d2"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/endpoint-health.json",
+      "sha256": "3c3dc48937640564cf35862a21094bf9baaa55a72668b330c69ca7f821364c6c"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/evidence-index.json",
+      "sha256": "44540005b26c2450e673443c9045538218c4ffc1200474249e455a14708a44aa"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/formal-processes.json",
+      "sha256": "62ffc144d6b99b8f7c91ec4f88654e30580ced4d1df8c4832b35565f05f9a5d4"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/formal-readonly.json",
+      "sha256": "09146237915f176c74e17e616d12539a231086fe5313ca69ed29e25892895306"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/node-repl-processes.json",
+      "sha256": "7ad7d4e1e8ce2f43d4ac8c922a83c694b51c6f4ca5a4483959b381724cfd85eb"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/shell-native-browser-tests.txt",
+      "sha256": "512bf65ff566944571e59865fa2c4b13cd052067f2cc8f4e52756ea9277bc93e"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/shell-test-outcome.json",
+      "sha256": "cdec2b49a3e0e59b001fdc08176ee7e330784d58d8283ec6d18968aea834e35f"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/tool-inventory.json",
+      "sha256": "f36621842be84f63ff825437770454a1e677554ff9ab2308426ebf8c3cf358cf"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/web-native-input-tests.txt",
+      "sha256": "9e6c83543017d826294590556aad2ebf9a93b27d58e51ed27d8ba8464392c4df"
+    },
+    {
+      "path": "docs/testing/browser-use-resume-2026-10-02/web-test-outcome.json",
+      "sha256": "6b5fc8faf99eb8fbf401c30ac75948b2a647146b89f82928d208b0b8d6a24619"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/aggregate-test.txt",
+      "sha256": "26b4fb1e063985026a986d999272844bb25dd08bcdb778a95bb2e95e72a8c328"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/core-dsh-test.txt",
+      "sha256": "82e3a73853a8d81effd567d81fc936bbbabd69e71d7724b72c0ac4aaa36069d4"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/evidence-index.json",
+      "sha256": "e9fd91d8cf9b15edffd896854146aa955847986f04b18195dc7dc60c446f706e"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/final-build.txt",
+      "sha256": "8889ce19bdf20d59e36ad0e092e0bff04d0593d46100d08ecf26849e6f052e4d"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/gui-tools-readonly.json",
+      "sha256": "f569dddd91a77fa6c605f2ec133c6e13880a3b4220de3e5b21e71fdd8e8f96c5"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/incident-executor-readonly.json",
+      "sha256": "3523a7b9b8e6da7322fb2302eea2adb5d9453b6fc59f2c0868206fdb60191d44"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/installed-hashes-readonly.json",
+      "sha256": "745d2badf29339491c35baeacf7ff3e79b579996b480175771fc203ebd0419e3"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/installed-readonly-final.json",
+      "sha256": "a852eb4605b48c7ff4a175ec61027165102fd445a081b4de51c58f178a15fb8d"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/module-linkage.txt",
+      "sha256": "32be0010ca0ef5ea733d3fb62454137d506e3ffce47204b32f2414f37996c54d"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/plugin-build.txt",
+      "sha256": "dccc854dcf4164562b1d0545c13ead221fe5bb81bf6a6c5c97dbc38661af5a8e"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/plugin-test.txt",
+      "sha256": "d134533faed5a9c14193c7137bc12d7a8f7f9b1523c14ff1535d9044e2ff2e97"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/preservation-result.json",
+      "sha256": "3a554fd01332ee4443751509aecc1d99ed1b98404bf452800a58b3f607d39d79"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/probe-authorized.txt",
+      "sha256": "2fd678f5c09fc71dabc9e6ec512f3ae54752451af1067ce13106f0d75ec738b4"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/probe-build.txt",
+      "sha256": "74da5c7a2530acff828677e52871b4a11dd055b1bcdf4329c9a4a62ff33c887c"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/probe-copy.txt",
+      "sha256": "f38b5f66fce597f67a734866d2f11466b3df4c07e441ee94012f05e227947b69"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/probe-final-build.txt",
+      "sha256": "cd9742c00b0196b4ab47e87873df1531b3849333ba8d7fbc11802ca56a6bffb4"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/probe-final-result.json",
+      "sha256": "55d778f160a463fda4343b700bd8de6386995e00e0e0f6dd0c3da1a8444d576a"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/probe-final.txt",
+      "sha256": "c2ddaae81b8756e4390451989ad9cf64cd8b797e3a6bc66609f6e9d8be14ddc6"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/probe-retry.txt",
+      "sha256": "56d7317d50c7f662c9a47e845bbd5ba5bdb034cddf25603d9c1848b6ddf1e8da"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/probe.txt",
+      "sha256": "46b99c14c58cbd87ffa5ec7e49dabd27196d077ae72e3810e5e75361e1eaef3f"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/runtime-copy-verify.txt",
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/syntax-and-diff.txt",
+      "sha256": "e03ee1f422ebf6c0481d85bf9084e64f10b85a2fe649a0803be4511e5f21f083"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/tool-registry-check.txt",
+      "sha256": "a9d4b15d5d5b160bd54a3c91a71d38eaf717706a252b813ac089f3664f247933"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/web-build.txt",
+      "sha256": "e89dafe74dcb97e9ec4aa09cc246b31636840aabcc3f620e2dc61ffc1aefde72"
+    },
+    {
+      "path": "docs/testing/dsh-install-activation-2026-10-02/web-test.txt",
+      "sha256": "b839a5aedff9f12b39a92a4f869b40e122b241197535dd8c8b780dfaa1f459a3"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/build-final-result.json",
+      "sha256": "c7451d48d7bbe1d18d35afa0a659bd226a281c5d6dd3b8ee875154f1f163c883"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/build-final.txt",
+      "sha256": "8be71363e26ce4a097f124a8920ef689b4c32079ac5a1e71e57e2ce38f21b14e"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/build.txt",
+      "sha256": "485ad1d052df00cb062d9b0e166bf2aae6967bf226f0154e1023587ba2ed3092"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/evidence-index.json",
+      "sha256": "af4feed5be3083b535b64ac922d95058908c51f123b699db9b8499680026d931"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/installed-hashes-readonly.json",
+      "sha256": "b31631bc232d9536e8501e0b02fa073f11941944f138f5e5fcdbeda399632b5e"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/installed-identity-readonly.json",
+      "sha256": "ae93c93b14dbe72867fba29ff827f302335004bfac766938cc034879b7f00e7d"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/installed-safety-readonly.json",
+      "sha256": "47c475c060f0852a15db81f874211ba3475b99fd475f7a99eee332a953b0f468"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/module-linkage.txt",
+      "sha256": "3a37bb4107f91bc1ff68e17dac94456c5fd6fdea21623d4b5142ccd9b81949ab"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/preservation-result.json",
+      "sha256": "611d111d4630a36d9ad67045877491fbbf750853d227521807b9e8e9e545c412"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/source-probe-network.txt",
+      "sha256": "306f2d5deb05f455e351ad11313b71d435bb1835637a48c234ca70d2dc8a3da3"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/source-probe-sandbox-failed.txt",
+      "sha256": "f38b5f66fce597f67a734866d2f11466b3df4c07e441ee94012f05e227947b69"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/source-receipt.json",
+      "sha256": "a604549279fc8d4581d4011ea9e099cace3ed778c7dcf7772f1a11d1c0a3e626"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/tool-registry-check.txt",
+      "sha256": "f3af43b986dad5cc7dbf4dafae31360fc6b9e219d4acc6fa3bc811dae27a583c"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/web-tests-final.txt",
+      "sha256": "e14271b2a4844bb1e1d3e69686daa7d0e4ec5972503bdc8bbdf9711e1037780a"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/web-tests-isolated.txt",
+      "sha256": "d04b5781dbec3cb11638c9f53c0ee1ae7f9e41ac3593306b6969f8735464f37a"
+    },
+    {
+      "path": "docs/testing/dsh-source-resolution-2026-10-02/web-tests.txt",
+      "sha256": "b9107e5be65079ffd077477a8047a189fd69155f2d962faeea4fe9c624a7f5bc"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/README.md",
+      "sha256": "276772a6c4cf36e10bc67db4fd9a3274933581bd938b303cd56ece0bbd1ffdc6"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/aggregate-test-final-after-poll.txt",
+      "sha256": "439fb2b1be9f2f61eb608eea2a360df63eeab2dbb57ebbe8a2e285a92282e3fd"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/core-control-test.txt",
+      "sha256": "82a8dfcc7fa5a257f7d471e44599f327bc27aada37126f08709bde74b9de0ef2"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/evidence-index.json",
+      "sha256": "fe3fcd7d6502e8fcda22989e20205e11aa0ca7ab11a3a73347c25255bba0b4d0"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/final-build-after-poll.txt",
+      "sha256": "ed37248c622ea6dfc070ba4b8996e77dfe10c2fdf6cfd4e50a07971ff441efb4"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/final-checks.json",
+      "sha256": "c930d35f43ae88494f33a1700aee92c3da8f12878a686c0dba7f0a6c4d404408"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/final-engineering-result.json",
+      "sha256": "496243b7ac741602814a8b00be0337a5f6353d00cbcb3da3d0e6072b1e92cc27"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-aggregate-test.txt",
+      "sha256": "05023029cf96a06c4c9ef649180e4743b6b5d660d8f61e314728d7b56f650651"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-build-fixed.txt",
+      "sha256": "2ffcbd6422a5ab5e7f66db38e39059285ec51656b2d929c701ea543a103a33b4"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-build.txt",
+      "sha256": "791ac9d4a721c876214080aebf02dba8b07fa18629a6d1e60cb25505b42d0e1b"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-cancel-diagnostic-result.json",
+      "sha256": "30690b2ce960a2b301b82a22f1b83c4d32809d832aceb683c06071f4ccc02a59"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-expanded-stack-result.json",
+      "sha256": "5695a7fa952ab9a6579d10802ed4c71b6f9261d23a8c9511ef04b54274eb8f0d"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-final-build.txt",
+      "sha256": "eb2916da2f3811cb271a7ad58b5b791b539aa60f97c6c899ec01459418d45614"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-probe-01.txt",
+      "sha256": "f1696301482493c994fb1a13676c40c7da0ae64d6c6b6e8cde173f433b9cf938"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-probe-02.txt",
+      "sha256": "17f6024060ff6e1e0a04fd799580c6b6cba76cd1db1cf862712bec9c9370d2bf"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-probe-03.txt",
+      "sha256": "4c906437fe162d851d841c3814161a2198126c08fe69654b07ce55b2d5219fff"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-probe-04.txt",
+      "sha256": "af6851c5c231e72466bb5846a626f7032b32e804b290ffc2c281ed6aaecb3a44"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-probe-cancel-05.txt",
+      "sha256": "5d3b594477837f5ad1415de447e0ac6749dbae391838c8b150721aeed6f67d07"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-probe-final-06.txt",
+      "sha256": "94ed20b0e3bdb5bbbf50066e99ff33152b083037c53f5bed2e28c79dffe83361"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-test-build-cancel-diagnostics.txt",
+      "sha256": "4a81b0dca48b46e51fc31680561b6112c4be915437f6db855042850361ca855b"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-test-build-final-poll.txt",
+      "sha256": "88372898f036abcc64b0aaf2ac9bf4c8b50d0764718942d38041241a4b1a6ce4"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-test-build-final.txt",
+      "sha256": "bc3dee2b5acad59084e1ee3d61a3c99c2ad52bce5024ee856784341d9c444605"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-test-build-fixed.txt",
+      "sha256": "de4dd124be40f53b33c6974f32c076ebb2cd929f00ad6b17a9780ba476a91a16"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-test-build-handoff.txt",
+      "sha256": "3d980ea290134edc734bb6da945fb13732714cfd44a61bfcf38c300b4a568c7d"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-test-build-lifecycle-poll.txt",
+      "sha256": "7103672982133f67b7b46826d99de85a4174a5663bfbf112e114ca287261d424"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-test-build-perf-fixed.txt",
+      "sha256": "738c18cb55e1d5a7a8978b0288f34d192a88b68c820a8f5c443b67ba1687e538"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-test-build.txt",
+      "sha256": "212558d2c8dde121ab0b938e358009ac4e1f281edb609484102b9bd5250ab11c"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/history-tool-registry-check.txt",
+      "sha256": "0504db2b35f88e29b05a44da3ee98c2c6feb2739edb5fa54120237a51065c4be"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/incident-executor-readonly.json",
+      "sha256": "e64d20bddec6ff0b913f10a02ad447feda00f07c051e9f9c49f558da15d5180d"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/installed-hashes-readonly.json",
+      "sha256": "745d2badf29339491c35baeacf7ff3e79b579996b480175771fc203ebd0419e3"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/installed-readonly.json",
+      "sha256": "769fd2b6ae29606ea3748455e54298a5c8c58b0a8be57e68ad193619d9176247"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/module-linkage.txt",
+      "sha256": "f7d9618968c502bf5ae10506d6bc97d1011fe104bd9174cb3c21e0e0234c1f86"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/preservation-result.json",
+      "sha256": "aac93d7af8a92c5a7c4eb740bd55b64906a42bcb48f6822d1d14731f29775ab7"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/probe-final-07.txt",
+      "sha256": "f029065eb7228cf2755a4f159efcb31cd32cde9e21e2c39934af72ccab0e46e1"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/runtime-copy-verification.json",
+      "sha256": "ee3a13fc112b2011cd694b2ab39ecb8aa4c676531f9c102fa376dcafe1ffff74"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/syntax-and-diff.json",
+      "sha256": "44a55b656fc4a8980093e79ecd262b9fa0cd3f69fd3766648d8426611b14fd86"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/test-build-managed-path-final.txt",
+      "sha256": "4fa6ce1ef125f53845e07eb58b85ecc7b8432b22dd79c8e18ff9712812dc1700"
+    },
+    {
+      "path": "docs/testing/dsh-web-dispatch-2026-10-02/tool-registry-check-final-after-poll.txt",
+      "sha256": "7758dc3141774ab3044c36757da0795a0055f47e2664cb52af252c046edbc76f"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/changes.patch",
+      "sha256": "4004fad1cc26cf9b9368757a8b4dba83f0aa528394715823bb72a390afa6cbfb"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/core-build.txt",
+      "sha256": "85c3295d593047a2c577d6a78910af0a52dc3041bfbc35637e693ee94bb7a027"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/diff-check.txt",
+      "sha256": "40a326b23147613f99c0a4b6eec5bd00180f05ff1d6c23976df8f57fd24302b4"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/dsh-deadline.txt",
+      "sha256": "a9752d04f8f988593fa538481bbb6aeac8ec648bde954e8917e500452126531f"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/evidence-index.json",
+      "sha256": "7beb570bb336b9e8c157eac26804094bfed2bca04403f631867d4e4eacb7b61d"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/input-safety-readonly.json",
+      "sha256": "30fc0d1cd561c5be69f6e2d716c8d73a81bff92c39c089d6324bcb96e6649988"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/installed-processes.json",
+      "sha256": "f24cc1935507f296d207e09e2954bdebd4527fbb537ac1dd08a654bca5a77368"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/shell-build.txt",
+      "sha256": "ac4d5088f8a7e13d5b6064ff181a411d1baf923f8f0632e63723a5fa54e92038"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/startup-after.txt",
+      "sha256": "c64a75b4e5666aa9619a9ffaa1911a2ead13638322f56b93964ca0491d9a1c9c"
+    },
+    {
+      "path": "docs/testing/independent-boundaries-2026-10-02/startup-before.txt",
+      "sha256": "175083710415aaf4e495d77370a24791c0cb142b1c5f929267eccd123f34e6e5"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.18/02-update-open.png",
+      "sha256": "67fd65853069f9f9415db98392594c89b7690e4fb379c214071aab3b4449d8e7"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.18/02-update.png",
+      "sha256": "dd8413bd3a30281841de8c39f1438b1b737160aa5529568088d42040168b9f01"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.18/05-browser.png",
+      "sha256": "559dfef34db7c14f121e78e4da48d965ab559cb0ff64fbbbd17b76188eed2dbe"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.18/07-market.png",
+      "sha256": "6a446ae4f4777c6d03686abada2c5d922f55d0188168d42faa7fe95cd4045e57"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.18/10-terminal-output-scrolled.png",
+      "sha256": "85a0967981f267a712effe7a7121c9cd95a730421e1ad1c6e37e96de3aca1086"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.18/11-url-preview.png",
+      "sha256": "54139ac00c88338af7ac469cf5a0f96987b0e2bebf598908e01f9fe180af978b"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.18/12-file-preview.png",
+      "sha256": "828af099726424917868827cdfa1c804e8269f5fa5ad1a5b4c476b3596dbb2ea"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.18/26-wechat-nav.png",
+      "sha256": "87f2d7d2bc0f69ff5816436e782838fe35be1c9839980188936c6fe700119db2"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.19/00-installed-start.png",
+      "sha256": "077f1224f4d0dc6cde03f17c98762f0b8582741cf79cf1cc547e9c9f23cd1d4b"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.19/01-more-open.png",
+      "sha256": "9368980bf7f88b9dda6a257ee61248ae710962e2601e3506ffcfdba3680dce73"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.19/02-update-open.png",
+      "sha256": "51c204786d3139c1f0f84c2b166429cfb4c69584df0a37986182ae0bfddf10ca"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.19/03-update-loaded.png",
+      "sha256": "f52cfbe976e32d7397ce437f51e813fc7cb8cb7f3c9d26f17ceb4c06f547901c"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.19/04-update-checked.png",
+      "sha256": "7907329cc909a1b6b8e5236d8244970943b976dca75f8ed48752379654c4e6cf"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.19/04-update-result.png",
+      "sha256": "a341b0b952f7f5eeda1254d53b1c6f5fe6a39438d1e312d64663b2a209325726"
+    },
+    {
+      "path": "docs/testing/navigation-update-followup/installed-0.2.19/34-original-workspace-restored.png",
+      "sha256": "01eb3c57f2790e5918121f9ffc9774b592ee23fea13907c09581ef43c31f07c2"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/2026-09-28-native-tool-blocked.md",
+      "sha256": "dddd7b8784c0c65b7b210589a39154bc718cd450c10ae3aed2f7899e3fc32093"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/2026-09-28-qwen-paint-full-access-blocked.md",
+      "sha256": "a4532ae3635dd0af6749c1841d14ad5fe2a2f2769a19c223d132c145542be15e"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/2026-09-28-safety-and-paint-short.md",
+      "sha256": "7c176bdab98b77a8b0f6c0b03ad8384f591bd09e3a0b90301a638623f9d7b555"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-01-installed-console-after-launch.png",
+      "sha256": "fe08156832c0c9fb00449331a5cdef393739038a053ec94e25a6aa25d55ec5bd"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-02-installed-input-safety-unknown.png",
+      "sha256": "25e8d21fec8a11bb64944c0b148037bff00f271db51131adf066d6a80e62b438"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-03-installed-safety-details-unknown.png",
+      "sha256": "805841e8404ab2301d1b038804e05d610ee28b62b6efe697c8c3f8210edd7d4b"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-04-paint-before-qwen.png",
+      "sha256": "6d3951687ec560903951009ec946bcb42ba4b0709d18d8f41fb90104f4f83a3d"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-05-installed-safety-details-recheck.png",
+      "sha256": "40baa41373df0b2e7cc8f7876f866bcbb16bb8dde91e5d6731ad77b17c734a60"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-06-installed-safety-open.png",
+      "sha256": "19283df2d27894c0ffc45789e5de0138543f78a97e72eaca8427ff0c27baa504"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-07-new-room-cap-error.png",
+      "sha256": "0f9871f46d69734a39e5815a32041531c7619df2641f601694a7ea6f26d38164"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-08-qwen-paint-blocked-full-access.png",
+      "sha256": "4fe675e8d7e189e77918fd3081e8ddde4f48df3d7075877e10d711ef15a46b93"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-09-paint-after-qwen-blocked.png",
+      "sha256": "80083e3c3a0de8434bf4e04bf964f2aeb472b6e8611b069f6ae8ba193de4e670"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-10-paint-after-qwen-blocked-active.png",
+      "sha256": "da9c2b08fa3f10e6bdf7dcbb920fc5c5304fa46a426efab67d40a15f6390efcd"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-11-room-full-access-after-confirm.png",
+      "sha256": "32f4fd320490bf4be1e82a130c9700f34e741e28afc47c6487d8cc20b4c5bf55"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-12-qwen-paint-retry-observation-failed.png",
+      "sha256": "680541ad3574bb27bd006ea19f4d287af052a0684efbdbe2f954b429b453d424"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-13-paint-after-retry-observation-failed.png",
+      "sha256": "1732d6d20b44bd8c588458cfc120fb05d88511ee5276973a02121b2dbf12aa3f"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-14-installed-console-current-full-access.png",
+      "sha256": "03b092fd696a7e930f24b31b0ecebe53d8d5c520e8626b62dd549de359443ca4"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-15-paint-current-blank.png",
+      "sha256": "71c75b56a9be2c5cf922f198cfdf9736bcdf84eeebf0234ea648b4b46987baae"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-16-0.2.27-console-qwen-room.png",
+      "sha256": "b0858a9be6f4e960446e525d9c2c2891bfdc27d70609852eee0493ff3b0906ad"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-17-0.2.27-paint-before-qwen.png",
+      "sha256": "b4ad591dffb175a546b8194bb02189d61d7273ed3e50d7ebbee787c7af0f2377"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-19-0.2.27-console-final-tool-trace-budget-exhausted.jpg",
+      "sha256": "2e201dd47b5abfe00b27f6790005b776087fb245bf916079d284aaa5885c850f"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-01.jpg",
+      "sha256": "bde524d446bc5944a4f7cc60adaadcb2d7182b90a2d8e8192f4cb1d46bdef12c"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-02.jpg",
+      "sha256": "ce4adb768a2b82f964827b006cb7b58fb266e3e3d158392383c3f9e26893dedd"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-03.jpg",
+      "sha256": "2caf5a8e1bfc14a0d6fb7156b1662532d124b1945dc5a320ec1bd0afec2b3dbb"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-04.jpg",
+      "sha256": "3514f1ced8cd6e69ff24bd836ba525d26bde77259826bb4a6dcd1ec5b1e7d003"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-05.jpg",
+      "sha256": "40bec962b89bf8bde8353dd67ec39d132bf863a033d354246a325469e919b357"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-06.jpg",
+      "sha256": "c17a4c74087a7a539d1be6e2f4cba4972e43531bafad91713fb14245abb05dfc"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-07.jpg",
+      "sha256": "8855e12923cc3299e9d60d417d634289703820961632fd5f402e357f69feeaa6"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-08.jpg",
+      "sha256": "e6aea97f15400e3d0a85bae969d8a6aba8e00ca49ad5c373a8380c12ae26d241"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-10.jpg",
+      "sha256": "1dedbedc90e235d9aa66cae20d1ceb81827650fcc3f503fa0f766202dee53654"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-11.jpg",
+      "sha256": "6ac07ca280650dbdc608f79fb9b0499bb4f64f02748da9cfe80df3dc8cdc97e5"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-12.jpg",
+      "sha256": "e2e25f8d46aa168301664e9eb7960d2881d37ac7a1c603453e11048bd5ae44b1"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-13.jpg",
+      "sha256": "47c6fff3014f59fb064902fdf90ce1ee5139b9905357846ca587efc55feafed7"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-14.jpg",
+      "sha256": "d57d10d76a0941609e35c54d1711762d3471d4f466c690be91300b057b65b24a"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-15.jpg",
+      "sha256": "32a9fa22bcb273c0b765bc7553fa95dccd3f89cfb6b2beeae3217610ec217f9a"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-21-0.2.27-startup-after-exposure-16.jpg",
+      "sha256": "3d2bd10bf46ae61f60bf799afdc884127d0aa7a087ce203e61c1b8c628dadac7"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-23-0.2.28-console-final-unobstructed-invalid-verification.jpg",
+      "sha256": "43b362e8348edfc873bbe2077277e97e23390a49043cf50e2e41d06a12f4cf03"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-26-0.2.29-startup-native-01.jpg",
+      "sha256": "51e8ab96db42c6132a051ca38a4eaa2b429ed172208f037444973fddb0ac7433"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-27-0.2.29-startup-native-02.jpg",
+      "sha256": "9f2025c6c5133514ee1d3a24068bedee4d9719cdac21f2f01f807e811cdf3ee4"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-28-0.2.29-startup-native-03.jpg",
+      "sha256": "8fbc6c3eab1710aa4188a03ca425b4bc2a6fbd56382dd33d6a41d834ae877f93"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-29-0.2.29-startup-native-04.jpg",
+      "sha256": "77a168334471db01a6f922ccbbf2bffbd981272959e385e2c8806eb04c91574b"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-30-0.2.29-startup-native-05.jpg",
+      "sha256": "327b28c12acd46ca87e2e11ac119f8cfb26300052fa6f4c9d1b4fe01e0d913c0"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-31-0.2.29-startup-native-06.jpg",
+      "sha256": "aa1ef52f569a52f05ee9e8c1f88fe99d2f7f82678a06c2f8ed954347c66a8b65"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-32-0.2.29-startup-native-07.jpg",
+      "sha256": "4023466fa6603447d77b76d7ee4c18be26d1cb42323f3383c563b651b8532a43"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/B-33-0.2.29-startup-native-08.jpg",
+      "sha256": "91f6dac1ff430b4b42c29e25740ea2586c0129dba911871a21690d22f379686e"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/install-0.2.27-status-2026-09-29.md",
+      "sha256": "5e169b79f3da5c74de4edab7366d24fd2a844145ee4838f85b6800a314e1943e"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/release-0.2.29-handoff.md",
+      "sha256": "c61b4f5cf565c5da15b70b40a6c6bfde48507e7cb2cc4e2fd03c2e348f034079"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/release-0.2.29-native-startup-acceptance.md",
+      "sha256": "675f6d27481611c21dfd21e27c82c660153dc8b4c6430b821de706bb950afdb9"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native-followup/startup-log-diagnosis.md",
+      "sha256": "82a4a15950b6623ae5b161694016a4e61727580bf946d940fa9dfa15a10466cd"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native/00-console-menu-expanded.png",
+      "sha256": "6d808f88b40f55cdd3c16b12af0a31add0a7ffa0cb810c05bf78d68733968481"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native/01-market-initial.png",
+      "sha256": "a47ced1045713b5c76f73401f068c2cfa9efd7c431e84215faf8a764409cae52"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native/02-market-loaded-4377.png",
+      "sha256": "a1c1e799d2a6117482463425d2fe6e0e37340dd2eec82c3cc4cdf8b3c5000445"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native/03-market-search-dsh-memory.png",
+      "sha256": "ded71db85fa0ffd899b9ba88458e5e135eb71c731f9962cd5756516a6a9e926b"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native/04-market-category-browser-web.png",
+      "sha256": "0333ca35755976ed15f0274e6d589348a354daf46d16fdbb949cd93dd4bbd62a"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native/05-market-category-browser-web-results.png",
+      "sha256": "f5512728688e1c7755752d50488bd5482b7719a72c2879e4d1044ac569aa71c9"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/native/06-market-plugin-detail.png",
+      "sha256": "9f0e35214cd4578e11f8fb39008e740ade579139e06b82d976c6d85b54421c72"
+    },
+    {
+      "path": "docs/testing/pr69-browser-market/startup-and-paint-followup.md",
+      "sha256": "65aca4f084eca0d9ea48097a90a628f7fb77310cbb9e6806ebf1f07e74ba6e28"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/01-native-console-before.jpg",
+      "sha256": "c0ed7bef72d397f555ec065f5c880925aa609ec5930ef8cbe6a31882b56aa636"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/02-native-usage-open.jpg",
+      "sha256": "204053064c788eb099df0fe1a13f6d4cb9b8c11bec99b797d52114a7e2b3e457"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/A-01-home.jpg",
+      "sha256": "23c17734a1b34afb2c6e51908ad353831eedc24961c5eb9a689708a90976524e"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/A-02-schedules.jpg",
+      "sha256": "b83ac9379cbfa9ef9429f0ae051cc009dc67d24b0fc6a11704b0485245aa2931"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/A-03-settings.jpg",
+      "sha256": "b5aef90d9558e3adec53a66d65878d8737feaefacab6d2d1175299cc2fcf0091"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/A-04-statistics.jpg",
+      "sha256": "204053064c788eb099df0fe1a13f6d4cb9b8c11bec99b797d52114a7e2b3e457"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/A-05-wechat.jpg",
+      "sha256": "8f51585c316f913ed47169a413c738bf07475325d33ea62972180e11ffa642de"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/A-06-agent-dropdown.jpg",
+      "sha256": "37c795fd0bcca13023b9c2f315fb10d38644ba48ec5c6c9af45f6e39281ec75c"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/A-07-project-dropdown.jpg",
+      "sha256": "9081eacf60a9879b75d228daf9698a5a28c495700950ea3ea9574944cc540c5a"
+    },
+    {
+      "path": "docs/testing/release-0.2.17/evidence-installed/A-08-room-dropdown.jpg",
+      "sha256": "3448123cc2d558677d1f3db011323c514fe352906bbc29ea9764f1755446e559"
+    },
+    {
+      "path": "docs/testing/release-0.2.20/installed-native/00-installed-original-workspace.png",
+      "sha256": "caa7f7c2345cba39e8f6d483eef3d2397f28d3abd5a6e79a5d34f9a33571fb5c"
+    },
+    {
+      "path": "docs/testing/release-0.2.25/installed-native/nav02402-window-restored-retained-clean.png",
+      "sha256": "1d810affa4c4618e1baea22e5fedf67bbc8c74196691bff037b9c2e6f6f7d913"
+    },
+    {
+      "path": "docs/testing/release-0.2.25/installed-native/nav02402-window-restored-retained.png",
+      "sha256": "3332ed6abba0320755362eb6cb63abefa0182074760d4b300e1308520bd60542"
+    },
+    {
+      "path": "docs/testing/release-0.2.27/evidence/build-identity/pkg-report-release-20260929-043045313-1a441fa6/CoolzhuAgent-0.2.27-installer-report.json",
+      "sha256": "ae33c4ca5f2941fb8a6776e6fbb4b786fc49e9845ac071daed5cd38563f48fd3"
+    },
+    {
+      "path": "docs/testing/release-0.2.27/evidence/build-identity/pkg-report-release-20260929-043045313-1a441fa6/package-report-files.json",
+      "sha256": "c66bf937c1a31511801398d00729e537f05ecf79c81f866108047f233529a73f"
+    },
+    {
+      "path": "docs/testing/release-0.2.27/evidence/build-identity/pkg-report-release-20260929-043045313-1a441fa6/package-report.json",
+      "sha256": "00ec8a00c8ff0e389fc0330ad1d4a24e113f42a96b6794dc246c67d6f93490db"
+    },
+    {
+      "path": "docs/testing/release-0.2.27/evidence/build-identity/pkg-report-release-20260929-043045313-1a441fa6/payload-inventory.json",
+      "sha256": "86d72db2c2031d98b9e7c7bfd63451017b3657d50ce0fe932fd82bf07ddafb8c"
+    },
+    {
+      "path": "docs/testing/release-0.2.28/evidence/build-identity/pkg-report-release-20260929-143536352-33856bab/CoolzhuAgent-0.2.28-installer-report.json",
+      "sha256": "4f84ec3e22b02f394b468b85284a44909d8830e7ed7e81aaa7fd1dcbe1499391"
+    },
+    {
+      "path": "docs/testing/release-0.2.28/evidence/build-identity/pkg-report-release-20260929-143536352-33856bab/package-report-files.json",
+      "sha256": "4b1a68beb5f5f25e33668562e117b8bfc8a53144e9aa8ccd527e9dbcb340e7ad"
+    },
+    {
+      "path": "docs/testing/release-0.2.28/evidence/build-identity/pkg-report-release-20260929-143536352-33856bab/package-report.json",
+      "sha256": "18fde832b2ae8eb61a12141718464aabdaa012e2ee891b451c4db5d88e44cca4"
+    },
+    {
+      "path": "docs/testing/release-0.2.28/evidence/build-identity/pkg-report-release-20260929-143536352-33856bab/payload-inventory.json",
+      "sha256": "d8050766994356d3ff0ae8e5e6bd51c17617f0571da2708e8a56f5adc2b9b8b7"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/evidence/build-identity/pkg-report-release-20260930-002708950-3492c2f4/CoolzhuAgent-0.2.29-installer-report.json",
+      "sha256": "d6711cdca6e2e2b9a6ff16cbbaab4ca0e5ef00a5f4198964ff5efcfa8f658d35"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/evidence/build-identity/pkg-report-release-20260930-002708950-3492c2f4/package-report-files.json",
+      "sha256": "2c6e3931c0d62b5dc8be076313a4f6a1fbffd2112fa5da588f8c85eb8099895c"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/evidence/build-identity/pkg-report-release-20260930-002708950-3492c2f4/package-report.json",
+      "sha256": "034d981d2dc26ab9113037b5afb1e444d3cea2ed5d677fc60a86d518fda486cc"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/evidence/build-identity/pkg-report-release-20260930-002708950-3492c2f4/payload-inventory.json",
+      "sha256": "7adda9d1dbcb25538afef15299c26c6d31f1cc58055aed410e992815760e1751"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/01-browser-a.jpg",
+      "sha256": "a2a7c2d7731e43cfd39f65158ce49c3557d07c630f70945f8c471c314b618698"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/02-browser-after-target-blank.jpg",
+      "sha256": "9fae44af623499c7190dc67d31a6b5437848ecdd6ad73a720f8d089b3f8d4ee7"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/03-browser-window-open-c.jpg",
+      "sha256": "300b98d8162552e1b14e75b12ec5dfb2446cda93ee32f5689180ee5775739a8f"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/04-browser-diagnostic-window-open.jpg",
+      "sha256": "f134952357d9588e824d8ac17b0adef5edb4915a13165c351bd5380404f831ea"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/05-anchor-trusted-prevented.jpg",
+      "sha256": "cc092676fe0c0fd22fd7858094b73506753d9f514d06097b28d11bb2ef597b01"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/06-anchor-opener-prevented.jpg",
+      "sha256": "162cbe0838122da564228f096d6725df0aebf76026429fbf0c6517f692f29a92"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/07-named-window-c.jpg",
+      "sha256": "5f25793dfaf84841f95860db65adba8ecea3c7ba32c0757bb0b1f9645b3c1391"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/08-market-real-directory.jpg",
+      "sha256": "acc8ef133242a57c494581b648a1652ee0e4e1748aa717717c5f7e8594a8437d"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/09-market-mcp-search.jpg",
+      "sha256": "c7a70ef6ffc859b1ed6b3c8ab1497340845632be879ead7a3021b3c0167f4288"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/10-market-detail.jpg",
+      "sha256": "140dd4faad224922258637cfebc8357fc65ab227fae0e083df7de28c09388e7e"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/11-market-compatibility-result.jpg",
+      "sha256": "1296bcfc54125425d9d1297d3daf3e316b9e6f566d4fc6bc4c38a892879a4d76"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/candidate-animation/01-native-frame.jpg",
+      "sha256": "d52279493ebcf33b6eebac4795832a993e2494ffd0827e46f1cc74ef3008869e"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/candidate-animation/02-native-frame.jpg",
+      "sha256": "ed7d2b2252f55befa8f9ad1e44980d88e124e2442107ad288856beb4e9bd7b1b"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/candidate-animation/03-native-frame.jpg",
+      "sha256": "393ba030bd0b059ce0919bf3c9976951d30b23ec749e537c13c9cbc4721bb1f0"
+    },
+    {
+      "path": "docs/testing/release-0.2.29/regression-20260930/candidate-animation/04-native-frame.jpg",
+      "sha256": "c986193641bcfe361851fde143eda491e0555bdd6a192e92cb20e142eb028269"
+    },
+    {
+      "path": "docs/testing/release-0.2.30/evidence/build-identity/pkg-report-release-20260930-044637174-6e5f15f7/CoolzhuAgent-0.2.30-installer-report.json",
+      "sha256": "56fa720038aa4387ef0135a81aef01351cd62013dfbbd440d54a3e5664b9b7fd"
+    },
+    {
+      "path": "docs/testing/release-0.2.30/evidence/build-identity/pkg-report-release-20260930-044637174-6e5f15f7/package-report-files.json",
+      "sha256": "e5906f6c8f521d76d2de7ce67468bf2855917d6d93f0316d9f4b4d82a83f4d54"
+    },
+    {
+      "path": "docs/testing/release-0.2.30/evidence/build-identity/pkg-report-release-20260930-044637174-6e5f15f7/package-report.json",
+      "sha256": "61f17edbac6116ff3b1a2afb4bec1245cbc1528a99c7a7bfb67e7fda2c9151f4"
+    },
+    {
+      "path": "docs/testing/release-0.2.30/evidence/build-identity/pkg-report-release-20260930-044637174-6e5f15f7/payload-inventory.json",
+      "sha256": "66cfeb856c8b755eeff694e0f24a741d80e3437edcf941e50229423a674b3488"
+    },
+    {
+      "path": "docs/testing/release-0.2.37/candidate-joint/browser-read-q/01-native-browser-before-q.png",
+      "sha256": "66b266d90427170a02909c75fa8994b7f5c355251229eb6593aa4be663be4805"
+    },
+    {
+      "path": "docs/testing/release-0.2.37/candidate-joint/browser-read-q/02-native-browser-after-r.png",
+      "sha256": "7663637ec5c1bc379ecdb1843db9d7bcc482fb8df2e99663eec63f8e94f208a8"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/change-report-and-targeted-test-plan.md",
+      "sha256": "ba713ac7174bba70db964eba9333c1a4600282bbb01d9b02693dfa8f3e92db8c"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/build-identity/pkg-report-release-20261002-163334775-4f4d550d/CoolzhuAgent-0.2.64-installer-report.json",
+      "sha256": "87dfab09cb899b7d523700423faa5bc1a4b3fb05ee581d8e1492f673bbd52679"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/build-identity/pkg-report-release-20261002-163334775-4f4d550d/package-report-files.json",
+      "sha256": "6e4993ca1624c4be6d200225af9d1326c25bf5ac4a9e0846d73360b2bc82b8ca"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/build-identity/pkg-report-release-20261002-163334775-4f4d550d/package-report.json",
+      "sha256": "1671471f06e67fb03ab03a5642f6c03548a39cc025613eb38a4ee3945ccd2124"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/build-identity/pkg-report-release-20261002-163334775-4f4d550d/payload-inventory.json",
+      "sha256": "c681a868cab05686ed12295edff31dc00b443048dca647b0c28b95865053a436"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/archive-evidence.py",
+      "sha256": "dbaabd8c93706d6269146b097ca42fdece9451f4de1055219314111f85b84fb4"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/archive-first.txt",
+      "sha256": "61cfcd01958d82068e77d9a20aeb56e25cd98ad002604ebdd7a0561678735f55"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/baseline.json",
+      "sha256": "40a812209b4d861e0f38f9ed7fa2ed9e0e8f6f05a42cee95d886af77f0200aad"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/build-candidate.ps1",
+      "sha256": "40d86ab8b2d2de7e583269fe93db62b589b2a896aa484a9e90d113fbb4914703"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/build-outcome.json",
+      "sha256": "d9fc41b4429096244b67c9f2923063df96633e483de40ffb85dee1f63f81a9b1"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/build.txt",
+      "sha256": "365d7920153c3bbff1b81a804dca219e2fe553c0fcc1285e00a4ee694f59a8b1"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/candidate-package-manifest.json",
+      "sha256": "ed315514fb6d99198fc1da500a0fc604bfac7a0aba23b5221564ab1f2da54d6e"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/change-report-and-targeted-test-plan.md",
+      "sha256": "ba713ac7174bba70db964eba9333c1a4600282bbb01d9b02693dfa8f3e92db8c"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/dsh-runtime-lock.json",
+      "sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/evidence-index.json",
+      "sha256": "784eda673c582f4c2616d4f8d2a731c0f82bef39cb6d370510a6fcfaa985ec2a"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/expand-1.txt",
+      "sha256": "5fd8b2269f61754b597cd946a5221d83477bcb6548d759f5df4a240ec94edab3"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/expand-2.txt",
+      "sha256": "a48b0c65498e4ab89740653ae9b841cf4a8c8023bb1c414b3f1b97f9b9e5d8c2"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/expand-3.txt",
+      "sha256": "e3ccf8a17c7c1fc1cf61ce516d466f5e214b5f73178c3c368e89702de5a7baad"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/extracted-runtime-verifier.txt",
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/final-checks.json",
+      "sha256": "ebfc0f5a85f1ca4ce6b4520d11c55ab655d8667578d5e2de72a677bcc4c7ee1c"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/incident-executor-readonly.json",
+      "sha256": "4f1d52e67ef59232c0d1b4b20ed05473dbeebfdc1c209ba421feb7420d35d7fe"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/index-source.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/input-freeze.json",
+      "sha256": "9c5fb64544b8194070459d5e612c7875434819e5a55c2d15600301243273876a"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/inspect-msi.py",
+      "sha256": "290d90bbe3f5f49347d777169abc08d3ead7259937a4e1f6cec39d3b875fe8ec"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/installed-hashes-readonly.json",
+      "sha256": "d03b5725111d96f79dae6d52cd0e571b6d9f8e950db93349d791679966a9c6f7"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/installed-readonly.json",
+      "sha256": "cbd92745493d8d8f60950c2c04437ba775e8b04908a491765912bc01159f9951"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/installer-report.json",
+      "sha256": "87dfab09cb899b7d523700423faa5bc1a4b3fb05ee581d8e1492f673bbd52679"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/manifest-contract-final-outcome.json",
+      "sha256": "48affc1f35a02bc41eb7d153db95655b77b3038c681a495daa924888aaa3c0fd"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/manifest-contract-final.txt",
+      "sha256": "a2e0d02012fa2f0b7410107c21216bff00cd83f9d1716d6e8d6295d8b68e57d4"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/manifest-override.json",
+      "sha256": "9787a2f0dc998e987eaafeae526a4e1ae89b2fae6e4f509a7991fe7acfd34a6d"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/offline-inspection-final.txt",
+      "sha256": "9970b179a16cf4d19d7f4e68c9f859c6e76c7b65a5fc7d9191b596e292c218a9"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/offline-inspection-first.txt",
+      "sha256": "2c04bfd2e140434945367f8fb3f9034e50be385eefe02620ef3ff52bb58fd96d"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/offline-msi-verification.json",
+      "sha256": "f33fed1fcdcfc0f503a17b305b1a2542c54e648d61dcdbf1b754e013a5ae9401"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/package-pointer.json",
+      "sha256": "f53a3b9d65ceb8846b8681b783336d30aa8af220a87df38ef40805b3722446d4"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/package-report.json",
+      "sha256": "1671471f06e67fb03ab03a5642f6c03548a39cc025613eb38a4ee3945ccd2124"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/package-safety.json",
+      "sha256": "238efd1444164a71a4a466f23cf15d8cc85844d47863e43c53c2764a56c1664b"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/payload-inventory.json",
+      "sha256": "c681a868cab05686ed12295edff31dc00b443048dca647b0c28b95865053a436"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/prepare-candidate.py",
+      "sha256": "b88254b4d0e779e62518845fe1038df13fb8b4a6ecd6584138f0d3ce21c6147d"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/prepare-outcome.json",
+      "sha256": "ebe6f5febfa541d2f9e004253deb5718317bf3ae140f89486c2fee32f4c96b79"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/prepare-pointer.json",
+      "sha256": "e0eea74be490bf43710f2960e4076b5a2eb5510c5577c18e9024070220d2c087"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/prepare-report.json",
+      "sha256": "7df8d66daf4e73dfae7b68c89701d34413d3d90d8bf884e132d58577da6cb5d6"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/prepare.txt",
+      "sha256": "c27881aa66e191b8290fe91f9b68a0d06a98ef0ef9d5a064245504a6a159a84a"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/runtime-files.json",
+      "sha256": "1c0cbe1b79e8bd59898681e3207472a337f099766c9daa573f4c846dfd896ed4"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/source-runtime-verification.json",
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/source-snapshot-freeze.json",
+      "sha256": "5c264aa1a634a281404f7bd6160d0710be96d4cf9b84d6d050c91558136258c8"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/config/package-manifest-0.2.64-candidate.json",
+      "sha256": "ed315514fb6d99198fc1da500a0fc604bfac7a0aba23b5221564ab1f2da54d6e"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/gui-web/packages/web-console/examples/dsh_install_activation_probe.rs",
+      "sha256": "3322333bbc03f8ef9211b65f022d9a7df38a3573255732dcd1284fd45653f5d2"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/gui-web/packages/web-console/examples/dsh_source_resolution_probe.rs",
+      "sha256": "6a2961b2b61b7415dfe74b2c4d0ebb49a6a703624ced20978b2abeea287eaa74"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+      "sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/gui-web/packages/web-console/src/dsh_execution.rs",
+      "sha256": "1f5de2ce32d5a304e44f8ba83307312538cdfeb0ecb07dd48c6ccfbac270c3ce"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+      "sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+      "sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/gui-web/packages/web-console/src/dsh_web.rs",
+      "sha256": "9d33b194ceaf3cc739e65472f8f40c69c25e69357b85b579d6e60a517c9b2ab3"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/gui-web/packages/web-console/src/dsh_web_tests.rs",
+      "sha256": "68c1d6393d1da5c1d065510d8fa5ff09f256f86073d5269dd7891102e1cc522a"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/untracked-source/modules/tooling/packages/plugin-system/src/dsh_activation.rs",
+      "sha256": "a93daa8bb8df34572250c4c39c3433a45e25df24d4c09df239061d604376d791"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/work-log.md",
+      "sha256": "2c5756f041c9866360dbe2a4d6bf3c414f12e7335bd155cd52ab9d0e3cbfdcb2"
+    },
+    {
+      "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/working-tree-source.patch",
+      "sha256": "a43e9bb124f7ae6511ed27fa4f46f1e94c5e77d0935caf53c25fd71482f5bbaf"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/change-report-and-targeted-test-plan.md",
+      "sha256": "06f6e6880caf72f69b1ce9c99f69b5c9ca5cd8453a68b9b1fe255375d80a302a"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/build-identity/pkg-report-release-20261002-193445262-4b3afcd6/CoolzhuAgent-0.2.65-installer-report.json",
+      "sha256": "25a0d0f9d1214932efdeec7fe8b5fcb53c66a1e6ca6c00bb19f3cc43c8de8ab9"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/build-identity/pkg-report-release-20261002-193445262-4b3afcd6/package-report-files.json",
+      "sha256": "6cc0127700f2779e13f6cfe2f897c32aeab9278fd43e5b9dbce1278b07826d9d"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/build-identity/pkg-report-release-20261002-193445262-4b3afcd6/package-report.json",
+      "sha256": "6233383f91fe09ad5cf73c2f99f187beacf1c7e8405ccbcfa7507cd55a0e7a93"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/build-identity/pkg-report-release-20261002-193445262-4b3afcd6/payload-inventory.json",
+      "sha256": "f78f7fe8e2d8f90d47e3a8278581abb9308375b99dd8677b69ecd2747a5f2165"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/build-input-freeze.json",
+      "sha256": "cfbd630741b1a637278b4ce241552064569d97c4f99a2e70965edba3ee5a038c"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/build-outcome.json",
+      "sha256": "72e98ca617fb4315693b8ddb631001cba418fc111b8b0168bdcfd68c352703bc"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/build.txt",
+      "sha256": "d8468e59135cfcb92f1e6f86a3ddfc594f8ed6b281f8c13052396c7b11c01631"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/candidate-manifest.json",
+      "sha256": "d5acd871a014f50c0fd137a1f740bb34fc955d453a032b7b706900feeb7bd8d1"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/dsh-runtime-lock.json",
+      "sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/extracted-runtime-verifier.txt",
+      "sha256": "34b14c4089b8ec7ed6fae1b6a7e6551a0c916e45679d87d9f77947f940f44322"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/index.json",
+      "sha256": "bc591ae72c7cb14855617cbb449e259de56d0b346a96901240988607033db08c"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/installer-report.json",
+      "sha256": "25a0d0f9d1214932efdeec7fe8b5fcb53c66a1e6ca6c00bb19f3cc43c8de8ab9"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/manifest-and-test-binding.json",
+      "sha256": "76077456b39da877a679d818e71b0995254601cfd1e5415595a7929ac2f38cb2"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/manifest-contract.txt",
+      "sha256": "a2e0d02012fa2f0b7410107c21216bff00cd83f9d1716d6e8d6295d8b68e57d4"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/offline-msi-verification.json",
+      "sha256": "6e5d3791bf4ba5a0e35ec47209afa93527f7b6acb1af92e832cafb553557bf4d"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/package-pointer.json",
+      "sha256": "0aed3d06356c0083b6c1cdaae03c2a824b4fbee61882d91e61fa2ebdca0a3563"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/package-report.json",
+      "sha256": "6233383f91fe09ad5cf73c2f99f187beacf1c7e8405ccbcfa7507cd55a0e7a93"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/package-safety.json",
+      "sha256": "6fc42a8b95c87d9b98c68d7ece38edbab7de57414f01bbf2f6fb441f0ff41133"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/payload-inventory.json",
+      "sha256": "f78f7fe8e2d8f90d47e3a8278581abb9308375b99dd8677b69ecd2747a5f2165"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/prepare-outcome.json",
+      "sha256": "7a70b0ec2230049349fd24acd4de333ce84b8b24b53b1bab7c42b52abdfb60ac"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/prepare-pointer.json",
+      "sha256": "82b33db6bfc626bf880109ba384e64d551e317cf4785d9e860899c67239cc0fd"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/prepare-report.json",
+      "sha256": "bc782e4e9a2843f24ec1787e4298d852c58db251447b2e3110dd3cd4af249d3d"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/preservation-verification.json",
+      "sha256": "1c40559252b1cfeecff937ebc036e0cfc80f278b743fcfdcc273a4f15a0b4232"
+    },
+    {
+      "path": "docs/testing/release-0.2.65/evidence/source-snapshot.json",
+      "sha256": "a9dbf1aa5e1d655da7e4b891a265d98aac6627a4c05f77d19556de68e2a99da8"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-browser-candidate-0.2.65.md",
+      "sha256": "ddff84d0a91dcb6747bd444b258b55b93dc910c71499fb49d6075d4d14078f9a"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-browser-input-deadline.md",
+      "sha256": "4a0b0f13e2b581bbf62922f578853f592129f7da609173bc0cb5d7c6945607f6"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-browser-lifecycle-aggregate.md",
+      "sha256": "f48c4ba3a3721d45cae3bf0165239c5d89d88c9b7119fea6c1bfa93768ee90a7"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-browser-use-cu-startup-diagnosis.md",
+      "sha256": "2841d0b35c788f21a21b8c26d6cb9029f82be9a5d3ac64663a4e745617808555"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-independent-boundaries.md",
+      "sha256": "c8cc01aa3b961661e7c746f427c633f1b719e838fe31f7a43afa3cea96f682c0"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-local-session-dsh-install-activation.md",
+      "sha256": "7c614633ec86f893ceab390d64b4bdb964ad117bdd35f5f96c6754c6ff48d2a5"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-local-session-dsh-msi-candidate.md",
+      "sha256": "2c5756f041c9866360dbe2a4d6bf3c414f12e7335bd155cd52ab9d0e3cbfdcb2"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-local-session-dsh-source-resolution.md",
+      "sha256": "68a91c7da4f1d31a77d4faed8c7fd5ba244ca2efefacc5ebc17ab1b85bf828ff"
+    },
+    {
+      "path": "docs/work-logs/2026-10-02-local-session-dsh-web-dispatch.md",
+      "sha256": "08ea9ee53ef4421442089ad2ec014321fb077731007775c9603a70eacc3a89c7"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/src/dsh_host_process.rs",
+      "sha256": "bed703e4139dcf6de69bc6fa561c7a96bb0a813833ceb4dbfb177f862fd14618"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/src/dsh_runtime.rs",
+      "sha256": "3f00a603c1c8088badd1d81523be53e1eb6bf09d2755119e7a58f288782d3f84"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/src/managed_process.rs",
+      "sha256": "9074dc979bb47c1851cff7c4563feb1cf2f531fefa38ee652ed826657a5c07e4"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/tests/dsh_deadline.rs",
+      "sha256": "9656728211bef6024383777d7ca13ba682108c7529fda4ed428c70229710b745"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js",
+      "sha256": "fe4d3565c557656b8e63b46e9b2c4ab6edab5f98916980838120a48e62af9c46"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md",
+      "sha256": "48dabf0bff35926073325671b1f021d57eb44f5200a86e41301cd0213650759f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js",
+      "sha256": "b6c369e5dcfa223ad0d2128f097a0b20a25132596f690c86e2a00d52778c0585"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs",
+      "sha256": "8e61b315189b65b94bc95de3f89d5ee5e5086d6f06c626d010e438d9fc7e2379"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/examples/dsh_install_activation_probe.rs",
+      "sha256": "3322333bbc03f8ef9211b65f022d9a7df38a3573255732dcd1284fd45653f5d2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/examples/dsh_source_resolution_probe.rs",
+      "sha256": "6a2961b2b61b7415dfe74b2c4d0ebb49a6a703624ced20978b2abeea287eaa74"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/app.js",
+      "sha256": "67a46317f4338ccf729ae1ed4d9e13bcf3356edef15c81a74cab2831faa53e2b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_executor.rs",
+      "sha256": "a02a31563d3a3945a9aa95a54db054116ec649a2a048f9fe59af714ebac36c49"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+      "sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_execution.rs",
+      "sha256": "1f5de2ce32d5a304e44f8ba83307312538cdfeb0ecb07dd48c6ccfbac270c3ce"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+      "sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_market.js",
+      "sha256": "9ed7d6bc46ab3f6b09fad881529e22e5453335235d3190c8adf33e916d2be6e9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+      "sha256": "919b7e102ec772b2390a6204086ce4742310ed5a9388c98750dd33a72f05592c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+      "sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+      "sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_web.rs",
+      "sha256": "9d33b194ceaf3cc739e65472f8f40c69c25e69357b85b579d6e60a517c9b2ab3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_web_tests.rs",
+      "sha256": "68c1d6393d1da5c1d065510d8fa5ff09f256f86073d5269dd7891102e1cc522a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/extension_market.rs",
+      "sha256": "2f665a5220c08fe8bc156813d4f88ef623fc76a6e5f43b43e4e0a32e5f33796a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/host_child_agent.rs",
+      "sha256": "c55c1502e2198b62011c6566c5525cca2842f3281add53529a3425240d02ccc5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/main.rs",
+      "sha256": "e08fa4e6feeb5a185d742e7103b87bfac550d05e66b44693e1ca74817ba1645b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+      "sha256": "5673b2629bca8266e851fbffd902963bb9a88ad4a4da9084c30ff2578d258b49"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/plugin_runtime.rs",
+      "sha256": "cde860b63ea79821f43083d8d82aea02dedab5b95a1f1abca2bf8dc567d6bab4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs",
+      "sha256": "568670e90f7d838396758bf8572e95c232d1872381d0f9ba63e7e7b3cf1271f0"
+    },
+    {
+      "path": "modules/tooling/packages/plugin-system/Cargo.toml",
+      "sha256": "273ceb5c9a67e6cf0145fc018672be87d348af2c5fed2649ca57d063108ea592"
+    },
+    {
+      "path": "modules/tooling/packages/plugin-system/src/dsh_activation.rs",
+      "sha256": "a93daa8bb8df34572250c4c39c3433a45e25df24d4c09df239061d604376d791"
+    },
+    {
+      "path": "modules/tooling/packages/plugin-system/src/dsh_package.rs",
+      "sha256": "2421fe593d905a64aa3403157bbd7187766c7c9ae77e58dc2604da80fcd7ea1b"
+    },
+    {
+      "path": "modules/tooling/packages/plugin-system/src/install_transaction.rs",
+      "sha256": "3350c31afd83165822f17d8130fc3d01b1c7c3a549506f38d25e03c9b2423912"
+    },
+    {
+      "path": "modules/tooling/packages/plugin-system/src/lib.rs",
+      "sha256": "2c9684adffb309ece33b2e8bdf33dc4b3d47374cb8148bf5dbe1ce253cb5ab84"
+    }
+  ],
+  "source_delta_from_065": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js",
+      "before": "6a4980a3c7a18e1989f1ed21db23b8783bfc1be0c652dcc30467c399597a25e1",
+      "after": "fe4d3565c557656b8e63b46e9b2c4ab6edab5f98916980838120a48e62af9c46"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md",
+      "before": "543a117a43e68c925926d7d24585905552c6f10ac2a313bd312864b1ee205ca8",
+      "after": "48dabf0bff35926073325671b1f021d57eb44f5200a86e41301cd0213650759f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js",
+      "before": "d6c81f1e2113f8a024ed43817ff0290f81760813f22c749691a6e96a44ef138f",
+      "after": "b6c369e5dcfa223ad0d2128f097a0b20a25132596f690c86e2a00d52778c0585"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs",
+      "before": "354452f55e0d14eb31d6dc8fbcfe234d0c87a5e284f10bd2c93409324ec862fc",
+      "after": "8e61b315189b65b94bc95de3f89d5ee5e5086d6f06c626d010e438d9fc7e2379"
+    }
+  ],
+  "latest_test_sources": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/coolzhu-seven-letter-bridge.js",
+      "sha256": "fe4d3565c557656b8e63b46e9b2c4ab6edab5f98916980838120a48e62af9c46",
+      "candidate_0_2_65_sha256": "6a4980a3c7a18e1989f1ed21db23b8783bfc1be0c652dcc30467c399597a25e1"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js",
+      "sha256": "b6c369e5dcfa223ad0d2128f097a0b20a25132596f690c86e2a00d52778c0585",
+      "candidate_0_2_65_sha256": "d6c81f1e2113f8a024ed43817ff0290f81760813f22c749691a6e96a44ef138f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs",
+      "sha256": "8e61b315189b65b94bc95de3f89d5ee5e5086d6f06c626d010e438d9fc7e2379",
+      "candidate_0_2_65_sha256": "354452f55e0d14eb31d6dc8fbcfe234d0c87a5e284f10bd2c93409324ec862fc"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.contract.md",
+      "sha256": "48dabf0bff35926073325671b1f021d57eb44f5200a86e41301cd0213650759f",
+      "candidate_0_2_65_sha256": "543a117a43e68c925926d7d24585905552c6f10ac2a313bd312864b1ee205ca8"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/tests/dsh_deadline.rs",
+      "sha256": "9656728211bef6024383777d7ca13ba682108c7529fda4ed428c70229710b745",
+      "candidate_0_2_65_sha256": null
+    }
+  ]
+}

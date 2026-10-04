@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "kind": "package-preparation-record",
+  "report_status": "prepared",
+  "run_phase": "prepare",
+  "run_id": "pkg-run-release-20261003-025954385-2d95ead6",
+  "generated_at": "2026-10-02T19:00:08.7616354Z",
+  "configuration": "release",
+  "manifest": "config/package-manifest-0.2.66-candidate.json",
+  "manifest_sha256": "a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+  "generated_by": "scripts/package-all.ps1",
+  "release_eligible": false,
+  "release_eligible_note": "准备阶段不产出可发布包，因此本记录**不是**发布收据；它只回答\"依赖是否解析成功、生成了哪些配置、冻结了哪些输入、哪些输入发生变化\"。",
+  "refusal_category": "",
+  "dependency_resolution": {
+    "command": "cargo metadata --format-version 1 --locked --offline",
+    "mode": "read-only-locked-resolution-check",
+    "working_dir": ".",
+    "exit_code": 0,
+    "stdout_log": "tmp/logs/prepare-cargo-metadata-20261003-025959315.json",
+    "stderr_log": "tmp/logs/prepare-cargo-metadata-stderr-20261003-025959316.log",
+    "stderr_summary": "",
+    "failure": null,
+    "lockfile_modified_allowed": false,
+    "note": "准备阶段负责解析/更新依赖；正式构建阶段一律 --locked --offline，锁文件在构建期被改写即失败（不设白名单）"
+  },
+  "cargo_lock_semantics": {
+    "prepare": "解析/更新依赖：默认只做只读解析核对（cargo metadata --locked --offline）；确需更新锁定内容时必须显式 -UpdateDependencies",
+    "build": "正式构建：--locked --offline（等价 --frozen：锁定 + 离线）；锁文件在构建期被改写即失败",
+    "no_whitelist": "--locked 在需要改锁文件时失败；本流程不提供\"构建中改锁文件\"的白名单"
+  },
+  "generated_configs": [],
+  "changed_paths": [],
+  "changed_paths_rule": "准备阶段的\"展示变化\"：逐路径给出前后摘要与发生阶段（prepare）",
+  "freeze": {
+    "path": "tmp/package-freeze/package-input-freeze-release-2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f.json",
+    "content_sha256": "37c08ae6f33990986853e98a80e72d16336e0b92b76e09015d0e39d7494609c9",
+    "freeze_id": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "reused_existing_record": false,
+    "pointer_path": "tmp/package-freeze/latest-release.json"
+  },
+  "frozen_inputs": {
+    "freeze_id": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "source_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "build_input_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "frozen_input_count": 48,
+    "generated_config_count": 0,
+    "derived_outputs": [
+      {
+        "path": "tmp/package-consume/pkg-run-release-20261003-025954385-2d95ead6",
+        "generated_by": "scripts/package-all.ps1 (PKG-L07c consumption staging)",
+        "reason": "本次打包消费导出产物时的独立 staging：产物先复制到这里并复核内容身份，报告只从本次固定消费收据生成",
+        "within_declared_output_root": true
+      }
+    ],
+    "changes_accepted": false
+  },
+  "gates": [
+    {
+      "gate": "dependency_resolution",
+      "result": "pass",
+      "evidence": "cargo metadata --format-version 1 --locked --offline",
+      "note": ""
+    },
+    {
+      "gate": "generated_configs",
+      "result": "pass",
+      "evidence": "生成式配置 0 个（生成后计入冻结输入）",
+      "note": ""
+    },
+    {
+      "gate": "input_changes_confirmed",
+      "result": "pass",
+      "evidence": "变化 0 处（changes_accepted=False）",
+      "note": ""
+    },
+    {
+      "gate": "input_snapshot_frozen",
+      "result": "pass",
+      "evidence": "freeze_id=2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+      "note": ""
+    }
+  ],
+  "reasons": [],
+  "next_phase": "正式构建阶段：用 -FreezeRecordPath <本记录引用的冻结记录> 消费冻结输入；任一声明输入改变即拒绝发布",
+  "report_identity": {
+    "schema": 1,
+    "report_id": "pkg-prepare-release-20261003-030008754-fddfaf6e",
+    "content_sha256": "b7d5f8825edaf4ef9da39543d417eb2696c19abd7810b1707c671b51207b0bcc",
+    "content_hash_algorithm": "sha256",
+    "content_hash_scope": "canonical sorted leaf paths; report_identity.content_sha256 excluded",
+    "generated_by": "scripts/package-all.ps1",
+    "report_path": "tmp/package-reports/prepare/package-prepare-release-20261003-030008754.json"
+  }
+}

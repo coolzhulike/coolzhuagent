@@ -1,0 +1,82 @@
+{
+  "checked_at_utc": "2026-10-02T11:13:01.811364+00:00",
+  "branch": "codex/cu-preinput-followup-20260930",
+  "head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "production_source": {
+    "file": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+    "sha256": "5673b2629bca8266e851fbffd902963bb9a88ad4a4da9084c30ff2578d258b49"
+  },
+  "artifacts": [
+    {
+      "file": "regression-before.txt",
+      "size": 24029,
+      "sha256": "661ec363eb24d8d54f60e83a7d306fac754ff95594d503cbbf3d36d5b44b52fd"
+    },
+    {
+      "file": "tests-after.txt",
+      "size": 22874,
+      "sha256": "e1d91318682610e07bd4dc0de9b174c5a2251a9fc91e7a7c20bb71ed9eabda3f"
+    },
+    {
+      "file": "build.txt",
+      "size": 46758,
+      "sha256": "d9232545ebce4fbea584aad3b79fd631bf5fe2d5a3906f45b73ebf0d9d34ec8a"
+    },
+    {
+      "file": "change.patch",
+      "size": 10531,
+      "sha256": "2fb352581274f73ad933393a1f4de46aca7137e80813383f5cfef0f9574615e7"
+    },
+    {
+      "file": "regression-fixture-before-guards.rs",
+      "size": 17873,
+      "sha256": "49b6a23801dc306b5e13c93cd7b2fccf0bce9d6229722225e0c1234ff7e26e60"
+    }
+  ],
+  "regression_before": {
+    "exit_code": 101,
+    "passed": 0,
+    "failed": 2,
+    "note": "已加入期限字段与测试、未加入两个入口期限拦截；fixture归档以便核查"
+  },
+  "build": {
+    "exit_code": 0,
+    "offline": true,
+    "seconds": 29.63
+  },
+  "tests_after": {
+    "exit_code": 0,
+    "passed": 6,
+    "failed": 0,
+    "filtered_main": 1303,
+    "filtered_lib": 8,
+    "filtered_host": 1,
+    "new_tests": 4
+  },
+  "original_incident_files_unchanged": true,
+  "prior_25_source_changes": [],
+  "config_unchanged": true,
+  "packages_unchanged": [
+    {
+      "file": "dist/CoolzhuAgent-0.2.63.msi",
+      "sha256": "91c9a256505bda4c6575788e50ed426b594db8cf2e6ce6a9c2b94a8a7d923de3",
+      "size": 247020925
+    },
+    {
+      "file": "dist/CoolzhuAgent-0.2.64.msi",
+      "sha256": "16052ec401960181853c5b02775e849185e225e70b11f8872a798a4e5d06688b",
+      "size": 275626523
+    }
+  ],
+  "real_ui_actions": 0,
+  "model_requests": 0,
+  "installed": false,
+  "limitations": [
+    "真实WebView关闭/取消与释放时序未验收",
+    "真实GUI导航未验收",
+    "Qwen与Paint未验收",
+    "未运行全套测试"
+  ],
+  "report": "docs/analysis/2026-10-02-browser-input-deadline-review.md",
+  "report_sha256": "e9d5ed3ba6d2028b13fa0a78094292abff7d992958c6bb10fd641585a5570fa7"
+}

@@ -48,17 +48,20 @@
   }
 
   function showDetail(item, detail) {
-    document.querySelector('[data-role="dsh-market-detail"]')?.remove();
+    document.querySelector('[data-role="dsh-market-detail"]')?.dispatchEvent(new Event("dsh-market-close"));
     const overlay = element("div", "", "tool-detail-modal dsh-market-modal");
     overlay.dataset.role = "dsh-market-detail";
     overlay.dataset.workspaceKey = workspaceKey();
+    const sourceAbort = new AbortController();
+    const closeDetail = () => { sourceAbort.abort(); overlay.remove(); };
+    overlay.addEventListener("dsh-market-close", closeDetail);
     const card = element("div", "", "tool-detail-card dsh-market-detail-card");
     const heading = element("header", "");
     heading.append(element("strong", item.name || item.id));
     const close = element("button", "关闭");
     setWuxiaIconOnly(close, "stop", "关闭插件详情");
     close.type = "button";
-    close.addEventListener("click", () => overlay.remove());
+    close.addEventListener("click", closeDetail);
     heading.append(close);
     card.append(heading);
     card.append(element("p", `${item.owner || "作者未知"} · ${item.version || "版本未提供"} · ${(item.categories || []).join("、") || "未分类"}`));
@@ -72,7 +75,7 @@
       open.addEventListener("click", async () => {
         open.disabled = true;
         try {
-          overlay.remove();
+          closeDetail();
           openChatToolWindow("browser");
           const input = document.querySelector('[data-role="browser-window-input"]');
           if (!input) throw new Error("浏览器地址栏不可用");
@@ -92,7 +95,7 @@
     check.addEventListener("click", async () => {
       const key = workspaceKey();
       if (overlay.dataset.workspaceKey !== key) {
-        overlay.remove();
+        closeDetail();
         status.textContent = "工程已切换，请刷新目录后重新打开详情。";
         return;
       }
@@ -112,8 +115,70 @@
       } finally { check.disabled = false; }
     });
     card.append(check);
+    const sourceCheck = element("button", "检查固定来源");
+    setWuxiaIconOnly(sourceCheck, "check", "检查 DSH 固定来源");
+    sourceCheck.type = "button";
+    const sourceStatus = element("p", "", "dsh-market-source-status");
+    let confirmedSource = null;
+    const install = element("button", "安装为停用状态");
+    setWuxiaIconOnly(install, "package-crate", "安装固定来源包（默认停用）");
+    install.type = "button";
+    install.disabled = true;
+    install.addEventListener("click", async () => {
+      const source = confirmedSource;
+      const key = workspaceKey();
+      if (!source || overlay.dataset.workspaceKey !== key) return;
+      install.disabled = true;
+      sourceCheck.disabled = true;
+      sourceStatus.textContent = "正在核对刚才确认的固定来源并安装为停用状态…";
+      try {
+        // 提交后关闭页面不自动重发；安装结果由持久目录核对，不跟随详情面板abort。
+        const result = await readJson("/api/extension-market/dsh/install", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expected_workspace: source.workspace_id, id: item.id,
+            commit: source.commit, expected_source_sha256: source.source_sha256 })
+        }, 150000);
+        confirmedSource = null;
+        if (overlay.isConnected && key === workspaceKey()) {
+          sourceStatus.textContent = result.installed === true
+            ? `已安装 ${result.name} ${result.version}，本次安装默认停用。${result.cleanup_confirmed ? "" : "来源暂存清理未确认，请查看诊断。"}请刷新本地插件目录核对当前状态；模型接线尚待验收。`
+            : "安装结果未确认，请刷新本地插件目录核对。";
+        }
+      } catch (error) {
+        confirmedSource = null;
+        if (overlay.isConnected && key === workspaceKey()) sourceStatus.textContent = `安装未正常完成：${error.message}。请刷新本地插件目录核对结果，不要自动重发。`;
+      } finally { sourceCheck.disabled = false; }
+    });
+    sourceStatus.setAttribute("role", "status");
+    sourceCheck.addEventListener("click", async () => {
+      const key = workspaceKey();
+      if (overlay.dataset.workspaceKey !== key) {
+        closeDetail();
+        status.textContent = "工程已切换，请刷新目录后重新打开详情。";
+        return;
+      }
+      sourceCheck.disabled = true;
+      confirmedSource = null;
+      install.disabled = true;
+      sourceStatus.textContent = "正在核验固定提交、包名与完整源码…";
+      try {
+        const result = await readJson("/api/extension-market/dsh/source", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          signal: sourceAbort.signal,
+          body: JSON.stringify({ expected_workspace: detail.workspace_id, id: item.id })
+        }, 125000);
+        if (!overlay.isConnected || key !== workspaceKey() || result.workspace_id !== detail.workspace_id) return;
+        if (result.status !== "source_verified") throw new Error("固定源码身份未确认");
+        confirmedSource = result;
+        install.disabled = result.static_installable !== true;
+        sourceStatus.textContent = `${result.name} · ${result.version} · ${result.license} · 修订 ${result.commit} · ${result.source_file_count} 个文件。${result.reason}`;
+      } catch (error) {
+        if (overlay.isConnected && key === workspaceKey()) sourceStatus.textContent = `固定来源检查失败：${error.message}`;
+      } finally { sourceCheck.disabled = false; }
+    });
+    card.append(sourceCheck, install, sourceStatus);
     overlay.append(card);
-    overlay.addEventListener("click", event => { if (event.target === overlay) overlay.remove(); });
+    overlay.addEventListener("click", event => { if (event.target === overlay) closeDetail(); });
     document.body.append(overlay);
   }
 
@@ -223,7 +288,7 @@
   }, { capture: true });
   window.addEventListener("dsh-market-refresh", () => {
     const modal = document.querySelector('[data-role="dsh-market-detail"]');
-    if (modal && modal.dataset.workspaceKey !== workspaceKey()) modal.remove();
+    if (modal && modal.dataset.workspaceKey !== workspaceKey()) modal.dispatchEvent(new Event("dsh-market-close"));
     openMarket();
   });
   prev.disabled = true;

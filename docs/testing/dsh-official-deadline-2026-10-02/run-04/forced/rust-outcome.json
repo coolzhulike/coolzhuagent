@@ -1,0 +1,12 @@
+{
+  "elapsed_ms": 9056,
+  "outcome": {
+    "error": {
+      "cleanup_confirmed": true,
+      "code": "host_interrupted",
+      "interruption": "timed_out",
+      "message": "父调用已结束，插件迟到结果不再采纳；未自动重放"
+    },
+    "ok": false
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "checked_at_utc": "2026-10-02T11:39:37.868834+00:00",
+  "previous_deliverables_unchanged": [
+    {
+      "file": "dist/CoolzhuAgent-0.2.63-installer-report.json",
+      "sha256": "992ce0fbbaf21b0a963a35ae2becfc1531b3990a4b34bacd1b8bb75c19c06558",
+      "size": 3616
+    },
+    {
+      "file": "dist/CoolzhuAgent-0.2.63-package-safety.json",
+      "sha256": "7b79ae11bd75acbf7e10898d76a176f41792445e66a32e5d9f6d4e8beb91f4c1",
+      "size": 194
+    },
+    {
+      "file": "dist/CoolzhuAgent-0.2.63.msi",
+      "sha256": "91c9a256505bda4c6575788e50ed426b594db8cf2e6ce6a9c2b94a8a7d923de3",
+      "size": 247020925
+    },
+    {
+      "file": "dist/CoolzhuAgent-0.2.64-installer-report.json",
+      "sha256": "87dfab09cb899b7d523700423faa5bc1a4b3fb05ee581d8e1492f673bbd52679",
+      "size": 3617
+    },
+    {
+      "file": "dist/CoolzhuAgent-0.2.64-package-safety.json",
+      "sha256": "238efd1444164a71a4a466f23cf15d8cc85844d47863e43c53c2764a56c1664b",
+      "size": 195
+    },
+    {
+      "file": "dist/CoolzhuAgent-0.2.64.msi",
+      "sha256": "16052ec401960181853c5b02775e849185e225e70b11f8872a798a4e5d06688b",
+      "size": 275626523
+    }
+  ],
+  "installed_files_unchanged": [
+    {
+      "length": 38308864,
+      "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-web-console.exe",
+      "sha256": "fbd3080991f4888218b25ef36fda3a19bd1be994af57c4fd6fe63cb8707c6544"
+    },
+    {
+      "length": 85883392,
+      "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-tauri-shell.exe",
+      "sha256": "37ac54c9b7a0289ac38910e1e406d88b48ac4315b54f6c3da7a513ad24ef8d7e"
+    }
+  ],
+  "original_incident_files_unchanged": [
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-facts.json",
+      "sha256": "a6b94db087789eb3e23380c0c244aedc890e4c7d2536cde0abb8a8ee63b8f981"
+    },
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-page-events.json",
+      "sha256": "3d0f2e4b2477fdb4d2ab90aaf7d5a32702d11d7336abf347eea4be907383bab1"
+    },
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-close-timing.json",
+      "sha256": "124adf361a2832b6d72901bafe47e491b701b1ad09e025923cfd254ceb58b89c"
+    }
+  ],
+  "codex_config_unchanged_sha256": "3a946a45e2223faebb565c2323d358fa272fd51fabb17068e5085082804c6a5e",
+  "all_frozen_sources_still_match": true,
+  "tested_browser_sources_still_match": true
+}

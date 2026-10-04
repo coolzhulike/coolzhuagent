@@ -1,0 +1,16 @@
+{
+  "exit_code": 0,
+  "elapsed_seconds": null,
+  "budget_log_sha256": "7f74864135760f579011c85106e1b85f872880caa92468c6adcc2ef2b278aeb1",
+  "test_sha256": "2fae34e310f4c360444a8891d5d73dad6ac79ca2d6f7c19e860b76fee0a3bb38",
+  "runtime_from_actual_msi": "tmp\\2026-10-02-final-msi\\offline-extraction-final\\layout\\CoolzhuAgent\\bin\\dsh-runtime",
+  "scope": "实际MSI的固定Node与生产Rust桥受控协议夹具；非安装/官方SDK/Qwen/GUI验收",
+  "node": {
+    "version_output": "v24.15.0",
+    "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5"
+  },
+  "cli": {
+    "version_output": "COOLZHU CODE Agent\n  Version          0.2.66\n  Git SHA          8181f08ae9c50d3e41aabd32a6af85343dcd92e8\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-02\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help",
+    "sha256": "bc0da20914fd20422235c1a0bd8c54e8644ef49b6f9082287802a1e9980458f6"
+  }
+}

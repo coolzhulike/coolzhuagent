@@ -1,0 +1,179 @@
+{
+  "checked_at_utc": "2026-10-02T11:02:56.877948+00:00",
+  "old_thread": "01a0b94c-b964-7390-a446-776f760d90d4",
+  "current_thread": "01a0fadf-42a7-7117-821e-ccf121358007",
+  "scope": "2026-10-01与2026-10-02客户端日志；仅CU元数据及占用特征，不读会话数据库或认证数据",
+  "files": [
+    {
+      "file": "codex-desktop-0735e07d-3bad-4aea-9ac9-743b8804fefd-10220-t0-i1-000207-0.log",
+      "bytes": 2367588,
+      "counts": {
+        "cu_metadata_lines": 132,
+        "old_thread_cu_lines": 39
+      }
+    },
+    {
+      "file": "codex-desktop-0735e07d-3bad-4aea-9ac9-743b8804fefd-10220-t1-i1-001259-0.log",
+      "bytes": 936729,
+      "counts": {
+        "cu_metadata_lines": 10
+      }
+    },
+    {
+      "file": "codex-desktop-22ba5ec9-f4b3-4e2f-8463-f137031c3e84-30256-t0-i1-025228-0.log",
+      "bytes": 767210,
+      "counts": {
+        "cu_metadata_lines": 31,
+        "old_thread_cu_lines": 15
+      }
+    },
+    {
+      "file": "codex-desktop-22ba5ec9-f4b3-4e2f-8463-f137031c3e84-30256-t1-i1-025230-0.log",
+      "bytes": 57557,
+      "counts": {}
+    },
+    {
+      "file": "codex-desktop-22ba5ec9-f4b3-4e2f-8463-f137031c3e84-30256-t2-i1-025514-0.log",
+      "bytes": 128,
+      "counts": {}
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "bytes": 10485352,
+      "counts": {
+        "cu_metadata_lines": 191,
+        "old_thread_cu_lines": 12
+      }
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-1.log",
+      "bytes": 1743272,
+      "counts": {
+        "cu_metadata_lines": 47
+      }
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t1-i1-031425-0.log",
+      "bytes": 10438131,
+      "counts": {
+        "cu_metadata_lines": 118
+      }
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t1-i1-031425-1.log",
+      "bytes": 10485308,
+      "counts": {
+        "cu_metadata_lines": 128
+      }
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t1-i1-031425-2.log",
+      "bytes": 1421554,
+      "counts": {}
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t2-i1-031525-0.log",
+      "bytes": 128,
+      "counts": {}
+    },
+    {
+      "file": "codex-desktop-d112726f-895d-480d-a730-3659641a29d8-10512-t0-i1-024620-0.log",
+      "bytes": 325555,
+      "counts": {
+        "cu_metadata_lines": 9
+      }
+    },
+    {
+      "file": "codex-desktop-d112726f-895d-480d-a730-3659641a29d8-10512-t1-i1-024622-0.log",
+      "bytes": 2073,
+      "counts": {}
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "bytes": 10485612,
+      "counts": {
+        "cu_metadata_lines": 140
+      }
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-1.log",
+      "bytes": 3700514,
+      "counts": {
+        "cu_metadata_lines": 63
+      }
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t1-i1-011341-0.log",
+      "bytes": 885328,
+      "counts": {}
+    }
+  ],
+  "old_thread_last_cu_startup_events": [
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 402,
+      "event": "2026-10-01T03:15:26.379Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=codex_app status=starting threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 403,
+      "event": "2026-10-01T03:15:26.379Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=node_repl status=starting threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 406,
+      "event": "2026-10-01T03:15:26.380Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=cua_repl status=starting threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 408,
+      "event": "2026-10-01T03:15:26.380Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=node_repl status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 409,
+      "event": "2026-10-01T03:15:26.380Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=cua_repl status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 410,
+      "event": "2026-10-01T03:15:26.380Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=codex_app status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 1002,
+      "event": "2026-10-01T03:24:38.115Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=node_repl status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 1003,
+      "event": "2026-10-01T03:24:38.116Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=cua_repl status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 1004,
+      "event": "2026-10-01T03:24:38.116Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=codex_app status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 1021,
+      "event": "2026-10-01T03:24:51.351Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=node_repl status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 1023,
+      "event": "2026-10-01T03:24:51.351Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=cua_repl status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    },
+    {
+      "file": "codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-0.log",
+      "line": 1024,
+      "event": "2026-10-01T03:24:51.351Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=local server=codex_app status=ready threadId=01a0b94c-b964-7390-a446-776f760d90d4"
+    }
+  ],
+  "cu_contention_matches": [],
+  "limits": [
+    "当前没有CU状态/独占owner查询工具",
+    "CIM进程父子关系查询被系统拒绝访问；不提升权限",
+    "日志无匹配不排除未记录的锁或远端占用"
+  ]
+}

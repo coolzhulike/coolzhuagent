@@ -1,0 +1,353 @@
+{
+  "generated_at_utc": "2026-10-02T08:18:15.623892+00:00",
+  "head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+  "branch": "codex/cu-preinput-followup-20260930",
+  "scope": "未提交本地DSH工程阶段；真实Qwen、正式MSI和GUI未验收",
+  "artifacts": [
+    {
+      "file": "final-build-after-poll.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/final-build-after-poll.log",
+      "sha256": "ed37248c622ea6dfc070ba4b8996e77dfe10c2fdf6cfd4e50a07971ff441efb4",
+      "purpose": "三crate最终生产构建"
+    },
+    {
+      "file": "aggregate-test-final-after-poll.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/aggregate-test-final-after-poll.log",
+      "sha256": "439fb2b1be9f2f61eb608eea2a360df63eeab2dbb57ebbe8a2e285a92282e3fd",
+      "purpose": "最终源码完整Web/插件回归"
+    },
+    {
+      "file": "core-control-test.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/core-control-test.log",
+      "sha256": "82a8dfcc7fa5a257f7d471e44599f327bc27aada37126f08709bde74b9de0ef2",
+      "purpose": "Core原取消/截止传播定向验证；其他356过滤"
+    },
+    {
+      "file": "module-linkage.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/module-linkage.log",
+      "sha256": "f7d9618968c502bf5ae10506d6bc97d1011fe104bd9174cb3c21e0e0234c1f86",
+      "purpose": "模块链接与环境/受控入口检查"
+    },
+    {
+      "file": "tool-registry-check-final-after-poll.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/tool-registry-check-final-after-poll.log",
+      "sha256": "7758dc3141774ab3044c36757da0795a0055f47e2664cb52af252c046edbc76f",
+      "purpose": "最终工具crate离线检查"
+    },
+    {
+      "file": "test-build-managed-path-final.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build-managed-path-final.log",
+      "sha256": "4fa6ce1ef125f53845e07eb58b85ecc7b8432b22dd79c8e18ff9712812dc1700",
+      "purpose": "最终工程测试二进制编译"
+    },
+    {
+      "file": "probe-final-07.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-final-07.log",
+      "sha256": "f029065eb7228cf2755a4f159efcb31cd32cde9e21e2c39934af72ccab0e46e1",
+      "purpose": "默认栈完整真实资源场景最终通过"
+    },
+    {
+      "file": "history-aggregate-test.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/aggregate-test.log",
+      "sha256": "05023029cf96a06c4c9ef649180e4743b6b5d660d8f61e314728d7b56f650651",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-build-fixed.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/build-fixed.log",
+      "sha256": "2ffcbd6422a5ab5e7f66db38e39059285ec51656b2d929c701ea543a103a33b4",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-build.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/build.log",
+      "sha256": "791ac9d4a721c876214080aebf02dba8b07fa18629a6d1e60cb25505b42d0e1b",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-final-build.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/final-build.log",
+      "sha256": "eb2916da2f3811cb271a7ad58b5b791b539aa60f97c6c899ec01459418d45614",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-probe-01.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-01.log",
+      "sha256": "f1696301482493c994fb1a13676c40c7da0ae64d6c6b6e8cde173f433b9cf938",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-probe-02.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-02.log",
+      "sha256": "17f6024060ff6e1e0a04fd799580c6b6cba76cd1db1cf862712bec9c9370d2bf",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-probe-03.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-03.log",
+      "sha256": "4c906437fe162d851d841c3814161a2198126c08fe69654b07ce55b2d5219fff",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-probe-04.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-04.log",
+      "sha256": "af6851c5c231e72466bb5846a626f7032b32e804b290ffc2c281ed6aaecb3a44",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-probe-cancel-05.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-cancel-05.log",
+      "sha256": "5d3b594477837f5ad1415de447e0ac6749dbae391838c8b150721aeed6f67d07",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-probe-final-06.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-final-06.log",
+      "sha256": "94ed20b0e3bdb5bbbf50066e99ff33152b083037c53f5bed2e28c79dffe83361",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-test-build-cancel-diagnostics.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build-cancel-diagnostics.log",
+      "sha256": "4a81b0dca48b46e51fc31680561b6112c4be915437f6db855042850361ca855b",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-test-build-final-poll.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build-final-poll.log",
+      "sha256": "88372898f036abcc64b0aaf2ac9bf4c8b50d0764718942d38041241a4b1a6ce4",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-test-build-final.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build-final.log",
+      "sha256": "bc3dee2b5acad59084e1ee3d61a3c99c2ad52bce5024ee856784341d9c444605",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-test-build-fixed.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build-fixed.log",
+      "sha256": "de4dd124be40f53b33c6974f32c076ebb2cd929f00ad6b17a9780ba476a91a16",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-test-build-handoff.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build-handoff.log",
+      "sha256": "3d980ea290134edc734bb6da945fb13732714cfd44a61bfcf38c300b4a568c7d",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-test-build-lifecycle-poll.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build-lifecycle-poll.log",
+      "sha256": "7103672982133f67b7b46826d99de85a4174a5663bfbf112e114ca287261d424",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-test-build-perf-fixed.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build-perf-fixed.log",
+      "sha256": "738c18cb55e1d5a7a8978b0288f34d192a88b68c820a8f5c443b67ba1687e538",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-test-build.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/test-build.log",
+      "sha256": "212558d2c8dde121ab0b938e358009ac4e1f281edb609484102b9bd5250ab11c",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "history-tool-registry-check.txt",
+      "source": "tmp/2026-10-02-dsh-dispatch/tool-registry-check.log",
+      "sha256": "0504db2b35f88e29b05a44da3ee98c2c6feb2739edb5fa54120237a51065c4be",
+      "purpose": "历史源码时点/中间成功或失败，不能替代最终验收"
+    },
+    {
+      "file": "runtime-copy-verification.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/runtime-copy-verification.json",
+      "sha256": "ee3a13fc112b2011cd694b2ab39ecb8aa4c676531f9c102fa376dcafe1ffff74",
+      "purpose": "真实资源、正式只读状态或最终静态检查"
+    },
+    {
+      "file": "installed-readonly.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/installed-readonly.json",
+      "sha256": "769fd2b6ae29606ea3748455e54298a5c8c58b0a8be57e68ad193619d9176247",
+      "purpose": "真实资源、正式只读状态或最终静态检查"
+    },
+    {
+      "file": "incident-executor-readonly.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/incident-executor-readonly.json",
+      "sha256": "e64d20bddec6ff0b913f10a02ad447feda00f07c051e9f9c49f558da15d5180d",
+      "purpose": "真实资源、正式只读状态或最终静态检查"
+    },
+    {
+      "file": "installed-hashes-readonly.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/installed-hashes-readonly.json",
+      "sha256": "745d2badf29339491c35baeacf7ff3e79b579996b480175771fc203ebd0419e3",
+      "purpose": "真实资源、正式只读状态或最终静态检查"
+    },
+    {
+      "file": "final-checks.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/final-checks.json",
+      "sha256": "c930d35f43ae88494f33a1700aee92c3da8f12878a686c0dba7f0a6c4d404408",
+      "purpose": "真实资源、正式只读状态或最终静态检查"
+    },
+    {
+      "file": "syntax-and-diff.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/syntax-and-diff.json",
+      "sha256": "44a55b656fc4a8980093e79ecd262b9fa0cd3f69fd3766648d8426611b14fd86",
+      "purpose": "真实资源、正式只读状态或最终静态检查"
+    },
+    {
+      "file": "final-engineering-result.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-final-07/result.json",
+      "sha256": "496243b7ac741602814a8b00be0337a5f6353d00cbcb3da3d0e6072b1e92cc27",
+      "purpose": "真实官方SDK/Node，受控工程provider元数据，项目模型请求0；不是Qwen或GUI验收"
+    },
+    {
+      "file": "history-cancel-diagnostic-result.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-cancel-05/result.json",
+      "sha256": "30690b2ce960a2b301b82a22f1b83c4d32809d832aceb683c06071f4ccc02a59",
+      "purpose": "独立取消诊断的真实握手与受控收尾；历史源码时点"
+    },
+    {
+      "file": "history-expanded-stack-result.json",
+      "source": "tmp/2026-10-02-dsh-dispatch/probe-03/result.json",
+      "sha256": "5695a7fa952ab9a6579d10802ed4c71b6f9261d23a8c9511ef04b54274eb8f0d",
+      "purpose": "扩大测试栈后的中间通过；最终通过使用默认栈"
+    }
+  ],
+  "sources": [
+    {
+      "file": "Cargo.lock",
+      "sha256": "225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a"
+    },
+    {
+      "file": "modules/tooling/packages/plugin-system/Cargo.toml",
+      "sha256": "273ceb5c9a67e6cf0145fc018672be87d348af2c5fed2649ca57d063108ea592"
+    },
+    {
+      "file": "modules/tooling/packages/plugin-system/src/lib.rs",
+      "sha256": "2c9684adffb309ece33b2e8bdf33dc4b3d47374cb8148bf5dbe1ce253cb5ab84"
+    },
+    {
+      "file": "modules/tooling/packages/plugin-system/src/install_transaction.rs",
+      "sha256": "3350c31afd83165822f17d8130fc3d01b1c7c3a549506f38d25e03c9b2423912"
+    },
+    {
+      "file": "modules/tooling/packages/plugin-system/src/dsh_package.rs",
+      "sha256": "2421fe593d905a64aa3403157bbd7187766c7c9ae77e58dc2604da80fcd7ea1b"
+    },
+    {
+      "file": "modules/tooling/packages/plugin-system/src/dsh_activation.rs",
+      "sha256": "a93daa8bb8df34572250c4c39c3433a45e25df24d4c09df239061d604376d791"
+    },
+    {
+      "file": "modules/core-runtime/packages/core-runtime/src/managed_process.rs",
+      "sha256": "9074dc979bb47c1851cff7c4563feb1cf2f531fefa38ee652ed826657a5c07e4"
+    },
+    {
+      "file": "modules/core-runtime/packages/core-runtime/src/dsh_runtime.rs",
+      "sha256": "3f00a603c1c8088badd1d81523be53e1eb6bf09d2755119e7a58f288782d3f84"
+    },
+    {
+      "file": "modules/core-runtime/packages/core-runtime/src/dsh_host_process.rs",
+      "sha256": "bed703e4139dcf6de69bc6fa561c7a96bb0a813833ceb4dbfb177f862fd14618"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/main.rs",
+      "sha256": "e08fa4e6feeb5a185d742e7103b87bfac550d05e66b44693e1ca74817ba1645b"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/app.js",
+      "sha256": "67a46317f4338ccf729ae1ed4d9e13bcf3356edef15c81a74cab2831faa53e2b"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/extension_market.rs",
+      "sha256": "2f665a5220c08fe8bc156813d4f88ef623fc76a6e5f43b43e4e0a32e5f33796a"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/plugin_runtime.rs",
+      "sha256": "cde860b63ea79821f43083d8d82aea02dedab5b95a1f1abca2bf8dc567d6bab4"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/host_child_agent.rs",
+      "sha256": "c55c1502e2198b62011c6566c5525cca2842f3281add53529a3425240d02ccc5"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs",
+      "sha256": "568670e90f7d838396758bf8572e95c232d1872381d0f9ba63e7e7b3cf1271f0"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+      "sha256": "919b7e102ec772b2390a6204086ce4742310ed5a9388c98750dd33a72f05592c"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_market.js",
+      "sha256": "9ed7d6bc46ab3f6b09fad881529e22e5453335235d3190c8adf33e916d2be6e9"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+      "sha256": "f363bfb8497ee11a8f352709562c7258972b8d58923452490c2bf5299914d71f"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+      "sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+      "sha256": "e4f01997a4d391780379ab2fcac9e07f4f77dd120b6269eb4117de1ae9a4200b"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+      "sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_execution.rs",
+      "sha256": "1f5de2ce32d5a304e44f8ba83307312538cdfeb0ecb07dd48c6ccfbac270c3ce"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_web.rs",
+      "sha256": "9d33b194ceaf3cc739e65472f8f40c69c25e69357b85b579d6e60a517c9b2ab3"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_web_tests.rs",
+      "sha256": "68c1d6393d1da5c1d065510d8fa5ff09f256f86073d5269dd7891102e1cc522a"
+    },
+    {
+      "file": "config/dsh-runtime-lock.json",
+      "sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+    }
+  ],
+  "binaries": [
+    {
+      "file": "target/debug/coolzhu-web-console.exe",
+      "sha256": "6b4a6f06cd378a60d9504e4d58c823a7cd7d1421c5275d9bae5c2282f9ed3571",
+      "role": "本轮最终debug生产构建，不是正式安装文件"
+    },
+    {
+      "file": "tmp/2026-10-02-dsh-dispatch/bin/dsh-web-dispatch-tests.exe",
+      "sha256": "a4a25f297682f055192911bf268fa244b44509c5e26ee55d782ddabd3ee33588",
+      "role": "默认栈最终真实工程测试二进制"
+    }
+  ],
+  "original_incident_references": [
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-facts.json",
+      "sha256": "a6b94db087789eb3e23380c0c244aedc890e4c7d2536cde0abb8a8ee63b8f981"
+    },
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-page-events.json",
+      "sha256": "3d0f2e4b2477fdb4d2ab90aaf7d5a32702d11d7336abf347eea4be907383bab1"
+    },
+    {
+      "file": "docs/testing/release-0.2.63/installed-native/BU063-CLOSE-DH-close-timing.json",
+      "sha256": "124adf361a2832b6d72901bafe47e491b701b1ad09e025923cfd254ceb58b89c"
+    }
+  ],
+  "preservation": {
+    "head": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+    "branch": "codex/cu-preinput-followup-20260930",
+    "original_untracked_entries": 165,
+    "missing_original_entries": [],
+    "original_modified_document_sha256": "c61b4f5cf565c5da15b70b40a6c6bfde48507e7cb2cc4e2fd03c2e348f034079"
+  }
+}

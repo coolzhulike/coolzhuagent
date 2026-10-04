@@ -1,0 +1,121 @@
+{
+  "checked_at_utc": "2026-10-02T19:31:35.335606+00:00",
+  "sources": [
+    {
+      "file": "modules/tooling/packages/plugin-system/src/install_transaction.rs",
+      "sha256": "6b2b90955adfb4cf17336731b381adc31a57d18187fb2ff2d68cf038f452cc29"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+      "sha256": "69c50a801a8ab4d5edd556b4ac5d25be1f24c8963a48667b24361d4cfb4e48d8"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+      "sha256": "f7fc46704880374f61a9b14165954ceb3d86fcb9c8546eb2b86a6ada9a873999"
+    },
+    {
+      "file": "modules/tooling/packages/plugin-system/src/dsh_recovery_tests.rs",
+      "sha256": "ecd86202f59033dc24aec90891ca4546f70e97d3d614f1db3f68894633d665c0"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "targeted.txt",
+      "sha256": "4f81fbf1bd9b85db455c77247b3da8aab12fc00a18d92d4a402f4fe89ed4bd4e",
+      "bytes": 1517
+    },
+    {
+      "file": "targeted-fixed.txt",
+      "sha256": "39501780ac89ed698acfef7c38401cd27715d2f18633777eed313766d2b38446",
+      "bytes": 3958
+    },
+    {
+      "file": "plugin-suite.txt",
+      "sha256": "e69bf1aeca32dc670d2e2492265b2d363ed26879f839a0e00818555e903e203d",
+      "bytes": 5664
+    },
+    {
+      "file": "web-cleanup.txt",
+      "sha256": "edf8edf82d6e83c7e41ed9f29d48abdac98afce5a7fcb33311a7f3f34112ac07",
+      "bytes": 23616
+    },
+    {
+      "file": "web-cleanup-fixed.txt",
+      "sha256": "4caa29451b614e9291f3c5d6241a1672d92c8b4380c57e2558f0cf40c373418e",
+      "bytes": 22488
+    },
+    {
+      "file": "web-cleanup-final.txt",
+      "sha256": "e024a07c46ed93a73576c7a7e79f3c139c9c03fd401ba7947300aa0ac574f7fe",
+      "bytes": 41178
+    },
+    {
+      "file": "web-cleanup-isolated.txt",
+      "sha256": "f75d9f4e793447f1317bc111d8e49d590a9f3a1d6766ae58f2f421642d1a775a",
+      "bytes": 22391
+    },
+    {
+      "file": "build.txt",
+      "sha256": "82b90e2ed4118f309a531794c722f128f4aaa97c111b9f677f0c92808ff6d7ae",
+      "bytes": 47492
+    },
+    {
+      "file": "diff-check.txt",
+      "sha256": "40a326b23147613f99c0a4b6eec5bd00180f05ff1d6c23976df8f57fd24302b4",
+      "bytes": 529
+    },
+    {
+      "file": "test-only-comparison.json",
+      "sha256": "9556e6ad5b9ac51734592563b88a6ee93505cbc1444737159712485da77fd76d",
+      "bytes": 1718
+    },
+    {
+      "file": "input-safety-readonly.json",
+      "sha256": "30fc0d1cd561c5be69f6e2d716c8d73a81bff92c39c089d6324bcb96e6649988",
+      "bytes": 2448
+    },
+    {
+      "file": "installed-processes.json",
+      "sha256": "f24cc1935507f296d207e09e2954bdebd4527fbb537ac1dd08a654bca5a77368",
+      "bytes": 399
+    }
+  ],
+  "production_unchanged": true,
+  "candidate_066_unchanged_sha256": "ac7c1ec5c01b76f2132ce2a9276e3096389450b0be1b373f632e72f4bac52f25",
+  "other_frozen_files_unchanged": 1280,
+  "new_checks": {
+    "plugin_tests_passed": 5,
+    "web_tests_passed": 1,
+    "scenarios": 15,
+    "dedicated_child_processes": 11,
+    "driver_ignored_at_top_level": 1,
+    "driver_executed_by_parent": true
+  },
+  "plugin_suite": {
+    "passed": 42,
+    "failed": 0,
+    "ignored": 1
+  },
+  "scope": "受控静态DSH包、真实持久事务与真实Windows共享冲突；不是官方SDK、断电或正式实例验收",
+  "preservation": {
+    "previous_063_064_065_files_unchanged": true,
+    "candidate_066_unchanged": true,
+    "installed_files_and_processes_unchanged": true,
+    "original_incidents_and_codex_config_unchanged": true,
+    "input_isolation_still_active": true
+  },
+  "remaining_independent_item": {
+    "item": "官方SDK工具函数确已进入后，父预算截止并确认资源收尾",
+    "missing_evidence": "已有真实官方计算及握手后取消，预算中止使用受控协议夹具；三者不能合并成官方函数执行中截止通过",
+    "requires_manual_safety_approval": false,
+    "requires_paid_model": false,
+    "prerequisite": "利用已有固定官方资源，建立有界且能确认进入实际工具函数的执行观察点，保持来源校验有效"
+  },
+  "not_executed": [
+    "正式MSI安装/升级",
+    "原执行者退出或输入隔离恢复",
+    "真实GUI与付费模型",
+    "GitHub上传",
+    "物理断电或磁盘持久性故障"
+  ]
+}

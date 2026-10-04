@@ -1,0 +1,1 @@
+Error: HostError { code: "tool_unavailable", message: "冻结的插件清单未注册此工具", interruption: None, cleanup_confirmed: false }

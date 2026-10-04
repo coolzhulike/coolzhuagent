@@ -1,0 +1,236 @@
+{
+  "checked_at_utc": "2026-10-02T10:41:06.781110+00:00",
+  "config_sha256": "3a946a45e2223faebb565c2323d358fa272fd51fabb17068e5085082804c6a5e",
+  "configured_defaults_not_active_turn": {
+    "model": "gpt-6.1-sol",
+    "model_reasoning_effort": "low",
+    "service_tier": "priority"
+  },
+  "computer_use_plugin_enabled": true,
+  "node_repl_configured": true,
+  "node_repl_enabled_setting": "未显式禁用",
+  "mcp_server_names": [
+    "obsidian",
+    "unreal-mcp",
+    "node_repl"
+  ],
+  "command_exists": true,
+  "node_exists": true,
+  "module_directory_exists": true,
+  "sky_package": {
+    "name": "@oai/sky",
+    "version": "0.7.5"
+  },
+  "trusted_path_components_exist": [
+    true,
+    true
+  ],
+  "computer_use_policy_keys_only": [
+    "always_allowed_app_ids"
+  ],
+  "environment_values_withheld": [
+    "原生管道标识",
+    "可信服务配置",
+    "用户app授权清单"
+  ],
+  "log_inspection": [
+    {
+      "file": "C:\\Users\\zhupu\\AppData\\Local\\Codex\\Logs\\2026\\10\\02\\codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-1.log",
+      "size": 3156876,
+      "matching_lines": 65,
+      "last_event_prefixes": [
+        {
+          "line": 5718,
+          "prefix": "2026-10-02T10:34:59.871Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5719,
+          "prefix": "2026-10-02T10:34:59.872Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5788,
+          "prefix": "2026-10-02T10:36:33.336Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5789,
+          "prefix": "2026-10-02T10:36:33.336Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5875,
+          "prefix": "2026-10-02T10:38:04.489Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5876,
+          "prefix": "2026-10-02T10:38:04.489Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Users\\zhupu\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\Codex\\Logs\\2026\\10\\02\\codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-1.log",
+      "size": 3156876,
+      "matching_lines": 65,
+      "last_event_prefixes": [
+        {
+          "line": 5718,
+          "prefix": "2026-10-02T10:34:59.871Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5719,
+          "prefix": "2026-10-02T10:34:59.872Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5788,
+          "prefix": "2026-10-02T10:36:33.336Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5789,
+          "prefix": "2026-10-02T10:36:33.336Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5875,
+          "prefix": "2026-10-02T10:38:04.489Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 5876,
+          "prefix": "2026-10-02T10:38:04.489Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Users\\zhupu\\AppData\\Local\\Codex\\Logs\\2026\\10\\02\\codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t1-i1-011341-0.log",
+      "size": 885328,
+      "matching_lines": 0,
+      "last_event_prefixes": []
+    },
+    {
+      "file": "C:\\Users\\zhupu\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\Codex\\Logs\\2026\\10\\02\\codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t1-i1-011341-0.log",
+      "size": 885328,
+      "matching_lines": 0,
+      "last_event_prefixes": []
+    },
+    {
+      "file": "C:\\Users\\zhupu\\AppData\\Local\\Codex\\Logs\\2026\\10\\02\\codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "size": 10485612,
+      "matching_lines": 273,
+      "last_event_prefixes": [
+        {
+          "line": 20814,
+          "prefix": "2026-10-02T08:23:37.724Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=starting threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20815,
+          "prefix": "2026-10-02T08:23:37.724Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_app status=starting threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20816,
+          "prefix": "2026-10-02T08:23:40.080Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=codex_app status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20817,
+          "prefix": "2026-10-02T08:23:40.080Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=cua_repl status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20821,
+          "prefix": "2026-10-02T08:23:46.033Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=unreal-mcp status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20822,
+          "prefix": "2026-10-02T08:23:46.033Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Users\\zhupu\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\Codex\\Logs\\2026\\10\\02\\codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-000034-0.log",
+      "size": 10485612,
+      "matching_lines": 273,
+      "last_event_prefixes": [
+        {
+          "line": 20814,
+          "prefix": "2026-10-02T08:23:37.724Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=starting threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20815,
+          "prefix": "2026-10-02T08:23:37.724Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_app status=starting threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20816,
+          "prefix": "2026-10-02T08:23:40.080Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=codex_app status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20817,
+          "prefix": "2026-10-02T08:23:40.080Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=cua_repl status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20821,
+          "prefix": "2026-10-02T08:23:46.033Z warning [AppServerConnection] mcp_server_startup_status_updated error=\"MCP server failed to start.\" failureReason=null hostId=durable server=unreal-mcp status=failed threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        },
+        {
+          "line": 20822,
+          "prefix": "2026-10-02T08:23:46.033Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0fadf-42a7-7117-821e-ccf121358007"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Users\\zhupu\\AppData\\Local\\Codex\\Logs\\2026\\10\\01\\codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-1.log",
+      "size": 1743272,
+      "matching_lines": 122,
+      "last_event_prefixes": [
+        {
+          "line": 4230,
+          "prefix": "2026-10-01T23:35:49.361Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=starting threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4231,
+          "prefix": "2026-10-01T23:35:49.712Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4232,
+          "prefix": "2026-10-01T23:35:49.712Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4346,
+          "prefix": "2026-10-01T23:42:02.747Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=starting threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4347,
+          "prefix": "2026-10-01T23:42:02.748Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4348,
+          "prefix": "2026-10-01T23:42:02.748Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        }
+      ]
+    },
+    {
+      "file": "C:\\Users\\zhupu\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\Codex\\Logs\\2026\\10\\01\\codex-desktop-40c5d4fb-a4a6-4cda-bd50-b670778c2ce0-32684-t0-i1-031424-1.log",
+      "size": 1743272,
+      "matching_lines": 122,
+      "last_event_prefixes": [
+        {
+          "line": 4230,
+          "prefix": "2026-10-01T23:35:49.361Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=starting threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4231,
+          "prefix": "2026-10-01T23:35:49.712Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=cua_repl status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4232,
+          "prefix": "2026-10-01T23:35:49.712Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4346,
+          "prefix": "2026-10-01T23:42:02.747Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=starting threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4347,
+          "prefix": "2026-10-01T23:42:02.748Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        },
+        {
+          "line": 4348,
+          "prefix": "2026-10-01T23:42:02.748Z info [AppServerConnection] mcp_server_startup_status_updated error=null failureReason=null hostId=durable server=codex_apps status=ready threadId=01a0f094-d711-76e5-b92a-a4938a6f100a"
+        }
+      ]
+    }
+  ]
+}

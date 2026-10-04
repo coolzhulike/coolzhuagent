@@ -1,0 +1,65 @@
+{
+  "checked_at_utc": "2026-10-02T11:19:48.712680+00:00",
+  "test_process_only_overrides": [
+    "COOLZHU_WEB_SESSION_DB",
+    "COOLZHU_WEB_SESSION_STORE",
+    "COOLZHU_WEB_ATTACHMENT_STORE"
+  ],
+  "results": [
+    {
+      "test": "attachment_upload_limit_tests::multipart_route_accepts_three_mib_attachment",
+      "exit_code": 0,
+      "log": "isolated-failures\\0\\test.log"
+    },
+    {
+      "test": "chat_tool_history::tests::cancelled_turn_without_reply_stays_history_and_current_request_is_separate",
+      "exit_code": 0,
+      "log": "isolated-failures\\1\\test.log"
+    },
+    {
+      "test": "chat_tool_history::tests::chat_tool_history_filters_audit_before_budget_and_compaction_without_mutating_store",
+      "exit_code": 0,
+      "log": "isolated-failures\\2\\test.log"
+    },
+    {
+      "test": "chat_tool_history::tests::chat_tool_planner_request_preserves_planner_contract_and_session_reasoning",
+      "exit_code": 0,
+      "log": "isolated-failures\\3\\test.log"
+    },
+    {
+      "test": "chat_tool_history::tests::chat_tool_stream_two_calls_and_next_user_turn_keep_protocol_and_trim_internal_history",
+      "exit_code": 0,
+      "log": "isolated-failures\\4\\test.log"
+    },
+    {
+      "test": "chat_tool_history::tests::omitted_historical_failure_keeps_previous_turn_boundary",
+      "exit_code": 0,
+      "log": "isolated-failures\\5\\test.log"
+    },
+    {
+      "test": "computer_use_planner::tests::chained_requests_share_one_budget_and_the_second_sees_the_remainder",
+      "exit_code": 0,
+      "log": "isolated-failures\\6\\test.log"
+    },
+    {
+      "test": "computer_use_planner::tests::late_model_result_is_recorded_as_a_fact_without_a_new_action",
+      "exit_code": 0,
+      "log": "isolated-failures\\7\\test.log"
+    },
+    {
+      "test": "computer_use_planner::tests::planner_http_sends_schema_native_or_described_images_and_records_failed_usage",
+      "exit_code": 0,
+      "log": "isolated-failures\\8\\test.log"
+    },
+    {
+      "test": "computer_use_planner::tests::zero_budget_returns_insufficient_budget_with_zero_model_requests",
+      "exit_code": 0,
+      "log": "isolated-failures\\9\\test.log"
+    },
+    {
+      "test": "tests::dev_open_agent_request_prompts_direct_real_tool_calls",
+      "exit_code": 0,
+      "log": "isolated-failures\\10\\test.log"
+    }
+  ]
+}

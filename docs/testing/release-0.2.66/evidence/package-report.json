@@ -1,0 +1,999 @@
+{
+  "generated_at": "2026-10-02T19:04:39.5085820Z",
+  "run_id": "pkg-run-release-20261003-030038744-457ae618",
+  "configuration": "release",
+  "run_phase": "build",
+  "manifest": "config/package-manifest-0.2.66-candidate.json",
+  "package_root": "tmp/candidate-066-package",
+  "backup_keep": 10,
+  "release_eligible": true,
+  "release_eligibility": {
+    "schema": 1,
+    "release_eligible": true,
+    "configuration": "release",
+    "live_worktree_changed": false,
+    "live_worktree_changed_note": "true/false = 构建前后两次独立采样之间是否观察到活动树变化；未声明源码快照范围时为 not-confirmed（未确认），绝不写成 false。",
+    "build_snapshot_integrity": "verified-unchanged-live-tree",
+    "build_snapshot_integrity_note": "verified-unchanged-live-tree = 前后两次采样逐文件一致（本实现唯一的稳定证据）；not-established = 观察到变化；not-confirmed = 无法判定。",
+    "source_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "build_input_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "validation_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "validation_snapshot_digest_note": "校验采样（构建后第二次独立枚举）得到的输入摘要；它是\"用于校验的采样\"，不是\"构建所用快照的副本摘要\"。",
+    "immutable_build_snapshot": false,
+    "immutable_build_snapshot_note": "本实现直接从活动工作树构建（cargo working_dir=仓库根），没有\"从不可变快照副本构建\"。因此只有整树字节一致才认定输入稳定；活动树在采样之间被编辑即拒绝发布。",
+    "gates": [
+      {
+        "gate": "declared_source_snapshot_scope",
+        "result": "pass",
+        "evidence": "declared_by=config/package-manifest.json#source_snapshot; roots=16",
+        "note": ""
+      },
+      {
+        "gate": "source_input_stability",
+        "result": "pass",
+        "evidence": "pre=6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd post=6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd；两次采样逐文件一致",
+        "note": ""
+      },
+      {
+        "gate": "declared_roots_present",
+        "result": "pass",
+        "evidence": "声明 roots 全部存在（范围可枚举）",
+        "note": ""
+      },
+      {
+        "gate": "build_input_stability",
+        "result": "pass",
+        "evidence": "pre=2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f post=2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+        "note": ""
+      },
+      {
+        "gate": "artifact_provenance",
+        "result": "pass",
+        "evidence": "全部 10 个产物的来源可确认",
+        "note": ""
+      },
+      {
+        "gate": "frozen_inputs",
+        "result": "pass",
+        "evidence": "freeze_id=2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f; mode=consumed-preparation-freeze-record; changed_paths=0",
+        "note": "正式构建阶段消费准备阶段冻结记录：任一声明输入改变即拒绝发布"
+      }
+    ],
+    "gates_note": "任一门不是 pass（fail 或 not-confirmed）⇒ release_eligible=false。not-confirmed 表示\"未能确认是否受影响\"，不是通过。",
+    "artifact_provenance": [
+      {
+        "artifact_id": "gui-web.web-console",
+        "target": "bin/coolzhu-web-console.exe",
+        "source_path": "modules/gui-web/target/release/coolzhu-web-console.exe",
+        "source_sha256": "B3F2574DF6032238F4EA06468237AF6F18831498F782A31715432AB28934FB70",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": true,
+        "source_classification": "declared-source-snapshot-excluded",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      },
+      {
+        "artifact_id": "gui-web.browser-native-host",
+        "target": "bin/coolzhu-browser-native-host.exe",
+        "source_path": "modules/gui-web/target/release/coolzhu-browser-native-host.exe",
+        "source_sha256": "01FBACE4CA6580D478D446059440560F2E352A647EB7E6577CCE39C33AF23FB3",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": false,
+        "source_classification": "declared-source-snapshot-excluded",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      },
+      {
+        "artifact_id": "gui-web.clawbot-sidecar",
+        "target": "bin/coolzhu-clawbot-sidecar.exe",
+        "source_path": "modules/gui-web/target/release/coolzhu-clawbot-sidecar.exe",
+        "source_sha256": "7C9CBA54D8DFC5248865414748E2E0BD9340839C888C2267007E2B90CAA32FC9",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": false,
+        "source_classification": "declared-source-snapshot-excluded",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      },
+      {
+        "artifact_id": "cli.command-line",
+        "target": "bin/coolzhu-cli.exe",
+        "source_path": "modules/cli/target/release/coolzhu-cli.exe",
+        "source_sha256": "BC0DA20914FD20422235C1A0BD8C54E8644EF49B6F9082287802A1E9980458F6",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": true,
+        "source_classification": "declared-source-snapshot-excluded",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      },
+      {
+        "artifact_id": "computer-use.preflight-check",
+        "target": "bin/coolzhu-computer-use-check.exe",
+        "source_path": "modules/computer-use/target/release/coolzhu-computer-use-check.exe",
+        "source_sha256": "DFF4B91E67691298AFCD479A6D1C8EB8E7125588CB448F2C37EF72C9ABC042B8",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": false,
+        "source_classification": "declared-source-snapshot-excluded",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      },
+      {
+        "artifact_id": "vision.smoke",
+        "target": "bin/coolzhu-vision-smoke.exe",
+        "source_path": "modules/vision/target/release/coolzhu-vision-smoke.exe",
+        "source_sha256": "641092442264B1FC13430DDB1C2F66B2FA38AA6CCE32CE0D7A34576DF506622A",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": false,
+        "source_classification": "declared-source-snapshot-excluded",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      },
+      {
+        "artifact_id": "vision.latest-desktop",
+        "target": "bin/coolzhu-latest-desktop-vision.exe",
+        "source_path": "modules/vision/target/release/coolzhu-latest-desktop-vision.exe",
+        "source_sha256": "15CCD7A325B3130499363D3827CDCAE04C77C71AD0F1E009F57FAE9717CD1D4C",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": false,
+        "source_classification": "declared-source-snapshot-excluded",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      },
+      {
+        "artifact_id": "gui-desktop.tauri-shell",
+        "target": "bin/coolzhu-tauri-shell.exe",
+        "source_path": "modules/gui-desktop/target/tauri-shell/release/coolzhu-tauri-shell.exe",
+        "source_sha256": "9CC02A162B3B7F249BA4890EE55A3F95B20DF90F54AD390EE236818A1BF9EE21",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": true,
+        "source_classification": "declared-source-snapshot-excluded",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      },
+      {
+        "artifact_id": "gui-desktop.webview2-loader",
+        "target": "bin/WebView2Loader.dll",
+        "source_path": "tmp/package-consume/pkg-run-release-20261003-030038744-457ae618/gui-desktop.webview2-loader/WebView2Loader.dll",
+        "source_sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C",
+        "copied": true,
+        "has_export": true,
+        "receipt": "modules/gui-desktop/target/package-inputs/windows-x64/release/webview2-loader-export.json",
+        "stable_export_sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+        "producer_build_script_rerun": false,
+        "build_mode": "build",
+        "rebuilt_in_this_run": false,
+        "source_classification": "declared-non-build-input",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "declared-external-input-verified",
+        "confirmation_reason": "该产物没有 build 声明，且其来源不落在声明源码快照范围内（classified=declared-non-build-input）⇒ 无法确认它对应本次快照",
+        "association": null,
+        "external_input_verified": true,
+        "external_input": {
+          "id": "cargo-registry:webview2-com-sys",
+          "crate": "webview2-com-sys",
+          "version": "0.38.2",
+          "checksum": "381336cfffd772377d291702245447a5251a2ffa5bad679c99e61bc48bacbf9c",
+          "registry_source": "https://github.com/rust-lang/crates.io-index",
+          "checksum_authority": "Cargo.lock",
+          "verified_from": "manifest-declared-checksum-equals-cargo-lock-checksum"
+        }
+      },
+      {
+        "artifact_id": "package.app-launcher",
+        "target": "COOLZHU-AGENT.exe",
+        "source_path": "target/release/COOLZHU-AGENT.exe",
+        "source_sha256": "F4B60C9DDE18909454EAD636CEAD384CAB0E0B9D0CB0CBBA3A1E413093858C79",
+        "copied": true,
+        "has_export": false,
+        "receipt": null,
+        "stable_export_sha256": null,
+        "producer_build_script_rerun": "not-confirmed",
+        "build_mode": "build",
+        "rebuilt_in_this_run": true,
+        "source_classification": "declared-non-build-input",
+        "source_in_declared_snapshot_scope": false,
+        "confirmation": "built-in-this-run-from-verified-unchanged-inputs",
+        "confirmation_reason": null,
+        "association": null
+      }
+    ],
+    "external_inputs": [
+      {
+        "id": "cargo-registry:webview2-com-sys",
+        "crate": "webview2-com-sys",
+        "version": "0.38.2",
+        "checksum": "381336cfffd772377d291702245447a5251a2ffa5bad679c99e61bc48bacbf9c",
+        "registry_source": "https://github.com/rust-lang/crates.io-index",
+        "checksum_authority": "Cargo.lock",
+        "verified_from": "manifest-declared-checksum-equals-cargo-lock-checksum"
+      }
+    ],
+    "external_inputs_verified": true,
+    "external_inputs_note": "external_inputs_verified=true 表示本次出现的第三方 registry 构建产物均已按 manifest 登记的 crate/version/checksum 与 Cargo.lock 逐字比对通过；not-applicable 表示本次没有出现需要登记的外部输入。",
+    "source_snapshot_verified": true,
+    "source_snapshot_verified_note": "source_snapshot_verified=true 只表示**源码快照侧**的范围、稳定性与 roots 检查通过；它**不**等于\"源码快照包含全部二进制来源\"。",
+    "cleared_artifact_revocations": [],
+    "reasons": [],
+    "limitations": [],
+    "refusal_note": "release_eligible=false 的报告不是可发布收据：不得据此进入签名/安装/分发；也不得用 quiescent=false 之类的字段给它补一张可发布收据。"
+  },
+  "build_context": {
+    "mode": "build",
+    "package_manifest": "config/package-manifest-0.2.66-candidate.json",
+    "package_manifest_sha256": "A242B31F705E13FFC71BA3543DA3E24D9FEC32181BD895E20819D71E2E1B7B0C",
+    "build_target": "x86_64-pc-windows-msvc",
+    "host_target": "x86_64-pc-windows-msvc",
+    "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+    "release_version": "0.2.66",
+    "source_commit": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+    "source_commit_available": true,
+    "source_commit_authority": "tracked-commit",
+    "vcs_state": "tracked_worktree",
+    "vcs_reference_commit": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+    "vcs_reference_commit_kind": "seed-reference-only",
+    "dirty_against_commit": true,
+    "dirty_against_commit_note": "git status --porcelain 变更行数 = 160",
+    "tracked_index_file_count": 3262,
+    "vcs_evidence": "索引已跟踪 3262 个文件；工作树相对 8181f08ae9c50d3e41aabd32a6af85343dcd92e8 的变更行数 = 160",
+    "tracked_build_entry_files": 20,
+    "source_identity_kind": "declared-file-hash-set",
+    "source_identity_note": "该声明文件哈希集合只覆盖 tauri 构建入口声明的文件与导入目录，**不是**全量源码快照；全量源码身份是 source_snapshot_digest（见 source_snapshot 块）。tauri-build 会重写 src-tauri/gen/schemas，故不使用整树 git status 作为身份",
+    "generated_by": "scripts/package-all.ps1"
+  },
+  "build_identity": {
+    "schema": 1,
+    "source_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "build_input_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "payload_digest": "6774c7836be01b075acbada8c0de6e48056c370f41b26a82f7ba2cffc3394e92",
+    "identity_questions": {
+      "source_snapshot_digest": "本次使用了哪份第一方源码和构建资源快照？",
+      "build_input_digest": "该快照配合什么锁文件、工具链、target、profile、features 和构建配置？",
+      "payload_digest": "最终生成和分发了哪些二进制与资源？"
+    },
+    "caveat": "历史来源可以未知；当前使用哪些字节必须可回答。三者仍不证明原始作者、历史提交链或跨机器逐字节可复现。",
+    "payload_digest_scope": "暂存包根目录下除 payload-inventory.json 自身之外的全部文件（path|length|sha256 规范排序后 SHA256）"
+  },
+  "source_snapshot": {
+    "computed": true,
+    "digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "scope_digest": "04b0862eec88fb9670a505e8ba3a9018b0d5763daccca9273e9c0fbc70b98047",
+    "file_set_digest": "b2cfc37cbac7dd462016a24066673af18b4563380b87917127ac45302c21979a",
+    "file_count": 1283,
+    "total_bytes": 203730385,
+    "quiescent_passes": 2,
+    "declared_by": "config/package-manifest.json#source_snapshot",
+    "roots": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "package.json",
+      "package.ps1",
+      "src",
+      "modules",
+      "packages",
+      "installer",
+      "scripts",
+      "config",
+      "skills",
+      "tests",
+      ".coolzhu/plugins",
+      "docs/user-guide",
+      "docs/command-line.md",
+      "docs/design-assets"
+    ],
+    "exclude_path_patterns": [
+      "(^|/)\\.git(/|$)",
+      "(^|/)\\.claude(/|$)",
+      "(^|/)\\.superpowers(/|$)",
+      "(^|/)\\.claw-agents(/|$)",
+      "(^|/)\\.playwright-cli(/|$)",
+      "(^|/)\\.sandbox-home(/|$)",
+      "(^|/)\\.sandbox-tmp(/|$)",
+      "(^|/)\\.coolzhu(/|$)",
+      "(^|/)target(/|$)",
+      "(^|/)node_modules(/|$)",
+      "(^|/)dist(/|$)",
+      "(^|/)tmp(/|$)",
+      "(^|/)logs?(/|$)",
+      "(^|/)sessions?(/|$)",
+      "(^|/)backups?(?:-[^/]+)?(/|$)",
+      "(^|/)__pycache__(/|$)",
+      "(^|/)test-results(/|$)",
+      "(^|/)goal-artifacts(/|$)",
+      "(^|/)gen(/|$)",
+      "web-sessions",
+      "(^|/)\\.env($|\\.)",
+      "\\.(sqlite3?|db)(-(wal|shm|journal))?$",
+      "coolzhu\\.toml$",
+      "(^|/)(credentials?|secrets?|token-cache|credential-cache|access-token|refresh-token|session-token|auth-token)(\\.[^/]+)?$",
+      "\\.(pem|key|pfx|p12)$",
+      "\\.(gguf|onnx|safetensors|pth|pt|ckpt|mlmodel|tflite)$",
+      "\\.(bin|dll|so|dylib|exe|msi|zip|7z|pdb|lib|obj|class|jar)$",
+      "\\.(log|bak|old|orig|rej|pyc|pyo|swp)$",
+      "~$",
+      "(^|/)\\.DS_Store$",
+      "(^|/)Thumbs\\.db$"
+    ],
+    "allow_path_patterns": "(^|/)\\.coolzhu/plugins/",
+    "allow_reparse_points": null,
+    "external_path_dependencies": [
+      {
+        "path": "tmp/2026-10-02-final-msi/fixed-runtime-source",
+        "reason": "固定官方Node及17个SDK依赖：由config/dsh-runtime-lock.json完整文件表和首次核验的官方归档身份独立校验，复制前后核验；不是第一方源码",
+        "handling": "verified-fixed-runtime-resource"
+      },
+      {
+        "path": "tmp/tools/dotnet",
+        "reason": "build-msi.ps1 在缺少系统 .NET SDK 时使用的本地 dotnet（安装器工具链，非第一方源码）",
+        "handling": "registered-only-not-followed"
+      },
+      {
+        "path": "tmp/tools/wix",
+        "reason": "WiX 5.0.2 本地工具目录（生成 MSI 的工具，非第一方源码）",
+        "handling": "registered-only-not-followed"
+      },
+      {
+        "path": "modules/*/target",
+        "reason": "各 crate 的独立构建输出目录（无关历史 target，不进入源码快照；其身份由 payload_digest 承担）",
+        "handling": "registered-only-not-followed"
+      }
+    ],
+    "skipped_reparse_points": null,
+    "unclassified_files": null,
+    "missing_roots": null,
+    "extension_histogram": {
+      ".html": 9,
+      ".json": 36,
+      ".sh": 4,
+      ".py": 9,
+      ".gitignore": 5,
+      ".wxs": 1,
+      ".ps1": 30,
+      ".lock": 2,
+      ".css": 9,
+      ".rs": 262,
+      ".cjs": 4,
+      ".cs": 1,
+      ".svg": 48,
+      ".gif": 2,
+      ".yaml": 3,
+      ".mjs": 16,
+      ".toml": 30,
+      ".png": 753,
+      ".md": 25,
+      ".mp4": 1,
+      ".js": 29,
+      ".ico": 4
+    },
+    "freeze_record": "tmp/source-snapshots/source-snapshot-6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd.json",
+    "freeze_record_sha256": "30494961b9a1e1cb7fc9a86f0e9739bca8cbd1d9a4c36b83da8f6422f4558a2b",
+    "freeze_record_reused": true,
+    "post_build_verification": {
+      "checked_at_utc": "2026-10-02T19:04:33.9140893Z",
+      "method": "two-pass-quiescent-enumeration-before-and-after-build",
+      "pre_build_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+      "post_build_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+      "identical": true,
+      "added_count": 0,
+      "removed_count": 0,
+      "modified_count": 0,
+      "added_paths": [],
+      "removed_paths": [],
+      "modified_paths": [],
+      "freeze_record": "tmp/source-snapshots/source-snapshot-6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd.json",
+      "freeze_record_sha256": "30494961b9a1e1cb7fc9a86f0e9739bca8cbd1d9a4c36b83da8f6422f4558a2b",
+      "evidence_kind": "observed-between-two-samples",
+      "evidence_note": "这是\"构建前后两次独立采样之间的差异\"，属于**已观察变化**，不是完整写入历史。"
+    },
+    "validation_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "validation_snapshot_digest_note": "构建后第二次独立枚举得到的输入摘要（= 校验采样），用于回答\"构建后输入是否仍与构建前一致\"。",
+    "note": "纳入判定是声明 roots 下除排除项之外的一切；排除规则同时承担\"不混入用户配置/凭据/运行数据库/模型权重/无关 target\"的职责。reparse point（junction/symlink）一律登记而不追随。"
+  },
+  "build_inputs": {
+    "digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "descriptor_count": 48,
+    "descriptors": [
+      "schema=1",
+      "source_snapshot_digest=6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+      "profile=release",
+      "package_manifest=config/package-manifest-0.2.66-candidate.json|sha256=a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+      "cargo_version=cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+      "cargo_host_target=x86_64-pc-windows-msvc",
+      "cargo_build_target=x86_64-pc-windows-msvc",
+      "rustc=rustc 1.94.1 (e408947bf 2026-03-25)",
+      "env:CARGO_BUILD_TARGET=(unset)",
+      "env:RUSTFLAGS=(unset)",
+      "env:CARGO_ENCODED_RUSTFLAGS=(unset)",
+      "env:CARGO_HOME=(unset)",
+      "env:RUSTUP_TOOLCHAIN=(unset)",
+      "env:COOLZHU_RELEASE_VERSION=0.2.66",
+      "env:COOLZHU_BUILD_TARGET=x86_64-pc-windows-msvc",
+      "env:COOLZHU_BUILD_DATE=2026-10-02",
+      "workspace_config=.cargo/config.toml|absent",
+      "workspace_config=.cargo/config|absent",
+      "workspace_config=rust-toolchain.toml|absent",
+      "workspace_config=rust-toolchain|absent",
+      "workspace_config=.config/cargo.toml|absent",
+      "input_file=Cargo.toml|length=3413|sha256=9cc59f26d6ecdb7eeed06dd1ae5cfa6f9ebdbc48c8a208c50a3ecb75b3f8536d",
+      "input_file=Cargo.lock|length=139874|sha256=225aaa7e972bc4ecd06983b3079a36ef0666e019a52e3e416070ffe4e82f859a",
+      "input_file=config/dsh-runtime-lock.json|length=60864|sha256=a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+      "input_file=modules/tooling/packages/dsh-plugin-host/package.json|length=1055|sha256=95df0940535ec8a0849a114318e14b5573d289e1b075f32dcb325712b1d8420e",
+      "input_file=modules/tooling/packages/dsh-plugin-host/package-lock.json|length=10810|sha256=af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+      "input_file=scripts/prepare-dsh-runtime.py|length=11349|sha256=59f3b52ca2770a6b7aa3b402ec04461d1e1a70427a546a3d1cc8af00aa84d7e1",
+      "input_file=scripts/lib/dsh-runtime.ps1|length=917|sha256=595dfb42bb0e1c106c4b9f9431feccafa53923766b42bbd6d354aaa0c4de2b8d",
+      "input_file=config/package-manifest.json|length=21451|sha256=38925095c57a170269861a75130a705a50bf4290658bdfdd87552fa24dc2cbda",
+      "input_file=config/package-launcher.json|length=925|sha256=faad921c3e7069a066206f4dc9df07e1659c29b687d343477ae3a6e1628117b2",
+      "input_file=installer/Product.wxs|length=5239|sha256=bf6f25db5b768ef9a883da8524a5ef4a6a86d553d66a1a1112e291e43a092af6",
+      "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml|length=1369|sha256=5d8d11c3d8af96c5654eb75dad7acf83bb9b2b3fd1f902c6e6fec9fe43c4c53c",
+      "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock|length=142916|sha256=f8409c59e5c779280bfa0db69a4542b29782192f010224acded99624245706b3",
+      "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/build.rs|length=637|sha256=9d8720103b57746a987e41f7e99604bf2870fa9289168674a93e8ac18306938a",
+      "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/tauri.conf.json|length=646|sha256=863b5631075528eb39f75cd9603283466eac454f3241ce2d74ab97d09976f57b",
+      "input_file=modules/gui-desktop/packages/tauri-shell/src-tauri/capabilities/default.json|length=463|sha256=62da62741bb874370582a745465c41d5219bb6305c0d0190cb8ab1680d496710",
+      "input_file=config/package-manifest-0.2.66-candidate.json|length=21559|sha256=a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+      "artifact=gui-web.web-console|profile=release|target_dir=modules/gui-web/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-web-console --bin coolzhu-web-console --offline --target-dir modules/gui-web/target",
+      "artifact=gui-web.browser-native-host|profile=release|target_dir=modules/gui-web/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-web-console --bin coolzhu-browser-native-host --offline --target-dir modules/gui-web/target",
+      "artifact=gui-web.clawbot-sidecar|profile=release|target_dir=modules/gui-web/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-clawbot-sidecar --bin coolzhu-clawbot-sidecar --offline --target-dir modules/gui-web/target",
+      "artifact=cli.command-line|profile=release|target_dir=modules/cli/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-command-line --bin coolzhu-cli --offline --target-dir modules/cli/target",
+      "artifact=computer-use.preflight-check|profile=release|target_dir=modules/computer-use/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-computer-use-core --bin coolzhu-computer-use-check --offline --target-dir modules/computer-use/target",
+      "artifact=vision.smoke|profile=release|target_dir=modules/vision/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-vision-service --bin coolzhu-vision-smoke --offline --target-dir modules/vision/target",
+      "artifact=vision.latest-desktop|profile=release|target_dir=modules/vision/target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-vision-service --bin coolzhu-latest-desktop-vision --offline --target-dir modules/vision/target",
+      "artifact=gui-desktop.tauri-shell|profile=release|target_dir=modules/gui-desktop/target/tauri-shell|features=default|release_arg_appended=true|build_capture=cargo-json-messages|args=build --locked --manifest-path modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml --bin coolzhu-tauri-shell --offline --target-dir modules/gui-desktop/target/tauri-shell --message-format=json-render-diagnostics",
+      "artifact=gui-desktop.tauri-shell|package_selector=none",
+      "artifact=gui-desktop.webview2-loader|build=none",
+      "artifact=package.app-launcher|profile=release|target_dir=target|features=default|release_arg_appended=true|build_capture=none|args=build --locked -p coolzhu-app-launcher --bin COOLZHU-AGENT --offline"
+    ],
+    "post_build_recheck": {
+      "comparable": true,
+      "identical": true,
+      "baseline_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+      "current_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+      "changed_descriptor_lines": [
+        null
+      ],
+      "evidence_kind": "observed-between-two-samples"
+    },
+    "note": "独立 Tauri shell 是独立 Cargo 项目：其 build_entry_manifest / lockfile / build.rs / tauri.conf.json 由 artifact.export 自动登记，不只记顶层 workspace 的 lockfile。"
+  },
+  "declared_input_scope": {
+    "source_snapshot_declared_by": "config/package-manifest.json#source_snapshot",
+    "source_snapshot_roots": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "package.json",
+      "package.ps1",
+      "src",
+      "modules",
+      "packages",
+      "installer",
+      "scripts",
+      "config",
+      "skills",
+      "tests",
+      ".coolzhu/plugins",
+      "docs/user-guide",
+      "docs/command-line.md",
+      "docs/design-assets"
+    ],
+    "source_snapshot_exclude_path_patterns": [
+      "(^|/)\\.git(/|$)",
+      "(^|/)\\.claude(/|$)",
+      "(^|/)\\.superpowers(/|$)",
+      "(^|/)\\.claw-agents(/|$)",
+      "(^|/)\\.playwright-cli(/|$)",
+      "(^|/)\\.sandbox-home(/|$)",
+      "(^|/)\\.sandbox-tmp(/|$)",
+      "(^|/)\\.coolzhu(/|$)",
+      "(^|/)target(/|$)",
+      "(^|/)node_modules(/|$)",
+      "(^|/)dist(/|$)",
+      "(^|/)tmp(/|$)",
+      "(^|/)logs?(/|$)",
+      "(^|/)sessions?(/|$)",
+      "(^|/)backups?(?:-[^/]+)?(/|$)",
+      "(^|/)__pycache__(/|$)",
+      "(^|/)test-results(/|$)",
+      "(^|/)goal-artifacts(/|$)",
+      "(^|/)gen(/|$)",
+      "web-sessions",
+      "(^|/)\\.env($|\\.)",
+      "\\.(sqlite3?|db)(-(wal|shm|journal))?$",
+      "coolzhu\\.toml$",
+      "(^|/)(credentials?|secrets?|token-cache|credential-cache|access-token|refresh-token|session-token|auth-token)(\\.[^/]+)?$",
+      "\\.(pem|key|pfx|p12)$",
+      "\\.(gguf|onnx|safetensors|pth|pt|ckpt|mlmodel|tflite)$",
+      "\\.(bin|dll|so|dylib|exe|msi|zip|7z|pdb|lib|obj|class|jar)$",
+      "\\.(log|bak|old|orig|rej|pyc|pyo|swp)$",
+      "~$",
+      "(^|/)\\.DS_Store$",
+      "(^|/)Thumbs\\.db$"
+    ],
+    "source_snapshot_allow_path_patterns": "(^|/)\\.coolzhu/plugins/",
+    "source_snapshot_external_path_dependencies": [
+      {
+        "path": "tmp/2026-10-02-final-msi/fixed-runtime-source",
+        "reason": "固定官方Node及17个SDK依赖：由config/dsh-runtime-lock.json完整文件表和首次核验的官方归档身份独立校验，复制前后核验；不是第一方源码",
+        "handling": "verified-fixed-runtime-resource"
+      },
+      {
+        "path": "tmp/tools/dotnet",
+        "reason": "build-msi.ps1 在缺少系统 .NET SDK 时使用的本地 dotnet（安装器工具链，非第一方源码）",
+        "handling": "registered-only-not-followed"
+      },
+      {
+        "path": "tmp/tools/wix",
+        "reason": "WiX 5.0.2 本地工具目录（生成 MSI 的工具，非第一方源码）",
+        "handling": "registered-only-not-followed"
+      },
+      {
+        "path": "modules/*/target",
+        "reason": "各 crate 的独立构建输出目录（无关历史 target，不进入源码快照；其身份由 payload_digest 承担）",
+        "handling": "registered-only-not-followed"
+      }
+    ],
+    "build_input_files": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "config/dsh-runtime-lock.json",
+      "modules/tooling/packages/dsh-plugin-host/package.json",
+      "modules/tooling/packages/dsh-plugin-host/package-lock.json",
+      "scripts/prepare-dsh-runtime.py",
+      "scripts/lib/dsh-runtime.ps1",
+      "config/package-manifest.json",
+      "config/package-launcher.json",
+      "installer/Product.wxs",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/build.rs",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/tauri.conf.json",
+      "modules/gui-desktop/packages/tauri-shell/src-tauri/capabilities/default.json",
+      "config/package-manifest-0.2.66-candidate.json"
+    ],
+    "non_build_input_declarations": [
+      {
+        "pattern": "(^|/)tmp(/|$)",
+        "reason": "临时脚本、日志与打包中间产物（冻结记录/报告/失败隔离区/备份都落在这里）",
+        "declared_by": "scripts/lib/build-identity.ps1#default"
+      },
+      {
+        "pattern": "(^|/)target(/|$)",
+        "reason": "各 crate 的构建输出目录：其身份由 payload_digest 与产物—快照关联记录承担，不是源码",
+        "declared_by": "scripts/lib/build-identity.ps1#default"
+      },
+      {
+        "pattern": "(^|/)logs?(/|$)",
+        "reason": "运行日志输出",
+        "declared_by": "scripts/lib/build-identity.ps1#default"
+      },
+      {
+        "pattern": "(^|/)sessions?(/|$)",
+        "reason": "会话运行态数据",
+        "declared_by": "scripts/lib/build-identity.ps1#default"
+      },
+      {
+        "pattern": "(^|/)\\.coolzhu(/|$)",
+        "reason": "运行态（用户会话/sqlite/插件运行时状态），仅 .coolzhu/plugins 由 allow_path_patterns 放行",
+        "declared_by": "scripts/lib/build-identity.ps1#default"
+      },
+      {
+        "pattern": "web-sessions",
+        "reason": "会话数据库/JSON 运行态",
+        "declared_by": "scripts/lib/build-identity.ps1#default"
+      },
+      {
+        "pattern": "(^|/)__pycache__(/|$)",
+        "reason": "Python 字节码缓存（不是源码）",
+        "declared_by": "scripts/lib/build-identity.ps1#default"
+      },
+      {
+        "pattern": "(^|/)package(/|$)",
+        "reason": "[manifest 覆盖] 打包输出目录（可发布产物本身，不是构建输入）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      },
+      {
+        "pattern": "(^|/)dist(/|$)",
+        "reason": "分发输出目录（不是构建输入）",
+        "declared_by": "scripts/lib/build-identity.ps1#default"
+      },
+      {
+        "pattern": "(^|/)tmp/package-reports(/|$)",
+        "reason": "打包报告/指针/保留索引/失败诊断（打包输出，不是构建输入）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      },
+      {
+        "pattern": "(^|/)tmp/package-failures(/|$)",
+        "reason": "失败隔离区（临时产物，与可发布产物分区且永不自动晋升）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      },
+      {
+        "pattern": "(^|/)tmp/source-snapshots(/|$)",
+        "reason": "源码快照冻结记录（诊断/核对用，不是构建输入）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      },
+      {
+        "pattern": "(^|/)tmp/package-backups(/|$)",
+        "reason": "旧产物备份（不是构建输入）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      },
+      {
+        "pattern": "(^|/)tmp/logs(/|$)",
+        "reason": "构建/运行日志输出（已声明不属于构建输入：其变化不得被误判为源码变化）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      },
+      {
+        "pattern": "(^|/)modules/[^/]+/target(/|$)",
+        "reason": "各模块独立构建输出目录（其身份由 payload_digest 与产物—快照关联记录承担）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      },
+      {
+        "pattern": "(^|/)tmp/package-freeze(/|$)",
+        "reason": "RD4-06 准备阶段的冻结记录与冻结指针（准备阶段输出，不是构建输入）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      },
+      {
+        "pattern": "(^|/)tmp/package-consume(/|$)",
+        "reason": "PKG-L07c 本次消费的独立 staging（消费阶段派生输出，不是构建输入）",
+        "declared_by": "config/package-manifest.json#release_policy.non_build_input_paths"
+      }
+    ],
+    "non_build_input_note": "这些路径上的变化**不得**被误判为源码变化（裁决第 8 条）。每一条都给出 reason，使\"为什么不算构建输入\"可审查。",
+    "path_classification_rule": "Get-PackagePathClassification：先后判 non_build_input_paths、declared build inputs、然后判是否落在声明 roots 内（排除/放行规则按 root 相对路径匹配）；规则不足时分类为 undetermined。"
+  },
+  "payload_inventory": {
+    "path": "payload-inventory.json",
+    "payload_digest": "6774c7836be01b075acbada8c0de6e48056c370f41b26a82f7ba2cffc3394e92",
+    "file_count": 1149,
+    "total_bytes": 419260384
+  },
+  "exported_artifacts": [
+    {
+      "artifact_id": "gui-desktop.webview2-loader",
+      "mode": "build",
+      "validation": "exported-in-this-run",
+      "slot_key": "d64efd48599bfce7",
+      "generation": "38de61a4dbb346bd96f054fb0dbb7a7e",
+      "producer_run_id": "pkg-run-release-20261003-030038744-457ae618",
+      "consumer_run_id": "pkg-run-release-20261003-030038744-457ae618",
+      "artifact_digest": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+      "artifact_length": 160320,
+      "receipt_digest": "506afdc3ea55bead89ff040a1d9fa25f422711240220d7889a4d93e799b16c98",
+      "build_input_digest": "fb93e02435662fc9a736c1f6eefbf3fd127ee6658134e65f37be3d1bbcb580fb",
+      "consumption": {
+        "kind": "webview2-loader-generation-consumption",
+        "consumer_run_id": "pkg-run-release-20261003-030038744-457ae618",
+        "generation": "38de61a4dbb346bd96f054fb0dbb7a7e",
+        "slot_key": "d64efd48599bfce7",
+        "slot_dir": "modules/gui-desktop/target/package-inputs/windows-x64/release",
+        "generation_record": ".loader-generations-d64efd48599bfce7/38de61a4dbb346bd96f054fb0dbb7a7e.json",
+        "pointer_path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\gui-desktop\\target\\package-inputs\\windows-x64\\release\\.loader-current-d64efd48599bfce7.json",
+        "pointer_generation_at_consumption": "38de61a4dbb346bd96f054fb0dbb7a7e",
+        "pointer_committed_utc": "2026-10-02T19:04:18.9362111Z",
+        "supersedes_generation": "1b3841068b024e95a8f99fd8b082a805",
+        "staged_path": "tmp/package-consume/pkg-run-release-20261003-030038744-457ae618/gui-desktop.webview2-loader/WebView2Loader.dll",
+        "staged_sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+        "staged_length": 160320,
+        "consumed_content_matches_generation": true,
+        "consumption_verified": true,
+        "verification_source": "pointer+generation-record+declared-receipt three-way verified, then copied to run-private staging",
+        "read_right": "held from generation resolution until the staging copy was verified",
+        "fixed_at_utc": "2026-10-02T19:04:19.0576469Z",
+        "report_generation_rule": "包报告只从本固定收据生成：报告生成阶段不得重新读取共享槽位的最新收据；槽位后续合法更新到新一代次不影响本报告引用的代次"
+      },
+      "receipt": "modules/gui-desktop/target/package-inputs/windows-x64/release/webview2-loader-export.json",
+      "stable_export": "modules/gui-desktop/target/package-inputs/windows-x64/release/WebView2Loader.dll",
+      "stable_export_sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+      "stable_export_length": 160320,
+      "producer_package_id": "registry+https://github.com/rust-lang/crates.io-index#webview2-com-sys@0.38.2",
+      "producer_out_dir": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules/gui-desktop/target/tauri-shell\\release\\build\\webview2-com-sys-55b44b0ddeeacab2\\out",
+      "producer_candidate_count": 1,
+      "producer_selection_evidence": "out_dir+linked_paths",
+      "architecture": "x64",
+      "machine": "AMD64",
+      "reuse_nature": "producer-output-reused-from-existing-cargo-build-directory",
+      "producer_build_script_rerun_in_this_invocation": false,
+      "build_identity": {
+        "build_input_digest": "fb93e02435662fc9a736c1f6eefbf3fd127ee6658134e65f37be3d1bbcb580fb",
+        "build_input_digest_rule": "SHA256（artifact 声明摘要 + 构建入口源码/配置身份 + 构建入口 manifest/lockfile + target/profile/cargo target-dir/release version）",
+        "source_identity_kind": "declared-file-hash-set",
+        "source_identity_sha256": "5155da78229ca8f75e0ee34d787ac8cc07d8e40069e3ac171ebf59f9313e011d",
+        "source_identity_file_count": 18,
+        "source_identity_files": [
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/build.rs",
+            "length": 637,
+            "sha256": "9d8720103b57746a987e41f7e99604bf2870fa9289168674a93e8ac18306938a"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/capabilities/default.json",
+            "length": 463,
+            "sha256": "62da62741bb874370582a745465c41d5219bb6305c0d0190cb8ab1680d496710"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock",
+            "length": 142916,
+            "sha256": "f8409c59e5c779280bfa0db69a4542b29782192f010224acded99624245706b3"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml",
+            "length": 1369,
+            "sha256": "5d8d11c3d8af96c5654eb75dad7acf83bb9b2b3fd1f902c6e6fec9fe43c4c53c"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/browser_panel.rs",
+            "length": 40291,
+            "sha256": "82ed2b08192c589db54027157e8d3a76547dde7c5a15b4dcb1d823ff7e76a0db"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/computer_use_indicator.rs",
+            "length": 5490,
+            "sha256": "7aa45ee344a43fba2e7506756075c0c297e7d920f1a2f482b5a1ad804b2fea36"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/console_shell.rs",
+            "length": 2369,
+            "sha256": "c51e18e0ffaa33a303b5fe5eab4c09f1053eec6fde5dd102132e8b2466244a11"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+            "length": 136046,
+            "sha256": "ee781c483782cb0bc70e7ba42d5950eb18e2cab7878da0b4121404c26db3b42a"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs",
+            "length": 7031,
+            "sha256": "4c06cb4119c265ee8b887315a6948192e2b184d66f3070559573ab8446010faa"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_edit_input.rs",
+            "length": 6624,
+            "sha256": "8c769edbd5ed4ae9c68d774497b4048068db551fc5e04f1d51bd793ceeebc23f"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs",
+            "length": 3163,
+            "sha256": "d42e82bb73111b47f36ee7bcf7a713697a0807d0084caab93b6baea83c3a95d3"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_host.rs",
+            "length": 8120,
+            "sha256": "2a1866abc4df949b7f1f8d2968b204afda8c0d3775f70ec8ab24023f7e1fd89f"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_input.rs",
+            "length": 16070,
+            "sha256": "e09e81c39ab8b7cff67fb4f2806f88f4a68bc483e5b8293dbfc8763dcf50e852"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_nodes.rs",
+            "length": 7366,
+            "sha256": "537cae615e8b7d619d615944ce62979caf393859e977b7debc3a27d7c52164e3"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+            "length": 8316,
+            "sha256": "b37ad2e6b2dfe8b1dcf7431c2b82f42128c0d2b45b0764a427d6e10c88d8408e"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+            "length": 11457,
+            "sha256": "6a2e0f706ca54ee7f48312b6ab5c0b442874afcd559d50e9bdacc85b6121bb2a"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/recovery_confirmation.rs",
+            "length": 13585,
+            "sha256": "4b0691124f5f6700352fed775e8d2198252c55fc049416e1191ab6a15e03019e"
+          },
+          {
+            "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/tauri.conf.json",
+            "length": 646,
+            "sha256": "863b5631075528eb39f75cd9603283466eac454f3241ce2d74ab97d09976f57b"
+          }
+        ],
+        "source_identity_is_full_source_snapshot": false,
+        "source_identity_sampling": "sampled-before-publish-and-before-receipt-commit; pre-must-equal-post",
+        "source_identity_before_publish_sha256": "5155da78229ca8f75e0ee34d787ac8cc07d8e40069e3ac171ebf59f9313e011d",
+        "source_snapshot_digest": null,
+        "source_snapshot_digest_available": false,
+        "source_snapshot_note": "全量源码/构建资源快照身份（source_snapshot_digest）由 scripts/package-all.ps1 计算并写入 package report 的 build_identity；构建输入身份是 build_input_digest，载荷身份是 payload_digest，三者互不冒充",
+        "source_commit": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+        "source_commit_available": true,
+        "source_commit_authority": "tracked-commit",
+        "vcs_state": "tracked_worktree",
+        "vcs_reference_commit": "8181f08ae9c50d3e41aabd32a6af85343dcd92e8",
+        "vcs_reference_commit_kind": "seed-reference-only",
+        "dirty_against_commit": true,
+        "vcs_evidence": null,
+        "tracked_build_entry_files": 20,
+        "tracked_index_file_count": 3262,
+        "build_entry_artifact": "gui-desktop.tauri-shell",
+        "build_entry_manifest": "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml",
+        "build_entry_manifest_sha256": "5d8d11c3d8af96c5654eb75dad7acf83bb9b2b3fd1f902c6e6fec9fe43c4c53c",
+        "lockfile": "modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock",
+        "lockfile_sha256": "f8409c59e5c779280bfa0db69a4542b29782192f010224acded99624245706b3",
+        "cargo_target_dir": "modules/gui-desktop/target/tauri-shell",
+        "profile": "release",
+        "build_target": "x86_64-pc-windows-msvc",
+        "host_target": "x86_64-pc-windows-msvc",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "release_version": "0.2.66"
+      },
+      "raw_source": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\gui-desktop\\target\\tauri-shell\\release\\build\\webview2-com-sys-55b44b0ddeeacab2\\out\\x64\\WebView2Loader.dll",
+      "raw_source_sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+      "raw_source_length": 160320,
+      "raw_source_machine": "AMD64"
+    }
+  ],
+  "preparation_and_freeze": {
+    "phase": "build",
+    "frozen_inputs_mode": "consumed-preparation-freeze-record",
+    "freeze": null,
+    "freeze_id": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "frozen_input_count": 48,
+    "prepared_source_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+    "prepared_build_input_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+    "generated_configs": [],
+    "generated_config_rule": "准备阶段生成的配置生成后即计入冻结输入（摘要进入 freeze_id）；正式构建阶段改写即拒绝发布",
+    "derived_outputs": [
+      {
+        "path": "tmp/package-consume/pkg-run-release-20261003-030038744-457ae618",
+        "generated_by": "scripts/package-all.ps1 (PKG-L07c consumption staging)",
+        "reason": "本次打包消费导出产物时的独立 staging：产物先复制到这里并复核内容身份，报告只从本次固定消费收据生成",
+        "within_declared_output_root": true
+      }
+    ],
+    "dependency_resolution": null,
+    "cargo_lock_semantics": {
+      "prepare": "解析/更新依赖：默认只做只读解析核对（cargo metadata --locked --offline）；确需更新锁定内容时必须显式 -UpdateDependencies",
+      "build": "正式构建：--locked --offline（等价 --frozen：锁定 + 离线）；锁文件在构建期被改写即失败",
+      "no_whitelist": "--locked 在需要改锁文件时失败；本流程不提供\"构建中改锁文件\"的白名单"
+    },
+    "frozen_input_check": {
+      "comparable": true,
+      "identical": true,
+      "frozen_freeze_id": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+      "frozen_build_input_digest": "2327287b41ca32f95099a795a560997c30b2e722f9f5700fd6683a0718dc425f",
+      "current_source_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+      "frozen_source_snapshot_digest": "6f3d30de5f8af4ea01e4584afee63ee77bec2d25db50854e43ef865f172a43bd",
+      "changed_paths": [],
+      "changed_path_count": 0,
+      "phase": "build-preflight",
+      "rule": "冻结输入在正式构建阶段发生变化 ⇒ 拒绝发布（release_eligible=false），并给出改变路径、前后摘要与发生阶段"
+    },
+    "input_set_mutation_policy": "冻结输入清单不得在构建阶段被改写或删减（不允许\"发现输入被改写后把它从清单移除\"以换取 release_eligible=true）"
+  },
+  "changed_paths": [],
+  "artifacts": [
+    {
+      "id": "gui-web.web-console",
+      "source": "modules/gui-web/target/release/coolzhu-web-console.exe",
+      "target": "bin/coolzhu-web-console.exe",
+      "copied": true,
+      "sha256": "B3F2574DF6032238F4EA06468237AF6F18831498F782A31715432AB28934FB70"
+    },
+    {
+      "id": "gui-web.browser-native-host",
+      "source": "modules/gui-web/target/release/coolzhu-browser-native-host.exe",
+      "target": "bin/coolzhu-browser-native-host.exe",
+      "copied": true,
+      "sha256": "01FBACE4CA6580D478D446059440560F2E352A647EB7E6577CCE39C33AF23FB3"
+    },
+    {
+      "id": "gui-web.clawbot-sidecar",
+      "source": "modules/gui-web/target/release/coolzhu-clawbot-sidecar.exe",
+      "target": "bin/coolzhu-clawbot-sidecar.exe",
+      "copied": true,
+      "sha256": "7C9CBA54D8DFC5248865414748E2E0BD9340839C888C2267007E2B90CAA32FC9"
+    },
+    {
+      "id": "cli.command-line",
+      "source": "modules/cli/target/release/coolzhu-cli.exe",
+      "target": "bin/coolzhu-cli.exe",
+      "copied": true,
+      "sha256": "BC0DA20914FD20422235C1A0BD8C54E8644EF49B6F9082287802A1E9980458F6"
+    },
+    {
+      "id": "computer-use.preflight-check",
+      "source": "modules/computer-use/target/release/coolzhu-computer-use-check.exe",
+      "target": "bin/coolzhu-computer-use-check.exe",
+      "copied": true,
+      "sha256": "DFF4B91E67691298AFCD479A6D1C8EB8E7125588CB448F2C37EF72C9ABC042B8"
+    },
+    {
+      "id": "vision.smoke",
+      "source": "modules/vision/target/release/coolzhu-vision-smoke.exe",
+      "target": "bin/coolzhu-vision-smoke.exe",
+      "copied": true,
+      "sha256": "641092442264B1FC13430DDB1C2F66B2FA38AA6CCE32CE0D7A34576DF506622A"
+    },
+    {
+      "id": "vision.latest-desktop",
+      "source": "modules/vision/target/release/coolzhu-latest-desktop-vision.exe",
+      "target": "bin/coolzhu-latest-desktop-vision.exe",
+      "copied": true,
+      "sha256": "15CCD7A325B3130499363D3827CDCAE04C77C71AD0F1E009F57FAE9717CD1D4C"
+    },
+    {
+      "id": "gui-desktop.tauri-shell",
+      "source": "modules/gui-desktop/target/tauri-shell/release/coolzhu-tauri-shell.exe",
+      "target": "bin/coolzhu-tauri-shell.exe",
+      "copied": true,
+      "sha256": "9CC02A162B3B7F249BA4890EE55A3F95B20DF90F54AD390EE236818A1BF9EE21"
+    },
+    {
+      "id": "gui-desktop.webview2-loader",
+      "source": "tmp/package-consume/pkg-run-release-20261003-030038744-457ae618/gui-desktop.webview2-loader/WebView2Loader.dll",
+      "target": "bin/WebView2Loader.dll",
+      "copied": true,
+      "sha256": "8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C"
+    },
+    {
+      "id": "package.app-launcher",
+      "source": "target/release/COOLZHU-AGENT.exe",
+      "target": "COOLZHU-AGENT.exe",
+      "copied": true,
+      "sha256": "F4B60C9DDE18909454EAD636CEAD384CAB0E0B9D0CB0CBBA3A1E413093858C79"
+    }
+  ],
+  "report_identity": {
+    "schema": 1,
+    "report_id": "pkg-report-release-20261003-030439336-f64432c7",
+    "content_sha256": "97c8d1e2c8965df0d724e9b7bec048b076bfe0815929a7ca777eee06044c6536",
+    "content_hash_algorithm": "sha256",
+    "content_hash_scope": "canonical sorted leaf paths; report_identity.content_sha256 excluded",
+    "generated_by": "scripts/package-all.ps1",
+    "report_path": "tmp/package-reports/package-report-release-20261003-030439336.json"
+  }
+}

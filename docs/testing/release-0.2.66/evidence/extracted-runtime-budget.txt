@@ -1,0 +1,7 @@
+
+running 1 test
+{"生产桥错误":{"cleanup_confirmed":true,"code":"host_interrupted","interruption":"timed_out","message":"父调用已结束，插件迟到结果不再采纳；未自动重放"},"真实Node派发":{"context":{"call_id":"deadline-fixture-call","room_id":"engineering","run_id":"deadline-fixture-run","workspace_id":"isolated-deadline"},"deadline_ms":1790968051983,"pid":16048},"范围":"固定Node与生产Rust桥的受控协议夹具；不是官方SDK、Qwen或GUI验收","返回耗时毫秒":3033,"迟到写入不存在":true}
+test parent_deadline_stops_dispatched_node_and_rejects_delayed_result ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.39s
+

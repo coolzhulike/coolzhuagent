@@ -1,0 +1,5 @@
+source snapshot: 909a647759f9d7a21aae22273df376a6b021b3e61b39d33df27722fa235e195d files=1280 bytes=203673354
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-909a647759f9d7a21aae22273df376a6b021b3e61b39d33df27722fa235e195d.json
+上一次冻结记录属于另一份 manifest（previous=3d4606ef68b1fefc701c2bef8b0ac93f5640b55476ff6beae37d199735156729 current=ED315514FB6D99198FC1DA500A0FC604BFAC7A0ABA23B5221564AB1F2DA54D6E），按"无历史"处理
+input freeze: tmp/package-freeze/package-input-freeze-release-309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36.json (freeze_id=309eaf48066ace068fe2829e9cbf609f9af28b887ff9e8869f59c9498db8eb36 inputs=48 generated_configs=0)
+prepare record: tmp/package-reports/prepare/package-prepare-release-20261002-162841116.json (report_id=pkg-prepare-release-20261002-162841116-039f80a0 release_eligible=false)

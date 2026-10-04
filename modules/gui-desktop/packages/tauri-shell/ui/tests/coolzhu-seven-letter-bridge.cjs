@@ -31,7 +31,7 @@ function harness(options = {}) {
   };
   const dispatch=documentRef.dispatchEvent;
   documentRef.dispatchEvent=event=>{events.push(event); return dispatch(event);};
-  const context=new Proxy({globalAlpha:1}, {get:(target,key)=>key in target?target[key]:()=>{}});
+  const context=new Proxy({globalAlpha:1,...options.context}, {get:(target,key)=>key in target?target[key]:()=>{}});
   const canvas={width:1680,height:900,style:{},getContext:()=>context,setAttribute(){}}, root={style:{}};
   const skipButton={...eventTarget(),style:{}};
   const controller=bridge.createBridge({documentRef,windowRef,canvas,presentationRoot:root,skipButton,playerApi:player,manifest,mode:"first",...options});
@@ -89,6 +89,31 @@ async function main() {
   const rejected=harness({nativeInvokeFailure:true}); rejected.controller.start();
   rejected.controller.finish("skipped"); await completedOnce(rejected,"skipped");
   assert.equal(rejected.errors.length,2,"原生上报失败不得静默吞掉");
+  const boundaryFailures=[];
+  for (const failure of ["绘制异常", "清理异常", "减少动态绘制异常"]) {
+    try {
+      let throwOnClear=failure === "减少动态绘制异常";
+      const h=harness({assets:{},reducedMotion:throwOnClear,context:{clearRect(){if (throwOnClear) throw new Error(failure);}}});
+      h.controller.start(); await Promise.resolve();
+      if (failure === "绘制异常") {
+        h.tick(100);
+        throwOnClear=true;
+        h.tick(200);
+      } else if (failure === "清理异常") {
+        throwOnClear=true;
+        h.documentRef.dispatchEvent({type:"keydown",key:"Escape",preventDefault(){}});
+      }
+      await completedOnce(h,failure === "清理异常" ? "skipped" : "resource-error");
+      assert.equal(h.controller.getInstance().isActive(),false);
+      assert.ok(h.errors.length>0,"异常须保留诊断，不能静默吞掉");
+      h.controller.finish("skipped"); h.tick(300);
+      assert.equal(h.completed().length,1,"失败和迟到回调不得重复完成");
+      console.log(`${failure}：退出、资源回收、宿主完成通知均通过。`);
+    } catch (error) {
+      boundaryFailures.push(`${failure}：${error.message}`);
+    }
+  }
+  assert.deepEqual(boundaryFailures,[],"画布异常不能阻断启动交接");
   console.log("启动生命周期：完整 / 日常 / Esc / 减少动态 / 资源超时 / 恢复 / 创建失败，全部通过。");
 }
 main().catch(error=>{console.error(error); process.exitCode=1;});

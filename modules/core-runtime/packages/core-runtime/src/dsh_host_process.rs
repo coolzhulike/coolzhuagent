@@ -165,6 +165,12 @@ pub fn execute(paths: &HostPaths, receipt: &Value, config: &Value, context: &Cal
 
 fn exchange(paths: &HostPaths, receipt: &Value, config: &Value, context: &CallContext,
     timeout: Duration, execution: Option<(&HostManifest, &str, &Value)>) -> Result<Value, HostError> {
+    let parent_control = crate::managed_process::current_execution_control();
+    if let Some(reason) = parent_control.as_ref().and_then(|control| control.interruption()) {
+        return Err(HostError { code: "host_interrupted".into(), message: "父调用已停止或截止，未启动宿主".into(),
+            interruption: Some(match reason { Interruption::Cancelled => "cancelled", Interruption::TimedOut => "timed_out" }.into()), cleanup_confirmed: false });
+    }
+    let timeout = parent_control.as_ref().and_then(|control| control.remaining()).map_or(timeout, |remaining| timeout.min(remaining));
     if timeout.is_zero() || timeout > MAX_LIFETIME
         || [&context.workspace_id, &context.room_id, &context.run_id, &context.call_id]
             .iter().any(|text| text.is_empty() || text.len() > 192)
