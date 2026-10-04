@@ -52,3 +52,5 @@
 /docs/testing/release-0.2.64/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.65/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.66/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.67/evidence/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/docs/testing/release-0.2.67/evidence/engineering/browser.log -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
