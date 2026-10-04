@@ -1,0 +1,313 @@
+//! 应用层会话后端身份；会话型协议不能进入 HTTP 模型循环。
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub(super) enum AgentSessionBackend {
+    LlmHttp,
+    DevinAcp,
+    DevinCloud,
+}
+
+impl AgentSessionBackend {
+    pub(super) fn for_provider(provider: &str) -> Self {
+        match provider.trim().to_ascii_lowercase().as_str() {
+            "devin" | "devin_acp" | "devin-acp" => Self::DevinAcp,
+            "devin_cloud" | "devin-cloud" => Self::DevinCloud,
+            _ => Self::LlmHttp,
+        }
+    }
+
+    pub(super) fn validate(self, configured: Option<Self>) -> Result<(), &'static str> {
+        if configured.is_some_and(|kind| kind != self) {
+            Err("服务商与保存的会话后端不一致，请重新载入并保存连接配置。")
+        } else {
+            Ok(())
+        }
+    }
+
+    pub(super) fn require_http(self) -> Result<(), api::ApiError> {
+        match self {
+            Self::LlmHttp => Ok(()),
+            Self::DevinAcp => Err(api::ApiError::UnsupportedCapability {
+                capability: "Devin ACP 已接入配置和模型发现；本地工具桥与执行隔离尚未验收，当前不能发送 Agent 任务。请使用已就绪的服务商。".into(),
+            }),
+            Self::DevinCloud => Err(api::ApiError::UnsupportedCapability {
+                capability: "Devin Cloud 是远程会话后端，不能使用 HTTP 模型循环；统一远程委派尚未接入。".into(),
+            }),
+        }
+    }
+}
+
+pub(super) fn validate_session_input(
+    payload: &super::UpsertSessionRequest,
+    provider: &str,
+) -> super::ApiResult<()> {
+    if AgentSessionBackend::for_provider(provider) == AgentSessionBackend::LlmHttp {
+        return Ok(());
+    }
+    let invalid = |message: &str| super::api_error(axum::http::StatusCode::BAD_REQUEST, message);
+    if payload
+        .model
+        .as_deref()
+        .is_some_and(|value| value.trim().is_empty())
+    {
+        return Err(invalid("请输入 Devin CLI 账号实际可用的模型 ID。"));
+    }
+    if payload
+        .api_key_ref
+        .as_deref()
+        .is_some_and(|value| !value.trim().is_empty())
+    {
+        return Err(invalid(
+            "Devin 使用 CLI 登录；请勿在此填写 HTTP API Key 或 Cloud 组织密钥。",
+        ));
+    }
+    if payload
+        .base_url
+        .as_deref()
+        .is_some_and(|value| !value.trim().is_empty())
+        || payload
+            .endpoint
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+    {
+        return Err(invalid("Devin 会话不使用 HTTP Base URL 或 Endpoint。"));
+    }
+    if payload
+        .reasoning_effort
+        .as_deref()
+        .is_some_and(|value| value != "auto")
+    {
+        return Err(invalid("Devin 思考参数尚未由 ACP 协商确认，请使用自动。"));
+    }
+    if payload
+        .model_type
+        .as_deref()
+        .is_some_and(|value| value != "text")
+    {
+        return Err(invalid(
+            "Devin 当前仅支持保存对话 / 代码用途；其他能力尚未确认。",
+        ));
+    }
+    Ok(())
+}
+
+pub(super) fn validate_parameters(
+    settings: &super::SessionModelLimitOverride,
+    agent: &super::AgentSessionDto,
+) -> super::ApiResult<()> {
+    let invalid = |message: &str| super::api_error(axum::http::StatusCode::BAD_REQUEST, message);
+    let backend = AgentSessionBackend::for_provider(&agent.provider);
+    backend.validate(settings.backend_kind).map_err(invalid)?;
+    if backend == AgentSessionBackend::LlmHttp {
+        return Ok(());
+    }
+    let expected = if backend == AgentSessionBackend::DevinAcp {
+        "devin_acp"
+    } else {
+        "devin_cloud"
+    };
+    if settings
+        .protocol
+        .as_deref()
+        .is_some_and(|value| value != expected)
+    {
+        return Err(invalid("Devin 后端不能使用 HTTP 模型协议。"));
+    }
+    if settings
+        .base_url
+        .as_deref()
+        .is_some_and(|value| !value.trim().is_empty())
+        || settings
+            .endpoint
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+        || settings.temperature.is_some()
+        || settings.top_p.is_some()
+        || settings.thinking_budget.is_some()
+        || settings
+            .reasoning_mode
+            .as_deref()
+            .is_some_and(|value| value != "auto")
+        || agent.reasoning_effort != "auto"
+        || settings.context_window != 0
+        || settings.max_output_tokens != 0
+        || settings.supports_multimodal == Some(true)
+        || agent.model_type != "text"
+    {
+        return Err(invalid(
+            "Devin 尚未协商这些模型参数；请清空 HTTP 连接、采样、容量、图片和思考覆盖设置。",
+        ));
+    }
+    if settings
+        .turn_timeout_ms
+        .is_some_and(|value| !(60_000..=86_400_000).contains(&value))
+    {
+        return Err(invalid("每轮任务总时限必须为 1 分钟至 24 小时"));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn agent() -> super::super::AgentSessionDto {
+        super::super::AgentSessionDto {
+            id: "devin-config-test".into(),
+            name: "配置测试".into(),
+            display_name: "配置测试".into(),
+            avatar: None,
+            model: "gpt-test-alias".into(),
+            model_type: "text".into(),
+            provider: "devin".into(),
+            base_url: None,
+            endpoint: None,
+            reasoning_effort: "auto".into(),
+            api_key_status: "CLI 登录（未检查）".into(),
+            selectable: true,
+            enabled: true,
+            system: false,
+            default_timeout_ms: 20_000,
+            memory_beads: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn devin_never_falls_back_to_http_even_with_an_openai_model() {
+        for provider in ["devin", "Devin", "devin_acp", "devin-acp", "devin_cloud"] {
+            assert!(
+                AgentSessionBackend::for_provider(provider)
+                    .require_http()
+                    .is_err()
+            );
+        }
+        for provider in ["OpenAI", "custom", "智谱 AI", "DeepSeek", "ClawAPI"] {
+            assert!(
+                AgentSessionBackend::for_provider(provider)
+                    .require_http()
+                    .is_ok()
+            );
+        }
+    }
+
+    #[test]
+    fn legacy_documents_allow_derived_backend_but_explicit_mismatch_is_rejected() {
+        assert!(AgentSessionBackend::DevinAcp.validate(None).is_ok());
+        assert!(
+            AgentSessionBackend::DevinAcp
+                .validate(Some(AgentSessionBackend::LlmHttp))
+                .is_err()
+        );
+        assert!(serde_json::from_str::<AgentSessionBackend>("\"future_backend\"").is_err());
+    }
+
+    #[test]
+    fn persisted_backend_is_round_tripped_and_http_overrides_are_not_accepted_for_devin() {
+        let settings: super::super::SessionModelLimitOverride =
+            serde_json::from_value(serde_json::json!({
+                "backend_kind":"devin_acp","protocol":"devin_acp","turn_timeout_ms":60000
+            }))
+            .unwrap();
+        assert!(super::super::validate_session_model_settings(&settings, &agent()).is_ok());
+        let saved = serde_json::to_value(&settings).unwrap();
+        assert_eq!(saved["backend_kind"], "devin_acp");
+        for bad in [
+            serde_json::json!({"backend_kind":"llm_http"}),
+            serde_json::json!({"protocol":"openai_chat_completions"}),
+            serde_json::json!({"temperature":0.4}),
+            serde_json::json!({"context_window":8192}),
+            serde_json::json!({"supports_multimodal":true}),
+        ] {
+            let bad = serde_json::from_value(bad).unwrap();
+            assert!(super::super::validate_session_model_settings(&bad, &agent()).is_err());
+        }
+    }
+
+    #[test]
+    fn http_keys_and_unnegotiated_settings_are_rejected_before_session_mutation() {
+        for bad in [
+            serde_json::json!({"api_key_ref":"do-not-send"}),
+            serde_json::json!({"model":""}),
+            serde_json::json!({"base_url":"https://api.example.com"}),
+            serde_json::json!({"reasoning_effort":"high"}),
+            serde_json::json!({"model_type":"image"}),
+        ] {
+            let input = serde_json::from_value(bad).unwrap();
+            assert!(validate_session_input(&input, "devin").is_err());
+        }
+        let input = serde_json::from_value(
+            serde_json::json!({"model":"real-alias","reasoning_effort":"auto"}),
+        )
+        .unwrap();
+        assert!(validate_session_input(&input, "devin").is_ok());
+    }
+
+    #[test]
+    fn agent_dto_exposes_backend_identity_without_credentials() {
+        let dto = serde_json::to_value(agent()).unwrap();
+        assert_eq!(dto["backend_kind"], "devin_acp");
+        assert!(dto.get("api_key_ref").is_none());
+        assert!(dto.get("api_key").is_none());
+    }
+
+    #[tokio::test]
+    async fn devin_internal_goal_entry_rejects_before_demo_reply_or_tool_intent_fallback() {
+        let response = super::super::agent_chat_response_within_root(
+            &agent(),
+            "执行命令并修改本地文件",
+            0,
+            &[],
+            &[],
+            None,
+            None,
+            None,
+        )
+        .await;
+        assert!(response.execution_failed);
+        assert!(!response.used_real_model);
+        assert!(!response.tool_write_executed);
+        assert!(response.tool_requests.is_empty());
+        assert!(
+            response.model_tool_calls_executed,
+            "沿用根超时的阻止意图兜底控制标记"
+        );
+        assert!(response.context_usage.is_none());
+        assert!(response.answer_text.contains("尚未验收"));
+    }
+
+    #[tokio::test]
+    async fn devin_model_entries_reject_before_image_preprocessing_and_tool_loop() {
+        let image_urls = vec!["https://invalid.example/test-image.png".into()];
+        assert!(
+            super::super::call_agent_model_with_tool_loop(
+                &agent(),
+                "测试",
+                &image_urls,
+                &[],
+                None,
+                None,
+                None,
+                None,
+            )
+            .await
+            .is_err()
+        );
+        assert!(
+            super::super::stream_agent_model(
+                &agent(),
+                "测试",
+                &image_urls,
+                &[],
+                None,
+                "test-turn",
+                None,
+                None,
+                None,
+            )
+            .await
+            .is_err()
+        );
+    }
+}

@@ -17,6 +17,7 @@
     <script src="./src/workspace_panels.js" defer></script>
     <script src="./src/native_browser_panel.js" defer></script>
     <script src="./src/chat_experience.js" defer></script>
+    <script src="./src/devin_auth.js" defer></script>
     <script src="./src/model_settings.js" defer></script>
     <script src="./src/realtime_voice_capture.js" defer></script>
     <script src="./src/realtime_audio_output.js" defer></script>
@@ -968,6 +969,11 @@
           <article class="workbench-window catalog-workbench-window" data-window-id="plugin-market" aria-label="插件市场">
             <div class="window-panel workspace-content-panel quick-catalog-panel">
               <div class="workspace-panel-toolbar"><strong>插件市场</strong><button data-action="plugin-market-refresh" type="button">刷新目录</button></div>
+              <section class="ms-section" aria-label="Devin 账号">
+                <h3>Devin 账号</h3>
+                <p class="ms-hint">登录后可在 Agent 的模型设置中获取账号模型。</p>
+                <div data-role="devin-account-panel"></div>
+              </section>
               <p class="quick-panel-intro">浏览 DSH 社区插件，并管理当前工程已安装插件。远程插件尚未支持直接安装，可查看详情和兼容性。</p>
               <section class="dsh-market" aria-label="DSH 社区目录">
                 <header class="dsh-market-heading"><strong>DSH 社区目录</strong><small>来源：awesome-dsh-plugin.com</small></header>

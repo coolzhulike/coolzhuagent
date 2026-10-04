@@ -13,6 +13,7 @@ const CORE: &[(&str, &[u8])] = &[
     ("src/realtime_audio_output.js", include_bytes!("realtime_audio_output.js")),
     ("src/stt_tail_capture.js", include_bytes!("stt_tail_capture.js")),
     ("src/model_settings.js", include_bytes!("model_settings.js")),
+    ("src/devin_auth.js", include_bytes!("devin_auth.js")),
     ("src/model_settings.css", include_bytes!("model_settings.css")),
     ("src/workspace_panels.js", include_bytes!("workspace_panels.js")),
     ("src/workspace_panels.css", include_bytes!("workspace_panels.css")),

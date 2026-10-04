@@ -228,6 +228,25 @@ pub struct ManagedConPty {
 }
 
 impl ManagedConPty {
+    /// 官方登录固定入口，直接启动原生 CLI，不经过 shell，也不接受页面参数。
+    pub fn spawn_devin_browser_login(binary: &Path, workspace: &Path) -> io::Result<Self> {
+        if !binary.is_absolute() || !binary.is_file()
+            || !binary.extension().is_some_and(|e| e.eq_ignore_ascii_case("exe"))
+            || binary.as_os_str().to_string_lossy().contains(['"', '\r', '\n']) {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, "登录组件路径无效"));
+        }
+        let command = format!("\"{}\" auth login", binary.display());
+        Self::spawn_shell(workspace, 120, 40, binary, OsStr::new(&command))
+    }
+
+    /// 登录必须确认整个 Job 已排空，不能只以主进程退出或句柄释放为证据。
+    pub fn close_verified(&mut self) -> io::Result<()> {
+        let drained = self.job.as_ref().map(|job| job.terminate_and_wait(std::time::Duration::from_secs(3))).transpose();
+        let closed = self.close();
+        drained?;
+        closed
+    }
+
     pub fn spawn_powershell(workspace: &Path, cols: u16, rows: u16) -> io::Result<Self> {
         let shell = system_powershell()?;
         Self::spawn_shell(workspace, cols, rows, &shell, OsStr::new("powershell.exe -NoLogo -NoProfile"))

@@ -38,7 +38,8 @@
           <section class="ms-section"><div class="ms-section-title"><span>01</span><h3>连接</h3></div>
             <div class="ms-grid">
               <label>会话名称<input data-ms="name" required maxlength="32" placeholder="例如：日常助手"></label>
-              <label>通信协议<select data-ms="protocol"><option value="openai_chat_completions">OpenAI Chat Completions</option><option value="anthropic_messages">Anthropic Messages</option></select></label>
+              <label>通信协议<select data-ms="protocol"><option value="openai_chat_completions">OpenAI Chat Completions</option><option value="anthropic_messages">Anthropic Messages</option><option value="devin_acp">Devin · 账号登录</option></select></label>
+              <div class="ms-wide" data-ms="devin-auth" hidden></div>
               <label class="ms-wide">接口地址 · Base URL<input data-ms="base-url" type="url" required spellcheck="false" placeholder="https://api.example.com/v1"></label>
               <div class="ms-wide ms-discovery" aria-label="远程模型发现">
                 <div class="ms-discovery-actions"><button type="button" data-ms-action="discover" class="ms-secondary">获取模型</button><label class="ms-checkbox"><input type="checkbox" data-ms="discovery-no-key">此次查询不使用密钥</label></div>
@@ -99,8 +100,12 @@
     const tri = key => value(key) === "" ? null : value(key) === "true";
     const number = key => value(key) === "" ? null : Number(value(key));
     const status = (message, error = false) => { el("status").textContent = message; el("status").classList.toggle("ms-error", error); };
+    const devinAuth = window.CoolzhuDevinAuth?.mount(el("devin-auth"), {visible:false});
+    let authVisible = false;
 
+    const devinConnection = () => value("protocol") === "devin_acp";
     function remoteCandidate() {
+      if (devinConnection()) return true;
       try {
         const url = new URL(value("base-url")), host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
         if (!["https:", "http:"].includes(url.protocol)) return false;
@@ -123,7 +128,7 @@
       container.querySelector('[data-ms-action="discover"]').disabled = !canDiscover;
       el("discovery-status").classList.remove("ms-error");
       el("discovery-status").textContent = canDiscover
-        ? "点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。"
+        ? (devinConnection() ? "先登录 Devin，再获取账号模型；任务执行尚未就绪。此处查询不会创建任务。" : "点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。")
         : "本地和内网模型保持手动填写；远程发现需要完整的 HTTP(S) 地址。";
     }
 
@@ -165,13 +170,13 @@
       const sequence = discoverySequence, controller = new AbortController();
       discoveryController = controller; discovering = true;
       container.querySelector('[data-ms-action="discover"]').disabled = true;
-      el("discovery-status").textContent = "正在查询远程模型目录…";
+      el("discovery-status").textContent = devinConnection() ? "正在读取 Devin CLI 的账号模型目录…" : "正在查询远程模型目录…";
       const noKey = el("discovery-no-key").checked;
       const body = { session_id: selectedId, base_url: value("base-url"), endpoint: value("endpoint"), protocol: value("protocol"), use_saved_key: !noKey && !el("clear-key").checked };
       if (noKey || el("clear-key").checked) body.api_key = "";
       else if (value("api-key")) body.api_key = value("api-key");
       try {
-        const result = await request("/api/models/discover", body, "POST", controller.signal);
+        const result = await request(devinConnection() ? "/api/backends/devin/models" : "/api/models/discover", devinConnection() ? {} : body, "POST", controller.signal);
         if (disposed || sequence !== discoverySequence) return;
         discovery = result;
         el("discovery-results").hidden = !result.models?.length;
@@ -190,6 +195,28 @@
     }
 
     function updateDynamicFields() {
+      const devin = devinConnection();
+      if (authVisible !== devin) { authVisible = devin; devinAuth?.setVisible(devin); }
+      for (const key of ["base-url", "endpoint", "api-key", "clear-key", "discovery-no-key"]) {
+        el(key).disabled = devin || (key === "clear-key" && !selectedId);
+        el(key).closest("label").hidden = devin;
+      }
+      el("base-url").required = !devin;
+      for (const key of ["context", "output", "temperature", "top-p", "thinking-budget", "supports-multimodal", "model-type"]) {
+        el(key).disabled = devin;
+      }
+      if (devin) {
+        el("reasoning-mode").innerHTML = option("auto", "待连接确认");
+        el("reasoning-effort").innerHTML = option("auto", "供应商默认");
+        el("reasoning-mode").disabled = true; el("reasoning-effort").disabled = true;
+        el("budget-label").hidden = true; el("thinking-budget").required = false;
+        el("reasoning-hint").textContent = "思考与采样参数尚未由 Devin 会话确认。";
+        el("effective-limit").textContent = "上下文与输出容量尚未由 Devin 会话确认。";
+        el("multimodal-hint").textContent = "图片能力尚未确认。";
+        el("key-hint").textContent = "使用本机 Devin CLI 登录，不使用 HTTP 密钥。";
+        return;
+      }
+      el("reasoning-mode").disabled = false; el("reasoning-effort").disabled = false;
       const anthropic = value("protocol") === "anthropic_messages";
       // 与适配器的已核验模型清单一致；未知后缀、Omni 和 Anthropic 不套用此映射。
       const qwen38 = !anthropic && ["qwen3.8-flash", "qwen3.8-max", "qwen3.8-max-0902", "qwen3.8-2.4t-a95b", "qwen3.8-27b"].includes(value("model").toLowerCase());
@@ -258,7 +285,7 @@
       set("turn-timeout", p.turn_timeout_ms == null ? "" : p.turn_timeout_ms / 60000);
       set("tool-exposure", p.llm_tool_exposure); set("tool-allowlist", (p.tool_allowlist || []).join("\n"));
       updateDynamicFields(); resetDiscovery(); dirty = false;
-      status(selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
+      status(devinConnection() ? "Devin 配置已载入；任务执行尚未就绪，可先获取账号模型。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
       options.onSelected?.(selectedId);
     }
 
@@ -309,8 +336,11 @@
       event.preventDefault();
       if (busy || !el("form").reportValidity()) return;
       resetDiscovery();
-      const session = { name: value("name"), model: value("model"), model_type: value("model-type"), reasoning_effort: value("reasoning-effort") };
-      if (value("api-key") || el("clear-key").checked) session.api_key_ref = el("clear-key").checked ? "" : value("api-key");
+      const devin = devinConnection();
+      const session = { name: value("name"), model: value("model"), model_type: devin ? "text" : value("model-type"), reasoning_effort: devin ? "auto" : value("reasoning-effort") };
+      if (devin) session.provider = "devin";
+      else if (snapshot?.backend_kind === "devin_acp") session.provider = "custom";
+      if (!devin && (value("api-key") || el("clear-key").checked)) session.api_key_ref = el("clear-key").checked ? "" : value("api-key");
       const parameters = {
         ...(snapshot?.parameters || {}),
         protocol: value("protocol"), base_url: value("base-url"), endpoint: value("endpoint") || "",
@@ -319,11 +349,16 @@
         supports_multimodal: tri("supports-multimodal"),
         reasoning_mode: value("reasoning-mode"), thinking_budget: value("reasoning-mode") === "budget" ? number("thinking-budget") : null,
       };
+      parameters.backend_kind = devin ? "devin_acp" : "llm_http";
+      if (devin) Object.assign(parameters, {
+        base_url: null, endpoint: null, context_window: 0, max_output_tokens: 0,
+        temperature: null, top_p: null, thinking_budget: null, reasoning_mode: "auto", supports_multimodal: null,
+      });
       busy = true; el("save").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
       status("正在保存…");
       try {
         if (!selectedId) {
-          const created = await request("/api/sessions", { ...session, provider: "custom", base_url: parameters.base_url, endpoint: parameters.endpoint });
+          const created = await request("/api/sessions", { ...session, provider: devin ? "devin" : "custom", base_url: parameters.base_url, endpoint: parameters.endpoint });
           selectedId = created.session.id;
           sessions.push(created.session); renderSessionOptions();
           snapshot = await request(`/api/sessions/${encodeURIComponent(selectedId)}/model-settings`);
@@ -333,7 +368,7 @@
         fill(result);
         const index = sessions.findIndex(s => s.id === selectedId);
         if (index >= 0) sessions[index] = result.session;
-        renderSessionOptions(); status("已保存，对下一轮会话生效。");
+        renderSessionOptions(); status(devin ? "已保存 Devin 配置；任务执行尚未就绪，可先获取账号模型。" : "已保存，对下一轮会话生效。");
         try { await options.onSaved?.(result.session, result); }
         catch (error) { if (!disposed) status(`配置已保存，但界面刷新失败：${error.message}`, true); }
         if (!disposed) container.dispatchEvent(new CustomEvent("model-settings-saved", { bubbles: true, detail: result }));
@@ -385,7 +420,7 @@
     container.addEventListener("input", onInput); container.addEventListener("change", onChange); container.addEventListener("click", onClick);
     const api = {
       refresh, select, newSession: () => select(null), get sessionId() { return selectedId; }, get dirty() { return dirty; },
-      destroy() { disposed = true; loadSequence++; refreshSequence++; discoverySequence++; discoveryController?.abort(); container.removeEventListener("input", onInput); container.removeEventListener("change", onChange); container.removeEventListener("click", onClick); el("form")?.removeEventListener("submit", save); },
+      destroy() { disposed = true; loadSequence++; refreshSequence++; discoverySequence++; discoveryController?.abort(); devinAuth?.destroy(); container.removeEventListener("input", onInput); container.removeEventListener("change", onChange); container.removeEventListener("click", onClick); el("form")?.removeEventListener("submit", save); },
     };
     container.__modelSettings = api;
     void refresh(selectedId);

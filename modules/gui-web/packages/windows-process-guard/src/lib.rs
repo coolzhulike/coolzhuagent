@@ -848,6 +848,34 @@ impl ChildProcessJob {
             Ok(())
         }
     }
+
+    /// 终止受管进程树并查询 Job 的活跃进程数。关闭句柄的意图不能当作排空回执。
+    /// 这是有界阻塞操作；异步宿主应放到 blocking worker 中执行。
+    pub fn terminate_and_wait(&self, timeout: Duration) -> io::Result<()> {
+        use windows_sys::Win32::System::JobObjects::{
+            JobObjectBasicAccountingInformation, QueryInformationJobObject, TerminateJobObject,
+            JOBOBJECT_BASIC_ACCOUNTING_INFORMATION,
+        };
+        if unsafe { TerminateJobObject(self.handle as HANDLE, 1) } == 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let deadline = std::time::Instant::now() + timeout;
+        loop {
+            let mut info = JOBOBJECT_BASIC_ACCOUNTING_INFORMATION::default();
+            let ok = unsafe { QueryInformationJobObject(
+                self.handle as HANDLE, JobObjectBasicAccountingInformation,
+                std::ptr::addr_of_mut!(info).cast(),
+                std::mem::size_of::<JOBOBJECT_BASIC_ACCOUNTING_INFORMATION>() as u32,
+                std::ptr::null_mut(),
+            ) };
+            if ok == 0 { return Err(io::Error::last_os_error()); }
+            if info.ActiveProcesses == 0 { return Ok(()); }
+            if std::time::Instant::now() >= deadline {
+                return Err(io::Error::new(io::ErrorKind::TimedOut, "受管进程树尚未确认排空"));
+            }
+            thread::sleep(Duration::from_millis(10));
+        }
+    }
 }
 
 fn resume_initial_thread(process_id: u32) -> io::Result<()> {
