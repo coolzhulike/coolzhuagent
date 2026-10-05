@@ -1,0 +1,52 @@
+{
+  "case": "opus-1",
+  "stage": "0.2.75 已安装二进制，页面实际发送",
+  "run_id": "run-chat-e47409fcb0918eb71857f64eefbf5dee45dcd25158284fe2",
+  "source_message_id": "msg-1791218489314-user",
+  "source_text": "安装版Opus续接第1轮：正式安装已升级。不调用工具、不执行历史任务。请返回先前记住的 Opus 专属口令；同时记住新的安装验收口令 774a5ebd36248ad4。仅回复先前的口令，不复述新的口令。",
+  "room": "room-1791125819661",
+  "agent": "session-1791122188340",
+  "remote_session_id": "fair-amaryllis",
+  "admitted_targets": [
+    {
+      "agent_ids": [
+        "session-1791122188340"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 80,
+      "prompt_bytes": 1844
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791122188340",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "800e33279003d01315b0485f945bbd83787427e69d4f82104417474bcc32675c",
+          "id": "msg-1791218489407-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      }
+    }
+  ],
+  "reply": "108d9d63c77f3907",
+  "passed": true
+}

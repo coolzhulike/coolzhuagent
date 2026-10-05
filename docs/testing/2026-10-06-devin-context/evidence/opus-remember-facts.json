@@ -1,0 +1,29 @@
+{
+  "case": "remember",
+  "run_id": "run-chat-b74a5f5c87884ce8652ff7ab0636610b01fbd35fbdf03739",
+  "elapsed": 8.0,
+  "reply": "已记住",
+  "remote_session_id": "fair-amaryllis",
+  "baseline_remote_session_id": "fair-amaryllis",
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 65,
+      "prompt_bytes": 1776
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      }
+    }
+  ],
+  "passed": true
+}

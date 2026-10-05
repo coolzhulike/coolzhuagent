@@ -426,7 +426,9 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
                         None,
                     )
                 })
-                .await?
+                .await.map_err(|reason| invalid(&format!(
+                    "Devin 远端会话恢复失败：{reason}。未创建替代会话、未重发本轮；请核对原登录账号，必要时在设置中重置上下文。"
+                )))?
         } else {
             transport
                 .configure("session/new", params, deadline, |frame| {
@@ -954,7 +956,8 @@ mod tests {
             let (transport, mut reader, mut writer) = pair();
             let peer = tokio::spawn(async move {
                 handshake(&mut reader, &mut writer, false).await;
-                let _ = read_frame(&mut reader).await.unwrap();
+                let request = read_frame(&mut reader).await.unwrap();
+                assert_eq!(request["method"], "session/prompt");
                 if wrong_session {
                     writer.write_all(b"{\"jsonrpc\":\"2.0\",\"method\":\"session/update\",\"params\":{\"sessionId\":\"other\",\"update\":{\"sessionUpdate\":\"agent_message_chunk\",\"content\":{\"type\":\"text\",\"text\":\"wrong\"}}}}\n").await.unwrap();
                 }
@@ -965,7 +968,8 @@ mod tests {
                 claim.clone(),
                 "actual",
                 vec![],
-                tokio::time::Instant::now() + Duration::from_secs(3),
+                // 本项检查已发送后的失联，不让慢磁盘上的握手记账耗尽发送期限。
+                tokio::time::Instant::now() + Duration::from_secs(30),
                 |_| Ok(()),
             )
             .await
@@ -1084,11 +1088,14 @@ mod tests {
         let (_dir, journal, binding) = setup();
         let claim = journal.claim(scope("a1"), &binding).unwrap();
         let (transport, mut reader, mut writer) = pair();
+        let (submitted_tx, submitted_rx) = tokio::sync::oneshot::channel();
+        let (release_tx, release_rx) = tokio::sync::oneshot::channel();
         let peer = tokio::spawn(async move {
             handshake(&mut reader, &mut writer, false).await;
             let request = read_frame(&mut reader).await.unwrap();
             assert_eq!(request["method"], "session/prompt");
-            tokio::time::sleep(Duration::from_millis(300)).await;
+            submitted_tx.send(()).unwrap();
+            let _ = release_rx.await;
         });
         let mut service = SessionService::connect(
             transport,
@@ -1096,31 +1103,28 @@ mod tests {
             claim.clone(),
             "actual",
             vec![],
-            tokio::time::Instant::now() + Duration::from_secs(3),
+            tokio::time::Instant::now() + Duration::from_secs(30),
             |_| Ok(()),
         )
         .await
         .unwrap();
         let cancellation = Arc::new(crate::ChatTurnCancellation::new());
-        assert!(
-            tokio::time::timeout(
-                Duration::from_millis(80),
-                service.prompt(
-                    "hi",
-                    cancellation.clone(),
-                    Duration::from_millis(50),
-                    |_| Ok(())
-                )
-            )
-            .await
-            .is_err()
-        );
+        // 明确等待对端收到提示后丢弃 future，避免把 80ms 调度竞速当成提交证据。
+        let mut prompt = Box::pin(service.prompt(
+            "hi", cancellation.clone(), Duration::from_millis(50), |_| Ok(()),
+        ));
+        tokio::select! {
+            result = &mut prompt => panic!("丢弃前提示意外结束：{result:?}"),
+            received = submitted_rx => received.unwrap(),
+        }
+        drop(prompt);
         assert!(cancellation.is_requested());
         let status = journal.status(&claim).unwrap();
         assert_eq!(status.state, "unknown");
         assert!(status.cancel_requested);
         assert!(journal.can_dispatch(&claim).is_err());
         assert!(journal.claim(scope("a2"), &binding).is_err());
+        release_tx.send(()).unwrap();
         peer.await.unwrap();
     }
     #[tokio::test]

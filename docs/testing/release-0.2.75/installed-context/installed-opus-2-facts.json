@@ -1,0 +1,52 @@
+{
+  "case": "opus-2",
+  "stage": "0.2.75 已安装二进制，页面实际发送",
+  "run_id": "run-chat-3adb179c852507946bc04b6bb477a00d496d25214aff1dc1",
+  "source_message_id": "msg-1791218513109-user",
+  "source_text": "安装版Opus续接第2轮：不调用工具，只返回上一轮记住的新安装验收口令。本条没有再次提供它。",
+  "room": "room-1791125819661",
+  "agent": "session-1791122188340",
+  "remote_session_id": "fair-amaryllis",
+  "admitted_targets": [
+    {
+      "agent_ids": [
+        "session-1791122188340"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 82,
+      "prompt_bytes": 1725
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791122188340",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "8eafe078d27c6e0ea4cb83f9fa27fe2f26ec2ca704f89a9cfadaac721f6fc61c",
+          "id": "msg-1791218513241-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      }
+    }
+  ],
+  "reply": "774a5ebd36248ad4",
+  "passed": true
+}

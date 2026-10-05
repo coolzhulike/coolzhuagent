@@ -1,0 +1,17 @@
+{
+  "opus": {
+    "room": "room-1791125819661",
+    "agent": "session-1791122188340",
+    "model": "claude-opus-5-5-high",
+    "marker": "774a5ebd36248ad4",
+    "remote": "fair-amaryllis",
+    "old_marker": "108d9d63c77f3907"
+  },
+  "swe": {
+    "room": "room-1791131523339",
+    "agent": "session-1791131217833",
+    "model": "swe-2-medium",
+    "marker": "5136184e6566d421",
+    "remote": "veiled-anise"
+  }
+}

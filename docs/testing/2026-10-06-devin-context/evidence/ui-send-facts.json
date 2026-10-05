@@ -1,0 +1,40 @@
+{
+  "case": "ui-send",
+  "run_id": "run-chat-41633eefb2a3f8a3db71ae8f56106a0344e51d6e17a98b49",
+  "remote_session_id": "fifth-motorist",
+  "source_message_id": "msg-1791216393352-user",
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 92,
+      "prompt_bytes": 4835
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "digest": "d148427c6e0a6c12cf8ed505ed50fec72cf52f48598138df0a2bcb04d2bbbce2",
+          "id": "msg-1791216393500-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    }
+  ],
+  "reply": "f673d925e87f1f3d",
+  "passed": true
+}

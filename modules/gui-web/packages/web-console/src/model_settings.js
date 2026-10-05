@@ -42,6 +42,7 @@
               <label>会话名称<input data-ms="name" required maxlength="32" placeholder="例如：日常助手"></label>
               <label>通信协议<select data-ms="protocol">${protocols.map(item => option(...item)).join("")}</select></label>
               <div class="ms-wide" data-ms="devin-auth" hidden></div>
+              <small class="ms-wide" data-ms="devin-context" hidden>同一聊天室与模型配置继续发送时，会沿用远端会话，应用重启后也可恢复。重置上下文或切换模型后，会开始新的远端会话。</small>
               <label class="ms-wide" data-ms="devin-review-label" hidden><span><input type="checkbox" data-ms="devin-review">允许读取当前工程用于仓库审查</span><small>仅文件读取、查找与内容搜索；不开放写入、命令、电脑操作或原生 Devin 工具。</small></label>
               <label class="ms-wide" data-ms="devin-computer-label" hidden><span><input type="checkbox" data-ms="devin-computer">允许 Computer Use</span><small>通过宿主操作浏览器与桌面；规划和验收使用所选模型，图片需由 ACP 声明支持。</small></label>
               <label class="ms-wide">接口地址 · Base URL<input data-ms="base-url" type="url" required spellcheck="false" placeholder="https://api.example.com/v1"></label>
@@ -205,6 +206,7 @@
     function updateDynamicFields() {
       const devin = devinConnection();
       el("devin-review-label").hidden = !devin;
+      el("devin-context").hidden = !devin;
       el("devin-computer-label").hidden = !devin;
       if (authVisible !== devin) { authVisible = devin; devinAuth?.setVisible(devin); }
       for (const key of ["base-url", "endpoint", "api-key", "clear-key", "discovery-no-key"]) {

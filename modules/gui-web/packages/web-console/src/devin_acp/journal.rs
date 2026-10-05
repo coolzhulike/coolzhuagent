@@ -101,7 +101,7 @@ impl Journal {
         Ok(journal)
     }
 
-    fn connection(&self) -> Result<Connection, String> {
+    pub(super) fn connection(&self) -> Result<Connection, String> {
         let connection = crate::open_session_connection(&self.path)
             .map_err(|_| fail("ACP 台账不可用或版本超前。"))?;
         connection
@@ -191,8 +191,8 @@ impl Journal {
         Ok(scope)
     }
 
-    /// 新用户回合建立新远端会话。取消且进程排空、宿主工具结账后的未知回合
-    /// 只归档绑定，不改判成功、不重发旧提示；其它未知或在途仍保持发送锁。
+    /// 上下文显式变化时归档远端绑定；稳定绑定也须核对旧执行的真实收尾。
+    /// 已取消且排空、宿主工具结账的旧回合仅释放发送锁，不改判成功、不重发旧提示。
     pub(super) fn rotate_idle_context(&self,scope:&ExecutionScope,binding:&Binding)->Result<(),String> {
         let mut connection=self.connection()?;
         let tx=connection.transaction_with_behavior(TransactionBehavior::Immediate).map_err(|_|fail("ACP 重置锁失败。"))?;
@@ -201,8 +201,11 @@ impl Journal {
             |row|Ok((row.get::<_,String>(0)?,row.get::<_,String>(1)?,row.get::<_,String>(2)?,row.get::<_,Option<String>>(3)?,row.get::<_,Option<String>>(4)?)))
             .optional().map_err(|_|fail("ACP 重置绑定读取失败。"))?;
         if let Some((cwd,cli,context,remote,locked))=old {
-            if context!=binding.context_digest {
-                if let Some(attempt)=locked.as_deref() {
+            if cli!=binding.cli_identity {return Err(fail("CLI 版本变化需要重新验收。"));}
+            if context==binding.context_digest && cwd!=binding.cwd {
+                return Err(fail("ACP 工作目录变化，请明确重置上下文。"));
+            }
+            if let Some(attempt)=locked.as_deref() {
                     let status=Self::status_on(&tx,attempt)?;
                     if status.state!="unknown" || !status.process_drained {
                         return Err(fail("ACP 旧执行仍在途或未知，不能重置绑定。"));
@@ -215,9 +218,14 @@ impl Journal {
                     let has_runs:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='runtime_runs')",[],|row|row.get(0))
                         .map_err(|_|fail("ACP 宿主停止记录结构核对失败。"))?;
                     let host_cancelled = old_scope_value.lane.is_empty() && has_runs && tx.query_row(
-                        "SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND workspace_id=?2 AND chat_room_id=?3 AND session_id=?4 AND legacy_turn_id=?5 AND stop_requested_at IS NOT NULL)",
-                        params![old_scope_value.run_id,old_scope_value.workspace_id,old_scope_value.room_id,old_scope_value.agent_id,old_scope_value.turn_id],
-                        |row|row.get::<_,bool>(0)).map_err(|_|fail("ACP 宿主停止身份核对失败。"))?;
+                        "SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND workspace_id=?2 AND chat_room_id=?3 AND legacy_turn_id=?4 AND stop_requested_at IS NOT NULL)",
+                        params![old_scope_value.run_id,old_scope_value.workspace_id,old_scope_value.room_id,old_scope_value.turn_id],
+                        |row|row.get::<_,bool>(0)).map_err(|_|fail("ACP 宿主停止身份核对失败。"))?
+                        && (tx.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND session_id=?2)",
+                            params![old_scope_value.run_id,old_scope_value.agent_id], |row|row.get::<_,bool>(0))
+                            .map_err(|_|fail("ACP 宿主停止主会话核对失败。"))?
+                            || crate::chat_run_admission::target_is_admitted_on(&tx, &old_scope_value.run_id, &old_scope_value.agent_id)
+                                .map_err(|_|fail("ACP 宿主停止目标核对失败。"))?);
                     if old_scope_value.lane.is_empty() {
                         crate::tool_dispatch_settlement::reconcile_drained_acp_cu(&tx,&old_scope_value.run_id,
                             &old_scope_value.workspace_id,&old_scope_value.room_id,&old_scope_value.agent_id,&old_scope_value.turn_id,&old_scope)?;
@@ -233,8 +241,10 @@ impl Journal {
                         params![old_scope_value.run_id,old_scope],|row|row.get::<_,bool>(0)).map_err(|_|fail("ACP 旧工具收尾核对失败。"))? {
                         return Err(fail("ACP 旧宿主工具尚未结账，不能建立新会话。"));
                     }
-                }
-                if cli!=binding.cli_identity {return Err(fail("CLI 版本变化需要重新验收。"));}
+                tx.execute("UPDATE devin_acp_bindings SET locked_attempt=NULL WHERE locked_attempt=?1",
+                    [attempt]).map_err(|_|fail("ACP 已收尾发送锁释放失败。"))?;
+            }
+            if context!=binding.context_digest {
                 if let Some(remote)=remote {
                     let archive=serde_json::json!({"workspace_id":scope.workspace_id,"room_id":scope.room_id,
                         "agent_id":scope.agent_id,"lane":scope.lane,"cwd":cwd,"cli_identity":cli,"context_digest":context,
@@ -249,7 +259,7 @@ impl Journal {
         tx.commit().map_err(|_|fail("ACP 重置提交未确认。"))
     }
 
-    fn check(connection: &Connection, scope: &ExecutionScope) -> Result<(), String> {
+    pub(super) fn check(connection: &Connection, scope: &ExecutionScope) -> Result<(), String> {
         if !scope.accepts(scope) {
             return Err(fail("ACP 身份不完整。"));
         }
@@ -584,7 +594,6 @@ pub(super) mod tests {
             CREATE TABLE tool_calls(run_id TEXT,source_request_key TEXT,status TEXT);").unwrap();
         c.execute("INSERT INTO runtime_runs VALUES(?1,?2,'wrong-room',?3,?4,1)",
             params![old.run_id,old.workspace_id,old.agent_id,old.turn_id]).unwrap();
-        binding.context_digest="next-user-turn".into();
         assert!(journal.rotate_idle_context(&scope("fresh-consumer"),&binding).is_err());
         c.execute("UPDATE runtime_runs SET chat_room_id=?1",[&old.room_id]).unwrap();
         c.execute("INSERT INTO tool_calls VALUES(?1,?2,'dispatched')",
@@ -595,6 +604,14 @@ pub(super) mod tests {
         assert_eq!(journal.status(&old).unwrap().state,"unknown");
         assert!(journal.can_dispatch(&old).is_err());
         let fresh=journal.claim(scope("fresh-consumer"),&binding).unwrap();
+        assert_eq!(journal.binding(&fresh).unwrap().remote_session_id.as_deref(),Some("old-consumer-remote"));
+        journal.transition(&fresh,&["prepared"],"not_sent",None,false).unwrap();
+        journal.record_drained(&fresh).unwrap();
+        binding.context_digest="explicit-reset".into();
+        binding.cwd=Path::new(&binding.cwd).join("reset-workspace").to_string_lossy().into();
+        journal.rotate_idle_context(&scope("reset-consumer"),&binding).unwrap();
+        let fresh=journal.claim(scope("reset-consumer"),&binding).unwrap();
+        assert!(journal.binding(&fresh).unwrap().remote_session_id.is_none());
         assert!(journal.save_remote(&fresh,"old-consumer-remote").is_err());
     }
 

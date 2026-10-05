@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "仅验收 Opus 同一远端会话续接，不调用工具，不继续历史任务。请记住 Opus 专属口令 108d9d63c77f3907。只回复“已记住”，不要复述口令。",
+  "selected_message_ids": [],
+  "attachments": []
+}

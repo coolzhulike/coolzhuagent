@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "本轮是新的纯文本上下文续接验收。不要调用任何工具，不再执行历史Browser/Paint任务。请记住口令 fff346189bd5963a，以及暗号“青玉竹叶”。仅回复“已记住”，不要复述口令。",
+  "selected_message_ids": [],
+  "attachments": []
+}
