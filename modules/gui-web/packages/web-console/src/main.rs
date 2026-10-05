@@ -13458,9 +13458,16 @@ async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) 
     ));
     let defaults = api::model_token_limit(&agent.model);
     let effective = effective_model_limit_for_agent(&agent);
+    let plugin_tools = if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+        == agent_session_backend::AgentSessionBackend::DevinAcp {
+        plugin_runtime::definitions(&active_workspace_path(), &[])
+            .map(|tools| tools.into_iter().filter(|tool| devin_acp::host_tools::extension(&tool.name)).collect::<Vec<_>>())
+    } else { Ok(Vec::new()) };
     Ok(Json(json!({
         "session": session,
         "configuration_revision": configuration_revision,
+        "available_plugin_tools": plugin_tools.as_ref().ok(),
+        "plugin_tools_error": plugin_tools.as_ref().err(),
         "backend_kind": agent_session_backend::AgentSessionBackend::for_provider(&agent.provider),
         "agent_execution_ready": agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp,
         "model_selection": {"requested": agent.model, "effective": null, "resolved_model": null},
@@ -17345,6 +17352,13 @@ async fn api_run_interrupt(
             }
     })?;
     signal_runtime_run_after_interrupt(&path, &response);
+    let stopped = devin_acp::chat::stop_drained_attempts(&path, run_id)
+        .map_err(|reason| api_error(StatusCode::CONFLICT, &reason))?;
+    if stopped > 0 {
+        append_runtime_run_event(&path, run_id, "devin.context_stop_requested",
+            json!({"drained_attempts":stopped,"remote_cancel_confirmed":false}))
+            .map_err(sqlite_api_error)?;
+    }
     Ok(Json(response))
 }
 
@@ -30376,6 +30390,10 @@ fn real_model_error_hint(agent: &AgentSessionDto, error: &api::ApiError) -> Stri
 }
 
 fn agent_diagnostics(agent: &AgentSessionDto) -> AgentDiagnosticsResponse {
+    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+        == agent_session_backend::AgentSessionBackend::DevinAcp {
+        return devin_acp::diagnostics::for_agent(&agent.id, &agent.provider, &agent.model);
+    }
     build_agent_diagnostics(
         agent.id.clone(),
         agent.provider.clone(),
@@ -30389,6 +30407,10 @@ fn agent_diagnostics(agent: &AgentSessionDto) -> AgentDiagnosticsResponse {
 }
 
 fn agent_diagnostics_for_session(session: &PersistedSession) -> AgentDiagnosticsResponse {
+    if agent_session_backend::AgentSessionBackend::for_provider(&session.provider)
+        == agent_session_backend::AgentSessionBackend::DevinAcp {
+        return devin_acp::diagnostics::for_agent(&session.id, &session.provider, &session.model);
+    }
     build_agent_diagnostics(
         session.id.clone(),
         session.provider.clone(),
@@ -31285,7 +31307,7 @@ fn llm_health_check(agents: &[AgentHealthDto]) -> DiagnosticsCheck {
                 "{}/{} selectable agents are ready; {} warn; {} error.",
                 providers.ready, providers.total, providers.warn, providers.error
             ),
-            Some("Configure missing API keys first, then verify provider/model/base_url warnings."),
+            Some("Review each session's authentication, provider, model and address diagnostics."),
         )
     } else if providers.warn > 0 {
         diagnostics_check(
@@ -31317,7 +31339,7 @@ fn llm_health_check(agents: &[AgentHealthDto]) -> DiagnosticsCheck {
 fn llm_repair_suggestions(agents: &[AgentHealthDto]) -> Vec<DiagnosticsSuggestion> {
     let mut suggestions = Vec::new();
     for agent in agents {
-        if !agent.api_key_present {
+        if !agent.api_key_present && agent.provider_kind != "devin_acp" {
             let key_hint = if agent.env_keys.is_empty() {
                 "session API key reference".to_string()
             } else {
@@ -31360,7 +31382,8 @@ fn llm_repair_suggestions(agents: &[AgentHealthDto]) -> Vec<DiagnosticsSuggestio
             }
         }
         if let Some(issue) = agent.provider_issue.as_deref() {
-            if agent.api_key_present && agent.provider_match && agent.base_url_matches_default {
+            if (agent.api_key_present || agent.provider_kind == "devin_acp")
+                && agent.provider_match && agent.base_url_matches_default {
                 suggestions.push(DiagnosticsSuggestion {
                     check_id: format!("llm.providers.{}.provider_issue", agent.agent_id),
                     priority: if agent.provider_status == "error" {
@@ -51713,7 +51736,11 @@ impl Serialize for AgentSessionDto {
         state.serialize_field("endpoint", &self.endpoint)?;
         state.serialize_field("reasoning_effort", &resolution.requested.as_str())?;
         state.serialize_field("reasoning_resolution", &resolution_dto)?;
-        state.serialize_field("api_key_status", &self.api_key_status)?;
+        let key_status = if agent_session_backend::AgentSessionBackend::for_provider(&self.provider)
+            == agent_session_backend::AgentSessionBackend::DevinAcp {
+            devin_acp::diagnostics::key_label()
+        } else { self.api_key_status.clone() };
+        state.serialize_field("api_key_status", &key_status)?;
         state.serialize_field("selectable", &self.selectable)?;
         state.serialize_field("enabled", &self.enabled)?;
         state.serialize_field("system", &self.system)?;
@@ -52016,7 +52043,7 @@ impl PersistedSession {
                 &self.model,
                 Some(&self.reasoning_effort),
             )) },
-            api_key_status: if agent_session_backend::AgentSessionBackend::for_provider(&self.provider) == agent_session_backend::AgentSessionBackend::DevinAcp { "CLI 登录（未检查）".into() } else { api_key_configuration_status(&self.api_key_ref) },
+            api_key_status: if agent_session_backend::AgentSessionBackend::for_provider(&self.provider) == agent_session_backend::AgentSessionBackend::DevinAcp { devin_acp::diagnostics::key_label() } else { api_key_configuration_status(&self.api_key_ref) },
             memory_mode: memory_mode_for_session(&self.id),
             active,
             updated_at: self.updated_at,

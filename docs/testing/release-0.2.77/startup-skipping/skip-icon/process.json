@@ -1,0 +1,20 @@
+{
+  "input_safety_state_root": "C:/Users/zhupu/AppData/Local/CoolzhuAgent/input-safety",
+  "case": "skip-icon",
+  "preserved_backend_pid": 32300,
+  "arguments": [],
+  "process": {
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "pid": 19216,
+    "created": "2026-10-05T19:57:53.021101Z"
+  },
+  "diagnostics_dir": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-startup-077\\skip-icon",
+  "source_commit": "2d040d555566340c03709b4c6f6b77f11496ebed",
+  "stopped_previous_shell": {
+    "created": "2026-10-05T19:54:21.2712319Z",
+    "parent_pid": 15436,
+    "pid": 10800,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+  },
+  "path_observation_note": "Start-Process即时返回Path为空；按原UTC创建时刻核对同一实例后补记实际EXE路径"
+}

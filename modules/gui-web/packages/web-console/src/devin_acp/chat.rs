@@ -129,17 +129,6 @@ fn controlled_config() -> Value {
             "deny":["read","write","edit","exec","grep","glob","fetch","mcp","mcp__*"]}})
 }
 
-fn review_enabled(settings: &crate::SessionModelLimitOverride) -> Result<bool, String> {
-    if settings.enable_llm_tools != Some(true) { return Ok(false); }
-    if settings.llm_tool_exposure.as_deref() != Some("whitelist")
-        || !settings.tool_allowlist.as_ref().is_some_and(|tools| !tools.is_empty()
-            && tools.iter().all(|name| super::bridge::REVIEW_TOOLS.contains(&name.as_str())
-                || name == "computer_use_perform" && settings.computer_use_enabled == Some(true))) {
-        return Err("Devin 仅开放显式选择的工程只读工具与 Computer Use；其它工具尚未就绪。".into());
-    }
-    Ok(true)
-}
-
 fn absent_or_empty(path: &Path) -> Result<(), String> {
     if !path.exists() {
         return Ok(());
@@ -351,8 +340,9 @@ pub(crate) async fn start(
         return Err(error("请从 Devin 账号目录选择有效的模型 ID。"));
     }
     let settings = crate::session_model_settings_for(&agent.id);
-    let review = review_enabled(&settings).map_err(error)?;
-    let computer = settings.computer_use_enabled == Some(true);
+    let review = super::host_tools::enabled(&settings).map_err(error)?;
+    let readonly_review = settings.tool_allowlist.as_ref().is_some_and(|tools|
+        tools.iter().all(|name| super::bridge::REVIEW_TOOLS.contains(&name.as_str())));
     check_ambient_extensions().map_err(error)?;
     let binary = checked_binary(&agent.model).await?;
     let reset = crate::session_context_reset_floor(&agent.id);
@@ -360,7 +350,7 @@ pub(crate) async fn start(
         &serde_json::to_vec(&(parent.workspace_id.as_str(), room, &agent.id, reset)).unwrap(),
     );
     let instructions = if review {
-        format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。若回执为 running，必须用 computer_use_wait 等待同一 job_id 直到最终回执；等待不算重复提交，不重新调用 perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子 Agent。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", parent.workspace_id.as_str())
+        format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具，插件工具也须通过该宿主调用。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。若回执为 running，必须用 computer_use_wait 等待同一 job_id 直到最终回执；等待不算重复提交，不重新调用 perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子 Agent。若插件缺少授权，报告本轮未执行，不能宣称延期审批后已经完成。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", parent.workspace_id.as_str())
     } else {
         "你在 coolzhuagent 聊天室中进行纯文本会话。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。".into()
     };
@@ -426,7 +416,7 @@ pub(crate) async fn start(
             token,
             &tx,
             review_parent,
-            computer,
+            readonly_review,
         )
         .await;
         let item = match outcome {
@@ -455,7 +445,7 @@ async fn execute(
     cancellation: Arc<ChatTurnCancellation>,
     tx: &mpsc::Sender<Item>,
     review_parent: Option<FrozenParentContext>,
-    computer: bool,
+    readonly_review: bool,
 ) -> Result<(), String> {
     let spawned =
         ManagedProcess::spawn_text_cli(binary, cwd, config, model, journal.clone(), claim.clone())
@@ -470,10 +460,10 @@ async fn execute(
     };
     let outcome = async {
         let bridge = if let Some(parent) = review_parent {
-            let bridge = if computer {
-                super::bridge::ToolBridge::capture(parent, claim.clone(), journal.clone(), cancellation.clone())?
-            } else {
+            let bridge = if readonly_review {
                 super::bridge::ToolBridge::capture_review(parent, claim.clone(), journal.clone(), cancellation.clone())?
+            } else {
+                super::bridge::ToolBridge::capture(parent, claim.clone(), journal.clone(), cancellation.clone())?
             };
             Some(bridge.start().await?)
         } else { None };
@@ -598,6 +588,15 @@ pub(crate) async fn response(
         }
     }
     response
+}
+
+/// 复用运行轨迹的明确停止入口，不因普通续发自动改写未知回合。
+pub(crate) fn stop_drained_attempts(path: &Path, run: &str) -> Result<usize, String> {
+    let record = crate::query_runtime_run_sqlite(path, run).map_err(|_| "运行停止事实读取失败。")?;
+    if !record.is_some_and(|record| record.kind == "chat_turn" && record.state == "failed") {
+        return Ok(0);
+    }
+    Journal::open(path)?.stop_drained_run(run)
 }
 
 #[cfg(test)]

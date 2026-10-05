@@ -38,7 +38,7 @@ pub(super) fn capture_parent_bindings(workspace: &str) -> BTreeMap<String, dsh_e
 pub(super) struct FrozenPermission {
     profile: runtime::PermissionProfile,
     rules: Vec<ProtectedRule>,
-    grants: BTreeMap<String, SessionGrantView>,
+    grants: BTreeMap<(String, String), SessionGrantView>,
 }
 pub(super) fn capture_permission(
     bindings: &BTreeMap<String, dsh_execution::Binding>,
@@ -62,13 +62,34 @@ pub(super) fn capture_permission(
             } else {
                 session_grant_view_for(workspace, session, name)
             };
-            (name.clone(), grant)
+            ((session.unwrap_or_default().to_string(), name.clone()), grant)
         })
         .collect();
     FrozenPermission {
         profile: active_permission_profile(),
         rules: effective_protected_rules(),
         grants,
+    }
+}
+
+/// 聊天接纳时为每个实际发送目标冻结授权；后续审批不重新读取配置扩权。
+pub(super) fn capture_target_permissions(
+    frozen: &mut FrozenPermission,
+    bindings: &BTreeMap<String, dsh_execution::Binding>,
+    workspace: &str,
+    targets: &[AgentSessionDto],
+    room: &str,
+    db: &Path,
+) {
+    if bindings.is_empty() { return; }
+    let room_grant = room_permission_grant_view_for_path(db, Some(room));
+    frozen.grants.clear();
+    for target in targets {
+        for name in bindings.keys() {
+            let grant = if room_grant.session_authorized { room_grant.clone() }
+                else { session_tool_grant_view_for(workspace, Some(&target.id), name) };
+            frozen.grants.insert((target.id.clone(), name.clone()), grant);
+        }
     }
 }
 
@@ -110,9 +131,7 @@ impl PendingAction {
     pub(super) fn approval_session_id(&self) -> &str {
         match self {
             Self::Enable { session, .. } => session,
-            Self::Model {
-                parent, session, ..
-            } => parent.session_id.as_deref().unwrap_or(session),
+            Self::Model { session, .. } => session,
         }
     }
     fn root(&self) -> &Path {
@@ -182,10 +201,11 @@ impl PendingAction {
                     || execution_id.is_empty()
                     || provider_id.is_empty()
                     || provider_id.len() > 192
-                    || !parent
-                        .host_model_snapshots
-                        .get(session)
+                    || !(parent.host_model_snapshots.get(session)
                         .is_some_and(|host| host.agent_session_id() == session)
+                        || parent.session_backend_model.as_ref().is_some_and(|agent|
+                            agent.id == *session && agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+                                == agent_session_backend::AgentSessionBackend::DevinAcp))
                     || parent
                         .goal_phase
                         .as_ref()
@@ -198,6 +218,14 @@ impl PendingAction {
                     .as_ref()
                     .ok_or("DSH没有父轮事实数据库")?;
                 validate_frozen_parent_relations(db, parent).map_err(|e| e.reason())?;
+                if parent.session_backend_model.as_ref().is_some_and(|agent| agent.id == *session) {
+                    let connection = open_session_connection(db).map_err(|e| e.to_string())?;
+                    if !chat_run_admission::target_is_admitted_on(&connection,
+                        parent.parent_run_id.as_deref().ok_or("DSH缺少真实父运行")?, session)
+                        .map_err(|e| e.to_string())? {
+                        return Err("DSH模型不是本轮接纳的发送目标".into());
+                    }
+                }
                 let manager = extension_market::manager(root).map_err(|_| "DSH工程配置无法读取")?;
                 if !(if full_source {
                     dsh_execution::still_current(&manager, binding)
@@ -379,15 +407,21 @@ pub(super) async fn call_from_model(
         user_authorized: false,
         user_confirmed_twice: false,
     };
-    let outcome = run_action(action.clone(), invoke.clone(), pin).await;
+    let mut outcome = run_action(action.clone(), invoke.clone(), pin).await;
+    let acp = devin_acp::bridge::current().is_some();
+    if acp && outcome.status == ToolOutcomeStatus::DryRunOnly
+        && outcome.permission_gate.decision.requires_ui() {
+        // ACP没有跨回合审批续接协议；不留下回合结束后执行、结果无法回传的请求。
+        outcome.summary_text = "本轮插件未执行：请先完成聊天室授权再重新发起；未保留延期执行请求。".into();
+    }
     if outcome.status == ToolOutcomeStatus::DryRunOnly
-        && outcome.permission_gate.decision.requires_ui()
+        && outcome.permission_gate.decision.requires_ui() && !acp
     {
         settlement
             .handoff_approval()
             .map_err(|e| api_error(StatusCode::INTERNAL_SERVER_ERROR, &e))?;
     }
-    finish_action(&action, &invoke, &outcome, true);
+    finish_action(&action, &invoke, &outcome, !acp);
     Ok(outcome)
 }
 
@@ -410,12 +444,12 @@ async fn run_action(
         return runtime_tool_failed_outcome(&invoke, "DSH父轮执行预算已经到期".into());
     }
     let frozen_gate = if let PendingAction::Model { parent, .. } = &action {
-        let grant = parent
+        let Some(grant) = parent
             .dsh_permission
             .grants
-            .get(&invoke.tool_name)
+            .get(&(invoke.session_id.clone().unwrap_or_default(), invoke.tool_name.clone()))
             .cloned()
-            .unwrap_or_default();
+        else { return runtime_tool_failed_outcome(&invoke, "DSH未冻结实际发送对象的权限，未执行".into()); };
         let gate = evaluate_permission(
             &invoke,
             PermissionMode::DangerFullAccess,

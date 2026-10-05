@@ -11,6 +11,7 @@ use axum::{
 use std::{cell::RefCell, collections::BTreeMap};
 
 const MCP_VERSION: &str = "2025-06-18";
+#[cfg(test)]
 const INITIAL_TOOLS: &[&str] = &[
     "read_file",
     "write_file",
@@ -211,15 +212,19 @@ impl ToolBridge {
         }
         let parent_claim = parent_claim(journal.path(), &scope.run_id)?;
         let permission = llm_tool_permission_for_room(Some(&scope.room_id));
-        let definitions = llm_tool_definitions_for_session(&scope.agent_id, Some(&scope.room_id))
-            .unwrap_or_default()
+        let mut definitions = llm_tool_definitions_for_session(&scope.agent_id, Some(&scope.room_id))
+            .unwrap_or_default();
+        retain_admitted_plugin_definitions(&mut definitions, Some(&parent));
+        let computer = session_model_settings_for(&scope.agent_id).computer_use_enabled == Some(true);
+        let definitions = definitions
             .into_iter()
             .filter(|tool| {
-                (if readonly { REVIEW_TOOLS } else { INITIAL_TOOLS }).contains(&tool.name.as_str())
+                (if readonly { REVIEW_TOOLS.contains(&tool.name.as_str()) }
+                 else { super::host_tools::supported(&tool.name, computer) })
                     && required_permission_for_tool(&tool.name) <= permission
             })
             .collect::<Vec<_>>();
-        // 仅开放明确接入的内置工具；CU 复用异步控制器，插件与外部 MCP 尚未接入。
+        // 插件沿用宿主执行器；DSH须属于父轮冻结的工具快照，外部MCP仍未接入。
         let dev_open = dev_open_tool_permissions_enabled();
         let profile = if dev_open {
             PermissionProfile::FullAccess
@@ -470,21 +475,22 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
             &source,
             &raw_id,
         )?;
-        if name == "computer_use_perform" {
-            // CU 复用模型工具的异步入口，不进入同步工具 worker，也不另登记一份调用。
+        if name == "computer_use_perform" || name.starts_with("dsh__") {
+            // CU和DSH复用原异步派发及结算；此处不另登记一份调用。
             let invoke = ToolInvoke { call_id: identity.execution_id.clone(), tool_name: name.into(),
                 input: input.clone(), caller: ToolCaller::Llm, workspace_id: scope.workspace_id.clone(), session_id: Some(scope.agent_id.clone()),
                 user_authorized: false, user_confirmed_twice: false };
             if let Some(outcome) = policy.gate(&invoke, &policy.root) {
-                return Ok(json!({"content":[{"type":"text","text":serde_json::to_string(&outcome).map_err(|_| "CU 拒绝回执编码失败。")?}],"isError":true}));
+                return Ok(json!({"content":[{"type":"text","text":serde_json::to_string(&outcome).map_err(|_| "宿主拒绝回执编码失败。")?}],"isError":true}));
             }
             let run = tool_invocation_identity::scope(source,
                 run_model_tool_dispatch_for_session_with_identity(name, input, Some(&scope.agent_id),
                     Some(&raw_id), Some(&scope.turn_id), Some(&scope.room_id), Some(&policy.parent), None));
-            let response = CHAT_CANCELLATION.scope(policy.cancellation.clone(), run)
-                .await.map_err(|(status, _)| format!("CU 宿主派发失败：{status}"))?;
+            let response = FROZEN_POLICY.scope(policy.clone(), TURN_TRACE.scope(bridge_trace(scope)?,
+                CHAT_CANCELLATION.scope(policy.cancellation.clone(), run)))
+                .await.map_err(|(status, _)| format!("宿主工具派发失败：{status}"))?;
             let failed = response.status != "ok";
-            let text = serde_json::to_string(&response).map_err(|_| "CU 结果编码失败。")?;
+            let text = serde_json::to_string(&response).map_err(|_| "宿主结果编码失败。")?;
             return Ok(json!({"content":[{"type":"text","text":truncate_tool_result_for_context(text,Some(&policy.parent))}],"isError":failed}));
         }
         let budget = policy
@@ -513,11 +519,16 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
             user_confirmed_twice: false,
         };
         let timeout = budget.limit_ms(tool_timeout_ms_for(name, &invoke.input));
-        let run = runtime_tool_supervision::execute(
+        let executor = if name.starts_with("plugin__") {
+            Some(plugin_runtime::executor(&policy.root, name)?
+                .ok_or("当前插件工具没有宿主执行器，未执行。")?)
+        } else { None };
+        let run = runtime_tool_supervision::execute_with_executor(
             invoke.clone(),
             policy.root.clone(),
             timeout,
             Some(scope.room_id.clone()),
+            executor,
         );
         let outcome = FROZEN_POLICY
             .scope(
@@ -652,8 +663,7 @@ async fn http_rpc(
                         let response = match result {
                             Ok(Some(value)) => value,
                             Ok(None) => break,
-                            Err(_) => json!({"jsonrpc":"2.0","id":request_id,
-                                "error":{"code":-32000,"message":"宿主工具未完成，请查看运行轨迹；未重试"}}),
+                            Err(reason) => rpc_failure(&request_id, method, &reason),
                         };
                         yield Ok::<_, std::convert::Infallible>(Event::default().event("message").data(response.to_string()));
                         break;
@@ -674,10 +684,22 @@ async fn http_rpc(
         };
         return Sse::new(stream).into_response();
     }
+    let request_id = request["id"].clone();
     match bridge.rpc(request).await {
         Ok(Some(result)) => Json(result).into_response(),
         Ok(None) => StatusCode::ACCEPTED.into_response(),
-        Err(_) => StatusCode::CONFLICT.into_response(),
+        Err(reason) => Json(rpc_failure(&request_id, method, &reason)).into_response(),
+    }
+}
+
+fn rpc_failure(id: &JsonValue, method: &str, reason: &str) -> JsonValue {
+    // 已认证请求的工具拒绝属于执行回执，不能用 HTTP 冲突伪装成 MCP 断连。
+    // 不包含请求参数或连接凭据；结果未确认时也不声称已经执行或可以重试。
+    if method == "tools/call" {
+        json!({"jsonrpc":"2.0","id":id,"result":{"isError":true,
+            "content":[{"type":"text","text":format!("宿主工具未完成：{reason}")} ]}})
+    } else {
+        json!({"jsonrpc":"2.0","id":id,"error":{"code":-32000,"message":reason}})
     }
 }
 
@@ -1135,7 +1157,8 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let db = dir.path().join("sessions.sqlite3");
         let _env = Environment::install(dir.path(), &db);
-        let (bridge, _, _) = fixture(dir.path(), &db);
+        let (bridge, journal, scope) = fixture(dir.path(), &db);
+        journal.transition(&scope, &["prepared"], "submitted", None, true).unwrap();
         let server = bridge.clone().start().await.unwrap();
         let config = server.config();
         let url = config["url"].as_str().unwrap();
@@ -1187,6 +1210,16 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
         let result: JsonValue = response.json().await.unwrap();
         assert_eq!(result["result"]["protocolVersion"], MCP_VERSION);
+        let denied = client.post(url)
+            .header("Authorization", token).header("MCP-Protocol-Version", MCP_VERSION)
+            .json(&json!({"jsonrpc":"2.0","id":"denied-tool","method":"tools/call",
+                "params":{"name":"not_admitted","arguments":{}}}))
+            .send().await.unwrap();
+        assert_eq!(denied.status(), StatusCode::OK);
+        let denied: JsonValue = denied.json().await.unwrap();
+        assert_eq!(denied["id"], "denied-tool");
+        assert_eq!(denied["result"]["isError"], true);
+        assert!(denied["result"]["content"][0]["text"].as_str().unwrap().contains("未执行"));
         let response = client
             .post(url)
             .header("Authorization", token)

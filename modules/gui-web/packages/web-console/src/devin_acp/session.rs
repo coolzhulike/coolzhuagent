@@ -298,10 +298,22 @@ impl<W> Drop for SessionTransport<W> {
 
 fn response(frame: Value, id: u64) -> io::Result<Value> {
     if frame.get("id").and_then(Value::as_u64) != Some(id)
-        || frame.get("error").is_some()
         || frame.get("method").is_some()
     {
-        return Err(invalid("ACP 响应身份错误或请求被拒绝；原始错误已隐藏。"));
+        return Err(invalid("ACP 响应身份不一致，原请求结果未确认。"));
+    }
+    if let Some(error) = frame.get("error") {
+        let message = error["message"].as_str().unwrap_or_default().to_ascii_lowercase();
+        let category = if ["quota", "credit", "rate limit"].iter().any(|part| message.contains(part)) {
+            "账号额度或速率限制"
+        } else if ["not logged", "unauthorized", "authentication"].iter().any(|part| message.contains(part)) {
+            "登录状态"
+        } else if message.contains("mcp") || message.contains("tool") {
+            "远端工具处理"
+        } else { "远端请求处理" };
+        // 仅登记标准错误码和固定分类；原消息、data 和凭据都不落日志或前端。
+        tracing::warn!(error_code = ?error["code"].as_i64(), category, "Devin ACP 请求被远端拒绝");
+        return Err(invalid(&format!("Devin {category}失败，本轮未完成；未自动重试。")));
     }
     frame
         .get("result")
@@ -560,6 +572,9 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
             .drive(id, params, cancellation, cancel_grace, &mut sink)
             .await;
         if outcome.is_err() {
+            // 错误路径也会终止本地连接和进程，必须留下与 Drop 路径一致的停止意图。
+            // 仍保留 unknown；不冒称远端取消确认，排空和工具结账后才能续接。
+            self.journal.request_cancel(&self.scope).map_err(|e| invalid(&e))?;
             self.transport.invalidate();
             // 落盘失败返回更明确的错误；不假定状态提交成功。
             self.journal

@@ -10,7 +10,7 @@ const MAX_OUTPUT: usize = 1024 * 1024;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
-enum Authentication { Unknown, Authenticated, Unauthenticated, Unavailable, CheckFailed }
+pub(super) enum Authentication { Unknown, Authenticated, Unauthenticated, Unavailable, CheckFailed }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -48,6 +48,20 @@ type Manager = Arc<Mutex<State>>;
 fn manager() -> Manager {
     static MANAGER: OnceLock<Manager> = OnceLock::new();
     MANAGER.get_or_init(|| Arc::new(Mutex::new(State::default()))).clone()
+}
+
+/// 健康诊断只读取既有认证结果，不在同步诊断中启动登录或远端请求。
+/// CLI 路径改变、尚未核对或结果过期时显示未知；不会阻止实际会话接纳。
+pub(super) fn cached_authentication() -> Authentication {
+    let Ok(binary) = super::discovery::binary() else { return Authentication::Unavailable; };
+    let manager = manager();
+    let state = manager.lock().unwrap_or_else(|p| p.into_inner());
+    if state.cli.as_ref() != Some(&binary)
+        || state.attempt.as_ref().is_some_and(|attempt| attempt.active)
+        || !state.checked_at.is_some_and(|checked| crate::unix_timestamp_millis().saturating_sub(checked) <= 60_000) {
+        return Authentication::Unknown;
+    }
+    state.authentication
 }
 
 #[derive(Serialize)]

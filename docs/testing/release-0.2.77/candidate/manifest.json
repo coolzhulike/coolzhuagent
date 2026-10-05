@@ -1,0 +1,42 @@
+[
+  {
+    "file": "auth-refresh-diagnostics.json",
+    "bytes": 280,
+    "sha256": "3baa9187c479471f9a460f06b21a0404a565e2164e66951612e0dfcdd6f7e73e"
+  },
+  {
+    "file": "candidate-context-facts.json",
+    "bytes": 1203,
+    "sha256": "38623654b34f0c25fbdfa4457a2aff2aa67ce7780237817bdf55d467eef25db4"
+  },
+  {
+    "file": "candidate-context-native.png",
+    "bytes": 206404,
+    "sha256": "120bbf719910422281fd460ddb07f0e6591ca695aa2091b2d61e1c88773692cc"
+  },
+  {
+    "file": "candidate-login-native.png",
+    "bytes": 215618,
+    "sha256": "40578b9cfd89012f34c810a9f59734f9a8cfb748afb33960d712b62fadc789ab"
+  },
+  {
+    "file": "cold-diagnostics.json",
+    "bytes": 4533,
+    "sha256": "1d9267b47033f6685089fe38f84f18065f0c72bd0f82e9b811cb47c892b199f4"
+  },
+  {
+    "file": "expired-diagnostics.json",
+    "bytes": 4536,
+    "sha256": "94e8259f52b2564876832f928c58897bd943066d97af7b10171fe905626da7c5"
+  },
+  {
+    "file": "verification.json",
+    "bytes": 627,
+    "sha256": "5a779c0984bc7090e3b3e9f2bb6a388cfd6546819b267423745e3c8dbaca7f3d"
+  },
+  {
+    "file": "warm-diagnostics.json",
+    "bytes": 3768,
+    "sha256": "6e2e204a6e8208d2317703f2b778af0a946697e9a80259140da3e80c5e205da7"
+  }
+]

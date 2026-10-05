@@ -1,6 +1,6 @@
 {
   "name": "cli-anything-bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Bridge CLI-Anything generated CLIs into the Claw tool layer.",
   "permissions": ["read", "write", "execute"],
   "defaultEnabled": true,

@@ -1,0 +1,17 @@
+[
+  {
+    "file": "build-msi-076.log",
+    "bytes": 72869,
+    "sha256": "aaba84e7663f089a75dc8a7700c83101cd3122373522a6629ebff447a6e76761"
+  },
+  {
+    "file": "install-076.log",
+    "bytes": 1100632,
+    "sha256": "d9a40a8c3b2dd004992ea19db401c35a90de163bced2ff67cf2e8998dcd1df39"
+  },
+  {
+    "file": "install-076-elevated.log",
+    "bytes": 4997040,
+    "sha256": "8ef9f5af3ebeacf69e3e10f56b9c3b94bd3f5e7014f9d9b1abeb7bd80286b68c"
+  }
+]
