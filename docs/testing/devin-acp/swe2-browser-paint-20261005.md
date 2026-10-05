@@ -130,3 +130,9 @@ Paint活动时找到原生外壳的空标题提示窗口，截图`paint-swe2-con
 | SWE2-PAINT-NEW-EFFECT-26-02 | 指定实际“无标题 - 画图”窗口后，1次真实drag，3点、1200ms、sent/released；最终 `budget_exhausted`、criteria 0/1 | 不再初始零动作误报。模型选相对点 `[0.62,0.16]→[0.66,0.16]→[0.70,0.16]`，宿主容器rect `[11,106,2538,1096]` 是窗口内容容器，并非白色绘画区；映射落在工具栏附近，软件截图未确认新增横线。图片变化包含键位提示撤除，不能作为新笔迹证据；外层回复“有真实新笔迹”也不能替代截图。保持未完成，不按输入释放算成功。 |
 
 第二轮耗时1分2秒。两轮共4个内外层ACP尝试均requested/effective=`swe-2-medium`、end_turn并排空。活动时顶部 `Coolzhu Agent is using your computer` 与完整四边泛光可见，终态后提示窗口撤除。证据为 `paint-new-effect-26-initial.png`、`paint-new-effect-26-hud-active.png`、`paint-new-effect-26-final-indicator-withdrawn.png`、`paint-new-effect-26-model-reply.png`、`paint-new-effect-26-receipts.json`，位于本报告证据目录。初始误报修复的实操生效，不等于Paint绘图通过；这些调试证据不代表0.2.71已包含修复。
+
+## 后续 Browser 边界验证
+
+新增 A～H 真实 SWE-2 场景见 [Browser 边界完整报告](browser-boundary-20261005/README.md)：后端在途停止、原页面释放、无后续输入、新独立任务恢复通过；停止原因误报和机械输入语义误拦均已修复并实测。前端按钮/关闭/页面替换微区间仍未覆盖，Click 自然导航虽实际跳转，最终来源 URL 校验失败，保持未通过。没有本轮新增 Paint 绘画或新 MSI。
+
+Opus 三轮补充只读审查及主会话裁决一并归档，原始事件、模型/运行回执、软件截图可供后续测试设计复用。临时 8767 后台和 HTML 服务已收尾，原日常 8765 正式版、Qwen/聊天09 已恢复；正式版仍不包含这些新补丁。

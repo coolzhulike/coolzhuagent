@@ -278,16 +278,25 @@ pub(super) fn verify_process(identity: &HostIdentity) -> Result<(), String> {
     { Err("native_browser_executor_unsupported".into()) }
 }
 
+// 停止是既有运行的收尾状态，不是工程或房间错绑；身份不匹配仍按原规则拒绝。
+fn observation_parent_error(error: crate::FrozenRelationViolation) -> &'static str {
+    match error {
+        crate::FrozenRelationViolation::ParentRunNotExecutable { state }
+            if matches!(state.as_str(), "stop_requested" | "interrupted") => "native_observation_cancelled",
+        _ => "native_browser_parent_changed",
+    }
+}
+
 /// 只允许已有父运行内部调用。未生产接线时没有公共接口能凭页面文本创建请求。
 pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
     cancelled: &dyn Fn() -> bool) -> Result<NativeObservation, String> {
     let db = parent.runtime_db_path.as_ref().ok_or("native_browser_parent_missing")?;
     let frozen = parent.native_browser_binding.as_ref().ok_or("native_browser_binding_missing")?
         .as_ref().map_err(Clone::clone)?;
-    crate::validate_frozen_parent_relations(db, parent).map_err(|_| "native_browser_parent_changed")?;
     if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
         return Err("native_observation_cancelled".into());
     }
+    crate::validate_frozen_parent_relations(db, parent).map_err(observation_parent_error)?;
     let mut random = [0u8;16];
     getrandom::fill(&mut random).map_err(|_| "native_observation_unavailable")?;
     let id: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
@@ -319,8 +328,8 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
                 if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
                     break Err("native_observation_cancelled".into());
                 }
-                if crate::validate_frozen_parent_relations(db, parent).is_err() {
-                    break Err("native_browser_parent_changed".into());
+                if let Err(error) = crate::validate_frozen_parent_relations(db, parent) {
+                    break Err(observation_parent_error(error).into());
                 }
                 let current_matches = registry().lock().is_ok_and(|registered| registered.as_ref().is_some_and(|host|
                     host.host_id == reply.host_id && host.seen.elapsed() < Duration::from_millis(LEASE_MILLIS)
@@ -341,6 +350,21 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn observation_stop_does_not_hide_an_actual_parent_identity_failure() {
+        for state in ["stop_requested", "interrupted"] {
+            assert_eq!(observation_parent_error(crate::FrozenRelationViolation::ParentRunNotExecutable {
+                state: state.into(),
+            }), "native_observation_cancelled");
+        }
+        assert_eq!(observation_parent_error(crate::FrozenRelationViolation::ParentRunRoomMismatch {
+            actual: Some("another-room".into()),
+        }), "native_browser_parent_changed");
+        assert_eq!(observation_parent_error(crate::FrozenRelationViolation::ParentRunNotExecutable {
+            state: "completed".into(),
+        }), "native_browser_parent_changed");
+    }
 
     #[test]
     fn browser_observation_distinguishes_disconnected_host_from_unavailable_panel() {
