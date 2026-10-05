@@ -16,7 +16,7 @@ fn focused_editor(node: &serde_json::Value, role: &str) -> bool {
 fn project_tree(value: &serde_json::Value) -> Result<PageObservation,String> {
     let nodes = value.get("nodes").and_then(serde_json::Value::as_array).ok_or("native_observation_invalid")?;
     let mut result = PageObservation {url:String::new(),title:String::new(),nodes:Vec::new(),truncated:false,
-        document_token:None,node_handles:Vec::new(),viewport:None,focused_node_index:None};
+        document_token:None,node_handles:Vec::new(),viewport:None,focused_node_index:None,loading:false,navigation_target:None};
     for node in nodes {
         if node.get("ignored").and_then(serde_json::Value::as_bool) != Some(false) { continue; }
         let role = bounded_text(node.get("role"),64);
@@ -48,6 +48,33 @@ pub(super) fn regular_document_nodes(tree: &serde_json::Value) -> std::collectio
     found
 }
 pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observation_id: &str) -> Result<PageObservation,String> {
+    // 短暂让已经接近完成的导航落地；慢请求返回宿主控制状态，不等待CDP超时。
+    for _ in 0..10 {
+        let (control,loading)=super::browser_panel::control_snapshot(app).ok_or("native_browser_resource_changed")?;
+        if &control.resource!=expected {return Err("native_browser_resource_changed".into());}
+        if !loading {break;}
+        tokio::time::sleep(std::time::Duration::from_millis(25)).await;
+    }
+    if let Some(page)=loading_observation(app,expected,observation_id)? {return Ok(page);}
+    let result=observe_document(app,expected,observation_id).await;
+    if result.is_err() {
+        // 页面在读文档过程中开始导航，返回明确loading事实；没有旧页面节点可复用。
+        if let Some(page)=loading_observation(app,expected,observation_id)? {return Ok(page);}
+    }
+    result
+}
+
+fn loading_observation(app:&AppHandle,expected:&PanelResource,observation_id:&str)->Result<Option<PageObservation>,String> {
+    let (control,loading)=super::browser_panel::control_snapshot(app).ok_or("native_browser_resource_changed")?;
+    if &control.resource!=expected {return Err("native_browser_resource_changed".into());}
+    if !loading {return Ok(None);}
+    let navigation_target=super::native_browser_navigation::register(control.clone(),observation_id)?;
+    let page=PageObservation {url:control.url,title:String::new(),nodes:Vec::new(),truncated:false,
+        viewport:None,document_token:None,node_handles:Vec::new(),focused_node_index:None,loading:true,navigation_target:Some(navigation_target)};
+    if page.valid_shape() {Ok(Some(page))} else {Err("native_observation_invalid".into())}
+}
+
+async fn observe_document(app: &AppHandle, expected: &PanelResource, observation_id: &str) -> Result<PageObservation,String> {
     if super::browser_panel::input_resource(app).as_ref() != Some(expected) { return Err("native_browser_resource_changed".into()); }
     let url = app.get_webview(&expected.label).ok_or("native_browser_unavailable")?
         .url().map_err(|_| "native_browser_unavailable")?.to_string();
@@ -65,10 +92,6 @@ pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observati
     if !viewport.valid_shape() { return Err("native_browser_viewport_invalid".into()); }
     page.viewport = Some(viewport);
     let ordinary_nodes = regular_document_nodes(&native_browser_devtools::read(app,expected,ReadMethod::DocumentNodes).await?);
-    if document(app,expected).await? != stamp || super::browser_panel::input_resource(app).as_ref() != Some(expected)
-        || app.get_webview(&expected.label).and_then(|view| view.url().ok()).as_ref().map(|url| url.as_str()) != Some(url.as_str()) {
-        return Err("native_browser_document_changed".into());
-    }
     let mut candidates = Vec::new();
     let mut focused_editors = Vec::new();
     let mut index = 0;
@@ -90,7 +113,30 @@ pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observati
         }
         index += 1;
     }
-    let (token,handles) = super::native_browser_nodes::register(expected,&stamp,observation_id,&candidates)?;
+    // 只读几何提示与输入预检复用坐标语义。总采样余量耗尽时保留未知节点，不能过滤离屏目标。
+    // 不做命中测试、不自动滚动；可见性不能替代随后执行前的文档/布局/命中复核。
+    let started = std::time::Instant::now();
+    let mut visibility = Vec::with_capacity(candidates.len());
+    for (_,backend,role,_) in &candidates {
+        let remaining = std::time::Duration::from_millis(500).saturating_sub(started.elapsed());
+        let hint = if role == "RootWebArea" || remaining.is_zero() { None } else {
+            match tokio::time::timeout(remaining,native_browser_devtools::read(app,expected,ReadMethod::BoxModel(*backend))).await {
+                Ok(Ok(geometry)) => match super::native_browser_target::point(&geometry,&metrics) {
+                    Ok(_) => Some(true),
+                    Err(code) if code == "native_browser_target_outside_viewport" => Some(false),
+                    Err(_) => None,
+                },
+                _ => None,
+            }
+        };
+        visibility.push(hint);
+    }
+    if document(app,expected).await? != stamp || super::browser_panel::input_resource(app).as_ref() != Some(expected)
+        || app.get_webview(&expected.label).and_then(|view| view.url().ok()).as_ref().map(|url| url.as_str()) != Some(url.as_str()) {
+        return Err("native_browser_document_changed".into());
+    }
+    let (token,mut handles) = super::native_browser_nodes::register(expected,&stamp,observation_id,&candidates)?;
+    for (handle,hint) in handles.iter_mut().zip(visibility) { handle.in_viewport = hint; }
     page.url = url; page.document_token = Some(token); page.node_handles = handles;
     page.focused_node_index = (focused_editors.len() == 1).then(|| focused_editors[0]);
     if page.valid_shape() { Ok(page) } else { Err("native_observation_invalid".into()) }
@@ -116,13 +162,13 @@ mod tests {
         assert!(focused_editor(&focus,"button"));
         assert!(!focused_editor(&serde_json::json!({"properties":[{"name":"focused","value":{"value":"true"}}]}),"textbox"));
         page.document_token = Some("a".repeat(32));
-        page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32)});
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32),in_viewport:None});
         page.focused_node_index = Some(1);
         assert!(page.valid_shape());
         page.focused_node_index = Some(0);
         assert!(!page.valid_shape());
         page.focused_node_index = None;
-        page.node_handles.push(native_browser_protocol::NodeHandle {index:999,node_id:"0".repeat(32)});
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:999,node_id:"0".repeat(32),in_viewport:None});
         assert!(!page.valid_shape());
         let dom = serde_json::json!({"root":{"backendNodeId":1,"children":[{"backendNodeId":2,
             "shadowRoots":[{"backendNodeId":3}],"contentDocument":{"backendNodeId":4}}]}});

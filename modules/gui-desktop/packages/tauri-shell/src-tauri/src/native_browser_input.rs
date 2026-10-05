@@ -4,6 +4,22 @@ use native_browser_protocol::{PanelClickTarget, PanelInputCommand, PanelInputOut
 use tauri::{AppHandle, Manager};
 use super::native_browser_target::{self, VerifiedTarget};
 
+#[derive(Clone)]
+enum VerifiedOperation { Document(VerifiedTarget), Navigation(super::native_browser_navigation::VerifiedNavigation) }
+impl VerifiedOperation {
+    fn resource(&self)->&native_browser_protocol::PanelResource {
+        match self {Self::Document(v)=>&v.resource,Self::Navigation(v)=>&v.0.resource}
+    }
+    fn unchanged(&self,other:&Self)->bool {
+        match (self,other) {
+            (Self::Navigation(a),Self::Navigation(b))=>a==b,
+            (Self::Document(a),Self::Document(b))=>a.document==b.document && a.node.backend_node==b.node.backend_node
+                && a.x==b.x && a.y==b.y && a.viewport==b.viewport && a.editor==b.editor,
+            _=>false,
+        }
+    }
+}
+
 #[derive(Clone,PartialEq,Eq)]
 enum Operation { Click, Scroll { direction: ScrollDirection, amount: u8 }, Text(String), Navigate(String), Keys(Vec<String>) }
 impl Operation {
@@ -16,8 +32,12 @@ impl Operation {
             PanelInputCommand::PrepareNavigate {url,..} | PanelInputCommand::ExecuteNavigate {url,..} => Self::Navigate(url.clone()),
         }
     }
-    async fn verify(&self,app:&AppHandle,request:&PanelInputRequest,target:&PanelClickTarget) -> Result<VerifiedTarget,String> {
-        match self {
+    async fn verify(&self,app:&AppHandle,request:&PanelInputRequest,target:&PanelClickTarget) -> Result<VerifiedOperation,String> {
+        if matches!(self,Self::Navigate(_)) && super::native_browser_navigation::contains(target) {
+            if let Self::Navigate(url)=self {super::browser_panel::native_destination(url)?;}
+            return super::native_browser_navigation::verify(app,&request.resource,target).map(VerifiedOperation::Navigation);
+        }
+        let verified=match self {
             Self::Keys(_) => super::native_browser_key_input::verify(app,&request.resource,target).await,
             Self::Click => native_browser_target::verify(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
             Self::Scroll {..} => native_browser_target::verify_viewport(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
@@ -26,10 +46,11 @@ impl Operation {
                 super::browser_panel::native_destination(url)?;
                 native_browser_target::verify_document(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await
             },
-        }
+        }?;
+        Ok(VerifiedOperation::Document(verified))
     }
 }
-struct Ticket { target: PanelClickTarget, operation: Operation, verified: VerifiedTarget, expiry: Instant, expires_ms: u64 }
+struct Ticket { target: PanelClickTarget, operation: Operation, verified: VerifiedOperation, expiry: Instant, expires_ms: u64 }
 fn execution_gate() -> &'static tokio::sync::Mutex<()> {
     static VALUE:OnceLock<tokio::sync::Mutex<()>>=OnceLock::new();
     VALUE.get_or_init(||tokio::sync::Mutex::new(()))
@@ -96,28 +117,29 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
             let ticket = tickets().lock().ok().and_then(|mut cache| cache.remove(ticket_id));
             let Some(ticket) = ticket else { reply.error=Some("native_input_ticket_missing".into());return reply; };
             if ticket.expiry <= Instant::now() || now() >= *expires_at_unix_ms || *expires_at_unix_ms > ticket.expires_ms
-                || ticket.target != *target || ticket.operation != operation || ticket.verified.resource != request.resource {
+                || ticket.target != *target || ticket.operation != operation || ticket.verified.resource() != &request.resource {
                 reply.error=Some("native_input_ticket_stale".into());return reply;
             }
             let checked = operation.verify(app,&request,target).await;
             let verified = match checked {
-                Ok(value) if value.document == ticket.verified.document && value.node.backend_node == ticket.verified.node.backend_node
-                    && value.x == ticket.verified.x && value.y == ticket.verified.y && value.viewport == ticket.verified.viewport
-                    && value.editor == ticket.verified.editor => value,
+                Ok(value) if value.unchanged(&ticket.verified) => value,
                 Ok(_) => { reply.error=Some("native_browser_node_changed".into());return reply; },
                 Err(error) => { reply.error=Some(error);return reply; },
             };
-            let (outcome,down,up) = match operation {
-                Operation::Keys(keys) => super::native_browser_key_input::press(app,verified,keys,*expires_at_unix_ms).await,
-                Operation::Click => click(app,verified,*expires_at_unix_ms).await,
-                Operation::Scroll {direction,amount} => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
-                Operation::Text(text) => (super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await,false,false),
-                Operation::Navigate(url) => {
-                    let (outcome,navigation)=super::native_browser_edit_input::navigate(app,verified,url,*expires_at_unix_ms).await;
+            let (outcome,down,up) = match (operation,verified) {
+                (Operation::Keys(keys),VerifiedOperation::Document(verified)) => super::native_browser_key_input::press(app,verified,keys,*expires_at_unix_ms).await,
+                (Operation::Click,VerifiedOperation::Document(verified)) => click(app,verified,*expires_at_unix_ms).await,
+                (Operation::Scroll {direction,amount},VerifiedOperation::Document(verified)) => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
+                (Operation::Text(text),VerifiedOperation::Document(verified)) => (super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await,false,false),
+                (Operation::Navigate(url),verified) => {
+                    let control=match &verified {VerifiedOperation::Navigation(v)=>Some(v.0.clone()),_=>None};
+                    let (outcome,navigation)=super::native_browser_edit_input::navigate(app,verified.resource().clone(),control,url,*expires_at_unix_ms).await;
                     reply.navigation=navigation;(outcome,false,false)
                 },
+                _ => (PanelInputOutcome::NotDispatched,false,false),
             };
             let _ = super::native_browser_nodes::retire();
+            super::native_browser_navigation::retire();
             reply.outcome=outcome;reply.down_confirmed=down;reply.up_confirmed=up;
             if !matches!(outcome,PanelInputOutcome::Released|PanelInputOutcome::Acknowledged) { reply.error=Some("native_input_not_confirmed".into()); }
         },

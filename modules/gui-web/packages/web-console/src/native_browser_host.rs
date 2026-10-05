@@ -394,7 +394,7 @@ mod tests {
         assert!(serde_json::from_str::<ObservationRequest>(r#"{"request_id":"01234567890123456789012345678901","resource":null,"method":"Runtime.evaluate"}"#).is_err());
         let oversized = PageObservation {url:"https://example.invalid/".into(), title:String::new(),
             nodes:vec![native_browser_protocol::ObservedNode {role:"button".into(),name:"字".repeat(257)}], truncated:false,
-            document_token:None,node_handles:Vec::new(),viewport:None,focused_node_index:None};
+            document_token:None,node_handles:Vec::new(),viewport:None,focused_node_index:None,loading:false,navigation_target:None};
         assert!(!oversized.valid_shape());
     }
 

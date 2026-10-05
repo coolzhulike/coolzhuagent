@@ -36,7 +36,7 @@ pub(super) fn start(app: &AppHandle) {
             if let Ok(token) = token {
                 if token.len() == 64 && token.bytes().all(|byte| byte.is_ascii_hexdigit()) {
                     let state = HostState {host_id:host_id.clone(), sequence, identity:identity.clone(),
-                        resource:super::browser_panel::input_resource(&app)};
+                        resource:super::browser_panel::control_snapshot(&app).map(|(control,_)|control.resource)};
                     // 登记失败仅撤销可用性，不触发页面输入、自动开页或回退 Chrome。
                     if let Ok(response) = client.post(endpoint.clone()).bearer_auth(&token).json(&state).send().await {
                         if response.status().is_success() {

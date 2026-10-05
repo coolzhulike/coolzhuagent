@@ -1,0 +1,39 @@
+[
+  {
+    "source": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+    "ranges": [
+      [
+        1,
+        180
+      ]
+    ],
+    "review_file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\review-browser-progress\\native_browser_target.rs",
+    "sha256": "ac7f589ab843dbd1801f0ea3b8ef2a77d568a8f1ed33ef173e608f7c669ad1fd"
+  },
+  {
+    "source": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+    "ranges": [
+      [
+        1,
+        80
+      ],
+      [
+        720,
+        830
+      ]
+    ],
+    "review_file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\review-browser-progress\\computer_use_planner.rs",
+    "sha256": "a13696385cec832c928979d62d65bf3ca282cdb610e25bc9faf65ec0d521fc53"
+  },
+  {
+    "source": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+    "ranges": [
+      [
+        1,
+        250
+      ]
+    ],
+    "review_file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\review-browser-progress\\native_browser_verification.rs",
+    "sha256": "0a130aaf5570be4afc6013f396a1d109269c0b484566bfb607827d1a1c0f76fb"
+  }
+]

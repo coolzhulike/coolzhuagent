@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "BU-INSTALLED-073-POPUP-RECOVERY：新独立真实SWE-2任务，仅一次computer_use_perform完整六项：objective=在当前内置浏览器显式导航目标页单击确认新页面；surface=browser；target={url:http://127.0.0.1:50764/explicit.html}；success_criteria=[最新实际URL为http://127.0.0.1:50764/explicit.html,最新页面显示EXPLICIT-PASSED-073]；constraints=[仅一次click，不输入不滚动不navigate不使用其它工具，不换模型，不操作慢弹窗，失败立即停止不重试不补发，不把释放当目标完成]；max_actions=1。running仅wait原job_id到终态，如实报告。",
+  "selected_message_ids": [],
+  "attachments": []
+}

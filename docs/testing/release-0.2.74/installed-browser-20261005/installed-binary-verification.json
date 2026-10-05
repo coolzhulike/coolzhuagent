@@ -1,0 +1,24 @@
+{
+  "registration": [
+    {
+      "DisplayName": "COOLZHU CODE Agent",
+      "DisplayVersion": "0.2.74"
+    }
+  ],
+  "cli_output": "COOLZHU CODE Agent\r\n  Version          0.2.74\r\n  Git SHA          e52332d841523a57f8e27e25d8fe7399de88ee4d\r\n  Target           x86_64-pc-windows-msvc\r\n  Build date       2026-10-05\r\n\r\nSupport\r\n  Help             coolzhu-cli --help\r\n  REPL             /help\r\n",
+  "binaries": [
+    {
+      "Path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "Hash": "1F323AB9B6D3F1F759D5E35D1059B90A20DD5029DC9E4EA06598647E5C0AD37F"
+    },
+    {
+      "Path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "Hash": "533B4B551915F9076C24C26F33CBD029BA618ACB1DD92542AF541E2E262B7566"
+    }
+  ],
+  "msi_engine_result": "MainEngineThread is returning 0",
+  "install_log_sha256": "C035FE2317D839D44C011FF8B2514DA6819C614EBAF7AE505A4444106E777B5F",
+  "source_commit": "e52332d841523a57f8e27e25d8fe7399de88ee4d",
+  "verification": "与交付载荷摘要匹配",
+  "capture_time": "2026-10-05T22:26:26.4980924+08:00"
+}

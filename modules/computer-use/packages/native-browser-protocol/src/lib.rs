@@ -65,7 +65,7 @@ pub struct HostState {
     /// 独立认证通道的来源声明；服务端仍须按OS进程实例和实际shell路径重新核验。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub identity: Option<HostIdentity>,
-    // 隐藏、关闭、切换环境或加载时为 None，不能沿用旧资源。
+    // 隐藏、关闭或切换环境时为 None；加载时只提供宿主控制观察，不能沿用旧文档输入。
     pub resource: Option<PanelResource>,
 }
 
@@ -284,6 +284,23 @@ pub struct PageObservation {
     /// 仅投影宿主AX确认聚焦的普通编辑节点索引，不携带原值、选区或其它属性。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub focused_node_index: Option<usize>,
+    /// 加载状态来自宿主；此时URL是导航状态，不是目标文档已加载的证据。
+    #[serde(default)]
+    pub loading: bool,
+    /// 独立宿主导航引用，不是AX/DOM节点。只读任务不向模型提供它。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub navigation_target: Option<PanelNavigationTarget>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct PanelNavigationTarget { pub observation_id:String, pub token:String, pub id:String }
+impl PanelNavigationTarget {
+    pub fn valid_shape(&self)->bool { [&self.observation_id,&self.token,&self.id].into_iter().all(|s|opaque_id(s)) }
+    /// 复用既有一次性许可的三段不透明绑定格式；不会登记成文档或节点。
+    pub fn binding(&self)->PanelClickTarget {
+        PanelClickTarget {observation_id:self.observation_id.clone(),document_token:self.token.clone(),node_id:self.id.clone()}
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -304,7 +321,13 @@ impl PageViewport {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct NodeHandle { pub index: usize, pub node_id: String }
+pub struct NodeHandle {
+    pub index: usize,
+    pub node_id: String,
+    /// 当前观察中控件中心是否位于视口内；未知不推断为可见，更不授予输入资格。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub in_viewport: Option<bool>,
+}
 
 pub fn opaque_id(value: &str) -> bool {
     value.len() == 32 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
@@ -313,6 +336,9 @@ pub fn opaque_id(value: &str) -> bool {
 impl PageObservation {
     pub fn valid_shape(&self) -> bool {
         self.url.len() <= 4096 && (self.url.starts_with("http://") || self.url.starts_with("https://"))
+            && self.navigation_target.as_ref().is_none_or(PanelNavigationTarget::valid_shape)
+            && (!self.loading || (self.nodes.is_empty() && self.node_handles.is_empty()
+                && self.document_token.is_none() && self.viewport.is_none() && self.focused_node_index.is_none()))
             && self.viewport.as_ref().is_none_or(PageViewport::valid_shape)
             && !self.url.chars().any(char::is_control) && self.title.chars().count() <= 256
             && !self.title.chars().any(char::is_control)

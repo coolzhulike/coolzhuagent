@@ -1,0 +1,97 @@
+{
+  "runtime_run": {
+    "id": "run-chat-c8896ab2734a1064198e972a8d5353fd5754f27c9b834223",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791201646980-9",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-d50d253cacc8ca015316ec1afc19c700396b3ed632eda88d93c62c1532572828",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791201646987,
+    "started_at": 1791201647014,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791201647014,
+    "finished_at": 1791201684327
+  },
+  "cu_runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791201646980-9-tool-274762c6a28d221a80aebf2cc1734ed3c33ee0ba3b71f04dc010a1cb196307fb",
+      "provider_tool_call_id": "tool-274762c6a28d221a80aebf2cc1734ed3c33ee0ba3b71f04dc010a1cb196307fb",
+      "turn_id": "chat-turn-1791201646980-9",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791201646980-9\u001fbrowser\u001f在当前内置浏览器单击打开慢弹窗，等待实际页面判断结果\u001f||http://127.0.0.1:50764/source.html|\u001f最新实际url为http://127.0.0.1:50764/popup.html|最新页面显示popup-late-073\u001f仅一次click，不输入不滚动不navigate不使用其它工具，不换模型，页面被宿主用户辅助导航替换则立即停止，不重开不补发不重试，不把释放当目标完成",
+      "objective_json": "{\"constraints\":[\"仅一次click，不输入不滚动不navigate不使用其它工具，不换模型，页面被宿主用户辅助导航替换则立即停止，不重开不补发不重试，不把释放当目标完成\"],\"max_actions\":1,\"objective\":\"在当前内置浏览器单击打开慢弹窗，等待实际页面判断结果\",\"success_criteria\":[\"最新实际URL为http://127.0.0.1:50764/popup.html\",\"最新页面显示POPUP-LATE-073\"],\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:50764/source.html\"}}",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 10,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791202262998,
+      "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791201646980-9-tool-274762c6a28d221a80aebf2cc1734ed3c33ee0ba3b71f04dc010a1cb196307fb\",\"provider_tool_call_id\":\"tool-274762c6a28d221a80aebf2cc1734ed3c33ee0ba3b71f04dc010a1cb196307fb\",\"status\":\"blocked\",\"stage\":\"observation\",\"goal_achieved\":false,\"surface\":\"browser\",\"summary\":\"内置浏览器观察不可用或环境已变化\",\"error\":{\"code\":\"native_observation_timeout\",\"message\":\"内置浏览器观察不可用或环境已变化\",\"retryable\":false,\"retry_owner\":\"user\"},\"attempts\":1,\"steps_completed\":1,\"evidence\":[\"native-ax:1:8\",\"native-observation:758d660fa1b7c75e364e63975c874c3f\",\"native-ax:1:8\",\"native-observation:758d660fa1b7c75e364e63975c874c3f\",\"native-input:f52638d60e2c4fab13c9bf0c69103695\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":1,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791202546980}},\"cu_deadline_ms\":1791202262998,\"cu_deadline_established_at_ms\":1791201662998,\"cu_budget_ms\":600000}}",
+      "created_at_ms": 1791201662998,
+      "updated_at_ms": 1791201675737,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1791131217833-chat-turn-1791201646980-9-tool-274762c6a28d221a80aebf2cc1734ed3c33ee0ba3b71f04dc010a1cb196307fb",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-12a54ccbcfbb407c53d5c602a5dcec67",
+      "action_fingerprint": "5faf0c9a1644bcc4",
+      "status": "observation_failed",
+      "error_code": "native_observation_timeout",
+      "before_evidence_ref": "[\"native-ax:1:8\",\"native-observation:758d660fa1b7c75e364e63975c874c3f\"]",
+      "after_evidence_ref": null,
+      "visible_progress": 0,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": null,
+      "goal_verdict": null,
+      "input_release_status": "released",
+      "started_at_ms": 1791201668432,
+      "completed_at_ms": 1791201670710,
+      "native_dispatch_state": "released",
+      "native_ticket_id": "9941dc5aa99f3e7a840088e498ab4bce",
+      "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"4e6dd5f758ae52f426e2eedf7bf17aee\",\"host_id\":\"native-c57709444b7ee38cfa5d9cae94f9a823\",\"process\":{\"instance_id\":\"8066f176f4916646ddaf35740134e85e\",\"boot_id\":\"c57709444b7ee38cfa5d9cae94f9a823\",\"pid\":24940,\"creation_time_filetime\":134356740040774536,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":8}},\"attempt_key\":\"browser:dom-12a54ccbcfbb407c53d5c602a5dcec67:bbf4079dba9df8cf#gen1#cu-session-1791131217833-chat-turn-1791201646980-9-tool-274762c6a28d221a80aebf2cc1734ed3c33ee0ba3b71f04dc010a1cb196307fb:step-0#attempt1\",\"ticket_id\":\"9941dc5aa99f3e7a840088e498ab4bce\",\"observation_id\":\"758d660fa1b7c75e364e63975c874c3f\",\"document_token\":\"39029b7c3343cd02373da4ce12aa2b86\",\"node_id\":\"12a54ccbcfbb407c53d5c602a5dcec67\",\"input_kind\":\"click\"}"
+    }
+  ],
+  "acp_attempts": [
+    {
+      "attempt_id": "0892f805697fa45430d7d577d6a44f32b6837921cd67f1af",
+      "scope_json": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-c8896ab2734a1064198e972a8d5353fd5754f27c9b834223\",\"turn_id\":\"chat-turn-1791201646980-9\",\"attempt_id\":\"0892f805697fa45430d7d577d6a44f32b6837921cd67f1af\",\"owner_epoch\":1,\"generation\":1}",
+      "state": "terminal",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    },
+    {
+      "attempt_id": "bc171351acb65f81664dd9853d710e278179e671ddd301d1",
+      "scope_json": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"lane\":\"internal\",\"run_id\":\"run-chat-c8896ab2734a1064198e972a8d5353fd5754f27c9b834223\",\"turn_id\":\"chat-turn-1791201646980-9\",\"attempt_id\":\"bc171351acb65f81664dd9853d710e278179e671ddd301d1\",\"owner_epoch\":1,\"generation\":1}",
+      "state": "terminal",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "unsettled_acp_count": 0
+}

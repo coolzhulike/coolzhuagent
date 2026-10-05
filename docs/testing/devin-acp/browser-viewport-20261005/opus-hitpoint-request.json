@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读审查，不修改文件、不操作桌面。请读取 review-browser-hitpoint 中 target/devtools 和官方 Chromium 命中实现。候选真实表单 form2 已 click/text/scroll，滚动后候选 in_viewport true2/false1；第4规划是click而非重复输入，但预检 native_observation_failed/not_sent，尚未提交。\n已找到另一个明确接口区别：GetBoxModel 是视口坐标，Input.dispatchMouseEvent 也接收视口坐标；但官方 InspectorDOMAgent::getNodeForLocation 把 x/y 当 document_point，经 DocumentToFrame 后 HitTest。旧代码所有 HitTest 直接使用视口点，滚动后查错位置甚至No node。新最小修复新增 hit_test_point，仅命中查询把视口x/y加同一 LayoutMetrics pageX/Y、有限值及i32边界核查；click/scroll实际派发仍原视口x/y。verify与verify_viewport都接入，保留原backendNode/frame精确核对、复核、预算和不自动补发。固定CDP命中失败新增静态errorcode，其他任意正文不回显。工程编译和pageY>0真实复测正在执行。\n请评估100%缩放下语义及职责是否正确、有没有重复加offset或负偏移问题。pageY>0滚动后checkbox与submit是必须实操标准；非100%缩放另验，不依据未经实测的zoom猜测添加通用拒绝守卫。要求指出剩余局限，不超过500中文字。",
+  "selected_message_ids": [],
+  "attachments": []
+}

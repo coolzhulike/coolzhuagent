@@ -9,6 +9,7 @@ pub(super) enum ReadMethod {
     Accessibility(String),
     BoxModel(i64),
     LayoutMetrics,
+    /// 文档 CSS 坐标，与 Input.dispatchMouseEvent 的视口坐标不同。
     HitTest(i32, i32),
     ResolveEditor(i64),
     EditorState(String),
@@ -90,7 +91,9 @@ pub(super) async fn read(app: &AppHandle, expected: &PanelResource, method: Read
             let callback_sender = sender.clone();
             let callback_app = app_on_ui.clone();
             let handler: ICoreWebView2CallDevToolsProtocolMethodCompletedHandler = bounded_callback::Handler(Box::new(move |status, text| {
-                let result = if status.is_err() { Err("native_observation_failed".into()) }
+                // 固定方法名用于诊断，不回显任意浏览器错误正文或查询参数。
+                let failure = if method == "DOM.getNodeForLocation" { "native_browser_hit_test_failed" } else { "native_observation_failed" };
+                let result = if status.is_err() { Err(failure.into()) }
                 else if super::browser_panel::input_resource(&callback_app).as_ref() != Some(&resource_on_ui)
                     || callback_app.get_webview(&resource_on_ui.label).and_then(|view| view.url().ok())
                         .as_ref().map(|value| value.as_str()) != Some(url.as_str()) {

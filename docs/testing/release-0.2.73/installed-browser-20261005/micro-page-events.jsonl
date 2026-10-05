@@ -1,0 +1,7 @@
+{"page": "source", "event": "pointerdown", "trusted": true, "client_ms": 1791200978333.2002, "buttons": 1, "server_ms": 1791200978336}
+{"page": "source", "event": "mousedown", "trusted": true, "client_ms": 1791200978334, "buttons": 1, "server_ms": 1791200978339}
+{"page": "source", "event": "pointerup", "trusted": true, "client_ms": 1791200978334.5, "buttons": 0, "server_ms": 1791200978341}
+{"page": "source", "event": "mouseup", "trusted": true, "client_ms": 1791200978334.6, "buttons": 0, "server_ms": 1791200978342}
+{"page": "source", "event": "click", "trusted": true, "client_ms": 1791200978334.8, "buttons": 0, "server_ms": 1791200978344}
+{"page": "source", "event": "pagehide", "trusted": true, "client_ms": 1791200978344.6, "buttons": null, "server_ms": 1791200978348}
+{"page": "target", "event": "pageshow", "trusted": true, "client_ms": 1791200978349.5, "buttons": null, "server_ms": 1791200978355}

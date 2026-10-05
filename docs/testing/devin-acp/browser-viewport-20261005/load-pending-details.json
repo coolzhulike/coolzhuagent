@@ -1,0 +1,35 @@
+{
+  "computer_use_runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791196959561-1-tool-64181c1830f875b4a0d3b5d5011c164b28b5c907f521b38331d7645dde73d615",
+      "provider_tool_call_id": "tool-64181c1830f875b4a0d3b5d5011c164b28b5c907f521b38331d7645dde73d615",
+      "turn_id": "chat-turn-1791196959561-1",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791196959561-1\u001fbrowser\u001f在当前右栏原生浏览器点击进入完成页，依据本轮实际页面结果判断，不用其它工具\u001f||http://127.0.0.1:53227/slow.html|\u001f最新实际页面url为http://127.0.0.1:53227/done.html|最新页面显示done-20261005\u001f只操作当前右栏原生浏览器，仅click一次，不navigate不输入不滚动，当前页面尚未加载完成或目标不新鲜时不得强行输入，失败取消或结果未知立即停止不重试不补发，动作释放不等于达成目标，不换模型",
+      "objective_json": "{\"constraints\":[\"只操作当前右栏原生浏览器，仅click一次，不navigate不输入不滚动，当前页面尚未加载完成或目标不新鲜时不得强行输入，失败取消或结果未知立即停止不重试不补发，动作释放不等于达成目标，不换模型\"],\"max_actions\":1,\"objective\":\"在当前右栏原生浏览器点击进入完成页，依据本轮实际页面结果判断，不用其它工具\",\"success_criteria\":[\"最新实际页面URL为http://127.0.0.1:53227/done.html\",\"最新页面显示DONE-20261005\"],\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:53227/slow.html\"}}",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 4,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791197578283,
+      "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791196959561-1-tool-64181c1830f875b4a0d3b5d5011c164b28b5c907f521b38331d7645dde73d615\",\"provider_tool_call_id\":\"tool-64181c1830f875b4a0d3b5d5011c164b28b5c907f521b38331d7645dde73d615\",\"status\":\"blocked\",\"stage\":\"observation\",\"goal_achieved\":false,\"surface\":\"browser\",\"summary\":\"当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入\",\"error\":{\"code\":\"native_browser_panel_unavailable\",\"message\":\"当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入\",\"retryable\":false,\"retry_owner\":\"user\"},\"attempts\":0,\"steps_completed\":0,\"evidence\":[],\"supervisor\":{\"circuit_open\":false,\"action_count\":0,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791197859561}},\"cu_deadline_ms\":1791197578283,\"cu_deadline_established_at_ms\":1791196978283,\"cu_budget_ms\":600000}}",
+      "created_at_ms": 1791196978283,
+      "updated_at_ms": 1791196978287,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null
+    }
+  ],
+  "computer_use_steps": [],
+  "computer_use_step_details": [],
+  "computer_use_planner_diagnostics": []
+}

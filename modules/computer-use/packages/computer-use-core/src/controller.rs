@@ -480,6 +480,7 @@ where
         let mut steps_completed = 0usize;
         let mut evidence = Vec::new();
         let mut stale_recovered = false;
+        let mut last_verification;
 
         self.events.state_changed(ComputerUseRunState::Observing);
         let remaining = std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
@@ -588,6 +589,7 @@ where
                         &run_facts,
                     );
                 }
+                last_verification = Some(verification.summary);
             }
             Err(error) => {
                 return self.terminal(
@@ -606,7 +608,7 @@ where
 
         loop {
             if let Err(error) = guard.before_planning(self.clock.now_ms()) {
-                return self.terminal(
+                let mut result = self.terminal(
                     &context,
                     surface,
                     ComputerUseStage::Supervisor,
@@ -617,6 +619,14 @@ where
                     guard.snapshot(),
                     &run_facts,
                 );
+                // 保留最后已取得的验收事实，不能因动作预算耗尽把“部分满足”变成未知的零满足。
+                // 这是过去一次观察的报告，不是新的成功证明，也不触发额外模型或输入请求。
+                if let Some(summary) = last_verification {
+                    result.summary = serde_json::json!({"terminal_reason":result.summary,
+                        "last_verification":serde_json::from_str::<JsonValue>(&summary).unwrap_or(JsonValue::String(summary)),
+                        "verification_is_last_observation":true}).to_string();
+                }
+                return result;
             }
             self.events.state_changed(ComputerUseRunState::Planning);
             let remaining =
@@ -891,6 +901,7 @@ where
                 );
             }
             observation = next_observation;
+            last_verification = Some(verification.summary);
         }
     }
 
@@ -1376,6 +1387,9 @@ mod tests {
             assert_eq!(controller.adapter().action_count.load(Ordering::SeqCst), 1);
             assert!(controller.adapter().verifications.lock().unwrap().is_empty());
             assert_eq!(controller.planner().actions.lock().unwrap().len(), 1);
+            let summary: JsonValue = serde_json::from_str(&result.summary).unwrap();
+            assert_eq!(summary["last_verification"], "changed but incomplete");
+            assert_eq!(summary["verification_is_last_observation"], true);
         }
     }
 

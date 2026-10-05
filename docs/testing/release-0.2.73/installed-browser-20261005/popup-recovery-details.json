@@ -1,0 +1,98 @@
+{
+  "computer_use_runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791201720220-10-tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9",
+      "provider_tool_call_id": "tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9",
+      "turn_id": "chat-turn-1791201720220-10",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791201720220-10\u001fbrowser\u001f在当前内置浏览器显式导航目标页单击确认新页面\u001f||http://127.0.0.1:50764/explicit.html|\u001f最新实际url为http://127.0.0.1:50764/explicit.html|最新页面显示explicit-passed-073\u001f仅一次click，不输入不滚动不navigate不使用其它工具，不换模型，不操作慢弹窗，失败立即停止不重试不补发，不把释放当目标完成",
+      "objective_json": "{\"constraints\":[\"仅一次click，不输入不滚动不navigate不使用其它工具，不换模型，不操作慢弹窗，失败立即停止不重试不补发，不把释放当目标完成\"],\"max_actions\":1,\"objective\":\"在当前内置浏览器显式导航目标页单击确认新页面\",\"success_criteria\":[\"最新实际URL为http://127.0.0.1:50764/explicit.html\",\"最新页面显示EXPLICIT-PASSED-073\"],\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:50764/explicit.html\"}}",
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791202335537,
+      "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791201720220-10-tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9\",\"provider_tool_call_id\":\"tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9\",\"status\":\"succeeded\",\"stage\":\"terminal\",\"goal_achieved\":true,\"surface\":\"browser\",\"summary\":\"{\\\"criteria_count\\\":2,\\\"criteria_met\\\":2,\\\"fresh_observation_id\\\":\\\"2699db8c4792063526d5282cef73993f\\\",\\\"freshness_confirmed\\\":true,\\\"grounding\\\":[{\\\"grounded\\\":true,\\\"index\\\":0,\\\"model_met\\\":true,\\\"node_indices\\\":[],\\\"reason\\\":\\\"url\\\",\\\"selected_nodes\\\":[],\\\"span_nodes\\\":[]},{\\\"grounded\\\":true,\\\"index\\\":1,\\\"model_met\\\":true,\\\"node_indices\\\":[6],\\\"reason\\\":\\\"node_text\\\",\\\"selected_nodes\\\":[{\\\"index\\\":6,\\\"name_chars\\\":19,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":6,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":19,\\\"role\\\":\\\"StaticText\\\"}]}],\\\"input_supported\\\":true,\\\"kind\\\":\\\"native_browser_interaction_observation\\\",\\\"notice\\\":\\\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\\\",\\\"observation_generation\\\":2,\\\"observation_id\\\":\\\"4b03624cb21dc69dd739f9a27d41703c\\\",\\\"observation_origin\\\":\\\"requested_page\\\",\\\"observed_page\\\":{\\\"excerpt_truncated\\\":false,\\\"node_count\\\":10,\\\"nodes\\\":[{\\\"index\\\":6,\\\"name\\\":\\\"EXPLICIT-PASSED-073\\\",\\\"role\\\":\\\"StaticText\\\"}],\\\"title\\\":\\\"显式导航目标\\\",\\\"truncated\\\":false,\\\"url\\\":\\\"http://127.0.0.1:50764/explicit.html\\\",\\\"viewport\\\":{\\\"height\\\":578.0,\\\"page_x\\\":0.0,\\\"page_y\\\":0.0,\\\"width\\\":446.0}},\\\"requested_url\\\":\\\"http://127.0.0.1:50764/explicit.html\\\",\\\"ungrounded_positive_count\\\":0}\",\"attempts\":1,\"steps_completed\":1,\"evidence\":[\"native-ax:1:9\",\"native-observation:12f4e909680c90e8c385575e23d62f16\",\"native-ax:1:9\",\"native-observation:12f4e909680c90e8c385575e23d62f16\",\"native-input:b705f9464467916ae98c3747ac6b706c\",\"native-ax:1:9\",\"native-observation:4b03624cb21dc69dd739f9a27d41703c\",\"native-ax:1:9\",\"native-observation:4b03624cb21dc69dd739f9a27d41703c\",\"native-ax:1:9\",\"native-observation:2699db8c4792063526d5282cef73993f\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":1,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791202620220}},\"cu_deadline_ms\":1791202335537,\"cu_deadline_established_at_ms\":1791201735537,\"cu_budget_ms\":600000}}",
+      "created_at_ms": 1791201735537,
+      "updated_at_ms": 1791201751580,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null
+    }
+  ],
+  "computer_use_steps": [
+    {
+      "run_id": "cu-session-1791131217833-chat-turn-1791201720220-10-tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-60b0a887828beae2600acd9ad8257936",
+      "action_fingerprint": "9c349163e7b7e446",
+      "status": "verified",
+      "error_code": null,
+      "before_evidence_ref": "[\"native-ax:1:9\",\"native-observation:12f4e909680c90e8c385575e23d62f16\"]",
+      "after_evidence_ref": "[\"native-ax:1:9\",\"native-observation:4b03624cb21dc69dd739f9a27d41703c\",\"native-ax:1:9\",\"native-observation:2699db8c4792063526d5282cef73993f\"]",
+      "visible_progress": 1,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "input_release_status": "released",
+      "started_at_ms": 1791201743587,
+      "completed_at_ms": 1791201745493,
+      "native_dispatch_state": "released",
+      "native_ticket_id": "9e11712fa9aa723f5f53cf7869d2872d",
+      "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"fa579ae4383b954057238daa40f4a01e\",\"host_id\":\"native-c57709444b7ee38cfa5d9cae94f9a823\",\"process\":{\"instance_id\":\"8066f176f4916646ddaf35740134e85e\",\"boot_id\":\"c57709444b7ee38cfa5d9cae94f9a823\",\"pid\":24940,\"creation_time_filetime\":134356740040774536,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":9}},\"attempt_key\":\"browser:dom-60b0a887828beae2600acd9ad8257936:4659887505cf6d9e#gen1#cu-session-1791131217833-chat-turn-1791201720220-10-tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9:step-0#attempt1\",\"ticket_id\":\"9e11712fa9aa723f5f53cf7869d2872d\",\"observation_id\":\"12f4e909680c90e8c385575e23d62f16\",\"document_token\":\"f58a6d725c1203681cf0b2d3455bf782\",\"node_id\":\"60b0a887828beae2600acd9ad8257936\",\"input_kind\":\"click\"}"
+    }
+  ],
+  "computer_use_step_details": [
+    {
+      "run_id": "cu-session-1791131217833-chat-turn-1791201720220-10-tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9",
+      "step_index": 0,
+      "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-60b0a887828beae2600acd9ad8257936\"}"
+    }
+  ],
+  "computer_use_planner_diagnostics": [
+    {
+      "id": 304,
+      "call_id": "cu-session-1791131217833-chat-turn-1791201720220-10-tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9",
+      "turn_id": "chat-turn-1791201720220-10",
+      "room_id": "room-1791131523339",
+      "session_id": "session-1791131217833",
+      "request_kind": "computer_use_planning",
+      "observation_generation": 1,
+      "model": "swe-2-medium",
+      "provider_response_id": null,
+      "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"dom-60b0a887828beae2600acd9ad8257936\"},\"done\":false,\"observation_facts\":{\"candidate_count\":2,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":10,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false}}",
+      "error_code": null,
+      "started_at_ms": 1791201735635,
+      "completed_at_ms": 1791201743584
+    },
+    {
+      "id": 305,
+      "call_id": "cu-session-1791131217833-chat-turn-1791201720220-10-tool-6b3247bf573328387a6aedf2cc5cc320e5161cc7b3046216c6e501fc4e2056a9",
+      "turn_id": "chat-turn-1791201720220-10",
+      "room_id": "room-1791131523339",
+      "session_id": "session-1791131217833",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 2,
+      "model": "swe-2-medium",
+      "provider_response_id": null,
+      "response_json": "{\"bytes\":180,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":36,\"evidence_chars\":36,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":0,\"node_indices_type\":\"array\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0},{\"evidence_blank\":false,\"evidence_bytes\":19,\"evidence_chars\":19,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":1,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":1,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":2,\"criteria_type\":\"array\",\"host_verification\":{\"criteria_count\":2,\"criteria_met\":2,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[],\"reason\":\"url\",\"selected_nodes\":[],\"span_nodes\":[]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[6],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":6,\"name_chars\":19,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":6,\"inline_has_static_text\":false,\"name_chars\":19,\"role\":\"StaticText\"}]}],\"ungrounded_positive_count\":0},\"observation_facts\":{\"candidate_count\":2,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":10,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false},\"progress\":null,\"progress_type\":\"missing\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+      "error_code": null,
+      "started_at_ms": 1791201746255,
+      "completed_at_ms": 1791201751573
+    }
+  ]
+}

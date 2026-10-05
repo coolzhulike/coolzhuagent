@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-10-05T20:11:52.7983281+08:00",
+  "test_web_exited": true,
+  "gui_url_restored": true,
+  "test_web_pid": 2488,
+  "input_safety_state_preserved": true,
+  "owned_page_services": [
+    {
+      "session_id": 16743,
+      "exit_code": 1,
+      "method": "自有执行会话Ctrl+C正常终止"
+    },
+    {
+      "session_id": 59384,
+      "exit_code": 1,
+      "method": "自有执行会话Ctrl+C正常终止"
+    },
+    {
+      "session_id": 64246,
+      "exit_code": 1,
+      "method": "自有执行会话Ctrl+C正常终止"
+    },
+    {
+      "session_id": 60942,
+      "exit_code": 1,
+      "method": "自有执行会话Ctrl+C正常终止"
+    }
+  ]
+}

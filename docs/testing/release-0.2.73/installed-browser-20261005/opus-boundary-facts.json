@@ -1,0 +1,35 @@
+{
+  "runtime_run": {
+    "id": "run-chat-dc91de6d0b456488108a10740d8aa609561d6096d888f6c5",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791122188340",
+    "chat_room_id": "room-1791125819661",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791201107198-5",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-7aa9477c49f3f61be88cfb45cc08b9f6b676380810086e75d45dfe774c9722b2",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791201107200,
+    "started_at": 1791201107213,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791201107213,
+    "finished_at": 1791201181857
+  },
+  "cu_runs": [],
+  "steps": [],
+  "acp_attempts": [
+    {
+      "attempt_id": "2fd292e975ee371256c6767d9ade7917c0f943ff87ab1d6d",
+      "scope_json": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791125819661\",\"agent_id\":\"session-1791122188340\",\"run_id\":\"run-chat-dc91de6d0b456488108a10740d8aa609561d6096d888f6c5\",\"turn_id\":\"chat-turn-1791201107198-5\",\"attempt_id\":\"2fd292e975ee371256c6767d9ade7917c0f943ff87ab1d6d\",\"owner_epoch\":1,\"generation\":1}",
+      "state": "terminal",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"claude-opus-5-5-high\",\"effective\":\"claude-opus-5-5-high\",\"resolved_model\":null}"
+    }
+  ],
+  "unsettled_acp_count": 1
+}

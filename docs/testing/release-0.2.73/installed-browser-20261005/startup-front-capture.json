@@ -1,0 +1,50 @@
+{
+  "captures": [
+    {
+      "file": "startup-front-0.jpg",
+      "captured_at_ms": 1791202863352,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 100599990,
+        "title": "COOLZHU"
+      }
+    },
+    {
+      "file": "startup-front-1.jpg",
+      "captured_at_ms": 1791202864309,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 100599990,
+        "title": "COOLZHU"
+      }
+    },
+    {
+      "file": "startup-front-2.jpg",
+      "captured_at_ms": 1791202865046,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 100599990,
+        "title": "COOLZHU"
+      }
+    },
+    {
+      "file": "startup-front-3.jpg",
+      "captured_at_ms": 1791202865811,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 100599990,
+        "title": "COOLZHU"
+      }
+    },
+    {
+      "file": "startup-front-4.jpg",
+      "captured_at_ms": 1791202866551,
+      "window": {
+        "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "id": 100599990,
+        "title": "COOLZHU"
+      }
+    }
+  ],
+  "method": "普通正式launcher启动，选中返回的COOLZHU独立窗口并激活；纯观察采帧，未改时长或素材"
+}

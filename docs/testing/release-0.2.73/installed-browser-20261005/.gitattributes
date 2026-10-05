@@ -1,0 +1,2 @@
+# 实操原始文件按字节归档，保持摘要在提交及检出后不变。
+* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
