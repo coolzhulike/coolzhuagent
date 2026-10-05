@@ -86,3 +86,12 @@ Opus 第十三/十四轮实际只读工具调用为 27（read 14/grep 13）与 1
 优先后续：将本轮收敛代码/证据提交 PR #78 草稿，生成 0.2.72 候选包；安装版先复跑自然链接、popup、SPA 地址同步与两笔新增图形，再补停止/关闭/手动替换恰 down/up 内的竞争、显式导航覆盖 popup、同文档 fragment/历史和多屏缩放。完整人物保留未通过，当前证据未发现尚缺 drag 执行接口；不通过追加画图引擎或放松验收强行闭环。新包总回归和其余侧栏/市场/开机动画收尾仍待完成，微信保持不动。
 
 V 原图：[开始](V-paint-before.jpg)、[结束](V-paint-after-failed.jpg)；[实际回复](V-reply.md)、[聊天室终态](V-visible-chat-settled.jpg)。日常恢复实拍：[截图](daily-restored.jpg)。
+
+
+## 0.2.72 候选交付更新
+
+远端 PR #78 已在此前合并，本轮继续推送的增量改为[草稿 PR #79](https://github.com/coolzhulike/coolzhuagent/pull/79)，当前无冲突，不转正式评审。代码提交 f3bb374 的[远端检查](https://github.com/coolzhulike/coolzhuagent/actions/runs/37271308515)已成功，后续报告提交不更改构建源码。
+
+0.2.72 正常完整 release 构建成功，MSI 摘要 c0c75f28b610574906f3fe05f1ca50258428a04073b03794ace2618b1792aa0c，已复制至 Desktop/coolzhuagent/dist 并核对。一次正常静默安装返回1603，日志明确 Windows1730：移除旧版需要 Administrator。注册和磁盘仍0.2.71；安装过程停止了原服务，回滚后已正常重新启动并核验自检/健康0错误，没有留下失效控制台。
+
+具体改动、精确版本身份、已过/未过矩阵及其它模型测试记录要求见 [候选改动与测试交接报告](../../release-0.2.72/change-report-and-test-handoff.md)。新包尚未安装，不声称安装版回归已过；后续真实测试仍精确使用 SWE-2，不用日常 Qwen 会话替代。

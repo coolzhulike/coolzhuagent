@@ -1,5 +1,10 @@
 [
   {
+    "file": ".gitattributes",
+    "sha256": "a4377001e942086c6fcf840e1923c89579ed6565bc60559f0e3ca761749f4d0c",
+    "bytes": 177
+  },
+  {
     "file": "baseline-validation-processes.json",
     "sha256": "952ba5a64c0a1018f57da16b2f86c0f1bf44ddd1e1e8949c8677f6b1806955d9",
     "bytes": 263
@@ -66,13 +71,18 @@
   },
   {
     "file": "cleanup-receipt.json",
-    "sha256": "1da64221356a9b05e1fe846ee0ae11baad84edf7695cc09288d01e4e073d6bfd",
-    "bytes": 719
+    "sha256": "03257e78b4e26ec250beb7065ee6ff7e99f6370aed531ee92fc58bc32b3edc03",
+    "bytes": 1106
   },
   {
     "file": "daily-health.json",
     "sha256": "d43602e3ed826ffe2a4018b08c4ce79ea17029a6e7ef32d5a1021b93616394b6",
     "bytes": 14283
+  },
+  {
+    "file": "daily-restored-after-install-rollback.jpg",
+    "sha256": "d27733e351732ea3ed4cd8cbde34111cc1a8c07b231c3382b4955fdbd5934f80",
+    "bytes": 196005
   },
   {
     "file": "daily-restored.jpg",
@@ -441,8 +451,8 @@
   },
   {
     "file": "README.md",
-    "sha256": "68b5353d94b010d67428e9a29a0a2d02c9e04cc9248e2854237453731c991b0b",
-    "bytes": 14951
+    "sha256": "2429ffe384fb2bd4e379f4d390bb8f0309264921b7e1ec203f75319940c82af2",
+    "bytes": 16075
   },
   {
     "file": "review-build-manifest.json",
