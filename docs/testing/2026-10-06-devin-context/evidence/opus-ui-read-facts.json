@@ -1,0 +1,56 @@
+{
+  "case": "opus-ui-read",
+  "run_id": "run-chat-569726bf43fe2d3db5ee851ad8dd25c8ff736a09d33a2da2",
+  "source_message_id": "msg-1791217867387-user",
+  "primary_session_id": "session-1791131217833",
+  "agent_id": "session-1791122188340",
+  "remote_session_id": "fair-amaryllis",
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 78,
+      "prompt_bytes": 1826
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791122188340",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "257184fb12da38cbac5f0a975bcbd6dd6178ac13cf6935223d5541a96781883c",
+          "id": "msg-1791217867532-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "admitted_targets": [
+    {
+      "agent_ids": [
+        "session-1791122188340"
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      }
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "status": "completed"
+    }
+  ],
+  "reply": "第一行是：`# coolzhu agent`\n\n本轮调用了 1 次宿主 `read_file`（读取前 3 行），返回状态为 ok。",
+  "passed": true
+}

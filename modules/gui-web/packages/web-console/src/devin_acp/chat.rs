@@ -1,4 +1,4 @@
-//! 聊天室真实文本会话。复用宿主上下文与消息流，不开启文件、命令、MCP 或子 Agent。
+//! 聊天室真实会话。续接远端上下文，复用宿主消息流与显式选择的宿主工具。
 use super::{
     journal::{Binding, Journal},
     process::ManagedProcess,
@@ -360,17 +360,10 @@ pub(crate) async fn start(
         &serde_json::to_vec(&(parent.workspace_id.as_str(), room, &agent.id, reset)).unwrap(),
     );
     let instructions = if review {
-        format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。若回执为 running，必须用 computer_use_wait 等待同一 job_id 直到最终回执；等待不算重复提交，不重新调用 perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子 Agent。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", crate::active_workspace_path().display())
+        format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。若回执为 running，必须用 computer_use_wait 等待同一 job_id 直到最终回执；等待不算重复提交，不重新调用 perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子 Agent。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", parent.workspace_id.as_str())
     } else {
         "你在 coolzhuagent 聊天室中进行纯文本会话。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。".into()
     };
-    let prompt = format!("{}\n\n宿主系统上下文：\n{}\n\n本轮宿主消息快照（历史仅作参考；只回答最后一条用户消息）：\n{}", instructions,
-        assembly.system_prompt, serde_json::to_string(&assembly.messages).map_err(|_| error("上下文编码失败。"))?);
-    if prompt.len() > 768 * 1024 {
-        return Err(error(
-            "本轮文本上下文超过 ACP 消息限额，请缩短输入或重置上下文。",
-        ));
-    }
     if cancellation.is_requested() {
         return Err(error("本轮已停止，未提交 Devin 提示。"));
     }
@@ -392,13 +385,21 @@ pub(crate) async fn start(
         remote_session_id: None,
         cwd: cwd.to_string_lossy().into(),
         cli_identity: CLI_VERSION.into(),
-        // 宿主已组装完整历史：每轮使用新远端会话，避免 load 历史和全量快照重复。
-        context_digest: format!("host-snapshot-v2:{reset:?}:{run}"),
+        // 同一上下文和精确模型保持远端会话；重置/切换模型时明确换域，不重复注入历史。
+        context_digest: format!("host-incremental-v3:{reset:?}:{}", agent.model),
     };
     journal
         .rotate_idle_context(&scope, &binding)
         .map_err(error)?;
     let claim = journal.claim(scope, &binding).map_err(error)?;
+    let context = match super::context::prepare(&journal, &claim, assembly, &instructions) {
+        Ok(context) => context,
+        Err(reason) => {
+            journal.transition(&claim, &["prepared"], "not_sent", None, false).map_err(error)?;
+            journal.record_drained(&claim).map_err(error)?;
+            return Err(error(reason));
+        }
+    };
     let remaining = parent
         .root_budget
         .as_ref()
@@ -420,7 +421,7 @@ pub(crate) async fn start(
             &model,
             journal.clone(),
             claim.clone(),
-            &prompt,
+            &context,
             deadline,
             token,
             &tx,
@@ -449,7 +450,7 @@ async fn execute(
     model: &str,
     journal: Journal,
     claim: ExecutionScope,
-    prompt: &str,
+    context: &super::context::PreparedContext,
     deadline: tokio::time::Instant,
     cancellation: Arc<ChatTurnCancellation>,
     tx: &mpsc::Sender<Item>,
@@ -492,9 +493,10 @@ async fn execute(
         };
         // 配置阶段上限与生成总时限分开，避免每轮只剩 30 秒。
         session.set_deadline(deadline);
+        context.record(&journal, &claim)?;
         let consumer_cancellation = cancellation.clone();
         let result = session
-            .prompt(prompt, cancellation, Duration::from_secs(5), |event| {
+            .prompt(&context.prompt, cancellation, Duration::from_secs(5), |event| {
                 publish_to_consumer(event, tx, review, &consumer_cancellation)
             })
             .await

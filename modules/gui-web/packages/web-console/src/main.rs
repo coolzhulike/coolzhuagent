@@ -18807,6 +18807,10 @@ async fn run_prepared_chat_dispatch(
         &result.targets,
         messages.clone(),
     )?;
+    // 宿主失败提示不是远端自己的输出，下一轮仍须作为新增历史回送。
+    if !execution_failed {
+        devin_acp::context::record_replies(parent.as_ref(), &result.chat_room_id, &auto_handoff_candidates);
+    }
     let auto_handoffs =
         process_auto_handoff_candidates(&result.chat_room_id, &auto_handoff_candidates)?;
     for handoff in auto_handoffs {
@@ -20260,6 +20264,9 @@ async fn api_chat_send_stream(
             yield Ok(sse_json_event("error", &ChatStreamError { message }));
             terminal_status = ChatTurnStatus::Failed;
             break 'chat_turn;
+        }
+        if terminal_status == ChatTurnStatus::Completed {
+            devin_acp::context::record_replies(parent.as_ref(), &result.chat_room_id, &auto_handoff_candidates);
         }
         if cancellation.is_requested() {
             terminal_status = ChatTurnStatus::Interrupted;

@@ -1,0 +1,34 @@
+{
+  "case": "restart",
+  "run_id": "run-chat-4671e05ea7b5ce9372398a7b3a4d6736f0455f85abefd968",
+  "elapsed": 12.7,
+  "reply": "口令：fff346189bd5963a\n暗号：青玉竹叶",
+  "remote_session_id": "fifth-motorist",
+  "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+  "failed": null,
+  "notes": [
+    "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+    "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 85,
+      "prompt_bytes": 1701
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    }
+  ],
+  "passed": true
+}

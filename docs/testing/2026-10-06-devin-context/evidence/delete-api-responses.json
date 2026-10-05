@@ -1,0 +1,26 @@
+[
+  {
+    "report": {
+      "target_kind": "chat-room-message",
+      "target_id": "msg-1791216393352-user",
+      "target_label": "room-1791131523339",
+      "deleted_messages": 1,
+      "deleted_beads": 0,
+      "deleted_attachments": 0,
+      "deleted_rooms": 0,
+      "deleted_sessions": 0
+    }
+  },
+  {
+    "report": {
+      "target_kind": "chat-room-message",
+      "target_id": "msg-1791216393500-0",
+      "target_label": "room-1791131523339",
+      "deleted_messages": 1,
+      "deleted_beads": 0,
+      "deleted_attachments": 0,
+      "deleted_rooms": 0,
+      "deleted_sessions": 0
+    }
+  }
+]

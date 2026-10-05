@@ -426,7 +426,9 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
                         None,
                     )
                 })
-                .await?
+                .await.map_err(|reason| invalid(&format!(
+                    "Devin 远端会话恢复失败：{reason}。未创建替代会话、未重发本轮；请核对原登录账号，必要时在设置中重置上下文。"
+                )))?
         } else {
             transport
                 .configure("session/new", params, deadline, |frame| {

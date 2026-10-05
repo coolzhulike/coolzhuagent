@@ -67,7 +67,29 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
         parent.host_model_snapshots = Arc::new(snapshots);
     }
     crate::chat_insights::record_source_messages(&db_path, &run_id, &result.messages).map_err(crate::sqlite_api_error)?;
+    crate::append_runtime_run_event(&db_path, &run_id, "chat.target_agents",
+        serde_json::json!({"agent_ids":result.targets.iter().map(|agent| &agent.id).collect::<Vec<_>>()}))
+        .map_err(crate::sqlite_api_error)?;
     Ok(AcceptedChatRun { turn_id, run_id, claim_token, db_path, cancellation, root_budget, parent, guard })
+}
+
+/// 主会话与发送目标是不同职责；目标只能来自本轮接纳记录，不在工具调用时补造。
+pub(crate) fn target_is_admitted_on(connection: &rusqlite::Connection, run_id: &str, agent_id: &str)
+    -> rusqlite::Result<bool> {
+    let (count, encoded): (i64, Option<String>) = connection.query_row(
+        "SELECT count(*),max(payload_json) FROM runtime_run_events WHERE run_id=?1 AND event_type='chat.target_agents'",
+        [run_id], |row| Ok((row.get(0)?, row.get(1)?)))?;
+    let selected = match (count, encoded) {
+        // 兼容旧接纳：没有发送目标记录时只承认真实主会话，不能扩到其它 Agent。
+        (0, _) => connection.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND session_id=?2)",
+            rusqlite::params![run_id,agent_id], |row| row.get::<_, bool>(0))?,
+        (1, Some(encoded)) => serde_json::from_str::<serde_json::Value>(&encoded).ok()
+            .and_then(|value| value["agent_ids"].as_array().cloned())
+            .is_some_and(|ids| ids.iter().any(|id| id.as_str() == Some(agent_id))),
+        _ => false,
+    };
+    Ok(selected && connection.query_row("SELECT EXISTS(SELECT 1 FROM sessions WHERE id=?1)",
+        [agent_id], |row| row.get::<_, bool>(0))?)
 }
 
 pub(crate) async fn run_nonstream(result: PreparedChatDispatch, force_relay: bool)

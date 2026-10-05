@@ -191,7 +191,6 @@ impl ToolBridge {
         if !scope.accepts(&scope)
             || parent.workspace_id.as_str() != scope.workspace_id
             || parent.room_id.as_deref() != Some(scope.room_id.as_str())
-            || parent.session_id.as_deref() != Some(scope.agent_id.as_str())
             || parent.parent_run_id.as_deref() != Some(scope.run_id.as_str())
             || parent.public_turn_id.as_deref() != Some(scope.turn_id.as_str())
             || workspace_identity(&root) != scope.workspace_id
@@ -205,6 +204,11 @@ impl ToolBridge {
         }
         validate_frozen_parent_relations(journal.path(), &parent)
             .map_err(|_| "ACP 父运行不可执行。")?;
+        let connection = journal.connection()?;
+        if !chat_run_admission::target_is_admitted_on(&connection, &scope.run_id, &scope.agent_id)
+            .map_err(|_| "ACP 本轮发送目标记录不可用。")? {
+            return Err("ACP 当前模型不是本轮已接纳的发送对象。".into());
+        }
         let parent_claim = parent_claim(journal.path(), &scope.run_id)?;
         let permission = llm_tool_permission_for_room(Some(&scope.room_id));
         let definitions = llm_tool_definitions_for_session(&scope.agent_id, Some(&scope.room_id))
@@ -799,6 +803,26 @@ mod tests {
         });
         (bridge, journal, scope)
     }
+    #[test]
+    fn admitted_target_is_distinct_from_primary_and_cannot_be_added_by_another_run() {
+        let _guard = crate::tests::config_test_guard();
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("sessions.sqlite3");
+        let _env = Environment::install(dir.path(), &db);
+        let (_bridge, _, _) = fixture(dir.path(), &db);
+        let connection = open_session_connection(&db).unwrap();
+        connection.execute("INSERT INTO sessions(id,name,provider,model,api_key_ref,created_at,updated_at) VALUES('other-agent','target','devin','actual','',1,1)", []).unwrap();
+        assert!(chat_run_admission::target_is_admitted_on(&connection, "bridge-run", "bridge-agent").unwrap());
+        assert!(!chat_run_admission::target_is_admitted_on(&connection, "bridge-run", "other-agent").unwrap());
+        append_runtime_run_event(&db, "bridge-run", "chat.target_agents", json!({"agent_ids":["other-agent","missing-agent"]})).unwrap();
+        assert!(chat_run_admission::target_is_admitted_on(&connection, "bridge-run", "other-agent").unwrap());
+        assert!(!chat_run_admission::target_is_admitted_on(&connection, "bridge-run", "bridge-agent").unwrap());
+        assert!(!chat_run_admission::target_is_admitted_on(&connection, "bridge-run", "missing-agent").unwrap());
+        assert!(!chat_run_admission::target_is_admitted_on(&connection, "other-run", "other-agent").unwrap());
+        append_runtime_run_event(&db, "bridge-run", "chat.target_agents", json!({"agent_ids":["bridge-agent"]})).unwrap();
+        assert!(!chat_run_admission::target_is_admitted_on(&connection, "bridge-run", "other-agent").unwrap());
+    }
+
     #[tokio::test]
     async fn streamable_http_returns_single_real_tool_result_with_matching_request_id() {
         let _guard = crate::tests::config_test_guard();

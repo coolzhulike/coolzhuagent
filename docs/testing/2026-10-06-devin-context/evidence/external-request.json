@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "新的纯文本验收，不调用工具、不执行旧任务。刚才同一聊天室另一个发送对象回复的外部上下文标记是什么？只回复标记。",
+  "selected_message_ids": [],
+  "attachments": []
+}
