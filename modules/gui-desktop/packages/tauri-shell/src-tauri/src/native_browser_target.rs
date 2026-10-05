@@ -41,7 +41,7 @@ fn current_node(tree: &Value, document: &DocumentIdentity, node: &NodeBinding) -
     Ok(())
 }
 
-fn point(box_model: &Value, metrics: &Value) -> Result<(i32, i32), String> {
+pub(super) fn point(box_model: &Value, metrics: &Value) -> Result<(i32, i32), String> {
     let quad = box_model.pointer("/model/content").and_then(Value::as_array)
         .filter(|quad| quad.len() == 8).ok_or("native_browser_target_geometry_invalid")?;
     let coordinates = quad.iter().map(|value| value.as_f64().filter(|value| value.is_finite()))
@@ -49,19 +49,19 @@ fn point(box_model: &Value, metrics: &Value) -> Result<(i32, i32), String> {
     let viewport = metrics.get("cssVisualViewport").ok_or("native_browser_target_geometry_invalid")?;
     let number = |key| viewport.get(key).and_then(Value::as_f64).filter(|value| value.is_finite())
         .ok_or("native_browser_target_geometry_invalid");
-    let offset_x = number("pageX")?;
-    let offset_y = number("pageY")?;
     let width = number("clientWidth")?;
     let height = number("clientHeight")?;
     if width <= 0.0 || height <= 0.0 || width > 32768.0 || height > 32768.0 {
         return Err("native_browser_target_geometry_invalid".into());
     }
-    let x = (coordinates[0] + coordinates[2] + coordinates[4] + coordinates[6]) / 4.0 - offset_x;
-    let y = (coordinates[1] + coordinates[3] + coordinates[5] + coordinates[7]) / 4.0 - offset_y;
-    let min_x = coordinates.iter().step_by(2).copied().fold(f64::INFINITY, f64::min) - offset_x;
-    let max_x = coordinates.iter().step_by(2).copied().fold(f64::NEG_INFINITY, f64::max) - offset_x;
-    let min_y = coordinates.iter().skip(1).step_by(2).copied().fold(f64::INFINITY, f64::min) - offset_y;
-    let max_y = coordinates.iter().skip(1).step_by(2).copied().fold(f64::NEG_INFINITY, f64::max) - offset_y;
+    // Chromium GetBoxModel 已通过 FrameQuadToViewport 返回视口坐标。
+    // pageX/pageY 是文档滚动偏移，再减一次会使滚动后的控件产生错误位置。
+    let x = (coordinates[0] + coordinates[2] + coordinates[4] + coordinates[6]) / 4.0;
+    let y = (coordinates[1] + coordinates[3] + coordinates[5] + coordinates[7]) / 4.0;
+    let min_x = coordinates.iter().step_by(2).copied().fold(f64::INFINITY, f64::min);
+    let max_x = coordinates.iter().step_by(2).copied().fold(f64::NEG_INFINITY, f64::max);
+    let min_y = coordinates.iter().skip(1).step_by(2).copied().fold(f64::INFINITY, f64::min);
+    let max_y = coordinates.iter().skip(1).step_by(2).copied().fold(f64::NEG_INFINITY, f64::max);
     let x = x.round();
     let y = y.round();
     // 至少留1CSS像素内边距；不自动滚动，也不将出界坐标钳制成另一个目标。
@@ -71,6 +71,21 @@ fn point(box_model: &Value, metrics: &Value) -> Result<(i32, i32), String> {
         return Err("native_browser_target_outside_viewport".into());
     }
     Ok((x as i32, y as i32))
+}
+
+/// DOM.getNodeForLocation 接收文档坐标；鼠标派发仍接收视口坐标，不能混用。
+fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String> {
+    let viewport = metrics.get("cssVisualViewport").ok_or("native_browser_target_geometry_invalid")?;
+    let coordinate = |value: i32, key: &str| {
+        let offset = viewport.get(key).and_then(Value::as_f64).filter(|value|value.is_finite())
+            .ok_or("native_browser_target_geometry_invalid")?;
+        let point = (f64::from(value) + offset).round();
+        if !(0.0..=f64::from(i32::MAX)).contains(&point) {
+            return Err("native_browser_target_geometry_invalid");
+        }
+        Ok(point as i32)
+    };
+    Ok((coordinate(x,"pageX")?,coordinate(y,"pageY")?))
 }
 
 /// 只返回预检结果。调用方仍须获得一次性许可、提交本轮派发并在owner UI线程再核资源。
@@ -90,7 +105,8 @@ pub(super) async fn verify(
     let geometry = native_browser_devtools::read(app, resource, ReadMethod::BoxModel(node.backend_node)).await?;
     let metrics = native_browser_devtools::read(app, resource, ReadMethod::LayoutMetrics).await?;
     let (x, y) = point(&geometry, &metrics)?;
-    let hit = native_browser_devtools::read(app, resource, ReadMethod::HitTest(x, y)).await?;
+    let (hit_x,hit_y) = hit_test_point(x,y,&metrics)?;
+    let hit = native_browser_devtools::read(app, resource, ReadMethod::HitTest(hit_x,hit_y)).await?;
     // 不接受相似文本、覆盖层、后代或另一个frame来替代原绑定节点。
     if hit["backendNodeId"].as_i64() != Some(node.backend_node)
         || hit["frameId"].as_str() != Some(document.frame_id.as_str()) {
@@ -100,6 +116,7 @@ pub(super) async fn verify(
     let second_metrics = native_browser_devtools::read(app, resource, ReadMethod::LayoutMetrics).await?;
     if geometry.pointer("/model/content") != second_geometry.pointer("/model/content")
         || point(&second_geometry, &second_metrics)? != (x, y)
+        || metrics["cssVisualViewport"] != second_metrics["cssVisualViewport"]
         || native_browser_observation::document(app, resource).await? != document
         || super::browser_panel::input_resource(app).as_ref() != Some(resource)
         || started.elapsed() >= std::time::Duration::from_secs(2) {
@@ -134,7 +151,8 @@ pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,obser
     let width=viewport["clientWidth"].as_f64().filter(|v|v.is_finite() && *v>2.0 && *v<=32768.0).ok_or("native_browser_target_geometry_invalid")?;
     let height=viewport["clientHeight"].as_f64().filter(|v|v.is_finite() && *v>2.0 && *v<=32768.0).ok_or("native_browser_target_geometry_invalid")?;
     let (x,y)=((width/2.0).round() as i32,(height/2.0).round() as i32);
-    let hit=native_browser_devtools::read(app,resource,ReadMethod::HitTest(x,y)).await?;
+    let (hit_x,hit_y)=hit_test_point(x,y,&metrics)?;
+    let hit=native_browser_devtools::read(app,resource,ReadMethod::HitTest(hit_x,hit_y)).await?;
     let dom=native_browser_devtools::read(app,resource,ReadMethod::DocumentNodes).await?;
     if hit["frameId"].as_str()!=Some(document.frame_id.as_str())
         || !hit["backendNodeId"].as_i64().is_some_and(|id|regular_document_nodes(&dom).contains(&id)) {
@@ -156,8 +174,13 @@ mod tests {
     fn geometry_is_css_viewport_relative_and_rejects_clipped_or_degenerate_targets() {
         let model = serde_json::json!({"model":{"content":[100,200,140,200,140,240,100,240]}});
         let viewport = serde_json::json!({"cssVisualViewport":{"pageX":80,"pageY":180,"clientWidth":800,"clientHeight":600}});
-        assert_eq!(point(&model, &viewport).unwrap(), (40,40));
-        let clipped = serde_json::json!({"cssVisualViewport":{"pageX":150,"pageY":180,"clientWidth":800,"clientHeight":600}});
+        assert_eq!(point(&model, &viewport).unwrap(), (120,220));
+        // 文档滚动量不能二次平移已属于视口的 BoxModel；裁剪仍按当前视口边界判定。
+        let scrolled = serde_json::json!({"cssVisualViewport":{"pageX":150,"pageY":800,"clientWidth":800,"clientHeight":600}});
+        assert_eq!(point(&model, &scrolled).unwrap(), (120,220));
+        assert_eq!(hit_test_point(120,220,&scrolled).unwrap(),(270,1020));
+        assert!(hit_test_point(120,220,&serde_json::json!({"cssVisualViewport":{"pageX":1e20,"pageY":800}})).is_err());
+        let clipped = serde_json::json!({"cssVisualViewport":{"pageX":150,"pageY":180,"clientWidth":110,"clientHeight":600}});
         assert!(point(&model, &clipped).is_err());
         assert!(point(&serde_json::json!({"model":{"content":[1,1,1,1,1,1,1,1]}}), &viewport).is_err());
         assert!(point(&model, &serde_json::json!({})).is_err());

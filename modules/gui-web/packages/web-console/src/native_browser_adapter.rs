@@ -257,7 +257,7 @@ impl BrowserBridge for NativePanelReadBridge {
         let readonly=self.parent.computer_use_turn_scope.native_browser_read_only();
         let elements=if readonly {Vec::new()} else {observed.node_handles.iter().map(|handle|serde_json::json!({
             "reference":format!("dom-{}",handle.node_id),"role":observed.nodes[handle.index].role,"name":observed.nodes[handle.index].name,
-            "focused":observed.focused_node_index.map(|index| index == handle.index)})).collect::<Vec<_>>()};
+            "focused":observed.focused_node_index.map(|index| index == handle.index),"in_viewport":handle.in_viewport})).collect::<Vec<_>>()};
         if !readonly { crate::native_browser_host::input_process(&self.parent,&resource)
             .map_err(|code|ComputerUseError::blocked(code,"内置输入需要新版已核验桌面宿主",ComputerUseRetryOwner::User))?; }
         let mut snapshot=BrowserSnapshot {

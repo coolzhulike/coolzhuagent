@@ -304,7 +304,13 @@ impl PageViewport {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct NodeHandle { pub index: usize, pub node_id: String }
+pub struct NodeHandle {
+    pub index: usize,
+    pub node_id: String,
+    /// 当前观察中控件中心是否位于视口内；未知不推断为可见，更不授予输入资格。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub in_viewport: Option<bool>,
+}
 
 pub fn opaque_id(value: &str) -> bool {
     value.len() == 32 && value.bytes().all(|byte| byte.is_ascii_hexdigit())

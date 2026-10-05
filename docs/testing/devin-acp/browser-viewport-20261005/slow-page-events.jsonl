@@ -1,0 +1,6 @@
+{"kind": "request", "path": "/slow.html", "server_ms": 1791196957861}
+{"kind": "partial_sent", "path": "/slow.html", "server_ms": 1791196957862}
+{"kind": "complete", "path": "/slow.html", "server_ms": 1791197017863}
+{"kind": "request", "path": "/ready.html", "server_ms": 1791197052360}
+{"kind": "request", "path": "/favicon.ico", "server_ms": 1791197052381}
+{"kind": "request", "path": "/done.html", "server_ms": 1791197083562}

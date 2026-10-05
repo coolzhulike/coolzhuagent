@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读源码审查，不修改文件、不操作桌面。请读 review-paint-progress/computer_use_planner.rs（planning_prompt、plan、bounded_step_feedback、verify_visual、parse_visual_verification）及必要的 desktop adapter 部分。最新真实 SWE-2 Paint W：主会话保存旧图后Ctrl+N空白，要求最多6笔分别画身体/左右眼/笑嘴/左右腿。3笔真实 released，step0矩形身体由视觉verifier判断criterion0=true/其余false、progress=true；step1却再次矩形，criterion0=true/其余false、progress=false；step2仍矩形，window-canvas低y落到窗口左上工具空区，no_progress终态，完整人物失败。新截图实际仅两个重叠矩形。全屏绿光及顶部提示运行时可见。动作接口已工作，不能伪称通过。\n已发现通用Agent缺口：planning_prompt用step=0起但没有明确step_index/step_number语义；用户要求第一/二步，可能有歧义。每步独立请求，最近8步反馈只有动作类别、delivery/effect/goal/progress，未携带视觉核验逐项criterion index/met，summary只是全目标未达成。因此模型无法从结构化反馈得知身体已完成。后者仍为推断，不要把模型重复归因只认一处。\n计划最小通用修复：保留旧step，明确step_index从0、step_number=step+1（只标调度序号，不等于任务子目标序号）和提示根据最新图与最近动作选择未完成项；可在当前planner实例加入小型有界run-local visual_progress（generation + <=64个index/met，不带evidence正文、旧refs、坐标），仅在合法parse及baseline比较通过后更新，下次plan作为过去观察的建议，不能据此宣称当前成功、不跨run持久化、不覆盖验收判据、不自动重放。若能直接利用现有字段更简单，请指出。图像坐标方面需要明确window-canvas是整窗口归一化坐标而UIA画布reference绑定可见画布，建议优先后者还是存在已有约束？不添加Paint专用绘法、不代给落点、不放松权限。\n请给出最小合理修改、风险和是否属于Agent可改善问题，<=800中文字。",
+  "selected_message_ids": [],
+  "attachments": []
+}

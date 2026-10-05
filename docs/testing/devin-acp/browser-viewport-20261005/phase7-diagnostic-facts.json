@@ -1,0 +1,32 @@
+{
+  "planning_visual_metadata": [
+    {
+      "generation": 2,
+      "criteria_count": 3,
+      "met_count": 1
+    },
+    {
+      "generation": 3,
+      "criteria_count": 3,
+      "met_count": 1
+    },
+    {
+      "generation": 4,
+      "criteria_count": 3,
+      "met_count": 1
+    },
+    {
+      "generation": 5,
+      "criteria_count": 3,
+      "met_count": 1
+    },
+    {
+      "generation": 6,
+      "criteria_count": 3,
+      "met_count": 1
+    }
+  ],
+  "ambiguity_diagnostic_lines": 0,
+  "ambiguity_cause_verified": false,
+  "note": "仅归档本轮后端数值与类别事实；不复制历史安全库结账日志。"
+}

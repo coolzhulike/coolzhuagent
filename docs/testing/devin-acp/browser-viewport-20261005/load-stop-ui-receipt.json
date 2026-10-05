@@ -1,0 +1,10 @@
+{
+  "stop_action_started_ms": 1791197010983,
+  "observed_ms": 1791197011452,
+  "window": {
+    "app": "process:C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-05-browser-viewport\\candidate-bin\\coolzhu-tauri-shell.exe",
+    "id": 226756164,
+    "title": "COOLZHU AGENT 控制台"
+  },
+  "context": "正常前端停止加载，SWE已因加载中拒绝，0输入；不是down/up区间测试"
+}

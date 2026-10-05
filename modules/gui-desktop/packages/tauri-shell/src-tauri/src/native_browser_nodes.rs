@@ -45,7 +45,7 @@ impl NodeCache {
         let nodes = candidates.iter().map(|(index,backend_node,role,name)| Ok(NodeBinding {
             node_id:random_id()?,index:*index,backend_node:*backend_node,role:role.clone(),name:name.clone(),
         })).collect::<Result<Vec<_>,String>>()?;
-        let handles = nodes.iter().map(|node| NodeHandle {index:node.index,node_id:node.node_id.clone()}).collect();
+        let handles = nodes.iter().map(|node| NodeHandle {index:node.index,node_id:node.node_id.clone(),in_viewport:None}).collect();
         self.observations.push_back(CachedObservation {observation_id:observation_id.into(),expires:now+NODE_LEASE,nodes});
         Ok((self.token.clone(),handles))
     }
