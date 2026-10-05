@@ -48,7 +48,7 @@
 | BROWSER-FORM-06 | 路由修复通过，顺序与整套目标失败 | internal-build-24；真实进入原生右栏，先click产生check=true事件，然后navigate重置表单，再click下拉框和两次end；5次输入均有明确结算，但no_progress停止，goal=false。导航后的新表单没有select/submit事件，不能算整套通过。`browser-swe2-form-06-sequence-failure.png`。 |
 | BROWSER-FORM-07 | 整套通过（有明确步骤指导） | internal-build-25；初始步行/未勾选/未提交，5步依次click→end→enter→click复选框→click提交；全部sent/released，零重规划、无导航/刷新/重试/补发。网页服务依次记录select=bicycle、check=true、submit={mode:bicycle,ready:true}；新鲜页面逐项3/3，goal=true、succeeded。完整真实回复在聊天室可见，2分25秒；`browser-swe2-form-07-pass.png`。步骤指导测试通过不等于所有任意网站自主规划通过。 |
 | 取消/关闭竞争 | 待执行 | 必须真实命中输入区间，完成后才关闭面板不算竞争通过。 |
-| 正式安装版 | 未验收 | 本轮调试成功不能代表旧 MSI 通过。 |
+| 正式安装版 | 0.2.71启动及表单通过，Paint误报待修 | 安装身份及实际软件截图核验；C71表单5步3/3，Paint零动作把旧横线当新增，不算通过。详见0.2.71交接报告，不将调试成功推广到全部安装版功能。 |
 
 成功输入的 `not_needed` 是此文本动作的正式回执，不改写成鼠标按键 Released。台账完成、输入发送和目标达成分别记录，不互相替代。
 
@@ -117,3 +117,16 @@ Paint活动时找到原生外壳的空标题提示窗口，截图`paint-swe2-con
 自动普通安装尚未成功。首次使用正斜杠路径返回1619；修正为系统原生路径后正确打开安装包，但在移除旧版本阶段返回1603，详细原因是 Windows Installer 错误1730（旧版卸载需要管理员身份）。注册表仍显示0.2.70。这与聊天室完全访问不同，不能通过清除输入隔离、改写会话权限或运行调试二进制替代正式安装。已交由用户手动完成管理员安装，正式安装实操仍待执行；不把包生成或CI成功当作正式版功能通过。
 
 详细变更、剩余验收及可复用测试步骤见[0.2.71改动与验收交接报告](../release-0.2.71/change-and-acceptance-report.md)。
+
+用户随后完成0.2.71管理员安装。安装版关键二进制与载荷清单一致；关闭精确已结束的验收后台后，日常工作区启动恢复。原验收聊天室正式版表单通过（1分9秒、5步、3/3），但Paint新增笔迹验收暴露零动作误报，原协议成功终态保留、软件验收不通过。正在修复桌面初始单帧不能证明本轮新增成果的问题；后续源码与调试结果不冒充0.2.71安装版已含修复。
+
+## 本轮新增条件修复与实操（internal-build-26）
+
+明确要求“本轮新增”的桌面成功条件，不再用动作前同一观察帧直接判完成；动作后仍交给同一真实模型对照原图验收。普通存在性/只读检查保留零动作完成。只识别明确条件，不宣称解析所有自然语言语义；不替模型生成坐标，不改变权限、预算、释放或历史终态。后端SHA256为 `05EDE018A037C848F959A20D51ACB1F7FF38B0CCE72340706E90FFD97CDFC53B`，外壳为 `A9E68C2BAFCF1B2C7667B224C633E219E0F5E9C08A88D60061CAEF9F6F03FA6D`。离线build通过，完整Web串行检查1380通过、0失败、6忽略；新增检查仅验证这个纯前置条件，不使用模型回复夹具。
+
+| 任务 | 真实结论 | 边界 |
+|---|---|---|
+| SWE2-PAINT-NEW-EFFECT-26-01 | 观察阶段 `target_ambiguous`，0输入，未完成 | 仅指定应用时目标不唯一；保留失败，不补发。 |
+| SWE2-PAINT-NEW-EFFECT-26-02 | 指定实际“无标题 - 画图”窗口后，1次真实drag，3点、1200ms、sent/released；最终 `budget_exhausted`、criteria 0/1 | 不再初始零动作误报。模型选相对点 `[0.62,0.16]→[0.66,0.16]→[0.70,0.16]`，宿主容器rect `[11,106,2538,1096]` 是窗口内容容器，并非白色绘画区；映射落在工具栏附近，软件截图未确认新增横线。图片变化包含键位提示撤除，不能作为新笔迹证据；外层回复“有真实新笔迹”也不能替代截图。保持未完成，不按输入释放算成功。 |
+
+第二轮耗时1分2秒。两轮共4个内外层ACP尝试均requested/effective=`swe-2-medium`、end_turn并排空。活动时顶部 `Coolzhu Agent is using your computer` 与完整四边泛光可见，终态后提示窗口撤除。证据为 `paint-new-effect-26-initial.png`、`paint-new-effect-26-hud-active.png`、`paint-new-effect-26-final-indicator-withdrawn.png`、`paint-new-effect-26-model-reply.png`、`paint-new-effect-26-receipts.json`，位于本报告证据目录。初始误报修复的实操生效，不等于Paint绘图通过；这些调试证据不代表0.2.71已包含修复。

@@ -1,0 +1,501 @@
+{
+  "version": "0.2.71",
+  "source_commit": "49d0a1b6d5e5995a3d75bdb1cbd78c97ceb0c28c",
+  "source_snapshot_digest": "414d6ffcdd04e7479346f0abf2b5528a6065c187fe24196575fc05e4c2213440",
+  "msi_sha256": "C7CD1580A42805B7AE127807E8092D9950A9BF7CC68562741DCB4686ED65DDCF",
+  "installed_binary_sha256": {
+    "launcher": "043f56fb81aae3ae88a57601dacc7511caf009a75d827861b8658e885e704113",
+    "web_console": "6a903bb11b8009eeb899f5cffdb390a86a31c655143379e97196b74a9d577009",
+    "tauri_shell": "3c9d3077dd8c93451747da368d249b9e12de90bcdfa93fdfbdc147db9d428a05"
+  },
+  "startup_review": {
+    "installed_version": "0.2.71",
+    "port_owner_before": 15140,
+    "old_process_kind": "本次验收调试后台",
+    "old_model_workers_drained": true,
+    "default_launcher_started": true,
+    "default_backend_pid": 31644,
+    "default_shell_pid": 32280,
+    "installed_backend_build": "49d0a1b6d5e5",
+    "permission_or_isolation_changed": false
+  },
+  "computer_use_runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791158226126-0-tool-920d748936f84435f1ad82bf28f2d7cafbbc59156380de858e47492599629130",
+      "turn_id": "chat-turn-1791158226126-0",
+      "state": "succeeded",
+      "action_count": 5,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 5,
+        "steps_completed": 5,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "key_combination"
+        },
+        {
+          "step_index": 2,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "key_combination"
+        },
+        {
+          "step_index": 3,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        },
+        {
+          "step_index": 4,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791158478306-1-tool-350b21e694009e22058b32095c9c43512aaec97aeb3c09cc2a0a69f065e650ce",
+      "turn_id": "chat-turn-1791158478306-1",
+      "state": "succeeded",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error": null
+      },
+      "steps": []
+    }
+  ],
+  "model_attempt_receipts": [
+    {
+      "attempt": "bd8c223ffa0d235e3dcc5b6ae9a14d199548beb1e27dd2d0",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "4b57dd87cfe1e26e150299f8ce5dabae696bca813dd744f1",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "cd430c9d0aaa6167b79ff0f47c5c29007e4a74f0e4d5d0a8",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "333abbb22a73501b78446f1f53ee958242f6b87291fc82e7",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "981d5ca4457541c35fdcc8227a2cd2af504b1c5e0f136909",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "a807ae1f4254bbff3087dfa41102a9cd50828808c4695507",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "c7eceb7ee74ebf3a90a4a370de13cb47343523fcdd56d237",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "1f7b2e1e8534527829c81e13ab08a950d7a3fd42d7d553df",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "a575e680d6202b9a37d9f26a563ab38ed89015406daaacc7",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "6b1772dc966536cc44cf8364a31e4c02acb49db4e9e9c7dd",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "98954b68656796ed267b5141619f41429d975d28c2e4ae07",
+      "run": "run-chat-61e88f71cdfb11b6e9a8e31467c57d1908fa9211e6c0491c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "cbe1559107c6b8dc0678d094c5931355a7e7a36f7844746c",
+      "run": "run-chat-acbaf45aab082e6a897616f72f7fbf276788aca61a2fa5de",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "5982fee44a3b450f1c2faa83669c78f225703c98b2492dae",
+      "run": "run-chat-acbaf45aab082e6a897616f72f7fbf276788aca61a2fa5de",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    }
+  ],
+  "browser_form_events": [
+    {
+      "kind": "select",
+      "value": "bicycle",
+      "page_ms": 1791158263083,
+      "server_ms": 1791158263089
+    },
+    {
+      "kind": "check",
+      "value": true,
+      "page_ms": 1791158273714,
+      "server_ms": 1791158273717
+    },
+    {
+      "kind": "submit",
+      "value": {
+        "mode": "bicycle",
+        "ready": true
+      },
+      "page_ms": 1791158286645,
+      "server_ms": 1791158286648
+    }
+  ],
+  "acceptance_review": {
+    "browser_form": "通过，5步真实输入，3项网页事件与最新页面一致",
+    "paint_zero_action": "未通过；协议原终态succeeded保留，但零输入未新增笔迹，人工实操审查判为误报，不回写原历史"
+  },
+  "limitations": [
+    "完整海绵宝宝腿脚未完成",
+    "按下/释放微区间取消竞争未覆盖",
+    "Paint本轮新增误判修复尚未包含在0.2.71安装包"
+  ]
+}

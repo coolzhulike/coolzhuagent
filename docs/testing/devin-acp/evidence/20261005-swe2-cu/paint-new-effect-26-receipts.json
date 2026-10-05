@@ -1,0 +1,203 @@
+{
+  "build_kind": "debug internal-build-26, not installed 0.2.71",
+  "web_sha256": "05EDE018A037C848F959A20D51ACB1F7FF38B0CCE72340706E90FFD97CDFC53B",
+  "shell_sha256": "A9E68C2BAFCF1B2C7667B224C633E219E0F5E9C08A88D60061CAEF9F6F03FA6D",
+  "runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791159310403-0-tool-ca987b0398576956b7d71156bc9cb4a0e57d0f167efbd4dee9711a07fffb018b",
+      "turn_id": "chat-turn-1791159310403-0",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error": {
+          "code": "target_ambiguous",
+          "message": "UIA target is ambiguous",
+          "retryable": false,
+          "retry_owner": "model"
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791159409262-1-tool-98cba149a8f218ea07092b914d3e834891d72fdaafe36b937d4868556e27b4b0",
+      "turn_id": "chat-turn-1791159409262-1",
+      "state": "blocked",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 3,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "drag"
+        }
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "attempt": "0e3607dcc935198b6d1b478a2ca1fd4b14a3aadfff8658f3",
+      "run": "run-chat-0d04aaf73475668311da468abb90bf5ce0823bf82e714f71",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "313c080fb102cde1ec6047581da7b267adf9e02165b1f77f",
+      "run": "run-chat-2cc4f54730eb104489fe47f6a0a5c249fa8ca37f1424a663",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "2f2c94f051b2ae2a38e2744613f384bcd48503c29710a5e0",
+      "run": "run-chat-2cc4f54730eb104489fe47f6a0a5c249fa8ca37f1424a663",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "1ed40fd48b69d0e18beefe58ac67fb61c3e1da33b70666bb",
+      "run": "run-chat-2cc4f54730eb104489fe47f6a0a5c249fa8ca37f1424a663",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    }
+  ],
+  "action": {
+    "kind": "drag",
+    "points": [
+      [
+        0.62,
+        0.16
+      ],
+      [
+        0.66,
+        0.16
+      ],
+      [
+        0.7,
+        0.16
+      ]
+    ],
+    "duration_ms": 1200,
+    "container_rect": [
+      11,
+      106,
+      2538,
+      1096
+    ]
+  },
+  "acceptance": {
+    "new_stroke_visible": false,
+    "initial_false_positive_avoided": true,
+    "activity_indicator_visible": true,
+    "activity_indicator_withdrawn": true,
+    "complete_paint_task_passed": false
+  }
+}

@@ -816,6 +816,18 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         }
         // 其余非桌面表面保留适配器的本地判定。
         if after.surface != ComputerUseSurface::Desktop { return Ok(original); }
+        // 本轮新增不能由初始单帧证明；保留存在性/只读目标的零动作验收。
+        // 这里仅推迟完成判定，不替模型生成动作，也不以图片变化直接判成功。
+        if before.generation == after.generation
+            && requires_new_run_effect(&request.success_criteria)
+        {
+            return Ok(computer_use::Verification {
+                achieved: false,
+                visible_progress: false,
+                summary: "本轮尚未执行动作，初始截图不能证明本轮新增成果。".into(),
+                evidence: original.evidence,
+            });
+        }
         require_stage_budget(remaining, "computer_use_verification")?;
         let current = observation_image(after).ok_or_else(|| planner_backend_error("visual verification requires the latest original screenshot"))?;
         let agent = self.agent()?;
@@ -831,7 +843,7 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         let prompt = json!({"objective":request.objective,"target":request.target,"constraints":request.constraints,
             "success_criteria":request.success_criteria,"image_order":if images.len()==2 {"before, after"} else {"current"},
             "observation_generation":after.generation,"observation":bounded_observation(&after.state),
-            "instruction":"逐项检查最新图片中的可见目标。文字仅提供控件引用；不能把目标文字出现在UIA里当作目标完成。画图任务必须看见实际画布笔画。遮挡、不确定或无法识别都应met=false。失败项也必须填写非空evidence，说明实际可见事实或无法核实的原因，不能省略或填空串。criteria按success_criteria顺序使用从0开始的index，不增加或遗漏。progress仅在图片显示任务实际进展时true。只输出JSON，不加代码围栏或解释。",
+            "instruction":"逐项检查最新图片中的可见目标。文字仅提供控件引用；不能把目标文字出现在UIA里当作目标完成。画图任务必须看见实际画布笔画。要求本轮新增的条件必须对照before和after说明新增位置与变化，不能把已有笔迹、输入释放或图片摘要变化当新增成果；只有current时无法证明本轮新增。遮挡、不确定或无法识别都应met=false。失败项也必须填写非空evidence，说明实际可见事实或无法核实的原因，不能省略或填空串。criteria按success_criteria顺序使用从0开始的index，不增加或遗漏。progress仅在图片显示任务实际进展时true。只输出JSON，不加代码围栏或解释。",
             "response_example":{"progress":false,"criteria":(0..request.success_criteria.len()).map(|index|json!({"index":index,"met":false,"evidence":"最新截图尚未提供本项成功标准已达成的可见证据。"})).collect::<Vec<_>>()},
             "response_schema":{"type":"object","additionalProperties":false,"required":["progress","criteria"],"properties":{
                 "progress":{"type":"boolean"},"criteria":{"type":"array","minItems":request.success_criteria.len(),"maxItems":request.success_criteria.len(),
@@ -1550,6 +1562,17 @@ fn browser_drop_target_score(node: &JsonValue) -> i32 {
     score
 }
 
+/// 仅识别明确要求本轮新增的验收条件，不把普通存在性检查推断为写入授权。
+fn requires_new_run_effect(criteria: &[String]) -> bool {
+    criteria.iter().any(|criterion| {
+        let lower = criterion.to_ascii_lowercase();
+        (criterion.contains("本轮")
+            && ["新增", "新绘制", "新建", "新创建"].iter().any(|word| criterion.contains(word)))
+            || (lower.contains("this run")
+                && ["new ", "newly ", "created", "added"].iter().any(|word| lower.contains(word)))
+    })
+}
+
 fn request_joined_text(request: &ComputerUseRequest) -> String {
     let mut text = request.objective.clone();
     for criterion in &request.success_criteria {
@@ -1781,6 +1804,14 @@ fn extract_bounded_marker_token(source: &str) -> Option<String> {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn new_run_effect_is_distinct_from_existing_visual_state() {
+        assert!(requires_new_run_effect(&["本轮最新真实截图可见新增独立黑色短横线".into()]));
+        assert!(requires_new_run_effect(&["A new black stroke is visible in this run".into()]));
+        assert!(!requires_new_run_effect(&["当前截图可见已有黑色横线".into()]));
+        assert!(!requires_new_run_effect(&["本轮只读取当前画布的条目名称".into()]));
+    }
 
     #[test]
     fn browser_observation_diagnostic_omits_page_content_and_node_credentials() {
