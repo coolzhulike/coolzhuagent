@@ -1,6 +1,6 @@
 # 0.2.74 Browser Use 加载接管改动与测试交接
 
-日期：2026-10-05。本报告区分源码候选实操、安装包构建、安装版复测。**当前已完成源码候选实操；安装版复测尚未完成，不能称整个 Browser Use 全面验收结束。** Compute Use 基础能力按用户新范围沿用 0.2.73 正式 Paint 单笔新增与释放验收，完整人物绘画已退出必做清单，微信不改不测。
+日期：2026-10-05。本报告区分源码候选实操、安装包构建、安装版复测。**0.2.74已完成构建、安装核验及五轮真实SWE实操；加载期自主接管阻塞、连续导航资源链和125%缩放表单缺口已闭环，Browser Use基本执行链路通过。严格整页切换竞争、多屏等仍未覆盖，不宣称全场景全面验收。** Compute Use 基础能力按用户新范围沿用 0.2.73 正式 Paint 单笔新增与释放验收，完整人物绘画已退出必做清单，微信不改不测。
 
 ## 问题与最终行为
 
@@ -31,6 +31,8 @@ Windows实际150% DPI，只有1个活动显示器。浏览器125%由原生快捷
 
 候选二进制摘要见 [实际二进制](candidate-browser-20261005/final-binary-hashes.json)。本轮源码功能实操的Web为 `B1E9458D…`、Shell为 `12237C72…`，与已安装0.2.73分开；CI测试等待修改在实操后发生，仅 `cfg(test)`，无正式行为变化。新包构建身份另行记录，不把报告HEAD冒充已运行二进制身份。
 
+0.2.74正式release包构建通过，1150个载荷文件逐一核验，CLI版本0.2.74。源码提交 `e52332d841523a57f8e27e25d8fe7399de88ee4d`，源码快照 `ee76369dfc7ca5308239b9756e5d6136f7bc937ac9c168943ae49dfb4d1c4e23`；MSI摘要 `01b1b09c691b5ed684566dfbdfc38d8e5e61566445128a382fba0bed7c9caeb4`。标准MSI安装日志返回0，Windows注册版本0.2.74；Program Files Web/Shell摘要分别 `1f323ab9…` / `533b4b55…`，与载荷一致，正式launcher日常工作区启动自检通过。没有遇到需要人工接管的提权窗口。见 [构建与摘要](evidence/package-verification.json) 和 [源码CI](evidence/source-e52332d-ci.json)：源码提交两项远端检查成功，后续报告HEAD须单独核验。
+
 ## 源码候选实操结果
 
 | 轮次 | 真实结果 | 判定与截图 |
@@ -45,6 +47,12 @@ Windows实际150% DPI，只有1个活动显示器。浏览器125%由原生快捷
 | nav-slow-chain | 台账86.5秒，源页Navigate慢页→加载中Navigate明确目标→click，3步，2/2、目标true | [目标页](candidate-browser-20261005/nav-slow-chain-after.png)、[聊天室内同轮回复](candidate-browser-20261005/nav-slow-chain-reply-visible.png)，对应Opus补充的revision链验收 |
 
 各轮 `*-request/response/facts/details/reply`、网页事件、模型身份及逐步投递/释放见 [证据目录](candidate-browser-20261005/) 和 [结构化汇总](candidate-browser-20261005/regression-summary.json)。11轮SWE实操共61项ACP请求，三轮Opus共3项；全部terminal/drained，最终未结算0。已投递步骤没有ReleaseUnknown；首轮缩放第4次预检拒绝没有投递，不能算完成4步。
+
+## 正式安装版复测
+
+独立[正式回归报告](installed-browser-20261005/README.md)已归档五轮：慢popup接管66.4秒/3步、初始加载接管61.5秒/2步、连续Navigate链53.8秒/3步，三项均2/2、目标true；125%表单113.4秒/5步、1/1、目标true；节点替换42.0秒/1步、1/1、目标true。共31项真实SWE ACP全部terminal/drained，14项动作均sent/released，未结算0。安装版表单只需一次滚动，与候选六步不同，不用候选动作数代替正式结果。
+
+安装版真实节点替换down→replace→up发生于1791210787081.3→7081.8→7082.7002，确实覆盖按住期间节点替换；它仍不等于整页竞争通过。旧popup120秒响应disconnected后目标未被夺回。截图、原请求/回复、宿主台账、真实网页事件与同轮模型身份分开保存；正常重开后最新SWE回复已在聊天室可见。后续正常关闭验收窗口及自有后台/三个测试服务，恢复GUI地址原字节和新版正式launcher原日常工作区，自检通过。日常Qwen选择只属用户环境恢复，没有用于本轮测试。
 
 目标页首次真实pointermove buttons=0以及孤立输入0，是micro1结束后主会话在空白处的辅助移动/单击观测，见 `micro1-auxiliary.json`。明确不计为模型动作或窄整页竞争证据。外部API提交的消息已持久化，原打开窗口仍显示旧历史；正常重开控制台后最新SWE回复可见。多张after图左侧旧失败回复只属于旧历史，不作本轮回复联合证据。
 
@@ -70,6 +78,6 @@ Windows实际150% DPI，只有1个活动显示器。浏览器125%由原生快捷
 
 ## 工程与发布状态
 
-Web和Shell离线build通过；Web相关已有21项、Shell原生5项/面板8项、planner导航边界1项通过。协议测试命令成功但0项测试，只算编译/命令成功。远端旧HEAD曾有PowerShell辅助启动5秒超时，本轮延长仅测试启动确认并复验，保留远端失败原记录。新HEAD远端检查、安装包构建/摘要以及安装版实操结果随后追加，当前不预填成功。
+Web和Shell离线build通过；Web相关已有21项、Shell原生5项/面板8项、planner导航边界1项通过。协议测试命令成功但0项测试，只算编译/命令成功。远端旧HEAD曾有PowerShell辅助启动5秒超时，本轮延长仅测试启动确认并复验，保留远端失败原记录。源码e52332d的两项远端检查成功，正式构建、摘要、安装及五轮软件实操均通过；后续证据文档HEAD检查单独核验，不外推旧CI。
 
 草稿PR沿用 [PR #80](https://github.com/coolzhulike/coolzhuagent/pull/80)，不合并、不转正式评审。归档不包含数据库、API密钥或未经筛选的服务日志；`manifest.json`按原字节校验，目录内属性禁止Git改写证据换行。

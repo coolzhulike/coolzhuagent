@@ -1,0 +1,13 @@
+{
+  "version": "0.2.74",
+  "cli_output": "COOLZHU CODE Agent\n  Version          0.2.74\n  Git SHA          e52332d841523a57f8e27e25d8fe7399de88ee4d\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-05\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help\n",
+  "source_commit": "e52332d841523a57f8e27e25d8fe7399de88ee4d",
+  "source_snapshot_digest": "ee76369dfc7ca5308239b9756e5d6136f7bc937ac9c168943ae49dfb4d1c4e23",
+  "verified_file_count": 1150,
+  "payload_digest": "47fa3b2da655ed992a1fe92e07a4a972221ec9bdce827403314e1e6228e9de53",
+  "msi_sha256": "01b1b09c691b5ed684566dfbdfc38d8e5e61566445128a382fba0bed7c9caeb4",
+  "web_sha256": "1f323ab9b6d3f1f759d5e35d1059b90a20dd5029dc9e4ea06598647e5c0ad37f",
+  "shell_sha256": "533b4b551915f9076c24c26f33cbd029ba618acb1dd92542af541e2e262b7566",
+  "build_log_sha256": "918442c09a28b77c0a0b19a24cd38ed76a665187f3d97515a0efc762d69ad92a",
+  "installed_regression": "pending"
+}

@@ -1,5 +1,5 @@
 {
-  "stage": "源码候选，尚未完成安装版复测",
+  "stage": "源码候选，与安装版证据分开",
   "source_head_before_commit": "bf3312555b42d27c5a942a474728177b1a7b6616",
   "files": [
     {
@@ -16,6 +16,11 @@
       "file": "candidate-health.json",
       "bytes": 9181,
       "sha256": "c1ee187a0a4b34adea06feec2ef4f3a4b34757066d088dc2f516058ca68746bb"
+    },
+    {
+      "file": "cleanup.json",
+      "bytes": 17706,
+      "sha256": "b05f99cb84477cebe8e46cdaa5cd0241518858a1a19c33ce12e4b1c1bdcdc95a"
     },
     {
       "file": "display-inventory.json",

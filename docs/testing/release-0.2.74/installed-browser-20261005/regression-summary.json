@@ -1,0 +1,360 @@
+[
+  {
+    "case": "popup-final",
+    "run_id": "run-chat-127befb28e47b5fbef44e4fcd79a21183a9caccde0ea718a",
+    "elapsed_s": 66.4,
+    "status": "succeeded",
+    "goal": true,
+    "error": null,
+    "attempts": 3,
+    "steps_completed": 3,
+    "actions": [
+      "click",
+      "navigate",
+      "click"
+    ],
+    "criteria_met": 2,
+    "criteria_count": 2,
+    "models": [
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    ],
+    "acp_count": 6,
+    "all_terminal_drained": true,
+    "unsettled_at_capture": 0,
+    "receipts": [
+      {
+        "step": 0,
+        "delivery": "sent",
+        "release": "released",
+        "error": null
+      },
+      {
+        "step": 1,
+        "delivery": "sent",
+        "release": "not_needed",
+        "error": null
+      },
+      {
+        "step": 2,
+        "delivery": "sent",
+        "release": "released",
+        "error": null
+      }
+    ]
+  },
+  {
+    "case": "loading-final",
+    "run_id": "run-chat-6e8154da35895ef64b3a5c6c33d1284221cc9985515498b1",
+    "elapsed_s": 61.5,
+    "status": "succeeded",
+    "goal": true,
+    "error": null,
+    "attempts": 2,
+    "steps_completed": 2,
+    "actions": [
+      "navigate",
+      "click"
+    ],
+    "criteria_met": 2,
+    "criteria_count": 2,
+    "models": [
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    ],
+    "acp_count": 5,
+    "all_terminal_drained": true,
+    "unsettled_at_capture": 0,
+    "receipts": [
+      {
+        "step": 0,
+        "delivery": "sent",
+        "release": "not_needed",
+        "error": null
+      },
+      {
+        "step": 1,
+        "delivery": "sent",
+        "release": "released",
+        "error": null
+      }
+    ]
+  },
+  {
+    "case": "nav-slow-chain",
+    "run_id": "run-chat-264db98f02db12fe10f0689b74f735c30457399a96ada0ac",
+    "elapsed_s": 53.8,
+    "status": "succeeded",
+    "goal": true,
+    "error": null,
+    "attempts": 3,
+    "steps_completed": 3,
+    "actions": [
+      "navigate",
+      "navigate",
+      "click"
+    ],
+    "criteria_met": 2,
+    "criteria_count": 2,
+    "models": [
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    ],
+    "acp_count": 6,
+    "all_terminal_drained": true,
+    "unsettled_at_capture": 0,
+    "receipts": [
+      {
+        "step": 0,
+        "delivery": "sent",
+        "release": "not_needed",
+        "error": null
+      },
+      {
+        "step": 1,
+        "delivery": "sent",
+        "release": "not_needed",
+        "error": null
+      },
+      {
+        "step": 2,
+        "delivery": "sent",
+        "release": "released",
+        "error": null
+      }
+    ]
+  },
+  {
+    "case": "zoom-form2",
+    "run_id": "run-chat-0799a132696b32aec8c4e71ac93ab469ea086789ffa005cd",
+    "elapsed_s": 113.4,
+    "status": "succeeded",
+    "goal": true,
+    "error": null,
+    "attempts": 5,
+    "steps_completed": 5,
+    "actions": [
+      "click",
+      "text_input",
+      "scroll",
+      "click",
+      "click"
+    ],
+    "criteria_met": 1,
+    "criteria_count": 1,
+    "models": [
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    ],
+    "acp_count": 11,
+    "all_terminal_drained": true,
+    "unsettled_at_capture": 0,
+    "receipts": [
+      {
+        "step": 0,
+        "delivery": "sent",
+        "release": "released",
+        "error": null
+      },
+      {
+        "step": 1,
+        "delivery": "sent",
+        "release": "not_needed",
+        "error": null
+      },
+      {
+        "step": 2,
+        "delivery": "sent",
+        "release": "not_needed",
+        "error": null
+      },
+      {
+        "step": 3,
+        "delivery": "sent",
+        "release": "released",
+        "error": null
+      },
+      {
+        "step": 4,
+        "delivery": "sent",
+        "release": "released",
+        "error": null
+      }
+    ]
+  },
+  {
+    "case": "replace",
+    "run_id": "run-chat-d93b86f59da2f870bc964fe64316c4826b574743c63c6871",
+    "elapsed_s": 42.0,
+    "status": "succeeded",
+    "goal": true,
+    "error": null,
+    "attempts": 1,
+    "steps_completed": 1,
+    "actions": [
+      "click"
+    ],
+    "criteria_met": 1,
+    "criteria_count": 1,
+    "models": [
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    ],
+    "acp_count": 3,
+    "all_terminal_drained": true,
+    "unsettled_at_capture": 0,
+    "receipts": [
+      {
+        "step": 0,
+        "delivery": "sent",
+        "release": "released",
+        "error": null
+      }
+    ]
+  }
+]
