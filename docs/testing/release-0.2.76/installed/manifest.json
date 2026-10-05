@@ -1,0 +1,116 @@
+{
+  "stage": "0.2.76 Program Files 安装版，原验收工程和原安全库",
+  "source_commit": "34928536beeb00ac1153a99b5b1bfc4977de7d5d",
+  "files": [
+    {
+      "file": ".gitattributes",
+      "bytes": 75,
+      "sha256": "6eabf2e06fe9a1051649e6d3ac14c4be612addacbbaa26d4b04ffcb59c57f566"
+    },
+    {
+      "file": "daily-076-selfcheck.json",
+      "bytes": 1969,
+      "sha256": "b1ca434d2748b761dfb240d91d3a3589e7dff9a22acc4b17261aa4cda8fd7dbe"
+    },
+    {
+      "file": "DEVIN-INSTALLED-EXTENSIONS-20261006-facts.json",
+      "bytes": 5404,
+      "sha256": "6ed55cb48fbf91d96461b1e1629ea7947fb4812551900c579dbb27c145fb0140"
+    },
+    {
+      "file": "DEVIN-INSTALLED-PLUGIN-DISABLED-20261006-facts.json",
+      "bytes": 1876,
+      "sha256": "7fceae0f0637ea7ec7cd6c64c7e9aaf20cc0f2ba5eee8877d60c5d411a3e0670"
+    },
+    {
+      "file": "DEVIN-INSTALLED-PLUGIN-REENABLED-20261006-facts.json",
+      "bytes": 3665,
+      "sha256": "c39998c9eee97ecf9db0a2c5940558f134e741b9672dd06fc1e0ac94e98c64e0"
+    },
+    {
+      "file": "DEVIN-INSTALLED-SKILL-20261006-facts.json",
+      "bytes": 3559,
+      "sha256": "9d34fdefefabcc00f94a0057f52882455526d89b77bdbbe1b53141083d133539"
+    },
+    {
+      "file": "install-076-elevated-result.json",
+      "bytes": 291,
+      "sha256": "a8e7d0d07cc3ef9f288727b0454a24a6ab815ef995df43527c0bdf8534f9f401"
+    },
+    {
+      "file": "install-076-result.json",
+      "bytes": 285,
+      "sha256": "283c035cb6c14ab28bdea8e3c1b7b86a660cfc96dbd73fac6011bbb58c9a9954"
+    },
+    {
+      "file": "installed-076-verification.json",
+      "bytes": 875,
+      "sha256": "7b8e70961b8a009ed4f6588404e2140652c364ade302ed0d8dce278fb1d91b93"
+    },
+    {
+      "file": "installed-calculator-disabled.png",
+      "bytes": 89314,
+      "sha256": "569786b23f93847ea565a388a95476321571e4bcaf67ba0c9c41ff5133b393f2"
+    },
+    {
+      "file": "installed-context-process.json",
+      "bytes": 506,
+      "sha256": "4c266b792babca03989ed1cf9c90c6662e66d1a634636f9e3b4bcff1f8315d11"
+    },
+    {
+      "file": "installed-daily-startup.png",
+      "bytes": 196047,
+      "sha256": "a5cf440962daf2814310c6bc1fd15f0ddf872527bd8427be9fdccf2e85f0c45d"
+    },
+    {
+      "file": "installed-native-extension-and-skill.png",
+      "bytes": 172509,
+      "sha256": "1292bb307d9605aa515063128ed39af361a7c0001c102c44034637616aa09d02"
+    },
+    {
+      "file": "installed-plugin-disabled-reply.png",
+      "bytes": 88771,
+      "sha256": "30251ec81d6f3cf485a015ecd93423c2bdb01cdd6c6857f31f2eff58d7d8106d"
+    },
+    {
+      "file": "installed-plugin-reenabled-native.png",
+      "bytes": 192576,
+      "sha256": "61f320a9b41a75185ceb0c741ceb3d1e0a86a932f3b2d13dc0573c6ae6f4f3b1"
+    },
+    {
+      "file": "installed-skill-result.png",
+      "bytes": 71839,
+      "sha256": "b96f4cb83b83dc468936d5d41dcdc342c19b32a2a2f09a56e372f0b8fedf55c4"
+    },
+    {
+      "file": "installed-version.png",
+      "bytes": 197040,
+      "sha256": "0a22c8ad6bc81170131964617c8a0aea44a5ebac26da40385279a4457ece619b"
+    },
+    {
+      "file": "local-log-digests.json",
+      "bytes": 456,
+      "sha256": "59f81d706f5cdea110e44db6dacc8096e82cb84c8ac5d86db0549e080177365c"
+    },
+    {
+      "file": "package-076-verification.json",
+      "bytes": 860,
+      "sha256": "981a27634e8e666ba6d6131ffeafaa151a77d9fd64d2bd667f94643b9610c99b"
+    },
+    {
+      "file": "plugin-lifecycle-summary.json",
+      "bytes": 638,
+      "sha256": "76aa81b61d89d795e228d1353022110e8be5d988b7af4bd5d85286c226c82b6c"
+    },
+    {
+      "file": "restored-daily-process.json",
+      "bytes": 724,
+      "sha256": "d61f1cc8fedb48666877e0ef1aea13869689bd6839e9e915f733a941826ddc68"
+    },
+    {
+      "file": "restored-daily-selfcheck.json",
+      "bytes": 1778,
+      "sha256": "9a19dca41e0f9b7591658e7493d23ebdd8e47683af0a56b52e02b85f35716c9f"
+    }
+  ]
+}

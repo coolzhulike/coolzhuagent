@@ -1,0 +1,15 @@
+﻿{
+    "daily_launcher":  {
+                           "path":  "C:/Program Files/CoolzhuAgent/COOLZHU-AGENT.exe",
+                           "pid":  28628,
+                           "created":  "2026-10-05T18:57:14.4490991Z"
+                       },
+    "stopped_owned_processes":  [
+                                    {
+                                        "path":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+                                        "pid":  19296,
+                                        "created":  "2026-10-05T18:37:39.8721267Z",
+                                        "kind":  "web"
+                                    }
+                                ]
+}

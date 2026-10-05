@@ -1,0 +1,13 @@
+{
+  "stage": "正式安装文件摘要通过，模型功能另验",
+  "version": "0.2.76",
+  "source_commit": "34928536beeb00ac1153a99b5b1bfc4977de7d5d",
+  "source_snapshot_digest": "3d1941008f69bf057b06b35fb3701b333cc9a5123f34d3179f7060ed36534289",
+  "verified_file_count": 1150,
+  "msi_sha256": "f4b1c1466dde291d0e5480603795a16f5c55f8ec9b9e595b4c55b7dcaa68780b",
+  "msi_bytes": 276331138,
+  "web_sha256": "87b00126cec4ac1857d6cde70cd920bea158898fc93e3a5d72a9132f444d4645",
+  "shell_sha256": "533b4b551915f9076c24c26f33cbd029ba618acb1dd92542af541e2e262b7566",
+  "cli_output": "COOLZHU CODE Agent\n  Version          0.2.76\n  Git SHA          34928536beeb00ac1153a99b5b1bfc4977de7d5d\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-05\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help\n",
+  "package_safe": true
+}

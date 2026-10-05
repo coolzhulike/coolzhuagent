@@ -1,6 +1,6 @@
 # Devin 插件与 SKILL 接线：改动报告和测试交接
 
-日期：2026-10-06。本轮候选验证使用原真实 Devin `swe-2-medium` 会话；架构复审继续原 `claude-opus-5-5-high` 会话。安装版验证和 MSI 身份将在完成后补充；不能把当前 debug 候选截图当作正式安装通过。
+日期：2026-10-06。0.2.76 已经正常构建、安装，1150 个安装文件逐项核验，正式安装版完成真实 Devin `swe-2-medium` 的 DSH、原生插件和 SKILL 回归。架构复审继续原 `claude-opus-5-5-high` 会话，受该模型请求的远端额度／速率限制影响仍未完成。候选与安装版证据分开保存，不代表原整合计划全部验收完成。
 
 ## 功能与使用方法
 
@@ -42,11 +42,36 @@ MCP 已认证工具请求的逻辑拒绝现在返回 `isError=true` 的工具回
 | 原上下文 | 上述轮次以及正常后台重启 | 原 SWE 绑定 `veiled-anise` 不变，历史增量为 0；requested/effective 为 swe-2-medium | 候选通过 |
 | `DEVIN-DSH-NONPRIMARY-20261006` | 主配置 Opus、实际只发送 SWE，调用 `(31+9)*3` | 返回 120；父 run 主会话为 Opus，目标、工具 scope、审计与回复归属 SWE；一次 completed，7354ms，原远端与终态不变 | 候选通过 |
 | 旧失败回合停止与原会话续接 | 通过原运行停止接口登记停止意图，再发新的复审请求 | 原失败保持 unknown，drained=1、cancel_requested=1；原 fair-amaryllis 不变。新请求已越过本地阻塞，被远端 -32011 额度/速率限制拒绝；工具台账为零 | 本地恢复已验证，远端复审未完成 |
-| 未授权 DSH 与无延期审批 | 真实模型请求，被拒绝后不执行、不挂起，不留迟到执行入口 | 待补；源码检查不替代真实场景，当前受 Devin 额度/速率限制影响 | 未完成 |
+| 未授权 DSH 与无延期审批 | 真实模型请求，被拒绝后不执行、不挂起，不留迟到执行入口 | 待补；源码检查不替代真实场景。SWE 安装版请求当前正常，不能把 Opus 受限当作这一项已经验证 | 未完成 |
 
 DSH 来源为官方社区包 `@deepseek-ai/dsh-tool-calculator` 0.0.1，固定提交 `b2007a13f06bcf75bf07b9d277ee8d434a316490`，22 个源码文件。候选使用已有锁定 Node/SDK 运行时，经长度及 SHA256 验证；不依赖全局 Node 回退。
 
 协议没有独立返回服务端解析模型 ID，`resolved_model=null`；不将 requested/effective 冒称服务端独立确认。审计未保存完整工具输出正文，因此输出值同时以真实聊天室回复及实际宿主调用事实核对。
+
+## 正式安装版真实回归
+
+使用 `C:/Program Files/CoolzhuAgent/bin/` 的已安装二进制，在原独立验收工作区、8767 端口运行；原安全库保留。以下请求均由聊天页面正常发送，未使用模型回包夹具。
+
+| 标记 | 实际结果与耗时 | 宿主执行事实 |
+|---|---|---|
+| `DEVIN-INSTALLED-EXTENSIONS-20261006` | DSH `(27+10)*3` 返回 **111**；原生插件 `available=true`、`pythonAvailable=true`；16.4 秒 | 两个工具各一次，均 completed／审计 ok；DSH 1737ms，原生插件 589ms |
+| `DEVIN-INSTALLED-SKILL-20261006` | 选用真实工作流后，新表达式 `sqrt(144)+7*9` 返回“竹简回执／表达式／宿主结果：**75**”；10.2 秒 | DSH 一次 completed／审计 ok，1083ms；没有复述格式提示；随后在页面停用测试工作流 |
+| `DEVIN-INSTALLED-PLUGIN-DISABLED-20261006` | 页面停用计算器后，模型请求旧工具，被宿主明确拒绝；回复未执行；10.8 秒 | 工具台账与审计均为零，ACP 正常终态；恢复启用并完成下一轮后再次确认旧请求仍零执行 |
+| `DEVIN-INSTALLED-PLUGIN-REENABLED-20261006` | 原生控制台正常恢复启用，独立新任务 `(52-10)*2` 返回 **84**；18.3 秒 | 仅一次 DSH completed／审计 ok，849ms；不补执行停用期间的旧任务 |
+
+四轮目标均为原 SWE Agent，原远端绑定 `veiled-anise` 不变；历史增量为 0，ACP `terminal/end_turn/drained=1`，requested/effective 均为 `swe-2-medium`。正式控制台显示实际新回复，见[扩展与 SKILL 软件实拍](installed/installed-native-extension-and-skill.png)、[SKILL 页结果](installed/installed-skill-result.png)、[停用拒绝与恢复后新结果同屏](installed/installed-plugin-reenabled-native.png)及[原始事实摘要清单](installed/manifest.json)。没有使用旧候选回复截图冒称安装后执行。
+
+恢复启用时，外部浏览器自动化输入超时，先只读核对状态，没有盲目重复提交；原生控制台完成已有插件恢复的正常确认，随后真实模型新任务成功。软件本身仍正常。停止前撤销分支的零执行结果不能替代“未授权 DSH 无延期审批”或执行中取消、超时的验收。
+
+## Browser Use：150% 网页缩放正式实操
+
+`BU-INSTALLED-076-20261006-zoom150` 已通过，124.6 秒。基准 Windows DPI 为 150%（新页面 DPR=1.5）；主会话只辅助打开页面、聚焦空白区域和逐步设置网页缩放至 150%（DPR=2.25），没有代模型填写、勾选或提交。结束后恢复网页原缩放；前后辅助事件与模型运行期间事件分开归档。
+
+真实 SWE 只提交一次 `computer_use_perform`，7 步依次为聚焦点击、输入、三次滚动、勾选点击、提交点击。三次点击均 `sent/released`，其他动作 `sent/not_needed`，没有 ReleaseUnknown、重发或 Navigate。最终真实新观察确认 `FORM-PASSED-074`，`succeeded/goal_achieved=true`，标准 1/1。沿用 0.2.74 的真实 HTML 用例，所以页面标题和标记仍带 074；运行二进制确实是已核验的 0.2.76，不以页面标签冒称安装版本。
+
+本轮 15 次 ACP 请求均 `terminal/end_turn/drained=1`，requested/effective 为 `swe-2-medium`；外层聊天原 `veiled-anise` 绑定保持、历史增量为 0。[正式软件结果实拍](installed-browser/zoom-150-passed-native.png)、[150% 起点](installed-browser/zoom-150-before-native.png)、[执行中的顶部提示](installed-browser/zoom-150-active-native.png)、[宿主与网页原始事实](installed-browser/manifest.json)均已保留。顶部提示在执行结束后消失；窗口截图只证明该提示，不冒称已经覆盖整个桌面四边泛光的所有显示器场景。
+
+严格 `down → 整页文档替换 → up` 仍未命中。源码的点击在同一 UI 闭包连续入队按下与释放，原网页测试 pagehide 发生在 up 之后；不为了触发测试而延迟生产释放。新增的 150% 组合不替代这一项，也不覆盖多屏或双指缩放。
 
 ## 保留失败与复审
 
@@ -64,12 +89,20 @@ DSH 来源为官方社区包 `@deepseek-ai/dsh-tool-calculator` 0.0.1，固定�
 
 ## 仍需针对性验收的边界
 
-- 正式 MSI 安装、随附插件同步及安装后 DSH/SKILL/原生插件真实调用。
-- 插件停用撤销、卸载、配置变化、取消、超时的完整生命周期；现有底层测试不能替代所有真实页面场景。
+- 插件停用后的拒绝、重新启用后的新调用、旧请求未迟到执行已通过；卸载、配置变化、执行中撤销、取消和超时的完整生命周期仍待补。
 - Devin Goal、Relay、附件还未开放；完整记忆操作、精确模型切换、账号过期、异常退出恢复仍待验收。
-- Browser 严格按住 → 整页导航 → 释放竞争及更多屏幕缩放组合；不得用普通同文档导航测试替代。Paint 基础笔画沿用既有通过记录，不要求完整人物。
+- Browser 严格按住 → 整页导航 → 释放竞争、多屏、双指缩放及其它缩放组合；125% 旧安装版与 150% 本轮安装版已分别有真实验收，不代表所有组合。Paint 基础笔画沿用既有通过记录，不要求完整人物。
 - 侧栏全量、更新下载安装重启、开机跳过与减少动画边界、整合计划总审核仍有遗留。微信原功能保留，不改动、不测试。
+- Devin 登录后的健康诊断仍按传统 HTTP API Key 检查，可能误报缺少密钥；真实登录与 SWE 调用正常。需要按 Provider 的实际认证方式接入健康页，不能用随机 Key 掩盖问题。
 
 ## 发布与证据
 
-当前为候选阶段，尚未生成本轮 MSI，尚未确认安装版通过，也尚未上传新发布。完成后在本节登记源码提交、输入快照、MSI 摘要、安装版截图和 PR 检查结果。
+- MSI 源码提交：`34928536beeb00ac1153a99b5b1bfc4977de7d5d`；源码快照：`3d1941008f69bf057b06b35fb3701b333cc9a5123f34d3179f7060ed36534289`。后续文档提交不冒称 MSI 源码提交。
+- 包名 `CoolzhuAgent-0.2.76.msi`，276331138 字节，SHA256：`f4b1c1466dde291d0e5480603795a16f5c55f8ec9b9e595b4c55b7dcaa68780b`。桌面仓库 `dist/` 副本与工作树构建产物相同。
+- 正常发布流程执行六项既有 gate，`release_eligible=true`、`package_safe=true`；1150 个负载文件逐项核对长度和摘要。Web SHA256 为 `87b00126cec4ac1857d6cde70cd920bea158898fc93e3a5d72a9132f444d4645`；Shell 源码未改，由正常构建收据允许复用原 producer 产物。
+- 首次普通安装失败 1603，日志显示旧版移除需要管理员权限 1730；保留失败收据。随后走 Windows 正常管理员更新流程，MSI 返回 0；没有更改 UAC 或 Windows 安全配置。完整日志保留在 `tmp/`，这里只归档收据与日志摘要。
+- 安装后 1150 个 Program Files 文件均与负载匹配，CLI 和[正式软件更新页](installed/installed-version.png)显示 0.2.76；正常桌面入口自检通过，原日常工作区 `C:/Users/zhupu/coolzhuagent` 与原安全库保持。日常 Qwen 选择只作为用户环境保留，没有用于本轮验收。
+- [构建收据](evidence/build-identity/)、[负载核验](installed/package-076-verification.json)、[安装核验](installed/installed-076-verification.json)、[日常启动自检](installed/daily-076-selfcheck.json)。构建收据中的“尚未安装”是构建时记录，后续安装事实以独立收据为准。
+- 验收结束后正常关闭独立窗口，只按记录的 EXE 路径和创建时间停止本轮后台；本轮网页服务已退出。原日常入口 8765 已恢复，[恢复后自检](installed/restored-daily-selfcheck.json)确认原工作区、安全库和源码349保持；没有停止其它项目服务。
+- [PR #81](https://github.com/coolzhulike/coolzhuagent/pull/81) 已合入先前 0.2.75 上下文版本，合并时 HEAD 为 fc306ed；本轮插件源码349不在该合入范围，将由接续 PR 承接。源码 349 的 [Web console baseline](https://github.com/coolzhulike/coolzhuagent/actions/runs/37356300855/job/111919454598) 已通过。后续文档提交另按最终 HEAD 检查。
+- GitHub 0.2.76 草稿发布的四项分发资产已经上传，大小与服务端 SHA256 均匹配；公开发布前核对接续 PR 与发布说明。不将现有正向结果扩展为完整验收。
