@@ -1,0 +1,32 @@
+{"kind": "load", "document_id": "977a5d1f-dae5-4d4c-bbc0-7d5d7d92b205", "path": "/boundary.html", "page_ms": 1791168373570, "visibility": "visible", "server_ms": 1791168373575}
+{"kind": "pointerdown", "value": {"trusted": true}, "document_id": "977a5d1f-dae5-4d4c-bbc0-7d5d7d92b205", "path": "/boundary.html", "page_ms": 1791168433866, "visibility": "visible", "server_ms": 1791168433869}
+{"kind": "handler_finished", "document_id": "977a5d1f-dae5-4d4c-bbc0-7d5d7d92b205", "path": "/boundary.html", "page_ms": 1791168435471, "visibility": "visible", "server_ms": 1791168435475}
+{"kind": "pointerup", "value": {"trusted": true}, "document_id": "977a5d1f-dae5-4d4c-bbc0-7d5d7d92b205", "path": "/boundary.html", "page_ms": 1791168435472, "visibility": "visible", "server_ms": 1791168435478}
+{"kind": "click", "value": {"count": 1, "trusted": true}, "document_id": "977a5d1f-dae5-4d4c-bbc0-7d5d7d92b205", "path": "/boundary.html", "page_ms": 1791168435473, "visibility": "visible", "server_ms": 1791168435478}
+{"kind": "input", "value": "SWE2-BOUNDARY-A", "document_id": "977a5d1f-dae5-4d4c-bbc0-7d5d7d92b205", "path": "/boundary.html", "page_ms": 1791168472765, "visibility": "visible", "server_ms": 1791168472769}
+{"kind": "pagehide", "document_id": "977a5d1f-dae5-4d4c-bbc0-7d5d7d92b205", "path": "/boundary.html", "page_ms": 1791168535514, "visibility": "visible", "server_ms": 1791168535517}
+{"kind": "visibilitychange", "document_id": "977a5d1f-dae5-4d4c-bbc0-7d5d7d92b205", "path": "/boundary.html", "page_ms": 1791168535515, "visibility": "hidden", "server_ms": 1791168535520}
+{"kind": "load", "document_id": "8be8b6af-cf86-445e-820f-0d4b10186ffe", "path": "/boundary.html", "page_ms": 1791168535522, "visibility": "visible", "server_ms": 1791168535533}
+{"kind": "pointerdown", "value": {"trusted": true}, "document_id": "8be8b6af-cf86-445e-820f-0d4b10186ffe", "path": "/boundary.html", "page_ms": 1791168754669, "visibility": "visible", "server_ms": 1791168754671}
+{"kind": "handler_finished", "document_id": "8be8b6af-cf86-445e-820f-0d4b10186ffe", "path": "/boundary.html", "page_ms": 1791168756273, "visibility": "visible", "server_ms": 1791168756276}
+{"kind": "click", "value": {"count": 1, "trusted": true}, "document_id": "8be8b6af-cf86-445e-820f-0d4b10186ffe", "path": "/boundary.html", "page_ms": 1791168756274, "visibility": "visible", "server_ms": 1791168756277}
+{"kind": "pointerup", "value": {"trusted": true}, "document_id": "8be8b6af-cf86-445e-820f-0d4b10186ffe", "path": "/boundary.html", "page_ms": 1791168756273, "visibility": "visible", "server_ms": 1791168756277}
+{"kind": "visibilitychange", "document_id": "8be8b6af-cf86-445e-820f-0d4b10186ffe", "path": "/boundary.html", "page_ms": 1791168765317, "visibility": "hidden", "server_ms": 1791168765320}
+{"kind": "pagehide", "document_id": "8be8b6af-cf86-445e-820f-0d4b10186ffe", "path": "/boundary.html", "page_ms": 1791168765322, "visibility": "hidden", "server_ms": 1791168765332}
+{"kind": "load", "document_id": "847dae7c-1df2-4c87-a320-67a29e6d9087", "path": "/boundary.html", "page_ms": 1791169046083, "visibility": "visible", "server_ms": 1791169046087}
+{"kind": "pointerdown", "value": {"trusted": true}, "document_id": "847dae7c-1df2-4c87-a320-67a29e6d9087", "path": "/boundary.html", "page_ms": 1791169112945, "visibility": "visible", "server_ms": 1791169112949}
+{"kind": "handler_finished", "document_id": "847dae7c-1df2-4c87-a320-67a29e6d9087", "path": "/boundary.html", "page_ms": 1791169114551, "visibility": "visible", "server_ms": 1791169114555}
+{"kind": "click", "value": {"count": 1, "trusted": true}, "document_id": "847dae7c-1df2-4c87-a320-67a29e6d9087", "path": "/boundary.html", "page_ms": 1791169114553, "visibility": "visible", "server_ms": 1791169114559}
+{"kind": "pointerup", "value": {"trusted": true}, "document_id": "847dae7c-1df2-4c87-a320-67a29e6d9087", "path": "/boundary.html", "page_ms": 1791169114552, "visibility": "visible", "server_ms": 1791169114557}
+{"kind": "visibilitychange", "document_id": "847dae7c-1df2-4c87-a320-67a29e6d9087", "path": "/boundary.html", "page_ms": 1791169307202, "visibility": "hidden", "server_ms": 1791169307208}
+{"kind": "load", "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169502480, "visibility": "visible", "server_ms": 1791169502485}
+{"kind": "pointerdown", "value": {"trusted": true}, "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169526602, "visibility": "visible", "server_ms": 1791169526605}
+{"kind": "handler_finished", "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169528207, "visibility": "visible", "server_ms": 1791169528209}
+{"kind": "pointerup", "value": {"trusted": true}, "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169528208, "visibility": "visible", "server_ms": 1791169528210}
+{"kind": "click", "value": {"count": 1, "trusted": true}, "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169528208, "visibility": "visible", "server_ms": 1791169528214}
+{"kind": "pointerdown", "value": {"trusted": true}, "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169610421, "visibility": "visible", "server_ms": 1791169610423}
+{"kind": "handler_finished", "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169612025, "visibility": "visible", "server_ms": 1791169612028}
+{"kind": "pointerup", "value": {"trusted": true}, "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169612026, "visibility": "visible", "server_ms": 1791169612031}
+{"kind": "click", "value": {"count": 2, "trusted": true}, "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791169612026, "visibility": "visible", "server_ms": 1791169612032}
+{"kind": "pagehide", "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791170181604, "visibility": "visible", "server_ms": 1791170181608}
+{"kind": "visibilitychange", "document_id": "516026a0-6594-47c3-a28b-f02514d31004", "path": "/boundary.html", "page_ms": 1791170181605, "visibility": "hidden", "server_ms": 1791170181616}

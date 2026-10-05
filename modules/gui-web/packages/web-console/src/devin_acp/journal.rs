@@ -361,11 +361,16 @@ impl Journal {
             .map_err(|_| fail("ACP 模型回执提交失败，不能发送任务。"))
     }
 
-    /// 只记录模型配置和初始化能力投影；不保存 MCP 地址、Authorization 或其它原文。
+    /// 只记录配置/能力投影和提示大小计数；不保存 MCP 地址、图片、Authorization 或其它原文。
     pub(super) fn save_config_receipt(
         &self, scope: &ExecutionScope, stage: &str, receipt: &serde_json::Value,
     ) -> Result<(), String> {
-        if !matches!(stage, "initial" | "selected" | "capabilities") { return Err(fail("ACP 配置回执阶段无效。")); }
+        if !matches!(stage, "initial" | "selected" | "capabilities" | "prompt_payload") { return Err(fail("ACP 配置回执阶段无效。")); }
+        if stage == "prompt_payload" && !receipt.as_object().is_some_and(|object|
+            object.len() == 3 && ["serialized_bytes","image_count","outgoing_limit_bytes"].iter()
+                .all(|key| object.get(*key).is_some_and(|value| value.as_u64().is_some()))) {
+            return Err(fail("ACP 提示大小回执仅允许数字计数。"));
+        }
         let encoded = serde_json::to_string(receipt).map_err(|_| fail("ACP 配置回执编码失败。"))?;
         if encoded.len() > 512 * 1024 { return Err(fail("ACP 配置回执超过限额。")); }
         let mut connection = self.connection()?;

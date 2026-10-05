@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续讨论 Browser 优先的阻塞方案；仅审查建议，不操作桌面，不改文件，不运行测试，不使用子代理。当前源码仍438f6ec，repository/为同提交快照，可使用既有宿主只读工具。\n新真实事实：SWE-2 A在右栏原生网页真实点击次数0到1、输入指定文本，3个动作成功无隔离。B提示仅写“浏览器关闭测试…右栏关闭”，没有连续的右栏浏览器/右栏网页词，ComputerUseTurnScope::from_current_user未认native，随后外部BrowserNativeBridge::preflight返回extension_unavailable，0输入；页面实际仍可见。C明确右栏原生浏览器，1次click sent/released后关闭，verification报native_browser_panel_unavailable，无后续text，无重发。服务器pointerdown=1791168754671、up=1791168756277；主会话关闭操作请求=1791168765107，真正隐藏=1791168765320，不能计down/up竞争通过。页面自己1600ms按下处理，生产输入没加延时。\n测试执行工具要求先观察、返回截图/元素给主会话检视，再下一工具调用输入。调用往返延迟约10秒，因此不能用这一执行方式可靠命中1.6秒微区间。不要建议20次机械刷或把unknown当通过，也不要伪造模型回包、篡改安全库或放宽3秒释放deadline。可考虑普通测试页面真实事件引发合法页面导航等自然行为，但须区分模型实际触发与主会话辅助事件。\n请给出两项可落地决策：1 原生/外部浏览器路由应继续扩关键词还是使用当前聊天页面的结构化显式后端选择，并保留用户明确外部浏览器意图、工程/room冻结和权限独立；指出最小文件与兼容步骤。2 页面导航与在途down/up真实竞争可如何合法有界实操、源码需修哪块。你之前审过native_browser_input.rs同闭包同时排down/up、browser_panel.rs用户导航没取execution_gate；请继续明确隐藏立即+退役等释放与导航延后/撤销的区别，不断言未观测的事故。\n另Paint真实UIA里实际绘图区是组“在画布上使用 画笔 工具”，automation_id=image，而现canvas_element匹配Document/Image或canvas/name画布。canvas_rect是整个客户区含toolbar；旧归一化契约保留。当前原图已有旧粗略人物无腿和中间横线，不能拿它当本轮新增。请给桌面桥提供可选draw_region候选+来源/坐标空间，规划引用当前画布UIArect，本轮baseline验收与上一步progress分离的最小建议。没有draw_region不能通用阻塞原图观察；不可自动生成固定Paint动作。\n最后列采纳风险及真实验收门槛，最多2000中文，未读/未实测明确注明。",
+  "selected_message_ids": [],
+  "attachments": []
+}

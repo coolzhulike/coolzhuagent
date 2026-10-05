@@ -8,7 +8,7 @@ use crate::computer_use_adapters::{BrowserBridge, BrowserSnapshot};
 pub(super) struct NativePanelReadBridge {
     parent: crate::FrozenParentContext,
     cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
-    navigation: Mutex<Option<AuthorizedNavigation>>,
+    provenance: Mutex<Option<PageProvenance>>,
 }
 
 /// 仅由本适配器已结算的真实导航回执创建；模型动作/页面不能写入此来源记录。
@@ -26,9 +26,85 @@ impl AuthorizedNavigation {
     }
 }
 
+/// 记录已结算输入的观察来源，不把“输入之后变页”声明为导航因果或输入授权。
+#[derive(Clone,serde::Serialize,serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct SettledInputSource {
+    pub original_url:String, pub host_id:String, pub resource:PanelResource,
+    pub url:String, pub document_token:String, pub input_request_id:String,
+}
+impl SettledInputSource {
+    fn observes(&self,page:&serde_json::Value) -> Option<ObservedInputTransition> {
+        let url=page["url"].as_str()?;
+        let token=page["document_token"].as_str()?;
+        if !self.resource.valid_shape() || self.host_id.is_empty()
+            || !native_browser_protocol::valid_navigation_url(&self.original_url)
+            || !native_browser_protocol::valid_navigation_url(&self.url)
+            || !native_browser_protocol::opaque_id(&self.document_token)
+            || !native_browser_protocol::opaque_id(&self.input_request_id)
+            || !native_browser_protocol::valid_navigation_url(url) || !native_browser_protocol::opaque_id(token)
+            || page["host_id"]!=self.host_id || page["workspace_path"]!=self.resource.workspace_path
+            || page["room_id"]!=self.resource.room_id || page["resource"]!=self.resource.label
+            || page["generation"]!=self.resource.generation || page["navigation_revision"]!=self.resource.navigation_revision {
+            return None;
+        }
+        Some(ObservedInputTransition {source:self.clone(),url:url.into(),document_token:token.into()})
+    }
+}
+
+#[derive(Clone,serde::Serialize,serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct ObservedInputTransition {
+    pub source:SettledInputSource, pub url:String, pub document_token:String,
+}
+impl ObservedInputTransition {
+    pub(super) fn matches_page(&self,page:&serde_json::Value) -> bool {
+        self.source.observes(page).is_some() && page["url"]==self.url && page["document_token"]==self.document_token
+    }
+}
+
+#[derive(Clone)]
+enum PageProvenance {
+    Navigation(AuthorizedNavigation),
+    InputPending(SettledInputSource),
+    InputObserved(ObservedInputTransition),
+}
+impl PageProvenance {
+    /// 第一次文档或URL变化后固定终点；未变页的待定来源在下一动作前也封闭。
+    /// 同文档SPA的URL变化同样需要来源与新鲜节点，不能只支持整页重载。
+    fn confirm(&mut self,page:&serde_json::Value,close_pending:bool) -> bool {
+        match self {
+            Self::Navigation(nav)=>nav.matches_page(page),
+            Self::InputObserved(observed)=>observed.matches_page(page),
+            Self::InputPending(source)=>{
+                let Some(observed)=source.observes(page) else {return false;};
+                if close_pending || observed.url!=source.url || observed.document_token!=source.document_token {
+                    *self=Self::InputObserved(observed);
+                }
+                true
+            }
+        }
+    }
+    fn original_url(&self) -> &str {
+        match self {Self::Navigation(nav)=>&nav.original_url,
+            Self::InputPending(source)=>&source.original_url,Self::InputObserved(observed)=>&observed.source.original_url}
+    }
+    fn annotate(&self,page:&mut serde_json::Value) -> Result<(),serde_json::Error> {
+        match self {
+            Self::Navigation(nav)=>page["authorized_navigation"]=serde_json::to_value(nav)?,
+            Self::InputObserved(observed)=>page["observed_input_transition"]=serde_json::to_value(observed)?,
+            // Pending不序列化；原页未变化时只回传这次真实观察与已结算来源的对应关系。
+            Self::InputPending(source)=>if let Some(observed)=source.observes(page) {
+                page["observed_input_transition"]=serde_json::to_value(observed)?;
+            },
+        }
+        Ok(())
+    }
+}
+
 impl NativePanelReadBridge {
     pub(super) fn new(parent: crate::FrozenParentContext, cancelled: Arc<dyn Fn() -> bool + Send + Sync>) -> Self {
-        Self {parent, cancelled,navigation:Mutex::new(None)}
+        Self {parent, cancelled,provenance:Mutex::new(None)}
     }
 }
 
@@ -72,6 +148,15 @@ impl BrowserBridge for NativePanelReadBridge {
         let target=PanelClickTarget {observation_id:expected.state["observation_id"].as_str().unwrap_or_default().into(),
             document_token:expected.state["document_token"].as_str().unwrap_or_default().into(),node_id:node.into()};
         if !known || !target.valid_shape() { return Err(reject("native_browser_target_invalid","节点不属于原始规划观察".into())); }
+        let original_url={
+            let mut history=self.provenance.lock().map_err(|_|reject("native_browser_unavailable","页面来源状态不可用".into()))?;
+            if let Some(origin)=history.as_mut() {
+                if !origin.confirm(&expected.state,true) {
+                    return Err(reject("native_browser_navigation_changed","页面与上一已结算动作的观察来源不符".into()));
+                }
+                origin.original_url().to_string()
+            } else {expected.url.clone()}
+        };
         let (host_id,process)=crate::native_browser_host::input_process(&self.parent,&resource).map_err(|code|reject(&code,"面板宿主身份或资源已变化".into()))?;
         let command=match kind {
             PanelInputKind::Scroll=>{let (direction,amount)=scroll.unwrap();PanelInputCommand::PrepareScroll {target:target.clone(),direction,amount}},
@@ -128,17 +213,21 @@ impl BrowserBridge for NativePanelReadBridge {
         }
         if kind==PanelInputKind::Navigate {
             let navigation=reply.navigation.ok_or_else(||ComputerUseError::blocked("native_browser_navigation_receipt_missing","导航回执缺少确切目标资源",ComputerUseRetryOwner::None).with_receipt(receipt.clone()))?;
-            let mut history=self.navigation.lock().map_err(|_|ComputerUseError::blocked("native_browser_unavailable","导航来源状态不可用",ComputerUseRetryOwner::None).with_receipt(receipt.clone()))?;
-            let original_url=history.as_ref().filter(|old|old.matches_page(&expected.state)).map_or_else(||expected.url.clone(),|old|old.original_url.clone());
-            *history=Some(AuthorizedNavigation {original_url,host_id,source:resource,receipt:navigation});
+            let mut history=self.provenance.lock().map_err(|_|ComputerUseError::blocked("native_browser_unavailable","导航来源状态不可用",ComputerUseRetryOwner::None).with_receipt(receipt.clone()))?;
+            *history=Some(PageProvenance::Navigation(AuthorizedNavigation {original_url,host_id,source:resource,receipt:navigation}));
+        } else if matches!(kind,PanelInputKind::Click|PanelInputKind::Keys|PanelInputKind::Text) {
+            let mut history=self.provenance.lock().map_err(|_|ComputerUseError::blocked("native_browser_unavailable","输入来源状态不可用",ComputerUseRetryOwner::None).with_receipt(receipt.clone()))?;
+            *history=Some(PageProvenance::InputPending(SettledInputSource {original_url,host_id,resource,
+                url:expected.url.clone(),document_token:expected.state["document_token"].as_str().unwrap_or_default().into(),
+                input_request_id:reply.request_id.clone()}));
         }
         Ok(StepExecution {input_sent:true,summary:if no_held_input {"宿主确认一次有界动作投递；本动作无按住输入，实际文本、滚动或导航目标须重新观察"} else {"宿主已确认本次点击或按键的按下和释放；网页目标仍需重新观察验收"}.into(),
             evidence:vec![format!("native-input:{}",reply.request_id)],partial:Some(false),input_release_status:Some(if no_held_input {StepInputReleaseStatus::NotNeeded} else {StepInputReleaseStatus::Released}),receipt:Some(receipt),..StepExecution::default()})
     }
     fn snapshot(&self, remaining: Duration) -> Result<BrowserSnapshot, ComputerUseError> {
         let started=std::time::Instant::now();
-        let navigation=self.navigation.lock().map_err(|_|ComputerUseError::blocked("native_browser_unavailable","导航来源状态不可用",ComputerUseRetryOwner::None))?.clone();
-        if let Some(navigation)=&navigation {
+        let provenance=self.provenance.lock().map_err(|_|ComputerUseError::blocked("native_browser_unavailable","页面来源状态不可用",ComputerUseRetryOwner::None))?.clone();
+        if let Some(PageProvenance::Navigation(navigation))=&provenance {
             // 仅等待已派发导航的新资源载入；不重放动作，不把旧页面借作新观察。
             let limit=remaining.min(Duration::from_secs(8));
             loop {
@@ -152,12 +241,18 @@ impl BrowserBridge for NativePanelReadBridge {
             crate::native_browser_host::observe(&self.parent, remaining.saturating_sub(started.elapsed()), self.cancelled.as_ref())
             .map_err(|code| {
                 let message = match code.as_str() {
+                    "native_observation_cancelled" => "本轮已停止；已经投递的输入事实保留，不继续观察或派发后续动作",
                     "native_browser_host_unavailable" => "内置浏览器桌面宿主尚未连接",
                     "native_browser_panel_unavailable" => "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
                     "native_browser_resource_changed" => "内置网页的聊天室、工程、可见状态或连接已变化；本次没有发送输入",
                     _ => "内置浏览器观察不可用或环境已变化",
                 };
-                ComputerUseError::blocked(code, message, ComputerUseRetryOwner::User)
+                let retry_owner = if code == "native_observation_cancelled" {
+                    ComputerUseRetryOwner::None
+                } else {
+                    ComputerUseRetryOwner::User
+                };
+                ComputerUseError::blocked(code, message, retry_owner)
             })?;
         let readonly=self.parent.computer_use_turn_scope.native_browser_read_only();
         let elements=if readonly {Vec::new()} else {observed.node_handles.iter().map(|handle|serde_json::json!({
@@ -179,10 +274,16 @@ impl BrowserBridge for NativePanelReadBridge {
             evidence:vec![format!("native-ax:{}:{}", resource.generation, resource.navigation_revision),
                 format!("native-observation:{request_id}")],
         };
-        if let Some(navigation)=navigation {
-            if !navigation.matches_page(&snapshot.state) {return Err(ComputerUseError::blocked("native_browser_navigation_changed","实际页面与本次已授权导航目标不符",ComputerUseRetryOwner::User));}
-            snapshot.state["authorized_navigation"]=serde_json::to_value(navigation)
-                .map_err(|_|ComputerUseError::blocked("native_browser_unavailable","导航来源无法编码",ComputerUseRetryOwner::None))?;
+        let mut history=self.provenance.lock().map_err(|_|ComputerUseError::blocked("native_browser_unavailable","页面来源状态不可用",ComputerUseRetryOwner::None))?;
+        // 输入后的二次自发变页撤销来源认证，仍可观察；不能借旧来源继续认证或执行动作。
+        // 正式导航的宿主回执不变，错资源仍由宿主身份核验与正式导航约束拒绝。
+        if history.as_mut().is_some_and(|origin| !matches!(origin,PageProvenance::Navigation(_)) && !origin.confirm(&snapshot.state,false)) {
+            *history=None;
+        }
+        if let Some(origin)=history.as_mut() {
+            if !origin.confirm(&snapshot.state,false) {return Err(ComputerUseError::blocked("native_browser_navigation_changed","实际页面与本轮已结算来源的资源或文档不符",ComputerUseRetryOwner::User));}
+            origin.annotate(&mut snapshot.state)
+                .map_err(|_|ComputerUseError::blocked("native_browser_unavailable","页面来源无法编码",ComputerUseRetryOwner::None))?;
         }
         Ok(snapshot)
     }
@@ -195,5 +296,33 @@ impl BrowserBridge for NativePanelReadBridge {
     fn verify(&self, _criteria: &[String], before: &Observation, after: &Observation, _remaining: Duration) -> Result<Verification, ComputerUseError> {
         Ok(Verification {achieved:false, visible_progress:before.state != after.state,
             summary:"页面变化仅作为观察证据；任务是否达成由本轮目标验证器核验".into(), evidence:after.evidence.clone()})
+    }
+}
+
+#[cfg(test)]
+mod provenance_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn pending_input_closes_before_next_action_and_fixed_destination_cannot_drift() {
+        let source=SettledInputSource {original_url:"https://origin.invalid/".into(),host_id:"host-one".into(),
+            resource:PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:3},
+            url:"https://origin.invalid/".into(),document_token:"a".repeat(32),input_request_id:"1".repeat(32)};
+        let mut page=json!({"host_id":"host-one","workspace_path":"workspace","room_id":"room-1","resource":"browser-panel-1",
+            "generation":1,"navigation_revision":3,"url":"https://origin.invalid/","document_token":"a".repeat(32)});
+        let mut pending=PageProvenance::InputPending(source.clone());
+        assert!(pending.confirm(&page,false));
+        assert!(matches!(pending,PageProvenance::InputPending(_)));
+        assert!(pending.confirm(&page,true));
+        page["url"]=json!("https://destination.invalid/");
+        page["document_token"]=json!("b".repeat(32));
+        assert!(!pending.confirm(&page,false),"下一动作前已封闭旧来源，不能把之后的变化归到旧输入");
+        let mut pending=PageProvenance::InputPending(source);
+        assert!(pending.confirm(&page,false),"同面板HTTP(S)跨站观察不另加输入权限");
+        assert!(matches!(pending,PageProvenance::InputObserved(_)));
+        assert_eq!(pending.original_url(),"https://origin.invalid/");
+        page["document_token"]=json!("c".repeat(32));
+        assert!(!pending.confirm(&page,false),"固定后不能追认再次换页");
     }
 }

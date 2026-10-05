@@ -16,6 +16,39 @@ use tokio::{
 
 const MAX_NOTIFICATIONS: usize = 16_384;
 const MAX_TEXT_BYTES: usize = 8 * 1024 * 1024;
+// 入站仍保持 1 MiB；原图多帧提示仅扩大出站图片请求，不影响工具消息或握手。
+const MAX_IMAGE_PROMPT_BYTES: usize = 8 * 1024 * 1024;
+
+fn prompt_image_count(value: &Value) -> usize {
+    if value["method"] != "session/prompt" { return 0; }
+    value.pointer("/params/prompt").and_then(Value::as_array).map_or(0, |blocks| {
+        if blocks.iter().any(|block| match block["type"].as_str() {
+            Some("text") => block["text"].as_str().is_none_or(|text| text.trim().is_empty()),
+            Some("image") => !matches!(block["mimeType"].as_str(), Some("image/png" | "image/jpeg" | "image/webp"))
+                || block["data"].as_str().is_none_or(str::is_empty),
+            _ => true,
+        }) { return 0; }
+        blocks.iter().filter(|block| block["type"] == "image").count()
+    })
+}
+
+fn outgoing_limit(value: &Value) -> usize {
+    if prompt_image_count(value) > 0 { MAX_IMAGE_PROMPT_BYTES } else { MAX_FRAME_BYTES }
+}
+
+fn validate_outgoing_bytes(value: &Value, bytes: &[u8]) -> io::Result<()> {
+    let text_bytes = value.pointer("/params/prompt").and_then(Value::as_array).map_or(0, |blocks|
+        blocks.iter().filter_map(|block| block["text"].as_str()).fold(0usize, |total, text| total.saturating_add(text.len())));
+    if value["method"] == "session/prompt" && text_bytes >= MAX_FRAME_BYTES {
+        return Err(invalid("ACP 提示文本超过本地 1 MiB 限制；未发送。"));
+    }
+    if bytes.len() >= outgoing_limit(value) {
+        return Err(invalid(if prompt_image_count(value) > 0 {
+            "ACP 图片提示超过本地 8 MiB 出站限制；未发送。"
+        } else { "ACP 请求超过本地 1 MiB 出站限制；未发送。" }));
+    }
+    Ok(())
+}
 
 fn invalid(message: &str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, message.to_owned())
@@ -190,9 +223,7 @@ impl<W: AsyncWrite + Unpin> SessionTransport<W> {
             return Err(invalid("ACP 连接已失效。"));
         }
         let mut bytes = serde_json::to_vec(value)?;
-        if bytes.len() >= MAX_FRAME_BYTES {
-            return Err(invalid("ACP 请求超出大小限制。"));
-        }
+        validate_outgoing_bytes(value, &bytes)?;
         bytes.push(b'\n');
         self.writer.write_all(&bytes).await?;
         self.writer.flush().await
@@ -492,9 +523,15 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
             _ => true,
         }) { return Err(invalid("ACP 提示内容无效或当前连接未声明图片能力；未发送。")); }
         let params = json!({"sessionId":self.remote,"prompt":content});
-        if serde_json::to_vec(&params)?.len() > MAX_FRAME_BYTES - 128 {
-            return Err(invalid("ACP 提示词为空或超过大小限制。"));
-        }
+        let id = self.transport.id()?;
+        let envelope = json!({"jsonrpc":"2.0","id":id,"method":"session/prompt","params":params});
+        let encoded = serde_json::to_vec(&envelope)?;
+        // 只记录大小/数量，禁止记录截图、提示正文或账号信息；超限仍是 prepared→not_sent。
+        self.journal.save_config_receipt(&self.scope, "prompt_payload", &json!({
+            "serialized_bytes":encoded.len(),"image_count":prompt_image_count(&envelope),
+            "outgoing_limit_bytes":outgoing_limit(&envelope)
+        })).map_err(|e|invalid(&e))?;
+        validate_outgoing_bytes(&envelope, &encoded)?;
         if cancellation.is_requested() || tokio::time::Instant::now() >= self.deadline {
             self.journal
                 .request_cancel(&self.scope)
@@ -507,7 +544,6 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
                 "ACP 提交前已取消或超时。",
             ));
         }
-        let id = self.transport.id()?;
         self.journal
             .transition(&self.scope, &["prepared"], "submitted", None, true)
             .map_err(|e| invalid(&e))?;
@@ -699,6 +735,25 @@ fn emit(
 mod tests {
     use super::super::journal::tests::{scope, setup};
     use super::*;
+    #[test]
+    fn image_prompt_capacity_does_not_expand_other_frames_or_text() {
+        let mut prompt = json!({"jsonrpc":"2.0","id":1,"method":"session/prompt","params":{"sessionId":"actual","prompt":[
+            {"type":"text","text":"本轮图像比较"},{"type":"image","mimeType":"image/png","data":"A".repeat(MAX_FRAME_BYTES)}]}});
+        let encoded = serde_json::to_vec(&prompt).unwrap();
+        assert!(encoded.len() > MAX_FRAME_BYTES);
+        assert!(validate_outgoing_bytes(&prompt, &encoded).is_ok());
+        assert_eq!(prompt_image_count(&prompt), 1);
+        assert!(validate_outgoing_bytes(&prompt, &vec![0;MAX_IMAGE_PROMPT_BYTES]).is_err());
+        prompt["method"] = json!("session/update");
+        assert!(validate_outgoing_bytes(&prompt, &encoded).is_err());
+        prompt["method"] = json!("session/prompt");
+        prompt["params"]["prompt"][1]["mimeType"] = json!("invalid/type");
+        assert!(validate_outgoing_bytes(&prompt, &encoded).is_err());
+        prompt["params"]["prompt"][1]["mimeType"] = json!("image/png");
+        prompt["params"]["prompt"][0]["text"] = json!("A".repeat(MAX_FRAME_BYTES));
+        assert!(validate_outgoing_bytes(&prompt, &serde_json::to_vec(&prompt).unwrap()).is_err());
+        assert_eq!(MAX_FRAME_BYTES, 1024 * 1024);
+    }
     use tokio::io::{BufReader, DuplexStream, ReadHalf, WriteHalf};
     type Reader = BufReader<ReadHalf<DuplexStream>>;
     type Writer = WriteHalf<DuplexStream>;

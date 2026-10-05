@@ -1,0 +1,23 @@
+{
+  "input_safety_root_unchanged": "C:/Users/zhupu/AppData/Local/CoolzhuAgent/input-safety",
+  "debug_web_stopped": 33296,
+  "formal_launcher_pid": 25080,
+  "owned_test_servers_stopped": true,
+  "at_utc": "2026-10-05T03:36:35.9772293Z",
+  "config_restored_byte_for_byte": true,
+  "debug_shell_normally_closed": true,
+  "formal_launcher": "C:/Program Files/CoolzhuAgent/COOLZHU-AGENT.exe",
+  "gui_backup_restored_byte_for_byte": true,
+  "formal_selfcheck_ok": true,
+  "formal_web_pid": 26528,
+  "formal_shell_pid": 9464,
+  "formal_workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+  "formal_build": "49d0a1b6d5e5 · 2026-10-04",
+  "formal_health_summary": {
+    "status": "warn",
+    "ok": 10,
+    "warn": 1,
+    "error": 0
+  },
+  "gui_url_after_formal_launcher": "http://127.0.0.1:8765"
+}

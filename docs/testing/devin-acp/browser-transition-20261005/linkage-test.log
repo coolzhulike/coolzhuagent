@@ -1,0 +1,47 @@
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+   Compiling coolzhu-computer-use-core v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\computer-use\packages\computer-use-core)
+   Compiling coolzhu-agent-workspace v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.48s
+     Running tests\module_linkage_smoke.rs (target\debug\deps\module_linkage_smoke-74628a70fbd7ce7e.exe)
+
+running 8 tests
+test computer_use_anchor_matrix_is_available_from_root_workspace ... ok
+test runtime_session_message_type_is_available_from_root_workspace ... ok
+test vision_grounding_parser_is_available_from_root_workspace ... ok
+test server_app_can_be_constructed_from_root_workspace ... ok
+test frame_binding_is_wired_at_the_mapping_point_and_does_not_replace_window_identity ... ok
+test web_console_test_code_writes_process_env_only_through_the_shared_guard ... ok
+test test_environment_writes_are_paired_with_a_restoring_guard ... ok
+test only_the_controlled_input_entry_is_reachable_from_automation ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+

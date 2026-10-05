@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读讨论，不操作桌面、不改源码。R实际两笔released但落点不符、0/2，保失败。S真实完整任务仍在执行，第一笔右侧新方形正确，后续出现重画嵌套矩形、菱形在身体外等模型选点错误，不能把它们归为权限接口缺失。\n主会话核实另一个确定Agent设计缺口：ToolModelPlanner.verify_visual(request,before,after)的before每步是上一步观察，image_order=before,after；指令“本轮新增的条件必须对照before和after”会使第一步新增身体在第二步不再被认作本轮新增。S第一步身体met=true，第二步bodymet=false，第三步又true；不能仅用波动断言唯一因果，但协议基线确实不对。previous_step_feedback只是上一步动作/回执/可见进展，未提供本轮最初截图。候选不解决基线，不能以imagechanged判完成。\n拟最小职责设计：在每次独立ToolModelPlanner实例保存一个不可变的run_start视觉基线（只保存初始Observation用于图像+framemetadata，不能跨调用复用）；第一次桌面verify前固定。存在性目标继续允许零动作，显式本轮新增初验保持false；每次视觉verify使用run_start,previous_step,current三帧（起始=上一步时去重）；提示本轮新增criteria以run_start→current比较，progress只按previous_step→current；parse_visual_verification仍用previous_step/after作image_changed/进展而非start；不重置根budget/取消，不造截图或历史证据，不修改Browser分支，不增加Paint专属逻辑。请求“新增”应另有可选结构化字段，但要涉及通用请求schema+ACPtool描述，当前先修确定基线缺口，词汇未覆盖保留待办，不急于改通用API。\n请审最小设计与内存/图像顺序风险、是不是更适合保只含图像和geometry的run_start而非完整Observation，最多600中文。对未读源码明确基于上述事实，不建议每步多发一次视觉模型请求。",
+  "selected_message_ids": [],
+  "attachments": []
+}

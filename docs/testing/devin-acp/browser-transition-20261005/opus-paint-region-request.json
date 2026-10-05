@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "Browser O4已真实通过：一次click、window.open目标页2/2、目标输入0，但up早于pagehide，未命中微区间替换，不算全量边界通过。现在转Paint。\n实际Sky只读截图：白画布内旧方形身体/双眼/嘴/手，旧腿脚落在身体内部而非底边下。UIA存在组“在画布上使用 画笔 工具”、automation_id=image；现有canvas_element匹配画布名称，正式drag可以使用此元素reference。根因不是Agent缺拖拽接口。旧desktop.canvas_rect是client_rect∩image.screen_rect，包含工具栏。原drag既有UIA reference相对元素完整rect，或window-canvas相对canvas_rect，FrameRef和执行前精确rect/窗口核验已在。不整体改旧坐标空间。\n拟最小设计：观察增加drawing_region_candidates数组，从elements原数据筛canvas_element且enabled=true/offscreen=false，rect合法且与当前截图相交，字段reference/name/automation_id/control_type/rect/visible_rect/authority=uia_candidate；rect保持UIA原始完整rect，visible_rect仅与canvas_rect交集给可见范围提示，不成为drag坐标容器。候选名语义不可信，规划提示必须核真实截图，优先确认匹配实际画布的reference再用相对其rect笔迹。候选为空保旧路径，不增加拒绝，Document/Image可能是非绘图元素，不作为权限证明或验收完成。执行仍按原find_element+canvas_element+rect和FrameRef；不扩动作、不写Paint专属代码。没有近白矩形检测，没有替模型生成坐标。\n先让真实SWE2在现有身体底边下新增两腿脚，基于本轮新截图，不借旧腿；验证新增笔迹实际在画布内、底边下，再尝试完整新粗略人物。截图和宿主goal必须分别记录。\n请只读审上述几何契约/候选误导风险，最多500中文。不要要求候选缺失即blocked、不要重复叠加新坐标体系。说明最小必修与可选项，不声称已读未提供源码。",
+  "selected_message_ids": [],
+  "attachments": []
+}

@@ -180,7 +180,7 @@ fn normalize_objective_input_delivery(text: &str) -> String {
     while let Some(offset) = rest.find("发送") {
         normalized.push_str(&rest[..offset]);
         let following = &rest[offset + "发送".len()..];
-        let mechanical = ["一次普通点击", "一次鼠标点击", "一次点击", "鼠标输入", "键盘输入"]
+        let mechanical = ["一次普通点击", "一次鼠标点击", "一次点击", "鼠标输入", "键盘输入", "任何输入", "输入"]
             .iter().any(|object| following.strip_prefix(object).is_some_and(|tail|
                 tail.trim_start().chars().next().is_none_or(|c| "，。；：,.;:!?！？)）".contains(c))));
         normalized.push_str(if mechanical { "执行" } else { "发送" });
@@ -1678,6 +1678,33 @@ mod tests {
             ),
             Some("authorization_or_installation")
         );
+    }
+
+    #[test]
+    fn mechanical_input_description_keeps_outbound_action_checks() {
+        let observation = observation_with_state(1, json!({"page":{"nodes":[]}}));
+        let action = click_target("dom-9");
+        for objective in [
+            "在来源页单击进入目标页，仅观察网页自然跳转的结果，不向目标页发送任何输入",
+            "在当前右栏浏览器单击打开目标链接一次，观察网页通过window.open产生的链接在内置浏览器中的显示结果，不向目标页发送输入",
+        ] {
+            assert_eq!(host_sensitive_semantic_category(&request_with_objective(objective), &action, &observation), None);
+        }
+        for objective in ["发送任何输入记录给他人", "发送任何输入结果", "发送输入记录给他人", "发送输入结果", "发送任何输入，发布消息", "发送任何输入、分享记录"] {
+            assert_eq!(host_sensitive_semantic_category(
+                &request_with_objective(objective), &action, &observation,
+            ), Some("external_communication"), "{objective}");
+        }
+        let request = request_with_objective("不向目标页发送任何输入");
+        let sensitive_node = observation_with_state(1, json!({"page":{"nodes":[
+            {"reference":"dom-9", "name":"发送消息"}
+        ]}}));
+        assert_eq!(host_sensitive_semantic_category(&request, &action, &sensitive_node), Some("external_communication"));
+        for value in ["post", "share"] {
+            let mut parameter_action = action.clone();
+            parameter_action.arguments = json!({"operation":value});
+            assert_eq!(host_sensitive_semantic_category(&request, &parameter_action, &observation), Some("external_communication"));
+        }
     }
 
     #[test]

@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "selected_message_ids": [],
+  "attachments": [],
+  "text": "BU-BOUNDARY-20261005-G：新的独立真实浏览器导航边界测试，仅当前右栏原生浏览器。只调用一次computer_use_perform，objective=在来源页单击“进入目标页”，仅观察网页自然跳转的结果，不向目标页发送任何输入；surface=browser；target只含url=http://127.0.0.1:53532/source.html；success_criteria=[最新页面显示TARGET-NAV-20261005]；constraints=[只点击来源页进入目标页一次,不主动导航不滚动不输入文字不用其他工具,不要补发重试,不在目标页点击或输入,释放确认不等于目标完成,失败未知立即停止并如实报告]；max_actions=1。忽略历史任务，仅使用本轮真实页面与输入回执。"
+}

@@ -89,10 +89,14 @@ fn explicit_request_from_current_user(text: &str) -> Option<ComputerUseRequest> 
 fn forbids_all_browser_input(text: &str) -> bool {
     let compact: String = text.chars().filter(|c| !c.is_whitespace())
         .map(|c| if c == '/' || c == '／' { '、' } else { c }).collect();
-    // 日常表述常逐项重复否定词；仍要求三类输入都明确禁止，不能把部分限制当只读。
+    // 只将全局禁令合并为只读；“不点击目标页”仍允许点击来源页，不能吞掉对象限定。
     if ["点击", "输入", "滚动"].iter().all(|action|
         ["不", "不得", "禁止", "不要"].iter().any(|prefix|
-            compact.contains(&format!("{prefix}{action}")))) {
+            compact.match_indices(&format!("{prefix}{action}")).any(|(offset, restriction)| {
+                let tail = &compact[offset + restriction.len()..];
+                tail.is_empty() || tail.starts_with(['、', '，', ',', '；', ';', '。', '.', '！', '!', '？', '?', ']', '）', ')'])
+                    || ["不", "不得", "禁止", "不要"].iter().any(|next| tail.starts_with(next))
+            }))) {
         return true;
     }
     let orders = [["点击", "输入", "滚动"], ["点击", "滚动", "输入"],
@@ -182,6 +186,16 @@ mod tests {
         let scope = ComputerUseTurnScope::from_current_user(
             "当前右栏原生浏览器，只允许一次导航，不点击、不滚动、不输入");
         assert!(!scope.native_browser_read_only());
+    }
+    #[test]
+    fn target_specific_prohibition_does_not_disable_source_interaction() {
+        let scope = ComputerUseTurnScope::from_current_user(
+            "当前右栏浏览器，先点击来源页，再navigate，不滚动不输入，不点击目标页");
+        assert!(scope.native_browser());
+        assert!(!scope.native_browser_read_only());
+        let scope = ComputerUseTurnScope::from_current_user(
+            "当前右栏浏览器，不滚动不输入，不点击");
+        assert!(scope.native_browser_read_only());
     }
     #[test]
     fn readonly_browser_accepts_the_current_combined_chinese_restriction() {

@@ -1,0 +1,8 @@
+{"kind": "load", "document_id": "70eb9c0d-96c0-40ff-bd0c-8139f8ade444", "path": "/source.html", "page_ms": 1791170181610, "server_ms": 1791170181619}
+{"kind": "load", "document_id": "fd441bed-618e-4c2c-870a-1614fa24373b", "path": "/source.html", "page_ms": 1791170762089, "server_ms": 1791170762093}
+{"kind": "navigation_requested", "document_id": "fd441bed-618e-4c2c-870a-1614fa24373b", "path": "/source.html", "page_ms": 1791170789093, "trusted": true, "server_ms": 1791170789096}
+{"kind": "pointerdown", "document_id": "fd441bed-618e-4c2c-870a-1614fa24373b", "path": "/source.html", "page_ms": 1791170789097, "trusted": true, "server_ms": 1791170789104}
+{"kind": "pointerup", "document_id": "fd441bed-618e-4c2c-870a-1614fa24373b", "path": "/source.html", "page_ms": 1791170789099, "trusted": true, "server_ms": 1791170789107}
+{"kind": "click", "document_id": "fd441bed-618e-4c2c-870a-1614fa24373b", "path": "/source.html", "page_ms": 1791170789099, "trusted": true, "server_ms": 1791170789107}
+{"kind": "pagehide", "document_id": "fd441bed-618e-4c2c-870a-1614fa24373b", "path": "/source.html", "page_ms": 1791170789106, "trusted": true, "server_ms": 1791170789110}
+{"kind": "load", "document_id": "bb87699d-ddfc-4470-b8fe-66d8d1120b0c", "path": "/target.html", "page_ms": 1791170789111, "server_ms": 1791170789117}

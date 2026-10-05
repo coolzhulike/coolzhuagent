@@ -1,0 +1,59 @@
+{"kind": "load", "document_id": "e83fdab2-4dce-42aa-b965-62636221c1cc", "path": "/source.html", "page_ms": 1791172773690, "server_ms": 1791172773694}
+{"kind": "navigation_requested", "document_id": "e83fdab2-4dce-42aa-b965-62636221c1cc", "path": "/source.html", "page_ms": 1791172839778, "trusted": true, "server_ms": 1791172839781}
+{"kind": "pointerdown", "document_id": "e83fdab2-4dce-42aa-b965-62636221c1cc", "path": "/source.html", "page_ms": 1791172839782, "trusted": true, "server_ms": 1791172839788}
+{"kind": "pointerup", "document_id": "e83fdab2-4dce-42aa-b965-62636221c1cc", "path": "/source.html", "page_ms": 1791172839783, "trusted": true, "server_ms": 1791172839790}
+{"kind": "click", "document_id": "e83fdab2-4dce-42aa-b965-62636221c1cc", "path": "/source.html", "page_ms": 1791172839784, "trusted": true, "server_ms": 1791172839790}
+{"kind": "pagehide", "document_id": "e83fdab2-4dce-42aa-b965-62636221c1cc", "path": "/source.html", "page_ms": 1791172839792, "trusted": true, "server_ms": 1791172839794}
+{"kind": "load", "document_id": "072d2827-c9cc-4f2c-ae27-1dfdec790cc9", "path": "/target.html", "page_ms": 1791172839796, "server_ms": 1791172839801}
+{"kind": "pagehide", "document_id": "072d2827-c9cc-4f2c-ae27-1dfdec790cc9", "path": "/target.html", "page_ms": 1791173069462, "trusted": true, "server_ms": 1791173069464}
+{"kind": "load", "document_id": "c61c063d-3cea-421f-8bc4-49d8c3ad22b4", "path": "/cross-source.html", "page_ms": 1791173069468, "server_ms": 1791173069477}
+{"kind": "navigation_requested", "document_id": "c61c063d-3cea-421f-8bc4-49d8c3ad22b4", "path": "/cross-source.html", "page_ms": 1791173119853, "trusted": true, "server_ms": 1791173119855}
+{"kind": "pointerdown", "document_id": "c61c063d-3cea-421f-8bc4-49d8c3ad22b4", "path": "/cross-source.html", "page_ms": 1791173119856, "trusted": true, "server_ms": 1791173119867}
+{"kind": "pointerup", "document_id": "c61c063d-3cea-421f-8bc4-49d8c3ad22b4", "path": "/cross-source.html", "page_ms": 1791173119857, "trusted": true, "server_ms": 1791173119868}
+{"kind": "click", "document_id": "c61c063d-3cea-421f-8bc4-49d8c3ad22b4", "path": "/cross-source.html", "page_ms": 1791173119858, "trusted": true, "server_ms": 1791173119869}
+{"kind": "pagehide", "document_id": "c61c063d-3cea-421f-8bc4-49d8c3ad22b4", "path": "/cross-source.html", "page_ms": 1791173119931, "trusted": true, "server_ms": 1791173119944}
+{"kind": "load", "document_id": "ba81a5dc-47a9-45fb-9778-d8f4b79d0388", "path": "/target.html", "page_ms": 1791173119936, "server_ms": 1791173119944}
+{"kind": "load", "document_id": "6bd0f1ef-862d-48bd-ac66-f0d75f3729f0", "path": "/source.html", "page_ms": 1791173248919, "server_ms": 1791173248930}
+{"kind": "pagehide", "document_id": "ba81a5dc-47a9-45fb-9778-d8f4b79d0388", "path": "/target.html", "page_ms": 1791173248915, "trusted": true, "server_ms": 1791173248930}
+{"kind": "load", "document_id": "3cc55981-f6e8-4607-8762-ed1636933896", "path": "/source.html", "page_ms": 1791173894601, "server_ms": 1791173894611}
+{"kind": "navigation_requested", "document_id": "3cc55981-f6e8-4607-8762-ed1636933896", "path": "/source.html", "page_ms": 1791173961758, "trusted": true, "server_ms": 1791173961761}
+{"kind": "pointerdown", "document_id": "3cc55981-f6e8-4607-8762-ed1636933896", "path": "/source.html", "page_ms": 1791173961763, "trusted": true, "server_ms": 1791173961769}
+{"kind": "pointerup", "document_id": "3cc55981-f6e8-4607-8762-ed1636933896", "path": "/source.html", "page_ms": 1791173961763, "trusted": true, "server_ms": 1791173961771}
+{"kind": "click", "document_id": "3cc55981-f6e8-4607-8762-ed1636933896", "path": "/source.html", "page_ms": 1791173961764, "trusted": true, "server_ms": 1791173961772}
+{"kind": "pagehide", "document_id": "3cc55981-f6e8-4607-8762-ed1636933896", "path": "/source.html", "page_ms": 1791173961771, "trusted": true, "server_ms": 1791173961775}
+{"kind": "load", "document_id": "19626aef-45f8-4837-9283-c4f4b832c0cc", "path": "/target.html", "page_ms": 1791173961775, "server_ms": 1791173961781}
+{"kind": "pagehide", "document_id": "19626aef-45f8-4837-9283-c4f4b832c0cc", "path": "/target.html", "page_ms": 1791173985460, "trusted": true, "server_ms": 1791173985461}
+{"kind": "load", "document_id": "99cbd4cd-564b-47fe-aca1-10ea1e489c2f", "path": "/final.html", "page_ms": 1791173985463, "server_ms": 1791173985473}
+{"kind": "pagehide", "document_id": "99cbd4cd-564b-47fe-aca1-10ea1e489c2f", "path": "/final.html", "page_ms": 1791174105393, "trusted": true, "server_ms": 1791174105395}
+{"kind": "load", "document_id": "6e64a9ad-cefb-4d59-8d0d-9b8ab800be70", "path": "/source.html", "page_ms": 1791174105399, "server_ms": 1791174105410}
+{"kind": "navigation_requested", "document_id": "6e64a9ad-cefb-4d59-8d0d-9b8ab800be70", "path": "/source.html", "page_ms": 1791174128281, "trusted": true, "server_ms": 1791174128284}
+{"kind": "pointerdown", "document_id": "6e64a9ad-cefb-4d59-8d0d-9b8ab800be70", "path": "/source.html", "page_ms": 1791174128287, "trusted": true, "server_ms": 1791174128294}
+{"kind": "pointerup", "document_id": "6e64a9ad-cefb-4d59-8d0d-9b8ab800be70", "path": "/source.html", "page_ms": 1791174128288, "trusted": true, "server_ms": 1791174128297}
+{"kind": "click", "document_id": "6e64a9ad-cefb-4d59-8d0d-9b8ab800be70", "path": "/source.html", "page_ms": 1791174128288, "trusted": true, "server_ms": 1791174128298}
+{"kind": "pagehide", "document_id": "6e64a9ad-cefb-4d59-8d0d-9b8ab800be70", "path": "/source.html", "page_ms": 1791174128297, "trusted": true, "server_ms": 1791174128301}
+{"kind": "load", "document_id": "674fd699-b551-4757-b96e-278da9033355", "path": "/target.html", "page_ms": 1791174128302, "server_ms": 1791174128314}
+{"kind": "pagehide", "document_id": "674fd699-b551-4757-b96e-278da9033355", "path": "/target.html", "page_ms": 1791174203970, "trusted": true, "server_ms": 1791174203972}
+{"kind": "load", "document_id": "0b3e937b-4749-4112-bf18-205d787ff8ef", "path": "/spa-source.html", "page_ms": 1791174203974, "server_ms": 1791174203985}
+{"kind": "navigation_requested", "document_id": "0b3e937b-4749-4112-bf18-205d787ff8ef", "path": "/spa-source.html", "page_ms": 1791174257265, "trusted": true, "server_ms": 1791174257268}
+{"kind": "pointerdown", "document_id": "0b3e937b-4749-4112-bf18-205d787ff8ef", "path": "/spa-target.html", "page_ms": 1791174257271, "trusted": true, "server_ms": 1791174257282}
+{"kind": "pointerup", "document_id": "0b3e937b-4749-4112-bf18-205d787ff8ef", "path": "/spa-target.html", "page_ms": 1791174257272, "trusted": true, "server_ms": 1791174257282}
+{"kind": "click", "document_id": "0b3e937b-4749-4112-bf18-205d787ff8ef", "path": "/spa-target.html", "page_ms": 1791174257272, "trusted": true, "server_ms": 1791174257284}
+{"kind": "load", "document_id": "102b55e5-123a-41a3-881e-0e03986667e8", "path": "/source.html", "page_ms": 1791174575623, "server_ms": 1791174575632}
+{"kind": "navigation_requested", "document_id": "102b55e5-123a-41a3-881e-0e03986667e8", "path": "/source.html", "page_ms": 1791174636297, "trusted": true, "server_ms": 1791174636301}
+{"kind": "pointerdown", "document_id": "102b55e5-123a-41a3-881e-0e03986667e8", "path": "/source.html", "page_ms": 1791174636303, "trusted": true, "server_ms": 1791174636309}
+{"kind": "pointerup", "document_id": "102b55e5-123a-41a3-881e-0e03986667e8", "path": "/source.html", "page_ms": 1791174636304, "trusted": true, "server_ms": 1791174636312}
+{"kind": "click", "document_id": "102b55e5-123a-41a3-881e-0e03986667e8", "path": "/source.html", "page_ms": 1791174636304, "trusted": true, "server_ms": 1791174636312}
+{"kind": "pagehide", "document_id": "102b55e5-123a-41a3-881e-0e03986667e8", "path": "/source.html", "page_ms": 1791174636312, "trusted": true, "server_ms": 1791174636316}
+{"kind": "load", "document_id": "c393bc42-54e0-4c2a-94e9-7a3191bc80b2", "path": "/target.html", "page_ms": 1791174636318, "server_ms": 1791174636324}
+{"kind": "pagehide", "document_id": "c393bc42-54e0-4c2a-94e9-7a3191bc80b2", "path": "/target.html", "page_ms": 1791174969984, "trusted": true, "server_ms": 1791174969986}
+{"kind": "load", "document_id": "dcf657bb-eeca-4bf7-85fa-4f5dede9aff9", "path": "/spa-source.html", "page_ms": 1791174969990, "server_ms": 1791174970002}
+{"kind": "navigation_requested", "document_id": "dcf657bb-eeca-4bf7-85fa-4f5dede9aff9", "path": "/spa-source.html", "page_ms": 1791175023910, "trusted": true, "server_ms": 1791175023912}
+{"kind": "pointerdown", "document_id": "dcf657bb-eeca-4bf7-85fa-4f5dede9aff9", "path": "/spa-target.html", "page_ms": 1791175023914, "trusted": true, "server_ms": 1791175023924}
+{"kind": "pointerup", "document_id": "dcf657bb-eeca-4bf7-85fa-4f5dede9aff9", "path": "/spa-target.html", "page_ms": 1791175023916, "trusted": true, "server_ms": 1791175023926}
+{"kind": "click", "document_id": "dcf657bb-eeca-4bf7-85fa-4f5dede9aff9", "path": "/spa-target.html", "page_ms": 1791175023916, "trusted": true, "server_ms": 1791175023926}
+{"kind": "pagehide", "document_id": "dcf657bb-eeca-4bf7-85fa-4f5dede9aff9", "path": "/spa-target.html", "page_ms": 1791175093187, "trusted": true, "server_ms": 1791175093189}
+{"kind": "load", "document_id": "ca5f6636-0eae-495b-9441-dfcc3297825b", "path": "/spa-source.html", "page_ms": 1791175965667, "server_ms": 1791175965672}
+{"kind": "navigation_requested", "document_id": "ca5f6636-0eae-495b-9441-dfcc3297825b", "path": "/spa-source.html", "page_ms": 1791176004529, "trusted": true, "server_ms": 1791176004532}
+{"kind": "pointerdown", "document_id": "ca5f6636-0eae-495b-9441-dfcc3297825b", "path": "/spa-target.html", "page_ms": 1791176004534, "trusted": true, "server_ms": 1791176004544}
+{"kind": "pointerup", "document_id": "ca5f6636-0eae-495b-9441-dfcc3297825b", "path": "/spa-target.html", "page_ms": 1791176004535, "trusted": true, "server_ms": 1791176004545}
+{"kind": "click", "document_id": "ca5f6636-0eae-495b-9441-dfcc3297825b", "path": "/spa-target.html", "page_ms": 1791176004535, "trusted": true, "server_ms": 1791176004545}
