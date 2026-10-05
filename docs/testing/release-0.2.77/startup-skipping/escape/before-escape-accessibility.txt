@@ -1,0 +1,29 @@
+Window: "COOLZHU", App: coolzhu-tauri-shell.exe.
+	0 窗口 COOLZHU Secondary Actions: Raise
+		1 窗格
+			6 窗格 酷朱 · 山水启卷
+				7 窗格 (disabled)
+				8 区域 酷朱 · 山水启卷 - Web 内容
+					9 区域
+						10 区域
+							11 区域
+								12 区域
+								13 区域
+									14 区域
+										15 区域
+											16 区域
+												17 区域
+												21 文档 酷朱 · 山水启卷 Value: http://tauri.localhost/launch-performance.html ID: RootWebArea
+													22 主要 酷朱山水卷轴启动演出 ID: launch-performance
+														23 按钮 跳过启动演出 Description: 跳过启动演出 ID: launch-performance-skip
+								18 区域
+						19 区域
+						20 区域
+		2 标题栏 (settable, string) Value: COOLZHU
+			3 菜单栏 系统 ID: MenuBar
+				4 菜单项 系统
+			5 按钮 (disabled) 关闭
+
+Document text: ```
+跳过启动演出
+```

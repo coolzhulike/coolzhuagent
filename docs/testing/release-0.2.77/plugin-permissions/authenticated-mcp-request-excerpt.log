@@ -1,0 +1,7 @@
+10: 2026-10-05T19:49:35.522720Z  INFO coolzhu_web_console::devin_acp::bridge: ACP 只读工具桥协议诊断 method="initialize" request_protocol=2025-11-25 header_protocol=other host_valid=true token_valid=true origin_present=false
+11: 2026-10-05T19:49:35.552737Z  INFO coolzhu_web_console::devin_acp::bridge: ACP 只读工具桥协议诊断 method="initialized" request_protocol=other header_protocol=2025-06-18 host_valid=true token_valid=true origin_present=false
+12: 2026-10-05T19:49:35.587487Z  INFO coolzhu_web_console::devin_acp::bridge: ACP 只读工具桥协议诊断 method="tools/call" request_protocol=other header_protocol=2025-06-18 host_valid=true token_valid=true origin_present=false
+13: 2026-10-05T19:49:35.621035Z  INFO coolzhu_web_console::devin_acp::bridge: ACP 只读工具桥协议诊断 method="tools/list" request_protocol=other header_protocol=2025-06-18 host_valid=true token_valid=true origin_present=false
+14: 2026-10-05T19:53:25.086283Z  INFO coolzhu_web_console::devin_acp::bridge: ACP 只读工具桥协议诊断 method="initialize" request_protocol=2025-11-25 header_protocol=other host_valid=true token_valid=true origin_present=false
+15: 2026-10-05T19:53:25.100618Z  INFO coolzhu_web_console::devin_acp::bridge: ACP 只读工具桥协议诊断 method="initialized" request_protocol=other header_protocol=2025-06-18 host_valid=true token_valid=true origin_present=false
+16: 2026-10-05T19:53:25.105934Z  INFO coolzhu_web_console::devin_acp::bridge: ACP 只读工具桥协议诊断 method="tools/call" request_protocol=other header_protocol=2025-06-18 host_valid=true token_valid=true origin_present=false

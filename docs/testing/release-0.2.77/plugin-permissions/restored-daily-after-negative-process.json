@@ -1,0 +1,13 @@
+{
+  "daily_launcher": {
+    "path": "C:/Program Files/CoolzhuAgent/COOLZHU-AGENT.exe",
+    "pid": 15436,
+    "created": "2026-10-05T19:54:18.5789990Z"
+  },
+  "preserved_daily_web": {
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "pid": 32300,
+    "created": "2026-10-05T19:39:47.8931750Z"
+  },
+  "previous_selfcheck_timestamp_ms": 1791229183950
+}

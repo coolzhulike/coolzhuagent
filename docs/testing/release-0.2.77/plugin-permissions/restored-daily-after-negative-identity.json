@@ -1,0 +1,22 @@
+{
+  "shell": {
+    "created": "2026-10-05T19:54:21.2712319Z",
+    "parent_pid": 15436,
+    "pid": 10800,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+  },
+  "system_info": {
+    "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+    "port": 8765,
+    "build_version": "2d040d555566 · 2026-10-05",
+    "active_sessions": 6
+  },
+  "selfcheck_note": "复用匹配后台路径只转发控制台，按现有架构不更新旧自检；新外壳以父PID/路径/创建时间与后台API核验",
+  "paths": {
+    "workspace": "C:\\Users\\zhupu\\coolzhuagent",
+    "session_db": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.sqlite3",
+    "legacy_session_json": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.json",
+    "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+    "desktop_pet_exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+  }
+}
