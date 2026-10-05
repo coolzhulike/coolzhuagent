@@ -1,0 +1,30 @@
+{
+  "headRefOid": "99adfc616ee441045289572031ac0407c0ae90e9",
+  "isDraft": true,
+  "mergeable": "MERGEABLE",
+  "number": 80,
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-05T11:14:47Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37300651014/job/111732302313",
+      "name": "Web console baseline",
+      "startedAt": "2026-10-05T11:05:08Z",
+      "status": "COMPLETED",
+      "workflowName": "S0 baseline"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-05T11:14:32Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37300397897/job/111731477144",
+      "name": "Web console baseline",
+      "startedAt": "2026-10-05T11:02:42Z",
+      "status": "COMPLETED",
+      "workflowName": "S0 baseline"
+    }
+  ],
+  "url": "https://github.com/coolzhulike/coolzhuagent/pull/80"
+}

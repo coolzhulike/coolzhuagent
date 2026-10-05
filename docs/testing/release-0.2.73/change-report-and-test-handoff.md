@@ -48,4 +48,4 @@ Paint原回复误称终态1/3，宿主generation7实际2/3，原文与更正事�
 总体任务尚未验收完，完整Paint失败保留；不将启动成功、工程检查或历史截图当全量通过。
 
 
-本轮增量已提交[草稿PR #80](https://github.com/coolzhulike/coolzhuagent/pull/80)，#79已由用户合并。99adfc6本轮远端两项检查最后观察仍运行中，不写成成功。新包源码与后续文档提交区分，不在报告提交后追称本包使用了新报告HEAD。
+本轮增量已提交[草稿PR #80](https://github.com/coolzhulike/coolzhuagent/pull/80)，#79已由用户合并。99adfc6本轮远端两项检查已成功，完整收据见evidence/source-99adfc6-ci.json。后续文档提交的CI另行核验，不把源码提交CI说成全部新HEAD通过。新包源码与后续文档提交区分，不在报告提交后追称本包使用了新报告HEAD。
