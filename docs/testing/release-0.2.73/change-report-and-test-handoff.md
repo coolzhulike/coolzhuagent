@@ -36,7 +36,7 @@ Paint原回复误称终态1/3，宿主generation7实际2/3，原文与更正事�
 
 0.2.73完整release构建已通过，10项构建产物和1150个载荷文件摘要已逐一核验，CLI输出版本0.2.73。源码提交99adfc616ee441045289572031ac0407c0ae90e9，冻结源码快照db06909cd19c0028cea3b5f9943b2de3b4a84b6c4ebe7e3aceec7cec9a613452，MSI摘要58f0f114d2c2dfe542016d30cfd94cfc8ff016300c048712d24829d64610f009。已复制到Desktop/coolzhuagent/dist并核同摘要，包扫描safe=true。构建时收据见evidence/package-verification.json及build-identity目录；安装后的独立核验见installed-browser-20261005/installed-binary-verification.json，不覆盖交付时的历史状态。Windows安装记录与Program Files二进制身份已匹配，正式日常启动自检通过。本轮没有源码变更，不生成新MSI；旧HEAD的CI不替代后续文档HEAD检查。
 
-正式新增Paint执行回归：一笔五点W、1200ms、sent/path_completed/released，最新验图2/2、goal=true，49.4秒；绘前/绘后/当前轮回复独立归档。完整Y人物失败仍保留。慢popup点击后观察超时失败保留；辅助前端显式地址在旧响应完成前14.35秒接管，新SWE任务在接管页2/2通过。它不等于模型Navigate链路通过。普通导航事件pagehide晚于pointerup10.1ms，未命中输入期间替换竞争。非100%缩放未确认；恢复日常启动仍未捕到舞剑帧，动画不通过。详细剩余项及Opus审查范围见安装版报告。
+正式新增Paint执行回归：一笔五点W、1200ms、sent/path_completed/released，最新验图2/2、goal=true，49.4秒；绘前/绘后/当前轮回复独立归档。完整Y人物失败仍保留。慢popup点击后观察超时失败保留；辅助前端显式地址在旧响应完成前14.35秒接管，新SWE任务在接管页2/2通过。它不等于模型Navigate链路通过。普通导航事件pagehide晚于pointerup10.1ms，未命中输入期间替换竞争。非100%缩放未确认。日常启动最初0帧历史保留，后续正常前台启动已补拍卷轴展开、Q版人物两个舞剑姿态、完整Logo与聊天室移交；生命周期正常完成约7秒，日常基本流程通过，首次/减少动态/素材失败仍待验收。详细剩余项及Opus审查范围见安装版报告。
 
 ## 后续测试设计要求
 

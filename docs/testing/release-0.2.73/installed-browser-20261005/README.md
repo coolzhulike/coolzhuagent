@@ -41,7 +41,7 @@
 1. SWE 的显式 Navigate 覆盖加载中 popup，保留加载原失败。先确认观察资格和 Navigate 如何协作，避免把 timeout 整体放宽。
 2. 非100%实际浏览器缩放/DPI与多屏；取得真实缩放值和截图再送模型，不用 CSS zoom 冒充。
 3. 输入期间停止/关闭/替换的严格 down→页面切换→up 场景；若无法自然命中，作为有界未覆盖风险提交审核，不称已过。
-4. 正式连续 Q版舞剑及时间/移交、减少动态/素材失败。此次恢复启动只捕到聊天室，**舞剑0帧，不验收通过**。
+4. 正式首次模式、减少动态及素材失败。最初恢复只拍到聊天室，0帧收据保留；后续修正采集对象，正常前台启动已捕到卷轴展开、Q版人物两个不同舞剑姿态。日常基本流程通过，不外推首次及异常分支。
 5. DSH市场完整安装默认停用→明确启用→真实模型工具调用→停用/卸载；Devin宿主插件能力未开放需单独接线，不暗换模型。其余模型配置/附件/侧栏/终端/媒体/更新及去调试文字全量回归仍待完成，微信不改不测。
 
 ## 收尾与复现交接
@@ -51,3 +51,9 @@
 验收外壳正常关闭，只清理已确认的自有后台和四个网页服务，GUI临时地址原字节恢复；Paint保留打开且不覆盖旧Y文件。正式 launcher 恢复原日常工作区，自检通过，健康10正常/1工作区提示/0错误；见 [收尾](cleanup-receipt.json)、[日常自检](daily-restored-selfcheck.json)、[日常健康](daily-restored-health.json)。日常原 Qwen/聊天09仅环境恢复，本轮测试没有改用Qwen。
 
 [manifest.json](manifest.json)包含原文件字节数及 SHA256；不归档数据库、密钥或未经筛选的服务日志。源码/载荷与报告HEAD分别记录，当前报告归属草稿 [PR #80](https://github.com/coolzhulike/coolzhuagent/pull/80)，未转正式评审，未宣布全量验收完成。
+
+## 日常启动舞剑补拍
+
+原0帧收据不覆盖。正常前台正式launcher启动，选中并激活返回的独立“COOLZHU”演出窗口，仅观察采集，不输入跳过、不修改时长、素材或系统减少动态设置。[采集记录](startup-front-capture.json)共5帧：帧0为初始背景、帧1合卷、帧2展开、[帧3腾跃出剑](startup-front-3.jpg)、[帧4回身姿态及完整Logo](startup-front-4.jpg)，可见整人姿态变化。[宿主生命周期](startup-front-lifecycle.json)daily/reduced_motion=false、finished reason=completed、page_elapsed_ms=6972、frame_count=1476，之后console_visible=true，并有[实际聊天室移交图](startup-front-handoff.jpg)及[最终launcher自检](daily-final-selfcheck.json)。宿主帧计数不是录像帧数，未称逐帧流畅度或所有姿态均已实拍。
+
+此项日常基本流程验收通过。首次模式、减少动态、素材失败、多屏/DPI仍待验收。中途未激活的采集误拍到被遮挡窗口下的其它应用，仅存临时目录，不归档、不作为启动成果。

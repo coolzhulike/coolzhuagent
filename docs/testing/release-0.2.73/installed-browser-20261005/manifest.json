@@ -35,6 +35,10 @@
     "bytes": 193617,
     "sha256": "e1363325ba534e9445eae26c80e58ae616ff6328598e6071b5801eea6ef6c744"
   },
+  "daily-final-selfcheck.json": {
+    "bytes": 1779,
+    "sha256": "fcf32e4e5f20cb6b0a4fca179bdb940398829769f2858d16b29cec41928ffad1"
+  },
   "daily-restored-health.json": {
     "bytes": 14283,
     "sha256": "00d093c4642dae35810f202927404abdc9d5196b8e363c2acc870d0c9f131141"
@@ -372,8 +376,8 @@
     "sha256": "5fb67caeccb4b24076db218b74c3a86a1993be77105675a01fe68ae3bd6a91e2"
   },
   "README.md": {
-    "bytes": 7984,
-    "sha256": "171386bd6fbab9cac00e5252c8b4af2ba1a7aa4da17a5773e804792c436b90ac"
+    "bytes": 9189,
+    "sha256": "b015657c1cdabc6448727f75e2dc45ff7d30dc62e689fdf8dad6341df1c2dd60"
   },
   "regression-summary.json": {
     "bytes": 8308,
@@ -390,6 +394,38 @@
   "startup-capture-receipt.json": {
     "bytes": 261,
     "sha256": "6dacd5ef93fe9fb96686d06fa4db72bd418efa43afadac1fa9994f655cace433"
+  },
+  "startup-front-0.jpg": {
+    "bytes": 28138,
+    "sha256": "6d4ef9cbc505c9bed8f2185a58e07dde4ba516730cf06efdcec596e8dd930640"
+  },
+  "startup-front-1.jpg": {
+    "bytes": 59445,
+    "sha256": "80fb4ed6b3c09af496b51a19f74b9e903e748aa0cd33ef780019f706d57b0b93"
+  },
+  "startup-front-2.jpg": {
+    "bytes": 159984,
+    "sha256": "06fc30bbce038d6b1f643b41b5be247d03a2681c564428036d5b2b3ef4a0eced"
+  },
+  "startup-front-3.jpg": {
+    "bytes": 180354,
+    "sha256": "af04c2d4d7703463ecb54b8a4bf708b7ecf28122d4dc2875d00c1a53028c3d3a"
+  },
+  "startup-front-4.jpg": {
+    "bytes": 197907,
+    "sha256": "b91249fab84c68e8d7dc705373937d3c61380053bc0bd5e272efc7596624d375"
+  },
+  "startup-front-capture.json": {
+    "bytes": 1427,
+    "sha256": "c5955b8711869ee947aa29b7c0b34a7541433dce75c3684e0f02d3fb312f3d28"
+  },
+  "startup-front-handoff.jpg": {
+    "bytes": 195896,
+    "sha256": "fba13d124d38f611c281378779a14e07be82a6763858e73cd8d33bea5e86a01f"
+  },
+  "startup-front-lifecycle.json": {
+    "bytes": 3188,
+    "sha256": "ce835c01b05fd315d526249932cdc02d546148764fc43a61cfeaaaaa9f1fa78a"
   },
   "zoom-shortcut-no-confirmed-change.jpg": {
     "bytes": 193900,
