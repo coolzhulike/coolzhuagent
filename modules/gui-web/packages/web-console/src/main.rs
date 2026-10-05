@@ -600,6 +600,8 @@ struct FrozenParentContext {
     dsh_permission: dsh_web::FrozenPermission,
     /// 聊天接纳时已解析的模型、工具及权限；子任务不得在工具发起时重新读取配置扩权。
     host_model_snapshots: Arc<HashMap<String, Arc<host_child_agent::HostModelSnapshot>>>,
+    /// 会话型后端的发起模型；不依赖只能构造 HTTP 客户端的子 Agent 快照。
+    session_backend_model: Option<AgentSessionDto>,
 }
 
 impl FrozenParentContext {
@@ -641,6 +643,7 @@ impl FrozenParentContext {
             dsh_bindings,
             dsh_permission,
             host_model_snapshots: Arc::new(HashMap::new()),
+            session_backend_model: None,
         })
     }
 }
@@ -3584,6 +3587,11 @@ fn registry_executor_status_from_output(tool_name: &str, text: &str) -> ToolOutc
 /// 工具返回 `PermissionMode::Unspecified`，由闸门给出明确配置错误并 fail-closed；
 /// 不得回退成 `ReadOnly`——`ReadOnly` 走自动放行，等于让未声明的工具静默通过。
 fn required_permission_for_tool(tool_name: &str) -> PermissionMode {
+    // CU 是控制台的异步工具，不在同步 registry 中；须明确登记其权限元数据。
+    // 只接纳正式入口与历史别名，不能给任意 computer_* 名称隐式授权。
+    if matches!(tool_name, COMPUTER_USE_TOOL_NAME | "computer_use.perform") {
+        return PermissionMode::DangerFullAccess;
+    }
     if plugin_runtime::is_plugin_name(tool_name) {
         // 外部脚本没有文件系统沙箱；清单的自报只读等级不能降低实际授权门槛。
         return PermissionMode::DangerFullAccess;
@@ -7282,7 +7290,8 @@ impl ConfigComputerUse {
             max_replans: self.controller.max_replans.min(5),
             max_same_signature: self.controller.max_same_signature.clamp(1, 3),
             max_no_progress_steps: self.controller.max_no_progress_steps.clamp(1, 3),
-            timeout_ms: self.controller.timeout_seconds.clamp(5, 300) * 1_000,
+            // 尊重显式长程配置；执行时仍取 CU 预算与当前聊天根截止时间的较小值。
+            timeout_ms: self.controller.timeout_seconds.clamp(5, 86_400) * 1_000,
             max_calls_per_turn: self.controller.max_calls_per_turn.clamp(1, 2),
         }
     }
@@ -20088,8 +20097,16 @@ async fn api_chat_send_stream(
                 &tool_result_summaries,
                 &mut diagnostic_note,
             );
+            let acp_settlement = if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+                == agent_session_backend::AgentSessionBackend::DevinAcp {
+                parent.as_ref().and_then(|context| match chat_tool_history::acp_computer_use_settlement(context) {
+                    Ok(value) => value,
+                    Err(error) => { diag!("[ACP-TOOLS] 本轮 CU 收尾台账读取失败：{error}"); None }
+                })
+            } else { None };
+            if acp_settlement == Some(false) { terminal_status = ChatTurnStatus::Failed; }
             if let Some(notice) = chat_tool_history::unexecuted_computer_use_notice(
-                &result.user_content, !tool_result_summaries.is_empty(),
+                &result.user_content, !tool_result_summaries.is_empty() || acp_settlement.is_some(),
             ) {
                 // 流式正文只是模型自述；收尾时用真实派发事实校正，不额外请求模型或补发工具。
                 assistant_message.content = format!("{notice}\n\n{}", assistant_message.content);
@@ -21067,8 +21084,8 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
     }
     for target in &targets {
         if agent_session_backend::AgentSessionBackend::for_provider(&target.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
-            if !devin_acp::chat::supported_model(&target.model) {
-                return Err(api_error(StatusCode::BAD_REQUEST,"请选择账号目录标记 Free 的 SWE-2 模型。"));
+            if !devin_acp::chat::valid_model_id(&target.model) {
+                return Err(api_error(StatusCode::BAD_REQUEST,"请选择 Devin 账号目录中的精确模型。"));
             }
         } else {
             agent_session_backend::AgentSessionBackend::for_provider(&target.provider).require_http()
@@ -28610,7 +28627,7 @@ fn build_agent_system_prompt(agent: &AgentSessionDto) -> String {
         agent.provider,
         display_model_label(agent),
         local_model_identity_instruction(agent),
-        agent_tool_usage_instruction(),
+        agent_session_backend::tool_guidance(&agent.provider).unwrap_or_else(agent_tool_usage_instruction),
         render_prompt_memory_context(&beads)
     );
     if let Some(skill) = extension_market::active_skill_guidance(&active_workspace_path()) {
@@ -28629,7 +28646,7 @@ fn build_agent_system_prompt_with_beads(
         agent.provider,
         display_model_label(agent),
         local_model_identity_instruction(agent),
-        agent_tool_usage_instruction(),
+        agent_session_backend::tool_guidance(&agent.provider).unwrap_or_else(agent_tool_usage_instruction),
         render_prompt_memory_context(beads)
     );
     if let Some(skill) = extension_market::active_skill_guidance(&active_workspace_path()) {
@@ -51672,7 +51689,9 @@ impl Serialize for AgentSessionDto {
             &self.model,
             Some(&self.reasoning_effort),
         );
-        let resolution_dto = ReasoningResolutionDto::from(&resolution);
+        let resolution_dto = if agent_session_backend::AgentSessionBackend::for_provider(&self.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
+            devin_acp::chat::reasoning_resolution(&self.model, &self.reasoning_effort)
+        } else { ReasoningResolutionDto::from(&resolution) };
         let mut state = serializer.serialize_struct("AgentSessionDto", 18)?;
         state.serialize_field("id", &self.id)?;
         state.serialize_field("name", &self.name)?;
@@ -51983,7 +52002,7 @@ impl PersistedSession {
             .as_str()
             .to_string(),
             reasoning_resolution: if agent_session_backend::AgentSessionBackend::for_provider(&self.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
-                devin_acp::chat::reasoning_resolution()
+                devin_acp::chat::reasoning_resolution(&self.model, &self.reasoning_effort)
             } else { ReasoningResolutionDto::from(&reasoning_resolution_for_session(
                 &self.provider,
                 &self.model,
@@ -79240,6 +79259,12 @@ attach: last_assistant
 
     #[test]
     fn required_permission_for_tool_matches_spec_defaults() {
+        assert_eq!(super::required_permission_for_tool(super::COMPUTER_USE_TOOL_NAME),
+            super::PermissionMode::DangerFullAccess);
+        assert_eq!(super::required_permission_for_tool("computer_use.perform"),
+            super::PermissionMode::DangerFullAccess);
+        assert_eq!(super::required_permission_for_tool("computer_unknown"),
+            super::PermissionMode::Unspecified);
         assert_eq!(
             super::required_permission_for_tool("read_file"),
             super::PermissionMode::ReadOnly

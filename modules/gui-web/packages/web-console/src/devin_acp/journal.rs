@@ -53,11 +53,37 @@ impl Journal {
         journal.connection()?.execute_batch("CREATE TABLE IF NOT EXISTS devin_acp_retired_bindings (
             remote_session_id TEXT PRIMARY KEY, binding_json TEXT NOT NULL);")
             .map_err(|_|fail("ACP 历史绑定表初始化失败。"))?;
+        journal.connection()?.execute_batch("CREATE TABLE IF NOT EXISTS devin_acp_config_receipts (
+            attempt_id TEXT NOT NULL, stage TEXT NOT NULL, receipt_json TEXT NOT NULL,
+            PRIMARY KEY(attempt_id,stage));")
+            .map_err(|_| fail("ACP 配置回执表初始化失败。"))?;
         // 兼容本地早期台账样本；只加可空回执列，不重写历史状态或解除执行锁。
         let mut connection = journal.connection()?;
         let tx = connection
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|_| fail("ACP 台账升级锁失败。"))?;
+        // 扩展同库绑定主键，保留历史聊天绑定、在途锁及完整 attempt 原文。
+        let has_lane = tx.prepare("PRAGMA table_info(devin_acp_bindings)")
+            .map_err(|_| fail("ACP 绑定结构读取失败。"))?
+            .query_map([], |row| row.get::<_, String>(1))
+            .map_err(|_| fail("ACP 绑定列读取失败。"))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| fail("ACP 绑定列无效。"))?.iter().any(|name| name == "lane");
+        if !has_lane {
+            tx.execute_batch("ALTER TABLE devin_acp_bindings RENAME TO devin_acp_bindings_before_lane;
+                CREATE TABLE devin_acp_bindings (
+                    workspace_id TEXT NOT NULL, room_id TEXT NOT NULL, agent_id TEXT NOT NULL,
+                    lane TEXT NOT NULL DEFAULT '', cwd TEXT NOT NULL, cli_identity TEXT NOT NULL,
+                    context_digest TEXT NOT NULL, remote_session_id TEXT, owner_epoch INTEGER NOT NULL,
+                    generation INTEGER NOT NULL, locked_attempt TEXT,
+                    PRIMARY KEY(workspace_id,room_id,agent_id,lane));
+                INSERT INTO devin_acp_bindings(workspace_id,room_id,agent_id,cwd,cli_identity,context_digest,
+                    remote_session_id,owner_epoch,generation,locked_attempt)
+                    SELECT workspace_id,room_id,agent_id,cwd,cli_identity,context_digest,
+                    remote_session_id,owner_epoch,generation,locked_attempt FROM devin_acp_bindings_before_lane;
+                DROP TABLE devin_acp_bindings_before_lane;")
+                .map_err(|_| fail("ACP 内部请求绑定升级失败，原事务回滚。"))?;
+        }
         let has_model = tx
             .prepare("PRAGMA table_info(devin_acp_attempts)")
             .map_err(|_| fail("ACP 台账结构读取失败。"))?
@@ -107,8 +133,8 @@ impl Journal {
         let old = tx
             .query_row(
                 "SELECT cwd,cli_identity,context_digest,owner_epoch,generation,locked_attempt
-             FROM devin_acp_bindings WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3",
-                params![scope.workspace_id, scope.room_id, scope.agent_id],
+             FROM devin_acp_bindings WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4",
+                params![scope.workspace_id, scope.room_id, scope.agent_id, scope.lane],
                 |row| {
                     Ok((
                         row.get::<_, String>(0)?,
@@ -153,38 +179,71 @@ impl Journal {
         )
         .map_err(|_| fail("ACP attempt 已存在，不能重复提交。"))?;
         tx.execute("INSERT INTO devin_acp_bindings
-            (workspace_id,room_id,agent_id,cwd,cli_identity,context_digest,remote_session_id,owner_epoch,generation,locked_attempt)
-            VALUES(?1,?2,?3,?4,?5,?6,NULL,?7,?8,?9)
-            ON CONFLICT(workspace_id,room_id,agent_id) DO UPDATE SET
+            (workspace_id,room_id,agent_id,cwd,cli_identity,context_digest,remote_session_id,owner_epoch,generation,locked_attempt,lane)
+            VALUES(?1,?2,?3,?4,?5,?6,NULL,?7,?8,?9,?10)
+            ON CONFLICT(workspace_id,room_id,agent_id,lane) DO UPDATE SET
             owner_epoch=excluded.owner_epoch,generation=excluded.generation,locked_attempt=excluded.locked_attempt",
             params![scope.workspace_id,scope.room_id,scope.agent_id,binding.cwd,binding.cli_identity,
-                binding.context_digest,scope.owner_epoch,scope.generation,scope.attempt_id])
+                binding.context_digest,scope.owner_epoch,scope.generation,scope.attempt_id,scope.lane])
             .map_err(|_| fail("ACP 会话锁保存失败。"))?;
         tx.commit()
             .map_err(|_| fail("ACP 接纳提交未确认，不能发送任务。"))?;
         Ok(scope)
     }
 
-    /// 用户显式重置上下文后建立新远端会话；历史绑定留档，未知或在途绝不解锁。
+    /// 新用户回合建立新远端会话。取消且进程排空、宿主工具结账后的未知回合
+    /// 只归档绑定，不改判成功、不重发旧提示；其它未知或在途仍保持发送锁。
     pub(super) fn rotate_idle_context(&self,scope:&ExecutionScope,binding:&Binding)->Result<(),String> {
         let mut connection=self.connection()?;
         let tx=connection.transaction_with_behavior(TransactionBehavior::Immediate).map_err(|_|fail("ACP 重置锁失败。"))?;
         let old=tx.query_row("SELECT cwd,cli_identity,context_digest,remote_session_id,locked_attempt FROM devin_acp_bindings
-            WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3",params![scope.workspace_id,scope.room_id,scope.agent_id],
+            WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4",params![scope.workspace_id,scope.room_id,scope.agent_id,scope.lane],
             |row|Ok((row.get::<_,String>(0)?,row.get::<_,String>(1)?,row.get::<_,String>(2)?,row.get::<_,Option<String>>(3)?,row.get::<_,Option<String>>(4)?)))
             .optional().map_err(|_|fail("ACP 重置绑定读取失败。"))?;
         if let Some((cwd,cli,context,remote,locked))=old {
             if context!=binding.context_digest {
-                if locked.is_some() {return Err(fail("ACP 旧执行仍在途或未知，不能重置绑定。"));}
+                if let Some(attempt)=locked.as_deref() {
+                    let status=Self::status_on(&tx,attempt)?;
+                    if status.state!="unknown" || !status.process_drained {
+                        return Err(fail("ACP 旧执行仍在途或未知，不能重置绑定。"));
+                    }
+                    let old_scope:String=tx.query_row("SELECT scope_json FROM devin_acp_attempts WHERE attempt_id=?1",
+                        [attempt],|row|row.get(0)).map_err(|_|fail("ACP 旧回合身份读取失败。"))?;
+                    let old_scope_value:ExecutionScope=serde_json::from_str(&old_scope).map_err(|_|fail("ACP 旧回合身份无效。"))?;
+                    // 兼容旧版消费者先关闭、ACP 尚未来得及记录取消的竞争。
+                    // 只承认同库、精确宿主身份的持久停止记录，不推断远端取消成功。
+                    let has_runs:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='runtime_runs')",[],|row|row.get(0))
+                        .map_err(|_|fail("ACP 宿主停止记录结构核对失败。"))?;
+                    let host_cancelled = old_scope_value.lane.is_empty() && has_runs && tx.query_row(
+                        "SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND workspace_id=?2 AND chat_room_id=?3 AND session_id=?4 AND legacy_turn_id=?5 AND stop_requested_at IS NOT NULL)",
+                        params![old_scope_value.run_id,old_scope_value.workspace_id,old_scope_value.room_id,old_scope_value.agent_id,old_scope_value.turn_id],
+                        |row|row.get::<_,bool>(0)).map_err(|_|fail("ACP 宿主停止身份核对失败。"))?;
+                    if old_scope_value.lane.is_empty() {
+                        crate::tool_dispatch_settlement::reconcile_drained_acp_cu(&tx,&old_scope_value.run_id,
+                            &old_scope_value.workspace_id,&old_scope_value.room_id,&old_scope_value.agent_id,&old_scope_value.turn_id,&old_scope)?;
+                    }
+                    // 协议终态已确认且所有宿主工具真实结账时，可以归档失败回合；
+                    // 不改写旧 ACP unknown，不重发旧提示，不将取消绘图判为成功。
+                    if !status.cancel_requested && !host_cancelled && status.protocol_stop.as_deref()!=Some("end_turn") {
+                        return Err(fail("ACP 旧执行没有取消事实，不能建立新会话。"));
+                    }
+                    let has_tools:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='tool_calls')",[],|row|row.get(0))
+                        .map_err(|_|fail("ACP 工具台账结构核对失败。"))?;
+                    if has_tools && tx.query_row("SELECT EXISTS(SELECT 1 FROM tool_calls WHERE run_id=?1 AND source_request_key=?2 AND status NOT IN ('completed','failed'))",
+                        params![old_scope_value.run_id,old_scope],|row|row.get::<_,bool>(0)).map_err(|_|fail("ACP 旧工具收尾核对失败。"))? {
+                        return Err(fail("ACP 旧宿主工具尚未结账，不能建立新会话。"));
+                    }
+                }
                 if cli!=binding.cli_identity {return Err(fail("CLI 版本变化需要重新验收。"));}
                 if let Some(remote)=remote {
                     let archive=serde_json::json!({"workspace_id":scope.workspace_id,"room_id":scope.room_id,
-                        "agent_id":scope.agent_id,"cwd":cwd,"cli_identity":cli,"context_digest":context,"remote_session_id":remote});
+                        "agent_id":scope.agent_id,"lane":scope.lane,"cwd":cwd,"cli_identity":cli,"context_digest":context,
+                        "remote_session_id":remote,"locked_attempt":locked});
                     tx.execute("INSERT INTO devin_acp_retired_bindings(remote_session_id,binding_json) VALUES(?1,?2)",
                         params![remote,archive.to_string()]).map_err(|_|fail("ACP 旧会话归档失败。"))?;
                 }
-                tx.execute("DELETE FROM devin_acp_bindings WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3",
-                    params![scope.workspace_id,scope.room_id,scope.agent_id]).map_err(|_|fail("ACP 重置提交失败。"))?;
+                tx.execute("DELETE FROM devin_acp_bindings WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4",
+                    params![scope.workspace_id,scope.room_id,scope.agent_id,scope.lane]).map_err(|_|fail("ACP 重置提交失败。"))?;
             }
         }
         tx.commit().map_err(|_|fail("ACP 重置提交未确认。"))
@@ -198,8 +257,8 @@ impl Journal {
         let live: bool = connection.query_row("SELECT EXISTS(SELECT 1 FROM devin_acp_bindings b
             JOIN devin_acp_attempts a ON a.attempt_id=b.locked_attempt
             WHERE b.workspace_id=?1 AND b.room_id=?2 AND b.agent_id=?3
-              AND b.owner_epoch=?4 AND b.generation=?5 AND b.locked_attempt=?6 AND a.scope_json=?7)",
-            params![scope.workspace_id,scope.room_id,scope.agent_id,scope.owner_epoch,scope.generation,scope.attempt_id,encoded],
+              AND b.owner_epoch=?4 AND b.generation=?5 AND b.locked_attempt=?6 AND a.scope_json=?7 AND b.lane=?8)",
+            params![scope.workspace_id,scope.room_id,scope.agent_id,scope.owner_epoch,scope.generation,scope.attempt_id,encoded,scope.lane],
             |row| row.get(0)).map_err(|_| fail("ACP 所有权核对失败。"))?;
         if live {
             Ok(())
@@ -214,8 +273,8 @@ impl Journal {
         connection
             .query_row(
                 "SELECT remote_session_id,cwd,cli_identity,context_digest FROM devin_acp_bindings
-            WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3",
-                params![scope.workspace_id, scope.room_id, scope.agent_id],
+            WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4",
+                params![scope.workspace_id, scope.room_id, scope.agent_id, scope.lane],
                 |row| {
                     Ok(Binding {
                         remote_session_id: row.get(0)?,
@@ -253,8 +312,8 @@ impl Journal {
         let used_elsewhere: bool = tx
             .query_row(
                 "SELECT EXISTS(SELECT 1 FROM devin_acp_bindings WHERE remote_session_id=?1
-            AND NOT(workspace_id=?2 AND room_id=?3 AND agent_id=?4))",
-                params![remote, scope.workspace_id, scope.room_id, scope.agent_id],
+            AND NOT(workspace_id=?2 AND room_id=?3 AND agent_id=?4 AND lane=?5))",
+                params![remote, scope.workspace_id, scope.room_id, scope.agent_id, scope.lane],
                 |row| row.get(0),
             )
             .map_err(|_| fail("ACP 远端会话唯一性核对失败。"))?;
@@ -300,6 +359,22 @@ impl Journal {
         }
         tx.commit()
             .map_err(|_| fail("ACP 模型回执提交失败，不能发送任务。"))
+    }
+
+    /// 只记录模型配置和初始化能力投影；不保存 MCP 地址、Authorization 或其它原文。
+    pub(super) fn save_config_receipt(
+        &self, scope: &ExecutionScope, stage: &str, receipt: &serde_json::Value,
+    ) -> Result<(), String> {
+        if !matches!(stage, "initial" | "selected" | "capabilities") { return Err(fail("ACP 配置回执阶段无效。")); }
+        let encoded = serde_json::to_string(receipt).map_err(|_| fail("ACP 配置回执编码失败。"))?;
+        if encoded.len() > 512 * 1024 { return Err(fail("ACP 配置回执超过限额。")); }
+        let mut connection = self.connection()?;
+        let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)
+            .map_err(|_| fail("ACP 配置回执锁失败。"))?;
+        Self::check(&tx, scope)?;
+        tx.execute("INSERT INTO devin_acp_config_receipts(attempt_id,stage,receipt_json) VALUES(?1,?2,?3)",
+            params![scope.attempt_id, stage, encoded]).map_err(|_| fail("ACP 配置回执保存失败。"))?;
+        tx.commit().map_err(|_| fail("ACP 配置回执提交失败。"))
     }
 
     pub(super) fn model(&self, scope: &ExecutionScope) -> Result<Option<ModelSelection>, String> {
@@ -454,6 +529,7 @@ pub(super) mod tests {
             workspace_id: "w".into(),
             room_id: "r".into(),
             agent_id: "a".into(),
+            lane: String::new(),
             run_id: "run".into(),
             turn_id: "turn".into(),
             attempt_id: attempt.into(),
@@ -472,6 +548,51 @@ pub(super) mod tests {
         };
         (dir, journal, binding)
     }
+    #[test]
+    fn internal_lane_preserves_actual_identity_without_reusing_outer_lock() {
+        let (_dir, journal, binding) = setup();
+        let outer = journal.claim(scope("outer"), &binding).unwrap();
+        journal.transition(&outer, &["prepared"], "submitted", None, true).unwrap();
+        let mut inner = scope("inner"); inner.lane = "internal".into();
+        let inner = journal.claim(inner, &binding).unwrap();
+        assert_eq!(inner.agent_id, outer.agent_id);
+        assert_eq!(inner.room_id, outer.room_id);
+        journal.save_remote(&outer, "outer-remote").unwrap();
+        assert!(journal.save_remote(&inner, "outer-remote").is_err());
+        journal.save_remote(&inner, "inner-remote").unwrap();
+        let mut wrong = inner.clone(); wrong.lane.clear();
+        assert!(journal.binding(&wrong).is_err());
+        let reopened = Journal::open(journal.path()).unwrap();
+        assert_eq!(reopened.binding(&outer).unwrap().remote_session_id.as_deref(), Some("outer-remote"));
+        assert!(reopened.claim(scope("new-outer"), &binding).is_err());
+    }
+
+    #[test]
+    fn stopped_consumer_requires_exact_host_cancel_and_settled_tools_before_new_binding() {
+        let (_dir,journal,mut binding)=setup();
+        let old=journal.claim(scope("old-consumer"),&binding).unwrap();
+        journal.save_remote(&old,"old-consumer-remote").unwrap();
+        journal.transition(&old,&["prepared"],"unknown",None,false).unwrap();
+        journal.record_drained(&old).unwrap();
+        let c=journal.connection().unwrap();
+        c.execute_batch("CREATE TABLE runtime_runs(id TEXT,workspace_id TEXT,chat_room_id TEXT,session_id TEXT,legacy_turn_id TEXT,stop_requested_at INTEGER);
+            CREATE TABLE tool_calls(run_id TEXT,source_request_key TEXT,status TEXT);").unwrap();
+        c.execute("INSERT INTO runtime_runs VALUES(?1,?2,'wrong-room',?3,?4,1)",
+            params![old.run_id,old.workspace_id,old.agent_id,old.turn_id]).unwrap();
+        binding.context_digest="next-user-turn".into();
+        assert!(journal.rotate_idle_context(&scope("fresh-consumer"),&binding).is_err());
+        c.execute("UPDATE runtime_runs SET chat_room_id=?1",[&old.room_id]).unwrap();
+        c.execute("INSERT INTO tool_calls VALUES(?1,?2,'dispatched')",
+            params![old.run_id,serde_json::to_string(&old).unwrap()]).unwrap();
+        assert!(journal.rotate_idle_context(&scope("fresh-consumer"),&binding).is_err());
+        c.execute("UPDATE tool_calls SET status='completed'",[]).unwrap();
+        journal.rotate_idle_context(&scope("fresh-consumer"),&binding).unwrap();
+        assert_eq!(journal.status(&old).unwrap().state,"unknown");
+        assert!(journal.can_dispatch(&old).is_err());
+        let fresh=journal.claim(scope("fresh-consumer"),&binding).unwrap();
+        assert!(journal.save_remote(&fresh,"old-consumer-remote").is_err());
+    }
+
     #[test]
     fn unknown_survives_reopen_and_draining_and_blocks_new_attempts() {
         let (_dir, journal, binding) = setup();

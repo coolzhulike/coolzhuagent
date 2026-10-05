@@ -12,6 +12,7 @@ pub(super) enum ReadMethod {
     HitTest(i32, i32),
     ResolveEditor(i64),
     EditorState(String),
+    FocusedTargetState(String),
     ReleaseEditor(String),
 }
 impl ReadMethod {
@@ -29,6 +30,9 @@ impl ReadMethod {
             Self::ResolveEditor(node) => ("DOM.resolveNode", serde_json::json!({"backendNodeId":node,"objectGroup":"coolzhu-native-editor"}).to_string()),
             Self::EditorState(object) => ("Runtime.callFunctionOn", serde_json::json!({
                 "objectId":object,"functionDeclaration":super::native_browser_editor::READ_EDITOR,
+                "returnByValue":true,"throwOnSideEffect":true,"silent":true}).to_string()),
+            Self::FocusedTargetState(object) => ("Runtime.callFunctionOn", serde_json::json!({
+                "objectId":object,"functionDeclaration":super::native_browser_key_input::READ_FOCUS,
                 "returnByValue":true,"throwOnSideEffect":true,"silent":true}).to_string()),
             Self::ReleaseEditor(object) => ("Runtime.releaseObject",serde_json::json!({"objectId":object}).to_string()),
         }

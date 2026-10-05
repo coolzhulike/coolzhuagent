@@ -429,7 +429,9 @@ mod tests {
         let cwd = tempfile::tempdir().unwrap();
         let binary = Path::new(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe");
         let token = Arc::new(crate::ChatTurnCancellation::new());
-        assert_eq!(browser_login(binary, &["-NoProfile", "-Command", "Write-Output done"], cwd.path(), &token, Duration::from_secs(10), || {}).await, Phase::Completed);
+        // 完成分支只验证子进程退出，避免把 PowerShell 冷启动耗时当登录失败。
+        let immediate_exit = Path::new(r"C:\Windows\System32\cmd.exe");
+        assert_eq!(browser_login(immediate_exit, &["/D", "/C", "echo done"], cwd.path(), &token, Duration::from_secs(10), || {}).await, Phase::Completed);
         assert_eq!(browser_login(binary, &["-NoProfile", "-Command", "Start-Sleep -Seconds 30"], cwd.path(), &token, Duration::from_millis(200), || {}).await, Phase::TimedOut);
         let cancel = token.clone();
         tokio::spawn(async move { tokio::time::sleep(Duration::from_millis(200)).await; cancel.request(); });

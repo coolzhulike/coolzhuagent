@@ -107,7 +107,9 @@ test("HTTP 切换至 Devin 保存时清理不适用覆盖，保留版本和会�
   assert.equal(saved.body.parameters.context_window,0);
   assert.equal(saved.body.parameters.base_url,null);
   assert.match(h.elements.get("status").textContent,/聊天室发送文本/);
-  assert.match(h.elements.get("status").textContent,/工具与附件尚未开放/);
+  assert.match(h.elements.get("status").textContent,/Computer Use/);
+  assert.equal(saved.body.parameters.computer_use_enabled,false);
+  assert.deepEqual(saved.body.parameters.tool_allowlist,[]);
   h.change("protocol","openai_chat_completions");
   assert.equal(h.elements.get("base-url").required,true);
   assert.equal(h.elements.get("temperature").disabled,false);

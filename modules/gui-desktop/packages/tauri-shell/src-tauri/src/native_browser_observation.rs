@@ -8,7 +8,7 @@ pub(super) fn bounded_text(value: Option<&serde_json::Value>, limit: usize) -> S
         .unwrap_or_default().chars().filter(|c| !c.is_control()).take(limit).collect()
 }
 fn focused_editor(node: &serde_json::Value, role: &str) -> bool {
-    matches!(role, "textbox" | "searchbox")
+    matches!(role, "textbox" | "searchbox" | "combobox" | "button" | "link" | "checkbox" | "radio")
         && node.get("properties").and_then(serde_json::Value::as_array).is_some_and(|properties|
             properties.iter().any(|property| property["name"] == "focused"
                 && property.pointer("/value/value").and_then(serde_json::Value::as_bool) == Some(true)))
@@ -113,7 +113,7 @@ mod tests {
         let focus = serde_json::json!({"properties":[{"name":"focused","value":{"value":true}},
             {"name":"value","value":{"value":"SECRET"}}]});
         assert!(focused_editor(&focus,"textbox"));
-        assert!(!focused_editor(&focus,"button"));
+        assert!(focused_editor(&focus,"button"));
         assert!(!focused_editor(&serde_json::json!({"properties":[{"name":"focused","value":{"value":"true"}}]}),"textbox"));
         page.document_token = Some("a".repeat(32));
         page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32)});

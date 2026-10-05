@@ -133,13 +133,20 @@ pub enum PanelInputCommand {
     ExecuteScroll { target: PanelClickTarget, direction: ScrollDirection, amount: u8, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
     PrepareText { target: PanelClickTarget, text: String },
     ExecuteText { target: PanelClickTarget, text: String, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
+    PrepareKeys { target: PanelClickTarget, keys: Vec<String> },
+    ExecuteKeys { target: PanelClickTarget, keys: Vec<String>, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
     PrepareNavigate { target: PanelClickTarget, url: String },
     ExecuteNavigate { target: PanelClickTarget, url: String, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all="snake_case")]
-pub enum PanelInputKind { #[default] Click, Scroll, Text, Navigate }
+pub enum PanelInputKind { #[default] Click, Scroll, Text, Navigate, Keys }
+
+/// 原生网页只接受单个页面导航键，不开放全局快捷键或修饰键。
+pub fn valid_input_keys(keys: &[String]) -> bool {
+    keys.len() == 1 && matches!(keys[0].as_str(), "home" | "end" | "tab" | "enter" | "escape")
+}
 
 pub fn valid_input_text(text: &str) -> bool {
     !text.is_empty() && text.len() <= 2048 && !text.chars().any(|c| c.is_control() && c != '\n' && c != '\t')
@@ -175,6 +182,8 @@ pub struct PanelInputRequest {
 impl PanelInputRequest {
     pub fn valid_shape(&self) -> bool {
         opaque_id(&self.request_id) && self.resource.valid_shape() && match &self.command {
+            PanelInputCommand::PrepareKeys {target,keys} => target.valid_shape() && valid_input_keys(keys),
+            PanelInputCommand::ExecuteKeys {keys,..} if !valid_input_keys(keys) => false,
             PanelInputCommand::PrepareClick {target} => target.valid_shape(),
             PanelInputCommand::PrepareScroll {target,amount,..} => target.valid_shape() && (1..=5).contains(amount),
             PanelInputCommand::PrepareText {target,text} => target.valid_shape() && valid_input_text(text),
@@ -185,6 +194,7 @@ impl PanelInputRequest {
             PanelInputCommand::ExecuteClick {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms}
             | PanelInputCommand::ExecuteScroll {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..}
             | PanelInputCommand::ExecuteText {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..}
+            | PanelInputCommand::ExecuteKeys {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..}
             | PanelInputCommand::ExecuteNavigate {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..} =>
                 target.valid_shape() && opaque_id(ticket_id) && opaque_id(executor_instance_id) && *expires_at_unix_ms > 0
                     && [permit_id,attempt_id].into_iter().all(|s| !s.is_empty() && s.len() <= 2048 && !s.chars().any(char::is_control)),
@@ -313,7 +323,7 @@ impl PageObservation {
             && self.node_handles.iter().map(|handle| handle.index).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()
             && self.node_handles.iter().map(|handle| &handle.node_id).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()
             && self.focused_node_index.is_none_or(|index| self.nodes.get(index)
-                .is_some_and(|node| matches!(node.role.as_str(), "textbox" | "searchbox"))
+                .is_some_and(|node| matches!(node.role.as_str(), "textbox" | "searchbox" | "combobox" | "button" | "link" | "checkbox" | "radio"))
                 && self.node_handles.iter().any(|handle| handle.index == index))
             && self.nodes.len() <= 128 && self.nodes.iter().all(|node|
             node.role.chars().count() <= 64 && node.name.chars().count() <= 256

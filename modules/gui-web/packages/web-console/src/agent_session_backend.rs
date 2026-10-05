@@ -39,6 +39,51 @@ impl AgentSessionBackend {
     }
 }
 
+/// 内部生成共用后端选择；协议生命周期由各适配器负责，不把 ACP 强塞进 HTTP 客户端。
+pub(super) fn dispatch_internal(
+    agent: &super::AgentSessionDto, request: api::MessageRequest,
+    parent: Option<&super::FrozenParentContext>, room: Option<&str>, turn: &str, call: &str, kind: &str,
+    remaining: std::time::Duration, cancelled: std::sync::Arc<dyn Fn() -> bool + Send + Sync>,
+    schema: Option<serde_json::Value>, has_images: bool,
+) -> Result<tokio::sync::oneshot::Receiver<Result<api::MessageResponse, api::ApiError>>, api::ApiError> {
+    let backend = AgentSessionBackend::for_provider(&agent.provider);
+    backend.validate(super::session_model_settings_for(&agent.id).backend_kind)
+        .map_err(|message| api::ApiError::UnsupportedCapability { capability: message.into() })?;
+    let (sender, receiver) = tokio::sync::oneshot::channel();
+    match backend {
+        AgentSessionBackend::LlmHttp => {
+            let client = super::provider_client_for_agent(agent).and_then(|client| {
+                match api::ResponseFormat::for_qwen38(&agent.model, schema, has_images) {
+                    Some(format) => client.with_response_format(format), None => Ok(client),
+                }
+            });
+            let client = super::request_usage::observe_in_workspace_with_run(client, &agent.id, room,
+                Some(turn), Some(call), kind,
+                parent.and_then(|p| p.runtime_db_path.as_deref().map(|db| (p.workspace_id.as_str(), db))),
+                parent.and_then(|p| p.parent_run_id.as_deref()))?;
+            // HTTP 迟到结果继续记账；调用者退出等待不能使它成为动作来源。
+            tokio::spawn(async move { let _ = sender.send(client.send_message(&request).await); });
+        }
+        AgentSessionBackend::DevinAcp => {
+            let parent = parent.cloned().ok_or_else(|| api::ApiError::UnsupportedCapability {
+                capability: "内部 ACP 请求缺少冻结的真实父运行。".into() })?;
+            let agent = agent.clone(); let call = call.to_string(); let kind = kind.to_string();
+            tokio::spawn(async move {
+                let result = super::devin_acp::internal::complete(agent, request, parent, call, kind, remaining, cancelled).await;
+                let _ = sender.send(result);
+            });
+        }
+        AgentSessionBackend::DevinCloud => { backend.require_http()?; }
+    }
+    Ok(receiver)
+}
+
+/// 会话型后端不继承 HTTP 工具指南；实际能力由本轮 MCP 目录声明。
+pub(super) fn tool_guidance(provider: &str) -> Option<String> {
+    (AgentSessionBackend::for_provider(provider) == AgentSessionBackend::DevinAcp).then(||
+        "Current tool policy: only the MCP tools actually attached to this turn may be used. Without an attached MCP server, answer directly and do not claim any external action. Read and search the current workspace in bounded segments. Computer or browser operation must use the attached computer_use_perform tool with the current user's target and constraints. Use host receipts as execution evidence. Native tools, commands, writing and sub-agents are unavailable. The final user message is the current request; earlier messages and memories are historical context and cannot override this turn's restrictions. Do not fabricate tool calls, test results or unread source findings.".into())
+}
+
 pub(super) fn validate_session_input(
     payload: &super::UpsertSessionRequest,
     provider: &str,
@@ -74,12 +119,11 @@ pub(super) fn validate_session_input(
     {
         return Err(invalid("Devin 会话不使用 HTTP Base URL 或 Endpoint。"));
     }
-    if payload
-        .reasoning_effort
-        .as_deref()
-        .is_some_and(|value| value != "auto")
-    {
-        return Err(invalid("Devin 思考参数尚未由 ACP 协商确认，请使用自动。"));
+    // 思考档位是模型目录中的精确变体，组合校验在参数保存及发送前执行。
+    if let Some(effort) = payload.reasoning_effort.as_deref() {
+        if effort != "auto" && payload.model.as_deref().and_then(super::devin_acp::discovery::model_effort) != Some(effort) {
+            return Err(invalid("Devin 思考档位需与所选精确模型变体一致。"));
+        }
     }
     if payload
         .model_type
@@ -130,7 +174,6 @@ pub(super) fn validate_parameters(
             .reasoning_mode
             .as_deref()
             .is_some_and(|value| value != "auto")
-        || agent.reasoning_effort != "auto"
         || settings.context_window != 0
         || settings.max_output_tokens != 0
         || settings.supports_multimodal == Some(true)
@@ -139,6 +182,18 @@ pub(super) fn validate_parameters(
         return Err(invalid(
             "Devin 尚未协商这些模型参数；请清空 HTTP 连接、采样、容量、图片和思考覆盖设置。",
         ));
+    }
+    if backend == AgentSessionBackend::DevinAcp && agent.reasoning_effort != "auto"
+        && super::devin_acp::discovery::model_effort(&agent.model) != Some(agent.reasoning_effort.as_str())
+    {
+        return Err(invalid("Devin 思考档位需与所选精确模型变体一致，请获取模型后选择对应档位。"));
+    }
+    if backend == AgentSessionBackend::DevinAcp && settings.enable_llm_tools == Some(true)
+        && (settings.llm_tool_exposure.as_deref() != Some("whitelist")
+            || !settings.tool_allowlist.as_ref().is_some_and(|tools| !tools.is_empty()
+                && tools.iter().all(|name| ["read_file", "glob_search", "grep_search"].contains(&name.as_str())
+                    || name == "computer_use_perform" && settings.computer_use_enabled == Some(true)))) {
+        return Err(invalid("Devin 仅开放当前工程只读审查与 Computer Use；其它工具能力尚未就绪。"));
     }
     if settings
         .turn_timeout_ms

@@ -1,0 +1,4723 @@
+{
+  "source_baseline": "0b3e7ff3d3ba448059a10dc8a1749ff638eeb51e",
+  "build": "internal-build-25",
+  "backend_sha256": "574E1F395BF49C9B5D34CC1EE6AD4CF599B5749F5411A6F531CF15C4CB47EBF7",
+  "acceptance_model": "swe-2-medium",
+  "computer_use_runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791133713642-0-tool-2cb8d3d3b7ec9a1852adffb4f70374dd613569ca2c688a94476d3fa7ae67bf61",
+      "turn_id": "chat-turn-1791133713642-0",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error": {
+          "code": "native_browser_host_unavailable",
+          "message": "内置浏览器桌面宿主尚未连接",
+          "retryable": false,
+          "retry_owner": "user"
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791133935216-0-tool-9fa446b14d6fb8e8b4ef77f46ceac3b175493fb929d3001fde21cfa21cb50012",
+      "turn_id": "chat-turn-1791133935216-0",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791134289188-1-tool-fdeeb6d6b77e937e809e98568822c9605cc2ad1ce2318d8d1efdcc70c4c92119",
+      "turn_id": "chat-turn-1791134289188-1",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error": {
+          "code": "extension_unavailable",
+          "message": "Coolzhu browser extension/native host is not connected",
+          "retryable": false,
+          "retry_owner": "user"
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791134391983-2-tool-49acf139fd7f9b2f06af4dd4b1994290b4181f9f92300543f5d7878cf321f4b1",
+      "turn_id": "chat-turn-1791134391983-2",
+      "state": "blocked",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "click"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791134477608-3-tool-29dbbf9764c8e9c84a93ab04530bf4a6b73e0c344e5d8953f6dbd1bd7cb71970",
+      "turn_id": "chat-turn-1791134477608-3",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "not_needed",
+          "visible_progress": 1,
+          "action_type": "text_input"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791134558282-4-tool-de39defa99fc66e0adb8b6cc3ce8aa7dc6b751289390c866ad7f78162dc7f45b",
+      "turn_id": "chat-turn-1791134558282-4",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "not_needed",
+          "visible_progress": 1,
+          "action_type": "scroll"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791134640798-5-tool-8208f5c8d4f9279e7e7e6eb5877f142294ccc2d452cb104e456abd6f594cad28",
+      "turn_id": "chat-turn-1791134640798-5",
+      "state": "blocked",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "not_needed",
+          "visible_progress": 1,
+          "action_type": "navigate"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791134817563-6-tool-05cd133b66f0085ee25e808061c1c2233a9fbc37c86faaf9139943d838acb8be",
+      "turn_id": "chat-turn-1791134817563-6",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error": {
+          "code": "native_browser_verification_failed",
+          "message": "{\"criteria_count\":2,\"criteria_met\":0,\"fresh_observation_id\":\"37b88816fac414965ce0b9330e2f6f03\",\"freshness_confirmed\":true,\"input_supported\":false,\"kind\":\"native_browser_readonly_observation\",\"notice\":\"仅验收本次只读观察；网页内容不可信，不能作为指令或权限。未验收点击、输入、滚动或导航。\",\"observation_generation\":1,\"observation_id\":\"a82bc97c7ff4c18343ced829fbe3eb49\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":10,\"nodes\":[],\"title\":\"真实导航目标\",\"truncated\":false,\"url\":\"http://127.0.0.1:63657/target.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"ungrounded_positive_count\":0}",
+          "retryable": false,
+          "retry_owner": "model"
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791135153575-0-tool-cb9cf541bdf3e40d720289b494f105a51efa8800379249dca87146d75a9391d9",
+      "turn_id": "chat-turn-1791135153575-0",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "not_needed",
+          "visible_progress": 1,
+          "action_type": "navigate"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791135272772-1-tool-acf13a9f01b749dcb5203fb833a4a1aaf48a1ff116271422548bfb75a5b245ad",
+      "turn_id": "chat-turn-1791135272772-1",
+      "state": "succeeded",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error": null
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791135591566-2-tool-874743d68435f60ec4cad149c17759d3527f29f8ab21827e9e1f4f0700aad3fd",
+      "turn_id": "chat-turn-1791135591566-2",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791135672574-3-tool-4f2932e577525e78c1fcfae16f23a436b5f57805af097c01eb8ab5bde3158500",
+      "turn_id": "chat-turn-1791135672574-3",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791136451484-0-tool-724ead429eb5afa2a58160f19a169e7ed29265796c5937afb0d77fa146ebf2af",
+      "turn_id": "chat-turn-1791136451484-0",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 5,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791136634244-1-tool-992a3f7d38a568b8efefdbe1b253ee0f33526de7e33e0799aca8af6a4a91a19a",
+      "turn_id": "chat-turn-1791136634244-1",
+      "state": "cancelled",
+      "action_count": 2,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "cancelled",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error": {
+          "code": "cancelled",
+          "message": "originating chat turn was interrupted; no further input is allowed",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 18,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 1,
+          "status": "input_sent_observed",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 13,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "drag"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791136634244-1-tool-d4fa5bfb52ec779144d0e925601347e8d7ad96400f67a3f1f540121f5d20349b",
+      "turn_id": "chat-turn-1791136634244-1",
+      "state": "cancelled",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "cancelled",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error": {
+          "code": "cancelled",
+          "message": "originating chat turn was interrupted; no further input is allowed",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791137830657-0-tool-219bc14078534fc0ad342ce84ebcad817b2854f9c3fb95db8d8487a7ec42ba91",
+      "turn_id": "chat-turn-1791137830657-0",
+      "state": "cancelled",
+      "action_count": 2,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "cancelled",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error": {
+          "code": "cancelled",
+          "message": "originating chat turn was interrupted; no further input is allowed",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 13,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 1,
+          "status": "input_sent_observed",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 7,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "drag"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791137830657-0-tool-34c7e461afb3071623fba97252a574fd864c6d9b55c4adf675990662f30b6ab0",
+      "turn_id": "chat-turn-1791137830657-0",
+      "state": "cancelled",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "cancelled",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error": {
+          "code": "cancelled",
+          "message": "originating chat turn was interrupted; no further input is allowed",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791138841219-0-tool-93c3cd8173c1b17591c303a76aba6b49239a510223e266f83ab4a538fbc5cf57",
+      "turn_id": "chat-turn-1791138841219-0",
+      "state": "blocked",
+      "action_count": 5,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "planning",
+        "goal_achieved": false,
+        "attempts": 5,
+        "steps_completed": 5,
+        "error": {
+          "code": "stage_timeout",
+          "message": "computer_use_planning model request exceeded its 12125 ms stage wait limit; the request was sent, and any late response cannot produce an action",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 5,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 14,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 2,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 7,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 3,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 10,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 4,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 15,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791139817070-0-tool-bdc59323acb9917901338a9ab76b5e7a6ddd95458b5c4aa856b536549829fe50",
+      "turn_id": "chat-turn-1791139817070-0",
+      "state": "blocked",
+      "action_count": 4,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 4,
+        "steps_completed": 4,
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 3,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 3,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 2,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 5,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 3,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 5,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "drag"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791140416186-1-tool-b8d89e7e754e59aceba1c1b03bb0b85b5f37543881cb79f1896dbfae3964da14",
+      "turn_id": "chat-turn-1791140416186-1",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791140576372-2-tool-93d2f3bf02ca59db74a9d2e65f108f0f01242217fa067c917f2b38cb036d5f4a",
+      "turn_id": "chat-turn-1791140576372-2",
+      "state": "cancelled",
+      "action_count": 1,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "cancelled",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": {
+          "code": "cancelled",
+          "message": "originating chat turn was interrupted; no further input is allowed",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791140822512-3-tool-029b0c0863e01e43684322a3a5f225988f3da81785188fb2e8089ea2048d4850",
+      "turn_id": "chat-turn-1791140822512-3",
+      "state": "blocked",
+      "action_count": 2,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error": {
+          "code": "no_progress",
+          "message": "no visible progress after repeated actions",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 3,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "drag"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": 1,
+          "confirmed_point_count": 3,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "drag"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791141347975-4-tool-de7fce25b073a2e884387ba8928257a53acd49e41f2502db278558db444be36b",
+      "turn_id": "chat-turn-1791141347975-4",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error": {
+          "code": "native_browser_panel_unavailable",
+          "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "retryable": false,
+          "retry_owner": "user"
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791141497314-5-tool-39010d04bf7dcd9c36f5d162d484c9bc089513cdf689ea9df0ae09c51b810cda",
+      "turn_id": "chat-turn-1791141497314-5",
+      "state": "blocked",
+      "action_count": 3,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 3,
+        "steps_completed": 3,
+        "error": {
+          "code": "no_progress",
+          "message": "no visible progress after repeated actions",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "not_needed",
+          "visible_progress": 1,
+          "action_type": "navigate"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "click"
+        },
+        {
+          "step_index": 2,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "click"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791142434411-0-tool-64ef36e13c4cb63936bac84a462c42173cdeaa5eec2cc20793b7de678f2d0e9c",
+      "turn_id": "chat-turn-1791142434411-0",
+      "state": "blocked",
+      "action_count": 2,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 2,
+        "steps_completed": 2,
+        "error": {
+          "code": "no_progress",
+          "message": "no visible progress after repeated actions",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "click"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "key_combination"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791142677561-0-tool-b99ab44b645ef50563532a665ff72768f8e2afbeb9ca2a5463ed935768a85dd7",
+      "turn_id": "chat-turn-1791142677561-0",
+      "state": "blocked",
+      "action_count": 5,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 5,
+        "steps_completed": 5,
+        "error": {
+          "code": "no_progress",
+          "message": "no visible progress after repeated actions",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "key_combination"
+        },
+        {
+          "step_index": 2,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "key_combination"
+        },
+        {
+          "step_index": 3,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "key_combination"
+        },
+        {
+          "step_index": 4,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "key_combination"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791143225861-0-tool-3b814c5f60020f6184e618bba5c0c8b6c4e7d5e40213b8dd4817dbed09105ab3",
+      "turn_id": "chat-turn-1791143225861-0",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "attempts": 0,
+        "steps_completed": 0,
+        "error": {
+          "code": "extension_unavailable",
+          "message": "Coolzhu browser extension/native host is not connected",
+          "retryable": false,
+          "retry_owner": "user"
+        }
+      },
+      "steps": []
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791143479668-0-tool-40e90e4c425c599a45cbaf0981a9325906d4809ac0bdeec8d8b767067315a216",
+      "turn_id": "chat-turn-1791143479668-0",
+      "state": "blocked",
+      "action_count": 5,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "attempts": 5,
+        "steps_completed": 5,
+        "error": {
+          "code": "no_progress",
+          "message": "no visible progress after repeated actions",
+          "retryable": false,
+          "retry_owner": "none"
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "not_needed",
+          "visible_progress": 1,
+          "action_type": "navigate"
+        },
+        {
+          "step_index": 2,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        },
+        {
+          "step_index": 3,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "key_combination"
+        },
+        {
+          "step_index": 4,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "key_combination"
+        }
+      ]
+    },
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791144038904-0-tool-c6eee56130b089c0fab939d0ae5afe824e05d4e2c1e0bda90c182457f73117ef",
+      "turn_id": "chat-turn-1791144038904-0",
+      "state": "succeeded",
+      "action_count": 5,
+      "replan_count": 0,
+      "current_observation_generation": 0,
+      "terminal": {
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "attempts": 5,
+        "steps_completed": 5,
+        "error": null
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        },
+        {
+          "step_index": 1,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "inconclusive",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 0,
+          "action_type": "key_combination"
+        },
+        {
+          "step_index": 2,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "key_combination"
+        },
+        {
+          "step_index": 3,
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        },
+        {
+          "step_index": 4,
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "visible_progress": 1,
+          "action_type": "click"
+        }
+      ]
+    }
+  ],
+  "model_attempt_receipts": [
+    {
+      "attempt": "2977075638b351db627a176a7ed6b62929e11d211e2795fb",
+      "run": "run-chat-972f5743bae48aa8b560d0d50970b3b1d2f099538efcd546",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": []
+    },
+    {
+      "attempt": "10c94f5e100d028ddc42808a462b373b7bedc3f4f7c12fc8",
+      "run": "run-chat-4fb1fba1fa96502bc287b5931519ff4bb0a880d77d777abd",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": []
+    },
+    {
+      "attempt": "f0ec2a42c1a389c94fe92fe9f1b394a81662c2531c244235",
+      "run": "run-chat-daf762373920f7818fb99cfe4a6249674623b4e7ae4c38ce",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b977ba3c98d3baf92c56b36d8538686d15cbf891d1b50799",
+      "run": "run-chat-7693173a5727a90f48692eb7dfa13cd3a166ad7d953682dc",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "5f35d459e27fe55fd0b2c4ce29897679592ec23af039ac47",
+      "run": "run-chat-a00aa90ee8ee38f3a2098770ff57af1068b36fe8238ff344",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "6246b54536a3a13a4d4a4d476090d5ff79d773ab91be8e01",
+      "run": "run-chat-a00aa90ee8ee38f3a2098770ff57af1068b36fe8238ff344",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "15139a44368282599633052bcdaf4447ec811a8a67328c77",
+      "run": "run-chat-a00aa90ee8ee38f3a2098770ff57af1068b36fe8238ff344",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "c7ed58a48444b593c96a7e479bccccca5e13211bc2317c64",
+      "run": "run-chat-b0c5f10451bd2c911240c510a6460a88c6603ed72cf0e94c",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "2840d618e7bf6c5fee3b93ebcac38c6c79bf1682c260ab80",
+      "run": "run-chat-c5372167a83b3945122881873881cde08255da01af26da8d",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "286b6ef5c49e3d6ba3b73cae401af8512bd8c0dcf35f1f8f",
+      "run": "run-chat-c5372167a83b3945122881873881cde08255da01af26da8d",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "f9b16f29d4bf5f63bbf617e44b98424bebfb3e1655311cb1",
+      "run": "run-chat-c5372167a83b3945122881873881cde08255da01af26da8d",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "6547fa82582c30473c0878c81a9fcde0c28c01bc8bd0919a",
+      "run": "run-chat-0592cfcf90492ae17d4734505ecfd0ec028997858d4c2e82",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "1f8521caba68fdf4be41fd87fd77b23a57ff6304b31370bb",
+      "run": "run-chat-0592cfcf90492ae17d4734505ecfd0ec028997858d4c2e82",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b25569c0d0ab6f2e877f25260a841f9f2176c24c6efecc46",
+      "run": "run-chat-0592cfcf90492ae17d4734505ecfd0ec028997858d4c2e82",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "22a37c8a94a9b033d37b56653db6df16d2d748469cf07834",
+      "run": "run-chat-8f8223e991aec38a7504d0c7b13d7d8d0ac38f31ccbacbb0",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "873f29e69f94b25443debd56f6b4225dea49c06091ad61b4",
+      "run": "run-chat-8f8223e991aec38a7504d0c7b13d7d8d0ac38f31ccbacbb0",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "bda76b8e9503076a51ffe1df2accce3b9bd810d2d532e086",
+      "run": "run-chat-8f8223e991aec38a7504d0c7b13d7d8d0ac38f31ccbacbb0",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "3074d68e8cc033f01ff645c9edec59dac00e58d2fdc31638",
+      "run": "run-chat-848c0005f9a0199dfc07430e571694f09ebdb86e54112485",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "8161d9b11422b68045059e49f7f65aea8110d82d2ae050bc",
+      "run": "run-chat-848c0005f9a0199dfc07430e571694f09ebdb86e54112485",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "22aa16860662066ebe3b17d4575536441df43b2f9cb93ba6",
+      "run": "run-chat-848c0005f9a0199dfc07430e571694f09ebdb86e54112485",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "604e9eea3ff08be863bcc68b0a07a4e760b06a604049d43a",
+      "run": "run-chat-2496da2f958b57b89e9ae58674c1f428855c740cccb21a24",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b3f040f853cc64c792cecaf30c6ed52c8ed4622d39e9425c",
+      "run": "run-chat-2496da2f958b57b89e9ae58674c1f428855c740cccb21a24",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "62fcd3c248bc5475b74e53db72a4d6d31b6d95146123ea64",
+      "run": "run-chat-2068c0627a4d375b37987d75148fd1bb62082a554f3b2c74",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "3eba812dba7a45f5c40a1d27a3fc4e713ef31226cbe342fc",
+      "run": "run-chat-2068c0627a4d375b37987d75148fd1bb62082a554f3b2c74",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "f76f9215ffd4de8548ac593046b36c57a102cf34ce2198aa",
+      "run": "run-chat-2068c0627a4d375b37987d75148fd1bb62082a554f3b2c74",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "c087898e7c83294d340f7e91dcb078c52c8eea44ad0aed50",
+      "run": "run-chat-337a48b7b72d837a256d3881a33af6c35b1a483084ab7f36",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "513da8e2014da68cce59608a51e9bb77785b88b018082663",
+      "run": "run-chat-337a48b7b72d837a256d3881a33af6c35b1a483084ab7f36",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "129baaa1ad2b441b3258f9f66734d8fb53f6ff1c657d7d3a",
+      "run": "run-chat-2a8ef83911c64fe4131ee9c58c57d2aed934ba644fb86a3a",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "a6cf8e0e826f0cbea3b63b2b98f4d5ef23b6de490af8621c",
+      "run": "run-chat-2a8ef83911c64fe4131ee9c58c57d2aed934ba644fb86a3a",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "8142adb82d02773b7f5617d935e39b5b85227c434bfcde47",
+      "run": "run-chat-2a8ef83911c64fe4131ee9c58c57d2aed934ba644fb86a3a",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "a0906ff4b05f64768fbb088f04081d22bbba76b271557402",
+      "run": "run-chat-57656770a3e563106f40ec1b82e4f213f11a2de92448e41c",
+      "lane": "",
+      "state": "unknown",
+      "stop": null,
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "db028f8339ca2d4809c507ba6f45e4c977be335747396d2a",
+      "run": "run-chat-57656770a3e563106f40ec1b82e4f213f11a2de92448e41c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "04b1afe3178b4edff83c562b04c34876faf5edff808f27c1",
+      "run": "run-chat-57656770a3e563106f40ec1b82e4f213f11a2de92448e41c",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "c17d498f370388a5c46536a72bc73caf95e53d72636021f7",
+      "run": "run-chat-16ae4c6a85c328004bae18d40065e1af83a3edcb7a63a6b9",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "384251381251789034ce26b612263538823fa1bd42ef5aeb",
+      "run": "run-chat-16ae4c6a85c328004bae18d40065e1af83a3edcb7a63a6b9",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "6404e23771055e9b009f3e81bc240f2342f1efc56b5ffa87",
+      "run": "run-chat-16ae4c6a85c328004bae18d40065e1af83a3edcb7a63a6b9",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "03b6430c736b8813820604386562c3e370719e93d49d980b",
+      "run": "run-chat-16ae4c6a85c328004bae18d40065e1af83a3edcb7a63a6b9",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "0f46d342db89dd1accd59670eda923648ea55b4e94dea5a2",
+      "run": "run-chat-bbdeb231c7c4708c6f50a3459faa8e509041264ef8a4158e",
+      "lane": "",
+      "state": "unknown",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "9a406bb898d6293950fda612a8faa6751cfbd5a01780dfcf",
+      "run": "run-chat-bbdeb231c7c4708c6f50a3459faa8e509041264ef8a4158e",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "633011fc0b83ce483d4b559ffd1712d0e850e1c1c90175b0",
+      "run": "run-chat-bbdeb231c7c4708c6f50a3459faa8e509041264ef8a4158e",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "12135e30ece6d12470ef345b715c0f194bfedd22bfb6eac2",
+      "run": "run-chat-bbdeb231c7c4708c6f50a3459faa8e509041264ef8a4158e",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "89fc25801208e7592b19de3332dee83d5a851d1674d3d6f8",
+      "run": "run-chat-bbdeb231c7c4708c6f50a3459faa8e509041264ef8a4158e",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "90b77cdc56bc7446e4bd35c894bdbf733f10be2e2ec6eeee",
+      "run": "run-chat-bbdeb231c7c4708c6f50a3459faa8e509041264ef8a4158e",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "cancelled",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "94477f5d1677fb682fddc02aae199d755e669c84ea66bc03",
+      "run": "run-chat-1a4d45bf3f3fab4ab61ddc44b756274b23521c5184cf4ca4",
+      "lane": "",
+      "state": "unknown",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "992deccbdf7f89a90332ac35731c1d79085d2b85a78f10d5",
+      "run": "run-chat-1a4d45bf3f3fab4ab61ddc44b756274b23521c5184cf4ca4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "aac47582a4cd4af90f9d3b3dcf450eddb5560965aaf55b4d",
+      "run": "run-chat-1a4d45bf3f3fab4ab61ddc44b756274b23521c5184cf4ca4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "08ec5a68b8d32ba98f778e56d1e50452d732cde9eb265cd4",
+      "run": "run-chat-1a4d45bf3f3fab4ab61ddc44b756274b23521c5184cf4ca4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "5fe75c0398eeb6220c7445f91fbd3b152d7726415a1a3e71",
+      "run": "run-chat-1a4d45bf3f3fab4ab61ddc44b756274b23521c5184cf4ca4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "904313de2996350b144c60eeb3d959c3d0db465efafbfe5a",
+      "run": "run-chat-1a4d45bf3f3fab4ab61ddc44b756274b23521c5184cf4ca4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "cancelled",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          2
+        ]
+      ]
+    },
+    {
+      "attempt": "390660e59ded554d8b635bba74543e5956633b2cde51de86",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "109d1f9584224615b7ff432e03be2e09cfefc97ef6a1e1fa",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "fb6353ada4f9748effc29caf1cf3dfa14e8dc06ba360f611",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "f93cf0883ed4b84ea8743af4448f0d09ecadaed8b565de45",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "6e7394259d57e4f091b1d2e5d6375d8f470f69845971129e",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "f601722c6c63ee53f35176d182fc9126e0da5f4b46b59574",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "848f5ccc00b5eef9a1d85f1c39f21643bcfc6f84b5ed9b99",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "bbe44992764ee48a54a3541a36560c5c335ea687f66d522c",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "83a6c7a3ff27822ee5fb25aba4dadc51fb02c7046a03ee91",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "64c873a1d03e3c990c3a198de950cb7f3fc965442649a3c9",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "4b949bb2c961052cf140504a65436f07b4b9acc20d451892",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "065bd3082661a2416c9514e854c84a923bc3faaa93d36bb7",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "0cf78a25616c6b4a63b7a42fc86f67ea8c44c68bfcaa3c43",
+      "run": "run-chat-ff7469bc86164ad180261a7d1f405f71fd86c902f385910b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "cancelled",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "3269c7d2c2734bea3842c27442d907697c82d61448c94c9c",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "9e63cbe1018745562e13092ae88d7ab29815943063b9d30e",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "4ef75582889d8dd087d11308acb313b7232745ecde2b77ea",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "244178119255ad4b3baab27afddde8b44d05a73b4ceb84be",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "26f8c97907b2d62082aeea4c8de06c50b4ff1016894f1128",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "7cdf4452f09557b0f2bab7868e81551b133df145139aa9ea",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "771da9b671d7c56354a40d80f233325d2f3b9bbf377cf764",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "326d26ac38bee1af50e9fea3b04df9a011342aa1149e8c0c",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "58f8ba65180d67b8aaea1f72bc553643add75525d681d1dd",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "93a92f4947db1f507c80d10ae5c44429e67494a0e02d76ae",
+      "run": "run-chat-dd078bf2fae8fe54379e2892d1a013bd7130e34af4b657b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "aac3d0351a0f1693b09156e591f57388e8e90cc7c9d2a99a",
+      "run": "run-chat-9855705fcc67155e731a9084085f745323b1610ef9f873b4",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b61eb0a3ac573f2e7eeb2ccbae675e45f9761b481ac55296",
+      "run": "run-chat-9855705fcc67155e731a9084085f745323b1610ef9f873b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b76a22f00cfb0f3cfd67ba16416000cc058e8dd58dbaf8a9",
+      "run": "run-chat-9855705fcc67155e731a9084085f745323b1610ef9f873b4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "3c64748ed51bc3e4a0aee8cc26130af894e344c8a78d1c97",
+      "run": "run-chat-c258afa6ffa3a6e1c2fd7757bcbd3c095add962458dc9a32",
+      "lane": "",
+      "state": "unknown",
+      "stop": "cancelled",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "94a109d799c69ee1ef0f53e8837389479f21ebd711bd8ffc",
+      "run": "run-chat-c258afa6ffa3a6e1c2fd7757bcbd3c095add962458dc9a32",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "27ac7d7dd50b9df6eb6db47e3a3cf5aab02217b9cdd764ec",
+      "run": "run-chat-c258afa6ffa3a6e1c2fd7757bcbd3c095add962458dc9a32",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "217fcc788f391f61cdbd90d1c753ba6200d14a1d8b78b170",
+      "run": "run-chat-c258afa6ffa3a6e1c2fd7757bcbd3c095add962458dc9a32",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "da532b60d38fd456fccb5cc71e5f857474babc43155da815",
+      "run": "run-chat-8ac3bedb973c2abe08bb94e837a9c5ea51a059d2e2260428",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "3ad8ce1c764692809bb390b75cfdf36a5875ead1cf85016c",
+      "run": "run-chat-8ac3bedb973c2abe08bb94e837a9c5ea51a059d2e2260428",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "68b3fa63fc57fc629dd58ddf1624838cc73cedb3734a9d1b",
+      "run": "run-chat-8ac3bedb973c2abe08bb94e837a9c5ea51a059d2e2260428",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "f47b2a1c5326c921c6ce7c97459c964e4410ac8446c7c5de",
+      "run": "run-chat-8ac3bedb973c2abe08bb94e837a9c5ea51a059d2e2260428",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "6e7a0f9e9cc970a1ee29fcd26c63b65b31dd0118a317adf9",
+      "run": "run-chat-8ac3bedb973c2abe08bb94e837a9c5ea51a059d2e2260428",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "c6f6af7582dbe0d2092d5e47ee9c09420d5f064f8d79d146",
+      "run": "run-chat-8ac3bedb973c2abe08bb94e837a9c5ea51a059d2e2260428",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "8642f2ea4c66bd6e3bc17617ab32de184db1f87614fde436",
+      "run": "run-chat-1437853edab9a7a334bfaf8d2a800e44169e0c94daa44c5f",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "97c3352953f418baff27b2f6ef2b659374f2d08855529e43",
+      "run": "run-chat-f4eac551cfd90df2237f58d4078686c6fe95d9f70d15cdf0",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b0dee4fcfebd35acf9c5c4db1e0de92eeae87021b2480382",
+      "run": "run-chat-f4eac551cfd90df2237f58d4078686c6fe95d9f70d15cdf0",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "3a4331158f344fc4d0e38c2263ed2307c6bd998121b394ed",
+      "run": "run-chat-f4eac551cfd90df2237f58d4078686c6fe95d9f70d15cdf0",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "d6e88c60b12be76aa3eed0803ae94c7acba20eb12bbca111",
+      "run": "run-chat-f4eac551cfd90df2237f58d4078686c6fe95d9f70d15cdf0",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "5daeafa139862fdc5ed78ae414695fdfb4f733655c64076d",
+      "run": "run-chat-f4eac551cfd90df2237f58d4078686c6fe95d9f70d15cdf0",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "4cd281c86466a75456b2fb9360f0f08b2577838653e75e43",
+      "run": "run-chat-f4eac551cfd90df2237f58d4078686c6fe95d9f70d15cdf0",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "2082a7557e8e746633b5b9685857d5f4b1a2db71f7272651",
+      "run": "run-chat-f4eac551cfd90df2237f58d4078686c6fe95d9f70d15cdf0",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "8884d5f84be1965d227b2533a4f71f578c810e4f54270fa5",
+      "run": "run-chat-1daf95ae3492a5a3a99a7ac3994513561f514b6cc55ef9c5",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "c872e9ff9042d8083d6a542f644e70db95e84a63b0af6df8",
+      "run": "run-chat-1daf95ae3492a5a3a99a7ac3994513561f514b6cc55ef9c5",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "d4a1f1cc6eda2ef1e82cbd0cb17faa7636dcfa6ed4e8704c",
+      "run": "run-chat-1daf95ae3492a5a3a99a7ac3994513561f514b6cc55ef9c5",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "66c7d01850d7b8102c709139c0a4fc74d266b33b55a924c9",
+      "run": "run-chat-1daf95ae3492a5a3a99a7ac3994513561f514b6cc55ef9c5",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "c650c8d93eb1b4c59ec83c19ab9ddfbb7b7076d348f7fe38",
+      "run": "run-chat-1daf95ae3492a5a3a99a7ac3994513561f514b6cc55ef9c5",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "ec6adfef5b67115d2f548f22a43adb59a449d1f6a136f02e",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "a49642ebd3150139704a6ab891ed5127ad9d4903f1bbe2bf",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "69906a85a657912be939e8ff05059f1f904d4d61b6bf4176",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "fd3378a908e3b6c9f9c7d253f6c2525c03e65e79e06a52db",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "29804a17b0b19b7fdecf4a7c663b0792bc593a16f72cd384",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "cc4ee8b058eaf0c632a43c6970291c6aa833d80712f0b533",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "2bf0b3c74325166e7eaf30a63742c0ced699ea67bfc51c18",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "d212ec96e49a61ea7f33c02ad51db62ea38aed6e9997b26d",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b59f01db21630fc6f0b99df4c893212984a44f2acad382b9",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "00cae68e970daadc88e698f4c246fe6cb6d4f21868c80f33",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "e2d58da10095e3eb0583f973222cccefb051cedd1ee389a3",
+      "run": "run-chat-176b8b3cbb2085789cc79c57802380df1594d292ffdd428b",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "0b0f9501011e1a2028a28308f14b2dcad66d18f30a6ccdda",
+      "run": "run-chat-a49972e631e13cd9ffac5fe1ad1daf31aa38558e841ee316",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "1c05bebb27b99dca37ed3881abeb0ddfcd601155567809c2",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "a9f2d969e3455fc5be2e1ddd26fc5de37d4e387eba0d9b99",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "48f08ac51461ae2d729a4095b5bca825dd61bc5c895fc8bd",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "d06a5007d234347c4c310060358cd236fd47c93b27c85084",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "d66dc57b2d7143e8f6f1ffe4f979a0a946f09d0988051a45",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "9199f27198f00f27de5896fd2b09dfc84dd26b6cac25a545",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "c7ae7ca116a08ec5efaabe3389094162c658eb1d7a6f21bd",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "012d527e2c2dd91a0b48776210a594c1458b647eaafdd5f8",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "2cb79ebb5c6d13f584369d73e9a17691d4d98b1550f694df",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "db690201aab6cd0bdda62cb561f010b77017c7ec11e645e9",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "f92efb3666e1f476a338a342f0c36abf9c3b2f05256cfe2c",
+      "run": "run-chat-0509455e829c43b4875018a4704601c15a8fc4a11dab1836",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "failed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "fccef7199c8e0091db8cae9cf6df187f132316eb4019dfd9",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "f6704da52d291f34c121ff2153602dbcca598bb8e6d21064",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "d4cf58c3105d3b795db9c9b8ed10758e9dcf8832e88d07a9",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "29e920182a4b1652824b11a60a3daaa133b1cb4332b1bf11",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "61dce71c461a2144a33c50d70d22469325a00b09100e6a12",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "01ec589cf6c8bf940fc83616fcccc4d7d1657bc210853a6c",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "2ef34cc5b0397d43cf2d338794702edbafdb3922f5d62f74",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b42a7eb037cda2f214902ad2d8819780e67e8b87ad74ec83",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "f154fb605d751952fd696bff67dfd48fa0ab09f5c6a722bd",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "85fe5f01600e21629ae07ac9b348ce75a6d6b8474c9d6095",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    },
+    {
+      "attempt": "b9de26f0549c5b143d32207a3d592b437877b1d1aa7dc1e6",
+      "run": "run-chat-c3a0599af6ed88c0d518c277eed0187744ff5243c1df64a4",
+      "lane": "internal",
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      },
+      "capabilities": [
+        {
+          "prompt_image": true,
+          "protocol_version": 1
+        }
+      ],
+      "tools": [
+        [
+          "computer_use_perform",
+          "completed",
+          1
+        ]
+      ]
+    }
+  ],
+  "browser_form_events": [
+    {
+      "kind": "select",
+      "value": "bicycle",
+      "page_ms": 1791142758675,
+      "server_ms": 1791142758683
+    },
+    {
+      "kind": "check",
+      "value": true,
+      "page_ms": 1791143507577,
+      "server_ms": 1791143507583
+    },
+    {
+      "kind": "select",
+      "value": "bicycle",
+      "page_ms": 1791144113804,
+      "server_ms": 1791144113814
+    },
+    {
+      "kind": "check",
+      "value": true,
+      "page_ms": 1791144135264,
+      "server_ms": 1791144135268
+    },
+    {
+      "kind": "submit",
+      "value": {
+        "mode": "bicycle",
+        "ready": true
+      },
+      "page_ms": 1791144159758,
+      "server_ms": 1791144159760
+    }
+  ],
+  "limitations": [
+    "调试版，正式安装未验收",
+    "按下/释放区间取消竞争未覆盖",
+    "完整海绵宝宝腿脚未达成"
+  ]
+}

@@ -37,6 +37,7 @@ fn stage_delivery(value:&mut Option<Pending>,host_id:&str,resource:Option<&Panel
         use native_browser_protocol::PanelInputCommand;
         match request.request.command {
             PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..}
+            | PanelInputCommand::ExecuteKeys {ticket_id,attempt_id,executor_instance_id,..}
             | PanelInputCommand::ExecuteScroll {ticket_id,attempt_id,executor_instance_id,..}
             | PanelInputCommand::ExecuteText {ticket_id,attempt_id,executor_instance_id,..}
             | PanelInputCommand::ExecuteNavigate {ticket_id,attempt_id,executor_instance_id,..} => {
@@ -73,10 +74,12 @@ fn settle_reply(value:&mut Option<Pending>,reply:PanelInputReply) -> Result<Stat
 fn phase_matches(command:&native_browser_protocol::PanelInputCommand,reply:&PanelInputReply) -> bool {
     match command {
         native_browser_protocol::PanelInputCommand::PrepareClick {..} | native_browser_protocol::PanelInputCommand::PrepareScroll {..}
+        | native_browser_protocol::PanelInputCommand::PrepareKeys {..}
         | native_browser_protocol::PanelInputCommand::PrepareText {..} | native_browser_protocol::PanelInputCommand::PrepareNavigate {..} =>
             matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Prepared|native_browser_protocol::PanelInputOutcome::NotDispatched)
                 && reply.attempt_id.is_none() && reply.executor_instance_id.is_none(),
-        native_browser_protocol::PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..} =>
+        native_browser_protocol::PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..}
+        | native_browser_protocol::PanelInputCommand::ExecuteKeys {ticket_id,attempt_id,executor_instance_id,..} =>
             matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Released|native_browser_protocol::PanelInputOutcome::ReleaseUnknown|native_browser_protocol::PanelInputOutcome::NotDispatched)
                 && reply.ticket_id.as_deref()==Some(ticket_id.as_str())
                 && reply.attempt_id.as_deref()==Some(attempt_id.as_str())
@@ -128,6 +131,23 @@ pub(super) fn random_id() -> Result<String,String> {
 mod tests {
     use super::*;
     use native_browser_protocol::*;
+
+    #[test]
+    fn keys_require_actual_release_instead_of_no_held_ack() {
+        let (_,_,mut reply)=pending_click(Instant::now()+Duration::from_secs(8));
+        let command=PanelInputCommand::ExecuteKeys {
+            target:PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)},
+            keys:vec!["end".into()],ticket_id:"4".repeat(32),permit_id:"permit-1".into(),attempt_id:"attempt-1".into(),
+            executor_instance_id:"5".repeat(32),expires_at_unix_ms:100,
+        };
+        assert!(phase_matches(&command,&reply));
+        reply.outcome=PanelInputOutcome::Acknowledged;reply.down_confirmed=false;reply.up_confirmed=false;
+        assert!(reply.valid_shape());
+        assert!(!phase_matches(&command,&reply),"无按住输入的ACK不能冒充按键释放");
+        assert!(valid_input_keys(&["end".into()]));
+        assert!(!valid_input_keys(&["ctrl".into(),"a".into()]));
+        assert!(!valid_input_keys(&["meta".into()]));
+    }
 
     #[test]
     fn resource_withdrawal_proves_zero_delivery_only_before_host_receives_request() {

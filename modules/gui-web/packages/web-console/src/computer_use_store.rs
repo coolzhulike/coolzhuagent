@@ -2632,6 +2632,22 @@ impl ComputerUseRunStore {
         Ok(rows)
     }
 
+    /// 规划反馈只读取同一运行、同一步已保存的页面单键；不暴露动作正文、URL或输入文本。
+    pub(crate) fn run_step_page_keys(&self, call_id: &str, step: usize) -> rusqlite::Result<Option<Vec<String>>> {
+        let connection = self.connection.lock().expect("computer-use store lock");
+        let raw = connection.query_row(
+            "SELECT d.action_json FROM computer_use_step_details d
+             JOIN computer_use_steps s ON s.run_id=d.run_id AND s.step_index=d.step_index
+             WHERE d.run_id=?1 AND d.step_index=?2 AND s.action_type='key_combination'",
+            params![call_id, step as i64], |row| row.get::<_, String>(0),
+        ).optional()?;
+        Ok(raw.filter(|raw| raw.len() <= 8192).and_then(|raw| {
+            let action: serde_json::Value = serde_json::from_str(&raw).ok()?;
+            let keys: Vec<String> = serde_json::from_value(action.pointer("/arguments/keys")?.clone()).ok()?;
+            native_browser_protocol::valid_input_keys(&keys).then_some(keys)
+        }))
+    }
+
     /// **请求状态**（CU-01）：逐条列出本 run 的规划请求及其 usage 登记情况。
     ///
     /// 联接方式不是猜的：usage 事实的 `record_subject` 与规划请求的稳定复合键是**同一格式**
@@ -3926,7 +3942,7 @@ mod tests {
                 max_replans = 99
                 max_same_signature = 0
                 max_no_progress_steps = 99
-                timeout_seconds = 9999
+                timeout_seconds = 999999
                 max_calls_per_turn = 99
 
                 [computer_use.desktop]
@@ -3953,10 +3969,23 @@ mod tests {
         assert_eq!(budgets.max_replans, 5);
         assert_eq!(budgets.max_same_signature, 1);
         assert_eq!(budgets.max_no_progress_steps, 3);
-        assert_eq!(budgets.timeout_ms, 300_000);
+        assert_eq!(budgets.timeout_ms, 86_400_000);
         assert_eq!(budgets.max_calls_per_turn, 2);
         assert!(!config.desktop.enabled);
         assert!(config.browser.allow_drag);
+    }
+
+    #[test]
+    fn explicit_long_cu_budget_remains_bounded_by_chat_deadline() {
+        let mut config = ConfigComputerUse::default();
+        config.controller.timeout_seconds = 600;
+        let budgets = config.budgets();
+        assert_eq!(budgets.timeout_ms, 600_000);
+        let deadline = computer_use::CuDeadline::establish(
+            &budgets, 1_000, computer_use::RootDeadline::at(181_000),
+        );
+        assert_eq!(deadline.cu_budget_ms(), 600_000);
+        assert_eq!(deadline.cu_deadline_ms(), 181_000);
     }
 
     #[test]

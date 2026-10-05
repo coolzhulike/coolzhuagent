@@ -9,6 +9,7 @@ mod native_browser_target;
 mod native_browser_input;
 mod native_browser_editor;
 mod native_browser_edit_input;
+mod native_browser_key_input;
 mod computer_use_indicator;
 mod console_shell;
 mod recovery_confirmation;

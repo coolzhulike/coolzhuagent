@@ -7,6 +7,8 @@ mod protocol;
 mod process;
 mod session;
 mod transport;
+mod tool_wait;
 pub(super) mod chat;
+pub(super) mod internal;
 #[cfg(all(test, windows))]
 mod real_smoke;

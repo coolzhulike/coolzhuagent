@@ -1,5 +1,20 @@
 // 云会话独立于模型配置；不保存密钥到浏览器，不自动创建、重发或轮询。
 (() => {
+  // 聊天室后端复用统一参数页；云任务 API 保持独立，不能冒充可选模型的聊天 Provider。
+  const modelsPanel = document.querySelector('[data-role="devin-model-panel"]');
+  let modelsEditor = null;
+  modelsPanel?.addEventListener("toggle", () => {
+    if (modelsPanel.open && !modelsEditor) modelsEditor = window.CoolzhuModelSettings?.mount(
+      modelsPanel.querySelector('[data-role="devin-model-settings"]'),
+      { defaultProtocol:"devin_acp", backendFilter:"devin_acp", onSaved:async () => { await loadSessions(); await loadAgents(); } },
+    );
+    else if (modelsPanel.open) void modelsEditor?.refresh();
+  });
+  window.addEventListener("coolzhu-workspace-changed", () => {
+    modelsEditor?.destroy(); modelsEditor = null;
+    modelsPanel?.querySelector('[data-role="devin-model-settings"]')?.replaceChildren();
+    if (modelsPanel?.open) modelsPanel.dispatchEvent(new Event("toggle"));
+  });
   const host = document.querySelector('[data-role="devin-plugin-panel"]');
   if (!host) return;
   const field = name => host.querySelector(`[data-role="devin-${name}"]`);

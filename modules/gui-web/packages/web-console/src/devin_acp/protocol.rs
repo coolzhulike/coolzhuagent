@@ -28,6 +28,9 @@ pub(super) struct ExecutionScope {
     pub workspace_id: String,
     pub room_id: String,
     pub agent_id: String,
+    /// 内部规划与外层聊天共用真实身份，但不能占用同一远端会话锁。
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub lane: String,
     pub run_id: String,
     pub turn_id: String,
     pub attempt_id: String,
@@ -38,6 +41,7 @@ pub(super) struct ExecutionScope {
 impl ExecutionScope {
     pub(super) fn accepts(&self, incoming: &Self) -> bool {
         self == incoming
+            && matches!(self.lane.as_str(), "" | "internal")
             && self.owner_epoch > 0
             && self.generation > 0
             && [
@@ -69,6 +73,26 @@ fn option_has_value(options: &[Value], selected: &str) -> bool {
                 .and_then(Value::as_array)
                 .is_some_and(|group| option_has_value(group, selected))
     })
+}
+
+pub(super) fn model_config_receipt(requested: &str, options: Option<&Value>) -> Value {
+    fn values(options: &[Value], output: &mut Vec<String>) {
+        for option in options {
+            if let Some(value) = option.get("value").and_then(Value::as_str) {
+                if super::chat::valid_model_id(value) { output.push(value.into()); }
+            }
+            if let Some(group) = option.get("options").and_then(Value::as_array) { values(group, output); }
+        }
+    }
+    let models = options.and_then(Value::as_array).map(|options| options.iter()
+        .filter(|option| option["category"] == "model").map(|option| {
+            let mut choices = Vec::new();
+            if let Some(options) = option.get("options").and_then(Value::as_array) { values(options, &mut choices); }
+            json!({"id":option.get("id").and_then(Value::as_str).filter(|id| super::chat::valid_model_id(id)),
+                "current":option.get("currentValue").and_then(Value::as_str).filter(|id| super::chat::valid_model_id(id)),
+                "values":choices})
+        }).collect::<Vec<_>>()).unwrap_or_default();
+    json!({"requested":requested,"model_options":models})
 }
 
 /// 只使用 category=model 的真实选项，不能把 mode 或 reasoning 当模型。
@@ -199,6 +223,7 @@ mod tests {
             workspace_id: "w".into(),
             room_id: "r".into(),
             agent_id: "a".into(),
+            lane: String::new(),
             run_id: "run".into(),
             turn_id: "turn".into(),
             attempt_id: "attempt-1".into(),

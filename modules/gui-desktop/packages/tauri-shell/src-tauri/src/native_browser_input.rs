@@ -5,18 +5,20 @@ use tauri::{AppHandle, Manager};
 use super::native_browser_target::{self, VerifiedTarget};
 
 #[derive(Clone,PartialEq,Eq)]
-enum Operation { Click, Scroll { direction: ScrollDirection, amount: u8 }, Text(String), Navigate(String) }
+enum Operation { Click, Scroll { direction: ScrollDirection, amount: u8 }, Text(String), Navigate(String), Keys(Vec<String>) }
 impl Operation {
     fn for_command(command: &PanelInputCommand) -> Self {
         match command {
             PanelInputCommand::PrepareClick {..} | PanelInputCommand::ExecuteClick {..} => Self::Click,
             PanelInputCommand::PrepareScroll {direction,amount,..} | PanelInputCommand::ExecuteScroll {direction,amount,..} => Self::Scroll {direction:*direction,amount:*amount},
             PanelInputCommand::PrepareText {text,..} | PanelInputCommand::ExecuteText {text,..} => Self::Text(text.clone()),
+            PanelInputCommand::PrepareKeys {keys,..} | PanelInputCommand::ExecuteKeys {keys,..} => Self::Keys(keys.clone()),
             PanelInputCommand::PrepareNavigate {url,..} | PanelInputCommand::ExecuteNavigate {url,..} => Self::Navigate(url.clone()),
         }
     }
     async fn verify(&self,app:&AppHandle,request:&PanelInputRequest,target:&PanelClickTarget) -> Result<VerifiedTarget,String> {
         match self {
+            Self::Keys(_) => super::native_browser_key_input::verify(app,&request.resource,target).await,
             Self::Click => native_browser_target::verify(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
             Self::Scroll {..} => native_browser_target::verify_viewport(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
             Self::Text(_) => super::native_browser_editor::verify(app,&request.resource,target).await,
@@ -59,6 +61,7 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
     let operation=Operation::for_command(&request.command);
     match &request.command {
         PanelInputCommand::PrepareClick {target} | PanelInputCommand::PrepareScroll {target,..}
+        | PanelInputCommand::PrepareKeys {target,..}
         | PanelInputCommand::PrepareText {target,..} | PanelInputCommand::PrepareNavigate {target,..} => {
             let result = operation.verify(app,&request,target).await;
             match result {
@@ -81,6 +84,7 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
             }
         },
         PanelInputCommand::ExecuteClick {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
+        | PanelInputCommand::ExecuteKeys {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
         | PanelInputCommand::ExecuteScroll {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
         | PanelInputCommand::ExecuteText {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
         | PanelInputCommand::ExecuteNavigate {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..} => {
@@ -104,6 +108,7 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
                 Err(error) => { reply.error=Some(error);return reply; },
             };
             let (outcome,down,up) = match operation {
+                Operation::Keys(keys) => super::native_browser_key_input::press(app,verified,keys,*expires_at_unix_ms).await,
                 Operation::Click => click(app,verified,*expires_at_unix_ms).await,
                 Operation::Scroll {direction,amount} => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
                 Operation::Text(text) => (super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await,false,false),

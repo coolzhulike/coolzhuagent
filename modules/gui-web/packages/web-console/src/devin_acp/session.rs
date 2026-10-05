@@ -288,6 +288,7 @@ pub(super) struct SessionService<W> {
     sequence: u64,
     text_bytes: usize,
     deadline: tokio::time::Instant,
+    prompt_image: bool,
 }
 
 #[derive(Debug)]
@@ -348,6 +349,9 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
             )
             .await?;
         protocol::validate_initialize(&initialize).map_err(invalid)?;
+        let prompt_image = initialize["agentCapabilities"]["promptCapabilities"]["image"] == true;
+        journal.save_config_receipt(&scope, "capabilities", &json!({"protocol_version":1,"prompt_image":prompt_image}))
+            .map_err(|e| invalid(&e))?;
         if !mcp_servers.is_empty()
             && initialize["agentCapabilities"]["mcpCapabilities"]["http"] != true
         {
@@ -426,6 +430,8 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
             .save_remote(&scope, &remote)
             .map_err(|e| invalid(&e))?;
         for event in staged { sink(event)?; }
+        journal.save_config_receipt(&scope, "initial", &protocol::model_config_receipt(requested, result.get("configOptions")))
+            .map_err(|e| invalid(&e))?;
         let options = result
             .get("configOptions")
             .ok_or_else(|| invalid("ACP 会话未提供可确认的模型配置。"))?;
@@ -444,6 +450,8 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
                 )
             })
             .await?;
+        journal.save_config_receipt(&scope, "selected", &protocol::model_config_receipt(requested, result.get("configOptions")))
+            .map_err(|e| invalid(&e))?;
         let selection = protocol::confirmed_model(requested, &result).map_err(invalid)?;
         journal
             .save_model(&scope, &selection)
@@ -457,6 +465,7 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
             sequence,
             text_bytes,
             deadline,
+            prompt_image,
         })
     }
 
@@ -468,8 +477,22 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
         cancel_grace: Duration,
         mut sink: impl FnMut(Event) -> io::Result<()>,
     ) -> io::Result<TurnResult> {
-        let params = json!({"sessionId":self.remote,"prompt":[{"type":"text","text":text}]});
-        if text.trim().is_empty() || serde_json::to_vec(&params)?.len() > MAX_FRAME_BYTES - 128 {
+        self.prompt_content(vec![json!({"type":"text","text":text})], cancellation, cancel_grace, &mut sink).await
+    }
+
+    /// 原图用标准 ACP 图片块发送；未声明 image 能力时在提交前拒绝。
+    pub(super) async fn prompt_content(
+        &mut self, content: Vec<Value>, cancellation: Arc<crate::ChatTurnCancellation>,
+        cancel_grace: Duration, mut sink: impl FnMut(Event) -> io::Result<()>,
+    ) -> io::Result<TurnResult> {
+        if content.is_empty() || content.iter().any(|block| match block["type"].as_str() {
+            Some("text") => block["text"].as_str().is_none_or(|text| text.trim().is_empty()),
+            Some("image") => !self.prompt_image || block["data"].as_str().is_none_or(str::is_empty)
+                || !matches!(block["mimeType"].as_str(), Some("image/png" | "image/jpeg" | "image/webp")),
+            _ => true,
+        }) { return Err(invalid("ACP 提示内容无效或当前连接未声明图片能力；未发送。")); }
+        let params = json!({"sessionId":self.remote,"prompt":content});
+        if serde_json::to_vec(&params)?.len() > MAX_FRAME_BYTES - 128 {
             return Err(invalid("ACP 提示词为空或超过大小限制。"));
         }
         if cancellation.is_requested() || tokio::time::Instant::now() >= self.deadline {

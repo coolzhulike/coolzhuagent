@@ -44,6 +44,12 @@ struct Criterion { index: usize, met: bool, evidence: String, node_indices: Vec<
 // 正向判断必须引用认证宿主原文，不能让模型杜撰的回显通过合法索引获得可信身份。
 fn grounded_positive(criterion: &Criterion, page: &PageObservation) -> bool {
     let quote = criterion.evidence.trim();
+    // URL、标题和视口属于认证宿主字段，不要求它们同时出现在正文节点中。
+    // 模型附带有效节点索引时，不能把真实 URL 引用误判成杜撰正文。
+    if page.title.contains(quote) || page.url.contains(quote) || page.viewport.as_ref().is_some_and(|viewport|
+        [viewport.page_x, viewport.page_y, viewport.width, viewport.height].iter().any(|value| value.to_string() == quote)) {
+        return true;
+    }
     if !criterion.node_indices.is_empty() {
         if criterion.node_indices.iter().any(|index| page.nodes[*index].name.contains(quote)) {
             return true;
@@ -55,8 +61,7 @@ fn grounded_positive(criterion: &Criterion, page: &PageObservation) -> bool {
             && indices.iter().all(|index| matches!(page.nodes[*index].role.as_str(), "StaticText" | "InlineTextBox"))
             && indices.iter().map(|index| page.nodes[*index].name.as_str()).collect::<String>().contains(quote);
     }
-    page.title.contains(quote) || page.url.contains(quote) || page.viewport.as_ref().is_some_and(|viewport|
-        [viewport.page_x, viewport.page_y, viewport.width, viewport.height].iter().any(|value| value.to_string() == quote))
+    false
 }
 
 /// 交互能力不由初始读页代替；不强制执行动作，规划器仍可因目标已满足或不安全而停止。
@@ -82,8 +87,8 @@ pub(super) fn ensure_fresh(observation: &Observation, fresh: &crate::computer_us
         return Err(ComputerUseError::blocked("native_browser_observation_stale",
             "原生页面或宿主环境在模型验收期间已变化，本轮旧观察不能作为成功证据", ComputerUseRetryOwner::User));
     }
-    if old.get("viewport") != fresh.state.get("viewport") {
-        return Err(ComputerUseError::blocked("native_browser_observation_stale","视口或滚动位置在验收期间已变化",ComputerUseRetryOwner::User));
+    if old.get("viewport") != fresh.state.get("viewport") || old.get("focused_node_index") != fresh.state.get("focused_node_index") {
+        return Err(ComputerUseError::blocked("native_browser_observation_stale","视口、滚动位置或控件焦点在验收期间已变化",ComputerUseRetryOwner::User));
     }
     if old.get("document_token").is_some_and(|token| !token.is_null() && Some(token)!=fresh.state.get("document_token")) {
         return Err(ComputerUseError::blocked("native_browser_observation_stale","网页文档身份已变化",ComputerUseRetryOwner::User));
@@ -174,6 +179,9 @@ mod tests {
             "target":{"url":"https://example.invalid/"},"success_criteria":["读标题"]})).unwrap();
         let title = r#"{"criteria":[{"index":0,"met":true,"evidence":"文本输入","node_indices":[]}]}"#;
         assert!(finish(title,&title_request,&observation).unwrap().achieved);
+        let url = r#"{"criteria":[{"index":0,"met":true,"evidence":"https://example.invalid/","node_indices":[0]}]}"#;
+        assert!(finish(url,&title_request,&observation).unwrap().achieved);
+        assert!(!finish(&url.replace("example.invalid", "invented.invalid"),&title_request,&observation).unwrap().achieved);
         observation.state["page"]["nodes"] = json!([
             {"role":"StaticText","name":"实际页面滚动位置："},
             {"role":"StaticText","name":"289"},

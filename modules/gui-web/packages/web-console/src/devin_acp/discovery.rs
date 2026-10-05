@@ -17,6 +17,8 @@ pub(super) struct DiscoveredModel {
     max_output_tokens: Option<u64>,
     cost_tier: Option<String>,
     cost_summary: Option<String>,
+    family: String,
+    reasoning_effort: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -111,7 +113,7 @@ fn model_label(value: Option<&Value>) -> Option<String> {
         .map(str::to_string)
 }
 
-fn parse_catalog(value: &Value) -> Result<Vec<DiscoveredModel>, &'static str> {
+pub(super) fn parse_catalog(value: &Value) -> Result<Vec<DiscoveredModel>, &'static str> {
     // 固定 CLI 3000.10.48 的真实目录按 families/variants 分组。
     let grouped;
     let entries = if let Some(families) = value.get("families") {
@@ -148,6 +150,8 @@ fn parse_catalog(value: &Value) -> Result<Vec<DiscoveredModel>, &'static str> {
             .unwrap_or_else(|| id.clone());
         // 目录可访问只证明可发现；图片、采样和底模身份必须以实际 ACP 协商为准。
         models.push(DiscoveredModel {
+            family: model_family(&id).to_string(),
+            reasoning_effort: model_effort(&id).map(str::to_string),
             id,
             name,
             image_input: None,
@@ -160,6 +164,20 @@ fn parse_catalog(value: &Value) -> Result<Vec<DiscoveredModel>, &'static str> {
         });
     }
     Ok(models)
+}
+
+// CLI 将思考档位编码在精确模型变体中；只在真实目录内查找同家族变体，不合成 ID。
+pub(crate) fn model_effort(model: &str) -> Option<&str> {
+    let (_, effort) = model.rsplit_once('-')?;
+    matches!(effort, "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max").then_some(effort)
+}
+
+fn model_family(model: &str) -> &str {
+    if model_effort(model).is_some() { model.rsplit_once('-').unwrap().0 } else { model }
+}
+
+pub(super) fn catalog_contains(value: &Value, model: &str) -> bool {
+    parse_catalog(value).is_ok_and(|models| models.iter().any(|entry| entry.id == model))
 }
 
 pub(crate) async fn discover() -> super::super::ApiResult<Json<DiscoveryResponse>> {
@@ -215,9 +233,8 @@ pub(crate) async fn discover() -> super::super::ApiResult<Json<DiscoveryResponse
     let value: Value = serde_json::from_slice(&bytes)
         .map_err(|_| bad("Devin CLI 未返回合法 JSON 模型目录；请检查固定版本。"))?;
     let models = parse_catalog(&value).map_err(bad)?;
-    let text_chat_ready = cfg!(windows) && version == super::chat::CLI_VERSION
-        && models.iter().any(|model|super::chat::supported_model(&model.id) && model.cost_tier.as_deref()==Some("Free"));
-    let mut warnings = vec!["聊天室支持免费 SWE-2 文本会话；每轮发送前核对 CLI 文件、免费目录与 ACP 生效模型。工具、附件、Goal 和子 Agent 尚未开放。".into()];
+    let text_chat_ready = cfg!(windows) && version == super::chat::CLI_VERSION;
+    let mut warnings = vec!["可选择账号目录中的模型及思考变体；每轮发送前核对目录与 ACP 生效模型。费用按 Devin 账号计费。工具、附件、Goal 和子 Agent 尚未开放。".into()];
     if pinned.is_none() {
         warnings.push("CLI 版本尚未固定。完成验证后将 COOLZHU_DEVIN_CLI_VERSION 设置为此次 cli_version 的完整值。".into());
     }

@@ -19,29 +19,35 @@ use tokio::sync::mpsc;
 pub(super) const CLI_VERSION: &str = "devin 3000.10.48 (fcf7ba39)";
 const CLI_SHA256: &str = "d8877ebf699499b1d0957a9fdd99cb596013fc3bfeb782b756496bbcf527bb1b";
 
-fn error(message: impl Into<String>) -> api::ApiError {
+pub(super) fn error(message: impl Into<String>) -> api::ApiError {
     api::ApiError::UnsupportedCapability {
         capability: message.into(),
     }
 }
 
-pub(crate) fn supported_model(model: &str) -> bool {
-    matches!(model, "swe-2-medium" | "swe-2-high" | "swe-2-max")
+pub(crate) fn valid_model_id(model: &str) -> bool {
+    !model.trim().is_empty() && model.len() <= 1024 && !model.chars().any(char::is_control)
 }
 
-pub(crate) fn reasoning_resolution() -> crate::ReasoningResolutionDto {
+pub(crate) fn reasoning_resolution(model: &str, requested: &str) -> crate::ReasoningResolutionDto {
+    let effort = super::discovery::model_effort(model).unwrap_or("auto");
+    let mut supported_options = vec![crate::ReasoningOptionDto {
+        value: "auto".into(), label: "所选模型默认".into(), note: None,
+    }];
+    if effort != "auto" {
+        supported_options.push(crate::ReasoningOptionDto {
+            value: effort.into(), label: effort.into(),
+            note: Some("此精确模型变体的档位；其它档位需重新获取账号模型目录。".into()),
+        });
+    }
     crate::ReasoningResolutionDto {
-        requested: "auto".into(),
-        effective: "auto".into(),
-        status: "unknown".into(),
-        strategy: "acp_negotiation".into(),
+        requested: requested.into(),
+        effective: effort.into(),
+        status: "pending".into(),
+        strategy: "acp_model_variant".into(),
         protocol: "devin_acp".into(),
-        reason: "使用 CLI 默认思考配置；未协商可覆盖参数。".into(),
-        supported_options: vec![crate::ReasoningOptionDto {
-            value: "auto".into(),
-            label: "自动".into(),
-            note: None,
-        }],
+        reason: "思考档位随精确模型变体选择；发送前由 ACP 核对生效 ID，其它参数沿用 CLI 默认。".into(),
+        supported_options,
     }
 }
 
@@ -111,7 +117,7 @@ impl Drop for TextStream {
     }
 }
 
-fn digest(value: &[u8]) -> String {
+pub(super) fn digest(value: &[u8]) -> String {
     format!("{:x}", Sha256::digest(value))
 }
 
@@ -121,6 +127,17 @@ fn controlled_config() -> Value {
             "claude":false,"copilot":false,"opencode":false,"zed":false},
         "hooks":{},"permissions":{"allow":[],"ask":[],
             "deny":["read","write","edit","exec","grep","glob","fetch","mcp","mcp__*"]}})
+}
+
+fn review_enabled(settings: &crate::SessionModelLimitOverride) -> Result<bool, String> {
+    if settings.enable_llm_tools != Some(true) { return Ok(false); }
+    if settings.llm_tool_exposure.as_deref() != Some("whitelist")
+        || !settings.tool_allowlist.as_ref().is_some_and(|tools| !tools.is_empty()
+            && tools.iter().all(|name| super::bridge::REVIEW_TOOLS.contains(&name.as_str())
+                || name == "computer_use_perform" && settings.computer_use_enabled == Some(true))) {
+        return Err("Devin 仅开放显式选择的工程只读工具与 Computer Use；其它工具尚未就绪。".into());
+    }
+    Ok(true)
 }
 
 fn absent_or_empty(path: &Path) -> Result<(), String> {
@@ -139,7 +156,7 @@ fn absent_or_empty(path: &Path) -> Result<(), String> {
 }
 
 /// --config 只替换用户配置，MCP 和系统扩展另有来源；不能假定空 hooks 会覆盖它们。
-fn check_ambient_extensions() -> Result<(), String> {
+pub(super) fn check_ambient_extensions() -> Result<(), String> {
     let user = PathBuf::from(std::env::var_os("APPDATA").ok_or("无法定位 Devin 用户配置。")?)
         .join("devin");
     let system =
@@ -157,7 +174,12 @@ fn check_ambient_extensions() -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(test)]
 fn prepare_directory(key: &str) -> Result<(PathBuf, PathBuf), String> {
+    prepare_directory_with_tools(key, false)
+}
+
+pub(super) fn prepare_directory_with_tools(key: &str, review: bool) -> Result<(PathBuf, PathBuf), String> {
     let base = PathBuf::from(std::env::var_os("LOCALAPPDATA").ok_or("无法定位会话缓存。")?)
         .join("CoolzhuAgent/devin-text-v1")
         .join(key);
@@ -169,7 +191,12 @@ fn prepare_directory(key: &str) -> Result<(PathBuf, PathBuf), String> {
     // 项目根标记阻止 CLI 向上发现用户工程的配置；这里不包含用户工程文件。
     std::fs::create_dir_all(cwd.join(".git")).map_err(|_| "无法固定 Devin 文本项目根。")?;
     let config = base.join("config.json");
-    let value = controlled_config();
+    let mut value = controlled_config();
+    if review {
+        // 仅此受控服务提供三项只读工具；全局 MCP、Hooks 仍在启动前排除。
+        value["permissions"] = json!({"allow":["mcp__coolzhu-agent__*"],"ask":[],
+            "deny":["read","write","edit","exec","grep","glob","fetch"]});
+    }
     let bytes = serde_json::to_vec(&value).map_err(|_| "文本配置编码失败。")?;
     std::fs::write(&config, &bytes).map_err(|_| "文本配置写入失败。")?;
     let project = json!({"permissions":value["permissions"],"read_config_from":value["read_config_from"],"hooks":{}});
@@ -187,18 +214,12 @@ fn prepare_directory(key: &str) -> Result<(PathBuf, PathBuf), String> {
     Ok((cwd, config))
 }
 
-fn is_free(catalog: &Value, model: &str) -> bool {
-    supported_model(model)
-        && catalog["families"].as_array().is_some_and(|families| {
-            families
-                .iter()
-                .filter_map(|family| family["variants"].as_array())
-                .flatten()
-                .any(|variant| variant["model_uid"] == model && variant["cost_tier"] == "Free")
-        })
+#[cfg(test)]
+fn publish(event: Event, tx: &mpsc::Sender<Item>) -> io::Result<()> {
+    publish_with_tools(event, tx, false)
 }
 
-fn publish(event: Event, tx: &mpsc::Sender<Item>) -> io::Result<()> {
+fn publish_with_tools(event: Event, tx: &mpsc::Sender<Item>, review: bool) -> io::Result<()> {
     if event.replay {
         return Ok(());
     }
@@ -218,11 +239,63 @@ fn publish(event: Event, tx: &mpsc::Sender<Item>) -> io::Result<()> {
             .map_err(|_| io::Error::other("聊天室已停止接收或消息队列超限。"))
         }
         // 文本会话绝不将远端工具自述转成宿主工具请求。
+        Update::ToolObservation { .. } if review => Ok(()),
         Update::ToolObservation { .. } => Err(io::Error::other(
             "文本会话出现工具调用；已停止，未执行宿主工具。",
         )),
         _ => Ok(()),
     }
+}
+
+/// 前端取消后不再投影增量，但独立 worker 必须继续读取协议终态并排空进程。
+/// 正常运行时的队列溢出仍是错误，不能用关闭消费者掩盖消息丢失。
+fn publish_to_consumer(
+    event: Event,
+    tx: &mpsc::Sender<Item>,
+    review: bool,
+    cancellation: &ChatTurnCancellation,
+) -> io::Result<()> {
+    if cancellation.is_requested() && tx.is_closed() {
+        return Ok(());
+    }
+    publish_with_tools(event, tx, review)
+}
+
+/// 聊天与内部请求共享实际 CLI 身份核对；模型资格由随后 ACP 配置回执确认。
+pub(super) async fn checked_binary(model: &str) -> Result<PathBuf, api::ApiError> {
+    if model.trim().is_empty() { return Err(error("模型 ID 不能为空。")); }
+    let binary = super::discovery::binary().map_err(error)?;
+    if tokio::fs::metadata(&binary)
+        .await
+        .map_err(|_| error("无法读取 CLI 身份。"))?
+        .len()
+        > 512 * 1024 * 1024
+    {
+        return Err(error("CLI 文件超过已验证大小范围。"));
+    }
+    let cli_bytes = tokio::fs::read(&binary)
+        .await
+        .map_err(|_| error("无法核对固定 CLI 文件。"))?;
+    if digest(&cli_bytes) != CLI_SHA256 {
+        return Err(error("Devin CLI 与已验证文件不同，需要重新验证后接入。"));
+    }
+    drop(cli_bytes);
+    let sandbox = tempfile::tempdir().map_err(|_| error("无法准备模型核对目录。"))?;
+    let version = super::transport::run_readonly(
+        &binary,
+        &["--version"],
+        sandbox.path(),
+        Duration::from_secs(5),
+    )
+    .await
+    .map_err(error)?;
+    if std::str::from_utf8(&version).ok().map(str::trim) != Some(CLI_VERSION) {
+        return Err(error("Devin CLI 版本未通过文本会话验收。"));
+    }
+    // 获取完整目录只用于设置页发现模型。每次生成重复联网取目录会阻塞聊天和
+    // CU 内部规划；SessionService 仍必须从远端配置选项选择精确 ID 并确认生效，
+    // 不存在或不能选择的模型在发送提示之前失败，不接受别名或自动换模。
+    Ok(binary)
 }
 
 pub(crate) async fn start(
@@ -274,58 +347,24 @@ pub(crate) async fn start(
     if cancellation.is_requested() {
         return Err(error("本轮已停止，未启动 Devin。"));
     }
-    if !supported_model(&agent.model) {
-        return Err(error("目前聊天室仅开放账号目录标记 Free 的 SWE-2 模型。"));
+    if !valid_model_id(&agent.model) {
+        return Err(error("请从 Devin 账号目录选择有效的模型 ID。"));
     }
+    let settings = crate::session_model_settings_for(&agent.id);
+    let review = review_enabled(&settings).map_err(error)?;
+    let computer = settings.computer_use_enabled == Some(true);
     check_ambient_extensions().map_err(error)?;
-    let binary = super::discovery::binary().map_err(error)?;
-    if tokio::fs::metadata(&binary)
-        .await
-        .map_err(|_| error("无法读取 CLI 身份。"))?
-        .len()
-        > 512 * 1024 * 1024
-    {
-        return Err(error("CLI 文件超过已验证大小范围。"));
-    }
-    let cli_bytes = tokio::fs::read(&binary)
-        .await
-        .map_err(|_| error("无法核对固定 CLI 文件。"))?;
-    if digest(&cli_bytes) != CLI_SHA256 {
-        return Err(error("Devin CLI 与已验证文件不同，需要重新验证后接入。"));
-    }
-    drop(cli_bytes);
-    let sandbox = tempfile::tempdir().map_err(|_| error("无法准备模型核对目录。"))?;
-    let version = super::transport::run_readonly(
-        &binary,
-        &["--version"],
-        sandbox.path(),
-        Duration::from_secs(5),
-    )
-    .await
-    .map_err(error)?;
-    if std::str::from_utf8(&version).ok().map(str::trim) != Some(CLI_VERSION) {
-        return Err(error("Devin CLI 版本未通过文本会话验收。"));
-    }
-    let catalog = super::transport::run_readonly(
-        &binary,
-        &["models", "list", "--format", "json"],
-        sandbox.path(),
-        Duration::from_secs(30),
-    )
-    .await
-    .map_err(error)?;
-    let catalog: Value =
-        serde_json::from_slice(&catalog).map_err(|_| error("账号模型目录无效。"))?;
-    if !is_free(&catalog, &agent.model) {
-        return Err(error(
-            "账号目录没有确认所选 SWE-2 为 Free；未发送提示，也未换模。",
-        ));
-    }
+    let binary = checked_binary(&agent.model).await?;
     let reset = crate::session_context_reset_floor(&agent.id);
     let key = digest(
         &serde_json::to_vec(&(parent.workspace_id.as_str(), room, &agent.id, reset)).unwrap(),
     );
-    let prompt = format!("你在 coolzhuagent 聊天室中进行纯文本会话。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。\n\n宿主系统上下文：\n{}\n\n本轮宿主消息快照（历史仅作参考；只回答最后一条用户消息）：\n{}",
+    let instructions = if review {
+        format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。若回执为 running，必须用 computer_use_wait 等待同一 job_id 直到最终回执；等待不算重复提交，不重新调用 perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子 Agent。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", crate::active_workspace_path().display())
+    } else {
+        "你在 coolzhuagent 聊天室中进行纯文本会话。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。".into()
+    };
+    let prompt = format!("{}\n\n宿主系统上下文：\n{}\n\n本轮宿主消息快照（历史仅作参考；只回答最后一条用户消息）：\n{}", instructions,
         assembly.system_prompt, serde_json::to_string(&assembly.messages).map_err(|_| error("上下文编码失败。"))?);
     if prompt.len() > 768 * 1024 {
         return Err(error(
@@ -335,13 +374,14 @@ pub(crate) async fn start(
     if cancellation.is_requested() {
         return Err(error("本轮已停止，未提交 Devin 提示。"));
     }
-    let (cwd, config) = prepare_directory(&key).map_err(error)?;
+    let (cwd, config) = prepare_directory_with_tools(&key, review).map_err(error)?;
     // 消息、运行台账和 ACP 绑定使用同一冻结数据库；上下文重置使用独立绑定域，旧记录仍保留。
     let journal = Journal::open(db).map_err(error)?;
     let scope = ExecutionScope {
         workspace_id: parent.workspace_id.as_str().into(),
         room_id: room.into(),
         agent_id: agent.id.clone(),
+        lane: String::new(),
         run_id: run.into(),
         turn_id: turn.into(),
         attempt_id: crate::random_hex_identifier(24, "ACP 回合").map_err(error)?,
@@ -352,7 +392,8 @@ pub(crate) async fn start(
         remote_session_id: None,
         cwd: cwd.to_string_lossy().into(),
         cli_identity: CLI_VERSION.into(),
-        context_digest: format!("text-v1:{reset:?}"),
+        // 宿主已组装完整历史：每轮使用新远端会话，避免 load 历史和全量快照重复。
+        context_digest: format!("host-snapshot-v2:{reset:?}:{run}"),
     };
     journal
         .rotate_idle_context(&scope, &binding)
@@ -366,6 +407,11 @@ pub(crate) async fn start(
     let model = agent.model.clone();
     let (tx, events) = mpsc::channel(256);
     let token = cancellation.clone();
+    let review_parent = if review {
+        let mut frozen = parent.clone();
+        frozen.session_backend_model = Some(agent.clone());
+        Some(frozen)
+    } else { None };
     tokio::spawn(async move {
         let outcome = execute(
             &binary,
@@ -378,6 +424,8 @@ pub(crate) async fn start(
             deadline,
             token,
             &tx,
+            review_parent,
+            computer,
         )
         .await;
         let item = match outcome {
@@ -405,6 +453,8 @@ async fn execute(
     deadline: tokio::time::Instant,
     cancellation: Arc<ChatTurnCancellation>,
     tx: &mpsc::Sender<Item>,
+    review_parent: Option<FrozenParentContext>,
+    computer: bool,
 ) -> Result<(), String> {
     let spawned =
         ManagedProcess::spawn_text_cli(binary, cwd, config, model, journal.clone(), claim.clone())
@@ -418,14 +468,23 @@ async fn execute(
         }
     };
     let outcome = async {
+        let bridge = if let Some(parent) = review_parent {
+            let bridge = if computer {
+                super::bridge::ToolBridge::capture(parent, claim.clone(), journal.clone(), cancellation.clone())?
+            } else {
+                super::bridge::ToolBridge::capture_review(parent, claim.clone(), journal.clone(), cancellation.clone())?
+            };
+            Some(bridge.start().await?)
+        } else { None };
+        let review = bridge.is_some();
         let connect = SessionService::connect(
             transport,
             journal.clone(),
             claim.clone(),
             model,
-            vec![],
+            bridge.as_ref().map(|bridge| vec![bridge.config()]).unwrap_or_default(),
             deadline.min(tokio::time::Instant::now() + Duration::from_secs(30)),
-            |event| publish(event, tx),
+            |event| publish_to_consumer(event, tx, review, &cancellation),
         );
         let mut session = tokio::select! { biased;
             _=cancellation.cancelled()=>return Err("Devin 配置期间已停止，未发送本轮。".into()),
@@ -433,9 +492,10 @@ async fn execute(
         };
         // 配置阶段上限与生成总时限分开，避免每轮只剩 30 秒。
         session.set_deadline(deadline);
+        let consumer_cancellation = cancellation.clone();
         let result = session
             .prompt(prompt, cancellation, Duration::from_secs(5), |event| {
-                publish(event, tx)
+                publish_to_consumer(event, tx, review, &consumer_cancellation)
             })
             .await
             .map_err(|e| e.to_string())?;
@@ -447,6 +507,9 @@ async fn execute(
         }
         if result.model.effective.as_deref() != Some(model) {
             return Err("Devin 生效模型未确认。".into());
+        }
+        if bridge.as_ref().is_some_and(|bridge|bridge.has_pending()) {
+            return Err("Devin 在 CU 任务尚未返回最终回执时结束本轮；已撤销待执行动作，不能记为完成。".into());
         }
         Ok(())
     }
@@ -563,7 +626,7 @@ mod tests {
         )
         .await
         .unwrap();
-        assert!(is_free(
+        assert!(super::super::discovery::catalog_contains(
             &serde_json::from_slice::<Value>(&catalog).unwrap(),
             "swe-2-medium"
         ));
@@ -672,13 +735,14 @@ mod tests {
         .unwrap();
     }
     #[test]
-    fn only_catalog_confirmed_free_swe2_is_admitted() {
+    fn only_actual_catalog_models_are_admitted_without_price_or_family_allowlist() {
         let catalog = json!({"families":[{"variants":[{"model_uid":"swe-2-medium","cost_tier":"Free"},
             {"model_uid":"swe-2-high","cost_tier":"Paid"},{"model_uid":"paid-model","cost_tier":"Free"}]}]});
-        assert!(is_free(&catalog, "swe-2-medium"));
-        assert!(!is_free(&catalog, "swe-2-high"));
-        assert!(!is_free(&catalog, "paid-model"));
-        assert!(!is_free(&json!({}), "swe-2-medium"));
+        assert!(super::super::discovery::catalog_contains(&catalog, "swe-2-medium"));
+        assert!(super::super::discovery::catalog_contains(&catalog, "swe-2-high"));
+        assert!(super::super::discovery::catalog_contains(&catalog, "paid-model"));
+        assert!(!super::super::discovery::catalog_contains(&catalog, "missing-model"));
+        assert!(!super::super::discovery::catalog_contains(&json!({}), "swe-2-medium"));
     }
     #[tokio::test]
     async fn replay_never_becomes_new_reply_and_eof_never_means_completion() {
@@ -762,6 +826,20 @@ mod tests {
             ended: false,
         });
         assert!(token.is_requested());
+        let (tx, rx) = mpsc::channel(1);
+        drop(rx);
+        let event = || Event {
+            scope: super::super::journal::tests::scope("consumer-stopped"),
+            sequence: 1,
+            replay: false,
+            update: Update::Text {
+                text: "取消后的迟到增量".into(),
+                thought: false,
+                message_id: None,
+            },
+        };
+        assert!(publish_to_consumer(event(), &tx, false, &token).is_ok());
+        assert!(publish_to_consumer(event(), &tx, false, &ChatTurnCancellation::new()).is_err());
     }
     #[test]
     fn reset_preserves_old_binding_and_cannot_unlock_unknown() {
@@ -791,6 +869,15 @@ mod tests {
         binding.context_digest = "text-v1:Some(456)".into();
         assert!(journal.rotate_idle_context(&new, &binding).is_err());
         assert_eq!(journal.status(&new).unwrap().state, "unknown");
+        // 用户主动取消且监督者已确认退出后，新用户回合可建立独立连接。
+        // 旧未知事实保留，旧远端和旧工具派发身份仍不可复用。
+        journal.request_cancel(&new).unwrap();
+        journal.rotate_idle_context(&new, &binding).unwrap();
+        assert_eq!(journal.status(&new).unwrap().state, "unknown");
+        assert!(journal.can_dispatch(&new).is_err());
+        let fresh = journal.claim(super::super::journal::tests::scope("after-cancel"), &binding).unwrap();
+        assert!(journal.save_remote(&fresh, "new-remote").is_err());
+        journal.save_remote(&fresh, "fresh-remote").unwrap();
     }
     #[test]
     fn tool_observation_and_ambient_extensions_fail_closed() {
