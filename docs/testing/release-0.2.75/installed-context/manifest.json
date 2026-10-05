@@ -1,0 +1,82 @@
+{
+  "daily-075-selfcheck-before-regression.json": {
+    "length": 1779,
+    "sha256": "c7576cb3a2faf18cbb9500a5c5093eb95347c838697ad665523550b09bc47b75"
+  },
+  "daily-075-selfcheck-restored.json": {
+    "length": 2195,
+    "sha256": "653dc3c1ee7bf42535838d95d81ba5de55604289e6ec255872dde5979ce585f1"
+  },
+  "installed-075-verification.json": {
+    "length": 835,
+    "sha256": "3e4483191e61a9308c8d04265722638d5710647421f73512ddff2266d2ddcebd"
+  },
+  "installed-context-baseline.json": {
+    "length": 427,
+    "sha256": "83d9ecea9fe99d155f569d0b27851e5c59180918303a2ce4640cbdceaae582aa"
+  },
+  "installed-context-process.json": {
+    "length": 312,
+    "sha256": "bc5c54644c8bdac285ef63e943e66c831c6d5af77089192865450489c8dbb972"
+  },
+  "installed-native-opus-3.png": {
+    "length": 161593,
+    "sha256": "8174f53a3454151e6703e5408cc3ae38868eacbc9477803106b6d66af549fd24"
+  },
+  "installed-native-swe-2.png": {
+    "length": 163796,
+    "sha256": "6753447261cf11df7df85c15e325ff10de9f23bcfc6fdb141b39d8f61ca4c182"
+  },
+  "installed-opus-1-facts.json": {
+    "length": 1495,
+    "sha256": "8f0c0236c67ab77db2b95e9c1e13cf11434f786c0a7414d1a0fc2d75b6dedb4e"
+  },
+  "installed-opus-2-facts.json": {
+    "length": 1376,
+    "sha256": "aa6790ee508d4b25b0287f606066d30c0198952a3d349c2dd5dcdea945f64941"
+  },
+  "installed-opus-2.jpg": {
+    "length": 83075,
+    "sha256": "ab505ea78137172b44d5f6cc2c0da8cc113d7e0cb5336fb4a4aeefa9284f188e"
+  },
+  "installed-opus-3-facts.json": {
+    "length": 1412,
+    "sha256": "589dbac5a866d9049dab725866913c5e3c4779dd2d1c44b867ad88c14d75e297"
+  },
+  "installed-opus-3.jpg": {
+    "length": 81838,
+    "sha256": "08fd0c6b98ea2d5eaa863468cac2198f526180c52144a87ea1aed73c1e081ddd"
+  },
+  "installed-swe-1-facts.json": {
+    "length": 1425,
+    "sha256": "8a531bd94301f1a8d3922b19b996794f98fc01d953affb7adeddb63738ee767e"
+  },
+  "installed-swe-2-facts.json": {
+    "length": 1376,
+    "sha256": "37514f327bb5f292942820729c318093b7cfcb771e070c13c9a9ffaa6810341b"
+  },
+  "installed-swe-2.jpg": {
+    "length": 83937,
+    "sha256": "87f09bb804ee52e74bdc98af78603cf124b53c60a58cdaf84aa68d62d775e1d9"
+  },
+  "installed-swe-3-facts.json": {
+    "length": 1397,
+    "sha256": "0c7c31a2eb54afa46d9d200daf473e764edd3f5a37a32739bc96f7bc144c76a2"
+  },
+  "installed-swe-3.jpg": {
+    "length": 80968,
+    "sha256": "7076e212e23b263adcdaf95c3cc397db49283098f8a91d7c6a8a6cca8dee5b9b"
+  },
+  "local-validation.json": {
+    "length": 760,
+    "sha256": "68d5ecd88598aad30e526020882973e9253b165a3d76aaa5c0da9e5a8e835212"
+  },
+  "package-075-verification.json": {
+    "length": 838,
+    "sha256": "2f6bb2e82b3d3bda25abbd7f4e85957d73d801d6355194cd37d53bb188bed27a"
+  },
+  "regression-summary.json": {
+    "length": 9896,
+    "sha256": "6e984f2567df60c78a1691866feacb4258c50f9f5069b3c1cdda5f032bef548e"
+  }
+}

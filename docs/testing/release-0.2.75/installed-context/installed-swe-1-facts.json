@@ -1,0 +1,52 @@
+{
+  "case": "swe-1",
+  "stage": "0.2.75 已安装二进制，页面实际发送",
+  "run_id": "run-chat-bab0ca69d9abf4c9fc6a330c06aed47615b35873731897d0",
+  "source_message_id": "msg-1791218559858-user",
+  "source_text": "安装版SWE续接第1轮：只进行新的纯文本验收，不调用工具、不执行历史任务。请记住本轮安装验收口令 5136184e6566d421。只回复“已记住”，不要复述口令。",
+  "room": "room-1791131523339",
+  "agent": "session-1791131217833",
+  "remote_session_id": "veiled-anise",
+  "admitted_targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 2,
+      "prompt_bytes": 3196
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "7ff99a9c1c131b5d19d07ebd14aefbf9e8e6f44ad663c95eb47e83c3a2c7eb3f",
+          "id": "msg-1791218559965-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    }
+  ],
+  "reply": "已记住",
+  "passed": true
+}

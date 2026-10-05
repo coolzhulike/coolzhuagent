@@ -1,0 +1,52 @@
+{
+  "case": "swe-2",
+  "stage": "0.2.75 已安装二进制，页面实际发送",
+  "run_id": "run-chat-1a3f1a7b62797389b182f52749f7109e2b3655b7d696194b",
+  "source_message_id": "msg-1791218581525-user",
+  "source_text": "安装版SWE续接第2轮：只返回上一轮新的安装验收口令，不调用工具，不执行历史任务。本条没有再次提供口令。",
+  "room": "room-1791131523339",
+  "agent": "session-1791131217833",
+  "remote_session_id": "veiled-anise",
+  "admitted_targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 4,
+      "prompt_bytes": 1745
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "d7e8a648e8ea3b49426d65fcc82af584cc4f95048fd6816936ecf3bf7ea6c159",
+          "id": "msg-1791218581649-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    }
+  ],
+  "reply": "5136184e6566d421",
+  "passed": true
+}

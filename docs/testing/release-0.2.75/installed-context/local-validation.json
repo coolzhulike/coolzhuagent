@@ -1,0 +1,21 @@
+{
+  "session": {
+    "passed": 11,
+    "failed": 0,
+    "ignored": 0,
+    "seconds": 2.6,
+    "raw_log_sha256": "6bf637d22052e686027fb3693e7bf81619b058432fbd98ef3342f08a29807576"
+  },
+  "web": {
+    "passed": 1390,
+    "failed": 0,
+    "ignored": 6,
+    "seconds": 91.79,
+    "raw_log_sha256": "a024f48c1e2e671bd610fd14b78a82fa675b322cdd15e9c7dcb50f2dd21ee126"
+  },
+  "offline_build_passed": true,
+  "build_log_sha256": "25f282c3506d981d8e014931675184b06595a3de129f75d7d7f7aaefbd98ecbc",
+  "test_source_sha256": "92cc29196309c82f5b48e482026396896c2e0ed54e3a5fac7a8c4ddf4523c296",
+  "msi_source_commit": "665f6a3fa029fa06f245ceecf5f2b2d75913976d",
+  "later_changes": "仅 cfg(test) 时序修补与文档；不是该 MSI 的新构建身份"
+}
