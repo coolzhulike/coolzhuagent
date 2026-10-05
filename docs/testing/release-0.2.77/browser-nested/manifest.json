@@ -1,0 +1,56 @@
+{
+  "stage": "0.2.77正式安装版失败复现，不计通过",
+  "source_commit": "2d040d555566340c03709b4c6f6b77f11496ebed",
+  "files": [
+    {
+      "file": ".gitattributes",
+      "bytes": 75,
+      "sha256": "6eabf2e06fe9a1051649e6d3ac14c4be612addacbbaa26d4b04ffcb59c57f566"
+    },
+    {
+      "file": "browser-target-server.py",
+      "bytes": 2585,
+      "sha256": "09b73c4166332df2d7e5acbc825110be63fa7c8e7328c8682c941e00bb0c53c5"
+    },
+    {
+      "file": "BU-INSTALLED-077-NATIVE-NESTED-20261006-browser-facts.json",
+      "bytes": 10562,
+      "sha256": "5bbf186ecf9232ca2fef33fae8908726f83c0d9afb1703b1f213ff2611003a7f"
+    },
+    {
+      "file": "BU-INSTALLED-077-NATIVE-NESTED-20261006-facts.json",
+      "bytes": 2317,
+      "sha256": "5b674a6fa2ea4e24da573f716353de10ed415981daeb844be6bc7dbe1ddbeee5"
+    },
+    {
+      "file": "BU-INSTALLED-077-NESTED-20261006-facts.json",
+      "bytes": 2091,
+      "sha256": "026c114a9a96dca64472523f6d51286ba1041b258c2eb68141d622b76b239777"
+    },
+    {
+      "file": "main-ci.json",
+      "bytes": 286,
+      "sha256": "27a1643b08f8c3f9d2e94526f1fb12e631b711a46ebc5d3d277045ccac2f8ec5"
+    },
+    {
+      "file": "nested-before-native.jpg",
+      "bytes": 202862,
+      "sha256": "660c7538be8969163b770f269057d1e806518f50cabfa051ccd231478a86cefc"
+    },
+    {
+      "file": "nested-native-before-fix.jpg",
+      "bytes": 188936,
+      "sha256": "e9cd0c4fed35caa7677f887910be1dc236c9d0995806878714d8acecdd53a220"
+    },
+    {
+      "file": "nested-native-host-unavailable.jpg",
+      "bytes": 186082,
+      "sha256": "151933e36da1fe56eac5dc0a8991078de12afe893fd676c078bd96abfb4f9786"
+    },
+    {
+      "file": "pr82-merged.json",
+      "bytes": 207,
+      "sha256": "080cb39ea89a442d2f4ac0ac2dddb8ec1870e856752b898e25ffe89f90a6dafb"
+    }
+  ]
+}
