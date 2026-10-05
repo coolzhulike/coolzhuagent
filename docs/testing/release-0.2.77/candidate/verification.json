@@ -1,0 +1,13 @@
+{
+  "stage": "候选构建，不代替正式安装验收",
+  "build": "离线 cargo build；单任务、无调试符号，exit 0；先前默认调试符号构建 LLVM 内存不足保留为失败",
+  "diagnostics_regression": "16 passed, 0 failed",
+  "auth_status_regression": "1 passed, 0 failed",
+  "frontend_syntax": "Node vm.Script 解析 app.js 通过，无执行页面脚本",
+  "real_model": "swe-2-medium",
+  "remote_context": "veiled-anise",
+  "context_run": "run-chat-30f50f08ec22df2d29fae730b1bde21c8cc6be8ebe7a4dec",
+  "reply": "5136184e6566d421",
+  "api_key_changed": false,
+  "security_state_root_changed": false
+}

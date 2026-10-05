@@ -7426,7 +7426,7 @@ function agentHealthSnapshot(registry = agentRegistry) {
   const agents = (Array.isArray(registry?.agents) ? registry.agents : [])
     .filter((agent) => agent?.selectable && !agent?.system);
   const activeIds = new Set(Array.isArray(registry?.active_agent_ids) ? registry.active_agent_ids : []);
-  const unavailablePattern = /(missing|invalid|error|failed|未配置|无效|失败|错误)/i;
+  const unavailablePattern = /(missing|invalid|error|failed|未配置|未检查|未确认|尚未登录|未登录|不可用|无效|失败|错误)/i;
   const ready = agents.filter((agent) => {
     const keyStatus = String(agent.api_key_status || "").trim();
     return agent.enabled !== false && !unavailablePattern.test(keyStatus);

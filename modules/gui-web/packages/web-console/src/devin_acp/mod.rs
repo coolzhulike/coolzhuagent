@@ -1,6 +1,7 @@
 //! Devin 配置、持久 ACP 会话与受控宿主工具桥。聊天室复用工程只读、Computer Use 和插件。
 pub(super) mod discovery;
 pub(super) mod auth;
+pub(super) mod diagnostics;
 pub(super) mod bridge;
 pub(super) mod host_tools;
 mod journal;
