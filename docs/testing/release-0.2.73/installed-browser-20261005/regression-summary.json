@@ -1,0 +1,319 @@
+{
+  "all_acp_unsettled_at_archive": 0,
+  "runs": [
+    {
+      "case": "cross-bridge",
+      "run_id": "run-chat-be83317fab462c6518116f9a9573d0a07997d1bad27c789a",
+      "model": "swe-2-medium",
+      "duration_seconds": 37.1,
+      "acp_attempts": 3,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {
+        "released": 1
+      },
+      "cu": [
+        {
+          "status": "succeeded",
+          "goal_achieved": true,
+          "attempts": 1,
+          "steps_completed": 1,
+          "error": null,
+          "verification_evidence": []
+        }
+      ]
+    },
+    {
+      "case": "form3",
+      "run_id": "run-chat-d184130194495d7fda32b838fe9b361747a7289bab4abd21",
+      "model": "swe-2-medium",
+      "duration_seconds": 95.2,
+      "acp_attempts": 11,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {
+        "released": 3,
+        "not_needed": 2
+      },
+      "cu": [
+        {
+          "status": "succeeded",
+          "goal_achieved": true,
+          "attempts": 5,
+          "steps_completed": 5,
+          "error": null,
+          "verification_evidence": []
+        }
+      ]
+    },
+    {
+      "case": "history2",
+      "run_id": "run-chat-b6ee92b73c0f47f65d1117dc25fc188649f28b60cc7908bf",
+      "model": "swe-2-medium",
+      "duration_seconds": 74.6,
+      "acp_attempts": 7,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {
+        "released": 3
+      },
+      "cu": [
+        {
+          "status": "succeeded",
+          "goal_achieved": true,
+          "attempts": 3,
+          "steps_completed": 3,
+          "error": null,
+          "verification_evidence": []
+        }
+      ]
+    },
+    {
+      "case": "load-pending",
+      "run_id": "run-chat-835c302388715db4fba9fe7d2cecb5b7dfc678ac1f9e2683",
+      "model": "swe-2-medium",
+      "duration_seconds": 12.4,
+      "acp_attempts": 1,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "failed"
+        }
+      ],
+      "release_counts": {},
+      "cu": [
+        {
+          "status": "blocked",
+          "goal_achieved": false,
+          "attempts": 0,
+          "steps_completed": 0,
+          "error": {
+            "code": "native_browser_panel_unavailable",
+            "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "verification_evidence": []
+        }
+      ]
+    },
+    {
+      "case": "load-recovered",
+      "run_id": "run-chat-28f32390400ef5899a6b9c35153274bb0d1c8bbdbb8e1456",
+      "model": "swe-2-medium",
+      "duration_seconds": 34.4,
+      "acp_attempts": 3,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {
+        "released": 1
+      },
+      "cu": [
+        {
+          "status": "succeeded",
+          "goal_achieved": true,
+          "attempts": 1,
+          "steps_completed": 1,
+          "error": null,
+          "verification_evidence": []
+        }
+      ]
+    },
+    {
+      "case": "micro",
+      "run_id": "run-chat-3fd2a35d4852967ce1b295f8c139fd67274fa0da44c5f063",
+      "model": "swe-2-medium",
+      "duration_seconds": 38.5,
+      "acp_attempts": 3,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {
+        "released": 1
+      },
+      "cu": [
+        {
+          "status": "succeeded",
+          "goal_achieved": true,
+          "attempts": 1,
+          "steps_completed": 1,
+          "error": null,
+          "verification_evidence": []
+        }
+      ]
+    },
+    {
+      "case": "natural-bridge",
+      "run_id": "run-chat-ae898dbad19f8b29b940a15658aa46fe89c2c199f4fccc98",
+      "model": "swe-2-medium",
+      "duration_seconds": 42.5,
+      "acp_attempts": 3,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {
+        "released": 1
+      },
+      "cu": [
+        {
+          "status": "succeeded",
+          "goal_achieved": true,
+          "attempts": 1,
+          "steps_completed": 1,
+          "error": null,
+          "verification_evidence": []
+        }
+      ]
+    },
+    {
+      "case": "opus-boundary",
+      "run_id": "run-chat-dc91de6d0b456488108a10740d8aa609561d6096d888f6c5",
+      "model": "claude-opus-5-5-high",
+      "duration_seconds": 74.7,
+      "acp_attempts": 1,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "glob_search",
+          "status": "completed"
+        },
+        {
+          "tool_name": "read_file",
+          "status": "completed"
+        },
+        {
+          "tool_name": "grep_search",
+          "status": "completed"
+        },
+        {
+          "tool_name": "read_file",
+          "status": "completed"
+        },
+        {
+          "tool_name": "grep_search",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {},
+      "cu": []
+    },
+    {
+      "case": "paint-single",
+      "run_id": "run-chat-63f37428c3b9a915f76029c25fa8558bb8795976128050a2",
+      "model": "swe-2-medium",
+      "duration_seconds": 49.4,
+      "acp_attempts": 3,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {
+        "released": 1
+      },
+      "cu": [
+        {
+          "status": "succeeded",
+          "goal_achieved": true,
+          "attempts": 1,
+          "steps_completed": 1,
+          "error": null,
+          "verification_evidence": [
+            "native_stroke:uia-eee5940e25c5adae:points=5:duration_ms=1200:released",
+            "visual_verification:generation=2:image_changed=true:criteria_met=2/2"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "popup-pending",
+      "run_id": "run-chat-c8896ab2734a1064198e972a8d5353fd5754f27c9b834223",
+      "model": "swe-2-medium",
+      "duration_seconds": 37.3,
+      "acp_attempts": 2,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "failed"
+        }
+      ],
+      "release_counts": {
+        "released": 1
+      },
+      "cu": [
+        {
+          "status": "blocked",
+          "goal_achieved": false,
+          "attempts": 1,
+          "steps_completed": 1,
+          "error": {
+            "code": "native_observation_timeout",
+            "message": "内置浏览器观察不可用或环境已变化",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "verification_evidence": []
+        }
+      ]
+    },
+    {
+      "case": "popup-recovery",
+      "run_id": "run-chat-884521570a4fb9776ecb7abfb87a3d19df9a55c00c73fb27",
+      "model": "swe-2-medium",
+      "duration_seconds": 38.4,
+      "acp_attempts": 3,
+      "all_terminal_drained": true,
+      "tools": [
+        {
+          "tool_name": "computer_use_perform",
+          "status": "completed"
+        }
+      ],
+      "release_counts": {
+        "released": 1
+      },
+      "cu": [
+        {
+          "status": "succeeded",
+          "goal_achieved": true,
+          "attempts": 1,
+          "steps_completed": 1,
+          "error": null,
+          "verification_evidence": []
+        }
+      ]
+    }
+  ]
+}

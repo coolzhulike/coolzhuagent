@@ -154,3 +154,15 @@ Y 真实六笔全部 sent/path_completed/released，295.4秒，预算终态 goal
 ### 0.2.73构建与交付状态
 
 本轮代码99adfc6已推送；远端#79在此前已由用户合并，新增量另建草稿[PR #80](https://github.com/coolzhulike/coolzhuagent/pull/80)，最后查询无合入冲突，两项本轮检查运行中。完整release构建通过，10项产物、1150个载荷文件和MSI复制摘要核验完成，CLI版本0.2.73。MSI已放Desktop/coolzhuagent/dist，具体源码/载荷/MSI身份及下一测试清单见[0.2.73交接报告](../testing/release-0.2.73/change-report-and-test-handoff.md)。当前进程没有管理员权限，已请求用户处理旧版移除所需的管理员窗口；不反复静默尝试历史1730、不代操作安全授权。正式安装回归尚未通过，不用候选截图追认。
+
+### 用户安装后的0.2.73正式回归（最新状态）
+
+上段为交付时历史。本次已核注册版本、CLI、Web/Shell摘要和正式launcher，确认为0.2.73/99adfc6；启动自检成功。完整事实见[安装版软件回归](../testing/release-0.2.73/installed-browser-20261005/README.md)。本轮没有源码修改或新MSI。
+
+真实SWE-2十轮：表单五步、同源/跨源自然跳转完整引文、历史后退前进、加载停止后新任务、接管popup后新任务均目标通过；新增Paint一笔W五点/1200ms、released、最新验图2/2、goal=true，绘前/绘后/当前轮聊天室回复已归档。正式单屏HUD英文与泛光实拍并在终态撤除。39项ACP全部requested/effective=swe-2-medium；Opus一项固定claude-opus-5-5-high；40项全部terminal/drained，最终未结算0，没有输入释放未知。
+
+负向与未覆盖分别保留：普通加载轮0输入资格拒绝；慢popup点击后native_observation_timeout、原轮goal=false；辅助前端显式URL在慢响应完成前14.35秒接管，旧响应断开，新任务通过，但不是模型typed Navigate通过。微区间网页pagehide晚pointerup10.1ms，不能算输入期间替换竞争。真实浏览器缩放未确认、未发送缩放任务。完整Y人物仍goal=false/最后2/3，纯模型几何问题按用户要求暂缓；单笔不替代完整人物。此次日常启动只拍到聊天室，舞剑0帧，动画仍不验收。
+
+Opus本次实际read_file2/grep_search2/glob_search1，5次只读调用，建议微区间竞争作为有界未覆盖风险，不无限刷试；当前证据未要求新增必须Agent补丁。其建议的目标页首次pointermove buttons和孤立up/down仍没有证据，不将局部审查当全面安全证明。继续优先模型Navigate/加载popup资格协作、实际缩放/DPI多屏，再补动画、市场和侧栏总回归。微信不改不测。
+
+本轮验收环境已排空关闭，四个自有网页服务退出，临时GUI地址原字节恢复；正式launcher恢复原日常工作区，健康10正常/1工作区提示/0错误。日常显示原Qwen/聊天09仅环境恢复，没有改用Qwen测试。9216a2c报告HEAD两项远端CI成功，后续新报告HEAD需另核；PR #80保持草稿，未宣称四项整体任务全部完成。

@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "BU-INSTALLED-073-POPUP-PENDING：新独立真实SWE-2任务，仅一次computer_use_perform完整六项：objective=在当前内置浏览器单击打开慢弹窗，等待实际页面判断结果；surface=browser；target={url:http://127.0.0.1:50764/source.html}；success_criteria=[最新实际URL为http://127.0.0.1:50764/popup.html,最新页面显示POPUP-LATE-073]；constraints=[仅一次click，不输入不滚动不navigate不使用其它工具，不换模型，页面被宿主用户辅助导航替换则立即停止，不重开不补发不重试，不把释放当目标完成]；max_actions=1。running仅wait原job_id到终态，如实报告。后续显式地址栏导航属于主会话辅助覆盖事件，不假称本轮模型调用了Navigate。",
+  "selected_message_ids": [],
+  "attachments": []
+}
