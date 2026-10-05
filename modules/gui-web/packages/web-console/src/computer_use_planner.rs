@@ -43,7 +43,7 @@ Desktop drawing_region_candidates only summarize existing UIA elements. Prefer a
 Browser actions must use DOM references. Desktop actions must use UI Automation references, except drag may use the explicit canvas_target from the latest desktop observation.
 For browser text entry, click the intended textbox once to focus it. On a fresh observation with focused=true, choose text_input on that new textbox reference; do not repeat the successful focus click. A focus click is preparation and does not itself satisfy the text goal. previous_step_feedback.action_kind describes the actual preceding action, never an intended action.
 Browser candidates with in_viewport=false must be scrolled into view using the latest RootWebArea reference before clicking or typing; then inspect a fresh observation. A null/missing hint means unknown. A true hint does not prove hit-test success or grant input permission.
-For browser navigation, target.url is the current source page; take the requested destination from objective and use it as arguments.url on the latest RootWebArea reference.
+For browser navigation, target.url is the current source page; take the requested destination from objective and use it as arguments.url on the latest RootWebArea reference. A native panel with loading=true has no DOM facts; use its latest BrowserNavigation nav- reference for navigate only. Loading is not goal completion. Never use nav- for clicking, scrolling, text or keys.
 Browser drag requires arguments.drop_target as a DOM reference; browser slider_drag requires value 0-100; key_combination requires allowlisted keys.
 Browser tab lifecycle actions use target "browser-tabs": open_tab requires arguments.url, activate_tab and close_tab require arguments.tab_id.
 If no safe action exists, return {"done":true,"summary":"blocked: target_not_found"}."#;
@@ -84,7 +84,7 @@ fn planner_response_schema(surface: ComputerUseSurface, capabilities: Option<com
             }
             let required = action_argument_fields(surface, kind).iter().filter(|field| !matches!(**field,"amount"|"activate"|"duration_ms")).collect::<Vec<_>>();
             let target = if matches!(kind,OpenTab|ActivateTab|CloseTab) { json!({"const":"browser-tabs"}) }
-                else { json!({"type":"string","pattern":if surface == ComputerUseSurface::Desktop && kind == Drag {"^(uia-|window-canvas:)"} else if surface == ComputerUseSurface::Desktop {"^uia-"} else {"^dom-"},"maxLength":128}) };
+                else { json!({"type":"string","pattern":if surface == ComputerUseSurface::Desktop && kind == Drag {"^(uia-|window-canvas:)"} else if surface == ComputerUseSurface::Desktop {"^uia-"} else if kind == Navigate {"^(dom-|nav-)"} else {"^dom-"},"maxLength":128}) };
             json!({"type":"object","additionalProperties":false,"required":["kind","target","arguments"],
                 "properties":{"kind":{"const":kind},"target":target,"arguments":{"type":"object","additionalProperties":false,"properties":properties,"required":required}}})
         }).collect::<Vec<_>>();
@@ -287,7 +287,7 @@ fn validate_target(
         {
             target == "browser-tabs"
         }
-        ComputerUseSurface::Browser => target.starts_with("dom-"),
+        ComputerUseSurface::Browser => target.starts_with("dom-") || (kind==ComputerUseActionKind::Navigate && target.starts_with("nav-")),
         ComputerUseSurface::Desktop => target.starts_with("uia-") || (kind == ComputerUseActionKind::Drag && target.starts_with("window-canvas:")),
         ComputerUseSurface::Auto => false,
     };
@@ -858,6 +858,12 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
         original: computer_use::Verification, remaining: Duration) -> Result<computer_use::Verification, ComputerUseError> {
         let stage_started = Instant::now();
         if matches!(after.state.pointer("/page/backend").and_then(JsonValue::as_str),Some("native-panel-readonly"|"native-panel")) {
+            if after.state["page"]["loading"]==true {
+                let mut pending=crate::native_browser_verification::pending_interaction(request,after)?;
+                pending.visible_progress=before.state["page"]["loading"]!=after.state["page"]["loading"]
+                    || before.state["page"]["url"]!=after.state["page"]["url"];
+                return Ok(pending);
+            }
             if after.state["page"]["read_only_request"]==false && before.generation==after.generation {
                 return crate::native_browser_verification::pending_interaction(request,after);
             }
@@ -2545,6 +2551,14 @@ mod tests {
         let raw = r#"{"done":false,"action":{"kind":"text_input","target":"dom-7","arguments":{"text":"OpenAI"}}}"#;
         let plan = parse_planner_response(raw, ComputerUseSurface::Browser).unwrap();
         assert_eq!(plan.action.unwrap().target, "dom-7");
+    }
+
+    #[test]
+    fn navigation_control_reference_cannot_be_borrowed_for_page_input() {
+        let nav=r#"{"done":false,"action":{"kind":"navigate","target":"nav-123","arguments":{"url":"https://example.invalid/"}}}"#;
+        assert!(parse_planner_response(nav,ComputerUseSurface::Browser).is_ok());
+        let click=r#"{"done":false,"action":{"kind":"click","target":"nav-123","arguments":{}}}"#;
+        assert!(parse_planner_response(click,ComputerUseSurface::Browser).is_err());
     }
 
     #[test]

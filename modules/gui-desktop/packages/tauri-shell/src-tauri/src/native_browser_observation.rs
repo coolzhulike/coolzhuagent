@@ -16,7 +16,7 @@ fn focused_editor(node: &serde_json::Value, role: &str) -> bool {
 fn project_tree(value: &serde_json::Value) -> Result<PageObservation,String> {
     let nodes = value.get("nodes").and_then(serde_json::Value::as_array).ok_or("native_observation_invalid")?;
     let mut result = PageObservation {url:String::new(),title:String::new(),nodes:Vec::new(),truncated:false,
-        document_token:None,node_handles:Vec::new(),viewport:None,focused_node_index:None};
+        document_token:None,node_handles:Vec::new(),viewport:None,focused_node_index:None,loading:false,navigation_target:None};
     for node in nodes {
         if node.get("ignored").and_then(serde_json::Value::as_bool) != Some(false) { continue; }
         let role = bounded_text(node.get("role"),64);
@@ -48,6 +48,33 @@ pub(super) fn regular_document_nodes(tree: &serde_json::Value) -> std::collectio
     found
 }
 pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observation_id: &str) -> Result<PageObservation,String> {
+    // 短暂让已经接近完成的导航落地；慢请求返回宿主控制状态，不等待CDP超时。
+    for _ in 0..10 {
+        let (control,loading)=super::browser_panel::control_snapshot(app).ok_or("native_browser_resource_changed")?;
+        if &control.resource!=expected {return Err("native_browser_resource_changed".into());}
+        if !loading {break;}
+        tokio::time::sleep(std::time::Duration::from_millis(25)).await;
+    }
+    if let Some(page)=loading_observation(app,expected,observation_id)? {return Ok(page);}
+    let result=observe_document(app,expected,observation_id).await;
+    if result.is_err() {
+        // 页面在读文档过程中开始导航，返回明确loading事实；没有旧页面节点可复用。
+        if let Some(page)=loading_observation(app,expected,observation_id)? {return Ok(page);}
+    }
+    result
+}
+
+fn loading_observation(app:&AppHandle,expected:&PanelResource,observation_id:&str)->Result<Option<PageObservation>,String> {
+    let (control,loading)=super::browser_panel::control_snapshot(app).ok_or("native_browser_resource_changed")?;
+    if &control.resource!=expected {return Err("native_browser_resource_changed".into());}
+    if !loading {return Ok(None);}
+    let navigation_target=super::native_browser_navigation::register(control.clone(),observation_id)?;
+    let page=PageObservation {url:control.url,title:String::new(),nodes:Vec::new(),truncated:false,
+        viewport:None,document_token:None,node_handles:Vec::new(),focused_node_index:None,loading:true,navigation_target:Some(navigation_target)};
+    if page.valid_shape() {Ok(Some(page))} else {Err("native_observation_invalid".into())}
+}
+
+async fn observe_document(app: &AppHandle, expected: &PanelResource, observation_id: &str) -> Result<PageObservation,String> {
     if super::browser_panel::input_resource(app).as_ref() != Some(expected) { return Err("native_browser_resource_changed".into()); }
     let url = app.get_webview(&expected.label).ok_or("native_browser_unavailable")?
         .url().map_err(|_| "native_browser_unavailable")?.to_string();

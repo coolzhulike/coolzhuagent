@@ -57,18 +57,25 @@ pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String
     {let _=(app,target,text,expires_ms);PanelInputOutcome::NotDispatched}
 }
 
-pub(super) async fn navigate(app:&AppHandle,target:VerifiedTarget,url:String,expires_ms:u64)->(PanelInputOutcome,Option<PanelNavigationReceipt>) {
+pub(super) async fn navigate(app:&AppHandle,resource:native_browser_protocol::PanelResource,control:Option<super::native_browser_navigation::ControlResource>,url:String,expires_ms:u64)->(PanelInputOutcome,Option<PanelNavigationReceipt>) {
     #[cfg(windows)]
     {
         use webview2_com::CoTaskMemPWSTR;
         let url=match super::browser_panel::native_destination(&url) {Ok(url)=>url,Err(_)=>return (PanelInputOutcome::NotDispatched,None)};
-        let Some(view)=app.get_webview(&target.resource.label) else {return (PanelInputOutcome::NotDispatched,None);};
+        let Some(view)=app.get_webview(&resource.label) else {return (PanelInputOutcome::NotDispatched,None);};
         let (sender,receiver)=tokio::sync::oneshot::channel();let app_ui=app.clone();
         let queued=view.with_webview(move |platform| {
             let result=(|| {
                 if now()>=expires_ms {return (PanelInputOutcome::NotDispatched,None);}
+                // 在同一UI闭包里核导航序号；另一自然弹窗不能借旧控制引用获得覆盖许可。
+                if control.as_ref().is_some_and(|expected|super::browser_panel::control_snapshot(&app_ui)
+                    .as_ref().map(|(current,_)|current)!=Some(expected)) {return (PanelInputOutcome::NotDispatched,None);}
+                // 文档引用保持原输入资格；只有独立控制引用可接管加载中的导航。
+                if control.is_none() && super::browser_panel::input_resource(&app_ui).as_ref()!=Some(&resource) {
+                    return (PanelInputOutcome::NotDispatched,None);
+                }
                 let core=match unsafe {platform.controller().CoreWebView2()} {Ok(core)=>core,Err(_)=>return (PanelInputOutcome::NotDispatched,None)};
-                let navigation=match super::browser_panel::begin_native_navigation(&app_ui,&target.resource,&url) {
+                let navigation=match super::browser_panel::begin_native_navigation(&app_ui,&resource,&url) {
                     Ok(value)=>value,Err(_)=>return (PanelInputOutcome::NotDispatched,None)
                 };
                 let destination=CoTaskMemPWSTR::from(url.as_str());
@@ -81,5 +88,5 @@ pub(super) async fn navigate(app:&AppHandle,target:VerifiedTarget,url:String,exp
             .unwrap_or((PanelInputOutcome::DispatchUnknown,None))
     }
     #[cfg(not(windows))]
-    {let _=(app,target,url,expires_ms);(PanelInputOutcome::NotDispatched,None)}
+    {let _=(app,resource,control,url,expires_ms);(PanelInputOutcome::NotDispatched,None)}
 }

@@ -184,7 +184,9 @@ mod tests {
         .unwrap();
         let parent_pid = process.child.id().unwrap();
         let pid_file = dir.path().join("child.pid");
-        tokio::time::timeout(Duration::from_secs(5), async {
+        // 仅等待测试辅助 PowerShell 的启动确认；CI 冷启动可能超过 5 秒。
+        // 不修改正式调用期限，也不放宽下面的进程树排空与解锁断言。
+        tokio::time::timeout(Duration::from_secs(20), async {
             while !pid_file.exists() {
                 tokio::time::sleep(Duration::from_millis(20)).await;
             }

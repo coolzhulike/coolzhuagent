@@ -188,10 +188,10 @@ pub(super) fn native_destination(value:&str) -> Result<Url,String> {
 /// 仅供已取得单次输入许可的宿主UI闭包使用；不导出新的网页IPC命令。
 pub(super) fn begin_native_navigation(app:&AppHandle,source:&native_browser_protocol::PanelResource,url:&Url)
     -> Result<native_browser_protocol::PanelNavigationReceipt,String> {
-    if input_resource(app).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
+    if control_snapshot(app).as_ref().map(|(control,_)|&control.resource)!=Some(source) {return Err("native_browser_resource_changed".into());}
     let store=app.state::<PanelStore>();
     let mut state=store.state.lock().map_err(|_|"native_browser_unavailable")?;
-    if visible_panel_resource(&state,true,false).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
+    if visible_control_resource(&state,true,false).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
     let revision=source.navigation_revision.checked_add(1).ok_or("native_browser_navigation_invalid")?;
     state.navigation_revision=revision;
     state.pending_navigation=Some(PendingNavigation {revision,requested_url:url.to_string(),requested_observed:false,redirect_url:None,from_popup:false,popup_sequence:None});
@@ -587,12 +587,30 @@ pub(super) fn input_resource(app: &AppHandle) -> Option<native_browser_protocol:
     visible_panel_resource(&state, visible, minimized)
 }
 
+/// 宿主控制与文档输入分开；加载期间仍能观察状态和导航，网页输入资格保持撤销。
+pub(super) fn control_snapshot(app:&AppHandle) -> Option<(super::native_browser_navigation::ControlResource,bool)> {
+    let console=app.get_window(super::CONSOLE_LABEL)?;
+    let visible=console.is_visible().ok()?;
+    let minimized=console.is_minimized().ok()?;
+    let store=app.state::<PanelStore>();
+    let state=store.state.lock().ok()?;
+    let resource=visible_control_resource(&state,visible,minimized)?;
+    let url=state.reply.url.clone()?;
+    if !native_browser_protocol::valid_navigation_url(&url) {return None;}
+    Some((super::native_browser_navigation::ControlResource {resource,url,popup_sequence:state.popup_sequence},state.reply.loading))
+}
+
 fn visible_panel_resource(state: &PanelState, console_visible: bool, console_minimized: bool) -> Option<native_browser_protocol::PanelResource> {
+    if state.reply.loading {return None;}
+    visible_control_resource(state,console_visible,console_minimized)
+}
+
+fn visible_control_resource(state: &PanelState, console_visible: bool, console_minimized: bool) -> Option<native_browser_protocol::PanelResource> {
     #[derive(Deserialize)]
     struct Scope { context: ScopeContext }
     #[derive(Deserialize)]
     struct ScopeContext { workspace_path: String, room: String }
-    if !console_visible || console_minimized || !state.reply.active || state.reply.hidden || state.reply.loading || state.reply.destroyed {
+    if !console_visible || console_minimized || !state.reply.active || state.reply.hidden || state.reply.destroyed {
         return None;
     }
     let scope: Scope = serde_json::from_str(&state.reply.scope).ok()?;
@@ -794,6 +812,7 @@ pub async fn browser_panel_command(
         let builder = WebviewBuilder::new(&label, tauri::WebviewUrl::External(url))
             .data_directory(data)
             .disable_drag_drop_handler()
+            .zoom_hotkeys_enabled(true)
             .devtools(false)
             .on_navigation(move |url| {
                 let validation = validate_url(url.as_str(), console_origin());
@@ -926,7 +945,7 @@ mod tests {
 
     #[test]
     fn hidden_or_minimized_console_cannot_register_a_resident_page() {
-        let state = PanelState {
+        let mut state = PanelState {
             generation: 7,
             navigation_revision: 1,
             label: Some("browser-panel-7".into()),
@@ -940,6 +959,11 @@ mod tests {
         assert!(visible_panel_resource(&state, true, false).is_some());
         assert!(visible_panel_resource(&state, false, false).is_none());
         assert!(visible_panel_resource(&state, true, true).is_none());
+        state.reply.loading=true;
+        assert!(visible_panel_resource(&state,true,false).is_none(),"加载不得提供文档输入资格");
+        assert!(visible_control_resource(&state,true,false).is_some(),"加载可提供独立导航控制资格");
+        state.reply.hidden=true;
+        assert!(visible_control_resource(&state,true,false).is_none());
     }
 
     #[test]

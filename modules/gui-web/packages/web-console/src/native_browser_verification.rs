@@ -107,11 +107,20 @@ fn grounded_positive(criterion: &Criterion, page: &PageObservation) -> bool {
 
 /// 交互能力不由初始读页代替；不强制执行动作，规划器仍可因目标已满足或不安全而停止。
 pub(super) fn pending_interaction(request: &ComputerUseRequest, observation: &Observation) -> Result<Verification, ComputerUseError> {
+    if observation.surface==ComputerUseSurface::Browser && observation.state["page"]["loading"]==true {
+        return Ok(loading_pending(observation));
+    }
     observed_page(request, observation)?;
     Ok(Verification { achieved:false, visible_progress:false,
         summary:json!({"kind":"native_browser_interaction_pending","interaction_pending":true,
             "notice":"尚未执行交互；初始页面观察不能证明本轮点击、输入、滚动或导航已完成。"}).to_string(),
         evidence:observation.evidence.clone() })
+}
+
+fn loading_pending(observation:&Observation)->Verification {
+    Verification {achieved:false,visible_progress:false,summary:json!({"kind":"native_browser_loading",
+        "notice":"宿主仍在加载；未获得目标文档事实，不能判定目标完成。可用本次导航控制引用接管明确地址。"}).to_string(),
+        evidence:observation.evidence.clone()}
 }
 
 /// 比较模型判断前后同规格AX投影；同URL的SPA内容变化也使旧判断失效。
@@ -138,6 +147,9 @@ pub(super) fn ensure_fresh(observation: &Observation, fresh: &crate::computer_us
 }
 
 pub(super) fn finish(raw: &str, request: &ComputerUseRequest, observation: &Observation) -> Result<Verification, ComputerUseError> {
+    if observation.surface==ComputerUseSurface::Browser && observation.state["page"]["loading"]==true {
+        return Ok(loading_pending(observation));
+    }
     let page = observed_page(request, observation)?;
     if raw.len() > 16 * 1024 { return Err(invalid("readonly judge response exceeds limit")); }
     let verdict: Verdict = serde_json::from_str(raw).map_err(|_| invalid("readonly judge returned invalid criteria JSON"))?;
@@ -206,6 +218,16 @@ pub(super) fn finish(raw: &str, request: &ComputerUseRequest, observation: &Obse
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn loading_control_status_cannot_certify_document_success() {
+        let request:ComputerUseRequest=serde_json::from_value(json!({"objective":"打开目标页面","surface":"browser",
+            "target":{"url":"https://example.invalid/"},"success_criteria":["目标完成"]})).unwrap();
+        let observation=Observation {generation:2,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
+            state:json!({"page":{"backend":"native-panel","loading":true,"nodes":[],"url":"https://example.invalid/"}}),
+            evidence:vec!["native-observation:loading".into()]};
+        assert!(!finish(r#"{"criteria":[{"index":0,"met":true,"evidence":"目标完成","node_indices":[]}]}"#,&request,&observation).unwrap().achieved);
+    }
     #[test]
     fn readonly_verdict_cannot_replace_page_facts_or_accept_other_resources() {
         let request: ComputerUseRequest = serde_json::from_value(json!({"objective":"读页", "surface":"browser",
