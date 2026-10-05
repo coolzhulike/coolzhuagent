@@ -33,6 +33,11 @@
       "sha256": "9d34fdefefabcc00f94a0057f52882455526d89b77bdbbe1b53141083d133539"
     },
     {
+      "file": "github-release-verification.json",
+      "bytes": 1750,
+      "sha256": "ed9d71f6dfec604528eab9ef544b9eac1725adf07941a839244ee04a2c89d7aa"
+    },
+    {
       "file": "install-076-elevated-result.json",
       "bytes": 291,
       "sha256": "a8e7d0d07cc3ef9f288727b0454a24a6ab815ef995df43527c0bdf8534f9f401"
@@ -111,6 +116,21 @@
       "file": "restored-daily-selfcheck.json",
       "bytes": 1778,
       "sha256": "9a19dca41e0f9b7591658e7493d23ebdd8e47683af0a56b52e02b85f35716c9f"
+    },
+    {
+      "file": "restored-daily-update-check-native.png",
+      "bytes": 199118,
+      "sha256": "2e1889900b50c64eba05918fb8ec26806113bfe9f21730c3df558a8b27a4dc04"
+    },
+    {
+      "file": "restored-daily-update-status.json",
+      "bytes": 298,
+      "sha256": "067b05f454e94712322647602b7657d95e1851a8d973b9b749c26abed0d9237e"
+    },
+    {
+      "file": "restored-daily-version-native.png",
+      "bytes": 197215,
+      "sha256": "64dcc8272f6d3e9cad599767315013ae95ed5ab2761496252bb9430b76fb44d1"
     }
   ]
 }

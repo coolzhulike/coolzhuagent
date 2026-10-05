@@ -104,5 +104,6 @@ DSH 来源为官方社区包 `@deepseek-ai/dsh-tool-calculator` 0.0.1，固定�
 - 安装后 1150 个 Program Files 文件均与负载匹配，CLI 和[正式软件更新页](installed/installed-version.png)显示 0.2.76；正常桌面入口自检通过，原日常工作区 `C:/Users/zhupu/coolzhuagent` 与原安全库保持。日常 Qwen 选择只作为用户环境保留，没有用于本轮验收。
 - [构建收据](evidence/build-identity/)、[负载核验](installed/package-076-verification.json)、[安装核验](installed/installed-076-verification.json)、[日常启动自检](installed/daily-076-selfcheck.json)。构建收据中的“尚未安装”是构建时记录，后续安装事实以独立收据为准。
 - 验收结束后正常关闭独立窗口，只按记录的 EXE 路径和创建时间停止本轮后台；本轮网页服务已退出。原日常入口 8765 已恢复，[恢复后自检](installed/restored-daily-selfcheck.json)确认原工作区、安全库和源码349保持；没有停止其它项目服务。
-- [PR #81](https://github.com/coolzhulike/coolzhuagent/pull/81) 已合入先前 0.2.75 上下文版本，合并时 HEAD 为 fc306ed；本轮插件源码349不在该合入范围，将由接续 PR 承接。源码 349 的 [Web console baseline](https://github.com/coolzhulike/coolzhuagent/actions/runs/37356300855/job/111919454598) 已通过。后续文档提交另按最终 HEAD 检查。
-- GitHub 0.2.76 草稿发布的四项分发资产已经上传，大小与服务端 SHA256 均匹配；公开发布前核对接续 PR 与发布说明。不将现有正向结果扩展为完整验收。
+- 恢复后的原生更新入口正常打开，真实点击检查结束后返回 `no_published_release`，上次检查时间更新，按钮重新可用，见[实际检查结果](installed/restored-daily-update-status.json)与[原生页面](installed/restored-daily-update-check-native.png)。GitHub 当前仅有预发布，本轮预发布没有被正式版检查误选。此结果不代表应用内下载安装／重启能力已实现。
+- [PR #81](https://github.com/coolzhulike/coolzhuagent/pull/81) 已合入先前 0.2.75 上下文版本，合并时 HEAD 为 fc306ed；本轮插件源码349不在该合入范围，由[草稿 PR #82](https://github.com/coolzhulike/coolzhuagent/pull/82)承接，已同步当前 main，后续源码与文档继续此 PR。源码 349 的 [Web console baseline](https://github.com/coolzhulike/coolzhuagent/actions/runs/37356300855/job/111919454598) 已通过。后续文档提交另按最终 HEAD 检查。
+- [GitHub 0.2.76 预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.76)已公开上传 MSI、安装报告、安全报告和摘要文件；四项大小与服务端 SHA256 均匹配，[公开发布核验](installed/github-release-verification.json)保留源码目标349。PR82仍为草稿，不把预发布称为main正式版本或完整验收。
