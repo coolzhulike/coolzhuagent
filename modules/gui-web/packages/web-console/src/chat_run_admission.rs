@@ -65,6 +65,8 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
             }
         }).collect();
         parent.host_model_snapshots = Arc::new(snapshots);
+        crate::dsh_web::capture_target_permissions(&mut parent.dsh_permission, &parent.dsh_bindings,
+            &workspace_id, &result.targets, &result.chat_room_id, &db_path);
     }
     crate::chat_insights::record_source_messages(&db_path, &run_id, &result.messages).map_err(crate::sqlite_api_error)?;
     crate::append_runtime_run_event(&db_path, &run_id, "chat.target_agents",

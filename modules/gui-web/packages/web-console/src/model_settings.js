@@ -45,6 +45,7 @@
               <small class="ms-wide" data-ms="devin-context" hidden>同一聊天室与模型配置继续发送时，会沿用远端会话，应用重启后也可恢复。重置上下文或切换模型后，会开始新的远端会话。</small>
               <label class="ms-wide" data-ms="devin-review-label" hidden><span><input type="checkbox" data-ms="devin-review">允许读取当前工程用于仓库审查</span><small>仅文件读取、查找与内容搜索；不开放写入、命令、电脑操作或原生 Devin 工具。</small></label>
               <label class="ms-wide" data-ms="devin-computer-label" hidden><span><input type="checkbox" data-ms="devin-computer">允许 Computer Use</span><small>通过宿主操作浏览器与桌面；规划和验收使用所选模型，图片需由 ACP 声明支持。</small></label>
+              <fieldset class="ms-wide" data-ms="devin-plugins-label" hidden><legend>允许的插件工具</legend><button type="button" data-ms="refresh-plugins" data-ms-action="refresh-plugins" class="ms-secondary" aria-label="刷新可选插件工具" title="刷新可选插件工具">↻</button><div data-ms="devin-plugin-tools"></div><small data-ms="devin-plugin-hint">仅勾选需要的已启用工具。插件执行需要当前聊天室完全访问；缺少授权时本轮不会延期执行。</small></fieldset>
               <label class="ms-wide">接口地址 · Base URL<input data-ms="base-url" type="url" required spellcheck="false" placeholder="https://api.example.com/v1"></label>
               <div class="ms-wide ms-discovery" aria-label="远程模型发现">
                 <div class="ms-discovery-actions"><button type="button" data-ms-action="discover" class="ms-secondary">获取模型</button><label class="ms-checkbox"><input type="checkbox" data-ms="discovery-no-key">此次查询不使用密钥</label></div>
@@ -108,6 +109,17 @@
     const devinAuth = window.CoolzhuDevinAuth?.mount(el("devin-auth"), {visible:false});
     let authVisible = false;
     let loadedReviewTools = [];
+    const extensionTool = name => /^(?:plugin__(?!devin_)[A-Za-z0-9_-]+|dsh__[A-Za-z0-9_-]+)$/.test(name) && name.length <= 64;
+    function renderPluginTools(data, parameters) {
+      const selected = new Set(parameters?.enable_llm_tools === true ? (parameters.tool_allowlist || []).filter(extensionTool) : []);
+      const tools = new Map((data?.available_plugin_tools || []).map(tool => [tool.name, tool]));
+      for (const name of selected) if (!tools.has(name)) tools.set(name, { name, description: "当前未启用；保留已保存的选择，启用后才可调用。" });
+      el("devin-plugin-tools").innerHTML = tools.size ? [...tools.values()].map(tool =>
+        `<label class="ms-checkbox"><input type="checkbox" data-ms="devin-plugin" value="${esc(tool.name)}" ${selected.has(tool.name) ? "checked" : ""}><span>${esc(tool.description || tool.name)}<small>${esc(tool.name)}</small></span></label>`).join("")
+        : "<p class=\"ms-hint\">暂无已启用的插件工具。请先在插件市场安装并启用，再刷新可选工具。</p>";
+      el("devin-plugin-hint").textContent = data?.plugin_tools_error ? `插件工具读取失败：${data.plugin_tools_error}`
+        : "仅勾选需要的已启用工具。插件执行需要当前聊天室完全访问；缺少授权时本轮不会延期执行。";
+    }
 
     const devinConnection = () => value("protocol") === "devin_acp";
     function remoteCandidate() {
@@ -208,6 +220,7 @@
       el("devin-review-label").hidden = !devin;
       el("devin-context").hidden = !devin;
       el("devin-computer-label").hidden = !devin;
+      el("devin-plugins-label").hidden = !devin;
       if (authVisible !== devin) { authVisible = devin; devinAuth?.setVisible(devin); }
       for (const key of ["base-url", "endpoint", "api-key", "clear-key", "discovery-no-key"]) {
         el(key).disabled = devin || (key === "clear-key" && !selectedId);
@@ -301,16 +314,17 @@
       const reviewTools = (p.tool_allowlist || []).filter(name => ["read_file", "glob_search", "grep_search"].includes(name));
       el("devin-review").checked = p.enable_llm_tools === true
         && p.llm_tool_exposure === "whitelist" && Array.isArray(p.tool_allowlist)
-        && reviewTools.length > 0 && p.tool_allowlist.every(name => ["read_file", "glob_search", "grep_search", "computer_use_perform"].includes(name));
+        && reviewTools.length > 0;
       el("devin-computer").checked = p.enable_llm_tools === true && p.computer_use_enabled === true
         && p.llm_tool_exposure === "whitelist" && (p.tool_allowlist || []).includes("computer_use_perform");
       // 保存其它参数时保持既有只读子集，不悄悄扩大工具范围。
       loadedReviewTools = el("devin-review").checked ? reviewTools : [];
+      renderPluginTools(data, p);
       set("computer-use", p.computer_use_enabled == null ? "" : String(p.computer_use_enabled));
       set("turn-timeout", p.turn_timeout_ms == null ? "" : p.turn_timeout_ms / 60000);
       set("tool-exposure", p.llm_tool_exposure); set("tool-allowlist", (p.tool_allowlist || []).join("\n"));
       updateDynamicFields(); resetDiscovery(); dirty = false;
-      status(devinConnection() ? "Devin 配置已载入；可发送文本，开启工程只读审查或 Computer Use。聊天附件及其它工具尚未开放。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
+      status(devinConnection() ? "Devin 配置已载入；可选择工程只读、Computer Use 和已启用插件工具。聊天附件及子 Agent 尚未开放。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
       options.onSelected?.(selectedId);
     }
 
@@ -357,6 +371,22 @@
       }
     }
 
+    async function refreshPluginTools() {
+      if (disposed || busy || !selectedId || !devinConnection()) return;
+      const sessionId = selectedId, sequence = loadSequence, button = el("refresh-plugins");
+      button.disabled = true;
+      try {
+        const data = await request(`/api/sessions/${encodeURIComponent(sessionId)}/model-settings`);
+        if (disposed || selectedId !== sessionId || loadSequence !== sequence) return;
+        // 仅刷新工具目录，保留包括未保存勾选在内的其它模型参数。
+        const names = [...container.querySelectorAll('[data-ms="devin-plugin"]:checked')].map(input => input.value);
+        renderPluginTools(data, { enable_llm_tools: true, tool_allowlist: names });
+      } catch (error) {
+        if (!disposed && selectedId === sessionId && loadSequence === sequence)
+          el("devin-plugin-hint").textContent = `插件工具读取失败：${error.message}`;
+      } finally { if (!disposed) button.disabled = false; }
+    }
+
     async function save(event) {
       event.preventDefault();
       if (busy || !el("form").reportValidity()) return;
@@ -375,14 +405,16 @@
         reasoning_mode: value("reasoning-mode"), thinking_budget: value("reasoning-mode") === "budget" ? number("thinking-budget") : null,
       };
       parameters.backend_kind = devin ? "devin_acp" : "llm_http";
+      const pluginTools = [...container.querySelectorAll('[data-ms="devin-plugin"]:checked')].map(input => input.value);
       if (devin) Object.assign(parameters, {
         base_url: null, endpoint: null, context_window: 0, max_output_tokens: 0,
         temperature: null, top_p: null, thinking_budget: null, reasoning_mode: "auto", supports_multimodal: null,
-        enable_llm_tools: el("devin-review").checked || el("devin-computer").checked,
+        enable_llm_tools: el("devin-review").checked || el("devin-computer").checked || pluginTools.length > 0,
         computer_use_enabled: el("devin-computer").checked,
         llm_tool_exposure: "whitelist", tool_allowlist: [
           ...(el("devin-review").checked ? (loadedReviewTools.length ? [...loadedReviewTools] : ["read_file", "glob_search", "grep_search"]) : []),
           ...(el("devin-computer").checked ? ["computer_use_perform"] : []),
+          ...pluginTools,
         ],
       });
       busy = true; el("save").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
@@ -399,7 +431,7 @@
         fill(result);
         const index = sessions.findIndex(s => s.id === selectedId);
         if (index >= 0) sessions[index] = result.session;
-        renderSessionOptions(); status(devin ? "已保存 Devin 配置；选择此 Agent 后可在聊天室发送文本、审查工程或执行 Computer Use，具体取决于上方选择。" : "已保存，对下一轮会话生效。");
+        renderSessionOptions(); status(devin ? "已保存 Devin 配置；所选宿主工具对下一轮会话生效。" : "已保存，对下一轮会话生效。");
         try { await options.onSaved?.(result.session, result); }
         catch (error) { if (!disposed) status(`配置已保存，但界面刷新失败：${error.message}`, true); }
         if (!disposed) container.dispatchEvent(new CustomEvent("model-settings-saved", { bubbles: true, detail: result }));
@@ -441,6 +473,7 @@
       const action = event.target.closest("[data-ms-action]")?.dataset.msAction;
       if (action === "new") void select(null);
       if (action === "discover") void discoverModels();
+      if (action === "refresh-plugins") void refreshPluginTools();
       if (action === "adopt-model") {
         const model = selectedCandidate();
         if (model) { set("model", model.id); if (devinConnection()) set("reasoning-effort", "auto"); updateDynamicFields(); if (devinConnection() && model.reasoning_effort) set("reasoning-effort", model.reasoning_effort); renderCandidateDetail(); markDirty(); }

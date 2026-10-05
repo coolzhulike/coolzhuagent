@@ -188,12 +188,8 @@ pub(super) fn validate_parameters(
     {
         return Err(invalid("Devin 思考档位需与所选精确模型变体一致，请获取模型后选择对应档位。"));
     }
-    if backend == AgentSessionBackend::DevinAcp && settings.enable_llm_tools == Some(true)
-        && (settings.llm_tool_exposure.as_deref() != Some("whitelist")
-            || !settings.tool_allowlist.as_ref().is_some_and(|tools| !tools.is_empty()
-                && tools.iter().all(|name| ["read_file", "glob_search", "grep_search"].contains(&name.as_str())
-                    || name == "computer_use_perform" && settings.computer_use_enabled == Some(true)))) {
-        return Err(invalid("Devin 仅开放当前工程只读审查与 Computer Use；其它工具能力尚未就绪。"));
+    if backend == AgentSessionBackend::DevinAcp {
+        super::devin_acp::host_tools::enabled(settings).map_err(|reason| invalid(&reason))?;
     }
     if settings
         .turn_timeout_ms

@@ -465,7 +465,7 @@ async fn dsh_source(Json(request): Json<DshSourceRequest>) -> ApiResult<Json<Jso
             "npm_identity_origin": if entry.npm.is_some() { "catalog_and_fixed_package_json" } else { "fixed_package_json" },
             "source_sha256": prepared.package.source_fingerprint().map_err(|e| api_error(StatusCode::INTERNAL_SERVER_ERROR, &e.to_string()))?,
             "compatibility": "unverified", "installable": false, "static_installable": true,
-            "reason": "固定源码已核验，可安装为停用状态；运行兼容与模型接线尚未验收。"});
+            "reason": "固定源码已核验，可安装为停用状态。启用时将检查宿主运行兼容性。"});
         prepared.discard().map_err(|e: DownloadError| api_error(StatusCode::INTERNAL_SERVER_ERROR, &e.message))?;
         control.check().map_err(|e| api_error(StatusCode::GATEWAY_TIMEOUT, &e.message))?;
         assert_scope()?;

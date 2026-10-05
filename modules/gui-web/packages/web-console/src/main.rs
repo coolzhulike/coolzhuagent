@@ -13458,9 +13458,16 @@ async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) 
     ));
     let defaults = api::model_token_limit(&agent.model);
     let effective = effective_model_limit_for_agent(&agent);
+    let plugin_tools = if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+        == agent_session_backend::AgentSessionBackend::DevinAcp {
+        plugin_runtime::definitions(&active_workspace_path(), &[])
+            .map(|tools| tools.into_iter().filter(|tool| devin_acp::host_tools::extension(&tool.name)).collect::<Vec<_>>())
+    } else { Ok(Vec::new()) };
     Ok(Json(json!({
         "session": session,
         "configuration_revision": configuration_revision,
+        "available_plugin_tools": plugin_tools.as_ref().ok(),
+        "plugin_tools_error": plugin_tools.as_ref().err(),
         "backend_kind": agent_session_backend::AgentSessionBackend::for_provider(&agent.provider),
         "agent_execution_ready": agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp,
         "model_selection": {"requested": agent.model, "effective": null, "resolved_model": null},
@@ -17345,6 +17352,13 @@ async fn api_run_interrupt(
             }
     })?;
     signal_runtime_run_after_interrupt(&path, &response);
+    let stopped = devin_acp::chat::stop_drained_attempts(&path, run_id)
+        .map_err(|reason| api_error(StatusCode::CONFLICT, &reason))?;
+    if stopped > 0 {
+        append_runtime_run_event(&path, run_id, "devin.context_stop_requested",
+            json!({"drained_attempts":stopped,"remote_cancel_confirmed":false}))
+            .map_err(sqlite_api_error)?;
+    }
     Ok(Json(response))
 }
 

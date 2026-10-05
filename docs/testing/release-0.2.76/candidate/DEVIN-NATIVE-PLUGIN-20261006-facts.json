@@ -1,0 +1,98 @@
+{
+  "prefix": "DEVIN-NATIVE-PLUGIN-20261006",
+  "run_id": "run-chat-ee5c9297b72f574f64325edac65062f29f47d768e666c31b",
+  "room": "room-1791131523339",
+  "message_id": "msg-1791223179034-user",
+  "targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 10,
+      "prompt_bytes": 2134
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "92ab27f21a2db13c889107601ed26d9368a1c3707d1d6399808858781b5dac73",
+          "id": "msg-1791223180797-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_call_id": "tool-3ae437eb75eeb1a4d6e809381a597c330347ddc9feb5025ba9d60d9981a273cc",
+      "run_id": "run-chat-ee5c9297b72f574f64325edac65062f29f47d768e666c31b",
+      "request_attempt_id": null,
+      "tool_name": "plugin__cli_anything_status",
+      "arguments_digest": "e2275c57745cbf76",
+      "status": "failed",
+      "created_at_unix_ms": 1791223194877,
+      "updated_at_unix_ms": 1791223196577,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-ee5c9297b72f574f64325edac65062f29f47d768e666c31b\",\"turn_id\":\"chat-turn-1791223179034-1\",\"attempt_id\":\"6f14f31558a88929f837797f0143e2e9e8d3185e360db4fe\",\"owner_epoch\":6,\"generation\":6}"
+    }
+  ],
+  "reply": "实际调用结果：失败。\n\n- 工具名：`plugin__cli_anything_status`（参数 `command: \"python\"`）\n- 宿主回执：`status: failed`，`output: null`\n- 错误信息：`unknown tool 'plugin__cli_anything_status'`\n- elapsed_ms：0\n\n该工具虽在 coolzhu-agent 声明列表中，但宿主运行时返回\"未知工具\"，未能返回 python 的可用性或可执行文件位置。按回执如实报告，本轮未获得成功结果，停止。",
+  "bindings": [
+    {
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "sneaky-diascia"
+    },
+    {
+      "agent_id": "session-1791131217833",
+      "remote_session_id": "veiled-anise"
+    }
+  ],
+  "run": {
+    "id": "run-chat-ee5c9297b72f574f64325edac65062f29f47d768e666c31b",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "tool_events": [],
+  "audit": [
+    {
+      "ts": "1791223196.565",
+      "call_id": "tool-3ae437eb75eeb1a4d6e809381a597c330347ddc9feb5025ba9d60d9981a273cc",
+      "tool_name": "plugin__cli_anything_status",
+      "caller": "llm",
+      "workspace_id": "ws-23f646a969206cb4",
+      "session_id": "session-1791131217833",
+      "input_summary": "plugin__cli_anything_status: command=len6",
+      "status": "failed",
+      "elapsed_ms": 0,
+      "permission": {
+        "required": "danger-full-access",
+        "decision": "allow-auto",
+        "reason": "full-access-profile",
+        "workspace_relative": false,
+        "affected_paths": [
+          "<opaque-command>"
+        ]
+      },
+      "summary_text": "unknown tool 'plugin__cli_anything_status'"
+    }
+  ]
+}

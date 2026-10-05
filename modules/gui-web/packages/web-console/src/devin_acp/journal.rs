@@ -468,6 +468,36 @@ impl Journal {
         tx.commit().map_err(|_| fail("ACP 取消提交未确认。"))
     }
 
+    /// 用户明确停止已失败运行时，登记停止意图；旧 unknown 和远端绑定不改写。
+    /// 只处理监督者已确认排空、宿主工具已结账的普通聊天回合。
+    pub(super) fn stop_drained_run(&self, run: &str) -> Result<usize, String> {
+        let connection = self.connection()?;
+        let scopes = connection.prepare("SELECT a.scope_json FROM devin_acp_attempts a
+            JOIN devin_acp_bindings b ON b.locked_attempt=a.attempt_id
+            WHERE json_extract(a.scope_json,'$.run_id')=?1 AND b.lane=''
+              AND a.state='unknown' AND a.process_drained=1 AND a.cancel_requested=0")
+            .map_err(|_| fail("ACP 旧回合查询失败。"))?
+            .query_map([run], |row| row.get::<_, String>(0))
+            .map_err(|_| fail("ACP 旧回合读取失败。"))?
+            .collect::<Result<Vec<_>, _>>().map_err(|_| fail("ACP 旧回合读取失败。"))?;
+        let has_tools: bool = connection.query_row(
+            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='tool_calls')",
+            [], |row| row.get(0)).map_err(|_| fail("ACP 工具台账结构核对失败。"))?;
+        let mut stopped = 0;
+        for source in scopes {
+            let scope: ExecutionScope = serde_json::from_str(&source).map_err(|_| fail("ACP 旧回合身份无效。"))?;
+            if has_tools && connection.query_row(
+                "SELECT EXISTS(SELECT 1 FROM tool_calls WHERE run_id=?1 AND source_request_key=?2 AND status NOT IN ('completed','failed'))",
+                params![run, source], |row| row.get::<_, bool>(0))
+                .map_err(|_| fail("ACP 旧工具收尾核对失败。"))? {
+                return Err(fail("旧宿主工具尚未结账，请等待真实收尾；未解除会话锁。"));
+            }
+            self.request_cancel(&scope)?;
+            stopped += 1;
+        }
+        Ok(stopped)
+    }
+
     pub(super) fn can_dispatch(&self, scope: &ExecutionScope) -> Result<(), String> {
         let connection = self.connection()?;
         Self::check(&connection, scope)?;
@@ -630,6 +660,18 @@ pub(super) mod tests {
         assert_eq!(reopened.status(&a).unwrap().state, "unknown");
         assert!(reopened.claim(scope("a2"), &binding).is_err());
         assert!(reopened.claim(scope("a1"), &binding).is_err());
+        let c = reopened.connection().unwrap();
+        c.execute_batch("CREATE TABLE tool_calls(run_id TEXT,source_request_key TEXT,status TEXT);").unwrap();
+        c.execute("INSERT INTO tool_calls VALUES(?1,?2,'running')",
+            params![a.run_id, serde_json::to_string(&a).unwrap()]).unwrap();
+        assert!(reopened.stop_drained_run(&a.run_id).is_err());
+        assert!(!reopened.status(&a).unwrap().cancel_requested);
+        c.execute("UPDATE tool_calls SET status='failed'", []).unwrap();
+        assert_eq!(reopened.stop_drained_run(&a.run_id).unwrap(), 1);
+        assert_eq!(reopened.stop_drained_run(&a.run_id).unwrap(), 0);
+        assert_eq!(reopened.status(&a).unwrap().state, "unknown");
+        reopened.rotate_idle_context(&scope("a2"), &binding).unwrap();
+        assert!(reopened.claim(scope("a2"), &binding).is_ok());
     }
     #[test]
     fn terminal_and_process_drain_are_distinct_and_generation_is_allocated() {
