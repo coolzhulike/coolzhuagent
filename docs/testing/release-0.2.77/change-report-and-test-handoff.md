@@ -31,7 +31,25 @@ Devin ACP 会话使用官方 CLI 登录。原健康诊断仍把它当成 HTTP Pr
 
 ## 正式安装版验证
 
-尚未执行，后续补充正常发布链构建、MSI 身份核验、安装结果、正式二进制诊断与同一远端会话续聊实拍。0.2.76 已公开预发布的安装包仍是原源码身份，不包含此次诊断修复。
+0.2.77 已按正常发布链构建并安装。源码身份为 `2d040d555566340c03709b4c6f6b77f11496ebed`，六项发布门全部通过，Windows 安装退出码为 0；1150 个暂存和 Program Files 文件分别逐项核对长度与 SHA256，一致。MSI 大小为 276318850 字节，SHA256 为 `e2f2f938068aef587bf818a44359f43227253a09928ac8749440d2732715273b`。正常 producer 报告在 `evidence/build-identity/pkg-report-release-20261006-033057415-fb2d6b84/`，不人工生成或替换构建收据。
+
+正式 Program Files 后台的冷启动、官方 CLI 认证核对和自然过期实测与候选结果一致：核对前与过期后为 warn，核对成功为 ok；SWE-2 与 Opus 均保留精确模型 ID，`api_key_present=false`，没有密钥缺失修复项。Opus 本轮仅只读核验配置与认证诊断，没有发起新的代码审查请求。
+
+正式原生窗口通过正常输入发送 `DEVIN-HEALTH-INSTALLED-077-20261006`，真实 `swe-2-medium` 在原“SWE-2 Browser与Paint真实验收”聊天室返回旧口令，消息 #275/#276、耗时 7.6 秒。运行 `run-chat-907cc9069b48db095ad7cc426eae0ff23524ed4bb5bc1835` 的宿主历史增量为 0，原远端 `veiled-anise` 不变，ACP 为 terminal / end_turn / drained=1，没有工具调用。`requested` 与 `effective` 为 SWE-2，`resolved_model=null` 原样保留，不额外声称已取得服务端模型身份确认。
+
+只停止逐项核对过 EXE 路径和 UTC 创建时刻的本轮验收进程，正常桌面启动器恢复日常 8765。新自检确认正式源码、原用户工程 `C:/Users/zhupu/coolzhuagent` 和原 `AppData/Local/CoolzhuAgent/input-safety` 安全库一致。日常窗口的既有 Qwen 历史和发送对象保留，没有用它执行本轮回归。
+
+正式证据在 [installed/](installed/)，逐文件摘要见 `installed/manifest.json`；候选证据仍独立保留。0.2.76 原安装包不包含这次认证诊断修改，其 Browser、插件、SKILL 实操不改记为 0.2.77 回归。
+
+[0.2.77 GitHub 预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.77)已经公开：四项分发资产大小与 GitHub 服务端 SHA256 一致，标签实际指向源码 `2d040d5`，发布核验见 `installed/github-release-verification.json`。源码及证据由[草稿 PR #82](https://github.com/coolzhulike/coolzhuagent/pull/82)承接，预发布不代表所有整合任务已验收。
+
+源码 `2d040d5` 的 push 检查成功。PR 检查首次未取得 GitHub hosted Windows runner，没有执行任何步骤即取消，原注记明确为执行器分配失败；已正常重跑，不修改代码绕过基础设施故障。后续仅文档提交的检查结果与源码提交分别记录。
+
+![正式版 SWE-2 同一远端上下文与 0.2.77 版本](installed/installed-version-native.png)
+
+![正式配置页的 Devin 登录状态](installed/installed-login-native.png)
+
+![正常日常入口恢复与版本](installed/restored-daily-native.png)
 
 ## 其它模型设计测试用例时应检查
 

@@ -48,3 +48,11 @@
 ## Devin 认证诊断候选修复
 
 原 ACP 登录被 HTTP API Key 与模型名称推断误报，已拆分独立诊断，复用官方认证缓存；冷启动／过期为未确认，实际核对已登录后正常，密钥字段始终保持真实 false。候选离线构建（先前 LLVM 内存不足保留）、既有诊断16项、认证解析1项与 JS 语法通过。真实 SWE #273/#274 返回原口令，19秒、veiled-anise、历史增量0、terminal/end_turn/drained，无工具调用。没有改用户凭据、权限、安全库或 Opus 绑定。候选证据在 docs/testing/release-0.2.77，正常出包安装与正式实拍待完成；PR82此前4da4608检查成功不代表此修复已验收。
+
+## 0.2.77 正式安装与登录诊断闭环
+
+正常发布producer源码2d040d555566340c03709b4c6f6b77f11496ebed，六门通过，MSI276318850字节／e2f2f938068aef587bf818a44359f43227253a09928ac8749440d2732715273b；暂存和Program Files各1150文件匹配，正常Windows安装退出0。正式冷启动与自然过期为warn、官方CLI核对后两模型ok，没有API Key假值或修复项。原SWE #275/#276 真实返回旧口令，7.6秒、veiled-anise、增量0、无工具、terminal/end_turn/drained，未新发Opus审核。
+
+只停止本轮6136/1744且核EXE路径与UTC创建时刻，正常桌面入口恢复原用户目录和安全库；新launcher自检build2d、workspace revision82匹配，正式版本窗口0.2.77实拍。候选与正式证据、producer原字节均独立保留。源码push CI成功，PR CI因未取得hosted runner而取消，已通过正常rerun-failed-jobs重跑，不修改代码规避基础设施故障。
+
+0.2.77已公开GitHub预发布，四资产服务端长度／SHA256与本地匹配，真实Git标签指向2d040d5，不覆盖76。发布事实与源码CI状态另存installed，后续文档HEAD检查独立记录。PR82保持草稿，未取得Windows执行器的检查正常重跑后仍排队，不假称已通过。

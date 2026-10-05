@@ -1,0 +1,21 @@
+{
+    "daily_launcher":  {
+                           "path":  "C:/Program Files/CoolzhuAgent/COOLZHU-AGENT.exe",
+                           "pid":  32860,
+                           "created":  "2026-10-05T19:39:43.8668352Z"
+                       },
+    "stopped_owned_processes":  [
+                                    {
+                                        "path":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+                                        "pid":  1744,
+                                        "created":  "2026-10-05T19:33:38.9765883Z",
+                                        "kind":  "shell"
+                                    },
+                                    {
+                                        "path":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+                                        "pid":  6136,
+                                        "created":  "2026-10-05T19:33:19.8135477Z",
+                                        "kind":  "web"
+                                    }
+                                ]
+}

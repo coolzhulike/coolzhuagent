@@ -1,0 +1,37 @@
+{
+  "observed_at_utc": "2026-10-05T19:44:00.243591+00:00",
+  "push": {
+    "id": 37362731521,
+    "run_attempt": 1,
+    "head_sha": "2d040d555566340c03709b4c6f6b77f11496ebed",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37362731521",
+    "updated_at": "2026-10-05T19:36:39Z"
+  },
+  "pull_request": {
+    "id": 37362739522,
+    "run_attempt": 2,
+    "head_sha": "2d040d555566340c03709b4c6f6b77f11496ebed",
+    "event": "pull_request",
+    "status": "queued",
+    "conclusion": null,
+    "html_url": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37362739522",
+    "updated_at": "2026-10-05T19:37:52Z"
+  },
+  "first_attempt_runner_failure": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/coolzhulike/coolzhuagent/blob/2d040d555566340c03709b4c6f6b77f11496ebed/.github",
+      "start_line": 1,
+      "start_column": null,
+      "end_line": 1,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "",
+      "message": "The job was not acquired by Runner of type hosted even after multiple attempts",
+      "raw_details": ""
+    }
+  ]
+}
