@@ -62,6 +62,8 @@ struct PanelState {
     label: Option<String>,
     reply: PanelReply,
     pending_navigation: Option<PendingNavigation>,
+    source_changed_token: Option<i64>,
+    popup_sequence: u64,
 }
 
 struct PendingNavigation {
@@ -70,6 +72,7 @@ struct PendingNavigation {
     requested_observed: bool,
     redirect_url: Option<String>,
     from_popup: bool,
+    popup_sequence: Option<u64>,
 }
 
 #[derive(Default)]
@@ -191,7 +194,7 @@ pub(super) fn begin_native_navigation(app:&AppHandle,source:&native_browser_prot
     if visible_panel_resource(&state,true,false).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
     let revision=source.navigation_revision.checked_add(1).ok_or("native_browser_navigation_invalid")?;
     state.navigation_revision=revision;
-    state.pending_navigation=Some(PendingNavigation {revision,requested_url:url.to_string(),requested_observed:false,redirect_url:None,from_popup:false});
+    state.pending_navigation=Some(PendingNavigation {revision,requested_url:url.to_string(),requested_observed:false,redirect_url:None,from_popup:false,popup_sequence:None});
     state.reply.url=Some(url.to_string());state.reply.loading=true;state.reply.error=None;
     let mut destination=source.clone();destination.navigation_revision=revision;
     Ok(native_browser_protocol::PanelNavigationReceipt {destination,url:url.to_string()})
@@ -281,6 +284,7 @@ fn log_navigation_diagnostic(
         ("revision", state.navigation_revision.to_string()),
         ("pending_revision", pending.map_or("none".into(), |value| value.revision.to_string())),
         ("pending_popup", pending.is_some_and(|value| value.from_popup).to_string()),
+        ("popup_sequence", state.popup_sequence.to_string()),
         ("requested_match", url.zip(pending).is_some_and(|(url, pending)| pending.requested_url == url.as_str()).to_string()),
         ("panel_url_match", url.is_some_and(|url| state.reply.url.as_deref() == Some(url.as_str())).to_string()),
         ("active", state.reply.active.to_string()),
@@ -368,20 +372,44 @@ fn observe_navigation(app: &AppHandle, generation: u64, url: &Url) {
     }
 }
 
+pub(super) fn update_same_document_source(app: &AppHandle, generation: u64, label: &str, url: &Url) {
+    if validate_url(url.as_str(), console_origin()).is_err() { return; }
+    let store = app.state::<PanelStore>();
+    let reply = {
+        let Ok(mut state) = store.state.lock() else { return; };
+        if state.generation != generation || !state.reply.active || state.label.as_deref() != Some(label) { return; }
+        let completes_pending = if let Some(pending) = state.pending_navigation.as_ref() {
+            // 显式同文档导航没有 ContentLoading；只有当前请求的精确目标才能收尾。
+            if pending.revision != state.navigation_revision || pending.requested_url != url.as_str() { return; }
+            true
+        } else { false };
+        state.reply.url = Some(url.to_string());
+        if completes_pending {
+            state.pending_navigation = None;
+            state.reply.loading = false;
+            state.reply.error = None;
+            state.reply.reason = None;
+        }
+        state.reply.clone()
+    };
+    emit(app, &reply);
+}
+
 fn popup_navigation_current(
     state: &PanelState,
     generation: u64,
     scope: &str,
     label: &str,
-    revision: Option<u64>,
+    sequence: Option<u64>,
 ) -> bool {
     state.generation == generation
         && state.reply.active
         && state.reply.scope == scope
         && state.label.as_deref() == Some(label)
-        && revision.is_none_or(|revision| {
-            state.pending_navigation.as_ref().is_some_and(|pending| pending.revision == revision && pending.from_popup)
-                && state.navigation_revision == revision
+        && sequence.is_none_or(|sequence| {
+            state.pending_navigation.as_ref().is_some_and(|pending| pending.popup_sequence == Some(sequence)
+                && pending.from_popup && pending.revision == state.navigation_revision)
+                && state.popup_sequence == sequence
         })
 }
 
@@ -403,14 +431,14 @@ fn popup_navigation_error(
     generation: u64,
     scope: &str,
     label: &str,
-    revision: Option<u64>,
+    sequence: Option<u64>,
     message: &str,
 ) {
     let store = app.state::<PanelStore>();
     let reply = {
         let Ok(mut state) = store.state.lock() else { return; };
-        if !popup_navigation_current(&state, generation, scope, label, revision) { return; }
-        if revision.is_some() {
+        if !popup_navigation_current(&state, generation, scope, label, sequence) { return; }
+        if sequence.is_some() {
             state.pending_navigation = None;
             state.reply.loading = false;
         }
@@ -428,11 +456,17 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
         popup_navigation_error(app, generation, scope, label, None, "已阻止不支持的网页跳转");
         return;
     }
-    let revision = {
+    let sequence = {
         let store = app.state::<PanelStore>();
         let Ok(mut state) = store.state.lock() else { return; };
         if !popup_navigation_current(&state, generation, scope, label, None) { None } else {
-            state.navigation_revision = state.navigation_revision.wrapping_add(1);
+            // 网页自身的新窗口跳转与普通链接同属自然导航；队列撤销使用独立序号，
+            // 不能为了队列排序把已结算输入所属资源误判成手动替换。
+            if state.pending_navigation.as_ref().is_some_and(|pending| !pending.from_popup) {
+                state.navigation_revision = state.navigation_revision.wrapping_add(1);
+            }
+            let Some(sequence) = state.popup_sequence.checked_add(1) else { return; };
+            state.popup_sequence = sequence;
             let revision = state.navigation_revision;
             state.pending_navigation = Some(PendingNavigation {
                 revision,
@@ -440,11 +474,12 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
                 requested_observed: false,
                 redirect_url: None,
                 from_popup: true,
+                popup_sequence: Some(sequence),
             });
-            Some(revision)
+            Some(sequence)
         }
     };
-    let Some(revision) = revision else {
+    let Some(sequence) = sequence else {
         log_navigation_diagnostic(app, generation, "popup_request", "stale_view", Some(&url));
         return;
     };
@@ -458,7 +493,7 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
         let store = queued_app.state::<PanelStore>();
         log_navigation_diagnostic(&queued_app, generation, "popup_task", "entered", Some(&url));
         let current = store.state.lock().is_ok_and(|state| {
-            popup_navigation_current(&state, generation, &queued_scope, &queued_label, Some(revision))
+            popup_navigation_current(&state, generation, &queued_scope, &queued_label, Some(sequence))
         });
         if !current {
             log_navigation_diagnostic(&queued_app, generation, "popup_task", "stale", Some(&url));
@@ -466,19 +501,19 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
         }
         let Some(view) = queued_app.get_webview(&queued_label) else {
             log_navigation_diagnostic(&queued_app, generation, "popup_task", "view_missing", Some(&url));
-            popup_navigation_error(&queued_app, generation, &queued_scope, &queued_label, Some(revision), "网页窗口尚未就绪");
+            popup_navigation_error(&queued_app, generation, &queued_scope, &queued_label, Some(sequence), "网页窗口尚未就绪");
             return;
         };
         if view.navigate(url.clone()).is_err() {
             log_navigation_diagnostic(&queued_app, generation, "popup_dispatch", "dispatch_failed", Some(&url));
-            popup_navigation_error(&queued_app, generation, &queued_scope, &queued_label, Some(revision), "无法打开新窗口目标网页");
+            popup_navigation_error(&queued_app, generation, &queued_scope, &queued_label, Some(sequence), "无法打开新窗口目标网页");
             return;
         }
         // Tauri 返回 Ok 只确认派发，底层 WebView2 load_url 错误不经该返回值传递。
         log_navigation_diagnostic(&queued_app, generation, "popup_dispatch", "dispatched", Some(&url));
         let reply = {
             let Ok(mut state) = store.state.lock() else { return; };
-            if !popup_navigation_current(&state, generation, &queued_scope, &queued_label, Some(revision)) { return; }
+            if !popup_navigation_current(&state, generation, &queued_scope, &queued_label, Some(sequence)) { return; }
             state.reply.url = Some(url.to_string());
             state.reply.loading = true;
             state.reply.error = None;
@@ -487,7 +522,7 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
         emit(&queued_app, &reply);
     }).is_err() {
         log_navigation_diagnostic(app, generation, "popup_task", "schedule_failed", None);
-        popup_navigation_error(app, generation, scope, label, Some(revision), "无法调度新窗口目标网页");
+        popup_navigation_error(app, generation, scope, label, Some(sequence), "无法调度新窗口目标网页");
     }
 }
 
@@ -510,7 +545,7 @@ pub fn suspend(app: &AppHandle, reason: &str) {
 /// 真正关闭或切换所属聊天室时销毁隔离视图。
 pub fn invalidate(app: &AppHandle, reason: &str) {
     let store = app.state::<PanelStore>();
-    let (label, reply) = {
+    let (label, token, reply) = {
         let Ok(mut state) = store.state.lock() else {
             return;
         };
@@ -524,9 +559,10 @@ pub fn invalidate(app: &AppHandle, reason: &str) {
         state.reply.loading = false;
         state.reply.reason = Some(reason.into());
         state.pending_navigation = None;
-        (state.label.take(), state.reply.clone())
+        (state.label.take(), state.source_changed_token.take(), state.reply.clone())
     };
     if let Some(view) = label.and_then(|label| app.get_webview(&label)) {
+        super::native_browser_source::remove(&view, token);
         super::native_browser_input::retire_view(view);
     }
     emit(app, &reply);
@@ -701,7 +737,7 @@ pub async fn browser_panel_command(
                     state.pending_navigation = Some(PendingNavigation {
                         revision: state.navigation_revision,
                         requested_url: url.to_string(),
-                        requested_observed: false, redirect_url: None, from_popup: false,
+                        requested_observed: false, redirect_url: None, from_popup: false, popup_sequence: None,
                     });
                     Some(state.navigation_revision)
                 }
@@ -791,9 +827,22 @@ pub async fn browser_panel_command(
             LogicalSize::new(bounds.width, bounds.height),
         ) {
             Ok(view) => {
-                let alive =
-                    store.state.lock().map_err(|_| "网页状态不可用")?.generation == generation;
+                let token = match super::native_browser_source::install(&app, &view, generation).await {
+                    Ok(token) => token,
+                    Err(error) => {
+                        // 地址显示监听不属于输入授权；失败不能使原有网页功能整体失效。
+                        eprintln!("browser-panel source listener: {error}");
+                        None
+                    }
+                };
+                let alive = {
+                    let mut state = store.state.lock().map_err(|_| "网页状态不可用")?;
+                    let alive = state.generation == generation && state.reply.active;
+                    if alive { state.source_changed_token = token; }
+                    alive
+                };
                 if !alive {
+                    super::native_browser_source::remove(&view, token);
                     let _ = view.close();
                     return Err("网页创建期间窗口或聊天室已变化".into());
                 }
@@ -851,6 +900,29 @@ pub async fn browser_panel_command(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn popup_queue_sequence_cannot_survive_replacement_or_manual_navigation() {
+        let mut state = PanelState {
+            generation: 3, navigation_revision: 7, popup_sequence: 2,
+            label: Some("browser-panel-3".into()),
+            reply: PanelReply { active: true, scope: "room-scope".into(), ..Default::default() },
+            pending_navigation: Some(PendingNavigation { revision: 7, requested_url: "https://example.com/".into(),
+                requested_observed: false, redirect_url: None, from_popup: true, popup_sequence: Some(2) }),
+            ..Default::default()
+        };
+        let current = |state: &PanelState, sequence| popup_navigation_current(state, 3, "room-scope", "browser-panel-3", Some(sequence));
+        assert!(current(&state, 2));
+        assert!(!current(&state, 1));
+        state.popup_sequence = 3;
+        assert!(!current(&state, 2));
+        state.pending_navigation.as_mut().unwrap().popup_sequence = Some(3);
+        assert!(current(&state, 3));
+        state.navigation_revision += 1;
+        assert!(!current(&state, 3));
+        state.pending_navigation = None;
+        assert!(!current(&state, 3));
+    }
 
     #[test]
     fn hidden_or_minimized_console_cannot_register_a_resident_page() {

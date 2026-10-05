@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "CU-PAINT-20261005-R：新的独立真实Paint任务，忽略旧任务和历史坐标。只调用一次computer_use_perform，正式六项：objective=根据本轮新鲜原图，辨认现有带眼睛和笑嘴的大矩形身体的最底边，在该底边以下的白色绘图区内本轮新增两条分开的L形腿脚，腿上端接近身体底边，腿向下延伸后各画一段短脚，不能画在身体内部，不能把已有身体内部笔迹当成本轮腿脚；surface=desktop；target={application:mspaint.exe}；success_criteria=[本轮最新原图可见两个新增且分开的L形腿脚,两条腿都在现有大身体最底边以下的白画布内并未落在身体内部或工具栏]；constraints=[只操作当前画图窗口，不擦除不保存不改画布，不用形状工具代码导入或其它MCP，只用两次连续鼠标drag笔画，每笔自行依当前原图规划不借旧坐标，不换模型，失败取消或结果未知立即停止不补发不重试，释放或图像变化不等于目标完成]；max_actions=2。drawing_region_candidates为当前UIA候选：先对照真实原图判断其reference是否确为画布，选该reference时points相对完整rect，不相对visible_rect；window-canvas只是含工具栏客户区，不是白画布。不得猜reference。running只wait原job_id至终态，不再perform。如实报告两笔真实执行、每项截图事实、未完成原因，结论在当前聊天室可见。",
+  "selected_message_ids": [],
+  "attachments": []
+}

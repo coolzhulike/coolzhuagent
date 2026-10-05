@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "CU-PAINT-20261005-V：新独立粗略完整人物验收，旧 R/S/T 失败保留，U 两菱形不是完整人物。仅调用一次 computer_use_perform，完整正式六项：objective=根据当前新鲜原图在白色画布尚无笔迹的一块留白里，用当前黑色笔刷鼠标手动画一个粗略海绵宝宝：矩形身体、两个分开的眼睛、笑嘴、身体底边下方两条分开的腿脚；不要求美术质量，不借旧人物或旧矩形；surface=desktop；target={application:mspaint.exe}；success_criteria=[本轮新增一个独立的矩形身体轮廓完全在白画布留白内,本轮新增身体内部同时有两个分开的眼睛和一条笑嘴且不是旧笔迹,本轮新增身体底边下方有两条分开的腿脚且最新原图同时可见本轮新人物全部部件]；constraints=[只有真实 Paint 鼠标 drag，不用形状代码导入粘贴其它工具，不擦除不保存不改工具画布设置，不换模型，每步仅用本轮新鲜原图与控件引用定位，第一步身体一笔，第二和第三步各一只眼睛，第四步笑嘴，第五第六步各一条腿脚，不重复已完成部件，不借已有旧图，失败取消或未知立即停止不重试不补发，释放或image_changed不代表人物完成]；max_actions=6。全图像素须先按image.screen_rect换算桌面物理点，再减所选目标rect原点除目标宽高得到相对points；drawing_region_candidates原rect是坐标容器，可见范围仅供核对，不能把全图比例直接用于较小画布。宿主验收图片按标签run_start/previous_step/current；criteria新增按任务起始图→当前比，progress按上一步→当前，前面步骤新绘部件仍是本轮新增。主会话不提供落点或坐标，不代画、不代验收。running只wait原job_id到终态不再次perform。真实回执和结果保留在聊天室，不把旧人物或两个小菱形当完成。",
+  "selected_message_ids": [],
+  "attachments": []
+}

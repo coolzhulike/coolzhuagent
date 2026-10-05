@@ -1,0 +1,230 @@
+{
+  "source_commit_before_this_change": "fd8315e05f2a52e3377de5dc0736d288e0bf89dd",
+  "sources": [
+    {
+      "file": "modules/computer-use/packages/computer-use-core/src/controller.rs",
+      "sha256": "c77d1d176b90ccd756c379df7438847114a2db7a0fb1673fd14c0e9ee2496fc4"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/browser_panel.rs",
+      "sha256": "a2a270b38d3d614294701e81f241047a1d09e20e6bb00567201e4128d4de46ae"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+      "sha256": "6e7bb7c32df2425218f8058386f3118aa66350dff38218a3751fa8ad789bf3bb"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_source.rs",
+      "sha256": "3beec60137121bd5cb4e3d41b11a1de6cd190aee5f81c25ba4323090ab4d6a2a"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_desktop_bridge.rs",
+      "sha256": "150acffed600694b6f47c4f8b66d708840a716c4b22b384798c248bf6fbd987c"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+      "sha256": "98b0ccc883dced22e536648e5b6c677a6bf0fa2c8dedd4bfa2dfba6f7172b55c"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_turn_scope.rs",
+      "sha256": "640fb40e69bea2cb8ed943e596d72a742feffba26243436e31e4542837911d66"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_visual_baseline.rs",
+      "sha256": "5271ef673bd9b02fb4979e99356ee22bfb5967e07891af9ca9fae5210c6bfb8c"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/devin_acp/journal.rs",
+      "sha256": "06ab423de0bb373017e7a4bd1f1ffd3b3fd7b848abf4484fbb2a1807c30d83f4"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/devin_acp/session.rs",
+      "sha256": "138f32bd641957d8aa62f7c1877253e1bcfb754329067ebb725c4d018b553365"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/main.rs",
+      "sha256": "131678cfbffa55483b4e2b98c01dac8b38e736ec9319e04d28ba30b788b8d8ec"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/native_browser_adapter.rs",
+      "sha256": "1f34c6970ffae886afa38000175db8e9d261fb091270dad911be5d42b1d06d70"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+      "sha256": "9c70c4bf617f828764effea0df19c382c13a5d298d26bc30718c143b714b0170"
+    }
+  ],
+  "deployed_builds_by_stage": {
+    "fixed-validation-processes.json": {
+      "shell_pid": 448,
+      "port": 8767,
+      "web_sha256": "BD9E90460FE82194E4AF934FDACDD1494D9676A9D063A02773A34C9339E18FAE",
+      "shell_sha256": "A9E68C2BAFCF1B2C7667B224C633E219E0F5E9C08A88D60061CAEF9F6F03FA6D",
+      "web_pid": 7408,
+      "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace"
+    },
+    "scope-validation-processes.json": {
+      "port": 8767,
+      "web_pid": 16996,
+      "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+      "web_sha256": "D6623CF499BF37257D3F3B2354F2AB7B40F038E9DA60D09B573C2E210B108AAA"
+    },
+    "standard-validation-processes.json": {
+      "web_pid": 26548,
+      "port": 8765,
+      "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+      "web_sha256": "D6623CF499BF37257D3F3B2354F2AB7B40F038E9DA60D09B573C2E210B108AAA"
+    },
+    "mechanical-validation-processes.json": {
+      "web_sha256": "80BBC989E6A616D04F5A7828C2C96E85D5384BC120B7B20593274B3D38F1AF51",
+      "web_pid": 27800,
+      "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+      "port": 8765
+    },
+    "drawing-region-validation-processes.json": {
+      "web_pid": 1888,
+      "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+      "web_sha256": "C0CA40F0C7FD763096B0C23C11F66AD5789510DB2D585ED728E6810E04D2C0EA",
+      "port": 8765
+    },
+    "baseline-validation-processes.json": {
+      "port": 8765,
+      "web_sha256": "6E07431F3E79ADF8934DA4D7AD6ECD9B07BEAF70E233AE44AA27EAA56F009BD7",
+      "web_pid": 27060,
+      "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace"
+    },
+    "image-transport-final-validation-processes.json": {
+      "port": 8765,
+      "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+      "web_sha256": "45DD74610D51159D9A00847B374ECA68E6A62EB0C4BCE9A29BECC887DCA70E93",
+      "web_pid": 19772
+    }
+  },
+  "shell_sha256": "16a9760c9c588881a5383fe2a58a4822292e4c69c9c36e8d6d2c456f49c19fae",
+  "formal_installed_version": "0.2.71",
+  "new_fixes_not_in_formal_installation": true,
+  "web_full_tests": {
+    "passed": 1387,
+    "failed": 0,
+    "ignored": 6,
+    "library": 8,
+    "native_entry": 1
+  },
+  "retained_failures": [
+    "tests-drawing-region-final.log",
+    "tests-image-transport.log"
+  ],
+  "limits": {
+    "inbound_bytes": 1048576,
+    "ordinary_outbound_bytes": 1048576,
+    "image_prompt_outbound_bytes": 8388608
+  },
+  "U": {
+    "run_id": "run-chat-906d1e255b59c1d7e696d07f660c33028a72ed6b1485144a",
+    "elapsed_sec": 87.3,
+    "actual_independent_diamonds": 2,
+    "goal_achieved": true,
+    "verification_payload_bytes": [
+      923092,
+      1358145
+    ],
+    "verification_image_counts": [
+      2,
+      3
+    ]
+  },
+  "micro_interval_races_not_accepted": true,
+  "final_sources": [
+    {
+      "file": "modules/computer-use/packages/computer-use-core/src/controller.rs",
+      "sha256": "c77d1d176b90ccd756c379df7438847114a2db7a0fb1673fd14c0e9ee2496fc4"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/browser_panel.rs",
+      "sha256": "85fa84b71aaddb6d42d4de2c15e377249b69fe7f6cf0c505b1546c102de4df2b"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+      "sha256": "6e7bb7c32df2425218f8058386f3118aa66350dff38218a3751fa8ad789bf3bb"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_source.rs",
+      "sha256": "3beec60137121bd5cb4e3d41b11a1de6cd190aee5f81c25ba4323090ab4d6a2a"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_desktop_bridge.rs",
+      "sha256": "150acffed600694b6f47c4f8b66d708840a716c4b22b384798c248bf6fbd987c"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+      "sha256": "c5310ab54baf526beffbed372859a1ada63ff339874de8dbec64b720127379e0"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_turn_scope.rs",
+      "sha256": "640fb40e69bea2cb8ed943e596d72a742feffba26243436e31e4542837911d66"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_visual_baseline.rs",
+      "sha256": "8616f023fcb569fadd9b94eb4c753c23e532458f19bf1c5edd45124b6a67cad8"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/devin_acp/journal.rs",
+      "sha256": "06ab423de0bb373017e7a4bd1f1ffd3b3fd7b848abf4484fbb2a1807c30d83f4"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/devin_acp/session.rs",
+      "sha256": "138f32bd641957d8aa62f7c1877253e1bcfb754329067ebb725c4d018b553365"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/main.rs",
+      "sha256": "131678cfbffa55483b4e2b98c01dac8b38e736ec9319e04d28ba30b788b8d8ec"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/native_browser_adapter.rs",
+      "sha256": "1f34c6970ffae886afa38000175db8e9d261fb091270dad911be5d42b1d06d70"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+      "sha256": "9c70c4bf617f828764effea0df19c382c13a5d298d26bc30718c143b714b0170"
+    }
+  ],
+  "final_engineering_web_sha256": "da291fdb8a9aa44cdac8fe6b4cd454d194c05d42ed3062c15049a35217acb4e5",
+  "final_engineering_shell_sha256": "1412940c46f91cf49414e1d6a387c18ab49d33dc139fff196611ece52014a22e",
+  "final_minor_fixes_not_software_retested": true,
+  "final_minor_checks": {
+    "full_web_before_last_capture_in_plan": {
+      "passed": 1387,
+      "failed": 0,
+      "ignored": 6
+    },
+    "shell_browser": {
+      "passed": 8,
+      "failed": 0
+    },
+    "after_last_capture_in_plan": {
+      "build": "passed",
+      "baseline_checks_passed": 2
+    }
+  },
+  "V": {
+    "run_id": "run-chat-c166c13a99b98414654ea248190fb5c164f1291560d72bd3",
+    "elapsed_sec": 270.2,
+    "action_count": 4,
+    "goal_achieved": false,
+    "error": "no_progress",
+    "verification_payload_bytes": [
+      1384625,
+      1387135,
+      1388890
+    ],
+    "verification_image_counts": [
+      3,
+      3,
+      3
+    ]
+  },
+  "opus_reviewed_final_copy": "final-review-source-manifest.json",
+  "opus_followup_copy": "followup-review-source-manifest.json",
+  "last_capture_in_plan_after_opus_followup": true,
+  "daily_restoration": "cleanup-receipt.json"
+}

@@ -1,0 +1,67 @@
+[
+  {
+    "path": "modules/computer-use/packages/computer-use-core/src/controller.rs",
+    "sha256": "c77d1d176b90ccd756c379df7438847114a2db7a0fb1673fd14c0e9ee2496fc4",
+    "bytes": 96839
+  },
+  {
+    "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/browser_panel.rs",
+    "sha256": "a2a270b38d3d614294701e81f241047a1d09e20e6bb00567201e4128d4de46ae",
+    "bytes": 44034
+  },
+  {
+    "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+    "sha256": "6e7bb7c32df2425218f8058386f3118aa66350dff38218a3751fa8ad789bf3bb",
+    "bytes": 139771
+  },
+  {
+    "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_source.rs",
+    "sha256": "3beec60137121bd5cb4e3d41b11a1de6cd190aee5f81c25ba4323090ab4d6a2a",
+    "bytes": 3257
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/computer_use_desktop_bridge.rs",
+    "sha256": "150acffed600694b6f47c4f8b66d708840a716c4b22b384798c248bf6fbd987c",
+    "bytes": 75956
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+    "sha256": "98b0ccc883dced22e536648e5b6c677a6bf0fa2c8dedd4bfa2dfba6f7172b55c",
+    "bytes": 167989
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/computer_use_turn_scope.rs",
+    "sha256": "640fb40e69bea2cb8ed943e596d72a742feffba26243436e31e4542837911d66",
+    "bytes": 14746
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/computer_use_visual_baseline.rs",
+    "sha256": "5271ef673bd9b02fb4979e99356ee22bfb5967e07891af9ca9fae5210c6bfb8c",
+    "bytes": 4727
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/devin_acp/journal.rs",
+    "sha256": "06ab423de0bb373017e7a4bd1f1ffd3b3fd7b848abf4484fbb2a1807c30d83f4",
+    "bytes": 40727
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/devin_acp/session.rs",
+    "sha256": "138f32bd641957d8aa62f7c1877253e1bcfb754329067ebb725c4d018b553365",
+    "bytes": 48535
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/main.rs",
+    "sha256": "131678cfbffa55483b4e2b98c01dac8b38e736ec9319e04d28ba30b788b8d8ec",
+    "bytes": 3576757
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/native_browser_adapter.rs",
+    "sha256": "1f34c6970ffae886afa38000175db8e9d261fb091270dad911be5d42b1d06d70",
+    "bytes": 27411
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+    "sha256": "9c70c4bf617f828764effea0df19c382c13a5d298d26bc30718c143b714b0170",
+    "bytes": 23910
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "formal_launch_pending": false,
+  "at_utc": "2026-10-05T06:06:22.6198072Z",
+  "input_safety_root_unchanged": "C:/Users/zhupu/AppData/Local/CoolzhuAgent/input-safety",
+  "config_restored_byte_for_byte": true,
+  "owned_test_servers_stopped": true,
+  "gui_backup_restored_byte_for_byte": true,
+  "debug_web_stopped": 19772,
+  "debug_shell_normally_closed": true,
+  "formal_selfcheck": {
+    "ok": true,
+    "error": null,
+    "time": 1791180406106,
+    "web_pid": 33664,
+    "tauri_pid": 26664,
+    "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+    "build": "49d0a1b6d5e5 · 2026-10-04"
+  },
+  "formal_health": {
+    "status": "warn",
+    "ok": 10,
+    "warn": 1,
+    "error": 0
+  }
+}

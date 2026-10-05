@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "BU-TRANSITION-20261005-Q：新的独立真实浏览器任务，忽略旧轮。只提交一次computer_use_perform，完整正式六项：objective=在当前右栏浏览器来源页单击进入目标页，观察同文档SPA页面与地址变化，不输入；surface=browser；target只含url=http://127.0.0.1:52616/spa-source.html；success_criteria=[\"最新实际页面URL为http://127.0.0.1:52616/spa-target.html\", \"最新页面显示SPA-NAV-20261005\"]；constraints=[只操作当前右栏原生浏览器，不用其他MCP或桌面工具，不换模型，只click一次，不navigate不滚动不输入，每步使用本轮新观察节点，任一失败或取消立即停止，不重试不补发，释放不等于目标完成]；max_actions=1。running仅wait原job_id到终态，不重复perform。依据真实页面事实和宿主回执报告，结论必须显示在当前聊天室。",
+  "selected_message_ids": [],
+  "attachments": []
+}

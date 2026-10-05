@@ -1,0 +1,376 @@
+{
+  "generated_at": 1791180461611,
+  "summary": {
+    "status": "warn",
+    "ok": 10,
+    "warn": 1,
+    "error": 0
+  },
+  "checks": [
+    {
+      "id": "web.state",
+      "label": "Web Console",
+      "status": "ok",
+      "detail": "Axum router is available; health check is read-only.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "web.bind",
+      "label": "Web Bind Address",
+      "status": "ok",
+      "detail": "Web GUI bind address is valid: 0.0.0.0:8765.",
+      "fix_hint": "If startup reports a port conflict, set [web].bind_addr in coolzhu.toml to 127.0.0.1:8766 or another free local port before launching."
+    },
+    {
+      "id": "workspace.root",
+      "label": "Workspace",
+      "status": "warn",
+      "detail": "Workspace root C:\\Users\\zhupu\\coolzhuagent is missing modules/ or Cargo.toml.",
+      "fix_hint": "Start the Web console from the codex workspace root or set the working directory explicitly."
+    },
+    {
+      "id": "config.coolzhu_toml",
+      "label": "Workspace Config",
+      "status": "ok",
+      "detail": "coolzhu.toml parsed at \\\\?\\C:\\Users\\zhupu\\coolzhuagent\\coolzhu.toml; protected_mode=defaults, rules=0, append_defaults=false, extra_rules=0.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "session.sqlite",
+      "label": "SQLite Session Store",
+      "status": "ok",
+      "detail": "SQLite session store is readable at \\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.sqlite3; sessions=6.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "llm.providers",
+      "label": "LLM Providers",
+      "status": "ok",
+      "detail": "6/6 selectable agents are ready.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "vision.capture",
+      "label": "Inner Vision",
+      "status": "ok",
+      "detail": "Latest desktop capture exists (692818 bytes); local VLM base_url=http://127.0.0.1:8000/v1.",
+      "fix_hint": "If local VLM grounding is unavailable, run `modules/vision/resources/local-vlm/start-local-vlm.ps1` from the repo root."
+    },
+    {
+      "id": "audio.voice_monitor",
+      "label": "Audio Voice Monitor",
+      "status": "ok",
+      "detail": "Voice monitor bridge is available; running=false, mode=dry-run.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "tools.catalog",
+      "label": "Tools Catalog",
+      "status": "ok",
+      "detail": "Catalog has 5 categories, 41 items, 19 executable dry-run entries.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "desktop.pet",
+      "label": "Desktop Pet",
+      "status": "ok",
+      "detail": "Desktop pet executable found at C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "desktop.webview2",
+      "label": "WebView2 Runtime",
+      "status": "ok",
+      "detail": "WebView2 Runtime candidate found at C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe.",
+      "fix_hint": "No action required."
+    }
+  ],
+  "suggestions": [
+    {
+      "check_id": "workspace.root",
+      "priority": "medium",
+      "message": "Start the Web console from the codex workspace root or set the working directory explicitly."
+    },
+    {
+      "check_id": "llm.providers.session-1779459149988.base_url",
+      "priority": "medium",
+      "message": "Review config-or-model for qwen: effective base_url https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions differs from catalog default http://127.0.0.1:11434/v1; clear or update the override if unintentional."
+    },
+    {
+      "check_id": "llm.providers.session-1780812777035.base_url",
+      "priority": "medium",
+      "message": "Review config-or-model for agnes-text: effective base_url https://apihub.agnes-ai.com/v1/chat/completions differs from catalog default http://127.0.0.1:11434/v1; clear or update the override if unintentional."
+    },
+    {
+      "check_id": "llm.providers.session-1781651247876.api_key",
+      "priority": "high",
+      "message": "Configure API key for coolzhu-local via CUSTOM_API_KEY / OPENAI_API_KEY or the session Key reference before enabling real chat."
+    },
+    {
+      "check_id": "llm.providers.session-1781651247876.base_url",
+      "priority": "medium",
+      "message": "Review config-or-model for coolzhu-local: effective base_url http://127.0.0.1:8080/v1 differs from catalog default http://127.0.0.1:11434/v1; clear or update the override if unintentional."
+    },
+    {
+      "check_id": "llm.providers.session-1789804322149.api_key",
+      "priority": "high",
+      "message": "Configure API key for bonsai-bench via CUSTOM_API_KEY / OPENAI_API_KEY or the session Key reference before enabling real chat."
+    },
+    {
+      "check_id": "llm.providers.session-1789804322149.base_url",
+      "priority": "medium",
+      "message": "Review config-or-model for bonsai-bench: effective base_url http://127.0.0.1:8080/v1 differs from catalog default http://127.0.0.1:11434/v1; clear or update the override if unintentional."
+    },
+    {
+      "check_id": "llm.providers.session-1790491524436.api_key",
+      "priority": "high",
+      "message": "Configure API key for 验收018-仅思考本地夹具 via CUSTOM_API_KEY / OPENAI_API_KEY or the session Key reference before enabling real chat."
+    },
+    {
+      "check_id": "llm.providers.session-1790491524436.base_url",
+      "priority": "medium",
+      "message": "Review config-or-model for 验收018-仅思考本地夹具: effective base_url http://127.0.0.1:62744/v1 differs from catalog default http://127.0.0.1:11434/v1; clear or update the override if unintentional."
+    }
+  ],
+  "flags": {
+    "real_llm_enabled": true,
+    "llm_tools_enabled": true,
+    "desktop_pet_disabled": false
+  },
+  "paths": {
+    "workspace": "C:\\Users\\zhupu\\coolzhuagent",
+    "session_db": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.sqlite3",
+    "legacy_session_json": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.json",
+    "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+    "desktop_pet_exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+  },
+  "agents": [
+    {
+      "agent_id": "session-1779459149988",
+      "name": "qwen",
+      "provider_label": "custom",
+      "provider_kind": "custom",
+      "selected_provider_kind": "custom",
+      "detected_provider_kind": "alibaba-bailian",
+      "provider_match": true,
+      "provider_slug": "custom-openai",
+      "model": "qwen3.8-flash",
+      "canonical_model": "qwen3.8-flash",
+      "api_model_id": "qwen3.8-flash",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "base_url_default": "http://127.0.0.1:11434/v1",
+      "base_url_env": "CUSTOM_BASE_URL",
+      "base_url_env_present": false,
+      "base_url_source": "config-or-model",
+      "base_url_matches_default": false,
+      "api_key_present": true,
+      "api_key_source": "session-key",
+      "api_key_status": "session-key-present",
+      "env_keys": [
+        "CUSTOM_API_KEY",
+        "OPENAI_API_KEY"
+      ],
+      "recommended_models": [
+        "qwen2.5-vl-3b",
+        "showui",
+        "llama3.1",
+        "custom-model"
+      ],
+      "provider_status": "ok",
+      "provider_issue": null
+    },
+    {
+      "agent_id": "session-1780812777035",
+      "name": "agnes-text",
+      "provider_label": "Custom",
+      "provider_kind": "custom",
+      "selected_provider_kind": "custom",
+      "detected_provider_kind": "clawapi",
+      "provider_match": true,
+      "provider_slug": "custom-openai",
+      "model": "agnes-2.0-flash",
+      "canonical_model": "agnes-2.0-flash",
+      "api_model_id": "agnes-2.0-flash",
+      "base_url": "https://apihub.agnes-ai.com/v1/chat/completions",
+      "base_url_default": "http://127.0.0.1:11434/v1",
+      "base_url_env": "CUSTOM_BASE_URL",
+      "base_url_env_present": false,
+      "base_url_source": "config-or-model",
+      "base_url_matches_default": false,
+      "api_key_present": true,
+      "api_key_source": "session-key",
+      "api_key_status": "session-key-present",
+      "env_keys": [
+        "CUSTOM_API_KEY",
+        "OPENAI_API_KEY"
+      ],
+      "recommended_models": [
+        "qwen2.5-vl-3b",
+        "showui",
+        "llama3.1",
+        "custom-model"
+      ],
+      "provider_status": "ok",
+      "provider_issue": null
+    },
+    {
+      "agent_id": "session-1781651247876",
+      "name": "coolzhu-local",
+      "provider_label": "Custom",
+      "provider_kind": "custom",
+      "selected_provider_kind": "custom",
+      "detected_provider_kind": "clawapi",
+      "provider_match": true,
+      "provider_slug": "custom-openai",
+      "model": "C:\\Users\\zhupu\\Desktop\\bonsai\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "canonical_model": "C:\\Users\\zhupu\\Desktop\\bonsai\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "api_model_id": "C:\\Users\\zhupu\\Desktop\\bonsai\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "base_url": "http://127.0.0.1:8080/v1",
+      "base_url_default": "http://127.0.0.1:11434/v1",
+      "base_url_env": "CUSTOM_BASE_URL",
+      "base_url_env_present": false,
+      "base_url_source": "config-or-model",
+      "base_url_matches_default": false,
+      "api_key_present": false,
+      "api_key_source": null,
+      "api_key_status": "optional; custom endpoint may not require an API key",
+      "env_keys": [
+        "CUSTOM_API_KEY",
+        "OPENAI_API_KEY"
+      ],
+      "recommended_models": [
+        "qwen2.5-vl-3b",
+        "showui",
+        "llama3.1",
+        "custom-model"
+      ],
+      "provider_status": "ok",
+      "provider_issue": null
+    },
+    {
+      "agent_id": "session-1781738898772",
+      "name": "GLM5.2",
+      "provider_label": "阿里百炼",
+      "provider_kind": "alibaba-bailian",
+      "selected_provider_kind": "alibaba-bailian",
+      "detected_provider_kind": "alibaba-bailian",
+      "provider_match": true,
+      "provider_slug": "aliyun",
+      "model": "glm-5.2",
+      "canonical_model": "glm-5.2",
+      "api_model_id": "glm-5.2",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "base_url_default": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "base_url_env": "DASHSCOPE_BASE_URL",
+      "base_url_env_present": false,
+      "base_url_source": "default",
+      "base_url_matches_default": true,
+      "api_key_present": true,
+      "api_key_source": "session-key",
+      "api_key_status": "session-key-present",
+      "env_keys": [
+        "DASHSCOPE_API_KEY"
+      ],
+      "recommended_models": [
+        "qwen3.7-max",
+        "qwen-plus",
+        "qwen-turbo",
+        "qwen-max",
+        "glm-5.2",
+        "glm-5.1",
+        "glm-5"
+      ],
+      "provider_status": "ok",
+      "provider_issue": null
+    },
+    {
+      "agent_id": "session-1789804322149",
+      "name": "bonsai-bench",
+      "provider_label": "Custom",
+      "provider_kind": "custom",
+      "selected_provider_kind": "custom",
+      "detected_provider_kind": "clawapi",
+      "provider_match": true,
+      "provider_slug": "custom-openai",
+      "model": "C:\\Users\\zhupu\\Desktop\\bonsai\\models\\Ternary-Bonsai-2-27B-PTQ1_0",
+      "canonical_model": "C:\\Users\\zhupu\\Desktop\\bonsai\\models\\Ternary-Bonsai-2-27B-PTQ1_0",
+      "api_model_id": "C:\\Users\\zhupu\\Desktop\\bonsai\\models\\Ternary-Bonsai-2-27B-PTQ1_0",
+      "base_url": "http://127.0.0.1:8080/v1",
+      "base_url_default": "http://127.0.0.1:11434/v1",
+      "base_url_env": "CUSTOM_BASE_URL",
+      "base_url_env_present": false,
+      "base_url_source": "config-or-model",
+      "base_url_matches_default": false,
+      "api_key_present": false,
+      "api_key_source": null,
+      "api_key_status": "optional; custom endpoint may not require an API key",
+      "env_keys": [
+        "CUSTOM_API_KEY",
+        "OPENAI_API_KEY"
+      ],
+      "recommended_models": [
+        "qwen2.5-vl-3b",
+        "showui",
+        "llama3.1",
+        "custom-model"
+      ],
+      "provider_status": "ok",
+      "provider_issue": null
+    },
+    {
+      "agent_id": "session-1790491524436",
+      "name": "验收018-仅思考本地夹具",
+      "provider_label": "Custom",
+      "provider_kind": "custom",
+      "selected_provider_kind": "custom",
+      "detected_provider_kind": "clawapi",
+      "provider_match": true,
+      "provider_slug": "custom-openai",
+      "model": "installed018-only-reasoning-fixture",
+      "canonical_model": "installed018-only-reasoning-fixture",
+      "api_model_id": "installed018-only-reasoning-fixture",
+      "base_url": "http://127.0.0.1:62744/v1",
+      "base_url_default": "http://127.0.0.1:11434/v1",
+      "base_url_env": "CUSTOM_BASE_URL",
+      "base_url_env_present": false,
+      "base_url_source": "config-or-model",
+      "base_url_matches_default": false,
+      "api_key_present": false,
+      "api_key_source": null,
+      "api_key_status": "optional; custom endpoint may not require an API key",
+      "env_keys": [
+        "CUSTOM_API_KEY",
+        "OPENAI_API_KEY"
+      ],
+      "recommended_models": [
+        "qwen2.5-vl-3b",
+        "showui",
+        "llama3.1",
+        "custom-model"
+      ],
+      "provider_status": "ok",
+      "provider_issue": null
+    }
+  ],
+  "latest_capture": {
+    "path": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+    "exists": true,
+    "bytes": 692818,
+    "modified_at": 1790853897862,
+    "preview_url": "/api/capture/latest/image"
+  },
+  "tools": {
+    "categories": 5,
+    "items": 41,
+    "executable_now": 19,
+    "migration_candidates": 0
+  },
+  "voice_monitor": {
+    "available": true,
+    "running": false,
+    "mode": "dry-run",
+    "message": "待开启；当前仅支持状态桥",
+    "backend": "none",
+    "requires_interactive_test": true
+  }
+}

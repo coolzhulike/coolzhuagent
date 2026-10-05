@@ -105,6 +105,7 @@ impl DesktopBridge for DesktopNativeBridge {
             rect_from_element(&json!({"rect":image["client_rect"]}))?,
             rect_from_element(&json!({"rect":image["screen_rect"]}))?,
         )?;
+        let drawing_regions = drawing_region_candidates(&elements, canvas_rect);
         let image_evidence = image_evidence(&image);
         // CU-04 帧绑定：把"这份观察的图像版本 + 裁剪 + 缩放 + 坐标容器"写成证据，
         // 使"坐标属于哪一版图"事后可核对。**只记录，不拒绝**——观察本身不该因为
@@ -120,11 +121,13 @@ impl DesktopBridge for DesktopNativeBridge {
             "image": image,
             "canvas_target": format!("window-canvas:{:x}", snapshot.native_window_handle),
             "canvas_rect": canvas_rect,
+            "drawing_region_candidates": drawing_regions,
             "drag_contract": {
                 "kind": "drag", "target": "当前 UIA 画布 reference，或 canvas_target（相对 canvas_rect，不是整张截图）",
                 "points": "2–256 个 [x,y]，坐标均为 0..1，相对目标 rect；使用当前截图，不猜测或复用旧位置",
                 "coordinate_space": "所有 rect 是桌面物理像素 [x,y,width,height]；截图像素原点对应 image.screen_rect，归一化笔画相对目标 rect",
                 "fallback_scope": "window-canvas 仅代表可见 client 区域，包含工具栏、菜单和状态区，不等于语义绘画画布；必须依据当前原图和 rect 找到其中实际可绘画区域，不能猜位置",
+                "candidate_scope": "drawing_region_candidates 只是 UIA 候选，不是权限或完成证据。rect 与 visible_rect 均为桌面物理像素；UIA drag 坐标相对完整 rect，不相对 visible_rect。先对照当前原图确认实际绘图区；候选缺失不影响原接口",
                 "duration_ms": "0..5000", "button": "left", "cancel": "宿主取消或 Escape 中止笔画并尝试释放鼠标，释放失败明确报错",
             },
         });
@@ -905,6 +908,23 @@ fn canvas_element(element: &JsonValue) -> bool {
             let value = value.to_lowercase();
             value.contains("canvas") || value.contains("画布") || value.contains("mspaintview")
         })
+}
+
+/// 只整理已有 UIA 几何辅助规划；保留原始 rect，不改变执行器的坐标解释。
+fn drawing_region_candidates(elements: &[JsonValue], client_rect: [i32; 4]) -> Vec<JsonValue> {
+    elements.iter().filter_map(|element| {
+        if element["enabled"].as_bool() != Some(true)
+            || element["offscreen"].as_bool() != Some(false)
+            || !canvas_element(element) { return None; }
+        let rect = rect_from_element(element).ok()?;
+        let visible_rect = intersect_rect(rect, client_rect).ok()?;
+        Some(json!({
+            "reference": element["reference"], "name": element["name"],
+            "automation_id": element["automation_id"], "control_type": element["control_type"],
+            "rect": rect, "visible_rect": visible_rect,
+            "coordinate_space": "desktop_physical_pixels", "authority": "uia_candidate",
+        }))
+    }).collect()
 }
 
 fn stroke_arguments(
