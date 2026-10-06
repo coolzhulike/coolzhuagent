@@ -879,7 +879,8 @@ mod tests {
             claim.clone(),
             "actual",
             vec![],
-            tokio::time::Instant::now() + Duration::from_secs(3),
+            // 此项验证消息分类，不验证时限；CI并行落盘可能占用数秒。
+            tokio::time::Instant::now() + Duration::from_secs(30),
             |e| {
                 events.push(e);
                 Ok(())
@@ -887,6 +888,7 @@ mod tests {
         )
         .await
         .unwrap();
+        service.set_deadline(tokio::time::Instant::now() + Duration::from_secs(30));
         let result = service
             .prompt(
                 "hi",
