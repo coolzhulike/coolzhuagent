@@ -8,12 +8,14 @@ use super::{
     native_browser_nodes::{self, DocumentIdentity, NodeBinding},
     native_browser_observation::{self, bounded_text},
     native_browser_dom::{operable_document_nodes, open_shadow_roots, NODE_LIMIT},
+    native_browser_document::{self,DocumentSnapshot},
 };
 
 #[derive(Clone)]
 pub(super) struct VerifiedTarget {
     pub resource: PanelResource,
     pub document: DocumentIdentity,
+    pub snapshot: DocumentSnapshot,
     pub node: NodeBinding,
     pub x: i32,
     pub y: i32,
@@ -91,9 +93,14 @@ fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String>
 
 /// 普通文字、图标容器的点击会冒泡给原控件；其它控件与覆盖层不能代替它。
 /// 开放 Shadow Root 内的目标须独立绑定；进入根时切断父控件的祖先点击资格。
+#[cfg(test)]
 fn hit_belongs_to_target(dom: &Value, target: i64, hit: i64) -> bool {
-    if target <= 0 || hit <= 0 { return false; }
     let Some(root) = dom.get("root") else { return false; };
+    hit_belongs_to_root(root,target,hit)
+}
+
+fn hit_belongs_to_root(root:&Value,target:i64,hit:i64) -> bool {
+    if target <= 0 || hit <= 0 { return false; }
     let mut pending = vec![(root, false)];
     let mut visited = std::collections::HashSet::new();
     let mut matched = false;
@@ -131,12 +138,13 @@ pub(super) async fn verify(
     document_token: &str, node_id: &str,
 ) -> Result<VerifiedTarget, String> {
     let started = std::time::Instant::now();
-    let document = native_browser_observation::document(app, resource).await?;
-    let node = native_browser_nodes::resolve(resource, &document, observation_id, document_token, node_id)?;
-    let tree = native_browser_devtools::read(app, resource, ReadMethod::Accessibility(document.frame_id.clone())).await?;
-    current_node(&tree, &document, &node)?;
-    let dom = native_browser_devtools::read(app, resource, ReadMethod::DocumentNodes).await?;
-    if !operable_document_nodes(&dom).contains(&node.backend_node) {
+    let (snapshot,dom) = native_browser_observation::snapshot(app,resource).await?;
+    let document = snapshot.top.clone();
+    let node = native_browser_nodes::resolve(resource, &snapshot, observation_id, document_token, node_id)?;
+    let tree = native_browser_devtools::read(app, resource, ReadMethod::Accessibility(node.scope.document().frame_id.clone())).await?;
+    current_node(&tree, node.scope.document(), &node)?;
+    let root = native_browser_document::root_for_scope(&dom,&node.scope)?;
+    if !super::native_browser_dom::operable_root_nodes(root).contains(&node.backend_node) {
         return Err("native_browser_target_document_unsupported".into());
     }
     let geometry = native_browser_devtools::read(app, resource, ReadMethod::BoxModel(node.backend_node)).await?;
@@ -145,9 +153,11 @@ pub(super) async fn verify(
     let (hit_x,hit_y) = hit_test_point(x,y,&metrics)?;
     let hit = native_browser_devtools::read(app, resource, ReadMethod::HitTest(hit_x,hit_y)).await?;
     // 在命中之后重新读取DOM，证明命中点仍属于原绑定控件，避免复用布局前的祖先关系。
-    let hit_dom = native_browser_devtools::read(app, resource, ReadMethod::DocumentNodes).await?;
-    if hit["frameId"].as_str() != Some(document.frame_id.as_str())
-        || !hit["backendNodeId"].as_i64().is_some_and(|id| hit_belongs_to_target(&hit_dom, node.backend_node, id)) {
+    let (hit_snapshot,hit_dom) = native_browser_observation::snapshot(app,resource).await?;
+    if hit_snapshot != snapshot { return Err("native_browser_document_changed".into()); }
+    let hit_root = native_browser_document::root_for_scope(&hit_dom,&node.scope)?;
+    if hit["frameId"].as_str() != Some(node.scope.document().frame_id.as_str())
+        || !hit["backendNodeId"].as_i64().is_some_and(|id| hit_belongs_to_root(hit_root, node.backend_node, id)) {
         return Err("native_browser_target_hit_mismatch".into());
     }
     let second_geometry = native_browser_devtools::read(app, resource, ReadMethod::BoxModel(node.backend_node)).await?;
@@ -155,33 +165,35 @@ pub(super) async fn verify(
     if geometry.pointer("/model/content") != second_geometry.pointer("/model/content")
         || point(&second_geometry, &second_metrics)? != (x, y)
         || metrics["cssVisualViewport"] != second_metrics["cssVisualViewport"]
-        || native_browser_observation::document(app, resource).await? != document
+        || native_browser_observation::snapshot(app, resource).await?.0 != snapshot
         || super::browser_panel::input_resource(app).as_ref() != Some(resource)
         || started.elapsed() >= std::time::Duration::from_secs(2) {
         return Err("native_browser_target_changed".into());
     }
-    Ok(VerifiedTarget { resource: resource.clone(), document, node, x, y, viewport:second_metrics["cssVisualViewport"].clone(), editor:None })
+    Ok(VerifiedTarget { resource: resource.clone(), document, snapshot, node, x, y, viewport:second_metrics["cssVisualViewport"].clone(), editor:None })
 }
 
 /// 导航只核对顶层实际文档，不借用滚动的视口命中限制。
 pub(super) async fn verify_document(app:&AppHandle,resource:&PanelResource,observation_id:&str,document_token:&str,node_id:&str) -> Result<VerifiedTarget,String> {
     let started=std::time::Instant::now();
-    let document=native_browser_observation::document(app,resource).await?;
-    let node=native_browser_nodes::resolve(resource,&document,observation_id,document_token,node_id)?;
-    if node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_navigation_target_invalid".into());}
+    let (snapshot,_)=native_browser_observation::snapshot(app,resource).await?;
+    let document=snapshot.top.clone();
+    let node=native_browser_nodes::resolve(resource,&snapshot,observation_id,document_token,node_id)?;
+    if !node.scope.is_top() || node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_navigation_target_invalid".into());}
     let tree=native_browser_devtools::read(app,resource,ReadMethod::Accessibility(document.frame_id.clone())).await?;
     current_node(&tree,&document,&node)?;
-    if native_browser_observation::document(app,resource).await?!=document || super::browser_panel::input_resource(app).as_ref()!=Some(resource)
+    if native_browser_observation::snapshot(app,resource).await?.0!=snapshot || super::browser_panel::input_resource(app).as_ref()!=Some(resource)
         || started.elapsed()>=std::time::Duration::from_secs(2) {return Err("native_browser_target_changed".into());}
-    Ok(VerifiedTarget {resource:resource.clone(),document,node,x:0,y:0,viewport:Value::Null,editor:None})
+    Ok(VerifiedTarget {resource:resource.clone(),document,snapshot,node,x:0,y:0,viewport:Value::Null,editor:None})
 }
 
 /// 只允许顶层可见viewport；模型选择RootWebArea随机引用，坐标由宿主生成。
 pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,observation_id:&str,document_token:&str,node_id:&str) -> Result<VerifiedTarget,String> {
     let started=std::time::Instant::now();
-    let document=native_browser_observation::document(app,resource).await?;
-    let node=native_browser_nodes::resolve(resource,&document,observation_id,document_token,node_id)?;
-    if node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_scroll_target_invalid".into());}
+    let (snapshot,_)=native_browser_observation::snapshot(app,resource).await?;
+    let document=snapshot.top.clone();
+    let node=native_browser_nodes::resolve(resource,&snapshot,observation_id,document_token,node_id)?;
+    if !node.scope.is_top() || node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_scroll_target_invalid".into());}
     let tree=native_browser_devtools::read(app,resource,ReadMethod::Accessibility(document.frame_id.clone())).await?;
     current_node(&tree,&document,&node)?;
     let metrics=native_browser_devtools::read(app,resource,ReadMethod::LayoutMetrics).await?;
@@ -197,11 +209,11 @@ pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,obser
         return Err("native_browser_target_hit_mismatch".into());
     }
     let fresh=native_browser_devtools::read(app,resource,ReadMethod::LayoutMetrics).await?;
-    if fresh["cssVisualViewport"]!=viewport || native_browser_observation::document(app,resource).await?!=document
+    if fresh["cssVisualViewport"]!=viewport || native_browser_observation::snapshot(app,resource).await?.0!=snapshot
         || super::browser_panel::input_resource(app).as_ref()!=Some(resource) || started.elapsed()>=std::time::Duration::from_secs(2) {
         return Err("native_browser_target_changed".into());
     }
-    Ok(VerifiedTarget {resource:resource.clone(),document,node,x,y,viewport,editor:None})
+    Ok(VerifiedTarget {resource:resource.clone(),document,snapshot,node,x,y,viewport,editor:None})
 }
 
 #[cfg(test)]
@@ -266,7 +278,8 @@ mod tests {
     #[test]
     fn fresh_ax_must_match_backend_role_name_and_interactable_state() {
         let document = DocumentIdentity {frame_id:"frame-a".into(),loader_id:"loader-a".into(),backend_root:1};
-        let node = NodeBinding {node_id:"0".repeat(32),index:0,backend_node:9,role:"button".into(),name:"提交".into()};
+        let node = NodeBinding {node_id:"0".repeat(32),index:0,backend_node:9,role:"button".into(),name:"提交".into(),
+            scope:super::super::native_browser_document::DocumentScope::top(document.clone())};
         let mut tree = serde_json::json!({"nodes":[{"ignored":false,"backendDOMNodeId":9,"frameId":"frame-a",
             "role":{"value":"button"},"name":{"value":"提交"}}]});
         assert!(current_node(&tree, &document, &node).is_ok());

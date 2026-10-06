@@ -119,3 +119,8 @@ PR83已远端合并，PR84承接。683源码push成功、PR检查首次并发开
 ## 0.2.80 GitHub交付核验
 
 0.2.80已公开预发布：https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.80 。四资产上传状态、长度与SHA256逐一匹配；实际tag绑定cc6c43183acd6340f42230dab0f86d22fce6ee8c。正式安装和SWE正/负例已完成；iframe内部与其它队列仍开放。PR84待审查合入，完整交接见docs/testing/release-0.2.80/change-report-and-test-handoff.md。
+
+
+## 同进程iframe候选实施
+
+按先行方案新增宿主document模块与私有scope绑定，不混子文档和普通children，不开放任意CDP/JS或新增权限。offline Web/外壳build及70外壳检查通过。原SWE/veiled-anise真实子click父0子1sent/released、父误击零输入、规划期间子Frame单独导航旧引用document_changed/not_sent通过；原错误路线和迟于释放的尝试单独保留，29份证据归档081候选。0.2.81正常打包安装及正式复测尚待完成；跨进程与其它队列继续开放，Opus暂停，不用子Agent。

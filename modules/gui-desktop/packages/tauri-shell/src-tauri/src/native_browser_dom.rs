@@ -1,4 +1,4 @@
-//! 顶层文档内可操作节点的范围；开放 Shadow Root 不继承宿主控件的点击资格。
+//! 单一文档内可操作节点的范围；开放 Shadow Root 不继承宿主控件的点击资格。
 use serde_json::Value;
 use std::collections::HashSet;
 
@@ -10,8 +10,11 @@ pub(super) fn open_shadow_roots(node: &Value) -> impl Iterator<Item = &Value> {
 }
 
 pub(super) fn operable_document_nodes(tree: &Value) -> HashSet<i64> {
+    tree.get("root").map(operable_root_nodes).unwrap_or_default()
+}
+
+pub(super) fn operable_root_nodes(root: &Value) -> HashSet<i64> {
     let mut found = HashSet::new();
-    let Some(root) = tree.get("root") else { return found; };
     let mut pending = vec![root];
     while let Some(node) = pending.pop() {
         if found.len() >= NODE_LIMIT { return HashSet::new(); }

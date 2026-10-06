@@ -5,6 +5,7 @@ mod native_browser_host;
 mod native_browser_observation;
 mod native_browser_devtools;
 mod native_browser_dom;
+mod native_browser_document;
 mod native_browser_nodes;
 mod native_browser_navigation;
 mod native_browser_target;

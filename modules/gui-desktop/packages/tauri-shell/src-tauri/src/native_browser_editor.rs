@@ -43,6 +43,7 @@ pub(super) async fn read(app:&AppHandle,target:&VerifiedTarget) -> Result<Value,
 
 pub(super) async fn verify(app:&AppHandle,resource:&native_browser_protocol::PanelResource,target:&native_browser_protocol::PanelClickTarget) -> Result<VerifiedTarget,String> {
     let mut verified=super::native_browser_target::verify(app,resource,&target.observation_id,&target.document_token,&target.node_id).await?;
+    if !verified.node.scope.is_top() {return Err("native_browser_frame_operation_unsupported".into());}
     if !matches!(verified.node.role.as_str(),"textbox"|"searchbox") {return Err("native_browser_editor_target_invalid".into());}
     verified.editor=Some(read(app,&verified).await?);
     Ok(verified)

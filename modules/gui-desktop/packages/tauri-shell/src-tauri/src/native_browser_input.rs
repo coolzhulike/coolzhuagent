@@ -13,7 +13,8 @@ impl VerifiedOperation {
     fn unchanged(&self,other:&Self)->bool {
         match (self,other) {
             (Self::Navigation(a),Self::Navigation(b))=>a==b,
-            (Self::Document(a),Self::Document(b))=>a.document==b.document && a.node.backend_node==b.node.backend_node
+            (Self::Document(a),Self::Document(b))=>a.document==b.document && a.snapshot==b.snapshot
+                && a.node.scope==b.node.scope && a.node.backend_node==b.node.backend_node
                 && a.x==b.x && a.y==b.y && a.viewport==b.viewport && a.editor==b.editor,
             _=>false,
         }

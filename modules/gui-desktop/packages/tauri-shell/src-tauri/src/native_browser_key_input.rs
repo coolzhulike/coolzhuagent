@@ -24,6 +24,7 @@ fn state(raw:&Value)->Result<Value,String> {
 
 pub(super) async fn verify(app:&AppHandle,resource:&PanelResource,target:&PanelClickTarget)->Result<VerifiedTarget,String> {
     let mut verified=super::native_browser_target::verify(app,resource,&target.observation_id,&target.document_token,&target.node_id).await?;
+    if !verified.node.scope.is_top() {return Err("native_browser_frame_operation_unsupported".into());}
     let object=super::native_browser_editor::resolve(app,&verified).await?;
     let focus=native_browser_devtools::read(app,resource,ReadMethod::FocusedTargetState(object.clone())).await.and_then(|v|state(&v));
     let _=native_browser_devtools::read(app,resource,ReadMethod::ReleaseEditor(object)).await;
