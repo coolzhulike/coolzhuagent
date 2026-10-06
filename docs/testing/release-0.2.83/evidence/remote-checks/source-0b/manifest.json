@@ -1,0 +1,45 @@
+{
+  "source_commit": "0b6c1c714c1302929bfcccc63f5b9123535e31cb",
+  "note": "包来源0b两路CI均success；原in_progress采集保留，后续文档HEAD另核",
+  "checks": [
+    {
+      "id": 112099016862,
+      "url": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37410943708/job/112099016862",
+      "conclusion": "success",
+      "completed_at": "2026-10-06T04:01:26Z"
+    },
+    {
+      "id": 112099005809,
+      "url": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37410940260/job/112099005809",
+      "conclusion": "success",
+      "completed_at": "2026-10-06T04:00:57Z"
+    }
+  ],
+  "files": [
+    {
+      "file": "checks-source-initial.json",
+      "length": 7152,
+      "sha256": "9671a3c0d5b580c9987fd78ccbabddef669b59c717774afcf79bb9bef647cac7"
+    },
+    {
+      "file": "checks-source-later.json",
+      "length": 7152,
+      "sha256": "9671a3c0d5b580c9987fd78ccbabddef669b59c717774afcf79bb9bef647cac7"
+    },
+    {
+      "file": "checks-source-during-formal.json",
+      "length": 7152,
+      "sha256": "9671a3c0d5b580c9987fd78ccbabddef669b59c717774afcf79bb9bef647cac7"
+    },
+    {
+      "file": "checks-source-closed.json",
+      "length": 7194,
+      "sha256": "2c0d491978783fb3f27153c66f557bb9dc0a030563570aee50cbfe1ba5ab6600"
+    },
+    {
+      "file": "ci-job-source-pr.json",
+      "length": 2958,
+      "sha256": "31a166168f9343b468de425252d1718a3b274d1511c31e81abfbce87ce360cd3"
+    }
+  ]
+}
