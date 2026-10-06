@@ -6,7 +6,8 @@ use tauri::AppHandle;
 use super::{
     native_browser_devtools::{self, ReadMethod},
     native_browser_nodes::{self, DocumentIdentity, NodeBinding},
-    native_browser_observation::{self, bounded_text, regular_document_nodes},
+    native_browser_observation::{self, bounded_text},
+    native_browser_dom::{operable_document_nodes, open_shadow_roots, NODE_LIMIT},
 };
 
 #[derive(Clone)]
@@ -89,7 +90,7 @@ fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String>
 }
 
 /// 普通文字、图标容器的点击会冒泡给原控件；其它控件与覆盖层不能代替它。
-/// 只核对宿主刚读取的普通 children，不穿越 iframe、shadowRoot 或伪元素。
+/// 开放 Shadow Root 内的目标须独立绑定；进入根时切断父控件的祖先点击资格。
 fn hit_belongs_to_target(dom: &Value, target: i64, hit: i64) -> bool {
     if target <= 0 || hit <= 0 { return false; }
     let Some(root) = dom.get("root") else { return false; };
@@ -97,7 +98,7 @@ fn hit_belongs_to_target(dom: &Value, target: i64, hit: i64) -> bool {
     let mut visited = std::collections::HashSet::new();
     let mut matched = false;
     while let Some((node, inside)) = pending.pop() {
-        if visited.len() >= 2048 { return false; }
+        if visited.len() >= NODE_LIMIT { return false; }
         let Some(id) = node["backendNodeId"].as_i64().filter(|id| *id > 0) else { return false; };
         if !visited.insert(id) { return false; }
         let inside = id == target || (inside && !nested_interactive(node));
@@ -105,6 +106,7 @@ fn hit_belongs_to_target(dom: &Value, target: i64, hit: i64) -> bool {
         if let Some(children) = node["children"].as_array() {
             pending.extend(children.iter().map(|child| (child, inside)));
         }
+        pending.extend(open_shadow_roots(node).map(|root| (root, false)));
     }
     matched
 }
@@ -134,7 +136,7 @@ pub(super) async fn verify(
     let tree = native_browser_devtools::read(app, resource, ReadMethod::Accessibility(document.frame_id.clone())).await?;
     current_node(&tree, &document, &node)?;
     let dom = native_browser_devtools::read(app, resource, ReadMethod::DocumentNodes).await?;
-    if !regular_document_nodes(&dom).contains(&node.backend_node) {
+    if !operable_document_nodes(&dom).contains(&node.backend_node) {
         return Err("native_browser_target_document_unsupported".into());
     }
     let geometry = native_browser_devtools::read(app, resource, ReadMethod::BoxModel(node.backend_node)).await?;
@@ -191,7 +193,7 @@ pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,obser
     let hit=native_browser_devtools::read(app,resource,ReadMethod::HitTest(hit_x,hit_y)).await?;
     let dom=native_browser_devtools::read(app,resource,ReadMethod::DocumentNodes).await?;
     if hit["frameId"].as_str()!=Some(document.frame_id.as_str())
-        || !hit["backendNodeId"].as_i64().is_some_and(|id|regular_document_nodes(&dom).contains(&id)) {
+        || !hit["backendNodeId"].as_i64().is_some_and(|id|operable_document_nodes(&dom).contains(&id)) {
         return Err("native_browser_target_hit_mismatch".into());
     }
     let fresh=native_browser_devtools::read(app,resource,ReadMethod::LayoutMetrics).await?;
@@ -225,6 +227,24 @@ mod tests {
         dom["root"]["children"][0]["shadowRoots"] = serde_json::json!([{"backendNodeId":7}]);
         dom["root"]["children"][0]["contentDocument"] = serde_json::json!({"backendNodeId":8});
         for hit in [7,8] { assert!(!hit_belongs_to_target(&dom,2,hit)); }
+    }
+
+    #[test]
+    fn shadow_child_requires_its_own_binding_and_does_not_inherit_parent_ownership() {
+        let mut dom = serde_json::json!({"root":{"backendNodeId":1,"nodeName":"#document","children":[
+            {"backendNodeId":2,"nodeName":"BUTTON","children":[{"backendNodeId":3,"nodeName":"SPAN",
+                "shadowRoots":[{"backendNodeId":4,"nodeType":11,"shadowRootType":"open","children":[
+                    {"backendNodeId":5,"nodeName":"BUTTON","children":[{"backendNodeId":6,"nodeName":"SPAN"}]}]}],
+                "contentDocument":{"backendNodeId":7,"children":[{"backendNodeId":8,"nodeName":"BUTTON"}]}}]}]}});
+        assert!(hit_belongs_to_target(&dom,5,5));
+        assert!(hit_belongs_to_target(&dom,5,6));
+        assert!(!hit_belongs_to_target(&dom,2,5));
+        assert!(!hit_belongs_to_target(&dom,3,6));
+        assert!(!hit_belongs_to_target(&dom,8,8));
+        for kind in ["closed","user-agent"] {
+            dom["root"]["children"][0]["children"][0]["shadowRoots"][0]["shadowRootType"] = serde_json::json!(kind);
+            assert!(!hit_belongs_to_target(&dom,5,5));
+        }
     }
 
     #[test]

@@ -1,0 +1,308 @@
+{
+  "stage": "0.2.79候选，非正式安装验收",
+  "source_reference_head": "136b78bf9a33ec4741978d585ce12f7ac42e1628",
+  "tested_source_files": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+      "sha256": "273b5ff189aa9a1c19b840703f8495f6372bab4d7ad62d2879a6e2d63b5be82c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_dom.rs",
+      "sha256": "fc4600c6917a62f5d120ba8031aa5f72b9856ed578aacdeff345a84877112e70"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs",
+      "sha256": "285f97f311d218ea258c2e3afb7355267c47325b5f67d0107c2dc2c23b4f4e21"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+      "sha256": "7b80b0cbaeb0342ebf61ede4fcf5732a5ffa24d32e744872b4189a0ebda814f9"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+      "sha256": "ad91d15a9ad941c7740bb7b21ab017ccf4f6568066767b68051e8efb726de4ff"
+    }
+  ],
+  "product_interface": "默认8765，同目录后台与外壳，原安全库",
+  "room": "room-1791131523339",
+  "agent": "session-1791131217833",
+  "remote": "veiled-anise",
+  "cases": [
+    {
+      "prefix": "BU-CANDIDATE-079-SHADOW-CHILD-20261006",
+      "source_message_id": "msg-1791249639957-user",
+      "run_id": "run-chat-184befc1c7e0e89ffa6a460cc140bda649b7911608eea05e",
+      "state": "completed",
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791249639957-0-tool-15a69d05fc43d2cba85b6558adb82667a3d11d44a6dac982863da4d763b4e3bb",
+          "provider_tool_call_id": "tool-15a69d05fc43d2cba85b6558adb82667a3d11d44a6dac982863da4d763b4e3bb",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"ddf5adb5a5fc1cb569a45a150379239f\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[9],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":9,\"name_chars\":21,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":21,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"136911a69c5851a1ea95a18f92cf84a8\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":25,\"nodes\":[{\"index\":9,\"name\":\"父操作次数：0；Shadow子操作次数：1\",\"role\":\"StaticText\"}],\"title\":\"078 SHADOW边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/shadow.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:58081/shadow.html\",\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:c740912a02898ea82bc4f10ba136e1d9",
+            "native-ax:1:0",
+            "native-observation:c740912a02898ea82bc4f10ba136e1d9",
+            "native-input:7a91c4837b00a96abcaddcc2ad6a3ec0",
+            "native-ax:1:0",
+            "native-observation:136911a69c5851a1ea95a18f92cf84a8",
+            "native-ax:1:0",
+            "native-observation:136911a69c5851a1ea95a18f92cf84a8",
+            "native-ax:1:0",
+            "native-observation:ddf5adb5a5fc1cb569a45a150379239f"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791250539957
+              }
+            },
+            "cu_deadline_ms": 1791250263662,
+            "cu_deadline_established_at_ms": 1791249663662,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "current_web_events": [
+        {
+          "case": "SHADOW",
+          "type": "pointerdown",
+          "at_ms": 1791249677222.9001,
+          "target": "shadow-host",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791249677224.71
+        },
+        {
+          "case": "SHADOW",
+          "type": "pointerup",
+          "at_ms": 1791249677224.9001,
+          "target": "shadow-host",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791249677227.5205
+        },
+        {
+          "case": "SHADOW",
+          "type": "click",
+          "at_ms": 1791249677225.2002,
+          "target": "shadow-host",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791249677229.1545
+        },
+        {
+          "case": "SHADOW",
+          "type": "shadow-click",
+          "at_ms": 1791249677225.4001,
+          "count": 1,
+          "received_ms": 1791249677230.6606
+        },
+        {
+          "case": "SHADOW",
+          "type": "ready",
+          "at_ms": 1791249729202.5999,
+          "received_ms": 1791249729211.0037
+        }
+      ]
+    },
+    {
+      "prefix": "BU-CANDIDATE-079-SHADOW-CONTROL-20261006",
+      "source_message_id": "msg-1791249752874-user",
+      "run_id": "run-chat-4c034460eb3e6dbaefe26014d1d887dbeffd252ef490da9b",
+      "state": "failed",
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791249752875-1-tool-cc1a16375e8117cb77a207d93fc82a1c5a597623bd77b0af087b0fed5e019936",
+          "provider_tool_call_id": "tool-cc1a16375e8117cb77a207d93fc82a1c5a597623bd77b0af087b0fed5e019936",
+          "status": "blocked",
+          "stage": "execution",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "节点预检拒绝，未发送输入",
+          "error": {
+            "code": "native_browser_target_hit_mismatch",
+            "message": "节点预检拒绝，未发送输入",
+            "retryable": false,
+            "retry_owner": "none",
+            "receipt": {
+              "action_id": "browser:dom-62ac78ae7a79b4f6b6da8b98ba04a7f1:566076478d42ef34",
+              "input_delivery": "not_sent",
+              "partial": false,
+              "effect": "not_observed",
+              "goal_verdict": "not_checked",
+              "input_release": "not_needed"
+            }
+          },
+          "attempts": 1,
+          "steps_completed": 0,
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:e7b99378aefa89b1ff3a35a06e1e94ae",
+            "native-ax:1:0",
+            "native-observation:e7b99378aefa89b1ff3a35a06e1e94ae"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791250652875
+              }
+            },
+            "cu_deadline_ms": 1791250371392,
+            "cu_deadline_established_at_ms": 1791249771392,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "current_web_events": []
+    }
+  ],
+  "files": [
+    {
+      "file": "BU-CANDIDATE-079-SHADOW-CHILD-20261006-browser-facts.json",
+      "length": 24691,
+      "sha256": "b9b85dbf60af002e09d67fb1dae4ba1910df1f8cc0fbbb32bf629cf220fb4863"
+    },
+    {
+      "file": "BU-CANDIDATE-079-SHADOW-CONTROL-20261006-browser-facts.json",
+      "length": 18922,
+      "sha256": "86b214c47061714305234102cb48177878ff91c5df9cf51a20b1f54a2e27f9db"
+    },
+    {
+      "file": "safety-before-shadow.json",
+      "length": 551,
+      "sha256": "49638466ca755fb3ae6f39cb35cd87b12201adafd5bd01f21e6a0c571eef5180"
+    },
+    {
+      "file": "server-address.json",
+      "length": 72,
+      "sha256": "51ec61082cbd900ea3b092476ce41e25921e72da0eca56db741250d5cb4f581d"
+    },
+    {
+      "file": "server-process.json",
+      "length": 119,
+      "sha256": "aeec1dae426265f8a617ada050e46e9e4db0fc4ac0b971c46f677553cd76d23a"
+    },
+    {
+      "file": "server.py",
+      "length": 5152,
+      "sha256": "4e05cc5dbfc3a54956ba0396c5838a123928e8b697a7b1f48e7f1d40d0d5bccd"
+    },
+    {
+      "file": "shadow-build.log",
+      "length": 1219,
+      "sha256": "f5a19c605a772e16614d062a6019e906f0b8a3e88d699eef4aa31b5de9466bd9"
+    },
+    {
+      "file": "shadow-candidate-child-after.jpg",
+      "length": 223300,
+      "sha256": "d47a8c4b7bc381a611470cc6ea8da499754ee850b0fe4c1ca55ed3307064cc94"
+    },
+    {
+      "file": "shadow-candidate-child-before.jpg",
+      "length": 199050,
+      "sha256": "2396a5c05b97d3cec8193d55c362d9fd2c4ed21d9ddc414409130e24b29a2613"
+    },
+    {
+      "file": "shadow-candidate-child-request.txt",
+      "length": 964,
+      "sha256": "cf09695389cb6bb7547cfbbd621d4deb58ce7d41f93e8ac06b1f63789a65b169"
+    },
+    {
+      "file": "shadow-candidate-parent-after.jpg",
+      "length": 190001,
+      "sha256": "3f28b9add72949c0236ee5154d539796bde53fded5f3c481b76cb6b20f233afb"
+    },
+    {
+      "file": "shadow-candidate-parent-before.jpg",
+      "length": 202738,
+      "sha256": "671f7aaac1cd77d4fb8270bbe516f95e25def8c336c2038a290f29197eb0be85"
+    },
+    {
+      "file": "shadow-candidate-parent-request.txt",
+      "length": 926,
+      "sha256": "5d9bdb3a35e11fb4252f4b9674a432a66e4958997e6a623eee4c17c11f69901e"
+    },
+    {
+      "file": "shadow-candidate-processes.json",
+      "length": 899,
+      "sha256": "a6a8a3a8b5aac625d10beca985ba06856c75a65969d911cd3f02f0569246efb6"
+    },
+    {
+      "file": "shadow-tests.log",
+      "length": 7406,
+      "sha256": "0369c8d9db452db63fe611127cd6b5e882efe768337182322f91ea2b1c427921"
+    }
+  ],
+  "limits": [
+    "仅开放Shadow Root控件点击，不声称输入/键盘/封闭Shadow/iframe内部自动化通过",
+    "正式0.2.78子控件失败单独保留，不能由候选成功追认",
+    "普通document事件target会retarget宿主，以子按钮shadow-click及独立计数核实"
+  ]
+}

@@ -62,3 +62,8 @@
 /docs/testing/release-0.2.68/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /docs/testing/release-0.2.68/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /docs/testing/release-0.2.68/*.txt -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
+
+# 10月6日复杂控件和Shadow实操清单按原字节核验，提交时不转换日志/JSON换行。
+/docs/testing/release-0.2.78/browser-boundaries/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.79/candidate-shadow/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.79/installed-shadow/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol

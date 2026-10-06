@@ -1,5 +1,7 @@
 # 0.2.78 改动报告与针对性验收交接
 
+后续默认入口复杂控件与资源边界补验见[独立补充报告](browser-boundary-followup.md)：普通独立子按钮正例、父控件误击拒绝、初始关闭及正式8765导航地址同步已补验；开放Shadow子控件无引用的真实失败由0.2.79另行修复，不追认本版通过。严格跨URLdown/up时序、观察后/按下中关闭或替换以及iframe内部自动化仍开放。
+
 ## 问题与行为变化
 
 正式0.2.77实操发现两个阻塞：用户写“右栏原生browser”时误走外部浏览器扩展，报extension_unavailable；明确指定内置浏览器后，按钮内部普通span命中仍被native_browser_target_hit_mismatch拒绝。原始失败、页面次数0与截图继续保留在[0.2.77复现证据](../release-0.2.77/browser-nested/manifest.json)，不能追认为旧版通过。

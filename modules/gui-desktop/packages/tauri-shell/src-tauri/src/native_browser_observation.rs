@@ -1,7 +1,8 @@
 //! 原生网页观察：固定宿主读调用、实际文档身份与有限AX；不执行JS或发送输入。
 use native_browser_protocol::{ObservedNode, PageObservation, PanelResource};
 use tauri::{AppHandle, Manager};
-use super::{native_browser_devtools::{self,ReadMethod},native_browser_nodes::DocumentIdentity};
+use super::{native_browser_devtools::{self,ReadMethod},native_browser_nodes::DocumentIdentity,
+    native_browser_dom::operable_document_nodes};
 
 pub(super) fn bounded_text(value: Option<&serde_json::Value>, limit: usize) -> String {
     value.and_then(|value| value.get("value")).and_then(serde_json::Value::as_str)
@@ -35,18 +36,6 @@ pub(super) async fn document(app: &AppHandle, resource: &PanelResource) -> Resul
     DocumentIdentity::from_host(&frame,&root)
 }
 
-pub(super) fn regular_document_nodes(tree: &serde_json::Value) -> std::collections::HashSet<i64> {
-    let mut found = std::collections::HashSet::new();
-    let Some(root) = tree.get("root") else { return found; };
-    let mut pending = vec![root];
-    while let Some(node) = pending.pop() {
-        // 只遍历children，不进入shadowRoots/contentDocument/pseudoElements。
-        if found.len() >= 2048 { return std::collections::HashSet::new(); }
-        if let Some(id) = node["backendNodeId"].as_i64().filter(|id| *id > 0) { found.insert(id); }
-        if let Some(children) = node["children"].as_array() { pending.extend(children); }
-    }
-    found
-}
 pub(super) async fn observe(app: &AppHandle, expected: &PanelResource, observation_id: &str) -> Result<PageObservation,String> {
     // 短暂让已经接近完成的导航落地；慢请求返回宿主控制状态，不等待CDP超时。
     for _ in 0..10 {
@@ -79,7 +68,7 @@ async fn observe_document(app: &AppHandle, expected: &PanelResource, observation
     let url = app.get_webview(&expected.label).ok_or("native_browser_unavailable")?
         .url().map_err(|_| "native_browser_unavailable")?.to_string();
     let stamp = document(app,expected).await?;
-    // 仅采顶层已核实frame；第一阶段不提供iframe/shadow-document可操作引用。
+    // 仅采顶层已核实frame；同文档开放 Shadow Root 可绑定，iframe 子文档仍独立。
     let tree = native_browser_devtools::read(app,expected,ReadMethod::Accessibility(stamp.frame_id.clone())).await?;
     let mut page = project_tree(&tree)?;
     let metrics = native_browser_devtools::read(app,expected,ReadMethod::LayoutMetrics).await?;
@@ -91,7 +80,7 @@ async fn observe_document(app: &AppHandle, expected: &PanelResource, observation
     };
     if !viewport.valid_shape() { return Err("native_browser_viewport_invalid".into()); }
     page.viewport = Some(viewport);
-    let ordinary_nodes = regular_document_nodes(&native_browser_devtools::read(app,expected,ReadMethod::DocumentNodes).await?);
+    let operable_nodes = operable_document_nodes(&native_browser_devtools::read(app,expected,ReadMethod::DocumentNodes).await?);
     let mut candidates = Vec::new();
     let mut focused_editors = Vec::new();
     let mut index = 0;
@@ -103,7 +92,7 @@ async fn observe_document(app: &AppHandle, expected: &PanelResource, observation
         if index >= page.nodes.len() { break; }
         if ["RootWebArea","button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str())
             && node.get("frameId").and_then(serde_json::Value::as_str).is_none_or(|frame| frame == stamp.frame_id) {
-            if let Some(backend) = node.get("backendDOMNodeId").and_then(serde_json::Value::as_i64).filter(|id| ordinary_nodes.contains(id)) {
+            if let Some(backend) = node.get("backendDOMNodeId").and_then(serde_json::Value::as_i64).filter(|id| operable_nodes.contains(id)) {
                 candidates.push((index,backend,role,name));
                 // 只读取类型化focused布尔值，绝不透传value或整个AX properties。
                 if focused_editor(node, &page.nodes[index].role) {
@@ -172,7 +161,7 @@ mod tests {
         assert!(!page.valid_shape());
         let dom = serde_json::json!({"root":{"backendNodeId":1,"children":[{"backendNodeId":2,
             "shadowRoots":[{"backendNodeId":3}],"contentDocument":{"backendNodeId":4}}]}});
-        let ids = regular_document_nodes(&dom);
+        let ids = operable_document_nodes(&dom);
         assert!(ids.contains(&1) && ids.contains(&2) && !ids.contains(&3) && !ids.contains(&4));
     }
 }

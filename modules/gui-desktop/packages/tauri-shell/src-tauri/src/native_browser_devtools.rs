@@ -21,7 +21,8 @@ impl ReadMethod {
         match self {
             Self::FrameTree => ("Page.getFrameTree", "{}".into()),
             Self::Document => ("DOM.getDocument", r#"{"depth":0,"pierce":false}"#.into()),
-            Self::DocumentNodes => ("DOM.getDocument", r#"{"depth":8,"pierce":false}"#.into()),
+            // 只读展开的树交由 native_browser_dom 限定可操作范围，不授予子文档或封闭根引用。
+            Self::DocumentNodes => ("DOM.getDocument", r#"{"depth":8,"pierce":true}"#.into()),
             Self::Accessibility(frame) => ("Accessibility.getFullAXTree", serde_json::json!({"depth":6,"frameId":frame}).to_string()),
             Self::BoxModel(node) => ("DOM.getBoxModel", serde_json::json!({"backendNodeId":node}).to_string()),
             Self::LayoutMetrics => ("Page.getLayoutMetrics", "{}".into()),
