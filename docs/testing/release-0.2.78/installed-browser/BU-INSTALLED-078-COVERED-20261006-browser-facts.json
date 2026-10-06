@@ -1,0 +1,275 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791245305849-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-078-COVERED-20261006。继续原SWE-2远端会话。本轮只执行当前任务：只调用一次coolzhu-agent的computer_use_perform，参数 {\"objective\":\"单击当前页面名为确认图标按钮的button一次\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:62666/covered.html\"},\"success_criteria\":[\"最新页面显示SVG-PASSED-078，次数1\"],\"constraints\":[\"只操作当前内置浏览器，只允许click，使用本轮新鲜button节点引用，不用桌面、导航、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试不补发，不执行历史任务\"],\"max_actions\":1}。若running只wait同一job_id到终态。根据真实宿主回执和新页面如实报告；发生拒绝不能改目标、重试或补发，不能代执行。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791245306116
+  },
+  "context_and_tools": {
+    "prefix": "BU-INSTALLED-078-COVERED-20261006",
+    "run_id": "run-chat-f23b568afbf6a12a43e0d4e7e4caa36c61e3e4325b7122f7",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791245305849-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 60,
+        "prompt_bytes": 2554
+      }
+    ],
+    "outputs": [],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-b49eea03a207bd49e8727bcf82caf3f367ff932d7be1c40c3ffe2a9cadc400bb",
+        "run_id": "run-chat-f23b568afbf6a12a43e0d4e7e4caa36c61e3e4325b7122f7",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "be8eb44a6db0295b",
+        "status": "failed",
+        "created_at_unix_ms": 1791245315247,
+        "updated_at_unix_ms": 1791245320870,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-f23b568afbf6a12a43e0d4e7e4caa36c61e3e4325b7122f7\",\"turn_id\":\"chat-turn-1791245305849-2\",\"attempt_id\":\"0ad0cf63a385435a5960d9137c3654d167d37abc46b73877\",\"owner_epoch\":31,\"generation\":31}"
+      }
+    ],
+    "reply": "",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-f23b568afbf6a12a43e0d4e7e4caa36c61e3e4325b7122f7",
+      "state": "failed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791245305849-2-tool-b49eea03a207bd49e8727bcf82caf3f367ff932d7be1c40c3ffe2a9cadc400bb",
+      "provider_tool_call_id": "tool-b49eea03a207bd49e8727bcf82caf3f367ff932d7be1c40c3ffe2a9cadc400bb",
+      "turn_id": "chat-turn-1791245305849-2",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791245305849-2\u001fbrowser\u001f单击当前页面名为确认图标按钮的button一次\u001f||http://127.0.0.1:62666/covered.html|\u001f最新页面显示svg-passed-078，次数1\u001f只操作当前内置浏览器，只允许click，使用本轮新鲜button节点引用，不用桌面、导航、其它工具或devin原生工具；失败、取消或输入未知立即停止，不重试不补发，不执行历史任务",
+      "objective_json": {
+        "constraints": [
+          "只操作当前内置浏览器，只允许click，使用本轮新鲜button节点引用，不用桌面、导航、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试不补发，不执行历史任务"
+        ],
+        "max_actions": 1,
+        "objective": "单击当前页面名为确认图标按钮的button一次",
+        "success_criteria": [
+          "最新页面显示SVG-PASSED-078，次数1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:62666/covered.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791245915463,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791245305849-2-tool-b49eea03a207bd49e8727bcf82caf3f367ff932d7be1c40c3ffe2a9cadc400bb",
+        "provider_tool_call_id": "tool-b49eea03a207bd49e8727bcf82caf3f367ff932d7be1c40c3ffe2a9cadc400bb",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_target_hit_mismatch",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-df34c07cf3d3ccdbd3c4d07886c89d9c:6c139e60251d3f70",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:c2f76e7557370a6a4b8890691bf800ab",
+          "native-ax:1:2",
+          "native-observation:c2f76e7557370a6a4b8890691bf800ab"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791246205849
+            }
+          },
+          "cu_deadline_ms": 1791245915463,
+          "cu_deadline_established_at_ms": 1791245315463,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791245315463,
+      "updated_at_ms": 1791245320851,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791245305849-2-tool-b49eea03a207bd49e8727bcf82caf3f367ff932d7be1c40c3ffe2a9cadc400bb",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-df34c07cf3d3ccdbd3c4d07886c89d9c",
+          "action_fingerprint": "df1daeda68a99c49",
+          "status": "failed",
+          "error_code": "native_browser_target_hit_mismatch",
+          "before_evidence_ref": "[\"native-ax:1:2\",\"native-observation:c2f76e7557370a6a4b8890691bf800ab\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791245320006,
+          "completed_at_ms": 1791245320843,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791245305849-2-tool-b49eea03a207bd49e8727bcf82caf3f367ff932d7be1c40c3ffe2a9cadc400bb",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-df34c07cf3d3ccdbd3c4d07886c89d9c\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 408,
+          "call_id": "cu-session-1791131217833-chat-turn-1791245305849-2-tool-b49eea03a207bd49e8727bcf82caf3f367ff932d7be1c40c3ffe2a9cadc400bb",
+          "turn_id": "chat-turn-1791245305849-2",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"dom-df34c07cf3d3ccdbd3c4d07886c89d9c\"},\"done\":false,\"observation_facts\":{\"candidate_count\":2,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":13,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791245315559,
+          "completed_at_ms": 1791245320003
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:62666/events",
+  "web_events": [
+    {
+      "case": "/svg.html",
+      "type": "pointerdown",
+      "target": "glyph",
+      "count": 0,
+      "time": 1791244052144,
+      "received_at_ns": 1791244052147415200
+    },
+    {
+      "case": "/svg.html",
+      "type": "pointerup",
+      "target": "glyph",
+      "count": 0,
+      "time": 1791244052145,
+      "received_at_ns": 1791244052148404900
+    },
+    {
+      "case": "/svg.html",
+      "type": "click",
+      "target": "glyph",
+      "count": 1,
+      "time": 1791244052145,
+      "received_at_ns": 1791244052150639100
+    },
+    {
+      "case": "/svg.html",
+      "type": "pointerdown",
+      "target": "glyph",
+      "count": 0,
+      "time": 1791245153789,
+      "received_at_ns": 1791245153792567000
+    },
+    {
+      "case": "/svg.html",
+      "type": "pointerup",
+      "target": "glyph",
+      "count": 0,
+      "time": 1791245153789,
+      "received_at_ns": 1791245153793728800
+    },
+    {
+      "case": "/svg.html",
+      "type": "click",
+      "target": "glyph",
+      "count": 1,
+      "time": 1791245153790,
+      "received_at_ns": 1791245153794681200
+    }
+  ]
+}

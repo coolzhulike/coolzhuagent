@@ -1,0 +1,41 @@
+{
+  "stage": "正常日常桌面启动入口恢复；仅停止本轮验收进程",
+  "source_commit": "0b97366c7fde8d284c122ab7ec9754c742092bb5",
+  "files": [
+    {
+      "file": ".gitattributes",
+      "bytes": 75,
+      "sha256": "6eabf2e06fe9a1051649e6d3ac14c4be612addacbbaa26d4b04ffcb59c57f566"
+    },
+    {
+      "file": "formal-078-input-state.json",
+      "bytes": 933,
+      "sha256": "3faaab73d922403eeed85e1e0cb248204bc75743990ffeb5cb1cf05f0859a0c0"
+    },
+    {
+      "file": "installed-078-stopped.json",
+      "bytes": 433,
+      "sha256": "e132f9abddf2a74f11dc099dd91eb3339ef99d8cc427d74d5d39f8bcdb43f023"
+    },
+    {
+      "file": "restored-daily-078-native.jpg",
+      "bytes": 196281,
+      "sha256": "0bfb0c2f13cedd2a9e4085bf462ed77c2db2302e5be0d062077f780a2ea0f386"
+    },
+    {
+      "file": "restored-daily-078-process.json",
+      "bytes": 255,
+      "sha256": "4a44edb51bc18a6d0581472ec2ea8503075dd1cc3b9c2efbf2aae67c0d25c073"
+    },
+    {
+      "file": "restored-daily-078-selfcheck.json",
+      "bytes": 1779,
+      "sha256": "f8f7f3577298d3efbc448313cadf2c0a7cf49efb591de63638fb8b2010172b69"
+    },
+    {
+      "file": "restored-daily-078-verification.json",
+      "bytes": 859,
+      "sha256": "a9abed589b0e4126f2372765682f82fc14d16f29984d346536041261867766ed"
+    }
+  ]
+}

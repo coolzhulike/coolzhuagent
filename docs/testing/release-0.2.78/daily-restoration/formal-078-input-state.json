@@ -1,0 +1,48 @@
+{
+  "resources": [
+    {
+      "scope": "windows-session-1",
+      "state": "safe",
+      "revision": 142,
+      "coordinator_instance_id": null,
+      "recovery_epoch": 158,
+      "accepts_new_input": 1,
+      "updated_at_unix_ms": 1791244926889
+    },
+    {
+      "scope": "windows-session-2",
+      "state": "safe",
+      "revision": 7,
+      "coordinator_instance_id": null,
+      "recovery_epoch": 23,
+      "accepts_new_input": 1,
+      "updated_at_unix_ms": 1790699986271
+    }
+  ],
+  "permits_by_state": [
+    {
+      "state": "finished",
+      "count": 272
+    },
+    {
+      "state": "outcome_unknown",
+      "count": 2
+    }
+  ],
+  "executors_by_state": [
+    {
+      "state": "exited_confirmed",
+      "count": 72
+    },
+    {
+      "state": "verified_alive",
+      "count": 111
+    }
+  ],
+  "blocks_by_state": [
+    {
+      "state": "closed",
+      "count": 9
+    }
+  ]
+}

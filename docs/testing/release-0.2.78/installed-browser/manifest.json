@@ -1,0 +1,93 @@
+{
+  "stage": "0.2.78 Program Files正式安装版；原SWE veiled-anise与原输入安全库",
+  "source_commit": "0b97366c7fde8d284c122ab7ec9754c742092bb5",
+  "runtime_dev_open_permissions": true,
+  "tests_use_real_model": true,
+  "files": [
+    {
+      "file": ".gitattributes",
+      "bytes": 75,
+      "sha256": "6eabf2e06fe9a1051649e6d3ac14c4be612addacbbaa26d4b04ffcb59c57f566"
+    },
+    {
+      "file": "BU-INSTALLED-078-COVERED-20261006-browser-facts.json",
+      "bytes": 11691,
+      "sha256": "688678d6773326e747b4bfc416a816ead9eb0f65bf4a74de9465233207506380"
+    },
+    {
+      "file": "BU-INSTALLED-078-REPLACEMENT-20261006-browser-facts.json",
+      "bytes": 17287,
+      "sha256": "a42a338f7b0aa614aee253fd0df6ea67bedaf83e2777c1e3b0879963109e69a5"
+    },
+    {
+      "file": "BU-INSTALLED-078-SPAN-20261006-browser-facts.json",
+      "bytes": 17014,
+      "sha256": "75abf0cd8f64c89091273e5620a3dc86a1b43fe53f3dbe41f328333bfa17ee63"
+    },
+    {
+      "file": "BU-INSTALLED-078-SVG-20261006-browser-facts.json",
+      "bytes": 17174,
+      "sha256": "faaf809ab27690d7a11c317e5f875a8b4b336dd3c5114eaccef4dfe87d27874f"
+    },
+    {
+      "file": "case-summary.json",
+      "bytes": 6296,
+      "sha256": "6c0ea6267d07de9d4dc31e362ed6fda75591ab8f95387601f05a1f2b9eace903"
+    },
+    {
+      "file": "CoolzhuAgent-0.2.78-installer-report.json",
+      "bytes": 4907,
+      "sha256": "e4f4c814349894775b8394553e3e2dcf097259d90be9c53174524a9699a9e3c1"
+    },
+    {
+      "file": "CoolzhuAgent-0.2.78-package-safety.json",
+      "bytes": 277,
+      "sha256": "ef3f8346d7e339b755b26d2457f1556b1dd0e52162e4d54aa2b7236b1390334b"
+    },
+    {
+      "file": "install-078-result.json",
+      "bytes": 294,
+      "sha256": "5c0c2061176f9c1e56a04126124eaf7daea1945235aed3744e185d35d5b8490e"
+    },
+    {
+      "file": "installed-078-processes.json",
+      "bytes": 767,
+      "sha256": "46af962e98b1a2744de9d9722cc435c2e7b20f6364ace0e8bf31b49c3bd7e966"
+    },
+    {
+      "file": "installed-078-verification.json",
+      "bytes": 1825,
+      "sha256": "dc1b346ab0d3c40b72cfec1d7b67e1c93013a046bd176017e2231b4f800ba99a"
+    },
+    {
+      "file": "installed-covered-refused-native.jpg",
+      "bytes": 190342,
+      "sha256": "97459ad6c30ba5d99eb16c956e55916d9d6f98c9e45543cccb481d1d0f71b4c4"
+    },
+    {
+      "file": "installed-replacement-passed-native.jpg",
+      "bytes": 201184,
+      "sha256": "d8b3faff27d079d41f113bacf9cb8dc1d6a5ec333a281995f99850bfdf1f6a17"
+    },
+    {
+      "file": "installed-span-before-native.jpg",
+      "bytes": 203159,
+      "sha256": "dafb107ddf98ac40322bd1a9fc4d00009bcb9ecc9e6ae4a7a4eb42978922bcb2"
+    },
+    {
+      "file": "installed-span-passed-native.jpg",
+      "bytes": 206812,
+      "sha256": "2ab4c8d246c754bde304252be37c74edaef76f0b913b86367f6898b9e8d4e025"
+    },
+    {
+      "file": "installed-svg-passed-native.jpg",
+      "bytes": 199596,
+      "sha256": "24246359d188e067e8986c885ea66ad7e7b3b17cf4c526952093e304b9874837"
+    },
+    {
+      "file": "package-078-verification.json",
+      "bytes": 1810,
+      "sha256": "b8b9cf174f1211bf147139daacb31cc01479504d6f5e893a46e40cabe656506c"
+    }
+  ]
+}
