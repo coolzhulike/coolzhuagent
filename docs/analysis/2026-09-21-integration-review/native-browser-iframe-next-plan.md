@@ -45,4 +45,16 @@ native_browser_observation只采顶层Frame的AX；native_browser_dom明确忽�
 
 文档模块组合“所属目标会话、frame、loader、文档根”的身份；backend节点和Runtime objectId随会话归属保存，避免跨会话相同数字碰撞。只读devtools模块沿固定方法枚举选择顶层或ForSession，观察和预检模块使用目标自身AX/DOM，沿宿主owner链核对顶层可见位置和命中归属。实际坐标、页面缩放、滚动和跨Frame命中先实测再决定输入路由；不能假定所有session的坐标原点相同。
 
-实施先覆盖独立子按钮，再补编辑、按键和滚动。每一步沿用原请求契约、许可台账、取消及释放路径；脱附或文档改变撤销原引用，已有按下仍完成释放并如实记录。真实SWE验收需要子计数/父计数、可信页面事件、实际会话绑定、sent/released和新观察截图；再做父误击、同名兄弟Frame、规划期间子导航及面板关闭负例。窄时序按住变化另列，未命中不计通过。当前为方案，尚未实现或验收。
+实施先覆盖独立子按钮，再补编辑、按键和滚动。每一步沿用原请求契约、许可台账、取消及释放路径；脱附或文档改变撤销原引用，已有按下仍完成释放并如实记录。真实SWE验收需要子计数/父计数、可信页面事件、实际会话绑定、sent/released和新观察截图；再做父误击、同名兄弟Frame、规划期间子导航及面板关闭负例。窄时序按住变化另列，未命中不计通过。此段为实施前方案，最新进展见下。
+
+## 独立进程Frame实测与候选实现（2026-10-06）
+
+正式084在127.0.0.1父页面嵌入localhost子页面时，真实SWE请求找不到子按钮，零输入。仅诊断构建的只读采样确认两个独立renderer：顶层FrameTree不列子Frame，DOM只有iframe owner、没有contentDocument；子target自身FrameTree才给出frame/parent/loader。不能用targetId、标题或URL猜frame身份，也不能把父iframe命中当作子按钮命中。诊断端口已移除，候选及后续正式包不包含该端口开关。
+
+新增native_browser_sessions负责固定iframe附着及私有session缓存；document组合真实owner与子session文档，backend节点按session区分；devtools使用固定ForSession方法；native_browser_frame_geometry负责子布局视口到父owner content quad的换算及逐父命中。输入仍在原顶层WebView、原一次性许可与释放流程执行。采样有节点、Frame数量、深度及时间预算；附着后才核真实frame/parent，拒绝无owner归属的target。脱附缓存读取错误使缓存条目失效，本次不重放输入。
+
+实际OOP子LayoutViewport属于子根，但VisualViewport仍描述顶层，必须使用子LayoutViewport测局部点。普通矩形及正向轴对齐缩放先支持；旋转、斜切、透视明确未支持。父层覆盖必须在父命中检查中拒绝；子文档导航使旧scope/token失效。OOP编辑、按键及滚动仍不给可执行能力，不能由已支持的同进程Frame外推。
+
+两轮候选真实子点击已经投递并释放，但验收曾因跨Frame非相邻引文与模型索引引用错误失败，均保留失败，不计整轮通过。对模型增加本轮明确index字段，原引文匹配规则不变；新缩放任务已由原SWE-2-medium完成，子计数1/父0、单次可信事件、释放回执和聊天室终态对应。当前仅候选通过，覆盖、子导航及正常安装版复验继续进行；跨Frame复合单条条件的表达问题另列开放项。
+
+完整回归最初与真实CU同时运行，启动恢复用例因同一windows-session-1命名输入锁忙而失败。停止已结束实操进程后，该用例单独通过，完整主控制台1390通过、6项既有忽略；桌面壳72通过。未修改生产资源锁、原安全库或测试断言，保留首次失败日志。后续本机完整输入安全回归与真实CU串行执行。

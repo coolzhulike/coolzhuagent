@@ -6,6 +6,8 @@ mod native_browser_observation;
 mod native_browser_devtools;
 mod native_browser_dom;
 mod native_browser_document;
+mod native_browser_sessions;
+mod native_browser_frame_geometry;
 mod native_browser_nodes;
 mod native_browser_navigation;
 mod native_browser_target;
