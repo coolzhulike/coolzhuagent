@@ -1,5 +1,5 @@
 {
-  "stage": "远端原失败及本地有界修补回归，尚未计为新HEAD远端通过",
+  "stage": "原远端失败、本地修补回归和cc6源码两条远端检查成功",
   "failed_pr_run_id": 37399319495,
   "previous_source": "683c17e74ca98cf85c3e67142e68a7c04071da5d",
   "build_exit": 0,
@@ -16,9 +16,9 @@
     "all_passed": true
   },
   "limitations": [
-    "旧实现本地未重现，远端日志未提供确切锁阶段",
+    "旧实现本地未重现，原远端日志未提供确切锁阶段",
     "不替代真实模型软件截图验收",
-    "新安装包和新HEAD远端检查须另外核验"
+    "后续纯文档提交远端状态另核"
   ],
   "files": [
     {
@@ -50,6 +50,34 @@
       "file": "concurrent-open-before-fix.log",
       "length": 21832,
       "sha256": "1bc047faf08899c2bf9fed6c950d4f733041cf97d79f14583d3fb11fba194c46"
+    },
+    {
+      "file": "checks-cc6-after-real-test.json",
+      "length": 7194,
+      "sha256": "60d99deebe9221ec5749d6c10ffebe7a16b1a466a561d5171aa7df6fb4f95d2e"
+    },
+    {
+      "file": "ci-cc6-pr-success-jobs.json",
+      "length": 2985,
+      "sha256": "b4deba4a6451051733a6234aeaa216131ac8452d21c7520a7ca2cf9f2617b010"
+    },
+    {
+      "file": "ci-cc6-push-success-jobs.json",
+      "length": 2985,
+      "sha256": "9ff5060d53fa19a69f2bfd541ad4eb72d21f2d260b21fbd0cdfaffa79bb3d928"
+    }
+  ],
+  "remote_source_checked": "cc6c43183acd6340f42230dab0f86d22fce6ee8c",
+  "remote_check_runs": [
+    {
+      "id": 112068165333,
+      "conclusion": "success",
+      "url": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37401076973/job/112068165333"
+    },
+    {
+      "id": 112068152936,
+      "conclusion": "success",
+      "url": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37401073440/job/112068152936"
     }
   ]
 }

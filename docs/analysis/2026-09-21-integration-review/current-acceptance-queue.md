@@ -1,4 +1,4 @@
-# 当前验收队列（2026-10-06，0.2.79正式Shadow通过，0.2.80会话库修补待发布）
+# 当前验收队列（2026-10-06，0.2.80正式回归通过）
 
 本表汇总剩余工作，历史失败与已通过证据以各版本报告为准。当前仅主会话实施与测试，真实模型使用原SWE-2-medium会话；Opus依用户要求暂不使用，微信不改不测。Paint基础输入已通过，不再要求完整人物绘画。
 
@@ -20,4 +20,8 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 
 复杂节点补验、8767事件环境误判排除及正式8765地址同步反证见[078边界补验](../../testing/release-0.2.78/browser-boundary-followup.md)。开放Shadow实际缺口、职责边界、正式真实SWE正/负例及关闭时序见[079报告](../../testing/release-0.2.79/change-report-and-test-handoff.md)。
 
-0.2.79 PR远端检查的SQLite首次并发打开锁冲突已接手：只读版本读取有界重试及阶段诊断，本地1390完整检查和10轮既有并发用例通过；不重放业务事务，不跳过失败。修补不在079包内，080正常构建安装及新HEAD远端检查另核。见[080交接](../../testing/release-0.2.80/change-report-and-test-handoff.md)。
+0.2.79 PR远端检查的SQLite首次并发打开锁冲突已接手：只读版本读取有界重试及阶段诊断，本地1390完整检查和10轮既有并发用例通过；不重放业务事务，不跳过失败。修补不在079包内；080正常安装及1150文件摘要通过，真实SWE正/负例31.4/21.1秒通过，cc6源码两条远端检查success。后续文档HEAD检查另核。见[080交接](../../testing/release-0.2.80/change-report-and-test-handoff.md)。
+
+0.2.80正式证据及正常桌面入口恢复见[080交接](../../testing/release-0.2.80/change-report-and-test-handoff.md)。下一项优先实施[iframe文档绑定方案](native-browser-iframe-next-plan.md)，当前仅方案已审查，不计实现或验收通过。
+
+0.2.80已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.80)：实际tag绑定cc6源码，四个上传资产的长度/SHA均匹配，见[服务端核验](../../testing/release-0.2.80/evidence/github-release-verification.json)。正常桌面入口已恢复到080。PR84待合入审查；本次交付不代表iframe或四项任务整体已完成。

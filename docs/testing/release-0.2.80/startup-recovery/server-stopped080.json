@@ -1,0 +1,8 @@
+﻿{
+    "observed_utc":  "2026-10-06T01:58:22.3477232Z",
+    "stopped":  {
+                    "path":  "C:\\Python314\\python.exe",
+                    "pid":  3004,
+                    "created":  "2026-10-06T00:46:43.3864187Z"
+                }
+}

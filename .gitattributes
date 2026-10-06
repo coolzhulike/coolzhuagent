@@ -69,3 +69,5 @@
 /docs/testing/release-0.2.79/installed-shadow/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.79/boundary-gaps/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.80/ci-lock-fix/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.80/installed-shadow/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.80/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
