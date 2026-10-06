@@ -29,3 +29,5 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 0.2.81已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.81)：正常安装1150文件匹配，原SWE三轮25.2/34.0/32.0秒通过，d9产品源码两条远端检查success；四资产及标签源码核验、原工程日常入口恢复通过。见[081报告与原图](../../testing/release-0.2.81/change-report-and-test-handoff.md)。下一步继续Browser未验收边界，不把本轮同进程click外推为全部Browser完成。
 
 0.2.82正式四项已闭环，40份安装版原始证据（含两轮未计通过的诊断）及正常入口恢复见[082报告](../../testing/release-0.2.82/change-report-and-test-handoff.md)。包冻结来源587两路远端检查success；出包后cfg(test)修正61a另核。仅证明同源同进程编辑和页面单键，不外推全部HTML、跨进程或四项总体完成。
+
+082已公开预发布，四资产服务端摘要及实际标签587核验通过；出包后纯测试修正61a两路远端检查均success。当前桌面正常启动为082，下一优先项为同进程子Frame滚动。

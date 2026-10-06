@@ -65,7 +65,7 @@
 
 正常包冻结源码587d386da4dd4f256c5a8b4ef487b62faa958f24，快照7b22e950e2bad82e8f3a17f27ac50f7a83a1e272ef88dd3360e8deb019b67f64；MSI为276339330字节，SHA256为3e59f7c381a026224762b3556cf1781948c8ca69e9aa114fecc64f3ed5c07c23。六项发布门通过，生产者pkg-report-release-20261006-112114270-bd01b5f8；正常安装exit0，Program Files全部1150文件长度/SHA匹配，CLI版本0.2.82。生产者原始报告见[evidence/build-identity](evidence/build-identity)。
 
-离线构建及既有70项桌面壳、1390项Web回归通过（6忽略）；另两组接线检查通过。旧cac的ACP分类时限CI失败保留并修复；084的600ms根预算测试假定“必须已到达模型端点”在CI失败，61a仅删除这一不成立的cfg(test)断言，保留根期限、终止状态和两个完成结果计数，生产代码不变。此修补在出包之后，不追认为587包源码；本地完整1390回归再次通过。原失败日志及各HEAD检查独立保留，见[evidence/remote-checks](evidence/remote-checks)。包源码587两路远端检查success；61a在本次归档时仍运行，不能将587成功外推到61a。
+离线构建及既有70项桌面壳、1390项Web回归通过（6忽略）；另两组接线检查通过。旧cac的ACP分类时限CI失败保留并修复；084的600ms根预算测试假定“必须已到达模型端点”在CI失败，61a仅删除这一不成立的cfg(test)断言，保留根期限、终止状态和两个完成结果计数，生产代码不变。此修补在出包之后，不追认为587包源码；本地完整1390回归再次通过。原失败日志及各HEAD检查独立保留，见[evidence/remote-checks](evidence/remote-checks)。包源码587两路远端检查success；61a初次归档仍运行，后续独立核验两路均success，见[61a完成检查原始记录](evidence/remote-checks/closed-61a/manifest.json)；保留早先in_progress采集。最终文档HEAD的检查另核，不外推其它HEAD。
 
 正式测试配对进程与真实HTML服务均按PID、完整路径、UTC启动时间及SHA核验后结束。正常桌面入口恢复原C:/Users/zhupu/coolzhuagent工作区，源码/实际进程/原输入安全库一致。当前资源safe、accepts_new_input=1，历史2个outcome_unknown与9个closed块保留，未抹去安全历史。日常界面原Qwen选项保持，仅恢复界面，不发送Qwen测试请求。见[启动恢复原始清单](startup-recovery/manifest.json)。
 
@@ -74,3 +74,5 @@
 只验同源同进程子Frame编辑与页面单键。跨来源/独立进程Frame、子滚动、严格按住跨URL导航或面板关闭/替换、多屏、插件配置/取消/超时/许可竞态、Goal/Relay附件、完整升级、启动其它模式和四项总体复核仍见[当前队列](../../analysis/2026-09-21-integration-review/current-acceptance-queue.md)。不把此阶段推定为全部Browser Use完成。微信不改不测，Paint按缩减范围基础已有正式通过。
 
 后续执行者使用正常安装版，在原SWE会话可按上述四项复核子click/text/Enter、顶层编辑、规划期间父焦点迁走和仅子文档导航；独立网页事件、宿主投递与释放回执、真实时序和截图一起判断结果。节点/身份/输入模块边界保持清晰，失败不重试原任务。
+
+0.2.82已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.82)，MSI、SHA256校验文件、安装报告、安全报告四资产的服务端长度/摘要全部匹配；实际标签仍指向冻结来源587。见[GitHub分发核验](evidence/github-release-verification.json)。本地正常安装和日常恢复已完成，无需再手动安装本轮包。
