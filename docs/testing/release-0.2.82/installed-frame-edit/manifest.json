@@ -1,0 +1,1403 @@
+{
+  "stage": "0.2.82 Program Files正常安装版，默认8765",
+  "reference_head": "587d386da4dd4f256c5a8b4ef487b62faa958f24",
+  "archive_reference_head": "61a40a21c93df06d2190cfcb811a9bd8b509d15e",
+  "real_model": "SWE-2-medium",
+  "remote_session": "veiled-anise",
+  "room": "room-1791131523339",
+  "cases": [
+    {
+      "prefix": "BU-INSTALLED-082-FRAME-EDIT-20261006",
+      "message_id": "msg-1791257029313-user",
+      "run_id": "run-chat-cd8cd36d689fc5e94bbf23622f2f6c56ac7dffe8a8a40d04",
+      "run_state": "completed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 1,
+          "host_history_messages": 140,
+          "prompt_bytes": 3521
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791257029315-0-tool-774e6a68f5719977905bab245680d0f3259dff3e4656579e9e3358bdc59f22f6",
+        "provider_tool_call_id": "tool-774e6a68f5719977905bab245680d0f3259dff3e4656579e9e3358bdc59f22f6",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"fb3c8a47f2d2747c87e0303b7a01cbac\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":23,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":23,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":4,\"observation_id\":\"ff894c212c1f7646b26f20ceff0971be\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":36,\"nodes\":[{\"index\":7,\"name\":\"子输入：竹林-82；子提交次数：1；父输入：空\",\"role\":\"StaticText\"}],\"title\":\"082 Frame文本与键盘\",\"truncated\":false,\"url\":\"http://127.0.0.1:52137/edit.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:52137/edit.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 3,
+        "steps_completed": 3,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:0c7e9c8c4f9a8b3d09ff090ef879f92e",
+          "native-ax:1:0",
+          "native-observation:0c7e9c8c4f9a8b3d09ff090ef879f92e",
+          "native-input:b5de5900a89fe6c8278a5bdbf142d974",
+          "native-ax:1:0",
+          "native-observation:3321a6c0a005b45ed26ee471f07e0f62",
+          "native-ax:1:0",
+          "native-observation:3321a6c0a005b45ed26ee471f07e0f62",
+          "native-ax:1:0",
+          "native-observation:c86445f4722d8c435eb9201e50148ddf",
+          "native-input:c94dbd1b8ca44fd34cc9a8ecb80f4f9e",
+          "native-ax:1:0",
+          "native-observation:bee45d29edde1d69d581d139fd1c9d3a",
+          "native-ax:1:0",
+          "native-observation:bee45d29edde1d69d581d139fd1c9d3a",
+          "native-ax:1:0",
+          "native-observation:41a1102abac1da2d80f695a1b9ed4955",
+          "native-input:28c4841806dfe311fcb08d0ac7b48452",
+          "native-ax:1:0",
+          "native-observation:ff894c212c1f7646b26f20ceff0971be",
+          "native-ax:1:0",
+          "native-observation:ff894c212c1f7646b26f20ceff0971be",
+          "native-ax:1:0",
+          "native-observation:fb3c8a47f2d2747c87e0303b7a01cbac"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 3,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791257929315
+            }
+          },
+          "cu_deadline_ms": 1791257653394,
+          "cu_deadline_established_at_ms": 1791257053394,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "native_dispatch_state": "released",
+          "started_at_ms": 1791257059227,
+          "completed_at_ms": 1791257061483
+        },
+        {
+          "step_index": 1,
+          "action_type": "text_input",
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "started_at_ms": 1791257072980,
+          "completed_at_ms": 1791257075188
+        },
+        {
+          "step_index": 2,
+          "action_type": "key_combination",
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "native_dispatch_state": "released",
+          "started_at_ms": 1791257088206,
+          "completed_at_ms": 1791257090439
+        }
+      ],
+      "events_this_run": [
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerdown",
+          "at_ms": 1791257061471.5,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257061474.7292
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "focusin",
+          "at_ms": 1791257061472,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257061476.075
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerup",
+          "at_ms": 1791257061472.9001,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257061477.156
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "click",
+          "at_ms": 1791257061473.1,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257061478.757
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "input",
+          "at_ms": 1791257075177.2,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": "竹林-82",
+          "received_ms": 1791257075180.1006
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "keydown",
+          "at_ms": 1791257090420,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": "Enter",
+          "value": null,
+          "received_ms": 1791257090422.8367
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "click",
+          "at_ms": 1791257090420.6,
+          "target": "submit",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257090427.617
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "child-submit",
+          "at_ms": 1791257090421.2,
+          "value": "竹林-82",
+          "count": 1,
+          "isTrusted": true,
+          "received_ms": 1791257090429.7964
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "keyup",
+          "at_ms": 1791257090421.8,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": "Enter",
+          "value": null,
+          "received_ms": 1791257090431.4255
+        }
+      ],
+      "acceptance": "正式完整正例通过：子click、中文ASCII text、Enter一次真实提交，父未写入"
+    },
+    {
+      "prefix": "BU-INSTALLED-082-FRAME-TOP-20261006",
+      "message_id": "msg-1791257138665-user",
+      "run_id": "run-chat-ba870a12db989c1d3314fc9c7890bdd8d79b787533c21d6d",
+      "run_state": "completed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 142,
+          "prompt_bytes": 2713
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791257138665-1-tool-cb8e7ebac3bdeb9ada5e82575a7702a423b355db6a1b5aef68c7970be02298c5",
+        "provider_tool_call_id": "tool-cb8e7ebac3bdeb9ada5e82575a7702a423b355db6a1b5aef68c7970be02298c5",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"5fc6b68d9df65e2a0d022173b7c0320f\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":28,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":28,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":3,\"observation_id\":\"c56ebb271bc9f8e7322f41987fccce16\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":39,\"nodes\":[{\"index\":7,\"name\":\"子输入：竹林-82；子提交次数：1；父输入：主页面-82\",\"role\":\"StaticText\"}],\"title\":\"082 Frame文本与键盘\",\"truncated\":false,\"url\":\"http://127.0.0.1:52137/edit.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:52137/edit.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 2,
+        "steps_completed": 2,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:a51614bf0c9aeeff4856ad54caf4fbd6",
+          "native-ax:1:0",
+          "native-observation:a51614bf0c9aeeff4856ad54caf4fbd6",
+          "native-input:e12ef6e732b78c2cfa4b65a2b46b1742",
+          "native-ax:1:0",
+          "native-observation:b8d04ef32e46c6a0c7a4f0d84c2e9f47",
+          "native-ax:1:0",
+          "native-observation:b8d04ef32e46c6a0c7a4f0d84c2e9f47",
+          "native-ax:1:0",
+          "native-observation:f4bcf0c864dfa3f02e8f126972835353",
+          "native-input:7ccdd847b382852d70816be4918e611d",
+          "native-ax:1:0",
+          "native-observation:c56ebb271bc9f8e7322f41987fccce16",
+          "native-ax:1:0",
+          "native-observation:c56ebb271bc9f8e7322f41987fccce16",
+          "native-ax:1:0",
+          "native-observation:5fc6b68d9df65e2a0d022173b7c0320f"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 2,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791258038665
+            }
+          },
+          "cu_deadline_ms": 1791257757881,
+          "cu_deadline_established_at_ms": 1791257157881,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "native_dispatch_state": "released",
+          "started_at_ms": 1791257163882,
+          "completed_at_ms": 1791257165985
+        },
+        {
+          "step_index": 1,
+          "action_type": "text_input",
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "started_at_ms": 1791257180185,
+          "completed_at_ms": 1791257181977
+        }
+      ],
+      "events_this_run": [
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerdown",
+          "at_ms": 1791257165973,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257165976.6648
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257165973.5,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257165977.5203
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerup",
+          "at_ms": 1791257165974.0999,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257165977.8564
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "click",
+          "at_ms": 1791257165974.4,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257165978.5142
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "input",
+          "at_ms": 1791257181961.3,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": "主页面-82",
+          "received_ms": 1791257181964.3613
+        }
+      ],
+      "acceptance": "正式主页面编辑正例通过；新增文档焦点检查未阻断原顶层输入"
+    },
+    {
+      "prefix": "BU-INSTALLED-082-FRAME-FOCUS3-20261006",
+      "message_id": "msg-1791257435613-user",
+      "run_id": "run-chat-b7fb8478ad47587b1305bfccb0f60806e0fbf5f02e610946",
+      "run_state": "failed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 1,
+          "host_history_messages": 148,
+          "prompt_bytes": 3339
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791257435613-4-tool-72e8c06b15bd93724b449db5a7a3c846edfbd4e972e760ad90dcc59eaacef2c6",
+        "provider_tool_call_id": "tool-72e8c06b15bd93724b449db5a7a3c846edfbd4e972e760ad90dcc59eaacef2c6",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_editor_not_focused",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-04f704d2e409b40a71ade3298b852c14:fae355a110946583",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:ef76b6c6ee0b0fcaeb50daad47ef38e1",
+          "native-ax:1:0",
+          "native-observation:ef76b6c6ee0b0fcaeb50daad47ef38e1"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791258335613
+            }
+          },
+          "cu_deadline_ms": 1791258055848,
+          "cu_deadline_established_at_ms": 1791257455848,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "text_input",
+          "input_delivery": "not_sent",
+          "input_release_status": "not_needed",
+          "native_dispatch_state": null,
+          "started_at_ms": 1791257459802,
+          "completed_at_ms": 1791257461268
+        }
+      ],
+      "events_this_run": [
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257439203.4,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257439213.932
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerdown",
+          "at_ms": 1791257439204.5,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257439217.222
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "focusin",
+          "at_ms": 1791257439205.2,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257439217.877
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerup",
+          "at_ms": 1791257439224.5,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257439227.9795
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "click",
+          "at_ms": 1791257439225,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257439229.6
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerdown",
+          "at_ms": 1791257456865.4,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257456868.1682
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257456866.2,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257456870.033
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerup",
+          "at_ms": 1791257456881.8,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257456885.0134
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "click",
+          "at_ms": 1791257456882.4,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257456887.6455
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257456882.9,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257456889.349
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "parent-focused",
+          "at_ms": 1791257456883.5,
+          "received_ms": 1791257456891.1274
+        }
+      ],
+      "acceptance": "正式规划期间父焦点迁走，子text零投递预期拒绝通过"
+    },
+    {
+      "prefix": "BU-INSTALLED-082-FRAME-NAV-20261006",
+      "message_id": "msg-1791257494479-user",
+      "run_id": "run-chat-6a72c11ff02c5f2c0a87365438f64de26747459278d2a6ac",
+      "run_state": "failed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 1,
+          "host_history_messages": 150,
+          "prompt_bytes": 3380
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791257494479-5-tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+        "provider_tool_call_id": "tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_document_changed",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-a326d95c249ff117ce0c00b4b5c4316c:14a984179c9bc248",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:7e8f765296d768aed9d6611ca18302a4",
+          "native-ax:1:0",
+          "native-observation:7e8f765296d768aed9d6611ca18302a4"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791258394479
+            }
+          },
+          "cu_deadline_ms": 1791258115788,
+          "cu_deadline_established_at_ms": 1791257515788,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "text_input",
+          "input_delivery": "not_sent",
+          "input_release_status": "not_needed",
+          "native_dispatch_state": null,
+          "started_at_ms": 1791257520941,
+          "completed_at_ms": 1791257522490
+        }
+      ],
+      "events_this_run": [
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257498224.5999,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257498237.9934
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerdown",
+          "at_ms": 1791257498226,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257498239.5864
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "focusin",
+          "at_ms": 1791257498226.7,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257498242.2874
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerup",
+          "at_ms": 1791257498245.8,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257498250.7947
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "click",
+          "at_ms": 1791257498246.4001,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257498252.1826
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerdown",
+          "at_ms": 1791257517329.5,
+          "target": "replace",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257517332.7537
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257517329.9,
+          "target": "replace",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257517334.1562
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerup",
+          "at_ms": 1791257517347.2,
+          "target": "replace",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257517350.5432
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "click",
+          "at_ms": 1791257517347.8,
+          "target": "replace",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257517356.6355
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "child-navigation",
+          "at_ms": 1791257517348.5999,
+          "received_ms": 1791257517359.5251
+        },
+        {
+          "case": "EDIT-REPLACED",
+          "type": "ready",
+          "at_ms": 1791257517368.7998,
+          "received_ms": 1791257517372.0544
+        }
+      ],
+      "acceptance": "正式规划期间子文档导航，旧子text引用零投递预期拒绝通过"
+    }
+  ],
+  "diagnostic_cases": [
+    {
+      "prefix": "BU-INSTALLED-082-FRAME-FOCUS-20261006",
+      "message_id": "msg-1791257308362-user",
+      "run_id": "run-chat-f67b3b00e33779af7bcf5c93b84217642decfc2386000724",
+      "run_state": "completed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 144,
+          "prompt_bytes": 2709
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791257308362-2-tool-a80ef65d03f68629c044c23f717f0a3bdd87edd83a1dab9fc61927e48a2bfb7e",
+        "provider_tool_call_id": "tool-a80ef65d03f68629c044c23f717f0a3bdd87edd83a1dab9fc61927e48a2bfb7e",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"72ab7699af2480c5479fa964f962d163\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":33,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":33,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"0f299c9e0281d3ce3a17d7f4c2c40023\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":39,\"nodes\":[{\"index\":7,\"name\":\"子输入：竹林-82焦点-82；子提交次数：1；父输入：主页面-82\",\"role\":\"StaticText\"}],\"title\":\"082 Frame文本与键盘\",\"truncated\":false,\"url\":\"http://127.0.0.1:52137/edit.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:52137/edit.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:ca1b84fb4e0e13b429a7624826b3be5a",
+          "native-ax:1:0",
+          "native-observation:ca1b84fb4e0e13b429a7624826b3be5a",
+          "native-input:d3c6c336c1d4794222ffe287c2178185",
+          "native-ax:1:0",
+          "native-observation:0f299c9e0281d3ce3a17d7f4c2c40023",
+          "native-ax:1:0",
+          "native-observation:0f299c9e0281d3ce3a17d7f4c2c40023",
+          "native-ax:1:0",
+          "native-observation:72ab7699af2480c5479fa964f962d163"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791258208362
+            }
+          },
+          "cu_deadline_ms": 1791257927534,
+          "cu_deadline_established_at_ms": 1791257327534,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "text_input",
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "started_at_ms": 1791257331137,
+          "completed_at_ms": 1791257333211
+        }
+      ],
+      "events_this_run": [
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerdown",
+          "at_ms": 1791257313855.7,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257313883.441
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "focusin",
+          "at_ms": 1791257313856.7,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257313884.741
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerup",
+          "at_ms": 1791257313883.8,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257313887.8743
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "click",
+          "at_ms": 1791257313884.3,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257313889.4731
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "input",
+          "at_ms": 1791257333195.9001,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": "竹林-82焦点-82",
+          "received_ms": 1791257333199.5474
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerdown",
+          "at_ms": 1791257333523.4,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257333525.8167
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257333524.0999,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257333527.9329
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerup",
+          "at_ms": 1791257333540.5,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257333542.9658
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "click",
+          "at_ms": 1791257333540.9,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257333544.787
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257333541.3,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257333547.6636
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "parent-focused",
+          "at_ms": 1791257333541.5999,
+          "received_ms": 1791257333548.2664
+        }
+      ],
+      "acceptance": "正式时序未命中：模型文本先投递，普通UI后移走焦点；不计焦点负例通过"
+    },
+    {
+      "prefix": "BU-INSTALLED-082-FRAME-FOCUS2-20261006",
+      "message_id": "msg-1791257367292-user",
+      "run_id": "run-chat-7b33e23bbb61ea933cb0f0be5a347e16d024ed7301f5cf6a",
+      "run_state": "failed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 146,
+          "prompt_bytes": 2710
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791257367293-3-tool-75413794c994b0d2c7c8fb4e13d8895dee528fbaf2ff976baa73c687b0ae1cad",
+        "provider_tool_call_id": "tool-75413794c994b0d2c7c8fb4e13d8895dee528fbaf2ff976baa73c687b0ae1cad",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "planner stopped before all success criteria were verified",
+        "error": {
+          "code": "verification_failed",
+          "message": "planner stopped before all success criteria were verified",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:edd7a337772ab714662a913fb1215bd7",
+          "native-ax:1:0",
+          "native-observation:edd7a337772ab714662a913fb1215bd7"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791258267293
+            }
+          },
+          "cu_deadline_ms": 1791257985526,
+          "cu_deadline_established_at_ms": 1791257385526,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [],
+      "events_this_run": [
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257370880.9,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257370917.99
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerdown",
+          "at_ms": 1791257370882.1,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257370919.6694
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "focusin",
+          "at_ms": 1791257370882.6,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257370920.349
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "pointerup",
+          "at_ms": 1791257370918.2,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257370922.767
+        },
+        {
+          "case": "EDIT-CHILD",
+          "type": "click",
+          "at_ms": 1791257370918.8,
+          "target": "frame-text",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257370925.061
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerdown",
+          "at_ms": 1791257386989.0999,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257386993.787
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257386989.9,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257386995.0415
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "pointerup",
+          "at_ms": 1791257387006,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257387008.7175
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "click",
+          "at_ms": 1791257387006.4,
+          "target": "move-focus",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257387010.1716
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "focusin",
+          "at_ms": 1791257387006.5999,
+          "target": "parent-input",
+          "isTrusted": true,
+          "key": null,
+          "value": null,
+          "received_ms": 1791257387011.505
+        },
+        {
+          "case": "EDIT-PARENT",
+          "type": "parent-focused",
+          "at_ms": 1791257387007,
+          "received_ms": 1791257387014.7705
+        }
+      ],
+      "acceptance": "正式诊断：复用文本标记，规划器提前停止，零投递；不能计宿主焦点预检通过"
+    }
+  ],
+  "files": [
+    {
+      "file": "BU-INSTALLED-082-FRAME-EDIT-20261006-browser-facts.json",
+      "length": 48878,
+      "sha256": "f168cdd8f8ce4296ded804d37e24ca7975b9228eb129b6eb81c26b27d0727e52"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-FOCUS-20261006-browser-facts.json",
+      "length": 36496,
+      "sha256": "a5e45f611cf9f253e9bc6196e792a9a34f1752b5eb7f7b8546496eb6ece20863"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-FOCUS2-20261006-browser-facts.json",
+      "length": 31526,
+      "sha256": "73297a76969326d18d8ced4949d86f3de7eb9ffe0f3925e80823c5202f7fb9b5"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-FOCUS3-20261006-browser-facts.json",
+      "length": 36064,
+      "sha256": "fb16e6d15fa655f185f5ba91c5802b6de801f34cb8796eb429921d9d740e031c"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-NAV-20261006-browser-facts.json",
+      "length": 38562,
+      "sha256": "7def50347e70b7399fa01eb06a037ac2f56471f714f59c20734fb3d70d53becb"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-TOP-20261006-browser-facts.json",
+      "length": 40873,
+      "sha256": "eadc4afab8515cd66fa45e70ffc02b899ac87bb75777e1cf55798cc2bbfd075a"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-FOCUS-20261006-planning-window.json",
+      "length": 1150,
+      "sha256": "0019c24346fe2c31769115b2ef37b3791706092416081f6ee28ace8cf5f3b3e8"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-FOCUS2-20261006-planning-window.json",
+      "length": 1150,
+      "sha256": "a1f63abbb9501d02c321662b3ac9db5631202b8a1f690f65a0242d71d9c3898f"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-FOCUS3-20261006-planning-window.json",
+      "length": 1149,
+      "sha256": "0ba50c30707c2964420fb1c1f6b5762cc473cc9e49696dafdbc78cd1ce8687e2"
+    },
+    {
+      "file": "BU-INSTALLED-082-FRAME-NAV-20261006-planning-window.json",
+      "length": 1150,
+      "sha256": "a4a1b902aea9709c1f23ea600bdd8db18c3c4989d6775268426b8dcbfcd899d1"
+    },
+    {
+      "file": "install-082-result.json",
+      "length": 284,
+      "sha256": "7171fa27b8ee20ea40a96ae7d28eed819a4a4e4f136f9799b153cea1c27ba2d0"
+    },
+    {
+      "file": "installed-082-standard-processes.json",
+      "length": 692,
+      "sha256": "a5d52f4d9794fc1eaf2d7cab8eced8a07a91e09b1ca6c13d4304f6f87ff30587"
+    },
+    {
+      "file": "installed-082-verification.json",
+      "length": 1825,
+      "sha256": "3413a0b5a9d7e14d3d74b1ac786870f360a4572fc99752c5ba08c1b2494a03d2"
+    },
+    {
+      "file": "installed-edit-after.jpg",
+      "length": 222813,
+      "sha256": "f6609cde79b541f5f41362cbe77d4f2ed2ca1f3675b17ac5f286135e146de16f"
+    },
+    {
+      "file": "installed-edit-before.jpg",
+      "length": 216788,
+      "sha256": "277587772405e98b3e927bd8ddabd78af7719401247c0902d00444e3b19af90e"
+    },
+    {
+      "file": "installed-edit-request.txt",
+      "length": 1117,
+      "sha256": "2f6c868ba30e54f493db55322b4ea836c7d1c0c7f71f597c1c26a584ed224fa4"
+    },
+    {
+      "file": "installed-focus-after.jpg",
+      "length": 214376,
+      "sha256": "08af54cc97b3eefeae05415f495edb9f76758ae767a742e7aeee3ae27d64236a"
+    },
+    {
+      "file": "installed-focus-before.jpg",
+      "length": 218109,
+      "sha256": "d0c1d173dbb440c933172b7e8fe5a1489dc6c844e0c3958b72ce2e3e66633fec"
+    },
+    {
+      "file": "installed-focus-request.txt",
+      "length": 956,
+      "sha256": "15685ea3b0875f847e75e0dfd1abf9bb653a095921f20040e5bac04af20abde2"
+    },
+    {
+      "file": "installed-focus-switched.jpg",
+      "length": 226781,
+      "sha256": "da6920b40ec4b081481558545d8d3f06928a87a58bb26c3d579c4d0a7c48b7cc"
+    },
+    {
+      "file": "installed-focus2-after.jpg",
+      "length": 199386,
+      "sha256": "f0e4abde54035e6c8cd34496d083099b211a96a11d07fc5d92e7b39a8b87a11f"
+    },
+    {
+      "file": "installed-focus2-before.jpg",
+      "length": 214376,
+      "sha256": "08af54cc97b3eefeae05415f495edb9f76758ae767a742e7aeee3ae27d64236a"
+    },
+    {
+      "file": "installed-focus2-request.txt",
+      "length": 957,
+      "sha256": "aa29b5a4717fe88b0afd4034c0f8180338b1a0f598850e6ac8467406e947872c"
+    },
+    {
+      "file": "installed-focus2-switched.jpg",
+      "length": 228418,
+      "sha256": "6d16e49d37c43b1995798a35ade4934bbf722ed6179095e3b2857ca987b36ba6"
+    },
+    {
+      "file": "installed-focus3-after.jpg",
+      "length": 206523,
+      "sha256": "ef51374315bc4f1a4125cbe93852fb1d6666892c0315cbdbaa5067a4bd68b8be"
+    },
+    {
+      "file": "installed-focus3-before.jpg",
+      "length": 199386,
+      "sha256": "f0e4abde54035e6c8cd34496d083099b211a96a11d07fc5d92e7b39a8b87a11f"
+    },
+    {
+      "file": "installed-focus3-request.txt",
+      "length": 963,
+      "sha256": "d40eed897ebbd5f8165eb6b9340d416d2a92c7572d61704a8170a1b208dfce8e"
+    },
+    {
+      "file": "installed-focus3-switched.jpg",
+      "length": 228460,
+      "sha256": "315d1bd943bb24a85359faa9988b42fee032716091001b4eb27df0efa65048ef"
+    },
+    {
+      "file": "installed-nav-after.jpg",
+      "length": 204515,
+      "sha256": "97b97b2812189e4d6e26849de029e99f626ac0f93f17a5dbcb1ccba1c224f23d"
+    },
+    {
+      "file": "installed-nav-before.jpg",
+      "length": 206523,
+      "sha256": "ef51374315bc4f1a4125cbe93852fb1d6666892c0315cbdbaa5067a4bd68b8be"
+    },
+    {
+      "file": "installed-nav-request.txt",
+      "length": 963,
+      "sha256": "cf3acc5bcb04be984ba09f5714c5d0e3332d6fe96556f049252c94ab5ac6b541"
+    },
+    {
+      "file": "installed-nav-switched.jpg",
+      "length": 230120,
+      "sha256": "799b3f352745aaad2f5b96a8eddc206a541dfc6b3c9953d0eadc87ae010798d7"
+    },
+    {
+      "file": "installed-top-after.jpg",
+      "length": 218109,
+      "sha256": "d0c1d173dbb440c933172b7e8fe5a1489dc6c844e0c3958b72ce2e3e66633fec"
+    },
+    {
+      "file": "installed-top-before.jpg",
+      "length": 222813,
+      "sha256": "f6609cde79b541f5f41362cbe77d4f2ed2ca1f3675b17ac5f286135e146de16f"
+    },
+    {
+      "file": "installed-top-request.txt",
+      "length": 960,
+      "sha256": "52cc39c440648abe05eda5b6c21d10aa67c7223ec480f183e9bd72e7fc8d8336"
+    },
+    {
+      "file": "package-082-verification.json",
+      "length": 1810,
+      "sha256": "065a7bc82b9dcf67d23e7fcca86ed0303a8c233ff05e5ba561bedceffafba1ce"
+    },
+    {
+      "file": "server-address.json",
+      "length": 72,
+      "sha256": "73e3fd74e7f669580705fc74e9da4654117387fc4d54b7013b224d4b959e5948"
+    },
+    {
+      "file": "server-identity-verified.json",
+      "length": 720,
+      "sha256": "0f7cbb441237e03e7997e4fd5b4c6cecfb67246ac759473a41e006ef5dd70a64"
+    },
+    {
+      "file": "server-process.json",
+      "length": 85,
+      "sha256": "bd6d3170b6be79bfa61af78ef8b5122acadfd567ac400b48b0edff1d6591b218"
+    },
+    {
+      "file": "server.py",
+      "length": 4496,
+      "sha256": "b4536ee29d14b07b57c4af4dd9ddaae9387ce6ba79401fdf390fa2dcb7b1b34e"
+    }
+  ],
+  "limits": [
+    "预期拒绝的父运行是failed，不计模型目标达成；真实UI准备输入与模型派发分别看待"
+  ]
+}
