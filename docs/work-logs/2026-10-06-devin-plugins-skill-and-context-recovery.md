@@ -124,3 +124,8 @@ PR83已远端合并，PR84承接。683源码push成功、PR检查首次并发开
 ## 同进程iframe候选实施
 
 按先行方案新增宿主document模块与私有scope绑定，不混子文档和普通children，不开放任意CDP/JS或新增权限。offline Web/外壳build及70外壳检查通过。原SWE/veiled-anise真实子click父0子1sent/released、父误击零输入、规划期间子Frame单独导航旧引用document_changed/not_sent通过；原错误路线和迟于释放的尝试单独保留，29份证据归档081候选。0.2.81正常打包安装及正式复测尚待完成；跨进程与其它队列继续开放，Opus暂停，不用子Agent。
+
+
+## 0.2.81同进程iframe正式安装与交付
+
+正常六门、1150文件逐一摘要、Windows安装退出0。原SWE-2-medium / veiled-anise正式#359/#360子按钮25.2秒父0子1sent/released；#361/#362父目标34.0秒hit_mismatch零输入；#363/#364真实规划期间仅子Frame导航，32.0秒document_changed零输入，终态排空与上下文续接保持。21份正式原图/台账归档；候选路线失败和迟于释放的切换不追认。d9产品源码两条远端检查success；0.2.81四资产公开预发布及实际tag/SHA核验通过。自有测试进程完整身份核对后结束，原日常工程及安全库正常入口恢复，用户原Qwen选择保留而未发送新请求，两个历史unknown不改。跨进程/子编辑/严格按住导航或关闭及其它总体队列仍开放。详见release-0.2.81交接；Opus暂停、不用子Agent。

@@ -1,0 +1,26 @@
+{
+  "stage": "0.2.81产品源码两条远端检查成功",
+  "source_commit": "d9ca3e2d56c43647aa90875b2e895b86507b0989",
+  "checks": [
+    {
+      "name": "Web console baseline",
+      "conclusion": "success",
+      "url": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37404157686/job/112077850485"
+    },
+    {
+      "name": "Web console baseline",
+      "conclusion": "success",
+      "url": "https://github.com/coolzhulike/coolzhuagent/actions/runs/37404154807/job/112077841847"
+    }
+  ],
+  "limits": [
+    "后续纯证据文档HEAD检查另核，不用产品源码成功替代"
+  ],
+  "files": [
+    {
+      "file": "checks-d9-full.json",
+      "length": 7194,
+      "sha256": "9a9e6509940292263ac2c330a1e9ac8a9833ab5250b17dd2476a57e2ddbf9020"
+    }
+  ]
+}

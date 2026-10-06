@@ -1,6 +1,6 @@
 # 内置浏览器 iframe 文档绑定的下一步实施方案
 
-同进程子文档click已实施，候选真实SWE验证通过；0.2.81正常打包、安装及正式复测待完成。跨进程子Target及子文档编辑/键盘仍未实施，不能由本轮点击结果外推。以下现状段描述0.2.80修补前的缺口。
+同进程子文档click已实施，0.2.81正常打包、安装及正式原SWE三项复测均已通过；1150文件摘要、正常入口恢复和产品源码两条远端检查也通过。跨进程子Target及子文档编辑/键盘仍未实施，不能由本轮点击结果外推。以下现状段描述0.2.80修补前的缺口。
 
 ## 本轮候选进展
 
@@ -8,7 +8,11 @@
 
 离线Web与桌面壳build通过，桌面壳既有及一项文档边界回归合计70通过。原SWE-2-medium/veiled-anise五轮记录：子点击36.9秒父0子1且sent/released；父误击31.1秒零输入；首次导航测试漏写右栏原生浏览器，实际走外部扩展路线并在观察前拒绝，保留为测试失败；第二次切换晚于点击释放，验证期间旧证明撤销；第三次规划期间仅子Frame导航，document_changed、steps0、not_sent，父子0，输入前旧引用拒绝通过。截图、真实事件与时间先后见[候选证据](../../testing/release-0.2.81/candidate-iframe/manifest.json)。候选不计正式验收；没有向远端塞模型回复夹具或添加宿主延迟。
 
-## 现状与缺口
+## 正式完成范围
+
+正式子按钮点击25.2秒父0子1、sent/released；父误击34.0秒零输入；真实规划期间仅子Frame导航后32.0秒document_changed、steps0/not_sent，旧引用输入前拒绝。原SWE-2-medium / veiled-anise终态排空与续接保持。生产者原始报告、安装包发布和实操截图见[081正式报告](../../testing/release-0.2.81/change-report-and-test-handoff.md)。后两项是预期拒绝，不是模型目标达成。候选失败原记录保留。跨进程与子编辑/键盘/滚动，以及按住期间导航仍未验收。
+
+## 0.2.80历史现状与缺口
 
 native_browser_observation只采顶层Frame的AX；native_browser_dom明确忽略contentDocument。native_browser_nodes的DocumentIdentity包含顶层frame_id/loader_id/backend_root，NodeBinding只有backend节点、角色和名称。执行与命中验证均把目标归于顶层frame。此设计保护已实现的顶层/开放Shadow输入，但无法为iframe内部提供独立可执行引用；不能通过放开frameId条件或把子文档挂进普通children来修复。
 
