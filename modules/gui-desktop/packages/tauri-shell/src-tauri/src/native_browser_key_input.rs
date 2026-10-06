@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager};
 use super::{native_browser_devtools::{self, ReadMethod}, native_browser_target::VerifiedTarget};
 
 pub(super) const READ_FOCUS: &str = r#"function(){
+ if(!this.ownerDocument.hasFocus())return null;
  const tag=this.tagName;const kind=tag==='INPUT'?this.type:tag.toLowerCase();
  if(!this.isConnected||this.ownerDocument.activeElement!==this||this.disabled||this.readOnly||
     !['SELECT','INPUT','BUTTON','TEXTAREA','A'].includes(tag)||
@@ -24,7 +25,6 @@ fn state(raw:&Value)->Result<Value,String> {
 
 pub(super) async fn verify(app:&AppHandle,resource:&PanelResource,target:&PanelClickTarget)->Result<VerifiedTarget,String> {
     let mut verified=super::native_browser_target::verify(app,resource,&target.observation_id,&target.document_token,&target.node_id).await?;
-    if !verified.node.scope.is_top() {return Err("native_browser_frame_operation_unsupported".into());}
     let object=super::native_browser_editor::resolve(app,&verified).await?;
     let focus=native_browser_devtools::read(app,resource,ReadMethod::FocusedTargetState(object.clone())).await.and_then(|v|state(&v));
     let _=native_browser_devtools::read(app,resource,ReadMethod::ReleaseEditor(object)).await;
@@ -81,7 +81,10 @@ pub(super) async fn press(app:&AppHandle,target:VerifiedTarget,keys:Vec<String>,
                     })).into();ack
                 };
                 let down=make_ack(true);let up=make_ack(false);let method=CoTaskMemPWSTR::from("Input.dispatchKeyEvent");
-                let params=CoTaskMemPWSTR::from(serde_json::json!({"type":"rawKeyDown","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0}).to_string().as_str());
+                // Enter的默认表单行为需要字符阶段；keyDown携带回车文本，由浏览器按协议处理。
+                let mut press=serde_json::json!({"type":"rawKeyDown","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0});
+                if key=="Enter" {press["type"]="keyDown".into();press["text"]="\r".into();press["unmodifiedText"]="\r".into();}
+                let params=CoTaskMemPWSTR::from(press.to_string().as_str());
                 let down_queued=unsafe {callback_core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*params.as_ref().as_pcwstr(),&down)}.is_ok();
                 // 不等待按下回执；同一 UI 闭包总是尝试释放，包括按下入队失败时。
                 let params=CoTaskMemPWSTR::from(serde_json::json!({"type":"keyUp","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0}).to_string().as_str());

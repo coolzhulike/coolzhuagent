@@ -13,6 +13,24 @@ pub(super) fn operable_document_nodes(tree: &Value) -> HashSet<i64> {
     tree.get("root").map(operable_root_nodes).unwrap_or_default()
 }
 
+/// CDP的有限深度采样不能把缺失的后代报告成完整文档；各Frame单独计算。
+pub(super) fn root_is_partial(root: &Value) -> bool {
+    let mut found = HashSet::new();
+    let mut pending = vec![root];
+    while let Some(node) = pending.pop() {
+        if found.len() >= NODE_LIMIT { return true; }
+        let Some(id) = node["backendNodeId"].as_i64().filter(|id| *id > 0) else { return true; };
+        if !found.insert(id) { return true; }
+        let children = node["children"].as_array();
+        if node["childNodeCount"].as_u64().unwrap_or(0) > children.map_or(0, |items| items.len()) as u64 {
+            return true;
+        }
+        if let Some(children) = children { pending.extend(children); }
+        pending.extend(open_shadow_roots(node));
+    }
+    false
+}
+
 pub(super) fn operable_root_nodes(root: &Value) -> HashSet<i64> {
     let mut found = HashSet::new();
     let mut pending = vec![root];
@@ -48,6 +66,10 @@ mod tests {
     fn malformed_or_over_budget_trees_do_not_grant_partial_refs() {
         let duplicate = serde_json::json!({"root":{"backendNodeId":1,"children":[{"backendNodeId":1}]}});
         assert!(operable_document_nodes(&duplicate).is_empty());
+        assert!(root_is_partial(&duplicate["root"]));
+        let omitted = serde_json::json!({"backendNodeId":1,"childNodeCount":1});
+        assert!(root_is_partial(&omitted));
+        assert!(!root_is_partial(&serde_json::json!({"backendNodeId":1,"childNodeCount":0})));
         let children: Vec<_> = (2..=NODE_LIMIT as i64+1).map(|id|serde_json::json!({"backendNodeId":id})).collect();
         let large = serde_json::json!({"root":{"backendNodeId":1,"children":children}});
         assert!(operable_document_nodes(&large).is_empty());

@@ -5,6 +5,7 @@ use super::{native_browser_devtools::{self,ReadMethod},native_browser_target::Ve
 
 // 不接受请求提供的脚本；副作用保护拒绝页面自定义getter等无法证明只读的行为。
 pub(super) const READ_EDITOR: &str = r#"function(){
+ if(!this.ownerDocument.hasFocus())return null;
  const tag=this.tagName;const kind=tag==='INPUT'?this.type:'textarea';
  if(!this.isConnected||this.ownerDocument.activeElement!==this||this.disabled||this.readOnly||
     !(tag==='TEXTAREA'||(tag==='INPUT'&&(kind==='text'||kind==='search'))))return null;
@@ -15,7 +16,12 @@ pub(super) const READ_EDITOR: &str = r#"function(){
 }"#;
 
 pub(super) fn state(raw:&Value) -> Result<Value,String> {
-    if raw.get("exceptionDetails").is_some() {return Err("native_browser_editor_unavailable".into());}
+    if raw.get("exceptionDetails").is_some() {
+        // 只暴露固定错误类别，不记录网页异常正文、原值或选区。
+        let side_effect = raw.pointer("/exceptionDetails/exception/description").and_then(Value::as_str)
+            .is_some_and(|text| text.contains("Possible side-effect"));
+        return Err(if side_effect {"native_browser_focus_read_side_effect"} else {"native_browser_editor_unavailable"}.into());
+    }
     let value=raw.pointer("/result/value").filter(|v|v.is_object()).ok_or("native_browser_editor_not_focused")?;
     let text=value["value"].as_str().ok_or("native_browser_editor_unavailable")?;
     let start=value["start"].as_u64().ok_or("native_browser_editor_unavailable")?;
@@ -43,7 +49,6 @@ pub(super) async fn read(app:&AppHandle,target:&VerifiedTarget) -> Result<Value,
 
 pub(super) async fn verify(app:&AppHandle,resource:&native_browser_protocol::PanelResource,target:&native_browser_protocol::PanelClickTarget) -> Result<VerifiedTarget,String> {
     let mut verified=super::native_browser_target::verify(app,resource,&target.observation_id,&target.document_token,&target.node_id).await?;
-    if !verified.node.scope.is_top() {return Err("native_browser_frame_operation_unsupported".into());}
     if !matches!(verified.node.role.as_str(),"textbox"|"searchbox") {return Err("native_browser_editor_target_invalid".into());}
     verified.editor=Some(read(app,&verified).await?);
     Ok(verified)

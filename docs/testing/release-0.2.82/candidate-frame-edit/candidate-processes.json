@@ -1,0 +1,13 @@
+﻿{
+    "web_sha256":  "22ee2cadc9eb507cf53863b71a96752d3629047b048f9e14d70a39569f3f1ae2",
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "shell_started":  "2026-10-06T03:06:36.7452807Z",
+    "web_started":  "2026-10-06T03:06:35.8700913Z",
+    "web_pid":  5800,
+    "shell_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-frame-edit\\bin\\coolzhu-tauri-shell.exe",
+    "shell_pid":  13180,
+    "web_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-frame-edit\\bin\\coolzhu-web-console.exe",
+    "port":  8765,
+    "stage":  "同源Frame编辑候选，尚未正式打包安装",
+    "shell_sha256":  "45a404b4f53c85018077b4b49c47c21d1e68452b9344f415864170b455c467de"
+}

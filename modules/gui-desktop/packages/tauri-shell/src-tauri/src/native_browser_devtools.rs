@@ -20,7 +20,7 @@ impl ReadMethod {
         match self {
             Self::FrameTree => ("Page.getFrameTree", "{}".into()),
             // 只读展开树由document模块核归属，再由dom模块划定单文档范围；封闭根不授予引用。
-            Self::DocumentNodes => ("DOM.getDocument", r#"{"depth":8,"pierce":true}"#.into()),
+            Self::DocumentNodes => ("DOM.getDocument", r#"{"depth":16,"pierce":true}"#.into()),
             Self::Accessibility(frame) => ("Accessibility.getFullAXTree", serde_json::json!({"depth":6,"frameId":frame}).to_string()),
             Self::BoxModel(node) => ("DOM.getBoxModel", serde_json::json!({"backendNodeId":node}).to_string()),
             Self::LayoutMetrics => ("Page.getLayoutMetrics", "{}".into()),

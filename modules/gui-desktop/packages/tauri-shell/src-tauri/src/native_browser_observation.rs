@@ -46,6 +46,7 @@ pub(super) async fn snapshot(app:&AppHandle,resource:&PanelResource) -> Result<(
 
 fn append_frame(page:&mut PageObservation,tree:&serde_json::Value,scope:&DocumentScope,root:&serde_json::Value,
     candidates:&mut Vec<NodeCandidate>,focused:&mut Vec<usize>) -> Result<(),String> {
+    page.truncated |= super::native_browser_dom::root_is_partial(root);
     let operable = operable_root_nodes(root);
     for node in tree["nodes"].as_array().ok_or("native_observation_invalid")? {
         if node["ignored"].as_bool() != Some(false) { continue; }
@@ -55,14 +56,14 @@ fn append_frame(page:&mut PageObservation,tree:&serde_json::Value,scope:&Documen
         if page.nodes.len() == 128 { page.truncated = true; break; }
         if scope.is_top() && role == "RootWebArea" && page.title.is_empty() { page.title = name.clone(); }
         let index = page.nodes.len();
-        // 子Frame初期只提供click目标；编辑、键盘、滚动和导航仍单独验收。
+        // 子Frame可引用自身编辑控件；滚动和导航仍只允许顶层RootWebArea。
         let supported = if scope.is_top() {
             ["RootWebArea","button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str())
-        } else { ["button","link","checkbox","radio"].contains(&role.as_str()) };
+        } else { ["button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str()) };
         if supported && node["frameId"].as_str().is_none_or(|frame| frame == scope.document().frame_id) {
             if let Some(backend_node) = node["backendDOMNodeId"].as_i64().filter(|id| operable.contains(id)) {
                 candidates.push(NodeCandidate {index,backend_node,role:role.clone(),name:name.clone(),scope:scope.clone()});
-                if scope.is_top() && focused_editor(node,&role) { focused.push(index); }
+                if focused_editor(node,&role) { focused.push(index); }
             }
         }
         page.nodes.push(ObservedNode {role,name});
