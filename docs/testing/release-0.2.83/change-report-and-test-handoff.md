@@ -45,3 +45,7 @@
 ## 产品来源远端检查和逐轮耗时
 
 冻结产品来源0b的push/PR两路Web console baseline均已完成success，原始API响应见[evidence/remote-checks/source-0b](evidence/remote-checks/source-0b/manifest.json)。不将来源检查外推为后续文档HEAD的结果。正式五轮耗时依次为22.8、42.8、18.1、40.5、41.6秒。既有工程回归可包含隔离夹具；本版五项模型实操均为原SWE真实会话。正常日常入口恢复截图可能显示用户原Qwen历史聊天室，恢复仅做启动核验，没有切换实操模型或发送Qwen请求。
+
+## GitHub分发
+
+[0.2.83预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.83)已公开，四个分发资产服务端长度/SHA与本地一致，实际标签绑定0b冻结来源；见[evidence/github-release-verification.json](evidence/github-release-verification.json)。用户桌面dist保留相同安装包和摘要文件。PR84继续承接后续工作，未自动合并。

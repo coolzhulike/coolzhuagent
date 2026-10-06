@@ -33,3 +33,5 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 082已公开预发布，四资产服务端摘要及实际标签587核验通过；出包后纯测试修正61a两路远端检查均success。当前桌面正常启动为082，下一优先项为同进程子Frame滚动。
 
 0.2.83正常安装五项子滚动实操通过，原SWE续接、真实截图/事件/回执、完整包身份和日常恢复见[083交接](../../testing/release-0.2.83/change-report-and-test-handoff.md)。仅闭环同源同进程上下滚动，跨来源/OOP及其余总体队列仍开放。另复核浏览器保留标签标题与实际URL的状态同步。
+
+0.2.83已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.83)：四个分发资产服务端长度/SHA256与本地匹配，实际tag绑定冻结产品0b；正常日常桌面入口已核验为083、原工程和原安全库。来源CI两路success，后续文档/新修补HEAD另核。公开核验见[服务端记录](../../testing/release-0.2.83/evidence/github-release-verification.json)。

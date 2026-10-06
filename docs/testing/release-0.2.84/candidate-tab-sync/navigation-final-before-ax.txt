@@ -1,0 +1,1096 @@
+Window: "COOLZHU AGENT 控制台", App: coolzhu-tauri-shell.exe.
+	0 窗口 COOLZHU AGENT 控制台 Secondary Actions: Raise
+		1090 窗格
+			1107 窗格 TAB-A 当前地址验证
+				1108 窗格 (disabled)
+				1109 区域 TAB-A 当前地址验证 - Web 内容
+					1110 区域
+						1111 区域
+							1112 区域
+								1113 区域
+								1114 区域
+									1115 区域
+										1116 区域
+											1117 区域
+												1118 区域
+												1119 文档 TAB-A 当前地址验证 Value: http://127.0.0.1:60103/tab-a.html ID: RootWebArea
+													1120 标题 TAB-A
+													1121 文本 真实独立HTML页面，页签和地址栏应与本页路径一致。
+													1122 链接 切换到另一页面 Value: http://127.0.0.1:60103/tab-b.html
+								1123 区域
+						1124 区域
+						1125 区域
+		1 窗格
+			2 窗格 COOLZHU CODE 控制台
+				3 窗格 (disabled)
+				4 区域 COOLZHU CODE 控制台 - Web 内容
+					5 区域
+						6 区域
+							7 区域
+								8 区域
+								9 区域
+									10 区域
+										11 区域
+											12 区域
+												13 区域
+												14 文档 COOLZHU CODE 控制台 Value: http://127.0.0.1:8765/ ID: RootWebArea
+													83 组
+														15 主要 COOLZHU CODE 控制台
+															16 区域 顶部状态区
+																17 区域 COOLZHU
+																	18 文本 COOLZHU
+																19 文章 发送对象与工作区
+																	20 图表 当前 Agent 头像
+																	21 文本 发送对象
+																	22 按钮 选择发送对象。将发送给：Devin SWE-2 真实CU验收 (swe-2-medium) Description: 将发送给：Devin SWE-2 真实CU验收 (swe-2-medium)
+																		84 组 Description: 当前发送对象：Devin SWE-2 真实CU验收 (swe-2-medium)
+																	23 文本 工程目录
+																	24 按钮 切换工程目录 Description: 切换工程目录：C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\tmp\2026-10-04-devin-models\workspace
+																25 区域 当前聊天室与状态
+																	26 文本 当前聊天室
+																	27 按钮 切换当前聊天室 Description: 切换当前聊天室
+																	28 详细信息 当前聊天室权限
+																		29 开合三角标记 权限 完全访问
+																			30 文本 权限
+																			1069 文本 完全访问
+																	32 组 聊天室状态
+																		33 图形 系统健康：异常 Description: 系统健康：异常
+																		87 图形 系统警示：任务异常 Description: 系统警示：任务异常
+															34 区域 多窗口工作台
+																35 补充 快捷功能栏
+																	36 导航 快捷功能
+																		37 切换按钮 首页 Description: 首页
+																		38 切换按钮 定时任务 Description: 定时任务
+																		39 切换按钮 设置 Description: 设置
+																		40 切换按钮 统计信息 Description: 统计信息
+																		41 切换按钮 微信连接 Description: 微信连接
+																		42 详细信息
+																			43 开合三角标记 更多快捷功能 Description: 更多
+																	44 切换按钮 升级更新 Description: 升级更新
+																45 文章 聊天室窗口
+																	46 按钮 搜索聊天记录与消息索引 Description: 搜索聊天记录与消息索引
+																	47 按钮 查看运行轨迹与安全详情 Description: 查看运行轨迹与安全详情
+																	89 按钮 打开已保留的预览标签 (2) Description: 打开已保留的预览标签 (2)
+																	86 组
+																		91 文章
+																			92 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			93 文本 任务失败（终态回执
+																			94 文本 status: blocked
+																			95 文本 ）：
+																			96 文本 
+																			97 文本 
+																			98 文本 -
+																			99 文本 错误
+																			100 文本 ：
+																			101 文本 native_browser_document_changed
+																			102 文本 — "节点预检拒绝，未发送输入"
+																			103 文本 
+																			104 文本 -
+																			105 文本 动作回执
+																			106 文本 ：
+																			107 文本 input_delivery: not_sent
+																			108 文本 ，
+																			109 文本 effect: not_observed
+																			110 文本 ，
+																			111 文本 partial: false
+																			112 文本 ，attempts=1、steps_completed=0
+																			113 文本 
+																			114 文本 -
+																			115 文本 retryable
+																			116 文本 : false
+																			117 文本 
+																			118 文本 
+																			119 文本 子文档身份已改变，宿主按约束拒绝发送点击，未改用 IFRAME-REPLACED 同名按钮；无"原IFRAME-CHILD计数1且父次数0"证据。按要求不重试、不补发，本轮结束。
+																			120 time
+																				121 文本 10:36:30
+																				1015 文本 #364 · 本轮 32.0 秒
+																		122 文章
+																			123 文本 BU-CANDIDATE-082-FRAME-EDIT-20261006：继续原SWE-2远端上下文，仅执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前同源iframe子文档内单击Frame输入框，输入竹林-82，再按Enter提交子表单一次","surface":"browser","target":{"url":"
+																			124 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			125 文本 "},"success_criteria":["最新来源页面子输入为竹林-82，子提交次数1，父输入为空"],"constraints":["只操作当前右栏原生浏览器；最多一次点击Frame输入框、一次text输入竹林-82、一次enter键；必须使用每一步本轮新鲜的子文档控件引用，禁止父页面输入框、禁止单击提交子表单按钮、禁止切换子页面、禁止移走子页面焦点；不导航、不滚动、不用桌面、其它工具或Devin原生工具；不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":3}。若running只wait同一job_id到终态，按真实宿主文本投递、按键释放回执和最新页面如实报告，不得代执行或推断成功。
+																			126 time
+																				127 文本 10:48:24
+																				1016 文本 #365
+																		128 文章
+																			129 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			130 文本 任务失败（终态回执
+																			131 文本 status: blocked
+																			132 文本 ）：
+																			133 文本 
+																			134 文本 
+																			135 文本 -
+																			136 文本 错误
+																			137 文本 ：
+																			138 文本 verification_failed
+																			139 文本 — "planner stopped before all success criteria were verified"
+																			140 文本 
+																			141 文本 -
+																			142 文本 阶段
+																			143 文本 ：verification，attempts=0、steps_completed=0，未发送任何输入（未点击、未输入、未按键）
+																			144 文本 
+																			145 文本 -
+																			146 文本 retryable
+																			147 文本 : false
+																			148 文本 
+																			149 文本 
+																			150 文本 页面无"子输入为竹林-82，子提交次数1，父输入为空"的证据。按要求不重试、不补发，本轮结束。
+																			151 time
+																				152 文本 10:49:04
+																				1017 文本 #366 · 本轮 39.8 秒
+																		153 文章
+																			154 文本 BU-CANDIDATE-082-FRAME-EDIT2-20261006：继续原SWE-2远端上下文，仅执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前同源iframe子文档内单击Frame输入框，输入竹林-82，再按Enter提交子表单一次","surface":"browser","target":{"url":"
+																			155 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			156 文本 "},"success_criteria":["最新来源页面子输入为竹林-82，子提交次数1，父输入为空"],"constraints":["只操作当前右栏原生浏览器；最多一次点击Frame输入框、一次text输入竹林-82、一次enter键；必须使用每一步本轮新鲜的子文档控件引用，禁止父页面输入框、禁止单击提交子表单按钮、禁止切换子页面、禁止移走子页面焦点；不导航、不滚动、不用桌面、其它工具或Devin原生工具；不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":3}。若running只wait同一job_id到终态，按真实宿主文本投递、按键释放回执和最新页面如实报告，不得代执行或推断成功。
+																			157 time
+																				158 文本 10:54:15
+																				1018 文本 #367
+																		159 文章
+																			160 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			161 文本 任务失败（终态回执
+																			162 文本 status: blocked
+																			163 文本 ）：
+																			164 文本 
+																			165 文本 
+																			166 文本 -
+																			167 文本 错误
+																			168 文本 ：
+																			169 文本 native_browser_editor_unavailable
+																			170 文本 — "节点预检拒绝，未发送输入"
+																			171 文本 
+																			172 文本 -
+																			173 文本 阶段
+																			174 文本 ：execution，attempts=2、steps_completed=1
+																			175 文本 
+																			176 文本 -
+																			177 文本 关键事实
+																			178 文本 ：回执含一条
+																			179 文本 native-input
+																			180 文本 记录（已投递一次输入，大概率为点击输入框），随后文本/按键动作被预检拒绝（
+																			181 文本 input_delivery: not_sent
+																			182 文本 ，
+																			183 文本 effect: not_observed
+																			184 文本 ）；
+																			185 文本 partial: false
+																			186 文本 指被拒动作无部分效果
+																			187 文本 
+																			188 文本 -
+																			189 文本 retryable
+																			190 文本 : false
+																			191 文本 
+																			192 文本 
+																			193 文本 未取得"子输入为竹林-82，子提交次数1，父输入为空"的页面证据，目标未验证。按要求不重试、不补发，本轮结束。
+																			194 time
+																				195 文本 10:55:16
+																				1019 文本 #368 · 本轮 1 分 1 秒
+																		196 文章
+																			197 文本 BU-CANDIDATE-082-FRAME-EDIT3-20261006：继续原SWE-2上下文，只执行本条新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前同源iframe中点击Frame输入框一次，再输入竹林-82一次","surface":"browser","target":{"url":"
+																			198 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			199 文本 "},"success_criteria":["最新页面子输入为竹林-82，子提交次数0，父输入为空"],"constraints":["最多一次点击子Frame输入框和一次text输入竹林-82；每步使用新鲜子文档引用；禁止其它输入框、提交、按键、导航、滚动、切换焦点、桌面和Devin工具；失败或输入未知立即停止，不重试不补发，不执行历史请求"],"max_actions":2}。running只wait同一job_id至终态。如实报告宿主回执及网页，不推断成功。
+																			200 time
+																				201 文本 10:58:18
+																				1020 文本 #369
+																		202 文章
+																			203 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			204 文本 任务失败（终态回执
+																			205 文本 status: blocked
+																			206 文本 ）：
+																			207 文本 
+																			208 文本 
+																			209 文本 -
+																			210 文本 错误
+																			211 文本 ：
+																			212 文本 extension_unavailable
+																			213 文本 — "Coolzhu browser extension/native host is not connected"
+																			214 文本 
+																			215 文本 -
+																			216 文本 阶段
+																			217 文本 ：observation，attempts=0，未发送任何输入
+																			218 文本 
+																			219 文本 -
+																			220 文本 retryable
+																			221 文本 : false（retry_owner: user）
+																			222 文本 
+																			223 文本 
+																			224 文本 浏览器扩展/原生宿主未连接，本轮未执行任何页面操作，无子输入证据。按要求不重试、不补发，本轮结束。
+																			225 time
+																				226 文本 10:58:44
+																				1021 文本 #370 · 本轮 27.1 秒
+																		227 文章
+																			228 文本 BU-CANDIDATE-082-FRAME-EDIT4-20261006：继续原SWE-2上下文，只执行本条新任务。只操作当前右栏原生浏览器。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前同源iframe中点击Frame输入框一次，再输入竹林-82一次","surface":"browser","target":{"url":"
+																			229 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			230 文本 "},"success_criteria":["最新页面子输入为竹林-82，子提交次数0，父输入为空"],"constraints":["最多一次点击子Frame输入框和一次text输入竹林-82；每步使用新鲜子文档引用；禁止其它输入框、提交、按键、导航、滚动、切换焦点、桌面和Devin工具；失败或输入未知立即停止，不重试不补发，不执行历史请求"],"max_actions":2}。running只wait同一job_id至终态。如实报告宿主回执及网页，不推断成功。
+																			231 time
+																				232 文本 11:00:21
+																				1022 文本 #371
+																		233 文章
+																			234 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			235 文本 任务失败（终态回执
+																			236 文本 status: blocked
+																			237 文本 ）：
+																			238 文本 
+																			239 文本 
+																			240 文本 -
+																			241 文本 错误
+																			242 文本 ：
+																			243 文本 native_browser_focus_read_side_effect
+																			244 文本 — "节点预检拒绝，未发送输入"
+																			245 文本 
+																			246 文本 -
+																			247 文本 阶段
+																			248 文本 ：execution，attempts=2、steps_completed=1
+																			249 文本 
+																			250 文本 -
+																			251 文本 关键事实
+																			252 文本 ：回执含一条
+																			253 文本 native-input
+																			254 文本 记录（一次输入已投递，大概率为点击），后续文本输入被预检拒绝（
+																			255 文本 input_delivery: not_sent
+																			256 文本 ，
+																			257 文本 effect: not_observed
+																			258 文本 ）
+																			259 文本 
+																			260 文本 -
+																			261 文本 retryable
+																			262 文本 : false
+																			263 文本 
+																			264 文本 
+																			265 文本 未取得"子输入为竹林-82，子提交次数0，父输入为空"的页面证据，目标未验证。按要求不重试、不补发，本轮结束。
+																			266 time
+																				267 文本 11:01:24
+																				1023 文本 #372 · 本轮 1 分 2 秒
+																		268 文章
+																			269 文本 BU-CANDIDATE-082-FRAME-EDIT5-20261006：继续原SWE-2远端上下文，仅执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前同源iframe子文档内单击Frame输入框，输入竹林-82，再按Enter提交子表单一次","surface":"browser","target":{"url":"
+																			270 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			271 文本 "},"success_criteria":["最新来源页面子输入为竹林-82，子提交次数1，父输入为空"],"constraints":["只操作当前右栏原生浏览器；最多一次点击Frame输入框、一次text输入竹林-82、一次enter键；必须使用每一步本轮新鲜的子文档控件引用，禁止父页面输入框、禁止单击提交子表单按钮、禁止切换子页面、禁止移走子页面焦点；不导航、不滚动、不用桌面、其它工具或Devin原生工具；不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":3}。若running只wait同一job_id到终态，按真实宿主文本投递、按键释放回执和最新页面如实报告，不得代执行或推断成功。
+																			272 time
+																				273 文本 11:03:43
+																				1024 文本 #373
+																		274 文章
+																			275 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			276 文本 任务失败（终态回执
+																			277 文本 status: blocked
+																			278 文本 ）：
+																			279 文本 
+																			280 文本 
+																			281 文本 -
+																			282 文本 错误
+																			283 文本 ：
+																			284 文本 budget_exhausted
+																			285 文本 — "computer-use action budget exhausted"（supervisor circuit open）
+																			286 文本 
+																			287 文本 -
+																			288 文本 阶段
+																			289 文本 ：supervisor，attempts=3、steps_completed=3
+																			290 文本 
+																			291 文本 -
+																			292 文本 关键事实
+																			293 文本 ：回执含 3 条
+																			294 文本 native-input
+																			295 文本 记录（点击、文本、按键均已投递）；但最新页面验收（freshness_confirmed=true）显示
+																			296 文本 "子输入：竹林-82；子提交次数：0；父输入：空"
+																			297 文本 —— 子输入与父输入正确，但
+																			298 文本 子提交次数为0
+																			299 文本 （Enter 未产生提交效果），criterion
+																			300 文本 model_unmet
+																			301 文本 ，
+																			302 文本 goal_achieved: false
+																			303 文本 
+																			304 文本 -
+																			305 文本 retryable
+																			306 文本 : false
+																			307 文本 
+																			308 文本 
+																			309 文本 按回执如实报告：文本已写入但提交未生效，目标未达成；按要求不重试、不补发，本轮结束。
+																			310 time
+																				311 文本 11:05:19
+																				1025 文本 #374 · 本轮 1 分 36 秒
+																		312 文章
+																			313 文本 BU-CANDIDATE-082-FRAME-EDIT6-20261006：继续原SWE-2远端上下文，仅执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前同源iframe子文档内单击Frame输入框，输入竹林-82，再按Enter提交子表单一次","surface":"browser","target":{"url":"
+																			314 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			315 文本 "},"success_criteria":["最新来源页面子输入为竹林-82，子提交次数1，父输入为空"],"constraints":["只操作当前右栏原生浏览器；最多一次点击Frame输入框、一次text输入竹林-82、一次enter键；必须使用每一步本轮新鲜的子文档控件引用，禁止父页面输入框、禁止单击提交子表单按钮、禁止切换子页面、禁止移走子页面焦点；不导航、不滚动、不用桌面、其它工具或Devin原生工具；不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":3}。若running只wait同一job_id到终态，按真实宿主文本投递、按键释放回执和最新页面如实报告，不得代执行或推断成功。
+																			316 time
+																				317 文本 11:09:35
+																				1026 文本 #375
+																		318 文章
+																			319 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			320 文本 任务成功（终态回执
+																			321 文本 status: succeeded
+																			322 文本 ，
+																			323 文本 goal_achieved: true
+																			324 文本 ）：
+																			325 文本 
+																			326 文本 
+																			327 文本 -
+																			328 文本 动作
+																			329 文本 ：3 步全部完成（attempts=3，steps_completed=3，含 3 条 native-input 回执：点击输入框、输入文本、Enter 键）
+																			330 文本 
+																			331 文本 -
+																			332 文本 验收
+																			333 文本 ：最新页面观察（freshness_confirmed=true）在
+																			334 文本 http://127.0.0.1:52137/edit.html
+																			335 文本 （标题"082 Frame文本与键盘"）确认 StaticText 显示
+																			336 文本 "子输入：竹林-82；子提交次数：1；父输入：空"
+																			337 文本 ，success_criteria 1/1 满足
+																			338 文本 
+																			339 文本 
+																			340 文本 按宿主回执如实报告：目标达成。
+																			341 time
+																				342 文本 11:11:06
+																				1027 文本 #376 · 本轮 1 分 31 秒
+																		343 文章
+																			344 文本 BU-CANDIDATE-082-FRAME-TOP-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在父页面输入框单击一次，输入主页面-82一次","surface":"browser","target":{"url":"
+																			345 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			346 文本 "},"success_criteria":["最新页面父输入为主页面-82，子输入仍为竹林-82，子提交次数仍为1"],"constraints":["只操作当前右栏原生浏览器；最多一次click父页面输入框和一次text输入主页面-82；每步使用本轮新鲜父文档引用；禁止子文档、提交、按键、其它输入框、切换页面或焦点按钮；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":2}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。
+																			347 time
+																				348 文本 11:11:40
+																				1028 文本 #377
+																		349 文章
+																			350 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			351 文本 任务成功（终态回执
+																			352 文本 status: succeeded
+																			353 文本 ，
+																			354 文本 goal_achieved: true
+																			355 文本 ）：
+																			356 文本 
+																			357 文本 
+																			358 文本 -
+																			359 文本 动作
+																			360 文本 ：2 步完成（attempts=2，steps_completed=2，含 2 条 native-input 回执：点击父输入框、输入文本）
+																			361 文本 
+																			362 文本 -
+																			363 文本 验收
+																			364 文本 ：最新页面观察（freshness_confirmed=true）在
+																			365 文本 http://127.0.0.1:52137/edit.html
+																			366 文本 确认 StaticText 显示
+																			367 文本 "子输入：竹林-82；子提交次数：1；父输入：主页面-82"
+																			368 文本 ，success_criteria 1/1 满足
+																			369 文本 
+																			370 文本 
+																			371 文本 按宿主回执如实报告：目标达成。
+																			372 time
+																				373 文本 11:12:50
+																				1029 文本 #378 · 本轮 1 分 11 秒
+																		374 文章
+																			375 文本 BU-CANDIDATE-082-FRAME-FOCUS-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前已经聚焦的子Frame输入框仅输入焦点-82一次，不点击不聚焦","surface":"browser","target":{"url":"
+																			376 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			377 文本 "},"success_criteria":["最新页面子输入包含焦点-82"],"constraints":["只操作当前右栏原生浏览器；仅一次text输入焦点-82；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若焦点已迁走必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":1}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。
+																			378 time
+																				379 文本 11:13:35
+																				1030 文本 #379
+																		380 文章
+																			381 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			382 文本 任务失败（终态回执
+																			383 文本 status: blocked
+																			384 文本 ）：
+																			385 文本 
+																			386 文本 
+																			387 文本 -
+																			388 文本 错误
+																			389 文本 ：
+																			390 文本 native_browser_editor_not_focused
+																			391 文本 — "节点预检拒绝，未发送输入"
+																			392 文本 
+																			393 文本 -
+																			394 文本 动作回执
+																			395 文本 ：
+																			396 文本 input_delivery: not_sent
+																			397 文本 ，
+																			398 文本 effect: not_observed
+																			399 文本 ，
+																			400 文本 partial: false
+																			401 文本 ，attempts=1、steps_completed=0
+																			402 文本 
+																			403 文本 -
+																			404 文本 retryable
+																			405 文本 : false
+																			406 文本 
+																			407 文本 
+																			408 文本 焦点已迁离子输入框，宿主按约束拒绝发送文本——
+																			409 文本 零投递
+																			410 文本 ，如实报告。无"子输入包含焦点-82"证据。按要求不重试、不补发，本轮结束。
+																			411 time
+																				412 文本 11:14:11
+																				1031 文本 #380 · 本轮 35.6 秒
+																		413 文章
+																			414 文本 BU-CANDIDATE-082-FRAME-NAV-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前已经聚焦的子Frame输入框仅输入导航-82一次，不点击不聚焦","surface":"browser","target":{"url":"
+																			415 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			416 文本 "},"success_criteria":["最新页面子输入包含导航-82"],"constraints":["只操作当前右栏原生浏览器；仅一次text输入导航-82；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若子文档身份已变化必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":1}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。
+																			417 time
+																				418 文本 11:14:44
+																				1032 文本 #381
+																		419 文章
+																			420 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			421 文本 任务失败（终态回执
+																			422 文本 status: blocked
+																			423 文本 ）：
+																			424 文本 
+																			425 文本 
+																			426 文本 -
+																			427 文本 错误
+																			428 文本 ：
+																			429 文本 native_browser_document_changed
+																			430 文本 — "节点预检拒绝，未发送输入"
+																			431 文本 
+																			432 文本 -
+																			433 文本 动作回执
+																			434 文本 ：
+																			435 文本 input_delivery: not_sent
+																			436 文本 ，
+																			437 文本 effect: not_observed
+																			438 文本 ，
+																			439 文本 partial: false
+																			440 文本 ，attempts=1、steps_completed=0
+																			441 文本 
+																			442 文本 -
+																			443 文本 retryable
+																			444 文本 : false
+																			445 文本 
+																			446 文本 
+																			447 文本 子文档身份已变化，宿主按约束拒绝发送文本——
+																			448 文本 零投递
+																			449 文本 ，如实报告。无"子输入包含导航-82"证据。按要求不重试、不补发，本轮结束。
+																			450 time
+																				451 文本 11:15:12
+																				1033 文本 #382 · 本轮 28.2 秒
+																		452 文章
+																			453 文本 BU-INSTALLED-082-FRAME-EDIT-20261006：继续原SWE-2远端上下文，仅执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前同源iframe子文档内单击Frame输入框，输入竹林-82，再按Enter提交子表单一次","surface":"browser","target":{"url":"
+																			454 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			455 文本 "},"success_criteria":["最新来源页面子输入为竹林-82，子提交次数1，父输入为空"],"constraints":["只操作当前右栏原生浏览器；最多一次点击Frame输入框、一次text输入竹林-82、一次enter键；必须使用每一步本轮新鲜的子文档控件引用，禁止父页面输入框、禁止单击提交子表单按钮、禁止切换子页面、禁止移走子页面焦点；不导航、不滚动、不用桌面、其它工具或Devin原生工具；不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":3}。若running只wait同一job_id到终态，按真实宿主文本投递、按键释放回执和最新页面如实报告，不得代执行或推断成功。
+																			456 time
+																				457 文本 11:23:49
+																				1034 文本 #383
+																		458 文章
+																			459 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			460 文本 任务成功（终态回执
+																			461 文本 status: succeeded
+																			462 文本 ，
+																			463 文本 goal_achieved: true
+																			464 文本 ）：
+																			465 文本 
+																			466 文本 
+																			467 文本 -
+																			468 文本 动作
+																			469 文本 ：3 步全部完成（attempts=3，steps_completed=3，含 3 条 native-input 回执：点击输入框、输入文本、Enter 键）
+																			470 文本 
+																			471 文本 -
+																			472 文本 验收
+																			473 文本 ：最新页面观察（freshness_confirmed=true）在
+																			474 文本 http://127.0.0.1:52137/edit.html
+																			475 文本 （标题"082 Frame文本与键盘"）确认 StaticText 显示
+																			476 文本 "子输入：竹林-82；子提交次数：1；父输入：空"
+																			477 文本 ，success_criteria 1/1 满足
+																			478 文本 
+																			479 文本 
+																			480 文本 按宿主回执如实报告：目标达成。
+																			481 time
+																				482 文本 11:25:03
+																				1035 文本 #384 · 本轮 1 分 14 秒
+																		483 文章
+																			484 文本 BU-INSTALLED-082-FRAME-TOP-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在父页面输入框单击一次，输入主页面-82一次","surface":"browser","target":{"url":"
+																			485 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			486 文本 "},"success_criteria":["最新页面父输入为主页面-82，子输入仍为竹林-82，子提交次数仍为1"],"constraints":["只操作当前右栏原生浏览器；最多一次click父页面输入框和一次text输入主页面-82；每步使用本轮新鲜父文档引用；禁止子文档、提交、按键、其它输入框、切换页面或焦点按钮；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":2}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。
+																			487 time
+																				488 文本 11:25:39
+																				1036 文本 #385
+																		489 文章
+																			490 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			491 文本 任务成功（终态回执
+																			492 文本 status: succeeded
+																			493 文本 ，
+																			494 文本 goal_achieved: true
+																			495 文本 ）：
+																			496 文本 
+																			497 文本 
+																			498 文本 -
+																			499 文本 动作
+																			500 文本 ：2 步完成（attempts=2，steps_completed=2，含 2 条 native-input 回执：点击父输入框、输入文本）
+																			501 文本 
+																			502 文本 -
+																			503 文本 验收
+																			504 文本 ：最新页面观察（freshness_confirmed=true）在
+																			505 文本 http://127.0.0.1:52137/edit.html
+																			506 文本 确认 StaticText 显示
+																			507 文本 "子输入：竹林-82；子提交次数：1；父输入：主页面-82"
+																			508 文本 ，success_criteria 1/1 满足
+																			509 文本 
+																			510 文本 
+																			511 文本 按宿主回执如实报告：目标达成。
+																			512 time
+																				513 文本 11:26:33
+																				1037 文本 #386 · 本轮 55.5 秒
+																		514 文章
+																			515 文本 BU-INSTALLED-082-FRAME-FOCUS-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前已经聚焦的子Frame输入框仅输入焦点-82一次，不点击不聚焦","surface":"browser","target":{"url":"
+																			516 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			517 文本 "},"success_criteria":["最新页面子输入包含焦点-82"],"constraints":["只操作当前右栏原生浏览器；仅一次text输入焦点-82；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若焦点已迁走必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":1}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。
+																			518 time
+																				519 文本 11:28:28
+																				1038 文本 #387
+																		520 文章
+																			521 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			522 文本 任务成功（终态回执
+																			523 文本 status: succeeded
+																			524 文本 ，
+																			525 文本 goal_achieved: true
+																			526 文本 ）：
+																			527 文本 
+																			528 文本 
+																			529 文本 -
+																			530 文本 动作
+																			531 文本 ：仅 1 次 text 输入已投递（attempts=1，steps_completed=1，含 native-input 回执，无 click/聚焦动作）
+																			532 文本 
+																			533 文本 -
+																			534 文本 验收
+																			535 文本 ：最新页面观察（freshness_confirmed=true）在
+																			536 文本 http://127.0.0.1:52137/edit.html
+																			537 文本 确认 StaticText 显示
+																			538 文本 "子输入：竹林-82焦点-82；子提交次数：1；父输入：主页面-82"
+																			539 文本 ——子输入包含"焦点-82"，success_criteria 1/1 满足
+																			540 文本 
+																			541 文本 
+																			542 文本 按宿主回执如实报告：目标达成。
+																			543 time
+																				544 文本 11:29:04
+																				1039 文本 #388 · 本轮 36.2 秒
+																		545 文章
+																			546 文本 BU-INSTALLED-082-FRAME-FOCUS2-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前已经聚焦的子Frame输入框仅输入焦点-82一次，不点击不聚焦","surface":"browser","target":{"url":"
+																			547 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			548 文本 "},"success_criteria":["最新页面子输入包含焦点-82"],"constraints":["只操作当前右栏原生浏览器；仅一次text输入焦点-82；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若焦点已迁走必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":1}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。
+																			549 time
+																				550 文本 11:29:27
+																				1040 文本 #389
+																		551 文章
+																			552 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			553 文本 任务失败（终态回执
+																			554 文本 status: blocked
+																			555 文本 ）：
+																			556 文本 
+																			557 文本 
+																			558 文本 -
+																			559 文本 错误
+																			560 文本 ：
+																			561 文本 verification_failed
+																			562 文本 — "planner stopped before all success criteria were verified"
+																			563 文本 
+																			564 文本 -
+																			565 文本 阶段
+																			566 文本 ：verification，attempts=0、steps_completed=0，未发送任何输入（零投递）
+																			567 文本 
+																			568 文本 -
+																			569 文本 retryable
+																			570 文本 : false
+																			571 文本 
+																			572 文本 
+																			573 文本 无可验证的"子输入包含焦点-82"新证据（子输入仍为上轮的"竹林-82焦点-82"，无新增投递）。按要求不重试、不补发，本轮结束。
+																			574 time
+																				575 文本 11:30:01
+																				1041 文本 #390 · 本轮 34.5 秒
+																		576 文章
+																			577 文本 BU-INSTALLED-082-FRAME-FOCUS3-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前已经聚焦的子Frame输入框仅输入焦点-82-3一次，不点击不聚焦","surface":"browser","target":{"url":"
+																			578 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			579 文本 "},"success_criteria":["最新页面子输入包含焦点-82-3"],"constraints":["只操作当前右栏原生浏览器；仅一次text输入焦点-82-3；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若焦点已迁走必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":1}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。
+																			580 time
+																				581 文本 11:30:35
+																				1042 文本 #391
+																		582 文章
+																			583 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			584 文本 任务失败（终态回执
+																			585 文本 status: blocked
+																			586 文本 ）：
+																			587 文本 
+																			588 文本 
+																			589 文本 -
+																			590 文本 错误
+																			591 文本 ：
+																			592 文本 native_browser_editor_not_focused
+																			593 文本 — "节点预检拒绝，未发送输入"
+																			594 文本 
+																			595 文本 -
+																			596 文本 动作回执
+																			597 文本 ：
+																			598 文本 input_delivery: not_sent
+																			599 文本 ，
+																			600 文本 effect: not_observed
+																			601 文本 ，
+																			602 文本 partial: false
+																			603 文本 ，attempts=1、steps_completed=0
+																			604 文本 
+																			605 文本 -
+																			606 文本 retryable
+																			607 文本 : false
+																			608 文本 
+																			609 文本 
+																			610 文本 子输入框未处于聚焦状态，宿主按约束拒绝发送文本——
+																			611 文本 零投递
+																			612 文本 ，如实报告。无"子输入包含焦点-82-3"证据。按要求不重试、不补发，本轮结束。
+																			613 time
+																				614 文本 11:31:07
+																				1043 文本 #392 · 本轮 31.9 秒
+																		615 文章
+																			616 文本 BU-INSTALLED-082-FRAME-NAV-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前已经聚焦的子Frame输入框仅输入导航-82一次，不点击不聚焦","surface":"browser","target":{"url":"
+																			617 链接 http://127.0.0.1:52137/edit.html Value: http://127.0.0.1:52137/edit.html
+																			618 文本 "},"success_criteria":["最新页面子输入包含导航-82"],"constraints":["只操作当前右栏原生浏览器；仅一次text输入导航-82；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若子文档身份已变化必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"],"max_actions":1}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。
+																			619 time
+																				620 文本 11:31:34
+																				1044 文本 #393
+																		621 文章
+																			622 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			623 文本 任务失败（终态回执
+																			624 文本 status: blocked
+																			625 文本 ）：
+																			626 文本 
+																			627 文本 
+																			628 文本 -
+																			629 文本 错误
+																			630 文本 ：
+																			631 文本 native_browser_document_changed
+																			632 文本 — "节点预检拒绝，未发送输入"
+																			633 文本 
+																			634 文本 -
+																			635 文本 动作回执
+																			636 文本 ：
+																			637 文本 input_delivery: not_sent
+																			638 文本 ，
+																			639 文本 effect: not_observed
+																			640 文本 ，
+																			641 文本 partial: false
+																			642 文本 ，attempts=1、steps_completed=0
+																			643 文本 
+																			644 文本 -
+																			645 文本 retryable
+																			646 文本 : false
+																			647 文本 
+																			648 文本 
+																			649 文本 子文档身份已变化，宿主按约束拒绝发送文本——
+																			650 文本 零投递
+																			651 文本 ，如实报告。无"子输入包含导航-82"证据。按要求不重试、不补发，本轮结束。
+																			652 time
+																				653 文本 11:32:10
+																				1045 文本 #394 · 本轮 36.5 秒
+																		654 文章
+																			655 文本 BU-CANDIDATE-083-FRAME-SCROLL-DOWN-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在子文档SCROLL-CHILD向下滚动一次，父页面不滚动","surface":"browser","target":{"url":"
+																			656 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			657 文本 "},"success_criteria":["最新页面子滚动位置大于0，父滚动位置为0"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选SCROLL-CHILD的子RootWebArea，不选父文档"],"max_actions":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。
+																			658 time
+																				659 文本 11:45:11
+																				1046 文本 #395
+																		660 文章
+																			661 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			662 文本 任务成功（终态回执
+																			663 文本 status: succeeded
+																			664 文本 ，
+																			665 文本 goal_achieved: true
+																			666 文本 ）：
+																			667 文本 
+																			668 文本 
+																			669 文本 -
+																			670 文本 动作
+																			671 文本 ：1 次 scroll down 已投递（attempts=1，steps_completed=1，含 native-input 回执）
+																			672 文本 
+																			673 文本 -
+																			674 文本 验收
+																			675 文本 ：最新页面观察（freshness_confirmed=true）在
+																			676 文本 http://127.0.0.1:51911/scroll.html
+																			677 文本 （标题"083 Frame滚动父页面"）确认 StaticText 显示
+																			678 文本 "子滚动位置：120；父滚动位置：0"
+																			679 文本 ——子文档已滚动、父页面未动，success_criteria 1/1 满足
+																			680 文本 
+																			681 文本 
+																			682 文本 按宿主回执如实报告：目标达成。
+																			683 time
+																				684 文本 11:46:02
+																				1047 文本 #396 · 本轮 51.6 秒
+																		685 文章
+																			686 文本 BU-CANDIDATE-083-FRAME-SCROLL-BOUNDARY-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前已到底的子文档SCROLL-CHILD请求一次向下滚动，由宿主判断能否投递","surface":"browser","target":{"url":"
+																			687 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			688 文本 "},"success_criteria":["本轮子页面向下滚动出现新增位置"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选SCROLL-CHILD，已到底仍仅请求本次scroll，由宿主预检报告；禁止改滚父页面或提前声称成功"],"max_actions":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。
+																			689 time
+																				690 文本 11:46:27
+																				1048 文本 #397
+																		691 文章
+																			692 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			693 文本 任务失败（终态回执
+																			694 文本 status: blocked
+																			695 文本 ）：
+																			696 文本 
+																			697 文本 
+																			698 文本 -
+																			699 文本 错误
+																			700 文本 ：
+																			701 文本 native_browser_scroll_boundary
+																			702 文本 — "节点预检拒绝，未发送输入"
+																			703 文本 
+																			704 文本 -
+																			705 文本 动作回执
+																			706 文本 ：
+																			707 文本 input_delivery: not_sent
+																			708 文本 ，
+																			709 文本 effect: not_observed
+																			710 文本 ，
+																			711 文本 partial: false
+																			712 文本 ，attempts=1、steps_completed=0
+																			713 文本 
+																			714 文本 -
+																			715 文本 retryable
+																			716 文本 : false
+																			717 文本 
+																			718 文本 
+																			719 文本 子文档已到底，宿主预检正确拒绝滚动输入（零投递），未改滚父页面；无新增滚动位置证据。按要求不重试、不补发，本轮结束。
+																			720 time
+																				721 文本 11:47:10
+																				1049 文本 #398 · 本轮 43.1 秒
+																		722 文章
+																			723 文本 BU-CANDIDATE-083-FRAME-SCROLL-NAV-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在初次观察的SCROLL-CHILD子文档向下滚动一次","surface":"browser","target":{"url":"
+																			724 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			725 文本 "},"success_criteria":["原SCROLL-CHILD子位置大于0，父滚动位置0"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选初次观察SCROLL-CHILD子RootWebArea；用户可能在规划期间切换子页面，子文档改变必须停止，禁止改用SCROLL-REPLACED新引用或再次观察重试"],"max_actions":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。
+																			726 time
+																				727 文本 11:47:43
+																				1050 文本 #399
+																		728 文章
+																			729 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			730 文本 任务失败（终态回执
+																			731 文本 status: blocked
+																			732 文本 ）：
+																			733 文本 
+																			734 文本 
+																			735 文本 -
+																			736 文本 错误
+																			737 文本 ：
+																			738 文本 native_browser_document_changed
+																			739 文本 — "节点预检拒绝，未发送输入"
+																			740 文本 
+																			741 文本 -
+																			742 文本 动作回执
+																			743 文本 ：
+																			744 文本 input_delivery: not_sent
+																			745 文本 ，
+																			746 文本 effect: not_observed
+																			747 文本 ，
+																			748 文本 partial: false
+																			749 文本 ，attempts=1、steps_completed=0
+																			750 文本 
+																			751 文本 -
+																			752 文本 retryable
+																			753 文本 : false
+																			754 文本 
+																			755 文本 
+																			756 文本 子文档身份已改变，宿主按约束拒绝发送滚动——
+																			757 文本 零投递
+																			758 文本 ，未改用 SCROLL-REPLACED 引用；无"原SCROLL-CHILD子位置大于0"证据。按要求不重试、不补发，本轮结束。
+																			759 time
+																				760 文本 11:48:21
+																				1051 文本 #400 · 本轮 38.1 秒
+																		761 文章
+																			762 文本 BU-CANDIDATE-083-FRAME-SCROLL-PARENT-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在父文档083 Frame滚动父页面向下滚动一次","surface":"browser","target":{"url":"
+																			763 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			764 文本 "},"success_criteria":["最新页面父滚动位置大于0，子滚动位置仍为0"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；仅选父文档RootWebArea，禁止子文档RootWebArea"],"max_actions":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。
+																			765 time
+																				766 文本 11:48:49
+																				1052 文本 #401
+																		767 文章
+																			768 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			769 文本 任务成功（终态回执
+																			770 文本 status: succeeded
+																			771 文本 ，
+																			772 文本 goal_achieved: true
+																			773 文本 ）：
+																			774 文本 
+																			775 文本 
+																			776 文本 -
+																			777 文本 动作
+																			778 文本 ：1 次 scroll down 已投递（attempts=1，steps_completed=1，含 native-input 回执）
+																			779 文本 
+																			780 文本 -
+																			781 文本 验收
+																			782 文本 ：最新页面观察（freshness_confirmed=true）在
+																			783 文本 http://127.0.0.1:51911/scroll.html
+																			784 文本 确认 StaticText 显示
+																			785 文本 "子滚动位置：0；父滚动位置：266"
+																			786 文本 （viewport page_y=266）——父文档已滚动、子文档未动，success_criteria 1/1 满足
+																			787 文本 
+																			788 文本 
+																			789 文本 按宿主回执如实报告：目标达成。
+																			790 time
+																				791 文本 11:49:32
+																				1053 文本 #402 · 本轮 44.5 秒
+																		792 文章
+																			793 文本 BU-INSTALLED-083-FRAME-SCROLL-DOWN-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在子文档SCROLL-CHILD向下滚动一次，父页面不滚动","surface":"browser","target":{"url":"
+																			794 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			795 文本 "},"success_criteria":["最新页面子滚动位置大于0，父滚动位置为0"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选SCROLL-CHILD的子RootWebArea，不选父文档"],"max_actions":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。
+																			796 time
+																				797 文本 11:58:56
+																				1054 文本 #403
+																		798 文章
+																			799 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			800 文本 任务成功（终态回执
+																			801 文本 status: succeeded
+																			802 文本 ，
+																			803 文本 goal_achieved: true
+																			804 文本 ）：
+																			805 文本 
+																			806 文本 
+																			807 文本 -
+																			808 文本 动作
+																			809 文本 ：1 次 scroll down 已投递（attempts=1，steps_completed=1，含 native-input 回执）
+																			810 文本 
+																			811 文本 -
+																			812 文本 验收
+																			813 文本 ：最新页面观察（freshness_confirmed=true）在
+																			814 文本 http://127.0.0.1:51911/scroll.html
+																			815 文本 确认 StaticText 显示
+																			816 文本 "子滚动位置：120；父滚动位置：0"
+																			817 文本 ——子文档已滚动、父页面未动，success_criteria 1/1 满足
+																			818 文本 
+																			819 文本 
+																			820 文本 按宿主回执如实报告：目标达成。
+																			821 time
+																				822 文本 11:59:19
+																				1055 文本 #404 · 本轮 22.8 秒
+																		823 文章
+																			824 文本 BU-INSTALLED-083-FRAME-SCROLL-UP-20261006：继续原SWE-2远端上下文，只执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在刚刚滚到120的SCROLL-CHILD子文档向上滚动一次，恢复子位置0且父不滚动","surface":"browser","target":{"url":"
+																			825 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			826 文本 "},"success_criteria":["本轮子页面位置0，父位置0"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll up amount=1，选本轮SCROLL-CHILD新鲜子RootWebArea；禁止click/text/keys/navigate、桌面和Devin工具；失败立即停止，不补发或执行历史任务"],"max_actions":1}。running只wait同一job_id到终态，按真实投递回执及独立网页位置如实报告。
+																			827 time
+																				828 文本 12:00:02
+																				1056 文本 #405
+																		829 文章
+																			830 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			831 文本 任务成功（终态回执
+																			832 文本 status: succeeded
+																			833 文本 ，
+																			834 文本 goal_achieved: true
+																			835 文本 ）：
+																			836 文本 
+																			837 文本 
+																			838 文本 -
+																			839 文本 动作
+																			840 文本 ：1 次 scroll up 已投递（attempts=1，steps_completed=1，含 native-input 回执）
+																			841 文本 
+																			842 文本 -
+																			843 文本 验收
+																			844 文本 ：最新页面观察（freshness_confirmed=true）在
+																			845 文本 http://127.0.0.1:51911/scroll.html
+																			846 文本 确认 StaticText 显示
+																			847 文本 "子滚动位置：0；父滚动位置：0"
+																			848 文本 ——子文档已恢复顶部、父页面未动，success_criteria 1/1 满足
+																			849 文本 
+																			850 文本 
+																			851 文本 按宿主回执如实报告：目标达成。
+																			852 time
+																				853 文本 12:00:44
+																				1057 文本 #406 · 本轮 42.8 秒
+																		854 文章
+																			855 文本 BU-INSTALLED-083-FRAME-SCROLL-BOUNDARY-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前已到底的子文档SCROLL-CHILD请求一次向下滚动，由宿主判断能否投递","surface":"browser","target":{"url":"
+																			856 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			857 文本 "},"success_criteria":["本轮子页面向下滚动出现新增位置"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选SCROLL-CHILD，已到底仍仅请求本次scroll，由宿主预检报告；禁止改滚父页面或提前声称成功"],"max_actions":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。
+																			858 time
+																				859 文本 12:01:03
+																				1058 文本 #407
+																		860 文章
+																			861 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			862 文本 任务失败（终态回执
+																			863 文本 status: blocked
+																			864 文本 ）：
+																			865 文本 
+																			866 文本 
+																			867 文本 -
+																			868 文本 错误
+																			869 文本 ：
+																			870 文本 native_browser_scroll_boundary
+																			871 文本 — "节点预检拒绝，未发送输入"
+																			872 文本 
+																			873 文本 -
+																			874 文本 动作回执
+																			875 文本 ：
+																			876 文本 input_delivery: not_sent
+																			877 文本 ，
+																			878 文本 effect: not_observed
+																			879 文本 ，
+																			880 文本 partial: false
+																			881 文本 ，attempts=1、steps_completed=0
+																			882 文本 
+																			883 文本 -
+																			884 文本 retryable
+																			885 文本 : false
+																			886 文本 
+																			887 文本 
+																			888 文本 子文档已到底，宿主预检正确拒绝滚动输入（零投递），未改滚父页面；无新增滚动位置证据。按要求不重试、不补发，本轮结束。
+																			889 time
+																				890 文本 12:01:21
+																				1059 文本 #408 · 本轮 18.1 秒
+																		891 文章
+																			892 文本 BU-INSTALLED-083-FRAME-SCROLL-NAV-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在初次观察的SCROLL-CHILD子文档向下滚动一次","surface":"browser","target":{"url":"
+																			893 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			894 文本 "},"success_criteria":["原SCROLL-CHILD子位置大于0，父滚动位置0"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选初次观察SCROLL-CHILD子RootWebArea；用户可能在规划期间切换子页面，子文档改变必须停止，禁止改用SCROLL-REPLACED新引用或再次观察重试"],"max_actions":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。
+																			895 time
+																				896 文本 12:01:47
+																				1060 文本 #409
+																		897 文章
+																			898 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			899 文本 任务失败（终态回执
+																			900 文本 status: blocked
+																			901 文本 ）：
+																			902 文本 
+																			903 文本 
+																			904 文本 -
+																			905 文本 错误
+																			906 文本 ：
+																			907 文本 native_browser_document_changed
+																			908 文本 — "节点预检拒绝，未发送输入"
+																			909 文本 
+																			910 文本 -
+																			911 文本 动作回执
+																			912 文本 ：
+																			913 文本 input_delivery: not_sent
+																			914 文本 ，
+																			915 文本 effect: not_observed
+																			916 文本 ，
+																			917 文本 partial: false
+																			918 文本 ，attempts=1、steps_completed=0
+																			919 文本 
+																			920 文本 -
+																			921 文本 retryable
+																			922 文本 : false
+																			923 文本 
+																			924 文本 
+																			925 文本 子文档身份已改变，宿主按约束拒绝发送滚动——
+																			926 文本 零投递
+																			927 文本 ，未改用 SCROLL-REPLACED 引用；无"原SCROLL-CHILD子位置大于0"证据。按要求不重试、不补发，本轮结束。
+																			928 time
+																				929 文本 12:02:27
+																				1061 文本 #410 · 本轮 40.5 秒
+																		930 文章
+																			931 文本 BU-INSTALLED-083-FRAME-SCROLL-PARENT-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在父文档083 Frame滚动父页面向下滚动一次","surface":"browser","target":{"url":"
+																			932 链接 http://127.0.0.1:51911/scroll.html Value: http://127.0.0.1:51911/scroll.html
+																			933 文本 "},"success_criteria":["最新页面父滚动位置大于0，子滚动位置仍为0"],"constraints":["只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；仅选父文档RootWebArea，禁止子文档RootWebArea"],"max_actions":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。
+																			934 time
+																				935 文本 12:02:57
+																				1062 文本 #411
+																		936 文章
+																			937 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			938 文本 任务成功（终态回执
+																			939 文本 status: succeeded
+																			940 文本 ，
+																			941 文本 goal_achieved: true
+																			942 文本 ）：
+																			943 文本 
+																			944 文本 
+																			945 文本 -
+																			946 文本 动作
+																			947 文本 ：1 次 scroll down 已投递（attempts=1，steps_completed=1，含 native-input 回执）
+																			948 文本 
+																			949 文本 -
+																			950 文本 验收
+																			951 文本 ：最新页面观察（freshness_confirmed=true）在
+																			952 文本 http://127.0.0.1:51911/scroll.html
+																			953 文本 确认 StaticText 显示
+																			954 文本 "子滚动位置：0；父滚动位置：266"
+																			955 文本 （viewport page_y=266）——父文档已滚动、子文档未动，success_criteria 1/1 满足
+																			956 文本 
+																			957 文本 
+																			958 文本 按宿主回执如实报告：目标达成。
+																			959 time
+																				960 文本 12:03:38
+																				1063 文本 #412 · 本轮 41.6 秒
+																		961 文章
+																			962 文本 BU-CANDIDATE-TAB-SEED-20261006：继续原SWE-2远端上下文。本条仅准备网页引用，请回复一个指向
+																			963 链接 http://127.0.0.1:60103/tab-a.html Value: http://127.0.0.1:60103/tab-a.html
+																			964 文本 的Markdown链接，显示文本使用完整URL。不调用工具，不执行旧任务，不打开网页。
+																			965 time
+																				966 文本 12:11:36
+																				1064 文本 #413
+																		967 文章
+																			968 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			969 链接 http://127.0.0.1:60103/tab-a.html Value: http://127.0.0.1:60103/tab-a.html
+																			970 time
+																				971 文本 12:12:02
+																				1065 文本 #414 · 本轮 27.6 秒
+																		972 文章
+																			973 文本 BU-CANDIDATE-TAB-NAVIGATE-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{"objective":"在当前右栏原生浏览器通过一次navigate导航到
+																			974 链接 http://127.0.0.1:60103/tab-b.html Value: http://127.0.0.1:60103/tab-b.html
+																			975 文本 ","surface":"browser","target":{"url":"
+																			976 链接 http://127.0.0.1:60103/tab-a.html Value: http://127.0.0.1:60103/tab-a.html
+																			977 文本 "},"success_criteria":["最新页面URL为
+																			978 链接 http://127.0.0.1:60103/tab-b.html且标题及页面显示TAB-B Value: http://127.0.0.1:60103/tab-b.html%E4%B8%94%E6%A0%87%E9%A2%98%E5%8F%8A%E9%A1%B5%E9%9D%A2%E6%98%BE%E7%A4%BATAB-B
+																			979 文本 "],"constraints":["只操作当前右栏原生浏览器；仅允许一次顶层navigate到给定tab-b.html，不点击不输入不按键不滚动；不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试不补发，不执行旧任务"],"max_actions":1}。running只wait同一job_id至终态，按本轮真实导航回执及最新网页如实报告，不能把ACK或旧页面当目标达成。
+																			980 time
+																				981 文本 12:12:37
+																				1066 文本 #415
+																		982 文章
+																			983 文本 Devin SWE-2 真实CU验收 (swe-2-medium)
+																			984 文本 任务失败（终态回执
+																			985 文本 status: blocked
+																			986 文本 ，
+																			987 文本 goal_achieved: false
+																			988 文本 ）：
+																			989 文本 
+																			990 文本 
+																			991 文本 -
+																			992 文本 错误
+																			993 文本 ：
+																			994 文本 native_browser_verification_failed
+																			995 文本 （阶段
+																			996 文本 verification
+																			997 文本 ）—— planner 在初次只读观察中未能验证目标，
+																			998 文本 attempts=0，steps_completed=0
+																			999 文本 ，未发出任何 navigate 动作
+																			1000 文本 
+																			1001 文本 -
+																			1002 文本 最新页面
+																			1003 文本 ：
+																			1004 文本 http://127.0.0.1:60103/tab-a.html
+																			1005 文本 （标题 "TAB-A 当前地址验证"），freshness_confirmed=true
+																			1006 文本 
+																			1007 文本 -
+																			1008 文本 retryable
+																			1009 文本 : false，retry_owner: model
+																			1010 文本 
+																			1011 文本 
+																			1012 文本 无任何输入/导航投递，页面仍在 tab-a.html；无"URL 为 tab-b.html 且显示 TAB-B"证据。按要求不重试、不补发，本轮结束。
+																			1013 time
+																				1014 文本 12:13:30
+																				1067 文本 #416 · 本轮 53.4 秒
+																	51 章节页脚
+																		52 按钮 选择附件 Description: 选择附件
+																		53 编辑 (settable, string) 输入消息，按 Enter 发送... Description: 输入消息，按 Enter 发送...
+																		54 按钮 发送消息。将发送给：Devin SWE-2 真实CU验收 (swe-2-medium) Description: 将发送给：Devin SWE-2 真实CU验收 (swe-2-medium)
+																		55 按钮 语音输入 Description: 点击开始听写
+																	1070 缩略图 调整扩展栏宽度 Value: 480
+																	1071 补充 浏览器 ID: chat-right-rail
+																		1072 选项卡面板 工具 ID: chat-right-panel-tools
+																			1073 组 浏览器工具面板
+																				1074 章节标题
+																					1091 文本 浏览器
+																					1076 按钮 返回此前的右栏视图 Description: 返回此前的右栏视图
+																					1077 按钮 关闭当前工具 Description: 关闭当前工具
+																				1078 选项卡 当前会话的预览标签
+																					1126 按钮 回到引用此内容的聊天消息 Description: 回到引用此内容的聊天消息
+																					1127 选项卡项目 (selectable) http://127.0.0.1:52137/edit.html Description: http://127.0.0.1:51911/scroll.html
+																					1128 按钮 关闭 http://127.0.0.1:52137/edit.html Description: 关闭 http://127.0.0.1:52137/edit.html
+																					1129 选项卡项目 (selectable) http://127.0.0.1:60103/tab-a.html Description: http://127.0.0.1:60103/tab-a.html
+																					1130 按钮 关闭 http://127.0.0.1:60103/tab-a.html Description: 关闭 http://127.0.0.1:60103/tab-a.html
+																				1097 文章 浏览器窗口
+																					1098 区域 浏览器导航
+																						1099 按钮 后退
+																						1100 按钮 前进
+																						1101 编辑 (settable, string) 搜索或输入 URL Description: 搜索或输入 URL Value: http://127.0.0.1:60103/tab-a.html
+																						1102 按钮 打开网址 Description: 打开网址
+																						1103 按钮 刷新网页
+																						1104 按钮 停止加载
+																					1105 文档 浏览器预览 Description: 浏览器预览
+																						1106 文档 Value: about:blank ID: RootWebArea
+																					1131 文本 TAB-A 当前地址验证
+								74 区域
+						75 区域
+						76 区域
+		77 标题栏 (settable, string) Value: COOLZHU AGENT 控制台
+			78 菜单栏 系统 ID: MenuBar
+				79 菜单项 系统
+			80 按钮 最小化
+			81 按钮 最大化
+			82 按钮 关闭
+
+Document text: ```
+TAB-A
+真实独立HTML页面，页签和地址栏应与本页路径一致。
+切换到另一页面
+```
