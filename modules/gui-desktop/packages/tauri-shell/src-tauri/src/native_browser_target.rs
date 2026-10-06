@@ -1,5 +1,5 @@
 //! 宿主重新核对真实文档、AX、几何与命中结果；节点引用本身不授予输入资格。
-use native_browser_protocol::PanelResource;
+use native_browser_protocol::{PanelResource,ScrollDirection};
 use serde_json::Value;
 use tauri::AppHandle;
 
@@ -23,7 +23,7 @@ pub(super) struct VerifiedTarget {
     pub editor: Option<Value>,
 }
 
-fn current_node(tree: &Value, document: &DocumentIdentity, node: &NodeBinding) -> Result<(), String> {
+pub(super) fn current_node(tree: &Value, document: &DocumentIdentity, node: &NodeBinding) -> Result<(), String> {
     let nodes = tree["nodes"].as_array().ok_or("native_browser_target_unavailable")?;
     let mut matching = nodes.iter().filter(|candidate|
         candidate["ignored"].as_bool() == Some(false)
@@ -77,7 +77,7 @@ pub(super) fn point(box_model: &Value, metrics: &Value) -> Result<(i32, i32), St
 }
 
 /// DOM.getNodeForLocation 接收文档坐标；鼠标派发仍接收视口坐标，不能混用。
-fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String> {
+pub(super) fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String> {
     let viewport = metrics.get("cssVisualViewport").ok_or("native_browser_target_geometry_invalid")?;
     let coordinate = |value: i32, key: &str| {
         let offset = viewport.get(key).and_then(Value::as_f64).filter(|value|value.is_finite())
@@ -187,12 +187,13 @@ pub(super) async fn verify_document(app:&AppHandle,resource:&PanelResource,obser
     Ok(VerifiedTarget {resource:resource.clone(),document,snapshot,node,x:0,y:0,viewport:Value::Null,editor:None})
 }
 
-/// 只允许顶层可见viewport；模型选择RootWebArea随机引用，坐标由宿主生成。
-pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,observation_id:&str,document_token:&str,node_id:&str) -> Result<VerifiedTarget,String> {
+/// 模型选择文档RootWebArea，宿主分别核父视口或子owner的真实命中。
+pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,observation_id:&str,document_token:&str,node_id:&str,direction:ScrollDirection) -> Result<VerifiedTarget,String> {
     let started=std::time::Instant::now();
     let (snapshot,_)=native_browser_observation::snapshot(app,resource).await?;
     let document=snapshot.top.clone();
     let node=native_browser_nodes::resolve(resource,&snapshot,observation_id,document_token,node_id)?;
+    if !node.scope.is_top() {return super::native_browser_scroll::verify_child(app,resource,snapshot,node,direction,started).await;}
     if !node.scope.is_top() || node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_scroll_target_invalid".into());}
     let tree=native_browser_devtools::read(app,resource,ReadMethod::Accessibility(document.frame_id.clone())).await?;
     current_node(&tree,&document,&node)?;

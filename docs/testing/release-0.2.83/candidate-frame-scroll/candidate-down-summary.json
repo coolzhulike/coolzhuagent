@@ -1,0 +1,86 @@
+{
+  "prefix": "BU-CANDIDATE-083-FRAME-SCROLL-DOWN-20261006",
+  "run": {
+    "id": "run-chat-3a0d07d2371c5001289ebd92ca63b27dc03cc467aa98c820",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    },
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    },
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "events_during_cu": [
+    {
+      "case": "SCROLL-CHILD",
+      "type": "wheel",
+      "at_ms": 1791258345447.2002,
+      "target": "DIV",
+      "isTrusted": true,
+      "deltaY": 120,
+      "received_ms": 1791258345449.881
+    },
+    {
+      "case": "SCROLL-CHILD",
+      "type": "scroll",
+      "at_ms": 1791258345447.6,
+      "y": 120,
+      "isTrusted": true,
+      "received_ms": 1791258345450.6335
+    }
+  ],
+  "calls": [
+    {
+      "state": "succeeded",
+      "result": {
+        "status": "succeeded",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "started_at_ms": 1791258343456,
+          "completed_at_ms": 1791258345458
+        }
+      ],
+      "planner": [
+        {
+          "request_kind": "computer_use_planning",
+          "model": "swe-2-medium",
+          "started_at_ms": 1791258335707,
+          "completed_at_ms": 1791258343447
+        },
+        {
+          "request_kind": "computer_use_browser_readonly_verification",
+          "model": "swe-2-medium",
+          "started_at_ms": 1791258346224,
+          "completed_at_ms": 1791258355375
+        }
+      ]
+    }
+  ],
+  "raw_browser_facts": "tmp/2026-10-06-browser-boundaries/BU-CANDIDATE-083-FRAME-SCROLL-DOWN-20261006-browser-facts.json"
+}

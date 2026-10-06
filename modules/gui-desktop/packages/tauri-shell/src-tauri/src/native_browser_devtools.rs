@@ -13,6 +13,7 @@ pub(super) enum ReadMethod {
     ResolveEditor(i64),
     EditorState(String),
     FocusedTargetState(String),
+    DocumentScrollState(String),
     ReleaseEditor(String),
 }
 impl ReadMethod {
@@ -33,6 +34,9 @@ impl ReadMethod {
                 "returnByValue":true,"throwOnSideEffect":true,"silent":true}).to_string()),
             Self::FocusedTargetState(object) => ("Runtime.callFunctionOn", serde_json::json!({
                 "objectId":object,"functionDeclaration":super::native_browser_key_input::READ_FOCUS,
+                "returnByValue":true,"throwOnSideEffect":true,"silent":true}).to_string()),
+            Self::DocumentScrollState(object) => ("Runtime.callFunctionOn", serde_json::json!({
+                "objectId":object,"functionDeclaration":super::native_browser_scroll::READ_SCROLL,
                 "returnByValue":true,"throwOnSideEffect":true,"silent":true}).to_string()),
             Self::ReleaseEditor(object) => ("Runtime.releaseObject",serde_json::json!({"objectId":object}).to_string()),
         }

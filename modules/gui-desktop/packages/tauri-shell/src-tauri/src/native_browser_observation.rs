@@ -56,10 +56,8 @@ fn append_frame(page:&mut PageObservation,tree:&serde_json::Value,scope:&Documen
         if page.nodes.len() == 128 { page.truncated = true; break; }
         if scope.is_top() && role == "RootWebArea" && page.title.is_empty() { page.title = name.clone(); }
         let index = page.nodes.len();
-        // 子Frame可引用自身编辑控件；滚动和导航仍只允许顶层RootWebArea。
-        let supported = if scope.is_top() {
-            ["RootWebArea","button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str())
-        } else { ["button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str()) };
+        // 子文档RootWebArea仅供自身滚动；导航仍由执行预检限制为顶层。
+        let supported = ["RootWebArea","button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str());
         if supported && node["frameId"].as_str().is_none_or(|frame| frame == scope.document().frame_id) {
             if let Some(backend_node) = node["backendDOMNodeId"].as_i64().filter(|id| operable.contains(id)) {
                 candidates.push(NodeCandidate {index,backend_node,role:role.clone(),name:name.clone(),scope:scope.clone()});

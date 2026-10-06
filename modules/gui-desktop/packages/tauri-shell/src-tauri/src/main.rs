@@ -9,6 +9,7 @@ mod native_browser_document;
 mod native_browser_nodes;
 mod native_browser_navigation;
 mod native_browser_target;
+mod native_browser_scroll;
 mod native_browser_input;
 mod native_browser_editor;
 mod native_browser_edit_input;

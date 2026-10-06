@@ -41,7 +41,7 @@ impl Operation {
         let verified=match self {
             Self::Keys(_) => super::native_browser_key_input::verify(app,&request.resource,target).await,
             Self::Click => native_browser_target::verify(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
-            Self::Scroll {..} => native_browser_target::verify_viewport(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
+            Self::Scroll {direction,..} => native_browser_target::verify_viewport(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id,*direction).await,
             Self::Text(_) => super::native_browser_editor::verify(app,&request.resource,target).await,
             Self::Navigate(url) => {
                 super::browser_panel::native_destination(url)?;
@@ -161,6 +161,8 @@ async fn wheel(app:&AppHandle,target:VerifiedTarget,direction:ScrollDirection,am
         let vertical=matches!(direction,ScrollDirection::Up|ScrollDirection::Down);
         let extent=target.viewport[if vertical {"clientHeight"} else {"clientWidth"}].as_f64().unwrap_or(0.0);
         let delta=(extent/2.0).clamp(120.0,600.0)*f64::from(amount);
+        // 子文档距离由宿主只读预检限制，避免越过子滚动边缘后继续滚动父页面。
+        let delta=target.viewport["wheel_limit"].as_f64().map_or(delta,|limit|delta.min(limit));
         let delta=if matches!(direction,ScrollDirection::Up|ScrollDirection::Left) {-delta} else {delta};
         let parameters=serde_json::json!({"type":"mouseWheel","x":target.x,"y":target.y,"buttons":0,
             "deltaX":if vertical {0.0} else {delta},"deltaY":if vertical {delta} else {0.0}}).to_string();
