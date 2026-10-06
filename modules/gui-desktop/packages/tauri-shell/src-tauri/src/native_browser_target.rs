@@ -88,6 +88,41 @@ fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String>
     Ok((coordinate(x,"pageX")?,coordinate(y,"pageY")?))
 }
 
+/// 普通文字、图标容器的点击会冒泡给原控件；其它控件与覆盖层不能代替它。
+/// 只核对宿主刚读取的普通 children，不穿越 iframe、shadowRoot 或伪元素。
+fn hit_belongs_to_target(dom: &Value, target: i64, hit: i64) -> bool {
+    if target <= 0 || hit <= 0 { return false; }
+    let Some(root) = dom.get("root") else { return false; };
+    let mut pending = vec![(root, false)];
+    let mut visited = std::collections::HashSet::new();
+    let mut matched = false;
+    while let Some((node, inside)) = pending.pop() {
+        if visited.len() >= 2048 { return false; }
+        let Some(id) = node["backendNodeId"].as_i64().filter(|id| *id > 0) else { return false; };
+        if !visited.insert(id) { return false; }
+        let inside = id == target || (inside && !nested_interactive(node));
+        if id == hit { matched = inside; }
+        if let Some(children) = node["children"].as_array() {
+            pending.extend(children.iter().map(|child| (child, inside)));
+        }
+    }
+    matched
+}
+
+fn nested_interactive(node: &Value) -> bool {
+    if ["A", "BUTTON", "INPUT", "SELECT", "TEXTAREA", "SUMMARY", "DETAILS", "IFRAME", "FRAME", "OBJECT", "EMBED"]
+        .iter().any(|name| node["nodeName"].as_str().is_some_and(|actual| actual.eq_ignore_ascii_case(name))) { return true; }
+    node["attributes"].as_array().is_some_and(|attributes| attributes.chunks_exact(2).any(|pair| {
+        let name = pair[0].as_str().unwrap_or_default();
+        let value = pair[1].as_str().unwrap_or_default().to_ascii_lowercase();
+        name.eq_ignore_ascii_case("tabindex")
+            || (name.eq_ignore_ascii_case("contenteditable") && value != "false")
+            || (name.eq_ignore_ascii_case("role") && value.split_ascii_whitespace().any(|role|
+                ["button", "link", "checkbox", "radio", "switch", "textbox", "searchbox", "combobox", "listbox", "option",
+                 "menuitem", "menuitemcheckbox", "menuitemradio", "treeitem", "tab", "slider", "spinbutton"].contains(&role)))
+    }))
+}
+
 /// 只返回预检结果。调用方仍须获得一次性许可、提交本轮派发并在owner UI线程再核资源。
 pub(super) async fn verify(
     app: &AppHandle, resource: &PanelResource, observation_id: &str,
@@ -107,9 +142,10 @@ pub(super) async fn verify(
     let (x, y) = point(&geometry, &metrics)?;
     let (hit_x,hit_y) = hit_test_point(x,y,&metrics)?;
     let hit = native_browser_devtools::read(app, resource, ReadMethod::HitTest(hit_x,hit_y)).await?;
-    // 不接受相似文本、覆盖层、后代或另一个frame来替代原绑定节点。
-    if hit["backendNodeId"].as_i64() != Some(node.backend_node)
-        || hit["frameId"].as_str() != Some(document.frame_id.as_str()) {
+    // 在命中之后重新读取DOM，证明命中点仍属于原绑定控件，避免复用布局前的祖先关系。
+    let hit_dom = native_browser_devtools::read(app, resource, ReadMethod::DocumentNodes).await?;
+    if hit["frameId"].as_str() != Some(document.frame_id.as_str())
+        || !hit["backendNodeId"].as_i64().is_some_and(|id| hit_belongs_to_target(&hit_dom, node.backend_node, id)) {
         return Err("native_browser_target_hit_mismatch".into());
     }
     let second_geometry = native_browser_devtools::read(app, resource, ReadMethod::BoxModel(node.backend_node)).await?;
@@ -169,6 +205,27 @@ pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,obser
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hit_accepts_only_the_original_control_or_its_passive_regular_descendants() {
+        let mut dom = serde_json::json!({"root":{"backendNodeId":1,"nodeName":"#document","children":[
+            {"backendNodeId":2,"nodeName":"BUTTON","children":[{"backendNodeId":3,"nodeName":"SPAN",
+                "children":[{"backendNodeId":4,"nodeName":"svg","children":[{"backendNodeId":5,"nodeName":"path"}]}]}]},
+            {"backendNodeId":6,"nodeName":"DIV"}]}});
+        for hit in [2,3,4,5] { assert!(hit_belongs_to_target(&dom,2,hit)); }
+        for hit in [0,1,6,99] { assert!(!hit_belongs_to_target(&dom,2,hit)); }
+        for attributes in [serde_json::json!(["tabindex","0"]),serde_json::json!(["role","button"]),
+            serde_json::json!(["contenteditable","true"])] {
+            dom["root"]["children"][0]["children"][0]["attributes"] = attributes;
+            assert!(!hit_belongs_to_target(&dom,2,5));
+        }
+        dom["root"]["children"][0]["children"][0]["attributes"] = serde_json::json!([]);
+        dom["root"]["children"][0]["children"][0]["nodeName"] = serde_json::json!("A");
+        assert!(!hit_belongs_to_target(&dom,2,5));
+        dom["root"]["children"][0]["shadowRoots"] = serde_json::json!([{"backendNodeId":7}]);
+        dom["root"]["children"][0]["contentDocument"] = serde_json::json!({"backendNodeId":8});
+        for hit in [7,8] { assert!(!hit_belongs_to_target(&dom,2,hit)); }
+    }
 
     #[test]
     fn geometry_is_css_viewport_relative_and_rejects_clipped_or_degenerate_targets() {

@@ -94,3 +94,24 @@ GitHub 后续核对：源码2d的 PR 重跑第二次，以及文档031的 PR 检
 ## 仍未完成，不能计为本版通过
 
 严格“按下→整页替换→释放”窗口命中、多屏桌面实操、插件许可窄竞争/卸载/配置变化/执行中取消与超时全生命周期、Goal/Relay 附件、账号过期与模型切换边界、升级下载/安装/重启、开机动画资源失败/减弱动作/首次与恢复模式边界、四项任务总体审查。Paint 基本输入能力已有正式验收，按用户要求不再要求完成完整人物；微信不改不测。
+
+## 2026-10-06 插件卸载、固定来源重装及 Browser 嵌套控件复现
+
+本轮继续原 SWE-2-medium 与远端 veiled-anise，没有调用 Opus，没有子 Agent 或模型回复夹具。正式0.2.77二进制与原输入安全库保持。独立验收工程启动时沿用原 dev_open_permissions=true，因此本轮启用的权限来源是 allow-auto / full-access-profile，不混记为上一轮聊天室独立授权负例。
+
+| 正式实操 | 结果与耗时 | 执行依据 |
+| --- | --- | --- |
+| 卸载计算器后独立新请求，#281/#282 | 宿主明确拒绝，10.7秒 | 原插件目录不存在；对应运行零工具执行、零审计，ACP end_turn并排空 |
+| 从原固定commit重装，默认停用，#283/#284 | 宿主明确拒绝，7.9秒 | enabled=false、loaded=false；零执行、零审计 |
+| 重新启用后独立新请求，#285/#286 | 实际计算(93-14)*2=158，12.7秒 | 一条completed工具、一条ok审计，真实执行740ms |
+| 新请求结束后再次读取两条旧拒绝运行 | 仍零执行、零审计 | 没有补执行卸载或停用期间被拒绝的请求 |
+
+计算器来源保持 @deepseek-ai/dsh-tool-calculator 0.0.1、commit b2007a13f06bcf75bf07b9d277ee8d434a316490、source digest d8fa5ad326a19949045904e4fea63c7318254745bf809f8877c811c7cb083b56。备份23个真实文件后仅通过正式插件API卸载、重装、启用目标插件；当前已恢复启用，未将旧注册表覆盖回新安装世代。三轮requested/effective均为SWE-2，宿主历史增量0、远端绑定不变。原生截图及逐文件SHA256见[插件生命周期证据](plugin-lifecycle/manifest.json)。配置变更、执行中取消/超时和冻结许可后续授权的窄竞争仍未验收。
+
+Browser首轮#287/#288的测试指令写为“右栏原生browser”，未被本轮路由识别，进入外部扩展通道后报extension_unavailable；没有点击、网页次数0。该记录不能证明内置宿主断连。第二条独立请求明确指定“内置浏览器”，#289/#290耗时20.6秒，原生观察正常；执行预检报native_browser_target_hit_mismatch，input_delivery=not_sent、steps_completed=0，页面事件为空、次数0。按钮实际含普通span文字容器，旧代码要求命中节点与button的backendNodeId完全相同，造成正常子元素点击被拒绝。两次失败、截图、原始页面代码及台账均保留在[嵌套按钮复现](browser-nested/manifest.json)。修复及新版本实操另记，不能把未安装候选算进0.2.77通过项。
+
+PR82已于2026-10-05T23:20:06Z远端合并至main 067fcf8；本会话只读取并同步该结果。[合并后Web检查](https://github.com/coolzhulike/coolzhuagent/actions/runs/37387886311)成功。此前未取得hosted runner且步骤为空的失败记录继续保留。本轮新增源码由新的接续PR承接，不能继续修改已合并PR82。
+
+![正式版重装启用后真实工具返回158](plugin-lifecycle/reinstall-enabled-result-native.jpg)
+
+![正式版嵌套按钮预检失败，次数仍0](browser-nested/nested-native-before-fix.jpg)

@@ -1,0 +1,63 @@
+{
+  "prefix": "DEVIN-INSTALLED-077-UNINSTALLED-20261006",
+  "run_id": "run-chat-0f82071ec93be76d639815cd083dbdb8e4d9c794b59f9f09",
+  "room": "room-1791131523339",
+  "message_id": "msg-1791242973812-user",
+  "targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 38,
+      "prompt_bytes": 2223
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "38b43b5ccc9745251238a87b82507b50606065573810cf49e2c9f76776d264f6",
+          "id": "msg-1791242973944-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [],
+  "reply": "本轮未执行：宿主回执\"宿主工具未完成：ACP 工具已被当前会话或房间撤销，未执行。\"——`dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab` 已不在当前声明目录中（计算器已卸载）。\n\n按要求不心算、不替代、不重试，本轮结束，无遗留任务。",
+  "bindings": [
+    {
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "sneaky-diascia"
+    },
+    {
+      "agent_id": "session-1791131217833",
+      "remote_session_id": "veiled-anise"
+    }
+  ],
+  "run": {
+    "id": "run-chat-0f82071ec93be76d639815cd083dbdb8e4d9c794b59f9f09",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "tool_events": [],
+  "audit": []
+}

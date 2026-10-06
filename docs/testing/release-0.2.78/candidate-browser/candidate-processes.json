@@ -1,0 +1,13 @@
+﻿{
+    "web_sha256":  "E7AAF6330222A4BD40C1759A3D329F63E61B65C07E838A054DEF0D318A44CD27",
+    "web_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-web-console.exe",
+    "shell_started":  "2026-10-05T23:43:58.7276650Z",
+    "web_started":  "2026-10-05T23:43:57.4377372Z",
+    "web_pid":  19420,
+    "shell_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-tauri-shell.exe",
+    "shell_pid":  12212,
+    "port":  8767,
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage":  "嵌套控件修复候选，不是正式安装版",
+    "shell_sha256":  "234995892C9EE576C6EE9133A590263D22CEB82BA5213D8C1E4F3CC8F50D7896"
+}

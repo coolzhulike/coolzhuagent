@@ -1,0 +1,209 @@
+[
+  {
+    "case": "SPAN",
+    "run_id": "run-chat-637663925f08966d103f92d1d6271929e9626ca50f0a5a23",
+    "status": "succeeded",
+    "source_message_created_at_ms": 1791245060231,
+    "events_this_formal_run": [
+      {
+        "type": "pointerdown",
+        "target": "label",
+        "count": 0,
+        "time": 1791245076445,
+        "received_at_ns": 1791245076449271200
+      },
+      {
+        "type": "pointerup",
+        "target": "label",
+        "count": 0,
+        "time": 1791245076446,
+        "received_at_ns": 1791245076450410700
+      },
+      {
+        "type": "click",
+        "target": "label",
+        "count": 1,
+        "time": 1791245076446,
+        "received_at_ns": 1791245076450855700
+      }
+    ],
+    "acceptance": "实际投递/释放及最新页面目标达成",
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 56,
+        "prompt_bytes": 2560
+      }
+    ],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  {
+    "case": "SVG",
+    "run_id": "run-chat-d0f786072ac472bdfe14d43517131ac3d40a41dfc2b4db4f",
+    "status": "succeeded",
+    "source_message_created_at_ms": 1791245138231,
+    "events_this_formal_run": [
+      {
+        "case": "/svg.html",
+        "type": "pointerdown",
+        "target": "glyph",
+        "count": 0,
+        "time": 1791245153789,
+        "received_at_ns": 1791245153792567000
+      },
+      {
+        "case": "/svg.html",
+        "type": "pointerup",
+        "target": "glyph",
+        "count": 0,
+        "time": 1791245153789,
+        "received_at_ns": 1791245153793728800
+      },
+      {
+        "case": "/svg.html",
+        "type": "click",
+        "target": "glyph",
+        "count": 1,
+        "time": 1791245153790,
+        "received_at_ns": 1791245153794681200
+      }
+    ],
+    "acceptance": "实际投递/释放及最新页面目标达成",
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 58,
+        "prompt_bytes": 2570
+      }
+    ],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  {
+    "case": "COVERED",
+    "run_id": "run-chat-f23b568afbf6a12a43e0d4e7e4caa36c61e3e4325b7122f7",
+    "status": "blocked",
+    "source_message_created_at_ms": 1791245306116,
+    "events_this_formal_run": [],
+    "acceptance": "预期拒绝且零输入",
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 60,
+        "prompt_bytes": 2554
+      }
+    ],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  {
+    "case": "REPLACEMENT",
+    "run_id": "run-chat-efc807f1149fcf770cfe17c55ad95f8f4d45bd40d69d3c44",
+    "status": "succeeded",
+    "source_message_created_at_ms": 1791245378835,
+    "events_this_formal_run": [
+      {
+        "type": "original-pointerdown",
+        "page": "before",
+        "time": 1791245392853,
+        "absolute_ms": 1791245392853.9001,
+        "received_at_ns": 1791245392857760700
+      },
+      {
+        "type": "replacement-ready",
+        "page": "after",
+        "time": 1791245392854,
+        "absolute_ms": 1791245392854.5,
+        "received_at_ns": 1791245392859528700
+      },
+      {
+        "type": "replacement-pointerup",
+        "page": "after",
+        "time": 1791245392856,
+        "absolute_ms": 1791245392857,
+        "received_at_ns": 1791245392860670700
+      }
+    ],
+    "acceptance": "实际投递/释放及最新页面目标达成",
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 62,
+        "prompt_bytes": 3241
+      }
+    ],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  }
+]

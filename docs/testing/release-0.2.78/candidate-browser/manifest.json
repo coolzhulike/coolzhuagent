@@ -1,0 +1,129 @@
+{
+  "stage": "修复候选；debug真实外壳，不是正式安装版",
+  "product_source_commit": "0b97366c7fde8d284c122ab7ec9754c742092bb5",
+  "tests_use_real_model": true,
+  "model_fixture": false,
+  "runtime_dev_open_permissions": true,
+  "files": [
+    {
+      "file": ".gitattributes",
+      "bytes": 75,
+      "sha256": "6eabf2e06fe9a1051649e6d3ac14c4be612addacbbaa26d4b04ffcb59c57f566"
+    },
+    {
+      "file": "boundary-server-process.json",
+      "bytes": 108,
+      "sha256": "302ca099e8f76fabfadee3a0b1d4a37dadbc8eb4523290fe00a5dee3f331ac3f"
+    },
+    {
+      "file": "browser-boundary-server.py",
+      "bytes": 2782,
+      "sha256": "d74f07155c20a6ab39af80bf2079db109dbd840c9b58ba300fd96c7c7e1ee517"
+    },
+    {
+      "file": "browser-replacement-server.py",
+      "bytes": 2877,
+      "sha256": "96b9cb945d355b72d75bc1cd8076c85ed8e2e7e15dc3fa18a0c0a3c0c6c5cf11"
+    },
+    {
+      "file": "browser-server-process.json",
+      "bytes": 108,
+      "sha256": "bcc4219a2149c23a46288f4583f8d0d99b3be9465205f696735871be561b6e98"
+    },
+    {
+      "file": "browser-target-server.py",
+      "bytes": 2585,
+      "sha256": "09b73c4166332df2d7e5acbc825110be63fa7c8e7328c8682c941e00bb0c53c5"
+    },
+    {
+      "file": "BU-CANDIDATE-078-COVERED-20261006-browser-facts.json",
+      "bytes": 11086,
+      "sha256": "ea8ec67875278c665614bfa3161e09fb775d0f4dec38ec79e00076e3d167b4e2"
+    },
+    {
+      "file": "BU-CANDIDATE-078-REPLACEMENT-20261006-browser-facts.json",
+      "bytes": 16819,
+      "sha256": "90ca8f29fceade5f827ee544a23ff9389a05638df2c2eb8aa2f4741f55153b77"
+    },
+    {
+      "file": "BU-CANDIDATE-078-SPAN-20261006-browser-facts.json",
+      "bytes": 16623,
+      "sha256": "65f215177c36e97a3270576ce6025969e89cfe9c2db4a9a4a41e6c1474aa711a"
+    },
+    {
+      "file": "BU-CANDIDATE-078-SVG-20261006-browser-facts.json",
+      "bytes": 16706,
+      "sha256": "2760e7f8a262eac2a637467d2fcbdc9c339a48256011892c8bd11697f48b6043"
+    },
+    {
+      "file": "candidate-covered-before-native.jpg",
+      "bytes": 198706,
+      "sha256": "571c462d329d47f1be9dc9a5382a0f90437bfd4b45324ededd22a33055145172"
+    },
+    {
+      "file": "candidate-covered-refused-native.jpg",
+      "bytes": 189216,
+      "sha256": "8b8253e0383101443c0fb3bb14cb464943ebbc3e21f53e0666fdde400493fc23"
+    },
+    {
+      "file": "candidate-processes.json",
+      "bytes": 923,
+      "sha256": "0bb7213067c572b96cb1d8e5960f17eeae2cc56bd286ab95ea9e2cfbde71bb3d"
+    },
+    {
+      "file": "candidate-replacement-active-native.jpg",
+      "bytes": 206567,
+      "sha256": "f6b7da431ed82197a7d3d62e918216bebe1ddfa4f7eccf069f1a90f9644e87de"
+    },
+    {
+      "file": "candidate-replacement-before-native.jpg",
+      "bytes": 192709,
+      "sha256": "cd47359375dbea502cc4eb26bffc2cb4f03f99b1939b2e870f91d04a178f2545"
+    },
+    {
+      "file": "candidate-replacement-passed-native.jpg",
+      "bytes": 200849,
+      "sha256": "929eb44c3484ab05084c6dbaecaf1417edde304e9346c3a71c81838f00fd9958"
+    },
+    {
+      "file": "candidate-span-passed-native.jpg",
+      "bytes": 204092,
+      "sha256": "5995c026fd4f6187c1d6d562638c389edaa25a0b51644d00ea19db33c193ec33"
+    },
+    {
+      "file": "candidate-svg-passed-native.jpg",
+      "bytes": 199721,
+      "sha256": "6af7dd28908cf2ef4d0bdbfae0da2ebc000a3a0c52e058b8e8949d97b7219549"
+    },
+    {
+      "file": "case-summary.json",
+      "bytes": 3206,
+      "sha256": "ca5ee9eafc34fd9949ad513822b383ebbfccb89f70044cf31ce7bd091a9f7e19"
+    },
+    {
+      "file": "replacement-server-process.json",
+      "bytes": 71,
+      "sha256": "59f44b033773340f1686636b6e0dc1c5a960b6fc3441c8bb61eaa3128cac3b04"
+    },
+    {
+      "file": "shell-all-tests.log",
+      "bytes": 6895,
+      "sha256": "e1cf4303c62402b6ea5654cb9f9871244ea9e5ebe0bbf0337ece4e0ec79046aa"
+    },
+    {
+      "file": "shell-target-tests.log",
+      "bytes": 2139,
+      "sha256": "4a0e58ec809f32c3a27af5d9bde62e2b9e6f1860bc2e8637968f22a2d06e389b"
+    },
+    {
+      "file": "web-all-tests.log",
+      "bytes": 146193,
+      "sha256": "a101ccdc0ddc7c70b373724cb796a1ba7ce88199d01260454dd6e105e835f342"
+    },
+    {
+      "file": "web-scope-tests.log",
+      "bytes": 22648,
+      "sha256": "f549757ac694d847d55a40dd2ad13fe756b976aae16867235cfa577d1d784c95"
+    }
+  ]
+}
