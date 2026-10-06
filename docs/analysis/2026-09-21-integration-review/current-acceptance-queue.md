@@ -1,4 +1,4 @@
-# 当前验收队列（2026-10-06，0.2.83正式子滚动五项回归通过）
+# 当前验收队列（2026-10-06，0.2.84正式导航与预览标签同步通过）
 
 本表汇总剩余工作，历史失败与已通过证据以各版本报告为准。当前仅主会话实施与测试，真实模型使用原SWE-2-medium会话；Opus依用户要求暂不使用，微信不改不测。Paint基础输入已通过，不再要求完整人物绘画。
 
@@ -35,3 +35,5 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 0.2.83正常安装五项子滚动实操通过，原SWE续接、真实截图/事件/回执、完整包身份和日常恢复见[083交接](../../testing/release-0.2.83/change-report-and-test-handoff.md)。仅闭环同源同进程上下滚动，跨来源/OOP及其余总体队列仍开放。另复核浏览器保留标签标题与实际URL的状态同步。
 
 0.2.83已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.83)：四个分发资产服务端长度/SHA256与本地匹配，实际tag绑定冻结产品0b；正常日常桌面入口已核验为083、原工程和原安全库。来源CI两路success，后续文档/新修补HEAD另核。公开核验见[服务端记录](../../testing/release-0.2.83/evidence/github-release-verification.json)。
+
+0.2.84已正常安装，原SWE真实单次A→B导航28.1秒、普通后退/前进、关闭后保留不自动载入、显式重开B的页面/地址/标签同步通过；六门及1150文件匹配，正常原工程与安全库恢复。冻结产品82两路CI success。见[084交接](../../testing/release-0.2.84/change-report-and-test-handoff.md)。下一项跨来源/OOP方案已据官方ForSession接口复核，尚未实施；其余总队列保持开放。

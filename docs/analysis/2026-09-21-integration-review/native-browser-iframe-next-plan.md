@@ -1,6 +1,6 @@
 # 内置浏览器 iframe 文档绑定的下一步实施方案
 
-同进程子文档click已实施，0.2.81正常打包、安装及正式原SWE三项复测均已通过；1150文件摘要、正常入口恢复和产品源码两条远端检查也通过。跨进程子Target及子文档编辑/键盘仍未实施，不能由本轮点击结果外推。以下现状段描述0.2.80修补前的缺口。
+同进程子文档click在0.2.81正式通过，子编辑/Enter和父输入在0.2.82正式通过，子上下滚动、边缘拒绝及父滚动在0.2.83正式通过。跨进程子Target仍开放；以下各版本段保留当时范围，不把历史待办当成最新状态。0.2.84单独处理顶层导航判定和预览标签同步，其安装实操另见对应报告。
 
 ## 本轮候选进展
 
@@ -36,3 +36,13 @@ native_browser_observation只采顶层Frame的AX；native_browser_dom明确忽�
 - 必须正常构建安装新版本后复测；候选只能记候选。已有普通/SVG/Shadow能力的针对性回归与合理代码检查保留，不扩大为无关单元测试堆积。
 
 风险先处置：父Frame链变化、跨进程target脱附、Frame缩放/滚动/transform、嵌套预算、唯一目标和释放归属。遇到事实不支持的Frame给明确能力缺口；不通过强制外部浏览器、任意JS或延长安全租约掩盖问题。Opus暂停时由当前主会话完成架构审查，不请求额度恢复。
+
+## 下一阶段：独立进程Frame
+
+2026-10-06重新核官方接口与现有实现：WebView2的[ICoreWebView2_11](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_11#calldevtoolsprotocolmethodforsession)可按已附着target的sessionId执行协议方法；附着参数需flatten=true。现有native_browser_devtools只有顶层CallDevToolsProtocolMethod，native_browser_document遇到没有contentDocument的子Frame会标记截断且不给操作引用，因此该缺口尚未闭环。
+
+先用实际不同来源页面采集FrameTree、DOM及target类型/归属，记录它是否为独立target；页面渲染成功仍需另验输入。宿主新增小型目标会话模块，按现有PanelResource的generation及navigation_revision管理附着/失效，只接纳已沿父Frame/owner链关联的iframe。Worker及其它无页面归属目标不进入可执行节点；不增加模型可传的CDP、脚本或sessionId入口，不另建权限或任务系统。
+
+文档模块组合“所属目标会话、frame、loader、文档根”的身份；backend节点和Runtime objectId随会话归属保存，避免跨会话相同数字碰撞。只读devtools模块沿固定方法枚举选择顶层或ForSession，观察和预检模块使用目标自身AX/DOM，沿宿主owner链核对顶层可见位置和命中归属。实际坐标、页面缩放、滚动和跨Frame命中先实测再决定输入路由；不能假定所有session的坐标原点相同。
+
+实施先覆盖独立子按钮，再补编辑、按键和滚动。每一步沿用原请求契约、许可台账、取消及释放路径；脱附或文档改变撤销原引用，已有按下仍完成释放并如实记录。真实SWE验收需要子计数/父计数、可信页面事件、实际会话绑定、sent/released和新观察截图；再做父误击、同名兄弟Frame、规划期间子导航及面板关闭负例。窄时序按住变化另列，未命中不计通过。当前为方案，尚未实现或验收。

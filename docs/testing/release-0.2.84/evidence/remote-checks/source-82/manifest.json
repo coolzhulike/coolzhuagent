@@ -1,0 +1,16 @@
+{
+  "source_commit": "82f769611a9b35cc947e8615575868e5cc34d8b9",
+  "stage": "本版冻结产品push与PR两路检查均success",
+  "files": [
+    {
+      "file": "ci-source84-initial.json",
+      "length": 7152,
+      "sha256": "4e5d7b32c1ee730e0c540d29f58226f4c5bd29d59560ee93c39376625bae038f"
+    },
+    {
+      "file": "ci-source84-final.json",
+      "length": 7194,
+      "sha256": "f3563848796aebab8cc3ed9b9c6009f6ea1b3f72c39b78e918711575bf9df105"
+    }
+  ]
+}
