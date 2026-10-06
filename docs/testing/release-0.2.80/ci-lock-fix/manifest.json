@@ -1,0 +1,55 @@
+{
+  "stage": "远端原失败及本地有界修补回归，尚未计为新HEAD远端通过",
+  "failed_pr_run_id": 37399319495,
+  "previous_source": "683c17e74ca98cf85c3e67142e68a7c04071da5d",
+  "build_exit": 0,
+  "regression": {
+    "passed": 1390,
+    "failed": 0,
+    "ignored": 6,
+    "seconds": 83.59
+  },
+  "existing_concurrency_test": {
+    "repetitions": 10,
+    "rounds_per_test": 8,
+    "threads_per_round": 6,
+    "all_passed": true
+  },
+  "limitations": [
+    "旧实现本地未重现，远端日志未提供确切锁阶段",
+    "不替代真实模型软件截图验收",
+    "新安装包和新HEAD远端检查须另外核验"
+  ],
+  "files": [
+    {
+      "file": "pr84-ci-failure.log",
+      "length": 323503,
+      "sha256": "220d6701d4d93ae13b45c2d36ce54c566e2a00b4f95eba4cf51e716f4ee78149"
+    },
+    {
+      "file": "pr84-ci-jobs.json",
+      "length": 836,
+      "sha256": "3d6baa27a97afbab037e9685c530404ad7bbe562139b9f491fb313c9736ea696"
+    },
+    {
+      "file": "session-open-build.log",
+      "length": 49512,
+      "sha256": "e33fa0afaf5cfa3f38efdf1ec31c122c272bda0b27f9639b0df51c6c081e7fad"
+    },
+    {
+      "file": "session-open-regression.log",
+      "length": 143527,
+      "sha256": "f5d6983b34cde12a527c9d16a4f5eefb1741b322b86cd3f6dc7198893ca8caba"
+    },
+    {
+      "file": "session-open-stress.log",
+      "length": 212371,
+      "sha256": "9522790e4e5ec1ad766f4e9a13640e5ee5119c2510c41c366ed9e10ebb31e076"
+    },
+    {
+      "file": "concurrent-open-before-fix.log",
+      "length": 21832,
+      "sha256": "1bc047faf08899c2bf9fed6c950d4f733041cf97d79f14583d3fb11fba194c46"
+    }
+  ]
+}

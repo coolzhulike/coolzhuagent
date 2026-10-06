@@ -29,6 +29,23 @@
 
 ## 正式安装验收与后续测试
 
-当前本节等待正常发布链构建、安装文件摘要核验及正式SWE同一会话复测，不能把候选目录二进制计为Program Files正式通过。
+0.2.79已由正常发布链构建，六个发布门均通过；Windows安装退出0，Program Files中1150个文件的长度和SHA256与发布包逐一匹配。包源码683c17e74ca98cf85c3e67142e68a7c04071da5d，源码快照62944ec1b3885c9c0b237fa6d312e22fae7121ad7899c9e7f0b064f71947eb09。MSI为276327042字节，SHA256=845bf1c6f4c9376c643047cff3abaab1bfc6651a4c61837ab2c95899bf36b0cf。
 
-后续测试优先级：正式安装版重复上述正/负例；再按独立文档身份方案处理iframe内部自动化，保留跨URL新文档严格down/up时序和观察后/按下中面板关闭或替换缺口。已完成普通span/SVG、嵌套交互正/负例、普通覆盖层拒绝、同步整页内容替换释放、正常跨URL导航和初始关闭负例；这些不能替代窄时序验收。完整四项任务尚未全部验收，Paint按用户缩减范围仅验基础输入且已有正式通过，微信不改不测，Opus暂停。
+正式默认8765、原SWE-2-medium / veiled-anise完成以下两轮，均有截图、真实网页事件和ACP终态排空证据：
+
+| 独立任务 | 消息／耗时 | 正式结果 |
+| --- | --- | --- |
+| Shadow子按钮自身引用 | #337/#338，23.4秒 | 一次真实点击，sent/released，父0、子1；pointerdown/up/click均trusted，独立shadow-click=1，正例通过 |
+| Shadow子控件覆盖父中心 | #339/#340，18.6秒 | native_browser_target_hit_mismatch，not_sent/not_needed，steps0，父0子0，当轮网页输入事件0，预期拒绝通过 |
+
+[正式安装身份、逐文件摘要、原图及台账](installed-shadow/manifest.json)。顶层事件target重定向为shadow-host，内部独立监听及子次数共同确认实际目标，不能仅凭顶层target判断。
+
+![正式版Shadow子控件一次点击](installed-shadow/installed-079-shadow-child-after.jpg)
+
+![正式版父按钮误击拒绝，父子均0](installed-shadow/installed-079-shadow-parent-after.jpg)
+
+关闭面板尝试单独保留：[时序证据及原图](boundary-gaps/manifest.json)。#341/#342（21.7秒）点击与正常核验先完成，实际关闭太晚；#343/#344（21.6秒）关闭发生在点击已发送且释放后的验证期间，最终native_browser_panel_unavailable、goal=false，右栏保持关闭，无自动重开或补发。这证明验证期间关闭能撤销旧证明；不能计为输入前关闭或按住期间关闭通过。候选#335/#336的观察阶段resource_changed也保留，实际未关闭，具体触发原因尚未定位，不用正式成功覆盖失败。
+
+PR83已合并，新增代码由[PR84](https://github.com/coolzhulike/coolzhuagent/pull/84)承接。683源码push检查成功，但PR检查在真实SQLite首次并发打开用例出现DatabaseBusy（1389通过、1失败、6忽略）。后续只读版本读取的有界重试修补已通过1390项完整回归和10轮既有并发用例；该修补不在0.2.79 MSI中，待0.2.80正常发布链与正式安装验证。原日志未标明确切失败阶段，本地旧实现未重现，不能宣称已精确重现那一轮根因。[CI修补与测试交接](../release-0.2.80/change-report-and-test-handoff.md)。
+
+后续优先处理iframe内部自动化的独立文档身份方案，保留跨URL新文档严格down/up时序和输入前/按下中面板关闭或替换缺口。不增加人为延时或测试钩子制造通过。普通span/SVG、嵌套交互正/负例、普通覆盖层拒绝、同步整页内容替换释放、正常跨URL导航和初始关闭负例已有正式通过，不能替代窄时序。四项任务总体仍未完成；Paint按用户缩减范围基础输入已正式通过，微信不改不测，Opus暂停。

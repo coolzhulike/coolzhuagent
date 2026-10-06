@@ -172,7 +172,7 @@ pub(crate) const CU_WORKSPACE_CONTEXT_VERSION: i64 = 1;
 pub(crate) fn ensure_session_schema_not_from_the_future(
     connection: &Connection,
 ) -> rusqlite::Result<()> {
-    let current: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    let current = read_session_schema_version(connection)?;
     let supported = crate::SESSION_SCHEMA_VERSION;
     if current > supported {
         return Err(rusqlite::Error::InvalidParameterName(format!(
@@ -181,6 +181,37 @@ pub(crate) fn ensure_session_schema_not_from_the_future(
         )));
     }
     Ok(())
+}
+
+/// 首次并发打开会同时切换日志模式或恢复 WAL；此时只读版本检查也可能直接返回 BUSY。
+/// 只重做这一条无副作用的 PRAGMA，沿用五秒总期限；不重放业务事务或迁移。
+fn read_session_schema_version(connection: &Connection) -> rusqlite::Result<i64> {
+    let read = || connection.query_row("PRAGMA user_version", [], |row| row.get(0));
+    if !connection.is_autocommit() { return read(); }
+    let wait = std::time::Duration::from_secs(5);
+    let deadline = std::time::Instant::now() + wait;
+    let outcome = loop {
+        connection.busy_timeout(deadline.saturating_duration_since(std::time::Instant::now()))?;
+        match read() {
+            Err(rusqlite::Error::SqliteFailure(ref error, _))
+                if error.code == rusqlite::ErrorCode::DatabaseBusy && std::time::Instant::now() < deadline => {
+                std::thread::sleep(std::time::Duration::from_millis(10)
+                    .min(deadline.saturating_duration_since(std::time::Instant::now())));
+            }
+            result => break result,
+        }
+    };
+    connection.busy_timeout(wait)?;
+    outcome.map_err(|error| session_open_error_context(error, "读取会话库版本"))
+}
+
+/// 保留 SQLite 错误码及扩展码，只补足失败阶段，便于定位实际锁冲突。
+fn session_open_error_context(error: rusqlite::Error, stage: &str) -> rusqlite::Error {
+    match error {
+        rusqlite::Error::SqliteFailure(code, message) => rusqlite::Error::SqliteFailure(code,
+            Some(format!("{stage}：{}", message.as_deref().unwrap_or("SQLite 操作失败")))),
+        other => other,
+    }
 }
 
 /// 已存在的库先通过只读连接检查有效版本，再允许写连接调整 journal 模式。
@@ -1995,9 +2026,11 @@ impl ComputerUseRunStore {
     }
 
     pub(crate) fn open(path: &std::path::Path) -> rusqlite::Result<Self> {
-        let connection = crate::open_session_connection(path)?;
+        let connection = crate::open_session_connection(path)
+            .map_err(|error| session_open_error_context(error, "打开会话库连接"))?;
         // 所有打开路径复用唯一完整阶梯，先备份再事务迁移。
-        crate::initialize_session_schema(&connection)?;
+        crate::initialize_session_schema(&connection)
+            .map_err(|error| session_open_error_context(error, "初始化会话库结构"))?;
         Ok(Self::from_connection(connection))
     }
 
