@@ -37,3 +37,5 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 0.2.83已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.83)：四个分发资产服务端长度/SHA256与本地匹配，实际tag绑定冻结产品0b；正常日常桌面入口已核验为083、原工程和原安全库。来源CI两路success，后续文档/新修补HEAD另核。公开核验见[服务端记录](../../testing/release-0.2.83/evidence/github-release-verification.json)。
 
 0.2.84已正常安装，原SWE真实单次A→B导航28.1秒、普通后退/前进、关闭后保留不自动载入、显式重开B的页面/地址/标签同步通过；六门及1150文件匹配，正常原工程与安全库恢复。冻结产品82两路CI success。见[084交接](../../testing/release-0.2.84/change-report-and-test-handoff.md)。下一项跨来源/OOP方案已据官方ForSession接口复核，尚未实施；其余总队列保持开放。
+
+0.2.84已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.84)，四资产服务端长度/SHA与本地相符，实际标签绑定冻结82；见[公开核验](../../testing/release-0.2.84/evidence/github-release-verification.json)。当前正常桌面入口为084，下一优先项仍为跨来源/OOP iframe。

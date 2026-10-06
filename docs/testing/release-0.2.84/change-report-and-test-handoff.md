@@ -45,3 +45,7 @@
 测试执行者可用两个独立普通HTML页，从A发仅允许一次navigate的当前用户请求，核对HTTP事件时间、实际壳绑定和新页面三项；终态后再做后退、前进和关闭/重开。明确禁导航、绝对零输入仍应不投递，不能靠历史许可或模型自行改参数解除。
 
 本版仅闭环顶层导航及标签同步。跨来源/跨进程iframe、横向/RTL及嵌套滚动、严格按住跨URL/面板变化、多屏、插件剩余生命周期、全自动升级、演出其它模式和四项总体复核仍开放。[当前验收队列](../../analysis/2026-09-21-integration-review/current-acceptance-queue.md)。下一步跨进程方案已按官方WebView2 ForSession接口补充到[文档](../../analysis/2026-09-21-integration-review/native-browser-iframe-next-plan.md)，尚未实现或计通过。Paint按用户缩减范围基础已正式通过；微信不动，Opus暂停，不用子Agent。
+
+## GitHub分发
+
+[0.2.84预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.84)已公开，四个分发资产服务端长度/SHA与本地匹配，实际标签绑定82冻结产品来源。见[evidence/github-release-verification.json](evidence/github-release-verification.json)。桌面dist保留同包和摘要。PR84承接代码与证据，正常日常入口为084；整体队列继续开放。
