@@ -648,8 +648,8 @@ mod tests {
                 "description":"慢速取消测试", "prompt":"等待父运行截止", "allowed_tools":[]
             }), Some(&expiring_runner)).await
         });
-        tokio::time::timeout(std::time::Duration::from_secs(3), slow_request_started.notified())
-            .await.expect("超时请求应到达真实本地模型端点");
+        // 根短预算可在网络派发前耗尽；取消用例已单独验证执行中的真实请求。
+        // 此处核截止终止和不重复记账，不能要求到期前一定完成端点握手。
         let timed_out = tokio::time::timeout(std::time::Duration::from_secs(3), expiring)
             .await.expect("根预算截止须终止子执行").unwrap().unwrap_err();
         assert!(timed_out.contains("超时"), "{timed_out}");
