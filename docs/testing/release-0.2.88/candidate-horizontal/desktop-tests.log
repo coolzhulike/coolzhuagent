@@ -1,0 +1,108 @@
+warning: unused import: `OpenProcess`
+  --> C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: field `primary_area` is never read
+    --> src\main.rs:3503:9
+     |
+3496 |     struct AlphaBounds {
+     |            ----------- field in this struct
+...
+3503 |         primary_area: u32,
+     |         ^^^^^^^^^^^^
+     |
+     = note: `AlphaBounds` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `median_u32` is never used
+    --> src\main.rs:3664:8
+     |
+3664 |     fn median_u32(mut values: Vec<u32>) -> f32 {
+     |        ^^^^^^^^^^
+
+warning: `coolzhu-tauri-shell` (bin "coolzhu-tauri-shell" test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.09s
+     Running unittests src\main.rs (modules\gui-desktop\packages\tauri-shell\src-tauri\target\debug\deps\coolzhu_tauri_shell-be70e45506d95e06.exe)
+
+running 73 tests
+test browser_panel::tests::bounds_cannot_cover_main_chat_header_or_escape_client_area ... ok
+test browser_panel::tests::capability_grants_only_named_trusted_webviews ... ok
+test browser_panel::tests::drawer_bounds_stay_inside_declared_sidebar_and_preserve_quick_rail ... ok
+test browser_panel::tests::external_navigation_rejects_privileged_schemes_credentials_and_console_aliases ... ok
+test browser_panel::tests::hidden_or_minimized_console_cannot_register_a_resident_page ... ok
+test browser_panel::tests::popup_queue_sequence_cannot_survive_replacement_or_manual_navigation ... ok
+test browser_panel::tests::startup_report_command_requires_exact_performance_webview_and_page ... ok
+test browser_panel::tests::unknown_webview_never_inherits_custom_commands_even_at_trusted_origin ... ok
+test native_browser_devtools::tests::cdp_utf16_is_bounded_before_copying ... ok
+test native_browser_document::tests::child_navigation_and_owner_replacement_change_document_scope ... ok
+test native_browser_document::tests::external_frame_requires_actual_parent_and_qualifies_backend_ids_by_session ... ok
+test native_browser_dom::tests::malformed_or_over_budget_trees_do_not_grant_partial_refs ... ok
+test native_browser_dom::tests::refs_include_open_shadow_children_but_exclude_other_documents_and_closed_roots ... ok
+test native_browser_frame_geometry::tests::child_point_uses_owner_content_and_local_layout_including_scale ... ok
+test native_browser_nodes::tests::references_need_same_document_scope_and_live_unconsumed_observation ... ok
+test native_browser_observation::tests::ax_projection_omits_private_values_and_preserves_top_title ... ok
+test native_browser_scroll::tests::horizontal_domain_preserves_physical_direction_and_both_rtl_boundaries ... ok
+test native_browser_target::tests::fresh_ax_must_match_backend_role_name_and_interactable_state ... ok
+test native_browser_target::tests::geometry_is_css_viewport_relative_and_rejects_clipped_or_degenerate_targets ... ok
+test native_browser_target::tests::hit_accepts_only_the_original_control_or_its_passive_regular_descendants ... ok
+test native_browser_target::tests::shadow_child_requires_its_own_binding_and_does_not_inherit_parent_ownership ... ok
+test recovery_confirmation::tests::native_dialog_uses_canonical_details_and_does_not_hide_block_reasons ... ok
+test tests::console_toggle_presents_until_visible_unminimized_and_focused ... ok
+test tests::console_window_close_quits_instead_of_only_hiding ... ok
+test tests::external_browser_command_contract_is_explicit_and_safe ... ok
+test tests::gui_client_url_normalizes_unspecified_listener_hosts ... ok
+test tests::launcher_pid_only_args_play_performance_but_explicit_console_bypasses_it ... ok
+test tests::launcher_startup_visibility_respects_console_and_pet_intent ... ok
+test tests::native_drag_command_emits_dragging_status_before_window_drag ... ok
+test tests::native_drag_command_schedules_release_idle_watcher ... ok
+test tests::native_drag_release_watcher_waits_for_left_button_release_and_restores_idle ... ok
+test tests::pet_action_args_default_message_and_normalize_state ... ok
+test tests::pet_action_args_support_split_and_inline_values ... ok
+test tests::pet_action_frame_offsets_stabilize_visual_centroid ... ok
+test tests::pet_action_frames_have_no_straight_edge_cuts ... ok
+test tests::pet_action_frames_share_canvas_and_visual_anchor ... ok
+test tests::pet_blink_overlay_reuses_idle_character_scale ... ok
+test tests::pet_bubbles_match_status_states ... ok
+test tests::pet_event_status_maps_chat_tool_audio_events ... ok
+test tests::pet_event_status_maps_goal_and_permission_lifecycle ... ok
+test tests::pet_event_status_maps_terminal_and_unknown_events ... ok
+test tests::pet_exit_only_targets_launcher_owned_web_console_pid ... ok
+test tests::pet_exit_path_reclaims_web_console_before_app_exit ... ok
+test tests::pet_frame_urls_are_versioned_to_bypass_webview_cache ... ok
+test tests::pet_martial_frames_keep_character_scale_consistent_with_idle ... ok
+test tests::pet_mini_applies_state_priority_and_auto_return ... ok
+test tests::pet_mini_blur_does_not_end_preview_during_native_drag ... ok
+test tests::pet_mini_does_not_restore_idle_immediately_after_native_drag_starts ... ok
+test tests::pet_mini_has_manual_double_click_fallback ... ok
+test tests::pet_mini_idle_blink_uses_unified_state_transition ... ok
+test tests::pet_mini_previews_dragging_frame_before_native_drag ... ok
+test tests::pet_mini_starts_drag_preview_after_drag_threshold_not_mouse_down ... ok
+test tests::pet_mini_status_events_render_text_bubbles ... ok
+test tests::pet_mini_text_bubble_suppresses_image_bubble ... ok
+test tests::pet_mini_triggers_idle_performances_sleep_and_activity_wake ... ok
+test tests::pet_mini_uses_payload_frames_for_action_state ... ok
+test tests::pet_mini_window_mouseup_finishes_native_drag_preview ... ok
+test tests::pet_mini_window_uses_double_size_wuxia_layout ... ok
+test tests::pet_state_frames_cover_core_actions ... ok
+test tests::pet_state_normalization_is_stable ... ok
+test tests::pet_status_after_native_drag_clears_frontend_drag_latch ... ok
+test tests::pet_success_frames_do_not_mix_closeup_character_scales ... ok
+test tests::pet_theme_and_mini_ui_support_persistent_crowned_state ... ok
+test tests::pet_theme_declares_wuxia_dragging_and_single_sword_performance_state ... ok
+test tests::pet_theme_manifest_declares_migrated_clawd_states ... ok
+test tests::pet_wuxia_frames_keep_policy_stable_scale_and_anchors ... ok
+test tests::startup_performance_exit_paths_hide_before_showing_console ... ok
+test tests::startup_performance_reports_accept_only_bounded_lifecycle_fields ... ok
+test tests::startup_performance_url_matches_tauri_platform_resource_scheme ... ok
+test tests::tauri_shell_uses_shared_diagnostics_for_errors ... ok
+test tests::throne_drop_bridge_reports_dom_zone_and_handles_drag_release ... ok
+test tests::tray_exposes_safe_pet_hide_action ... ok
+test tests::web_console_parent_pid_accepts_args_and_env_fallback ... ok
+
+test result: ok. 73 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.93s
+
