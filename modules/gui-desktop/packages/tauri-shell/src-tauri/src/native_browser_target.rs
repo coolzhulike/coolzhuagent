@@ -83,7 +83,8 @@ pub(super) fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i3
         let offset = viewport.get(key).and_then(Value::as_f64).filter(|value|value.is_finite())
             .ok_or("native_browser_target_geometry_invalid")?;
         let point = (f64::from(value) + offset).round();
-        if !(0.0..=f64::from(i32::MAX)).contains(&point) {
+        // RTL文档的合法坐标可为负；视口内点已由point/map_owner独立校验。
+        if !(f64::from(i32::MIN)..=f64::from(i32::MAX)).contains(&point) {
             return Err("native_browser_target_geometry_invalid");
         }
         Ok(point as i32)

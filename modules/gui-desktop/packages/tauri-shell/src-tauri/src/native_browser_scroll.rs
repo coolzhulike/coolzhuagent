@@ -15,7 +15,9 @@ use tauri::AppHandle;
 // 固定宿主只读函数；不设置滚动位置，不接受网页或模型提供的脚本。
 pub(super) const READ_SCROLL: &str = r#"function(){
  const e=this.scrollingElement;if(!e)return null;
- return {width:e.clientWidth,height:e.clientHeight,extent:e.scrollHeight,top:e.scrollTop};
+ const style=this.defaultView.getComputedStyle(e);
+ return {width:e.clientWidth,height:e.clientHeight,extent:e.scrollHeight,top:e.scrollTop,
+         horizontalExtent:e.scrollWidth,left:e.scrollLeft,direction:style.direction,writingMode:style.writingMode};
 }"#;
 
 async fn read_state(app: &AppHandle, resource: &PanelResource, scope: &DocumentScope, root: i64) -> Result<Value, String> {
@@ -43,7 +45,7 @@ async fn read_state(app: &AppHandle, resource: &PanelResource, scope: &DocumentS
         .pointer("/result/value")
         .filter(|v| v.is_object())
         .ok_or("native_browser_scroll_state_unavailable")?;
-    for key in ["width", "height", "extent", "top"] {
+    for key in ["width", "height", "extent", "top", "horizontalExtent"] {
         if !value[key]
             .as_f64()
             .is_some_and(|n| n.is_finite() && (0.0..=2_147_483_647.0).contains(&n))
@@ -54,7 +56,40 @@ async fn read_state(app: &AppHandle, resource: &PanelResource, scope: &DocumentS
     if value["width"].as_f64().unwrap() <= 2.0 || value["height"].as_f64().unwrap() <= 2.0 {
         return Err("native_browser_scroll_state_unavailable".into());
     }
+    if !value["left"].as_f64().is_some_and(|n| n.is_finite() && n.abs() <= 2_147_483_647.0)
+        || !matches!(value["direction"].as_str(), Some("ltr" | "rtl"))
+        || value["writingMode"].as_str().is_none()
+    {
+        return Err("native_browser_scroll_state_unavailable".into());
+    }
     Ok(value.clone())
+}
+
+/// CSSOM横排RTL的原点在右端，向左的位置为负数；不可复用LTR的正值区间。
+fn remaining_distance(state: &Value, direction: ScrollDirection) -> Result<f64, String> {
+    let number = |key: &str| state[key].as_f64().filter(|n| n.is_finite())
+        .ok_or("native_browser_scroll_state_unavailable");
+    let remaining = match direction {
+        ScrollDirection::Up => number("top")?,
+        ScrollDirection::Down => number("extent")? - number("height")? - number("top")?,
+        ScrollDirection::Left | ScrollDirection::Right => {
+            if state["writingMode"].as_str() != Some("horizontal-tb") {
+                return Err("native_browser_scroll_axis_unsupported".into());
+            }
+            let range = (number("horizontalExtent")? - number("width")?).max(0.0);
+            let (minimum, maximum) = match state["direction"].as_str() {
+                Some("ltr") => (0.0, range),
+                Some("rtl") => (-range, 0.0),
+                _ => return Err("native_browser_scroll_state_unavailable".into()),
+            };
+            let left = number("left")?;
+            if left < minimum || left > maximum {
+                return Err("native_browser_scroll_state_unavailable".into());
+            }
+            if direction == ScrollDirection::Left { left - minimum } else { maximum - left }
+        }
+    };
+    Ok(remaining.max(0.0))
 }
 
 async fn scroll_point(app: &AppHandle, resource: &PanelResource, scope: &DocumentScope, metrics: &Value) -> Result<MappedPoint, String> {
@@ -84,9 +119,6 @@ pub(super) async fn verify_child(
     direction: ScrollDirection,
     started: Instant,
 ) -> Result<VerifiedTarget, String> {
-    if !matches!(direction, ScrollDirection::Up | ScrollDirection::Down) {
-        return Err("native_browser_scroll_axis_unsupported".into());
-    }
     if node.scope.is_top()
         || node.role != "RootWebArea"
         || node.backend_node != node.scope.document().backend_root
@@ -104,12 +136,7 @@ pub(super) async fn verify_child(
     let metrics = native_browser_devtools::read(app, resource, ReadMethod::LayoutMetrics).await?;
     let point = scroll_point(app, resource, &node.scope, &metrics).await?;
     let state = read_state(app, resource, &node.scope, node.backend_node).await?;
-    let top = state["top"].as_f64().unwrap();
-    let remaining = if direction == ScrollDirection::Up {
-        top
-    } else {
-        (state["extent"].as_f64().unwrap() - state["height"].as_f64().unwrap() - top).max(0.0)
-    };
+    let remaining = remaining_distance(&state, direction)?;
     if remaining <= 0.0 {
         return Err("native_browser_scroll_boundary".into());
     }
@@ -155,4 +182,32 @@ pub(super) async fn verify_child(
         viewport,
         editor: None,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn horizontal_domain_preserves_physical_direction_and_both_rtl_boundaries() {
+        let mut state = serde_json::json!({"width":400,"height":300,"horizontalExtent":1000,
+            "extent":900,"top":150,"left":0,"direction":"ltr","writingMode":"horizontal-tb"});
+        for (direction, left, expected_left, expected_right) in [
+            ("ltr", 0.0, 0.0, 600.0), ("ltr", 180.5, 180.5, 419.5), ("ltr", 600.0, 600.0, 0.0),
+            ("rtl", 0.0, 600.0, 0.0), ("rtl", -180.5, 419.5, 180.5), ("rtl", -600.0, 0.0, 600.0),
+        ] {
+            state["direction"] = serde_json::json!(direction);
+            state["left"] = serde_json::json!(left);
+            assert_eq!(remaining_distance(&state, ScrollDirection::Left).unwrap(), expected_left);
+            assert_eq!(remaining_distance(&state, ScrollDirection::Right).unwrap(), expected_right);
+        }
+        assert_eq!(remaining_distance(&state, ScrollDirection::Up).unwrap(), 150.0);
+        assert_eq!(remaining_distance(&state, ScrollDirection::Down).unwrap(), 450.0);
+        state["left"] = serde_json::json!(1.0);
+        assert!(remaining_distance(&state, ScrollDirection::Right).is_err());
+        state["left"] = serde_json::json!(-601.0);
+        assert!(remaining_distance(&state, ScrollDirection::Left).is_err());
+        state["writingMode"] = serde_json::json!("vertical-rl");
+        assert_eq!(remaining_distance(&state, ScrollDirection::Left).unwrap_err(), "native_browser_scroll_axis_unsupported");
+    }
 }

@@ -18,12 +18,19 @@ pub(super) struct MappedPoint {
     pub proof: Vec<Value>,
 }
 fn local_metrics(raw: Value) -> Result<Value, String> {
-    let layout = raw
+    let mut layout = raw
         .get("cssLayoutViewport")
         .filter(|v| v.is_object())
         .ok_or("native_browser_frame_geometry_invalid")?
         .clone();
-    // OOP的VisualViewport仍描述顶层窗口；子根边界和文档偏移要使用本session的LayoutViewport。
+    // OOP的VisualViewport尺寸描述顶层窗口，但pageX/Y来自本session的真实滚动偏移。
+    // LayoutViewport只用于子视口尺寸：其矩形起点包含RTL滚动原点，不能当文档偏移。
+    for key in ["pageX", "pageY"] {
+        let offset = raw["cssVisualViewport"][key].as_f64()
+            .filter(|n| n.is_finite() && (f64::from(i32::MIN)..=f64::from(i32::MAX)).contains(n))
+            .ok_or("native_browser_frame_geometry_invalid")?;
+        layout[key] = serde_json::json!(offset);
+    }
     Ok(serde_json::json!({"cssVisualViewport":layout}))
 }
 fn map_owner(
@@ -177,6 +184,20 @@ async fn map_point(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn rtl_child_uses_local_dimensions_and_signed_document_offset() {
+        // 真实OOP RTL回执：布局起点1409，滚动偏移0，顶层视口宽446，子视口宽391。
+        for offset in [0.0_f64, -195.3333282470703, -600.0] {
+            let raw = serde_json::json!({
+                "cssLayoutViewport":{"clientWidth":391,"clientHeight":284,"pageX":1409.0+offset,"pageY":0},
+                "cssVisualViewport":{"clientWidth":446,"clientHeight":522,"pageX":offset,"pageY":0}});
+            let metrics = local_metrics(raw).unwrap();
+            assert_eq!(metrics["cssVisualViewport"]["clientWidth"], 391);
+            assert_eq!(native_browser_target::hit_test_point(196, 142, &metrics).unwrap(),
+                ((196.0+offset).round() as i32,142));
+        }
+        assert!(local_metrics(serde_json::json!({"cssLayoutViewport":{},"cssVisualViewport":{"pageY":0}})).is_err());
+    }
     #[test]
     fn child_point_uses_owner_content_and_local_layout_including_scale() {
         let child = serde_json::json!({"cssVisualViewport":{"clientWidth":400,"clientHeight":320}});
