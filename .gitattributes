@@ -118,3 +118,4 @@
 /docs/testing/release-0.2.90/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.91/installed-plugin-lifecycle/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.91/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.91/startup-restore/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol

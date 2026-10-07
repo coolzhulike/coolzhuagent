@@ -48,3 +48,7 @@
 ## 公开预发布
 
 [0.2.91预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.91)已公开。MSI、安装报告、包安全报告及SHA文件共四项分发资产的服务端长度和SHA256均与本地匹配，实际标签绑定冻结产品a366，见[服务端核验](evidence/github-release-verification.json)。PR84说明已更新，保持待审未合入；后续文档HEAD检查另核。
+
+## 已运行窗口恢复补验
+
+公开后继续使用同一正式安装文件，向已运行桌面正常再次启动无参数shell：第二进程在约0.72秒内exit0，原web和shell的PID、UTC创建时间、路径及SHA保持，恢复前后为同一个原生控制台窗口50661734，未创建第二控制台或重复启动演出。原图与精确身份见[恢复补验清单](startup-restore/manifest.json)。该项没有调用模型、改系统动画偏好、清localStorage或修改产品文件；不外推首次启动、减少动态效果或资源失败。源码入口会重新构建WebView2参数，因此外部测试参数不能可靠强制减少动态模式；不以未生效的参数计通过，也没有为补测试新增正式调试接口。
