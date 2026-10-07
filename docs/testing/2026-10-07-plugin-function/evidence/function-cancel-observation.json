@@ -1,0 +1,20 @@
+{
+  "prefix": "PLUGIN-FUNCTION-CANCEL2-20261007",
+  "run_id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+  "turn_id": "chat-turn-1791377993396-1",
+  "state_before": "running",
+  "entered": {
+    "event": "function_network_entered",
+    "utc": "2026-10-07T13:00:20.339715+00:00",
+    "monotonic": 666736.8168036,
+    "path": "/cancel-20261007"
+  },
+  "cancel_started_ms": 1791378020386,
+  "response": {
+    "turn_id": "chat-turn-1791377993396-1",
+    "status": "interrupt_requested",
+    "outcome": "interrupt_requested",
+    "idempotent": false
+  },
+  "cancel_returned_ms": 1791378020437
+}

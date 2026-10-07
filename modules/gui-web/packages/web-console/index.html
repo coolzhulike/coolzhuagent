@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="./src/wuxia_layout.css" />
     <link rel="stylesheet" href="./src/workspace_panels.css" />
     <link rel="stylesheet" href="./src/scroll_theme.css" />
+    <link rel="stylesheet" href="./src/jade_controls.css" />
     <script src="./src/run_activity.js" defer></script>
     <script src="./src/video_wait.js" defer></script>
     <script src="./src/content_preview.js" defer></script>
@@ -25,6 +26,7 @@
     <script src="./src/app.js" defer></script>
     <script src="./src/dsh_market.js" defer></script>
     <script src="./src/devin_plugin.js" defer></script>
+    <script src="./src/provider_connectors.js" defer></script>
   </head>
   <body class="ui-3d">
     <main class="shell ui-redesign" aria-label="COOLZHU CODE 控制台">
@@ -83,15 +85,15 @@
           </details>
           <div class="chat-top-statuses" data-role="chat-top-statuses" aria-label="聊天室状态">
             <span class="chat-top-status-indicator chat-top-status-ready is-dim" data-role="chat-top-status-ready" data-state="idle" role="img" aria-label="系统健康：等待自检" title="系统健康：等待自检">
-              <img src="./assets/ui-redesign/p6/status-jade-ready-v1.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v2/status-jade.png" alt="" aria-hidden="true" />
               <span>就绪</span>
             </span>
             <span class="chat-top-status-indicator chat-top-status-lantern is-dim" data-role="chat-top-status-lantern" data-state="idle" role="img" aria-label="系统状态灯：等待自检" title="系统状态灯：等待自检">
-              <img src="./assets/ui-redesign/three-column/rail-lantern-gold-v1.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v2/status-lantern.png" alt="" aria-hidden="true" />
               <span>灯笼</span>
             </span>
             <span class="chat-top-status-indicator chat-top-status-alert is-dim" data-role="chat-top-status-alert" data-state="idle" role="img" aria-label="系统警示：无异常" title="系统警示：无异常">
-              <img src="./assets/ui-redesign/p6/status-vermilion-alert-v1.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v2/status-lantern.png" alt="" aria-hidden="true" />
               <span>警示</span>
             </span>
           </div>
@@ -744,7 +746,7 @@
                   </div>
                 </section>
                 <section class="chat-activity chat-run-activity" data-role="chat-run-activity" aria-label="当前运行过程" hidden>
-                  <div class="chat-activity-summary"><span data-role="chat-activity-label" role="status">正在思考…</span><time data-role="chat-turn-time"></time><button type="button" class="run-activity-follow" data-role="chat-activity-follow" hidden>暂停跟随</button></div>
+                  <div class="chat-activity-summary"><span data-role="chat-activity-label" role="status">正在思考…</span><time data-role="chat-turn-time"></time><button type="button" class="run-activity-follow" data-role="chat-activity-follow" data-icon-only="true" aria-label="暂停跟随" title="暂停跟随" aria-pressed="false" hidden><img class="wuxia-icon-only run-follow-pause" src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" /><img class="wuxia-icon-only run-follow-resume" src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" /></button></div>
                   <pre class="chat-activity-stream" data-role="chat-activity-stream" aria-live="off" aria-label="当前过程摘要，可暂停跟随和选择复制" tabindex="0"></pre>
                 </section>
                 <footer class="composer">
@@ -978,6 +980,18 @@
               <details class="dsh-market" data-role="devin-model-panel">
                 <summary>Devin 聊天室 · 模型与会话设置</summary>
                 <div data-role="devin-model-settings"></div>
+              </details>
+              <details class="dsh-market" data-provider-connector="opencode-zen@native">
+                <summary>OpenCode Zen · 免费模型连接器</summary>
+                <p class="ms-hint" data-role="provider-note"></p>
+                <button type="button" data-action="provider-docs" aria-label="查看 OpenCode 官方条款" title="查看 OpenCode 官方条款"><img src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /></button>
+                <div data-role="provider-editor"></div>
+              </details>
+              <details class="dsh-market" data-provider-connector="huggingface-inference@native">
+                <summary>Hugging Face · 推理模型连接器</summary>
+                <p class="ms-hint" data-role="provider-note"></p>
+                <button type="button" data-action="provider-docs" aria-label="查看 Hugging Face 官方额度" title="查看 Hugging Face 官方额度"><img src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /></button>
+                <div data-role="provider-editor"></div>
               </details>
               <p class="quick-panel-intro">浏览、安装和管理 DSH 社区插件。安装后先启用，再在模型配置中选择需要的工具。</p>
               <section class="dsh-market" data-role="dsh-market-root" aria-label="DSH 社区目录">

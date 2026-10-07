@@ -8,9 +8,9 @@
       <p data-devin-auth="status" role="status" aria-live="polite">正在检查 Devin 登录状态…</p>
       <p data-devin-auth="detail" class="ms-hint">在官方网页完成授权后，此处会自动更新。登录不会创建任务。</p>
       <div class="ms-discovery-actions">
-        <button type="button" data-devin-auth="login" class="ms-secondary">登录 Devin</button>
-        <button type="button" data-devin-auth="cancel" class="ms-secondary" hidden>取消登录</button>
-        <button type="button" data-devin-auth="refresh" class="ms-secondary">刷新状态</button>
+        <button type="button" data-devin-auth="login" class="ms-secondary" data-icon-only="true" aria-label="登录 Devin" title="登录 Devin"><img class="wuxia-icon-only" src="./assets/icons-wuxia/link.svg" alt="" aria-hidden="true" /></button>
+        <button type="button" data-devin-auth="cancel" class="ms-secondary" data-icon-only="true" aria-label="取消登录" title="取消登录" hidden><img class="wuxia-icon-only" src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" /></button>
+        <button type="button" data-devin-auth="refresh" class="ms-secondary" data-icon-only="true" aria-label="刷新 Devin 登录状态" title="刷新 Devin 登录状态"><img class="wuxia-icon-only" src="./assets/icons-wuxia/refresh.svg" alt="" aria-hidden="true" /></button>
       </div>`;
     const el = key => container.querySelector(`[data-devin-auth="${key}"]`);
     let disposed = false, visible = options.visible !== false, busy = false, sequence = 0;

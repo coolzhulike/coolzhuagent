@@ -110,6 +110,8 @@ body.ui-3d .workspace-preview-tab .workspace-preview-tab-close { min-width:26px;
 body.ui-3d .chat-tool-host:has(> .workspace-preview-tabs:not([hidden])) { grid-template-rows:38px auto minmax(0,1fr); }
 
 body.ui-3d .chat-run-activity .run-activity-follow { height:auto; min-height:20px; min-width:0; padding:0 6px; margin-left:auto; border:0; background:transparent; color:#ADBBAF; font:inherit; font-size:12px; }
+.run-activity-follow[aria-pressed="false"] .run-follow-resume,
+.run-activity-follow[aria-pressed="true"] .run-follow-pause { display:none; }
 body.ui-3d .workspace-preview-tabs > .workspace-preview-source {
   flex:0 0 auto; min-height:28px; height:auto; min-width:0; padding:4px 8px;
   border:1px solid #49695B; border-radius:6px; color:#EDF1E8; background:#19392B;

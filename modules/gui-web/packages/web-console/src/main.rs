@@ -81339,8 +81339,8 @@ attach: last_assistant
             "data-role=\"chat-top-status-lantern\" data-state=\"idle\"",
             "data-role=\"chat-top-status-alert\" data-state=\"idle\"",
             "role=\"img\" aria-label=\"系统状态灯：等待自检\"",
-            "assets/ui-redesign/p6/status-jade-ready-v1.png",
-            "assets/ui-redesign/p6/status-vermilion-alert-v1.png",
+            "assets/ui-redesign/jade-controls-v2/status-jade.png",
+            "assets/ui-redesign/jade-controls-v2/status-lantern.png",
         ] {
             assert!(top.contains(token), "P5 顶栏交互/叶名标记缺失：{token}");
         }

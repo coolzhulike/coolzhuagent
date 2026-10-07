@@ -32,7 +32,7 @@ fn default_true() -> bool {
     true
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub(super) struct DiscoveredModel {
     id: String,
     name: String,
@@ -43,6 +43,9 @@ pub(super) struct DiscoveredModel {
     capability_checked_at: Option<&'static str>,
     context_window: Option<u64>,
     max_output_tokens: Option<u64>,
+    tool_calling: Option<bool>,
+    is_free: Option<bool>,
+    cost_summary: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -174,6 +177,8 @@ fn provider_hint(host: &str) -> String {
         "api.anthropic.com" => "Anthropic".into(),
         "api.deepseek.com" => "DeepSeek".into(),
         "openrouter.ai" => "OpenRouter".into(),
+        "opencode.ai" => "OpenCode Zen".into(),
+        "router.huggingface.co" => "Hugging Face Inference".into(),
         "open.bigmodel.cn" => "智谱".into(),
         _ => host.to_string(),
     }
@@ -310,9 +315,47 @@ fn parse_listing(body: &Value) -> Result<(Vec<DiscoveredModel>, bool), &'static 
                     "/top_provider/max_completion_tokens",
                 ],
             ),
+            tool_calling: entry.get("supports_tools").and_then(Value::as_bool),
+            is_free: entry.get("is_free").and_then(Value::as_bool),
+            cost_summary: None,
         });
     }
     Ok((result, complete))
+}
+
+/// HF 路由目录已是可推理目录；显式提供方保留后缀，各自声明容量与工具能力。
+/// 不把同一模型其它提供方的能力或价格合并为当前路由的保证。
+fn expand_hf_routes(base: &Url, body: &Value, models: &mut Vec<DiscoveredModel>) {
+    if base.scheme() != "https" || base.host_str() != Some("router.huggingface.co")
+        || base.port_or_known_default() != Some(443) || base.path().trim_end_matches('/') != "/v1" {
+        return;
+    }
+    let Some(rows) = body.get("data").and_then(Value::as_array) else { return; };
+    let originals = std::mem::take(models);
+    for model in originals {
+        if models.len() >= MAX_MODELS { return; }
+        let Some(providers) = rows.iter().find(|row| row.get("id").and_then(Value::as_str) == Some(model.id.as_str()))
+            .and_then(|row| row.get("providers")).and_then(Value::as_array) else {
+            models.push(model); continue;
+        };
+        let live: Vec<_> = providers.iter().filter(|p| p.get("status").and_then(Value::as_str) == Some("live")).collect();
+        if live.is_empty() { continue; }
+        models.push(model.clone());
+        for provider in live {
+            if models.len() >= MAX_MODELS { return; }
+            let Some(id) = provider.get("provider").and_then(Value::as_str)
+                .filter(|id| !id.is_empty() && id.len() <= 100 && id.bytes().all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))) else { continue; };
+            let mut routed = model.clone();
+            routed.id = format!("{}:{id}", model.id);
+            routed.name = routed.id.clone();
+            routed.context_window = capacity(provider, &["/context_length"]);
+            routed.tool_calling = provider.get("supports_tools").and_then(Value::as_bool);
+            routed.is_free = provider.get("is_free").and_then(Value::as_bool);
+            routed.cost_summary = Some(if routed.is_free == Some(true) { "目录声明免费；账户条款以官网为准" }
+                else { "使用账户推理额度；不代表无限免费" }.into());
+            models.push(routed);
+        }
+    }
 }
 
 /// 只补齐精确官方端点与精确模型的缺失声明，不推测代理重命名模型的能力。
@@ -488,9 +531,11 @@ pub(super) async fn discover(
             "模型目录未返回有效 JSON，可继续手动填写模型。",
         )
     })?;
-    let (mut models, complete) =
+    let (mut models, mut complete) =
         parse_listing(&body).map_err(|message| api_error(StatusCode::BAD_GATEWAY, message))?;
     supplement_official_catalog(&base, &mut models);
+    expand_hf_routes(&base, &body, &mut models);
+    if models.len() >= MAX_MODELS { complete = false; }
     let mut warnings = Vec::new();
     if !complete {
         warnings.push("服务器仍有后续结果或目录超过显示上限；当前只展示已获取的部分。".into());

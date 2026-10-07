@@ -14109,6 +14109,14 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
   const summary = document.createElement("p");
   summary.textContent = item.description || "暂无说明。";
   card.append(title, source, summary);
+  if (kind === "plugin-market" && ["opencode-zen@native", "huggingface-inference@native"].includes(item.id)) {
+    source.textContent = `${item.source} · 内置模型连接器`;
+    const configure = document.createElement("button");
+    configure.type = "button";
+    setWuxiaIconOnly(configure, "settings", "配置模型会话");
+    configure.addEventListener("click", () => window.dispatchEvent(new CustomEvent("coolzhu-provider-configure", {detail:{id:item.id}})));
+    card.append(configure);
+  }
   if (kind === "skills") {
     const detail = document.createElement("button");
     detail.type = "button";
