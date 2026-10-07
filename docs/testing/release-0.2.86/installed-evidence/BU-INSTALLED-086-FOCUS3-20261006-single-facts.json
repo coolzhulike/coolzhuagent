@@ -1,0 +1,40 @@
+{
+  "prefix": "BU-INSTALLED-086-FOCUS3-20261006",
+  "message_id": "msg-1791350656466-user",
+  "room_id": "room-1791131523339",
+  "run_id": "run-chat-85ba740216f858a3df7f45c5bf817f7d3e65dc41ec0a8ea5",
+  "attempts": [
+    {
+      "attempt_id": "d8c56dea78595c0597bc893437efe67cdc77d1eaece5df8d",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "events": [
+    {
+      "event": "devin.context_delta",
+      "payload": {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 138,
+        "prompt_bytes": 7165
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

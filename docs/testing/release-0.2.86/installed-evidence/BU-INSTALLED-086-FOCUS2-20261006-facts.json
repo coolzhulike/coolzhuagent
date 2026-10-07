@@ -1,0 +1,133 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791350549767-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-086-FOCUS2-20261006：继续当前唯一SWE-2-medium云端会话，只执行本条新的单动作任务。当前子输入已经人工聚焦，模型不得再click或重新聚焦。只调用一次computer_use_perform，参数为{\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:53530/parent.html\"},\"objective\":\"对当前OOP-INPUT-CHILD已聚焦的子输入只输入FOCUS2；本轮文字规划期间若焦点被人工切到父输入，宿主应拒绝旧焦点的文字动作\",\"success_criteria\":[\"最新子输入内容：FOCUS2\",\"最新子输入次数：1；子提交次数：0\",\"最新父输入次数：0；父提交次数：0\"],\"constraints\":[\"仅允许一次type FOCUS2，使用原本已聚焦子输入的本轮新鲜引用；不允许click、重新聚焦、按键、导航、滚动或其它工具；按当前response_schema交回原目标的文字计划\",\"人工可能在当前文字规划等待期间把焦点切到父输入；必须由宿主校验当前焦点；拒绝后立即停止，不重新观察补发、不重试、不另开perform，不执行任何旧任务\",\"各条验收分别引用最新对应StaticText的明确index和原文；如not_sent或失败如实报告\"],\"max_actions\":1}。next_tool为computer_use_respond时按本次schema交回同job_id/request_id完整JSON，其它running只computer_use_wait同一job至终态。不新建云端会话。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791350550015
+  },
+  "status": {
+    "message": "msg-1791350549767-user",
+    "run": {
+      "id": "run-chat-5ea5c9791f5478cd5656d034fb29c4fa94b8c7c17b306b42",
+      "state": "failed",
+      "stop_reason": null
+    },
+    "cu": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350549767-5-tool-fdcedfa7758122dc9b8659addf7f202ec8497a2f24fa894d2838b4277dda6832",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791350549767-5-tool-fdcedfa7758122dc9b8659addf7f202ec8497a2f24fa894d2838b4277dda6832",
+          "provider_tool_call_id": "tool-fdcedfa7758122dc9b8659addf7f202ec8497a2f24fa894d2838b4277dda6832",
+          "status": "blocked",
+          "stage": "observation",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "Coolzhu browser extension/native host is not connected",
+          "error": {
+            "code": "extension_unavailable",
+            "message": "Coolzhu browser extension/native host is not connected",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "attempts": 0,
+          "steps_completed": 0,
+          "evidence": [],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 0,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "not_wired",
+            "root_deadline": "absent"
+          }
+        }
+      }
+    ]
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791350549767-5-tool-fdcedfa7758122dc9b8659addf7f202ec8497a2f24fa894d2838b4277dda6832",
+      "provider_tool_call_id": "tool-fdcedfa7758122dc9b8659addf7f202ec8497a2f24fa894d2838b4277dda6832",
+      "turn_id": "chat-turn-1791350549767-5",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791350549767-5\u001fbrowser\u001f对当前oop-input-child已聚焦的子输入只输入focus2；本轮文字规划期间若焦点被人工切到父输入，宿主应拒绝旧焦点的文字动作\u001f||http://127.0.0.1:53530/parent.html|\u001f最新子输入内容：focus2|最新子输入次数：1；子提交次数：0|最新父输入次数：0；父提交次数：0\u001f仅允许一次type focus2，使用原本已聚焦子输入的本轮新鲜引用；不允许click、重新聚焦、按键、导航、滚动或其它工具；按当前response_schema交回原目标的文字计划|人工可能在当前文字规划等待期间把焦点切到父输入；必须由宿主校验当前焦点；拒绝后立即停止，不重新观察补发、不重试、不另开perform，不执行任何旧任务|各条验收分别引用最新对应statictext的明确index和原文；如not_sent或失败如实报告",
+      "objective_json": {
+        "constraints": [
+          "仅允许一次type FOCUS2，使用原本已聚焦子输入的本轮新鲜引用；不允许click、重新聚焦、按键、导航、滚动或其它工具；按当前response_schema交回原目标的文字计划",
+          "人工可能在当前文字规划等待期间把焦点切到父输入；必须由宿主校验当前焦点；拒绝后立即停止，不重新观察补发、不重试、不另开perform，不执行任何旧任务",
+          "各条验收分别引用最新对应StaticText的明确index和原文；如not_sent或失败如实报告"
+        ],
+        "max_actions": 1,
+        "objective": "对当前OOP-INPUT-CHILD已聚焦的子输入只输入FOCUS2；本轮文字规划期间若焦点被人工切到父输入，宿主应拒绝旧焦点的文字动作",
+        "success_criteria": [
+          "最新子输入内容：FOCUS2",
+          "最新子输入次数：1；子提交次数：0",
+          "最新父输入次数：0；父提交次数：0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:53530/parent.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 1,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791351160890,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350549767-5-tool-fdcedfa7758122dc9b8659addf7f202ec8497a2f24fa894d2838b4277dda6832",
+        "provider_tool_call_id": "tool-fdcedfa7758122dc9b8659addf7f202ec8497a2f24fa894d2838b4277dda6832",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "Coolzhu browser extension/native host is not connected",
+        "error": {
+          "code": "extension_unavailable",
+          "message": "Coolzhu browser extension/native host is not connected",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "created_at_ms": 1791350560890,
+      "updated_at_ms": 1791350560898,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [],
+      "actions": [],
+      "planner": []
+    }
+  ],
+  "events": []
+}

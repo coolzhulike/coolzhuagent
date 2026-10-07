@@ -1,0 +1,240 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791350184352-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-086-SCROLL-DOWN-20261006：继续当前唯一SWE-2云端会话，在当前右栏原生浏览器执行本条独立新任务。仅调用一次computer_use_perform，参数为{\"objective\":\"在OOP-SCROLL-CHILD跨进程子文档向下滚动一次，父页面不滚动\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:53530/scroll.html\"},\"success_criteria\":[\"最新子滚动位置大于0且子滚轮次数为1\",\"最新父滚动位置为0且父滚轮次数为0\"],\"constraints\":[\"仅当前右栏原生浏览器；只允许一次scroll down amount=1，选择本轮OOP-SCROLL-CHILD子RootWebArea新鲜引用，不能选父页面；禁止click、type、按键、导航、桌面和其它工具；失败或输入未知立即停止，不补发不重试，不执行旧任务\",\"按每条条件分别引用最新对应StaticText明确index和原文，不把ACK当页面成功\"],\"max_actions\":1}。本次规划和验收通过computer_use_respond回答同job_id/request_id，严格本次schema；其它running用computer_use_wait至同job_id终态，按真实回执报告。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791350184584
+  },
+  "status": {
+    "message": "msg-1791350184352-user",
+    "run": {
+      "id": "run-chat-49a3a8822cd2c67c51a3c65530ae720f8a48a10f2cd34f64",
+      "state": "completed",
+      "stop_reason": null
+    },
+    "cu": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+        "state": "succeeded",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+          "provider_tool_call_id": "tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"criteria_count\":2,\"criteria_met\":2,\"fresh_observation_id\":\"f2976de8926472d6e7688a7e5d362840\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[21],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":21,\"name_chars\":17,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":21,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[6],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":6,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":6,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"5c1a51e910d92523307f47b8bb3dbc99\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":26,\"nodes\":[{\"index\":6,\"name\":\"父滚动位置：0；父滚轮次数：0\",\"role\":\"StaticText\"},{\"index\":21,\"name\":\"子滚动位置：150；子滚轮次数：1\",\"role\":\"StaticText\"}],\"title\":\"OOP-SCROLL-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:53530/scroll.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:53530/scroll.html\",\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:1",
+            "native-observation:c83036d65b28ddc95f66ecfa6a1668b7",
+            "native-ax:1:1",
+            "native-observation:c83036d65b28ddc95f66ecfa6a1668b7",
+            "native-input:f0139f4c86c27c75774f25cb7c1d0488",
+            "native-ax:1:1",
+            "native-observation:5c1a51e910d92523307f47b8bb3dbc99",
+            "native-ax:1:1",
+            "native-observation:5c1a51e910d92523307f47b8bb3dbc99",
+            "native-ax:1:1",
+            "native-observation:f2976de8926472d6e7688a7e5d362840"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791351084352
+              }
+            },
+            "cu_deadline_ms": 1791350793219,
+            "cu_deadline_established_at_ms": 1791350193219,
+            "cu_budget_ms": 600000
+          }
+        }
+      }
+    ]
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+      "provider_tool_call_id": "tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+      "turn_id": "chat-turn-1791350184352-1",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791350184352-1\u001fbrowser\u001f在oop-scroll-child跨进程子文档向下滚动一次，父页面不滚动\u001f||http://127.0.0.1:53530/scroll.html|\u001f最新子滚动位置大于0且子滚轮次数为1|最新父滚动位置为0且父滚轮次数为0\u001f仅当前右栏原生浏览器；只允许一次scroll down amount=1，选择本轮oop-scroll-child子rootwebarea新鲜引用，不能选父页面；禁止click、type、按键、导航、桌面和其它工具；失败或输入未知立即停止，不补发不重试，不执行旧任务|按每条条件分别引用最新对应statictext明确index和原文，不把ack当页面成功",
+      "objective_json": {
+        "constraints": [
+          "仅当前右栏原生浏览器；只允许一次scroll down amount=1，选择本轮OOP-SCROLL-CHILD子RootWebArea新鲜引用，不能选父页面；禁止click、type、按键、导航、桌面和其它工具；失败或输入未知立即停止，不补发不重试，不执行旧任务",
+          "按每条条件分别引用最新对应StaticText明确index和原文，不把ACK当页面成功"
+        ],
+        "max_actions": 1,
+        "objective": "在OOP-SCROLL-CHILD跨进程子文档向下滚动一次，父页面不滚动",
+        "success_criteria": [
+          "最新子滚动位置大于0且子滚轮次数为1",
+          "最新父滚动位置为0且父滚轮次数为0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:53530/scroll.html"
+        }
+      },
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791350793219,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+        "provider_tool_call_id": "tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":2,\"criteria_met\":2,\"fresh_observation_id\":\"f2976de8926472d6e7688a7e5d362840\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[21],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":21,\"name_chars\":17,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":21,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[6],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":6,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":6,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"5c1a51e910d92523307f47b8bb3dbc99\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":26,\"nodes\":[{\"index\":6,\"name\":\"父滚动位置：0；父滚轮次数：0\",\"role\":\"StaticText\"},{\"index\":21,\"name\":\"子滚动位置：150；子滚轮次数：1\",\"role\":\"StaticText\"}],\"title\":\"OOP-SCROLL-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:53530/scroll.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:53530/scroll.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:c83036d65b28ddc95f66ecfa6a1668b7",
+          "native-ax:1:1",
+          "native-observation:c83036d65b28ddc95f66ecfa6a1668b7",
+          "native-input:f0139f4c86c27c75774f25cb7c1d0488",
+          "native-ax:1:1",
+          "native-observation:5c1a51e910d92523307f47b8bb3dbc99",
+          "native-ax:1:1",
+          "native-observation:5c1a51e910d92523307f47b8bb3dbc99",
+          "native-ax:1:1",
+          "native-observation:f2976de8926472d6e7688a7e5d362840"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791351084352
+            }
+          },
+          "cu_deadline_ms": 1791350793219,
+          "cu_deadline_established_at_ms": 1791350193219,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791350193219,
+      "updated_at_ms": 1791350208573,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "scroll",
+          "normalized_target": "dom-e3774c631dc8588deacd8334a7eaad15",
+          "action_fingerprint": "ef57ef7d740c587b",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:c83036d65b28ddc95f66ecfa6a1668b7\"]",
+          "after_evidence_ref": "[\"native-ax:1:1\",\"native-observation:5c1a51e910d92523307f47b8bb3dbc99\",\"native-ax:1:1\",\"native-observation:f2976de8926472d6e7688a7e5d362840\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791350199587,
+          "completed_at_ms": 1791350201765,
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "native_ticket_id": "9ca3b9e6d4e06b64395859583f131227",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"593d54dc38cdf5a93b09e9e075500058\",\"host_id\":\"native-dcc4e7b1cc5c15af3ca42da3a1013884\",\"process\":{\"instance_id\":\"a40863cfc83f7b96dcc2bd22303cab24\",\"boot_id\":\"dcc4e7b1cc5c15af3ca42da3a1013884\",\"pid\":11304,\"creation_time_filetime\":134358235679462389,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":1}},\"attempt_key\":\"browser:dom-e3774c631dc8588deacd8334a7eaad15:56abbd1d19f430cf#gen1#cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b:step-0#attempt1\",\"ticket_id\":\"9ca3b9e6d4e06b64395859583f131227\",\"observation_id\":\"c83036d65b28ddc95f66ecfa6a1668b7\",\"document_token\":\"34d0cbb37e5dae331bef71649b69979d\",\"node_id\":\"e3774c631dc8588deacd8334a7eaad15\",\"input_kind\":\"scroll\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{\"amount\":1,\"direction\":\"down\"},\"kind\":\"scroll\",\"redacted_fields\":true,\"target\":\"dom-e3774c631dc8588deacd8334a7eaad15\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 572,
+          "call_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+          "turn_id": "chat-turn-1791350184352-1",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{\"amount\":1,\"direction\":\"down\"},\"kind\":\"scroll\",\"target\":\"dom-e3774c631dc8588deacd8334a7eaad15\"},\"done\":false,\"observation_facts\":{\"candidate_count\":2,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":26,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":2,\"textbox_candidate_count\":0,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791350193383,
+          "completed_at_ms": 1791350199581
+        },
+        {
+          "id": 573,
+          "call_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+          "turn_id": "chat-turn-1791350184352-1",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_browser_readonly_verification",
+          "observation_generation": 2,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"bytes\":211,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":43,\"evidence_chars\":17,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0},{\"evidence_blank\":false,\"evidence_bytes\":41,\"evidence_chars\":15,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":1,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":1,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":2,\"criteria_type\":\"array\",\"host_verification\":{\"criteria_count\":2,\"criteria_met\":2,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[21],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":21,\"name_chars\":17,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":21,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[6],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":6,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":6,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]}],\"ungrounded_positive_count\":0},\"observation_facts\":{\"candidate_count\":2,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":26,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":2,\"textbox_candidate_count\":0,\"truncated\":false},\"progress\":null,\"progress_type\":\"missing\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+          "error_code": null,
+          "started_at_ms": 1791350202516,
+          "completed_at_ms": 1791350208570
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "kind": "child-wheel",
+      "trusted": true,
+      "delta": 150,
+      "top": 0,
+      "wheels": 1,
+      "page_ms": 1791350201755.8,
+      "observed_ms": 1791350201760.3857,
+      "host": "localhost:53530"
+    },
+    {
+      "kind": "child-scroll",
+      "trusted": true,
+      "top": 150,
+      "wheels": 1,
+      "page_ms": 1791350201758.7002,
+      "observed_ms": 1791350201761.379,
+      "host": "localhost:53530"
+    }
+  ]
+}

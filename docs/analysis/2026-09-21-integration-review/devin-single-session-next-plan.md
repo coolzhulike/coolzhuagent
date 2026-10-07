@@ -51,3 +51,7 @@ PR84 前一文档 HEAD 的 Windows 检查出现半帧取消用例握手 3 秒超
 PAINT5重启后的session/load实际遇到图片历史而被旧纯文本投影拒绝，本轮not_sent、零输入，未新建远端。补齐replay图片固定类型元数据投影：仍先核对remote身份，不复制或计作当前图片证据，不发布成新聊天/工具执行；非历史的未开放图片回复仍拒绝。原图传递、图像理解与跨重启续接须分别证明，PAINT4不代替此缺口。
 
 最新候选PAINT6已完成这项复测：重启后恢复同一island-kayak，唯一外层attempt为b4d8e1e0330a74af2e57d7e30895c68ff7e1992298ef068e，模型仍SWE-2-medium。真实一笔三点1000ms短L新增在W/V左侧，已释放；原图比较2/2，父run completed、协议end_turn、process_drained=1、绑定锁清空。规划续轮1张图458773字节、验收续轮2张图859365字节，planning_requested/response均2；内部lane远端为空。原始PNG与实际Paint/聊天室截图已归档。最终答案没有中间交接提示，旧失败和旧答案均不追改。图片历史恢复、当前原图交接和干净最终显示分别获得真实证据，正式安装版仍待验证。
+
+## 0.2.86正式安装交接
+
+正常构建与安装1150文件通过，正式Browser六项实操均续接island-kayak/SWE-2-medium；每项一个外层attempt、end_turn/drained、锁清空，internal远端为空，未再新建云端测试会话。输入/Enter、上下滚动和边界、真实规划期间焦点与子文档变化的可信时序分别有正式截图与台账，见[086报告](../../testing/release-0.2.86/change-report-and-test-handoff.md)。用户现已明确Paint不再测试，已有基本功能与图片续轮候选证据保留，不再安排Paint正式复测。正常原工程桌面入口已恢复，原安全库历史记录保持。

@@ -1,0 +1,58 @@
+{
+  "prefix": "BU-INSTALLED-086-SCROLL-BOUNDARY-20261006",
+  "message_id": "msg-1791350343945-user",
+  "room_id": "room-1791131523339",
+  "run_id": "run-chat-3284bae0816c38de466aaa5d15efa2bdb58c0ab97cfb42ba",
+  "attempts": [
+    {
+      "attempt_id": "9d109c4625bd201ae82b59da4afb0fc764354696a2860168",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "events": [
+    {
+      "event": "devin.context_delta",
+      "payload": {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 134,
+        "prompt_bytes": 5993
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+        "kind": "computer_use_planning",
+        "model": "swe-2-medium",
+        "request_id": "21363cf707c8df9d7abedfbf0ade93d5b6afebff08937a370341f7573262b544b3f94c300204a1881154d5e796e5538d",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "21363cf707c8df9d7abedfbf0ade93d5b6afebff08937a370341f7573262b544b3f94c300204a1881154d5e796e5538d",
+        "response_digest": "d3c2696d12e35472d8af42968b1052625d95aaca00df31db2c7c8bbfdb3cd2ed",
+        "source_attempt": "9d109c4625bd201ae82b59da4afb0fc764354696a2860168"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

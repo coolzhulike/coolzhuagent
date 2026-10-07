@@ -1,0 +1,76 @@
+{
+  "prefix": "BU-INSTALLED-086-SCROLL-UP-20261006",
+  "message_id": "msg-1791350243968-user",
+  "room_id": "room-1791131523339",
+  "run_id": "run-chat-ec2657460405a67e0bc3247841cfd73d5fc207f8f22361f8",
+  "attempts": [
+    {
+      "attempt_id": "cb423e753b8e25ff4f2c1c005b84f4edcb05d3e2f565064d",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "events": [
+    {
+      "event": "devin.context_delta",
+      "payload": {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 137,
+        "prompt_bytes": 6273
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350243969-2-tool-46798b3bcd0247eedafcf8f71278bce6de0728a8bd16d472313da754e56b89c7",
+        "kind": "computer_use_planning",
+        "model": "swe-2-medium",
+        "request_id": "259915004927a012cd2b17e947156966b76f970d8bdf3510d3103aba26e4e1a8ac2c9139ac57023b3e0a368642b937a6",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "259915004927a012cd2b17e947156966b76f970d8bdf3510d3103aba26e4e1a8ac2c9139ac57023b3e0a368642b937a6",
+        "response_digest": "acac36becfe124a74120df8de2b553446ceaa5aea7d2a34b5fec68e2526a34cc",
+        "source_attempt": "cb423e753b8e25ff4f2c1c005b84f4edcb05d3e2f565064d"
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350243969-2-tool-46798b3bcd0247eedafcf8f71278bce6de0728a8bd16d472313da754e56b89c7",
+        "kind": "computer_use_browser_readonly_verification",
+        "model": "swe-2-medium",
+        "request_id": "474fe711d41d098a746c5d256f93c58ccc522f6ee0547440f2a10a3edd12c118454e9ecc1e9440bed2a7dd84ff63ba6e",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "474fe711d41d098a746c5d256f93c58ccc522f6ee0547440f2a10a3edd12c118454e9ecc1e9440bed2a7dd84ff63ba6e",
+        "response_digest": "f1ce75ce6af92b6d7ac3ceef4ea05bce42942dd18dabdb8aff255af8fff68770",
+        "source_attempt": "cb423e753b8e25ff4f2c1c005b84f4edcb05d3e2f565064d"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}
