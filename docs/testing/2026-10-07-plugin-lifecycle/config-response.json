@@ -1,0 +1,25 @@
+{
+  "enabled": false,
+  "outcome": {
+    "call_id": "dsh-enable-748c3aeaaa99bc7fe573e56dce94119a",
+    "elapsed_ms": 1257,
+    "output": {
+      "cleanup_confirmed": null,
+      "code": "execution_failed",
+      "error": "host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放"
+    },
+    "permission_gate": {
+      "affected_paths": [
+        "<opaque-command>"
+      ],
+      "decision": "allow-auto",
+      "reason": "full-access-profile",
+      "required": "danger-full-access",
+      "workspace_relative": false
+    },
+    "status": "failed",
+    "summary_text": "host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放",
+    "tool_name": "dsh__enable_d8fa5ad326a19949045904e4fea63c73"
+  },
+  "pending_call_id": null
+}

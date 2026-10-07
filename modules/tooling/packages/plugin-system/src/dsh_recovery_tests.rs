@@ -93,6 +93,30 @@ fn dsh_write_failures_restore_enabled_snapshot_and_exact_metadata() {
 }
 
 #[test]
+fn dsh_read_lock_contention_does_not_revoke_unchanged_lifecycle() {
+    let case = new_case();
+    let root = case.path().canonicalize().unwrap();
+    let mut manager = PluginManager::new(PluginManagerConfig::new(root.join("home")));
+    let package = fixture(&root.join("source"), "1.0.0");
+    let installed = manager.install_dsh(&root.join("source"), &package, "生命周期锁竞争回归").unwrap();
+    let snapshot = enable(&mut manager, &installed.plugin_id);
+    let ticket = manager.dsh_activation_ticket(&installed.plugin_id, WORKSPACE).unwrap();
+    // 模拟目录读取持有同一把管理锁；持久身份没有变化，轮询不得将读竞争当成撤销。
+    let (_root, held) = manager.lock_and_recover().unwrap();
+    assert!(manager.dsh_ticket_lifecycle_current(&ticket).unwrap());
+    assert!(manager.dsh_snapshot_lifecycle_current(&snapshot, &installed.install_path).unwrap());
+    // 新接纳与配置发布仍必须持锁，不能借轮询获得写入或启动资格。
+    assert!(matches!(manager.dsh_activation_ticket(&installed.plugin_id, WORKSPACE), Err(PluginError::Busy(_))));
+    drop(held);
+    let replacement = enable(&mut manager, &installed.plugin_id);
+    assert_ne!(snapshot.activation_id, replacement.activation_id);
+    assert!(!manager.dsh_ticket_lifecycle_current(&ticket).unwrap());
+    assert!(!manager.dsh_snapshot_lifecycle_current(&snapshot, &installed.install_path).unwrap());
+    manager.disable(&installed.plugin_id).unwrap();
+    assert!(!manager.dsh_snapshot_lifecycle_current(&replacement, &installed.install_path).unwrap());
+}
+
+#[test]
 fn dsh_uncommitted_process_exit_restores_old_snapshot_or_removes_new_install() {
     for existing in [false,true] { for fault in ["directory","registry","settings"] {
         let case=new_case();let root=case.path().canonicalize().unwrap();
