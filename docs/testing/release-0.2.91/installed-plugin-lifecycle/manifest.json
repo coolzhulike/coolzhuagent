@@ -1,0 +1,144 @@
+{
+  "stage": "installed",
+  "version": "0.2.91",
+  "source_commit": "a366fbb2ec35bf75163ed643b79adfae176d8943",
+  "cases": [
+    {
+      "label": "config",
+      "run_id": "run-chat-63532f1c268727f64b25d4644f7fa8e643a7880c87fc4b14",
+      "tool_status": "failed",
+      "protocol_stop": "end_turn"
+    },
+    {
+      "label": "fresh",
+      "run_id": "run-chat-1f9fd0e7d6432d4ae2fd9dda6ceedccd1898baf3f010174c",
+      "tool_status": "completed",
+      "protocol_stop": "end_turn"
+    },
+    {
+      "label": "cancel",
+      "run_id": "run-chat-baf5e9210487188c3bdfa5394f0d3c97f451fbf43ef76b55",
+      "tool_status": "failed",
+      "protocol_stop": "cancelled"
+    }
+  ],
+  "bounded_catalog_reads": 40,
+  "cancel_scope": "真实执行模式宿主进程启动后取消；不声称计算函数已开始",
+  "files": [
+    {
+      "path": "installed091\\bounded-catalog-read.json",
+      "bytes": 5429,
+      "sha256": "90b1807f5752d5907856b9d4b2d366bc15a63c3ef431dc51ab6c9be96a65c33a"
+    },
+    {
+      "path": "installed091\\cancel-facts.json",
+      "bytes": 2634,
+      "sha256": "649269bd8bbf2a5ade9baad819fa37a9f9f6ad9b24127e4cdcf3b466f8105d5a"
+    },
+    {
+      "path": "installed091\\cancel-observation.json",
+      "bytes": 1166,
+      "sha256": "aa95c09f0e16c040bc37937566a9d6f46560eae4cc7640f9ec4c19aa375c4a73"
+    },
+    {
+      "path": "installed091\\cancel-result.jpg",
+      "bytes": 179743,
+      "sha256": "90d2a791cb6e9a43f945c62e083e2741ba36d71e01c23bdf215c550473d7a5f2"
+    },
+    {
+      "path": "installed091\\config-after.json",
+      "bytes": 5082,
+      "sha256": "c7575af90e070021d9165093e87759f33090064d10c775bba824ae5da3ade243"
+    },
+    {
+      "path": "installed091\\config-before.json",
+      "bytes": 5019,
+      "sha256": "0e8c82506218567371bbdc82be3697aed89eecb912f9e3b5c7992ba23d4aa394"
+    },
+    {
+      "path": "installed091\\config-change-timing.json",
+      "bytes": 492,
+      "sha256": "a06ae93d9bff914d9cb6d971f78ed3bc9132755b94d4a9ee01071a108edaed6a"
+    },
+    {
+      "path": "installed091\\config-facts.json",
+      "bytes": 2239,
+      "sha256": "9100bcab6fc9caf9959c93ed1611b50ff30609daeefde771838fe99e2b5d4251"
+    },
+    {
+      "path": "installed091\\config-response.json",
+      "bytes": 720,
+      "sha256": "6fe1d772e8c8d4b00d3c0633bcb234471cc5deaf2b1e32dbc9068341df825149"
+    },
+    {
+      "path": "installed091\\config-restored-response.json",
+      "bytes": 719,
+      "sha256": "ba3200f346b440b59f2159fcfe054c7053f5bad134f4f4a645ea74eda3eb3238"
+    },
+    {
+      "path": "installed091\\config-restored.json",
+      "bytes": 5019,
+      "sha256": "07f6bcc89d5f55ece78ac42f80d189ca1d4dd92c071d3861ff6fd2bef57ae8ad"
+    },
+    {
+      "path": "installed091\\config-result.jpg",
+      "bytes": 173557,
+      "sha256": "7f9cda9b5ec98928ddee78116a7f7e1288425f60fb36596ed5611342de558ece"
+    },
+    {
+      "path": "installed091\\fresh-facts.json",
+      "bytes": 2869,
+      "sha256": "1683f4d48816013d6fbcd9d9976d9be58b290c38e87e22aed463d30bb6fe8468"
+    },
+    {
+      "path": "installed091\\fresh-result.jpg",
+      "bytes": 172775,
+      "sha256": "1f6320211d566790e2fdeae9cf3531c8c9dc64639ccf2db6c6b64b1c96b80ae6"
+    },
+    {
+      "path": "installed-091-verification.json",
+      "bytes": 1825,
+      "sha256": "94763ea3bfdbe91282fab2efa9ec27d598ada79176c9a4233592693f29db1f6b"
+    },
+    {
+      "path": "package-091-verification.json",
+      "bytes": 1810,
+      "sha256": "88495a24f9a1744acaadfe04705f7c9e092baea7fe691fead45c09cae1e857eb"
+    },
+    {
+      "path": "installed-091-standard-processes.json",
+      "bytes": 692,
+      "sha256": "be101a5fb307fbb9244c0416f8512967ce5bc4bba8a2b2314683f98e765fae3f"
+    },
+    {
+      "path": "install-091-result.json",
+      "bytes": 282,
+      "sha256": "a2d98aa5685c2e3a00f50b59e013388f47788e35680dcab7d3aef70bcadf72cd"
+    },
+    {
+      "path": "installed-safety-summary.json",
+      "bytes": 546,
+      "sha256": "a2dc098a94bd25e5e23573479f4934d8c886e1bd7066b4f072b5ff9e901048ac"
+    },
+    {
+      "path": "source-ci.json",
+      "bytes": 7196,
+      "sha256": "ff9bc070df1130fec25994169afc7704b5a988783e0d43bc24c114e2ab597fd2"
+    },
+    {
+      "path": "restored-daily-091-verification.json",
+      "bytes": 859,
+      "sha256": "cdee11f4104d8717e83a932f004418f33680be118c3a5531450a007940b99c52"
+    },
+    {
+      "path": "restored-daily-091-selfcheck.json",
+      "bytes": 1779,
+      "sha256": "fdc4442755187375461382a879c3a12a248d39d06828f12695b4681fa216fedf"
+    },
+    {
+      "path": "restored-daily091.jpg",
+      "bytes": 196445,
+      "sha256": "0dcf6cf32881c6bd451695fb4a64c62aac3344167fb540c80101334971601abf"
+    }
+  ]
+}

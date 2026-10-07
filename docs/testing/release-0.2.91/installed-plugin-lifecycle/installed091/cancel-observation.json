@@ -1,0 +1,32 @@
+{
+  "prefix": "PLUGIN-INSTALLED091-CANCEL-20261007",
+  "run_id": "run-chat-baf5e9210487188c3bdfa5394f0d3c97f451fbf43ef76b55",
+  "turn_id": "chat-turn-1791369193955-2",
+  "context": {
+    "call_id": "1",
+    "room_id": "room-1791131523339",
+    "run_id": "run-chat-baf5e9210487188c3bdfa5394f0d3c97f451fbf43ef76b55",
+    "workspace_id": "ws-23f646a969206cb4"
+  },
+  "process": {
+    "pid": 4776,
+    "parent_pid": 18152,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\dsh-runtime\\node\\node.exe",
+    "created_filetime": 134358428194246120,
+    "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5",
+    "observed_ms": 1791369219458
+  },
+  "manifest_present": false,
+  "execute_envelope_present": false,
+  "cancel_started_ms": 1791369219458,
+  "scope": "真实执行模式宿主进程启动后取消；不声称计算函数已开始",
+  "response": {
+    "turn_id": "chat-turn-1791369193955-2",
+    "status": "interrupt_requested",
+    "outcome": "interrupt_requested",
+    "idempotent": false
+  },
+  "cancel_returned_ms": 1791369219508,
+  "process_exit_observed": true,
+  "exit_checked_ms": 1791369219641
+}
