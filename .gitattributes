@@ -106,3 +106,4 @@
 /docs/testing/release-0.2.88/installed-horizontal/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.88/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.88/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-native-browser-current-page/candidate/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol

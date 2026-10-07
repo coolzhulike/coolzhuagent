@@ -14,7 +14,8 @@ impl ComputerUseTurnScope {
         let explicit_request = explicit_request_from_current_user(text).map(Arc::new);
         let text = text.to_ascii_lowercase();
         let native_browser = ["内置浏览器", "内置原生浏览器", "内置网页", "内置页", "右栏浏览器", "右栏网页", "右栏页面", "右栏表单", "右侧表单",
-            "右栏原生浏览器", "右侧原生浏览器", "右侧浏览器", "右侧网页", "右侧扩展栏浏览器",
+            "右栏原生浏览器", "右侧原生浏览器", "右栏原生网页", "右侧原生网页", "右栏已加载原生网页", "右侧已加载原生网页",
+            "右侧浏览器", "右侧网页", "右侧扩展栏浏览器",
             "右栏原生browser", "右栏原生 browser", "右侧原生browser", "右侧原生 browser", "builtin browser", "built-in browser"]
             .iter().any(|name| text.contains(name));
         // 导航也是浏览器交互。允许导航但禁止其它三类输入，不能被降成只读任务。
@@ -242,7 +243,8 @@ mod tests {
         // 实操中的同义表述仍明确指向右栏，不能静默改走外部扩展后端。
         for text in ["仅当前右栏原生浏览器，不操作其它软件", "使用当前右侧原生浏览器点击一次", "在右栏表单勾选准备完成然后提交", "在右侧表单选择行程",
             "仅本次右栏原生browser，只允许click", "右栏原生 browser点击一次", "右侧原生browser点击一次", "右侧原生 browser只读",
-            "当前右栏内置原生浏览器，只允许click", "在内置原生浏览器输入一次", "当前右侧扩展栏内置原生浏览器"] {
+            "当前右栏内置原生浏览器，只允许click", "在内置原生浏览器输入一次", "当前右侧扩展栏内置原生浏览器",
+            "当前右栏已加载原生网页", "当前右侧已加载原生网页", "当前右栏原生网页", "当前右侧原生网页"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(scope.native_browser());
             assert!(!scope.native_browser_read_only());

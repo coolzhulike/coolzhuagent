@@ -9,6 +9,37 @@ pub(super) struct NativePanelReadBridge {
     parent: crate::FrozenParentContext,
     cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
     provenance: Mutex<Option<PageProvenance>>,
+    initial_page: Mutex<Option<InitialPageSource>>,
+}
+
+/// 本次适配器首份已加载的认证宿主来源；不能由模型或后来切换的页面重新绑定。
+#[derive(Clone,serde::Serialize,serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct InitialPageSource {
+    pub url:String, pub host_id:String, pub resource:PanelResource, pub document_token:Option<String>,
+}
+impl InitialPageSource {
+    fn from_page(page:&serde_json::Value) -> Option<Self> {
+        if page["loading"]==true {return None;}
+        let source=Self {url:page["url"].as_str()?.into(),host_id:page["host_id"].as_str()?.into(),
+            resource:serde_json::from_value(serde_json::json!({"workspace_path":page["workspace_path"],
+                "room_id":page["room_id"],"label":page["resource"],"generation":page["generation"],
+                "navigation_revision":page["navigation_revision"]})).ok()?,
+            document_token:serde_json::from_value(page["document_token"].clone()).ok()?};
+        source.valid_shape().then_some(source)
+    }
+    pub(super) fn valid_shape(&self)->bool {
+        self.resource.valid_shape() && !self.host_id.is_empty()
+            && native_browser_protocol::valid_navigation_url(&self.url)
+            && self.document_token.as_deref().is_none_or(native_browser_protocol::opaque_id)
+    }
+    pub(super) fn matches_page(&self,page:&serde_json::Value)->bool {
+        self.valid_shape() && page["loading"]!=true && page["url"]==self.url && page["host_id"]==self.host_id
+            && page["workspace_path"]==self.resource.workspace_path && page["room_id"]==self.resource.room_id
+            && page["resource"]==self.resource.label && page["generation"]==self.resource.generation
+            && page["navigation_revision"]==self.resource.navigation_revision
+            && page["document_token"]==serde_json::json!(self.document_token)
+    }
 }
 
 /// 仅由本适配器已结算的真实导航回执创建；模型动作/页面不能写入此来源记录。
@@ -116,7 +147,7 @@ impl PageProvenance {
 
 impl NativePanelReadBridge {
     pub(super) fn new(parent: crate::FrozenParentContext, cancelled: Arc<dyn Fn() -> bool + Send + Sync>) -> Self {
-        Self {parent, cancelled,provenance:Mutex::new(None)}
+        Self {parent, cancelled,provenance:Mutex::new(None),initial_page:Mutex::new(None)}
     }
 }
 
@@ -303,6 +334,15 @@ impl BrowserBridge for NativePanelReadBridge {
                 format!("native-observation:{request_id}")],
         };
         let mut history=self.provenance.lock().map_err(|_|ComputerUseError::blocked("native_browser_unavailable","页面来源状态不可用",ComputerUseRetryOwner::None))?;
+        {
+            let mut initial=self.initial_page.lock().map_err(|_|ComputerUseError::blocked(
+                "native_browser_unavailable","当前页初始来源状态不可用",ComputerUseRetryOwner::None))?;
+            if initial.is_none() {*initial=InitialPageSource::from_page(&snapshot.state);}
+            if let Some(source)=initial.as_ref() {
+                snapshot.state["initial_page_source"]=serde_json::to_value(source).map_err(|_|ComputerUseError::blocked(
+                    "native_browser_unavailable","当前页初始来源无法编码",ComputerUseRetryOwner::None))?;
+            }
+        }
         // 加载是控制状态，不声明已观察目标文档。保留原URL供显式导航收尾，禁止输出伪转场。
         if observed.loading {
             if history.as_ref().is_some_and(|origin|!origin.matches_resource(&snapshot.state)) {
