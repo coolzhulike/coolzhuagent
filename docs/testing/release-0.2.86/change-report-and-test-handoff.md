@@ -47,4 +47,4 @@ FOCUS6时序：真实规划请求1791351057550 < 可信人工焦点变化1791351
 
 测试运行全部终态后，仅按PID、路径、精确启动时间和SHA停止自有测试配套。已恢复原工程`C:/Users/zhupu/coolzhuagent`的正常桌面入口，启动自检确认086/846及原安全库；见[恢复核验](installed-evidence/restored-daily-086-verification.json)、[实际窗口](installed-evidence/restored-daily086.jpg)。日常界面恢复用户原有聊天室及模型选择，不代表重新使用Qwen执行本轮测试。安全资源safe，历史2个outcome_unknown许可和9个closed隔离项保留，未重置或删除。
 
-本报告闭环本阶段六项OOP安装版验收，不代表全部HTML、所有Browser Use边界或四项任务总体完成。公开分发资产和标签的实际核验结果将记录在[evidence](evidence/)中。
+0.2.86已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.86)，MSI、安装报告、安全报告、SHA256文件四个资产的服务端长度与SHA均匹配，实际tag绑定冻结846源码，见[发布核验](evidence/github-release-verification.json)。本报告闭环本阶段六项OOP安装版验收，不代表全部HTML、所有Browser Use边界或四项任务总体完成。
