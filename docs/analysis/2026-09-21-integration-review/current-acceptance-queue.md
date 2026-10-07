@@ -4,6 +4,8 @@
 
 附件最新正式结论：0.2.92正常完整构建、六门、安装返回0及1150文件核验通过；原SWE-2-medium/唯一island-kayak完成原生流式图片20.6秒和宿主重启后普通图片21.3秒两项正式验收，新随机图形与数字全部正确。每轮一个attempt、end_turn/drained、实际图片1、无工具，正常原工程及安全库恢复092；1400控制台/16前端通过，冻结759两路CI success。候选与正式证据独立，不追认091包含。Goal/Relay、其它附件及纯文本视觉降级本轮复验仍开放。见[092正式报告及原图](../../testing/release-0.2.92/change-report-and-test-handoff.md)及[原候选](../../testing/2026-10-07-devin-attachments/report.md)。
 
+[092预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.92)已公开，四项分发资产的服务端长度/SHA及实际标签759核验一致；当前日常正式安装092，PR84开放未合入。
+
 最新插件结论：0.2.91正常安装、六门及1150文件核验通过；原SWE/island-kayak三轮正式实操完成配置变更后旧调用409拒绝且实际派发0、40次有界目录读取并发时新调用真实返回182且仅执行一次、execute模式宿主启动后正常取消并183毫秒内确认退出。完整Web1398/0/6忽略、插件44/0/1忽略、模块联动8通过，冻结a366两路CI success，原工程与安全库正常入口恢复091。090目录并发失败与b6远端失败保留，未追认090整体通过。函数执行中取消/超时及许可冻结窄竞争仍开放。见[091正式报告与截图](../../testing/release-0.2.91/change-report-and-test-handoff.md)及[原失败与候选](../../testing/2026-10-07-plugin-lifecycle/report.md)。
 
 [091预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.91)已公开，四项分发资产服务端长度/SHA及标签a366核验一致；091为前一版交付事实；当前日常已安装092，下面089为更早交付事实。PR84说明已同步，未自动合入。

@@ -16,6 +16,8 @@
 
 采用正常发布脚本重新编译最终产品源码，没有跳过发布门或手工替换包内 EXE。安装后的正式后台及原生窗口均从 Program Files 启动，候选后台未用作正式验收。构建身份原始材料见 [build-identity](evidence/build-identity)；安装及恢复事实见 [正式证据清单](installed-attachments/manifest.json)。
 
+[0.2.92预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.92)已公开；四个分发资产的服务端长度/SHA256及实际标签绑定759均核验一致，详见[公开发布核验](evidence/github-release-verification.json)。PR84保持开放，没有自动合入。
+
 ## 改动职责与边界
 
 - 聊天接纳仍为单发送对象，只开放图片；普通/流式回复均经过同一多模态预处理及预算检查，禁止静默丢图。准备视觉请求前验证根会话身份、权限和取消状态。
