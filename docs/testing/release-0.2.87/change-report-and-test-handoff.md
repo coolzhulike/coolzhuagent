@@ -31,3 +31,8 @@
 其它模型设计测试时，先核包/进程身份、原远端绑定和页面空计数；只发独立新任务，按当前schema响应同job/request，失败/取消/未知不得重放。分别检查命名路由、真实子输入/提交、父页零输入、逐项原文grounding、单attempt与终态排空；不得把保留预览、页面渲染或旧版用例替代当前模型执行。
 
 本版闭环名称识别修补，不代表所有HTML、复杂变换或四项总体全部完成。多层/裁剪/旋转、同名兄弟、横向RTL、严格按住期间跨URL/面板变化、多屏、插件部分配置/取消/超时边界、Goal/Relay附件及启动演出其它模式仍按[当前队列](../../analysis/2026-09-21-integration-review/current-acceptance-queue.md)分别登记。当前升级产品只有检查及发布页入口，自动下载/安装/重启链尚未交付，不能因本次手动正常安装而计为自动升级通过。
+
+
+087已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.87)：四个分发资产的服务端长度/SHA均与本地一致，实际tag绑定冻结a74源码，见[发布核验](evidence/github-release-verification.json)。公开预发布不等于正式稳定频道，不改变升级检查仅接受稳定版的语义。
+
+正常日常087又补实拍定时任务/设置/真实统计/SKILL/DSH4414目录/升级检查六入口；无新增模型请求或业务配置修改，见[087侧栏范围与原图](sidebar-followup/report.md)。
