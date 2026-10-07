@@ -35,16 +35,16 @@ pub(super) fn state(raw:&Value) -> Result<Value,String> {
 }
 
 pub(super) async fn resolve(app:&AppHandle,target:&VerifiedTarget) -> Result<String,String> {
-    if target.node.scope.session().is_some() {return Err("native_browser_frame_action_unsupported".into());}
-    native_browser_devtools::read(app,&target.resource,ReadMethod::ResolveEditor(target.node.backend_node)).await?
+    native_browser_devtools::read_session(app,&target.resource,target.node.scope.session(),ReadMethod::ResolveEditor(target.node.backend_node)).await?
         .pointer("/object/objectId").and_then(Value::as_str).filter(|s|!s.is_empty() && s.len()<=256)
         .map(str::to_string).ok_or_else(||"native_browser_editor_unavailable".into())
 }
 pub(super) async fn read(app:&AppHandle,target:&VerifiedTarget) -> Result<Value,String> {
     let object=resolve(app,target).await?;
-    let result=native_browser_devtools::read(app,&target.resource,ReadMethod::EditorState(object.clone())).await
+    let session=target.node.scope.session();
+    let result=native_browser_devtools::read_session(app,&target.resource,session,ReadMethod::EditorState(object.clone())).await
         .and_then(|value|state(&value));
-    let _=native_browser_devtools::read(app,&target.resource,ReadMethod::ReleaseEditor(object)).await;
+    let _=native_browser_devtools::read_session(app,&target.resource,session,ReadMethod::ReleaseEditor(object)).await;
     result
 }
 

@@ -3,6 +3,13 @@ use super::protocol::{ExecutionScope, ModelSelection};
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior, params};
 use std::path::{Path, PathBuf};
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct RemoteBinding {
+    pub lane: String,
+    pub remote_session_id: Option<String>,
+}
+
 #[derive(Clone)]
 pub(super) struct Journal {
     path: PathBuf,
@@ -259,6 +266,59 @@ impl Journal {
         tx.commit().map_err(|_|fail("ACP 重置提交未确认。"))
     }
 
+    pub(super) fn remote_bindings(&self, workspace: &str, room: &str, agent: &str) -> Result<Vec<RemoteBinding>, String> {
+        Self::remote_bindings_on(&self.connection()?, workspace, room, agent)
+    }
+
+    fn remote_bindings_on(connection: &Connection, workspace: &str, room: &str, agent: &str) -> Result<Vec<RemoteBinding>, String> {
+        let mut query = connection.prepare("SELECT lane,remote_session_id FROM devin_acp_bindings
+            WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 ORDER BY lane")
+            .map_err(|_| fail("ACP 远端绑定查询失败。"))?;
+        let rows = query.query_map(params![workspace,room,agent], |row| Ok(RemoteBinding {
+            lane: row.get(0)?, remote_session_id: row.get(1)?,
+        })).map_err(|_| fail("ACP 远端绑定读取失败。"))?;
+        rows.collect::<Result<Vec<_>,_>>().map_err(|_| fail("ACP 远端绑定无效。"))
+    }
+
+    /// 用户明确清除了远端后，只解除当前身份的闲置绑定，保留所有消息和执行历史。
+    /// 不发送云端请求；下一轮正常接纳时才创建并保存新的远端 ID。
+    pub(super) fn detach_remote_bindings(&self, workspace: &str, room: &str, agent: &str,
+        expected: &[RemoteBinding]) -> Result<(), String> {
+        let mut connection = self.connection()?;
+        let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)
+            .map_err(|_| fail("ACP 重新绑定锁失败。"))?;
+        let current = Self::remote_bindings_on(&tx,workspace,room,agent)?;
+        if current != expected || current.is_empty() {
+            return Err(fail("远端绑定已变化，请刷新后重试；未修改任何绑定。"));
+        }
+        let locked: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM devin_acp_bindings
+            WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND locked_attempt IS NOT NULL)",
+            params![workspace,room,agent], |row| row.get(0)).map_err(|_| fail("ACP 在途状态核对失败。"))?;
+        if locked { return Err(fail("Devin 仍有在途或未知执行，请先停止并确认收尾；未解除绑定。")); }
+        // 主聊天可能已接纳，但还没走到 ACP claim；同库事务同时检查这一窗口。
+        let has_runs: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='runtime_runs')",
+            [], |row| row.get(0)).map_err(|_| fail("宿主运行结构读取失败。"))?;
+        if has_runs && tx.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE workspace_id=?1 AND chat_room_id=?2
+            AND state NOT IN ('completed','failed','cancelled','blocked','interrupted','timed_out'))",
+            params![workspace,room], |row| row.get::<_,bool>(0)).map_err(|_| fail("宿主运行状态读取失败。"))? {
+            return Err(fail("当前聊天室仍有运行中的任务，请结束后再重新绑定。"));
+        }
+        for item in &current {
+            if let Some(remote) = item.remote_session_id.as_deref() {
+                let archive: String = tx.query_row("SELECT json_object('workspace_id',workspace_id,'room_id',room_id,
+                    'agent_id',agent_id,'lane',lane,'cwd',cwd,'cli_identity',cli_identity,'context_digest',context_digest,
+                    'remote_session_id',remote_session_id,'locked_attempt',locked_attempt,'reason','explicit_remote_rebind')
+                    FROM devin_acp_bindings WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4",
+                    params![workspace,room,agent,item.lane], |row| row.get(0)).map_err(|_| fail("旧绑定归档读取失败。"))?;
+                tx.execute("INSERT INTO devin_acp_retired_bindings(remote_session_id,binding_json) VALUES(?1,?2)",
+                    params![remote,archive]).map_err(|_| fail("旧远端绑定归档失败；未解除绑定。"))?;
+            }
+        }
+        tx.execute("UPDATE devin_acp_bindings SET remote_session_id=NULL WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3",
+            params![workspace,room,agent]).map_err(|_| fail("重新绑定提交失败。"))?;
+        tx.commit().map_err(|_| fail("重新绑定提交未确认。"))
+    }
+
     pub(super) fn check(connection: &Connection, scope: &ExecutionScope) -> Result<(), String> {
         if !scope.accepts(scope) {
             return Err(fail("ACP 身份不完整。"));
@@ -375,8 +435,10 @@ impl Journal {
     pub(super) fn save_config_receipt(
         &self, scope: &ExecutionScope, stage: &str, receipt: &serde_json::Value,
     ) -> Result<(), String> {
-        if !matches!(stage, "initial" | "selected" | "capabilities" | "prompt_payload") { return Err(fail("ACP 配置回执阶段无效。")); }
-        if stage == "prompt_payload" && !receipt.as_object().is_some_and(|object|
+        let image_payload = stage.strip_prefix("image_payload_").and_then(|number|number.parse::<u16>().ok())
+            .is_some_and(|number|(1..=128).contains(&number));
+        if !image_payload && !matches!(stage, "initial" | "selected" | "capabilities" | "prompt_payload") { return Err(fail("ACP 配置回执阶段无效。")); }
+        if (stage == "prompt_payload" || image_payload) && !receipt.as_object().is_some_and(|object|
             object.len() == 3 && ["serialized_bytes","image_count","outgoing_limit_bytes"].iter()
                 .all(|key| object.get(*key).is_some_and(|value| value.as_u64().is_some()))) {
             return Err(fail("ACP 提示大小回执仅允许数字计数。"));
@@ -593,6 +655,40 @@ pub(super) mod tests {
         };
         (dir, journal, binding)
     }
+    #[test]
+    fn explicit_rebind_preserves_attempts_and_other_agents_and_rejects_stale_requests() {
+        let (_dir,journal,binding) = setup();
+        let first = journal.claim(scope("first"),&binding).unwrap();
+        journal.save_remote(&first,"old-chat").unwrap();
+        journal.transition(&first,&["prepared"],"not_sent",None,false).unwrap();
+        journal.record_drained(&first).unwrap();
+        let mut other = scope("other"); other.agent_id = "other-agent".into();
+        let other = journal.claim(other,&binding).unwrap();
+        journal.save_remote(&other,"other-chat").unwrap();
+        let expected = journal.remote_bindings("w","r","a").unwrap();
+        journal.detach_remote_bindings("w","r","a",&expected).unwrap();
+        assert_eq!(journal.status(&first).unwrap().state,"not_sent");
+        assert_eq!(journal.binding(&other).unwrap().remote_session_id.as_deref(),Some("other-chat"));
+        assert!(journal.detach_remote_bindings("w","r","a",&expected).is_err());
+        let next = journal.claim(scope("next"),&binding).unwrap();
+        assert!(journal.binding(&next).unwrap().remote_session_id.is_none());
+        assert!(journal.save_remote(&next,"old-chat").is_err());
+        journal.save_remote(&next,"new-chat").unwrap();
+    }
+
+    #[test]
+    fn explicit_rebind_does_not_release_an_active_or_unknown_attempt() {
+        let (_dir,journal,binding) = setup();
+        let first = journal.claim(scope("active"),&binding).unwrap();
+        journal.save_remote(&first,"active-chat").unwrap();
+        let expected = journal.remote_bindings("w","r","a").unwrap();
+        assert!(journal.detach_remote_bindings("w","r","a",&expected).is_err());
+        journal.transition(&first,&["prepared"],"unknown",None,false).unwrap();
+        journal.record_drained(&first).unwrap();
+        assert!(journal.detach_remote_bindings("w","r","a",&expected).is_err());
+        assert_eq!(journal.binding(&first).unwrap().remote_session_id.as_deref(),Some("active-chat"));
+    }
+
     #[test]
     fn internal_lane_preserves_actual_identity_without_reusing_outer_lock() {
         let (_dir, journal, binding) = setup();

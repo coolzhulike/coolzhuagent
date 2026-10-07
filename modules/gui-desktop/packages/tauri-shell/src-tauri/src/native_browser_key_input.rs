@@ -26,8 +26,9 @@ fn state(raw:&Value)->Result<Value,String> {
 pub(super) async fn verify(app:&AppHandle,resource:&PanelResource,target:&PanelClickTarget)->Result<VerifiedTarget,String> {
     let mut verified=super::native_browser_target::verify(app,resource,&target.observation_id,&target.document_token,&target.node_id).await?;
     let object=super::native_browser_editor::resolve(app,&verified).await?;
-    let focus=native_browser_devtools::read(app,resource,ReadMethod::FocusedTargetState(object.clone())).await.and_then(|v|state(&v));
-    let _=native_browser_devtools::read(app,resource,ReadMethod::ReleaseEditor(object)).await;
+    let session=verified.node.scope.session();
+    let focus=native_browser_devtools::read_session(app,resource,session,ReadMethod::FocusedTargetState(object.clone())).await.and_then(|v|state(&v));
+    let _=native_browser_devtools::read_session(app,resource,session,ReadMethod::ReleaseEditor(object)).await;
     verified.editor=Some(focus?);
     Ok(verified)
 }
@@ -51,7 +52,8 @@ pub(super) async fn press(app:&AppHandle,target:VerifiedTarget,keys:Vec<String>,
         };
         let (sender,receiver)=tokio::sync::oneshot::channel();let sender=Arc::new(Mutex::new(Some(sender)));
         let app_ui=app.clone();let resource=target.resource.clone();
-        let (method,params)=ReadMethod::FocusedTargetState(object.clone()).request();
+        let session=target.node.scope.session().map(str::to_owned);let session_ui=session.clone();
+        let method=ReadMethod::FocusedTargetState(object.clone());
         let queued=view.with_webview(move |platform| {
             let finish=|value| {if let Ok(mut slot)=sender.lock() {if let Some(sender)=slot.take() {let _=sender.send(value);}}};
             if now()>=expires_ms || super::browser_panel::input_resource(&app_ui).as_ref()!=Some(&target.resource) {
@@ -92,13 +94,12 @@ pub(super) async fn press(app:&AppHandle,target:VerifiedTarget,keys:Vec<String>,
                 if !down_queued||!up_queued {finish((PanelInputOutcome::ReleaseUnknown,false,false));}
                 Ok(())
             })).into();
-            let method=CoTaskMemPWSTR::from(method);let params=CoTaskMemPWSTR::from(params.as_str());
-            if unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*params.as_ref().as_pcwstr(),&handler)}.is_err() {finish((PanelInputOutcome::NotDispatched,false,false));}
+            if native_browser_devtools::dispatch_read(&core,session_ui.as_deref(),&method,&handler).is_err() {finish((PanelInputOutcome::NotDispatched,false,false));}
         });
         let outcome=if queued.is_err() {(PanelInputOutcome::ReleaseUnknown,false,false)} else {
             tokio::time::timeout(std::time::Duration::from_secs(3),receiver).await.ok().and_then(Result::ok).unwrap_or((PanelInputOutcome::ReleaseUnknown,false,false))
         };
-        let _=native_browser_devtools::read(app,&resource,ReadMethod::ReleaseEditor(object)).await;
+        let _=native_browser_devtools::read_session(app,&resource,session.as_deref(),ReadMethod::ReleaseEditor(object)).await;
         outcome
     }
     #[cfg(not(windows))]

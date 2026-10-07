@@ -1540,6 +1540,7 @@ fn process_exists(pid: u32) -> bool {
 
 fn app() -> Router {
     Router::new()
+        .merge(devin_acp::bindings::routes())
         .route("/api/state", get(api_state))
         .route("/api/system/info", get(api_system_info))
         .route("/api/system/app-update", get(app_update::api_get))

@@ -155,8 +155,8 @@ pub(crate) async fn status() -> Json<AuthView> {
     Json(view(&state, true))
 }
 
-fn require_local_action(headers: &HeaderMap) -> super::super::ApiResult<()> {
-    let denied = || super::super::api_error(StatusCode::FORBIDDEN, "请从本机应用界面操作 Devin 登录。");
+pub(super) fn require_local_action(headers: &HeaderMap) -> super::super::ApiResult<()> {
+    let denied = || super::super::api_error(StatusCode::FORBIDDEN, "请从本机应用界面操作 Devin。");
     let host = headers.get("host").and_then(|v| v.to_str().ok()).ok_or_else(denied)?;
     let origin = headers.get("origin").and_then(|v| v.to_str().ok()).ok_or_else(denied)?;
     let url = reqwest::Url::parse(&format!("http://{host}")).map_err(|_| denied())?;

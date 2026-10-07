@@ -49,6 +49,30 @@ impl ReadMethod {
     }
 }
 
+/// 固定读取方法与节点所属会话一起派发；对象ID不能借顶层会话解释。
+#[cfg(windows)]
+pub(super) fn dispatch_read(
+    core: &webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2,
+    session: Option<&str>,
+    method: &ReadMethod,
+    callback: &webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler,
+) -> windows::core::Result<()> {
+    use webview2_com::{CoTaskMemPWSTR, Microsoft::Web::WebView2::Win32::ICoreWebView2_11};
+    use windows::core::Interface;
+    let (method, parameters) = method.request();
+    let method = CoTaskMemPWSTR::from(method);
+    let parameters = CoTaskMemPWSTR::from(parameters.as_str());
+    unsafe {
+        if let Some(session) = session {
+            let session = CoTaskMemPWSTR::from(session);
+            core.cast::<ICoreWebView2_11>()?.CallDevToolsProtocolMethodForSession(
+                *session.as_ref().as_pcwstr(), *method.as_ref().as_pcwstr(), *parameters.as_ref().as_pcwstr(), callback)
+        } else {
+            core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(), *parameters.as_ref().as_pcwstr(), callback)
+        }
+    }
+}
+
 #[cfg(windows)]
 pub(super) mod bounded_callback {
     use webview2_com::Microsoft::Web::WebView2::Win32::{
@@ -87,8 +111,7 @@ pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, sess
     }
     #[cfg(windows)]
     {
-        use webview2_com::{CoTaskMemPWSTR, Microsoft::Web::WebView2::Win32::{ICoreWebView2CallDevToolsProtocolMethodCompletedHandler, ICoreWebView2_11}};
-        use windows::core::Interface;
+        use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler;
         let session = session.map(str::to_owned);
         let view = app.get_webview(&expected.label).ok_or("native_browser_unavailable")?;
         let url = view.url().map_err(|_| "native_browser_unavailable")?.to_string();
@@ -96,7 +119,7 @@ pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, sess
         let sender = std::sync::Arc::new(std::sync::Mutex::new(Some(sender)));
         let app_on_ui = app.clone();
         let resource_on_ui = expected.clone();
-        let (method, parameters) = method.request();
+        let method_name = method.request().0;
         view.with_webview(move |platform| {
             let send = |result| {
                 if let Ok(mut sender) = sender.lock() { if let Some(sender) = sender.take() { let _ = sender.send(result); } }
@@ -108,7 +131,7 @@ pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, sess
             let callback_app = app_on_ui.clone();
             let handler: ICoreWebView2CallDevToolsProtocolMethodCompletedHandler = bounded_callback::Handler(Box::new(move |status, text| {
                 // 固定方法名用于诊断，不回显任意浏览器错误正文或查询参数。
-                let failure = if method == "DOM.getNodeForLocation" { "native_browser_hit_test_failed" } else { "native_observation_failed" };
+                let failure = if method_name == "DOM.getNodeForLocation" { "native_browser_hit_test_failed" } else { "native_observation_failed" };
                 let result = if status.is_err() { Err(failure.into()) }
                 else if super::browser_panel::input_resource(&callback_app).as_ref() != Some(&resource_on_ui)
                     || callback_app.get_webview(&resource_on_ui.label).and_then(|view| view.url().ok())
@@ -121,17 +144,8 @@ pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, sess
                 if let Ok(mut sender) = callback_sender.lock() { if let Some(sender) = sender.take() { let _ = sender.send(result); } }
                 Ok(())
             })).into();
-            let method = CoTaskMemPWSTR::from(method);
-            let parameters = CoTaskMemPWSTR::from(parameters.as_str());
-            if unsafe { platform.controller().CoreWebView2().and_then(|core| {
-                if let Some(session) = &session {
-                    let session = CoTaskMemPWSTR::from(session.as_str());
-                    core.cast::<ICoreWebView2_11>()?.CallDevToolsProtocolMethodForSession(
-                        *session.as_ref().as_pcwstr(), *method.as_ref().as_pcwstr(), *parameters.as_ref().as_pcwstr(), &handler)
-                } else {
-                    core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(), *parameters.as_ref().as_pcwstr(), &handler)
-                }
-            }) }.is_err() {
+            if unsafe { platform.controller().CoreWebView2() }
+                .and_then(|core| dispatch_read(&core, session.as_deref(), &method, &handler)).is_err() {
                 send(Err("native_observation_failed".into()));
             }
         }).map_err(|_| "native_browser_unavailable".to_string())?;

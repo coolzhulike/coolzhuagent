@@ -350,7 +350,7 @@ pub(crate) async fn start(
         &serde_json::to_vec(&(parent.workspace_id.as_str(), room, &agent.id, reset)).unwrap(),
     );
     let instructions = if review {
-        format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具，插件工具也须通过该宿主调用。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。若回执为 running，必须用 computer_use_wait 等待同一 job_id 直到最终回执；等待不算重复提交，不重新调用 perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子 Agent。若插件缺少授权，报告本轮未执行，不能宣称延期审批后已经完成。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", parent.workspace_id.as_str())
+        format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具，插件工具也须通过该宿主调用。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。CU规划和验收由你在当前同一会话中回答：running回执若next_tool为computer_use_respond，按附带的本次快照和输出格式回答，将完整回复原文作为response交回同一job_id/request_id；若next_tool为host_image_handoff，立即结束当前这段生成，不输出最终答案、不调用其它工具；宿主会在同一远端会话发来包含原图的下一段提示，任务仍在运行，不重新调用perform。其它running回执用computer_use_wait等待同一job_id直到最终回执。规划回复本身不是执行或完成证明；不重新调用perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子Agent。若插件缺少授权，报告本轮未执行，不能宣称延期审批后已经完成。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", parent.workspace_id.as_str())
     } else {
         "你在 coolzhuagent 聊天室中进行纯文本会话。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。".into()
     };
@@ -483,14 +483,33 @@ async fn execute(
         };
         // 配置阶段上限与生成总时限分开，避免每轮只剩 30 秒。
         session.set_deadline(deadline);
+        let image_signal = bridge.as_ref().map(|bridge|bridge.image_handoff_signal());
+        if let Some(signal) = &image_signal { session.set_image_handoff(signal.clone()); }
         context.record(&journal, &claim)?;
         let consumer_cancellation = cancellation.clone();
-        let result = session
-            .prompt(&context.prompt, cancellation, Duration::from_secs(5), |event| {
-                publish_to_consumer(event, tx, review, &consumer_cancellation)
-            })
+        let mut publish = |mut event: Event| {
+            // 图片交接期间的让出提示属于临时过程，不能拼进用户的最终答案。
+            if image_signal.as_ref().is_some_and(|signal|signal.load(std::sync::atomic::Ordering::Acquire)) {
+                if let Update::Text { thought, .. } = &mut event.update { *thought = true; }
+            }
+            publish_to_consumer(event, tx, review, &consumer_cancellation)
+        };
+        let mut result = session
+            .prompt(&context.prompt, cancellation.clone(), Duration::from_secs(5), &mut publish)
             .await
             .map_err(|e| e.to_string())?;
+        let mut image_rounds = 0;
+        while result.image_handoff {
+            if result.model.effective.as_deref() != Some(model) || result.cancel_requested {
+                return Err("Devin 原图续轮的模型或取消状态不一致。".into());
+            }
+            image_rounds += 1;
+            if image_rounds > 128 { return Err("Devin 原图续轮超过本轮上限，已停止；未另建会话。".into()); }
+            let content = bridge.as_ref().ok_or("原图续轮缺少当前工具桥。")?
+                .take_image_continuation()?.ok_or("原图续轮请求已失效；未发送替代任务。")?;
+            result = session.continue_with_images(content, cancellation.clone(), Duration::from_secs(5), &mut publish)
+                .await.map_err(|e|e.to_string())?;
+        }
         if result.stop_reason != "end_turn" {
             return Err(format!(
                 "Devin 本轮结束：{}；未自动重试。",
@@ -509,6 +528,9 @@ async fn execute(
     let final_state = journal.status(&claim).and_then(|status| {
         if status.state == "prepared" {
             journal.transition(&claim, &["prepared"], "not_sent", None, false)
+        } else if status.state == "submitted" {
+            journal.request_cancel(&claim)?;
+            journal.transition(&claim, &["submitted"], "unknown", None, false)
         } else {
             Ok(())
         }

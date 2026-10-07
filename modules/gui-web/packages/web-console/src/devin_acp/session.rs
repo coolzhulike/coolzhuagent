@@ -7,7 +7,7 @@ use super::{
 };
 use serde::Serialize;
 use serde_json::{Value, json};
-use std::{io, sync::Arc, time::Duration};
+use std::{io, sync::{Arc, atomic::{AtomicBool, Ordering}}, time::Duration};
 use tokio::{
     io::{AsyncBufRead, AsyncWrite, AsyncWriteExt},
     sync::mpsc,
@@ -332,6 +332,9 @@ pub(super) struct SessionService<W> {
     text_bytes: usize,
     deadline: tokio::time::Instant,
     prompt_image: bool,
+    image_handoff: Option<Arc<AtomicBool>>,
+    awaiting_continuation: bool,
+    prompt_round: u16,
 }
 
 #[derive(Debug)]
@@ -339,8 +342,22 @@ pub(super) struct TurnResult {
     pub stop_reason: String,
     pub model: ModelSelection,
     pub cancel_requested: bool,
+    pub image_handoff: bool,
     /// 此服务只观察协议终态，进程监督者另行核对整个进程树。
     pub process_drained: bool,
+}
+
+impl<W> Drop for SessionService<W> {
+    fn drop(&mut self) {
+        if self.awaiting_continuation {
+            // 两段提示之间仍持有原执行锁；丢弃连接不能留下可继续派发的 submitted。
+            let cancelled = self.journal.request_cancel(&self.scope);
+            let unknown = self.journal.transition(&self.scope, &["submitted"], "unknown", None, false);
+            if cancelled.is_err() || unknown.is_err() {
+                tracing::error!("ACP 原图交接连接丢弃后的未知收尾未确认，会话发送锁保留");
+            }
+        }
+    }
 }
 
 /// 调用方丢弃提示 future 也必须停止派发并持久化未知状态，不能让桥继续使用 submitted。
@@ -511,6 +528,9 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
             text_bytes,
             deadline,
             prompt_image,
+            image_handoff: None,
+            awaiting_continuation: false,
+            prompt_round: 0,
         })
     }
 
@@ -530,6 +550,30 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
         &mut self, content: Vec<Value>, cancellation: Arc<crate::ChatTurnCancellation>,
         cancel_grace: Duration, mut sink: impl FnMut(Event) -> io::Result<()>,
     ) -> io::Result<TurnResult> {
+        self.prompt_segment(content, cancellation, cancel_grace, &mut sink, false).await
+    }
+
+    pub(super) fn set_image_handoff(&mut self, signal: Arc<AtomicBool>) {
+        self.image_handoff = Some(signal);
+    }
+
+    /// 只续接刚让出生成的原会话；不重新 claim，也不从 terminal 复活。
+    pub(super) async fn continue_with_images(
+        &mut self, content: Vec<Value>, cancellation: Arc<crate::ChatTurnCancellation>,
+        cancel_grace: Duration, mut sink: impl FnMut(Event) -> io::Result<()>,
+    ) -> io::Result<TurnResult> {
+        if !self.awaiting_continuation || !content.iter().any(|block| block["type"] == "image") {
+            return Err(invalid("ACP 没有等待原图续轮；未发送。"));
+        }
+        self.journal.can_dispatch(&self.scope).map_err(|e|invalid(&e))?;
+        self.prompt_segment(content, cancellation, cancel_grace, &mut sink, true).await
+    }
+
+    async fn prompt_segment(
+        &mut self, content: Vec<Value>, cancellation: Arc<crate::ChatTurnCancellation>,
+        cancel_grace: Duration, mut sink: impl FnMut(Event) -> io::Result<()>, continuation: bool,
+    ) -> io::Result<TurnResult> {
+        if !continuation && self.awaiting_continuation { return Err(invalid("ACP 等待原图续轮，不能提交新任务。")); }
         if content.is_empty() || content.iter().any(|block| match block["type"].as_str() {
             Some("text") => block["text"].as_str().is_none_or(|text| text.trim().is_empty()),
             Some("image") => !self.prompt_image || block["data"].as_str().is_none_or(str::is_empty)
@@ -540,27 +584,32 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
         let id = self.transport.id()?;
         let envelope = json!({"jsonrpc":"2.0","id":id,"method":"session/prompt","params":params});
         let encoded = serde_json::to_vec(&envelope)?;
-        // 只记录大小/数量，禁止记录截图、提示正文或账号信息；超限仍是 prepared→not_sent。
-        self.journal.save_config_receipt(&self.scope, "prompt_payload", &json!({
+        // 只记录大小/数量，禁止记录截图、提示正文或账号信息。
+        let payload_stage = if continuation { format!("image_payload_{}",self.prompt_round) } else { "prompt_payload".into() };
+        self.journal.save_config_receipt(&self.scope, &payload_stage, &json!({
             "serialized_bytes":encoded.len(),"image_count":prompt_image_count(&envelope),
             "outgoing_limit_bytes":outgoing_limit(&envelope)
         })).map_err(|e|invalid(&e))?;
         validate_outgoing_bytes(&envelope, &encoded)?;
+        self.prompt_round = self.prompt_round.checked_add(1).ok_or_else(||invalid("ACP 提示段计数已耗尽。"))?;
         if cancellation.is_requested() || tokio::time::Instant::now() >= self.deadline {
             self.journal
                 .request_cancel(&self.scope)
                 .map_err(|e| invalid(&e))?;
             self.journal
-                .transition(&self.scope, &["prepared"], "not_sent", None, false)
+                .transition(&self.scope, &[if continuation { "submitted" } else { "prepared" }],
+                    if continuation { "unknown" } else { "not_sent" }, None, false)
                 .map_err(|e| invalid(&e))?;
             return Err(io::Error::new(
                 io::ErrorKind::Interrupted,
                 "ACP 提交前已取消或超时。",
             ));
         }
-        self.journal
-            .transition(&self.scope, &["prepared"], "submitted", None, true)
-            .map_err(|e| invalid(&e))?;
+        if !continuation {
+            self.journal.transition(&self.scope, &["prepared"], "submitted", None, true)
+                .map_err(|e| invalid(&e))?;
+        }
+        self.awaiting_continuation = false;
         let mut guard = SubmittedGuard {
             journal: self.journal.clone(),
             scope: self.scope.clone(),
@@ -680,13 +729,20 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
                     })
                     .ok_or_else(|| invalid("ACP 未返回已知协议终态。"))?;
                 // 取消和 end_turn 可能交叉到达，分别记录，不伪造取消确认。
-                self.journal
-                    .transition(&self.scope, &["submitted"], "terminal", Some(reason), false)
-                    .map_err(|e| invalid(&e))?;
+                let image_handoff = reason == "end_turn" && !cancelled && !cancellation.is_requested()
+                    && self.image_handoff.as_ref().is_some_and(|signal| signal.load(Ordering::Acquire));
+                if image_handoff {
+                    self.journal.can_dispatch(&self.scope).map_err(|e|invalid(&e))?;
+                    self.awaiting_continuation = true;
+                } else {
+                    self.journal.transition(&self.scope, &["submitted"], "terminal", Some(reason), false)
+                        .map_err(|e| invalid(&e))?;
+                }
                 return Ok(TurnResult {
                     stop_reason: reason.into(),
                     model: self.selection.clone(),
                     cancel_requested: cancelled,
+                    image_handoff,
                     process_drained: false,
                 });
             }
@@ -725,7 +781,12 @@ fn emit(
     if frame["params"]["sessionId"].as_str() != Some(remote) {
         return Err(invalid("ACP 通知来自另一会话。"));
     }
-    let update = project(&frame["params"]["update"])?;
+    let source = &frame["params"]["update"];
+    let update = if replay && source["content"]["type"] == "image"
+        && matches!(source["sessionUpdate"].as_str(), Some("user_message_chunk" | "agent_message_chunk")) {
+        // 恢复时的旧图片只记类型，不复制像素或作为本次观察；不能阻断含原图的同一会话续接。
+        Update::Diagnostic { name: "replayed_image".into() }
+    } else { project(source)? };
     if let Update::Config { options } = &update {
         let (_, effective, _) = protocol::model_config(options).map_err(invalid)?;
         if requested.is_some_and(|value| value != effective) {
@@ -752,6 +813,19 @@ fn emit(
 mod tests {
     use super::super::journal::tests::{scope, setup};
     use super::*;
+    #[test]
+    fn replayed_images_are_metadata_and_never_current_observations() {
+        let frame = json!({"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"remote",
+            "update":{"sessionUpdate":"user_message_chunk","content":{"type":"image","mimeType":"image/png","data":"private-image"}}}});
+        let mut events = Vec::new(); let mut sequence = 0; let mut bytes = 0;
+        emit(&scope("image-replay"),"remote",true,&mut sequence,&mut bytes,frame.clone(),
+            &mut |event|{events.push(event);Ok(())},None).unwrap();
+        assert!(events[0].replay);
+        assert!(matches!(&events[0].update,Update::Diagnostic { name } if name == "replayed_image"));
+        assert!(!serde_json::to_string(&events[0]).unwrap().contains("private-image"));
+        assert!(emit(&scope("image-replay"),"other",true,&mut sequence,&mut bytes,frame.clone(),&mut |_|Ok(()),None).is_err());
+        assert!(emit(&scope("image-replay"),"remote",false,&mut sequence,&mut bytes,frame,&mut |_|Ok(()),None).is_err());
+    }
     #[test]
     fn image_prompt_capacity_does_not_expand_other_frames_or_text() {
         let mut prompt = json!({"jsonrpc":"2.0","id":1,"method":"session/prompt","params":{"sessionId":"actual","prompt":[
@@ -786,6 +860,50 @@ mod tests {
     }
     fn config() -> Value {
         json!([{"id":"model","category":"model","type":"select","currentValue":"actual","options":[{"value":"actual"}]}])
+    }
+    #[tokio::test]
+    async fn image_continuation_keeps_one_remote_attempt_and_never_revives_terminal() {
+        let (_dir, journal, binding) = setup();
+        let claim = journal.claim(scope("image-continuation"), &binding).unwrap();
+        let (transport, mut reader, mut writer) = pair();
+        let signal = Arc::new(AtomicBool::new(false));
+        let peer_signal = signal.clone();
+        let peer = tokio::spawn(async move {
+            let request = read_frame(&mut reader).await.unwrap();
+            reply(&mut writer,&request["id"],json!({"protocolVersion":1,"agentCapabilities":{"promptCapabilities":{"image":true}}})).await;
+            let request = read_frame(&mut reader).await.unwrap();
+            assert_eq!(request["method"],"session/new");
+            reply(&mut writer,&request["id"],json!({"sessionId":"remote","configOptions":config()})).await;
+            let request = read_frame(&mut reader).await.unwrap();
+            reply(&mut writer,&request["id"],json!({"configOptions":config()})).await;
+            let first = read_frame(&mut reader).await.unwrap();
+            assert_eq!(first["method"],"session/prompt");
+            assert_eq!(first["params"]["sessionId"],"remote");
+            peer_signal.store(true,Ordering::Release);
+            reply(&mut writer,&first["id"],json!({"stopReason":"end_turn"})).await;
+            let second = read_frame(&mut reader).await.unwrap();
+            assert_eq!(second["method"],"session/prompt");
+            assert_eq!(second["params"]["sessionId"],first["params"]["sessionId"]);
+            assert_ne!(second["id"],first["id"]);
+            assert_eq!(prompt_image_count(&second),1);
+            reply(&mut writer,&second["id"],json!({"stopReason":"end_turn"})).await;
+        });
+        let mut service = SessionService::connect(transport,journal.clone(),claim.clone(),"actual",vec![],
+            tokio::time::Instant::now()+Duration::from_secs(30), |_|Ok(())).await.unwrap();
+        service.set_image_handoff(signal.clone());
+        let cancellation = Arc::new(crate::ChatTurnCancellation::new());
+        let images = vec![json!({"type":"image","mimeType":"image/png","data":"YQ=="})];
+        assert!(service.continue_with_images(images.clone(),cancellation.clone(),Duration::from_secs(1),|_|Ok(())).await.is_err());
+        let first = service.prompt("原任务",cancellation.clone(),Duration::from_secs(1),|_|Ok(())).await.unwrap();
+        assert!(first.image_handoff);
+        assert_eq!(journal.status(&claim).unwrap().state,"submitted");
+        assert!(journal.claim(scope("other"), &binding).is_err());
+        signal.store(false,Ordering::Release);
+        let final_turn = service.continue_with_images(images.clone(),cancellation.clone(),Duration::from_secs(1),|_|Ok(())).await.unwrap();
+        assert!(!final_turn.image_handoff);
+        assert_eq!(journal.status(&claim).unwrap().state,"terminal");
+        assert!(service.continue_with_images(images,cancellation,Duration::from_secs(1),|_|Ok(())).await.is_err());
+        peer.await.unwrap();
     }
     #[tokio::test]
     async fn new_notifications_are_staged_until_actual_session_identity_is_confirmed() {
@@ -950,13 +1068,15 @@ mod tests {
             claim.clone(),
             "actual",
             vec![],
-            tokio::time::Instant::now() + Duration::from_secs(3),
+            // 本项验证半帧取消，不验证握手时限；并行 CI 落盘不能抢先触发配置超时。
+            tokio::time::Instant::now() + Duration::from_secs(30),
             |_| Ok(()),
         )
         .await
         .unwrap();
+        service.set_deadline(tokio::time::Instant::now() + Duration::from_secs(30));
         let result = service
-            .prompt("hi", cancellation, Duration::from_secs(1), |_| Ok(()))
+            .prompt("hi", cancellation, Duration::from_secs(10), |_| Ok(()))
             .await
             .unwrap();
         assert!(result.cancel_requested);

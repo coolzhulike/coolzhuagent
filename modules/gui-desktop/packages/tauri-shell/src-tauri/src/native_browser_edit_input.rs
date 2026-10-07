@@ -15,7 +15,8 @@ pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String
         let Some(view)=app.get_webview(&target.resource.label) else {return PanelInputOutcome::NotDispatched;};
         let (sender,receiver)=tokio::sync::oneshot::channel();let sender=Arc::new(Mutex::new(Some(sender)));
         let app_ui=app.clone();let resource=target.resource.clone();
-        let (method,params)=ReadMethod::EditorState(object.clone()).request();
+        let session=target.node.scope.session().map(str::to_owned);let session_ui=session.clone();
+        let method=ReadMethod::EditorState(object.clone());
         let queued=view.with_webview(move |platform| {
             let finish=|result| {if let Ok(mut slot)=sender.lock() {if let Some(sender)=slot.take() {let _=sender.send(result);}}};
             if now()>=expires_ms || super::browser_panel::input_resource(&app_ui).as_ref()!=Some(&target.resource) {
@@ -44,13 +45,12 @@ pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String
                 }
                 Ok(())
             })).into();
-            let method=CoTaskMemPWSTR::from(method);let params=CoTaskMemPWSTR::from(params.as_str());
-            if unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*params.as_ref().as_pcwstr(),&handler)}.is_err() {finish(PanelInputOutcome::NotDispatched);}
+            if native_browser_devtools::dispatch_read(&core,session_ui.as_deref(),&method,&handler).is_err() {finish(PanelInputOutcome::NotDispatched);}
         });
         let outcome=if queued.is_err() {PanelInputOutcome::DispatchUnknown} else {
             tokio::time::timeout(std::time::Duration::from_secs(3),receiver).await.ok().and_then(Result::ok).unwrap_or(PanelInputOutcome::DispatchUnknown)
         };
-        let _=native_browser_devtools::read(app,&resource,ReadMethod::ReleaseEditor(object)).await;
+        let _=native_browser_devtools::read_session(app,&resource,session.as_deref(),ReadMethod::ReleaseEditor(object)).await;
         outcome
     }
     #[cfg(not(windows))]

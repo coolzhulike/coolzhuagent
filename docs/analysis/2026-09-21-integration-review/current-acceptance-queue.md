@@ -44,3 +44,11 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 
 
 0.2.85已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.85)，四资产服务端长度/SHA及实际tag=ae87均已核验，原工程正常桌面入口恢复为085。正式独立进程按钮/缩放及覆盖/规划期子导航已闭环，跨进程编辑/按键/滚动和其它队列继续开放。详见[085交接](../../testing/release-0.2.85/change-report-and-test-handoff.md)。
+
+
+2026-10-06追加：用户清除Devin云端会话后，本轮通过正常重绑入口仅解除旧绑定，首轮创建唯一`island-kayak`并持续复用；内部规划不再创建云端会话。本地历史、失败和安全记录保留。候选OOP子输入、单Enter、上下滚动及顶部零投递已有真实证据，完整组合首轮的未知字段失败保留，不外推正式安装版。新单会话桥Paint实际W笔画已投递/释放，但模型未收到MCP原图，验收失败；正修复为同一ACP会话串行图片续轮。详见[单会话方案与本轮事实](devin-single-session-next-plan.md)。当前正常配套为候选调试环境；0.2.85是最新已安装发布版本，0.2.86尚未冻结出包。
+
+
+同一云端上下文的候选Paint原图缺口已在`PAINT4`闭环：一个ACP attempt内串行1张规划原图/2张验收原图，新增一笔V并完成2/2原图验收；内部远端保持空。仅application匹配歧义的PAINT3为零输入失败，明确窗口的PAINT4成功，二者均保留；不外推任意应用窗口定位或正式安装版。显示交接提示修正后主控制台完整1395通过、6忽略，实际build和JS语法检查通过，正在继续候选实操与打包收尾。
+
+后续PAINT5发现重启恢复图片历史被旧纯文本解析拒绝，零输入，原绑定保留。已修复历史图片只作固定类型元数据投影；最新PAINT6重启后续接同一island-kayak，实际新增L且原图验收2/2，外层completed/end_turn/drained，最终回复无交接文字。独立OOP FULL也完成真实click/type/Enter、子输入/提交1/1与父0/0、3/3 grounded；父页面回归真实输入/提交1/1，子FRESH086与1/1不变、4/4 grounded。原失败不追改，候选截图与回执见[086候选交接](../../testing/release-0.2.86/candidate-change-report.md)。正式打包安装及其余总体队列仍开放。

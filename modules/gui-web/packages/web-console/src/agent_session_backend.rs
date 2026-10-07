@@ -67,9 +67,13 @@ pub(super) fn dispatch_internal(
         AgentSessionBackend::DevinAcp => {
             let parent = parent.cloned().ok_or_else(|| api::ApiError::UnsupportedCapability {
                 capability: "内部 ACP 请求缺少冻结的真实父运行。".into() })?;
+            // 跨 tokio::spawn 显式携带当前桥；任务局部及 blocking worker 的线程局部不会自动继承。
+            let policy = super::devin_acp::bridge::current().or_else(super::devin_acp::bridge::worker_policy)
+                .ok_or_else(|| api::ApiError::UnsupportedCapability { capability:"Devin 规划需要当前聊天工具桥；未创建额外云端会话。".into() })?;
+            let exchange = policy.planning_for(&parent,agent).map_err(|capability| api::ApiError::UnsupportedCapability { capability })?;
             let agent = agent.clone(); let call = call.to_string(); let kind = kind.to_string();
             tokio::spawn(async move {
-                let result = super::devin_acp::internal::complete(agent, request, parent, call, kind, remaining, cancelled).await;
+                let result = super::devin_acp::internal::complete(agent, request, parent, call, kind, remaining, cancelled,exchange).await;
                 let _ = sender.send(result);
             });
         }

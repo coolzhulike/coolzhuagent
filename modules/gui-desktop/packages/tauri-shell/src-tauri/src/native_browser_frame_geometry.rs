@@ -8,6 +8,7 @@ use native_browser_protocol::PanelResource;
 use serde_json::Value;
 use tauri::AppHandle;
 
+#[derive(PartialEq)]
 pub(super) struct MappedPoint {
     pub x: i32,
     pub y: i32,
@@ -97,6 +98,26 @@ pub(super) async fn locate(
     .await?;
     let initial = local_metrics(raw)?;
     let (local_x, local_y) = native_browser_target::point(geometry, &initial)?;
+    map_point(app, resource, scope, initial, local_x, local_y, top_metrics).await
+}
+
+/// 独立目标根文档的滚动点来自该目标的布局视口，父owner仍逐层核对。
+pub(super) async fn viewport_center(
+    app: &AppHandle, resource: &PanelResource, scope: &DocumentScope, top_metrics: &Value,
+) -> Result<MappedPoint, String> {
+    let initial = local_metrics(native_browser_devtools::read_session(
+        app, resource, scope.session(), ReadMethod::LayoutMetrics).await?)?;
+    let width = initial["cssVisualViewport"]["clientWidth"].as_f64().ok_or("native_browser_frame_geometry_invalid")?;
+    let height = initial["cssVisualViewport"]["clientHeight"].as_f64().ok_or("native_browser_frame_geometry_invalid")?;
+    let geometry = serde_json::json!({"model":{"content":[0.0,0.0,width,0.0,width,height,0.0,height]}});
+    let (x, y) = native_browser_target::point(&geometry, &initial)?;
+    map_point(app, resource, scope, initial, x, y, top_metrics).await
+}
+
+async fn map_point(
+    app: &AppHandle, resource: &PanelResource, scope: &DocumentScope, initial: Value,
+    local_x: i32, local_y: i32, top_metrics: &Value,
+) -> Result<MappedPoint, String> {
     let (mut x, mut y) = (local_x, local_y);
     let mut metrics = initial.clone();
     let mut proof = Vec::new();
