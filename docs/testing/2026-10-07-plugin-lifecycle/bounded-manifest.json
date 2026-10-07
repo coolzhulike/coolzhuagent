@@ -1,0 +1,125 @@
+{
+  "stage": "090正式并发失败；后续有界锁修补仅候选通过",
+  "files": [
+    {
+      "path": "installed090/bounded-catalog-read.json",
+      "bytes": 3883,
+      "sha256": "a82d121a61dbe72bf69c53fb00f151e7f24b9bd0d17c23fb048c3156c9b27a20"
+    },
+    {
+      "path": "installed090/config-after.json",
+      "bytes": 5082,
+      "sha256": "8e7a58bec1db48a9f4ebc78cf3f11ae0c3e4a3c21fd123957a54f6463f45e364"
+    },
+    {
+      "path": "installed090/config-before.json",
+      "bytes": 5019,
+      "sha256": "21ef4e8a920a30f8c77df6429abc9ffb589d2316f2d7e8122787612f168a5882"
+    },
+    {
+      "path": "installed090/config-change-timing.json",
+      "bytes": 492,
+      "sha256": "3027829d280e87913dbe7665078934dca09ff4503442012a51d1eea51e99b8a5"
+    },
+    {
+      "path": "installed090/config-facts.json",
+      "bytes": 2239,
+      "sha256": "fe35ce40b858d9612a9ba0509b2c759a38d0d4b59f29d5db9c7470749ae669fa"
+    },
+    {
+      "path": "installed090/config-response.json",
+      "bytes": 720,
+      "sha256": "a74aca92333eeb02559c1c3f86078e6bd5eded0a5f9019ba495b6f3d39bcd95b"
+    },
+    {
+      "path": "installed090/config-restored-response.json",
+      "bytes": 719,
+      "sha256": "ba024a4c577ed9966078ed5e2550974082be4bd4b65347ebd992b0e86586237e"
+    },
+    {
+      "path": "installed090/config-restored.json",
+      "bytes": 5019,
+      "sha256": "0e8c82506218567371bbdc82be3697aed89eecb912f9e3b5c7992ba23d4aa394"
+    },
+    {
+      "path": "installed090/config-result.jpg",
+      "bytes": 186866,
+      "sha256": "60dc90e7a42da08802df0a8b289bf591ed067f288e37ea6cfd19b8e4527250fa"
+    },
+    {
+      "path": "installed090/fresh-facts.json",
+      "bytes": 1542,
+      "sha256": "6385bfe64ffff299b90de4fafaeebcb4c82bdbee8218c20fa50fec069d4d3d2c"
+    },
+    {
+      "path": "installed090/fresh-result.jpg",
+      "bytes": 189201,
+      "sha256": "0349126822bc60b2fdbbc9a8d1bc7e7989403cd9ff23ac6e6e6d875673a833b8"
+    },
+    {
+      "path": "candidate-bounded/bounded-catalog-read.json",
+      "bytes": 1825,
+      "sha256": "b4f7b13eee5ba609ac86b4d84eb60eac30a73d3f2151af7b302d91de923f64ab"
+    },
+    {
+      "path": "candidate-bounded/facts.json",
+      "bytes": 2869,
+      "sha256": "553188e7ca737f512d7f1c04811975eb4868c6cfde3a1250ae377f1a10a094a7"
+    },
+    {
+      "path": "candidate-bounded/result.jpg",
+      "bytes": 177615,
+      "sha256": "0a1f72a82b9d973fc653f808d2cab7d4c461486862679fbba578c683ca9b1557"
+    },
+    {
+      "path": "candidate-bounded-processes.json",
+      "bytes": 760,
+      "sha256": "a1ffe54b446d1d171ddc6daff3b1b60f2017f267e1e166975ad5df566fe38a6f"
+    },
+    {
+      "path": "bounded-lock-build.log",
+      "bytes": 50877,
+      "sha256": "3dbecab889e97339a6ce8e64704f0cd38ca8bbe8817c8f82bdbb3ab1d8e3eb78"
+    },
+    {
+      "path": "bounded-lock-plugin-tests.log",
+      "bytes": 6439,
+      "sha256": "9ab6c30e6a96b987ba7ac7b568fe9bfc79febf6ccb44e8c69190dda4d82668bb"
+    },
+    {
+      "path": "bounded-lock-plugin-tests-final.log",
+      "bytes": 5921,
+      "sha256": "cf041838c1455e387d37fdb77962ba1969cc4aa06947f9af62453626d547b0c9"
+    },
+    {
+      "path": "bounded-lock-web-tests.log",
+      "bytes": 148731,
+      "sha256": "883a4be1558c0713536d8be5029d28d244d38cf32b39df9c9ea6f8c788cbc573"
+    },
+    {
+      "path": "bounded-lock-web-tests-final.log",
+      "bytes": 148366,
+      "sha256": "e8d7c61b429b999e154d1718df59aa1842c8046cf353137fb2baba072c90d682"
+    },
+    {
+      "path": "installed-090-verification.json",
+      "bytes": 1825,
+      "sha256": "bcf3060375b5084003eb8afba4a5feba7037cd21ec7998f7d4769e5b6d31f90f"
+    },
+    {
+      "path": "package-090-verification.json",
+      "bytes": 1810,
+      "sha256": "893e1917505491799314e2aeeb88b3726d5a09155902e6b5d7afc5ae96174992"
+    },
+    {
+      "path": "install-090-result.json",
+      "bytes": 282,
+      "sha256": "ed3aeb31aff3d926175965c3a660959bc74de9803ae479e3b94ef4aefd64dce6"
+    },
+    {
+      "path": "installed-090-standard-processes.json",
+      "bytes": 692,
+      "sha256": "091083dc4cc04b1b6cc9ed3643c05ba3adb33a33902dda42848c7b5269898ae3"
+    }
+  ]
+}

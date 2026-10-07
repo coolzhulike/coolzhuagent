@@ -1,0 +1,65 @@
+{
+  "scope": "b6原失败与后续真实SQLite/进程树回归；不代替模型或安装版验收",
+  "files": [
+    {
+      "path": "source-ci.json",
+      "bytes": 7194,
+      "sha256": "3dacf8f74e73868757e32a2711a92969f8aaf500d923277b1a52054e7658af0f"
+    },
+    {
+      "path": "source-ci-failed.log",
+      "bytes": 326738,
+      "sha256": "fd8f189daaa79517d5a5c7ecf9ac0850037cb3df65ba73981ced62c7fa9b930d"
+    },
+    {
+      "path": "ci-repair-tree.log",
+      "bytes": 22721,
+      "sha256": "1472ccdfa94d571c6169924477498b59d72e691eab299bb8eba5c54c53f7c0da"
+    },
+    {
+      "path": "ci-repair-tree-diagnostic.log",
+      "bytes": 22705,
+      "sha256": "ca87c489d61f09033199609e1da6c45bff6e35bd8670d05fc14e025a3c4c6020"
+    },
+    {
+      "path": "ci-repair-tree-native-final.log",
+      "bytes": 22739,
+      "sha256": "1f9305d206978b61a0a56e01d6ccd1f0fe3202888a2e1c3e0c1914caa82833f7"
+    },
+    {
+      "path": "ci-repair-tree-cmd.log",
+      "bytes": 22106,
+      "sha256": "3a5fc3ccd538817e0fc7e737f748190ba72de5d05f3e5c244d882e755344d68f"
+    },
+    {
+      "path": "ci-repair-concurrent.log",
+      "bytes": 22112,
+      "sha256": "1633eafb33664d3476dde2fdef8d726c518e2fb00c52595342a64d3efcd5454e"
+    },
+    {
+      "path": "ci-repair-schema.log",
+      "bytes": 22044,
+      "sha256": "9f6eed0ba9ee931546d8d44bcdc420285d602c7eb1da5eac8bce81a5fbb4d34b"
+    },
+    {
+      "path": "ci-repair-web-final.log",
+      "bytes": 147369,
+      "sha256": "e7a8d03bea0f221b03fb080fe68267f0d2e9574bd117dcaca4babddb26c83eb1"
+    },
+    {
+      "path": "ci-repair-build-final.log",
+      "bytes": 49792,
+      "sha256": "169ae4254795a88b45af06e008a980bbb5fad0625af02be2135885a4f71efff9"
+    },
+    {
+      "path": "ci-repair-tool-registry.log",
+      "bytes": 2028,
+      "sha256": "bf36bbbca748a13c6be7c737ecc072191f2b7f4abe82c741e4c51e3a0df477dc"
+    },
+    {
+      "path": "ci-repair-module-smoke.log",
+      "bytes": 3296,
+      "sha256": "e1b0dafbbff2626e8da594516a7345d3e9c852fadeb5f22a325eceea943b811c"
+    }
+  ]
+}

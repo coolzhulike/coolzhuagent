@@ -1,8 +1,10 @@
 {
-  "activation_id": "dsh-23972-1791365584320027900-0",
-  "config": {},
+  "activation_id": "dsh-31468-1791366757020468400-0",
+  "config": {
+    "acceptance_revision": "installed090-config-20261007"
+  },
   "host_manifest": {
-    "generation": "4efc0b6b-f8b8-4f27-996c-2326bf38c7a7",
+    "generation": "0e188404-7b8c-4992-9112-43c9eb07595a",
     "plugin": {
       "name": "@deepseek-ai/dsh-tool-calculator",
       "version": "0.0.1"
