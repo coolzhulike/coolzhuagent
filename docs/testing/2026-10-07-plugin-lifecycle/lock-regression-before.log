@@ -1,0 +1,33 @@
+   Compiling windows-sys v0.61.2
+   Compiling tempfile v3.27.0
+   Compiling coolzhu-plugin-system v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\tooling\packages\plugin-system)
+warning: unused import: `HookAuthorizationService`
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:425:34
+    |
+425 |     use super::{AllowHookEvents, HookAuthorizationService, HookRunResult, HookRunner};
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-plugin-system` (lib test) generated 1 warning (run `cargo fix --lib -p coolzhu-plugin-system --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.05s
+     Running unittests src\lib.rs (target\debug\deps\plugins-64328e0859dfcfb2.exe)
+
+running 1 test
+test install_transaction::dsh_recovery_tests::dsh_read_lock_contention_does_not_revoke_unchanged_lifecycle ... FAILED
+
+failures:
+
+---- install_transaction::dsh_recovery_tests::dsh_read_lock_contention_does_not_revoke_unchanged_lifecycle stdout ----
+
+thread 'install_transaction::dsh_recovery_tests::dsh_read_lock_contention_does_not_revoke_unchanged_lifecycle' (22412) panicked at modules\tooling\packages\plugin-system\src\dsh_recovery_tests.rs:106:59:
+called `Result::unwrap()` on an `Err` value: Busy("插件管理锁不可用，本次操作未执行（\\\\?\\C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\dsh-recovery-tests\\case-Y0KECL\\home\\plugins\\installed\\.plugin-manager.lock）：lock acquisition failed because the operation would block")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    install_transaction::dsh_recovery_tests::dsh_read_lock_contention_does_not_revoke_unchanged_lifecycle
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 43 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p coolzhu-plugin-system --lib`
