@@ -122,3 +122,9 @@
 /docs/testing/2026-10-07-devin-attachments/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.92/installed-attachments/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.92/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 本轮连接器目录、函数取消时间与原始构建日志保持清单中的字节。
+/docs/testing/2026-10-07-jade-connectors/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-jade-connectors/manifest.json -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-plugin-function/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-plugin-function/manifest.json -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol

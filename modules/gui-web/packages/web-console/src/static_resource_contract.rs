@@ -6,6 +6,8 @@ const CORE: &[(&str, &[u8])] = &[
     ("src/app.js", include_bytes!("app.js")),
     ("src/dsh_market.js", include_bytes!("dsh_market.js")),
     ("src/devin_plugin.js", include_bytes!("devin_plugin.js")),
+    ("src/provider_connectors.js", include_bytes!("provider_connectors.js")),
+    ("src/jade_controls.css", include_bytes!("jade_controls.css")),
     ("src/styles.css", include_bytes!("styles.css")),
     ("src/chat_experience.js", include_bytes!("chat_experience.js")),
     ("src/chat_experience.css", include_bytes!("chat_experience.css")),

@@ -1,0 +1,80 @@
+{
+  "stage": "092之后源码候选；非新安装包验收",
+  "files": [
+    {
+      "path": "evidence/build-final.log",
+      "bytes": 50138,
+      "sha256": "e72764095f069bb9c629815058f085f287f3c8077a711550fba7ef2b0d4983d0"
+    },
+    {
+      "path": "evidence/candidate-processes.json",
+      "bytes": 841,
+      "sha256": "671164d50b90c5345ac05235f8cffb925d53000678ad75d61caf38cdd59735a7"
+    },
+    {
+      "path": "evidence/frontend-final.log",
+      "bytes": 1564,
+      "sha256": "b0426f466b3330243c4cfa0e06cd4126221616236787e534c4bac74d1c1e6ec5"
+    },
+    {
+      "path": "evidence/hf-product-directory.json",
+      "bytes": 245779,
+      "sha256": "d4aa8d265c7c3317b4ddd1025f6626f1458a3a709db4f0e8de7abd635caa0b2d"
+    },
+    {
+      "path": "evidence/idle-and-binding-check.json",
+      "bytes": 168,
+      "sha256": "a8112283fba7bee37404cb66599ae38fdb2162933fe7b412995683dd4c9cfae5"
+    },
+    {
+      "path": "evidence/opencode-free-selection.json",
+      "bytes": 728,
+      "sha256": "c346549dfe0e2737b23ce9306fd24c841b1f172429fa32941037cefd37c17e24"
+    },
+    {
+      "path": "evidence/opencode-product-directory.json",
+      "bytes": 37229,
+      "sha256": "26101b4bb7ca07c8e3807847ecc770c91594e8b24ea11c528e125931ab3ff36e"
+    },
+    {
+      "path": "evidence/restored-daily-092-verification.json",
+      "bytes": 859,
+      "sha256": "4bccd752d89dbdb5f29b41d13e80be64e19c073854e9e07ec02ac7675f5adf89"
+    },
+    {
+      "path": "evidence/stopped-candidate-processes.json",
+      "bytes": 614,
+      "sha256": "be37fdb5047401aa54c9aefdf183493405adbf6f2d755b96ffb97c0cdf2bcd85"
+    },
+    {
+      "path": "evidence/test-discovery-final.log",
+      "bytes": 22460,
+      "sha256": "c2b42d0680b3272d098811bdda61528c20133566d82db54edbeabac794096d21"
+    },
+    {
+      "path": "evidence/test-web-final.log",
+      "bytes": 147701,
+      "sha256": "68cb2483a33249c3bd6d7fc43a50bfde7b8aaf9f1d5bc5ee61cec9da2f5cb85b"
+    },
+    {
+      "path": "native/01-jade-controls.jpg",
+      "bytes": 198577,
+      "sha256": "5a20f5db80b55e56fda76a819a5c2ab0efb3485d013de41eff8f54a6ba06fc96"
+    },
+    {
+      "path": "native/04-hf-provider-capabilities.jpg",
+      "bytes": 219336,
+      "sha256": "ec555e510cd0af0773c06c8f24b6affa336d0b7722cd05ea4cbf0e5fef23eb96"
+    },
+    {
+      "path": "native/05-opencode-real-directory.jpg",
+      "bytes": 217372,
+      "sha256": "994ee2ff69bdcfa307c44750b11dcb31127f1d9b79ae974786bca586e7d1b11a"
+    },
+    {
+      "path": "report.md",
+      "bytes": 6330,
+      "sha256": "30615b2babf3f5afe6db8cb23958e2dc5260ddb2d3b097242320de2d7d4a8f8f"
+    }
+  ]
+}

@@ -93,6 +93,31 @@ fn dsh_write_failures_restore_enabled_snapshot_and_exact_metadata() {
 }
 
 #[test]
+fn dsh_dot_relative_entry_keeps_source_bytes_and_rejects_escape() {
+    let case = new_case();
+    let root = case.path().canonicalize().unwrap();
+    let source = root.join("source");
+    let mut package = fixture(&source, "1.0.0");
+    let metadata = serde_json::to_vec(&serde_json::json!({
+        "name":package.receipt.name,"version":"1.0.0","main":"./index.js"
+    })).unwrap();
+    fs::write(source.join("package.json"), &metadata).unwrap();
+    package.receipt.files.iter_mut().find(|file| file.path == "package.json").unwrap().sha256
+        = format!("{:x}", Sha256::digest(&metadata));
+    package.verify(&source).unwrap();
+    let mut manager = PluginManager::new(PluginManagerConfig::new(root.join("home")));
+    let installed = manager.install_dsh(&source, &package, "相对入口回归").unwrap();
+    package.verify(&installed.install_path).unwrap();
+    assert_eq!(fs::read(installed.install_path.join("package.json")).unwrap(), metadata);
+    assert_eq!(package.receipt.entry, "index.js");
+    for entry in ["../index.js", "./../index.js", "./C:/index.js", "./index.js:alias", "./node_modules/index.js", "././index.js"] {
+        assert!(DshPackage::normalize_source_entry(entry).is_err(), "越界或歧义入口必须拒绝：{entry}");
+    }
+    package.receipt.entry = "other.js".into();
+    assert!(package.verify(&source).is_err(), "不得将入口规范化当作放宽回执身份");
+}
+
+#[test]
 fn dsh_read_lock_contention_does_not_revoke_unchanged_lifecycle() {
     let case = new_case();
     let root = case.path().canonicalize().unwrap();

@@ -26,10 +26,11 @@
     if (!container) return null;
     container.__modelSettings?.destroy();
     let sessions = [], selectedId = options.sessionId || null, snapshot = null, loadSequence = 0, refreshSequence = 0, editSequence = 0, disposed = false;
-    let busy = false, dirty = false;
+    let busy = false, dirty = false, initialDraftApplied = false;
     let discovery = null, devinCatalog = null, discoverySequence = 0, discoveryController = null, discovering = false;
+    const httpProtocols = [["openai_chat_completions", "OpenAI Chat Completions"], ["anthropic_messages", "Anthropic Messages"]];
     const protocols = options.backendFilter === "devin_acp" ? [["devin_acp", "Devin · 账号登录"]]
-      : [["openai_chat_completions", "OpenAI Chat Completions"], ["anthropic_messages", "Anthropic Messages"], ["devin_acp", "Devin · 账号登录"]];
+      : options.backendFilter === "llm_http" ? httpProtocols : [...httpProtocols, ["devin_acp", "Devin · 账号登录"]];
     container.classList.add("model-settings");
     container.innerHTML = `
       <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2><p>为当前聊天室选择模型，配置连接、上下文与思考参数。</p></div><button type="button" data-ms-action="new" class="ms-secondary">新建会话</button></div>
@@ -162,6 +163,7 @@
         : "来源：服务端目录，未实测";
       const detail = model ? [imageLabel(model), model.image_input == null ? "需手动确认" : source,
         model.cost_summary || model.cost_tier || "",
+        model.tool_calling === true ? "目录声明支持工具调用" : model.tool_calling === false ? "目录声明不支持工具调用" : "",
         model.reasoning_effort ? `思考档位 ${model.reasoning_effort}` : "",
         model.context_window ? `上下文 ${model.context_window.toLocaleString()} tokens` : "",
         model.max_output_tokens ? `输出上限 ${model.max_output_tokens.toLocaleString()} tokens` : ""].filter(Boolean).join(" · ") : "没有匹配的模型，可继续手动填写。";
@@ -179,7 +181,8 @@
 
     function renderCandidates() {
       const query = value("discovery-filter").toLowerCase(), previous = value("discovery-model");
-      const models = (discovery?.models || []).filter(model => `${model.id} ${model.name}`.toLowerCase().includes(query));
+      const filteredConnector = options.modelFilter && value("base-url").replace(/\/$/, "") === options.initialDraft?.baseUrl;
+      const models = (discovery?.models || []).filter(model => (!filteredConnector || options.modelFilter(model)) && `${model.id} ${model.name}`.toLowerCase().includes(query));
       el("discovery-model").innerHTML = models.map(model => option(model.id, `${model.name === model.id ? model.id : `${model.name} · ${model.id}`} — ${imageLabel(model)}`)).join("");
       if (models.some(model => model.id === previous)) set("discovery-model", previous);
       else if (models.some(model => model.id === value("model"))) set("discovery-model", value("model"));
@@ -305,8 +308,8 @@
       set("api-key", ""); el("clear-key").checked = false; el("discovery-no-key").checked = false;
       set("supports-multimodal", p.supports_multimodal == null ? "" : String(p.supports_multimodal));
       el("clear-key").disabled = !selectedId;
-      el("api-key").placeholder = selectedId ? "留空保留已有密钥" : "本地服务可留空";
-      el("key-hint").textContent = selectedId ? `密钥状态：${s.api_key_status || "未配置"}。留空不会覆盖已有密钥。` : "密钥不会回显；本地服务可留空。";
+      el("api-key").placeholder = selectedId ? "留空保留已有密钥" : options.initialDraft ? "填写该平台 API Key / Token" : "本地服务可留空";
+      el("key-hint").textContent = selectedId ? `密钥状态：${s.api_key_status || "未配置"}。留空不会覆盖已有密钥。` : options.initialDraft ? "使用该平台自己的凭据；不会继承其它会话的密钥。密钥不会回显。" : "密钥不会回显；本地服务可留空。";
       set("context", p.context_window || ""); set("output", p.max_output_tokens || "");
       el("context").placeholder = data?.default_context_window ? `默认 ${data.default_context_window.toLocaleString()}` : "沿用模型默认值";
       el("output").placeholder = data?.default_max_output_tokens ? `默认 ${data.default_max_output_tokens.toLocaleString()}` : "沿用模型默认值";
@@ -346,7 +349,17 @@
       renderSessionOptions();
       options.onSelected?.(selectedId);
       const sequence = ++loadSequence;
-      if (!selectedId) { fill(null); el("fields").disabled = false; el("save").disabled = false; return; }
+      if (!selectedId) {
+        fill(null);
+        if (options.initialDraft) {
+          initialDraftApplied = true;
+          set("name", options.initialDraft.name); set("protocol", "openai_chat_completions");
+          set("base-url", options.initialDraft.baseUrl); set("model", ""); set("api-key", "");
+          updateDynamicFields(); resetDiscovery(); dirty = true;
+          status("新连接草稿尚未保存。填写该平台凭据并获取模型，再保存；已有会话和密钥保持独立。");
+        }
+        el("fields").disabled = false; el("save").disabled = false; return;
+      }
       el("fields").disabled = true; el("save").disabled = true;
       status("正在读取配置…");
       let loaded = false;
@@ -369,7 +382,9 @@
         const registry = await request("/api/sessions");
         if (disposed || sequence !== refreshSequence || editAtStart !== editSequence || dirty) return;
         sessions = (registry.sessions || []).filter(s => !options.backendFilter || s.backend_kind === options.backendFilter || (options.backendFilter === "devin_acp" && ["devin", "devin_acp", "devin-acp"].includes(s.provider)));
-        await select(sessions.some(s => s.id === sessionId) ? sessionId : sessions.some(s => s.id === registry.active_session_id) ? registry.active_session_id : sessions[0]?.id || null);
+        if (options.initialDraft && !initialDraftApplied) {
+          await select(null);
+        } else await select(sessions.some(s => s.id === sessionId) ? sessionId : sessions.some(s => s.id === registry.active_session_id) ? registry.active_session_id : sessions[0]?.id || null);
       } catch (error) {
         if (!disposed && sequence === refreshSequence && editAtStart === editSequence && !dirty)
           status(`读取会话失败：${error.message}`, true);
@@ -395,6 +410,9 @@
     async function save(event) {
       event.preventDefault();
       if (busy || !el("form").reportValidity()) return;
+      if (!selectedId && options.initialDraft && !value("api-key")) {
+        status("请填写该平台自己的 API Key / Token，再保存新连接。", true); return;
+      }
       resetDiscovery();
       const devin = devinConnection();
       const session = { name: value("name"), model: value("model"), model_type: devin ? "text" : value("model-type"), reasoning_effort: value("reasoning-effort") };

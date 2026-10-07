@@ -100,6 +100,15 @@ fn plugin_catalog(workspace: &Path, manager: &plugins::PluginManager) -> ApiResu
             plugin_entry(item, is_installed, is_loaded) }).collect();
     plugins.push(serde_json::from_value(devin_plugin::catalog(workspace))
         .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "Devin 插件目录信息无效"))?);
+    for (id, name, description, source) in [
+        ("opencode-zen@native", "OpenCode Zen", "免费聊天模型连接器；由本人填写平台密钥，复用统一会话与宿主工具链路。", "opencode.ai"),
+        ("huggingface-inference@native", "Hugging Face Inference", "推理模型连接器；使用平台 Token 与账户额度，支持选择模型及推理提供方。", "huggingface.co"),
+    ] {
+        plugins.push(PluginEntry { id:id.into(), name:name.into(), version:env!("CARGO_PKG_VERSION").into(),
+            description:description.into(), source:source.into(), enabled:true, installed:true,
+            kind:"builtin".into(), installable:false, manageable:false, loaded_in_chat:false,
+            dsh:false, dsh_source_sha256:None });
+    }
     Ok(PluginListResponse { workspace_id: workspace_identity(workspace),
         plugins, candidates: local_plugin_candidates(workspace), runtime_error })
 }

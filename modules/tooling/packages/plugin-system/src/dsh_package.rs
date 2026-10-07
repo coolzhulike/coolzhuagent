@@ -125,6 +125,14 @@ impl DshPackage {
         Ok(())
     }
 
+    /// npm 清单允许以 `./` 声明入口，回执仍使用 Git 文件清单的相对路径。
+    /// 只消去一个当前目录前缀，不解析父目录、绝对路径或 Windows 别名。
+    pub fn normalize_source_entry(entry: &str) -> Result<&str, PluginError> {
+        let relative = entry.strip_prefix("./").unwrap_or(entry);
+        Self::validate_source_path(relative)?;
+        Ok(relative)
+    }
+
     pub fn validate_source_root(root: &Path) -> Result<(), PluginError> {
         if !root.is_absolute() || !root.is_dir() {
             return Err(invalid("DSH 来源目录须为绝对路径"));
@@ -157,6 +165,7 @@ impl DshPackage {
 
     pub fn verify(&self, root: &Path) -> Result<(), PluginError> {
         self.validate_identity()?;
+        Self::validate_source_path(&self.receipt.entry)?;
         Self::validate_source_root(root)?;
         let mut seen = BTreeSet::new();
         let mut total = 0_u64;
@@ -175,6 +184,9 @@ impl DshPackage {
             }
         }
         let metadata = metadata.ok_or_else(|| invalid("DSH 来源缺少 package.json"))?;
+        let declared_entry = metadata["main"].as_str()
+            .ok_or_else(|| invalid("DSH 来源缺少明确入口"))?;
+        let declared_entry = Self::normalize_source_entry(declared_entry)?;
         if !self
             .receipt
             .files
@@ -182,7 +194,7 @@ impl DshPackage {
             .any(|f| f.path == self.receipt.entry)
             || metadata["name"].as_str() != Some(&self.receipt.name)
             || metadata["version"].as_str() != Some(&self.receipt.version)
-            || metadata["main"].as_str() != Some(&self.receipt.entry)
+            || declared_entry != self.receipt.entry
         {
             return Err(invalid("DSH 包名、版本或入口与静态回执不符"));
         }

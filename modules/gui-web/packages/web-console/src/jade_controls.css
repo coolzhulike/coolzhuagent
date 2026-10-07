@@ -1,0 +1,38 @@
+/* 已审阅的 ImageGen 玉石控件；状态仍是状态，不新增操作。 */
+body.ui-3d { --jade-control-skin: url("../assets/ui-redesign/jade-controls-v2/button-skin.png"); --jade-composer-control: 44px; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-main-column > .composer {
+  grid-template-columns: var(--jade-composer-control) minmax(0, 1fr) var(--jade-composer-control) var(--jade-composer-control);
+  align-items: center; gap: 8px; padding: 10px 12px;
+}
+body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"] .chat-main-column > .composer > button,
+body.ui-3d .ui-redesign .workbench-quick-rail .quick-rail-update {
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  width: var(--jade-composer-control); min-width: var(--jade-composer-control);
+  height: var(--jade-composer-control); min-height: var(--jade-composer-control); flex: 0 0 var(--jade-composer-control);
+  padding: 0; margin: 0; border: 0; border-radius: 8px;
+  background: var(--jade-control-skin) center / 100% 100% no-repeat; box-shadow: none; color: #f2dfab;
+}
+body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"] .composer > button > img,
+body.ui-3d .ui-redesign .workbench-quick-rail .quick-rail-update > img {
+  width: 23px; height: 23px; min-width: 23px; min-height: 23px; flex: 0 0 23px; margin: 0; object-fit: contain;
+}
+body.ui-3d .ui-redesign .composer > button:not(:disabled):hover,
+body.ui-3d .ui-redesign .quick-rail-update:hover { filter: brightness(1.18); }
+body.ui-3d .ui-redesign .composer > button:focus-visible,
+body.ui-3d .ui-redesign .quick-rail-update:focus-visible { outline: 2px solid #f2dfab; outline-offset: 1px; }
+body.ui-3d .ui-redesign .composer > button:disabled { opacity: .5; cursor: not-allowed; }
+body.ui-3d .layout-top-region .chat-top-statuses { align-items: center; gap: 3px; }
+body.ui-3d .layout-top-region .chat-top-status-indicator {
+  width: 30px; min-width: 30px; height: 30px; min-height: 30px; flex: 0 0 30px;
+  padding: 0; margin: 0; align-items: center; justify-content: center;
+  background: var(--jade-control-skin) center / 100% 100% no-repeat; border: 0; border-radius: 6px;
+}
+body.ui-3d .layout-top-region .chat-top-status-indicator > img {
+  width: 21px; min-width: 21px; height: 21px; min-height: 21px; flex: 0 0 21px; margin: 0; object-fit: contain;
+}
+body.ui-3d .layout-top-region .chat-top-status-indicator.is-dim { opacity: .65; filter: saturate(.75); }
+body.ui-3d .layout-top-region .chat-top-status-indicator > span { display: none; }
+@media (max-height: 680px) {
+  body.ui-3d { --jade-composer-control: 36px; }
+  body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-main-column > .composer { padding: 8px; }
+}

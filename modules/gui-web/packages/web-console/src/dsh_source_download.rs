@@ -443,7 +443,8 @@ async fn download_into(
     };
     let name = field("name")?;
     let version = field("version")?;
-    let entry = field("main")?;
+    let entry = DshPackage::normalize_source_entry(field("main")?)
+        .map_err(|e| invalid(&e.to_string()))?;
     let license = field("license")?;
     if name != expected_name || !license_found || license.eq_ignore_ascii_case("UNLICENSED") {
         return Err(invalid(
