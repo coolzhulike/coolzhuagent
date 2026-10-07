@@ -61,8 +61,8 @@ window.CoolzhuWorkspacePanels = (() => {
       const select = element("button", tab.ref.label || tab.ref.locator); select.type = "button"; select.className = "workspace-preview-tab-select";
       select.title = tab.ref.locator; select.setAttribute("role", "tab"); select.setAttribute("aria-selected", String(tab.id === selectedTab));
       select.addEventListener("click", () => void activateTab(tab.id));
-      const close = element("button", "×"); close.type = "button"; close.className = "workspace-preview-tab-close"; close.setAttribute("aria-label", `关闭 ${tab.ref.label}`);
-      close.title = `关闭 ${tab.ref.label}`;
+      const close = element("button"); close.type = "button"; close.className = "workspace-preview-tab-close";
+      setWuxiaIconOnly(close, "stop", `关闭 ${tab.ref.label}`);
       close.addEventListener("click", () => closeTab(tab.id)); item.append(select, close); bar.append(item);
     }
   }

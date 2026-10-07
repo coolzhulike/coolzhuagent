@@ -85,15 +85,15 @@
           </details>
           <div class="chat-top-statuses" data-role="chat-top-statuses" aria-label="聊天室状态">
             <span class="chat-top-status-indicator chat-top-status-ready is-dim" data-role="chat-top-status-ready" data-state="idle" role="img" aria-label="系统健康：等待自检" title="系统健康：等待自检">
-              <img src="./assets/ui-redesign/jade-controls-v2/status-jade.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v3/status-jade.png" alt="" aria-hidden="true" />
               <span>就绪</span>
             </span>
             <span class="chat-top-status-indicator chat-top-status-lantern is-dim" data-role="chat-top-status-lantern" data-state="idle" role="img" aria-label="系统状态灯：等待自检" title="系统状态灯：等待自检">
-              <img src="./assets/ui-redesign/jade-controls-v2/status-lantern.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v3/status-lantern.png" alt="" aria-hidden="true" />
               <span>灯笼</span>
             </span>
             <span class="chat-top-status-indicator chat-top-status-alert is-dim" data-role="chat-top-status-alert" data-state="idle" role="img" aria-label="系统警示：无异常" title="系统警示：无异常">
-              <img src="./assets/ui-redesign/jade-controls-v2/status-lantern.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v3/status-lantern.png" alt="" aria-hidden="true" />
               <span>警示</span>
             </span>
           </div>
@@ -615,7 +615,7 @@
             <div class="window-panel chat-window-panel" data-left-collapsed="true" data-right-collapsed="false" data-focus-mode="false">
               <aside id="chat-left-rail" class="chat-left-rail" data-role="chat-left-rail" aria-label="聊天导航与上下文侧栏">
                 <button class="chat-rail-overlay-close chat-left-overlay-close" data-action="chat-left-rail-toggle" type="button" aria-controls="chat-left-rail" aria-expanded="true" aria-label="隐藏聊天导航侧栏" title="收起聊天导航侧栏">
-                  <img src="./assets/ui-redesign/three-column/control-icons/panel-left-close-v1.png" alt="" aria-hidden="true" />
+                  <img src="./assets/icons-wuxia/split-pane.svg" alt="" aria-hidden="true" />
                 </button>
                 <section class="chat-workspace-summary" data-sidebar-group="workspace-summary" aria-label="当前工作区与聊天室摘要">
                   <div class="chat-workspace-summary-mark" aria-hidden="true">
@@ -746,7 +746,7 @@
                   </div>
                 </section>
                 <section class="chat-activity chat-run-activity" data-role="chat-run-activity" aria-label="当前运行过程" hidden>
-                  <div class="chat-activity-summary"><span data-role="chat-activity-label" role="status">正在思考…</span><time data-role="chat-turn-time"></time><button type="button" class="run-activity-follow" data-role="chat-activity-follow" data-icon-only="true" aria-label="暂停跟随" title="暂停跟随" aria-pressed="false" hidden><img class="wuxia-icon-only run-follow-pause" src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" /><img class="wuxia-icon-only run-follow-resume" src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" /></button></div>
+                  <div class="chat-activity-summary"><span data-role="chat-activity-label" role="status">正在思考…</span><time data-role="chat-turn-time"></time><button type="button" class="run-activity-follow" data-role="chat-activity-follow" data-icon-only="true" aria-label="暂停跟随" title="暂停跟随" aria-pressed="false" hidden><img class="wuxia-icon-only run-follow-pause" src="./assets/icons-wuxia/pause.svg" alt="" aria-hidden="true" /><img class="wuxia-icon-only run-follow-resume" src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" /></button></div>
                   <pre class="chat-activity-stream" data-role="chat-activity-stream" aria-live="off" aria-label="当前过程摘要，可暂停跟随和选择复制" tabindex="0"></pre>
                 </section>
                 <footer class="composer">
@@ -771,7 +771,7 @@
                     <strong id="chat-right-rail-title" data-role="chat-right-rail-title">Agent 与任务链</strong>
                   </div>
                   <button class="chat-rail-overlay-close chat-right-overlay-close" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="true" aria-label="隐藏扩展栏" title="收起扩展栏">
-                    <img src="./assets/ui-redesign/three-column/control-icons/panel-right-close-v1.png" alt="" aria-hidden="true" />
+                    <img src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" />
                   </button>
                 </header>
                 <div class="chat-right-tabs" data-role="chat-right-tabs" role="tablist" aria-label="协作侧栏视图">
@@ -871,7 +871,7 @@
                             <span>返回</span>
                           </button>
                           <button class="chat-tool-host-action" data-action="chat-tool-close" type="button" aria-label="关闭当前工具" title="关闭当前工具并回到聊天室">
-                            <img src="./assets/ui-redesign/three-column/control-icons/panel-right-close-v1.png" alt="" aria-hidden="true" />
+                            <img src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" />
                             <span>关闭</span>
                           </button>
                         </div>
@@ -883,10 +883,10 @@
                 </div>
                 <footer class="chat-right-rail-footer" data-role="chat-right-rail-footer">
                   <button class="chat-right-footer-action is-primary-control" data-action="chat-task-chain" type="button" aria-label="打开任务链" title="打开任务链">
-                    <img src="./assets/ui-redesign/three-column/control-icons/queue-v1.png" alt="" aria-hidden="true" /><span>任务链</span><b class="chat-right-footer-badge" data-role="chat-right-task-count" hidden></b>
+                    <img src="./assets/icons-wuxia/queue.svg" alt="" aria-hidden="true" /><span>任务链</span><b class="chat-right-footer-badge" data-role="chat-right-task-count" hidden></b>
                   </button>
                   <button class="chat-right-footer-action" data-action="chat-handoff-manual" type="button" aria-label="转交当前任务" title="将当前任务转交给协作 Agent">
-                    <img src="./assets/ui-redesign/three-column/control-icons/steer-now-v1.png" alt="" aria-hidden="true" /><span>转交</span>
+                    <img src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" /><span>转交</span>
                   </button>
                   <button class="chat-right-footer-action" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="true" aria-label="收起侧栏" title="收起侧栏">
                     <img src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" /><span>收起侧栏</span>
@@ -1534,9 +1534,9 @@
           <dd data-bind="approval.affectedPaths">-</dd>
         </dl>
         <div class="approval-actions">
-          <button data-action="approval-reject" type="button"><img src="./assets/ui-redesign/three-column/control-icons/reject-feedback-v1.png" alt="" aria-hidden="true" /><span>拒绝</span></button>
-          <button data-action="approval-approve-once" type="button"><img src="./assets/ui-redesign/three-column/control-icons/approve-once-v1.png" alt="" aria-hidden="true" /><span>授权本次</span></button>
-          <button data-action="approval-approve-session" type="button"><img src="./assets/ui-redesign/three-column/control-icons/approve-rule-v1.png" alt="" aria-hidden="true" /><span>授权本会话</span></button>
+          <button data-action="approval-reject" type="button"><img src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" /><span>拒绝</span></button>
+          <button data-action="approval-approve-once" type="button"><img src="./assets/icons-wuxia/check.svg" alt="" aria-hidden="true" /><span>授权本次</span></button>
+          <button data-action="approval-approve-session" type="button"><img src="./assets/icons-wuxia/shield.svg" alt="" aria-hidden="true" /><span>授权本会话</span></button>
         </div>
       </aside>
     </main>

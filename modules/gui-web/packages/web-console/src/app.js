@@ -147,19 +147,19 @@ const CHAT_LAYOUT_DEFAULT_WIDTHS = Object.freeze({ left: 285, right: 480 });
 const CHAT_LAYOUT_KEYBOARD_STEP = 16;
 const CHAT_LAYOUT_CONTROL_ICON_PATHS = Object.freeze({
   left: Object.freeze({
-    open: "./assets/ui-redesign/three-column/control-icons/panel-left-open-v1.png",
-    close: "./assets/ui-redesign/three-column/control-icons/panel-left-close-v1.png",
+    open: "./assets/icons-wuxia/split-pane.svg",
+    close: "./assets/icons-wuxia/split-pane.svg",
   }),
   right: Object.freeze({
-    open: "./assets/ui-redesign/three-column/control-icons/panel-right-open-v1.png",
-    close: "./assets/ui-redesign/three-column/control-icons/panel-right-close-v1.png",
+    open: "./assets/icons-wuxia/split-pane.svg",
+    close: "./assets/icons-wuxia/stop.svg",
   }),
-  focus: "./assets/ui-redesign/three-column/control-icons/focus-layout-v1.png",
+  focus: "./assets/icons-wuxia/maximize.svg",
 });
 const CHAT_APPROVAL_CONTROL_ICON_PATHS = Object.freeze({
-  once: "./assets/ui-redesign/three-column/control-icons/approve-once-v1.png",
-  rule: "./assets/ui-redesign/three-column/control-icons/approve-rule-v1.png",
-  reject: "./assets/ui-redesign/three-column/control-icons/reject-feedback-v1.png",
+  once: "./assets/icons-wuxia/check.svg",
+  rule: "./assets/icons-wuxia/shield.svg",
+  reject: "./assets/icons-wuxia/stop.svg",
 });
 let chatLayoutState = {
   workspaceKey: "default",
@@ -6756,8 +6756,8 @@ function taskRenderGoals(goals = [], error = null) {
         <small>${escapeHtml(taskChainPhaseStatusMeta(goal.status).label)} · ${goal.current_iteration || 0}/${goal.max_iterations || 0}</small>
         <button type="button" data-goal-action="task-chain">任务链</button>
         <button type="button" data-goal-action="goal-status">状态</button>
-        <button type="button" data-goal-action="goal-pause" title="暂停当前目标" ${terminal || paused ? "disabled" : ""}><img src="./assets/ui-redesign/three-column/control-icons/pause-v1.png" alt="" aria-hidden="true" />暂停</button>
-        <button type="button" data-goal-action="goal-resume" title="继续当前目标" ${paused ? "" : "disabled"}><img src="./assets/ui-redesign/three-column/control-icons/resume-v1.png" alt="" aria-hidden="true" />继续</button>
+        <button type="button" data-goal-action="goal-pause" title="暂停当前目标" ${terminal || paused ? "disabled" : ""}><img src="./assets/icons-wuxia/pause.svg" alt="" aria-hidden="true" />暂停</button>
+        <button type="button" data-goal-action="goal-resume" title="继续当前目标" ${paused ? "" : "disabled"}><img src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" />继续</button>
         <button type="button" data-goal-action="seed-plan" ${terminal || hasPhases ? "disabled" : ""}>生成计划</button>
         <button type="button" data-goal-action="confirm-roles-plan" ${terminal || paused ? "disabled" : ""}>确认角色</button>
         <button type="button" data-goal-action="commander-review" ${terminal || paused ? "disabled" : ""}>审查</button>
@@ -9577,7 +9577,7 @@ function memoryWindowRenderHistory() {
         rollback.dataset.historyCursor = turn.id;
         rollback.append(
           Object.assign(document.createElement("img"), {
-            src: "./assets/ui-redesign/three-column/control-icons/restore-chat-v1.png",
+            src: "./assets/icons-wuxia/refresh.svg",
             alt: "",
           }),
           document.createTextNode("回滚"),
@@ -12303,7 +12303,7 @@ function openManualHandoffModal(members) {
     <div class="task-chain-dialog handoff-dialog" role="dialog" aria-modal="true" aria-label="转交当前任务" aria-describedby="handoff-selected-count">
       <header>
         <div class="handoff-dialog-title">
-          <img class="handoff-dialog-icon" src="./assets/ui-redesign/three-column/control-icons/steer-now-v1.png" alt="" aria-hidden="true" />
+          <img class="handoff-dialog-icon" src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" />
           <div>
             <strong>转交任务</strong>
             <span>选择协作 Agent 并说明接手意图</span>
@@ -12322,7 +12322,7 @@ function openManualHandoffModal(members) {
         <p class="handoff-form-status" data-role="handoff-form-status" role="status" aria-live="polite"></p>
         <div class="handoff-form-actions">
           <button type="button" data-handoff-cancel>取消</button>
-          <button type="submit" data-handoff-confirm><img src="./assets/ui-redesign/three-column/control-icons/steer-now-v1.png" alt="" aria-hidden="true" />确认转交</button>
+          <button type="submit" data-handoff-confirm><img src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" />确认转交</button>
         </div>
       </form>
     </div>
@@ -14108,14 +14108,16 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
     : `${item.source} · ${item.version || "版本未知"} · ${item.kind === "builtin" ? "内置" : item.installed ? "已安装" : "本地候选"} · ${item.loaded_in_chat ? "工具已接入" : "聊天未加载"}`;
   const summary = document.createElement("p");
   summary.textContent = item.description || "暂无说明。";
-  card.append(title, source, summary);
+  const actions = document.createElement("div");
+  actions.className = "quick-catalog-actions";
+  card.append(title, source, summary, actions);
   if (kind === "plugin-market" && ["opencode-zen@native", "huggingface-inference@native"].includes(item.id)) {
     source.textContent = `${item.source} · 内置模型连接器`;
     const configure = document.createElement("button");
     configure.type = "button";
     setWuxiaIconOnly(configure, "settings", "配置模型会话");
     configure.addEventListener("click", () => window.dispatchEvent(new CustomEvent("coolzhu-provider-configure", {detail:{id:item.id}})));
-    card.append(configure);
+    actions.append(configure);
   }
   if (kind === "skills") {
     const detail = document.createElement("button");
@@ -14131,21 +14133,21 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
         if (workspaceKey === activeWorkspaceKey) document.querySelector('[data-role="skills-catalog-status"]').textContent = `内容读取失败：${error.message}`;
       } finally { setBusy(detail, false); }
     });
-    card.append(detail);
+    actions.append(detail);
     const select = document.createElement("button");
     select.type = "button";
     setWuxiaIconOnly(select, item.selected ? "stop" : "check", item.selected ? "停用 SKILL" : "选用 SKILL");
     select.setAttribute("aria-pressed", String(item.selected));
     select.addEventListener("click", () => quickCatalogMutation("skills", "/api/extension-market/skills/select",
       {expected_workspace:workspaceId, selected_id:item.selected ? null : item.id}, select));
-    card.append(select);
+    actions.append(select);
   } else if (item.installable) {
     const install = document.createElement("button");
     install.type = "button";
     setWuxiaIconOnly(install, "package-crate", "安装本地插件候选");
     install.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/install",
       {expected_workspace:workspaceId,id:item.id}, install));
-    card.append(install);
+    actions.append(install);
   } else if (item.manageable) {
     const toggle = document.createElement("button");
     toggle.type = "button";
@@ -14172,8 +14174,8 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
     setWuxiaIconOnly(remove, "delete", "卸载插件");
     remove.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
       {expected_workspace:workspaceId,id:item.id,action:"uninstall"}, remove));
-    card.append(toggle);
-    if (item.kind === "external") { if (!item.dsh) card.append(update); card.append(remove); }
+    actions.append(toggle);
+    if (item.kind === "external") { if (!item.dsh) actions.append(update); actions.append(remove); }
   }
   return card;
 }

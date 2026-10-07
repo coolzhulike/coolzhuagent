@@ -1,5 +1,5 @@
 /* 已审阅的 ImageGen 玉石控件；状态仍是状态，不新增操作。 */
-body.ui-3d { --jade-control-skin: url("../assets/ui-redesign/jade-controls-v2/button-skin.png"); --jade-composer-control: 44px; }
+body.ui-3d { --jade-control-skin: url("../assets/ui-redesign/jade-controls-v3/button-skin.png"); --jade-composer-control: 44px; }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-main-column > .composer {
   grid-template-columns: var(--jade-composer-control) minmax(0, 1fr) var(--jade-composer-control) var(--jade-composer-control);
   align-items: center; gap: 8px; padding: 10px 12px;
@@ -10,7 +10,7 @@ body.ui-3d .ui-redesign .workbench-quick-rail .quick-rail-update {
   width: var(--jade-composer-control); min-width: var(--jade-composer-control);
   height: var(--jade-composer-control); min-height: var(--jade-composer-control); flex: 0 0 var(--jade-composer-control);
   padding: 0; margin: 0; border: 0; border-radius: 8px;
-  background: var(--jade-control-skin) center / 100% 100% no-repeat; box-shadow: none; color: #f2dfab;
+  background: var(--jade-control-skin) center / 112% 114% no-repeat; box-shadow: none; color: #f2dfab;
 }
 body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"] .composer > button > img,
 body.ui-3d .ui-redesign .workbench-quick-rail .quick-rail-update > img {
@@ -25,13 +25,68 @@ body.ui-3d .layout-top-region .chat-top-statuses { align-items: center; gap: 3px
 body.ui-3d .layout-top-region .chat-top-status-indicator {
   width: 30px; min-width: 30px; height: 30px; min-height: 30px; flex: 0 0 30px;
   padding: 0; margin: 0; align-items: center; justify-content: center;
-  background: var(--jade-control-skin) center / 100% 100% no-repeat; border: 0; border-radius: 6px;
+  background: var(--jade-control-skin) center / 112% 114% no-repeat; border: 0; border-radius: 6px;
 }
 body.ui-3d .layout-top-region .chat-top-status-indicator > img {
   width: 21px; min-width: 21px; height: 21px; min-height: 21px; flex: 0 0 21px; margin: 0; object-fit: contain;
 }
 body.ui-3d .layout-top-region .chat-top-status-indicator.is-dim { opacity: .65; filter: saturate(.75); }
 body.ui-3d .layout-top-region .chat-top-status-indicator > span { display: none; }
+/* 只由按钮承载玉石外框，图标不再叠加旧黑框、像素化或白色高光。 */
+body.ui-3d .ui-redesign img[src*="/icons-wuxia/"] { image-rendering: auto; object-fit: contain; }
+body.ui-3d .ui-redesign :is(button[data-icon-only="true"], .workbench-quick-rail .window-tab) {
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  width: 36px; min-width: 36px; height: 36px; min-height: 36px;
+  padding: 0; gap: 0; border: 0; border-radius: 7px;
+  background: var(--jade-control-skin) center / 112% 114% no-repeat;
+  box-shadow: none; color: #f2dfab;
+}
+body.ui-3d .ui-redesign .workbench-quick-rail .window-tab {
+  width: var(--jade-composer-control); min-width: var(--jade-composer-control);
+  height: var(--jade-composer-control); min-height: var(--jade-composer-control);
+  flex: 0 0 var(--jade-composer-control); margin-inline: auto;
+}
+body.ui-3d .ui-redesign .workbench-quick-rail .window-tab.is-active,
+body.ui-3d .ui-redesign .window-dock-more[open] > summary.window-tab {
+  filter: brightness(1.3); outline: 1px solid #c8d9ae; outline-offset: -2px;
+}
+body.ui-3d .ui-redesign .workbench-quick-rail .window-tab[data-window-icon] > img.window-icon,
+body.ui-3d .ui-redesign .chat-tool-host-heading > img {
+  width: 23px; min-width: 23px; max-width: 23px; height: 23px; max-height: 23px;
+  padding: 0; border: 0; background: none; box-shadow: none; filter: none; flex: 0 0 23px;
+}
+body.ui-3d .ui-redesign button[data-icon-only="true"] > img { width: 20px; height: 20px; margin: 0; }
+/* 固定图标按钮的皮肤是统一契约；屏蔽各旧面板中高优先级的渐变底板。
+   只覆盖标记过的图标控件，不影响文字按钮、状态徽记及隐藏规则。 */
+body.ui-3d .ui-redesign button[data-icon-only="true"] {
+  width: var(--jade-icon-control, 36px) !important; min-width: var(--jade-icon-control, 36px) !important;
+  height: var(--jade-icon-control, 36px) !important; min-height: var(--jade-icon-control, 36px) !important;
+  padding: 0 !important; border: 0 !important; box-shadow: none !important;
+  background: var(--jade-control-skin) center / 112% 114% no-repeat !important;
+}
+body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"] .composer > button {
+  --jade-icon-control: var(--jade-composer-control);
+  width: var(--jade-composer-control); min-width: var(--jade-composer-control);
+  height: var(--jade-composer-control); min-height: var(--jade-composer-control);
+}
+body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"] .composer > button > img { width: 23px; height: 23px; }
+body.ui-3d .ui-redesign :is(button[data-icon-only="true"], .workbench-quick-rail .window-tab, .composer > button)::before {
+  content: none; display: none;
+}
+body.ui-3d .ui-redesign button[data-icon-only="true"]:focus-visible,
+body.ui-3d .ui-redesign .workbench-quick-rail .window-tab:focus-visible { outline: 2px solid #f2dfab; outline-offset: 1px; }
+body.ui-3d .ui-redesign button[data-icon-only="true"]:disabled { opacity: .5; cursor: not-allowed; }
+/* 视觉皮肤不能使业务隐藏的按钮重新出现，也不能抹掉选中和危险状态。 */
+body.ui-3d .ui-redesign button[data-icon-only="true"][hidden] { display: none !important; }
+body.ui-3d .ui-redesign button[data-icon-only="true"][aria-pressed="true"] { outline: 1px solid #c8d9ae; outline-offset: -2px; }
+body.ui-3d .ui-redesign button[data-icon-only="true"]:is(.danger, [data-action*="delete"], [data-action*="revoke"]) { outline: 1px solid #dc9185; outline-offset: -2px; }
+body.ui-3d .ui-redesign button[data-icon-only="true"]:focus-visible { outline: 2px solid #f2dfab; outline-offset: 1px; }
+body.ui-3d .ui-redesign .run-activity-follow { --jade-icon-control: 24px; }
+body.ui-3d .ui-redesign .run-activity-follow > img { width: 14px; height: 14px; }
+body.ui-3d .ui-redesign :is(.ide-tab-close, .composer-attachment-remove, .composer-reference-clear) > img { image-rendering: auto; }
+body.ui-3d .ui-redesign .workspace-preview-tab-close { --jade-icon-control: 20px; flex: 0 0 20px; }
+body.ui-3d .ui-redesign .workspace-preview-tab-close > img { width: 12px; height: 12px; }
+body.ui-3d .ui-redesign .quick-catalog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 @media (max-height: 680px) {
   body.ui-3d { --jade-composer-control: 36px; }
   body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-main-column > .composer { padding: 8px; }
