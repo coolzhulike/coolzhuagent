@@ -33,10 +33,7 @@ impl Exchange {
                 match block {
                     InputContentBlock::Text { .. } => text.push(block.clone()),
                     InputContentBlock::ImageUrl { url, .. } => {
-                        let (mime,data) = url.strip_prefix("data:").and_then(|value| value.split_once(";base64,"))
-                            .filter(|(mime,data)| matches!(*mime,"image/png"|"image/jpeg"|"image/webp") && !data.is_empty())
-                            .ok_or("规划只接受本轮观察的图片数据。")?;
-                        images.push(json!({"type":"image","mimeType":mime,"data":data}));
+                        images.push(super::image_input::block(url)?);
                     }
                     _ => return Err("规划请求不能包含工具或历史思考块。".into()),
                 }

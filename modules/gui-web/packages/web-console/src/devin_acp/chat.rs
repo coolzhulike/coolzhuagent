@@ -287,29 +287,29 @@ pub(super) async fn checked_binary(model: &str) -> Result<PathBuf, api::ApiError
     Ok(binary)
 }
 
-pub(crate) async fn start(
+/// 视觉转述可能产生真实请求，必须先核对根会话与停止状态。
+pub(crate) fn validate_input_scope<'a>(
     agent: &AgentSessionDto,
-    assembly: &ContextAssembly,
-    parent: Option<&FrozenParentContext>,
-) -> Result<ModelStream, api::ApiError> {
+    parent: Option<&'a FrozenParentContext>,
+) -> Result<(&'a FrozenParentContext, Arc<ChatTurnCancellation>), api::ApiError> {
     if !cfg!(windows) {
-        return Err(error("Devin 文本会话目前只验证了 Windows。"));
+        return Err(error("Devin 聊天室会话目前只验证了 Windows。"));
     }
     let parent = parent.ok_or_else(|| error("缺少聊天室运行身份，未启动 Devin。"))?;
     if !matches!(parent.entry, "chat-send" | "chat-send-stream") || parent.goal_phase.is_some() {
         return Err(error(
-            "Devin 当前开放聊天室文本会话；Goal、接力与子 Agent 尚未就绪。",
+            "Devin 当前开放聊天室会话；Goal、接力与子 Agent 尚未就绪。",
         ));
     }
     let room = parent
         .room_id
         .as_deref()
         .ok_or_else(|| error("缺少聊天室身份。"))?;
-    let turn = parent
+    parent
         .public_turn_id
         .as_deref()
         .ok_or_else(|| error("缺少聊天回合身份。"))?;
-    let run = parent
+    parent
         .parent_run_id
         .as_deref()
         .ok_or_else(|| error("缺少持久运行身份。"))?;
@@ -339,6 +339,19 @@ pub(crate) async fn start(
     if !valid_model_id(&agent.model) {
         return Err(error("请从 Devin 账号目录选择有效的模型 ID。"));
     }
+    Ok((parent, cancellation))
+}
+
+pub(crate) async fn start(
+    agent: &AgentSessionDto,
+    assembly: &ContextAssembly,
+    parent: Option<&FrozenParentContext>,
+) -> Result<ModelStream, api::ApiError> {
+    let (parent, cancellation) = validate_input_scope(agent, parent)?;
+    let room = parent.room_id.as_deref().expect("已核验聊天室身份");
+    let turn = parent.public_turn_id.as_deref().expect("已核验回合身份");
+    let run = parent.parent_run_id.as_deref().expect("已核验运行身份");
+    let db = parent.runtime_db_path.as_deref().expect("已核验消息库路径");
     let settings = crate::session_model_settings_for(&agent.id);
     let review = super::host_tools::enabled(&settings).map_err(error)?;
     let readonly_review = settings.tool_allowlist.as_ref().is_some_and(|tools|
@@ -352,7 +365,7 @@ pub(crate) async fn start(
     let instructions = if review {
         format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具，插件工具也须通过该宿主调用。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。CU规划和验收由你在当前同一会话中回答：running回执若next_tool为computer_use_respond，按附带的本次快照和输出格式回答，将完整回复原文作为response交回同一job_id/request_id；若next_tool为host_image_handoff，立即结束当前这段生成，不输出最终答案、不调用其它工具；宿主会在同一远端会话发来包含原图的下一段提示，任务仍在运行，不重新调用perform。其它running回执用computer_use_wait等待同一job_id直到最终回执。规划回复本身不是执行或完成证明；不重新调用perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子Agent。若插件缺少授权，报告本轮未执行，不能宣称延期审批后已经完成。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", parent.workspace_id.as_str())
     } else {
-        "你在 coolzhuagent 聊天室中进行纯文本会话。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。".into()
+        "你在 coolzhuagent 聊天室中回答用户消息及随本轮提供的附件。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。".into()
     };
     if cancellation.is_requested() {
         return Err(error("本轮已停止，未提交 Devin 提示。"));
@@ -494,8 +507,10 @@ async fn execute(
             }
             publish_to_consumer(event, tx, review, &consumer_cancellation)
         };
+        let mut content = vec![json!({"type":"text", "text":context.prompt})];
+        content.extend(context.images.iter().cloned());
         let mut result = session
-            .prompt(&context.prompt, cancellation.clone(), Duration::from_secs(5), &mut publish)
+            .prompt_content(content, cancellation.clone(), Duration::from_secs(5), &mut publish)
             .await
             .map_err(|e| e.to_string())?;
         let mut image_rounds = 0;
@@ -544,6 +559,7 @@ async fn execute(
 pub(crate) async fn response(
     agent: &AgentSessionDto,
     prompt: &str,
+    image_urls: &[String],
     history: &[crate::PersistedChatMessage],
     roster: Option<&crate::ChatRosterResponse>,
     room: Option<&str>,
@@ -569,7 +585,7 @@ pub(crate) async fn response(
         let (mut stream, _) = crate::stream_agent_model(
             agent,
             prompt,
-            &[],
+            image_urls,
             history,
             roster,
             &turn,

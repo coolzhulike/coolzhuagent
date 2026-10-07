@@ -30,7 +30,7 @@ impl AgentSessionBackend {
         match self {
             Self::LlmHttp => Ok(()),
             Self::DevinAcp => Err(api::ApiError::UnsupportedCapability {
-                capability: "Devin ACP 已开放聊天室文本会话；不能进入 HTTP 工具循环，Goal、接力和子 Agent 尚未开放。".into(),
+                capability: "Devin ACP 使用独立聊天室协议；不能进入 HTTP 工具循环，Goal、接力和子 Agent 尚未开放。".into(),
             }),
             Self::DevinCloud => Err(api::ApiError::UnsupportedCapability {
                 capability: "Devin Cloud 是远程会话后端，不能使用 HTTP 模型循环；统一远程委派尚未接入。".into(),
@@ -180,11 +180,11 @@ pub(super) fn validate_parameters(
             .is_some_and(|value| value != "auto")
         || settings.context_window != 0
         || settings.max_output_tokens != 0
-        || settings.supports_multimodal == Some(true)
+        || (backend != AgentSessionBackend::DevinAcp && settings.supports_multimodal == Some(true))
         || agent.model_type != "text"
     {
         return Err(invalid(
-            "Devin 尚未协商这些模型参数；请清空 HTTP 连接、采样、容量、图片和思考覆盖设置。",
+            "Devin 尚未协商这些模型参数；请清空 HTTP 连接、采样、容量和思考覆盖设置。",
         ));
     }
     if backend == AgentSessionBackend::DevinAcp && agent.reasoning_effort != "auto"
@@ -273,11 +273,12 @@ mod tests {
             serde_json::json!({"protocol":"openai_chat_completions"}),
             serde_json::json!({"temperature":0.4}),
             serde_json::json!({"context_window":8192}),
-            serde_json::json!({"supports_multimodal":true}),
         ] {
             let bad = serde_json::from_value(bad).unwrap();
             assert!(super::super::validate_session_model_settings(&bad, &agent()).is_err());
         }
+        let images = serde_json::from_value(serde_json::json!({"supports_multimodal":true})).unwrap();
+        assert!(super::super::validate_session_model_settings(&images, &agent()).is_ok());
     }
 
     #[test]

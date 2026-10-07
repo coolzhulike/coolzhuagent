@@ -15,5 +15,6 @@ pub(crate) mod context;
 pub(super) mod chat;
 pub(super) mod internal;
 mod planning_exchange;
+mod image_input;
 #[cfg(all(test, windows))]
 mod real_smoke;

@@ -230,7 +230,7 @@
         el(key).closest("label").hidden = devin;
       }
       el("base-url").required = !devin;
-      for (const key of ["context", "output", "temperature", "top-p", "thinking-budget", "supports-multimodal", "model-type"]) {
+      for (const key of ["context", "output", "temperature", "top-p", "thinking-budget", "model-type"]) {
         el(key).disabled = devin;
       }
       if (devin) {
@@ -245,7 +245,9 @@
         el("budget-label").hidden = true; el("thinking-budget").required = false;
         el("reasoning-hint").textContent = "思考档位会选择账号目录中对应的精确模型变体；发送前核对 ACP 生效模型。温度等参数使用模型默认值。";
         el("effective-limit").textContent = "上下文与输出容量使用 Devin 模型默认值。";
-        el("multimodal-hint").textContent = "图片能力尚未确认。";
+        el("multimodal-hint").textContent = tri("supports-multimodal") === true
+          ? "图片通过 ACP 直传；发送时核对连接声明的图片能力，不支持则明确报错。"
+          : "未启用图片直传时，由系统默认视觉 Agent 描述图片；模型目录不代表图片能力已验证。";
         el("key-hint").textContent = "使用本机 Devin CLI 登录，不使用 HTTP 密钥。";
         return;
       }
@@ -327,7 +329,7 @@
       set("turn-timeout", p.turn_timeout_ms == null ? "" : p.turn_timeout_ms / 60000);
       set("tool-exposure", p.llm_tool_exposure); set("tool-allowlist", (p.tool_allowlist || []).join("\n"));
       updateDynamicFields(); resetDiscovery(); dirty = false;
-      status(devinConnection() ? "Devin 配置已载入；可选择工程只读、Computer Use 和已启用插件工具。聊天附件及子 Agent 尚未开放。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
+      status(devinConnection() ? "Devin 配置已载入；可选择图片直传、工程只读、Computer Use 和已启用插件工具。其它附件及子 Agent 尚未开放。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
       options.onSelected?.(selectedId);
     }
 
@@ -411,7 +413,7 @@
       const pluginTools = [...container.querySelectorAll('[data-ms="devin-plugin"]:checked')].map(input => input.value);
       if (devin) Object.assign(parameters, {
         base_url: null, endpoint: null, context_window: 0, max_output_tokens: 0,
-        temperature: null, top_p: null, thinking_budget: null, reasoning_mode: "auto", supports_multimodal: null,
+        temperature: null, top_p: null, thinking_budget: null, reasoning_mode: "auto",
         enable_llm_tools: el("devin-review").checked || el("devin-computer").checked || pluginTools.length > 0,
         computer_use_enabled: el("devin-computer").checked,
         llm_tool_exposure: "whitelist", tool_allowlist: [

@@ -1,0 +1,91 @@
+{
+  "stage": "candidate",
+  "installed_version_unchanged": "0.2.91",
+  "cases": [
+    {
+      "prefix": "ATTACHMENT-CANDIDATE-20261007",
+      "run_id": "run-chat-b86a49bebc8db7f267903ba56b63be0102328460afedf6c6",
+      "remote": "island-kayak",
+      "image_count": 1,
+      "code": "4451",
+      "protocol_stop": "end_turn",
+      "process_drained": true
+    },
+    {
+      "prefix": "ATTACHMENT-SYNC-RESTART-20261007",
+      "run_id": "run-chat-70e4af2b3665d1ee4abf1d7d0530975661787927d381b909",
+      "remote": "island-kayak",
+      "image_count": 1,
+      "code": "2324",
+      "protocol_stop": "end_turn",
+      "process_drained": true
+    }
+  ],
+  "files": [
+    {
+      "path": "ATTACHMENT-CANDIDATE-20261007-evidence.json",
+      "bytes": 72753,
+      "sha256": "5fc217afced4000d48c2a5641adf8d2fe8345590382f75314f29e98d58dc92c9"
+    },
+    {
+      "path": "ATTACHMENT-SYNC-RESTART-20261007-evidence.json",
+      "bytes": 72803,
+      "sha256": "fcf1e6c06391f106317fdda65f46712922d9f222dc82b9172abdc36a491643e8"
+    },
+    {
+      "path": "candidate-before-send.png",
+      "bytes": 189550,
+      "sha256": "cd8cef1a0ee21d90bd620da2c5fd3de047bae8569a8e5341387bed8ad15fd820"
+    },
+    {
+      "path": "candidate-result.png",
+      "bytes": 159800,
+      "sha256": "7776ff61b53b37512ee23b1923911d0702c818de64ef769f3ced6fbd0df0d0ca"
+    },
+    {
+      "path": "candidate-after-restart-result.png",
+      "bytes": 163685,
+      "sha256": "54db74bc516d80f4cc2d32209995b38983cbac9b6fd4eaf2466733b4bf4d3ac4"
+    },
+    {
+      "path": "attachment-check.png",
+      "bytes": 4924,
+      "sha256": "e23dcde134a5690b5f0c3aabb1a1b64c2906cc699990c6a8d57f494cb200f8ad"
+    },
+    {
+      "path": "attachment-after-restart.png",
+      "bytes": 6035,
+      "sha256": "9b6fe505541dcf4c1c7c0d0c13dcb7a0d3ebb2b701ef72c28c96a07a1537eefb"
+    },
+    {
+      "path": "expected.json",
+      "bytes": 109,
+      "sha256": "4fff6dbd0551fbd576ce46fe630ce9494a8fbd00e897515612de5f35607bfad7"
+    },
+    {
+      "path": "expected-after-restart.json",
+      "bytes": 109,
+      "sha256": "d2b3700d46d330409d728e5ec5fdcb58cc6a16422bf71c00be94317aabbc784a"
+    },
+    {
+      "path": "configured-image-input.json",
+      "bytes": 253,
+      "sha256": "9c398e5b87d31c5b86e7be84b160f8928d07a78299c39570cfdeda3ea24ca2ba"
+    },
+    {
+      "path": "build.log",
+      "bytes": 50138,
+      "sha256": "a831fda8e302d5ae298ca0e1e33b7d4c1120e6451ab86b300ec47de60d731585"
+    },
+    {
+      "path": "web-tests.log",
+      "bytes": 147701,
+      "sha256": "9a5a38b730dc3da17d08a4799f16d32bb2514586a86cb160f98f46ba916d8b37"
+    },
+    {
+      "path": "frontend-tests.log",
+      "bytes": 1563,
+      "sha256": "53445e95cd708aa66f8e13d8a6e77a2cfed03d2b5208d4b9723f6164c61949a4"
+    }
+  ]
+}
