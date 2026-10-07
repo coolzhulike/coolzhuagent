@@ -26,9 +26,9 @@
 | --- | --- | --- |
 | 玉石控件 | `modules/gui-web/packages/web-console/src/jade_controls.css`及`assets/ui-redesign/jade-controls-v2/` | 上传、发送、麦克风及顶部玉佩/灯笼使用统一玉石框、细金线图标和居中尺寸；保留title/aria、焦点及状态。Logo、卷轴、竹林沿用原设计；无新增调试栏 |
 | 纯图标收尾 | web-console的Devin授权及运行过程跟随组件 | 去除外露按钮文字，保留提示、无障碍名称及状态；不改变授权/取消生命周期 |
-| 免费模型入口 | `src/provider_connectors.js`、`src/model_settings.js`、`src/extension_market.js` | 插件市场增加OpenCode/HF模型连接器，复用统一HTTP会话参数及现有工具/SKILL/上下文链路；不创建Devin云端会话，也不将模型入口误称DSH执行插件 |
+| 免费模型入口 | `src/provider_connectors.js`、`src/model_settings.js`、`src/extension_market.rs` | 插件市场增加OpenCode/HF模型连接器，复用统一HTTP会话参数及现有工具/SKILL/上下文链路；不创建Devin云端会话，也不将模型入口误称DSH执行插件 |
 | 模型发现 | `src/model_discovery.rs` | OpenCode免费聊天白名单与实际目录取交集，不回落付费模型。HF保留`org/model:provider`路由，按提供方读取工具/上下文声明；图片能力只采用明确元数据，未知保持未知 |
-| DSH来源兼容 | `modules/tooling`中plugin-system的`dsh_package.rs`及web-console来源接线 | 合法`./index.js`只去除一层`./`；仍拒绝越界路径。收据路径规范化，原package.json字节与来源摘要不改 |
+| DSH来源兼容 | `modules/tooling/packages/plugin-system/src/dsh_package.rs`及web-console来源接线 | 合法`./index.js`只去除一层`./`；仍拒绝越界路径。收据路径规范化，原package.json字节与来源摘要不改 |
 | Node内置模块 | DSH宿主`source_imports.mjs` | Node合法短内置模块名转为`node:`；未登记包和收据外相对导入仍拒绝。此导入检查不等同操作系统沙箱 |
 
 ImageGen提示词、透明资源及候选截图见[控件/连接器专项](../2026-10-07-jade-connectors/report.md)。架构及函数失败沿革见[函数专项](../2026-10-07-plugin-function/report.md)。
