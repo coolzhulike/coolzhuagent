@@ -1,0 +1,23 @@
+{
+  "commit": "7392ec55ca6db884821311d739859ddea72211de",
+  "compatibility": "unverified",
+  "declared_scripts": {
+    "test": "node --test test/"
+  },
+  "entry": "index.js",
+  "id": "izwarm195/dsh-net-tools",
+  "installable": false,
+  "license": "MIT",
+  "name": "dsh-net-tools",
+  "npm_identity_origin": "fixed_package_json",
+  "reason": "固定源码已核验，可安装为停用状态。启用时将检查宿主运行兼容性。",
+  "repository": "https://github.com/izwarm195/dsh-net-tools",
+  "sdk_lock_sha256": "af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+  "source_file_count": 15,
+  "source_sha256": "3b6ee0ea714c22e115d3ce786b876bc1f34b81116d21de79fbd398c0c69c7c8b",
+  "static_installable": true,
+  "status": "source_verified",
+  "tree_sha": "c93083b4c1d0e3088ebae2b1f917c58d7f969ffc",
+  "version": "0.1.0",
+  "workspace_id": "ws-23f646a969206cb4"
+}
