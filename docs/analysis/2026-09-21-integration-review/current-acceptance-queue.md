@@ -63,3 +63,5 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 2026-10-07正式边界补验：087同一SWE/island-kayak完成三层左右同名按钮（两轮4/4）、父容器裁剪（not_sent、事件0）、规划期间关闭（严格请求<关闭区间<回复、not_sent、事件0）。两轮关闭晚于回复且实际点击已发送，未计通过，原始时序与失败保留。六轮单attempt end_turn/drained且内部远端为空，安全2未知/9closed保持，正常日常入口恢复。只补真实验收与报告，没有改产品源码或重打包。源码审视明确旋转owner与子文档横向/RTL目前为实现限制，不能外推已支持。见[正式补验与原图](../../testing/release-0.2.87/browser-nested-followup/report.md)。
 
 2026-10-07追加：088最终6047bb3正常完整构建与安装1150文件通过，原SWE/island-kayak六轮子横向LTR/RTL双向及原点边界真实验收闭环；候选无URL失败、RTL原命中失败及独立诊断失败保留。74项桌面检查通过，原工程与安全库正常日常入口恢复。复杂变换、严格按住/面板变化等保持开放，无URL当前页自然语言请求纳入下一审视项。详见[088改动、原图与测试交接](../../testing/release-0.2.88/change-report-and-test-handoff.md)。
+
+088已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.88)：四资产服务端大小/SHA256、实际tag=6047与本地验收包一致，原工程正常入口已恢复088。冻结产品两路CI success；文档HEAD检查另核。另一端横向极限及无URL当前页入口仍开放。见[公开核验](../../testing/release-0.2.88/evidence/github-release-verification.json)。

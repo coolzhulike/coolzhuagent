@@ -43,3 +43,7 @@ RTL-left正式回复曾使用“左滚到底”描述−390.67，但页面总横
 比较网页可信事件、输入回执和窗口截图三者：方向及前后位置应匹配；父页不能受影响；边界必须零新增wheel；模型判成功必须引用本次页面原文，不能靠ACK。改变direction/writingMode、子文档替换或owner遮挡后必须重新观察，不允许原票据继续投递。非horizontal-tb横向仍明确拒绝，不能写成已支持竖排滚动。
 
 验收结束后按完整进程身份停止自有测试配套，正常桌面入口恢复0.2.88、原工程及原安全库。[恢复事实](startup-recovery/restored-daily-088-verification.json)及[正常界面](startup-recovery/restored-daily088.jpg)。日常工程原先选中的Qwen仅恢复显示，本轮六项测试均为SWE-2，未向Qwen发新请求。历史2个outcome_unknown许可与9个closed记录保持，资源safe且接受新输入；未清库或绕过恢复。
+
+## GitHub交付核验
+
+[0.2.88公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.88)四资产均已上传，服务端长度/SHA256与本地相同；实际tag绑定冻结6047源码。见[服务端核验](evidence/github-release-verification.json)。冻结产品两路CI success，后续证据提交的CI独立核验，不用产品来源结果外推当前HEAD。PR #84保持开放，未自动合并。
