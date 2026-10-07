@@ -1,0 +1,16 @@
+{
+  "source_commit": "ea5a368e2d6de8b50c14cd9a7cbf479835af0a6a",
+  "note": "083证据文档HEAD两路success；084新修补另核，不能外推",
+  "files": [
+    {
+      "file": "ci-docs-ea5-current.json",
+      "length": 7152,
+      "sha256": "4d501df3653b3cdf30a9cdfa28fe3f5e3c99711ba6ee31eeee92eb163cc329cc"
+    },
+    {
+      "file": "ci-docs-ea5-later.json",
+      "length": 7194,
+      "sha256": "e136d701d642a3191f6bc622469a8c8ec293dd4b2b9a30f00db7d617d5e65ce7"
+    }
+  ]
+}

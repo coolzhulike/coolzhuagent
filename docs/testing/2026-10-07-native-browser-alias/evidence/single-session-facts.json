@@ -1,0 +1,148 @@
+{
+  "prefix": "BU-CANDIDATE-087-NATIVE-ALIAS-20261007",
+  "message_id": "msg-1791352030545-user",
+  "room_id": "room-1791131523339",
+  "run_id": "run-chat-ce19a444445ad884571475fcf4ab4f1b1c7a30aa535d0107",
+  "attempts": [
+    {
+      "attempt_id": "11ced4e054ee81fa42be071d83ae928b6a8d923396ade548",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "events": [
+    {
+      "event": "devin.context_delta",
+      "payload": {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 138,
+        "prompt_bytes": 6787
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791352030546-0-tool-f76da857471bc472506b1d12f0b6ac66353f941d520bd75b63e8e491579db301",
+        "kind": "computer_use_planning",
+        "model": "swe-2-medium",
+        "request_id": "9af9eaa39698ed59dd47babe02ccaf85516ca667880c603bb3ed9b4ff08c778c23c5456494caabfcddfe9b548e531bca",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "9af9eaa39698ed59dd47babe02ccaf85516ca667880c603bb3ed9b4ff08c778c23c5456494caabfcddfe9b548e531bca",
+        "response_digest": "bb4ca5af539058ee5576855a43542dcbca9c9de202b9ea1505a90aaa11da956e",
+        "source_attempt": "11ced4e054ee81fa42be071d83ae928b6a8d923396ade548"
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791352030546-0-tool-f76da857471bc472506b1d12f0b6ac66353f941d520bd75b63e8e491579db301",
+        "kind": "computer_use_browser_readonly_verification",
+        "model": "swe-2-medium",
+        "request_id": "84021b33a3279935c4eab8418f08b64088ed5d2af265edc197849476b6a07a59ea9b2391181a39c7141245b97c726b32",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "84021b33a3279935c4eab8418f08b64088ed5d2af265edc197849476b6a07a59ea9b2391181a39c7141245b97c726b32",
+        "response_digest": "626bda8fea883378095ba30f9ed4d0e62a29f52cdb82a7b9c469546f4a5dc43a",
+        "source_attempt": "11ced4e054ee81fa42be071d83ae928b6a8d923396ade548"
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791352030546-0-tool-f76da857471bc472506b1d12f0b6ac66353f941d520bd75b63e8e491579db301",
+        "kind": "computer_use_planning",
+        "model": "swe-2-medium",
+        "request_id": "79a837b2ba9fe6093aa39c31e33f5ed734c791441a0debe017ad5295de2985f9b114ee1dc096c7fde46de1195b930a3c",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "79a837b2ba9fe6093aa39c31e33f5ed734c791441a0debe017ad5295de2985f9b114ee1dc096c7fde46de1195b930a3c",
+        "response_digest": "0c7ddb81d3f0295b50e8fd15a65ccedf913db2f07d6fc23b8435f25d6bcfb16a",
+        "source_attempt": "11ced4e054ee81fa42be071d83ae928b6a8d923396ade548"
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791352030546-0-tool-f76da857471bc472506b1d12f0b6ac66353f941d520bd75b63e8e491579db301",
+        "kind": "computer_use_browser_readonly_verification",
+        "model": "swe-2-medium",
+        "request_id": "a6d0ee5af22d737fabb949300f0cca59f156f668a1502771c8f0b5afffba5893595dedceebd3fcf1d19fa0cacfcc8a12",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "a6d0ee5af22d737fabb949300f0cca59f156f668a1502771c8f0b5afffba5893595dedceebd3fcf1d19fa0cacfcc8a12",
+        "response_digest": "dcac73d2fbe65d6c395155120eae5de9e22d581dcafa1478535ed73e6d072d58",
+        "source_attempt": "11ced4e054ee81fa42be071d83ae928b6a8d923396ade548"
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791352030546-0-tool-f76da857471bc472506b1d12f0b6ac66353f941d520bd75b63e8e491579db301",
+        "kind": "computer_use_planning",
+        "model": "swe-2-medium",
+        "request_id": "26bded15ad80b3d8cbd7c450d131258c3f07f291eab78ad49b225ddc0444a49ef74fc9d8bc7f1929a58c03af3d390587",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "26bded15ad80b3d8cbd7c450d131258c3f07f291eab78ad49b225ddc0444a49ef74fc9d8bc7f1929a58c03af3d390587",
+        "response_digest": "35b35589be1b2ee5ee5759c0534563a8907b2570494a4ab0d6bca446bfaa38e3",
+        "source_attempt": "11ced4e054ee81fa42be071d83ae928b6a8d923396ade548"
+      }
+    },
+    {
+      "event": "devin.planning_requested",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791352030546-0-tool-f76da857471bc472506b1d12f0b6ac66353f941d520bd75b63e8e491579db301",
+        "kind": "computer_use_browser_readonly_verification",
+        "model": "swe-2-medium",
+        "request_id": "84b94ad78103f40f302cb4ff76956e9f142ad2020e189c41e4d9c6f302da80b71fd328b882ccde8bad33dd7f35e8b218",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "event": "devin.planning_response",
+      "payload": {
+        "request_id": "84b94ad78103f40f302cb4ff76956e9f142ad2020e189c41e4d9c6f302da80b71fd328b882ccde8bad33dd7f35e8b218",
+        "response_digest": "31dc00fd918239d8fb320d4b6447587291ed2cc2944ae373eaca027bf58428cf",
+        "source_attempt": "11ced4e054ee81fa42be071d83ae928b6a8d923396ade548"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

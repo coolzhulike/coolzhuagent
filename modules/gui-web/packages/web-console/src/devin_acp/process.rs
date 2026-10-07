@@ -170,12 +170,13 @@ mod tests {
         journal
             .transition(&claim, &["prepared"], "submitted", None, true)
             .unwrap();
-        let shell = Path::new(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe");
+        let helper = Path::new(r"C:\Windows\System32\cmd.exe");
+        // 不依赖 PowerShell 冷启动；子脚本自行写回执，stdout保持空以符合ACP传输约束。
+        std::fs::write(dir.path().join("child.cmd"), b"@echo off\r\necho ready>child.ready\r\nping.exe -n 61 127.0.0.1 >nul\r\n").unwrap();
         // 后台子进程同样进入 Job，父进程保持存活；仅此临时测试创建这些进程。
-        let child_script = "Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-NonInteractive','-Command','Start-Sleep -Seconds 60' -PassThru | Select-Object -ExpandProperty Id | Set-Content -LiteralPath child.pid; Start-Sleep -Seconds 60";
         let (mut process, transport) = ManagedProcess::spawn_fixture(
-            shell,
-            &["-NoProfile", "-NonInteractive", "-Command", child_script],
+            helper,
+            &["/d", "/c", "start /b cmd.exe /d /c child.cmd & ping.exe -n 61 127.0.0.1 >nul"],
             dir.path(),
             journal.clone(),
             claim.clone(),
@@ -183,16 +184,18 @@ mod tests {
         .await
         .unwrap();
         let parent_pid = process.child.id().unwrap();
-        let pid_file = dir.path().join("child.pid");
-        // 仅等待测试辅助 PowerShell 的启动确认；CI 冷启动可能超过 5 秒。
-        // 不修改正式调用期限，也不放宽下面的进程树排空与解锁断言。
-        tokio::time::timeout(Duration::from_secs(20), async {
-            while !pid_file.exists() {
+        let ready_file = dir.path().join("child.ready");
+        // 只等待真实子进程的启动确认，不修改正式调用期限或排空断言。
+        let ready = tokio::time::timeout(Duration::from_secs(20), async {
+            while !ready_file.exists() {
+                assert!(process.child.try_wait().unwrap().is_none(), "辅助父进程在子进程就绪前退出");
                 tokio::time::sleep(Duration::from_millis(20)).await;
             }
         })
-        .await
-        .unwrap();
+        .await;
+        assert!(ready.is_ok(), "子进程未就绪，临时目录状态：{:?}",
+            std::fs::read_dir(dir.path()).unwrap().map(|entry| entry.unwrap().file_name()).collect::<Vec<_>>());
+        assert_eq!(std::fs::read_to_string(&ready_file).unwrap().trim(), "ready");
         journal
             .transition(&claim, &["submitted"], "terminal", Some("cancelled"), false)
             .unwrap();

@@ -1,0 +1,426 @@
+{
+  "stage": "原始未命中尝试与验证阶段撤销；候选失败单独标注，不能追认为输入前关闭通过",
+  "source_commit": "683c17e74ca98cf85c3e67142e68a7c04071da5d",
+  "source_snapshot_digest": "62944ec1b3885c9c0b237fa6d312e22fae7121ad7899c9e7f0b064f71947eb09",
+  "tests_use_real_model": true,
+  "room": "room-1791131523339",
+  "agent": "session-1791131217833",
+  "cases": [
+    {
+      "prefix": "BU-CANDIDATE-079-AFTER-OBSERVE-CLOSE-20261006",
+      "source_message": {
+        "room_id": "room-1791131523339",
+        "id": "msg-1791250005288-user",
+        "author": "",
+        "role": "user",
+        "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+        "content": "BU-CANDIDATE-079-AFTER-OBSERVE-CLOSE-20261006。继续原SWE-2远端会话，只执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数 {\"objective\":\"在当前页面单击增加次数button一次，使次数0变为1\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:58081/close.html\"},\"success_criteria\":[\"最新来源页面次数1\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click，只用本轮新鲜button引用；如果用户关闭或替换面板必须立即停止，不重开、不改目标、不补发旧点击，不用桌面、导航、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不执行历史任务\"],\"max_actions\":1}。若返回running只wait同一job_id到终态。按真实宿主回执和最新页面如实报告，不得代执行或推断成功。",
+        "kind": "text",
+        "attachments_json": "[]",
+        "created_at": 1791250008039
+      },
+      "run_id": "run-chat-c40fd22e5021fda40724ef16b018db837c296bfc43e1f290",
+      "run_state": "failed",
+      "bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 1,
+          "host_history_messages": 92,
+          "prompt_bytes": 3225
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791250005289-2-tool-568116275fa04b26b3970726fe330775eff3f6c6a9dbadcd47457e095e82372a",
+        "provider_tool_call_id": "tool-568116275fa04b26b3970726fe330775eff3f6c6a9dbadcd47457e095e82372a",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "内置网页的聊天室、工程、可见状态或连接已变化；本次没有发送输入",
+        "error": {
+          "code": "native_browser_resource_changed",
+          "message": "内置网页的聊天室、工程、可见状态或连接已变化；本次没有发送输入",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791250905289
+            }
+          },
+          "cu_deadline_ms": 1791250643748,
+          "cu_deadline_established_at_ms": 1791250043748,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events_this_run": [],
+      "acceptance": "未验通过：候选观察阶段resource_changed，实际未关闭，零输入；具体原因未定位"
+    },
+    {
+      "prefix": "BU-INSTALLED-079-AFTER-OBSERVE-CLOSE-20261006",
+      "source_message": {
+        "room_id": "room-1791131523339",
+        "id": "msg-1791250587382-user",
+        "author": "",
+        "role": "user",
+        "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+        "content": "BU-INSTALLED-079-AFTER-OBSERVE-CLOSE-20261006。继续原SWE-2远端会话，只执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数 {\"objective\":\"在当前页面单击增加次数button一次，使次数0变为1\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:58081/close.html\"},\"success_criteria\":[\"最新来源页面次数1\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click，只用本轮新鲜button引用；如果用户关闭或替换面板必须立即停止，不重开、不改目标、不补发旧点击，不用桌面、导航、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不执行历史任务\"],\"max_actions\":1}。若返回running只wait同一job_id到终态。按真实宿主回执和最新页面如实报告，不得代执行或推断成功。",
+        "kind": "text",
+        "attachments_json": "[]",
+        "created_at": 1791250587585
+      },
+      "run_id": "run-chat-9461f51a92fe96f63b1df6b2a0015b0e0b5dcf863c96095d",
+      "run_state": "completed",
+      "bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 1,
+          "host_history_messages": 98,
+          "prompt_bytes": 3225
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791250587382-2-tool-3e736c2d1235699f6d82c6b14308622fe3a56681964ad3d2b073851b762972e4",
+        "provider_tool_call_id": "tool-3e736c2d1235699f6d82c6b14308622fe3a56681964ad3d2b073851b762972e4",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"53a857731137bfb2456fb50547a816f9\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[9],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":9,\"name_chars\":4,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":4,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"05ea0b1c5e1f3fce07309d6781591774\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":20,\"nodes\":[{\"index\":9,\"name\":\"次数：1\",\"role\":\"StaticText\"}],\"title\":\"078 PANEL-CLOSE边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/close.html\",\"viewport\":{\"height\":562.6666870117188,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:58081/close.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:0e0056b4697b9aeec6c42583d28b4b8e",
+          "native-ax:1:1",
+          "native-observation:0e0056b4697b9aeec6c42583d28b4b8e",
+          "native-input:99a25bbf3752d9100a17fddc8b0e5ae6",
+          "native-ax:1:1",
+          "native-observation:05ea0b1c5e1f3fce07309d6781591774",
+          "native-ax:1:1",
+          "native-observation:05ea0b1c5e1f3fce07309d6781591774",
+          "native-ax:1:1",
+          "native-observation:53a857731137bfb2456fb50547a816f9"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791251487382
+            }
+          },
+          "cu_deadline_ms": 1791251193641,
+          "cu_deadline_established_at_ms": 1791250593641,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events_this_run": [
+        {
+          "case": "PANEL-CLOSE",
+          "type": "pointerdown",
+          "at_ms": 1791250600590.5,
+          "target": "increment",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250600593.2056
+        },
+        {
+          "case": "PANEL-CLOSE",
+          "type": "pointerup",
+          "at_ms": 1791250600591.9,
+          "target": "increment",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250600594.1387
+        },
+        {
+          "case": "PANEL-CLOSE",
+          "type": "click",
+          "at_ms": 1791250600592.2,
+          "target": "increment",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250600595.0957
+        }
+      ],
+      "acceptance": "严格输入前关闭未命中：点击及正常验证先结束，随后才关闭"
+    },
+    {
+      "prefix": "BU-INSTALLED-079-AFTER-OBSERVE-CLOSE2-20261006",
+      "source_message": {
+        "room_id": "room-1791131523339",
+        "id": "msg-1791250835133-user",
+        "author": "",
+        "role": "user",
+        "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+        "content": "BU-INSTALLED-079-AFTER-OBSERVE-CLOSE2-20261006。继续原SWE-2远端会话，只执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数 {\"objective\":\"在当前页面单击增加次数button一次，使次数0变为1\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:58081/close.html\"},\"success_criteria\":[\"最新来源页面次数1\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click，只用本轮新鲜button引用；如果用户关闭或替换面板必须立即停止，不重开、不改目标、不补发旧点击，不用桌面、导航、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不执行历史任务\"],\"max_actions\":1}。若返回running只wait同一job_id到终态。按真实宿主回执和最新页面如实报告，不得代执行或推断成功。",
+        "kind": "text",
+        "attachments_json": "[]",
+        "created_at": 1791250835368
+      },
+      "run_id": "run-chat-bb3cdbbf96e0bc51f4b0bb9ce32634fec021831b4e3fe4ee",
+      "run_state": "failed",
+      "bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 100,
+          "prompt_bytes": 2625
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791250835133-3-tool-86b41c59da763f09a22fc80ccab8e41aa2e28b34ab09b657b6ee529b5759af0e",
+        "provider_tool_call_id": "tool-86b41c59da763f09a22fc80ccab8e41aa2e28b34ab09b657b6ee529b5759af0e",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+        "error": {
+          "code": "native_browser_panel_unavailable",
+          "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:3:1",
+          "native-observation:217f2b9fb34b3c29eef0edc0dfb7de3d",
+          "native-ax:3:1",
+          "native-observation:217f2b9fb34b3c29eef0edc0dfb7de3d",
+          "native-input:03b0e44039478c6e74c61d8e6773802e",
+          "native-ax:3:1",
+          "native-observation:eb30f5510d43e0ce6764345c2a74f5d7"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791251735133
+            }
+          },
+          "cu_deadline_ms": 1791251441373,
+          "cu_deadline_established_at_ms": 1791250841373,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events_this_run": [
+        {
+          "case": "PANEL-CLOSE",
+          "type": "pointerdown",
+          "at_ms": 1791250847689.2002,
+          "target": "increment",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250847691.6694
+        },
+        {
+          "case": "PANEL-CLOSE",
+          "type": "pointerup",
+          "at_ms": 1791250847692.4001,
+          "target": "increment",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250847696.1833
+        },
+        {
+          "case": "PANEL-CLOSE",
+          "type": "click",
+          "at_ms": 1791250847692.8,
+          "target": "increment",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250847697.3792
+        }
+      ],
+      "acceptance": "验证阶段关闭撤销旧证明通过；严格输入前关闭未命中，点击已发送且释放"
+    }
+  ],
+  "files": [
+    {
+      "file": "BU-CANDIDATE-079-AFTER-OBSERVE-CLOSE-20261006-browser-facts.json",
+      "length": 15473,
+      "sha256": "57fe33a0ac5ca1dc581a61d950c22655ae3dacb2afb1af123fa03ddc218e1fae"
+    },
+    {
+      "file": "BU-INSTALLED-079-AFTER-OBSERVE-CLOSE-20261006-browser-facts.json",
+      "length": 26267,
+      "sha256": "8e6778938f9ad29741e9c5d1ef5c91d97a6e703d52a23a1f06449a686ab6d49d"
+    },
+    {
+      "file": "BU-INSTALLED-079-AFTER-OBSERVE-CLOSE2-20261006-browser-facts.json",
+      "length": 24829,
+      "sha256": "8555c8307adf2d18d0389185e1eaa948d366200a8a838ddf1330263f7f6501da"
+    },
+    {
+      "file": "installed-079-after-observe-close-after.jpg",
+      "length": 209368,
+      "sha256": "3b14f0f92c40a45ba796147b6ecb76dcf13b7770143bbbd2bba078a391aae789"
+    },
+    {
+      "file": "installed-079-after-observe-close-at-action.jpg",
+      "length": 209328,
+      "sha256": "aab4f71e30d04409b84fc2c25c14214e1deea9a80aa5653e9aeb67a7ae143e51"
+    },
+    {
+      "file": "installed-079-after-observe-close-before.jpg",
+      "length": 183831,
+      "sha256": "4cad5bf56883db23a849fcf44b30c580d2fddb3f44abdc87c370cc4e3a729c1b"
+    },
+    {
+      "file": "installed-079-after-observe-close-request.txt",
+      "length": 871,
+      "sha256": "90f69d65c666873b072af7c9e40ea6391a4abb72ceaf80c709f035cb6303dff2"
+    },
+    {
+      "file": "installed-079-after-observe-close2-after.jpg",
+      "length": 186420,
+      "sha256": "9405678db599dbd762360afa5122614dba83132ec61caf9efc8aa93a5361e813"
+    },
+    {
+      "file": "installed-079-after-observe-close2-at-action.jpg",
+      "length": 217958,
+      "sha256": "8079df177391b25fc784c547968541257ccd43d6e26b1dafe8d4462e7802e0c0"
+    },
+    {
+      "file": "installed-079-after-observe-close2-before.jpg",
+      "length": 201859,
+      "sha256": "e6ad1aa68128ed1010974b8ff322667966c679b76fda70efca4007285d929294"
+    },
+    {
+      "file": "installed-079-after-observe-close2-request.txt",
+      "length": 872,
+      "sha256": "cd3ed8c16d80960b2e087b9079836b1f9f9de8f883a6a13cb28a8bc83aa1e143"
+    },
+    {
+      "file": "installed-079-close-action-time.json",
+      "length": 155,
+      "sha256": "961092af799a555c5a431866b1b7834922182b8c3e061eca04889f27ea8a6cf7"
+    },
+    {
+      "file": "installed-079-close-planning-window.json",
+      "length": 1174,
+      "sha256": "81c9233e2833968b11c2f647c7cf7ab6bec7c101ebb14ca1b31f09fae9ba39de"
+    },
+    {
+      "file": "installed-079-close2-action-time.json",
+      "length": 156,
+      "sha256": "f379403146054a8da801fe9e28ec4f5578b99b4aec11328b14a706bafd4fd729"
+    },
+    {
+      "file": "installed-079-close2-planning-window.json",
+      "length": 1174,
+      "sha256": "fb1dc621caf8602e8a45e275f23412b6597aeb351aa2068305e0826d79d17c60"
+    },
+    {
+      "file": "shadow-candidate-close-after.jpg",
+      "length": 184253,
+      "sha256": "02aa1ad6f3650a5ec6bf3f0b2d3a6b4e58f6d7064c23c574db919c80581593fc"
+    },
+    {
+      "file": "shadow-candidate-close-before.jpg",
+      "length": 184229,
+      "sha256": "aca61dc89438a09cef5c328556861fb3171fc669bcbb601b99244f3157a6f3e0"
+    },
+    {
+      "file": "shadow-candidate-close-request.txt",
+      "length": 871,
+      "sha256": "2b8955c4007bda7bca34fd6462a95da185096d96d9ffff0621e66e99531bf044"
+    }
+  ],
+  "limits": [
+    "关闭时间必须逐一对比真实输入与观察时间，规划窗口提示不能替代实际关闭时刻",
+    "CLOSE2虽已观察后关闭，但关闭在输入已释放后的验证期间；不计输入前/按住中关闭验收",
+    "不通过增加宿主延时、测试钩子或改写台账制造窄时序成功"
+  ]
+}

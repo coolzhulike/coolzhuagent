@@ -1540,6 +1540,7 @@ fn process_exists(pid: u32) -> bool {
 
 fn app() -> Router {
     Router::new()
+        .merge(devin_acp::bindings::routes())
         .route("/api/state", get(api_state))
         .route("/api/system/info", get(api_system_info))
         .route("/api/system/app-update", get(app_update::api_get))
@@ -13478,8 +13479,13 @@ async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) 
         "default_max_output_tokens": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(defaults.max_output_tokens) } else { None },
         "effective_context_window": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(effective.0) } else { None },
         "effective_max_output_tokens": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(request_max_tokens_for_limit(effective)) } else { None },
-        "effective_supports_multimodal": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) == agent_session_backend::AgentSessionBackend::LlmHttp { Some(multimodal_input::supports_images(&agent, &parameters)) } else { None },
-        "image_input_strategy": if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) != agent_session_backend::AgentSessionBackend::LlmHttp { "unverified" } else if multimodal_input::supports_images(&agent, &parameters) { "native" } else { "vision-description" },
+        "effective_supports_multimodal": if matches!(agent_session_backend::AgentSessionBackend::for_provider(&agent.provider), agent_session_backend::AgentSessionBackend::LlmHttp | agent_session_backend::AgentSessionBackend::DevinAcp) { Some(multimodal_input::supports_images(&agent, &parameters)) } else { None },
+        "image_input_strategy": match agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) {
+            agent_session_backend::AgentSessionBackend::DevinAcp if multimodal_input::supports_images(&agent, &parameters) => "native-acp",
+            agent_session_backend::AgentSessionBackend::LlmHttp if multimodal_input::supports_images(&agent, &parameters) => "native",
+            agent_session_backend::AgentSessionBackend::LlmHttp | agent_session_backend::AgentSessionBackend::DevinAcp => "vision-description",
+            _ => "unverified"
+        },
         "parameters": parameters
     })))
 }
@@ -21095,14 +21101,17 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         ));
     }
 
-    // Devin 仅接纳单目标纯文本；工具、附件和远程委派仍由各自能力门拒绝。
+    // Devin 保持单目标；图片沿用统一多模态路由，群发与远程委派仍独立限制。
     let devin_text = targets.iter().any(|target| agent_session_backend::AgentSessionBackend::for_provider(&target.provider)
         == agent_session_backend::AgentSessionBackend::DevinAcp);
     if devin_text && !real_llm_enabled() {
         return Err(api_error(StatusCode::SERVICE_UNAVAILABLE,"真实模型尚未启用；未创建 Devin 模拟回复。"));
     }
-    if devin_text && (targets.len()!=1 || payload.attachments.as_ref().is_some_and(|items| !items.is_empty())) {
-        return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前支持单个 Agent 的聊天室文本会话；附件与群发尚未就绪。"));
+    if devin_text && targets.len()!=1 {
+        return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前仅支持单个 Agent 的聊天室会话，群发尚未开放。"));
+    }
+    if devin_text && payload.attachments.as_ref().is_some_and(|items| items.iter().any(|item| !item.kind.eq_ignore_ascii_case("image"))) {
+        return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前支持文本与图片附件；其它附件尚未接入，未发送。"));
     }
     for target in &targets {
         if agent_session_backend::AgentSessionBackend::for_provider(&target.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
@@ -27629,7 +27638,7 @@ async fn agent_chat_response_within_root(
     parent: Option<&FrozenParentContext>,
 ) -> AgentModelResponse {
     if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
-        return devin_acp::chat::response(agent,prompt,context_history,collaboration_roster,chat_room_id,parent).await;
+        return devin_acp::chat::response(agent,prompt,image_urls,context_history,collaboration_roster,chat_room_id,parent).await;
     }
     if let Err(error) = agent_session_backend::AgentSessionBackend::for_provider(&agent.provider).require_http() {
         return AgentModelResponse {
@@ -32410,9 +32419,11 @@ async fn stream_agent_model(
     parent: Option<&FrozenParentContext>,
 ) -> Result<(devin_acp::chat::ModelStream, ContextAssembly), api::ApiError> {
     if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
-        if !image_urls.is_empty() { return Err(api::ApiError::UnsupportedCapability{capability:"Devin 图片输入尚未开放。".into()}); }
-        let mut assembly=build_context_assembly_with_roster(agent,context_history,prompt,&[],
+        devin_acp::chat::validate_input_scope(agent, parent)?;
+        let image_input = multimodal_input::prepare(agent, prompt, image_urls, chat_room_id, Some(turn_id), run_id).await?;
+        let mut assembly=build_context_assembly_with_roster(agent,context_history,&image_input.prompt,&image_input.image_urls,
             context_build_options_for_agent_with_floor_and_room(agent,session_context_reset_floor(&agent.id),chat_room_id),collaboration_roster);
+        image_input.verify_assembly(&assembly)?;
         assembly.turn_id=Some(turn_id.into());
         let stream=devin_acp::chat::start(agent,&assembly,parent).await?;
         return Ok((stream,assembly));

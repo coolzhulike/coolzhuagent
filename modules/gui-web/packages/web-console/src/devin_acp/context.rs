@@ -21,6 +21,7 @@ struct MessageStamp {
 
 pub(super) struct PreparedContext {
     pub prompt: String,
+    pub images: Vec<Value>,
     stamps: Vec<MessageStamp>,
     system_digest: String,
     continued: bool,
@@ -34,7 +35,11 @@ fn stamp(message: &crate::PersistedChatMessage, source: bool) -> MessageStamp {
         source,
         deleted: false,
         digest: digest(
-            serde_json::to_string(&(&message.role, &message.kind, &message.content))
+            serde_json::to_string(&if message.attachments.is_empty() {
+                json!([&message.role, &message.kind, &message.content])
+            } else {
+                json!([&message.role, &message.kind, &message.content, &message.attachments])
+            })
                 .expect("消息摘要可以编码")
                 .as_bytes(),
         ),
@@ -267,8 +272,9 @@ pub(super) fn prepare(
         delta
             .push(json!({"host_message_id":id,"author":author,"message":assembly.messages[index]}));
     }
-    delta.push(json!({"host_message_ids":&source_ids,
-        "message":assembly.messages.last().ok_or("Devin 当前用户消息缺失")?}));
+    let (current, images) = super::image_input::split(
+        assembly.messages.last().ok_or("Devin 当前用户消息缺失")?)?;
+    delta.push(json!({"host_message_ids":&source_ids, "message":current}));
     let removed = known
         .keys()
         .filter(|id| !actual.contains_key(*id))
@@ -318,6 +324,7 @@ pub(super) fn prepare(
     }
     Ok(PreparedContext {
         prompt,
+        images,
         stamps,
         system_digest,
         continued,
@@ -352,7 +359,7 @@ impl PreparedContext {
             "devin.context_delta",
             json!({
             "continued":self.continued,"host_history_messages":self.history_count,
-            "delta_history_messages":self.delta_count,"prompt_bytes":self.prompt.len()}),
+            "delta_history_messages":self.delta_count,"prompt_bytes":self.prompt.len(),"image_count":self.images.len()}),
         )
         .map(|_| ())
         .map_err(|error| error.to_string())

@@ -1,0 +1,13 @@
+﻿{
+    "web_sha256":  "c64e64d666f383484d3757ead08affc57f4b94a68055a6eccf87823a5feef0a5",
+    "web_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-07-browser-horizontal\\bin\\coolzhu-web-console.exe",
+    "shell_started":  "2026-10-07T08:02:08.4507079Z",
+    "web_started":  "2026-10-07T08:02:07.1426766Z",
+    "web_pid":  25552,
+    "shell_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-07-browser-horizontal\\bin\\coolzhu-tauri-shell.exe",
+    "shell_pid":  27372,
+    "port":  8765,
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage":  "横向LTR/RTL候选桌面壳+正式087后台，无调试端口；候选测试",
+    "shell_sha256":  "fec47dcb0574df56c5bfd92b29af24ece01fafe4d78e7176bc9034c70520e2c7"
+}

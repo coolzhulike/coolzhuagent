@@ -1,0 +1,1534 @@
+{
+  "stage": "候选证据；084旧版失败另列，不等同085正式安装验收",
+  "source": {
+    "reference_head": "7b919fd821e1b7fca99c799b5f3c50124bfebb93",
+    "uncommitted_product_changes": true,
+    "files": [
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+        "sha256": "61f5a29a536dcffef27e58c57ee10f70b452350eefdab08af57454ed51b5544a"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs",
+        "sha256": "644856ba02a0077e443c2137f4b5001ca0993ece24ea993475a3977a1cfbdb2c"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_document.rs",
+        "sha256": "f87c27b6207b80f17059ec345693a075795a1bf639deb699fcf6a00519afe334"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs",
+        "sha256": "a5a38a42fad1cf83ebdfed3793b4b272283093f0946a3e8e3e57163d137969ce"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+        "sha256": "3ee3166b369008aa41d47cecfdebe37e3867cd023cc0a35a7cd5ccbf8ac813a3"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_scroll.rs",
+        "sha256": "6c0771ebe6444f0e201cc4c96cfdebf959b64925b0f041226c7c3f3376355bd6"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+        "sha256": "54a128d6ed9b1c605142aa63bcaf0b27001c7cbcc01fcef3fa936786a55aa4ad"
+      },
+      {
+        "file": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+        "sha256": "711cde69c03bf860f85d64d1360370532466d9e58b99da0f5550ae2160f07b16"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_sessions.rs",
+        "sha256": "4260c6cf8117b3c903388da1c6eea7ae3959262870da83a4b0058896d13b348b"
+      },
+      {
+        "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_frame_geometry.rs",
+        "sha256": "87fbd64a9cd12b09fdb25f5bc60cd227303b350b7c618b29c6143f976f31228e"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "prefix": "BU-INSTALLED-084-CROSSSITE-CLICK-20261006",
+      "context": {
+        "prefix": "BU-INSTALLED-084-CROSSSITE-CLICK-20261006",
+        "run_id": "run-chat-c4b7c58f6e029baaa8e40972f174a1cd1ff63f79c3efe6bb",
+        "room": "room-1791131523339",
+        "message_id": "msg-1791262250154-user",
+        "targets": [
+          {
+            "agent_ids": [
+              "session-1791131217833"
+            ]
+          }
+        ],
+        "context_delta": [
+          {
+            "continued": true,
+            "delta_history_messages": 0,
+            "host_history_messages": 154,
+            "prompt_bytes": 6063
+          }
+        ],
+        "outputs": [],
+        "acp": [
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          }
+        ],
+        "tool_calls": [
+          {
+            "tool_call_id": "tool-7c7356c554e12cf7de6c7d397625dbf2eba215c37a4dc8c9a02c8dedd0539ec6",
+            "run_id": "run-chat-c4b7c58f6e029baaa8e40972f174a1cd1ff63f79c3efe6bb",
+            "request_attempt_id": null,
+            "tool_name": "computer_use_perform",
+            "arguments_digest": "335991a4d64f4981",
+            "status": "failed",
+            "created_at_unix_ms": 1791262260984,
+            "updated_at_unix_ms": 1791262281719,
+            "provider_tool_call_id": "1",
+            "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-c4b7c58f6e029baaa8e40972f174a1cd1ff63f79c3efe6bb\",\"turn_id\":\"chat-turn-1791262250154-0\",\"attempt_id\":\"e5fb2d5bd4a21d76cc080ffd530be8bef545947812f10827\",\"owner_epoch\":90,\"generation\":90}"
+          }
+        ],
+        "reply": "",
+        "bindings": [
+          {
+            "agent_id": "session-1791122188340",
+            "remote_session_id": "sneaky-diascia"
+          },
+          {
+            "agent_id": "session-1791131217833",
+            "remote_session_id": "veiled-anise"
+          }
+        ],
+        "run": {
+          "id": "run-chat-c4b7c58f6e029baaa8e40972f174a1cd1ff63f79c3efe6bb",
+          "state": "failed",
+          "session_id": "session-1791131217833",
+          "chat_room_id": "room-1791131523339",
+          "stop_reason": null
+        },
+        "tool_events": [],
+        "audit": []
+      },
+      "result": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791262250154-0-tool-7c7356c554e12cf7de6c7d397625dbf2eba215c37a4dc8c9a02c8dedd0539ec6",
+        "provider_tool_call_id": "tool-7c7356c554e12cf7de6c7d397625dbf2eba215c37a4dc8c9a02c8dedd0539ec6",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "planner stopped before all success criteria were verified",
+        "error": {
+          "code": "verification_failed",
+          "message": "planner stopped before all success criteria were verified",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:3ed973241cbc6f8cb1c210cbf715fd79",
+          "native-ax:1:0",
+          "native-observation:3ed973241cbc6f8cb1c210cbf715fd79"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791263150154
+            }
+          },
+          "cu_deadline_ms": 1791262861213,
+          "cu_deadline_established_at_ms": 1791262261213,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": []
+    },
+    {
+      "prefix": "BU-CANDIDATE-OOP-CROSSSITE-CLICK-20261006",
+      "context": {
+        "prefix": "BU-CANDIDATE-OOP-CROSSSITE-CLICK-20261006",
+        "run_id": "run-chat-87766d7f9b96f13ea0f12be1fe9b3b8622dc4c6c1a9c3f9e",
+        "room": "room-1791131523339",
+        "message_id": "msg-1791263086827-user",
+        "targets": [
+          {
+            "agent_ids": [
+              "session-1791131217833"
+            ]
+          }
+        ],
+        "context_delta": [
+          {
+            "continued": true,
+            "delta_history_messages": 1,
+            "host_history_messages": 154,
+            "prompt_bytes": 5851
+          }
+        ],
+        "outputs": [],
+        "acp": [
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          }
+        ],
+        "tool_calls": [
+          {
+            "tool_call_id": "tool-ef8140c23656a67e7ea14ca93414e5913ae20e8d82e881adf4182c6cc8f8d11a",
+            "run_id": "run-chat-87766d7f9b96f13ea0f12be1fe9b3b8622dc4c6c1a9c3f9e",
+            "request_attempt_id": null,
+            "tool_name": "computer_use_perform",
+            "arguments_digest": "335991a4d64f4981",
+            "status": "failed",
+            "created_at_unix_ms": 1791263096970,
+            "updated_at_unix_ms": 1791263097298,
+            "provider_tool_call_id": "1",
+            "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-87766d7f9b96f13ea0f12be1fe9b3b8622dc4c6c1a9c3f9e\",\"turn_id\":\"chat-turn-1791263086827-0\",\"attempt_id\":\"797b8766d87af1fa688fbea63ece4349add48fa4dd0ddbe6\",\"owner_epoch\":91,\"generation\":91}"
+          }
+        ],
+        "reply": "",
+        "bindings": [
+          {
+            "agent_id": "session-1791122188340",
+            "remote_session_id": "sneaky-diascia"
+          },
+          {
+            "agent_id": "session-1791131217833",
+            "remote_session_id": "veiled-anise"
+          }
+        ],
+        "run": {
+          "id": "run-chat-87766d7f9b96f13ea0f12be1fe9b3b8622dc4c6c1a9c3f9e",
+          "state": "failed",
+          "session_id": "session-1791131217833",
+          "chat_room_id": "room-1791131523339",
+          "stop_reason": null
+        },
+        "tool_events": [],
+        "audit": []
+      },
+      "result": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791263086827-0-tool-ef8140c23656a67e7ea14ca93414e5913ae20e8d82e881adf4182c6cc8f8d11a",
+        "provider_tool_call_id": "tool-ef8140c23656a67e7ea14ca93414e5913ae20e8d82e881adf4182c6cc8f8d11a",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "内置浏览器桌面宿主尚未连接",
+        "error": {
+          "code": "native_browser_host_unavailable",
+          "message": "内置浏览器桌面宿主尚未连接",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791263986827
+            }
+          },
+          "cu_deadline_ms": 1791263697274,
+          "cu_deadline_established_at_ms": 1791263097274,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": []
+    },
+    {
+      "prefix": "BU-CANDIDATE-OOP-CROSSSITE-CLICK2-20261006",
+      "context": {
+        "prefix": "BU-CANDIDATE-OOP-CROSSSITE-CLICK2-20261006",
+        "run_id": "run-chat-7f239bc7874b0ba943f1e17281b955d9aaa027404d2d3218",
+        "room": "room-1791131523339",
+        "message_id": "msg-1791263188566-user",
+        "targets": [
+          {
+            "agent_ids": [
+              "session-1791131217833"
+            ]
+          }
+        ],
+        "context_delta": [
+          {
+            "continued": true,
+            "delta_history_messages": 1,
+            "host_history_messages": 153,
+            "prompt_bytes": 5781
+          }
+        ],
+        "outputs": [],
+        "acp": [
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          }
+        ],
+        "tool_calls": [
+          {
+            "tool_call_id": "tool-6024c8eac72ee1647462aa7797d5e16dbe77c2a810d97bf828476f0584e3842f",
+            "run_id": "run-chat-7f239bc7874b0ba943f1e17281b955d9aaa027404d2d3218",
+            "request_attempt_id": null,
+            "tool_name": "computer_use_perform",
+            "arguments_digest": "335991a4d64f4981",
+            "status": "failed",
+            "created_at_unix_ms": 1791263198798,
+            "updated_at_unix_ms": 1791263223470,
+            "provider_tool_call_id": "1",
+            "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-7f239bc7874b0ba943f1e17281b955d9aaa027404d2d3218\",\"turn_id\":\"chat-turn-1791263188567-0\",\"attempt_id\":\"bcbc9514c51763d6b399c154a3af997c54e66668cb24ae4c\",\"owner_epoch\":92,\"generation\":92}"
+          }
+        ],
+        "reply": "",
+        "bindings": [
+          {
+            "agent_id": "session-1791122188340",
+            "remote_session_id": "sneaky-diascia"
+          },
+          {
+            "agent_id": "session-1791131217833",
+            "remote_session_id": "veiled-anise"
+          }
+        ],
+        "run": {
+          "id": "run-chat-7f239bc7874b0ba943f1e17281b955d9aaa027404d2d3218",
+          "state": "failed",
+          "session_id": "session-1791131217833",
+          "chat_room_id": "room-1791131523339",
+          "stop_reason": null
+        },
+        "tool_events": [],
+        "audit": []
+      },
+      "result": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791263188567-0-tool-6024c8eac72ee1647462aa7797d5e16dbe77c2a810d97bf828476f0584e3842f",
+        "provider_tool_call_id": "tool-6024c8eac72ee1647462aa7797d5e16dbe77c2a810d97bf828476f0584e3842f",
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "{\"last_verification\":{\"criteria_count\":1,\"criteria_met\":0,\"fresh_observation_id\":\"c555bda9194388f7c4d3927daf92e54f\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":false,\"index\":0,\"model_met\":true,\"node_indices\":[17,6],\"reason\":\"non_adjacent_nodes\",\"selected_nodes\":[{\"index\":17,\"name_chars\":7,\"role\":\"StaticText\"},{\"index\":6,\"name_chars\":7,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":6,\"inline_has_static_text\":false,\"name_chars\":7,\"role\":\"StaticText\"},{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":5,\"role\":\"StaticText\"},{\"blank\":false,\"index\":8,\"inline_has_static_text\":true,\"name_chars\":10,\"role\":\"InlineTextBox\"},{\"blank\":false,\"index\":9,\"inline_has_static_text\":true,\"name_chars\":7,\"role\":\"InlineTextBox\"},{\"blank\":false,\"index\":10,\"inline_has_static_text\":true,\"name_chars\":5,\"role\":\"InlineTextBox\"},{\"blank\":false,\"index\":11,\"inline_has_static_text\":false,\"name_chars\":16,\"role\":\"other\"},{\"blank\":false,\"index\":12,\"inline_has_static_text\":false,\"name_chars\":9,\"role\":\"other\"},{\"blank\":true,\"index\":13,\"inline_has_static_text\":false,\"name_chars\":0,\"role\":\"paragraph\"},{\"blank\":false,\"index\":14,\"inline_has_static_text\":false,\"name_chars\":5,\"role\":\"other\"},{\"blank\":true,\"index\":15,\"inline_has_static_text\":false,\"name_chars\":0,\"role\":\"paragraph\"},{\"blank\":false,\"index\":16,\"inline_has_static_text\":false,\"name_chars\":9,\"role\":\"StaticText\"},{\"blank\":false,\"index\":17,\"inline_has_static_text\":false,\"name_chars\":7,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"133e47799105bd65fe73eeb8d53f6d6f\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":24,\"nodes\":[{\"index\":6,\"name\":\"父点击计数：0\",\"role\":\"StaticText\"},{\"index\":17,\"name\":\"子点击计数：1\",\"role\":\"StaticText\"}],\"title\":\"OOP-PARENT 跨站点父页面\",\"truncated\":false,\"url\":\"http://127.0.0.1:64540/parent.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:64540/parent.html\",\"ungrounded_positive_count\":1},\"terminal_reason\":\"computer-use action budget exhausted\",\"verification_is_last_observation\":true}",
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:8fdfbf55b7b6d33be9a9c6bb1d23ecf9",
+          "native-ax:1:0",
+          "native-observation:8fdfbf55b7b6d33be9a9c6bb1d23ecf9",
+          "native-input:7297c3a436ced267589afc421cb6fe33",
+          "native-ax:1:0",
+          "native-observation:133e47799105bd65fe73eeb8d53f6d6f",
+          "native-ax:1:0",
+          "native-observation:133e47799105bd65fe73eeb8d53f6d6f",
+          "native-ax:1:0",
+          "native-observation:c555bda9194388f7c4d3927daf92e54f"
+        ],
+        "supervisor": {
+          "circuit_open": true,
+          "reason": "budget_exhausted",
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791264088567
+            }
+          },
+          "cu_deadline_ms": 1791263798919,
+          "cu_deadline_established_at_ms": 1791263198919,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791263188567-0-tool-6024c8eac72ee1647462aa7797d5e16dbe77c2a810d97bf828476f0584e3842f",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-0a7388fc4dc2ac5e2d23fcf364ab844f",
+          "action_fingerprint": "f9eb3da964de777e",
+          "status": "completed_unverified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:8fdfbf55b7b6d33be9a9c6bb1d23ecf9\"]",
+          "after_evidence_ref": "[\"native-ax:1:0\",\"native-observation:133e47799105bd65fe73eeb8d53f6d6f\",\"native-ax:1:0\",\"native-observation:c555bda9194388f7c4d3927daf92e54f\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "started_at_ms": 1791263210572,
+          "completed_at_ms": 1791263212762,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "637839d3847bd4da1a8b529ba242e370",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"96b1fcd6ee294505a7343d4c33854fb4\",\"host_id\":\"native-5364878490d0864556b86ad655fa428d\",\"process\":{\"instance_id\":\"3b9842c3066fe07724ce57ae3ba08144\",\"boot_id\":\"5364878490d0864556b86ad655fa428d\",\"pid\":33188,\"creation_time_filetime\":134357367596871551,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-06-browser-oop\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-0a7388fc4dc2ac5e2d23fcf364ab844f:179490bda9363f3c#gen1#cu-session-1791131217833-chat-turn-1791263188567-0-tool-6024c8eac72ee1647462aa7797d5e16dbe77c2a810d97bf828476f0584e3842f:step-0#attempt1\",\"ticket_id\":\"637839d3847bd4da1a8b529ba242e370\",\"observation_id\":\"8fdfbf55b7b6d33be9a9c6bb1d23ecf9\",\"document_token\":\"5cbcc0956c4c154111f64fdeb8fc4015\",\"node_id\":\"0a7388fc4dc2ac5e2d23fcf364ab844f\",\"input_kind\":\"click\"}"
+        }
+      ]
+    },
+    {
+      "prefix": "BU-CANDIDATE-OOP-CROSSSITE-CLICK3-20261006",
+      "context": {
+        "prefix": "BU-CANDIDATE-OOP-CROSSSITE-CLICK3-20261006",
+        "run_id": "run-chat-d74d20a6dfa890b48b9cc52593c999cf518b57bf6a24dc8b",
+        "room": "room-1791131523339",
+        "message_id": "msg-1791263290121-user",
+        "targets": [
+          {
+            "agent_ids": [
+              "session-1791131217833"
+            ]
+          }
+        ],
+        "context_delta": [
+          {
+            "continued": true,
+            "delta_history_messages": 1,
+            "host_history_messages": 148,
+            "prompt_bytes": 6512
+          }
+        ],
+        "outputs": [],
+        "acp": [
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          }
+        ],
+        "tool_calls": [
+          {
+            "tool_call_id": "tool-21e165a2034babb791c67c5fae29febcab65e4ea03c05646f8deb0036faf8352",
+            "run_id": "run-chat-d74d20a6dfa890b48b9cc52593c999cf518b57bf6a24dc8b",
+            "request_attempt_id": null,
+            "tool_name": "computer_use_perform",
+            "arguments_digest": "9181939d602ff747",
+            "status": "failed",
+            "created_at_unix_ms": 1791263299375,
+            "updated_at_unix_ms": 1791263326468,
+            "provider_tool_call_id": "1",
+            "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-d74d20a6dfa890b48b9cc52593c999cf518b57bf6a24dc8b\",\"turn_id\":\"chat-turn-1791263290121-1\",\"attempt_id\":\"0fef6c204579068c3b07ac34476792f9f0e10bf6374b93a4\",\"owner_epoch\":93,\"generation\":93}"
+          }
+        ],
+        "reply": "",
+        "bindings": [
+          {
+            "agent_id": "session-1791122188340",
+            "remote_session_id": "sneaky-diascia"
+          },
+          {
+            "agent_id": "session-1791131217833",
+            "remote_session_id": "veiled-anise"
+          }
+        ],
+        "run": {
+          "id": "run-chat-d74d20a6dfa890b48b9cc52593c999cf518b57bf6a24dc8b",
+          "state": "failed",
+          "session_id": "session-1791131217833",
+          "chat_room_id": "room-1791131523339",
+          "stop_reason": null
+        },
+        "tool_events": [],
+        "audit": []
+      },
+      "result": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791263290121-1-tool-21e165a2034babb791c67c5fae29febcab65e4ea03c05646f8deb0036faf8352",
+        "provider_tool_call_id": "tool-21e165a2034babb791c67c5fae29febcab65e4ea03c05646f8deb0036faf8352",
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "{\"last_verification\":{\"criteria_count\":2,\"criteria_met\":1,\"fresh_observation_id\":\"d18e0522da9e43a4270d6ebe6295bedf\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":false,\"index\":0,\"model_met\":true,\"node_indices\":[16],\"reason\":\"text_mismatch\",\"selected_nodes\":[{\"index\":16,\"name_chars\":9,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":16,\"inline_has_static_text\":false,\"name_chars\":9,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[6],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":6,\"name_chars\":7,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":6,\"inline_has_static_text\":false,\"name_chars\":7,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"5d7002de32f32c1895dfedb136af4db6\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":24,\"nodes\":[{\"index\":6,\"name\":\"父点击计数：0\",\"role\":\"StaticText\"},{\"index\":16,\"name\":\"OOP-CHILD\",\"role\":\"StaticText\"}],\"title\":\"OOP-PARENT 跨站点父页面\",\"truncated\":false,\"url\":\"http://127.0.0.1:64540/parent.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:64540/parent.html\",\"ungrounded_positive_count\":1},\"terminal_reason\":\"computer-use action budget exhausted\",\"verification_is_last_observation\":true}",
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:56601fc0bf1b8c40ba9c8153ca905e3a",
+          "native-ax:1:0",
+          "native-observation:56601fc0bf1b8c40ba9c8153ca905e3a",
+          "native-input:81ba2ecf9c7e530b0237cf2473ffa5b7",
+          "native-ax:1:0",
+          "native-observation:5d7002de32f32c1895dfedb136af4db6",
+          "native-ax:1:0",
+          "native-observation:5d7002de32f32c1895dfedb136af4db6",
+          "native-ax:1:0",
+          "native-observation:d18e0522da9e43a4270d6ebe6295bedf"
+        ],
+        "supervisor": {
+          "circuit_open": true,
+          "reason": "budget_exhausted",
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791264190121
+            }
+          },
+          "cu_deadline_ms": 1791263899494,
+          "cu_deadline_established_at_ms": 1791263299494,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791263290121-1-tool-21e165a2034babb791c67c5fae29febcab65e4ea03c05646f8deb0036faf8352",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-380df721d8cf6ba60f362b56abb05b17",
+          "action_fingerprint": "96820f4f50526b71",
+          "status": "completed_unverified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:56601fc0bf1b8c40ba9c8153ca905e3a\"]",
+          "after_evidence_ref": "[\"native-ax:1:0\",\"native-observation:5d7002de32f32c1895dfedb136af4db6\",\"native-ax:1:0\",\"native-observation:d18e0522da9e43a4270d6ebe6295bedf\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "started_at_ms": 1791263310160,
+          "completed_at_ms": 1791263311936,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "5ba517c7155bfa403b890f81f1368653",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"96b1fcd6ee294505a7343d4c33854fb4\",\"host_id\":\"native-5364878490d0864556b86ad655fa428d\",\"process\":{\"instance_id\":\"3b9842c3066fe07724ce57ae3ba08144\",\"boot_id\":\"5364878490d0864556b86ad655fa428d\",\"pid\":33188,\"creation_time_filetime\":134357367596871551,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-06-browser-oop\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-380df721d8cf6ba60f362b56abb05b17:181105b40b98a7f6#gen1#cu-session-1791131217833-chat-turn-1791263290121-1-tool-21e165a2034babb791c67c5fae29febcab65e4ea03c05646f8deb0036faf8352:step-0#attempt1\",\"ticket_id\":\"5ba517c7155bfa403b890f81f1368653\",\"observation_id\":\"56601fc0bf1b8c40ba9c8153ca905e3a\",\"document_token\":\"5cbcc0956c4c154111f64fdeb8fc4015\",\"node_id\":\"380df721d8cf6ba60f362b56abb05b17\",\"input_kind\":\"click\"}"
+        }
+      ]
+    },
+    {
+      "prefix": "BU-CANDIDATE-OOP-SCALE-20261006",
+      "context": {
+        "prefix": "BU-CANDIDATE-OOP-SCALE-20261006",
+        "run_id": "run-chat-7b560b314c4e9c3b2252f451077d9d984825d37216f69dfd",
+        "room": "room-1791131523339",
+        "message_id": "msg-1791263512916-user",
+        "targets": [
+          {
+            "agent_ids": [
+              "session-1791131217833"
+            ]
+          }
+        ],
+        "context_delta": [
+          {
+            "continued": true,
+            "delta_history_messages": 1,
+            "host_history_messages": 150,
+            "prompt_bytes": 6664
+          }
+        ],
+        "outputs": [
+          {
+            "agent_id": "session-1791131217833",
+            "messages": [
+              {
+                "deleted": false,
+                "digest": "3c8fcfd19c8c2062ca41f66af3738ca96dcd509c375059595e407419f3c1d9f9",
+                "id": "msg-1791263513430-0",
+                "source": false
+              }
+            ]
+          }
+        ],
+        "acp": [
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          }
+        ],
+        "tool_calls": [
+          {
+            "tool_call_id": "tool-bfb726eedea5543d61531bf7ea615a1c0241f4230615aa86c41039e50f1f2248",
+            "run_id": "run-chat-7b560b314c4e9c3b2252f451077d9d984825d37216f69dfd",
+            "request_attempt_id": null,
+            "tool_name": "computer_use_perform",
+            "arguments_digest": "cbbb8a8660c30f6e",
+            "status": "completed",
+            "created_at_unix_ms": 1791263529940,
+            "updated_at_unix_ms": 1791263559719,
+            "provider_tool_call_id": "1",
+            "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-7b560b314c4e9c3b2252f451077d9d984825d37216f69dfd\",\"turn_id\":\"chat-turn-1791263512922-0\",\"attempt_id\":\"417c970078e9d82d8f82a0df3cc662ca91edeeca4270dc32\",\"owner_epoch\":94,\"generation\":94}"
+          }
+        ],
+        "reply": "回执 `status: running`，等待同一 job_id 至终态。任务成功（终态回执 `status: succeeded`，`goal_achieved: true`）：\n\n- **动作**：1 次子文档按钮点击已投递（attempts=1，steps_completed=1，含 native-input 回执）\n- **验收**（criteria_met=2/2）：最新页面观察（freshness_confirmed=true）在 `http://127.0.0.1:60291/scale.html`（标题 \"OOP-BOUNDARY scale\"）确认：\n  - \"子点击计数：1\"（StaticText index 14，grounded ✅）\n  - \"父点击计数：0\"（StaticText index 5，grounded ✅）\n\n按宿主回执如实报告：目标达成。",
+        "bindings": [
+          {
+            "agent_id": "session-1791122188340",
+            "remote_session_id": "sneaky-diascia"
+          },
+          {
+            "agent_id": "session-1791131217833",
+            "remote_session_id": "veiled-anise"
+          }
+        ],
+        "run": {
+          "id": "run-chat-7b560b314c4e9c3b2252f451077d9d984825d37216f69dfd",
+          "state": "completed",
+          "session_id": "session-1791131217833",
+          "chat_room_id": "room-1791131523339",
+          "stop_reason": null
+        },
+        "tool_events": [],
+        "audit": []
+      },
+      "result": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791263512922-0-tool-bfb726eedea5543d61531bf7ea615a1c0241f4230615aa86c41039e50f1f2248",
+        "provider_tool_call_id": "tool-bfb726eedea5543d61531bf7ea615a1c0241f4230615aa86c41039e50f1f2248",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":2,\"criteria_met\":2,\"fresh_observation_id\":\"09fee9336353ba7ba1fa2ad2da8c5efd\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[14],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":14,\"name_chars\":7,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":14,\"inline_has_static_text\":false,\"name_chars\":7,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":7,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":7,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"4c485dbc671ce5ca608e9160fc2594f4\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":19,\"nodes\":[{\"index\":5,\"name\":\"父点击计数：0\",\"role\":\"StaticText\"},{\"index\":14,\"name\":\"子点击计数：1\",\"role\":\"StaticText\"}],\"title\":\"OOP-BOUNDARY scale\",\"truncated\":false,\"url\":\"http://127.0.0.1:60291/scale.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:60291/scale.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:108c332a6388b7311ac8075cee9338ca",
+          "native-ax:1:1",
+          "native-observation:108c332a6388b7311ac8075cee9338ca",
+          "native-input:f3437c7dffcc2749ac8d0d9fc6ccb91d",
+          "native-ax:1:1",
+          "native-observation:4c485dbc671ce5ca608e9160fc2594f4",
+          "native-ax:1:1",
+          "native-observation:4c485dbc671ce5ca608e9160fc2594f4",
+          "native-ax:1:1",
+          "native-observation:09fee9336353ba7ba1fa2ad2da8c5efd"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791264412922
+            }
+          },
+          "cu_deadline_ms": 1791264130144,
+          "cu_deadline_established_at_ms": 1791263530144,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791263512922-0-tool-bfb726eedea5543d61531bf7ea615a1c0241f4230615aa86c41039e50f1f2248",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-8c7749d4f4f45d817db7768174aeaf90",
+          "action_fingerprint": "09fc08d965c2394e",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:108c332a6388b7311ac8075cee9338ca\"]",
+          "after_evidence_ref": "[\"native-ax:1:1\",\"native-observation:4c485dbc671ce5ca608e9160fc2594f4\",\"native-ax:1:1\",\"native-observation:09fee9336353ba7ba1fa2ad2da8c5efd\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "started_at_ms": 1791263538951,
+          "completed_at_ms": 1791263540587,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "e5165deb1512d090e0aeaccba583e150",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"b8cf92c86db0affb41c49f7ae8c78736\",\"host_id\":\"native-2302bca054e1b24c25843ed4cfb2a325\",\"process\":{\"instance_id\":\"40fb2c2c6a78ff56b8a75e11175a81e0\",\"boot_id\":\"2302bca054e1b24c25843ed4cfb2a325\",\"pid\":26096,\"creation_time_filetime\":134357370246213904,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-06-browser-oop\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":1}},\"attempt_key\":\"browser:dom-8c7749d4f4f45d817db7768174aeaf90:5bca77eeb7a4250c#gen1#cu-session-1791131217833-chat-turn-1791263512922-0-tool-bfb726eedea5543d61531bf7ea615a1c0241f4230615aa86c41039e50f1f2248:step-0#attempt1\",\"ticket_id\":\"e5165deb1512d090e0aeaccba583e150\",\"observation_id\":\"108c332a6388b7311ac8075cee9338ca\",\"document_token\":\"546c08eeddf16b68ce7693e3c8225c89\",\"node_id\":\"8c7749d4f4f45d817db7768174aeaf90\",\"input_kind\":\"click\"}"
+        }
+      ]
+    },
+    {
+      "prefix": "BU-CANDIDATE-OOP-COVER-20261006",
+      "context": {
+        "prefix": "BU-CANDIDATE-OOP-COVER-20261006",
+        "run_id": "run-chat-6f184c822d1f35f014668bd858a03050f7a5beac4086e2a9",
+        "room": "room-1791131523339",
+        "message_id": "msg-1791263858317-user",
+        "targets": [
+          {
+            "agent_ids": [
+              "session-1791131217833"
+            ]
+          }
+        ],
+        "context_delta": [
+          {
+            "continued": true,
+            "delta_history_messages": 0,
+            "host_history_messages": 145,
+            "prompt_bytes": 5920
+          }
+        ],
+        "outputs": [],
+        "acp": [
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          }
+        ],
+        "tool_calls": [
+          {
+            "tool_call_id": "tool-85310ef44a74d2815a2a6c3dd7a2ceb6ccbf8c035748d016c4ab4735f33dc8c4",
+            "run_id": "run-chat-6f184c822d1f35f014668bd858a03050f7a5beac4086e2a9",
+            "request_attempt_id": null,
+            "tool_name": "computer_use_perform",
+            "arguments_digest": "a2f3f2061ddbc436",
+            "status": "failed",
+            "created_at_unix_ms": 1791263872441,
+            "updated_at_unix_ms": 1791263884229,
+            "provider_tool_call_id": "1",
+            "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-6f184c822d1f35f014668bd858a03050f7a5beac4086e2a9\",\"turn_id\":\"chat-turn-1791263858318-0\",\"attempt_id\":\"4ee1491dac165f6abd66ec9b96db95d83c572da2a5ea1536\",\"owner_epoch\":95,\"generation\":95}"
+          }
+        ],
+        "reply": "",
+        "bindings": [
+          {
+            "agent_id": "session-1791122188340",
+            "remote_session_id": "sneaky-diascia"
+          },
+          {
+            "agent_id": "session-1791131217833",
+            "remote_session_id": "veiled-anise"
+          }
+        ],
+        "run": {
+          "id": "run-chat-6f184c822d1f35f014668bd858a03050f7a5beac4086e2a9",
+          "state": "failed",
+          "session_id": "session-1791131217833",
+          "chat_room_id": "room-1791131523339",
+          "stop_reason": null
+        },
+        "tool_events": [],
+        "audit": []
+      },
+      "result": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791263858318-0-tool-85310ef44a74d2815a2a6c3dd7a2ceb6ccbf8c035748d016c4ab4735f33dc8c4",
+        "provider_tool_call_id": "tool-85310ef44a74d2815a2a6c3dd7a2ceb6ccbf8c035748d016c4ab4735f33dc8c4",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_target_hit_mismatch",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-9166cbd31a277141fe280d0ba67efe05:3584e5e0249562d9",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:6dd095ac2f0aee763ef899e4c6dffa39",
+          "native-ax:1:1",
+          "native-observation:6dd095ac2f0aee763ef899e4c6dffa39"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791264758318
+            }
+          },
+          "cu_deadline_ms": 1791264472630,
+          "cu_deadline_established_at_ms": 1791263872630,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791263858318-0-tool-85310ef44a74d2815a2a6c3dd7a2ceb6ccbf8c035748d016c4ab4735f33dc8c4",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-9166cbd31a277141fe280d0ba67efe05",
+          "action_fingerprint": "a96b1c3caae5456b",
+          "status": "failed",
+          "error_code": "native_browser_target_hit_mismatch",
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:6dd095ac2f0aee763ef899e4c6dffa39\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791263882806,
+          "completed_at_ms": 1791263884161,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ]
+    },
+    {
+      "prefix": "BU-CANDIDATE-OOP-NAV-20261006",
+      "context": {
+        "prefix": "BU-CANDIDATE-OOP-NAV-20261006",
+        "run_id": "run-chat-90f567634b8279efa31f71c843608d2ff7a45af5efb1f2aa",
+        "room": "room-1791131523339",
+        "message_id": "msg-1791263933746-user",
+        "targets": [
+          {
+            "agent_ids": [
+              "session-1791131217833"
+            ]
+          }
+        ],
+        "context_delta": [
+          {
+            "continued": true,
+            "delta_history_messages": 1,
+            "host_history_messages": 145,
+            "prompt_bytes": 6671
+          }
+        ],
+        "outputs": [],
+        "acp": [
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          }
+        ],
+        "tool_calls": [
+          {
+            "tool_call_id": "tool-c42885a9f4e37cb2290aaf15a68a693b966cb2b6d29e9921d1d6e8cfda579037",
+            "run_id": "run-chat-90f567634b8279efa31f71c843608d2ff7a45af5efb1f2aa",
+            "request_attempt_id": null,
+            "tool_name": "computer_use_perform",
+            "arguments_digest": "fa819b0b648cf851",
+            "status": "failed",
+            "created_at_unix_ms": 1791263956620,
+            "updated_at_unix_ms": 1791263971953,
+            "provider_tool_call_id": "1",
+            "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-90f567634b8279efa31f71c843608d2ff7a45af5efb1f2aa\",\"turn_id\":\"chat-turn-1791263933747-1\",\"attempt_id\":\"73e16060f9cf08c3e5fbab84ece1486160d015566c38fb56\",\"owner_epoch\":96,\"generation\":96}"
+          }
+        ],
+        "reply": "",
+        "bindings": [
+          {
+            "agent_id": "session-1791122188340",
+            "remote_session_id": "sneaky-diascia"
+          },
+          {
+            "agent_id": "session-1791131217833",
+            "remote_session_id": "veiled-anise"
+          }
+        ],
+        "run": {
+          "id": "run-chat-90f567634b8279efa31f71c843608d2ff7a45af5efb1f2aa",
+          "state": "failed",
+          "session_id": "session-1791131217833",
+          "chat_room_id": "room-1791131523339",
+          "stop_reason": null
+        },
+        "tool_events": [],
+        "audit": []
+      },
+      "result": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791263933747-1-tool-c42885a9f4e37cb2290aaf15a68a693b966cb2b6d29e9921d1d6e8cfda579037",
+        "provider_tool_call_id": "tool-c42885a9f4e37cb2290aaf15a68a693b966cb2b6d29e9921d1d6e8cfda579037",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_document_changed",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-572d0df1e9735fec826e20a815914287:5d35377b448fffd8",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:8e0ed3eeac79a31d0a4fdba5c7345961",
+          "native-ax:1:2",
+          "native-observation:8e0ed3eeac79a31d0a4fdba5c7345961"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791264833747
+            }
+          },
+          "cu_deadline_ms": 1791264556821,
+          "cu_deadline_established_at_ms": 1791263956821,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791263933747-1-tool-c42885a9f4e37cb2290aaf15a68a693b966cb2b6d29e9921d1d6e8cfda579037",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-572d0df1e9735fec826e20a815914287",
+          "action_fingerprint": "df75615408a65b4d",
+          "status": "failed",
+          "error_code": "native_browser_document_changed",
+          "before_evidence_ref": "[\"native-ax:1:2\",\"native-observation:8e0ed3eeac79a31d0a4fdba5c7345961\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791263970681,
+          "completed_at_ms": 1791263971886,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "file": "main.rs",
+      "length": 139952,
+      "sha256": "61f5a29a536dcffef27e58c57ee10f70b452350eefdab08af57454ed51b5544a"
+    },
+    {
+      "file": "native_browser_devtools.rs",
+      "length": 9280,
+      "sha256": "644856ba02a0077e443c2137f4b5001ca0993ece24ea993475a3977a1cfbdb2c"
+    },
+    {
+      "file": "native_browser_document.rs",
+      "length": 11741,
+      "sha256": "f87c27b6207b80f17059ec345693a075795a1bf639deb699fcf6a00519afe334"
+    },
+    {
+      "file": "native_browser_editor.rs",
+      "length": 3665,
+      "sha256": "a5a38a42fad1cf83ebdfed3793b4b272283093f0946a3e8e3e57163d137969ce"
+    },
+    {
+      "file": "native_browser_frame_geometry.rs",
+      "length": 6549,
+      "sha256": "87fbd64a9cd12b09fdb25f5bc60cd227303b350b7c618b29c6143f976f31228e"
+    },
+    {
+      "file": "native_browser_observation.rs",
+      "length": 13115,
+      "sha256": "3ee3166b369008aa41d47cecfdebe37e3867cd023cc0a35a7cd5ccbf8ac813a3"
+    },
+    {
+      "file": "native_browser_scroll.rs",
+      "length": 6200,
+      "sha256": "6c0771ebe6444f0e201cc4c96cfdebf959b64925b0f041226c7c3f3376355bd6"
+    },
+    {
+      "file": "native_browser_sessions.rs",
+      "length": 6813,
+      "sha256": "4260c6cf8117b3c903388da1c6eea7ae3959262870da83a4b0058896d13b348b"
+    },
+    {
+      "file": "native_browser_target.rs",
+      "length": 19583,
+      "sha256": "54a128d6ed9b1c605142aa63bcaf0b27001c7cbcc01fcef3fa936786a55aa4ad"
+    },
+    {
+      "file": "computer_use_planner.rs",
+      "length": 179686,
+      "sha256": "711cde69c03bf860f85d64d1360370532466d9e58b99da0f5550ae2160f07b16"
+    },
+    {
+      "file": "boundary-address.json",
+      "length": 38,
+      "sha256": "64d6a9cffe8eda57634f1818d6a4c0d222e5c01d296b1a0fe230045458fa29a9"
+    },
+    {
+      "file": "boundary-events.jsonl",
+      "length": 243,
+      "sha256": "530549910da414e3a415285e9dac0b39ca758f0ae23da965a83e0210e18d9b24"
+    },
+    {
+      "file": "boundary-server-process.json",
+      "length": 617,
+      "sha256": "77140c000380731efe9cc6a3b587ff2f4e514988e99fc8d05491440f90303364"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-COVER-20261006-events.json",
+      "length": 138,
+      "sha256": "733159e2cc438a0e7a17cd0571dc15d66649d608e08818cc486a98d106b1438f"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-COVER-20261006-facts.json",
+      "length": 11316,
+      "sha256": "70947c4350120eb6db532516eb46c762c8cdabdbd04f1e72b36e399a352c2772"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-COVER-20261006-request.txt",
+      "length": 933,
+      "sha256": "171d8e196455118f0f21b7eeb569bfddbdf743a65897c940cce407c18366a640"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-CROSSSITE-CLICK-20261006-events.json",
+      "length": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-CROSSSITE-CLICK-20261006-facts.json",
+      "length": 7494,
+      "sha256": "453b163a7c63622dc152be875c381b66a55ae69a9b0e3b192964b257e6b277c7"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-CROSSSITE-CLICK2-20261006-events.json",
+      "length": 116,
+      "sha256": "ece8f3ebe0126e397d48f020c9c2c2c9892788d90a3e1f9615e126dda87cd08e"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-CROSSSITE-CLICK2-20261006-facts.json",
+      "length": 18846,
+      "sha256": "2b60e7c550e929d6a6e0c99b1c4404e7d60b9af4e062679c6e92fd43b973e6c5"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-CROSSSITE-CLICK3-20261006-events.json",
+      "length": 232,
+      "sha256": "682600ab2e16cfbf7503f129a987b9626d211e19432cae42ceeee26ef9a66eb6"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-CROSSSITE-CLICK3-20261006-facts.json",
+      "length": 17598,
+      "sha256": "16cad4d794009219ee525e7553b4b4bc5974376c8da3e824450186044428a6af"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-NAV-20261006-events.json",
+      "length": 243,
+      "sha256": "494abdc9b39a221b1ec7faee43a5cb73bc7e650311130b76eb5c507845aec82e"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-NAV-20261006-facts.json",
+      "length": 11488,
+      "sha256": "83fb6cd80668bdba82b21365c9eedd0b45e708a772fc245620255800b035e15d"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-NAV-20261006-request.txt",
+      "length": 944,
+      "sha256": "13e8142784fee044ed1cdb011d787329825d34f397beb5aba297c1ddaa12e77b"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-SCALE-20261006-events.json",
+      "length": 138,
+      "sha256": "733159e2cc438a0e7a17cd0571dc15d66649d608e08818cc486a98d106b1438f"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-SCALE-20261006-facts.json",
+      "length": 17645,
+      "sha256": "5a20c74a7eb9d698481435549a0d81c19eaf0d8896400d202a02249d681f7fe2"
+    },
+    {
+      "file": "BU-CANDIDATE-OOP-SCALE-20261006-request.txt",
+      "length": 817,
+      "sha256": "e1bb914549570e29f118f532deb888d14da21c87ecd1e18f620d8259e571da14"
+    },
+    {
+      "file": "candidate-before-ax.txt",
+      "length": 77546,
+      "sha256": "dc1d47a89df757f2bd1d3b9f358af95d19402bec2caf81a58c34c20180252b88"
+    },
+    {
+      "file": "candidate-before.jpg",
+      "length": 216343,
+      "sha256": "b654969705a530f06aed7c9590a3d40da3f7e901f19cd6f154c0ccf24535654d"
+    },
+    {
+      "file": "candidate-cover-before-ax.txt",
+      "length": 78681,
+      "sha256": "10c018917778aea99fa57cd07e87e3e45a50fbfa094b7f5ab24cba16554a22c6"
+    },
+    {
+      "file": "candidate-cover-before.jpg",
+      "length": 202677,
+      "sha256": "8b630b5a916343fa428887b2c6729737b18655db0a02626b96ba3c60e6735249"
+    },
+    {
+      "file": "candidate-first-processes.json",
+      "length": 858,
+      "sha256": "608dde759cf8388f42ad49ddef06495ab23c75a096155f9948ea01d807074588"
+    },
+    {
+      "file": "candidate-nav-after-ax.txt",
+      "length": 84075,
+      "sha256": "4a23e60282246cf8f23fc34ffc9e7b12bc2f3cb99e9a30ba4b2e78e3645287ba"
+    },
+    {
+      "file": "candidate-nav-after.jpg",
+      "length": 199515,
+      "sha256": "fbafa589bf2f06bcac2590ae5e227541ce07aa4198e56c84b22a6559a7a9aeff"
+    },
+    {
+      "file": "candidate-nav-before-ax.txt",
+      "length": 81804,
+      "sha256": "e1804b58eee31ecc2efc88258fc7f13f907fe8e7e5bee7af0a932622a89ce1b0"
+    },
+    {
+      "file": "candidate-nav-before.jpg",
+      "length": 219186,
+      "sha256": "48e5126877196706acc4c92c9a3dae00c7e3b3ec387ce3c0dc3fc29ced51b6bf"
+    },
+    {
+      "file": "candidate-nav-switch-ax.txt",
+      "length": 82870,
+      "sha256": "5f9017ea1c262fb9b7854447865043dab43c5ba9fc6960e69f659da8d5aa2ebb"
+    },
+    {
+      "file": "candidate-nav-switch.jpg",
+      "length": 226469,
+      "sha256": "4439079ab19946c701b963ca761c1c04d64502406f74f5d44e982d38698443b9"
+    },
+    {
+      "file": "candidate-processes.json",
+      "length": 864,
+      "sha256": "03a6c35d43722aad23cd4a940be9799446a51506b931c4507793a1c49a29d420"
+    },
+    {
+      "file": "candidate-request.txt",
+      "length": 908,
+      "sha256": "bfc6c7eb59b18566ec297c32ba136fe9cf31f4de93842e01deda81df86309d1e"
+    },
+    {
+      "file": "candidate-request2.txt",
+      "length": 909,
+      "sha256": "e8fcac6cbc0e5a1f82e811c243fcb6e7446dd39d2ebb25041362727004c5cb2d"
+    },
+    {
+      "file": "candidate-request3.txt",
+      "length": 907,
+      "sha256": "70903f64333abd3d01ff4bee0e740b1841f57e3def6bd0e35f555402c8bf43c2"
+    },
+    {
+      "file": "candidate-scale-after-1.jpg",
+      "length": 5506,
+      "sha256": "4f1c141ca6bb5f43ef95b71688651a75b99f606f890366e11a60c6496dbe1fa8"
+    },
+    {
+      "file": "candidate-scale-after-ax.txt",
+      "length": 80456,
+      "sha256": "6d4c2508c02249cfc7aa5f6540a46c7c9aece6f288ee594b850418ad0ff2fac4"
+    },
+    {
+      "file": "candidate-scale-after.jpg",
+      "length": 204902,
+      "sha256": "adc5c32517d9f2eec177aafb4fd7fcf3970dc998400caac0ab540187a371df31"
+    },
+    {
+      "file": "candidate-scale-before-ax.txt",
+      "length": 77715,
+      "sha256": "2afa5764a1605eec3c785ba8363512e7fb9cdd73c20bfb2ca68ee5e090b4620f"
+    },
+    {
+      "file": "candidate-scale-before.jpg",
+      "length": 206982,
+      "sha256": "d6bba91086ba3b544620df162fcf17c075e6b242aaa20e168d31c66515ebdb85"
+    },
+    {
+      "file": "candidate-source.json",
+      "length": 2084,
+      "sha256": "d9bb911b7ad7d6a4b635fbd05170afa811bfd38ace7c16bb1063b244a82b43b3"
+    },
+    {
+      "file": "candidate-source.patch",
+      "length": 31871,
+      "sha256": "b2dffdf0e21c6472b6ad3f5ff03f5c0db5c30fa369187ced07f09914a427cd78"
+    },
+    {
+      "file": "candidate2-after-ax.txt",
+      "length": 81417,
+      "sha256": "19b32f67ba5dcffe01292d7c442a380ea0698375c8fc66ddfc95b6f46fc994c7"
+    },
+    {
+      "file": "candidate2-after.jpg",
+      "length": 212593,
+      "sha256": "e54fe338787c4cf9a6317940b3adb3850842a0bb7ab4d0fd0ac40217b1b84198"
+    },
+    {
+      "file": "candidate2-before-ax.txt",
+      "length": 77929,
+      "sha256": "a657630d5dd6189a07c2b6023a62a20e2c04ad04575f67ffad8e7c3898517613"
+    },
+    {
+      "file": "candidate2-before.jpg",
+      "length": 215325,
+      "sha256": "70e6b74f18d7348ff4f0189351f35aa2a32aba9d2f287b4ae7c6092bed1186d1"
+    },
+    {
+      "file": "candidate2-processes.json",
+      "length": 900,
+      "sha256": "48119597f17edd936faa21bcdd84749a43c8eca5bda8722a7f0bbf5f0c5fac5a"
+    },
+    {
+      "file": "candidate3-after-ax.txt",
+      "length": 84921,
+      "sha256": "b8ad84c9e6d6fb03f6d38ab830f62604cda9f6ee6cf624cfd7e24464c24a6f24"
+    },
+    {
+      "file": "candidate3-after.jpg",
+      "length": 210294,
+      "sha256": "c36f39387743601b70d9a52a53fdbaef8c68acb4896693adeefe3d7377774d6e"
+    },
+    {
+      "file": "candidate3-processes.json",
+      "length": 900,
+      "sha256": "696a06a7c233fe981ea527bc1df3e753ba7bc835299fb160b1610a07478e4559"
+    },
+    {
+      "file": "cdp-diagnostic.json",
+      "length": 48140,
+      "sha256": "5e1cb885c14b764cfdc83dfd9f5127876ac28b45010110c1892a368501fbbb91"
+    },
+    {
+      "file": "ci-7b-final.json",
+      "length": 292,
+      "sha256": "10c685b581f3cc0e5e1699e14b01a4d31b2c744906414cab30e743cafbe8dc83"
+    },
+    {
+      "file": "ci-7b.json",
+      "length": 7152,
+      "sha256": "ad0e2ed9647ce67ac37c4087350db6182c317c5cefa15b4ddcd9d9930b343536"
+    },
+    {
+      "file": "coordinator-locations.txt",
+      "length": 9528,
+      "sha256": "831ee6d73a30c7a181bcefbaa80cc90cd5af30edf0db76caabb5fee0e10db77d"
+    },
+    {
+      "file": "cover-final-collection.log",
+      "length": 1612,
+      "sha256": "a132b3f07ae46f101dfef67d2fdbd9034ab007722ddf922118a92ac99353feff"
+    },
+    {
+      "file": "crosssite-after-ax.txt",
+      "length": 80854,
+      "sha256": "c2b736513b52a9929417885e3187277ece5422f2dab93942344559732e00859b"
+    },
+    {
+      "file": "crosssite-after.jpg",
+      "length": 205100,
+      "sha256": "17a1bdf0b08a602eb3102125678c05c8b0484f46780800ad932fe98c037b1975"
+    },
+    {
+      "file": "crosssite-before-ax.txt",
+      "length": 77844,
+      "sha256": "f20fcd0d535a87c2a66bd647bb026621d2f5fa8be73623294d0bd23ca19f54a2"
+    },
+    {
+      "file": "crosssite-before.jpg",
+      "length": 219012,
+      "sha256": "9431581ad060187aa351a2ad59aa0ea470d8a6604e08828f26536303dfee31fc"
+    },
+    {
+      "file": "crosssite-facts.json",
+      "length": 9164,
+      "sha256": "7bdab08c9ca52ae606edc2c1220f74c56a6200c2355f0044066d7017d37aefb8"
+    },
+    {
+      "file": "crosssite-request.txt",
+      "length": 908,
+      "sha256": "1d7fd0a8dd4d439b69f957b35a81dd8746ae0fc9df3726bd86217334b36504b7"
+    },
+    {
+      "file": "daily-084-stopped.json",
+      "length": 460,
+      "sha256": "55b12ba3a176dcdde304521c5d61724baa5f598df1ea8b3ded283dd8838cf435"
+    },
+    {
+      "file": "debug-processes.json",
+      "length": 819,
+      "sha256": "04be5ed0e8dd662c40437b7db2c72d7d92d59db801e2b11c7bb093252521f895"
+    },
+    {
+      "file": "event-log-observation.json",
+      "length": 72,
+      "sha256": "e5c0783f5217c827e9b32f9d2b7adc06ce2ce9ba1211a4023fc5ce1f00e735e3"
+    },
+    {
+      "file": "events-observed.json",
+      "length": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "file": "events.jsonl",
+      "length": 232,
+      "sha256": "0aa94882e7ed455d2fd5bfaa05afd8f572d6c9100a359041a7a1cd1ff105177f"
+    },
+    {
+      "file": "installed-084-standard-processes.json",
+      "length": 732,
+      "sha256": "6139f455b2f592fe9c05a156d64c0c2abf97660239826e5e2464684f29c810e0"
+    },
+    {
+      "file": "installed-084-verification.json",
+      "length": 1825,
+      "sha256": "8a29473955a225c48920b0dddd693a3d6914287ec894f4e06180aef1e65c0ba1"
+    },
+    {
+      "file": "nav-final-collection.log",
+      "length": 1714,
+      "sha256": "58e7fb19d2137dce8c2c4f5001aa71b8e61c12117b14a5060424deb4ef0044d1"
+    },
+    {
+      "file": "child.html",
+      "length": 553,
+      "sha256": "5811a20e81c5a77a8d9591ca1ed88d3b4b967ec617d614ec2c3a2d9d759492d0"
+    },
+    {
+      "file": "cover.html",
+      "length": 622,
+      "sha256": "3552d7242f8e02eeadf78b1cab1c87f16d0b31dafc65977bfcb8bd1cb4b9f4f3"
+    },
+    {
+      "file": "replacement.html",
+      "length": 562,
+      "sha256": "82079125e0ee2c8e623717dab6b2f90a58f8c4e32859da8297a94f3e5474537e"
+    },
+    {
+      "file": "scale.html",
+      "length": 534,
+      "sha256": "41488e4cd2e353303df221d69cd0c1268bd06004cc495749685e322e6dc57d32"
+    },
+    {
+      "file": "switch.html",
+      "length": 752,
+      "sha256": "90f6dff715e502ddde223142a6a0fd11793e1b78ebc1ca0990a91a6e76eddeae"
+    },
+    {
+      "file": "scale-final-collection.log",
+      "length": 3062,
+      "sha256": "0520d23385cf847b6ab063c1290df4abccd96c3a51bf9a3067e6d99b1653c2b8"
+    },
+    {
+      "file": "server-address.json",
+      "length": 38,
+      "sha256": "1cef3d2fa74945b6224df2ad5a7126ae6a0d2e4d0c627042560f6bb7cdf7b66b"
+    },
+    {
+      "file": "server-boundaries.py",
+      "length": 1463,
+      "sha256": "128a7044a13b64d52b1376054d1c959f572bd0f8f3310e6837b65289cb26690c"
+    },
+    {
+      "file": "server-process.json",
+      "length": 547,
+      "sha256": "025f7823c1f3814c61281ca5b76f0d764e54f0cd0e6b3f0ae479e9c45db59f84"
+    },
+    {
+      "file": "server.py",
+      "length": 2845,
+      "sha256": "d07e229da8711c46d310b481d80613094ea2ae1ff23946df574bf3704b36af67"
+    },
+    {
+      "file": "shell-final-build.log",
+      "length": 1219,
+      "sha256": "c2455e9f2ed09193236ff052139f9729135dbcf299202d8178f16d2d18f149c7"
+    },
+    {
+      "file": "shell-final-tests.log",
+      "length": 7853,
+      "sha256": "12ed8952cb76dec100fa38408f602dfc96ff2308444bf5f44c2b25a865406ccd"
+    },
+    {
+      "file": "stopped-candidate-first-processes.json",
+      "length": 861,
+      "sha256": "013b802bdde0b53a25972dec58f809979d70b6076ac167bf7e8726ff777e5c3b"
+    },
+    {
+      "file": "stopped-candidate-processes.json",
+      "length": 682,
+      "sha256": "53a052ce752d69b70b21a5d22e99207655be85fba83a3bf5c429b4978084c843"
+    },
+    {
+      "file": "stopped-candidate2-processes.json",
+      "length": 924,
+      "sha256": "64686e785758c54120193f7b933da229d16daa7e3d5875c3e81961f82177b000"
+    },
+    {
+      "file": "stopped-candidate3-processes.json",
+      "length": 682,
+      "sha256": "53a052ce752d69b70b21a5d22e99207655be85fba83a3bf5c429b4978084c843"
+    },
+    {
+      "file": "stopped-debug-processes.json",
+      "length": 862,
+      "sha256": "9678a2f898bbcaff1d3d4f5fe9dbeed3c5b453af411897e113c2d38b98fb9e8d"
+    },
+    {
+      "file": "stopped-installed-084-standard-processes.json",
+      "length": 538,
+      "sha256": "801a30e2c79cb8d2846e813d357e739384ee70ee35d962c3e5595d705b6fc50d"
+    },
+    {
+      "file": "version-locations.txt",
+      "length": 14234,
+      "sha256": "97c0f7969b2d23bee0a73906e4d0f24059ea2f57478ae83eb844e1e3f22207ac"
+    },
+    {
+      "file": "web-full-regression-isolated.log",
+      "length": 146311,
+      "sha256": "910f439637618df12bd6ed37a495abbfec0e8bedbf0175addf7146cfab60b1f8"
+    },
+    {
+      "file": "web-full-regression.log",
+      "length": 146611,
+      "sha256": "5c947c04575ceaf65f6d0e92e9cd60ed12ac1dbe24db087859f039e65fc93394"
+    },
+    {
+      "file": "web-startup-isolated.log",
+      "length": 21846,
+      "sha256": "5dc8e48a02c63531536aec4909ba4567c08faab416a78be2899471ddf0df0f85"
+    }
+  ],
+  "limits": [
+    "OOP只闭环button/link点击，编辑/键盘/滚动未支持",
+    "复合单条条件跨Frame非相邻引文仍开放",
+    "诊断远程端口代码已移除；实际输入沿原许可及释放",
+    "首次完整回归与真实CU争命名输入锁失败；停止实操后1390完整通过"
+  ]
+}

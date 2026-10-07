@@ -128,7 +128,9 @@ impl DesktopBridge for DesktopNativeBridge {
                 "coordinate_space": "所有 rect 是桌面物理像素 [x,y,width,height]；截图像素原点对应 image.screen_rect，归一化笔画相对目标 rect",
                 "fallback_scope": "window-canvas 仅代表可见 client 区域，包含工具栏、菜单和状态区，不等于语义绘画画布；必须依据当前原图和 rect 找到其中实际可绘画区域，不能猜位置",
                 "candidate_scope": "drawing_region_candidates 只是 UIA 候选，不是权限或完成证据。rect 与 visible_rect 均为桌面物理像素；UIA drag 坐标相对完整 rect，不相对 visible_rect。先对照当前原图确认实际绘图区；候选缺失不影响原接口",
-                "duration_ms": "0..5000", "button": "left", "cancel": "宿主取消或 Escape 中止笔画并尝试释放鼠标，释放失败明确报错",
+                "duration_ms": "0..5000", "argument_fields": ["points", "duration_ms"],
+                "host_button": "宿主固定左键；不是模型 arguments 字段，不要添加 button 或其它观察元数据",
+                "cancel": "宿主取消或 Escape 中止笔画并尝试释放鼠标，释放失败明确报错",
             },
         });
         let frame_marker = FrameRef::bind(&state, std::slice::from_ref(&image_evidence), canvas_rect)

@@ -1,0 +1,176 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791357964533-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-087-CLIPPED-20261007：沿用当前唯一SWE-2-medium云端会话，只执行本条独立裁剪负例。只调用一次computer_use_perform，参数为{\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:62791/clipped.html\"},\"objective\":\"在当前右栏内置原生浏览器的CLIPPED-CHILD中，将被裁剪确认按钮的新鲜dom引用作为唯一目标提交一次click，由宿主预检判断该点是否可投递。按钮被父容器裁剪，不允许猜坐标或点击父页面。\",\"success_criteria\":[\"最新被裁剪按钮点击次数：1\",\"最新父页点击次数：0\"],\"constraints\":[\"只允许一次目标按钮click，不滚动、不导航、不改页面、不用脚本、不桌面、不其它工具；不能点父页或其它节点；必须按当轮schema使用真实新鲜dom引用，宿主若拒绝则如实失败停止\",\"失败取消未知立即停止，不重试不补发不绕过命中检查，不执行历史任务不换模型不新建云端会话\",\"本条是负例：不得谎称目标达成，不能以零点击文字当作点击成功\"],\"max_actions\":1}。next_tool为computer_use_respond时按当次schema交回同job_id/request_id完整JSON，其它running只computer_use_wait同job_id至终态。不另发perform。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791357964760
+  },
+  "run": {
+    "id": "run-chat-886eaeda759d0645a3a7ef0554a6f915b1a546efebc8089b",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791357964533-2-tool-9b605eddead86df1e01f0dcb64f1cc8935b63ed1b7ee0bed759bb0812a95482f",
+      "provider_tool_call_id": "tool-9b605eddead86df1e01f0dcb64f1cc8935b63ed1b7ee0bed759bb0812a95482f",
+      "turn_id": "chat-turn-1791357964533-2",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791357964533-2\u001fbrowser\u001f在当前右栏内置原生浏览器的clipped-child中，将被裁剪确认按钮的新鲜dom引用作为唯一目标提交一次click，由宿主预检判断该点是否可投递。按钮被父容器裁剪，不允许猜坐标或点击父页面。\u001f||http://127.0.0.1:62791/clipped.html|\u001f最新被裁剪按钮点击次数：1|最新父页点击次数：0\u001f只允许一次目标按钮click，不滚动、不导航、不改页面、不用脚本、不桌面、不其它工具；不能点父页或其它节点；必须按当轮schema使用真实新鲜dom引用，宿主若拒绝则如实失败停止|失败取消未知立即停止，不重试不补发不绕过命中检查，不执行历史任务不换模型不新建云端会话|本条是负例：不得谎称目标达成，不能以零点击文字当作点击成功",
+      "objective_json": {
+        "constraints": [
+          "只允许一次目标按钮click，不滚动、不导航、不改页面、不用脚本、不桌面、不其它工具；不能点父页或其它节点；必须按当轮schema使用真实新鲜dom引用，宿主若拒绝则如实失败停止",
+          "失败取消未知立即停止，不重试不补发不绕过命中检查，不执行历史任务不换模型不新建云端会话",
+          "本条是负例：不得谎称目标达成，不能以零点击文字当作点击成功"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏内置原生浏览器的CLIPPED-CHILD中，将被裁剪确认按钮的新鲜dom引用作为唯一目标提交一次click，由宿主预检判断该点是否可投递。按钮被父容器裁剪，不允许猜坐标或点击父页面。",
+        "success_criteria": [
+          "最新被裁剪按钮点击次数：1",
+          "最新父页点击次数：0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:62791/clipped.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791358588092,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791357964533-2-tool-9b605eddead86df1e01f0dcb64f1cc8935b63ed1b7ee0bed759bb0812a95482f",
+        "provider_tool_call_id": "tool-9b605eddead86df1e01f0dcb64f1cc8935b63ed1b7ee0bed759bb0812a95482f",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_target_hit_mismatch",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-af9789956940038356fc8d194ba2530e:1b0034c8c9d13924",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:a3214854c5a4673ba77f80b09fd654ba",
+          "native-ax:1:1",
+          "native-observation:a3214854c5a4673ba77f80b09fd654ba"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791358864533
+            }
+          },
+          "cu_deadline_ms": 1791358588092,
+          "cu_deadline_established_at_ms": 1791357988092,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791357988092,
+      "updated_at_ms": 1791358000027,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791357964533-2-tool-9b605eddead86df1e01f0dcb64f1cc8935b63ed1b7ee0bed759bb0812a95482f",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-af9789956940038356fc8d194ba2530e",
+          "action_fingerprint": "2859146039befe37",
+          "status": "failed",
+          "error_code": "native_browser_target_hit_mismatch",
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:a3214854c5a4673ba77f80b09fd654ba\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791357998781,
+          "completed_at_ms": 1791358000016,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791357964533-2-tool-9b605eddead86df1e01f0dcb64f1cc8935b63ed1b7ee0bed759bb0812a95482f",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-af9789956940038356fc8d194ba2530e\"}"
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [],
+  "attempts": [
+    {
+      "attempt_id": "7aa69f6db5fc5f791b7b86518fc86e49fe6a72ff2ee066ff",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "planning_counts": {
+    "devin.planning_requested": 1,
+    "devin.planning_response": 1
+  }
+}

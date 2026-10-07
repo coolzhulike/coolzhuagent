@@ -54,11 +54,26 @@ pub(crate) struct FrozenPolicy {
     grants: BTreeMap<String, SessionGrantView>,
     parent_claim: (Option<String>, String),
     readonly: bool,
+    planning: Arc<super::planning_exchange::Exchange>,
     /// 固定工程在 blocking worker 真实收尾前仍被持有。
     _pin: workspace_activity::WorkspacePin,
 }
 
 impl FrozenPolicy {
+    pub(crate) fn planning_for(&self, parent: &FrozenParentContext, agent: &AgentSessionDto)
+        -> Result<Arc<super::planning_exchange::Exchange>,String> {
+        self.live()?;
+        self.tool_live("computer_use_perform")?;
+        if self.readonly || parent.workspace_id != self.parent.workspace_id
+            || parent.room_id != self.parent.room_id || parent.parent_run_id != self.parent.parent_run_id
+            || parent.public_turn_id != self.parent.public_turn_id || parent.runtime_db_path != self.parent.runtime_db_path
+            || agent.id != self.scope.agent_id
+            || self.parent.session_backend_model.as_ref().is_none_or(|model| model.id != agent.id || model.model != agent.model) {
+            return Err("规划请求不属于当前 Devin 聊天模型；未创建额外会话。".into());
+        }
+        Ok(self.planning.clone())
+    }
+
     fn tool_live(&self, name: &str) -> Result<(), String> {
         if !self.grants.contains_key(name)
             || required_permission_for_tool(name)
@@ -281,6 +296,7 @@ impl ToolBridge {
                 grants,
                 parent_claim,
                 readonly,
+                planning: Arc::new(super::planning_exchange::Exchange::default()),
                 _pin: pin,
             }),
             definitions,
@@ -342,6 +358,9 @@ impl ToolBridge {
                     tools.push(json!({"name":"computer_use_wait",
                         "description":"等待 computer_use_perform 返回的同一 job_id。running 不是完成；继续等待到最终回执，禁止重复提交 perform。此工具不创建新的电脑动作任务。",
                         "inputSchema":{"type":"object","properties":{"job_id":{"type":"string"}},"required":["job_id"],"additionalProperties":false}}));
+                    tools.push(json!({"name":"computer_use_respond",
+                        "description":"回答当前 CU 任务返回的规划或验收请求。严格按请求指定格式，把完整回复原文放入 response；宿主继续校验和执行。这不是新任务，不调用 perform。",
+                        "inputSchema":{"type":"object","properties":{"job_id":{"type":"string"},"request_id":{"type":"string"},"response":{"type":"string"}},"required":["job_id","request_id","response"],"additionalProperties":false}}));
                 }
                 json!({"tools":tools})
             }
@@ -362,7 +381,26 @@ impl ToolBridge {
                         self.policy.live()?;
                         self.policy.tool_live("computer_use_perform")?;
                         let job_id=input["job_id"].as_str().ok_or("等待工具缺少 job_id。")?;
-                        super::tool_wait::wait(&self.cu_job,job_id,Duration::from_secs(25)).await?
+                        self.wait_cu(job_id).await?
+                    },
+                    "computer_use_respond" => {
+                        self.policy.live()?;
+                        self.policy.tool_live("computer_use_perform")?;
+                        let job_id=input["job_id"].as_str().ok_or("规划回复缺少 job_id。")?;
+                        let request_id=input["request_id"].as_str().ok_or("规划回复缺少 request_id。")?;
+                        let response=input["response"].as_str().ok_or("规划回复缺少 response 原文。")?;
+                        {
+                            let slot=self.cu_job.lock().map_err(|_|"CU 等待状态不可用。")?;
+                            if !slot.as_ref().is_some_and(|job| job.id == job_id && job.unfinished()) {
+                                return Err("规划任务已结束或不属于当前轮次。".into());
+                            }
+                            self.policy.planning.answer(request_id,response)?;
+                        }
+                        append_runtime_run_event(self.policy.journal.path(), &self.policy.scope.run_id,
+                            "devin.planning_response",json!({"request_id":request_id,"source_attempt":self.policy.scope.attempt_id,
+                                "response_digest":super::chat::digest(response.as_bytes())}))
+                            .map_err(|_|"规划回复已接收，但来源记录未保存；请等待原任务，不重提。")?;
+                        self.wait_cu(job_id).await?
                     },
                     _ => self.call(id, name, &input).await?,
                 }
@@ -409,7 +447,11 @@ impl ToolBridge {
                 job_id
             }
         };
-        super::tool_wait::wait(&self.cu_job,&job_id,Duration::from_secs(25)).await
+        self.wait_cu(&job_id).await
+    }
+
+    async fn wait_cu(&self, job_id: &str) -> Result<JsonValue,String> {
+        super::tool_wait::wait_with_planning(&self.cu_job,job_id,Duration::from_secs(25),Some(&self.policy.planning)).await
     }
 
     /// 只在宿主显式持有桥对象时监听随机本机端口，不挂到主控制台路由。
@@ -596,6 +638,16 @@ pub(super) struct BridgeServer {
     bridge: Arc<ToolBridge>,
 }
 impl BridgeServer {
+    pub(super) fn image_handoff_signal(&self) -> Arc<AtomicBool> {
+        self.bridge.policy.planning.image_handoff_signal()
+    }
+    pub(super) fn take_image_continuation(&self) -> Result<Option<Vec<JsonValue>>,String> {
+        self.bridge.policy.live()?;
+        self.bridge.policy.tool_live("computer_use_perform")?;
+        let slot = self.bridge.cu_job.lock().map_err(|_|"工具等待状态不可用。")?;
+        let Some(job) = slot.as_ref().filter(|job|job.unfinished()) else { return Ok(None); };
+        self.bridge.policy.planning.take_image_continuation(&job.id)
+    }
     pub(super) fn has_pending(&self) -> bool {
         self.bridge.cu_job.lock().map(|slot|slot.as_ref().is_some_and(|job|job.unfinished())).unwrap_or(true)
     }
@@ -814,6 +866,7 @@ mod tests {
                 grants,
                 parent_claim: parent_claim(db, &scope.run_id).unwrap(),
                 readonly: false,
+                planning: Arc::new(super::super::planning_exchange::Exchange::default()),
                 _pin: workspace_activity::pin_workspace().unwrap(),
             }),
             definitions,
@@ -1229,7 +1282,10 @@ mod tests {
             .await
             .unwrap();
         let result: JsonValue = response.json().await.unwrap();
-        assert_eq!(result["result"]["tools"].as_array().unwrap().len(), 6);
+        // 当前夹具只开放基础工具；规划回复工具只能随 CU 权限一起开放。
+        let tools = result["result"]["tools"].as_array().unwrap();
+        assert_eq!(tools.len(), bridge.definitions.len());
+        assert!(!tools.iter().any(|tool| tool["name"] == "computer_use_respond"));
         let response = client
             .post(url)
             .header("Authorization", token)

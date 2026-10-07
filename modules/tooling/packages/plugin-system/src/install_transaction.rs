@@ -62,12 +62,20 @@ impl PluginManager {
             .write(true)
             .create(true)
             .open(&lock_path)?;
-        lock.try_lock().map_err(|error| {
-            PluginError::Busy(format!(
-                "插件管理锁不可用，本次操作未执行（{}）：{error}",
-                lock_path.display()
-            ))
-        })?;
+        // 目录读取与工具快照复核共享此锁；短暂读竞争应等待，不能被上层当成工具消失。
+        // 只等待取得锁，不重试恢复、事务或第三方执行；持续占用仍有界返回Busy。
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(1);
+        loop {
+            match lock.try_lock() {
+                Ok(()) => break,
+                Err(std::fs::TryLockError::WouldBlock) if std::time::Instant::now() < deadline => {
+                    std::thread::sleep(std::time::Duration::from_millis(10));
+                }
+                Err(error) => return Err(PluginError::Busy(format!(
+                    "插件管理锁不可用，本次操作未执行（{}）：{error}", lock_path.display()
+                ))),
+            }
+        }
         self.recover_pending_operations_locked(&root)?;
         Ok((root, lock))
     }
@@ -1134,6 +1142,29 @@ mod tests {
             .install(source_root.to_str().expect("source path"))
             .expect("install after lock release");
 
+        let _ = fs::remove_dir_all(config_home);
+        let _ = fs::remove_dir_all(source_root);
+    }
+
+    #[test]
+    fn manager_read_waits_for_brief_lock_contention_without_losing_plugins() {
+        let config_home = temp_dir("transaction-read-contention-home");
+        let source_root = temp_dir("transaction-read-contention-source");
+        write_external_plugin(&source_root, "read-contention", "1.0.0");
+        let mut manager = PluginManager::new(PluginManagerConfig::new(&config_home));
+        manager.install(source_root.to_str().unwrap()).unwrap();
+        let expected = manager.list_installed_plugins().unwrap().into_iter()
+            .map(|plugin| plugin.metadata.id).collect::<Vec<_>>();
+        let before = fs::read(manager.registry_path()).unwrap();
+        let (_root, held) = manager.lock_and_recover().unwrap();
+        let release = std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            drop(held);
+        });
+        let installed = manager.list_installed_plugins().expect("普通读取竞争应等待后成功");
+        release.join().unwrap();
+        assert_eq!(installed.into_iter().map(|plugin| plugin.metadata.id).collect::<Vec<_>>(), expected);
+        assert_eq!(fs::read(manager.registry_path()).unwrap(), before);
         let _ = fs::remove_dir_all(config_home);
         let _ = fs::remove_dir_all(source_root);
     }

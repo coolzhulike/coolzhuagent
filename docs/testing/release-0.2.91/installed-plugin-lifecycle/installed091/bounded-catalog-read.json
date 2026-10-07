@@ -1,0 +1,248 @@
+{
+  "scope": "真实SWE新请求期间有界目录读取；不等价无界压力测试",
+  "prefix": "PLUGIN-INSTALLED091-FRESH-20261007",
+  "run_id": "run-chat-1f9fd0e7d6432d4ae2fd9dda6ceedccd1898baf3f010174c",
+  "last_run_state": "running",
+  "reads": [
+    {
+      "started_ms": 1791368946853,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368947530
+    },
+    {
+      "started_ms": 1791368948133,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368948520
+    },
+    {
+      "started_ms": 1791368949122,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368949504
+    },
+    {
+      "started_ms": 1791368950106,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368950469
+    },
+    {
+      "started_ms": 1791368951071,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368951439
+    },
+    {
+      "started_ms": 1791368952040,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368952413
+    },
+    {
+      "started_ms": 1791368953015,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368953433
+    },
+    {
+      "started_ms": 1791368954035,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368954400
+    },
+    {
+      "started_ms": 1791368955002,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368955380
+    },
+    {
+      "started_ms": 1791368955982,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368956368
+    },
+    {
+      "started_ms": 1791368956969,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368957335
+    },
+    {
+      "started_ms": 1791368957936,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368958299
+    },
+    {
+      "started_ms": 1791368958901,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368959269
+    },
+    {
+      "started_ms": 1791368959871,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368960245
+    },
+    {
+      "started_ms": 1791368960847,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368961211
+    },
+    {
+      "started_ms": 1791368961813,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368962177
+    },
+    {
+      "started_ms": 1791368962779,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368963141
+    },
+    {
+      "started_ms": 1791368963743,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368964110
+    },
+    {
+      "started_ms": 1791368964712,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368965074
+    },
+    {
+      "started_ms": 1791368965676,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368966045
+    },
+    {
+      "started_ms": 1791368966647,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368967011
+    },
+    {
+      "started_ms": 1791368967613,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368967984
+    },
+    {
+      "started_ms": 1791368968585,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368968960
+    },
+    {
+      "started_ms": 1791368969563,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368969925
+    },
+    {
+      "started_ms": 1791368970527,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368970908
+    },
+    {
+      "started_ms": 1791368971510,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368971873
+    },
+    {
+      "started_ms": 1791368972475,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368972852
+    },
+    {
+      "started_ms": 1791368973454,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368973816
+    },
+    {
+      "started_ms": 1791368974418,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368974779
+    },
+    {
+      "started_ms": 1791368975381,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368975747
+    },
+    {
+      "started_ms": 1791368976349,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368976722
+    },
+    {
+      "started_ms": 1791368977323,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368977707
+    },
+    {
+      "started_ms": 1791368978309,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368978671
+    },
+    {
+      "started_ms": 1791368979272,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368979661
+    },
+    {
+      "started_ms": 1791368980263,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368980730
+    },
+    {
+      "started_ms": 1791368981332,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368981698
+    },
+    {
+      "started_ms": 1791368982299,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368982665
+    },
+    {
+      "started_ms": 1791368983267,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368983640
+    },
+    {
+      "started_ms": 1791368984242,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368984606
+    },
+    {
+      "started_ms": 1791368985208,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791368985580
+    }
+  ]
+}

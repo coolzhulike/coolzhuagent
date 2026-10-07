@@ -1,0 +1,80 @@
+{
+  "scope": "真实SWE新请求期间有界目录读取；不等价无界压力测试",
+  "prefix": "PLUGIN-CANDIDATE-BOUNDED-20261007",
+  "run_id": "run-chat-7d490977d738f7ec0461fabf107e6635e70dea9042aee3a8",
+  "last_run_state": "completed",
+  "reads": [
+    {
+      "started_ms": 1791367273079,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367276866
+    },
+    {
+      "started_ms": 1791367277468,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367281015
+    },
+    {
+      "started_ms": 1791367281617,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367285040
+    },
+    {
+      "started_ms": 1791367285641,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367289498
+    },
+    {
+      "started_ms": 1791367290100,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367293534
+    },
+    {
+      "started_ms": 1791367294136,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367297982
+    },
+    {
+      "started_ms": 1791367298584,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367303317
+    },
+    {
+      "started_ms": 1791367303919,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367308637
+    },
+    {
+      "started_ms": 1791367309239,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367313919
+    },
+    {
+      "started_ms": 1791367314520,
+      "ok": false,
+      "error": "timed out",
+      "finished_ms": 1791367319532
+    },
+    {
+      "started_ms": 1791367320134,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367324397
+    },
+    {
+      "started_ms": 1791367324999,
+      "ok": true,
+      "loaded": true,
+      "finished_ms": 1791367328714
+    }
+  ]
+}

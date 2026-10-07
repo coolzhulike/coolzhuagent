@@ -1,0 +1,13 @@
+{
+  "shell_pid": 24456,
+  "web_started": "2026-10-06T04:10:43.0487306Z",
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "web_pid": 21496,
+  "port": 8765,
+  "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-tab-sync\\bin\\coolzhu-web-console.exe",
+  "stage": "预览标签地址同步候选，尚未正式打包安装",
+  "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-tab-sync\\bin\\coolzhu-tauri-shell.exe",
+  "shell_started": "2026-10-06T04:10:44.7246288Z",
+  "web_sha256": "ce96db4735ed91a482d8925405a4dd6f31ccb1b4de9bc86c5c4d03fc98dde3ff",
+  "shell_sha256": "ff9f9b5eeed17796984684b95aa35b0a408650dbc3ea4f1f66fb37f3846fe388"
+}

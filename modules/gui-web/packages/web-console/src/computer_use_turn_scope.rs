@@ -13,19 +13,29 @@ impl ComputerUseTurnScope {
     pub(super) fn from_current_user(text: &str) -> Self {
         let explicit_request = explicit_request_from_current_user(text).map(Arc::new);
         let text = text.to_ascii_lowercase();
-        let native_browser = ["内置浏览器", "内置网页", "内置页", "右栏浏览器", "右栏网页", "右栏页面", "右栏表单", "右侧表单",
-            "右栏原生浏览器", "右侧原生浏览器", "右侧浏览器", "右侧网页", "右侧扩展栏浏览器",
+        let native_browser = ["内置浏览器", "内置原生浏览器", "内置网页", "内置页", "右栏浏览器", "右栏网页", "右栏页面", "右栏表单", "右侧表单",
+            "右栏原生浏览器", "右侧原生浏览器", "右栏原生网页", "右侧原生网页", "右栏已加载原生网页", "右侧已加载原生网页",
+            "右侧浏览器", "右侧网页", "右侧扩展栏浏览器",
             "右栏原生browser", "右栏原生 browser", "右侧原生browser", "右侧原生 browser", "builtin browser", "built-in browser"]
             .iter().any(|name| text.contains(name));
         // 导航也是浏览器交互。允许导航但禁止其它三类输入，不能被降成只读任务。
-        let allows_navigation = ["允许导航", "只允许一次导航", "仅允许一次导航", "仅执行导航", "只执行导航"]
-            .iter().any(|intent| text.contains(intent))
-            && !["不允许导航", "不得导航", "禁止导航", "不要导航", "不导航"]
+        // 显式工具参数同样是当前用户要求，不能因三个其它动作被禁而吞掉导航目标。
+        let explicit_navigation = explicit_request.as_ref().is_some_and(|request| {
+            let objective = request.objective.to_ascii_lowercase();
+            request.surface == ComputerUseSurface::Browser
+                && ["导航到", "navigate to"].iter().any(|intent| objective.contains(intent))
+        });
+        let allows_navigation = (explicit_navigation || ["允许导航", "只允许一次导航", "仅允许一次导航", "仅执行导航", "只执行导航"]
+            .iter().any(|intent| text.contains(intent)))
+            && !["不允许导航", "不得导航", "禁止导航", "不要导航", "不导航", "do not navigate", "must not navigate"]
                 .iter().any(|restriction| text.contains(restriction));
+        // 合法对象里的约束按原字符串识别，JSON结束引号不应改变禁令边界。
+        let explicit_no_other_input = explicit_request.as_ref().is_some_and(|request|
+            forbids_all_browser_input(&request.constraints.join("；").to_ascii_lowercase()));
         let explicit_no_input = ["不得发送输入", "不要发送输入", "不发送输入", "不发送任何输入", "不作任何输入", "do not send input"]
             .iter().any(|restriction| text.contains(restriction))
             || (!allows_navigation && (["不点击、不滚动、不输入", "不得点击、滚动或输入", "禁止点击、滚动或输入"]
-                .iter().any(|restriction| text.contains(restriction)) || forbids_all_browser_input(&text)));
+                .iter().any(|restriction| text.contains(restriction)) || explicit_no_other_input || forbids_all_browser_input(&text)));
         Self { native_browser, native_browser_read_only: native_browser && explicit_no_input, explicit_request }
     }
 
@@ -187,6 +197,17 @@ mod tests {
         let scope = ComputerUseTurnScope::from_current_user(
             "当前右栏原生浏览器，只允许一次导航，不点击、不滚动、不输入");
         assert!(!scope.native_browser_read_only());
+        // 真实SWE导航验收的失败输入：明确的合法对象，只有其它动作受限制。
+        let mut navigation = request("browser", serde_json::json!({"url":"https://example.com/source"}));
+        navigation.objective = "在当前右栏原生浏览器通过一次navigate导航到https://example.com/destination".into();
+        navigation.constraints = vec!["仅允许一次顶层navigate，不点击不输入不按键不滚动".into()];
+        let text = format!("computer_use_perform，参数为{}", serde_json::to_string(&navigation).unwrap());
+        let scope = ComputerUseTurnScope::from_current_user(&text);
+        assert!(!scope.native_browser_read_only());
+        assert!(scope.validate(&navigation).is_ok());
+        // 明确零输入和禁止导航仍优先，合法参数不能抵消这些本轮禁令。
+        assert!(ComputerUseTurnScope::from_current_user(&format!("{text}。不发送任何输入")).native_browser_read_only());
+        assert!(ComputerUseTurnScope::from_current_user(&format!("{text}。禁止导航")).native_browser_read_only());
     }
     #[test]
     fn target_specific_prohibition_does_not_disable_source_interaction() {
@@ -203,7 +224,7 @@ mod tests {
         for text in ["内置浏览器，不得点击、滚动或输入", "内置浏览器，禁止点击、滚动或输入",
             "内置浏览器，不得点击、输入、滚动", "内置浏览器，不要滚动、输入或点击",
             "内置浏览器，禁止输入、 点击 、滚动", "右栏原生浏览器禁止点击/输入/滚动/导航/提交",
-            "右侧原生浏览器禁止输入／滚动／点击", "右栏原生浏览器，不发送任何输入",
+            "右侧原生浏览器禁止输入／滚动／点击", "内置原生浏览器，不发送任何输入", "右栏原生浏览器，不发送任何输入",
             "右栏原生浏览器，不作任何输入", "只读当前右栏网页，不点击、不输入、不滚动、不导航",
             "内置浏览器，不要点击；禁止输入；不得滚动"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
@@ -221,7 +242,9 @@ mod tests {
         assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());
         // 实操中的同义表述仍明确指向右栏，不能静默改走外部扩展后端。
         for text in ["仅当前右栏原生浏览器，不操作其它软件", "使用当前右侧原生浏览器点击一次", "在右栏表单勾选准备完成然后提交", "在右侧表单选择行程",
-            "仅本次右栏原生browser，只允许click", "右栏原生 browser点击一次", "右侧原生browser点击一次", "右侧原生 browser只读"] {
+            "仅本次右栏原生browser，只允许click", "右栏原生 browser点击一次", "右侧原生browser点击一次", "右侧原生 browser只读",
+            "当前右栏内置原生浏览器，只允许click", "在内置原生浏览器输入一次", "当前右侧扩展栏内置原生浏览器",
+            "当前右栏已加载原生网页", "当前右侧已加载原生网页", "当前右栏原生网页", "当前右侧原生网页"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(scope.native_browser());
             assert!(!scope.native_browser_read_only());

@@ -5,6 +5,7 @@ use super::{native_browser_devtools::{self,ReadMethod},native_browser_target::Ve
 
 // 不接受请求提供的脚本；副作用保护拒绝页面自定义getter等无法证明只读的行为。
 pub(super) const READ_EDITOR: &str = r#"function(){
+ if(!this.ownerDocument.hasFocus())return null;
  const tag=this.tagName;const kind=tag==='INPUT'?this.type:'textarea';
  if(!this.isConnected||this.ownerDocument.activeElement!==this||this.disabled||this.readOnly||
     !(tag==='TEXTAREA'||(tag==='INPUT'&&(kind==='text'||kind==='search'))))return null;
@@ -15,7 +16,12 @@ pub(super) const READ_EDITOR: &str = r#"function(){
 }"#;
 
 pub(super) fn state(raw:&Value) -> Result<Value,String> {
-    if raw.get("exceptionDetails").is_some() {return Err("native_browser_editor_unavailable".into());}
+    if raw.get("exceptionDetails").is_some() {
+        // 只暴露固定错误类别，不记录网页异常正文、原值或选区。
+        let side_effect = raw.pointer("/exceptionDetails/exception/description").and_then(Value::as_str)
+            .is_some_and(|text| text.contains("Possible side-effect"));
+        return Err(if side_effect {"native_browser_focus_read_side_effect"} else {"native_browser_editor_unavailable"}.into());
+    }
     let value=raw.pointer("/result/value").filter(|v|v.is_object()).ok_or("native_browser_editor_not_focused")?;
     let text=value["value"].as_str().ok_or("native_browser_editor_unavailable")?;
     let start=value["start"].as_u64().ok_or("native_browser_editor_unavailable")?;
@@ -29,15 +35,16 @@ pub(super) fn state(raw:&Value) -> Result<Value,String> {
 }
 
 pub(super) async fn resolve(app:&AppHandle,target:&VerifiedTarget) -> Result<String,String> {
-    native_browser_devtools::read(app,&target.resource,ReadMethod::ResolveEditor(target.node.backend_node)).await?
+    native_browser_devtools::read_session(app,&target.resource,target.node.scope.session(),ReadMethod::ResolveEditor(target.node.backend_node)).await?
         .pointer("/object/objectId").and_then(Value::as_str).filter(|s|!s.is_empty() && s.len()<=256)
         .map(str::to_string).ok_or_else(||"native_browser_editor_unavailable".into())
 }
 pub(super) async fn read(app:&AppHandle,target:&VerifiedTarget) -> Result<Value,String> {
     let object=resolve(app,target).await?;
-    let result=native_browser_devtools::read(app,&target.resource,ReadMethod::EditorState(object.clone())).await
+    let session=target.node.scope.session();
+    let result=native_browser_devtools::read_session(app,&target.resource,session,ReadMethod::EditorState(object.clone())).await
         .and_then(|value|state(&value));
-    let _=native_browser_devtools::read(app,&target.resource,ReadMethod::ReleaseEditor(object)).await;
+    let _=native_browser_devtools::read_session(app,&target.resource,session,ReadMethod::ReleaseEditor(object)).await;
     result
 }
 

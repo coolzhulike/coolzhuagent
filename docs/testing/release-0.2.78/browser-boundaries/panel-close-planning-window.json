@@ -1,0 +1,17 @@
+{
+  "observed_ms": 1791248223579.8267,
+  "run_id": "run-chat-3438413558d37c51e44b1bd350b83b702d088cc5835d5cf6",
+  "message_id": "msg-1791248210159-user",
+  "cu_call_id": "cu-session-1791131217833-chat-turn-1791248210159-5-tool-b45988c09e0204f73cc5ecf3d05e4d6b317e4dd946e4a6106e48762030eddcce",
+  "internal_attempt": {
+    "attempt_id": "6b1e0f1f6c2b17e396ee54d3df68edd648d8d01c6d3f60d4",
+    "scope_json": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"lane\":\"internal\",\"run_id\":\"run-chat-3438413558d37c51e44b1bd350b83b702d088cc5835d5cf6\",\"turn_id\":\"chat-turn-1791248210159-5\",\"attempt_id\":\"6b1e0f1f6c2b17e396ee54d3df68edd648d8d01c6d3f60d4\",\"owner_epoch\":1,\"generation\":1}",
+    "state": "submitted",
+    "cancel_requested": 0,
+    "protocol_stop": null,
+    "process_drained": 0,
+    "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+  },
+  "steps_started": 0,
+  "note": "真实browser第一内层请求在新鲜观察之后提交，输入步骤尚未开始；后续UI操作时再次以实操台账确认。"
+}

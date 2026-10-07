@@ -1,0 +1,22 @@
+{
+  "safety_root": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\input-safety",
+  "observed_utc": "2026-10-06T04:36:03.9884965Z",
+  "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+  "stage": "正常桌面启动0.2.84核验通过",
+  "selfcheck_ok": true,
+  "source_commit": "82f769611a9b35cc947e8615575868e5cc34d8b9",
+  "processes": [
+    {
+      "sha256": "bc72bb8aa4c3858115b803deb80b65c3eb39aa400846cdbdc00fd784e5709bb9",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "created": "2026-10-06T04:35:54.0716718Z",
+      "pid": 8668
+    },
+    {
+      "sha256": "2b5944d8f90a374edc1eaf905a0ca68a44355b8785046c14f43c8f98a6447a40",
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "created": "2026-10-06T04:35:54.8168282Z",
+      "pid": 6772
+    }
+  ]
+}

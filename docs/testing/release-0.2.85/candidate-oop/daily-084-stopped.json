@@ -1,0 +1,16 @@
+{
+  "observed_utc": "2026-10-06T04:47:30.1648142Z",
+  "stage": "仅停止本轮恢复的084日常实例",
+  "stopped": [
+    {
+      "pid": 8668,
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "created": "2026-10-06T04:35:54.0716718Z"
+    },
+    {
+      "pid": 6772,
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "created": "2026-10-06T04:35:54.8168282Z"
+    }
+  ]
+}

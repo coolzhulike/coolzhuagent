@@ -1,0 +1,27 @@
+{
+  "finished_utc": "2026-10-07T10:42:03.0769819Z",
+  "source_commit": "a366fbb2ec35bf75163ed643b79adfae176d8943",
+  "preserved_processes": [
+    {
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "pid": 28340,
+      "sha256": "6505b6c5edb670a919658d68edc8ce86def280516150a0ba6f35435c4df5566b",
+      "created": "2026-10-07T10:34:18.8652335Z"
+    },
+    {
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "pid": 15008,
+      "sha256": "026b6dc5bd3e2f98ff1d953f1f0554ed10465a1ac5dd3bff85807166596613cd",
+      "created": "2026-10-07T10:34:19.5762229Z"
+    }
+  ],
+  "exit_code": 0,
+  "scope": "已运行桌面单实例正常再次启动：恢复原窗口，不创建第二控制台或启动演出",
+  "invocation": {
+    "sha256": "026b6dc5bd3e2f98ff1d953f1f0554ed10465a1ac5dd3bff85807166596613cd",
+    "path": "C:/Program Files/CoolzhuAgent/bin/coolzhu-tauri-shell.exe",
+    "pid": 3212,
+    "created": "2026-10-07T10:42:02.3568593Z"
+  },
+  "started_utc": "2026-10-07T10:42:02.3126455Z"
+}

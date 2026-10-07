@@ -1,0 +1,105 @@
+{
+  "scope": "别名候选实操、候选DSH页面复核、已安装086更新/设置/统计及日常恢复；不冒充087安装验收",
+  "files": [
+    {
+      "path": "candidate-processes.json",
+      "bytes": 909,
+      "sha256": "1cc371ff8c373aef879d3eb2ab91799c9db141fb8e913e6448b809a3aa3c433c"
+    },
+    {
+      "path": "installed086-model-settings.jpg",
+      "bytes": 214740,
+      "sha256": "d83a2b2c46efd9f477f089dafda77d97ec4a11f0e645930de73ea1cc46a4b947"
+    },
+    {
+      "path": "installed086-statistics.jpg",
+      "bytes": 201161,
+      "sha256": "5b79a2510270b735b0072e2480038c5fc4e1ebae1c84e599c34469b1e5b6dd9f"
+    },
+    {
+      "path": "installed086-update-result.jpg",
+      "bytes": 199089,
+      "sha256": "ecb3616aea6e90c7df4b4365ee4ad719c59477fbfef5f2e19a6a7529160770d1"
+    },
+    {
+      "path": "installed086-update-status.json",
+      "bytes": 298,
+      "sha256": "1f1d2677b957f089b28cb678667b86a36e62bd80246bbf4d9b0cc524be7c185e"
+    },
+    {
+      "path": "market-detail.jpg",
+      "bytes": 161873,
+      "sha256": "444b5846dbb3a67c460c56d241cf10b6afe17f4cfc84a7609746632d369825a7"
+    },
+    {
+      "path": "market-loaded.jpg",
+      "bytes": 218918,
+      "sha256": "4ce0efd5ba84419443acb284912d6756608d0957f067d48bd4ec866db69d58f5"
+    },
+    {
+      "path": "market-search.jpg",
+      "bytes": 218631,
+      "sha256": "86b4652b305f743fe90b9867e725190a0b3860bc11270414c27b2f423a1ccaf5"
+    },
+    {
+      "path": "market-source-verified.jpg",
+      "bytes": 165914,
+      "sha256": "8665dfc5d792ad61abeb75b07209881e632889e4e2ac5d46f94713216dbc2bdc"
+    },
+    {
+      "path": "native-alias-after.jpg",
+      "bytes": 225059,
+      "sha256": "9f8d7b457463b228bce6edc8b87814d30323fabd43129d852ddf3a9b0f9991f2"
+    },
+    {
+      "path": "native-alias-before.jpg",
+      "bytes": 224166,
+      "sha256": "2dd02ed55013d8fabfee6f1948a13e1d4aaa241cd982085637509aa84fbd0c3b"
+    },
+    {
+      "path": "native-alias-facts.json",
+      "bytes": 37415,
+      "sha256": "0b2ebf8934d4f6a0f420ea961403d6a8462e0e9580ffc78997f619d2d4c5eb8f"
+    },
+    {
+      "path": "restored-daily-086-selfcheck.json",
+      "bytes": 1777,
+      "sha256": "b1a8533bef6acf4a04d8fc57acdb20744509a794f96f7e45412c18a25d5b63e0"
+    },
+    {
+      "path": "restored-daily-086-verification.json",
+      "bytes": 857,
+      "sha256": "d23bad4d6d40856271ae59d71ef98ff53be863583582942a6800cc6f843c02a1"
+    },
+    {
+      "path": "safety-after-native-alias.json",
+      "bytes": 782,
+      "sha256": "592c427fa40a22d4dece2ecdf8126977eea71fbc780adb757346a43e29b11b53"
+    },
+    {
+      "path": "single-session-facts.json",
+      "bytes": 6311,
+      "sha256": "c9b71a790038ddbe5598058dbfa9c18d136bfe4e0fb63a86569b160e873cd6d8"
+    },
+    {
+      "path": "stopped-candidate-processes.json",
+      "bytes": 691,
+      "sha256": "739de1b302b4e0d1ed075c2a895c2bacba0bbe82ecab5551af3013cb86927e2c"
+    },
+    {
+      "path": "web-build-native-alias.log",
+      "bytes": 49792,
+      "sha256": "59329d31a7777cbf2550233020df301f33795ae47b1366120b774a9ba14e6144"
+    },
+    {
+      "path": "web-tests-all-idle.log",
+      "bytes": 147155,
+      "sha256": "dc91d03756954602d8c7acbd1e1b13fe1aed568d157978a21352fe1440988755"
+    },
+    {
+      "path": "web-tests-all.log",
+      "bytes": 147561,
+      "sha256": "c9b5111a4dece4a514ebd8773d0e1b6101559fc2da2694a7782d4654915e62ac"
+    }
+  ]
+}

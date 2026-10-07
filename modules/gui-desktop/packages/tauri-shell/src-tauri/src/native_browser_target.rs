@@ -1,18 +1,21 @@
 //! 宿主重新核对真实文档、AX、几何与命中结果；节点引用本身不授予输入资格。
-use native_browser_protocol::PanelResource;
+use native_browser_protocol::{PanelResource,ScrollDirection};
 use serde_json::Value;
 use tauri::AppHandle;
 
 use super::{
     native_browser_devtools::{self, ReadMethod},
     native_browser_nodes::{self, DocumentIdentity, NodeBinding},
-    native_browser_observation::{self, bounded_text, regular_document_nodes},
+    native_browser_observation::{self, bounded_text},
+    native_browser_dom::{operable_document_nodes, open_shadow_roots, NODE_LIMIT},
+    native_browser_document::{self,DocumentSnapshot},
 };
 
 #[derive(Clone)]
 pub(super) struct VerifiedTarget {
     pub resource: PanelResource,
     pub document: DocumentIdentity,
+    pub snapshot: DocumentSnapshot,
     pub node: NodeBinding,
     pub x: i32,
     pub y: i32,
@@ -20,7 +23,7 @@ pub(super) struct VerifiedTarget {
     pub editor: Option<Value>,
 }
 
-fn current_node(tree: &Value, document: &DocumentIdentity, node: &NodeBinding) -> Result<(), String> {
+pub(super) fn current_node(tree: &Value, document: &DocumentIdentity, node: &NodeBinding) -> Result<(), String> {
     let nodes = tree["nodes"].as_array().ok_or("native_browser_target_unavailable")?;
     let mut matching = nodes.iter().filter(|candidate|
         candidate["ignored"].as_bool() == Some(false)
@@ -74,13 +77,14 @@ pub(super) fn point(box_model: &Value, metrics: &Value) -> Result<(i32, i32), St
 }
 
 /// DOM.getNodeForLocation 接收文档坐标；鼠标派发仍接收视口坐标，不能混用。
-fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String> {
+pub(super) fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String> {
     let viewport = metrics.get("cssVisualViewport").ok_or("native_browser_target_geometry_invalid")?;
     let coordinate = |value: i32, key: &str| {
         let offset = viewport.get(key).and_then(Value::as_f64).filter(|value|value.is_finite())
             .ok_or("native_browser_target_geometry_invalid")?;
         let point = (f64::from(value) + offset).round();
-        if !(0.0..=f64::from(i32::MAX)).contains(&point) {
+        // RTL文档的合法坐标可为负；视口内点已由point/map_owner独立校验。
+        if !(f64::from(i32::MIN)..=f64::from(i32::MAX)).contains(&point) {
             return Err("native_browser_target_geometry_invalid");
         }
         Ok(point as i32)
@@ -89,15 +93,20 @@ fn hit_test_point(x: i32, y: i32, metrics: &Value) -> Result<(i32, i32), String>
 }
 
 /// 普通文字、图标容器的点击会冒泡给原控件；其它控件与覆盖层不能代替它。
-/// 只核对宿主刚读取的普通 children，不穿越 iframe、shadowRoot 或伪元素。
+/// 开放 Shadow Root 内的目标须独立绑定；进入根时切断父控件的祖先点击资格。
+#[cfg(test)]
 fn hit_belongs_to_target(dom: &Value, target: i64, hit: i64) -> bool {
-    if target <= 0 || hit <= 0 { return false; }
     let Some(root) = dom.get("root") else { return false; };
+    hit_belongs_to_root(root,target,hit)
+}
+
+fn hit_belongs_to_root(root:&Value,target:i64,hit:i64) -> bool {
+    if target <= 0 || hit <= 0 { return false; }
     let mut pending = vec![(root, false)];
     let mut visited = std::collections::HashSet::new();
     let mut matched = false;
     while let Some((node, inside)) = pending.pop() {
-        if visited.len() >= 2048 { return false; }
+        if visited.len() >= NODE_LIMIT { return false; }
         let Some(id) = node["backendNodeId"].as_i64().filter(|id| *id > 0) else { return false; };
         if !visited.insert(id) { return false; }
         let inside = id == target || (inside && !nested_interactive(node));
@@ -105,6 +114,7 @@ fn hit_belongs_to_target(dom: &Value, target: i64, hit: i64) -> bool {
         if let Some(children) = node["children"].as_array() {
             pending.extend(children.iter().map(|child| (child, inside)));
         }
+        pending.extend(open_shadow_roots(node).map(|root| (root, false)));
     }
     matched
 }
@@ -129,57 +139,69 @@ pub(super) async fn verify(
     document_token: &str, node_id: &str,
 ) -> Result<VerifiedTarget, String> {
     let started = std::time::Instant::now();
-    let document = native_browser_observation::document(app, resource).await?;
-    let node = native_browser_nodes::resolve(resource, &document, observation_id, document_token, node_id)?;
-    let tree = native_browser_devtools::read(app, resource, ReadMethod::Accessibility(document.frame_id.clone())).await?;
-    current_node(&tree, &document, &node)?;
-    let dom = native_browser_devtools::read(app, resource, ReadMethod::DocumentNodes).await?;
-    if !regular_document_nodes(&dom).contains(&node.backend_node) {
+    let (snapshot,dom) = native_browser_observation::snapshot(app,resource).await?;
+    let document = snapshot.top.clone();
+    let node = native_browser_nodes::resolve(resource, &snapshot, observation_id, document_token, node_id)?;
+    let tree = native_browser_devtools::read_session(app, resource, node.scope.session(), ReadMethod::Accessibility(node.scope.document().frame_id.clone())).await?;
+    current_node(&tree, node.scope.document(), &node)?;
+    let root = native_browser_document::root_for_scope(&dom,&node.scope)?;
+    if !super::native_browser_dom::operable_root_nodes(root).contains(&node.backend_node) {
         return Err("native_browser_target_document_unsupported".into());
     }
-    let geometry = native_browser_devtools::read(app, resource, ReadMethod::BoxModel(node.backend_node)).await?;
+    let geometry = native_browser_devtools::read_session(app, resource, node.scope.session(), ReadMethod::BoxModel(node.backend_node)).await?;
     let metrics = native_browser_devtools::read(app, resource, ReadMethod::LayoutMetrics).await?;
-    let (x, y) = point(&geometry, &metrics)?;
-    let (hit_x,hit_y) = hit_test_point(x,y,&metrics)?;
-    let hit = native_browser_devtools::read(app, resource, ReadMethod::HitTest(hit_x,hit_y)).await?;
+    let mapped=if node.scope.session().is_some() {Some(super::native_browser_frame_geometry::locate(app,resource,&node.scope,&geometry,&metrics).await?)} else {None};
+    let (x,y)=match &mapped {Some(p)=>(p.x,p.y),None=>point(&geometry,&metrics)?};
+    let (hit_x,hit_y)=match &mapped {Some(p)=>hit_test_point(p.local_x,p.local_y,&p.local_metrics)?,None=>hit_test_point(x,y,&metrics)?};
+    let hit = native_browser_devtools::read_session(app, resource, node.scope.session(), ReadMethod::HitTest(hit_x,hit_y)).await?;
     // 在命中之后重新读取DOM，证明命中点仍属于原绑定控件，避免复用布局前的祖先关系。
-    let hit_dom = native_browser_devtools::read(app, resource, ReadMethod::DocumentNodes).await?;
-    if hit["frameId"].as_str() != Some(document.frame_id.as_str())
-        || !hit["backendNodeId"].as_i64().is_some_and(|id| hit_belongs_to_target(&hit_dom, node.backend_node, id)) {
+    let (hit_snapshot,hit_dom) = native_browser_observation::snapshot(app,resource).await?;
+    if hit_snapshot != snapshot { return Err("native_browser_document_changed".into()); }
+    let hit_root = native_browser_document::root_for_scope(&hit_dom,&node.scope)?;
+    if hit["frameId"].as_str() != Some(node.scope.document().frame_id.as_str())
+        || !hit["backendNodeId"].as_i64().is_some_and(|id| hit_belongs_to_root(hit_root, node.backend_node, id)) {
         return Err("native_browser_target_hit_mismatch".into());
     }
-    let second_geometry = native_browser_devtools::read(app, resource, ReadMethod::BoxModel(node.backend_node)).await?;
+    let second_geometry = native_browser_devtools::read_session(app, resource, node.scope.session(), ReadMethod::BoxModel(node.backend_node)).await?;
     let second_metrics = native_browser_devtools::read(app, resource, ReadMethod::LayoutMetrics).await?;
+    let second_point=if let Some(original)=&mapped {
+        let fresh=super::native_browser_frame_geometry::locate(app,resource,&node.scope,&second_geometry,&second_metrics).await?;
+        if original.proof!=fresh.proof {return Err("native_browser_target_changed".into());}
+        (fresh.x,fresh.y)
+    } else {point(&second_geometry,&second_metrics)?};
     if geometry.pointer("/model/content") != second_geometry.pointer("/model/content")
-        || point(&second_geometry, &second_metrics)? != (x, y)
+        || second_point != (x, y)
         || metrics["cssVisualViewport"] != second_metrics["cssVisualViewport"]
-        || native_browser_observation::document(app, resource).await? != document
+        || native_browser_observation::snapshot(app, resource).await?.0 != snapshot
         || super::browser_panel::input_resource(app).as_ref() != Some(resource)
         || started.elapsed() >= std::time::Duration::from_secs(2) {
         return Err("native_browser_target_changed".into());
     }
-    Ok(VerifiedTarget { resource: resource.clone(), document, node, x, y, viewport:second_metrics["cssVisualViewport"].clone(), editor:None })
+    Ok(VerifiedTarget { resource: resource.clone(), document, snapshot, node, x, y, viewport:second_metrics["cssVisualViewport"].clone(), editor:None })
 }
 
 /// 导航只核对顶层实际文档，不借用滚动的视口命中限制。
 pub(super) async fn verify_document(app:&AppHandle,resource:&PanelResource,observation_id:&str,document_token:&str,node_id:&str) -> Result<VerifiedTarget,String> {
     let started=std::time::Instant::now();
-    let document=native_browser_observation::document(app,resource).await?;
-    let node=native_browser_nodes::resolve(resource,&document,observation_id,document_token,node_id)?;
-    if node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_navigation_target_invalid".into());}
+    let (snapshot,_)=native_browser_observation::snapshot(app,resource).await?;
+    let document=snapshot.top.clone();
+    let node=native_browser_nodes::resolve(resource,&snapshot,observation_id,document_token,node_id)?;
+    if !node.scope.is_top() || node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_navigation_target_invalid".into());}
     let tree=native_browser_devtools::read(app,resource,ReadMethod::Accessibility(document.frame_id.clone())).await?;
     current_node(&tree,&document,&node)?;
-    if native_browser_observation::document(app,resource).await?!=document || super::browser_panel::input_resource(app).as_ref()!=Some(resource)
+    if native_browser_observation::snapshot(app,resource).await?.0!=snapshot || super::browser_panel::input_resource(app).as_ref()!=Some(resource)
         || started.elapsed()>=std::time::Duration::from_secs(2) {return Err("native_browser_target_changed".into());}
-    Ok(VerifiedTarget {resource:resource.clone(),document,node,x:0,y:0,viewport:Value::Null,editor:None})
+    Ok(VerifiedTarget {resource:resource.clone(),document,snapshot,node,x:0,y:0,viewport:Value::Null,editor:None})
 }
 
-/// 只允许顶层可见viewport；模型选择RootWebArea随机引用，坐标由宿主生成。
-pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,observation_id:&str,document_token:&str,node_id:&str) -> Result<VerifiedTarget,String> {
+/// 模型选择文档RootWebArea，宿主分别核父视口或子owner的真实命中。
+pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,observation_id:&str,document_token:&str,node_id:&str,direction:ScrollDirection) -> Result<VerifiedTarget,String> {
     let started=std::time::Instant::now();
-    let document=native_browser_observation::document(app,resource).await?;
-    let node=native_browser_nodes::resolve(resource,&document,observation_id,document_token,node_id)?;
-    if node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_scroll_target_invalid".into());}
+    let (snapshot,_)=native_browser_observation::snapshot(app,resource).await?;
+    let document=snapshot.top.clone();
+    let node=native_browser_nodes::resolve(resource,&snapshot,observation_id,document_token,node_id)?;
+    if !node.scope.is_top() {return super::native_browser_scroll::verify_child(app,resource,snapshot,node,direction,started).await;}
+    if !node.scope.is_top() || node.role!="RootWebArea" || node.backend_node!=document.backend_root {return Err("native_browser_scroll_target_invalid".into());}
     let tree=native_browser_devtools::read(app,resource,ReadMethod::Accessibility(document.frame_id.clone())).await?;
     current_node(&tree,&document,&node)?;
     let metrics=native_browser_devtools::read(app,resource,ReadMethod::LayoutMetrics).await?;
@@ -191,15 +213,15 @@ pub(super) async fn verify_viewport(app:&AppHandle,resource:&PanelResource,obser
     let hit=native_browser_devtools::read(app,resource,ReadMethod::HitTest(hit_x,hit_y)).await?;
     let dom=native_browser_devtools::read(app,resource,ReadMethod::DocumentNodes).await?;
     if hit["frameId"].as_str()!=Some(document.frame_id.as_str())
-        || !hit["backendNodeId"].as_i64().is_some_and(|id|regular_document_nodes(&dom).contains(&id)) {
+        || !hit["backendNodeId"].as_i64().is_some_and(|id|operable_document_nodes(&dom).contains(&id)) {
         return Err("native_browser_target_hit_mismatch".into());
     }
     let fresh=native_browser_devtools::read(app,resource,ReadMethod::LayoutMetrics).await?;
-    if fresh["cssVisualViewport"]!=viewport || native_browser_observation::document(app,resource).await?!=document
+    if fresh["cssVisualViewport"]!=viewport || native_browser_observation::snapshot(app,resource).await?.0!=snapshot
         || super::browser_panel::input_resource(app).as_ref()!=Some(resource) || started.elapsed()>=std::time::Duration::from_secs(2) {
         return Err("native_browser_target_changed".into());
     }
-    Ok(VerifiedTarget {resource:resource.clone(),document,node,x,y,viewport,editor:None})
+    Ok(VerifiedTarget {resource:resource.clone(),document,snapshot,node,x,y,viewport,editor:None})
 }
 
 #[cfg(test)]
@@ -228,6 +250,24 @@ mod tests {
     }
 
     #[test]
+    fn shadow_child_requires_its_own_binding_and_does_not_inherit_parent_ownership() {
+        let mut dom = serde_json::json!({"root":{"backendNodeId":1,"nodeName":"#document","children":[
+            {"backendNodeId":2,"nodeName":"BUTTON","children":[{"backendNodeId":3,"nodeName":"SPAN",
+                "shadowRoots":[{"backendNodeId":4,"nodeType":11,"shadowRootType":"open","children":[
+                    {"backendNodeId":5,"nodeName":"BUTTON","children":[{"backendNodeId":6,"nodeName":"SPAN"}]}]}],
+                "contentDocument":{"backendNodeId":7,"children":[{"backendNodeId":8,"nodeName":"BUTTON"}]}}]}]}});
+        assert!(hit_belongs_to_target(&dom,5,5));
+        assert!(hit_belongs_to_target(&dom,5,6));
+        assert!(!hit_belongs_to_target(&dom,2,5));
+        assert!(!hit_belongs_to_target(&dom,3,6));
+        assert!(!hit_belongs_to_target(&dom,8,8));
+        for kind in ["closed","user-agent"] {
+            dom["root"]["children"][0]["children"][0]["shadowRoots"][0]["shadowRootType"] = serde_json::json!(kind);
+            assert!(!hit_belongs_to_target(&dom,5,5));
+        }
+    }
+
+    #[test]
     fn geometry_is_css_viewport_relative_and_rejects_clipped_or_degenerate_targets() {
         let model = serde_json::json!({"model":{"content":[100,200,140,200,140,240,100,240]}});
         let viewport = serde_json::json!({"cssVisualViewport":{"pageX":80,"pageY":180,"clientWidth":800,"clientHeight":600}});
@@ -246,7 +286,8 @@ mod tests {
     #[test]
     fn fresh_ax_must_match_backend_role_name_and_interactable_state() {
         let document = DocumentIdentity {frame_id:"frame-a".into(),loader_id:"loader-a".into(),backend_root:1};
-        let node = NodeBinding {node_id:"0".repeat(32),index:0,backend_node:9,role:"button".into(),name:"提交".into()};
+        let node = NodeBinding {node_id:"0".repeat(32),index:0,backend_node:9,role:"button".into(),name:"提交".into(),
+            scope:super::super::native_browser_document::DocumentScope::top(document.clone())};
         let mut tree = serde_json::json!({"nodes":[{"ignored":false,"backendDOMNodeId":9,"frameId":"frame-a",
             "role":{"value":"button"},"name":{"value":"提交"}}]});
         assert!(current_node(&tree, &document, &node).is_ok());

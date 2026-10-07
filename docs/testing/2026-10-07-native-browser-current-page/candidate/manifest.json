@@ -1,0 +1,188 @@
+{
+  "stage": "candidate",
+  "model": "swe-2-medium",
+  "remote_session": "island-kayak",
+  "source_files_sha256": {
+    "modules/gui-web/packages/web-console/src/native_browser_adapter.rs": "03d8684d55d50c1a1ae698e75ca044bacf8c72e2f4051e8f7cbfc2972d76ffad",
+    "modules/gui-web/packages/web-console/src/native_browser_verification.rs": "fb5edf0320cf5b4ce8fc12fe3675af3e5397694e5ccba7bda41bbd918ba5ce20",
+    "modules/gui-web/packages/web-console/src/computer_use_turn_scope.rs": "27c2c548c502b88ab7389ec72235ce2e544301584a92431cbe1dcf63b3fef808"
+  },
+  "cases": [
+    {
+      "case": "scroll",
+      "classification": "原路由名称缺口，保留失败",
+      "run_id": "run-chat-a30e002284a1d653dad550b59f8df40f54e0d88ef6b07db1",
+      "status": "blocked",
+      "steps_completed": 0,
+      "events": 0
+    },
+    {
+      "case": "scroll2",
+      "classification": "当前页子文档滚动正向",
+      "run_id": "run-chat-0e130917b42f50f0f0e5c181fc706a9d38cf5d1455a79d41",
+      "status": "succeeded",
+      "steps_completed": 1,
+      "events": 2
+    },
+    {
+      "case": "click",
+      "classification": "当前页点击正向",
+      "run_id": "run-chat-a8689db7e24ec6fdc0821cef3339552a66582965a5c04208",
+      "status": "succeeded",
+      "steps_completed": 1,
+      "events": 3
+    },
+    {
+      "case": "wrong-url",
+      "classification": "明确错误URL零投递",
+      "run_id": "run-chat-c6c1826718c156a0264f6bd5da683fcdef58bfbf438dc842",
+      "status": "blocked",
+      "steps_completed": 0,
+      "events": 0
+    },
+    {
+      "case": "stale",
+      "classification": "刷新晚于回复与输入，不计时序负例通过",
+      "run_id": "run-chat-843af5daaf5d73ecf9647a3ea7010d02c29c4f6aac84a825",
+      "status": "succeeded",
+      "steps_completed": 1,
+      "events": 3
+    },
+    {
+      "case": "stale2",
+      "classification": "刷新晚于规划回复、早于输入；仅投递前变文档零输入通过",
+      "run_id": "run-chat-a24723642c03799eba54ab2c796d945b1b5c9ca8cfb5eef4",
+      "status": "blocked",
+      "steps_completed": 0,
+      "events": 0
+    }
+  ],
+  "files": [
+    {
+      "path": "candidate-scroll-facts.json",
+      "bytes": 5898,
+      "sha256": "5d3944315c27176394d077a96aa06237db5ee89fc7c5fcc40328f3bbadfa6f58"
+    },
+    {
+      "path": "candidate-scroll2-facts.json",
+      "bytes": 12598,
+      "sha256": "882fe86338f70896290b695659795ded746c152f7d5e05c708bc575464f20d3e"
+    },
+    {
+      "path": "candidate-click-facts.json",
+      "bytes": 10864,
+      "sha256": "099ce3e3bb4c4e1bed13d2bec524b210f954f11d26d273c07bd4cff567ba9e15"
+    },
+    {
+      "path": "candidate-wrong-url-facts.json",
+      "bytes": 5510,
+      "sha256": "8934aab4014f9000992aab1eaa2be68829c9c14a0cd1ae22ac5f8cb5151469d6"
+    },
+    {
+      "path": "candidate-stale-facts.json",
+      "bytes": 11041,
+      "sha256": "30a71c46e9c86892a65ae149f3985cbdb7333e7dfc66dd34e9201f081bb2e01e"
+    },
+    {
+      "path": "candidate-stale2-facts.json",
+      "bytes": 7478,
+      "sha256": "70170ab32bcba349a97f998e2029283e4e40cf9e2096c5c5a1047ed0a3c11917"
+    },
+    {
+      "path": "candidate-scroll-route-failure.jpg",
+      "bytes": 201910,
+      "sha256": "69132365165d08486204d64d8339bdb638918e6503b28a6ba033d14cb3c9bea3"
+    },
+    {
+      "path": "candidate-scroll2-after.jpg",
+      "bytes": 220075,
+      "sha256": "d49355c7c249a4ee53c8b0459cb72d7b4176d9d5148184f9d06a1427ef8531e4"
+    },
+    {
+      "path": "candidate-click-after.jpg",
+      "bytes": 209314,
+      "sha256": "d75d34677f642a33ab27db0ca226e13a1d7034f61af3cff8fa057aeef3c22cb0"
+    },
+    {
+      "path": "candidate-wrong-url-after.jpg",
+      "bytes": 197409,
+      "sha256": "320673aa52173cd7ef79d55459370f78d3171c2632902f7e97a9ad94154dbe61"
+    },
+    {
+      "path": "candidate-stale-late-after.jpg",
+      "bytes": 207685,
+      "sha256": "48d9f02a80cd97890e35392a26fc9ea6c9a0cfca09b448483e07e39f5fe30676"
+    },
+    {
+      "path": "candidate-stale2-changed.jpg",
+      "bytes": 224851,
+      "sha256": "08a2e68a4e1ce003367cac8b22e63a34ef20884a60ad6def03c9194b7a9f4321"
+    },
+    {
+      "path": "candidate-stale2-after.jpg",
+      "bytes": 194102,
+      "sha256": "183918e6b8ca3c8842000969db2cefd974451f88f8f2488551c286f985324546"
+    },
+    {
+      "path": "stale-refresh-timing.json",
+      "bytes": 134,
+      "sha256": "ab5d744cf42a5da46d62ff7aac174ffe4d042a2f69fbdeefd9de546611f854fc"
+    },
+    {
+      "path": "stale2-refresh-timing.json",
+      "bytes": 122,
+      "sha256": "c6a312c0872f1a38178bb9ac81b37e8937532f90723fb6dbd5d21b3c95c98bc4"
+    },
+    {
+      "path": "stale-timing-analysis.json",
+      "bytes": 818,
+      "sha256": "a337049e7049457287d55709368912ac3d5b320182d411a1cafc0488a4cdf158"
+    },
+    {
+      "path": "stale2-timing-analysis.json",
+      "bytes": 572,
+      "sha256": "05d182987bd1111a9509314f4f7451ce3ea4bb93c06d23272d697e2d9c6545e1"
+    },
+    {
+      "path": "candidate-processes.json",
+      "bytes": 919,
+      "sha256": "5d87736e03a407fcb4b88cb3ff2da91becb4ffa9ecde0fcf72efca454925f07e"
+    },
+    {
+      "path": "build.log",
+      "bytes": 49792,
+      "sha256": "789a5947efc04a58d2ed4e25d06187bc216c069aef67fa9781ee30b2f78d1f4f"
+    },
+    {
+      "path": "build-routing.log",
+      "bytes": 49792,
+      "sha256": "069dfd7c7f8140232f93236ddbd1aef6c81bac4c60566e010c34ef111e80c77f"
+    },
+    {
+      "path": "tests.log",
+      "bytes": 22920,
+      "sha256": "d2d5c2628a5adcb045b7a90cb8a5dd4c360aa59179c92f3b7dd0bb8bba736b3a"
+    },
+    {
+      "path": "tests-routing.log",
+      "bytes": 22940,
+      "sha256": "f9d316644562b7594ddbd371e7e122232f3fd520701cb828a22ff2e710a611a8"
+    },
+    {
+      "path": "full-tests.log",
+      "bytes": 147284,
+      "sha256": "23344bf1de275ff878383b0c56c05df69fff7f2541b28106b0adb81d0f7eee92"
+    },
+    {
+      "path": "initial-build.log",
+      "bytes": 49792,
+      "sha256": "dc5f80804f2f735901f50eb0b846730a444b1fa751fd958a96c6261805c2bf18"
+    },
+    {
+      "path": "candidate-safety-summary.json",
+      "bytes": 546,
+      "sha256": "f571c928285d06b15473e54f5b5647ba0129f87265f37282f9a7468d86d21110"
+    }
+  ],
+  "limitation": "无URL严格规划期间换页尚未命中；两次真实时序均保留。不是088正式验收，也不是089安装通过。"
+}

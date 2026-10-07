@@ -1,3 +1,33 @@
+> **2026-10-07 0.2.92聊天图片正式验收**：Devin普通/流式入口图片直传、增量上下文分离和会话设置已接入；正常完整构建六门、Windows安装0及1150文件核验通过。原SWE-2-medium/唯一island-kayak两轮新随机图20.6/21.3秒全部正确，普通入口在宿主重启后续接，每轮一个attempt/end_turn/drained/图片1，无工具或新云端会话。1400控制台/16前端通过，冻结759两路CI success；原工程和安全库恢复092，历史2未知/9closed保留。Goal/Relay及其它附件、启动特殊模式和总体复核仍开放。Paint不测、微信不动、Opus暂停、无子代理。见[092正式报告与原图](../../testing/release-0.2.92/change-report-and-test-handoff.md)。
+
+> **2026-10-07 0.2.91插件生命周期正式验收**：修复在途撤销轮询误争管理锁、当前工具列表瞬时Busy误撤销，以及首次迁移争锁；仅测试的进程树辅助就绪也修复。正常完整构建六门、安装返回0、1150文件通过，原SWE-2-medium/唯一island-kayak三轮完成旧配置调用409/实际派发0、40次目录读取并发中新调用182/单执行、execute宿主启动后取消并183毫秒内退出。Web1398/0/6忽略、插件44/0/1忽略，冻结a366两路CI success，原工程及安全库正常桌面入口恢复091；2未知许可/9closed历史保留。090正式失败与候选原记录保留，未外推函数执行中取消/超时或四项总体完成。Paint不测、微信不动、Opus暂停、无子代理。见[091正式报告与原图](../../testing/release-0.2.91/change-report-and-test-handoff.md)。
+
+> **2026-10-07 0.2.88横向/RTL正式验收**：修复子横向剩余距离、RTL布局原点误当滚动偏移及模型能力提示。最终6047bb3正常完整构建六门、安装1150文件核验通过；原SWE-2-medium/唯一island-kayak六轮LTR/RTL双向及边界通过，正向4项真实wheel、父0/0，边界2项not_sent/事件0；原候选失败保留。74项桌面检查通过，日常原工程/安全库恢复088，2未知许可/9closed保持。Paint不测、微信不动、Opus暂停、无子代理。详细报告：C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent/docs/testing/release-0.2.88/change-report-and-test-handoff.md。当前无URL自然语言入口、复杂变换及其它总队列仍开放，未宣布四项总体完成。
+
+> **2026-10-07 0.2.89当前页正式闭环**：缺省URL初始宿主来源绑定与右栏名称识别已修复。正常安装六门/1150文件通过，原SWE-2-medium/唯一island-kayak四轮完成点击0→1、跨来源子滚动且父0/0、错误URL零输入、严格规划期间刷新旧引用零投递。时间请求<刷新区间<回复，历史候选未命中保留。完整1397/0/6忽略，5e545冻结源码两路CI success；正常桌面原工程/原安全库恢复089。Paint不再测试、微信不动、Opus暂停；插件其它生命周期、复杂变换/按住跨URL、附件/动画其它边界及四项总审仍开放。见[正式报告与原图](../../testing/release-0.2.89/change-report-and-test-handoff.md)。[089预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.89)已公开，四资产长度/SHA及实际tag=5e545一致；下面旧记录按当时阶段理解。
+
+> **2026-10-07 0.2.87浏览器边界补验**：三层左右同名按钮两轮均4/4，父容器裁剪零投递，规划期间关闭严格时序零投递，四项正式实操通过。两轮关闭晚于规划回复未计通过，原证据保留。六轮仍为原SWE-2-medium/唯一island-kayak，无内部远端或补发；安全2未知/9closed保持，原工程日常087已恢复。产品源码与包不变，Paint不测。详见 C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent/docs/testing/release-0.2.87/browser-nested-followup/report.md；其它边界和总体队列仍开放。
+
+> **2026-10-07 0.2.87正式安装回归**：内置原生浏览器名称误路由已修复并进入087。正常六门、安装返回0、1150文件一致，原SWE-2-medium/唯一island-kayak真实click/type INSTALLED087/Enter、子1/1父0/0、3/3通过；同一attempt end_turn/drained、内部远端为空。正常桌面入口已恢复087、原工程及原安全库，历史2未知许可/9closed保持。a74产品两路CI success。Paint按最新要求不再测试，微信不动，Opus暂停，无子代理。报告：C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent/docs/testing/release-0.2.87/change-report-and-test-handoff.md。其它验收按当前队列继续，不外推总体完成。
+
+> **2026-10-07 当前状态入口**：0.2.86已正常构建安装，1150文件摘要与六门通过，并公开预发布；正式同一SWE-2/island-kayak完成OOP输入/Enter、上下滚动、边界零投递及规划期焦点/子文档变化拒绝六项实操。用户最新明确Paint不再测试，已有基本功能证据保留。新增内置原生浏览器别名修补及真实SWE候选测试通过（子1/1、父0/0、3/3），全量1396通过；修补尚不在086包内。Opus暂停，微信不动，无子代理或新增云端测试会话。四项总体复核与总队列剩余项继续推进，不能以阶段通过代替总体完成。最新正式报告：C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent/docs/testing/release-0.2.86/change-report-and-test-handoff.md；新增修补：C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent/docs/testing/2026-10-07-native-browser-alias/change-report.md；当前队列：C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent/docs/analysis/2026-09-21-integration-review/current-acceptance-queue.md。以下保留历史时点。
+
+> 2026-10-06 0.2.85补记：跨来源独立进程Frame按钮及正向轴缩放点击、父覆盖层零投递、真实规划期间子导航旧引用拒绝四项在正常安装版通过；另保留两轮未命中时序和一轮输入预检期拒绝，不追认规划期通过。81份正式原字节及23份恢复/安装/CI材料归档；六门、1150安装文件、原工程与安全库恢复通过，冻结ae87两路CI success。SWE-2/veiled-anise续接，未用Opus或子Agent，日常Qwen选择只保留不发请求。OOP编辑/按键/滚动、复杂变换、严格按住/面板变化及总体队列仍开放，见[085交接](../../testing/release-0.2.85/change-report-and-test-handoff.md)。以下保留历史时点。
+
+> 2026-10-06 0.2.84补记：正式SWE单次导航、普通后退/前进与关闭/重开标签同步通过；合法显式导航误判只读已修复，绝对零输入与禁导航保留。六门、1150文件安装与日常入口恢复通过，冻结82两路CI success。跨来源/OOP及总体队列仍开放，见[084交接](../../testing/release-0.2.84/change-report-and-test-handoff.md)。
+
+> 2026-10-06 0.2.83补记：同源同进程子向下/向上、到底零投递、规划期间子导航拒绝旧滚动引用、父页面单独滚动五项在正常安装版通过；原SWE续接，六门及1150文件安装核验、日常入口恢复通过。跨来源/OOP、严格按住/面板时序、标签同步及总体队列仍开放，见[083报告](../../testing/release-0.2.83/change-report-and-test-handoff.md)。旧历史不追改。
+
+> 2026-10-06 0.2.82补记：同源同进程子Frame编辑/Enter真实提交、父输入、规划期间父焦点迁走和子导航旧text引用零投递均在正常安装版通过，四项主验收及两轮诊断分别归档。六门出包、1150文件安装匹配、70项桌面壳/1390项Web回归和原工程日常恢复通过；冻结来源587远端两路success。出包后纯测试修补61a检查另核；跨来源/跨进程、子滚动等总体队列仍开放。详见[082报告](../../testing/release-0.2.82/change-report-and-test-handoff.md)，下文旧版历史不追改。
+
+> **2026-10-06 0.2.81同进程iframe正式闭环**：独立子文档引用和命中归属已实施；正常六门、1150逐文件安装摘要、原SWE/veiled-anise三项25.2/34.0/32.0秒正式实操、d9源码两条远端检查均通过。子click父0子1、sent/released；父误击及规划期间子导航旧引用拒绝均零模型输入。四资产发布与源码核验、正常日常入口原工程/安全库恢复通过。见[081报告、截图及测试交接](../../testing/release-0.2.81/change-report-and-test-handoff.md)。跨进程Frame、子编辑/键盘、严格新文档/关闭时序等仍开放；仅主会话，原SWE不换，Opus暂停，微信不动，Paint基础已正式通过。下方保留历史时点。
+
+> **2026-10-06 0.2.80正式交付回归**：会话库只读版本BUSY有界修补已进入正常080包；六门、1150安装文件摘要、原SWE/veiled-anise正式正/负例31.4/21.1秒通过，cc6源码两条远端检查success。正常桌面入口恢复原工程与安全库通过，保留用户原日常选择，未向Qwen发新请求。见[080正式报告与原图](../../testing/release-0.2.80/change-report-and-test-handoff.md)。iframe下一步方案已按现代码和官方接口审查，尚未实现；严格新文档/关闭竞争等队列及四项总体仍开放。仅主会话，Opus暂停，微信不动，Paint基础已通过。下方保留历史时点。
+
+> **2026-10-06 0.2.79正式Shadow与CI锁冲突接手**：正常发布六门、1150安装文件摘要通过；原SWE/veiled-anise正式#337/#338子点击23.4秒通过，#339/#340父误击18.6秒零输入。验证期间关闭撤销旧证明已通过，输入前/按住关闭严格时序未命中，不追认。PR83已合并，新增由PR84承接；其683源码push成功、PR首次并发开库DatabaseBusy失败。只读版本有界重试修补本地1390回归及10轮并发用例通过，待080正常构建安装及新HEAD远端检查。见[079正式与原图](../../testing/release-0.2.79/change-report-and-test-handoff.md)和[080交接](../../testing/release-0.2.80/change-report-and-test-handoff.md)。iframe内部等队列仍开放；只由主会话实施测试，Opus暂停，Paint基础已通过，微信不动。下方保留历史时点。
+
+> **2026-10-06 0.2.79开放Shadow点击候选**：正式0.2.78独立子控件点击、父误击拒绝、默认8765导航/地址同步和初始关闭负例补验；两次关闭竞争未命中，8767事件环境造成的地址误判候选已撤回。开放Shadow子按钮正式失败后，新增同文档开放根引用与独立命中归属；原SWE/veiled-anise真实候选子点击54.8秒通过、父误击33.3秒零输入，桌面壳69检查通过，待正常打包及正式安装复测。见[078边界](../../testing/release-0.2.78/browser-boundary-followup.md)与[079报告](../../testing/release-0.2.79/change-report-and-test-handoff.md)。iframe内部、严格新文档/关闭竞争及其余队列仍开放；仅主会话实施测试，Opus暂停，Paint基础已通过，微信不动。下方保留历史时点。
+
 > **2026-10-06 0.2.78正式Browser新阻塞闭环**：混合表述内置路由与普通span/SVG命中已修；正常发布六门、1150安装文件摘要、真实SWE原远端四轮实操通过，含遮挡零输入及按下时同步整页内容替换后释放。截图、每轮耗时、网页真实事件、安装身份与正常日常launcher恢复见[078报告](../../testing/release-0.2.78/change-report-and-test-handoff.md)。源码0b两条远端检查success。跨URL新文档导航时序、复杂节点／面板变化、多屏、插件配置取消超时／许可竞态、Goal/Relay附件、自动升级全过程及四项总体审查继续开放；主会话独立实施和测试，Opus依用户要求暂不使用，Paint只验基础能力，微信不动。下方保留历史时点。
 
 > **2026-10-06 插件卸载/重装闭环与Browser新阻塞**：正式0.2.77真实SWE原会话完成卸载后拒绝、固定来源重装默认停用拒绝、重新启用新请求一次返回158，旧请求仍零执行，截图与台账已归档；配置变更/取消/超时及许可窄竞争仍开放。Browser普通span按钮命中预检误拒绝已实际复现，正在独立修复，未计通过；混合表述误走外部扩展的首轮失败保留。PR82已远端合并至main067，合并后CI成功。Opus依用户要求暂不调用，不使用子Agent。详见[正式报告与实拍](../../testing/release-0.2.77/change-report-and-test-handoff.md)。下方保留各历史时点。

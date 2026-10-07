@@ -1,0 +1,208 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791358085859-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-087-PANEL-CLOSE-20261007：沿用当前唯一SWE-2-medium云端会话，只执行本条独立面板关闭负例，测试期间页面可能被用户关闭，不能重新打开。只调用一次computer_use_perform，参数为{\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:62796/parent.html\"},\"objective\":\"在当前右栏内置原生浏览器的NESTED-PARENT→NESTED-MIDDLE→RIGHT-LEAF三层页面中，仅点击RIGHT-LEAF内的确认按钮一次。四个按钮名字相同，必须按新鲜节点的文档归属区分，不点父页、中间页、LEFT-LEAF。\",\"success_criteria\":[\"最新RIGHT-LEAF 点击次数：1\",\"最新LEFT-LEAF 点击次数：0\",\"最新中间页点击次数：0\",\"最新父页点击次数：0\"],\"constraints\":[\"只操作当前右栏内置原生浏览器，只允许一次click；按当轮response_schema使用新鲜引用与所属frame/document，禁止用同名首项代替；不滚动、不导航、不桌面或其它工具\",\"面板关闭或输入资格撤销则如实失败立即停止，不重开面板、不重试不补发，不执行历史任务，不换模型不新建云端会话\",\"验收分别引用最新对应StaticText的明确index和原文，不把ACK或计划当结果\"],\"max_actions\":1}。next_tool为computer_use_respond时按当次schema交回同job_id/request_id完整JSON，其它running只computer_use_wait同job_id至终态。不另发perform。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791358086091
+  },
+  "run": {
+    "id": "run-chat-bd74759feb2e178059b76d90bedea8b5ff64d823e37aba1d",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791358085859-3-tool-a85a1ab136cb7973bdfb838568acc659cb2c884d82eeff2837936d033c83f1b5",
+      "provider_tool_call_id": "tool-a85a1ab136cb7973bdfb838568acc659cb2c884d82eeff2837936d033c83f1b5",
+      "turn_id": "chat-turn-1791358085859-3",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791358085859-3\u001fbrowser\u001f在当前右栏内置原生浏览器的nested-parent→nested-middle→right-leaf三层页面中，仅点击right-leaf内的确认按钮一次。四个按钮名字相同，必须按新鲜节点的文档归属区分，不点父页、中间页、left-leaf。\u001f||http://127.0.0.1:62796/parent.html|\u001f最新right-leaf 点击次数：1|最新left-leaf 点击次数：0|最新中间页点击次数：0|最新父页点击次数：0\u001f只操作当前右栏内置原生浏览器，只允许一次click；按当轮response_schema使用新鲜引用与所属frame/document，禁止用同名首项代替；不滚动、不导航、不桌面或其它工具|面板关闭或输入资格撤销则如实失败立即停止，不重开面板、不重试不补发，不执行历史任务，不换模型不新建云端会话|验收分别引用最新对应statictext的明确index和原文，不把ack或计划当结果",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏内置原生浏览器，只允许一次click；按当轮response_schema使用新鲜引用与所属frame/document，禁止用同名首项代替；不滚动、不导航、不桌面或其它工具",
+          "面板关闭或输入资格撤销则如实失败立即停止，不重开面板、不重试不补发，不执行历史任务，不换模型不新建云端会话",
+          "验收分别引用最新对应StaticText的明确index和原文，不把ACK或计划当结果"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏内置原生浏览器的NESTED-PARENT→NESTED-MIDDLE→RIGHT-LEAF三层页面中，仅点击RIGHT-LEAF内的确认按钮一次。四个按钮名字相同，必须按新鲜节点的文档归属区分，不点父页、中间页、LEFT-LEAF。",
+        "success_criteria": [
+          "最新RIGHT-LEAF 点击次数：1",
+          "最新LEFT-LEAF 点击次数：0",
+          "最新中间页点击次数：0",
+          "最新父页点击次数：0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:62796/parent.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 10,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791358712834,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791358085859-3-tool-a85a1ab136cb7973bdfb838568acc659cb2c884d82eeff2837936d033c83f1b5",
+        "provider_tool_call_id": "tool-a85a1ab136cb7973bdfb838568acc659cb2c884d82eeff2837936d033c83f1b5",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "内置浏览器观察不可用或环境已变化",
+        "error": {
+          "code": "native_observation_timeout",
+          "message": "内置浏览器观察不可用或环境已变化",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:043b72579c13ff72618a4724531b9175",
+          "native-ax:1:2",
+          "native-observation:043b72579c13ff72618a4724531b9175",
+          "native-input:86473c6cd8ca229e3b769a4e90d16dc6"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791358985859
+            }
+          },
+          "cu_deadline_ms": 1791358712834,
+          "cu_deadline_established_at_ms": 1791358112834,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791358112834,
+      "updated_at_ms": 1791358131178,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791358085859-3-tool-a85a1ab136cb7973bdfb838568acc659cb2c884d82eeff2837936d033c83f1b5",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-06a21c23b7fb73b5538ad2846799d4a2",
+          "action_fingerprint": "89e0bcb29c7f6894",
+          "status": "observation_failed",
+          "error_code": "native_observation_timeout",
+          "before_evidence_ref": "[\"native-ax:1:2\",\"native-observation:043b72579c13ff72618a4724531b9175\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "released",
+          "started_at_ms": 1791358124497,
+          "completed_at_ms": 1791358126139,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "73a343c16977d2914343f69302f6fb2b",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"f48baa738967f1abc908b0a75b67d876\",\"host_id\":\"native-99975256749bfb5d003a62745c343e2c\",\"process\":{\"instance_id\":\"55e95efd0fb4396c8695b43273fdf232\",\"boot_id\":\"99975256749bfb5d003a62745c343e2c\",\"pid\":30036,\"creation_time_filetime\":134358312288541532,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":2}},\"attempt_key\":\"browser:dom-06a21c23b7fb73b5538ad2846799d4a2:e31c32c2bc89b006#gen1#cu-session-1791131217833-chat-turn-1791358085859-3-tool-a85a1ab136cb7973bdfb838568acc659cb2c884d82eeff2837936d033c83f1b5:step-0#attempt1\",\"ticket_id\":\"73a343c16977d2914343f69302f6fb2b\",\"observation_id\":\"043b72579c13ff72618a4724531b9175\",\"document_token\":\"dbd5b21902bb6a60ee5eb60d34084b63\",\"node_id\":\"06a21c23b7fb73b5538ad2846799d4a2\",\"input_kind\":\"click\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791358085859-3-tool-a85a1ab136cb7973bdfb838568acc659cb2c884d82eeff2837936d033c83f1b5",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-06a21c23b7fb73b5538ad2846799d4a2\"}"
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "role": "RIGHT-LEAF",
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791358126130.3,
+      "count": 0,
+      "observed_ms": 1791358126134.681,
+      "host": "127.0.0.1:62796"
+    },
+    {
+      "role": "RIGHT-LEAF",
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791358126129.5,
+      "count": 0,
+      "observed_ms": 1791358126134.344,
+      "host": "127.0.0.1:62796"
+    },
+    {
+      "role": "RIGHT-LEAF",
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791358126131,
+      "count": 1,
+      "observed_ms": 1791358126134.9036,
+      "host": "127.0.0.1:62796"
+    },
+    {
+      "role": "RIGHT-LEAF",
+      "kind": "accepted",
+      "trusted": true,
+      "page_ms": 1791358126130.7,
+      "count": 1,
+      "observed_ms": 1791358126134.9817,
+      "host": "127.0.0.1:62796"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "2bd4b2973c44a0619fe0b680b0c77ad77d7ab04353b62791",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "planning_counts": {
+    "devin.planning_requested": 1,
+    "devin.planning_response": 1
+  }
+}

@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager};
 use super::{native_browser_devtools::{self, ReadMethod}, native_browser_target::VerifiedTarget};
 
 pub(super) const READ_FOCUS: &str = r#"function(){
+ if(!this.ownerDocument.hasFocus())return null;
  const tag=this.tagName;const kind=tag==='INPUT'?this.type:tag.toLowerCase();
  if(!this.isConnected||this.ownerDocument.activeElement!==this||this.disabled||this.readOnly||
     !['SELECT','INPUT','BUTTON','TEXTAREA','A'].includes(tag)||
@@ -25,8 +26,9 @@ fn state(raw:&Value)->Result<Value,String> {
 pub(super) async fn verify(app:&AppHandle,resource:&PanelResource,target:&PanelClickTarget)->Result<VerifiedTarget,String> {
     let mut verified=super::native_browser_target::verify(app,resource,&target.observation_id,&target.document_token,&target.node_id).await?;
     let object=super::native_browser_editor::resolve(app,&verified).await?;
-    let focus=native_browser_devtools::read(app,resource,ReadMethod::FocusedTargetState(object.clone())).await.and_then(|v|state(&v));
-    let _=native_browser_devtools::read(app,resource,ReadMethod::ReleaseEditor(object)).await;
+    let session=verified.node.scope.session();
+    let focus=native_browser_devtools::read_session(app,resource,session,ReadMethod::FocusedTargetState(object.clone())).await.and_then(|v|state(&v));
+    let _=native_browser_devtools::read_session(app,resource,session,ReadMethod::ReleaseEditor(object)).await;
     verified.editor=Some(focus?);
     Ok(verified)
 }
@@ -50,7 +52,8 @@ pub(super) async fn press(app:&AppHandle,target:VerifiedTarget,keys:Vec<String>,
         };
         let (sender,receiver)=tokio::sync::oneshot::channel();let sender=Arc::new(Mutex::new(Some(sender)));
         let app_ui=app.clone();let resource=target.resource.clone();
-        let (method,params)=ReadMethod::FocusedTargetState(object.clone()).request();
+        let session=target.node.scope.session().map(str::to_owned);let session_ui=session.clone();
+        let method=ReadMethod::FocusedTargetState(object.clone());
         let queued=view.with_webview(move |platform| {
             let finish=|value| {if let Ok(mut slot)=sender.lock() {if let Some(sender)=slot.take() {let _=sender.send(value);}}};
             if now()>=expires_ms || super::browser_panel::input_resource(&app_ui).as_ref()!=Some(&target.resource) {
@@ -80,7 +83,10 @@ pub(super) async fn press(app:&AppHandle,target:VerifiedTarget,keys:Vec<String>,
                     })).into();ack
                 };
                 let down=make_ack(true);let up=make_ack(false);let method=CoTaskMemPWSTR::from("Input.dispatchKeyEvent");
-                let params=CoTaskMemPWSTR::from(serde_json::json!({"type":"rawKeyDown","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0}).to_string().as_str());
+                // Enter的默认表单行为需要字符阶段；keyDown携带回车文本，由浏览器按协议处理。
+                let mut press=serde_json::json!({"type":"rawKeyDown","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0});
+                if key=="Enter" {press["type"]="keyDown".into();press["text"]="\r".into();press["unmodifiedText"]="\r".into();}
+                let params=CoTaskMemPWSTR::from(press.to_string().as_str());
                 let down_queued=unsafe {callback_core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*params.as_ref().as_pcwstr(),&down)}.is_ok();
                 // 不等待按下回执；同一 UI 闭包总是尝试释放，包括按下入队失败时。
                 let params=CoTaskMemPWSTR::from(serde_json::json!({"type":"keyUp","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0}).to_string().as_str());
@@ -88,13 +94,12 @@ pub(super) async fn press(app:&AppHandle,target:VerifiedTarget,keys:Vec<String>,
                 if !down_queued||!up_queued {finish((PanelInputOutcome::ReleaseUnknown,false,false));}
                 Ok(())
             })).into();
-            let method=CoTaskMemPWSTR::from(method);let params=CoTaskMemPWSTR::from(params.as_str());
-            if unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*params.as_ref().as_pcwstr(),&handler)}.is_err() {finish((PanelInputOutcome::NotDispatched,false,false));}
+            if native_browser_devtools::dispatch_read(&core,session_ui.as_deref(),&method,&handler).is_err() {finish((PanelInputOutcome::NotDispatched,false,false));}
         });
         let outcome=if queued.is_err() {(PanelInputOutcome::ReleaseUnknown,false,false)} else {
             tokio::time::timeout(std::time::Duration::from_secs(3),receiver).await.ok().and_then(Result::ok).unwrap_or((PanelInputOutcome::ReleaseUnknown,false,false))
         };
-        let _=native_browser_devtools::read(app,&resource,ReadMethod::ReleaseEditor(object)).await;
+        let _=native_browser_devtools::read_session(app,&resource,session.as_deref(),ReadMethod::ReleaseEditor(object)).await;
         outcome
     }
     #[cfg(not(windows))]

@@ -1,0 +1,46 @@
+{
+  "stage": "正常桌面入口恢复、原工程与安全库及自有测试进程结束核验",
+  "source_commit": "d9ca3e2d56c43647aa90875b2e895b86507b0989",
+  "version": "0.2.81",
+  "limits": [
+    "保留日常Qwen选择和历史消息，未向其发送新请求；本轮真实任务均为原SWE-2",
+    "安全库只读核验，当前资源safe；两个历史outcome_unknown保留，不改历史"
+  ],
+  "files": [
+    {
+      "file": "restored-daily-081-after.jpg",
+      "length": 195727,
+      "sha256": "294741c7953e3da2cdb81efb6ccf8cc310b035c797ac1c561df9609fe87bcf33"
+    },
+    {
+      "file": "restored-daily-081-selfcheck.json",
+      "length": 1779,
+      "sha256": "5eaba22facb0cfa56a920bd460886c0fd396f6c475a3517cafc20b96f7990ea6"
+    },
+    {
+      "file": "restored-daily-081-verification.json",
+      "length": 859,
+      "sha256": "12827051dafa910d611d3c2cb415b1b456acb3495d693c8da4f906b2da512d7c"
+    },
+    {
+      "file": "restored-daily-081-process.json",
+      "length": 255,
+      "sha256": "9bedfaa3246dd6a1df798d8e7a5769ebc8d2e23c10a54bd12de68993a82f0215"
+    },
+    {
+      "file": "stopped-installed-081-standard-processes.json",
+      "length": 537,
+      "sha256": "b363ffa6f9dce3105110040580bc8c79dc92b2e8af5e98e25e0d4be08378c86a"
+    },
+    {
+      "file": "server-stopped081.json",
+      "length": 186,
+      "sha256": "b36b75a8582ba32ebd7086b7be5f8060f7cfc776d9e2b75d8e5d80fb5eefe4a1"
+    },
+    {
+      "file": "safety-after081.json",
+      "length": 779,
+      "sha256": "8d06184344cc1db29e62c755f138bacb350b3ea75d7f4c85629e68baad397691"
+    }
+  ]
+}

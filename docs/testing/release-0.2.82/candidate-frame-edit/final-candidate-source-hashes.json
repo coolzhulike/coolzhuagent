@@ -1,0 +1,72 @@
+{
+  "captured_ms": 1791256276774.649,
+  "reference_head": "084dd5415cb5ddddf794e9402e272644987a1ae7",
+  "note": "Enter修补最终候选当前源码字节；早期失败候选不可使用这些摘要追认。",
+  "files": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs",
+      "length": 7681,
+      "sha256": "329f816c0e242751c3fd0ed5e692c3241aebc20f5da5bb31c025ab1f372b2350"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_document.rs",
+      "length": 8231,
+      "sha256": "d9449313196bc39e46efe7a53d1e31033b56ba80b934c48448f804e510ada1e5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_dom.rs",
+      "length": 3761,
+      "sha256": "4c682a97c9438f467c58bee4a8c0b5e304854ab40955d0bcce78467e17d77e3c"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_edit_input.rs",
+      "length": 7372,
+      "sha256": "f291e7bb1877273de9c3be2cb5bc54cb00fb9aeee4346b24e4547c0ecc3eb636"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs",
+      "length": 3556,
+      "sha256": "6022fec0b4b174c2d37bff46feb44561550c156026302c0dae9f0214cb7840eb"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_host.rs",
+      "length": 8157,
+      "sha256": "c9c4dd796f1b1a4fc16b18375a29de047f1f17ebd88ed6b3c9037562d2149f7d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_input.rs",
+      "length": 18226,
+      "sha256": "696712f2f4e19f67580e279027a8e289818f8b63619e067e20a6a5b46fb4205d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_key_input.rs",
+      "length": 8159,
+      "sha256": "b2db42cd1d8db225bccbfc4fe1abded1379a007edb60854af9c7c65557bb79cc"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_navigation.rs",
+      "length": 2551,
+      "sha256": "3a16c0153d66080245054d85c54e5ec3dc309a76218a8d5be1a79fb0f631e514"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_nodes.rs",
+      "length": 7029,
+      "sha256": "59fda93bd4a6588eecd0007587692d63a9588be4a04aff5a602e573b56feb2d0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+      "length": 12701,
+      "sha256": "13c3e76eab1b994487e877b81e9e84911b42b69134eeae9322cbb7fa15fd4d68"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_source.rs",
+      "length": 3257,
+      "sha256": "3beec60137121bd5cb4e3d41b11a1de6cd190aee5f81c25ba4323090ab4d6a2a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+      "length": 18658,
+      "sha256": "e47b42f8e4b31ed1ec7b21a086a7d199e7f530899cbd14f5897ff6ec9c33b305"
+    }
+  ]
+}

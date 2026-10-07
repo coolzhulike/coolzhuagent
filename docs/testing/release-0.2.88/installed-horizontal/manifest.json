@@ -1,0 +1,402 @@
+{
+  "stage": "installed",
+  "version": "0.2.88",
+  "source_commit": "6047bb3c7462e106572498ae02028072abbaee8b",
+  "cases": [
+    {
+      "label": "ltr-right",
+      "classification": "positive",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791361199267-0-tool-f6db312f0e0cc345f15e430076901d7cd5d01a93651e5f2f3111c081aba0b855",
+        "provider_tool_call_id": "tool-f6db312f0e0cc345f15e430076901d7cd5d01a93651e5f2f3111c081aba0b855",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":3,\"criteria_met\":3,\"fresh_observation_id\":\"daa2c6acbaef20b1af4240928da7acec\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[20],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":20,\"name_chars\":29,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":20,\"inline_has_static_text\":false,\"name_chars\":29,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"7c90e9e45fc07fc431095a16c2588ad8\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":36,\"nodes\":[{\"index\":5,\"name\":\"父横向位置：0；父滚轮：0\",\"role\":\"StaticText\"},{\"index\":20,\"name\":\"子横向位置：195.3333282470703；子滚轮：1\",\"role\":\"StaticText\"}],\"title\":\"HORIZONTAL-LTR-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:56185/ltr.html\",\"viewport\":{\"height\":506.6666870117187,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:56185/ltr.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:a6cff3b1340cbe4f2faf710bd8012eff",
+          "native-ax:1:0",
+          "native-observation:a6cff3b1340cbe4f2faf710bd8012eff",
+          "native-input:0c863a86ebec217cd5879946d91bf166",
+          "native-ax:1:0",
+          "native-observation:7c90e9e45fc07fc431095a16c2588ad8",
+          "native-ax:1:0",
+          "native-observation:7c90e9e45fc07fc431095a16c2588ad8",
+          "native-ax:1:0",
+          "native-observation:daa2c6acbaef20b1af4240928da7acec"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791362099267
+            }
+          },
+          "cu_deadline_ms": 1791361824057,
+          "cu_deadline_established_at_ms": 1791361224057,
+          "cu_budget_ms": 600000
+        }
+      }
+    },
+    {
+      "label": "ltr-left",
+      "classification": "positive",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791361279311-1-tool-7ccfcb4c89476f4775644846a701c939d7da0917014230ecd9029b68b972c3db",
+        "provider_tool_call_id": "tool-7ccfcb4c89476f4775644846a701c939d7da0917014230ecd9029b68b972c3db",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":3,\"criteria_met\":3,\"fresh_observation_id\":\"8ddf8ffd307e85d7de8bf72bfd763288\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[20],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":20,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":20,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"69247ba4903d4016a63f750aa7142ec0\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":35,\"nodes\":[{\"index\":5,\"name\":\"父横向位置：0；父滚轮：0\",\"role\":\"StaticText\"},{\"index\":20,\"name\":\"子横向位置：0；子滚轮：2\",\"role\":\"StaticText\"}],\"title\":\"HORIZONTAL-LTR-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:56185/ltr.html\",\"viewport\":{\"height\":506.6666870117187,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:56185/ltr.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:5e96d7435794cc0f49447d226fc162d3",
+          "native-ax:1:0",
+          "native-observation:5e96d7435794cc0f49447d226fc162d3",
+          "native-input:64838c89e267ac153701720a216b61bb",
+          "native-ax:1:0",
+          "native-observation:69247ba4903d4016a63f750aa7142ec0",
+          "native-ax:1:0",
+          "native-observation:69247ba4903d4016a63f750aa7142ec0",
+          "native-ax:1:0",
+          "native-observation:8ddf8ffd307e85d7de8bf72bfd763288"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791362179311
+            }
+          },
+          "cu_deadline_ms": 1791361908857,
+          "cu_deadline_established_at_ms": 1791361308857,
+          "cu_budget_ms": 600000
+        }
+      }
+    },
+    {
+      "label": "ltr-left-boundary",
+      "classification": "boundary-zero-delivery",
+      "status": "blocked",
+      "goal_achieved": false,
+      "steps_completed": 0,
+      "trusted_events": 0,
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791361369250-2-tool-db36d61960c3e75a02c2d8771e7ee49a54cfc3282126f51589e952acdffb2ab5",
+        "provider_tool_call_id": "tool-db36d61960c3e75a02c2d8771e7ee49a54cfc3282126f51589e952acdffb2ab5",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_scroll_boundary",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-fee51b987a1766f7cd3b699182efd19b:d84649dc8bd80373",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:db00f3da8cb3bf987c0e3d5ea62ff4c9",
+          "native-ax:1:0",
+          "native-observation:db00f3da8cb3bf987c0e3d5ea62ff4c9"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791362269250
+            }
+          },
+          "cu_deadline_ms": 1791361988475,
+          "cu_deadline_established_at_ms": 1791361388475,
+          "cu_budget_ms": 600000
+        }
+      }
+    },
+    {
+      "label": "rtl-left",
+      "classification": "positive",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791361444296-3-tool-13f1bedebcb17e1df15cc9031c495903c651e773e84a55ba594bade338d09163",
+        "provider_tool_call_id": "tool-13f1bedebcb17e1df15cc9031c495903c651e773e84a55ba594bade338d09163",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":3,\"criteria_met\":3,\"fresh_observation_id\":\"f0cc99f7c40fb7467d9f8270494cad36\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[20],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":20,\"name_chars\":30,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":20,\"inline_has_static_text\":false,\"name_chars\":30,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"b2d650de886c7f68de9826dece0ed29e\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":36,\"nodes\":[{\"index\":5,\"name\":\"父横向位置：0；父滚轮：0\",\"role\":\"StaticText\"},{\"index\":20,\"name\":\"子横向位置：-390.6666564941406；子滚轮：1\",\"role\":\"StaticText\"}],\"title\":\"HORIZONTAL-RTL-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:56185/rtl.html\",\"viewport\":{\"height\":506.6666870117187,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:56185/rtl.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:ef08a7bc976e0653f2bd49663938a6a3",
+          "native-ax:1:1",
+          "native-observation:ef08a7bc976e0653f2bd49663938a6a3",
+          "native-input:760b812464dc082f458a4c0f17283d50",
+          "native-ax:1:1",
+          "native-observation:b2d650de886c7f68de9826dece0ed29e",
+          "native-ax:1:1",
+          "native-observation:b2d650de886c7f68de9826dece0ed29e",
+          "native-ax:1:1",
+          "native-observation:f0cc99f7c40fb7467d9f8270494cad36"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791362344296
+            }
+          },
+          "cu_deadline_ms": 1791362060536,
+          "cu_deadline_established_at_ms": 1791361460536,
+          "cu_budget_ms": 600000
+        }
+      }
+    },
+    {
+      "label": "rtl-right",
+      "classification": "positive",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791361509998-4-tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb",
+        "provider_tool_call_id": "tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":3,\"criteria_met\":3,\"fresh_observation_id\":\"122aaed869eb2d3f68794d9605fdfcfd\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[20],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":20,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":20,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"b65e38a99eaef6f0c7a6560961d6fcf0\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":35,\"nodes\":[{\"index\":5,\"name\":\"父横向位置：0；父滚轮：0\",\"role\":\"StaticText\"},{\"index\":20,\"name\":\"子横向位置：0；子滚轮：2\",\"role\":\"StaticText\"}],\"title\":\"HORIZONTAL-RTL-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:56185/rtl.html\",\"viewport\":{\"height\":506.6666870117187,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:56185/rtl.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:ac3af0343e3f60034caa7e9c9c5c9efe",
+          "native-ax:1:1",
+          "native-observation:ac3af0343e3f60034caa7e9c9c5c9efe",
+          "native-input:e8c26ecf39d98dc8dfb5948adbcf2144",
+          "native-ax:1:1",
+          "native-observation:b65e38a99eaef6f0c7a6560961d6fcf0",
+          "native-ax:1:1",
+          "native-observation:b65e38a99eaef6f0c7a6560961d6fcf0",
+          "native-ax:1:1",
+          "native-observation:122aaed869eb2d3f68794d9605fdfcfd"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791362409998
+            }
+          },
+          "cu_deadline_ms": 1791362129957,
+          "cu_deadline_established_at_ms": 1791361529957,
+          "cu_budget_ms": 600000
+        }
+      }
+    },
+    {
+      "label": "rtl-right-boundary",
+      "classification": "boundary-zero-delivery",
+      "status": "blocked",
+      "goal_achieved": false,
+      "steps_completed": 0,
+      "trusted_events": 0,
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791361573553-5-tool-21697a984dc7b254d54b915285a786c4ca3381f8db6139195a7e55e260300763",
+        "provider_tool_call_id": "tool-21697a984dc7b254d54b915285a786c4ca3381f8db6139195a7e55e260300763",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_scroll_boundary",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-09a072ac4f6c7ffbc3b0abf3632e8e7b:f95da1adf411ec15",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:fe833f973865ff62683e39797e3974e2",
+          "native-ax:1:1",
+          "native-observation:fe833f973865ff62683e39797e3974e2"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791362473553
+            }
+          },
+          "cu_deadline_ms": 1791362185031,
+          "cu_deadline_established_at_ms": 1791361585031,
+          "cu_budget_ms": 600000
+        }
+      }
+    }
+  ],
+  "files": [
+    {
+      "path": "install-088-result.json",
+      "bytes": 296,
+      "sha256": "3f3ebd7478eee153a3d72a32a9f9e855625585853e3e3861368a581832872e8a"
+    },
+    {
+      "path": "installed-088-standard-processes.json",
+      "bytes": 728,
+      "sha256": "33ab1ad9b0e7ee3b242b887ed5e5a883ca8bab9b94eb3d03cbf56b8e0cacdafb"
+    },
+    {
+      "path": "installed-088-verification.json",
+      "bytes": 1825,
+      "sha256": "972a34a57143ceedaeca2a26945ef6b1b7aee88dc9a68d6f15b6e7daf860c6b5"
+    },
+    {
+      "path": "installed-ltr-left-after.jpg",
+      "bytes": 211601,
+      "sha256": "45b994bf03330b7ac3fb03e2a60a4fbba8919d82408fd4974832c66fb855035d"
+    },
+    {
+      "path": "installed-ltr-left-boundary-after.jpg",
+      "bytes": 202525,
+      "sha256": "e426c75dd8168636d6e7a706a44ec58a5062b76ea9065f1e957164b9425e5017"
+    },
+    {
+      "path": "installed-ltr-left-boundary-facts.json",
+      "bytes": 8549,
+      "sha256": "03e17ef7671a04bcc9626e2255cc289e8340084627b53e40c195010fb41978c2"
+    },
+    {
+      "path": "installed-ltr-left-facts.json",
+      "bytes": 12724,
+      "sha256": "a2f7c021453dfd0eb75b5ecdbcddf19c528111f1e1b5abeda72a883c99b4cc64"
+    },
+    {
+      "path": "installed-ltr-right-after.jpg",
+      "bytes": 215753,
+      "sha256": "2b9fae35956bb53ae085928af57803617d962187ce88937979f63b29da71ba8c"
+    },
+    {
+      "path": "installed-ltr-right-facts.json",
+      "bytes": 12735,
+      "sha256": "d258b57012f2c36a92b55cf462fba86c1bc10b7ae11b4dbb931e77096e64369a"
+    },
+    {
+      "path": "installed-rtl-left-after.jpg",
+      "bytes": 214026,
+      "sha256": "df4a26298102ec0b50b1d3f5cb44f5b00990b42fa470998e31961c0da1a6ae5a"
+    },
+    {
+      "path": "installed-rtl-left-facts.json",
+      "bytes": 12872,
+      "sha256": "055d204c524f7028ea5a33bcbd209e8e24a840b2b01fcd1da27204435973b08f"
+    },
+    {
+      "path": "installed-rtl-right-after.jpg",
+      "bytes": 211964,
+      "sha256": "9e09bdc5cff68709a507174e406bbef2b3d8a126dfe0e9c5745cb6c06dace792"
+    },
+    {
+      "path": "installed-rtl-right-boundary-after.jpg",
+      "bytes": 202341,
+      "sha256": "2aab144275c995576898dc631babf5f52e3911fcc27f65c7638202053a0eecb8"
+    },
+    {
+      "path": "installed-rtl-right-boundary-facts.json",
+      "bytes": 8556,
+      "sha256": "438cfcd6b3119ac89cba3c6f4069275af42aa7dda249774a06ee172931f63f99"
+    },
+    {
+      "path": "installed-rtl-right-facts.json",
+      "bytes": 12733,
+      "sha256": "182db0ddb902b8441e90ffd41936dda3d32cbd64318a38d5b73a1b4def3e3e68"
+    },
+    {
+      "path": "installed-safety-summary.json",
+      "bytes": 546,
+      "sha256": "c90bdcefc5c53344320675e3fa5552a479a8642a20bf8c5bb5375eb10d83ec0c"
+    },
+    {
+      "path": "package-088-verification.json",
+      "bytes": 1810,
+      "sha256": "21c1bd5ed1b673d3cd699a9d963d9a403efd2846a3fca380a867609644c764fd"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+modules/core-runtime\packages\core-runtime\src\conditional_file.rs:32:        format!("FileBusy: 同一文件正在修改，未写入：{error}")))?;
+modules\core-runtime\packages\core-runtime\src\conditional_file.rs:32:        format!("FileBusy: 同一文件正在修改，未写入：{error}")))?;
+modules\tooling\packages\plugin-system\src\lib.rs:895:    Busy(String),
+modules\tooling\packages\plugin-system\src\lib.rs:916:            | Self::Busy(message)
+modules\gui-web\packages\windows-process-guard\src\lib.rs:79:pub struct InputLeaseBusy {
+modules\gui-web\packages\windows-process-guard\src\lib.rs:83:    /// 该 `Busy` 是否由**本线程正在执行的派发临界区**（重入）造成，而不是别的 owner 真正持有。
+modules\gui-web\packages\windows-process-guard\src\lib.rs:94:impl fmt::Display for InputLeaseBusy {
+modules\gui-web\packages\windows-process-guard\src\lib.rs:111:impl std::error::Error for InputLeaseBusy {}
+modules\gui-web\packages\windows-process-guard\src\lib.rs:152:    ) -> Result<InteractiveInputLease<'_>, InputLeaseBusy> {
+modules\gui-web\packages\windows-process-guard\src\lib.rs:158:            return Err(InputLeaseBusy {
+modules\gui-web\packages\windows-process-guard\src\lib.rs:167:            return Err(InputLeaseBusy {
+modules\gui-web\packages\windows-process-guard\src\lib.rs:328://   * `acquire` → [`InputLeaseBusy`]，其 `reentrant_dispatching_scope` 为 `Some(..)`；
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1005:    Busy { scope: String, waited: Duration },
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1015:        matches!(self, Self::Busy { .. })
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1020:            Self::Busy { scope, .. }
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1030:            Self::Busy { scope, waited } => write!(
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1176:            Ok(KeeperReport::Busy) => Err(CrossProcessScopeError::Busy { scope, waited: timeout }),
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1201:    Busy,
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1233:        WAIT_TIMEOUT => KeeperReport::Busy,
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1346:/// 正常情况下"别人正持有"会在 `timeout` 内以 `CrossProcessScopeError::Busy` 返回，
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1364:    InProcessBusy(InputLeaseBusy),
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1373:            Self::InProcessBusy(_) => true,
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1382:            Self::InProcessBusy(busy) => write!(formatter, "进程内输入 owner 冲突: {busy}"),
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1391:            Self::InProcessBusy(busy) => Some(busy),
+modules\gui-web\packages\windows-process-guard\src\lib.rs:1434:            .map_err(ScopedInputOwnershipError::InProcessBusy)?;
+modules\gui-web\packages\windows-process-guard\src\lib.rs:2140:        assert!(busy.is_busy(), "竞争者必须得到 Busy，实际 {busy:?}");
+modules\gui-web\packages\windows-process-guard\src\lib.rs:2178:    /// 非阻塞探测：别人持有时 `Duration::ZERO` 立即返回 Busy，不挂住调用方。
+modules\gui-web\packages\windows-process-guard\src\lib.rs:2185:            .expect_err("非阻塞探测必须立即得到 Busy");
+modules\gui-web\packages\windows-process-guard\src\lib.rs:2230:                assert!(error.is_busy(), "第二进程必须得到 Busy，实际 {error:?}");
+modules\gui-web\packages\windows-process-guard\src\lib.rs:2306:    /// 反向对照：没人持有 scope 时，"期望 Busy"的探针必须**失败**。
+modules\gui-web\packages\windows-process-guard\src\lib.rs:2322:            "空 scope 上'期望 Busy'必须失败，说明探针真的在尝试取得"
+modules\gui-web\packages\windows-process-guard\src\lib.rs:2326:            "空 scope 上不得出现 Busy 标记：{stdout}"
+modules\gui-web\packages\windows-process-guard\src\lib.rs:2394:            matches!(same_broker, ScopedInputOwnershipError::InProcessBusy(_)),
+modules\tooling\packages\plugin-system\src\install_transaction.rs:66:            PluginError::Busy(format!(
+modules\tooling\packages\plugin-system\src\install_transaction.rs:786:    Err(PluginError::Busy(
+modules\tooling\packages\plugin-system\src\install_transaction.rs:1130:        assert!(matches!(error, PluginError::Busy(_)));
+modules\core-runtime\packages\core-runtime\src\input_safety.rs:1476:/// 本枚举只冻结**判定**：两种先后顺序各自导向什么结论。注意 `SqliteBusy` 不是成功。
+modules/core-runtime\packages\core-runtime\src\input_safety.rs:1476:/// 本枚举只冻结**判定**：两种先后顺序各自导向什么结论。注意 `SqliteBusy` 不是成功。
+modules\gui-web\packages\web-console\src\computer_use_store.rs:197:                if error.code == rusqlite::ErrorCode::DatabaseBusy && std::time::Instant::now() < deadline => {
+modules\gui-web\packages\web-console\src\computer_use_store.rs:249:                if error.code == rusqlite::ErrorCode::DatabaseBusy && std::time::Instant::now() < deadline => {
+modules\gui-web\packages\web-console\src\input_safety_store.rs:1928:    Busy { scope: String },
+modules\gui-web\packages\web-console\src\input_safety_store.rs:1937:            Self::Busy { .. } => "input_safety_coordinator_busy",
+modules\gui-web\packages\web-console\src\input_safety_store.rs:1946:            Self::Busy { scope } => write!(
+modules\gui-web\packages\web-console\src\input_safety_store.rs:2007:pub(crate) struct InputSafetyCoordinator {
+modules\gui-web\packages\web-console\src\input_safety_store.rs:2029:        Self::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_store.rs:2059:    pub(crate) fn begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_store.rs:2072:            true => CoordinatorError::Busy {
+modules\gui-web\packages\web-console\src\input_safety_store.rs:2097:            true => CoordinatorError::Busy {
+modules\gui-web\packages\web-console\src\input_safety_store.rs:2308:        InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_store.rs:2923:        // ② 第二个协调器在**同一协调范围**上 begin ⇒ 被跨进程锁挡成 Busy（唯一协调者的直接证据）。
+modules\gui-web\packages\web-console\src\input_safety_store.rs:2924:        let busy = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_opening.rs:181:    let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_opening.rs:264:    let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_opening.rs:439:        let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_opening.rs:537:        let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\computer_use_executor.rs:2692:                rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked)));
+modules\gui-web\packages\web-console\src\computer_use_executor.rs:2731:            crate::input_safety_store::InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_harness.rs:11://! - 子进程调用**同一生产实现**（`begin_with_coordination_scope`），**不复制**协调器代码、
+modules\gui-web\packages\web-console\src\input_safety_harness.rs:80:    let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_harness.rs:184:    let busy = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\input_safety_harness.rs:214:    let attempted = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\legacy_recovery_driver.rs:529:        let coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\legacy_recovery_driver.rs:584:        let previous = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\legacy_recovery_driver.rs:597:        let current_coordinator = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\native_recovery_store.rs:36:        let blocked = InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\native_recovery_store.rs:47:                Err(crate::input_safety_store::CoordinatorError::Busy { .. })
+modules\gui-web\packages\web-console\src\native_recovery_store.rs:65:        InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\schema_upgrade.rs:68:                StepResult::Busy | StepResult::Locked => std::thread::sleep(Duration::from_millis(10)),
+modules\gui-web\packages\web-console\src\main.rs:2946:    let coordinator = input_safety_store::InputSafetyCoordinator::begin_with_coordination_scope(
+modules\gui-web\packages\web-console\src\main.rs:81646:            "setBusy(button, true, \"转交中\")",
+modules\gui-web\packages\web-console\src\main.rs:81653:            "setBusy(button, false);",

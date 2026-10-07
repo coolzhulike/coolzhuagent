@@ -1,0 +1,322 @@
+{
+  "stage": "0.2.79 Program Files正式安装版，默认8765，同目录后台/外壳与原安全库",
+  "source_commit": "683c17e74ca98cf85c3e67142e68a7c04071da5d",
+  "source_snapshot_digest": "62944ec1b3885c9c0b237fa6d312e22fae7121ad7899c9e7f0b064f71947eb09",
+  "tests_use_real_model": true,
+  "room": "room-1791131523339",
+  "agent": "session-1791131217833",
+  "cases": [
+    {
+      "prefix": "BU-INSTALLED-079-SHADOW-CHILD-20261006",
+      "source_message": {
+        "room_id": "room-1791131523339",
+        "id": "msg-1791250430868-user",
+        "author": "",
+        "role": "user",
+        "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+        "content": "BU-INSTALLED-079-SHADOW-CHILD-20261006。新的独立正例，只执行当前任务，继续SWE-2原远端会话。仅调用一次coolzhu-agent的computer_use_perform，参数 {\"objective\":\"单击当前页面名为Shadow子操作按钮的子button一次，保持父操作次数0\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:58081/shadow.html\"},\"success_criteria\":[\"最新页面父操作次数0，Shadow子操作次数1\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click，只选本轮新鲜Shadow子操作按钮自身节点引用，不能选择父操作按钮或Shadow宿主；子控件无法独立识别或不支持、失败、取消或输入未知立即停止，不重试、不补发、不改目标，不用桌面或其它工具或Devin原生工具，不执行历史任务\"],\"max_actions\":1}。若running只wait同一job_id到终态。根据真实宿主输入回执和最新页面如实报告，不代执行或推断成功。",
+        "kind": "text",
+        "attachments_json": "[]",
+        "created_at": 1791250431119
+      },
+      "run_id": "run-chat-64f4d7adb53e9d30377d789a32b2d89fbf8f3dc0d60e1003",
+      "run_state": "completed",
+      "bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 1,
+          "host_history_messages": 94,
+          "prompt_bytes": 3322
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791250430868-0-tool-6cf916dacf475949b7c224d9da4198f8a2ef7fce5aec24f381caebb9b8602e4b",
+        "provider_tool_call_id": "tool-6cf916dacf475949b7c224d9da4198f8a2ef7fce5aec24f381caebb9b8602e4b",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"ffc77661d2aa3d28a1d7fb19c1d45a97\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[9],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":9,\"name_chars\":21,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":21,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"47a6fbbcf11ac0dcfd00570b67e4ad9f\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":25,\"nodes\":[{\"index\":9,\"name\":\"父操作次数：0；Shadow子操作次数：1\",\"role\":\"StaticText\"}],\"title\":\"078 SHADOW边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/shadow.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:58081/shadow.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:54b4032dab1f6d02980885070b9f63d6",
+          "native-ax:1:0",
+          "native-observation:54b4032dab1f6d02980885070b9f63d6",
+          "native-input:de8270193d97e38d92b1db69d9327a8d",
+          "native-ax:1:0",
+          "native-observation:47a6fbbcf11ac0dcfd00570b67e4ad9f",
+          "native-ax:1:0",
+          "native-observation:47a6fbbcf11ac0dcfd00570b67e4ad9f",
+          "native-ax:1:0",
+          "native-observation:ffc77661d2aa3d28a1d7fb19c1d45a97"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791251330868
+            }
+          },
+          "cu_deadline_ms": 1791251037936,
+          "cu_deadline_established_at_ms": 1791250437936,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events_this_run": [
+        {
+          "case": "SHADOW",
+          "type": "pointerdown",
+          "at_ms": 1791250444232.5,
+          "target": "shadow-host",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250444236.3777
+        },
+        {
+          "case": "SHADOW",
+          "type": "pointerup",
+          "at_ms": 1791250444235.2,
+          "target": "shadow-host",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250444238.3298
+        },
+        {
+          "case": "SHADOW",
+          "type": "click",
+          "at_ms": 1791250444235.5999,
+          "target": "shadow-host",
+          "button": 0,
+          "isTrusted": true,
+          "received_ms": 1791250444240.1018
+        },
+        {
+          "case": "SHADOW",
+          "type": "shadow-click",
+          "at_ms": 1791250444235.8,
+          "count": 1,
+          "received_ms": 1791250444242.6675
+        }
+      ],
+      "acceptance": "正式正例通过：自身引用，一次真实点击及释放，父0、Shadow子1"
+    },
+    {
+      "prefix": "BU-INSTALLED-079-SHADOW-CONTROL-20261006",
+      "source_message": {
+        "room_id": "room-1791131523339",
+        "id": "msg-1791250492697-user",
+        "author": "",
+        "role": "user",
+        "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+        "content": "BU-INSTALLED-079-SHADOW-CONTROL-20261006。继续原SWE-2远端会话，只执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数 {\"objective\":\"单击当前页面名为父操作按钮的button一次\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:58081/shadow.html\"},\"success_criteria\":[\"最新页面父操作次数1，Shadow子操作次数0\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click，只选本轮新鲜名称为父操作按钮的父button引用，不操作Shadow子操作按钮，不选子节点或替代点击位置，不用桌面、导航、其它工具或Devin原生工具；命中不一致或不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务\"],\"max_actions\":1}。若返回running只wait同一job_id到终态。按真实宿主回执和最新页面如实报告，不得代执行或推断成功。",
+        "kind": "text",
+        "attachments_json": "[]",
+        "created_at": 1791250492951
+      },
+      "run_id": "run-chat-5b96e58a14350cb2a2345d5b58ca427a7e7cece32186e722",
+      "run_state": "failed",
+      "bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 96,
+          "prompt_bytes": 2679
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791250492697-1-tool-52d0c2a8c2c05c89d38337e1fa6bf666ab5470c0fe5bdd68786ee1823cffe59e",
+        "provider_tool_call_id": "tool-52d0c2a8c2c05c89d38337e1fa6bf666ab5470c0fe5bdd68786ee1823cffe59e",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_target_hit_mismatch",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-68d1636709aca77a75c9e3468e22138b:1c0f4c450bb049f6",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:ca308899cf9bef7f2d76e47725650578",
+          "native-ax:1:0",
+          "native-observation:ca308899cf9bef7f2d76e47725650578"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791251392697
+            }
+          },
+          "cu_deadline_ms": 1791251099671,
+          "cu_deadline_established_at_ms": 1791250499671,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events_this_run": [],
+      "acceptance": "正式负例通过：独立子覆盖父中心，零输入，父0、子0"
+    }
+  ],
+  "files": [
+    {
+      "file": "CoolzhuAgent-0.2.79-installer-report.json",
+      "length": 3674,
+      "sha256": "4ed69593d38eb7d3e08d3c77b52784cea410d9d0299c518404851f9fb523a480"
+    },
+    {
+      "file": "CoolzhuAgent-0.2.79-package-safety.json",
+      "length": 251,
+      "sha256": "4f359d05e1cf9c5167e8b7343ed9d2f7b2e25df231f6437b3acc870ba1da40f5"
+    },
+    {
+      "file": "BU-INSTALLED-079-SHADOW-CHILD-20261006-browser-facts.json",
+      "length": 25695,
+      "sha256": "b33e8e8034e05dab23d7b2ae804b6804619e44eab2c875b165f1603a0596255c"
+    },
+    {
+      "file": "BU-INSTALLED-079-SHADOW-CONTROL-20261006-browser-facts.json",
+      "length": 20166,
+      "sha256": "78ad6403647b6a517963e7871b80ce2e63bc6a891d31e9dde32bd873c7280c1b"
+    },
+    {
+      "file": "install-079-result.json",
+      "length": 284,
+      "sha256": "0cb9e1b2f457dcdfef3d876789b393e4cac9330f14375cf53b9d581d56f9a24a"
+    },
+    {
+      "file": "installed-079-shadow-child-after.jpg",
+      "length": 222452,
+      "sha256": "5b4a986987a89e09a9c2b6fb4547dd56f189653b51598eeac3d004c35a0a5c39"
+    },
+    {
+      "file": "installed-079-shadow-child-before.jpg",
+      "length": 202167,
+      "sha256": "5814d7f203229dfb6c3a1d1847eb42ef1b825fe84358b053bc445ca716af4359"
+    },
+    {
+      "file": "installed-079-shadow-child-request.txt",
+      "length": 964,
+      "sha256": "efd95b339046176f026589cc46af5c1e4cf1ba860da3888f85e9eb182315bd40"
+    },
+    {
+      "file": "installed-079-shadow-parent-after.jpg",
+      "length": 189793,
+      "sha256": "d5483185c9acf00ed20532bba149dbbd93eee03ca3843ead029e2938e3e4c105"
+    },
+    {
+      "file": "installed-079-shadow-parent-before.jpg",
+      "length": 201870,
+      "sha256": "e13e3f20c0c53e62cc976ca8d3a6f4bbdeb3c7fad10d9040dd39c60db9db0068"
+    },
+    {
+      "file": "installed-079-shadow-parent-request.txt",
+      "length": 926,
+      "sha256": "c90b04effa5e52f8c28f7227592e88031f355994400db3f262a16976cee14e2c"
+    },
+    {
+      "file": "installed-079-standard-processes.json",
+      "length": 692,
+      "sha256": "f5514fd584a80d2a53e061ea66d80a6a4661da89adc6f6277c4c152ffb3a4e3c"
+    },
+    {
+      "file": "installed-079-verification.json",
+      "length": 1825,
+      "sha256": "dddd10e251915fa268bb58989f473f849848897e802ae70b9c045feababb5cea"
+    },
+    {
+      "file": "package-079-verification.json",
+      "length": 1810,
+      "sha256": "edd3abe6df63486ec25481ca90ebae2f0b4eaaa807bf97f065a4136ce28e39f7"
+    },
+    {
+      "file": "server-address.json",
+      "length": 72,
+      "sha256": "51ec61082cbd900ea3b092476ce41e25921e72da0eca56db741250d5cb4f581d"
+    },
+    {
+      "file": "server-process.json",
+      "length": 119,
+      "sha256": "aeec1dae426265f8a617ada050e46e9e4db0fc4ac0b971c46f677553cd76d23a"
+    },
+    {
+      "file": "server.py",
+      "length": 5152,
+      "sha256": "4e05cc5dbfc3a54956ba0396c5838a123928e8b697a7b1f48e7f1d40d0d5bccd"
+    }
+  ],
+  "limits": [
+    "只覆盖开放Shadow点击及父误击拒绝，不外推编辑/键盘/封闭根/iframe内部自动化"
+  ]
+}

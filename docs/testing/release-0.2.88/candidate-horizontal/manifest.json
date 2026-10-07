@@ -1,0 +1,275 @@
+{
+  "stage": "candidate",
+  "source_commit_for_final_fix": "5571c63d2bcd9a48b9ed063e3d1e5ac10cec1a96",
+  "scope": "LTR早期候选；RTL失败/诊断保留；最终修补RTL双向及边界。正式安装另验。",
+  "cases": [
+    {
+      "label": "ltr-right",
+      "classification": "failure-preserved",
+      "run": "failed",
+      "status": "blocked",
+      "goal_achieved": false,
+      "error": "native_browser_observation_unavailable",
+      "steps_completed": 0,
+      "trusted_events": 0,
+      "source_message_id": "msg-1791359206133-user"
+    },
+    {
+      "label": "ltr-right2",
+      "classification": "positive",
+      "run": "completed",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "error": null,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "source_message_id": "msg-1791359279914-user"
+    },
+    {
+      "label": "ltr-left",
+      "classification": "positive",
+      "run": "completed",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "error": null,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "source_message_id": "msg-1791359369177-user"
+    },
+    {
+      "label": "ltr-left-boundary",
+      "classification": "boundary",
+      "run": "failed",
+      "status": "blocked",
+      "goal_achieved": false,
+      "error": "native_browser_scroll_boundary",
+      "steps_completed": 0,
+      "trusted_events": 0,
+      "source_message_id": "msg-1791359462700-user"
+    },
+    {
+      "label": "rtl-right-boundary",
+      "classification": "boundary",
+      "run": "failed",
+      "status": "blocked",
+      "goal_achieved": false,
+      "error": "native_browser_scroll_boundary",
+      "steps_completed": 0,
+      "trusted_events": 0,
+      "source_message_id": "msg-1791359536214-user"
+    },
+    {
+      "label": "rtl-left",
+      "classification": "failure-preserved",
+      "run": "failed",
+      "status": "blocked",
+      "goal_achieved": false,
+      "error": "native_browser_hit_test_failed",
+      "steps_completed": 0,
+      "trusted_events": 0,
+      "source_message_id": "msg-1791359592920-user"
+    },
+    {
+      "label": "rtl-left-diagnostic",
+      "classification": "failure-preserved",
+      "run": "failed",
+      "status": "blocked",
+      "goal_achieved": false,
+      "error": "native_browser_hit_test_failed",
+      "steps_completed": 0,
+      "trusted_events": 0,
+      "source_message_id": "msg-1791359984465-user"
+    },
+    {
+      "label": "rtl-left2",
+      "classification": "positive",
+      "run": "completed",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "error": null,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "source_message_id": "msg-1791360184283-user"
+    },
+    {
+      "label": "rtl-left3",
+      "classification": "positive",
+      "run": "completed",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "error": null,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "source_message_id": "msg-1791360268580-user"
+    },
+    {
+      "label": "rtl-right2",
+      "classification": "positive",
+      "run": "completed",
+      "status": "succeeded",
+      "goal_achieved": true,
+      "error": null,
+      "steps_completed": 1,
+      "trusted_events": 2,
+      "source_message_id": "msg-1791360318430-user"
+    },
+    {
+      "label": "rtl-right-boundary2",
+      "classification": "boundary",
+      "run": "failed",
+      "status": "blocked",
+      "goal_achieved": false,
+      "error": "native_browser_scroll_boundary",
+      "steps_completed": 0,
+      "trusted_events": 0,
+      "source_message_id": "msg-1791360392787-user"
+    }
+  ],
+  "files": [
+    {
+      "path": "candidate-processes.json",
+      "bytes": 928,
+      "sha256": "91adfb1cf80581d251f96d3e28a87cecb9abdd995f85e56965904ba7337685b0"
+    },
+    {
+      "path": "candidate-safety-summary.json",
+      "bytes": 546,
+      "sha256": "9e3cef4665fb31b10c2f8d26ee3b2e24f8c208ec539384fff9b2d0a6f75307fe"
+    },
+    {
+      "path": "desktop-tests-fixed.log",
+      "bytes": 7971,
+      "sha256": "a236044de7f4984a676d92f44cd7fbf3ff1c6759d1bfe4189d463f487312a91a"
+    },
+    {
+      "path": "desktop-tests.log",
+      "bytes": 7697,
+      "sha256": "4bd5a1b1617608768c591d993e6c80f30c199547858d3f5354981fd887b6ab6a"
+    },
+    {
+      "path": "ltr-before.jpg",
+      "bytes": 214547,
+      "sha256": "384aadf490c8232360a6e366705ad2c230ff9acf84797ba164179a39ebf0b9ef"
+    },
+    {
+      "path": "ltr-left-after.jpg",
+      "bytes": 210445,
+      "sha256": "4c3687f26893e0ff62642a400f234c704b9ad666d556e679346bee8c4bd6b1c2"
+    },
+    {
+      "path": "ltr-left-boundary-after.jpg",
+      "bytes": 202414,
+      "sha256": "6d1eeee5fc8cfa9d7d857dd0259a0fcbb2e998a33a3c9680a3fd9657c7dac46c"
+    },
+    {
+      "path": "ltr-left-boundary-facts.json",
+      "bytes": 8545,
+      "sha256": "6adfaa56aa66c746bf57da01b34540dac28749bcac77537bdb914335f0828dc1"
+    },
+    {
+      "path": "ltr-left-facts.json",
+      "bytes": 12840,
+      "sha256": "2404e7ec01f74c3fac1ebc9d93db8096a8c912280a6d89c1a6437597c14ea5be"
+    },
+    {
+      "path": "ltr-right-after.jpg",
+      "bytes": 210737,
+      "sha256": "baa671e5c881ac78ef74a62837488370ac841504e2ad763cb1e0a36ab1aaed7f"
+    },
+    {
+      "path": "ltr-right-facts.json",
+      "bytes": 6419,
+      "sha256": "2641c22411173b2bf08d30328231fb5b86177386d388848e91400d3bfbcb1945"
+    },
+    {
+      "path": "ltr-right2-after.jpg",
+      "bytes": 208543,
+      "sha256": "7535a65cfcd940890c467f204cd6ddb6a0849b3ad6947a23dee0151bd3fc0935"
+    },
+    {
+      "path": "ltr-right2-facts.json",
+      "bytes": 12806,
+      "sha256": "687a507621c8e1564e5e2f9e1dd16d5e4dee71622ac5ad3aa58ecf06a7f1b6ee"
+    },
+    {
+      "path": "rtl-before.jpg",
+      "bytes": 201476,
+      "sha256": "ba73d45056dd87d9cbd5d5d56f10cf7c77ef834b5ecb742972936b5b5eac3304"
+    },
+    {
+      "path": "rtl-left-after.jpg",
+      "bytes": 202723,
+      "sha256": "331f5c554d0e7666e36a71b1aa3a1f0ddfa3cafeaa065416a69aa59c5dc96d0e"
+    },
+    {
+      "path": "rtl-left-diagnostic-after.jpg",
+      "bytes": 209419,
+      "sha256": "99e9d1496835f8e70364485c445e80c80a9d9370098b7a42cbe642cea316eedc"
+    },
+    {
+      "path": "rtl-left-diagnostic-facts.json",
+      "bytes": 8547,
+      "sha256": "ad37648b85e63cffa43d7bdf1d7ef9012c0984a6e9722a1b3b0e5fb2e8ca4a23"
+    },
+    {
+      "path": "rtl-left-facts.json",
+      "bytes": 8536,
+      "sha256": "a75d4e4efdb31e1ad3793a6a3e98e6ba30004031096344a008c78b4175c6282a"
+    },
+    {
+      "path": "rtl-left2-after.jpg",
+      "bytes": 210469,
+      "sha256": "5268a5c2149237b30adb4239a2f8f8dbfa2e11fb95ff764095d7f543b0b0bc9c"
+    },
+    {
+      "path": "rtl-left2-before.jpg",
+      "bytes": 209617,
+      "sha256": "46da5fda328ae51a068e72a256fafe40053a42a947f1f3f389190f6150aaea1f"
+    },
+    {
+      "path": "rtl-left2-facts.json",
+      "bytes": 13027,
+      "sha256": "7005df1873d675909df089e76f31dd8954478642183db295e7fdbb5f0b863108"
+    },
+    {
+      "path": "rtl-left3-after.jpg",
+      "bytes": 211013,
+      "sha256": "64ec914dca17653bcbe87c251a9e33300d891372325cbad663cc1d1f87d2fa99"
+    },
+    {
+      "path": "rtl-left3-facts.json",
+      "bytes": 12866,
+      "sha256": "517179e717708cb3c3192a40008d681aba560e59292854447f4c6e93b92f5830"
+    },
+    {
+      "path": "rtl-right-boundary-after.jpg",
+      "bytes": 203408,
+      "sha256": "af1bfb3b20670043f96e0c8ac372c81072e5a515031266762154bd8f962c8428"
+    },
+    {
+      "path": "rtl-right-boundary-facts.json",
+      "bytes": 8552,
+      "sha256": "27d780f6adc761cf89caaa739d42c9b01daf909efff7585706365617efcf7793"
+    },
+    {
+      "path": "rtl-right-boundary2-after.jpg",
+      "bytes": 202645,
+      "sha256": "471606727ca93f5e62a3724dedbc1808596f03a786a1de88bdafee6aeb002789"
+    },
+    {
+      "path": "rtl-right-boundary2-facts.json",
+      "bytes": 8553,
+      "sha256": "c0f6e755236f4ea9252dea20706cc44b3c52137768cacef3508deec4241e57f2"
+    },
+    {
+      "path": "rtl-right2-after.jpg",
+      "bytes": 213574,
+      "sha256": "ef9526f2c9c87bfd2c2976588c878d69ae9f9124f4ae1c656adae7678d4630d1"
+    },
+    {
+      "path": "rtl-right2-facts.json",
+      "bytes": 12822,
+      "sha256": "6aac322141782ce2d28175198918c385fbde348eb386e4a4b465c5b559b76638"
+    }
+  ]
+}

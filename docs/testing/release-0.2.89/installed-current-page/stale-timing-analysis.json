@@ -1,0 +1,24 @@
+{
+  "case": "stale",
+  "request_ms": 1791364075176,
+  "change": {
+    "before_ms": 1791364076120,
+    "after_ms": 1791364076215,
+    "method": "sky普通刷新按钮"
+  },
+  "response_ms": 1791364078998,
+  "strict_planning_window": true,
+  "all_planning_events": [
+    {
+      "id": 2098,
+      "event_type": "devin.planning_requested",
+      "created_at": 1791364075176
+    },
+    {
+      "id": 2099,
+      "event_type": "devin.planning_response",
+      "created_at": 1791364078998
+    }
+  ],
+  "new_trusted_events": 0
+}

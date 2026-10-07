@@ -41,6 +41,7 @@ function harness(protocol = "devin_acp") {
     const action = selector.match(/data-ms-action="([^"]+)"/);
     return key ? elements.get(key[1]) : action ? actions.get(action[1]) : null;
   };
+  container.querySelectorAll = () => [];
   let snapshot = {
     configuration_revision: 7, backend_kind: protocol === "devin_acp" ? "devin_acp" : "llm_http",
     protocol, base_url: protocol === "devin_acp" ? "" : "https://api.example.com/v1",
@@ -97,6 +98,8 @@ test("HTTP 切换至 Devin 保存时清理不适用覆盖，保留版本和会�
   h.elements.get("temperature").value = "0.4";
   h.elements.get("context").value = "8192";
   h.change("protocol","devin_acp");
+  assert.equal(h.elements.get("supports-multimodal").disabled,false);
+  h.change("supports-multimodal","true");
   await h.save();
   const saved = h.calls.find(call => call.url === "/api/sessions/s1/model-settings" && call.body);
   assert.equal(saved.body.expected_revision,7);
@@ -106,8 +109,8 @@ test("HTTP 切换至 Devin 保存时清理不适用覆盖，保留版本和会�
   assert.equal(saved.body.parameters.temperature,null);
   assert.equal(saved.body.parameters.context_window,0);
   assert.equal(saved.body.parameters.base_url,null);
-  assert.match(h.elements.get("status").textContent,/聊天室发送文本/);
-  assert.match(h.elements.get("status").textContent,/Computer Use/);
+  assert.equal(saved.body.parameters.supports_multimodal,true);
+  assert.match(h.elements.get("status").textContent,/已保存 Devin 配置/);
   assert.equal(saved.body.parameters.computer_use_enabled,false);
   assert.deepEqual(saved.body.parameters.tool_allowlist,[]);
   h.change("protocol","openai_chat_completions");

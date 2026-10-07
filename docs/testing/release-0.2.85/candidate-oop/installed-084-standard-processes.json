@@ -1,0 +1,13 @@
+{
+  "shell_sha256": "2b5944d8f90a374edc1eaf905a0ca68a44355b8785046c14f43c8f98a6447a40",
+  "web_pid": 26660,
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "stage": "原084正式目录临时只读CDP诊断，不作为普通安装环境验收",
+  "shell_started": "2026-10-06T04:48:08.6980308Z",
+  "web_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "shell_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+  "web_started": "2026-10-06T04:48:08.0024148Z",
+  "shell_pid": 19248,
+  "web_sha256": "bc72bb8aa4c3858115b803deb80b65c3eb39aa400846cdbdc00fd784e5709bb9",
+  "port": 8765
+}

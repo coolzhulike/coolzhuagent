@@ -1,0 +1,219 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791350343945-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-086-SCROLL-BOUNDARY-20261006：只调用一次 computer_use_perform，surface=browser，使用当前右栏原生浏览器 http://127.0.0.1:53530/scroll.html。对子文档 OOP-SCROLL-CHILD 的新鲜 RootWebArea 执行一次 scroll up amount=1，max_actions=1。当前子页面已在顶部；本任务预期宿主以 native_browser_scroll_boundary 拒绝投递，not_sent，父滚动位置仍为0、父滚轮次数仍为0、子滚动位置仍为0、子滚轮次数仍为2。不得退回滚动父页面，不点击、不导航、不输入、不桌面操作，不重试、不补发其它动作。按 next_tool 使用 computer_use_respond 返回同job_id/request_id的规划/验收JSON，其余running用 computer_use_wait 等到终态；如实报告拒绝结果和页面事实，不把blocked当执行成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791350344177
+  },
+  "status": {
+    "message": "msg-1791350343945-user",
+    "run": {
+      "id": "run-chat-3284bae0816c38de466aaa5d15efa2bdb58c0ab97cfb42ba",
+      "state": "failed",
+      "stop_reason": null
+    },
+    "cu": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+          "provider_tool_call_id": "tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+          "status": "blocked",
+          "stage": "execution",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "节点预检拒绝，未发送输入",
+          "error": {
+            "code": "native_browser_scroll_boundary",
+            "message": "节点预检拒绝，未发送输入",
+            "retryable": false,
+            "retry_owner": "none",
+            "receipt": {
+              "action_id": "browser:dom-c52cbc3e80b8af6cda621fbeab84d9e5:6fa28d0c41c55638",
+              "input_delivery": "not_sent",
+              "partial": false,
+              "effect": "not_observed",
+              "goal_verdict": "not_checked",
+              "input_release": "not_needed"
+            }
+          },
+          "attempts": 1,
+          "steps_completed": 0,
+          "evidence": [
+            "native-ax:1:1",
+            "native-observation:b933bd0d66279d956c70997aeeb19683",
+            "native-ax:1:1",
+            "native-observation:b933bd0d66279d956c70997aeeb19683"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791351243945
+              }
+            },
+            "cu_deadline_ms": 1791350952528,
+            "cu_deadline_established_at_ms": 1791350352528,
+            "cu_budget_ms": 600000
+          }
+        }
+      }
+    ]
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+      "provider_tool_call_id": "tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+      "turn_id": "chat-turn-1791350343945-3",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791350343945-3\u001fbrowser\u001f在当前右栏原生浏览器oop-scroll-child子文档向上滚动一次，父页面不滚动\u001f||http://127.0.0.1:53530/scroll.html|\u001f子页面已在顶部时滚动请求被边界拒绝未投递；最新子滚动位置为0且子滚轮次数仍为2|最新父滚动位置为0且父滚轮次数为0\u001f只允许一次scroll up amount=1，选本轮oop-scroll-child子rootwebarea新鲜引用；不点击不输入不按键不导航不操作父页/桌面/其它工具；失败或边界拒绝立即停止，不重试不补发|按每条条件对应最新statictext明确index和原文验收，不把ack当页面事实",
+      "objective_json": {
+        "constraints": [
+          "只允许一次scroll up amount=1，选本轮OOP-SCROLL-CHILD子RootWebArea新鲜引用；不点击不输入不按键不导航不操作父页/桌面/其它工具；失败或边界拒绝立即停止，不重试不补发",
+          "按每条条件对应最新StaticText明确index和原文验收，不把ACK当页面事实"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏原生浏览器OOP-SCROLL-CHILD子文档向上滚动一次，父页面不滚动",
+        "success_criteria": [
+          "子页面已在顶部时滚动请求被边界拒绝未投递；最新子滚动位置为0且子滚轮次数仍为2",
+          "最新父滚动位置为0且父滚轮次数为0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:53530/scroll.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791350952528,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+        "provider_tool_call_id": "tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_scroll_boundary",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-c52cbc3e80b8af6cda621fbeab84d9e5:6fa28d0c41c55638",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:b933bd0d66279d956c70997aeeb19683",
+          "native-ax:1:1",
+          "native-observation:b933bd0d66279d956c70997aeeb19683"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791351243945
+            }
+          },
+          "cu_deadline_ms": 1791350952528,
+          "cu_deadline_established_at_ms": 1791350352528,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791350352528,
+      "updated_at_ms": 1791350358049,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "scroll",
+          "normalized_target": "dom-c52cbc3e80b8af6cda621fbeab84d9e5",
+          "action_fingerprint": "41a909786c4dec8d",
+          "status": "failed",
+          "error_code": "native_browser_scroll_boundary",
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:b933bd0d66279d956c70997aeeb19683\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791350357229,
+          "completed_at_ms": 1791350358033,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{\"amount\":1,\"direction\":\"up\"},\"kind\":\"scroll\",\"redacted_fields\":true,\"target\":\"dom-c52cbc3e80b8af6cda621fbeab84d9e5\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 576,
+          "call_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+          "turn_id": "chat-turn-1791350343945-3",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{\"amount\":1,\"direction\":\"up\"},\"kind\":\"scroll\",\"target\":\"dom-c52cbc3e80b8af6cda621fbeab84d9e5\"},\"done\":false,\"observation_facts\":{\"candidate_count\":2,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":26,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":2,\"textbox_candidate_count\":0,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791350352732,
+          "completed_at_ms": 1791350357225
+        }
+      ]
+    }
+  ],
+  "events": []
+}

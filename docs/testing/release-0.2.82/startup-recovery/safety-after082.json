@@ -1,0 +1,39 @@
+{
+  "observed_ms": 1791257567013.2195,
+  "resource": [
+    {
+      "scope": "windows-session-1",
+      "state": "safe",
+      "revision": 161,
+      "coordinator_instance_id": null,
+      "recovery_epoch": 177,
+      "accepts_new_input": 1,
+      "updated_at_unix_ms": 1791257562414
+    },
+    {
+      "scope": "windows-session-2",
+      "state": "safe",
+      "revision": 7,
+      "coordinator_instance_id": null,
+      "recovery_epoch": 23,
+      "accepts_new_input": 1,
+      "updated_at_unix_ms": 1790699986271
+    }
+  ],
+  "permits": [
+    {
+      "state": "finished",
+      "count": 302
+    },
+    {
+      "state": "outcome_unknown",
+      "count": 2
+    }
+  ],
+  "blocks": [
+    {
+      "state": "closed",
+      "count": 9
+    }
+  ]
+}

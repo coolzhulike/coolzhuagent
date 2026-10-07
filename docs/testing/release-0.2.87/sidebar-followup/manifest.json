@@ -1,0 +1,38 @@
+{
+  "stage": "installed",
+  "version": "0.2.87",
+  "source_commit": "a74ed09e8bc8e88944550fe2e3fadc67b6060022",
+  "scope": "正常日常原工程的只读UI入口复核；无新增模型请求、定时任务或插件状态修改",
+  "files": [
+    {
+      "path": "installed087-market.jpg",
+      "bytes": 222016,
+      "sha256": "9f718cce8af0d1076adf2fd04848b87900af837ab71aa1091f70a0cabf0ed879"
+    },
+    {
+      "path": "installed087-schedules.jpg",
+      "bytes": 199696,
+      "sha256": "84c58243bd6f9d86025c06def7d0cf0c2299896d1083ba97f89d0dfbf913777a"
+    },
+    {
+      "path": "installed087-settings.jpg",
+      "bytes": 214810,
+      "sha256": "bf688a247b1aa9fc832ca1143e424d7d8ddd02045f7e66d2a2c795fbdad27fa2"
+    },
+    {
+      "path": "installed087-skill.jpg",
+      "bytes": 195352,
+      "sha256": "11bfe87c39e7b7d67ba08f89f2822694816c79be4246b5dc661ff4ada86f663f"
+    },
+    {
+      "path": "installed087-statistics.jpg",
+      "bytes": 201130,
+      "sha256": "144ebb83e8dc9597b65e04df78b4adfbd4de03fc39398a329a30188f8085d3ad"
+    },
+    {
+      "path": "installed087-update.jpg",
+      "bytes": 199119,
+      "sha256": "54c8fbcf27457b57fb52f0fb7d776ac12c39c6ce5019f85efcdb3e9c8cf90bb8"
+    }
+  ]
+}

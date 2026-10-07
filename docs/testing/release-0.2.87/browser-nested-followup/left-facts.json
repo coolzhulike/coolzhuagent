@@ -1,0 +1,208 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791357843236-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-087-NESTED-LEFT-20261007：沿用当前唯一SWE-2-medium云端会话，只执行本条新任务。只调用一次computer_use_perform，参数为{\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:62796/parent.html\"},\"objective\":\"在当前右栏内置原生浏览器的NESTED-PARENT→NESTED-MIDDLE→LEFT-LEAF三层页面中，仅点击LEFT-LEAF内的确认按钮一次。四个按钮名字相同，必须按新鲜节点的文档归属区分，不点父页、中间页、RIGHT-LEAF。\",\"success_criteria\":[\"最新LEFT-LEAF 点击次数：1\",\"最新RIGHT-LEAF 点击次数：1\",\"最新中间页点击次数：0\",\"最新父页点击次数：0\"],\"constraints\":[\"只操作当前右栏内置原生浏览器，只允许一次click；按当轮response_schema使用新鲜引用与所属frame/document，禁止用同名首项代替；不滚动、不导航、不桌面或其它工具\",\"失败取消未知立即停止，不重试不补发，不执行历史任务，不换模型不新建云端会话\",\"验收分别引用最新对应StaticText的明确index和原文，不把ACK或计划当结果\"],\"max_actions\":1}。next_tool为computer_use_respond时按当次schema交回同job_id/request_id完整JSON，其它running只computer_use_wait同job_id至终态。不另发perform。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791357843473
+  },
+  "run": {
+    "id": "run-chat-23ee0fd1106d7ee179f85f18a147e5a7f7b6afffd7e96afa",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`，`criteria_met: 4/4`，`freshness_confirmed: true`）：\n\n- **投递**：`steps_completed=1`——一次 click 精确落在 LEFT-LEAF 文档的确认按钮（`dom-5eab903b…`，按文档归属区分同名按钮）\n- **验收事实**（新鲜观察 `54ddb82e…`，节点原文逐项落地）：\n  1. 节点35 `LEFT-LEAF 点击次数：1` ✓\n  2. 节点47 `RIGHT-LEAF 点击次数：1` ✓（上一轮计数保持）\n  3. 节点22 `中间页点击次数：0` ✓\n  4. 节点8 `父页点击次数：0` ✓",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791357843236-1-tool-e3b4b8859f7900ccda3ecffcb8e326d8786fa9c24b4f69f0eff865159b238360",
+      "provider_tool_call_id": "tool-e3b4b8859f7900ccda3ecffcb8e326d8786fa9c24b4f69f0eff865159b238360",
+      "turn_id": "chat-turn-1791357843236-1",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791357843236-1\u001fbrowser\u001f在当前右栏内置原生浏览器的nested-parent→nested-middle→left-leaf三层页面中，仅点击left-leaf内的确认按钮一次。四个按钮名字相同，必须按新鲜节点的文档归属区分，不点父页、中间页、right-leaf。\u001f||http://127.0.0.1:62796/parent.html|\u001f最新left-leaf 点击次数：1|最新right-leaf 点击次数：1|最新中间页点击次数：0|最新父页点击次数：0\u001f只操作当前右栏内置原生浏览器，只允许一次click；按当轮response_schema使用新鲜引用与所属frame/document，禁止用同名首项代替；不滚动、不导航、不桌面或其它工具|失败取消未知立即停止，不重试不补发，不执行历史任务，不换模型不新建云端会话|验收分别引用最新对应statictext的明确index和原文，不把ack或计划当结果",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏内置原生浏览器，只允许一次click；按当轮response_schema使用新鲜引用与所属frame/document，禁止用同名首项代替；不滚动、不导航、不桌面或其它工具",
+          "失败取消未知立即停止，不重试不补发，不执行历史任务，不换模型不新建云端会话",
+          "验收分别引用最新对应StaticText的明确index和原文，不把ACK或计划当结果"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏内置原生浏览器的NESTED-PARENT→NESTED-MIDDLE→LEFT-LEAF三层页面中，仅点击LEFT-LEAF内的确认按钮一次。四个按钮名字相同，必须按新鲜节点的文档归属区分，不点父页、中间页、RIGHT-LEAF。",
+        "success_criteria": [
+          "最新LEFT-LEAF 点击次数：1",
+          "最新RIGHT-LEAF 点击次数：1",
+          "最新中间页点击次数：0",
+          "最新父页点击次数：0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:62796/parent.html"
+        }
+      },
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791358460247,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791357843236-1-tool-e3b4b8859f7900ccda3ecffcb8e326d8786fa9c24b4f69f0eff865159b238360",
+        "provider_tool_call_id": "tool-e3b4b8859f7900ccda3ecffcb8e326d8786fa9c24b4f69f0eff865159b238360",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":4,\"criteria_met\":4,\"fresh_observation_id\":\"54ddb82e682ed9ee7a9607f801e0c27a\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[35],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":35,\"name_chars\":16,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":35,\"inline_has_static_text\":false,\"name_chars\":16,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[47],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":47,\"name_chars\":17,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":47,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[22],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":22,\"name_chars\":9,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":22,\"inline_has_static_text\":false,\"name_chars\":9,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":3,\"model_met\":true,\"node_indices\":[8],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":8,\"name_chars\":8,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":8,\"inline_has_static_text\":false,\"name_chars\":8,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"8f0b429123f9a86b8e5f829b28198f20\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":50,\"nodes\":[{\"index\":8,\"name\":\"父页点击次数：0\",\"role\":\"StaticText\"},{\"index\":22,\"name\":\"中间页点击次数：0\",\"role\":\"StaticText\"},{\"index\":35,\"name\":\"LEFT-LEAF 点击次数：1\",\"role\":\"StaticText\"},{\"index\":47,\"name\":\"RIGHT-LEAF 点击次数：1\",\"role\":\"StaticText\"}],\"title\":\"NESTED-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:62796/parent.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:62796/parent.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:be15c4beda1fa3d8e7437c1f55e2d3bf",
+          "native-ax:1:0",
+          "native-observation:be15c4beda1fa3d8e7437c1f55e2d3bf",
+          "native-input:387365695d00ddaf1cefa65f30577a3e",
+          "native-ax:1:0",
+          "native-observation:8f0b429123f9a86b8e5f829b28198f20",
+          "native-ax:1:0",
+          "native-observation:8f0b429123f9a86b8e5f829b28198f20",
+          "native-ax:1:0",
+          "native-observation:54ddb82e682ed9ee7a9607f801e0c27a"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791358743236
+            }
+          },
+          "cu_deadline_ms": 1791358460247,
+          "cu_deadline_established_at_ms": 1791357860247,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791357860247,
+      "updated_at_ms": 1791357884346,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791357843236-1-tool-e3b4b8859f7900ccda3ecffcb8e326d8786fa9c24b4f69f0eff865159b238360",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-5eab903b139ea5f802ccf396678a98f9",
+          "action_fingerprint": "abf55881207ecf73",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:be15c4beda1fa3d8e7437c1f55e2d3bf\"]",
+          "after_evidence_ref": "[\"native-ax:1:0\",\"native-observation:8f0b429123f9a86b8e5f829b28198f20\",\"native-ax:1:0\",\"native-observation:54ddb82e682ed9ee7a9607f801e0c27a\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "started_at_ms": 1791357873327,
+          "completed_at_ms": 1791357875224,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "f1fc5fba15061bdd784e6b706022fd24",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"b0902559e9fd1e5efc212089057adeb5\",\"host_id\":\"native-99975256749bfb5d003a62745c343e2c\",\"process\":{\"instance_id\":\"55e95efd0fb4396c8695b43273fdf232\",\"boot_id\":\"99975256749bfb5d003a62745c343e2c\",\"pid\":30036,\"creation_time_filetime\":134358312288541532,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-5eab903b139ea5f802ccf396678a98f9:a968523ba59e17dc#gen1#cu-session-1791131217833-chat-turn-1791357843236-1-tool-e3b4b8859f7900ccda3ecffcb8e326d8786fa9c24b4f69f0eff865159b238360:step-0#attempt1\",\"ticket_id\":\"f1fc5fba15061bdd784e6b706022fd24\",\"observation_id\":\"be15c4beda1fa3d8e7437c1f55e2d3bf\",\"document_token\":\"afef4bd80584ce5fe5284d19736fb5b0\",\"node_id\":\"5eab903b139ea5f802ccf396678a98f9\",\"input_kind\":\"click\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791357843236-1-tool-e3b4b8859f7900ccda3ecffcb8e326d8786fa9c24b4f69f0eff865159b238360",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-5eab903b139ea5f802ccf396678a98f9\"}"
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "role": "LEFT-LEAF",
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791357875212.1,
+      "count": 1,
+      "observed_ms": 1791357875216.6848,
+      "host": "127.0.0.1:62796"
+    },
+    {
+      "role": "LEFT-LEAF",
+      "kind": "accepted",
+      "trusted": true,
+      "page_ms": 1791357875211.8,
+      "count": 1,
+      "observed_ms": 1791357875217.5122,
+      "host": "127.0.0.1:62796"
+    },
+    {
+      "role": "LEFT-LEAF",
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791357875211.2,
+      "count": 0,
+      "observed_ms": 1791357875218.5078,
+      "host": "127.0.0.1:62796"
+    },
+    {
+      "role": "LEFT-LEAF",
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791357875210.4,
+      "count": 0,
+      "observed_ms": 1791357875219.3438,
+      "host": "127.0.0.1:62796"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "b47ce8c2a4b4c588e55e8c8625b640ac9358d8bb65c46a69",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "planning_counts": {
+    "devin.planning_requested": 2,
+    "devin.planning_response": 2
+  }
+}

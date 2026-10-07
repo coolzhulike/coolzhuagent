@@ -1,0 +1,14 @@
+{
+  "reference_head": "ea5a368e2d6de8b50c14cd9a7cbf479835af0a6a",
+  "uncommitted_product_changes": true,
+  "files": [
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_turn_scope.rs",
+      "sha256": "03b1bb2ff77b386736378ed3831214b27d16233aaa1474af37a78e599751d2b4"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/workspace_panels.js",
+      "sha256": "2e992ae93f69c7c0af4608675e05ae37ab33e0a519d0aa85a0418e696e6042ad"
+    }
+  ]
+}

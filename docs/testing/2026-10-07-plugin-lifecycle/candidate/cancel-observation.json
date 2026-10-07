@@ -1,0 +1,32 @@
+{
+  "prefix": "PLUGIN-CANDIDATE-CANCEL-20261007",
+  "run_id": "run-chat-670e088d2cbfa9d52b27d55d933fb9b35245fb792a61b325",
+  "turn_id": "chat-turn-1791366106544-2",
+  "context": {
+    "call_id": "1",
+    "room_id": "room-1791131523339",
+    "run_id": "run-chat-670e088d2cbfa9d52b27d55d933fb9b35245fb792a61b325",
+    "workspace_id": "ws-23f646a969206cb4"
+  },
+  "process": {
+    "pid": 28540,
+    "parent_pid": 23972,
+    "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\target\\debug\\dsh-runtime\\node\\node.exe",
+    "created_filetime": 134358397408675301,
+    "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5",
+    "observed_ms": 1791366140890
+  },
+  "manifest_present": false,
+  "execute_envelope_present": false,
+  "cancel_started_ms": 1791366140890,
+  "scope": "真实执行模式宿主进程启动后取消；不声称计算函数已开始",
+  "response": {
+    "turn_id": "chat-turn-1791366106544-2",
+    "status": "interrupt_requested",
+    "outcome": "interrupt_requested",
+    "idempotent": false
+  },
+  "cancel_returned_ms": 1791366140953,
+  "process_exit_observed": true,
+  "exit_checked_ms": 1791366141044
+}

@@ -1,0 +1,119 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791362566519-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-CURRENT-PAGE-SCROLL-20261007：仅调用一次computer_use_perform，surface=\"browser\"，max_actions=1；本次刻意省略整个target字段，不能填入URL、不能从历史补URL。操作当前右栏已加载原生网页，在HORIZONTAL-LTR-CHILD独立子文档的本次RootWebArea新鲜dom_ref上向right滚动一次，amount=1；父横向位置和父滚轮保持0。不点击、不导航、不用脚本、不调用其它工具，失败立即停止不补发。以当前页面原文报告子横向位置、子滚轮、父位置与实际投递回执，不把观察或blocked说成执行成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791362566645
+  },
+  "run": {
+    "id": "run-chat-a30e002284a1d653dad550b59f8df40f54e0d88ef6b07db1",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791362566521-0-tool-a836a235f080c72763b29235c298955abf6326503bf75e7765abae25aaabb323",
+      "provider_tool_call_id": "tool-a836a235f080c72763b29235c298955abf6326503bf75e7765abae25aaabb323",
+      "turn_id": "chat-turn-1791362566521-0",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791362566521-0\u001fbrowser\u001f在当前右栏已加载原生网页的horizontal-ltr-child独立子文档中，仅向其rootwebarea横向向右滚动一次（direction=right，amount=1）；父横向位置与父滚轮次数保持0\u001f\u001f子横向位置向右滚动生效（或已到边界如实not_sent）|父横向位置：0|父滚轮次数：0\u001f只操作当前右栏已加载原生网页，不调用外部浏览器或其它工具|在horizontal-ltr-child独立子文档的本次rootwebarea新鲜dom_ref上向right滚动一次，amount=1；不点击、不导航、不用脚本|失败立即停止不补发；以当前页面原文报告子横向位置、子滚轮、父位置与实际投递回执，不把观察或blocked说成执行成功|父横向位置和父滚轮保持0",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏已加载原生网页，不调用外部浏览器或其它工具",
+          "在HORIZONTAL-LTR-CHILD独立子文档的本次RootWebArea新鲜dom_ref上向right滚动一次，amount=1；不点击、不导航、不用脚本",
+          "失败立即停止不补发；以当前页面原文报告子横向位置、子滚轮、父位置与实际投递回执，不把观察或blocked说成执行成功",
+          "父横向位置和父滚轮保持0"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏已加载原生网页的HORIZONTAL-LTR-CHILD独立子文档中，仅向其RootWebArea横向向右滚动一次（direction=right，amount=1）；父横向位置与父滚轮次数保持0",
+        "success_criteria": [
+          "子横向位置向右滚动生效（或已到边界如实not_sent）",
+          "父横向位置：0",
+          "父滚轮次数：0"
+        ],
+        "surface": "browser"
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 1,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791363182423,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791362566521-0-tool-a836a235f080c72763b29235c298955abf6326503bf75e7765abae25aaabb323",
+        "provider_tool_call_id": "tool-a836a235f080c72763b29235c298955abf6326503bf75e7765abae25aaabb323",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "Coolzhu browser extension/native host is not connected",
+        "error": {
+          "code": "extension_unavailable",
+          "message": "Coolzhu browser extension/native host is not connected",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "not_wired",
+          "root_deadline": "absent"
+        }
+      },
+      "created_at_ms": 1791362582423,
+      "updated_at_ms": 1791362582427,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [],
+      "actions": []
+    }
+  ],
+  "trusted_page_events": [],
+  "attempts": [
+    {
+      "attempt_id": "d6bd24bc8eb8734998f9876f459965b3ae26c022517781c5",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

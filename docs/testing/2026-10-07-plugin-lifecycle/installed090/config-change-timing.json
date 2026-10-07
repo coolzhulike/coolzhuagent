@@ -1,0 +1,10 @@
+{
+  "prefix": "PLUGIN-INSTALLED090-CONFIG-20261007",
+  "run_id": "run-chat-1c03a92f5d2261d6e52b53a886c30738ebe41cf2ea47fff6",
+  "turn_id": "chat-turn-1791366755192-0",
+  "started_ms": 1791366755474,
+  "finished_ms": 1791366757024,
+  "before_activation": "dsh-23972-1791365889956548100-2",
+  "after_activation": "dsh-31468-1791366757020468400-0",
+  "scope": "实际配置对象与启用世代变化；计算器忽略业务配置，不声称验证任何计算器配置字段效果"
+}

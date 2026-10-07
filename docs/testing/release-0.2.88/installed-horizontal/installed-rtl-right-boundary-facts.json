@@ -1,0 +1,174 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791361573553-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-088-HORIZONTAL-RTL-RIGHT-BOUNDARY-20261007：仅调用一次computer_use_perform，surface=\"browser\"，target.url=\"http://127.0.0.1:56185/rtl.html\"，max_actions=1。操作当前右栏内置原生浏览器，不要调用外部浏览器或其它工具。使用当前HORIZONTAL-RTL-CHILD独立子文档的RootWebArea新鲜dom_ref，只向right滚动一次，amount=1。不要选父页面、不要点击控件、不要导航或用脚本设置位置，失败或边界阻止后立即停止且不补发。目标是只在子页面发生该方向横向滚动，父横向位置和父滚轮次数必须保持0；如果当前已到该方向边界，应not_sent、零滚轮，不能把blocked说成成功。通过当前页面原文子横向位置、子滚轮次数与父位置报告实际结果。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791361573818
+  },
+  "run": {
+    "id": "run-chat-7ea9c93ae38113c287918ae544b3f540c2899bb3cbcab50b",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791361573553-5-tool-21697a984dc7b254d54b915285a786c4ca3381f8db6139195a7e55e260300763",
+      "provider_tool_call_id": "tool-21697a984dc7b254d54b915285a786c4ca3381f8db6139195a7e55e260300763",
+      "turn_id": "chat-turn-1791361573553-5",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791361573553-5\u001fbrowser\u001f在当前右栏内置原生浏览器的horizontal-rtl-child独立子文档中，仅向其rootwebarea横向向右滚动一次（direction=right，amount=1）；父横向位置与父滚轮次数保持0\u001f||http://127.0.0.1:56185/rtl.html|\u001f子横向位置向该方向滚动生效（或已到边界如实not_sent）|父横向位置：0|父滚轮次数：0\u001f只操作当前右栏内置原生浏览器，不调用外部浏览器或其它工具|使用当前horizontal-rtl-child独立子文档的rootwebarea新鲜dom_ref，只向right滚动一次，amount=1；不选父页面、不点击控件、不导航或用脚本设置位置|失败或边界阻止后立即停止且不补发；若已到边界则not_sent、零滚轮，不把blocked说成成功|以当前页面原文的子横向位置、子滚轮次数与父位置报告实际结果",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏内置原生浏览器，不调用外部浏览器或其它工具",
+          "使用当前HORIZONTAL-RTL-CHILD独立子文档的RootWebArea新鲜dom_ref，只向right滚动一次，amount=1；不选父页面、不点击控件、不导航或用脚本设置位置",
+          "失败或边界阻止后立即停止且不补发；若已到边界则not_sent、零滚轮，不把blocked说成成功",
+          "以当前页面原文的子横向位置、子滚轮次数与父位置报告实际结果"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏内置原生浏览器的HORIZONTAL-RTL-CHILD独立子文档中，仅向其RootWebArea横向向右滚动一次（direction=right，amount=1）；父横向位置与父滚轮次数保持0",
+        "success_criteria": [
+          "子横向位置向该方向滚动生效（或已到边界如实not_sent）",
+          "父横向位置：0",
+          "父滚轮次数：0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:56185/rtl.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791362185031,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791361573553-5-tool-21697a984dc7b254d54b915285a786c4ca3381f8db6139195a7e55e260300763",
+        "provider_tool_call_id": "tool-21697a984dc7b254d54b915285a786c4ca3381f8db6139195a7e55e260300763",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_scroll_boundary",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-09a072ac4f6c7ffbc3b0abf3632e8e7b:f95da1adf411ec15",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:fe833f973865ff62683e39797e3974e2",
+          "native-ax:1:1",
+          "native-observation:fe833f973865ff62683e39797e3974e2"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791362473553
+            }
+          },
+          "cu_deadline_ms": 1791362185031,
+          "cu_deadline_established_at_ms": 1791361585031,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791361585031,
+      "updated_at_ms": 1791361599876,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791361573553-5-tool-21697a984dc7b254d54b915285a786c4ca3381f8db6139195a7e55e260300763",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "scroll",
+          "normalized_target": "dom-09a072ac4f6c7ffbc3b0abf3632e8e7b",
+          "action_fingerprint": "89c116b23f730959",
+          "status": "failed",
+          "error_code": "native_browser_scroll_boundary",
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:fe833f973865ff62683e39797e3974e2\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791361598602,
+          "completed_at_ms": 1791361599858,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791361573553-5-tool-21697a984dc7b254d54b915285a786c4ca3381f8db6139195a7e55e260300763",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{\"amount\":1,\"direction\":\"right\"},\"kind\":\"scroll\",\"redacted_fields\":true,\"target\":\"dom-09a072ac4f6c7ffbc3b0abf3632e8e7b\"}"
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [],
+  "attempts": [
+    {
+      "attempt_id": "6f36af067c5b337f813cd3bf79465f0b25481ee2690413e5",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

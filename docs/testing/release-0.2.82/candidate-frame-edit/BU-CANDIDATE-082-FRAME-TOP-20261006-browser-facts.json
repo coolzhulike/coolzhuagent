@@ -1,0 +1,681 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791256300093-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-082-FRAME-TOP-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{\"objective\":\"在父页面输入框单击一次，输入主页面-82一次\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:52137/edit.html\"},\"success_criteria\":[\"最新页面父输入为主页面-82，子输入仍为竹林-82，子提交次数仍为1\"],\"constraints\":[\"只操作当前右栏原生浏览器；最多一次click父页面输入框和一次text输入主页面-82；每步使用本轮新鲜父文档引用；禁止子文档、提交、按键、其它输入框、切换页面或焦点按钮；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务\"],\"max_actions\":2}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791256300216
+  },
+  "context_and_tools": {
+    "prefix": "BU-CANDIDATE-082-FRAME-TOP-20261006",
+    "run_id": "run-chat-35a4cc644225689d18727752763182db62a2d947fc574cc2",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791256300093-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 134,
+        "prompt_bytes": 2713
+      }
+    ],
+    "outputs": [
+      {
+        "agent_id": "session-1791131217833",
+        "messages": [
+          {
+            "deleted": false,
+            "digest": "2e80297b06a8be65bb7322fc115b14c5f220d99ca407d9535e53edf925dd8f87",
+            "id": "msg-1791256300331-0",
+            "source": false
+          }
+        ]
+      }
+    ],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+        "run_id": "run-chat-35a4cc644225689d18727752763182db62a2d947fc574cc2",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "979f42a648a51cfe",
+        "status": "completed",
+        "created_at_unix_ms": 1791256320584,
+        "updated_at_unix_ms": 1791256364802,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-35a4cc644225689d18727752763182db62a2d947fc574cc2\",\"turn_id\":\"chat-turn-1791256300094-1\",\"attempt_id\":\"1aa2e3ec4cf3fef6985b7b947a08112b448d8112ea392b49\",\"owner_epoch\":68,\"generation\":68}"
+      }
+    ],
+    "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`）：\n\n- **动作**：2 步完成（attempts=2，steps_completed=2，含 2 条 native-input 回执：点击父输入框、输入文本）\n- **验收**：最新页面观察（freshness_confirmed=true）在 `http://127.0.0.1:52137/edit.html` 确认 StaticText 显示 **\"子输入：竹林-82；子提交次数：1；父输入：主页面-82\"**，success_criteria 1/1 满足\n\n按宿主回执如实报告：目标达成。",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-35a4cc644225689d18727752763182db62a2d947fc574cc2",
+      "state": "completed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+      "provider_tool_call_id": "tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+      "turn_id": "chat-turn-1791256300094-1",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791256300094-1\u001fbrowser\u001f在父页面输入框单击一次，输入主页面-82一次\u001f||http://127.0.0.1:52137/edit.html|\u001f最新页面父输入为主页面-82，子输入仍为竹林-82，子提交次数仍为1\u001f只操作当前右栏原生浏览器；最多一次click父页面输入框和一次text输入主页面-82；每步使用本轮新鲜父文档引用；禁止子文档、提交、按键、其它输入框、切换页面或焦点按钮；不导航、不滚动、不用桌面、其它工具或devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏原生浏览器；最多一次click父页面输入框和一次text输入主页面-82；每步使用本轮新鲜父文档引用；禁止子文档、提交、按键、其它输入框、切换页面或焦点按钮；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"
+        ],
+        "max_actions": 2,
+        "objective": "在父页面输入框单击一次，输入主页面-82一次",
+        "success_criteria": [
+          "最新页面父输入为主页面-82，子输入仍为竹林-82，子提交次数仍为1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:52137/edit.html"
+        }
+      },
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 16,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 2,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791256920717,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+        "provider_tool_call_id": "tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"0e8726c6630f911bfca63f9ba04be917\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":28,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":28,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":3,\"observation_id\":\"e9298bfc467752c3184e6172ba15666c\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":39,\"nodes\":[{\"index\":7,\"name\":\"子输入：竹林-82；子提交次数：1；父输入：主页面-82\",\"role\":\"StaticText\"}],\"title\":\"082 Frame文本与键盘\",\"truncated\":false,\"url\":\"http://127.0.0.1:52137/edit.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:52137/edit.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 2,
+        "steps_completed": 2,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:91bd0f93acbde16c02fcce923c2e0c82",
+          "native-ax:1:0",
+          "native-observation:91bd0f93acbde16c02fcce923c2e0c82",
+          "native-input:c853649d080420d1c2ce4a7ec185da4f",
+          "native-ax:1:0",
+          "native-observation:b127dedb6885e8fc232e9781939edef4",
+          "native-ax:1:0",
+          "native-observation:b127dedb6885e8fc232e9781939edef4",
+          "native-ax:1:0",
+          "native-observation:84f112426f5bafefdb54b36729642e4d",
+          "native-input:ee7febdb773ac82910121b7eda32b27a",
+          "native-ax:1:0",
+          "native-observation:e9298bfc467752c3184e6172ba15666c",
+          "native-ax:1:0",
+          "native-observation:e9298bfc467752c3184e6172ba15666c",
+          "native-ax:1:0",
+          "native-observation:0e8726c6630f911bfca63f9ba04be917"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 2,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791257200094
+            }
+          },
+          "cu_deadline_ms": 1791256920717,
+          "cu_deadline_established_at_ms": 1791256320717,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791256320717,
+      "updated_at_ms": 1791256364782,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-926b3264cd27f8fcfdbadc3ce104f19a",
+          "action_fingerprint": "a5c174e5537db528",
+          "status": "completed_unverified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:91bd0f93acbde16c02fcce923c2e0c82\"]",
+          "after_evidence_ref": "[\"native-ax:1:0\",\"native-observation:b127dedb6885e8fc232e9781939edef4\",\"native-ax:1:0\",\"native-observation:84f112426f5bafefdb54b36729642e4d\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "failed",
+          "input_release_status": "released",
+          "started_at_ms": 1791256328254,
+          "completed_at_ms": 1791256330371,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "771cddee768b677d10966644e7337e3f",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"370d76e6acfb23ab370ef68e76925755\",\"host_id\":\"native-0704ab74187d13fa0ab04fa8787abf51\",\"process\":{\"instance_id\":\"42f9f17bf93a4b971b05637a5d69d843\",\"boot_id\":\"0704ab74187d13fa0ab04fa8787abf51\",\"pid\":13180,\"creation_time_filetime\":134357295967452807,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-06-browser-frame-edit\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-926b3264cd27f8fcfdbadc3ce104f19a:48106b132d9ba9a5#gen1#cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab:step-0#attempt1\",\"ticket_id\":\"771cddee768b677d10966644e7337e3f\",\"observation_id\":\"91bd0f93acbde16c02fcce923c2e0c82\",\"document_token\":\"dd306d3b0e06027ffa1d7702f3f2bdd9\",\"node_id\":\"926b3264cd27f8fcfdbadc3ce104f19a\",\"input_kind\":\"click\"}"
+        },
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+          "step_index": 1,
+          "observation_generation": 2,
+          "action_type": "text_input",
+          "normalized_target": "dom-f835e931aceac48dc36d7c7be796cd95",
+          "action_fingerprint": "c5e85e207432cbf4",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:b127dedb6885e8fc232e9781939edef4\"]",
+          "after_evidence_ref": "[\"native-ax:1:0\",\"native-observation:e9298bfc467752c3184e6172ba15666c\",\"native-ax:1:0\",\"native-observation:0e8726c6630f911bfca63f9ba04be917\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791256349554,
+          "completed_at_ms": 1791256351778,
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "native_ticket_id": "d25e2a85de6f3abe8fe8dfbd23b0c9e4",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"370d76e6acfb23ab370ef68e76925755\",\"host_id\":\"native-0704ab74187d13fa0ab04fa8787abf51\",\"process\":{\"instance_id\":\"42f9f17bf93a4b971b05637a5d69d843\",\"boot_id\":\"0704ab74187d13fa0ab04fa8787abf51\",\"pid\":13180,\"creation_time_filetime\":134357295967452807,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-06-browser-frame-edit\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-f835e931aceac48dc36d7c7be796cd95:7b5c51a51032e5bf#gen2#cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab:step-1#attempt1\",\"ticket_id\":\"d25e2a85de6f3abe8fe8dfbd23b0c9e4\",\"observation_id\":\"b127dedb6885e8fc232e9781939edef4\",\"document_token\":\"dd306d3b0e06027ffa1d7702f3f2bdd9\",\"node_id\":\"f835e931aceac48dc36d7c7be796cd95\",\"input_kind\":\"text\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-926b3264cd27f8fcfdbadc3ce104f19a\"}"
+        },
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+          "step_index": 1,
+          "action_json": "{\"arguments\":{\"redacted_fields\":true},\"kind\":\"text_input\",\"redacted_fields\":true,\"target\":\"dom-f835e931aceac48dc36d7c7be796cd95\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 469,
+          "call_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+          "turn_id": "chat-turn-1791256300094-1",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"dom-926b3264cd27f8fcfdbadc3ce104f19a\"},\"done\":false,\"observation_facts\":{\"candidate_count\":6,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":5,\"input_supported\":true,\"node_count\":36,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":2,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791256321226,
+          "completed_at_ms": 1791256328249
+        },
+        {
+          "id": 470,
+          "call_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+          "turn_id": "chat-turn-1791256300094-1",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_browser_readonly_verification",
+          "observation_generation": 2,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"bytes\":184,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":111,\"evidence_chars\":43,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":false,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":1,\"criteria_type\":\"array\",\"host_verification\":{\"criteria_count\":1,\"criteria_met\":0,\"grounding\":[{\"grounded\":false,\"index\":0,\"model_met\":false,\"node_indices\":[7],\"reason\":\"model_unmet\",\"selected_nodes\":[{\"index\":7,\"name_chars\":23,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":23,\"role\":\"StaticText\"}]}],\"ungrounded_positive_count\":0},\"observation_facts\":{\"candidate_count\":6,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":5,\"input_supported\":true,\"node_count\":36,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":2,\"truncated\":false},\"progress\":null,\"progress_type\":\"missing\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+          "error_code": null,
+          "started_at_ms": 1791256331142,
+          "completed_at_ms": 1791256339528
+        },
+        {
+          "id": 471,
+          "call_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+          "turn_id": "chat-turn-1791256300094-1",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 2,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{\"redacted_fields\":true},\"kind\":\"text_input\",\"target\":\"dom-f835e931aceac48dc36d7c7be796cd95\"},\"done\":false,\"observation_facts\":{\"candidate_count\":6,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":5,\"input_supported\":true,\"node_count\":36,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":2,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791256339558,
+          "completed_at_ms": 1791256349546
+        },
+        {
+          "id": 472,
+          "call_id": "cu-session-1791131217833-chat-turn-1791256300094-1-tool-00526916fd29681f2f6b07d4fee544f3be2684681d85ee58a55a256e2e21cbab",
+          "turn_id": "chat-turn-1791256300094-1",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_browser_readonly_verification",
+          "observation_generation": 3,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"bytes\":140,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":70,\"evidence_chars\":28,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":1,\"criteria_type\":\"array\",\"host_verification\":{\"criteria_count\":1,\"criteria_met\":1,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":28,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":28,\"role\":\"StaticText\"}]}],\"ungrounded_positive_count\":0},\"observation_facts\":{\"candidate_count\":6,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":5,\"input_supported\":true,\"node_count\":39,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":2,\"truncated\":false},\"progress\":null,\"progress_type\":\"missing\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+          "error_code": null,
+          "started_at_ms": 1791256352545,
+          "completed_at_ms": 1791256364774
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:52137/events",
+  "web_events": [
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791254875856.2998,
+      "received_ms": 1791254875860.4333
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791254875898.7,
+      "received_ms": 1791254875910.5652
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791255234005,
+      "received_ms": 1791255234011.7734
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791255234062.0999,
+      "received_ms": 1791255234067.6843
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791255285679.2998,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255285682.367
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791255285680,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255285684.5017
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791255285682,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255285686.1826
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791255285682.2998,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255285689.2065
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791255477329.9,
+      "received_ms": 1791255477337.3066
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791255477364.7,
+      "received_ms": 1791255477370.3975
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791255652842.3,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255652844.997
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791255652843,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255652846.9402
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791255652844.2,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255652848.2878
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791255652844.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255652850.3008
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791255806417.5,
+      "received_ms": 1791255806422.5127
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791255806452.9,
+      "received_ms": 1791255806459.1047
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791255852156.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255852161.0588
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791255852158.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255852163.3906
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791255852158.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255852162.7307
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791255852157.4,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255852162.1843
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "input",
+      "at_ms": 1791255874309.9,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": "竹林-82",
+      "received_ms": 1791255874312.5955
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keydown",
+      "at_ms": 1791255896458.0999,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791255896460.9243
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keyup",
+      "at_ms": 1791255896458.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791255896461.572
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791256017802.5,
+      "received_ms": 1791256017807.759
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791256017836.4001,
+      "received_ms": 1791256017839.1086
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791256206746.9001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256206750.156
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791256206747.7002,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256206755.0938
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791256206749.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256206756.7473
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791256206749.9001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256206757.5579
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "input",
+      "at_ms": 1791256227375.6,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": "竹林-82",
+      "received_ms": 1791256227378.782
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keydown",
+      "at_ms": 1791256248740.2002,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791256248742.054
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791256248740.7002,
+      "target": "submit",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256248744.793
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "child-submit",
+      "at_ms": 1791256248741.2002,
+      "value": "竹林-82",
+      "count": 1,
+      "isTrusted": true,
+      "received_ms": 1791256248746.9045
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keyup",
+      "at_ms": 1791256248741.6,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791256248748.4868
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791256330354,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256330358.2446
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791256330355.4,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256330359.5674
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791256330357.2,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256330362.6953
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791256330357,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256330362.4075
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "input",
+      "at_ms": 1791256351761.6,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": "主页面-82",
+      "received_ms": 1791256351763.5613
+    }
+  ]
+}

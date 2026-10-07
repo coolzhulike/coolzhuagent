@@ -1,10 +1,12 @@
-//! 宿主固定只读CDP方法。方法枚举不能由网页、模型或HTTP请求提供。
+//! 宿主固定文档读取及私有会话附着方法，不派发输入。方法枚举不能由网页、模型或HTTP请求提供。
 use native_browser_protocol::PanelResource;
 use tauri::{AppHandle, Manager};
 
 pub(super) enum ReadMethod {
+    FrameTargets,
+    AttachFrame(String),
+    DetachFrame(String),
     FrameTree,
-    Document,
     DocumentNodes,
     Accessibility(String),
     BoxModel(i64),
@@ -14,14 +16,18 @@ pub(super) enum ReadMethod {
     ResolveEditor(i64),
     EditorState(String),
     FocusedTargetState(String),
+    DocumentScrollState(String),
     ReleaseEditor(String),
 }
 impl ReadMethod {
     pub(super) fn request(&self) -> (&'static str, String) {
         match self {
+            Self::FrameTargets => ("Target.getTargets", "{}".into()),
+            Self::AttachFrame(target) => ("Target.attachToTarget", serde_json::json!({"targetId":target,"flatten":true}).to_string()),
+            Self::DetachFrame(session) => ("Target.detachFromTarget", serde_json::json!({"sessionId":session}).to_string()),
             Self::FrameTree => ("Page.getFrameTree", "{}".into()),
-            Self::Document => ("DOM.getDocument", r#"{"depth":0,"pierce":false}"#.into()),
-            Self::DocumentNodes => ("DOM.getDocument", r#"{"depth":8,"pierce":false}"#.into()),
+            // 只读展开树由document模块核归属，再由dom模块划定单文档范围；封闭根不授予引用。
+            Self::DocumentNodes => ("DOM.getDocument", r#"{"depth":16,"pierce":true}"#.into()),
             Self::Accessibility(frame) => ("Accessibility.getFullAXTree", serde_json::json!({"depth":6,"frameId":frame}).to_string()),
             Self::BoxModel(node) => ("DOM.getBoxModel", serde_json::json!({"backendNodeId":node}).to_string()),
             Self::LayoutMetrics => ("Page.getLayoutMetrics", "{}".into()),
@@ -35,7 +41,34 @@ impl ReadMethod {
             Self::FocusedTargetState(object) => ("Runtime.callFunctionOn", serde_json::json!({
                 "objectId":object,"functionDeclaration":super::native_browser_key_input::READ_FOCUS,
                 "returnByValue":true,"throwOnSideEffect":true,"silent":true}).to_string()),
+            Self::DocumentScrollState(object) => ("Runtime.callFunctionOn", serde_json::json!({
+                "objectId":object,"functionDeclaration":super::native_browser_scroll::READ_SCROLL,
+                "returnByValue":true,"throwOnSideEffect":true,"silent":true}).to_string()),
             Self::ReleaseEditor(object) => ("Runtime.releaseObject",serde_json::json!({"objectId":object}).to_string()),
+        }
+    }
+}
+
+/// 固定读取方法与节点所属会话一起派发；对象ID不能借顶层会话解释。
+#[cfg(windows)]
+pub(super) fn dispatch_read(
+    core: &webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2,
+    session: Option<&str>,
+    method: &ReadMethod,
+    callback: &webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler,
+) -> windows::core::Result<()> {
+    use webview2_com::{CoTaskMemPWSTR, Microsoft::Web::WebView2::Win32::ICoreWebView2_11};
+    use windows::core::Interface;
+    let (method, parameters) = method.request();
+    let method = CoTaskMemPWSTR::from(method);
+    let parameters = CoTaskMemPWSTR::from(parameters.as_str());
+    unsafe {
+        if let Some(session) = session {
+            let session = CoTaskMemPWSTR::from(session);
+            core.cast::<ICoreWebView2_11>()?.CallDevToolsProtocolMethodForSession(
+                *session.as_ref().as_pcwstr(), *method.as_ref().as_pcwstr(), *parameters.as_ref().as_pcwstr(), callback)
+        } else {
+            core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(), *parameters.as_ref().as_pcwstr(), callback)
         }
     }
 }
@@ -68,19 +101,25 @@ pub(super) mod bounded_callback {
 }
 
 pub(super) async fn read(app: &AppHandle, expected: &PanelResource, method: ReadMethod) -> Result<serde_json::Value, String> {
+    read_session(app, expected, None, method).await
+}
+
+/// 会话由宿主目标归属模块产生，不接受网页或模型提供的CDP会话和方法。
+pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, session: Option<&str>, method: ReadMethod) -> Result<serde_json::Value, String> {
     if super::browser_panel::input_resource(app).as_ref() != Some(expected) {
         return Err("native_browser_resource_changed".into());
     }
     #[cfg(windows)]
     {
-        use webview2_com::{CoTaskMemPWSTR, Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler};
+        use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler;
+        let session = session.map(str::to_owned);
         let view = app.get_webview(&expected.label).ok_or("native_browser_unavailable")?;
         let url = view.url().map_err(|_| "native_browser_unavailable")?.to_string();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let sender = std::sync::Arc::new(std::sync::Mutex::new(Some(sender)));
         let app_on_ui = app.clone();
         let resource_on_ui = expected.clone();
-        let (method, parameters) = method.request();
+        let method_name = method.request().0;
         view.with_webview(move |platform| {
             let send = |result| {
                 if let Ok(mut sender) = sender.lock() { if let Some(sender) = sender.take() { let _ = sender.send(result); } }
@@ -92,7 +131,7 @@ pub(super) async fn read(app: &AppHandle, expected: &PanelResource, method: Read
             let callback_app = app_on_ui.clone();
             let handler: ICoreWebView2CallDevToolsProtocolMethodCompletedHandler = bounded_callback::Handler(Box::new(move |status, text| {
                 // 固定方法名用于诊断，不回显任意浏览器错误正文或查询参数。
-                let failure = if method == "DOM.getNodeForLocation" { "native_browser_hit_test_failed" } else { "native_observation_failed" };
+                let failure = if method_name == "DOM.getNodeForLocation" { "native_browser_hit_test_failed" } else { "native_observation_failed" };
                 let result = if status.is_err() { Err(failure.into()) }
                 else if super::browser_panel::input_resource(&callback_app).as_ref() != Some(&resource_on_ui)
                     || callback_app.get_webview(&resource_on_ui.label).and_then(|view| view.url().ok())
@@ -105,10 +144,8 @@ pub(super) async fn read(app: &AppHandle, expected: &PanelResource, method: Read
                 if let Ok(mut sender) = callback_sender.lock() { if let Some(sender) = sender.take() { let _ = sender.send(result); } }
                 Ok(())
             })).into();
-            let method = CoTaskMemPWSTR::from(method);
-            let parameters = CoTaskMemPWSTR::from(parameters.as_str());
-            if unsafe { platform.controller().CoreWebView2().and_then(|core|
-                core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(), *parameters.as_ref().as_pcwstr(), &handler)) }.is_err() {
+            if unsafe { platform.controller().CoreWebView2() }
+                .and_then(|core| dispatch_read(&core, session.as_deref(), &method, &handler)).is_err() {
                 send(Err("native_observation_failed".into()));
             }
         }).map_err(|_| "native_browser_unavailable".to_string())?;
@@ -117,7 +154,7 @@ pub(super) async fn read(app: &AppHandle, expected: &PanelResource, method: Read
             .map_err(|_| "native_observation_cancelled".to_string())?
     }
     #[cfg(not(windows))]
-    { let _ = method; Err("native_observation_platform_unsupported".into()) }
+    { let _ = (method,session); Err("native_observation_platform_unsupported".into()) }
 }
 
 #[cfg(all(test,windows))]

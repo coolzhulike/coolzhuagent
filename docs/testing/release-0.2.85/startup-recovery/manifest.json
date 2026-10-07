@@ -1,0 +1,186 @@
+{
+  "stage": "normal_daily_restored",
+  "daily": {
+    "safety_root": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\input-safety",
+    "observed_utc": "2026-10-06T05:39:45.9394335Z",
+    "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+    "stage": "正常桌面启动0.2.85核验通过",
+    "selfcheck_ok": true,
+    "processes": [
+      {
+        "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+        "pid": 11292,
+        "created": "2026-10-06T05:39:42.3345539Z",
+        "sha256": "480c352151f672d35ba5c5dbafad609322057e129987b328912b1ac6c9b8bacb"
+      },
+      {
+        "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "pid": 19052,
+        "created": "2026-10-06T05:39:43.0545443Z",
+        "sha256": "cb706a831a109ec29d959bb8d3a3efd7485bf92923399753f92c1a66f9c6c77e"
+      }
+    ],
+    "source_commit": "ae87c7c83db3c661eca5a0b15eb6280ab37cad2a"
+  },
+  "input_safety": {
+    "observed_ms": 1791265186102.0083,
+    "resource": [
+      {
+        "scope": "windows-session-1",
+        "state": "safe",
+        "revision": 178,
+        "coordinator_instance_id": null,
+        "recovery_epoch": 194,
+        "accepts_new_input": 1,
+        "updated_at_unix_ms": 1791265182486
+      },
+      {
+        "scope": "windows-session-2",
+        "state": "safe",
+        "revision": 7,
+        "coordinator_instance_id": null,
+        "recovery_epoch": 23,
+        "accepts_new_input": 1,
+        "updated_at_unix_ms": 1790699986271
+      }
+    ],
+    "permits": [
+      {
+        "state": "finished",
+        "count": 316
+      },
+      {
+        "state": "outcome_unknown",
+        "count": 2
+      }
+    ],
+    "blocks": [
+      {
+        "state": "closed",
+        "count": 9
+      }
+    ]
+  },
+  "files": [
+    {
+      "file": "restored-daily-085-verification.json",
+      "length": 1139,
+      "sha256": "093fbab0b6c633dc91166da40ab4e711e7563a79b7c34e363e33ad314eca560d"
+    },
+    {
+      "file": "restored-daily-085-selfcheck.json",
+      "length": 1779,
+      "sha256": "47d491c5b2d75d46b75b9828722d6b66e797edcdfd37f14bdeb3107e66152faa"
+    },
+    {
+      "file": "restored-daily-085-process.json",
+      "length": 360,
+      "sha256": "41e8626330844482826d5e1498afecd70e9d32dee4dd336403c0d9eb9eb2be3f"
+    },
+    {
+      "file": "restored-daily085.jpg",
+      "length": 195713,
+      "sha256": "f6dc2b746ae269e5504da40a6231e5386e814e8ac2c1aa6aafc4c8cb63fa9a8b"
+    },
+    {
+      "file": "restored-daily085-ax.txt",
+      "length": 81943,
+      "sha256": "91c43fc9df9c9d5d611a9a04266cf9ac02ea51d8ef5c7cddb931160a363d7033"
+    },
+    {
+      "file": "safety-after085.json",
+      "length": 781,
+      "sha256": "0a302841b73def7cb596beb84a470d9feadff3de9de9d3036f4b146e757ba147"
+    },
+    {
+      "file": "stopped-installed-085-standard-processes.json",
+      "length": 779,
+      "sha256": "a57f1bc2e3ff974b846b873c47367101d13b686737fe7247caa0277ef8998d0c"
+    },
+    {
+      "file": "stopped-085-test-servers.json",
+      "length": 1749,
+      "sha256": "01158d4f3cdf7b77cae567617b2e61057ace1321204d240e7794c310d3af4efa"
+    },
+    {
+      "file": "ci-frozen-final.json",
+      "length": 7194,
+      "sha256": "3b24c1f8ef9bac018e9e3f9de4670349cf4631d250077ae2165c0480f4334080"
+    },
+    {
+      "file": "restore-daily085.ps1",
+      "length": 1153,
+      "sha256": "59673e400601488d4e284ae52ea5a990de3664a2721177ccf2f50d76282028ad"
+    },
+    {
+      "file": "verify-daily085.ps1",
+      "length": 2350,
+      "sha256": "297fc646ff4cf44628eeaab1587a3b20269d356c7c18e470610054303b59f4fe"
+    },
+    {
+      "file": "stop-owned085.ps1",
+      "length": 1566,
+      "sha256": "23b39bf870fd9f0c73f539c21ba51d7e225f3867fafaafa96c65e7c6a0e94347"
+    },
+    {
+      "file": "stop-servers085.ps1",
+      "length": 1662,
+      "sha256": "3dcedc2613036e769d866fb3200e4f39f38c42d107f89dace1e2db535b383ccd"
+    },
+    {
+      "file": "install-085.ps1",
+      "length": 811,
+      "sha256": "cd091547f5d43e8bf445b798525fe58068465c3ed94a8ba3c369c44c6540c50b"
+    },
+    {
+      "file": "start-standard085.ps1",
+      "length": 3966,
+      "sha256": "97716cfe9fbcccf514b29f4a8613619d2f9f7ee82a988f2c270eef7727e523f8"
+    },
+    {
+      "file": "verify-085.py",
+      "length": 3183,
+      "sha256": "52e4c9603decebf429e0dec99414a78d8f224f557a61914e1ac51c9845b3b567"
+    },
+    {
+      "file": "package-085-check.log",
+      "length": 1577,
+      "sha256": "3acf9cb7877baf3c51df2c1840730482b8c5dca927259faae72aa1e4dc0a11b9"
+    },
+    {
+      "file": "installed-085-check.log",
+      "length": 1592,
+      "sha256": "bc312cfde9f9afe81d80a57ec31e9190396d092d5240860f9642886e1ca0533f"
+    },
+    {
+      "file": "build-msi-085.log",
+      "length": 60706,
+      "sha256": "0582a9636ddea6760f1e2c248903ef87427dfd5735513faca8a4fe33c936d83f"
+    },
+    {
+      "file": "install-085.log",
+      "length": 4988980,
+      "sha256": "f6abab4e24e6a56c0e692bd2ee10a86ac3fd65cf59e1c40f0dd7e111aea7136c"
+    },
+    {
+      "file": "read-safety.py",
+      "length": 1120,
+      "sha256": "326b3e05f6230a84ea6bc9fb78c2c0cece31f4e203c1b28f84d4a43cad26e1b9"
+    },
+    {
+      "file": "archive-formal085.py",
+      "length": 5916,
+      "sha256": "03421921116350f560d744dccd9bb1dc96b8da57277a53cc64b124a3f1d86931"
+    },
+    {
+      "file": "watch-planning.py",
+      "length": 1361,
+      "sha256": "9faf6ebcbf983fc1511039d72a658681dc2bdd5e890b76084440cc49cc7ba919"
+    }
+  ],
+  "notes": [
+    "日常原工程及用户原选择保留，未向Qwen发送新请求",
+    "原SWE实操均在独立验收工作区；只读保留两个历史unknown和九个closed block",
+    "正常启动未带远程诊断端口、临时profile或测试环境覆盖"
+  ]
+}

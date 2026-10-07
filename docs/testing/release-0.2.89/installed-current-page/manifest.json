@@ -1,0 +1,330 @@
+{
+  "stage": "installed",
+  "version": "0.2.89",
+  "source_commit": "5e5454f869a39905f3ab2ee47ab06e0e9135ed09",
+  "cases": [
+    {
+      "label": "click",
+      "classification": "positive",
+      "run_state": "completed",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791363735925-0-tool-8c15e26f833bda881cf6f2af2c93f5503c822af42c1f93ebe692017e01039db9",
+        "provider_tool_call_id": "tool-8c15e26f833bda881cf6f2af2c93f5503c822af42c1f93ebe692017e01039db9",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"bound_initial_url\":\"http://127.0.0.1:52138/click.html\",\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"1281b902ece3f864669639f0792c5899\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[8],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":8,\"name_chars\":8,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":8,\"inline_has_static_text\":false,\"name_chars\":8,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"98f3f0813506cf66ce1107f83e6258d6\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":13,\"nodes\":[{\"index\":8,\"name\":\"可信点击次数：1\",\"role\":\"StaticText\"}],\"title\":\"CURRENT-PAGE-CLICK\",\"truncated\":false,\"url\":\"http://127.0.0.1:52138/click.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:00147b5b86bcc0a44aef2d1004f0edef",
+          "native-ax:1:0",
+          "native-observation:00147b5b86bcc0a44aef2d1004f0edef",
+          "native-input:a1cc345b916bc54fa0d3cb253f513d3e",
+          "native-ax:1:0",
+          "native-observation:98f3f0813506cf66ce1107f83e6258d6",
+          "native-ax:1:0",
+          "native-observation:98f3f0813506cf66ce1107f83e6258d6",
+          "native-ax:1:0",
+          "native-observation:1281b902ece3f864669639f0792c5899"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791364635925
+            }
+          },
+          "cu_deadline_ms": 1791364343183,
+          "cu_deadline_established_at_ms": 1791363743183,
+          "cu_budget_ms": 600000
+        }
+      },
+      "trusted_events": 3
+    },
+    {
+      "label": "wrong-url",
+      "classification": "expected-zero-delivery",
+      "run_state": "failed",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791363787204-1-tool-451a3545055326fb86912b387cfc2877b4ef892dd5d883b68e48df553d0eea6b",
+        "provider_tool_call_id": "tool-451a3545055326fb86912b387cfc2877b4ef892dd5d883b68e48df553d0eea6b",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "observed page does not match the requested URL or has no facts",
+        "error": {
+          "code": "native_browser_observation_unavailable",
+          "message": "observed page does not match the requested URL or has no facts",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:19684152997e6f08fdae906a992fa14f"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791364687204
+            }
+          },
+          "cu_deadline_ms": 1791364440972,
+          "cu_deadline_established_at_ms": 1791363840972,
+          "cu_budget_ms": 600000
+        }
+      },
+      "trusted_events": 0
+    },
+    {
+      "label": "scroll",
+      "classification": "positive",
+      "run_state": "completed",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791363927427-2-tool-15fcffd395c083a3d1a25fc36f5418015f820238c420172e03ada8a613e99c2f",
+        "provider_tool_call_id": "tool-15fcffd395c083a3d1a25fc36f5418015f820238c420172e03ada8a613e99c2f",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"bound_initial_url\":\"http://127.0.0.1:56185/ltr.html\",\"criteria_count\":3,\"criteria_met\":3,\"fresh_observation_id\":\"3aa22c18d4b2d14960cc3e852485eebf\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[20],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":20,\"name_chars\":29,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":20,\"inline_has_static_text\":false,\"name_chars\":29,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"5a774ad2dc511501d3c38f5fde2b5bb6\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":36,\"nodes\":[{\"index\":5,\"name\":\"父横向位置：0；父滚轮：0\",\"role\":\"StaticText\"},{\"index\":20,\"name\":\"子横向位置：195.3333282470703；子滚轮：1\",\"role\":\"StaticText\"}],\"title\":\"HORIZONTAL-LTR-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:56185/ltr.html\",\"viewport\":{\"height\":506.6666870117187,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:4359abe903c3f76aa77c25391657c857",
+          "native-ax:1:1",
+          "native-observation:4359abe903c3f76aa77c25391657c857",
+          "native-input:9605c3593c0720d2e8318cdb46e3967c",
+          "native-ax:1:1",
+          "native-observation:5a774ad2dc511501d3c38f5fde2b5bb6",
+          "native-ax:1:1",
+          "native-observation:5a774ad2dc511501d3c38f5fde2b5bb6",
+          "native-ax:1:1",
+          "native-observation:3aa22c18d4b2d14960cc3e852485eebf"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791364827427
+            }
+          },
+          "cu_deadline_ms": 1791364578115,
+          "cu_deadline_established_at_ms": 1791363978115,
+          "cu_budget_ms": 600000
+        }
+      },
+      "trusted_events": 2
+    },
+    {
+      "label": "stale",
+      "classification": "expected-zero-delivery",
+      "run_state": "failed",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791364066232-3-tool-4865b126865ffa002e59c17dc798a3e158cd9284700a2457fbc33ca3c8f4afc1",
+        "provider_tool_call_id": "tool-4865b126865ffa002e59c17dc798a3e158cd9284700a2457fbc33ca3c8f4afc1",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_document_changed",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-89f8c568bbb1c46e0fac45acded4d8bd:34defeec00cdbd0d",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:f5ffecdc82e1af2f43c626981fa7acb4",
+          "native-ax:1:2",
+          "native-observation:f5ffecdc82e1af2f43c626981fa7acb4"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791364966232
+            }
+          },
+          "cu_deadline_ms": 1791364674216,
+          "cu_deadline_established_at_ms": 1791364074216,
+          "cu_budget_ms": 600000
+        }
+      },
+      "trusted_events": 0
+    }
+  ],
+  "strict_planning_window": {
+    "case": "stale",
+    "request_ms": 1791364075176,
+    "change": {
+      "before_ms": 1791364076120,
+      "after_ms": 1791364076215,
+      "method": "sky普通刷新按钮"
+    },
+    "response_ms": 1791364078998,
+    "strict_planning_window": true,
+    "all_planning_events": [
+      {
+        "id": 2098,
+        "event_type": "devin.planning_requested",
+        "created_at": 1791364075176
+      },
+      {
+        "id": 2099,
+        "event_type": "devin.planning_response",
+        "created_at": 1791364078998
+      }
+    ],
+    "new_trusted_events": 0
+  },
+  "files": [
+    {
+      "path": "install-089-result.json",
+      "bytes": 298,
+      "sha256": "d8b78e15e12ff6ca81edc2db0984c64c6c995687786ee082acbfd1a77d4413df"
+    },
+    {
+      "path": "installed-089-standard-processes.json",
+      "bytes": 727,
+      "sha256": "8d27806f327eec93c353d545955b920e762d48a315770228f9945c1c258276a4"
+    },
+    {
+      "path": "installed-089-verification.json",
+      "bytes": 1825,
+      "sha256": "b5cdc5164ac2bfab61e5806a345fc4b9815c93f102a6362449cacfd10a79a7d5"
+    },
+    {
+      "path": "installed-safety-summary.json",
+      "bytes": 546,
+      "sha256": "5fdf39caeb849f9bc346708a18eeff542421efd6638715b906875d6f4143e988"
+    },
+    {
+      "path": "installed089-click-after.jpg",
+      "bytes": 206169,
+      "sha256": "d98037f8c1784ffc84208dfa4866555104961755370bc1e725238af5261e79c9"
+    },
+    {
+      "path": "installed089-click-before.jpg",
+      "bytes": 208260,
+      "sha256": "96dbf49794115b5ff1ac8446f39a63fb4bfe43ba17e036712baadca1520d71c4"
+    },
+    {
+      "path": "installed089-click-facts.json",
+      "bytes": 10748,
+      "sha256": "9b23b58b6896e084f7c43ae9a7edb7b374fa9bc32a824bf67875495b997cfd89"
+    },
+    {
+      "path": "installed089-scroll-after.jpg",
+      "bytes": 216309,
+      "sha256": "78c6a30405c6b2989b9280131f93023de937a730abbd29fb3253db1cb075cf9f"
+    },
+    {
+      "path": "installed089-scroll-before.jpg",
+      "bytes": 202629,
+      "sha256": "a93acc89fa80fa5c05b5ca0b132d4371a56165471e0e8e164d78b3d1ad6a4956"
+    },
+    {
+      "path": "installed089-scroll-facts.json",
+      "bytes": 12492,
+      "sha256": "71d6f9f5104fbcd40a0c951b95b9769640702df964370a9828be08a61df50b8f"
+    },
+    {
+      "path": "installed089-stale-after.jpg",
+      "bytes": 194114,
+      "sha256": "36eac10c17d212cddfdc169949893189c48d131e5898deb4733865edcde28a6c"
+    },
+    {
+      "path": "installed089-stale-before.jpg",
+      "bytes": 206207,
+      "sha256": "25495e29f8d69fdb51caef3324d543e1faed86ecbb31603f6da98c2893408a20"
+    },
+    {
+      "path": "installed089-stale-changed.jpg",
+      "bytes": 218416,
+      "sha256": "422cedbb8783bb1589c0d1451504002a0661c68eabcdf7ece831833bbfd2f59d"
+    },
+    {
+      "path": "installed089-stale-facts.json",
+      "bytes": 7498,
+      "sha256": "5ed983b704e30dab3ad3272cc00190d5e6e76e15d5f729ec0ac06661fa4b4486"
+    },
+    {
+      "path": "installed089-wrong-url-after.jpg",
+      "bytes": 194334,
+      "sha256": "61cb9631b892ea81427decec4d683e71b6b1f684e17dd5b93d003da60912dcb0"
+    },
+    {
+      "path": "installed089-wrong-url-facts.json",
+      "bytes": 5513,
+      "sha256": "76f652fa3489c399ab0db6f5202f64d33c7a21db7defe6f60b1d4a5e3f073c0d"
+    },
+    {
+      "path": "package-089-verification.json",
+      "bytes": 1810,
+      "sha256": "17e81a693cd47cb59c106b92be041e48cf766e4dab885459e82cbd2d1e21d5b2"
+    },
+    {
+      "path": "pr84-post-tests-checks.json",
+      "bytes": 723,
+      "sha256": "515fb3b67588a9e6969f787f575f68f62eb72f05a15f75b73bd3772376bc5047"
+    },
+    {
+      "path": "stale-planning-before.json",
+      "bytes": 313,
+      "sha256": "e5571c79f7eb90a5c57f0377ad0f590083105eee6f2bb465b256da61f3f9aab3"
+    },
+    {
+      "path": "stale-refresh-timing.json",
+      "bytes": 98,
+      "sha256": "b8f73c0867119f0ed2411bb447d6968e75c3f670e330e169fa07f95ca269e61a"
+    },
+    {
+      "path": "stale-timing-analysis.json",
+      "bytes": 546,
+      "sha256": "2743d07ed5f0459c2f3fa03980e65c523feefd2a7af3ec4af8b4acd4724cdfd5"
+    }
+  ]
+}

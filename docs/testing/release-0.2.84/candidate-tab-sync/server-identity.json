@@ -1,0 +1,8 @@
+{
+  "exe_sha256": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+  "created": "2026-10-06T04:10:45.0796891Z",
+  "pid": 29912,
+  "script_sha256": "e43256471e75928e4f44a525dab210cce520a711ec314a6e79bd9de8dfdcd813",
+  "command": "\"C:\\Python314\\python.exe\" C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-tab-sync\\server.py",
+  "path": "C:\\Python314\\python.exe"
+}

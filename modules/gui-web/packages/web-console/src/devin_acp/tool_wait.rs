@@ -30,14 +30,28 @@ impl PendingTool {
     }
 }
 
+#[cfg(test)]
 pub(super) async fn wait(slot: &std::sync::Mutex<Option<PendingTool>>, id: &str, limit: Duration)
     -> Result<JsonValue, String> {
+    wait_with_planning(slot,id,limit,None).await
+}
+
+pub(super) async fn wait_with_planning(slot: &std::sync::Mutex<Option<PendingTool>>, id: &str, limit: Duration,
+    exchange: Option<&super::planning_exchange::Exchange>) -> Result<JsonValue,String> {
     let pending = std::future::poll_fn(|cx| {
+        if let Some(exchange) = exchange { exchange.register(cx.waker()); }
         let mut guard = match slot.lock() { Ok(guard) => guard, Err(_) => return Poll::Ready(Err("工具等待状态不可用。".into())) };
         let Some(job) = guard.as_mut().filter(|job| job.id == id) else {
             return Poll::Ready(Err("该工具句柄不属于当前会话轮次。".into()));
         };
-        job.poll(cx)
+        match job.poll(cx) {
+            Poll::Pending => match exchange.map(|exchange| exchange.waiting(id)).transpose() {
+                Ok(Some(Some(request))) => Poll::Ready(Ok(request)),
+                Err(reason) => Poll::Ready(Err(reason)),
+                _ => Poll::Pending,
+            },
+            result => result,
+        }
     });
     match tokio::time::timeout(limit, pending).await {
         Ok(result) => result,

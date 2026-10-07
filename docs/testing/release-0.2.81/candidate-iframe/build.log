@@ -1,0 +1,20 @@
+warning: unused import: `OpenProcess`
+  --> C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+   Compiling coolzhu-tauri-shell v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\gui-desktop\packages\tauri-shell\src-tauri)
+warning: function `clamp_bounds` is never used
+   --> src\browser_panel.rs:203:4
+    |
+203 | fn clamp_bounds(bounds: PanelBounds, width: f64, height: f64) -> Result<PanelBounds, String> {
+    |    ^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-tauri-shell` (bin "coolzhu-tauri-shell") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.31s
