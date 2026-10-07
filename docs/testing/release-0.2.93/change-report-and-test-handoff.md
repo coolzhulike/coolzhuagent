@@ -91,3 +91,7 @@ ImageGen提示词、透明资源及候选截图见[控件/连接器专项](../20
 源码功能回归沿用PR85最终结果：控制台1400通过/0失败/6忽略，前端16通过，插件45通过/0失败/1忽略；模型发现最后5项检查及离线构建通过。本轮从同一合入源码正常完整发布构建，不把构建成功替代功能验收，也未改产品代码后省略重编。
 
 总体待办仍包括共享异步轮次循环、跨进程单写者/outbox/epoch、Devin Goal/Relay及附件/账号/换模边界、FTS规模、SKILL记忆压缩和LSP/PTY生命周期，详见[32工作包矩阵](../../analysis/2026-09-21-integration-review/wbs-implementation-audit-2026-10-07.md)与[当前队列](../../analysis/2026-09-21-integration-review/current-acceptance-queue.md)。Paint按用户决定不再测试，微信不动，Opus暂停；完整自动下载安装重启按原决定延期。
+
+## 公开分发核验
+
+[0.2.93预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.93)已公开；MSI、installer-report、package-safety及MSI SHA文件四个资产的服务端长度/SHA全部匹配，实际tag为冻结产品4150fb8。桌面dist中的四份分发文件也逐长度/SHA匹配。详见[服务端核验](evidence/github-release-verification.json)。[PR86](https://github.com/coolzhulike/coolzhuagent/pull/86)归档正式证据，未自动合入；文档PR远端检查按最终HEAD另核，不能用冻结源码检查替代。
