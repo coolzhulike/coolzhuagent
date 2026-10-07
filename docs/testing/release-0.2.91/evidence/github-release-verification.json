@@ -1,0 +1,41 @@
+{
+  "observed_at_utc": "2026-10-07T10:38:43.429144+00:00",
+  "url": "https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.91",
+  "tag": "v0.2.91",
+  "release_id": 405649845,
+  "draft": false,
+  "prerelease": true,
+  "source_commit": "a366fbb2ec35bf75163ed643b79adfae176d8943",
+  "tag_object": {
+    "sha": "a366fbb2ec35bf75163ed643b79adfae176d8943",
+    "type": "commit",
+    "url": "https://api.github.com/repos/coolzhulike/coolzhuagent/git/commits/a366fbb2ec35bf75163ed643b79adfae176d8943"
+  },
+  "assets_verified": 4,
+  "assets": [
+    {
+      "name": "CoolzhuAgent-0.2.91-installer-report.json",
+      "bytes": 3634,
+      "sha256": "dc6c2404a6a0f87b52b268db42cd75f19ff3a52f3d8e3c806bfa7c7462e22959",
+      "url": "https://github.com/coolzhulike/coolzhuagent/releases/download/v0.2.91/CoolzhuAgent-0.2.91-installer-report.json"
+    },
+    {
+      "name": "CoolzhuAgent-0.2.91-package-safety.json",
+      "bytes": 211,
+      "sha256": "e6036e39dcd165c202763dd8e645837ff4eaf02f6e15b43b67c59b57c0554ecd",
+      "url": "https://github.com/coolzhulike/coolzhuagent/releases/download/v0.2.91/CoolzhuAgent-0.2.91-package-safety.json"
+    },
+    {
+      "name": "CoolzhuAgent-0.2.91.msi",
+      "bytes": 276335234,
+      "sha256": "a1c44f307beefda08ce776f3622b33f963dee1bbe37139ae0ca5b832c3a2fe9f",
+      "url": "https://github.com/coolzhulike/coolzhuagent/releases/download/v0.2.91/CoolzhuAgent-0.2.91.msi"
+    },
+    {
+      "name": "CoolzhuAgent-0.2.91.msi.sha256",
+      "bytes": 91,
+      "sha256": "82358f864ac2518f16db3cdd02c72247021d55dfc0e17e484107da893b102739",
+      "url": "https://github.com/coolzhulike/coolzhuagent/releases/download/v0.2.91/CoolzhuAgent-0.2.91.msi.sha256"
+    }
+  ]
+}
