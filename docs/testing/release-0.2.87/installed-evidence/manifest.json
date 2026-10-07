@@ -1,0 +1,270 @@
+{
+  "stage": "installed",
+  "scope": "明确名称内置原生浏览器路由的正式安装版回归；不外推全部Browser",
+  "installed": {
+    "stage": "正式安装文件摘要通过，模型功能另验",
+    "version": "0.2.87",
+    "source_commit": "a74ed09e8bc8e88944550fe2e3fadc67b6060022",
+    "source_snapshot_digest": "09965223aa6ceb7503064e7529fd6cc7f8b2ebb905bf62b052eb8ad8d2931886",
+    "verified_file_count": 1150,
+    "msi_sha256": "cf6cb98d1fd6afd485842bff5d5d1977af8263c088936ae914cc170af54786e8",
+    "msi_bytes": 276327042,
+    "web_sha256": "c64e64d666f383484d3757ead08affc57f4b94a68055a6eccf87823a5feef0a5",
+    "shell_sha256": "8c54e077183ef9120ae56591759d764a45b3bf463c1989f5a64db94d8462353d",
+    "cli_output": "COOLZHU CODE Agent\n  Version          0.2.87\n  Git SHA          a74ed09e8bc8e88944550fe2e3fadc67b6060022\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-07\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help\n",
+    "package_safe": true,
+    "release_gates": [
+      {
+        "gate": "declared_source_snapshot_scope",
+        "result": "pass"
+      },
+      {
+        "gate": "source_input_stability",
+        "result": "pass"
+      },
+      {
+        "gate": "declared_roots_present",
+        "result": "pass"
+      },
+      {
+        "gate": "build_input_stability",
+        "result": "pass"
+      },
+      {
+        "gate": "artifact_provenance",
+        "result": "pass"
+      },
+      {
+        "gate": "frozen_inputs",
+        "result": "pass"
+      }
+    ],
+    "producer_report_ref": {
+      "report_id": "pkg-report-release-20261006-230119786-067502e3",
+      "report_path": "tmp/package-reports/package-report-release-20261006-230119786.json",
+      "content_sha256": "e5069fe5dd338c7a0c64fef822009924559e757b7aac2d22f1da23907bde85ae",
+      "content_hash_algorithm": "sha256",
+      "content_hash_scope": "报告的全部叶子节点规范排序后取 SHA256；排除 report_identity.content_sha256"
+    }
+  },
+  "process": {
+    "shell_pid": 19924,
+    "port": 8765,
+    "web_started": "2026-10-07T06:03:38.5283202Z",
+    "shell_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "web_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "shell_started": "2026-10-07T06:03:39.5300027Z",
+    "web_sha256": "c64e64d666f383484d3757ead08affc57f4b94a68055a6eccf87823a5feef0a5",
+    "web_pid": 18864,
+    "shell_sha256": "8c54e077183ef9120ae56591759d764a45b3bf463c1989f5a64db94d8462353d",
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage": "0.2.87 Program Files正式安装版"
+  },
+  "model": "swe-2-medium",
+  "remote_session_id": "island-kayak",
+  "cases": [
+    {
+      "prefix": "BU-INSTALLED-087-NATIVE-ALIAS-20261007",
+      "classification": "positive_pass",
+      "source_message_id": "msg-1791353325873-user",
+      "run_id": "run-chat-63bf652815e40912de793c2d865c17e62c87a357b699288e",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791353325873-0-tool-54b2e9c5b76fea002597f9c40c0a58210c4538183c7d6bab06453bd81664eb90",
+        "provider_tool_call_id": "tool-54b2e9c5b76fea002597f9c40c0a58210c4538183c7d6bab06453bd81664eb90",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":3,\"criteria_met\":3,\"fresh_observation_id\":\"1461ae1c5456a99fe100b7a6f1a2f6d5\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[27],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":27,\"name_chars\":18,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":27,\"inline_has_static_text\":false,\"name_chars\":18,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[28],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":28,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":28,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[9],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":9,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":4,\"observation_id\":\"323903db84766db7dbafc28bf87eddf0\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":38,\"nodes\":[{\"index\":9,\"name\":\"父输入次数：0；父提交次数：0\",\"role\":\"StaticText\"},{\"index\":27,\"name\":\"子输入内容：INSTALLED087\",\"role\":\"StaticText\"},{\"index\":28,\"name\":\"子输入次数：1；子提交次数：1\",\"role\":\"StaticText\"}],\"title\":\"OOP-INPUT-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:53530/parent.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:53530/parent.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 3,
+        "steps_completed": 3,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:121a002a427b2a4cf64062f99f9a6304",
+          "native-ax:1:0",
+          "native-observation:121a002a427b2a4cf64062f99f9a6304",
+          "native-input:8882f04ebbaf7957058fc133899e0e5a",
+          "native-ax:1:0",
+          "native-observation:ebbe00cb9281fdf2221dc68e8cdb6bc6",
+          "native-ax:1:0",
+          "native-observation:ebbe00cb9281fdf2221dc68e8cdb6bc6",
+          "native-ax:1:0",
+          "native-observation:02d00877205914499b6bb07dc1794dbb",
+          "native-input:1c723f2f0435a443ae7c7900c5e67502",
+          "native-ax:1:0",
+          "native-observation:be0ccc7b2ccc90f7600b6380a433c31e",
+          "native-ax:1:0",
+          "native-observation:be0ccc7b2ccc90f7600b6380a433c31e",
+          "native-ax:1:0",
+          "native-observation:edf5ba877548d4b4aa206cc1264a0739",
+          "native-input:3f55285f408fede6afd5f878211bae3e",
+          "native-ax:1:0",
+          "native-observation:323903db84766db7dbafc28bf87eddf0",
+          "native-ax:1:0",
+          "native-observation:323903db84766db7dbafc28bf87eddf0",
+          "native-ax:1:0",
+          "native-observation:1461ae1c5456a99fe100b7a6f1a2f6d5"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 3,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791354225873
+            }
+          },
+          "cu_deadline_ms": 1791353938462,
+          "cu_deadline_established_at_ms": 1791353338462,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events": [
+        {
+          "kind": "child-input",
+          "trusted": true,
+          "value": "INSTALLED087",
+          "inputs": 1,
+          "submits": 0,
+          "page_ms": 1791353370483.7002,
+          "observed_ms": 1791353370494.0818,
+          "host": "localhost:53530"
+        },
+        {
+          "kind": "child-enter-down",
+          "trusted": true,
+          "value": "INSTALLED087",
+          "inputs": 1,
+          "submits": 0,
+          "page_ms": 1791353392535.2002,
+          "observed_ms": 1791353392537.8477,
+          "host": "localhost:53530"
+        },
+        {
+          "kind": "child-submit",
+          "trusted": true,
+          "value": "INSTALLED087",
+          "inputs": 1,
+          "submits": 1,
+          "page_ms": 1791353392535.9001,
+          "observed_ms": 1791353392540.9136,
+          "host": "localhost:53530"
+        },
+        {
+          "kind": "child-enter-up",
+          "trusted": true,
+          "value": "INSTALLED087",
+          "inputs": 1,
+          "submits": 1,
+          "page_ms": 1791353392536.1,
+          "observed_ms": 1791353392542.2258,
+          "host": "localhost:53530"
+        }
+      ]
+    }
+  ],
+  "paint": "按用户要求不再测试，已有基本能力证据保留",
+  "daily_restored": {
+    "safety_root": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\input-safety",
+    "observed_utc": "2026-10-07T06:10:44.9763026Z",
+    "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+    "stage": "正常桌面启动0.2.87核验通过",
+    "selfcheck_ok": true,
+    "processes": [
+      {
+        "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+        "pid": 3304,
+        "created": "2026-10-07T06:10:40.0519501Z",
+        "sha256": "c64e64d666f383484d3757ead08affc57f4b94a68055a6eccf87823a5feef0a5"
+      },
+      {
+        "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "pid": 21376,
+        "created": "2026-10-07T06:10:40.6864980Z",
+        "sha256": "8c54e077183ef9120ae56591759d764a45b3bf463c1989f5a64db94d8462353d"
+      }
+    ],
+    "source_commit": "a74ed09e8bc8e88944550fe2e3fadc67b6060022"
+  },
+  "files": [
+    {
+      "path": "BU-INSTALLED-087-NATIVE-ALIAS-20261007-facts.json",
+      "bytes": 37213,
+      "sha256": "565e0fd3b6d0ba26dc0881b483c7f9326e5f33dc988f8f11065799fba0432a21"
+    },
+    {
+      "path": "BU-INSTALLED-087-NATIVE-ALIAS-20261007-single-facts.json",
+      "bytes": 6311,
+      "sha256": "2edc9caff5434b9f43e1b79e01ad4c60ad8f65932767be478da246f774a4ef13"
+    },
+    {
+      "path": "frozen-source-ci.json",
+      "bytes": 10536,
+      "sha256": "df51969ade92f707f8d21de3998e1f5af0e8c93cb36610a05cc07a60ba4df4aa"
+    },
+    {
+      "path": "install-087-result.json",
+      "bytes": 282,
+      "sha256": "c1965bf34902a2dff7a3b8cf63dbfbe6590cc928b5e016c1c76e9ead1ad2ce1b"
+    },
+    {
+      "path": "installed-087-standard-processes.json",
+      "bytes": 692,
+      "sha256": "7793b106943cd58896a7aada81a502ca57710458928fcec8713c6468811bb5cc"
+    },
+    {
+      "path": "installed-087-verification.json",
+      "bytes": 1825,
+      "sha256": "71a4fa3d4acd4366f40a3b34c85fc0b96dd9b0883f1b9ae31a12df41a90fd879"
+    },
+    {
+      "path": "installed087-after.jpg",
+      "bytes": 224541,
+      "sha256": "05565036547b4bdb054fb11df499d0a1e58e8ae3feb808e3c93251efac8b7300"
+    },
+    {
+      "path": "installed087-before.jpg",
+      "bytes": 220246,
+      "sha256": "f9011813c92cd42a5effb5f9fb388a15063940f1717f9b81aa96af8259c0e39b"
+    },
+    {
+      "path": "package-087-verification.json",
+      "bytes": 1810,
+      "sha256": "0e2a77c29678307363a69d1dc2ba81daa5869fa7106c757e1049425ed017db8d"
+    },
+    {
+      "path": "restored-daily-087-process.json",
+      "bytes": 359,
+      "sha256": "9f09a5a517f7dac48b473293134753d9f1944b7942fe0ad63f7da62258ea9402"
+    },
+    {
+      "path": "restored-daily-087-selfcheck.json",
+      "bytes": 1777,
+      "sha256": "ef83fe11d206293bb77f6a3dec8c384471e280ff2639570f7294f50e20936668"
+    },
+    {
+      "path": "restored-daily-087-verification.json",
+      "bytes": 1138,
+      "sha256": "386dd43593344a8cfdfaa14601dc1ac1a0a8a62d51779f4afcbfbd61d05a625e"
+    },
+    {
+      "path": "restored-daily087.jpg",
+      "bytes": 196634,
+      "sha256": "69908d9ec51dbd1b161496d3dbbb5f529ec46a7164fcbef536667dd7a3964047"
+    },
+    {
+      "path": "safety-after-installed087.json",
+      "bytes": 782,
+      "sha256": "d39f888f669a112dca8917c0942419432dcf39a11cbce811b5f7566bc14688a4"
+    },
+    {
+      "path": "stopped-installed-087-standard-processes.json",
+      "bytes": 780,
+      "sha256": "67940dacb0256916cbecedad5772b3d1f20b7008e8afe0312bb50a269c0e0a36"
+    }
+  ]
+}

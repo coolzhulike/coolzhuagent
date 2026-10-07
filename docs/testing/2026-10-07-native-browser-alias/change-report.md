@@ -20,4 +20,8 @@
 
 实际offline build通过。完整主控制台检查在输入任务结束后为1396通过、0失败、6项既有忽略，另lib8及native-host1通过。首次全量检查与真实输入任务并行，协调锁Busy使一项启动隔离测试失败；原失败日志保留，待任务排空后再完整运行通过，没有修改生产协调锁或测试来掩盖。见[首次日志](evidence/web-tests-all.log)、[空闲完整结果](evidence/web-tests-all-idle.log)。
 
-此轮不扩大到任意HTML、全部复杂变换、多屏或四项总体完成；正式安装版身份仍以[086交接](../release-0.2.86/change-report-and-test-handoff.md)为准。插件、升级和启动演出其余验收在[当前队列](../../analysis/2026-09-21-integration-review/current-acceptance-queue.md)继续跟踪。
+此候选记录不扩大到任意HTML、全部复杂变换、多屏或四项总体完成；后续已正常构建安装087并完成独立真实SWE回归，正式事实以[087交接](../release-0.2.87/change-report-and-test-handoff.md)为准。插件、升级和启动演出其余验收在[当前队列](../../analysis/2026-09-21-integration-review/current-acceptance-queue.md)继续跟踪。
+
+## 后续界面补验
+
+候选环境实际DSH目录4414项、calculator搜索3项、详情和固定来源检查通过，22文件、来源commit b2007a13f06bcf75bf07b9d277ee8d434a316490。没有另行安装或更改插件启用状态。正常日常086环境的模型配置、统计、升级检查亦有实拍：配置正常载入，统计读真实200次请求，版本检查正常结束为no_published_release且按钮恢复。仓库目前仅预发布，不能据此说已有稳定版或自动安装升级。原图、实际状态与恢复/安全事实见[补验清单](evidence/manifest.json)；后续当前日常版本已为087，本目录086恢复记录保留为历史。
