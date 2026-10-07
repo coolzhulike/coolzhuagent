@@ -1,0 +1,9 @@
+{
+  "observed_utc": "2026-10-07T07:33:45.2643597Z",
+  "stage": "正常桌面启动入口",
+  "daily_launcher": {
+    "path": "C:/Program Files/CoolzhuAgent/COOLZHU-AGENT.exe",
+    "created": "2026-10-07T07:33:45.2588563Z",
+    "pid": 13604
+  }
+}

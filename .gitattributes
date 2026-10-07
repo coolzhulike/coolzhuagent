@@ -100,3 +100,4 @@
 /docs/testing/release-0.2.87/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 
 /docs/testing/release-0.2.87/sidebar-followup/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.87/browser-nested-followup/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol

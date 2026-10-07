@@ -36,3 +36,5 @@
 087已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.87)：四个分发资产的服务端长度/SHA均与本地一致，实际tag绑定冻结a74源码，见[发布核验](evidence/github-release-verification.json)。公开预发布不等于正式稳定频道，不改变升级检查仅接受稳定版的语义。
 
 正常日常087又补实拍定时任务/设置/真实统计/SKILL/DSH4414目录/升级检查六入口；无新增模型请求或业务配置修改，见[087侧栏范围与原图](sidebar-followup/report.md)。
+
+2026-10-07同一正式安装版又完成四项真实SWE边界补验：三层左右同名按钮分别正确命中、父容器裁剪零投递、规划期间关闭撤销旧引用。六轮仅续接原island-kayak，两轮关闭晚于回复单列未计通过，源码及分发资产不变。当前范围以[边界补验、原始截图与测试交接](browser-nested-followup/report.md)和最新队列为准；旋转/斜切/透视及子文档横向/RTL滚动目前是明确实现限制，其余开放项没有被本轮追认为通过。
