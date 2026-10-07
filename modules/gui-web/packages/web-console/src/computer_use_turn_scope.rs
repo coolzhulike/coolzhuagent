@@ -13,7 +13,7 @@ impl ComputerUseTurnScope {
     pub(super) fn from_current_user(text: &str) -> Self {
         let explicit_request = explicit_request_from_current_user(text).map(Arc::new);
         let text = text.to_ascii_lowercase();
-        let native_browser = ["内置浏览器", "内置网页", "内置页", "右栏浏览器", "右栏网页", "右栏页面", "右栏表单", "右侧表单",
+        let native_browser = ["内置浏览器", "内置原生浏览器", "内置网页", "内置页", "右栏浏览器", "右栏网页", "右栏页面", "右栏表单", "右侧表单",
             "右栏原生浏览器", "右侧原生浏览器", "右侧浏览器", "右侧网页", "右侧扩展栏浏览器",
             "右栏原生browser", "右栏原生 browser", "右侧原生browser", "右侧原生 browser", "builtin browser", "built-in browser"]
             .iter().any(|name| text.contains(name));
@@ -223,7 +223,7 @@ mod tests {
         for text in ["内置浏览器，不得点击、滚动或输入", "内置浏览器，禁止点击、滚动或输入",
             "内置浏览器，不得点击、输入、滚动", "内置浏览器，不要滚动、输入或点击",
             "内置浏览器，禁止输入、 点击 、滚动", "右栏原生浏览器禁止点击/输入/滚动/导航/提交",
-            "右侧原生浏览器禁止输入／滚动／点击", "右栏原生浏览器，不发送任何输入",
+            "右侧原生浏览器禁止输入／滚动／点击", "内置原生浏览器，不发送任何输入", "右栏原生浏览器，不发送任何输入",
             "右栏原生浏览器，不作任何输入", "只读当前右栏网页，不点击、不输入、不滚动、不导航",
             "内置浏览器，不要点击；禁止输入；不得滚动"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
@@ -241,7 +241,8 @@ mod tests {
         assert!(scope.validate(&request("desktop", serde_json::json!({"application":"mspaint"}))).is_err());
         // 实操中的同义表述仍明确指向右栏，不能静默改走外部扩展后端。
         for text in ["仅当前右栏原生浏览器，不操作其它软件", "使用当前右侧原生浏览器点击一次", "在右栏表单勾选准备完成然后提交", "在右侧表单选择行程",
-            "仅本次右栏原生browser，只允许click", "右栏原生 browser点击一次", "右侧原生browser点击一次", "右侧原生 browser只读"] {
+            "仅本次右栏原生browser，只允许click", "右栏原生 browser点击一次", "右侧原生browser点击一次", "右侧原生 browser只读",
+            "当前右栏内置原生浏览器，只允许click", "在内置原生浏览器输入一次", "当前右侧扩展栏内置原生浏览器"] {
             let scope = ComputerUseTurnScope::from_current_user(text);
             assert!(scope.native_browser());
             assert!(!scope.native_browser_read_only());
