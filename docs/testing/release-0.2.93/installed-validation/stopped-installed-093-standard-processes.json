@@ -1,0 +1,18 @@
+{
+  "observed_utc": "2026-10-07T14:32:43.3636864Z",
+  "stopped": [
+    {
+      "pid": 32684,
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "kind": "web",
+      "created": "2026-10-07T14:22:32.1156061Z"
+    },
+    {
+      "pid": 28408,
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "kind": "shell",
+      "created": "2026-10-07T14:22:33.1315487Z"
+    }
+  ],
+  "stage": "按完整身份停止本轮已结束任务的自有测试配套进程"
+}

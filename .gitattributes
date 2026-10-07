@@ -128,3 +128,7 @@
 /docs/testing/2026-10-07-jade-connectors/manifest.json -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/2026-10-07-plugin-function/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/2026-10-07-plugin-function/manifest.json -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 093正式安装证据保留原始长度与SHA，不做换行转换。
+/docs/testing/release-0.2.93/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.93/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol

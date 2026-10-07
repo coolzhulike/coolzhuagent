@@ -1,0 +1,14 @@
+[
+  {
+    "tool_call_id": "tool-6e9ca900e162de5c50fa9c3664edda99d7cb178be3449c42ff110d5f83525c10",
+    "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+    "request_attempt_id": null,
+    "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+    "arguments_digest": "1f528034a29f4ddb",
+    "status": "failed",
+    "created_at_unix_ms": 1791383145324,
+    "updated_at_unix_ms": 1791383147604,
+    "provider_tool_call_id": "1",
+    "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3\",\"turn_id\":\"chat-turn-1791383136040-0\",\"attempt_id\":\"faa846c93ef3be430961751a46c99e61d16b055791b125d7\",\"owner_epoch\":183,\"generation\":183}"
+  }
+]
