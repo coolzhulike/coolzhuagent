@@ -1,0 +1,131 @@
+{
+  "stage": "installed",
+  "version": "0.2.92",
+  "source_commit": "7592336143f1068af0ad330fc5b70d1fde2b5162",
+  "cases": [
+    {
+      "prefix": "ATTACHMENT-INSTALLED092-20261007",
+      "run_id": "run-chat-2eb5a9610c87512673cddbb8026089c531705414fb9654c9",
+      "effective_model": "swe-2-medium",
+      "remote_session_id": "island-kayak",
+      "image_count": 1,
+      "code": "8634",
+      "protocol_stop": "end_turn",
+      "process_drained": true,
+      "tool_calls": 0
+    },
+    {
+      "prefix": "ATTACHMENT-INSTALLED092-SYNC-RESTART-20261007",
+      "run_id": "run-chat-a27c4d565e4394638af485a07aa99c047986c2c5344a579d",
+      "effective_model": "swe-2-medium",
+      "remote_session_id": "island-kayak",
+      "image_count": 1,
+      "code": "7914",
+      "protocol_stop": "end_turn",
+      "process_drained": true,
+      "tool_calls": 0
+    }
+  ],
+  "files": [
+    {
+      "path": "ATTACHMENT-INSTALLED092-20261007-evidence.json",
+      "bytes": 72788,
+      "sha256": "82754c75f1f5ea73ce7877d33425204fcbf2a3a76124542f6f655b2467243181"
+    },
+    {
+      "path": "ATTACHMENT-INSTALLED092-SYNC-RESTART-20261007-evidence.json",
+      "bytes": 72831,
+      "sha256": "c796f80baa06d1fb92ffb080f12ca3616c01f239965973717e87e892ef60d55a"
+    },
+    {
+      "path": "installed092-stream-result.png",
+      "bytes": 160833,
+      "sha256": "4ccae8838571e15001f429ee4a6e42f697bb10dca45a321cbfca09998529b994"
+    },
+    {
+      "path": "installed092-sync-restart-result.png",
+      "bytes": 164437,
+      "sha256": "7887c22c2e924ed4021cf97710165720aaebf8d2def6e791123432f0d719997b"
+    },
+    {
+      "path": "installed092-image.png",
+      "bytes": 7661,
+      "sha256": "3f02a0fad70015c6f9e00653e475c28b559032eb1183379a5a3c8d2080374188"
+    },
+    {
+      "path": "installed092-after-restart.png",
+      "bytes": 6076,
+      "sha256": "cfc056bac767f03b24dfa8cad4e0c6c643d51d8ec339e31aa41ea877e2a856e7"
+    },
+    {
+      "path": "expected-installed092.json",
+      "bytes": 109,
+      "sha256": "fc23d658ec7942c0cd4e9cde27fecdaa15d09d72c29383a61fd9cddd355ed5a4"
+    },
+    {
+      "path": "expected-installed092-after-restart.json",
+      "bytes": 109,
+      "sha256": "a04dcafc7ad07318d201a6dd3f507f44744d07b490ea12a8b46be60a9f283cc9"
+    },
+    {
+      "path": "installed-092-verification.json",
+      "bytes": 1825,
+      "sha256": "77ee5076c5fe94d801ce68f2154bbd884f7d1e3a69187cbd023e157d6c985ee6"
+    },
+    {
+      "path": "package-092-verification.json",
+      "bytes": 1810,
+      "sha256": "55fba1082922812c0a874308bdebaeb4bf0d169c6386a535393ad65ad5eeede9"
+    },
+    {
+      "path": "install-092-result.json",
+      "bytes": 283,
+      "sha256": "09d1db32bbcfef715d5ad3b786acf2067da4e1e12f9e875f9878d3a39376382f"
+    },
+    {
+      "path": "installed-092-standard-processes.json",
+      "bytes": 691,
+      "sha256": "723cac633ae437c6a23461683358b97e22a308d858cb2065f3a7988fd8b21b2e"
+    },
+    {
+      "path": "installed-safety-summary.json",
+      "bytes": 546,
+      "sha256": "07578f524bcad58ad304d59e5d7671bc97e564d2268fb6dc6bcdcf75c34facbf"
+    },
+    {
+      "path": "restored-daily-092-verification.json",
+      "bytes": 859,
+      "sha256": "a93947cc895ab6389b415a825b7c5299d07ec1618c4b3f624e46e32f2e6ac5ac"
+    },
+    {
+      "path": "restored-daily-092-selfcheck.json",
+      "bytes": 1778,
+      "sha256": "1b0bb01b69dbb07c7abdaf9464991d396c0ffae7447cf9d0e3565b9816349dca"
+    },
+    {
+      "path": "restored-daily092.png",
+      "bytes": 196616,
+      "sha256": "7364450a7b5a6f8b75802245fd542dbbd657c1390b5fa4b684022be5a495b584"
+    },
+    {
+      "path": "build.log",
+      "bytes": 50138,
+      "sha256": "a831fda8e302d5ae298ca0e1e33b7d4c1120e6451ab86b300ec47de60d731585"
+    },
+    {
+      "path": "web-tests.log",
+      "bytes": 147701,
+      "sha256": "9a5a38b730dc3da17d08a4799f16d32bb2514586a86cb160f98f46ba916d8b37"
+    },
+    {
+      "path": "frontend-tests.log",
+      "bytes": 1563,
+      "sha256": "53445e95cd708aa66f8e13d8a6e77a2cfed03d2b5208d4b9723f6164c61949a4"
+    },
+    {
+      "path": "source-ci.json",
+      "bytes": 7194,
+      "sha256": "f3f00a2335b64e176799c4aebabae45a383107b11caf33188a0d28432c63eff6"
+    }
+  ]
+}
