@@ -66,3 +66,15 @@
 这两轮正文使用“当前右栏”，不含原生路由固定词语，真实进入原生面板，验证提交时可见面板偏好修补有效。没有使用历史页面或扩展桥。
 
 [透视实机截图](perspective-rejected.jpg)、[透视脱敏事实](perspective-result.json)、[父覆盖层实机截图](cover-rejected.jpg)、[父覆盖层脱敏事实](cover-result.json)。仍未打包安装，不替代正式安装版负例或严格按下期间的验收。
+
+## pointerdown内同步文档替换：源码候选通过
+
+真实SWE轮次 `BU-DOWN-DOCUMENT-REPLACE-20261008` 仅点击一次旧按钮，CU succeeded/goal_achieved=true，input_delivery=sent、input_release=released、effect_observed。页面可信事件按performance时间证实：BEFORE pointerdown 1791473504068.9 → replacement-started 4069.4 → AFTER replacement-finished 4071.0999 → AFTER pointerup 4078 → AFTER loaded 4079.2。期间document.open同步替换文档，history.replaceState改变同源地址；释放落在新文档HTML，未命中新按钮，没有click、input或keydown事件，没有重试补发。远端正常end_turn/drained并解锁。
+
+[实机截图](down-document-replace.jpg)、[结构化事实](down-document-replace-result.json)。只覆盖同一WebView内同步文档及同源history地址变化，不能外推为跨来源网络导航、窗口关闭、整个面板替换或控制器销毁；这些严格窄时序仍开放。
+
+### 复现页面与通过条件
+
+提供[仿射页面服务](servers/affine-page-server.py)和[文档替换页面服务](servers/strict-document-server.py)，仅服务真实HTML与采集浏览器可信事件，不伪造模型/宿主回执。各自使用新的tmp输出目录启动：`python docs/testing/2026-10-08-ui-preview/servers/affine-page-server.py --output-dir tmp/acceptance-affine-new`（strict同理）。从address.json读取随机端口；仿射打开`/parent.html`、`?mode=perspective`或`?mode=cover`，严格替换打开`/before.html`。停止时在本轮输出目录写stop-server标记，正常关闭服务。不要强杀不明端口。
+
+在当前真实SWE聊天室经正常输入入口提交，保留唯一远端，不使用模型夹具；应分别得到9步整轮成功、两个预检not_sent负例，以及同步替换单次原动作released且新文档无click/input。归档软件截图、宿主结构化结果、页面trusted事件及远端收尾。截图单独不能替代投递和释放事实，负例blocked不得称工具成功。
