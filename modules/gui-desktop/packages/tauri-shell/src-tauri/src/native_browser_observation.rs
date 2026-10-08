@@ -1,4 +1,4 @@
-//! 原生网页观察：固定宿主读调用、实际文档身份与有限AX；不执行JS或发送输入。
+//! 原生网页观察：固定宿主只读查询、实际文档身份与有限AX；不接受任意脚本、不发送输入。
 use native_browser_protocol::{ObservedNode, PageObservation, PanelResource};
 use tauri::{AppHandle, Manager};
 use super::{native_browser_devtools::{self,ReadMethod},
@@ -143,7 +143,12 @@ async fn observe_document(app: &AppHandle, expected: &PanelResource, observation
         // LayoutMetrics属于CDP target根；同进程嵌套文档不能冒用其父视口。
         let target_root = candidate.scope.is_top() || candidate.scope.chain.iter().rev().nth(1)
             .is_some_and(|parent| parent.session.as_deref() != candidate.scope.session());
-        let document_viewport = if candidate.role == "RootWebArea" && target_root && !remaining.is_zero() {
+        let document_viewport = if candidate.role == "RootWebArea" && !remaining.is_zero() && !target_root {
+            // 同进程子文档读取自己的scrollingElement。每次CDP读有2秒上限；
+            // 允许最后一次采样完成对象释放后才结束，而非500ms强丢future遗留远端对象。
+            // 后续候选仍按总采样余量跳过；此事实不授予输入，也不替代最终目标验收。
+            super::native_browser_scroll::read_viewport(app,expected,&candidate.scope,candidate.backend_node).await.ok()
+        } else if candidate.role == "RootWebArea" && target_root && !remaining.is_zero() {
             let read = async {
                 let raw = if candidate.scope.is_top() {metrics.clone()} else {
                     super::native_browser_frame_geometry::local_metrics(native_browser_devtools::read_session(

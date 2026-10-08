@@ -50,7 +50,7 @@
 - [0.2.93正式交接](../../testing/release-0.2.93/change-report-and-test-handoff.md)
 - [全图标检查报告](../../testing/2026-10-07-icon-audit/report.md)
 
-下一轮继续SKILL/插件/Browser综合任务、同进程子文档滚动事实及面板关闭/替换窄时序，再收束插件/会话剩余项。每项区分源码候选与正式安装版，保留真实模型执行事实及实际软件截图；不以编译或静态资源通过替代模型实操。
+下一轮先将同进程子文档滚动反馈修复纳入正式包复验，再继续面板关闭/替换窄时序与插件/会话剩余项。SKILL/插件/Browser综合任务及插件内外超时已有094正式通过证据，不重复简单任务。每项区分源码候选与正式安装版，保留真实模型执行事实及实际软件截图；不以编译或静态资源通过替代模型实操。
 
 ## 本日继续推进补记
 
@@ -70,3 +70,5 @@
 - 094综合流程正式通过：calculator单次completed/ok，CU单次perform、5/5输入及effect_observed，先触发业务配送反馈再确认重提，最终BAMBOO-ORDER-094/815/包邮；按SKILL三行回复。见[综合结果](../../testing/release-0.2.94/installed-validation/integration-result.json)与[最终实拍](../../testing/release-0.2.94/installed-validation/15-installed-integration-completed.jpg)。
 
 - 094真实插件超时补验完成：[内层结果](../../testing/release-0.2.94/installed-validation/plugin-inner-deadline-result.json)、[外层结果](../../testing/release-0.2.94/installed-validation/plugin-outer-budget-result.json)及对应实拍已归档；只撤销本次新增工具白名单并停用测试net-tools，原计算器和唯一Devin绑定保持。独立Win32句柄/全部清理矩阵仍未完整。
+
+- 同进程子文档自身视口缺失已修复，源码候选真实SWE单次perform两步滚动通过，第一步文字不变仍visible_progress=true，最终目标完成，no_progress/replan均0；原唯一远端正常收尾。见[候选报告、结构化结果与实拍](../../testing/2026-10-08-browser-sameprocess/report.md)。尚未进入正式安装包，不追认094包含该修复。

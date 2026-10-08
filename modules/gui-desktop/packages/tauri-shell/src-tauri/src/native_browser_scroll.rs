@@ -65,6 +65,23 @@ async fn read_state(app: &AppHandle, resource: &PanelResource, scope: &DocumentS
     Ok(value.clone())
 }
 
+/// 同进程子文档没有独立CDP target，必须读取其自己的滚动根，不能借父LayoutMetrics。
+/// 调用方不得用外层timeout丢弃本future：解析出的临时对象须先走原释放路径。
+pub(super) async fn read_viewport(app: &AppHandle, resource: &PanelResource, scope: &DocumentScope, root: i64)
+    -> Result<native_browser_protocol::PageViewport, String>
+{
+    viewport_from_state(&read_state(app, resource, scope, root).await?)
+}
+
+fn viewport_from_state(state: &Value) -> Result<native_browser_protocol::PageViewport, String> {
+    let number = |key: &str| state[key].as_f64().ok_or("native_browser_viewport_invalid");
+    let viewport = native_browser_protocol::PageViewport {
+        page_x: number("left")?, page_y: number("top")?,
+        width: number("width")?, height: number("height")?,
+    };
+    if viewport.valid_shape() { Ok(viewport) } else { Err("native_browser_viewport_invalid".into()) }
+}
+
 /// CSSOM横排RTL的原点在右端，向左的位置为负数；不可复用LTR的正值区间。
 fn remaining_distance(state: &Value, direction: ScrollDirection) -> Result<f64, String> {
     let number = |key: &str| state[key].as_f64().filter(|n| n.is_finite())
@@ -187,6 +204,18 @@ pub(super) async fn verify_child(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn child_viewport_preserves_fractional_rtl_position_and_rejects_invalid_dimensions() {
+        let mut state = serde_json::json!({"left":-180.5,"top":312.25,"width":400,"height":300});
+        let viewport = viewport_from_state(&state).unwrap();
+        assert_eq!((viewport.page_x,viewport.page_y),(-180.5,312.25));
+        state["width"] = serde_json::json!(0);
+        assert!(viewport_from_state(&state).is_err());
+        state["width"] = serde_json::json!(400);
+        state["top"] = serde_json::Value::Null;
+        assert!(viewport_from_state(&state).is_err());
+    }
 
     #[test]
     fn horizontal_domain_preserves_physical_direction_and_both_rtl_boundaries() {
