@@ -1,0 +1,22 @@
+{
+  "marker": "SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008",
+  "stage": "正式0.2.98",
+  "model_requests_expected": 0,
+  "before_ledger": {
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ],
+    "attempts": 930,
+    "usage": 539
+  },
+  "failure": "HTTP Error 404: Not Found"
+}

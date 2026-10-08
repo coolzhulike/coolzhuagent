@@ -10178,6 +10178,21 @@ fn next_aligned_run_at(base: u64, now: u64, interval_ms: u64) -> u64 {
     base.saturating_add(steps.saturating_mul(interval_ms))
 }
 
+/// 执行返回后按当前时刻跳过错过的周期，计划锚点仍保留原触发时刻。
+fn advance_scheduled_task(task: &mut ConfigScheduledTask, now: u64) {
+    if task.schedule_kind == "daily" || task.schedule_kind == "weekly" {
+        task.run_at_ms = next_wallclock_fire(
+            now, task.tz_offset_minutes, task.wall_hour, task.wall_minute, &task.weekdays,
+        );
+        task.status = "scheduled".into();
+    } else if let Some(interval_ms) = task.interval_ms.filter(|value| *value > 0) {
+        task.run_at_ms = next_aligned_run_at(task.run_at_ms, now, interval_ms);
+        task.status = "scheduled".into();
+    } else {
+        task.status = "executed".into();
+    }
+}
+
 #[cfg(test)]
 mod scheduler_align_tests {
     use super::{next_aligned_run_at, next_wallclock_fire};
@@ -10228,6 +10243,31 @@ mod scheduler_align_tests {
     #[test]
     fn handles_zero_interval_safely() {
         assert_eq!(next_aligned_run_at(0, 12_345, 0), 12_346);
+    }
+
+    #[test]
+    fn long_execution_reschedules_after_completion_without_catchup() {
+        let mut task: super::ConfigScheduledTask = serde_json::from_value(serde_json::json!({
+            "id": "long-execution", "target_session_id": "unused", "content": "unused",
+            "run_at_ms": 120_000, "interval_ms": 60_000, "schedule_kind": "interval"
+        })).unwrap();
+        // 本轮120秒开始、310秒完成，下一次应为原锚点的360秒，不能回排到180秒。
+        super::advance_scheduled_task(&mut task, 310_000);
+        assert_eq!(task.run_at_ms, 360_000);
+        assert_eq!(task.status, "scheduled");
+    }
+
+    #[test]
+    fn long_execution_reschedules_wallclock_after_completion() {
+        let mut task: super::ConfigScheduledTask = serde_json::from_value(serde_json::json!({
+            "id": "long-wallclock", "target_session_id": "unused", "content": "unused",
+            "run_at_ms": 20_000 * DAY, "schedule_kind": "daily", "wall_hour": 10,
+            "tz_offset_minutes": TZ_CN
+        })).unwrap();
+        let completed = 20_001 * DAY + 11 * HOUR_MS - OFFSET_MS;
+        super::advance_scheduled_task(&mut task, completed);
+        assert_eq!(task.run_at_ms, 20_002 * DAY + 10 * HOUR_MS - OFFSET_MS);
+        assert_eq!(task.status, "scheduled");
     }
 
     // ===== 挂钟计划 next_wallclock_fire =====
@@ -10427,29 +10467,8 @@ async fn run_due_task_schedules_once() -> Vec<TaskScheduleRunItem> {
                 if let Some(content) = &outcome.content_update {
                     task.content = content.clone();
                 }
-                if task.schedule_kind == "daily" || task.schedule_kind == "weekly" {
-                    // 挂钟计划：按本地时区重算下一个触发时刻（每天/每周 HH:MM）。
-                    task.run_at_ms = next_wallclock_fire(
-                        now,
-                        task.tz_offset_minutes,
-                        task.wall_hour,
-                        task.wall_minute,
-                        &task.weekdays,
-                    );
-                    task.status = "scheduled".to_string();
-                } else {
-                    match task.interval_ms {
-                        // 周期任务：防漂移对齐到 now 之后第一个触发点。
-                        Some(interval_ms) if interval_ms > 0 => {
-                            task.run_at_ms = next_aligned_run_at(task.run_at_ms, now, interval_ms);
-                            task.status = "scheduled".to_string();
-                        }
-                        // 单次任务（或非法 interval=0）：执行后置为已完成。
-                        _ => {
-                            task.status = "executed".to_string();
-                        }
-                    }
-                }
+                // 执行和结果持久化可能跨过多个周期；不能用扫描开始时的旧now重排。
+                advance_scheduled_task(task, unix_timestamp_millis());
             }
             Ok(())
         });

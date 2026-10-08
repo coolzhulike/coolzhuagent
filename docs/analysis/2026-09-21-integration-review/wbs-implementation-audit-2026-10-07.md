@@ -1,5 +1,7 @@
 # 04整合计划32工作包执行复核
 
+4.5增量：正式098真实定时器启动补偿已取消Goal、一次持久领取/终态并发扫描，以及结果已结账但配置发布失败的正常扫描投影恢复通过。模型0次，不外推Devin调度；poll固定系统房间与唯一远端约束冲突，未新建云端测试。长任务重排使用旧扫描时间的问题已修补，完整1411/11项专项及offline build通过，仍待统一出包，见[正式证据](../../testing/release-0.2.98/scheduler-restart/report.md)和[候选](../../testing/2026-10-08-scheduler/report.md)。
+
 0.2.98追加正式实测：共享ACP在接纳后扩大权限，旧轮实际read_file仍被冻结授权拒绝，一轮真实SWE/唯一island-kayak完整收尾，见[权限专项](../../testing/release-0.2.98/frozen-expansion/report.md)。LSP真实工具查找、服务已spawn未发布、同房重新激活三种启动窗口均拒绝旧scope，持有Win32进程句柄确认退出，见[竞争专项](../../testing/release-0.2.98/lsp-inflight/report.md)。只缩减1.4/5.4相应子项，不外推DSH全部许可或严格A→B→A。工程树额度及新文件精确搜索修复已经提交a544415、完整控制台1409通过，仍是源码候选，不在098正式包内。
 
 0.2.97增量：文本附件快照/历史投影及UTF-16侧栏预览修复已正式安装独立复验；真实SWE沿用唯一远端，按SKILL调用calculator后完成七步Browser复核流程。四项无效附件零模型派发，构建六门、1159安装文件和两路源码CI均通过，已公开预发布。见[097交接](../../testing/release-0.2.97/change-report-and-test-handoff.md)。仅缩减2.1/3.3/4.1/4.3的相关子项，GUI选择器和其它矩阵仍开放。
