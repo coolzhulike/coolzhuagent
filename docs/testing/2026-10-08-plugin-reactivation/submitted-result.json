@@ -1,0 +1,255 @@
+{
+  "version": "0.2.95",
+  "source_commit": "75b0b6d09df0485677682f4d66ee649d30ba96e5",
+  "marker": "PLUGIN-INSTALLED095-SUBMITTED-ACTIVATION-20261008",
+  "run": {
+    "id": "run-chat-b14a4a147c5761d554ea7ce3f8d37b3e4f6c87a7028db18d",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791480974946-5",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-4435cd6ce490c0e8607ad01d6e958a89b3dcfe98f1f937df70dde24b5649e8de",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791480974950,
+    "started_at": 1791480975404,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791480975404,
+    "finished_at": 1791480996311
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-1f8d3d8095599f9dcbb957ae8c46ebf357d50e5cbe4488d2f65fd5efbb3bbb94",
+      "run_id": "run-chat-b14a4a147c5761d554ea7ce3f8d37b3e4f6c87a7028db18d",
+      "request_attempt_id": null,
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "arguments_digest": "8041952d9d5a4908",
+      "status": "failed",
+      "created_at_unix_ms": 1791480986723,
+      "updated_at_unix_ms": 1791480987226,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-b14a4a147c5761d554ea7ce3f8d37b3e4f6c87a7028db18d\",\"turn_id\":\"chat-turn-1791480974946-5\",\"attempt_id\":\"2fe3a20e8574188bdae34aaae5197191ba74f1d803f133f5\",\"owner_epoch\":211,\"generation\":211}"
+    }
+  ],
+  "tool_audit": [],
+  "attempts": [
+    {
+      "attempt_id": "2fe3a20e8574188bdae34aaae5197191ba74f1d803f133f5",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "qualification_change": {
+    "marker": "PLUGIN-INSTALLED095-SUBMITTED-ACTIVATION-20261008",
+    "run_id": "run-chat-b14a4a147c5761d554ea7ce3f8d37b3e4f6c87a7028db18d",
+    "run_state": "running",
+    "attempt_id": "2fe3a20e8574188bdae34aaae5197191ba74f1d803f133f5",
+    "attempt_state": "submitted",
+    "mutation_started_ms": 1791480977288.1758,
+    "disabled": {
+      "workspace_id": "ws-23f646a969206cb4",
+      "plugins": [
+        {
+          "id": "cli-anything-bridge@bundled",
+          "name": "cli-anything-bridge",
+          "version": "0.1.1",
+          "description": "Bridge CLI-Anything generated CLIs into the Claw tool layer.",
+          "source": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\tooling\\packages\\plugin-system\\bundled\\cli-anything-bridge",
+          "enabled": true,
+          "installed": true,
+          "kind": "bundled",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": true,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "dsh-6f1c04677b06992030e52a28@external",
+          "name": "@deepseek-ai/dsh-tool-calculator",
+          "version": "0.0.1",
+          "description": "安全的数学表达式求值器，零依赖递归下降解析器。",
+          "source": "https://github.com/omdsh-dev/dsh-tool-calculator/tree/b2007a13f06bcf75bf07b9d277ee8d434a316490",
+          "enabled": true,
+          "installed": true,
+          "kind": "external",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": true,
+          "dsh": true,
+          "dsh_source_sha256": "d8fa5ad326a19949045904e4fea63c7318254745bf809f8877c811c7cb083b56"
+        },
+        {
+          "id": "dsh-aa909f79795799f288de8a67@external",
+          "name": "dsh-net-tools",
+          "version": "0.1.0",
+          "description": "让沙箱里的 agent 通过你的本地代理联网：net_fetch 抓取网页，net_proxy_status 查看代理状态。",
+          "source": "https://github.com/izwarm195/dsh-net-tools/tree/7392ec55ca6db884821311d739859ddea72211de",
+          "enabled": false,
+          "installed": true,
+          "kind": "external",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": false,
+          "dsh": true,
+          "dsh_source_sha256": "3b6ee0ea714c22e115d3ce786b876bc1f34b81116d21de79fbd398c0c69c7c8b"
+        },
+        {
+          "id": "example-builtin@builtin",
+          "name": "example-builtin",
+          "version": "0.1.0",
+          "description": "Example built-in plugin scaffold for the Rust plugin system",
+          "source": "builtin",
+          "enabled": false,
+          "installed": false,
+          "kind": "builtin",
+          "installable": false,
+          "manageable": false,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "example-bundled@bundled",
+          "name": "example-bundled",
+          "version": "0.1.0",
+          "description": "Example bundled plugin scaffold for the Rust plugin system",
+          "source": "C:\\Users\\zhupu\\Desktop\\rust-claw\\claw\\rust\\crates\\plugins\\bundled\\example-bundled",
+          "enabled": false,
+          "installed": true,
+          "kind": "bundled",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "sample-hooks@bundled",
+          "name": "sample-hooks",
+          "version": "0.1.0",
+          "description": "Bundled sample plugin scaffold for hook integration tests.",
+          "source": "C:\\Users\\zhupu\\Desktop\\rust-claw\\claw\\rust\\crates\\plugins\\bundled\\sample-hooks",
+          "enabled": false,
+          "installed": true,
+          "kind": "bundled",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "devin-cloud@native",
+          "name": "Devin 云会话",
+          "version": "0.1.0",
+          "description": "官方 v3 异步云端 Agent 会话；在本页独立配置。",
+          "source": "内置会话插件",
+          "enabled": false,
+          "installed": true,
+          "kind": "builtin",
+          "installable": false,
+          "manageable": false,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "opencode-zen@native",
+          "name": "OpenCode Zen",
+          "version": "0.2.0",
+          "description": "免费聊天模型连接器；由本人填写平台密钥，复用统一会话与宿主工具链路。",
+          "source": "opencode.ai",
+          "enabled": true,
+          "installed": true,
+          "kind": "builtin",
+          "installable": false,
+          "manageable": false,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "huggingface-inference@native",
+          "name": "Hugging Face Inference",
+          "version": "0.2.0",
+          "description": "推理模型连接器；使用平台 Token 与账户额度，支持选择模型及推理提供方。",
+          "source": "huggingface.co",
+          "enabled": true,
+          "installed": true,
+          "kind": "builtin",
+          "installable": false,
+          "manageable": false,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        }
+      ],
+      "candidates": [],
+      "runtime_error": null
+    },
+    "disabled_ms": 1791480978405.9146,
+    "reenabled": {
+      "enabled": true,
+      "outcome": {
+        "call_id": "dsh-enable-72a32c8480564244cef0d9b3365ec42d",
+        "elapsed_ms": 882,
+        "output": {
+          "activation_id": "dsh-6368-1791480979327239000-6",
+          "enabled": true,
+          "plugin_id": "dsh-aa909f79795799f288de8a67@external"
+        },
+        "permission_gate": {
+          "affected_paths": [
+            "<opaque-command>"
+          ],
+          "decision": "allow-auto",
+          "reason": "full-access-profile",
+          "required": "danger-full-access",
+          "workspace_relative": false
+        },
+        "status": "ok",
+        "summary_text": "DSH实际宿主操作已收尾",
+        "tool_name": "dsh__enable_3b6ee0ea714c22e115d3ce786b876bc1"
+      },
+      "pending_call_id": null
+    },
+    "reenabled_ms": 1791480979337.3096
+  },
+  "network_events": [
+    {
+      "event": "server_started",
+      "utc": "2026-10-08T17:32:37.711699+00:00",
+      "monotonic": 769471.5407252,
+      "host": "127.0.0.1",
+      "port": 60039,
+      "delay_seconds": 1,
+      "tool_timeout_ms": 60000,
+      "host_timeout_seconds": 30,
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "plugin_id": "dsh-aa909f79795799f288de8a67@external"
+    }
+  ],
+  "actual_visible_reply": "竹简回执\n表达式：net_fetch http://127.0.0.1:60039/reactivation-20261008（timeoutMs=60000，maxBytes=1024，allowPrivate=true）\n宿主结果：`宿主工具未完成：宿主工具派发失败：409 Conflict`\n\n如实报告：\n\n- 本轮 net_fetch 工具描述符虽在本轮回执的工具列表中可见（插件已被重新声明/启用新世代），但实际派发被拒绝：`409 Conflict`——旧快照隔离边界触发，本次调用未完成执行，无响应体\n- 按实际回执报告为拒绝，不写成抓取成功；未重试、未补发、未刷新授权、未调用其它工具",
+  "boundary": "完整瞬时桥拒绝响应未单独持久化，模型回复为转述；prepared阶段台账0，submitted阶段失败台账1；真实网络0证明未调用目标HTTP业务。prepared与submitted竞争按各轮实测阶段区分，不外推全部权限竞争。"
+}
