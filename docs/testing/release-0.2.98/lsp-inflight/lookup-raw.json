@@ -1,0 +1,255 @@
+{
+  "stage": "正式0.2.98",
+  "before": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已配置，需手动启动"
+    },
+    "start_seconds": 4.00003045797348e-06,
+    "end_seconds": 0.034612599993124604
+  },
+  "ledger_before": {
+    "counts": {
+      "devin_acp_attempts": 929,
+      "chat_room_messages": 1142,
+      "chat_usage_events": 539
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "observed_during_start": [
+    {
+      "pid": 16440,
+      "name": "rustup.exe",
+      "parent": 23308,
+      "image": "C:\\Users\\zhupu\\.cargo\\bin\\rustup.exe",
+      "created_100ns": 134359638781290287,
+      "sha256": "86478e53f769379d7f0ebfa7c9aa97cb76ca92233f79aa2cc0dbee2efaac73c7",
+      "wait_before": 258,
+      "wait_after": 0
+    }
+  ],
+  "start_pending_before_workspace_reload": true,
+  "workspace_reload": {
+    "http": 409,
+    "body": {
+      "error": "当前工程仍有聊天、视频或定时任务在执行或收尾，请完成或停止后再切换/重载工程"
+    },
+    "start_seconds": 0.10647070000413805,
+    "end_seconds": 0.11395929998252541
+  },
+  "start_pending_before_room_switch": true,
+  "room_b": {
+    "http": 200,
+    "body": {
+      "room": {
+        "id": "main-room",
+        "name": "主聊天室",
+        "active": true,
+        "updated_at": 1791120926490,
+        "message_count": 0
+      }
+    },
+    "start_seconds": 0.11396590003278106,
+    "end_seconds": 0.16904820001218468
+  },
+  "room_a": {
+    "http": 200,
+    "body": {
+      "room": {
+        "id": "room-1791131523339",
+        "name": "SWE-2 Browser与Paint真实验收",
+        "active": true,
+        "updated_at": 1791488882668,
+        "message_count": 990
+      }
+    },
+    "start_seconds": 0.1690577999688685,
+    "end_seconds": 0.21273389994166791
+  },
+  "start_pending_after_aba": false,
+  "start_response": {
+    "http": 409,
+    "body": {
+      "error": "启动期间工作区或聊天室已改变"
+    },
+    "start_seconds": 0.065657899947837,
+    "end_seconds": 0.169300299952738
+  },
+  "status_after": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已配置，需手动启动"
+    },
+    "start_seconds": 0.21304449997842312,
+    "end_seconds": 0.21495589998085052
+  },
+  "held_processes": [
+    {
+      "pid": 16440,
+      "name": "rustup.exe",
+      "parent": 23308,
+      "image": "C:\\Users\\zhupu\\.cargo\\bin\\rustup.exe",
+      "created_100ns": 134359638781290287,
+      "sha256": "86478e53f769379d7f0ebfa7c9aa97cb76ca92233f79aa2cc0dbee2efaac73c7",
+      "wait_before": 258,
+      "wait_after": 0
+    }
+  ],
+  "final_status": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已配置，需手动启动"
+    },
+    "start_seconds": 0.21497530001215637,
+    "end_seconds": 0.2163612999720499
+  },
+  "workspace_reload_after": {
+    "http": 200,
+    "body": {
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+      "entries": [
+        {
+          "name": "Cargo.lock",
+          "kind": "file"
+        },
+        {
+          "name": "Cargo.toml",
+          "kind": "file"
+        },
+        {
+          "name": "coolzhu.toml",
+          "kind": "file"
+        },
+        {
+          "name": "err.log",
+          "kind": "file"
+        },
+        {
+          "name": "lsp-inflight.rs",
+          "kind": "file"
+        },
+        {
+          "name": "repository",
+          "kind": "dir"
+        },
+        {
+          "name": "repository-20261005-438f6ec",
+          "kind": "dir"
+        },
+        {
+          "name": "repository-20261005-transition",
+          "kind": "dir"
+        },
+        {
+          "name": "review-browser-072",
+          "kind": "dir"
+        },
+        {
+          "name": "review-browser-hitpoint",
+          "kind": "dir"
+        },
+        {
+          "name": "review-browser-progress",
+          "kind": "dir"
+        },
+        {
+          "name": "review-browser-text",
+          "kind": "dir"
+        },
+        {
+          "name": "review-browser-viewport",
+          "kind": "dir"
+        },
+        {
+          "name": "review-installed-073",
+          "kind": "dir"
+        },
+        {
+          "name": "review-paint-progress",
+          "kind": "dir"
+        },
+        {
+          "name": "review-source-20261005-final",
+          "kind": "dir"
+        },
+        {
+          "name": "review-source-20261006-extensions",
+          "kind": "dir"
+        },
+        {
+          "name": "review-source-20261006-extensions-final",
+          "kind": "dir"
+        },
+        {
+          "name": "tmp",
+          "kind": "dir"
+        }
+      ],
+      "allowed_roots": [
+        "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+        "C:\\Users\\zhupu"
+      ],
+      "writable": true,
+      "boundary": "allowed-root",
+      "status": "ok",
+      "message": "workspace 位于允许目录内；工具真实执行仍需单独授权"
+    },
+    "start_seconds": 0.21639049996156245,
+    "end_seconds": 0.30535229993984103
+  },
+  "ledger_after": {
+    "counts": {
+      "devin_acp_attempts": 929,
+      "chat_room_messages": 1142,
+      "chat_usage_events": 539
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "workspace_reload_inflight_rejected": true,
+  "room_aba_inflight_rejected": true,
+  "owned_files_removed": [
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\Cargo.toml",
+      "sha256": "4905630423d9f7f3297c63da0d25685407803d80042fc465768dad81ef8d021e"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\lsp-inflight.rs",
+      "sha256": "1e349ce38d77fc285ac815cdc0c703e40fe0f5a1f368d93650a2585034ee1236"
+    }
+  ]
+}

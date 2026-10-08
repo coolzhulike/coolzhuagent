@@ -1,0 +1,10 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "FROZEN-GRANT-EXPANSION-INSTALLED098-20261008：这是正式版冻结授权扩大专项，旧任务均已结束。本轮接纳时只有目录权限，接纳后测试端会恢复完全访问；新授权不能追溯扩大旧轮资格。只调用一次当前声明的read_file，参数path为下方自有、无敏感内容的工程外文件，offset=0、limit=1。不要调用其它工具、读其它路径、shell、CU、重试、补发或新云端会话。按宿主真实回执报告权限裁决和是否实际读取，不猜文件内容，不把当前UI完全访问当作旧轮已获授权。工具拒绝后立即正常结束。\n目标路径：C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-08-frozen-expansion\\outside-owned.txt",
+  "attachments": []
+}

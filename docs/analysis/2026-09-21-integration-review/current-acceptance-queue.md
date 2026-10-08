@@ -112,3 +112,7 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 - 自有正式宿主受控异常退出，持有Win32后代句柄从WAIT_TIMEOUT变为signaled，重启后terminal absent/旧句柄409；模型台账与唯一island-kayak绑定不变，新增模型请求0。
 - [098交接和原生实拍](../../testing/release-0.2.98/change-report-and-test-handoff.md)。这是手动终端子系统验证，不宣称模型终端链通过；LSP/全屏TUI、多工作区完整矩阵仍开放。
 - Browser新nativeTarget及跨来源commit窄时序继续优先，整体Goal保持active。
+
+- 098正式真实LSP查找阶段/已启动阶段切换房间与工作区重载隔离、同房重新激活的世代拒绝及持有句柄退出已补验；严格A→B→A返回后仍在启动窗口未命中，保留开放。[竞争事实](../../testing/release-0.2.98/lsp-inflight/report.md)。
+
+- 098正式共享ACP冻结授权扩大专项通过：submitted后恢复完全访问，8.818秒后旧轮单次read_file仍dry-run-only/require-approval；原SWE/唯一远端正常收尾，调试开关、工具和权限恢复。[实拍与审计](../../testing/release-0.2.98/frozen-expansion/report.md)。只关闭此共享授权路径，不外推全部DSH许可竞争。

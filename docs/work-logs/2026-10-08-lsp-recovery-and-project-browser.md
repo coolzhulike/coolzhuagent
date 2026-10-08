@@ -9,3 +9,7 @@
 - 已恢复正式后台与聊天室首页，按身份清理四个自有源文件/manifest，保留工作区、Cargo 生成物、原模型台账和远端绑定。后续继续工作区切换竞态及剩余验收。
 
 证据：[LSP 正式专项](../testing/release-0.2.98/lsp-lifecycle/report.md)、[工程浏览候选](../testing/2026-10-08-project-browser/report.md)、[Browser 提交时序](../testing/2026-10-08-browser-commit/report.md)。总体状态以[验收汇总](../analysis/2026-09-21-integration-review/acceptance-summary-2026-10-08.md)为准，持续 Goal 未完成。
+# 正式098补验记录
+
+本轮追加真实LSP启动中的工具查找、服务spawn未发布及同房重新激活三种窗口，旧请求均409、独立Win32句柄确认子进程退出；严格A→B→A未命中，保留缺口。共享ACP接纳时目录权限，submitted后恢复完全访问，8.818秒后实际read_file仍拒绝旧轮扩大，未读取自有工程外文件；一轮SWE/唯一island-kayak正常收尾，临时工具列表、调试开关和权限均恢复。专项证据分别位于release-0.2.98/lsp-inflight与frozen-expansion。工程浏览最终构建及回归日志补入版本控制。没有修改正式安装二进制或新增云端会话。
+
