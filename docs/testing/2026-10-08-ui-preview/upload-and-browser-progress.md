@@ -58,3 +58,11 @@
 真实9步为最内层输入框点击→输入当轮校验码→Enter验证→两次子页面滚动（0→598→686，均effect_observed）→点击获取回执正常翻页→点击父输入框→填入从回执页读取的BAMBOO-1676→点击完成整轮。可信事件确认验证和最终提交accepted=true，最终新鲜宿主观察generation10同时确认父页面“整轮任务完成，回执正确”和子页面“验证与翻页完成”。没有脚本代模型输入、重试或补发。
 
 [成功软件截图](affine-page-completed.jpg)、[正常翻页中间截图](affine-navigation-progress.jpg)、[脱敏结构化事实](affine-longrun-result.json)。该通过仅覆盖源码2912e22配套候选中的旋转/斜切两层跨来源页面；不覆盖透视/遮挡负例、严格按下期间变化、新面板路由修补或正式安装版。
+
+## 透视与父覆盖层：源码候选负例通过
+
+在原真实SWE-2-medium及唯一island-kayak中分别发送 `BU-PERSPECTIVE-PANEL-CONTEXT-20261008`、`BU-COVER-PANEL-CONTEXT-20261008`。两轮各有1次点击规划、0次输入投递、0次页面可信输入事件，分别在预检返回 `native_browser_frame_transform_unsupported` 和 `native_browser_target_hit_mismatch`，均not_sent/not_needed、无重试补发，正常end_turn/drained并释放远端锁。CU任务自身为blocked/goal_achieved=false，负例验收按预期拒绝通过，不能混称任务成功。
+
+这两轮正文使用“当前右栏”，不含原生路由固定词语，真实进入原生面板，验证提交时可见面板偏好修补有效。没有使用历史页面或扩展桥。
+
+[透视实机截图](perspective-rejected.jpg)、[透视脱敏事实](perspective-result.json)、[父覆盖层实机截图](cover-rejected.jpg)、[父覆盖层脱敏事实](cover-result.json)。仍未打包安装，不替代正式安装版负例或严格按下期间的验收。
