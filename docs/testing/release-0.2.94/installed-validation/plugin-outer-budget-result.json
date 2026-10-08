@@ -1,0 +1,111 @@
+{
+  "version": "0.2.94",
+  "source_commit": "54fe2d317d1c0022e88a95533f538b172ae30593",
+  "marker": "PLUGIN-INSTALLED094-OUTER-BUDGET-20261008",
+  "run": {
+    "id": "run-chat-45d075b2688b0fa97b612ef4c066eff09f1d78b96e578443",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791477236099-7",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-3364bd37cf9a2a60769238b046a0213e469e397b13e138b96965f77d714cd951",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791477236108,
+    "started_at": 1791477236451,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791477236451,
+    "finished_at": 1791477290296
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-0bf70763dc136a0a8773e10d932d47e7d350ffb300c740128ab6f9d6e20b6585",
+      "run_id": "run-chat-45d075b2688b0fa97b612ef4c066eff09f1d78b96e578443",
+      "request_attempt_id": null,
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "arguments_digest": "a0f437c47c9499f5",
+      "status": "failed",
+      "created_at_unix_ms": 1791477248672,
+      "updated_at_unix_ms": 1791477280162,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-45d075b2688b0fa97b612ef4c066eff09f1d78b96e578443\",\"turn_id\":\"chat-turn-1791477236099-7\",\"attempt_id\":\"54cbde6dbe68530c5bc137bfc525c3d45013f88948514b90\",\"owner_epoch\":201,\"generation\":201}"
+    }
+  ],
+  "tool_audit": [
+    {
+      "ts": "1791477280.143",
+      "call_id": "tool-0bf70763dc136a0a8773e10d932d47e7d350ffb300c740128ab6f9d6e20b6585",
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "caller": "llm",
+      "workspace_id": "ws-23f646a969206cb4",
+      "session_id": "session-1791131217833",
+      "input_summary": "dsh__1ef9be67fd4ddb42d93d68c084b38983: allowPrivate=true, maxBytes=1024, timeoutMs=60000, url=len38, …",
+      "status": "timeout",
+      "elapsed_ms": 30702,
+      "permission": {
+        "required": "danger-full-access",
+        "decision": "allow-auto",
+        "reason": "full-access-profile",
+        "workspace_relative": false,
+        "affected_paths": [
+          "<opaque-command>"
+        ]
+      },
+      "summary_text": "等待预算已耗尽；worker 已真实结束：host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放",
+      "evidence": {
+        "frozen_parent_permission": {
+          "affected_paths": [
+            "<opaque-command>"
+          ],
+          "decision": "allow-auto",
+          "reason": "full-access-profile",
+          "required": "danger-full-access",
+          "workspace_relative": false
+        }
+      }
+    }
+  ],
+  "network_events": [
+    {
+      "event": "function_network_entered",
+      "utc": "2026-10-08T16:34:10.193150+00:00",
+      "monotonic": 765964.1016218,
+      "path": "/cancel-20261008"
+    },
+    {
+      "event": "connection_closed_before_response",
+      "utc": "2026-10-08T16:34:40.141450+00:00",
+      "monotonic": 765994.0491272,
+      "path": "/cancel-20261008"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "54cbde6dbe68530c5bc137bfc525c3d45013f88948514b90",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "actual_visible_reply": "竹简回执\n表达式：net_fetch http://127.0.0.1:63464/cancel-20261008（timeoutMs=60000，maxBytes=1024）\n宿主结果：`status: timeout`（route: runtime-timeout）——宿主等待预算耗尽（elapsed_ms 30702，早于函数自设 60s 超时）；worker 已真实结束，code `cancelled`，error \"host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放\"；`cleanup_confirmed: true`，`wait_budget_exceeded: true`，`worker_finished: true`。\n\n如实报告：本轮调用按外层预算边界被取消，非成功响应；迟到结果不被采纳、未重放、未重试。",
+  "boundary": "完整瞬时工具响应未独立持久化；回复是模型转述，执行与清理须结合宿主审计和真实网络断开事实。无独立Win32句柄证明，不外推所有清理阶段。"
+}
