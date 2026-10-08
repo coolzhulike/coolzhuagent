@@ -273,7 +273,7 @@ window.CoolzhuChatExperience = (() => {
         const name = sessionRegistry.sessions?.find(session => session.id === row.session_id)?.display_name || row.session_id;
         const tokens = value => value == null ? "未知" : Number(value).toLocaleString();
         list.append(note(`${name}：输入 ${tokens(row.input_tokens)} / 输出 ${tokens(row.output_tokens)}；缓存读取 ${tokens(row.cache_read_tokens)} / 写入 ${tokens(row.cache_write_tokens)}`));
-        list.append(note(`请求 ${row.requests || 0} · 网络尝试 ${row.attempts || 0} · 失败或中断 ${row.failed_attempts || 0} · 进行中 ${row.pending_attempts || 0} · 用量未完整提供 ${row.partial_usage_attempts || 0}${row.legacy_records ? ` · 旧版用量记录 ${row.legacy_records}` : ""}`));
+        list.append(note(`请求 ${row.requests || 0} · 已知网络尝试 ${row.attempts || 0} · 失败或中断 ${row.failed_attempts || 0} · 进行中 ${row.pending_attempts || 0} · 未发送 ${row.not_sent_attempts || 0} · 结果未知 ${row.unknown_outcome_attempts || 0} · 派发未知 ${row.unknown_dispatch_attempts || 0} · 用量未完整提供 ${row.partial_usage_attempts || 0}${row.legacy_records ? ` · 旧版用量记录 ${row.legacy_records}` : ""}`));
       }
       qs("chat-usage-note").textContent = response.note;
     } catch (error) { const list = qs("chat-usage-list"); if (scopeMatches(scope) && list) list.textContent = `用量加载失败：${error.message}`; }

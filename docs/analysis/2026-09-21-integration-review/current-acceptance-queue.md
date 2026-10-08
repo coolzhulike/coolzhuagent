@@ -1,4 +1,8 @@
-# 当前验收队列（2026-10-08，0.2.99正式交付与专项验收）
+# 当前验收队列（2026-10-08，0.2.100正式与ACP统计候选）
+
+0.2.100当前正式增量：正常完整构建、六门pass、1159安装文件逐长度/SHA一致，已安装并公开[预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.100)。冻结源码2816e3e，两路远端CI均success。原生控制台无需刷新自动显示外部真实SWE新任务#679和完整回复#680，单次计算器completed/审计ok，唯一island-kayak正常收尾；见[100交接与实拍](../../testing/release-0.2.100/change-report-and-test-handoff.md)。正式本页流式/断线大批新增删除矩阵仍开放。
+
+新发现并修补中：ACP台账新请求未同步进入旧usage投影，原097统计与539条旧投影一致不代表完整请求统计。读取层统一按精确acp:attempt_id去重；完整1416/0/6忽略、offline build及真实既有库HTTP核对通过，当前房间合计882，未知token保持未知。该源码候选本页真实SWE流式、881→882请求增量与统计/轨迹实拍已通过，原usage539不变，唯一island正常收尾；正式100已恢复，尚待新正式包独立复验，见[候选报告](../../testing/2026-10-08-acp-usage/report.md)，不追认100含统计修补。见[设计与审查取舍](acp-usage-read-model-design-2026-10-08.md)。
 
 0.2.99当前增量：正式安装和[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.99)均已完成，冻结源码`23bbb94a0e4c2799f98025e48e41660206287698`；六门通过、1159安装文件逐长度/SHA一致，实际构建提交两路CI成功。工程树额度/旧索引下新文件精确搜索已在正式界面复验，长任务按完成时间重排已正式出包。结果结账但计划未回写的重启窗口现已独立通过，领取/唯一状态消息保持且5路扫描零重复、模型0。另一次真实SWE沿用唯一island-kayak，在DSH函数进入后正常停用，独立Win32宿主句柄Wait258→0，网络断开且无补发；原配置已恢复。见[099交接与实拍](../../testing/release-0.2.99/change-report-and-test-handoff.md)。
 
