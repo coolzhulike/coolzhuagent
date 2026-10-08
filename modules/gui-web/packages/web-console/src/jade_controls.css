@@ -70,6 +70,10 @@ body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"]
   height: var(--jade-composer-control); min-height: var(--jade-composer-control);
 }
 body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"] .composer > button > img { width: 23px; height: 23px; }
+/* 上传符号沿24px画布中心对称，使用偶数尺寸避免左右竖线落在不同像素相位。 */
+body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"] .composer > button > img[src$="/upload.svg"] {
+  width: 24px; min-width: 24px; height: 24px; min-height: 24px; flex-basis: 24px;
+}
 body.ui-3d .ui-redesign :is(button[data-icon-only="true"], .workbench-quick-rail .window-tab, .composer > button)::before {
   content: none; display: none;
 }
