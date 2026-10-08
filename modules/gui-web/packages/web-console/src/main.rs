@@ -80,6 +80,7 @@ mod native_recovery;
 mod native_recovery_store;
 mod request_usage;
 mod history_persistence;
+mod chat_history_sync;
 mod schema_upgrade;
 mod root_execution_budget;
 mod tool_dispatch_settlement;
@@ -1838,6 +1839,8 @@ fn app() -> Router {
         .route("/api/chat/rooms/{room_id}/search", get(chat_insights::search))
         .route("/api/chat/rooms/{room_id}/insights", get(chat_insights::insights))
         .route("/api/chat/rooms/{room_id}/trace", get(chat_insights::trace))
+        .route("/api/chat/rooms/{room_id}/history-events", get(chat_history_sync::events))
+        .route("/api/chat/rooms/{room_id}/history-messages", get(chat_history_sync::messages))
         .route("/api/runs/{run_id}", get(api_run_status))
         .route("/api/runs/{run_id}/events", get(api_run_events))
         .route("/api/runs/{run_id}/interrupt", post(api_run_interrupt))

@@ -1,0 +1,156 @@
+{
+  "stage": "099之后源码候选；非正式安装包验收",
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "records": [
+    {
+      "marker": "CHAT-HISTORY-CANDIDATE-REVIEW-20261008",
+      "source": {
+        "id": "msg-1791493831917-user",
+        "created_at": 1791493832004
+      },
+      "run": {
+        "id": "run-chat-026621ee74f44f03f97246f00c43a0ab0d6985461fbbbf8e",
+        "kind": "chat_turn",
+        "workspace_id": "ws-23f646a969206cb4",
+        "session_id": "session-1791131217833",
+        "chat_room_id": "room-1791131523339",
+        "goal_id": null,
+        "phase_id": null,
+        "legacy_turn_id": "chat-turn-1791493831918-0",
+        "provider_turn_id": null,
+        "state": "completed",
+        "owner_id": "coolzhu-web-console",
+        "claim_token": "claim-2f7d7f228e21609430f7e2326dfc66c8665e7a129d58192f3ff75337d248089a",
+        "stop_reason": null,
+        "error_json": null,
+        "created_at": 1791493831920,
+        "started_at": 1791493832002,
+        "stop_requested_at": null,
+        "heartbeat_at": 1791493832002,
+        "finished_at": 1791493876861
+      },
+      "attempts": [
+        {
+          "attempt_id": "f1739a91b161118deb38e14948b14f69c343d7fb4696cf47",
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "calls": [],
+      "tool_audits": [],
+      "visible_messages": [
+        {
+          "id": "msg-1791493832188-0",
+          "content": "**calculator 回执**：`dsh__3596dc2e…` 调用一次 `{\"expression\":\"(1100-101+1)/200\"}`，宿主回执：`宿主工具未完成：ACP 工具已被当前会话或房间撤销，未执行。` —— 本轮该插件已撤销，**计算未执行，无工具结果**。按约束不以心算代替工具，故\"从消息 101 补到 1100 需要多少个 200 条页面\"无法给出工具核对值；仅作推理标注（非工具事实）：(1100-101+1)/200 = 5，此数未经工具验证。未重试、未调用其它工具。\n\n---\n\n## 聊天历史同步方案审查（基于附件 `chat-history-sync-design.md` 的方案推理，非实测）\n\n**附件已确认的实测事实**（唯一一条）：099 正式版外部客户端持久化 #673/#674 后，原页面停留 #672，重启不更新，刷新可见——数据未丢，缺历史变化通知与权威投影刷新。其余均为方案设计推理。\n\n### 六方面逐项审查\n\n1. **SQLite 提交与回滚**：方案要求触发器\"仅在提交后对其它连接可见\"、回滚与相同内容 upsert 不产生假变化——方向正确，但**遗漏**：触发器在同一事务递增版本意味着回滚天然不泄露，方案未说明\"相同内容 upsert\"如何判定\"内容实际更新\"（触发器无法直接比较新旧全文，可能需要 `WHEN` 子句或哈希列，方案未给出机制）。验证：构造回滚事务与 no-op upsert，断言版本行不变。\n\n2. **跨连接写入通知**：固定捕获工作区库、先监听再 hello、阻塞线程每秒读版本行——合理；**遗漏**：跨连接可见性依赖 SQLite 提交粒度，方案未说明 WAL 模式下读连接的版本行快照何时刷新（每秒重读依赖新读事务；若复用同一长事务只读连接，快照会冻结，通知失效）。验证：连接 A 持长事务时连接 B 写入，确认每秒轮询是否使用新事务读到新版本。\n\n3. **A→B→A 迟到响应**：本地递增代数 + AbortController 拒绝迟到响应——机制标准；**遗漏**：方案只说\"拒绝\"，未说明同代内响应与已在途通知的交错（B 代迟到但内容恰与当前一致时不应触发二次合并）；也未界定\"本页流式结束后补齐\"使用何代——若延后补读沿用过期的代，可能误拒新快照。验证：注入 A→B→A 乱序响应并断言最终 DOM 与 A 一致且无残留 B 片段。\n\n4. **已有历史滚动定位**：按 ID 合并、保留滚动锚点与选中 ID、旧同步作废——合理；**遗漏**：锚点消息本身被删除时无回退锚点策略（滚动位置漂移未定义）；合并删除\"已不存在的消息\"依赖读取覆盖当前最早键，若已显示历史跨越多页而只补齐部分页，**未覆盖区间的消息是否删除存在歧义**（误删风险）。验证：删除锚点消息与中部已加载消息，观察滚动位置与 DOM 是否一致。\n\n5. **流式期间合并**：流式运行时延后同步、结束后补齐——正确方向；**遗漏**：未定义\"结束\"的判定源（流式完成 vs 中止 vs 工具挂起），若流式句柄泄漏则同步永久延后；也未说延后期间版本通知是否累积去重（每秒提示可能积压重复失效）。验证：流式中途注入外部写入，断言流式结束后恰好一轮补齐且无重复合并。\n\n6. **断线重连**：hello、lag 恢复、回到可见页面均触发权威读取——覆盖面好；**遗漏**：重连期间的 lag 上界未定义（离线期间版本可能跳变多次，只读当前版本行无法区分\"跳了 N 次\"与\"跳了 1 次\"，方案实际只需存在性失效，这点可接受但未明示）；断线期间\"补到 1100\"类大范围缺口的页数计算依赖分页游标连续，游标消息被删时\"不无界重试\"的重读边界未具体化。验证：断线期间批量写入 >200 条跨页消息再重连，断言分页补齐终止条件正确（游标被删时回退重读且不循环）。\n\n### 最优先三项风险\n\n1. **同内容 upsert 的\"实际更新\"判定机制缺失**（方面 1）——若无 `WHEN new.* IS NOT old.*` 类条件或哈希比较，每次幂等写入都会虚增版本导致无效失效风暴。验证：重复写入相同行 N 次，断言版本计数不变。\n2. **只读连接的版本快照冻结**（方面 2）——长事务只读连接在 WAL 下读到的是事务开始快照，\"每秒读版本行\"若复用同一事务则永远看不到新提交，通知静默失效。验证：跨连接写入后 2 秒内断言版本行读数递增。\n3. **多页补齐中游标删除与覆盖范围歧义**（方面 4/6）——已显示历史跨页、补齐只到最早可见键时，\"覆盖范围\"边界未定义，可能误删未覆盖区间消息或无限重读。验证：加载 3 页后删除中部与游标消息，外部再写 1 页量，断言合并后已加载区间一致、未加载区间不被误清。\n\n区分说明：以上除\"099 实测 #673/#674 不刷新\"外，均为对附件方案的推理性审查，未做实测；calculator 本轮被撤销未执行，页数计算未获工具验证。\n\n聊天同步方案审查完成",
+          "kind": "assistant-reply"
+        }
+      ]
+    },
+    {
+      "marker": "CHAT-HISTORY-CANDIDATE-CODE-REVIEW-20261008",
+      "source": {
+        "id": "msg-1791493989597-user",
+        "created_at": 1791493991382
+      },
+      "run": {
+        "id": "run-chat-b86adcd2b8d1ea6572df5dfdcbedec74491d1c1447cd7ab5",
+        "kind": "chat_turn",
+        "workspace_id": "ws-23f646a969206cb4",
+        "session_id": "session-1791131217833",
+        "chat_room_id": "room-1791131523339",
+        "goal_id": null,
+        "phase_id": null,
+        "legacy_turn_id": "chat-turn-1791493989598-1",
+        "provider_turn_id": null,
+        "state": "completed",
+        "owner_id": "coolzhu-web-console",
+        "claim_token": "claim-0bff6d49cfe969595037c18f7d013022a540c39852d6e8c9b992744550385b66",
+        "stop_reason": null,
+        "error_json": null,
+        "created_at": 1791493989600,
+        "started_at": 1791493991381,
+        "stop_requested_at": null,
+        "heartbeat_at": 1791493991381,
+        "finished_at": 1791494070446
+      },
+      "attempts": [
+        {
+          "attempt_id": "df5486d47eb44ff7e7a2844929847246c6f5b8484411d1ad",
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "calls": [
+        {
+          "tool_call_id": "tool-7f93d11845ffa260b8f5cf340a57f6f14deff966b6923159f200bba15ef29371",
+          "run_id": "run-chat-b86adcd2b8d1ea6572df5dfdcbedec74491d1c1447cd7ab5",
+          "request_attempt_id": null,
+          "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+          "arguments_digest": "60dd2f86c9a99cce",
+          "status": "completed",
+          "created_at_unix_ms": 1791494003440,
+          "updated_at_unix_ms": 1791494014324,
+          "provider_tool_call_id": "1",
+          "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-b86adcd2b8d1ea6572df5dfdcbedec74491d1c1447cd7ab5\",\"turn_id\":\"chat-turn-1791493989598-1\",\"attempt_id\":\"df5486d47eb44ff7e7a2844929847246c6f5b8484411d1ad\",\"owner_epoch\":220,\"generation\":220}"
+        }
+      ],
+      "tool_audits": [
+        {
+          "ts": "1791494014.322",
+          "call_id": "tool-7f93d11845ffa260b8f5cf340a57f6f14deff966b6923159f200bba15ef29371",
+          "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+          "caller": "llm",
+          "workspace_id": "ws-23f646a969206cb4",
+          "session_id": "session-1791131217833",
+          "input_summary": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab: expression=len16",
+          "status": "ok",
+          "elapsed_ms": 7383,
+          "permission": {
+            "required": "danger-full-access",
+            "decision": "allow-auto",
+            "reason": "full-access-profile",
+            "workspace_relative": false,
+            "affected_paths": [
+              "<opaque-command>"
+            ]
+          },
+          "summary_text": "DSH实际宿主操作已收尾",
+          "evidence": {
+            "frozen_parent_permission": {
+              "affected_paths": [
+                "<opaque-command>"
+              ],
+              "decision": "allow-auto",
+              "reason": "full-access-profile",
+              "required": "danger-full-access",
+              "workspace_relative": false
+            }
+          }
+        }
+      ],
+      "visible_messages": [
+        {
+          "id": "msg-1791493991528-0",
+          "content": "**calculator 回执**：`dsh__3596dc2e…` 本轮已在声明列表中，调用一次 `{\"expression\":\"(1100-101+1)/200\"}`，宿主 `status: ok`，audit `executed: true`，`cleanup_confirmed: true`，**result value = 5**。即从消息 101 补到 1100 共 1000 条，按每页 200 需 **5 页**（工具核对，非心算）。\n\n---\n\n## 代码审查：前轮六项风险逐项核对（仅基于附件代码可证明的事实，不推测实测）\n\n附件末尾自述\"专项测试通过\"属页面文字，不采信；以下判断只依据所附 `chat_history_sync.rs` / `chat_history_sync.js` / `app.js` 接线代码本身。\n\n### 已处理\n\n1. **noop 触发器** ✅ `chat_history_update_v1` 带 `WHEN old.author IS NOT new.author OR … OR old.id IS NOT new.id` 全列比较，相同内容 upsert 不触发；rollback 不提交则 AFTER 触发器不生效（测试 `cross_connection_observes_only_committed_content_changes` 也覆盖了这两点）。\n\n2. **只读事务冻结** ✅ `events()` 每秒在 `spawn_blocking` 里对同一连接执行 `revision()` 的 `query_row`——autocommit 下每次查询是独立事务，快照随提交刷新；代码未在长事务中持有读连接。此项风险按代码已消除。\n\n3. **跨页删除与覆盖范围** ✅ 基本处理：`readWindow` 以 200/页向前翻至覆盖 `boundary`（首个已显示 committed 消息），游标不推进即抛错（不无界重试）；`reconcileChatHistory` 只删 `data-history-committed=\"true\"` 且不在 `ids` 内的节点，覆盖范围与已显示 committed 集一致；边界消息被删导致 `rows` 为空时回退最新页 `slice(-80)`。\n\n4. **锚点删除回退** ✅ `restoreChatMessageScrollAnchor`：锚点消息找不到时回退到 `clamp(scrollTop, 0, maxScrollTop)`，有明确定义（虽非像素精确，但不再漂移无界）。\n\n5. **ABA finally** ✅ `flush` 捕获 `generation = epoch`；迟到响应 `return` 后 `finally` 仅在 `generation === epoch` 时清 `running/controller` 并重排——旧代 finally 不覆盖新房间在途状态；`stop()` 对 `epoch++` + abort + 清计时器，A→B→A 下过期 source/请求均被切断。\n\n### 仍有具体缺陷\n\n6. **流式/忙时延后——存在脏标志永久搁置缺陷** ⚠️ 代码依据：\n   - `schedule()`：`if (!scope || timer || running || busy()) return;` —— 忙时不设 timer。\n   - `busy()` 条件含 `activeChatAbortController || activeServerTurnId`（流式中）与 `document.hidden`。\n   - `invalidate()` 置 `dirty=true` 后调用 `schedule()`，忙时静默丢弃——**没有 busy 解除后的唤醒钩子**：流式结束（`activeChatAbortController` 置空）不触发任何回调，`resume` 仅绑在 `visibilitychange`。\n   - `flush` 内 `if (busy()) { dirty = true; return; }` 后 `finally` 虽因 `dirty && !failed` 调 `schedule(120)`，但 `schedule` 再次被 `busy()` 挡住，timer 不建立。\n   - 后果：通知在流式期间到达 → `dirty=true` 且无 timer → 流式结束后若无新 SSE 事件/可见性切换/手动加载，页面**无限期停留旧历史**，正是本方案要修的 #673/#674 问题的残余形态。需要流式结束钩子（或 busy 轮询兜底）调用 `schedule()`。这是六条里唯一仍可证实的缺陷。\n\n### 次要观察（代码可证，非阻塞）\n\n- `busy_timeout(100ms)`：`ensure_projection` 在写竞争下可能因 100ms 超时而令 SSE 建连失败（错误直接 break，靠浏览器 EventSource 重连自愈），风险有限但存在。\n- `invalidate()` 每次重置 `retries=0`：通知密集时段失败重试预算被反复清零，`retries<=3` 上限名义上可能失效（实际受通知速率约束）。\n- `chat_history_revision_v1` 无房间删除清理（重建房间单调递增，测试已断言这是有意行为，非缺陷）。\n- `apply()` 三重校验 `scope.room/workspace/projectGeneration`，跨代写入被正确丢弃。\n\n**分页核对**：calculator 实测 `5`；`readWindow` 边界路径按 200/页翻页，101→1100 共 1000 条确需 5 个页面请求，与工具结果一致。\n\n聊天同步代码审查完成",
+          "kind": "assistant-reply"
+        }
+      ]
+    }
+  ],
+  "facts": "首轮固定DSH资源缺失导致calculator未执行；第二轮独立核验真实工具调用；截图分别证明自动显示与滚动位置。模型审查不是测试通过证据。"
+}

@@ -10,6 +10,7 @@ const CORE: &[(&str, &[u8])] = &[
     ("src/jade_controls.css", include_bytes!("jade_controls.css")),
     ("src/styles.css", include_bytes!("styles.css")),
     ("src/chat_experience.js", include_bytes!("chat_experience.js")),
+    ("src/chat_history_sync.js", include_bytes!("chat_history_sync.js")),
     ("src/chat_experience.css", include_bytes!("chat_experience.css")),
     ("src/wuxia_layout.css", include_bytes!("wuxia_layout.css")),
     ("src/realtime_voice_capture.js", include_bytes!("realtime_voice_capture.js")),

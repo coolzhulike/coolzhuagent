@@ -303,6 +303,7 @@ window.CoolzhuChatExperience = (() => {
   async function locate(id) {
     const room = activeChatRoomId;
     const scope = scopeSnapshot(); const version = ++state.locateVersion;
+    chatHistorySync?.stop();
     let article = chatMessageList()?.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
     try {
       if (!article) {
@@ -320,6 +321,9 @@ window.CoolzhuChatExperience = (() => {
       annotate(); article?.scrollIntoView({block:"center",behavior:"smooth"}); article?.classList.add("is-located-message");
       setTimeout(() => article?.classList.remove("is-located-message"), 2200);
     } catch (error) { if (scopeMatches(scope) && version === state.locateVersion) report(error); }
+    finally {
+      if (scopeMatches(scope) && version === state.locateVersion) activateChatHistorySync();
+    }
   }
   function openHistory() { openChatToolWindow("history"); void search(); }
   function describeRecipientEditor(targetIds = getSelectedAgentIds()) {

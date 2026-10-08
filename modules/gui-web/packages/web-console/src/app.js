@@ -111,6 +111,8 @@ let visionRealtimeSelectedElementKey = "";
 let goalRoleRegistry = { roles: [], commander_session_id: null, generated_at: null };
 let activeSessionId = null;
 let activeChatRoomId = null;
+let chatHistorySync = null;
+let chatHistoryLoadVersion = 0;
 const terminalWindowState = {
   handle: null, cursor: 0, scopeKey: "", pollTimer: 0, resizeTimer: 0,
   busy: false, closed: false, epoch: 0, vtMode: "text", vtCsi: "",
@@ -246,6 +248,8 @@ function projectRequestScopeCurrent(scope) {
   return scope.generation === projectWorkspaceGeneration && scope.workspace === projectWorkspaceScope;
 }
 function projectInvalidateWorkspaceRequests(workspace) {
+  chatHistoryLoadVersion++;
+  chatHistorySync?.stop();
   projectWorkspaceScope = String(workspace || "");
   projectWorkspaceGeneration += 1;
   projectTreeRequestSerial += 1;
@@ -3782,6 +3786,8 @@ function updateActiveWorkspaceKey(nextKey, options = {}) {
   const previous = activeWorkspaceKey;
   activeWorkspaceKey = normalized;
   if (previous !== normalized) {
+    chatHistoryLoadVersion++;
+    chatHistorySync?.stop();
     window.dispatchEvent(new CustomEvent("coolzhu-workspace-changed", { detail: { workspaceId: normalized } }));
   }
   if (!chatLayoutInitialized) {
@@ -9361,6 +9367,8 @@ async function loadChatRooms() {
 }
 
 function clearChatMessagesUi(label = "暂无聊天记录") {
+  chatHistoryLoadVersion++;
+  chatHistorySync?.stop();
   const list = chatMessageList();
   list?.replaceChildren();
   renderChatMessageEmptyState(list, label, "选择聊天室后即可继续对话。");
@@ -11234,16 +11242,95 @@ function terminalWindowClear() {
   if (output) output.textContent = "";
 }
 
+function activateChatHistorySync() {
+  if (!activeChatRoomId || !projectWorkspaceScope || !window.CoolzhuChatHistorySync || typeof EventSource === "undefined") return;
+  if (!chatHistorySync) {
+    chatHistorySync = window.CoolzhuChatHistorySync.create({
+      sourceFactory: scope => new EventSource(`/api/chat/rooms/${encodeURIComponent(scope.room)}/history-events?workspace=${encodeURIComponent(scope.workspacePath)}`),
+      busy: () => Boolean(activeChatAbortController || activeServerTurnId || document.hidden || document.querySelector('[data-role="chat-return-latest"]')?.hidden === false),
+      read: async (scope, signal) => {
+        const first = chatMessageList()?.querySelector('.message[data-history-committed="true"]');
+        const boundary = first ? {id: first.dataset.messageId, created_at: Number(first.dataset.createdAt)} : null;
+        return window.CoolzhuChatHistorySync.readWindow(async (before, limit, pageSignal) => {
+          const url = new URL(`/api/chat/rooms/${encodeURIComponent(scope.room)}/history-messages`, location.origin);
+          url.searchParams.set("workspace", scope.workspacePath);
+          url.searchParams.set("limit", String(limit));
+          if (before) url.searchParams.set("before", before);
+          return requestJson(url.pathname + url.search, {signal: pageSignal});
+        }, boundary, signal);
+      },
+      apply: (response, scope) => {
+        if (scope.room !== activeChatRoomId || scope.workspace !== activeWorkspaceKey || scope.projectGeneration !== projectWorkspaceGeneration) return;
+        reconcileChatHistory(response);
+      },
+      missing: () => { void loadChatRooms(); },
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) chatHistorySync?.resume();
+    });
+    window.addEventListener("pagehide", () => chatHistorySync?.stop());
+    window.addEventListener("pageshow", event => {
+      if (event.persisted) activateChatHistorySync();
+    });
+  }
+  chatHistorySync.activate({room: activeChatRoomId, workspace: activeWorkspaceKey,
+    workspacePath: projectWorkspaceScope, projectGeneration: projectWorkspaceGeneration});
+}
+
+function reconcileChatHistory(response) {
+  const list = chatMessageList();
+  if (!list) return;
+  const anchor = captureChatMessageScrollAnchor();
+  const visible = (response.messages || []).filter(shouldRenderCompletedMessage);
+  const ids = new Set(visible.map(message => message.id));
+  for (const node of list.querySelectorAll('.message[data-history-committed="true"]')) {
+    if (!ids.has(node.dataset.messageId)) {
+      selectedMessageIds.delete(node.dataset.messageId);
+      node.remove();
+    }
+  }
+  let cursor = list.querySelector(".message");
+  for (const message of visible) {
+    const signature = JSON.stringify(message);
+    let article = list.querySelector(`[data-message-id="${CSS.escape(message.id)}"]`);
+    if (!article || article.dataset.historySignature !== signature) {
+      article = upsertMessage(message);
+    }
+    if (!article) continue;
+    article.dataset.historySignature = signature;
+    article.dataset.historyCommitted = "true";
+    article.dataset.createdAt = String(message.created_at);
+    if (article === cursor) cursor = cursor.nextElementSibling;
+    else list.insertBefore(article, cursor);
+  }
+  if (!visible.length) renderChatMessageEmptyState(list);
+  messagePaging = {roomId: activeChatRoomId, hasMore: response.has_more, nextBefore: response.next_before};
+  updateLoadOlderButton(); updateReferenceSelection();
+  updateChatRoomTrigger(response.room.name);
+  setText("chat.current", response.room.name);
+  restoreChatMessageScrollAnchor(anchor);
+  scheduleChatMessageScrollRestore(anchor);
+  void window.CoolzhuChatExperience?.refreshInsights();
+}
+
 async function loadChatRoomMessages(roomId, { before = null, appendOlder = false } = {}) {
+  const loadVersion = ++chatHistoryLoadVersion;
+  chatHistorySync?.stop();
   const requestedWorkspace = activeWorkspaceKey;
+  const requestedProject = projectRequestScope();
   window.CoolzhuChatExperience?.roomChanged(roomId);
   const url = new URL(`/api/chat/rooms/${encodeURIComponent(roomId)}/messages`, location.origin);
   url.searchParams.set("limit", "80");
   if (before) {
     url.searchParams.set("before", before);
   }
-  const response = await requestJson(url.pathname + url.search);
-  if (roomId !== activeChatRoomId || requestedWorkspace !== activeWorkspaceKey) return;
+  let response;
+  try { response = await requestJson(url.pathname + url.search); }
+  catch (error) {
+    if (loadVersion === chatHistoryLoadVersion && roomId === activeChatRoomId && projectRequestScopeCurrent(requestedProject)) activateChatHistorySync();
+    throw error;
+  }
+  if (loadVersion !== chatHistoryLoadVersion || roomId !== activeChatRoomId || requestedWorkspace !== activeWorkspaceKey || !projectRequestScopeCurrent(requestedProject)) return;
   const list = chatMessageList();
   if (!list) {
     return;
@@ -11259,7 +11346,7 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
   ));
   const messages = appendOlder ? [...visibleMessages].reverse() : visibleMessages;
   messages.forEach((message) => {
-    addMessage({
+    const article = addMessage({
       id: message.id,
       author: message.author,
       text: message.content,
@@ -11270,6 +11357,10 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
       prepend: appendOlder,
       role: message.role,
     });
+    if (article) {
+      article.dataset.historyCommitted = "true";
+      article.dataset.historySignature = JSON.stringify(message);
+    }
     // 历史里仍是 pending 的视频消息（job 还在生成、未持久化前）：继续轮询，完成后替换为视频。
     if (message.kind === "assistant-video-pending") {
       scheduleVideoPolling(message.id);
@@ -11296,6 +11387,9 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
     await refreshChatCollaboration(roomId);
   }
   void window.CoolzhuChatExperience?.refreshInsights();
+  if (loadVersion === chatHistoryLoadVersion && roomId === activeChatRoomId && requestedWorkspace === activeWorkspaceKey && projectRequestScopeCurrent(requestedProject)) {
+    activateChatHistorySync();
+  }
 }
 
 async function refreshChatCollaboration(roomId = activeChatRoomId) {
@@ -14919,6 +15013,7 @@ async function sendMessage({ replaceActive = false } = {}) {
       activeChatInterruptPending = false;
       activeChatLocalAbortReason = null;
       setSendButtonRunning(false);
+      chatHistorySync?.resume();
     }
   }
 }
@@ -19573,6 +19668,7 @@ function addMessage({ id, author, text, kind, icon, attachments = [], createdAt 
   const article = document.createElement("article");
   article.className = `message ${kind}`;
   article.dataset.messageId = messageId;
+  article.dataset.createdAt = String(createdAt ?? Date.now());
   article.dataset.messageKind = kind;
   if (role) {
     article.dataset.messageRole = role;

@@ -1,0 +1,16 @@
+{
+  "time_ms": 1791493803410.9224,
+  "positive_status": 200,
+  "message_id": "msg-1791492199136-0-thinking",
+  "wrong_workspace": {
+    "status": 409,
+    "body": "{\"error\":\"工作区已切换，请重新选择聊天室\"}"
+  },
+  "events": [
+    "event: hello",
+    "data: {\"room_id\":\"room-1791131523339\",\"workspace_id\":\"ws-23f646a969206cb4\"}",
+    "event: history-changed",
+    "data: {\"room_id\":\"room-1791131523339\"}"
+  ],
+  "stage": "源码候选，非099正式包"
+}
