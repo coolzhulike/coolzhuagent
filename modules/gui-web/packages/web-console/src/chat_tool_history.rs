@@ -16,14 +16,41 @@ pub(super) fn acp_computer_use_settlement(parent: &FrozenParentContext) -> rusql
 
 /// 只核验宿主本轮派发事实，不从模型正文或历史回执推断执行，更不补发隐藏工具。
 pub(super) fn unexecuted_computer_use_notice(prompt: &str, dispatched: bool) -> Option<&'static str> {
+    if dispatched { return None; }
+    // 附件、源码块和其它句子的动作词只是材料，不能把源码审查结账为 CU 执行失败。
+    // 此投影只控制未执行提醒，不参与工具授权、派发或实际权限判断。
+    let prose = computer_use_notice_prose(crate::multimodal_input::user_intent_text(prompt));
     // 保守排除说明型问题：出现“网页点击”等术语不能把知识问答标作未完成实操。
-    let lower = prompt.trim().to_ascii_lowercase();
+    let lower = prose.trim().to_ascii_lowercase();
+    if text_explicitly_disables_all_tools(&prose) || text_negates_computer_use_entry(&lower) { return None; }
     if ["请解释", "解释", "请介绍", "介绍", "请说明", "什么是", "为什么", "如何", "怎样", "请制定", "制定", "规划", "请规划", "explain", "what is", "how to", "plan"]
         .iter().any(|prefix| lower.starts_with(prefix)) { return None; }
     // 当前只校正用户明确指定 CU 入口的执行请求；不要把“制作带点击按钮的网页”误报成实操失败。
-    (!dispatched && text_mentions_computer_use_entry(&lower)
-        && text_has_computer_use_intent(prompt) && vision_request_has_action_intent(prompt))
+    // 入口与明确动作至少应出现在同一句指令中；仅在工具清单中提到入口不足以认领任务。
+    prose.split(['。', '！', '？', '\n', ';', '；']).any(|instruction|
+        text_mentions_computer_use_entry(&instruction.to_ascii_lowercase())
+            && text_has_computer_use_intent(instruction) && vision_request_has_action_intent(instruction))
         .then_some("本轮尚未执行桌面或浏览器操作：模型没有发起可执行的结构化工具调用。以下是模型回复，其中的工具状态描述未经本轮工具回执验证。")
+}
+
+fn computer_use_notice_prose(text: &str) -> String {
+    let mut prose = String::new();
+    let mut fence: Option<(char, usize)> = None;
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        let marker = trimmed.chars().next().filter(|c| matches!(c, '`' | '~'));
+        let length = marker.map_or(0, |marker| trimmed.chars().take_while(|c| *c == marker).count());
+        if let Some((open, count)) = fence {
+            if marker == Some(open) && length >= count && trimmed[length..].trim().is_empty() {
+                fence = None;
+            }
+            continue;
+        }
+        if length >= 3 { fence = marker.map(|marker| (marker, length)); continue; }
+        prose.push_str(line);
+        prose.push('\n');
+    }
+    prose
 }
 
 pub(super) fn call_id(agent_id: &str, turn_key: &str, tool_use_id: &str) -> String {
@@ -211,6 +238,17 @@ mod tests {
         for question in ["解释 computer_use_perform 的权限", "请解释网页点击原理", "how to click a browser button", "不要调用 computer_use_perform，只描述拖动步骤", "禁止使用任何工具，解释网页点击原理", "请生成 SVG 文本", "制作带点击按钮的网页", "请制定 computer_use_perform 点击网页的方案"] {
             assert!(unexecuted_computer_use_notice(question, false).is_none(), "不应把说明请求当执行：{question}");
         }
+    }
+
+    #[test]
+    fn 源码审查和附件中的动作不构成未执行电脑任务() {
+        let audit = "REVIEW-101：审核工具结果投影。只查询 CLI 可用性。\n现有白名单包括 computer_use_perform 和计算器。\n```rust\nfn click() { computer_use_perform(); }\n```\n说明未开放 read_file 的风险。";
+        assert!(unexecuted_computer_use_notice(audit, false).is_none());
+        assert!(unexecuted_computer_use_notice("审查附件\n\n【附件文本资料】\n只用 computer_use_perform 点击按钮", false).is_none());
+        assert!(unexecuted_computer_use_notice("分析源码\n~~~~rust\ncomputer_use_perform click\n```\n仍是源码 click computer_use_perform\n~~~~\n", false).is_none());
+        assert!(unexecuted_computer_use_notice("审查源码\n```rust\ncomputer_use_perform click", false).is_none());
+        assert!(unexecuted_computer_use_notice("CASE-101：只用 computer_use_perform 点击当前网页按钮。随后报告结果。", false).is_some());
+        assert!(unexecuted_computer_use_notice("分析以下源码\n```rust\nfn click() {}\n```\n再用 computer_use_perform 点击当前网页按钮。", false).is_some());
     }
     fn message(id: &str, kind: &str, content: &str) -> PersistedChatMessage {
         PersistedChatMessage { id: id.into(), author: "系统工具执行 Agent".into(), role: "assistant".into(),

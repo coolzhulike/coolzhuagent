@@ -60,6 +60,11 @@ pub(crate) struct FrozenPolicy {
 }
 
 impl FrozenPolicy {
+    /// 只查询已冻结且尚未撤销的工具资格，不新增授权或读取文件。
+    pub(crate) fn can_read_spill(&self) -> bool {
+        self.tool_live("read_file").is_ok()
+    }
+
     pub(crate) fn planning_for(&self, parent: &FrozenParentContext, agent: &AgentSessionDto)
         -> Result<Arc<super::planning_exchange::Exchange>,String> {
         self.live()?;
@@ -553,7 +558,7 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
                 .await.map_err(|(status, _)| format!("宿主工具派发失败：{status}"))?;
             let failed = response.status != "ok";
             let text = serde_json::to_string(&response).map_err(|_| "宿主结果编码失败。")?;
-            return Ok(json!({"content":[{"type":"text","text":truncate_tool_result_for_context(text,Some(&policy.parent))}],"isError":failed}));
+            return Ok(json!({"content":[{"type":"text","text":truncate_tool_result_for_context(text,Some(&policy.parent),policy.can_read_spill())}],"isError":failed}));
         }
         let budget = policy
             .parent
@@ -628,7 +633,7 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
         }
         let is_error = outcome.status != ToolOutcomeStatus::Ok;
         let text = serde_json::to_string(&outcome).map_err(|_| "工具结果编码失败。")?;
-        let text = truncate_tool_result_for_context(text, Some(&policy.parent));
+        let text = truncate_tool_result_for_context(text, Some(&policy.parent), policy.can_read_spill());
         Ok(json!({"content":[{"type":"text","text":text}],"isError":is_error}))
     }
 

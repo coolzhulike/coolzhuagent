@@ -1,5 +1,7 @@
 # 04整合计划32工作包执行复核
 
+源码候选新增两处修补：ACP大工具结果在未开放read_file时仍保存原文并完整交回；真实SWE源码审查发现材料中的click/CU入口被误判为操作要求，导致工具completed/ok和ACP end_turn/drained却父run failed，已缩窄未执行提醒的材料边界。旧失败事实保留，唯一island-kayak/revision35保持；offline build、完整1418/0/6忽略通过，但修补尚未出包实机，不能关闭验收。见[方案](tool-result-readability-design-2026-10-08.md)及[真实失败、审查与实拍](../../testing/2026-10-08-spill-capability/report.md)。
+
 101正式4.3增量：右栏编辑器read-before-edit冲突拒绝、取消重载保留本地修改及独立同revision并发保存一方200/另一方409已通过。采证脚本失败独立保留，模型0、唯一远端不变；[原回执、正常软件实拍与范围](../../testing/release-0.2.101/file-conflict/report.md)。仅关闭对应文件子项，模型编辑工具/spill/GC/引用图继续开放。
 
 101正式新增1.4/5.4子项：真实LSP服务已启动但未发布期间的房间A→B→A已命中，返回A时旧请求和原进程仍存活，随后409且持有句柄退出，无旧实例发布；模型0、唯一远端不变。[正式原事实与实拍](../../testing/release-0.2.101/lsp-aba/report.md)。跨工程启动pin拒绝变化和正常A→B→A回收/旧句柄隔离另轮已通过；其它完整矩阵继续开放。核对原计划5.4，其通过标准明确“不宣称全屏TUI全支持”；后续核验受控PTY边界，不将全部TUI支持另行扩大为必须交付项。

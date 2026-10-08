@@ -1,3 +1,5 @@
+源码候选新增两处修补：ACP大工具结果在未开放read_file时仍保存原文并完整交回；真实SWE源码审查发现材料中的click/CU入口被误判为操作要求，导致工具completed/ok和ACP end_turn/drained却父run failed，已缩窄未执行提醒的材料边界。旧失败事实保留，唯一island-kayak/revision35保持；offline build、完整1418/0/6忽略通过，但修补尚未出包实机，不能关闭验收。见[方案](tool-result-readability-design-2026-10-08.md)及[真实失败、审查与实拍](../../testing/2026-10-08-spill-capability/report.md)。
+
 > **2026-10-08 101正式LSP补验**：房间ABA严格窗口命中并拒绝旧启动；启动pin拒绝跨工程切换/重载，完成后正常工程A→B→A回收进程及旧句柄409也独立通过。模型0、原唯一Devin绑定保持；真实句柄/HTTP事实与原生实拍见[专项](../../testing/release-0.2.101/lsp-aba/report.md)。全屏TUI全支持不是原5.4交付要求，终端按受控PTY边界核验。Browser严格时序及其它总队列仍开放。
 
 > **2026-10-08 0.2.101当前正式验收**：0.2.101当前正式增量：正常完整构建、六门pass、1159安装文件逐长度/SHA一致，安装返回0、正式原生后台与壳启动；冻结源码54594d9，两路远端CI均success。真实SWE-2-medium/唯一island-kayak完成本页设计审查及单次DSH工具，#683/#684无需刷新出现；统计侧栏自动882→883，明确派发875→876，539条旧投影不变，未知用量保持未知；本轮精确ACP轨迹实拍已通过。[101交接与实拍](../../testing/release-0.2.101/change-report-and-test-handoff.md)。已公开[101预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.101)，四资产服务器长度/SHA及实际标签与构建提交一致；断线大批变动、完整多工作区并发和Browser严格时序仍开放。

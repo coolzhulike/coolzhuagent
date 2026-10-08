@@ -29798,10 +29798,10 @@ fn summarize_dropped_history(dropped: &[PersistedChatMessage]) -> String {
 }
 
 /// 原文保存与上下文投影使用受理时冻结的存储位置，不回读当前工作区。
-fn truncate_tool_result_for_context(text: String, parent: Option<&FrozenParentContext>) -> String {
+fn truncate_tool_result_for_context(text: String, parent: Option<&FrozenParentContext>, can_read_original: bool) -> String {
     let db_path = parent.and_then(|parent| parent.goal_phase.as_ref().map(|goal| goal.db_path())
         .or(parent.runtime_db_path.as_deref()));
-    tool_result_spill::for_context(text, db_path)
+    tool_result_spill::for_context(text, db_path, can_read_original)
 }
 
 fn estimate_message_tokens(message: &PersistedChatMessage) -> u32 {
@@ -35487,7 +35487,10 @@ async fn run_model_tool_dispatch_for_session_with_identity(
     }
     if let Ok(response) = outcome.as_mut() {
         if let Some(text) = response.tool_result_text.take() {
-            response.tool_result_text = Some(truncate_tool_result_for_context(text, parent));
+            // ACP 的内层派发也必须遵循本轮实际声明的读取能力，不能先截断再在外层补救。
+            // 其它 Provider 保持既有投影策略；其完整声明矩阵另行验收。
+            let can_read_original = devin_acp::bridge::current().is_none_or(|policy| policy.can_read_spill());
+            response.tool_result_text = Some(truncate_tool_result_for_context(text, parent, can_read_original));
         }
     }
     outcome
