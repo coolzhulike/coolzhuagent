@@ -2,6 +2,7 @@
 //! 网页的 URL、加载状态由原生回调提供，不维护猜测出来的浏览历史。
 use serde::{Deserialize, Serialize};
 use std::sync::{atomic::{AtomicU64, Ordering}, Mutex, OnceLock};
+use std::time::Instant;
 use tauri::{
     webview::{NewWindowResponse, PageLoadEvent, WebviewBuilder},
     AppHandle, Emitter, EventTarget, LogicalPosition, LogicalSize, Manager, Url, Webview,
@@ -256,6 +257,37 @@ fn emit(app: &AppHandle, reply: &PanelReply) {
     );
 }
 
+#[derive(Clone, Copy, Serialize)]
+pub(super) struct DiagnosticStamp { sequence: u64, elapsed_us: u64 }
+
+/// 进程内共享采样时钟；序号不推导跨线程事件因果，默认关闭时不采时。
+pub(super) fn diagnostic_stamp() -> Option<DiagnosticStamp> {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    if !*ENABLED.get_or_init(|| std::env::var("COOLZHU_BROWSER_NAV_DIAGNOSTICS")
+        .is_ok_and(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true"))) {
+        return None;
+    }
+    static START: OnceLock<Instant> = OnceLock::new();
+    static SEQUENCE: AtomicU64 = AtomicU64::new(0);
+    let elapsed_us = START.get_or_init(Instant::now).elapsed().as_micros().min(u128::from(u64::MAX)) as u64;
+    Some(DiagnosticStamp { sequence: SEQUENCE.fetch_add(1, Ordering::Relaxed), elapsed_us })
+}
+
+fn log_generation_diagnostic(stage: &str, previous: u64, current: u64,
+    before: Option<DiagnosticStamp>, after: Option<DiagnosticStamp>) {
+    let (Some(before), Some(after)) = (before, after) else { return; };
+    diagnostics::info("browser_panel", "generation_diagnostic", "内置浏览器世代变化采样区间", &[
+        ("stage", stage.to_string()), ("previous_generation", previous.to_string()),
+        ("generation", current.to_string()), ("before", serde_json::to_string(&before).unwrap_or_default()),
+        ("after", serde_json::to_string(&after).unwrap_or_default()),
+    ]);
+}
+
+pub(super) fn log_source_changed_diagnostic(app: &AppHandle, generation: u64, new_document: bool) {
+    log_navigation_diagnostic(app, generation, "source_changed_observed",
+        if new_document { "new_document" } else { "same_document" }, None);
+}
+
 // 仅显式开启时写入桌面壳的诊断文件；不记录 URL、查询参数或聊天室 scope。
 fn log_navigation_diagnostic(
     app: &AppHandle,
@@ -264,19 +296,13 @@ fn log_navigation_diagnostic(
     outcome: &str,
     url: Option<&Url>,
 ) {
-    static ENABLED: OnceLock<bool> = OnceLock::new();
-    if !*ENABLED.get_or_init(|| {
-        std::env::var("COOLZHU_BROWSER_NAV_DIAGNOSTICS")
-            .is_ok_and(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true"))
-    }) {
-        return;
-    }
-    static SEQUENCE: AtomicU64 = AtomicU64::new(0);
+    let Some(stamp) = diagnostic_stamp() else { return; };
     let store = app.state::<PanelStore>();
     let Ok(state) = store.state.lock() else { return; };
     let pending = state.pending_navigation.as_ref();
     let fields = [
-        ("sequence", SEQUENCE.fetch_add(1, Ordering::Relaxed).to_string()),
+        ("sequence", stamp.sequence.to_string()),
+        ("elapsed_us", stamp.elapsed_us.to_string()),
         ("stage", stage.to_string()),
         ("outcome", outcome.to_string()),
         ("generation", generation.to_string()),
@@ -545,22 +571,27 @@ pub fn suspend(app: &AppHandle, reason: &str) {
 /// 真正关闭或切换所属聊天室时销毁隔离视图。
 pub fn invalidate(app: &AppHandle, reason: &str) {
     let store = app.state::<PanelStore>();
-    let (label, token, reply) = {
+    let (label, token, reply, generation_sample) = {
         let Ok(mut state) = store.state.lock() else {
             return;
         };
         if !state.reply.active {
             return;
         }
+        let previous = state.generation;
+        let before = diagnostic_stamp();
         state.generation = state.generation.wrapping_add(1);
+        let after = diagnostic_stamp();
         state.reply.active = false;
         state.reply.destroyed = true;
         state.reply.hidden = false;
         state.reply.loading = false;
         state.reply.reason = Some(reason.into());
         state.pending_navigation = None;
-        (state.label.take(), state.source_changed_token.take(), state.reply.clone())
+        (state.label.take(), state.source_changed_token.take(), state.reply.clone(),
+            (previous, state.generation, before, after))
     };
+    log_generation_diagnostic("revoke", generation_sample.0, generation_sample.1, generation_sample.2, generation_sample.3);
     if let Some(view) = label.and_then(|label| app.get_webview(&label)) {
         super::native_browser_source::remove(&view, token);
         super::native_browser_input::retire_view(view);
@@ -784,9 +815,12 @@ pub async fn browser_panel_command(
         invalidate(&app, "scope-changed");
         let bounds = bounds.unwrap();
         let popup_scope = command.scope.clone();
-        let (generation, label) = {
+        let (generation, label, generation_sample) = {
             let mut state = store.state.lock().map_err(|_| "网页状态不可用")?;
+            let previous = state.generation;
+            let before = diagnostic_stamp();
             state.generation = state.generation.wrapping_add(1);
+            let after = diagnostic_stamp();
             state.pending_navigation = None;
             let label = format!("browser-panel-{}", state.generation);
             state.label = Some(label.clone());
@@ -797,8 +831,9 @@ pub async fn browser_panel_command(
                 bounds: Some(bounds),
                 ..Default::default()
             };
-            (state.generation, label)
+            (state.generation, label, (previous, before, after))
         };
+        log_generation_diagnostic("create_state", generation_sample.0, generation, generation_sample.1, generation_sample.2);
         let navigation_app = app.clone();
         let load_app = app.clone();
         let title_app = app.clone();
@@ -846,6 +881,7 @@ pub async fn browser_panel_command(
             LogicalSize::new(bounds.width, bounds.height),
         ) {
             Ok(view) => {
+                log_navigation_diagnostic(&app, generation, "view_created_observed", "created", None);
                 let token = match super::native_browser_source::install(&app, &view, generation).await {
                     Ok(token) => token,
                     Err(error) => {

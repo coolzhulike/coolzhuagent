@@ -17,6 +17,7 @@ mod platform {
             let (Some(sender), Some(args)) = (sender.as_ref(), args.as_ref()) else { return Ok(()); };
             let mut new_document = windows::core::BOOL(0);
             unsafe { args.IsNewDocument(&mut new_document)?; }
+            super::super::browser_panel::log_source_changed_diagnostic(&self.app, self.generation, new_document.as_bool());
             // 新文档的加载/重定向继续由原有加载回调负责。
             if new_document.as_bool() { return Ok(()); }
             let mut raw_source = windows::core::PWSTR::null();

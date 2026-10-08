@@ -129,7 +129,7 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
             };
             let (outcome,down,up) = match (operation,verified) {
                 (Operation::Keys(keys),VerifiedOperation::Document(verified)) => super::native_browser_key_input::press(app,verified,keys,*expires_at_unix_ms).await,
-                (Operation::Click,VerifiedOperation::Document(verified)) => click(app,verified,*expires_at_unix_ms).await,
+                (Operation::Click,VerifiedOperation::Document(verified)) => click(app,verified,*expires_at_unix_ms,attempt_id).await,
                 (Operation::Scroll {direction,amount},VerifiedOperation::Document(verified)) => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
                 (Operation::Text(text),VerifiedOperation::Document(verified)) => (super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await,false,false),
                 (Operation::Navigate(url),verified) => {
@@ -197,8 +197,50 @@ async fn wheel(app:&AppHandle,target:VerifiedTarget,direction:ScrollDirection,am
     {let _=(direction,amount);PanelInputOutcome::NotDispatched}
 }
 
+#[cfg(windows)]
+#[derive(serde::Serialize)]
+struct ClickObservation { stage: &'static str, stamp: super::browser_panel::DiagnosticStamp, confirmed: Option<bool> }
+#[cfg(windows)]
+struct ClickTimeline { events: Vec<ClickObservation>, sealed: bool }
+#[cfg(windows)]
+type OptionalClickTimeline = Option<std::sync::Arc<Mutex<ClickTimeline>>>;
+
+#[cfg(windows)]
+fn observe_click(timeline: &OptionalClickTimeline, stage: &'static str, confirmed: Option<bool>) {
+    let Some(timeline) = timeline else { return; };
+    let Some(stamp) = super::browser_panel::diagnostic_stamp() else { return; };
+    if let Ok(mut timeline) = timeline.lock() {
+        // 重复/迟到回调不扩张记录，也不改变已结算结果。
+        if !timeline.sealed && timeline.events.len() < 12 {
+            timeline.events.push(ClickObservation { stage, stamp, confirmed });
+        }
+    }
+}
+
+#[cfg(windows)]
+fn finish_click_diagnostic(timeline: &OptionalClickTimeline, attempt_id: &str, generation: u64,
+    result: &(PanelInputOutcome,bool,bool)) {
+    let Some(timeline) = timeline else { return; };
+    let events = {
+        let Ok(mut timeline) = timeline.lock() else { return; };
+        timeline.sealed = true;
+        std::mem::take(&mut timeline.events)
+    };
+    let outcome = match result.0 {
+        PanelInputOutcome::Released => "released",
+        PanelInputOutcome::NotDispatched => "not_dispatched",
+        _ => "release_unknown",
+    };
+    // 一次结算后才写日志；两条输入入队之间没有同步磁盘写入。
+    diagnostics::info("browser_panel", "click_diagnostic", "内置浏览器单次点击采样", &[
+        ("attempt_id", attempt_id.to_string()), ("generation", generation.to_string()),
+        ("outcome", outcome.to_string()), ("down_confirmed", result.1.to_string()),
+        ("up_confirmed", result.2.to_string()), ("observations", serde_json::to_string(&events).unwrap_or_default()),
+    ]);
+}
+
 /// 按下/释放使用同一个原始controller。导航或取消不能截断释放；COM入队不等于回执成功。
-async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64) -> (PanelInputOutcome,bool,bool) {
+async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64, attempt_id: &str) -> (PanelInputOutcome,bool,bool) {
     if now() >= expires_ms || super::browser_panel::input_resource(app).as_ref() != Some(&target.resource) {
         return (PanelInputOutcome::NotDispatched,false,false);
     }
@@ -207,6 +249,11 @@ async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64) -> (Pan
         use webview2_com::{CoTaskMemPWSTR, Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler};
         use super::native_browser_devtools::bounded_callback;
         let Some(view) = app.get_webview(&target.resource.label) else { return (PanelInputOutcome::NotDispatched,false,false); };
+        let generation = target.resource.generation;
+        let timeline = super::browser_panel::diagnostic_stamp().map(|stamp| std::sync::Arc::new(Mutex::new(ClickTimeline {
+            events: vec![ClickObservation { stage: "begin", stamp, confirmed: None }], sealed: false,
+        })));
+        let timeline_ui = timeline.clone();
         let (sender,receiver) = tokio::sync::oneshot::channel();
         let sender = std::sync::Arc::new(Mutex::new(Some(sender)));
         let sender_outside = sender.clone();
@@ -214,17 +261,19 @@ async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64) -> (Pan
         let queued = view.with_webview(move |platform| {
             let finish = |value| { if let Ok(mut sender)=sender.lock() { if let Some(sender)=sender.take() { let _=sender.send(value); } } };
             if now() >= expires_ms || super::browser_panel::input_resource(&app_ui).as_ref() != Some(&target.resource) {
+                observe_click(&timeline_ui,"ui_preflight_rejected",None);
                 finish((PanelInputOutcome::NotDispatched,false,false));return;
             }
             let core = match unsafe { platform.controller().CoreWebView2() } {
-                Ok(core)=>core,Err(_)=>{finish((PanelInputOutcome::NotDispatched,false,false));return;}
+                Ok(core)=>core,Err(_)=>{observe_click(&timeline_ui,"controller_unavailable",None);finish((PanelInputOutcome::NotDispatched,false,false));return;}
             };
             let phases=std::sync::Arc::new(Mutex::new((None::<bool>,None::<bool>)));
             let make_handler=|pressed:bool| {
-                let phases=phases.clone();let sender=sender.clone();
+                let phases=phases.clone();let sender=sender.clone();let timeline_ack=timeline_ui.clone();
                 let handler:ICoreWebView2CallDevToolsProtocolMethodCompletedHandler=bounded_callback::Handler(Box::new(move |status,text| {
                     let confirmed=status.is_ok() && unsafe {bounded_callback::read(text)}.is_ok_and(|raw|
                         serde_json::from_str::<serde_json::Value>(&raw).is_ok_and(|v|v.as_object().is_some_and(|v|v.is_empty())));
+                    observe_click(&timeline_ack,if pressed {"down_ack"} else {"up_ack"},Some(confirmed));
                     if let Ok(mut phase)=phases.lock() {
                         let slot=if pressed {&mut phase.0} else {&mut phase.1};
                         if slot.is_none() { *slot=Some(confirmed); }
@@ -240,19 +289,30 @@ async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64) -> (Pan
             let method=CoTaskMemPWSTR::from("Input.dispatchMouseEvent");
             let press_params=serde_json::json!({"type":"mousePressed","x":target.x,"y":target.y,"button":"left","buttons":1,"clickCount":1}).to_string();
             let parameters=CoTaskMemPWSTR::from(press_params.as_str());
+            observe_click(&timeline_ui,"down_enqueue_before",None);
             let down_queued=unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*parameters.as_ref().as_pcwstr(),&down_handler)}.is_ok();
+            observe_click(&timeline_ui,"down_enqueue_after",Some(down_queued));
             // 同一UI闭包按顺序入队两条命令；绝不等待down回调才排队up，丢回调也必须尝试释放。
             let parameters=CoTaskMemPWSTR::from(release_params.as_str());
+            observe_click(&timeline_ui,"up_enqueue_before",None);
             let up_queued=unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*parameters.as_ref().as_pcwstr(),&up_handler)}.is_ok();
+            observe_click(&timeline_ui,"up_enqueue_after",Some(up_queued));
             if !down_queued || !up_queued { finish((PanelInputOutcome::ReleaseUnknown,false,false)); }
         });
-        if queued.is_err() {
+        let result = if queued.is_err() {
             // UI闭包是否已经执行无法证明，按未知处理，不能自动重放。
-            drop(sender_outside);return (PanelInputOutcome::ReleaseUnknown,false,false);
-        }
-        tokio::time::timeout(Duration::from_secs(3),receiver).await.ok().and_then(Result::ok)
-            .unwrap_or((PanelInputOutcome::ReleaseUnknown,false,false))
+            observe_click(&timeline,"ui_queue_unknown",None);
+            drop(sender_outside);(PanelInputOutcome::ReleaseUnknown,false,false)
+        } else {
+            match tokio::time::timeout(Duration::from_secs(3),receiver).await {
+                Ok(Ok(value)) => value,
+                _ => { observe_click(&timeline,"ack_wait_unknown",None); (PanelInputOutcome::ReleaseUnknown,false,false) }
+            }
+        };
+        observe_click(&timeline,"settle",None);
+        finish_click_diagnostic(&timeline,attempt_id,generation,&result);
+        result
     }
     #[cfg(not(windows))]
-    { (PanelInputOutcome::NotDispatched,false,false) }
+    { let _=attempt_id; (PanelInputOutcome::NotDispatched,false,false) }
 }
