@@ -4980,13 +4980,13 @@ function taskRenderSchedules(registry = {}, error = null) {
   };
   function taskScheduleMetaLine(task, describeSchedule) {
     const parts = [describeSchedule(task)];
+    const status = String(task.status || "").trim().toLowerCase();
     const runAt = Number(task.run_at_ms || 0);
     if (Number.isFinite(runAt) && runAt > 0) {
-      parts.push(`下次 ${new Date(runAt).toLocaleString()}`);
+      parts.push(`${["scheduled", "pending"].includes(status) ? "下次" : "计划"} ${new Date(runAt).toLocaleString()}`);
     }
-    const status = String(task.status || "").trim();
-    if (status && !["scheduled", "pending"].includes(status.toLowerCase())) {
-      parts.push(goalStatusDisplay(status));
+    if (status) {
+      parts.push(({ scheduled: "待执行", executed: "已执行" })[status] || goalStatusDisplay(status));
     }
     return parts.join(" · ");
   }
@@ -5007,23 +5007,29 @@ function taskRenderSchedules(registry = {}, error = null) {
         : "";
     const resultRoom = (chatRoomRegistry.rooms || []).find((room) => room.id === task.chat_room_id);
     const roomLine = isGoal ? "" : `<small>结果聊天室：${escapeHtml(task.chat_room_id
-      ? (resultRoom?.name || `已删除或不可用（${task.chat_room_id}）`)
+      ? (resultRoom?.name || "已删除或不可用")
       : "定时任务（系统聊天室）")}</small>`;
     const errLine = task.last_error
       ? `<small class="task-schedule-error"><img class="wuxia-inline-icon" src="./assets/icons-wuxia/alert-triangle.svg" alt="" /> ${escapeHtml(task.last_error)}</small>`
       : "";
+    const targetSession = (sessionRegistry.sessions || []).find((session) => session.id === task.target_session_id);
+    const targetName = task.target_session_name || targetSession?.display_name || targetSession?.name || "会话已不可用";
+    const content = String(task.content || "");
+    const characters = Array.from(content);
+    const preview = characters.slice(0, 240).join("") + (characters.length > 240 ? "…" : "");
+    const fullContent = characters.length > 240 ? `<details class="task-schedule-full-content"><summary title="展开任务全文" aria-label="展开任务全文"><img class="wuxia-inline-icon" src="./assets/icons-wuxia/chevron.svg" alt="" /></summary><pre>${escapeHtml(content)}</pre></details>` : "";
     item.innerHTML = `
       <div>
-        <strong>${escapeHtml(task.target_session_name || task.target_session_id || "-")}</strong>
-        <span class="task-schedule-badge ${isGoal ? "is-goal" : "is-poll"}">${kindBadge}</span>
-        <p>${escapeHtml(task.content || "")}</p>
+        <header class="task-schedule-heading"><strong title="${escapeHtml(targetName)}">${escapeHtml(targetName)}</strong><span class="task-schedule-badge ${isGoal ? "is-goal" : "is-poll"}">${kindBadge}</span></header>
         ${goalLine}
         ${roomLine}
-        <small>${escapeHtml(taskScheduleMetaLine(task, describeSchedule))}</small>
+        <small class="task-schedule-status">${escapeHtml(taskScheduleMetaLine(task, describeSchedule))}</small>
         ${occurrenceLine}
         ${errLine}
+        <p class="task-schedule-preview">${escapeHtml(preview)}</p>
+        ${fullContent}
       </div>
-      <button type="button" class="task-schedule-delete" data-schedule-delete="${escapeHtml(task.id || "")}">删除</button>
+      <button type="button" class="task-schedule-delete" data-schedule-delete="${escapeHtml(task.id || "")}" title="删除定时任务" aria-label="删除定时任务"><img class="wuxia-inline-icon" src="./assets/icons-wuxia/delete.svg" alt="" /></button>
     `;
     list.append(item);
   });

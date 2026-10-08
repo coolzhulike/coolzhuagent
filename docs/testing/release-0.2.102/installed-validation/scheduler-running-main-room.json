@@ -1,0 +1,65 @@
+{
+  "observed_ms": 1791503044231.4487,
+  "active_room_id": "main-room",
+  "marker": "INSTALLED102-BOUND-SCHEDULER-MATERIAL-20261008",
+  "task_id": "schedule-1791502908555-6b214e5c8c271753",
+  "task_status": "scheduled",
+  "last_error": null,
+  "source": {
+    "id": "msg-1791503027901-user",
+    "room_id": "room-1791131523339",
+    "created_at": 1791503028067
+  },
+  "source_count": 1,
+  "run": {
+    "id": "run-chat-0c599740cfb1780a42b803dc371c63308227b749cfc4ffeb",
+    "state": "running"
+  },
+  "attempts": [
+    {
+      "attempt_id": "87a753709c1595ab61639765c049570a4e6a2c6fe2f60cd2",
+      "state": "submitted",
+      "protocol_stop": null,
+      "process_drained": 0,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "calls": [
+    {
+      "tool_call_id": "tool-355257a67309ecaaf6a09f38ad92195eb484bb1a6adfa44e8a716af6f2e3e280",
+      "tool_name": "plugin__cli_anything_status",
+      "status": "dispatched"
+    }
+  ],
+  "visible_replies": [],
+  "claims": [
+    {
+      "workspace_id": "ws-23f646a969206cb4",
+      "task_id": "schedule-1791502908555-6b214e5c8c271753",
+      "scheduled_for_ms": 1791502998534,
+      "fingerprint": "f1a4ed6c00ef4ebf6c2556d5ffede47af755a54bc0a97ed1f2a4953202f98ee5",
+      "state": "running",
+      "started_at_ms": 1791503027886,
+      "outcome_json": null
+    }
+  ],
+  "counts": {
+    "attempts": 940,
+    "messages": 1176,
+    "active_runs": 1,
+    "bindings": [
+      [
+        "room-1791131523339",
+        "",
+        "island-kayak",
+        "87a753709c1595ab61639765c049570a4e6a2c6fe2f60cd2"
+      ],
+      [
+        "room-1791131523339",
+        "internal",
+        null,
+        null
+      ]
+    ]
+  }
+}
