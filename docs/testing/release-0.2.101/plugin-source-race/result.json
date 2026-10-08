@@ -1,0 +1,74 @@
+{
+  "version": "0.2.101",
+  "run": {
+    "id": "run-chat-6971ab67ce7a303c404cfeb6efb00c8c8192e4bb36151076",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791500334185-3"
+  },
+  "attempts": [
+    {
+      "attempt_id": "c088dce83533ea12366515220e1ee133ef9345371e216ecb",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [],
+  "runtime_events": [
+    {
+      "event_type": "run.accepted",
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791500334185-3\"}",
+      "created_at": 1791500334187
+    },
+    {
+      "event_type": "run.started",
+      "payload_json": "{\"previous_state\":\"accepted\"}",
+      "created_at": 1791500334359
+    },
+    {
+      "event_type": "run.completed",
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"completed\"}",
+      "created_at": 1791500357849
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791500334438-0",
+    "kind": "assistant-reply",
+    "content": "竹简回执\n表达式：net_fetch http://127.0.0.1:60949/source-race-20261008（allowPrivate=true，timeoutMs=60000，maxBytes=1024）\n宿主结果：`宿主工具未完成：ACP 工具已被当前会话或房间撤销，未执行。`\n\n如实报告：\n\n- 本轮调用被**明确拒绝、未执行**——插件固定源码在受理后被改动（一处无语义注释），旧启用世代的资格按预期被隔离撤销，调用未派发，无响应体、无抓取内容\n- 拒绝即实验预期结果；不假报抓取成功\n- 未重试、未补发、未调用其它工具、未修改文件、未新建云会话。收到拒绝后立即结束本轮。",
+    "created_at": 1791500357801
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "after": {
+    "attempts": 939,
+    "messages": 1175
+  },
+  "observation": {
+    "run_id": "run-chat-6971ab67ce7a303c404cfeb6efb00c8c8192e4bb36151076",
+    "run_state_at_change": "running",
+    "attempt_id": "c088dce83533ea12366515220e1ee133ef9345371e216ecb",
+    "attempt_state_at_change": "submitted",
+    "mutation_begin_ms": 1791500335711.521,
+    "original_sha256": "6fea33400d3e1c1b3f2d2e38a16e784872022862fa6cd025af3ca04aaee83bdd",
+    "changed_sha256": "35760090509e38fc1b0847e5df7809044e76a089f6bdf843b0c64cece85ec74e",
+    "mutation_end_ms": 1791500335712.0066,
+    "terminal_run_state": "completed",
+    "terminal_attempt_state": "terminal",
+    "process_drained": 1,
+    "restore_ms": 1791500357901.1733,
+    "restored_sha256": "6fea33400d3e1c1b3f2d2e38a16e784872022862fa6cd025af3ca04aaee83bdd"
+  },
+  "observed_conclusion": "submitted后源码注释变化，零工具执行登记、零网络请求；正常结束及恢复。具体拒绝原因仅模型转述，无独立宿主回执，不追认完整源码竞态矩阵通过。",
+  "network_requests": 0
+}

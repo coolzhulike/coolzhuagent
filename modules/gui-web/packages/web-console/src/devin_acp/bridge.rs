@@ -60,6 +60,19 @@ pub(crate) struct FrozenPolicy {
 }
 
 impl FrozenPolicy {
+    /// 拒绝发生在执行台账登记前时，保留最小宿主证据；不保存参数或动态错误文本。
+    fn rejected_before_dispatch(&self, id: &JsonValue, name: &str, code: &str, reason: String) -> String {
+        let request_digest = super::chat::digest(id.to_string().as_bytes());
+        let declared_name = if self.grants.contains_key(name) { name } else { "<undeclared>" };
+        match append_runtime_run_event(self.journal.path(), &self.scope.run_id,
+            "tool.dispatch_rejected", json!({"stage":"before_dispatch","reason_code":code,
+                "executed":false,"attempt_id":self.scope.attempt_id,
+                "tool_name":declared_name,"request_digest":request_digest})) {
+            Ok(_) => reason,
+            Err(_) => format!("{reason}（拒绝审计保存失败，仍未执行。）"),
+        }
+    }
+
     /// 只查询已冻结且尚未撤销的工具资格，不新增授权或读取文件。
     pub(crate) fn can_read_spill(&self) -> bool {
         self.tool_live("read_file").is_ok()
@@ -502,8 +515,12 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
     id:&JsonValue,name:&str,input:&JsonValue) -> Result<JsonValue,String> {
         // 串行队列只约束本轮，阻止共享 MCP 连接的并发动作互相覆盖。
         let _call = calls.lock().await;
-        policy.live()?;
-        policy.tool_live(name)?;
+        if let Err(reason) = policy.live() {
+            return Err(policy.rejected_before_dispatch(id,name,"scope_not_live",reason));
+        }
+        if let Err(reason) = policy.tool_live(name) {
+            return Err(policy.rejected_before_dispatch(id,name,"tool_not_live",reason));
+        }
         if !policy.grants.contains_key(name) {
             return Err("工具未在父接纳时开放。".into());
         }
@@ -994,6 +1011,20 @@ mod tests {
                 .is_err()
         );
         assert_eq!(std::fs::read_to_string(&file).unwrap(), "真实本地执行");
+        let private_id = json!("不应保存的原始请求编号");
+        assert!(bridge.call(&private_id, "不应保存的未声明名称",
+            &json!({"content":"不应保存的工具参数"})).await.is_err());
+        let connection = open_session_connection(&db).unwrap();
+        let rejected: String = connection.query_row(
+            "SELECT payload_json FROM runtime_run_events WHERE run_id=?1 AND event_type='tool.dispatch_rejected' ORDER BY id DESC LIMIT 1",
+            [&scope.run_id], |row|row.get(0)).unwrap();
+        let rejected: JsonValue = serde_json::from_str(&rejected).unwrap();
+        assert_eq!(rejected["executed"],false);
+        assert_eq!(rejected["reason_code"],"tool_not_live");
+        assert_eq!(rejected["tool_name"],"<undeclared>");
+        assert_eq!(rejected["attempt_id"],scope.attempt_id);
+        assert_eq!(rejected["request_digest"],super::super::chat::digest(private_id.to_string().as_bytes()));
+        assert!(!rejected.to_string().contains("不应保存"));
         journal.request_cancel(&scope).unwrap();
         assert!(
             bridge
@@ -1012,6 +1043,17 @@ mod tests {
                 .is_err()
         );
         assert_eq!(store.tool_calls_for_run(&scope.run_id).unwrap().len(), 1);
+        let rejected_scope: String = connection.query_row(
+            "SELECT payload_json FROM runtime_run_events WHERE run_id=?1 AND event_type='tool.dispatch_rejected' ORDER BY id DESC LIMIT 1",
+            [&scope.run_id], |row|row.get(0)).unwrap();
+        assert_eq!(serde_json::from_str::<JsonValue>(&rejected_scope).unwrap()["reason_code"],"scope_not_live");
+        connection.execute_batch("CREATE TRIGGER reject_dispatch_evidence BEFORE INSERT ON runtime_run_events
+            WHEN NEW.event_type='tool.dispatch_rejected' BEGIN SELECT RAISE(ABORT,'证据库不可写'); END;").unwrap();
+        let error=bridge.call(&json!("audit-failure"),"write_file",
+            &json!({"path":file,"content":"审计失败也不得执行"})).await.unwrap_err();
+        assert!(error.contains("拒绝审计保存失败，仍未执行"));
+        assert_eq!(std::fs::read_to_string(&file).unwrap(), "真实本地执行");
+        assert_eq!(store.tool_calls_for_run(&scope.run_id).unwrap().len(),1);
     }
     #[tokio::test]
     async fn frozen_gate_survives_live_full_access_and_produces_real_denial() {

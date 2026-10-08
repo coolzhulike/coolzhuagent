@@ -1,0 +1,13 @@
+{
+  "stage": "源码候选，正式仍为0.2.101",
+  "build_command": "cargo build -p coolzhu-web-console --offline",
+  "build_exit": 0,
+  "build_observed_seconds": 37.25,
+  "tests_command": "cargo test -p coolzhu-web-console --offline",
+  "tests_exit": 0,
+  "tests_passed": 1418,
+  "tests_failed": 0,
+  "tests_ignored_existing": 6,
+  "source_sha256": "310187fbd33f2796c19d9bf98bcea36a2dc18613f96babc7069b10287fd398ba",
+  "tests_log_sha256": "90df1a0022c7d0e390e03480bd3b601b9376c208046fecc43fa792f6b8105147"
+}

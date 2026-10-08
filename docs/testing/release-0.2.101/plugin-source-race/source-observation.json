@@ -1,0 +1,15 @@
+{
+  "run_id": "run-chat-6971ab67ce7a303c404cfeb6efb00c8c8192e4bb36151076",
+  "run_state_at_change": "running",
+  "attempt_id": "c088dce83533ea12366515220e1ee133ef9345371e216ecb",
+  "attempt_state_at_change": "submitted",
+  "mutation_begin_ms": 1791500335711.521,
+  "original_sha256": "6fea33400d3e1c1b3f2d2e38a16e784872022862fa6cd025af3ca04aaee83bdd",
+  "changed_sha256": "35760090509e38fc1b0847e5df7809044e76a089f6bdf843b0c64cece85ec74e",
+  "mutation_end_ms": 1791500335712.0066,
+  "terminal_run_state": "completed",
+  "terminal_attempt_state": "terminal",
+  "process_drained": 1,
+  "restore_ms": 1791500357901.1733,
+  "restored_sha256": "6fea33400d3e1c1b3f2d2e38a16e784872022862fa6cd025af3ca04aaee83bdd"
+}
