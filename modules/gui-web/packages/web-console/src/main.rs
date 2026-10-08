@@ -35485,12 +35485,13 @@ async fn run_model_tool_dispatch_for_session_with_identity(
         settlement.finish(status).map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,
             &format!("工具已结束等待，但终态记录未确认：{error}；不可自动重试")))?;
     }
-    if let Ok(response) = outcome.as_mut() {
-        if let Some(text) = response.tool_result_text.take() {
-            // ACP 的内层派发也必须遵循本轮实际声明的读取能力，不能先截断再在外层补救。
-            // 其它 Provider 保持既有投影策略；其完整声明矩阵另行验收。
-            let can_read_original = devin_acp::bridge::current().is_none_or(|policy| policy.can_read_spill());
-            response.tool_result_text = Some(truncate_tool_result_for_context(text, parent, can_read_original));
+    // ACP 由外层桥对完整结构化回执投影一次，避免内层先截断或重复保存带提示的原文。
+    if devin_acp::bridge::current().is_none() {
+        if let Ok(response) = outcome.as_mut() {
+            if let Some(text) = response.tool_result_text.take() {
+                // 此入口没有本轮实际声明的读取能力证明，不能默认交回未开放的续读指针。
+                response.tool_result_text = Some(truncate_tool_result_for_context(text, parent, false));
+            }
         }
     }
     outcome

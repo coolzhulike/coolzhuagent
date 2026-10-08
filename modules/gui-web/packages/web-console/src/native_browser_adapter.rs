@@ -298,7 +298,8 @@ impl BrowserBridge for NativePanelReadBridge {
                     "native_observation_cancelled" => "本轮已停止；已经投递的输入事实保留，不继续观察或派发后续动作",
                     "native_browser_host_unavailable" => "内置浏览器桌面宿主尚未连接",
                     "native_browser_panel_unavailable" => "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
-                    "native_browser_resource_changed" => "内置网页的聊天室、工程、可见状态或连接已变化；本次没有发送输入",
+                    // 此处只裁决观察可用性；输入可能已结算，不能覆盖步骤的投递与释放事实。
+                    "native_browser_resource_changed" => "内置网页的聊天室、工程、可见状态或连接已变化，观察无法继续；输入投递与释放状态以步骤回执为准",
                     _ => "内置浏览器观察不可用或环境已变化",
                 };
                 let retry_owner = if code == "native_observation_cancelled" {

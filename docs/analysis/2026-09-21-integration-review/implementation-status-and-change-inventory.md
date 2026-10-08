@@ -1,3 +1,5 @@
+101正式原生视图替换试验未命中严格窗口：旧网页trusted down/up/click与步骤sent/released一致，新网页loaded晚于旧up约10.24秒、新页输入0；单次真实SWE/原island正常end_turn/drained/解锁，但后续观察因资源变化停止，CU blocked/父run failed。另发现终态“没有发送输入”错误覆盖已投递事实，源码候选改为观察停止、以步骤回执为准；未安装，不计正式修复通过。新[原事实与实拍](../../testing/release-0.2.101/browser-native-replacement/report.md)保留未命中及模型错误转述。原文投影候选另收敛为ACP只在外桥保存一次、非ACP无实际读取能力证明时完整交回，不默认续读指针；见[更新方案](tool-result-readability-design-2026-10-08.md)。整体Goal继续，严格时序及候选正式复验均开放。
+
 源码候选新增两处修补：ACP大工具结果在未开放read_file时仍保存原文并完整交回；真实SWE源码审查发现材料中的click/CU入口被误判为操作要求，导致工具completed/ok和ACP end_turn/drained却父run failed，已缩窄未执行提醒的材料边界。旧失败事实保留，唯一island-kayak/revision35保持；offline build、完整1418/0/6忽略通过，但修补尚未出包实机，不能关闭验收。见[方案](tool-result-readability-design-2026-10-08.md)及[真实失败、审查与实拍](../../testing/2026-10-08-spill-capability/report.md)。
 
 > **2026-10-08 101正式LSP补验**：房间ABA严格窗口命中并拒绝旧启动；启动pin拒绝跨工程切换/重载，完成后正常工程A→B→A回收进程及旧句柄409也独立通过。模型0、原唯一Devin绑定保持；真实句柄/HTTP事实与原生实拍见[专项](../../testing/release-0.2.101/lsp-aba/report.md)。全屏TUI全支持不是原5.4交付要求，终端按受控PTY边界核验。Browser严格时序及其它总队列仍开放。
