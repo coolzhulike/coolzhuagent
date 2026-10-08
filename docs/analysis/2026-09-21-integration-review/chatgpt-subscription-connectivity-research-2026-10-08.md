@@ -39,7 +39,7 @@
 
 隔离脚本位于被忽略的 `tmp/2026-10-08-chatgpt-research/siwc-connectivity.py`。已完成语法检查、真实本地监听启动及授权入口准备。脚本不读取现有 Codex 登录文件、不记录回调 code/token，不向仓库写入凭据；只准备一次无工具文本推理。
 
-截至首次记录，状态为 `awaiting_user_authorization`，推理请求数为 **0**。已向用户提供登录入口；尚不能认定会话连通通过。回调完成后，结果只保留 HTTP 状态、模型、终止事件、测试文本和用量等脱敏事实。实验入口有期限，过期后须生成新 state/nonce/PKCE 再登录。
+首次记录为等待授权、推理0次。随后用户完成页面授权，独立 Coolzhu Agent 身份校验及订阅权限确认通过，令牌交换和模型目录均返回200。目录包含7个可用模型；使用 `gpt-6.1-sol` 仅发送1次无工具请求，收到 `response.completed` 和完全匹配的 `COOLZHU-CONNECTED-ba33bf6c`，用量为输入27、输出16、合计43 tokens。**最简单真实会话连通通过**，没有持久化凭据。脱敏证据见[实验结果](../../testing/2026-10-08-ui-preview/chatgpt-subscription-connectivity-result.json)。实验结束后不继续发送请求；这不构成正式Provider或工具链验收。
 
 ## 后续验收与交付边界
 
