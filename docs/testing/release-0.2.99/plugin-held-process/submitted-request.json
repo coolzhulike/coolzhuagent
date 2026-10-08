@@ -1,0 +1,10 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "PLUGIN-INSTALLED099-HELD-PROCESS-20261008：正式0.2.99真实插件清理专项。只调用一次工具 dsh__1ef9be67fd4ddb42d93d68c084b38983，参数 {\"url\": \"http://127.0.0.1:50818/revoke-20261008\", \"allowPrivate\": true, \"timeoutMs\": 60000, \"maxBytes\": 1024}。调用之后测试端会正常停用插件。仅报告原始宿主投递、取消及cleanup_confirmed事实，不推断Windows进程是否退出。禁止重试、补发、其它工具、其它网址、shell、CU、新云端会话；旧任务已结束，沿用现有唯一远端。收到取消后结束回复。",
+  "attachments": []
+}
