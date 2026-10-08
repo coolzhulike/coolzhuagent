@@ -87,3 +87,12 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 
 
 2026-10-08文本文件增量：0.2.96之后源码候选已补受控UTF-8/UTF-16文本快照、当前预算完整性和历史投影；真实SWE/唯一island-kayak由两份附件推导343和代号，完成7步Browser拒绝→复核→重提，单attempt end_turn/drained且解锁。四项附件负例400、零模型派发。正常点击UTF-16附件发现预览乱码，已修正并重启候选实拍。候选完整控制台1407/0/6忽略、联动8通过；正式安装复验待补。GUI文件选择器被实操工具跨进程目标识别限制，正常上传API不替代GUI通过。见[候选报告与原始实拍](../../testing/2026-10-08-text-attachments/report.md)。PDF/音视频、Goal/Relay附件及其它会话边界保持开放。
+
+
+## 2026-10-08 0.2.97正式文本附件综合验收闭环
+
+- 发送时受控正文快照/历史投影、UTF-16预览修复冻结0b4fddc；正常完整构建六门pass、管理员安装0、1159文件长度/SHA一致，构建源码两路CI成功。
+- 原SWE-2-medium/唯一island-kayak读取新UTF-8 CSV与UTF-16BE备注，使用已选SKILL，仅调用一次真实calculator算得787，再以一次perform完成7步原生Browser，首次业务拒绝后勾复核重提。可信提交false→true、点击released、文本not_needed、CU成功，单attempt/end_turn/drained/绑定解锁。
+- 正式聊天室正常加载本轮消息#665/#666及6分4秒耗时；点击UTF-16BE附件在右栏正确显示中文和实际代号。四项非法附件HTTP400，模型attempt927/消息1136前后均未增加。API上传不替代GUI选择器通过；该缺口保留。
+- [097交接与实拍](../../testing/release-0.2.97/change-report-and-test-handoff.md)。已公开GitHub预发布四资产，服务器端长度/SHA与本地一致，tag0b4fddc；未签名，不冒称整体完成。
+- 下一项优先浏览器新nativeTarget与跨来源commit窄时序，随后其它剩余矩阵；本轮7步文本综合不替代严格时序证明。ChatGPT订阅最小一次连通已通过，不再重复调用；正式订阅Provider不在该最小实验交付内。Goal保持active，Paint免测、微信不动、Opus暂停，不使用子代理。
