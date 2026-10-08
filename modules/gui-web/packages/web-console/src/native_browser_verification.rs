@@ -13,6 +13,29 @@ fn unavailable(message: &str) -> ComputerUseError {
     ComputerUseError::blocked("native_browser_observation_unavailable", message, ComputerUseRetryOwner::User)
 }
 
+/// 进展和最终验收分离；随机节点引用及可选采样缺失不能伪造进展。
+pub(super) fn visible_progress(before: &Observation, after: &Observation) -> bool {
+    let before=&before.state["page"];
+    let after=&after.state["page"];
+    if ["nodes","focused_node_index","viewport","url","title"].iter()
+        .any(|key|before[key]!=after[key]) {return true;}
+    if before["document_token"].as_str().is_none() || before["document_token"]!=after["document_token"] {
+        return false;
+    }
+    let Some(previous)=before["document_viewports"].as_array() else {return false;};
+    let Some(current)=after["document_viewports"].as_array() else {return false;};
+    previous.iter().any(|old| {
+        let Some(index)=old["index"].as_u64() else {return false;};
+        let Some(new)=current.iter().find(|new|new["index"].as_u64()==Some(index)) else {return false;};
+        let viewport=|v:&serde_json::Value|serde_json::from_value::<native_browser_protocol::PageViewport>(v.clone())
+            .ok().filter(|v|v.valid_shape());
+        match (viewport(&old["viewport"]),viewport(&new["viewport"])) {
+            (Some(old),Some(new))=>old!=new,
+            _=>false,
+        }
+    })
+}
+
 fn initial_source(request:&ComputerUseRequest,page:&serde_json::Value) -> Option<crate::native_browser_adapter::InitialPageSource> {
     if request.target.as_ref().and_then(|target|target.url.as_deref()).is_some() {return None;}
     serde_json::from_value::<crate::native_browser_adapter::InitialPageSource>(page.get("initial_page_source")?.clone())
@@ -233,6 +256,23 @@ pub(super) fn finish(raw: &str, request: &ComputerUseRequest, observation: &Obse
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn child_scroll_counts_as_progress_without_text_change_or_goal_success() {
+        let mut before=Observation {generation:1,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
+            state:json!({"page":{"document_token":"same-document","nodes":[],"document_viewports":[
+                {"index":12,"viewport":{"page_x":0,"page_y":0,"width":300,"height":245}}]}}),evidence:vec![]};
+        let mut after=before.clone();after.generation=2;
+        after.state["page"]["document_viewports"][0]["viewport"]["page_y"]=json!(119.33);
+        assert!(visible_progress(&before,&after));
+        before=after.clone();
+        after.state["page"]["elements"]=json!([{"reference":"fresh-random-reference"}]);
+        assert!(!visible_progress(&before,&after));
+        after.state["page"]["document_viewports"]=json!([]);
+        assert!(!visible_progress(&before,&after),"缺失采样不能算移动");
+        after=before.clone();after.state["page"]["document_token"]=json!("different-document");
+        after.state["page"]["document_viewports"][0]["viewport"]["page_y"]=json!(240);
+        assert!(!visible_progress(&before,&after),"不同文档不能比较旧滚动偏移");
+    }
 
     #[test]
     fn implicit_current_page_needs_frozen_host_source_and_cannot_override_explicit_url() {

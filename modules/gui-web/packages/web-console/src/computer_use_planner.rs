@@ -871,8 +871,7 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
             let mut verified=self.verify_native_readonly(request,after,remaining).await?;
             if after.state["page"]["read_only_request"]==false {
                 // 聚焦是后续按键/输入的真实中间状态；随机观察引用变化不算进展。
-                verified.visible_progress=["nodes","focused_node_index","viewport","url","title"].iter()
-                    .any(|key|before.state["page"][key]!=after.state["page"][key]);
+                verified.visible_progress=crate::native_browser_verification::visible_progress(before,after);
             }
             return Ok(verified);
         }
