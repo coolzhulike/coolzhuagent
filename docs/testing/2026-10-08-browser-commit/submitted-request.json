@@ -1,0 +1,11 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "native_browser_panel": true,
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "BU-INSTALLED098-CROSS-ORIGIN-COMMIT-20261008：正式安装版按下期间跨来源HTTP提交专项，仅一次computer_use_perform(surface=\"browser\",省略target,max_actions=1)，根据本轮新鲜节点点击“按下期间跨来源提交”一次。页面在真实pointerdown内发起从127.0.0.1到localhost的HTTP导航，并有2400毫秒按下处理；以独立网页时间戳验证实际提交时刻，不推断一定命中。导航后不得继续点击、输入或补发；新页面仅观察原动作是否释放。只报告真实宿主投递、释放与终态。允许read_request完整分页后respond、wait取最终结果。禁止重开、重试、脚本、shell、原生文件、其它工具或新云端会话；未知输入立即停止。旧任务均已结束。",
+  "attachments": []
+}

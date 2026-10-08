@@ -36,7 +36,7 @@
 | 5.1 凭据 | Windows受保护存储`secret_protection.rs`已存在，配置密钥不回显，新连接器不继承别平台密钥。 | 中途失败/换设备恢复与全来源迁移矩阵未完整。 |
 | 5.2 隔离/监督 | 固定来源、独立宿主、子进程监督与权限资格已实现部分；真实插件取消证据存在。 | 独立进程/固定来源不能当OS沙箱证明；完整逃逸/句柄继承矩阵未验。 |
 | 5.3 MCP | 当前Web正式宿主只接stdio，其它transport按已有范围裁决延期。 | OAuth/所有transport生命周期不宣称已交付；保持原兼容名与碰撞检查。 |
-| 5.4 LSP/PTY | `lsp_host.rs`、`terminal_host.rs`真实模块已接线，非只有按钮。 | 098正常release及1159安装文件SHA通过；真实Unicode、1MiB/17页、侧栏恢复/退出尾部、归属409及重建关闭已正式独立通过。受控宿主异常退出后持有Win32后代句柄确认signaled，重启后旧句柄409/terminal absent；见[098交接](../../testing/release-0.2.98/change-report-and-test-handoff.md)。跨工作区完整矩阵、LSP与全屏TUI仍开放，不将整个工作包标完成。 |
+| 5.4 LSP/PTY | `lsp_host.rs`、`terminal_host.rs`真实模块已接线，非只有按钮。 | 098正常release及1159安装文件SHA通过；真实Unicode、1MiB/17页、侧栏恢复/退出尾部、归属409及重建关闭已正式独立通过。受控宿主异常退出后持有Win32后代句柄确认signaled，重启后旧句柄409/terminal absent；见[098交接](../../testing/release-0.2.98/change-report-and-test-handoff.md)。098真实LSP异常退出、显式重启、旧句柄拒绝、定义/引用恢复和诊断定位、正常close持有句柄退出已补验，[专项](../../testing/release-0.2.98/lsp-lifecycle/report.md)。跨工作区完整矩阵、LSP启动进行中切换与全屏TUI仍开放，不将整个工作包标完成。 |
 | 5.5 连接器 | Browser独立Target/nonce/重启已有多版本证据；语音/桌宠领域保留。 | 微信不改不测；其它连接器共享取消身份矩阵尚未全完成。 |
 | 6.1 运维/诊断 | 运行轨迹、健康与审计页面存在，调试信息移至轨迹，未默认外发遥测。 | 磁盘配额/日志轮转/完整脱敏导出缺演练。 |
 | 6.2 迁移/升级 | 多轮正常MSI安装、自检与原工程恢复通过，当前093。 | 升级失败恢复、停写WAL成套备份及新写入保全演练未完整。 |

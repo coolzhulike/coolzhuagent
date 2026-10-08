@@ -9405,6 +9405,26 @@ async fn api_project_search_files(
             score.map(|value| (value, file))
         })
         .collect();
+    // 完整相对路径直接查盘，使新建文件无需等待整库符号重建就能打开。
+    // 模糊检索仍复用索引；路径解析沿用工程文件接口的工作区边界。
+    if let Ok(path) = resolve_project_existing_path(&root, Some(needle)) {
+        if let Ok(metadata) = std::fs::metadata(&path) {
+            if metadata.is_file() {
+                if let Ok(canonical_root) = root.canonicalize() {
+                    let relative = relative_project_path(&canonical_root, &path);
+                    scored.retain(|(_, file)| file.path != relative);
+                    scored.push((
+                        1100,
+                        IdeFileEntry {
+                            path: relative,
+                            size: metadata.len(),
+                            mtime: metadata.modified().ok().and_then(system_time_millis),
+                        },
+                    ));
+                }
+            }
+        }
+    }
     scored.sort_by(|left, right| right.0.cmp(&left.0));
     let files = scored
         .into_iter()
@@ -11150,11 +11170,29 @@ fn project_tree_node(
         project_tree_append_child(
             root,
             &entry.path(),
-            depth - 1,
+            0,
             remaining,
             &mut node,
             warnings,
         );
+    }
+    // 先为当前目录的条目分配额度，避免第一个大子目录吞掉后续同级文件。
+    // 用户仍可双击目录单独浏览；剩余额度只用于预展开。
+    if depth > 1 {
+        for child in &mut node.children {
+            if child.kind != "dir" || *remaining == 0 {
+                continue;
+            }
+            let child_path = root.join(&child.relative_path);
+            match project_tree_node(root, &child_path, depth - 1, remaining, warnings) {
+                Ok(expanded) => *child = expanded,
+                Err((_, Json(error))) => warnings.push(format!(
+                    "{}: children omitted: {}",
+                    display_path(&child_path),
+                    error.error
+                )),
+            }
+        }
     }
     Ok(node)
 }
@@ -59560,6 +59598,50 @@ pub(crate) mod tests {
         .expect_err("path escape should fail");
 
         assert_eq!(error.0, axum::http::StatusCode::FORBIDDEN);
+    }
+
+    #[test]
+    fn project_tree_large_child_keeps_sibling_files_within_limit() {
+        let temp = tempfile::tempdir().expect("temp workspace");
+        let root = temp.path().canonicalize().unwrap();
+        let large = root.join("a-large");
+        std::fs::create_dir(&large).unwrap();
+        for index in 0..20 {
+            std::fs::write(large.join(format!("{index:02}.rs")), "fn sample() {}\n").unwrap();
+        }
+        std::fs::write(root.join("z-current.rs"), "fn current() {}\n").unwrap();
+        let mut remaining = 5;
+        let tree = super::project_tree_node(&root, &root, 4, &mut remaining, &mut Vec::new())
+            .expect("tree should load");
+        assert_eq!(tree.children.len(), 2);
+        assert!(tree.children.iter().any(|child| child.name == "z-current.rs"));
+        let large = tree.children.iter().find(|child| child.name == "a-large").unwrap();
+        assert_eq!(large.children.len(), 3);
+        assert_eq!(large.omitted_count, 17);
+        assert_eq!(remaining, 0);
+    }
+
+    #[tokio::test]
+    async fn project_file_search_finds_new_exact_path_with_stale_index() {
+        let _guard = config_test_guard();
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().canonicalize().unwrap();
+        std::fs::write(root.join("old.rs"), "fn old() {}\n").unwrap();
+        super::reload_workspace_scope(root.clone()).unwrap();
+        super::ensure_files_index(&root).unwrap();
+        std::fs::create_dir(root.join("src")).unwrap();
+        std::fs::write(root.join("src/new.rs"), "fn new() {}\n").unwrap();
+        let Json(response) = super::api_project_search_files(axum::extract::Query(
+            super::ProjectSearchFilesQuery {
+                query: Some("src/new.rs".to_string()),
+                limit: Some(1),
+            },
+        ))
+        .await
+        .unwrap();
+        assert_eq!(response.files.len(), 1);
+        assert_eq!(response.files[0].path, "src/new.rs");
+        assert!(response.files[0].size > 0);
     }
 
     #[test]

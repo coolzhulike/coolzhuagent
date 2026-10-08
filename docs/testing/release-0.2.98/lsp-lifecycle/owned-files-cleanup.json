@@ -1,0 +1,26 @@
+{
+  "removed_owned_files": [
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\Cargo.toml",
+      "actual_sha256": "046bf84dde5cec3f62267c040f0e8df3685b1a5c2b24627747f1ec8e56d8897d",
+      "normalized_line_endings_used_for_initial_ledger": false
+    },
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\tmp\\lsp-098\\src\\lib.rs",
+      "actual_sha256": "973de9a267311e092f6fed1a7cf87e2fa760ac433a42257dc6248381d9c8ae51",
+      "normalized_line_endings_used_for_initial_ledger": true
+    },
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\lsp-098.rs",
+      "actual_sha256": "973de9a267311e092f6fed1a7cf87e2fa760ac433a42257dc6248381d9c8ae51",
+      "normalized_line_endings_used_for_initial_ledger": false
+    },
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\lsp-live-new-099.rs",
+      "actual_sha256": "7d08a600046be339c3d58f1b85956a5a2b073331f86df22243eba2cbd8a1ce48",
+      "normalized_line_endings_used_for_initial_ledger": false
+    }
+  ],
+  "retained_generated_tmp_cargo_lock_and_target": true,
+  "lsp_running": false
+}

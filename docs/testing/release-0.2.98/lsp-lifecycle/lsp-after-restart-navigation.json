@@ -1,0 +1,57 @@
+{
+  "diagnostics": {
+    "diagnostics": [
+      {
+        "character": 8,
+        "line": 5,
+        "message": "Syntax Error: expected pattern",
+        "severity": "Error"
+      },
+      {
+        "character": 11,
+        "line": 5,
+        "message": "Syntax Error: expected expression",
+        "severity": "Error"
+      },
+      {
+        "character": 12,
+        "line": 5,
+        "message": "Syntax Error: expected SEMICOLON",
+        "severity": "Error"
+      },
+      {
+        "character": 9,
+        "line": 5,
+        "message": "expected pattern, found `=`\nexpected pattern",
+        "severity": "Error"
+      }
+    ],
+    "handle": "047231da371edec5dfd5e9056cb2c8eb",
+    "path": "lsp-098.rs"
+  },
+  "definition": {
+    "handle": "047231da371edec5dfd5e9056cb2c8eb",
+    "locations": [
+      {
+        "character": 8,
+        "line": 1,
+        "path": "lsp-098.rs"
+      }
+    ]
+  },
+  "references": {
+    "handle": "047231da371edec5dfd5e9056cb2c8eb",
+    "locations": [
+      {
+        "character": 17,
+        "line": 4,
+        "path": "lsp-098.rs"
+      },
+      {
+        "character": 8,
+        "line": 1,
+        "path": "lsp-098.rs"
+      }
+    ]
+  }
+}
