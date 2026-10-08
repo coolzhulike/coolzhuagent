@@ -4860,6 +4860,25 @@ function renderTaskScheduleSessionOptions() {
   }
 }
 
+function renderTaskScheduleRoomOptions() {
+  const select = document.querySelector('[data-role="task-schedule-room"]');
+  if (!select) return;
+  const current = select.value || activeChatRoomId || "";
+  select.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "请选择结果聊天室";
+  select.append(placeholder);
+  (chatRoomRegistry.rooms || []).forEach((room) => {
+    const option = document.createElement("option");
+    option.value = room.id;
+    option.textContent = `结果聊天室：${room.name || room.id}`;
+    select.append(option);
+  });
+  // 已删除目标保持空选项，不能无提示改投其它房间。
+  select.value = current;
+}
+
 // 目标推进型：把可绑定目标填入选择器（数据来自 refreshTaskSchedules 拉取的 /api/goals）。
 function renderTaskScheduleGoalOptions() {
   const select = document.querySelector('[data-role="task-schedule-goal"]');
@@ -4892,10 +4911,12 @@ function renderTaskScheduleGoalOptions() {
 function taskScheduleSyncTaskKindVisibility() {
   const kind = document.querySelector('[data-role="task-schedule-task-kind"]')?.value || "poll";
   const goalSelect = document.querySelector('[data-role="task-schedule-goal"]');
+  const roomSelect = document.querySelector('[data-role="task-schedule-room"]');
   const content = document.querySelector('[data-role="task-schedule-content"]');
   if (goalSelect) {
     goalSelect.hidden = kind !== "goal";
   }
+  if (roomSelect) roomSelect.hidden = kind === "goal";
   if (content) {
     content.placeholder =
       kind === "goal"
@@ -4906,6 +4927,7 @@ function taskScheduleSyncTaskKindVisibility() {
 
 function taskRenderSchedules(registry = {}, error = null) {
   renderTaskScheduleSessionOptions();
+  renderTaskScheduleRoomOptions();
   renderTaskScheduleGoalOptions();
   taskScheduleSyncTaskKindVisibility();
   const list = document.querySelector('[data-role="task-schedule-list"]');
@@ -4980,6 +5002,10 @@ function taskRenderSchedules(registry = {}, error = null) {
       isGoal && task.goal_id
         ? `<small class="task-schedule-goal-line">目标：${escapeHtml(goalTitleOf(task.goal_id))}</small>`
         : "";
+    const resultRoom = (chatRoomRegistry.rooms || []).find((room) => room.id === task.chat_room_id);
+    const roomLine = isGoal ? "" : `<small>结果聊天室：${escapeHtml(task.chat_room_id
+      ? (resultRoom?.name || `已删除或不可用（${task.chat_room_id}）`)
+      : "定时任务（系统聊天室）")}</small>`;
     const errLine = task.last_error
       ? `<small class="task-schedule-error"><img class="wuxia-inline-icon" src="./assets/icons-wuxia/alert-triangle.svg" alt="" /> ${escapeHtml(task.last_error)}</small>`
       : "";
@@ -4989,6 +5015,7 @@ function taskRenderSchedules(registry = {}, error = null) {
         <span class="task-schedule-badge ${isGoal ? "is-goal" : "is-poll"}">${kindBadge}</span>
         <p>${escapeHtml(task.content || "")}</p>
         ${goalLine}
+        ${roomLine}
         <small>${escapeHtml(taskScheduleMetaLine(task, describeSchedule))}</small>
         ${occurrenceLine}
         ${errLine}
@@ -5031,6 +5058,7 @@ function taskSchedulePayloadFromForm() {
     tz_offset_minutes: tzOffset,
     task_kind: taskKind,
     goal_id: taskKind === "goal" ? goalId : null,
+    chat_room_id: taskKind === "poll" ? (document.querySelector('[data-role="task-schedule-room"]')?.value || "") : null,
   };
   if (kind === "daily" || kind === "weekly") {
     const wall = document.querySelector('[data-role="task-schedule-wall-time"]')?.value || "10:00";
@@ -5063,6 +5091,10 @@ async function taskScheduleCreate(event) {
   }
   if (payload.task_kind === "goal" && !payload.goal_id) {
     addMessage({ author: "定时任务", text: "目标推进型任务需要绑定目标（请先在目标模式中创建）。", kind: "thought", icon: "warn-log" });
+    return;
+  }
+  if (payload.task_kind === "poll" && !payload.chat_room_id) {
+    addMessage({ author: "定时任务", text: "请选择结果聊天室；任务将固定投递到所选聊天室。", kind: "thought", icon: "warn-log" });
     return;
   }
   setBusy(button, true, "添加中");
@@ -9344,6 +9376,7 @@ async function loadChatRooms() {
   taskRenderFullAccessStatus(activeChatRoomId ? { room_id: activeChatRoomId, loading: true } : {});
   clearStaleApprovalForActiveScope();
   renderChatRoomList(registry.rooms, activeChatRoomId);
+  renderTaskScheduleRoomOptions();
 
   const active = registry.rooms.find((room) => room.id === activeChatRoomId) ?? registry.rooms[0];
   if (active) {

@@ -35,6 +35,7 @@ mod computer_use_turn_scope;
 mod chat_insights;
 mod static_resource_contract;
 mod scheduled_execution;
+mod scheduled_delivery;
 mod scheduled_jobs;
 mod workspace_activity;
 mod runtime_tool_supervision;
@@ -7875,6 +7876,9 @@ struct ConfigScheduledTasks {
 struct ConfigScheduledTask {
     id: String,
     target_session_id: String,
+    /// 缺省沿用旧系统房间；None 不参与序列化，保持旧领取指纹。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    chat_room_id: Option<String>,
     content: String,
     run_at_ms: u64,
     #[serde(default)]
@@ -9988,6 +9992,8 @@ async fn api_task_schedules() -> Json<TaskScheduleListResponse> {
 async fn api_create_task_schedule(
     Json(payload): Json<TaskScheduleCreateRequest>,
 ) -> ApiResult<Json<TaskScheduleListResponse>> {
+    let _workspace_pin = workspace_activity::pin_workspace()
+        .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
     let content = payload.content.trim();
     if content.is_empty() {
         return Err(api_error(
@@ -10002,7 +10008,7 @@ async fn api_create_task_schedule(
             "scheduled task target session cannot be empty",
         ));
     }
-    {
+    let chat_room_id = {
         let store = session_store().lock().map_err(|_| {
             api_error(
                 StatusCode::INTERNAL_SERVER_ERROR,
@@ -10020,7 +10026,8 @@ async fn api_create_task_schedule(
                 "scheduled task target session does not exist",
             ));
         }
-    }
+        scheduled_delivery::validate_room(&store, payload.chat_room_id.as_deref(), &payload.task_kind)?
+    };
 
     let now = unix_timestamp_millis();
     let schedule_kind = match payload.schedule_kind.trim() {
@@ -10078,6 +10085,7 @@ async fn api_create_task_schedule(
     let task = ConfigScheduledTask {
         id,
         target_session_id,
+        chat_room_id,
         content: content.to_string(),
         run_at_ms,
         interval_ms,
@@ -10408,7 +10416,7 @@ async fn run_due_task_schedules_once() -> Vec<TaskScheduleRunItem> {
                 }
             }
         } else {
-            match deliver_scheduled_task(task).await {
+            match scheduled_delivery::deliver(task).await {
                 Ok(()) => ScheduledRunOutcome {
                     id: task.id.clone(),
                     executed: true,
@@ -10418,7 +10426,7 @@ async fn run_due_task_schedules_once() -> Vec<TaskScheduleRunItem> {
                 },
                 Err(err) => {
                     let message = api_error_message(err);
-                    append_scheduled_task_status_best_effort("failed", &message);
+                    scheduled_delivery::append_status_best_effort(task, "failed", &message);
                     ScheduledRunOutcome {
                         id: task.id.clone(),
                         executed: false,
@@ -10508,50 +10516,6 @@ fn spawn_scheduled_task_scheduler() {
             }
         }
     });
-}
-
-async fn deliver_scheduled_task(task: &ConfigScheduledTask) -> ApiResult<()> {
-    // 校验目标会话并幂等创建系统聊天室（锁在此块内获取并立即释放，不跨 await）。
-    {
-        let mut store = session_store().lock().map_err(|_| {
-            api_error(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "session store lock failed",
-            )
-        })?;
-        if !store
-            .state
-            .sessions
-            .iter()
-            .any(|session| session.id == task.target_session_id)
-        {
-            return Err(api_error(
-                StatusCode::NOT_FOUND,
-                "scheduled task target session does not exist",
-            ));
-        }
-        store.ensure_scheduled_task_system_room()?;
-    }
-    // 权限只属于本次投递，不修改会话全权缓存；结束/取消会撤销已捕获引用。
-    let scoped_grant = task.permissions.iter().any(|permission| permission == "full-access")
-        .then(|| scheduled_execution::ScheduledExecutionGrant::new(
-            workspace_identity(&active_workspace_path()),
-            task.target_session_id.clone(),
-            SCHEDULED_TASK_SYSTEM_ROOM_ID.to_string(),
-            Duration::from_secs(300),
-        ));
-    let request = SendMessageRequest {
-        expected_workspace_id: None,
-        native_browser_panel: false,
-        session_id: Some(task.target_session_id.clone()),
-        chat_room_id: Some(SCHEDULED_TASK_SYSTEM_ROOM_ID.to_string()),
-        target_agent_ids: vec![task.target_session_id.clone()],
-        text: task.content.clone(),
-        selected_message_ids: None,
-        attachments: None,
-    };
-    scheduled_execution::run(scoped_grant, api_chat_send(axum::Json(request)))
-        .await.map(|_| ())
 }
 
 fn append_scheduled_task_status_best_effort(status: &str, detail: &str) {
@@ -34865,6 +34829,10 @@ fn persist_chat_dispatch(
     let mut store = session_store()
         .lock()
         .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
+    // 在同一存储短锁内复核；排队/执行期间删除的房间不能被晚到输入或回复自动重建。
+    if !store.state.chat_rooms.iter().any(|room| room.id == chat_room_id) {
+        return Err(api_error(StatusCode::NOT_FOUND, "目标聊天室已不存在，未重新创建或改投其它聊天室"));
+    }
     store.append_chat_dispatch_once(chat_room_id, conversation_session_id, targets, messages)?;
     Ok(())
 }
@@ -41628,6 +41596,18 @@ impl SessionStore {
         detail: &str,
     ) -> ApiResult<()> {
         self.ensure_scheduled_task_system_room()?;
+        self.append_scheduled_task_status_in_room(SCHEDULED_TASK_SYSTEM_ROOM_ID, status, detail)
+    }
+
+    /// 只向既有目标房间写状态；删除目标后不能借错误提示创建或切换其它房间。
+    fn append_scheduled_task_status_in_room(
+        &mut self,
+        room_id: &str,
+        status: &str,
+        detail: &str,
+    ) -> ApiResult<()> {
+        let room = self.state.chat_rooms.iter_mut().find(|room| room.id == room_id)
+            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "定时任务的结果聊天室已不存在"))?;
         let now = unix_timestamp_millis();
         // 精简：内容裁到 80 字符以内。
         let trimmed: String = detail.chars().take(80).collect();
@@ -41638,13 +41618,7 @@ impl SessionStore {
             "executed" => format!("[完成] {trimmed}"),
             other => format!("[{other}] {trimmed}"),
         };
-        let sequence = self
-            .state
-            .chat_rooms
-            .iter()
-            .find(|room| room.id == SCHEDULED_TASK_SYSTEM_ROOM_ID)
-            .map(|room| room.messages.len())
-            .unwrap_or(0);
+        let sequence = room.messages.len();
         let message = PersistedChatMessage {
             id: format!("sched-status-{now}-{sequence}"),
             author: "COOLZHU AGENT".to_string(),
@@ -41655,15 +41629,8 @@ impl SessionStore {
             attachments: Vec::new(),
             created_at: now,
         };
-        if let Some(room) = self
-            .state
-            .chat_rooms
-            .iter_mut()
-            .find(|room| room.id == SCHEDULED_TASK_SYSTEM_ROOM_ID)
-        {
-            room.messages.push(message);
-            room.updated_at = now;
-        }
+        room.messages.push(message);
+        room.updated_at = now;
         self.save()
     }
 
@@ -53768,6 +53735,8 @@ struct ProjectDiffFilesResponse {
 #[derive(Debug, Deserialize)]
 struct TaskScheduleCreateRequest {
     target_session_id: String,
+    #[serde(default)]
+    chat_room_id: Option<String>,
     content: String,
     #[serde(default)]
     run_at_ms: u64,
@@ -68627,125 +68596,6 @@ attach: last_assistant
             .as_deref()
             .unwrap_or_default()
             .contains("Never use this tool to retry failed desktop/browser automation"));
-    }
-
-    #[tokio::test(flavor = "current_thread")]
-    async fn task_schedule_run_due_uses_system_room_without_changing_active_room() {
-        let _guard = config_test_guard();
-        let temp = tempfile::tempdir().expect("tempdir");
-        let now = super::unix_timestamp_millis();
-        let workspace = temp.path().canonicalize().unwrap();
-        let db_path = temp.path().join("sessions.sqlite3");
-        let store = super::SessionStore {
-            history_edits: Vec::new(),
-            committed_state: None,
-            path: db_path,
-            legacy_json_path: temp.path().join("sessions.json"),
-            capacity: super::SessionStoreCapacity::default(),
-            state: super::PersistedSessionState {
-                sessions: vec![super::PersistedSession {
-                    id: "target-agent".to_string(),
-                    name: "target-agent".to_string(),
-                    provider: "Custom".to_string(),
-                    model: "qwen".to_string(),
-                    avatar: None,
-                    api_key_ref: String::new(),
-                    base_url: None,
-                    endpoint: None,
-                    reasoning_effort: "medium".to_string(),
-                    model_type: "text".to_string(),
-                    memory_beads: Vec::new(),
-                    created_at: now,
-                    updated_at: now,
-                    context_reset_at: 0,
-                    messages: Vec::new(),
-                }],
-                active_session_id: Some("target-agent".to_string()),
-                active_vision_session_id: None,
-                chat_rooms: vec![super::PersistedChatRoom {
-                    id: "room-user-active".to_string(),
-                    name: "当前聊天室".to_string(),
-                    created_at: now,
-                    updated_at: now,
-                    messages: Vec::new(),
-                }],
-                active_chat_room_id: Some("room-user-active".to_string()),
-            },
-        };
-        let prev_workspace = {
-            let mut guard = super::workspace_state().lock().expect("workspace state");
-            std::mem::replace(&mut guard.current, workspace.clone())
-        };
-        let prev_config = {
-            let mut guard = super::workspace_config().lock().expect("config");
-            std::mem::replace(&mut *guard, super::WorkspaceConfig::default())
-        };
-        let prev_store = {
-            let mut guard = super::session_store().lock().expect("session store");
-            std::mem::replace(&mut *guard, store)
-        };
-
-        let Json(created) =
-            super::api_create_task_schedule(axum::Json(super::TaskScheduleCreateRequest {
-                target_session_id: "target-agent".to_string(),
-                content: "run nightly verification".to_string(),
-                run_at_ms: 1,
-                interval_ms: None,
-                permissions: vec!["full-access".to_string()],
-                schedule_kind: "once".to_string(),
-                wall_hour: 0,
-                wall_minute: 0,
-                weekdays: Vec::new(),
-                tz_offset_minutes: 0,
-                task_kind: "poll".to_string(),
-                goal_id: None,
-            }))
-            .await
-            .expect("create schedule");
-        assert_eq!(created.tasks.len(), 1);
-        assert!(created.dev_open_permissions == super::dev_open_tool_permissions_enabled());
-
-        let Json(run) = super::api_run_due_task_schedules().await.expect("run due");
-        assert_eq!(run.ran.len(), 1);
-        assert_eq!(run.ran[0].status, "executed");
-        {
-            let guard = super::session_store().lock().expect("session store");
-            assert_eq!(
-                guard.active_chat_room_id().as_deref(),
-                Some("room-user-active")
-            );
-            assert_eq!(
-                guard.state.sessions[0].messages[0].content,
-                "run nightly verification"
-            );
-            let room = guard
-                .state
-                .chat_rooms
-                .iter()
-                .find(|room| room.id == super::SCHEDULED_TASK_SYSTEM_ROOM_ID)
-                .expect("scheduled task system room");
-            assert_eq!(room.name, "定时任务");
-            assert!(room
-                .messages
-                .iter()
-                .any(|message| message.content == "run nightly verification"));
-        }
-
-        let _ = std::mem::replace(
-            &mut super::workspace_state()
-                .lock()
-                .expect("workspace state")
-                .current,
-            prev_workspace,
-        );
-        let _ = std::mem::replace(
-            &mut *super::workspace_config().lock().expect("config"),
-            prev_config,
-        );
-        let _ = std::mem::replace(
-            &mut *super::session_store().lock().expect("session store"),
-            prev_store,
-        );
     }
 
     #[test]

@@ -1,6 +1,6 @@
 # 04整合计划32工作包执行复核
 
-ACP登记前拒绝证据缺口已做最小源码修补：复用原运行事件，仅记录dispatch入口live/tool_live拒绝的固定原因码/阶段/请求摘要，不保存参数，不增加执行台账或权限；审计写入失败仍拒绝。既有宿主回归补少量断言，offline build及完整1418/0/6既有忽略通过，[候选验证](../../testing/2026-10-08-acp-rejection-evidence/report.md)。尚未出包实机，正式101旧轮不追认。定时真实SWE复用原房间的[实施前风险审查](scheduler-room-binding-design-2026-10-08.md)另列，发现新增配置字段必须保持旧领取指纹，未为验收创建第二云会话。
+ACP登记前拒绝证据缺口已做最小源码修补：复用原运行事件，仅记录dispatch入口live/tool_live拒绝的固定原因码/阶段/请求摘要，不保存参数，不增加执行台账或权限；审计写入失败仍拒绝。既有宿主回归补少量断言，offline build及完整1418/0/6既有忽略通过，[候选验证](../../testing/2026-10-08-acp-rejection-evidence/report.md)。尚未出包实机，正式101旧轮不追认。定时任务[房间绑定源码候选](../../testing/2026-10-08-scheduler-room-binding/report.md)已完成：新poll明确固定结果聊天室，None保留旧领取字节，目标删除不改投，单次权限作用域准确；另修正HTTP200失败被算成功。offline build、JS语法及完整1420/0/6既有忽略通过，旧失效模型用例的失败日志保留。正式101及唯一island保持，新正式包真实SWE定时/重启/未知结果矩阵仍待，不算已验收。
 
 101正式DSH源码变化观察：真实SWE submitted后仅改变既有验收插件的一处无语义注释，工具执行登记0、独立网络GET0，父run completed/ACP end_turn/drained/唯一绑定解锁；排空后按SHA恢复，临时白名单及插件启用状态恢复、revision37。具体登记前拒绝未独立持久化，仅有模型转述，因此只关闭零派发与清理观察，不追认完整源码/许可竞争矩阵通过。见[原事实与实拍](../../testing/release-0.2.101/plugin-source-race/report.md)。Browser严格时序及源码候选正式复验继续开放。
 

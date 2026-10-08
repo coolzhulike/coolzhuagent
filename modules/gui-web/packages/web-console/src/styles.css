@@ -5147,6 +5147,7 @@ body.ui-3d .avatar-picker.is-portal {
 }
 
 .task-schedule-main-grid > [data-role="task-schedule-goal"],
+.task-schedule-main-grid > [data-role="task-schedule-room"],
 .task-schedule-main-grid > [data-role="task-schedule-time"],
 .task-schedule-main-grid > [data-role="task-schedule-interval-min"],
 .task-schedule-weekdays {
