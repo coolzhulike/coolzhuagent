@@ -1,0 +1,25 @@
+{
+  "version": "0.2.95",
+  "captured_at": "2026-10-08T17:30:10.778Z",
+  "window": {
+    "app": "process:C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "id": 42666412,
+    "title": "COOLZHU AGENT 控制台"
+  },
+  "screenshots": [
+    {
+      "width": 1443,
+      "height": 563
+    }
+  ],
+  "observed": {
+    "top_logo_visible": true,
+    "permission_full_access_visible": true,
+    "left_shortcuts_visible": true,
+    "right_settings_scrollable": true,
+    "composer_visible": true,
+    "upload_icon_centered": true,
+    "bottom_gold_frame_visible": true
+  },
+  "scope": "1443x563当前显示环境；不代表高DPI或其它宽度通过"
+}

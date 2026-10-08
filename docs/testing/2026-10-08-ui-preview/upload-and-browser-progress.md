@@ -78,3 +78,7 @@
 提供[仿射页面服务](servers/affine-page-server.py)和[文档替换页面服务](servers/strict-document-server.py)，仅服务真实HTML与采集浏览器可信事件，不伪造模型/宿主回执。各自使用新的tmp输出目录启动：`python docs/testing/2026-10-08-ui-preview/servers/affine-page-server.py --output-dir tmp/acceptance-affine-new`（strict同理）。从address.json读取随机端口；仿射打开`/parent.html`、`?mode=perspective`或`?mode=cover`，严格替换打开`/before.html`。停止时在本轮输出目录写stop-server标记，正常关闭服务。不要强杀不明端口。
 
 在当前真实SWE聊天室经正常输入入口提交，保留唯一远端，不使用模型夹具；应分别得到9步整轮成功、两个预检not_sent负例，以及同步替换单次原动作released且新文档无click/input。归档软件截图、宿主结构化结果、页面trusted事件及远端收尾。截图单独不能替代投递和释放事实，负例blocked不得称工具成功。
+
+## 095正式低高度补验
+
+正常Windows窗口菜单调整到1443×563，顶部Logo、完全访问选择、左侧快捷栏、输入框及底部金线均可见，上传图标居中；设置右栏保持内部滚动，正常关闭后聊天区域扩展。原始截图：[设置右栏](installed095-low-height-1443x563.jpg)、[全宽聊天室](installed095-low-height-chat.jpg)，[尺寸事实](installed095-low-height.json)。已恢复大窗口。此前拖拽未命中不计通过；本次仅关闭该宽度/高度的基本布局缺口，不外推高DPI、窄宽度或动态审批状态。

@@ -82,6 +82,7 @@ mod history_persistence;
 mod schema_upgrade;
 mod root_execution_budget;
 mod tool_dispatch_settlement;
+mod tool_dispatch_audit;
 mod tool_invocation_identity;
 mod chat_run_admission;
 mod video_job_budget;
@@ -24193,7 +24194,7 @@ fn computer_use_audit_record(
         .to_string(),
         execute_requested,
         execute_allowed,
-        executed,
+        executed: Some(executed),
         requires_human_confirmation: !executed,
         requires_screenshot_evidence: !executed,
         screenshot_path,
@@ -35994,18 +35995,7 @@ fn chat_handoff_outcome_to_dispatch_response(
         },
         action_plan: None,
         visual_action: None,
-        audit: ComputerUseAuditRecord {
-            audit_id: outcome.call_id.clone(),
-            mode: "handoff".to_string(),
-            execute_requested: true,
-            execute_allowed,
-            executed: execute_allowed,
-            requires_human_confirmation: outcome.permission_gate.decision.requires_ui(),
-            requires_screenshot_evidence: false,
-            screenshot_path: None,
-            permission_gate: safety_gate.clone(),
-            log_path: tool_audit_log_path().display().to_string(),
-        },
+        audit: tool_dispatch_audit::from_outcome(&outcome, "handoff"),
         requires_visual_grounding: false,
         execute_allowed,
         safety_gate,
@@ -36367,18 +36357,7 @@ fn tool_outcome_to_dispatch_response(
         },
         action_plan: None,
         visual_action: None,
-        audit: ComputerUseAuditRecord {
-            audit_id: outcome.call_id.clone(),
-            mode: "runtime".to_string(),
-            execute_requested: execute_allowed,
-            execute_allowed,
-            executed: execute_allowed,
-            requires_human_confirmation: outcome.permission_gate.decision.requires_ui(),
-            requires_screenshot_evidence: false,
-            screenshot_path: None,
-            permission_gate: safety_gate.clone(),
-            log_path: tool_audit_log_path().display().to_string(),
-        },
+        audit: tool_dispatch_audit::from_outcome(&outcome, "runtime"),
         requires_visual_grounding: false,
         execute_allowed,
         safety_gate,
@@ -54633,7 +54612,8 @@ struct ComputerUseAuditRecord {
     mode: String,
     execute_requested: bool,
     execute_allowed: bool,
-    executed: bool,
+    /// null表示终态不足以证明是否已执行；false仅用于确定未派发的路径。
+    executed: Option<bool>,
     requires_human_confirmation: bool,
     requires_screenshot_evidence: bool,
     screenshot_path: Option<String>,
@@ -60097,7 +60077,7 @@ pub(crate) mod tests {
         assert_eq!(response.audit.mode, "dry-run");
         assert!(!response.audit.execute_requested);
         assert!(!response.audit.execute_allowed);
-        assert!(!response.audit.executed);
+        assert_eq!(response.audit.executed, Some(false));
         assert!(response.audit.requires_human_confirmation);
         assert!(response.audit.requires_screenshot_evidence);
         assert_eq!(response.audit.screenshot_path, None);
@@ -81351,8 +81331,8 @@ attach: last_assistant
             "data-role=\"chat-top-status-lantern\" data-state=\"idle\"",
             "data-role=\"chat-top-status-alert\" data-state=\"idle\"",
             "role=\"img\" aria-label=\"系统状态灯：等待自检\"",
-            "assets/ui-redesign/jade-controls-v2/status-jade.png",
-            "assets/ui-redesign/jade-controls-v2/status-lantern.png",
+            "assets/ui-redesign/jade-controls-v3/status-jade.png",
+            "assets/ui-redesign/jade-controls-v3/status-lantern.png",
         ] {
             assert!(top.contains(token), "P5 顶栏交互/叶名标记缺失：{token}");
         }
@@ -81519,17 +81499,16 @@ attach: last_assistant
                 .expect("右栏任务链 footer 必须闭合");
         let footer = &WEB_INDEX_HTML[footer_start..footer_end];
         assert!(footer.contains("data-action=\"chat-task-chain\""));
-        assert!(footer.contains("control-icons/queue-v1.png"));
+        assert!(footer.contains("icons-wuxia/queue.svg"));
         assert!(footer.contains("data-action=\"chat-handoff-manual\""));
-        assert!(footer.contains("control-icons/steer-now-v1.png"));
+        assert!(footer.contains("icons-wuxia/send.svg"));
         for asset in [
-            "queue-v1.png",
-            "steer-now-v1.png",
-            "pause-v1.png",
-            "resume-v1.png",
-            "restore-chat-v1.png",
+            "queue.svg",
+            "send.svg",
+            "pause.svg",
+            "refresh.svg",
         ] {
-            let asset_rel = format!("assets/ui-redesign/three-column/control-icons/{asset}");
+            let asset_rel = format!("assets/icons-wuxia/{asset}");
             let asset_path = Path::new(env!("CARGO_MANIFEST_DIR")).join(&asset_rel);
             assert!(
                 std::fs::metadata(&asset_path)
@@ -81638,7 +81617,7 @@ attach: last_assistant
             "data-handoff-cancel",
             "data-handoff-confirm",
             "data-handoff-close",
-            "steer-now-v1.png",
+            "icons-wuxia/send.svg",
             "modal.addEventListener(\"click\"",
             "event.target === modal",
             "closeTaskChainModal(modal)",
