@@ -138,7 +138,7 @@ mod tests {
         let name = "att-history-shared.png";
         std::fs::write(directory.path().join(name),b"shared-attachment-test").unwrap();
         let mut shared = store.state.sessions[0].messages[0].clone();
-        shared.attachments.push(ChatAttachmentDto { kind:"image".into(),name:name.into(),
+        shared.attachments.push(ChatAttachmentDto { text_snapshot: None, kind:"image".into(),name:name.into(),
             url:format!("/api/attachments/files/{name}"),mime_type:Some("image/png".into()) });
         store.state.sessions[0].messages[0]=shared.clone();
         let mut fork = store.state.sessions[0].clone();

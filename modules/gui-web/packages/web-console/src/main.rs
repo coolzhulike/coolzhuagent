@@ -40,6 +40,7 @@ mod workspace_activity;
 mod runtime_tool_supervision;
 mod chat_tool_history;
 mod multimodal_input;
+mod attachment_text;
 mod model_discovery;
 mod agent_session_backend;
 mod devin_acp;
@@ -21113,9 +21114,6 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
     if devin_text && targets.len()!=1 {
         return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前仅支持单个 Agent 的聊天室会话，群发尚未开放。"));
     }
-    if devin_text && payload.attachments.as_ref().is_some_and(|items| items.iter().any(|item| !item.kind.eq_ignore_ascii_case("image"))) {
-        return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前支持文本与图片附件；其它附件尚未接入，未发送。"));
-    }
     for target in &targets {
         if agent_session_backend::AgentSessionBackend::for_provider(&target.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
             if !devin_acp::chat::valid_model_id(&target.model) {
@@ -21127,7 +21125,8 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         }
     }
     let attachment_count = payload.attachments.as_ref().map_or(0, Vec::len);
-    let attachments = payload.attachments.unwrap_or_default();
+    let mut attachments = payload.attachments.unwrap_or_default();
+    attachment_text::freeze(&mut attachments, &attachment_store_dir(), devin_text)?;
     let image_urls = encode_attachment_images(&attachments)?;
     let semantic_action = semantic_action_from_intent(text);
     let calls_vision =
@@ -21187,7 +21186,8 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         text,
         &targets,
     );
-    let user_content = compose_user_message_content(text, &reference_context);
+    let visible_user_content = compose_user_message_content(text, &reference_context);
+    let user_content = attachment_text::append(&visible_user_content, &attachments);
     let goal_trigger = if devin_text { None } else { prepare_goal_trigger_for_dispatch(
         text,
         targets.first().copied(),
@@ -21209,7 +21209,7 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
             .map(|agent| agent.display_name.clone())
             .collect::<Vec<_>>()
             .join(""),
-        content: user_content.clone(),
+        content: visible_user_content,
         kind: user_kind.to_string(),
         attachments: attachments.clone(),
     }];
@@ -26884,7 +26884,7 @@ fn uploaded_attachment_response(
     let url = attachment_file_url(&file_name);
     let mime_type = mime_type.or_else(|| mime_type_for_url(&file_name).map(str::to_string));
     let kind = normalized_attachment_kind(kind, mime_type.as_deref(), &url);
-    let attachment = ChatAttachmentDto {
+    let attachment = ChatAttachmentDto { text_snapshot: None,
         kind,
         name: original_name.to_string(),
         url,
@@ -29092,6 +29092,7 @@ fn build_context_assembly_with_roster(
         }
         let Some(mut message_for_context) = chat_tool_history::project_for_context(message) else { continue; };
         message_for_context.content = strip_context_usage_footer(&message_for_context.content);
+        message_for_context.content = attachment_text::append(&message_for_context.content, &message_for_context.attachments);
         if message_for_context.content.trim().is_empty() {
             continue;
         }
@@ -32585,7 +32586,7 @@ async fn generate_image_attachments_for_agent(
             .and_then(JsonValue::as_str)
             .filter(|s| !s.is_empty())
         {
-            attachments.push(ChatAttachmentDto {
+            attachments.push(ChatAttachmentDto { text_snapshot: None,
                 kind: "image".to_string(),
                 name: format!("agnes-image-{i}.png"),
                 url: u.to_string(),
@@ -32596,7 +32597,7 @@ async fn generate_image_attachments_for_agent(
             .and_then(JsonValue::as_str)
             .filter(|s| !s.is_empty())
         {
-            attachments.push(ChatAttachmentDto {
+            attachments.push(ChatAttachmentDto { text_snapshot: None,
                 kind: "image".to_string(),
                 name: format!("agnes-image-{i}.png"),
                 url: format!("data:image/png;base64,{b64}"),
@@ -32848,7 +32849,7 @@ fn extract_video_progress(v: &JsonValue) -> u32 {
 }
 
 fn video_attachment_from_url(url: String) -> ChatAttachmentDto {
-    ChatAttachmentDto {
+    ChatAttachmentDto { text_snapshot: None,
         kind: "video".to_string(),
         name: "agnes-video.mp4".to_string(),
         url,
@@ -53896,6 +53897,8 @@ struct RunInterruptResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct ChatAttachmentDto {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    text_snapshot: Option<attachment_text::TextSnapshot>,
     kind: String,
     name: String,
     url: String,
@@ -60202,7 +60205,7 @@ pub(crate) mod tests {
             mime_type_for_url("https://example.test/a/video.mp4?x=1"),
             Some("video/mp4")
         );
-        let image = attachment_preview(&ChatAttachmentDto {
+        let image = attachment_preview(&ChatAttachmentDto { text_snapshot: None,
             kind: "url".to_string(),
             name: "screenshot.png".to_string(),
             url: "https://example.test/screenshot.png".to_string(),
@@ -60212,7 +60215,7 @@ pub(crate) mod tests {
         assert!(image.embeddable);
         assert!(!image.playable);
 
-        let video = attachment_preview(&ChatAttachmentDto {
+        let video = attachment_preview(&ChatAttachmentDto { text_snapshot: None,
             kind: "video".to_string(),
             name: "demo.webm".to_string(),
             url: "https://example.test/demo.webm".to_string(),
@@ -60221,7 +60224,7 @@ pub(crate) mod tests {
         assert_eq!(video.kind, "video");
         assert!(video.playable);
 
-        let doc = attachment_preview(&ChatAttachmentDto {
+        let doc = attachment_preview(&ChatAttachmentDto { text_snapshot: None,
             kind: "url".to_string(),
             name: "notes.md".to_string(),
             url: "https://example.test/notes.md".to_string(),
@@ -63166,7 +63169,7 @@ pub(crate) mod tests {
         legacy_first.content = "同文消息".to_string();
         let mut legacy_second = persisted_message("legacy-second", 3);
         legacy_second.content = "同文消息".to_string();
-        legacy_second.attachments.push(super::ChatAttachmentDto {
+        legacy_second.attachments.push(super::ChatAttachmentDto { text_snapshot: None,
             kind: "file".to_string(),
             name: "附件.txt".to_string(),
             url: "/api/attachments/files/fixture.txt".to_string(),
@@ -67830,7 +67833,7 @@ attach: last_assistant
         let db_path = temp.path().join("sessions.sqlite3");
         let json_path = temp.path().join("sessions.json");
         let mut room_message = persisted_message("room-msg-1", 4);
-        room_message.attachments = vec![ChatAttachmentDto {
+        room_message.attachments = vec![ChatAttachmentDto { text_snapshot: None,
             kind: "image".to_string(),
             name: "snap.png".to_string(),
             url: "/api/attachments/files/att-1-snap.png".to_string(),
@@ -68095,13 +68098,13 @@ attach: last_assistant
 
         let mut msg_a = persisted_message("msg-a1", 1);
         msg_a.attachments = vec![
-            ChatAttachmentDto {
+            ChatAttachmentDto { text_snapshot: None,
                 kind: "image".to_string(),
                 name: "unique.png".to_string(),
                 url: "/api/attachments/files/att-unique.png".to_string(),
                 mime_type: Some("image/png".to_string()),
             },
-            ChatAttachmentDto {
+            ChatAttachmentDto { text_snapshot: None,
                 kind: "image".to_string(),
                 name: "shared.png".to_string(),
                 url: "/api/attachments/files/att-shared.png".to_string(),
@@ -68109,7 +68112,7 @@ attach: last_assistant
             },
         ];
         let mut msg_b = persisted_message("msg-b1", 2);
-        msg_b.attachments = vec![ChatAttachmentDto {
+        msg_b.attachments = vec![ChatAttachmentDto { text_snapshot: None,
             kind: "image".to_string(),
             name: "shared.png".to_string(),
             url: "/api/attachments/files/att-shared.png".to_string(),

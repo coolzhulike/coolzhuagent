@@ -84,3 +84,6 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 2026-10-07追加：088最终6047bb3正常完整构建与安装1150文件通过，原SWE/island-kayak六轮子横向LTR/RTL双向及原点边界真实验收闭环；候选无URL失败、RTL原命中失败及独立诊断失败保留。74项桌面检查通过，原工程与安全库正常日常入口恢复。复杂变换、严格按住/面板变化等保持开放，无URL当前页自然语言请求纳入下一审视项。详见[088改动、原图与测试交接](../../testing/release-0.2.88/change-report-and-test-handoff.md)。
 
 088已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.88)：四资产服务端大小/SHA256、实际tag=6047与本地验收包一致，原工程正常入口已恢复088。冻结产品两路CI success；文档HEAD检查另核。另一端横向极限及无URL当前页入口仍开放。见[公开核验](../../testing/release-0.2.88/evidence/github-release-verification.json)。
+
+
+2026-10-08文本文件增量：0.2.96之后源码候选已补受控UTF-8/UTF-16文本快照、当前预算完整性和历史投影；真实SWE/唯一island-kayak由两份附件推导343和代号，完成7步Browser拒绝→复核→重提，单attempt end_turn/drained且解锁。四项附件负例400、零模型派发。正常点击UTF-16附件发现预览乱码，已修正并重启候选实拍。候选完整控制台1407/0/6忽略、联动8通过；正式安装复验待补。GUI文件选择器被实操工具跨进程目标识别限制，正常上传API不替代GUI通过。见[候选报告与原始实拍](../../testing/2026-10-08-text-attachments/report.md)。PDF/音视频、Goal/Relay附件及其它会话边界保持开放。

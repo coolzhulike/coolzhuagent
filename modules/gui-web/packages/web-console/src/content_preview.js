@@ -53,7 +53,11 @@ window.CoolzhuContentPreview = (() => {
     } finally { reader.releaseLock(); }
     const bytes = new Uint8Array(size); let offset = 0;
     chunks.forEach(chunk => { bytes.set(chunk, offset); offset += chunk.length; });
-    return new TextDecoder("utf-8").decode(bytes);
+    // 附件按原字节提供下载；预览与模型入口同样识别带 BOM 的 UTF-16。
+    const encoding = bytes[0] === 0xff && bytes[1] === 0xfe ? "utf-16le"
+      : bytes[0] === 0xfe && bytes[1] === 0xff ? "utf-16be" : "utf-8";
+    try { return new TextDecoder(encoding, {fatal:true}).decode(bytes); }
+    catch { throw new Error("文本编码无法识别，请使用 UTF-8 或带 BOM 的 UTF-16 文件。"); }
   }
   function isolatedSource(source) {
     const policy = "default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'";

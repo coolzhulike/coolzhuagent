@@ -234,7 +234,7 @@ pub(crate) async fn discover() -> super::super::ApiResult<Json<DiscoveryResponse
         .map_err(|_| bad("Devin CLI 未返回合法 JSON 模型目录；请检查固定版本。"))?;
     let models = parse_catalog(&value).map_err(bad)?;
     let text_chat_ready = cfg!(windows) && version == super::chat::CLI_VERSION;
-    let mut warnings = vec!["可选择账号目录中的模型及思考变体；每轮发送前核对目录与 ACP 生效模型。费用按 Devin 账号计费。图片直传需显式启用，并在发送时核对 ACP 图片能力；其它附件、Goal、接力和子 Agent 尚未开放。".into()];
+    let mut warnings = vec!["可选择账号目录中的模型及思考变体；每轮发送前核对目录与 ACP 生效模型。费用按 Devin 账号计费。图片直传需显式启用，并在发送时核对 ACP 图片能力；支持 UTF-8/带 BOM 的 UTF-16 文本文件；PDF、音视频、Goal、接力和子 Agent 尚未开放。".into()];
     if pinned.is_none() {
         warnings.push("CLI 版本尚未固定。完成验证后将 COOLZHU_DEVIN_CLI_VERSION 设置为此次 cli_version 的完整值。".into());
     }
