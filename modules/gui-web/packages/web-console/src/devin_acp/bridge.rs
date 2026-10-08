@@ -355,6 +355,9 @@ impl ToolBridge {
                 let mut tools=self.definitions.iter().map(|tool|
                     json!({"name":tool.name,"description":tool.description,"inputSchema":tool.input_schema})).collect::<Vec<_>>();
                 if self.policy.grants.contains_key("computer_use_perform") {
+                    tools.push(json!({"name":"computer_use_read_request",
+                        "description":"按页读取当前 CU 规划/验收快照。仅访问本轮 job_id/request_id，按 next_offset 读取至 complete=true 后回答；不读取文件、不执行动作。",
+                        "inputSchema":{"type":"object","properties":{"job_id":{"type":"string"},"request_id":{"type":"string"},"offset":{"type":"integer","minimum":0}},"required":["job_id","request_id","offset"],"additionalProperties":false}}));
                     tools.push(json!({"name":"computer_use_wait",
                         "description":"等待 computer_use_perform 返回的同一 job_id。running 不是完成；继续等待到最终回执，禁止重复提交 perform。此工具不创建新的电脑动作任务。",
                         "inputSchema":{"type":"object","properties":{"job_id":{"type":"string"}},"required":["job_id"],"additionalProperties":false}}));
@@ -376,6 +379,23 @@ impl ToolBridge {
                     return Err("桥工具参数必须是对象。".into());
                 }
                 match name {
+                    "computer_use_read_request" => {
+                        self.policy.live()?;
+                        self.policy.tool_live("computer_use_perform")?;
+                        let job_id=input["job_id"].as_str().ok_or("快照读取缺少 job_id。")?;
+                        let request_id=input["request_id"].as_str().ok_or("快照读取缺少 request_id。")?;
+                        let offset=input["offset"].as_u64().and_then(|value|usize::try_from(value).ok()).ok_or("快照读取偏移无效。")?;
+                        let slot=self.cu_job.lock().map_err(|_|"CU 等待状态不可用。")?;
+                        if !slot.as_ref().is_some_and(|job|job.id == job_id && job.unfinished()) {
+                            return Err("规划任务已结束或不属于当前轮次。".into());
+                        }
+                        let page = self.policy.planning.read_request(job_id,request_id,offset)?;
+                        // 仅保存分页事实，不记录网页正文或节点凭据。
+                        append_runtime_run_event(self.policy.journal.path(), &self.policy.scope.run_id,
+                            "devin.planning_page_read",json!({"request_id":request_id,"offset":offset}))
+                            .map_err(|_|"规划分页已读取，但来源记录保存失败。")?;
+                        page
+                    },
                     "computer_use_perform" => self.submit_cu(id,&input).await?,
                     "computer_use_wait" => {
                         self.policy.live()?;
