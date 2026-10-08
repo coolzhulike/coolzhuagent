@@ -4863,13 +4863,15 @@ function renderTaskScheduleSessionOptions() {
 function renderTaskScheduleRoomOptions() {
   const select = document.querySelector('[data-role="task-schedule-room"]');
   if (!select) return;
-  const current = select.value || activeChatRoomId || "";
+  const rooms = chatRoomRegistry.rooms || [];
+  const current = select.dataset.roomOptionsInitialized === "true"
+    ? select.value : (select.value || activeChatRoomId || "");
   select.replaceChildren();
   const placeholder = document.createElement("option");
   placeholder.value = "";
   placeholder.textContent = "请选择结果聊天室";
   select.append(placeholder);
-  (chatRoomRegistry.rooms || []).forEach((room) => {
+  rooms.forEach((room) => {
     const option = document.createElement("option");
     option.value = room.id;
     option.textContent = `结果聊天室：${room.name || room.id}`;
@@ -4877,6 +4879,7 @@ function renderTaskScheduleRoomOptions() {
   });
   // 已删除目标保持空选项，不能无提示改投其它房间。
   select.value = current;
+  if (rooms.length) select.dataset.roomOptionsInitialized = "true";
 }
 
 // 目标推进型：把可绑定目标填入选择器（数据来自 refreshTaskSchedules 拉取的 /api/goals）。
