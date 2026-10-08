@@ -1,0 +1,14 @@
+{
+  "stage": "0.2.98正式安装版",
+  "old_handle": "911ce82e79e1bc786ea87a66d70ad8d5",
+  "exit_requested": 23,
+  "closed_response": {
+    "active": true,
+    "handle": "911ce82e79e1bc786ea87a66d70ad8d5",
+    "next_cursor": 1703,
+    "truncated": true,
+    "closed": true,
+    "message": "终端已退出"
+  },
+  "generated_model_requests": 0
+}

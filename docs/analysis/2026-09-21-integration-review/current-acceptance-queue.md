@@ -102,3 +102,11 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 - 正式聊天室正常加载本轮消息#665/#666及6分4秒耗时；点击UTF-16BE附件在右栏正确显示中文和实际代号。四项非法附件HTTP400，模型attempt927/消息1136前后均未增加。API上传不替代GUI选择器通过；该缺口保留。
 - [097交接与实拍](../../testing/release-0.2.97/change-report-and-test-handoff.md)。已公开GitHub预发布四资产，服务器端长度/SHA与本地一致，tag0b4fddc；未签名，不冒称整体完成。
 - 下一项优先浏览器新nativeTarget与跨来源commit窄时序，随后其它剩余矩阵；本轮7步文本综合不替代严格时序证明。ChatGPT订阅最小一次连通已通过，不再重复调用；正式订阅Provider不在该最小实验交付内。Goal保持active，Paint免测、微信不动、Opus暂停，不使用子代理。
+
+## 2026-10-08 0.2.98正式终端生命周期闭环
+
+- 正常完整release六门pass、管理员安装0、1159文件长度/SHA一致，cd80d49两路远端CI success。
+- Unicode真实执行、1MiB环形缓冲17页、侧栏恢复同句柄与退出尾部、resize、异房间/旧句柄409及重建关闭正式复验通过。
+- 自有正式宿主受控异常退出，持有Win32后代句柄从WAIT_TIMEOUT变为signaled，重启后terminal absent/旧句柄409；模型台账与唯一island-kayak绑定不变，新增模型请求0。
+- [098交接和原生实拍](../../testing/release-0.2.98/change-report-and-test-handoff.md)。这是手动终端子系统验证，不宣称模型终端链通过；LSP/全屏TUI、多工作区完整矩阵仍开放。
+- Browser新nativeTarget及跨来源commit窄时序继续优先，整体Goal保持active。

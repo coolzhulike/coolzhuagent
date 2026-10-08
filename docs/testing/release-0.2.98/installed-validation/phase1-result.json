@@ -1,0 +1,60 @@
+{
+  "stage": "0.2.98正式安装版",
+  "marker": "PTY098-31BA6335",
+  "handle": "911ce82e79e1bc786ea87a66d70ad8d5",
+  "before": {
+    "active": false,
+    "handle": null,
+    "text": "",
+    "next_cursor": 0,
+    "truncated": false,
+    "closed": true,
+    "message": "终端尚未启动"
+  },
+  "started": {
+    "active": true,
+    "handle": "911ce82e79e1bc786ea87a66d70ad8d5",
+    "next_cursor": 1,
+    "truncated": false,
+    "closed": false,
+    "message": "终端正在运行"
+  },
+  "initial_unicode_marker": "$coolzhuPtyMarker='PTY098-31BA6335'; [Console]::WriteLine('INITIAL-'+$coolzhuPtyMarker+' / 竹林𠮷😀')\r\nINITIAL-PTY098-31BA6335 / 竹林𠮷😀\r\nPS C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace> ",
+  "flood": {
+    "cursor": 5148,
+    "pages": 17,
+    "page_bytes": [
+      65286,
+      65367,
+      65367,
+      65286,
+      65367,
+      65286,
+      65367,
+      65286,
+      65367,
+      65367,
+      65286,
+      65367,
+      65286,
+      65367,
+      65367,
+      65286,
+      2990
+    ],
+    "truncated": true
+  },
+  "flood_sha256": "5a390d263ac360479adba640848dfabeb3c04f791a431de718b18324c339d10f",
+  "flood_returned_bytes": 1048295,
+  "restored_same_handle": true,
+  "resize_accepted": true,
+  "restore_state_marker": "\u001b[?25l\u001b[8;40;120t\u001b[H甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\n甲竹𠮷😀-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\u001b[K\r\nFLOOD-PTY098-31BA6335-DONE\u001b[K\r\nPS C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace>\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\r\n\u001b[K\u001b[29;112H\u001b[?25h[Console]::WriteLine('RESTORED-'+$coolzhuPtyMarker)\r\nRESTORED-PTY098-31BA6335\r\nPS C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace> ",
+  "foreign_room_rejected": {
+    "error": "当前 Agent 或聊天室已切换，请刷新终端"
+  },
+  "invalid_handle_rejected": {
+    "error": "终端已关闭或归属已变，请重新启动"
+  },
+  "generated_model_requests": 0,
+  "close_exit_cleanup": "next_phase"
+}

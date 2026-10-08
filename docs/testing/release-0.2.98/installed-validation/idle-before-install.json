@@ -1,0 +1,20 @@
+{
+  "daily": {
+    "active_runs": 0
+  },
+  "acceptance": {
+    "active_runs": 0,
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  }
+}

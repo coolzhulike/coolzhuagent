@@ -1,0 +1,38 @@
+{
+  "stage": "0.2.98正式安装版异常退出",
+  "old_web_pid": 24108,
+  "owned_terminal_handle": "3b4fd0c4c90baa1356f3ab4f29ef83f6",
+  "child_process_image": "powershell.exe",
+  "child_creation_100ns": 134359621029588498,
+  "held_child_handle_wait_before": 258,
+  "held_child_handle_wait_after": 0,
+  "new_web_pid": 24620,
+  "after_restart": {
+    "active": false,
+    "handle": null,
+    "text": "",
+    "next_cursor": 0,
+    "truncated": false,
+    "closed": true,
+    "message": "终端尚未启动"
+  },
+  "old_handle_http": 409,
+  "old_handle_error": {
+    "error": "终端已关闭或归属已变，请重新启动"
+  },
+  "model_counts_unchanged": true,
+  "generated_model_requests": 0,
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "safety_records_modified": false
+}
