@@ -11115,12 +11115,15 @@ async function terminalWindowPoll() {
     return;
   }
   const handle = terminalWindowState.handle;
-  const params = new URLSearchParams({ ...scope, cursor: String(terminalWindowState.cursor) });
+  const cursor = terminalWindowState.cursor;
+  const params = new URLSearchParams({ ...scope, cursor: String(cursor) });
   try {
     const response = await requestJson(`/api/terminal/${encodeURIComponent(handle)}/output?${params}`);
-    if (handle !== terminalWindowState.handle || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey) return;
+    if (handle !== terminalWindowState.handle || cursor !== terminalWindowState.cursor
+        || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey) return;
     terminalWindowApply(response);
-    if (!response.closed) terminalWindowSchedulePoll();
+    // 退出只表示进程结束；已缓存的多页尾部仍需读至空页。
+    if (!response.closed || response.text) terminalWindowSchedulePoll(response.closed ? 0 : 450);
   } catch (error) {
     if (handle !== terminalWindowState.handle) return;
     terminalWindowStatus(error.message || "终端连接中断");
@@ -11134,16 +11137,25 @@ async function terminalWindowRestore() {
   const scopeKey = terminalWindowScopeKey(scope);
   if (scopeKey !== terminalWindowState.scopeKey) terminalWindowReset(scopeKey);
   if (!scope) return;
+  // 已连接时继续读取增量；重新打开侧栏不重置正在投影的输出。
+  if (terminalWindowState.handle) {
+    if (!terminalWindowState.closed) terminalWindowSchedulePoll();
+    return;
+  }
+  if (terminalWindowState.busy) return;
   const epoch = terminalWindowState.epoch;
   try {
     const params = new URLSearchParams(scope);
     const response = await requestJson(`/api/terminal?${params}`);
-    if (epoch !== terminalWindowState.epoch) return;
+    // 初始化恢复、侧栏打开和用户启动可能重叠，迟到恢复不得覆盖新句柄。
+    if (epoch !== terminalWindowState.epoch || terminalWindowState.handle || terminalWindowState.busy) return;
     if (!response.active || !response.handle) return;
     terminalWindowApply(response, { replace: true });
-    if (!response.closed) terminalWindowSchedulePoll();
+    if (!response.closed || response.text) terminalWindowSchedulePoll(response.closed ? 0 : 450);
   } catch (error) {
-    if (epoch === terminalWindowState.epoch) terminalWindowStatus(error.message || "终端状态不可用");
+    if (epoch === terminalWindowState.epoch && !terminalWindowState.handle && !terminalWindowState.busy) {
+      terminalWindowStatus(error.message || "终端状态不可用");
+    }
   }
 }
 
@@ -11369,6 +11381,8 @@ function refreshQuickWorkbenchWindow(windowId) {
     void refreshQuickCatalogWindow(windowId);
   } else if (windowId === "app-update") {
     void refreshAppUpdateStatus();
+  } else if (windowId === "terminal") {
+    void terminalWindowRestore();
   }
 }
 
