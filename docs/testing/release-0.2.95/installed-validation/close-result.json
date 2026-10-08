@@ -1,0 +1,121 @@
+{
+  "stage": "0.2.95 Program Files正式安装版",
+  "version": "0.2.95",
+  "source_commit": "75b0b6d09df0485677682f4d66ee649d30ba96e5",
+  "marker": "BU-INSTALLED095-PANEL-DOWN-CLOSE-20261008",
+  "run": {
+    "id": "run-chat-201e3da4a44a80050f17ebac4574373c6d9c05d4046746cf",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "model": "swe-2-medium",
+  "remote_session_id": "island-kayak",
+  "calls": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791478956988-1-tool-7764288dfc789e0c8bbd4ad65d66c1f30d419a7beb3f2c9ad7383684707d1d45",
+      "result": {
+        "status": "blocked",
+        "goal_achieved": false,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": {
+          "code": "native_browser_panel_unavailable",
+          "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791479856988
+            }
+          },
+          "cu_deadline_ms": 1791479856988,
+          "cu_deadline_established_at_ms": 1791478973019,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "observation_failed",
+          "error_code": "native_browser_panel_unavailable",
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": null,
+          "visible_progress": 0
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "pointerdown",
+      "page_ms": 1791478998068.2,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478998072.2434
+    },
+    {
+      "kind": "down-handler-finished",
+      "page_ms": 1791478999868.6,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478999873.7827
+    },
+    {
+      "kind": "pointerup",
+      "page_ms": 1791478999870.9001,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478999876.2773
+    },
+    {
+      "kind": "click",
+      "page_ms": 1791478999871.7,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478999879.9526
+    },
+    {
+      "kind": "pagehide",
+      "page_ms": 1791478999881.1,
+      "trusted": true,
+      "observed_ms": 1791478999905.2388
+    }
+  ],
+  "remote_attempts": [
+    {
+      "attempt_id": "c4fe2c88fcb5d58f6d0456532da4b7efdf5f6eec9d67f59c",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "screenshot": "06-installed-close-final.jpg"
+}
