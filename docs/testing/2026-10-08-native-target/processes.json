@@ -1,0 +1,10 @@
+{
+  "navigation_diagnostics": true,
+  "shell_started": "2026-10-08T18:46:08.5784850Z",
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "shell_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+  "shell_pid": 31952,
+  "web_pid": 30632,
+  "web_started": "2026-10-08T18:25:14.1862663Z",
+  "version": "0.2.97"
+}

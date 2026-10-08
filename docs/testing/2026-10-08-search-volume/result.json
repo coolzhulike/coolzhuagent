@@ -1,0 +1,107 @@
+{
+  "binary_version": "0.2.97",
+  "dataset": "隔离合成资料；零模型生成；不改变日常库",
+  "cold_timing_note": "首轮已真实完成索引预热，但脚本误读响应字段，未保留有效冷耗时；下列仅统计已热索引。",
+  "rooms": {
+    "10000": {
+      "warm_ms": [
+        10.921,
+        12.651,
+        14.208,
+        15.418,
+        11.371,
+        9.756,
+        9.881,
+        21.774
+      ],
+      "median_ms": 12.011,
+      "max_ms": 21.774
+    },
+    "100000": {
+      "warm_ms": [
+        45.561,
+        45.522,
+        45.322,
+        56.697,
+        46.935,
+        46.822,
+        53.274,
+        46.97
+      ],
+      "median_ms": 46.8785,
+      "max_ms": 56.697
+    }
+  },
+  "measurements": [
+    {
+      "room_size": 10000,
+      "case": "首个计时查询（已热索引）",
+      "elapsed_ms": 21.022,
+      "matched": 10
+    },
+    {
+      "room_size": 10000,
+      "case": "鹈鹕",
+      "elapsed_ms": 36.12,
+      "matched": 1
+    },
+    {
+      "room_size": 10000,
+      "case": "mixedcaseprobe",
+      "elapsed_ms": 7.254,
+      "matched": 1
+    },
+    {
+      "room_size": 10000,
+      "case": "中间消息定位",
+      "elapsed_ms": 5.194,
+      "position": 5000,
+      "window": 41
+    },
+    {
+      "room_size": 10000,
+      "case": "偏移分页",
+      "elapsed_ms": 28.262,
+      "indices": [
+        5000,
+        4000,
+        3000
+      ]
+    },
+    {
+      "room_size": 100000,
+      "case": "首个计时查询（已热索引）",
+      "elapsed_ms": 49.419,
+      "matched": 100
+    },
+    {
+      "room_size": 100000,
+      "case": "鹈鹕",
+      "elapsed_ms": 147.268,
+      "matched": 1
+    },
+    {
+      "room_size": 100000,
+      "case": "mixedcaseprobe",
+      "elapsed_ms": 40.425,
+      "matched": 1
+    },
+    {
+      "room_size": 100000,
+      "case": "中间消息定位",
+      "elapsed_ms": 17.604,
+      "position": 50000,
+      "window": 41
+    },
+    {
+      "room_size": 100000,
+      "case": "偏移分页",
+      "elapsed_ms": 46.126,
+      "indices": [
+        95000,
+        94000,
+        93000
+      ]
+    }
+  ]
+}
