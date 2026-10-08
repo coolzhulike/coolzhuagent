@@ -1,3 +1,5 @@
+> **2026-10-08 101正式LSP补验**：房间ABA严格窗口命中并拒绝旧启动；启动pin拒绝跨工程切换/重载，完成后正常工程A→B→A回收进程及旧句柄409也独立通过。模型0、原唯一Devin绑定保持；真实句柄/HTTP事实与原生实拍见[专项](../../testing/release-0.2.101/lsp-aba/report.md)。全屏TUI全支持不是原5.4交付要求，终端按受控PTY边界核验。Browser严格时序及其它总队列仍开放。
+
 > **2026-10-08 0.2.101当前正式验收**：0.2.101当前正式增量：正常完整构建、六门pass、1159安装文件逐长度/SHA一致，安装返回0、正式原生后台与壳启动；冻结源码54594d9，两路远端CI均success。真实SWE-2-medium/唯一island-kayak完成本页设计审查及单次DSH工具，#683/#684无需刷新出现；统计侧栏自动882→883，明确派发875→876，539条旧投影不变，未知用量保持未知；本轮精确ACP轨迹实拍已通过。[101交接与实拍](../../testing/release-0.2.101/change-report-and-test-handoff.md)。已公开[101预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.101)，四资产服务器长度/SHA及实际标签与构建提交一致；断线大批变动、完整多工作区并发和Browser严格时序仍开放。
 
 > **2026-10-07 0.2.92聊天图片正式验收**：Devin普通/流式入口图片直传、增量上下文分离和会话设置已接入；正常完整构建六门、Windows安装0及1150文件核验通过。原SWE-2-medium/唯一island-kayak两轮新随机图20.6/21.3秒全部正确，普通入口在宿主重启后续接，每轮一个attempt/end_turn/drained/图片1，无工具或新云端会话。1400控制台/16前端通过，冻结759两路CI success；原工程和安全库恢复092，历史2未知/9closed保留。Goal/Relay及其它附件、启动特殊模式和总体复核仍开放。Paint不测、微信不动、Opus暂停、无子代理。见[092正式报告与原图](../../testing/release-0.2.92/change-report-and-test-handoff.md)。
