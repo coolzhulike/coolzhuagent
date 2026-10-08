@@ -1,0 +1,124 @@
+{
+  "stage": "独立并发补采；首轮ledger列表/tuple比较错误，不追认首轮回执",
+  "file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\00-file-conflict-101.txt",
+  "ledger_before": {
+    "counts": {
+      "devin_acp_attempts": 936,
+      "chat_room_messages": 1166,
+      "chat_usage_events": 539
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "read_before": {
+    "http": 200,
+    "body": {
+      "meta": {
+        "name": "00-file-conflict-101.txt",
+        "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\00-file-conflict-101.txt",
+        "relative_path": "00-file-conflict-101.txt",
+        "kind": "file",
+        "file_size": 50,
+        "modified": 1791498028989,
+        "binary": false,
+        "previewable": true,
+        "editable": true,
+        "max_preview_bytes": 1048576,
+        "max_edit_bytes": 262144,
+        "revision": "09a7aa2cd685ad37866cf69b845a2c526e14d52aab7c7e8c5fc013f539795c79",
+        "encoding": "utf-8",
+        "line_ending": "lf",
+        "has_utf8_bom": false
+      },
+      "offset": 0,
+      "limit": 65536,
+      "content": "竹林文件版本验收：并发写者D提交。\n",
+      "bytes_read": 50,
+      "next_offset": null
+    }
+  },
+  "concurrent_requests": [
+    {
+      "http": 200,
+      "body": {
+        "operation": "save",
+        "path": "00-file-conflict-101.txt",
+        "revision": "6e623e93b812ab17c69af346be5ea2f4028ffb9bb2a984f93c0ccd76f24a9f87",
+        "message": "文件已保存"
+      },
+      "label": "G",
+      "content": "竹林文件版本验收：独立并发写者G提交。\n",
+      "start_ms": 33.1367,
+      "end_ms": 59.9788
+    },
+    {
+      "http": 409,
+      "body": {
+        "error": "文件已被外部修改；请重新加载后再保存"
+      },
+      "label": "F",
+      "content": "竹林文件版本验收：独立并发写者F提交。\n",
+      "start_ms": 32.975,
+      "end_ms": 60.3331
+    }
+  ],
+  "final_content": "竹林文件版本验收：独立并发写者G提交。\n",
+  "final_sha256": "6e623e93b812ab17c69af346be5ea2f4028ffb9bb2a984f93c0ccd76f24a9f87",
+  "final_read": {
+    "http": 200,
+    "body": {
+      "meta": {
+        "name": "00-file-conflict-101.txt",
+        "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\00-file-conflict-101.txt",
+        "relative_path": "00-file-conflict-101.txt",
+        "kind": "file",
+        "file_size": 56,
+        "modified": 1791498064609,
+        "binary": false,
+        "previewable": true,
+        "editable": true,
+        "max_preview_bytes": 1048576,
+        "max_edit_bytes": 262144,
+        "revision": "6e623e93b812ab17c69af346be5ea2f4028ffb9bb2a984f93c0ccd76f24a9f87",
+        "encoding": "utf-8",
+        "line_ending": "lf",
+        "has_utf8_bom": false
+      },
+      "offset": 0,
+      "limit": 65536,
+      "content": "竹林文件版本验收：独立并发写者G提交。\n",
+      "bytes_read": 56,
+      "next_offset": null
+    }
+  },
+  "ledger_after": {
+    "counts": {
+      "devin_acp_attempts": 936,
+      "chat_room_messages": 1166,
+      "chat_usage_events": 539
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "one_winner_other_409": true
+}

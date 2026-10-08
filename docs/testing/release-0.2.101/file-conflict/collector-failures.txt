@@ -1,0 +1,4 @@
+工具输出中的两次采证错误，均属于临时脚本，不是产品错误：
+1. verify-and-compete.py line13 KeyError: revision。GET响应实际为body.meta.revision；此轮尚未提交并发写入。
+2. 修正字段后同脚本line34 AssertionError：JSON载入bindings为list，而当轮SQL返回tuple，直接比较失败。此前磁盘外部C摘要、并发一方200另一方409及最终内容断言已经执行通过，但结果未落盘，故不作为完整并发回执通过证据。
+独立compete-only.py统一事实形状并在finally落盘；另轮实际结果完整保留，不补造前两轮HTTP时刻。

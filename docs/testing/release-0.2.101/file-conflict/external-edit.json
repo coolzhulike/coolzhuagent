@@ -1,0 +1,49 @@
+{
+  "file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\00-file-conflict-101.txt",
+  "initial_sha256": "617fec708135e5dfb7b5ade172d6689a61f66ca7cb2c6ccee953976d8cc49ccd",
+  "read_before_edit": {
+    "meta": {
+      "name": "00-file-conflict-101.txt",
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\00-file-conflict-101.txt",
+      "relative_path": "00-file-conflict-101.txt",
+      "kind": "file",
+      "file_size": 44,
+      "modified": 1791497868113,
+      "binary": false,
+      "previewable": true,
+      "editable": true,
+      "max_preview_bytes": 1048576,
+      "max_edit_bytes": 262144,
+      "revision": "617fec708135e5dfb7b5ade172d6689a61f66ca7cb2c6ccee953976d8cc49ccd",
+      "encoding": "utf-8",
+      "line_ending": "lf",
+      "has_utf8_bom": false
+    },
+    "offset": 0,
+    "limit": 65536,
+    "content": "竹林文件版本验收：原始版本A。\n",
+    "bytes_read": 44,
+    "next_offset": null
+  },
+  "external_content": "竹林文件版本验收：外部已提交版本C，不能被旧编辑覆盖。\n",
+  "external_sha256": "a06e9e8165d62892120a9cbd1870edd02f84b62f75fe7ec6ae160f7916879167",
+  "ledger_before": {
+    "counts": {
+      "devin_acp_attempts": 936,
+      "chat_room_messages": 1166,
+      "chat_usage_events": 539
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  }
+}
