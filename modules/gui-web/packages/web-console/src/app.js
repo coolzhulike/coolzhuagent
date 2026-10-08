@@ -14820,6 +14820,9 @@ async function sendMessage({ replaceActive = false } = {}) {
       session_id: sendSessionId,
       chat_room_id: sendChatRoomId,
       target_agent_ids: sendTargetIds,
+      // 冻结当前可见页面的后端选择，实际宿主身份及权限仍由服务端核验。
+      native_browser_panel: chatToolWindowId === "browser" && chatRightRailTab === "tools"
+        && chatLayoutRailOpen("right") && activeBrowserHostName === "nativePanel",
       text,
       selected_message_ids: Array.from(selectedMessageIds),
       attachments: [...attachmentsFromText(text), ...pendingAttachments],

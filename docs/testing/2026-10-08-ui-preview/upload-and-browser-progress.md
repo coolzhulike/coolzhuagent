@@ -44,3 +44,17 @@
 原因是观察只携带顶层viewport，进展比较只看nodes/focus/顶层viewport/url/title。正补充CDP target文档根的真实独立视口，在同文档中比较稳定索引对应的滚动位置；缺失采样或随机引用变化均不作为进展，最终成功仍由目标文字及新鲜观察单独核验。LayoutMetrics不属于同进程嵌套文档时不冒用其父视口。
 
 前后端offline build均通过，9项验证回归（包括子文档移动、缺失采样及随机引用不冒领进展）与15项原生浏览器回归通过。协议crate无独立测试，编译通过，不计作额外功能验收。修补后的真实重验 `BU-SCROLL-PROGRESS-AFFINE-20261008` 已启动，父运行 `run-chat-7fc7a5fad316a42f3cb26eeee061a1fe3540057d38235189`，仍沿用SWE-2-medium及唯一island-kayak，等待最终回执，不预先标通过。
+
+## 当前可见原生面板的后端偏好
+
+聊天提交新增可选 `native_browser_panel`：只在原生浏览器面板当前可见时发送true；旧客户端、定时任务及其它入口默认false。服务端在接纳时冻结真实面板绑定，界面字段不构成宿主身份凭证或输入授权。自然语言未包含固定关键词的Browser任务可沿用当前面板，Desktop任务仍可走桌面；本轮正文明确的只读限制及显式原生边界继续生效。没有新增前端配置或调试文字。
+
+`node --check src/app.js`及web-console offline build通过；9项本轮范围解析回归通过。仍待后端候选配套重启后的真实SWE验证，不能将协议测试记为实机通过。弱网去重仍保守按原指令内容去重，不因切换面板而补发同一任务。
+
+## 修补后复杂仿射长程：源码候选通过
+
+`BU-SCROLL-PROGRESS-AFFINE-20261008` 父运行 `run-chat-7fc7a5fad316a42f3cb26eeee061a1fe3540057d38235189` 已completed，CU返回 `succeeded / goal_achieved=true / attempts=9 / steps_completed=9`，无重规划及无进展计数。原SWE-2-medium和island-kayak正常end_turn，进程drained=1、远端锁释放、internal仍未绑定，没有创建第二个云会话。
+
+真实9步为最内层输入框点击→输入当轮校验码→Enter验证→两次子页面滚动（0→598→686，均effect_observed）→点击获取回执正常翻页→点击父输入框→填入从回执页读取的BAMBOO-1676→点击完成整轮。可信事件确认验证和最终提交accepted=true，最终新鲜宿主观察generation10同时确认父页面“整轮任务完成，回执正确”和子页面“验证与翻页完成”。没有脚本代模型输入、重试或补发。
+
+[成功软件截图](affine-page-completed.jpg)、[正常翻页中间截图](affine-navigation-progress.jpg)、[脱敏结构化事实](affine-longrun-result.json)。该通过仅覆盖源码2912e22配套候选中的旋转/斜切两层跨来源页面；不覆盖透视/遮挡负例、严格按下期间变化、新面板路由修补或正式安装版。

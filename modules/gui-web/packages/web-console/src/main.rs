@@ -10498,6 +10498,7 @@ async fn deliver_scheduled_task(task: &ConfigScheduledTask) -> ApiResult<()> {
         ));
     let request = SendMessageRequest {
         expected_workspace_id: None,
+        native_browser_panel: false,
         session_id: Some(task.target_session_id.clone()),
         chat_room_id: Some(SCHEDULED_TASK_SYSTEM_ROOM_ID.to_string()),
         target_agent_ids: vec![task.target_session_id.clone()],
@@ -16917,6 +16918,7 @@ fn clawbot_send_request(
         .ok_or_else(|| api_error(StatusCode::BAD_REQUEST, "ClawBot 入站消息缺少文本或真实图片"))?;
     Ok(SendMessageRequest {
         expected_workspace_id: None,
+        native_browser_panel: false,
         session_id: preview.session_id.clone(),
         chat_room_id: Some(chat_room_id.to_string()),
         target_agent_ids: preview.target_agent_ids.clone(),
@@ -21220,7 +21222,7 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         tasks: Vec::new(),
         user_content,
         // 原始本轮正文冻结执行边界；拼接的引用历史、群发上下文不得创建本轮工具契约。
-        computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::from_current_user(text),
+        computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::from_submission(text,payload.native_browser_panel),
         chat_room_id,
         conversation_session_id,
         attachment_count,
@@ -53814,6 +53816,9 @@ struct SelfUpdatePlanResponse {
 struct SendMessageRequest {
     #[serde(default)]
     expected_workspace_id: Option<String>,
+    /// 提交时可见原生面板的后端偏好；不是输入权限或宿主身份凭证。
+    #[serde(default)]
+    native_browser_panel: bool,
     #[serde(default)]
     session_id: Option<String>,
     #[serde(default)]
@@ -61032,6 +61037,7 @@ pub(crate) mod tests {
         });
         let dispatch = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("semantic-hotkey-fixture".to_string()),
             chat_room_id: Some("semantic-hotkey-room".to_string()),
             target_agent_ids: vec!["semantic-hotkey-fixture".to_string()],
@@ -61317,6 +61323,7 @@ pub(crate) mod tests {
 
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-a".to_string()),
             chat_room_id: Some("room-count".to_string()),
             target_agent_ids: vec![
@@ -61434,6 +61441,7 @@ pub(crate) mod tests {
 
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-a".to_string()),
             chat_room_id: Some("room-shared-count".to_string()),
             target_agent_ids: vec!["agent-a".to_string(), "agent-b".to_string()],
@@ -61675,6 +61683,7 @@ pub(crate) mod tests {
 
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-commander".to_string()),
             chat_room_id: Some("room-goal-trigger".to_string()),
             target_agent_ids: vec!["agent-commander".to_string()],
@@ -61726,6 +61735,7 @@ pub(crate) mod tests {
         });
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-commander".to_string()),
             chat_room_id: Some("room-goal-consult".to_string()),
             target_agent_ids: vec!["agent-commander".to_string()],
@@ -61828,6 +61838,7 @@ pub(crate) mod tests {
         });
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-planner".to_string()),
             chat_room_id: Some("room-goal-ready".to_string()),
             target_agent_ids: vec!["agent-planner".to_string()],
@@ -61938,6 +61949,7 @@ pub(crate) mod tests {
         });
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-active".to_string()),
             chat_room_id: Some("room-current-commander".to_string()),
             target_agent_ids: vec!["agent-active".to_string()],
