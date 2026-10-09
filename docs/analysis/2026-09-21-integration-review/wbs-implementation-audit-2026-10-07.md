@@ -1,5 +1,9 @@
 # 04整合计划32工作包执行复核
 
+113正式增量：配置读取名称/参数/revision/连接/局部容量与预算使用同一捕获快照，正式EXE六路1149次读取/180次保存零混合，正常原生预算及同EXE重启实拍通过。正常release构建/安装0、六门pass、1159文件逐SHA一致，冻结09fa80c两路CI均success；已公开113预发布，四资产服务端摘要/实际标签一致。原SWE-2-medium/revision51/唯一island-kayak已恢复且解锁，模型0/新云端0。只关闭本项同进程读取快照，完整Service/outbox、跨工作区/崩溃和严格Browser仍开放。[113交接与实拍](../../testing/release-0.2.113/change-report-and-test-handoff.md)。Goal继续。
+
+旧容量接口候选：正式113未应用本地容量，旧GET32768而统一页8192，清零POST1000000/65536而统一页8192/4096，原失败已复现。候选旧GET/POST使用同一已捕获/已发布配置并复用本地规则，六路1309次读取/180保存零混合，正常旧API保存后原生统一页预算/采样实拍通过，offline build0/完整1423/0/6（lib8/native-host1）。模型0/原SWE不变；113不含，待新包复验，整体Goal继续。[原失败、候选与截图](../../testing/2026-10-08-legacy-model-limit/report.md)。
+
 会话配置读取快照候选：正式112真实并发复现参数16384/1024却返回预算8192/512；修补后名称/连接/参数/revision和预算使用同一捕获值，最终六路1136次读取/180次保存零混合，本地容量约束及同EXE重启正常原生实拍通过，offline build0/完整1423/0/6（lib8/native-host1）。模型0/原SWE不变；112不含此候选，待新包复验，完整Service/outbox及严格Browser仍开放。[原失败、最终候选事实与实拍](../../testing/2026-10-08-config-read-snapshot/report.md)。Goal继续。
 
 112 Browser连续复验：只读观察器在登记后4.6152ms捕获阶段，分段等待盲区已消除；正常AX检查/关闭工具动作仍晚10960ms，超过5秒窗口。一次真实SWE/唯一island，sent/released保留、效果未知，父failed/CU blocked/panel_unavailable，单end_turn/drained并解锁；没有observation_stopped，严格项未通过，不重复简单点击碰窗口。模型配置读取快照一致性转为下一实施项。[原事实、时钟与实拍](../../testing/release-0.2.112/browser-continuous/report.md)。整体Goal继续。

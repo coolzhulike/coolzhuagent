@@ -1,0 +1,212 @@
+[
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 4717,
+    "sha256": "4428d284a7797517b7f7ceff8ff39a0757e93dbaebd70cada0aea2b7f7005cc9"
+  },
+  {
+    "path": "config-read-snapshot/cleanup.json",
+    "bytes": 58,
+    "sha256": "5957950a7533c069d00269080db2a30626f77d3f1d745f66f99e4f8a92744f85"
+  },
+  {
+    "path": "config-read-snapshot/driver.py",
+    "bytes": 6813,
+    "sha256": "16e33791c25944546db3435a0b6c1a5313f9322ba67f97e451bd9dc3bd5f09d3"
+  },
+  {
+    "path": "config-read-snapshot/facts.json",
+    "bytes": 16801,
+    "sha256": "016318ee3d6fccefc382a9470c6d83a792f6c40b554f373cf2ec2cf8e2b3a112"
+  },
+  {
+    "path": "config-read-snapshot/formal-config-restart.py",
+    "bytes": 2705,
+    "sha256": "07a24b994921b11fc8fb0f5d503062a71881c481ec8e6e10f42f15bfa9aea36c"
+  },
+  {
+    "path": "config-read-snapshot/native-shell-receipt.json",
+    "bytes": 414,
+    "sha256": "8e719391232ff21b5063113069526245b0946405660412b5e32433bdfe0ff753"
+  },
+  {
+    "path": "config-read-snapshot/restart-cleanup.json",
+    "bytes": 59,
+    "sha256": "4b4d9c3747a294cc9489a1ff03a5d4f3a4965bc5925f334cb99831f7649d676c"
+  },
+  {
+    "path": "config-read-snapshot/restart-err.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "config-read-snapshot/restart-out.txt",
+    "bytes": 1131,
+    "sha256": "34304241110c31c807b40f7481dfb92bd081cff40461181f839ede308f8bf292"
+  },
+  {
+    "path": "config-read-snapshot/restart-result.json",
+    "bytes": 179,
+    "sha256": "2044eeb2f106f4b1636d0e86b798b5475e9682bfd1d011f92314973ae621bd64"
+  },
+  {
+    "path": "config-read-snapshot/restart-settings.json",
+    "bytes": 2408,
+    "sha256": "f4c0c189fc809ef050f255e5ae916544ccb417c634da5b066c9b6b5c089abad0"
+  },
+  {
+    "path": "config-read-snapshot/saved-settings.json",
+    "bytes": 2408,
+    "sha256": "f4c0c189fc809ef050f255e5ae916544ccb417c634da5b066c9b6b5c089abad0"
+  },
+  {
+    "path": "config-read-snapshot/start-isolated-shell.ps1",
+    "bytes": 1741,
+    "sha256": "d3cb68a82d1be1d85946468a7e6fd9a0e2016f8ffe6934a2a415a1a6db1282a6"
+  },
+  {
+    "path": "config-read-snapshot/stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "config-read-snapshot/stdout.txt",
+    "bytes": 1131,
+    "sha256": "a3d9e06962081395d1ad5a2426b7810f3015597c1b71de1804866825f60cdb96"
+  },
+  {
+    "path": "config-read-snapshot/stop-isolated-shell.ps1",
+    "bytes": 820,
+    "sha256": "58e022ebae4f36a14dd169238c1d13709e2f6f65dead1968af97fd35007a67eb"
+  },
+  {
+    "path": "config-read-snapshot/ui-budget.jpg",
+    "bytes": 143929,
+    "sha256": "4076ea0e6db1c96871503ef94a759eca3e4e79006df043c7fdb2b0d0252cdede"
+  },
+  {
+    "path": "config-read-snapshot/ui-read.jpg",
+    "bytes": 147485,
+    "sha256": "a96d417928825ced1a7868f9253578190c06220fdaaa238ad3aa05eea6565f9b"
+  },
+  {
+    "path": "config-read-snapshot/ui-restarted.jpg",
+    "bytes": 145611,
+    "sha256": "4dd5f6436ab16c355346e043a37e3b0d1b7725993a78ea567454cae8d124164f"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-224250171-4ad825ea/CoolzhuAgent-0.2.113-installer-report.json",
+    "bytes": 4885,
+    "sha256": "527d8e3374c6ac7d0da605c85db8b61340ea09858219f1793a0b2f132ba0d627"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-224250171-4ad825ea/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "8aad1488aaa5f81933c0a0d265f32a11a480225db138533f8f9b6d565892ee32"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-224250171-4ad825ea/package-report.json",
+    "bytes": 110268,
+    "sha256": "6cd72a38af43dc3e652a4449c1b143fc70496066f8342dd0689c0d535623b680"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-224250171-4ad825ea/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "ad0d7b8caaa3cea5473e9334548575a9c7ce8b665c8a31fc502d9cdf26c7e570"
+  },
+  {
+    "path": "installed-native-main.jpg",
+    "bytes": 209606,
+    "sha256": "972372a4d5c7b96be58680c10a434fafc9e5838c12b5f52e5e4ea710c2405b31"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 179,
+    "sha256": "274d2a3ff84a2978e92b9fca5f3f932b08ce2af06b797f160cbb6c570d437edf"
+  },
+  {
+    "path": "installed-validation/build-stderr.log",
+    "bytes": 56417,
+    "sha256": "d6897360aee453788ac7d57cd2f2c824133fe357797fe995b65704f3ecd0689f"
+  },
+  {
+    "path": "installed-validation/build-stdout.log",
+    "bytes": 14670,
+    "sha256": "551ca6d001a56fbe592d5c4b91d2d0b4a597a41394282e5afc806fc6decc4711"
+  },
+  {
+    "path": "installed-validation/check-original.py",
+    "bytes": 1160,
+    "sha256": "9fcc76a64c6519b252c7fbe279fd6303a6d9a7d75fe4ed93a176755f420d883e"
+  },
+  {
+    "path": "installed-validation/ci-source-a.json",
+    "bytes": 197,
+    "sha256": "751d2e217589f2ce0e32fc2890a06c5741bd692872750f4aa356d686aaab9030"
+  },
+  {
+    "path": "installed-validation/ci-source-b.json",
+    "bytes": 197,
+    "sha256": "44a5778c06cb12a543d486671afadf1885f350783719d87e3ce3ed56323211a7"
+  },
+  {
+    "path": "installed-validation/github-published-metadata.json",
+    "bytes": 10381,
+    "sha256": "a2842545a0da11abe810c04b8223ad9456c6dad9da404565f6c7ee8fe839ce9b"
+  },
+  {
+    "path": "installed-validation/github-tag.json",
+    "bytes": 405,
+    "sha256": "e7038c6e2da6a5bda76d714895168fbfb8a7bfec1d8ae78b96ed0415dcf71927"
+  },
+  {
+    "path": "installed-validation/install-113-result.json",
+    "bytes": 290,
+    "sha256": "f9e350dbba9d3d48a94264ac37f78a9217624da1e588e52013d95454049895db"
+  },
+  {
+    "path": "installed-validation/installed-113-standard-processes.json",
+    "bytes": 729,
+    "sha256": "922d6bf35eca98d92468ea1ed40e5dde88af246c6317bbe150906c28c60c1d80"
+  },
+  {
+    "path": "installed-validation/installed-113-verification.json",
+    "bytes": 1884,
+    "sha256": "67addd27b3dfe20d2c0f12a76df8daad75ff6fd4ea8c98540cb10009360f2b97"
+  },
+  {
+    "path": "installed-validation/original-idle.json",
+    "bytes": 229,
+    "sha256": "418115afababf1b74b76e78a27305af5804b383e6932ee4f50b630f41c129a93"
+  },
+  {
+    "path": "installed-validation/package-113-verification.json",
+    "bytes": 1869,
+    "sha256": "7d3dda026dd82960d083b346232d01702abb0de4d201d0c651853828f9303521"
+  },
+  {
+    "path": "installed-validation/release-assets-local.json",
+    "bytes": 660,
+    "sha256": "f3b8a462a9388472405a22daf062a3cbb3a0f2e752312fdbb7cfe056d1290c96"
+  },
+  {
+    "path": "installed-validation/release-notes.md",
+    "bytes": 659,
+    "sha256": "d0b7a444c1749313f5d0e79aef760b5240ec4a77a3b222368223215df1626e72"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "c3faaabafbe354ab3c91ad6451e9953fc3f5c1aedaada1572f6a4a516906b88b"
+  },
+  {
+    "path": "installed-validation/verify-113.py",
+    "bytes": 2862,
+    "sha256": "6babc077052ba252f747f7aaf52b2598c2eebf7372f57ecccf76204f7f305a01"
+  },
+  {
+    "path": "installed-validation/verify-release.py",
+    "bytes": 1710,
+    "sha256": "8051247be8ab675e0ae0c04897a9d9bef95a5e29027d9150646cb1a71e474047"
+  }
+]

@@ -13190,20 +13190,20 @@ struct SessionModelLimitUpdateRequest {
 }
 
 fn session_model_limit_response(
-    session_id: String,
-    model: String,
-    overridden: bool,
+    agent: AgentSessionDto,
+    parameters: SessionModelLimitOverride,
+    local: LocalChatRuntimeConfig,
 ) -> SessionModelLimitResponse {
-    let default_limit = api::model_token_limit(&model);
-    let (eff_ctx, eff_out) = effective_model_limit_for(&session_id, &model);
+    let default_limit = api::model_token_limit(&agent.model);
+    let (eff_ctx, eff_out) = effective_model_limit_for_agent_snapshot(&agent, &parameters, local);
     SessionModelLimitResponse {
-        session_id,
-        model,
+        session_id: agent.id,
+        model: agent.model,
         context_window: eff_ctx,
         max_output_tokens: eff_out,
         default_context_window: default_limit.context_tokens,
         default_max_output_tokens: default_limit.max_output_tokens,
-        overridden,
+        overridden: parameters.context_window > 0 || parameters.max_output_tokens > 0,
     }
 }
 
@@ -13211,7 +13211,7 @@ fn session_model_limit_response(
 async fn api_get_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    let model = {
+    let response = {
         let store = session_store()
             .lock()
             .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
@@ -13220,17 +13220,13 @@ async fn api_get_session_model_limit(
         if agent_session_backend::AgentSessionBackend::for_provider(&session.provider) != agent_session_backend::AgentSessionBackend::LlmHttp {
             return Err(api_error(StatusCode::BAD_REQUEST, "Devin 容量尚未协商，请使用模型与会话配置页查看状态。"));
         }
-        session.model.clone()
+        let (parameters, local) = read_config(|config| (
+            config.session_model_limits.get(&session_id).cloned().unwrap_or_default(),
+            local_chat_runtime_config_from_config(config),
+        ));
+        session_model_limit_response(session.to_agent_session_with_model_settings(parameters.clone()), parameters, local)
     };
-    let overridden = read_config(|c| {
-        c.session_model_limits
-            .get(&session_id)
-            .map(|o| o.context_window > 0 || o.max_output_tokens > 0)
-            .unwrap_or(false)
-    });
-    Ok(Json(session_model_limit_response(
-        session_id, model, overridden,
-    )))
+    Ok(Json(response))
 }
 
 /// POST /api/sessions/{id}/model-limit：写入手填覆盖（context_window/max_output_tokens）；两者皆 0 则清除覆盖、回退默认表。
@@ -13238,7 +13234,7 @@ async fn api_set_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
     Json(payload): Json<SessionModelLimitUpdateRequest>,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    let model = {
+    let response = {
         let store = session_store()
             .lock()
             .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
@@ -13247,23 +13243,19 @@ async fn api_set_session_model_limit(
         if agent_session_backend::AgentSessionBackend::for_provider(&session.provider) != agent_session_backend::AgentSessionBackend::LlmHttp {
             return Err(api_error(StatusCode::BAD_REQUEST, "Devin 容量尚未协商，请使用模型与会话配置页查看状态。"));
         }
-        session.model.clone()
+        // 与统一保存沿用 store→config 顺序；响应只使用本次已发布配置。
+        let published = mutate_workspace_config(|config| {
+            // 旧容量 API 只修改容量，不能丢弃采样、协议和工具参数。
+            let settings = config.session_model_limits.entry(session_id.clone()).or_default();
+            settings.context_window = payload.context_window.min(4_000_000);
+            settings.max_output_tokens = payload.max_output_tokens.min(1_000_000);
+            Ok(())
+        })?;
+        let parameters = published.session_model_limits.get(&session_id).cloned().unwrap_or_default();
+        let local = local_chat_runtime_config_from_config(&published);
+        session_model_limit_response(session.to_agent_session_with_model_settings(parameters.clone()), parameters, local)
     };
-    // 上限保护，避免误填超大值导致预算计算异常。
-    let ctx = payload.context_window.min(4_000_000);
-    let out = payload.max_output_tokens.min(1_000_000);
-    mutate_workspace_config(|config| {
-        // 旧容量 API 只修改容量，不能丢弃同一会话的采样、协议和工具参数。
-        let settings = config.session_model_limits.entry(session_id.clone()).or_default();
-        settings.context_window = ctx;
-        settings.max_output_tokens = out;
-        Ok(())
-    })?;
-    Ok(Json(session_model_limit_response(
-        session_id,
-        model,
-        ctx > 0 || out > 0,
-    )))
+    Ok(Json(response))
 }
 
 #[derive(Debug, Deserialize)]
