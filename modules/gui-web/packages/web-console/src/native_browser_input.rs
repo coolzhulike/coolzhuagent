@@ -33,7 +33,7 @@ fn stage_delivery(value:&mut Option<Pending>,host_id:&str,resource:Option<&Panel
         let mut reply=PanelInputReply {host_id:request.host_id,request_id:request.request.request_id,
             resource:request.request.resource,outcome:native_browser_protocol::PanelInputOutcome::NotDispatched,
             ticket_id:None,expires_at_unix_ms:None,attempt_id:None,executor_instance_id:None,
-            down_confirmed:false,up_confirmed:false,navigation:None,error:Some("native_browser_resource_changed".into())};
+            down_confirmed:false,up_confirmed:false,navigation:None,editor_changed:None,error:Some("native_browser_resource_changed".into())};
         use native_browser_protocol::PanelInputCommand;
         match request.request.command {
             PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..}
@@ -72,6 +72,8 @@ fn settle_reply(value:&mut Option<Pending>,reply:PanelInputReply) -> Result<Stat
 }
 
 fn phase_matches(command:&native_browser_protocol::PanelInputCommand,reply:&PanelInputReply) -> bool {
+    if reply.editor_changed.is_some() && (!matches!(command,native_browser_protocol::PanelInputCommand::ExecuteText {..})
+        || reply.outcome!=native_browser_protocol::PanelInputOutcome::Acknowledged) {return false;}
     match command {
         native_browser_protocol::PanelInputCommand::PrepareClick {..} | native_browser_protocol::PanelInputCommand::PrepareScroll {..}
         | native_browser_protocol::PanelInputCommand::PrepareKeys {..}
@@ -184,7 +186,7 @@ mod tests {
         let reply=PanelInputReply {host_id:"native-host-0123456789".into(),request_id:request.request_id.clone(),resource,
             outcome:PanelInputOutcome::Released,ticket_id:Some("4".repeat(32)),expires_at_unix_ms:None,
             attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),
-            down_confirmed:true,up_confirmed:true,navigation:None,error:None};
+            down_confirmed:true,up_confirmed:true,navigation:None,editor_changed:None,error:None};
         assert!(request.valid_shape() && reply.valid_shape());
         let (sender,receiver)=std::sync::mpsc::channel();
         (Some(Pending {host_id:reply.host_id.clone(),request,delivered:false,deadline,sender}),receiver,reply)
@@ -251,8 +253,11 @@ mod tests {
             attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};
         let mut reply=PanelInputReply {host_id:"native-host-0123456789".into(),request_id:"6".repeat(32),resource,
             outcome:PanelInputOutcome::Acknowledged,ticket_id:Some("4".repeat(32)),expires_at_unix_ms:None,
-            attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),down_confirmed:false,up_confirmed:false,navigation:None,error:None};
+            attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),down_confirmed:false,up_confirmed:false,navigation:None,editor_changed:None,error:None};
         assert!(reply.valid_shape() && phase_matches(&scroll,&reply));
+        reply.editor_changed=Some(true);
+        assert!(!phase_matches(&scroll,&reply),"滚动ACK不能借用文本效果");
+        reply.editor_changed=None;
         assert!(!phase_matches(&click,&reply));
         let nav=PanelInputCommand::ExecuteNavigate {target:PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)},
             url:"https://example.invalid/next".into(),ticket_id:"4".repeat(32),permit_id:"permit-1".into(),attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};

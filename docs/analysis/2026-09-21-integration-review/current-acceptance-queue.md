@@ -1,5 +1,8 @@
 # 当前验收队列（2026-10-09，0.2.122正式）
 
+2026-10-09本步效果候选：宿主按原UTF-16选区读回文本改变，当前规划动作绑定，AX序号漂移不算焦点变化。真实SWE-2/唯一island综合订单11动作、三次文本effect_observed、3步inconclusive、宿主2/2及DSH总额9019；无效按钮/100ms行情反例两次sent/released/inconclusive后no_progress停止且零第三次输入，两轮end_turn/drained/解锁。offline双端build0、Web1429/0/6、壳77/0、联动8/0；第一候选业务完成但归因验收exit1保留。只计候选，正式新包与严格原生竞态及其余32WBS继续。[候选事实与原图](../../testing/2026-10-09-browser-action-progress/report.md)。Goal active。
+
+
 2026-10-09正式122：多行边界引文误拒及停止保留部分验收已出包。真实SWE-2-medium/唯一island-kayak独立三阶段跨来源动态订单11动作/27可信输入，宿主2/2，随后DSH计算器总额10578，两工具各一次completed；回复#760/5分58秒，父completed/单end_turn/drained并解锁。正常构建/安装actual0、六门pass、1159文件逐SHA，冻结8edfa3a两路CI success，四资产公开预发布且服务器摘要/实际tag一致。诊断仅类型/字段数量实测覆盖两root入口。121原失败保留；中间行情进展误归因、严格原生竞态及其它32WBS继续，不冒整体完成。[122正式交接与实拍](../../testing/release-0.2.122/change-report-and-test-handoff.md)。Goal保持active。
 
 2026-10-09多行回执候选：保留正式121的11动作/网页完成却引文误拒原失败；修补仅允许节点边界精确空格/LF，内部文字、数字、顺序及新鲜度保持，规划停止保留最后部分验收且仍失败。真实SWE-2-medium/唯一island-kayak新订单综合长程11动作/27可信事件、宿主2/2，CU与DSH计算器各一次completed，总额6470，回复#758/9分37秒，单end_turn/drained/解锁。offline build0、core143/0、Web1428/0/6、模块8/0；两实际root入口诊断仅类型/字段数量。只计源码候选，不替代新包正式独立复验；中间进展、严格原生竞态及其余32WBS继续。[候选报告与实拍](../../testing/2026-10-09-browser-multiline/report.md)。Goal继续。

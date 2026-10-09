@@ -222,11 +222,15 @@ pub struct PanelInputReply {
     pub up_confirmed: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub navigation: Option<PanelNavigationReceipt>,
+    /// 原编辑对象在本次文本投递后是否按预期改变；缺失表示未知，不等于未投递。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub editor_changed: Option<bool>,
     pub error: Option<String>,
 }
 impl PanelInputReply {
     pub fn valid_shape(&self) -> bool {
         opaque_id(&self.request_id) && self.resource.valid_shape()
+            && self.editor_changed.is_none_or(|_| self.outcome == PanelInputOutcome::Acknowledged && self.navigation.is_none())
             && self.navigation.as_ref().is_none_or(|nav| self.outcome == PanelInputOutcome::Acknowledged && nav.matches_source(&self.resource))
             && (16..=96).contains(&self.host_id.len())
             && self.host_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')

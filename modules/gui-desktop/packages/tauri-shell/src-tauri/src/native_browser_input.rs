@@ -78,7 +78,7 @@ fn random_id() -> Result<String,String> {
 pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInputRequest) -> PanelInputReply {
     let mut reply = PanelInputReply {host_id,request_id:request.request_id.clone(),resource:request.resource.clone(),
         outcome:PanelInputOutcome::NotDispatched,ticket_id:None,expires_at_unix_ms:None,
-        attempt_id:None,executor_instance_id:None,down_confirmed:false,up_confirmed:false,navigation:None,error:None};
+        attempt_id:None,executor_instance_id:None,down_confirmed:false,up_confirmed:false,navigation:None,editor_changed:None,error:None};
     if !request.valid_shape() { reply.error=Some("native_input_invalid".into()); return reply; }
     let operation=Operation::for_command(&request.command);
     match &request.command {
@@ -131,7 +131,10 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
                 (Operation::Keys(keys),VerifiedOperation::Document(verified)) => super::native_browser_key_input::press(app,verified,keys,*expires_at_unix_ms).await,
                 (Operation::Click,VerifiedOperation::Document(verified)) => click(app,verified,*expires_at_unix_ms,attempt_id).await,
                 (Operation::Scroll {direction,amount},VerifiedOperation::Document(verified)) => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
-                (Operation::Text(text),VerifiedOperation::Document(verified)) => (super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await,false,false),
+                (Operation::Text(text),VerifiedOperation::Document(verified)) => {
+                    let (outcome,changed)=super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await;
+                    reply.editor_changed=changed;(outcome,false,false)
+                },
                 (Operation::Navigate(url),verified) => {
                     let control=match &verified {VerifiedOperation::Navigation(v)=>Some(v.0.clone()),_=>None};
                     let (outcome,navigation)=super::native_browser_edit_input::navigate(app,verified.resource().clone(),control,url,*expires_at_unix_ms).await;

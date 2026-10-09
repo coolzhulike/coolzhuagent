@@ -4,18 +4,19 @@ use tauri::{AppHandle,Manager};
 use super::native_browser_target::VerifiedTarget;
 fn now()->u64 {std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis().min(u128::from(u64::MAX)) as u64}
 
-pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String,expires_ms:u64)->PanelInputOutcome {
+pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String,expires_ms:u64)->(PanelInputOutcome,Option<bool>) {
     #[cfg(windows)]
     {
         use std::sync::{Arc,Mutex};
         use webview2_com::{CoTaskMemPWSTR,Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler};
         use super::native_browser_devtools::{self,ReadMethod,bounded_callback};
-        if target.editor.is_none() || now()>=expires_ms {return PanelInputOutcome::NotDispatched;}
-        let object=match super::native_browser_editor::resolve(app,&target).await {Ok(value)=>value,Err(_)=>return PanelInputOutcome::NotDispatched};
-        let Some(view)=app.get_webview(&target.resource.label) else {return PanelInputOutcome::NotDispatched;};
+        if target.editor.is_none() || now()>=expires_ms {return (PanelInputOutcome::NotDispatched,None);}
+        let object=match super::native_browser_editor::resolve(app,&target).await {Ok(value)=>value,Err(_)=>return (PanelInputOutcome::NotDispatched,None)};
+        let Some(view)=app.get_webview(&target.resource.label) else {return (PanelInputOutcome::NotDispatched,None);};
         let (sender,receiver)=tokio::sync::oneshot::channel();let sender=Arc::new(Mutex::new(Some(sender)));
         let app_ui=app.clone();let resource=target.resource.clone();
         let session=target.node.scope.session().map(str::to_owned);let session_ui=session.clone();
+        let before=target.editor.clone();let inserted=text.clone();
         let method=ReadMethod::EditorState(object.clone());
         let queued=view.with_webview(move |platform| {
             let finish=|result| {if let Ok(mut slot)=sender.lock() {if let Some(sender)=slot.take() {let _=sender.send(result);}}};
@@ -50,11 +51,21 @@ pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String
         let outcome=if queued.is_err() {PanelInputOutcome::DispatchUnknown} else {
             tokio::time::timeout(std::time::Duration::from_secs(3),receiver).await.ok().and_then(Result::ok).unwrap_or(PanelInputOutcome::DispatchUnknown)
         };
+        // ACK仍只证明投递；原许可剩余时间内读同一对象，不可读时不补发或改写投递事实。
+        let editor_changed=if outcome==PanelInputOutcome::Acknowledged && now()<expires_ms
+            && super::browser_panel::input_resource(app).as_ref()==Some(&resource) {
+            let remaining=std::time::Duration::from_millis(expires_ms.saturating_sub(now()).min(2000));
+            let actual=tokio::time::timeout(remaining,native_browser_devtools::read_session(app,&resource,session.as_deref(),ReadMethod::EditorState(object.clone())))
+                .await.ok().and_then(Result::ok).and_then(|raw|super::native_browser_editor::state(&raw).ok());
+            if now()<expires_ms && super::browser_panel::input_resource(app).as_ref()==Some(&resource) {
+                before.as_ref().zip(actual.as_ref()).and_then(|(before,after)|super::native_browser_editor::inserted_changed(before,after,&inserted))
+            } else {None}
+        } else {None};
         let _=native_browser_devtools::read_session(app,&resource,session.as_deref(),ReadMethod::ReleaseEditor(object)).await;
-        outcome
+        (outcome,editor_changed)
     }
     #[cfg(not(windows))]
-    {let _=(app,target,text,expires_ms);PanelInputOutcome::NotDispatched}
+    {let _=(app,target,text,expires_ms);(PanelInputOutcome::NotDispatched,None)}
 }
 
 pub(super) async fn navigate(app:&AppHandle,resource:native_browser_protocol::PanelResource,control:Option<super::native_browser_navigation::ControlResource>,url:String,expires_ms:u64)->(PanelInputOutcome,Option<PanelNavigationReceipt>) {

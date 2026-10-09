@@ -1,0 +1,13 @@
+﻿{
+    "web_sha256":  "e3e2b241bfb1fd391f3f1bd90f1c4789121cbb79815e5ca7400cd0f609dd8b72",
+    "web_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-browser-progress\\candidate-bundle-v2\\bin\\coolzhu-web-console.exe",
+    "shell_started":  "2026-10-09T16:54:19.2552696Z",
+    "web_started":  "2026-10-09T16:54:17.4791984Z",
+    "web_pid":  23200,
+    "shell_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-browser-progress\\candidate-bundle-v2\\bin\\coolzhu-tauri-shell.exe",
+    "shell_pid":  29916,
+    "port":  8765,
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage":  "AX索引漂移修正第二候选Web与壳，非正式安装验收",
+    "shell_sha256":  "209f46443ab181d8294037018859604324782ef26fd96eaef3cbb9120825c2bd"
+}

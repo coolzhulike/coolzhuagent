@@ -13,19 +13,40 @@ fn unavailable(message: &str) -> ComputerUseError {
     ComputerUseError::blocked("native_browser_observation_unavailable", message, ComputerUseRetryOwner::User)
 }
 
-/// 进展和最终验收分离；随机节点引用及可选采样缺失不能伪造进展。
+/// 仅本步结算来源的交互变化算进展；行情、任意节点及随机引用变化均不足。
 pub(super) fn visible_progress(before: &Observation, after: &Observation) -> bool {
     let before=&before.state["page"];
     let after=&after.state["page"];
-    if ["nodes","focused_node_index","viewport","url","title"].iter()
-        .any(|key|before[key]!=after[key]) {return true;}
-    if before["document_token"].as_str().is_none() || before["document_token"]!=after["document_token"] {
-        return false;
+    if let Some(nav)=after.get("authorized_navigation").and_then(|raw|serde_json::from_value::<crate::native_browser_adapter::AuthorizedNavigation>(raw.clone()).ok()) {
+        if nav.matches_page(after) && source_matches(&nav.host_id,&nav.source,before)
+            && ["url","document_token","navigation_revision"].iter().any(|key|before[key]!=after[key]) {return true;}
     }
+    let Some(transition)=after.get("observed_input_transition")
+        .and_then(|raw|serde_json::from_value::<crate::native_browser_adapter::ObservedInputTransition>(raw.clone()).ok())
+        .filter(|transition|transition.matches_page(after)) else {return false;};
+    let source=&transition.source;
+    let Some(action)=source.action.as_ref() else {return false;};
+    if !source_matches(&source.host_id,&source.resource,before) || before["url"]!=source.url
+        || before["document_token"]!=source.document_token || before["observation_id"]!=action.observation_id {return false;}
+    use native_browser_protocol::PanelInputKind;
+    let same_document=before["document_token"]==after["document_token"] && before["url"]==after["url"];
+    match action.kind {
+        PanelInputKind::Text=>return same_document && action.editor_changed==Some(true),
+        PanelInputKind::Click|PanelInputKind::Keys=>{
+            // AX 序号会随回执插入而漂移，不能作为焦点对象身份。
+            // 只接受焦点有无变化作为交互准备；两个有效序号之间仍为未知。
+            return !same_document || before["focused_node_index"].as_u64().is_some()
+                != after["focused_node_index"].as_u64().is_some();
+        },
+        PanelInputKind::Scroll if same_document=>{},
+        _=>return false,
+    }
+    let Some(target_index)=action.target_index else {return false;};
     let Some(previous)=before["document_viewports"].as_array() else {return false;};
     let Some(current)=after["document_viewports"].as_array() else {return false;};
     previous.iter().any(|old| {
         let Some(index)=old["index"].as_u64() else {return false;};
+        if usize::try_from(index).ok()!=Some(target_index) {return false;}
         let Some(new)=current.iter().find(|new|new["index"].as_u64()==Some(index)) else {return false;};
         let viewport=|v:&serde_json::Value|serde_json::from_value::<native_browser_protocol::PageViewport>(v.clone())
             .ok().filter(|v|v.valid_shape());
@@ -34,6 +55,12 @@ pub(super) fn visible_progress(before: &Observation, after: &Observation) -> boo
             _=>false,
         }
     })
+}
+
+fn source_matches(host_id:&str,resource:&native_browser_protocol::PanelResource,page:&serde_json::Value)->bool {
+    resource.valid_shape() && page["host_id"]==host_id && page["workspace_path"]==resource.workspace_path
+        && page["room_id"]==resource.room_id && page["resource"]==resource.label
+        && page["generation"]==resource.generation && page["navigation_revision"]==resource.navigation_revision
 }
 
 fn initial_source(request:&ComputerUseRequest,page:&serde_json::Value) -> Option<crate::native_browser_adapter::InitialPageSource> {
@@ -293,11 +320,52 @@ pub(super) fn finish(raw: &str, request: &ComputerUseRequest, observation: &Obse
 mod tests {
     use super::*;
     #[test]
+    fn repaint_cannot_claim_progress_and_editor_fact_is_bound_to_current_action() {
+        let before=Observation {generation:1,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
+            state:json!({"page":{"host_id":"host-one","workspace_path":"workspace","room_id":"room-1","resource":"browser-panel-1",
+                "generation":1,"navigation_revision":2,"url":"https://edit.invalid/","document_token":"a".repeat(32),
+                "observation_id":"c".repeat(32),"focused_node_index":0,"nodes":[{"role":"StaticText","name":"行情100"}]}}),evidence:vec![]};
+        let mut after=before.clone();after.generation=2;
+        after.state["page"]["observation_id"]=json!("d".repeat(32));
+        after.state["page"]["nodes"][0]["name"]=json!("行情101");
+        after.state["page"]["observed_input_transition"]=json!({"source":{"original_url":"https://edit.invalid/",
+            "host_id":"host-one","resource":{"workspace_path":"workspace","room_id":"room-1","label":"browser-panel-1","generation":1,"navigation_revision":2},
+            "url":"https://edit.invalid/","document_token":"a".repeat(32),"input_request_id":"1".repeat(32),
+            "action":{"observation_id":"c".repeat(32),"kind":"click","target_index":0,"editor_changed":null}},
+            "url":"https://edit.invalid/","document_token":"a".repeat(32)});
+        assert!(!visible_progress(&before,&after),"只有行情刷新不能证明点击效果");
+        after.state["page"]["observed_input_transition"]["source"]["action"]["kind"]=json!("keys");
+        after.state["page"]["focused_node_index"]=json!(1);
+        assert!(!visible_progress(&before,&after),"回执插入导致AX索引漂移不能冒领焦点效果");
+        after.state["page"]["focused_node_index"]=serde_json::Value::Null;
+        assert!(visible_progress(&before,&after),"本步结算后的焦点有无变化只算交互准备");
+        after.state["page"]["focused_node_index"]=json!(0);
+        after.state["page"]["observed_input_transition"]["source"]["action"]["kind"]=json!("text");
+        assert!(!visible_progress(&before,&after),"文本ACK缺少编辑效果时为未知");
+        after.state["page"]["observed_input_transition"]["source"]["action"]["editor_changed"]=json!(true);
+        assert!(visible_progress(&before,&after));
+        let mut wrong=after.clone();wrong.state["page"]["observed_input_transition"]["source"]["action"]["observation_id"]=json!("e".repeat(32));
+        assert!(!visible_progress(&before,&wrong),"旧动作效果不能借给新规划观察");
+        wrong=after.clone();wrong.state["page"]["room_id"]=json!("room-2");
+        assert!(!visible_progress(&before,&wrong),"跨聊天室不能继承效果");
+        wrong=after.clone();wrong.state["page"]["observed_input_transition"]["source"]["action"]["kind"]=json!("click");
+        assert!(!visible_progress(&before,&wrong),"点击来源不能携带文本效果");
+    }
+    #[test]
     fn child_scroll_counts_as_progress_without_text_change_or_goal_success() {
+        use crate::native_browser_adapter::{ObservedInputTransition,SettledInputSource,SettledInputAction};
+        let source=SettledInputSource {original_url:"https://scroll.invalid/".into(),host_id:"host-one".into(),
+            resource:native_browser_protocol::PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:2},
+            url:"https://scroll.invalid/".into(),document_token:"a".repeat(32),input_request_id:"1".repeat(32),
+            action:Some(SettledInputAction {observation_id:"c".repeat(32),kind:native_browser_protocol::PanelInputKind::Scroll,target_index:Some(12),editor_changed:None})};
         let mut before=Observation {generation:1,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
-            state:json!({"page":{"document_token":"same-document","nodes":[],"document_viewports":[
+            state:json!({"page":{"document_token":source.document_token,"url":source.url,"host_id":source.host_id,
+                "workspace_path":"workspace","room_id":"room-1","resource":"browser-panel-1","generation":1,"navigation_revision":2,
+                "observation_id":"c".repeat(32),"nodes":[],"document_viewports":[
                 {"index":12,"viewport":{"page_x":0,"page_y":0,"width":300,"height":245}}]}}),evidence:vec![]};
         let mut after=before.clone();after.generation=2;
+        after.state["page"]["observed_input_transition"]=json!(ObservedInputTransition {url:source.url.clone(),document_token:source.document_token.clone(),source});
+        after.state["page"]["observation_id"]=json!("d".repeat(32));
         after.state["page"]["document_viewports"][0]["viewport"]["page_y"]=json!(119.33);
         assert!(visible_progress(&before,&after));
         before=after.clone();
@@ -572,7 +640,7 @@ mod tests {
         let transition=ObservedInputTransition {source:SettledInputSource {original_url:"https://source.invalid/".into(),
             host_id:"host-one".into(),resource:native_browser_protocol::PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),
                 label:"browser-panel-1".into(),generation:1,navigation_revision:2},url:"https://source.invalid/".into(),
-            document_token:"a".repeat(32),input_request_id:"1".repeat(32)},url:"https://destination.invalid/".into(),document_token:"b".repeat(32)};
+            document_token:"a".repeat(32),input_request_id:"1".repeat(32),action:None},url:"https://destination.invalid/".into(),document_token:"b".repeat(32)};
         let page=json!({"backend":"native-panel","read_only_request":false,"input_supported":true,"url":"https://destination.invalid/",
             "title":"目标页","nodes":[{"role":"heading","name":"真实目标正文"}],"truncated":false,"host_id":"host-one",
             "workspace_path":"workspace","room_id":"room-1","resource":"browser-panel-1","generation":1,"navigation_revision":2,

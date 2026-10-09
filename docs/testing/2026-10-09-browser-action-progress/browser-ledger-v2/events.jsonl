@@ -1,0 +1,124 @@
+{"kind": "loaded", "trusted": false, "page_ms": 1791564970331.8, "stage": 0, "observed_ms": 1791564970335.7017, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 100, "observed_ms": 1791564980335.4568, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 200, "observed_ms": 1791564990333.2188, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 300, "observed_ms": 1791565000326.522, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 400, "observed_ms": 1791565010328.2234, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 500, "observed_ms": 1791565020337.374, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 600, "observed_ms": 1791565030323.4546, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 700, "observed_ms": 1791565040327.2573, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 800, "observed_ms": 1791565050326.5103, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 900, "observed_ms": 1791565060325.3696, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1000, "observed_ms": 1791565070326.3438, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1100, "observed_ms": 1791565080329.31, "origin_port": 60736}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791565081649.8, "target": "code", "stage": 0, "value": "", "observed_ms": 1791565081661.2432, "origin_port": 60737}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791565081651.5, "target": "code", "stage": 0, "value": "", "observed_ms": 1791565081664.8303, "origin_port": 60737}
+{"kind": "click", "trusted": true, "page_ms": 1791565081651.9001, "target": "code", "stage": 0, "value": "", "observed_ms": 1791565081669.2534, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 1200, "observed_ms": 1791565090331.8652, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1300, "observed_ms": 1791565100331.8867, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1400, "observed_ms": 1791565110330.1465, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1500, "observed_ms": 1791565120330.2651, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1600, "observed_ms": 1791565130330.1296, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1700, "observed_ms": 1791565140337.3792, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1800, "observed_ms": 1791565150340.8105, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 1900, "observed_ms": 1791565160331.223, "origin_port": 60736}
+{"kind": "input", "trusted": true, "page_ms": 1791565164778.9001, "target": "code", "stage": 0, "value": "BAMBOO-1214", "observed_ms": 1791565164787.3892, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 2000, "observed_ms": 1791565170334.6829, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 2100, "observed_ms": 1791565180333.721, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 2200, "observed_ms": 1791565190329.3882, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 2300, "observed_ms": 1791565200331.6353, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 2400, "observed_ms": 1791565210331.5996, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 2500, "observed_ms": 1791565220329.887, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 2600, "observed_ms": 1791565230336.3262, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 2700, "observed_ms": 1791565240329.4417, "origin_port": 60736}
+{"kind": "keydown", "trusted": true, "page_ms": 1791565249656.2, "target": "code", "stage": 0, "key": "Enter", "value": "BAMBOO-1214", "observed_ms": 1791565249665.5066, "origin_port": 60737}
+{"kind": "verified", "trusted": true, "page_ms": 1791565249657.1, "target": "verify", "stage": 0, "accepted": true, "observed_ms": 1791565249668.2683, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 2800, "observed_ms": 1791565250336.968, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 2900, "observed_ms": 1791565260338.1816, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3000, "observed_ms": 1791565270336.8806, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3100, "observed_ms": 1791565280345.1511, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3200, "observed_ms": 1791565290337.5278, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3300, "observed_ms": 1791565300331.133, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3400, "observed_ms": 1791565310332.0627, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3500, "observed_ms": 1791565320331.585, "origin_port": 60736}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791565322144.5, "target": "next", "stage": 0, "value": "", "observed_ms": 1791565322154.8347, "origin_port": 60737}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791565322145.3, "target": "next", "stage": 0, "value": "", "observed_ms": 1791565322157.6917, "origin_port": 60737}
+{"kind": "click", "trusted": true, "page_ms": 1791565322145.6, "target": "next", "stage": 0, "value": "", "observed_ms": 1791565322164.8594, "origin_port": 60737}
+{"kind": "advance", "trusted": true, "page_ms": 1791565322145.9001, "target": "next", "stage": 0, "observed_ms": 1791565322166.4626, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 3600, "observed_ms": 1791565330332.334, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3700, "observed_ms": 1791565340336.1636, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3800, "observed_ms": 1791565350337.3677, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 3900, "observed_ms": 1791565360345.6982, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 4000, "observed_ms": 1791565370332.105, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 4100, "observed_ms": 1791565380333.3396, "origin_port": 60736}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791565390019.3, "target": "code", "stage": 1, "value": "", "observed_ms": 1791565390035.9321, "origin_port": 60737}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791565390020.2, "target": "code", "stage": 1, "value": "", "observed_ms": 1791565390040.8281, "origin_port": 60737}
+{"kind": "click", "trusted": true, "page_ms": 1791565390020.6, "target": "code", "stage": 1, "value": "", "observed_ms": 1791565390041.0212, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 4200, "observed_ms": 1791565390346.5745, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 4300, "observed_ms": 1791565400346.9792, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 4400, "observed_ms": 1791565410335.623, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 4500, "observed_ms": 1791565420335.6187, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 4600, "observed_ms": 1791565430339.0066, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 4700, "observed_ms": 1791565440335.8984, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 4800, "observed_ms": 1791565450339.324, "origin_port": 60736}
+{"kind": "input", "trusted": true, "page_ms": 1791565459492.6, "target": "code", "stage": 1, "value": "JADE-9404", "observed_ms": 1791565459509.2483, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 4900, "observed_ms": 1791565460338.901, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5000, "observed_ms": 1791565470334.5547, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5100, "observed_ms": 1791565480338.862, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5200, "observed_ms": 1791565490346.0715, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5300, "observed_ms": 1791565500337.0137, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5400, "observed_ms": 1791565510346.5808, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5500, "observed_ms": 1791565520336.7688, "origin_port": 60736}
+{"kind": "keydown", "trusted": true, "page_ms": 1791565528158.9001, "target": "code", "stage": 1, "key": "Enter", "value": "JADE-9404", "observed_ms": 1791565528175.8745, "origin_port": 60737}
+{"kind": "verified", "trusted": true, "page_ms": 1791565528159.7, "target": "verify", "stage": 1, "accepted": true, "observed_ms": 1791565528177.4597, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 5600, "observed_ms": 1791565530338.79, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5700, "observed_ms": 1791565540342.5532, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5800, "observed_ms": 1791565550336.75, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 5900, "observed_ms": 1791565560342.8015, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6000, "observed_ms": 1791565570338.4011, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6100, "observed_ms": 1791565580345.6458, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6200, "observed_ms": 1791565590338.0847, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6300, "observed_ms": 1791565600338.1934, "origin_port": 60736}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791565605981.7, "target": "next", "stage": 1, "value": "", "observed_ms": 1791565605999.653, "origin_port": 60737}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791565605982.3, "target": "next", "stage": 1, "value": "", "observed_ms": 1791565606002.663, "origin_port": 60737}
+{"kind": "click", "trusted": true, "page_ms": 1791565605982.6, "target": "next", "stage": 1, "value": "", "observed_ms": 1791565606003.019, "origin_port": 60737}
+{"kind": "advance", "trusted": true, "page_ms": 1791565605983, "target": "next", "stage": 1, "observed_ms": 1791565606003.297, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 6400, "observed_ms": 1791565610341.816, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6500, "observed_ms": 1791565620351.229, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6600, "observed_ms": 1791565630341.2114, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6700, "observed_ms": 1791565640345.5684, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6800, "observed_ms": 1791565650345.2742, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 6900, "observed_ms": 1791565660341.1604, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 7000, "observed_ms": 1791565670340.2444, "origin_port": 60736}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791565676907.5, "target": "code", "stage": 2, "value": "", "observed_ms": 1791565676926.5134, "origin_port": 60737}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791565676908.4001, "target": "code", "stage": 2, "value": "", "observed_ms": 1791565676932.075, "origin_port": 60737}
+{"kind": "click", "trusted": true, "page_ms": 1791565676908.6, "target": "code", "stage": 2, "value": "", "observed_ms": 1791565676936.119, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 7100, "observed_ms": 1791565680344.676, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 7200, "observed_ms": 1791565690340.48, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 7300, "observed_ms": 1791565700344.7234, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 7400, "observed_ms": 1791565710342.55, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 7500, "observed_ms": 1791565720342.87, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 7600, "observed_ms": 1791565730344.405, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 7700, "observed_ms": 1791565740344.0605, "origin_port": 60736}
+{"kind": "input", "trusted": true, "page_ms": 1791565747165.7, "target": "code", "stage": 2, "value": "SCROLL-8896", "observed_ms": 1791565747188.0625, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 7800, "observed_ms": 1791565750355.6223, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 7900, "observed_ms": 1791565760350.777, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8000, "observed_ms": 1791565770342.7715, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8100, "observed_ms": 1791565780343.7754, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8200, "observed_ms": 1791565790341.9937, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8300, "observed_ms": 1791565800352.7812, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8400, "observed_ms": 1791565810348.3389, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8500, "observed_ms": 1791565820343.3335, "origin_port": 60736}
+{"kind": "keydown", "trusted": true, "page_ms": 1791565821178.7, "target": "code", "stage": 2, "key": "Enter", "value": "SCROLL-8896", "observed_ms": 1791565821201.5535, "origin_port": 60737}
+{"kind": "verified", "trusted": true, "page_ms": 1791565821179.3, "target": "verify", "stage": 2, "accepted": true, "observed_ms": 1791565821204.646, "origin_port": 60737}
+{"kind": "final-submitted", "trusted": true, "page_ms": 1791565821179.8, "target": "verify", "stage": 2, "accepted": true, "observed_ms": 1791565821205.3438, "origin_port": 60737}
+{"kind": "non-target-repaint", "revision": 8600, "observed_ms": 1791565830343.1428, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8700, "observed_ms": 1791565840347.9, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8800, "observed_ms": 1791565850355.1792, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 8900, "observed_ms": 1791565860350.1301, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 9000, "observed_ms": 1791565870351.2964, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 9100, "observed_ms": 1791565880343.64, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 9200, "observed_ms": 1791565890343.3008, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 9300, "observed_ms": 1791565900349.265, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 9400, "observed_ms": 1791565910358.5403, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 9500, "observed_ms": 1791565920346.6924, "origin_port": 60736}
+{"kind": "non-target-repaint", "revision": 9600, "observed_ms": 1791565930350.6665, "origin_port": 60736}

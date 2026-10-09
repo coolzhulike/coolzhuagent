@@ -1,0 +1,13 @@
+{
+  "port": 8765,
+  "shell_started": "2026-10-09T16:34:42.6317588Z",
+  "web_pid": 12812,
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "web_sha256": "23f0f8a64f0c7c0855cf24dfb55ce8fa984abdc2f7de764fa26f6608e8df2f6a",
+  "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-browser-progress\\candidate-bundle\\bin\\coolzhu-tauri-shell.exe",
+  "shell_sha256": "209f46443ab181d8294037018859604324782ef26fd96eaef3cbb9120825c2bd",
+  "web_started": "2026-10-09T16:34:40.7586217Z",
+  "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-browser-progress\\candidate-bundle\\bin\\coolzhu-web-console.exe",
+  "shell_pid": 19680,
+  "stage": "本步效果源码候选Web与壳，非正式安装验收"
+}

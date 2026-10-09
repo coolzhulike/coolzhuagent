@@ -34,6 +34,19 @@ pub(super) fn state(raw:&Value) -> Result<Value,String> {
     Ok(value.clone())
 }
 
+/// 只在宿主短期比较UTF-16选区替换；不返回原值、选区或预期正文。
+pub(super) fn inserted_changed(before:&Value,after:&Value,text:&str) -> Option<bool> {
+    if before["tag"]!=after["tag"] || before["kind"]!=after["kind"] {return None;}
+    let original:Vec<u16>=before["value"].as_str()?.encode_utf16().collect();
+    let actual:Vec<u16>=after["value"].as_str()?.encode_utf16().collect();
+    let start=usize::try_from(before["start"].as_u64()?).ok()?;
+    let end=usize::try_from(before["end"].as_u64()?).ok()?;
+    if start>end || end>original.len() {return None;}
+    let mut expected=original.clone();expected.splice(start..end,text.encode_utf16());
+    if expected.len()>4096 {return None;}
+    Some(actual==expected && actual!=original)
+}
+
 pub(super) async fn resolve(app:&AppHandle,target:&VerifiedTarget) -> Result<String,String> {
     native_browser_devtools::read_session(app,&target.resource,target.node.scope.session(),ReadMethod::ResolveEditor(target.node.backend_node)).await?
         .pointer("/object/objectId").and_then(Value::as_str).filter(|s|!s.is_empty() && s.len()<=256)
@@ -53,4 +66,21 @@ pub(super) async fn verify(app:&AppHandle,resource:&native_browser_protocol::Pan
     if !matches!(verified.node.role.as_str(),"textbox"|"searchbox") {return Err("native_browser_editor_target_invalid".into());}
     verified.editor=Some(read(app,&verified).await?);
     Ok(verified)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn insertion_compares_utf16_replacement_without_exposing_text() {
+        let before=serde_json::json!({"tag":"INPUT","kind":"text","value":"玉😀竹","start":1,"end":3});
+        let mut after=before.clone();after["value"]=serde_json::json!("玉剑竹");
+        assert_eq!(inserted_changed(&before,&after,"剑"),Some(true));
+        assert_eq!(inserted_changed(&before,&before,"😀"),Some(false));
+        assert_eq!(inserted_changed(&before,&after,"槊"),Some(false));
+        let mut invalid=before.clone();invalid["end"]=serde_json::json!(99);
+        assert_eq!(inserted_changed(&invalid,&after,"剑"),None);
+        after["kind"]=serde_json::json!("search");
+        assert_eq!(inserted_changed(&before,&after,"剑"),None);
+    }
 }
