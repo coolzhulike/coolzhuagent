@@ -1,5 +1,4 @@
-use std::fs::{self, File, OpenOptions};
-use std::io::Write;
+use std::fs::{self, OpenOptions};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -13,7 +12,8 @@ pub trait Output: Send + Sync {
 
 #[derive(Debug)]
 pub struct FileOutput {
-    file: Mutex<File>,
+    write_lock: Mutex<()>,
+    failure_reported: std::sync::atomic::AtomicBool,
     #[allow(dead_code)]
     path: PathBuf,
 }
@@ -21,9 +21,10 @@ pub struct FileOutput {
 impl FileOutput {
     pub fn new(path: PathBuf) -> std::io::Result<Self> {
         fs::create_dir_all(path.parent().unwrap_or(&PathBuf::from(".")))?;
-        let file = OpenOptions::new().create(true).append(true).open(&path)?;
+        OpenOptions::new().create(true).append(true).open(&path)?;
         Ok(Self {
-            file: Mutex::new(file),
+            write_lock: Mutex::new(()),
+            failure_reported: std::sync::atomic::AtomicBool::new(false),
             path,
         })
     }
@@ -33,21 +34,30 @@ impl FileOutput {
     pub fn path(&self) -> &PathBuf {
         &self.path
     }
+
+    fn write_line(&self, line: String) {
+        if let Ok(_guard) = self.write_lock.lock() {
+            let record = if line.len() >= crate::rolling_file::RECORD_BYTES {
+                format!("{{\"ts_ms\":{},\"level\":\"WARN\",\"event\":\"diagnostic_record_omitted\",\"original_bytes\":{}}}\n", unix_millis(), line.len())
+            } else {
+                format!("{line}\n")
+            };
+            if let Err(error) = crate::rolling_file::append(&self.path, record.as_bytes()) {
+                if !self.failure_reported.swap(true, std::sync::atomic::Ordering::Relaxed) {
+                    eprintln!("结构化诊断文件写入失败（本进程仅提醒一次）: {error}");
+                }
+            }
+        }
+    }
 }
 
 impl Output for FileOutput {
     fn write_event(&self, entry: &LogEntry) {
-        if let Ok(mut file) = self.file.lock() {
-            let line = format_log_entry(entry);
-            let _ = writeln!(file, "{}", line);
-        }
+        self.write_line(format_log_entry(entry));
     }
 
     fn write_span(&self, span: &SpanClosed) {
-        if let Ok(mut file) = self.file.lock() {
-            let line = format_span_closed(span);
-            let _ = writeln!(file, "{}", line);
-        }
+        self.write_line(format_span_closed(span));
     }
 }
 
@@ -286,5 +296,22 @@ mod tests {
         };
         let formatted = format_log_entry(&entry);
         assert!(formatted.contains("trace_id"));
+    }
+
+    #[test]
+    fn 超长诊断用固定记录替换且保留后续完整中文事件() {
+        let root = std::env::temp_dir().join(format!("coolzhu-oversize-{}-{}", std::process::id(), crate::unix_millis()));
+        std::fs::create_dir_all(&root).unwrap();
+        let path = root.join("events.jsonl");
+        let output = FileOutput::new(path.clone()).unwrap();
+        output.write_line(format!("{{\"message\":\"{}\"}}", "测试内容".repeat(crate::rolling_file::RECORD_BYTES)));
+        output.write_line("{\"message\":\"后续事件\"}".to_string());
+        drop(output);
+        let content = std::fs::read_to_string(&path).unwrap();
+        assert_eq!(content.lines().count(), 2);
+        assert!(content.lines().next().unwrap().contains("diagnostic_record_omitted"));
+        assert!(!content.contains("测试内容"));
+        assert!(content.ends_with("{\"message\":\"后续事件\"}\n"));
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

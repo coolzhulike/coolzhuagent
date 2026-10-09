@@ -26994,14 +26994,7 @@ fn mime_type_for_url(url: &str) -> Option<&'static str> {
 
 fn diag_log(msg: &str) {
     let path = active_workspace_path().join("err.log");
-    let line = format!("{msg}\n");
-    if let Ok(mut f) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&path)
-    {
-        let _ = std::io::Write::write_all(&mut f, line.as_bytes());
-    }
+    let _ = diagnostics::append_diagnostic_line(&path, msg);
 }
 
 tokio::task_local! {

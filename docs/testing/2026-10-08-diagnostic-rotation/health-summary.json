@@ -1,0 +1,54 @@
+{
+  "summary": {
+    "status": "error",
+    "ok": 9,
+    "warn": 1,
+    "error": 1
+  },
+  "checks": [
+    {
+      "id": "web.state",
+      "status": "ok"
+    },
+    {
+      "id": "web.bind",
+      "status": "ok"
+    },
+    {
+      "id": "workspace.root",
+      "status": "ok"
+    },
+    {
+      "id": "config.coolzhu_toml",
+      "status": "ok"
+    },
+    {
+      "id": "session.sqlite",
+      "status": "ok"
+    },
+    {
+      "id": "llm.providers",
+      "status": "error"
+    },
+    {
+      "id": "vision.capture",
+      "status": "ok"
+    },
+    {
+      "id": "audio.voice_monitor",
+      "status": "ok"
+    },
+    {
+      "id": "tools.catalog",
+      "status": "ok"
+    },
+    {
+      "id": "desktop.pet",
+      "status": "warn"
+    },
+    {
+      "id": "desktop.webview2",
+      "status": "ok"
+    }
+  ]
+}

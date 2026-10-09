@@ -24,6 +24,11 @@
 - `diagnostics::debug(module, event, message, fields)`
 - `diagnostics::trace(module, event, message, fields)`
 - `diagnostics::emit(level, module, event, message, fields)` - 统一日志输出
+- `diagnostics::append_diagnostic_line(path, message) -> io::Result<()>` - 人读诊断面包屑的有界文件写入，不得用于权威审计。
+
+文件诊断按单文件8 MiB轮转，保留活动文件及`.1`–`.3`三代；单条记录超过64 KiB时输出固定省略事件和原字节数，保持JSONL/UTF-8完整。活动文件路径与既有环境变量不变。每条写入用同目录`.lock`文件的操作系统锁协调进程，锁竞争/磁盘错误立即返回，不拖延业务预算；结构化日志每进程只向stderr提醒一次。进程退出自动释放锁，锁文件本身不轮转、不按存在状态判锁。
+
+这个上限适用于新写入的文件代。首次遇到升级前已经超大的历史文件时保留其完整内容为旧代，随三代自然淘汰；不声称首次升级即将所有历史目录压到32 MiB。会话SQLite、输入安全、用量、插件审计及其它领域日志不受此轮转策略影响。全局磁盘配额、完整脱敏导出仍需独立设计和验收。
 
 ### Span追踪（新增）
 
