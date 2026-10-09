@@ -1,0 +1,21 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+
+running 1 test
+test attachment_text::tests::内容寻址文本与图片被改写后不能作为原附件发送 ... FAILED
+
+failures:
+
+failures:
+    attachment_text::tests::内容寻址文本与图片被改写后不能作为原附件发送
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1436 filtered out; finished in 0.04s
+

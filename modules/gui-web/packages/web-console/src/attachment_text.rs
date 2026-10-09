@@ -63,6 +63,8 @@ pub(super) fn freeze(attachments: &mut [ChatAttachmentDto], store: &Path, reject
         let mut bytes = Vec::new();
         file.take(MAX_FILE + 1).read_to_end(&mut bytes).map_err(|_| api_error(StatusCode::BAD_REQUEST, "读取文本附件失败。"))?;
         if bytes.len() as u64 > MAX_FILE { return Err(api_error(StatusCode::BAD_REQUEST, "单个文本附件不得超过 256 KiB。")); }
+        content_blob_store::verify_named_bytes(leaf, &bytes)
+            .map_err(|error| api_error(StatusCode::BAD_REQUEST, &error.to_string()))?;
         let (text, encoding) = decode(&bytes).map_err(|s| api_error(StatusCode::BAD_REQUEST, s))?;
         total += text.len();
         if total > MAX_TOTAL { return Err(api_error(StatusCode::BAD_REQUEST, "本轮解码后的附件文本不得超过 512 KiB。")); }
@@ -81,6 +83,28 @@ pub(super) fn append(prompt: &str, attachments: &[ChatAttachmentDto]) -> String 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn 内容寻址文本与图片被改写后不能作为原附件发送() {
+        let directory = tempfile::tempdir().unwrap();
+        let text = content_blob_store::put(directory.path(), "原始竹林订单".as_bytes(), "txt").unwrap();
+        let mut attachments = vec![ChatAttachmentDto { kind:"document".into(),name:"order.txt".into(),
+            url:format!("/api/attachments/files/{}", text.file_name),..Default::default() }];
+        freeze(&mut attachments, directory.path(), true).unwrap();
+        std::fs::write(&text.path, "已被改写的订单").unwrap();
+        let text_rejected = freeze(&mut attachments, directory.path(), true).is_err();
+        let original = include_bytes!("../assets/icons/agent-green.png");
+        let mut changed = original.to_vec();
+        changed.extend_from_slice(b"changed-attachment-bytes");
+        let image = content_blob_store::put(directory.path(), original, "png").unwrap();
+        let attachment = ChatAttachmentDto { kind:"image".into(),name:"agent.png".into(),
+            url:format!("/api/attachments/files/{}", image.file_name),..Default::default() };
+        assert_eq!(multimodal_input::encode_images_from_store(&[attachment.clone()], directory.path()).unwrap().len(), 1);
+        std::fs::write(&image.path, &changed).unwrap();
+        let image_rejected = multimodal_input::encode_images_from_store(&[attachment], directory.path()).is_err();
+        assert_eq!((text_rejected, image_rejected), (true, true), "两类附件的已读字节必须对应内容寻址身份");
+        assert_eq!(std::fs::read(&image.path).unwrap(), changed, "校验不能覆盖损坏证据");
+    }
 
     #[test]
     fn frozen_text_survives_serialization_without_rereading_and_does_not_become_intent() {

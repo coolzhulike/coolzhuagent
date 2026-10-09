@@ -216,3 +216,5 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/release-0.2.123/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 
 /docs/testing/2026-10-09-history-summary/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-attachment-integrity/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
