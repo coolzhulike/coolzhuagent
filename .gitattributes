@@ -166,3 +166,5 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/2026-10-08-session-config-save-order/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 
 /docs/testing/release-0.2.112/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-config-read-snapshot/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol

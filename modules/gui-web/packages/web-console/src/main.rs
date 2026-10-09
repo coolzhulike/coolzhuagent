@@ -4763,17 +4763,19 @@ struct LocalChatRuntimeConfig {
 }
 
 fn local_chat_runtime_config() -> LocalChatRuntimeConfig {
-    read_config(|config| {
-        normalized_local_chat_runtime_config(
-            config.model.local_chat_port,
-            config.model.local_chat_context_window,
-            config.model.local_chat_max_output_tokens,
-            config.model.local_chat_reasoning_budget,
-            config.model.local_chat_gpu_layers,
-            config.model.local_chat_parallel_slots,
-            config.model.local_chat_startup_timeout_ms,
-        )
-    })
+    read_config(local_chat_runtime_config_from_config)
+}
+
+fn local_chat_runtime_config_from_config(config: &WorkspaceConfig) -> LocalChatRuntimeConfig {
+    normalized_local_chat_runtime_config(
+        config.model.local_chat_port,
+        config.model.local_chat_context_window,
+        config.model.local_chat_max_output_tokens,
+        config.model.local_chat_reasoning_budget,
+        config.model.local_chat_gpu_layers,
+        config.model.local_chat_parallel_slots,
+        config.model.local_chat_startup_timeout_ms,
+    )
 }
 
 fn normalized_local_chat_runtime_config(
@@ -13343,17 +13345,20 @@ mod unified_model_settings_tests {
 }
 
 async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) -> ApiResult<Json<JsonValue>> {
-    let (session, agent) = {
+    // 与保存共用 store→config 锁顺序；会话、参数、版本和本地容量属于同一读取快照。
+    // 捕获后立即释放锁，插件目录读取和响应编码不占用会话存储锁。
+    let (session, agent, parameters, configuration_revision, local) = {
         let store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
         let session = store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
-        (session.summary(store.is_active(&session_id)), session.to_agent_session(store.is_active(&session_id)))
+        let (parameters, revision, local) = read_config(|config| (
+            config.session_model_limits.get(&session_id).cloned().unwrap_or_default(),
+            config.configuration_revision,
+            local_chat_runtime_config_from_config(config),
+        ));
+        (session.summary_with_model_settings(store.is_active(&session_id), parameters.clone()), session.to_agent_session_with_model_settings(parameters.clone()), parameters, revision, local)
     };
-    let (parameters, configuration_revision) = read_config(|config| (
-        config.session_model_limits.get(&session_id).cloned().unwrap_or_default(),
-        config.configuration_revision,
-    ));
     let defaults = api::model_token_limit(&agent.model);
-    let effective = effective_model_limit_for_agent(&agent);
+    let effective = effective_model_limit_for_agent_snapshot(&agent, &parameters, local);
     let plugin_tools = if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
         == agent_session_backend::AgentSessionBackend::DevinAcp {
         plugin_runtime::definitions(&active_workspace_path(), &[])
@@ -29450,18 +29455,10 @@ fn select_context_memory_beads(
 /// 取会话生效的 token 限制：优先 config 里该会话的手填覆盖（context_window/max_output_tokens，>0 才生效），
 /// 否则回退按 model 名查的默认表。解决 custom provider 模型落默认表导致预算异常。
 fn effective_model_limit_for(session_id: &str, model: &str) -> (u32, u32) {
-    let default_limit = api::model_token_limit(model);
-    let mut context_tokens = default_limit.context_tokens;
-    let mut max_output_tokens = default_limit.max_output_tokens;
-    if let Some(ov) = read_config(|config| config.session_model_limits.get(session_id).cloned()) {
-        if ov.context_window > 0 {
-            context_tokens = ov.context_window;
-        }
-        if ov.max_output_tokens > 0 {
-            max_output_tokens = ov.max_output_tokens;
-        }
-    }
-    (context_tokens, max_output_tokens)
+    read_config(|config| session_model_config::model_limit_for_settings(
+        model,
+        &config.session_model_limits.get(session_id).cloned().unwrap_or_default(),
+    ))
 }
 
 fn effective_model_limit_for_agent_values(
@@ -29484,15 +29481,26 @@ fn effective_model_limit_for_agent_values(
 }
 
 fn effective_model_limit_for_agent(agent: &AgentSessionDto) -> (u32, u32) {
-    let session_limit = effective_model_limit_for(&agent.id, &agent.model);
-    let local = local_chat_runtime_config();
+    read_config(|config| effective_model_limit_for_agent_snapshot(
+        agent,
+        &config.session_model_limits.get(&agent.id).cloned().unwrap_or_default(),
+        local_chat_runtime_config_from_config(config),
+    ))
+}
+
+fn effective_model_limit_for_agent_snapshot(
+    agent: &AgentSessionDto,
+    settings: &SessionModelLimitOverride,
+    local: LocalChatRuntimeConfig,
+) -> (u32, u32) {
+    let session_limit = session_model_config::model_limit_for_settings(&agent.model, settings);
     let actual_limit = effective_model_limit_for_agent_values(
         agent,
         session_limit,
         local.port,
         (local.context_window, local.max_output_tokens),
     );
-    constrain_session_model_limit(actual_limit, &session_model_settings_for(&agent.id))
+    constrain_session_model_limit(actual_limit, settings)
 }
 
 
@@ -51890,7 +51898,11 @@ struct PersistedSession {
 
 impl PersistedSession {
     fn summary(&self, active: bool) -> SessionSummaryDto {
-        let settings = session_model_settings_for(&self.id);
+        self.summary_with_model_settings(active, session_model_settings_for(&self.id))
+    }
+
+    // 统一配置响应使用捕获的连接参数，不在DTO转换期间重读可变参数。
+    fn summary_with_model_settings(&self, active: bool, settings: SessionModelLimitOverride) -> SessionSummaryDto {
         let base_url = settings.base_url.or_else(|| self.base_url.clone());
         let endpoint = settings.endpoint.or_else(|| self.endpoint.clone());
         SessionSummaryDto {
@@ -51933,7 +51945,10 @@ impl PersistedSession {
     }
 
     fn to_agent_session(&self, _active: bool) -> AgentSessionDto {
-        let settings = session_model_settings_for(&self.id);
+        self.to_agent_session_with_model_settings(session_model_settings_for(&self.id))
+    }
+
+    fn to_agent_session_with_model_settings(&self, settings: SessionModelLimitOverride) -> AgentSessionDto {
         let base_url = settings.base_url.or_else(|| self.base_url.clone());
         let endpoint = settings.endpoint.or_else(|| self.endpoint.clone());
         AgentSessionDto {

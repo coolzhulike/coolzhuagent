@@ -150,3 +150,12 @@ pub(super) fn constrain_session_model_limit(limit: (u32, u32), settings: &Sessio
         if settings.max_output_tokens > 0 { limit.1.min(settings.max_output_tokens) } else { limit.1 },
     )
 }
+
+/// 使用已捕获的参数计算容量，避免同一次响应再次读取可变配置。
+pub(super) fn model_limit_for_settings(model: &str, settings: &SessionModelLimitOverride) -> (u32, u32) {
+    let defaults = api::model_token_limit(model);
+    (
+        if settings.context_window > 0 { settings.context_window } else { defaults.context_tokens },
+        if settings.max_output_tokens > 0 { settings.max_output_tokens } else { defaults.max_output_tokens },
+    )
+}
