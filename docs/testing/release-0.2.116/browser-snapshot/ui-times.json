@@ -1,0 +1,8 @@
+{
+  "request_created_at": 1791534853799,
+  "detected_ms": 1791534853805.13,
+  "snapshot_returned_ms": 1791534853948,
+  "close_invoked_ms": 1791534863301,
+  "close_returned_ms": 1791534863392,
+  "refresh_returned_ms": 1791534865269
+}

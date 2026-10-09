@@ -1,5 +1,7 @@
 # 当前验收队列（2026-10-09，0.2.115正式及后续验收）
 
+116 Browser补验：纯截图驱动在登记后149ms取回新鲜画面，正常关闭仍晚9502ms；普通sent/released/effect_observed、父completed/单end_turn/drained/唯一绑定解锁，但stopped事件0，严格撤销仍未命中。不修改五秒期限或注入暂停，不继续同类简单点击碰窗口。[原事实与实拍](../../testing/release-0.2.116/browser-snapshot/report.md)。Goal继续。
+
 116正式增量：模型配置操作和工程选择复用WorkspacePin，覆盖完整响应；修复正式115跨工程参数混读。正常release构建/安装0、六门pass、1159文件逐SHA一致，冻结aa72c25两路CI success；正式EXE忙期180切换409，真实交错77成功切换/75有效读取零混合，SQLite保存窗口409、另一工程不变、400/409后释放、正常原生A/B参数及同EXE重启三实拍通过。首观察器共享占用失败保留；模型0、原SWE/revision51/唯一island恢复。迟到请求/ABA及完整领域迁移和严格Browser仍开放。[116正式交接与实拍](../../testing/release-0.2.116/change-report-and-test-handoff.md)。Goal继续。
 
 模型配置工程作用域候选：正式115真实复现2041读/180切换的跨工程混合；候选复用WorkspacePin覆盖读写和完整响应派生。实际build0、完整Web1423/0/6（另lib8/native-host1）；交错80次成功切换/77有效读取零混合，真实SQLite保存窗口切换409、另一工程不变、400/409退出释放pin，正常原生A/B参数和同EXE重启实拍通过。模型0、原SWE/revision51/唯一island恢复；115不含，迟到请求/ABA和完整领域迁移仍开放。[原失败、候选与实拍](../../testing/2026-10-09-session-config-scope/report.md)。Goal继续。
