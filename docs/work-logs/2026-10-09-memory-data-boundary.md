@@ -1,0 +1,3 @@
+# 2026-10-09 记忆资料边界候选
+
+2026-10-09记忆资料边界候选：核心渲染器统一JSON资料投影与当前指令/授权边界，不改变召回、预算、工具或权限。原唯一SWE-2-medium/island-kayak、revision57真实长程708.1秒（可见#803/#804），实际完整任务前检选中两条L1污染资料、排除L4；八Browser动作/16可信输入、两滚动/文本效果、宿主2/2及freshness，随后DSH一次，UTF-8/BOM UTF-16BE冻结附件与中文总额4230一致，父completed/单end_turn/drained并解锁。五次分页读取有12288→70000缺口，不冒完整连续读取通过；零格式/引文拒绝也不补算纠正分支。offline构建及最终排版后构建0，核心356/0/1、Web1433/0/6（lib8/native-host1）、联动8/0。自有三条记忆按身份撤回、102条原记忆保留，自有服务正常0，当前Program Files正式125窗口已恢复；候选待批次出包。41f93ebe文档HEAD两路CI success，后续候选HEAD另验。仅关闭有限旧事实/错误角色资料场景，完整4.4、多模态/GC、严格Browser时序及其余32矩阵继续；Goal active、Paint免测/微信不动/Opus暂停/无子代理。[候选原生实拍与完整事实](../testing/2026-10-09-memory-data-boundary/report.md)。

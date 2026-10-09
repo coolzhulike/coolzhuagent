@@ -1,0 +1,9 @@
+{
+  "command": [
+    "python",
+    "attachment-browser/server.py"
+  ],
+  "actual_exit_code": 0,
+  "tool_chunk": "e8e298",
+  "stop_method": "自有stop-server收尾信号，正常shutdown，不按端口杀进程"
+}

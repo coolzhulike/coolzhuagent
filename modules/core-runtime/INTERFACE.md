@@ -16,6 +16,7 @@
 - `runtime::ConversationMessage`
 - `runtime::ToolExecutor`
 - `runtime::ConfigLoader`
+- `runtime::render_prompt_memory_context`：历史资料投影与固定信任边界；非空输出为说明及JSON数组，保留层级、种类、来源和摘要，序列化转义摘要换行、引号与控制字符。调用方继续负责召回、预算和执行权限，不将摘要内容当作授权。
 - `server::app`
 - `server::AppState`
 

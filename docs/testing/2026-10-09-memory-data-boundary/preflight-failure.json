@@ -1,0 +1,28 @@
+{
+  "reason": "正常beads/prompt保留两自有L1记录，但长历史context-preview未选入全部，未提交模型；需先核对预算和召回，不能声称覆盖污染资料。",
+  "owned_prompt_ids": [
+    "bead-1791587488506"
+  ],
+  "memory_selection": {
+    "strategy": "keyword",
+    "candidate_ids": [
+      "bead-1791587488506"
+    ],
+    "selected_ids": [
+      "bead-1791587488506"
+    ],
+    "expired_or_invalid_ids": [],
+    "superseded_ids": [],
+    "budget_skipped_ids": [],
+    "used_tokens": 29,
+    "token_budget": 2478
+  },
+  "budget": {
+    "system": 579,
+    "memory": 29,
+    "history": 21683,
+    "user": 65,
+    "total": 22327,
+    "budget": 30976
+  }
+}
