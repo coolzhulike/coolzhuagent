@@ -1,4 +1,6 @@
-# 当前验收队列（2026-10-08，0.2.112正式及后续验收）
+# 当前验收队列（2026-10-09，0.2.115正式及后续验收）
+
+115正式增量：四个模型参数入口同步块提取至SessionConfigService，沿用TrackedSessionStore诊断/原锁序/发布及失败恢复。实际正常构建及安装0、六门pass、1159项安装摘要一致，同源f6f8729两路CI success。正式EXE旧容量六路1337读/180保存、统一配置六路1150读/180保存均零混合，真实SQLite两组失败恢复与同revision200/409、正常原生设置与同EXE重启实拍通过；原SWE/revision51/唯一island已恢复，四隔离库模型轮次0。第一次构建外层等待未捕获子退出，直接等待重做才计0，原事实保留。115四资产已公开预发布并核实际标签/SHA；只关闭Web服务提取子项，完整领域/工作区作用域/outbox及严格Browser继续开放。[115交接与实拍](../../testing/release-0.2.115/change-report-and-test-handoff.md)。Goal继续。
 
 114正式增量：旧容量GET/POST复用单次捕获/已发布配置的本地服务容量，修复113旧GET32768/统一8192及清零POST1000000/65536/统一8192/4096的不一致。正式EXE六路1313次读取/180次保存零混合，本地约束/采样保留、正常原生预算与同EXE重启实拍通过。正常release构建/安装0、六门pass、1159文件逐SHA一致，冻结95c2704两路CI success；已公开114预发布、四资产服务端摘要/实际标签一致。原SWE-2-medium/revision51/唯一island-kayak已恢复且解锁，模型0/新云端0。完整Service/outbox、跨工作区/崩溃和Browser严格时序继续开放。[114交接与实拍](../../testing/release-0.2.114/change-report-and-test-handoff.md)。Goal继续。
 
