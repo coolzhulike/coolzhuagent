@@ -1,0 +1,152 @@
+{
+  "passed": false,
+  "reason": "普通自然跳转没有改变资源导航版本，未命中严格资源撤销；模型将新页无关文字作为原目标正判，不能计严格业务验收通过。",
+  "facts": {
+    "run": {
+      "id": "run-chat-7b4a9e6fe3b680d5fb72eac7ec3fa7ae255d4c995d7f08b3",
+      "kind": "chat_turn",
+      "workspace_id": "ws-23f646a969206cb4",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "goal_id": null,
+      "phase_id": null,
+      "legacy_turn_id": "chat-turn-1791586101446-1",
+      "provider_turn_id": null,
+      "state": "completed",
+      "owner_id": "coolzhu-web-console",
+      "claim_token": "claim-a4659874aed6667784a83fd3a84ac62266e02b10182c4bfc7ffa427ac81a1fd1",
+      "stop_reason": null,
+      "error_json": null,
+      "created_at": 1791586101448,
+      "started_at": 1791586101683,
+      "stop_requested_at": null,
+      "heartbeat_at": 1791586101683,
+      "finished_at": 1791586149254
+    },
+    "terminal": {
+      "call_id": "cu-session-1791131217833-chat-turn-1791586101446-1-tool-cdadc46e62c583623c97f7cdf44b3724a4dd70d81038f6315180a1da19f63687",
+      "provider_tool_call_id": "tool-cdadc46e62c583623c97f7cdf44b3724a4dd70d81038f6315180a1da19f63687",
+      "status": "succeeded",
+      "stage": "terminal",
+      "goal_achieved": true,
+      "surface": "browser",
+      "summary": "{\"bound_initial_url\":\"http://127.0.0.1:64527/old.html\",\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"0d0ab139779cc235a22425e18c630e54\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[3],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":3,\"name_chars\":10,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":3,\"inline_has_static_text\":false,\"name_chars\":10,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"2112ab92bcc8565f75e859d87b2fa7c3\",\"observation_origin\":\"after_settled_input\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":8,\"nodes\":[{\"index\":3,\"name\":\"新页面已载入；仅观察\",\"role\":\"StaticText\"}],\"title\":\"OBSERVE125-NEW\",\"truncated\":false,\"url\":\"http://127.0.0.1:64528/new.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+      "attempts": 1,
+      "steps_completed": 1,
+      "input_steps": [
+        {
+          "step_index": 0,
+          "action_kind": "click",
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "partial": false,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed"
+        }
+      ],
+      "evidence": [
+        "native-ax:1:1",
+        "native-observation:d1fad3b570bf563f9b7d372797ea315e",
+        "native-ax:1:1",
+        "native-observation:d1fad3b570bf563f9b7d372797ea315e",
+        "native-input:9cc94cab11155c6b46f04ab06256c86c",
+        "native-ax:1:1",
+        "native-observation:2112ab92bcc8565f75e859d87b2fa7c3",
+        "native-ax:1:1",
+        "native-observation:2112ab92bcc8565f75e859d87b2fa7c3",
+        "native-ax:1:1",
+        "native-observation:0d0ab139779cc235a22425e18c630e54"
+      ],
+      "supervisor": {
+        "circuit_open": false,
+        "action_count": 1,
+        "replan_count": 0,
+        "no_progress_count": 0
+      },
+      "cu_budget": {
+        "root_deadline_state": "wired",
+        "root_deadline": {
+          "at": {
+            "unix_ms": 1791587001446
+          }
+        },
+        "cu_deadline_ms": 1791587001446,
+        "cu_deadline_established_at_ms": 1791586112660,
+        "cu_budget_ms": 900000
+      }
+    },
+    "events": [
+      {
+        "id": 6012,
+        "event_type": "browser.observation_requested",
+        "created_at": 1791586112678,
+        "payload_json": "{\"request_id\":\"d1fad3b570bf563f9b7d372797ea315e\",\"stage\":\"registered\"}"
+      },
+      {
+        "id": 6019,
+        "event_type": "browser.observation_requested",
+        "created_at": 1791586135005,
+        "payload_json": "{\"request_id\":\"87fd2d914434b6851d0f0f2fc02384be\",\"stage\":\"registered\"}"
+      },
+      {
+        "id": 6020,
+        "event_type": "browser.observation_requested",
+        "created_at": 1791586137309,
+        "payload_json": "{\"request_id\":\"2112ab92bcc8565f75e859d87b2fa7c3\",\"stage\":\"registered\"}"
+      },
+      {
+        "id": 6023,
+        "event_type": "browser.observation_requested",
+        "created_at": 1791586143899,
+        "payload_json": "{\"request_id\":\"0d0ab139779cc235a22425e18c630e54\",\"stage\":\"registered\"}"
+      }
+    ],
+    "diagnostics": [
+      {
+        "request_kind": "computer_use_planning",
+        "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"dom-5598c8d9dea29a5e0d1145a4d2a53951\"},\"done\":false,\"observation_facts\":{\"candidate_count\":21,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":4,\"input_supported\":true,\"node_count\":128,\"outside_viewport_candidate_count\":16,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":true},\"redacted_fields\":true}",
+        "error_code": null
+      },
+      {
+        "request_kind": "computer_use_browser_readonly_verification",
+        "response_json": "{\"bytes\":100,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":30,\"evidence_chars\":10,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":1,\"criteria_type\":\"array\",\"host_verification\":{\"criteria_count\":1,\"criteria_met\":1,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[3],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":3,\"name_chars\":10,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":3,\"inline_has_static_text\":false,\"name_chars\":10,\"role\":\"StaticText\"}]}],\"ungrounded_positive_count\":0},\"observation_facts\":{\"candidate_count\":1,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":8,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false},\"progress\":null,\"progress_type\":\"missing\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+        "error_code": null
+      }
+    ]
+  },
+  "associated_request": {
+    "event_id": 6020,
+    "created_at": 1791586137309,
+    "payload": {
+      "request_id": "2112ab92bcc8565f75e859d87b2fa7c3",
+      "stage": "registered"
+    }
+  },
+  "popup": {
+    "kind": "popup-request",
+    "role": "OLD",
+    "page_ms": 1791586137315.9001,
+    "server_ns": 874848416239100,
+    "received_unix_ns": 1791586137320320200
+  },
+  "new_get": {
+    "kind": "http-get",
+    "role": "NEW",
+    "path": "/new.html",
+    "host": "127.0.0.1:64528",
+    "server_ns": 874848420783500,
+    "received_unix_ns": 1791586137324865000
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}
