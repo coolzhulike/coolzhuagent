@@ -1,0 +1,47 @@
+[
+  {
+    "path": "cancel-retained.jpg",
+    "bytes": 206450,
+    "sha256": "4345718ac5780f2f85ab5a7e63d242c7122d62db92500c1fa35f96943ea4ea01"
+  },
+  {
+    "path": "facts.json",
+    "bytes": 646,
+    "sha256": "934d2dc915b48e37c957235c49b631465253db000c172aa2879f84df182cd916"
+  },
+  {
+    "path": "report.md",
+    "bytes": 1404,
+    "sha256": "11392922d4b8e3d01dc300583a94b3a0ddf243ff6070b8a2120db3a2146d879f"
+  },
+  {
+    "path": "restart-owned-shell.ps1",
+    "bytes": 855,
+    "sha256": "3b47a30e787c25a3ca57f89227d53a3866f5ba9941d038bcd4869b2aa49e48cc"
+  },
+  {
+    "path": "restored-shell-receipt.json",
+    "bytes": 729,
+    "sha256": "1c260aa21c13b49ae4c568f2e7bfd297260fd24423bf34b6b41b806ffa493092"
+  },
+  {
+    "path": "restored.jpg",
+    "bytes": 204097,
+    "sha256": "7c7f44dd837e8f63d92db5915d043601cf5f6d6df05c38050927c09a83860b3b"
+  },
+  {
+    "path": "selected-controls.txt",
+    "bytes": 561,
+    "sha256": "703c750625fa147237f4f49c5f57d04deaa782c9162026fbe6990074c5328823"
+  },
+  {
+    "path": "selected.jpg",
+    "bytes": 206486,
+    "sha256": "6b88d843ec81cc8677fbca3c80eaf50715a15d656afa3fad772477cf4b672708"
+  },
+  {
+    "path": "stopped-shell-receipt.json",
+    "bytes": 728,
+    "sha256": "331436ffc1b7953cc7406b3d02aba73831f96894ca91276ad1fa204185ebc06f"
+  }
+]

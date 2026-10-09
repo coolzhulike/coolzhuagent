@@ -1,0 +1,12 @@
+{
+  "strict_pending_cancellation_passed": false,
+  "reason": "正常关闭开始晚于父轮completed，未命中观察等待窗口",
+  "close_after_request_ms": 16721,
+  "close_after_run_completed_ms": 1750,
+  "detection_delay_ms": 6.550048828125,
+  "stopped_events": 0,
+  "model": "swe-2-medium",
+  "remote_session": "island-kayak",
+  "new_cloud_sessions": 0,
+  "single_dispatch": true
+}

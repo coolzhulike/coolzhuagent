@@ -1,0 +1,22 @@
+{
+  "version": "0.2.115",
+  "native_multi_file_picker_passed": true,
+  "cancel_preserves_selected_files": true,
+  "files": [
+    {
+      "name": "orders.csv",
+      "bytes": 96,
+      "sha256": "b9dafaadf0a088ca0724ab5c5c98f8967c782ed707ef63019ef7c2457029f6e7"
+    },
+    {
+      "name": "invoice-note.txt",
+      "bytes": 186,
+      "sha256": "fb862e81de88d2cd7db46c52890480b44e630c6289db40878a506a445045a011"
+    }
+  ],
+  "picker_model_requests": 0,
+  "total_attempt_delta_including_single_browser_request": 1,
+  "active_runs": 0,
+  "local_draft_cleared_by_owned_shell_restart": true,
+  "original_files_preserved": true
+}

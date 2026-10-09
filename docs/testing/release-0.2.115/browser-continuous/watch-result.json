@@ -1,0 +1,15 @@
+{
+  "ready": true,
+  "run_id": "run-chat-2ef86e00c1f2d50f903c532255ba11f47654c21d580c0fad",
+  "cu_call_id": "cu-session-1791131217833-chat-turn-1791530489923-0-tool-b5f975d6723565357c688b007521b3df9bffb5abc0a3e0868e8f08eeecea3986",
+  "observed_cu_state": "observing",
+  "request_event_id": 3381,
+  "request_created_at": 1791530522108,
+  "request": {
+    "request_id": "729fe4cd8c8b0f6e76d8d112686964b4",
+    "stage": "registered"
+  },
+  "detected_ms": 1791530522114.55,
+  "polls": 5624,
+  "max_poll_gap_ms": 558.8394999504089
+}

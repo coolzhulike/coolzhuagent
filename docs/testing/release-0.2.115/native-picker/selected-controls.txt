@@ -1,0 +1,8 @@
+																				2570 文本 orders.csv
+																				2571 文本 96 B
+																				2572 按钮 移除附件 orders.csv Description: 移除附件 orders.csv
+																				2574 文本 invoice-note.txt
+																				2575 文本 186 B
+																				2576 按钮 移除附件 invoice-note.txt Description: 移除附件 invoice-note.txt
+																		52 按钮 选择附件 Description: 选择附件
+																		53 编辑 (settable, string) 输入消息，按 Enter 发送... Description: 输入消息，按 Enter 发送...

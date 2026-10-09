@@ -1,0 +1,97 @@
+{
+  "run": {
+    "id": "run-chat-2ef86e00c1f2d50f903c532255ba11f47654c21d580c0fad",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791530489923-0"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791530489923-0-tool-b5f975d6723565357c688b007521b3df9bffb5abc0a3e0868e8f08eeecea3986",
+      "state": "succeeded",
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791530489923-0-tool-b5f975d6723565357c688b007521b3df9bffb5abc0a3e0868e8f08eeecea3986",
+        "provider_tool_call_id": "tool-b5f975d6723565357c688b007521b3df9bffb5abc0a3e0868e8f08eeecea3986",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"bound_initial_url\":\"http://127.0.0.1:64269/old.html\",\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"82f51c360aa73325a8cdf7ec5be78c7b\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[108],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":108,\"name_chars\":14,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":108,\"inline_has_static_text\":false,\"name_chars\":14,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"729fe4cd8c8b0f6e76d8d112686964b4\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":128,\"nodes\":[{\"index\":108,\"name\":\"真实点击已完成，等待观察交接\",\"role\":\"StaticText\"}],\"title\":\"OBSERVE115-OLD\",\"truncated\":true,\"url\":\"http://127.0.0.1:64269/old.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "input_steps": [
+          {
+            "step_index": 0,
+            "action_kind": "click",
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "partial": false,
+            "effect_status": "effect_observed",
+            "goal_verdict": "passed"
+          }
+        ],
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:e59dd05d117e54fd59b4ed6c77bc4a5d",
+          "native-ax:1:0",
+          "native-observation:e59dd05d117e54fd59b4ed6c77bc4a5d",
+          "native-input:50eccf891f7fc6268c4986a0e211c972",
+          "native-ax:1:0",
+          "native-observation:729fe4cd8c8b0f6e76d8d112686964b4",
+          "native-ax:1:0",
+          "native-observation:729fe4cd8c8b0f6e76d8d112686964b4",
+          "native-ax:1:0",
+          "native-observation:82f51c360aa73325a8cdf7ec5be78c7b"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791531389923
+            }
+          },
+          "cu_deadline_ms": 1791531389923,
+          "cu_deadline_established_at_ms": 1791530504648,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "d590e006a0b0cb8259e6837d2f1b5c3c5f97bc0ff938f1f6",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ]
+}
