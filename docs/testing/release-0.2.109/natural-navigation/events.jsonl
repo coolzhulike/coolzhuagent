@@ -1,0 +1,12 @@
+{"kind": "http-get", "role": "OLD", "path": "/old.html", "host": "127.0.0.1:57243", "server_ns": 801505347377500, "received_unix_ns": 1791512792387237700}
+{"kind": "document-script-start", "role": "OLD", "page_ms": 1791512792538.5999, "server_ns": 801505506916700, "received_unix_ns": 1791512792546778800}
+{"kind": "loaded", "role": "OLD", "page_ms": 1791512792540.5999, "trusted": true, "server_ns": 801505507252500, "received_unix_ns": 1791512792547114100}
+{"kind": "pointerdown", "role": "OLD", "page_ms": 1791512837641.7, "trusted": true, "target": "target", "server_ns": 801550604733600, "received_unix_ns": 1791512837645628600}
+{"kind": "pointerup", "role": "OLD", "page_ms": 1791512837642.5, "trusted": true, "target": "target", "server_ns": 801550607306600, "received_unix_ns": 1791512837648202000}
+{"kind": "click", "role": "OLD", "page_ms": 1791512837642.9, "trusted": true, "target": "target", "server_ns": 801550607695700, "received_unix_ns": 1791512837648590400}
+{"kind": "observing-phase-found", "facts": {"run_id": "run-chat-fdf1b81e01889a2ff2cd6128731b2867afcd28ad5841b03f", "cu_call_id": "cu-session-1791131217833-chat-turn-1791512810685-0-tool-b959e14eb50bcddb0cdec37450e5af97a1fbe94ec2868c366b02c0d6adb55d97", "cu_state": "observing", "steps": [[0, "sent", "released", 1791512837656]], "observation_requested": {"event_id": 3285, "created_at": 1791512837742, "payload": {"request_id": "94b04dd01a40ca8c616aacbcbd77a2a9", "stage": "registered"}}}, "server_ns": 801550705959600, "received_unix_ns": 1791512837746856900}
+{"kind": "phase-ready", "role": "OLD", "page_ms": 1791512837748.0999, "server_ns": 801550710500800, "received_unix_ns": 1791512837751397900}
+{"kind": "http-get", "role": "NEW", "path": "/new.html", "host": "localhost:57243", "server_ns": 801550794115900, "received_unix_ns": 1791512837835014700}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791512837906.6, "server_ns": 801550881094300, "received_unix_ns": 1791512837921995400}
+{"kind": "pagehide", "role": "OLD", "page_ms": 1791512837907.0999, "trusted": true, "server_ns": 801550881601000, "received_unix_ns": 1791512837922502100}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791512837920.8, "trusted": true, "server_ns": 801550885880200, "received_unix_ns": 1791512837926781800}

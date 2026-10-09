@@ -1,0 +1,6 @@
+{
+  "stage": "归档脚本初次正文断言",
+  "error": "把restored-ax增量快照误当完整正文，AssertionError",
+  "product_failure": false,
+  "resolution": "保留原增量，不补造正文；核对已显示的正常页面截图与独立库结果，升级与修复后完整AX另核对"
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "upgrade",
+    "pid": 6392,
+    "exit_code": 1,
+    "termination": "仅自有独立演练服务，非模型/插件清理证明"
+  },
+  {
+    "name": "restored",
+    "pid": 22796,
+    "exit_code": 1,
+    "termination": "仅自有独立演练服务，非模型/插件清理证明"
+  }
+]

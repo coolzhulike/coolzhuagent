@@ -1,5 +1,9 @@
 106正式补记：正常release实际子退出0、六门pass、安装0、1159文件逐摘要一致；冻结c9c61fe，确切MSI带时间戳。原SWE-2-medium/唯一island-kayak两轮真实终态已验证input_steps：成功为sent/released/effect_observed/passed，失败为sent/released/效果未知，单调用/end_turn/drained且无补发。第一轮导航晚于终态、负例未命中已保留；第二轮观察超时负例和实拍通过。只关闭最终释放字段缺口；新发现待处理观察资源变化落为通用timeout，原因识别待修，严格按下窗口仍开放。见[106交接、失败事实与实拍](../../testing/release-0.2.106/change-report-and-test-handoff.md)。其它矩阵和整体Goal继续。
 
+109存储增量：正式安装EXE的隔离副本实操通过未checkpoint WAL进入产品迁移前备份、独立目录恢复及升级后新写入保全，正常聊天室实拍与独立库核对一致；真实索引名冲突使EXE退出1，版本/数据/结构全逻辑摘要原状回滚，撤销副本冲突后同EXE正常恢复。原运行库只读、模型0、新云端0。首次两次脚本准备失败保留；仅关闭6.2这些子项，未外推断电/磁盘满/全部升级矩阵。见[WAL与恢复原事实、实拍](../../testing/release-0.2.109/wal-recovery/report.md)。109已公开预发布，四资产服务器长度/SHA、实际tag09608d5一致；构建源码两路CI success。Goal继续。
+
+109正式增量：请求登记关联轨迹已实施，正常构建/安装0、六门pass、1159文件逐摘要一致、1423/0/6既有忽略、构建源码两路CI success。原SWE/唯一island两轮均sent/released、单end_turn/drained且无补发。自然导航取得合法新观察（新页零输入）；正常关闭后panel_unavailable、效果未知。两轮均未命中精确等待资源撤销，原事实与[109实拍交接](../../testing/release-0.2.109/change-report-and-test-handoff.md)保留。已纠正“自然导航等同面板资源变化”的测试前提；窄时序与其它总体矩阵仍开放，Goal继续。
+
 108正式增量：观察失败阶段最小轨迹已实施，离线build0/完整1423通过/0失败/6既有忽略，正常构建六门pass、安装0、1159文件逐摘要一致。原SWE/唯一island-kayak一次真实工具sent/released、新页零输入、单end_turn/drained并解锁；释放后230.1ms正常导航得到合法新观察，最终budget_exhausted，未命中底层等待分支。CU observing不能证明底层请求已登记，后续增加请求关联标记作精准复验；原事实与[108实拍交接](../../testing/release-0.2.108/change-report-and-test-handoff.md)保留。总体Goal继续，严格时序及其它矩阵仍开放。
 
 107已[公开预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.107)：四资产服务器长度/SHA和实际tag=314671b核验通过；未签名、不标latest。当前正式107原生窗口保持打开，精确资源变化等待分支和总体未完成矩阵继续开放。

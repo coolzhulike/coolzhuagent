@@ -1,0 +1,24 @@
+{
+  "facts": {
+    "run_id": "run-chat-2abcb79dda8d9efa67222c36412ef018f8b85a9683cba58b",
+    "cu_call_id": "cu-session-1791131217833-chat-turn-1791513022347-1-tool-bc9d86a60dc223347a2f52e428bf86fc7ef1135f8a39af88c6a3d86c120e408b",
+    "cu_state": "observing",
+    "steps": [
+      [
+        0,
+        "sent",
+        "released",
+        1791513081201
+      ]
+    ],
+    "observation_requested": {
+      "event_id": 3303,
+      "created_at": 1791513081226,
+      "payload": {
+        "request_id": "6f205adcd78897193900b089c984a75e",
+        "stage": "registered"
+      }
+    }
+  },
+  "detected_unix_ns": 1791513081230329500
+}

@@ -1,0 +1,7 @@
+{
+  "source_commit": "09608d5f6889800d54b70ee99ec2e9163a89935f",
+  "stdout": "build-stdout.log",
+  "exit_code": 0,
+  "version": "0.2.109",
+  "stderr": "build-stderr.log"
+}
