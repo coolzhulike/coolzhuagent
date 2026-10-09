@@ -1,0 +1,5 @@
+{
+  "actual_exit_code": 1,
+  "error": "PermissionError只读观察器撞上配置原子写入的Windows文件共享窗口；原驱动finally释放SQLite锁、停止子进程并恢复GUI提示；不计保存/工程切换测试通过",
+  "retry_change": "仅只读观察器在原2秒窗口重读，业务保存/切换均不重发"
+}
