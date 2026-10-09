@@ -132,12 +132,12 @@ pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, sess
             let handler: ICoreWebView2CallDevToolsProtocolMethodCompletedHandler = bounded_callback::Handler(Box::new(move |status, text| {
                 // 固定方法名用于诊断，不回显任意浏览器错误正文或查询参数。
                 let failure = if method_name == "DOM.getNodeForLocation" { "native_browser_hit_test_failed" } else { "native_observation_failed" };
-                let result = if status.is_err() { Err(failure.into()) }
-                else if super::browser_panel::input_resource(&callback_app).as_ref() != Some(&resource_on_ui)
+                // 资源失效优先于回调失败；已知文档变化不能被通用读取错误覆盖。
+                let result = if super::browser_panel::input_resource(&callback_app).as_ref() != Some(&resource_on_ui)
                     || callback_app.get_webview(&resource_on_ui.label).and_then(|view| view.url().ok())
                         .as_ref().map(|value| value.as_str()) != Some(url.as_str()) {
                     Err("native_browser_resource_changed".into())
-                } else {
+                } else if status.is_err() { Err(failure.into()) } else {
                     unsafe { bounded_callback::read(text) }.and_then(|raw|
                         serde_json::from_str(&raw).map_err(|_| "native_observation_invalid".into()))
                 };
