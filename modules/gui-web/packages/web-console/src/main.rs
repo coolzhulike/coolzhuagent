@@ -28951,7 +28951,7 @@ fn build_context_assembly_with_roster(
     // dropped_history 是新→旧顺序，摘要时转回时间正序并注入 system_prompt（计入 system_tokens）。
     if !dropped_history.is_empty() {
         dropped_history.reverse();
-        let rolling_summary = summarize_dropped_history(&dropped_history);
+        let rolling_summary = chat_tool_history::summarize_dropped_history(&dropped_history);
         compaction_item =
             context_compaction_item_from_history(&dropped_history, &rolling_summary, agent);
         diagnostics::info(
@@ -29504,47 +29504,6 @@ fn context_message_role(role: &str) -> &'static str {
     } else {
         "user"
     }
-}
-
-/// 12-D 自动 compact：把超出上下文预算、被压缩掉的较旧历史汇成一条 [历史摘要]，
-/// 注入 system_prompt，避免长会话丢失早期上下文。轻量本地摘要（不调模型，避免组装期同步 LLM）：
-/// 取每条消息的角色 + 正文前若干字，最多保留若干条；超出再做条数级压缩。
-fn summarize_dropped_history(dropped: &[PersistedChatMessage]) -> String {
-    if dropped.is_empty() {
-        return String::new();
-    }
-    let role_label = |role: &str| match role {
-        "user" => "用户",
-        "assistant" => "助手",
-        "system" => "系统",
-        other if !other.is_empty() => "对话",
-        _ => "对话",
-    };
-    let mut lines = Vec::new();
-    lines.push(format!(
-        "[历史摘要] 以下 {} 条更早对话已压缩为要点：",
-        dropped.len()
-    ));
-    let max_items = 12usize;
-    let max_chars = 50usize;
-    let step = dropped.len().div_ceil(max_items).max(1);
-    for message in dropped.iter().step_by(step) {
-        let body = message.content.trim();
-        if body.is_empty() {
-            continue;
-        }
-        let snippet: String = body.chars().take(max_chars).collect();
-        let ellipsis = if body.chars().count() > max_chars {
-            "…"
-        } else {
-            ""
-        };
-        lines.push(format!(
-            "- {}: {snippet}{ellipsis}",
-            role_label(&message.role)
-        ));
-    }
-    lines.join("\n")
 }
 
 /// 原文保存与上下文投影使用受理时冻结的存储位置，不回读当前工作区。

@@ -1,4 +1,6 @@
-# 实施计划完成情况与改动清单（当前正式0.2.122）
+# 实施计划完成情况与改动清单（当前正式0.2.123）
+
+2026-10-09继续验收：正式123两次连续观测驱动均未命中严格在途撤销。第一轮捕获登记后7.2ms但跨node调用导致exec context错误且未关闭；第二轮登记后68ms取得新AX，正常关闭晚14216ms，无stopped事件，sent/released保留而效果未知，failed/单end_turn/drained/唯一island解锁。原失败与实拍保留，不计严格通过。[完整时间及实拍](../../testing/release-0.2.123/browser-pending/report.md)。另真实长会话压缩439条时7个用户摘要被宿主边界占满，已提取历史投影模块并修补；两真实EXE/同真实SQLite副本恢复7正文、历史选取与硬预算保持，build0、Web1430/0/6、模块8/0、registry check0。候选界面正常打开并恢复正式123原生壳，未改原运行库、模型0/新云端0；摘要正文未通过GUI展示或真实模型连通复验，候选待下一批正式包，不冒记忆总体完成。[压缩候选与边界](../../testing/2026-10-09-history-summary/report.md)。其它32工作包与Browser严格项继续，Goal active。
 
 2026-10-09正式123：本步效果归因及滚动文档身份已正常出包并独立复验。真实SWE-2-medium/唯一island-kayak新双来源订单8动作/16可信事件，两个子文档滚动与Text效果确认、Enter未知不冒领，真实提交及宿主2/2、后续DSH总额3514，回复#msg-1791569329337-0，两工具各一次completed、父completed/单end_turn/drained并解锁。独立行情负例一次CU两次无效click均sent/released/inconclusive、no_progress2停止、零第三次，目标未完成/root failed保留为预期负例。正常构建安装0、6门pass、1159安装文件逐SHA、源码407126d两路CI success、四资产公开预发布及服务器摘要/实际tag一致。严格nativeTarget/commit及在途撤销/HRESULT竞争、脚本自发滚动完整因果和其它32WBS继续开放。[123正式交接与实拍](../../testing/release-0.2.123/change-report-and-test-handoff.md)。Goal保持active。
 
