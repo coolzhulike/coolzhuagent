@@ -184,3 +184,5 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/release-0.2.116/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 
 /docs/testing/2026-10-09-session-config-late/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.117/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
