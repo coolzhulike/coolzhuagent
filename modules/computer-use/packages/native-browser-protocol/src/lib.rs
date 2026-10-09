@@ -334,6 +334,9 @@ pub struct NodeHandle {
     /// 仅文档根的已采集视口；用于区分子文档滚动与任务最终达成。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub document_viewport: Option<PageViewport>,
+    /// 文档根的宿主随机身份；同一文档的 AX 序号漂移不改变它，文档替换即撤销。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_scope_id: Option<String>,
 }
 
 pub fn opaque_id(value: &str) -> bool {
@@ -353,6 +356,8 @@ impl PageObservation {
             && self.node_handles.len() <= self.nodes.len()
             && (self.node_handles.is_empty() || self.document_token.is_some())
             && self.node_handles.iter().all(|handle| handle.index < self.nodes.len() && opaque_id(&handle.node_id)
+                && handle.document_scope_id.as_deref().is_none_or(|id|
+                    self.nodes[handle.index].role == "RootWebArea" && opaque_id(id))
                 && handle.document_viewport.as_ref().is_none_or(|viewport|
                     self.nodes[handle.index].role == "RootWebArea" && viewport.valid_shape()))
             && self.node_handles.iter().map(|handle| handle.index).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()

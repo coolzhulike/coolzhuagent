@@ -216,13 +216,20 @@ mod tests {
         assert!(focused_editor(&focus,"button"));
         assert!(!focused_editor(&serde_json::json!({"properties":[{"name":"focused","value":{"value":"true"}}]}),"textbox"));
         page.document_token = Some("a".repeat(32));
-        page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32),in_viewport:None,document_viewport:None});
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32),in_viewport:None,document_viewport:None,document_scope_id:None});
         page.focused_node_index = Some(1);
         assert!(page.valid_shape());
+        page.node_handles[0].document_scope_id=Some("c".repeat(32));
+        assert!(!page.valid_shape(),"编辑框不能伪装为文档根");
+        page.node_handles[0].document_scope_id=None;
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:0,node_id:"d".repeat(32),in_viewport:None,document_viewport:None,document_scope_id:Some("e".repeat(32))});
+        assert!(page.valid_shape());
+        page.node_handles[1].document_scope_id=Some("真实CDP身份".into());
+        assert!(!page.valid_shape()); page.node_handles.pop();
         page.focused_node_index = Some(0);
         assert!(!page.valid_shape());
         page.focused_node_index = None;
-        page.node_handles.push(native_browser_protocol::NodeHandle {index:999,node_id:"0".repeat(32),in_viewport:None,document_viewport:None});
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:999,node_id:"0".repeat(32),in_viewport:None,document_viewport:None,document_scope_id:None});
         assert!(!page.valid_shape());
         let dom = serde_json::json!({"root":{"backendNodeId":1,"children":[{"backendNodeId":2,
             "shadowRoots":[{"backendNodeId":3}],"contentDocument":{"backendNodeId":4}}]}});

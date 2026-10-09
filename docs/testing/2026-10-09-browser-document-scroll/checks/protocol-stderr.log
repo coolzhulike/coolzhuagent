@@ -1,0 +1,4 @@
+   Compiling coolzhu-native-browser-protocol v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\computer-use\packages\native-browser-protocol)
+    Finished `test` profile [unoptimized] target(s) in 1.86s
+     Running unittests src\lib.rs (target\debug\deps\coolzhu_native_browser_protocol-4c7c10d75da76be9.exe)
+   Doc-tests coolzhu_native_browser_protocol

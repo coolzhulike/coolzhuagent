@@ -18,7 +18,7 @@ pub(super) struct NodeBinding { pub node_id:String, pub index:usize, pub backend
 pub(super) struct NodeCandidate { pub index:usize, pub backend_node:i64, pub role:String, pub name:String, pub scope:DocumentScope }
 struct CachedObservation { observation_id:String, expires:Instant, nodes:Vec<NodeBinding> }
 #[derive(Default)]
-struct NodeCache { resource:Option<PanelResource>, document:Option<DocumentSnapshot>, token:String, observations:VecDeque<CachedObservation> }
+struct NodeCache { resource:Option<PanelResource>, document:Option<DocumentSnapshot>, token:String, scope_ids:Vec<String>, observations:VecDeque<CachedObservation> }
 impl NodeCache {
     fn register(&mut self, resource: &PanelResource, document: &DocumentSnapshot,
         observation_id: &str, candidates: &[NodeCandidate]) -> Result<(String,Vec<NodeHandle>),String> {
@@ -27,7 +27,11 @@ impl NodeCache {
             return Err("native_browser_node_unavailable".into());
         }
         if self.resource.as_ref() != Some(resource) || self.document.as_ref() != Some(document) {
-            self.observations.clear(); self.token.clear(); self.resource = Some(resource.clone()); self.document = Some(document.clone());
+            // 身份在同一快照内稳定，与节点索引无关；随机源失败不留下半套新绑定。
+            let token=random_id()?;
+            let scope_ids=document.scopes.iter().map(|_|random_id()).collect::<Result<Vec<_>,_>>()?;
+            self.observations.clear(); self.token=token; self.scope_ids=scope_ids;
+            self.resource = Some(resource.clone()); self.document = Some(document.clone());
         }
         if self.token.is_empty() { self.token = random_id()?; }
         let now = Instant::now(); self.observations.retain(|value| value.expires > now);
@@ -37,7 +41,9 @@ impl NodeCache {
         let nodes = candidates.iter().map(|candidate| Ok(NodeBinding {
             node_id:random_id()?,index:candidate.index,backend_node:candidate.backend_node,role:candidate.role.clone(),name:candidate.name.clone(),scope:candidate.scope.clone(),
         })).collect::<Result<Vec<_>,String>>()?;
-        let handles = nodes.iter().map(|node| NodeHandle {index:node.index,node_id:node.node_id.clone(),in_viewport:None,document_viewport:None}).collect();
+        let handles = nodes.iter().map(|node| NodeHandle {index:node.index,node_id:node.node_id.clone(),in_viewport:None,document_viewport:None,
+            document_scope_id:if node.role=="RootWebArea" {document.scopes.iter().position(|scope|scope==&node.scope)
+                .and_then(|index|self.scope_ids.get(index)).cloned()} else {None}}).collect();
         self.observations.push_back(CachedObservation {observation_id:observation_id.into(),expires:now+NODE_LEASE,nodes});
         Ok((self.token.clone(),handles))
     }
@@ -64,6 +70,29 @@ pub(super) fn retire() -> Result<(),String> { cache().lock().map_err(|_| "native
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn document_identity_survives_ax_reordering_and_retires_with_resource_or_document() {
+        let mut cache=NodeCache::default();
+        let resource=PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:1};
+        let identity=DocumentIdentity {frame_id:"frame".into(),loader_id:"loader".into(),backend_root:1};
+        let scope=DocumentScope::top(identity.clone());
+        let document=DocumentSnapshot {top:identity,scopes:vec![scope.clone()],truncated:false};
+        let mut candidate=NodeCandidate {index:12,backend_node:1,role:"RootWebArea".into(),name:"文档".into(),scope};
+        let (token,first)=cache.register(&resource,&document,&"a".repeat(32),&[candidate.clone()]).unwrap();
+        assert!(first[0].document_scope_id.as_deref().is_some_and(native_browser_protocol::opaque_id));
+        cache.observations.clear(); // 动作撤销节点引用，不撤销同一文档身份。
+        candidate.index=17;
+        let (same_token,next)=cache.register(&resource,&document,&"b".repeat(32),&[candidate.clone()]).unwrap();
+        assert_eq!(token,same_token); assert_eq!(first[0].document_scope_id,next[0].document_scope_id);
+        assert_ne!(first[0].node_id,next[0].node_id);
+        let mut replacement=document.clone();replacement.top.loader_id="replacement".into();
+        replacement.scopes[0]=DocumentScope::top(replacement.top.clone());candidate.scope=replacement.scopes[0].clone();
+        let (_,replaced)=cache.register(&resource,&replacement,&"c".repeat(32),&[candidate.clone()]).unwrap();
+        assert_ne!(first[0].document_scope_id,replaced[0].document_scope_id);
+        let mut other=resource.clone();other.room_id="room-2".into();
+        let (_,moved)=cache.register(&other,&replacement,&"d".repeat(32),&[candidate]).unwrap();
+        assert_ne!(replaced[0].document_scope_id,moved[0].document_scope_id);
+    }
     #[test]
     fn references_need_same_document_scope_and_live_unconsumed_observation() {
         let mut cache = NodeCache::default();

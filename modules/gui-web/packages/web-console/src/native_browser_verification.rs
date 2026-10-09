@@ -42,19 +42,24 @@ pub(super) fn visible_progress(before: &Observation, after: &Observation) -> boo
         _=>return false,
     }
     let Some(target_index)=action.target_index else {return false;};
+    let Some(scope_id)=action.document_scope_id.as_deref() else {return false;};
     let Some(previous)=before["document_viewports"].as_array() else {return false;};
     let Some(current)=after["document_viewports"].as_array() else {return false;};
-    previous.iter().any(|old| {
-        let Some(index)=old["index"].as_u64() else {return false;};
-        if usize::try_from(index).ok()!=Some(target_index) {return false;}
-        let Some(new)=current.iter().find(|new|new["index"].as_u64()==Some(index)) else {return false;};
-        let viewport=|v:&serde_json::Value|serde_json::from_value::<native_browser_protocol::PageViewport>(v.clone())
-            .ok().filter(|v|v.valid_shape());
-        match (viewport(&old["viewport"]),viewport(&new["viewport"])) {
-            (Some(old),Some(new))=>old!=new,
-            _=>false,
-        }
-    })
+    // 只比较原规划文档；回执插入可改变 AX 序号，另一个文档的视口不能冒领效果。
+    let (Some(old),Some(new))=(unique_document_viewport(previous,scope_id),unique_document_viewport(current,scope_id)) else {return false;};
+    if old["index"].as_u64().and_then(|index|usize::try_from(index).ok())!=Some(target_index) {return false;}
+    let viewport=|v:&serde_json::Value|serde_json::from_value::<native_browser_protocol::PageViewport>(v.clone())
+        .ok().filter(|v|v.valid_shape());
+    match (viewport(&old["viewport"]),viewport(&new["viewport"])) {
+        (Some(old),Some(new))=>old!=new,
+        _=>false,
+    }
+}
+
+fn unique_document_viewport<'a>(values:&'a [serde_json::Value],scope_id:&str)->Option<&'a serde_json::Value> {
+    let mut matching=values.iter().filter(|value|value["document_scope_id"]==scope_id);
+    let first=matching.next()?;
+    matching.next().is_none().then_some(first)
 }
 
 fn source_matches(host_id:&str,resource:&native_browser_protocol::PanelResource,page:&serde_json::Value)->bool {
@@ -357,17 +362,29 @@ mod tests {
         let source=SettledInputSource {original_url:"https://scroll.invalid/".into(),host_id:"host-one".into(),
             resource:native_browser_protocol::PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:2},
             url:"https://scroll.invalid/".into(),document_token:"a".repeat(32),input_request_id:"1".repeat(32),
-            action:Some(SettledInputAction {observation_id:"c".repeat(32),kind:native_browser_protocol::PanelInputKind::Scroll,target_index:Some(12),editor_changed:None})};
+            action:Some(SettledInputAction {observation_id:"c".repeat(32),kind:native_browser_protocol::PanelInputKind::Scroll,target_index:Some(12),editor_changed:None,document_scope_id:Some("e".repeat(32))})};
         let mut before=Observation {generation:1,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
             state:json!({"page":{"document_token":source.document_token,"url":source.url,"host_id":source.host_id,
                 "workspace_path":"workspace","room_id":"room-1","resource":"browser-panel-1","generation":1,"navigation_revision":2,
                 "observation_id":"c".repeat(32),"nodes":[],"document_viewports":[
-                {"index":12,"viewport":{"page_x":0,"page_y":0,"width":300,"height":245}}]}}),evidence:vec![]};
+                {"index":12,"document_scope_id":"e".repeat(32),"viewport":{"page_x":0,"page_y":0,"width":300,"height":245}}]}}),evidence:vec![]};
         let mut after=before.clone();after.generation=2;
         after.state["page"]["observed_input_transition"]=json!(ObservedInputTransition {url:source.url.clone(),document_token:source.document_token.clone(),source});
         after.state["page"]["observation_id"]=json!("d".repeat(32));
         after.state["page"]["document_viewports"][0]["viewport"]["page_y"]=json!(119.33);
         assert!(visible_progress(&before,&after));
+        after.state["page"]["document_viewports"][0]["index"]=json!(17);
+        assert!(visible_progress(&before,&after),"原文档的 AX 序号移动不丢失真实滚动");
+        let settled=after.clone();
+        after.state["page"]["document_viewports"][0]["index"]=json!(12);
+        after.state["page"]["document_viewports"][0]["document_scope_id"]=json!("f".repeat(32));
+        assert!(!visible_progress(&before,&after),"原序号被另一个文档占用不能算进展");
+        after=settled.clone(); after.state["page"]["document_viewports"][0]["document_scope_id"]=json!(null);
+        assert!(!visible_progress(&before,&after),"缺文档身份不得退回索引匹配");
+        after=settled.clone(); let duplicate=after.state["page"]["document_viewports"][0].clone();
+        after.state["page"]["document_viewports"].as_array_mut().unwrap().push(duplicate);
+        assert!(!visible_progress(&before,&after),"重复文档身份不具有唯一见证");
+        after=settled;
         before=after.clone();
         after.state["page"]["elements"]=json!([{"reference":"fresh-random-reference"}]);
         assert!(!visible_progress(&before,&after));
