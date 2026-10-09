@@ -1,5 +1,7 @@
 # 整体验收状态快照（2026-10-08）
 
+2026-10-09后续诊断候选：五个工具参数诊断入口统一为根JSON类型/数量投影，不再复制键名、正文、路径或嵌套凭据，真实调用参数与事实链不变。offline build0、Web1427/0/6；首次回归和正式120真实CU输入所有权冲突exit101保留，任务结束后实际重跑0。120不包含此候选，下一有实际工具输入的长程需补正式诊断验证；历史日志、其它生产者/导出/全局配额及完整6.1仍开放。[检查及边界](../../testing/2026-10-09-tool-diagnostic-redaction/report.md)。
+
 2026-10-09正式120增量：动态非目标行情每100ms刷新，真实SWE-2-medium/唯一island-kayak单perform完成三步订单11动作、27可信输入事件，三步验证/最终提交均通过，逐步sent/effect_observed及释放正常；回复#754，10分13秒，单end_turn/drained并解锁。局部成功证据新鲜度与ToolDispatchService协调提取已正式覆盖。构建/安装actual0、六门pass、1159文件逐SHA，冻结ed18c1c两路CI success，四资产公开预发布且服务器摘要/实际tag一致。原119失败保留；中间进展判据、严格原生竞态、完整2.3及32WBS继续，后续诊断脱敏候选不包含本包。[120正式交接与实拍](../../testing/release-0.2.120/change-report-and-test-handoff.md)。Goal保持active。
 
 2026-10-09动态页面候选增量：正式119误将无关行情刷新判为旧观察，第一次点击后failed，原失败与实拍保留。修补将新鲜度限定于文档/资源/导航/焦点/加载及实际阳性证据，保留2秒内部/5秒外层上限；真实SWE-2-medium/唯一island-kayak一次perform完成11步三阶段订单、27条可信输入事件，全部sent/effect_observed且释放正常，回复#752/单end_turn/drained/解锁。该调用同时覆盖新ToolDispatchService原体提取入口。offline build0、Web1426/0/6、模块8/0；首次LLVM OOM exit101原日志保留。仅候选通过，正式新包独立复验待办；中间进展判据、严格输入竞态、完整2.3和32工作包继续开放。[原失败、候选事实与实拍](../../testing/2026-10-09-browser-live-repaint/report.md)。Goal保持active。

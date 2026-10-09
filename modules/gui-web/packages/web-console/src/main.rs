@@ -115,6 +115,7 @@ mod s0_fixture_replay;
 #[cfg(test)]
 mod test_env;
 mod tool_loop_coordinator;
+mod tool_diagnostics;
 mod wechat_authorization;
 mod wechat_command;
 mod wechat_command_runtime;
@@ -27922,7 +27923,8 @@ fn model_diagnostic_note(
             // 不再无条件声称 dry-run：工具是否真实执行由权限门控决定（dev-open/full-access 即真实执行）。
             // 与工具消息(dispatch_plan_chat_summary 的 route)保持一致，避免 task summary 与 tool-summary 矛盾。
             notes.push(format!(
-                "模型请求工具 `{name}`，已按当前权限门控派发（执行结果以工具消息为准）。input={input}"
+                "模型请求工具 `{name}`，已按当前权限门控派发（执行结果以工具消息为准）。input={}",
+                tool_diagnostics::input_shape(input)
             ));
         }
     }
@@ -27996,11 +27998,8 @@ async fn dispatch_model_tool_calls_parallel(
         let source_request_key = source_request_key.clone();
         tasks.spawn(async move {
             let _permit = semaphore.acquire_owned().await.ok();
-            if name.starts_with("mcp__") {
-                diag!("{log_prefix} dispatching tool_call: {name}, id={tool_use_id}, input=[MCP 参数已隐藏]");
-            } else {
-                diag!("{log_prefix} dispatching tool_call: {name}, id={tool_use_id}, input={input}");
-            }
+            diag!("{log_prefix} dispatching tool_call: {name}, id={tool_use_id}, input={}",
+                tool_diagnostics::input_shape(&input));
             let dispatch = run_model_tool_dispatch_for_session_with_identity(
                 &name,
                 &input,
@@ -35041,11 +35040,8 @@ async fn run_model_tool_use_messages(
     // 父运行**接纳时**冻结的上下文；缺省即无法构造合法 CU 事实身份，执行器会 fail-closed 拒绝。
     parent: Option<&FrozenParentContext>,
 ) -> Vec<ChatMessageDto> {
-    if name.starts_with("mcp__") {
-        diag!("[TOOL-CHAIN] MCP 模型工具调用: agent={}, tool={name}, tool_use_id={tool_use_id}, input=[已隐藏]", agent.name);
-    } else {
-        diag!("[TOOL-CHAIN] run_model_tool_use_message: agent={}, tool={name}, tool_use_id={tool_use_id}, input={input}", agent.name);
-    }
+    diag!("[TOOL-CHAIN] run_model_tool_use_message: agent={}, tool={name}, tool_use_id={tool_use_id}, input={}",
+        agent.name, tool_diagnostics::input_shape(input));
 
     let scoped_turn_id = current_turn_trace();
     let dispatch_turn_id = turn_id
@@ -35188,11 +35184,8 @@ async fn run_model_tool_dispatch_within_root(
     raw_provider_tool_call_id: Option<&str>,
     settlement: &mut tool_dispatch_settlement::ToolDispatchSettlement,
 ) -> ApiResult<ToolDispatchResponse> {
-    if name.starts_with("mcp__") || name.starts_with(dsh_execution::PREFIX) {
-        diag!("[TOOL-CHAIN] MCP 模型工具派发: name={name}, input=[已隐藏]");
-    } else {
-        diag!("[TOOL-CHAIN] run_model_tool_dispatch: name={name}, input={input}");
-    }
+    diag!("[TOOL-CHAIN] run_model_tool_dispatch: name={name}, input={}",
+        tool_diagnostics::input_shape(input));
     if let Some(goal) = parent.and_then(|parent| parent.goal_phase.as_ref()) {
         goal.validate_live().map_err(|error| api_error(StatusCode::CONFLICT, &error))?;
     }
@@ -35396,7 +35389,8 @@ async fn run_model_tool_dispatch_within_root(
     // 白名单外"registry 未实现的工具命中 `runtime_tool_execute` "unknown tool
     // 分支 "Failed，模型可据此纠正。
     let runtime_input = runtime_tool_input_with_defaults(name, input);
-    diag!("[TOOL-CHAIN] registry path: name={name}, runtime_input={runtime_input}");
+    diag!("[TOOL-CHAIN] registry path: name={name}, runtime_input={}",
+        tool_diagnostics::input_shape(&runtime_input));
     let outcome = if let Some(host_child_agent::HostToolScope::Child(child)) = host_scope {
         invoke_through_runtime_for_session_in_workspace(
             name, &runtime_input, caller_session_id, chat_room_id,
