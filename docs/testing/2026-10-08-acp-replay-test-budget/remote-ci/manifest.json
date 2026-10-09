@@ -1,0 +1,17 @@
+[
+  {
+    "path": "ci-a.json",
+    "bytes": 2446,
+    "sha256": "0ffc79ffae3a31c18785edc394bfb823db6e8d13ffd512813162c21ebdb34ce7"
+  },
+  {
+    "path": "ci-b.json",
+    "bytes": 2446,
+    "sha256": "bee4d306650218de6aa7628afb5d9cfddbcb54c31f08b53862e70a166718cb85"
+  },
+  {
+    "path": "report.md",
+    "bytes": 334,
+    "sha256": "89c59dbb9051746cfbc6cec1b4775bc5777ff29a5d66c944850cc38f9dfaa3bc"
+  }
+]

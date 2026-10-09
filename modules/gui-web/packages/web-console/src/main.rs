@@ -13389,44 +13389,48 @@ async fn api_set_session_model_settings(
     AxumPath(session_id): AxumPath<String>,
     Json(payload): Json<SessionModelSettingsUpdateRequest>,
 ) -> ApiResult<Json<JsonValue>> {
-    let mut agent = {
-        let store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?
-            .to_agent_session(store.is_active(&session_id))
-    };
-    if let Some(session) = payload.session.as_ref() {
-        validate_reasoning_effort(session.reasoning_effort.as_deref())?;
-        if let Some(avatar) = session.avatar.as_deref() { normalize_session_avatar(Some(avatar))?; }
-        if let Some(provider) = &session.provider { agent.provider = normalize_provider(Some(provider)); }
-        if let Some(model_type) = &session.model_type { agent.model_type = normalize_model_type(Some(model_type)); }
-        agent_session_backend::validate_session_input(session, &agent.provider)?;
-        if let Some(model) = &session.model { agent.model = normalize_model(Some(model)); }
-        if let Some(effort) = &session.reasoning_effort { agent.reasoning_effort = effort.clone(); }
-    }
-    validate_session_model_settings(&payload.parameters, &agent)?;
-    let previous = session_model_settings_for(&session_id);
-    let published = mutate_workspace_config(|config| {
-        if payload.expected_revision.is_some_and(|revision| revision != config.configuration_revision) {
-            return Err(api_error(StatusCode::CONFLICT, "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入"));
+    // 与普通会话修改/删除共用存储锁；配置锁只在 mutator 内按 store→config 顺序取得。
+    // 同步发布块结束后再 await，避免持有 std MutexGuard 跨异步边界。
+    {
+        let mut store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
+        let mut agent = store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?
+            .to_agent_session(store.is_active(&session_id));
+        if let Some(session) = payload.session.as_ref() {
+            validate_reasoning_effort(session.reasoning_effort.as_deref())?;
+            if let Some(avatar) = session.avatar.as_deref() { normalize_session_avatar(Some(avatar))?; }
+            if let Some(provider) = &session.provider { agent.provider = normalize_provider(Some(provider)); }
+            if let Some(model_type) = &session.model_type { agent.model_type = normalize_model_type(Some(model_type)); }
+            agent_session_backend::validate_session_input(session, &agent.provider)?;
+            if let Some(model) = &session.model { agent.model = normalize_model(Some(model)); }
+            if let Some(effort) = &session.reasoning_effort { agent.reasoning_effort = effort.clone(); }
         }
-        config.session_model_limits.insert(session_id.clone(), payload.parameters.clone());
-        Ok(())
-    })?;
-    if let Some(session) = payload.session {
-        let result = session_store().lock()
-            .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?
-            .update_session(&session_id, session);
-        if let Err(error) = result {
-            let rollback = mutate_workspace_config(|config| {
-                if config.configuration_revision != published.configuration_revision {
-                    return Err(api_error(StatusCode::CONFLICT, "配置已变化，未覆盖其他修改"));
-                }
-                config.session_model_limits.insert(session_id.clone(), previous); Ok(())
-            });
-            if rollback.is_err() {
-                return Err(api_error(StatusCode::CONFLICT, "会话更新失败，参数回退未完成；请重新载入核对已保存状态"));
+        validate_session_model_settings(&payload.parameters, &agent)?;
+        let mut previous = None;
+        let published = mutate_workspace_config(|config| {
+            if payload.expected_revision.is_some_and(|revision| revision != config.configuration_revision) {
+                return Err(api_error(StatusCode::CONFLICT, "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入"));
             }
-            return Err(error);
+            previous = config.session_model_limits.insert(session_id.clone(), payload.parameters.clone());
+            Ok(())
+        })?;
+        if let Some(session) = payload.session {
+            let result = store.update_session(&session_id, session);
+            if let Err(error) = result {
+                let rollback = mutate_workspace_config(|config| {
+                    if config.configuration_revision != published.configuration_revision {
+                        return Err(api_error(StatusCode::CONFLICT, "配置已变化，未覆盖其他修改"));
+                    }
+                    match previous {
+                        Some(parameters) => { config.session_model_limits.insert(session_id.clone(), parameters); }
+                        None => { config.session_model_limits.remove(&session_id); }
+                    }
+                    Ok(())
+                });
+                if rollback.is_err() {
+                    return Err(api_error(StatusCode::CONFLICT, "会话更新失败，参数回退未完成；请重新载入核对已保存状态"));
+                }
+                return Err(error);
+            }
         }
     }
     api_get_session_model_settings(AxumPath(session_id)).await

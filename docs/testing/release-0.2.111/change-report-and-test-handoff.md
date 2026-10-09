@@ -21,3 +21,11 @@ Browser read_session回调先核资源/URL，再处理失败HRESULT，避免资�
 ## 仍未完成
 
 严格新nativeTarget替换/跨来源commit位于down/up之间，以及确切在途观察的面板撤销仍开放。普通自然导航、登记标记或关闭后panel_unavailable均不代替这些证据。其它插件许可、附件、共享Runner/单写者、运维与Windows矩阵按总体台账继续，Goal保持active。Paint免测、微信不动、Opus暂停、不使用子代理。已公开[111预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.111)，四资产服务端长度/SHA和实际tag=20facc6全部匹配；元数据与独立校验脚本归档于installed-validation。未签名、预发布、不标latest、不发自动升级清单。
+
+## 后续独立验收增量
+
+上述安装/设置读取轮次模型0保持原事实。后续独立Browser复验一次真实SWE-2-medium请求：一步可信点击sent/released，关闭距登记5792ms，CU blocked、父failed、效果未知，单end_turn/drained/绑定解锁，无补发。未命中5秒内的在途撤销且没有observation_stopped，严格项未通过。原始事实、脚本和[终态截图](browser-pending-close/report.md)独立保留。
+
+正式原生903×551经Windows系统菜单调整，首页、设置顶部、滚动至保存及关闭恢复通过；未改参数，最终正常最大化1707×912。仅本机窄低布局通过，多屏/混合DPI继续开放。[四张实拍](native-low-height/report.md)。新增子目录各自manifest核验，原安装manifest的历史范围不变。
+
+111冻结之后的3681bd6测试预算修补两路远端CI均success，独立[CI收据](../2026-10-08-acp-replay-test-budget/remote-ci/report.md)；新提交另核，不继承。

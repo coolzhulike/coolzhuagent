@@ -1,0 +1,161 @@
+{
+  "status": {
+    "run": {
+      "id": "run-chat-bd7223f72bae912388056b523db9558b0c3c58a4a30f7660",
+      "state": "failed",
+      "legacy_turn_id": "chat-turn-1791519443959-0"
+    },
+    "computer_use": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791519443959-0-tool-b39c5a10fd8cddf811364ce13d865b90e9fc6a6e91e4b4de816a5e01df95c5a4",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791519443959-0-tool-b39c5a10fd8cddf811364ce13d865b90e9fc6a6e91e4b4de816a5e01df95c5a4",
+          "provider_tool_call_id": "tool-b39c5a10fd8cddf811364ce13d865b90e9fc6a6e91e4b4de816a5e01df95c5a4",
+          "status": "blocked",
+          "stage": "verification",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "error": {
+            "code": "native_browser_panel_unavailable",
+            "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "attempts": 1,
+          "steps_completed": 1,
+          "input_steps": [
+            {
+              "step_index": 0,
+              "action_kind": "click",
+              "input_delivery": "sent",
+              "input_release_status": "released",
+              "partial": false,
+              "effect_status": null,
+              "goal_verdict": null
+            }
+          ],
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:efab743eb4d01b4d9fd3f21a7b722394",
+            "native-ax:1:0",
+            "native-observation:efab743eb4d01b4d9fd3f21a7b722394",
+            "native-input:a695da924ffad29a2bce3ba6244120dc",
+            "native-ax:1:0",
+            "native-observation:ecf584dbbc0942a5b7d09a8404f40148"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791520343959
+              }
+            },
+            "cu_deadline_ms": 1791520343959,
+            "cu_deadline_established_at_ms": 1791519459893,
+            "cu_budget_ms": 900000
+          }
+        },
+        "steps": [
+          {
+            "step_index": 0,
+            "action_type": "click",
+            "status": "input_sent_observed",
+            "error_code": null,
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "effect_status": null
+          }
+        ]
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "1b99a1df14ee99c9fe7557528ec6d7251e6e326a90cb1936",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  "runtime_events": [
+    {
+      "id": 3309,
+      "event_type": "run.accepted",
+      "created_at": 1791519443967,
+      "payload": {
+        "kind": "chat_turn",
+        "legacy_turn_id": "chat-turn-1791519443959-0"
+      }
+    },
+    {
+      "id": 3312,
+      "event_type": "run.started",
+      "created_at": 1791519444145,
+      "payload": {
+        "previous_state": "accepted"
+      }
+    },
+    {
+      "id": 3314,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791519459906,
+      "payload": {
+        "request_id": "efab743eb4d01b4d9fd3f21a7b722394",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 3321,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791519477928,
+      "payload": {
+        "request_id": "02c55345e04c8809fa6eae0f870e58ad",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 3322,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791519479789,
+      "payload": {
+        "request_id": "ecf584dbbc0942a5b7d09a8404f40148",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 3327,
+      "event_type": "run.failed",
+      "created_at": 1791519500529,
+      "payload": {
+        "previous_state": "running",
+        "requested_status": "failed"
+      }
+    }
+  ],
+  "last_chat_message": {
+    "id": "msg-1791519444232-0",
+    "role": "assistant",
+    "content": "任务失败（终态回执 `status: blocked`，stage: verification，`goal_achieved: false`）：\n\n- **错误**：`native_browser_panel_unavailable` —— \"当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入\"（retryable=false）；测试者在输入释放、下一底层观察请求登记后正常关闭了右栏浏览器\n- **终态 input_steps[0] 原样事实**（action_kind: click，目标本轮 dom-f2b076fd… “交接观察验收”按钮，`http://127.0.0.1:54679/old.html`）：\n  - **input_delivery**：`sent` —— 点击已真实投递（native-input:a695da92…）\n  - **input_release_status**：`released` —— 完整释放，`partial: false`；面板撤销发生于释放后的观察请求登记之后，非按下期间\n  - **effect_status**：`null` —— 面板撤销后观察停止，效果未取得，保持未知；`goal_verdict: null`\n- 观察停止不等于未投递：sent/released 事实仍保留在终态回执；撤销前验收快照中旧页曾显示 \"真实点击已完成，等待观察交接\"（index 108），但面板不可用使验收终止，不作成功证据\n- attempts=1、steps_completed=1、action_count=1、replan_count=0；未重试、未补发、未调用其它工具、未新建云会话"
+  }
+}

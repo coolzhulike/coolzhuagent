@@ -1,0 +1,70 @@
+{
+  "agent_execution_ready": true,
+  "available_plugin_tools": [],
+  "backend_kind": "llm_http",
+  "base_url": "https://example.com/v1",
+  "configuration_revision": 7,
+  "default_context_window": 64000,
+  "default_max_output_tokens": 64000,
+  "effective_context_window": 64000,
+  "effective_max_output_tokens": 32000,
+  "effective_supports_multimodal": false,
+  "endpoint": null,
+  "image_input_strategy": "vision-description",
+  "model_selection": {
+    "effective": null,
+    "requested": "configuration-save-check",
+    "resolved_model": null
+  },
+  "parameters": {
+    "backend_kind": null,
+    "base_url": null,
+    "computer_use_enabled": null,
+    "context_window": 0,
+    "enable_llm_tools": null,
+    "endpoint": null,
+    "llm_tool_exposure": null,
+    "max_output_tokens": 0,
+    "protocol": null,
+    "reasoning_mode": null,
+    "supports_multimodal": null,
+    "temperature": 0.25,
+    "thinking_budget": null,
+    "tool_allowlist": null,
+    "top_p": null,
+    "turn_timeout_ms": null
+  },
+  "plugin_tools_error": null,
+  "protocol": "openai_chat_completions",
+  "session": {
+    "active": true,
+    "api_key_status": "未配置（能力已启用）",
+    "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+    "backend_kind": "llm_http",
+    "base_url": "https://example.com/v1",
+    "display_name": "配置竞争胜者0.25(configuration-save-check)",
+    "endpoint": null,
+    "id": "session-1791520344674",
+    "memory_mode": "enabled",
+    "model": "configuration-save-check",
+    "model_type": "text",
+    "name": "配置竞争胜者0.25",
+    "provider": "custom",
+    "reasoning_effort": "auto",
+    "reasoning_resolution": {
+      "effective": "auto",
+      "protocol": "openai_chat_completions",
+      "reason": "requested=auto：不主动覆盖供应商默认",
+      "requested": "auto",
+      "status": "default",
+      "strategy": "provider_default",
+      "supported_options": [
+        {
+          "label": "自动",
+          "value": "auto"
+        }
+      ]
+    },
+    "updated_at": 1791520344989
+  }
+}
