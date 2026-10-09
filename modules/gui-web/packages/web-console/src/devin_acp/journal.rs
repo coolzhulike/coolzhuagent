@@ -236,6 +236,8 @@ impl Journal {
                     if old_scope_value.lane.is_empty() {
                         crate::tool_dispatch_settlement::reconcile_drained_acp_cu(&tx,&old_scope_value.run_id,
                             &old_scope_value.workspace_id,&old_scope_value.room_id,&old_scope_value.agent_id,&old_scope_value.turn_id,&old_scope)?;
+                        crate::tool_dispatch_settlement::reconcile_drained_acp_approval(&tx,&old_scope_value.run_id,
+                            &old_scope_value.workspace_id,&old_scope_value.room_id,&old_scope_value.agent_id,&old_scope_value.turn_id,&old_scope)?;
                     }
                     // 协议终态已确认且所有宿主工具真实结账时，可以归档失败回合；
                     // 不改写旧 ACP unknown，不重发旧提示，不将取消绘图判为成功。

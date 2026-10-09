@@ -1,0 +1,220 @@
+Window: "COOLZHU AGENT 控制台", App: coolzhu-tauri-shell.exe.
+	0 窗口 COOLZHU AGENT 控制台 Secondary Actions: Raise
+		7 窗格
+			8 窗格 COOLZHU CODE 控制台
+				9 窗格 (disabled)
+				10 区域 COOLZHU CODE 控制台 - Web 内容
+					11 区域
+						12 区域
+							13 区域
+								14 区域
+								15 区域
+									16 区域
+										17 区域
+											18 区域
+												19 区域
+												23 文档 COOLZHU CODE 控制台 Value: http://127.0.0.1:57460/ ID: RootWebArea
+													83 组
+														24 主要 COOLZHU CODE 控制台
+															25 区域 顶部状态区
+																26 区域 COOLZHU
+																	27 文本 COOLZHU
+																28 文章 发送对象与工作区
+																	29 图表 当前 Agent 头像
+																	30 文本 发送对象
+																	31 按钮 选择发送对象。将发送给：工程-b(coolzhu-model) Description: 将发送给：工程-b(coolzhu-model)
+																		84 组 Description: 当前发送对象：工程-b(coolzhu-model)
+																	32 文本 工程目录
+																	33 按钮 切换工程目录 Description: 切换工程目录：C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\tmp\2026-10-09-release-117\formal\workspace-b
+																34 区域 当前聊天室与状态
+																	35 文本 当前聊天室
+																	36 按钮 切换当前聊天室 Description: 切换当前聊天室
+																	37 详细信息 当前聊天室权限
+																		38 开合三角标记 权限 目录权限
+																			39 文本 权限
+																			96 文本 目录权限
+																	41 组 聊天室状态
+																		42 图形 系统健康：异常 Description: 系统健康：异常
+																		87 图形 系统警示：任务异常 Description: 系统警示：任务异常
+															43 区域 多窗口工作台
+																44 补充 快捷功能栏
+																	45 导航 快捷功能
+																		46 切换按钮 首页 Description: 首页
+																		47 切换按钮 定时任务 Description: 定时任务
+																		48 切换按钮 设置 Description: 设置
+																		49 切换按钮 统计信息 Description: 统计信息
+																		50 切换按钮 微信连接 Description: 微信连接
+																		51 详细信息
+																			52 开合三角标记 更多快捷功能 Description: 更多
+																	53 切换按钮 升级更新 Description: 升级更新
+																54 文章 聊天室窗口
+																	55 按钮 搜索聊天记录与消息索引 Description: 搜索聊天记录与消息索引
+																	56 按钮 查看运行轨迹与安全详情 Description: 查看运行轨迹与安全详情
+																	86 组
+																		92 状态
+																			93 文本 竹简待书
+																			94 文本 选择会话或发送消息，协作记录将在这里展开。
+																	60 章节页脚
+																		61 按钮 选择附件 Description: 选择附件
+																		62 编辑 (settable, string) 输入消息，按 Enter 发送... Description: 输入消息，按 Enter 发送...
+																		63 按钮 发送消息。将发送给：工程-b(coolzhu-model) Description: 将发送给：工程-b(coolzhu-model)
+																		64 按钮 (disabled) 语音输入 Description: STT 不可用
+																	97 缩略图 调整扩展栏宽度 Value: 480
+																	98 补充 设置 ID: chat-right-rail
+																		99 选项卡面板 工具 ID: chat-right-panel-tools
+																			100 组 设置工具面板
+																				101 章节标题
+																					102 文本 设置
+																					103 按钮 返回此前的右栏视图 Description: 返回此前的右栏视图
+																					104 按钮 关闭当前工具 Description: 关闭当前工具
+																				105 文章 设置窗口
+																					106 区域 统一模型会话参数
+																						107 标题 模型与会话
+																						108 文本 为当前聊天室选择模型，配置连接、上下文与思考参数。
+																						109 按钮 新建模型会话 Description: 新建模型会话
+																						110 文本 编辑配置的会话
+																						111 组合框 (settable, string) 选择要编辑配置的会话 Value: 工程-b · scope-local-config
+																						112 文本 当前发送给 工程-b(coolzhu-model)；当前编辑：工程-b(coolzhu-model)。
+																						113 文本 01
+																						114 标题 连接
+																						115 文本 会话名称
+																						116 编辑 (settable, string) 会话名称 Description: 例如：日常助手 Value: 工程-b
+																						117 文本 通信协议
+																						118 组合框 (settable, string) 通信协议 Value: OpenAI Chat Completions
+																						119 文本 接口地址 · Base URL
+																						120 编辑 (settable, string) 接口地址 · Base URL Description: https://api.example.com/v1 Value: http://127.0.0.1:8082/v1
+																						121 组 远程模型发现
+																							122 按钮 (disabled) 获取远程模型 Description: 获取远程模型
+																							123 复选框 (settable, string) 此次查询不使用密钥
+																							124 状态
+																								125 文本 本地和内网模型保持手动填写；远程发现需要完整的 HTTP(S) 地址。
+																						126 文本 模型 ID
+																						127 编辑 (settable, string) 模型 ID 可选择发现的模型，也可手填；发现结果不会自动覆盖配置。 Description: 填写服务端接受的完整模型 ID Value: scope-local-config
+																						128 文本 可选择发现的模型，也可手填；发现结果不会自动覆盖配置。
+																						129 文本 请求路径 · Endpoint
+																						130 文本 可选
+																						131 编辑 (settable, string) 请求路径 · Endpoint 可选 Description: 留空按协议补齐，也可填写完整请求地址
+																						132 文本 API Key
+																						133 编辑 (settable, string) API Key 密钥状态：未配置（能力已启用；凭据引用 api-key.txt 不可用）。留空不会覆盖已有密钥。 Description: 留空保留已有密钥
+																						134 文本 密钥状态：未配置（能力已启用；凭据引用 api-key.txt 不可用）。留空不会覆盖已有密钥。
+																						135 文本 模型用途
+																						136 组合框 (settable, string) 模型用途 Value: 对话 / 代码
+																						137 复选框 (settable, string) 清除该会话保存的密钥
+																						138 文本 图片输入能力
+																						139 组合框 (settable, string) 图片输入能力 沿用模型用途和已识别能力。已保存配置当前由视觉 Agent 描述图片。 Value: 沿用模型能力
+																						140 文本 沿用模型用途和已识别能力。已保存配置当前由视觉 Agent 描述图片。
+																						141 文本 02
+																						142 标题 上下文与输出
+																						143 文本 上下文容量 · tokens
+																						144 调节按钮 (settable, float) 上下文容量 · tokens Description: 默认 64,000 Value: 32768
+																						145 文本 最大输出 · tokens
+																						146 调节按钮 (settable, float) 最大输出 · tokens Description: 默认 64,000 Value: 1024
+																						147 文本 当前生效：上下文 16,384 · 本轮最大输出 1,024 tokens。输出受上下文预留与本地服务容量限制。
+																						148 文本 03
+																						149 标题 思考与采样
+																						150 文本 思考参数模式
+																						151 组合框 (settable, string) 思考参数模式 Value: 自动识别模型能力
+																						152 文本 思考层级
+																						153 组合框 (settable, string) 思考层级 Value: 自动
+																						154 文本 温度 · Temperature
+																						155 调节按钮 (settable, float) 温度 · Temperature Description: 模型默认 Value: 0.75
+																						156 文本 采样范围 · Top P
+																						157 调节按钮 (settable, float) 采样范围 · Top P Description: 模型默认 Value: 0
+																						158 文本 沿用能力目录的参数映射；新模型或自定义端点可选择明确的参数模式。
+																						159 状态
+																							160 文本 配置已载入。修改后对下一轮会话生效。
+																						161 按钮 保存模型会话配置 Description: 保存模型会话配置
+								20 区域
+						21 区域
+						22 区域
+		1 标题栏 (settable, string) Value: COOLZHU AGENT 控制台
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+
+Document text: ```
+COOLZHUC…
+￼
+发送对象
+工程-b(coolzhu-model)工程-b(coolzhu-m…
+工程目录
+workspace-b
+当前聊天室
+主聊天室
+权限
+目录权限
+￼
+￼
+首页
+定时任务
+设置
+统计信息
+微信连接
+更多快捷功能
+升级更新
+搜索聊天记录与消息索引
+查看运行轨迹与安全详情
+竹简待书
+选择会话或发送消息，协作记录将在这里展开。
+附件
+￼
+发送消息。将发送给：工程-b(coolzhu-model)
+语音输入
+调整扩展栏宽度
+设置
+返回此前的右栏视图
+关闭当前工具
+模型与会话
+为当前聊天室选择模型，配置连接、上下文与思考参数。
+新建模型会话
+编辑配置的会话
+选择要编辑配置的会话
+当前发送给 工程-b(coolzhu-model)；当前编辑：工程-b(coolzhu-model)。
+01
+连接
+会话名称
+工程-b
+通信协议
+￼
+接口地址 · Base URL
+http://127.0.0.1:8082/v1
+获取远程模型
+￼
+本地和内网模型保持手动填写；远程发现需要完整的 HTTP(S) 地址。
+模型 ID
+scope-local-config
+可选择发现的模型，也可手填；发现结果不会自动覆盖配置。
+请求路径 · Endpoint 可选
+￼
+API Key
+￼
+密钥状态：未配置（能力已启用；凭据引用 api-key.txt 不可用）。留空不会覆盖已有密钥。
+模型用途
+￼
+￼
+图片输入能力
+￼
+沿用模型用途和已识别能力。已保存配置当前由视觉 Agent 描述图片。
+02
+上下文与输出
+上下文容量 · tokens
+32768
+最大输出 · tokens
+1024
+当前生效：上下文 16,384 · 本轮最大输出 1,024 tokens。输出受上下文预留与本地服务容量限制。
+03
+思考与采样
+思考参数模式
+￼
+思考层级
+￼
+温度 · Temperature
+0.75
+采样范围 · Top P
+￼
+沿用能力目录的参数映射；新模型或自定义端点可选择明确的参数模式。
+配置已载入。修改后对下一轮会话生效。
+保存模型会话配置
+```

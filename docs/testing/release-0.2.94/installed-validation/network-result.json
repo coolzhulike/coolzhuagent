@@ -1,0 +1,146 @@
+{
+  "stage": "0.2.94 Program Files正式安装版",
+  "version": "0.2.94",
+  "source_commit": "54fe2d317d1c0022e88a95533f538b172ae30593",
+  "marker": "BU-INSTALLED094-DOWN-NETWORK-20261008",
+  "run": {
+    "id": "run-chat-15b22aab02b1c6ba307ffcddce407ef715424c99b5b7e93c",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "model": "swe-2-medium",
+  "remote_session_id": "island-kayak",
+  "calls": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791476420897-4-tool-08c52827d1f4c5f848628525db8f6a1a254fba0b6877d9e84f02f73196d2b1bb",
+      "result": {
+        "status": "succeeded",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791477320897
+            }
+          },
+          "cu_deadline_ms": 1791477320897,
+          "cu_deadline_established_at_ms": 1791476434678,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "pointerdown",
+      "role": "BEFORE",
+      "trusted": true,
+      "held": true,
+      "url": "http://127.0.0.1:57674/before.html",
+      "page_ms": 1791476463617.6,
+      "target": "navigate-button",
+      "observed_ms": 1791476463623.881
+    },
+    {
+      "kind": "navigation-started",
+      "role": "BEFORE",
+      "trusted": true,
+      "held": true,
+      "url": "http://127.0.0.1:57674/before.html",
+      "page_ms": 1791476463618,
+      "target": "navigate-button",
+      "destination": "http://localhost:57674/after.html",
+      "observed_ms": 1791476463632.455
+    },
+    {
+      "kind": "http-get",
+      "path": "/after.html",
+      "host": "localhost:57674",
+      "observed_ms": 1791476463633.572
+    },
+    {
+      "kind": "beforeunload",
+      "role": "BEFORE",
+      "trusted": true,
+      "held": true,
+      "url": "http://127.0.0.1:57674/before.html",
+      "page_ms": 1791476463618.5,
+      "observed_ms": 1791476463636.1738
+    },
+    {
+      "kind": "pointerup",
+      "role": "BEFORE",
+      "trusted": true,
+      "held": false,
+      "url": "http://127.0.0.1:57674/before.html",
+      "page_ms": 1791476463619.2,
+      "target": "navigate-button",
+      "observed_ms": 1791476463636.5076
+    },
+    {
+      "kind": "click",
+      "role": "BEFORE",
+      "trusted": true,
+      "held": false,
+      "url": "http://127.0.0.1:57674/before.html",
+      "page_ms": 1791476463619.6,
+      "target": "navigate-button",
+      "observed_ms": 1791476463638.2966
+    },
+    {
+      "kind": "loaded",
+      "role": "AFTER",
+      "trusted": true,
+      "held": false,
+      "url": "http://localhost:57674/after.html",
+      "page_ms": 1791476463710.3,
+      "observed_ms": 1791476463715.8755
+    }
+  ],
+  "remote_attempts": [
+    {
+      "attempt_id": "5115bdf1d9d3c185feae943103d1fff0c5edcdbddccb922d",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "screenshot": "12-installed-network-navigation.jpg"
+}

@@ -1,0 +1,210 @@
+{
+  "marker": "SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008",
+  "stage": "正式0.2.98",
+  "model_requests_expected": 0,
+  "before_ledger": {
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ],
+    "attempts": 930,
+    "usage": 539
+  },
+  "created_goal": {
+    "id": "goal-1791491031440-399c1373",
+    "workspace_id": "ws-23f646a969206cb4",
+    "chat_room_id": "room-1791131523339",
+    "title": "SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008",
+    "status": "planning",
+    "max_iterations": 1,
+    "current_iteration": 0,
+    "background": false,
+    "originating_user_msg_id": null,
+    "completion_condition": {
+      "type": "UserConfirm"
+    },
+    "plan": null,
+    "phases": [],
+    "recent_events": [
+      {
+        "id": "goal-event-1791491031448-32068601",
+        "goal_id": "goal-1791491031440-399c1373",
+        "event_type": "goal-created",
+        "message": "Goal contract created; loop execution is not started in G1.",
+        "payload": {
+          "chat_room_id": "room-1791131523339",
+          "title": "SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008"
+        },
+        "created_at": 1791491031448
+      }
+    ],
+    "created_at": 1791491031440,
+    "updated_at": 1791491031440,
+    "cancelled_at": null
+  },
+  "cancelled_goal": {
+    "id": "goal-1791491031440-399c1373",
+    "workspace_id": "ws-23f646a969206cb4",
+    "chat_room_id": "room-1791131523339",
+    "title": "SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008",
+    "status": "cancelled",
+    "max_iterations": 1,
+    "current_iteration": 0,
+    "background": false,
+    "originating_user_msg_id": null,
+    "completion_condition": {
+      "type": "UserConfirm"
+    },
+    "plan": null,
+    "phases": [],
+    "recent_events": [
+      {
+        "id": "goal-event-1791491031473-1cc5bc9e",
+        "goal_id": "goal-1791491031440-399c1373",
+        "event_type": "goal-cancelled",
+        "message": "Goal cancelled by user.",
+        "payload": {
+          "cancelled_at": 1791491031472,
+          "previous_status": "planning"
+        },
+        "created_at": 1791491031473
+      },
+      {
+        "id": "goal-event-1791491031448-32068601",
+        "goal_id": "goal-1791491031440-399c1373",
+        "event_type": "goal-created",
+        "message": "Goal contract created; loop execution is not started in G1.",
+        "payload": {
+          "chat_room_id": "room-1791131523339",
+          "title": "SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008"
+        },
+        "created_at": 1791491031448
+      }
+    ],
+    "created_at": 1791491031440,
+    "updated_at": 1791491031472,
+    "cancelled_at": 1791491031472
+  },
+  "scheduled_task": {
+    "id": "schedule-1791491031483-8cb87975399c1373",
+    "target_session_id": "session-1791131217833",
+    "content": "SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008",
+    "run_at_ms": 1791491046482,
+    "interval_ms": null,
+    "permissions": [],
+    "status": "scheduled",
+    "created_at_ms": 1791491031483,
+    "last_run_at_ms": null,
+    "last_error": null,
+    "schedule_kind": "once",
+    "wall_hour": 0,
+    "wall_minute": 0,
+    "weekdays": [],
+    "tz_offset_minutes": 0,
+    "task_kind": "goal",
+    "goal_id": "goal-1791491031440-399c1373"
+  },
+  "stopped_ms": 1791491031492.4822,
+  "offline_due_ms": 1791491047535.281,
+  "claims_while_offline": [],
+  "restarted_process": {
+    "shell_sha256": "bde882cd1992495e86d93b24f141e48b43a8cf15deccc9fe90d23d18fa4843c2",
+    "web_pid": 23240,
+    "shell_pid": 26532,
+    "web_sha256": "bdc4925e363c0b83b23419956f67702bca9a94dc1e8b42cbf108ef0de7c44c39",
+    "port": 8765,
+    "web_started": "2026-10-08T20:24:07.5370947Z",
+    "stage": "0.2.98 Program Files正式安装版",
+    "web_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "shell_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "shell_started": "2026-10-08T19:39:56.0278369Z"
+  },
+  "after_startup": {
+    "generated_at": 1791491048173,
+    "dev_open_permissions": true,
+    "due_count": 0,
+    "tasks": [
+      {
+        "id": "schedule-1791491031483-8cb87975399c1373",
+        "target_session_id": "session-1791131217833",
+        "content": "Goal「SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008」已取消，停止推进",
+        "run_at_ms": 1791491046482,
+        "interval_ms": null,
+        "permissions": [],
+        "status": "completed",
+        "created_at_ms": 1791491031483,
+        "last_run_at_ms": 1791491047939,
+        "last_error": null,
+        "schedule_kind": "once",
+        "wall_hour": 0,
+        "wall_minute": 0,
+        "weekdays": [],
+        "tz_offset_minutes": 0,
+        "task_kind": "goal",
+        "goal_id": "goal-1791491031440-399c1373"
+      }
+    ],
+    "occurrences": []
+  },
+  "claims_after_startup": [
+    {
+      "workspace_id": "ws-23f646a969206cb4",
+      "task_id": "schedule-1791491031483-8cb87975399c1373",
+      "scheduled_for_ms": 1791491046482,
+      "fingerprint": "ac984a5a5f4c1087f2d573da4b31078db59a542d105c67710b467dfc30f4083b",
+      "state": "settled",
+      "started_at_ms": 1791491047939,
+      "outcome_json": "{\"id\":\"schedule-1791491031483-8cb87975399c1373\",\"executed\":true,\"message\":\"\",\"goal_completed\":true,\"content_update\":\"Goal「SCHEDULER-OFFLINE-CANCELLED-GOAL-INSTALLED098-20261008」已取消，停止推进\"}"
+    }
+  ],
+  "concurrent_run_due": [
+    {
+      "ran": []
+    },
+    {
+      "ran": []
+    },
+    {
+      "ran": []
+    },
+    {
+      "ran": []
+    },
+    {
+      "ran": []
+    }
+  ],
+  "after_ledger": {
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ],
+    "attempts": 930,
+    "usage": 539
+  },
+  "passed_scope": "正式定时器启动补偿已取消Goal收尾、一次持久领取及终态重复扫描零执行；不是真实模型派发或running中断恢复",
+  "owned_schedule_removed": {
+    "generated_at": 1791491096773,
+    "dev_open_permissions": true,
+    "due_count": 0,
+    "tasks": [],
+    "occurrences": []
+  }
+}

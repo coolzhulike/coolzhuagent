@@ -1,0 +1,59 @@
+{
+  "stage": "源码候选；正式仍101，未执行新真实模型任务",
+  "build_exit": 0,
+  "build_seconds": 34.48,
+  "tests_exit": 0,
+  "tests_passed": 1420,
+  "tests_failed": 0,
+  "tests_ignored_existing": 6,
+  "test_execution_seconds": 32.92,
+  "lib_passed": 8,
+  "native_host_passed": 1,
+  "frontend_syntax_command": "node --check modules/gui-web/packages/web-console/src/app.js",
+  "frontend_syntax_exit": 0,
+  "first_run": {
+    "passed": 1419,
+    "failed": 1,
+    "ignored": 6,
+    "reason": "无有效模型配置的旧用例把HTTP200误判executed；本轮改为检查真实终态后暴露"
+  },
+  "new_model_fixtures": 0,
+  "new_real_model_requests": 0,
+  "source_sha256": {
+    "modules/gui-web/packages/web-console/src/scheduled_delivery.rs": "9f9bc67986e5675bcdff107a7a111d52579b35b61a7c5bd2ddcf298be4afb6af",
+    "modules/gui-web/packages/web-console/src/main.rs": "6949e599c9c86701cdb8cd68b7576f4e0555416d33b08b22ef93e08ac47d4218"
+  },
+  "log_hashes": [
+    {
+      "file": "build-final.log",
+      "local_original_sha256": "80c84140a5fb6e78ba517ee099dc6effb82dcac8a1cb6ccea61e7e8f2a07cc98",
+      "repository_lf_sha256": "d91cccba211ef9c88fe996875503122c4447efcd7ea8a2e3e25acbe8116953b6"
+    },
+    {
+      "file": "tests-final.log",
+      "local_original_sha256": "90dbcfff8b17cb6104aef9fc80d870fd3b3a43cd1056b0f944b29b41d4f870cd",
+      "repository_lf_sha256": "fa2bb083b61708113b52da3f9836e8f6a9374b5edcc1aec80573c96388c9fe87"
+    },
+    {
+      "file": "tests-first-failed.log",
+      "local_original_sha256": "e1fbccbbf50da8a59ba1f2cc5576ca8d853f74e425cb7d37edde1030f012ba1d",
+      "repository_lf_sha256": "b9a771850dc3e499c08ba5955caacf2b9496ec251fe1d0427563b1eb5a91e312"
+    },
+    {
+      "file": "legacy-failure-reproduced.log",
+      "local_original_sha256": "02ea194e0692a258ead0fbd5bb53e03ae98c2ece21138fb0c6a69172ac05298a",
+      "repository_lf_sha256": "7567cee42c7d0c930461c1b20d6cc81fb43bca82f7f60892b6c85471259b7192"
+    },
+    {
+      "file": "tool-registry.log",
+      "local_original_sha256": "3b2b7eaabb13e6c1f41e17b3d2c77417ce2fc17bf48617dfaec7358d2f350b12",
+      "repository_lf_sha256": "e3f565492d57a8d9a57e237b4b2cbd8aacb5eaa6b6ff21f2fe4d6191826e8774"
+    },
+    {
+      "file": "module-linkage.log",
+      "local_original_sha256": "20bd145ea2ba0c8f463c568d818d62987bf7ac8061067411ee4d14dd06c610a2",
+      "repository_lf_sha256": "55ee834151dd35ba354a50c3007f83106f8eae0a97297962ff792edc5e2bf59e"
+    }
+  ],
+  "logs_note": "CRLF原输出与仓库LF分别列SHA；仅换行规范化，不删改失败输出。"
+}

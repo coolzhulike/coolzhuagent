@@ -55,11 +55,31 @@ pub(crate) struct FrozenPolicy {
     parent_claim: (Option<String>, String),
     readonly: bool,
     planning: Arc<super::planning_exchange::Exchange>,
+    results: super::result_pages::ResultPages,
     /// 固定工程在 blocking worker 真实收尾前仍被持有。
     _pin: workspace_activity::WorkspacePin,
 }
 
 impl FrozenPolicy {
+    /// 拒绝发生在执行台账登记前时，保留最小宿主证据；不保存参数或动态错误文本。
+    fn rejected_before_dispatch(&self, id: &JsonValue, name: &str, code: &str, reason: String) -> String {
+        let request_digest = super::chat::digest(id.to_string().as_bytes());
+        let declared_name = if self.grants.contains_key(name) { name } else { "<undeclared>" };
+        match append_runtime_run_event(self.journal.path(), &self.scope.run_id,
+            "tool.dispatch_rejected", json!({"stage":"before_dispatch","reason_code":code,
+                "executed":false,"attempt_id":self.scope.attempt_id,
+                "tool_name":declared_name,"request_digest":request_digest})) {
+            Ok(_) => reason,
+            Err(_) => format!("{reason}（拒绝审计保存失败，仍未执行。）"),
+        }
+    }
+
+    fn present_result(&self, text: String, tool: &str) -> String {
+        let db = self.parent.goal_phase.as_ref().map(|goal|goal.db_path())
+            .or(self.parent.runtime_db_path.as_deref());
+        self.results.present(text, db, tool)
+    }
+
     pub(crate) fn planning_for(&self, parent: &FrozenParentContext, agent: &AgentSessionDto)
         -> Result<Arc<super::planning_exchange::Exchange>,String> {
         self.live()?;
@@ -297,6 +317,7 @@ impl ToolBridge {
                 parent_claim,
                 readonly,
                 planning: Arc::new(super::planning_exchange::Exchange::default()),
+                results: super::result_pages::ResultPages::default(),
                 _pin: pin,
             }),
             definitions,
@@ -354,7 +375,15 @@ impl ToolBridge {
             "tools/list" if self.initialized.load(Ordering::Acquire) => {
                 let mut tools=self.definitions.iter().map(|tool|
                     json!({"name":tool.name,"description":tool.description,"inputSchema":tool.input_schema})).collect::<Vec<_>>();
+                if !self.definitions.is_empty() {
+                    tools.push(json!({"name":"tool_result_read",
+                        "description":"只读本轮已执行工具的大回执。使用回执提供的result_id与UTF-8字节offset，按next_offset续读；不访问任意文件，不重新执行工具。原工具撤销或本轮结束后不可用。",
+                        "inputSchema":{"type":"object","properties":{"result_id":{"type":"string"},"offset":{"type":"integer","minimum":0}},"required":["result_id","offset"],"additionalProperties":false}}));
+                }
                 if self.policy.grants.contains_key("computer_use_perform") {
+                    tools.push(json!({"name":"computer_use_read_request",
+                        "description":"按页读取当前 CU 规划/验收快照。仅访问本轮 job_id/request_id，按 next_offset 读取至 complete=true 后回答；不读取文件、不执行动作。",
+                        "inputSchema":{"type":"object","properties":{"job_id":{"type":"string"},"request_id":{"type":"string"},"offset":{"type":"integer","minimum":0}},"required":["job_id","request_id","offset"],"additionalProperties":false}}));
                     tools.push(json!({"name":"computer_use_wait",
                         "description":"等待 computer_use_perform 返回的同一 job_id。running 不是完成；继续等待到最终回执，禁止重复提交 perform。此工具不创建新的电脑动作任务。",
                         "inputSchema":{"type":"object","properties":{"job_id":{"type":"string"}},"required":["job_id"],"additionalProperties":false}}));
@@ -376,6 +405,38 @@ impl ToolBridge {
                     return Err("桥工具参数必须是对象。".into());
                 }
                 match name {
+                    "tool_result_read" => {
+                        self.policy.live()?;
+                        let result_id=input["result_id"].as_str().ok_or("回执读取缺少result_id")?;
+                        let offset=input["offset"].as_u64().and_then(|value|usize::try_from(value).ok()).ok_or("回执偏移无效")?;
+                        let source_tool=self.policy.results.source_tool(result_id)?;
+                        self.policy.tool_live(&source_tool)?;
+                        let page=self.policy.results.read(result_id,offset)?;
+                        self.policy.live()?;
+                        self.policy.tool_live(&source_tool)?;
+                        append_runtime_run_event(self.policy.journal.path(),&self.policy.scope.run_id,
+                            "tool.result_page_read",json!({"result_id":result_id,"offset":offset,
+                                "next_offset":page["next_offset"],"source_tool":source_tool}))
+                            .map_err(|_|"回执读取来源记录保存失败")?;
+                        json!({"content":[{"type":"text","text":page.to_string()}],"isError":false})
+                    },
+                    "computer_use_read_request" => {
+                        self.policy.live()?;
+                        self.policy.tool_live("computer_use_perform")?;
+                        let job_id=input["job_id"].as_str().ok_or("快照读取缺少 job_id。")?;
+                        let request_id=input["request_id"].as_str().ok_or("快照读取缺少 request_id。")?;
+                        let offset=input["offset"].as_u64().and_then(|value|usize::try_from(value).ok()).ok_or("快照读取偏移无效。")?;
+                        let slot=self.cu_job.lock().map_err(|_|"CU 等待状态不可用。")?;
+                        if !slot.as_ref().is_some_and(|job|job.id == job_id && job.unfinished()) {
+                            return Err("规划任务已结束或不属于当前轮次。".into());
+                        }
+                        let page = self.policy.planning.read_request(job_id,request_id,offset)?;
+                        // 仅保存分页事实，不记录网页正文或节点凭据。
+                        append_runtime_run_event(self.policy.journal.path(), &self.policy.scope.run_id,
+                            "devin.planning_page_read",json!({"request_id":request_id,"offset":offset}))
+                            .map_err(|_|"规划分页已读取，但来源记录保存失败。")?;
+                        page
+                    },
                     "computer_use_perform" => self.submit_cu(id,&input).await?,
                     "computer_use_wait" => {
                         self.policy.live()?;
@@ -477,8 +538,12 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
     id:&JsonValue,name:&str,input:&JsonValue) -> Result<JsonValue,String> {
         // 串行队列只约束本轮，阻止共享 MCP 连接的并发动作互相覆盖。
         let _call = calls.lock().await;
-        policy.live()?;
-        policy.tool_live(name)?;
+        if let Err(reason) = policy.live() {
+            return Err(policy.rejected_before_dispatch(id,name,"scope_not_live",reason));
+        }
+        if let Err(reason) = policy.tool_live(name) {
+            return Err(policy.rejected_before_dispatch(id,name,"tool_not_live",reason));
+        }
         if !policy.grants.contains_key(name) {
             return Err("工具未在父接纳时开放。".into());
         }
@@ -530,10 +595,13 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
                     Some(&raw_id), Some(&scope.turn_id), Some(&scope.room_id), Some(&policy.parent), None));
             let response = FROZEN_POLICY.scope(policy.clone(), TURN_TRACE.scope(bridge_trace(scope)?,
                 CHAT_CANCELLATION.scope(policy.cancellation.clone(), run)))
-                .await.map_err(|(status, _)| format!("宿主工具派发失败：{status}"))?;
+                .await.map_err(|error| {
+                    let status = error.0;
+                    format!("宿主工具派发失败：{status}；{}", api_error_message(error))
+                })?;
             let failed = response.status != "ok";
             let text = serde_json::to_string(&response).map_err(|_| "宿主结果编码失败。")?;
-            return Ok(json!({"content":[{"type":"text","text":truncate_tool_result_for_context(text,Some(&policy.parent))}],"isError":failed}));
+            return Ok(json!({"content":[{"type":"text","text":policy.present_result(text,name)}],"isError":failed}));
         }
         let budget = policy
             .parent
@@ -608,7 +676,7 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
         }
         let is_error = outcome.status != ToolOutcomeStatus::Ok;
         let text = serde_json::to_string(&outcome).map_err(|_| "工具结果编码失败。")?;
-        let text = truncate_tool_result_for_context(text, Some(&policy.parent));
+        let text = policy.present_result(text, name);
         Ok(json!({"content":[{"type":"text","text":text}],"isError":is_error}))
     }
 
@@ -867,6 +935,7 @@ mod tests {
                 parent_claim: parent_claim(db, &scope.run_id).unwrap(),
                 readonly: false,
                 planning: Arc::new(super::super::planning_exchange::Exchange::default()),
+                results: super::super::result_pages::ResultPages::default(),
                 _pin: workspace_activity::pin_workspace().unwrap(),
             }),
             definitions,
@@ -969,6 +1038,20 @@ mod tests {
                 .is_err()
         );
         assert_eq!(std::fs::read_to_string(&file).unwrap(), "真实本地执行");
+        let private_id = json!("不应保存的原始请求编号");
+        assert!(bridge.call(&private_id, "不应保存的未声明名称",
+            &json!({"content":"不应保存的工具参数"})).await.is_err());
+        let connection = open_session_connection(&db).unwrap();
+        let rejected: String = connection.query_row(
+            "SELECT payload_json FROM runtime_run_events WHERE run_id=?1 AND event_type='tool.dispatch_rejected' ORDER BY id DESC LIMIT 1",
+            [&scope.run_id], |row|row.get(0)).unwrap();
+        let rejected: JsonValue = serde_json::from_str(&rejected).unwrap();
+        assert_eq!(rejected["executed"],false);
+        assert_eq!(rejected["reason_code"],"tool_not_live");
+        assert_eq!(rejected["tool_name"],"<undeclared>");
+        assert_eq!(rejected["attempt_id"],scope.attempt_id);
+        assert_eq!(rejected["request_digest"],super::super::chat::digest(private_id.to_string().as_bytes()));
+        assert!(!rejected.to_string().contains("不应保存"));
         journal.request_cancel(&scope).unwrap();
         assert!(
             bridge
@@ -987,6 +1070,17 @@ mod tests {
                 .is_err()
         );
         assert_eq!(store.tool_calls_for_run(&scope.run_id).unwrap().len(), 1);
+        let rejected_scope: String = connection.query_row(
+            "SELECT payload_json FROM runtime_run_events WHERE run_id=?1 AND event_type='tool.dispatch_rejected' ORDER BY id DESC LIMIT 1",
+            [&scope.run_id], |row|row.get(0)).unwrap();
+        assert_eq!(serde_json::from_str::<JsonValue>(&rejected_scope).unwrap()["reason_code"],"scope_not_live");
+        connection.execute_batch("CREATE TRIGGER reject_dispatch_evidence BEFORE INSERT ON runtime_run_events
+            WHEN NEW.event_type='tool.dispatch_rejected' BEGIN SELECT RAISE(ABORT,'证据库不可写'); END;").unwrap();
+        let error=bridge.call(&json!("audit-failure"),"write_file",
+            &json!({"path":file,"content":"审计失败也不得执行"})).await.unwrap_err();
+        assert!(error.contains("拒绝审计保存失败，仍未执行"));
+        assert_eq!(std::fs::read_to_string(&file).unwrap(), "真实本地执行");
+        assert_eq!(store.tool_calls_for_run(&scope.run_id).unwrap().len(),1);
     }
     #[tokio::test]
     async fn frozen_gate_survives_live_full_access_and_produces_real_denial() {
@@ -1284,7 +1378,8 @@ mod tests {
         let result: JsonValue = response.json().await.unwrap();
         // 当前夹具只开放基础工具；规划回复工具只能随 CU 权限一起开放。
         let tools = result["result"]["tools"].as_array().unwrap();
-        assert_eq!(tools.len(), bridge.definitions.len());
+        assert_eq!(tools.len(), bridge.definitions.len()+1);
+        assert!(tools.iter().any(|tool|tool["name"]=="tool_result_read"));
         assert!(!tools.iter().any(|tool| tool["name"] == "computer_use_respond"));
         let response = client
             .post(url)

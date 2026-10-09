@@ -4905,6 +4905,20 @@ body.ui-3d .avatar-picker.is-portal {
   background: rgba(68, 12, 16, 0.62);
 }
 
+/* 长程任务先显示归属和状态，完整指令按需展开，避免正文挤掉操作入口。 */
+.task-schedule-item { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.task-schedule-item > div { min-width: 0; }
+.task-schedule-heading { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.task-schedule-heading strong { flex: 1; }
+.task-schedule-heading .task-schedule-badge { flex: none; margin-left: 0; }
+.task-schedule-item small { display: block; overflow-wrap: anywhere; }
+.task-schedule-status { color: var(--muted); margin: 4px 0; }
+.task-schedule-item .task-schedule-preview { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.task-schedule-full-content summary { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; cursor: pointer; }
+.task-schedule-full-content[open] summary img { transform: rotate(180deg); }
+.task-schedule-full-content pre { max-height: 220px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.45; }
+.task-schedule-delete { min-width: 28px; padding: 4px; }
+
 .task-window-approval-item header {
   display: flex;
   align-items: center;
@@ -5147,6 +5161,7 @@ body.ui-3d .avatar-picker.is-portal {
 }
 
 .task-schedule-main-grid > [data-role="task-schedule-goal"],
+.task-schedule-main-grid > [data-role="task-schedule-room"],
 .task-schedule-main-grid > [data-role="task-schedule-time"],
 .task-schedule-main-grid > [data-role="task-schedule-interval-min"],
 .task-schedule-weekdays {

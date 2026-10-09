@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "old_attempt_preserved": [
+    "unknown",
+    "end_turn",
+    1
+  ],
+  "old_calls": [
+    [
+      "tool-553eccb184419ac9b88b524b695f8aa3d480659cdcfa9a2ba8a4baec6676860b",
+      "failed"
+    ]
+  ],
+  "old_reconciliation_events": [
+    [
+      "tool.approval_not_resumable",
+      "{\"executed\":false,\"previous_status\":\"awaiting_approval\",\"reason\":\"acp_approval_not_resumable_terminal_parent_drained\",\"settled_status\":\"failed\",\"tool_call_id\":\"tool-553eccb184419ac9b88b524b695f8aa3d480659cdcfa9a2ba8a4baec6676860b\"}"
+    ]
+  ],
+  "binding": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "new_terminal_tool_status": "failed",
+  "new_attempt": {
+    "attempt_id": "f943eecf00dc80b4383122789d620f2daccd21f549b7a65b",
+    "state": "terminal",
+    "protocol_stop": "end_turn",
+    "process_drained": 1,
+    "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+  },
+  "network_requests": 0,
+  "new_cloud_sessions": 0,
+  "source": "正常聊天接纳rotate/claim，未手写验收库"
+}

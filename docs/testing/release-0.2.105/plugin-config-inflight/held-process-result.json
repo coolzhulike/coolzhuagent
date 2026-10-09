@@ -1,0 +1,70 @@
+{
+  "version": "0.2.105",
+  "web_pid": 26256,
+  "observation": {
+    "run_id": "run-chat-4bca9de730b90a1f15069cb3b6117e808af7d211a39e6dd7",
+    "attempt_id": "86da0f8b9b7f07bcb2687de0df8159ead9d8581c93329eb3",
+    "attempt_state_at_change": "submitted",
+    "original_activation_id": "dsh-26256-1791506361177405600-4",
+    "original_config": {},
+    "request_begin_ms": 1791506387921.6821,
+    "network_entered": {
+      "event": "function_network_entered",
+      "utc": "2026-10-09T00:39:47.883903+00:00",
+      "monotonic": 795101.0102213,
+      "path": "/revoke-20261008"
+    },
+    "request_end_ms": 1791506388651.1335,
+    "changed_activation_id": "dsh-26256-1791506388628709200-5",
+    "changed_config": {
+      "coolzhuAcceptanceTag": "config-inflight-105-20261008"
+    },
+    "source_unchanged": true
+  },
+  "held_process": {
+    "pid": 29888,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\dsh-runtime\\node\\node.exe",
+    "created_100ns": 134359799876214981,
+    "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5",
+    "held_ms": 1791506387717.0803,
+    "wait_before": 258
+  },
+  "enable_response": {
+    "enabled": true,
+    "outcome": {
+      "call_id": "dsh-enable-9491a603f5004a66650a75666f97db8b",
+      "elapsed_ms": 654,
+      "output": {
+        "activation_id": "dsh-26256-1791506388628709200-5",
+        "enabled": true,
+        "plugin_id": "dsh-aa909f79795799f288de8a67@external"
+      },
+      "permission_gate": {
+        "affected_paths": [
+          "<opaque-command>"
+        ],
+        "decision": "allow-auto",
+        "reason": "full-access-profile",
+        "required": "danger-full-access",
+        "workspace_relative": false
+      },
+      "status": "ok",
+      "summary_text": "DSH实际宿主操作已收尾",
+      "tool_name": "dsh__enable_3b6ee0ea714c22e115d3ce786b876bc1"
+    },
+    "pending_call_id": null
+  },
+  "wait_after": 0,
+  "wait_finished_ms": 1791506389735.3284,
+  "passed_scope": "真实网络函数进入后正常重新配置；原宿主独立持有句柄Wait258→0，没有测试脚本终止进程",
+  "captured_processes": [
+    {
+      "pid": 29888,
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\dsh-runtime\\node\\node.exe",
+      "created_100ns": 134359799876214981,
+      "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5",
+      "held_ms": 1791506387717.0803,
+      "wait_before": 258
+    }
+  ]
+}

@@ -132,3 +132,73 @@
 # 093正式安装证据保留原始长度与SHA，不做换行转换。
 /docs/testing/release-0.2.93/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.93/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 104完整HTTP资料、工具原文与安装证据按原字节归档，保持独立摘要可复核。
+/docs/testing/release-0.2.104/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.104/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.104/large-result-pagination/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.104/plugin-config-race/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.105/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.105/plugin-config-race/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.105/plugin-config-inflight/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.105/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.105/browser-observation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab
+/docs/testing/release-0.2.107/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.108/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.109/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-08-diagnostic-rotation/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.110/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-session-config-boundary/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-low-height-ui/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-browser-read-attribution/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.111/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-acp-replay-test-budget/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-session-config-save-order/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.112/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-config-read-snapshot/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.113/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-legacy-model-limit/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.114/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-session-config-service/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.115/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-session-config-scope/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.116/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-session-config-late/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.117/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-acp-plugin-approval/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.118/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-read-settlement/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-three-layer/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.119/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-live-repaint/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.120/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-tool-diagnostic-redaction/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol

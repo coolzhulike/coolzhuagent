@@ -1,0 +1,1 @@
+采证失败保留：首次复用collect.py错误假定父run应completed，实际failed，因此未生成通过结论；随后只读查询曾误用不存在的error_json/seq列。经PRAGMA核实实际schema后重新读取事实，最终review-result.json保留failed、单工具completed/ok、ACP end_turn/drained、真实可见回复及解锁绑定。没有修改运行记录、权限或重试模型请求。collect.py仅保留首次假定，不能作为通过脚本重放。

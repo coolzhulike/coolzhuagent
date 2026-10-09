@@ -1,0 +1,9 @@
+{"kind": "http-get", "path": "/before.html", "host": "127.0.0.1:58037", "observed_ms": 1791488809700.034}
+{"kind": "document-script-start", "role": "BEFORE", "trusted": false, "held": false, "url": "http://127.0.0.1:58037/before.html", "page_ms": 1791488809738.0999, "observed_ms": 1791488809748.1768}
+{"kind": "loaded", "role": "BEFORE", "trusted": true, "held": false, "url": "http://127.0.0.1:58037/before.html", "page_ms": 1791488809741.0999, "observed_ms": 1791488809748.512}
+{"kind": "pointerdown", "role": "BEFORE", "trusted": true, "held": true, "url": "http://127.0.0.1:58037/before.html", "page_ms": 1791488864684.8, "target": "navigate-button", "observed_ms": 1791488864689.7847}
+{"kind": "http-get", "path": "/after.html", "host": "localhost:58037", "observed_ms": 1791488864696.381}
+{"kind": "navigation-started", "role": "BEFORE", "trusted": true, "held": true, "url": "http://127.0.0.1:58037/before.html", "page_ms": 1791488864685.2, "target": "navigate-button", "destination": "http://localhost:58037/after.html", "observed_ms": 1791488864696.8113}
+{"kind": "beforeunload", "role": "BEFORE", "trusted": true, "held": true, "url": "http://127.0.0.1:58037/before.html", "page_ms": 1791488864685.7, "observed_ms": 1791488864697.0305}
+{"kind": "document-script-start", "role": "AFTER", "trusted": false, "held": false, "url": "http://localhost:58037/after.html", "page_ms": 1791488864767.2, "observed_ms": 1791488864775.9233}
+{"kind": "loaded", "role": "AFTER", "trusted": true, "held": false, "url": "http://localhost:58037/after.html", "page_ms": 1791488864783, "observed_ms": 1791488864789.5107}

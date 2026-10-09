@@ -207,7 +207,7 @@ pub(super) async fn insights(AxumPath(room_id): AxumPath<String>, Query(query): 
         let mut timing_statement=connection.prepare("SELECT message_id,elapsed_ms FROM chat_message_timing WHERE room_id=?1 AND message_id IN (SELECT value FROM json_each(?2))").map_err(sqlite_api_error)?;
         let timings=timing_statement.query_map(params![room_id,ids_json],|row| Ok((row.get::<_,String>(0)?,row.get::<_,u64>(1)?))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<BTreeMap<_,_>>>().map_err(sqlite_api_error)?;
         Ok(json!({"room_id":room_id,"usage":usage,"timings":timings,"indices":indices,"message_count":total,
-            "source":"provider_reported","note":"新请求按真实网络尝试记录，失败与重试均保留；只合计供应商已返回的用量，未知字段显示未知，部分用量不代表完整账单。旧版记录独立列出，旧零值无法证明已知用量；缓存是明细，不重复相加，不推算费用。"}))
+            "source":"provider_reported/acp_journal","note":"HTTP请求与Devin请求台账按唯一请求去重；网络尝试只计明确已派发，未发送、结果未知和派发未知单独显示。只合计供应商已返回的用量，未知字段显示未知，部分用量不代表完整账单。旧版记录独立列出，旧零值无法证明已知用量；缓存是明细，不重复相加，不推算费用。"}))
     }).await.map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,&error.to_string()))??;
     Ok(Json(result))
 }
@@ -241,28 +241,11 @@ pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Que
             let mut tools_statement = connection.prepare("SELECT tool_call_id,tool_name,status,created_at_unix_ms,updated_at_unix_ms FROM tool_calls WHERE run_id=?1 ORDER BY created_at_unix_ms,tool_call_id").map_err(sqlite_api_error)?;
             let calls = tools_statement.query_map(params![run_id], |row| Ok(json!({"call_id":row.get::<_,String>(0)?,"tool_name":row.get::<_,String>(1)?,"status":row.get::<_,String>(2)?,"started_at":row.get::<_,i64>(3)?,"updated_at":row.get::<_,i64>(4)?}))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
             run["calls"] = json!(calls);
-            let mut usage_statement = connection.prepare("SELECT u.attempt_id,u.call_id,u.request_kind,u.status,
-                    u.input_tokens,u.output_tokens,u.usage_known_mask,u.turn_id
-                FROM chat_usage_events u
-                WHERE u.workspace_id=?1 AND u.room_id=?2 AND u.attempt_id IS NOT NULL
-                  AND (u.run_id=?3 OR (u.run_id IS NULL AND (
-                    u.turn_id=?4 OR EXISTS (
-                      SELECT 1 FROM tool_calls c WHERE c.tool_call_id=u.call_id AND c.run_id=?3
-                    )
-                  )))
-                ORDER BY u.created_at,u.id").map_err(sqlite_api_error)?;
-            let usage = usage_statement.query_map(params![workspace,room_id,run_id,run["turn_id"].as_str()], |row| {
-                let mask: i64 = row.get::<_,Option<i64>>(6)?.unwrap_or(0);
-                Ok(json!({"attempt_id":row.get::<_,String>(0)?,"call_id":row.get::<_,Option<String>>(1)?,
-                    "purpose":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,
-                    "source_turn_id":row.get::<_,Option<String>>(7)?,
-                    "input_tokens":if mask&1!=0 {Some(row.get::<_,i64>(4)?)} else {None},
-                    "output_tokens":if mask&2!=0 {Some(row.get::<_,i64>(5)?)} else {None}}))
-            }).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
+            let usage = request_usage::requests_for_run(&connection,&workspace,&room_id,&run_id,run["turn_id"].as_str()).map_err(sqlite_api_error)?;
             run["requests"] = json!(usage);
         }
         let next_before = if has_more { runs.last().and_then(|run| run["run_id"].as_str()).map(str::to_string) } else { None };
-        Ok(json!({"runs":runs,"has_more":has_more,"next_before":next_before,"source":"runtime_runs/tool_calls/chat_usage_events"}))
+        Ok(json!({"runs":runs,"has_more":has_more,"next_before":next_before,"source":"runtime_runs/tool_calls/chat_usage_events/devin_acp_attempts"}))
     }).await.map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,&error.to_string()))??;
     Ok(Json(result))
 }

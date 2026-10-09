@@ -1,0 +1,128 @@
+{
+  "formal_version": "0.2.105",
+  "facts": {
+    "run": {
+      "id": "run-chat-d8683d633c1518275cd4599089e965d41dd6fb65c0d84ffd",
+      "state": "failed",
+      "legacy_turn_id": "chat-turn-1791507005129-2"
+    },
+    "computer_use": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791507005129-2-tool-326bdd1da03b86c65cf2589aac08d43285b98a939a3dd8479fc087997e96789b",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791507005129-2-tool-326bdd1da03b86c65cf2589aac08d43285b98a939a3dd8479fc087997e96789b",
+          "provider_tool_call_id": "tool-326bdd1da03b86c65cf2589aac08d43285b98a939a3dd8479fc087997e96789b",
+          "status": "blocked",
+          "stage": "verification",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "原生页面或宿主环境在模型验收期间已变化，本轮旧观察不能作为成功证据",
+          "error": {
+            "code": "native_browser_observation_stale",
+            "message": "原生页面或宿主环境在模型验收期间已变化，本轮旧观察不能作为成功证据",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:797054cb83e1690cc79663d1c3da4c6c",
+            "native-ax:1:0",
+            "native-observation:797054cb83e1690cc79663d1c3da4c6c",
+            "native-input:dee3055a8cbcd540a4b7c467ad34fac7",
+            "native-ax:1:0",
+            "native-observation:044feb72228693a3c894d7a0d29a2b79"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791507905129
+              }
+            },
+            "cu_deadline_ms": 1791507905129,
+            "cu_deadline_established_at_ms": 1791507029038,
+            "cu_budget_ms": 900000
+          }
+        },
+        "steps": [
+          {
+            "step_index": 0,
+            "action_type": "click",
+            "status": "input_sent_observed",
+            "error_code": null,
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "effect_status": null
+          }
+        ]
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "5d4ca402ce26775858ae36cf0656c25fc679a9e2357204d2",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  "before": {
+    "attempts": 946,
+    "messages": 1193,
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "after": {
+    "attempts": 947,
+    "messages": 1196
+  },
+  "calls": [
+    {
+      "tool_name": "computer_use_perform",
+      "status": "failed",
+      "tool_call_id": "tool-326bdd1da03b86c65cf2589aac08d43285b98a939a3dd8479fc087997e96789b"
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791507005365-0",
+    "kind": "assistant-reply",
+    "content": "任务失败（终态回执 `status: blocked`，stage: verification）：\n\n- **错误**：`native_browser_observation_stale` —— \"原生页面或宿主环境在模型验收期间已变化，本轮旧观察不能作为成功证据\"（retryable=false）\n- **动作事实**：`steps_completed: 1`，`action_count: 1`；证据链含 `native-input:dee3055a…` —— 一次 click 输入已真实投递（sent）到本轮 dom 引用 `dom-4ee093c6…`（“投递事实验收”按钮）\n- **释放事实**：宿主未单列 released 字段；按下处理期间（2400ms）验收端已通过地址栏打开另一原生视图，观察世代在验收期间失效——释放细节保持未知，不推断\n- **效果观察**：验收快照中旧页 nodes 含 \"旧视图真实点击完成\"（index 8），但该观察在验收期间被宿主判为 stale，**不作为成功证据**；终态 `goal_achieved: false`，效果项未确认保持未知\n- 终态文案回归要点已验证：观察错误没有覆盖步骤 sent 事实——回执仍保留 attempts=1 / steps_completed=1 / native-input 证据，同时明确拒绝用旧观察判成功\n\n未重试、未补发、未自行导航或操作替换页、未调用其它工具、未新建云会话。",
+    "created_at": 1791507091881
+  },
+  "up_to_new_loaded_page_ms": 5073.39990234375,
+  "strict_down_up_window": "not_tested; navigation deliberately after trusted click",
+  "passed": "原观察失效、一次sent/released、零补发、新页零输入",
+  "open": "native_browser_resource_changed分支未触发；模型最终回执缺逐步释放字段，且误述导航发生于按下期间；不能以模型转述取代独立时序"
+}

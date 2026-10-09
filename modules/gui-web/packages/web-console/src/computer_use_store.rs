@@ -3833,6 +3833,7 @@ mod tests {
             )),
             attempts: 1,
             steps_completed: 1,
+            input_steps: None,
             evidence: vec!["after.png".into()],
             supervisor: SupervisorSnapshot::default(),
             // 仅补新字段以让测试夹具继续编译：本文件不参与 CU 预算事实的写入，

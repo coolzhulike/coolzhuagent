@@ -1,0 +1,39 @@
+{
+  "marker": "PLUGIN-INSTALLED099-HELD-PROCESS-20261008",
+  "formal_version": "0.2.99",
+  "web_pid": 28160,
+  "entered": {
+    "event": "function_network_entered",
+    "utc": "2026-10-08T20:43:34.297288+00:00",
+    "monotonic": 780927.9083908,
+    "path": "/revoke-20261008"
+  },
+  "held_process": {
+    "pid": 16352,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\dsh-runtime\\node\\node.exe",
+    "created_100ns": 134359658140348148,
+    "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5",
+    "held_ms": 1791492214139.504,
+    "wait_before": 258
+  },
+  "disable_started_ms": 1791492214327.4512,
+  "disable_returned_ms": 1791492214889.941,
+  "plugin": {
+    "id": "dsh-aa909f79795799f288de8a67@external",
+    "name": "dsh-net-tools",
+    "version": "0.1.0",
+    "description": "让沙箱里的 agent 通过你的本地代理联网：net_fetch 抓取网页，net_proxy_status 查看代理状态。",
+    "source": "https://github.com/izwarm195/dsh-net-tools/tree/7392ec55ca6db884821311d739859ddea72211de",
+    "enabled": false,
+    "installed": true,
+    "kind": "external",
+    "installable": false,
+    "manageable": true,
+    "loaded_in_chat": false,
+    "dsh": true,
+    "dsh_source_sha256": "3b6ee0ea714c22e115d3ce786b876bc1f34b81116d21de79fbd398c0c69c7c8b"
+  },
+  "wait_after": 0,
+  "wait_finished_ms": 1791492215496.7942,
+  "passed_scope": "真实函数网络进入后正常停用，原宿主持有句柄Wait258→0独立确认退出；没有脚本终止宿主"
+}

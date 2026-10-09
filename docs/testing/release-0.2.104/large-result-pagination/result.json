@@ -1,0 +1,88 @@
+{
+  "version": "0.2.104",
+  "marker": "INSTALLED104-LARGE-RESULT-NO-READER-20261008",
+  "run": {
+    "id": "run-chat-dba317fc61513df2bceb7e00b697ecd706b384ba8cc542b9",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791504633960-0",
+    "created_at": 1791504634228
+  },
+  "attempts": [
+    {
+      "attempt_id": "aa952b6fe30a372d5c1d6b71d6aef101474bdcfd0bf0c6e2",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "calls": [
+    {
+      "tool_call_id": "tool-5a44385c772224869c211c81d4453412d2aaf084f2fe40c10b7ddcabc0554b50",
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "status": "completed"
+    },
+    {
+      "tool_call_id": "tool-0167b67e47f78246229b196ca947867002c30b7c60873fb4edd9a3b6ec019c66",
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "status": "completed"
+    }
+  ],
+  "events": [
+    {
+      "event_type": "run.accepted",
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791504633960-0\"}",
+      "created_at": 1791504633962
+    },
+    {
+      "event_type": "run.started",
+      "payload_json": "{\"previous_state\":\"accepted\"}",
+      "created_at": 1791504634227
+    },
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":111227,\"offset\":107200,\"result_id\":\"8c247d59074c9657dd362e89c2c5acc344e2274e2d056789ce47634cfaee455d\",\"source_tool\":\"dsh__1ef9be67fd4ddb42d93d68c084b38983\"}",
+      "created_at": 1791504671511
+    },
+    {
+      "event_type": "run.completed",
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"completed\"}",
+      "created_at": 1791504694546
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791504634292-0",
+    "kind": "assistant-reply",
+    "content": "如实报告（全部以宿主回执为准）：\n\n**net_fetch**（`http://127.0.0.1:64858/actual-large-document`，allowPrivate=true，timeoutMs=60000，maxBytes=120000）：\n- 宿主 `status: ok`，route runtime-executed，audit `executed: true`，`cleanup_confirmed: true`\n- HTTP **200**，`truncated: false`，`contentType: application/json; charset=utf-8`，响应体 111227 字节（sha256 `3b5e5ad7…`），5ms\n- 回执按页返回：`total_bytes=111227`，首页 0→4096；用桥接 `tool_result_read`（result_id `8c247d59…`）定位尾部——offset 107131 因非 UTF-8 边界被拒，调整至 107200 成功读到 complete=true，未重提 net_fetch、未读溢出文件\n- 尾文 `final_record` 原样：**sentinel = `竹林𠮷😀-aedf59f45e6e719e51c028a4`**，**left = 11450**，**right = 13061**，operation=multiply（records 0–239 未逐条阅读，无此必要）\n\n**calculator**（`dsh__3596dc2e…`，expression `11450*13061`）：宿主 `status: ok`，audit `executed: true`，**result = 149548450**\n\n**HTTP 截断状态**：原始响应 `truncated: false`（完整）；我侧初始投影被分页截断，经 tool_result_read 续读确认尾文真实可见。\n\n未重试、未补发、除必要 tool_result_read 分页外未调用其它工具，未操作桌面/浏览器，未新建云会话。",
+    "created_at": 1791504694473
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "expected": {
+    "sentinel": "竹林𠮷😀-aedf59f45e6e719e51c028a4",
+    "left": 11450,
+    "right": 13061,
+    "result": 149548450,
+    "body_bytes": 44498,
+    "body_sha256": "23996c6fc1d8880827952113b3521bb0c62b08df1755478d41129f12a3633505"
+  },
+  "new_blobs": [
+    {
+      "file_name": "sha256-3b5e5ad706d74d34ba72c51c47bc6ffcd833577a105c8dc4cfdfaf22cace1d50.txt",
+      "bytes": 111227,
+      "sha256": "3b5e5ad706d74d34ba72c51c47bc6ffcd833577a105c8dc4cfdfaf22cace1d50",
+      "contains_tail": true,
+      "character_count": 89751
+    }
+  ]
+}

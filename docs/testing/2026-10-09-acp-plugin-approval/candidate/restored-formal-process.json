@@ -1,0 +1,9 @@
+{
+  "stage": "恢复正式117",
+  "started": "2026-10-09T10:26:37.7959573Z",
+  "port": 8765,
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "sha256": "a9f35f2e9bc3fbf3832b9601418d31298f400911845b7a403a880986785a95d3",
+  "pid": 560
+}

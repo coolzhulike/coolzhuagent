@@ -1,0 +1,42 @@
+{
+  "binary_sha256": "45b1f4b5b0b01551fc4d600a12945bc841130078b75c7b992df49a800b831efe",
+  "pid": 15788,
+  "model_requests": 0,
+  "cloud_sessions_created": 0,
+  "original_runtime_writes": 0,
+  "port": 8768,
+  "session_id": "session-1791528012531",
+  "failure_cases": [
+    {
+      "case": "absent",
+      "status": 500,
+      "response": {
+        "error": "配置保存故障验收"
+      },
+      "parameters_restored": true,
+      "database_and_memory_restored": true,
+      "missing_entry_preserved": true,
+      "revision_before": 0,
+      "revision_after": 2
+    },
+    {
+      "case": "present",
+      "status": 500,
+      "response": {
+        "error": "配置保存故障验收"
+      },
+      "parameters_restored": true,
+      "database_and_memory_restored": true,
+      "missing_entry_preserved": false,
+      "revision_before": 3,
+      "revision_after": 5
+    }
+  ],
+  "concurrent_statuses": [
+    200,
+    409
+  ],
+  "winner": 0.25,
+  "saved_revision": 7,
+  "all_passed": true
+}

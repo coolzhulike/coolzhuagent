@@ -104,6 +104,13 @@ pub(super) async fn read(app: &AppHandle, expected: &PanelResource, method: Read
     read_session(app, expected, None, method).await
 }
 
+#[cfg(windows)]
+fn read_resource_changed(app: &AppHandle, expected: &PanelResource, url: &str) -> bool {
+    super::browser_panel::input_resource(app).as_ref() != Some(expected)
+        || app.get_webview(&expected.label).and_then(|view| view.url().ok())
+            .as_ref().map(|value| value.as_str()) != Some(url)
+}
+
 /// 会话由宿主目标归属模块产生，不接受网页或模型提供的CDP会话和方法。
 pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, session: Option<&str>, method: ReadMethod) -> Result<serde_json::Value, String> {
     if super::browser_panel::input_resource(app).as_ref() != Some(expected) {
@@ -115,6 +122,7 @@ pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, sess
         let session = session.map(str::to_owned);
         let view = app.get_webview(&expected.label).ok_or("native_browser_unavailable")?;
         let url = view.url().map_err(|_| "native_browser_unavailable")?.to_string();
+        let url_after_wait = url.clone();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let sender = std::sync::Arc::new(std::sync::Mutex::new(Some(sender)));
         let app_on_ui = app.clone();
@@ -132,12 +140,10 @@ pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, sess
             let handler: ICoreWebView2CallDevToolsProtocolMethodCompletedHandler = bounded_callback::Handler(Box::new(move |status, text| {
                 // 固定方法名用于诊断，不回显任意浏览器错误正文或查询参数。
                 let failure = if method_name == "DOM.getNodeForLocation" { "native_browser_hit_test_failed" } else { "native_observation_failed" };
-                let result = if status.is_err() { Err(failure.into()) }
-                else if super::browser_panel::input_resource(&callback_app).as_ref() != Some(&resource_on_ui)
-                    || callback_app.get_webview(&resource_on_ui.label).and_then(|view| view.url().ok())
-                        .as_ref().map(|value| value.as_str()) != Some(url.as_str()) {
+                // 资源失效优先于回调失败；已知文档变化不能被通用读取错误覆盖。
+                let result = if read_resource_changed(&callback_app, &resource_on_ui, &url) {
                     Err("native_browser_resource_changed".into())
-                } else {
+                } else if status.is_err() { Err(failure.into()) } else {
                     unsafe { bounded_callback::read(text) }.and_then(|raw|
                         serde_json::from_str(&raw).map_err(|_| "native_observation_invalid".into()))
                 };
@@ -148,10 +154,18 @@ pub(super) async fn read_session(app: &AppHandle, expected: &PanelResource, sess
                 .and_then(|core| dispatch_read(&core, session.as_deref(), &method, &handler)).is_err() {
                 send(Err("native_observation_failed".into()));
             }
-        }).map_err(|_| "native_browser_unavailable".to_string())?;
-        tokio::time::timeout(std::time::Duration::from_secs(2), receiver).await
-            .map_err(|_| "native_observation_timeout".to_string())?
-            .map_err(|_| "native_observation_cancelled".to_string())?
+        }).map_err(|_| if read_resource_changed(app, expected, &url_after_wait) {
+            "native_browser_resource_changed".to_string()
+        } else { "native_browser_unavailable".to_string() })?;
+        let result = match tokio::time::timeout(std::time::Duration::from_secs(2), receiver).await {
+            Ok(Ok(result)) => result,
+            Ok(Err(_)) => Err("native_observation_cancelled".to_string()),
+            Err(_) => Err("native_observation_timeout".to_string()),
+        };
+        // 回调结果到异步消费之间也可能关闭或导航；结束归属失效优先于成功或通用错误。
+        if read_resource_changed(app, expected, &url_after_wait) {
+            Err("native_browser_resource_changed".into())
+        } else { result }
     }
     #[cfg(not(windows))]
     { let _ = (method,session); Err("native_observation_platform_unsupported".into()) }

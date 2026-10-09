@@ -1,10 +1,11 @@
-//! 本轮用户明确提出的原生网页边界；不从历史、记忆或模型参数选择后端或创建权限。
+//! 本轮正文边界与提交时界面目标偏好；不从历史、记忆或模型参数创建权限。
 use computer_use::{ComputerUseError, ComputerUseRequest, ComputerUseRetryOwner, ComputerUseSurface};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Default)]
 pub(super) struct ComputerUseTurnScope {
     native_browser: bool,
+    native_browser_preferred: bool,
     native_browser_read_only: bool,
     explicit_request: Option<Arc<ComputerUseRequest>>,
 }
@@ -36,13 +37,20 @@ impl ComputerUseTurnScope {
             .iter().any(|restriction| text.contains(restriction))
             || (!allows_navigation && (["不点击、不滚动、不输入", "不得点击、滚动或输入", "禁止点击、滚动或输入"]
                 .iter().any(|restriction| text.contains(restriction)) || explicit_no_other_input || forbids_all_browser_input(&text)));
-        Self { native_browser, native_browser_read_only: native_browser && explicit_no_input, explicit_request }
+        Self { native_browser, native_browser_preferred:false, native_browser_read_only:explicit_no_input, explicit_request }
     }
 
-    pub(super) fn native_browser(&self) -> bool { self.native_browser }
+    /// 界面当前选中的原生面板仅决定Browser后端，不将桌面任务强制改为网页任务。
+    pub(super) fn from_submission(text:&str, native_browser_panel:bool) -> Self {
+        let mut scope=Self::from_current_user(text);
+        scope.native_browser_preferred=native_browser_panel;
+        scope
+    }
+
+    pub(super) fn native_browser(&self) -> bool { self.native_browser || self.native_browser_preferred }
 
     pub(super) fn native_browser_read_only(&self) -> bool {
-        self.native_browser_read_only
+        self.native_browser() && self.native_browser_read_only
     }
 
     pub(super) fn validate(&self, request: &ComputerUseRequest) -> Result<(), ComputerUseError> {
@@ -54,7 +62,8 @@ impl ComputerUseTurnScope {
                 ComputerUseRetryOwner::None,
             ));
         }
-        if !self.native_browser {
+        // 当前面板上的明确只读要求也禁止切换桌面来绕过；普通面板偏好不限制桌面任务。
+        if !self.native_browser && !(self.native_browser_preferred && self.native_browser_read_only) {
             return Ok(());
         }
         let desktop_target = request.target.as_ref().is_some_and(|target|
@@ -121,6 +130,20 @@ fn forbids_all_browser_input(text: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn current_panel_preference_routes_browser_without_granting_or_forcing_desktop_input() {
+        let scope=ComputerUseTurnScope::from_submission("完成当前右栏任务",true);
+        assert!(scope.native_browser());
+        assert!(scope.validate(&request("browser",serde_json::Value::Null)).is_ok());
+        assert!(scope.validate(&request("desktop",serde_json::Value::Null)).is_ok());
+        assert!(!ComputerUseTurnScope::from_submission("完成当前右栏任务",false).native_browser());
+        assert!(ComputerUseTurnScope::from_submission("当前右栏，不得发送输入",true).native_browser_read_only());
+        assert!(ComputerUseTurnScope::from_submission("当前右栏，不得发送输入",true)
+            .validate(&request("desktop",serde_json::Value::Null)).is_err());
+        assert!(!ComputerUseTurnScope::from_submission("不得发送输入",false).native_browser_read_only());
+        let explicit=ComputerUseTurnScope::from_submission("只使用内置浏览器",true);
+        assert!(explicit.validate(&request("desktop",serde_json::Value::Null)).is_err());
+    }
     fn request(surface: &str, target: serde_json::Value) -> ComputerUseRequest {
         serde_json::from_value(serde_json::json!({"objective":"历史任务", "surface":surface,
             "target":target, "success_criteria":["目标可见"], "constraints":[]})).unwrap()

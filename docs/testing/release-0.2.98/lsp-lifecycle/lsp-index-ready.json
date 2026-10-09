@@ -1,0 +1,27 @@
+{
+  "definition": {
+    "handle": "b991b9985b32f58f8704b572fa2d093c",
+    "locations": [
+      {
+        "character": 8,
+        "line": 1,
+        "path": "tmp/lsp-098/src/lib.rs"
+      }
+    ]
+  },
+  "references": {
+    "handle": "b991b9985b32f58f8704b572fa2d093c",
+    "locations": [
+      {
+        "character": 17,
+        "line": 4,
+        "path": "tmp/lsp-098/src/lib.rs"
+      },
+      {
+        "character": 8,
+        "line": 1,
+        "path": "tmp/lsp-098/src/lib.rs"
+      }
+    ]
+  }
+}

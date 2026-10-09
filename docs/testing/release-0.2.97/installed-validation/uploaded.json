@@ -1,0 +1,14 @@
+[
+  {
+    "kind": "document",
+    "name": "orders.csv",
+    "url": "/api/attachments/files/sha256-cc943fccba5bbe48903a9a9ab81cc487016c06e691a01d6f4719771f171a6c9e.csv",
+    "mime_type": "text/csv"
+  },
+  {
+    "kind": "document",
+    "name": "invoice-note.txt",
+    "url": "/api/attachments/files/sha256-ed502b96fca95cf6441bab848d992429486c256a509d0a53f034267def69cf98.txt",
+    "mime_type": "text/plain"
+  }
+]

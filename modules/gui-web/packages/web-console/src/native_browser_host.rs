@@ -226,6 +226,15 @@ impl FrozenPanelBinding {
             && self.resource.room_id == resource.room_id && self.resource.label == resource.label
             && self.resource.generation == resource.generation
     }
+
+    // 同一面板可合法导航，但一次在途观察仍只属于其请求时的完整资源版本。
+    fn matches_observation(&self, host: Option<&RegisteredHost>, workspace: &crate::CanonicalWorkspaceId,
+        expected: &PanelResource) -> bool {
+        host.is_some_and(|host| host.seen.elapsed() < Duration::from_millis(LEASE_MILLIS)
+            && host.resource.as_ref().is_some_and(|(current_workspace, current)|
+                current_workspace == workspace && current == expected
+                && self.matches(&host.host_id, host.identity.as_ref(), current_workspace, current)))
+    }
 }
 
 pub(super) fn capture_panel_binding(parent: &crate::FrozenParentContext) -> Result<FrozenPanelBinding, String> {
@@ -301,7 +310,7 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
     getrandom::fill(&mut random).map_err(|_| "native_observation_unavailable")?;
     let id: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
     let (sender, receiver) = std::sync::mpsc::channel();
-    {
+    let requested_resource = {
         let registered = registry().lock().map_err(|_| "native_browser_unavailable")?;
         let host = readable_host(registered.as_ref()).map_err(str::to_string)?;
         let (workspace, resource) = host.resource.as_ref().ok_or("native_browser_unavailable")?;
@@ -314,36 +323,75 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
         if pending.is_some() { return Err("native_observation_busy".into()); }
         *pending = Some(PendingObservation {host_id:host.host_id.clone(),
             request:ObservationRequest {request_id:id.clone(), resource:resource.clone()}, delivered:false, sender});
-    }
-    let _pending_guard = PendingObservationGuard(id);
+        resource.clone()
+    };
+    let pending_guard = PendingObservationGuard(id.clone());
     let start = Instant::now();
     let timeout = remaining.min(Duration::from_secs(5));
+    // 高层observing早于底层请求登记，不能用它证明等待窗口。
+    // 在同一轨迹保留关联标记；计入原观察预算，不延长超时或输入阶段。
+    if let Some(run_id) = parent.parent_run_id.as_deref() {
+        if crate::append_runtime_run_event(db, run_id, "browser.observation_requested",
+            serde_json::json!({"request_id":id,"stage":"registered"})).is_err() {
+            eprintln!("browser.observation_requested: 轨迹保存失败，观察资格不变");
+        }
+    }
+    let stop_stage;
     let result = loop {
         if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
+            stop_stage = "waiting_cancelled";
             break Err("native_observation_cancelled".into());
         }
-        if start.elapsed() >= timeout { break Err("native_observation_timeout".into()); }
+        // 资源变化后的旧请求不会再收到有效回包；明确收尾，避免伪装为单纯超时。
+        if !registry().lock().is_ok_and(|registered|
+            frozen.matches_observation(registered.as_ref(), &parent.workspace_id, &requested_resource)) {
+            stop_stage = "waiting_resource_changed";
+            break Err("native_browser_resource_changed".into());
+        }
+        if start.elapsed() >= timeout {
+            stop_stage = "waiting_timeout";
+            break Err("native_observation_timeout".into());
+        }
         match receiver.recv_timeout((timeout - start.elapsed().min(timeout)).min(Duration::from_millis(50))) {
             Ok(reply) => {
                 if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
+                    stop_stage = "reply_cancelled";
                     break Err("native_observation_cancelled".into());
                 }
                 if let Err(error) = crate::validate_frozen_parent_relations(db, parent) {
+                    stop_stage = "reply_parent_changed";
                     break Err(observation_parent_error(error).into());
                 }
-                let current_matches = registry().lock().is_ok_and(|registered| registered.as_ref().is_some_and(|host|
-                    host.host_id == reply.host_id && host.seen.elapsed() < Duration::from_millis(LEASE_MILLIS)
-                    && host.resource.as_ref().is_some_and(|(workspace, resource)| workspace == &parent.workspace_id
-                        && resource == &reply.resource && frozen.matches(&host.host_id, host.identity.as_ref(), workspace, resource))));
-                if !current_matches { break Err("native_browser_resource_changed".into()); }
+                let current_matches = reply.host_id == frozen.host_id && registry().lock().is_ok_and(|registered|
+                    frozen.matches_observation(registered.as_ref(), &parent.workspace_id, &reply.resource));
+                if !current_matches {
+                    stop_stage = "reply_resource_changed";
+                    break Err("native_browser_resource_changed".into());
+                }
+                stop_stage = "host_reply";
                 break reply.observation.map(|page| NativeObservation {resource:reply.resource,
                     page, host_id:reply.host_id, request_id:reply.request_id})
                     .ok_or_else(|| reply.error.unwrap_or_else(|| "native_observation_failed".into()));
             },
             Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {},
-            Err(_) => break Err("native_observation_cancelled".into()),
+            Err(_) => {
+                stop_stage = "waiting_disconnected";
+                break Err("native_observation_cancelled".into());
+            },
         }
     };
+    let elapsed_ms = start.elapsed().as_millis().min(u64::MAX as u128) as u64;
+    // 先释放本请求，再写现有运行轨迹；不延长输入阶段，不持锁写库。
+    drop(pending_guard);
+    if let (Err(code), Some(run_id)) = (&result, parent.parent_run_id.as_deref()) {
+        // 仅固定阶段、错误码与不透明请求标识。页面、输入、宿主凭据均不进入事件。
+        if crate::append_runtime_run_event(db, run_id, "browser.observation_stopped", serde_json::json!({
+            "request_id":id, "stage":stop_stage, "reason_code":code, "elapsed_ms":elapsed_ms,
+        })).is_err() {
+            // 原失败仍由步骤与终态回执保存；不能因诊断写入失败恢复观察或重放输入。
+            eprintln!("browser.observation_stopped: 轨迹保存失败，原观察失败保持");
+        }
+    }
     result
 }
 
@@ -407,6 +455,16 @@ mod tests {
         let mut live = resource.clone();
         live.navigation_revision = 2;
         assert!(binding.matches(&binding.host_id, None, &workspace, &live));
+        let mut host = RegisteredHost {host_id:binding.host_id.clone(), identity:None, sequence:1,
+            seen:Instant::now(), resource:Some((workspace.clone(), live.clone()))};
+        // 新导航可开始自己的观察，旧导航在途观察失效；不阻止同一面板后续合法操作。
+        assert!(binding.matches_observation(Some(&host), &workspace, &live));
+        assert!(!binding.matches_observation(Some(&host), &workspace, &resource));
+        host.resource = None;
+        assert!(!binding.matches_observation(Some(&host), &workspace, &live));
+        host.resource = Some((workspace.clone(), live.clone()));
+        host.seen = Instant::now() - Duration::from_millis(LEASE_MILLIS);
+        assert!(!binding.matches_observation(Some(&host), &workspace, &live));
         assert!(!binding.matches("native-host-replacement", None, &workspace, &live));
         live.generation = 8; live.label = "browser-panel-8".into();
         assert!(!binding.matches(&binding.host_id, None, &workspace, &live));

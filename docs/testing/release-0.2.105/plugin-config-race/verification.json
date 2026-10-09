@@ -1,0 +1,39 @@
+{
+  "version": "0.2.105",
+  "qualification_change_zero_network": "pass",
+  "independent_rejection_diagnostic": "pass",
+  "rejection": {
+    "executed": false,
+    "reason_code": "dsh_action_not_live",
+    "stage": "after_admission_before_executor",
+    "tool_call_id": "tool-191b3d84889ad05241a353aafc025a14e6235409b544ebaae51181eadd3ee2ce",
+    "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983"
+  },
+  "network_gets": 0,
+  "tool_records": [
+    {
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "status": "failed",
+      "tool_call_id": "tool-191b3d84889ad05241a353aafc025a14e6235409b544ebaae51181eadd3ee2ce"
+    }
+  ],
+  "tool_created_ms": 1791506098564,
+  "tool_settled_ms": 1791506098841,
+  "configuration_published_ms": 1791506080711.9082,
+  "attempts_added": 1,
+  "run": {
+    "id": "run-chat-c76fe3e7dbd0649c4c8f54b49c2bec05c0a2cd5cf932713f",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791506078202-0"
+  },
+  "attempt": {
+    "attempt_id": "70c0914c331dd6bb7a6be669b32c6bfbbfa6321fca4fb5a2",
+    "state": "terminal",
+    "protocol_stop": "end_turn",
+    "process_drained": 1,
+    "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+  },
+  "binding": "island-kayak",
+  "restored_revision": 49,
+  "limitation": "具体原因传至模型并由最终回复可见；独立事件证明阶段、工具ID和零执行，不外推其它许可与所有Provider。"
+}

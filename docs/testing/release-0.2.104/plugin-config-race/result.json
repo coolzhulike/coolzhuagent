@@ -1,0 +1,77 @@
+{
+  "version": "0.2.104",
+  "run": {
+    "id": "run-chat-627de862ed9fc5f0970dde2ef408a4c3659e4f1b327f9027",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791505255819-1"
+  },
+  "attempts": [
+    {
+      "attempt_id": "5e683a70b9d0580e4ffe095d6fac8da13c3e3af0c98ba5c7",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "status": "failed",
+      "tool_call_id": "tool-7b97e7c5406a43143e21ff7ed2d683a1dd2d1806bad7b1e8b331e4acb04bcce1"
+    }
+  ],
+  "runtime_events": [
+    {
+      "event_type": "run.accepted",
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791505255819-1\"}",
+      "created_at": 1791505255820
+    },
+    {
+      "event_type": "run.started",
+      "payload_json": "{\"previous_state\":\"accepted\"}",
+      "created_at": 1791505256038
+    },
+    {
+      "event_type": "run.completed",
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"completed\"}",
+      "created_at": 1791505290693
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791505256095-0",
+    "kind": "assistant-reply",
+    "content": "竹简回执\n表达式：net_fetch http://127.0.0.1:62700/config-race-20261008（allowPrivate=true，timeoutMs=60000，maxBytes=1024）\n宿主结果：`宿主工具未完成：宿主工具派发失败：409 Conflict`\n\n如实报告：\n\n- 本轮调用被派发层拒绝——**409 Conflict**，未完成执行，无响应体。验收端在本轮受理后通过正常启用配置接口重新配置了既有插件（添加无操作效应标签），旧启用世代的快照资格被隔离，派发阶段触发世代冲突\n- 工具描述符在本轮回执列表中可见，但实际派发被拒——旧资格不追溯有效，拒绝即实验预期\n- 不假报抓取成功；未重试、未补发、未调用其它工具、未修改文件、未新建云会话。收到拒绝后立即结束本轮。",
+    "created_at": 1791505290612
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "after": {
+    "attempts": 944,
+    "messages": 1188
+  },
+  "observation": {
+    "run_id": "run-chat-627de862ed9fc5f0970dde2ef408a4c3659e4f1b327f9027",
+    "attempt_id": "5e683a70b9d0580e4ffe095d6fac8da13c3e3af0c98ba5c7",
+    "attempt_state_at_change": "submitted",
+    "original_activation_id": "dsh-12264-1791505243943358600-2",
+    "original_config": {},
+    "request_begin_ms": 1791505257186.209,
+    "request_end_ms": 1791505257770.8845,
+    "changed_activation_id": "dsh-12264-1791505257751330900-3",
+    "changed_config": {
+      "coolzhuAcceptanceTag": "config-race-104-20261008"
+    },
+    "source_unchanged": true
+  }
+}

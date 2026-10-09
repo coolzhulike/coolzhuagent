@@ -1,0 +1,22 @@
+[
+  {
+    "name": "CoolzhuAgent-0.2.110.msi",
+    "size": 285838856,
+    "sha256": "476fb6230e98675503e7aa14d001d105c67e0e7d216a9dd319a816f4df5234be"
+  },
+  {
+    "name": "CoolzhuAgent-0.2.110-installer-report.json",
+    "size": 4885,
+    "sha256": "37519bdc5f72eb805c36cc6f4d86ffc5997ece114000f24e118d18ac8949a45b"
+  },
+  {
+    "name": "CoolzhuAgent-0.2.110-package-safety.json",
+    "size": 250,
+    "sha256": "f0668869df56f6904627d538cd364fbf6dc8652667d91b63c055211a7f5108da"
+  },
+  {
+    "name": "CoolzhuAgent-0.2.110.msi.sha256",
+    "size": 92,
+    "sha256": "025952dbe7c7e254a3d4e60162a78b0d34c440b9e5a56a992e4c5df394c01507"
+  }
+]

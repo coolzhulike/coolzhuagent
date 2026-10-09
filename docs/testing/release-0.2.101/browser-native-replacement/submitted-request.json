@@ -1,0 +1,11 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "native_browser_panel": true,
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "BU-NATIVE-REPLACEMENT-101-20261008：正式0.2.101原生视图替换窗口验证。当前右栏旧网页已加载，只调用一次computer_use_perform(surface=\"browser\",省略target,max_actions=1)，根据新鲜节点点击“替换窗口验收”一次。验收端将尝试在网页真实按下处理期间通过正常界面关闭旧视图、打开新的原生视图；不保证命中窗口。你只做上述一次点击，不主动关闭、导航、重试、补发或输入，不用其它工具，不创建云端会话。允许read_request完整分页后respond与wait，收到未知输入状态立即停止。仅报告真实宿主回执与终态；未命中不得报通过。\n以下链接仅供验收端正常点击打开，模型不得操作： http://localhost:59793/new.html",
+  "attachments": []
+}

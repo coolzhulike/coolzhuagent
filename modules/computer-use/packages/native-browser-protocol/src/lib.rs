@@ -327,6 +327,9 @@ pub struct NodeHandle {
     /// 当前观察中控件中心是否位于视口内；未知不推断为可见，更不授予输入资格。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub in_viewport: Option<bool>,
+    /// 仅文档根的已采集视口；用于区分子文档滚动与任务最终达成。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_viewport: Option<PageViewport>,
 }
 
 pub fn opaque_id(value: &str) -> bool {
@@ -345,7 +348,9 @@ impl PageObservation {
             && self.document_token.as_deref().is_none_or(opaque_id)
             && self.node_handles.len() <= self.nodes.len()
             && (self.node_handles.is_empty() || self.document_token.is_some())
-            && self.node_handles.iter().all(|handle| handle.index < self.nodes.len() && opaque_id(&handle.node_id))
+            && self.node_handles.iter().all(|handle| handle.index < self.nodes.len() && opaque_id(&handle.node_id)
+                && handle.document_viewport.as_ref().is_none_or(|viewport|
+                    self.nodes[handle.index].role == "RootWebArea" && viewport.valid_shape()))
             && self.node_handles.iter().map(|handle| handle.index).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()
             && self.node_handles.iter().map(|handle| &handle.node_id).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()
             && self.focused_node_index.is_none_or(|index| self.nodes.get(index)

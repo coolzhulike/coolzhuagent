@@ -1,0 +1,373 @@
+{
+  "version": "0.2.94",
+  "stage": "正式安装资源真实HTTP字节核验，视觉与DPI另验",
+  "svg_count": 49,
+  "png_count": 3,
+  "all_match": true,
+  "resources": [
+    {
+      "path": "assets/icons-wuxia/alert-triangle.svg",
+      "status": 200,
+      "length": 271,
+      "sha256": "bc19b2e2b9ca6865bf090b851dff0808f5c84195a0b92e9f04074afc5e141e39",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/archive.svg",
+      "status": 200,
+      "length": 323,
+      "sha256": "e768b769fb8e5e544a95128e0643a74951b5ffcd8ba01c262597482397d75978",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/branch.svg",
+      "status": 200,
+      "length": 415,
+      "sha256": "ac56ba48525555c5f3537f76164b5834e8b2bad4f8d80830d487366033f9cb78",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/browser.svg",
+      "status": 200,
+      "length": 348,
+      "sha256": "8fddd39b7bbd92ecb1c776915f5187c694ee7c741e15ace6808300f39254305f",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/camera.svg",
+      "status": 200,
+      "length": 267,
+      "sha256": "71817ec9846a808a010668605cffea843f3017e8c3765bbb465fb2c30714d54f",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/chat.svg",
+      "status": 200,
+      "length": 253,
+      "sha256": "658b3e88098d4d394f0a261709310b7a0af7a615daff17acf7808e9a698815e0",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/check.svg",
+      "status": 200,
+      "length": 254,
+      "sha256": "1649791493b3162eaae77196ba5d14b312e6cc8cfd8c70ea32a0a163ff32ec9a",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/chevron.svg",
+      "status": 200,
+      "length": 240,
+      "sha256": "a626c3ead07dc53a74a658afc39b4eaf7cb1b989b48316e7e28e352f0bec7c21",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/compute-use.svg",
+      "status": 200,
+      "length": 258,
+      "sha256": "6c4e0138146c04e6eb61ef14247f9aa5e6f13708e2fa530fe54520c0494c60eb",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/context-ring.svg",
+      "status": 200,
+      "length": 410,
+      "sha256": "afe35242dd8fb8a90c033a6fa15c4be7f348ac54253d7443f8cb918ae8e4cb67",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/crosshair.svg",
+      "status": 200,
+      "length": 267,
+      "sha256": "23d6329f9c1dbe7b06e1da404cd44c252e8599c7ece24b4584a0f65aeaf31c17",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/delete.svg",
+      "status": 200,
+      "length": 271,
+      "sha256": "460cfecd77640a2b0fe9b0f21e3da4238910c0b07463d4d59d4e67dd924357bd",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/diff.svg",
+      "status": 200,
+      "length": 333,
+      "sha256": "1b7f8b8f742809aabf2374278ce53d25760c79b92523f0bd8963f4078296ba41",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/file.svg",
+      "status": 200,
+      "length": 261,
+      "sha256": "f5b9ea13214220c5d373f2ee835641dc373386eef759a28eddde9ed276d88d95",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/folder.svg",
+      "status": 200,
+      "length": 252,
+      "sha256": "83f9ec6a42cf904a11aff7c18850243cf0285886f3fc553c5c5291aaca84f7cb",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/link.svg",
+      "status": 200,
+      "length": 331,
+      "sha256": "b6a00367387d8f629fdab6ae9f01dbed8ddc4736f53960e01b240cd0e3f4bbc8",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/lock.svg",
+      "status": 200,
+      "length": 291,
+      "sha256": "9605510c40304d1ffa74b39d51c7fbb8092eeaa4fe7f239a38010fb3185a285c",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/logs.svg",
+      "status": 200,
+      "length": 261,
+      "sha256": "03aa9c22aec94564e5c7d055f281d133e5a2122c4b6ce9cfcd80e84e9299d23f",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/maximize.svg",
+      "status": 200,
+      "length": 326,
+      "sha256": "caafdff8e2017725bd880459920cfc61b4e189f39252e38b613f6ee140e99049",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/mcp-tools.svg",
+      "status": 200,
+      "length": 251,
+      "sha256": "e4b09c2e88c905d0f1b1867ad7de3a93e4a9ad7a04acab5d00e891bff4e86a42",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/media.svg",
+      "status": 200,
+      "length": 336,
+      "sha256": "b7c06a79f602bb6cc1880d6da1d8a3aad96492188c174b290408aaf23042cbca",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/memory.svg",
+      "status": 200,
+      "length": 317,
+      "sha256": "978d95422a67d62e795b2f274aa27aa05cc68e963f23083780a8457a4c65defc",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/microphone.svg",
+      "status": 200,
+      "length": 301,
+      "sha256": "aae7d962635bbdcf72bbab555039224e46db04428015c0c4cc218ae9526a3882",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/model-scroll.svg",
+      "status": 200,
+      "length": 257,
+      "sha256": "f3495194faf4bff82db2db2e4b718dd098ee4d205e6af264fefa93ec023d1042",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/more-vertical.svg",
+      "status": 200,
+      "length": 285,
+      "sha256": "8685cc782504b8ed93ab4a2d66e9b9f5af252db2f2d4736f6b084e1ab1543e23",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/package-crate.svg",
+      "status": 200,
+      "length": 238,
+      "sha256": "0f773c48e26a6ca57fd1a1b84be4ff32e6ec2ef9d86838ccd5f422d3bd10a2ea",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/pause.svg",
+      "status": 200,
+      "length": 190,
+      "sha256": "89f1b1244a549d2db64f35c47c754d6b44910c4f6956bb05cbe4a0018cdfdcdd",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/pin.svg",
+      "status": 200,
+      "length": 323,
+      "sha256": "1c789cf8ea2c120ecc90114c871f293ab2bff0cee491d8d9d4af010e5bfbef84",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/plus.svg",
+      "status": 200,
+      "length": 255,
+      "sha256": "c7a55b276d09028860f5d9f4a3b6fcbefe2b5c4c73f1a4f9a516dda12eca6a00",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/project.svg",
+      "status": 200,
+      "length": 317,
+      "sha256": "59ad8cd0761d38e1e8b67b61358a7f680e31ab449d252d35c8997afef41275ba",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/queue.svg",
+      "status": 200,
+      "length": 398,
+      "sha256": "a082f047348a7346e90f7d66f7dc6bde40cd578ad24b289609679bbba7d0d913",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/refresh.svg",
+      "status": 200,
+      "length": 259,
+      "sha256": "0d69c15a6e286ec65c2f3c1bdf6b16d3185cdd27eacc04074d32917139992877",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/rename.svg",
+      "status": 200,
+      "length": 379,
+      "sha256": "64d3a786799ae566b0a16a747238496152ad45d9fd212e23f6b4b0e53ecd3e8b",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/route-plan.svg",
+      "status": 200,
+      "length": 275,
+      "sha256": "26ac63cf25f3c85ea60e5234ca7405f23bc0fbb92c0f57dd546a20d4930f5ef5",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/save.svg",
+      "status": 200,
+      "length": 261,
+      "sha256": "b51863dbe483d52526835f173c00d6c126eb6536d8b5bfb6dc33c375f2e48b20",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/search.svg",
+      "status": 200,
+      "length": 261,
+      "sha256": "d9cf688b7adfab6acade01530bfb4e01a5955fb5e76ac69f779bdd9882260f78",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/send.svg",
+      "status": 200,
+      "length": 254,
+      "sha256": "5ecd167ba3f1a38e5da8e925426b9acc68ca0489cab4cb066e0f8684f84eb45e",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/settings.svg",
+      "status": 200,
+      "length": 394,
+      "sha256": "bc6de0193ed06f5cdb80f9ca8c2d8b2c6de5f0ac93d49af4cbade34b61beecdd",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/shield.svg",
+      "status": 200,
+      "length": 238,
+      "sha256": "39752f51a680fc46f1fad83da19db40ca2eb24577926104c2356d5913bc48d5e",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/skill-star.svg",
+      "status": 200,
+      "length": 217,
+      "sha256": "b436636d1fe72de35214c1cfe427ac68ad21ad005cfd1982375e2a87e1be2d71",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/speaker.svg",
+      "status": 200,
+      "length": 237,
+      "sha256": "9f288d354880a2a485229c06f81013feecda7a120522096899d420e4550f3a15",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/split-pane.svg",
+      "status": 200,
+      "length": 315,
+      "sha256": "774e5e86254915b5293962e076dcd14b303abebbeb7816b353e6056ccb9c7adf",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/stop.svg",
+      "status": 200,
+      "length": 195,
+      "sha256": "13b4cea3ec95926166a58ebf407937c09a600962861859aa99957386a65ce061",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/tasks.svg",
+      "status": 200,
+      "length": 291,
+      "sha256": "e62839bb858ee8104b448710d64435cc428bc3afc7e3c01095524a815168ca9c",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/terminal.svg",
+      "status": 200,
+      "length": 279,
+      "sha256": "c694920b9070e50d0376e898d5547d060a5f30dc34cbe811dfa63b6341aceade",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/unlock.svg",
+      "status": 200,
+      "length": 291,
+      "sha256": "ec31fa33b15a9e09363ac37082b1bd1a8f70b89ed12ec4b7911864497e43aa34",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/upload.svg",
+      "status": 200,
+      "length": 207,
+      "sha256": "d52e7b36fdfa4f623a638e504880bb49a8c3eb4502dff6d15d567bb35c2ad0c9",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/vision.svg",
+      "status": 200,
+      "length": 299,
+      "sha256": "efd91d5b910c31f3d7bcdb83fe768b984b3d3d04453421fb4b638f48338007f3",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/icons-wuxia/worktree.svg",
+      "status": 200,
+      "length": 400,
+      "sha256": "a0d3b067616cdd66f0756f59164f7479f0269a619c2328404c0d048b6553eba8",
+      "content_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/ui-redesign/jade-controls-v3/button-skin.png",
+      "status": 200,
+      "length": 1568047,
+      "sha256": "9e331351f9b56a721f9297bbba9909644e322e45889fb7701cc6e34315b4fa5c",
+      "content_type": "image/png"
+    },
+    {
+      "path": "assets/ui-redesign/jade-controls-v3/status-jade.png",
+      "status": 200,
+      "length": 2477247,
+      "sha256": "329b9e8a5ae403949de065cd7ddf035bafdc0b57dae5850036169e3e209db3a6",
+      "content_type": "image/png"
+    },
+    {
+      "path": "assets/ui-redesign/jade-controls-v3/status-lantern.png",
+      "status": 200,
+      "length": 1225503,
+      "sha256": "4a146c81d11fbbd4ee22558672652e44727a52785a7d2718a839fa0786b0e5f6",
+      "content_type": "image/png"
+    }
+  ]
+}

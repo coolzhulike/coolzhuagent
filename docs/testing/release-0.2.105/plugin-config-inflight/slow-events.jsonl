@@ -1,0 +1,4 @@
+{"event": "server_started", "utc": "2026-10-09T00:39:10.024778+00:00", "monotonic": 795063.1523793, "url": "http://127.0.0.1:63024/revoke-20261008", "host": "127.0.0.1", "port": 63024, "delay_seconds": 45, "tool_timeout_ms": 60000, "host_timeout_seconds": 30, "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983", "plugin_id": "dsh-aa909f79795799f288de8a67@external"}
+{"event": "function_network_entered", "utc": "2026-10-09T00:39:47.883903+00:00", "monotonic": 795101.0102213, "path": "/revoke-20261008"}
+{"event": "connection_closed_before_response", "utc": "2026-10-09T00:39:49.729002+00:00", "monotonic": 795102.855256, "path": "/revoke-20261008"}
+{"event": "server_stopped", "utc": "2026-10-09T00:40:10.186882+00:00", "monotonic": 795123.3124414}

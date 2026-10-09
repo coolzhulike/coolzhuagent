@@ -1,0 +1,25 @@
+{
+  "enabled": false,
+  "outcome": {
+    "call_id": "dsh-enable-aca9050080853a74185fe501a0694b08",
+    "elapsed_ms": 101,
+    "output": {
+      "cleanup_confirmed": null,
+      "code": "execution_failed",
+      "error": "dsh_runtime_unverified：运行时文件大小或重复身份不符"
+    },
+    "permission_gate": {
+      "affected_paths": [
+        "<opaque-command>"
+      ],
+      "decision": "allow-approved",
+      "reason": "danger-outside-with-confirm",
+      "required": "danger-full-access",
+      "workspace_relative": false
+    },
+    "status": "failed",
+    "summary_text": "dsh_runtime_unverified：运行时文件大小或重复身份不符",
+    "tool_name": "dsh__enable_3b6ee0ea714c22e115d3ce786b876bc1"
+  },
+  "pending_call_id": null
+}

@@ -1,0 +1,86 @@
+{
+  "agent_execution_ready": true,
+  "available_plugin_tools": [],
+  "backend_kind": "llm_http",
+  "base_url": "http://127.0.0.1:8082/v1",
+  "configuration_revision": 182,
+  "default_context_window": 1000000,
+  "default_max_output_tokens": 65536,
+  "effective_context_window": 8192,
+  "effective_max_output_tokens": 1024,
+  "effective_supports_multimodal": false,
+  "endpoint": null,
+  "image_input_strategy": "vision-description",
+  "model_selection": {
+    "effective": null,
+    "requested": "qwen3.8-flash",
+    "resolved_model": null
+  },
+  "parameters": {
+    "backend_kind": null,
+    "base_url": null,
+    "computer_use_enabled": null,
+    "context_window": 32768,
+    "enable_llm_tools": null,
+    "endpoint": null,
+    "llm_tool_exposure": null,
+    "max_output_tokens": 1024,
+    "protocol": null,
+    "reasoning_mode": null,
+    "supports_multimodal": null,
+    "temperature": 0.25,
+    "thinking_budget": null,
+    "tool_allowlist": null,
+    "top_p": null,
+    "turn_timeout_ms": null
+  },
+  "plugin_tools_error": null,
+  "protocol": "openai_chat_completions",
+  "session": {
+    "active": true,
+    "api_key_status": "未配置（能力已启用）",
+    "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+    "backend_kind": "llm_http",
+    "base_url": "http://127.0.0.1:8082/v1",
+    "display_name": "快照-本地容量复验(coolzhu-model)",
+    "endpoint": null,
+    "id": "session-1791523330945",
+    "memory_mode": "enabled",
+    "model": "qwen3.8-flash",
+    "model_type": "text",
+    "name": "快照-本地容量复验",
+    "provider": "custom",
+    "reasoning_effort": "auto",
+    "reasoning_resolution": {
+      "effective": "auto",
+      "protocol": "openai_chat_completions",
+      "reason": "requested=auto：不主动覆盖供应商默认",
+      "requested": "auto",
+      "status": "default",
+      "strategy": "qwen_thinking",
+      "supported_options": [
+        {
+          "label": "自动",
+          "value": "auto"
+        },
+        {
+          "label": "关闭",
+          "value": "none"
+        },
+        {
+          "label": "低",
+          "value": "low"
+        },
+        {
+          "label": "中",
+          "value": "medium"
+        },
+        {
+          "label": "超高",
+          "value": "xhigh"
+        }
+      ]
+    },
+    "updated_at": 1791523356382
+  }
+}

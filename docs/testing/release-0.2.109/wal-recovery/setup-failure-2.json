@@ -1,0 +1,1 @@
+{"stage":"演练脚本准备WAL时再次失败，正式EXE尚未启动","error":"sqlite3.OperationalError: database table is locked","product_pass":false,"source_database_access":"read-only","followup":"原失败副本的新连接checkpoint实际返回[0,0,0]；结构调整连接先关闭，再用新连接进入WAL演练。保留第二次准备失败，不追认产品测试。"}

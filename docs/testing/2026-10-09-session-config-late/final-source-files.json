@@ -1,0 +1,34 @@
+[
+  {
+    "path": "modules/gui-web/packages/web-console/src/workspace_activity.rs",
+    "sha256": "9f405e92d521c6f76981eabdd7d3d7b2beaa62796f51fa69101c1485135e4791"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/session_config_service.rs",
+    "sha256": "c7301cdfdabc4e044b682c8ed3cedbb8c7ad4eb83aa57c64fc331704d2a46823"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/main.rs",
+    "sha256": "6c0115e212fa02ce945fe22bc30686fa06bde1b04a4209852b2365944ec259f8"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/app.js",
+    "sha256": "c21bd29f53bcefa185d4c294abca093e11ff96c61bb4a07afb850ddf226bf121"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/model_settings.js",
+    "sha256": "cf5a7e0d0cf3cd8bcc3bd285831bb960713f4bca5ca7839afe3e211b091eee0c"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/chat_experience.js",
+    "sha256": "0cc6370c4fe4f5378e13d712e2b5a68a39c7a9215a47db4d51a46f21bf38a0a6"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/provider_connectors.js",
+    "sha256": "f7a9cbfc3715f6f364a011b49fa50be82567943116a70144fb8c029593c41534"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/devin_plugin.js",
+    "sha256": "5de056fb80b0c1ad0c6d62e453b7e35960d252aebf694127e6a3c955afaed760"
+  }
+]

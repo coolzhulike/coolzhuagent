@@ -1,0 +1,60 @@
+{
+  "stage": "正式102正常重启后并发扫描",
+  "observed_ms": 1791503176096.7732,
+  "before": {
+    "attempts": 940,
+    "messages": 1178,
+    "active_runs": 0,
+    "bindings": [
+      [
+        "room-1791131523339",
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "room-1791131523339",
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "scans": [
+    {
+      "ran": []
+    },
+    {
+      "ran": []
+    },
+    {
+      "ran": []
+    },
+    {
+      "ran": []
+    },
+    {
+      "ran": []
+    }
+  ],
+  "after": {
+    "attempts": 940,
+    "messages": 1178,
+    "active_runs": 0,
+    "bindings": [
+      [
+        "room-1791131523339",
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "room-1791131523339",
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "model_request_increment": 0
+}

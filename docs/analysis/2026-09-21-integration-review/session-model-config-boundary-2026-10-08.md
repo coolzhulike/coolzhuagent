@@ -1,0 +1,11 @@
+# 模型会话参数的职责收敛
+
+当前SessionModelLimitOverride、协议/地址解析和参数校验散在巨型main.rs，与配置发布和HTTP handler混在一起。本阶段提取只读、无I/O的session_model_config模块，沿用原字段与serde默认值，保存格式、路由及错误文字不变。
+
+独立模块拥有参数DTO、协议/地址解析、HTTP模型参数校验和用户预算约束。校验返回普通字符串错误，由HTTP层映射400；不依赖session_store、read_config、write_config、Axum请求或数据库。AgentSessionDto作为只读输入，模型目录仍复用既有适配器，不新建Provider表。
+
+主层保留实际会话查询、期望revision比对、权限、配置发布事务、密钥保护及发送对象管理。Devin会话后端的协议特有校验仍由agent_session_backend负责，再调用通用HTTP规则；不把ACP塞进HTTP循环，不开放尚未支持的Goal/Relay。
+
+按确切源码边界整体移动，主层旧函数名通过导入保持调用方兼容。既有四项参数测试继续执行，不为代码搬移增加镜像测试；offline实际build及完整Web回归后才算源码候选通过，当前正式110不追认包含此重构。
+
+这是职责拆分的一步，不代表SessionConfigService、共享TurnRunner、单写者/outbox或全部hooks收敛完成。正式保存/重载及真实模型长程复验在后续合并出包时集中进行，避免为无行为变化的搬移重复简单模型问答。Opus暂停，主会话自行审查和实施，不使用子代理。

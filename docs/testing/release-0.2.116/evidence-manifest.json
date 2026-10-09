@@ -1,0 +1,337 @@
+[
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 4236,
+    "sha256": "62a1d54388588790f268f80733587f7bd8b98be774d02a55a027e8907ec4f06e"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-010244412-5af663de/CoolzhuAgent-0.2.116-installer-report.json",
+    "bytes": 4885,
+    "sha256": "42374ca71c96f3956071d280068ddbb920746989cb3a9f9bab842cdfaf86f81b"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-010244412-5af663de/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "14fc26d4fafe86f657ae247ea8d5e16d32c777b774fc6c8a578504e7f8d50b9a"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-010244412-5af663de/package-report.json",
+    "bytes": 110268,
+    "sha256": "3ef04d7600b747ec36fe15fe244e4733a0816fac95739d962be8927aac72d142"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-010244412-5af663de/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "af7eaac6a7d6deb914876d73d52784658e38cfbaf4e3d863fc60b2375927267a"
+  },
+  {
+    "path": "installed-native-main.jpg",
+    "bytes": 203910,
+    "sha256": "b14f4f17c569d5d674f0df7727a4368f109a20a8549fc3a8585d168681a4f0c4"
+  },
+  {
+    "path": "installed-validation/archive.py",
+    "bytes": 10677,
+    "sha256": "6177b64bbec289c3d7cf4dce0f9a3018cc90c0dee11420398e29fd398db72976"
+  },
+  {
+    "path": "installed-validation/build-direct.py",
+    "bytes": 1136,
+    "sha256": "fa494e37d1c8b29623420af73019123bae9f6c3825ebf659f757c1e89be3ce21"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 331,
+    "sha256": "37b5cc5b80a397e12d13c3cba7d2fba77525d0eebd32ff8c36d7ce3ccd4980e5"
+  },
+  {
+    "path": "installed-validation/build-stderr-replay.log",
+    "bytes": 56673,
+    "sha256": "99a314e9ec2738f7c38365eaeb140c9c9f37a70c6d2bd5a2e877c4fc24c2ab65"
+  },
+  {
+    "path": "installed-validation/build-stdout-replay.log",
+    "bytes": 14670,
+    "sha256": "fb823587c74bde2f68be60f8baddf47f396315f6b917f0c14704b10b54c0ae5e"
+  },
+  {
+    "path": "installed-validation/child-build.ps1",
+    "bytes": 311,
+    "sha256": "94549f51e69167a58fa0ea73757628c26f69353a19abd5e96b28730b616e92c0"
+  },
+  {
+    "path": "installed-validation/ci-source-a.json",
+    "bytes": 197,
+    "sha256": "59e03a006660c2982c85ba942c6a60e6dab7bba1d27d98035acff8ea929183f3"
+  },
+  {
+    "path": "installed-validation/ci-source-b.json",
+    "bytes": 197,
+    "sha256": "24614ce1337f9cfb9b10b38d85711c1c1e1f036de868a2616e12095b7b141613"
+  },
+  {
+    "path": "installed-validation/driver-first-error.json",
+    "bytes": 336,
+    "sha256": "77277c23c401fd8422a1b770b6cf11af5b635602376595aecbacc99800627e87"
+  },
+  {
+    "path": "installed-validation/github-published-metadata.json",
+    "bytes": 10322,
+    "sha256": "20c143d48d940ff19254eb7912970f789b0fbc0445f1aec79a9b65f42d1bc0cb"
+  },
+  {
+    "path": "installed-validation/github-tag.json",
+    "bytes": 405,
+    "sha256": "3afdc657cc0437b74a1187bf8d87dc31e2c8314054a12843113b4774e260c92c"
+  },
+  {
+    "path": "installed-validation/install-116-result.json",
+    "bytes": 290,
+    "sha256": "aee0463d6c52878d9f59827d129315840635774c0e5140e9711072784c6094fa"
+  },
+  {
+    "path": "installed-validation/installed-116-standard-processes.json",
+    "bytes": 729,
+    "sha256": "a96cc8ffc4a50e5b30173b3f7e6014b754331f6052e8fefba64ed35b746d4114"
+  },
+  {
+    "path": "installed-validation/installed-116-verification.json",
+    "bytes": 1884,
+    "sha256": "e9c31782c668c7926a156133950cd9fbb9bb667166933d7656d6e35efc2553c2"
+  },
+  {
+    "path": "installed-validation/original-idle.json",
+    "bytes": 229,
+    "sha256": "418115afababf1b74b76e78a27305af5804b383e6932ee4f50b630f41c129a93"
+  },
+  {
+    "path": "installed-validation/original-restored-receipt.json",
+    "bytes": 729,
+    "sha256": "077085aeae4ca0f90d6e76364e439f2b3a0dd8281baa5c3a31180639666a750e"
+  },
+  {
+    "path": "installed-validation/package-116-verification.json",
+    "bytes": 1869,
+    "sha256": "c12f72152b7e4f062444f8f936b80b9aa71c5c87a99e8b324622f73780acc9d6"
+  },
+  {
+    "path": "installed-validation/prepare-save-retry.py",
+    "bytes": 1347,
+    "sha256": "72f372a527a84b9bf06dda5a270399817ae48cb60ed104aa86f3f87c41d399f4"
+  },
+  {
+    "path": "installed-validation/prepare-validation.py",
+    "bytes": 2133,
+    "sha256": "d35a81b0c31dd28bf156438497b7b65fba01929bbd2f567d26d346e7ca3267ab"
+  },
+  {
+    "path": "installed-validation/race.py",
+    "bytes": 6448,
+    "sha256": "d82372896087413fd2cc3859fc10631f2a9ca75583258018a51228e5d2ab634f"
+  },
+  {
+    "path": "installed-validation/release-assets-local.json",
+    "bytes": 660,
+    "sha256": "9158008798b97b8ff6570f7029508b2b0153e94b8b28dd04a9474320cd486c86"
+  },
+  {
+    "path": "installed-validation/release-notes.md",
+    "bytes": 600,
+    "sha256": "2c5e6db3e329c5c6459f2a5f6da3085817b093b344440afdd74f41fa8c9694e5"
+  },
+  {
+    "path": "installed-validation/restart.py",
+    "bytes": 2438,
+    "sha256": "8d35fda76d81289b1507e06a96aeb6d0c06c19793b3a40cb9ee9a1b49044eb83"
+  },
+  {
+    "path": "installed-validation/restart2.py",
+    "bytes": 2439,
+    "sha256": "cf9d94c09bd34c5885e3d92b8a7eb8747821671a12327122c249ad9a13b12ff6"
+  },
+  {
+    "path": "installed-validation/runtime-counts.json",
+    "bytes": 217,
+    "sha256": "1a5ac58689c08cb95f7236304b7638f4ebbd0d64709e02b7e819317a10ab179e"
+  },
+  {
+    "path": "installed-validation/save-scope.py",
+    "bytes": 5332,
+    "sha256": "8ffb47c6f486df23870317d3328d7b98ed579f38dc60de3a952d3106467d8e5c"
+  },
+  {
+    "path": "installed-validation/save-scope2-driver.py",
+    "bytes": 5425,
+    "sha256": "a66f966af8a845f9a2ce4187afd768fca9b2b16644e99e47f54f899fe53ad5f4"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "22b893afa85609b1efe6284d0e39ebec4b8677797dd1caa25acfaed3757e6253"
+  },
+  {
+    "path": "installed-validation/start-isolated-shell2.ps1",
+    "bytes": 1740,
+    "sha256": "4d6d338b98f7a8856f80b1c248a2bea5cbb6f902907cc751b0ac57d937bf0178"
+  },
+  {
+    "path": "installed-validation/stop-isolated-shell2.ps1",
+    "bytes": 824,
+    "sha256": "2b79fe2c18cccf40dc6cf49c4ee962844afea0d5d0df86a397c1bb529e484eb7"
+  },
+  {
+    "path": "installed-validation/verify-116.py",
+    "bytes": 2862,
+    "sha256": "a455d709d6d7b8513c8b0e7f736e9e0b20195622267b484cfb271eb5882e75eb"
+  },
+  {
+    "path": "installed-validation/verify-release.py",
+    "bytes": 1710,
+    "sha256": "60c4e1919317f01929fb9e701645937a018fbf1bae898bcf82cac9c652dccf29"
+  },
+  {
+    "path": "scope/candidate/cleanup.json",
+    "bytes": 59,
+    "sha256": "1a3cffedce3d37f700ddd4170347ef1e1b30dd7ddcfca0c4130911f071698944"
+  },
+  {
+    "path": "scope/candidate/driver.py",
+    "bytes": 6448,
+    "sha256": "d82372896087413fd2cc3859fc10631f2a9ca75583258018a51228e5d2ab634f"
+  },
+  {
+    "path": "scope/candidate/facts.json",
+    "bytes": 11833,
+    "sha256": "91438cb6b9deaed42db6955e0d0c97683aff113851d1fc6bce9c1bd54e8f87d2"
+  },
+  {
+    "path": "scope/candidate/stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "scope/candidate/stdout.txt",
+    "bytes": 685,
+    "sha256": "bca722d8280676324a10b0775cbac44ba226c87a5cc8a9018418624c1ed27e25"
+  },
+  {
+    "path": "scope/candidate-interleaved-single/cleanup.json",
+    "bytes": 59,
+    "sha256": "9066e68221d5cd5da5ab742bea562d1e804d801598a21c904f12f6ce67c52864"
+  },
+  {
+    "path": "scope/candidate-interleaved-single/driver.py",
+    "bytes": 6448,
+    "sha256": "d82372896087413fd2cc3859fc10631f2a9ca75583258018a51228e5d2ab634f"
+  },
+  {
+    "path": "scope/candidate-interleaved-single/facts.json",
+    "bytes": 11339,
+    "sha256": "0abc3042d21d20d0c24bb84d5aa8993a026fafe6877cdbb47765b99897d79a75"
+  },
+  {
+    "path": "scope/candidate-interleaved-single/stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "scope/candidate-interleaved-single/stdout.txt",
+    "bytes": 704,
+    "sha256": "825a593801c1930083ef568caec7f9a01ea28938df6567f8d893adc622b24a34"
+  },
+  {
+    "path": "scope/save-scope/cleanup.json",
+    "bytes": 59,
+    "sha256": "c93f6de1b16f832e211ed41792ba755ca33347cf48c337f90553dee6f62fe473"
+  },
+  {
+    "path": "scope/save-scope/stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "scope/save-scope/stdout.txt",
+    "bytes": 685,
+    "sha256": "ee7caf203428ba4583ed2fec670cf0e748a4bb8e5d80aa631bc3462994cd55eb"
+  },
+  {
+    "path": "scope/save-scope2/cleanup.json",
+    "bytes": 59,
+    "sha256": "01ed12271c33ab804bd425a3bb30e1e07df753377dbb2f6251c2f792a6fac7ba"
+  },
+  {
+    "path": "scope/save-scope2/facts.json",
+    "bytes": 2923,
+    "sha256": "01ed624f3bbbe44bfcd3244a2bf4e8c403101dbb6f59909824a02f24984def57"
+  },
+  {
+    "path": "scope/save-scope2/native-a-ax.txt",
+    "bytes": 9245,
+    "sha256": "4156cbeee23c08aa6e4ff2c0bb661f0dffeb3c46bcb38aad77f717a907dbdaa7"
+  },
+  {
+    "path": "scope/save-scope2/native-a.jpg",
+    "bytes": 142784,
+    "sha256": "60acfdbb106140d204309680983de14a1f10a4433f1d414aa49f9dec7be5f885"
+  },
+  {
+    "path": "scope/save-scope2/native-b-ax.txt",
+    "bytes": 10987,
+    "sha256": "42d6f9c4a048528df855d7fb5c8463185145341e80d5bccfb97e7a4dee6439d4"
+  },
+  {
+    "path": "scope/save-scope2/native-b.jpg",
+    "bytes": 142689,
+    "sha256": "5c903f1591bc51e35d4ad5b0dd6afbf7b8d9ccff2120d0767e17f82886e06c49"
+  },
+  {
+    "path": "scope/save-scope2/native-restarted-ax.txt",
+    "bytes": 11230,
+    "sha256": "0561749cbf45cdd70f7a7d5ad1d740aff7a8a973a8d66932360f0defe630190e"
+  },
+  {
+    "path": "scope/save-scope2/native-restarted.jpg",
+    "bytes": 144430,
+    "sha256": "ced5fce4baa2e1578c9ee8eb21d6425235f5c0d52faf45fec4fce42bcabbae90"
+  },
+  {
+    "path": "scope/save-scope2/native-shell-receipt.json",
+    "bytes": 421,
+    "sha256": "8b6ff6f6bbe29bbfff974c5704f47925e617a653a447b6d0421bee3d256c203f"
+  },
+  {
+    "path": "scope/save-scope2/restart-cleanup.json",
+    "bytes": 58,
+    "sha256": "e36dec2c361005b2750bec00d76366cad36a210516eb7a6cc7478abee2dfedbe"
+  },
+  {
+    "path": "scope/save-scope2/restart-err.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "scope/save-scope2/restart-out.txt",
+    "bytes": 1135,
+    "sha256": "eb9959c3ab1f7c2687dfbb5d23bc5017fae86e34eb38efd248003a3e816d03dd"
+  },
+  {
+    "path": "scope/save-scope2/restart-result.json",
+    "bytes": 160,
+    "sha256": "d93bc5ac177912ec263e9d75855b41c77f5e542cb4d1c314f8110f137d3dbc30"
+  },
+  {
+    "path": "scope/save-scope2/restart-settings.json",
+    "bytes": 2136,
+    "sha256": "e7aee6c6342acefafd37ecddf983517f7e58d7e68079f66701eb0bbaeb2afdef"
+  },
+  {
+    "path": "scope/save-scope2/stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "scope/save-scope2/stdout.txt",
+    "bytes": 1135,
+    "sha256": "2c7bcd8049eb2b32e4fa8de04bebf31aa0f459b17069c051061349d02450f1cb"
+  }
+]

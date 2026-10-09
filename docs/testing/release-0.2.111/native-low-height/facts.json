@@ -1,0 +1,32 @@
+{
+  "version": "0.2.111",
+  "source_commit": "20facc6c2c03f8969fe592b01ea3e59e12381c2b",
+  "model": "swe-2-medium",
+  "configuration_revision": 51,
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "native_screenshot_size": [
+    903,
+    551
+  ],
+  "final_native_screenshot_size": [
+    1707,
+    912
+  ],
+  "model_requests_in_layout_test": 0,
+  "new_cloud_sessions": 0,
+  "settings_saved": false,
+  "method": "Windows正常系统菜单大小→右边→下边→确认位置；正常按钮打开设置，滚动及拖动原滚动条，关闭；正常最大化收尾",
+  "initial_drag_changed_size": false,
+  "initial_drag_selected_chat_text": true
+}

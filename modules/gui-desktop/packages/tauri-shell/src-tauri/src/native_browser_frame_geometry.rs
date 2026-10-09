@@ -17,7 +17,7 @@ pub(super) struct MappedPoint {
     pub local_metrics: Value,
     pub proof: Vec<Value>,
 }
-fn local_metrics(raw: Value) -> Result<Value, String> {
+pub(super) fn local_metrics(raw: Value) -> Result<Value, String> {
     let mut layout = raw
         .get("cssLayoutViewport")
         .filter(|v| v.is_object())
@@ -50,38 +50,43 @@ fn map_owner(
         .map(|v| v.as_f64().filter(|n| n.is_finite()))
         .collect::<Option<Vec<_>>>()
         .ok_or("native_browser_frame_geometry_invalid")?;
-    // 先闭环真实验证过的矩形/缩放owner。旋转、斜切和透视另列验收，不能用偏移猜测坐标。
-    if (q[1] - q[3]).abs() > 0.5
-        || (q[3] - q[5]).abs() < 2.0
-        || (q[5] - q[7]).abs() > 0.5
-        || (q[0] - q[6]).abs() > 0.5
-        || (q[2] - q[4]).abs() > 0.5
-        || q[2] - q[0] < 2.0
-        || q[5] - q[1] < 2.0
+    // 仿射owner是平行四边形；两条实际边共同决定映射，不能沿用轴向宽高公式。
+    // 容差只吸收协议坐标的浮点舍入。透视、折叠及不足2CSS像素的有效厚度另行拒绝。
+    let edge_x = (q[2] - q[0], q[3] - q[1]);
+    let edge_y = (q[6] - q[0], q[7] - q[1]);
+    let length_x = edge_x.0.hypot(edge_x.1);
+    let length_y = edge_y.0.hypot(edge_y.1);
+    let area = (edge_x.0 * edge_y.1 - edge_x.1 * edge_y.0).abs();
+    if (q[4] - q[2] - q[6] + q[0]).abs() > 0.01
+        || (q[5] - q[3] - q[7] + q[1]).abs() > 0.01
+        || !length_x.is_finite() || !length_y.is_finite() || !area.is_finite()
+        || length_x < 2.0 || length_y < 2.0
+        || area / length_x < 2.0 || area / length_y < 2.0
     {
         return Err("native_browser_frame_transform_unsupported".into());
     }
     let width = child["cssVisualViewport"]["clientWidth"]
         .as_f64()
-        .filter(|n| n.is_finite() && *n > 2.0)
+        .filter(|n| n.is_finite() && *n > 2.0 && *n <= 32768.0)
         .ok_or("native_browser_frame_geometry_invalid")?;
     let height = child["cssVisualViewport"]["clientHeight"]
         .as_f64()
-        .filter(|n| n.is_finite() && *n > 2.0)
+        .filter(|n| n.is_finite() && *n > 2.0 && *n <= 32768.0)
         .ok_or("native_browser_frame_geometry_invalid")?;
     if x <= 0 || y <= 0 || f64::from(x) >= width || f64::from(y) >= height {
         return Err("native_browser_target_outside_viewport".into());
     }
-    let x = (q[0] + f64::from(x) * (q[2] - q[0]) / width).round();
-    let y = (q[1] + f64::from(y) * (q[7] - q[1]) / height).round();
+    let (u, v) = (f64::from(x) / width, f64::from(y) / height);
+    let x = (q[0] + u * edge_x.0 + v * edge_y.0).round();
+    let y = (q[1] + u * edge_x.1 + v * edge_y.1).round();
     let viewport = &parent["cssVisualViewport"];
     let w = viewport["clientWidth"]
         .as_f64()
-        .filter(|n| n.is_finite() && *n <= 32768.0)
+        .filter(|n| n.is_finite() && *n > 2.0 && *n <= 32768.0)
         .ok_or("native_browser_frame_geometry_invalid")?;
     let h = viewport["clientHeight"]
         .as_f64()
-        .filter(|n| n.is_finite() && *n <= 32768.0)
+        .filter(|n| n.is_finite() && *n > 2.0 && *n <= 32768.0)
         .ok_or("native_browser_frame_geometry_invalid")?;
     if x < 1.0 || y < 1.0 || x >= w - 1.0 || y >= h - 1.0 {
         return Err("native_browser_target_outside_viewport".into());
@@ -216,6 +221,18 @@ mod tests {
         );
         assert!(map_owner(66, 330, &child, &box_model, &parent).is_err());
         box_model["model"]["content"] = serde_json::json!([22, 202, 422, 222, 402, 522, 2, 502]);
-        assert!(map_owner(65, 145, &child, &box_model, &parent).is_err());
+        assert_eq!(map_owner(65, 145, &child, &box_model, &parent).unwrap(), (78, 341));
+    }
+    #[test]
+    fn affine_owner_maps_rotation_and_rejects_perspective_or_collapse() {
+        let child = serde_json::json!({"cssVisualViewport":{"clientWidth":400,"clientHeight":320}});
+        let parent = serde_json::json!({"cssVisualViewport":{"clientWidth":800,"clientHeight":600}});
+        let mut owner = serde_json::json!({"model":{"content":[500,100,500,500,180,500,180,100]}});
+        assert_eq!(map_owner(65,145,&child,&owner,&parent).unwrap(), (355,165));
+        owner["model"]["content"][4] = serde_json::json!(200);
+        assert_eq!(map_owner(65,145,&child,&owner,&parent).unwrap_err(),
+            "native_browser_frame_transform_unsupported");
+        owner["model"]["content"] = serde_json::json!([30,30,430,30,830,30,430,30]);
+        assert!(map_owner(65,145,&child,&owner,&parent).is_err());
     }
 }

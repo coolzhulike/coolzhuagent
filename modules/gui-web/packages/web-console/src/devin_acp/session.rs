@@ -1155,7 +1155,8 @@ mod tests {
             b,
             "actual",
             vec![],
-            tokio::time::Instant::now() + Duration::from_secs(3),
+            // 本项验证历史重放及绑定复用，不让握手记账耗尽后续提交的测试期限。
+            tokio::time::Instant::now() + Duration::from_secs(30),
             |e| {
                 events.push(e);
                 Ok(())
@@ -1165,6 +1166,7 @@ mod tests {
         .unwrap();
         assert_eq!(events.len(), 1);
         assert!(events[0].replay);
+        service.set_deadline(tokio::time::Instant::now() + Duration::from_secs(30));
         service
             .prompt(
                 "next",

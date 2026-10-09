@@ -1,0 +1,43 @@
+{
+  "version": "0.2.109",
+  "binary_sha256": "e8285a8d066b4ff0b1ac398012f8b8efe5357635526b3f52ecfba2b36904d026",
+  "original_read_only": {
+    "schema_version": 28,
+    "quick_check": "ok",
+    "messages": 1223
+  },
+  "legacy_copy_before_upgrade": {
+    "schema_version": 27,
+    "quick_check": "ok",
+    "messages": 1224
+  },
+  "wal_bytes_before_upgrade": 61832,
+  "raw_main_copy_has_before_marker": false,
+  "product_backup": {
+    "schema_version": 27,
+    "quick_check": "ok",
+    "messages": 1224
+  },
+  "upgraded": {
+    "schema_version": 28,
+    "quick_check": "ok",
+    "messages": 1224
+  },
+  "restored": {
+    "schema_version": 28,
+    "quick_check": "ok",
+    "messages": 1224
+  },
+  "room_id": "wal-restore-332cb7e3a42044a88c0f00eeef904058",
+  "before_marker": "WAL-BEFORE-92f3e4421e294cac84e9f3623fce2a14",
+  "after_marker": "WAL-AFTER-d1312c6639f449f083a803b24e0dcf35",
+  "upgrade_pid": 6392,
+  "restored_pid": 22796,
+  "backup_contains_wal_marker": true,
+  "restored_has_before_not_after": true,
+  "upgraded_new_write_preserved": true,
+  "source_writes_by_drill": 0,
+  "model_requests": 0,
+  "cloud_sessions_created": 0,
+  "status": "独立事实通过，待正常UI实拍"
+}

@@ -1,0 +1,47 @@
+{
+  "stage": "正式发布链出包，尚未安装",
+  "version": "0.2.114",
+  "source_commit": "95c2704140f54db375fd1743c9fbdb1987ffda3c",
+  "source_snapshot_digest": "de8bd8225b2e241308b26aeb51f0d0b37af259edb278bae87bfe92c87e8ec782",
+  "verified_file_count": 1159,
+  "msi_relative_path": "dist/CoolzhuAgent-0.2.114.msi",
+  "msi_sha256": "754d96f4f2ffa070b349b0f1855da599cb2db9fd7c7e1643b45f1ca1d4906483",
+  "msi_bytes": 285818376,
+  "web_sha256": "613b1eb6a2e821c94e24673f4bf653542c8e561796c51092f8aa149b1b2f7f16",
+  "shell_sha256": "35eb4f0e69f702a17252ab25ba0f7584b276c7198fecd432a6e7c28ecb152875",
+  "cli_output": "COOLZHU CODE Agent\n  Version          0.2.114\n  Git SHA          95c2704140f54db375fd1743c9fbdb1987ffda3c\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-09\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help\n",
+  "package_safe": true,
+  "release_gates": [
+    {
+      "gate": "declared_source_snapshot_scope",
+      "result": "pass"
+    },
+    {
+      "gate": "source_input_stability",
+      "result": "pass"
+    },
+    {
+      "gate": "declared_roots_present",
+      "result": "pass"
+    },
+    {
+      "gate": "build_input_stability",
+      "result": "pass"
+    },
+    {
+      "gate": "artifact_provenance",
+      "result": "pass"
+    },
+    {
+      "gate": "frozen_inputs",
+      "result": "pass"
+    }
+  ],
+  "producer_report_ref": {
+    "report_id": "pkg-report-release-20261008-231852331-0613748a",
+    "report_path": "tmp/package-reports/package-report-release-20261008-231852331.json",
+    "content_sha256": "50fd7c721839fa360157101059fdc738a908b8148f62c149944f93c0d89bf054",
+    "content_hash_algorithm": "sha256",
+    "content_hash_scope": "报告的全部叶子节点规范排序后取 SHA256；排除 report_identity.content_sha256"
+  }
+}

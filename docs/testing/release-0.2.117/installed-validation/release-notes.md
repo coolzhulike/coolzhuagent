@@ -1,0 +1,1 @@
+0.2.117预发布：修复模型配置旧页跨工程/ABA/重载/重启后迟到错写；统一页、Devin和免费Provider配置入口绑定工程。正常构建/安装0、六门pass、1159文件逐摘要及两路CI通过；正式16组真实HTTP/存储检查与原生保存/重启四实拍。源码 d094c7ae6e9def40bb4c0bfb6ed81d33bbb3f0ae，MSI SHA256 b19ef8d43ca5181f7acd44148bc12731602d70f792a70e6d28b0c1cbcfee0792。Browser严格时序及总矩阵未全闭环，未签名、不标latest。交接：docs/testing/release-0.2.117/change-report-and-test-handoff.md。

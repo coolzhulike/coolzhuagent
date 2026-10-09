@@ -1,0 +1,297 @@
+[
+  {
+    "path": "browser-live/address.json",
+    "bytes": 99,
+    "sha256": "6e70fe4f2b6889bc0ea4aed30f839a93609fad260b2b4119d710ee15cd6f4aaf"
+  },
+  {
+    "path": "browser-live/collect.py",
+    "bytes": 2091,
+    "sha256": "eb10d70d886c1aa467747a809f7547ac9fb93fcf39a353fd93ec007c719b0944"
+  },
+  {
+    "path": "browser-live/events.jsonl",
+    "bytes": 14417,
+    "sha256": "c17558c2169598a5c3a892d438bae9f8ee5836dd76784c634298eb891c408bf5"
+  },
+  {
+    "path": "browser-live/facts.json",
+    "bytes": 3876,
+    "sha256": "1fbdff1c4c77bce4a963cecdd7dd7fb8da1b1c9868bc2d4117f1fb17c518886c"
+  },
+  {
+    "path": "browser-live/native-before.jpg",
+    "bytes": 230317,
+    "sha256": "5861809f8fd9ca2ff5f62292145705ffb8692999fb960185409782ff29a656c1"
+  },
+  {
+    "path": "browser-live/native-completed.jpg",
+    "bytes": 233597,
+    "sha256": "65e6d97b7c643d3dc3694d75a58fa4cd243ac49ed3e7933a60f4b7d835a4b001"
+  },
+  {
+    "path": "browser-live/native-stage1.jpg",
+    "bytes": 241783,
+    "sha256": "6746b03ea3586eb8ac8e066c4f77e860a751b456be46b0973df4b850996f27c2"
+  },
+  {
+    "path": "browser-live/native-stage2.jpg",
+    "bytes": 240516,
+    "sha256": "f3d15bba269642bdd84ee540a5b098906964e0904be7c6399b89c20bf857be6f"
+  },
+  {
+    "path": "browser-live/send.py",
+    "bytes": 3281,
+    "sha256": "dbde201dd66daea2ce37c5906a3fe496bd5f94bcb8003d79e0e06190fea9c3b5"
+  },
+  {
+    "path": "browser-live/server.py",
+    "bytes": 4101,
+    "sha256": "0ff9e8acb6dd616d7940338516a8c3a0ebfce2d9031c8610356ca0651d5767ad"
+  },
+  {
+    "path": "browser-live/stream-finished.json",
+    "bytes": 197,
+    "sha256": "2ec97bcb462c4e391980daa19dbe295e5c5ab11c00081a2930899ca5616d1d2d"
+  },
+  {
+    "path": "browser-live/submitted.json",
+    "bytes": 1411,
+    "sha256": "7b62bf35432aefb691e17eeb97e5dbf301956eb596e408362488f484c96c372b"
+  },
+  {
+    "path": "browser-live/verification.json",
+    "bytes": 38442,
+    "sha256": "0559210651a76dc2935c1a5bb0f664af89d774b6b79519d20d88152ca5406b2b"
+  },
+  {
+    "path": "browser-live/verify.py",
+    "bytes": 2575,
+    "sha256": "4403e4d6f791c8c7e6f71cb862d4d5ba2f8c7e39ae722c9ab8f9461713cd1f6e"
+  },
+  {
+    "path": "browser-live/watch.py",
+    "bytes": 1009,
+    "sha256": "2dce7e0aef63474602b66ec7edd5a58e05e3d7db1d31c93b058539c023fe7a8d"
+  },
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 5417,
+    "sha256": "99df8539cedefcf7bd236d59357ffff32e309d47cc2ccf3d118f46c5dfa8c998"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-064114931-a32bb339/CoolzhuAgent-0.2.120-installer-report.json",
+    "bytes": 4885,
+    "sha256": "6e0f7b52504aaec9f6d846a05f8b045bc43da8181d5340c1e236ca65984d6605"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-064114931-a32bb339/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "b17f6f690aace00b0e56e50030ef48494f499be8ce0b14191462b554cd583633"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-064114931-a32bb339/package-report.json",
+    "bytes": 110268,
+    "sha256": "8aadd3c6be4ecda3982dc205c7b8ccf14ae40b7fc9c54566c1bccbf90f2fc0b6"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-064114931-a32bb339/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "ead897d1a990e6e193bdaeca13f795e8f6887063ff263ab41afdbcec5035bd95"
+  },
+  {
+    "path": "installed-validation/build-direct.py",
+    "bytes": 1003,
+    "sha256": "de7edabac4e3fa1a7f94bd3fa3a42c33d3591ffafa627c1b2dc0adfe5e214ec8"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 193,
+    "sha256": "fc2414ea50bb9a2e8414bf3c7f62f109a656f53290f34ef0f662327f07cd8fa0"
+  },
+  {
+    "path": "installed-validation/build-stderr-replay.log",
+    "bytes": 56673,
+    "sha256": "a429c5983b6cab95b1d47cf33b20be2d6c901828571b21b0a6e56ed4d6362334"
+  },
+  {
+    "path": "installed-validation/build-stdout-replay.log",
+    "bytes": 14670,
+    "sha256": "6508071828e1e8d1fe5a2745363bc8eb513810d606511020a206df05581a53ea"
+  },
+  {
+    "path": "installed-validation/check-ci.py",
+    "bytes": 695,
+    "sha256": "fad7c9cc97720821146ef09f7eca8817f2af79f2aaa84644ccc4440469d8e211"
+  },
+  {
+    "path": "installed-validation/child-build.ps1",
+    "bytes": 308,
+    "sha256": "efbd30951cba1a3f132c555c4026dbbbb19bcce24a12a1d26e2db186d75bf9e9"
+  },
+  {
+    "path": "installed-validation/github-published-metadata.json",
+    "bytes": 10185,
+    "sha256": "ec7a881977ced4831434c91bc3309e1a326dbc3d120da3860692c08e73f87178"
+  },
+  {
+    "path": "installed-validation/github-tag.json",
+    "bytes": 405,
+    "sha256": "b9ee802e64277990bbd0fab4b69c8078a29bf151134bb2e71846adef01289160"
+  },
+  {
+    "path": "installed-validation/install-120-result.json",
+    "bytes": 290,
+    "sha256": "9b2a201160b07c7da39e5232e13a919e8899bf10ee2dd4499738ca2712c76c18"
+  },
+  {
+    "path": "installed-validation/installed-120-standard-processes.json",
+    "bytes": 729,
+    "sha256": "e3a4fa62f0ce3030debac9a001aa0b657276d1d896377f632572612c041c8daf"
+  },
+  {
+    "path": "installed-validation/installed-120-verification.json",
+    "bytes": 1884,
+    "sha256": "fbb2e133dd0ad9f162e74d1ce23aadce5988ff964ff88a5c1f24adedf68757e9"
+  },
+  {
+    "path": "installed-validation/package-120-verification.json",
+    "bytes": 1869,
+    "sha256": "29d9d21f93ccc1e61bc117a7145ffd4082ea41962e62b234bebf4335c477d46e"
+  },
+  {
+    "path": "installed-validation/release-assets-local.json",
+    "bytes": 660,
+    "sha256": "eedbbf893fa1d16ef8f53a58e8befecd70b35d89250f7ac57a82e0680759b1c8"
+  },
+  {
+    "path": "installed-validation/release-notes.md",
+    "bytes": 463,
+    "sha256": "ddcd4150305a4f1eae6ad70547ddd89b231c5fb9fd1f9b7883aa4cc4910e25d5"
+  },
+  {
+    "path": "installed-validation/source-ci.json",
+    "bytes": 26413,
+    "sha256": "225438326a761584a7fa17e7e91e200ae846df11c981c13f8d360c498ba92228"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "b1d88ca758a4de37dce2f01bf9346fcb447168690382934627d11fca3c2af219"
+  },
+  {
+    "path": "installed-validation/start-standard120.ps1",
+    "bytes": 4121,
+    "sha256": "ed1b42fb7bfd0f2822760de5a582227417c24668062770ff6dc7da48267fcd42"
+  },
+  {
+    "path": "installed-validation/stop-candidate.ps1",
+    "bytes": 1119,
+    "sha256": "f04fafa05b80c3923db1ac622eaf28b0ce4c96becdcdd2461f1e63a29896c5eb"
+  },
+  {
+    "path": "installed-validation/stopped-candidate-receipt.json",
+    "bytes": 974,
+    "sha256": "baad0d5c03e998d64ca03fec8e2d8c8ab2d2b1dd04df64d663420b35d9c31050"
+  },
+  {
+    "path": "installed-validation/verify-120.py",
+    "bytes": 2862,
+    "sha256": "b3ff9259864665a1e5b18a17dc8a09520c04a9868a97b37a9ae805070fbbd727"
+  },
+  {
+    "path": "installed-validation/verify-release.py",
+    "bytes": 1710,
+    "sha256": "5ef0e6a41cdea5f451f312c61e3781b576397f100a5df7c351d4ce0a3c11b813"
+  },
+  {
+    "path": "source-checks/build-lowmem-result.json",
+    "bytes": 325,
+    "sha256": "a4b6f9b6275e0525c194e88ddc0b78f16865b3e1f62c933595c06a2e86d7f632"
+  },
+  {
+    "path": "source-checks/build-lowmem-stderr.log",
+    "bytes": 50138,
+    "sha256": "bc23231afbfbfb7f48f5bbe893e411a0c232850e4fdfe691b6c76e5b269f1caf"
+  },
+  {
+    "path": "source-checks/build-lowmem-stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "source-checks/build-result.json",
+    "bytes": 163,
+    "sha256": "d855a092d03d868691b43a67749cad0850bf7888f108b078e2ead15899c4def8"
+  },
+  {
+    "path": "source-checks/build-stderr.log",
+    "bytes": 48893,
+    "sha256": "c5e60655be38e25445218db3faf48bd762bed197a839850a10937563367887a7"
+  },
+  {
+    "path": "source-checks/build-stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "source-checks/check-low-memory.py",
+    "bytes": 1079,
+    "sha256": "0f07b4a88d6c62916373747bebdcf5a13d2e283b6fe452678fa54b31c6425b63"
+  },
+  {
+    "path": "source-checks/checks.py",
+    "bytes": 822,
+    "sha256": "c18e5dfdff70aeefe567b27baf723f100cbac2752d488f074b37658afb7cba8f"
+  },
+  {
+    "path": "source-checks/extraction.json",
+    "bytes": 364,
+    "sha256": "d1ec293fa0e4e53301eac480105ac97d9f429ee0e9d34747a3daa6e8086d5f5c"
+  },
+  {
+    "path": "source-checks/linkage-lowmem-result.json",
+    "bytes": 327,
+    "sha256": "69cab3dbc9db269ab96c2901e94462138ce07075f760029fd2a50bd6f858f2fb"
+  },
+  {
+    "path": "source-checks/linkage-lowmem-stderr.log",
+    "bytes": 3492,
+    "sha256": "d21e5d44932d16c241ac9ced657214e77e4eb2723173bbb7847d8c1c3a18d995"
+  },
+  {
+    "path": "source-checks/linkage-lowmem-stdout.log",
+    "bytes": 709,
+    "sha256": "811935c8c4f28cc79df67be5a043cd34a0df34de173575b2554b272e3b903e28"
+  },
+  {
+    "path": "source-checks/web-lowmem-result.json",
+    "bytes": 360,
+    "sha256": "6d40e82344ebc9cdebb5652301f9ecddd502c3122d2beba706d540f294889612"
+  },
+  {
+    "path": "source-checks/web-lowmem-stderr.log",
+    "bytes": 22576,
+    "sha256": "a1f1bdc16073ba3fefea1ccad63f809521611dc4bd734febfdbcccdc03f39b88"
+  },
+  {
+    "path": "source-checks/web-lowmem-stdout.log",
+    "bytes": 125887,
+    "sha256": "fb4bc00dedd75ac2fd1206a4805a100e0bba0cf3f63ce84548fc14421f23ed40"
+  },
+  {
+    "path": "source-checks/web-result.json",
+    "bytes": 164,
+    "sha256": "1db54eea644e6356b60f931be0b514db131a50bcbe19350e072a7e6458ae232e"
+  },
+  {
+    "path": "source-checks/web-stderr.log",
+    "bytes": 29332,
+    "sha256": "a706a865d6b33a76aac47e6bd907b9ebbc0a34428e4e0a388517dc7fd12f5c98"
+  },
+  {
+    "path": "source-checks/web-stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

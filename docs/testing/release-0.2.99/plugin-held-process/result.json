@@ -1,0 +1,150 @@
+{
+  "revocation_observation": {
+    "marker": "PLUGIN-INSTALLED099-HELD-PROCESS-20261008",
+    "formal_version": "0.2.99",
+    "web_pid": 28160,
+    "entered": {
+      "event": "function_network_entered",
+      "utc": "2026-10-08T20:43:34.297288+00:00",
+      "monotonic": 780927.9083908,
+      "path": "/revoke-20261008"
+    },
+    "held_process": {
+      "pid": 16352,
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\dsh-runtime\\node\\node.exe",
+      "created_100ns": 134359658140348148,
+      "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5",
+      "held_ms": 1791492214139.504,
+      "wait_before": 258
+    },
+    "disable_started_ms": 1791492214327.4512,
+    "disable_returned_ms": 1791492214889.941,
+    "plugin": {
+      "id": "dsh-aa909f79795799f288de8a67@external",
+      "name": "dsh-net-tools",
+      "version": "0.1.0",
+      "description": "让沙箱里的 agent 通过你的本地代理联网：net_fetch 抓取网页，net_proxy_status 查看代理状态。",
+      "source": "https://github.com/izwarm195/dsh-net-tools/tree/7392ec55ca6db884821311d739859ddea72211de",
+      "enabled": false,
+      "installed": true,
+      "kind": "external",
+      "installable": false,
+      "manageable": true,
+      "loaded_in_chat": false,
+      "dsh": true,
+      "dsh_source_sha256": "3b6ee0ea714c22e115d3ce786b876bc1f34b81116d21de79fbd398c0c69c7c8b"
+    },
+    "wait_after": 0,
+    "wait_finished_ms": 1791492215496.7942,
+    "passed_scope": "真实函数网络进入后正常停用，原宿主持有句柄Wait258→0独立确认退出；没有脚本终止宿主"
+  },
+  "version": "0.2.99",
+  "source_commit": "23bbb94a0e4c2799f98025e48e41660206287698",
+  "marker": "PLUGIN-INSTALLED099-HELD-PROCESS-20261008",
+  "run": {
+    "id": "run-chat-7ad991033266d40e47d552ae6548b8d56eaac401a7f7cd1c",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791492198756-0",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-2a42bc598f502b148bbdda0e285be6393d026e3c9502a4849f26361eb35af747",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791492198764,
+    "started_at": 1791492199061,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791492199061,
+    "finished_at": 1791492225582
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-975a3dde877c53c15fb43c08f15c362f5d2ac7db1cfc99c908a4f4828a6b852c",
+      "run_id": "run-chat-7ad991033266d40e47d552ae6548b8d56eaac401a7f7cd1c",
+      "request_attempt_id": null,
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "arguments_digest": "99d36167966384a8",
+      "status": "failed",
+      "created_at_unix_ms": 1791492212873,
+      "updated_at_unix_ms": 1791492215512,
+      "provider_tool_call_id": "2",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-7ad991033266d40e47d552ae6548b8d56eaac401a7f7cd1c\",\"turn_id\":\"chat-turn-1791492198756-0\",\"attempt_id\":\"22a07c636f961c98a13fea4706d53e64dd71fec6fe12d11c\",\"owner_epoch\":218,\"generation\":218}"
+    }
+  ],
+  "tool_audit": [
+    {
+      "ts": "1791492215.498",
+      "call_id": "tool-975a3dde877c53c15fb43c08f15c362f5d2ac7db1cfc99c908a4f4828a6b852c",
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "caller": "llm",
+      "workspace_id": "ws-23f646a969206cb4",
+      "session_id": "session-1791131217833",
+      "input_summary": "dsh__1ef9be67fd4ddb42d93d68c084b38983: allowPrivate=true, maxBytes=1024, timeoutMs=60000, url=len38, …",
+      "status": "failed",
+      "elapsed_ms": 1888,
+      "permission": {
+        "required": "danger-full-access",
+        "decision": "allow-auto",
+        "reason": "full-access-profile",
+        "workspace_relative": false,
+        "affected_paths": [
+          "<opaque-command>"
+        ]
+      },
+      "summary_text": "host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放",
+      "evidence": {
+        "frozen_parent_permission": {
+          "affected_paths": [
+            "<opaque-command>"
+          ],
+          "decision": "allow-auto",
+          "reason": "full-access-profile",
+          "required": "danger-full-access",
+          "workspace_relative": false
+        }
+      }
+    }
+  ],
+  "network_events": [
+    {
+      "event": "function_network_entered",
+      "utc": "2026-10-08T20:43:34.297288+00:00",
+      "monotonic": 780927.9083908,
+      "path": "/revoke-20261008"
+    },
+    {
+      "event": "connection_closed_before_response",
+      "utc": "2026-10-08T20:43:35.496506+00:00",
+      "monotonic": 780929.1076107,
+      "path": "/revoke-20261008"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "22a07c636f961c98a13fea4706d53e64dd71fec6fe12d11c",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "actual_visible_reply": "竹简回执\n表达式：net_fetch http://127.0.0.1:50818/revoke-20261008（allowPrivate=true，timeoutMs=60000，maxBytes=1024）\n宿主结果：`status: failed`（route: runtime-failed，elapsed_ms 1888）；code `cancelled`，error \"host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放\"；`cleanup_confirmed: true`\n\n`dispatch_plan.audit` 原样摘录：\n- `execute_requested: true`\n- `execute_allowed: true`\n- `executed: null`（审计未记录执行完成，不猜作 false/true）\n- `permission_gate: allow-auto`，`frozen_parent_permission` decision=allow-auto（full-access-profile）\n\n如实报告：\n\n- 调用真实进入派发（execute_requested/execute_allowed 均为 true），期间插件被正常停用，父调用中断、worker 取消，**cleanup_confirmed=true**；迟到结果不被采纳、未自动重放，无响应体\n- Windows 进程是否实际退出超出回执范围，不推断\n- 未重试、未补发、未调用其它工具/网址、未用 shell/CU、未新建云会话。收到取消后如实结束。",
+  "boundary": "完整瞬时工具响应未独立持久化；回复是模型转述，执行与清理须结合宿主审计和真实网络断开事实。独立Win32进程句柄证据另见held-process-result.json；仍不外推所有清理阶段。"
+}

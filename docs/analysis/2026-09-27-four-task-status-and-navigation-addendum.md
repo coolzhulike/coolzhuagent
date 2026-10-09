@@ -1,5 +1,21 @@
 > **2026-10-07 最新状态（下方历史正文按当时版本理解）**：当前正常安装并启动0.2.92，六门/1150文件/原工程与原安全库核验通过，已公开预发布，四个发布资产及标签源码核验一致。当前主会话独立推进，真实模型SWE-2-medium、唯一云端island-kayak；Opus暂停，不使用子代理，Paint依用户最新要求不再测试，微信不改不测。
 
+Browser读取收尾源码候选：资源/URL复核统一用于UI队列失败、callback及等待消费结束，失效优先资源变化，保留2秒/外层5秒，无重试/新锁/私有入口。独立壳offline build0、现有76/0；当前正式118尚不含，没有新实机证明，严格Browser仍开放。[候选与检查](../testing/2026-10-09-browser-read-settlement/report.md)。Goal继续。
+
+118正式增量：ACP插件不可续审批收尾已出包复验，真实SWE-2/原唯一island一次调用，接纳目录权限后扩大完全访问，仍按冻结权限拒绝，HTTP0、tool failed、terminal/end_turn/drained/解锁，无新云端；旧unknown保留、旧待审批在候选正常续发收束。构建/安装0、六门pass、1159文件逐SHA，Web1424/0/6、前端22/0，原参数revision57恢复。[118正式交接与实拍](../testing/release-0.2.118/change-report-and-test-handoff.md)。外部API权限变化顶栏实时同步、非ACP审批实操及严格Browser仍开放；Goal继续。
+
+ACP插件审批收尾候选：正式117真实冻结权限拒绝但遗留awaiting_approval/远端锁，已复现并修复；同一SWE-2/唯一island候选正常续发收束旧记录，新调用failed、terminal/end_turn/drained/解锁、HTTP0，无新云端。offline build0、Web1424/0/6、前端22/0，原失败及实拍保留。候选不冒称正式安装通过，新包待复验；严格Browser仍开放。[专项交接](../testing/2026-10-09-acp-plugin-approval/report.md)。Goal继续。
+
+117正式增量：旧配置页迟到请求作用域已出包复验。正常构建/安装0、六门pass、1159文件逐SHA一致，冻结d094c7a两路CI success；正式EXE的16组跨工程/ABA/重载/重启/错误释放/无头兼容真实HTTP与存储检查，正常原生B/A参数、保存0.45/revision12和同EXE重启四实拍通过。模型0、新云端0，原SWE/revision51/唯一island恢复。只关闭配置页此子项，完整领域及严格Browser仍开放。[117正式交接](../testing/release-0.2.117/change-report-and-test-handoff.md)。Goal继续。
+
+配置迟到请求候选：正式116已复现同ID同revision旧A草稿错写B；复用WorkspacePin与配置加载标识，统一页从完整工程路径绑定作用域。最终offline build0、既有Web1423/0/6与前端22/0，16组真实API（跨工程、ABA、重载、重启、400/409释放、无头兼容）及原生B/A参数、保存0.45、同EXE重启实拍通过。首候选GUI绑定失败保留，最终才计通过；模型0、原SWE/revision51/唯一island已恢复。正式116不含，待新包；完整领域迁移和严格Browser仍开放。[候选事实与实拍](../testing/2026-10-09-session-config-late/report.md)。Goal继续。
+
+116 Browser补验：纯截图驱动在登记后149ms取回新鲜画面，正常关闭仍晚9502ms；普通sent/released/effect_observed、父completed/单end_turn/drained/唯一绑定解锁，但stopped事件0，严格撤销仍未命中。不修改五秒期限或注入暂停，不继续同类简单点击碰窗口。[原事实与实拍](../testing/release-0.2.116/browser-snapshot/report.md)。Goal继续。
+
+116正式增量：模型配置操作和工程选择复用WorkspacePin，覆盖完整响应；修复正式115跨工程参数混读。正常release构建/安装0、六门pass、1159文件逐SHA一致，冻结aa72c25两路CI success；正式EXE忙期180切换409，真实交错77成功切换/75有效读取零混合，SQLite保存窗口409、另一工程不变、400/409后释放、正常原生A/B参数及同EXE重启三实拍通过。首观察器共享占用失败保留；模型0、原SWE/revision51/唯一island恢复。迟到请求/ABA及完整领域迁移和严格Browser仍开放。[116正式交接与实拍](../testing/release-0.2.116/change-report-and-test-handoff.md)。Goal继续。
+
+模型配置工程作用域候选：正式115真实复现2041读/180切换的跨工程混合；候选复用WorkspacePin覆盖读写和完整响应派生。实际build0、完整Web1423/0/6（另lib8/native-host1）；交错80次成功切换/77有效读取零混合，真实SQLite保存窗口切换409、另一工程不变、400/409退出释放pin，正常原生A/B参数和同EXE重启实拍通过。模型0、原SWE/revision51/唯一island恢复；115不含，迟到请求/ABA和完整领域迁移仍开放。[原失败、候选与实拍](../testing/2026-10-09-session-config-scope/report.md)。Goal继续。
+
 | 当前四项 | 本轮可确认结果 | 剩余范围 |
 |---|---|---|
 | 04计划核查修复与验收 | Browser原生点击/文字/键盘/上下滚动、Shadow/同进程与OOP子文档、焦点/导航旧引用拒绝已有078—089正式原图与回执，含三层同名按钮、横向LTR/RTL及无URL当前页；091插件配置/并发/启动后取消已闭环；092控制台1400/前端16通过、冻结759两路CI success | 32工作包总体尚未全部复核；函数执行中取消/超时、Goal/Relay等附件和复杂边界见当前队列 |

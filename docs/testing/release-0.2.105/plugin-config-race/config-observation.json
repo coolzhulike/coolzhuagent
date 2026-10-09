@@ -1,0 +1,14 @@
+{
+  "run_id": "run-chat-c76fe3e7dbd0649c4c8f54b49c2bec05c0a2cd5cf932713f",
+  "attempt_id": "70c0914c331dd6bb7a6be669b32c6bfbbfa6321fca4fb5a2",
+  "attempt_state_at_change": "submitted",
+  "original_activation_id": "dsh-26256-1791506059785651100-0",
+  "original_config": {},
+  "request_begin_ms": 1791506080086.0098,
+  "request_end_ms": 1791506080711.9082,
+  "changed_activation_id": "dsh-26256-1791506080691587600-1",
+  "changed_config": {
+    "coolzhuAcceptanceTag": "config-race-105-20261008"
+  },
+  "source_unchanged": true
+}

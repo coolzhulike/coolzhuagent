@@ -1,0 +1,39 @@
+[
+  {
+    "name": "build",
+    "command": [
+      "cargo",
+      "build",
+      "-p",
+      "coolzhu-web-console",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 40.071922063827515
+  },
+  {
+    "name": "history",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "coolzhu-web-console",
+      "--offline",
+      "chat_history_sync::tests",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 75.94034671783447
+  },
+  {
+    "name": "frontend",
+    "command": [
+      "node",
+      "--test",
+      "modules/gui-web/packages/web-console/tests/chat-history-sync.test.cjs"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 1.3049213886260986
+  }
+]

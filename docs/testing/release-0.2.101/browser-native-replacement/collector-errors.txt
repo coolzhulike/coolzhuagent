@@ -1,0 +1,2 @@
+首次archive.py将UI显示索引688当数据库消息ID，kind='assistant-reply'精确查询返回None，dict(None)抛TypeError。实际消息ID为msg-时间-序号字符串。
+纠正：按本轮唯一marker查user创建时间，在同房间查询随后assistant-reply；没有改数据库或运行状态。修正后完整归档断言通过。

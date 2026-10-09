@@ -1,0 +1,22 @@
+[
+  {
+    "path": "build-output.txt",
+    "bytes": 49858,
+    "sha256": "b9620bea4f661dcc36a3dfe5c8112bc6dbf1bdead417f93e9f941e1c1f46d08d"
+  },
+  {
+    "path": "original-ci-failure.txt",
+    "bytes": 2026,
+    "sha256": "e805ac4ecf634fd9e9058d657c69cad36429e026695809e89df43333319ccc3b"
+  },
+  {
+    "path": "report.md",
+    "bytes": 960,
+    "sha256": "ebe18cd14c379fb5a362536c36175bcc46896b36c892a4a5c7e231b2b4384dd1"
+  },
+  {
+    "path": "test-output.txt",
+    "bytes": 149851,
+    "sha256": "d84251be698af962ae4deb25f7e8d5f03360ea6913e0784e970bac4014e1e0a2"
+  }
+]

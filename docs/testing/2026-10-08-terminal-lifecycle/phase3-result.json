@@ -1,0 +1,34 @@
+{
+  "stage": "097之后源码候选",
+  "old_handle": "4ce1b1cb1749516f8cda04f79d1c93cb",
+  "new_handle": "845af17100b312c4fa1bbb10455f9042",
+  "replaced": true,
+  "old_output_http": 409,
+  "old_error": {
+    "error": "终端已关闭或归属已变，请重新启动"
+  },
+  "old_variable_absent": true,
+  "close_response": {
+    "active": false,
+    "handle": null,
+    "text": "",
+    "next_cursor": 0,
+    "truncated": false,
+    "closed": true,
+    "message": "终端尚未启动"
+  },
+  "after_close": {
+    "active": false,
+    "handle": null,
+    "text": "",
+    "next_cursor": 0,
+    "truncated": false,
+    "closed": true,
+    "message": "终端尚未启动"
+  },
+  "new_output_after_close_http": 409,
+  "new_error": {
+    "error": "终端已关闭或归属已变，请重新启动"
+  },
+  "generated_model_requests": 0
+}

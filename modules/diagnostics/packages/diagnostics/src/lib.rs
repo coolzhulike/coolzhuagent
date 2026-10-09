@@ -1,4 +1,5 @@
 mod output;
+mod rolling_file;
 mod span;
 mod trace_id;
 
@@ -20,6 +21,16 @@ pub use span::{
 pub use trace_id::{SpanId as SpanIdType, TraceId as TraceIdType};
 
 static LOGGER: OnceLock<Logger> = OnceLock::new();
+
+/// 人读诊断面包屑复用文件轮转边界；调用方保留既有错误处理，禁止用于权威审计。
+pub fn append_diagnostic_line(path: &Path, message: &str) -> io::Result<()> {
+    let record = if message.len() >= rolling_file::RECORD_BYTES {
+        format!("diagnostic_record_omitted original_bytes={}\n", message.len())
+    } else {
+        format!("{message}\n")
+    };
+    rolling_file::append(path, record.as_bytes())
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LogLevel {
@@ -117,6 +128,7 @@ pub fn init(app: &str) -> io::Result<PathBuf> {
     };
 
     let _ = LOGGER.set(logger);
+    info("diagnostics", "diagnostics.ready", "结构化诊断文件已就绪", &[]);
     Ok(path)
 }
 

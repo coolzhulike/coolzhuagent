@@ -1,0 +1,1042 @@
+{
+  "stage": "0.2.120 Program Files正式安装版独立动态长程",
+  "run_id": "run-chat-a1e029323e80edc43833279b63df15a831910d741074770d",
+  "cu_run": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791553627799-0-tool-0811b1a2798310ee8ee22497243ba6cd1775d2a8875b1dd4d7ff98e31f6b4fb3",
+    "provider_tool_call_id": "tool-0811b1a2798310ee8ee22497243ba6cd1775d2a8875b1dd4d7ff98e31f6b4fb3",
+    "turn_id": "chat-turn-1791553627799-0",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "idempotency_key": "session-1791131217833\u001fchat-turn-1791553627799-0\u001fbrowser\u001f在当前右栏原生浏览器页面完成“竹林动态订单”三步流程：每步从当前真实页面读取新的订单码，填入“订单码”输入框并按enter验证；前两步验证通过后点击“下一步”；第三步按enter；核验页面显示“整单已完成，三步均通过”。\u001f\u001f页面可见“整单已完成，三步均通过”文本\u001f每步从当前真实页面读取新订单码，不复用被替换的表单引用|enter提交用key_combination(enter)于已聚焦输入框|不执行网页脚本、不代跑dom、不操作行情/公告刷新区|每步用最新观察的新鲜引用|未知即停止，如实报告终态",
+    "objective_json": "{\"constraints\":[\"每步从当前真实页面读取新订单码，不复用被替换的表单引用\",\"Enter提交用key_combination(enter)于已聚焦输入框\",\"不执行网页脚本、不代跑DOM、不操作行情/公告刷新区\",\"每步用最新观察的新鲜引用\",\"未知即停止，如实报告终态\"],\"max_actions\":16,\"objective\":\"在当前右栏原生浏览器页面完成“竹林动态订单”三步流程：每步从当前真实页面读取新的订单码，填入“订单码”输入框并按Enter验证；前两步验证通过后点击“下一步”；第三步按Enter；核验页面显示“整单已完成，三步均通过”。\",\"success_criteria\":[\"页面可见“整单已完成，三步均通过”文本\"],\"surface\":\"browser\"}",
+    "surface": "browser",
+    "state": "succeeded",
+    "state_version": 61,
+    "risk_class": "observe",
+    "approval_state": "not_required",
+    "approval_deadline_ms": null,
+    "action_count": 11,
+    "replan_count": 0,
+    "no_progress_count": 0,
+    "current_observation_generation": 0,
+    "deadline_ms": 1791554527799,
+    "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791553627799-0-tool-0811b1a2798310ee8ee22497243ba6cd1775d2a8875b1dd4d7ff98e31f6b4fb3\",\"provider_tool_call_id\":\"tool-0811b1a2798310ee8ee22497243ba6cd1775d2a8875b1dd4d7ff98e31f6b4fb3\",\"status\":\"succeeded\",\"stage\":\"terminal\",\"goal_achieved\":true,\"surface\":\"browser\",\"summary\":\"{\\\"bound_initial_url\\\":\\\"http://127.0.0.1:61252/orders.html\\\",\\\"criteria_count\\\":1,\\\"criteria_met\\\":1,\\\"fresh_observation_id\\\":\\\"c267784f7f4255dde6e58d48e43f6101\\\",\\\"freshness_confirmed\\\":true,\\\"grounding\\\":[{\\\"grounded\\\":true,\\\"index\\\":0,\\\"model_met\\\":true,\\\"node_indices\\\":[13],\\\"reason\\\":\\\"node_text\\\",\\\"selected_nodes\\\":[{\\\"index\\\":13,\\\"name_chars\\\":11,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":13,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":11,\\\"role\\\":\\\"StaticText\\\"}]}],\\\"input_supported\\\":true,\\\"kind\\\":\\\"native_browser_interaction_observation\\\",\\\"notice\\\":\\\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\\\",\\\"observation_generation\\\":12,\\\"observation_id\\\":\\\"6ca4528862821df58806129c82df775f\\\",\\\"observation_origin\\\":\\\"current_page\\\",\\\"observed_page\\\":{\\\"excerpt_truncated\\\":false,\\\"node_count\\\":38,\\\"nodes\\\":[{\\\"index\\\":13,\\\"name\\\":\\\"整单已完成，三步均通过\\\",\\\"role\\\":\\\"StaticText\\\"}],\\\"title\\\":\\\"竹林动态订单验收\\\",\\\"truncated\\\":false,\\\"url\\\":\\\"http://127.0.0.1:61252/orders.html\\\",\\\"viewport\\\":{\\\"height\\\":514.0,\\\"page_x\\\":0.0,\\\"page_y\\\":0.0,\\\"width\\\":446.0}},\\\"requested_url\\\":null,\\\"ungrounded_positive_count\\\":0}\",\"attempts\":11,\"steps_completed\":11,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":1,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":2,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":3,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":4,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":5,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":6,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":7,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":8,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":9,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":10,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"passed\"}],\"evidence\":[\"native-ax:1:0\",\"native-observation:793b7c9442d7f89999089a49e3a72e42\",\"native-ax:1:0\",\"native-observation:793b7c9442d7f89999089a49e3a72e42\",\"native-input:8241c2bfd374312c0a8b41ae18f51a22\",\"native-ax:1:0\",\"native-observation:5b733c8104568a148bac4e960014376d\",\"native-ax:1:0\",\"native-observation:5b733c8104568a148bac4e960014376d\",\"native-ax:1:0\",\"native-observation:8c851332dc9bc1d62c4613e6d868f4ce\",\"native-input:21d8a2bce25ec32ecdbb16735876fd44\",\"native-ax:1:0\",\"native-observation:cde41b0c8a1c8ee3c20a6b27e30d01f9\",\"native-ax:1:0\",\"native-observation:cde41b0c8a1c8ee3c20a6b27e30d01f9\",\"native-ax:1:0\",\"native-observation:b313fd8751d9b90fbf8fa08da81fb82d\",\"native-input:e7964110ebaac82c07ba632140309e38\",\"native-ax:1:0\",\"native-observation:35b58106dfe4cab1b4aae307d4be65b7\",\"native-ax:1:0\",\"native-observation:35b58106dfe4cab1b4aae307d4be65b7\",\"native-ax:1:0\",\"native-observation:dfb3ec057560c979e7d1f3b83e1bf288\",\"native-input:1bb0f109e70fa7fe36227b1ebf471473\",\"native-ax:1:0\",\"native-observation:747b7efe902525132f1628a975296a69\",\"native-ax:1:0\",\"native-observation:747b7efe902525132f1628a975296a69\",\"native-ax:1:0\",\"native-observation:af279ae493ca812612b52998d3ed0d62\",\"native-input:f39ca9fcacf9d7bf96a4890fa039b76d\",\"native-ax:1:0\",\"native-observation:1c45cd429403c9c4d9c813726ea9f396\",\"native-ax:1:0\",\"native-observation:1c45cd429403c9c4d9c813726ea9f396\",\"native-ax:1:0\",\"native-observation:b5b12dbb521cc45641204550d1639a94\",\"native-input:ddfe6fca1404ad49ca7eae0de44b1171\",\"native-ax:1:0\",\"native-observation:90a284bfb3d30dbfe7eaee9bdaab59ba\",\"native-ax:1:0\",\"native-observation:90a284bfb3d30dbfe7eaee9bdaab59ba\",\"native-ax:1:0\",\"native-observation:670cc608baaf19984610704658ef42f1\",\"native-input:3947bbdb8fef23b0528227bc4daf14b6\",\"native-ax:1:0\",\"native-observation:16547033fbbea9aed312f59009a63d3e\",\"native-ax:1:0\",\"native-observation:16547033fbbea9aed312f59009a63d3e\",\"native-ax:1:0\",\"native-observation:30eb0099e497621848313fb848ef7a20\",\"native-input:c5b33d8e735983dbe7297d864cecb0af\",\"native-ax:1:0\",\"native-observation:6a7e20e0dcb0ea2755162f92576503e6\",\"native-ax:1:0\",\"native-observation:6a7e20e0dcb0ea2755162f92576503e6\",\"native-ax:1:0\",\"native-observation:96c369ac5e409a712010198122b45640\",\"native-input:2c176958ff141aa37b4d0594caa05a5e\",\"native-ax:1:0\",\"native-observation:67302d4ddf4ed76c0b3fb6e24dbf37fd\",\"native-ax:1:0\",\"native-observation:67302d4ddf4ed76c0b3fb6e24dbf37fd\",\"native-ax:1:0\",\"native-observation:fbcc004c294cb2f1bf10dd8514f04e79\",\"native-input:71bcea4e6ccf0a7b1df7471c3599b955\",\"native-ax:1:0\",\"native-observation:5454842ec1c16f1b292becb51f096dff\",\"native-ax:1:0\",\"native-observation:5454842ec1c16f1b292becb51f096dff\",\"native-ax:1:0\",\"native-observation:aab6d51e3162fc6b285a8e372d591ee2\",\"native-input:c7d71261b89954a5f5f5d8d6ac5a6d34\",\"native-ax:1:0\",\"native-observation:6ca4528862821df58806129c82df775f\",\"native-ax:1:0\",\"native-observation:6ca4528862821df58806129c82df775f\",\"native-ax:1:0\",\"native-observation:c267784f7f4255dde6e58d48e43f6101\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":11,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791554527799}},\"cu_deadline_ms\":1791554527799,\"cu_deadline_established_at_ms\":1791553649256,\"cu_budget_ms\":900000}}",
+    "created_at_ms": 1791553649256,
+    "updated_at_ms": 1791554226576,
+    "workspace_id": "ws-23f646a969206cb4",
+    "workspace_context_version": 1,
+    "legacy_convergence_id": null,
+    "legacy_convergence_state": null,
+    "legacy_convergence_reconciled_at_ms": null
+  },
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791553627799-0-tool-0811b1a2798310ee8ee22497243ba6cd1775d2a8875b1dd4d7ff98e31f6b4fb3",
+    "provider_tool_call_id": "tool-0811b1a2798310ee8ee22497243ba6cd1775d2a8875b1dd4d7ff98e31f6b4fb3",
+    "status": "succeeded",
+    "stage": "terminal",
+    "goal_achieved": true,
+    "surface": "browser",
+    "summary": "{\"bound_initial_url\":\"http://127.0.0.1:61252/orders.html\",\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"c267784f7f4255dde6e58d48e43f6101\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[13],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":13,\"name_chars\":11,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":13,\"inline_has_static_text\":false,\"name_chars\":11,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":12,\"observation_id\":\"6ca4528862821df58806129c82df775f\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":38,\"nodes\":[{\"index\":13,\"name\":\"整单已完成，三步均通过\",\"role\":\"StaticText\"}],\"title\":\"竹林动态订单验收\",\"truncated\":false,\"url\":\"http://127.0.0.1:61252/orders.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+    "attempts": 11,
+    "steps_completed": 11,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 1,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 2,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 3,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 4,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 5,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 6,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 7,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 8,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 9,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 10,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "passed"
+      }
+    ],
+    "evidence": [
+      "native-ax:1:0",
+      "native-observation:793b7c9442d7f89999089a49e3a72e42",
+      "native-ax:1:0",
+      "native-observation:793b7c9442d7f89999089a49e3a72e42",
+      "native-input:8241c2bfd374312c0a8b41ae18f51a22",
+      "native-ax:1:0",
+      "native-observation:5b733c8104568a148bac4e960014376d",
+      "native-ax:1:0",
+      "native-observation:5b733c8104568a148bac4e960014376d",
+      "native-ax:1:0",
+      "native-observation:8c851332dc9bc1d62c4613e6d868f4ce",
+      "native-input:21d8a2bce25ec32ecdbb16735876fd44",
+      "native-ax:1:0",
+      "native-observation:cde41b0c8a1c8ee3c20a6b27e30d01f9",
+      "native-ax:1:0",
+      "native-observation:cde41b0c8a1c8ee3c20a6b27e30d01f9",
+      "native-ax:1:0",
+      "native-observation:b313fd8751d9b90fbf8fa08da81fb82d",
+      "native-input:e7964110ebaac82c07ba632140309e38",
+      "native-ax:1:0",
+      "native-observation:35b58106dfe4cab1b4aae307d4be65b7",
+      "native-ax:1:0",
+      "native-observation:35b58106dfe4cab1b4aae307d4be65b7",
+      "native-ax:1:0",
+      "native-observation:dfb3ec057560c979e7d1f3b83e1bf288",
+      "native-input:1bb0f109e70fa7fe36227b1ebf471473",
+      "native-ax:1:0",
+      "native-observation:747b7efe902525132f1628a975296a69",
+      "native-ax:1:0",
+      "native-observation:747b7efe902525132f1628a975296a69",
+      "native-ax:1:0",
+      "native-observation:af279ae493ca812612b52998d3ed0d62",
+      "native-input:f39ca9fcacf9d7bf96a4890fa039b76d",
+      "native-ax:1:0",
+      "native-observation:1c45cd429403c9c4d9c813726ea9f396",
+      "native-ax:1:0",
+      "native-observation:1c45cd429403c9c4d9c813726ea9f396",
+      "native-ax:1:0",
+      "native-observation:b5b12dbb521cc45641204550d1639a94",
+      "native-input:ddfe6fca1404ad49ca7eae0de44b1171",
+      "native-ax:1:0",
+      "native-observation:90a284bfb3d30dbfe7eaee9bdaab59ba",
+      "native-ax:1:0",
+      "native-observation:90a284bfb3d30dbfe7eaee9bdaab59ba",
+      "native-ax:1:0",
+      "native-observation:670cc608baaf19984610704658ef42f1",
+      "native-input:3947bbdb8fef23b0528227bc4daf14b6",
+      "native-ax:1:0",
+      "native-observation:16547033fbbea9aed312f59009a63d3e",
+      "native-ax:1:0",
+      "native-observation:16547033fbbea9aed312f59009a63d3e",
+      "native-ax:1:0",
+      "native-observation:30eb0099e497621848313fb848ef7a20",
+      "native-input:c5b33d8e735983dbe7297d864cecb0af",
+      "native-ax:1:0",
+      "native-observation:6a7e20e0dcb0ea2755162f92576503e6",
+      "native-ax:1:0",
+      "native-observation:6a7e20e0dcb0ea2755162f92576503e6",
+      "native-ax:1:0",
+      "native-observation:96c369ac5e409a712010198122b45640",
+      "native-input:2c176958ff141aa37b4d0594caa05a5e",
+      "native-ax:1:0",
+      "native-observation:67302d4ddf4ed76c0b3fb6e24dbf37fd",
+      "native-ax:1:0",
+      "native-observation:67302d4ddf4ed76c0b3fb6e24dbf37fd",
+      "native-ax:1:0",
+      "native-observation:fbcc004c294cb2f1bf10dd8514f04e79",
+      "native-input:71bcea4e6ccf0a7b1df7471c3599b955",
+      "native-ax:1:0",
+      "native-observation:5454842ec1c16f1b292becb51f096dff",
+      "native-ax:1:0",
+      "native-observation:5454842ec1c16f1b292becb51f096dff",
+      "native-ax:1:0",
+      "native-observation:aab6d51e3162fc6b285a8e372d591ee2",
+      "native-input:c7d71261b89954a5f5f5d8d6ac5a6d34",
+      "native-ax:1:0",
+      "native-observation:6ca4528862821df58806129c82df775f",
+      "native-ax:1:0",
+      "native-observation:6ca4528862821df58806129c82df775f",
+      "native-ax:1:0",
+      "native-observation:c267784f7f4255dde6e58d48e43f6101"
+    ],
+    "supervisor": {
+      "circuit_open": false,
+      "action_count": 11,
+      "replan_count": 0,
+      "no_progress_count": 0
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791554527799
+        }
+      },
+      "cu_deadline_ms": 1791554527799,
+      "cu_deadline_established_at_ms": 1791553649256,
+      "cu_budget_ms": 900000
+    }
+  },
+  "page_events": [
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553633600.8,
+      "stage": 0,
+      "revision": 200,
+      "observed_ms": 1791553633604.0593
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553643600.4001,
+      "stage": 0,
+      "revision": 300,
+      "observed_ms": 1791553643603.966
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553653600.6,
+      "stage": 0,
+      "revision": 400,
+      "observed_ms": 1791553653604.1277
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553663601.6,
+      "stage": 0,
+      "revision": 500,
+      "observed_ms": 1791553663605.3337
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553673604,
+      "stage": 0,
+      "revision": 600,
+      "observed_ms": 1791553673607.9324
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791553676743.1,
+      "target": "code",
+      "stage": 0,
+      "revision": 631,
+      "value": "",
+      "observed_ms": 1791553676747.2244
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791553676744.6,
+      "target": "code",
+      "stage": 0,
+      "revision": 631,
+      "value": "",
+      "observed_ms": 1791553676757.4282
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791553676745.2002,
+      "target": "code",
+      "stage": 0,
+      "revision": 631,
+      "value": "",
+      "observed_ms": 1791553676757.6218
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553683600.4001,
+      "stage": 0,
+      "revision": 700,
+      "observed_ms": 1791553683604.2195
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553693611.8,
+      "stage": 0,
+      "revision": 800,
+      "observed_ms": 1791553693616.455
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553703602.8,
+      "stage": 0,
+      "revision": 900,
+      "observed_ms": 1791553703607.8237
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553713613.7002,
+      "stage": 0,
+      "revision": 1000,
+      "observed_ms": 1791553713618.8103
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553723602,
+      "stage": 0,
+      "revision": 1100,
+      "observed_ms": 1791553723607.1008
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791553732275.8,
+      "target": "code",
+      "stage": 0,
+      "revision": 1186,
+      "value": "BAMBOO-9175",
+      "observed_ms": 1791553732282.6997
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553733605.1,
+      "stage": 0,
+      "revision": 1200,
+      "observed_ms": 1791553733612.3267
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553743604.4001,
+      "stage": 0,
+      "revision": 1300,
+      "observed_ms": 1791553743610.3496
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553753603.6,
+      "stage": 0,
+      "revision": 1400,
+      "observed_ms": 1791553753609.8538
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553763601.7002,
+      "stage": 0,
+      "revision": 1500,
+      "observed_ms": 1791553763607.5095
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553773610,
+      "stage": 0,
+      "revision": 1600,
+      "observed_ms": 1791553773616.3518
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553783607.3,
+      "stage": 0,
+      "revision": 1700,
+      "observed_ms": 1791553783613.9304
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553793611.1,
+      "stage": 0,
+      "revision": 1800,
+      "observed_ms": 1791553793617.7117
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791553797006.3,
+      "target": "code",
+      "stage": 0,
+      "revision": 1834,
+      "key": "Enter",
+      "value": "BAMBOO-9175",
+      "observed_ms": 1791553797015.1902
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791553797007.3,
+      "target": "verify",
+      "stage": 0,
+      "revision": 1834,
+      "accepted": true,
+      "observed_ms": 1791553797018.1138
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553803612,
+      "stage": 0,
+      "revision": 1900,
+      "observed_ms": 1791553803618.9448
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553813600.7002,
+      "stage": 0,
+      "revision": 2000,
+      "observed_ms": 1791553813608.1704
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553823607.1,
+      "stage": 0,
+      "revision": 2100,
+      "observed_ms": 1791553823614.2197
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553833605.4001,
+      "stage": 0,
+      "revision": 2200,
+      "observed_ms": 1791553833613.5
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553843600.8,
+      "stage": 0,
+      "revision": 2300,
+      "observed_ms": 1791553843608.4048
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791553849560.3,
+      "target": "next",
+      "stage": 0,
+      "revision": 2359,
+      "value": "",
+      "observed_ms": 1791553849567.9937
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791553849561.1,
+      "target": "next",
+      "stage": 0,
+      "revision": 2359,
+      "value": "",
+      "observed_ms": 1791553849570.7407
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791553849561.5,
+      "target": "next",
+      "stage": 0,
+      "revision": 2359,
+      "value": "",
+      "observed_ms": 1791553849571.2048
+    },
+    {
+      "kind": "advance",
+      "trusted": true,
+      "page_ms": 1791553849561.8,
+      "target": "next",
+      "stage": 0,
+      "revision": 2359,
+      "observed_ms": 1791553849571.5464
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553853605.2002,
+      "stage": 1,
+      "revision": 2400,
+      "observed_ms": 1791553853613.144
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553863602.5,
+      "stage": 1,
+      "revision": 2500,
+      "observed_ms": 1791553863610.3164
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553873605.5,
+      "stage": 1,
+      "revision": 2600,
+      "observed_ms": 1791553873613.9927
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553883610.9001,
+      "stage": 1,
+      "revision": 2700,
+      "observed_ms": 1791553883619.361
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553893609.8,
+      "stage": 1,
+      "revision": 2800,
+      "observed_ms": 1791553893624.1484
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791553899037.8,
+      "target": "code",
+      "stage": 1,
+      "revision": 2854,
+      "value": "",
+      "observed_ms": 1791553899047.6375
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791553899038.9001,
+      "target": "code",
+      "stage": 1,
+      "revision": 2854,
+      "value": "",
+      "observed_ms": 1791553899052.4614
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791553899039.3,
+      "target": "code",
+      "stage": 1,
+      "revision": 2854,
+      "value": "",
+      "observed_ms": 1791553899053.3965
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553903612.7002,
+      "stage": 1,
+      "revision": 2900,
+      "observed_ms": 1791553903622.2488
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553913606.8,
+      "stage": 1,
+      "revision": 3000,
+      "observed_ms": 1791553913616.6987
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553923612.2002,
+      "stage": 1,
+      "revision": 3100,
+      "observed_ms": 1791553923623.1326
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553933606.1,
+      "stage": 1,
+      "revision": 3200,
+      "observed_ms": 1791553933615.8164
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553943603.2002,
+      "stage": 1,
+      "revision": 3300,
+      "observed_ms": 1791553943613.121
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791553948552.7002,
+      "target": "code",
+      "stage": 1,
+      "revision": 3349,
+      "value": "JADE-6319",
+      "observed_ms": 1791553948564.1338
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553953615.9001,
+      "stage": 1,
+      "revision": 3400,
+      "observed_ms": 1791553953626.2803
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553963606.6,
+      "stage": 1,
+      "revision": 3500,
+      "observed_ms": 1791553963616.9246
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553973602.2002,
+      "stage": 1,
+      "revision": 3600,
+      "observed_ms": 1791553973613.6252
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553983613,
+      "stage": 1,
+      "revision": 3700,
+      "observed_ms": 1791553983624.6526
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791553993601.4001,
+      "stage": 1,
+      "revision": 3800,
+      "observed_ms": 1791553993613.3372
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791553997306.8,
+      "target": "code",
+      "stage": 1,
+      "revision": 3837,
+      "key": "Enter",
+      "value": "JADE-6319",
+      "observed_ms": 1791553997319.5454
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791553997307.8,
+      "target": "verify",
+      "stage": 1,
+      "revision": 3837,
+      "accepted": true,
+      "observed_ms": 1791553997320.6333
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554003606.9001,
+      "stage": 1,
+      "revision": 3900,
+      "observed_ms": 1791554003621.145
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554013602.2002,
+      "stage": 1,
+      "revision": 4000,
+      "observed_ms": 1791554013613.492
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554023602.1,
+      "stage": 1,
+      "revision": 4100,
+      "observed_ms": 1791554023614.5215
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554033604.6,
+      "stage": 1,
+      "revision": 4200,
+      "observed_ms": 1791554033617.002
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554043612,
+      "stage": 1,
+      "revision": 4300,
+      "observed_ms": 1791554043624.8481
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791554044530.8,
+      "target": "next",
+      "stage": 1,
+      "revision": 4309,
+      "value": "",
+      "observed_ms": 1791554044542.9338
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791554044531.9001,
+      "target": "next",
+      "stage": 1,
+      "revision": 4309,
+      "value": "",
+      "observed_ms": 1791554044547.0964
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791554044531.5,
+      "target": "next",
+      "stage": 1,
+      "revision": 4309,
+      "value": "",
+      "observed_ms": 1791554044547.226
+    },
+    {
+      "kind": "advance",
+      "trusted": true,
+      "page_ms": 1791554044532.1,
+      "target": "next",
+      "stage": 1,
+      "revision": 4309,
+      "observed_ms": 1791554044553.3884
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554053604.5,
+      "stage": 2,
+      "revision": 4400,
+      "observed_ms": 1791554053618.7427
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554063606.6,
+      "stage": 2,
+      "revision": 4500,
+      "observed_ms": 1791554063620.7134
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554073610.7002,
+      "stage": 2,
+      "revision": 4600,
+      "observed_ms": 1791554073624.0813
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554083610.2002,
+      "stage": 2,
+      "revision": 4700,
+      "observed_ms": 1791554083623.9255
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554093602.1,
+      "stage": 2,
+      "revision": 4800,
+      "observed_ms": 1791554093616.4631
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791554101633.4001,
+      "target": "code",
+      "stage": 2,
+      "revision": 4880,
+      "value": "",
+      "observed_ms": 1791554101651.0505
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791554101634.5,
+      "target": "code",
+      "stage": 2,
+      "revision": 4880,
+      "value": "",
+      "observed_ms": 1791554101653.932
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791554101634.9001,
+      "target": "code",
+      "stage": 2,
+      "revision": 4880,
+      "value": "",
+      "observed_ms": 1791554101654.159
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554103614.3,
+      "stage": 2,
+      "revision": 4900,
+      "observed_ms": 1791554103628.5708
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554113605.6,
+      "stage": 2,
+      "revision": 5000,
+      "observed_ms": 1791554113619.3262
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554123606.9001,
+      "stage": 2,
+      "revision": 5100,
+      "observed_ms": 1791554123622.1794
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554133611.9001,
+      "stage": 2,
+      "revision": 5200,
+      "observed_ms": 1791554133626.6956
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554143609.2002,
+      "stage": 2,
+      "revision": 5300,
+      "observed_ms": 1791554143626.0508
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554153609.4001,
+      "stage": 2,
+      "revision": 5400,
+      "observed_ms": 1791554153624.5474
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791554154997.1,
+      "target": "code",
+      "stage": 2,
+      "revision": 5413,
+      "value": "SCROLL-5935",
+      "observed_ms": 1791554155014.53
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554163615.7002,
+      "stage": 2,
+      "revision": 5500,
+      "observed_ms": 1791554163631.31
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554173608.4001,
+      "stage": 2,
+      "revision": 5600,
+      "observed_ms": 1791554173623.8276
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554183611.5,
+      "stage": 2,
+      "revision": 5700,
+      "observed_ms": 1791554183627.19
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554193601.3,
+      "stage": 2,
+      "revision": 5800,
+      "observed_ms": 1791554193617.5442
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554203604.2002,
+      "stage": 2,
+      "revision": 5900,
+      "observed_ms": 1791554203619.7388
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791554206026.1,
+      "target": "code",
+      "stage": 2,
+      "revision": 5924,
+      "key": "Enter",
+      "value": "SCROLL-5935",
+      "observed_ms": 1791554206049.008
+    },
+    {
+      "kind": "final-submitted",
+      "trusted": true,
+      "page_ms": 1791554206027,
+      "target": "verify",
+      "stage": 2,
+      "revision": 5924,
+      "accepted": true,
+      "observed_ms": 1791554206051.1826
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791554206026.8,
+      "target": "verify",
+      "stage": 2,
+      "revision": 5924,
+      "accepted": true,
+      "observed_ms": 1791554206051.4517
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554213608.9001,
+      "stage": 2,
+      "revision": 6000,
+      "observed_ms": 1791554213625.37
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554223600.6,
+      "stage": 2,
+      "revision": 6100,
+      "observed_ms": 1791554223617.6882
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554233605,
+      "stage": 2,
+      "revision": 6200,
+      "observed_ms": 1791554233621.519
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554243605.6,
+      "stage": 2,
+      "revision": 6300,
+      "observed_ms": 1791554243622.327
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554253609.2002,
+      "stage": 2,
+      "revision": 6400,
+      "observed_ms": 1791554253626.284
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791554263600.4001,
+      "stage": 2,
+      "revision": 6500,
+      "observed_ms": 1791554263618.0608
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "passed": true
+}

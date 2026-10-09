@@ -1,0 +1,61 @@
+﻿{
+    "generated_at":  "2026-10-08T21:48:33.1458239Z",
+    "version":  "0.2.101",
+    "cli_version":  "0.2.101",
+    "configuration":  "release",
+    "msi":  "dist/CoolzhuAgent-0.2.101.msi",
+    "sha256":  "E472E0AC9209A7B46234475ED098EBBBDBFDDAF93C48EBBDD7FFD93D87CA6F13",
+    "package_safety_report":  "dist/CoolzhuAgent-0.2.101-package-safety.json",
+    "staged_exported_artifacts":  [
+                                      {
+                                          "artifact_id":  "gui-desktop.webview2-loader",
+                                          "target":  "bin/WebView2Loader.dll",
+                                          "receipt":  "modules/gui-desktop/target/package-inputs/windows-x64/release/webview2-loader-export.json",
+                                          "sha256":  "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c",
+                                          "length":  160320,
+                                          "architecture":  "x64",
+                                          "machine":  "AMD64",
+                                          "producer_package_id":  "registry+https://github.com/rust-lang/crates.io-index#webview2-com-sys@0.38.2",
+                                          "producer_out_dir":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules/gui-desktop/target/tauri-shell\\release\\build\\webview2-com-sys-55b44b0ddeeacab2\\out",
+                                          "reuse_nature":  "producer-output-reused-from-existing-cargo-build-directory"
+                                      }
+                                  ],
+    "wix_version":  "5.0.2+aa65968c",
+    "signed":  false,
+    "signing_status":  "unsigned",
+    "build_identity":  {
+                           "schema":  1,
+                           "source_snapshot_digest":  "200b14ea918e28f94fb7f249763e02d16c26ba0e380c5f12d30786da1b228523",
+                           "build_input_digest":  "f9f8aecf5189693db02a4a83f7f64e8c20c2a2b3c4d1efa65cdd1e720f288d14",
+                           "payload_digest":  "7c5729f4170440b261c6878e027d0288abde0c00272430066e06889f3dcf1e48",
+                           "msi_payload_sha256":  "e472e0ac9209a7b46234475ed098ebbbdbfddaf93c48ebbdd7ffd93d87ca6f13",
+                           "note":  "payload_digest 是 MSI 输入（暂存包）的文件清单摘要；msi_payload_sha256 是最终分发文件本身的摘要。两者一起回答\"最终生成和分发了哪些二进制与资源\"。"
+                       },
+    "package_report_ref":  {
+                               "report_id":  "pkg-report-release-20261008-144743456-29b52b72",
+                               "content_sha256":  "e31a0fab432fa74a1efae91d578e59065b42fe9ba98f67b7aad830a8fa5fdb91",
+                               "content_hash_scope":  "canonical sorted leaf paths; report_identity.content_sha256 excluded",
+                               "report_file_sha256":  "81ed0ab0322fe7b88bda089932756b83466537212c10b4dc928a1259fd01eb5d",
+                               "report_path":  "tmp/package-reports/package-report-release-20261008-144743456.json",
+                               "captured_from":  "package-root-inventory-report-ref",
+                               "package_root_identity":  "pkg-report-release-20261008-144743456-29b52b72@7c5729f4170440b261c6878e027d0288abde0c00272430066e06889f3dcf1e48",
+                               "verified":  true
+                           },
+    "payload_inventory_ref":  {
+                                  "path":  "\\package\\payload-inventory.json",
+                                  "file_sha256":  "5fab46c4a4b5e6354d319cff8878d25c681d921d7e14843f3d290a4264c18341",
+                                  "payload_digest":  "7c5729f4170440b261c6878e027d0288abde0c00272430066e06889f3dcf1e48",
+                                  "file_count":  1159,
+                                  "total_bytes":  432549816,
+                                  "package_root_identity":  "pkg-report-release-20261008-144743456-29b52b72@7c5729f4170440b261c6878e027d0288abde0c00272430066e06889f3dcf1e48"
+                              },
+    "vcs":  {
+                "vcs_state":  "tracked_worktree",
+                "vcs_reference_commit":  "54594d96e8f7801ddf606b9b8d7729306594f501",
+                "vcs_reference_commit_kind":  "seed-reference-only",
+                "source_commit":  "54594d96e8f7801ddf606b9b8d7729306594f501",
+                "source_commit_authority":  "tracked-commit",
+                "dirty_against_commit":  false,
+                "note":  "COOLZHU_GIT_SHA（编译期环境变量）取的就是 HEAD，在当前工作树只是**种子参考提交**，不是当前源码权威；源码权威是 package_report_ref 指向的报告里的 source_snapshot_digest。"
+            }
+}

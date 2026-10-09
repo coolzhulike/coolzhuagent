@@ -13,6 +13,29 @@ fn unavailable(message: &str) -> ComputerUseError {
     ComputerUseError::blocked("native_browser_observation_unavailable", message, ComputerUseRetryOwner::User)
 }
 
+/// 进展和最终验收分离；随机节点引用及可选采样缺失不能伪造进展。
+pub(super) fn visible_progress(before: &Observation, after: &Observation) -> bool {
+    let before=&before.state["page"];
+    let after=&after.state["page"];
+    if ["nodes","focused_node_index","viewport","url","title"].iter()
+        .any(|key|before[key]!=after[key]) {return true;}
+    if before["document_token"].as_str().is_none() || before["document_token"]!=after["document_token"] {
+        return false;
+    }
+    let Some(previous)=before["document_viewports"].as_array() else {return false;};
+    let Some(current)=after["document_viewports"].as_array() else {return false;};
+    previous.iter().any(|old| {
+        let Some(index)=old["index"].as_u64() else {return false;};
+        let Some(new)=current.iter().find(|new|new["index"].as_u64()==Some(index)) else {return false;};
+        let viewport=|v:&serde_json::Value|serde_json::from_value::<native_browser_protocol::PageViewport>(v.clone())
+            .ok().filter(|v|v.valid_shape());
+        match (viewport(&old["viewport"]),viewport(&new["viewport"])) {
+            (Some(old),Some(new))=>old!=new,
+            _=>false,
+        }
+    })
+}
+
 fn initial_source(request:&ComputerUseRequest,page:&serde_json::Value) -> Option<crate::native_browser_adapter::InitialPageSource> {
     if request.target.as_ref().and_then(|target|target.url.as_deref()).is_some() {return None;}
     serde_json::from_value::<crate::native_browser_adapter::InitialPageSource>(page.get("initial_page_source")?.clone())
@@ -133,12 +156,13 @@ fn loading_pending(observation:&Observation)->Verification {
         evidence:observation.evidence.clone()}
 }
 
-/// 比较模型判断前后同规格AX投影；同URL的SPA内容变化也使旧判断失效。
+/// 比较模型判断前后的宿主身份及正向证据区域；无关动态文字不使整个任务失效。
 /// 新快照必须由同一个冻结父运行的认证宿主重新采集，不能用注册心跳替代。
-pub(super) fn ensure_fresh(observation: &Observation, fresh: &crate::computer_use_adapters::BrowserSnapshot) -> Result<(), ComputerUseError> {
+pub(super) fn ensure_fresh(observation: &Observation, fresh: &crate::computer_use_adapters::BrowserSnapshot,
+    verification: &Verification) -> Result<(), ComputerUseError> {
     let old = &observation.state["page"];
     let keys = ["host_id", "workspace_path", "room_id", "resource", "generation", "navigation_revision",
-        "backend", "read_only_request", "input_supported", "url", "title", "truncated", "nodes"];
+        "backend", "read_only_request", "input_supported", "url", "title", "truncated"];
     let receipt = |page: &serde_json::Value| page["observation_id"].as_str().is_some_and(|value|
         value.len()==32 && value.bytes().all(|byte|byte.is_ascii_hexdigit()));
     if observation.surface != ComputerUseSurface::Browser || !receipt(old) || !receipt(&fresh.state)
@@ -147,11 +171,40 @@ pub(super) fn ensure_fresh(observation: &Observation, fresh: &crate::computer_us
         return Err(ComputerUseError::blocked("native_browser_observation_stale",
             "原生页面或宿主环境在模型验收期间已变化，本轮旧观察不能作为成功证据", ComputerUseRetryOwner::User));
     }
-    if old.get("viewport") != fresh.state.get("viewport") || old.get("focused_node_index") != fresh.state.get("focused_node_index") {
-        return Err(ComputerUseError::blocked("native_browser_observation_stale","视口、滚动位置或控件焦点在验收期间已变化",ComputerUseRetryOwner::User));
+    if old.get("viewport") != fresh.state.get("viewport") || old.get("focused_node_index") != fresh.state.get("focused_node_index")
+        || old.get("loading") != fresh.state.get("loading") {
+        return Err(ComputerUseError::blocked("native_browser_observation_stale","加载状态、视口、滚动位置或控件焦点在验收期间已变化",ComputerUseRetryOwner::User));
     }
     if old.get("document_token").is_some_and(|token| !token.is_null() && Some(token)!=fresh.state.get("document_token")) {
         return Err(ComputerUseError::blocked("native_browser_observation_stale","网页文档身份已变化",ComputerUseRetryOwner::User));
+    }
+    // 焦点索引相等还不足以证明同一控件；索引处的实际控件事实也必须保持一致。
+    let same_node = |index: usize| old["nodes"].get(index).is_some_and(|node|
+        Some(node) == fresh.state["nodes"].get(index));
+    if old["focused_node_index"].as_u64().is_some_and(|index| !same_node(index as usize)) {
+        return Err(ComputerUseError::blocked("native_browser_observation_stale","焦点控件事实在验收期间已变化",ComputerUseRetryOwner::User));
+    }
+    let summary: serde_json::Value = serde_json::from_str(&verification.summary)
+        .map_err(|_| invalid("readonly verification summary is invalid"))?;
+    let criteria = summary["grounding"].as_array().ok_or_else(|| invalid("readonly grounding is absent"))?;
+    for criterion in criteria.iter().filter(|criterion| criterion["grounded"] == true
+        && matches!(criterion["reason"].as_str(), Some("node_text" | "adjacent_text" | "bridged_text"))) {
+        let indices = criterion["node_indices"].as_array().ok_or_else(|| invalid("readonly evidence indices are absent"))?;
+        let indices: Vec<usize> = indices.iter().map(|index| index.as_u64().and_then(|value| usize::try_from(value).ok()))
+            .collect::<Option<_>>().ok_or_else(|| invalid("readonly evidence index is invalid"))?;
+        let (Some(first), Some(last)) = (indices.iter().min(), indices.iter().max()) else {
+            return Err(invalid("readonly positive evidence has no nodes"));
+        };
+        // 跨节点引文同时固定被跨过的节点，不能在新页插入文字后沿用旧拼接证据。
+        let valid = if criterion["reason"] == "node_text" {
+            indices.iter().all(|index| same_node(*index))
+        } else {
+            last.saturating_sub(*first) < 12 && (*first..=*last).all(same_node)
+        };
+        if !valid {
+            return Err(ComputerUseError::blocked("native_browser_observation_stale",
+                "正向验收证据区域在判断期间已变化，不能复用旧证据",ComputerUseRetryOwner::User));
+        }
     }
     Ok(())
 }
@@ -233,6 +286,23 @@ pub(super) fn finish(raw: &str, request: &ComputerUseRequest, observation: &Obse
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn child_scroll_counts_as_progress_without_text_change_or_goal_success() {
+        let mut before=Observation {generation:1,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
+            state:json!({"page":{"document_token":"same-document","nodes":[],"document_viewports":[
+                {"index":12,"viewport":{"page_x":0,"page_y":0,"width":300,"height":245}}]}}),evidence:vec![]};
+        let mut after=before.clone();after.generation=2;
+        after.state["page"]["document_viewports"][0]["viewport"]["page_y"]=json!(119.33);
+        assert!(visible_progress(&before,&after));
+        before=after.clone();
+        after.state["page"]["elements"]=json!([{"reference":"fresh-random-reference"}]);
+        assert!(!visible_progress(&before,&after));
+        after.state["page"]["document_viewports"]=json!([]);
+        assert!(!visible_progress(&before,&after),"缺失采样不能算移动");
+        after=before.clone();after.state["page"]["document_token"]=json!("different-document");
+        after.state["page"]["document_viewports"][0]["viewport"]["page_y"]=json!(240);
+        assert!(!visible_progress(&before,&after),"不同文档不能比较旧滚动偏移");
+    }
 
     #[test]
     fn implicit_current_page_needs_frozen_host_source_and_cannot_override_explicit_url() {
@@ -357,23 +427,64 @@ mod tests {
             "nodes":[{"role":"heading","name":"原始内容"}]});
         let observation = Observation {generation:1,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
             state:json!({"page":page}),evidence:vec!["native-ax:1:0".into()]};
+        let request: ComputerUseRequest = serde_json::from_value(json!({"objective":"读正文","surface":"browser",
+            "target":{"url":"https://example.invalid/"},"success_criteria":["原始内容"]})).unwrap();
+        let verification = finish(r#"{"criteria":[{"index":0,"met":true,"evidence":"原始内容","node_indices":[0]}]}"#,
+            &request, &observation).unwrap();
         let mut fresh = crate::computer_use_adapters::BrowserSnapshot {page_id:"native:1".into(),url:"https://example.invalid/".into(),
             dom_revision:0,state:page.clone(),evidence:vec!["native-ax:1:0".into()]};
-        assert!(ensure_fresh(&observation, &fresh).is_err());
+        assert!(ensure_fresh(&observation, &fresh, &verification).is_err());
         fresh.state["observation_id"] = json!("00000000000000000000000000000002");
-        assert!(ensure_fresh(&observation, &fresh).is_ok());
+        assert!(ensure_fresh(&observation, &fresh, &verification).is_ok());
         fresh.state["viewport"] = json!({"page_x":0.0,"page_y":400.0,"width":800.0,"height":600.0});
-        assert!(ensure_fresh(&observation, &fresh).is_err());
+        assert!(ensure_fresh(&observation, &fresh, &verification).is_err());
         fresh.state.as_object_mut().unwrap().remove("viewport");
         fresh.state["nodes"][0]["name"] = json!("同URL新内容");
-        assert_eq!(ensure_fresh(&observation, &fresh).unwrap_err().code,"native_browser_observation_stale");
+        assert_eq!(ensure_fresh(&observation, &fresh, &verification).unwrap_err().code,"native_browser_observation_stale");
         fresh.state = page.clone();
         fresh.state["observation_id"] = json!("00000000000000000000000000000002");
         fresh.state["host_id"] = json!("host-two");
-        assert!(ensure_fresh(&observation, &fresh).is_err());
+        assert!(ensure_fresh(&observation, &fresh, &verification).is_err());
         fresh.state = page;
         fresh.state.as_object_mut().unwrap().remove("host_id");
-        assert!(ensure_fresh(&observation, &fresh).is_err());
+        assert!(ensure_fresh(&observation, &fresh, &verification).is_err());
+    }
+
+    #[test]
+    fn unrelated_live_text_can_change_but_evidence_and_focus_cannot() {
+        let page = json!({"host_id":"host-one","workspace_path":"workspace","room_id":"room-1",
+            "observation_id":"00000000000000000000000000000001","document_token":"a".repeat(32),
+            "resource":"browser-panel-1","generation":1,"navigation_revision":0,
+            "backend":"native-panel","read_only_request":false,"input_supported":true,
+            "url":"https://example.invalid/","title":"订单","truncated":false,"focused_node_index":1,
+            "nodes":[{"role":"StaticText","name":"行情 1"},{"role":"textbox","name":"订单码"},
+                {"role":"StaticText","name":"整单已完成"}]});
+        let observation = Observation {generation:1,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
+            state:json!({"page":page}),evidence:vec!["native-ax:1:0".into()]};
+        let request: ComputerUseRequest = serde_json::from_value(json!({"objective":"订单","surface":"browser",
+            "target":{"url":"https://example.invalid/"},"success_criteria":["整单已完成"]})).unwrap();
+        let positive = finish(r#"{"criteria":[{"index":0,"met":true,"evidence":"整单已完成","node_indices":[2]}]}"#,
+            &request,&observation).unwrap();
+        let negative = finish(r#"{"criteria":[{"index":0,"met":false,"evidence":"尚未完成","node_indices":[]}]}"#,
+            &request,&observation).unwrap();
+        let mut fresh = crate::computer_use_adapters::BrowserSnapshot {page_id:"native:1".into(),url:"https://example.invalid/".into(),
+            dom_revision:0,state:page.clone(),evidence:vec!["native-ax:1:0".into()]};
+        fresh.state["observation_id"] = json!("00000000000000000000000000000002");
+        fresh.state["nodes"][0]["name"] = json!("行情 2");
+        assert!(ensure_fresh(&observation,&fresh,&positive).is_ok());
+        assert!(ensure_fresh(&observation,&fresh,&negative).is_ok());
+        fresh.state["nodes"][2]["name"] = json!("尚未完成");
+        assert!(ensure_fresh(&observation,&fresh,&positive).is_err(),"不能接受已消失的成功证据");
+        assert!(ensure_fresh(&observation,&fresh,&negative).is_ok(),"负判不会冒领已完成");
+        fresh.state["loading"] = json!(true);
+        assert!(ensure_fresh(&observation,&fresh,&negative).is_err(),"不能在加载中复用旧页面");
+        fresh.state.as_object_mut().unwrap().remove("loading");
+        fresh.state["nodes"][1]["name"] = json!("另一订单码");
+        assert!(ensure_fresh(&observation,&fresh,&negative).is_err(),"相同索引不能代替焦点控件事实");
+        fresh.state = page;
+        fresh.state["observation_id"] = json!("00000000000000000000000000000002");
+        fresh.state["document_token"] = json!("b".repeat(32));
+        assert!(ensure_fresh(&observation,&fresh,&negative).is_err(),"文档替换仍使判断失效");
     }
 
     #[test]

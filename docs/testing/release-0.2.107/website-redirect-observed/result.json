@@ -1,0 +1,144 @@
+{
+  "formal_version": "0.2.107",
+  "facts": {
+    "run": {
+      "id": "run-chat-ccd5bcb0791d86c8f8d86160a0aed2964385653ed6c65968",
+      "state": "failed",
+      "legacy_turn_id": "chat-turn-1791509855689-1"
+    },
+    "computer_use": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791509855689-1-tool-675c25a2c956a49a936d836139dfa30389b3436524bb189285e3bf9520dcba2f",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791509855689-1-tool-675c25a2c956a49a936d836139dfa30389b3436524bb189285e3bf9520dcba2f",
+          "provider_tool_call_id": "tool-675c25a2c956a49a936d836139dfa30389b3436524bb189285e3bf9520dcba2f",
+          "status": "blocked",
+          "stage": "supervisor",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "{\"last_verification\":{\"bound_initial_url\":\"http://127.0.0.1:62472/old.html\",\"criteria_count\":1,\"criteria_met\":0,\"fresh_observation_id\":\"820ab11db63a64722a953a75f8341176\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":false,\"index\":0,\"model_met\":false,\"node_indices\":[],\"reason\":\"model_unmet\",\"selected_nodes\":[],\"span_nodes\":[]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"78b2b9c5fd175a9acd640b218457a613\",\"observation_origin\":\"after_settled_input\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":10,\"nodes\":[],\"title\":\"REDIRECT107-NEW\",\"truncated\":false,\"url\":\"http://localhost:62472/new.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0},\"terminal_reason\":\"computer-use action budget exhausted\",\"verification_is_last_observation\":true}",
+          "error": {
+            "code": "budget_exhausted",
+            "message": "computer-use action budget exhausted",
+            "retryable": false,
+            "retry_owner": "none"
+          },
+          "attempts": 1,
+          "steps_completed": 1,
+          "input_steps": [
+            {
+              "step_index": 0,
+              "action_kind": "click",
+              "input_delivery": "sent",
+              "input_release_status": "released",
+              "partial": false,
+              "effect_status": "effect_observed",
+              "goal_verdict": "failed"
+            }
+          ],
+          "evidence": [
+            "native-ax:1:2",
+            "native-observation:6e2b80ad77a96901403d34e660b95071",
+            "native-ax:1:2",
+            "native-observation:6e2b80ad77a96901403d34e660b95071",
+            "native-input:c7a2676a097310352d8a3d6acaf25a6c",
+            "native-ax:1:2",
+            "native-observation:78b2b9c5fd175a9acd640b218457a613",
+            "native-ax:1:2",
+            "native-observation:78b2b9c5fd175a9acd640b218457a613",
+            "native-ax:1:2",
+            "native-observation:820ab11db63a64722a953a75f8341176"
+          ],
+          "supervisor": {
+            "circuit_open": true,
+            "reason": "budget_exhausted",
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791510755689
+              }
+            },
+            "cu_deadline_ms": 1791510755689,
+            "cu_deadline_established_at_ms": 1791509869458,
+            "cu_budget_ms": 900000
+          }
+        },
+        "steps": [
+          {
+            "step_index": 0,
+            "action_type": "click",
+            "status": "completed_unverified",
+            "error_code": null,
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "effect_status": "effect_observed"
+          }
+        ]
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "4848af1d886924c5f6928754f23e48390e7f083ac0483cb2",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  "before": {
+    "attempts": 950,
+    "messages": 1205,
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "after": {
+    "attempts": 951,
+    "messages": 1208
+  },
+  "calls": [
+    {
+      "tool_name": "computer_use_perform",
+      "status": "failed",
+      "tool_call_id": "tool-675c25a2c956a49a936d836139dfa30389b3436524bb189285e3bf9520dcba2f"
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791509855962-0",
+    "kind": "assistant-reply",
+    "content": "任务未达成（终态回执 `status: blocked`，stage: supervisor，`goal_achieved: false`）：\n\n- **错误**：`budget_exhausted` —— \"computer-use action budget exhausted\"（max_actions=1 已用尽；terminal_reason 相同）\n- **终态 input_steps[0] 原样事实**（action_kind: click，目标本轮 dom-5034f97a… “投递事实验收”按钮，`http://127.0.0.1:62472/old.html`）：\n  - **input_delivery**：`sent` —— 点击已真实投递（native-input:c7a2676a…）\n  - **input_release_status**：`released` —— 完整释放，`partial: false`\n  - **effect_status**：`effect_observed` —— 宿主确认产生了效果观察；但 `goal_verdict: failed`\n- **资源变化原因**：旧页在可信 click 之后按正常网站行为**自动跳转至另一来源** `http://localhost:62472/new.html`（127.0.0.1 → localhost，跨源）；freshness_confirmed=true 的验收观察（observation_origin: after_settled_input）显示新页 REDIRECT107-NEW 仅含“新网页已加载”，无任何点击确认文本——criteria_met=0，验收如实判未满足，非按下期间变化\n- 投递与释放事实未被跳转覆盖；效果有观察但目标标准在新页无法满足，预算耗尽终止（circuit_open, retryable=false）\n- attempts=1、steps_completed=1、action_count=1；未重试、未补发、未操作新页面、未调用其它工具、未新建云会话",
+    "created_at": 1791509915878
+  },
+  "up_to_new_loaded_page_ms": 229.89990234375,
+  "strict_down_up_window": "not_tested; navigation deliberately after trusted click",
+  "passed": "真实跨来源跳转，sent/released保留；目标文字在新页不可见、budget_exhausted，未命中在途观察资源变化",
+  "open": "newTarget/跨来源commit严格按下窗口与其它总体矩阵仍开放"
+}

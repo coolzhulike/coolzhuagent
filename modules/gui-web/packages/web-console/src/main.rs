@@ -35,13 +35,18 @@ mod computer_use_turn_scope;
 mod chat_insights;
 mod static_resource_contract;
 mod scheduled_execution;
+mod scheduled_delivery;
 mod scheduled_jobs;
 mod workspace_activity;
 mod runtime_tool_supervision;
 mod chat_tool_history;
 mod multimodal_input;
+mod attachment_text;
 mod model_discovery;
 mod agent_session_backend;
+mod session_model_config;
+mod session_config_service;
+use session_model_config::{SessionModelLimitOverride, model_settings_protocol, model_settings_base_url, constrain_session_model_limit};
 mod devin_acp;
 mod content_delivery;
 mod content_blob_store;
@@ -79,9 +84,12 @@ mod native_recovery;
 mod native_recovery_store;
 mod request_usage;
 mod history_persistence;
+mod chat_history_sync;
 mod schema_upgrade;
 mod root_execution_budget;
+mod tool_dispatch_service;
 mod tool_dispatch_settlement;
+mod tool_dispatch_audit;
 mod tool_invocation_identity;
 mod chat_run_admission;
 mod video_job_budget;
@@ -107,6 +115,7 @@ mod s0_fixture_replay;
 #[cfg(test)]
 mod test_env;
 mod tool_loop_coordinator;
+mod tool_diagnostics;
 mod wechat_authorization;
 mod wechat_command;
 mod wechat_command_runtime;
@@ -1836,6 +1845,8 @@ fn app() -> Router {
         .route("/api/chat/rooms/{room_id}/search", get(chat_insights::search))
         .route("/api/chat/rooms/{room_id}/insights", get(chat_insights::insights))
         .route("/api/chat/rooms/{room_id}/trace", get(chat_insights::trace))
+        .route("/api/chat/rooms/{room_id}/history-events", get(chat_history_sync::events))
+        .route("/api/chat/rooms/{room_id}/history-messages", get(chat_history_sync::messages))
         .route("/api/runs/{run_id}", get(api_run_status))
         .route("/api/runs/{run_id}/events", get(api_run_events))
         .route("/api/runs/{run_id}/interrupt", post(api_run_interrupt))
@@ -3337,8 +3348,12 @@ fn web_card_api_audit_item(
     }
 }
 
-async fn api_workspace() -> Json<WorkspaceResponse> {
-    Json(workspace_response())
+async fn api_workspace() -> ApiResult<Json<WorkspaceResponse>> {
+    let pin = workspace_activity::pin_workspace()
+        .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+    let mut response = workspace_response();
+    response.configuration_scope = Some(pin.configuration_scope(&response.workspace_id));
+    Ok(Json(response))
 }
 
 async fn api_set_workspace(
@@ -3363,7 +3378,7 @@ async fn api_workspace_reload() -> ApiResult<Json<WorkspaceResponse>> {
 }
 
 fn reload_workspace_scope(workspace: PathBuf) -> ApiResult<WorkspaceResponse> {
-    let _workspace_change = scheduled_jobs::begin_workspace_change()
+    let workspace_change = scheduled_jobs::begin_workspace_change()
         .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
     lsp_host::invalidate_workspace();
     terminal_host::invalidate_scope();
@@ -3393,7 +3408,10 @@ fn reload_workspace_scope(workspace: PathBuf) -> ApiResult<WorkspaceResponse> {
     lsp_host::invalidate_workspace();
     terminal_host::invalidate_scope();
     mcp_host::invalidate_workspace();
-    Ok(workspace_response_from_path(&workspace))
+    let mut response = workspace_response_from_path(&workspace);
+    response.configuration_scope = Some(workspace_change.commit(&response.workspace_id)
+        .map_err(|message| api_error(StatusCode::INTERNAL_SERVER_ERROR, &message))?);
+    Ok(response)
 }
 
 fn scan_project_entries(workspace: &Path) -> Vec<ProjectEntry> {
@@ -4755,17 +4773,19 @@ struct LocalChatRuntimeConfig {
 }
 
 fn local_chat_runtime_config() -> LocalChatRuntimeConfig {
-    read_config(|config| {
-        normalized_local_chat_runtime_config(
-            config.model.local_chat_port,
-            config.model.local_chat_context_window,
-            config.model.local_chat_max_output_tokens,
-            config.model.local_chat_reasoning_budget,
-            config.model.local_chat_gpu_layers,
-            config.model.local_chat_parallel_slots,
-            config.model.local_chat_startup_timeout_ms,
-        )
-    })
+    read_config(local_chat_runtime_config_from_config)
+}
+
+fn local_chat_runtime_config_from_config(config: &WorkspaceConfig) -> LocalChatRuntimeConfig {
+    normalized_local_chat_runtime_config(
+        config.model.local_chat_port,
+        config.model.local_chat_context_window,
+        config.model.local_chat_max_output_tokens,
+        config.model.local_chat_reasoning_budget,
+        config.model.local_chat_gpu_layers,
+        config.model.local_chat_parallel_slots,
+        config.model.local_chat_startup_timeout_ms,
+    )
 }
 
 fn normalized_local_chat_runtime_config(
@@ -7008,42 +7028,6 @@ struct WorkspaceConfig {
     session_model_limits: BTreeMap<String, SessionModelLimitOverride>,
 }
 
-/// custom provider 会话的 token 限制覆盖项（按会话 id 生效）。字段为 0 表示该项不覆盖、沿用默认表。
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-struct SessionModelLimitOverride {
-    #[serde(default)]
-    backend_kind: Option<agent_session_backend::AgentSessionBackend>,
-    #[serde(default)]
-    context_window: u32,
-    #[serde(default)]
-    max_output_tokens: u32,
-    #[serde(default)]
-    protocol: Option<String>,
-    #[serde(default)]
-    base_url: Option<String>,
-    #[serde(default)]
-    endpoint: Option<String>,
-    #[serde(default)]
-    temperature: Option<f64>,
-    #[serde(default)]
-    top_p: Option<f64>,
-    #[serde(default)]
-    reasoning_mode: Option<String>,
-    #[serde(default)]
-    thinking_budget: Option<u32>,
-    #[serde(default)]
-    turn_timeout_ms: Option<u64>,
-    #[serde(default)]
-    supports_multimodal: Option<bool>,
-    #[serde(default)]
-    enable_llm_tools: Option<bool>,
-    #[serde(default)]
-    llm_tool_exposure: Option<String>,
-    #[serde(default)]
-    computer_use_enabled: Option<bool>,
-    #[serde(default)]
-    tool_allowlist: Option<Vec<String>>,
-}
 
 fn session_model_settings_for(session_id: &str) -> SessionModelLimitOverride {
     read_config(|config| config.session_model_limits.get(session_id).cloned().unwrap_or_default())
@@ -7870,6 +7854,9 @@ struct ConfigScheduledTasks {
 struct ConfigScheduledTask {
     id: String,
     target_session_id: String,
+    /// 缺省沿用旧系统房间；None 不参与序列化，保持旧领取指纹。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    chat_room_id: Option<String>,
     content: String,
     run_at_ms: u64,
     #[serde(default)]
@@ -8723,6 +8710,7 @@ fn workspace_response_from_path(workspace: &Path) -> WorkspaceResponse {
     let diagnostics = workspace_boundary_diagnostics(workspace, &allowed_roots);
     WorkspaceResponse {
         workspace_id: workspace_identity(workspace),
+        configuration_scope: None,
         workspace: display_path(workspace),
         entries: scan_project_entries(workspace),
         allowed_roots: allowed_roots
@@ -9403,6 +9391,26 @@ async fn api_project_search_files(
             score.map(|value| (value, file))
         })
         .collect();
+    // 完整相对路径直接查盘，使新建文件无需等待整库符号重建就能打开。
+    // 模糊检索仍复用索引；路径解析沿用工程文件接口的工作区边界。
+    if let Ok(path) = resolve_project_existing_path(&root, Some(needle)) {
+        if let Ok(metadata) = std::fs::metadata(&path) {
+            if metadata.is_file() {
+                if let Ok(canonical_root) = root.canonicalize() {
+                    let relative = relative_project_path(&canonical_root, &path);
+                    scored.retain(|(_, file)| file.path != relative);
+                    scored.push((
+                        1100,
+                        IdeFileEntry {
+                            path: relative,
+                            size: metadata.len(),
+                            mtime: metadata.modified().ok().and_then(system_time_millis),
+                        },
+                    ));
+                }
+            }
+        }
+    }
     scored.sort_by(|left, right| right.0.cmp(&left.0));
     let files = scored
         .into_iter()
@@ -9963,6 +9971,8 @@ async fn api_task_schedules() -> Json<TaskScheduleListResponse> {
 async fn api_create_task_schedule(
     Json(payload): Json<TaskScheduleCreateRequest>,
 ) -> ApiResult<Json<TaskScheduleListResponse>> {
+    let _workspace_pin = workspace_activity::pin_workspace()
+        .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
     let content = payload.content.trim();
     if content.is_empty() {
         return Err(api_error(
@@ -9977,7 +9987,7 @@ async fn api_create_task_schedule(
             "scheduled task target session cannot be empty",
         ));
     }
-    {
+    let chat_room_id = {
         let store = session_store().lock().map_err(|_| {
             api_error(
                 StatusCode::INTERNAL_SERVER_ERROR,
@@ -9995,7 +10005,8 @@ async fn api_create_task_schedule(
                 "scheduled task target session does not exist",
             ));
         }
-    }
+        scheduled_delivery::validate_room(&store, payload.chat_room_id.as_deref(), &payload.task_kind)?
+    };
 
     let now = unix_timestamp_millis();
     let schedule_kind = match payload.schedule_kind.trim() {
@@ -10053,6 +10064,7 @@ async fn api_create_task_schedule(
     let task = ConfigScheduledTask {
         id,
         target_session_id,
+        chat_room_id,
         content: content.to_string(),
         run_at_ms,
         interval_ms,
@@ -10156,6 +10168,21 @@ fn next_aligned_run_at(base: u64, now: u64, interval_ms: u64) -> u64 {
     base.saturating_add(steps.saturating_mul(interval_ms))
 }
 
+/// 执行返回后按当前时刻跳过错过的周期，计划锚点仍保留原触发时刻。
+fn advance_scheduled_task(task: &mut ConfigScheduledTask, now: u64) {
+    if task.schedule_kind == "daily" || task.schedule_kind == "weekly" {
+        task.run_at_ms = next_wallclock_fire(
+            now, task.tz_offset_minutes, task.wall_hour, task.wall_minute, &task.weekdays,
+        );
+        task.status = "scheduled".into();
+    } else if let Some(interval_ms) = task.interval_ms.filter(|value| *value > 0) {
+        task.run_at_ms = next_aligned_run_at(task.run_at_ms, now, interval_ms);
+        task.status = "scheduled".into();
+    } else {
+        task.status = "executed".into();
+    }
+}
+
 #[cfg(test)]
 mod scheduler_align_tests {
     use super::{next_aligned_run_at, next_wallclock_fire};
@@ -10206,6 +10233,31 @@ mod scheduler_align_tests {
     #[test]
     fn handles_zero_interval_safely() {
         assert_eq!(next_aligned_run_at(0, 12_345, 0), 12_346);
+    }
+
+    #[test]
+    fn long_execution_reschedules_after_completion_without_catchup() {
+        let mut task: super::ConfigScheduledTask = serde_json::from_value(serde_json::json!({
+            "id": "long-execution", "target_session_id": "unused", "content": "unused",
+            "run_at_ms": 120_000, "interval_ms": 60_000, "schedule_kind": "interval"
+        })).unwrap();
+        // 本轮120秒开始、310秒完成，下一次应为原锚点的360秒，不能回排到180秒。
+        super::advance_scheduled_task(&mut task, 310_000);
+        assert_eq!(task.run_at_ms, 360_000);
+        assert_eq!(task.status, "scheduled");
+    }
+
+    #[test]
+    fn long_execution_reschedules_wallclock_after_completion() {
+        let mut task: super::ConfigScheduledTask = serde_json::from_value(serde_json::json!({
+            "id": "long-wallclock", "target_session_id": "unused", "content": "unused",
+            "run_at_ms": 20_000 * DAY, "schedule_kind": "daily", "wall_hour": 10,
+            "tz_offset_minutes": TZ_CN
+        })).unwrap();
+        let completed = 20_001 * DAY + 11 * HOUR_MS - OFFSET_MS;
+        super::advance_scheduled_task(&mut task, completed);
+        assert_eq!(task.run_at_ms, 20_002 * DAY + 10 * HOUR_MS - OFFSET_MS);
+        assert_eq!(task.status, "scheduled");
     }
 
     // ===== 挂钟计划 next_wallclock_fire =====
@@ -10343,7 +10395,7 @@ async fn run_due_task_schedules_once() -> Vec<TaskScheduleRunItem> {
                 }
             }
         } else {
-            match deliver_scheduled_task(task).await {
+            match scheduled_delivery::deliver(task).await {
                 Ok(()) => ScheduledRunOutcome {
                     id: task.id.clone(),
                     executed: true,
@@ -10353,7 +10405,7 @@ async fn run_due_task_schedules_once() -> Vec<TaskScheduleRunItem> {
                 },
                 Err(err) => {
                     let message = api_error_message(err);
-                    append_scheduled_task_status_best_effort("failed", &message);
+                    scheduled_delivery::append_status_best_effort(task, "failed", &message);
                     ScheduledRunOutcome {
                         id: task.id.clone(),
                         executed: false,
@@ -10405,29 +10457,8 @@ async fn run_due_task_schedules_once() -> Vec<TaskScheduleRunItem> {
                 if let Some(content) = &outcome.content_update {
                     task.content = content.clone();
                 }
-                if task.schedule_kind == "daily" || task.schedule_kind == "weekly" {
-                    // 挂钟计划：按本地时区重算下一个触发时刻（每天/每周 HH:MM）。
-                    task.run_at_ms = next_wallclock_fire(
-                        now,
-                        task.tz_offset_minutes,
-                        task.wall_hour,
-                        task.wall_minute,
-                        &task.weekdays,
-                    );
-                    task.status = "scheduled".to_string();
-                } else {
-                    match task.interval_ms {
-                        // 周期任务：防漂移对齐到 now 之后第一个触发点。
-                        Some(interval_ms) if interval_ms > 0 => {
-                            task.run_at_ms = next_aligned_run_at(task.run_at_ms, now, interval_ms);
-                            task.status = "scheduled".to_string();
-                        }
-                        // 单次任务（或非法 interval=0）：执行后置为已完成。
-                        _ => {
-                            task.status = "executed".to_string();
-                        }
-                    }
-                }
+                // 执行和结果持久化可能跨过多个周期；不能用扫描开始时的旧now重排。
+                advance_scheduled_task(task, unix_timestamp_millis());
             }
             Ok(())
         });
@@ -10464,49 +10495,6 @@ fn spawn_scheduled_task_scheduler() {
             }
         }
     });
-}
-
-async fn deliver_scheduled_task(task: &ConfigScheduledTask) -> ApiResult<()> {
-    // 校验目标会话并幂等创建系统聊天室（锁在此块内获取并立即释放，不跨 await）。
-    {
-        let mut store = session_store().lock().map_err(|_| {
-            api_error(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "session store lock failed",
-            )
-        })?;
-        if !store
-            .state
-            .sessions
-            .iter()
-            .any(|session| session.id == task.target_session_id)
-        {
-            return Err(api_error(
-                StatusCode::NOT_FOUND,
-                "scheduled task target session does not exist",
-            ));
-        }
-        store.ensure_scheduled_task_system_room()?;
-    }
-    // 权限只属于本次投递，不修改会话全权缓存；结束/取消会撤销已捕获引用。
-    let scoped_grant = task.permissions.iter().any(|permission| permission == "full-access")
-        .then(|| scheduled_execution::ScheduledExecutionGrant::new(
-            workspace_identity(&active_workspace_path()),
-            task.target_session_id.clone(),
-            SCHEDULED_TASK_SYSTEM_ROOM_ID.to_string(),
-            Duration::from_secs(300),
-        ));
-    let request = SendMessageRequest {
-        expected_workspace_id: None,
-        session_id: Some(task.target_session_id.clone()),
-        chat_room_id: Some(SCHEDULED_TASK_SYSTEM_ROOM_ID.to_string()),
-        target_agent_ids: vec![task.target_session_id.clone()],
-        text: task.content.clone(),
-        selected_message_ids: None,
-        attachments: None,
-    };
-    scheduled_execution::run(scoped_grant, api_chat_send(axum::Json(request)))
-        .await.map(|_| ())
 }
 
 fn append_scheduled_task_status_best_effort(status: &str, detail: &str) {
@@ -11147,11 +11135,29 @@ fn project_tree_node(
         project_tree_append_child(
             root,
             &entry.path(),
-            depth - 1,
+            0,
             remaining,
             &mut node,
             warnings,
         );
+    }
+    // 先为当前目录的条目分配额度，避免第一个大子目录吞掉后续同级文件。
+    // 用户仍可双击目录单独浏览；剩余额度只用于预展开。
+    if depth > 1 {
+        for child in &mut node.children {
+            if child.kind != "dir" || *remaining == 0 {
+                continue;
+            }
+            let child_path = root.join(&child.relative_path);
+            match project_tree_node(root, &child_path, depth - 1, remaining, warnings) {
+                Ok(expanded) => *child = expanded,
+                Err((_, Json(error))) => warnings.push(format!(
+                    "{}: children omitted: {}",
+                    display_path(&child_path),
+                    error.error
+                )),
+            }
+        }
     }
     Ok(node)
 }
@@ -12950,8 +12956,10 @@ async fn api_sessions() -> ApiResult<Json<SessionListResponse>> {
 }
 
 async fn api_create_session(
+    headers: HeaderMap,
     Json(payload): Json<UpsertSessionRequest>,
 ) -> ApiResult<Json<SessionMutationResponse>> {
+    let _workspace_pin = session_config_service::configuration_request_pin(&headers)?;
     let mut store = session_store()
         .lock()
         .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
@@ -13195,80 +13203,38 @@ struct SessionModelLimitUpdateRequest {
 }
 
 fn session_model_limit_response(
-    session_id: String,
-    model: String,
-    overridden: bool,
+    agent: AgentSessionDto,
+    parameters: SessionModelLimitOverride,
+    local: LocalChatRuntimeConfig,
 ) -> SessionModelLimitResponse {
-    let default_limit = api::model_token_limit(&model);
-    let (eff_ctx, eff_out) = effective_model_limit_for(&session_id, &model);
+    let default_limit = api::model_token_limit(&agent.model);
+    let (eff_ctx, eff_out) = effective_model_limit_for_agent_snapshot(&agent, &parameters, local);
     SessionModelLimitResponse {
-        session_id,
-        model,
+        session_id: agent.id,
+        model: agent.model,
         context_window: eff_ctx,
         max_output_tokens: eff_out,
         default_context_window: default_limit.context_tokens,
         default_max_output_tokens: default_limit.max_output_tokens,
-        overridden,
+        overridden: parameters.context_window > 0 || parameters.max_output_tokens > 0,
     }
 }
 
 /// GET /api/sessions/{id}/model-limit：返回该会话当前生效与默认的 token 限制，供前端 custom provider 手填回显。
 async fn api_get_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
+    headers: HeaderMap,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    let model = {
-        let store = session_store()
-            .lock()
-            .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        let session = store.find_session(&session_id)
-            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
-        if agent_session_backend::AgentSessionBackend::for_provider(&session.provider) != agent_session_backend::AgentSessionBackend::LlmHttp {
-            return Err(api_error(StatusCode::BAD_REQUEST, "Devin 容量尚未协商，请使用模型与会话配置页查看状态。"));
-        }
-        session.model.clone()
-    };
-    let overridden = read_config(|c| {
-        c.session_model_limits
-            .get(&session_id)
-            .map(|o| o.context_window > 0 || o.max_output_tokens > 0)
-            .unwrap_or(false)
-    });
-    Ok(Json(session_model_limit_response(
-        session_id, model, overridden,
-    )))
+    session_config_service::SessionConfigService::new(session_store(), &headers)?.read_limit(session_id).map(Json)
 }
 
 /// POST /api/sessions/{id}/model-limit：写入手填覆盖（context_window/max_output_tokens）；两者皆 0 则清除覆盖、回退默认表。
 async fn api_set_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
+    headers: HeaderMap,
     Json(payload): Json<SessionModelLimitUpdateRequest>,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    let model = {
-        let store = session_store()
-            .lock()
-            .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        let session = store.find_session(&session_id)
-            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
-        if agent_session_backend::AgentSessionBackend::for_provider(&session.provider) != agent_session_backend::AgentSessionBackend::LlmHttp {
-            return Err(api_error(StatusCode::BAD_REQUEST, "Devin 容量尚未协商，请使用模型与会话配置页查看状态。"));
-        }
-        session.model.clone()
-    };
-    // 上限保护，避免误填超大值导致预算计算异常。
-    let ctx = payload.context_window.min(4_000_000);
-    let out = payload.max_output_tokens.min(1_000_000);
-    mutate_workspace_config(|config| {
-        // 旧容量 API 只修改容量，不能丢弃同一会话的采样、协议和工具参数。
-        let settings = config.session_model_limits.entry(session_id.clone()).or_default();
-        settings.context_window = ctx;
-        settings.max_output_tokens = out;
-        Ok(())
-    })?;
-    Ok(Json(session_model_limit_response(
-        session_id,
-        model,
-        ctx > 0 || out > 0,
-    )))
+    session_config_service::SessionConfigService::new(session_store(), &headers)?.save_limit(session_id, payload).map(Json)
 }
 
 #[derive(Debug, Deserialize)]
@@ -13279,109 +13245,11 @@ struct SessionModelSettingsUpdateRequest {
     expected_revision: Option<u64>,
 }
 
-fn model_settings_protocol(agent: &AgentSessionDto, settings: &SessionModelLimitOverride) -> &'static str {
-    match agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) {
-        agent_session_backend::AgentSessionBackend::DevinAcp => return "devin_acp",
-        agent_session_backend::AgentSessionBackend::DevinCloud => return "devin_cloud",
-        agent_session_backend::AgentSessionBackend::LlmHttp => {}
-    }
-    match settings.protocol.as_deref() {
-        Some("anthropic_messages") => "anthropic_messages",
-        Some("openai_chat_completions") => "openai_chat_completions",
-        _ => match api::provider_kind_from_name(&agent.provider) {
-            Some(ProviderKind::Anthropic | ProviderKind::ClawApi) => "anthropic_messages",
-            _ => "openai_chat_completions",
-        },
-    }
-}
-
-fn model_settings_base_url(agent: &AgentSessionDto, settings: &SessionModelLimitOverride) -> String {
-    if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) != agent_session_backend::AgentSessionBackend::LlmHttp { return String::new(); }
-    settings.base_url.as_deref().filter(|value| !value.trim().is_empty())
-        .or(agent.base_url.as_deref().filter(|value| !value.trim().is_empty()))
-        .map(str::to_string)
-        .unwrap_or_else(|| {
-            let kind = api::provider_kind_from_name(&agent.provider)
-                .unwrap_or_else(|| api::detect_provider_kind(&agent.model));
-            api::ModelRegistry::global().resolve_model_for_provider(&agent.model, kind).base_url
-        })
-}
-
 fn validate_session_model_settings(settings: &SessionModelLimitOverride, agent: &AgentSessionDto) -> ApiResult<()> {
     agent_session_backend::validate_parameters(settings, agent)?;
     if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) != agent_session_backend::AgentSessionBackend::LlmHttp { return Ok(()); }
-    let invalid = |message: &str| api_error(StatusCode::BAD_REQUEST, message);
-    if !matches!(settings.protocol.as_deref(), None | Some("openai_chat_completions" | "anthropic_messages")) {
-        return Err(invalid("不支持该模型协议"));
-    }
-    if settings.turn_timeout_ms.is_some_and(|value| !(60_000..=86_400_000).contains(&value)) {
-        return Err(invalid("每轮任务总时限必须为 1 分钟至 24 小时"));
-    }
-    let anthropic = model_settings_protocol(agent, settings) == "anthropic_messages";
-    let mode = settings.reasoning_mode.as_deref().unwrap_or("auto");
-    if !matches!(mode, "auto" | "effort" | "thinking" | "budget" | "adaptive")
-        || (anthropic && matches!(mode, "effort" | "thinking"))
-        || (!anthropic && matches!(mode, "budget" | "adaptive")) {
-        return Err(invalid("思考参数编码与选择的协议不匹配"));
-    }
-    if settings.context_window > 4_000_000 || settings.max_output_tokens > 1_000_000 {
-        return Err(invalid("上下文容量上限为 4000000，最大输出上限为 1000000"));
-    }
-    let defaults = api::model_token_limit(&agent.model);
-    let ctx = if settings.context_window > 0 { settings.context_window } else { defaults.context_tokens };
-    let out = if settings.max_output_tokens > 0 { settings.max_output_tokens } else { defaults.max_output_tokens };
-    if settings.max_output_tokens > 0 && out > ctx {
-        return Err(invalid("最大输出不能超过上下文容量"));
-    }
-    if settings.temperature.is_some_and(|value| !value.is_finite() || value < 0.0 || value > if anthropic { 1.0 } else { 2.0 }) {
-        return Err(invalid("温度必须在协议允许的范围内：OpenAI 0–2，Anthropic 0–1"));
-    }
-    if settings.top_p.is_some_and(|value| !value.is_finite() || value <= 0.0 || value > 1.0) {
-        return Err(invalid("Top P 必须大于 0 且不超过 1"));
-    }
-    if anthropic && settings.temperature.is_some() && settings.top_p.is_some() {
-        return Err(invalid("Anthropic 请只设置温度或 Top P 中的一项"));
-    }
-    let auto_anthropic_thinking = mode == "auto" && anthropic && matches!(
-        api::resolve_legacy_reasoning("clawapi", &agent.model, Some(&agent.reasoning_effort)).preflight_wire,
-        api::ReasoningWire::AnthropicAdaptive { .. }
-    );
-    if anthropic && ((matches!(mode, "budget" | "adaptive") && agent.reasoning_effort != "none") || auto_anthropic_thinking)
-        && (settings.temperature.is_some() || settings.top_p.is_some()) {
-        return Err(invalid("开启 Anthropic 思考时请将采样参数留空，使用模型默认值"));
-    }
-    if mode == "adaptive" && !matches!(agent.reasoning_effort.as_str(), "auto" | "none" | "low" | "medium" | "high" | "max") {
-        return Err(invalid("Adaptive 思考支持自动、关闭、低、中、高、最大"));
-    }
-    if mode == "budget" && agent.reasoning_effort != "none" {
-        let budget = settings.thinking_budget.unwrap_or_default();
-        if budget < 1024 || budget >= request_max_tokens_for_limit((ctx, out)) {
-            return Err(invalid("思考预算至少为 1024，并且必须小于本轮实际输出预算（受上下文预留限制）"));
-        }
-    }
-    if !matches!(settings.llm_tool_exposure.as_deref(), None | Some("all" | "whitelist" | "dispatch-only")) {
-        return Err(invalid("工具范围必须为 all、whitelist 或 dispatch-only"));
-    }
-    if let Some(list) = &settings.tool_allowlist {
-        if list.len() > 256 || list.iter().any(|name| name.trim().is_empty() || name.len() > 128) {
-            return Err(invalid("工具清单最多 256 项，工具名称不能为空且不能超过 128 字节"));
-        }
-    }
-    let base = model_settings_base_url(agent, settings);
-    let url = reqwest::Url::parse(&base).map_err(|_| invalid("接口地址必须是完整的 HTTP 或 HTTPS URL"))?;
-    if !matches!(url.scheme(), "http" | "https") || url.host_str().is_none() || !url.username().is_empty() || url.password().is_some() {
-        return Err(invalid("接口地址须使用 HTTP/HTTPS；密钥请填写在独立的 API Key 输入框中"));
-    }
-    if let Some(endpoint) = settings.endpoint.as_deref().filter(|value| !value.trim().is_empty()) {
-        if endpoint.contains("://") {
-            let endpoint_url = reqwest::Url::parse(endpoint).map_err(|_| invalid("Endpoint 地址无效"))?;
-            if !matches!(endpoint_url.scheme(), "http" | "https") || endpoint_url.host_str().is_none()
-                || !endpoint_url.username().is_empty() || endpoint_url.password().is_some() {
-                return Err(invalid("Endpoint 须使用 HTTP/HTTPS 且不能包含密钥"));
-            }
-        }
-    }
-    Ok(())
+    session_model_config::validate_http_parameters(settings, agent)
+        .map_err(|message| api_error(StatusCode::BAD_REQUEST, &message))
 }
 
 #[cfg(test)]
@@ -13447,18 +13315,12 @@ mod unified_model_settings_tests {
     }
 }
 
-async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) -> ApiResult<Json<JsonValue>> {
-    let (session, agent) = {
-        let store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        let session = store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
-        (session.summary(store.is_active(&session_id)), session.to_agent_session(store.is_active(&session_id)))
-    };
-    let (parameters, configuration_revision) = read_config(|config| (
-        config.session_model_limits.get(&session_id).cloned().unwrap_or_default(),
-        config.configuration_revision,
-    ));
+async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>, headers: HeaderMap) -> ApiResult<Json<JsonValue>> {
+    let service = session_config_service::SessionConfigService::new(session_store(), &headers)?;
+    let session_config_service::Snapshot { session, agent, parameters, configuration_revision, local } =
+        service.read(session_id)?;
     let defaults = api::model_token_limit(&agent.model);
-    let effective = effective_model_limit_for_agent(&agent);
+    let effective = effective_model_limit_for_agent_snapshot(&agent, &parameters, local);
     let plugin_tools = if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
         == agent_session_backend::AgentSessionBackend::DevinAcp {
         plugin_runtime::definitions(&active_workspace_path(), &[])
@@ -13467,6 +13329,7 @@ async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) 
     Ok(Json(json!({
         "session": session,
         "configuration_revision": configuration_revision,
+        "configuration_scope": service.configuration_scope(),
         "available_plugin_tools": plugin_tools.as_ref().ok(),
         "plugin_tools_error": plugin_tools.as_ref().err(),
         "backend_kind": agent_session_backend::AgentSessionBackend::for_provider(&agent.provider),
@@ -13492,49 +13355,12 @@ async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) 
 
 async fn api_set_session_model_settings(
     AxumPath(session_id): AxumPath<String>,
+    headers: HeaderMap,
     Json(payload): Json<SessionModelSettingsUpdateRequest>,
 ) -> ApiResult<Json<JsonValue>> {
-    let mut agent = {
-        let store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?
-            .to_agent_session(store.is_active(&session_id))
-    };
-    if let Some(session) = payload.session.as_ref() {
-        validate_reasoning_effort(session.reasoning_effort.as_deref())?;
-        if let Some(avatar) = session.avatar.as_deref() { normalize_session_avatar(Some(avatar))?; }
-        if let Some(provider) = &session.provider { agent.provider = normalize_provider(Some(provider)); }
-        if let Some(model_type) = &session.model_type { agent.model_type = normalize_model_type(Some(model_type)); }
-        agent_session_backend::validate_session_input(session, &agent.provider)?;
-        if let Some(model) = &session.model { agent.model = normalize_model(Some(model)); }
-        if let Some(effort) = &session.reasoning_effort { agent.reasoning_effort = effort.clone(); }
-    }
-    validate_session_model_settings(&payload.parameters, &agent)?;
-    let previous = session_model_settings_for(&session_id);
-    let published = mutate_workspace_config(|config| {
-        if payload.expected_revision.is_some_and(|revision| revision != config.configuration_revision) {
-            return Err(api_error(StatusCode::CONFLICT, "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入"));
-        }
-        config.session_model_limits.insert(session_id.clone(), payload.parameters.clone());
-        Ok(())
-    })?;
-    if let Some(session) = payload.session {
-        let result = session_store().lock()
-            .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?
-            .update_session(&session_id, session);
-        if let Err(error) = result {
-            let rollback = mutate_workspace_config(|config| {
-                if config.configuration_revision != published.configuration_revision {
-                    return Err(api_error(StatusCode::CONFLICT, "配置已变化，未覆盖其他修改"));
-                }
-                config.session_model_limits.insert(session_id.clone(), previous); Ok(())
-            });
-            if rollback.is_err() {
-                return Err(api_error(StatusCode::CONFLICT, "会话更新失败，参数回退未完成；请重新载入核对已保存状态"));
-            }
-            return Err(error);
-        }
-    }
-    api_get_session_model_settings(AxumPath(session_id)).await
+    let service = session_config_service::SessionConfigService::new(session_store(), &headers)?;
+    service.save(session_id.clone(), payload)?;
+    api_get_session_model_settings(AxumPath(session_id), headers).await
 }
 
 async fn api_session_context_preview(
@@ -16917,6 +16743,7 @@ fn clawbot_send_request(
         .ok_or_else(|| api_error(StatusCode::BAD_REQUEST, "ClawBot 入站消息缺少文本或真实图片"))?;
     Ok(SendMessageRequest {
         expected_workspace_id: None,
+        native_browser_panel: false,
         session_id: preview.session_id.clone(),
         chat_room_id: Some(chat_room_id.to_string()),
         target_agent_ids: preview.target_agent_ids.clone(),
@@ -21110,9 +20937,6 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
     if devin_text && targets.len()!=1 {
         return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前仅支持单个 Agent 的聊天室会话，群发尚未开放。"));
     }
-    if devin_text && payload.attachments.as_ref().is_some_and(|items| items.iter().any(|item| !item.kind.eq_ignore_ascii_case("image"))) {
-        return Err(api_error(StatusCode::BAD_REQUEST,"Devin 当前支持文本与图片附件；其它附件尚未接入，未发送。"));
-    }
     for target in &targets {
         if agent_session_backend::AgentSessionBackend::for_provider(&target.provider)==agent_session_backend::AgentSessionBackend::DevinAcp {
             if !devin_acp::chat::valid_model_id(&target.model) {
@@ -21124,7 +20948,8 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         }
     }
     let attachment_count = payload.attachments.as_ref().map_or(0, Vec::len);
-    let attachments = payload.attachments.unwrap_or_default();
+    let mut attachments = payload.attachments.unwrap_or_default();
+    attachment_text::freeze(&mut attachments, &attachment_store_dir(), devin_text)?;
     let image_urls = encode_attachment_images(&attachments)?;
     let semantic_action = semantic_action_from_intent(text);
     let calls_vision =
@@ -21184,7 +21009,8 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         text,
         &targets,
     );
-    let user_content = compose_user_message_content(text, &reference_context);
+    let visible_user_content = compose_user_message_content(text, &reference_context);
+    let user_content = attachment_text::append(&visible_user_content, &attachments);
     let goal_trigger = if devin_text { None } else { prepare_goal_trigger_for_dispatch(
         text,
         targets.first().copied(),
@@ -21206,7 +21032,7 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
             .map(|agent| agent.display_name.clone())
             .collect::<Vec<_>>()
             .join(""),
-        content: user_content.clone(),
+        content: visible_user_content,
         kind: user_kind.to_string(),
         attachments: attachments.clone(),
     }];
@@ -21220,7 +21046,7 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         tasks: Vec::new(),
         user_content,
         // 原始本轮正文冻结执行边界；拼接的引用历史、群发上下文不得创建本轮工具契约。
-        computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::from_current_user(text),
+        computer_use_turn_scope: computer_use_turn_scope::ComputerUseTurnScope::from_submission(text,payload.native_browser_panel),
         chat_room_id,
         conversation_session_id,
         attachment_count,
@@ -24191,7 +24017,7 @@ fn computer_use_audit_record(
         .to_string(),
         execute_requested,
         execute_allowed,
-        executed,
+        executed: Some(executed),
         requires_human_confirmation: !executed,
         requires_screenshot_evidence: !executed,
         screenshot_path,
@@ -26881,7 +26707,7 @@ fn uploaded_attachment_response(
     let url = attachment_file_url(&file_name);
     let mime_type = mime_type.or_else(|| mime_type_for_url(&file_name).map(str::to_string));
     let kind = normalized_attachment_kind(kind, mime_type.as_deref(), &url);
-    let attachment = ChatAttachmentDto {
+    let attachment = ChatAttachmentDto { text_snapshot: None,
         kind,
         name: original_name.to_string(),
         url,
@@ -26967,14 +26793,7 @@ fn mime_type_for_url(url: &str) -> Option<&'static str> {
 
 fn diag_log(msg: &str) {
     let path = active_workspace_path().join("err.log");
-    let line = format!("{msg}\n");
-    if let Ok(mut f) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&path)
-    {
-        let _ = std::io::Write::write_all(&mut f, line.as_bytes());
-    }
+    let _ = diagnostics::append_diagnostic_line(&path, msg);
 }
 
 tokio::task_local! {
@@ -28104,7 +27923,8 @@ fn model_diagnostic_note(
             // 不再无条件声称 dry-run：工具是否真实执行由权限门控决定（dev-open/full-access 即真实执行）。
             // 与工具消息(dispatch_plan_chat_summary 的 route)保持一致，避免 task summary 与 tool-summary 矛盾。
             notes.push(format!(
-                "模型请求工具 `{name}`，已按当前权限门控派发（执行结果以工具消息为准）。input={input}"
+                "模型请求工具 `{name}`，已按当前权限门控派发（执行结果以工具消息为准）。input={}",
+                tool_diagnostics::input_shape(input)
             ));
         }
     }
@@ -28178,11 +27998,8 @@ async fn dispatch_model_tool_calls_parallel(
         let source_request_key = source_request_key.clone();
         tasks.spawn(async move {
             let _permit = semaphore.acquire_owned().await.ok();
-            if name.starts_with("mcp__") {
-                diag!("{log_prefix} dispatching tool_call: {name}, id={tool_use_id}, input=[MCP 参数已隐藏]");
-            } else {
-                diag!("{log_prefix} dispatching tool_call: {name}, id={tool_use_id}, input={input}");
-            }
+            diag!("{log_prefix} dispatching tool_call: {name}, id={tool_use_id}, input={}",
+                tool_diagnostics::input_shape(&input));
             let dispatch = run_model_tool_dispatch_for_session_with_identity(
                 &name,
                 &input,
@@ -29089,6 +28906,7 @@ fn build_context_assembly_with_roster(
         }
         let Some(mut message_for_context) = chat_tool_history::project_for_context(message) else { continue; };
         message_for_context.content = strip_context_usage_footer(&message_for_context.content);
+        message_for_context.content = attachment_text::append(&message_for_context.content, &message_for_context.attachments);
         if message_for_context.content.trim().is_empty() {
             continue;
         }
@@ -29557,18 +29375,10 @@ fn select_context_memory_beads(
 /// 取会话生效的 token 限制：优先 config 里该会话的手填覆盖（context_window/max_output_tokens，>0 才生效），
 /// 否则回退按 model 名查的默认表。解决 custom provider 模型落默认表导致预算异常。
 fn effective_model_limit_for(session_id: &str, model: &str) -> (u32, u32) {
-    let default_limit = api::model_token_limit(model);
-    let mut context_tokens = default_limit.context_tokens;
-    let mut max_output_tokens = default_limit.max_output_tokens;
-    if let Some(ov) = read_config(|config| config.session_model_limits.get(session_id).cloned()) {
-        if ov.context_window > 0 {
-            context_tokens = ov.context_window;
-        }
-        if ov.max_output_tokens > 0 {
-            max_output_tokens = ov.max_output_tokens;
-        }
-    }
-    (context_tokens, max_output_tokens)
+    read_config(|config| session_model_config::model_limit_for_settings(
+        model,
+        &config.session_model_limits.get(session_id).cloned().unwrap_or_default(),
+    ))
 }
 
 fn effective_model_limit_for_agent_values(
@@ -29591,24 +29401,28 @@ fn effective_model_limit_for_agent_values(
 }
 
 fn effective_model_limit_for_agent(agent: &AgentSessionDto) -> (u32, u32) {
-    let session_limit = effective_model_limit_for(&agent.id, &agent.model);
-    let local = local_chat_runtime_config();
+    read_config(|config| effective_model_limit_for_agent_snapshot(
+        agent,
+        &config.session_model_limits.get(&agent.id).cloned().unwrap_or_default(),
+        local_chat_runtime_config_from_config(config),
+    ))
+}
+
+fn effective_model_limit_for_agent_snapshot(
+    agent: &AgentSessionDto,
+    settings: &SessionModelLimitOverride,
+    local: LocalChatRuntimeConfig,
+) -> (u32, u32) {
+    let session_limit = session_model_config::model_limit_for_settings(&agent.model, settings);
     let actual_limit = effective_model_limit_for_agent_values(
         agent,
         session_limit,
         local.port,
         (local.context_window, local.max_output_tokens),
     );
-    constrain_session_model_limit(actual_limit, &session_model_settings_for(&agent.id))
+    constrain_session_model_limit(actual_limit, settings)
 }
 
-fn constrain_session_model_limit(limit: (u32, u32), settings: &SessionModelLimitOverride) -> (u32, u32) {
-    // 本地服务上限优先，但用户选择更小的预算仍必须生效。
-    (
-        if settings.context_window > 0 { limit.0.min(settings.context_window) } else { limit.0 },
-        if settings.max_output_tokens > 0 { limit.1.min(settings.max_output_tokens) } else { limit.1 },
-    )
-}
 
 fn context_build_options_for_agent(agent: &AgentSessionDto) -> ContextBuildOptions {
     context_build_options_for_agent_with_floor_and_room(
@@ -29734,10 +29548,10 @@ fn summarize_dropped_history(dropped: &[PersistedChatMessage]) -> String {
 }
 
 /// 原文保存与上下文投影使用受理时冻结的存储位置，不回读当前工作区。
-fn truncate_tool_result_for_context(text: String, parent: Option<&FrozenParentContext>) -> String {
+fn truncate_tool_result_for_context(text: String, parent: Option<&FrozenParentContext>, can_read_original: bool) -> String {
     let db_path = parent.and_then(|parent| parent.goal_phase.as_ref().map(|goal| goal.db_path())
         .or(parent.runtime_db_path.as_deref()));
-    tool_result_spill::for_context(text, db_path)
+    tool_result_spill::for_context(text, db_path, can_read_original)
 }
 
 fn estimate_message_tokens(message: &PersistedChatMessage) -> u32 {
@@ -32582,7 +32396,7 @@ async fn generate_image_attachments_for_agent(
             .and_then(JsonValue::as_str)
             .filter(|s| !s.is_empty())
         {
-            attachments.push(ChatAttachmentDto {
+            attachments.push(ChatAttachmentDto { text_snapshot: None,
                 kind: "image".to_string(),
                 name: format!("agnes-image-{i}.png"),
                 url: u.to_string(),
@@ -32593,7 +32407,7 @@ async fn generate_image_attachments_for_agent(
             .and_then(JsonValue::as_str)
             .filter(|s| !s.is_empty())
         {
-            attachments.push(ChatAttachmentDto {
+            attachments.push(ChatAttachmentDto { text_snapshot: None,
                 kind: "image".to_string(),
                 name: format!("agnes-image-{i}.png"),
                 url: format!("data:image/png;base64,{b64}"),
@@ -32845,7 +32659,7 @@ fn extract_video_progress(v: &JsonValue) -> u32 {
 }
 
 fn video_attachment_from_url(url: String) -> ChatAttachmentDto {
-    ChatAttachmentDto {
+    ChatAttachmentDto { text_snapshot: None,
         kind: "video".to_string(),
         name: "agnes-video.mp4".to_string(),
         url,
@@ -34801,6 +34615,10 @@ fn persist_chat_dispatch(
     let mut store = session_store()
         .lock()
         .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
+    // 在同一存储短锁内复核；排队/执行期间删除的房间不能被晚到输入或回复自动重建。
+    if !store.state.chat_rooms.iter().any(|room| room.id == chat_room_id) {
+        return Err(api_error(StatusCode::NOT_FOUND, "目标聊天室已不存在，未重新创建或改投其它聊天室"));
+    }
     store.append_chat_dispatch_once(chat_room_id, conversation_session_id, targets, messages)?;
     Ok(())
 }
@@ -35222,11 +35040,8 @@ async fn run_model_tool_use_messages(
     // 父运行**接纳时**冻结的上下文；缺省即无法构造合法 CU 事实身份，执行器会 fail-closed 拒绝。
     parent: Option<&FrozenParentContext>,
 ) -> Vec<ChatMessageDto> {
-    if name.starts_with("mcp__") {
-        diag!("[TOOL-CHAIN] MCP 模型工具调用: agent={}, tool={name}, tool_use_id={tool_use_id}, input=[已隐藏]", agent.name);
-    } else {
-        diag!("[TOOL-CHAIN] run_model_tool_use_message: agent={}, tool={name}, tool_use_id={tool_use_id}, input={input}", agent.name);
-    }
+    diag!("[TOOL-CHAIN] run_model_tool_use_message: agent={}, tool={name}, tool_use_id={tool_use_id}, input={}",
+        agent.name, tool_diagnostics::input_shape(input));
 
     let scoped_turn_id = current_turn_trace();
     let dispatch_turn_id = turn_id
@@ -35352,81 +35167,9 @@ async fn run_model_tool_dispatch_for_session_with_identity(
     parent: Option<&FrozenParentContext>,
     host_scope: Option<&host_child_agent::HostToolScope>,
 ) -> ApiResult<ToolDispatchResponse> {
-    // 缺必需 CU 来源时先拒绝，不访问默认数据库或登记匿名工具调用。
-    if name.starts_with(dsh_execution::PREFIX) && (parent.is_none()
-        || provider_tool_call_id.is_none_or(|id| id.trim().is_empty())
-        || caller_session_id.is_none_or(|id| id.trim().is_empty())
-        || chat_room_id.is_none_or(|id| id.trim().is_empty())
-        || turn_id.is_none_or(|id| id.trim().is_empty())) {
-        return Err(api_error(StatusCode::CONFLICT, "DSH缺少真实父轮/provider/会话/聊天室/轮次身份，未登记匿名调用"));
-    }
-    let normalized = name.replace('-', "_");
-    if normalized == "computer_use.perform" || normalized == "computer_use_perform" {
-        let missing_call = provider_tool_call_id.is_none_or(|value| value.trim().is_empty());
-        let missing_session = caller_session_id.is_none_or(|value| value.trim().is_empty());
-        let missing_turn = turn_id.is_none_or(|value| value.trim().is_empty());
-        if missing_call || missing_session || missing_turn {
-            return Ok(computer_use_context_incomplete_response(missing_call, missing_session, missing_turn));
-        }
-    }
-    let budget = parent.and_then(|parent| parent.root_budget.clone()).or_else(root_execution_budget::current);
-    if budget.as_ref().is_some_and(|budget| budget.is_expired()) {
-        return Err(api_error(StatusCode::REQUEST_TIMEOUT, root_execution_budget::EXPIRED_REASON));
-    }
-    let existing = turn_id.and_then(|trace| tool_turn_cancellation_registry().lock().ok().and_then(|entries| entries.get(trace).cloned()))
-        .or_else(|| CHAT_CANCELLATION.try_with(Arc::clone).ok());
-    let cancellation = existing.clone().unwrap_or_else(|| Arc::new(ChatTurnCancellation::new()));
-    if cancellation.is_requested() { return Err(api_error(StatusCode::CONFLICT, "本轮已停止，未派发新工具")); }
-    let registry_path = parent.and_then(|parent| parent.goal_phase.as_ref()).map(|goal| goal.db_path().to_path_buf())
-        .or_else(|| parent.and_then(|parent| parent.runtime_db_path.clone())).unwrap_or_else(default_session_sqlite_path);
-    // provider 编号可跨模型请求复用；宿主身份包含真实run与回复作用域，参数变化不能换执行资格。
-    let source = match provider_tool_call_id.filter(|id| !id.trim().is_empty()) {
-        Some(raw_id) => {
-            let request_key = tool_invocation_identity::current()
-                .or_else(|| turn_id.map(|trace| format!("{trace}/direct-dispatch")))
-                .ok_or_else(|| api_error(StatusCode::CONFLICT, "模型工具缺少明确来源请求，未执行"))?;
-            Some(tool_invocation_identity::ModelToolIdentity::from_source(
-                parent.and_then(|parent| parent.parent_run_id.as_deref()), &request_key, raw_id)
-                .map_err(|error| api_error(StatusCode::CONFLICT, &error))?)
-        },
-        None => None,
-    };
-    let registration_id = match &source {
-        Some(source) => source.execution_id.clone(),
-        None => format!("host-tool-{}", random_hex_identifier(24, "tool invocation")
-            .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error))?),
-    };
-    let mut settlement = register_tool_call_at_dispatch(&registry_path, &registration_id, name, input,
-        parent.and_then(|parent| parent.parent_run_id.as_deref()), budget.clone(), source.as_ref())?;
-    let _scope = if existing.is_none() { turn_id.map(|trace| ToolTurnCancellationScope::install(trace, cancellation.clone())) } else { None };
-    // CU/事实层的既有 provider_tool_call_id 字段兼容保存宿主执行id；raw值只作关联并已单独持久化。
-    let execution_call_id = source.as_ref().map(|source| source.execution_id.as_str());
-    // 巨型分发future放到堆上，避免多层冻结上下文在默认线程栈上溢出；仍沿用同一预算和取消。
-    let run = Box::pin(run_model_tool_dispatch_within_root(name, input, caller_session_id, execution_call_id, turn_id, chat_room_id, parent, host_scope,
-        source.as_ref().map(|source| source.provider_tool_call_id.as_str()), &mut settlement));
-    let mut outcome = if let Some(budget) = budget {
-        match root_execution_budget::scope(budget.clone(), budget.run_cancellable(run, || { cancellation.request_timeout(); })).await {
-            Ok(result) => result,
-            Err(error) => Err(api_error(StatusCode::REQUEST_TIMEOUT, &error.to_string())),
-        }
-    } else { run.await };
-    let status = match &outcome {
-        Ok(result) if name.starts_with(dsh_execution::PREFIX)
-            && result.route == "runtime-dry-run"
-            && result.dispatch_plan.as_ref().is_some_and(|plan| plan.audit.requires_human_confirmation) => "awaiting_approval",
-        Ok(result) if !tool_loop_coordinator::terminal_status_is_error(&result.status) => "completed",
-        _ => "failed",
-    };
-    if !settlement.is_settled() {
-        settlement.finish(status).map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,
-            &format!("工具已结束等待，但终态记录未确认：{error}；不可自动重试")))?;
-    }
-    if let Ok(response) = outcome.as_mut() {
-        if let Some(text) = response.tool_result_text.take() {
-            response.tool_result_text = Some(truncate_tool_result_for_context(text, parent));
-        }
-    }
-    outcome
+    tool_dispatch_service::ToolDispatchService::dispatch(tool_dispatch_service::DispatchRequest {
+        name, input, caller_session_id, provider_tool_call_id, turn_id, chat_room_id, parent, host_scope,
+    }).await
 }
 
 async fn run_model_tool_dispatch_within_root(
@@ -35441,11 +35184,8 @@ async fn run_model_tool_dispatch_within_root(
     raw_provider_tool_call_id: Option<&str>,
     settlement: &mut tool_dispatch_settlement::ToolDispatchSettlement,
 ) -> ApiResult<ToolDispatchResponse> {
-    if name.starts_with("mcp__") || name.starts_with(dsh_execution::PREFIX) {
-        diag!("[TOOL-CHAIN] MCP 模型工具派发: name={name}, input=[已隐藏]");
-    } else {
-        diag!("[TOOL-CHAIN] run_model_tool_dispatch: name={name}, input={input}");
-    }
+    diag!("[TOOL-CHAIN] run_model_tool_dispatch: name={name}, input={}",
+        tool_diagnostics::input_shape(input));
     if let Some(goal) = parent.and_then(|parent| parent.goal_phase.as_ref()) {
         goal.validate_live().map_err(|error| api_error(StatusCode::CONFLICT, &error))?;
     }
@@ -35649,7 +35389,8 @@ async fn run_model_tool_dispatch_within_root(
     // 白名单外"registry 未实现的工具命中 `runtime_tool_execute` "unknown tool
     // 分支 "Failed，模型可据此纠正。
     let runtime_input = runtime_tool_input_with_defaults(name, input);
-    diag!("[TOOL-CHAIN] registry path: name={name}, runtime_input={runtime_input}");
+    diag!("[TOOL-CHAIN] registry path: name={name}, runtime_input={}",
+        tool_diagnostics::input_shape(&runtime_input));
     let outcome = if let Some(host_child_agent::HostToolScope::Child(child)) = host_scope {
         invoke_through_runtime_for_session_in_workspace(
             name, &runtime_input, caller_session_id, chat_room_id,
@@ -35992,18 +35733,7 @@ fn chat_handoff_outcome_to_dispatch_response(
         },
         action_plan: None,
         visual_action: None,
-        audit: ComputerUseAuditRecord {
-            audit_id: outcome.call_id.clone(),
-            mode: "handoff".to_string(),
-            execute_requested: true,
-            execute_allowed,
-            executed: execute_allowed,
-            requires_human_confirmation: outcome.permission_gate.decision.requires_ui(),
-            requires_screenshot_evidence: false,
-            screenshot_path: None,
-            permission_gate: safety_gate.clone(),
-            log_path: tool_audit_log_path().display().to_string(),
-        },
+        audit: tool_dispatch_audit::from_outcome(&outcome, "handoff"),
         requires_visual_grounding: false,
         execute_allowed,
         safety_gate,
@@ -36365,18 +36095,7 @@ fn tool_outcome_to_dispatch_response(
         },
         action_plan: None,
         visual_action: None,
-        audit: ComputerUseAuditRecord {
-            audit_id: outcome.call_id.clone(),
-            mode: "runtime".to_string(),
-            execute_requested: execute_allowed,
-            execute_allowed,
-            executed: execute_allowed,
-            requires_human_confirmation: outcome.permission_gate.decision.requires_ui(),
-            requires_screenshot_evidence: false,
-            screenshot_path: None,
-            permission_gate: safety_gate.clone(),
-            log_path: tool_audit_log_path().display().to_string(),
-        },
+        audit: tool_dispatch_audit::from_outcome(&outcome, "runtime"),
         requires_visual_grounding: false,
         execute_allowed,
         safety_gate,
@@ -41582,6 +41301,18 @@ impl SessionStore {
         detail: &str,
     ) -> ApiResult<()> {
         self.ensure_scheduled_task_system_room()?;
+        self.append_scheduled_task_status_in_room(SCHEDULED_TASK_SYSTEM_ROOM_ID, status, detail)
+    }
+
+    /// 只向既有目标房间写状态；删除目标后不能借错误提示创建或切换其它房间。
+    fn append_scheduled_task_status_in_room(
+        &mut self,
+        room_id: &str,
+        status: &str,
+        detail: &str,
+    ) -> ApiResult<()> {
+        let room = self.state.chat_rooms.iter_mut().find(|room| room.id == room_id)
+            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "定时任务的结果聊天室已不存在"))?;
         let now = unix_timestamp_millis();
         // 精简：内容裁到 80 字符以内。
         let trimmed: String = detail.chars().take(80).collect();
@@ -41592,13 +41323,7 @@ impl SessionStore {
             "executed" => format!("[完成] {trimmed}"),
             other => format!("[{other}] {trimmed}"),
         };
-        let sequence = self
-            .state
-            .chat_rooms
-            .iter()
-            .find(|room| room.id == SCHEDULED_TASK_SYSTEM_ROOM_ID)
-            .map(|room| room.messages.len())
-            .unwrap_or(0);
+        let sequence = room.messages.len();
         let message = PersistedChatMessage {
             id: format!("sched-status-{now}-{sequence}"),
             author: "COOLZHU AGENT".to_string(),
@@ -41609,15 +41334,8 @@ impl SessionStore {
             attachments: Vec::new(),
             created_at: now,
         };
-        if let Some(room) = self
-            .state
-            .chat_rooms
-            .iter_mut()
-            .find(|room| room.id == SCHEDULED_TASK_SYSTEM_ROOM_ID)
-        {
-            room.messages.push(message);
-            room.updated_at = now;
-        }
+        room.messages.push(message);
+        room.updated_at = now;
         self.save()
     }
 
@@ -52019,7 +51737,11 @@ struct PersistedSession {
 
 impl PersistedSession {
     fn summary(&self, active: bool) -> SessionSummaryDto {
-        let settings = session_model_settings_for(&self.id);
+        self.summary_with_model_settings(active, session_model_settings_for(&self.id))
+    }
+
+    // 统一配置响应使用捕获的连接参数，不在DTO转换期间重读可变参数。
+    fn summary_with_model_settings(&self, active: bool, settings: SessionModelLimitOverride) -> SessionSummaryDto {
         let base_url = settings.base_url.or_else(|| self.base_url.clone());
         let endpoint = settings.endpoint.or_else(|| self.endpoint.clone());
         SessionSummaryDto {
@@ -52062,7 +51784,10 @@ impl PersistedSession {
     }
 
     fn to_agent_session(&self, _active: bool) -> AgentSessionDto {
-        let settings = session_model_settings_for(&self.id);
+        self.to_agent_session_with_model_settings(session_model_settings_for(&self.id))
+    }
+
+    fn to_agent_session_with_model_settings(&self, settings: SessionModelLimitOverride) -> AgentSessionDto {
         let base_url = settings.base_url.or_else(|| self.base_url.clone());
         let endpoint = settings.endpoint.or_else(|| self.endpoint.clone());
         AgentSessionDto {
@@ -53544,6 +53269,7 @@ struct SetWorkspaceRequest {
 #[derive(Debug, Serialize)]
 struct WorkspaceResponse {
     workspace_id: String,
+    configuration_scope: Option<String>,
     workspace: String,
     entries: Vec<ProjectEntry>,
     allowed_roots: Vec<String>,
@@ -53722,6 +53448,8 @@ struct ProjectDiffFilesResponse {
 #[derive(Debug, Deserialize)]
 struct TaskScheduleCreateRequest {
     target_session_id: String,
+    #[serde(default)]
+    chat_room_id: Option<String>,
     content: String,
     #[serde(default)]
     run_at_ms: u64,
@@ -53814,6 +53542,9 @@ struct SelfUpdatePlanResponse {
 struct SendMessageRequest {
     #[serde(default)]
     expected_workspace_id: Option<String>,
+    /// 提交时可见原生面板的后端偏好；不是输入权限或宿主身份凭证。
+    #[serde(default)]
+    native_browser_panel: bool,
     #[serde(default)]
     session_id: Option<String>,
     #[serde(default)]
@@ -53912,6 +53643,8 @@ struct RunInterruptResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct ChatAttachmentDto {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    text_snapshot: Option<attachment_text::TextSnapshot>,
     kind: String,
     name: String,
     url: String,
@@ -54628,7 +54361,8 @@ struct ComputerUseAuditRecord {
     mode: String,
     execute_requested: bool,
     execute_allowed: bool,
-    executed: bool,
+    /// null表示终态不足以证明是否已执行；false仅用于确定未派发的路径。
+    executed: Option<bool>,
     requires_human_confirmation: bool,
     requires_screenshot_evidence: bool,
     screenshot_path: Option<String>,
@@ -59575,6 +59309,50 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn project_tree_large_child_keeps_sibling_files_within_limit() {
+        let temp = tempfile::tempdir().expect("temp workspace");
+        let root = temp.path().canonicalize().unwrap();
+        let large = root.join("a-large");
+        std::fs::create_dir(&large).unwrap();
+        for index in 0..20 {
+            std::fs::write(large.join(format!("{index:02}.rs")), "fn sample() {}\n").unwrap();
+        }
+        std::fs::write(root.join("z-current.rs"), "fn current() {}\n").unwrap();
+        let mut remaining = 5;
+        let tree = super::project_tree_node(&root, &root, 4, &mut remaining, &mut Vec::new())
+            .expect("tree should load");
+        assert_eq!(tree.children.len(), 2);
+        assert!(tree.children.iter().any(|child| child.name == "z-current.rs"));
+        let large = tree.children.iter().find(|child| child.name == "a-large").unwrap();
+        assert_eq!(large.children.len(), 3);
+        assert_eq!(large.omitted_count, 17);
+        assert_eq!(remaining, 0);
+    }
+
+    #[tokio::test]
+    async fn project_file_search_finds_new_exact_path_with_stale_index() {
+        let _guard = config_test_guard();
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().canonicalize().unwrap();
+        std::fs::write(root.join("old.rs"), "fn old() {}\n").unwrap();
+        super::reload_workspace_scope(root.clone()).unwrap();
+        super::ensure_files_index(&root).unwrap();
+        std::fs::create_dir(root.join("src")).unwrap();
+        std::fs::write(root.join("src/new.rs"), "fn new() {}\n").unwrap();
+        let Json(response) = super::api_project_search_files(axum::extract::Query(
+            super::ProjectSearchFilesQuery {
+                query: Some("src/new.rs".to_string()),
+                limit: Some(1),
+            },
+        ))
+        .await
+        .unwrap();
+        assert_eq!(response.files.len(), 1);
+        assert_eq!(response.files[0].path, "src/new.rs");
+        assert!(response.files[0].size > 0);
+    }
+
+    #[test]
     fn project_tree_metadata_failure_omits_only_bad_entry_and_keeps_later_file() {
         let temp = tempfile::tempdir().expect("temp workspace");
         let root = temp.path().canonicalize().unwrap();
@@ -60092,7 +59870,7 @@ pub(crate) mod tests {
         assert_eq!(response.audit.mode, "dry-run");
         assert!(!response.audit.execute_requested);
         assert!(!response.audit.execute_allowed);
-        assert!(!response.audit.executed);
+        assert_eq!(response.audit.executed, Some(false));
         assert!(response.audit.requires_human_confirmation);
         assert!(response.audit.requires_screenshot_evidence);
         assert_eq!(response.audit.screenshot_path, None);
@@ -60217,7 +59995,7 @@ pub(crate) mod tests {
             mime_type_for_url("https://example.test/a/video.mp4?x=1"),
             Some("video/mp4")
         );
-        let image = attachment_preview(&ChatAttachmentDto {
+        let image = attachment_preview(&ChatAttachmentDto { text_snapshot: None,
             kind: "url".to_string(),
             name: "screenshot.png".to_string(),
             url: "https://example.test/screenshot.png".to_string(),
@@ -60227,7 +60005,7 @@ pub(crate) mod tests {
         assert!(image.embeddable);
         assert!(!image.playable);
 
-        let video = attachment_preview(&ChatAttachmentDto {
+        let video = attachment_preview(&ChatAttachmentDto { text_snapshot: None,
             kind: "video".to_string(),
             name: "demo.webm".to_string(),
             url: "https://example.test/demo.webm".to_string(),
@@ -60236,7 +60014,7 @@ pub(crate) mod tests {
         assert_eq!(video.kind, "video");
         assert!(video.playable);
 
-        let doc = attachment_preview(&ChatAttachmentDto {
+        let doc = attachment_preview(&ChatAttachmentDto { text_snapshot: None,
             kind: "url".to_string(),
             name: "notes.md".to_string(),
             url: "https://example.test/notes.md".to_string(),
@@ -61032,6 +60810,7 @@ pub(crate) mod tests {
         });
         let dispatch = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("semantic-hotkey-fixture".to_string()),
             chat_room_id: Some("semantic-hotkey-room".to_string()),
             target_agent_ids: vec!["semantic-hotkey-fixture".to_string()],
@@ -61317,6 +61096,7 @@ pub(crate) mod tests {
 
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-a".to_string()),
             chat_room_id: Some("room-count".to_string()),
             target_agent_ids: vec![
@@ -61434,6 +61214,7 @@ pub(crate) mod tests {
 
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-a".to_string()),
             chat_room_id: Some("room-shared-count".to_string()),
             target_agent_ids: vec!["agent-a".to_string(), "agent-b".to_string()],
@@ -61675,6 +61456,7 @@ pub(crate) mod tests {
 
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-commander".to_string()),
             chat_room_id: Some("room-goal-trigger".to_string()),
             target_agent_ids: vec!["agent-commander".to_string()],
@@ -61726,6 +61508,7 @@ pub(crate) mod tests {
         });
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-commander".to_string()),
             chat_room_id: Some("room-goal-consult".to_string()),
             target_agent_ids: vec!["agent-commander".to_string()],
@@ -61828,6 +61611,7 @@ pub(crate) mod tests {
         });
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-planner".to_string()),
             chat_room_id: Some("room-goal-ready".to_string()),
             target_agent_ids: vec!["agent-planner".to_string()],
@@ -61938,6 +61722,7 @@ pub(crate) mod tests {
         });
         let prepared = super::prepare_chat_dispatch(super::SendMessageRequest {
             expected_workspace_id: None,
+            native_browser_panel: false,
             session_id: Some("agent-active".to_string()),
             chat_room_id: Some("room-current-commander".to_string()),
             target_agent_ids: vec!["agent-active".to_string()],
@@ -63174,7 +62959,7 @@ pub(crate) mod tests {
         legacy_first.content = "同文消息".to_string();
         let mut legacy_second = persisted_message("legacy-second", 3);
         legacy_second.content = "同文消息".to_string();
-        legacy_second.attachments.push(super::ChatAttachmentDto {
+        legacy_second.attachments.push(super::ChatAttachmentDto { text_snapshot: None,
             kind: "file".to_string(),
             name: "附件.txt".to_string(),
             url: "/api/attachments/files/fixture.txt".to_string(),
@@ -67838,7 +67623,7 @@ attach: last_assistant
         let db_path = temp.path().join("sessions.sqlite3");
         let json_path = temp.path().join("sessions.json");
         let mut room_message = persisted_message("room-msg-1", 4);
-        room_message.attachments = vec![ChatAttachmentDto {
+        room_message.attachments = vec![ChatAttachmentDto { text_snapshot: None,
             kind: "image".to_string(),
             name: "snap.png".to_string(),
             url: "/api/attachments/files/att-1-snap.png".to_string(),
@@ -68103,13 +67888,13 @@ attach: last_assistant
 
         let mut msg_a = persisted_message("msg-a1", 1);
         msg_a.attachments = vec![
-            ChatAttachmentDto {
+            ChatAttachmentDto { text_snapshot: None,
                 kind: "image".to_string(),
                 name: "unique.png".to_string(),
                 url: "/api/attachments/files/att-unique.png".to_string(),
                 mime_type: Some("image/png".to_string()),
             },
-            ChatAttachmentDto {
+            ChatAttachmentDto { text_snapshot: None,
                 kind: "image".to_string(),
                 name: "shared.png".to_string(),
                 url: "/api/attachments/files/att-shared.png".to_string(),
@@ -68117,7 +67902,7 @@ attach: last_assistant
             },
         ];
         let mut msg_b = persisted_message("msg-b1", 2);
-        msg_b.attachments = vec![ChatAttachmentDto {
+        msg_b.attachments = vec![ChatAttachmentDto { text_snapshot: None,
             kind: "image".to_string(),
             name: "shared.png".to_string(),
             url: "/api/attachments/files/att-shared.png".to_string(),
@@ -68524,125 +68309,6 @@ attach: last_assistant
             .as_deref()
             .unwrap_or_default()
             .contains("Never use this tool to retry failed desktop/browser automation"));
-    }
-
-    #[tokio::test(flavor = "current_thread")]
-    async fn task_schedule_run_due_uses_system_room_without_changing_active_room() {
-        let _guard = config_test_guard();
-        let temp = tempfile::tempdir().expect("tempdir");
-        let now = super::unix_timestamp_millis();
-        let workspace = temp.path().canonicalize().unwrap();
-        let db_path = temp.path().join("sessions.sqlite3");
-        let store = super::SessionStore {
-            history_edits: Vec::new(),
-            committed_state: None,
-            path: db_path,
-            legacy_json_path: temp.path().join("sessions.json"),
-            capacity: super::SessionStoreCapacity::default(),
-            state: super::PersistedSessionState {
-                sessions: vec![super::PersistedSession {
-                    id: "target-agent".to_string(),
-                    name: "target-agent".to_string(),
-                    provider: "Custom".to_string(),
-                    model: "qwen".to_string(),
-                    avatar: None,
-                    api_key_ref: String::new(),
-                    base_url: None,
-                    endpoint: None,
-                    reasoning_effort: "medium".to_string(),
-                    model_type: "text".to_string(),
-                    memory_beads: Vec::new(),
-                    created_at: now,
-                    updated_at: now,
-                    context_reset_at: 0,
-                    messages: Vec::new(),
-                }],
-                active_session_id: Some("target-agent".to_string()),
-                active_vision_session_id: None,
-                chat_rooms: vec![super::PersistedChatRoom {
-                    id: "room-user-active".to_string(),
-                    name: "当前聊天室".to_string(),
-                    created_at: now,
-                    updated_at: now,
-                    messages: Vec::new(),
-                }],
-                active_chat_room_id: Some("room-user-active".to_string()),
-            },
-        };
-        let prev_workspace = {
-            let mut guard = super::workspace_state().lock().expect("workspace state");
-            std::mem::replace(&mut guard.current, workspace.clone())
-        };
-        let prev_config = {
-            let mut guard = super::workspace_config().lock().expect("config");
-            std::mem::replace(&mut *guard, super::WorkspaceConfig::default())
-        };
-        let prev_store = {
-            let mut guard = super::session_store().lock().expect("session store");
-            std::mem::replace(&mut *guard, store)
-        };
-
-        let Json(created) =
-            super::api_create_task_schedule(axum::Json(super::TaskScheduleCreateRequest {
-                target_session_id: "target-agent".to_string(),
-                content: "run nightly verification".to_string(),
-                run_at_ms: 1,
-                interval_ms: None,
-                permissions: vec!["full-access".to_string()],
-                schedule_kind: "once".to_string(),
-                wall_hour: 0,
-                wall_minute: 0,
-                weekdays: Vec::new(),
-                tz_offset_minutes: 0,
-                task_kind: "poll".to_string(),
-                goal_id: None,
-            }))
-            .await
-            .expect("create schedule");
-        assert_eq!(created.tasks.len(), 1);
-        assert!(created.dev_open_permissions == super::dev_open_tool_permissions_enabled());
-
-        let Json(run) = super::api_run_due_task_schedules().await.expect("run due");
-        assert_eq!(run.ran.len(), 1);
-        assert_eq!(run.ran[0].status, "executed");
-        {
-            let guard = super::session_store().lock().expect("session store");
-            assert_eq!(
-                guard.active_chat_room_id().as_deref(),
-                Some("room-user-active")
-            );
-            assert_eq!(
-                guard.state.sessions[0].messages[0].content,
-                "run nightly verification"
-            );
-            let room = guard
-                .state
-                .chat_rooms
-                .iter()
-                .find(|room| room.id == super::SCHEDULED_TASK_SYSTEM_ROOM_ID)
-                .expect("scheduled task system room");
-            assert_eq!(room.name, "定时任务");
-            assert!(room
-                .messages
-                .iter()
-                .any(|message| message.content == "run nightly verification"));
-        }
-
-        let _ = std::mem::replace(
-            &mut super::workspace_state()
-                .lock()
-                .expect("workspace state")
-                .current,
-            prev_workspace,
-        );
-        let _ = std::mem::replace(
-            &mut *super::workspace_config().lock().expect("config"),
-            prev_config,
-        );
-        let _ = std::mem::replace(
-            &mut *super::session_store().lock().expect("session store"),
-            prev_store,
-        );
     }
 
     #[test]
@@ -81339,8 +81005,8 @@ attach: last_assistant
             "data-role=\"chat-top-status-lantern\" data-state=\"idle\"",
             "data-role=\"chat-top-status-alert\" data-state=\"idle\"",
             "role=\"img\" aria-label=\"系统状态灯：等待自检\"",
-            "assets/ui-redesign/jade-controls-v2/status-jade.png",
-            "assets/ui-redesign/jade-controls-v2/status-lantern.png",
+            "assets/ui-redesign/jade-controls-v3/status-jade.png",
+            "assets/ui-redesign/jade-controls-v3/status-lantern.png",
         ] {
             assert!(top.contains(token), "P5 顶栏交互/叶名标记缺失：{token}");
         }
@@ -81507,17 +81173,16 @@ attach: last_assistant
                 .expect("右栏任务链 footer 必须闭合");
         let footer = &WEB_INDEX_HTML[footer_start..footer_end];
         assert!(footer.contains("data-action=\"chat-task-chain\""));
-        assert!(footer.contains("control-icons/queue-v1.png"));
+        assert!(footer.contains("icons-wuxia/queue.svg"));
         assert!(footer.contains("data-action=\"chat-handoff-manual\""));
-        assert!(footer.contains("control-icons/steer-now-v1.png"));
+        assert!(footer.contains("icons-wuxia/send.svg"));
         for asset in [
-            "queue-v1.png",
-            "steer-now-v1.png",
-            "pause-v1.png",
-            "resume-v1.png",
-            "restore-chat-v1.png",
+            "queue.svg",
+            "send.svg",
+            "pause.svg",
+            "refresh.svg",
         ] {
-            let asset_rel = format!("assets/ui-redesign/three-column/control-icons/{asset}");
+            let asset_rel = format!("assets/icons-wuxia/{asset}");
             let asset_path = Path::new(env!("CARGO_MANIFEST_DIR")).join(&asset_rel);
             assert!(
                 std::fs::metadata(&asset_path)
@@ -81626,7 +81291,7 @@ attach: last_assistant
             "data-handoff-cancel",
             "data-handoff-confirm",
             "data-handoff-close",
-            "steer-now-v1.png",
+            "icons-wuxia/send.svg",
             "modal.addEventListener(\"click\"",
             "event.target === modal",
             "closeTaskChainModal(modal)",

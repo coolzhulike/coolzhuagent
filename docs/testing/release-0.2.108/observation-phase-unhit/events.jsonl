@@ -1,0 +1,12 @@
+{"kind": "http-get", "role": "OLD", "path": "/old.html", "host": "127.0.0.1:62835", "server_ns": 800596253736400, "received_unix_ns": 1791511883272778300}
+{"kind": "document-script-start", "role": "OLD", "page_ms": 1791511883307.1, "server_ns": 800596293940400, "received_unix_ns": 1791511883312984600}
+{"kind": "loaded", "role": "OLD", "page_ms": 1791511883310.4001, "trusted": true, "server_ns": 800596297271800, "received_unix_ns": 1791511883316313600}
+{"kind": "pointerdown", "role": "OLD", "page_ms": 1791511974752, "trusted": true, "target": "target", "server_ns": 800687735108300, "received_unix_ns": 1791511974756242800}
+{"kind": "pointerup", "role": "OLD", "page_ms": 1791511974752.8, "trusted": true, "target": "target", "server_ns": 800687737472000, "received_unix_ns": 1791511974758607300}
+{"kind": "click", "role": "OLD", "page_ms": 1791511974753, "trusted": true, "target": "target", "server_ns": 800687737981300, "received_unix_ns": 1791511974759115500}
+{"kind": "observing-phase-found", "facts": {"run_id": "run-chat-874ff94a60ab6bf1b05e89717552e288ec95e40611bfe124", "cu_call_id": "cu-session-1791131217833-chat-turn-1791511896336-0-tool-29d4134a3f59662ba26993ee04b5860f39a305406fcd5606d7ea887b689d201c", "cu_state": "observing", "steps": [[0, "sent", "released"]]}, "server_ns": 800687812018300, "received_unix_ns": 1791511974833154900}
+{"kind": "phase-ready", "role": "OLD", "page_ms": 1791511974832.8, "server_ns": 800687815290400, "received_unix_ns": 1791511974836426700}
+{"kind": "http-get", "role": "NEW", "path": "/new.html", "host": "localhost:62835", "server_ns": 800687890474000, "received_unix_ns": 1791511974911612400}
+{"kind": "pagehide", "role": "OLD", "page_ms": 1791511974978.6, "trusted": true, "server_ns": 800687973244200, "received_unix_ns": 1791511974994384700}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791511974981.2, "server_ns": 800687973349600, "received_unix_ns": 1791511974994489300}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791511974982.9, "trusted": true, "server_ns": 800687975862500, "received_unix_ns": 1791511974997002700}

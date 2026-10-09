@@ -1,0 +1,83 @@
+{
+  "version": "0.2.105",
+  "run": {
+    "id": "run-chat-4bca9de730b90a1f15069cb3b6117e808af7d211a39e6dd7",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791506372832-1"
+  },
+  "attempts": [
+    {
+      "attempt_id": "86da0f8b9b7f07bcb2687de0df8159ead9d8581c93329eb3",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "status": "failed",
+      "tool_call_id": "tool-d39e9ff21ca6fe4338285497dd53cbba2a6e7274eb17213da11c2a380c819494"
+    }
+  ],
+  "runtime_events": [
+    {
+      "event_type": "run.accepted",
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791506372832-1\"}",
+      "created_at": 1791506372841
+    },
+    {
+      "event_type": "run.started",
+      "payload_json": "{\"previous_state\":\"accepted\"}",
+      "created_at": 1791506373091
+    },
+    {
+      "event_type": "run.completed",
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"completed\"}",
+      "created_at": 1791506395975
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791506373160-0",
+    "kind": "assistant-reply",
+    "content": "竹简回执\n表达式：net_fetch http://127.0.0.1:63024/revoke-20261008（allowPrivate=true，timeoutMs=60000，maxBytes=1024）\n宿主结果：`status: failed`（route: runtime-failed，elapsed_ms 2446）；code `cancelled`，error \"host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放\"；`cleanup_confirmed: true`\n\n`dispatch_plan.audit` 原样摘录：\n- `execute_requested: true`\n- `execute_allowed: true`\n- `executed: null`（审计未记录执行完成，不猜作 true/false）\n- `permission_gate: allow-auto`\n\n如实报告：\n\n- 真实网络函数已进入执行（execute_requested/execute_allowed 均 true、运行 2446ms），期间验收端正常重配插件，父调用被中断、worker 取消，**清理已确认（cleanup_confirmed=true）**；迟到结果不采纳、未自动重放，无响应体\n- 本次终态为 cancelled/failed——执行期间被取消而非\"从未执行\"，也不写成功\n- 未重试、未补发、未调用其它工具、未改文件、未新建云会话。收到结果后立即结束本轮。",
+    "created_at": 1791506395888
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "after": {
+    "attempts": 946,
+    "messages": 1193
+  },
+  "observation": {
+    "run_id": "run-chat-4bca9de730b90a1f15069cb3b6117e808af7d211a39e6dd7",
+    "attempt_id": "86da0f8b9b7f07bcb2687de0df8159ead9d8581c93329eb3",
+    "attempt_state_at_change": "submitted",
+    "original_activation_id": "dsh-26256-1791506361177405600-4",
+    "original_config": {},
+    "request_begin_ms": 1791506387921.6821,
+    "network_entered": {
+      "event": "function_network_entered",
+      "utc": "2026-10-09T00:39:47.883903+00:00",
+      "monotonic": 795101.0102213,
+      "path": "/revoke-20261008"
+    },
+    "request_end_ms": 1791506388651.1335,
+    "changed_activation_id": "dsh-26256-1791506388628709200-5",
+    "changed_config": {
+      "coolzhuAcceptanceTag": "config-inflight-105-20261008"
+    },
+    "source_unchanged": true
+  }
+}

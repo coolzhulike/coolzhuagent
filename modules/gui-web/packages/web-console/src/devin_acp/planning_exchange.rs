@@ -5,10 +5,15 @@ use serde_json::{json, Value};
 use std::sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}};
 use tokio::sync::oneshot;
 
+// 留出 MCP 包装余量，避免第三方客户端将大快照转成不可读取的本地溢出文件。
+const REQUEST_PAGE_BYTES: usize = 6000;
+
 struct Pending {
     id: String,
     content: Vec<Value>,
     image_presented: bool,
+    text: String,
+    presented_bytes: usize,
     sender: oneshot::Sender<String>,
 }
 
@@ -49,7 +54,9 @@ impl Exchange {
             let mut pending = self.pending.lock().map_err(|_|"规划等待状态不可用。")?;
             if pending.is_some() { return Err("已有规划请求未回答，未覆盖旧请求。".into()); }
             let image_presented = images_are_absent(&content);
-            *pending = Some(Pending { id:id.clone(),content,image_presented,sender });
+            let text = content.iter().filter_map(|block| block["text"].as_str()).collect::<Vec<_>>().join("\n");
+            let presented_bytes = if text.len() <= REQUEST_PAGE_BYTES { text.len() } else { 0 };
+            *pending = Some(Pending { id:id.clone(),content,image_presented,text,presented_bytes,sender });
         }
         struct Clear { exchange: Arc<Exchange>, id: String }
         impl Drop for Clear {
@@ -75,12 +82,35 @@ impl Exchange {
                     "job_id":job,"request_id":item.id,"next_tool":"host_image_handoff",
                     "message":"本次需要原图。宿主将在同一会话下一段提示发送原图。现在立即结束这一段生成，不输出最终答案，不回答规划，不调用其它工具；宿主任务仍在运行，不重提 perform。"}).to_string()}],"isError":false});
             }
+            if item.text.len() > REQUEST_PAGE_BYTES {
+                return json!({"content":[{"type":"text","text":json!({"status":"running","goal_achieved":false,
+                    "job_id":job,"request_id":item.id,"next_tool":"computer_use_read_request","offset":0,
+                    "total_bytes":item.text.len(),
+                    "message":"规划快照采用只读分页。调用 computer_use_read_request，从 offset=0 开始依次读取 next_offset，直至 complete=true；合并完整快照后才用 computer_use_respond 回答。不得读取溢出文件或重提 perform。"}).to_string()}],"isError":false});
+            }
             let mut content = vec![json!({"type":"text","text":json!({"status":"running","goal_achieved":false,
                 "job_id":job,"request_id":item.id,"next_tool":"computer_use_respond",
                 "message":"当前任务等待你回答下方规划/验收请求。用 computer_use_respond 交回完整回复；这不是完成回执，不要重提 perform。"}).to_string()})];
             content.extend(item.content.iter().filter(|block|block["type"] == "text").cloned());
             json!({"content":content,"isError":false})
         }))
+    }
+
+    /// 页偏移只定位当前请求的 UTF-8 文本，不接受文件路径，也不触发电脑输入。
+    pub(super) fn read_request(&self, job: &str, id: &str, offset: usize) -> Result<Value,String> {
+        let mut slot = self.pending.lock().map_err(|_|"规划等待状态不可用。")?;
+        let item = slot.as_mut().filter(|item|item.id == id).ok_or("规划请求已结束或不属于当前任务。")?;
+        if !item.image_presented { return Err("本次原图尚未发送，不能读取替代文字。".into()); }
+        if offset > item.presented_bytes || offset >= item.text.len() || !item.text.is_char_boundary(offset) {
+            return Err("分页偏移无效；须从0开始按 next_offset 读取。".into());
+        }
+        let mut end = offset.saturating_add(REQUEST_PAGE_BYTES).min(item.text.len());
+        while !item.text.is_char_boundary(end) { end -= 1; }
+        item.presented_bytes = item.presented_bytes.max(end);
+        Ok(json!({"content":[{"type":"text","text":json!({"status":"running","goal_achieved":false,
+            "job_id":job,"request_id":id,"offset":offset,"next_offset":end,"total_bytes":item.text.len(),
+            "complete":end == item.text.len(),"snapshot_text":&item.text[offset..end],
+            "next_tool":if end == item.text.len() {"computer_use_respond"} else {"computer_use_read_request"}}).to_string()}],"isError":false}))
     }
 
     /// 仅由已结束当前生成段的宿主调用；不会通过 MCP 接受图片已读标记。
@@ -92,6 +122,7 @@ impl Exchange {
             "宿主续接原任务，未新建会话。job_id={job}，request_id={}。本次提示包含原图，请按下方当前快照规划/验收，通过 computer_use_respond 交回完整回复。随后等待同一 job 的最终回执；不要重提 perform。",item.id)})];
         content.extend(item.content.clone());
         item.image_presented = true;
+        item.presented_bytes = item.text.len();
         self.image_handoff.store(false, Ordering::Release);
         Ok(Some(content))
     }
@@ -106,6 +137,7 @@ impl Exchange {
         let mut slot = self.pending.lock().map_err(|_|"规划等待状态不可用。")?;
         if !slot.as_ref().is_some_and(|item| item.id == id) { return Err("规划请求已结束或不属于当前任务。".into()); }
         if slot.as_ref().is_some_and(|item| !item.image_presented) { return Err("本次原图尚未发送，不能接受无图验收。".into()); }
+        if slot.as_ref().is_some_and(|item| item.presented_bytes < item.text.len()) { return Err("规划快照尚未读完；请继续读取剩余分页。".into()); }
         let pending = slot.take().expect("已核对规划请求存在");
         pending.sender.send(response.into()).map_err(|_|"规划请求已取消；迟到回复未执行。")?;
         *last = Some((id.into(),digest));
@@ -118,6 +150,38 @@ fn images_are_absent(content: &[Value]) -> bool { !content.iter().any(|block| bl
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[tokio::test]
+    async fn large_snapshot_pages_preserve_utf8_and_reject_unread_or_stale_answers() {
+        let exchange = Arc::new(Exchange::default());
+        let request = api::MessageRequest { model:"actual".into(),max_tokens:100,
+            messages:vec![api::InputMessage::user_text(&"竹林校验🟢".repeat(2500))],
+            system:None,tools:None,tool_choice:None,reasoning_effort:None,stream:false };
+        let mut pending = Box::pin(exchange.request("paged".into(),request,"planning"));
+        assert!(futures_util::poll!(&mut pending).is_pending());
+        let waiting = exchange.waiting("one").unwrap().unwrap();
+        let status: Value = serde_json::from_str(waiting["content"][0]["text"].as_str().unwrap()).unwrap();
+        assert_eq!(status["next_tool"],"computer_use_read_request");
+        assert!(exchange.read_request("one","other",0).is_err());
+        assert!(exchange.read_request("one","paged",REQUEST_PAGE_BYTES).is_err());
+        assert!(exchange.answer("paged","未读快照").is_err());
+        let original = exchange.pending.lock().unwrap().as_ref().unwrap().text.clone();
+        let mut restored = String::new();
+        let mut offset = 0;
+        loop {
+            let response = exchange.read_request("one","paged",offset).unwrap();
+            let page: Value = serde_json::from_str(response["content"][0]["text"].as_str().unwrap()).unwrap();
+            let text = page["snapshot_text"].as_str().unwrap();
+            assert!(text.len() <= REQUEST_PAGE_BYTES);
+            restored.push_str(text);
+            offset = page["next_offset"].as_u64().unwrap() as usize;
+            if page["complete"] == true { break; }
+        }
+        assert_eq!(restored,original);
+        exchange.answer("paged","本轮回复").unwrap();
+        assert_eq!(pending.await.unwrap(),"本轮回复");
+        assert!(exchange.read_request("one","paged",0).is_err());
+    }
+
     #[tokio::test]
     async fn original_images_require_one_host_handoff_and_cancellation_clears_it() {
         let exchange = Arc::new(Exchange::default());

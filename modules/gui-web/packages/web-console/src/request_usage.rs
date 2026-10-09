@@ -1,4 +1,4 @@
-//! 适配器请求事实投影：仅写 chat_usage_events，不另设或累加第二份账本。
+//! HTTP请求投影与ACP发送前台账的统一读取；不重复持久化ACP事实。
 use super::*;
 use std::sync::{Arc, atomic::{AtomicU64, Ordering}};
 
@@ -6,28 +6,6 @@ use std::sync::{Arc, atomic::{AtomicU64, Ordering}};
 struct LedgerObserver {
     path: PathBuf, workspace: String, room: String, session: String,
     turn: Option<String>, run: Option<String>, call: Option<String>, kind: String, logical_id: String,
-}
-
-/// ACP 内部请求进入现有统计表；上下文占用不是输入/输出 token，未知用量保持未知。
-pub(super) fn record_acp_attempt(parent: &FrozenParentContext, session: &str, call: &str, kind: &str,
-    attempt: &str, status: &str, dispatched: bool) {
-    let result = (|| -> rusqlite::Result<()> {
-        let path = parent.runtime_db_path.as_deref().ok_or(rusqlite::Error::InvalidQuery)?;
-        let connection = open_session_connection(path)?;
-        chat_insights::ensure_tables(&connection)?;
-        let timestamp = unix_timestamp_millis() as i64;
-        connection.execute("INSERT INTO chat_usage_events
-            (workspace_id,room_id,session_id,created_at,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,
-             turn_id,run_id,call_id,request_kind,logical_request_id,attempt_id,attempt_no,status,dispatched,usage_known_mask,finished_at)
-            VALUES(?1,?2,?3,?4,0,0,0,0,?5,?6,?7,?8,?9,?9,1,?10,?11,0,?12)
-            ON CONFLICT(attempt_id) DO UPDATE SET status=excluded.status,dispatched=excluded.dispatched,
-              finished_at=COALESCE(finished_at,excluded.finished_at)",
-            params![parent.workspace_id.as_str(),parent.room_id.as_deref().unwrap_or(""),session,timestamp,
-                parent.public_turn_id,parent.parent_run_id,call,kind,format!("acp:{attempt}"),status,dispatched,
-                (status != "prepared").then_some(timestamp)])?;
-        Ok(())
-    })();
-    if let Err(error) = result { diag_log(&format!("[REQUEST-USAGE] ACP 请求事实保存失败: {error}")); }
 }
 
 pub(super) fn observe(
@@ -143,24 +121,86 @@ pub(super) fn migrate(connection:&Connection)->rusqlite::Result<()> {
         CREATE INDEX IF NOT EXISTS idx_chat_usage_run ON chat_usage_events(run_id) WHERE run_id IS NOT NULL;")
 }
 
+/// 同一attempt优先取ACP权威归属和状态，只从同作用域旧投影复用真实用量。
+/// 旧库没有ACP表时保持HTTP读取；损坏JSON/缺失身份显式失败，不能返回虚假零。
+fn facts_sql(connection: &Connection) -> rusqlite::Result<String> {
+    let http = "SELECT workspace_id,room_id,session_id,created_at,turn_id,run_id,call_id,request_kind,
+        logical_request_id,attempt_id,status,dispatched,usage_known_mask,
+        input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,
+        'http' AS fact_source,NULL AS protocol_stop,NULL AS process_drained FROM chat_usage_events";
+    let has_acp = connection.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='devin_acp_attempts')", [], |row| row.get::<_,bool>(0))?;
+    if !has_acp { return Ok(http.into()); }
+    Ok(format!("{http} u WHERE NOT EXISTS(SELECT 1 FROM devin_acp_attempts a
+          WHERE substr(u.attempt_id,1,4)='acp:' AND a.attempt_id=substr(u.attempt_id,5))
+        UNION ALL SELECT
+        json_extract(a.scope_json,'$.workspace_id'),json_extract(a.scope_json,'$.room_id'),
+        json_extract(a.scope_json,'$.agent_id'),u.created_at,
+        json_extract(a.scope_json,'$.turn_id'),json_extract(a.scope_json,'$.run_id'),u.call_id,
+        COALESCE(u.request_kind,CASE WHEN json_extract(a.scope_json,'$.lane')='internal' THEN 'devin_internal' ELSE 'devin_chat' END),
+        'acp:'||a.attempt_id,'acp:'||a.attempt_id,
+        CASE a.state WHEN 'prepared' THEN 'prepared' WHEN 'submitted' THEN 'dispatched'
+          WHEN 'not_sent' THEN 'not_sent' WHEN 'unknown' THEN 'remote_unknown'
+          WHEN 'terminal' THEN CASE a.protocol_stop WHEN 'end_turn' THEN 'completed'
+            WHEN 'cancelled' THEN 'cancelled' WHEN 'refusal' THEN 'refusal'
+            WHEN 'max_tokens' THEN 'max_tokens' WHEN 'max_turn_requests' THEN 'max_turn_requests'
+            ELSE 'remote_unknown' END ELSE 'remote_unknown' END,
+        CASE a.state WHEN 'prepared' THEN 0 WHEN 'not_sent' THEN 0 WHEN 'submitted' THEN 1 WHEN 'terminal' THEN 1 ELSE NULL END,
+        COALESCE(u.usage_known_mask,0),COALESCE(u.input_tokens,0),COALESCE(u.output_tokens,0),
+        COALESCE(u.cache_read_tokens,0),COALESCE(u.cache_write_tokens,0),
+        'acp',a.protocol_stop,a.process_drained
+        FROM devin_acp_attempts a LEFT JOIN chat_usage_events u
+          ON u.attempt_id='acp:'||a.attempt_id
+          AND u.workspace_id=json_extract(a.scope_json,'$.workspace_id')
+          AND u.room_id=json_extract(a.scope_json,'$.room_id')
+          AND u.session_id=json_extract(a.scope_json,'$.agent_id')
+          AND (u.run_id IS NULL OR u.run_id=json_extract(a.scope_json,'$.run_id'))
+          AND (u.turn_id IS NULL OR u.turn_id=json_extract(a.scope_json,'$.turn_id'))"))
+}
+
 pub(super) fn summary(connection:&Connection,room:&str,workspace:&str)->rusqlite::Result<Vec<JsonValue>> {
-    let mut statement=connection.prepare("SELECT session_id,COUNT(DISTINCT logical_request_id),
+    let mut statement=connection.prepare(&format!("WITH usage_facts AS ({}) SELECT session_id,COUNT(DISTINCT logical_request_id),
         SUM(CASE WHEN dispatched=1 THEN 1 ELSE 0 END),SUM(CASE WHEN attempt_id IS NULL THEN 1 ELSE 0 END),
-        SUM(CASE WHEN attempt_id IS NOT NULL AND usage_known_mask!=15 THEN 1 ELSE 0 END),
-        SUM(CASE WHEN status NOT IN ('legacy','prepared','dispatched','completed') THEN 1 ELSE 0 END),
+        SUM(CASE WHEN attempt_id IS NOT NULL AND COALESCE(usage_known_mask,0)!=15 THEN 1 ELSE 0 END),
+        SUM(CASE WHEN status NOT IN ('legacy','prepared','dispatched','completed','not_sent','remote_unknown') THEN 1 ELSE 0 END),
         SUM(CASE WHEN status IN ('prepared','dispatched') THEN 1 ELSE 0 END),
-        CASE WHEN SUM(CASE WHEN (attempt_id IS NULL AND input_tokens>0) OR usage_known_mask&1!=0 THEN 1 ELSE 0 END)>0 THEN SUM(input_tokens) END,
-        CASE WHEN SUM(CASE WHEN (attempt_id IS NULL AND output_tokens>0) OR usage_known_mask&2!=0 THEN 1 ELSE 0 END)>0 THEN SUM(output_tokens) END,
-        CASE WHEN SUM(CASE WHEN (attempt_id IS NULL AND cache_read_tokens>0) OR usage_known_mask&4!=0 THEN 1 ELSE 0 END)>0 THEN SUM(cache_read_tokens) END,
-        CASE WHEN SUM(CASE WHEN (attempt_id IS NULL AND cache_write_tokens>0) OR usage_known_mask&8!=0 THEN 1 ELSE 0 END)>0 THEN SUM(cache_write_tokens) END
-        FROM chat_usage_events WHERE room_id=?1 AND workspace_id=?2 GROUP BY session_id")?;
+        SUM(CASE WHEN (attempt_id IS NULL AND input_tokens>0) OR usage_known_mask&1!=0 THEN input_tokens END),
+        SUM(CASE WHEN (attempt_id IS NULL AND output_tokens>0) OR usage_known_mask&2!=0 THEN output_tokens END),
+        SUM(CASE WHEN (attempt_id IS NULL AND cache_read_tokens>0) OR usage_known_mask&4!=0 THEN cache_read_tokens END),
+        SUM(CASE WHEN (attempt_id IS NULL AND cache_write_tokens>0) OR usage_known_mask&8!=0 THEN cache_write_tokens END),
+        SUM(CASE WHEN status='not_sent' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN status='remote_unknown' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN attempt_id IS NOT NULL AND dispatched IS NULL THEN 1 ELSE 0 END)
+        FROM usage_facts WHERE room_id=?1 AND workspace_id=?2 GROUP BY session_id", facts_sql(connection)?))?;
     let rows=statement.query_map(params![room,workspace],|row|Ok(json!({
         "session_id":row.get::<_,String>(0)?,"requests":row.get::<_,u64>(1)?,"attempts":row.get::<_,u64>(2)?,
         "legacy_records":row.get::<_,u64>(3)?,"partial_usage_attempts":row.get::<_,u64>(4)?,
         "failed_attempts":row.get::<_,u64>(5)?,"pending_attempts":row.get::<_,u64>(6)?,
         "input_tokens":row.get::<_,Option<u64>>(7)?,"output_tokens":row.get::<_,Option<u64>>(8)?,
         "cache_read_tokens":row.get::<_,Option<u64>>(9)?,"cache_write_tokens":row.get::<_,Option<u64>>(10)?,
+        "not_sent_attempts":row.get::<_,u64>(11)?,"unknown_outcome_attempts":row.get::<_,u64>(12)?,
+        "unknown_dispatch_attempts":row.get::<_,u64>(13)?,
     })))?.collect();
+    rows
+}
+
+pub(super) fn requests_for_run(connection: &Connection, workspace: &str, room: &str, run: &str, turn: Option<&str>) -> rusqlite::Result<Vec<JsonValue>> {
+    let mut statement = connection.prepare(&format!("WITH usage_facts AS ({})
+        SELECT attempt_id,call_id,request_kind,status,input_tokens,output_tokens,usage_known_mask,turn_id,
+            dispatched,fact_source,protocol_stop,process_drained,created_at
+        FROM usage_facts u WHERE workspace_id=?1 AND room_id=?2 AND attempt_id IS NOT NULL
+          AND (run_id=?3 OR (fact_source='http' AND run_id IS NULL AND (
+            turn_id=?4 OR EXISTS (SELECT 1 FROM tool_calls c WHERE c.tool_call_id=u.call_id AND c.run_id=?3))))
+        ORDER BY created_at IS NULL,created_at,attempt_id", facts_sql(connection)?))?;
+    let rows = statement.query_map(params![workspace,room,run,turn], |row| {
+        let mask = row.get::<_,Option<i64>>(6)?.unwrap_or(0);
+        Ok(json!({"attempt_id":row.get::<_,String>(0)?,"call_id":row.get::<_,Option<String>>(1)?,
+            "purpose":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,
+            "input_tokens":if mask&1!=0 {Some(row.get::<_,i64>(4)?)} else {None},
+            "output_tokens":if mask&2!=0 {Some(row.get::<_,i64>(5)?)} else {None},
+            "source_turn_id":row.get::<_,Option<String>>(7)?,"dispatched":row.get::<_,Option<bool>>(8)?,
+            "source":row.get::<_,String>(9)?,"protocol_stop":row.get::<_,Option<String>>(10)?,
+            "process_drained":row.get::<_,Option<bool>>(11)?,"created_at":row.get::<_,Option<i64>>(12)?}))
+    })?.collect();
     rows
 }
 
@@ -188,5 +228,66 @@ mod tests {
         ).unwrap();
         assert_eq!(turn, "old-provider-turn");
         assert!(run.is_none(), "旧记录没有可靠父运行时不得猜测补齐");
+        let rows=summary(&connection,"old-room","old-workspace").unwrap();
+        assert_eq!(rows[0]["legacy_records"],1);
+        assert_eq!(rows[0]["requests"],0);
+        assert_eq!(rows[0]["input_tokens"],3);
+        assert!(rows[0]["cache_read_tokens"].is_null());
+    }
+
+    fn usage_db() -> Connection {
+        let connection=Connection::open_in_memory().unwrap();
+        chat_insights::ensure_tables(&connection).unwrap();
+        connection.execute_batch("CREATE TABLE devin_acp_attempts(attempt_id TEXT PRIMARY KEY,scope_json TEXT,state TEXT,protocol_stop TEXT,process_drained INTEGER);
+            CREATE TABLE tool_calls(tool_call_id TEXT,run_id TEXT);").unwrap();
+        connection
+    }
+
+    fn acp(connection:&Connection,id:&str,room:&str,state:&str,stop:Option<&str>) {
+        let scope=json!({"workspace_id":"w","room_id":room,"agent_id":"s","run_id":format!("run-{id}"),"turn_id":format!("turn-{id}")});
+        connection.execute("INSERT INTO devin_acp_attempts VALUES(?1,?2,?3,?4,1)",params![id,scope.to_string(),state,stop]).unwrap();
+    }
+
+    #[test]
+    fn acp_read_model_deduplicates_and_separates_unknown_dispatch_without_forging_tokens() {
+        let connection=usage_db();
+        for (id,state,stop) in [("done","terminal",Some("end_turn")),("cancel","terminal",Some("cancelled")),
+            ("prepared","prepared",None),("submitted","submitted",None),("not-sent","not_sent",None),
+            ("unknown","unknown",Some("end_turn"))] { acp(&connection,id,"r",state,stop); }
+        acp(&connection,"foreign","other","terminal",Some("end_turn"));
+        connection.execute_batch("INSERT INTO chat_usage_events(workspace_id,room_id,session_id,created_at,
+            input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,attempt_id,logical_request_id,status,dispatched,usage_known_mask)
+            VALUES('w','r','s',10,7,0,0,0,'acp:done','acp:done','prepared',0,1),
+              ('w','r','s',11,999,999,0,0,'acp:foreign','acp:foreign','completed',1,15);").unwrap();
+        let rows=summary(&connection,"r","w").unwrap();let row=&rows[0];
+        assert_eq!(rows.len(),1);
+        for (key,count) in [("requests",6),("attempts",3),("failed_attempts",1),("pending_attempts",2),
+            ("not_sent_attempts",1),("unknown_outcome_attempts",1),("unknown_dispatch_attempts",1),("partial_usage_attempts",6)] {
+            assert_eq!(row[key],count,"{key}");
+        }
+        assert_eq!(row["input_tokens"],7);assert!(row["output_tokens"].is_null());
+        let trace=requests_for_run(&connection,"w","r","run-done",Some("turn-done")).unwrap();
+        assert_eq!(trace.len(),1);assert_eq!(trace[0]["status"],"completed");assert_eq!(trace[0]["source"],"acp");
+        let unknown=requests_for_run(&connection,"w","r","run-unknown",None).unwrap();
+        assert!(unknown[0]["dispatched"].is_null());assert!(unknown[0]["created_at"].is_null());
+        assert_eq!(unknown[0]["status"],"remote_unknown");
+        assert!(requests_for_run(&connection,"w","r","another-run",Some("turn-unknown")).unwrap().is_empty(),"ACP不得按turn猜配");
+        assert_eq!(summary(&connection,"other","w").unwrap()[0]["input_tokens"],JsonValue::Null,"错误归属投影的999不可带入权威room");
+    }
+
+    #[test]
+    fn http_retries_and_run_fallback_survive_acp_merge_and_corruption_is_not_zero() {
+        let connection=usage_db();
+        connection.execute_batch("INSERT INTO chat_usage_events(workspace_id,room_id,session_id,created_at,
+            input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,turn_id,logical_request_id,attempt_id,status,dispatched,usage_known_mask)
+            VALUES('w','r','http',1,2,0,0,0,'old-turn','request','request:1','completed',1,1),
+              ('w','r','http',2,99,99,0,0,'old-turn','request','request:2','remote_unknown',1,NULL);").unwrap();
+        let rows=summary(&connection,"r","w").unwrap();
+        assert_eq!(rows[0]["requests"],1);assert_eq!(rows[0]["attempts"],2);
+        assert_eq!(rows[0]["input_tokens"],2);assert!(rows[0]["output_tokens"].is_null());
+        assert_eq!(rows[0]["unknown_outcome_attempts"],1);assert_eq!(rows[0]["failed_attempts"],0);
+        assert_eq!(requests_for_run(&connection,"w","r","old-run",Some("old-turn")).unwrap().len(),2);
+        connection.execute_batch("INSERT INTO devin_acp_attempts VALUES('broken','{','unknown',NULL,1)").unwrap();
+        assert!(summary(&connection,"r","w").is_err(),"损坏台账不能变成虚假零或成功");
     }
 }

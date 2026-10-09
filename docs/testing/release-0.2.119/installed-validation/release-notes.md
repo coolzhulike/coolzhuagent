@@ -1,0 +1,1 @@
+0.2.119预发布：聊天室权限API保存后顶栏无需刷新自动同步，Browser读取结束统一复核资源。正式真实SWE-2/唯一island-kayak三层跨域双反射长程及权限同步实拍通过；构建/安装0、六门pass、1159文件逐SHA。源码 da7e178f1b1f5d2039337c5e3cdc3feebdcbb79c，MSI SHA256 d9a087b5e4ff73b24d7c9c7901add7e2c7766251a6cc346e4d9126eac68a0e82。严格Browser和32WBS总体尚未全部闭环；未签名、不标latest。交接：docs/testing/release-0.2.119/change-report-and-test-handoff.md。

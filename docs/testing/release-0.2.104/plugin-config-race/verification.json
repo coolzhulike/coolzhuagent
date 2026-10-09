@@ -1,0 +1,32 @@
+{
+  "version": "0.2.104",
+  "qualification_change_zero_network": "pass",
+  "independent_rejection_diagnostic": "缺失，不计通过；下一源码候选已补阶段事件及具体原因",
+  "network_gets": 0,
+  "tool_records": [
+    {
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "status": "failed",
+      "tool_call_id": "tool-7b97e7c5406a43143e21ff7ed2d683a1dd2d1806bad7b1e8b331e4acb04bcce1"
+    }
+  ],
+  "tool_created_ms": 1791505282125,
+  "tool_settled_ms": 1791505282381,
+  "configuration_published_ms": 1791505257770.8845,
+  "attempts_added": 1,
+  "run": {
+    "id": "run-chat-627de862ed9fc5f0970dde2ef408a4c3659e4f1b327f9027",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791505255819-1"
+  },
+  "attempt": {
+    "attempt_id": "5e683a70b9d0580e4ffe095d6fac8da13c3e3af0c98ba5c7",
+    "state": "terminal",
+    "protocol_stop": "end_turn",
+    "process_drained": 1,
+    "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+  },
+  "binding": "island-kayak",
+  "restored_revision": 47,
+  "limitation": "409及其具体语义只见模型最终转述；独立证明重新配置发生在工具登记前、工具failed与零GET，不伪造旧版本拒绝事件。"
+}

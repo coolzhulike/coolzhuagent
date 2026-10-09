@@ -14,7 +14,7 @@ pub use cleanup::{
 };
 pub use contracts::{
     action_attempt_id, ComputerUseAction, ComputerUseActionKind, ComputerUseBudgets,
-    ComputerUseCapabilities, ComputerUseError, ComputerUseRequest, ComputerUseResult,
+    ComputerUseCapabilities, ComputerUseError, ComputerUseInputStep, ComputerUseRequest, ComputerUseResult,
     ComputerUseRetryOwner, ComputerUseRiskClass, ComputerUseRunState, ComputerUseStage,
     ComputerUseSurface, ComputerUseTarget, ComputerUseTerminalStatus, Observation, StepExecution,
     StepInputReleaseStatus, SupervisorSnapshot, Verification,

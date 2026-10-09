@@ -1,0 +1,27 @@
+[
+  {
+    "path": "build.log",
+    "bytes": 1199,
+    "sha256": "65b9ddec2a51c5bf5aa06a8ebe2c46a76ce405aebf38df31fbba58fdf6cfc550"
+  },
+  {
+    "path": "check.py",
+    "bytes": 691,
+    "sha256": "283f132e59a65e836455b174b81fc546119b80b8f3547e34dceff985adda4ef0"
+  },
+  {
+    "path": "checks.json",
+    "bytes": 365,
+    "sha256": "8d9abd95e15ab21bc2e5637d6ebb8b29db32dd736cda80d4a2e30a4b2dc2007e"
+  },
+  {
+    "path": "report.md",
+    "bytes": 1468,
+    "sha256": "236d374521f79e8c55a416b2c48d212fb5ef8e8b1b5c98a5876e8ea7934b7d94"
+  },
+  {
+    "path": "test.log",
+    "bytes": 8045,
+    "sha256": "b064d08b1932e593328aafc56eeb296736b8830d87a7deb326b7f1af492e7281"
+  }
+]

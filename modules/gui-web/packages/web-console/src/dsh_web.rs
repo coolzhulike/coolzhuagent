@@ -232,7 +232,7 @@ impl PendingAction {
                 } else {
                     dsh_execution::lifecycle_current(&manager, binding)
                 }) {
-                    return Err("DSH原工具快照已经停用、卸载或重装".into());
+                    return Err("DSH原工具快照已失效（停用、配置更新、卸载或重装），未执行".into());
                 }
                 if !parent
                     .dsh_bindings
@@ -394,9 +394,18 @@ pub(super) async fn call_from_model(
         provider_id: provider_id.into(),
         cancellation,
     };
-    action
-        .valid()
-        .map_err(|e| api_error(StatusCode::CONFLICT, &e))?;
+    if let Err(mut reason) = action.valid() {
+        // 调用已接纳，但尚未启动executor；记录固定字段，不落参数或动态错误正文。
+        if let (Some(db), Some(run)) = (parent.runtime_db_path.as_deref(), parent.parent_run_id.as_deref()) {
+            if append_runtime_run_event(db, run, "tool.dispatch_rejected", json!({
+                "stage":"after_admission_before_executor","reason_code":"dsh_action_not_live",
+                "executed":false,"tool_name":name,"tool_call_id":execution_id
+            })).is_err() {
+                reason.push_str("（拒绝审计保存失败，仍未执行。）");
+            }
+        }
+        return Err(api_error(StatusCode::CONFLICT, &reason));
+    }
     let invoke = ToolInvoke {
         call_id: execution_id.into(),
         tool_name: name.into(),
@@ -412,6 +421,8 @@ pub(super) async fn call_from_model(
     if acp && outcome.status == ToolOutcomeStatus::DryRunOnly
         && outcome.permission_gate.decision.requires_ui() {
         // ACP没有跨回合审批续接协议；不留下回合结束后执行、结果无法回传的请求。
+        // 必须同时返回终态拒绝；仅改文案仍会被外层记成 awaiting_approval 并锁住远端绑定。
+        outcome.status = ToolOutcomeStatus::Rejected;
         outcome.summary_text = "本轮插件未执行：请先完成聊天室授权再重新发起；未保留延期执行请求。".into();
     }
     if outcome.status == ToolOutcomeStatus::DryRunOnly

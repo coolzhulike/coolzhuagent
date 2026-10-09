@@ -1,0 +1,55 @@
+[
+  {
+    "name": "web-full",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "coolzhu-web-console",
+      "--offline",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 80.08841872215271
+  },
+  {
+    "name": "tool-registry",
+    "command": [
+      "cargo",
+      "check",
+      "-p",
+      "coolzhu-tool-registry",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 1.8588123321533203
+  },
+  {
+    "name": "module-linkage",
+    "command": [
+      "cargo",
+      "test",
+      "--test",
+      "module_linkage_smoke",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 5.261001110076904
+  },
+  {
+    "name": "frontend-all",
+    "command": [
+      "node",
+      "--test",
+      "modules\\gui-web\\packages\\web-console\\tests\\chat-history-sync.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\chat-tool-status.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\devin-agent-form.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\devin-auth.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\devin-model-settings.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\input-safety-badge.test.cjs"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 1.34659743309021
+  }
+]

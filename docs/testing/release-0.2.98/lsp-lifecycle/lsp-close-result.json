@@ -1,0 +1,35 @@
+{
+  "stage": "0.2.98正式安装版",
+  "closed_owned_process": {
+    "ProcessId": 3820,
+    "ParentProcessId": 24620,
+    "ExecutablePath": "C:\\Users\\zhupu\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rust-analyzer.exe",
+    "created_100ns": 134359629368928972,
+    "sha256": "8780a0a408169100c7b4df49ba2c9dcc4b40b48dd375e3985bd585f1a4fe0a57"
+  },
+  "close": {
+    "http": 200,
+    "body": {
+      "stopped": true
+    }
+  },
+  "held_handle_wait_before": 258,
+  "held_handle_wait_after": 0,
+  "status": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已配置，需手动启动"
+    }
+  },
+  "old_handle_request": {
+    "http": 409,
+    "body": {
+      "error": "语言服务已停止，请重新启动"
+    }
+  },
+  "generated_model_requests": 0
+}

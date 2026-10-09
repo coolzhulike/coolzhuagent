@@ -1,0 +1,9 @@
+{
+  "session_id": "session-1791528081739",
+  "model": "qwen3.8-flash",
+  "context_window": 8192,
+  "max_output_tokens": 1024,
+  "default_context_window": 1000000,
+  "default_max_output_tokens": 65536,
+  "overridden": true
+}

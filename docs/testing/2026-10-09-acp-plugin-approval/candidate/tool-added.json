@@ -1,0 +1,26 @@
+{
+  "parameters": {
+    "backend_kind": "devin_acp",
+    "base_url": null,
+    "computer_use_enabled": true,
+    "context_window": 0,
+    "enable_llm_tools": true,
+    "endpoint": null,
+    "llm_tool_exposure": "whitelist",
+    "max_output_tokens": 0,
+    "protocol": "devin_acp",
+    "reasoning_mode": "auto",
+    "supports_multimodal": true,
+    "temperature": null,
+    "thinking_budget": null,
+    "tool_allowlist": [
+      "computer_use_perform",
+      "plugin__cli_anything_status",
+      "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "dsh__1ef9be67fd4ddb42d93d68c084b38983"
+    ],
+    "top_p": null,
+    "turn_timeout_ms": 900000
+  },
+  "revision": 54
+}

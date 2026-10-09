@@ -1,0 +1,12 @@
+{"kind": "http-get", "role": "OLD", "path": "/old.html", "host": "127.0.0.1:58336", "server_ns": 810855480104100, "received_unix_ns": 1791522142727611500}
+{"kind": "document-script-start", "role": "OLD", "page_ms": 1791522142762.8, "server_ns": 810855518952200, "received_unix_ns": 1791522142766460300}
+{"kind": "loaded", "role": "OLD", "page_ms": 1791522142765.4001, "trusted": true, "server_ns": 810855522116800, "received_unix_ns": 1791522142769625100}
+{"kind": "observing-phase-not-found", "facts": null, "server_ns": 810894129189900, "received_unix_ns": 1791522181377551600}
+{"kind": "observing-phase-not-found", "facts": null, "server_ns": 810924512675000, "received_unix_ns": 1791522211761706900}
+{"kind": "pointerdown", "role": "OLD", "page_ms": 1791522215088.5, "trusted": true, "target": "target", "server_ns": 810927843448800, "received_unix_ns": 1791522215092553900}
+{"kind": "pointerup", "role": "OLD", "page_ms": 1791522215089.5, "trusted": true, "target": "target", "server_ns": 810927844796300, "received_unix_ns": 1791522215093902100}
+{"kind": "click", "role": "OLD", "page_ms": 1791522215089.9001, "trusted": true, "target": "target", "server_ns": 810927846011100, "received_unix_ns": 1791522215095116600}
+{"kind": "observing-phase-found", "facts": {"run_id": "run-chat-3d66cc29db51fe23171fa52276885ed66bdce2232cb66c10", "cu_call_id": "cu-session-1791131217833-chat-turn-1791522150644-0-tool-ec33ae9fa43e7b008c056f8c567155f5dbcb994f7a5f43a6771cc9c206e49277", "cu_state": "observing", "steps": [[0, "sent", "released", 1791522215101]], "observation_requested": {"event_id": 3341, "created_at": 1791522215163, "payload": {"request_id": "9c8139dcd5389dff2bd2bf7f96ca62c5", "stage": "registered"}}}, "server_ns": 810927918136400, "received_unix_ns": 1791522215167243300}
+{"kind": "phase-ready", "role": "OLD", "page_ms": 1791522215167.9001, "server_ns": 810927922269900, "received_unix_ns": 1791522215171376700}
+{"kind": "observing-phase-not-found", "facts": null, "server_ns": 810953666106000, "received_unix_ns": 1791522240915782400}
+{"kind": "observing-phase-not-found", "facts": null, "server_ns": 810978662220300, "received_unix_ns": 1791522265912449700}

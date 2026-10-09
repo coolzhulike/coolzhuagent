@@ -1,0 +1,40 @@
+{
+  "before": {
+    "attempts": 925,
+    "sources": 1130
+  },
+  "after": {
+    "attempts": 925,
+    "sources": 1130
+  },
+  "results": [
+    {
+      "case": 0,
+      "http_status": 400,
+      "body": {
+        "error": "文本附件地址无效，请通过上传重新选择文件。"
+      }
+    },
+    {
+      "case": 1,
+      "http_status": 400,
+      "body": {
+        "error": "附件包含二进制控制字节，未作为文本发送。"
+      }
+    },
+    {
+      "case": 2,
+      "http_status": 400,
+      "body": {
+        "error": "单个文本附件须为不超过 256 KiB 的普通文件。"
+      }
+    },
+    {
+      "case": 3,
+      "http_status": 400,
+      "body": {
+        "error": "Devin 当前支持图片与文本文件；PDF、音视频及其它附件尚未接入，未发送。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "stage": "0.2.94 Program Files正式安装版",
+  "version": "0.2.94",
+  "source_commit": "54fe2d317d1c0022e88a95533f538b172ae30593",
+  "marker": "INTEGRATION-INSTALLED094-SKILL-PLUGIN-BROWSER-20261008",
+  "run": {
+    "id": "run-chat-b00cf5c51c60d1007ffb50d22a2ab3b208b1b1cdb666979e",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "model": "swe-2-medium",
+  "remote_session_id": "island-kayak",
+  "calls": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791476793210-5-tool-e4aa5f008db14ae1ddff01d7a28a9388a0adce3b96430b7b22e5c1f38a91a68d",
+      "result": {
+        "status": "succeeded",
+        "goal_achieved": true,
+        "attempts": 5,
+        "steps_completed": 5,
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 5,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791477693210
+            }
+          },
+          "cu_deadline_ms": 1791477693210,
+          "cu_deadline_established_at_ms": 1791476816469,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 1,
+          "action_type": "text_input",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 2,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 3,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 4,
+          "action_type": "click",
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "target": "total",
+      "page_ms": 1791476853986.8,
+      "observed_ms": 1791476854000.267
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "target": "total",
+      "page_ms": 1791476853989.4,
+      "observed_ms": 1791476854002.0864
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "target": "total",
+      "page_ms": 1791476853989.8,
+      "observed_ms": 1791476854003.309
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "target": "total",
+      "page_ms": 1791476891275.5,
+      "observed_ms": 1791476891288.7725
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "target": "submit",
+      "page_ms": 1791476928588.7,
+      "observed_ms": 1791476928601.7356
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "target": "submit",
+      "page_ms": 1791476928589.5999,
+      "observed_ms": 1791476928605.7383
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "target": "submit",
+      "page_ms": 1791476928589.9,
+      "observed_ms": 1791476928606.1506
+    },
+    {
+      "kind": "business-rejected",
+      "trusted": true,
+      "target": "submit",
+      "page_ms": 1791476928590.5,
+      "reason": "delivery",
+      "total": "815",
+      "observed_ms": 1791476928606.4277
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "target": "delivery",
+      "page_ms": 1791476973563.4,
+      "observed_ms": 1791476973577.4338
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "target": "delivery",
+      "page_ms": 1791476973564.3,
+      "observed_ms": 1791476973580.0483
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "target": "delivery",
+      "page_ms": 1791476973564.5999,
+      "observed_ms": 1791476973580.4084
+    },
+    {
+      "kind": "delivery-confirmed",
+      "trusted": true,
+      "target": "delivery",
+      "page_ms": 1791476973565.0999,
+      "observed_ms": 1791476973583.171
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "target": "submit",
+      "page_ms": 1791477016954.5999,
+      "observed_ms": 1791477016971.2908
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "target": "submit",
+      "page_ms": 1791477016955.5999,
+      "observed_ms": 1791477016972.7476
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "target": "submit",
+      "page_ms": 1791477016955.3,
+      "observed_ms": 1791477016971.508
+    },
+    {
+      "kind": "order-completed",
+      "trusted": true,
+      "target": "submit",
+      "page_ms": 1791477016956.0999,
+      "total": "815",
+      "delivery": "free",
+      "receipt": "BAMBOO-ORDER-094",
+      "observed_ms": 1791477016974.1394
+    }
+  ],
+  "remote_attempts": [
+    {
+      "attempt_id": "d80c6699f40e628b067ce3ade1c70a4ad4427f696f86e7ed",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "screenshot": "15-installed-integration-completed.jpg"
+}

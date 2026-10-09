@@ -1,0 +1,11 @@
+{
+  "build_exit_code": 0,
+  "tests_exit_code": 0,
+  "web_passed": 1423,
+  "failed": 0,
+  "ignored_existing": 6,
+  "lib_passed": 8,
+  "native_host_passed": 1,
+  "model_requests": 0,
+  "candidate_only": true
+}

@@ -23,6 +23,7 @@
       const profile = profiles[id];
       panel.querySelector('[data-role="provider-note"]').textContent = profile.note;
       editors.set(id, window.CoolzhuModelSettings.mount(panel.querySelector('[data-role="provider-editor"]'), {
+        workspacePath: document.querySelector('[data-role="overview-workspace-name"]')?.dataset.workspacePath || "",
         backendFilter: "llm_http", initialDraft: profile,
         modelFilter: profile.modelIds ? model => profile.modelIds.has(model.id) && model.is_free !== false : null,
         onSaved: async () => { await loadSessions(); await loadAgents(); },
