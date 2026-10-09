@@ -19433,13 +19433,12 @@ function safeErrorBody(text) {
 }
 
 async function requestJson(url, init) {
-  const pathname = new URL(url, window.location.href).pathname;
   let response;
   try {
     response = await fetch(url, withDefaultJsonHeaders(init));
   } catch (error) {
-    if (error?.name === "AbortError") throw new Error(`${pathname} 请求已取消或超时`);
-    throw new Error(`${pathname} 未获得 HTTP 响应：${error?.message || "本地服务连接失败"}`);
+    if (error?.name === "AbortError") throw new Error("请求已取消或超时，请稍后重试。");
+    throw new Error("无法连接本地服务，请确认控制台已启动后重试。");
   }
   const text = await response.text();
   let data = {};
@@ -19451,8 +19450,10 @@ async function requestJson(url, init) {
     }
   }
   if (!response.ok) {
-    const detail = data.error || data.message || safeErrorBody(text) || response.statusText;
-    const error = new Error(`HTTP ${response.status} ${response.statusText}: ${detail}`);
+    // 界面显示服务端可读原因，技术状态保留在结构化字段，避免错误页/路径进入消息框。
+    const detail = !data.parse_error && (typeof data.error === "string" ? data.error : data.message);
+    const error = new Error(typeof detail === "string" && detail.trim()
+      ? detail : "请求未完成，请稍后重试。");
     error.status = response.status;
     error.statusText = response.statusText;
     error.body = data;

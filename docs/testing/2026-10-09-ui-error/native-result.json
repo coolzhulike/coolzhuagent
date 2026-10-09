@@ -1,0 +1,15 @@
+{
+  "counts_before": {
+    "runtime_runs": 450,
+    "devin_acp_attempts": 983
+  },
+  "counts_after": {
+    "runtime_runs": 450,
+    "devin_acp_attempts": 983
+  },
+  "new_model_calls": 0,
+  "new_cloud_sessions": 0,
+  "error": "上传失败：内容对象摘要不匹配，未覆盖损坏文件",
+  "no_http_prefix": true,
+  "formal123_not_patched": true
+}
