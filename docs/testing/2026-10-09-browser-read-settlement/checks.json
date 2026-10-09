@@ -1,0 +1,24 @@
+[
+  {
+    "stage": "build",
+    "command": [
+      "cargo",
+      "build",
+      "-p",
+      "coolzhu-tauri-shell",
+      "--offline"
+    ],
+    "actual_exit_code": 0
+  },
+  {
+    "stage": "test",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "coolzhu-tauri-shell",
+      "--offline"
+    ],
+    "actual_exit_code": 0
+  }
+]
