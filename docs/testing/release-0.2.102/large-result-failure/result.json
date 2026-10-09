@@ -1,0 +1,78 @@
+{
+  "version": "0.2.102",
+  "marker": "INSTALLED102-LARGE-RESULT-NO-READER-20261008",
+  "run": {
+    "id": "run-chat-7dd5725db1b611e62439e17c0ebbe021163ba697c8ae38ec",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791503732745-1",
+    "created_at": 1791503733150
+  },
+  "attempts": [
+    {
+      "attempt_id": "01252e01be5eab0b0df6673fb93105d33b131503d5b3a208",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "calls": [
+    {
+      "tool_call_id": "tool-2dcfaf7c1dcac143b94697b300d32c66d4f9f84def3575bf427935044f137eaf",
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "status": "completed"
+    }
+  ],
+  "events": [
+    {
+      "event_type": "run.accepted",
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791503732745-1\"}",
+      "created_at": 1791503732747
+    },
+    {
+      "event_type": "run.started",
+      "payload_json": "{\"previous_state\":\"accepted\"}",
+      "created_at": 1791503733148
+    },
+    {
+      "event_type": "run.completed",
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"completed\"}",
+      "created_at": 1791503770474
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791503733256-0",
+    "kind": "assistant-reply",
+    "content": "如实报告：本轮 net_fetch 已真实执行，但资料尾文对我不可见，无法读取 final_record，不猜测、不调用 calculator。\n\n**net_fetch 回执**（`http://127.0.0.1:55089/actual-large-document`，allowPrivate=true，timeoutMs=60000，maxBytes=120000）：\n- 宿主 `status: ok`（route: runtime-executed，audit `executed: true`，`cleanup_confirmed: true`），HTTP **200**，返回耗时 6ms\n- 响应体为 `竹林资料批次` JSON（records 数组，note 含 `中文𠮷😀` Unicode 校验串 + 64 位 hex data）\n- 宿主 spill 投影头部原文：`[工具结果已保存原文；SHA256=c98632da51978f4b2b33c1bb208839d1c4f605c27d72684afa7132c4253e52a4，字节数=111227。本轮没有可用的原文读取工具，以下保留完整结果，不代表执行成功。]`——本轮无 read_file 声明，原文已按 spill 机制完整保留并标注\n\n**HTTP 截断状态**：我侧可见输出在约 records index 32 附近被截断（101447 字符未显示）；`final_record` 及 sentinel/left/right 位于尾文，未进入我的可见上下文。溢出副本写入宿主临时文件，但按本轮约束我不得调用文件工具读取，也不声称看到尾文。\n\n**结果**：sentinel、left、right **未取得**（如实缺失）；按\"禁止猜测\"，不虚构数值，故未调用 calculator。未重试、未补发、未调用其它工具、未操作桌面/浏览器、未新建云会话。",
+    "created_at": 1791503770272
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "expected": {
+    "sentinel": "竹林𠮷😀-7ce013403ed254a98bd1c3f7",
+    "left": 13564,
+    "right": 11986,
+    "result": 162578104,
+    "body_bytes": 44498,
+    "body_sha256": "dad78914320f9645ef713f70745c3c5dc2c37433673808c9d12419d08d4f396d"
+  },
+  "new_blobs": [
+    {
+      "file_name": "sha256-c98632da51978f4b2b33c1bb208839d1c4f605c27d72684afa7132c4253e52a4.txt",
+      "bytes": 111227,
+      "sha256": "c98632da51978f4b2b33c1bb208839d1c4f605c27d72684afa7132c4253e52a4",
+      "contains_tail": true,
+      "character_count": 89751
+    }
+  ]
+}

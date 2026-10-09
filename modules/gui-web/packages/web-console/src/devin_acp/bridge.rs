@@ -55,6 +55,7 @@ pub(crate) struct FrozenPolicy {
     parent_claim: (Option<String>, String),
     readonly: bool,
     planning: Arc<super::planning_exchange::Exchange>,
+    results: super::result_pages::ResultPages,
     /// 固定工程在 blocking worker 真实收尾前仍被持有。
     _pin: workspace_activity::WorkspacePin,
 }
@@ -73,9 +74,10 @@ impl FrozenPolicy {
         }
     }
 
-    /// 只查询已冻结且尚未撤销的工具资格，不新增授权或读取文件。
-    pub(crate) fn can_read_spill(&self) -> bool {
-        self.tool_live("read_file").is_ok()
+    fn present_result(&self, text: String, tool: &str) -> String {
+        let db = self.parent.goal_phase.as_ref().map(|goal|goal.db_path())
+            .or(self.parent.runtime_db_path.as_deref());
+        self.results.present(text, db, tool)
     }
 
     pub(crate) fn planning_for(&self, parent: &FrozenParentContext, agent: &AgentSessionDto)
@@ -315,6 +317,7 @@ impl ToolBridge {
                 parent_claim,
                 readonly,
                 planning: Arc::new(super::planning_exchange::Exchange::default()),
+                results: super::result_pages::ResultPages::default(),
                 _pin: pin,
             }),
             definitions,
@@ -372,6 +375,11 @@ impl ToolBridge {
             "tools/list" if self.initialized.load(Ordering::Acquire) => {
                 let mut tools=self.definitions.iter().map(|tool|
                     json!({"name":tool.name,"description":tool.description,"inputSchema":tool.input_schema})).collect::<Vec<_>>();
+                if !self.definitions.is_empty() {
+                    tools.push(json!({"name":"tool_result_read",
+                        "description":"只读本轮已执行工具的大回执。使用回执提供的result_id与UTF-8字节offset，按next_offset续读；不访问任意文件，不重新执行工具。原工具撤销或本轮结束后不可用。",
+                        "inputSchema":{"type":"object","properties":{"result_id":{"type":"string"},"offset":{"type":"integer","minimum":0}},"required":["result_id","offset"],"additionalProperties":false}}));
+                }
                 if self.policy.grants.contains_key("computer_use_perform") {
                     tools.push(json!({"name":"computer_use_read_request",
                         "description":"按页读取当前 CU 规划/验收快照。仅访问本轮 job_id/request_id，按 next_offset 读取至 complete=true 后回答；不读取文件、不执行动作。",
@@ -397,6 +405,21 @@ impl ToolBridge {
                     return Err("桥工具参数必须是对象。".into());
                 }
                 match name {
+                    "tool_result_read" => {
+                        self.policy.live()?;
+                        let result_id=input["result_id"].as_str().ok_or("回执读取缺少result_id")?;
+                        let offset=input["offset"].as_u64().and_then(|value|usize::try_from(value).ok()).ok_or("回执偏移无效")?;
+                        let source_tool=self.policy.results.source_tool(result_id)?;
+                        self.policy.tool_live(&source_tool)?;
+                        let page=self.policy.results.read(result_id,offset)?;
+                        self.policy.live()?;
+                        self.policy.tool_live(&source_tool)?;
+                        append_runtime_run_event(self.policy.journal.path(),&self.policy.scope.run_id,
+                            "tool.result_page_read",json!({"result_id":result_id,"offset":offset,
+                                "next_offset":page["next_offset"],"source_tool":source_tool}))
+                            .map_err(|_|"回执读取来源记录保存失败")?;
+                        json!({"content":[{"type":"text","text":page.to_string()}],"isError":false})
+                    },
                     "computer_use_read_request" => {
                         self.policy.live()?;
                         self.policy.tool_live("computer_use_perform")?;
@@ -575,7 +598,7 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
                 .await.map_err(|(status, _)| format!("宿主工具派发失败：{status}"))?;
             let failed = response.status != "ok";
             let text = serde_json::to_string(&response).map_err(|_| "宿主结果编码失败。")?;
-            return Ok(json!({"content":[{"type":"text","text":truncate_tool_result_for_context(text,Some(&policy.parent),policy.can_read_spill())}],"isError":failed}));
+            return Ok(json!({"content":[{"type":"text","text":policy.present_result(text,name)}],"isError":failed}));
         }
         let budget = policy
             .parent
@@ -650,7 +673,7 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
         }
         let is_error = outcome.status != ToolOutcomeStatus::Ok;
         let text = serde_json::to_string(&outcome).map_err(|_| "工具结果编码失败。")?;
-        let text = truncate_tool_result_for_context(text, Some(&policy.parent), policy.can_read_spill());
+        let text = policy.present_result(text, name);
         Ok(json!({"content":[{"type":"text","text":text}],"isError":is_error}))
     }
 
@@ -909,6 +932,7 @@ mod tests {
                 parent_claim: parent_claim(db, &scope.run_id).unwrap(),
                 readonly: false,
                 planning: Arc::new(super::super::planning_exchange::Exchange::default()),
+                results: super::super::result_pages::ResultPages::default(),
                 _pin: workspace_activity::pin_workspace().unwrap(),
             }),
             definitions,
@@ -1351,7 +1375,8 @@ mod tests {
         let result: JsonValue = response.json().await.unwrap();
         // 当前夹具只开放基础工具；规划回复工具只能随 CU 权限一起开放。
         let tools = result["result"]["tools"].as_array().unwrap();
-        assert_eq!(tools.len(), bridge.definitions.len());
+        assert_eq!(tools.len(), bridge.definitions.len()+1);
+        assert!(tools.iter().any(|tool|tool["name"]=="tool_result_read"));
         assert!(!tools.iter().any(|tool| tool["name"] == "computer_use_respond"));
         let response = client
             .post(url)
