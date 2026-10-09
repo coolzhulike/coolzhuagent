@@ -421,6 +421,8 @@ pub(super) async fn call_from_model(
     if acp && outcome.status == ToolOutcomeStatus::DryRunOnly
         && outcome.permission_gate.decision.requires_ui() {
         // ACP没有跨回合审批续接协议；不留下回合结束后执行、结果无法回传的请求。
+        // 必须同时返回终态拒绝；仅改文案仍会被外层记成 awaiting_approval 并锁住远端绑定。
+        outcome.status = ToolOutcomeStatus::Rejected;
         outcome.summary_text = "本轮插件未执行：请先完成聊天室授权再重新发起；未保留延期执行请求。".into();
     }
     if outcome.status == ToolOutcomeStatus::DryRunOnly

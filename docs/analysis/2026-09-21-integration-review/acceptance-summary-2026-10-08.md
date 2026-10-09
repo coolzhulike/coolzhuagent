@@ -1,5 +1,7 @@
 # 整体验收状态快照（2026-10-08）
 
+ACP插件审批收尾候选：正式117真实冻结权限拒绝但遗留awaiting_approval/远端锁，已复现并修复；同一SWE-2/唯一island候选正常续发收束旧记录，新调用failed、terminal/end_turn/drained/解锁、HTTP0，无新云端。offline build0、Web1424/0/6、前端22/0，原失败及实拍保留。候选不冒称正式安装通过，新包待复验；严格Browser仍开放。[专项交接](../../testing/2026-10-09-acp-plugin-approval/report.md)。Goal继续。
+
 117正式增量：旧配置页迟到请求作用域已出包复验。正常构建/安装0、六门pass、1159文件逐SHA一致，冻结d094c7a两路CI success；正式EXE的16组跨工程/ABA/重载/重启/错误释放/无头兼容真实HTTP与存储检查，正常原生B/A参数、保存0.45/revision12和同EXE重启四实拍通过。模型0、新云端0，原SWE/revision51/唯一island恢复。只关闭配置页此子项，完整领域及严格Browser仍开放。[117正式交接](../../testing/release-0.2.117/change-report-and-test-handoff.md)。Goal继续。
 
 配置迟到请求候选：正式116已复现同ID同revision旧A草稿错写B；复用WorkspacePin与配置加载标识，统一页从完整工程路径绑定作用域。最终offline build0、既有Web1423/0/6与前端22/0，16组真实API（跨工程、ABA、重载、重启、400/409释放、无头兼容）及原生B/A参数、保存0.45、同EXE重启实拍通过。首候选GUI绑定失败保留，最终才计通过；模型0、原SWE/revision51/唯一island已恢复。正式116不含，待新包；完整领域迁移和严格Browser仍开放。[候选事实与实拍](../../testing/2026-10-09-session-config-late/report.md)。Goal继续。

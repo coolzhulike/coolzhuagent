@@ -1,0 +1,19 @@
+{
+  "run_id": "run-chat-5bef037384ae4b0d0e07f2dd207c3e6ec4900ba7c5a45521",
+  "run_state": "running",
+  "attempt_id": "f943eecf00dc80b4383122789d620f2daccd21f549b7a65b",
+  "observed_stage": "prepared",
+  "started_ms": 1791541457072.9856,
+  "permission": {
+    "room_id": "room-1791131523339",
+    "room_name": "SWE-2 Browser与Paint真实验收",
+    "permission_profile": "full-access",
+    "full_access": true,
+    "dev_open_permissions": false,
+    "effective_permission_profile": "full-access",
+    "effective_full_access": true,
+    "warning": "该权限完全允许操作用户电脑文件，有一定风险",
+    "updated_at": 1791541457149
+  },
+  "finished_ms": 1791541457159.1292
+}
