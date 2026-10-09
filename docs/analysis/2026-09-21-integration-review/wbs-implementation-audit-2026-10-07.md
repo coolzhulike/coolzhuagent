@@ -76,3 +76,8 @@ ACP统计遗漏已在正式101修补及独立复验：HTTP与权威ACP台账在�
 S7可选DSH试点不属于32工作包总体完成前提。真实DSH市场及插件已接入不等于完整PTC/自治工作流或Devin子Agent已开放。
 
 本轮源码、正常构建安装、玉石控件/目录及函数取消正式验收和GitHub四资产发布已归档，见[093正式交接](../../testing/release-0.2.93/change-report-and-test-handoff.md)。优先顺序转为长程连续工具与Browser资源变化验收，再处理总队列启动/会话/插件剩余项。OpenCode/HF真实模型验收待用户填各平台凭据，不能偷偷复用Qwen密钥或生成新的Devin云端会话绕开。具体当前正式事实见[验收队列](current-acceptance-queue.md)，原候选沿革见[插件函数报告](../../testing/2026-10-07-plugin-function/report.md)、[视觉与连接器报告](../../testing/2026-10-07-jade-connectors/report.md)。
+
+
+## 2026-10-08 正式104插件重新配置竞争补记（部分通过）
+
+配置提交明确早于旧工具登记，真实SWE-2/唯一island-kayak网络GET为0，工具1条failed、父轮completed/end_turn/drained。104仅传回409，独立拒绝诊断缺失；候选补具体原因及after_admission_before_executor事件，offline build与DSH专项8通过/1既有跳过，尚未出包复验。正常恢复配置、白名单及停用状态，revision47、源码摘要保持。102的before_dispatch/零登记证据不能代替此场景。[正式104事实与实拍](../../testing/release-0.2.104/plugin-config-race/report.md)。整体Goal继续。

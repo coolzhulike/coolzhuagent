@@ -595,7 +595,10 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
                     Some(&raw_id), Some(&scope.turn_id), Some(&scope.room_id), Some(&policy.parent), None));
             let response = FROZEN_POLICY.scope(policy.clone(), TURN_TRACE.scope(bridge_trace(scope)?,
                 CHAT_CANCELLATION.scope(policy.cancellation.clone(), run)))
-                .await.map_err(|(status, _)| format!("宿主工具派发失败：{status}"))?;
+                .await.map_err(|error| {
+                    let status = error.0;
+                    format!("宿主工具派发失败：{status}；{}", api_error_message(error))
+                })?;
             let failed = response.status != "ok";
             let text = serde_json::to_string(&response).map_err(|_| "宿主结果编码失败。")?;
             return Ok(json!({"content":[{"type":"text","text":policy.present_result(text,name)}],"isError":failed}));

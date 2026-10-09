@@ -144,3 +144,8 @@ PR83已合并，当前新增修复与证据由[PR84](https://github.com/coolzhul
 - 098正式真实LSP查找阶段/已启动阶段切换房间与工作区重载隔离、同房重新激活的世代拒绝及持有句柄退出已补验；严格A→B→A返回后仍在启动窗口未命中，保留开放。[竞争事实](../../testing/release-0.2.98/lsp-inflight/report.md)。
 
 - 098正式共享ACP冻结授权扩大专项通过：submitted后恢复完全访问，8.818秒后旧轮单次read_file仍dry-run-only/require-approval；原SWE/唯一远端正常收尾，调试开关、工具和权限恢复。[实拍与审计](../../testing/release-0.2.98/frozen-expansion/report.md)。只关闭此共享授权路径，不外推全部DSH许可竞争。
+
+
+## 2026-10-08 正式104插件重新配置竞争补记（部分通过）
+
+配置提交明确早于旧工具登记，真实SWE-2/唯一island-kayak网络GET为0，工具1条failed、父轮completed/end_turn/drained。104仅传回409，独立拒绝诊断缺失；候选补具体原因及after_admission_before_executor事件，offline build与DSH专项8通过/1既有跳过，尚未出包复验。正常恢复配置、白名单及停用状态，revision47、源码摘要保持。102的before_dispatch/零登记证据不能代替此场景。[正式104事实与实拍](../../testing/release-0.2.104/plugin-config-race/report.md)。整体Goal继续。

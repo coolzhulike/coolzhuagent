@@ -491,3 +491,8 @@ COOLZHU_INPUT_SAFETY_STATE_ROOT="$LOCALAPPDATA/CoolzhuAgent/input-safety" \
 ## 2026-10-04 Browser/CU后续增量
 
 只读实测发现重复否定范围漏识别，已在068定向修复；Windows聚焦无条件还原最大化已改为只恢复最小化。Web离线编译通过，范围回归6项通过。普通UI取消规划中任务实拍通过；页面替换首轮晚于结束未命中，按住期间关闭/替换仍开放。独立新Paint在落笔前因观察变化拒绝，实际0输入、未画成；保留失败而不以父轮completed认成功。068统一载荷及MSI已构建，1150文件静态核验通过，已运行候选但未安装替换067；安全中心弹窗处理前不进行GUI回归。详细依据见release-0.2.67报告增量和release-0.2.68/browser-cu-regression-plan.md。本段仅为真实最新增量，不将既有历史章节或工程测试改写为全部验收通过。
+
+
+## 2026-10-08 正式104插件重新配置竞争补记（部分通过）
+
+配置提交明确早于旧工具登记，真实SWE-2/唯一island-kayak网络GET为0，工具1条failed、父轮completed/end_turn/drained。104仅传回409，独立拒绝诊断缺失；候选补具体原因及after_admission_before_executor事件，offline build与DSH专项8通过/1既有跳过，尚未出包复验。正常恢复配置、白名单及停用状态，revision47、源码摘要保持。102的before_dispatch/零登记证据不能代替此场景。[正式104事实与实拍](../../testing/release-0.2.104/plugin-config-race/report.md)。整体Goal继续。
