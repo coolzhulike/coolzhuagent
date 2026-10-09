@@ -1,0 +1,2 @@
+{"event": "server_started", "unix_ms": 1791506038992.2834, "monotonic_ns": 794752130419000, "port": 52540, "url": "http://127.0.0.1:52540/config-race-20261008", "plugin_id": "dsh-aa909f79795799f288de8a67@external", "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983"}
+{"event": "server_stopped", "unix_ms": 1791506117652.872, "monotonic_ns": 794830788340500}

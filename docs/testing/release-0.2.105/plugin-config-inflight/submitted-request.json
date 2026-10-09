@@ -1,0 +1,11 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "native_browser_panel": true,
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "PLUGIN-CONFIG-INFLIGHT-105-20261008：正式0.2.105插件函数执行期间重新配置与退出验收。仅尝试一次工具 dsh__1ef9be67fd4ddb42d93d68c084b38983，参数 {\"url\": \"http://127.0.0.1:63024/revoke-20261008\", \"allowPrivate\": true, \"timeoutMs\": 60000, \"maxBytes\": 1024}。本机资料端点会等待；验收端只在真实网络函数进入后正常重新配置既有插件，添加无操作效应的验收标签。旧执行应被取消或拒绝，报告实际状态与宿主返回的清理事实，不假报成功，不重试、不补发、不调用其它工具、不改文件、不创建新云端会话。收到结果后立即完成最终回复。",
+  "attachments": []
+}
