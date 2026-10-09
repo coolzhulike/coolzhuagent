@@ -11,3 +11,7 @@
 双子文档网页已正常打开，初态原图留证。实际 SWE-2 长程 run-chat-fb9884be271d11cd42a3ccf0bd6bfd174b075cd93e358d29 已启动；目标为各子文档滚动、读取随机订单码、真实输入/提交及后续 DSH 总额计算。执行期间只做只读观察；完成前不记通过。正式新包、独立正式复验及其它32工作包仍开放。
 
 2026-10-09滚动文档身份候选：原NodeCache按文档范围保存稳定随机身份，前后视口不再依赖AX序号。真实SWE-2/唯一island双子文档长程8动作、2次滚动effect_observed、两项随机码提交，宿主2/2后DSH总额5438；3步效果保持未知，根completed、单end_turn/drained并解锁。双端build0、Web1429/0/6、壳78/0、联动8/0。只计候选，下一批正式包与独立复验、严格原生窄时序及其它32WBS仍开放。[候选实拍与交接](../../testing/2026-10-09-browser-document-scroll/report.md)。
+
+## 正式123独立复验与发布
+
+2026-10-09正式123：本步效果归因及滚动文档身份已正常出包并独立复验。真实SWE-2-medium/唯一island-kayak新双来源订单8动作/16可信事件，两个子文档滚动与Text效果确认、Enter未知不冒领，真实提交及宿主2/2、后续DSH总额3514，回复#msg-1791569329337-0，两工具各一次completed、父completed/单end_turn/drained并解锁。独立行情负例一次CU两次无效click均sent/released/inconclusive、no_progress2停止、零第三次，目标未完成/root failed保留为预期负例。正常构建安装0、6门pass、1159安装文件逐SHA、源码407126d两路CI success、四资产公开预发布及服务器摘要/实际tag一致。严格nativeTarget/commit及在途撤销/HRESULT竞争、脚本自发滚动完整因果和其它32WBS继续开放。[123正式交接与实拍](../../testing/release-0.2.123/change-report-and-test-handoff.md)。Goal保持active。

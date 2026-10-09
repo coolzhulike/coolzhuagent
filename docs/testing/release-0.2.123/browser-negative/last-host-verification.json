@@ -1,0 +1,52 @@
+{
+  "criteria": [
+    {
+      "evidence_blank": false,
+      "evidence_bytes": 64,
+      "evidence_chars": 24,
+      "evidence_exceeds_limit": false,
+      "evidence_type": "string",
+      "index": 0,
+      "index_type": "number",
+      "met": false,
+      "met_type": "boolean",
+      "node_indices_count": 1,
+      "node_indices_type": "array",
+      "position": 0,
+      "type": "object",
+      "unknown_field_count": 0
+    }
+  ],
+  "host_verification": {
+    "criteria_count": 1,
+    "criteria_met": 0,
+    "grounding": [
+      {
+        "grounded": false,
+        "index": 0,
+        "model_met": false,
+        "node_indices": [
+          9
+        ],
+        "reason": "model_unmet",
+        "selected_nodes": [
+          {
+            "index": 9,
+            "name_chars": 5,
+            "role": "StaticText"
+          }
+        ],
+        "span_nodes": [
+          {
+            "blank": false,
+            "index": 9,
+            "inline_has_static_text": false,
+            "name_chars": 5,
+            "role": "StaticText"
+          }
+        ]
+      }
+    ],
+    "ungrounded_positive_count": 0
+  }
+}
