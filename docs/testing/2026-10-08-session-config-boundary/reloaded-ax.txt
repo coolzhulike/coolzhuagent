@@ -1,0 +1,158 @@
+Browser tab: 8, Title: "COOLZHU CODE 控制台", URL: "http://127.0.0.1:8767/".
+1 AXWebArea COOLZHU CODE 控制台, URL: 127.0.0.1:8767/
+	2 container COOLZHU CODE 控制台
+		3 container 顶部状态区
+			4 container COOLZHU
+				5 text COOLZHU
+			6 container 发送对象与工作区
+				7 container
+					8 container 当前 Agent 头像
+						9 image 当前发送对象：参数边界保存验收(qwen3.8-flash)
+					10 text 发送对象
+					11 pop up button (collapsed) Description: 选择发送对象。将发送给：参数边界保存验收(qwen3.8-flash), Help: 将发送给：参数边界保存验收(qwen3.8-flash), Secondary Actions: Expand
+						36 text 参数边界保存验收(qwen3.8-flash)
+					13 text 工程目录
+					14 pop up button (collapsed) Description: 切换工程目录, Secondary Actions: Expand, Help: 切换工程目录：C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\tmp\2026-10-08-release-110\session-config-live\workspace
+			15 container 当前聊天室与状态
+				16 text 当前聊天室
+				17 pop up button (collapsed) Description: 切换当前聊天室, Secondary Actions: Expand
+					37 text WAL迁移恢复验收
+				19 container 当前聊天室权限
+					20 button (collapsed) 权限 状态未知, Secondary Actions: Expand
+						21 text 权限
+						38 text 状态未知
+				23 container 聊天室状态
+					24 image 系统健康：异常
+					39 image 系统警示：任务异常
+		25 container 多窗口工作台
+			26 container 快捷功能栏
+				27 container 快捷功能
+					28 checkbox Description: 首页, Value: 0
+					29 checkbox Description: 定时任务, Value: 0
+					30 checkbox Description: 设置, Value: 1
+					31 checkbox Description: 统计信息, Value: 0
+					32 checkbox Description: 微信连接, Value: 0
+					33 button (collapsed) Description: 更多快捷功能, Help: 更多, Secondary Actions: Expand
+				34 checkbox Description: 升级更新, Value: 0
+			35 container 聊天室窗口
+				40 container
+					41 container
+						42 button 搜索聊天记录与消息索引
+						43 button 查看运行轨迹与安全详情
+						44 container
+							45 text 用户
+							46 text WAL迁移前消息：这条记录必须进入迁移备份。
+							47 text 19:41:08 #1
+					48 container
+						49 button 选择附件
+						50 text field (settable)
+						51 button Description: 发送消息。将发送给：参数边界保存验收(qwen3.8-flash), Help: 将发送给：参数边界保存验收(qwen3.8-flash)
+						52 button 语音输入, Help: 点击开始听写
+					53 splitter Description: 调整扩展栏宽度, Value: 480
+					54 container 设置, ID: chat-right-rail
+						55 container Description: 工具, ID: chat-right-panel-tools
+							56 container 设置工具面板
+								57 container
+									58 text 设置
+									59 button 返回此前的右栏视图
+									60 button 关闭当前工具
+								61 container 设置窗口
+									62 container 统一模型会话参数
+										63 heading 模型与会话, Value: 2
+											64 text 模型与会话
+										65 text 为当前聊天室选择模型，配置连接、上下文与思考参数。
+										66 button 新建模型会话
+										67 container
+											68 text 编辑配置的会话
+											69 pop up button (collapsed, settable) Description: 选择要编辑配置的会话, Value: 参数边界保存验收 · qwen3.8-flash, Secondary Actions: Expand
+												70 menu
+													71 新会话
+													72 主 Agent · glm-4.6
+													73 Devin Opus 5.5 审查 · claude-opus-5-5-high
+													74 Devin SWE-2 真实CU验收 · swe-2-medium
+													75 (selected) 参数边界保存验收 · qwen3.8-flash
+										76 text 当前发送给 参数边界保存验收(qwen3.8-flash)；当前编辑：参数边界保存验收(qwen3.8-flash)。
+										77 container
+											78 container
+												79 text 01
+												80 heading 连接, Value: 3
+													81 text 连接
+												82 text 会话名称
+												83 text field (settable) 会话名称, Value: 参数边界保存验收
+												84 text 通信协议
+												85 pop up button (collapsed, settable) 通信协议, Value: OpenAI Chat Completions, Secondary Actions: Expand
+													86 menu
+														87 (selected) OpenAI Chat Completions
+														88 Anthropic Messages
+														89 Devin · 账号登录
+												90 text 接口地址 · Base URL
+												91 text field (settable) 接口地址 · Base URL, Value: https://dashscope.aliyuncs.com/compatible-mode/v1
+												92 container 远程模型发现
+													93 button 获取远程模型
+													94 checkbox (settable, integer) Description: 此次查询不使用密钥, Value: 0
+													95 text 点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。
+												96 text 模型 ID
+												97 text field (settable) 模型 ID 可选择发现的模型，也可手填；发现结果不会自动覆盖配置。, Value: qwen3.8-flash
+												98 text 可选择发现的模型，也可手填；发现结果不会自动覆盖配置。
+												99 text 请求路径 · Endpoint  可选
+												100 text field (settable) 请求路径 · Endpoint 可选
+												101 text API Key
+												102 text field (settable) API Key 密钥状态：未配置（能力已启用）。留空不会覆盖已有密钥。
+												103 text 密钥状态：未配置（能力已启用）。留空不会覆盖已有密钥。
+												104 text 模型用途
+												105 pop up button (collapsed, settable) 模型用途, Value: 对话 / 代码, Secondary Actions: Expand
+													106 menu
+														107 (selected) 对话 / 代码
+														108 图像理解
+														109 多模态
+														110 图像生成
+														111 音频
+														112 视频
+														113 文本向量
+												114 checkbox (settable, integer) Description: 清除该会话保存的密钥, Value: 0
+												115 text 图片输入能力
+												116 pop up button (collapsed, settable) 图片输入能力 图片直接发送给此模型；请确认所用模型及接口支持图片输入。, Value: 支持图片直传, Secondary Actions: Expand
+													117 menu
+														118 沿用模型能力
+														119 (selected) 支持图片直传
+														120 纯文本 · 由视觉 Agent 描述
+												121 text 图片直接发送给此模型；请确认所用模型及接口支持图片输入。
+											122 container
+												123 text 02
+												124 heading 上下文与输出, Value: 3
+													125 text 上下文与输出
+												126 text 上下文容量 · tokens
+												127 stepper (settable, integer) 上下文容量 · tokens, Value: 65536
+												128 text 最大输出 · tokens
+												129 stepper (settable, integer) 最大输出 · tokens, Value: 4096
+												130 text 当前生效：上下文 65,536 · 本轮最大输出 4,096 tokens。输出受上下文预留与本地服务容量限制。
+											131 container
+												132 text 03
+												133 heading 思考与采样, Value: 3
+													134 text 思考与采样
+												135 text 思考参数模式
+												136 pop up button (collapsed, settable) 思考参数模式, Value: 自动识别模型能力, Secondary Actions: Expand
+													137 menu
+														138 (selected) 自动识别模型能力
+														139 Reasoning Effort 层级
+														140 Thinking 开关
+												141 text 思考层级
+												142 pop up button (collapsed, settable) 思考层级, Value: 高, Secondary Actions: Expand
+													143 menu
+														144 自动
+														145 关闭
+														146 极简
+														147 低
+														148 中
+														149 (selected) 高
+														150 超高
+														151 最大
+												152 text 温度 · Temperature
+												153 stepper (settable, float) 温度 · Temperature, Value: 0.699999988079071, Details: 0.7
+												154 text 采样范围 · Top P
+												155 stepper (settable) 采样范围 · Top P
+												156 text 按 Qwen3.8 原生映射发送所选思考层级；自动沿用服务端默认，关闭发送 enable_thinking=false。
+											157 text 配置已载入。修改后对下一轮会话生效。
+											158 button 保存模型会话配置
+
+The focused UI element is 66 button 新建模型会话

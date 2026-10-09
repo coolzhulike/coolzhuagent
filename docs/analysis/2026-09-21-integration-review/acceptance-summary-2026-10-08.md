@@ -1,5 +1,9 @@
 # 整体验收状态快照（2026-10-08）
 
+110低高度页面补验：正式服务903×551真实视口的首页、设置及内部滚动到保存实拍通过，79个已布局图片均加载；仅关闭网页布局子项，不替代原生壳/混合DPI/多屏。模型0/新云端0、SWE原绑定不变、临时视口已恢复。[实拍与边界](../../testing/2026-10-08-low-height-ui/report.md)。883e71e两路远端CI均success；参数拆分仍为未出包候选，整体Goal继续。
+
+会话参数拆分候选：DTO/默认值、协议/地址、HTTP参数校验和预算约束移至独立session_model_config模块；五组提取前后独立比对一致。实际offline build0、完整Web1423/0/6既有忽略（另lib8/native-host1）通过；隔离真实服务正常GUI非法值拦截、后端400不改revision、有效保存与同EXE重启逐参数恢复实拍通过，模型0/新云端0/原库不写。正式110不含此候选，未追认SessionConfigService/Runner/outbox总体完成；Browser窄时序仍开放。[候选事实与实拍](../../testing/2026-10-08-session-config-boundary/report.md)。Goal继续。
+
 110重连补验：正式EXE自有后台真实断线，副本新增450条/删除已加载3条/修改1条，原页面无需刷新或重选，自动跨页恢复527条，内容/顺序逐项匹配SQLite且重复0，包含首边界删除。驱动实际退出0，原库不写/模型0/新云端0；[实拍与原事实](../../testing/release-0.2.110/history-reconnect/report.md)。只关闭此组，流式/跨工作区竞争等仍开放。110已公开预发布，四资产服务器长度/SHA和实际tag733d5f3一致，未签名、不标latest，Goal继续。
 
 110正式增量：独立diagnostics文件轮转正常发布/安装0、六门pass、1159文件逐摘要一致，构建源码两路CI成功。正式EXE的Windows进程间占锁启动684ms不阻塞、解除锁后622ms就绪并轮转两类诊断文件，旧代SHA完整保留、正常页面及原生窗口实拍通过；原SWE/唯一island保持，模型0/新云端0。23项诊断、完整1423/0/6既有忽略及联动8通过。只关闭该轮转子项，全局配额/其它生产者/故障/脱敏导出与Browser窄时序等仍开放。[110交接与实拍](../../testing/release-0.2.110/change-report-and-test-handoff.md)。Goal继续。

@@ -1,0 +1,8 @@
+{
+  "http_status": 400,
+  "error": "{\"error\":\"温度必须在协议允许的范围内：OpenAI 0–2，Anthropic 0–1\"}",
+  "parameters_unchanged": true,
+  "revision_unchanged": true,
+  "gui_invalid_draft_not_persisted": true,
+  "model_requests": 0
+}

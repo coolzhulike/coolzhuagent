@@ -1,0 +1,74 @@
+{
+  "files": [
+    {
+      "path": "build-output.txt",
+      "bytes": 49858,
+      "sha256": "5b8e3dbcd65aa6b52946f6c0c79ef26388f3257ed2d922e6ac4d27b0eebe4cc8"
+    },
+    {
+      "path": "cleanup.json",
+      "bytes": 152,
+      "sha256": "aa4d13facb831c8683bb002e0e29411773cc8fe3908ee68b3ee49551badfdc97"
+    },
+    {
+      "path": "facts.json",
+      "bytes": 1316,
+      "sha256": "be47b6187231b44d0c51ef7424608fec740a55aeeab494661b790c5e49bd35eb"
+    },
+    {
+      "path": "invalid-server.json",
+      "bytes": 264,
+      "sha256": "eef1b6c2b890e6df98879645f12d15a945949034766127be5af76a4b36263aa0"
+    },
+    {
+      "path": "invalid-ui.png",
+      "bytes": 104819,
+      "sha256": "ad9e8fd49c41f0029f45f482a84e620f45a5aa4fcb4dae8faa71fb8db48e82fd"
+    },
+    {
+      "path": "reloaded-ax.txt",
+      "bytes": 8482,
+      "sha256": "1cadf7c6d1bb437b59dfdb9d21eff466a23f9c389599a0a9559e0e640e8b4f34"
+    },
+    {
+      "path": "reloaded-ui.png",
+      "bytes": 103472,
+      "sha256": "faf265ef58e226fdff5209204fd322a72ce4b3bf1454331bac433eb2eb473259"
+    },
+    {
+      "path": "report.md",
+      "bytes": 3798,
+      "sha256": "4f4dd6496ea18d7f9705960e2a9741c85cd0dffdc32adefe2fbcbd6804d7a455"
+    },
+    {
+      "path": "saved-ax.txt",
+      "bytes": 8502,
+      "sha256": "f32dbf35ab7d672fb8d92fc0636c26c82604f7de00d9c0c1a546148294760087"
+    },
+    {
+      "path": "saved-ui.png",
+      "bytes": 102851,
+      "sha256": "ea11763aa322f0ec83cfe654dca28e5f106a6d5633bfa9b4087682a30d82d173"
+    },
+    {
+      "path": "session-config-invalid.py",
+      "bytes": 1430,
+      "sha256": "f4c4bce56c86caaab8d0abb07fb3c9e7597e31796f3beedcc27fb9f088ceeecc"
+    },
+    {
+      "path": "session-config-live.py",
+      "bytes": 4371,
+      "sha256": "2de511d87252ecdf2b49b62b472396400f099ec506d7e7de7e4213a801439335"
+    },
+    {
+      "path": "test-output.txt",
+      "bytes": 149851,
+      "sha256": "64e83c91125a61647348effd078adc4ae825b39bf946e638477090990f19ecd9"
+    },
+    {
+      "path": "verification.json",
+      "bytes": 953,
+      "sha256": "5184dafafcb05d79aceca2f16ba7eb50e0249fe4ab1a70e76edb52e6058c5416"
+    }
+  ]
+}

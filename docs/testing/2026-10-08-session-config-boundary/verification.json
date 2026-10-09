@@ -1,0 +1,27 @@
+{
+  "comparison_base": "883e71eb2d2e657d267e8119218eb1aaeffa2276",
+  "source_equivalence": {
+    "dto_identical": true,
+    "resolvers_identical": true,
+    "http_rules_identical": true,
+    "budget_identical": true,
+    "original_four_tests_identical": true
+  },
+  "build_exit": 0,
+  "test_exit": 0,
+  "web_tests": {
+    "passed": 1423,
+    "failed": 0,
+    "existing_ignored": 6
+  },
+  "lib_tests_passed": 8,
+  "native_host_tests_passed": 1,
+  "model_requests": 0,
+  "cloud_sessions_created": 0,
+  "original_runtime_writes": 0,
+  "candidate_module_sha256": "219b04c1da288e4dcccd77b0324fdcd2e1e16c32bb79376dafa49e40c2fa9057",
+  "candidate_main_sha256": "25e64b551f63fdd305452000172553c95ee1b5faa36bdbab8d73f2363abb0bf5",
+  "formal_110_includes_refactor": false,
+  "final_build_binary_sha256": "ffe845b371363f436caf932d766b66449d5ba3853a1cc27d5222d3afe8846b62",
+  "ui_capture_build_before_trailing_empty_line_cleanup": true
+}
