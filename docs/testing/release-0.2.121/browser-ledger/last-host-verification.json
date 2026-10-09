@@ -1,0 +1,119 @@
+{
+  "criteria": [
+    {
+      "evidence_blank": false,
+      "evidence_bytes": 33,
+      "evidence_chars": 11,
+      "evidence_exceeds_limit": false,
+      "evidence_type": "string",
+      "index": 0,
+      "index_type": "number",
+      "met": true,
+      "met_type": "boolean",
+      "node_indices_count": 1,
+      "node_indices_type": "array",
+      "position": 0,
+      "type": "object",
+      "unknown_field_count": 0
+    },
+    {
+      "evidence_blank": false,
+      "evidence_bytes": 153,
+      "evidence_chars": 65,
+      "evidence_exceeds_limit": false,
+      "evidence_type": "string",
+      "index": 1,
+      "index_type": "number",
+      "met": true,
+      "met_type": "boolean",
+      "node_indices_count": 3,
+      "node_indices_type": "array",
+      "position": 1,
+      "type": "object",
+      "unknown_field_count": 0
+    }
+  ],
+  "host_verification": {
+    "criteria_count": 2,
+    "criteria_met": 1,
+    "grounding": [
+      {
+        "grounded": true,
+        "index": 0,
+        "model_met": true,
+        "node_indices": [
+          30
+        ],
+        "reason": "node_text",
+        "selected_nodes": [
+          {
+            "index": 30,
+            "name_chars": 11,
+            "role": "StaticText"
+          }
+        ],
+        "span_nodes": [
+          {
+            "blank": false,
+            "index": 30,
+            "inline_has_static_text": false,
+            "name_chars": 11,
+            "role": "StaticText"
+          }
+        ]
+      },
+      {
+        "grounded": false,
+        "index": 1,
+        "model_met": true,
+        "node_indices": [
+          15,
+          16,
+          17
+        ],
+        "reason": "text_mismatch",
+        "selected_nodes": [
+          {
+            "index": 15,
+            "name_chars": 21,
+            "role": "StaticText"
+          },
+          {
+            "index": 16,
+            "name_chars": 21,
+            "role": "StaticText"
+          },
+          {
+            "index": 17,
+            "name_chars": 21,
+            "role": "StaticText"
+          }
+        ],
+        "span_nodes": [
+          {
+            "blank": false,
+            "index": 15,
+            "inline_has_static_text": false,
+            "name_chars": 21,
+            "role": "StaticText"
+          },
+          {
+            "blank": false,
+            "index": 16,
+            "inline_has_static_text": false,
+            "name_chars": 21,
+            "role": "StaticText"
+          },
+          {
+            "blank": false,
+            "index": 17,
+            "inline_has_static_text": false,
+            "name_chars": 21,
+            "role": "StaticText"
+          }
+        ]
+      }
+    ],
+    "ungrounded_positive_count": 1
+  }
+}

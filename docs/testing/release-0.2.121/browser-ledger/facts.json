@@ -1,0 +1,67 @@
+{
+  "stage": "0.2.121 Program Files正式安装版独立动态长程",
+  "source_user_id": "msg-1791556148488-user",
+  "run": {
+    "id": "run-chat-e11e119072a1830db879017f181ef650b11298c0a3e59b66",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791556148488-0",
+    "provider_turn_id": null,
+    "state": "failed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-d7aa94d2d595230f0390b1268a3bb77adae831d403a75e13eb33a2011a492183",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791556148492,
+    "started_at": 1791556148783,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791556148783,
+    "finished_at": 1791556909213
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-9eacdc572e841e6ac2cd6eebf6f610ca735d4a0d65156e3b9491bf4db53793a0",
+      "run_id": "run-chat-e11e119072a1830db879017f181ef650b11298c0a3e59b66",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "b968e4b45c24c03f",
+      "status": "failed",
+      "created_at_unix_ms": 1791556169797,
+      "updated_at_unix_ms": 1791556889675,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-e11e119072a1830db879017f181ef650b11298c0a3e59b66\",\"turn_id\":\"chat-turn-1791556148488-0\",\"attempt_id\":\"1f62e72f0563ef7306c0c1d8bc5da5edf7e88befbddbd45d\",\"owner_epoch\":259,\"generation\":259}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "1f62e72f0563ef7306c0c1d8bc5da5edf7e88befbddbd45d",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791556148866-0",
+      "content": "本轮新任务，调用一次 `computer_use_perform`。任务未达成（终态回执 `status: blocked`，stage: verification，`goal_achieved: false`）：\n\n- **错误**：`verification_failed` —— \"planner stopped before all success criteria were verified\"（retryable=false，retry_owner=model）\n- **input_steps**（11/11，`attempts=11`，`steps_completed=11`，每步 `input_delivery: sent`，`effect_status: effect_observed`）：\n  1. `click` — 聚焦第1项订单码框（released）\n  2. `text_input` — 输入 `BAMBOO-4599`（not_needed）\n  3. `key_combination` enter — 第1项验证通过（released）\n  4. `click` — \"下一步\"进入第2项（released）\n  5. `click` — 聚焦第2项订单码框（released）\n  6. `text_input` — 输入 `JADE-3112`（not_needed）\n  7. `key_combination` enter — 第2项验证通过（released）\n  8. `click` — \"下一步\"进入第3项（released）\n  9. `click` — 聚焦第3项订单码框（released）\n  10. `text_input` — 输入 `SCROLL-5868`（not_needed）\n  11. `key_combination` enter — 提交第3项（released）\n- **页面实际进展**：最近观察已显示\"整单已完成，三项均通过\"及三条外层回执（竹剑 347×6、玉佩 253×6、卷轴 578×7），但最终一次 done 应答被宿主判为\"在全部成功标准验证前停止\"，终态 blocked\n- **DSH 计算器**：未调用——CU 终态非成功，按要求不猜数字、不补发\n- **如实收尾**：输入全部投递并释放，无重试、无脚本、无外部浏览器；终态为 blocked，未知不追认成功",
+      "kind": "assistant-reply"
+    }
+  ]
+}

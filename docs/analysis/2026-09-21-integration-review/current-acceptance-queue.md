@@ -1,5 +1,9 @@
 # 当前验收队列（2026-10-09，0.2.120正式）
 
+2026-10-09多行回执候选：保留正式121的11动作/网页完成却引文误拒原失败；修补仅允许节点边界精确空格/LF，内部文字、数字、顺序及新鲜度保持，规划停止保留最后部分验收且仍失败。真实SWE-2-medium/唯一island-kayak新订单综合长程11动作/27可信事件、宿主2/2，CU与DSH计算器各一次completed，总额6470，回复#758/9分37秒，单end_turn/drained/解锁。offline build0、core143/0、Web1428/0/6、模块8/0；两实际root入口诊断仅类型/字段数量。只计源码候选，不替代新包正式独立复验；中间进展、严格原生竞态及其余32WBS继续。[候选报告与实拍](../../testing/2026-10-09-browser-multiline/report.md)。Goal继续。
+
+2026-10-09正式121：五入口参数诊断投影已出包；正常构建/安装0、六门/1159文件与af272e7两路CI success。本轮跨来源动态订单11动作/27可信事件、三项网页完成，但三个相邻回执引文65字/原节点63字导致text_mismatch，宿主1/2、CU blocked及父failed，计算器未调用，单end_turn/drained/原唯一island解锁。root诊断仅类型/数量实测通过，不冒整体长程通过或其它入口覆盖；候选多行边界拼接与停止保留部分验收修补待实操。[121原失败及实拍](../../testing/release-0.2.121/change-report-and-test-handoff.md)。Goal继续。
+
 2026-10-09后续诊断候选：五个工具参数诊断入口统一为根JSON类型/数量投影，不再复制键名、正文、路径或嵌套凭据，真实调用参数与事实链不变。offline build0、Web1427/0/6；首次回归和正式120真实CU输入所有权冲突exit101保留，任务结束后实际重跑0。120不包含此候选，下一有实际工具输入的长程需补正式诊断验证；历史日志、其它生产者/导出/全局配额及完整6.1仍开放。[检查及边界](../../testing/2026-10-09-tool-diagnostic-redaction/report.md)。
 
 2026-10-09正式120增量：动态非目标行情每100ms刷新，真实SWE-2-medium/唯一island-kayak单perform完成三步订单11动作、27可信输入事件，三步验证/最终提交均通过，逐步sent/effect_observed及释放正常；回复#754，10分13秒，单end_turn/drained并解锁。局部成功证据新鲜度与ToolDispatchService协调提取已正式覆盖。构建/安装actual0、六门pass、1159文件逐SHA，冻结ed18c1c两路CI success，四资产公开预发布且服务器摘要/实际tag一致。原119失败保留；中间进展判据、严格原生竞态、完整2.3及32WBS继续，后续诊断脱敏候选不包含本包。[120正式交接与实拍](../../testing/release-0.2.120/change-report-and-test-handoff.md)。Goal保持active。

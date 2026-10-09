@@ -77,6 +77,12 @@ struct Verdict { criteria: Vec<Criterion> }
 #[serde(deny_unknown_fields)]
 struct Criterion { index: usize, met: bool, evidence: String, node_indices: Vec<usize> }
 
+// 仅节点边界允许常见逐行分隔；节点内部字符保持原样，不能归一化数字或正文。
+fn selected_text_contains(indices: &[usize], quote: &str, page: &PageObservation) -> bool {
+    let names: Vec<_> = indices.iter().map(|index| page.nodes[*index].name.as_str()).collect();
+    ["", " ", "\n"].iter().any(|separator| names.join(separator).contains(quote))
+}
+
 // 扁平 AX 中空容器、旧文本的 InlineTextBox 会隔开 StaticText；只拼接选中的原文。
 // 子串检查仅证明跳过的 ITB 没有新文字，不推断父子关系或授予任何输入权限。
 fn bridged_static_text(indices: &[usize], quote: &str, page: &PageObservation) -> bool {
@@ -95,7 +101,7 @@ fn bridged_static_text(indices: &[usize], quote: &str, page: &PageObservation) -
             _ => return false,
         }
     }
-    indices.iter().map(|index| page.nodes[*index].name.as_str()).collect::<String>().contains(quote)
+    selected_text_contains(indices, quote, page)
 }
 
 fn node_grounding_reason(criterion: &Criterion, page: &PageObservation) -> &'static str {
@@ -112,7 +118,7 @@ fn node_grounding_reason(criterion: &Criterion, page: &PageObservation) -> &'sta
             return if bridged_static_text(&indices, quote, page) { "bridged_text" } else { "non_adjacent_nodes" };
         }
         if !indices.iter().all(|index| matches!(page.nodes[*index].role.as_str(), "StaticText" | "InlineTextBox")) { return "non_text_nodes"; }
-        return if indices.iter().map(|index| page.nodes[*index].name.as_str()).collect::<String>().contains(quote) {
+        return if selected_text_contains(&indices, quote, page) {
             "adjacent_text"
         } else { "text_mismatch" };
     }
@@ -415,6 +421,31 @@ mod tests {
         observation.state["page"]["nodes"][3]["name"] = json!("后序新文字");
         observation.state["page"]["nodes"].as_array_mut().unwrap().push(json!({"role":"StaticText","name":"后序新文字"}));
         assert!(!finish(bridged,&request,&observation).unwrap().achieved);
+    }
+
+    #[test]
+    fn multiline_receipt_preserves_each_host_node_without_rewriting_values() {
+        let request: ComputerUseRequest = serde_json::from_value(json!({"objective":"读取订单明细","surface":"browser",
+            "target":{"url":"https://example.invalid/"},"success_criteria":["三项单价与数量"]})).unwrap();
+        let mut observation = Observation {generation:1,surface:ComputerUseSurface::Browser,surface_identity:"native:1".into(),
+            state:json!({"page":{"backend":"native-panel","read_only_request":false,"input_supported":true,
+                "url":"https://example.invalid/","title":"订单","truncated":false,"nodes":[
+                {"role":"StaticText","name":"竹剑；单价 347；数量 6"},
+                {"role":"StaticText","name":"玉佩；单价 253；数量 6"},
+                {"role":"StaticText","name":"卷轴；单价 578；数量 7"}]}}),evidence:vec!["native-ax:1:0".into()]};
+        let verdict = |quote: &str| json!({"criteria":[{"index":0,"met":true,"evidence":quote,"node_indices":[0,1,2]}]}).to_string();
+        let lines = ["竹剑；单价 347；数量 6", "玉佩；单价 253；数量 6", "卷轴；单价 578；数量 7"];
+        for separator in ["", " ", "\n"] {
+            assert!(finish(&verdict(&lines.join(separator)),&request,&observation).unwrap().achieved);
+        }
+        for quote in [lines.join("；"),lines.join("\n").replace("347", "999"),lines.join("\n").replace("347", "3 47")] {
+            assert!(!finish(&verdict(&quote),&request,&observation).unwrap().achieved);
+        }
+        observation.state["page"]["nodes"][1]["role"] = json!("button");
+        assert!(!finish(&verdict(&lines.join("\n")),&request,&observation).unwrap().achieved);
+        observation.state["page"]["nodes"][1]["role"] = json!("StaticText");
+        let omitted = json!({"criteria":[{"index":0,"met":true,"evidence":format!("{}\n{}",lines[0],lines[2]),"node_indices":[0,2]}]}).to_string();
+        assert!(!finish(&omitted,&request,&observation).unwrap().achieved);
     }
 
     #[test]

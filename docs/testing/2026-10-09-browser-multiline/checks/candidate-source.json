@@ -1,0 +1,17 @@
+[
+  {
+    "path": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+    "bytes": 45363,
+    "sha256": "6c313257fe4a9acca7c2cff8ae7b38388a4062a9f0932c08836a8f29ad737413"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+    "bytes": 180953,
+    "sha256": "f913057984b2c3260a417c323a2ce9d633971a24e6eaad2b7075a52e3bcef19b"
+  },
+  {
+    "path": "modules/computer-use/packages/computer-use-core/src/controller.rs",
+    "bytes": 98473,
+    "sha256": "2d00b01c004796c480d5daed72d58fbd5d699a366bcd28e6f80ad52087063717"
+  }
+]
