@@ -1,0 +1,13 @@
+﻿{
+    "web_sha256":  "1d30e01ee378538ef57818c9108c169ffd40d50c3ede672d9da5a2b665814e39",
+    "web_binary":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "shell_started":  "2026-10-09T04:01:25.0995196Z",
+    "web_started":  "2026-10-09T04:01:24.1149359Z",
+    "web_pid":  19468,
+    "shell_binary":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "shell_pid":  7468,
+    "port":  8765,
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage":  "0.2.111 Program Files正式安装版",
+    "shell_sha256":  "35eb4f0e69f702a17252ab25ba0f7584b276c7198fecd432a6e7c28ecb152875"
+}

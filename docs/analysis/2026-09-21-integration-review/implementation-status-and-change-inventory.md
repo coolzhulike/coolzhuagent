@@ -1,3 +1,11 @@
+# 实施计划完成情况与改动清单（当前0.2.111）
+
+111正式增量：会话参数职责拆分与Browser失败回调归因已正常release构建/安装0、六门pass、1159文件逐SHA一致，原生主界面和设置读取实拍通过；冻结源码20facc6两路远端CI均success，已公开111预发布，四资产服务端摘要/标签匹配；原SWE/唯一island保持、模型0/新云端0。严格时序未因此关闭。前一1f59远端历史重放测试失败已保留，仅测试阶段预算修补后本地实际build0/完整1423/0/6通过，新提交远端另核；该测试修补不追认包含111。[交接与实拍](../../testing/release-0.2.111/change-report-and-test-handoff.md)。整体Goal继续。
+
+## 历史增量与原始实施记录
+
+以下保留各轮原事实；其中旧版本和待出包描述不覆盖上方当前结论。
+
 106正式补记：正常release实际子退出0、六门pass、安装0、1159文件逐摘要一致；冻结c9c61fe，确切MSI带时间戳。原SWE-2-medium/唯一island-kayak两轮真实终态已验证input_steps：成功为sent/released/effect_observed/passed，失败为sent/released/效果未知，单调用/end_turn/drained且无补发。第一轮导航晚于终态、负例未命中已保留；第二轮观察超时负例和实拍通过。只关闭最终释放字段缺口；新发现待处理观察资源变化落为通用timeout，原因识别待修，严格按下窗口仍开放。见[106交接、失败事实与实拍](../../testing/release-0.2.106/change-report-and-test-handoff.md)。其它矩阵和整体Goal继续。
 
 Browser回调归因候选：已知资源/URL变化优先于失败HRESULT，避免通用观察错误覆盖确定原因；仅调整既有判断顺序，不改输入/权限/预算/重试。独立桌面offline build0、完整76/0/0回归通过，模型0/新云端0；正式110不含，严格down/up与在途资源撤销仍未实机闭环。[事实与边界](../../testing/2026-10-08-browser-read-attribution/report.md)。会话参数拆分将一并出包，Goal继续。

@@ -1,0 +1,122 @@
+[
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 3664,
+    "sha256": "8485b600d11a38940e304e2037195f3c1482cf9934717a9f24df73275871f1ee"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-205913345-b0943218/CoolzhuAgent-0.2.111-installer-report.json",
+    "bytes": 4885,
+    "sha256": "beed06875c03da6baea8e7ff29de956218f39df5b20868fbf2b442167bb4611e"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-205913345-b0943218/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "10857695e283620a2cae79e327db51dd6c9671c3b29978b3a0c0d3222ceb298a"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-205913345-b0943218/package-report.json",
+    "bytes": 110267,
+    "sha256": "1e9577a15bd7c16cb411653786ac12b99b9db84f1843a82789f2875a87e57857"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-205913345-b0943218/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "5291897c7a026f9151af0885f1fd4986098a32bdaf86bb422bd2cec15c743001"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 197,
+    "sha256": "8089c0d19da67a8c2f8e440dbd2e4dd7d58fbe792185da378e7540fc28b04012"
+  },
+  {
+    "path": "installed-validation/build-stderr.log.txt",
+    "bytes": 56417,
+    "sha256": "82c2e1009e25bf50484e7073ef2b20d25b15f1ea49bdefa8ee9bf14703f16e02"
+  },
+  {
+    "path": "installed-validation/build-stdout.log.txt",
+    "bytes": 14833,
+    "sha256": "9da2f879c52a1478c9d3fda93c84bfb0753932827cbd22066f27724ffc26fc0d"
+  },
+  {
+    "path": "installed-validation/github-published-metadata.json",
+    "bytes": 11085,
+    "sha256": "1988a972c87f3dec09a2c9bbf71aa3033fe5b9d8a1c68260de6de42e86fe0759"
+  },
+  {
+    "path": "installed-validation/github-tag.json",
+    "bytes": 405,
+    "sha256": "b80e8c8ffc80b49dfc93e93a6196082e558a0372940859ad6ecc6c856e12850b"
+  },
+  {
+    "path": "installed-validation/idle-before-install.json",
+    "bytes": 260,
+    "sha256": "2b1a70eb5ac80233faf51655942c572d674b0b22258ce8d5998536617c1a9810"
+  },
+  {
+    "path": "installed-validation/install-111-result.json",
+    "bytes": 290,
+    "sha256": "796f4d374dd10284a94c0e9c1719f0d0b0cb14d04748ba6553b4f0ee0f6266dd"
+  },
+  {
+    "path": "installed-validation/installed-111-standard-processes.json",
+    "bytes": 728,
+    "sha256": "a0facbc1e1d12e4f066c0255982e817a6c1f86f43b273737943573a03bc627fa"
+  },
+  {
+    "path": "installed-validation/installed-111-verification.json",
+    "bytes": 1884,
+    "sha256": "555e12b8df61be93fb8d9f34d611696cf8ea76cb1679bd78442f9b60203c1ecd"
+  },
+  {
+    "path": "installed-validation/normal-runtime.json",
+    "bytes": 444,
+    "sha256": "44df39ee035c6c49cf0e7b1a8c7dc52538d1103ed94a38c26a0e761da23bef58"
+  },
+  {
+    "path": "installed-validation/package-111-verification.json",
+    "bytes": 1869,
+    "sha256": "9a206f227caa8d9e6b623243ca19a9d8b5cbd3de2b8e457be5fbcc5c21d8dd49"
+  },
+  {
+    "path": "installed-validation/release-assets-local.json",
+    "bytes": 660,
+    "sha256": "0e9e3f8796317d5b80454bb239b171566aacacbe992854941b6064e83b21e800"
+  },
+  {
+    "path": "installed-validation/release-notes.md",
+    "bytes": 1351,
+    "sha256": "61c1f1daae48c3c7ccd5a6dbc2b139e3d341180c8ae0245d285ef16b12c2dc86"
+  },
+  {
+    "path": "installed-validation/source-ci.json",
+    "bytes": 325,
+    "sha256": "007c372f14349a75c23adc1e333d40f0f39cde6cabd92df82d03aa93b9299a1b"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "4c388c67dadfa6404d8e67f426635e61a0e8ce3435a9c2afd71c81a6c7dc2672"
+  },
+  {
+    "path": "installed-validation/verify-111.py",
+    "bytes": 2842,
+    "sha256": "884d20a532615a12786732df01b395750dd0a0995f0d83c3a134220357701026"
+  },
+  {
+    "path": "installed-validation/verify-release.py",
+    "bytes": 1710,
+    "sha256": "e4d5e409fce20a8bf0583b64f6c8bdd0809ed2ed3f8dc177eca0c0ae9a3f5a77"
+  },
+  {
+    "path": "native-settings.jpg",
+    "bytes": 237513,
+    "sha256": "61d6a7422982029ca9cd877a9f939c4b24a75bd915a23898d57bb18813e114dc"
+  },
+  {
+    "path": "native-ui.jpg",
+    "bytes": 212169,
+    "sha256": "eaec61f2b25fa348eeafeee201ce5dcb52322a16bb3533b0a528b6cb659a89da"
+  }
+]
