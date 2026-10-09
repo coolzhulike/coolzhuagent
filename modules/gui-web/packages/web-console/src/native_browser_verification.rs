@@ -260,9 +260,16 @@ fn parse_verdict(raw: &str, count: usize, node_count: usize) -> Result<Verdict, 
     Ok(verdict)
 }
 
-/// 仅核对宿主冻结的回复结构，不判断页面目标、引文归因或新鲜度。
-pub(super) fn validate_reply_shape(raw: &str, count: usize, node_count: usize) -> Result<(), ComputerUseError> {
-    parse_verdict(raw, count, node_count).map(|_| ())
+/// 向同请求反馈结构或正判引文错误；不证明目标达成，最终验收仍独立核对新鲜度。
+pub(super) fn validate_reply(raw: &str, count: usize, page: &PageObservation) -> Result<(), String> {
+    let verdict = parse_verdict(raw, count, page.nodes.len()).map_err(|error| error.message)?;
+    for criterion in verdict.criteria.iter().filter(|criterion| criterion.met) {
+        if !grounded_positive(criterion, page) {
+            // 只返回索引与既有原因，不将模型引文或宿主正文写入诊断。
+            return Err(format!("index={}的正判引文不匹配本次快照，原因={}。", criterion.index, grounding_reason(criterion, page)));
+        }
+    }
+    Ok(())
 }
 
 pub(super) fn finish(raw: &str, request: &ComputerUseRequest, observation: &Observation) -> Result<Verification, ComputerUseError> {

@@ -230,4 +230,5 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/2026-10-09-browser-visible-point/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 /docs/testing/2026-10-09-acp-format-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 /docs/testing/2026-10-09-acp-verdict-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-grounding-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.125/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol

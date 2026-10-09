@@ -10,7 +10,7 @@ const REQUEST_PAGE_BYTES: usize = 6000;
 
 enum ResponseContract {
     Planning(computer_use::ComputerUseSurface),
-    BrowserVerification { criteria_count: usize, node_count: usize },
+    BrowserVerification { criteria_count: usize, page: native_browser_protocol::PageObservation },
 }
 
 struct Pending {
@@ -37,7 +37,7 @@ impl Exchange {
     pub(super) fn register(&self, waker: &std::task::Waker) { self.waker.register(waker); }
 
     pub(super) async fn request(self: &Arc<Self>, id: String, request: MessageRequest, kind: &str) -> Result<String,String> {
-        // 结构边界来自宿主冻结消息，不能由模型指定；事实判断仍由原执行器独立完成。
+        // 结构及引文边界来自宿主冻结消息；最终事实与新鲜度仍由原执行器独立核对。
         let response_contract = if kind == "computer_use_planning" {
             Some(ResponseContract::Planning(request.messages.iter().flat_map(|message| &message.content).find_map(|block| {
                 let InputContentBlock::Text { text } = block else { return None; };
@@ -48,9 +48,15 @@ impl Exchange {
             Some(request.messages.iter().flat_map(|message| &message.content).find_map(|block| {
                 let InputContentBlock::Text { text } = block else { return None; };
                 let prompt: Value = serde_json::from_str(text).ok()?;
+                // 显式索引仅用于模型阅读；冻结同一宿主事实，移除索引后按原协议解析。
+                let mut page = prompt.get("observed_page")?.clone();
+                for (index, node) in page.get_mut("nodes")?.as_array_mut()?.iter_mut().enumerate() {
+                    if node.get("index")?.as_u64()? != index as u64 { return None; }
+                    node.as_object_mut()?.remove("index");
+                }
                 Some(ResponseContract::BrowserVerification {
                     criteria_count: prompt.get("success_criteria")?.as_array()?.len(),
-                    node_count: prompt.get("observed_page")?.get("nodes")?.as_array()?.len(),
+                    page: serde_json::from_value(page).ok()?,
                 })
             }).ok_or("验收消息缺少宿主标准或节点边界，未提交请求。")?)
         } else { None };
@@ -169,13 +175,14 @@ impl Exchange {
                 ResponseContract::Planning(surface) => (
                     crate::computer_use_planner::parse_planner_response(response, *surface).is_err(),
                     "summary只能放在顶层；action仅含kind、target、arguments，参数须符合当前表面。".to_string()),
-                ResponseContract::BrowserVerification { criteria_count, node_count } => (
-                    crate::native_browser_verification::validate_reply_shape(response, *criteria_count, *node_count).is_err(),
-                    format!("criteria须恰好有{criteria_count}项；每个index从0到{}恰好出现一次，不增漏或重复。每项仅含index、met、evidence、node_indices；非空evidence最多512字符，节点引用最多8个且须来自本次原数组（节点总数{node_count}）。", criteria_count.saturating_sub(1))),
+                ResponseContract::BrowserVerification { criteria_count, page } => {
+                    let rejection = crate::native_browser_verification::validate_reply(response, *criteria_count, page).err();
+                    (rejection.is_some(), format!("{}criteria须恰好有{criteria_count}项；每个index从0到{}恰好出现一次，不增漏或重复。每项仅含index、met、evidence、node_indices；非空evidence最多512字符，节点引用最多8个且须来自本次原数组（节点总数{}）。正判证据须逐字引用本次name、标题或URL；连接节点只允许原规则的不分隔、ASCII空格或LF，不能补分号等字符。缺少证据则met=false并说明，不强制正判。", rejection.unwrap_or_default(), criteria_count.saturating_sub(1), page.nodes.len()))
+                },
             };
             if invalid && item.rejected_answers < 2 {
                 item.rejected_answers += 1;
-                // 仅拒绝未接收的格式；不修写模型回复、不重新执行动作，也不延长原请求的预算。
+                // 仅拒绝未接收的格式或引文；不修写回复、不重执行动作、不延长原预算。
                 // 超过两次后交回原解析器，按既有失败终态保留脱敏诊断。
                 return Err(format!("CU回复格式未接收，未执行动作。格式反馈{}/2：请在同一job_id/request_id内纠正回复；不要重提perform。两次反馈后的下一份不合规回复将交由原执行器终止。严格遵循当前response_schema：{format_hint}保持原快照与引用；原预算、取消与权限仍生效。", item.rejected_answers));
             }
@@ -196,13 +203,16 @@ mod tests {
     async fn 验收重复索引可在原请求内纠正但不生成成功判断() {
         let exchange = Arc::new(Exchange::default());
         let request = api::MessageRequest { model:"actual".into(),max_tokens:100,
-            messages:vec![api::InputMessage::user_text(r#"{"success_criteria":["first","second"],"observed_page":{"nodes":[{"name":"fact"}]}}"#)],
+            messages:vec![api::InputMessage::user_text(r#"{"success_criteria":["first","second"],"observed_page":{"url":"https://example.com/","title":"orders","truncated":false,"nodes":[{"index":0,"role":"StaticText","name":"fact"},{"index":1,"role":"StaticText","name":"second fact"}]}}"#)],
             system:None,tools:None,tool_choice:None,reasoning_effort:None,stream:false };
         let bad = r#"{"criteria":[{"index":0,"met":true,"evidence":"fact","node_indices":[0]},{"index":0,"met":true,"evidence":"fact","node_indices":[0]}]}"#;
-        let good = r#"{"criteria":[{"index":0,"met":true,"evidence":"fact","node_indices":[0]},{"index":1,"met":false,"evidence":"no evidence","node_indices":[]}]}"#;
+        let good = r#"{"criteria":[{"index":0,"met":true,"evidence":"fact second fact","node_indices":[0,1]},{"index":1,"met":false,"evidence":"no evidence","node_indices":[]}]}"#;
         let mut pending = Box::pin(exchange.request("verdict".into(),request.clone(),"computer_use_browser_readonly_verification"));
         assert!(futures_util::poll!(&mut pending).is_pending());
         assert!(exchange.answer("verdict",bad).unwrap_err().contains("恰好有2项"));
+        assert!(futures_util::poll!(&mut pending).is_pending());
+        let altered = r#"{"criteria":[{"index":0,"met":true,"evidence":"fact；second fact","node_indices":[0,1]},{"index":1,"met":false,"evidence":"no evidence","node_indices":[]}]}"#;
+        assert!(exchange.answer("verdict",altered).unwrap_err().contains("text_mismatch"));
         assert!(futures_util::poll!(&mut pending).is_pending());
         exchange.answer("verdict",good).unwrap();
         assert_eq!(pending.await.unwrap(),good);
