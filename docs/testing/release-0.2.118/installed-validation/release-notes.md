@@ -1,0 +1,1 @@
+0.2.118预发布：修复ACP未执行插件误记等待审批并锁住原远端；正常终态拒绝/收束，冻结权限不扩权。正式真实SWE-2/唯一island一次调用及软件实拍通过，HTTP0、failed、end_turn/drained/解锁，无新云端。构建/安装0、六门pass、1159文件逐SHA。源码 38c56135e42767542fc5f25376dccac728c7e07c，MSI SHA256 6c00e23b0ccd2c36a947e0273daf7623a5cebd7eaa923bde955e0722e18ed1be。严格Browser和总矩阵未全部闭环；未签名、不标latest。交接：docs/testing/release-0.2.118/change-report-and-test-handoff.md。

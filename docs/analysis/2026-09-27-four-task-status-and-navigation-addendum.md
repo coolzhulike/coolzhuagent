@@ -1,5 +1,7 @@
 > **2026-10-07 最新状态（下方历史正文按当时版本理解）**：当前正常安装并启动0.2.92，六门/1150文件/原工程与原安全库核验通过，已公开预发布，四个发布资产及标签源码核验一致。当前主会话独立推进，真实模型SWE-2-medium、唯一云端island-kayak；Opus暂停，不使用子代理，Paint依用户最新要求不再测试，微信不改不测。
 
+118正式增量：ACP插件不可续审批收尾已出包复验，真实SWE-2/原唯一island一次调用，接纳目录权限后扩大完全访问，仍按冻结权限拒绝，HTTP0、tool failed、terminal/end_turn/drained/解锁，无新云端；旧unknown保留、旧待审批在候选正常续发收束。构建/安装0、六门pass、1159文件逐SHA，Web1424/0/6、前端22/0，原参数revision57恢复。[118正式交接与实拍](../testing/release-0.2.118/change-report-and-test-handoff.md)。外部API权限变化顶栏实时同步、非ACP审批实操及严格Browser仍开放；Goal继续。
+
 ACP插件审批收尾候选：正式117真实冻结权限拒绝但遗留awaiting_approval/远端锁，已复现并修复；同一SWE-2/唯一island候选正常续发收束旧记录，新调用failed、terminal/end_turn/drained/解锁、HTTP0，无新云端。offline build0、Web1424/0/6、前端22/0，原失败及实拍保留。候选不冒称正式安装通过，新包待复验；严格Browser仍开放。[专项交接](../testing/2026-10-09-acp-plugin-approval/report.md)。Goal继续。
 
 117正式增量：旧配置页迟到请求作用域已出包复验。正常构建/安装0、六门pass、1159文件逐SHA一致，冻结d094c7a两路CI success；正式EXE的16组跨工程/ABA/重载/重启/错误释放/无头兼容真实HTTP与存储检查，正常原生B/A参数、保存0.45/revision12和同EXE重启四实拍通过。模型0、新云端0，原SWE/revision51/唯一island恢复。只关闭配置页此子项，完整领域及严格Browser仍开放。[117正式交接](../testing/release-0.2.117/change-report-and-test-handoff.md)。Goal继续。

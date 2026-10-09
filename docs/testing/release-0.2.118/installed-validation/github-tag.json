@@ -1,0 +1,10 @@
+{
+  "ref": "refs/tags/v0.2.118",
+  "node_id": "REF_kwDOTc3d0LJyZWZzL3RhZ3MvdjAuMi4xMTg",
+  "url": "https://api.github.com/repos/coolzhulike/coolzhuagent/git/refs/tags/v0.2.118",
+  "object": {
+    "sha": "38c56135e42767542fc5f25376dccac728c7e07c",
+    "type": "commit",
+    "url": "https://api.github.com/repos/coolzhulike/coolzhuagent/git/commits/38c56135e42767542fc5f25376dccac728c7e07c"
+  }
+}
