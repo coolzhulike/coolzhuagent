@@ -1,4 +1,6 @@
-# 当前验收队列（2026-10-09，0.2.118正式及后续候选）
+# 当前验收队列（2026-10-09，0.2.119正式）
+
+2026-10-09正式119增量：正常构建及安装actual0、六门pass、1159文件逐长度/SHA一致；源码da7e178两路CI success，119四资产已公开预发布且服务器摘要/实际标签核验一致。新页面真实SWE-2-medium/唯一island-kayak单perform完成三层跨域双反射/旋转/斜切长程，9步sent/effect_observed、22条可信事件、最终提交accepted，单end_turn/drained并解锁。正常API权限保存后顶栏无需刷新自动目录/完全访问切换实拍通过，已恢复原full-access/revision57。只关闭这两项正式子验收；读取收尾资源复核源码已包含119，严格nativeTarget/commit down-up及在途撤销/HRESULT竞争仍无完整证据。其余32工作包继续，Paint免测/微信不动/Opus暂停，Goal保持active。[119交接及实拍](../../testing/release-0.2.119/change-report-and-test-handoff.md)。
 
 2026-10-09候选增量：三层跨域双反射长程真实SWE-2一次perform10步及最终页面通过，原唯一island-kayak正常收尾并解锁；前两次测试提交缺Browser面板选择导致的零输入失败保留。权限顶栏跨API保存后无需刷新自动更新已修补并实拍验证，原full-access恢复。offline build0、Web1425/0/6、前端22/0、模块8/0。两项尚待新包正式独立复验；严格nativeTarget/commit down-up、在途观察撤销及HRESULT竞争仍未闭环，继续优先。非ACP审批和其余32工作包保持开放。[专项交接](../../testing/2026-10-09-browser-three-layer/report.md)。
 

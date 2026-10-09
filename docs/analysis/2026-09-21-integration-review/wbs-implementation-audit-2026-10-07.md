@@ -1,5 +1,7 @@
 # 04整合计划32工作包执行复核
 
+2026-10-09正式119增量：正常构建及安装actual0、六门pass、1159文件逐长度/SHA一致；源码da7e178两路CI success，119四资产已公开预发布且服务器摘要/实际标签核验一致。新页面真实SWE-2-medium/唯一island-kayak单perform完成三层跨域双反射/旋转/斜切长程，9步sent/effect_observed、22条可信事件、最终提交accepted，单end_turn/drained并解锁。正常API权限保存后顶栏无需刷新自动目录/完全访问切换实拍通过，已恢复原full-access/revision57。只关闭这两项正式子验收；读取收尾资源复核源码已包含119，严格nativeTarget/commit down-up及在途撤销/HRESULT竞争仍无完整证据。其余32工作包继续，Paint免测/微信不动/Opus暂停，Goal保持active。[119交接及实拍](../../testing/release-0.2.119/change-report-and-test-handoff.md)。
+
 2026-10-09仅关闭候选子项：三层跨域双反射/旋转/斜切长程10步真实输入与完成页面通过；权限顶栏失效通知和无需刷新跨API同步实拍通过。两项尚待正式新包独立复验，不能把此证据提升为整个Browser或32工作包通过。两次误走外部扩展通道的测试提交失败保留；原SWE-2及唯一island正常收尾，无新增云端。Web1425/0/6、前端22/0、模块8/0及offline build0。严格时序、服务/outbox、附件/记忆、迁移和Windows矩阵按原缺口继续。[候选交接](../../testing/2026-10-09-browser-three-layer/report.md)。Goal保持active。
 
 115补验：原生文件选择器经正常文件名框确认同时选入UTF-8/UTF-16BE两文件，名称/96B/186B与文件一致；取消保留选择、同已核身份正式壳重启恢复空草稿，模型0。只关闭GUI多文件选择/取消子项。[实拍与边界](../../testing/release-0.2.115/native-picker/report.md)。Browser连续观察新驱动仍未命中：登记后6.55ms捕获，正常关闭晚16721ms且父轮已完成1750ms；单SWE工具sent/released/effect_observed、end_turn/drained/解锁，但无observation_stopped，严格项未通过，不重复简单点击。[完整时间与实拍](../../testing/release-0.2.115/browser-continuous/report.md)。Goal继续。
