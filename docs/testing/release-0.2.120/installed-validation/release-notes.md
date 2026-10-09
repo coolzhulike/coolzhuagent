@@ -1,0 +1,1 @@
+0.2.120预发布：修复动态网页无关刷新导致的验收误拒，提取ToolDispatchService协调入口。正式真实SWE-2/唯一island长程11步、27可信事件及三步整单完成实拍通过；构建/安装0、六门pass、1159文件逐SHA，源码ed18c1c77df2155f08308a8f8210bed3a765e9ed两路CI success。严格Browser及32WBS仍部分开放；未签名、不标latest。交接：docs/testing/release-0.2.120/change-report-and-test-handoff.md。

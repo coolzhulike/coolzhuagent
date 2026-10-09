@@ -1,0 +1,96 @@
+{"kind": "loaded", "trusted": false, "page_ms": 1791553613599.2002, "stage": 0, "revision": 0, "observed_ms": 1791553613602.8708}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553623611.5, "stage": 0, "revision": 100, "observed_ms": 1791553623614.11}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553633600.8, "stage": 0, "revision": 200, "observed_ms": 1791553633604.0593}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553643600.4001, "stage": 0, "revision": 300, "observed_ms": 1791553643603.966}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553653600.6, "stage": 0, "revision": 400, "observed_ms": 1791553653604.1277}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553663601.6, "stage": 0, "revision": 500, "observed_ms": 1791553663605.3337}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553673604, "stage": 0, "revision": 600, "observed_ms": 1791553673607.9324}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791553676743.1, "target": "code", "stage": 0, "revision": 631, "value": "", "observed_ms": 1791553676747.2244}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791553676744.6, "target": "code", "stage": 0, "revision": 631, "value": "", "observed_ms": 1791553676757.4282}
+{"kind": "click", "trusted": true, "page_ms": 1791553676745.2002, "target": "code", "stage": 0, "revision": 631, "value": "", "observed_ms": 1791553676757.6218}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553683600.4001, "stage": 0, "revision": 700, "observed_ms": 1791553683604.2195}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553693611.8, "stage": 0, "revision": 800, "observed_ms": 1791553693616.455}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553703602.8, "stage": 0, "revision": 900, "observed_ms": 1791553703607.8237}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553713613.7002, "stage": 0, "revision": 1000, "observed_ms": 1791553713618.8103}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553723602, "stage": 0, "revision": 1100, "observed_ms": 1791553723607.1008}
+{"kind": "input", "trusted": true, "page_ms": 1791553732275.8, "target": "code", "stage": 0, "revision": 1186, "value": "BAMBOO-9175", "observed_ms": 1791553732282.6997}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553733605.1, "stage": 0, "revision": 1200, "observed_ms": 1791553733612.3267}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553743604.4001, "stage": 0, "revision": 1300, "observed_ms": 1791553743610.3496}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553753603.6, "stage": 0, "revision": 1400, "observed_ms": 1791553753609.8538}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553763601.7002, "stage": 0, "revision": 1500, "observed_ms": 1791553763607.5095}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553773610, "stage": 0, "revision": 1600, "observed_ms": 1791553773616.3518}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553783607.3, "stage": 0, "revision": 1700, "observed_ms": 1791553783613.9304}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553793611.1, "stage": 0, "revision": 1800, "observed_ms": 1791553793617.7117}
+{"kind": "keydown", "trusted": true, "page_ms": 1791553797006.3, "target": "code", "stage": 0, "revision": 1834, "key": "Enter", "value": "BAMBOO-9175", "observed_ms": 1791553797015.1902}
+{"kind": "verified", "trusted": true, "page_ms": 1791553797007.3, "target": "verify", "stage": 0, "revision": 1834, "accepted": true, "observed_ms": 1791553797018.1138}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553803612, "stage": 0, "revision": 1900, "observed_ms": 1791553803618.9448}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553813600.7002, "stage": 0, "revision": 2000, "observed_ms": 1791553813608.1704}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553823607.1, "stage": 0, "revision": 2100, "observed_ms": 1791553823614.2197}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553833605.4001, "stage": 0, "revision": 2200, "observed_ms": 1791553833613.5}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553843600.8, "stage": 0, "revision": 2300, "observed_ms": 1791553843608.4048}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791553849560.3, "target": "next", "stage": 0, "revision": 2359, "value": "", "observed_ms": 1791553849567.9937}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791553849561.1, "target": "next", "stage": 0, "revision": 2359, "value": "", "observed_ms": 1791553849570.7407}
+{"kind": "click", "trusted": true, "page_ms": 1791553849561.5, "target": "next", "stage": 0, "revision": 2359, "value": "", "observed_ms": 1791553849571.2048}
+{"kind": "advance", "trusted": true, "page_ms": 1791553849561.8, "target": "next", "stage": 0, "revision": 2359, "observed_ms": 1791553849571.5464}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553853605.2002, "stage": 1, "revision": 2400, "observed_ms": 1791553853613.144}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553863602.5, "stage": 1, "revision": 2500, "observed_ms": 1791553863610.3164}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553873605.5, "stage": 1, "revision": 2600, "observed_ms": 1791553873613.9927}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553883610.9001, "stage": 1, "revision": 2700, "observed_ms": 1791553883619.361}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553893609.8, "stage": 1, "revision": 2800, "observed_ms": 1791553893624.1484}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791553899037.8, "target": "code", "stage": 1, "revision": 2854, "value": "", "observed_ms": 1791553899047.6375}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791553899038.9001, "target": "code", "stage": 1, "revision": 2854, "value": "", "observed_ms": 1791553899052.4614}
+{"kind": "click", "trusted": true, "page_ms": 1791553899039.3, "target": "code", "stage": 1, "revision": 2854, "value": "", "observed_ms": 1791553899053.3965}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553903612.7002, "stage": 1, "revision": 2900, "observed_ms": 1791553903622.2488}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553913606.8, "stage": 1, "revision": 3000, "observed_ms": 1791553913616.6987}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553923612.2002, "stage": 1, "revision": 3100, "observed_ms": 1791553923623.1326}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553933606.1, "stage": 1, "revision": 3200, "observed_ms": 1791553933615.8164}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553943603.2002, "stage": 1, "revision": 3300, "observed_ms": 1791553943613.121}
+{"kind": "input", "trusted": true, "page_ms": 1791553948552.7002, "target": "code", "stage": 1, "revision": 3349, "value": "JADE-6319", "observed_ms": 1791553948564.1338}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553953615.9001, "stage": 1, "revision": 3400, "observed_ms": 1791553953626.2803}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553963606.6, "stage": 1, "revision": 3500, "observed_ms": 1791553963616.9246}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553973602.2002, "stage": 1, "revision": 3600, "observed_ms": 1791553973613.6252}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553983613, "stage": 1, "revision": 3700, "observed_ms": 1791553983624.6526}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791553993601.4001, "stage": 1, "revision": 3800, "observed_ms": 1791553993613.3372}
+{"kind": "keydown", "trusted": true, "page_ms": 1791553997306.8, "target": "code", "stage": 1, "revision": 3837, "key": "Enter", "value": "JADE-6319", "observed_ms": 1791553997319.5454}
+{"kind": "verified", "trusted": true, "page_ms": 1791553997307.8, "target": "verify", "stage": 1, "revision": 3837, "accepted": true, "observed_ms": 1791553997320.6333}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554003606.9001, "stage": 1, "revision": 3900, "observed_ms": 1791554003621.145}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554013602.2002, "stage": 1, "revision": 4000, "observed_ms": 1791554013613.492}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554023602.1, "stage": 1, "revision": 4100, "observed_ms": 1791554023614.5215}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554033604.6, "stage": 1, "revision": 4200, "observed_ms": 1791554033617.002}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554043612, "stage": 1, "revision": 4300, "observed_ms": 1791554043624.8481}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791554044530.8, "target": "next", "stage": 1, "revision": 4309, "value": "", "observed_ms": 1791554044542.9338}
+{"kind": "click", "trusted": true, "page_ms": 1791554044531.9001, "target": "next", "stage": 1, "revision": 4309, "value": "", "observed_ms": 1791554044547.0964}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791554044531.5, "target": "next", "stage": 1, "revision": 4309, "value": "", "observed_ms": 1791554044547.226}
+{"kind": "advance", "trusted": true, "page_ms": 1791554044532.1, "target": "next", "stage": 1, "revision": 4309, "observed_ms": 1791554044553.3884}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554053604.5, "stage": 2, "revision": 4400, "observed_ms": 1791554053618.7427}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554063606.6, "stage": 2, "revision": 4500, "observed_ms": 1791554063620.7134}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554073610.7002, "stage": 2, "revision": 4600, "observed_ms": 1791554073624.0813}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554083610.2002, "stage": 2, "revision": 4700, "observed_ms": 1791554083623.9255}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554093602.1, "stage": 2, "revision": 4800, "observed_ms": 1791554093616.4631}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791554101633.4001, "target": "code", "stage": 2, "revision": 4880, "value": "", "observed_ms": 1791554101651.0505}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791554101634.5, "target": "code", "stage": 2, "revision": 4880, "value": "", "observed_ms": 1791554101653.932}
+{"kind": "click", "trusted": true, "page_ms": 1791554101634.9001, "target": "code", "stage": 2, "revision": 4880, "value": "", "observed_ms": 1791554101654.159}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554103614.3, "stage": 2, "revision": 4900, "observed_ms": 1791554103628.5708}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554113605.6, "stage": 2, "revision": 5000, "observed_ms": 1791554113619.3262}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554123606.9001, "stage": 2, "revision": 5100, "observed_ms": 1791554123622.1794}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554133611.9001, "stage": 2, "revision": 5200, "observed_ms": 1791554133626.6956}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554143609.2002, "stage": 2, "revision": 5300, "observed_ms": 1791554143626.0508}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554153609.4001, "stage": 2, "revision": 5400, "observed_ms": 1791554153624.5474}
+{"kind": "input", "trusted": true, "page_ms": 1791554154997.1, "target": "code", "stage": 2, "revision": 5413, "value": "SCROLL-5935", "observed_ms": 1791554155014.53}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554163615.7002, "stage": 2, "revision": 5500, "observed_ms": 1791554163631.31}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554173608.4001, "stage": 2, "revision": 5600, "observed_ms": 1791554173623.8276}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554183611.5, "stage": 2, "revision": 5700, "observed_ms": 1791554183627.19}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554193601.3, "stage": 2, "revision": 5800, "observed_ms": 1791554193617.5442}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554203604.2002, "stage": 2, "revision": 5900, "observed_ms": 1791554203619.7388}
+{"kind": "keydown", "trusted": true, "page_ms": 1791554206026.1, "target": "code", "stage": 2, "revision": 5924, "key": "Enter", "value": "SCROLL-5935", "observed_ms": 1791554206049.008}
+{"kind": "final-submitted", "trusted": true, "page_ms": 1791554206027, "target": "verify", "stage": 2, "revision": 5924, "accepted": true, "observed_ms": 1791554206051.1826}
+{"kind": "verified", "trusted": true, "page_ms": 1791554206026.8, "target": "verify", "stage": 2, "revision": 5924, "accepted": true, "observed_ms": 1791554206051.4517}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554213608.9001, "stage": 2, "revision": 6000, "observed_ms": 1791554213625.37}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554223600.6, "stage": 2, "revision": 6100, "observed_ms": 1791554223617.6882}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554233605, "stage": 2, "revision": 6200, "observed_ms": 1791554233621.519}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554243605.6, "stage": 2, "revision": 6300, "observed_ms": 1791554243622.327}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554253609.2002, "stage": 2, "revision": 6400, "observed_ms": 1791554253626.284}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554263600.4001, "stage": 2, "revision": 6500, "observed_ms": 1791554263618.0608}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554273612.6, "stage": 2, "revision": 6600, "observed_ms": 1791554273630.367}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554283607.1, "stage": 2, "revision": 6700, "observed_ms": 1791554283624.8423}
+{"kind": "non-target-repaint", "trusted": false, "page_ms": 1791554293610.9001, "stage": 2, "revision": 6800, "observed_ms": 1791554293628.8235}
