@@ -1,0 +1,18 @@
+{
+  "stage": "0.2.110 Program Files正式安装版",
+  "binary_sha256": "48d71da04b1c6b4011896bb995bd0a1973587c86a477131fc5739d32da88ca11",
+  "contended_start_ready_ms": 684,
+  "contended_file_unchanged": true,
+  "contended_stderr_warning_count": 1,
+  "normal_start_ready_ms": 622,
+  "structured_backup_seed_sha256": "db4d000c620564afd0013ba2ce854654333d7ad3ab2d69ce3ce97f98b5a0bb71",
+  "structured_active_bytes": 161,
+  "structured_ready_event": true,
+  "breadcrumb_backup_seed_sha256": "bc7e622d9c436ef2ef8168b858637b27f44342979425d82d72b3425e2d63844e",
+  "breadcrumb_active_bytes": 6687,
+  "original_runtime_database_writes": 0,
+  "model_requests": 0,
+  "cloud_sessions_created": 0,
+  "live_pid": 12604,
+  "status": "正式安装版真实轮转事实通过，待正常UI实拍"
+}
