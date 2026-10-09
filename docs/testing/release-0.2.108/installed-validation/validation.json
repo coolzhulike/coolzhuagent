@@ -1,0 +1,28 @@
+[
+  {
+    "name": "offline-build",
+    "argv": [
+      "cargo",
+      "build",
+      "-p",
+      "coolzhu-web-console",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "seconds": 14.754613637924194,
+    "log": "offline-build.log"
+  },
+  {
+    "name": "web-tests",
+    "argv": [
+      "cargo",
+      "test",
+      "-p",
+      "coolzhu-web-console",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "seconds": 69.5169517993927,
+    "log": "web-tests.log"
+  }
+]

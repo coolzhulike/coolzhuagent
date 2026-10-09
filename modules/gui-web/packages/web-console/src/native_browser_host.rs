@@ -328,6 +328,14 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
     let pending_guard = PendingObservationGuard(id.clone());
     let start = Instant::now();
     let timeout = remaining.min(Duration::from_secs(5));
+    // 高层observing早于底层请求登记，不能用它证明等待窗口。
+    // 在同一轨迹保留关联标记；计入原观察预算，不延长超时或输入阶段。
+    if let Some(run_id) = parent.parent_run_id.as_deref() {
+        if crate::append_runtime_run_event(db, run_id, "browser.observation_requested",
+            serde_json::json!({"request_id":id,"stage":"registered"})).is_err() {
+            eprintln!("browser.observation_requested: 轨迹保存失败，观察资格不变");
+        }
+    }
     let stop_stage;
     let result = loop {
         if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
