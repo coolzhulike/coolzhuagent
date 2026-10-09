@@ -1,0 +1,39 @@
+{"kind": "http-get", "role": "OLD", "path": "/old.html", "host": "127.0.0.1:53554", "server_ns": 799003874443600, "received_unix_ns": 1791510290855793000}
+{"kind": "document-script-start", "role": "OLD", "page_ms": 1791510290905.6, "server_ns": 799003932759600, "received_unix_ns": 1791510290914111300}
+{"kind": "loaded", "role": "OLD", "page_ms": 1791510290908.9001, "trusted": true, "server_ns": 799003933849300, "received_unix_ns": 1791510290915199700}
+{"kind": "pointerdown", "role": "OLD", "page_ms": 1791510347925.7, "trusted": true, "target": "target", "server_ns": 799060946734700, "received_unix_ns": 1791510347929464700}
+{"kind": "down-handler-finished", "role": "OLD", "page_ms": 1791510350326.2, "trusted": true, "target": "target", "server_ns": 799063347197800, "received_unix_ns": 1791510350329986300}
+{"kind": "pointerup", "role": "OLD", "page_ms": 1791510350327.1, "trusted": true, "target": "target", "server_ns": 799063349829400, "received_unix_ns": 1791510350332618100}
+{"kind": "click", "role": "OLD", "page_ms": 1791510350327.5, "trusted": true, "target": "target", "server_ns": 799063350162300, "received_unix_ns": 1791510350332950400}
+{"kind": "http-get", "role": "NEW", "path": "/new.html?h=0", "host": "localhost:53554", "server_ns": 799068367307100, "received_unix_ns": 1791510355350217000}
+{"kind": "pagehide", "role": "OLD", "page_ms": 1791510355415.4001, "trusted": true, "server_ns": 799068446878100, "received_unix_ns": 1791510355429789700}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791510355420.9001, "server_ns": 799068446939400, "received_unix_ns": 1791510355429850500}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791510355824.3, "trusted": true, "server_ns": 799068844492900, "received_unix_ns": 1791510355827414600}
+{"kind": "http-get", "role": "NEW", "path": "/new.html?h=1", "host": "localhost:53554", "server_ns": 799068871978600, "received_unix_ns": 1791510355854900600}
+{"kind": "pagehide", "role": "NEW", "page_ms": 1791510355858, "trusted": true, "server_ns": 799068877413700, "received_unix_ns": 1791510355860335500}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791510355867, "server_ns": 799068889397800, "received_unix_ns": 1791510355872320500}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791510356269.9, "trusted": true, "server_ns": 799069294197800, "received_unix_ns": 1791510356277130200}
+{"kind": "http-get", "role": "NEW", "path": "/new.html?h=2", "host": "localhost:53554", "server_ns": 799069299983300, "received_unix_ns": 1791510356282916500}
+{"kind": "pagehide", "role": "NEW", "page_ms": 1791510356285.9, "trusted": true, "server_ns": 799069306667400, "received_unix_ns": 1791510356289600800}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791510356290.8, "server_ns": 799069313678300, "received_unix_ns": 1791510356296610700}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791510356693.2, "trusted": true, "server_ns": 799069718391600, "received_unix_ns": 1791510356701336600}
+{"kind": "http-get", "role": "NEW", "path": "/new.html?h=3", "host": "localhost:53554", "server_ns": 799069720093500, "received_unix_ns": 1791510356703035500}
+{"kind": "pagehide", "role": "NEW", "page_ms": 1791510356705.8, "trusted": true, "server_ns": 799069726211400, "received_unix_ns": 1791510356709154000}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791510356710.7, "server_ns": 799069733343100, "received_unix_ns": 1791510356716286100}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791510357113.7, "trusted": true, "server_ns": 799070136093500, "received_unix_ns": 1791510357119046000}
+{"kind": "http-get", "role": "NEW", "path": "/new.html?h=4", "host": "localhost:53554", "server_ns": 799070140255400, "received_unix_ns": 1791510357123208800}
+{"kind": "pagehide", "role": "NEW", "page_ms": 1791510357128.1, "trusted": true, "server_ns": 799070148799500, "received_unix_ns": 1791510357131753100}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791510357132.3, "server_ns": 799070155459000, "received_unix_ns": 1791510357138412100}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791510357534.5, "trusted": true, "server_ns": 799070559068800, "received_unix_ns": 1791510357542031600}
+{"kind": "http-get", "role": "NEW", "path": "/new.html?h=5", "host": "localhost:53554", "server_ns": 799070560784400, "received_unix_ns": 1791510357543747400}
+{"kind": "pagehide", "role": "NEW", "page_ms": 1791510357547.0999, "trusted": true, "server_ns": 799070566449500, "received_unix_ns": 1791510357549412600}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791510357550.8, "server_ns": 799070572613700, "received_unix_ns": 1791510357555576900}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791510357953, "trusted": true, "server_ns": 799070976857700, "received_unix_ns": 1791510357959831000}
+{"kind": "http-get", "role": "NEW", "path": "/new.html?h=6", "host": "localhost:53554", "server_ns": 799070978030900, "received_unix_ns": 1791510357961003300}
+{"kind": "pagehide", "role": "NEW", "page_ms": 1791510357964.4, "trusted": true, "server_ns": 799070984049900, "received_unix_ns": 1791510357967023100}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791510357967.9001, "server_ns": 799070990134900, "received_unix_ns": 1791510357973108000}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791510358370.3, "trusted": true, "server_ns": 799071395043500, "received_unix_ns": 1791510358378027300}
+{"kind": "http-get", "role": "NEW", "path": "/new.html?h=7", "host": "localhost:53554", "server_ns": 799071396905000, "received_unix_ns": 1791510358379888000}
+{"kind": "pagehide", "role": "NEW", "page_ms": 1791510358383.6, "trusted": true, "server_ns": 799071407749300, "received_unix_ns": 1791510358390732700}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791510358387.7, "server_ns": 799071413720200, "received_unix_ns": 1791510358396703500}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791510358388.5999, "trusted": true, "server_ns": 799071414016700, "received_unix_ns": 1791510358397000100}

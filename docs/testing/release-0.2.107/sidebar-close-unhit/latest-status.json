@@ -1,0 +1,104 @@
+{
+  "run": {
+    "id": "run-chat-223c6dac9722cf236dbd54a4d11308c0e0e14d939edb755e",
+    "state": "failed",
+    "legacy_turn_id": "chat-turn-1791510062118-2"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791510062118-2-tool-c8acf4a7845d7d193a1efe0925bb4ea80020adeefa09257e1c076e95387ce873",
+      "state": "blocked",
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791510062118-2-tool-c8acf4a7845d7d193a1efe0925bb4ea80020adeefa09257e1c076e95387ce873",
+        "provider_tool_call_id": "tool-c8acf4a7845d7d193a1efe0925bb4ea80020adeefa09257e1c076e95387ce873",
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "{\"last_verification\":{\"bound_initial_url\":\"http://127.0.0.1:64314/old.html\",\"criteria_count\":1,\"criteria_met\":0,\"fresh_observation_id\":\"679f9e1eac8608792e8b91e986c26d8a\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":false,\"index\":0,\"model_met\":false,\"node_indices\":[8],\"reason\":\"model_unmet\",\"selected_nodes\":[{\"index\":8,\"name_chars\":4,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":8,\"inline_has_static_text\":false,\"name_chars\":4,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"d5b5f946f4363c709b3692f43734bf1c\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":15,\"nodes\":[{\"index\":8,\"name\":\"正在处理\",\"role\":\"StaticText\"}],\"title\":\"CLOSE107-OLD\",\"truncated\":false,\"url\":\"http://127.0.0.1:64314/old.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0},\"terminal_reason\":\"computer-use action budget exhausted\",\"verification_is_last_observation\":true}",
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "input_steps": [
+          {
+            "step_index": 0,
+            "action_kind": "click",
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "partial": false,
+            "effect_status": "effect_observed",
+            "goal_verdict": "failed"
+          }
+        ],
+        "evidence": [
+          "native-ax:1:3",
+          "native-observation:68e582440fc682dbe73f3d857dd2fb90",
+          "native-ax:1:3",
+          "native-observation:68e582440fc682dbe73f3d857dd2fb90",
+          "native-input:ca09ea7b875600cbc1c8358e98639cfa",
+          "native-ax:1:3",
+          "native-observation:d5b5f946f4363c709b3692f43734bf1c",
+          "native-ax:1:3",
+          "native-observation:d5b5f946f4363c709b3692f43734bf1c",
+          "native-ax:1:3",
+          "native-observation:679f9e1eac8608792e8b91e986c26d8a"
+        ],
+        "supervisor": {
+          "circuit_open": true,
+          "reason": "budget_exhausted",
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791510962118
+            }
+          },
+          "cu_deadline_ms": 1791510962118,
+          "cu_deadline_established_at_ms": 1791510076020,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "b7218d8876b05d8ab479b02a1c1cf8b2a96ae807f7dec045",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ]
+}

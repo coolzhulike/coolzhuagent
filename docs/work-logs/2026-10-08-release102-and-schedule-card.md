@@ -25,3 +25,8 @@ node --check通过；cargo build -p coolzhu-web-console --offline通过（21.70�
 
 
 106正式增量：c9c61fe冻结，完整1423Web/143核心、六门、正常MSI安装0及1159文件逐SHA通过。真实SWE原island-kayak两轮保留成功与失败的sent/released；第一轮正常导航晚4818ms，负例未命中保留；第二轮观察timeout且效果未知/无补发，实拍归档。两次构建包装与旧MSI路径核验失败原样记录，采用报告确切带时间戳产物；无伪造报告。两路源码CI已success。后续资源等待原因识别候选已offline build及完整1423/0/6通过，尚待107实机。见[106交接](../testing/release-0.2.106/change-report-and-test-handoff.md)。
+
+
+## 0.2.107正式安装与浏览器观察边界
+
+107正式补记：正常release构建/安装0、六门pass、1159文件逐摘要一致，冻结314671b，两路远端CI success。四轮真实SWE/唯一island-kayak均单调用/end_turn/drained且无补发；三轮预设窗口未命中，有限网页跳转触发native_browser_observation_stale并完整保留sent/released、效果未知，新页零输入。精确native_browser_resource_changed等待分支和严格按下窗口仍开放，不冒称本版实机闭环。见[107原事实、截图与交接](../../testing/release-0.2.107/change-report-and-test-handoff.md)。其它矩阵和整体Goal继续。
