@@ -1,5 +1,7 @@
 # 04整合计划32工作包执行复核
 
+2026-10-09正式122：多行边界引文误拒及停止保留部分验收已出包。真实SWE-2-medium/唯一island-kayak独立三阶段跨来源动态订单11动作/27可信输入，宿主2/2，随后DSH计算器总额10578，两工具各一次completed；回复#760/5分58秒，父completed/单end_turn/drained并解锁。正常构建/安装actual0、六门pass、1159文件逐SHA，冻结8edfa3a两路CI success，四资产公开预发布且服务器摘要/实际tag一致。诊断仅类型/字段数量实测覆盖两root入口。121原失败保留；中间行情进展误归因、严格原生竞态及其它32WBS继续，不冒整体完成。[122正式交接与实拍](../../testing/release-0.2.122/change-report-and-test-handoff.md)。Goal保持active。
+
 2026-10-09多行回执候选：保留正式121的11动作/网页完成却引文误拒原失败；修补仅允许节点边界精确空格/LF，内部文字、数字、顺序及新鲜度保持，规划停止保留最后部分验收且仍失败。真实SWE-2-medium/唯一island-kayak新订单综合长程11动作/27可信事件、宿主2/2，CU与DSH计算器各一次completed，总额6470，回复#758/9分37秒，单end_turn/drained/解锁。offline build0、core143/0、Web1428/0/6、模块8/0；两实际root入口诊断仅类型/字段数量。只计源码候选，不替代新包正式独立复验；中间进展、严格原生竞态及其余32WBS继续。[候选报告与实拍](../../testing/2026-10-09-browser-multiline/report.md)。Goal继续。
 
 2026-10-09正式121：五入口参数诊断投影已出包；正常构建/安装0、六门/1159文件与af272e7两路CI success。本轮跨来源动态订单11动作/27可信事件、三项网页完成，但三个相邻回执引文65字/原节点63字导致text_mismatch，宿主1/2、CU blocked及父failed，计算器未调用，单end_turn/drained/原唯一island解锁。root诊断仅类型/数量实测通过，不冒整体长程通过或其它入口覆盖；候选多行边界拼接与停止保留部分验收修补待实操。[121原失败及实拍](../../testing/release-0.2.121/change-report-and-test-handoff.md)。Goal继续。

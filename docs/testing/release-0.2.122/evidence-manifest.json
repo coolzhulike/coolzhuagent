@@ -1,0 +1,237 @@
+[
+  {
+    "path": "browser-ledger/address.json",
+    "bytes": 329,
+    "sha256": "afbb07342d96ca751f1627b9a4022dfd71a538628ae2091572afcdfb760dbdba"
+  },
+  {
+    "path": "browser-ledger/before.json",
+    "bytes": 876,
+    "sha256": "5d3d3ce08e273b8424dc22068ea1b20565a957dc7039e1ea676444fdc73f7502"
+  },
+  {
+    "path": "browser-ledger/collect.py",
+    "bytes": 2362,
+    "sha256": "c6e9e7bd4a02fdec4498987b964ea2261b76d6cc4851086192a860fe98e3e3a6"
+  },
+  {
+    "path": "browser-ledger/diagnostic-start.json",
+    "bytes": 159,
+    "sha256": "d00dfba7b0f1d674c8d421fc5134296107b2f59a1fcab2a4431b5ca9a39dbebd"
+  },
+  {
+    "path": "browser-ledger/diagnostic-verification.json",
+    "bytes": 518,
+    "sha256": "49bea51e907ea000fe35a34bc79004bb7ccf9dadfe5be41b394623943c88fe67"
+  },
+  {
+    "path": "browser-ledger/events.jsonl",
+    "bytes": 9563,
+    "sha256": "c920241c5ab1dd6f0098b070a0840e46615a3b14b6aa70d456bfe36c79fa2f6d"
+  },
+  {
+    "path": "browser-ledger/facts.json",
+    "bytes": 5070,
+    "sha256": "3df37c30afea6aa662bf42c881b0c8f5a3b88fd75dda2c35b1383184161bb0e8"
+  },
+  {
+    "path": "browser-ledger/inspect-facts.py",
+    "bytes": 1694,
+    "sha256": "ad386868b8647cac5c35a52009737cbf98de102f07f85424cd8ad2f2afa09756"
+  },
+  {
+    "path": "browser-ledger/last-host-verification.json",
+    "bytes": 2815,
+    "sha256": "aff787798f08634df8e2c02f10f4e26f23b05c0405c00eee778d9ae088c059d5"
+  },
+  {
+    "path": "browser-ledger/native-before.jpg",
+    "bytes": 235225,
+    "sha256": "8258c7307f4e2d7a1081a68b3c305b1473850d91e34ff7325e83052717a1b9f1"
+  },
+  {
+    "path": "browser-ledger/native-stage3.jpg",
+    "bytes": 254152,
+    "sha256": "17cf76e6c1641e21b81c949165e1d40f5ec13bb091189f0600b042189f905346"
+  },
+  {
+    "path": "browser-ledger/native-terminal.jpg",
+    "bytes": 246609,
+    "sha256": "cc364b99ec0c425b5b206f9051d6dfb8acdb1f32e775d957661fbd51c5647675"
+  },
+  {
+    "path": "browser-ledger/prepare.py",
+    "bytes": 1840,
+    "sha256": "0274e8706c17fa533b1da169219fe329a94739778bdc55949e895c279d72101c"
+  },
+  {
+    "path": "browser-ledger/send.py",
+    "bytes": 4020,
+    "sha256": "0abdf8ce3dac5d14431f0c1fe6979f62c29bfdbe3a3a44d46a94c635db103b0a"
+  },
+  {
+    "path": "browser-ledger/server.py",
+    "bytes": 5736,
+    "sha256": "4720f0d76368ae650225827e77d625f69e550ff20764083c6c04893aaeaac19b"
+  },
+  {
+    "path": "browser-ledger/stream-finished.json",
+    "bytes": 195,
+    "sha256": "ce6a389e3305a3aa14da653e347a2ec739fb9783fe60faf2d9e2a3e164ac14fa"
+  },
+  {
+    "path": "browser-ledger/submitted.json",
+    "bytes": 1904,
+    "sha256": "0ac1ba788235d4797234d4ebda42d2b0d8ecf9b5984271282bdae0b8b06bd67e"
+  },
+  {
+    "path": "browser-ledger/verification.json",
+    "bytes": 34418,
+    "sha256": "61a83b0507833c0dac1034f212554153bce7d6a09bc12cda5217666b388af2d7"
+  },
+  {
+    "path": "browser-ledger/verify-diagnostics.py",
+    "bytes": 1684,
+    "sha256": "5c37e1f546f5dd35df676a21a4acfe417e6dbfbc21ce343e488d6253760f2edd"
+  },
+  {
+    "path": "browser-ledger/verify.py",
+    "bytes": 3065,
+    "sha256": "14202a6d4c7587ecb77b5fa5f2a2a8cfda78765c151edcec38aa71a047892cf6"
+  },
+  {
+    "path": "browser-ledger/watch.py",
+    "bytes": 1022,
+    "sha256": "5454b3fa65132607bc22cfc460e637d38e9456c3ee56c640cf061800ee1249f8"
+  },
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 6149,
+    "sha256": "14682c58def8b03da50d9c8ed941b968e6ff41eed4200bdf8887a8a03a22e0c3"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-082747946-f4f417bd/CoolzhuAgent-0.2.122-installer-report.json",
+    "bytes": 4885,
+    "sha256": "25a297d7b560c92a8aa61db374413ef6b6308a0060b9e10c0a89da458613e562"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-082747946-f4f417bd/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "7571fce03c7aca73d4f41bb7f644a7d3c0fa85445972f37b013f13b98238d8cc"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-082747946-f4f417bd/package-report.json",
+    "bytes": 110266,
+    "sha256": "83cce046a20537c9e6bc89f05e4f37b7e7fd856e4b3ecf021583de0f36100e37"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-082747946-f4f417bd/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "7e3c20069e53bcb2bb389ff8d545c2ccc1f8b54890d4eb59a4922a994b6dc4e3"
+  },
+  {
+    "path": "installed-validation/build-direct.py",
+    "bytes": 1003,
+    "sha256": "da1c129f20642eaf5756ff23c4e496c2d8ef3bb45c3f27ad9d7eb08a84f1bb30"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 193,
+    "sha256": "8376552730f1d150922fbb7a9ec51b10b7a7adfad7c5cf7e4058d7acb88d9c80"
+  },
+  {
+    "path": "installed-validation/build-stderr-replay.log",
+    "bytes": 57151,
+    "sha256": "88a65397f3b603d816b6b7c9e3a78d8fa5da53d99e76a9e1f5a299e1381c0e3f"
+  },
+  {
+    "path": "installed-validation/build-stdout-replay.log",
+    "bytes": 14670,
+    "sha256": "8245d772228d7ec7dcd68f9b74894a94b58cb7b5dd022e6e3b02f1462c33a7b2"
+  },
+  {
+    "path": "installed-validation/check-ci.py",
+    "bytes": 695,
+    "sha256": "fad7c9cc97720821146ef09f7eca8817f2af79f2aaa84644ccc4440469d8e211"
+  },
+  {
+    "path": "installed-validation/child-build.ps1",
+    "bytes": 308,
+    "sha256": "5d70a0abdc068c56827ea0c6443ffd6eaed7978b1dfc9870c90bb16684d371c9"
+  },
+  {
+    "path": "installed-validation/github-published-metadata.json",
+    "bytes": 10299,
+    "sha256": "b897a1df0e2a414268cb3e25a4475a907adde7d9607719dabd16fbbbb46dccf3"
+  },
+  {
+    "path": "installed-validation/github-tag.json",
+    "bytes": 405,
+    "sha256": "2ff6be3732869febc032b211e54f8f53eb862ebf4e5c0beff1da49468673ddeb"
+  },
+  {
+    "path": "installed-validation/install-122-result.json",
+    "bytes": 290,
+    "sha256": "9d9a7a71d3a74144eaa17973771ea52bfa47f25c166282dd5324512f9686a9fc"
+  },
+  {
+    "path": "installed-validation/installed-122-standard-processes.json",
+    "bytes": 728,
+    "sha256": "b04dc479995f1c442d65ab84dac7b0b286124e8456e552508f84908b516bc8bf"
+  },
+  {
+    "path": "installed-validation/installed-122-verification.json",
+    "bytes": 1884,
+    "sha256": "34c320d9884541fd009d13d31615cad0908e0dcca1e82598160cc768057b61c4"
+  },
+  {
+    "path": "installed-validation/package-122-verification.json",
+    "bytes": 1869,
+    "sha256": "a8e7d1bd320f7f7a96b02c95d5c93f7d7daa6400f9a296b6297b988c7247bf17"
+  },
+  {
+    "path": "installed-validation/release-assets-local.json",
+    "bytes": 660,
+    "sha256": "f5a5efb1af02b457e759c4c24da55e47c6a5dda8444c536270020c47f484f7f6"
+  },
+  {
+    "path": "installed-validation/release-notes.md",
+    "bytes": 577,
+    "sha256": "3797df3b33b884b760d82da2af62c9288499bf77356a951489f9a59ef151811b"
+  },
+  {
+    "path": "installed-validation/source-ci.json",
+    "bytes": 26374,
+    "sha256": "d8cdc9b18b84a7439dedaca96b94fe65c76be356aa22779e0bc601ca2c780190"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "bf52f9862e48b3a96d6262fd66a504a5f38ca6e46e978dcd0f093576100889e8"
+  },
+  {
+    "path": "installed-validation/start-standard122.ps1",
+    "bytes": 4121,
+    "sha256": "8535c7ab5d411b33163b32d2c1dcf914db3fd639cae653019c16574281b05055"
+  },
+  {
+    "path": "installed-validation/stop-candidate.ps1",
+    "bytes": 1127,
+    "sha256": "6de509097c954e7060dfae7ddd50accbf9bdde9e28f1e7ac00a038323db146fa"
+  },
+  {
+    "path": "installed-validation/stopped-candidate-receipt.json",
+    "bytes": 959,
+    "sha256": "109ad2d37eb469f1a8d7e2e02258813072d32c46780b5dfdbc37e6c87f51db2a"
+  },
+  {
+    "path": "installed-validation/verify-122.py",
+    "bytes": 2862,
+    "sha256": "90fd3ebf59258b5efded852277c3992548349e988f8c3d96fc2f143cf5a0ed3e"
+  },
+  {
+    "path": "installed-validation/verify-release.py",
+    "bytes": 1710,
+    "sha256": "1e18bf3fecdc30bc0a1b8d7b38a34bd00855f1d4adc9ff4308ca05604e008fb3"
+  }
+]
