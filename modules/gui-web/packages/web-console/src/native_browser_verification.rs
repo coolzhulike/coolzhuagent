@@ -247,21 +247,31 @@ pub(super) fn ensure_fresh(observation: &Observation, fresh: &crate::computer_us
     Ok(())
 }
 
+fn parse_verdict(raw: &str, count: usize, node_count: usize) -> Result<Verdict, ComputerUseError> {
+    if raw.len() > 16 * 1024 { return Err(invalid("readonly judge response exceeds limit")); }
+    let verdict: Verdict = serde_json::from_str(raw).map_err(|_| invalid("readonly judge returned invalid criteria JSON"))?;
+    let indices = verdict.criteria.iter().map(|criterion| criterion.index).collect::<HashSet<_>>();
+    if count == 0 || verdict.criteria.len() != count || indices.len() != count
+        || indices.iter().any(|index| *index >= count) || verdict.criteria.iter().any(|criterion|
+            criterion.evidence.trim().is_empty() || criterion.evidence.chars().count() > 512
+            || criterion.node_indices.len() > 8 || criterion.node_indices.iter().any(|index| *index >= node_count)) {
+        return Err(invalid("readonly judge must return one bounded result per criterion"));
+    }
+    Ok(verdict)
+}
+
+/// 仅核对宿主冻结的回复结构，不判断页面目标、引文归因或新鲜度。
+pub(super) fn validate_reply_shape(raw: &str, count: usize, node_count: usize) -> Result<(), ComputerUseError> {
+    parse_verdict(raw, count, node_count).map(|_| ())
+}
+
 pub(super) fn finish(raw: &str, request: &ComputerUseRequest, observation: &Observation) -> Result<Verification, ComputerUseError> {
     if observation.surface==ComputerUseSurface::Browser && observation.state["page"]["loading"]==true {
         return Ok(loading_pending(observation));
     }
     let page = observed_page(request, observation)?;
-    if raw.len() > 16 * 1024 { return Err(invalid("readonly judge response exceeds limit")); }
-    let verdict: Verdict = serde_json::from_str(raw).map_err(|_| invalid("readonly judge returned invalid criteria JSON"))?;
     let count = request.success_criteria.len();
-    let indices = verdict.criteria.iter().map(|criterion| criterion.index).collect::<HashSet<_>>();
-    if count == 0 || verdict.criteria.len() != count || indices.len() != count
-        || indices.iter().any(|index| *index >= count) || verdict.criteria.iter().any(|criterion|
-            criterion.evidence.trim().is_empty() || criterion.evidence.chars().count() > 512
-            || criterion.node_indices.len() > 8 || criterion.node_indices.iter().any(|index| *index >= page.nodes.len())) {
-        return Err(invalid("readonly judge must return one bounded result per criterion"));
-    }
+    let verdict = parse_verdict(raw, count, page.nodes.len())?;
     let met = verdict.criteria.iter().filter(|criterion| criterion.met && grounded_positive(criterion, &page)).count();
     let ungrounded = verdict.criteria.iter().filter(|criterion| criterion.met && !grounded_positive(criterion, &page)).count();
     let achieved = met == count;

@@ -363,7 +363,7 @@ pub(crate) async fn start(
         &serde_json::to_vec(&(parent.workspace_id.as_str(), room, &agent.id, reset)).unwrap(),
     );
     let instructions = if review {
-        format!("你在 coolzhuagent 聊天室中工作。只使用 coolzhu-agent MCP 服务实际声明的工具，插件工具也须通过该宿主调用。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。CU规划和验收由你在当前同一会话中回答：running回执若next_tool为computer_use_read_request，按job_id/request_id从offset=0依次读取next_offset到complete=true，合并完整快照后再回答，不读取溢出文件；若next_tool为computer_use_respond，按附带的本次快照和输出格式回答，将完整回复原文作为response交回同一job_id/request_id；若next_tool为host_image_handoff，立即结束当前这段生成，不输出最终答案、不调用其它工具；宿主会在同一远端会话发来包含原图的下一段提示，任务仍在运行，不重新调用perform。其它running回执用computer_use_wait等待同一job_id直到最终回执。规划回复本身不是执行或完成证明；不重新调用perform，不在运行中结束本轮。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子Agent。若插件缺少授权，报告本轮未执行，不能宣称延期审批后已经完成。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", parent.workspace_id.as_str())
+        format!("你在 coolzhuagent 聊天室中工作。除用户明确要求其它语言外，最终聊天回复使用中文。只使用 coolzhu-agent MCP 服务实际声明的工具，插件工具也须通过该宿主调用。工程根目录为 {}。读取源码必须分段；电脑/浏览器操作只通过 computer_use_perform 提交。CU规划和验收由你在当前同一会话中回答：running回执若next_tool为computer_use_read_request，按job_id/request_id从offset=0依次读取next_offset到complete=true，合并完整快照后再回答，不读取溢出文件；若next_tool为computer_use_respond，按附带的本次快照和输出格式回答，将完整回复原文作为response交回同一job_id/request_id；若next_tool为host_image_handoff，立即结束当前这段生成，不输出最终答案、不调用其它工具；宿主会在同一远端会话发来包含原图的下一段提示，任务仍在运行，不重新调用perform。其它running回执用computer_use_wait等待同一job_id直到最终回执。规划回复本身不是执行或完成证明；不重新调用perform，不在运行中结束本轮。规划/验收请求的局部限制只适用于该子步骤，不覆盖本轮原用户任务；取得CU终态后回到原用户任务，继续用户要求的尚未完成工具步骤，不能将CU目标当作整轮任务。使用用户指定的目标、限制和成功标准，不用原生工具替代，不修改或切换默认规划模型。不允许原生文件工具、命令、写入、联网或子Agent。若插件缺少授权，报告本轮未执行，不能宣称延期审批后已经完成。工具执行事实以宿主回执为准，不把工具自述当作执行或成功证据。", parent.workspace_id.as_str())
     } else {
         "你在 coolzhuagent 聊天室中回答用户消息及随本轮提供的附件。文件、命令、联网工具、MCP 和子 Agent 均不可用；不要尝试调用工具，不要声称执行了操作。".into()
     };
@@ -476,7 +476,7 @@ async fn execute(
             let bridge = if readonly_review {
                 super::bridge::ToolBridge::capture_review(parent, claim.clone(), journal.clone(), cancellation.clone())?
             } else {
-                super::bridge::ToolBridge::capture(parent, claim.clone(), journal.clone(), cancellation.clone())?
+                super::bridge::ToolBridge::capture(parent, claim.clone(), journal.clone(), cancellation.clone(), context.current_task.clone())?
             };
             Some(bridge.start().await?)
         } else { None };
@@ -501,8 +501,9 @@ async fn execute(
         context.record(&journal, &claim)?;
         let consumer_cancellation = cancellation.clone();
         let mut publish = |mut event: Event| {
-            // 图片交接期间的让出提示属于临时过程，不能拼进用户的最终答案。
-            if image_signal.as_ref().is_some_and(|signal|signal.load(std::sync::atomic::Ordering::Acquire)) {
+            // CU运行中的规划说明及原图交接只属于临时过程，不拼进最终答案。
+            if bridge.as_ref().is_some_and(|bridge|bridge.has_pending())
+                || image_signal.as_ref().is_some_and(|signal|signal.load(std::sync::atomic::Ordering::Acquire)) {
                 if let Update::Text { thought, .. } = &mut event.update { *thought = true; }
             }
             publish_to_consumer(event, tx, review, &consumer_cancellation)

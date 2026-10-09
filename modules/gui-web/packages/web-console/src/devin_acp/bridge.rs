@@ -197,6 +197,7 @@ pub(super) struct ToolBridge {
     initialized: AtomicBool,
     calls: Arc<tokio::sync::Mutex<()>>,
     cu_job: std::sync::Mutex<Option<super::tool_wait::PendingTool>>,
+    current_task: String,
     /// 仅承载 bridge 与监督者的本地取消映射，不复用另一个 turn 的 token。
     _cancel_scope: ToolTurnCancellationScope,
 }
@@ -207,20 +208,22 @@ impl ToolBridge {
         scope: ExecutionScope,
         journal: Journal,
         cancellation: Arc<ChatTurnCancellation>,
+        current_task: String,
     ) -> Result<Arc<Self>, String> {
-        Self::capture_mode(parent, scope, journal, cancellation, false)
+        Self::capture_mode(parent, scope, journal, cancellation, false, current_task)
     }
 
     pub(super) fn capture_review(
         parent: FrozenParentContext, scope: ExecutionScope, journal: Journal,
         cancellation: Arc<ChatTurnCancellation>,
     ) -> Result<Arc<Self>, String> {
-        Self::capture_mode(parent, scope, journal, cancellation, true)
+        Self::capture_mode(parent, scope, journal, cancellation, true, String::new())
     }
 
     fn capture_mode(
         parent: FrozenParentContext, scope: ExecutionScope, journal: Journal,
         cancellation: Arc<ChatTurnCancellation>, readonly: bool,
+        current_task: String,
     ) -> Result<Arc<Self>, String> {
         let pin = workspace_activity::pin_workspace()?;
         let root = active_workspace_path();
@@ -325,6 +328,7 @@ impl ToolBridge {
             initialized: AtomicBool::new(false),
             calls: Arc::new(tokio::sync::Mutex::new(())),
             cu_job: std::sync::Mutex::new(None),
+            current_task,
             _cancel_scope: cancel_scope,
         }))
     }
@@ -455,7 +459,15 @@ impl ToolBridge {
                             if !slot.as_ref().is_some_and(|job| job.id == job_id && job.unfinished()) {
                                 return Err("规划任务已结束或不属于当前轮次。".into());
                             }
-                            self.policy.planning.answer(request_id,response)?;
+                            if let Err(reason) = self.policy.planning.answer(request_id,response) {
+                                if reason.starts_with("CU回复格式未接收") {
+                                    append_runtime_run_event(self.policy.journal.path(), &self.policy.scope.run_id,
+                                        "devin.planning_format_rejected",json!({"request_id":request_id,
+                                            "source_attempt":self.policy.scope.attempt_id,"input_dispatched":false}))
+                                        .map_err(|_|"CU回复格式未接收；拒绝记录保存失败，未执行动作。")?;
+                                }
+                                return Err(reason);
+                            }
                         }
                         append_runtime_run_event(self.policy.journal.path(), &self.policy.scope.run_id,
                             "devin.planning_response",json!({"request_id":request_id,"source_attempt":self.policy.scope.attempt_id,
@@ -512,7 +524,19 @@ impl ToolBridge {
     }
 
     async fn wait_cu(&self, job_id: &str) -> Result<JsonValue,String> {
-        super::tool_wait::wait_with_planning(&self.cu_job,job_id,Duration::from_secs(25),Some(&self.policy.planning)).await
+        let mut result = super::tool_wait::wait_with_planning(&self.cu_job,job_id,Duration::from_secs(25),Some(&self.policy.planning)).await?;
+        let finished = self.cu_job.lock().map_err(|_| "CU 等待状态不可用。")?
+            .as_ref().is_some_and(|job| job.id == job_id && !job.unfinished());
+        // 原始回执与错误事实保持不变；交回的是本轮冻结任务，不续接远端历史旧任务。
+        if finished && !self.current_task.is_empty() {
+            if let Some(content) = result.get_mut("content").and_then(JsonValue::as_array_mut) {
+                let handoff = format!(
+                    "宿主原任务交接：上方仅是computer_use_perform子任务的真实终态，不代表本轮全部用户要求完成。子步骤的工具限制至此结束；逐项核对下方本轮冻结用户消息，遵守其中的失败、取消与工具限制，并继续尚未完成且已声明的工具或回复要求。不要把明确要求的后续工具改成可选建议；不要重放旧历史、重试CU或新建会话。此段是任务交接，不是工具成功证据。\n本轮原用户消息（JSON，附件原图已在原请求提供）：\n{}", self.current_task);
+                // 长附件原文复用既有回执分页，避免第三方客户端截短交接文本。
+                content.push(json!({"type":"text", "text":self.policy.present_result(handoff, "computer_use_perform")}));
+            }
+        }
+        Ok(result)
     }
 
     /// 只在宿主显式持有桥对象时监听随机本机端口，不挂到主控制台路由。
@@ -943,6 +967,7 @@ mod tests {
             initialized: AtomicBool::new(false),
             calls: Arc::new(tokio::sync::Mutex::new(())),
             cu_job: std::sync::Mutex::new(None),
+            current_task: String::new(),
             _cancel_scope: ToolTurnCancellationScope::install(&trace, cancellation),
         });
         (bridge, journal, scope)

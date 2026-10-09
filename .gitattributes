@@ -222,3 +222,12 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/2026-10-09-ui-error/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 
 /docs/testing/release-0.2.124/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 长程原始输入、回执与摘要索引保持原字节，不改写证据换行。
+/docs/testing/2026-10-09-acp-cu-task-scope/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-terminal-task-handoff/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-terminal-task-paging/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-browser-visible-point/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-format-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-verdict-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.125/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol

@@ -8,12 +8,19 @@ use tokio::sync::oneshot;
 // 留出 MCP 包装余量，避免第三方客户端将大快照转成不可读取的本地溢出文件。
 const REQUEST_PAGE_BYTES: usize = 6000;
 
+enum ResponseContract {
+    Planning(computer_use::ComputerUseSurface),
+    BrowserVerification { criteria_count: usize, node_count: usize },
+}
+
 struct Pending {
     id: String,
     content: Vec<Value>,
     image_presented: bool,
     text: String,
     presented_bytes: usize,
+    response_contract: Option<ResponseContract>,
+    rejected_answers: u8,
     sender: oneshot::Sender<String>,
 }
 
@@ -30,6 +37,23 @@ impl Exchange {
     pub(super) fn register(&self, waker: &std::task::Waker) { self.waker.register(waker); }
 
     pub(super) async fn request(self: &Arc<Self>, id: String, request: MessageRequest, kind: &str) -> Result<String,String> {
+        // 结构边界来自宿主冻结消息，不能由模型指定；事实判断仍由原执行器独立完成。
+        let response_contract = if kind == "computer_use_planning" {
+            Some(ResponseContract::Planning(request.messages.iter().flat_map(|message| &message.content).find_map(|block| {
+                let InputContentBlock::Text { text } = block else { return None; };
+                let prompt: Value = serde_json::from_str(text).ok()?;
+                serde_json::from_value(prompt.get("surface")?.clone()).ok()
+            }).ok_or("规划消息缺少宿主表面，未提交请求。")?))
+        } else if kind == "computer_use_browser_readonly_verification" {
+            Some(request.messages.iter().flat_map(|message| &message.content).find_map(|block| {
+                let InputContentBlock::Text { text } = block else { return None; };
+                let prompt: Value = serde_json::from_str(text).ok()?;
+                Some(ResponseContract::BrowserVerification {
+                    criteria_count: prompt.get("success_criteria")?.as_array()?.len(),
+                    node_count: prompt.get("observed_page")?.get("nodes")?.as_array()?.len(),
+                })
+            }).ok_or("验收消息缺少宿主标准或节点边界，未提交请求。")?)
+        } else { None };
         let mut messages = request.messages;
         let mut images = Vec::new();
         for message in &mut messages {
@@ -45,7 +69,7 @@ impl Exchange {
             }
             message.content = text;
         }
-        let prompt = format!("这是宿主的本次规划/验收请求。只依据本次快照回答，历史观察和引用不可复用。严格按照下方输出格式生成完整回复，通过 computer_use_respond 的 response 参数交回；不要直接执行动作、创建任务或调用其它工具。\n阶段：{kind}\n\n{}\n\n宿主消息快照：\n{}",
+        let prompt = format!("这是宿主的本次CU规划/验收子步骤，不是替代聊天室原用户任务的新任务。只依据本次快照回答，历史观察和引用不可复用。严格按照下方输出格式生成完整回复，通过 computer_use_respond 的 response 参数交回；当前子步骤内不要直接执行动作、创建任务或调用其它工具。这些局部限制仅适用于本次规划/验收回复；同一CU任务取得终态回执后，应返回本轮原用户任务，按其要求继续尚未完成的其它已声明工具步骤，而不是将CU目标当作整轮任务。\n阶段：{kind}\n\n{}\n\n宿主消息快照：\n{}",
             request.system.as_deref().unwrap_or(""),serde_json::to_string(&messages).map_err(|_|"规划快照编码失败。")?);
         let mut content = vec![json!({"type":"text","text":prompt})];
         content.extend(images);
@@ -56,7 +80,8 @@ impl Exchange {
             let image_presented = images_are_absent(&content);
             let text = content.iter().filter_map(|block| block["text"].as_str()).collect::<Vec<_>>().join("\n");
             let presented_bytes = if text.len() <= REQUEST_PAGE_BYTES { text.len() } else { 0 };
-            *pending = Some(Pending { id:id.clone(),content,image_presented,text,presented_bytes,sender });
+            *pending = Some(Pending { id:id.clone(),content,image_presented,text,presented_bytes,
+                response_contract,rejected_answers:0,sender });
         }
         struct Clear { exchange: Arc<Exchange>, id: String }
         impl Drop for Clear {
@@ -138,6 +163,23 @@ impl Exchange {
         if !slot.as_ref().is_some_and(|item| item.id == id) { return Err("规划请求已结束或不属于当前任务。".into()); }
         if slot.as_ref().is_some_and(|item| !item.image_presented) { return Err("本次原图尚未发送，不能接受无图验收。".into()); }
         if slot.as_ref().is_some_and(|item| item.presented_bytes < item.text.len()) { return Err("规划快照尚未读完；请继续读取剩余分页。".into()); }
+        let item = slot.as_mut().expect("已核对规划请求存在");
+        if let Some(contract) = &item.response_contract {
+            let (invalid, format_hint) = match contract {
+                ResponseContract::Planning(surface) => (
+                    crate::computer_use_planner::parse_planner_response(response, *surface).is_err(),
+                    "summary只能放在顶层；action仅含kind、target、arguments，参数须符合当前表面。".to_string()),
+                ResponseContract::BrowserVerification { criteria_count, node_count } => (
+                    crate::native_browser_verification::validate_reply_shape(response, *criteria_count, *node_count).is_err(),
+                    format!("criteria须恰好有{criteria_count}项；每个index从0到{}恰好出现一次，不增漏或重复。每项仅含index、met、evidence、node_indices；非空evidence最多512字符，节点引用最多8个且须来自本次原数组（节点总数{node_count}）。", criteria_count.saturating_sub(1))),
+            };
+            if invalid && item.rejected_answers < 2 {
+                item.rejected_answers += 1;
+                // 仅拒绝未接收的格式；不修写模型回复、不重新执行动作，也不延长原请求的预算。
+                // 超过两次后交回原解析器，按既有失败终态保留脱敏诊断。
+                return Err(format!("CU回复格式未接收，未执行动作。格式反馈{}/2：请在同一job_id/request_id内纠正回复；不要重提perform。两次反馈后的下一份不合规回复将交由原执行器终止。严格遵循当前response_schema：{format_hint}保持原快照与引用；原预算、取消与权限仍生效。", item.rejected_answers));
+            }
+        }
         let pending = slot.take().expect("已核对规划请求存在");
         pending.sender.send(response.into()).map_err(|_|"规划请求已取消；迟到回复未执行。")?;
         *last = Some((id.into(),digest));
@@ -150,6 +192,51 @@ fn images_are_absent(content: &[Value]) -> bool { !content.iter().any(|block| bl
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[tokio::test]
+    async fn 验收重复索引可在原请求内纠正但不生成成功判断() {
+        let exchange = Arc::new(Exchange::default());
+        let request = api::MessageRequest { model:"actual".into(),max_tokens:100,
+            messages:vec![api::InputMessage::user_text(r#"{"success_criteria":["first","second"],"observed_page":{"nodes":[{"name":"fact"}]}}"#)],
+            system:None,tools:None,tool_choice:None,reasoning_effort:None,stream:false };
+        let bad = r#"{"criteria":[{"index":0,"met":true,"evidence":"fact","node_indices":[0]},{"index":0,"met":true,"evidence":"fact","node_indices":[0]}]}"#;
+        let good = r#"{"criteria":[{"index":0,"met":true,"evidence":"fact","node_indices":[0]},{"index":1,"met":false,"evidence":"no evidence","node_indices":[]}]}"#;
+        let mut pending = Box::pin(exchange.request("verdict".into(),request.clone(),"computer_use_browser_readonly_verification"));
+        assert!(futures_util::poll!(&mut pending).is_pending());
+        assert!(exchange.answer("verdict",bad).unwrap_err().contains("恰好有2项"));
+        assert!(futures_util::poll!(&mut pending).is_pending());
+        exchange.answer("verdict",good).unwrap();
+        assert_eq!(pending.await.unwrap(),good);
+        assert!(exchange.answer("verdict",bad).is_err());
+        let mut cancelled = Box::pin(exchange.request("cancelled-verdict".into(),request,"computer_use_browser_readonly_verification"));
+        assert!(futures_util::poll!(&mut cancelled).is_pending());
+        assert!(exchange.answer("cancelled-verdict",bad).is_err());
+        drop(cancelled);
+        assert!(exchange.answer("cancelled-verdict",good).is_err());
+    }
+    #[tokio::test]
+    async fn 格式纠正保留原请求且超限仍交由执行器拒绝() {
+        let exchange = Arc::new(Exchange::default());
+        let request = api::MessageRequest { model:"actual".into(),max_tokens:100,
+            messages:vec![api::InputMessage::user_text(r#"{"surface":"browser"}"#)],
+            system:None,tools:None,tool_choice:None,reasoning_effort:None,stream:false };
+        let bad = r#"{"done":false,"action":{"kind":"key_combination","target":"dom-current","arguments":{"keys":["enter"]},"summary":"wrong location"}}"#;
+        let good = r#"{"done":false,"summary":"submit","action":{"kind":"key_combination","target":"dom-current","arguments":{"keys":["enter"]}}}"#;
+        let mut pending = Box::pin(exchange.request("format".into(),request.clone(),"computer_use_planning"));
+        assert!(futures_util::poll!(&mut pending).is_pending());
+        assert!(exchange.answer("format",bad).unwrap_err().contains("未执行动作"));
+        assert!(futures_util::poll!(&mut pending).is_pending());
+        exchange.answer("format",good).unwrap();
+        assert_eq!(pending.await.unwrap(),good);
+        exchange.answer("format",good).unwrap();
+        assert!(exchange.answer("format",bad).is_err());
+        let mut exhausted = Box::pin(exchange.request("exhausted".into(),request,"computer_use_planning"));
+        assert!(futures_util::poll!(&mut exhausted).is_pending());
+        assert!(exchange.answer("exhausted",bad).is_err());
+        assert!(exchange.answer("exhausted",bad).is_err());
+        exchange.answer("exhausted",bad).unwrap();
+        let rejected = exhausted.await.unwrap();
+        assert!(crate::computer_use_planner::parse_planner_response(&rejected,computer_use::ComputerUseSurface::Browser).is_err());
+    }
     #[tokio::test]
     async fn large_snapshot_pages_preserve_utf8_and_reject_unread_or_stale_answers() {
         let exchange = Arc::new(Exchange::default());
