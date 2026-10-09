@@ -1,0 +1,16 @@
+[
+  {
+    "name": "bamboo-order-utf8.txt",
+    "snapshot_metadata": {
+      "sha256": "ef3b0cfe14150e2fe5367ff923fcc47be154b48813bc37789489808cf1c0e339",
+      "encoding": "UTF-8"
+    }
+  },
+  {
+    "name": "jade-order-utf16be.txt",
+    "snapshot_metadata": {
+      "sha256": "e87e76028e42416caf16a7024c087ff057a1b6c59452cabe85ab14fae74478f1",
+      "encoding": "UTF-16BE"
+    }
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "version": "0.2.124",
+  "source_commit": "3f4f95a71f1c6de53411b57971bbaf4505533e9a",
+  "exit_code": 0,
+  "stdout": "build-stdout-replay.log",
+  "stderr": "build-stderr-replay.log"
+}
