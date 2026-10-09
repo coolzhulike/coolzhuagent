@@ -325,38 +325,65 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
             request:ObservationRequest {request_id:id.clone(), resource:resource.clone()}, delivered:false, sender});
         resource.clone()
     };
-    let _pending_guard = PendingObservationGuard(id);
+    let pending_guard = PendingObservationGuard(id.clone());
     let start = Instant::now();
     let timeout = remaining.min(Duration::from_secs(5));
+    let stop_stage;
     let result = loop {
         if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
+            stop_stage = "waiting_cancelled";
             break Err("native_observation_cancelled".into());
         }
         // 资源变化后的旧请求不会再收到有效回包；明确收尾，避免伪装为单纯超时。
         if !registry().lock().is_ok_and(|registered|
             frozen.matches_observation(registered.as_ref(), &parent.workspace_id, &requested_resource)) {
+            stop_stage = "waiting_resource_changed";
             break Err("native_browser_resource_changed".into());
         }
-        if start.elapsed() >= timeout { break Err("native_observation_timeout".into()); }
+        if start.elapsed() >= timeout {
+            stop_stage = "waiting_timeout";
+            break Err("native_observation_timeout".into());
+        }
         match receiver.recv_timeout((timeout - start.elapsed().min(timeout)).min(Duration::from_millis(50))) {
             Ok(reply) => {
                 if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
+                    stop_stage = "reply_cancelled";
                     break Err("native_observation_cancelled".into());
                 }
                 if let Err(error) = crate::validate_frozen_parent_relations(db, parent) {
+                    stop_stage = "reply_parent_changed";
                     break Err(observation_parent_error(error).into());
                 }
                 let current_matches = reply.host_id == frozen.host_id && registry().lock().is_ok_and(|registered|
                     frozen.matches_observation(registered.as_ref(), &parent.workspace_id, &reply.resource));
-                if !current_matches { break Err("native_browser_resource_changed".into()); }
+                if !current_matches {
+                    stop_stage = "reply_resource_changed";
+                    break Err("native_browser_resource_changed".into());
+                }
+                stop_stage = "host_reply";
                 break reply.observation.map(|page| NativeObservation {resource:reply.resource,
                     page, host_id:reply.host_id, request_id:reply.request_id})
                     .ok_or_else(|| reply.error.unwrap_or_else(|| "native_observation_failed".into()));
             },
             Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {},
-            Err(_) => break Err("native_observation_cancelled".into()),
+            Err(_) => {
+                stop_stage = "waiting_disconnected";
+                break Err("native_observation_cancelled".into());
+            },
         }
     };
+    let elapsed_ms = start.elapsed().as_millis().min(u64::MAX as u128) as u64;
+    // 先释放本请求，再写现有运行轨迹；不延长输入阶段，不持锁写库。
+    drop(pending_guard);
+    if let (Err(code), Some(run_id)) = (&result, parent.parent_run_id.as_deref()) {
+        // 仅固定阶段、错误码与不透明请求标识。页面、输入、宿主凭据均不进入事件。
+        if crate::append_runtime_run_event(db, run_id, "browser.observation_stopped", serde_json::json!({
+            "request_id":id, "stage":stop_stage, "reason_code":code, "elapsed_ms":elapsed_ms,
+        })).is_err() {
+            // 原失败仍由步骤与终态回执保存；不能因诊断写入失败恢复观察或重放输入。
+            eprintln!("browser.observation_stopped: 轨迹保存失败，原观察失败保持");
+        }
+    }
     result
 }
 
