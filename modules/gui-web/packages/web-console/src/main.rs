@@ -45,6 +45,7 @@ mod attachment_text;
 mod model_discovery;
 mod agent_session_backend;
 mod session_model_config;
+mod session_config_service;
 use session_model_config::{SessionModelLimitOverride, model_settings_protocol, model_settings_base_url, constrain_session_model_limit};
 mod devin_acp;
 mod content_delivery;
@@ -13211,22 +13212,7 @@ fn session_model_limit_response(
 async fn api_get_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    let response = {
-        let store = session_store()
-            .lock()
-            .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        let session = store.find_session(&session_id)
-            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
-        if agent_session_backend::AgentSessionBackend::for_provider(&session.provider) != agent_session_backend::AgentSessionBackend::LlmHttp {
-            return Err(api_error(StatusCode::BAD_REQUEST, "Devin 容量尚未协商，请使用模型与会话配置页查看状态。"));
-        }
-        let (parameters, local) = read_config(|config| (
-            config.session_model_limits.get(&session_id).cloned().unwrap_or_default(),
-            local_chat_runtime_config_from_config(config),
-        ));
-        session_model_limit_response(session.to_agent_session_with_model_settings(parameters.clone()), parameters, local)
-    };
-    Ok(Json(response))
+    session_config_service::SessionConfigService::new(session_store()).read_limit(session_id).map(Json)
 }
 
 /// POST /api/sessions/{id}/model-limit：写入手填覆盖（context_window/max_output_tokens）；两者皆 0 则清除覆盖、回退默认表。
@@ -13234,28 +13220,7 @@ async fn api_set_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
     Json(payload): Json<SessionModelLimitUpdateRequest>,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    let response = {
-        let store = session_store()
-            .lock()
-            .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        let session = store.find_session(&session_id)
-            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
-        if agent_session_backend::AgentSessionBackend::for_provider(&session.provider) != agent_session_backend::AgentSessionBackend::LlmHttp {
-            return Err(api_error(StatusCode::BAD_REQUEST, "Devin 容量尚未协商，请使用模型与会话配置页查看状态。"));
-        }
-        // 与统一保存沿用 store→config 顺序；响应只使用本次已发布配置。
-        let published = mutate_workspace_config(|config| {
-            // 旧容量 API 只修改容量，不能丢弃采样、协议和工具参数。
-            let settings = config.session_model_limits.entry(session_id.clone()).or_default();
-            settings.context_window = payload.context_window.min(4_000_000);
-            settings.max_output_tokens = payload.max_output_tokens.min(1_000_000);
-            Ok(())
-        })?;
-        let parameters = published.session_model_limits.get(&session_id).cloned().unwrap_or_default();
-        let local = local_chat_runtime_config_from_config(&published);
-        session_model_limit_response(session.to_agent_session_with_model_settings(parameters.clone()), parameters, local)
-    };
-    Ok(Json(response))
+    session_config_service::SessionConfigService::new(session_store()).save_limit(session_id, payload).map(Json)
 }
 
 #[derive(Debug, Deserialize)]
@@ -13337,18 +13302,8 @@ mod unified_model_settings_tests {
 }
 
 async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) -> ApiResult<Json<JsonValue>> {
-    // 与保存共用 store→config 锁顺序；会话、参数、版本和本地容量属于同一读取快照。
-    // 捕获后立即释放锁，插件目录读取和响应编码不占用会话存储锁。
-    let (session, agent, parameters, configuration_revision, local) = {
-        let store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        let session = store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
-        let (parameters, revision, local) = read_config(|config| (
-            config.session_model_limits.get(&session_id).cloned().unwrap_or_default(),
-            config.configuration_revision,
-            local_chat_runtime_config_from_config(config),
-        ));
-        (session.summary_with_model_settings(store.is_active(&session_id), parameters.clone()), session.to_agent_session_with_model_settings(parameters.clone()), parameters, revision, local)
-    };
+    let session_config_service::Snapshot { session, agent, parameters, configuration_revision, local } =
+        session_config_service::SessionConfigService::new(session_store()).read(session_id)?;
     let defaults = api::model_token_limit(&agent.model);
     let effective = effective_model_limit_for_agent_snapshot(&agent, &parameters, local);
     let plugin_tools = if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
@@ -13386,50 +13341,7 @@ async fn api_set_session_model_settings(
     AxumPath(session_id): AxumPath<String>,
     Json(payload): Json<SessionModelSettingsUpdateRequest>,
 ) -> ApiResult<Json<JsonValue>> {
-    // 与普通会话修改/删除共用存储锁；配置锁只在 mutator 内按 store→config 顺序取得。
-    // 同步发布块结束后再 await，避免持有 std MutexGuard 跨异步边界。
-    {
-        let mut store = session_store().lock().map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-        let mut agent = store.find_session(&session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?
-            .to_agent_session(store.is_active(&session_id));
-        if let Some(session) = payload.session.as_ref() {
-            validate_reasoning_effort(session.reasoning_effort.as_deref())?;
-            if let Some(avatar) = session.avatar.as_deref() { normalize_session_avatar(Some(avatar))?; }
-            if let Some(provider) = &session.provider { agent.provider = normalize_provider(Some(provider)); }
-            if let Some(model_type) = &session.model_type { agent.model_type = normalize_model_type(Some(model_type)); }
-            agent_session_backend::validate_session_input(session, &agent.provider)?;
-            if let Some(model) = &session.model { agent.model = normalize_model(Some(model)); }
-            if let Some(effort) = &session.reasoning_effort { agent.reasoning_effort = effort.clone(); }
-        }
-        validate_session_model_settings(&payload.parameters, &agent)?;
-        let mut previous = None;
-        let published = mutate_workspace_config(|config| {
-            if payload.expected_revision.is_some_and(|revision| revision != config.configuration_revision) {
-                return Err(api_error(StatusCode::CONFLICT, "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入"));
-            }
-            previous = config.session_model_limits.insert(session_id.clone(), payload.parameters.clone());
-            Ok(())
-        })?;
-        if let Some(session) = payload.session {
-            let result = store.update_session(&session_id, session);
-            if let Err(error) = result {
-                let rollback = mutate_workspace_config(|config| {
-                    if config.configuration_revision != published.configuration_revision {
-                        return Err(api_error(StatusCode::CONFLICT, "配置已变化，未覆盖其他修改"));
-                    }
-                    match previous {
-                        Some(parameters) => { config.session_model_limits.insert(session_id.clone(), parameters); }
-                        None => { config.session_model_limits.remove(&session_id); }
-                    }
-                    Ok(())
-                });
-                if rollback.is_err() {
-                    return Err(api_error(StatusCode::CONFLICT, "会话更新失败，参数回退未完成；请重新载入核对已保存状态"));
-                }
-                return Err(error);
-            }
-        }
-    }
+    session_config_service::SessionConfigService::new(session_store()).save(session_id.clone(), payload)?;
     api_get_session_model_settings(AxumPath(session_id)).await
 }
 

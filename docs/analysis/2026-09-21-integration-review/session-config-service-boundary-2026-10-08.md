@@ -1,0 +1,11 @@
+# 会话配置服务职责收敛方案
+
+114已验证参数纯规则、本地容量约束、同进程读取快照与保存失败恢复，但四个模型配置HTTP handler仍直接组织存储锁、配置发布和失败回退。下一步提取Web领域的SessionConfigService，使handler仅解析输入、获取服务结果、构造HTTP响应；不是另建参数表或持久化系统。
+
+服务接收既有TrackedSessionStore引用，保留其锁诊断，负责统一参数快照读取、旧容量读取/保存、统一保存校验及失败恢复。配置发布继续调用原mutate_workspace_config；store→config锁序和同步块结束后await不变。Snapshot只包含响应需要的会话摘要、执行DTO、参数、revision及本地容量，不克隆完整消息历史。插件目录IO和Json编码留在handler锁外；协议、校验和预算规则留在session_model_config与既有backend模块；文件原子替换留在config_publication。服务不引入第二锁、状态缓存、任务队列、Provider表或通用事务框架。
+
+这是Web领域边界收敛，暂复用既有ApiResult/错误适配和主层配置发布基础设施，不宣称core-runtime已经与HTTP彻底解耦。普通会话CRUD、凭据/记忆派生状态仍是现有领域，不能以服务文件存在即判WBS2.1总体完成。跨工作区作用域固定、LLM resolve完整边界及配置/SQLite跨资源崩溃仍单列；不以当前单进程store锁冒称跨进程单写者。
+
+风险控制：精确提取114已验证同步块，保持旧容量POST两字段夹紧、其它参数保留和Devin未协商容量拒绝；统一保存保持expected_revision、原缺项Option回退及后续配置变化时409，不将回退失败写成成功。不得持std锁跨await，不把plugin枚举挪进服务锁，不增加在读取中暗中重读连接。提取不改变正常保存后重新读最新响应的既有契约。
+
+验证沿用完整既有回归；实际offline build后用独立真实服务复验两容量接口、本地约束、采样保留、统一读取整组并发、同revision竞争和SQLite失败恢复，再正常原生设置/重启实拍。配置验证零模型，不模拟供应商；真实SWE长程证据仍独立。新候选不追认114已包含，后续新包复验才记正式交付。

@@ -1,5 +1,7 @@
 # 整体验收状态快照（2026-10-08）
 
+会话配置服务候选：四个模型配置入口的同步块提取至SessionConfigService，沿用TrackedSessionStore/配置发布/原锁序，无第二缓存或队列。实际build0、完整Web1423/0/6既有忽略及lib8/native-host1通过；旧容量六路1314读/180保存、统一参数六路1145读/180保存均零混合，真实SQLite两组失败恢复和同revision200/409通过。正常原生设置及同EXE重启实拍通过；四个隔离库模型轮次0，原SWE/revision51/唯一island已恢复。两次准备失败原事实保留。114不含候选，完整Service/工作区作用域/outbox/严格Browser仍开放。[候选原事实与实拍](../../testing/2026-10-08-session-config-service/report.md)。Goal继续。
+
 114正式增量：旧容量GET/POST复用单次捕获/已发布配置的本地服务容量，修复113旧GET32768/统一8192及清零POST1000000/65536/统一8192/4096的不一致。正式EXE六路1313次读取/180次保存零混合，本地约束/采样保留、正常原生预算与同EXE重启实拍通过。正常release构建/安装0、六门pass、1159文件逐SHA一致，冻结95c2704两路CI success；已公开114预发布、四资产服务端摘要/实际标签一致。原SWE-2-medium/revision51/唯一island-kayak已恢复且解锁，模型0/新云端0。完整Service/outbox、跨工作区/崩溃和Browser严格时序继续开放。[114交接与实拍](../../testing/release-0.2.114/change-report-and-test-handoff.md)。Goal继续。
 
 113正式增量：配置读取名称/参数/revision/连接/局部容量与预算使用同一捕获快照，正式EXE六路1149次读取/180次保存零混合，正常原生预算及同EXE重启实拍通过。正常release构建/安装0、六门pass、1159文件逐SHA一致，冻结09fa80c两路CI均success；已公开113预发布，四资产服务端摘要/实际标签一致。原SWE-2-medium/revision51/唯一island-kayak已恢复且解锁，模型0/新云端0。只关闭本项同进程读取快照，完整Service/outbox、跨工作区/崩溃和严格Browser仍开放。[113交接与实拍](../../testing/release-0.2.113/change-report-and-test-handoff.md)。Goal继续。

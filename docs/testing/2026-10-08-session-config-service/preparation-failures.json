@@ -1,0 +1,10 @@
+{
+  "cases": ["config-save-live", "config-save-live2"],
+  "stage": "独立服务启动前的端口空闲断言",
+  "error": "127.0.0.1:8768仍被同轮snapshot-check使用；AssertionError",
+  "executables_started": 0,
+  "api_requests": 0,
+  "model_requests": 0,
+  "cause": "测试驱动未等前一返回session_id的工具实际结束就启动依赖步骤",
+  "correction": "明确消费snapshot-check的实际退出0，再在新目录执行；不杀按端口发现的进程、不覆盖两次旧目录"
+}
