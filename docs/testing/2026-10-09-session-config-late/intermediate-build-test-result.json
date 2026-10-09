@@ -1,0 +1,39 @@
+[
+  {
+    "stage": "build",
+    "command": [
+      "cargo",
+      "build",
+      "-p",
+      "coolzhu-web-console",
+      "--offline"
+    ],
+    "actual_exit_code": 0
+  },
+  {
+    "stage": "test",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "coolzhu-web-console",
+      "--offline"
+    ],
+    "actual_exit_code": 0
+  },
+  {
+    "stage": "frontend",
+    "command": [
+      "C:\\Program Files\\nodejs\\node.EXE",
+      "--test",
+      "modules\\gui-web\\packages\\web-console\\tests\\chat-history-sync.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\chat-tool-status.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\devin-agent-form.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\devin-auth.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\devin-model-settings.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\input-safety-badge.test.cjs",
+      "modules\\gui-web\\packages\\web-console\\tests\\ui-control-contracts.cjs"
+    ],
+    "actual_exit_code": 0
+  }
+]

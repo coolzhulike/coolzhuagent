@@ -1,0 +1,272 @@
+{
+  "case": "before116",
+  "binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "binary_sha256": "d931957b13ec7268edaa518783d43839c8a8ef32a0117e343038c318e375129f",
+  "pid": 10172,
+  "port": 53506,
+  "model_requests": 0,
+  "original_runtime_writes": 0,
+  "new_cloud_sessions": 0,
+  "before_a": {
+    "agent_execution_ready": true,
+    "available_plugin_tools": [],
+    "backend_kind": "llm_http",
+    "base_url": "http://127.0.0.1:8082/v1",
+    "configuration_revision": 10,
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "effective_context_window": 8192,
+    "effective_max_output_tokens": 1024,
+    "effective_supports_multimodal": false,
+    "endpoint": null,
+    "image_input_strategy": "vision-description",
+    "model_selection": {
+      "effective": null,
+      "requested": "scope-local-config",
+      "resolved_model": null
+    },
+    "parameters": {
+      "backend_kind": null,
+      "base_url": null,
+      "computer_use_enabled": null,
+      "context_window": 32768,
+      "enable_llm_tools": null,
+      "endpoint": null,
+      "llm_tool_exposure": null,
+      "max_output_tokens": 1024,
+      "protocol": null,
+      "reasoning_mode": null,
+      "supports_multimodal": null,
+      "temperature": 0.25,
+      "thinking_budget": null,
+      "tool_allowlist": null,
+      "top_p": null,
+      "turn_timeout_ms": null
+    },
+    "plugin_tools_error": null,
+    "protocol": "openai_chat_completions",
+    "session": {
+      "active": true,
+      "api_key_status": "未配置（能力已启用；凭据引用 api-key.txt 不可用）",
+      "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+      "backend_kind": "llm_http",
+      "base_url": "http://127.0.0.1:8082/v1",
+      "display_name": "工程-a(coolzhu-model)",
+      "endpoint": null,
+      "id": "scope-shared-session",
+      "memory_mode": "enabled",
+      "model": "scope-local-config",
+      "model_type": "text",
+      "name": "工程-a",
+      "provider": "custom",
+      "reasoning_effort": "auto",
+      "reasoning_resolution": {
+        "effective": "auto",
+        "protocol": "openai_chat_completions",
+        "reason": "requested=auto：不主动覆盖供应商默认",
+        "requested": "auto",
+        "status": "default",
+        "strategy": "provider_default",
+        "supported_options": [
+          {
+            "label": "自动",
+            "value": "auto"
+          }
+        ]
+      },
+      "updated_at": 1791529413008
+    }
+  },
+  "before_b": {
+    "agent_execution_ready": true,
+    "available_plugin_tools": [],
+    "backend_kind": "llm_http",
+    "base_url": "http://127.0.0.1:8082/v1",
+    "configuration_revision": 10,
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "effective_context_window": 16384,
+    "effective_max_output_tokens": 1024,
+    "effective_supports_multimodal": false,
+    "endpoint": null,
+    "image_input_strategy": "vision-description",
+    "model_selection": {
+      "effective": null,
+      "requested": "scope-local-config",
+      "resolved_model": null
+    },
+    "parameters": {
+      "backend_kind": null,
+      "base_url": null,
+      "computer_use_enabled": null,
+      "context_window": 32768,
+      "enable_llm_tools": null,
+      "endpoint": null,
+      "llm_tool_exposure": null,
+      "max_output_tokens": 1024,
+      "protocol": null,
+      "reasoning_mode": null,
+      "supports_multimodal": null,
+      "temperature": 0.75,
+      "thinking_budget": null,
+      "tool_allowlist": null,
+      "top_p": null,
+      "turn_timeout_ms": null
+    },
+    "plugin_tools_error": null,
+    "protocol": "openai_chat_completions",
+    "session": {
+      "active": true,
+      "api_key_status": "未配置（能力已启用；凭据引用 api-key.txt 不可用）",
+      "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+      "backend_kind": "llm_http",
+      "base_url": "http://127.0.0.1:8082/v1",
+      "display_name": "工程-b(coolzhu-model)",
+      "endpoint": null,
+      "id": "scope-shared-session",
+      "memory_mode": "enabled",
+      "model": "scope-local-config",
+      "model_type": "text",
+      "name": "工程-b",
+      "provider": "custom",
+      "reasoning_effort": "auto",
+      "reasoning_resolution": {
+        "effective": "auto",
+        "protocol": "openai_chat_completions",
+        "reason": "requested=auto：不主动覆盖供应商默认",
+        "requested": "auto",
+        "status": "default",
+        "strategy": "provider_default",
+        "supported_options": [
+          {
+            "label": "自动",
+            "value": "auto"
+          }
+        ]
+      },
+      "updated_at": 1791529413008
+    }
+  },
+  "workspace_a": {
+    "workspace_id": "ws-c323f772f03d2d6d",
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-session-config-late\\before116\\workspace-a",
+    "entries": [
+      {
+        "name": "coolzhu.toml",
+        "kind": "file"
+      },
+      {
+        "name": "err.log",
+        "kind": "file"
+      },
+      {
+        "name": "err.log.lock",
+        "kind": "file"
+      }
+    ],
+    "allowed_roots": [
+      "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-session-config-late\\before116\\workspace-a",
+      "C:\\Users\\zhupu"
+    ],
+    "writable": true,
+    "boundary": "allowed-root",
+    "status": "ok",
+    "message": "workspace 位于允许目录内；工具真实执行仍需单独授权"
+  },
+  "submitted": {
+    "session": {
+      "name": "工程-a-旧页面保存"
+    },
+    "parameters": {
+      "backend_kind": null,
+      "base_url": null,
+      "computer_use_enabled": null,
+      "context_window": 32768,
+      "enable_llm_tools": null,
+      "endpoint": null,
+      "llm_tool_exposure": null,
+      "max_output_tokens": 1024,
+      "protocol": null,
+      "reasoning_mode": null,
+      "supports_multimodal": null,
+      "temperature": 0.35,
+      "thinking_budget": null,
+      "tool_allowlist": null,
+      "top_p": null,
+      "turn_timeout_ms": null
+    },
+    "expected_revision": 10
+  },
+  "status": 200,
+  "after_b": {
+    "agent_execution_ready": true,
+    "available_plugin_tools": [],
+    "backend_kind": "llm_http",
+    "base_url": "http://127.0.0.1:8082/v1",
+    "configuration_revision": 11,
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "effective_context_window": 16384,
+    "effective_max_output_tokens": 1024,
+    "effective_supports_multimodal": false,
+    "endpoint": null,
+    "image_input_strategy": "vision-description",
+    "model_selection": {
+      "effective": null,
+      "requested": "scope-local-config",
+      "resolved_model": null
+    },
+    "parameters": {
+      "backend_kind": null,
+      "base_url": null,
+      "computer_use_enabled": null,
+      "context_window": 32768,
+      "enable_llm_tools": null,
+      "endpoint": null,
+      "llm_tool_exposure": null,
+      "max_output_tokens": 1024,
+      "protocol": null,
+      "reasoning_mode": null,
+      "supports_multimodal": null,
+      "temperature": 0.35,
+      "thinking_budget": null,
+      "tool_allowlist": null,
+      "top_p": null,
+      "turn_timeout_ms": null
+    },
+    "plugin_tools_error": null,
+    "protocol": "openai_chat_completions",
+    "session": {
+      "active": true,
+      "api_key_status": "未配置（能力已启用；凭据引用 api-key.txt 不可用）",
+      "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+      "backend_kind": "llm_http",
+      "base_url": "http://127.0.0.1:8082/v1",
+      "display_name": "工程-a-旧页面保存(coolzhu-model)",
+      "endpoint": null,
+      "id": "scope-shared-session",
+      "memory_mode": "enabled",
+      "model": "scope-local-config",
+      "model_type": "text",
+      "name": "工程-a-旧页面保存",
+      "provider": "custom",
+      "reasoning_effort": "auto",
+      "reasoning_resolution": {
+        "effective": "auto",
+        "protocol": "openai_chat_completions",
+        "reason": "requested=auto：不主动覆盖供应商默认",
+        "requested": "auto",
+        "status": "default",
+        "strategy": "provider_default",
+        "supported_options": [
+          {
+            "label": "自动",
+            "value": "auto"
+          }
+        ]
+      },
+      "updated_at": 1791535223693
+    }
+  },
+  "wrong_workspace_mutated": true
+}

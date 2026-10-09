@@ -6,7 +6,7 @@
   modelsPanel?.addEventListener("toggle", () => {
     if (modelsPanel.open && !modelsEditor) modelsEditor = window.CoolzhuModelSettings?.mount(
       modelsPanel.querySelector('[data-role="devin-model-settings"]'),
-      { defaultProtocol:"devin_acp", backendFilter:"devin_acp", onSaved:async () => { await loadSessions(); await loadAgents(); } },
+      { workspacePath:document.querySelector('[data-role="overview-workspace-name"]')?.dataset.workspacePath || "", defaultProtocol:"devin_acp", backendFilter:"devin_acp", onSaved:async () => { await loadSessions(); await loadAgents(); } },
     );
     else if (modelsPanel.open) void modelsEditor?.refresh();
   });

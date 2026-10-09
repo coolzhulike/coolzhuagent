@@ -3346,8 +3346,12 @@ fn web_card_api_audit_item(
     }
 }
 
-async fn api_workspace() -> Json<WorkspaceResponse> {
-    Json(workspace_response())
+async fn api_workspace() -> ApiResult<Json<WorkspaceResponse>> {
+    let pin = workspace_activity::pin_workspace()
+        .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+    let mut response = workspace_response();
+    response.configuration_scope = Some(pin.configuration_scope(&response.workspace_id));
+    Ok(Json(response))
 }
 
 async fn api_set_workspace(
@@ -3372,7 +3376,7 @@ async fn api_workspace_reload() -> ApiResult<Json<WorkspaceResponse>> {
 }
 
 fn reload_workspace_scope(workspace: PathBuf) -> ApiResult<WorkspaceResponse> {
-    let _workspace_change = scheduled_jobs::begin_workspace_change()
+    let workspace_change = scheduled_jobs::begin_workspace_change()
         .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
     lsp_host::invalidate_workspace();
     terminal_host::invalidate_scope();
@@ -3402,7 +3406,10 @@ fn reload_workspace_scope(workspace: PathBuf) -> ApiResult<WorkspaceResponse> {
     lsp_host::invalidate_workspace();
     terminal_host::invalidate_scope();
     mcp_host::invalidate_workspace();
-    Ok(workspace_response_from_path(&workspace))
+    let mut response = workspace_response_from_path(&workspace);
+    response.configuration_scope = Some(workspace_change.commit(&response.workspace_id)
+        .map_err(|message| api_error(StatusCode::INTERNAL_SERVER_ERROR, &message))?);
+    Ok(response)
 }
 
 fn scan_project_entries(workspace: &Path) -> Vec<ProjectEntry> {
@@ -8701,6 +8708,7 @@ fn workspace_response_from_path(workspace: &Path) -> WorkspaceResponse {
     let diagnostics = workspace_boundary_diagnostics(workspace, &allowed_roots);
     WorkspaceResponse {
         workspace_id: workspace_identity(workspace),
+        configuration_scope: None,
         workspace: display_path(workspace),
         entries: scan_project_entries(workspace),
         allowed_roots: allowed_roots
@@ -12946,8 +12954,10 @@ async fn api_sessions() -> ApiResult<Json<SessionListResponse>> {
 }
 
 async fn api_create_session(
+    headers: HeaderMap,
     Json(payload): Json<UpsertSessionRequest>,
 ) -> ApiResult<Json<SessionMutationResponse>> {
+    let _workspace_pin = session_config_service::configuration_request_pin(&headers)?;
     let mut store = session_store()
         .lock()
         .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
@@ -13211,16 +13221,18 @@ fn session_model_limit_response(
 /// GET /api/sessions/{id}/model-limit：返回该会话当前生效与默认的 token 限制，供前端 custom provider 手填回显。
 async fn api_get_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
+    headers: HeaderMap,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    session_config_service::SessionConfigService::new(session_store())?.read_limit(session_id).map(Json)
+    session_config_service::SessionConfigService::new(session_store(), &headers)?.read_limit(session_id).map(Json)
 }
 
 /// POST /api/sessions/{id}/model-limit：写入手填覆盖（context_window/max_output_tokens）；两者皆 0 则清除覆盖、回退默认表。
 async fn api_set_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
+    headers: HeaderMap,
     Json(payload): Json<SessionModelLimitUpdateRequest>,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    session_config_service::SessionConfigService::new(session_store())?.save_limit(session_id, payload).map(Json)
+    session_config_service::SessionConfigService::new(session_store(), &headers)?.save_limit(session_id, payload).map(Json)
 }
 
 #[derive(Debug, Deserialize)]
@@ -13301,8 +13313,8 @@ mod unified_model_settings_tests {
     }
 }
 
-async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) -> ApiResult<Json<JsonValue>> {
-    let service = session_config_service::SessionConfigService::new(session_store())?;
+async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>, headers: HeaderMap) -> ApiResult<Json<JsonValue>> {
+    let service = session_config_service::SessionConfigService::new(session_store(), &headers)?;
     let session_config_service::Snapshot { session, agent, parameters, configuration_revision, local } =
         service.read(session_id)?;
     let defaults = api::model_token_limit(&agent.model);
@@ -13315,6 +13327,7 @@ async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) 
     Ok(Json(json!({
         "session": session,
         "configuration_revision": configuration_revision,
+        "configuration_scope": service.configuration_scope(),
         "available_plugin_tools": plugin_tools.as_ref().ok(),
         "plugin_tools_error": plugin_tools.as_ref().err(),
         "backend_kind": agent_session_backend::AgentSessionBackend::for_provider(&agent.provider),
@@ -13340,11 +13353,12 @@ async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) 
 
 async fn api_set_session_model_settings(
     AxumPath(session_id): AxumPath<String>,
+    headers: HeaderMap,
     Json(payload): Json<SessionModelSettingsUpdateRequest>,
 ) -> ApiResult<Json<JsonValue>> {
-    let service = session_config_service::SessionConfigService::new(session_store())?;
+    let service = session_config_service::SessionConfigService::new(session_store(), &headers)?;
     service.save(session_id.clone(), payload)?;
-    api_get_session_model_settings(AxumPath(session_id)).await
+    api_get_session_model_settings(AxumPath(session_id), headers).await
 }
 
 async fn api_session_context_preview(
@@ -53336,6 +53350,7 @@ struct SetWorkspaceRequest {
 #[derive(Debug, Serialize)]
 struct WorkspaceResponse {
     workspace_id: String,
+    configuration_scope: Option<String>,
     workspace: String,
     entries: Vec<ProjectEntry>,
     allowed_roots: Vec<String>,

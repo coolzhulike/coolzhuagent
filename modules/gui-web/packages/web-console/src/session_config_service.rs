@@ -8,7 +8,23 @@ use super::{
     SessionModelLimitOverride, SessionModelLimitResponse, SessionModelLimitUpdateRequest,
     SessionModelSettingsUpdateRequest, SessionSummaryDto, TrackedSessionStore,
 };
-use axum::http::StatusCode;
+use axum::http::{HeaderMap, StatusCode};
+
+pub(super) fn configuration_request_pin(headers: &HeaderMap) -> ApiResult<super::workspace_activity::WorkspacePin> {
+    let pin = super::workspace_activity::pin_workspace()
+        .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+    let workspace_id = super::workspace_identity(&super::active_workspace_path());
+    let scope = pin.configuration_scope(&workspace_id);
+    for (name, actual) in [("x-coolzhu-workspace-id", workspace_id.as_str()), ("x-coolzhu-configuration-scope", scope.as_str())] {
+        if let Some(expected) = headers.get(name) {
+            let expected = expected.to_str().map_err(|_| api_error(StatusCode::BAD_REQUEST, "配置工程标识格式无效"))?;
+            if expected != actual {
+                return Err(api_error(StatusCode::CONFLICT, "配置页所属工程已切换、重载或重启；草稿未提交，请刷新页面后重新打开配置页"));
+            }
+        }
+    }
+    Ok(pin)
+}
 
 pub(super) struct Snapshot {
     pub(super) session: SessionSummaryDto,
@@ -25,10 +41,12 @@ pub(super) struct SessionConfigService<'a> {
 }
 
 impl<'a> SessionConfigService<'a> {
-    pub(super) fn new(sessions: &'a TrackedSessionStore) -> ApiResult<Self> {
-        let pin = super::workspace_activity::pin_workspace()
-            .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+    pub(super) fn new(sessions: &'a TrackedSessionStore, headers: &HeaderMap) -> ApiResult<Self> {
+        let pin = configuration_request_pin(headers)?;
         Ok(Self { sessions, _workspace_pin: pin })
+    }
+    pub(super) fn configuration_scope(&self) -> String {
+        self._workspace_pin.configuration_scope(&super::workspace_identity(&super::active_workspace_path()))
     }
     pub(super) fn read(&self, session_id: String) -> ApiResult<Snapshot> {
         // 与保存共用 store→config 锁顺序；会话、参数、版本和本地容量属于同一读取快照。

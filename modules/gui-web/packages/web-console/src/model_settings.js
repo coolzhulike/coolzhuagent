@@ -5,11 +5,11 @@
   const option = (value, label) => `<option value="${esc(value)}">${esc(label)}</option>`;
   const triOptions = `${option("", "沿用工程设置")}${option("true", "开启")}${option("false", "关闭")}`;
   const efforts = [["auto", "自动"], ["none", "关闭"], ["minimal", "极简"], ["low", "低"], ["medium", "中"], ["high", "高"], ["xhigh", "超高"], ["max", "最大"]];
-  async function request(path, body, method, signal) {
+  async function httpRequest(path, body, method, signal, headers) {
     let response;
     try {
-      response = await fetch(path, body === undefined ? { signal } : {
-        method: method || "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal,
+      response = await fetch(path, body === undefined ? { signal, ...(headers ? { headers } : {}) } : {
+        method: method || "POST", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body), signal,
       });
     } catch (error) {
       const pathname = new URL(path, window.location.href).pathname;
@@ -28,6 +28,24 @@
     let sessions = [], selectedId = options.sessionId || null, snapshot = null, loadSequence = 0, refreshSequence = 0, editSequence = 0, disposed = false;
     let busy = false, dirty = false, initialDraftApplied = false;
     let discovery = null, devinCatalog = null, discoverySequence = 0, discoveryController = null, discovering = false;
+    let scopePromise = null;
+    async function request(path, body, method, signal) {
+      if (disposed) throw new Error("配置页已关闭，请重新打开");
+      let headers;
+      if (options.workspacePath !== undefined) {
+        // 只绑定一次；迟到请求不能通过自动刷新标识转而写入新工程。
+        scopePromise ||= httpRequest("/api/workspace").then(workspace => {
+          if (workspace.workspace !== options.workspacePath || !workspace.workspace_id || !workspace.configuration_scope)
+            throw new Error("工程已改变，草稿未提交；请刷新页面后重新打开配置页");
+          return { id: workspace.workspace_id, value: workspace.configuration_scope };
+        });
+        const scope = await scopePromise;
+        if (disposed) throw new Error("配置页已关闭，请重新打开");
+        if (path === "/api/sessions" || /^\/api\/sessions\/[^/]+\/model-(settings|limit)$/.test(path))
+          headers = { "X-Coolzhu-Workspace-Id": scope.id, "X-Coolzhu-Configuration-Scope": scope.value };
+      }
+      return httpRequest(path, body, method, signal, headers);
+    }
     const httpProtocols = [["openai_chat_completions", "OpenAI Chat Completions"], ["anthropic_messages", "Anthropic Messages"]];
     const protocols = options.backendFilter === "devin_acp" ? [["devin_acp", "Devin · 账号登录"]]
       : options.backendFilter === "llm_http" ? httpProtocols : [...httpProtocols, ["devin_acp", "Devin · 账号登录"]];

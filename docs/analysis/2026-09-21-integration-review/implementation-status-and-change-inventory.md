@@ -1,5 +1,7 @@
 # 实施计划完成情况与改动清单（当前0.2.115）
 
+配置迟到请求候选：正式116已复现同ID同revision旧A草稿错写B；复用WorkspacePin与配置加载标识，统一页从完整工程路径绑定作用域。最终offline build0、既有Web1423/0/6与前端22/0，16组真实API（跨工程、ABA、重载、重启、400/409释放、无头兼容）及原生B/A参数、保存0.45、同EXE重启实拍通过。首候选GUI绑定失败保留，最终才计通过；模型0、原SWE/revision51/唯一island已恢复。正式116不含，待新包；完整领域迁移和严格Browser仍开放。[候选事实与实拍](../../testing/2026-10-09-session-config-late/report.md)。Goal继续。
+
 116 Browser补验：纯截图驱动在登记后149ms取回新鲜画面，正常关闭仍晚9502ms；普通sent/released/effect_observed、父completed/单end_turn/drained/唯一绑定解锁，但stopped事件0，严格撤销仍未命中。不修改五秒期限或注入暂停，不继续同类简单点击碰窗口。[原事实与实拍](../../testing/release-0.2.116/browser-snapshot/report.md)。Goal继续。
 
 116正式增量：模型配置操作和工程选择复用WorkspacePin，覆盖完整响应；修复正式115跨工程参数混读。正常release构建/安装0、六门pass、1159文件逐SHA一致，冻结aa72c25两路CI success；正式EXE忙期180切换409，真实交错77成功切换/75有效读取零混合，SQLite保存窗口409、另一工程不变、400/409后释放、正常原生A/B参数及同EXE重启三实拍通过。首观察器共享占用失败保留；模型0、原SWE/revision51/唯一island恢复。迟到请求/ABA及完整领域迁移和严格Browser仍开放。[116正式交接与实拍](../../testing/release-0.2.116/change-report-and-test-handoff.md)。Goal继续。

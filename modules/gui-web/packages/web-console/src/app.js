@@ -8627,8 +8627,11 @@ function setOverviewWorkspaceName(workspace) {
     label.textContent = baseName || "当前工作区";
   }
   if (button) {
+    const changed = button.dataset.workspacePath !== full;
     button.dataset.workspacePath = full;
     button.title = full ? `切换工程目录：${full}` : "工作区路径未就绪";
+    // 完整路径就绪后才挂载配置页，不把截断的草稿存储键当作工程ID。
+    if (changed && full) window.CoolzhuChatExperience?.syncModelSession(activeSessionId);
   }
 }
 

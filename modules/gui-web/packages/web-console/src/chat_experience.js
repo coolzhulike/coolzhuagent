@@ -352,10 +352,13 @@ window.CoolzhuChatExperience = (() => {
     describeRecipientEditor(targetIds);
   }
   function mountModelSettings(id) {
+    const workspacePath = qs("overview-workspace-name")?.dataset.workspacePath || "";
+    if (!workspacePath) { state.modelSettings?.destroy(); state.modelSettings = null; return; }
     const selectedTargets = getSelectedAgentIds();
     const preferred = selectedTargets.length === 1 ? selectedTargets[0] : selectedTargets.includes(id) ? id : selectedTargets[0] || id;
-    state.modelWorkspace = workspaceKey(); state.modelActiveId = id;
+    state.modelWorkspace = workspaceKey(); state.modelWorkspacePath = workspacePath; state.modelActiveId = id;
     state.modelSettings = window.CoolzhuModelSettings?.mount(qs("unified-model-settings"), {
+      workspacePath,
       sessionId: preferred,
       onSelected: () => describeRecipientEditor(),
       onChanged: () => describeRecipientEditor(),
@@ -373,7 +376,7 @@ window.CoolzhuChatExperience = (() => {
     const saveAvatar = qs("session-avatar-save"); if (saveAvatar && !state.avatarSaving) saveAvatar.disabled = !id;
     if (!state.initialized) return;
     // 工程隔离优先：销毁旧作用域表单，避免同名会话 ID 或旧草稿跨工程保存。
-    if (state.modelWorkspace !== workspaceKey() || !state.modelSettings) { mountModelSettings(id); return; }
+    if (state.modelWorkspace !== workspaceKey() || state.modelWorkspacePath !== qs("overview-workspace-name")?.dataset.workspacePath || !state.modelSettings) { mountModelSettings(id); return; }
     state.modelActiveId = id;
     const editor = state.modelSettings;
     const container = qs("unified-model-settings");
