@@ -1,0 +1,7 @@
+SBOM 输出已存在；请选择新的输出路径
+At C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\scripts\export-package-sbom.ps1:21 char:43
++ ... (Test-Path -LiteralPath $outputFull) { throw 'SBOM 输出已存在；请选择新的输出路径' }
++                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (SBOM 输出已存在；请选择新的输出路径:String) [], RuntimeException
+    + FullyQualifiedErrorId : SBOM 输出已存在；请选择新的输出路径
+ 

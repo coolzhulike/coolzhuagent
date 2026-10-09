@@ -1,0 +1,7 @@
+载荷文件集合、总长度或规范摘要与报告不一致
+At C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\scripts\export-package-sbom.ps1:80 char:3
++   throw '载荷文件集合、总长度或规范摘要与报告不一致'
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (载荷文件集合、总长度或规范摘要与报告不一致:String) [], RuntimeException
+    + FullyQualifiedErrorId : 载荷文件集合、总长度或规范摘要与报告不一致
+ 

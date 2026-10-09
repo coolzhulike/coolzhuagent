@@ -1,0 +1,31 @@
+{
+  "powershell51": {
+    "tool_chunk": "6849aa",
+    "actual_exit_code": 0,
+    "sbom_sha256": "96ca3ba211b7a1b2afa4cfdddc2c3430f0fc8a22bf434aeba283f13d6413de3e",
+    "full_stdout_archived": false
+  },
+  "powershell7": {
+    "tool_chunk": "d1387e",
+    "actual_exit_code": 0,
+    "sbom_sha256": "e04c6d5225f79ebc62237731f73b742f977f5e3f904ca44d60f78f0066c17c5d",
+    "full_stdout_archived": false
+  },
+  "schema_and_semantic_parity": {
+    "tool_chunk": "1edd3a",
+    "actual_exit_code": 0,
+    "uuid_and_timestamp_excluded_only": true
+  },
+  "independent_validation": {
+    "tool_chunk": "83ec76",
+    "actual_exit_code": 0
+  },
+  "ui_preview": {
+    "installed_version": "0.2.125",
+    "full_bom_bytes": 1919770,
+    "passed": false,
+    "reason": "正式版1MiB文本预览上限，原生右栏拒绝本次文件；未改短文件冒充完整预览"
+  },
+  "model_calls": 0,
+  "new_devin_sessions": 0
+}
