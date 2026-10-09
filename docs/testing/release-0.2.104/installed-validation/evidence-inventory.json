@@ -1,0 +1,77 @@
+[
+  {
+    "name": "build-result.json",
+    "bytes": 197,
+    "sha256": "f59a3a850061ff0f10cf076caa1030059668b6cade9d2f7979331289242598e5"
+  },
+  {
+    "name": "build-stderr.log",
+    "bytes": 56417,
+    "sha256": "8bf6b43b46d187beaf62dd21adefe67fa7df9d495b2acc6ee8c46053115ccefd"
+  },
+  {
+    "name": "build-stdout.log",
+    "bytes": 14670,
+    "sha256": "ca2790202bec9bee0fa112ec6a441593094e46cea5518fb9760c4acb78d3878c"
+  },
+  {
+    "name": "build.ps1",
+    "bytes": 1115,
+    "sha256": "71dcc38fd96d18145289dc7deaf5637ea024a2a85b02eec90c7cf777366a4c3a"
+  },
+  {
+    "name": "check-idle.py",
+    "bytes": 1212,
+    "sha256": "d67f8d549871e4bf04c5adabab58211871cc07de42b02ed57fe31766ffbcc8f4"
+  },
+  {
+    "name": "github-published-metadata.json",
+    "bytes": 10746,
+    "sha256": "86157a810d77b5bcee01bf6358534c948030576702aebeb0599abaf92348aa0a"
+  },
+  {
+    "name": "github-tag.json",
+    "bytes": 405,
+    "sha256": "7bdb5a5854ef4700a5765a8c5fa7c0f6cb9fabc5f4fc900c68420e325fa81173"
+  },
+  {
+    "name": "idle-before-install.json",
+    "bytes": 260,
+    "sha256": "2b1a70eb5ac80233faf51655942c572d674b0b22258ce8d5998536617c1a9810"
+  },
+  {
+    "name": "install-104-result.json",
+    "bytes": 290,
+    "sha256": "2531a772973626bdae7d897480c9413b82c1c8339239750f457360bff8d126eb"
+  },
+  {
+    "name": "installed-104-standard-processes.json",
+    "bytes": 729,
+    "sha256": "ca2697298505235ecd7f4dd9fd503e67bf441863e0668a310f18f07dfa8fcafc"
+  },
+  {
+    "name": "installed-104-verification.json",
+    "bytes": 1827,
+    "sha256": "c7fdc48fb59a5ac9f9cdcda739b5ee9fd29af7c07eecda74b72cde0a68b2d621"
+  },
+  {
+    "name": "large-result-tail.jpg",
+    "bytes": 202218,
+    "sha256": "b4bba1c89e43d95fcebceeffaa6398d1a809a3d672f5b25e4eccfb9b2515f6d4"
+  },
+  {
+    "name": "package-104-verification.json",
+    "bytes": 1812,
+    "sha256": "c18fa349e5d152a7943234ed7f5459157db1147c34c4902120b9ec58af21d178"
+  },
+  {
+    "name": "start-standard104.ps1",
+    "bytes": 4121,
+    "sha256": "01e6a84856e636e6f184bf4aa4c0a4d32f8e2afbbefc75351a83b84756625863"
+  },
+  {
+    "name": "verify-104.py",
+    "bytes": 2696,
+    "sha256": "c0bfa986a465a0ee73df14f1b0a88e7acfe8e8115c9f2d1661fdcc66e325ee13"
+  }
+]

@@ -132,3 +132,8 @@
 # 093正式安装证据保留原始长度与SHA，不做换行转换。
 /docs/testing/release-0.2.93/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.93/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 104完整HTTP资料、工具原文与安装证据按原字节归档，保持独立摘要可复核。
+/docs/testing/release-0.2.104/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.104/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.104/large-result-pagination/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
