@@ -1,0 +1,168 @@
+{
+  "status": {
+    "run": {
+      "id": "run-chat-3d66cc29db51fe23171fa52276885ed66bdce2232cb66c10",
+      "state": "completed",
+      "legacy_turn_id": "chat-turn-1791522150644-0"
+    },
+    "computer_use": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791522150644-0-tool-ec33ae9fa43e7b008c056f8c567155f5dbcb994f7a5f43a6771cc9c206e49277",
+        "state": "succeeded",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791522150644-0-tool-ec33ae9fa43e7b008c056f8c567155f5dbcb994f7a5f43a6771cc9c206e49277",
+          "provider_tool_call_id": "tool-ec33ae9fa43e7b008c056f8c567155f5dbcb994f7a5f43a6771cc9c206e49277",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"bound_initial_url\":\"http://127.0.0.1:58336/old.html\",\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"dc64febdec6537f53f7c09f7b57eadbb\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[108],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":108,\"name_chars\":14,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":108,\"inline_has_static_text\":false,\"name_chars\":14,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"9c8139dcd5389dff2bd2bf7f96ca62c5\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":128,\"nodes\":[{\"index\":108,\"name\":\"真实点击已完成，等待观察交接\",\"role\":\"StaticText\"}],\"title\":\"OBSERVE112-OLD\",\"truncated\":true,\"url\":\"http://127.0.0.1:58336/old.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "input_steps": [
+            {
+              "step_index": 0,
+              "action_kind": "click",
+              "input_delivery": "sent",
+              "input_release_status": "released",
+              "partial": false,
+              "effect_status": "effect_observed",
+              "goal_verdict": "passed"
+            }
+          ],
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:249654b5b0345d2e9d7d64b5cb290fa1",
+            "native-ax:1:0",
+            "native-observation:249654b5b0345d2e9d7d64b5cb290fa1",
+            "native-input:eb6da8298010bd8bef7b62cb1af69b6d",
+            "native-ax:1:0",
+            "native-observation:9c8139dcd5389dff2bd2bf7f96ca62c5",
+            "native-ax:1:0",
+            "native-observation:9c8139dcd5389dff2bd2bf7f96ca62c5",
+            "native-ax:1:0",
+            "native-observation:dc64febdec6537f53f7c09f7b57eadbb"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791523050644
+              }
+            },
+            "cu_deadline_ms": 1791523050644,
+            "cu_deadline_established_at_ms": 1791522173296,
+            "cu_budget_ms": 900000
+          }
+        },
+        "steps": [
+          {
+            "step_index": 0,
+            "action_type": "click",
+            "status": "verified",
+            "error_code": null,
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "effect_status": "effect_observed"
+          }
+        ]
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "9771ab55f9c9e0630029da31fa857f640c8c283072d731fb",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  "runtime_events": [
+    {
+      "id": 3328,
+      "event_type": "run.accepted",
+      "created_at": 1791522150647,
+      "payload": {
+        "kind": "chat_turn",
+        "legacy_turn_id": "chat-turn-1791522150644-0"
+      }
+    },
+    {
+      "id": 3331,
+      "event_type": "run.started",
+      "created_at": 1791522150862,
+      "payload": {
+        "previous_state": "accepted"
+      }
+    },
+    {
+      "id": 3333,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791522173310,
+      "payload": {
+        "request_id": "249654b5b0345d2e9d7d64b5cb290fa1",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 3340,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791522213069,
+      "payload": {
+        "request_id": "03644cb403bb9a48cbbca05809acaa0c",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 3341,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791522215163,
+      "payload": {
+        "request_id": "9c8139dcd5389dff2bd2bf7f96ca62c5",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 3346,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791522242309,
+      "payload": {
+        "request_id": "dc64febdec6537f53f7c09f7b57eadbb",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 3348,
+      "event_type": "run.completed",
+      "created_at": 1791522252629,
+      "payload": {
+        "previous_state": "running",
+        "requested_status": "completed"
+      }
+    }
+  ],
+  "last_chat_message": {
+    "id": "msg-1791522150928-0",
+    "role": "assistant",
+    "content": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`，stage: terminal，freshness_confirmed=true，fresh_observation_id `dc64febd…`）。\n\n终态 `input_steps[0]` 原样事实（action_kind: click，目标本轮 dom-c1ceb730… “交接观察验收”按钮，`http://127.0.0.1:58336/old.html`）：\n\n- **input_delivery**：`sent` —— 点击已真实投递（native-input:eb6da829…）\n- **input_release_status**：`released` —— 完整释放，`partial: false`\n- **effect_status**：`effect_observed` —— 新鲜观察（generation 2，origin: current_page）确认页面显示 \"真实点击已完成，等待观察交接\"（node index 108，grounded node_text），`goal_verdict: passed`\n\n补充事实：投递、释放、效果三项独立成立；网页保持不导航，本轮验收在面板撤销前完成（bound_initial_url 仍为 old.html）；attempts=1、steps_completed=1、action_count=1、replan_count=0。未重试、未补发、未调用其它工具、未新建云会话。"
+  }
+}

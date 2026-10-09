@@ -1,0 +1,272 @@
+[
+  {
+    "path": "browser-pending/before.json",
+    "bytes": 186,
+    "sha256": "c84f960bbc3e4ccb08c1a3f06851d25785d3b71fdcf1e9a9c35cc5fba0483ad8"
+  },
+  {
+    "path": "browser-pending/events.jsonl",
+    "bytes": 2186,
+    "sha256": "ac0d4cff0ad3a22ad1dc1a23d0daeb3e2e658d09a7928e6bf55405bad50cceb9"
+  },
+  {
+    "path": "browser-pending/facts.json",
+    "bytes": 7389,
+    "sha256": "90f271d34d88c183b488f8f6c70cb8ceffdc79c273c3a8acb588c067033c5f69"
+  },
+  {
+    "path": "browser-pending/final-native.jpg",
+    "bytes": 227484,
+    "sha256": "1a569d05174dbd0376ae5d60c5992935aacf6b4f83697bf97ecb66149e9b48d3"
+  },
+  {
+    "path": "browser-pending/finalize.py",
+    "bytes": 1242,
+    "sha256": "a804db27cfbcc1dfcd4e0d476770fae1ab24ce3dda3bd79446f667b092d395b8"
+  },
+  {
+    "path": "browser-pending/latest-status.json",
+    "bytes": 4427,
+    "sha256": "86cfbbe634e94c1763a32c4fef48ae7fdfc715bc484ac23931396a2ce94c1abf"
+  },
+  {
+    "path": "browser-pending/manifest.json",
+    "bytes": 1718,
+    "sha256": "3987226df93d0b2b03a206d64b028909739aa7d36053ba9c5bc34dea8a37ff9c"
+  },
+  {
+    "path": "browser-pending/report.md",
+    "bytes": 1544,
+    "sha256": "5848da3f5360758255a925578bdfbfcbb58fb0de8deb0d0de55219151e4420cb"
+  },
+  {
+    "path": "browser-pending/send.py",
+    "bytes": 3683,
+    "sha256": "7db6e478c0edf759650e588249a36efa1684b8f2792b51fcbcaaa06456b78aa6"
+  },
+  {
+    "path": "browser-pending/server.py",
+    "bytes": 5833,
+    "sha256": "aedfd00e9e2972fe4efcec367216dcb79134c1a4d034c5a12bad0dbb0123141a"
+  },
+  {
+    "path": "browser-pending/status.py",
+    "bytes": 2021,
+    "sha256": "36d99deb9f97766c43c6b5ede6ae31e2657b4c76b313b6c4d002331ef5567527"
+  },
+  {
+    "path": "browser-pending/stream-finished.json",
+    "bytes": 191,
+    "sha256": "cda8f521b35f718676e2410a6686e79cba3b4dc25737c35d6dbb85ce0bd55f4b"
+  },
+  {
+    "path": "browser-pending/submitted-request.json",
+    "bytes": 914,
+    "sha256": "08fa2ee6491adbfdbade504b27ccd8f9cff36b8923ce85b8faf827c30e432260"
+  },
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 5300,
+    "sha256": "9585bad1a5d6e6ba3457e16191aa29cc8becfa3d7cbc132dee9d12ebafb5dbf6"
+  },
+  {
+    "path": "config-save/cleanup.json",
+    "bytes": 59,
+    "sha256": "a12ce0040b6c8bd950fddcc8d61c107dba93c69ce0e5aa260f97fb54f6812777"
+  },
+  {
+    "path": "config-save/config-save-live.py",
+    "bytes": 6517,
+    "sha256": "1ae97c0a4c475f67aa0d73a3d1c7b440f58ac08f7ef6d9e640ed9ec59ff55d0d"
+  },
+  {
+    "path": "config-save/config-save-restart.py",
+    "bytes": 2335,
+    "sha256": "52fc80255d849aa1ca07244b7fd9f394e0e922c1f7c4eb3b173698e2906fadec"
+  },
+  {
+    "path": "config-save/config-save-ui-fault.py",
+    "bytes": 1583,
+    "sha256": "06d7cdd2840ed3e1cda347a39858d8e3b27540b7ea63062379a91d8684679835"
+  },
+  {
+    "path": "config-save/facts.json",
+    "bytes": 1036,
+    "sha256": "8dbbb614941ae95194c9e97818e8a6efc8b417d31316f50c4709771a1805afe0"
+  },
+  {
+    "path": "config-save/native-shell-first-receipt.json",
+    "bytes": 416,
+    "sha256": "77fe46a98ecf80aac95f5f12bb127252384f21da39ebf43b824b70d86217f8c2"
+  },
+  {
+    "path": "config-save/native-shell-receipt.json",
+    "bytes": 396,
+    "sha256": "e404241c6a9b7d64c1c6e80fceec84f956150e2d259cfe57b30cad0a67778e13"
+  },
+  {
+    "path": "config-save/restart-cleanup.json",
+    "bytes": 59,
+    "sha256": "fff88ad3f3a2a52bce99e2796eeff80b16ebd03bb2f4820ae6e3581e35cbc39b"
+  },
+  {
+    "path": "config-save/restart-settings.json",
+    "bytes": 2163,
+    "sha256": "af1d931b655f059829837ebbb2f7b5931333a1ee40540af1b54a3410459534a8"
+  },
+  {
+    "path": "config-save/saved-settings.json",
+    "bytes": 2109,
+    "sha256": "42f3c295a01301d71912b72303c43c079d8bf447300a6fc1375d4c06895169c2"
+  },
+  {
+    "path": "config-save/start-isolated-shell.ps1",
+    "bytes": 1727,
+    "sha256": "2f93024c6297b1d5d78179d9baa3138612caadaf0d0d14b7c29def2541342009"
+  },
+  {
+    "path": "config-save/stop-isolated-shell.ps1",
+    "bytes": 814,
+    "sha256": "789c4152e59b2f67777978db9e20d7c24e7a5a33fd4304204a29073b3299c181"
+  },
+  {
+    "path": "config-save/ui-before.json",
+    "bytes": 2109,
+    "sha256": "42f3c295a01301d71912b72303c43c079d8bf447300a6fc1375d4c06895169c2"
+  },
+  {
+    "path": "config-save/ui-failure.jpg",
+    "bytes": 149176,
+    "sha256": "44bf53e4e757ed65dc0694e3ddb21621849f514d4fd9fa129667f6b2601b42c1"
+  },
+  {
+    "path": "config-save/ui-fault-result.json",
+    "bytes": 107,
+    "sha256": "690e4d8d48e556e2750002e414f5a00e1ea2887d6a9de7dc159c5d0d6e289cf9"
+  },
+  {
+    "path": "config-save/ui-reloaded.jpg",
+    "bytes": 149182,
+    "sha256": "f040728c2831683f288a2b02eb67a8e3bdce9c1a713c8d98f4d8769f175fa75d"
+  },
+  {
+    "path": "config-save/ui-restarted.jpg",
+    "bytes": 149780,
+    "sha256": "a0e3158c4237f46c29cc58d04fe6d53f81167a9b7dad27da90aa31cb57277e23"
+  },
+  {
+    "path": "config-save/ui-saved.jpg",
+    "bytes": 149978,
+    "sha256": "7bbd1b4d87bbe58ad8aa1326e719335118e74d672e35e45edb15b63e198fdf08"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-214509158-e32c801a/CoolzhuAgent-0.2.112-installer-report.json",
+    "bytes": 4885,
+    "sha256": "865b44620a9f1ae27a87c7e60d990187b3c4bd53dc250b5677276226b1db8adb"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-214509158-e32c801a/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "25e4e1d53fc87cc96cd7e920553ddc9d864a3dfadba4d7da806b38f6d9c8d366"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-214509158-e32c801a/package-report.json",
+    "bytes": 110268,
+    "sha256": "5b600e7a02ed55ccaf30ff9d541fa7cae8f23b3bfe427f76a619d07a97f531fb"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-214509158-e32c801a/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "f9e62966c548666bb9d36cd19c8e53f3603de30e3098ea55a6b97bf10e253767"
+  },
+  {
+    "path": "installed-native-main.jpg",
+    "bytes": 209742,
+    "sha256": "306cbc5ee7ed5627f50e2a8100fd67d56d9807c2ffcd32c98200611cc78ae59c"
+  },
+  {
+    "path": "installed-native-settings.jpg",
+    "bytes": 235723,
+    "sha256": "75c00aac8170a1ea1b1dd7e34ce6e54c53f0e6ebb24a0cbc5dfee4be85b69586"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 197,
+    "sha256": "6d592d18c7d8857c801bdda4f9c16dacfba8468579c641ac40f8100f9533b0fc"
+  },
+  {
+    "path": "installed-validation/ci-source-a.json",
+    "bytes": 2369,
+    "sha256": "f0dbb07dc3dca86e6f8802c214f464c37d8e7ee36a941bd7ecda452eecb805b4"
+  },
+  {
+    "path": "installed-validation/ci-source-b.json",
+    "bytes": 2369,
+    "sha256": "127e67b60a298d0065ad3c7525751cd5032f97e3194af8793bd5b86b438112b2"
+  },
+  {
+    "path": "installed-validation/github-published-metadata.json",
+    "bytes": 10546,
+    "sha256": "b49e86a94c5a6abf91bf6a40f7fd52071e7e090889c566ea7964dc5cf836fd68"
+  },
+  {
+    "path": "installed-validation/github-tag.json",
+    "bytes": 405,
+    "sha256": "c6c50dcf5cc7790539f155a325a5aa074ef918b7c86c9d07781ec1000717b4c8"
+  },
+  {
+    "path": "installed-validation/idle-before-install.json",
+    "bytes": 260,
+    "sha256": "2b1a70eb5ac80233faf51655942c572d674b0b22258ce8d5998536617c1a9810"
+  },
+  {
+    "path": "installed-validation/install-112-result.json",
+    "bytes": 290,
+    "sha256": "2ec80cf9ef5e896f806250b0abad0e0458a9e3a62f961a01dffc2fa209a10f77"
+  },
+  {
+    "path": "installed-validation/installed-112-standard-processes.json",
+    "bytes": 693,
+    "sha256": "bea89757e4edfc9885a526822b79d236c0f8df270842e80b35a2f5ef9417ce4f"
+  },
+  {
+    "path": "installed-validation/installed-112-verification.json",
+    "bytes": 1884,
+    "sha256": "4a9374a442b0a1fbc56d321ba15c7c40019bda48f93fa3e175d45bdb50be5eed"
+  },
+  {
+    "path": "installed-validation/normal-runtime.json",
+    "bytes": 467,
+    "sha256": "ef38cf5c571edea1cec659abebace600dc848ca7733e1b4ed200391ed6cb37bb"
+  },
+  {
+    "path": "installed-validation/package-112-verification.json",
+    "bytes": 1869,
+    "sha256": "07ba3f05104b0693dae2ad1a6102c2b746fbbf14eedd53011133cd34808c12ff"
+  },
+  {
+    "path": "installed-validation/release-assets-local.json",
+    "bytes": 660,
+    "sha256": "7fa51d6c87bca0d1e2c0edf1f41f336433fc257e63285ef6028c03d9b43a9a97"
+  },
+  {
+    "path": "installed-validation/release-notes.md",
+    "bytes": 814,
+    "sha256": "5448192d2710f9fea53757fd8b3fa550d478d82660d3190e15fe27eb2bec3e42"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "2197b47f26869de6c5e779ec313b3110113519ce90f1e65646027374fbd07435"
+  },
+  {
+    "path": "installed-validation/verify-112.py",
+    "bytes": 2842,
+    "sha256": "5bafd0579bb9d7799f8977732b2129e61f9ad6a0a9ceb22f36c92914d9239ac6"
+  },
+  {
+    "path": "installed-validation/verify-release.py",
+    "bytes": 1710,
+    "sha256": "d89e2c17cbd92798b53642b3ae506bf74e4f374d49444b051016cde8eb83152f"
+  }
+]
