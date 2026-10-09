@@ -1,0 +1,182 @@
+{
+  "source_head": "34f2075ee0c2bf61b20aed56ca96b270be34eb84",
+  "source_uncommitted_permission_sync": true,
+  "stage": "源码候选，非正式安装验收",
+  "files": [
+    {
+      "path": "evidence/address.json",
+      "bytes": 85,
+      "sha256": "e0af079a72cc9ea9dfea2f49b6e953ce5ebffc81e5eb53fe7b50d12ceee1733b"
+    },
+    {
+      "path": "evidence/server.py",
+      "bytes": 5745,
+      "sha256": "03e92ce44f8abdfc1a158702c95224dac547dcc8276f16c92c8ac4368205233b"
+    },
+    {
+      "path": "evidence/send-scoped.py",
+      "bytes": 3430,
+      "sha256": "eed3008c1d5b13ba42bb116ea799dc9aa2bc522d9f8c5bb5075e2d6e2ba80fbb"
+    },
+    {
+      "path": "evidence/collect-scoped.py",
+      "bytes": 1912,
+      "sha256": "250d97e6401073f43c0c2537e30cfb387629215b97563d5c8eabc850431b68a5"
+    },
+    {
+      "path": "evidence/verify-scoped.py",
+      "bytes": 2172,
+      "sha256": "99acc33aff15e46a775ee959f8f18a71e2e383dcd78582e684566b8d2c562170"
+    },
+    {
+      "path": "evidence/candidate-bundle-processes.json",
+      "bytes": 933,
+      "sha256": "a69ee42bbbbb79a6bbc86f0099d397c13f127bf7d012af2a7a83b0b8253ca9ae"
+    },
+    {
+      "path": "evidence/facts.json",
+      "bytes": 2288,
+      "sha256": "4b6b0018ca909a4619b6057aa0850ae53308cd28bc11a686f18adb609ce1bb61"
+    },
+    {
+      "path": "evidence/native-before.jpg",
+      "bytes": 232737,
+      "sha256": "b18e122195ccfe88f11e1a8a69e810f67e6f56a9fbd34a517986839d4bab76bf"
+    },
+    {
+      "path": "evidence/stream-finished.json",
+      "bytes": 196,
+      "sha256": "8d5ce9b6669b35aaf7ca52f65d6580c9f7b890fd6e63cdd01e9b35bf46af6fe3"
+    },
+    {
+      "path": "evidence/bundle-run/facts.json",
+      "bytes": 2288,
+      "sha256": "f8c62d569fde0f0ba1def980cf1698808e0a705a054452977d22c8163699fd44"
+    },
+    {
+      "path": "evidence/bundle-run/cu-facts.json",
+      "bytes": 5592,
+      "sha256": "7d96b2cd87cdea51c90f495d1a5e86e5dacf5194a53c4672dc1894b6105a05c2"
+    },
+    {
+      "path": "evidence/bundle-run/native-before.jpg",
+      "bytes": 218229,
+      "sha256": "5c554c2160cebcd1d4236eb85e7a53d1d88d4c66a2d56be179a72910c1181100"
+    },
+    {
+      "path": "evidence/bundle-run/stream-finished.json",
+      "bytes": 196,
+      "sha256": "26071e26c6fc275c0a3217bcf1ac495bf0d932896faa4fc9c6e610ff4135a701"
+    },
+    {
+      "path": "evidence/scoped-run/facts.json",
+      "bytes": 3720,
+      "sha256": "6055bafa66ca58fbde84984fba52c7d22280c6ebfd97204f57c454e7d76ac577"
+    },
+    {
+      "path": "evidence/scoped-run/verification.json",
+      "bytes": 25233,
+      "sha256": "1fca89e41b2b942f57cfb45509a161f3f4ed58bb3f71e3d46e3dc5b3fc1774e8"
+    },
+    {
+      "path": "evidence/scoped-run/submitted.json",
+      "bytes": 1513,
+      "sha256": "99f2e2916c62e3bdd56062838ccd5664e3aec52a24be4e9623a508853c9dc94e"
+    },
+    {
+      "path": "evidence/scoped-run/stream-finished.json",
+      "bytes": 197,
+      "sha256": "1e21956128ca03e728db9a356af1f5a8a43ee79625f8b42d6e95e2bb790f3e34"
+    },
+    {
+      "path": "evidence/scoped-run/native-completed.jpg",
+      "bytes": 245213,
+      "sha256": "d226f22769ce8b0644ec36ca4dfc479f36fc24790498228a290bac59715f5249"
+    },
+    {
+      "path": "evidence/events.jsonl",
+      "bytes": 4894,
+      "sha256": "78ce000d1877f8467d9b69d6ecb85b7e6df06b3476997e6dad1b85c1e43976f4"
+    },
+    {
+      "path": "evidence/permission-sync/checks.json",
+      "bytes": 749,
+      "sha256": "7d27f2923c67b70e3e2ca42ff1accd0c1f3eab938159fe2706bd2698e4b856f8"
+    },
+    {
+      "path": "evidence/permission-sync/regression.json",
+      "bytes": 1381,
+      "sha256": "e301263b2b3961e022375ebf0eee095ee9a1d9b4069f5c24a052849818a6abac"
+    },
+    {
+      "path": "evidence/permission-sync/build.log",
+      "bytes": 48893,
+      "sha256": "c800afcd1de2e4c74a3cd8daf8953debb20f86e5394b0e2f3f1c076bbc9fd0c2"
+    },
+    {
+      "path": "evidence/permission-sync/history.log",
+      "bytes": 21859,
+      "sha256": "faa40e52a0323381d10dd5f44025f8205e5bcb3545b9a542803020a8ea839852"
+    },
+    {
+      "path": "evidence/permission-sync/frontend.log",
+      "bytes": 606,
+      "sha256": "41f1ec7603590d660c1c0f02843d7d035afeb780c86b4df4d8521dc8958f67e4"
+    },
+    {
+      "path": "evidence/permission-sync/web-full.log",
+      "bytes": 148160,
+      "sha256": "f2310c6d653e19f03d9b635c0ba44e3364a722396e1873157d143c9e15b3d88c"
+    },
+    {
+      "path": "evidence/permission-sync/tool-registry.log",
+      "bytes": 1382,
+      "sha256": "184747bdd0054ac5feaaa2ba170a3f071a1bf6905d4969aa5f7f373f2aff00d4"
+    },
+    {
+      "path": "evidence/permission-sync/module-linkage.log",
+      "bytes": 2197,
+      "sha256": "16987339ee6ff6749aa037143a24e8bfc3f68fe1a2b42da609af8314941373ef"
+    },
+    {
+      "path": "evidence/permission-sync/frontend-all.log",
+      "bytes": 2034,
+      "sha256": "2c0e0ebd6dc2dd199c8e75bc64f4710aa09de6f7617cbfa419cad5bd1691870b"
+    },
+    {
+      "path": "evidence/permission-sync/original-permission.json",
+      "bytes": 386,
+      "sha256": "0125ef714be11eed2f4954f7bef1cec64d35e15a3088193f0cd6f052c3d13177"
+    },
+    {
+      "path": "evidence/permission-sync/directory-permission.json",
+      "bytes": 886,
+      "sha256": "fcb4bcd0736da7766be3c1b6015704c397e550b36afd8e87ac90df1111d549bb"
+    },
+    {
+      "path": "evidence/permission-sync/restore-permission.json",
+      "bytes": 887,
+      "sha256": "b7df67c9f19f685df5f0d378af8b0163de6d1787c8114660415e11aee7b74ed2"
+    },
+    {
+      "path": "evidence/permission-sync/directory-auto-updated.jpg",
+      "bytes": 207195,
+      "sha256": "7d1782ef7a473bf30b91eb9d2cbaea9ddea19d37038cddc9ba2f75a20d2b1354"
+    },
+    {
+      "path": "evidence/permission-sync/full-access-auto-restored.jpg",
+      "bytes": 207235,
+      "sha256": "c0d2c7bd58f6ae294df012d720d83838b2dba26e65aaf60dfa2df171cb473709"
+    },
+    {
+      "path": "evidence/restored-standard118-processes.json",
+      "bytes": 693,
+      "sha256": "50ed458affb4aa29f19cfdf3c38775f4e2a00a2c7fa173f9f0b747a05e7f2b39"
+    },
+    {
+      "path": "evidence/source-34f2075-ci.json",
+      "bytes": 292,
+      "sha256": "aa902bbc009d438ac1084d42f9618c471126e09f3ffcc9dc1076d03b3b70fb1f"
+    }
+  ]
+}

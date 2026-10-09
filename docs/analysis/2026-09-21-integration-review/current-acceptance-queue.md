@@ -1,4 +1,6 @@
-# 当前验收队列（2026-10-09，0.2.115正式及后续验收）
+# 当前验收队列（2026-10-09，0.2.118正式及后续候选）
+
+2026-10-09候选增量：三层跨域双反射长程真实SWE-2一次perform10步及最终页面通过，原唯一island-kayak正常收尾并解锁；前两次测试提交缺Browser面板选择导致的零输入失败保留。权限顶栏跨API保存后无需刷新自动更新已修补并实拍验证，原full-access恢复。offline build0、Web1425/0/6、前端22/0、模块8/0。两项尚待新包正式独立复验；严格nativeTarget/commit down-up、在途观察撤销及HRESULT竞争仍未闭环，继续优先。非ACP审批和其余32工作包保持开放。[专项交接](../../testing/2026-10-09-browser-three-layer/report.md)。
 
 Browser读取收尾源码候选：资源/URL复核统一用于UI队列失败、callback及等待消费结束，失效优先资源变化，保留2秒/外层5秒，无重试/新锁/私有入口。独立壳offline build0、现有76/0；当前正式118尚不含，没有新实机证明，严格Browser仍开放。[候选与检查](../../testing/2026-10-09-browser-read-settlement/report.md)。Goal继续。
 

@@ -35,7 +35,7 @@ window.CoolzhuChatHistorySync = (() => {
     return {room: latest.room, messages: rows, has_more: hasMore,
       next_before: hasMore ? rows[0]?.id || null : null};
   }
-  function create({ sourceFactory, read, apply, busy, missing = () => {} }) {
+  function create({ sourceFactory, read, apply, busy, missing = () => {}, permissionChanged = () => {} }) {
     let epoch = 0, source = null, controller = null, scope = null;
     let dirty = false, running = false, timer = null, retries = 0;
     function schedule(delay = 120) {
@@ -76,6 +76,10 @@ window.CoolzhuChatHistorySync = (() => {
       source = sourceFactory(scope);
       for (const event of ["hello", "history-changed"]) source.addEventListener(event, () => {
         if (generation === epoch) invalidate();
+      });
+      // 权限影响顶栏展示，不等历史流空闲；旧房间通知不能更新当前房间。
+      source.addEventListener("permission-changed", () => {
+        if (generation === epoch) permissionChanged(scope);
       });
       source.addEventListener("room-deleted", () => {
         if (generation !== epoch) return;

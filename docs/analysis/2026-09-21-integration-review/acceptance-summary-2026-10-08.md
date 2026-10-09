@@ -1,5 +1,7 @@
 # 整体验收状态快照（2026-10-08）
 
+2026-10-09候选增量：三层跨域、双水平反射及旋转/斜切长程由真实SWE-2/唯一island-kayak一次perform完成10步，均sent/effect_observed、24条可信页面事件及最终完成原图，单attempt正常end_turn/drained/解锁。两次扩展通道失败原样保留，纠正测试提交漏native_browser_panel后通过。权限顶栏失效通知修补已在正常API切目录/恢复完全访问中不刷新自动显示；offline build0、Web1425/0/6、前端22/0、模块8/0。正式118不含这两项候选，待新包独立复验；严格时序和32WBS总体继续开放。[完整事实与实拍](../../testing/2026-10-09-browser-three-layer/report.md)。Goal保持active。
+
 Browser读取收尾源码候选：资源/URL复核统一用于UI队列失败、callback及等待消费结束，失效优先资源变化，保留2秒/外层5秒，无重试/新锁/私有入口。独立壳offline build0、现有76/0；当前正式118尚不含，没有新实机证明，严格Browser仍开放。[候选与检查](../../testing/2026-10-09-browser-read-settlement/report.md)。Goal继续。
 
 118正式增量：ACP插件不可续审批收尾已出包复验，真实SWE-2/原唯一island一次调用，接纳目录权限后扩大完全访问，仍按冻结权限拒绝，HTTP0、tool failed、terminal/end_turn/drained/解锁，无新云端；旧unknown保留、旧待审批在候选正常续发收束。构建/安装0、六门pass、1159文件逐SHA，Web1424/0/6、前端22/0，原参数revision57恢复。[118正式交接与实拍](../../testing/release-0.2.118/change-report-and-test-handoff.md)。外部API权限变化顶栏实时同步、非ACP审批实操及严格Browser仍开放；Goal继续。

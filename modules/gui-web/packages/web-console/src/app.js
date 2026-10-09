@@ -11309,6 +11309,10 @@ function activateChatHistorySync() {
         reconcileChatHistory(response);
       },
       missing: () => { void loadChatRooms(); },
+      permissionChanged: scope => {
+        if (scope.room !== activeChatRoomId || scope.workspace !== activeWorkspaceKey || scope.projectGeneration !== projectWorkspaceGeneration) return;
+        void refreshFullAccessStatus();
+      },
     });
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) chatHistorySync?.resume();

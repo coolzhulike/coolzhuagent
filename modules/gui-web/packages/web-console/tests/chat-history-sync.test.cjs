@@ -29,6 +29,17 @@ test('忙时合并通知，流式结束后只做一次权威读取', async () =>
   assert.equal(reads,0); busy=false; sync.resume(); await sleep(150); assert.equal(reads,1); sync.stop();
 });
 
+test('权限通知不等待聊天流空闲，旧房间和ABA旧代数不能更新顶栏', () => {
+  const sources=[], refreshed=[]; let reads=0;
+  const sync=create({sourceFactory:()=>{const source=events();sources.push(source);return source;},
+    busy:()=>true,read:async()=>++reads,apply:()=>{},permissionChanged:scope=>refreshed.push(scope.room)});
+  sync.activate({room:'a'}); sources[0].emit('permission-changed');
+  sync.activate({room:'b'}); sources[0].emit('permission-changed'); sources[1].emit('permission-changed');
+  sync.activate({room:'a'}); sources[0].emit('permission-changed'); sources[2].emit('permission-changed');
+  assert.deepEqual(refreshed,['a','b','a']); assert.equal(reads,0); sync.stop();
+  sources[2].emit('permission-changed'); assert.equal(refreshed.length,3);
+});
+
 test('在途通知只补一轮，重连hello再次读取，删除关闭监听', async () => {
   const source=events(), wait=deferred(); let reads=0, removed=0;
   const sync=create({sourceFactory:()=>source,busy:()=>false,read:async()=>++reads===1?wait.promise:reads,
