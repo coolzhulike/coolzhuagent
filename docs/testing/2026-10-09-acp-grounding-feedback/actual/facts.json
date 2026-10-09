@@ -1,0 +1,79 @@
+{
+  "stage": "同请求引文反馈真实长程验收",
+  "source_user_id": "msg-1791583964230-user",
+  "run": {
+    "id": "run-chat-e1e488ef93c5902cc1d6aa7b9afcb3d1700f687d1db55eb8",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791583964231-0",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-2397db90b1cf429b2cb2dcc47190debe7977b7ec944eeb29ebf3dc8b24093bda",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791583964233,
+    "started_at": 1791583965783,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791583965783,
+    "finished_at": 1791584688321
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-c38a2547e8337d5be063f6329c9af9c42f8aa34cf26a115ea768549b536fd644",
+      "run_id": "run-chat-e1e488ef93c5902cc1d6aa7b9afcb3d1700f687d1db55eb8",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "47c64af0788ebed9",
+      "status": "completed",
+      "created_at_unix_ms": 1791583997013,
+      "updated_at_unix_ms": 1791584631843,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-e1e488ef93c5902cc1d6aa7b9afcb3d1700f687d1db55eb8\",\"turn_id\":\"chat-turn-1791583964231-0\",\"attempt_id\":\"472ca9e91029b3a3be051761cd5db2c61dff1714536a980c\",\"owner_epoch\":279,\"generation\":279}"
+    },
+    {
+      "tool_call_id": "tool-4ae9f6df8526622fb0151e616c7057e0c81ec5c530d95be9f2c871aebb89987b",
+      "run_id": "run-chat-e1e488ef93c5902cc1d6aa7b9afcb3d1700f687d1db55eb8",
+      "request_attempt_id": null,
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "arguments_digest": "59f8e9125338c872",
+      "status": "completed",
+      "created_at_unix_ms": 1791584663541,
+      "updated_at_unix_ms": 1791584675762,
+      "provider_tool_call_id": "71",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-e1e488ef93c5902cc1d6aa7b9afcb3d1700f687d1db55eb8\",\"turn_id\":\"chat-turn-1791583964231-0\",\"attempt_id\":\"472ca9e91029b3a3be051761cd5db2c61dff1714536a980c\",\"owner_epoch\":279,\"generation\":279}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "472ca9e91029b3a3be051761cd5db2c61dff1714536a980c",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791583966035-0",
+      "content": "本轮新任务。附件尾部有效订单：竹剑 `BAMBOO-6204`（单价 538，数量 3，UTF-8）；玉佩 `JADE-5742`（单价 263，数量 4，UTF-16BE 带 BOM）。调用一次 `computer_use_perform`。本轮任务完成，CU 达到权威成功终态。\n\n**附件（本轮有效订单码，均取自正文尾部，忽略归档占位行）**\n- `bamboo-order-utf8.txt`（UTF-8）：订单码 `BAMBOO-6204`，单价 538，数量 3\n- `jade-order-utf16be.txt`（UTF-16BE 带 BOM）：订单码 `JADE-5742`，单价 263，数量 4\n\n**CU 执行事实**（`computer_use_perform` 一次，`surface=browser`，无 target，`max_actions=14`，实际 8 个动作，全部投递 sent）：\n1. 竹剑子文档 scroll → 输入框可见\n2. click 竹剑订单码（观察确认 focused）\n3. text_input `BAMBOO-6204`\n4. Enter（回执 effect=inconclusive，后续观察显示已验证）\n5. 玉佩子文档 scroll → 输入框可见\n6. click 玉佩订单码（观察确认 focused）\n7. text_input `JADE-5742`\n8. Enter（goal_verdict=passed）\n\n**终态**：`status=succeeded`，`goal_achieved=true`，`criteria_met=2/2`，无未落地正向项。外层可见：「双文档订单已完成，两项均通过」；回执「竹剑已验证：单价 538；数量 3」与「玉佩已验证：单价 263；数量 4」，与附件单价/数量一致。\n\n**DSH 计算**（仅一次，538×3 + 263×4）：\n- 竹剑：538 × 3 = 1614\n- 玉佩：263 × 4 = 1052\n- **总额 = 2666**",
+      "kind": "assistant-reply"
+    }
+  ]
+}
