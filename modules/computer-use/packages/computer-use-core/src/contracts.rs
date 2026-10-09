@@ -466,6 +466,18 @@ pub struct SupervisorSnapshot {
     pub no_progress_count: usize,
 }
 
+/// 已保存步骤的输入事实；投递、释放和效果分别表达，不由任务终态推断。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ComputerUseInputStep {
+    pub step_index: usize,
+    pub action_kind: Option<ComputerUseActionKind>,
+    pub input_delivery: Option<InputDelivery>,
+    pub input_release_status: Option<InputReleaseStatus>,
+    pub partial: Option<bool>,
+    pub effect_status: Option<runtime::EffectStatus>,
+    pub goal_verdict: Option<runtime::GoalVerdict>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ComputerUseResult {
     pub call_id: String,
@@ -480,6 +492,10 @@ pub struct ComputerUseResult {
     pub error: Option<ComputerUseError>,
     pub attempts: usize,
     pub steps_completed: usize,
+    /// 宿主从同一运行的步骤记录投影。None表示未取得事实，空数组表示已读取且无步骤。
+    /// 兼容旧回执；不含节点、输入正文、网址、图片或推测的跨进程时序。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input_steps: Option<Vec<ComputerUseInputStep>>,
     #[serde(default)]
     pub evidence: Vec<String>,
     pub supervisor: SupervisorSnapshot,

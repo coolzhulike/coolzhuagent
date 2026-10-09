@@ -328,6 +328,7 @@ mod tests {
             )),
             attempts: 1,
             steps_completed: 0,
+            input_steps: None,
             evidence: vec![],
             supervisor: SupervisorSnapshot::default(),
             cu_budget: None,

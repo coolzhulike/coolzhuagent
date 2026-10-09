@@ -118,6 +118,7 @@ impl Drop for PendingRunGuard<'_> {
                     result.steps_completed = counts.input_sent;
                     result.supervisor.action_count = counts.attempts;
                 }
+                let result = with_input_steps(self.store, result);
                 let _ = self
                     .store
                     .finish(&self.identity.call_id, run.state_version, &result);
@@ -1208,8 +1209,7 @@ impl<'a> ComputerUseExecutor<'a> {
                     ComputerUseStage::Supervisor,
                     unrecorded_workspace_interlock_error(&identity.call_id, count),
                 );
-                self.finish_at_version(&result, 0);
-                return result;
+                return self.finish_at_version(&result, 0);
             }
             UnrecordedWorkspaceInterlock::Unverifiable(detail) => {
                 let result = terminal_result(
@@ -1218,8 +1218,7 @@ impl<'a> ComputerUseExecutor<'a> {
                     ComputerUseStage::Supervisor,
                     unrecorded_workspace_check_failed_error(&identity.call_id, &detail),
                 );
-                self.finish_at_version(&result, 0);
-                return result;
+                return self.finish_at_version(&result, 0);
             }
         }
 
@@ -1241,8 +1240,7 @@ impl<'a> ComputerUseExecutor<'a> {
                     ComputerUseStage::Supervisor,
                     unconfirmed_release_interlock_error(&identity.call_id, unresolved_runs),
                 );
-                self.finish_at_version(&result, 0);
-                return result;
+                return self.finish_at_version(&result, 0);
             }
             ReleaseInterlockDecision::Unverifiable(detail) => {
                 let result = terminal_result(
@@ -1251,8 +1249,7 @@ impl<'a> ComputerUseExecutor<'a> {
                     ComputerUseStage::Supervisor,
                     unconfirmed_release_check_failed_error(&identity.call_id, &detail),
                 );
-                self.finish_at_version(&result, 0);
-                return result;
+                return self.finish_at_version(&result, 0);
             }
         }
 
@@ -1272,8 +1269,7 @@ impl<'a> ComputerUseExecutor<'a> {
                             ComputerUseRetryOwner::System,
                         ),
                     );
-                    self.finish_at_version(&result, 0);
-                    return result;
+                    return self.finish_at_version(&result, 0);
                 }
             };
             // 跨进程所有权：桌面 CU 取得的是"进程内 lease + 命名内核对象"的合成所有权，
@@ -1307,8 +1303,7 @@ impl<'a> ComputerUseExecutor<'a> {
                             ComputerUseRetryOwner::System,
                         ),
                     );
-                    self.finish_at_version(&result, 0);
-                    return result;
+                    return self.finish_at_version(&result, 0);
                 }
             }
         } else {
@@ -1319,8 +1314,7 @@ impl<'a> ComputerUseExecutor<'a> {
             Err(error) => {
                 let result =
                     terminal_result(identity, surface, ComputerUseStage::Observation, error);
-                self.finish_at_version(&result, 0);
-                return result;
+                return self.finish_at_version(&result, 0);
             }
         };
 
@@ -1467,6 +1461,10 @@ impl<'a> ComputerUseExecutor<'a> {
         result: &ComputerUseResult,
         state_version: u64,
     ) -> ComputerUseResult {
+        // 控制器只裁决任务终态；已保存的步骤才是投递与释放的事实来源。
+        // 在原终态提交前投影，保证模型回执与落库JSON一致；读失败保留None，不能捏造零输入。
+        let actual = with_input_steps(self.store, result.clone());
+        let result = &actual;
         let persisted = if result.goal_achieved && result.surface == ComputerUseSurface::Browser
             && (self.native_browser_parent.is_some() || self.turn_scope.native_browser_read_only()) {
             self.store.finish_checked(&result.call_id, state_version, result, |connection, proposed| {
@@ -1583,7 +1581,27 @@ fn preserve_run_facts(mut replacement: ComputerUseResult, source: &ComputerUseRe
     if replacement.cleanup.is_none() {
         replacement.cleanup = source.cleanup;
     }
+    if replacement.input_steps.is_none() {
+        replacement.input_steps = source.input_steps.clone();
+    }
     replacement
+}
+
+fn with_input_steps(store: &ComputerUseRunStore, mut result: ComputerUseResult) -> ComputerUseResult {
+    fn known<T: serde::de::DeserializeOwned>(value: Option<String>) -> Option<T> {
+        value.and_then(|value| serde_json::from_value(JsonValue::String(value)).ok())
+    }
+    result.input_steps = store.run_step_reports(&result.call_id).ok().map(|rows| rows.into_iter().map(|row|
+        computer_use::ComputerUseInputStep {
+            step_index: row.step_index,
+            action_kind: row.action_kind,
+            input_delivery: known(row.input_delivery),
+            input_release_status: known(row.input_release_status),
+            partial: row.partial,
+            effect_status: known(row.effect_status),
+            goal_verdict: known(row.goal_verdict),
+        }).collect());
+    result
 }
 
 /// 步骤记录里的输入事实列：`ActionReceipt` 在持久化层的投影。
@@ -1923,6 +1941,7 @@ fn terminal_result(
         error: Some(error),
         attempts: 0,
         steps_completed: 0,
+        input_steps: None,
         evidence: Vec::new(),
         supervisor: SupervisorSnapshot {
             circuit_open: false,
@@ -2556,6 +2575,47 @@ mod tests")
 
     fn identity(provider: &str) -> ToolCallIdentity {
         ToolCallIdentity::from_provider(provider, "session-1", "turn-1")
+    }
+
+    /// 回归105实机缺口：观察失败不抹掉已发送/释放，也不把另一未知步骤推断为已释放。
+    /// 仅核对SQLite与序列化，不充当真实模型或软件实操证据。
+    #[test]
+    fn terminal_input_steps_keep_release_facts_without_inventing_unknowns() {
+        let store = store();
+        let planner = FakePlanner::one_click();
+        let factory = factory(false);
+        let executor = ComputerUseExecutor::new_for_test(&planner, &factory, &store, ComputerUseBudgets::default());
+        let identity = identity("terminal-input-facts");
+        assert!(executor.create_run(&json!({}), &identity, ComputerUseSurface::Browser, None, None, None));
+        for index in 0..2 {
+            store.append_step(&ComputerUseStepRecord {
+                run_id: identity.call_id.clone(), step_index: index, observation_generation: 1,
+                action_type: "click".into(), normalized_target: "PRIVATE-TARGET".into(),
+                action_fingerprint: "PRIVATE-FINGERPRINT".into(), status: "input_sent_observed".into(),
+                error_code: None, before_evidence_ref: None, after_evidence_ref: None,
+                visible_progress: false,
+                input_delivery: Some(if index == 0 {runtime::InputDelivery::Sent} else {runtime::InputDelivery::MayHaveBeenSent}),
+                input_release_status: if index == 0 {Some(runtime::InputReleaseStatus::Released)} else {None},
+                partial: Some(index != 0), path_completed: None, confirmed_point_count: None,
+                effect_status: None, goal_verdict: None, started_at_ms: now_ms(), completed_at_ms: None,
+            }).unwrap();
+        }
+        let proposed = terminal_result(&identity, ComputerUseSurface::Browser, ComputerUseStage::Verification,
+            ComputerUseError::blocked("native_browser_observation_stale", "旧观察已失效", ComputerUseRetryOwner::User));
+        let actual = executor.finish_at_version(&proposed, 0);
+        assert_eq!(actual.status, ComputerUseTerminalStatus::Blocked);
+        let steps = actual.input_steps.as_ref().unwrap();
+        assert_eq!(steps.len(), 2);
+        assert_eq!(steps[0].input_delivery, Some(runtime::InputDelivery::Sent));
+        assert_eq!(steps[0].input_release_status, Some(runtime::InputReleaseStatus::Released));
+        assert_eq!(steps[1].input_delivery, Some(runtime::InputDelivery::MayHaveBeenSent));
+        assert_eq!(steps[1].input_release_status, None);
+        assert!(steps.iter().all(|step|step.effect_status.is_none() && step.goal_verdict.is_none()));
+        assert_eq!(store.load(&identity.call_id).unwrap().unwrap().terminal_result, Some(actual.clone()));
+        let mut encoded = serde_json::to_value(&actual).unwrap();
+        assert!(!encoded["input_steps"].to_string().contains("PRIVATE"));
+        encoded.as_object_mut().unwrap().remove("input_steps");
+        assert_eq!(serde_json::from_value::<ComputerUseResult>(encoded).unwrap().input_steps, None);
     }
 
     /// 仅验证真实 SQLite 落库边界，不调用模型或软件，不作为 Browser Use 实操验收。
