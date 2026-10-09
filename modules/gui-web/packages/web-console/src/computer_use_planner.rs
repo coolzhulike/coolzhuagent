@@ -960,7 +960,7 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
             "computer_use_browser_readonly_verification", remaining.saturating_sub(stage_started.elapsed())).await?;
         let raw = crate::answer_text(&response.content);
         let verified = async {
-            let mut verified = crate::native_browser_verification::finish(&raw, request, observation)?;
+            let original = crate::native_browser_verification::finish(&raw, request, observation)?;
             self.check_cancelled()?;
             let budget = require_stage_budget(remaining.saturating_sub(stage_started.elapsed()),
                 "computer_use_browser_readonly_freshness")?;
@@ -973,7 +973,11 @@ impl<'a> CurrentSessionComputerUsePlanner<'a> {
             }).await.map_err(|_| planner_backend_error("readonly freshness worker ended without facts"))??;
             self.check_cancelled()?;
             require_stage_budget(remaining.saturating_sub(stage_started.elapsed()), "computer_use_browser_readonly_freshness")?;
-            crate::native_browser_verification::ensure_fresh(observation, &fresh)?;
+            crate::native_browser_verification::ensure_fresh(observation, &fresh, &original)?;
+            // 身份与正向证据已核对；返回最新节点事实，负判不能借动态刷新升级为成功。
+            let mut current = observation.clone();
+            current.state["page"]["nodes"] = fresh.state["nodes"].clone();
+            let mut verified = crate::native_browser_verification::finish(&raw, request, &current)?;
             verified.evidence.extend(fresh.evidence.clone());
             let mut summary: JsonValue = serde_json::from_str(&verified.summary)
                 .map_err(|_| planner_backend_error("readonly summary is invalid"))?;
