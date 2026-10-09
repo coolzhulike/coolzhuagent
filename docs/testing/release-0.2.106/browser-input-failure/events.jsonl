@@ -1,0 +1,11 @@
+{"kind": "http-get", "role": "OLD", "path": "/old.html", "host": "127.0.0.1:57495", "server_ns": 797334945425100, "received_unix_ns": 1791508621884753400}
+{"kind": "document-script-start", "role": "OLD", "page_ms": 1791508621951.7, "server_ns": 797335019531000, "received_unix_ns": 1791508621958861300}
+{"kind": "loaded", "role": "OLD", "page_ms": 1791508621954.2, "trusted": true, "server_ns": 797335021487200, "received_unix_ns": 1791508621960816800}
+{"kind": "pointerdown", "role": "OLD", "page_ms": 1791508673399.5999, "trusted": true, "target": "target", "server_ns": 797386462189400, "received_unix_ns": 1791508673402913100}
+{"kind": "down-handler-finished", "role": "OLD", "page_ms": 1791508675800, "trusted": true, "target": "target", "server_ns": 797388863915500, "received_unix_ns": 1791508675804705100}
+{"kind": "click", "role": "OLD", "page_ms": 1791508675801.2998, "trusted": true, "target": "target", "server_ns": 797388865851600, "received_unix_ns": 1791508675806640400}
+{"kind": "pointerup", "role": "OLD", "page_ms": 1791508675801, "trusted": true, "target": "target", "server_ns": 797388866012900, "received_unix_ns": 1791508675806801200}
+{"kind": "http-get", "role": "NEW", "path": "/new.html", "host": "localhost:57495", "server_ns": 797395188047600, "received_unix_ns": 1791508682129008400}
+{"kind": "pagehide", "role": "OLD", "page_ms": 1791508682201.4, "trusted": true, "server_ns": 797395276807000, "received_unix_ns": 1791508682217770200}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791508682208.5999, "server_ns": 797395276891500, "received_unix_ns": 1791508682217853500}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791508682211.4, "trusted": true, "server_ns": 797395279083900, "received_unix_ns": 1791508682220047600}

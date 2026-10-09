@@ -226,6 +226,15 @@ impl FrozenPanelBinding {
             && self.resource.room_id == resource.room_id && self.resource.label == resource.label
             && self.resource.generation == resource.generation
     }
+
+    // 同一面板可合法导航，但一次在途观察仍只属于其请求时的完整资源版本。
+    fn matches_observation(&self, host: Option<&RegisteredHost>, workspace: &crate::CanonicalWorkspaceId,
+        expected: &PanelResource) -> bool {
+        host.is_some_and(|host| host.seen.elapsed() < Duration::from_millis(LEASE_MILLIS)
+            && host.resource.as_ref().is_some_and(|(current_workspace, current)|
+                current_workspace == workspace && current == expected
+                && self.matches(&host.host_id, host.identity.as_ref(), current_workspace, current)))
+    }
 }
 
 pub(super) fn capture_panel_binding(parent: &crate::FrozenParentContext) -> Result<FrozenPanelBinding, String> {
@@ -301,7 +310,7 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
     getrandom::fill(&mut random).map_err(|_| "native_observation_unavailable")?;
     let id: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
     let (sender, receiver) = std::sync::mpsc::channel();
-    {
+    let requested_resource = {
         let registered = registry().lock().map_err(|_| "native_browser_unavailable")?;
         let host = readable_host(registered.as_ref()).map_err(str::to_string)?;
         let (workspace, resource) = host.resource.as_ref().ok_or("native_browser_unavailable")?;
@@ -314,13 +323,19 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
         if pending.is_some() { return Err("native_observation_busy".into()); }
         *pending = Some(PendingObservation {host_id:host.host_id.clone(),
             request:ObservationRequest {request_id:id.clone(), resource:resource.clone()}, delivered:false, sender});
-    }
+        resource.clone()
+    };
     let _pending_guard = PendingObservationGuard(id);
     let start = Instant::now();
     let timeout = remaining.min(Duration::from_secs(5));
     let result = loop {
         if cancelled() || parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
             break Err("native_observation_cancelled".into());
+        }
+        // 资源变化后的旧请求不会再收到有效回包；明确收尾，避免伪装为单纯超时。
+        if !registry().lock().is_ok_and(|registered|
+            frozen.matches_observation(registered.as_ref(), &parent.workspace_id, &requested_resource)) {
+            break Err("native_browser_resource_changed".into());
         }
         if start.elapsed() >= timeout { break Err("native_observation_timeout".into()); }
         match receiver.recv_timeout((timeout - start.elapsed().min(timeout)).min(Duration::from_millis(50))) {
@@ -331,10 +346,8 @@ pub(super) fn observe(parent: &crate::FrozenParentContext, remaining: Duration,
                 if let Err(error) = crate::validate_frozen_parent_relations(db, parent) {
                     break Err(observation_parent_error(error).into());
                 }
-                let current_matches = registry().lock().is_ok_and(|registered| registered.as_ref().is_some_and(|host|
-                    host.host_id == reply.host_id && host.seen.elapsed() < Duration::from_millis(LEASE_MILLIS)
-                    && host.resource.as_ref().is_some_and(|(workspace, resource)| workspace == &parent.workspace_id
-                        && resource == &reply.resource && frozen.matches(&host.host_id, host.identity.as_ref(), workspace, resource))));
+                let current_matches = reply.host_id == frozen.host_id && registry().lock().is_ok_and(|registered|
+                    frozen.matches_observation(registered.as_ref(), &parent.workspace_id, &reply.resource));
                 if !current_matches { break Err("native_browser_resource_changed".into()); }
                 break reply.observation.map(|page| NativeObservation {resource:reply.resource,
                     page, host_id:reply.host_id, request_id:reply.request_id})
@@ -407,6 +420,16 @@ mod tests {
         let mut live = resource.clone();
         live.navigation_revision = 2;
         assert!(binding.matches(&binding.host_id, None, &workspace, &live));
+        let mut host = RegisteredHost {host_id:binding.host_id.clone(), identity:None, sequence:1,
+            seen:Instant::now(), resource:Some((workspace.clone(), live.clone()))};
+        // 新导航可开始自己的观察，旧导航在途观察失效；不阻止同一面板后续合法操作。
+        assert!(binding.matches_observation(Some(&host), &workspace, &live));
+        assert!(!binding.matches_observation(Some(&host), &workspace, &resource));
+        host.resource = None;
+        assert!(!binding.matches_observation(Some(&host), &workspace, &live));
+        host.resource = Some((workspace.clone(), live.clone()));
+        host.seen = Instant::now() - Duration::from_millis(LEASE_MILLIS);
+        assert!(!binding.matches_observation(Some(&host), &workspace, &live));
         assert!(!binding.matches("native-host-replacement", None, &workspace, &live));
         live.generation = 8; live.label = "browser-panel-8".into();
         assert!(!binding.matches(&binding.host_id, None, &workspace, &live));

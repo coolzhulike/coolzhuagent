@@ -1,0 +1,99 @@
+{
+  "run": {
+    "id": "run-chat-cf4fe911b509bd15d413c9cf1c61e2c34f009945e866bb42",
+    "state": "failed",
+    "legacy_turn_id": "chat-turn-1791508637463-1"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791508637463-1-tool-9d705e1dabad2dea696effe0fd27420cdd366f723e3ee103e14253b8d14ca9ee",
+      "state": "blocked",
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791508637463-1-tool-9d705e1dabad2dea696effe0fd27420cdd366f723e3ee103e14253b8d14ca9ee",
+        "provider_tool_call_id": "tool-9d705e1dabad2dea696effe0fd27420cdd366f723e3ee103e14253b8d14ca9ee",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "内置浏览器观察不可用或环境已变化",
+        "error": {
+          "code": "native_observation_timeout",
+          "message": "内置浏览器观察不可用或环境已变化",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "input_steps": [
+          {
+            "step_index": 0,
+            "action_kind": "click",
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "partial": false,
+            "effect_status": null,
+            "goal_verdict": null
+          }
+        ],
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:7a4a4974d9748f41feebb8ce7a8cd6c1",
+          "native-ax:1:2",
+          "native-observation:7a4a4974d9748f41feebb8ce7a8cd6c1",
+          "native-input:3188cb3a73610f37333a91f6ab8df5c6",
+          "native-ax:1:2",
+          "native-observation:8f0b612cc8635af11259ebecb364059f"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791509537463
+            }
+          },
+          "cu_deadline_ms": 1791509537463,
+          "cu_deadline_established_at_ms": 1791508649074,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "input_sent_observed",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": null
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "431a7d33bfe0ea619cc2839b515807e1e72abcb7ae82d5f6",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ]
+}

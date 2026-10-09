@@ -22,3 +22,6 @@ node --check通过；cargo build -p coolzhu-web-console --offline通过（21.70�
 
 
 105执行中配置更换补记：真实网络GET1后正常更换配置，原连接在约1.845秒内关闭，无响应体/补发；独立持有旧宿主进程句柄Wait258→0，脚本未终止宿主。工具failed、父completed/end_turn/drained、唯一远端解锁，正常恢复revision51。执行已进入，不写成零执行；完整瞬时工具回执未另存，清理以独立句柄证据为准。[105实拍与交接](../testing/release-0.2.105/change-report-and-test-handoff.md)。105已公开，四资产及tag摘要一致，构建源码两路CI success。其它总体矩阵继续开放。
+
+
+106正式增量：c9c61fe冻结，完整1423Web/143核心、六门、正常MSI安装0及1159文件逐SHA通过。真实SWE原island-kayak两轮保留成功与失败的sent/released；第一轮正常导航晚4818ms，负例未命中保留；第二轮观察timeout且效果未知/无补发，实拍归档。两次构建包装与旧MSI路径核验失败原样记录，采用报告确切带时间戳产物；无伪造报告。两路源码CI已success。后续资源等待原因识别候选已offline build及完整1423/0/6通过，尚待107实机。见[106交接](../testing/release-0.2.106/change-report-and-test-handoff.md)。
