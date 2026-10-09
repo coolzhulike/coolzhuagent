@@ -13212,7 +13212,7 @@ fn session_model_limit_response(
 async fn api_get_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    session_config_service::SessionConfigService::new(session_store()).read_limit(session_id).map(Json)
+    session_config_service::SessionConfigService::new(session_store())?.read_limit(session_id).map(Json)
 }
 
 /// POST /api/sessions/{id}/model-limit：写入手填覆盖（context_window/max_output_tokens）；两者皆 0 则清除覆盖、回退默认表。
@@ -13220,7 +13220,7 @@ async fn api_set_session_model_limit(
     AxumPath(session_id): AxumPath<String>,
     Json(payload): Json<SessionModelLimitUpdateRequest>,
 ) -> ApiResult<Json<SessionModelLimitResponse>> {
-    session_config_service::SessionConfigService::new(session_store()).save_limit(session_id, payload).map(Json)
+    session_config_service::SessionConfigService::new(session_store())?.save_limit(session_id, payload).map(Json)
 }
 
 #[derive(Debug, Deserialize)]
@@ -13302,8 +13302,9 @@ mod unified_model_settings_tests {
 }
 
 async fn api_get_session_model_settings(AxumPath(session_id): AxumPath<String>) -> ApiResult<Json<JsonValue>> {
+    let service = session_config_service::SessionConfigService::new(session_store())?;
     let session_config_service::Snapshot { session, agent, parameters, configuration_revision, local } =
-        session_config_service::SessionConfigService::new(session_store()).read(session_id)?;
+        service.read(session_id)?;
     let defaults = api::model_token_limit(&agent.model);
     let effective = effective_model_limit_for_agent_snapshot(&agent, &parameters, local);
     let plugin_tools = if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
@@ -13341,7 +13342,8 @@ async fn api_set_session_model_settings(
     AxumPath(session_id): AxumPath<String>,
     Json(payload): Json<SessionModelSettingsUpdateRequest>,
 ) -> ApiResult<Json<JsonValue>> {
-    session_config_service::SessionConfigService::new(session_store()).save(session_id.clone(), payload)?;
+    let service = session_config_service::SessionConfigService::new(session_store())?;
+    service.save(session_id.clone(), payload)?;
     api_get_session_model_settings(AxumPath(session_id)).await
 }
 

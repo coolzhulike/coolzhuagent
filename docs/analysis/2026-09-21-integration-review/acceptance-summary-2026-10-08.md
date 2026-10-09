@@ -1,5 +1,7 @@
 # 整体验收状态快照（2026-10-08）
 
+模型配置工程作用域候选：正式115真实复现2041读/180切换的跨工程混合；候选复用WorkspacePin覆盖读写和完整响应派生。实际build0、完整Web1423/0/6（另lib8/native-host1）；交错80次成功切换/77有效读取零混合，真实SQLite保存窗口切换409、另一工程不变、400/409退出释放pin，正常原生A/B参数和同EXE重启实拍通过。模型0、原SWE/revision51/唯一island恢复；115不含，迟到请求/ABA和完整领域迁移仍开放。[原失败、候选与实拍](../../testing/2026-10-09-session-config-scope/report.md)。Goal继续。
+
 115补验：原生文件选择器经正常文件名框确认同时选入UTF-8/UTF-16BE两文件，名称/96B/186B与文件一致；取消保留选择、同已核身份正式壳重启恢复空草稿，模型0。只关闭GUI多文件选择/取消子项。[实拍与边界](../../testing/release-0.2.115/native-picker/report.md)。Browser连续观察新驱动仍未命中：登记后6.55ms捕获，正常关闭晚16721ms且父轮已完成1750ms；单SWE工具sent/released/effect_observed、end_turn/drained/解锁，但无observation_stopped，严格项未通过，不重复简单点击。[完整时间与实拍](../../testing/release-0.2.115/browser-continuous/report.md)。Goal继续。
 
 115正式增量：四个模型参数入口同步块提取至SessionConfigService，沿用TrackedSessionStore诊断/原锁序/发布及失败恢复。实际正常构建及安装0、六门pass、1159项安装摘要一致，同源f6f8729两路CI success。正式EXE旧容量六路1337读/180保存、统一配置六路1150读/180保存均零混合，真实SQLite两组失败恢复与同revision200/409、正常原生设置与同EXE重启实拍通过；原SWE/revision51/唯一island已恢复，四隔离库模型轮次0。第一次构建外层等待未捕获子退出，直接等待重做才计0，原事实保留。115四资产已公开预发布并核实际标签/SHA；只关闭Web服务提取子项，完整领域/工作区作用域/outbox及严格Browser继续开放。[115交接与实拍](../../testing/release-0.2.115/change-report-and-test-handoff.md)。Goal继续。

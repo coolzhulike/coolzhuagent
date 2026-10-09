@@ -20,11 +20,15 @@ pub(super) struct Snapshot {
 
 pub(super) struct SessionConfigService<'a> {
     sessions: &'a TrackedSessionStore,
+    // 复用既有工程活动 pin；不持 MutexGuard，覆盖参数操作及响应派生。
+    _workspace_pin: super::workspace_activity::WorkspacePin,
 }
 
 impl<'a> SessionConfigService<'a> {
-    pub(super) fn new(sessions: &'a TrackedSessionStore) -> Self {
-        Self { sessions }
+    pub(super) fn new(sessions: &'a TrackedSessionStore) -> ApiResult<Self> {
+        let pin = super::workspace_activity::pin_workspace()
+            .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+        Ok(Self { sessions, _workspace_pin: pin })
     }
     pub(super) fn read(&self, session_id: String) -> ApiResult<Snapshot> {
         // 与保存共用 store→config 锁顺序；会话、参数、版本和本地容量属于同一读取快照。
