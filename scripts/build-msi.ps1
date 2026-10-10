@@ -14,6 +14,7 @@ $workspacePrefix = $workspacePath + [System.IO.Path]::DirectorySeparatorChar
 
 # 构建身份与报告治理（三身份分离 / 报告 ID+内容哈希 / 保留规则）。
 . (Join-Path $workspacePath 'scripts/lib/build-identity.ps1')
+. (Join-Path $workspacePath 'scripts/lib/cargo-build-evidence.ps1')
 $packageRootCandidate = if ([System.IO.Path]::IsPathRooted($PackageRoot)) {
     $PackageRoot
 } else {
@@ -256,6 +257,7 @@ if (-not (Test-Path -LiteralPath $referencedReportPath -PathType Leaf)) {
 $referencedReport = Get-Content -Raw -LiteralPath $referencedReportPath -Encoding UTF8 | ConvertFrom-IdentityJson
 # 引用必须可核对：内容哈希重算通过才允许写进 installer report。
 $verifiedReportIdentity = Assert-PackageReportContentHash -Report $referencedReport
+$verifiedCargoEvidence = Assert-PackageCargoBuildEvidence -Report $referencedReport -RepoPath $workspacePath
 
 # ---- 四项一致性断言：报告与包根必须是**同一代** ----
 $expectedReportContent = ([string]$payloadInventory.report_ref.content_sha256).ToLowerInvariant()
@@ -427,6 +429,12 @@ $installerReport = [ordered]@{
         total_bytes = [long]$payloadInventory.total_bytes
         package_root_identity = $packageRootIdentity
     }
+    cargo_build_evidence_verification = [ordered]@{
+        status = $verifiedCargoEvidence.status
+        byte_references_verified = $verifiedCargoEvidence.verified
+        entry_count = @($verifiedCargoEvidence.entries).Count
+        scope = '包报告引用的构建回执原始字节；不证明全部组件、许可证义务或来源签名'
+    }
     vcs = [ordered]@{
         vcs_state = [string]$buildIdentityVcs.vcs_state
         vcs_reference_commit = [string]$buildIdentityVcs.vcs_reference_commit
@@ -442,6 +450,10 @@ $installerReport | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $installer
 
 # 保留规则：被正式发布引用的报告受保护，并连同发布证据归档到
 # docs/testing/release-<version>/evidence/build-identity/（tmp 下原报告被清理后仍可核对）。
+$verifiedCargoEvidence = Assert-PackageCargoBuildEvidence -Report $referencedReport -RepoPath $workspacePath
+$releaseEvidenceFiles = @($installerReportPath) + @($verifiedCargoEvidence.entries | ForEach-Object {
+    Join-Path $workspacePath ([string]$_.path)
+})
 $retentionResult = & (Join-Path $workspace 'scripts\package-report-retention.ps1') `
     -Action Protect `
     -ReportPath $referencedReportPath `
@@ -449,6 +461,6 @@ $retentionResult = & (Join-Path $workspace 'scripts\package-report-retention.ps1
     -ReleaseVersion $Version `
     -Reason ('referenced by released MSI ' + $publishedMsiRelative) `
     -Archive `
-    -ExtraEvidencePath $installerReportPath
+    -ExtraEvidencePath $releaseEvidenceFiles
 $retentionResult = @($retentionResult) | Select-Object -Last 1
 $installerReport | ConvertTo-Json -Compress

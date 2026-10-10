@@ -63,3 +63,45 @@ function Save-PackageCargoBuildEvidence {
     scope = '实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名'
   }
 }
+
+# 消费端核对引用字节；旧报告或未采集模式明确返回未验证，不补造构建事实。
+function Assert-PackageCargoBuildEvidence {
+  param(
+    [Parameter(Mandatory = $true)]$Report,
+    [Parameter(Mandatory = $true)][string]$RepoPath
+  )
+  $evidence = $Report.cargo_build_evidence
+  if ($null -eq $evidence) {
+    return [pscustomobject]@{ status = 'unavailable-legacy-report'; verified = $false; entries = @() }
+  }
+  if ($evidence.status -in @('not-collected', 'not-collected-no-build')) {
+    if (@($evidence.entries).Count -ne 0) { throw '未采集模式不得附带已采集回执' }
+    return [pscustomobject]@{ status = [string]$evidence.status; verified = $false; entries = @() }
+  }
+  if ($evidence.status -ne 'collected' -or @($evidence.entries).Count -eq 0) { throw '构建回执状态不完整' }
+  $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+  foreach ($entry in @($evidence.entries)) {
+    if ($entry.run_id -cne $Report.run_id -or
+        $entry.success_message_verified -isnot [bool] -or $entry.success_message_verified -ne $true -or
+        ([string]$entry.artifact_id) -cnotmatch '^[a-zA-Z0-9][a-zA-Z0-9._-]*$' -or
+        -not $seen.Add([string]$entry.artifact_id)) { throw '构建回执运行/产物身份不一致或重复' }
+    $relative = [string]$entry.path
+    if ([string]::IsNullOrWhiteSpace($relative) -or $relative -match '[\\:]|(^|/)\.\.?(/|$)' -or
+        $relative.StartsWith('/') -or -not $relative.EndsWith("/$($entry.run_id)/$($entry.artifact_id).jsonl", [StringComparison]::Ordinal)) {
+      throw '构建回执归档路径与身份不一致'
+    }
+    $path = [IO.Path]::GetFullPath((Join-Path $RepoPath $relative))
+    if (-not (Test-PackagePathInsideRoot -Path $path -Root $RepoPath)) { throw '构建回执路径逃逸' }
+    $node = Get-Item -LiteralPath $path -Force
+    while ($node.FullName.TrimEnd('\', '/') -ne $RepoPath.TrimEnd('\', '/')) {
+      if ($node.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw '构建回执不得经重解析点读取' }
+      $node = Get-Item -LiteralPath (Split-Path -Parent $node.FullName) -Force
+    }
+    $bytes = [IO.File]::ReadAllBytes($path)
+    if ($entry.length -isnot [int] -and $entry.length -isnot [long]) { throw '构建回执长度类型无效' }
+    if ($bytes.Length -ne $entry.length -or
+        ([string]$entry.sha256) -cnotmatch '^[a-f0-9]{64}$' -or
+        (Get-IdentityHashFromBytes -Bytes $bytes) -cne $entry.sha256) { throw '归档构建回执字节身份已变化' }
+  }
+  [pscustomobject]@{ status = 'collected'; verified = $true; entries = @($evidence.entries) }
+}

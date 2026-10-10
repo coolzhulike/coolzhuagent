@@ -31,4 +31,30 @@ foreach ($case in $cases) {
   try { Save-PackageCargoBuildEvidence -RepoPath $taskRepo -ArchiveRoot $taskRoot -RunId "bad-$index" -ArtifactId 'fixture.bin' -RecordPath $record -ExpectedSha256 $expected | Out-Null } catch { $refused = $true }
   if (-not $refused -or (Test-Path -LiteralPath (Join-Path $taskRoot "bad-$index/fixture.bin.jsonl"))) { throw "负例未拒绝或发布了无效归档：$index" }
 }
-Write-Host 'PASS cargo-build-evidence (8 cases)'
+$report = [pscustomobject]@{ run_id = 'run-one'; cargo_build_evidence = [pscustomobject]@{ status = 'collected'; entries = @($saved) } }
+$verified = Assert-PackageCargoBuildEvidence -Report $report -RepoPath $taskRepo
+if (-not $verified.verified -or @($verified.entries).Count -ne 1) { throw '合法报告引用没有通过消费端校验' }
+$legacy = Assert-PackageCargoBuildEvidence -Report ([pscustomobject]@{}) -RepoPath $taskRepo
+if ($legacy.verified -or $legacy.status -ne 'unavailable-legacy-report') { throw '旧报告被补造验证事实' }
+$changes = @(
+  { param($copy) $copy.cargo_build_evidence.entries[0].run_id = 'foreign' },
+  { param($copy) $copy.cargo_build_evidence.entries = @($copy.cargo_build_evidence.entries[0], $copy.cargo_build_evidence.entries[0]) },
+  { param($copy) $copy.cargo_build_evidence.entries = @() },
+  { param($copy) $copy.cargo_build_evidence.entries[0].length = 1 },
+  { param($copy) $copy.cargo_build_evidence.entries[0].length = '123' },
+  { param($copy) $copy.cargo_build_evidence.entries[0].path = '../run-one/fixture.bin.jsonl' },
+  { param($copy) $copy.cargo_build_evidence.entries[0].success_message_verified = $false },
+  { param($copy) $copy.cargo_build_evidence.entries[0].sha256 = ('0' * 64) }
+)
+foreach ($change in $changes) {
+  $copy = $report | ConvertTo-Json -Depth 8 | ConvertFrom-Json
+  & $change $copy
+  $refused = $false
+  try { Assert-PackageCargoBuildEvidence -Report $copy -RepoPath $taskRepo | Out-Null } catch { $refused = $true }
+  if (-not $refused) { throw '无效报告引用被消费端接受' }
+}
+[IO.File]::AppendAllText($archive, 'tamper')
+$refused = $false
+try { Assert-PackageCargoBuildEvidence -Report $report -RepoPath $taskRepo | Out-Null } catch { $refused = $true }
+if (-not $refused) { throw '归档正文改写未被拒绝' }
+Write-Host 'PASS cargo-build-evidence (19 cases)'
