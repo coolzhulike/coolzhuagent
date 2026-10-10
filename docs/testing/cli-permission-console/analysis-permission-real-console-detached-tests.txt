@@ -1,0 +1,22 @@
+   Compiling coolzhu-windows-process-guard v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\gui-web\packages\windows-process-guard)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.71s
+     Running unittests src\lib.rs (tmp/cargo-target-integration\debug\deps\coolzhu_windows_process_guard-39f2c96f0726e515.exe)
+
+running 1 test
+test permission_input::windows::tests::isolated_console_ctrl_c_ends_permission_read ... FAILED
+
+failures:
+
+---- permission_input::windows::tests::isolated_console_ctrl_c_ends_permission_read stdout ----
+
+thread 'permission_input::windows::tests::isolated_console_ctrl_c_ends_permission_read' (11420) panicked at modules\gui-web\packages\windows-process-guard\src\permission_input.rs:128:13:
+独立探针失败：exit code: 101；日志C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\gui-web\packages\windows-process-guard\../../../../tmp\permission-console-LiW0TE\stderr.txt
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    permission_input::windows::tests::isolated_console_ctrl_c_ends_permission_read
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 64 filtered out; finished in 0.49s
+
+error: test failed, to rerun pass `-p coolzhu-windows-process-guard --lib`

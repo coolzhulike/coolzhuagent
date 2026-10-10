@@ -101,6 +101,91 @@ mod windows {
             (PipeHandle(read),PipeHandle(write))
         }
         #[test]
+        fn isolated_console_ctrl_c_ends_permission_read() {
+            use std::os::windows::process::CommandExt;
+            use windows_sys::Win32::System::Threading::CREATE_NO_WINDOW;
+            let root=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp");
+            std::fs::create_dir_all(&root).unwrap();
+            let directory=tempfile::Builder::new().prefix("permission-console-").tempdir_in(root).unwrap().keep();
+            let proof=directory.join("console-proof.txt");
+            let stderr=directory.join("stderr.txt");
+            let mut child=std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact","permission_input::windows::tests::isolated_console_ctrl_c_probe","--ignored"])
+                .env("COOLZHU_PERMISSION_CONSOLE_PROOF",&proof)
+                .creation_flags(CREATE_NO_WINDOW)
+                .stdout(std::fs::File::create(directory.join("stdout.txt")).unwrap())
+                .stderr(std::fs::File::create(&stderr).unwrap())
+                .spawn().unwrap();
+            let limit=std::time::Instant::now()+Duration::from_secs(10);
+            let status=loop {
+                if let Some(status)=child.try_wait().unwrap(){break status;}
+                if std::time::Instant::now()>=limit {
+                    child.kill().unwrap();child.wait().unwrap();
+                    panic!("独立控制台探针超时，仅回收本测试子进程");
+                }
+                std::thread::sleep(Duration::from_millis(20));
+            };
+            assert!(status.success(),"独立探针失败：{status}；日志{}",stderr.display());
+            assert_eq!(std::fs::read_to_string(proof).unwrap(),"own-console;ctrl-c-observed;read-rejected;listener-joined");
+        }
+        #[test]
+        #[ignore="只由父测试在无共享控制台的独立子进程中运行"]
+        fn isolated_console_ctrl_c_probe() {
+            use std::{future::Future,task::Poll};
+            use windows_sys::Win32::{System::Console::{AllocConsole,FreeConsole,GetConsoleWindow,
+                GenerateConsoleCtrlEvent,CTRL_C_EVENT,SetConsoleCtrlHandler},
+                Foundation::{GENERIC_READ,INVALID_HANDLE_VALUE},
+                Storage::FileSystem::{CreateFileW,FILE_SHARE_READ,FILE_SHARE_WRITE,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL},
+                UI::WindowsAndMessaging::{ShowWindow,SW_HIDE}};
+            let proof=std::env::var_os("COOLZHU_PERMISSION_CONSOLE_PROOF").expect("必须由父测试启动");
+            let panic_path=std::path::PathBuf::from(&proof).with_extension("panic.txt");
+            std::panic::set_hook(Box::new(move |info| {let _=std::fs::write(&panic_path,info.to_string());}));
+            // 仅子进程解除自身可能继承的附着，再创建独占控制台；父进程不受影响。
+            unsafe {FreeConsole();}
+            assert_ne!(unsafe {AllocConsole()},0,"无法分配独立控制台：{}",io::Error::last_os_error());
+            unsafe {ShowWindow(GetConsoleWindow(),SW_HIDE);}
+            assert_ne!(unsafe {SetConsoleCtrlHandler(None,0)},0);
+            // 重定向的标准句柄不会自动变成新控制台输入，显式打开本控制台CONIN$。
+            let name:Vec<u16>="CONIN$\0".encode_utf16().collect();
+            let console=PipeHandle(unsafe {CreateFileW(name.as_ptr(),GENERIC_READ,
+                FILE_SHARE_READ|FILE_SHARE_WRITE,std::ptr::null(),OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,std::ptr::null_mut())});
+            assert_ne!(console.0,INVALID_HANDLE_VALUE);
+            let input=console.0;
+            let mut mode=0;
+            assert_ne!(unsafe {GetConsoleMode(input,&mut mode)},0,"输入必须是真控制台");
+            let flag=Arc::new(AtomicBool::new(false));
+            let observed=flag.clone();
+            let (ready,started)=std::sync::mpsc::sync_channel(1);
+            let listener=std::thread::spawn(move || {
+                let runtime=tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+                runtime.block_on(async {
+                    let signal=tokio::signal::ctrl_c();tokio::pin!(signal);
+                    std::future::poll_fn(|cx| {
+                        assert!(signal.as_mut().poll(cx).is_pending());
+                        Poll::Ready(())
+                    }).await;
+                    ready.send(()).unwrap();
+                    tokio::time::timeout(Duration::from_secs(3),signal).await.unwrap().unwrap();
+                    flag.store(true,Ordering::Release);
+                });
+            });
+            started.recv_timeout(Duration::from_secs(3)).unwrap();
+            let sender=std::thread::spawn(|| {
+                std::thread::sleep(Duration::from_millis(100));
+                // group=0仅广播给刚创建的本子进程专属控制台，未附着共享控制台。
+                assert_ne!(unsafe {GenerateConsoleCtrlEvent(CTRL_C_EVENT,0)},0);
+            });
+            let start=std::time::Instant::now();
+            let cancelled=observed.clone();
+            let result=unsafe {read_line(input,Arc::new(move ||cancelled.load(Ordering::Acquire)))};
+            sender.join().unwrap();listener.join().unwrap();
+            assert!(result.is_err(),"Ctrl+C不得成为允许输入");
+            assert!(observed.load(Ordering::Acquire),"必须观察实际Tokio信号");
+            assert!(start.elapsed()<Duration::from_secs(2));
+            std::fs::write(proof,"own-console;ctrl-c-observed;read-rejected;listener-joined").unwrap();
+            assert_ne!(unsafe {FreeConsole()},0);
+        }
+        #[test]
         fn blocked_pipe_is_cancelled_before_writer_closes() {
             let(read,write)=pipe();
             let flag=Arc::new(AtomicBool::new(false));

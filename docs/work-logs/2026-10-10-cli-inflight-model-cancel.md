@@ -41,3 +41,11 @@ Windows权限输入取消接线：审查确认原CliPermissionPrompter直接stdi
 权限输入边界复核：真实管道反例确认总长8193且末尾换行会绕过8192预算，原因是先break后判预算。永久测试先实际exit101（tmp/analysis-permission-budget-before.txt），修补后先检查预算再识别换行，8192接受、8193拒绝。CLI读取基础设施失败现在取消同一根，保留原始读取错误，防止同回合继续审批并消费失败行后缀；已有截止仍优先于迟到yes，普通no不取消。三个CLI永久测试通过。该处理不证明下一回合残留输入归属已解决，仍需独立控制台/流同步设计和验证。
 
 首次编辑测试函数名缺fn，真实build101（tmp/analysis-permission-budget-build.txt），已修正。最终真实CLI build0（4.63秒），完整CLI串行112通过0失败0忽略，guard库60通过0失败3忽略，均实际exit0。日志tmp/analysis-permission-budget-final-build.txt、cli-tests.txt、guard-tests.txt。未将忽略项或管道局部成功提升为正式模型、真实控制台、全部32WBS和交付完成。
+
+独立控制台实际Ctrl+C复验：新增父测试只启动自己的测试子进程，有10秒上限；超时仅kill/wait该子进程。子进程先FreeConsole解除自身附着，再AllocConsole创建专属控制台并隐藏自己的窗口，显式打开CONIN$且GetConsoleMode证明真实控制台；Tokio ctrl_c首次轮询完成注册后，本子进程向其独占控制台发送CTRL_C_EVENT。真实信号被观察，原线程ReadConsoleW读取返回错误，监听线程join，整个观察小于2秒。未向共享控制台发送信号、未终止既有后台。
+
+探针首次实际exit101：AllocConsole分配失败；解除自身附着后继续发现重定向标准句柄不是真控制台。两项失败均保留；最终显式CONIN$路径专项exit0。诊断子进程panic通过专用文件保存，避免分配控制台后stderr重定向失效造成证据丢失。正式源码未为此放开unsafe；窗口隐藏及Tokio信号功能新增仅dev依赖。
+
+最终真实CLI build exit0（11.55秒）；guard完整串行61通过0失败4忽略，实际exit0，耗时18.31秒。新增第4忽略是独立子进程探针入口，在父测试中实际以--ignored启动并验证成功，不冒充直接通过项；既有3忽略保持。原日志及子进程回执按原字节归档docs/testing/cli-permission-console，evidence.json记录基线dca7801及测试源码/manifest SHA，immutable_snapshot_verified=false，未宣称不可变构建。CLI业务未变，上一轮112通过保持该历史范围，不重复冒称本轮全部CLI回归。
+
+本测试证明guard读取+真实Tokio信号，不等于安装版CLI完整审批/模型/持久化终态全链。真实CLI入口进程、部分和排队输入跨回合归属、控制台多轮恢复与正式模型/安装仍未闭环；32WBS目标保持原范围。

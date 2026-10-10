@@ -1,0 +1,22 @@
+{
+  "immutable_snapshot_verified": false,
+  "ignored": 4,
+  "files": [
+    {
+      "path": "modules/gui-web/packages/windows-process-guard/src/permission_input.rs",
+      "sha256": "A434641AAABB5B4BD9F7888C74FF9B0ED1D7893CC6FF09F14CFA060B594B9910"
+    },
+    {
+      "path": "modules/gui-web/packages/windows-process-guard/Cargo.toml",
+      "sha256": "FAC55019551290A12D821B61FCFFFE8CE4B8D81E4BC1F998F62ED552FF882D7F"
+    }
+  ],
+  "source_base": "dca7801b927d98e75a30ff728b0b07a5535d08be",
+  "guard_test_exit": 0,
+  "scope": "独立隐藏控制台真实Ctrl+C、Tokio信号、guard原线程读取及回收；非正式外部模型或安装验收",
+  "source_uncommitted": true,
+  "build_exit": 0,
+  "passed": 61,
+  "failed": 0,
+  "schema": 1
+}

@@ -31,3 +31,5 @@ windows-sys = { version = "0.61", features = [
 
 [dev-dependencies]
 tempfile = "3"
+tokio = { version = "1", features = ["rt", "time", "signal"] }
+windows-sys = { version = "0.61", features = ["Win32_UI_WindowsAndMessaging"] }
