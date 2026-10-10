@@ -107,10 +107,32 @@ impl GoalExecution {
             tokio::pin!(future);
             tokio::select! {
                 biased;
-                _=observe_cancelled(&self.cancel)=>Err("Goal阶段已请求停止；已发生的外部操作结果仍需核查，不自动重放".into()),
+                reason=self.observe_stop()=>{self.cancel.request();Err(reason)},
                 result=&mut future=>Ok(result),
             }
         })).await
+    }
+    async fn observe_stop(&self) -> String {
+        loop {
+            if self.cancel.is_requested() { return "Goal阶段已请求停止；外部操作结果仍需核查，不自动重放".into(); }
+            let path=self.guard.current.path.clone(); let workspace=self.guard.current.workspace.clone();
+            let run=self.run.clone(); let claim=self.claim.clone();
+            let state=tokio::task::spawn_blocking(move || -> Result<Option<String>,String> {
+                let connection=open(&path)?;
+                connection.query_row("SELECT state FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND workspace_id=?3 AND kind='goal_phase'",
+                    params![run,claim,workspace],|row|row.get(0)).optional().map_err(|e|e.to_string())
+            }).await;
+            match state {
+                Ok(Ok(Some(state))) if state=="running" => (),
+                Ok(Ok(Some(_))) => return "Goal阶段已停止或结束，未继续等待；外部操作结果仍需核查".into(),
+                Ok(Ok(None)) => return "Goal阶段运行归属已失效，未继续执行或自动重放".into(),
+                _ => return "Goal阶段运行状态无法确认，已停止等待，不自动重放".into(),
+            }
+            tokio::select! {
+                _=observe_cancelled(&self.cancel)=>{},
+                _=tokio::time::sleep(std::time::Duration::from_millis(250))=>{},
+            }
+        }
     }
     pub(crate) fn finish_committed(&mut self, result: Option<&str>) -> Result<(), String> {
         let connection = open(&self.guard.current.path)?;
@@ -658,6 +680,25 @@ mod tests {
         assert!(require_capability("devin", Source::SessionTool).is_err());
         assert!(require_capability("devin", Source::Scheduled).is_ok());
         assert!(require_capability("devin_cloud", Source::Scheduled).is_err());
+    }
+    #[tokio::test]
+    async fn goal_wait_observes_durable_stop_and_claim_replacement_without_index_cancel() {
+        for replace_claim in [false,true] {
+            let temp=tempfile::tempdir().unwrap(); let path=temp.path().join("durable-goal.sqlite3");
+            let connection=open(&path).unwrap(); crate::initialize_session_schema(&connection).unwrap();
+            connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,phase_id,state,claim_token,created_at) VALUES('durable-goal-run','goal_phase','workspace','session','room','phase','running','private-claim',1)",[]).unwrap();
+            let mut goal=spec(); goal.id=format!("durable-goal-{replace_claim}"); goal.source=Source::GoalPhase; goal.source_id="phase".into();
+            let cancel=Arc::new(ChatTurnCancellation::new());
+            let guard=GoalExecution::bind(&path,goal,"durable-goal-run","private-claim",cancel.clone()).unwrap();
+            let stop=async { tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+                if replace_claim { connection.execute("UPDATE runtime_runs SET claim_token='new-owner' WHERE id='durable-goal-run'",[]).unwrap(); }
+                else { crate::interrupt_runtime_run_sqlite(&path,"durable-goal-run",Some("外部停止入口")).unwrap(); }
+            };
+            let (result,())=tokio::time::timeout(std::time::Duration::from_secs(3),async {
+                tokio::join!(guard.scope(std::future::pending::<()>()),stop)
+            }).await.unwrap();
+            assert!(result.is_err()); assert!(cancel.is_requested(),"数据库停止需传播给工具上下文");
+        }
     }
 
     #[tokio::test]
