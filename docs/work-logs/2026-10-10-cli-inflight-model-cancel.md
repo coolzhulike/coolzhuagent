@@ -18,4 +18,4 @@
 
 新增实际DefaultRuntimeClient + ConversationRuntime + ProviderClient本地HTTP/SSE测试：服务器发送部分write_file工具参数和输入7/输出2用量快照后触发根取消。断言真实连接关闭、工具执行器调用0、错误保留输入7及不完整事实、会话仅用户消息、终态TurnInterrupted/Cancelled。进一步使用生产persist_result保存错误及load_event_history恢复，确认仍返回错误且恢复唯一中断轨迹，未冒充完成。最新完整CLI串行103通过0失败0忽略，实际exit0；正常CLI实际构建exit0（12.05秒）。日志 tmp/analysis-cli-cancel-terminal-build.txt、terminal-tests.txt、persist-tests.txt。
 
-共享RuntimeError接口的完整core-runtime串行回归已启动，同一会话4133尚待真实终态，日志tmp/analysis-cli-cancel-reason-core-tests.txt，当前不能计通过。实际外部Provider、完整权限/截止/迟到矩阵与候选正式交付仍开放。
+共享RuntimeError接口的完整core-runtime串行回归同一会话4133已实际exit0：库375通过0失败1忽略，两项DSH集成各1忽略，总3忽略不计通过。日志tmp/analysis-cli-cancel-reason-core-tests.txt。实际外部Provider、完整权限/截止/迟到矩阵与候选正式交付仍开放。
