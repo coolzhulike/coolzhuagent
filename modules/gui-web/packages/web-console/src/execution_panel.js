@@ -86,6 +86,14 @@
         finally { if (detailCurrent()) trace.disabled = false; }
       };
       details.append(trace, node("h4", "模型请求与真实用量"), node("pre", JSON.stringify(item.usage_attempts, null, 2)));
+      if (item.subtree) {
+        details.append(node("h4", "本执行及后代汇总"),
+          field("后代执行数", item.subtree.descendant_count),
+          field("去重请求数", item.subtree.usage_attempt_count),
+          field("输入 token", item.subtree.input_tokens ?? "用量未知"),
+          field("输出 token", item.subtree.output_tokens ?? "用量未知"),
+          node("pre", JSON.stringify(item.subtree.execution_ids, null, 2)));
+      }
     }
     async function refreshList() {
       if (busy || root.hidden || document.hidden) return;

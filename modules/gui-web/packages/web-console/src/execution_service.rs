@@ -82,6 +82,33 @@ fn open(path: &Path) -> Result<Connection, String> {
 }
 
 pub(crate) struct ExecutionService;
+fn subtree_usage(connection: &Connection, workspace: &str, root: &ExecutionSpec) -> Result<serde_json::Value,String> {
+    let mut statement=connection.prepare("WITH RECURSIVE tree(id) AS (SELECT id FROM execution_index WHERE id=?1 AND workspace_id=?2 UNION SELECT e.id FROM execution_index e JOIN tree t ON json_extract(e.spec_json,'$.parent_execution_id')=t.id WHERE e.workspace_id=?2 AND json_extract(e.spec_json,'$.room_id')=?3) SELECT e.spec_json,e.run_id FROM execution_index e JOIN tree t ON e.id=t.id ORDER BY e.id").map_err(|e|e.to_string())?;
+    let rows=statement.query_map(params![root.id,workspace,root.room_id],|row|Ok((row.get::<_,String>(0)?,row.get::<_,Option<String>>(1)?))).map_err(|e|e.to_string())?;
+    let mut members=Vec::new(); let mut attempts=std::collections::BTreeMap::new();
+    for row in rows {
+        let (encoded,run)=row.map_err(|e|e.to_string())?;
+        let spec:ExecutionSpec=serde_json::from_str(&encoded).map_err(|e|e.to_string())?;
+        if spec.workspace_id!=workspace || spec.room_id!=root.room_id { return Err("后代执行归属与索引不一致".into()); }
+        members.push(spec.id.clone());
+        if let Some(run)=run.as_deref().or(spec.parent_run_id.as_deref()) {
+            for fact in crate::request_usage::requests_for_run(connection,workspace,&spec.room_id,run,None).map_err(|e|e.to_string())? {
+                if spec.source==Source::SessionTool && fact["call_id"].as_str()!=spec.call_id.as_deref() {continue;}
+                let key=fact["attempt_id"].as_str().ok_or("后代请求缺少真实attempt身份")?.to_owned();
+                if let Some(previous)=attempts.insert(key,fact.clone()) {
+                    if previous!=fact {return Err("同一attempt的用量事实不一致，未汇总".into());}
+                }
+            }
+        }
+    }
+    let facts=attempts.into_values().collect::<Vec<_>>();
+    let sum=|field:&str| -> Option<i64> {
+        if facts.is_empty(){return None;}
+        facts.iter().try_fold(0_i64,|total,fact|total.checked_add(fact[field].as_i64()?))
+    };
+    Ok(serde_json::json!({"execution_ids":members,"descendant_count":members.len().saturating_sub(1),
+        "usage_attempt_count":facts.len(),"input_tokens":sum("input_tokens"),"output_tokens":sum("output_tokens"),"usage_attempts":facts}))
+}
 pub(crate) struct TurnRunner;
 /// 只索引已有阶段claim，终态由原Goal提交器负责；claim不进入对外spec。
 pub(crate) struct GoalExecution {
@@ -299,6 +326,8 @@ impl ExecutionService {
         id: Option<&str>,
     ) -> Result<Vec<serde_json::Value>, String> {
         let connection = open(path)?;
+        // 索引和后代用量必须来自同一读取快照，避免并发回执更新导致重复事实不一致。
+        let _snapshot = connection.unchecked_transaction().map_err(|e|e.to_string())?;
         let mut statement=connection.prepare("SELECT spec_json,state,started_ms,finished_ms,run_id,result,error FROM execution_index WHERE workspace_id=?1 AND (?2 IS NULL OR id=?2) ORDER BY started_ms DESC,id DESC LIMIT 200").map_err(|e|e.to_string())?;
         let rows = statement
             .query_map(params![workspace, id], |row| {
@@ -380,7 +409,8 @@ impl ExecutionService {
                     }
                 })
             };
-            items.push(serde_json::json!({"spec":spec,"status":visible_state,"started_ms":started,"finished_ms":finished,
+            let subtree = if id.is_some() { Some(subtree_usage(&connection,workspace,&spec)?) } else {None};
+            items.push(serde_json::json!({"spec":spec,"subtree":subtree,"status":visible_state,"started_ms":started,"finished_ms":finished,
                 "elapsed_ms":finished.or_else(||active.then(crate::unix_timestamp_millis)).map(|end|end.saturating_sub(started)),
                 "run_id":run,"result":preview(result),"error":preview(error),"can_cancel":active && matches!(state.as_str(),"running"|"cancel_requested"),
                 "input_tokens":input_tokens,"output_tokens":output_tokens,"usage_attempt_count":usage_count,"usage_attempts":usage}));
@@ -604,6 +634,45 @@ mod tests {
             summary: "任务".into(),
             deadline_ms: 100,
         }
+    }
+    #[test]
+    fn subtree_usage_deduplicates_shared_runs_and_preserves_unknown_with_scope_isolation() {
+        let connection = Connection::open_in_memory().unwrap();
+        crate::initialize_session_schema(&connection).unwrap();
+        crate::chat_insights::ensure_tables(&connection).unwrap();
+        let root = spec();
+        for (id,parent,workspace,room,run,call) in [
+            ("execution-one",Some("grand"),"workspace","room",Some("root-run"),None),
+            ("child",Some("execution-one"),"workspace","room",None,Some("child-call")),
+            ("grand",Some("child"),"workspace","room",Some("grand-run"),None),
+            ("foreign-workspace",Some("execution-one"),"other","room",Some("foreign-run"),None),
+            ("foreign-room",Some("execution-one"),"workspace","other",Some("foreign-room-run"),None),
+            ("orphan",Some("missing"),"workspace","room",Some("orphan-run"),None),
+        ] {
+            let mut member=spec(); member.id=id.into(); member.parent_execution_id=parent.map(str::to_owned);
+            member.workspace_id=workspace.into(); member.room_id=room.into();
+            member.call_id=call.map(str::to_owned);
+            if call.is_some() {member.source=Source::SessionTool;member.parent_run_id=Some("root-run".into());}
+            connection.execute("INSERT INTO execution_index(id,workspace_id,spec_json,state,started_ms,run_id) VALUES(?1,?2,?3,'completed',1,?4)",
+                params![id,workspace,serde_json::to_string(&member).unwrap(),run]).unwrap();
+        }
+        for (attempt,run,call,input,output,mask) in [
+            ("first","root-run",None,10,2,3),
+            ("second","root-run",Some("child-call"),20,3,3),
+            ("third","grand-run",None,30,999,1),
+            ("unrelated","orphan-run",None,900,900,3),
+        ] {
+            connection.execute("INSERT INTO chat_usage_events(workspace_id,room_id,session_id,created_at,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,attempt_id,logical_request_id,status,dispatched,usage_known_mask,run_id,call_id) VALUES('workspace','room','session',1,?1,?2,0,0,?3,?3,'completed',1,?4,?5,?6)",
+                params![input,output,attempt,mask,run,call]).unwrap();
+        }
+        let tree=subtree_usage(&connection,"workspace",&root).unwrap();
+        assert_eq!(tree["execution_ids"],serde_json::json!(["child","execution-one","grand"]));
+        assert_eq!(tree["descendant_count"],2);
+        assert_eq!(tree["usage_attempt_count"],3,"共享run中的子请求只能汇总一次");
+        assert_eq!(tree["input_tokens"],60);
+        assert!(tree["output_tokens"].is_null(),"未知用量不得拿存储占位值或零补齐");
+        connection.execute("UPDATE chat_usage_events SET usage_known_mask=3,output_tokens=4 WHERE attempt_id='third'",[]).unwrap();
+        assert_eq!(subtree_usage(&connection,"workspace",&root).unwrap()["output_tokens"],9);
     }
     #[tokio::test]
     async fn goal_binding_requires_claim_and_persisted_terminal_state() {
