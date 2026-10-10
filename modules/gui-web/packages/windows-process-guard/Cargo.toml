@@ -9,6 +9,8 @@ publish.workspace = true
 # 仅测试构建可见的故障注入接缝（`InteractiveInputLeaseBroker::revoke_owner_for_test`）。
 # 默认关闭；只在 **[dev-dependencies]** 里由测试目标打开，不得进入发布依赖图。
 test-support = []
+# 构建采集的故障驱动专用；正式构建默认不包含该环境变量接缝。
+build-capture-test-support = []
 
 [dependencies]
 tokio = { version = "1", features = ["process"] }
