@@ -17,9 +17,11 @@
           "coolzhu-web-console",
           "--offline",
           "--target-dir",
-          "modules/gui-web/target"
+          "modules/gui-web/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -37,9 +39,11 @@
           "coolzhu-browser-native-host",
           "--offline",
           "--target-dir",
-          "modules/gui-web/target"
+          "modules/gui-web/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -57,9 +61,11 @@
           "coolzhu-clawbot-sidecar",
           "--offline",
           "--target-dir",
-          "modules/gui-web/target"
+          "modules/gui-web/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -77,9 +83,11 @@
           "coolzhu-cli",
           "--offline",
           "--target-dir",
-          "modules/cli/target"
+          "modules/cli/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -97,9 +105,11 @@
           "coolzhu-computer-use-check",
           "--offline",
           "--target-dir",
-          "modules/computer-use/target"
+          "modules/computer-use/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -117,9 +127,11 @@
           "coolzhu-vision-smoke",
           "--offline",
           "--target-dir",
-          "modules/vision/target"
+          "modules/vision/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -137,9 +149,11 @@
           "coolzhu-latest-desktop-vision",
           "--offline",
           "--target-dir",
-          "modules/vision/target"
+          "modules/vision/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -209,9 +223,11 @@
           "coolzhu-app-launcher",
           "--bin",
           "COOLZHU-AGENT",
-          "--offline"
+          "--offline",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     }
   ],

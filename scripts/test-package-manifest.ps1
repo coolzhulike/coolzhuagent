@@ -4,6 +4,15 @@ $workspace = Split-Path -Parent $PSScriptRoot
 $manifestPath = Join-Path $workspace 'config\package-manifest.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 
+# 所有实际 Cargo 分发入口都应保存机器可读构建回执，不能只记录 Loader 生产者。
+foreach ($entry in @($manifest.artifacts | Where-Object { $_.build.command -eq 'cargo' })) {
+    $formats = @($entry.build.args | Where-Object { $_ -like '--message-format=*' })
+    if ($entry.build.capture -ne 'cargo-json-messages' -or $formats.Count -ne 1 -or
+        $formats[0] -ne '--message-format=json-render-diagnostics') {
+        throw "Cargo 分发入口缺少唯一 JSON 构建回执配置：$($entry.id)"
+    }
+}
+
 $artifactIds = @($manifest.artifacts | ForEach-Object { [string]$_.id })
 $resourceIds = @($manifest.resources | ForEach-Object { [string]$_.id })
 
