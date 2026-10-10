@@ -268,5 +268,25 @@
     "path": "verify-127.py",
     "size": 2862,
     "sha256": "003b3a05e3e2013d912e1f61b698affbc81d3ca3956f74c784bc787254ae44b2"
+  },
+  {
+    "path": "github-published-metadata.json",
+    "size": 12737,
+    "sha256": "8dbd74d15017e4dda3ee282896639d91c359e216adb7c60ff64751e501836b30"
+  },
+  {
+    "path": "github-tag.json",
+    "size": 405,
+    "sha256": "2dc6d90ea6af964927437f26bbc89af3475b25bcb2f4491ad8a7dfd72890b1c3"
+  },
+  {
+    "path": "verify-release.py",
+    "size": 1986,
+    "sha256": "6b09ce05f32de0a5a90d7555b1149ee23ec29b78f40bc7f24a27d5d13b701356"
+  },
+  {
+    "path": "release-notes.md",
+    "size": 1079,
+    "sha256": "c46f5cc233edd923c2c62d4c59bb428ad03890a3d9e3758de865855e24b32907"
   }
 ]
