@@ -39,7 +39,7 @@ impl From<String> for ThreadId {
     }
 }
 
-/// 回合标识。一个线程可以包含多个单调递增的 turn。
+/// 回合标识；顺序由事件序号及持久历史表达，不从标识字符串推断。
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct TurnId(String);

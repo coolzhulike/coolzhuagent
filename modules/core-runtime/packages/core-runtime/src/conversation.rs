@@ -117,7 +117,6 @@ pub struct ConversationRuntime<C, T> {
     usage_tracker: UsageTracker,
     hook_runner: HookRunner,
     thread_id: ThreadId,
-    next_turn_number: u64,
 }
 
 impl<C, T> ConversationRuntime<C, T>
@@ -163,7 +162,6 @@ where
             usage_tracker,
             hook_runner: HookRunner::from_feature_config(&feature_config),
             thread_id: ThreadId::default(),
-            next_turn_number: 0,
         }
     }
 
@@ -197,12 +195,16 @@ where
         user_input: impl Into<String>,
         mut prompter: Option<&mut dyn PermissionPrompter>,
     ) -> Result<TurnSummary, RuntimeError> {
+        // 在修改会话前分配身份；不依赖进程内游标或压缩后的消息数量。
+        let mut identity = [0_u8; 32];
+        getrandom::fill(&mut identity)
+            .map_err(|error| RuntimeError::new(format!("无法生成回合身份：{error}")))?;
+        let turn_id = TurnId::new(format!("turn-{}", identity.iter()
+            .map(|byte| format!("{byte:02x}")).collect::<String>()));
         self.session
             .messages
             .push(ConversationMessage::user_text(user_input.into()));
 
-        self.next_turn_number = self.next_turn_number.saturating_add(1);
-        let turn_id = TurnId::new(format!("turn-{}", self.next_turn_number));
         let context_snapshot = ContextSnapshot::from_session(&self.thread_id, &self.session);
         let mut event_log = vec![
             AgentEvent::new(
@@ -631,6 +633,29 @@ mod tests {
     use std::sync::Arc;
 
     #[test]
+    fn restored_runtime_does_not_reuse_a_failed_turn_identity() {
+        struct Client;
+        impl ApiClient for Client {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                Err(RuntimeError::new("请求失败"))
+            }
+        }
+        let create = |session| ConversationRuntime::new(session, Client,
+            StaticToolExecutor::new(), PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new())
+            .with_thread_id("restored-thread");
+        let mut first = create(Session::new());
+        let first_error = first.run_turn("第一回合", None).unwrap_err();
+        let restored_session = Session::from_json(&first.session().to_json()).unwrap();
+        let mut restored = create(restored_session);
+        let second_error = restored.run_turn("恢复后回合", None).unwrap_err();
+        assert_ne!(first_error.events()[0].turn_id, second_error.events()[0].turn_id);
+        for error in [&first_error, &second_error] {
+            assert!(error.events().iter().all(|event|
+                event.turn_id == error.events()[0].turn_id && event.thread_id.as_str() == "restored-thread"));
+        }
+    }
+
+    #[test]
     fn failure_matrix_preserves_identity_sequence_and_one_terminal() {
         use crate::agent_event::AgentEventKind;
         struct Client(Result<Vec<AssistantEvent>, RuntimeError>);
@@ -934,7 +959,8 @@ mod tests {
             }]
         );
         assert_eq!(summary.thread_id.as_str(), "thread-default");
-        assert_eq!(summary.turn_id.as_str(), "turn-1");
+        assert!(summary.turn_id.as_str().starts_with("turn-"));
+        assert_eq!(summary.turn_id.as_str().len(), 69);
         assert_eq!(summary.context_snapshot.user_message_count, 1);
         assert!(summary
             .events
