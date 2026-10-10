@@ -1,4 +1,50 @@
 # 构建回执独占归档；原始字节身份进入包报告，不以临时日志路径代替内容绑定。
+if (-not ('CoolzhuBoundedJsonLine' -as [type])) {
+  Add-Type -TypeDefinition @'
+using System;
+using System.IO;
+using System.Text;
+public static class CoolzhuBoundedJsonLine {
+  public static string Read(StreamReader reader) {
+    var line = new StringBuilder();
+    int ch;
+    while ((ch = reader.Read()) != -1) {
+      if (ch == 10) return line.ToString().TrimEnd('\r');
+      if (line.Length >= 4 * 1024 * 1024) throw new InvalidDataException("Cargo JSON 单行超过4Mi字符上限，未截断为有效记录");
+      line.Append((char)ch);
+    }
+    return line.Length == 0 ? null : line.ToString().TrimEnd('\r');
+  }
+}
+'@
+}
+
+function Get-CargoStreamSummary {
+  param([IO.Stream]$Source)
+  $Source.Position = 0
+  $reader = [IO.StreamReader]::new($Source, [Text.UTF8Encoding]::new($false, $true), $false, 4096, $true)
+  $finished = 0; $artifacts = 0; $last = $null; $firstLine = $true
+  try {
+    while ($null -ne ($line = [CoolzhuBoundedJsonLine]::Read($reader))) {
+      if ($firstLine) { $line = $line.TrimStart([char]0xfeff); $firstLine = $false }
+      if (-not $line.Trim()) { continue }
+      $record = ConvertFrom-IdentityJson -Json $line
+      if ($finished -gt 0) { throw '最终构建终态后仍有记录' }
+      if ($record.reason -eq 'build-finished') {
+        if ($record.success -isnot [bool] -or -not $record.success) { throw '构建终态未成功' }
+        $finished++
+      }
+      if ($record.reason -eq 'compiler-artifact') {
+        if ([string]::IsNullOrWhiteSpace([string]$record.package_id) -or -not $record.target) { throw '构建组件记录缺少包或目标身份' }
+        $artifacts++
+      }
+      $last = $record.reason
+    }
+  } finally { $reader.Dispose() }
+  if ($finished -ne 1 -or $last -ne 'build-finished' -or $artifacts -eq 0) { throw '构建回执缺少唯一最终成功终态或实际组件记录' }
+  return $artifacts
+}
+
 function Save-PackageCargoBuildEvidence {
   param(
     [Parameter(Mandatory = $true)][string]$RepoPath,
@@ -14,33 +60,22 @@ function Save-PackageCargoBuildEvidence {
   if (-not (Test-PackagePathInsideRoot -Path $ArchiveRoot -Root $RepoPath)) {
     throw '构建回执归档必须位于当前仓库内'
   }
-  $bytes = [IO.File]::ReadAllBytes($RecordPath)
-  $hash = Get-IdentityHashFromBytes -Bytes $bytes
+  $source = [IO.FileStream]::new($RecordPath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+  try {
+  $algorithm = [Security.Cryptography.SHA256]::Create()
+  try { $hash = ([BitConverter]::ToString($algorithm.ComputeHash($source))).Replace('-', '').ToLowerInvariant() } finally { $algorithm.Dispose() }
   if ($ExpectedSha256 -cnotmatch '^[a-f0-9]{64}$' -or $hash -cne $ExpectedSha256) {
     throw '构建回执在采集后发生变化，拒绝归档'
   }
-  $text = [Text.UTF8Encoding]::new($false, $true).GetString($bytes).TrimStart([char]0xfeff)
-  $records = @($text -split "`r?`n" | Where-Object { $_.Trim() } | ForEach-Object {
-    ConvertFrom-IdentityJson -Json $_
-  })
-  $finished = @($records | Where-Object { $_.reason -eq 'build-finished' })
-  $artifacts = @($records | Where-Object { $_.reason -eq 'compiler-artifact' })
-  if ($finished.Count -ne 1 -or $finished[0].success -isnot [bool] -or $finished[0].success -ne $true -or
-      $records[-1].reason -ne 'build-finished' -or $artifacts.Count -eq 0) {
-    throw '构建回执缺少唯一最终成功终态或实际组件记录'
-  }
-  foreach ($artifact in $artifacts) {
-    if ([string]::IsNullOrWhiteSpace([string]$artifact.package_id) -or -not $artifact.target) {
-      throw '构建组件记录缺少包或目标身份'
-    }
-  }
+  $artifactCount = Get-CargoStreamSummary -Source $source
   $directory = Join-Path $ArchiveRoot $RunId
   [IO.Directory]::CreateDirectory($directory) | Out-Null
   $path = Join-Path $directory "$ArtifactId.jsonl"
   $stream = $null
   try {
     $stream = [IO.FileStream]::new($path, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::Read)
-    $stream.Write($bytes, 0, $bytes.Length)
+    $source.Position = 0
+    $source.CopyTo($stream, 81920)
     $stream.Flush($true)
   } catch {
     if ($null -ne $stream) {
@@ -57,11 +92,12 @@ function Save-PackageCargoBuildEvidence {
     run_id = $RunId
     path = Get-IdentityRepoRelativePath -RepoPath $RepoPath -Path $path
     sha256 = $hash
-    length = $bytes.Length
-    compiler_artifact_records = $artifacts.Count
+    length = $source.Length
+    compiler_artifact_records = $artifactCount
     success_message_verified = $true
     scope = '实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名'
   }
+  } finally { $source.Dispose() }
 }
 
 # 消费端核对引用字节；旧报告或未采集模式明确返回未验证，不补造构建事实。
