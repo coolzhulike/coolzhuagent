@@ -27,3 +27,7 @@
 后续legacy入口接线：新增cli_control每回合范围，文本/JSON/internal_prompt三处真实run_turn先完成自有监听线程的Ctrl+C首次轮询注册，再以with_execution_control进入同步回合；沿用已有父控制及截止，无父时建立本回合令牌。正常/错误/panic离开范围均停止并join自身线程，每20毫秒观察停止；不生成新的业务截止。注册失败在执行前返回错误。后续监听错误会取消根并打印诊断，线程panic/收尾错误的完整结构化监督仍需补，不宣称完备。
 
 真实cargo build实际exit0（8.76秒），最后再次构建exit0。完整CLI串行107通过0失败0忽略；新增真实Ctrl+C注册和上下文恢复、模拟注册失败零派发、模拟信号取消仅本回合及连续回合隔离、父截止保留。日志tmp/analysis-cli-root-control-build.txt、final-build.txt、tests.txt。模拟信号不等于真实按键触发；没有向当前共享控制台注入Ctrl+C，也没有终止其它实例。真实独立CLI进程组按键、权限提示阻塞读、退出/信号同时发生、线程监督失败和安装版仍未正式验收。Tokio底层信号注册是进程级的，停止本轮Future不证明系统处理器已注销；REPL空闲输入语义须实测。
+
+后续监听线程异常保护：在自有线程内捕获注册/轮询 panic，撤销同一个根控制，以非阻塞 try_send 通知注册错误，避免注册已确认时阻塞错误上报。注册前 panic 不派发；注册后 panic 能结束本回合受控等待，退出范围仍 join 自有线程。新增两个永久回归，等待断言有2秒观察上限。此路径依赖 unwind，未覆盖进程 abort、阻塞权限输入和信号/完成竞态的完整监督。
+
+真实CLI构建exit0；完整串行CLI测试109通过0失败0忽略，实际exit0。日志 tmp/analysis-cli-listener-panic-build.txt、tmp/analysis-cli-listener-panic-tests.txt。仅证明本地异常保护，真实独立进程组Ctrl+C、外部正式模型、安装包和32WBS全量门禁仍开放。

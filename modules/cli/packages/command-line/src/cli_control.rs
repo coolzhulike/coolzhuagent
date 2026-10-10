@@ -14,6 +14,9 @@ where F:FnOnce()->S+Send+'static,S:Future<Output=io::Result<()>> {
     let stop=stopped.clone();
     let (ready,started)=std::sync::mpsc::sync_channel(1);
     let worker=std::thread::Builder::new().name("cli-turn-signal".into()).spawn(move || {
+        let failed_control=cancel.clone();
+        let failed_ready=ready.clone();
+        let outcome=std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let runtime=match tokio::runtime::Builder::new_current_thread().enable_all().build(){
             Ok(runtime)=>runtime,
             Err(error)=>{let _=ready.send(Err(error.to_string()));return;}
@@ -40,6 +43,13 @@ where F:FnOnce()->S+Send+'static,S:Future<Output=io::Result<()>> {
                 }
             }
         });
+        }));
+        if outcome.is_err() {
+            // 注册前拒绝派发；注册后撤销原回合，不能留下无人监听的等待。
+            failed_control.cancel();
+            let _=failed_ready.try_send(Err("CLI取消监听线程异常退出".to_owned()));
+            eprintln!("CLI取消监听线程异常退出，已撤销当前回合");
+        }
     })?;
     struct Guard {stop:Arc<AtomicBool>,worker:Option<std::thread::JoinHandle<()>>}
     impl Drop for Guard {fn drop(&mut self){self.stop.store(true,Ordering::Release);if let Some(worker)=self.worker.take(){let _=worker.join();}}}
@@ -52,6 +62,33 @@ where F:FnOnce()->S+Send+'static,S:Future<Output=io::Result<()>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn registration_panic_does_not_dispatch() {
+        let result=with_signal(|| -> std::future::Ready<io::Result<()>> {panic!("注册异常")},||panic!("注册异常不得派发"));
+        assert!(result.is_err());
+        assert!(current_execution_control().is_none());
+    }
+    #[test]
+    fn listener_panic_cancels_registered_turn() {
+        struct PanicsAfterRegistration(bool);
+        impl Future for PanicsAfterRegistration {
+            type Output=io::Result<()>;
+            fn poll(mut self:std::pin::Pin<&mut Self>,_:&mut std::task::Context<'_>)->Poll<Self::Output> {
+                if self.0 {panic!("监听异常")}
+                self.0=true;
+                Poll::Pending
+            }
+        }
+        with_signal(||PanicsAfterRegistration(false),|| {
+            let control=current_execution_control().unwrap();
+            let limit=std::time::Instant::now()+Duration::from_secs(2);
+            while control.interruption().is_none() && std::time::Instant::now()<limit {
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            assert_eq!(control.interruption(),Some(runtime::managed_process::Interruption::Cancelled));
+        }).unwrap();
+        assert!(current_execution_control().is_none());
+    }
     #[test]
     fn real_signal_registration_installs_and_restores_root_control() {
         run(||assert!(current_execution_control().is_some())).unwrap();
