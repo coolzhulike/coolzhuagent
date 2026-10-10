@@ -1,5 +1,7 @@
 # 04整合计划32工作包执行复核
 
+2026-10-10文档切换增量：正式126原SWE-2/唯一island-kayak/revision57真实planning中自然导航，同名新按钮未误点，旧click以stale_observation/not_sent拦截；原终态预算覆盖缺陷保留。controller候选保留执行失败和receipt、无预算不再额外观察，独立真实复验正确回复，两个文档输入0，父failed为预期负例/end_turn/drained/解锁。core/Web offline build0、原core143/0。候选与正式实拍独立归档，已恢复正式126；新正式包交付、原生commit/down-up/关闭/HRESULT竞态及32WBS继续。[报告与原图](../../testing/2026-10-10-browser-document-change/report.md)。Goal active。
+
 2026-10-10正式126：记忆JSON资料边界、大文本同句柄有界只读预览及文件级SBOM合并交付。冻结3ca0890e/快照642ff169，正常release构建353.2秒/actual0、安装0、六门pass、Program Files1159文件/432190904字节逐SHA一致，两路CI38051919724/38051916797 success。原SWE-2-medium/唯一island-kayak/revision57真实长程318.8秒（#806/#807）：实际污染L1选中/L4排除，两UTF-8/BOM UTF-16BE附件尾部新订单、八Browser动作/16可信输入、宿主2/2后DSH一次，总额3096正确；父completed/end_turn/drained并解锁。三次结果分页有8192→69632缺口，不冒完整连续读取；click/Enter未知效果保持。自有三条记忆撤回、原102保留，自有网页正常停止。1.8MB/19775行SBOM正式八页原字节重组与尾窗一致，正常文件入口及`:19775`末尾实拍通过。仅关闭这两候选的正式交付缺口；超长单行GUI、严格native竞态、完整4.4/6.4及32WBS继续，Goal active、Paint免测/微信不动/Opus暂停/无子代理。[交接及原图](../../testing/release-0.2.126/change-report-and-test-handoff.md)。 已公开GitHub预发布五资产，服务器摘要及实际tag3ca0890e一致；未签名、不修改自动更新索引。
 
 2026-10-10正式125严格取消增量：真实SWE-2-medium/唯一island-kayak/revision57，#805/父060ea336，一次可信click已sent/released后关联观察实际登记；登记后22.466ms正常停止HTTP200，停止CAS后同请求673ms以native_observation_cancelled/reply_parent_changed收尾，未采纳迟到回包，effect/goal未知保持。父interrupted/30.9秒、CUblocked非成功、仅一工具一动作、ACPcancelled/drained/解锁、SSEdone一次，原生轨迹“已中止/模型请求已取消”实拍通过。仅输入释放后观察在途取消通过；晚UI关闭原失败、导航替换/原生窄竞态及32WBS仍开放，Goal active。[原始时序与实拍](../../testing/release-0.2.125/browser-pending-cancel/report.md)。
@@ -162,7 +164,7 @@ ACP统计遗漏已在正式101修补及独立复验：HTTP与权威ACP台账在�
 | 3.1 Frame/DPI | 原生帧身份、目标映射和浏览器轴缩放已有正式实操。 | 混合DPI、负坐标与真实多屏矩阵缺环境证据。 |
 | 3.2 UIA/语义动作 | 正式Browser同/跨进程子控件、输入、Enter、滚动已有证据，桌面基本输入可用。 | 不外推任意Windows控件pattern能力；完整语义能力表未验。 |
 | 3.3 有界反馈/验证 | 125正式父任务交接→DSH长程、结构/引文同请求反馈和8条实际输入通过。 | 完整纠正次数/取消迟到、分页分支正式复验与子目标重规划未全验；真实引文不等于通用目标语义，125自然导航误判保留。 |
-| 3.4 失配/settle | 正式过期引用、焦点/子文档变化、裁剪与OOP边界均已实测。 | 094正式旋转/斜切跨来源9步长程及透视/父覆盖层零投递负例通过，095按下期间正常关闭/设置替换通过；非目标误拒率及严格新原生Target/跨来源commit、在途撤销继续开放。 |
+| 3.4 失配/settle | 正式过期引用、焦点/子文档变化、裁剪与OOP边界已实测；126真实planning期间自然导航零误点，终态原因保留候选复验通过。 | 094正式旋转/斜切跨来源9步长程及透视/父覆盖层零投递负例通过，095按下期间正常关闭/设置替换通过；非目标误拒率及严格新原生Target/跨来源commit、在途撤销继续开放。 |
 | 3.5 Paint实验 | 基本输入正式证据保留；用户明确停止完整Paint绘画验收。 | E1–E5/L1/L2整套不再作为本次阻塞；不得宣传未完成绘图优化。 |
 | 4.1 前端模块/面板 | 快捷轨、右栏、顶部下拉、内容预览、独立模块已落地；093玉石控件正式原生实拍通过。 | `app.js`仍大；903×551 Web布局正式110通过；正式111原生同尺寸首页、设置内部滚动与关闭恢复实拍通过，混合DPI/多屏仍待补。 |
 | 4.2 轨迹/统计/FTS | 搜索/索引、用量、临时过程与独立轨迹已接线，正式页面读取复核通过；097独立容量库10k/100k搜索、排序/分页/定位和11万条FTS冷重建/并发历史读取通过，已留界面实拍。 | 097正式原生UI的真实SWE/空房间统计隔离、切回恢复、异房间消息ID隔离和未知token已通过，见[统计报告](../../testing/2026-10-08-usage-scope/report.md)；重连迟到、多工作区和模型写入竞争全矩阵仍未完整；见[容量报告](../../testing/2026-10-08-search-volume/report.md)。 |

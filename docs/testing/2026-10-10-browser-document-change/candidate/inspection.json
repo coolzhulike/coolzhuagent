@@ -1,0 +1,292 @@
+{
+  "passed": false,
+  "candidate": true,
+  "facts": {
+    "stage": "源码候选规划期间文档切换验收",
+    "source_user_id": "msg-1791637748472-user",
+    "run": {
+      "id": "run-chat-a0c865dd5c233112a6bdc68070bb69e57d9fc841d84c8c3a",
+      "kind": "chat_turn",
+      "workspace_id": "ws-23f646a969206cb4",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "goal_id": null,
+      "phase_id": null,
+      "legacy_turn_id": "chat-turn-1791637748472-0",
+      "provider_turn_id": null,
+      "state": "failed",
+      "owner_id": "coolzhu-web-console",
+      "claim_token": "claim-b39e2ac95a0909c9e887841e081639e2853a96232e6860ca9498b8f421149c61",
+      "stop_reason": null,
+      "error_json": null,
+      "created_at": 1791637748475,
+      "started_at": 1791637750515,
+      "stop_requested_at": null,
+      "heartbeat_at": 1791637750515,
+      "finished_at": 1791637805427
+    },
+    "calls": [
+      {
+        "tool_call_id": "tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5",
+        "run_id": "run-chat-a0c865dd5c233112a6bdc68070bb69e57d9fc841d84c8c3a",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "0608997c990a3a72",
+        "status": "failed",
+        "created_at_unix_ms": 1791637771786,
+        "updated_at_unix_ms": 1791637800404,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-a0c865dd5c233112a6bdc68070bb69e57d9fc841d84c8c3a\",\"turn_id\":\"chat-turn-1791637748472-0\",\"attempt_id\":\"a419c81e6eaee17755bd7d2fcfdf339f46aee4406d6c3de7\",\"owner_epoch\":287,\"generation\":287}"
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "a419c81e6eaee17755bd7d2fcfdf339f46aee4406d6c3de7",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "visible_reply": [
+      {
+        "id": "msg-1791637750903-0",
+        "content": "任务终态：**blocked**（`stale_observation` + `budget_exhausted`），未达成目标。\n\n## 实际发生\n\n- 仅调用了一次 `computer_use_perform`（`max_actions=1`，surface=browser，省略 target）。\n- 规划快照确认当时为初始旧文档：`http://127.0.0.1:53130/old.html`，标题 `文档切换126-OLD`，唯一按钮\"文档引用验收\"在视口内（`dom-21eb6a78a271037a9d2f6808362baa3e`），我按格式提交了针对该旧文档按钮的 click。\n- 宿主终态回执：`status: blocked`，错误 `stale_observation` —— \"**browser identity changed before input**\"（网页在规划期间已自然导航到新文档，旧引用失效），随后恢复动作因 `max_actions=1` 预算耗尽而停止（`circuit_open: true`）。\n- 该 click 步骤回执：`input_delivery: not_sent`，`effect: not_observed`，`steps_completed: 0` —— **点击实际未发送**，也未误点新文档同名按钮。\n\n## 结论\n\n- 旧文档目标**未被点击**，成功标准未达成。\n- 按约束不重试、不补发、不另选目标、不调用其它工具，任务如实停止。这也印证了页面提示：\"文档切换后不得复用旧引用；同名称不代表同一文档\"。",
+        "kind": "assistant-reply"
+      }
+    ]
+  },
+  "cu_runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791637748472-0-tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5",
+      "provider_tool_call_id": "tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5",
+      "turn_id": "chat-turn-1791637748472-0",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791637748472-0\u001fbrowser\u001f只在初始旧文档点击唯一的“文档引用验收”按钮\u001f\u001f旧文档目标已点击\u001f只允许初始旧文档的按钮；网页自然导航或文档失配后停止；新文档同名按钮不是原目标；不重新选目标、不重试、不补发",
+      "objective_json": "{\"constraints\":[\"只允许初始旧文档的按钮；网页自然导航或文档失配后停止；新文档同名按钮不是原目标；不重新选目标、不重试、不补发\"],\"max_actions\":1,\"objective\":\"只在初始旧文档点击唯一的“文档引用验收”按钮\",\"success_criteria\":[\"旧文档目标已点击\"],\"surface\":\"browser\"}",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791638648472,
+      "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791637748472-0-tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5\",\"provider_tool_call_id\":\"tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5\",\"status\":\"blocked\",\"stage\":\"execution\",\"goal_achieved\":false,\"surface\":\"browser\",\"summary\":\"browser identity changed before input; recovery stopped: computer-use action budget exhausted\",\"error\":{\"code\":\"stale_observation\",\"message\":\"browser identity changed before input; recovery stopped: computer-use action budget exhausted\",\"retryable\":false,\"retry_owner\":\"none\",\"receipt\":{\"action_id\":\"browser:dom-21eb6a78a271037a9d2f6808362baa3e:fbaf97f945cb605b\",\"input_delivery\":\"not_sent\",\"partial\":false,\"effect\":\"not_observed\",\"goal_verdict\":\"not_checked\",\"input_release\":\"not_needed\"}},\"attempts\":1,\"steps_completed\":0,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"click\",\"input_delivery\":\"not_sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":null,\"goal_verdict\":null}],\"evidence\":[\"native-ax:1:0\",\"native-observation:b3b857767f740d0d799fcec8cad171d7\",\"native-ax:1:0\",\"native-observation:b3b857767f740d0d799fcec8cad171d7\"],\"supervisor\":{\"circuit_open\":true,\"reason\":\"budget_exhausted\",\"action_count\":1,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791638648472}},\"cu_deadline_ms\":1791638648472,\"cu_deadline_established_at_ms\":1791637773774,\"cu_budget_ms\":900000}}",
+      "created_at_ms": 1791637773774,
+      "updated_at_ms": 1791637800391,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1791131217833-chat-turn-1791637748472-0-tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-21eb6a78a271037a9d2f6808362baa3e",
+      "action_fingerprint": "3f9711ae24fe7bdb",
+      "status": "failed",
+      "error_code": "stale_observation",
+      "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:b3b857767f740d0d799fcec8cad171d7\"]",
+      "after_evidence_ref": null,
+      "visible_progress": 0,
+      "input_delivery": "not_sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": null,
+      "goal_verdict": null,
+      "input_release_status": "not_needed",
+      "started_at_ms": 1791637799586,
+      "completed_at_ms": 1791637800232,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ],
+  "events": [
+    {
+      "id": 6308,
+      "event_type": "run.accepted",
+      "created_at": 1791637748481,
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791637748472-0\"}"
+    },
+    {
+      "id": 6309,
+      "event_type": "chat.source_messages",
+      "created_at": 1791637750487,
+      "payload_json": "{\"message_ids\":[\"msg-1791637748472-user\"]}"
+    },
+    {
+      "id": 6310,
+      "event_type": "chat.target_agents",
+      "created_at": 1791637750503,
+      "payload_json": "{\"agent_ids\":[\"session-1791131217833\"]}"
+    },
+    {
+      "id": 6311,
+      "event_type": "run.started",
+      "created_at": 1791637750515,
+      "payload_json": "{\"previous_state\":\"accepted\"}"
+    },
+    {
+      "id": 6312,
+      "event_type": "devin.context_delta",
+      "created_at": 1791637759409,
+      "payload_json": "{\"continued\":true,\"delta_history_messages\":1,\"host_history_messages\":29,\"image_count\":0,\"prompt_bytes\":6790}"
+    },
+    {
+      "id": 6313,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791637773792,
+      "payload_json": "{\"request_id\":\"b3b857767f740d0d799fcec8cad171d7\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 6314,
+      "event_type": "devin.planning_requested",
+      "created_at": 1791637776582,
+      "payload_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791637748472-0-tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5\",\"kind\":\"computer_use_planning\",\"model\":\"swe-2-medium\",\"request_id\":\"0771fbffa10a81f196049b1d4365baedbe7f5c97d29b180190b9660b1b4998901dc2ad07ae02bd0046da8ba42335beb6\",\"transport\":\"current_chat_tool_bridge\"}"
+    },
+    {
+      "id": 6315,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791637781480,
+      "payload_json": "{\"offset\":0,\"request_id\":\"0771fbffa10a81f196049b1d4365baedbe7f5c97d29b180190b9660b1b4998901dc2ad07ae02bd0046da8ba42335beb6\"}"
+    },
+    {
+      "id": 6316,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791637788464,
+      "payload_json": "{\"offset\":6000,\"request_id\":\"0771fbffa10a81f196049b1d4365baedbe7f5c97d29b180190b9660b1b4998901dc2ad07ae02bd0046da8ba42335beb6\"}"
+    },
+    {
+      "id": 6317,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791637793239,
+      "payload_json": "{\"offset\":12000,\"request_id\":\"0771fbffa10a81f196049b1d4365baedbe7f5c97d29b180190b9660b1b4998901dc2ad07ae02bd0046da8ba42335beb6\"}"
+    },
+    {
+      "id": 6318,
+      "event_type": "devin.planning_response",
+      "created_at": 1791637799577,
+      "payload_json": "{\"request_id\":\"0771fbffa10a81f196049b1d4365baedbe7f5c97d29b180190b9660b1b4998901dc2ad07ae02bd0046da8ba42335beb6\",\"response_digest\":\"735fca1eddd37ad376598fe21ad223f1ed32a96de1b07506dc2cbc8858fd663c\",\"source_attempt\":\"a419c81e6eaee17755bd7d2fcfdf339f46aee4406d6c3de7\"}"
+    },
+    {
+      "id": 6319,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791637799600,
+      "payload_json": "{\"request_id\":\"a0b1981c8405d0faa513af0d7c8356e0\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 6320,
+      "event_type": "run.failed",
+      "created_at": 1791637805427,
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"failed\"}"
+    }
+  ],
+  "page_events": [
+    {
+      "kind": "http-get",
+      "role": "OLD",
+      "path": "/old.html",
+      "server_ns": 926445157736700,
+      "received_unix_ns": 1791637735366723200
+    },
+    {
+      "kind": "document-script-start",
+      "role": "OLD",
+      "page_ms": 1791637735411,
+      "server_ns": 926445205803700,
+      "received_unix_ns": 1791637735414790100
+    },
+    {
+      "kind": "loaded",
+      "role": "OLD",
+      "page_ms": 1791637735414.7,
+      "trusted": true,
+      "server_ns": 926445210542400,
+      "received_unix_ns": 1791637735419528400
+    },
+    {
+      "kind": "planning-detected",
+      "facts": {
+        "parent_run": "run-chat-a0c865dd5c233112a6bdc68070bb69e57d9fc841d84c8c3a",
+        "parent_state": "running",
+        "cu_call_id": "cu-session-1791131217833-chat-turn-1791637748472-0-tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5",
+        "state": "planning",
+        "action_count": 0,
+        "observation_generation": 0,
+        "captured_ms": 1791637774534.0173
+      },
+      "server_ns": 926484324099900,
+      "received_unix_ns": 1791637774534027700
+    },
+    {
+      "kind": "navigation-requested",
+      "role": "OLD",
+      "page_ms": 1791637774536.5,
+      "server_ns": 926484330318900,
+      "received_unix_ns": 1791637774540247400
+    },
+    {
+      "kind": "http-get",
+      "role": "NEW",
+      "path": "/new.html",
+      "server_ns": 926484333901400,
+      "received_unix_ns": 1791637774543829800
+    },
+    {
+      "kind": "pagehide",
+      "role": "OLD",
+      "page_ms": 1791637774546.7,
+      "trusted": true,
+      "server_ns": 926484339682400,
+      "received_unix_ns": 1791637774549611900
+    },
+    {
+      "kind": "document-script-start",
+      "role": "NEW",
+      "page_ms": 1791637774551.2,
+      "server_ns": 926484355423200,
+      "received_unix_ns": 1791637774565352000
+    },
+    {
+      "kind": "loaded",
+      "role": "NEW",
+      "page_ms": 1791637774555.5,
+      "trusted": true,
+      "server_ns": 926484357733700,
+      "received_unix_ns": 1791637774567663000
+    }
+  ],
+  "trigger": {
+    "parent_run": "run-chat-a0c865dd5c233112a6bdc68070bb69e57d9fc841d84c8c3a",
+    "parent_state": "running",
+    "cu_call_id": "cu-session-1791131217833-chat-turn-1791637748472-0-tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5",
+    "state": "planning",
+    "action_count": 0,
+    "observation_generation": 0,
+    "captured_ms": 1791637774534.0173
+  }
+}

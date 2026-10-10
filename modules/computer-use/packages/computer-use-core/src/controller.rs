@@ -774,12 +774,20 @@ where
                         && !stale_recovered
                         && !error.receipt_shows_input_may_have_been_sent(&crate::contracts::action_attempt_id(surface, &action)) =>
                 {
-                    if let Err(budget_error) = guard.record_replan() {
+                    // 原执行失败是文档/观察失效。恢复已无预算时保留这个原因，
+                    // 不再额外观察，也不把未投递的动作误报成单纯规划预算耗尽。
+                    let recovery = guard.before_planning(self.clock.now_ms())
+                        .and_then(|()| guard.record_replan());
+                    if let Err(budget_error) = recovery {
+                        let mut failure = error;
+                        failure.retryable = false;
+                        failure.retry_owner = ComputerUseRetryOwner::None;
+                        failure.message.push_str(&format!("; recovery stopped: {}", budget_error.message));
                         return self.terminal(
                             &context,
                             surface,
-                            ComputerUseStage::Supervisor,
-                            budget_error,
+                            ComputerUseStage::Execution,
+                            failure,
                             attempts,
                             steps_completed,
                             evidence,

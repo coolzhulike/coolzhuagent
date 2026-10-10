@@ -1,5 +1,7 @@
 # 整体验收状态快照（2026-10-08）
 
+2026-10-10文档切换增量：正式126原SWE-2/唯一island-kayak/revision57真实planning中自然导航，同名新按钮未误点，旧click以stale_observation/not_sent拦截；原终态预算覆盖缺陷保留。controller候选保留执行失败和receipt、无预算不再额外观察，独立真实复验正确回复，两个文档输入0，父failed为预期负例/end_turn/drained/解锁。core/Web offline build0、原core143/0。候选与正式实拍独立归档，已恢复正式126；新正式包交付、原生commit/down-up/关闭/HRESULT竞态及32WBS继续。[报告与原图](../../testing/2026-10-10-browser-document-change/report.md)。Goal active。
+
 2026-10-10正式126：记忆JSON资料边界、大文本同句柄有界只读预览及文件级SBOM合并交付。冻结3ca0890e/快照642ff169，正常release构建353.2秒/actual0、安装0、六门pass、Program Files1159文件/432190904字节逐SHA一致，两路CI38051919724/38051916797 success。原SWE-2-medium/唯一island-kayak/revision57真实长程318.8秒（#806/#807）：实际污染L1选中/L4排除，两UTF-8/BOM UTF-16BE附件尾部新订单、八Browser动作/16可信输入、宿主2/2后DSH一次，总额3096正确；父completed/end_turn/drained并解锁。三次结果分页有8192→69632缺口，不冒完整连续读取；click/Enter未知效果保持。自有三条记忆撤回、原102保留，自有网页正常停止。1.8MB/19775行SBOM正式八页原字节重组与尾窗一致，正常文件入口及`:19775`末尾实拍通过。仅关闭这两候选的正式交付缺口；超长单行GUI、严格native竞态、完整4.4/6.4及32WBS继续，Goal active、Paint免测/微信不动/Opus暂停/无子代理。[交接及原图](../../testing/release-0.2.126/change-report-and-test-handoff.md)。 已公开GitHub预发布五资产，服务器摘要及实际tag3ca0890e一致；未签名、不修改自动更新索引。
 
 2026-10-10正式125严格取消增量：真实SWE-2-medium/唯一island-kayak/revision57，#805/父060ea336，一次可信click已sent/released后关联观察实际登记；登记后22.466ms正常停止HTTP200，停止CAS后同请求673ms以native_observation_cancelled/reply_parent_changed收尾，未采纳迟到回包，effect/goal未知保持。父interrupted/30.9秒、CUblocked非成功、仅一工具一动作、ACPcancelled/drained/解锁、SSEdone一次，原生轨迹“已中止/模型请求已取消”实拍通过。仅输入释放后观察在途取消通过；晚UI关闭原失败、导航替换/原生窄竞态及32WBS仍开放，Goal active。[原始时序与实拍](../../testing/release-0.2.125/browser-pending-cancel/report.md)。

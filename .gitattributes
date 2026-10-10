@@ -236,3 +236,6 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/2026-10-09-package-file-sbom/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 
 /docs/testing/2026-10-09-large-text-preview/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 文档切换的真实页面事件、回执和截图摘要保留原始字节。
+/docs/testing/2026-10-10-browser-document-change/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
