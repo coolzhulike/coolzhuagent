@@ -21,6 +21,11 @@ fn event_namespace(path: &Path) -> std::io::Result<std::path::PathBuf> {
     Ok(path.with_file_name(name))
 }
 
+fn event_directory(path: &Path) -> std::io::Result<std::path::PathBuf> {
+    Ok(path.parent().unwrap_or_else(|| Path::new(".")).join("turn-events-v2")
+        .join(path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?))
+}
+
 /// 恢复持久轨迹；旧会话没有轨迹目录时兼容为空，不忽略已存在的损坏记录。
 pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEvent>>> {
     use std::io::Read;
@@ -28,9 +33,9 @@ pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEv
     let current = event_namespace(path)?;
     let legacy = path.with_extension("events.json");
     let mut entries = Vec::new();
-    for (index, namespace) in [&current, &legacy].into_iter().enumerate() {
-        if index == 1 && current == legacy { continue; }
-        let directory = root.join(namespace.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?);
+    let mut visited = std::collections::BTreeSet::new();
+    for directory in [event_directory(path)?, root.join(current.file_name().unwrap()), root.join(legacy.file_name().unwrap())] {
+        if !visited.insert(directory.clone()) { continue; }
         let found = match std::fs::read_dir(directory) {
             Ok(entries) => entries,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
@@ -84,11 +89,15 @@ fn reserve_internal_file(parent_session: &Path) -> std::io::Result<(std::path::P
 }
 
 fn reserve_internal_file_with_extension(parent_session: &Path, extension: &str) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
-    use std::sync::atomic::{AtomicU64, Ordering};
-    static SEQUENCE: AtomicU64 = AtomicU64::new(0);
     let name = parent_session.file_name().ok_or_else(|| std::io::Error::other("主会话路径缺少文件名"))?;
     let directory = parent_session.parent().unwrap_or_else(|| Path::new("."))
         .join("internal-turns").join(name);
+    reserve_file_in_directory(&directory, extension)
+}
+
+fn reserve_file_in_directory(directory: &Path, extension: &str) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static SEQUENCE: AtomicU64 = AtomicU64::new(0);
     std::fs::create_dir_all(&directory)?;
     let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
         .map_err(std::io::Error::other)?.as_nanos();
@@ -134,7 +143,7 @@ fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
     use std::io::Write;
     if events.is_empty() { return Ok(()); }
     let bytes = serde_json::to_vec_pretty(events).map_err(std::io::Error::other)?;
-    let (event_path, mut file) = reserve_internal_file_with_extension(&event_namespace(path)?, "pending")?;
+    let (event_path, mut file) = reserve_file_in_directory(&event_directory(path)?, "pending")?;
     let saved = file.write_all(&bytes).and_then(|()| file.sync_all());
     drop(file);
     if let Err(error) = saved {
@@ -174,17 +183,18 @@ mod tests {
         save_events(&events, &first).unwrap();
         assert_eq!(load_event_history(&first).unwrap(), vec![events]);
         assert!(load_event_history(&second).unwrap().is_empty());
+        assert!(load_event_history(&directory.join("main.json.txt")).unwrap().is_empty());
         let bare = directory.join("bare");
         let bare_events = load_event_history(&first).unwrap().remove(0);
         save_events(&bare_events, &bare).unwrap();
         assert_eq!(load_event_history(&bare).unwrap(), vec![bare_events]);
-        let bare_dir = directory.join("internal-turns/bare.events.json");
+        let bare_dir = directory.join("turn-events-v2/bare");
         for entry in std::fs::read_dir(&bare_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
         std::fs::remove_dir(bare_dir).unwrap();
-        let event_dir = directory.join("internal-turns/main.json.events.json");
+        let event_dir = directory.join("turn-events-v2/main.json");
         for entry in std::fs::read_dir(&event_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
         std::fs::remove_dir(event_dir).unwrap();
-        std::fs::remove_dir(directory.join("internal-turns")).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
         std::fs::remove_dir(directory).unwrap();
     }
 
@@ -228,7 +238,7 @@ mod tests {
         let mut runtime = ConversationRuntime::new(Session::new(), Client, Executor,
             PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
         let summary = persist_result(runtime.run_turn("完成", None), runtime.session(), &path).unwrap();
-        let event_directory = directory.join("internal-turns/main.json.events.json");
+        let event_directory = directory.join("turn-events-v2/main.json");
         let files = std::fs::read_dir(&event_directory).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
         assert_eq!(files.len(), 1);
         let actual: serde_json::Value = serde_json::from_slice(&std::fs::read(files[0].path()).unwrap()).unwrap();
@@ -248,14 +258,14 @@ mod tests {
         assert!(load_event_history(&path).is_err());
         std::fs::remove_file(files[0].path()).unwrap();
         std::fs::remove_dir(event_directory).unwrap();
-        std::fs::remove_dir(directory.join("internal-turns")).unwrap();
-        std::fs::write(directory.join("internal-turns"), b"blocked").unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::write(directory.join("turn-events-v2"), b"blocked").unwrap();
         let error = persist_result(runtime.run_turn("再次完成", None), runtime.session(), &path).unwrap_err();
         assert!(error.to_string().contains("终态轨迹保存失败"));
         assert!(!error.to_string().contains("回合执行失败"));
         assert_eq!(Session::load_from_path(&path).unwrap(), *runtime.session());
         std::fs::remove_file(path).unwrap();
-        std::fs::remove_file(directory.join("internal-turns")).unwrap();
+        std::fs::remove_file(directory.join("turn-events-v2")).unwrap();
         std::fs::remove_dir(directory).unwrap();
     }
 
@@ -286,8 +296,7 @@ mod tests {
         assert!(error.to_string().contains("模型反馈请求失败"));
         let saved = Session::load_from_path(&path).unwrap();
         assert_eq!(saved, *runtime.session());
-        let event_directory = path.parent().unwrap().join("internal-turns")
-            .join(event_namespace(&path).unwrap().file_name().unwrap());
+        let event_directory = event_directory(&path).unwrap();
         let event_files = std::fs::read_dir(&event_directory).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
         assert_eq!(event_files.len(), 1);
         let persisted: serde_json::Value = serde_json::from_slice(&std::fs::read(event_files[0].path()).unwrap()).unwrap();
@@ -321,7 +330,7 @@ mod tests {
         std::fs::create_dir_all(&directory).unwrap();
         let path = directory.join("main.json");
         // 用普通文件阻止轨迹目录创建，同时允许会话正常保存。
-        std::fs::write(directory.join("internal-turns"), b"blocked").unwrap();
+        std::fs::write(directory.join("turn-events-v2"), b"blocked").unwrap();
         let mut runtime = ConversationRuntime::new(Session::new(), Client, Executor,
             PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
         let result = runtime.run_turn("request", None);
@@ -331,7 +340,7 @@ mod tests {
         assert!(error.to_string().contains("终态轨迹保存失败"));
         assert_eq!(Session::load_from_path(&path).unwrap(), *runtime.session());
         std::fs::remove_file(path).unwrap();
-        std::fs::remove_file(directory.join("internal-turns")).unwrap();
+        std::fs::remove_file(directory.join("turn-events-v2")).unwrap();
         std::fs::remove_dir(directory).unwrap();
     }
 
