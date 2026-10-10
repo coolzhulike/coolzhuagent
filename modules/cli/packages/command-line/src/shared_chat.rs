@@ -298,8 +298,10 @@ impl Output<'_> {
         match event {
             "started" => {
                 if !self.receipt.run.is_empty() || value["chat_room_id"] != room { return Err(problem("服务返回了重复或不匹配的轮次")); }
-                self.receipt.run = required_string(&value, "run_id")?.to_string();
-                self.receipt.turn = required_string(&value, "turn_id")?.to_string();
+                let run = required_string(&value, "run_id")?.to_string();
+                let turn = required_string(&value, "turn_id")?.to_string();
+                self.receipt.run = run;
+                self.receipt.turn = turn;
             },
             "done" => {
                 if self.receipt.run.is_empty() || value["run_id"] != self.receipt.run || value["turn_id"] != self.receipt.turn {
@@ -347,6 +349,10 @@ impl Output<'_> {
 }
 
 async fn interrupt(client: &Client, options: &Options, receipt: &Receipt) -> io::Result<Value> {
+    if receipt.run.trim().is_empty() || receipt.turn.trim().is_empty()
+        || options.session.trim().is_empty() || options.room.trim().is_empty() {
+        return Err(problem("原轮次身份不完整，未发送停止请求；提交结果待确认"));
+    }
     let confirmation = json_response(client.post(options.base.join("api/chat/turn/interrupt").map_err(problem)?)
         .timeout(CONTROL_TIMEOUT).json(&json!({"session_id":options.session,"chat_room_id":options.room,"turn_id":receipt.turn}))
         .send().await.map_err(problem)?).await?;
@@ -499,6 +505,34 @@ mod tests {
     async fn chunk(socket: &mut TcpStream, bytes: &[u8]) {
         socket.write_all(format!("{:x}\r\n",bytes.len()).as_bytes()).await.unwrap();
         socket.write_all(bytes).await.unwrap(); socket.write_all(b"\r\n").await.unwrap();
+    }
+
+    /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
+    #[test]
+    fn incomplete_admission_does_not_partially_update_receipt() {
+        for value in [json!({"run_id":"run","chat_room_id":"room"}),
+            json!({"run_id":"run","turn_id":"","chat_room_id":"room"}),
+            json!({"turn_id":"turn","chat_room_id":"room"})] {
+            let (mut out, mut err) = (Vec::new(), Vec::new());
+            let mut output = Output { json:true, stdout:&mut out, stderr:&mut err,
+                receipt:Receipt::default(), message_id:String::new(), displayed:String::new() };
+            assert!(output.event("started", value, "room").is_err());
+            assert!(output.receipt.run.is_empty());
+            assert!(output.receipt.turn.is_empty());
+            assert!(out.is_empty());
+        }
+    }
+
+    #[tokio::test]
+    async fn incomplete_receipt_never_sends_interrupt() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+        let options = Options { base, workspace:std::env::current_dir().unwrap(), session:"session".into(),
+            room:"room".into(), prompt:"unused".into(), json:true, expected_workspace_id:None };
+        let receipt = Receipt { run:"run".into(), ..Receipt::default() };
+        let error = interrupt(&local_client().unwrap(), &options, &receipt).await.unwrap_err();
+        assert!(error.to_string().contains("未发送"));
+        assert!(tokio::time::timeout(Duration::from_millis(100), listener.accept()).await.is_err());
     }
 
     /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
