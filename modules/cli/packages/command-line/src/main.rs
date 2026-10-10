@@ -1879,7 +1879,10 @@ impl LiveCli {
             progress,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
-        let summary = runtime.run_turn(prompt, Some(&mut permission_prompter))?;
+        let internal_path = turn_persistence::reserve_internal_path(&self.session.path)?;
+        let result = runtime.run_turn(prompt, Some(&mut permission_prompter));
+        eprintln!("内部回合记录：{}", internal_path.display());
+        let summary = turn_persistence::persist_result(result, runtime.session(), &internal_path)?;
         Ok(final_assistant_text(&summary).trim().to_string())
     }
 
