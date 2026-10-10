@@ -46398,7 +46398,7 @@ fn goal_phase_progress_block(
     let blocker = phase.last_reason.as_ref().map(|reason|reason.chars().take(200).collect())
         .or(latest_blocker).unwrap_or_else(|| "see goal events".to_string());
     format!(
-        "Progress: attempt {}; prior failures — replan:{replan}, files:{files_block}, command:{command_block}; latest blocker: {blocker}; artifacts ready: {ready}/{total}. Fix the exact reported issue before reporting completion.",
+        "Progress: attempt {} in the current retry budget; visible failure events — replan:{replan}, files:{files_block}, command:{command_block}; latest blocker: {blocker}; artifacts ready: {ready}/{total}. Fix the exact reported issue before reporting completion.",
         phase.retry_count.saturating_add(1)
     )
 }
@@ -69169,6 +69169,8 @@ attach: last_assistant
         let phase=goal.phases.iter().find(|p|p.id==context.phase_id).unwrap();
         let progress=super::goal_phase_progress_block(&connection,&context.goal_id,phase);
         assert!(progress.contains("attempt 3"));
+        assert!(progress.contains("visible failure events"));
+        assert!(progress.contains("replan:0, files:0, command:0"));
         assert!(progress.contains("durable blocker"));
         let prompt=super::goal_phase_run_prompt_with_progress(&goal,phase,&progress);
         assert!(prompt.contains("retry 2/4"));
