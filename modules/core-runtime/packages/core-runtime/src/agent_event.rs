@@ -107,6 +107,8 @@ pub enum AgentEventKind {
     MessageDone,
     ToolCall,
     TurnCompleted,
+    TurnFailed,
+    TurnInterrupted,
 }
 
 /// 可被 CLI、Web Console 和日志管道共同消费的最小事件信封。

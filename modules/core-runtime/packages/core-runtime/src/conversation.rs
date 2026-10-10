@@ -68,6 +68,7 @@ impl std::error::Error for ToolError {}
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RuntimeError {
     message: String,
+    events: Vec<AgentEvent>,
 }
 
 impl RuntimeError {
@@ -75,8 +76,13 @@ impl RuntimeError {
     pub fn new(message: impl Into<String>) -> Self {
         Self {
             message: message.into(),
+            events: Vec::new(),
         }
     }
+
+    /// 失败回合的实际轨迹，供调用方保存；不以正常完成替代错误终态。
+    #[must_use]
+    pub fn events(&self) -> &[AgentEvent] { &self.events }
 }
 
 impl Display for RuntimeError {
@@ -223,6 +229,7 @@ where
         let mut iterations = 0;
         let mut reasoning_text = String::new();
 
+        let outcome = (|| -> Result<(), RuntimeError> {
         loop {
             if let Some(reason) = crate::managed_process::current_execution_control()
                 .and_then(|control| control.interruption()) {
@@ -408,6 +415,19 @@ where
         if let Some(reason) = crate::managed_process::current_execution_control()
             .and_then(|control| control.interruption()) {
             return Err(RuntimeError::new(format!("根执行已中止（{reason:?}），不记录正常完成")));
+        }
+        Ok(())
+        })();
+        if let Err(mut error) = outcome {
+            let interruption = crate::managed_process::current_execution_control()
+                .and_then(|control| control.interruption());
+            event_log.push(AgentEvent::new(
+                next_event_sequence, self.thread_id.clone(), turn_id.clone(), None,
+                if interruption.is_some() { AgentEventKind::TurnInterrupted } else { AgentEventKind::TurnFailed },
+                serde_json::json!({"error": error.to_string(), "interruption": interruption.map(|reason| format!("{reason:?}"))}),
+            ));
+            error.events = event_log;
+            return Err(error);
         }
         event_log.push(AgentEvent::new(
             next_event_sequence,
@@ -1194,6 +1214,9 @@ mod tests {
             StaticToolExecutor::new(), PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
         let error = with_execution_control(control, || runtime.run_turn("cancel during request", None)).unwrap_err();
         assert!(error.to_string().contains("不记录正常完成"));
+        assert_eq!(error.events().last().unwrap().kind, crate::agent_event::AgentEventKind::TurnInterrupted);
+        assert!(!error.events().iter().any(|event| event.kind == crate::agent_event::AgentEventKind::TurnCompleted));
+        assert!(error.events().iter().all(|event| event.turn_id == error.events()[0].turn_id));
     }
 
     /// 保证表第 2 行：hook 没有独立执行授权 ⇒ 不运行该 hook；
