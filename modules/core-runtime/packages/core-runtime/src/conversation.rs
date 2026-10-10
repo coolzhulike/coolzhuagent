@@ -224,6 +224,10 @@ where
         let mut reasoning_text = String::new();
 
         loop {
+            if let Some(reason) = crate::managed_process::current_execution_control()
+                .and_then(|control| control.interruption()) {
+                return Err(RuntimeError::new(format!("根执行已中止（{reason:?}），未请求后续模型")));
+            }
             iterations += 1;
             if iterations > self.max_iterations {
                 return Err(RuntimeError::new(
@@ -298,8 +302,12 @@ where
                 //   宿主预检查（权限闸门）→ pre-tool hook → 目标执行器 → post-tool hook。
                 // 闸门**必须先于任何 hook**：已明确拒绝时既不运行 pre-tool shell hook，
                 // 也不运行目标执行器，hook 无法把 deny 反转成执行。
-                let permission_outcome =
-                    authorize_call(&self.permission_policy, &tool_name, &input, &mut prompter);
+                let permission_outcome = if crate::managed_process::current_execution_control()
+                    .is_some_and(|control| control.interruption().is_some()) {
+                    PermissionOutcome::Deny { reason: "根执行已取消或截止，未审批或派发目标工具".into() }
+                } else {
+                    authorize_call(&self.permission_policy, &tool_name, &input, &mut prompter)
+                };
 
                 let result_message = match permission_outcome {
                     PermissionOutcome::Deny { reason } => {
@@ -397,6 +405,10 @@ where
             }
         }
 
+        if let Some(reason) = crate::managed_process::current_execution_control()
+            .and_then(|control| control.interruption()) {
+            return Err(RuntimeError::new(format!("根执行已中止（{reason:?}），不记录正常完成")));
+        }
         event_log.push(AgentEvent::new(
             next_event_sequence,
             self.thread_id.clone(),
@@ -1094,11 +1106,48 @@ mod tests {
                 .with_tool_requirement("blocked", PermissionMode::DangerFullAccess),
             vec!["system".to_string()],
         );
-        let summary = with_execution_control(control, || runtime.run_turn("use tool", Some(&mut prompter))).unwrap();
-        let (output, is_error) = single_tool_result(&summary);
-        assert!(is_error);
+        let error = with_execution_control(control, || runtime.run_turn("use tool", Some(&mut prompter))).unwrap_err();
+        assert!(error.to_string().contains("Cancelled"));
+        let ContentBlock::ToolResult { output, is_error, .. } = &runtime.session().messages.last().unwrap().blocks[0] else {
+            panic!("取消前的工具结果必须保留");
+        };
+        assert!(*is_error);
         assert_eq!(counter.count(), 0, "审批允许不能覆盖执行取消");
         assert!(output.contains("目标工具未执行"));
+    }
+
+    #[test]
+    fn cancelled_turn_does_not_request_model() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        struct UnreachableClient;
+        impl ApiClient for UnreachableClient {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                panic!("取消后不得请求模型");
+            }
+        }
+        let mut runtime = ConversationRuntime::new(Session::new(), UnreachableClient,
+            StaticToolExecutor::new(), PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
+        let control = ExecutionControl::new(None, None);
+        control.cancel();
+        let error = with_execution_control(control, || runtime.run_turn("cancelled", None)).unwrap_err();
+        assert!(error.to_string().contains("Cancelled"));
+    }
+
+    #[test]
+    fn model_returning_after_cancellation_cannot_complete_turn() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        struct LateClient(ExecutionControl);
+        impl ApiClient for LateClient {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                self.0.cancel();
+                Ok(vec![AssistantEvent::TextDelta("late".into()), AssistantEvent::MessageStop])
+            }
+        }
+        let control = ExecutionControl::new(None, None);
+        let mut runtime = ConversationRuntime::new(Session::new(), LateClient(control.clone()),
+            StaticToolExecutor::new(), PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
+        let error = with_execution_control(control, || runtime.run_turn("cancel during request", None)).unwrap_err();
+        assert!(error.to_string().contains("不记录正常完成"));
     }
 
     /// 保证表第 2 行：hook 没有独立执行授权 ⇒ 不运行该 hook；
