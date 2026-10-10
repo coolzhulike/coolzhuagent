@@ -34,6 +34,7 @@ mod computer_use_activity;
 mod computer_use_turn_scope;
 mod chat_insights;
 mod static_resource_contract;
+mod execution_service;
 mod scheduled_execution;
 mod scheduled_delivery;
 mod scheduled_jobs;
@@ -1863,6 +1864,10 @@ fn app() -> Router {
         .route("/api/runs/{run_id}", get(api_run_status))
         .route("/api/runs/{run_id}/events", get(api_run_events))
         .route("/api/runs/{run_id}/interrupt", post(api_run_interrupt))
+        .route("/api/executions", get(execution_service::api_list))
+        .route("/api/executions/{id}/trace", get(execution_service::api_trace))
+        .route("/api/executions/{id}", get(execution_service::api_detail))
+        .route("/api/executions/{id}/cancel", post(execution_service::api_cancel))
         .route("/api/goals/{goal_id}/plan", post(api_set_goal_plan))
         .route(
             "/api/goals/{goal_id}/commander/review",
@@ -19381,6 +19386,7 @@ async fn api_chat_send_stream(
                 let mut request = agent_message_request_with_context_for_room(
                     agent, true, assembly, Some(&result.chat_room_id));
                 retain_admitted_mcp_definitions(&mut request, parent.as_ref());
+                host_child_agent::bind_session_tool_catalog(&mut request, parent.as_ref(), &agent.id);
                 request.tools
             });
             if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::LlmHttp
@@ -19617,6 +19623,7 @@ async fn api_chat_send_stream(
                         Some(&result.chat_room_id),
                     );
                     retain_admitted_mcp_definitions(&mut request, parent.as_ref());
+                    host_child_agent::bind_session_tool_catalog(&mut request, parent.as_ref(), &agent.id);
                     let response = match request_usage::observe_with_run(provider_client_for_agent(agent), &agent.id, Some(&result.chat_room_id), Some(&turn_id), None, "tool_feedback", parent.as_ref().and_then(|context| context.parent_run_id.as_deref())) {
                         Ok(client) => match await_chat_turn(
                             cancellation.as_ref(),
@@ -28243,6 +28250,7 @@ async fn call_agent_model_with_tool_loop(
             } else { agent_message_request_with_context_for_room(agent, false, &assembly, chat_room_id) }
         };
         retain_admitted_mcp_definitions(&mut request, parent);
+        host_child_agent::bind_session_tool_catalog(&mut request, parent, &agent.id);
         let provider = match child_scope.as_ref() {
             Some(child) => Ok(child.client.clone()),
             None => provider_client_for_agent(agent),
@@ -32270,6 +32278,7 @@ async fn stream_agent_model(
     assembly.turn_id = Some(turn_id.to_string());
     let mut request = agent_message_request_with_context_for_room(agent, true, &assembly, chat_room_id);
     retain_admitted_mcp_definitions(&mut request, parent);
+    host_child_agent::bind_session_tool_catalog(&mut request, parent, &agent.id);
     let stream = request_usage::observe_with_run(provider_client_for_agent(agent), &agent.id, chat_room_id, Some(turn_id), None, "chat", run_id)?
         .stream_message(&request)
         .await?;
@@ -41859,6 +41868,7 @@ fn initialize_session_schema(connection: &Connection) -> rusqlite::Result<()> {
             "SELECT id,state FROM runtime_runs LIMIT 0",
             "SELECT record_seq,record_subject FROM fact_log_records LIMIT 0",
             "SELECT provider_tool_call_id,source_request_key FROM tool_calls LIMIT 0",
+            "SELECT id,workspace_id,spec_json,state,run_id FROM execution_index LIMIT 0",
         ] { connection.prepare(query)?; }
         Ok(())
     })
@@ -41982,6 +41992,7 @@ fn apply_session_schema_steps(connection: &Connection) -> rusqlite::Result<()> {
     computer_use_store::apply_session_migration_v26_cleanup_incidents(connection)?;
     computer_use_store::apply_session_migration_v27_tool_call_source(connection)?;
     computer_use_store::apply_session_migration_v28_panel_dispatch(connection)?;
+    execution_service::apply_session_migration_v29(connection)?;
     Ok(())
 }
 
@@ -42253,7 +42264,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 28;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 29;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///
@@ -80037,10 +80048,10 @@ attach: last_assistant
             .map(|offset| footer_marker + offset)
             .expect("右栏必须闭合");
         let rail = &WEB_INDEX_HTML[rail_start..rail_end];
-        assert_eq!(rail.matches("role=\"tab\"").count(), 4);
-        assert_eq!(rail.matches("role=\"tabpanel\"").count(), 4);
+        assert_eq!(rail.matches("role=\"tab\"").count(), 5);
+        assert_eq!(rail.matches("role=\"tabpanel\"").count(), 5);
         assert_eq!(rail.matches("aria-selected=\"true\"").count(), 1);
-        for tab in ["collaboration", "tasks", "status", "tools"] {
+        for tab in ["collaboration", "tasks", "executions", "status", "tools"] {
             assert!(rail.contains(&format!("data-right-tab=\"{tab}\"")));
             assert!(rail.contains(&format!("data-right-panel=\"{tab}\"")));
             assert!(rail.contains(&format!("aria-controls=\"chat-right-panel-{tab}\"")));

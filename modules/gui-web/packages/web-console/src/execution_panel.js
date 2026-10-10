@@ -148,11 +148,12 @@
     }
     const workspaceChanged = () => { invalidate(); queueMicrotask(refreshList); };
     window.addEventListener("coolzhu-workspace-changed", workspaceChanged);
+    window.addEventListener("coolzhu-project-scope-changed", workspaceChanged);
     refresh.onclick = refreshList; filter.onchange = refreshList;
     const observer = new MutationObserver(() => { if (!root.hidden) refreshList(); });
     observer.observe(root, { attributes: true, attributeFilter: ["hidden"] });
     timer = setInterval(refreshList, 3000); refreshList();
-    const api = { refresh: refreshList, dispose() { invalidate(); disposed = true; clearInterval(timer); observer.disconnect(); window.removeEventListener("coolzhu-workspace-changed", workspaceChanged); root.replaceChildren(); } };
+    const api = { refresh: refreshList, dispose() { invalidate(); disposed = true; clearInterval(timer); observer.disconnect(); window.removeEventListener("coolzhu-workspace-changed", workspaceChanged); window.removeEventListener("coolzhu-project-scope-changed", workspaceChanged); root.replaceChildren(); } };
     root.__executionPanel = api;
     return api;
   }

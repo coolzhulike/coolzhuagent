@@ -10,12 +10,14 @@
     <link rel="stylesheet" href="./src/model_settings.css" />
     <link rel="stylesheet" href="./src/wuxia_layout.css" />
     <link rel="stylesheet" href="./src/workspace_panels.css" />
+    <link rel="stylesheet" href="./src/execution_panel.css" />
     <link rel="stylesheet" href="./src/scroll_theme.css" />
     <link rel="stylesheet" href="./src/jade_controls.css" />
     <script src="./src/run_activity.js" defer></script>
     <script src="./src/video_wait.js" defer></script>
     <script src="./src/content_preview.js" defer></script>
     <script src="./src/workspace_panels.js" defer></script>
+    <script src="./src/execution_panel.js" defer></script>
     <script src="./src/native_browser_panel.js" defer></script>
     <script src="./src/chat_experience.js" defer></script>
     <script src="./src/chat_history_sync.js" defer></script>
@@ -781,6 +783,7 @@
                   <button id="chat-right-tab-tasks" class="chat-right-tab" type="button" role="tab" data-right-tab="tasks" aria-selected="false" aria-controls="chat-right-panel-tasks" tabindex="-1">
                     <img src="./assets/icons-wuxia/tasks.svg" alt="" aria-hidden="true" /><span>任务</span><b class="chat-right-tab-badge" data-role="chat-right-handoff-count" hidden></b>
                   </button>
+                  <button id="chat-right-tab-executions" class="chat-right-tab" type="button" role="tab" data-right-tab="executions" aria-selected="false" aria-controls="chat-right-panel-executions" tabindex="-1"><img src="./assets/icons-wuxia/tasks.svg" alt="" aria-hidden="true" /><span>执行</span></button>
                   <button id="chat-right-tab-status" class="chat-right-tab" type="button" role="tab" data-right-tab="status" aria-selected="false" aria-controls="chat-right-panel-status" tabindex="-1">
                     <img src="./assets/icons-wuxia/shield.svg" alt="" aria-hidden="true" /><span>状态</span>
                   </button>
@@ -795,6 +798,7 @@
                       <div class="chat-roster-strip" data-role="chat-roster" aria-live="polite"></div>
                     </section>
                   </section>
+                  <section id="chat-right-panel-executions" class="chat-right-panel execution-panel" data-right-panel="executions" role="tabpanel" aria-labelledby="chat-right-tab-executions" tabindex="0" hidden></section>
                   <section id="chat-right-panel-tasks" class="chat-right-panel chat-right-task-panel" data-right-panel="tasks" role="tabpanel" aria-labelledby="chat-right-tab-tasks" tabindex="0" hidden>
                     <div class="chat-right-task-content">
                       <article class="top-status-card chat-right-task-summary" data-role="chat-right-task-summary" aria-label="当前任务摘要">

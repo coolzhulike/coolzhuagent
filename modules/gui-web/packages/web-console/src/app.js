@@ -219,7 +219,7 @@ const CHAT_TOOL_WINDOW_META = Object.freeze({
   vision: Object.freeze({ label: "视觉实验", kicker: "视觉工具", asset: "./assets/icons-wuxia/vision.svg" }),
 });
 const CHAT_TOOL_WINDOW_IDS = new Set(Object.keys(CHAT_TOOL_WINDOW_META));
-const CHAT_RIGHT_RAIL_TABS = Object.freeze(["collaboration", "tasks", "status", "tools"]);
+const CHAT_RIGHT_RAIL_TABS = Object.freeze(["collaboration", "tasks", "executions", "status", "tools"]);
 let chatRightRailTab = "collaboration";
 let chatToolWindowId = null;
 let chatToolWindowOrigin = null;
@@ -257,6 +257,7 @@ function projectInvalidateWorkspaceRequests(workspace) {
   projectLineWindowSerial += 1;
   projectFileSaveSerial += 1;
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
 }
 // IDE 工程窗口 · 阶段D：View/Diff 合并按钮状态机（plan §4.6）
 let ideViewDiffMode = "view"; // "view" | "diff"
@@ -11483,6 +11484,7 @@ function chatRightRailTabNodes() {
 const CHAT_RIGHT_RAIL_HEADING_META = Object.freeze({
   collaboration: Object.freeze({ kicker: "协作阵列", title: "Agent 与任务链" }),
   tasks: Object.freeze({ kicker: "任务链", title: "当前任务" }),
+  executions: Object.freeze({ kicker: "执行卷轴", title: "子 Agent 与定时执行" }),
   status: Object.freeze({ kicker: "状态总览", title: "Agent 状态" }),
 });
 
@@ -11815,6 +11817,7 @@ function initializeChatRightRailTabs() {
     return;
   }
   tablist.dataset.bound = "1";
+  window.CoolzhuExecutionPanel?.mount(document.querySelector("#chat-right-panel-executions"), { getScope: () => projectRequestScope() });
   tabs.forEach((button) => {
     button.addEventListener("click", () => setChatRightRailTab(button.dataset.rightTab, { fromUser: true }));
     button.addEventListener("keydown", (event) => {
@@ -18763,6 +18766,7 @@ async function enterIdeDiffMode() {
 
 async function exitIdeDiffMode() {
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
   ideViewDiffMode = "view";
   updateIdeModeToggleButton();
   // 回 view：重新打开左侧文件的普通视图。
@@ -19116,6 +19120,7 @@ function activateIdeTab(id) {
   projectFileOpenSerial += 1;
   projectLineWindowSerial += 1;
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
   setIdeActiveTab(id);
   // 按 tab.kind 切 mode 并同步关联状态，再渲染对应视图。
   if (tab.kind === "diff") {

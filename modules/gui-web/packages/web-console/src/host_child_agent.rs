@@ -274,12 +274,12 @@ impl tools::HostAgentRunner for WebHostAgentRunner {
                 summary: request.description.clone(), deadline_ms: budget.deadline_unix_ms(),
             };
             crate::execution_service::TurnRunner::run(&self.snapshot.usage_db_path, spec,
-                Arc::clone(&child_cancel), async {
+                Arc::clone(&child_cancel), Box::pin(async {
             let execution = TURN_TRACE.scope(self.parent_turn_id.clone(),
-                call_agent_model_with_tool_loop(
+                Box::pin(call_agent_model_with_tool_loop(
                     &model.agent, &prompt, &[], &self.snapshot.context_history, None, Some(&room_id),
                     Some(&self.parent), Some(Arc::clone(&child)),
-                ));
+                )));
             let execution = root_execution_budget::scope(budget.clone(),
                 budget.run_cancellable(
                     await_chat_turn(child_cancel.as_ref(), execution),
@@ -331,7 +331,7 @@ impl tools::HostAgentRunner for WebHostAgentRunner {
                 "turnId": self.parent_turn_id,
                 "executionId": child_id,
             }))
-            }, |value| value["result"].as_str().unwrap_or("").to_string()).await
+            }), |value| value["result"].as_str().unwrap_or("").to_string()).await
         })
     }
 }
