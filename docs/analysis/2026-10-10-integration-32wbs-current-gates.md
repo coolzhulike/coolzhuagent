@@ -4,7 +4,7 @@
 
 当前实装是 0.2.130，包源码 35cbcf238d194d7fbaac648359d8bddc9858f811；1193 个载荷文件逐长度/SHA 一致，正常整包/MSI 构建、安装及注册版本证据见 [130 验收状态](../testing/release-0.2.130/acceptance-status.md)。本轮再次直接运行 Program Files 下 CLI --version，实际返回上述版本与完整源码身份。未签名、未发布，不能把安装与文件核验提升为正式运行验收。后续 Conversation/CLI 修补不在该安装包中。
 
-当前已提交源码复核点为 4b365daec8939300ed0120368643205e66242cc1：包括失败/取消事件实际留存、随机回合身份、CLI 成功事件留存、会话路径线程绑定、恢复历史校验、pending 提交区分及错误来源终态。最新 Conversation 定向回归 20 通过，CLI 完整回归 91 通过；近期完整 core-runtime 回归 372 通过/3 忽略属于 957c73b 时点，不冒称覆盖后续全部源码。真实 debug CLI 恢复合成场景 9 项通过及原失败证据见 [进程恢复验证](../testing/2026-10-10-cli-history-restore/report.md)。正式安装恢复、崩溃一致性、读写大小一致性、pending 处置及其他入口仍开放。
+当前源码复核点为 2dacc83（包含 Session 暂存保存、事件 v2 目录、单条读写字节上限和共享内容校验）。最新完整 CLI 回归 95 通过；23a4a5a 时点完整 core-runtime 回归 375 通过、3 忽略，后续修改仅在 CLI 及文档。当前 debug CLI 真实恢复合成场景 9 项均符合预期、会话字节不变，证据见 [共享校验进程结果](../testing/2026-10-10-cli-history-restore/shared-validation-process.json)；历史失败与修复见 [进程恢复验证](../testing/2026-10-10-cli-history-restore/report.md)。Loader 整包契约 39 通过、4 未执行，原始回执与 stderr 分类已逐条消费，但进程采集仍驻留整体输出。正式安装恢复、崩溃一致性、累计预算、跨进程写入、pending 处置及其他入口仍开放。
 
 以下候选和测试段落保留各自历史时点，不代表当前安装包或最新源码全部已通过。
 
