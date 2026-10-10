@@ -1,4 +1,4 @@
-﻿param(
+param(
   [string]$Manifest = 'config/package-manifest.json',
   [ValidateSet('debug', 'release')]
   [string]$Configuration = 'debug',
@@ -39,6 +39,8 @@ $repoPrefix = $repoPath + [System.IO.Path]::DirectorySeparatorChar
 . (Join-Path $repo 'scripts/lib/build-identity.ps1')
 . (Join-Path $repo 'scripts/lib/dsh-runtime.ps1')
 . (Join-Path $repo 'scripts/lib/cargo-build-evidence.ps1')
+. (Join-Path $repo 'scripts/lib/managed-build-capture.ps1')
+. (Join-Path $repo 'scripts/lib/build-capture-bootstrap.ps1')
 
 # ---------------------------------------------------------------------------
 # 本次运行 ID 与阶段追踪。
@@ -263,6 +265,7 @@ if (-not $Prepare) {
 # 本次运行的构建证据：cargo 消息流与调用信息，供 Loader 导出阶段核对来源。
 $script:artifactBuildMessages = @{}
 $script:artifactBuildInputs = @{}
+$script:buildCaptureBootstrap = $null
 $script:exportReceipts = @{}
 $script:exportSummaries = [System.Collections.Generic.List[object]]::new()
 # PKG-L07c 固定代次语义：本次运行**自己的**消费 staging（派生输出位置）。
@@ -389,7 +392,7 @@ function Invoke-ArtifactBuild {
     $ErrorActionPreference = 'Continue'
     if ($capture -eq 'cargo-json-messages') {
       # 需要机器可读的构建消息（build-script-executed）来定位实际依赖生产者。
-      # 用 .NET Process 直接接管 stdio：stdout 落盘成可核对的原始记录，stderr 构建结束后回显。
+      # 受管辅助程序双管道增量落盘，保留原始字节，不驻留完整输出。
       if (-not ($args | Where-Object { $_ -like '--message-format=*' })) {
         throw "artifact $($Artifact.id) declares capture=$capture but its build args do not set --message-format"
       }
@@ -397,26 +400,29 @@ function Invoke-ArtifactBuild {
       $stdoutPath = Join-Path $logRoot "$($Artifact.id)-build-messages-$stamp.jsonl"
       $stderrPath = Join-Path $logRoot "$($Artifact.id)-build-stderr-$stamp.log"
       Write-Host "capture build messages: $stdoutPath"
-      $argumentText = (@($args) | ForEach-Object { if ([string]$_ -match '\s') { '"' + [string]$_ + '"' } else { [string]$_ } }) -join ' '
-      $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-      $startInfo.FileName = $command
-      $startInfo.Arguments = $argumentText
-      $startInfo.WorkingDirectory = $workingDir
-      $startInfo.UseShellExecute = $false
-      $startInfo.RedirectStandardOutput = $true
-      $startInfo.RedirectStandardError = $true
-      $process = [System.Diagnostics.Process]::Start($startInfo)
-      $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-      $stderrText = $process.StandardError.ReadToEnd()
-      $process.WaitForExit()
-      $stdoutText = [string]$stdoutTask.Result
-      $exitCode = $process.ExitCode
-      $process.Dispose()
-      [System.IO.File]::WriteAllText($stdoutPath, $stdoutText, [System.Text.UTF8Encoding]::new($false))
-      [System.IO.File]::WriteAllText($stderrPath, $stderrText, [System.Text.UTF8Encoding]::new($false))
-      foreach ($line in @($stderrText -split "`r?`n")) {
-        if ($line) { Write-Host $line }
+      if (-not $script:buildCaptureBootstrap) {
+        $script:buildCaptureBootstrap = New-BuildCaptureBootstrap -RepoPath $repoPath `
+          -TargetDirectory (Join-Path $repoPath 'tmp/cargo-target-build-capture') `
+          -EvidenceDirectory (Join-Path $logRoot ('capture-bootstrap-' + $script:packageRunId))
+        $bootstrap = $script:buildCaptureBootstrap
+        $script:artifactBuildInputs['package.build-capture'] = [pscustomobject]@{
+          command = $bootstrap.command; args = $bootstrap.args; working_dir = $bootstrap.working_dir
+          raw_record_path = $bootstrap.raw_record_path
+          raw_record_sha256 = Get-IdentityFileHash -Path $bootstrap.raw_record_path
+          stderr_path = $bootstrap.stderr_path; exit_code = $bootstrap.exit_code
+        }
       }
+      $captureResult = Invoke-ManagedBuildCapture -HelperPath $script:buildCaptureBootstrap.helper_path `
+        -ExpectedHelperSha256 $script:buildCaptureBootstrap.helper_sha256 -Command $command `
+        -Arguments $args -WorkingDirectory $workingDir -StdoutPath $stdoutPath -StderrPath $stderrPath
+      $exitCode = $captureResult.exit_code
+      # stderr 已增量落盘；终端仅逐行回显，不重新驻留整份输出。
+      $stderrReader = [IO.StreamReader]::new($stderrPath, [Text.UTF8Encoding]::new($false,$true))
+      try {
+        while ($null -ne ($line = [CoolzhuBoundedJsonLine]::Read($stderrReader))) {
+          if ($line) { Write-Host $line }
+        }
+      } finally { $stderrReader.Dispose() }
       if ($null -eq $exitCode) {
         throw "[BUILD-FAILED] artifact=$($Artifact.id) target=$($Artifact.target) profile=$Configuration`ndetail: 无法获取构建进程退出码，构建结果不可信`nnext: 检查构建命令与日志 $stdoutPath"
       }
@@ -1914,6 +1920,7 @@ $report = [ordered]@{
   cargo_build_evidence = [ordered]@{
     status = $(if ($SkipBuild) { 'not-collected-no-build' } elseif ($cargoBuildEvidence.Count -eq 0) { 'not-collected' } else { 'collected' })
     entries = $cargoBuildEvidence
+    capture_bootstrap = $script:buildCaptureBootstrap
     completeness = 'incomplete'
     note = '原始消息独占归档并绑定字节哈希；不替代完整分发组件与许可证证据'
   }
