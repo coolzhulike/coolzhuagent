@@ -21,3 +21,7 @@ PS5.1和PS7最新各六项实际exit0，新增已关闭读取流触发任务故�
 原HostExit反例复验实际exit0，辅助程序、根及后代全部在最终清理前退出，未生成成功回执；新摘要/PID观察归档host-exit-owner-bound-result.json，原失败保留。PS5.1/PS7包装器原六项实际通过；PS5.1另补宿主创建时间不匹配125且日志/命令均未启动，第七项通过，日志 tmp/analysis-capture-owner-identity.txt。新增所有者参数目前仅生产包装器强制提供，旧直接CLI语法仍允许不绑定宿主；其迁移、启动前后竞态矩阵、权限查询失败、全部入口和正式新候选出包仍需完成，不宣称完整生命周期门禁关闭。
 
 后续入口收敛：辅助程序不再接受缺少--owner的旧语法，身份校验在日志创建前完成。直接增量/旧日志/孤儿后代测试、读取故障树测试及feature写入故障驱动均迁移参数。正常Rust实际构建exit0；直接四项、包装器八项（含无宿主旧语法125且零副作用）、HostExit复验均实际exit0，日志 tmp/analysis-capture-mandatory-owner-build.txt、direct.txt、wrapper.txt、host.txt。本轮未执行feature写入故障构建/测试，不能称迁移脚本已通过。宿主死亡与启动间的竞态矩阵仍开放；现有安装包不含修补。
+
+后续故障构建复验：独立目标tmp/cargo-target-capture-owner-fault，明确启用build-capture-test-support，正常辅助程序目标保持原摘要91DE708F45DBC43AC1D1D3E87A6A41EF5541BE757DECFB43BDA4EE91E58F96DE。测试构建实际exit0；PS7 stdout/stderr各一项真实写入故障均返回125并确认根及后代退出，驱动实际exit0。日志 tmp/analysis-capture-owner-fault-build.txt、fault-tests.txt；正常/测试产物摘要和源码观察已归档owner-fault-build-observation.json。测试feature产物不用于分发或正式采集引导。
+
+实际正常引导链也已重新执行：直接Cargo引导、复制独立辅助程序、受管Cargo JSON证据构建均成功；真实回执匹配及missing/executable/features/duplicate四个拒绝案例共五项通过，驱动实际exit0。日志 tmp/analysis-capture-owner-bootstrap-contract-corrected.txt，完整引导回执路径由tmp/analysis-capture-owner-bootstrap-result.json记录，source_snapshot_verified仍false。最初误未提供测试必填BootstrapResultPath导致命令exit1，日志tmp/analysis-capture-owner-bootstrap-contract.txt保留；该失败不计通过。以上不替代最终正常整包或正式安装验收。
