@@ -42,6 +42,8 @@ $changes = @(
   { param($copy) $copy.cargo_build_evidence.entries = @() },
   { param($copy) $copy.cargo_build_evidence.entries[0].length = 1 },
   { param($copy) $copy.cargo_build_evidence.entries[0].length = '123' },
+  { param($copy) $copy.cargo_build_evidence.entries[0].compiler_artifact_records = 999 },
+  { param($copy) $copy.cargo_build_evidence.entries[0].compiler_artifact_records = '1' },
   { param($copy) $copy.cargo_build_evidence.entries[0].path = '../run-one/fixture.bin.jsonl' },
   { param($copy) $copy.cargo_build_evidence.entries[0].success_message_verified = $false },
   { param($copy) $copy.cargo_build_evidence.entries[0].sha256 = ('0' * 64) }
@@ -57,4 +59,4 @@ foreach ($change in $changes) {
 $refused = $false
 try { Assert-PackageCargoBuildEvidence -Report $report -RepoPath $taskRepo | Out-Null } catch { $refused = $true }
 if (-not $refused) { throw '归档正文改写未被拒绝' }
-Write-Host 'PASS cargo-build-evidence (19 cases)'
+Write-Host 'PASS cargo-build-evidence (21 cases)'

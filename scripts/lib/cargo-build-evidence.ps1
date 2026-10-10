@@ -139,11 +139,18 @@ function Assert-PackageCargoBuildEvidence {
       if ($node.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw '构建回执不得经重解析点读取' }
       $node = Get-Item -LiteralPath (Split-Path -Parent $node.FullName) -Force
     }
-    $bytes = [IO.File]::ReadAllBytes($path)
-    if ($entry.length -isnot [int] -and $entry.length -isnot [long]) { throw '构建回执长度类型无效' }
-    if ($bytes.Length -ne $entry.length -or
-        ([string]$entry.sha256) -cnotmatch '^[a-f0-9]{64}$' -or
-        (Get-IdentityHashFromBytes -Bytes $bytes) -cne $entry.sha256) { throw '归档构建回执字节身份已变化' }
+    $source = [IO.FileStream]::new($path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+    try {
+      if ($entry.length -isnot [int] -and $entry.length -isnot [long]) { throw '构建回执长度类型无效' }
+      $algorithm = [Security.Cryptography.SHA256]::Create()
+      try { $hash = ([BitConverter]::ToString($algorithm.ComputeHash($source))).Replace('-', '').ToLowerInvariant() } finally { $algorithm.Dispose() }
+      if ($source.Length -ne $entry.length -or ([string]$entry.sha256) -cnotmatch '^[a-f0-9]{64}$' -or $hash -cne $entry.sha256) {
+        throw '归档构建回执字节身份已变化'
+      }
+      $artifactCount = Get-CargoStreamSummary -Source $source
+      if (($entry.compiler_artifact_records -isnot [int] -and $entry.compiler_artifact_records -isnot [long]) -or
+          $entry.compiler_artifact_records -ne $artifactCount) { throw '回执组件记录计数与声明不一致' }
+    } finally { $source.Dispose() }
   }
   [pscustomobject]@{ status = 'collected'; verified = $true; entries = @($evidence.entries) }
 }
