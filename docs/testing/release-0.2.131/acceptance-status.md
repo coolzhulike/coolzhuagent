@@ -1,0 +1,9 @@
+# 0.2.131 候选验收状态
+
+正常 release 整包及 MSI 构建均实际exit0，源码参考提交abc16e5f614492c0499279387f690f311b1f0fbf。显式消费准备冻结252f0ccbb2ebbf2bc2e1428f54778c84e19425b5443763b0060737518a79ad6b，源码前后快照e1fda549388c3ada8c794b0cb8b5da21b0e090a0995ed673bf42643fbfabd164一致。不是不可变副本构建证明。
+
+报告pkg-report-release-20261010-145050420-0d1b64f7，内容SHA41344985d357f53931f4b6d8eecb816164db08749be4c776d9e792625797d57a。1193载荷文件435718720字节，摘要682636b6076d28cd5341dc1bb92a1706768a51ec19147f063de0081e50fb2e20。九个分发Cargo入口加package.build-capture引导共十份回执原始字节、成功终态和归档报告独立核验通过；构建观察不证明全量组件许可证义务或来源签名。
+
+MSI dist/CoolzhuAgent-0.2.131.msi，288008209字节，SHA256 e328961b837993bfe55cba4e900b5a3f407208052ebf24ddeb79b89f0406b680，与安装报告相符。Loader明确为既有Cargo生产目录输出复用，不是本次新生产。证据见evidence/build-identity和evidence/build-verification.json。
+
+候选CLI实际--version为0.2.131及上述源码SHA。九项真实恢复场景均符合预期、会话字节不变，见evidence/cli-history。尚未安装本候选；当前实装仍0.2.130。未签名、未发布，正式后台恢复此前受自动审批拒绝，运行验收未恢复；不绕过该限制。完整许可证/NOTICE、清洁Windows原生窗口、崩溃故障及其余32WBS门禁继续开放。

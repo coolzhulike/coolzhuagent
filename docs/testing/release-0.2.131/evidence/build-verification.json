@@ -1,0 +1,116 @@
+{
+  "msi": "CoolzhuAgent-0.2.131.msi",
+  "bytes": 288008209,
+  "sha256": "e328961b837993bfe55cba4e900b5a3f407208052ebf24ddeb79b89f0406b680",
+  "archive_verification": {
+    "status": "collected",
+    "verified": true,
+    "entries": [
+      {
+        "artifact_id": "cli.command-line",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/cli.command-line.jsonl",
+        "sha256": "51fc534fb7cdc6d347d92fec473718846eb06000b531f635dd3efe96894c967a",
+        "length": 220778,
+        "compiler_artifact_records": 207,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "computer-use.preflight-check",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/computer-use.preflight-check.jsonl",
+        "sha256": "a3b68a82af029aab7580dec3d76d4c60e7bb7d36935f5cacf00b9b00ecf5bbfb",
+        "length": 100677,
+        "compiler_artifact_records": 91,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "gui-desktop.tauri-shell",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/gui-desktop.tauri-shell.jsonl",
+        "sha256": "74003aad4a44613da8b3b5a4385728b69a0bca7aac31fe022166d73ac3466770",
+        "length": 499682,
+        "compiler_artifact_records": 447,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "gui-web.browser-native-host",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/gui-web.browser-native-host.jsonl",
+        "sha256": "d1c98c2e90a1f9845f172d82c1636db1c2aad0fad6e6e49e276aee2dc80ea163",
+        "length": 252245,
+        "compiler_artifact_records": 235,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "gui-web.clawbot-sidecar",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/gui-web.clawbot-sidecar.jsonl",
+        "sha256": "a1470a25c3855d0462e92d2544ee6ced22e307eef6acac9846138f08efb06885",
+        "length": 133255,
+        "compiler_artifact_records": 125,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "gui-web.web-console",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/gui-web.web-console.jsonl",
+        "sha256": "0524fb95d258eeec3c2a2ca2c8745e7075aabb0cbefddc4b37979a5135a912d7",
+        "length": 252202,
+        "compiler_artifact_records": 235,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "package.app-launcher",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/package.app-launcher.jsonl",
+        "sha256": "83ce1d6d4210b17d56e8a0da67c0f7bf966dc69c8d6caee16b76b7dfc4028a94",
+        "length": 19788,
+        "compiler_artifact_records": 18,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "package.build-capture",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/package.build-capture.jsonl",
+        "sha256": "e27eca19ae5ae42648f50d63f50a9c25a4a3ef4fdf665a98a2c4e44a0a5aacc1",
+        "length": 9080,
+        "compiler_artifact_records": 8,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "vision.latest-desktop",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/vision.latest-desktop.jsonl",
+        "sha256": "eb2804527851065498bbb09f8af03712cb9790c75dc9da7b7997054e7160b05c",
+        "length": 149815,
+        "compiler_artifact_records": 140,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      },
+      {
+        "artifact_id": "vision.smoke",
+        "run_id": "pkg-run-release-20261010-143803130-cebde775",
+        "path": "tmp/package-reports/build-evidence/pkg-run-release-20261010-143803130-cebde775/vision.smoke.jsonl",
+        "sha256": "663d4c139845a656f664b306414a287ac8bb2b156300aaf44a3bbff87dba6f3d",
+        "length": 149769,
+        "compiler_artifact_records": 140,
+        "success_message_verified": true,
+        "scope": "实际构建观察，含缓存与构建期组件；不证明运行时分发、许可证义务或来源签名"
+      }
+    ],
+    "report_id": "pkg-report-release-20261010-145050420-0d1b64f7",
+    "report_content_sha256": "41344985d357f53931f4b6d8eecb816164db08749be4c776d9e792625797d57a"
+  },
+  "installed": false,
+  "signed": false,
+  "published": false
+}
