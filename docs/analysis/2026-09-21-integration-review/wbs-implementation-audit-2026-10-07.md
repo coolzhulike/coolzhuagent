@@ -1,5 +1,7 @@
 # 04整合计划32工作包执行复核
 
+2026-10-10正式125严格取消增量：真实SWE-2-medium/唯一island-kayak/revision57，#805/父060ea336，一次可信click已sent/released后关联观察实际登记；登记后22.466ms正常停止HTTP200，停止CAS后同请求673ms以native_observation_cancelled/reply_parent_changed收尾，未采纳迟到回包，effect/goal未知保持。父interrupted/30.9秒、CUblocked非成功、仅一工具一动作、ACPcancelled/drained/解锁、SSEdone一次，原生轨迹“已中止/模型请求已取消”实拍通过。仅输入释放后观察在途取消通过；晚UI关闭原失败、导航替换/原生窄竞态及32WBS仍开放，Goal active。[原始时序与实拍](../../testing/release-0.2.125/browser-pending-cancel/report.md)。
+
 2026-10-10大文本预览候选：针对125拒绝完整1.8MiB SBOM，将读取提取为同句柄有界快照，64MiB文本可只读分页，单页/编辑256KiB、行窗801行保持。真实SQLite副本八页重组逐字节/SHA一致、19775总行及尾窗一致，BOM空行、超限413/旧版本409均通过；原生1443×897正常文件入口打开及`:19775`尾部定位实拍通过。offline build0、Web1433/0/6及lib8/nativehost1、联动8/0，OOM及丢失收据原失败保留。候选按身份停止，正式125及原配置/运行数量恢复保持；新模型/云会话0。仅源码候选，正式新包、超长单行GUI翻页、完整4.3/严格Browser时序及32工作包继续，Goal active。[完整原字节与实拍](../../testing/2026-10-09-large-text-preview/report.md)。
 
 2026-10-09交付清单增量：文件级CycloneDX1.6 SBOM独立导出候选通过；PS5.1/7导出0、官方Schema及语义一致、Program Files1159文件/432195512字节逐SHA一致，篡改副本无输出和重复输出保字节的负例均退出1。完整库依赖/许可证/签名不计完成，正式125四资产/源快照不改。原生右栏拒绝1.8MiB真实JSON（1MiB上限），完整文件预览未通过，新增4.3大文本分页缺口继续。记忆边界1d3ba64两路CI success。模型调用0/新云会话0，Goal active，Paint免测/微信不动/Opus暂停/无子代理。[原始产物、负例与失败实拍](../../testing/2026-10-09-package-file-sbom/report.md)。
