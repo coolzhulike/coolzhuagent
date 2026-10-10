@@ -46,10 +46,10 @@
         "X-Coolzhu-Workspace-Id": scope.workspace, "X-Coolzhu-Configuration-Scope": scope.configuration } });
     }
     const header = node("header", null, "execution-heading");
-    header.append(node("strong", "执行卷轴"), node("small", "子 Agent · 定时执行"));
+    header.append(node("strong", "执行卷轴"), node("small", "子 Agent · 定时执行 · Goal 阶段"));
     const refresh = node("button", "刷新"); refresh.type = "button"; header.append(refresh);
     const filter = node("select"); filter.setAttribute("aria-label", "执行来源");
-    [["", "全部来源"], ["session_tool", "会话工具 / 子 Agent"], ["scheduled", "定时执行"]].forEach(([value, label]) => {
+    [["", "全部来源"], ["session_tool", "会话工具 / 子 Agent"], ["scheduled", "定时执行"], ["goal_phase", "Goal 阶段"]].forEach(([value, label]) => {
       const option = node("option", label); option.value = value; filter.append(option);
     });
     const status = node("p", "", "execution-notice"); status.setAttribute("role", "status");
@@ -107,7 +107,7 @@
             avatar.src = avatarUrl; avatar.alt = ""; avatar.setAttribute("aria-hidden", "true");
             head.append(avatar);
           }
-          head.append(node("span", item.spec.source === "scheduled" ? "定时" : "子 Agent", "execution-source"), node("b", labels[item.status] || item.status));
+          head.append(node("span", item.spec.source === "scheduled" ? "定时" : item.spec.source === "goal_phase" ? "Goal 阶段" : "子 Agent", "execution-source"), node("b", labels[item.status] || item.status));
           card.append(head, node("h4", item.spec.summary || "执行任务"),
             field("进展", item.status === "running"
               ? (item.usage_attempt_count ? `已记录 ${item.usage_attempt_count} 次请求；最新状态 ${item.usage_attempts.at(-1).status}` : "已接纳，尚无模型请求回执")

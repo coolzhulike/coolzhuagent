@@ -17923,10 +17923,25 @@ async fn run_goal_phase_once(
         let ctx = store.prepare_goal_phase_run_context(&workspace_id, &goal_id, &phase_id)?;
         ctx
     };
+    let mut goal_index = None;
     let goal_parent = goal_execution_parent::FrozenGoalPhaseParent::capture(
         &run_context.db_path, workspace_id, &run_context.goal_id, &run_context.phase_id,
-        &run_context.run_id, &run_context.claim_token, &run_context.agent.id, &run_context.chat_room_id);
-    let (model_response, tool_messages, command_failures) = match goal_parent {
+        &run_context.run_id, &run_context.claim_token, &run_context.agent.id, &run_context.chat_room_id)
+        .and_then(|parent| {
+            let spec = execution_service::ExecutionSpec {
+                id: format!("goal-execution-{}", run_context.run_id), workspace_id: workspace_id.into(),
+                room_id: run_context.chat_room_id.clone(), session_id: run_context.agent.id.clone(),
+                provider: run_context.agent.provider.clone(), model: run_context.agent.model.clone(),
+                source: execution_service::Source::GoalPhase, source_id: run_context.phase_id.clone(),
+                parent_run_id: None, parent_execution_id: None, call_id: None,
+                summary: run_context.prompt.chars().take(320).collect(),
+                deadline_ms: parent.root_budget().deadline_unix_ms(),
+            };
+            goal_index = Some(execution_service::GoalExecution::bind(&run_context.db_path, spec,
+                &run_context.run_id, &run_context.claim_token, Arc::new(ChatTurnCancellation::new()))?);
+            Ok(parent)
+        });
+    let phase_work = async { match goal_parent {
         Err(error) => {
             // claim 已建立，身份拒绝也必须走原 token-aware finalizer；此分支不调用模型或工具。
             let response = AgentModelResponse {
@@ -18018,7 +18033,11 @@ async fn run_goal_phase_once(
     (model_response, tool_messages, command_failures)
     }).await
         }
+    }
     };
+    let (model_response, tool_messages, command_failures) = if let Some(index) = goal_index.as_ref() {
+        index.scope(Box::pin(phase_work)).await
+    } else { Box::pin(phase_work).await };
     // 收尾独立于业务根时限，仍必须提交真实 run/claim 的终态。
     let context_usage = model_response.context_usage.clone();
     let result = {
@@ -18043,6 +18062,9 @@ async fn run_goal_phase_once(
             command_failures,
         )?
     };
+    if let Some(index) = goal_index.as_mut() {
+        index.finish_committed(None).map_err(|error| api_error(StatusCode::CONFLICT, &error))?;
+    }
     if result.memory_eligible {
         // context lifecycle 是提交后的附加动作；路径漂移时只保留 captured DB 的事实，
         // 不把旧 worker 的 context/memory 写进当前 workspace。

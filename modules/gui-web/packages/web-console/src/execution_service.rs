@@ -14,6 +14,7 @@ use std::{
 pub(crate) enum Source {
     SessionTool,
     Scheduled,
+    GoalPhase,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -39,6 +40,7 @@ pub(crate) fn require_capability(provider: &str, source: Source) -> Result<(), S
     match (B::for_provider(provider), source) {
         (B::LlmHttp, _) | (B::DevinAcp, Source::Scheduled) => Ok(()),
         (B::DevinAcp, Source::SessionTool) => Err("Devin ACP 尚未提供冻结模型快照的会话工具契约，子 Agent 未执行；普通聊天及定时 poll 不受此限制".into()),
+        (B::DevinAcp, Source::GoalPhase) => Err("Devin ACP Goal 阶段尚未开放，未派发请求".into()),
         (B::DevinCloud, _) => Err("Devin Cloud 尚未接入共享执行服务，未派发请求".into()),
     }
 }
@@ -81,6 +83,37 @@ fn open(path: &Path) -> Result<Connection, String> {
 
 pub(crate) struct ExecutionService;
 pub(crate) struct TurnRunner;
+/// 只索引已有阶段claim，终态由原Goal提交器负责；claim不进入对外spec。
+pub(crate) struct GoalExecution {
+    guard: Guard,
+    run: String,
+    claim: String,
+}
+impl GoalExecution {
+    pub(crate) fn bind(path: &Path, spec: ExecutionSpec, run: &str, claim: &str,
+        cancel: Arc<ChatTurnCancellation>) -> Result<Self, String> {
+        if spec.source != Source::GoalPhase { return Err("Goal索引来源不匹配".into()); }
+        let connection = open(path)?;
+        let valid: bool = connection.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND kind='goal_phase' AND workspace_id=?3 AND chat_room_id=?4 AND session_id=?5 AND phase_id=?6 AND state='running')",
+            params![run,claim,spec.workspace_id,spec.room_id,spec.session_id,spec.source_id], |row|row.get(0)).map_err(|e|e.to_string())?;
+        if !valid { return Err("Goal索引缺少本工程有效阶段运行与claim，未接纳".into()); }
+        let guard = ExecutionService::begin(path, spec, cancel)?;
+        connection.execute("UPDATE execution_index SET run_id=?1 WHERE id=?2", params![run,guard.current.id]).map_err(|e|e.to_string())?;
+        Ok(Self { guard, run:run.into(), claim:claim.into() })
+    }
+    pub(crate) async fn scope<T>(&self, future: impl Future<Output=T>) -> T {
+        CURRENT.scope(self.guard.current.clone(), future).await
+    }
+    pub(crate) fn finish_committed(&mut self, result: Option<&str>) -> Result<(), String> {
+        let connection = open(&self.guard.current.path)?;
+        let state: String = connection.query_row("SELECT state FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND workspace_id=?3 AND kind='goal_phase'",
+            params![self.run,self.claim,self.guard.current.workspace], |row|row.get(0)).map_err(|e|e.to_string())?;
+        match state.as_str() {
+            "completed" | "failed" | "interrupted" => self.guard.finish(&state, result, None),
+            _ => Err("Goal阶段终态尚未提交，索引不能提前完成或重放".into()),
+        }
+    }
+}
 struct Guard {
     current: Current,
     finished: bool,
@@ -539,6 +572,26 @@ mod tests {
             summary: "任务".into(),
             deadline_ms: 100,
         }
+    }
+    #[tokio::test]
+    async fn goal_binding_requires_claim_and_persisted_terminal_state() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("goal.sqlite3");
+        let connection = open(&path).unwrap();
+        crate::initialize_session_schema(&connection).unwrap();
+        connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,phase_id,state,claim_token,created_at) VALUES('goal-run','goal_phase','workspace','session','room','phase','running','private-claim',1)", []).unwrap();
+        let mut goal = spec(); goal.source=Source::GoalPhase; goal.source_id="phase".into();
+        assert!(GoalExecution::bind(&path,goal.clone(),"goal-run","wrong",Arc::new(ChatTurnCancellation::new())).is_err());
+        let mut guard = GoalExecution::bind(&path,goal.clone(),"goal-run","private-claim",Arc::new(ChatTurnCancellation::new())).unwrap();
+        assert!(GoalExecution::bind(&path,goal,"goal-run","private-claim",Arc::new(ChatTurnCancellation::new())).is_err());
+        assert!(guard.finish_committed(None).is_err());
+        let current = guard.scope(async { CURRENT.with(|c|c.id.clone()) }).await;
+        assert_eq!(current,"execution-one");
+        connection.execute("UPDATE runtime_runs SET state='failed' WHERE id='goal-run'", []).unwrap();
+        guard.finish_committed(Some("阶段失败证据")).unwrap();
+        let (state, encoded): (String,String)=connection.query_row("SELECT state,spec_json FROM execution_index",[],|row|Ok((row.get(0)?,row.get(1)?))).unwrap();
+        assert_eq!(state,"failed"); assert!(!encoded.contains("private-claim"));
+        assert!(require_capability("devin",Source::GoalPhase).is_err());
     }
     #[tokio::test]
     async fn durable_id_rejects_replay_and_drop_keeps_unknown_outcome() {
