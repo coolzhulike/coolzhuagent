@@ -61,3 +61,9 @@ Windows权限输入取消接线：审查确认原CliPermissionPrompter直接stdi
 真实CLI build exit0；完整CLI串行112通过0失败0忽略、guard库64通过0失败4忽略，实际exit0。最后修改独立控制台探针绑定专属CONIN$为自身STD_INPUT_HANDLE，通过生产read_stdin（持久Reader）实际Ctrl+C复验exit0，最终CLI build0（8.48秒）；新探针回执增加owned-reader，区别旧无状态验证。全库64项是探针接线修改前，最后探针专项另行复验，不冒称再次全库；生产读取逻辑在这两次验证之间未变。原字节日志、回执与源SHA归档docs/testing/cli-permission-owned-reader，immutable_snapshot_verified=false。
 
 仍开放：REPL rustyline普通输入也消费同一内核流，本实现只协调审批消费者，普通输入和审批之间必须统一交接，不能据此关闭全部跨回合归属。控制台原生Ctrl+C清行后的再次输入语义、空输入等待取消后的保守丢弃、恢复中再次取消/截止、非Windows及完整CLI模型/持久化全链仍需验证。取消前是否已有输入无法仅靠未标记stdin流证明；本轮未声称完整输入epoch来源证明。32WBS、管理员升级、签名发布与正式验收保持未闭环。
+
+恢复期间再次取消真实复验：新增永久管道测试先写8193单位触发拒绝，第二回合在丢弃旧行、等待换行时50毫秒后取消；旧后缀yes换行要到1秒后才到达。断言恢复取消在500毫秒内返回、incomplete仍保留，第三回合继续恢复后只返回no换行，旧yes未成为审批。写端随后提供数据并关闭确保即使取消退化测试也能结束，数据自然到达不充当及时取消通过。
+
+真实CLI build exit0（11.06秒），完整guard串行65通过0失败4忽略，实际exit0（19.61秒），日志tmp/analysis-permission-recovery-recancel-build.txt、tests.txt。此轮仅扩展验证，生产读取逻辑保持403bc61范围；不重复声称本轮CLI全库或正式模型验收。
+
+重要入口审查更正：此前工作日志称REPL rustyline读取不准确。实际main.rs run_repl调用本地input::LineEditor；input.rs read_line在真实终端使用crossterm原始模式event::read，非终端read_line_fallback使用std::io::stdin().read_line，其内部缓冲可能预读后续审批数据。新guard原线程ReadFile无法读取std内部已预读的字节，因此需要真实独立进程重定向输入证明并统一缓冲/所有者交接；不得直接替换为8192审批预算而截短普通长提示。另main.rs run_repl的cli.run_turn使用?，回合错误直接退出REPL，取消后继续交互还需明确产品行为及恢复实现，不可把三次Reader调用当成当前CLI已有三回合继续功能。先前局部证据仍有效，全部入口和正式交付继续开放。

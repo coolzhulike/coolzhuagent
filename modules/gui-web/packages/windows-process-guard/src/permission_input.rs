@@ -322,5 +322,34 @@ mod windows {
             assert_eq!(next.unwrap(),"no\n");
             assert!(!reader.incomplete);
         }
+        #[test]
+        fn owned_reader_keeps_boundary_when_recovery_is_cancelled_again() {
+            let(read,write)=pipe();
+            let mut reader=unsafe {Reader::duplicate(read.0)}.unwrap();
+            let flag=Arc::new(AtomicBool::new(false));
+            let observed=flag.clone();
+            let (begin,started)=std::sync::mpsc::sync_channel(1);
+            let writer=std::thread::spawn(move || {
+                write.write(&vec![b'x';8193]);
+                started.recv_timeout(Duration::from_secs(2)).unwrap();
+                std::thread::sleep(Duration::from_millis(50));flag.store(true,Ordering::Release);
+                // 即使取消失效，晚到数据和EOF仍使测试终止；不能将其误算及时取消。
+                std::thread::sleep(Duration::from_secs(1));write.write(b"yes\nno\n");
+            });
+            let rejected=reader.read(Arc::new(||false));
+            begin.send(()).unwrap();
+            let start=std::time::Instant::now();
+            let recovering=reader.read(Arc::new(move ||observed.load(Ordering::Acquire)));
+            let elapsed=start.elapsed();
+            let retained=reader.incomplete;
+            let fresh=reader.read(Arc::new(||false));
+            writer.join().unwrap();
+            assert!(rejected.is_err());
+            assert!(recovering.is_err());
+            assert!(elapsed<Duration::from_millis(500),"恢复取消必须早于旧后缀到达：{elapsed:?}");
+            assert!(retained,"再次取消不能丢失未完成边界");
+            assert_eq!(fresh.unwrap(),"no\n");
+            assert!(!reader.incomplete);
+        }
     }
 }
