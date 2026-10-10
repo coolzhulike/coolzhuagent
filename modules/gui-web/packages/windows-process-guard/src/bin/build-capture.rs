@@ -40,7 +40,10 @@ fn run() -> io::Result<i32> {
     command.args(&args[5..]).current_dir(&args[2]).stdin(Stdio::null())
         .stdout(Stdio::piped()).stderr(Stdio::piped());
     if let Some(owner) = &owner { owner.require_alive()?; }
-    let (mut child, job) = ChildProcessJob::spawn_managed(&mut command)?;
+    let (mut child, job) = ChildProcessJob::spawn_managed_checked(&mut command, |_| {
+        if let Some(owner) = &owner { owner.require_alive()?; }
+        Ok(())
+    })?;
     let out = child.stdout.take().ok_or_else(|| io::Error::other("缺少 stdout 管道"))?;
     let err = child.stderr.take().ok_or_else(|| io::Error::other("缺少 stderr 管道"))?;
     let (sender, receiver) = mpsc::sync_channel(2);

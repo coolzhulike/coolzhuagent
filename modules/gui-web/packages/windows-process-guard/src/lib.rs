@@ -791,12 +791,22 @@ impl ChildProcessJob {
     /// 先以挂起状态创建，再纳入 Job，最后恢复初始线程；业务代码没有逃出 Job 的窗口。
     /// 本入口专供无窗口的受管命令，不能用于用户主动请求保持运行的后台程序。
     pub fn spawn_managed(command: &mut std::process::Command) -> io::Result<(Child, Self)> {
+        Self::spawn_managed_checked(command, |_| Ok(()))
+    }
+
+    /// 子进程仍挂起且已纳入Job时检查调用方资格；拒绝则回收，不恢复业务线程。
+    pub fn spawn_managed_checked(
+        command: &mut std::process::Command,
+        before_resume: impl FnOnce(&Child) -> io::Result<()>,
+    ) -> io::Result<(Child, Self)> {
         use std::os::windows::process::CommandExt;
         use windows_sys::Win32::System::Threading::{CREATE_NO_WINDOW, CREATE_SUSPENDED};
         let job = Self::new_kill_on_close()?;
         command.creation_flags(CREATE_NO_WINDOW | CREATE_SUSPENDED);
         let mut child = command.spawn()?;
-        if let Err(error) = job.assign(&child).and_then(|()| resume_initial_thread(child.id())) {
+        if let Err(error) = job.assign(&child)
+            .and_then(|()| before_resume(&child))
+            .and_then(|()| resume_initial_thread(child.id())) {
             let _ = child.kill();
             let _ = child.wait();
             return Err(error);
@@ -1958,6 +1968,28 @@ pub fn terminate_owned_process(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn owner_exit_while_child_suspended_rejects_before_business_code() {
+        let directory = tempfile::tempdir().expect("创建测试目录");
+        let marker = directory.path().join("must-not-start");
+        let mut owner = spawn_sleeper("20");
+        let identity = capture_child_process_identity(&owner).expect("宿主身份");
+        let lease = ProcessLifetimeLease::open(owner.id(), identity.creation_time_filetime()).expect("存活宿主绑定");
+        let mut command = std::process::Command::new("powershell");
+        command.args(["-NoProfile", "-Command", &format!("[IO.File]::WriteAllText('{}','started')", marker.display().to_string().replace('\'', "''"))]);
+        let mut suspended_pid = 0;
+        let result = ChildProcessJob::spawn_managed_checked(&mut command, |child| {
+            suspended_pid = child.id();
+            owner.kill()?;
+            owner.wait()?;
+            lease.require_alive()
+        });
+        assert!(result.is_err(), "宿主退出必须拒绝恢复子进程");
+        assert!(suspended_pid > 0);
+        assert!(!marker.exists(), "拒绝之前子进程业务代码不得执行");
+        assert!(capture_live_process_identity(suspended_pid).is_err(), "拒绝后挂起子进程必须回收");
+    }
 
     #[test]
     fn input_lease_blocks_competing_owner_and_fences_released_epoch() {

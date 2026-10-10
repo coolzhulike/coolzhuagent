@@ -27,3 +27,5 @@ PS5.1和PS7最新各六项实际exit0，新增已关闭读取流触发任务故�
 实际正常引导链也已重新执行：直接Cargo引导、复制独立辅助程序、受管Cargo JSON证据构建均成功；真实回执匹配及missing/executable/features/duplicate四个拒绝案例共五项通过，驱动实际exit0。日志 tmp/analysis-capture-owner-bootstrap-contract-corrected.txt，完整引导回执路径由tmp/analysis-capture-owner-bootstrap-result.json记录，source_snapshot_verified仍false。最初误未提供测试必填BootstrapResultPath导致命令exit1，日志tmp/analysis-capture-owner-bootstrap-contract.txt保留；该失败不计通过。以上不替代最终正常整包或正式安装验收。
 
 启动边界新增已退出宿主负例：夹具保留真实进程句柄，使其退出后进程身份仍可查询，使用真实PID和创建时间调用正常辅助程序，返回125及“调用宿主已退出”，日志与命令标记均不存在。PS5.1/PS7各九项实际通过，exit0，日志 tmp/analysis-capture-owner-retired-ps5.txt、ps7.txt。该证据覆盖绑定前宿主已经退出，不证明检查与创建构建之间每个竞态窗口均零启动；仍需启动过程中宿主退出的受控屏障和完整回收验收。此轮只修改测试，无Rust生产修改。
+
+后续启动边界修补：ChildProcessJob新增spawn_managed_checked，子进程CREATE_SUSPENDED创建、挂Job后调用资格检查，再恢复初始线程；拒绝走既有kill/wait回收。原spawn_managed委托无附加检查，保持其他入口语义；构建采集器使用宿主句柄检查。新增真实受控测试在恢复前回调中终止绑定宿主，验证资格拒绝、业务文件标记不存在、挂起子进程已回收。正常cargo build实际exit0，完整guard回归55通过0失败3忽略、包装器九项通过，日志 tmp/analysis-capture-suspended-owner-build.txt、tests.txt、wrapper.txt。没有新增依赖。最终资格检查至ResumeThread之间宿主仍可能退出，此修补保证检测到的拒绝不执行业务并缩短窗口，不能证明原子零执行；后续循环回收及完整竞态/权限矩阵继续开放。未进入现有安装包。
