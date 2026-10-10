@@ -1,6 +1,19 @@
 //! 回合失败也保存已记录的会话事实；保存失败不得抹去原执行错误。
 use std::{error::Error, path::Path};
-use runtime::{RuntimeError, Session};
+use runtime::{AgentEvent, RuntimeError, Session, TurnSummary};
+
+pub(super) trait PersistedTurn {
+    fn events(&self) -> &[AgentEvent];
+}
+
+impl PersistedTurn for TurnSummary {
+    fn events(&self) -> &[AgentEvent] { &self.events }
+}
+
+#[cfg(test)]
+impl PersistedTurn for () {
+    fn events(&self) -> &[AgentEvent] { &[] }
+}
 
 /// 内部回合保留独立快照，先独占预留文件；不会覆盖主会话或已有内部回合。
 pub(super) fn reserve_internal_path(parent_session: &Path) -> std::io::Result<std::path::PathBuf> {
@@ -27,18 +40,21 @@ fn reserve_internal_file(parent_session: &Path) -> std::io::Result<(std::path::P
     Err(std::io::Error::other("无法独占预留内部会话文件"))
 }
 
-pub(super) fn persist_result<T>(
+pub(super) fn persist_result<T: PersistedTurn>(
     result: Result<T, RuntimeError>, session: &Session, path: &Path,
 ) -> Result<T, Box<dyn Error>> {
     let session_saved = session.save_to_path(path);
     let events_saved = match &result {
-        Err(error) if !error.events().is_empty() => save_error_events(error, path),
-        _ => Ok(()),
+        Err(error) => save_events(error.events(), path),
+        Ok(summary) => save_events(summary.events(), path),
     };
     if let Err(events_error) = events_saved {
         let storage = session_saved.err().map(|error| format!("；会话保存也失败：{error}")).unwrap_or_default();
-        let execution = result.err().map(|error| error.to_string()).unwrap_or_default();
-        return Err(Box::new(std::io::Error::other(format!("回合执行失败：{execution}；终态轨迹保存失败：{events_error}{storage}"))));
+        let execution = match &result {
+            Err(error) => format!("回合执行失败：{error}；"),
+            Ok(_) => String::new(),
+        };
+        return Err(Box::new(std::io::Error::other(format!("{execution}终态轨迹保存失败：{events_error}{storage}"))));
     }
     match (result, session_saved) {
         (Ok(value), Ok(())) => Ok(value),
@@ -50,10 +66,11 @@ pub(super) fn persist_result<T>(
     }
 }
 
-/// 错误轨迹与会话消息分别留存；独占文件避免后续回合覆盖历史。
-fn save_error_events(error: &RuntimeError, path: &Path) -> std::io::Result<()> {
+/// 回合轨迹与会话消息分别留存；独占文件避免后续回合覆盖历史。
+fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
     use std::io::Write;
-    let bytes = serde_json::to_vec_pretty(error.events()).map_err(std::io::Error::other)?;
+    if events.is_empty() { return Ok(()); }
+    let bytes = serde_json::to_vec_pretty(events).map_err(std::io::Error::other)?;
     let (event_path, mut file) = reserve_internal_file(&path.with_extension("events.json"))?;
     let saved = file.write_all(&bytes).and_then(|()| file.sync_all());
     drop(file);
@@ -72,6 +89,44 @@ mod tests {
     use super::*;
     use runtime::{ApiClient, ApiRequest, AssistantEvent, ConversationRuntime, PermissionMode,
         PermissionPolicy, ToolExecutor, ToolError};
+
+    #[test]
+    fn completed_turn_is_saved_and_storage_failure_is_not_success() {
+        struct Client;
+        impl ApiClient for Client {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                Ok(vec![AssistantEvent::TextDelta("已完成".into()), AssistantEvent::MessageStop])
+            }
+        }
+        struct Executor;
+        impl ToolExecutor for Executor {
+            fn execute(&mut self, _: &str, _: &str) -> Result<String, ToolError> { unreachable!() }
+        }
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-completed-events-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("main.json");
+        let mut runtime = ConversationRuntime::new(Session::new(), Client, Executor,
+            PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
+        let summary = persist_result(runtime.run_turn("完成", None), runtime.session(), &path).unwrap();
+        let event_directory = directory.join("internal-turns/main.events.json");
+        let files = std::fs::read_dir(&event_directory).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(files.len(), 1);
+        let actual: serde_json::Value = serde_json::from_slice(&std::fs::read(files[0].path()).unwrap()).unwrap();
+        assert_eq!(actual, serde_json::to_value(&summary.events).unwrap());
+        assert_eq!(actual.as_array().unwrap().last().unwrap()["kind"], "turn_completed");
+        std::fs::remove_file(files[0].path()).unwrap();
+        std::fs::remove_dir(event_directory).unwrap();
+        std::fs::remove_dir(directory.join("internal-turns")).unwrap();
+        std::fs::write(directory.join("internal-turns"), b"blocked").unwrap();
+        let error = persist_result(runtime.run_turn("再次完成", None), runtime.session(), &path).unwrap_err();
+        assert!(error.to_string().contains("终态轨迹保存失败"));
+        assert!(!error.to_string().contains("回合执行失败"));
+        assert_eq!(Session::load_from_path(&path).unwrap(), *runtime.session());
+        std::fs::remove_file(path).unwrap();
+        std::fs::remove_file(directory.join("internal-turns")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
 
     #[test]
     fn model_error_after_tool_preserves_saved_execution_fact() {
