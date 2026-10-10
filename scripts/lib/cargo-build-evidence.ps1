@@ -68,7 +68,8 @@ function Save-PackageCargoBuildEvidence {
 function Assert-PackageCargoBuildEvidence {
   param(
     [Parameter(Mandatory = $true)]$Report,
-    [Parameter(Mandatory = $true)][string]$RepoPath
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [hashtable]$ArchivePaths
   )
   $evidence = $Report.cargo_build_evidence
   if ($null -eq $evidence) {
@@ -90,7 +91,12 @@ function Assert-PackageCargoBuildEvidence {
         $relative.StartsWith('/') -or -not $relative.EndsWith("/$($entry.run_id)/$($entry.artifact_id).jsonl", [StringComparison]::Ordinal)) {
       throw '构建回执归档路径与身份不一致'
     }
-    $path = [IO.Path]::GetFullPath((Join-Path $RepoPath $relative))
+    if ($null -ne $ArchivePaths) {
+      if (-not $ArchivePaths.ContainsKey($relative)) { throw '发布归档缺少原始回执引用映射' }
+      $path = [IO.Path]::GetFullPath([string]$ArchivePaths[$relative])
+    } else {
+      $path = [IO.Path]::GetFullPath((Join-Path $RepoPath $relative))
+    }
     if (-not (Test-PackagePathInsideRoot -Path $path -Root $RepoPath)) { throw '构建回执路径逃逸' }
     $node = Get-Item -LiteralPath $path -Force
     while ($node.FullName.TrimEnd('\', '/') -ne $RepoPath.TrimEnd('\', '/')) {
@@ -104,4 +110,52 @@ function Assert-PackageCargoBuildEvidence {
         (Get-IdentityHashFromBytes -Bytes $bytes) -cne $entry.sha256) { throw '归档构建回执字节身份已变化' }
   }
   [pscustomobject]@{ status = 'collected'; verified = $true; entries = @($evidence.entries) }
+}
+
+function Resolve-PackageArchiveEvidencePath {
+  param([string]$RepoPath, [string]$ArchiveDirectory, [string]$Relative)
+  if ([string]::IsNullOrWhiteSpace($Relative) -or $Relative -match '[\\:]|(^|/)\.\.?(/|$)|//|/$' -or $Relative.StartsWith('/')) {
+    throw '发布归档引用路径不规范'
+  }
+  $path = [IO.Path]::GetFullPath((Join-Path $RepoPath $Relative))
+  if (-not (Test-PackagePathInsideRoot -Path $path -Root $ArchiveDirectory) -or
+      -not (Test-PackagePathInsideRoot -Path $path -Root $RepoPath)) { throw '发布归档引用路径逃逸' }
+  $node = Get-Item -LiteralPath $path -Force
+  while ($node.FullName.TrimEnd('\', '/') -ne $RepoPath.TrimEnd('\', '/')) {
+    if ($node.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw '发布归档不得经重解析点读取' }
+    $node = Get-Item -LiteralPath (Split-Path -Parent $node.FullName) -Force
+  }
+  return $path
+}
+
+function Assert-ArchivedPackageCargoBuildEvidence {
+  param(
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [Parameter(Mandatory = $true)][string]$ArchiveManifestPath
+  )
+  $directory = Split-Path -Parent ([IO.Path]::GetFullPath($ArchiveManifestPath))
+  $manifestPath = Resolve-PackageArchiveEvidencePath -RepoPath $RepoPath -ArchiveDirectory $directory `
+    -Relative (Get-IdentityRepoRelativePath -RepoPath $RepoPath -Path $ArchiveManifestPath)
+  $utf8 = [Text.UTF8Encoding]::new($false, $true)
+  $manifest = ConvertFrom-IdentityJson -Json ($utf8.GetString([IO.File]::ReadAllBytes($manifestPath)).TrimStart([char]0xfeff))
+  if ($manifest.kind -ne 'package-report-archive') { throw '发布归档清单类型无效' }
+  $reportPath = Resolve-PackageArchiveEvidencePath -RepoPath $RepoPath -ArchiveDirectory $directory -Relative $manifest.archived_report_path
+  $bytes = [IO.File]::ReadAllBytes($reportPath)
+  $hash = Get-IdentityHashFromBytes -Bytes $bytes
+  if ($hash -cne $manifest.report_file_sha256) { throw '发布归档报告原始字节身份不一致' }
+  $report = ConvertFrom-IdentityJson -Json ($utf8.GetString($bytes).TrimStart([char]0xfeff))
+  $identity = Assert-PackageReportContentHash -Report $report
+  if ($identity.report_id -cne $manifest.report_id -or $identity.content_sha256 -cne $manifest.report_content_sha256) {
+    throw '发布归档报告内容身份不一致'
+  }
+  $paths = @{}
+  foreach ($entry in @($report.cargo_build_evidence.entries)) {
+    $matching = @($manifest.extra_evidence | Where-Object { $_.source_path -ceq $entry.path })
+    if ($matching.Count -ne 1 -or $matching[0].file_sha256 -cne $entry.sha256) { throw '发布归档回执映射缺失、重复或哈希不一致' }
+    $paths[[string]$entry.path] = Resolve-PackageArchiveEvidencePath -RepoPath $RepoPath -ArchiveDirectory $directory -Relative $matching[0].archived_path
+  }
+  $result = Assert-PackageCargoBuildEvidence -Report $report -RepoPath $RepoPath -ArchivePaths $paths
+  $result | Add-Member -NotePropertyName report_id -NotePropertyValue $identity.report_id
+  $result | Add-Member -NotePropertyName report_content_sha256 -NotePropertyValue $identity.content_sha256
+  return $result
 }

@@ -28,6 +28,7 @@ $workspacePath = [System.IO.Path]::GetFullPath($Workspace).TrimEnd('\', '/')
 $workspacePrefix = $workspacePath + [System.IO.Path]::DirectorySeparatorChar
 
 . (Join-Path $workspacePath 'scripts/lib/build-identity.ps1')
+. (Join-Path $workspacePath 'scripts/lib/cargo-build-evidence.ps1')
 
 # 报告目录沿用既有落点（第五轮裁决 B-2）：不迁移、不改名既有证据。
 $reportRoot = if ($ReportRoot) {
@@ -179,12 +180,29 @@ function Invoke-RetentionVerify {
       continue
     }
 
+    $report = $null
     if ($entry.report_content_sha256) {
       try {
         $report = Get-Content -Raw -LiteralPath $found -Encoding UTF8 | ConvertFrom-IdentityJson
         [void](Assert-PackageReportContentHash -Report $report)
       } catch {
         $problems.Add(("report_id={0} 的内容哈希无法重算：{1}" -f $reportId, ($_.Exception.Message -split "`n")[0]))
+        continue
+      }
+    }
+    if ($null -ne $report -and $report.cargo_build_evidence.status -eq 'collected') {
+      try {
+        if ($entry.archived_report_path) {
+          $archiveDirectory = Split-Path -Parent (Join-Path $workspacePath ([string]$entry.archived_report_path))
+          $cargo = Assert-ArchivedPackageCargoBuildEvidence -RepoPath $workspacePath `
+            -ArchiveManifestPath (Join-Path $archiveDirectory 'package-report-files.json')
+          if (-not $cargo.verified -or $cargo.report_id -cne $reportId -or
+              $cargo.report_content_sha256 -cne $entry.report_content_sha256) { throw '归档回执与保留索引报告身份不一致' }
+        } else {
+          [void](Assert-PackageCargoBuildEvidence -Report $report -RepoPath $workspacePath)
+        }
+      } catch {
+        $problems.Add(("report_id={0} 的 Cargo 回执引用验证失败：{1}" -f $reportId, ($_.Exception.Message -split "`n")[0]))
         continue
       }
     }
