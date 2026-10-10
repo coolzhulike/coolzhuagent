@@ -1,18 +1,7 @@
 #requires -Version 5.1
 param([string]$HelperPath = 'tmp/cargo-target-integration/debug/build-capture.exe')
 $ErrorActionPreference='Stop'
-function Set-CaptureTestArguments($Info, [string[]]$Arguments) {
-  if ($Info.PSObject.Properties['ArgumentList']) {
-    foreach($arg in $Arguments){[void]$Info.ArgumentList.Add($arg)}
-  } else {
-    # Windows CRT 参数规则：引号前与尾部反斜杠须成对保留，不能只按空格加引号。
-    $quoted=foreach($arg in $Arguments) {
-      if($arg.Length -gt 0 -and $arg -notmatch '[\s"]'){$arg;continue}
-      '"'+[regex]::Replace([regex]::Replace($arg,'(\\*)"','$1$1\"'),'(\\+)$','$1$1')+'"'
-    }
-    $Info.Arguments=$quoted -join ' '
-  }
-}
+. (Join-Path $PSScriptRoot 'lib/managed-build-capture.ps1')
 $helper=(Resolve-Path -LiteralPath $HelperPath).Path
 $root=Join-Path (Split-Path $PSScriptRoot -Parent) ('tmp/capture evidence '+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($root)
@@ -33,7 +22,7 @@ exit 0
 function Start-Capture([string]$OutPath,[string]$ErrPath,[string]$Ready,[string]$Release) {
   $info=[Diagnostics.ProcessStartInfo]::new($helper)
   $info.UseShellExecute=$false; $info.CreateNoWindow=$true
-  Set-CaptureTestArguments $info @($OutPath,$ErrPath,$root,'--','powershell','-NoProfile','-File',$child,$Ready,$Release,'中文 "引号" 反斜杠\','')
+  Set-ManagedCaptureArguments $info @($OutPath,$ErrPath,$root,'--','powershell','-NoProfile','-File',$child,$Ready,$Release,'中文 "引号" 反斜杠\','')
   return [Diagnostics.Process]::Start($info)
 }
 $out=Join-Path $root 'stdout.log'; $err=Join-Path $root 'stderr.log'
@@ -77,7 +66,7 @@ exit 0
 '@, [Text.UTF8Encoding]::new($false))
 $info=[Diagnostics.ProcessStartInfo]::new($helper)
 $info.UseShellExecute=$false; $info.CreateNoWindow=$true
-Set-CaptureTestArguments $info @((Join-Path $root 'orphan-out.log'),(Join-Path $root 'orphan-err.log'),$root,'--','powershell','-NoProfile','-File',$orphanScript,$pidFile)
+Set-ManagedCaptureArguments $info @((Join-Path $root 'orphan-out.log'),(Join-Path $root 'orphan-err.log'),$root,'--','powershell','-NoProfile','-File',$orphanScript,$pidFile)
 $process=[Diagnostics.Process]::Start($info)
 try {
   if(-not $process.WaitForExit(15000)){$process.Kill($true);throw '后代回收超时'}
