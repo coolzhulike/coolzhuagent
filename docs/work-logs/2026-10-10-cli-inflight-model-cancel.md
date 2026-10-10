@@ -67,3 +67,11 @@ Windows权限输入取消接线：审查确认原CliPermissionPrompter直接stdi
 真实CLI build exit0（11.06秒），完整guard串行65通过0失败4忽略，实际exit0（19.61秒），日志tmp/analysis-permission-recovery-recancel-build.txt、tests.txt。此轮仅扩展验证，生产读取逻辑保持403bc61范围；不重复声称本轮CLI全库或正式模型验收。
 
 重要入口审查更正：此前工作日志称REPL rustyline读取不准确。实际main.rs run_repl调用本地input::LineEditor；input.rs read_line在真实终端使用crossterm原始模式event::read，非终端read_line_fallback使用std::io::stdin().read_line，其内部缓冲可能预读后续审批数据。新guard原线程ReadFile无法读取std内部已预读的字节，因此需要真实独立进程重定向输入证明并统一缓冲/所有者交接；不得直接替换为8192审批预算而截短普通长提示。另main.rs run_repl的cli.run_turn使用?，回合错误直接退出REPL，取消后继续交互还需明确产品行为及恢复实现，不可把三次Reader调用当成当前CLI已有三回合继续功能。先前局部证据仍有效，全部入口和正式交付继续开放。
+
+Windows重定向输入交接修补：先在独立真实测试进程调用实际LineEditor.read_line与权限read_line，连续提供prompt换行/yes换行，旧生产代码实际探针101（tmp/analysis-repl-buffer-handoff-before.txt），父测试只回收自己子进程，不借其它环境。现在read_line_fallback在Windows使用guard新增read_command_line，与read_permission_line共享持久输入对象、互斥所有者和incomplete行边界，避免std::stdin预读数据与底层ReadFile分别消费。非Windows保留原路径，真实终端crossterm路径未改。
+
+普通提示保留原来无独立行预算的语义（budget=None），审批仍Some(8192)，丢弃旧行不缓存内容。此处不将普通提示缩短为短审批预算；普通提示总量/时间预算仍需按全WBS补，不宣称有界完整输入内存。新永久子进程复验69,632字节完整x提示→yes审批→/quit命令→EOF，实际生产LineEditor与审批入口接线均执行，内容与次序不丢失。输入写入在自有线程，父进程5秒超时只kill/wait本子进程并join写线程，失败/成功子进程stdout/stderr落根tmp供审查。正式外部Provider及REPL业务回合未运行。
+
+真实CLI build0，完整CLI串行113通过0失败1忽略；新增忽略为子进程探针入口，父测试实际以--ignored执行，不能将其直接计通过。之后扩展长提示及命令/EOF测试单项实际exit0，guard完整65通过0失败4忽略实际exit0；最后正常CLI构建亦exit0。全CLI回归为短提示版探针时点，扩展版专项另验，生产逻辑未变。原始失败/成功日志及源码SHA归档docs/testing/cli-repl-input-handoff，immutable_snapshot_verified=false。
+
+仍开放：真实终端crossterm事件缓存与ReadConsoleW审批交接、Ctrl+C清行后的新输入语义、空闲重定向输入取消、回合错误后是否继续REPL、输入来源epoch全链、普通长提示预算、非Windows，以及正式模型/安装交付。本轮仅闭合Windows重定向行缓冲混用这一可复现缺口，不计整个32WBS工作包完成。

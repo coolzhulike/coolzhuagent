@@ -1,0 +1,18 @@
+{
+  "before_test_exit": 101,
+  "guard_source_sha256": "E5EDE5114A9C271E43F7E6C0CD85AED5C33DDD2BDC383926F5954D8DE78FD609",
+  "scope": "Windows重定向LineEditor、审批、命令及EOF输入交接；非完整REPL模型执行或真实终端事件归属验收",
+  "source_base": "fd168dbb1b5193887fef3214170e9a856b747916",
+  "final_build_exit": 0,
+  "cli_passed": 113,
+  "long_probe_exit": 0,
+  "cli_ignored": 1,
+  "long_prompt_bytes": 69632,
+  "source_uncommitted": true,
+  "guard_ignored": 4,
+  "input_source_sha256": "66CB297474E93EE3478D50482801A0D6F8EBAE307CD6D397D353CC92B0E77285",
+  "guard_test_exit": 0,
+  "cli_test_exit": 0,
+  "immutable_snapshot_verified": false,
+  "guard_passed": 65
+}

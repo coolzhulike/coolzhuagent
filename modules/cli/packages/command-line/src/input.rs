@@ -337,8 +337,15 @@ impl LineEditor {
             write!(stdout, "{}", self.prompt)?;
             stdout.flush()?;
 
-            let mut buffer = String::new();
-            let bytes_read = io::stdin().read_line(&mut buffer)?;
+            #[cfg(windows)]
+            let mut buffer = coolzhu_windows_process_guard::permission_input::read_command_line(std::sync::Arc::new(||false))?;
+            #[cfg(not(windows))]
+            let mut buffer = {
+                let mut buffer=String::new();
+                io::stdin().read_line(&mut buffer)?;
+                buffer
+            };
+            let bytes_read = buffer.len();
             if bytes_read == 0 {
                 return Ok(ReadOutcome::Exit);
             }

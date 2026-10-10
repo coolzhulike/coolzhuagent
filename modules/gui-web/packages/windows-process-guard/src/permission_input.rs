@@ -5,7 +5,12 @@ use std::{io,sync::Arc};
 /// 取消谓词必须快速返回且保持取消状态，不执行阻塞I/O。
 /// 读取最多8192个字节或UTF-16单位，返回前回收自身取消监听线程。
 pub fn read_permission_line(cancel:Arc<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
-    windows::read_stdin(cancel)
+    windows::read_stdin(cancel,Some(8192))
+}
+/// 与审批共享输入所有者及边界，保留普通提示原有的长度语义。
+/// 普通提示的独立总量预算仍由上层负责，不能套用短审批行上限。
+pub fn read_command_line(cancel:Arc<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
+    windows::read_stdin(cancel,None)
 }
 #[cfg(windows)]
 mod windows {
@@ -29,20 +34,24 @@ mod windows {
             }
             Ok(Self{input:InputHandle(handle),incomplete:false})
         }
+        #[cfg(test)]
         fn read(&mut self,cancel:Shared<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
+            self.read_with_budget(cancel,Some(8192))
+        }
+        fn read_with_budget(&mut self,cancel:Shared<dyn Fn()->bool+Send+Sync>,budget:Option<usize>)->io::Result<String> {
             if self.incomplete {
                 // 不收集旧行内容；即使后缀迟到，也必须先恢复到行边界。
-                unsafe {read_line_state(self.input.0,cancel.clone(),&mut self.incomplete,true)}?;
+                unsafe {read_line_state(self.input.0,cancel.clone(),&mut self.incomplete,true,None)}?;
             }
-            unsafe {read_line_state(self.input.0,cancel,&mut self.incomplete,false)}
+            unsafe {read_line_state(self.input.0,cancel,&mut self.incomplete,false,budget)}
         }
     }
-    pub(super) fn read_stdin(cancel:Shared<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
+    pub(super) fn read_stdin(cancel:Shared<dyn Fn()->bool+Send+Sync>,budget:Option<usize>)->io::Result<String> {
         static INPUT:std::sync::Mutex<Option<Reader>>=std::sync::Mutex::new(None);
         interrupted(cancel.as_ref())?;
         let mut owner=INPUT.try_lock().map_err(|_|io::Error::other("权限输入已有读取者或状态损坏"))?;
         if owner.is_none(){*owner=Some(unsafe {Reader::duplicate(GetStdHandle(STD_INPUT_HANDLE))}?);}
-        owner.as_mut().unwrap().read(cancel)
+        owner.as_mut().unwrap().read_with_budget(cancel,budget)
     }
 
     struct ThreadHandle(HANDLE);
@@ -66,9 +75,9 @@ mod windows {
     // 调用方保证输入句柄在整个读取期间有效；读取始终在原线程进行。
     #[cfg(test)]
     unsafe fn read_line(input:HANDLE,cancel:Shared<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
-        unsafe {read_line_state(input,cancel,&mut false,false)}
+        unsafe {read_line_state(input,cancel,&mut false,false,Some(8192))}
     }
-    unsafe fn read_line_state(input:HANDLE,cancel:Shared<dyn Fn()->bool+Send+Sync>,incomplete:&mut bool,discard:bool)->io::Result<String> {
+    unsafe fn read_line_state(input:HANDLE,cancel:Shared<dyn Fn()->bool+Send+Sync>,incomplete:&mut bool,discard:bool,budget:Option<usize>)->io::Result<String> {
         interrupted(cancel.as_ref())?;
         let _watch={
             let mut handle=std::ptr::null_mut();
@@ -115,7 +124,9 @@ mod windows {
             if count==0 {break;}
             if discard {if ended {break;} else {continue;}}
             if console {wide.push(unit);} else {bytes.push(byte);}
-            if wide.len()+bytes.len()>8192 {return Err(io::Error::other("权限输入超过8192单位上限"));}
+            if let Some(limit)=budget {
+                if wide.len()+bytes.len()>limit {return Err(io::Error::other(format!("权限输入超过{limit}单位上限")));}
+            }
             if ended {break;}
         }
         if console {String::from_utf16(&wide).map_err(|e|io::Error::new(io::ErrorKind::InvalidData,e))}
@@ -216,7 +227,7 @@ mod windows {
             });
             let start=std::time::Instant::now();
             let cancelled=observed.clone();
-            let result=read_stdin(Arc::new(move ||cancelled.load(Ordering::Acquire)));
+            let result=read_stdin(Arc::new(move ||cancelled.load(Ordering::Acquire)),Some(8192));
             sender.join().unwrap();listener.join().unwrap();
             assert!(result.is_err(),"Ctrl+C不得成为允许输入");
             assert!(observed.load(Ordering::Acquire),"必须观察实际Tokio信号");
