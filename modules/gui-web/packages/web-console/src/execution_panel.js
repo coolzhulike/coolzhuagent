@@ -74,16 +74,11 @@
       trace.onclick = async () => {
         trace.disabled = true;
         try {
-          // 原房间只读轨迹；较旧run通过before分页查找，不能把最近run当作本执行。
-          let before = null, found;
-          for (let page = 0; page < 20; page++) {
-            const data = await request(`/api/executions/${encodeURIComponent(item.spec.id)}/trace?limit=50${before ? `&before=${encodeURIComponent(before)}` : ""}`, captured);
-            if (!detailCurrent()) return;
-            found = data.runs?.find(r => r.run_id === run);
-            if (found || !data.has_more) break;
-            before = data.next_before;
-          }
-          if (!found) throw new Error("本运行未在已读取轨迹中找到，请从聊天室轨迹继续定位");
+          // 服务端依据本执行冻结的真实run直接寻址，较旧运行无需扫描整个房间。
+          const data = await request(`/api/executions/${encodeURIComponent(item.spec.id)}/trace`, captured);
+          if (!detailCurrent()) return;
+          const found = data.runs?.find(r => r.run_id === run);
+          if (!found) throw new Error("本执行的真实运行轨迹尚不可用");
           if (!detailCurrent()) return;
           const pre = node("pre", JSON.stringify(found, null, 2));
           pre.setAttribute("aria-label", "真实运行轨迹"); details.append(pre);

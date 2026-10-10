@@ -423,7 +423,9 @@ pub(crate) async fn api_trace(
     let room = item["spec"]["room_id"]
         .as_str()
         .ok_or_else(|| crate::api_error(crate::StatusCode::CONFLICT, "执行房间身份无效"))?;
-    crate::chat_insights::trace(crate::AxumPath(room.to_owned()), query).await
+    let run = item["run_id"].as_str().or_else(|| item["spec"]["parent_run_id"].as_str())
+        .ok_or_else(|| crate::api_error(crate::StatusCode::CONFLICT, "执行尚未绑定真实运行，不能按房间猜测轨迹"))?;
+    crate::chat_insights::trace(crate::AxumPath(room.to_owned()), crate::Query(query.0.for_run(run))).await
 }
 
 pub(crate) async fn api_list(
