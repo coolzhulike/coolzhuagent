@@ -22,3 +22,9 @@
 本轮真实build web-console及新专项已串行启动于会话92762，未取得终态；日志tmp/analysis-goal-plan-only-gap-build.txt、test.txt。不重启、不计通过。本轮生产行为未改；完整修补仍需独立规划提交→实现重跑→验证闭环、累计重试和权限/claim冻结联动。
 
 会话92762已实际exit0：正常build29秒，新专项1通过0失败1464过滤。反例实际确认报阻后的planner提示状态里，只有steps计划文本也会使原阶段completed/pass；这不是整Goal完成或真实planner模型验收。原始日志docs/testing/goal-plan-only-gap，本轮生产未改。
+
+直接阶段运行失败反馈接线：goal_phase_retry_intent_context此前只在dispatch handoff处调用，prepare直接运行构造的goal_phase_run_prompt_with_progress没有该持久反馈。现直接prompt也追加已有失败原因/证据及retry/max。进度attempt由phase.retry_count.saturating_add(1)决定，失败原因优先持久last_reason；100条可见事件不再作为权威重试次数。事件类别统计仍仅反映可见历史，其文案及显式解阻后旧证据显示需继续复核。
+
+新增真实SQLite永久回归设置retry=2/max=4及原因/证据，然后删除该Goal事件历史；期望直接prompt仍attempt3、retry2/4及durable evidence，不自称first attempt。本轮正常build及专项串行会话28103正在运行，尚未取得终态，不计通过、不重启；日志tmp/analysis-goal-durable-retry-prompt-build.txt、test.txt。该接线不等于planner真实接管或独立规划结果提交已修复，两个反例仍需完整实现。
+
+会话28103已实际exit0：正常build55.24秒，持久失败反馈专项1通过0失败1465过滤。原字节日志归档docs/testing/goal-durable-retry-prompt；范围仅直接提示在事件历史删除后的持久反馈，不代表完整回退或全套验收。后台循环源码确认：没有running阶段时会调用dispatch_ready_goal_phases并刷新状态，因此pending本身不阻止自动推进；实际角色选择及规划提交缺口仍开放。

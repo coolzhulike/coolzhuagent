@@ -46389,16 +46389,17 @@ fn goal_phase_progress_block(
             _ => {}
         }
     }
-    let attempts = replan + files_block + command_block;
-    if attempts == 0 {
+    let visible_failures = replan + files_block + command_block;
+    if phase.retry_count == 0 && visible_failures == 0 {
         return "Progress: first attempt at this phase; no prior verification failures."
             .to_string();
     }
     let (ready, total) = goal_phase_artifact_ready_counts(phase);
-    let blocker = latest_blocker.unwrap_or_else(|| "see goal events".to_string());
+    let blocker = phase.last_reason.as_ref().map(|reason|reason.chars().take(200).collect())
+        .or(latest_blocker).unwrap_or_else(|| "see goal events".to_string());
     format!(
         "Progress: attempt {}; prior failures — replan:{replan}, files:{files_block}, command:{command_block}; latest blocker: {blocker}; artifacts ready: {ready}/{total}. Fix the exact reported issue before reporting completion.",
-        attempts + 1
+        phase.retry_count.saturating_add(1)
     )
 }
 
@@ -46435,6 +46436,8 @@ fn goal_phase_run_prompt_with_progress(
     phase: &GoalPhaseDto,
     progress: &str,
 ) -> String {
+    // 直接执行入口也使用持久失败反馈，不能只在handoff入口注入。
+    let progress=format!("{progress}{}",goal_phase_retry_intent_context(phase));
     let skill_names = goal_skill_names(&phase.skills_required);
     let skills = if skill_names.is_empty() {
         "none".to_string()
@@ -69152,6 +69155,25 @@ attach: last_assistant
         assert_eq!(phase.status,"completed","已知缺口：仅规划回答进入原阶段完成分支");
         assert_eq!(phase.last_verdict.as_deref(),Some("pass"));
         assert_eq!(phase.retry_count,1);
+    }
+
+    #[test]
+    fn goal_phase_run_prompt_keeps_durable_retry_after_event_history_is_removed() {
+        let temp=tempfile::tempdir().unwrap();
+        let (_store,context)=token_finalizer_fixture_with_role(&temp,"ws-durable-retry-prompt","implementer");
+        let connection=super::open_session_connection(&context.db_path).unwrap();
+        connection.execute("UPDATE goal_phases SET retry_count=2,max_retries=4,last_verdict='fail',last_reason='durable blocker',last_evidence_json=?1 WHERE goal_id=?2 AND id=?3",
+            super::params![json!({"text":"durable evidence"}).to_string(),&context.goal_id,&context.phase_id]).unwrap();
+        connection.execute("DELETE FROM goal_events WHERE goal_id=?1",super::params![&context.goal_id]).unwrap();
+        let goal=super::get_goal_sqlite(&context.db_path,"ws-durable-retry-prompt",&context.goal_id).unwrap();
+        let phase=goal.phases.iter().find(|p|p.id==context.phase_id).unwrap();
+        let progress=super::goal_phase_progress_block(&connection,&context.goal_id,phase);
+        assert!(progress.contains("attempt 3"));
+        assert!(progress.contains("durable blocker"));
+        let prompt=super::goal_phase_run_prompt_with_progress(&goal,phase,&progress);
+        assert!(prompt.contains("retry 2/4"));
+        assert!(prompt.contains("durable evidence"));
+        assert!(!prompt.contains("first attempt"));
     }
 
     #[test]
