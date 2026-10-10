@@ -19,3 +19,7 @@
 新增实际DefaultRuntimeClient + ConversationRuntime + ProviderClient本地HTTP/SSE测试：服务器发送部分write_file工具参数和输入7/输出2用量快照后触发根取消。断言真实连接关闭、工具执行器调用0、错误保留输入7及不完整事实、会话仅用户消息、终态TurnInterrupted/Cancelled。进一步使用生产persist_result保存错误及load_event_history恢复，确认仍返回错误且恢复唯一中断轨迹，未冒充完成。最新完整CLI串行103通过0失败0忽略，实际exit0；正常CLI实际构建exit0（12.05秒）。日志 tmp/analysis-cli-cancel-terminal-build.txt、terminal-tests.txt、persist-tests.txt。
 
 共享RuntimeError接口的完整core-runtime串行回归同一会话4133已实际exit0：库375通过0失败1忽略，两项DSH集成各1忽略，总3忽略不计通过。日志tmp/analysis-cli-cancel-reason-core-tests.txt。实际外部Provider、完整权限/截止/迟到矩阵与候选正式交付仍开放。
+
+后续入口审查：CLI生产源码中直接Provider请求仅DefaultRuntimeClient的上述两处等待，shared_chat另有tokio::signal::ctrl_c及远端停止确认路径；main.rs的legacy LiveCli/run_prompt/internal_prompt直接run_turn调用点未安装with_execution_control，生产当前控制可能为None。因此适配器局部能力不等于legacy prompt/REPL取消闭环，需要绑定实际宿主取消/预算并证明正常结束、连续回合和权限提示不泄漏信号；不得仅在测试注入根控制后宣称这些入口完成。
+
+新增截止完整终态复验：同一生产适配器部分工具流测试分别使用显式取消及800毫秒根截止，两者工具零调用、输入7快照保留、不完整助手未提交；生产保存/恢复分别得到Cancelled与TimedOut的TurnInterrupted。CLI完整串行104通过0失败0忽略，真实build实际exit0，日志tmp/analysis-cli-cancel-deadline-tests.txt、build.txt。本轮仅扩展测试和核验，未补上述legacy入口真实信号来源，仍明确未闭环。

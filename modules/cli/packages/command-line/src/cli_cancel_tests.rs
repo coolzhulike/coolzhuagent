@@ -4,9 +4,18 @@ use std::sync::atomic::{AtomicUsize,Ordering};
 
 #[test]
 fn cancelled_partial_tool_stream_has_interrupted_terminal_and_zero_tool_calls() {
+    check_partial_tool_interruption(false);
+}
+
+#[test]
+fn deadline_partial_tool_stream_has_interrupted_terminal_and_zero_tool_calls() {
+    check_partial_tool_interruption(true);
+}
+
+fn check_partial_tool_interruption(deadline: bool) {
     let listener=std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let endpoint=format!("http://{}/v1",listener.local_addr().unwrap());
-    let control=runtime::managed_process::ExecutionControl::new(Some(Duration::from_secs(5)),None);
+    let control=runtime::managed_process::ExecutionControl::new(Some(if deadline {Duration::from_millis(800)} else {Duration::from_secs(5)}),None);
     let cancel=control.clone();
     let server=std::thread::spawn(move || {
         let (mut socket,_)=listener.accept().unwrap();
@@ -29,7 +38,7 @@ fn cancelled_partial_tool_stream_has_interrupted_terminal_and_zero_tool_calls() 
         );
         socket.write_all(prefix.as_bytes()).unwrap();socket.flush().unwrap();
         std::thread::sleep(Duration::from_millis(200));
-        cancel.cancel();
+        if !deadline {cancel.cancel();}
         let mut byte=[0];
         match socket.read(&mut byte) {
             Ok(0)=>(),
@@ -56,7 +65,8 @@ fn cancelled_partial_tool_stream_has_interrupted_terminal_and_zero_tool_calls() 
     assert!(error.to_string().contains("不完整"));
     let terminal=error.events().last().unwrap();
     assert_eq!(terminal.kind,runtime::AgentEventKind::TurnInterrupted);
-    assert_eq!(terminal.payload["interruption"],"Cancelled");
+    let expected=if deadline {"TimedOut"} else {"Cancelled"};
+    assert_eq!(terminal.payload["interruption"],expected);
     assert_eq!(conversation.session().messages.len(),1,"不完整助手/工具内容不得提交会话");
     let directory=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
         .join(format!("cli-provider-cancel-{}",generate_session_id()));
@@ -68,5 +78,5 @@ fn cancelled_partial_tool_stream_has_interrupted_terminal_and_zero_tool_calls() 
     assert_eq!(history.len(),1);
     let recovered=history[0].last().unwrap();
     assert_eq!(recovered.kind,runtime::AgentEventKind::TurnInterrupted);
-    assert_eq!(recovered.payload["interruption"],"Cancelled");
+    assert_eq!(recovered.payload["interruption"],expected);
 }

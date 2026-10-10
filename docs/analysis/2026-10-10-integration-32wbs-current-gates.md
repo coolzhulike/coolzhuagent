@@ -22,6 +22,8 @@
 
 后续CLI取消错误已补结构化原因，实际DefaultRuntimeClient/ConversationRuntime部分工具流取消确认工具零调用、输入7快照保留、不完整助手未提交、TurnInterrupted/Cancelled唯一终态，生产保存/恢复仍为中断。完整CLI103通过0失败，构建实际通过；共享RuntimeError完整core-runtime回归已实际exit0，忽略项仍按原环境限制保留。外部模型和全部截止/权限/迟到矩阵不由该本地测试替代。
 
+截止部分工具流及保存/恢复TimedOut复验也通过，完整CLI104通过，实际build通过。入口审查确认legacy prompt/REPL/internal_prompt调用点仍未安装根执行控制，适配器收到None时无主动取消；其真实信号来源未补，不能计全部入口完成。共享聊天Ctrl+C/远端停止走另一条既有路径，仍需独立正式验收。
+
 当前实装是 0.2.130，包源码 35cbcf238d194d7fbaac648359d8bddc9858f811；1193 个载荷文件逐长度/SHA 一致，正常整包/MSI 构建、安装及注册版本证据见 [130 验收状态](../testing/release-0.2.130/acceptance-status.md)。本轮再次直接运行 Program Files 下 CLI --version，实际返回上述版本与完整源码身份。未签名、未发布，不能把安装与文件核验提升为正式运行验收。后续 Conversation/CLI 修补不在该安装包中。
 
 CLI历史专项复核点为 918f99c。CLI 历史已补单写者锁、累计字节/条数预算、重复轮次和 Windows junction 拒绝；该范围完整回归 99 通过（tmp/analysis-cli-history-link-final-tests.txt）。core-runtime 375 通过及 3 项忽略的证据保持对应历史源码范围，不能外推后续全部修改。2dacc83 时点的真实 debug CLI 合成恢复 9 项仍是历史进程证据，后续修改不自动继承该进程验收。
