@@ -65,10 +65,20 @@ fn run() -> io::Result<i32> {
         }
         if !terminated && (failure.is_some() || root_done) {
             if root_done && failure.is_none() {
-                match job.active_process_count() {
-                    Ok(0) => {},
-                    Ok(_) => { failure = Some(io::Error::other("根命令退出后受管后代仍活跃，输出完整性未确认")); },
-                    Err(error) => { failure = Some(error); },
+                // 根退出与 Job 计数清空不保证同步；给自然收尾有界等待，不能以强杀代替成功。
+                let settle_deadline = std::time::Instant::now() + Duration::from_millis(250);
+                loop {
+                    match job.active_process_count() {
+                        Ok(0) => break,
+                        Ok(_) if std::time::Instant::now() < settle_deadline => {
+                            thread::sleep(Duration::from_millis(10));
+                        },
+                        Ok(_) => {
+                            failure = Some(io::Error::other("根命令退出后受管后代仍活跃，输出完整性未确认"));
+                            break;
+                        },
+                        Err(error) => { failure = Some(error); break; },
+                    }
                 }
             }
             // 根命令结束也回收仍持管道的后代；辅助程序不提供后台构建语义。

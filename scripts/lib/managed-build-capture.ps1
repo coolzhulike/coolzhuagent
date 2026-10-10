@@ -41,7 +41,7 @@ function Invoke-ManagedBuildCapture {
     # 仅辅助程序自身诊断进入此管道；固定缓冲异步落盘，避免等待退出时堵住诊断管道。
     $diagnosticCopy=$process.StandardError.BaseStream.CopyToAsync($diagnostic,81920)
     $process.WaitForExit()
-    $diagnosticCopy.GetAwaiter().GetResult()
+    [void]$diagnosticCopy.GetAwaiter().GetResult()
     $diagnostic.Flush($true)
     $code=$process.ExitCode
     if ((Get-FileHash -LiteralPath $helper -Algorithm SHA256).Hash -ine $ExpectedHelperSha256) { throw 'BUILD-CAPTURE-IDENTITY: 采集期间辅助程序身份变化，回执无效' }
