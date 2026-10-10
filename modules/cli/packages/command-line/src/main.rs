@@ -4,6 +4,7 @@ mod render;
 mod shared_chat;
 mod shared_chat_binding;
 mod stream_facts;
+mod turn_persistence;
 
 use std::collections::BTreeSet;
 use std::env;
@@ -1347,6 +1348,7 @@ impl LiveCli {
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
         let result = self.runtime.run_turn(input, Some(&mut permission_prompter));
+        let result = turn_persistence::persist_result(result, self.runtime.session(), &self.session.path);
         match result {
             Ok(_) => {
                 spinner.finish(
@@ -1355,7 +1357,6 @@ impl LiveCli {
                     &mut stdout,
                 )?;
                 println!();
-                self.persist_session()?;
                 Ok(())
             }
             Err(error) => {
@@ -1364,7 +1365,7 @@ impl LiveCli {
                     TerminalRenderer::new().color_theme(),
                     &mut stdout,
                 )?;
-                Err(Box::new(error))
+                Err(error)
             }
         }
     }
@@ -1393,9 +1394,9 @@ impl LiveCli {
             None,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
-        let summary = runtime.run_turn(input, Some(&mut permission_prompter))?;
+        let result = runtime.run_turn(input, Some(&mut permission_prompter));
         self.runtime = runtime;
-        self.persist_session()?;
+        let summary = turn_persistence::persist_result(result, self.runtime.session(), &self.session.path)?;
         println!(
             "{}",
             json!({
