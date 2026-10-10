@@ -2,6 +2,26 @@
 use std::{error::Error, path::Path};
 use runtime::{AgentEvent, RuntimeError, Session, TurnSummary};
 
+const MAX_EVENT_RECORD_BYTES: usize = 8 * 1024 * 1024;
+
+/// 序列化与恢复使用同一字节上限；超限不创建 pending，也不发布截断记录。
+fn encode_event_record<T: serde::Serialize>(value: &T, limit: usize) -> std::io::Result<Vec<u8>> {
+    struct BoundedBytes { bytes: Vec<u8>, limit: usize }
+    impl std::io::Write for BoundedBytes {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            if bytes.len() > self.limit.saturating_sub(self.bytes.len()) {
+                return Err(std::io::Error::other("回合轨迹超过恢复大小上限，未发布"));
+            }
+            self.bytes.extend_from_slice(bytes);
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> { Ok(()) }
+    }
+    let mut output = BoundedBytes { bytes: Vec::new(), limit };
+    serde_json::to_writer_pretty(&mut output, value).map_err(std::io::Error::other)?;
+    Ok(output.bytes)
+}
+
 pub(super) trait PersistedTurn {
     fn events(&self) -> &[AgentEvent];
 }
@@ -56,8 +76,8 @@ pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEv
         }
         if !entry.file_type()?.is_file() { return Err(std::io::Error::other("回合历史包含非普通文件")); }
         let mut bytes = Vec::new();
-        std::fs::File::open(entry.path())?.take(8 * 1024 * 1024 + 1).read_to_end(&mut bytes)?;
-        if bytes.len() > 8 * 1024 * 1024 { return Err(std::io::Error::other("回合轨迹超过恢复大小上限")); }
+        std::fs::File::open(entry.path())?.take(MAX_EVENT_RECORD_BYTES as u64 + 1).read_to_end(&mut bytes)?;
+        if bytes.len() > MAX_EVENT_RECORD_BYTES { return Err(std::io::Error::other("回合轨迹超过恢复大小上限")); }
         total_bytes += bytes.len();
         if total_bytes > 64 * 1024 * 1024 { return Err(std::io::Error::other("回合历史超过恢复总大小上限")); }
         let events: Vec<AgentEvent> = serde_json::from_slice(&bytes).map_err(std::io::Error::other)?;
@@ -142,7 +162,7 @@ pub(super) fn persist_result<T: PersistedTurn>(
 fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
     use std::io::Write;
     if events.is_empty() { return Ok(()); }
-    let bytes = serde_json::to_vec_pretty(events).map_err(std::io::Error::other)?;
+    let bytes = encode_event_record(&events, MAX_EVENT_RECORD_BYTES)?;
     let (event_path, mut file) = reserve_file_in_directory(&event_directory(path)?, "pending")?;
     let saved = file.write_all(&bytes).and_then(|()| file.sync_all());
     drop(file);
@@ -167,6 +187,17 @@ mod tests {
     use super::*;
     use runtime::{ApiClient, ApiRequest, AssistantEvent, ConversationRuntime, PermissionMode,
         PermissionPolicy, ToolExecutor, ToolError};
+
+    #[test]
+    fn event_encoding_checks_serialized_bytes_before_publication() {
+        // 中文与 JSON 转义的长度必须按序列化字节计算，不能按字符计数。
+        let value = serde_json::json!({"text": "中文\n\""});
+        let expected = serde_json::to_vec_pretty(&value).unwrap();
+        assert_eq!(encode_event_record(&value, expected.len()).unwrap(), expected);
+        assert!(encode_event_record(&value, expected.len() - 1).unwrap_err().to_string().contains("未发布"));
+        let large = "x".repeat(MAX_EVENT_RECORD_BYTES);
+        assert!(encode_event_record(&large, MAX_EVENT_RECORD_BYTES).is_err());
+    }
 
     #[test]
     fn full_session_filename_isolates_event_history() {
