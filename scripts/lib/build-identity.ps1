@@ -735,6 +735,30 @@ function Write-SourceSnapshotFreezeRecord {
   独立 Tauri 项目是**独立 Cargo 项目**：它的真实构建入口与锁文件（src-tauri/Cargo.toml、
   src-tauri/Cargo.lock）在这里显式登记，不能只记顶层 workspace 的 lockfile。
 #>
+function Get-CargoConfigIdentityDescriptors {
+  param([Parameter(Mandatory=$true)][string]$RepoPath,[string]$CargoHome)
+  if (-not $CargoHome) {
+    $CargoHome=[Environment]::GetEnvironmentVariable('CARGO_HOME')
+    if (-not $CargoHome) { $CargoHome=Join-Path ([Environment]::GetFolderPath('UserProfile')) '.cargo' }
+  }
+  $directories=[Collections.Generic.List[string]]::new()
+  $current=[IO.DirectoryInfo]::new([IO.Path]::GetFullPath($RepoPath))
+  while ($current) { $directories.Add((Join-Path $current.FullName '.cargo')); $current=$current.Parent }
+  $directories.Add([IO.Path]::GetFullPath($CargoHome))
+  $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+  foreach($directory in $directories) {
+    foreach($name in @('config','config.toml')) {
+      $path=Join-Path $directory $name
+      if (-not $seen.Add($path)) { continue }
+      if (Test-Path -LiteralPath $path) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw 'Cargo配置路径不是普通文件' }
+        # 仅登记身份，不保存配置正文或凭据。
+        'cargo_config={0}|sha256={1}' -f $path,(Get-IdentityFileHash -Path $path)
+      } else { 'cargo_config={0}|absent' -f $path }
+    }
+  }
+}
+
 function Get-BuildInputDescriptors {
   param(
     [Parameter(Mandatory = $true)][string]$RepoPath,
@@ -772,7 +796,8 @@ function Get-BuildInputDescriptors {
     $descriptors.Add(('env:{0}={1}' -f $name, $(if ([string]::IsNullOrWhiteSpace($value)) { '(unset)' } else { $value })))
   }
 
-  # 工作区内影响构建的配置文件（存在才登记；用户级 cargo 配置不纳入，避免把用户配置/凭据带进身份）
+  foreach($descriptor in @(Get-CargoConfigIdentityDescriptors -RepoPath $RepoPath)) { $descriptors.Add($descriptor) }
+  # 工作区构建配置与用户/祖先Cargo配置均登记身份，不保存配置正文。
   foreach ($relative in @('.cargo/config.toml', '.cargo/config', 'rust-toolchain.toml', 'rust-toolchain', '.config/cargo.toml')) {
     $full = Join-Path ([System.IO.Path]::GetFullPath($RepoPath)) $relative
     if (Test-Path -LiteralPath $full -PathType Leaf) {
