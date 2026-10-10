@@ -308,8 +308,9 @@ impl HookRunner {
                     },
                 }
             }
-            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => HookCommandOutcome::Deny {
-                message: Some(format!("钩子执行已取消或截止，停止工具派发：{error}")),
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted
+                || crate::managed_process::process_started_before_error(&error) => HookCommandOutcome::Deny {
+                message: Some(format!("钩子执行未取得完整结果，停止工具派发：{error}")),
             },
             Err(error) => HookCommandOutcome::Warn {
                 message: format!(
@@ -498,6 +499,22 @@ mod tests {
                 .with_tool_requirement(HOOK_CAPABILITY_POST_TOOL_USE, PermissionMode::ReadOnly);
         }
         policy
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn started_hook_with_incomplete_request_denies_instead_of_warning_allow() {
+        let payload = "x".repeat(8 * 1024 * 1024);
+        let actual = HookRunner::run_command("exit /b 0", super::HookCommandRequest {
+            event: super::HookEvent::PreToolUse, tool_name: "Read", tool_input: "{}",
+            tool_output: None, is_error: false, payload: &payload,
+        });
+        match actual {
+            super::HookCommandOutcome::Deny { message } => {
+                assert!(message.unwrap().contains("进程已启动"));
+            }
+            _ => panic!("请求交付不完整的已启动 Hook 不得允许工具派发"),
+        }
     }
 
     #[cfg(windows)]

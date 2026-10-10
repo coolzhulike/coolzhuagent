@@ -74,6 +74,25 @@ pub struct ManagedOutput {
     pub interruption: Option<Interruption>,
 }
 
+/// 子进程已经启动，但未能完整回收结果；不能解释为未执行或正常协议结果。
+#[derive(Debug)]
+struct StartedProcessError(io::Error);
+
+impl std::fmt::Display for StartedProcessError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "进程已启动，执行或输出回收失败：{}", self.0)
+    }
+}
+
+impl std::error::Error for StartedProcessError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> { Some(&self.0) }
+}
+
+#[must_use]
+pub fn process_started_before_error(error: &io::Error) -> bool {
+    error.get_ref().is_some_and(|inner| inner.is::<StartedProcessError>())
+}
+
 struct OwnedChild {
     child: Child,
     #[cfg(windows)]
@@ -150,6 +169,7 @@ pub fn output_with_input(command: &mut Command, timeout: Option<Duration>, input
     #[cfg(not(windows))]
     let child = command.spawn()?;
     let mut owned = OwnedChild { child, #[cfg(windows)] job: Some(job) };
+    let result = (|| {
     let stdin_writer = input.map(|bytes| {
         let mut stdin = owned.child.stdin.take().expect("stdin 配置为管道");
         std::thread::spawn(move || stdin.write_all(&bytes))
@@ -178,6 +198,8 @@ pub fn output_with_input(command: &mut Command, timeout: Option<Duration>, input
         if interruption.is_none() { write_result?; }
     }
     Ok(ManagedOutput { output: Output { status, stdout, stderr }, interruption })
+    })();
+    result.map_err(|error: io::Error| io::Error::new(error.kind(), StartedProcessError(error)))
 }
 
 /// 工具模块不能把中文控制台输出直接按 UTF-8 有损解码。
@@ -241,6 +263,20 @@ mod tests {
         assert!(actual.output.status.success());
         assert_eq!(actual.output.stdout.len(), 200_000);
         assert_eq!(actual.output.stderr.len(), 200_000);
+    }
+
+    #[test]
+    fn failed_stdin_delivery_distinguishes_started_process_from_spawn_failure() {
+        let mut command = Command::new("cmd.exe");
+        command.args(["/C", "exit 0"]);
+        let error = output_with_input(&mut command, Some(Duration::from_secs(10)),
+            Some(vec![b'x'; 8 * 1024 * 1024])).err().expect("子进程未读入完整请求就退出，必须返回错误");
+        assert!(process_started_before_error(&error));
+        assert!(error.to_string().contains("进程已启动"));
+        let directory = fixture("missing-executable");
+        let mut missing = Command::new(directory.join("absent.exe"));
+        let not_started = output(&mut missing, Some(Duration::from_secs(10))).err().unwrap();
+        assert!(!process_started_before_error(&not_started));
     }
 
     #[test]
