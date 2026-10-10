@@ -401,9 +401,25 @@ fn run(
     }
 
     let previous_state = load_user_state(&user_state_root).ok();
-    let expected_build_version = previous_state
-        .as_ref()
-        .and_then(|state| state.observations.last_background_build_version.clone());
+    let expected_build_version = expected_background_build_version(
+        [
+            option_env!("COOLZHU_GIT_SHA"),
+            option_env!("VERGEN_GIT_SHA"),
+            option_env!("GIT_COMMIT"),
+            option_env!("GIT_HASH"),
+        ]
+        .into_iter()
+        .flatten()
+        .find(|sha| !sha.trim().is_empty()),
+        option_env!("COOLZHU_BUILD_DATE")
+            .or(option_env!("VERGEN_BUILD_DATE"))
+            .or(option_env!("VERGEN_BUILD_TIMESTAMP"))
+            .or(option_env!("BUILD_DATE"))
+            .unwrap_or("local"),
+        previous_state.as_ref().and_then(|state| {
+            state.observations.last_background_build_version.as_deref()
+        }),
+    );
     // 只有"同一工作区"的上次观测值才可作为数据绑定期望（否则会误报冲突）。
     let expected_session_db = previous_state.as_ref().and_then(|state| {
         let last_workspace = state.observations.last_workspace_root.as_ref()?;
@@ -472,6 +488,19 @@ fn run(
         }
     }
     open
+}
+
+/// 升级后的复用期望属于当前包，历史观测不能覆盖新包身份。
+/// 与后台显示规则保持一致：源码 SHA 前 12 字符及编译日期。
+fn expected_background_build_version(
+    compiled_sha: Option<&str>,
+    compiled_date: &str,
+    previous_observation: Option<&str>,
+) -> Option<String> {
+    match compiled_sha.map(str::trim).filter(|sha| !sha.is_empty()) {
+        Some(sha) => Some(format!("{} · {compiled_date}", sha.chars().take(12).collect::<String>())),
+        None => previous_observation.map(str::to_string),
+    }
 }
 
 fn write_refusal_selfcheck(config: &LauncherConfig, error: &LaunchError) {
@@ -850,6 +879,51 @@ fn apply_hidden_window(_cmd: &mut Command) {}
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn upgrade_reuse_expectation_uses_current_package_instead_of_old_observation() {
+        assert_eq!(
+            expected_background_build_version(
+                Some(" b849767302bf2d2909848add923673fb52f8a71e "),
+                "2026-10-10",
+                Some("4150fb8c3565 · 2026-10-07"),
+            ).as_deref(),
+            Some("b849767302bf · 2026-10-10"),
+        );
+        assert_eq!(
+            expected_background_build_version(None, "local", Some("previous")),
+            Some("previous".to_string()),
+        );
+        assert_eq!(expected_background_build_version(Some("  "), "local", None), None);
+
+        let workspace = PathBuf::from(r"C:\Users\me\coolzhuagent");
+        let expected = expected_background_build_version(
+            Some("b849767302bf2d2909848add923673fb52f8a71e"),
+            "2026-10-10",
+            Some("4150fb8c3565 · 2026-10-07"),
+        );
+        let mut identity = service_identity::ServiceIdentity {
+            port: 8765,
+            health_ready: true,
+            listener_pid: Some(8188),
+            listener_alive: true,
+            listener_process: Some("coolzhu-web-console.exe".to_string()),
+            listener_owner_user: Some("MACHINE\\me".to_string()),
+            reported_workspace: Some(workspace.clone()),
+            reported_build_version: expected.clone(),
+            protocol_shape_ok: true,
+            ..Default::default()
+        };
+        assert!(matches!(
+            service_identity::decide_reuse(&workspace, None, expected.as_deref(), Some("MACHINE\\me"), &identity),
+            ReuseDecision::Reuse { .. }
+        ));
+        identity.reported_build_version = Some("4150fb8c3565 · 2026-10-07".to_string());
+        assert!(matches!(
+            service_identity::decide_reuse(&workspace, None, expected.as_deref(), Some("MACHINE\\me"), &identity),
+            ReuseDecision::Conflict { .. }
+        ));
+    }
 
     #[test]
     fn port_conflict_replaces_previous_success_selfcheck() {
