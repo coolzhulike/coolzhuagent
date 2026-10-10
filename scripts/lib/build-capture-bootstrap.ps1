@@ -1,4 +1,17 @@
 # 由整包调用前完成引导；调用方负责冻结源码并在构建后核对源码快照。
+function Assert-BuildCaptureEnvironment {
+  # 不输出变量值；可能含凭据或私有路径。配置文件仍需由冻结输入覆盖。
+  foreach($name in @('RUSTFLAGS','CARGO_ENCODED_RUSTFLAGS','RUSTC','RUSTC_WRAPPER','RUSTC_WORKSPACE_WRAPPER','CARGO_BUILD_TARGET','CARGO_BUILD_RUSTFLAGS','CARGO_BUILD_RUSTC','CARGO_BUILD_RUSTC_WRAPPER','CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER','COOLZHU_CAPTURE_TEST_FAIL_PIPE')) {
+    if(-not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($name))) {
+      throw ('BUILD-CAPTURE-ENVIRONMENT: 引导不接受未核验的环境覆盖：'+$name)
+    }
+  }
+  foreach($entry in Get-ChildItem Env:) {
+    if($entry.Name -match '^CARGO_TARGET_.*_RUSTFLAGS$' -and $entry.Value) {
+      throw ('BUILD-CAPTURE-ENVIRONMENT: 引导不接受未核验的环境覆盖：'+$entry.Name)
+    }
+  }
+}
 function Assert-BuildCaptureCargoRecord {
   param([string]$RecordPath,[string]$RepoPath,[string]$ExecutablePath)
   $source=[IO.FileStream]::new($RecordPath,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
@@ -34,6 +47,7 @@ function New-BuildCaptureBootstrap {
     [Parameter(Mandatory=$true)][string]$TargetDirectory,
     [Parameter(Mandatory=$true)][string]$EvidenceDirectory
   )
+  Assert-BuildCaptureEnvironment
   $repo=(Resolve-Path -LiteralPath $RepoPath).Path
   $target=[IO.Path]::GetFullPath($TargetDirectory)
   $evidence=[IO.Path]::GetFullPath($EvidenceDirectory)
