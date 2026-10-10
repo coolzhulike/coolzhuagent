@@ -1,0 +1,354 @@
+[
+  {
+    "brand": "generic",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-c4250b32-6e6b-4c56-b67c-a3fdb3a88611.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/generic.png",
+    "sha256": "0152b51e374cee667d310d792052e55c650495caa39b9bd5acc262142acfd838",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      81,
+      51,
+      430,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      82,
+      52,
+      430,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.16015625,
+      0.1015625,
+      0.16015625,
+      0.1015625
+    ],
+    "original_sha256": "25e0147ede8e49b64d37d8bd7ad3da2c0413a81d6d55dd934904a1c53545ca5c",
+    "original_alpha_bbox": [
+      0,
+      48,
+      1206,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 440598,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "direction_approved",
+    "formal_ui_acceptance": "pending"
+  },
+  {
+    "brand": "deepseek",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-63505643-d4f6-49b0-b55f-325d1449a755.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/deepseek.png",
+    "sha256": "aa1f24ac1f0f712ac79f180b0c079527a3a8c062aa229f744fad9375724ba07a",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      68,
+      51,
+      444,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      69,
+      52,
+      443,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.134765625,
+      0.1015625,
+      0.134765625,
+      0.1015625
+    ],
+    "original_sha256": "ec93dd6add94de951198b3bcbaf405a0b34b858cde594eaa9a1a2028d258c265",
+    "original_alpha_bbox": [
+      33,
+      21,
+      1202,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 405689,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "direction_approved",
+    "formal_ui_acceptance": "pending"
+  },
+  {
+    "brand": "chatgpt",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-ec66d674-f1d5-45ad-93c7-2af8147caf90.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/chatgpt.png",
+    "sha256": "e16fa8d3680dae9bc75ec15b0ca0fe042769ac3a75dc4d786c1877257a29b6bd",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      60,
+      51,
+      451,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      61,
+      52,
+      450,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.119140625,
+      0.1015625,
+      0.12109375,
+      0.1015625
+    ],
+    "original_sha256": "c4b81f26889da4b64e5896bdbb192508ccbf8ef1e08e41717a6f83539fabbdf2",
+    "original_alpha_bbox": [
+      41,
+      67,
+      1224,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 394850,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "direction_approved",
+    "formal_ui_acceptance": "pending"
+  },
+  {
+    "brand": "qwen",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-53276222-eb40-4cb7-9fee-c423c784acf1.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/qwen.png",
+    "sha256": "654f02e56749eb612c8a7cde17b2e9817378be182624c4cf2c23a72a924c7b92",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      72,
+      51,
+      439,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      73,
+      52,
+      438,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.142578125,
+      0.1015625,
+      0.14453125,
+      0.1015625
+    ],
+    "original_sha256": "ceeef045d06abcb751653f465aeb4e541b7b126399fb79561c6deff230be0daa",
+    "original_alpha_bbox": [
+      0,
+      79,
+      1218,
+      1230
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 436119,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "direction_approved",
+    "formal_ui_acceptance": "pending"
+  },
+  {
+    "brand": "claude",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-d1a3cd2a-dc29-4722-ae3f-7ea5c7c73141.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/claude.png",
+    "sha256": "6b0bbff607e08a60b17ddbf2afcd10a196c3069a158d741126d9a6c5f09829d7",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      65,
+      51,
+      446,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      66,
+      52,
+      445,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.12890625,
+      0.1015625,
+      0.130859375,
+      0.1015625
+    ],
+    "original_sha256": "289ad66d1a1271f7e4b8e9847d9b830333f8297cbf28ec08a21c515ebe2ff88c",
+    "original_alpha_bbox": [
+      33,
+      20,
+      1234,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 459890,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "direction_approved",
+    "formal_ui_acceptance": "pending"
+  },
+  {
+    "brand": "gemini",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-6c903cc7-5dee-4a56-a165-4fe1612ab752.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/gemini.png",
+    "sha256": "d6d57d6b100f10face9968029abc281208121a0680f71e6946aaaba916dc6f53",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      77,
+      51,
+      435,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      78,
+      52,
+      434,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.15234375,
+      0.1015625,
+      0.15234375,
+      0.1015625
+    ],
+    "original_sha256": "42d8976f87019278eae796ef46a1b173b4232e99f886dc62bc0e4084eaa9cf84",
+    "original_alpha_bbox": [
+      0,
+      49,
+      1230,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 451242,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "direction_approved",
+    "formal_ui_acceptance": "pending"
+  },
+  {
+    "brand": "grok",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-bebcba4a-cc59-4f4a-9228-a656495f0c5d.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/grok.png",
+    "sha256": "ea2d6f65b81c9e93445e3cc23f9c98f22c99788df4a180a41036396a4310fe86",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      75,
+      51,
+      436,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      76,
+      52,
+      435,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.1484375,
+      0.1015625,
+      0.150390625,
+      0.1015625
+    ],
+    "original_sha256": "ecfa93c589b94df6c8b6a3dfd5ba3adadf1e58b0065f79c191c2418ff7f534ba",
+    "original_alpha_bbox": [
+      57,
+      37,
+      1214,
+      1184
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 411503,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "direction_approved",
+    "formal_ui_acceptance": "pending"
+  },
+  {
+    "brand": "glm",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-54ced380-a7e6-48e3-bdfe-74b2a4db2441.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/glm.png",
+    "sha256": "1e9399a03c2a72453b8364f67772d78ae1f5bb1fb8af80af6048a1b58b5b76b4",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      73,
+      51,
+      439,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      74,
+      51,
+      438,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.14453125,
+      0.099609375,
+      0.14453125,
+      0.1015625
+    ],
+    "original_sha256": "2d809a3fe5a5c8249089abbd2211eb984635754444b8f02b227525db8990041a",
+    "original_alpha_bbox": [
+      0,
+      29,
+      1186,
+      1232
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 554752,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "direction_approved",
+    "formal_ui_acceptance": "pending"
+  }
+]

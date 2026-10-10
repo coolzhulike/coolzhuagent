@@ -40339,7 +40339,7 @@ impl SessionStore {
             .unwrap_or_else(|| resolve_model_type(&model));
         let avatar = match payload.avatar.as_deref() {
             Some(value) => normalize_session_avatar(Some(value))?,
-            None => default_session_avatar_for_index(self.state.sessions.len()),
+            None => None, // 空头像随实际模型自动选择，不按预设索引绑定。
         };
         let session = PersistedSession {
             id: format!("session-{now}"),
@@ -50121,18 +50121,6 @@ fn estimated_text_bytes(value: &str) -> usize {
     value.len()
 }
 
-fn default_session_avatar_for_index(index: usize) -> Option<String> {
-    let manifest: JsonValue =
-        serde_json::from_str(include_str!("../assets/avatars/manifest.json")).ok()?;
-    let avatars = manifest.as_array()?;
-    let file = avatars
-        .get(index % avatars.len().max(1))?
-        .get("file")?
-        .as_str()?;
-    normalize_session_avatar(Some(&format!("assets/avatars/{file}")))
-        .ok()
-        .flatten()
-}
 
 fn seed_session() -> PersistedSession {
     let now = unix_timestamp_millis();
@@ -50144,7 +50132,7 @@ fn seed_session() -> PersistedSession {
         model: config_reasoning_model()
             .filter(|value| !value.trim().is_empty())
             .unwrap_or_else(|| "glm-4.6".to_string()),
-        avatar: default_session_avatar_for_index(0),
+        avatar: None, // 前端按实际模型解析默认品牌头像。
         base_url: None,
         endpoint: None,
         reasoning_effort: default_reasoning_effort(),
@@ -66964,7 +66952,7 @@ attach: last_assistant
     }
 
     #[test]
-    fn new_session_without_avatar_uses_manifest_default() {
+    fn new_session_without_avatar_follows_actual_model() {
         let temp = tempfile::tempdir().expect("tempdir");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
@@ -66992,7 +66980,7 @@ attach: last_assistant
 
         assert_eq!(
             created.avatar.as_deref(),
-            Some("assets/avatars/wuxia-v3/bamboo-swordsman.png")
+            None
         );
     }
 
@@ -67016,11 +67004,11 @@ attach: last_assistant
     }
 
     #[test]
-    fn seed_demo_session_has_a_visible_default_avatar() {
+    fn seed_demo_session_uses_automatic_model_avatar() {
         let session = super::seed_session();
         assert_eq!(
             session.avatar.as_deref(),
-            Some("assets/avatars/wuxia-v3/bamboo-swordsman.png")
+            None
         );
     }
 
@@ -79680,7 +79668,7 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("function avatarForSession"));
         assert!(WEB_APP_JS.contains("function defaultIconUrlForIcon"));
         assert!(WEB_APP_JS.contains("avatar: currentAvatarPathFromForm()"));
-        assert!(WEB_APP_JS.contains("avatarForAuthor(message.author)"));
+        assert!(WEB_APP_JS.contains("avatarForAuthor(message.author, message.session_id"));
         assert!(WEB_APP_JS.contains("defaultIconUrlForIcon(icon)"));
         assert!(
             !WEB_APP_JS.contains("message.kind === \"multimedia\" ? \"image-preview\" : \"mario\"")
@@ -80391,8 +80379,8 @@ attach: last_assistant
         assert!(WEB_STYLES_CSS.contains(":focus-visible"));
         assert!(WEB_INDEX_HTML.contains("assets/icons-wuxia/chat.svg"));
         assert!(WEB_INDEX_HTML.contains("assets/icons-wuxia/send.svg"));
-        assert!(WEB_AVATAR_MANIFEST.contains("wuxia-v3/"));
-        assert!(WEB_APP_JS.contains("const LEGACY_AVATAR_MIGRATIONS"));
+        assert!(WEB_AVATAR_MANIFEST.contains("brand-v1/"));
+        assert!(WEB_APP_JS.contains("CoolzhuBrandAvatars.fallback"));
         assert!(WEB_APP_JS.contains("function migrateLegacyAvatarPath"));
         assert!(WEB_APP_JS.contains("[\"bot vision\", \"vision\"]"));
         let generic_icon_rule = WEB_STYLES_CSS

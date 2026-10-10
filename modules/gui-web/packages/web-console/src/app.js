@@ -9,23 +9,7 @@ let agentRegistry = { agents: [], active_agent_ids: [] };
 let sessionRegistry = { sessions: [], active_session_id: null, max_sessions: 10 };
 let avatarManifest = [];
 let avatarManifestByFile = new Map();
-const DEFAULT_WUXIA_AVATAR_PATH = "assets/avatars/wuxia-v3/bamboo-swordsman.png";
-const LEGACY_AVATAR_MIGRATIONS = new Map([
-  ["assets/avatars/wuxia-swordsman.png", DEFAULT_WUXIA_AVATAR_PATH],
-  ["assets/avatars/robot-gold.png", "assets/avatars/wuxia-v3/gold-commander.png"],
-  ["assets/avatars/robot-cyan.png", "assets/avatars/wuxia-v3/jade-strategist.png"],
-  ["assets/avatars/robot-green.png", "assets/avatars/wuxia-v3/mechanist.png"],
-  ["assets/avatars/robot-purple.png", "assets/avatars/wuxia-v3/scripture-monk.png"],
-  ["assets/avatars/robot-red.png", "assets/avatars/wuxia-v3/ink-shadow.png"],
-  ["assets/avatars/mushroom-butler.png", "assets/avatars/wuxia-v3/wandering-physician.png"],
-  ["assets/avatars/star-sprite.png", "assets/avatars/wuxia-v3/feather-guard.png"],
-  ["assets/avatars/turtle-mechanic.png", "assets/avatars/wuxia-v3/mechanist.png"],
-  ["assets/avatars/cat-black.png", "assets/avatars/wuxia-v3/ink-shadow.png"],
-  ["assets/avatars/shiba-captain.png", "assets/avatars/wuxia-v3/gold-commander.png"],
-  ["assets/avatars/astronaut-pixel.png", "assets/avatars/wuxia-v3/feather-guard.png"],
-  ["assets/avatars/alien-jelly.png", "assets/avatars/wuxia-v3/jade-strategist.png"],
-  ["assets/avatars/ai-core.png", "assets/avatars/wuxia-v3/scripture-monk.png"],
-]);
+const DEFAULT_BRAND_AVATAR_PATH = CoolzhuBrandAvatars.fallback;
 const WUXIA_ICON_ALIASES = new Map([
   ["project-tree", "project"],
   ["settings", "settings"],
@@ -651,16 +635,19 @@ document.addEventListener("DOMContentLoaded", () => {
   providerSelect?.addEventListener("change", () => {
     updateModelOptions();
     updateCustomProviderFields();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
 
   const modelSelect = document.querySelector('[data-role="session-model"]');
   modelSelect?.addEventListener("change", () => {
     renderModelTypeSelect();
     updateReasoningEffortOptions();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
   document.querySelector('[data-role="session-custom-model"]')?.addEventListener("input", () => {
     renderModelTypeSelect();
     updateReasoningEffortOptions();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
   document.querySelector('[data-role="session-reasoning-effort"]')?.addEventListener("change", () => {
     renderSessionReasoningHint();
@@ -7598,8 +7585,11 @@ function renderOverviewMascot() {
   const configuredAvatar = avatarForSession(agent);
   const fallbackAvatar = avatarManifest.length
     ? avatarPathFromFile(avatarManifest[0].file)
-    : DEFAULT_WUXIA_AVATAR_PATH;
+    : DEFAULT_BRAND_AVATAR_PATH;
   const avatar = configuredAvatar || fallbackAvatar;
+  document.querySelectorAll(".chat-right-agent-avatar").forEach((portrait) => {
+    portrait.src = avatarUrl(avatarForSession(sessionById(activeSessionId) || agent));
+  });
   const label = document.querySelector('[data-role="overview-agent-label"]');
   image.src = avatarUrl(avatar);
   const selectedNames = selectedAgents
@@ -8971,6 +8961,8 @@ async function loadAvatarManifest() {
     const manifest = await response.json();
     avatarManifest = Array.isArray(manifest) ? manifest.filter((item) => avatarPathAllowed(item?.file)) : [];
     avatarManifestByFile = new Map(avatarManifest.map((item) => [avatarPathFromFile(item.file), item]));
+    renderSessionList(sessionRegistry.sessions || [], activeSessionId);
+    renderAgentOptions(agentRegistry.agents || [], agentRegistry.active_agent_ids || []);
     renderAvatarPicker();
     renderOverviewMascot();
   } catch (error) {
@@ -8983,20 +8975,19 @@ async function loadAvatarManifest() {
 
 function avatarPathAllowed(file) {
   const value = String(file || "").trim().replace(/\\/g, "/");
-  return /^(?:wuxia-v3\/)?[a-z0-9][a-z0-9._-]*\.(png|webp)$/i.test(value);
+  return /^(?:brand-v1\/)?[a-z0-9][a-z0-9._-]*\.(png|webp)$/i.test(value);
 }
 
 function avatarPathFromFile(file) {
   return `assets/avatars/${String(file || "").trim().replace(/\\/g, "/")}`;
 }
 
-function migrateLegacyAvatarPath(path) {
-  const normalized = String(path || "").trim().replace(/\\/g, "/").replace(/^\.\//, "");
-  return LEGACY_AVATAR_MIGRATIONS.get(normalized) || normalized;
+function migrateLegacyAvatarPath(path, session) {
+  return CoolzhuBrandAvatars.migrate(path, session);
 }
 
 function avatarUrl(path) {
-  return path ? `./${path}` : "";
+  return CoolzhuBrandAvatars.url(path);
 }
 
 function iconUrl(icon) {
@@ -9121,12 +9112,13 @@ function sessionById(sessionId) {
 }
 
 function avatarForSession(session) {
-  const path = migrateLegacyAvatarPath(session?.avatar || "");
-  return avatarManifestByFile.has(path) ? path : null;
+  return CoolzhuBrandAvatars.resolve(session);
 }
 
-function avatarForAuthor(author) {
-  return avatarForSession(sessionByAuthor(author));
+function avatarForAuthor(author, sessionId, role, kind) {
+  if (role === "user" || kind === "user" || kind === "tool-call" || kind === "tool-summary" || kind === "computer-use") return null;
+  const session = sessionById(sessionId) || sessionByAuthor(author);
+  return session ? avatarForSession(session) : null;
 }
 
 function avatarThemeForPath(path) {
@@ -9135,7 +9127,7 @@ function avatarThemeForPath(path) {
 
 function defaultIconUrlForIcon(icon) {
   if (icon === "mario" || icon === "robot-message") {
-    return `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+    return `./${DEFAULT_BRAND_AVATAR_PATH}`;
   }
   return iconUrl(icon);
 }
@@ -9145,17 +9137,7 @@ function defaultIconUrlForMessage(message) {
 }
 
 function defaultIconUrlForSession(session) {
-  const modelType = String(session?.model_type || MODEL_TYPE_MAP[session?.model] || "text").toLowerCase();
-  if (modelType === "vision" || modelType === "multimodal") {
-    return iconUrl("inner-vision");
-  }
-  if (modelType === "video") {
-    return iconUrl("image-preview");
-  }
-  if (modelType === "audio") {
-    return iconUrl("microphone");
-  }
-  return `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+  return avatarUrl(avatarForSession(session));
 }
 
 function currentAvatarPathFromForm() {
@@ -9163,8 +9145,9 @@ function currentAvatarPathFromForm() {
 }
 
 function setSessionAvatarForm(path) {
-  const migrated = migrateLegacyAvatarPath(path);
-  const normalized = migrated && avatarManifestByFile.has(migrated) ? migrated : "";
+  const raw = String(path || "").trim();
+  const normalized = CoolzhuBrandAvatars.isLegacy(raw) ? "" : raw;
+  const automatic = avatarForSession({ provider: sessionProviderValue(), model: sessionModelValueFromForm() });
   const trigger = document.querySelector('[data-action="session-avatar-toggle"]');
   const preview = document.querySelector('[data-role="session-avatar-preview"]');
   const label = document.querySelector('[data-role="session-avatar-label"]');
@@ -9173,10 +9156,10 @@ function setSessionAvatarForm(path) {
     trigger.style.setProperty("--avatar-theme", normalized ? avatarThemeForPath(normalized) : "#ffd552");
   }
   if (preview) {
-    preview.src = normalized ? avatarUrl(normalized) : `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+    preview.src = avatarUrl(normalized || automatic);
   }
   if (label) {
-    label.textContent = normalized ? (avatarManifestByFile.get(normalized)?.name || "自定义头像") : "默认图标";
+    label.textContent = normalized ? (avatarManifestByFile.get(normalized)?.name || "自定义头像") : "随模型自动选择";
   }
   document.querySelectorAll("[data-avatar-choice]").forEach((node) => {
     node.classList.toggle("is-selected", node.dataset.avatarChoice === normalized);
@@ -9191,7 +9174,7 @@ function renderAvatarPicker() {
   defaultButton.type = "button";
   defaultButton.className = "avatar-choice is-default";
   defaultButton.dataset.avatarChoice = "";
-  defaultButton.innerHTML = `<span class="avatar-choice-fallback">默认</span><b>默认图标</b>`;
+  defaultButton.innerHTML = `<span class="avatar-choice-fallback">默认</span><b>随模型自动选择</b>`;
   picker.append(defaultButton);
 
   avatarManifest.forEach((item) => {
@@ -13021,7 +13004,13 @@ function renderSessionList(sessions, activeId) {
     option.type = "button";
     option.className = "session-option";
     option.dataset.sessionId = session.id;
-    option.textContent = session.display_name;
+    const portrait = document.createElement("img");
+    portrait.className = "brand-session-avatar";
+    portrait.src = avatarUrl(avatarForSession(session));
+    portrait.alt = "";
+    const text = document.createElement("span");
+    text.textContent = session.display_name;
+    option.append(portrait, text);
     option.setAttribute("role", "option");
     option.tabIndex = 0;
     option.setAttribute("aria-selected", String(session.id === activeId));
@@ -13570,8 +13559,11 @@ function setSessionForm(session) {
   if (customModel) customModel.value = isCustomProvider(providerId) || providerId === "devin" ? session.model : "";
   if (baseUrl) baseUrl.value = session.base_url || "";
   if (endpoint) endpoint.value = session.endpoint || "";
-  setSessionAvatarForm(session.avatar || "");
+  document.querySelectorAll(".chat-right-agent-avatar").forEach((portrait) => {
+    portrait.src = avatarUrl(avatarForSession(session));
+  });
   updateModelOptions(session.model, { allowCurrent: true });
+  setSessionAvatarForm(session.avatar || "");
   if (session.model_type) {
     const mt = document.querySelector('[data-role="session-model-type"]');
     if (mt) mt.value = session.model_type;
@@ -19658,7 +19650,7 @@ function upsertMessage(message, { streaming = false, sessionId = activeSessionId
     }
     const portrait = existing.querySelector(".portrait");
     if (portrait) {
-      const avatarPath = avatarForAuthor(message.author);
+      const avatarPath = avatarForAuthor(message.author, message.session_id || existing.dataset.sessionId || sessionId, messageRole, messageKind);
       portrait.src = avatarPath ? avatarUrl(avatarPath) : defaultIconUrlForMessage(message);
       existing.classList.toggle("has-session-avatar", Boolean(avatarPath));
       if (avatarPath) {
@@ -19732,7 +19724,7 @@ function addMessage({ id, author, text, kind, icon, attachments = [], createdAt 
     article.dataset.messageRole = role;
   }
   article.classList.toggle("is-streaming", streaming);
-  const avatarPath = avatarForAuthor(author);
+  const avatarPath = avatarForAuthor(author, sessionId, role, kind);
   article.classList.toggle("has-session-avatar", Boolean(avatarPath));
   if (avatarPath) {
     article.style.setProperty("--message-theme", avatarThemeForPath(avatarPath));

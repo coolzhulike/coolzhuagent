@@ -1,0 +1,22 @@
+/* 头像仅使用自身图片；保留现有玉石边框、竹林背景与上传按钮布局。 */
+body.ui-3d .session-option .brand-session-avatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+body.ui-3d .session-option:has(.brand-session-avatar) {
+  display: flex;
+  align-items: center;
+}
+body.ui-3d .brand-avatar,
+body.ui-3d .ui-redesign .overview-mascot img,
+body.ui-3d .ui-redesign .avatar-select-trigger img,
+body.ui-3d .ui-redesign .chat-roster-chip img,
+body.ui-3d .ui-redesign .avatar-picker img,
+body.ui-3d .ui-redesign .message.has-session-avatar .portrait,
+body.ui-3d .chat-right-agent-avatar {
+  object-fit: contain;
+}

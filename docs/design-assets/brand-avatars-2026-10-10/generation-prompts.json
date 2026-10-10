@@ -1,0 +1,45 @@
+{
+  "tool": "built-in image_gen",
+  "transparent_background": true,
+  "official_character_claim": false,
+  "common_initial_spec": "Use case: stylized-concept. Production UI avatar, original unofficial brand-inspired chibi girl. Square true transparent PNG. Single front-facing head-and-shoulders portrait centered within middle 78% of canvas, 11% clear alpha safety margin each side. Large face readable at 32/48/64px. Cute polished 2D anime illustration, crisp dark navy outlines, broad clean color areas, subtle cel shading, friendly competent expression. No text, letters, watermark, frame, background, checkerboard, weapons, glow or ground shadow. Hair, horns and shoulders fully inside canvas.",
+  "padding_edit_spec": "Edit target: supplied UI portrait. Preserve character, facial features, colors, pose, illustration style. Change only composition: scale the ENTIRE portrait down to occupy 65% of square canvas height and at most 65% width, centered. Genuine completely transparent padding of AT LEAST 17% on EVERY side, including below shoulders and above hair. Remove every stray isolated colored speck outside subject. All outermost alpha pixels strictly within central 65%. Do not crop any part of portrait. No new details, no text, no background, no checkerboard. Padded small UI avatar.",
+  "assets": {
+    "deepseek": {
+      "initial_prompt": "Use case: stylized-concept. Create one production UI avatar: original Q版 DeepSeek-inspired whale girl, NOT an official mascot and not copying a specific artist. Square transparent PNG, single front-facing head-and-shoulders chibi portrait, centered, all contours within middle 78% of canvas, generous 11% clear alpha margin on all sides. Blue bob hair, distinct small whale-fin hair ornaments, blue eyes, simple navy-and-white sailor collar, tiny whale-shaped blue hair clip. Friendly competent expression. Polished cute 2D anime illustration, crisp dark navy outlines, broad clean color areas, subtle cel shading, large face readable at 32/48/64 pixels. Hair and shoulders fully inside canvas. No text, no letters, no logos, no weapons, no frame, no background, no checkerboard, no glow, no floor shadow. True transparent background.",
+      "final_edit_prompt": "Edit target: supplied DeepSeek whale girl UI portrait. Preserve character, facial features, colors, pose, illustration style. Change only composition: scale the ENTIRE existing portrait down to occupy 72% of square canvas height and at most 72% width, centered. Add genuine completely transparent padding of AT LEAST 14% of canvas on EVERY side, including below shoulders and above hair. Remove every stray isolated colored speck outside the subject. All outermost alpha pixels strictly within central 72%. Do not crop any part of the portrait. No new details, no text, no background, no checkerboard. This is a padded small UI avatar."
+    },
+    "chatgpt": {
+      "initial_subject": "ChatGPT white little dragon girl: pearly white bob hair, two small white dragon horns, emerald green eyes, tiny white dragon wing ornaments beside head, simple white collar with emerald green interwoven rosette clasp. White dragon character is user-directed original fan design, not an official mascot.",
+      "initial_spec": "common_initial_spec",
+      "final_edit_spec": "padding_edit_spec"
+    },
+    "qwen": {
+      "initial_subject": "Qwen / 千问 original brand-recognizable design: lavender bob hair, violet eyes, two compact lilac ribbon loops resembling an interlocking geometric flower, white-and-violet modern collar, subtle blue-violet gradient hair tips. No animal parts. Original design, no claim of official character.",
+      "initial_spec": "common_initial_spec",
+      "final_edit_spec": "padding_edit_spec"
+    },
+    "claude": {
+      "initial_subject": "Claude original brand-recognizable design: warm terracotta orange bob hair, amber eyes, a compact sunburst orange hair ornament, cream shirt with rust-orange collar and small sunburst clasp. Calm friendly expression. Original design, no claim of official character.",
+      "final_edit_prompt": "Edit target supplied UI portrait. Preserve character, face, no horns, orange hair, amber eyes, sunburst clip, cream and rust collar, pose and style. Change ONLY composition: scale ENTIRE portrait down to 65% of square canvas height and width, centered. Add at least 17% completely transparent empty padding on EVERY side. All outermost alpha pixels inside central 65%. Remove ALL faint stray pixels outside subject. Do NOT crop hair or shoulders. No new detail, text, background or checkerboard. Padded UI avatar."
+    },
+    "generic": {
+      "reference": "初始DeepSeek鲸鱼娘，作为画风参考",
+      "prompt": "Style reference: provided chibi whale girl. Create matching generic AI assistant avatar with exactly same large-head chibi proportions, front view, eye style, dark outlines and cel shading. Replace blue hair with mint green bob, blue eyes with teal eyes, whale ornaments with one simple jade diamond hair clip, navy sailor collar with cream and jade modern collar. Remove ALL whale and animal traits. Entire girl including hair and shoulders occupies only CENTER 65% of square canvas width and height. At least 17% completely transparent empty padding on all sides. No ring, dots, decorative background, text, floating objects, palette swatches, cropped hair or shoulders. Original unofficial neutral assistant. True alpha transparent background.",
+      "final_edit_spec": "padding_edit_spec"
+    },
+    "gemini": {
+      "reference": "带透明边距的DeepSeek鲸鱼娘，作为画风参考",
+      "prompt": "Reference image: padded chibi whale girl. Create a matching original Gemini-inspired girl. Preserve EXACT same front-facing large-head chibi proportions, layout and scale, eye size, dark navy outlines, cel shading and 17% transparent margin all sides. Change hair to cobalt blue bob with subtle violet tips, eyes blue-violet, replace whale ears and whale clip with ONE compact four-point blue-purple star hair clip. Remove whale ears completely. Cream collar with blue accent, friendly. No text, no wordmarks, no background decorations, no extra stars, no palette swatches. SINGLE portrait, genuine fully transparent alpha background. All contours inside central 65% square."
+    },
+    "grok": {
+      "reference": "带透明边距的DeepSeek鲸鱼娘，作为画风参考",
+      "prompt": "Use reference only as style guidance. One front-facing chibi head-and-shoulders UI avatar with exactly same big-head proportions, eye size, crisp dark outlines and cel shading. Subject entirely inside central 65% square canvas with 17% fully transparent padding all sides. No letters, text, logo wordmarks, frame, background, palette, floating objects or cropped contours. Original unofficial brand-inspired girl. Charcoal bob hair, silver eyes, ONE compact diagonal silver orbit clip; white-and-charcoal simple collar. REMOVE all whale/animal features."
+    },
+    "glm": {
+      "reference": "带透明边距的DeepSeek鲸鱼娘，作为画风参考",
+      "prompt": "Use reference only as style guidance. One front-facing chibi head-and-shoulders UI avatar with exactly same big-head proportions, eye size, crisp dark outlines and cel shading. Subject entirely inside central 65% square canvas with 17% fully transparent padding all sides. No letters, text, logo wordmarks, frame, background, palette, floating objects or cropped contours. Original unofficial brand-inspired girl. Azure bob hair, blue eyes, two small sky-blue square hair clips, cream and azure collar. REMOVE all whale/animal features."
+    }
+  },
+  "postprocess": "用户明确授权，仅做透明杂点清理、完整主体等比布局和512/32/48/64尺寸导出；不重画角色。详见README和provenance.json。"
+}
