@@ -349,6 +349,16 @@ where
                                         true,
                                     )
                                 }
+                                _ if crate::managed_process::current_execution_control()
+                                    .is_some_and(|control| control.interruption().is_some()) => {
+                                    ConversationMessage::tool_result(
+                                        tool_use_id,
+                                        tool_name,
+                                        merge_hook_feedback(pre_hook_result.messages(),
+                                            "根执行已取消或截止，目标工具未执行".to_string(), true),
+                                        true,
+                                    )
+                                }
                                 _ => {
                                     let (mut output, mut is_error) =
                                         match self.tool_executor.execute(&tool_name, &input) {
@@ -1061,6 +1071,34 @@ mod tests {
         assert!(is_error);
         pre.cleanup();
         post.cleanup();
+    }
+
+    #[test]
+    fn cancellation_during_approval_blocks_target_without_hooks() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        struct CancellingPrompter(ExecutionControl);
+        impl PermissionPrompter for CancellingPrompter {
+            fn decide(&mut self, _request: &PermissionRequest) -> PermissionPromptDecision {
+                self.0.cancel();
+                PermissionPromptDecision::Allow
+            }
+        }
+        let control = ExecutionControl::new(None, None);
+        let mut prompter = CancellingPrompter(control.clone());
+        let counter = CallCounter::new();
+        let mut runtime = ConversationRuntime::new(
+            Session::new(),
+            OneToolUseApiClient { tool_name: "blocked", tool_input: "{}" },
+            StaticToolExecutor::new().register("blocked", counter.handler("unexpected")),
+            PermissionPolicy::new(PermissionMode::WorkspaceWrite)
+                .with_tool_requirement("blocked", PermissionMode::DangerFullAccess),
+            vec!["system".to_string()],
+        );
+        let summary = with_execution_control(control, || runtime.run_turn("use tool", Some(&mut prompter))).unwrap();
+        let (output, is_error) = single_tool_result(&summary);
+        assert!(is_error);
+        assert_eq!(counter.count(), 0, "审批允许不能覆盖执行取消");
+        assert!(output.contains("目标工具未执行"));
     }
 
     /// 保证表第 2 行：hook 没有独立执行授权 ⇒ 不运行该 hook；
