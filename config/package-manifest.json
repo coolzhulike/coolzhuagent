@@ -305,6 +305,11 @@
       "id": "documentation.command-line",
       "source": "docs/command-line.md",
       "target": "docs/command-line.md"
+    },
+    {
+      "id": "documentation.first-party-license",
+      "source": "LICENSE",
+      "target": "LICENSE"
     }
   ],
   "build_inputs": {
@@ -312,6 +317,7 @@
     "files": [
       "Cargo.toml",
       "Cargo.lock",
+      "LICENSE",
       "config/dsh-runtime-lock.json",
       "modules/tooling/packages/dsh-plugin-host/package.json",
       "modules/tooling/packages/dsh-plugin-host/package-lock.json",
@@ -449,6 +455,7 @@
     "roots": [
       "Cargo.toml",
       "Cargo.lock",
+      "LICENSE",
       "package.json",
       "package.ps1",
       "src",
