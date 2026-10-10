@@ -19,6 +19,20 @@ public static class CoolzhuBoundedJsonLine {
 '@
 }
 
+function Test-CargoDependencyUnavailableLog {
+  param([Parameter(Mandatory = $true)][string]$Path)
+  $source = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+  $reader = [IO.StreamReader]::new($source, [Text.UTF8Encoding]::new($false, $true), $false, 4096, $false)
+  $matched = $false
+  try {
+    # 不在命中后提前返回：损坏尾部或超长行也必须明确失败，不能冒充完整分类。
+    while ($null -ne ($line = [CoolzhuBoundedJsonLine]::Read($reader))) {
+      if ($line -match 'no matching package|failed to download|attempting to make an HTTP request but --offline|not found in the registry|registry index was not found|no such file or directory.*registry') { $matched = $true }
+    }
+  } finally { $reader.Dispose() }
+  return $matched
+}
+
 function Get-CargoStreamSummary {
   param([IO.Stream]$Source)
   $Source.Position = 0

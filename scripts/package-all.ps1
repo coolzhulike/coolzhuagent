@@ -440,8 +440,7 @@ function Invoke-ArtifactBuild {
       $category = 'BUILD-FAILED'
       $remediation = '使用独立、受控的构建目录重建后再打包；不要把全局 cargo clean 或删除共享 target 当作常规修复前置'
       if ($stderrPath -and (Test-Path -LiteralPath $stderrPath)) {
-        $stderrText = [string](Get-Content -Raw -LiteralPath $stderrPath -ErrorAction SilentlyContinue)
-        if ($stderrText -match 'no matching package|failed to download|attempting to make an HTTP request but --offline|not found in the registry|registry index was not found|no such file or directory.*registry') {
+        if (Test-CargoDependencyUnavailableLog -Path $stderrPath) {
           $category = 'BUILD-DEPENDENCY-UNAVAILABLE'
           $remediation = '这是缺失离线依赖缓存导致的失败，不是 Loader 选源失败。先准备与锁文件一致的离线依赖缓存（vendored / registry cache）再重试；不要改成手工复制 DLL'
         }
