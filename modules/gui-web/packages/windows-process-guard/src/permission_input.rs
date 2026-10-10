@@ -231,5 +231,22 @@ mod windows {
                 else {assert!(result.unwrap_err().to_string().contains("8192"));}
             }
         }
+        #[test]
+        fn known_gap_rejected_line_suffix_reaches_next_reader() {
+            // 反例证据：此测试通过只证明缺陷仍存在，不是输入归属验收通过。
+            let(read,write)=pipe();
+            let writer=std::thread::spawn(move || {
+                let mut line=vec![b'x';8193];
+                line.extend_from_slice(b"yes\nno\n");
+                write.write(&line);
+            });
+            let first=unsafe {read_line(read.0,Arc::new(||false))};
+            let suffix=unsafe {read_line(read.0,Arc::new(||false))};
+            let following=unsafe {read_line(read.0,Arc::new(||false))};
+            writer.join().unwrap();
+            assert!(first.is_err());
+            assert_eq!(suffix.unwrap(),"yes\n","旧行后缀被当作完整新行");
+            assert_eq!(following.unwrap(),"no\n");
+        }
     }
 }

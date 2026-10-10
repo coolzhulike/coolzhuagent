@@ -49,3 +49,7 @@ Windows权限输入取消接线：审查确认原CliPermissionPrompter直接stdi
 最终真实CLI build exit0（11.55秒）；guard完整串行61通过0失败4忽略，实际exit0，耗时18.31秒。新增第4忽略是独立子进程探针入口，在父测试中实际以--ignored启动并验证成功，不冒充直接通过项；既有3忽略保持。原日志及子进程回执按原字节归档docs/testing/cli-permission-console，evidence.json记录基线dca7801及测试源码/manifest SHA，immutable_snapshot_verified=false，未宣称不可变构建。CLI业务未变，上一轮112通过保持该历史范围，不重复冒称本轮全部CLI回归。
 
 本测试证明guard读取+真实Tokio信号，不等于安装版CLI完整审批/模型/持久化终态全链。真实CLI入口进程、部分和排队输入跨回合归属、控制台多轮恢复与正式模型/安装仍未闭环；32WBS目标保持原范围。
+
+跨回合输入归属实际反例：新增known_gap_rejected_line_suffix_reaches_next_reader真实匿名管道，以8193个x紧接yes换行、no换行写入同一输入。第一次因预算返回错误，第二次实际返回yes换行，第三次no换行；这证明被拒绝的原行后缀可以成为下一次审批输入。同回合根取消不覆盖后续回合。该反例测试exit0仅表示成功复现缺陷，不计输入归属验收通过，更不能借绿色测试关闭门禁。
+
+真实guard build exit0及反例专项exit0，日志tmp/analysis-permission-suffix-gap-build.txt、gap-test.txt。此轮只增加永久可复现证据，没有修改生产读取行为。下一实现须引入随标准输入生命周期保留的读取器行边界状态及独占输入句柄，在拒绝/取消后恢复至原行结束前不消费新审批；同时覆盖晚到后缀、连续回合、管道/控制台、预先取消零读取及有界内存。不得用一次全局清空输入缓冲代替迟到输入归属，也不得只永久禁用审批来缩小目标。真实外部模型、安装及32WBS保持未闭环。
