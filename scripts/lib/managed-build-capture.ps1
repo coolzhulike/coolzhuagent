@@ -38,6 +38,18 @@ function Set-ManagedCaptureArguments {
   }
 }
 
+function Wait-ManagedCaptureDiagnostic {
+  param([Diagnostics.Process]$Process, [Threading.Tasks.Task]$Drain)
+  while (-not $Process.WaitForExit(100)) {
+    if ($Drain.IsFaulted -or $Drain.IsCanceled) {
+      # 只终止本次启动的辅助程序；Windows Job 的关句柄回收仍需独立验收。
+      try { $Process.Kill() } catch { if (-not $Process.HasExited) { throw } }
+      if (-not $Process.WaitForExit(10000)) { throw 'BUILD-CAPTURE-DIAGNOSTIC: 读取失败且辅助程序退出未确认' }
+      throw 'BUILD-CAPTURE-DIAGNOSTIC: 诊断读取任务失败，辅助程序已停止，回执无效'
+    }
+  }
+}
+
 function Invoke-ManagedBuildCapture {
   param(
     [Parameter(Mandatory=$true)][string]$HelperPath,
@@ -66,7 +78,7 @@ function Invoke-ManagedBuildCapture {
     $process=[Diagnostics.Process]::Start($info)
     # 仅辅助程序自身诊断进入此管道；固定缓冲异步落盘，避免等待退出时堵住诊断管道。
     $diagnosticCopy=[CoolzhuCapture.DiagnosticDrain]::Start($process.StandardError.BaseStream,$diagnostic)
-    $process.WaitForExit()
+    Wait-ManagedCaptureDiagnostic -Process $process -Drain $diagnosticCopy
     $diagnosticFailure=$diagnosticCopy.GetAwaiter().GetResult()
     if ($diagnosticFailure) { throw ('BUILD-CAPTURE-DIAGNOSTIC: 诊断写入失败，回执无效：'+$diagnosticFailure.Message) }
     $diagnostic.Flush($true)

@@ -71,3 +71,23 @@ try {
   $process.Dispose()
 }
 Write-Output 'PASS 真实4MiB诊断在落盘失败后仍排空，生产者退出9且故障保留'
+$source=[IO.MemoryStream]::new(); $source.Dispose()
+$destination=[IO.MemoryStream]::new()
+$drain=[CoolzhuCapture.DiagnosticDrain]::Start($source,$destination)
+$info=[Diagnostics.ProcessStartInfo]::new('powershell')
+$info.UseShellExecute=$false; $info.CreateNoWindow=$true
+Set-ManagedCaptureArguments -Info $info -Arguments @('-NoProfile','-Command','Start-Sleep -Seconds 30')
+$process=[Diagnostics.Process]::Start($info)
+try {
+  $timer=[Diagnostics.Stopwatch]::StartNew()
+  $rejected=$false
+  try { Wait-ManagedCaptureDiagnostic -Process $process -Drain $drain } catch {
+    if($_.Exception.Message -notlike 'BUILD-CAPTURE-DIAGNOSTIC:*'){throw}
+    $rejected=$true
+  }
+  if(-not $rejected -or -not $process.HasExited -or $timer.Elapsed.TotalSeconds -gt 15){throw '读取故障未及时拒绝并停止自身生产者'}
+} finally {
+  if(-not $process.HasExited){$process.Kill(); $process.WaitForExit()}
+  $process.Dispose(); $destination.Dispose()
+}
+Write-Output 'PASS 诊断读取故障及时拒绝并确认本次生产者停止'
