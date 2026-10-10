@@ -41,12 +41,13 @@ pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEv
         let events: Vec<AgentEvent> = serde_json::from_slice(&bytes).map_err(std::io::Error::other)?;
         let first = events.first().ok_or_else(|| std::io::Error::other("回合轨迹为空"))?;
         use runtime::AgentEventKind::{TurnStarted, TurnCompleted, TurnFailed, TurnInterrupted};
-        if first.kind != TurnStarted || !identities.insert((first.thread_id.clone(), first.turn_id.clone())) {
+        if first.kind != TurnStarted || first.thread_id.as_str().trim().is_empty() || first.turn_id.as_str().trim().is_empty()
+            || !identities.insert((first.thread_id.clone(), first.turn_id.clone())) {
             return Err(std::io::Error::other("回合起点或历史身份重复"));
         }
         for (index, event) in events.iter().enumerate() {
             let terminal = matches!(event.kind, TurnCompleted | TurnFailed | TurnInterrupted);
-            if event.sequence != (index + 1) as u64 || event.thread_id != first.thread_id || event.turn_id != first.turn_id
+            if event.schema_version != 1 || event.sequence != (index + 1) as u64 || event.thread_id != first.thread_id || event.turn_id != first.turn_id
                 || (index > 0 && event.kind == TurnStarted) || terminal != (index + 1 == events.len()) {
                 return Err(std::io::Error::other("回合轨迹序号、身份或唯一终态不一致"));
             }

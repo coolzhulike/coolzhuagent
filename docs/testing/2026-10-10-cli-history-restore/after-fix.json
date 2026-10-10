@@ -1,0 +1,69 @@
+{
+  "cases": [
+    {
+      "actual_exit": 0,
+      "case": "legacy",
+      "output": "Restored session from C:\\Users\\zhupu\\.codex\\worktrees\\integration-32wbs-20261010\\coolzhuagent\\tmp\\cli-history-process-9074ce0ba188464abcdeceab2d273ab2\\legacy\\main.json (0 messages).\r\n",
+      "expected_exit": 0,
+      "session_unchanged": true
+    },
+    {
+      "actual_exit": 0,
+      "case": "completed",
+      "output": "Restored session from C:\\Users\\zhupu\\.codex\\worktrees\\integration-32wbs-20261010\\coolzhuagent\\tmp\\cli-history-process-9074ce0ba188464abcdeceab2d273ab2\\completed\\main.json (0 messages).\r\n",
+      "expected_exit": 0,
+      "session_unchanged": true
+    },
+    {
+      "actual_exit": 0,
+      "case": "failed",
+      "output": "Restored session from C:\\Users\\zhupu\\.codex\\worktrees\\integration-32wbs-20261010\\coolzhuagent\\tmp\\cli-history-process-9074ce0ba188464abcdeceab2d273ab2\\failed\\main.json (0 messages).\r\n",
+      "expected_exit": 0,
+      "session_unchanged": true
+    },
+    {
+      "actual_exit": 0,
+      "case": "interrupted",
+      "output": "Restored session from C:\\Users\\zhupu\\.codex\\worktrees\\integration-32wbs-20261010\\coolzhuagent\\tmp\\cli-history-process-9074ce0ba188464abcdeceab2d273ab2\\interrupted\\main.json (0 messages).\r\n",
+      "expected_exit": 0,
+      "session_unchanged": true
+    },
+    {
+      "actual_exit": 1,
+      "case": "truncated",
+      "output": "无法恢复回合轨迹：回合轨迹序号、身份或唯一终态不一致\r\n",
+      "expected_exit": 1,
+      "session_unchanged": true
+    },
+    {
+      "actual_exit": 1,
+      "case": "duplicate",
+      "output": "无法恢复回合轨迹：回合起点或历史身份重复\r\n",
+      "expected_exit": 1,
+      "session_unchanged": true
+    },
+    {
+      "actual_exit": 1,
+      "case": "sequence",
+      "output": "无法恢复回合轨迹：回合轨迹序号、身份或唯一终态不一致\r\n",
+      "expected_exit": 1,
+      "session_unchanged": true
+    },
+    {
+      "actual_exit": 1,
+      "case": "future-schema",
+      "output": "无法恢复回合轨迹：回合轨迹序号、身份或唯一终态不一致\r\n",
+      "expected_exit": 1,
+      "session_unchanged": true
+    },
+    {
+      "actual_exit": 1,
+      "case": "empty-identity",
+      "output": "无法恢复回合轨迹：回合起点或历史身份重复\r\n",
+      "expected_exit": 1,
+      "session_unchanged": true
+    }
+  ],
+  "fixture_root": "C:\\Users\\zhupu\\.codex\\worktrees\\integration-32wbs-20261010\\coolzhuagent\\tmp\\cli-history-process-9074ce0ba188464abcdeceab2d273ab2",
+  "binary_sha256": "A325B18F6A197A07FE9F713CA48C871C984F97A80ECE091F1CF3317D9D4EDDD3"
+}
