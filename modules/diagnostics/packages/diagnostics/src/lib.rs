@@ -253,10 +253,7 @@ pub fn emit_span_closed(span: &SpanClosed) {
         return;
     }
 
-    let mut span = span.clone();
-    span.name = redaction::text(&span.name);
-    span.module = redaction::text(&span.module);
-    span.attributes = span.attributes.iter().map(|(key,value)| (redaction::text(key),redaction::field(key,value))).collect();
+    let span = span.redacted();
     logger.file_output.write_span(&span);
 
     if let Some(console) = &logger.console {

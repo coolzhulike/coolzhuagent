@@ -143,6 +143,26 @@ pub struct SpanClosed {
     pub events: Vec<SpanEvent>,
 }
 
+impl SpanClosed {
+    /// 输出边界统一净化，调用方传入的原始 span 保持不变。
+    pub(crate) fn redacted(&self) -> Self {
+        let redact_attributes = |attributes: &HashMap<String, String>| {
+            attributes.iter().map(|(key, value)| {
+                (crate::redaction::text(key), crate::redaction::field(key, value))
+            }).collect()
+        };
+        let mut span = self.clone();
+        span.name = crate::redaction::text(&span.name);
+        span.module = crate::redaction::text(&span.module);
+        span.attributes = redact_attributes(&span.attributes);
+        for event in &mut span.events {
+            event.name = crate::redaction::text(&event.name);
+            event.attributes = redact_attributes(&event.attributes);
+        }
+        span
+    }
+}
+
 pub fn start_span(name: &str, module: &str) -> SpanGuard {
     let parent_ctx = current_context();
 
