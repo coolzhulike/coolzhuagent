@@ -1347,6 +1347,7 @@ impl LiveCli {
             &mut stdout,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
+        self.runtime.set_thread_id(runtime::ThreadId::from_session_path(&self.session.path)?);
         let result = self.runtime.run_turn(input, Some(&mut permission_prompter));
         let result = turn_persistence::persist_result(result, self.runtime.session(), &self.session.path);
         match result {
@@ -1394,6 +1395,7 @@ impl LiveCli {
             None,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
+        runtime.set_thread_id(runtime::ThreadId::from_session_path(&self.session.path)?);
         let result = runtime.run_turn(input, Some(&mut permission_prompter));
         self.runtime = runtime;
         let summary = turn_persistence::persist_result(result, self.runtime.session(), &self.session.path)?;
@@ -1880,6 +1882,7 @@ impl LiveCli {
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
         let internal_path = turn_persistence::reserve_internal_path(&self.session.path)?;
+        runtime.set_thread_id(runtime::ThreadId::from_session_path(&internal_path)?);
         let result = runtime.run_turn(prompt, Some(&mut permission_prompter));
         eprintln!("内部回合记录：{}", internal_path.display());
         let summary = turn_persistence::persist_result(result, runtime.session(), &internal_path)?;

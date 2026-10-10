@@ -10,6 +10,13 @@ use crate::session::{MessageRole, Session};
 pub struct ThreadId(String);
 
 impl ThreadId {
+    /// 本地会话文件的稳定身份；调用方必须先创建文件，路径迁移视为另一会话。
+    pub fn from_session_path(path: &std::path::Path) -> std::io::Result<Self> {
+        let canonical = std::fs::canonicalize(path)?;
+        let digest = Sha256::digest(canonical.as_os_str().as_encoded_bytes());
+        Ok(Self::new(format!("thread-file-{digest:x}")))
+    }
+
     #[must_use]
     pub fn new(value: impl Into<String>) -> Self {
         Self(value.into())
@@ -220,6 +227,23 @@ mod tests {
     use super::{AgentEvent, AgentEventKind, ContextSnapshot, ItemId, ThreadId, TurnId};
     use crate::session::{ConversationMessage, Session};
     use serde_json::json;
+
+    #[test]
+    fn session_file_identity_survives_content_changes_and_resolves_aliases() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp");
+        std::fs::create_dir_all(&root).unwrap();
+        let directory = tempfile::tempdir_in(root).unwrap();
+        let first = directory.path().join("first.json");
+        let second = directory.path().join("second.json");
+        std::fs::write(&first, b"old").unwrap();
+        std::fs::write(&second, b"old").unwrap();
+        let identity = ThreadId::from_session_path(&first).unwrap();
+        assert_eq!(identity, ThreadId::from_session_path(&directory.path().join("./first.json")).unwrap());
+        std::fs::write(&first, b"updated").unwrap();
+        assert_eq!(identity, ThreadId::from_session_path(&first).unwrap());
+        assert_ne!(identity, ThreadId::from_session_path(&second).unwrap());
+        assert!(ThreadId::from_session_path(&directory.path().join("missing.json")).is_err());
+    }
 
     #[test]
     fn snapshot_revision_changes_when_session_changes() {

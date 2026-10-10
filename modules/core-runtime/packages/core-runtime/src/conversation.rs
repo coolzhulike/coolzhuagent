@@ -171,6 +171,11 @@ where
         self
     }
 
+    /// 宿主在开始回合前绑定其持久会话身份。
+    pub fn set_thread_id(&mut self, thread_id: ThreadId) {
+        self.thread_id = thread_id;
+    }
+
     #[must_use]
     pub fn with_max_iterations(mut self, max_iterations: usize) -> Self {
         self.max_iterations = max_iterations;
