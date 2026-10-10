@@ -46,6 +46,7 @@ mod model_discovery;
 mod agent_session_backend;
 mod session_model_config;
 mod session_config_service;
+mod session_writer;
 use session_model_config::{SessionModelLimitOverride, model_settings_protocol, model_settings_base_url, constrain_session_model_limit};
 mod devin_acp;
 mod content_delivery;
@@ -1293,6 +1294,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .init();
 
+    // 先只读确定库路径并占有写者锁，再初始化会写磁盘的配置/nonce/恢复组件。
+    let startup_workspace = active_workspace_path();
+    let startup_config = read_workspace_config_before_writer(&startup_workspace)?;
+    let runtime_run_db_path = session_sqlite_path_override()
+        .unwrap_or_else(|| workspace_scope_paths_for(&startup_workspace, &startup_config).session_db);
+    let startup_writer = session_writer::acquire(&runtime_run_db_path)?;
     #[cfg(windows)]
     if let Err(error)=native_recovery::start_control_plane() { warn!("原生恢复控制面暂不可用：{error}"); }
 
@@ -1317,7 +1324,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 进程重启后先恢复持久化 run，再 bind/scheduler；已有数据库恢复失败必须 fail-closed，
     // 避免旧任务 worker 在状态未校正时继续运行。数据库尚不存在时恢复函数是 no-op。
-    let runtime_run_db_path = default_session_sqlite_path();
     match recover_incomplete_runtime_runs(&runtime_run_db_path) {
         Ok(recovered) if recovered > 0 => {
             info!(
@@ -1367,6 +1373,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    // SessionStore接管同一锁句柄；工程切换后旧库不因启动局部变量而持续占锁。
+    let _ = session_store();
+    drop(startup_writer);
     let bind_addr = config_web_bind_addr();
     let address: SocketAddr = match bind_addr.parse() {
         Ok(address) => address,
@@ -3381,10 +3390,15 @@ async fn api_workspace_reload() -> ApiResult<Json<WorkspaceResponse>> {
 fn reload_workspace_scope(workspace: PathBuf) -> ApiResult<WorkspaceResponse> {
     let workspace_change = scheduled_jobs::begin_workspace_change()
         .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+    let initial_config = read_workspace_config_before_writer(&workspace).map_err(io_api_error)?;
+    let next_path = workspace_scope_paths_for(&workspace, &initial_config).session_db;
+    let next_writer = session_writer::acquire(&next_path)
+        .map_err(|error| api_error(StatusCode::CONFLICT, &error.to_string()))?;
+    let config = load_workspace_config_at(&workspace);
+    let next_store = SessionStore::load_for_workspace(&workspace, &config)?;
+    drop(next_writer);
     lsp_host::invalidate_workspace();
     terminal_host::invalidate_scope();
-    let config = load_workspace_config_at(&workspace);
-    let next_store = SessionStore::load_for_workspace(&workspace, &config);
     tools::set_project_config_root(Some(workspace.clone()));
 
     {
@@ -8459,6 +8473,16 @@ fn runtime_tool_input_with_defaults(tool_name: &str, input: &JsonValue) -> JsonV
 
 fn config_file_path_for(workspace: &Path) -> PathBuf {
     workspace.join(CONFIG_FILE_NAME)
+}
+
+// 锁前只读取路径配置，不创建默认配置、不迁移凭据，也不回显TOML原文。
+fn read_workspace_config_before_writer(workspace: &Path) -> std::io::Result<WorkspaceConfig> {
+    match std::fs::read_to_string(config_file_path_for(workspace)) {
+        Ok(content) => toml::from_str(&content)
+            .map_err(|_| std::io::Error::other("已有工作区配置格式无效，未取得写者或修改文件")),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(WorkspaceConfig::default()),
+        Err(error) => Err(error),
+    }
 }
 
 fn load_workspace_config_at(workspace: &Path) -> WorkspaceConfig {
@@ -37681,17 +37705,22 @@ fn default_session_store_path() -> PathBuf {
     workspace_scope_paths_for(&active_workspace_path(), &config).legacy_session_json
 }
 
-fn default_session_sqlite_path() -> PathBuf {
+fn session_sqlite_path_override() -> Option<PathBuf> {
     #[cfg(test)]
     if let Some(path) = current_session_db_path_override_for_test() {
-        return path;
+        return Some(path);
     }
     if let Ok(path) = env::var("COOLZHU_WEB_SESSION_DB") {
         let trimmed = path.trim();
         if !trimmed.is_empty() {
-            return PathBuf::from(trimmed);
+            return Some(PathBuf::from(trimmed));
         }
     }
+    None
+}
+
+fn default_session_sqlite_path() -> PathBuf {
+    if let Some(path) = session_sqlite_path_override() { return path; }
     let config = read_config(Clone::clone);
     workspace_scope_paths_for(&active_workspace_path(), &config).session_db
 }
@@ -37735,6 +37764,7 @@ impl SessionStoreCapacity {
 
 #[derive(Debug)]
 struct SessionStore {
+    writer: Option<Arc<session_writer::Writer>>,
     history_edits: Vec<history_persistence::HistoryEdit>,
     committed_state: Option<PersistedSessionState>,
     path: PathBuf,
@@ -37889,13 +37919,13 @@ impl SessionStore {
         Self::load_from_paths(path, legacy_json_path, capacity)
     }
 
-    fn load_for_workspace(workspace: &Path, config: &WorkspaceConfig) -> Self {
+    fn load_for_workspace(workspace: &Path, config: &WorkspaceConfig) -> ApiResult<Self> {
         let paths = workspace_scope_paths_for(workspace, config);
-        Self::load_from_paths(
+        Self::try_load_from_paths(
             paths.session_db,
             paths.legacy_session_json,
             session_capacity_from_config(config),
-        )
+        ).map_err(|message| api_error(StatusCode::CONFLICT, &message))
     }
 
     fn load_from_paths(
@@ -37903,6 +37933,16 @@ impl SessionStore {
         legacy_json_path: PathBuf,
         capacity: SessionStoreCapacity,
     ) -> Self {
+        Self::try_load_from_paths(path, legacy_json_path, capacity)
+            .unwrap_or_else(|error| panic!("会话库启动失败，未继续操作：{error}"))
+    }
+
+    fn try_load_from_paths(
+        path: PathBuf,
+        legacy_json_path: PathBuf,
+        capacity: SessionStoreCapacity,
+    ) -> Result<Self, String> {
+        let writer = session_writer::acquire(&path).map_err(|error| error.to_string())?;
         let started = Instant::now();
         diag!(
             "[SESSION-STORE] load_from_paths start: sqlite={}, json={}",
@@ -37913,7 +37953,7 @@ impl SessionStore {
         let state = match load_session_state_from_sqlite(&path) {
             Ok(Some(state)) => state,
             Ok(None) => load_session_state_from_json(&legacy_json_path).unwrap_or_default(),
-            Err(error) => panic!("会话库读取或升级失败，已停止启动且未从旧 JSON 覆盖：{error}"),
+            Err(error) => return Err(format!("会话库读取或升级失败，未从旧 JSON 覆盖：{error}")),
         };
         diag!(
             "[SESSION-STORE] state loaded: sessions={}, rooms={}, elapsed_ms={}, total_ms={}",
@@ -37922,7 +37962,11 @@ impl SessionStore {
             elapsed_millis(load_started),
             elapsed_millis(started)
         );
+        let mut writer_connection = open_session_connection(&path).map_err(|error| error.to_string())?;
+        initialize_session_schema(&writer_connection).map_err(|error| error.to_string())?;
+        writer.claim_epoch(&mut writer_connection)?;
         let mut store = Self {
+            writer: Some(writer),
             history_edits: Vec::new(),
             committed_state: Some(state.clone()),
             path,
@@ -37978,20 +38022,30 @@ impl SessionStore {
             elapsed_millis(started)
         );
         let save_started = Instant::now();
-        if store.save().is_err() {
-            panic!("会话库首次保存失败，已停止启动以避免后续对未持久化状态继续操作");
-        }
+        store.save().map_err(|_| "会话库首次保存失败，未继续操作未持久化状态".to_string())?;
         diag!(
             "[SESSION-STORE] initial save done: elapsed_ms={}, total_ms={}",
             elapsed_millis(save_started),
             elapsed_millis(started)
         );
-        store
+        Ok(store)
     }
 
     fn save(&mut self) -> ApiResult<()> {
         // 先持久化新消息，再缩小运行时缓存；容量上限从不删除数据库历史。
-        if let Err(error) = save_session_state_to_sqlite_with_edits(&self.path, &self.state, self.capacity, &self.history_edits) {
+        let result = (|| {
+            if self.writer.is_none() {
+                let writer = session_writer::acquire(&self.path).map_err(io_api_error)?;
+                let mut connection = open_session_connection(&self.path).map_err(sqlite_api_error)?;
+                initialize_session_schema(&connection).map_err(sqlite_api_error)?;
+                writer.claim_epoch(&mut connection).map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+                self.writer = Some(writer);
+            }
+            let epoch = self.writer.as_ref().unwrap().epoch()
+                .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+            save_session_state_to_sqlite_with_epoch(&self.path, &self.state, self.capacity, &self.history_edits, Some(epoch))
+        })();
+        if let Err(error) = result {
             // 所有可见读写都持有同一存储锁；失败时撤销缓存暂存，禁止幽灵消息流入下一次提交。
             if let Some(committed) = &self.committed_state { self.state = committed.clone(); }
             self.history_edits.clear();
@@ -40230,7 +40284,7 @@ impl SessionStore {
         let created_seed_room = self.state.chat_rooms.is_empty();
         self.ensure_chat_room();
         if created_seed_room {
-            save_session_state_to_sqlite(&self.path, &self.state, self.capacity)?;
+            self.save()?;
         }
         self.enforce_capacity();
         self.committed_state = Some(self.state.clone());
@@ -49793,6 +49847,7 @@ fn purge_deleted_session_auxiliary_sqlite(path: &Path, session_id: &str) -> ApiR
     Ok(())
 }
 
+#[cfg(test)]
 fn save_session_state_to_sqlite(
     path: &Path,
     state: &PersistedSessionState,
@@ -49801,9 +49856,17 @@ fn save_session_state_to_sqlite(
     save_session_state_to_sqlite_with_edits(path, state, capacity, &[])
 }
 
+#[cfg(test)]
 fn save_session_state_to_sqlite_with_edits(
     path: &Path, state: &PersistedSessionState, capacity: SessionStoreCapacity,
     edits: &[history_persistence::HistoryEdit],
+) -> ApiResult<()> {
+    save_session_state_to_sqlite_with_epoch(path, state, capacity, edits, None)
+}
+
+fn save_session_state_to_sqlite_with_epoch(
+    path: &Path, state: &PersistedSessionState, capacity: SessionStoreCapacity,
+    edits: &[history_persistence::HistoryEdit], expected_epoch: Option<u64>,
 ) -> ApiResult<()> {
     let started = Instant::now();
     diag!(
@@ -49835,7 +49898,11 @@ fn save_session_state_to_sqlite_with_edits(
     connection
         .execute_batch("PRAGMA foreign_keys = OFF;")
         .map_err(sqlite_api_error)?;
-    let tx = connection.transaction().map_err(sqlite_api_error)?;
+    let tx = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).map_err(sqlite_api_error)?;
+    if let Some(epoch) = expected_epoch {
+        session_writer::check_epoch(&tx, epoch)
+            .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+    }
 
     tx.execute("DELETE FROM chat_handoffs", [])
         .map_err(sqlite_api_error)?;
@@ -49845,7 +49912,7 @@ fn save_session_state_to_sqlite_with_edits(
         .map_err(sqlite_api_error)?;
     tx.execute("DELETE FROM sessions", [])
         .map_err(sqlite_api_error)?;
-    tx.execute("DELETE FROM metadata WHERE key != 'schema_contract_version'", [])
+    tx.execute("DELETE FROM metadata WHERE key NOT IN ('schema_contract_version','session_writer_epoch')", [])
         .map_err(sqlite_api_error)?;
     diag!(
         "[SESSION-SQLITE] save cleared tables: handoffs_preserved={}, elapsed_ms={}",
@@ -60996,6 +61063,7 @@ pub(crate) mod tests {
             let temp = tempfile::tempdir().expect("temp session store");
             let store = super::SessionStore {
                 history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
                 path: temp.path().join("session.sqlite3"),
                 legacy_json_path: temp.path().join("session.json"),
@@ -62622,7 +62690,7 @@ pub(crate) mod tests {
         std::fs::create_dir_all(&ws_b).expect("ws-b");
         let config = super::WorkspaceConfig::default();
 
-        let mut store_a = super::SessionStore::load_for_workspace(&ws_a, &config);
+        let mut store_a = super::SessionStore::load_for_workspace(&ws_a, &config).expect("加载工程A");
         store_a
             .create_session(super::UpsertSessionRequest {
                 name: Some("workspace-a-agent".to_string()),
@@ -62637,8 +62705,8 @@ pub(crate) mod tests {
             })
             .expect("create session in ws-a");
 
-        let store_a_reloaded = super::SessionStore::load_for_workspace(&ws_a, &config);
-        let store_b = super::SessionStore::load_for_workspace(&ws_b, &config);
+        let store_a_reloaded = super::SessionStore::load_for_workspace(&ws_a, &config).expect("重载工程A");
+        let store_b = super::SessionStore::load_for_workspace(&ws_b, &config).expect("加载工程B");
 
         assert!(store_a_reloaded
             .state
@@ -62944,6 +63012,7 @@ pub(crate) mod tests {
         session.messages = vec![already_owned.clone(), legacy_first.clone(), legacy_second.clone()];
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -63857,6 +63926,7 @@ attach: last_assistant
         b.messages = Vec::new();
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -63924,6 +63994,7 @@ attach: last_assistant
         b.messages = Vec::new();
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -65079,6 +65150,7 @@ attach: last_assistant
         };
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -65160,6 +65232,7 @@ attach: last_assistant
         };
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -65259,6 +65332,7 @@ attach: last_assistant
         let now = super::unix_timestamp_millis();
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -65393,6 +65467,7 @@ attach: last_assistant
         };
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -65561,6 +65636,7 @@ attach: last_assistant
         };
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -65736,6 +65812,7 @@ attach: last_assistant
         };
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -66007,6 +66084,7 @@ attach: last_assistant
         let agent = planner.to_agent_session(false);
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -66166,6 +66244,7 @@ attach: last_assistant
         let agent = agent_session.to_agent_session(false);
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -66361,6 +66440,7 @@ attach: last_assistant
         let agent = agent_session.to_agent_session(false);
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -66594,6 +66674,7 @@ attach: last_assistant
         };
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -66748,6 +66829,7 @@ attach: last_assistant
         let db = tmp.path().join("manual.sqlite3");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db.clone(),
             legacy_json_path: tmp.path().join("sessions.json"),
@@ -66853,6 +66935,7 @@ attach: last_assistant
 "#;
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -66930,6 +67013,7 @@ attach: last_assistant
 "#;
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -67018,6 +67102,7 @@ attach: last_assistant
         let temp = tempfile::tempdir().expect("tempdir");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -67136,6 +67221,7 @@ attach: last_assistant
         let temp = tempfile::tempdir().expect("tempdir");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -67182,6 +67268,7 @@ attach: last_assistant
         let temp = tempfile::tempdir().expect("tempdir");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -67257,6 +67344,7 @@ attach: last_assistant
         }];
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -67307,6 +67395,7 @@ attach: last_assistant
         survivor.name = "keep-me".to_string();
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -67369,6 +67458,7 @@ attach: last_assistant
     fn session_store_capacity_prunes_oldest_messages() {
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: std::path::PathBuf::from("unused.sqlite3"),
             legacy_json_path: std::path::PathBuf::from("unused.json"),
@@ -67441,6 +67531,7 @@ attach: last_assistant
         let json_path = temp.path().join("sessions.json");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: json_path,
@@ -67524,6 +67615,7 @@ attach: last_assistant
         let json_path = temp.path().join("sessions.json");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: json_path.clone(),
@@ -67606,6 +67698,7 @@ attach: last_assistant
         }];
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: json_path,
@@ -67678,6 +67771,7 @@ attach: last_assistant
         let db_path = temp.path().join("sessions.sqlite3");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -67738,6 +67832,7 @@ attach: last_assistant
         let temp = tempfile::tempdir().expect("tempdir");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -67887,6 +67982,7 @@ attach: last_assistant
         let db_path = temp.path().join("sessions.sqlite3");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -68017,6 +68113,7 @@ attach: last_assistant
         let temp = tempfile::tempdir().expect("tempdir");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -68073,6 +68170,7 @@ attach: last_assistant
         let temp = tempfile::tempdir().expect("tempdir");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -68716,6 +68814,7 @@ attach: last_assistant
         planner.updated_at = now;
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -70606,6 +70705,7 @@ attach: last_assistant
         let new_db = temp.path().join("new-workspace.sqlite3");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: old_db.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -71051,6 +71151,7 @@ attach: last_assistant
         assert_eq!(resume_error.0, super::StatusCode::CONFLICT);
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db.clone(),
             legacy_json_path: tmp.path().join("sessions.json"),
@@ -71580,6 +71681,7 @@ attach: last_assistant
         .expect("claim wins");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db.clone(),
             legacy_json_path: temp.path().join("legacy.json"),
@@ -74258,6 +74360,7 @@ attach: last_assistant
         drop(connection);
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db.clone(),
             legacy_json_path: tmp.path().join("sessions.json"),
@@ -74609,6 +74712,7 @@ attach: last_assistant
         base.messages = Vec::new();
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -75123,6 +75227,7 @@ attach: last_assistant
         }];
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: tmp.path().join("lifecycle.sqlite3"),
             legacy_json_path: tmp.path().join("lifecycle.json"),
@@ -76052,6 +76157,7 @@ attach: last_assistant
         b.messages = Vec::new();
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: tmp.path().join("sessions.json"),
@@ -79113,6 +79219,7 @@ attach: last_assistant
         let json_path = temp.path().join("sessions.json");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path.clone(),
             legacy_json_path: json_path.clone(),
@@ -88123,6 +88230,7 @@ attach: last_assistant
         ];
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: db_path,
             legacy_json_path: temp.path().join("sessions.json"),
@@ -88592,6 +88700,7 @@ attach: last_assistant
         };
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
             legacy_json_path: temp.path().join("sessions.json"),
@@ -89065,6 +89174,7 @@ attach: last_assistant
         let temp = tempfile::tempdir().expect("temp session store");
         let mut store = super::SessionStore {
             history_edits: Vec::new(),
+            writer: None,
             committed_state: None,
             path: temp.path().join("session.sqlite3"),
             legacy_json_path: temp.path().join("session.json"),

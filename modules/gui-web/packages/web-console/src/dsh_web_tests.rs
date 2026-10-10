@@ -55,6 +55,7 @@ impl IsolatedScope {
             active_chat_room_id: Some(ROOM.into()),
         };
         let store = SessionStore {
+            writer: None,
             history_edits: Vec::new(),
             committed_state: None,
             path: db,

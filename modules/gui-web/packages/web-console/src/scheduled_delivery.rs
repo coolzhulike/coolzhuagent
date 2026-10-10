@@ -198,6 +198,7 @@ mod tests {
     fn bound_delivery_uses_exact_scope_and_deleted_room_never_creates_fallback() {
         let temp = tempfile::tempdir().unwrap();
         let mut store = SessionStore {
+            writer: None,
             history_edits: Vec::new(),
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),
