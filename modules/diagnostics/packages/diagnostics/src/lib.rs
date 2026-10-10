@@ -1,4 +1,5 @@
 mod output;
+mod redaction;
 mod rolling_file;
 mod span;
 mod trace_id;
@@ -24,6 +25,7 @@ static LOGGER: OnceLock<Logger> = OnceLock::new();
 
 /// 人读诊断面包屑复用文件轮转边界；调用方保留既有错误处理，禁止用于权威审计。
 pub fn append_diagnostic_line(path: &Path, message: &str) -> io::Result<()> {
+    let message = redaction::text(message);
     let record = if message.len() >= rolling_file::RECORD_BYTES {
         format!("diagnostic_record_omitted original_bytes={}\n", message.len())
     } else {
@@ -76,6 +78,17 @@ pub struct LogEntry {
     pub trace_id: Option<TraceId>,
     pub span_id: Option<SpanId>,
     pub fields: Vec<(String, String)>,
+}
+
+impl LogEntry {
+    fn redacted(&self) -> Self {
+        Self {
+            app: redaction::text(&self.app), module: redaction::text(&self.module),
+            event: redaction::text(&self.event), message: redaction::text(&self.message),
+            fields: self.fields.iter().map(|(key,value)| (redaction::text(key),redaction::field(key,value))).collect(),
+            ..self.clone()
+        }
+    }
 }
 
 struct Logger {
@@ -218,6 +231,7 @@ pub fn emit(level: LogLevel, module: &str, event: &str, message: &str, fields: &
             .collect(),
     };
 
+    let entry = entry.redacted();
     logger.file_output.write_event(&entry);
 
     if let Some(console) = &logger.console {
@@ -239,16 +253,20 @@ pub fn emit_span_closed(span: &SpanClosed) {
         return;
     }
 
-    logger.file_output.write_span(span);
+    let mut span = span.clone();
+    span.name = redaction::text(&span.name);
+    span.module = redaction::text(&span.module);
+    span.attributes = span.attributes.iter().map(|(key,value)| (redaction::text(key),redaction::field(key,value))).collect();
+    logger.file_output.write_span(&span);
 
     if let Some(console) = &logger.console {
-        console.write_span(span);
+        console.write_span(&span);
     }
 
     if let Ok(guard) = logger.gui_callback.read() {
         if let Some(cb) = guard.as_ref() {
             let gui_output = GuiOutput::new(cb.clone());
-            gui_output.write_span(span);
+            gui_output.write_span(&span);
         }
     }
 }

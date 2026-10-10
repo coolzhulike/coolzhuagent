@@ -62,6 +62,7 @@ impl Output for FileOutput {
 }
 
 pub(crate) fn format_log_entry(entry: &LogEntry) -> String {
+    let entry = entry.redacted();
     let mut line = format!(
         "{{\"ts_ms\":{},\"level\":\"{}\",\"app\":\"{}\",\"module\":\"{}\",\"event\":\"{}\",\"message\":\"{}\"",
         entry.timestamp_ms,
