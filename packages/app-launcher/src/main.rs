@@ -412,12 +412,17 @@ fn run(
             .then(|| last_db.clone())
     });
 
-    if preflight_web_console_port(
+    let reuse_existing = preflight_web_console_port(
         &config,
         &decision.resolved,
         expected_build_version.as_deref(),
         expected_session_db.as_deref(),
-    )? {
+    )
+    .map_err(|error| {
+        write_failed_selfcheck(&config, &error, Some(&decision.resolved), &notes);
+        error
+    })?;
+    if reuse_existing {
         let tauri_pid = forward_existing_console(&config, &decision.resolved)?;
         return Ok(RunOutcome::ForwardedExisting { tauri_pid });
     }
@@ -470,6 +475,21 @@ fn run(
 }
 
 fn write_refusal_selfcheck(config: &LauncherConfig, error: &LaunchError) {
+    write_failed_selfcheck(
+        config,
+        error,
+        None,
+        &["[refused] 路径解析未通过：已阻断启动，未创建替代工作区".to_string()],
+    );
+}
+
+/// 预检拒绝也覆盖上次成功记录；保存失败必须明确输出，不能让旧记录冒充本次结果。
+fn write_failed_selfcheck(
+    config: &LauncherConfig,
+    error: &LaunchError,
+    resolved: Option<&ResolvedLaunchPaths>,
+    notes: &[String],
+) {
     let payload = SelfcheckPayload {
         ok: false,
         web_console_pid: None,
@@ -477,11 +497,15 @@ fn write_refusal_selfcheck(config: &LauncherConfig, error: &LaunchError) {
         health_url: config.health_url.clone(),
         error: Some(error.to_string()),
         timestamp_ms: now_ms(),
-        resolved: None,
+        resolved: resolved.cloned(),
         reuse: None,
-        notes: vec!["[refused] 路径解析未通过：已阻断启动，未创建替代工作区".to_string()],
+        notes: notes.to_vec(),
     };
-    let _ = app_launcher::write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload);
+    if let Err(persistence_error) =
+        app_launcher::write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload)
+    {
+        eprintln!("package-launcher: 本次失败自检保存失败，旧文件不能代表本次启动结果：{persistence_error}");
+    }
 }
 
 fn forward_existing_console(
@@ -826,6 +850,43 @@ fn apply_hidden_window(_cmd: &mut Command) {}
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn port_conflict_replaces_previous_success_selfcheck() {
+        let root = env::current_dir().unwrap().join("tmp").join(format!(
+            "launcher-conflict-selfcheck-{}-{}",
+            std::process::id(), now_ms()
+        ));
+        let config_json = serde_json::json!({
+            "web_console": {"executable": "unused-web.exe", "args": []},
+            "tauri": {"executable": "unused-shell.exe", "args": []},
+            "health_url": "http://127.0.0.1:8765/api/diagnostics/health",
+            "health_timeout_secs": 1,
+            "health_poll_interval_ms": 1,
+            "log_dir": root,
+            "runtime_dir": root,
+        });
+        let config = LauncherConfig::from_json(&config_json.to_string(), &root).unwrap();
+        let old = SelfcheckPayload::basic(
+            true, Some(123), Some(456), config.health_url.clone(), None, 1,
+        );
+        app_launcher::write_selfcheck(&config.selfcheck_file, &config.log_dir, &old).unwrap();
+        let error = LaunchError::ServiceConflict {
+            port: 8765,
+            reason: "工作区不同".to_string(),
+            details: vec!["session_db 不匹配".to_string()],
+        };
+        write_failed_selfcheck(&config, &error, None, &["预检拒绝".to_string()]);
+        let actual: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&config.selfcheck_file).unwrap()).unwrap();
+        assert_eq!(actual["ok"], false);
+        assert!(actual["timestamp_ms"].as_u64().unwrap() > 1);
+        assert_eq!(actual["error"], error.to_string());
+        assert!(actual["web_console_pid"].is_null());
+        assert!(actual["tauri_pid"].is_null());
+        assert_eq!(actual["resolution_notes"][0], "预检拒绝");
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn default_config_path_is_resolved_from_current_exe_directory() {
