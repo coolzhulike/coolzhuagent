@@ -53,17 +53,27 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
         if parent.computer_use_turn_scope.native_browser() {
             parent.native_browser_binding = Some(crate::native_browser_host::capture_panel_binding(parent));
         }
-        let snapshots = result.targets.iter().filter_map(|agent| {
+        let require_http_snapshot = crate::real_llm_enabled()
+            && crate::chat_room_capabilities_sqlite(&db_path, &result.chat_room_id)
+                .map_err(crate::sqlite_api_error)?.0;
+        let mut snapshots = std::collections::HashMap::new();
+        for agent in &result.targets {
+            // 会话型后端有独立生命周期，不能用HTTP快照捕获失败阻断其已授权聊天。
+            let http = crate::agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+                == crate::agent_session_backend::AgentSessionBackend::LlmHttp;
             match crate::host_child_agent::HostModelSnapshot::capture(
                 agent, Some(&result.chat_room_id), parent,
             ) {
-                Ok(snapshot) => Some((agent.id.clone(), Arc::new(snapshot))),
+                Ok(snapshot) => { snapshots.insert(agent.id.clone(), Arc::new(snapshot)); }
                 Err(error) => {
+                    if require_http_snapshot && http {
+                        return Err(crate::api_error(crate::StatusCode::CONFLICT,
+                            &format!("无法冻结本轮会话 {} 的模型配置，未执行模型或工具：{error}", agent.id)));
+                    }
                     crate::diag_log(&format!("[HOST-AGENT] 接纳时无法解析会话 {} 的子执行配置：{error}", agent.id));
-                    None
                 }
             }
-        }).collect();
+        }
         parent.host_model_snapshots = Arc::new(snapshots);
         crate::dsh_web::capture_target_permissions(&mut parent.dsh_permission, &parent.dsh_bindings,
             &workspace_id, &result.targets, &result.chat_room_id, &db_path);

@@ -76751,6 +76751,20 @@ attach: last_assistant
                 assert!(response.messages.iter().any(|message| message.content.contains("两文件均已读取")));
             }
         }
+        // 已启用真实HTTP时，接纳快照失败必须在任何网络/工具调用前拒绝，不能静默降级。
+        super::workspace_config().lock().unwrap().session_model_limits.entry("target-text".into())
+            .or_default().backend_kind = Some(super::agent_session_backend::AgentSessionBackend::DevinAcp);
+        for streamed in [false, true] {
+            let payload = serde_json::from_value(serde_json::json!({"target_agent_ids":["target-text"],
+                "session_id":"target-text","chat_room_id":"shared-route-room-false","text":format!("拒绝快照失败-{streamed}")})).unwrap();
+            let error = if streamed {
+                Box::pin(super::api_chat_send_stream(super::Json(payload))).await.err().expect("快照失败不得接纳SSE")
+            } else {
+                Box::pin(super::api_chat_send(super::Json(payload))).await.err().expect("快照失败不得接纳普通请求")
+            };
+            let message = super::api_error_message(error);
+            assert!(message.contains("无法冻结本轮会话"), "实际拒绝原因：{message}");
+        }
         let captures = captures.lock().unwrap(); assert_eq!(captures.len(), 6);
         assert_eq!(captures.iter().filter(|request| request["stream"] == true).count(), 1, "SSE首响应只请求一次");
         assert!(captures.iter().all(|request| request.to_string().contains("历史路由哨兵")));
