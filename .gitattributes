@@ -245,3 +245,6 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/2026-10-10-upload-layout/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 
 /docs/testing/release-0.2.127/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 0.2.128 安装及 SBOM 证据保持原始字节，以便核对交付文件摘要。
+/docs/testing/release-0.2.128/evidence/install/*.json -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
