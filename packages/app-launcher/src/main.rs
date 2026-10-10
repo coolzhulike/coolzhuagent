@@ -445,6 +445,7 @@ fn run(
             error
         })?;
         write_reused_selfcheck(&config, &resolved, tauri_pid, reused.web_pid, reused.verification, &notes);
+        record_successful_observations(&user_state_root, &resolved);
         return Ok(RunOutcome::ForwardedExisting { tauri_pid });
     }
 
@@ -481,18 +482,29 @@ fn run(
     .map(RunOutcome::Started);
 
     if let Ok(RunOutcome::Started(outcome)) = &open {
-        // 记录观测值：构建身份/数据绑定用于下次复用判定；冲突只是告警。
-        if let Some(observed) = &outcome.resolved.observed_build_version {
-            let _ = record_observations(&user_state_root, |observations| {
-                observations.last_background_build_version = Some(observed.clone());
-                observations.last_launch_id = Some(outcome.resolved.launch_id.clone());
-                observations.last_workspace_root = Some(outcome.resolved.workspace_root.clone());
-                observations.last_observed_session_db =
-                    outcome.resolved.observed_session_db.clone();
-            });
-        }
+        record_successful_observations(&user_state_root, &outcome.resolved);
     }
     open
+}
+
+/// 首次启动与复用共享记录路径；仅保存实际且匹配的后台观测。
+fn record_successful_observations(user_state_root: &Path, resolved: &ResolvedLaunchPaths) {
+    let (Some(workspace), Some(build)) = (&resolved.observed_workspace, &resolved.observed_build_version) else {
+        eprintln!("package-launcher: 后台观测不完整，未更新复用历史");
+        return;
+    };
+    if !launch_paths::same_canonical(workspace, &resolved.workspace_root) {
+        eprintln!("package-launcher: 后台实际工作区与请求不一致，未更新复用历史");
+        return;
+    }
+    if let Err(error) = record_observations(user_state_root, |observations| {
+        observations.last_background_build_version = Some(build.clone());
+        observations.last_launch_id = Some(resolved.launch_id.clone());
+        observations.last_workspace_root = Some(workspace.clone());
+        observations.last_observed_session_db = resolved.observed_session_db.clone();
+    }) {
+        eprintln!("package-launcher: 本次后台观测保存失败，历史未确认更新：{error}");
+    }
 }
 
 /// 升级后的复用期望属于当前包，历史观测不能覆盖新包身份。
@@ -1022,6 +1034,19 @@ mod tests {
         assert_eq!(reused["tauri_pid"], 789);
         assert_eq!(reused["reuse_verification"], verification.to_json());
         assert_eq!(reused["resolved_launch_paths"]["launch_id"], "current-reuse");
+        let before = load_user_state(&root).unwrap();
+        record_successful_observations(&root, &resolved);
+        let stored = load_user_state(&root).unwrap();
+        assert_eq!(stored.observations.last_launch_id.as_deref(), Some("current-reuse"));
+        assert_eq!(stored.observations.last_background_build_version.as_deref(), Some("actual-build"));
+        assert_eq!(stored.observations.last_observed_session_db, Some(root.join("actual.sqlite3")));
+        assert_eq!(stored.observations.last_workspace_root, Some(root.clone()));
+        let mut invalid = resolved.clone();
+        invalid.observed_workspace = Some(root.join("different-workspace"));
+        record_successful_observations(&root, &invalid);
+        assert_eq!(load_user_state(&root).unwrap(), stored);
+        assert_eq!(stored.selection, before.selection);
+        assert_eq!(stored.legacy_selections, before.legacy_selections);
         fs::remove_dir_all(root).unwrap();
     }
 
