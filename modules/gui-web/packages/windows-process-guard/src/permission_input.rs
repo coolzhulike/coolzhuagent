@@ -77,8 +77,8 @@ mod windows {
             }
             if count==0 {break;}
             if console {wide.push(unit);} else {bytes.push(byte);}
-            if (console && unit==10) || (!console && byte==10){break;}
             if wide.len()+bytes.len()>8192 {return Err(io::Error::other("权限输入超过8192单位上限"));}
+            if (console && unit==10) || (!console && byte==10){break;}
         }
         if console {String::from_utf16(&wide).map_err(|e|io::Error::new(io::ErrorKind::InvalidData,e))}
         else {String::from_utf8(bytes).map_err(|e|io::Error::new(io::ErrorKind::InvalidData,e))}
@@ -132,6 +132,19 @@ mod windows {
         fn final_line_without_newline_is_preserved_at_pipe_eof() {
             let(read,write)=pipe();write.write(b"yes");drop(write);
             assert_eq!(unsafe {read_line(read.0,Arc::new(||false))}.unwrap(),"yes");
+        }
+        #[test]
+        fn newline_counts_toward_input_budget() {
+            for length in [8192usize,8193] {
+                let(read,write)=pipe();
+                let writer=std::thread::spawn(move || {
+                    let mut line=vec![b'x';length-1];line.push(b'\n');write.write(&line);
+                });
+                let result=unsafe {read_line(read.0,Arc::new(||false))};
+                writer.join().unwrap();
+                if length==8192 {assert_eq!(result.unwrap().len(),length);}
+                else {assert!(result.unwrap_err().to_string().contains("8192"));}
+            }
         }
     }
 }

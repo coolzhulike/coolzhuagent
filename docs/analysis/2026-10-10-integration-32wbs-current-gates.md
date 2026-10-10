@@ -86,3 +86,5 @@ CLI历史专项复核点为 918f99c。CLI 历史已补单写者锁、累计字�
 证据入口：[原32项总表](2026-09-21-integration-review/wbs-implementation-audit-2026-10-07.md)、[0.2.128实装与交付核验](../testing/release-0.2.128/acceptance-status.md)、[日志生产者边界](2026-10-10-diagnostic-producer-boundaries.md)。本表不是完成声明，Goal 保持 active。
 
 最新CLI监听panic保护已补，完整109项通过。Windows权限输入由guard安全边界在原线程读取并用同线程句柄取消同步I/O，CLI最终真实build通过；真实匿名管道四项及guard全库59通过3忽略，CLI全库109通过。控制台实际Ctrl+C/ReadConsoleW、部分或残留输入跨回合归属、非Windows和正式安装仍未验收，不据此关闭入口取消总门禁。首版unsafe放CLI触犯约束build101已保留，最终没有放宽workspace unsafe_code=forbid，详见在途取消记录。
+
+权限输入预算后续已用真实管道复现并修复8193单位末尾换行绕过上限；读取故障取消同一回合，原错误保留，迟到允许不覆盖截止。最终CLI真实build0，完整112通过0失败，guard库60通过3忽略；反例失败及构建拼写错误101均保留日志。跨回合残留输入、真实控制台、正式模型和最终交付仍开放。

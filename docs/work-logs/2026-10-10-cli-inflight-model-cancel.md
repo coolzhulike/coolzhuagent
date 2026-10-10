@@ -37,3 +37,7 @@ Windows权限输入取消接线：审查确认原CliPermissionPrompter直接stdi
 首版把Win32放CLI触犯workspace unsafe_code=forbid，真实build exit101，日志tmp/analysis-cli-permission-input-build.txt保留；已移至既有guard安全边界，未放宽workspace禁用unsafe约束。最终真实CLI build exit0（10.56秒），完整CLI串行109通过0失败0忽略；最终guard库完整59通过0失败3忽略，实际exit0。新永久真实匿名管道测试覆盖阻塞读取在写端关闭前取消、下一行不吞读、预先取消零读取、无换行EOF。日志tmp/analysis-cli-permission-input-final-build.txt、cli-tests.txt、final-guard-tests.txt；先前guard58项为EOF补验前历史。
 
 边界：未注入共享控制台Ctrl+C，控制台ReadConsoleW路径尚无真实独立控制台实拍；取消后已排队/部分输入的跨回合归属、预算拒绝后残留行、信号与审批完成同时发生、空闲REPL和非Windows输入仍需独立验证或补实现。取消回调要求非阻塞及状态单调；不能将管道测试当成全部宿主输入证明。当前源码未进入131候选或安装版，正式模型、32WBS全量、签名发布及管理员升级仍未闭环。
+
+权限输入边界复核：真实管道反例确认总长8193且末尾换行会绕过8192预算，原因是先break后判预算。永久测试先实际exit101（tmp/analysis-permission-budget-before.txt），修补后先检查预算再识别换行，8192接受、8193拒绝。CLI读取基础设施失败现在取消同一根，保留原始读取错误，防止同回合继续审批并消费失败行后缀；已有截止仍优先于迟到yes，普通no不取消。三个CLI永久测试通过。该处理不证明下一回合残留输入归属已解决，仍需独立控制台/流同步设计和验证。
+
+首次编辑测试函数名缺fn，真实build101（tmp/analysis-permission-budget-build.txt），已修正。最终真实CLI build0（4.63秒），完整CLI串行112通过0失败0忽略，guard库60通过0失败3忽略，均实际exit0。日志tmp/analysis-permission-budget-final-build.txt、cli-tests.txt、guard-tests.txt。未将忽略项或管道局部成功提升为正式模型、真实控制台、全部32WBS和交付完成。
