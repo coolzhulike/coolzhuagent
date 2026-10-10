@@ -1,0 +1,14 @@
+{
+  "guard_test_exit": 0,
+  "cli_test_exit": 0,
+  "immutable_snapshot_verified": false,
+  "build_exit": 0,
+  "scope": "生产读取器行边界、迟到后缀、部分读取取消、独立控制台CtrlC；非REPL普通输入交接或正式模型/安装验收",
+  "cli_passed": 112,
+  "guard_passed": 64,
+  "guard_ignored": 4,
+  "source_uncommitted": true,
+  "console_test_exit": 0,
+  "source_base": "89f7f1a37aca61cc4eb67de2b198e408f56d8ca4",
+  "source_sha256": "CCEC358BBF16EE20DAC4D16A89F6BBD99CCE84B0FFF493868C17CC1B26012C60"
+}

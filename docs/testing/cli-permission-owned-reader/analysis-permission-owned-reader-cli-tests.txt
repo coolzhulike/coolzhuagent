@@ -1,0 +1,157 @@
+   Compiling coolzhu-windows-process-guard v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\gui-web\packages\windows-process-guard)
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+   Compiling coolzhu-language-service v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\core-runtime\packages\language-service)
+   Compiling coolzhu-core-runtime v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\core-runtime\packages\core-runtime)
+   Compiling coolzhu-llm-adapter v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\llm-adapter\packages\llm-adapter)
+   Compiling coolzhu-tool-registry v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\tooling\packages\tool-registry)
+   Compiling coolzhu-command-router v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\tooling\packages\command-router)
+   Compiling coolzhu-command-line v0.2.17 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\cli\packages\command-line)
+   Compiling coolzhu-compatibility-harness v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\tooling\packages\compatibility-harness)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.09s
+     Running unittests src\main.rs (tmp/cargo-target-integration\debug\deps\coolzhu_cli-bacfc7d79fb8c585.exe)
+
+running 112 tests
+test cli_cancel_tests::cancelled_partial_tool_stream_has_interrupted_terminal_and_zero_tool_calls ... ok
+test cli_cancel_tests::deadline_partial_tool_stream_has_interrupted_terminal_and_zero_tool_calls ... ok
+test cli_control::tests::listener_panic_cancels_registered_turn ... ok
+test cli_control::tests::real_signal_registration_installs_and_restores_root_control ... ok
+test cli_control::tests::registration_panic_does_not_dispatch ... ok
+test cli_control::tests::signal_cancels_only_this_turn_and_preserves_parent_deadline ... ok
+test cli_control::tests::startup_failure_does_not_execute_and_scope_restores_parent ... ok
+test controlled_future::tests::actual_provider_handshake_and_stalled_sse_are_cancelled_without_zeroing_remote_usage ... ok
+test controlled_future::tests::already_cancelled_never_polls_request ... ok
+test controlled_future::tests::timed_out_owned_socket_is_dropped ... ok
+test init::tests::initialize_repo_creates_expected_files_and_gitignore_entries ... ok
+test init::tests::initialize_repo_is_idempotent_and_preserves_existing_files ... ok
+test init::tests::render_init_template_mentions_detected_python_and_nextjs_markers ... ok
+test input::tests::command_mode_submits_colon_prefixed_input ... ok
+test input::tests::ctrl_c_cancels_when_input_exists ... ok
+test input::tests::dd_and_p_paste_deleted_line_after_current_line ... ok
+test input::tests::extracts_only_terminal_slash_command_prefixes ... ok
+test input::tests::normal_mode_supports_motion_and_insert_transition ... ok
+test input::tests::push_history_ignores_blank_entries ... ok
+test input::tests::tab_completes_matching_slash_commands ... ok
+test input::tests::tab_cycles_between_matching_slash_commands ... ok
+test input::tests::toggle_submission_flips_vim_mode ... ok
+test input::tests::visual_mode_tracks_selection_with_motions ... ok
+test input::tests::yy_and_p_paste_yanked_line_after_current_line ... ok
+test permission_input::tests::input_failure_cancels_turn_and_preserves_original_error ... ok
+test permission_input::tests::late_approval_cannot_override_deadline ... ok
+test permission_input::tests::normal_response_does_not_cancel_turn ... ok
+test render::tests::highlights_fenced_code_blocks ... ok
+test render::tests::renders_links_as_colored_markdown_labels ... ok
+test render::tests::renders_markdown_with_styling_and_lists ... ok
+test render::tests::renders_ordered_and_nested_lists ... ok
+test render::tests::renders_tables_with_alignment ... ok
+test render::tests::spinner_advances_frames ... ok
+test render::tests::streaming_state_waits_for_complete_blocks ... ok
+test shared_chat::tests::cancellation_during_context_validation_never_submits_chat ... ok
+test shared_chat::tests::decoder_handles_split_utf8_and_rejects_oversize_and_wrong_terminal_identity ... ok
+test shared_chat::tests::disconnected_confirmation_rejects_foreign_scope_and_preserves_runtime_state ... ok
+test shared_chat::tests::incomplete_admission_does_not_partially_update_receipt ... ok
+test shared_chat::tests::incomplete_receipt_never_sends_interrupt ... ok
+test shared_chat::tests::interrupt_checks_original_turn_for_every_caller ... ok
+test shared_chat::tests::shared_http_stream_and_cancel_use_one_real_admission_and_original_turn ... ok
+test tests::built_in_model_selection_is_never_silent ... ok
+test tests::clear_command_requires_explicit_confirmation_flag ... ok
+test tests::cli_tool_executor_routes_read_file_through_runtime ... ok
+test tests::cli_tool_executor_uses_runtime_gate_for_workspace_write_outside ... ok
+test tests::compact_report_uses_structured_output ... ok
+test tests::completion_candidates_include_repl_only_exit_commands ... ok
+test tests::config_report_supports_section_views ... ok
+test tests::config_report_uses_sectioned_layout ... ok
+test tests::configured_model_is_default_but_explicit_flag_wins ... ok
+test tests::converts_tool_roundtrip_messages ... ok
+test tests::cost_report_uses_sectioned_layout ... ok
+test tests::defaults_to_repl_when_no_args ... ok
+test tests::describe_tool_progress_summarizes_known_tools ... ok
+test tests::filtered_tool_specs_include_plugin_tools ... ok
+test tests::filtered_tool_specs_respect_allowlist ... ok
+test tests::init_help_mentions_direct_subcommand ... ok
+test tests::init_template_mentions_detected_rust_workspace ... ok
+test tests::memory_report_uses_sectioned_layout ... ok
+test tests::model_initialization_error_names_provider_credentials_and_config_scope ... ok
+test tests::model_report_uses_sectioned_layout ... ok
+test tests::model_switch_report_preserves_context_summary ... ok
+test tests::normalizes_supported_permission_modes ... ok
+test tests::parses_allowed_tools_flags_with_aliases_and_lists ... ok
+test tests::parses_bare_prompt_and_json_output_flag ... ok
+test tests::parses_direct_agents_and_skills_slash_commands ... ok
+test tests::parses_git_status_metadata ... ok
+test tests::parses_login_and_logout_subcommands ... ok
+test tests::parses_permission_mode_flag ... ok
+test tests::parses_prompt_subcommand ... ok
+test tests::parses_resume_and_config_slash_commands ... ok
+test tests::parses_resume_flag_with_multiple_slash_commands ... ok
+test tests::parses_resume_flag_with_slash_command ... ok
+test tests::parses_system_prompt_options ... ok
+test tests::parses_version_flags_without_initializing_prompt_mode ... ok
+test tests::permission_policy_uses_plugin_tool_permissions ... ok
+test tests::permissions_report_uses_sectioned_layout ... ok
+test tests::permissions_switch_report_is_structured ... ok
+test tests::push_output_block_renders_markdown_text ... ok
+test tests::push_output_block_skips_empty_object_prefix_for_tool_streams ... ok
+test tests::rejects_unknown_allowed_tools ... ok
+test tests::repl_help_includes_shared_commands_and_exit ... ok
+test tests::repl_help_mentions_history_completion_and_multiline ... ok
+test tests::resolves_known_model_aliases ... ok
+test tests::resolves_model_aliases_in_args ... ok
+test tests::resume_report_uses_sectioned_layout ... ok
+test tests::resume_supported_command_list_matches_expected_surface ... ok
+test tests::shared_help_uses_resume_annotation_copy ... ok
+test tests::status_context_reads_real_workspace_metadata ... ok
+test tests::status_line_reports_model_and_token_totals ... ok
+test tests::tool_rendering_helpers_compact_output ... ok
+test tests::tool_rendering_truncates_generic_long_output_for_display_only ... ok
+test tests::tool_rendering_truncates_large_bash_output_for_display_only ... ok
+test tests::tool_rendering_truncates_large_read_output_for_display_only ... ok
+test tests::tool_rendering_truncates_raw_generic_output_for_display_only ... ok
+test tests::ultraplan_progress_lines_include_phase_step_and_elapsed_status ... ok
+test tests::unknown_repl_command_suggestions_include_repl_shortcuts ... ok
+test tests::version_report_uses_coolzhu_brand_and_injected_build_metadata ... ok
+test turn_persistence::tests::aggregate_byte_budget_rejects_before_publishing_another_turn ... ok
+test turn_persistence::tests::completed_turn_is_saved_and_storage_failure_is_not_success ... ok
+test turn_persistence::tests::event_encoding_checks_serialized_bytes_before_publication ... ok
+test turn_persistence::tests::event_storage_error_keeps_original_execution_error ... ok
+test turn_persistence::tests::full_session_filename_isolates_event_history ... ok
+test turn_persistence::tests::history_count_boundary_accepts_last_slot_and_rejects_next ... ok
+test turn_persistence::tests::history_lock_rejects_real_competing_process_then_releases ... ok
+test turn_persistence::tests::internal_snapshots_keep_parent_and_previous_turn_unchanged ... ok
+test turn_persistence::tests::invalid_event_contract_is_rejected_before_creating_history ... ok
+test turn_persistence::tests::junction_history_root_is_rejected_without_touching_target ... ok
+test turn_persistence::tests::model_error_after_tool_preserves_saved_execution_fact ... ok
+test turn_persistence::tests::oversized_event_save_preserves_existing_recoverable_history ... ok
+test turn_persistence::tests::pending_publication_never_overwrites_existing_history ... ok
+test turn_persistence::tests::storage_error_preserves_execution_error_and_never_reports_success ... ok
+
+test result: ok. 112 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.35s
+

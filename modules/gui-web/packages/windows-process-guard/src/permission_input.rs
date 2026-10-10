@@ -1,11 +1,11 @@
 //! 读取调用线程的Windows标准输入；取消后回收自有监听线程。
 use std::{io,sync::Arc};
-use windows_sys::Win32::System::Console::{GetStdHandle,STD_INPUT_HANDLE};
 
-/// 借用标准输入；取消谓词必须快速返回且保持取消状态，不执行阻塞I/O。
+/// 首次读取时持有标准输入的独占重复句柄及行边界状态。
+/// 取消谓词必须快速返回且保持取消状态，不执行阻塞I/O。
 /// 读取最多8192个字节或UTF-16单位，返回前回收自身取消监听线程。
 pub fn read_permission_line(cancel:Arc<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
-    unsafe { windows::read_line(GetStdHandle(STD_INPUT_HANDLE),cancel) }
+    windows::read_stdin(cancel)
 }
 #[cfg(windows)]
 mod windows {
@@ -14,7 +14,36 @@ mod windows {
     use std::sync::Arc as Shared;
     use windows_sys::Win32::{Foundation::{HANDLE,CloseHandle,DuplicateHandle,DUPLICATE_SAME_ACCESS,ERROR_BROKEN_PIPE},
         System::{Threading::{GetCurrentProcess,GetCurrentThread},IO::CancelSynchronousIo,
-            Console::{GetConsoleMode,ReadConsoleW}},Storage::FileSystem::ReadFile};
+            Console::{GetConsoleMode,ReadConsoleW,GetStdHandle,STD_INPUT_HANDLE}},Storage::FileSystem::ReadFile};
+
+    struct InputHandle(HANDLE);
+    // 独占重复句柄保证跨回合仍指向同一内核输入对象，不向子进程继承。
+    unsafe impl Send for InputHandle {}
+    impl Drop for InputHandle {fn drop(&mut self){unsafe {CloseHandle(self.0);}}}
+    struct Reader {input:InputHandle,incomplete:bool}
+    impl Reader {
+        unsafe fn duplicate(input:HANDLE)->io::Result<Self> {
+            let mut handle=std::ptr::null_mut();
+            if unsafe {DuplicateHandle(GetCurrentProcess(),input,GetCurrentProcess(),&mut handle,0,0,DUPLICATE_SAME_ACCESS)}==0 {
+                return Err(io::Error::last_os_error());
+            }
+            Ok(Self{input:InputHandle(handle),incomplete:false})
+        }
+        fn read(&mut self,cancel:Shared<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
+            if self.incomplete {
+                // 不收集旧行内容；即使后缀迟到，也必须先恢复到行边界。
+                unsafe {read_line_state(self.input.0,cancel.clone(),&mut self.incomplete,true)}?;
+            }
+            unsafe {read_line_state(self.input.0,cancel,&mut self.incomplete,false)}
+        }
+    }
+    pub(super) fn read_stdin(cancel:Shared<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
+        static INPUT:std::sync::Mutex<Option<Reader>>=std::sync::Mutex::new(None);
+        interrupted(cancel.as_ref())?;
+        let mut owner=INPUT.try_lock().map_err(|_|io::Error::other("权限输入已有读取者或状态损坏"))?;
+        if owner.is_none(){*owner=Some(unsafe {Reader::duplicate(GetStdHandle(STD_INPUT_HANDLE))}?);}
+        owner.as_mut().unwrap().read(cancel)
+    }
 
     struct ThreadHandle(HANDLE);
     // 独占重复句柄只用于取消指定读取线程；最终在监听线程退出后关闭。
@@ -35,7 +64,11 @@ mod windows {
         Ok(())
     }
     // 调用方保证输入句柄在整个读取期间有效；读取始终在原线程进行。
-    pub(super) unsafe fn read_line(input:HANDLE,cancel:Shared<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
+    #[cfg(test)]
+    unsafe fn read_line(input:HANDLE,cancel:Shared<dyn Fn()->bool+Send+Sync>)->io::Result<String> {
+        unsafe {read_line_state(input,cancel,&mut false,false)}
+    }
+    unsafe fn read_line_state(input:HANDLE,cancel:Shared<dyn Fn()->bool+Send+Sync>,incomplete:&mut bool,discard:bool)->io::Result<String> {
         interrupted(cancel.as_ref())?;
         let _watch={
             let mut handle=std::ptr::null_mut();
@@ -64,21 +97,26 @@ mod windows {
             let mut count=0;
             let mut unit=0u16;
             let mut byte=0u8;
+            *incomplete=true;
             let success=if console {
                 unsafe {ReadConsoleW(input,(&mut unit as *mut u16).cast(),1,&mut count,std::ptr::null())}
             } else {
                 unsafe {ReadFile(input,&mut byte,1,&mut count,std::ptr::null_mut())}
             };
-            interrupted(cancel.as_ref())?;
             if success==0 {
                 let error=io::Error::last_os_error();
-                if !console && error.raw_os_error()==Some(ERROR_BROKEN_PIPE as i32){break;}
+                if !console && error.raw_os_error()==Some(ERROR_BROKEN_PIPE as i32){*incomplete=false;interrupted(cancel.as_ref())?;break;}
+                interrupted(cancel.as_ref())?;
                 return Err(error);
             }
+            let ended=count==0 || (console && unit==10) || (!console && byte==10);
+            if ended {*incomplete=false;}
+            interrupted(cancel.as_ref())?;
             if count==0 {break;}
+            if discard {if ended {break;} else {continue;}}
             if console {wide.push(unit);} else {bytes.push(byte);}
             if wide.len()+bytes.len()>8192 {return Err(io::Error::other("权限输入超过8192单位上限"));}
-            if (console && unit==10) || (!console && byte==10){break;}
+            if ended {break;}
         }
         if console {String::from_utf16(&wide).map_err(|e|io::Error::new(io::ErrorKind::InvalidData,e))}
         else {String::from_utf8(bytes).map_err(|e|io::Error::new(io::ErrorKind::InvalidData,e))}
@@ -126,7 +164,7 @@ mod windows {
                 std::thread::sleep(Duration::from_millis(20));
             };
             assert!(status.success(),"独立探针失败：{status}；日志{}",stderr.display());
-            assert_eq!(std::fs::read_to_string(proof).unwrap(),"own-console;ctrl-c-observed;read-rejected;listener-joined");
+            assert_eq!(std::fs::read_to_string(proof).unwrap(),"own-console;ctrl-c-observed;read-rejected;listener-joined;owned-reader");
         }
         #[test]
         #[ignore="只由父测试在无共享控制台的独立子进程中运行"]
@@ -151,6 +189,7 @@ mod windows {
                 FILE_SHARE_READ|FILE_SHARE_WRITE,std::ptr::null(),OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,std::ptr::null_mut())});
             assert_ne!(console.0,INVALID_HANDLE_VALUE);
             let input=console.0;
+            assert_ne!(unsafe {windows_sys::Win32::System::Console::SetStdHandle(STD_INPUT_HANDLE,input)},0);
             let mut mode=0;
             assert_ne!(unsafe {GetConsoleMode(input,&mut mode)},0,"输入必须是真控制台");
             let flag=Arc::new(AtomicBool::new(false));
@@ -177,12 +216,12 @@ mod windows {
             });
             let start=std::time::Instant::now();
             let cancelled=observed.clone();
-            let result=unsafe {read_line(input,Arc::new(move ||cancelled.load(Ordering::Acquire)))};
+            let result=read_stdin(Arc::new(move ||cancelled.load(Ordering::Acquire)));
             sender.join().unwrap();listener.join().unwrap();
             assert!(result.is_err(),"Ctrl+C不得成为允许输入");
             assert!(observed.load(Ordering::Acquire),"必须观察实际Tokio信号");
             assert!(start.elapsed()<Duration::from_secs(2));
-            std::fs::write(proof,"own-console;ctrl-c-observed;read-rejected;listener-joined").unwrap();
+            std::fs::write(proof,"own-console;ctrl-c-observed;read-rejected;listener-joined;owned-reader").unwrap();
             assert_ne!(unsafe {FreeConsole()},0);
         }
         #[test]
@@ -233,7 +272,7 @@ mod windows {
         }
         #[test]
         fn known_gap_rejected_line_suffix_reaches_next_reader() {
-            // 反例证据：此测试通过只证明缺陷仍存在，不是输入归属验收通过。
+            // 历史无状态底层反例；生产入口现使用持续持有状态的Reader。
             let(read,write)=pipe();
             let writer=std::thread::spawn(move || {
                 let mut line=vec![b'x';8193];
@@ -247,6 +286,41 @@ mod windows {
             assert!(first.is_err());
             assert_eq!(suffix.unwrap(),"yes\n","旧行后缀被当作完整新行");
             assert_eq!(following.unwrap(),"no\n");
+        }
+        #[test]
+        fn owned_reader_discards_delayed_rejected_suffix() {
+            let(read,write)=pipe();
+            let mut reader=unsafe {Reader::duplicate(read.0)}.unwrap();
+            drop(read); // 原借用句柄释放后，独占重复句柄仍保证输入对象身份。
+            let writer=std::thread::spawn(move || {
+                write.write(&vec![b'x';8193]);
+                std::thread::sleep(Duration::from_millis(100));
+                write.write(b"yes\nno\n");
+            });
+            let first=reader.read(Arc::new(||false));
+            let next=reader.read(Arc::new(||false));
+            writer.join().unwrap();
+            assert!(first.is_err());
+            assert_eq!(next.unwrap(),"no\n","迟到yes属于旧行，不能成为审批");
+            assert!(!reader.incomplete);
+        }
+        #[test]
+        fn owned_reader_recovers_partial_cancelled_line() {
+            let(read,write)=pipe();
+            let mut reader=unsafe {Reader::duplicate(read.0)}.unwrap();
+            let flag=Arc::new(AtomicBool::new(false));
+            let observed=flag.clone();
+            let writer=std::thread::spawn(move || {
+                write.write(b"old");
+                std::thread::sleep(Duration::from_millis(100));flag.store(true,Ordering::Release);
+                std::thread::sleep(Duration::from_millis(100));write.write(b"yes\nno\n");
+            });
+            let first=reader.read(Arc::new(move ||observed.load(Ordering::Acquire)));
+            let next=reader.read(Arc::new(||false));
+            writer.join().unwrap();
+            assert!(first.is_err());
+            assert_eq!(next.unwrap(),"no\n");
+            assert!(!reader.incomplete);
         }
     }
 }
