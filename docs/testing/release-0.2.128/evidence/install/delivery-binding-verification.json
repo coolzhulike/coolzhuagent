@@ -1,0 +1,21 @@
+{
+  "scope": "安装登记及交付文件绑定；不证明原生/真实模型验收或完整组件许可证",
+  "checked_at": "2026-10-10T17:42:38.2547445Z",
+  "checks": {
+    "sbom_exact_files": true,
+    "inventory_hash": true,
+    "msi_hash": true,
+    "payload_binding": true,
+    "sbom_count": true,
+    "registry_version": true,
+    "report_hash": true
+  },
+  "sbom_failures": [],
+  "registry": [
+    {
+      "DisplayName": "COOLZHU CODE Agent",
+      "DisplayVersion": "0.2.128",
+      "PSChildName": "{CDC6CE26-D62B-4F58-973C-9E34EFB7B71D}"
+    }
+  ]
+}
