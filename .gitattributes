@@ -248,3 +248,6 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 
 # 0.2.128 安装及 SBOM 证据保持原始字节，以便核对交付文件摘要。
 /docs/testing/release-0.2.128/evidence/install/*.json -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 0.2.129 Cargo 回执按原始字节绑定报告，不转换 JSONL 换行。
+/docs/testing/release-0.2.129/evidence/build-identity/**/*.jsonl -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
