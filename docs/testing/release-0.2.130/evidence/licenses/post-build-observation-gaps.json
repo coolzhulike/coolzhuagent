@@ -1,0 +1,420 @@
+{
+  "schema": 1,
+  "release": "0.2.130",
+  "completeness": "incomplete",
+  "scope": "130实际构建回执关联到129归档metadata；许可证原文为当前文件系统观察，不是130构建时采集",
+  "unique_components": 433,
+  "with_local_text": 409,
+  "missing_first_party": 0,
+  "missing_external": 24,
+  "entries": [
+    {
+      "artifact": "cli.command-line",
+      "receipt_sha256": "ee1b3fd5b1f4ac743c4391a1a613ef382ccfd8e6627ba4c8ccc41caf10e95088",
+      "metadata_sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b"
+    },
+    {
+      "artifact": "computer-use.preflight-check",
+      "receipt_sha256": "8a7f9ef0ee534c146b289133a6e1245eca046fd7add2a1f1a5ffa0022307d869",
+      "metadata_sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b"
+    },
+    {
+      "artifact": "gui-desktop.tauri-shell",
+      "receipt_sha256": "bea55c6ffd05d4c796132a47df8a93c8adfb03df3fbd0f758e4cfb8b2b7aa69c",
+      "metadata_sha256": "7f97be63798d853d546cc5e780ffac17d3efb4095c09ec798c57c3be9aa3ba44"
+    },
+    {
+      "artifact": "gui-web.browser-native-host",
+      "receipt_sha256": "6b2df01cff782992412f43fe047dbb542ddd2335df4dbd6ba72634b7bc7c2492",
+      "metadata_sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b"
+    },
+    {
+      "artifact": "gui-web.clawbot-sidecar",
+      "receipt_sha256": "7ed95bd59dbc13c26bb45ebde612bb73ad9960320a1e7e0d470c39606c0a28c5",
+      "metadata_sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b"
+    },
+    {
+      "artifact": "gui-web.web-console",
+      "receipt_sha256": "d4d4cf4f3770826c06d7ac3e794d0f1068b65ded8ae430753c72205adf3ebc4c",
+      "metadata_sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b"
+    },
+    {
+      "artifact": "package.app-launcher",
+      "receipt_sha256": "1215caacdc617e25d8cac4f15daf533de7c3d6ebc26654fbdfaf05336d8796e6",
+      "metadata_sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b"
+    },
+    {
+      "artifact": "vision.latest-desktop",
+      "receipt_sha256": "905bf8a6407ecb119d463d750b95bddf5cf50f2b28e260b5f8c7484bd2974a91",
+      "metadata_sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b"
+    },
+    {
+      "artifact": "vision.smoke",
+      "receipt_sha256": "a5cc768d0f3ca00dd52de29219e08838e39715d045fd499fc75f9faf85e17d5a",
+      "metadata_sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b"
+    }
+  ],
+  "missing": [
+    {
+      "component": {
+        "identity_sha256": "f79ac71dad263829f5735df5c387d7a59861b7d5a086c3deb8bfa6667e7c6a0f",
+        "name": "clipboard-win",
+        "version": "5.4.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "BSL-1.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "704c6d02ee7d64bde4e177a3add78d707bc40430b735f447ee2080218800400c",
+        "name": "alloc-stdlib",
+        "version": "0.2.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "BSD-3-Clause",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "0f754fa9c8eb68388eddc81b0c6bb6bfbcee21b1ceb4a4d3abe12921aed0426a",
+        "name": "convert_case",
+        "version": "0.4.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "95d41b702ddb707c095a210c7e08869767c3ae1f460139edf739a6e8cf9f80c0",
+        "name": "fxhash",
+        "version": "0.2.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "Apache-2.0/MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "685de5e73d511bbed01c366452ea5aea10d46cc271294857ea34af4504262a10",
+        "name": "mac",
+        "version": "0.1.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "6f106bf3adaa23912ec42559ba061b41d1456816d478dd31607032d8c36128d9",
+        "name": "match_token",
+        "version": "0.1.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT OR Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "d98bf2bb1ac8ae1969f235b86d3525fd4227f32f8716259599cd3be9d96d7ba6",
+        "name": "phf",
+        "version": "0.8.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "05420b6c7e2d332bd583c9a6cf9869528a1a18f4e9d17e5f250e8a723899f29c",
+        "name": "phf",
+        "version": "0.10.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "2f3b93f8191baa7408864cb04a688233506bbeb3cb586b922099517638be8c0a",
+        "name": "phf_codegen",
+        "version": "0.8.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "5d5c2758c31990c92d4e37f07a944ddac8b57c020d3928466dec976a90de13cc",
+        "name": "phf_generator",
+        "version": "0.8.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "42809b3f037f7dca966a5153e64ac04fcd5aa5e4058b496650e1891fba8812b3",
+        "name": "phf_generator",
+        "version": "0.10.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "cab884148d10e9080e31fbdd7de7261467256bcf0fc14e86db11ae50074699b2",
+        "name": "phf_macros",
+        "version": "0.10.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "0e5927aca6f17330d8d999b14e7a6d7919105abf6717fea8d36eca10e1ad08c0",
+        "name": "phf_shared",
+        "version": "0.8.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "b91fb59a572ee858cd7d9b0fad97d1b1b9daa5cf4b91a06ff6e7eda3e2de9e5e",
+        "name": "phf_shared",
+        "version": "0.10.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "e250a12e3c0858f90311e8df7734b0c104e3939c1768deacef61c54279cb6405",
+        "name": "selectors",
+        "version": "0.24.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MPL-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "3644e311a83fcf0337dc00499d921f95b760ecf72b85ffdbaf5ef32fd099212a",
+        "name": "tauri-plugin",
+        "version": "2.5.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "Apache-2.0 OR MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "3d81926912d036a2b97a819dfa4acfea37c7db18c0c2d48940024daf1c107b94",
+        "name": "unic-char-property",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "a8c0170c4c6a10ae5c7fbb0900fbf363fbd8a6b54a470cee1052b19588010561",
+        "name": "unic-char-range",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "0f5648cc2b767fffea4f2765107f73f833031a8d0af83015fba72cd180efaf09",
+        "name": "unic-common",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "d0338d2fbe2191bf0cb1cd5d5b793da56bcb741e1fbf3759c8fcab36a5f2e4eb",
+        "name": "unic-ucd-ident",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "9f58a0226ca4b502970c0211bf0d0ac01a74f74b2f31cb1fe0797a5f3f36d774",
+        "name": "unic-ucd-version",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "76cb3d926ae5a65222197b18fdda7fb303ff8bf32ce04a944f25f3d0f8e64da4",
+        "name": "webview2-com",
+        "version": "0.38.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "3a08568c3b32bc0c08b3e52eda7eb87ea3eeffefe360bf830d6cb9d76339f9ed",
+        "name": "webview2-com-macros",
+        "version": "0.8.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "598638c67d9b7c762ea2201755c937556424af663cfb217e51a5e4819eabc767",
+        "name": "webview2-com-sys",
+        "version": "0.38.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    }
+  ],
+  "license_obligations_verified": false
+}
