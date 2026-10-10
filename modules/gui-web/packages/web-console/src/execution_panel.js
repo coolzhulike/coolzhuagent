@@ -104,6 +104,14 @@
         items.forEach(item => {
           const card = node("article", null, "execution-card"); card.dataset.state = item.status;
           const head = node("header");
+          // 品牌按本次执行的真实模型解析；只用会话ID取自定义头像，不能用当前活动模型替代历史执行。
+          const avatarUrl = options.getAvatar?.(item.spec)
+            || window.CoolzhuBrandAvatars?.url(window.CoolzhuBrandAvatars.resolve(item.spec));
+          if (avatarUrl) {
+            const avatar = node("img", null, "execution-avatar brand-avatar");
+            avatar.src = avatarUrl; avatar.alt = ""; avatar.setAttribute("aria-hidden", "true");
+            head.append(avatar);
+          }
           head.append(node("span", item.spec.source === "scheduled" ? "定时" : "子 Agent", "execution-source"), node("b", labels[item.status] || item.status));
           card.append(head, node("h4", item.spec.summary || "执行任务"),
             field("进展", item.status === "running"

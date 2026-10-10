@@ -9116,7 +9116,7 @@ function avatarForSession(session) {
 }
 
 function avatarForAuthor(author, sessionId, role, kind) {
-  if (role === "user" || kind === "user" || kind === "tool-call" || kind === "tool-summary" || kind === "computer-use") return null;
+  if (role === "user" || role === "tool" || kind === "user" || String(kind || "").startsWith("tool-") || kind === "computer-use") return null;
   const session = sessionById(sessionId) || sessionByAuthor(author);
   return session ? avatarForSession(session) : null;
 }
@@ -11800,7 +11800,13 @@ function initializeChatRightRailTabs() {
     return;
   }
   tablist.dataset.bound = "1";
-  window.CoolzhuExecutionPanel?.mount(document.querySelector("#chat-right-panel-executions"), { getScope: () => projectRequestScope() });
+  window.CoolzhuExecutionPanel?.mount(document.querySelector("#chat-right-panel-executions"), {
+    getScope: () => projectRequestScope(),
+    getAvatar: (spec) => avatarUrl(avatarForSession({
+      id: spec.session_id, avatar: sessionById(spec.session_id)?.avatar,
+      provider: spec.provider, model: spec.model,
+    })),
+  });
   tabs.forEach((button) => {
     button.addEventListener("click", () => setChatRightRailTab(button.dataset.rightTab, { fromUser: true }));
     button.addEventListener("keydown", (event) => {

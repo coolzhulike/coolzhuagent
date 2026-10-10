@@ -16,3 +16,6 @@
 .execution-panel [data-state="failed"], .execution-panel [data-state="outcome_unknown"] { border-color: #aa8661; }
 .execution-panel .execution-notice { color: #d3bb8a; }
 .execution-panel .execution-empty { padding: 20px 4px; opacity: .75; }
+
+.execution-panel .execution-avatar { width: 32px; height: 32px; flex: 0 0 32px; object-fit: contain; }
+.execution-panel .execution-source { flex: 1; align-self: center; }

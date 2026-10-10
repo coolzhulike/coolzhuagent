@@ -80575,7 +80575,7 @@ attach: last_assistant
 
     #[test]
     fn web_frontend_overview_card_matches_wuxia_two_line_design_reference() {
-        assert!(WEB_INDEX_HTML.contains("bamboo-swordsman.png"));
+        assert!(WEB_INDEX_HTML.contains("data-role=\"overview-mascot-avatar\" src=\"./assets/avatars/brand-v1/generic.png\""));
         assert!(WEB_INDEX_HTML.contains("overview-compact-lines"));
         assert!(WEB_INDEX_HTML.contains("overview-line-status"));
         assert!(WEB_INDEX_HTML.contains("overview-line-vision"));
