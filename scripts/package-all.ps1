@@ -38,6 +38,7 @@ $repoPrefix = $repoPath + [System.IO.Path]::DirectorySeparatorChar
 # 构建身份与报告治理（三身份分离 / 报告 ID+内容哈希 / 保留规则 / 失败诊断与发布资格）。
 . (Join-Path $repo 'scripts/lib/build-identity.ps1')
 . (Join-Path $repo 'scripts/lib/dsh-runtime.ps1')
+. (Join-Path $repo 'scripts/lib/cargo-build-evidence.ps1')
 
 # ---------------------------------------------------------------------------
 # 本次运行 ID 与阶段追踪。
@@ -426,6 +427,7 @@ function Invoke-ArtifactBuild {
         working_dir = $workingDir
         started_utc = $startedUtc
         raw_record_path = $stdoutPath
+        raw_record_sha256 = Get-IdentityFileHash -Path $stdoutPath
         stderr_path = $stderrPath
         exit_code = $exitCode
       }
@@ -1779,6 +1781,16 @@ New-Item -ItemType Directory -Force -Path $reportParent | Out-Null
 $reportId = Get-PackageReportId -Configuration $Configuration -Stamp $reportStamp
 
 $repoHead = Get-LoaderRepoHead -RepoPath $repoPath
+$cargoBuildEvidence = @(
+  foreach ($artifactId in @($script:artifactBuildInputs.Keys | Sort-Object)) {
+    $buildInput = $script:artifactBuildInputs[$artifactId]
+    if ($buildInput.exit_code -ne 0) { throw '失败构建回执不得进入成功包报告' }
+    Save-PackageCargoBuildEvidence -RepoPath $repoPath `
+      -ArchiveRoot (Join-Path (Get-PackageReportRootPath -RepoPath $repoPath) 'build-evidence') `
+      -RunId $script:packageRunId -ArtifactId $artifactId `
+      -RecordPath $buildInput.raw_record_path -ExpectedSha256 $buildInput.raw_record_sha256
+  }
+)
 $report = [ordered]@{
   generated_at = (Get-Date).ToUniversalTime().ToString('o')
   # 本次运行 ID：失败诊断与成功报告共用同一概念，便于把"同一次运行的成功/失败"对上。
@@ -1900,6 +1912,12 @@ $report = [ordered]@{
   # 导出物登记：谁产出、产出到哪、内容身份、复用性质 + 固定代次语义 + 精确消费关联
   # （PKG-L07c 补强授权项；字段见 scripts/package-all.ps1 的 New-LoaderExportSummary）。
   exported_artifacts = @($script:exportSummaries)
+  cargo_build_evidence = [ordered]@{
+    status = $(if ($SkipBuild) { 'not-collected-no-build' } elseif ($cargoBuildEvidence.Count -eq 0) { 'not-collected' } else { 'collected' })
+    entries = $cargoBuildEvidence
+    completeness = 'incomplete'
+    note = '原始消息独占归档并绑定字节哈希；不替代完整分发组件与许可证证据'
+  }
   # RD4-06 准备/冻结分离：正式构建阶段消费的冻结输入 + 实际改变的路径（前后摘要 + 发生阶段）。
   preparation_and_freeze = [ordered]@{
     phase = $script:packagePhase

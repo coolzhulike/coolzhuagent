@@ -317,6 +317,7 @@
       "modules/tooling/packages/dsh-plugin-host/package-lock.json",
       "scripts/prepare-dsh-runtime.py",
       "scripts/lib/dsh-runtime.ps1",
+      "scripts/lib/cargo-build-evidence.ps1",
       "config/package-manifest.json",
       "config/package-launcher.json",
       "installer/Product.wxs",
