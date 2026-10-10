@@ -13,6 +13,26 @@ spec.loader.exec_module(module)
 
 
 class LicenseEvidenceTests(unittest.TestCase):
+    def test_build_messages_require_complete_success_and_exact_component_scope(self):
+        with tempfile.TemporaryDirectory(dir="tmp", prefix="license-build-test-") as directory:
+            root = Path(directory)
+            messages = root / "build.jsonl"
+            artifact = {"reason": "compiler-artifact", "package_id": "known",
+                        "target": {"name": "producer", "kind": ["custom-build"]}, "fresh": True}
+            finish = {"reason": "build-finished", "success": True}
+            messages.write_text("\n".join(json.dumps(item) for item in [artifact, finish]), encoding="utf-8")
+            evidence, observed = module.read_build_observations(messages, {"known", "unused"})
+            self.assertEqual(set(observed), {"known"})
+            self.assertEqual(observed["known"][0]["target_kind"], ["custom-build"])
+            self.assertTrue(observed["known"][0]["fresh"])
+            self.assertTrue(evidence["success_message_verified"])
+            for records in ([artifact], [artifact, {"reason": "build-finished", "success": False}],
+                            [artifact, finish, finish], [finish, artifact], [finish],
+                            [{**artifact, "package_id": "foreign"}, finish]):
+                messages.write_text("\n".join(json.dumps(item) for item in records), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    module.read_build_observations(messages, {"known"})
+
     def test_bytes_identity_scope_and_no_overwrite(self):
         with tempfile.TemporaryDirectory(dir="tmp", prefix="license-evidence-test-") as directory:
             root = Path(directory).absolute()
