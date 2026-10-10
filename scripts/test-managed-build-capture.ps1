@@ -19,6 +19,7 @@ $marker=Join-Path $root 'started'
 $out=Join-Path $root 'stdout'; $err=Join-Path $root 'stderr'
 $call=@{HelperPath=$helper;ExpectedHelperSha256=$sha;Command='powershell';Arguments=@('-NoProfile','-File',$child,$marker);WorkingDirectory=$root;StdoutPath=$out;StderrPath=$err}
 $result=Invoke-ManagedBuildCapture @call
+if(@($result).Count -ne 1){throw '采集入口返回值被诊断任务对象污染'}
 if($result.exit_code -ne 7 -or $result.helper_sha256 -ine $sha){throw '退出码或身份回执错误'}
 foreach($path in @($out,$err)) {
   if([IO.File]::ReadAllText($path,[Text.UTF8Encoding]::new($false,$true)) -cne "中文采集`n"){throw '双管道字节内容错误'}
@@ -40,6 +41,7 @@ Write-Output 'PASS 错误摘要在启动前拒绝，无命令和日志副作用'
 $call.ExpectedHelperSha256=$sha; $call.StdoutPath=$out
 $before=(Get-FileHash -LiteralPath $out).Hash
 $result=Invoke-ManagedBuildCapture @call
+if(@($result).Count -ne 1){throw '失败采集入口返回值被污染'}
 if($result.exit_code -ne 125 -or (Get-FileHash -LiteralPath $out).Hash -ne $before -or (Test-Path (Join-Path $root 'wrong-marker'))){throw '旧日志保护失败'}
 if([IO.File]::ReadAllText($result.helper_diagnostic_path,[Text.UTF8Encoding]::new($false,$true)) -notmatch 'BUILD-CAPTURE-FAILED:'){throw '辅助程序失败诊断没有归档'}
 Write-Output 'PASS 旧日志拒绝返回125，旧内容保留且命令未启动'
