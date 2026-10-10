@@ -546,6 +546,43 @@ mod tests {
         marker.cleanup();
     }
 
+    #[cfg(windows)]
+    #[test]
+    fn root_cancellation_stops_an_already_started_hook() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        use std::time::{Duration, Instant};
+        use std::io::Write;
+        std::fs::create_dir_all("tmp").unwrap();
+        let directory = tempfile::Builder::new().prefix("hook-cancel-").tempdir_in("tmp").unwrap();
+        let started = std::fs::canonicalize(directory.path()).unwrap().join("started.txt");
+        let late = started.with_file_name("late.txt");
+        let mut script = tempfile::Builder::new().suffix(".ps1").tempfile_in("tmp").unwrap();
+        write!(script, "Set-Content -LiteralPath '{}' ready; Start-Sleep -Seconds 3; Set-Content -LiteralPath '{}' late", started.display(), late.display()).unwrap();
+        script.flush().unwrap();
+        let script_path = script.into_temp_path();
+        let following = CountingHook::new("after-cancel");
+        let runner = HookRunner::new(RuntimeHookConfig::new(vec![
+            format!("powershell.exe -NoProfile -NonInteractive -File {}", script_path.display()), following.allow_command()
+        ], Vec::new())).with_authorization(hook_authorization(true, false));
+        let control = ExecutionControl::new(Some(Duration::from_secs(12)), None);
+        let captured = control.clone();
+        let worker = std::thread::spawn(move || with_execution_control(captured, || runner.run_pre_tool_use("Read", "{}")));
+        let wait_until = Instant::now() + Duration::from_secs(5);
+        while !started.exists() && Instant::now() < wait_until {
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        control.cancel();
+        let result = worker.join().unwrap();
+        assert!(started.exists(), "必须有真实入场证据");
+        assert!(result.is_denied());
+        assert_eq!(result.executed_commands(), 1);
+        assert!(result.messages().iter().any(|message| message.contains("Cancelled")));
+        assert!(!following.ran());
+        std::thread::sleep(Duration::from_secs(4));
+        assert!(!late.exists(), "取消后不得执行延迟写入");
+        following.cleanup();
+    }
+
     #[test]
     fn root_cancellation_prevents_hook_spawn() {
         use crate::managed_process::{ExecutionControl, with_execution_control};
