@@ -8,7 +8,7 @@
 | Web diag_log / err.log | append_diagnostic_line，脱敏后轮转 | 已接入同一单文件边界 |
 | Web log_session_lock_line | 本轮由直接追加改为 append_diagnostic_line | 候选接线；正式安装版尚不包含 |
 | 启动器 Web/Tauri stdout/stderr | File::create 后直接传入 Stdio | 每次启动截断，单次长程仍无界；诊断模块无法控制子进程持有的句柄 |
-| core-runtime managed_process::read_pipe | 双管道各在线程内 read_to_end 到 Vec，退出后 join | 同步命令输出内存无界；不能静默截断工具或 Hook 协议结果 |
+| core-runtime managed_process::read_pipe | 候选双管道分块读取，每根 8 MiB 上限；超限停止子树并返回错误，收齐线程 | 已有超限失败保护；完整内容留存/引用和全局容量治理尚缺，不能当作完整输出交付 |
 | Web spawn_detached_logged / local-gemma.log | 追加文件并复制 stdout/stderr 句柄 | 跨启动及长程均可能增长；不能直接给该文件做并发改名轮转 |
 | Web attach_safe_window_logs | 每次 File::create 后传入 Stdio | 单次输出无界，文件数量未统一治理 |
 | tool-audit / computer-use-audit / SQLite | 领域事实留存 | 权威审计，禁止混入普通诊断淘汰器 |

@@ -143,10 +143,28 @@ impl ProtocolChild {
     pub fn stop(&mut self) -> io::Result<std::process::ExitStatus> { self.owned.stop() }
 }
 
-fn read_pipe(mut pipe: impl Read) -> io::Result<Vec<u8>> {
+/// 单根同步结果管道的硬上限；超限是执行失败，不返回可被当作完整结果的前缀。
+pub const MAX_CAPTURE_BYTES_PER_PIPE: usize = 8 * 1024 * 1024;
+
+fn read_pipe(mut pipe: impl Read, failed: Arc<AtomicBool>) -> io::Result<Vec<u8>> {
     let mut bytes = Vec::new();
-    pipe.read_to_end(&mut bytes)?;
-    Ok(bytes)
+    let result = (|| {
+        let mut chunk = [0_u8; 8192];
+        loop {
+            let count = match pipe.read(&mut chunk) {
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                result => result?,
+            };
+            if count == 0 { return Ok(bytes); }
+            if count > MAX_CAPTURE_BYTES_PER_PIPE - bytes.len() {
+                return Err(io::Error::new(io::ErrorKind::InvalidData,
+                    format!("同步进程输出超限：单管道上限 {MAX_CAPTURE_BYTES_PER_PIPE} 字节，未取得完整结果")));
+            }
+            bytes.extend_from_slice(&chunk[..count]);
+        }
+    })();
+    if result.is_err() { failed.store(true, Ordering::Release); }
+    result
 }
 
 /// Windows 命令在执行首条指令前进入 Job；超时、取消或宿主退出均关闭整个子树。
@@ -177,9 +195,15 @@ pub fn output_with_input(command: &mut Command, timeout: Option<Duration>, input
     // 必须在等待进程退出前同时读取两个 pipe，否则较大输出会阻塞子进程。
     let stdout = owned.child.stdout.take().expect("stdout 配置为管道");
     let stderr = owned.child.stderr.take().expect("stderr 配置为管道");
-    let stdout_reader = std::thread::spawn(move || read_pipe(stdout));
-    let stderr_reader = std::thread::spawn(move || read_pipe(stderr));
+    let capture_failed = Arc::new(AtomicBool::new(false));
+    let stdout_failed = capture_failed.clone();
+    let stderr_failed = capture_failed.clone();
+    let stdout_reader = std::thread::spawn(move || read_pipe(stdout, stdout_failed));
+    let stderr_reader = std::thread::spawn(move || read_pipe(stderr, stderr_failed));
     let wait_result: io::Result<_> = (|| { loop {
+        if capture_failed.load(Ordering::Acquire) {
+            break Ok((owned.stop()?, None));
+        }
         if let Some(status) = owned.child.try_wait()? {
             // 主进程结束后仍关闭所属子树，使继承了 pipe 的子进程不能拖住读线程。
             let _ = owned.stop()?;
@@ -279,6 +303,35 @@ mod tests {
         assert!(actual.output.status.success());
         assert_eq!(actual.output.stdout.len(), 200_000);
         assert_eq!(actual.output.stderr.len(), 200_000);
+    }
+
+    #[test]
+    fn capture_limit_preserves_exact_boundary_and_rejects_excess() {
+        let flag = Arc::new(AtomicBool::new(false));
+        let bytes = vec![b'a'; MAX_CAPTURE_BYTES_PER_PIPE];
+        assert_eq!(read_pipe(std::io::Cursor::new(bytes.clone()), flag.clone()).unwrap(), bytes);
+        assert!(!flag.load(Ordering::Acquire));
+        let error = read_pipe(std::io::Cursor::new(vec![b'b'; MAX_CAPTURE_BYTES_PER_PIPE + 1]), flag.clone()).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+        assert!(flag.load(Ordering::Acquire));
+    }
+
+    #[test]
+    fn excessive_output_stops_both_stdout_and_stderr_producers() {
+        for stream in ["Out", "Error"] {
+            let directory = fixture("output-limit");
+            let late = directory.join("late.txt");
+            let script = format!("[Console]::{stream}.Write(('x' * {})); Start-Sleep -Seconds 4; Set-Content -LiteralPath {} late",
+                MAX_CAPTURE_BYTES_PER_PIPE + 8192, quoted(&late));
+            let started = Instant::now();
+            let error = output(&mut powershell(&script), Some(Duration::from_secs(15))).err().unwrap();
+            assert!(process_started_before_error(&error));
+            assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+            assert!(error.to_string().contains("输出超限"));
+            assert!(started.elapsed() < Duration::from_secs(4), "不能等整个命令自然结束才发现超限");
+            std::thread::sleep(Duration::from_secs(4));
+            assert!(!late.exists(), "超限后命令仍继续产生副作用");
+        }
     }
 
     #[test]
