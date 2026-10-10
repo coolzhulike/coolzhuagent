@@ -21,3 +21,16 @@ $user=Join-Path $fixtureCargoHome 'config'
 $userDescriptors=@(Get-CargoConfigIdentityDescriptors $repo $fixtureCargoHome)
 if(-not ($userDescriptors | Where-Object {$_ -like ('cargo_config='+$user+'|sha256=*')}) -or ($userDescriptors -join "`n") -match 'user-secret-canary'){throw '用户配置身份未登记或正文泄漏'}
 Write-Output 'PASS 祖先配置创建、修改、删除均改变身份；用户配置登记且不泄漏正文'
+$nested=Join-Path $repo 'nested'; [void][IO.Directory]::CreateDirectory((Join-Path $nested '.cargo'))
+[IO.File]::WriteAllText((Join-Path $repo 'Cargo.lock'),'fixture-lock')
+$manifest=[pscustomobject]@{artifacts=@([pscustomobject]@{id='nested-test';build=[pscustomobject]@{command='cargo';working_dir='nested';args=@('build')}})}
+$manifestPath=Join-Path $repo 'manifest.json'; [IO.File]::WriteAllText($manifestPath,'fixture-manifest')
+$params=@{RepoPath=$repo;ManifestData=$manifest;ManifestPath=$manifestPath;Configuration='debug';CargoIdentity=[pscustomobject]@{cargo_version='fixture';host_target='fixture';build_target='fixture'};SourceSnapshotDigest='fixture'}
+$beforeNested=@(Get-BuildInputDescriptors @params)
+[IO.File]::WriteAllText((Join-Path $nested '.cargo/config.toml'),'nested-secret-canary')
+$afterNested=@(Get-BuildInputDescriptors @params)
+if(($beforeNested -join "`n") -ceq ($afterNested -join "`n") -or ($afterNested -join "`n") -match 'nested-secret-canary'){throw '嵌套工作目录配置未绑定或正文泄漏'}
+$manifest.artifacts[0].build.working_dir='.'
+$rootWork=@(Get-BuildInputDescriptors @params)
+if(($afterNested -join "`n") -ceq ($rootWork -join "`n")){throw '构建工作目录变化未改变输入身份'}
+Write-Output 'PASS 嵌套Cargo工作目录配置及工作目录本身进入构建身份'

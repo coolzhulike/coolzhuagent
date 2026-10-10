@@ -846,6 +846,15 @@ function Get-BuildInputDescriptors {
       continue
     }
     $args = @($artifact.build.args | ForEach-Object { ([string]$_).Replace('{profile}', $Configuration).Replace('{configuration}', $Configuration) })
+    $workingDirectory = $(if ($artifact.build.working_dir) { [string]$artifact.build.working_dir } else { '.' })
+    $workingDirectory = $workingDirectory.Replace('{profile}', $Configuration).Replace('{configuration}', $Configuration)
+    $workingFull = [IO.Path]::GetFullPath((Join-Path $RepoPath $workingDirectory))
+    $descriptors.Add(('artifact={0}|command={1}|working_dir={2}' -f $artifactId,[string]$artifact.build.command,$workingFull))
+    if ([string]$artifact.build.command -eq 'cargo') {
+      foreach ($descriptor in @(Get-CargoConfigIdentityDescriptors -RepoPath $workingFull)) {
+        $descriptors.Add(('artifact={0}|{1}' -f $artifactId,$descriptor))
+      }
+    }
     $features = @()
     for ($index = 0; $index -lt $args.Count; $index++) {
       if (($args[$index] -eq '--features' -or $args[$index] -eq '-F') -and ($index + 1) -lt $args.Count) {
