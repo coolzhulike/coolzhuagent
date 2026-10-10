@@ -1804,6 +1804,33 @@ pub fn capture_live_process_identity(pid: u32) -> Result<ProcessIdentity, Proces
     }
 }
 
+/// 构建调用宿主租约：在同一句柄上核对创建时间并持续观察退出。
+pub struct ProcessLifetimeLease {
+    handle: KernelHandle,
+}
+
+impl ProcessLifetimeLease {
+    pub fn open(pid: u32, creation_time: u64) -> io::Result<Self> {
+        let handle = open_process_handle(pid, PROCESS_QUERY_LIMITED_INFORMATION | windows_sys::Win32::System::Threading::PROCESS_SYNCHRONIZE)
+            .map_err(io::Error::other)?;
+        let identity = identity_from_handle(handle.raw(), pid).map_err(io::Error::other)?;
+        if identity.creation_time_filetime() != creation_time {
+            return Err(io::Error::other("调用宿主创建时间不一致，拒绝启动构建"));
+        }
+        let lease = Self { handle };
+        lease.require_alive()?;
+        Ok(lease)
+    }
+
+    pub fn require_alive(&self) -> io::Result<()> {
+        match unsafe { WaitForSingleObject(self.handle.raw(), 0) } {
+            WAIT_TIMEOUT => Ok(()),
+            WAIT_OBJECT_0 => Err(io::Error::other("调用宿主已退出，拒绝构建成功")),
+            _ => Err(io::Error::last_os_error()),
+        }
+    }
+}
+
 /// 直接从 `Child` 的进程句柄取身份标记（推荐路径：没有 PID 复用窗口）。
 pub fn capture_child_process_identity(child: &Child) -> Result<ProcessIdentity, ProcessIdentityError> {
     // std 的 `Child` 在 spawn 之后即持有进程句柄，这里不复制也不关闭它。

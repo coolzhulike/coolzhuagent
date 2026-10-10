@@ -91,3 +91,18 @@ try {
   $process.Dispose(); $destination.Dispose()
 }
 Write-Output 'PASS 诊断读取故障及时拒绝并确认本次生产者停止'
+$badOut=Join-Path $root 'bad-owner-out'; $badErr=Join-Path $root 'bad-owner-err'
+$info=[Diagnostics.ProcessStartInfo]::new($helper)
+$info.UseShellExecute=$false; $info.CreateNoWindow=$true; $info.RedirectStandardError=$true
+Set-ManagedCaptureArguments -Info $info -Arguments @('--owner',[string]$PID,'1',$badOut,$badErr,$root,'--','powershell','-NoProfile','-File',$child,(Join-Path $root 'bad-owner-marker'))
+$process=[Diagnostics.Process]::Start($info)
+try {
+  $diagnosticText=$process.StandardError.ReadToEnd()
+  if(-not $process.WaitForExit(10000)){throw '错误宿主身份拒绝超时'}
+  if($process.ExitCode -ne 125 -or $diagnosticText -notmatch '创建时间不一致'){throw '错误宿主创建时间未拒绝'}
+  foreach($path in @($badOut,$badErr,(Join-Path $root 'bad-owner-marker'))){if(Test-Path -LiteralPath $path){throw '错误宿主身份仍产生构建副作用'}}
+} finally {
+  if(-not $process.HasExited){$process.Kill(); $process.WaitForExit()}
+  $process.Dispose()
+}
+Write-Output 'PASS 宿主创建时间不匹配在日志和命令启动前拒绝'

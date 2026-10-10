@@ -15,3 +15,7 @@ PS5.1和PS7最新各六项实际exit0，新增已关闭读取流触发任务故�
 后续真实Job验证：scripts/test-managed-capture-tree-failure.ps1 实际启动正常 build-capture.exe，由其启动PowerShell根及60秒等待后代；两者到达屏障后持有对应进程句柄，再注入已关闭源流触发读取任务故障。实际调用生产 Wait-ManagedCaptureDiagnostic 拒绝路径；辅助程序退出、Job内根与后代均在10秒观察窗内退出，在最终清理前完成判定。PS5.1/PS7均实际exit0，日志为 tmp/analysis-capture-tree-read-failure-ps5.txt、ps7.txt，PID及辅助程序摘要归档 docs/testing/managed-capture-diagnostic-failure/tree-ps5-result.json、tree-ps7-result.json。注入针对读取任务故障，并非真实内核匿名管道断裂；不外推阻塞读取取消、宿主突然退出、全局配额或整个6.1完成。
 
 宿主终止实测失败：新增 -HostExit 路径，真实PowerShell宿主调用生产 Invoke-ManagedBuildCapture，受管命令到达屏障后核对Win32_Process父子链，持有采集器、根、后代句柄，再只终止夹具宿主。三个进程各1秒退出观察均失败，未产生成功回执，测试实际exit1。独立Job仅由辅助程序持有，宿主死亡未关闭该Job；主动读取故障回收不能证明宿主死亡回收。失败原始观察归档 docs/testing/managed-capture-diagnostic-failure/host-exit-failure.json，日志 tmp/analysis-capture-host-exit.txt。最终夹具只清理自身持有的进程，清理后的PID观察独立保存host-exit-cleanup.json；不得计作产品通过。仍需实现可靠宿主生命周期绑定，并覆盖启动竞态及宿主死亡前后全部进程树，不得只添加结束时轮询冒充已解决。
+
+后续生产修补：包装器传入宿主PID及StartTime的FILETIME；Rust采集器在日志创建和构建启动前打开查询/同步权限的同一宿主句柄，核对GetProcessTimes创建时间，持续持有到收尾。启动前、采集循环每轮及返回成功前检查宿主退出，失败进入既有Job终止与有界排空路径；PID复用不能替代原宿主。已实际cargo build --locked --offline -j1成功，日志 tmp/analysis-capture-owner-build.txt。完整guard回归54通过、0失败、3忽略，实际exit0，日志 tmp/analysis-capture-owner-guard-tests.txt。
+
+原HostExit反例复验实际exit0，辅助程序、根及后代全部在最终清理前退出，未生成成功回执；新摘要/PID观察归档host-exit-owner-bound-result.json，原失败保留。PS5.1/PS7包装器原六项实际通过；PS5.1另补宿主创建时间不匹配125且日志/命令均未启动，第七项通过，日志 tmp/analysis-capture-owner-identity.txt。新增所有者参数目前仅生产包装器强制提供，旧直接CLI语法仍允许不绑定宿主；其迁移、启动前后竞态矩阵、权限查询失败、全部入口和正式新候选出包仍需完成，不宣称完整生命周期门禁关闭。

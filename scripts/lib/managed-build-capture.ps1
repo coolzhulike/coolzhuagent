@@ -73,7 +73,9 @@ function Invoke-ManagedBuildCapture {
     $info.RedirectStandardError=$true
     $diagnosticPath=$StdoutPath+'.helper-'+[guid]::NewGuid().ToString('N')+'.stderr.log'
     $diagnostic=[IO.FileStream]::new($diagnosticPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
-    Set-ManagedCaptureArguments -Info $info -Arguments (@($StdoutPath,$StderrPath,$WorkingDirectory,'--',$Command)+$Arguments)
+    $owner=[Diagnostics.Process]::GetCurrentProcess()
+    try { $ownerArguments=@('--owner',[string]$owner.Id,[string]$owner.StartTime.ToFileTimeUtc()) } finally { $owner.Dispose() }
+    Set-ManagedCaptureArguments -Info $info -Arguments ($ownerArguments+@($StdoutPath,$StderrPath,$WorkingDirectory,'--',$Command)+$Arguments)
     $started=(Get-Date).ToUniversalTime().ToString('o')
     $process=[Diagnostics.Process]::Start($info)
     # 仅辅助程序自身诊断进入此管道；固定缓冲异步落盘，避免等待退出时堵住诊断管道。

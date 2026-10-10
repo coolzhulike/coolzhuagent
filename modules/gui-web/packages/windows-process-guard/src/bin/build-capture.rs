@@ -1,6 +1,6 @@
 //! 构建输出原始字节采集；固定缓冲，不以截断日志冒充成功。
 use std::{fs::{File, OpenOptions}, io::{self, Read, Write}, process::{Command, Stdio}, sync::mpsc, thread, time::Duration};
-use coolzhu_windows_process_guard::ChildProcessJob;
+use coolzhu_windows_process_guard::{ChildProcessJob, ProcessLifetimeLease};
 
 fn pump(mut source: impl Read, mut target: File, _pipe: &str) -> io::Result<()> {
     let mut buffer = [0_u8; 64 * 1024];
@@ -21,7 +21,15 @@ fn pump(mut source: impl Read, mut target: File, _pipe: &str) -> io::Result<()> 
 }
 
 fn run() -> io::Result<i32> {
-    let args: Vec<_> = std::env::args_os().skip(1).collect();
+    let mut args: Vec<_> = std::env::args_os().skip(1).collect();
+    let owner = if args.first().is_some_and(|value| value == "--owner") {
+        if args.len() < 3 { return Err(io::Error::other("缺少宿主PID或创建时间")); }
+        let pid = args[1].to_str().and_then(|value| value.parse::<u32>().ok()).ok_or_else(|| io::Error::other("宿主PID无效"))?;
+        let created = args[2].to_str().and_then(|value| value.parse::<u64>().ok()).ok_or_else(|| io::Error::other("宿主创建时间无效"))?;
+        let lease = ProcessLifetimeLease::open(pid, created)?;
+        args.drain(..3);
+        Some(lease)
+    } else { None };
     if args.len() < 5 || args[3] != "--" {
         return Err(io::Error::other("用法：build-capture stdout文件 stderr文件 工作目录 -- 命令 参数…"));
     }
@@ -31,6 +39,7 @@ fn run() -> io::Result<i32> {
     let mut command = Command::new(&args[4]);
     command.args(&args[5..]).current_dir(&args[2]).stdin(Stdio::null())
         .stdout(Stdio::piped()).stderr(Stdio::piped());
+    if let Some(owner) = &owner { owner.require_alive()?; }
     let (mut child, job) = ChildProcessJob::spawn_managed(&mut command)?;
     let out = child.stdout.take().ok_or_else(|| io::Error::other("缺少 stdout 管道"))?;
     let err = child.stderr.take().ok_or_else(|| io::Error::other("缺少 stderr 管道"))?;
@@ -45,6 +54,9 @@ fn run() -> io::Result<i32> {
     let mut terminated = false;
     let mut drain_deadline = None;
     while completed < 2 || !root_done {
+        if let Some(owner) = &owner {
+            if let Err(error) = owner.require_alive() { failure.get_or_insert(error); }
+        }
         if drain_deadline.is_some_and(|deadline| std::time::Instant::now() >= deadline) {
             return Err(io::Error::new(io::ErrorKind::TimedOut, "构建子树或输出收尾未确认，拒绝成功"));
         }
@@ -97,6 +109,7 @@ fn run() -> io::Result<i32> {
         if result.is_err() { failure.get_or_insert(io::Error::other("输出采集线程崩溃")); }
     }
     if let Some(error) = failure { return Err(error); }
+    if let Some(owner) = &owner { owner.require_alive()?; }
     Ok(status.and_then(|status| status.code()).unwrap_or(1))
 }
 
