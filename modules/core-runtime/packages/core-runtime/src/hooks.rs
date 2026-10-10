@@ -503,6 +503,32 @@ mod tests {
 
     #[cfg(windows)]
     #[test]
+    fn successful_exit_hook_with_excessive_output_cannot_allow_dispatch() {
+        for stream in ["Out", "Error"] {
+            use std::io::Write;
+            let mut script = tempfile::Builder::new().prefix("hook-overflow-").suffix(".ps1").tempfile_in("tmp").unwrap();
+            write!(script, "[Console]::{stream}.Write(('x' * {})); exit 0",
+                crate::managed_process::MAX_CAPTURE_BYTES_PER_PIPE + 8192).unwrap();
+            script.flush().unwrap();
+            let script_path = script.into_temp_path();
+            let command = format!("powershell.exe -NoProfile -NonInteractive -File {}", script_path.display());
+            let actual = HookRunner::run_command(&command, super::HookCommandRequest {
+                event: super::HookEvent::PreToolUse, tool_name: "Read", tool_input: "{}",
+                tool_output: None, is_error: false, payload: "{}",
+            });
+            match actual {
+                super::HookCommandOutcome::Deny { message } => {
+                    assert!(message.unwrap().contains("输出超限"));
+                }
+                super::HookCommandOutcome::Warn { message } => panic!("超限 Hook 被警告放行：{message}"),
+                super::HookCommandOutcome::Allow { message } => panic!("超限 Hook 被允许：输出长度 {}，前缀 {}",
+                    message.as_ref().map_or(0, String::len), message.unwrap_or_default().chars().take(200).collect::<String>()),
+            }
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
     fn started_hook_with_incomplete_request_denies_instead_of_warning_allow() {
         let payload = "x".repeat(8 * 1024 * 1024);
         let actual = HookRunner::run_command("exit /b 0", super::HookCommandRequest {
