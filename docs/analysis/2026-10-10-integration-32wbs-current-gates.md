@@ -100,3 +100,5 @@ CLI历史专项复核点为 918f99c。CLI 历史已补单写者锁、累计字�
 Windows重定向REPL提示/审批缓冲混用已用独立生产入口测试先101复现再修补：两入口共享guard持久输入对象和行边界，69,632字节提示→yes→/quit→EOF顺序完整。真实最终build0，CLI全库113通过1忽略及长提示专项0，guard65通过4忽略；原字节证据docs/testing/cli-repl-input-handoff。普通提示保持原长度语义，总量预算仍开放；真实终端事件缓存交接、空闲取消、回合错误恢复和正式交付不能据此关闭。
 
 输入跨模式恢复补验：拒绝超长审批后，普通提示模式丢弃迟到yes并完整读69632字节提示，后续审批no仍独立；正常CLI构建0，guard66通过4忽略。4.5源码复核已定位implementer报阻的事务/重试上限及暂停分支，不能再按完全无回退代码描述；实际planner派发、暂停后的恢复和正式失败矩阵仍需独立检查，文案不证明闭环。
+
+4.5已有真实SQLite反例：同时存在planner与implementer时，报阻写planner路由提示后恢复，第二次claim/prepare仍指向原implementer。正常web-console构建0（1m48s），专项1项通过1463过滤；绿色证明缺陷存在，不证明自动重规划通过。原字节日志docs/testing/goal-planner-route-gap，完整路由、规划结果归属与冻结权限要求见docs/work-logs/2026-10-10-goal-planner-route-audit.md。生产路由尚未修补。

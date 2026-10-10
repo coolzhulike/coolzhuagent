@@ -1,0 +1,16 @@
+# Goal失败回退实际路由审查
+
+范围：32WBS 4.5、1.4/1.5和2.5的交叉入口。当前目标仍要求implementer报阻后真实planner重规划，verifier失败后真实implementer修订，均保留原原因/证据、有限重试和终态身份；本记录不替代正式外部模型验收。
+
+已读取的当前源码事实：
+
+- query_goal_phases_connection只按goal_phases.assigned_role解析role_targets；route_hint未用于实际目标会话选择。
+- token-aware报阻finalizer写pending、planner路由提示、清除原claim并暂停Goal；并不自行派发planner。
+- claim_goal_phase_for_dispatch校验原assigned_role、updated_at、pending且无active_run，并拒绝暂停/取消/完成Goal；不能仅改DTO角色绕过该CAS。
+- prepare_goal_phase_run_context从fresh DTO解析assigned_session_id，校验runtime_runs原session、room、run与claim；根控制还验证真实Goal父关系。
+- 原blocked测试夹具同时配置goal-planner和goal-implementer；恢复后第二次claim显式给原agent，因此原“模拟planner route”注释不准确。新增断言保留实际implementer目标作为反例。
+
+修补必须同时满足：planner接管使用新的run/claim和其最低权限；规划回答不能当成原执行阶段已完成；重规划成功后回implementer；verifier失败回implementer的另一条边也须验证真实会话而非route_hint文字；重试不因角色切换/恢复清零，达到上限才进入人工恢复。原阶段成果、验证条件和失败证据不能被规划阶段默认校验错误地覆写或计完成。不能用每次暂停等待人工代替所要求的自动闭环。
+
+验证进行中：工具会话92856串行执行正常build及blocked专项。正常构建已记录Finished dev 1m48s；专项仍未取得终态。日志tmp/analysis-goal-planner-route-gap-build.txt与test.txt。未结束前不计通过，也不重启同任务。本轮尚未修改生产路由，仅补反例断言和源事实定位。
+会话92856已实际终态exit0：正常web-console build1m48s、blocked专项1通过0失败0忽略1463过滤。新断言实际证明resume后phase.assigned_role仍implementer、assigned_session_id仍原agent、第二次prepare.agent仍原implementer；planner会话同时存在，因此不是缺少角色配置。绿色仅证明失败记账/claim重试和已知路由反例，不能记为真实planner重规划通过。原字节日志与源SHA归档docs/testing/goal-planner-route-gap，未宣称不可变构建或全web-console测试通过。本轮仅补反例与注释，生产缺口仍待修补。

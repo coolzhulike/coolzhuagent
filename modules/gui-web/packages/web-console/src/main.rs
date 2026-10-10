@@ -69044,8 +69044,9 @@ attach: last_assistant
             .iter()
             .any(|event| event.event_type == "goal-phase-blocked-needs-replan"));
 
-        // 模拟用户恢复后由 planner route 重新 claim；这里仍走 token-aware finalizer，
-        // 覆盖第二次 blocked 超过上限后的 blocked/manual_reconcile 收敛。
+        // 恢复后仍走 token-aware finalizer，覆盖重试上限收敛。
+        // 已知缺口：route_hint=planner未参与会话选择，实际重新claim的仍是implementer。
+        // 以下断言是反例证据，不能将本测试绿色当成planner真实重规划验收通过。
         super::resume_goal_sqlite(&context.db_path, "ws-token-blocked", &context.goal_id)
             .expect("resume for replan");
         let resumed_goal =
@@ -69057,6 +69058,8 @@ attach: last_assistant
             .find(|phase| phase.id == context.phase_id)
             .expect("resumed phase")
             .clone();
+        assert_eq!(resumed_phase.assigned_role,"implementer");
+        assert_eq!(resumed_phase.assigned_session_id.as_deref(),Some(context.agent.id.as_str()));
         let second_claim = super::claim_goal_phase_for_dispatch(
             &context.db_path,
             "ws-token-blocked",
@@ -69074,6 +69077,7 @@ attach: last_assistant
             .prepare_goal_phase_run_context("ws-token-blocked", &context.goal_id, &context.phase_id)
             .expect("second run starts");
         assert_eq!(second_context.run_id, second_claim.run_id);
+        assert_eq!(second_context.agent.id,context.agent.id,"当前实际重新进入原implementer，不是planner");
         let second = store
             .record_goal_phase_model_result_at_path_with_claim(
                 &second_context.db_path,

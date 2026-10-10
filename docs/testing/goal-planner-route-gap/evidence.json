@@ -1,0 +1,11 @@
+{
+  "build_exit": 0,
+  "filtered": 1463,
+  "source_uncommitted": true,
+  "test_exit": 0,
+  "passed": 1,
+  "source_sha256": "4FC713D06F7F93919A15BF98BD00CD09471749B2CC781F2824A9458D50B87AFA",
+  "source_base": "b0c814786c9964e359685e7bb47a9045db7a0244",
+  "immutable_snapshot_verified": false,
+  "scope": "实际SQLite token-aware失败/恢复/claim/prepare反例：route_hint=planner后仍为implementer；绿色不表示自动重规划通过"
+}
