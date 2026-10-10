@@ -347,9 +347,13 @@ impl Output<'_> {
 }
 
 async fn interrupt(client: &Client, options: &Options, receipt: &Receipt) -> io::Result<Value> {
-    json_response(client.post(options.base.join("api/chat/turn/interrupt").map_err(problem)?)
+    let confirmation = json_response(client.post(options.base.join("api/chat/turn/interrupt").map_err(problem)?)
         .timeout(CONTROL_TIMEOUT).json(&json!({"session_id":options.session,"chat_room_id":options.room,"turn_id":receipt.turn}))
-        .send().await.map_err(problem)?).await
+        .send().await.map_err(problem)?).await?;
+    if receipt.turn.is_empty() || confirmation["turn_id"] != receipt.turn {
+        return Err(problem("停止响应不属于原轮次，停止结果待确认"));
+    }
+    Ok(confirmation)
 }
 
 async fn confirm_after_disconnect(client: &Client, options: &Options, workspace_id: &str, output: &mut Output<'_>) -> io::Result<()> {
@@ -414,7 +418,6 @@ async fn run_async(options: Options, signal: impl Future<Output = io::Result<()>
         if cancel_requested && !cancel_sent && !output.receipt.run.is_empty() {
             // 原会话+聊天室+turn 做停止 CAS；不能仅凭客户端拼一个 run_id 请求停止。
             let confirmation = interrupt(&client, &options, &output.receipt).await?;
-            if confirmation["turn_id"] != output.receipt.turn { return Err(problem("停止响应不属于原轮次")); }
             cancel_sent = true; stop_deadline = Some(tokio::time::Instant::now() + CLEANUP_TIMEOUT);
             if options.json {
                 serde_json::to_writer(&mut output.stdout, &json!({"event":"interrupt_requested","data":confirmation})).map_err(problem)?;
@@ -496,6 +499,34 @@ mod tests {
     async fn chunk(socket: &mut TcpStream, bytes: &[u8]) {
         socket.write_all(format!("{:x}\r\n",bytes.len()).as_bytes()).await.unwrap();
         socket.write_all(bytes).await.unwrap(); socket.write_all(b"\r\n").await.unwrap();
+    }
+
+    /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
+    #[tokio::test]
+    async fn interrupt_checks_original_turn_for_every_caller() {
+        for returned_turn in [Some("original-turn"), Some("foreign-turn"), None] {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+            let server = tokio::spawn(async move {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let (request, body) = read_request(&mut socket).await;
+                assert_eq!(request, "POST /api/chat/turn/interrupt HTTP/1.1");
+                assert_eq!(body, json!({"session_id":"session","chat_room_id":"room","turn_id":"original-turn"}));
+                let response = match returned_turn {
+                    Some(turn) => json!({"turn_id":turn,"status":"interrupt_requested"}),
+                    None => json!({"status":"interrupt_requested"}),
+                };
+                send_json(&mut socket, response).await;
+            });
+            let options = Options { base, workspace: std::env::current_dir().unwrap(),
+                session:"session".into(), room:"room".into(), prompt:"unused".into(),
+                json:true, expected_workspace_id:None };
+            let receipt = Receipt { run:"original-run".into(), turn:"original-turn".into(), ..Receipt::default() };
+            let result = interrupt(&local_client().unwrap(), &options, &receipt).await;
+            assert_eq!(result.is_ok(), returned_turn == Some("original-turn"));
+            if let Err(error) = result { assert!(error.to_string().contains("待确认")); }
+            server.await.unwrap();
+        }
     }
 
     /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
