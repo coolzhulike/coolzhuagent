@@ -195,3 +195,22 @@ S7可选DSH试点不属于32工作包总体完成前提。真实DSH市场及插�
 ## 2026-10-08 正式104插件重新配置竞争补记（部分通过）
 
 配置提交明确早于旧工具登记，真实SWE-2/唯一island-kayak网络GET为0，工具1条failed、父轮completed/end_turn/drained。104仅传回409，独立拒绝诊断缺失；候选补具体原因及after_admission_before_executor事件，offline build与DSH专项8通过/1既有跳过，尚未出包复验。正常恢复配置、白名单及停用状态，revision47、源码摘要保持。102的before_dispatch/零登记证据不能代替此场景。[正式104事实与实拍](../../testing/release-0.2.104/plugin-config-race/report.md)。整体Goal继续。
+
+## 2026-10-10 独立集成增量（源码候选，正式验收未闭环）
+
+总控独立工作区codex/integration-32wbs-20261010，截至db5e063；当前正式后台仍为原安装版，下面不替代正常出包/独立原生/真实provider验收。三个授权模块提交Browser42294ce、执行中心cfb9905、头像0f1334a均已合入；头像用户定稿确认只证明接入授权。
+
+| WBS | 本轮补齐的实际证据 | 仍需完成 |
+| --- | --- | --- |
+| 2.1 配置 | DPAPI旧/新配置崩溃journal、prepared回退/committed保留与外部修改拒绝候选；[配置证据](../2026-10-10-session-config-crash-recovery.md)。 | 全Service、跨资源断电/磁盘满/混合旧版本正式矩阵。 |
+| 2.4 单写者 | 172a9be已加入OS锁与权威epoch，真实子进程竞争/崩溃释放和epoch专项；本轮不再把“跨进程单写者完全不存在”当作当前事实。 | outbox、全部写路径、混合旧版与正式崩溃恢复矩阵。 |
+| 2.5 共享执行 | HTTP/SSE实际工具循环统一；父模型快照贯穿首轮、反馈、恢复，真实HTTP快照失败明确拒绝。Goal真实run/claim接入索引、原提交器之后同步终态、持久停止/claim失效传播取消，绑定与终态写入原子核验。[模型冻结](../2026-10-10-parent-model-freeze.md)、[接纳](../2026-10-10-admission-model-freeze.md)、[Goal索引](../2026-10-10-goal-index-integration.md)、[取消](../2026-10-10-goal-durable-stop.md)、[归属CAS](../2026-10-10-goal-index-cas.md)。 | 后代树/全usage、全部入口身份/取消/恢复、真实在途provider/外部工具和正式验收；Devin Goal/接力/子Agent保持拒绝。 |
+| 4.1 前端 | 八品牌定稿头像及执行卡按真实session ID保留自定义、历史model匹配；工具结果保留工具图标。[头像证据](../2026-10-10-avatar-coordinator-integration.md)。 | 正式安装UI一致性、重启、自定义头像、DPI等矩阵。 |
+| 4.2 轨迹 | 执行详情由服务端冻结run直接定位，不再最多翻20页。121条运行旧run定位及跨工程房间负例通过。[轨迹证据](../2026-10-10-execution-exact-trace.md)。 | 后代分账/汇总、跨实例与正式UI等剩余范围。 |
+| 4.3 / 4.4 | 超长单行字节预览及累计真实SHA绑定分页覆盖已修候选。 | 正式8192→69632缺口未重新验收，不据候选断言完整连续读取；spill/GC及任意污染/多模态仍开放。 |
+| 4.5 Goal | 执行索引与原token-aware提交器联合取消证明迟到结果无消息/verdict/memory污染，索引interrupted。[联合验证](../2026-10-10-goal-cancel-finalizer-verification.md)。 | 实际阶段在途HTTP/工具、完整后代取消与持久恢复、正式真实provider联合验证。 |
+| 6.1 诊断 | bfaecfc日志入口脱敏候选，实际输出负例通过。 | 全局配额、其它生产者、历史导出与完整故障矩阵。 |
+
+最新源码回归1456通过/0失败/6忽略，37.79秒；具体日志见Goal索引CAS报告。离线单元、本地HTTP和DOM模拟不冒充正式原生/真实SWE验收。PR88保持未合并，未改版本标签和更新索引。
+
+下一实现项：execution_index已有parent_execution_id/bound run关联，但ExecutionService::list目前按单记录run和SessionTool call_id统计，尚无完整后代树汇总。需先确认实际父子关系、同一attempt去重、未知token保留null、工程/房间隔离及循环/缺失父项处理，再覆盖嵌套Agent和Goal子执行；不按作者名或最近run推断。
