@@ -18036,7 +18036,15 @@ async fn run_goal_phase_once(
     }
     };
     let (model_response, tool_messages, command_failures) = if let Some(index) = goal_index.as_ref() {
-        index.scope(Box::pin(phase_work)).await
+        match index.scope(Box::pin(phase_work)).await {
+            Ok(result) => result,
+            Err(reason) => (AgentModelResponse {
+                execution_failed: true, answer_text: reason.clone(), reasoning_text: String::new(),
+                tool_requests: Vec::new(), tool_write_executed: false, model_tool_calls_executed: true,
+                turn_id: String::new(), used_real_model: false, diagnostic_note: Some(reason.clone()),
+                context_footer: None, context_usage: None,
+            }, Vec::new(), vec![reason]),
+        }
     } else { Box::pin(phase_work).await };
     // 收尾独立于业务根时限，仍必须提交真实 run/claim 的终态。
     let context_usage = model_response.context_usage.clone();

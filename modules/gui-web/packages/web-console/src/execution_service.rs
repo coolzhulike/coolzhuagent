@@ -88,6 +88,7 @@ pub(crate) struct GoalExecution {
     guard: Guard,
     run: String,
     claim: String,
+    cancel: Arc<ChatTurnCancellation>,
 }
 impl GoalExecution {
     pub(crate) fn bind(path: &Path, spec: ExecutionSpec, run: &str, claim: &str,
@@ -97,12 +98,19 @@ impl GoalExecution {
         let valid: bool = connection.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND kind='goal_phase' AND workspace_id=?3 AND chat_room_id=?4 AND session_id=?5 AND phase_id=?6 AND state='running')",
             params![run,claim,spec.workspace_id,spec.room_id,spec.session_id,spec.source_id], |row|row.get(0)).map_err(|e|e.to_string())?;
         if !valid { return Err("Goal索引缺少本工程有效阶段运行与claim，未接纳".into()); }
-        let guard = ExecutionService::begin(path, spec, cancel)?;
+        let guard = ExecutionService::begin(path, spec, cancel.clone())?;
         connection.execute("UPDATE execution_index SET run_id=?1 WHERE id=?2", params![run,guard.current.id]).map_err(|e|e.to_string())?;
-        Ok(Self { guard, run:run.into(), claim:claim.into() })
+        Ok(Self { guard, run:run.into(), claim:claim.into(), cancel })
     }
-    pub(crate) async fn scope<T>(&self, future: impl Future<Output=T>) -> T {
-        CURRENT.scope(self.guard.current.clone(), future).await
+    pub(crate) async fn scope<T>(&self, future: impl Future<Output=T>) -> Result<T,String> {
+        CURRENT.scope(self.guard.current.clone(), crate::CHAT_CANCELLATION.scope(self.cancel.clone(), async {
+            tokio::pin!(future);
+            tokio::select! {
+                biased;
+                _=observe_cancelled(&self.cancel)=>Err("Goal阶段已请求停止；已发生的外部操作结果仍需核查，不自动重放".into()),
+                result=&mut future=>Ok(result),
+            }
+        })).await
     }
     pub(crate) fn finish_committed(&mut self, result: Option<&str>) -> Result<(), String> {
         let connection = open(&self.guard.current.path)?;
@@ -585,7 +593,7 @@ mod tests {
         let mut guard = GoalExecution::bind(&path,goal.clone(),"goal-run","private-claim",Arc::new(ChatTurnCancellation::new())).unwrap();
         assert!(GoalExecution::bind(&path,goal,"goal-run","private-claim",Arc::new(ChatTurnCancellation::new())).is_err());
         assert!(guard.finish_committed(None).is_err());
-        let current = guard.scope(async { CURRENT.with(|c|c.id.clone()) }).await;
+        let current = guard.scope(async { CURRENT.with(|c|c.id.clone()) }).await.unwrap();
         assert_eq!(current,"execution-one");
         connection.execute("UPDATE runtime_runs SET state='failed' WHERE id='goal-run'", []).unwrap();
         guard.finish_committed(Some("阶段失败证据")).unwrap();
@@ -613,6 +621,25 @@ mod tests {
         assert!(
             ExecutionService::begin(&path, spec(), Arc::new(ChatTurnCancellation::new())).is_err()
         );
+    }
+    #[tokio::test]
+    async fn goal_cancel_persists_stop_and_ends_inflight_wait_without_completion() {
+        let temp = tempfile::tempdir().unwrap(); let path=temp.path().join("goal-cancel.sqlite3");
+        let connection=open(&path).unwrap(); crate::initialize_session_schema(&connection).unwrap();
+        connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,phase_id,state,claim_token,created_at) VALUES('goal-cancel-run','goal_phase','workspace','session','room','phase','running','private-claim',1)",[]).unwrap();
+        let mut goal=spec(); goal.id="goal-cancel-index".into(); goal.source=Source::GoalPhase; goal.source_id="phase".into();
+        let mut guard=GoalExecution::bind(&path,goal,"goal-cancel-run","private-claim",Arc::new(ChatTurnCancellation::new())).unwrap();
+        let wait=guard.scope(std::future::pending::<()>());
+        let cancel=async { tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+            ExecutionService::cancel(&path,"workspace","goal-cancel-index").unwrap(); };
+        let (result,())=tokio::time::timeout(std::time::Duration::from_secs(2),async {tokio::join!(wait,cancel)}).await.unwrap();
+        assert!(result.is_err());
+        let state:String=connection.query_row("SELECT state FROM runtime_runs WHERE id='goal-cancel-run'",[],|row|row.get(0)).unwrap();
+        assert_eq!(state,"stop_requested"); assert!(guard.finish_committed(None).is_err());
+        connection.execute("UPDATE runtime_runs SET state='interrupted' WHERE id='goal-cancel-run'",[]).unwrap();
+        guard.finish_committed(None).unwrap();
+        let state:String=connection.query_row("SELECT state FROM execution_index WHERE id='goal-cancel-index'",[],|row|row.get(0)).unwrap();
+        assert_eq!(state,"interrupted");
     }
     #[tokio::test]
     async fn cancelling_child_does_not_cancel_parent() {
