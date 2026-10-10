@@ -1,0 +1,8 @@
+﻿{
+    "helper_sha256":  "C62ECA2FB7D9BE2DDC43E5F03BFA5F377BEE00C37E32BA938E35DEA8C08AFB83",
+    "helper_pid":  12536,
+    "command_root_pid":  20436,
+    "descendant_pid":  32408,
+    "diagnostic_fault_rejected":  true,
+    "all_owned_processes_exited":  true
+}

@@ -11,3 +11,5 @@ Add-Type 编译的 .NET 代码在两种宿主实际执行；无 Rust 生产修�
 后续读取端修补：退出等待改为每100毫秒同时检查诊断任务故障/取消，故障时仅停止本次持有 Process 的辅助程序，并在10秒内确认根退出；未确认则明确拒绝，不伪造回执。正常构建没有增加运行时限。Windows受管Job采用KILL_ON_JOB_CLOSE，但静态代码事实不能代替该故障路径的真实后代回收验收。
 
 PS5.1和PS7最新各六项实际exit0，新增已关闭读取流触发任务故障，真实启动30秒等待的测试生产者被及时停止并确认退出。日志 tmp/analysis-diagnostic-read-failure-ps5.txt 与 tmp/analysis-diagnostic-read-failure-ps7.txt。该注入验证任务故障观察及自身根停止，尚未验证辅助程序持有真实Job时全部后代退出、阻塞读取取消及宿主终止；这些继续开放。现有MSI不包含该源码修改。
+
+后续真实Job验证：scripts/test-managed-capture-tree-failure.ps1 实际启动正常 build-capture.exe，由其启动PowerShell根及60秒等待后代；两者到达屏障后持有对应进程句柄，再注入已关闭源流触发读取任务故障。实际调用生产 Wait-ManagedCaptureDiagnostic 拒绝路径；辅助程序退出、Job内根与后代均在10秒观察窗内退出，在最终清理前完成判定。PS5.1/PS7均实际exit0，日志为 tmp/analysis-capture-tree-read-failure-ps5.txt、ps7.txt，PID及辅助程序摘要归档 docs/testing/managed-capture-diagnostic-failure/tree-ps5-result.json、tree-ps7-result.json。注入针对读取任务故障，并非真实内核匿名管道断裂；不外推阻塞读取取消、宿主突然退出、全局配额或整个6.1完成。
