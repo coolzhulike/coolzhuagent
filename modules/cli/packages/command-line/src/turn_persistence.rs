@@ -200,6 +200,40 @@ mod tests {
     }
 
     #[test]
+    fn oversized_event_save_preserves_existing_recoverable_history() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-event-size-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("main.json");
+        let original = vec![
+            AgentEvent::new(1, "thread".into(), "original".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "original".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        save_events(&original, &path).unwrap();
+        let event_dir = event_directory(&path).unwrap();
+        let entries = std::fs::read_dir(&event_dir).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(entries.len(), 1);
+        let published = entries[0].path();
+        let original_bytes = std::fs::read(&published).unwrap();
+        let oversized = vec![
+            AgentEvent::new(1, "thread".into(), "oversized".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "oversized".into(), None, runtime::AgentEventKind::TurnCompleted,
+                serde_json::json!({"output": "x".repeat(MAX_EVENT_RECORD_BYTES)})),
+        ];
+        assert!(save_events(&oversized, &path).unwrap_err().to_string().contains("未发布"));
+        assert_eq!(std::fs::read_dir(&event_dir).unwrap().count(), 1);
+        assert_eq!(std::fs::read(&published).unwrap(), original_bytes);
+        assert_eq!(load_event_history(&path).unwrap(), vec![original]);
+        let untouched = directory.join("new.json");
+        assert!(save_events(&oversized, &untouched).is_err());
+        assert!(!event_directory(&untouched).unwrap().exists());
+        std::fs::remove_file(published).unwrap();
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
     fn full_session_filename_isolates_event_history() {
         let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
             .join(format!("cli-event-namespace-{}", std::process::id()));

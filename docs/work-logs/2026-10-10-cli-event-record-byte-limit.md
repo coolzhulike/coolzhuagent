@@ -7,3 +7,5 @@
 修复后 cargo build -p coolzhu-command-line --offline -j1 实际退出 0；完整 cargo test 同包实际退出 0，93 通过、0 失败、0 忽略。串行工具会话 36494 终态 0，日志 tmp/analysis-cli-event-size-build-repair.txt、tmp/analysis-cli-event-size-tests.txt。
 
 尚未闭环：恢复累计 64MiB / 10000 条限制尚无写入端跨进程原子预算；超限保存失败发生时会话消息可能已经保存，与事件并非统一事务；外部执行事实不会因轨迹拒绝而自动撤销。正式安装仍为旧 0.2.130，32WBS 正式恢复、完整输出引用及总目标未完成。
+
+后续实际发布路径回归：oversized_event_save_preserves_existing_recoverable_history 调用生产 save_events，先保存合法起点/终态，再拒绝大输出回合；目录仍只有原记录、原字节一致、load_event_history 恢复旧回合，对新会话也不创建事件目录。真实离线 build / 完整 CLI test 均退出 0，94 通过、0 失败、0 忽略。日志 tmp/analysis-cli-event-size-publication-build.txt、tmp/analysis-cli-event-size-publication-tests.txt。此证据不涵盖 persist_result 消息与事件统一事务或累计配额。
