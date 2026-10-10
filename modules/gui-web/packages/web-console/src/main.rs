@@ -69208,12 +69208,19 @@ attach: last_assistant
     fn goal_phase_token_finalizer_stop_wins_without_result_message_or_verdict() {
         let temp = tempfile::tempdir().expect("tempdir");
         let (mut store, context) = token_finalizer_fixture(&temp, "ws-token-stop");
-        let stop = super::interrupt_runtime_run_sqlite(
-            &context.db_path,
-            &context.run_id,
-            Some("user stop"),
-        )
-        .expect("stop request");
+        let spec = super::execution_service::ExecutionSpec {
+            id: "goal-stop-finalizer-index".into(), workspace_id: "ws-token-stop".into(),
+            room_id: context.chat_room_id.clone(), session_id: context.agent.id.clone(),
+            provider: context.agent.provider.clone(), model: context.agent.model.clone(),
+            source: super::execution_service::Source::GoalPhase, source_id: context.phase_id.clone(),
+            parent_run_id: None, parent_execution_id: None, call_id: None,
+            summary: "真实Goal提交器停止核验".into(), deadline_ms: super::unix_timestamp_millis()+60_000,
+        };
+        let mut index = super::execution_service::GoalExecution::bind(&context.db_path, spec,
+            &context.run_id, &context.claim_token, std::sync::Arc::new(super::ChatTurnCancellation::new())).unwrap();
+        super::execution_service::ExecutionService::cancel(&context.db_path, "ws-token-stop", "goal-stop-finalizer-index").unwrap();
+        assert!(index.finish_committed(None).is_err());
+        let stop = super::query_runtime_run_sqlite(&context.db_path, &context.run_id).unwrap().unwrap();
         assert_eq!(stop.state, "stop_requested");
         let result = store
             .record_goal_phase_model_result_at_path_with_claim(
@@ -69232,7 +69239,10 @@ attach: last_assistant
         assert!(result.messages.is_empty());
         assert!(!result.memory_eligible);
         assert_eq!(result.status.goal.status, "paused");
+        index.finish_committed(None).expect("原Goal提交器终态同步索引");
         let connection = super::open_session_connection(&context.db_path).expect("check db");
+        let indexed: String = connection.query_row("SELECT state FROM execution_index WHERE id='goal-stop-finalizer-index'", [], |row|row.get(0)).unwrap();
+        assert_eq!(indexed, "interrupted");
         let (phase_status, active_run, verdict): (String, Option<String>, Option<String>) = connection
             .query_row(
                 "SELECT status, active_run_id, last_verdict FROM goal_phases WHERE goal_id=?1 AND id=?2",
