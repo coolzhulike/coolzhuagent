@@ -11,3 +11,5 @@
 外层临时整包脚本在正常出包之后因未加载身份库而后置校验失败，实际 exit 1，日志 tmp/analysis-integration-129-package-build.txt 保留。独立校验首次在 PowerShell 7 默认日期转换下触发原始日期字符串保护；改用与打包一致的 Windows PowerShell 后，报告内容哈希、发布资格、九入口集合和回执字节全部通过，日志 tmp/analysis-integration-129-independent-verification.txt。不能把外层脚本失败记录改成 exit 0。
 
 本版本未安装、未签名、未发布；已安装版仍是此前核验的 0.2.128。恢复原验收后台的命令此前被自动审批策略拒绝，正式运行验收未恢复。Browser 输入归属负例、外部模型长程、取消恢复、多屏及其余 32WBS 门禁继续开放。完整许可证/NOTICE、组件 SBOM、签名和发布关联仍未闭环。
+
+后续许可证证据核查：根工作区与 Tauri 各执行 locked/offline metadata，命令实际 exit 0；构建源码到本次 metadata 核查之间 Cargo.toml、Cargo.lock 及 modules 无变更。该 metadata 是构建后观察，不冒充构建时采集。九份原文导出分别绑定本次实际回执 SHA，独立解码核验 2216 条文件观察的长度与 SHA，未将重复观察相加为组件总数。按精确组件身份摘要去重后为 433 个观察组件，其中 391 个找到本地原文、42 个未找到（18 个本地、24 个外部）；同一身份的原文证据一致。缺项清单见 evidence/licenses/build-observation-gaps.json。没有在父目录补造原文，没有将未找到原文判定为没有许可证；许可证义务与实际分发映射仍未验证。
