@@ -4,11 +4,12 @@
     const { window, document, navigator, performance, crypto } = env;
     const documentId = crypto.randomUUID();
     let sequence = 0;
-    const state = { documentId, events: [], overflow: 0, beaconRejected: 0 };
+    const state = { documentId, totalEvents: 0, events: [], overflow: 0, beaconRejected: 0 };
     const target = node => node ? { tag: node.tagName || null, id: node.id || null } : null;
     function record(event) {
+      state.totalEvents = ++sequence;
       const item = {
-        schema: 2, document_id: documentId, sequence: ++sequence,
+        schema: 2, document_id: documentId, sequence,
         kind: event.type, role: document.body?.dataset.role || null,
         time_origin_ms: performance.timeOrigin,
         page_ms: performance.timeOrigin + performance.now(),

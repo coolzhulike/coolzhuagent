@@ -32,5 +32,6 @@ listeners.get('keyup')({ type: 'keyup', isTrusted: true });
 assert.equal(state.beaconRejected, 1);
 for (let i = 0; i < 10000; i++) listeners.get('click')({ type: 'click', isTrusted: false });
 assert.equal(state.events.length, 10000);
+assert.equal(state.totalEvents, 10003);
 assert.equal(state.overflow, 3);
 console.log('验收探针字段、来源未知、无正文、丢投递及容量计数回归通过；没有真实浏览器输入证据');

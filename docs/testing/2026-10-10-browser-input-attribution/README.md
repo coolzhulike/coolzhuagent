@@ -13,3 +13,5 @@ old.html/new.html 均实际加载 event-probe.js。探针记录每文档唯一 I
 已补 verify-events.cjs 页面子门禁：输入两文档最终快照与服务器页面事件 JSONL，按文档身份/连续序号及逐字段内容对应；重复、漏收、字段篡改、溢出/投递失败、旧文档缺最终 pagehide 或任何可信输入均拒绝。服务器规划触发等非页面事件应保留在原日志中，另行导出页面事件供此工具检查，禁止为通过门禁删掉可信页面事件。
 
 命令为 `node fixtures/verify-events.cjs old-snapshot.json new-snapshot.json page-events.jsonl`。输出只有 page_zero_input_gate，formal_acceptance 固定 not_proven：新文档快照截取时点、原生派发时钟、真实账本及协议终态仍须独立核验。`node fixtures/verify-events-test.cjs` 的上述负例回归实际 exit 0；探针回归再次 exit 0。没有运行正式服务器或真实模型请求。
+
+快照完整性补充：探针单独累计 totalEvents（包括超出保存容量的事件）。校验必须有安全整数 totalEvents，且在 overflow=0 时严格等于 events.length。总计数缺失或不匹配直接拒绝，即使服务器与被截短的数组完全匹配也不能通过。两项新增负例与既有探针/校验回归实际 exit 0。该计数只能核对采集快照范围，不证明快照之后不存在输入，正式采集终止时点仍需账本和原生时钟证据。

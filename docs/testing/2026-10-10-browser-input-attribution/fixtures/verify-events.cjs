@@ -14,6 +14,7 @@ function verifyEvents(snapshots, received) {
     documents.add(snapshot.documentId);
     if (snapshot.overflow !== 0 || snapshot.beaconRejected !== 0) reject('页面溢出、投递失败或计数缺失');
     if (!Array.isArray(snapshot.events) || snapshot.events.length < 2) reject('页面记录不足');
+    if (!Number.isSafeInteger(snapshot.totalEvents) || snapshot.totalEvents !== snapshot.events.length) reject('页面总事件计数缺失或快照被截短');
     const role = snapshot.events[0].role;
     if (!['OLD', 'NEW'].includes(role) || roles.has(role)) reject('新旧文档角色不完整');
     roles.add(role);
