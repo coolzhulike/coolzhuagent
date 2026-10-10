@@ -46,3 +46,28 @@ if($result.exit_code -ne 125 -or (Get-FileHash -LiteralPath $out).Hash -ne $befo
 if([IO.File]::ReadAllText($result.helper_diagnostic_path,[Text.UTF8Encoding]::new($false,$true)) -notmatch 'BUILD-CAPTURE-FAILED:'){throw '辅助程序失败诊断没有归档'}
 Write-Output 'PASS 旧日志拒绝返回125，旧内容保留且命令未启动'
 Write-Output 'PASS 辅助程序自身125诊断独立落盘'
+$producer=Join-Path $root 'diagnostic-producer.ps1'
+[IO.File]::WriteAllText($producer,@'
+$buffer=New-Object byte[] 65536
+$pipe=[Console]::OpenStandardError()
+for($index=0;$index -lt 64;$index++){ $pipe.Write($buffer,0,$buffer.Length) }
+$pipe.Flush()
+exit 9
+'@,[Text.UTF8Encoding]::new($false))
+$info=[Diagnostics.ProcessStartInfo]::new('powershell')
+$info.UseShellExecute=$false; $info.CreateNoWindow=$true; $info.RedirectStandardError=$true
+Set-ManagedCaptureArguments -Info $info -Arguments @('-NoProfile','-File',$producer)
+$destination=[IO.MemoryStream]::new()
+$destination.Dispose() # 确定性模拟日志写入故障，不改变生产者。
+$process=[Diagnostics.Process]::Start($info)
+try {
+  $drain=[CoolzhuCapture.DiagnosticDrain]::Start($process.StandardError.BaseStream,$destination)
+  if(-not $process.WaitForExit(10000)){throw '诊断写入故障后真实管道仍阻塞生产者'}
+  if(-not $drain.Wait(10000)){throw '诊断管道未完成排空'}
+  $failure=$drain.GetAwaiter().GetResult()
+  if(-not $failure -or $process.ExitCode -ne 9){throw '诊断写入故障或生产者退出事实丢失'}
+} finally {
+  if(-not $process.HasExited){$process.Kill(); $process.WaitForExit()}
+  $process.Dispose()
+}
+Write-Output 'PASS 真实4MiB诊断在落盘失败后仍排空，生产者退出9且故障保留'

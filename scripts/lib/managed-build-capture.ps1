@@ -1,4 +1,30 @@
 # 受管采集入口：调用方必须提供冻结构建所核验的辅助程序身份。
+if (-not ('CoolzhuCapture.DiagnosticDrain' -as [type])) {
+  Add-Type -TypeDefinition @'
+using System;
+using System.IO;
+using System.Threading.Tasks;
+namespace CoolzhuCapture {
+  public static class DiagnosticDrain {
+    // 写入失败后仍排空管道，避免生产者阻塞；调用方必须拒绝该回执。
+    public static Task<Exception> Start(Stream source, Stream destination) {
+      return Task.Run<Exception>(() => {
+        var buffer = new byte[81920];
+        Exception failure = null;
+        int count;
+        while ((count = source.Read(buffer, 0, buffer.Length)) != 0) {
+          if (failure == null) {
+            try { destination.Write(buffer, 0, count); }
+            catch (Exception error) { failure = error; }
+          }
+        }
+        return failure;
+      });
+    }
+  }
+}
+'@
+}
 function Set-ManagedCaptureArguments {
   param([Diagnostics.ProcessStartInfo]$Info, [string[]]$Arguments)
   if ($Info.PSObject.Properties['ArgumentList']) {
@@ -39,9 +65,10 @@ function Invoke-ManagedBuildCapture {
     $started=(Get-Date).ToUniversalTime().ToString('o')
     $process=[Diagnostics.Process]::Start($info)
     # 仅辅助程序自身诊断进入此管道；固定缓冲异步落盘，避免等待退出时堵住诊断管道。
-    $diagnosticCopy=$process.StandardError.BaseStream.CopyToAsync($diagnostic,81920)
+    $diagnosticCopy=[CoolzhuCapture.DiagnosticDrain]::Start($process.StandardError.BaseStream,$diagnostic)
     $process.WaitForExit()
-    [void]$diagnosticCopy.GetAwaiter().GetResult()
+    $diagnosticFailure=$diagnosticCopy.GetAwaiter().GetResult()
+    if ($diagnosticFailure) { throw ('BUILD-CAPTURE-DIAGNOSTIC: 诊断写入失败，回执无效：'+$diagnosticFailure.Message) }
     $diagnostic.Flush($true)
     $code=$process.ExitCode
     if ((Get-FileHash -LiteralPath $helper -Algorithm SHA256).Hash -ine $ExpectedHelperSha256) { throw 'BUILD-CAPTURE-IDENTITY: 采集期间辅助程序身份变化，回执无效' }

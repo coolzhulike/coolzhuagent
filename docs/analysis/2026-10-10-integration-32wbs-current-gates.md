@@ -4,6 +4,8 @@
 
 最新交付候选0.2.131已完成正常release整包、MSI构建和十份Cargo回执归档核验，源码abc16e5；九项候选CLI真实恢复符合预期。安装升级实际exit1603：旧版移除阶段因管理员权限不足触发1730，失败后注册版本仍0.2.130。管理员升级、安装目录全量核验及正式运行验收未通过，不能把候选出包计作交付完成。证据见[131验收状态](../testing/release-0.2.131/acceptance-status.md)。下文旧候选记录保持其历史范围。
 
+后续源码补辅助程序诊断写入失败后持续排空，避免输出超过管道容量时生产者与退出等待相互阻塞；PS5.1/PS7各五项实际通过，包括真实4MiB管道故障。尚未进入131候选，读取端错误和宿主退出等完整生命周期继续开放，见[故障验证日志](../work-logs/2026-10-10-diagnostic-write-failure-drain.md)。
+
 当前实装是 0.2.130，包源码 35cbcf238d194d7fbaac648359d8bddc9858f811；1193 个载荷文件逐长度/SHA 一致，正常整包/MSI 构建、安装及注册版本证据见 [130 验收状态](../testing/release-0.2.130/acceptance-status.md)。本轮再次直接运行 Program Files 下 CLI --version，实际返回上述版本与完整源码身份。未签名、未发布，不能把安装与文件核验提升为正式运行验收。后续 Conversation/CLI 修补不在该安装包中。
 
 当前源码复核点为 918f99c。CLI 历史已补单写者锁、累计字节/条数预算、重复轮次和 Windows junction 拒绝；该范围完整回归 99 通过（tmp/analysis-cli-history-link-final-tests.txt）。core-runtime 375 通过及 3 项忽略的证据保持对应历史源码范围，不能外推后续全部修改。2dacc83 时点的真实 debug CLI 合成恢复 9 项仍是历史进程证据，后续修改不自动继承该进程验收。
