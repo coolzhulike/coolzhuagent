@@ -81,18 +81,10 @@ pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEv
         total_bytes += bytes.len();
         if total_bytes > 64 * 1024 * 1024 { return Err(std::io::Error::other("回合历史超过恢复总大小上限")); }
         let events: Vec<AgentEvent> = serde_json::from_slice(&bytes).map_err(std::io::Error::other)?;
-        let first = events.first().ok_or_else(|| std::io::Error::other("回合轨迹为空"))?;
-        use runtime::AgentEventKind::{TurnStarted, TurnCompleted, TurnFailed, TurnInterrupted};
-        if first.kind != TurnStarted || first.thread_id.as_str().trim().is_empty() || first.turn_id.as_str().trim().is_empty()
-            || !identities.insert((first.thread_id.clone(), first.turn_id.clone())) {
+        validate_event_record(&events)?;
+        let first = &events[0];
+        if !identities.insert((first.thread_id.clone(), first.turn_id.clone())) {
             return Err(std::io::Error::other("回合起点或历史身份重复"));
-        }
-        for (index, event) in events.iter().enumerate() {
-            let terminal = matches!(event.kind, TurnCompleted | TurnFailed | TurnInterrupted);
-            if event.schema_version != 1 || event.sequence != (index + 1) as u64 || event.thread_id != first.thread_id || event.turn_id != first.turn_id
-                || (index > 0 && event.kind == TurnStarted) || terminal != (index + 1 == events.len()) {
-                return Err(std::io::Error::other("回合轨迹序号、身份或唯一终态不一致"));
-            }
         }
         history.push(events);
     }
@@ -159,9 +151,27 @@ pub(super) fn persist_result<T: PersistedTurn>(
 }
 
 /// 回合轨迹与会话消息分别留存；独占文件避免后续回合覆盖历史。
+fn validate_event_record(events: &[AgentEvent]) -> std::io::Result<()> {
+    use runtime::AgentEventKind::{TurnStarted, TurnCompleted, TurnFailed, TurnInterrupted};
+    let first = events.first().ok_or_else(|| std::io::Error::other("回合轨迹为空"))?;
+    if first.kind != TurnStarted || first.thread_id.as_str().trim().is_empty() || first.turn_id.as_str().trim().is_empty() {
+        return Err(std::io::Error::other("回合起点或身份无效"));
+    }
+    for (index, event) in events.iter().enumerate() {
+        let terminal = matches!(event.kind, TurnCompleted | TurnFailed | TurnInterrupted);
+        if event.schema_version != 1 || event.sequence != (index + 1) as u64
+            || event.thread_id != first.thread_id || event.turn_id != first.turn_id
+            || (index > 0 && event.kind == TurnStarted) || terminal != (index + 1 == events.len()) {
+            return Err(std::io::Error::other("回合轨迹序号、身份或唯一终态不一致"));
+        }
+    }
+    Ok(())
+}
+
 fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
     use std::io::Write;
     if events.is_empty() { return Ok(()); }
+    validate_event_record(events)?;
     let bytes = encode_event_record(&events, MAX_EVENT_RECORD_BYTES)?;
     let (event_path, mut file) = reserve_file_in_directory(&event_directory(path)?, "pending")?;
     let saved = file.write_all(&bytes).and_then(|()| file.sync_all());
@@ -231,6 +241,29 @@ mod tests {
         std::fs::remove_dir(event_dir).unwrap();
         std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
         std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn invalid_event_contract_is_rejected_before_creating_history() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-event-contract-{}", std::process::id()));
+        let path = directory.join("main.json");
+        let valid = vec![
+            AgentEvent::new(1, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnFailed, serde_json::json!({})),
+        ];
+        let mut invalid = Vec::new();
+        let mut record = valid.clone(); record[1].schema_version = 99; invalid.push(record);
+        let mut record = valid.clone(); record[1].sequence = 3; invalid.push(record);
+        let mut record = valid.clone(); record[0].thread_id = " ".into(); invalid.push(record);
+        let mut record = valid.clone(); record[1].turn_id = "different".into(); invalid.push(record);
+        let mut record = valid.clone(); record[0].kind = runtime::AgentEventKind::TurnCompleted; invalid.push(record);
+        invalid.push(vec![valid[0].clone()]);
+        for record in invalid {
+            assert!(save_events(&record, &path).is_err());
+            assert!(!event_directory(&path).unwrap().exists());
+        }
+        assert!(validate_event_record(&valid).is_ok());
     }
 
     #[test]
