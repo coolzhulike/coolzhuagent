@@ -19055,9 +19055,6 @@ async fn api_chat_send_stream(
             let task_id = format!("task-{}-{index}", unix_timestamp_millis());
             // 流式路径没有包在 agent_chat_response 的 TURN_TRACE scope 中，显式生成并贯穿本轮。
             let stream_turn_id = diagnostics::TraceIdType::generate().to_hex();
-            let host_scope = parent.as_ref()
-                .and_then(|context| context.host_model_snapshots.get(&agent.id))
-                .map(|snapshot| host_child_agent::HostToolScope::Parent(Arc::clone(snapshot)));
             let assistant_id = format!("msg-{}-{index}", unix_timestamp_millis());
             let reasoning_id = format!("{assistant_id}-thinking");
             let mut model_tool_calls: BTreeMap<u32, (String, String, String)> = BTreeMap::new();
@@ -19381,510 +19378,90 @@ async fn api_chat_send_stream(
                 break 'chat_turn;
             }
 
-            // 正文伪工具调用不能成为最终答案，也不能进入可执行队列。
-            let streamed_request_tools = stream_context_assembly.as_ref().and_then(|assembly| {
-                let mut request = agent_message_request_with_context_for_room(
-                    agent, true, assembly, Some(&result.chat_room_id));
-                retain_admitted_mcp_definitions(&mut request, parent.as_ref());
-                host_child_agent::bind_session_tool_catalog(&mut request, parent.as_ref(), &agent.id);
-                request.tools
-            });
-            if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)==agent_session_backend::AgentSessionBackend::LlmHttp
-                && (model_text_requires_tool_recovery(&assistant_message.content, &result.user_content)
-                || model_tool_calls.values().any(|(_, name, _)|
-                    !tool_call_name_is_exposed(name, streamed_request_tools.as_deref()))) {
-                diagnostic_note = Some("模型返回未开放的工具调用，已拒绝执行并尝试无工具回答".to_string());
-                let turn_key = result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn");
-                for (id, name, _) in model_tool_calls.values() {
-                    yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key, id, name,
-                        "failed", "工具请求未执行，已进入无工具回答恢复")));
-                }
-                let (recovery_messages, recovery_system) = stream_context_assembly.as_ref()
-                    .map(|assembly| (assembly.messages.clone(), assembly.system_prompt.clone()))
-                    .unwrap_or_else(|| (vec![InputMessage::user_text(result.user_content.clone())], build_agent_system_prompt(agent)));
-                let recovered = await_chat_turn(cancellation.as_ref(), call_agent_model_text_recovery(
-                    agent, &recovery_system, &recovery_messages, &result.user_content,
-                    diagnostic_note.as_deref().unwrap_or_default(), Some(&result.chat_room_id), None,
-                    parent.as_ref().and_then(|context| context.parent_run_id.as_deref()))).await;
-                match recovered {
-                    Err(_) => { terminal_status = ChatTurnStatus::Interrupted; break 'chat_turn; }
-                    Ok(Ok(response)) => {
-                        remember_largest_remote_usage(&mut best_remote_usage, &response.usage);
-                        assistant_message.content = answer_text(&response.content);
-                    }
-                    Ok(Err(_)) => assistant_message.content = unfinished_tool_recovery_answer(&result.user_content),
-                }
-                model_tool_calls.clear();
-                assistant_started = true;
-                yield Ok(sse_json_event("message_replace", &assistant_message));
-            }
-
-            // REQ-LLM-003 / Phase C-13: tool result feedback loop（流"ToolResult 版）
-            diag!(
-                "[TOOL-LOOP-STREAM] gate: llm_tools_enabled={} tool_calls={} names=[{}] dispatched_already={}",
-                llm_tools_enabled_for_session(&agent.id) && room_caps.1,
-                model_tool_calls.len(),
-                model_tool_calls
-                    .values()
-                    .map(|(_, name, _)| name.as_str())
-                    .collect::<Vec<_>>()
-                    .join(","),
-                streamed_tool_calls_dispatched
-            );
-            if llm_tools_enabled_for_session(&agent.id) && room_caps.1 && !model_tool_calls.is_empty() {
-                diag!(
-                    "[TOOL-LOOP-STREAM] {} tool calls, round 2 (ToolResult blocks)...",
-                    model_tool_calls.len()
-                );
-
-                // Round 1 assistant turn：所"ToolUse 原样回放给模型（id/name/input 对齐）。
-                let mut assistant_tool_use_blocks: Vec<InputContentBlock> = Vec::new();
-                let mut parsed_tool_calls: Vec<(String, String, JsonValue)> = Vec::new();
-                if !reasoning_message.content.trim().is_empty() {
-                    assistant_tool_use_blocks.push(InputContentBlock::Thinking {
-                        thinking: reasoning_message.content.clone(),
-                    });
-                }
-                for (_, (tool_use_id, name, arguments)) in &model_tool_calls {
-                    let input = serde_json::from_str::<serde_json::Value>(arguments)
-                        .unwrap_or_else(|_| json!({ "raw": arguments }));
-                    assistant_tool_use_blocks.push(InputContentBlock::ToolUse {
-                        id: tool_use_id.clone(),
-                        name: name.clone(),
-                        input: input.clone(),
-                    });
-                    parsed_tool_calls.push((tool_use_id.clone(), name.clone(), input));
-                }
-                emit_active_realtime_session_event(
-                    "action_step",
-                    json!({
-                        "message_id": assistant_id.clone(),
-                        "agent_id": agent.id.clone(),
-                        "agent_name": agent.display_name.clone(),
-                        "status": "dispatching",
-                        "tool_call_count": parsed_tool_calls.len()
-                    }),
-                );
-                let turn_key = result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn");
-                for (id, name, _) in &parsed_tool_calls {
-                    yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key, id, name, "running", "正在执行")));
-                }
-                let dispatches = match tool_invocation_identity::scope(format!("{stream_turn_id}/response-1"), dispatch_model_tool_calls_parallel_with_cancel(
-                    parsed_tool_calls,
-                    "[TOOL-LOOP-STREAM]",
-                    Some(agent.id.clone()),
-                    Some(stream_turn_id.clone()),
-                    Some(result.chat_room_id.clone()),
-                    parent.clone(),
-                    host_scope.clone(),
-                    Arc::clone(&cancellation),
-                ))
-                .await
-                {
-                    Ok(dispatches) => dispatches,
-                    Err(_) => {
-                        terminal_status = ChatTurnStatus::Interrupted;
-                        break 'chat_turn;
-                    }
-                };
-                if cancellation.is_requested() {
-                    terminal_status = ChatTurnStatus::Interrupted;
+            if agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+                == agent_session_backend::AgentSessionBackend::LlmHttp && use_real_llm {
+                let Some(assembly) = stream_context_assembly.clone() else {
+                    terminal_status = ChatTurnStatus::Failed;
+                    diagnostic_note = Some("流式上下文缺失，工具请求未执行".to_string());
                     break 'chat_turn;
-                }
-                for dispatch in &dispatches {
-                    yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key,
-                        &dispatch.tool_use_id, &dispatch.name, chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error), &dispatch.summary_text)));
-                }
-                diag!(
-                    "[TOOL-LOOP-STREAM] dispatch returned {} result(s): [{}]",
-                    dispatches.len(),
-                    dispatches
-                        .iter()
-                        .map(|d| format!(
-                            "{}:{}",
-                            d.tool_use_id,
-                            if d.is_error { "err" } else { "ok" }
-                        ))
-                        .collect::<Vec<_>>()
-                        .join(",")
-                );
-                tool_result_summaries.extend(
-                    dispatches
-                        .iter()
-                        .map(ToolFallbackSummary::from_dispatch),
-                );
-                let mut computer_use_terminal_failure = dispatches
-                    .iter()
-                    .find(|dispatch| {
-                        dispatch.route == "computer-use-task-controller" && dispatch.is_error
-                    })
-                    .map(|dispatch| dispatch.summary_text.clone());
-                let dispatch_error_count =
-                    dispatches.iter().filter(|dispatch| dispatch.is_error).count();
-                let dispatch_terminal_status = if dispatch_error_count == 0 {
-                    "completed"
-                } else {
-                    "failed"
                 };
-                emit_active_realtime_session_event(
-                    "action_step",
-                    json!({
-                        "message_id": assistant_id.clone(),
-                        "agent_id": agent.id.clone(),
-                        "agent_name": agent.display_name.clone(),
-                        "status": dispatch_terminal_status,
-                        "tool_call_count": dispatches.len(),
-                        "error_count": dispatch_error_count
-                    }),
-                );
-                let stream_turn_key = result
-                    .messages
-                    .first()
-                    .map(|message| message.id.as_str())
-                    .unwrap_or("stream-turn");
-                let persisted_tool_messages = dispatches
-                    .iter()
-                    .flat_map(|dispatch| {
-                        let status = chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error);
-                        let call_summary = chat_tool_history::dispatch_summary(dispatch);
-                        tool_messages_from_summary(
-                            agent,
-                            &dispatch.tool_use_id,
-                            stream_turn_key,
-                            &dispatch.name,
-                            call_summary,
-                            dispatch.tool_result_text.clone(),
-                            status,
-                            &dispatch.route,
-                        )
-                    })
-                    .collect::<Vec<_>>();
-                if cancellation.is_requested() {
-                    terminal_status = ChatTurnStatus::Interrupted;
-                    break 'chat_turn;
+                let mut content = Vec::new();
+                if !assistant_message.content.is_empty() {
+                    content.push(OutputContentBlock::Text { text: assistant_message.content.clone() });
                 }
-                for message in persisted_tool_messages {
-                    yield Ok(sse_json_event("message", &message));
-                    messages.push(message);
+                if !reasoning_message.content.is_empty() {
+                    content.push(OutputContentBlock::Thinking { thinking: reasoning_message.content.clone(), signature: None });
                 }
-                let tool_result_blocks: Vec<InputContentBlock> = dispatches
-                .into_iter()
-                .map(|dispatch| InputContentBlock::ToolResult {
-                    tool_use_id: dispatch.tool_use_id,
-                    content: vec![ToolResultContentBlock::Text {
-                        text: dispatch.tool_result_text,
-                    }],
-                    is_error: dispatch.is_error,
-                })
-                .collect();
-                streamed_tool_calls_dispatched = true;
-
-                // 工具反馈轮必须延续首轮已经组装好的完整上下文。这里不能只重建
-                // `current user + ToolUse + ToolResult`，否则聊天室历史、记忆、图片和
-                // collaboration roster 会从 round2 起全部丢失。
-                let (mut loop_messages, loop_system_prompt) =
-                    if let Some(assembly) = stream_context_assembly.as_ref() {
-                        (assembly.messages.clone(), assembly.system_prompt.clone())
-                    } else {
-                        (
-                            vec![InputMessage::user_text(result.user_content.clone())],
-                            build_agent_system_prompt(agent),
-                        )
-                    };
-                loop_messages.push(InputMessage {
-                    role: "assistant".to_string(),
-                    content: assistant_tool_use_blocks,
-                });
-                loop_messages.push(InputMessage {
-                    role: "user".to_string(),
-                    content: tool_result_blocks,
-                });
-                // 多轮工具循环（round2+）：与非流式 call_agent_model_with_tool_loop 对齐。
-                // 修复 CUR-GOAL-LOOP-001：此前流式只做单轮反馈，round2 模型再请求工具即被忽略，
-                // 导致多步任务（建多文件 / 分步执行）必然 stall（"模型未返回最终回复"）。
-                // round1 已流式执行并喂回；此处逐轮用非流式 send_message 推进，直到模型返回纯文本
-                // 或达 max_feedback_rounds 上限。工具循环期间不流式 token（属"执行中"），最终整条回复。
-                let max_rounds = tool_execution_policy().max_feedback_rounds.max(1) as u32;
-                let mut multi_round_answer = String::new();
-                let mut feedback_watchdog_hit = false;
-                let mut last_loop_sig: Option<u64> = None;
-                let mut loop_repeat: u32 = 0;
-                let mut round_no: u32 = 2;
-                loop {
-                    if cancellation.is_requested() {
-                        terminal_status = ChatTurnStatus::Interrupted;
-                        break 'chat_turn;
-                    }
-                    let mut request = agent_message_request_with_context_messages_for_room(
-                        agent,
-                        false,
-                        &loop_system_prompt,
-                        loop_messages.clone(),
-                        Some(&result.chat_room_id),
-                    );
-                    retain_admitted_mcp_definitions(&mut request, parent.as_ref());
-                    host_child_agent::bind_session_tool_catalog(&mut request, parent.as_ref(), &agent.id);
-                    let response = match request_usage::observe_with_run(provider_client_for_agent(agent), &agent.id, Some(&result.chat_room_id), Some(&turn_id), None, "tool_feedback", parent.as_ref().and_then(|context| context.parent_run_id.as_deref())) {
-                        Ok(client) => match await_chat_turn(
-                            cancellation.as_ref(),
-                            client.send_message(&request),
-                        )
-                        .await
-                        {
-                            Err(_) => {
-                                terminal_status = ChatTurnStatus::Interrupted;
-                                break 'chat_turn;
-                            }
-                            Ok(Ok(resp)) => resp,
-                            Ok(Err(e)) => {
-                                diag!("[TOOL-LOOP-STREAM] round{round_no} send_message failed: {e:?}");
-                                break;
+                for (_, (id, name, arguments)) in &model_tool_calls {
+                    content.push(OutputContentBlock::ToolUse { id: id.clone(), name: name.clone(),
+                        input: serde_json::from_str(arguments).unwrap_or_else(|_| json!({"raw":arguments})) });
+                }
+                let usage_known = best_remote_usage.is_some();
+                let initial = api::MessageResponse { id: None, kind: "message".into(), role: "assistant".into(),
+                    content, model: agent.model.clone(), stop_reason: Some("tool_use".into()), stop_sequence: None,
+                    usage: best_remote_usage.clone().unwrap_or(api::Usage { input_tokens: 0,
+                        cache_creation_input_tokens: 0, cache_read_input_tokens: 0, output_tokens: 0 }), request_id: None };
+                let (sender, mut events) = tokio::sync::mpsc::unbounded_channel();
+                let observer = SharedModelTurnObserver { sender, chat_turn_id: turn_id.clone(), assistant_message_id: assistant_id.clone(),
+                    message_turn_key: result.messages.first().map(|message| message.id.clone()).unwrap_or_else(|| "stream-turn".into()) };
+                let execution = TURN_TRACE.scope(stream_turn_id.clone(), run_shared_model_tool_loop(
+                    agent, &result.user_content, assembly, Some(&result.chat_room_id), parent.as_ref(), None,
+                    stream_turn_id.clone(), Some((initial, usage_known)), Some(observer)));
+                let execution = await_chat_turn(cancellation.as_ref(), Box::pin(execution));
+                tokio::pin!(execution);
+                let completed = loop {
+                    tokio::select! {
+                        biased;
+                        Some(event) = events.recv() => match event {
+                            SharedModelTurnEvent::Status(status) => { yield Ok(sse_json_event("tool_status", &status)); }
+                            SharedModelTurnEvent::Message(message) => {
+                                yield Ok(sse_json_event("message", &message)); messages.push(message);
                             }
                         },
-                        Err(e) => {
-                            diag!("[TOOL-LOOP-STREAM] round{round_no} provider_client failed: {e:?}");
-                            break;
+                        result = &mut execution => break result,
+                    }
+                };
+                // 同次poll可在发出末批结果后立即结束；完成前必须排空已产生的事件。
+                while let Ok(event) = events.try_recv() {
+                    match event {
+                        SharedModelTurnEvent::Status(status) => { yield Ok(sse_json_event("tool_status", &status)); }
+                        SharedModelTurnEvent::Message(message) => {
+                            yield Ok(sse_json_event("message", &message)); messages.push(message);
                         }
-                    };
-                    used_real_model = true;
-                    // 已收到的真实响应先记账；紧接着取消不能抹掉上游已报告的用量。
-                    if cancellation.is_requested() {
-                        terminal_status = ChatTurnStatus::Interrupted;
-                        break 'chat_turn;
                     }
-                    remember_largest_remote_usage(&mut best_remote_usage, &response.usage);
-                    let tool_requests = model_tool_requests_from_blocks(&response.content);
-                    // 不同反馈响应可能重复使用 provider call ID；加响应轮次，避免覆盖上次调用与审计。
-                    let feedback_turn_key = format!("{}:feedback-{round_no}", result.messages.first().map(|m| m.id.as_str()).unwrap_or("stream-turn"));
-                    for (id, name, _) in &tool_requests {
-                        yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, &feedback_turn_key, id, name, "requested", "正在校验工具请求")));
-                    }
-                    let recovery_reason = if model_text_requires_tool_recovery(&answer_text(&response.content), &result.user_content) {
-                        Some("模型在正文中输出了未执行的工具调用标记".to_string())
-                    } else if tool_requests.iter().any(|(_, name, _)| !tool_call_name_is_exposed(name, request.tools.as_deref())) {
-                        Some("模型请求了本次未开放的工具，调用未执行".to_string())
-                    } else if tool_requests.iter().any(|(_, name, input)| is_computer_use_tool_request(name, input))
-                        && computer_use_terminal_failure.is_some() {
-                        computer_use_terminal_failure.as_deref().map(computer_use_recursive_call_blocked_feedback)
-                    } else if !tool_requests.is_empty() && round_no > max_rounds {
-                        feedback_watchdog_hit = true;
-                        Some(tool_feedback_watchdog_message(max_rounds as usize, tool_requests.len()))
-                    } else { None };
-                    if let Some(reason) = recovery_reason {
-                        for (id, name, _) in &tool_requests {
-                            yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, &feedback_turn_key, id, name, "not-executed", &reason)));
-                        }
-                        diagnostic_note = Some(reason.clone());
-                        match await_chat_turn(cancellation.as_ref(), call_agent_model_text_recovery(
-                            agent, &loop_system_prompt, &loop_messages, &result.user_content,
-                            &reason, Some(&result.chat_room_id), None,
-                            parent.as_ref().and_then(|context| context.parent_run_id.as_deref()))).await {
-                            Err(_) => { terminal_status = ChatTurnStatus::Interrupted; break 'chat_turn; }
-                            Ok(Ok(recovered)) => {
-                                remember_largest_remote_usage(&mut best_remote_usage, &recovered.usage);
-                                multi_round_answer = answer_text(&recovered.content);
-                            }
-                            Ok(Err(_)) => multi_round_answer = unfinished_tool_recovery_answer(&result.user_content),
-                        }
-                        break;
-                    }
-                    if tool_requests.is_empty() {
-                        multi_round_answer = answer_text(&response.content);
-                        diag!(
-                            "[TOOL-LOOP-STREAM] round{round_no} final reply, answer_len={}",
-                            multi_round_answer.len()
-                        );
-                        break;
-                    }
-                    if round_no > max_rounds {
-                        feedback_watchdog_hit = true;
-                        multi_round_answer = tool_feedback_watchdog_message(
-                            max_rounds as usize,
-                            tool_requests.len(),
-                        );
-                        diag!(
-                            "[TOOL-LOOP-STREAM] reached max rounds ({max_rounds}); stopping with {} pending tool call(s)",
-                            tool_requests.len()
-                        );
-                        emit_active_realtime_session_event(
-                            "action_step",
-                            json!({
-                                "message_id": assistant_id.clone(),
-                                "agent_id": agent.id.clone(),
-                                "agent_name": agent.display_name.clone(),
-                                "status": "blocked",
-                                "error_code": "tool_feedback_round_limit",
-                                "pending_tool_call_count": tool_requests.len()
-                            }),
-                        );
-                        break;
-                    }
-                    diag!(
-                        "[TOOL-LOOP-STREAM] round{round_no}: {} tool call(s), dispatching...",
-                        tool_requests.len()
-                    );
-                    // L1 空转纠偏：连续相同工具调用 → 注入纠偏提示（与非流式一致）。
-                    let mut sig_parts: Vec<String> = response
-                        .content
-                        .iter()
-                        .filter_map(|b| match b {
-                            OutputContentBlock::ToolUse { name, input, .. } => {
-                                Some(format!("{name}:{input}"))
-                            }
-                            _ => None,
-                        })
-                        .collect();
-                    sig_parts.sort();
-                    let sig = hash_bytes(sig_parts.join("|").as_bytes());
-                    if last_loop_sig == Some(sig) {
-                        loop_repeat += 1;
-                    } else {
-                        loop_repeat = 0;
-                        last_loop_sig = Some(sig);
-                    }
-                    let turn_key = feedback_turn_key.as_str();
-                    for (id, name, _) in &tool_requests {
-                        yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key, id, name, "running", "正在执行")));
-                    }
-                    let dispatches = match tool_invocation_identity::scope(format!("{stream_turn_id}/response-{round_no}"), dispatch_model_tool_calls_parallel_with_cancel(
-                        tool_requests.clone(),
-                        "[TOOL-LOOP-STREAM]",
-                        Some(agent.id.clone()),
-                        Some(stream_turn_id.clone()),
-                        Some(result.chat_room_id.clone()),
-                        parent.clone(),
-                        host_scope.clone(),
-                        Arc::clone(&cancellation),
-                    ))
-                    .await
-                    {
-                        Ok(dispatches) => dispatches,
-                        Err(_) => {
-                            terminal_status = ChatTurnStatus::Interrupted;
-                            break 'chat_turn;
-                        }
-                    };
-                    if cancellation.is_requested() {
-                        terminal_status = ChatTurnStatus::Interrupted;
-                        break 'chat_turn;
-                    }
-                    for dispatch in &dispatches {
-                        yield Ok(sse_json_event("tool_status", &chat_tool_history::status_for_chat_turn(&result.chat_room_id, &turn_id, &agent.id, turn_key,
-                            &dispatch.tool_use_id, &dispatch.name, chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error), &dispatch.summary_text)));
-                    }
-                    tool_result_summaries.extend(dispatches.iter().map(ToolFallbackSummary::from_dispatch));
-                    if computer_use_terminal_failure.is_none() {
-                        computer_use_terminal_failure = dispatches
-                            .iter()
-                            .find(|dispatch| {
-                                dispatch.route == "computer-use-task-controller"
-                                    && dispatch.is_error
-                            })
-                            .map(|dispatch| dispatch.summary_text.clone());
-                    }
-                    let stream_turn_key = feedback_turn_key.as_str();
-                    let persisted_tool_messages = dispatches
-                        .iter()
-                        .flat_map(|dispatch| {
-                            let status = chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error);
-                            let call_summary = chat_tool_history::dispatch_summary(dispatch);
-                            tool_messages_from_summary(
-                                agent,
-                                &dispatch.tool_use_id,
-                                stream_turn_key,
-                                &dispatch.name,
-                                call_summary,
-                                dispatch.tool_result_text.clone(),
-                                status,
-                                &dispatch.route,
-                            )
-                        })
-                        .collect::<Vec<_>>();
-                    if cancellation.is_requested() {
-                        terminal_status = ChatTurnStatus::Interrupted;
-                        break 'chat_turn;
-                    }
-                    for message in persisted_tool_messages {
-                        yield Ok(sse_json_event("message", &message));
-                        messages.push(message);
-                    }
-                    let mut tr_blocks: Vec<InputContentBlock> = dispatches
-                        .into_iter()
-                        .map(|d| InputContentBlock::ToolResult {
-                            tool_use_id: d.tool_use_id,
-                            content: vec![ToolResultContentBlock::Text {
-                                text: d.tool_result_text,
-                            }],
-                            is_error: d.is_error,
-                        })
-                        .collect();
-                    if loop_repeat >= 1 {
-                        let any_error = tr_blocks.iter().any(|b| {
-                            matches!(b, InputContentBlock::ToolResult { is_error: true, .. })
-                        });
-                        diag!(
-                            "[TOOL-LOOP-STREAM] L1 supervisor: round{round_no} repeats identical tool call(s) (repeat={loop_repeat}, any_error={any_error}); injecting course-correction."
-                        );
-                        tr_blocks.push(InputContentBlock::Text {
-                            text: format!(
-                                "[Runtime supervisor] 你已连续 {} 次发出完全相同的工具调用{}，没有进展。请立即改变做法：换参数、换工具，或明确报告阻塞点，不要再重复同样的调用。",
-                                loop_repeat + 1,
-                                if any_error { "且持续失败" } else { "" }
-                            ),
-                        });
-                    }
-                    let assistant_tu = InputMessage {
-                        role: "assistant".to_string(),
-                        content: response
-                            .content
-                            .iter()
-                            .filter_map(|b| match b {
-                                OutputContentBlock::ToolUse { id, name, input } => {
-                                    Some(InputContentBlock::ToolUse {
-                                        id: id.clone(),
-                                        name: name.clone(),
-                                        input: input.clone(),
-                                    })
-                                }
-                                OutputContentBlock::Thinking { thinking, .. } => {
-                                    Some(InputContentBlock::Thinking {
-                                        thinking: thinking.clone(),
-                                    })
-                                }
-                                _ => None,
-                            })
-                            .collect(),
-                    };
-                    loop_messages.push(assistant_tu);
-                    loop_messages.push(InputMessage {
-                        role: "user".to_string(),
-                        content: tr_blocks,
-                    });
-                    round_no += 1;
                 }
-                assistant_message.content.clear();
-                assistant_message.kind = "assistant-reply".to_string();
+                let response = match completed {
+                    Err(_) => { terminal_status = ChatTurnStatus::Interrupted; break 'chat_turn; }
+                    Ok(Err(error)) => {
+                        terminal_status = ChatTurnStatus::Failed;
+                        diagnostic_note = Some(error.to_string());
+                        assistant_message.kind = "assistant-error".into();
+                        assistant_message.content = format!("模型反馈未完成：{error}");
+                        yield Ok(sse_json_event("message_replace", &assistant_message));
+                        messages.push(assistant_message.clone()); turn_reply_ids.push(assistant_message.id.clone());
+                        let partial = messages.iter().skip(initial_message_count).cloned().collect();
+                        if let Err(error) = persist_chat_dispatch(&result.chat_room_id,
+                            result.conversation_session_id.as_deref(), &result.targets, partial) {
+                            yield Ok(sse_json_event("error", &ChatStreamError { message: format!("反馈失败记录保存失败：{}", error.1.error) }));
+                        }
+                        break 'chat_turn;
+                    }
+                    Ok(Ok(response)) => response,
+                };
+                streamed_tool_calls_dispatched = true;
                 assistant_started = true;
-                if !multi_round_answer.trim().is_empty() {
-                    assistant_message.content = multi_round_answer;
-                } else if feedback_watchdog_hit {
-                    assistant_message.content =
-                        tool_feedback_watchdog_message(max_rounds as usize, 1);
-                } else if let Some(fallback) = tool_result_fallback_answer(&tool_result_summaries) {
-                    // 工具调用结束并不等于任务完成；状态来自执行结果，不能靠摘要措辞推测成功。
-                    assistant_message.content = fallback;
-                }
-                if cancellation.is_requested() {
-                    terminal_status = ChatTurnStatus::Interrupted;
-                    break 'chat_turn;
+                used_real_model |= response.used_real_model;
+                if response.execution_failed { terminal_status = ChatTurnStatus::Failed; }
+                diagnostic_note = response.diagnostic_note;
+                context_usage = response.context_usage;
+                context_footer = response.context_footer;
+                assistant_message.kind = "assistant-reply".into();
+                assistant_message.content = response.answer_text;
+                if response.reasoning_text != reasoning_message.content {
+                    reasoning_message.content = response.reasoning_text;
+                    yield Ok(sse_json_event("message_replace", &reasoning_message));
                 }
                 yield Ok(sse_json_event("message_replace", &assistant_message));
-                used_real_model = true;
-                diag!(
-                    "[TOOL-LOOP-STREAM] multi-round done: rounds_used={} answer_len={}",
-                    round_no,
-                    assistant_message.content.len()
-                );
             }
 
             diag!(
@@ -19975,7 +19552,7 @@ async fn api_chat_send_stream(
                 terminal_status = ChatTurnStatus::Interrupted;
                 break 'chat_turn;
             }
-            if let Some(assembly) = stream_context_assembly.as_ref() {
+            if let Some(assembly) = stream_context_assembly.as_ref().filter(|_| context_usage.is_none()) {
                 let policy = context_lifecycle_policy();
                 let snapshot = context_usage_snapshot_for_assembly_with_usage(
                     agent,
@@ -20016,7 +19593,7 @@ async fn api_chat_send_stream(
             if acp_settlement == Some(false) { terminal_status = ChatTurnStatus::Failed; }
             if let Some(notice) = chat_tool_history::unexecuted_computer_use_notice(
                 &result.user_content, !tool_result_summaries.is_empty() || acp_settlement.is_some(),
-            ) {
+            ).filter(|_| !streamed_tool_calls_dispatched) {
                 // 流式正文只是模型自述；收尾时用真实派发事实校正，不额外请求模型或补发工具。
                 assistant_message.content = format!("{notice}\n\n{}", assistant_message.content);
                 diagnostic_note = Some(notice.to_string());
@@ -28203,6 +27780,64 @@ async fn call_agent_model_with_tool_loop(
         ));
     }
     image_input.verify_assembly(&assembly)?;
+    Box::pin(run_shared_model_tool_loop(agent, prompt, assembly, chat_room_id, parent,
+        child_scope, model_turn_scope, None, None)).await
+}
+
+/// 普通、SSE首响应、子Agent、Goal和接力HTTP入口共用实际反馈循环。
+/// 流式首响应已被请求账本记录，这里只接受完整结束后冻结的结构化响应，不重发首轮。
+struct SharedModelTurnObserver {
+    sender: tokio::sync::mpsc::UnboundedSender<SharedModelTurnEvent>,
+    message_turn_key: String,
+    chat_turn_id: String,
+    assistant_message_id: String,
+}
+
+enum SharedModelTurnEvent {
+    Status(JsonValue),
+    Message(ChatMessageDto),
+}
+
+impl SharedModelTurnObserver {
+    fn status(&self, agent: &AgentSessionDto, room: Option<&str>, key: &str,
+        requests: &[(String, String, JsonValue)], status: &str, summary: &str) {
+        if status == "running" && !requests.is_empty() {
+            update_active_realtime_session_states(Some("tool_calling"), None);
+            emit_active_realtime_session_event("action_step", json!({"message_id": self.assistant_message_id,
+                "agent_id": agent.id, "agent_name": agent.display_name, "status":"tool_batch_start", "tool_call_count":requests.len()}));
+        }
+        for (id, name, _) in requests {
+            let _ = self.sender.send(SharedModelTurnEvent::Status(chat_tool_history::status_for_chat_turn(
+                room.unwrap_or_default(), &self.chat_turn_id, &agent.id, key, id, name, status, summary)));
+        }
+    }
+    fn dispatches(&self, agent: &AgentSessionDto, room: Option<&str>, key: &str,
+        dispatches: &[ModelToolDispatchResult]) {
+        let errors = dispatches.iter().filter(|dispatch| dispatch.is_error).count();
+        emit_active_realtime_session_event("action_step", json!({"message_id": self.assistant_message_id,
+            "agent_id": agent.id, "agent_name": agent.display_name, "status":if errors == 0 {"tool_batch_completed"} else {"tool_batch_failed"},
+            "tool_call_count":dispatches.len(), "error_count":errors}));
+        for dispatch in dispatches {
+            let status = chat_tool_history::dispatch_status(&dispatch.route, dispatch.is_error);
+            let _ = self.sender.send(SharedModelTurnEvent::Status(chat_tool_history::status_for_chat_turn(
+                room.unwrap_or_default(), &self.chat_turn_id, &agent.id, key,
+                &dispatch.tool_use_id, &dispatch.name, status, &dispatch.summary_text)));
+            for message in tool_messages_from_summary(agent, &dispatch.tool_use_id, key, &dispatch.name,
+                chat_tool_history::dispatch_summary(dispatch), dispatch.tool_result_text.clone(), status, &dispatch.route) {
+                let _ = self.sender.send(SharedModelTurnEvent::Message(message));
+            }
+        }
+    }
+}
+
+async fn run_shared_model_tool_loop(
+    agent: &AgentSessionDto, prompt: &str, assembly: ContextAssembly, chat_room_id: Option<&str>,
+    parent: Option<&FrozenParentContext>, child_scope: Option<Arc<host_child_agent::HostChildScope>>,
+    model_turn_scope: String, mut initial_response: Option<(api::MessageResponse, bool)>,
+    observer: Option<SharedModelTurnObserver>,
+) -> Result<AgentModelResponse, api::ApiError> {
+    // SSE首响应的requested已经随网络流发出；共享循环不能重复发送这一状态。
+    let initial_status_already_emitted = initial_response.is_some();
     let base_history = assembly.messages.clone();
 
     let mut all_reasoning = String::new();
@@ -28259,20 +27894,32 @@ async fn call_agent_model_with_tool_loop(
         let usage_call = child_scope.as_ref().map(|child| child.parent_call_id.as_str());
         let usage_turn = child_scope.as_ref().map_or(assembly.turn_id.as_deref(), |child| Some(child.parent_turn_id.as_str()));
         let usage_workspace = child_scope.as_ref().map(|child| (child.parent.workspace_id.as_str(), child.usage_db_path.as_path()));
-        let response = request_usage::observe_in_workspace_with_run(provider, usage_session, chat_room_id, usage_turn, usage_call, if child_scope.is_some() {"child_agent"} else if round == 0 {"chat"} else {"tool_feedback"}, usage_workspace,
+        let (response, usage_known) = if let Some(initial) = initial_response.take() {
+            initial
+        } else {
+            let response = request_usage::observe_in_workspace_with_run(provider, usage_session, chat_room_id, usage_turn, usage_call, if child_scope.is_some() {"child_agent"} else if round == 0 {"chat"} else {"tool_feedback"}, usage_workspace,
             parent.and_then(|context| context.parent_run_id.as_deref()))?
             .send_message(&request)
             .await?;
+            (response, true)
+        };
         if let Some(child) = child_scope.as_ref() {
             child.validate_live().map_err(|message| api::ApiError::ConfigError {
                 path: "Agent".into(), message,
             })?;
         }
         used_real_model = true;
-        remember_largest_remote_usage(&mut best_remote_usage, &response.usage);
+        if usage_known { remember_largest_remote_usage(&mut best_remote_usage, &response.usage); }
         last_diagnostic = model_diagnostic_note(response.request_id.as_deref(), &response.content);
 
         let tool_requests = model_tool_requests_from_blocks(&response.content);
+        let event_turn_key = observer.as_ref().map(|events| if round == 0 {
+            events.message_turn_key.clone()
+        } else { format!("{}:feedback-{}", events.message_turn_key, round + 1) });
+        if let (Some(events), Some(key)) = (observer.as_ref().filter(|_| round != 0 || !initial_status_already_emitted), event_turn_key.as_deref()) {
+            events.status(agent, chat_room_id, key, &tool_requests, "requested", "正在校验工具请求");
+        }
+
         let recovery_reason = if model_text_requires_tool_recovery(&answer_text(&response.content), prompt) {
             Some("模型在正文中输出了未执行的工具调用标记".to_string())
         } else if tool_requests.iter().any(|(_, name, _)| !tool_call_name_is_exposed(name, request.tools.as_deref())) {
@@ -28281,6 +27928,9 @@ async fn call_agent_model_with_tool_loop(
             computer_use_terminal_failure.as_deref().map(computer_use_recursive_call_blocked_feedback)
         } else { None };
         if let Some(reason) = recovery_reason {
+            if let (Some(events), Some(key)) = (observer.as_ref(), event_turn_key.as_deref()) {
+                events.status(agent, chat_room_id, key, &tool_requests, "not-executed", &reason);
+            }
             last_diagnostic = Some(reason.clone());
             match call_agent_model_text_recovery(agent, &assembly.system_prompt,
                 history.as_ref().unwrap_or(&base_history), prompt, &reason, chat_room_id, child_scope.as_deref(),
@@ -28305,6 +27955,9 @@ async fn call_agent_model_with_tool_loop(
                 Some(child) => format!("{}/child-{}/response-{}", model_turn_scope, child.parent_call_id, round + 1),
                 None => format!("{}/response-{}", model_turn_scope, round + 1),
             };
+            if let (Some(events), Some(key)) = (observer.as_ref(), event_turn_key.as_deref()) {
+                events.status(agent, chat_room_id, key, &tool_requests, "running", "正在执行");
+            }
             let dispatches = tool_invocation_identity::scope(source_request_key, dispatch_model_tool_calls_parallel(
                 tool_requests.clone(),
                 "[TOOL-LOOP]",
@@ -28317,6 +27970,9 @@ async fn call_agent_model_with_tool_loop(
                 host_scope.clone(),
             ))
             .await;
+            if let (Some(events), Some(key)) = (observer.as_ref(), event_turn_key.as_deref()) {
+                events.dispatches(agent, chat_room_id, key, &dispatches);
+            }
             model_tool_calls_executed = true;
             tool_result_summaries.extend(dispatches.iter().map(ToolFallbackSummary::from_dispatch));
             tool_write_executed |= dispatches
@@ -28434,6 +28090,9 @@ async fn call_agent_model_with_tool_loop(
             // 旧实现把它们写入 all_tool_requests，api_chat_send 随后又执行了一批，
             // 导致“提示未执行”与真实副作用相反，并且结果无法再反馈给模型。
             let reason = tool_feedback_watchdog_message(max_tool_feedback_rounds, tool_requests.len());
+            if let (Some(events), Some(key)) = (observer.as_ref(), event_turn_key.as_deref()) {
+                events.status(agent, chat_room_id, key, &tool_requests, "not-executed", &reason);
+            }
             last_diagnostic = Some(reason.clone());
             final_answer = match call_agent_model_text_recovery(agent, &assembly.system_prompt,
                 history.as_ref().unwrap_or(&base_history), prompt, &reason, chat_room_id, child_scope.as_deref(),
@@ -77026,6 +76685,84 @@ attach: last_assistant
     }
 
     #[tokio::test]
+    async fn shared_runner_real_http_and_sse_routes_keep_history_and_read_two_files_once() {
+        use http_body_util::BodyExt;
+        let _lock = config_test_guard();
+        let _permissions = DevOpenPermissionsTestGuard::enable();
+        let captures = std::sync::Arc::new(std::sync::Mutex::new(Vec::<serde_json::Value>::new()));
+        let seen = captures.clone();
+        let mock = axum::Router::new().route("/v1/chat/completions", axum::routing::post(move |axum::Json(request): axum::Json<serde_json::Value>| {
+            let seen = seen.clone();
+            async move {
+                seen.lock().unwrap().push(request.clone());
+                let feedback = request["messages"].as_array().unwrap().iter().filter(|message| message["role"] == "tool").count();
+                let calls = serde_json::json!([{"id":"reused-route-provider-id","type":"function","function":{"name":"read_file",
+                    "arguments":serde_json::json!({"path":if feedback == 0 {"first-shared.txt"} else {"second-shared.txt"}}).to_string()}}]);
+                if request["stream"] == true {
+                    let mut calls = calls; calls[0]["index"] = serde_json::json!(0);
+                    let chunk = serde_json::json!({"id":"shared-stream-first","object":"chat.completion.chunk","created":1,"model":"target-text",
+                        "choices":[{"index":0,"delta":{"role":"assistant","tool_calls":calls},"finish_reason":"tool_calls"}],
+                        "usage":{"prompt_tokens":10,"completion_tokens":5}});
+                    return axum::response::IntoResponse::into_response(([(axum::http::header::CONTENT_TYPE,"text/event-stream")],format!("data: {chunk}\n\ndata: [DONE]\n\n")));
+                }
+                let message = if feedback >= 2 { serde_json::json!({"role":"assistant","content":"两文件均已读取"}) }
+                    else { serde_json::json!({"role":"assistant","content":null,"tool_calls":calls}) };
+                axum::response::IntoResponse::into_response(axum::Json(serde_json::json!({"id":format!("shared-route-{feedback}"),"object":"chat.completion","model":"target-text",
+                    "choices":[{"index":0,"message":message,"finish_reason":if feedback >= 2 {"stop"} else {"tool_calls"}}],
+                    "usage":{"prompt_tokens":10,"completion_tokens":5}})))
+            }
+        }));
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move { axum::serve(listener, mock).await.unwrap(); });
+        let _isolated = crate::multimodal_input::tests::IsolatedState::install(&url);
+        std::fs::write(super::active_workspace_path().join("first-shared.txt"),"ROUTE_FIRST_CONTENT").unwrap();
+        std::fs::write(super::active_workspace_path().join("second-shared.txt"),"ROUTE_SECOND_CONTENT").unwrap();
+        {
+            let mut config = super::workspace_config().lock().unwrap();
+            config.model.enable_real_llm = true; config.model.enable_llm_tools = true;
+            config.model.llm_tool_exposure = Some("all".into()); config.tool.dev_open_permissions = true;
+            config.session_model_limits.entry("target-text".into()).or_default().tool_allowlist = Some(vec!["read_file".into()]);
+        }
+        for streamed in [false, true] {
+            let room = format!("shared-route-room-{streamed}");
+            {
+                let mut store = super::session_store().lock().unwrap();
+                store.state.chat_rooms.push(super::PersistedChatRoom { id:room.clone(), name:"共享循环测试".into(),
+                    created_at:1, updated_at:1, messages:vec![super::PersistedChatMessage {
+                        id:format!("historical-{streamed}"), author:"用户".into(), role:"user".into(), target:"聊天".into(),
+                        content:"历史路由哨兵，需要完整保留".into(), kind:"user-message".into(), attachments:Vec::new(), created_at:super::unix_timestamp_millis()-1000 }] });
+                store.state.active_chat_room_id = Some(room.clone()); store.save().unwrap();
+            }
+            let payload = serde_json::from_value(serde_json::json!({"target_agent_ids":["target-text"],"session_id":"target-text","chat_room_id":room,
+                "text":"请调用 read_file 依次读取 first-shared.txt 和 second-shared.txt，根据真实结果回答。"})).unwrap();
+            if streamed {
+                let response = axum::response::IntoResponse::into_response(Box::pin(super::api_chat_send_stream(axum::Json(payload))).await.unwrap());
+                let bytes = response.into_body().collect().await.unwrap().to_bytes();
+                let sse = String::from_utf8(bytes.to_vec()).unwrap();
+                assert!(sse.contains("两文件均已读取"), "{sse}");
+                assert!(sse.contains("ROUTE_FIRST_CONTENT") && sse.contains("ROUTE_SECOND_CONTENT"), "{sse}");
+                assert!(sse.contains("event: tool_status"));
+            } else {
+                let super::Json(response) = Box::pin(super::api_chat_send(super::Json(payload))).await.unwrap();
+                assert!(!response.execution_failed);
+                assert!(response.messages.iter().any(|message| message.content.contains("两文件均已读取")));
+            }
+        }
+        let captures = captures.lock().unwrap(); assert_eq!(captures.len(), 6);
+        assert_eq!(captures.iter().filter(|request| request["stream"] == true).count(), 1, "SSE首响应只请求一次");
+        assert!(captures.iter().all(|request| request.to_string().contains("历史路由哨兵")));
+        for index in [2,5] {
+            let final_request = captures[index].to_string();
+            assert!(final_request.contains("ROUTE_FIRST_CONTENT") && final_request.contains("ROUTE_SECOND_CONTENT"));
+        }
+        let connection = rusqlite::Connection::open(super::default_session_sqlite_path()).unwrap();
+        let calls: i64 = connection.query_row("SELECT count(*) FROM tool_calls WHERE tool_name='read_file'",[],|row|row.get(0)).unwrap();
+        assert_eq!(calls,4,"两个入口各两次真实读取，不因复用provider ID吞掉或重复派发");
+        server.abort();
+    }
+
+    #[tokio::test]
     async fn tool_result_fallback_stream_and_nonstream_report_failed_tool_when_final_answer_empty() {
         use http_body_util::BodyExt;
         let _lock = config_test_guard();
@@ -77068,7 +76805,7 @@ attach: last_assistant
             store.state.active_chat_room_id = Some("room-empty-tool".into()); store.save().unwrap();
         }
         let payload = serde_json::from_value(serde_json::json!({"target_agent_ids":["target-text"],"session_id":"target-text","chat_room_id":"room-empty-tool","text":"请调用 read_file 读取指定文件。"})).unwrap();
-        let response = axum::response::IntoResponse::into_response(super::api_chat_send_stream(axum::Json(payload)).await.unwrap());
+        let response = axum::response::IntoResponse::into_response(Box::pin(super::api_chat_send_stream(axum::Json(payload))).await.unwrap());
         let bytes = response.into_body().collect().await.unwrap().to_bytes();
         let sse = String::from_utf8(bytes.to_vec()).unwrap();
         assert!(sse.contains("成功 0 次，失败 1 次"), "{sse}");
@@ -84912,9 +84649,8 @@ attach: last_assistant
         let normalized_source = WEB_MAIN_RS.split_whitespace().collect::<Vec<_>>().join(" ");
         assert!(normalized_source
             .contains("(assembly.messages.clone(), assembly.system_prompt.clone())"));
-        assert!(normalized_source.contains(
-            "agent_message_request_with_context_messages_for_room( agent, false, &loop_system_prompt,"
-        ));
+        assert!(normalized_source.contains("run_shared_model_tool_loop("));
+        assert!(normalized_source.contains("let Some(assembly) = stream_context_assembly.clone()"));
         assert!(WEB_MAIN_RS
             .contains("let stream_turn_id = diagnostics::TraceIdType::generate().to_hex();"));
         assert!(WEB_MAIN_RS.contains("assembly.turn_id = Some(turn_id.to_string());"));

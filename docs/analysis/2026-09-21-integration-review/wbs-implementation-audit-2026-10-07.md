@@ -166,7 +166,7 @@ ACP统计遗漏已在正式101修补及独立复验：HTTP与权威ACP台账在�
 | 2.2 历史/usage | `chat_tool_history.rs`、`chat_insights.rs`及请求尝试账本已拆出；统计页读取正常。 | 迟到/嵌套分账全矩阵和统一服务收敛未完整。 |
 | 2.3 工具派发 | registry、权限闸门和插件生命周期已有真实接线。 | `main.rs`重复路径与hook语义尚未全部收敛为ToolDispatchService。 |
 | 2.4 单写者/outbox/epoch | SQLite迁移、事务事实与生产后端已存在。 | **跨进程单写者、outbox、会话权威epoch未完整**，不能以SQLite已有表判完成。 |
-| 2.5 共享异步TurnRunner | CLI `shared_chat.rs`已走共享HTTP/SSE入口，不是仅本地Vec模拟；Web仍有普通与流式独立循环。 | Web/CLI/Goal/接力统一异步运行器未完成；Devin Goal/接力/子Agent入口仍明确拒绝。 |
+| 2.5 共享异步TurnRunner | 2026-10-10源码候选：普通HTTP与SSE首响应/反馈共用实际模型工具循环，原子Agent/Goal/接力HTTP路径复用，CLI沿用共享HTTP/SSE；真实本地双文件路由及完整1452/0/6回归通过。[证据与边界](../2026-10-10-shared-model-loop.md)。 | 正式外部模型/原生验收及各入口完整冻结/取消/恢复矩阵未完成；Devin Goal/接力/子Agent仍明确拒绝，不能把HTTP收敛当作全部后端支持。 |
 | 3.1 Frame/DPI | 原生帧身份、目标映射和浏览器轴缩放已有正式实操。 | 混合DPI、负坐标与真实多屏矩阵缺环境证据。 |
 | 3.2 UIA/语义动作 | 正式Browser同/跨进程子控件、输入、Enter、滚动已有证据，桌面基本输入可用。 | 不外推任意Windows控件pattern能力；完整语义能力表未验。 |
 | 3.3 有界反馈/验证 | 125正式父任务交接→DSH长程、结构/引文同请求反馈和8条实际输入通过。 | 完整纠正次数/取消迟到、分页分支正式复验与子目标重规划未全验；真实引文不等于通用目标语义，125自然导航误判保留。 |

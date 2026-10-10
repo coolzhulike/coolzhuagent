@@ -523,6 +523,86 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn shared_http_loop_and_stream_seed_preserve_history_and_dispatch_each_response_once() {
+        let _guard = config_test_guard();
+        let _dev_open = DevOpenPermissionsTestGuard::enable();
+        let temp = tempfile::tempdir().unwrap();
+        let mut config = crate::WorkspaceConfig::default();
+        config.model.enable_llm_tools = true;
+        config.model.llm_tool_exposure = Some("all".into());
+        let _environment = HostTestEnvironment::install(temp.path(), config);
+        let first_path = temp.path().join("first.txt");
+        let second_path = temp.path().join("second.txt");
+        std::fs::write(&first_path, "FIRST_PRIVATE_TEST_RESULT").unwrap();
+        std::fs::write(&second_path, "SECOND_PRIVATE_TEST_RESULT").unwrap();
+        for seeded in [false, true] {
+            let bodies = Arc::new(std::sync::Mutex::new(Vec::<serde_json::Value>::new()));
+            let captured = Arc::clone(&bodies);
+            let first = first_path.clone(); let second = second_path.clone();
+            let router = axum::Router::new().route("/v1/chat/completions", axum::routing::post(
+                move |axum::Json(body): axum::Json<serde_json::Value>| {
+                    let captured = Arc::clone(&captured); let first = first.clone(); let second = second.clone();
+                    async move {
+                        let round = { let mut bodies = captured.lock().unwrap(); bodies.push(body); bodies.len() + usize::from(seeded) };
+                        let message = if round <= 2 {
+                            serde_json::json!({"role":"assistant","content":null,"tool_calls":[{
+                                "id":"same-provider-tool-id","type":"function","function":{"name":"read_file",
+                                "arguments":serde_json::json!({"path":if round == 1 {first} else {second}}).to_string()}}]})
+                        } else { serde_json::json!({"role":"assistant","content":"两文件读取完成"}) };
+                        axum::Json(serde_json::json!({"id":format!("shared-response-{round}"),"object":"chat.completion","model":"local-shared",
+                            "choices":[{"index":0,"message":message,"finish_reason":if round <= 2 {"tool_calls"} else {"stop"}}],
+                            "usage":{"prompt_tokens":11,"completion_tokens":7,"total_tokens":18}}))
+                    }
+                }));
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let address = listener.local_addr().unwrap();
+            let server = tokio::spawn(async move { axum::serve(listener, router).await.unwrap(); });
+            let mut agent = context_test_agent();
+            agent.id = format!("shared-loop-{seeded}"); agent.provider = "Custom".into();
+            agent.model = "local-shared".into(); agent.base_url = Some(format!("http://{address}/v1")); agent.memory_beads.clear();
+            let db = temp.path().join(format!("shared-loop-{seeded}.sqlite3"));
+            let workspace = crate::workspace_identity(temp.path());
+            let turn = format!("shared-turn-{seeded}"); let run = format!("shared-run-{seeded}");
+            crate::create_chat_runtime_run_sqlite(&db, &run, "shared-claim", &workspace, Some(&agent.id), "shared-room", &turn).unwrap();
+            crate::start_chat_runtime_run_sqlite(&db, &run, "shared-claim").unwrap();
+            let mut parent = crate::FrozenParentContext::new("shared-loop-test", &workspace, Some("shared-room"), Some(&agent.id), Some(&turn), Some(&run)).unwrap();
+            parent.root_budget = Some(crate::root_execution_budget::RootExecutionBudget::establish(60_000)); parent.runtime_db_path = Some(db.clone());
+            let snapshot = HostModelSnapshot::capture(&agent, Some("shared-room"), &parent).unwrap();
+            let child = Arc::new(HostChildScope { parent: parent.clone(), parent_call_id: "shared-parent-call".into(), parent_turn_id: turn.clone(),
+                tool_session_id: agent.id.clone(), usage_session_id: agent.id.clone(), room_id: "shared-room".into(),
+                allowed_tools: BTreeSet::from(["read_file".into()]),
+                definitions: snapshot.parent_definitions.iter().filter(|tool| tool.name == "read_file").cloned().collect(),
+                permission: snapshot.permission, workspace_root: temp.path().to_path_buf(), usage_db_path: db.clone(),
+                client: snapshot.parent_model.client.clone(), request: snapshot.parent_model.request.clone(), cancellation: Arc::new(ChatTurnCancellation::new()) });
+            assert!(child.permits("read_file"));
+            let prompt = "请读取两个文件，并根据真实工具结果回答";
+            let mut assembly = crate::build_context_assembly_with_roster(&agent, &[], prompt, &[],
+                crate::context_build_options_for_agent_with_floor_and_room(&agent, None, Some("shared-room")), None);
+            assembly.messages.insert(0, crate::InputMessage::user_text("历史上下文哨兵，不得丢失")); assembly.turn_id = Some(turn.clone());
+            let initial = seeded.then(|| (api::MessageResponse { id: None, kind: "message".into(), role: "assistant".into(),
+                content: vec![crate::OutputContentBlock::ToolUse { id: "same-provider-tool-id".into(), name: "read_file".into(), input: serde_json::json!({"path":first_path}) }],
+                model: agent.model.clone(), stop_reason: Some("tool_use".into()), stop_sequence: None,
+                usage: api::Usage { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 }, request_id: None }, false));
+            let (sender, mut events) = tokio::sync::mpsc::unbounded_channel();
+            let response = crate::TURN_TRACE.scope(turn.clone(), Box::pin(crate::run_shared_model_tool_loop(&agent, prompt,
+                assembly, Some("shared-room"), Some(&parent), Some(child), turn.clone(), initial,
+                Some(crate::SharedModelTurnObserver { sender, message_turn_key: "shared-user-message".into(), chat_turn_id: turn.clone(), assistant_message_id: "shared-test-assistant".into() })))).await.unwrap();
+            assert_eq!(response.answer_text, "两文件读取完成"); assert!(response.tool_requests.is_empty()); assert!(response.model_tool_calls_executed);
+            let bodies = bodies.lock().unwrap(); assert_eq!(bodies.len(), if seeded {2} else {3});
+            assert!(bodies.iter().all(|body| body.to_string().contains("历史上下文哨兵")));
+            assert!(bodies.last().unwrap().to_string().contains("FIRST_PRIVATE_TEST_RESULT"));
+            assert!(bodies.last().unwrap().to_string().contains("SECOND_PRIVATE_TEST_RESULT"));
+            let mut results = Vec::new();
+            while let Ok(event) = events.try_recv() { if let crate::SharedModelTurnEvent::Message(message) = event { if message.kind == "tool-result" {results.push(message);} } }
+            assert_eq!(results.len(), 2); assert_ne!(results[0].id, results[1].id, "重复provider ID必须按真实响应身份分开");
+            let connection = rusqlite::Connection::open(&db).unwrap();
+            let attempts: i64 = connection.query_row("SELECT count(*) FROM chat_usage_events WHERE call_id='shared-parent-call'", [], |row| row.get(0)).unwrap();
+            assert_eq!(attempts, if seeded {2} else {3}, "流式首响应不得被再次请求或伪造账目");
+            server.abort();
+        }
+    }
+
+    #[tokio::test]
     async fn host_agent_dispatch_uses_two_targets_and_records_each_child_request_once() {
         let _guard = config_test_guard();
         let _dev_open = DevOpenPermissionsTestGuard::enable();
