@@ -630,7 +630,8 @@ mod tests {
     /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
     #[tokio::test]
     async fn shared_http_stream_and_cancel_use_one_real_admission_and_original_turn() {
-        for (cancel, terminal) in [(false, "completed"), (true, "interrupted"), (false, "commit_pending")] {
+        for (cancel, terminal, disconnected) in [(false, "completed", false), (true, "interrupted", false),
+            (false, "commit_pending", false), (false, "completed", true), (false, "interrupted", true)] {
             let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
             let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
             let workspace = std::env::current_dir().unwrap().canonicalize().unwrap();
@@ -640,7 +641,9 @@ mod tests {
                 let mut held_stream = None;
                 let mut notify = Some(notify);
                 let mut submissions = 0;
-                for _ in 0..if cancel {5} else {4} {
+                let mut stops = 0;
+                let mut queries = 0;
+                for _ in 0..if disconnected {6} else if cancel {5} else {4} {
                     let (mut socket,_) = listener.accept().await.unwrap();
                     let (request, body) = read_request(&mut socket).await;
                     match request.as_str() {
@@ -655,7 +658,10 @@ mod tests {
                             assert!(body.get("permission_mode").is_none());
                             socket.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n").await.unwrap();
                             chunk(&mut socket,b"event: started\ndata: {\"run_id\":\"run\",\"turn_id\":\"turn\",\"chat_room_id\":\"room\"}\n\n").await;
-                            if cancel {
+                            if disconnected {
+                                // 已接纳但未发送 done；真实关闭 SSE 触发客户端恢复。
+                                socket.write_all(b"0\r\n\r\n").await.unwrap();
+                            } else if cancel {
                                 notify.take().unwrap().send(()).unwrap(); held_stream = Some(socket);
                             } else {
                                 let events = format!("event: message_delta\ndata: {}\n\nevent: done\ndata: {}\n\n",
@@ -666,16 +672,27 @@ mod tests {
                             }
                         },
                         "POST /api/chat/turn/interrupt HTTP/1.1" => {
+                            stops += 1;
                             assert_eq!(body,json!({"session_id":"session","chat_room_id":"room","turn_id":"turn"}));
                             send_json(&mut socket,json!({"turn_id":"turn","status":"interrupt_requested","outcome":"stop_requested"})).await;
-                            let mut stream = held_stream.take().unwrap();
-                            chunk(&mut stream,b"event: done\ndata: {\"run_id\":\"run\",\"turn_id\":\"turn\",\"status\":\"interrupted\"}\n\n").await;
-                            stream.write_all(b"0\r\n\r\n").await.unwrap();
+                            if !disconnected {
+                                let mut stream = held_stream.take().unwrap();
+                                chunk(&mut stream,b"event: done\ndata: {\"run_id\":\"run\",\"turn_id\":\"turn\",\"status\":\"interrupted\"}\n\n").await;
+                                stream.write_all(b"0\r\n\r\n").await.unwrap();
+                            }
+                        },
+                        "GET /api/runs/run HTTP/1.1" => {
+                            assert!(disconnected);
+                            queries += 1;
+                            send_json(&mut socket,json!({"run_id":"run","turn_id":"turn","session_id":"session",
+                                "chat_room_id":"room","workspace_id":"workspace","state":terminal})).await;
                         },
                         _ => panic!("意外或重复请求：{request}"),
                     }
                 }
                 assert_eq!(submissions,1);
+                assert_eq!(stops, usize::from(cancel || disconnected));
+                assert_eq!(queries, usize::from(disconnected));
             });
             let signal = async move {
                 if cancel { notified.await.map_err(problem)?; } else { std::future::pending::<()>().await; }
@@ -692,7 +709,10 @@ mod tests {
             let events = String::from_utf8(out).unwrap();
             let last:Value=serde_json::from_str(events.lines().last().unwrap()).unwrap();
             assert_eq!(last["event"],"done"); assert_eq!(last["data"]["status"],terminal);
-            if !cancel { assert!(events.contains("鹈鹕骑车")); }
+            if disconnected {
+                assert_eq!(last["data"]["source"], "run_status_after_disconnect");
+                assert_eq!(last["data"]["runtime_state"], terminal);
+            } else if !cancel { assert!(events.contains("鹈鹕骑车")); }
         }
     }
 }
