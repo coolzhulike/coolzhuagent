@@ -48,8 +48,11 @@ impl ToolDispatchService {
     if budget.as_ref().is_some_and(|budget| budget.is_expired()) {
         return Err(api_error(StatusCode::REQUEST_TIMEOUT, root_execution_budget::EXPIRED_REASON));
     }
-    let existing = turn_id.and_then(|trace| tool_turn_cancellation_registry().lock().ok().and_then(|entries| entries.get(trace).cloned()))
-        .or_else(|| CHAT_CANCELLATION.try_with(Arc::clone).ok());
+    let existing = match host_scope {
+        Some(host_child_agent::HostToolScope::Child(child)) => Some(Arc::clone(&child.cancellation)),
+        _ => turn_id.and_then(|trace| tool_turn_cancellation_registry().lock().ok().and_then(|entries| entries.get(trace).cloned()))
+            .or_else(|| CHAT_CANCELLATION.try_with(Arc::clone).ok()),
+    };
     let cancellation = existing.clone().unwrap_or_else(|| Arc::new(ChatTurnCancellation::new()));
     if cancellation.is_requested() { return Err(api_error(StatusCode::CONFLICT, "本轮已停止，未派发新工具")); }
     let registry_path = parent.and_then(|parent| parent.goal_phase.as_ref()).map(|goal| goal.db_path().to_path_buf())
@@ -79,12 +82,16 @@ impl ToolDispatchService {
     // 巨型分发future放到堆上，避免多层冻结上下文在默认线程栈上溢出；仍沿用同一预算和取消。
     let run = Box::pin(run_model_tool_dispatch_within_root(name, input, caller_session_id, execution_call_id, turn_id, chat_room_id, parent, host_scope,
         source.as_ref().map(|source| source.provider_tool_call_id.as_str()), &mut settlement));
+    let controlled = async {
+        super::await_chat_turn(&cancellation, run).await
+            .map_err(|_|api_error(StatusCode::CONFLICT,"执行已停止等待，可能发生的效果须核查轨迹"))?
+    };
     let mut outcome = if let Some(budget) = budget {
-        match root_execution_budget::scope(budget.clone(), budget.run_cancellable(run, || { cancellation.request_timeout(); })).await {
+        match root_execution_budget::scope(budget.clone(), budget.run_cancellable(controlled, || { cancellation.request_timeout(); })).await {
             Ok(result) => result,
             Err(error) => Err(api_error(StatusCode::REQUEST_TIMEOUT, &error.to_string())),
         }
-    } else { run.await };
+    } else { controlled.await };
     let status = match &outcome {
         Ok(result) if name.starts_with(dsh_execution::PREFIX)
             && result.route == "runtime-dry-run"

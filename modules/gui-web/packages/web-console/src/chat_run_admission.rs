@@ -72,6 +72,8 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
     crate::append_runtime_run_event(&db_path, &run_id, "chat.target_agents",
         serde_json::json!({"agent_ids":result.targets.iter().map(|agent| &agent.id).collect::<Vec<_>>()}))
         .map_err(crate::sqlite_api_error)?;
+    crate::execution_service::ExecutionService::bind_chat(&db_path, &workspace_id, &run_id,
+        Arc::clone(&cancellation)).map_err(|error|crate::api_error(crate::StatusCode::CONFLICT,&error))?;
     Ok(AcceptedChatRun { turn_id, run_id, claim_token, db_path, cancellation, root_budget, parent, guard })
 }
 

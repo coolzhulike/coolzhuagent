@@ -60,6 +60,8 @@ pub(super) struct HostModelSnapshot {
     pub(super) permission: PermissionMode,
     pub(super) workspace_root: PathBuf,
     usage_db_path: PathBuf,
+    /// 只继承已授权父房间的历史，不能通过选择模型读取其它聊天室。
+    context_history: Vec<PersistedChatMessage>,
 }
 
 impl HostModelSnapshot {
@@ -82,6 +84,14 @@ impl HostModelSnapshot {
             client: provider_client_for_agent(agent).map_err(|error| error.to_string())?,
             request: FrozenModelRequestConfig::capture(agent),
         };
+        let context_history = {
+            let path = parent.runtime_db_path.clone().unwrap_or_else(default_session_sqlite_path);
+            let connection = open_session_connection(&path).map_err(|error|error.to_string())?;
+            match room_id {
+                Some(room) => load_chat_room_messages(&connection,room).map_err(|error|error.to_string())?,
+                None => Vec::new(),
+            }
+        };
         let override_models = default_agent_sessions().into_iter()
             .filter(|candidate| candidate.selectable && candidate.enabled && !candidate.system
                 && candidate.id != agent.id)
@@ -99,6 +109,7 @@ impl HostModelSnapshot {
             parent_model, override_models, parent_tools, parent_definitions,
             permission: llm_tool_permission_for_room(room_id), workspace_root,
             usage_db_path: parent.runtime_db_path.clone().unwrap_or_else(default_session_sqlite_path),
+            context_history,
         })
     }
 
@@ -180,6 +191,20 @@ pub(super) enum HostToolScope {
     Child(Arc<HostChildScope>),
 }
 
+/// 把已保存且接纳时实际解析成功的模型会话作为Agent工具参数目录。
+/// 仅修改本轮已经开放的Agent定义，不能新增工具或提升子执行权限。
+pub(super) fn bind_session_tool_catalog(request: &mut MessageRequest,
+    parent: Option<&FrozenParentContext>, agent_id: &str) {
+    let Some(snapshot)=parent.and_then(|p|p.host_model_snapshots.get(agent_id)) else {return;};
+    let Some(definitions)=request.tools.as_mut() else {return;};
+    let Some(tool)=definitions.iter_mut().find(|tool|tool.name=="Agent") else {return;};
+    let sessions=std::iter::once(&snapshot.parent_model).chain(snapshot.override_models.iter())
+        .map(|model|model.agent.id.clone()).collect::<Vec<_>>();
+    tool.description=Some("通过已接纳的模型会话执行同步子任务，复用原配置、凭据和父房间上下文；返回持久executionId与真实结果。model请使用本工具列出的会话ID。只能使用父权限允许的工具，不能递归委派。".into());
+    tool.input_schema["properties"]["model"]=json!({"type":"string","enum":sessions,
+        "description":"接纳时已解析的模型会话ID；省略时使用当前模型会话"});
+}
+
 pub(super) struct WebHostAgentRunner {
     pub snapshot: Arc<HostModelSnapshot>,
     pub parent: FrozenParentContext,
@@ -214,6 +239,9 @@ impl tools::HostAgentRunner for WebHostAgentRunner {
                 goal.validate_live()?;
             }
             let model = self.snapshot.choose_model(request.model.as_deref())?;
+            crate::execution_service::require_capability(&model.agent.provider,
+                crate::execution_service::Source::SessionTool)?;
+            let child_cancel = Arc::new(ChatTurnCancellation::new());
             let allowed_tools = self.snapshot.child_tools(&request.allowed_tools);
             let definitions = self.snapshot.parent_definitions.iter()
                 .filter(|definition| allowed_tools.contains(&definition.name)).cloned().collect();
@@ -231,25 +259,39 @@ impl tools::HostAgentRunner for WebHostAgentRunner {
                 usage_db_path: self.snapshot.usage_db_path.clone(),
                 client: model.client.clone(),
                 request: model.request.clone(),
-                cancellation: Arc::clone(&self.cancellation),
+                cancellation: Arc::clone(&child_cancel),
             });
-            let child_id = random_hex_identifier(24, "host child agent")?;
+            // 宿主工具调用ID已含真实run和来源请求；重复委派不能换随机ID绕过领取。
+            let child_id = format!("child-execution:{}", self.parent_call_id);
             let prompt = format!("子任务：{}\n\n{}", request.description, request.prompt);
+            let spec = crate::execution_service::ExecutionSpec {
+                id: child_id.clone(), workspace_id: self.parent.workspace_id.as_str().into(),
+                room_id: room_id.clone(), session_id: model.agent.id.clone(),
+                provider: model.agent.provider.clone(), model: model.agent.model.clone(),
+                source: crate::execution_service::Source::SessionTool,
+                source_id: self.parent_call_id.clone(), parent_run_id: Some(parent_run_id.clone()),
+                parent_execution_id: None, call_id: Some(self.parent_call_id.clone()),
+                summary: request.description.clone(), deadline_ms: budget.deadline_unix_ms(),
+            };
+            crate::execution_service::TurnRunner::run(&self.snapshot.usage_db_path, spec,
+                Arc::clone(&child_cancel), async {
             let execution = TURN_TRACE.scope(self.parent_turn_id.clone(),
                 call_agent_model_with_tool_loop(
-                    &model.agent, &prompt, &[], &[], None, Some(&room_id),
+                    &model.agent, &prompt, &[], &self.snapshot.context_history, None, Some(&room_id),
                     Some(&self.parent), Some(Arc::clone(&child)),
                 ));
             let execution = root_execution_budget::scope(budget.clone(),
                 budget.run_cancellable(
-                    await_chat_turn(self.cancellation.as_ref(), execution),
-                    || self.cancellation.request_timeout(),
+                    await_chat_turn(child_cancel.as_ref(), execution),
+                    || child_cancel.request_timeout(),
                 ));
+            let execution = crate::execution_service::TurnRunner::child(
+                Arc::clone(&self.cancellation), Arc::clone(&child_cancel), budget.clone(), async {
             let result = if let Some(goal) = self.parent.goal_phase.clone() {
                 tokio::select! {
                     result = execution => result,
                     error = wait_until_goal_phase_invalid(goal) => {
-                        self.cancellation.request();
+                        child_cancel.request();
                         return Err(error);
                     }
                 }
@@ -259,7 +301,10 @@ impl tools::HostAgentRunner for WebHostAgentRunner {
                 .map_err(|_| String::from("父运行已超时，子 Agent 已停止"))?
                 .map_err(|_| String::from("父运行已取消，子 Agent 已停止"))?
                 .map_err(|error| error.to_string())?;
-            if self.cancellation.is_requested()
+            Ok(result)
+            });
+            let result = execution.await?;
+            if child_cancel.is_requested() || self.cancellation.is_requested()
                 || self.parent.root_budget.as_ref().is_some_and(|budget| budget.is_expired()) {
                 return Err(String::from("父运行取消或超时，子 Agent 结果不再提交"));
             }
@@ -284,7 +329,9 @@ impl tools::HostAgentRunner for WebHostAgentRunner {
                 "agentSessionId": self.caller_agent_session_id,
                 "roomId": room_id,
                 "turnId": self.parent_turn_id,
+                "executionId": child_id,
             }))
+            }, |value| value["result"].as_str().unwrap_or("").to_string()).await
         })
     }
 }
@@ -642,7 +689,12 @@ mod tests {
         assert!(aborted.contains("取消"), "{aborted}");
         let mut expiring_parent = parent.clone();
         expiring_parent.root_budget = Some(crate::root_execution_budget::RootExecutionBudget::establish(600));
-        let expiring_runner = invoke_runner(expiring_parent, Arc::new(ChatTurnCancellation::new()));
+        let replay = tools::execute_agent_with_host(&input,
+            Some(&invoke_runner(parent.clone(), Arc::new(ChatTurnCancellation::new())))).await;
+        assert!(replay.unwrap_err().contains("不重放"), "同一父工具来源不能重放已取消委派");
+        let mut expiring_runner = invoke_runner(expiring_parent, Arc::new(ChatTurnCancellation::new()));
+        // 超时用例是另一条真实委派来源，不能复用已取消调用的持久ID。
+        expiring_runner.parent_call_id = String::from("tool-child-timeout");
         let expiring = tokio::spawn(async move {
             tools::execute_agent_with_host(&serde_json::json!({
                 "description":"慢速取消测试", "prompt":"等待父运行截止", "allowed_tools":[]
