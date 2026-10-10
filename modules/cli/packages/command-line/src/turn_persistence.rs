@@ -48,6 +48,10 @@ fn event_directory(path: &Path) -> std::io::Result<std::path::PathBuf> {
 
 /// 恢复持久轨迹；旧会话没有轨迹目录时兼容为空，不忽略已存在的损坏记录。
 pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEvent>>> {
+    load_event_history_with_usage(path).map(|(history, _)| history)
+}
+
+fn load_event_history_with_usage(path: &Path) -> std::io::Result<(Vec<Vec<AgentEvent>>, usize)> {
     use std::io::Read;
     let root = path.parent().unwrap_or_else(|| Path::new(".")).join("internal-turns");
     let current = event_namespace(path)?;
@@ -88,7 +92,7 @@ pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEv
         }
         history.push(events);
     }
-    Ok(history)
+    Ok((history, total_bytes))
 }
 
 /// 内部回合保留独立快照，先独占预留文件；不会覆盖主会话或已有内部回合。
@@ -173,7 +177,18 @@ fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
     if events.is_empty() { return Ok(()); }
     validate_event_record(events)?;
     let bytes = encode_event_record(&events, MAX_EVENT_RECORD_BYTES)?;
-    let (event_path, mut file) = reserve_file_in_directory(&event_directory(path)?, "pending")?;
+    // 规范父目录，锁覆盖旧目录读取、预算检查及新记录发布；保留锁文件避免 inode 分裂。
+    let parent = std::fs::canonicalize(path.parent().filter(|parent| !parent.as_os_str().is_empty()).unwrap_or_else(|| Path::new(".")))?;
+    let canonical_path = parent.join(path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?);
+    let _lock = runtime::lock_file_mutation(&event_directory(&canonical_path)?)?;
+    let (history, total_bytes) = load_event_history_with_usage(&canonical_path)?;
+    if history.len() >= 10_000 || total_bytes + bytes.len() > 64 * 1024 * 1024 {
+        return Err(std::io::Error::other("新增回合将超过恢复历史预算，未发布"));
+    }
+    if history.iter().any(|record| record[0].thread_id == events[0].thread_id && record[0].turn_id == events[0].turn_id) {
+        return Err(std::io::Error::other("回合历史身份重复，未发布"));
+    }
+    let (event_path, mut file) = reserve_file_in_directory(&event_directory(&canonical_path)?, "pending")?;
     let saved = file.write_all(&bytes).and_then(|()| file.sync_all());
     drop(file);
     if let Err(error) = saved {
@@ -199,6 +214,46 @@ mod tests {
         PermissionPolicy, ToolExecutor, ToolError};
 
     #[test]
+    fn history_lock_rejects_real_competing_process_then_releases() {
+        const CHILD_PATH: &str = "COOLZHU_HISTORY_LOCK_TEST_PATH";
+        const CHILD_BUSY: &str = "COOLZHU_HISTORY_LOCK_TEST_BUSY";
+        let events = vec![
+            AgentEvent::new(1, "thread".into(), "child".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "child".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        if let Some(path) = std::env::var_os(CHILD_PATH) {
+            let result = save_events(&events, Path::new(&path));
+            if std::env::var(CHILD_BUSY).unwrap() == "1" {
+                assert_eq!(result.unwrap_err().kind(), std::io::ErrorKind::WouldBlock);
+                assert!(!event_directory(Path::new(&path)).unwrap().exists());
+            } else { result.unwrap(); }
+            return;
+        }
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-history-real-lock-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = std::fs::canonicalize(&directory).unwrap().join("main.json");
+        let lock = runtime::lock_file_mutation(&event_directory(&path).unwrap()).unwrap();
+        let run_child = |busy: &str| {
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "turn_persistence::tests::history_lock_rejects_real_competing_process_then_releases", "--nocapture"])
+                .env(CHILD_PATH, &path).env(CHILD_BUSY, busy).output().unwrap();
+            assert!(output.status.success(), "子进程失败：{} {}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+        };
+        run_child("1");
+        drop(lock);
+        run_child("0");
+        assert_eq!(load_event_history(&path).unwrap(), vec![events.clone()]);
+        assert!(save_events(&events, &path).unwrap_err().to_string().contains("身份重复"));
+        let event_dir = event_directory(&path).unwrap();
+        assert_eq!(std::fs::read_dir(&event_dir).unwrap().count(), 1);
+        for entry in std::fs::read_dir(&event_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
     fn event_encoding_checks_serialized_bytes_before_publication() {
         // 中文与 JSON 转义的长度必须按序列化字节计算，不能按字符计数。
         let value = serde_json::json!({"text": "中文\n\""});
@@ -207,6 +262,36 @@ mod tests {
         assert!(encode_event_record(&value, expected.len() - 1).unwrap_err().to_string().contains("未发布"));
         let large = "x".repeat(MAX_EVENT_RECORD_BYTES);
         assert!(encode_event_record(&large, MAX_EVENT_RECORD_BYTES).is_err());
+    }
+
+    #[test]
+    fn aggregate_byte_budget_rejects_before_publishing_another_turn() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-history-byte-budget-{}", std::process::id()));
+        let path = directory.join("main.json");
+        let event_dir = event_directory(&path).unwrap();
+        std::fs::create_dir_all(&event_dir).unwrap();
+        let mut events = vec![
+            AgentEvent::new(1, "thread".into(), "seed".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "seed".into(), None, runtime::AgentEventKind::TurnCompleted,
+                serde_json::json!({"output": "x".repeat(7 * 1024 * 1024)})),
+        ];
+        // 模拟已存在合法历史，原始总字节低于 64MiB，新一轮会越界。
+        for index in 0..9 {
+            for event in &mut events { event.turn_id = format!("old-{index}").into(); }
+            let bytes = encode_event_record(&events, MAX_EVENT_RECORD_BYTES).unwrap();
+            std::fs::write(event_dir.join(format!("{index}.json")), bytes).unwrap();
+        }
+        for event in &mut events { event.turn_id = "new".into(); }
+        assert!(save_events(&events, &path).unwrap_err().to_string().contains("历史预算"));
+        assert_eq!(std::fs::read_dir(&event_dir).unwrap().count(), 9);
+        let (history, total_bytes) = load_event_history_with_usage(&path).unwrap();
+        assert_eq!(history.len(), 9);
+        assert!(total_bytes < 64 * 1024 * 1024);
+        for entry in std::fs::read_dir(&event_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
     }
 
     #[test]

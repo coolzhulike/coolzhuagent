@@ -14,7 +14,7 @@ pub fn file_content_version(bytes: &[u8]) -> FileContentVersion {
 }
 
 /// 持有到发布完成；锁文件保留，不能删除后重建造成两个不同 inode 的锁。
-pub(crate) fn lock_file_mutation(path: &Path) -> io::Result<File> {
+pub fn lock_file_mutation(path: &Path) -> io::Result<File> {
     let root = std::env::temp_dir().join("coolzhu-file-locks-v1");
     fs::create_dir_all(&root)?;
     if fs::symlink_metadata(&root)?.file_type().is_symlink() {
