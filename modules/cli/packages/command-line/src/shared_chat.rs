@@ -378,9 +378,16 @@ async fn run_async(options: Options, signal: impl Future<Output = io::Result<()>
     // 与本地 GUI HTTP API 相同的认证边界：现有服务无另一个客户端 token。
     // 不接受远程地址、不继承系统代理、不跟随重定向，也不发送模型密钥。
     let client = local_client()?;
-    let workspace_id = validate_context(&client, &options).await?;
-    let mut output = Output { json: options.json, stdout, stderr, receipt: Receipt::default(), message_id: String::new(), displayed: String::new() };
     tokio::pin!(signal);
+    let workspace_id = tokio::select! {
+        biased;
+        result = &mut signal => {
+            result?;
+            return Err(problem("工作区校验期间已取消，聊天请求尚未提交"));
+        }
+        result = validate_context(&client, &options) => result?,
+    };
+    let mut output = Output { json: options.json, stdout, stderr, receipt: Receipt::default(), message_id: String::new(), displayed: String::new() };
     let mut cancel_requested = false;
     let send = client.post(options.base.join("api/chat/send/stream").map_err(problem)?)
         .header("Accept", "text/event-stream")
@@ -489,6 +496,32 @@ mod tests {
     async fn chunk(socket: &mut TcpStream, bytes: &[u8]) {
         socket.write_all(format!("{:x}\r\n",bytes.len()).as_bytes()).await.unwrap();
         socket.write_all(bytes).await.unwrap(); socket.write_all(b"\r\n").await.unwrap();
+    }
+
+    /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
+    #[tokio::test]
+    async fn cancellation_during_context_validation_never_submits_chat() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+        let (notify, notified) = tokio::sync::oneshot::channel();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let (request, _) = read_request(&mut socket).await;
+            assert_eq!(request, "GET /api/state HTTP/1.1");
+            notify.send(()).unwrap();
+            // 持有未响应的校验连接；取消必须结束等待且不产生后续请求。
+            assert!(tokio::time::timeout(Duration::from_millis(200), listener.accept()).await.is_err());
+        });
+        let signal = async move { notified.await.map_err(problem)?; Ok(()) };
+        let options = Options { base, workspace: std::env::current_dir().unwrap(),
+            session: "session".into(), room: "room".into(), prompt: "不得提交".into(),
+            json: true, expected_workspace_id: None };
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let error = tokio::time::timeout(Duration::from_secs(3), run_async(options, signal, &mut out, &mut err))
+            .await.unwrap().unwrap_err();
+        assert!(error.to_string().contains("尚未提交"));
+        assert!(out.is_empty());
+        server.await.unwrap();
     }
 
     /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
