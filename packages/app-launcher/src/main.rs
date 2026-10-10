@@ -438,11 +438,12 @@ fn run(
         write_failed_selfcheck(&config, &error, Some(&decision.resolved), &notes);
         error
     })?;
-    if reuse_existing {
+    if let Some(verification) = reuse_existing {
         let tauri_pid = forward_existing_console(&config, &decision.resolved).map_err(|error| {
             write_failed_selfcheck(&config, &error, Some(&decision.resolved), &notes);
             error
         })?;
+        write_reused_selfcheck(&config, &decision.resolved, tauri_pid, verification, &notes);
         return Ok(RunOutcome::ForwardedExisting { tauri_pid });
     }
 
@@ -515,6 +516,20 @@ fn write_refusal_selfcheck(config: &LauncherConfig, error: &LaunchError) {
     );
 }
 
+fn write_reused_selfcheck(
+    config: &LauncherConfig, resolved: &ResolvedLaunchPaths, tauri_pid: u32,
+    verification: app_launcher::service_identity::ReuseVerification, notes: &[String],
+) {
+    let payload = SelfcheckPayload {
+        ok: true, web_console_pid: None, tauri_pid: Some(tauri_pid),
+        health_url: config.health_url.clone(), error: None, timestamp_ms: now_ms(),
+        resolved: Some(resolved.clone()), reuse: Some(verification), notes: notes.to_vec(),
+    };
+    if let Err(error) = app_launcher::write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload) {
+        eprintln!("package-launcher: 本次复用自检保存失败，旧文件不能代表本次结果：{error}");
+    }
+}
+
 /// 预检拒绝也覆盖上次成功记录；保存失败必须明确输出，不能让旧记录冒充本次结果。
 fn write_failed_selfcheck(
     config: &LauncherConfig,
@@ -570,7 +585,7 @@ fn preflight_web_console_port(
     resolved: &ResolvedLaunchPaths,
     expected_build_version: Option<&str>,
     expected_session_db: Option<&Path>,
-) -> Result<bool, LaunchError> {
+) -> Result<Option<app_launcher::service_identity::ReuseVerification>, LaunchError> {
     let port = health_endpoint_port(&config.health_url).ok_or_else(|| {
         LaunchError::ConfigInvalid(format!("invalid health_url: {}", config.health_url))
     })?;
@@ -580,14 +595,14 @@ fn preflight_web_console_port(
         app_launcher::ProbeOutcome::Ready
     );
     match classify_listener_recovery(health_ready, owner.as_ref()) {
-        ListenerRecoveryAction::Free => Ok(false),
+        ListenerRecoveryAction::Free => Ok(None),
         ListenerRecoveryAction::CleanupOrphan { parent_pid } => {
             eprintln!(
                 "package-launcher: recovering stale listener on port {port}, dead owner pid={parent_pid}"
             );
             cleanup_stale_listener_processes(parent_pid, None)?;
             wait_for_port_release(port, config.health_timeout, config.health_poll_interval)?;
-            Ok(false)
+            Ok(None)
         }
         ListenerRecoveryAction::CleanupKnownHolder { pid } => {
             eprintln!(
@@ -595,7 +610,7 @@ fn preflight_web_console_port(
             );
             cleanup_stale_listener_processes(pid, Some(pid))?;
             wait_for_port_release(port, config.health_timeout, config.health_poll_interval)?;
-            Ok(false)
+            Ok(None)
         }
         ListenerRecoveryAction::Block { pid, .. } => {
             let owner_user = query_process_owner_user(pid);
@@ -620,14 +635,14 @@ fn preflight_web_console_port(
                             check.name, check.expected, check.observed, check.verdict
                         );
                     }
-                    Ok(true)
+                    Ok(Some(verification))
                 }
                 ReuseDecision::Conflict { reason, details } => Err(LaunchError::ServiceConflict {
                     port,
                     reason,
                     details,
                 }),
-                ReuseDecision::StartFresh => Ok(false),
+                ReuseDecision::StartFresh => Ok(None),
             }
         }
     }
@@ -639,8 +654,8 @@ fn preflight_web_console_port(
     _resolved: &ResolvedLaunchPaths,
     _expected_build_version: Option<&str>,
     _expected_session_db: Option<&Path>,
-) -> Result<bool, LaunchError> {
-    Ok(false)
+) -> Result<Option<app_launcher::service_identity::ReuseVerification>, LaunchError> {
+    Ok(None)
 }
 
 #[cfg(windows)]
@@ -962,6 +977,25 @@ mod tests {
         assert!(actual["web_console_pid"].is_null());
         assert!(actual["tauri_pid"].is_null());
         assert_eq!(actual["resolution_notes"][0], "预检拒绝");
+        let resolved = ResolvedLaunchPaths {
+            launch_id:"current-reuse".into(), package_identity:"test-package".into(),
+            config_schema_version:2, selection_revision:1, workspace_id:None,
+            workspace_root:root.clone(), data_dir_binding:launch_paths::DataPathBinding::WorkspaceConfigAuthority,
+            requested_session_db:None, observed_session_db:None, observed_workspace:None,
+            observed_build_version:None, user_state_root:root.clone(), input_safety_state_root:root.join("input-safety"),
+            per_process_log_paths:Vec::new(), resolution_source:launch_paths::ResolutionSource::PersistedUserSelection { revision:1 },
+        };
+        let verification = service_identity::ReuseVerification {
+            port:8765, decision:"reuse".into(), reason:None, checks:Vec::new(),
+        };
+        write_reused_selfcheck(&config, &resolved, 789, verification.clone(), &["复用已核验".into()]);
+        let reused:serde_json::Value = serde_json::from_str(&fs::read_to_string(&config.selfcheck_file).unwrap()).unwrap();
+        assert_eq!(reused["ok"], true);
+        assert!(reused["error"].is_null());
+        assert!(reused["web_console_pid"].is_null());
+        assert_eq!(reused["tauri_pid"], 789);
+        assert_eq!(reused["reuse_verification"], verification.to_json());
+        assert_eq!(reused["resolved_launch_paths"]["launch_id"], "current-reuse");
         fs::remove_dir_all(root).unwrap();
     }
 
