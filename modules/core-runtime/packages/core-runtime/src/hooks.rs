@@ -279,8 +279,8 @@ impl HookRunner {
 
         match child.output_with_stdin(request.payload.as_bytes()) {
             Ok(output) => {
-                let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+                let stdout = crate::managed_process::decode_console_output(&output.stdout).trim().to_string();
+                let stderr = crate::managed_process::decode_console_output(&output.stderr).trim().to_string();
                 let message = (!stdout.is_empty()).then_some(stdout);
                 match output.status.code() {
                     Some(0) => HookCommandOutcome::Allow { message },
@@ -494,6 +494,33 @@ mod tests {
                 .with_tool_requirement(HOOK_CAPABILITY_POST_TOOL_USE, PermissionMode::ReadOnly);
         }
         policy
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn hook_gb18030_stdout_denial_and_stderr_warning_preserve_chinese() {
+        let expected = "中文钩子拒绝与警告";
+        let (bytes, _, errors) = encoding_rs::GB18030.encode(expected);
+        assert!(!errors);
+        let literal = bytes.iter().map(u8::to_string).collect::<Vec<_>>().join(",");
+        std::fs::create_dir_all("tmp").unwrap();
+        for (channel, exit_code) in [("Output", 2), ("Error", 1)] {
+            use std::io::Write;
+            let mut script = tempfile::Builder::new().prefix("hook-encoding-").suffix(".ps1").tempfile_in("tmp").unwrap();
+            write!(script, "$hookBytes=[byte[]]({literal});$hookStream=[Console]::OpenStandard{channel}();$hookStream.Write($hookBytes,0,$hookBytes.Length);exit {exit_code}").unwrap();
+            script.flush().unwrap();
+            let script_path = script.into_temp_path();
+            let command = format!(
+                "powershell.exe -NoProfile -NonInteractive -File {}", script_path.display()
+            );
+            let runner = HookRunner::new(RuntimeHookConfig::new(vec![command], Vec::new()))
+                .with_authorization(hook_authorization(true, false));
+            let result = runner.run_pre_tool_use("Read", "{}");
+            assert_eq!(result.executed_commands(), 1);
+            assert_eq!(result.is_denied(), exit_code == 2, "子进程退出语义异常：{:?}", result.messages());
+            assert!(result.messages().iter().any(|message| message.contains(expected)), "中文输出丢失：{:?}", result.messages());
+            assert!(result.messages().iter().all(|message| !message.contains('\u{fffd}')));
+        }
     }
 
     /// 正对照：授权之后同一个 hook 确实会运行。
