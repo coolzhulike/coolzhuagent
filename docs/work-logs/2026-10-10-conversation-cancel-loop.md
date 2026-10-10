@@ -7,3 +7,5 @@
 回归覆盖启动前取消不调用模型、审批期间取消后目标执行器零调用且错误工具结果保留、模型返回期间取消不得正常完成。最终离线构建实际退出 0（tmp/analysis-conversation-loop-cancel-final-build.txt）；conversation::tests 实际退出 0，16 通过、0 失败、348 过滤（tmp/analysis-conversation-loop-cancel-final-tests.txt）。不是完整 core-runtime 或正式外部模型验收。
 
 最新修改仍属于独立集成候选，未进入已安装 0.2.128。WBS 1.5、2.3、2.5 的全部入口及正式取消矩阵保持开放。
+
+完整集成回归补验：在源码 9bda4da 上 cargo test -p coolzhu-core-runtime --offline -j1 实际退出 0，363 通过、0 失败，库内 MCP 官方 SDK 测试及两个 DSH 集成测试共 3 项忽略。cargo build -p coolzhu-web-console --offline -j1 同一进程等待终态，实际退出 0、耗时 2m12s，151 条警告未处理；不称无警告构建。日志 tmp/analysis-core-runtime-cancellation-full-tests.txt、tmp/analysis-web-console-runtime-cancel-build.txt。这些证明编译集成与本地回归，不证明正式运行验收。
