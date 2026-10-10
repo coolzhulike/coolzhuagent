@@ -98,8 +98,10 @@ impl GoalExecution {
         let valid: bool = connection.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND kind='goal_phase' AND workspace_id=?3 AND chat_room_id=?4 AND session_id=?5 AND phase_id=?6 AND state='running')",
             params![run,claim,spec.workspace_id,spec.room_id,spec.session_id,spec.source_id], |row|row.get(0)).map_err(|e|e.to_string())?;
         if !valid { return Err("Goal索引缺少本工程有效阶段运行与claim，未接纳".into()); }
-        let guard = ExecutionService::begin(path, spec, cancel.clone())?;
-        connection.execute("UPDATE execution_index SET run_id=?1 WHERE id=?2", params![run,guard.current.id]).map_err(|e|e.to_string())?;
+        let guard = ExecutionService::begin(path, spec.clone(), cancel.clone())?;
+        let changed=connection.execute("UPDATE execution_index SET run_id=?1 WHERE id=?2 AND workspace_id=?4 AND state='running' AND EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND claim_token=?3 AND kind='goal_phase' AND workspace_id=?4 AND chat_room_id=?5 AND session_id=?6 AND phase_id=?7 AND state='running')",
+            params![run,guard.current.id,claim,spec.workspace_id,spec.room_id,spec.session_id,spec.source_id]).map_err(|e|e.to_string())?;
+        if changed!=1 { return Err("Goal运行归属在索引绑定前已变化，未执行或重放".into()); }
         Ok(Self { guard, run:run.into(), claim:claim.into(), cancel })
     }
     pub(crate) async fn scope<T>(&self, future: impl Future<Output=T>) -> Result<T,String> {
@@ -136,12 +138,12 @@ impl GoalExecution {
     }
     pub(crate) fn finish_committed(&mut self, result: Option<&str>) -> Result<(), String> {
         let connection = open(&self.guard.current.path)?;
-        let state: String = connection.query_row("SELECT state FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND workspace_id=?3 AND kind='goal_phase'",
-            params![self.run,self.claim,self.guard.current.workspace], |row|row.get(0)).map_err(|e|e.to_string())?;
-        match state.as_str() {
-            "completed" | "failed" | "interrupted" => self.guard.finish(&state, result, None),
-            _ => Err("Goal阶段终态尚未提交，索引不能提前完成或重放".into()),
-        }
+        // 归属检查与终态写入在同一SQL语句；不能先读state再跨连接无条件完成索引。
+        let changed=connection.execute("UPDATE execution_index SET state=(SELECT state FROM runtime_runs WHERE id=?1),finished_ms=?5,result=?6,error=NULL WHERE id=?4 AND workspace_id=?3 AND run_id=?1 AND state IN ('running','cancel_requested') AND EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND workspace_id=?3 AND kind='goal_phase' AND state IN ('completed','failed','interrupted'))",
+            params![self.run,self.claim,self.guard.current.workspace,self.guard.current.id,crate::unix_timestamp_millis(),result]).map_err(|e|e.to_string())?;
+        if changed!=1 { return Err("Goal阶段归属或终态未确认，索引不能提前完成或重放".into()); }
+        self.guard.finished=true;
+        Ok(())
     }
 }
 struct Guard {
@@ -617,6 +619,11 @@ mod tests {
         assert!(guard.finish_committed(None).is_err());
         let current = guard.scope(async { CURRENT.with(|c|c.id.clone()) }).await.unwrap();
         assert_eq!(current,"execution-one");
+        connection.execute("UPDATE runtime_runs SET state='completed',claim_token='new-owner' WHERE id='goal-run'", []).unwrap();
+        assert!(guard.finish_committed(Some("旧claim不得借新终态完成")).is_err());
+        let indexed:String=connection.query_row("SELECT state FROM execution_index",[],|row|row.get(0)).unwrap();
+        assert_eq!(indexed,"running");
+        connection.execute("UPDATE runtime_runs SET claim_token='private-claim' WHERE id='goal-run'", []).unwrap();
         connection.execute("UPDATE runtime_runs SET state='failed' WHERE id='goal-run'", []).unwrap();
         guard.finish_committed(Some("阶段失败证据")).unwrap();
         let (state, encoded): (String,String)=connection.query_row("SELECT state,spec_json FROM execution_index",[],|row|Ok((row.get(0)?,row.get(1)?))).unwrap();
