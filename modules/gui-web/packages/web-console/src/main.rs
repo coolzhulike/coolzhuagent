@@ -27453,7 +27453,7 @@ async fn call_agent_model(
     if model_text_requires_tool_recovery(&answer_text(&response.content), prompt)
         || !model_tool_requests_from_blocks(&response.content).is_empty() {
         response = call_agent_model_text_recovery(agent, &assembly.system_prompt, &assembly.messages,
-            prompt, "单次理解请求不允许执行工具，模型返回了未执行的工具调用", None, None, None).await?;
+            prompt, "单次理解请求不允许执行工具，模型返回了未执行的工具调用", None, None, None, None).await?;
     }
     let policy = context_lifecycle_policy();
     let context_usage = context_usage_snapshot_for_assembly_with_usage(
@@ -27848,6 +27848,7 @@ async fn run_shared_model_tool_loop(
     let mut used_real_model = false;
     let mut history: Option<Vec<InputMessage>> = None;
     let mut best_remote_usage: Option<api::Usage> = None;
+    let parent_model_snapshot = parent.and_then(|context| context.host_model_snapshots.get(&agent.id));
     let host_scope = if child_scope.is_none() {
         parent.and_then(|parent| parent.host_model_snapshots.get(&agent.id))
             .map(|snapshot| host_child_agent::HostToolScope::Parent(Arc::clone(snapshot)))
@@ -27871,6 +27872,9 @@ async fn run_shared_model_tool_loop(
             if let Some(child) = child_scope.as_ref() {
                 agent_message_request_build_with_system_resolved(
                     agent, msgs.clone(), false, child.definitions(), assembly.system_prompt.clone(), Some(&child.request))
+            } else if let Some(snapshot) = parent_model_snapshot {
+                agent_message_request_build_with_system_resolved(agent, msgs.clone(), false,
+                    Some(snapshot.parent_definitions.clone()), assembly.system_prompt.clone(), Some(&snapshot.parent_model.request))
             } else { agent_message_request_with_context_messages_for_room(
                 agent,
                 false,
@@ -27882,13 +27886,16 @@ async fn run_shared_model_tool_loop(
             if let Some(child) = child_scope.as_ref() {
                 agent_message_request_build_with_system_resolved(
                     agent, base_history.clone(), false, child.definitions(), assembly.system_prompt.clone(), Some(&child.request))
+            } else if let Some(snapshot) = parent_model_snapshot {
+                agent_message_request_build_with_system_resolved(agent, base_history.clone(), false,
+                    Some(snapshot.parent_definitions.clone()), assembly.system_prompt.clone(), Some(&snapshot.parent_model.request))
             } else { agent_message_request_with_context_for_room(agent, false, &assembly, chat_room_id) }
         };
         retain_admitted_mcp_definitions(&mut request, parent);
         host_child_agent::bind_session_tool_catalog(&mut request, parent, &agent.id);
         let provider = match child_scope.as_ref() {
             Some(child) => Ok(child.client.clone()),
-            None => provider_client_for_agent(agent),
+            None => parent_model_snapshot.map_or_else(|| provider_client_for_agent(agent), |snapshot| Ok(snapshot.parent_model.client.clone())),
         };
         let usage_session = child_scope.as_ref().map_or(agent.id.as_str(), |child| child.usage_session_id.as_str());
         let usage_call = child_scope.as_ref().map(|child| child.parent_call_id.as_str());
@@ -27934,7 +27941,7 @@ async fn run_shared_model_tool_loop(
             last_diagnostic = Some(reason.clone());
             match call_agent_model_text_recovery(agent, &assembly.system_prompt,
                 history.as_ref().unwrap_or(&base_history), prompt, &reason, chat_room_id, child_scope.as_deref(),
-                parent.and_then(|context| context.parent_run_id.as_deref())).await {
+                parent.and_then(|context| context.parent_run_id.as_deref()), parent_model_snapshot.map(Arc::as_ref)).await {
                 Ok(recovered) => {
                     remember_largest_remote_usage(&mut best_remote_usage, &recovered.usage);
                     terminal_supervisor_answer = Some(answer_text(&recovered.content));
@@ -28096,7 +28103,7 @@ async fn run_shared_model_tool_loop(
             last_diagnostic = Some(reason.clone());
             final_answer = match call_agent_model_text_recovery(agent, &assembly.system_prompt,
                 history.as_ref().unwrap_or(&base_history), prompt, &reason, chat_room_id, child_scope.as_deref(),
-                parent.and_then(|context| context.parent_run_id.as_deref())).await {
+                parent.and_then(|context| context.parent_run_id.as_deref()), parent_model_snapshot.map(Arc::as_ref)).await {
                 Ok(recovered) => {
                     remember_largest_remote_usage(&mut best_remote_usage, &recovered.usage);
                     answer_text(&recovered.content)
@@ -31935,10 +31942,15 @@ async fn stream_agent_model(
     image_input.verify_assembly(&assembly)?;
     // 流式入口不经过 agent_chat_response 的 TURN_TRACE scope，显式回填真实回合 ID。
     assembly.turn_id = Some(turn_id.to_string());
-    let mut request = agent_message_request_with_context_for_room(agent, true, &assembly, chat_room_id);
+    let snapshot = parent.and_then(|context| context.host_model_snapshots.get(&agent.id));
+    let mut request = if let Some(snapshot) = snapshot {
+        agent_message_request_build_with_system_resolved(agent, assembly.messages.clone(), true,
+            Some(snapshot.parent_definitions.clone()), assembly.system_prompt.clone(), Some(&snapshot.parent_model.request))
+    } else { agent_message_request_with_context_for_room(agent, true, &assembly, chat_room_id) };
     retain_admitted_mcp_definitions(&mut request, parent);
     host_child_agent::bind_session_tool_catalog(&mut request, parent, &agent.id);
-    let stream = request_usage::observe_with_run(provider_client_for_agent(agent), &agent.id, chat_room_id, Some(turn_id), None, "chat", run_id)?
+    let provider = snapshot.map_or_else(|| provider_client_for_agent(agent), |snapshot| Ok(snapshot.parent_model.client.clone()));
+    let stream = request_usage::observe_with_run(provider, &agent.id, chat_room_id, Some(turn_id), None, "chat", run_id)?
         .stream_message(&request)
         .await?;
     Ok((devin_acp::chat::ModelStream::Http(stream), assembly))
@@ -35192,6 +35204,7 @@ async fn call_agent_model_text_recovery(
     chat_room_id: Option<&str>,
     child_scope: Option<&host_child_agent::HostChildScope>,
     run_id: Option<&str>,
+    parent_snapshot: Option<&host_child_agent::HostModelSnapshot>,
 ) -> Result<api::MessageResponse, api::ApiError> {
     if let Some(child) = child_scope {
         child.validate_live().map_err(|message| api::ApiError::ConfigError {
@@ -35204,10 +35217,11 @@ async fn call_agent_model_text_recovery(
         compact_message_snippet(reason, 480), prompt)));
     let mut request = agent_message_request_build_with_system_resolved(
         agent, recovery_messages, false, None, system_prompt.to_string(),
-        child_scope.map(|child| &child.request));
+        child_scope.map(|child| &child.request).or_else(|| parent_snapshot.map(|snapshot| &snapshot.parent_model.request)));
     request.tools = None;
     request.tool_choice = None;
-    let provider = child_scope.map_or_else(|| provider_client_for_agent(agent), |child| Ok(child.client.clone()));
+    let provider = child_scope.map_or_else(|| parent_snapshot.map_or_else(|| provider_client_for_agent(agent),
+        |snapshot| Ok(snapshot.parent_model.client.clone())), |child| Ok(child.client.clone()));
     let usage_session = child_scope.map_or(agent.id.as_str(), |child| child.usage_session_id.as_str());
     let usage_turn = child_scope.map(|child| child.parent_turn_id.as_str());
     let usage_call = child_scope.map(|child| child.parent_call_id.as_str());
