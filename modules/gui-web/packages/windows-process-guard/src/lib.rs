@@ -849,6 +849,16 @@ impl ChildProcessJob {
         }
     }
 
+    /// 查询受管子树的活跃进程数；根进程退出不等于所有后代已退出。
+    pub fn active_process_count(&self) -> io::Result<u32> {
+        use windows_sys::Win32::System::JobObjects::{JobObjectBasicAccountingInformation, QueryInformationJobObject, JOBOBJECT_BASIC_ACCOUNTING_INFORMATION};
+        let mut info = JOBOBJECT_BASIC_ACCOUNTING_INFORMATION::default();
+        let ok = unsafe { QueryInformationJobObject(self.handle as HANDLE, JobObjectBasicAccountingInformation,
+            std::ptr::addr_of_mut!(info).cast(), std::mem::size_of::<JOBOBJECT_BASIC_ACCOUNTING_INFORMATION>() as u32, std::ptr::null_mut()) };
+        if ok == 0 { return Err(io::Error::last_os_error()); }
+        Ok(info.ActiveProcesses)
+    }
+
     /// 终止受管进程树并查询 Job 的活跃进程数。关闭句柄的意图不能当作排空回执。
     /// 这是有界阻塞操作；异步宿主应放到 blocking worker 中执行。
     pub fn terminate_and_wait(&self, timeout: Duration) -> io::Result<()> {
