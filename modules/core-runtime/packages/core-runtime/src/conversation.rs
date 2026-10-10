@@ -69,6 +69,7 @@ impl std::error::Error for ToolError {}
 pub struct RuntimeError {
     message: String,
     events: Vec<AgentEvent>,
+    interruption: Option<crate::managed_process::Interruption>,
 }
 
 impl RuntimeError {
@@ -77,12 +78,17 @@ impl RuntimeError {
         Self {
             message: message.into(),
             events: Vec::new(),
+            interruption: None,
         }
     }
 
     /// 失败回合的实际轨迹，供调用方保存；不以正常完成替代错误终态。
     #[must_use]
     pub fn events(&self) -> &[AgentEvent] { &self.events }
+
+    fn interrupted(message: String, reason: crate::managed_process::Interruption) -> Self {
+        Self { message, events: Vec::new(), interruption: Some(reason) }
+    }
 }
 
 impl Display for RuntimeError {
@@ -240,7 +246,7 @@ where
         loop {
             if let Some(reason) = crate::managed_process::current_execution_control()
                 .and_then(|control| control.interruption()) {
-                return Err(RuntimeError::new(format!("根执行已中止（{reason:?}），未请求后续模型")));
+                return Err(RuntimeError::interrupted(format!("根执行已中止（{reason:?}），未请求后续模型"), reason));
             }
             iterations += 1;
             if iterations > self.max_iterations {
@@ -421,13 +427,13 @@ where
 
         if let Some(reason) = crate::managed_process::current_execution_control()
             .and_then(|control| control.interruption()) {
-            return Err(RuntimeError::new(format!("根执行已中止（{reason:?}），不记录正常完成")));
+            return Err(RuntimeError::interrupted(format!("根执行已中止（{reason:?}），不记录正常完成"), reason));
         }
         Ok(())
         })();
         if let Err(mut error) = outcome {
-            let interruption = crate::managed_process::current_execution_control()
-                .and_then(|control| control.interruption());
+            // 终态取实际错误来源，避免收尾时的新取消覆盖已发生的模型/解析失败。
+            let interruption = error.interruption;
             event_log.push(AgentEvent::new(
                 next_event_sequence, self.thread_id.clone(), turn_id.clone(), None,
                 if interruption.is_some() { AgentEventKind::TurnInterrupted } else { AgentEventKind::TurnFailed },
@@ -1267,6 +1273,30 @@ mod tests {
                 _ => None,
             }).collect::<Vec<_>>();
         assert_eq!(results, vec!["first", "second"], "同批每个未执行结果必须保持来源身份");
+    }
+
+    #[test]
+    fn model_failure_is_not_reclassified_by_concurrent_cancellation() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        struct Client(ExecutionControl);
+        impl ApiClient for Client {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                self.0.cancel();
+                Err(RuntimeError::new("模型原始失败"))
+            }
+        }
+        let control = ExecutionControl::new(None, None);
+        let mut runtime = ConversationRuntime::new(Session::new(), Client(control.clone()),
+            StaticToolExecutor::new(), PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
+        let error = with_execution_control(control, || runtime.run_turn("请求", None)).unwrap_err();
+        assert_eq!(error.to_string(), "模型原始失败");
+        let terminal = error.events().last().unwrap();
+        assert_eq!(terminal.kind, crate::agent_event::AgentEventKind::TurnFailed);
+        assert_eq!(terminal.payload["interruption"], serde_json::Value::Null);
+        assert_eq!(error.events().iter().filter(|event| matches!(event.kind,
+            crate::agent_event::AgentEventKind::TurnCompleted |
+            crate::agent_event::AgentEventKind::TurnFailed |
+            crate::agent_event::AgentEventKind::TurnInterrupted)).count(), 1);
     }
 
     #[test]
