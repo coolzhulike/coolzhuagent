@@ -438,12 +438,13 @@ fn run(
         write_failed_selfcheck(&config, &error, Some(&decision.resolved), &notes);
         error
     })?;
-    if let Some(verification) = reuse_existing {
-        let tauri_pid = forward_existing_console(&config, &decision.resolved).map_err(|error| {
-            write_failed_selfcheck(&config, &error, Some(&decision.resolved), &notes);
+    if let Some(reused) = reuse_existing {
+        let resolved = decision.resolved.with_observations(&reused.observed);
+        let tauri_pid = forward_existing_console(&config, &resolved).map_err(|error| {
+            write_failed_selfcheck(&config, &error, Some(&resolved), &notes);
             error
         })?;
-        write_reused_selfcheck(&config, &decision.resolved, tauri_pid, verification, &notes);
+        write_reused_selfcheck(&config, &resolved, tauri_pid, reused.web_pid, reused.verification, &notes);
         return Ok(RunOutcome::ForwardedExisting { tauri_pid });
     }
 
@@ -518,10 +519,11 @@ fn write_refusal_selfcheck(config: &LauncherConfig, error: &LaunchError) {
 
 fn write_reused_selfcheck(
     config: &LauncherConfig, resolved: &ResolvedLaunchPaths, tauri_pid: u32,
+    web_pid: Option<u32>,
     verification: app_launcher::service_identity::ReuseVerification, notes: &[String],
 ) {
     let payload = SelfcheckPayload {
-        ok: true, web_console_pid: None, tauri_pid: Some(tauri_pid),
+        ok: true, web_console_pid: web_pid, tauri_pid: Some(tauri_pid),
         health_url: config.health_url.clone(), error: None, timestamp_ms: now_ms(),
         resolved: Some(resolved.clone()), reuse: Some(verification), notes: notes.to_vec(),
     };
@@ -579,13 +581,19 @@ fn forward_existing_console(
 /// 复用判定：**不只核对端口健康**（裁决第六节）。
 ///
 /// 返回 `true` 表示"可复用的既有实例已确认"（只转发 `--show-console`）。
+struct VerifiedReuse {
+    verification: app_launcher::service_identity::ReuseVerification,
+    observed: ObservedBackground,
+    web_pid: Option<u32>,
+}
+
 #[cfg(windows)]
 fn preflight_web_console_port(
     config: &LauncherConfig,
     resolved: &ResolvedLaunchPaths,
     expected_build_version: Option<&str>,
     expected_session_db: Option<&Path>,
-) -> Result<Option<app_launcher::service_identity::ReuseVerification>, LaunchError> {
+) -> Result<Option<VerifiedReuse>, LaunchError> {
     let port = health_endpoint_port(&config.health_url).ok_or_else(|| {
         LaunchError::ConfigInvalid(format!("invalid health_url: {}", config.health_url))
     })?;
@@ -635,7 +643,18 @@ fn preflight_web_console_port(
                             check.name, check.expected, check.observed, check.verdict
                         );
                     }
-                    Ok(Some(verification))
+                    Ok(Some(VerifiedReuse {
+                        verification,
+                        web_pid: identity.listener_pid,
+                        observed: ObservedBackground {
+                            workspace: identity.reported_workspace,
+                            session_db: identity.reported_session_db,
+                            build_version: identity.reported_build_version,
+                            health_status: identity.reported_health_status,
+                            active_sessions: identity.reported_active_sessions,
+                            port: identity.reported_port,
+                        },
+                    }))
                 }
                 ReuseDecision::Conflict { reason, details } => Err(LaunchError::ServiceConflict {
                     port,
@@ -654,7 +673,7 @@ fn preflight_web_console_port(
     _resolved: &ResolvedLaunchPaths,
     _expected_build_version: Option<&str>,
     _expected_session_db: Option<&Path>,
-) -> Result<Option<app_launcher::service_identity::ReuseVerification>, LaunchError> {
+) -> Result<Option<VerifiedReuse>, LaunchError> {
     Ok(None)
 }
 
@@ -988,11 +1007,18 @@ mod tests {
         let verification = service_identity::ReuseVerification {
             port:8765, decision:"reuse".into(), reason:None, checks:Vec::new(),
         };
-        write_reused_selfcheck(&config, &resolved, 789, verification.clone(), &["复用已核验".into()]);
+        let resolved = resolved.with_observations(&ObservedBackground {
+            workspace:Some(root.clone()), session_db:Some(root.join("actual.sqlite3")),
+            build_version:Some("actual-build".into()), health_status:Some("ok".into()),
+            active_sessions:Some(0), port:Some(8765),
+        });
+        write_reused_selfcheck(&config, &resolved, 789, Some(321), verification.clone(), &["复用已核验".into()]);
         let reused:serde_json::Value = serde_json::from_str(&fs::read_to_string(&config.selfcheck_file).unwrap()).unwrap();
         assert_eq!(reused["ok"], true);
         assert!(reused["error"].is_null());
-        assert!(reused["web_console_pid"].is_null());
+        assert_eq!(reused["web_console_pid"], 321);
+        assert_eq!(reused["resolved_launch_paths"]["observed"]["build_version"], "actual-build");
+        assert_eq!(reused["resolved_launch_paths"]["observed"]["session_db"], root.join("actual.sqlite3").to_string_lossy().as_ref());
         assert_eq!(reused["tauri_pid"], 789);
         assert_eq!(reused["reuse_verification"], verification.to_json());
         assert_eq!(reused["resolved_launch_paths"]["launch_id"], "current-reuse");
