@@ -6,4 +6,8 @@
 
 MSI dist/CoolzhuAgent-0.2.131.msi，288008209字节，SHA256 e328961b837993bfe55cba4e900b5a3f407208052ebf24ddeb79b89f0406b680，与安装报告相符。Loader明确为既有Cargo生产目录输出复用，不是本次新生产。证据见evidence/build-identity和evidence/build-verification.json。
 
-候选CLI实际--version为0.2.131及上述源码SHA。九项真实恢复场景均符合预期、会话字节不变，见evidence/cli-history。尚未安装本候选；当前实装仍0.2.130。未签名、未发布，正式后台恢复此前受自动审批拒绝，运行验收未恢复；不绕过该限制。完整许可证/NOTICE、清洁Windows原生窗口、崩溃故障及其余32WBS门禁继续开放。
+候选CLI实际--version为0.2.131及上述源码SHA。九项真实恢复场景均符合预期、会话字节不变，见evidence/cli-history。
+
+正常静默 MSI 升级实际返回1603，未通过安装验收。日志明确显示 RemoveExistingProducts 调用旧版0.2.130的 InstallInitialize 时错误1730：移除该机器级产品需要管理员权限；静默安装未能弹出提权提示。失败后再次读取注册表，仍注册0.2.130，产品代码A27E0E29-B2B5-43E1-8D48-76AA95057596。此观察不证明所有旧版载荷字节完整；本次未重新执行旧版全量文件核验。原始日志、进程退出码和失败后注册观察见evidence/install。未重试相同静默命令，管理员升级及候选安装目录全量核验仍未闭环。
+
+未签名、未发布，正式后台恢复此前受自动审批拒绝，运行验收未恢复；不绕过该限制。完整许可证/NOTICE、清洁Windows原生窗口、崩溃故障及其余32WBS门禁继续开放。
