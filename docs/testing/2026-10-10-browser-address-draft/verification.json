@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "draft_hold_ms": 8974.0,
+  "independent_url_updates_during_hold": 18,
+  "target_http_requests": 1,
+  "candidate_web_sha256": "8F0AA0ECCCBE3974A188C2ACE0A9DD9B7577A7595EDDFA7FA1888C8739603096",
+  "model_calls": 0,
+  "new_cloud_sessions": 0,
+  "scope": "仅原生GUI地址编辑、Enter导航与后退同步；候选未正式安装"
+}

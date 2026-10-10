@@ -1,0 +1,122 @@
+[
+  {
+    "path": "address.json",
+    "bytes": 48,
+    "sha256": "38931efebc26358d4f51446cdb4accd5ae81dab3debbc1e8d1dee94265559e8a"
+  },
+  {
+    "path": "build-receipt.json",
+    "bytes": 78,
+    "sha256": "840c35550f60b6c9555ecaae1f781a813bf0056b46788813a77add15f7f8c23e"
+  },
+  {
+    "path": "build.log",
+    "bytes": 50120,
+    "sha256": "d9821ef10a662df3a11f6ae783f491bc3d2d80358021580f3b68bcaf1f9a9155"
+  },
+  {
+    "path": "candidate-back-resynchronized.jpg",
+    "bytes": 219316,
+    "sha256": "fb61951c9ae16344001594ae5a2332c2ee29bc36586ecd54f27d601d3c0c7cf1"
+  },
+  {
+    "path": "candidate-back-resynchronized.json",
+    "bytes": 376,
+    "sha256": "f437e420a5db105aa79691abc7fd230b3c3e529c7fd6462f20125b2bbd108651"
+  },
+  {
+    "path": "candidate-draft-first.jpg",
+    "bytes": 219678,
+    "sha256": "310d4918d9bc918f86421134b2a4f37c5eb8b169973068109c4b54eecf87731a"
+  },
+  {
+    "path": "candidate-draft-first.json",
+    "bytes": 374,
+    "sha256": "3ffb9ed02c4102a6d7ce5fad3f249742c6fbb894775b79cd9fa7c41c8f9f8891"
+  },
+  {
+    "path": "candidate-draft-held.jpg",
+    "bytes": 219705,
+    "sha256": "d5d57098f21f8d85e93738aeac5c217bf1fc5df0cb1aa1b6787994ebaeb0d364"
+  },
+  {
+    "path": "candidate-draft-held.json",
+    "bytes": 419,
+    "sha256": "acaea39a5f7da32c7ec61a63f3228a1ffc4e9d12fcc650bdb648949bb8ca3a24"
+  },
+  {
+    "path": "candidate-processes.json",
+    "bytes": 907,
+    "sha256": "7530d2e563978af800e699b398387ea577087e0d53a3ec2d98e34a2d2ccc0e0a"
+  },
+  {
+    "path": "candidate-target-opened.jpg",
+    "bytes": 220740,
+    "sha256": "fe94c2963d149f3059c5499691548feefd34c8eeaca97716ce631656b047a1d0"
+  },
+  {
+    "path": "candidate-target-opened.json",
+    "bytes": 469,
+    "sha256": "58a6a1d9ffc556211093ee3e2eeeb61c9e4ac221c734b1105ee348724f97e60d"
+  },
+  {
+    "path": "events.jsonl",
+    "bytes": 144895,
+    "sha256": "a0352d146bc68bcb34e43ff2beb5048f4a2647cf678bb2169da933cc943d91e2"
+  },
+  {
+    "path": "formal-draft-overwritten.jpg",
+    "bytes": 219883,
+    "sha256": "256f0459003b9203a9ad61807698eb68597e7903ae34ddf7dec0b801f9c5c448"
+  },
+  {
+    "path": "formal-draft-overwritten.json",
+    "bytes": 466,
+    "sha256": "c0b6a1d7761c76175a515807686f751eb276ed7865cad74d2fe62677cae471d0"
+  },
+  {
+    "path": "report.md",
+    "bytes": 2619,
+    "sha256": "f2b1c964606e223131cd0c1bdfaa202e3b33cd4233537f011489e34492114cd1"
+  },
+  {
+    "path": "restore-formal.ps1",
+    "bytes": 1725,
+    "sha256": "26fff25091464edb619267adb4355d76d55119f0d107a760dbcdd463a7383cae"
+  },
+  {
+    "path": "restored-formal126.json",
+    "bytes": 693,
+    "sha256": "7a8685412e9c958a08b391695b9b360e7c51a12031e99ced2d86267103437ff1"
+  },
+  {
+    "path": "server.py",
+    "bytes": 2429,
+    "sha256": "6723faca2012a2f5eeaf61239c05219f20aaca3dd67f814a09b5d42150977617"
+  },
+  {
+    "path": "start-candidate.ps1",
+    "bytes": 5634,
+    "sha256": "62685d83acadf53483e69eb8f02cb23488af4e3e0b7f7e09e25d440aad548b71"
+  },
+  {
+    "path": "stopped-candidate.json",
+    "bytes": 1011,
+    "sha256": "d6b5b9de1198bfd19e2fe8f7beed1c1bc9af33f085b0c0c8ab1d92aec2f6b5c8"
+  },
+  {
+    "path": "stopped-formal126.json",
+    "bytes": 867,
+    "sha256": "200e615f74de243cfcb4936ed90a9fecf98f239b2564ef4f7c3effe4d3cce2df"
+  },
+  {
+    "path": "verification.json",
+    "bytes": 363,
+    "sha256": "857cc491ce2d189eb7812b04d0ea587a29c47a728eb2f4493a5ffee1c8d7fcbb"
+  },
+  {
+    "path": "verify.py",
+    "bytes": 1932,
+    "sha256": "8e1201971d0b20078f53447076c4c5a837401d8334783024d20732ac75fed4c1"
+  }
+]

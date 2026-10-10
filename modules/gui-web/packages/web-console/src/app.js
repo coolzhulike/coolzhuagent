@@ -19258,9 +19258,10 @@ function initializeWorkbenchWindows() {
   window.CoolzhuNativeBrowserPanel?.init({
     scope: () => ({workspace:activeWorkspaceKey,workspace_path:projectWorkspaceScope,room:activeChatRoomId}),
     frame: () => browserWindowElements().frame,
+    address: () => browserWindowElements().input,
     active: () => chatToolWindowId === "browser",
     status: browserWindowSetStatus,
-    url: url => { const {input,frame} = browserWindowElements(); if (input) input.value = url; if (frame) frame.dataset.currentUrl = url; window.CoolzhuWorkspacePanels?.browserLocation(url); },
+    url: (url, {preserveDraft = false} = {}) => { const {input,frame} = browserWindowElements(); if (input && !preserveDraft) input.value = url; if (frame) frame.dataset.currentUrl = url; window.CoolzhuWorkspacePanels?.browserLocation(url); },
   });
   window.CoolzhuWorkspacePanels?.init({
     scope: () => ({ workspace: activeWorkspaceKey, room: activeChatRoomId, session: activeSessionId }),
