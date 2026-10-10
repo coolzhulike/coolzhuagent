@@ -13,3 +13,5 @@ Add-Type 编译的 .NET 代码在两种宿主实际执行；无 Rust 生产修�
 PS5.1和PS7最新各六项实际exit0，新增已关闭读取流触发任务故障，真实启动30秒等待的测试生产者被及时停止并确认退出。日志 tmp/analysis-diagnostic-read-failure-ps5.txt 与 tmp/analysis-diagnostic-read-failure-ps7.txt。该注入验证任务故障观察及自身根停止，尚未验证辅助程序持有真实Job时全部后代退出、阻塞读取取消及宿主终止；这些继续开放。现有MSI不包含该源码修改。
 
 后续真实Job验证：scripts/test-managed-capture-tree-failure.ps1 实际启动正常 build-capture.exe，由其启动PowerShell根及60秒等待后代；两者到达屏障后持有对应进程句柄，再注入已关闭源流触发读取任务故障。实际调用生产 Wait-ManagedCaptureDiagnostic 拒绝路径；辅助程序退出、Job内根与后代均在10秒观察窗内退出，在最终清理前完成判定。PS5.1/PS7均实际exit0，日志为 tmp/analysis-capture-tree-read-failure-ps5.txt、ps7.txt，PID及辅助程序摘要归档 docs/testing/managed-capture-diagnostic-failure/tree-ps5-result.json、tree-ps7-result.json。注入针对读取任务故障，并非真实内核匿名管道断裂；不外推阻塞读取取消、宿主突然退出、全局配额或整个6.1完成。
+
+宿主终止实测失败：新增 -HostExit 路径，真实PowerShell宿主调用生产 Invoke-ManagedBuildCapture，受管命令到达屏障后核对Win32_Process父子链，持有采集器、根、后代句柄，再只终止夹具宿主。三个进程各1秒退出观察均失败，未产生成功回执，测试实际exit1。独立Job仅由辅助程序持有，宿主死亡未关闭该Job；主动读取故障回收不能证明宿主死亡回收。失败原始观察归档 docs/testing/managed-capture-diagnostic-failure/host-exit-failure.json，日志 tmp/analysis-capture-host-exit.txt。最终夹具只清理自身持有的进程，清理后的PID观察独立保存host-exit-cleanup.json；不得计作产品通过。仍需实现可靠宿主生命周期绑定，并覆盖启动竞态及宿主死亡前后全部进程树，不得只添加结束时轮询冒充已解决。
