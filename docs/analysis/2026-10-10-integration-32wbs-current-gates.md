@@ -24,6 +24,8 @@
 
 截止部分工具流及保存/恢复TimedOut复验也通过，完整CLI104通过，实际build通过。入口审查确认legacy prompt/REPL/internal_prompt调用点仍未安装根执行控制，适配器收到None时无主动取消；其真实信号来源未补，不能计全部入口完成。共享聊天Ctrl+C/远端停止走另一条既有路径，仍需独立正式验收。
 
+后续legacy三处回合已接cli_control真实Ctrl+C注册及回合根控制，沿用父截止，离开范围停止自有监听线程。CLI实际构建和完整串行107项通过；真实注册、失败零派发、连续回合隔离和父截止保留有证据。真实按键/独立进程组、权限提示阻塞、进程级信号处理器空闲语义及监听线程异常监督仍开放，不能计全部入口正式取消完成。
+
 当前实装是 0.2.130，包源码 35cbcf238d194d7fbaac648359d8bddc9858f811；1193 个载荷文件逐长度/SHA 一致，正常整包/MSI 构建、安装及注册版本证据见 [130 验收状态](../testing/release-0.2.130/acceptance-status.md)。本轮再次直接运行 Program Files 下 CLI --version，实际返回上述版本与完整源码身份。未签名、未发布，不能把安装与文件核验提升为正式运行验收。后续 Conversation/CLI 修补不在该安装包中。
 
 CLI历史专项复核点为 918f99c。CLI 历史已补单写者锁、累计字节/条数预算、重复轮次和 Windows junction 拒绝；该范围完整回归 99 通过（tmp/analysis-cli-history-link-final-tests.txt）。core-runtime 375 通过及 3 项忽略的证据保持对应历史源码范围，不能外推后续全部修改。2dacc83 时点的真实 debug CLI 合成恢复 9 项仍是历史进程证据，后续修改不自动继承该进程验收。
