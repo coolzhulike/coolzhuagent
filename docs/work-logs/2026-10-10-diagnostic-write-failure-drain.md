@@ -25,3 +25,5 @@ PS5.1和PS7最新各六项实际exit0，新增已关闭读取流触发任务故�
 后续故障构建复验：独立目标tmp/cargo-target-capture-owner-fault，明确启用build-capture-test-support，正常辅助程序目标保持原摘要91DE708F45DBC43AC1D1D3E87A6A41EF5541BE757DECFB43BDA4EE91E58F96DE。测试构建实际exit0；PS7 stdout/stderr各一项真实写入故障均返回125并确认根及后代退出，驱动实际exit0。日志 tmp/analysis-capture-owner-fault-build.txt、fault-tests.txt；正常/测试产物摘要和源码观察已归档owner-fault-build-observation.json。测试feature产物不用于分发或正式采集引导。
 
 实际正常引导链也已重新执行：直接Cargo引导、复制独立辅助程序、受管Cargo JSON证据构建均成功；真实回执匹配及missing/executable/features/duplicate四个拒绝案例共五项通过，驱动实际exit0。日志 tmp/analysis-capture-owner-bootstrap-contract-corrected.txt，完整引导回执路径由tmp/analysis-capture-owner-bootstrap-result.json记录，source_snapshot_verified仍false。最初误未提供测试必填BootstrapResultPath导致命令exit1，日志tmp/analysis-capture-owner-bootstrap-contract.txt保留；该失败不计通过。以上不替代最终正常整包或正式安装验收。
+
+启动边界新增已退出宿主负例：夹具保留真实进程句柄，使其退出后进程身份仍可查询，使用真实PID和创建时间调用正常辅助程序，返回125及“调用宿主已退出”，日志与命令标记均不存在。PS5.1/PS7各九项实际通过，exit0，日志 tmp/analysis-capture-owner-retired-ps5.txt、ps7.txt。该证据覆盖绑定前宿主已经退出，不证明检查与创建构建之间每个竞态窗口均零启动；仍需启动过程中宿主退出的受控屏障和完整回收验收。此轮只修改测试，无Rust生产修改。

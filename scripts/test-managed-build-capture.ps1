@@ -116,3 +116,25 @@ try {
   foreach($path in @($badOut,$badErr,(Join-Path $root 'bad-owner-marker'))){if(Test-Path -LiteralPath $path){throw '无宿主旧语法产生执行副作用'}}
 } finally {if(-not $process.HasExited){$process.Kill();$process.WaitForExit()};$process.Dispose()}
 Write-Output 'PASS 无宿主旧语法在日志和命令启动前拒绝'
+$ownerInfo=[Diagnostics.ProcessStartInfo]::new('powershell')
+$ownerInfo.UseShellExecute=$false; $ownerInfo.CreateNoWindow=$true
+Set-ManagedCaptureArguments -Info $ownerInfo -Arguments @('-NoProfile','-Command','Start-Sleep -Milliseconds 500; exit 0')
+$retiredOwner=[Diagnostics.Process]::Start($ownerInfo)
+try {
+  [void]$retiredOwner.Handle
+  $created=$retiredOwner.StartTime.ToFileTimeUtc()
+  if(-not $retiredOwner.WaitForExit(10000)){throw '测试宿主正常退出未确认'}
+  $info=[Diagnostics.ProcessStartInfo]::new($helper)
+  $info.UseShellExecute=$false; $info.CreateNoWindow=$true; $info.RedirectStandardError=$true
+  Set-ManagedCaptureArguments -Info $info -Arguments @('--owner',[string]$retiredOwner.Id,[string]$created,$badOut,$badErr,$root,'--','powershell','-NoProfile','-File',$child,(Join-Path $root 'bad-owner-marker'))
+  $process=[Diagnostics.Process]::Start($info)
+  try {
+    $diagnosticText=$process.StandardError.ReadToEnd()
+    if(-not $process.WaitForExit(10000) -or $process.ExitCode -ne 125 -or $diagnosticText -notmatch '调用宿主已退出'){throw '已退出但身份仍有效的宿主未拒绝'}
+    foreach($path in @($badOut,$badErr,(Join-Path $root 'bad-owner-marker'))){if(Test-Path -LiteralPath $path){throw '已退出宿主产生构建副作用'}}
+  } finally {if(-not $process.HasExited){$process.Kill();$process.WaitForExit()};$process.Dispose()}
+} finally {
+  if(-not $retiredOwner.HasExited){$retiredOwner.Kill();$retiredOwner.WaitForExit()}
+  $retiredOwner.Dispose()
+}
+Write-Output 'PASS 宿主身份仍可查询但已退出时在日志和命令启动前拒绝'
