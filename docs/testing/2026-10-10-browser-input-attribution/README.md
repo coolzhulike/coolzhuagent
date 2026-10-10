@@ -9,3 +9,7 @@ old.html/new.html 均实际加载 event-probe.js。探针记录每文档唯一 I
 正式复验的门禁不放宽：新旧页面可信 pointerdown/up/cancel、mousedown/up、click/dblclick、keydown/keyup、beforeinput/input、wheel 输入均必须为零；focus/load/pagehide 作为生命周期单独记录。须比较页面内 __inputAttribution.events 与服务器收到的 document_id/sequence，overflow 和 beaconRejected 必须为零；生命周期终态收集缺失不能默认通过。还要关联原生 key dispatch、协议请求、runtime attempt 及步骤起止时间。页面事件本身仍不能证明来源。
 
 复验仍要求同一原 SWE-2-medium/唯一 island-kayak、一请求、旧动作 not_sent/not_needed、无额外重规划、原 end_turn/drained 和解锁；严格 nativeTarget/commit/按下抬起/关闭/HRESULT 竞争是另一个尚未闭环范围。后台启动此前被审批拒绝，未绕过。候选待正式复验，Goal active。
+
+已补 verify-events.cjs 页面子门禁：输入两文档最终快照与服务器页面事件 JSONL，按文档身份/连续序号及逐字段内容对应；重复、漏收、字段篡改、溢出/投递失败、旧文档缺最终 pagehide 或任何可信输入均拒绝。服务器规划触发等非页面事件应保留在原日志中，另行导出页面事件供此工具检查，禁止为通过门禁删掉可信页面事件。
+
+命令为 `node fixtures/verify-events.cjs old-snapshot.json new-snapshot.json page-events.jsonl`。输出只有 page_zero_input_gate，formal_acceptance 固定 not_proven：新文档快照截取时点、原生派发时钟、真实账本及协议终态仍须独立核验。`node fixtures/verify-events-test.cjs` 的上述负例回归实际 exit 0；探针回归再次 exit 0。没有运行正式服务器或真实模型请求。
