@@ -100,7 +100,7 @@ fn hit_belongs_to_target(dom: &Value, target: i64, hit: i64) -> bool {
     hit_belongs_to_root(root,target,hit)
 }
 
-fn hit_belongs_to_root(root:&Value,target:i64,hit:i64) -> bool {
+pub(super) fn hit_belongs_to_root(root:&Value,target:i64,hit:i64) -> bool {
     if target <= 0 || hit <= 0 { return false; }
     let mut pending = vec![(root, false)];
     let mut visited = std::collections::HashSet::new();

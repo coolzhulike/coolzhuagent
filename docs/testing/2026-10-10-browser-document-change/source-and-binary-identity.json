@@ -1,0 +1,7 @@
+{
+  "candidate_web_sha256": "2282A20F6247087B10DE084EB09B07E7B647898525C4640E2891B70B67E7D38E",
+  "candidate_shell_sha256": "648F259EFC601B1BBFA7A469F716DE794B096AC9E224E387AD54639063A908FB",
+  "controller_sha256": "c4598d1102eb698d109750eb0cf8b3cb7337be4f8ad71d26f8be47a34432e0d0",
+  "installed126_web_sha256": "416376632f67e9c8fd20de5af21d1475532c73d3243bea3ce1efdc0876ea70c1",
+  "note": "候选由afa9bd65文档头加controller修改正常offline构建；壳为未改动126副本。源码候选不冒充新的正式安装版。"
+}

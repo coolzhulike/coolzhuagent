@@ -49,6 +49,7 @@ mod session_config_service;
 use session_model_config::{SessionModelLimitOverride, model_settings_protocol, model_settings_base_url, constrain_session_model_limit};
 mod devin_acp;
 mod content_delivery;
+mod project_file_snapshot;
 mod content_blob_store;
 mod tool_result_spill;
 mod config_publication;
@@ -8730,7 +8731,9 @@ const DEFAULT_PROJECT_TREE_LIMIT: usize = 200;
 const MAX_PROJECT_TREE_LIMIT: usize = 2_000;
 const DEFAULT_PROJECT_FILE_LIMIT: usize = 64 * 1024;
 const MAX_PROJECT_FILE_READ_BYTES: usize = 256 * 1024;
-const MAX_PROJECT_FILE_PREVIEW_BYTES: u64 = 1024 * 1024;
+// 大文本保持只读分页；总读取有界，单页/编辑上限仍各为256KiB。
+const MAX_PROJECT_FILE_PREVIEW_BYTES: u64 = 64 * 1024 * 1024;
+const MAX_PROJECT_FILE_LINE_WINDOW: usize = 801;
 const MAX_PROJECT_FILE_EDIT_BYTES: usize = 256 * 1024;
 const MAX_PROJECT_DIFF_BYTES: usize = 256 * 1024;
 const PROJECT_DIFF_TIMEOUT: Duration = Duration::from_secs(3);
@@ -8787,7 +8790,9 @@ async fn api_project_file(
 ) -> ApiResult<Json<ProjectFileReadResponse>> {
     let root = active_workspace_path();
     let path = resolve_project_existing_path(&root, query.path.as_deref())?;
-    let meta = project_file_meta(&root, &path)?;
+    let snapshot = project_file_snapshot::read(&path, MAX_PROJECT_FILE_PREVIEW_BYTES)
+        .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
+    let meta = project_file_meta_from_snapshot(&root, &path, &snapshot)?;
     if !meta.previewable {
         return Err(api_error(
             StatusCode::PAYLOAD_TOO_LARGE,
@@ -8797,20 +8802,24 @@ async fn api_project_file(
 
     // 行窗口模式（1-based 闭区间，越界安全裁剪）：前端 :n 跳转按 ±400 行请求该段。
     if let (Some(start_line), Some(end_line)) = (query.start_line, query.end_line) {
-        let bytes = std::fs::read(&path)
-            .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
-        let text_bytes = bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(&bytes);
+        let bytes = snapshot.bytes.as_slice();
+        let text_bytes = bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(bytes);
         let text = std::str::from_utf8(text_bytes)
             .map_err(|_| api_error(StatusCode::BAD_REQUEST, "project file is not valid UTF-8"))?;
         let total_lines = text.lines().count().max(1) as u64;
         let start = start_line.max(1).min(total_lines as usize);
-        let end = end_line.max(start).min(total_lines as usize);
-        let content: String = text
-            .lines()
-            .skip(start.saturating_sub(1))
-            .take(end.saturating_sub(start) + 1)
-            .collect::<Vec<&str>>()
-            .join("\n");
+        let end = end_line.max(start).min(total_lines as usize)
+            .min(start.saturating_add(MAX_PROJECT_FILE_LINE_WINDOW - 1));
+        let mut content = String::new();
+        for (index, line) in text.lines().skip(start.saturating_sub(1)).take(end - start + 1).enumerate() {
+            let separator = usize::from(index > 0);
+            if content.len().saturating_add(separator).saturating_add(line.len()) > MAX_PROJECT_FILE_READ_BYTES {
+                return Err(api_error(StatusCode::PAYLOAD_TOO_LARGE,
+                    "行窗口超过256KiB，请缩小行范围或使用字节分页读取"));
+            }
+            if separator > 0 { content.push('\n'); }
+            content.push_str(line);
+        }
         let bytes_read = content.len();
         return Ok(Json(ProjectFileReadResponse {
             meta,
@@ -8831,9 +8840,8 @@ async fn api_project_file(
         .unwrap_or(DEFAULT_PROJECT_FILE_LIMIT)
         .min(MAX_PROJECT_FILE_READ_BYTES)
         .max(1);
-    let bytes = std::fs::read(&path)
-        .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
-    let (content, start, end) = content_delivery::text_page(&bytes, offset, limit)
+    let bytes = snapshot.bytes.as_slice();
+    let (content, start, end) = content_delivery::text_page(bytes, offset, limit)
         .map_err(|error| api_error(StatusCode::BAD_REQUEST, error))?;
 
     Ok(Json(ProjectFileReadResponse {
@@ -11194,23 +11202,31 @@ fn relative_project_path(root: &Path, path: &Path) -> String {
 }
 
 fn project_file_meta(root: &Path, path: &Path) -> ApiResult<ProjectFileMetaResponse> {
-    let metadata = std::fs::metadata(path)
+    let snapshot = project_file_snapshot::read(path, MAX_PROJECT_FILE_PREVIEW_BYTES)
         .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
+    project_file_meta_from_snapshot(root, path, &snapshot)
+}
+
+fn project_file_meta_from_snapshot(
+    root: &Path,
+    path: &Path,
+    snapshot: &project_file_snapshot::Snapshot,
+) -> ApiResult<ProjectFileMetaResponse> {
+    let metadata = &snapshot.metadata;
     if !metadata.is_file() {
         return Err(api_error(
             StatusCode::BAD_REQUEST,
             "project path must be a file",
         ));
     }
-    let bytes = std::fs::read(path)
-        .map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()))?;
-    let binary = is_binary_bytes(&bytes);
-    let previewable = !binary && metadata.len() <= MAX_PROJECT_FILE_PREVIEW_BYTES;
+    let bytes = snapshot.bytes.as_slice();
+    let binary = is_binary_bytes(bytes);
+    let previewable = snapshot.complete && !binary;
     let editable = previewable
         && bytes.len() <= MAX_PROJECT_FILE_EDIT_BYTES
         && !metadata.permissions().readonly();
     let has_utf8_bom = bytes.starts_with(&[0xEF, 0xBB, 0xBF]);
-    let text_bytes = if has_utf8_bom { &bytes[3..] } else { &bytes };
+    let text_bytes = if has_utf8_bom { &bytes[3..] } else { bytes };
     let line_ending = project_line_ending(text_bytes);
     Ok(ProjectFileMetaResponse {
         name: path
@@ -11220,16 +11236,16 @@ fn project_file_meta(root: &Path, path: &Path) -> ApiResult<ProjectFileMetaRespo
         path: display_path(path),
         relative_path: relative_project_path(root, path),
         kind: "file".to_string(),
-        file_size: metadata.len(),
+        file_size: if snapshot.complete { bytes.len() as u64 } else { metadata.len() },
         modified: metadata.modified().ok().and_then(system_time_millis),
         binary,
         previewable,
         editable,
         max_preview_bytes: MAX_PROJECT_FILE_PREVIEW_BYTES,
         max_edit_bytes: MAX_PROJECT_FILE_EDIT_BYTES,
-        revision: project_file_revision(&bytes),
-        encoding: if has_utf8_bom { "utf-8-bom" } else { "utf-8" }.to_string(),
-        line_ending,
+        revision: if snapshot.complete { project_file_revision(bytes) } else { String::new() },
+        encoding: if !snapshot.complete { "unknown" } else if has_utf8_bom { "utf-8-bom" } else { "utf-8" }.to_string(),
+        line_ending: if snapshot.complete { line_ending } else { "unknown".to_string() },
         has_utf8_bom,
     })
 }
@@ -28951,7 +28967,7 @@ fn build_context_assembly_with_roster(
     // dropped_history 是新→旧顺序，摘要时转回时间正序并注入 system_prompt（计入 system_tokens）。
     if !dropped_history.is_empty() {
         dropped_history.reverse();
-        let rolling_summary = summarize_dropped_history(&dropped_history);
+        let rolling_summary = chat_tool_history::summarize_dropped_history(&dropped_history);
         compaction_item =
             context_compaction_item_from_history(&dropped_history, &rolling_summary, agent);
         diagnostics::info(
@@ -29504,47 +29520,6 @@ fn context_message_role(role: &str) -> &'static str {
     } else {
         "user"
     }
-}
-
-/// 12-D 自动 compact：把超出上下文预算、被压缩掉的较旧历史汇成一条 [历史摘要]，
-/// 注入 system_prompt，避免长会话丢失早期上下文。轻量本地摘要（不调模型，避免组装期同步 LLM）：
-/// 取每条消息的角色 + 正文前若干字，最多保留若干条；超出再做条数级压缩。
-fn summarize_dropped_history(dropped: &[PersistedChatMessage]) -> String {
-    if dropped.is_empty() {
-        return String::new();
-    }
-    let role_label = |role: &str| match role {
-        "user" => "用户",
-        "assistant" => "助手",
-        "system" => "系统",
-        other if !other.is_empty() => "对话",
-        _ => "对话",
-    };
-    let mut lines = Vec::new();
-    lines.push(format!(
-        "[历史摘要] 以下 {} 条更早对话已压缩为要点：",
-        dropped.len()
-    ));
-    let max_items = 12usize;
-    let max_chars = 50usize;
-    let step = dropped.len().div_ceil(max_items).max(1);
-    for message in dropped.iter().step_by(step) {
-        let body = message.content.trim();
-        if body.is_empty() {
-            continue;
-        }
-        let snippet: String = body.chars().take(max_chars).collect();
-        let ellipsis = if body.chars().count() > max_chars {
-            "…"
-        } else {
-            ""
-        };
-        lines.push(format!(
-            "- {}: {snippet}{ellipsis}",
-            role_label(&message.role)
-        ));
-    }
-    lines.join("\n")
 }
 
 /// 原文保存与上下文投影使用受理时冻结的存储位置，不回读当前工作区。

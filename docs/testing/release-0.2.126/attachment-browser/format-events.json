@@ -1,0 +1,17 @@
+{
+  "events": [
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":8192,\"offset\":4096,\"result_id\":\"7bafffeaf6a37a5b425d2a945debf65cdb4e793deaed276ef0f6239c36dc0c0c\",\"source_tool\":\"computer_use_perform\"}"
+    },
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":73728,\"offset\":69632,\"result_id\":\"7bafffeaf6a37a5b425d2a945debf65cdb4e793deaed276ef0f6239c36dc0c0c\",\"source_tool\":\"computer_use_perform\"}"
+    },
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":73904,\"offset\":73728,\"result_id\":\"7bafffeaf6a37a5b425d2a945debf65cdb4e793deaed276ef0f6239c36dc0c0c\",\"source_tool\":\"computer_use_perform\"}"
+    }
+  ],
+  "redacted_error_diagnostics": []
+}

@@ -36,6 +36,17 @@ pub(crate) fn digest_from_name(name: &str) -> Option<&str> {
     (value.len() == 64 && value.bytes().all(|c| c.is_ascii_hexdigit())).then_some(value)
 }
 
+/// 校验已读取的同一份字节，避免重开文件后另一次读取替换掉发送时证据。
+/// 旧版非内容寻址附件没有摘要身份，继续由各入口的格式/快照校验处理。
+pub(crate) fn verify_named_bytes(name: &str, bytes: &[u8]) -> io::Result<()> {
+    if let Some(expected) = digest_from_name(name) {
+        if !format!("{:x}", Sha256::digest(bytes)).eq_ignore_ascii_case(expected) {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "附件内容对象摘要不匹配，请重新上传；未覆盖损坏文件"));
+        }
+    }
+    Ok(())
+}
+
 pub(crate) fn verify(path: &Path, expected: &str) -> io::Result<()> {
     if !fs::symlink_metadata(path)?.file_type().is_file() {
         return Err(io::Error::new(io::ErrorKind::PermissionDenied, "内容对象不是普通文件"));

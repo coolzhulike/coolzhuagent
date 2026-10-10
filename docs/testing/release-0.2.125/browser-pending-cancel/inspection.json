@@ -1,0 +1,391 @@
+{
+  "passed": false,
+  "run": {
+    "id": "run-chat-060ea336edfc5768ec3f64811ebe28e0078e40100a1706aa",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791634806161-0",
+    "provider_turn_id": null,
+    "state": "interrupted",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-64c2101bdde0fcab684322ae8c7da2544afdc81d56933defb2e923338512eff8",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791634806162,
+    "started_at": 1791634806370,
+    "stop_requested_at": 1791634837276,
+    "heartbeat_at": 1791634806370,
+    "finished_at": 1791634837292
+  },
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8",
+    "provider_tool_call_id": "tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8",
+    "status": "blocked",
+    "stage": "observation",
+    "goal_achieved": false,
+    "surface": "browser",
+    "summary": "本轮已停止；已经投递的输入事实保留，不继续观察或派发后续动作",
+    "error": {
+      "code": "native_observation_cancelled",
+      "message": "本轮已停止；已经投递的输入事实保留，不继续观察或派发后续动作",
+      "retryable": false,
+      "retry_owner": "none"
+    },
+    "attempts": 1,
+    "steps_completed": 1,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": null,
+        "goal_verdict": null
+      }
+    ],
+    "evidence": [
+      "native-ax:1:0",
+      "native-observation:e3af9a5d70bbe8bbea8c4839f752acee",
+      "native-ax:1:0",
+      "native-observation:e3af9a5d70bbe8bbea8c4839f752acee",
+      "native-input:ec93017b24bc1b46ea66b0cbe75998c4"
+    ],
+    "supervisor": {
+      "circuit_open": false,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791635706161
+        }
+      },
+      "cu_deadline_ms": 1791635706161,
+      "cu_deadline_established_at_ms": 1791634818171,
+      "cu_budget_ms": 900000
+    }
+  },
+  "cu_run": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8",
+    "provider_tool_call_id": "tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8",
+    "turn_id": "chat-turn-1791634806161-0",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "idempotency_key": "session-1791131217833\u001fchat-turn-1791634806161-0\u001fbrowser\u001f点击交接观察验收按钮一次并读取新观察\u001f\u001f看到真实点击已完成，等待观察交接\u001f只点击一次；取消后立即结束；不得补发或重试",
+    "objective_json": "{\"constraints\":[\"只点击一次；取消后立即结束；不得补发或重试\"],\"max_actions\":1,\"objective\":\"点击交接观察验收按钮一次并读取新观察\",\"success_criteria\":[\"看到真实点击已完成，等待观察交接\"],\"surface\":\"browser\"}",
+    "surface": "browser",
+    "state": "blocked",
+    "state_version": 10,
+    "risk_class": "observe",
+    "approval_state": "not_required",
+    "approval_deadline_ms": null,
+    "action_count": 1,
+    "replan_count": 0,
+    "no_progress_count": 0,
+    "current_observation_generation": 0,
+    "deadline_ms": 1791635706161,
+    "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8\",\"provider_tool_call_id\":\"tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8\",\"status\":\"blocked\",\"stage\":\"observation\",\"goal_achieved\":false,\"surface\":\"browser\",\"summary\":\"本轮已停止；已经投递的输入事实保留，不继续观察或派发后续动作\",\"error\":{\"code\":\"native_observation_cancelled\",\"message\":\"本轮已停止；已经投递的输入事实保留，不继续观察或派发后续动作\",\"retryable\":false,\"retry_owner\":\"none\"},\"attempts\":1,\"steps_completed\":1,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":null,\"goal_verdict\":null}],\"evidence\":[\"native-ax:1:0\",\"native-observation:e3af9a5d70bbe8bbea8c4839f752acee\",\"native-ax:1:0\",\"native-observation:e3af9a5d70bbe8bbea8c4839f752acee\",\"native-input:ec93017b24bc1b46ea66b0cbe75998c4\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":1,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791635706161}},\"cu_deadline_ms\":1791635706161,\"cu_deadline_established_at_ms\":1791634818171,\"cu_budget_ms\":900000}}",
+    "created_at_ms": 1791634818171,
+    "updated_at_ms": 1791634837886,
+    "workspace_id": "ws-23f646a969206cb4",
+    "workspace_context_version": 1,
+    "legacy_convergence_id": null,
+    "legacy_convergence_state": null,
+    "legacy_convergence_reconciled_at_ms": null
+  },
+  "steps": [
+    {
+      "run_id": "cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-51effdfe343225271ae72d1c3fedd593",
+      "action_fingerprint": "a3f5d8e6630875de",
+      "status": "observation_failed",
+      "error_code": "native_observation_cancelled",
+      "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:e3af9a5d70bbe8bbea8c4839f752acee\"]",
+      "after_evidence_ref": null,
+      "visible_progress": 0,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": null,
+      "goal_verdict": null,
+      "input_release_status": "released",
+      "started_at_ms": 1791634834813,
+      "completed_at_ms": 1791634837115,
+      "native_dispatch_state": "released",
+      "native_ticket_id": "bc0095520151491bb0077e69cb144895",
+      "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"4d4d28ad5f8df69ea28a43330d93ce0c\",\"host_id\":\"native-8cf2fb1d8a7762dff87827f95c648367\",\"process\":{\"instance_id\":\"c9132d29535cf1920ba29f8b42734122\",\"boot_id\":\"8cf2fb1d8a7762dff87827f95c648367\",\"pid\":26160,\"creation_time_filetime\":134361079066606547,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-51effdfe343225271ae72d1c3fedd593:9d817a1f362f34b6#gen1#cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8:step-0#attempt1\",\"ticket_id\":\"bc0095520151491bb0077e69cb144895\",\"observation_id\":\"e3af9a5d70bbe8bbea8c4839f752acee\",\"document_token\":\"07c4430eae56ebc99a0ce8b4009f1e06\",\"node_id\":\"51effdfe343225271ae72d1c3fedd593\",\"input_kind\":\"click\"}"
+    }
+  ],
+  "events": [
+    {
+      "id": 6163,
+      "event_type": "run.accepted",
+      "created_at": 1791634806168,
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791634806161-0\"}",
+      "payload": {
+        "kind": "chat_turn",
+        "legacy_turn_id": "chat-turn-1791634806161-0"
+      }
+    },
+    {
+      "id": 6164,
+      "event_type": "chat.source_messages",
+      "created_at": 1791634806349,
+      "payload_json": "{\"message_ids\":[\"msg-1791634806160-user\"]}",
+      "payload": {
+        "message_ids": [
+          "msg-1791634806160-user"
+        ]
+      }
+    },
+    {
+      "id": 6165,
+      "event_type": "chat.target_agents",
+      "created_at": 1791634806359,
+      "payload_json": "{\"agent_ids\":[\"session-1791131217833\"]}",
+      "payload": {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    },
+    {
+      "id": 6166,
+      "event_type": "run.started",
+      "created_at": 1791634806370,
+      "payload_json": "{\"previous_state\":\"accepted\"}",
+      "payload": {
+        "previous_state": "accepted"
+      }
+    },
+    {
+      "id": 6167,
+      "event_type": "devin.context_delta",
+      "created_at": 1791634809551,
+      "payload_json": "{\"continued\":true,\"delta_history_messages\":0,\"host_history_messages\":29,\"image_count\":0,\"prompt_bytes\":6393}",
+      "payload": {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 29,
+        "image_count": 0,
+        "prompt_bytes": 6393
+      }
+    },
+    {
+      "id": 6168,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791634818186,
+      "payload_json": "{\"request_id\":\"e3af9a5d70bbe8bbea8c4839f752acee\",\"stage\":\"registered\"}",
+      "payload": {
+        "request_id": "e3af9a5d70bbe8bbea8c4839f752acee",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 6169,
+      "event_type": "devin.planning_requested",
+      "created_at": 1791634819263,
+      "payload_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8\",\"kind\":\"computer_use_planning\",\"model\":\"swe-2-medium\",\"request_id\":\"8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058\",\"transport\":\"current_chat_tool_bridge\"}",
+      "payload": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8",
+        "kind": "computer_use_planning",
+        "model": "swe-2-medium",
+        "request_id": "8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058",
+        "transport": "current_chat_tool_bridge"
+      }
+    },
+    {
+      "id": 6170,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791634822350,
+      "payload_json": "{\"offset\":0,\"request_id\":\"8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058\"}",
+      "payload": {
+        "offset": 0,
+        "request_id": "8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058"
+      }
+    },
+    {
+      "id": 6171,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791634824896,
+      "payload_json": "{\"offset\":6000,\"request_id\":\"8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058\"}",
+      "payload": {
+        "offset": 6000,
+        "request_id": "8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058"
+      }
+    },
+    {
+      "id": 6172,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791634828697,
+      "payload_json": "{\"offset\":12000,\"request_id\":\"8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058\"}",
+      "payload": {
+        "offset": 12000,
+        "request_id": "8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058"
+      }
+    },
+    {
+      "id": 6173,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791634831340,
+      "payload_json": "{\"offset\":18000,\"request_id\":\"8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058\"}",
+      "payload": {
+        "offset": 18000,
+        "request_id": "8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058"
+      }
+    },
+    {
+      "id": 6174,
+      "event_type": "devin.planning_response",
+      "created_at": 1791634834801,
+      "payload_json": "{\"request_id\":\"8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058\",\"response_digest\":\"f2e910cabae5203900f35e89e5aede83cef715a85de1017f7b1c3ed26afce7d7\",\"source_attempt\":\"a3bfff3c95713fa81c2f877887fb34594413b885d0eb9883\"}",
+      "payload": {
+        "request_id": "8aae90c089dcbd7de6da42658109797fd4b77b60ffae170df2421f88be2696de033bed1017a77f25a5bcec8492582058",
+        "response_digest": "f2e910cabae5203900f35e89e5aede83cef715a85de1017f7b1c3ed26afce7d7",
+        "source_attempt": "a3bfff3c95713fa81c2f877887fb34594413b885d0eb9883"
+      }
+    },
+    {
+      "id": 6175,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791634834824,
+      "payload_json": "{\"request_id\":\"4c79a4a60c597492864128f48748f56b\",\"stage\":\"registered\"}",
+      "payload": {
+        "request_id": "4c79a4a60c597492864128f48748f56b",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 6176,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791634837210,
+      "payload_json": "{\"request_id\":\"d32add1950ccd942b97fb0f8409378f9\",\"stage\":\"registered\"}",
+      "payload": {
+        "request_id": "d32add1950ccd942b97fb0f8409378f9",
+        "stage": "registered"
+      }
+    },
+    {
+      "id": 6177,
+      "event_type": "run.stop_requested",
+      "created_at": 1791634837276,
+      "payload_json": "{\"previous_state\":\"running\",\"reason\":null}",
+      "payload": {
+        "previous_state": "running",
+        "reason": null
+      }
+    },
+    {
+      "id": 6178,
+      "event_type": "run.interrupted",
+      "created_at": 1791634837292,
+      "payload_json": "{\"previous_state\":\"stop_requested\",\"requested_status\":\"interrupted\"}",
+      "payload": {
+        "previous_state": "stop_requested",
+        "requested_status": "interrupted"
+      }
+    },
+    {
+      "id": 6179,
+      "event_type": "browser.observation_stopped",
+      "created_at": 1791634837883,
+      "payload_json": "{\"elapsed_ms\":673,\"reason_code\":\"native_observation_cancelled\",\"request_id\":\"d32add1950ccd942b97fb0f8409378f9\",\"stage\":\"reply_parent_changed\"}",
+      "payload": {
+        "elapsed_ms": 673,
+        "reason_code": "native_observation_cancelled",
+        "request_id": "d32add1950ccd942b97fb0f8409378f9",
+        "stage": "reply_parent_changed"
+      }
+    }
+  ],
+  "associated_request": {
+    "event_id": 6176,
+    "created_at": 1791634837210,
+    "payload": {
+      "request_id": "d32add1950ccd942b97fb0f8409378f9",
+      "stage": "registered"
+    }
+  },
+  "cancel_action": {
+    "attempted": true,
+    "normal_stop_interface": true,
+    "run_id": "run-chat-060ea336edfc5768ec3f64811ebe28e0078e40100a1706aa",
+    "cu_call_id": "cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8",
+    "step": [
+      0,
+      "sent",
+      "released",
+      1791634837115
+    ],
+    "request": {
+      "event_id": 6176,
+      "created_at": 1791634837210,
+      "payload": {
+        "request_id": "d32add1950ccd942b97fb0f8409378f9",
+        "stage": "registered"
+      }
+    },
+    "observed_ms": 1791634837232.4631,
+    "submitted_ms": 1791634837232.466,
+    "response_ms": 1791634837283.1377,
+    "http_status": 200,
+    "payload": {
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "turn_id": "chat-turn-1791634806161-0"
+    },
+    "response": {
+      "turn_id": "chat-turn-1791634806161-0",
+      "status": "interrupt_requested",
+      "outcome": "interrupt_requested",
+      "idempotent": false
+    }
+  },
+  "associated_stops": [
+    {
+      "id": 6179,
+      "event_type": "browser.observation_stopped",
+      "created_at": 1791634837883,
+      "payload_json": "{\"elapsed_ms\":673,\"reason_code\":\"native_observation_cancelled\",\"request_id\":\"d32add1950ccd942b97fb0f8409378f9\",\"stage\":\"reply_parent_changed\"}",
+      "payload": {
+        "elapsed_ms": 673,
+        "reason_code": "native_observation_cancelled",
+        "request_id": "d32add1950ccd942b97fb0f8409378f9",
+        "stage": "reply_parent_changed"
+      }
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "a3bfff3c95713fa81c2f877887fb34594413b885d0eb9883",
+      "state": "terminal",
+      "protocol_stop": "cancelled",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

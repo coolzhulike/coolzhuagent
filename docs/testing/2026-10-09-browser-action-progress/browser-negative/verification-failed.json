@@ -1,0 +1,6 @@
+{
+  "passed": false,
+  "check_exit_code": 1,
+  "reason": "有两条CU调用，首条错误task字段零执行，模型违规补发第二条；第二条两次真实输入后no_progress停止，仅关闭该部分观察，完整单调用验收未通过",
+  "run_id": "run-chat-a0de96ce135f6e9c912e9effd9d7684f3d1ee2784a98113b"
+}

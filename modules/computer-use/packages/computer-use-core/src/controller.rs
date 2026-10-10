@@ -9,6 +9,16 @@ use serde_json::Value as JsonValue;
 
 pub type PlannerFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
 
+/// 保留过去一次宿主验证，不能把部分满足或旧观察改为终态成功。
+fn retain_last_verification(mut result: ComputerUseResult, summary: Option<String>) -> ComputerUseResult {
+    if let Some(summary) = summary {
+        result.summary = serde_json::json!({"terminal_reason":result.summary,
+            "last_verification":serde_json::from_str::<JsonValue>(&summary).unwrap_or(JsonValue::String(summary)),
+            "verification_is_last_observation":true}).to_string();
+    }
+    result
+}
+
 /// 规划者：所有可能直接或间接发起模型调用的方法都**必须**接收剩余预算。
 ///
 /// `remaining` 与本 crate 的 [`ComputerUseAdapter`] 使用同一个类型与单位
@@ -608,7 +618,7 @@ where
 
         loop {
             if let Err(error) = guard.before_planning(self.clock.now_ms()) {
-                let mut result = self.terminal(
+                let result = self.terminal(
                     &context,
                     surface,
                     ComputerUseStage::Supervisor,
@@ -621,12 +631,7 @@ where
                 );
                 // 保留最后已取得的验收事实，不能因动作预算耗尽把“部分满足”变成未知的零满足。
                 // 这是过去一次观察的报告，不是新的成功证明，也不触发额外模型或输入请求。
-                if let Some(summary) = last_verification {
-                    result.summary = serde_json::json!({"terminal_reason":result.summary,
-                        "last_verification":serde_json::from_str::<JsonValue>(&summary).unwrap_or(JsonValue::String(summary)),
-                        "verification_is_last_observation":true}).to_string();
-                }
-                return result;
+                return retain_last_verification(result, last_verification);
             }
             self.events.state_changed(ComputerUseRunState::Planning);
             let remaining =
@@ -638,7 +643,7 @@ where
             {
                 Ok(Some(action)) => action,
                 Ok(None) => {
-                    return self.terminal(
+                    let result = self.terminal(
                         &context,
                         surface,
                         ComputerUseStage::Verification,
@@ -653,6 +658,7 @@ where
                         guard.snapshot(),
                         &run_facts,
                     );
+                    return retain_last_verification(result, last_verification);
                 }
                 Err(error) => {
                     return self.terminal(
@@ -768,12 +774,20 @@ where
                         && !stale_recovered
                         && !error.receipt_shows_input_may_have_been_sent(&crate::contracts::action_attempt_id(surface, &action)) =>
                 {
-                    if let Err(budget_error) = guard.record_replan() {
+                    // 原执行失败是文档/观察失效。恢复已无预算时保留这个原因，
+                    // 不再额外观察，也不把未投递的动作误报成单纯规划预算耗尽。
+                    let recovery = guard.before_planning(self.clock.now_ms())
+                        .and_then(|()| guard.record_replan());
+                    if let Err(budget_error) = recovery {
+                        let mut failure = error;
+                        failure.retryable = false;
+                        failure.retry_owner = ComputerUseRetryOwner::None;
+                        failure.message.push_str(&format!("; recovery stopped: {}", budget_error.message));
                         return self.terminal(
                             &context,
                             surface,
-                            ComputerUseStage::Supervisor,
-                            budget_error,
+                            ComputerUseStage::Execution,
+                            failure,
                             attempts,
                             steps_completed,
                             evidence,
@@ -1317,6 +1331,9 @@ mod tests {
         assert!(!result.goal_achieved);
         assert_eq!(result.error.as_ref().unwrap().code, "verification_failed");
         assert_eq!(controller.adapter().action_count.load(Ordering::SeqCst), 1);
+        let summary: JsonValue = serde_json::from_str(&result.summary).unwrap();
+        assert_eq!(summary["last_verification"], "changed but not complete");
+        assert_eq!(summary["verification_is_last_observation"], true);
     }
 
     #[tokio::test]

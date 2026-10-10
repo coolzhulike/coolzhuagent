@@ -1,0 +1,9 @@
+   Compiling proc-macro2 v1.0.106
+   Compiling quote v1.0.45
+   Compiling syn v2.0.117
+   Compiling serde_derive v1.0.228
+   Compiling serde v1.0.228
+   Compiling coolzhu-native-browser-protocol v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\computer-use\packages\native-browser-protocol)
+    Finished `test` profile [unoptimized] target(s) in 10.56s
+     Running unittests src\lib.rs (target\debug\deps\coolzhu_native_browser_protocol-4c7c10d75da76be9.exe)
+   Doc-tests coolzhu_native_browser_protocol

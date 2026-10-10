@@ -1,0 +1,13 @@
+{
+  "command": "cargo build -p coolzhu-web-console --offline",
+  "actual_exit_code": 0,
+  "final_tool_result": {
+    "chunk_id": "4453dd",
+    "wall_time_seconds": 0.0000105,
+    "exit_code": 0,
+    "original_token_count": 62,
+    "output": "warning: `coolzhu-web-console` (bin \"coolzhu-web-console\") generated 146 warnings (run `cargo fix --bin \"coolzhu-web-console\" -p coolzhu-web-console` to apply 5 suggestions)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 40s\n"
+  },
+  "output_scope": "仅构建结束工具回执；早期警告未在此重复复制",
+  "stage": "源码候选，非0.2.126正式安装包"
+}

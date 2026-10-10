@@ -1,0 +1,79 @@
+{
+  "stage": "AX索引漂移修正第二候选Web与壳，非正式安装验收",
+  "source_user_id": "msg-1791565005509-user",
+  "run": {
+    "id": "run-chat-5c58289c1b77c4f2e872daed1fc7591eeda3b2d60754a3f1",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791565005510-0",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-661f43bfa78f7b6ec8e0305003a8f95b79feeee6ce275177c36e88cc3cad1eb8",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791565005513,
+    "started_at": 1791565007331,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791565007331,
+    "finished_at": 1791565883034
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-9f2b9edd078274f4d1642bee1614b449067ed49347907913ece9623678e1180f",
+      "run_id": "run-chat-5c58289c1b77c4f2e872daed1fc7591eeda3b2d60754a3f1",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "7ffc0a0afab3a8c7",
+      "status": "completed",
+      "created_at_unix_ms": 1791565040894,
+      "updated_at_unix_ms": 1791565850998,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-5c58289c1b77c4f2e872daed1fc7591eeda3b2d60754a3f1\",\"turn_id\":\"chat-turn-1791565005510-0\",\"attempt_id\":\"6acdf76b089802c06feeeb20cbcaa03d9aa124ac5846eef6\",\"owner_epoch\":263,\"generation\":263}"
+    },
+    {
+      "tool_call_id": "tool-b9427f7c502d410e093bea50e8d20b917a74efda3bb73a1b0e2465cb31f0e6c6",
+      "run_id": "run-chat-5c58289c1b77c4f2e872daed1fc7591eeda3b2d60754a3f1",
+      "request_attempt_id": null,
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "arguments_digest": "09ecdba8e3418511",
+      "status": "completed",
+      "created_at_unix_ms": 1791565860923,
+      "updated_at_unix_ms": 1791565870622,
+      "provider_tool_call_id": "82",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-5c58289c1b77c4f2e872daed1fc7591eeda3b2d60754a3f1\",\"turn_id\":\"chat-turn-1791565005510-0\",\"attempt_id\":\"6acdf76b089802c06feeeb20cbcaa03d9aa124ac5846eef6\",\"owner_epoch\":263,\"generation\":263}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "6acdf76b089802c06feeeb20cbcaa03d9aa124ac5846eef6",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791565007560-0",
+      "content": "CU 终态成功（`succeeded`，`goal_achieved: true`，11 步）。现在调用 DSH 计算器一次。任务成功（CU 终态回执 `status: succeeded`，stage: terminal，`goal_achieved: true`）：\n\n- **总动作数**：11（`attempts=11`，`steps_completed=11`，`replan_count=0`）\n- **交付步骤**（每步 `input_delivery: sent`）：\n  1. `click` — 聚焦第1项跨来源内嵌\"订单码\"框（released）\n  2. `text_input` — 输入 `BAMBOO-1214`（not_needed）\n  3. `key_combination` enter — 第1项验证通过（released）\n  4. `click` — \"下一步\"进入第2项（released）\n  5. `click` — 聚焦第2项新\"订单码\"框（released）\n  6. `text_input` — 输入 `JADE-9404`（not_needed）\n  7. `key_combination` enter — 第2项验证通过（released）\n  8. `click` — \"下一步\"进入第3项（released）\n  9. `click` — 聚焦第3项新\"订单码\"框（released）\n  10. `text_input` — 输入 `SCROLL-8896`（not_needed）\n  11. `key_combination` enter — 第3项验证通过（released）\n- **最终观察**：fresh_observation_id `eb3172edb8f76a1538f2a9ae4d7c6512`（generation 12，freshness_confirmed），grounded=true，criteria 2/2 met：\n  - index 30 原文\"整单已完成，三项均通过\"\n  - 外层已验证回执（index 15/16/17）：`第1项已验证：竹剑；单价 197；数量 5`、`第2项已验证：玉佩；单价 365；数量 5`、`第3项已验证：卷轴；单价 887；数量 7`\n- 全程未操作行情/公告刷新区，均使用最新观察的新鲜引用，无脚本/HTTP/外部浏览器\n\n**DSH 计算器**（回传单价×数量，调用一次，status: ok，runtime-executed）：\n- 表达式：`197*5+365*5+887*7`\n- 逐项：竹剑 `197 × 5 = 985`；玉佩 `365 × 5 = 1825`；卷轴 `887 × 7 = 6209`\n- **总额：9019**（宿主返回结果 9019）",
+      "kind": "assistant-reply"
+    }
+  ]
+}

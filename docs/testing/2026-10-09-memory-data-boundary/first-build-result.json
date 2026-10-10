@@ -1,0 +1,1 @@
+{"command":["cargo","build","-p","coolzhu-core-runtime","-p","coolzhu-web-console","--offline"],"actual_exit_code":1,"reason":"LLVM默认调试配置内存分配2097152字节失败，rustc异常退出0xc0000409；未计构建成功，保留工具chunk442125的原失败，改为项目既有低内存编译配置。"}

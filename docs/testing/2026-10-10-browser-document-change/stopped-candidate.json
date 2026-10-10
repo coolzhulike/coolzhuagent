@@ -1,0 +1,17 @@
+{
+  "identity_verified": true,
+  "candidate_stopped": true,
+  "previous": {
+    "shell_started": "2026-10-10T13:06:59.1286682Z",
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "port": 8765,
+    "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-10-browser-document-change\\candidate-bundle\\bin\\coolzhu-web-console.exe",
+    "shell_pid": 2848,
+    "web_pid": 14380,
+    "shell_sha256": "648F259EFC601B1BBFA7A469F716DE794B096AC9E224E387AD54639063A908FB",
+    "web_sha256": "2282A20F6247087B10DE084EB09B07E7B647898525C4640E2891B70B67E7D38E",
+    "stage": "文档失效报告源码候选（原唯一Devin绑定）",
+    "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-10-browser-document-change\\candidate-bundle\\bin\\coolzhu-tauri-shell.exe",
+    "web_started": "2026-10-10T13:06:57.2873414Z"
+  }
+}

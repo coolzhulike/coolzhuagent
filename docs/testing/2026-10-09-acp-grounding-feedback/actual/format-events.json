@@ -1,0 +1,13 @@
+{
+  "events": [
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":8190,\"offset\":4096,\"result_id\":\"9e4bfed680114f4463d0b42e95767c094b635c8c8906b9fed3eb8fa64dde375e\",\"source_tool\":\"computer_use_perform\"}"
+    },
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":9050,\"offset\":8190,\"result_id\":\"9e4bfed680114f4463d0b42e95767c094b635c8c8906b9fed3eb8fa64dde375e\",\"source_tool\":\"computer_use_perform\"}"
+    }
+  ],
+  "redacted_error_diagnostics": []
+}

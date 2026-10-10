@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "recovered_user_requests": 7,
+  "compacted_message_count": 439,
+  "selected_history_unchanged": true,
+  "excluded_history_unchanged": true,
+  "budget_preserved": true,
+  "new_model_attempts": 0,
+  "new_cloud_sessions": 0,
+  "original_database_writes": 0,
+  "candidate_only": true
+}

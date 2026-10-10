@@ -1,0 +1,124 @@
+{
+  "run": {
+    "id": "run-chat-1359167f1ae046085d451429039e59be69742d08f695bbaa",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791570666962-2"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791570666962-2-tool-1209dcc84e04256bc0e6db8a43f465fa12113ddfb12a9cc840450b71888b7e77",
+      "state": "succeeded",
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791570666962-2-tool-1209dcc84e04256bc0e6db8a43f465fa12113ddfb12a9cc840450b71888b7e77",
+        "provider_tool_call_id": "tool-1209dcc84e04256bc0e6db8a43f465fa12113ddfb12a9cc840450b71888b7e77",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"bound_initial_url\":\"http://127.0.0.1:54980/old.html\",\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"c1ec61ee4135aadcc2713ae6366c936d\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[108],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":108,\"name_chars\":14,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":108,\"inline_has_static_text\":false,\"name_chars\":14,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"e6c9468af45ac60129ce6226bd97e6b5\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":128,\"nodes\":[{\"index\":108,\"name\":\"真实点击已完成，等待观察交接\",\"role\":\"StaticText\"}],\"title\":\"OBSERVE123-OLD\",\"truncated\":true,\"url\":\"http://127.0.0.1:54980/old.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "input_steps": [
+          {
+            "step_index": 0,
+            "action_kind": "click",
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "partial": false,
+            "effect_status": "effect_observed",
+            "goal_verdict": "passed"
+          }
+        ],
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:08bc2dac48d5fdf79d8562ed9009f35a",
+          "native-ax:1:2",
+          "native-observation:08bc2dac48d5fdf79d8562ed9009f35a",
+          "native-input:8753e0cbbd20d7e4c69766b9aa07b4cc",
+          "native-ax:1:2",
+          "native-observation:e6c9468af45ac60129ce6226bd97e6b5",
+          "native-ax:1:2",
+          "native-observation:e6c9468af45ac60129ce6226bd97e6b5",
+          "native-ax:1:2",
+          "native-observation:c1ec61ee4135aadcc2713ae6366c936d"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791571566962
+            }
+          },
+          "cu_deadline_ms": 1791571566962,
+          "cu_deadline_established_at_ms": 1791570691620,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "completed_at_ms": 1791570733236
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": 5026,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791570691637,
+      "payload_json": "{\"request_id\":\"08bc2dac48d5fdf79d8562ed9009f35a\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 5033,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791570731503,
+      "payload_json": "{\"request_id\":\"21073a0a486749cc3b224723052963ab\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 5034,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791570733268,
+      "payload_json": "{\"request_id\":\"e6c9468af45ac60129ce6226bd97e6b5\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 5039,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791570761798,
+      "payload_json": "{\"request_id\":\"c1ec61ee4135aadcc2713ae6366c936d\",\"stage\":\"registered\"}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "eb0808e50c2eb2122e34b263785d930f471c24097ff656a2",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ]
+}

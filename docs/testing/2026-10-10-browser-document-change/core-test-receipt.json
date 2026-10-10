@@ -1,0 +1,9 @@
+{
+  "command": "cargo test -p coolzhu-computer-use-core --offline --lib",
+  "actual_exit_code": 0,
+  "passed": 143,
+  "failed": 0,
+  "ignored": 0,
+  "seconds": 73.73,
+  "source": "实际工具终态回执chunk 7c9bb6；这是事实转录，不是完整stdout日志"
+}

@@ -1,0 +1,87 @@
+{"kind": "loaded", "trusted": false, "page_ms": 1791582610861.5, "item": "竹剑", "observed_ms": 1791582610865.2876, "origin_port": 50132}
+{"kind": "loaded", "trusted": false, "page_ms": 1791582610881.5999, "item": "玉佩", "observed_ms": 1791582610884.5554, "origin_port": 50132}
+{"kind": "non-target-repaint", "revision": 100, "observed_ms": 1791582620850.351, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 200, "observed_ms": 1791582630842.637, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 300, "observed_ms": 1791582640854.9822, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 400, "observed_ms": 1791582650844.0305, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 500, "observed_ms": 1791582660856.8396, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 600, "observed_ms": 1791582670849.1401, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 700, "observed_ms": 1791582680845.1396, "origin_port": 50131}
+{"kind": "wheel", "trusted": true, "page_ms": 1791582688895.7998, "target": "verify", "item": "玉佩", "observed_ms": 1791582688901.1472, "origin_port": 50132}
+{"kind": "document-scroll", "trusted": true, "page_ms": 1791582688896.2998, "item": "玉佩", "page_y": 323.3333435058594, "observed_ms": 1791582688903.8132, "origin_port": 50132}
+{"kind": "ax-prefix-inserted", "item": "玉佩", "observed_ms": 1791582688904.0518, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 800, "observed_ms": 1791582690854.183, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 900, "observed_ms": 1791582700849.777, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 1000, "observed_ms": 1791582710857.3506, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 1100, "observed_ms": 1791582720845.2742, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 1200, "observed_ms": 1791582730857.3892, "origin_port": 50131}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791582736278.4, "target": "code", "item": "玉佩", "value": "", "observed_ms": 1791582736284.951, "origin_port": 50132}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791582736279.7998, "target": "code", "item": "玉佩", "value": "", "observed_ms": 1791582736292.7356, "origin_port": 50132}
+{"kind": "click", "trusted": true, "page_ms": 1791582736280.2, "target": "code", "item": "玉佩", "value": "", "observed_ms": 1791582736293.0889, "origin_port": 50132}
+{"kind": "non-target-repaint", "revision": 1300, "observed_ms": 1791582740860.5693, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 1400, "observed_ms": 1791582750846.2578, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 1500, "observed_ms": 1791582760850.1304, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 1600, "observed_ms": 1791582770851.413, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 1700, "observed_ms": 1791582780848.997, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 1800, "observed_ms": 1791582790848.7468, "origin_port": 50131}
+{"kind": "input", "trusted": true, "page_ms": 1791582792032.2998, "target": "code", "item": "玉佩", "value": "JADE-8441", "observed_ms": 1791582792041.2754, "origin_port": 50132}
+{"kind": "non-target-repaint", "revision": 1900, "observed_ms": 1791582800848.2634, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2000, "observed_ms": 1791582810847.4556, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2100, "observed_ms": 1791582820849.0173, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2200, "observed_ms": 1791582830847.8347, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2300, "observed_ms": 1791582840860.8813, "origin_port": 50131}
+{"kind": "keydown", "trusted": true, "page_ms": 1791582846228.2, "target": "code", "item": "玉佩", "key": "Enter", "value": "JADE-8441", "observed_ms": 1791582846235.8645, "origin_port": 50132}
+{"kind": "verified", "trusted": true, "page_ms": 1791582846229.2, "target": "verify", "item": "玉佩", "accepted": true, "observed_ms": 1791582846238.825, "origin_port": 50132}
+{"kind": "non-target-repaint", "revision": 2400, "observed_ms": 1791582850854.7397, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2500, "observed_ms": 1791582860851.5164, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2600, "observed_ms": 1791582870863.78, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2700, "observed_ms": 1791582880864.209, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2800, "observed_ms": 1791582890851.3503, "origin_port": 50131}
+{"kind": "wheel", "trusted": true, "page_ms": 1791582899683.6, "target": "verify", "item": "竹剑", "observed_ms": 1791582899693.173, "origin_port": 50132}
+{"kind": "document-scroll", "trusted": true, "page_ms": 1791582899684.4001, "item": "竹剑", "page_y": 323.3333435058594, "observed_ms": 1791582899695.2563, "origin_port": 50132}
+{"kind": "ax-prefix-inserted", "item": "竹剑", "observed_ms": 1791582899695.5286, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 2900, "observed_ms": 1791582900860.0598, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3000, "observed_ms": 1791582910854.0864, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3100, "observed_ms": 1791582920863.843, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3200, "observed_ms": 1791582930853.8372, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3300, "observed_ms": 1791582940865.1768, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3400, "observed_ms": 1791582950857.8728, "origin_port": 50131}
+{"kind": "pointerdown", "trusted": true, "page_ms": 1791582958464.8, "target": "code", "item": "竹剑", "value": "", "observed_ms": 1791582958483.672, "origin_port": 50132}
+{"kind": "pointerup", "trusted": true, "page_ms": 1791582958466, "target": "code", "item": "竹剑", "value": "", "observed_ms": 1791582958486.445, "origin_port": 50132}
+{"kind": "click", "trusted": true, "page_ms": 1791582958466.3, "target": "code", "item": "竹剑", "value": "", "observed_ms": 1791582958486.7292, "origin_port": 50132}
+{"kind": "non-target-repaint", "revision": 3500, "observed_ms": 1791582960866.395, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3600, "observed_ms": 1791582970857.77, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3700, "observed_ms": 1791582980856.8884, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3800, "observed_ms": 1791582990862.6274, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 3900, "observed_ms": 1791583000852.1338, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 4000, "observed_ms": 1791583010854.8713, "origin_port": 50131}
+{"kind": "input", "trusted": true, "page_ms": 1791583017285.6, "target": "code", "item": "竹剑", "value": "BAMBOO-1890", "observed_ms": 1791583017298.8481, "origin_port": 50132}
+{"kind": "non-target-repaint", "revision": 4100, "observed_ms": 1791583020865.752, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 4200, "observed_ms": 1791583030852.7322, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 4300, "observed_ms": 1791583040854.3857, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 4400, "observed_ms": 1791583050857.6394, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 4500, "observed_ms": 1791583060856.2104, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 4600, "observed_ms": 1791583070865.2388, "origin_port": 50131}
+{"kind": "keydown", "trusted": true, "page_ms": 1791583071518.1, "target": "code", "item": "竹剑", "key": "Enter", "value": "BAMBOO-1890", "observed_ms": 1791583071531.9421, "origin_port": 50132}
+{"kind": "verified", "trusted": true, "page_ms": 1791583071519, "target": "verify", "item": "竹剑", "accepted": true, "observed_ms": 1791583071533.4346, "origin_port": 50132}
+{"kind": "non-target-repaint", "revision": 4700, "observed_ms": 1791583080862.5981, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 4800, "observed_ms": 1791583090858.3384, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 4900, "observed_ms": 1791583100865.5757, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5000, "observed_ms": 1791583110857.3955, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5100, "observed_ms": 1791583120857.0535, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5200, "observed_ms": 1791583130856.4233, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5300, "observed_ms": 1791583140855.4688, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5400, "observed_ms": 1791583150870.195, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5500, "observed_ms": 1791583160871.4802, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5600, "observed_ms": 1791583170862.1123, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5700, "observed_ms": 1791583180856.5674, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5800, "observed_ms": 1791583190859.265, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 5900, "observed_ms": 1791583200867.9265, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 6000, "observed_ms": 1791583210856.4502, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 6100, "observed_ms": 1791583220861.5508, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 6200, "observed_ms": 1791583230871.0117, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 6300, "observed_ms": 1791583240857.2622, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 6400, "observed_ms": 1791583250868.2385, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 6500, "observed_ms": 1791583260862.523, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 6600, "observed_ms": 1791583270864.3127, "origin_port": 50131}
+{"kind": "non-target-repaint", "revision": 6700, "observed_ms": 1791583280869.5376, "origin_port": 50131}

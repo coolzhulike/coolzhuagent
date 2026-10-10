@@ -1,0 +1,19 @@
+{
+  "original_sha256": "eb247502f76b1d7ae8fe4595d1e98b0368aaaf80224b825bc6868d9757468e54",
+  "changed_sha256": "7f80534b99cafcb75109839e9a6c42cba8ce8353dcfba15fbd79ef9b5cfb1fe6",
+  "object": "sha256-eb247502f76b1d7ae8fe4595d1e98b0368aaaf80224b825bc6868d9757468e54.txt",
+  "counts_before": {
+    "runtime_runs": 450,
+    "devin_acp_attempts": 983
+  },
+  "counts_after": {
+    "runtime_runs": 450,
+    "devin_acp_attempts": 983
+  },
+  "new_runtime_runs": 0,
+  "new_acp_attempts": 0,
+  "new_cloud_sessions": 0,
+  "corrupted_object_unchanged": true,
+  "ui_error": "上传失败：HTTP 500 Internal Server Error: 内容对象摘要不匹配，未覆盖损坏文件",
+  "ui_scope": "原生上传冲突检查；发送前文本与图片读取校验由实际HTTP对照验证。"
+}

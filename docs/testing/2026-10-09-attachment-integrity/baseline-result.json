@@ -1,0 +1,19 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "coolzhu-web-console",
+    "--offline",
+    "内容寻址文本与图片被改写后不能作为原附件发送",
+    "--",
+    "--nocapture"
+  ],
+  "actual_exit_code": 101,
+  "elapsed_seconds": 40.59,
+  "environment_overrides": {
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_BUILD_JOBS": "1"
+  }
+}

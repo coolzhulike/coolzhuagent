@@ -103,8 +103,14 @@ window.CoolzhuWorkspacePanels = (() => {
   }
   function browserLocation(url) {
     if (api.active() !== "browser" || !/^https?:/i.test(url)) return;
-    const tab = tabs.find(item => item.id === selectedTab); if (!tab || tab.ref.kind !== "web") return;
-    const ref = window.CoolzhuContentPreview?.reference(url, tab.ref.label); if (!ref || ref.file) return;
+    const ref = window.CoolzhuContentPreview?.reference(url, url); if (!ref || ref.file) return;
+    let tab = tabs.find(item => item.id === selectedTab);
+    // 地址栏导航也要拥有网页标签；保留先前文件标签及其消息来源。
+    if (!tab || tab.ref.kind !== "web") {
+      const id = tabKey(ref);
+      tab = tabs.find(item => item.id === id);
+      if (!tab) { tab = {id,ref,authorized:true}; tabs.push(tab); }
+    }
     // 网页标签跟随已接纳的实际地址；最初引用的聊天消息仍由来源索引保留。
     tab.ref = {...tab.ref,locator:ref.locator,label:ref.locator,kind:"web"};
     const next = tabKey(tab.ref); tabs = tabs.filter(item => item === tab || item.id !== next); tab.id = next; selectedTab = next;

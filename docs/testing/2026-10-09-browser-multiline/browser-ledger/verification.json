@@ -1,0 +1,891 @@
+{
+  "stage": "多行引文源码候选+121壳，非正式安装验收",
+  "run_id": "run-chat-f45f37862bb06adb1e1d0ea1e3c5b376cc50974d0f598f9c",
+  "cu_run": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791558500464-0-tool-b8914ce2feca70adc223a4900024b2938aaa1bb944fdf2eb468ef4c3038c3a05",
+    "provider_tool_call_id": "tool-b8914ce2feca70adc223a4900024b2938aaa1bb944fdf2eb468ef4c3038c3a05",
+    "turn_id": "chat-turn-1791558500464-0",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "idempotency_key": "session-1791131217833\u001fchat-turn-1791558500464-0\u001fbrowser\u001f在当前右栏原生浏览器页面（http://127.0.0.1:61350/ledger.html）完成“竹林订单与账本”的三项订单流程：每步从当前真实跨来源内嵌订单页读取本步订单码，填入“订单码”输入框并按enter验证；前两步验证通过后点击“下一步”；第三步按enter完成。忽略持续刷新的非目标行情区；必要时按真实文档引用滚动以显示控件或最终结果；每步使用最新观察的新鲜引用，不复用被替换的表单引用；不执行网页脚本、不代跑dom、不直接http。\u001f\u001f页面可见“整单已完成，三项均通过”文本|页面可见三项物品的单价与数量（外层已验证回执明细）\u001f每步从当前真实页面读取新订单码，不复用被替换的表单引用|enter提交用key_combination(enter)于已聚焦输入框|不执行网页脚本、不代跑dom、不操作行情/公告刷新区|每步用最新观察的新鲜引用|未知即停止，如实报告终态",
+    "objective_json": "{\"constraints\":[\"每步从当前真实页面读取新订单码，不复用被替换的表单引用\",\"Enter提交用key_combination(enter)于已聚焦输入框\",\"不执行网页脚本、不代跑DOM、不操作行情/公告刷新区\",\"每步用最新观察的新鲜引用\",\"未知即停止，如实报告终态\"],\"max_actions\":16,\"objective\":\"在当前右栏原生浏览器页面（http://127.0.0.1:61350/ledger.html）完成“竹林订单与账本”的三项订单流程：每步从当前真实跨来源内嵌订单页读取本步订单码，填入“订单码”输入框并按Enter验证；前两步验证通过后点击“下一步”；第三步按Enter完成。忽略持续刷新的非目标行情区；必要时按真实文档引用滚动以显示控件或最终结果；每步使用最新观察的新鲜引用，不复用被替换的表单引用；不执行网页脚本、不代跑DOM、不直接HTTP。\",\"success_criteria\":[\"页面可见“整单已完成，三项均通过”文本\",\"页面可见三项物品的单价与数量（外层已验证回执明细）\"],\"surface\":\"browser\"}",
+    "surface": "browser",
+    "state": "succeeded",
+    "state_version": 61,
+    "risk_class": "observe",
+    "approval_state": "not_required",
+    "approval_deadline_ms": null,
+    "action_count": 11,
+    "replan_count": 0,
+    "no_progress_count": 0,
+    "current_observation_generation": 0,
+    "deadline_ms": 1791559400464,
+    "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791558500464-0-tool-b8914ce2feca70adc223a4900024b2938aaa1bb944fdf2eb468ef4c3038c3a05\",\"provider_tool_call_id\":\"tool-b8914ce2feca70adc223a4900024b2938aaa1bb944fdf2eb468ef4c3038c3a05\",\"status\":\"succeeded\",\"stage\":\"terminal\",\"goal_achieved\":true,\"surface\":\"browser\",\"summary\":\"{\\\"bound_initial_url\\\":\\\"http://127.0.0.1:61350/ledger.html\\\",\\\"criteria_count\\\":2,\\\"criteria_met\\\":2,\\\"fresh_observation_id\\\":\\\"a71e9986b147d54465f1a06a604919f2\\\",\\\"freshness_confirmed\\\":true,\\\"grounding\\\":[{\\\"grounded\\\":true,\\\"index\\\":0,\\\"model_met\\\":true,\\\"node_indices\\\":[30],\\\"reason\\\":\\\"node_text\\\",\\\"selected_nodes\\\":[{\\\"index\\\":30,\\\"name_chars\\\":11,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":30,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":11,\\\"role\\\":\\\"StaticText\\\"}]},{\\\"grounded\\\":true,\\\"index\\\":1,\\\"model_met\\\":true,\\\"node_indices\\\":[15,16,17],\\\"reason\\\":\\\"adjacent_text\\\",\\\"selected_nodes\\\":[{\\\"index\\\":15,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":16,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":17,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":15,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"},{\\\"blank\\\":false,\\\"index\\\":16,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"},{\\\"blank\\\":false,\\\"index\\\":17,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"}]}],\\\"input_supported\\\":true,\\\"kind\\\":\\\"native_browser_interaction_observation\\\",\\\"notice\\\":\\\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\\\",\\\"observation_generation\\\":12,\\\"observation_id\\\":\\\"2fe1997cdb65825deb7a32ce3c2686ad\\\",\\\"observation_origin\\\":\\\"current_page\\\",\\\"observed_page\\\":{\\\"excerpt_truncated\\\":false,\\\"node_count\\\":51,\\\"nodes\\\":[{\\\"index\\\":15,\\\"name\\\":\\\"第1项已验证：竹剑；单价 838；数量 3\\\",\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":16,\\\"name\\\":\\\"第2项已验证：玉佩；单价 392；数量 7\\\",\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":17,\\\"name\\\":\\\"第3项已验证：卷轴；单价 606；数量 2\\\",\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":30,\\\"name\\\":\\\"整单已完成，三项均通过\\\",\\\"role\\\":\\\"StaticText\\\"}],\\\"title\\\":\\\"竹林订单与账本\\\",\\\"truncated\\\":false,\\\"url\\\":\\\"http://127.0.0.1:61350/ledger.html\\\",\\\"viewport\\\":{\\\"height\\\":514.0,\\\"page_x\\\":0.0,\\\"page_y\\\":0.0,\\\"width\\\":430.6666870117187}},\\\"requested_url\\\":null,\\\"ungrounded_positive_count\\\":0}\",\"attempts\":11,\"steps_completed\":11,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":1,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":2,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":3,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":4,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":5,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":6,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":7,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":8,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":9,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":10,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"passed\"}],\"evidence\":[\"native-ax:1:0\",\"native-observation:f6912e6b0ec073ae0ec20284f5e851cd\",\"native-ax:1:0\",\"native-observation:f6912e6b0ec073ae0ec20284f5e851cd\",\"native-input:f2e92585f3c7685531a06ff46d3ae489\",\"native-ax:1:0\",\"native-observation:0e640cdb569cf8525f281b1de6b39aed\",\"native-ax:1:0\",\"native-observation:0e640cdb569cf8525f281b1de6b39aed\",\"native-ax:1:0\",\"native-observation:79b0314efae3a8d377f3b325077d0430\",\"native-input:bb83c4847989cdb2d83ac8c250ecaac5\",\"native-ax:1:0\",\"native-observation:e86651908676dfab289ca4b57d93d5ff\",\"native-ax:1:0\",\"native-observation:e86651908676dfab289ca4b57d93d5ff\",\"native-ax:1:0\",\"native-observation:e9704776219b0709b427c7cd711f7de1\",\"native-input:4438b032f84718ba784bdb5304c0f910\",\"native-ax:1:0\",\"native-observation:764972ee137fe5f60446892710982597\",\"native-ax:1:0\",\"native-observation:764972ee137fe5f60446892710982597\",\"native-ax:1:0\",\"native-observation:7a83289d5a65a8a54a69d8aa1279f7f7\",\"native-input:cc50eaf1d71003f2b66c85e8b093a17d\",\"native-ax:1:0\",\"native-observation:cf891f97a45731a32e98c985a1e67c7f\",\"native-ax:1:0\",\"native-observation:cf891f97a45731a32e98c985a1e67c7f\",\"native-ax:1:0\",\"native-observation:3a9e13eeb7681b517a4e8c11d8227330\",\"native-input:c0137df7cfd439274a96672878d789f4\",\"native-ax:1:0\",\"native-observation:34ed9db8da26fa719203be6e090b96d2\",\"native-ax:1:0\",\"native-observation:34ed9db8da26fa719203be6e090b96d2\",\"native-ax:1:0\",\"native-observation:125b45c81f37a0ec1c95a444d8b7a246\",\"native-input:83ac287c0cccb32412e6f66fc1efd828\",\"native-ax:1:0\",\"native-observation:a66e9a9a2ec4960dac1bec1e922cd981\",\"native-ax:1:0\",\"native-observation:a66e9a9a2ec4960dac1bec1e922cd981\",\"native-ax:1:0\",\"native-observation:a67c77e11c9e3943a0706bf8378e6775\",\"native-input:fb53e093862b5c82d36bdb379ee38130\",\"native-ax:1:0\",\"native-observation:c091728f4571c5cb8383e89d9e40a374\",\"native-ax:1:0\",\"native-observation:c091728f4571c5cb8383e89d9e40a374\",\"native-ax:1:0\",\"native-observation:0e518c3eeb17235165feb0c18916defd\",\"native-input:ed43a0296d810073063be46b66c5eadc\",\"native-ax:1:0\",\"native-observation:732083b7241187fdca2babb550e8b530\",\"native-ax:1:0\",\"native-observation:732083b7241187fdca2babb550e8b530\",\"native-ax:1:0\",\"native-observation:1a6c067a3445cbfc9d6090c9fa225445\",\"native-input:9dc11e51ced8708753610cd2b359d8a7\",\"native-ax:1:0\",\"native-observation:6c87f2603c24f4e3447e3deae36eb092\",\"native-ax:1:0\",\"native-observation:6c87f2603c24f4e3447e3deae36eb092\",\"native-ax:1:0\",\"native-observation:a9ddd4bd934762503cd62a55a4635bdf\",\"native-input:833088617891a1c628bf2fc09320cbbc\",\"native-ax:1:0\",\"native-observation:51c04cbe3112365d85c10a9f4c0059e2\",\"native-ax:1:0\",\"native-observation:51c04cbe3112365d85c10a9f4c0059e2\",\"native-ax:1:0\",\"native-observation:0497e9a2525d35ef33372ed6ed2bb186\",\"native-input:46ff87c8746e01f553410efd37879e00\",\"native-ax:1:0\",\"native-observation:2fe1997cdb65825deb7a32ce3c2686ad\",\"native-ax:1:0\",\"native-observation:2fe1997cdb65825deb7a32ce3c2686ad\",\"native-ax:1:0\",\"native-observation:a71e9986b147d54465f1a06a604919f2\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":11,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791559400464}},\"cu_deadline_ms\":1791559400464,\"cu_deadline_established_at_ms\":1791558525891,\"cu_budget_ms\":900000}}",
+    "created_at_ms": 1791558525891,
+    "updated_at_ms": 1791559043607,
+    "workspace_id": "ws-23f646a969206cb4",
+    "workspace_context_version": 1,
+    "legacy_convergence_id": null,
+    "legacy_convergence_state": null,
+    "legacy_convergence_reconciled_at_ms": null
+  },
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791558500464-0-tool-b8914ce2feca70adc223a4900024b2938aaa1bb944fdf2eb468ef4c3038c3a05",
+    "provider_tool_call_id": "tool-b8914ce2feca70adc223a4900024b2938aaa1bb944fdf2eb468ef4c3038c3a05",
+    "status": "succeeded",
+    "stage": "terminal",
+    "goal_achieved": true,
+    "surface": "browser",
+    "summary": "{\"bound_initial_url\":\"http://127.0.0.1:61350/ledger.html\",\"criteria_count\":2,\"criteria_met\":2,\"fresh_observation_id\":\"a71e9986b147d54465f1a06a604919f2\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[30],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":30,\"name_chars\":11,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":30,\"inline_has_static_text\":false,\"name_chars\":11,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[15,16,17],\"reason\":\"adjacent_text\",\"selected_nodes\":[{\"index\":15,\"name_chars\":21,\"role\":\"StaticText\"},{\"index\":16,\"name_chars\":21,\"role\":\"StaticText\"},{\"index\":17,\"name_chars\":21,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":15,\"inline_has_static_text\":false,\"name_chars\":21,\"role\":\"StaticText\"},{\"blank\":false,\"index\":16,\"inline_has_static_text\":false,\"name_chars\":21,\"role\":\"StaticText\"},{\"blank\":false,\"index\":17,\"inline_has_static_text\":false,\"name_chars\":21,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":12,\"observation_id\":\"2fe1997cdb65825deb7a32ce3c2686ad\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":51,\"nodes\":[{\"index\":15,\"name\":\"第1项已验证：竹剑；单价 838；数量 3\",\"role\":\"StaticText\"},{\"index\":16,\"name\":\"第2项已验证：玉佩；单价 392；数量 7\",\"role\":\"StaticText\"},{\"index\":17,\"name\":\"第3项已验证：卷轴；单价 606；数量 2\",\"role\":\"StaticText\"},{\"index\":30,\"name\":\"整单已完成，三项均通过\",\"role\":\"StaticText\"}],\"title\":\"竹林订单与账本\",\"truncated\":false,\"url\":\"http://127.0.0.1:61350/ledger.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+    "attempts": 11,
+    "steps_completed": 11,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 1,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 2,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 3,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 4,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 5,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 6,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 7,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 8,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 9,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 10,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "passed"
+      }
+    ],
+    "evidence": [
+      "native-ax:1:0",
+      "native-observation:f6912e6b0ec073ae0ec20284f5e851cd",
+      "native-ax:1:0",
+      "native-observation:f6912e6b0ec073ae0ec20284f5e851cd",
+      "native-input:f2e92585f3c7685531a06ff46d3ae489",
+      "native-ax:1:0",
+      "native-observation:0e640cdb569cf8525f281b1de6b39aed",
+      "native-ax:1:0",
+      "native-observation:0e640cdb569cf8525f281b1de6b39aed",
+      "native-ax:1:0",
+      "native-observation:79b0314efae3a8d377f3b325077d0430",
+      "native-input:bb83c4847989cdb2d83ac8c250ecaac5",
+      "native-ax:1:0",
+      "native-observation:e86651908676dfab289ca4b57d93d5ff",
+      "native-ax:1:0",
+      "native-observation:e86651908676dfab289ca4b57d93d5ff",
+      "native-ax:1:0",
+      "native-observation:e9704776219b0709b427c7cd711f7de1",
+      "native-input:4438b032f84718ba784bdb5304c0f910",
+      "native-ax:1:0",
+      "native-observation:764972ee137fe5f60446892710982597",
+      "native-ax:1:0",
+      "native-observation:764972ee137fe5f60446892710982597",
+      "native-ax:1:0",
+      "native-observation:7a83289d5a65a8a54a69d8aa1279f7f7",
+      "native-input:cc50eaf1d71003f2b66c85e8b093a17d",
+      "native-ax:1:0",
+      "native-observation:cf891f97a45731a32e98c985a1e67c7f",
+      "native-ax:1:0",
+      "native-observation:cf891f97a45731a32e98c985a1e67c7f",
+      "native-ax:1:0",
+      "native-observation:3a9e13eeb7681b517a4e8c11d8227330",
+      "native-input:c0137df7cfd439274a96672878d789f4",
+      "native-ax:1:0",
+      "native-observation:34ed9db8da26fa719203be6e090b96d2",
+      "native-ax:1:0",
+      "native-observation:34ed9db8da26fa719203be6e090b96d2",
+      "native-ax:1:0",
+      "native-observation:125b45c81f37a0ec1c95a444d8b7a246",
+      "native-input:83ac287c0cccb32412e6f66fc1efd828",
+      "native-ax:1:0",
+      "native-observation:a66e9a9a2ec4960dac1bec1e922cd981",
+      "native-ax:1:0",
+      "native-observation:a66e9a9a2ec4960dac1bec1e922cd981",
+      "native-ax:1:0",
+      "native-observation:a67c77e11c9e3943a0706bf8378e6775",
+      "native-input:fb53e093862b5c82d36bdb379ee38130",
+      "native-ax:1:0",
+      "native-observation:c091728f4571c5cb8383e89d9e40a374",
+      "native-ax:1:0",
+      "native-observation:c091728f4571c5cb8383e89d9e40a374",
+      "native-ax:1:0",
+      "native-observation:0e518c3eeb17235165feb0c18916defd",
+      "native-input:ed43a0296d810073063be46b66c5eadc",
+      "native-ax:1:0",
+      "native-observation:732083b7241187fdca2babb550e8b530",
+      "native-ax:1:0",
+      "native-observation:732083b7241187fdca2babb550e8b530",
+      "native-ax:1:0",
+      "native-observation:1a6c067a3445cbfc9d6090c9fa225445",
+      "native-input:9dc11e51ced8708753610cd2b359d8a7",
+      "native-ax:1:0",
+      "native-observation:6c87f2603c24f4e3447e3deae36eb092",
+      "native-ax:1:0",
+      "native-observation:6c87f2603c24f4e3447e3deae36eb092",
+      "native-ax:1:0",
+      "native-observation:a9ddd4bd934762503cd62a55a4635bdf",
+      "native-input:833088617891a1c628bf2fc09320cbbc",
+      "native-ax:1:0",
+      "native-observation:51c04cbe3112365d85c10a9f4c0059e2",
+      "native-ax:1:0",
+      "native-observation:51c04cbe3112365d85c10a9f4c0059e2",
+      "native-ax:1:0",
+      "native-observation:0497e9a2525d35ef33372ed6ed2bb186",
+      "native-input:46ff87c8746e01f553410efd37879e00",
+      "native-ax:1:0",
+      "native-observation:2fe1997cdb65825deb7a32ce3c2686ad",
+      "native-ax:1:0",
+      "native-observation:2fe1997cdb65825deb7a32ce3c2686ad",
+      "native-ax:1:0",
+      "native-observation:a71e9986b147d54465f1a06a604919f2"
+    ],
+    "supervisor": {
+      "circuit_open": false,
+      "action_count": 11,
+      "replan_count": 0,
+      "no_progress_count": 0
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791559400464
+        }
+      },
+      "cu_deadline_ms": 1791559400464,
+      "cu_deadline_established_at_ms": 1791558525891,
+      "cu_budget_ms": 900000
+    }
+  },
+  "page_events": [
+    {
+      "kind": "non-target-repaint",
+      "revision": 3000,
+      "observed_ms": 1791558501501.3691,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3100,
+      "observed_ms": 1791558511488.9539,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3200,
+      "observed_ms": 1791558521489.8582,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3300,
+      "observed_ms": 1791558531497.4739,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3400,
+      "observed_ms": 1791558541493.8965,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3500,
+      "observed_ms": 1791558551499.2024,
+      "origin_port": 61350
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791558552901.4001,
+      "target": "code",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791558552913.1082,
+      "origin_port": 61351
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791558552903.4001,
+      "target": "code",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791558552924.4702,
+      "origin_port": 61351
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791558552904,
+      "target": "code",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791558552924.83,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3600,
+      "observed_ms": 1791558561494.6055,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3700,
+      "observed_ms": 1791558571500.4277,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3800,
+      "observed_ms": 1791558581506.1982,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3900,
+      "observed_ms": 1791558591500.4624,
+      "origin_port": 61350
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791558601037.5,
+      "target": "code",
+      "stage": 0,
+      "value": "BAMBOO-6676",
+      "observed_ms": 1791558601051.726,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4000,
+      "observed_ms": 1791558601497.1113,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4100,
+      "observed_ms": 1791558611500.1182,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4200,
+      "observed_ms": 1791558621499.873,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4300,
+      "observed_ms": 1791558631499.5396,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4400,
+      "observed_ms": 1791558641504.949,
+      "origin_port": 61350
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791558648356.5,
+      "target": "code",
+      "stage": 0,
+      "key": "Enter",
+      "value": "BAMBOO-6676",
+      "observed_ms": 1791558648370.7627,
+      "origin_port": 61351
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791558648357.3,
+      "target": "verify",
+      "stage": 0,
+      "accepted": true,
+      "observed_ms": 1791558648372.8157,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4500,
+      "observed_ms": 1791558651507.0176,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4600,
+      "observed_ms": 1791558661495.2695,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4700,
+      "observed_ms": 1791558671498.5989,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4800,
+      "observed_ms": 1791558681494.2864,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4900,
+      "observed_ms": 1791558691499.366,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5000,
+      "observed_ms": 1791558701499.368,
+      "origin_port": 61350
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791558701743,
+      "target": "next",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791558701757.1223,
+      "origin_port": 61351
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791558701744.1,
+      "target": "next",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791558701759.5571,
+      "origin_port": 61351
+    },
+    {
+      "kind": "advance",
+      "trusted": true,
+      "page_ms": 1791558701744.4001,
+      "target": "next",
+      "stage": 0,
+      "observed_ms": 1791558701760.0369,
+      "origin_port": 61351
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791558701743.8,
+      "target": "next",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791558701760.8447,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5100,
+      "observed_ms": 1791558711503.6501,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5200,
+      "observed_ms": 1791558721495.8547,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5300,
+      "observed_ms": 1791558731497.5227,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5400,
+      "observed_ms": 1791558741507.9739,
+      "origin_port": 61350
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791558750554.6,
+      "target": "code",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791558750570.0847,
+      "origin_port": 61351
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791558750556.4001,
+      "target": "code",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791558750575.835,
+      "origin_port": 61351
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791558750555.9001,
+      "target": "code",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791558750575.9163,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5500,
+      "observed_ms": 1791558751497.6448,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5600,
+      "observed_ms": 1791558761499.5278,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5700,
+      "observed_ms": 1791558771502.0664,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5800,
+      "observed_ms": 1791558781501.76,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5900,
+      "observed_ms": 1791558791507.527,
+      "origin_port": 61350
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791558798642.5,
+      "target": "code",
+      "stage": 1,
+      "value": "JADE-2282",
+      "observed_ms": 1791558798660.5732,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6000,
+      "observed_ms": 1791558801508.908,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6100,
+      "observed_ms": 1791558811498.6724,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6200,
+      "observed_ms": 1791558821506.264,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6300,
+      "observed_ms": 1791558831500.9045,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6400,
+      "observed_ms": 1791558841496.7534,
+      "origin_port": 61350
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791558848953.5,
+      "target": "code",
+      "stage": 1,
+      "key": "Enter",
+      "value": "JADE-2282",
+      "observed_ms": 1791558848972.3306,
+      "origin_port": 61351
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791558848954,
+      "target": "verify",
+      "stage": 1,
+      "accepted": true,
+      "observed_ms": 1791558848972.816,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6500,
+      "observed_ms": 1791558851498.0776,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6600,
+      "observed_ms": 1791558861498.2896,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6700,
+      "observed_ms": 1791558871499.9875,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6800,
+      "observed_ms": 1791558881497.8154,
+      "origin_port": 61350
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791558890180.8,
+      "target": "next",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791558890198.8748,
+      "origin_port": 61351
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791558890181.8,
+      "target": "next",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791558890202.6265,
+      "origin_port": 61351
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791558890181.4001,
+      "target": "next",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791558890202.698,
+      "origin_port": 61351
+    },
+    {
+      "kind": "advance",
+      "trusted": true,
+      "page_ms": 1791558890182.1,
+      "target": "next",
+      "stage": 1,
+      "observed_ms": 1791558890203.815,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6900,
+      "observed_ms": 1791558891502.7869,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7000,
+      "observed_ms": 1791558901499.449,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7100,
+      "observed_ms": 1791558911500.764,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7200,
+      "observed_ms": 1791558921502.9883,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7300,
+      "observed_ms": 1791558931506.5508,
+      "origin_port": 61350
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791558937510.5,
+      "target": "code",
+      "stage": 2,
+      "value": "",
+      "observed_ms": 1791558937534.7275,
+      "origin_port": 61351
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791558937512,
+      "target": "code",
+      "stage": 2,
+      "value": "",
+      "observed_ms": 1791558937539.8445,
+      "origin_port": 61351
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791558937511.6,
+      "target": "code",
+      "stage": 2,
+      "value": "",
+      "observed_ms": 1791558937540.031,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7400,
+      "observed_ms": 1791558941508.3345,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7500,
+      "observed_ms": 1791558951504.8882,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7600,
+      "observed_ms": 1791558961500.1487,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7700,
+      "observed_ms": 1791558971500.2847,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7800,
+      "observed_ms": 1791558981508.784,
+      "origin_port": 61350
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791558982502.5,
+      "target": "code",
+      "stage": 2,
+      "value": "SCROLL-2370",
+      "observed_ms": 1791558982525.1108,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7900,
+      "observed_ms": 1791558991500.1418,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8000,
+      "observed_ms": 1791559001499.791,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8100,
+      "observed_ms": 1791559011508.0652,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8200,
+      "observed_ms": 1791559021512.747,
+      "origin_port": 61350
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791559026010,
+      "target": "code",
+      "stage": 2,
+      "key": "Enter",
+      "value": "SCROLL-2370",
+      "observed_ms": 1791559026031.9744,
+      "origin_port": 61351
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791559026010.7002,
+      "target": "verify",
+      "stage": 2,
+      "accepted": true,
+      "observed_ms": 1791559026035.667,
+      "origin_port": 61351
+    },
+    {
+      "kind": "final-submitted",
+      "trusted": true,
+      "page_ms": 1791559026011,
+      "target": "verify",
+      "stage": 2,
+      "accepted": true,
+      "observed_ms": 1791559026036.3196,
+      "origin_port": 61351
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8300,
+      "observed_ms": 1791559031501.185,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8400,
+      "observed_ms": 1791559041504.7917,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8500,
+      "observed_ms": 1791559051502.2993,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8600,
+      "observed_ms": 1791559061508.0115,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8700,
+      "observed_ms": 1791559071506.1719,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8800,
+      "observed_ms": 1791559081501.8127,
+      "origin_port": 61350
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8900,
+      "observed_ms": 1791559091502.323,
+      "origin_port": 61350
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "independent_total": 6470,
+  "passed": true
+}

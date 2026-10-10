@@ -169,15 +169,28 @@ async fn observe_document(app: &AppHandle, expected: &PanelResource, observation
         let hint = if candidate.role == "RootWebArea" || remaining.is_zero() { None } else {
             let locate = async {
                 let geometry = native_browser_devtools::read_session(app,expected,candidate.scope.session(),ReadMethod::BoxModel(candidate.backend_node)).await?;
-                if candidate.scope.session().is_some() {
-                    super::native_browser_frame_geometry::locate(app,expected,&candidate.scope,&geometry,&metrics).await.map(|_| ())
+                let (x,y,hit_metrics) = if candidate.scope.session().is_some() {
+                    let point=super::native_browser_frame_geometry::locate(app,expected,&candidate.scope,&geometry,&metrics).await?;
+                    (point.local_x,point.local_y,point.local_metrics)
                 } else {
-                    super::native_browser_target::point(&geometry,&metrics).map(|_| ())
+                    let (x,y)=super::native_browser_target::point(&geometry,&metrics)?;
+                    (x,y,metrics.clone())
+                };
+                // 同进程子框的控件矩形可能落在顶层视口内，却被iframe裁剪。
+                // 只读命中提示排除这种不可见点；执行前仍独立复核，不授予输入资格。
+                let (hx,hy)=super::native_browser_target::hit_test_point(x,y,&hit_metrics)?;
+                let hit=native_browser_devtools::read_session(app,expected,candidate.scope.session(),ReadMethod::HitTest(hx,hy)).await?;
+                let root=native_browser_document::root_for_scope(&dom,&candidate.scope)?;
+                if hit["frameId"].as_str()!=Some(candidate.scope.document().frame_id.as_str())
+                    || !hit["backendNodeId"].as_i64().is_some_and(|id|
+                        super::native_browser_target::hit_belongs_to_root(root,candidate.backend_node,id)) {
+                    return Err("native_browser_target_hit_mismatch".to_string());
                 }
+                Ok(())
             };
             match tokio::time::timeout(remaining,locate).await {
                 Ok(Ok(())) => Some(true),
-                Ok(Err(code)) if code == "native_browser_target_outside_viewport" => Some(false),
+                Ok(Err(code)) if matches!(code.as_str(),"native_browser_target_outside_viewport"|"native_browser_target_hit_mismatch") => Some(false),
                 _ => None,
             }
         };
@@ -216,13 +229,20 @@ mod tests {
         assert!(focused_editor(&focus,"button"));
         assert!(!focused_editor(&serde_json::json!({"properties":[{"name":"focused","value":{"value":"true"}}]}),"textbox"));
         page.document_token = Some("a".repeat(32));
-        page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32),in_viewport:None,document_viewport:None});
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:1,node_id:"b".repeat(32),in_viewport:None,document_viewport:None,document_scope_id:None});
         page.focused_node_index = Some(1);
         assert!(page.valid_shape());
+        page.node_handles[0].document_scope_id=Some("c".repeat(32));
+        assert!(!page.valid_shape(),"编辑框不能伪装为文档根");
+        page.node_handles[0].document_scope_id=None;
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:0,node_id:"d".repeat(32),in_viewport:None,document_viewport:None,document_scope_id:Some("e".repeat(32))});
+        assert!(page.valid_shape());
+        page.node_handles[1].document_scope_id=Some("真实CDP身份".into());
+        assert!(!page.valid_shape()); page.node_handles.pop();
         page.focused_node_index = Some(0);
         assert!(!page.valid_shape());
         page.focused_node_index = None;
-        page.node_handles.push(native_browser_protocol::NodeHandle {index:999,node_id:"0".repeat(32),in_viewport:None,document_viewport:None});
+        page.node_handles.push(native_browser_protocol::NodeHandle {index:999,node_id:"0".repeat(32),in_viewport:None,document_viewport:None,document_scope_id:None});
         assert!(!page.valid_shape());
         let dom = serde_json::json!({"root":{"backendNodeId":1,"children":[{"backendNodeId":2,
             "shadowRoots":[{"backendNodeId":3}],"contentDocument":{"backendNodeId":4}}]}});

@@ -1,5 +1,51 @@
 # 04整合计划32工作包执行复核
 
+2026-10-10正式127：上传隐藏span产生的6px空隙已移除，原SVG/玉石皮肤保持，正式原生实拍居中；正常release构建301.68秒/actual0、安装0、六门pass、1159安装文件逐SHA、a3ec462两路CI success。正式地址草稿保持及打开/后退通过；原SWE-2/rev57/唯一island文档旧click被stale_observation/not_sent拒绝并保留终态原因，但一次新文档BODY来源不明keydown使严格零输入负例断言失败，本轮不计整体通过。原失败、模型回复及实拍均保留；严格原生竞态和32WBS继续，Goal active。[127正式交接与原图](../../testing/release-0.2.127/change-report-and-test-handoff.md)。 已公开[GitHub 0.2.127预发布](https://github.com/coolzhulike/coolzhuagent/releases/tag/v0.2.127)，五资产服务器digest/size与本地产物逐项一致，实际tag指向冻结a3ec462；不修改旧包、自动更新索引或合并PR。
+
+2026-10-10上传布局纠正：用户所指偏移在正式126仍存在；上次SVG对称不能代表控件已居中。实际隐藏“附件”span/font-size0仍占6px flex间隙，源码删除隐藏span并标记纯图标，title/aria-label保持；正常HTTP结构确认及原生前后实拍通过，offline Web build实际0。只计候选，等待与两项Browser修复批次交付；其它图标不变、模型0/新云端0，32WBS/严格Browser继续。[原始截图及纠正说明](../../testing/2026-10-10-upload-layout/report.md)。
+
+2026-10-10地址草稿增量：正式126原生实操复现网页同文档URL更新覆盖地址框输入；候选按视图scope保留草稿、显式导航/关闭/浏览器动作清除。真实键入后8974ms/18次网页更新仍保持，Enter目标GET一次及目标标题实拍通过，后退地址同步；Web offline build实际0、verify0，模型0/新云会话0。候选按身份停止、正式126恢复，原服务正常退出；新正式包复验、严格Browser时序及32WBS继续。上一e4b2a78两路CI success。[原失败和候选实拍](../../testing/2026-10-10-browser-address-draft/report.md)。Goal active。
+
+2026-10-10文档切换增量：正式126原SWE-2/唯一island-kayak/revision57真实planning中自然导航，同名新按钮未误点，旧click以stale_observation/not_sent拦截；原终态预算覆盖缺陷保留。controller候选保留执行失败和receipt、无预算不再额外观察，独立真实复验正确回复，两个文档输入0，父failed为预期负例/end_turn/drained/解锁。core/Web offline build0、原core143/0。候选与正式实拍独立归档，已恢复正式126；新正式包交付、原生commit/down-up/关闭/HRESULT竞态及32WBS继续。[报告与原图](../../testing/2026-10-10-browser-document-change/report.md)。Goal active。
+
+2026-10-10正式126：记忆JSON资料边界、大文本同句柄有界只读预览及文件级SBOM合并交付。冻结3ca0890e/快照642ff169，正常release构建353.2秒/actual0、安装0、六门pass、Program Files1159文件/432190904字节逐SHA一致，两路CI38051919724/38051916797 success。原SWE-2-medium/唯一island-kayak/revision57真实长程318.8秒（#806/#807）：实际污染L1选中/L4排除，两UTF-8/BOM UTF-16BE附件尾部新订单、八Browser动作/16可信输入、宿主2/2后DSH一次，总额3096正确；父completed/end_turn/drained并解锁。三次结果分页有8192→69632缺口，不冒完整连续读取；click/Enter未知效果保持。自有三条记忆撤回、原102保留，自有网页正常停止。1.8MB/19775行SBOM正式八页原字节重组与尾窗一致，正常文件入口及`:19775`末尾实拍通过。仅关闭这两候选的正式交付缺口；超长单行GUI、严格native竞态、完整4.4/6.4及32WBS继续，Goal active、Paint免测/微信不动/Opus暂停/无子代理。[交接及原图](../../testing/release-0.2.126/change-report-and-test-handoff.md)。 已公开GitHub预发布五资产，服务器摘要及实际tag3ca0890e一致；未签名、不修改自动更新索引。
+
+2026-10-10正式125严格取消增量：真实SWE-2-medium/唯一island-kayak/revision57，#805/父060ea336，一次可信click已sent/released后关联观察实际登记；登记后22.466ms正常停止HTTP200，停止CAS后同请求673ms以native_observation_cancelled/reply_parent_changed收尾，未采纳迟到回包，effect/goal未知保持。父interrupted/30.9秒、CUblocked非成功、仅一工具一动作、ACPcancelled/drained/解锁、SSEdone一次，原生轨迹“已中止/模型请求已取消”实拍通过。仅输入释放后观察在途取消通过；晚UI关闭原失败、导航替换/原生窄竞态及32WBS仍开放，Goal active。[原始时序与实拍](../../testing/release-0.2.125/browser-pending-cancel/report.md)。
+
+2026-10-10大文本预览候选：针对125拒绝完整1.8MiB SBOM，将读取提取为同句柄有界快照，64MiB文本可只读分页，单页/编辑256KiB、行窗801行保持。真实SQLite副本八页重组逐字节/SHA一致、19775总行及尾窗一致，BOM空行、超限413/旧版本409均通过；原生1443×897正常文件入口打开及`:19775`尾部定位实拍通过。offline build0、Web1433/0/6及lib8/nativehost1、联动8/0，OOM及丢失收据原失败保留。候选按身份停止，正式125及原配置/运行数量恢复保持；新模型/云会话0。仅源码候选，正式新包、超长单行GUI翻页、完整4.3/严格Browser时序及32工作包继续，Goal active。[完整原字节与实拍](../../testing/2026-10-09-large-text-preview/report.md)。
+
+2026-10-09交付清单增量：文件级CycloneDX1.6 SBOM独立导出候选通过；PS5.1/7导出0、官方Schema及语义一致、Program Files1159文件/432195512字节逐SHA一致，篡改副本无输出和重复输出保字节的负例均退出1。完整库依赖/许可证/签名不计完成，正式125四资产/源快照不改。原生右栏拒绝1.8MiB真实JSON（1MiB上限），完整文件预览未通过，新增4.3大文本分页缺口继续。记忆边界1d3ba64两路CI success。模型调用0/新云会话0，Goal active，Paint免测/微信不动/Opus暂停/无子代理。[原始产物、负例与失败实拍](../../testing/2026-10-09-package-file-sbom/report.md)。
+
+2026-10-09记忆资料边界候选：核心渲染器统一JSON资料投影与当前指令/授权边界，不改变召回、预算、工具或权限。原唯一SWE-2-medium/island-kayak、revision57真实长程708.1秒（可见#803/#804），实际完整任务前检选中两条L1污染资料、排除L4；八Browser动作/16可信输入、两滚动/文本效果、宿主2/2及freshness，随后DSH一次，UTF-8/BOM UTF-16BE冻结附件与中文总额4230一致，父completed/单end_turn/drained并解锁。五次分页读取有12288→70000缺口，不冒完整连续读取通过；零格式/引文拒绝也不补算纠正分支。offline构建及最终排版后构建0，核心356/0/1、Web1433/0/6（lib8/native-host1）、联动8/0。自有三条记忆按身份撤回、102条原记忆保留，自有服务正常0，当前Program Files正式125窗口已恢复；候选待批次出包。41f93ebe文档HEAD两路CI success，后续候选HEAD另验。仅关闭有限旧事实/错误角色资料场景，完整4.4、多模态/GC、严格Browser时序及其余32矩阵继续；Goal active、Paint免测/微信不动/Opus暂停/无子代理。[候选原生实拍与完整事实](../../testing/2026-10-09-memory-data-boundary/report.md)。
+
+2026-10-09当前正式125：CU子阶段限制与冻结父任务交接、子框只读可见点提示、实际地址对应预览标签、同请求有界格式/引文反馈已正常交付。真实SWE-2-medium/原唯一island-kayak读取650行尾部随机码UTF-8/BOM UTF-16BE附件，双跨来源滚动/点击/填码/Enter八动作、16可信输入，两滚动/文本效果及宿主2/2/freshness通过，随后实际DSH计算器一次、中文总额1656，#797/#798（8分31秒）；两工具各一次completed，单end_turn/drained及解锁。同请求拒绝一次input_dispatched=false，本轮最终只有八步输入；拒绝正文未记录，不擅自归类。正式本轮分页读取0，候选两页证据不混算。构建/安装0、六门pass、1159文件逐SHA，冻结e8373cb两路CI success，四资产公开预发布及服务器摘要/实际tag一致。自然导航严格检查失败（资源未撤销，且模型误判目标），正常关闭驱动晚17.677秒未执行；严格nativeTarget/commit、在途撤销/HRESULT以及其它32工作包剩余矩阵仍开放，不重复简单任务碰窗口。[125正式交接与正负实拍](../../testing/release-0.2.125/change-report-and-test-handoff.md)。Goal active；Paint免测、微信不动、Opus暂停、无子代理。
+
+2026-10-09最新长程状态（正式仍0.2.124）：同请求引文反馈候选真实SWE-2-medium/原唯一island-kayak通过综合长程。两实际长附件UTF-8/BOM UTF-16BE尾部随机码，双跨来源子文档滚动/点击/填写/Enter八步全部投递释放，16可信输入事件；两滚动与Text效果独立确认，Enter即时效果未知保留。宿主2/2及freshness通过；完整CU分段回执续读两页后实际DSH计算器一次，最终中文含两编码/码/算式/总额2666，可见#795/#796（12分4秒），父completed/单end_turn/drained并解锁。[候选原生实拍与事实](../../testing/2026-10-09-acp-grounding-feedback/report.md)。本轮零格式/引文拒绝，不冒模型纠正分支实测；原各轮失败保留。offline build0、Web1433/0/6，壳相同29dba及既有78/0。仅计候选，下一批0.2.125正常构建/安装/独立长程复验仍待完成；严格Browser时序及32矩阵仍开放，Goal active、Paint免测、微信不动、Opus暂停。
+
+2026-10-09长程续接当前状态（正式包仍为0.2.124）：原任务终态交接旧候选真实通过，8动作/16可信输入后实际调用DSH计算器，中文最终回复含编码/随机码/总额4495；这是候选证据，未替代后续代码或正式安装验收。[交接实拍](../../testing/2026-10-09-acp-terminal-task-handoff/report.md)。长交接分页候选正常流程随后出现子框裁剪命中拒绝，整轮失败、零计算器、无结果分页读取，保留[原失败](../../testing/2026-10-09-acp-terminal-task-paging/report.md)。子框只读命中提示修补后两处输入正常，九步输入完成，但第二处Enter前规划action含未知字段触发invalid_plan，整轮失败；不是预算耗尽，也不是命中拒绝。[当前原失败与实拍](../../testing/2026-10-09-browser-visible-point/report.md)。已补同一请求执行前格式反馈，最多两次拒绝、原预算/取消不变、不修写回复/重放动作；新候选offline build0、Web1432/0/6、壳78/0，新的独立真实长程正在验收。严格Browser时序、完整分页续接、批次正式交付及32工作包剩余矩阵保持开放；Goal active，原唯一SWE-2/island-kayak、Paint免测、微信不动、Opus暂停。
+
+2026-10-09正式124：历史用户正文摘要、共享文本/图片发送前SHA和中文错误提示三项批次正式交付。真实SWE-2-medium/原唯一island-kayak读取UTF-8与UTF-16BE长附件尾部随机码，经双跨来源子文档滚动/填写/Enter提交，8动作/16可信事件，附件冻结SHA/编码与原字节匹配，压缩用户摘要恢复。Browser部分通过，但模型遗漏明确要求的DSH计算器且最终混入西班牙语/未报编码，整体综合验收失败；口算3966不计插件调用通过。仅CU一次completed、父协议completed/单end_turn/drained及解锁。下一项修补CU规划限制仅限子阶段和返回父任务提示后真实复验，不写死插件调用。正常构建安装0、6门pass、1159文件逐SHA、冻结源码3f4f95a两路CI success，四资产公开预发布与服务器摘要/实际tag一致。另一历史Agent遗留绑定锁导致全库准备断言失败已记录，本轮会话无锁，无活动任务中断且未清其它锁。Browser严格nativeTarget/commit及在途撤销/HRESULT、完整记忆/多模态/GC及其它32工作包仍开放。[124正式交接、原失败与实拍](../../testing/release-0.2.124/change-report-and-test-handoff.md)。Goal保持active。
+
+2026-10-09错误提示候选：统一requestJson移除用户界面的HTTP英文前缀、API路径与原始fetch错误；状态/body保留供程序处理。offline build0、语法0、既有前端22/0；真实库隔离副本的正常原生上传冲突实拍显示中文原因，无HTTP，模型0/云端0，原123界面已恢复。本候选和摘要/附件校验一起待批次正式交付，不提升为整体错误矩阵完成。[实拍及交接](../../testing/2026-10-09-ui-error/report.md)。Goal active。
+
+2026-10-09附件完整性候选：正式123发送前未验证内容寻址身份，已在共享对象模块增加已读字节SHA校验，文本冻结及图片编码复用。两真实EXE/同真实库副本的文本与图片十二次HTTP检查确认损坏对象由旧403变候选400，原始/恢复仍403模型关闭；运行0/ACP0/云端0/原库写0。正常原生上传冲突实拍及正式123恢复实拍通过，区别于发送入口HTTP证据。最终build0、Web1431/0/6；首次同字节图片负例失效及回归1430/1/6保留。候选尚未打包，真实长程续接、多模态正向/GC/Browser严格项和其它WBS继续；Goal active。[完整证据与边界](../../testing/2026-10-09-attachment-integrity/report.md)。
+
+2026-10-09继续验收：正式123两次连续观测驱动均未命中严格在途撤销。第一轮捕获登记后7.2ms但跨node调用导致exec context错误且未关闭；第二轮登记后68ms取得新AX，正常关闭晚14216ms，无stopped事件，sent/released保留而效果未知，failed/单end_turn/drained/唯一island解锁。原失败与实拍保留，不计严格通过。[完整时间及实拍](../../testing/release-0.2.123/browser-pending/report.md)。另真实长会话压缩439条时7个用户摘要被宿主边界占满，已提取历史投影模块并修补；两真实EXE/同真实SQLite副本恢复7正文、历史选取与硬预算保持，build0、Web1430/0/6、模块8/0、registry check0。候选界面正常打开并恢复正式123原生壳，未改原运行库、模型0/新云端0；摘要正文未通过GUI展示或真实模型连通复验，候选待下一批正式包，不冒记忆总体完成。[压缩候选与边界](../../testing/2026-10-09-history-summary/report.md)。其它32工作包与Browser严格项继续，Goal active。
+
+2026-10-09正式123：本步效果归因及滚动文档身份已正常出包并独立复验。真实SWE-2-medium/唯一island-kayak新双来源订单8动作/16可信事件，两个子文档滚动与Text效果确认、Enter未知不冒领，真实提交及宿主2/2、后续DSH总额3514，回复#msg-1791569329337-0，两工具各一次completed、父completed/单end_turn/drained并解锁。独立行情负例一次CU两次无效click均sent/released/inconclusive、no_progress2停止、零第三次，目标未完成/root failed保留为预期负例。正常构建安装0、6门pass、1159安装文件逐SHA、源码407126d两路CI success、四资产公开预发布及服务器摘要/实际tag一致。严格nativeTarget/commit及在途撤销/HRESULT竞争、脚本自发滚动完整因果和其它32WBS继续开放。[123正式交接与实拍](../../testing/release-0.2.123/change-report-and-test-handoff.md)。Goal保持active。
+
+2026-10-09滚动文档身份候选：原NodeCache按文档范围保存稳定随机身份，前后视口不再依赖AX序号。真实SWE-2/唯一island双子文档长程8动作、2次滚动effect_observed、两项随机码提交，宿主2/2后DSH总额5438；3步效果保持未知，根completed、单end_turn/drained并解锁。双端build0、Web1429/0/6、壳78/0、联动8/0。只计候选，下一批正式包与独立复验、严格原生窄时序及其它32WBS仍开放。[候选实拍与交接](../../testing/2026-10-09-browser-document-scroll/report.md)。
+
+
+2026-10-09本步效果候选：宿主按原UTF-16选区读回文本改变，当前规划动作绑定，AX序号漂移不算焦点变化。真实SWE-2/唯一island综合订单11动作、三次文本effect_observed、3步inconclusive、宿主2/2及DSH总额9019；无效按钮/100ms行情反例两次sent/released/inconclusive后no_progress停止且零第三次输入，两轮end_turn/drained/解锁。offline双端build0、Web1429/0/6、壳77/0、联动8/0；第一候选业务完成但归因验收exit1保留。只计候选，正式新包与严格原生竞态及其余32WBS继续。[候选事实与原图](../../testing/2026-10-09-browser-action-progress/report.md)。Goal active。
+
+
+2026-10-09正式122：多行边界引文误拒及停止保留部分验收已出包。真实SWE-2-medium/唯一island-kayak独立三阶段跨来源动态订单11动作/27可信输入，宿主2/2，随后DSH计算器总额10578，两工具各一次completed；回复#760/5分58秒，父completed/单end_turn/drained并解锁。正常构建/安装actual0、六门pass、1159文件逐SHA，冻结8edfa3a两路CI success，四资产公开预发布且服务器摘要/实际tag一致。诊断仅类型/字段数量实测覆盖两root入口。121原失败保留；中间行情进展误归因、严格原生竞态及其它32WBS继续，不冒整体完成。[122正式交接与实拍](../../testing/release-0.2.122/change-report-and-test-handoff.md)。Goal保持active。
+
+2026-10-09多行回执候选：保留正式121的11动作/网页完成却引文误拒原失败；修补仅允许节点边界精确空格/LF，内部文字、数字、顺序及新鲜度保持，规划停止保留最后部分验收且仍失败。真实SWE-2-medium/唯一island-kayak新订单综合长程11动作/27可信事件、宿主2/2，CU与DSH计算器各一次completed，总额6470，回复#758/9分37秒，单end_turn/drained/解锁。offline build0、core143/0、Web1428/0/6、模块8/0；两实际root入口诊断仅类型/字段数量。只计源码候选，不替代新包正式独立复验；中间进展、严格原生竞态及其余32WBS继续。[候选报告与实拍](../../testing/2026-10-09-browser-multiline/report.md)。Goal继续。
+
+2026-10-09正式121：五入口参数诊断投影已出包；正常构建/安装0、六门/1159文件与af272e7两路CI success。本轮跨来源动态订单11动作/27可信事件、三项网页完成，但三个相邻回执引文65字/原节点63字导致text_mismatch，宿主1/2、CU blocked及父failed，计算器未调用，单end_turn/drained/原唯一island解锁。root诊断仅类型/数量实测通过，不冒整体长程通过或其它入口覆盖；候选多行边界拼接与停止保留部分验收修补待实操。[121原失败及实拍](../../testing/release-0.2.121/change-report-and-test-handoff.md)。Goal继续。
+
 2026-10-09后续诊断候选：五个工具参数诊断入口统一为根JSON类型/数量投影，不再复制键名、正文、路径或嵌套凭据，真实调用参数与事实链不变。offline build0、Web1427/0/6；首次回归和正式120真实CU输入所有权冲突exit101保留，任务结束后实际重跑0。120不包含此候选，下一有实际工具输入的长程需补正式诊断验证；历史日志、其它生产者/导出/全局配额及完整6.1仍开放。[检查及边界](../../testing/2026-10-09-tool-diagnostic-redaction/report.md)。
 
 2026-10-09正式120增量：动态非目标行情每100ms刷新，真实SWE-2-medium/唯一island-kayak单perform完成三步订单11动作、27可信输入事件，三步验证/最终提交均通过，逐步sent/effect_observed及释放正常；回复#754，10分13秒，单end_turn/drained并解锁。局部成功证据新鲜度与ToolDispatchService协调提取已正式覆盖。构建/安装actual0、六门pass、1159文件逐SHA，冻结ed18c1c两路CI success，四资产公开预发布且服务器摘要/实际tag一致。原119失败保留；中间进展判据、严格原生竞态、完整2.3及32WBS继续，后续诊断脱敏候选不包含本包。[120正式交接与实拍](../../testing/release-0.2.120/change-report-and-test-handoff.md)。Goal保持active。
@@ -108,9 +154,9 @@ ACP统计遗漏已在正式101修补及独立复验：HTTP与权威ACP台账在�
 
 | WBS | 当前证据与判断 | 遗留/下一步 |
 | --- | --- | --- |
-| 0.1 身份与证据 | 093正式源码415、MSI、六门、1154文件摘要和四个发布资产已对应，版本报告逐项区分候选/正式。 | 后续新增源码继续单独冻结出包，不能追认旧包包含。 |
-| 0.2 基线 | 既有离线回归和真实模型台账并存；用户要求真实模型，原假模型黄金基线不再作为产品验收方式。 | 连续工具长程路径仍需本轮集中补验，避免重复简单任务。 |
-| 0.3 CI与假成功 | 产品PR85两路成功、冻结merge提交415的baseline一条成功；插件市场正常目录/安装能力已有真实证据。 | 正式证据PR86按最终HEAD另核；未实现能力继续明确报错。 |
+| 0.1 身份与证据 | 126冻结3ca0890e/642ff169、正常构建安装、六门、1159文件与五个GitHub资产逐SHA一致；两路对应源码CI成功。 | 后续源码仍须独立冻结；文档提交不冒包源码。 |
+| 0.2 基线 | 126真实SWE-2/唯一island记忆+长附件→跨来源Browser→DSH八动作/16可信输入及中文终态通过，保留各轮失败。 | 不重复简单任务；正式三次分页有8192→69632缺口，完整连续读取及全部竞争矩阵仍开放。 |
+| 0.3 CI与假成功 | PR88冻结3ca0890e两路CI成功，126五资产与实际标签一致；未实现能力明确报错。 | 后续最终文档HEAD单独查CI，不宣称已合并。 |
 | 1.1 身份/终态契约 | 运行契约、请求attempt、聊天终态与CU事实已接线。 | 所有入口同一契约的完整矩阵尚未闭环。 |
 | 1.2 输入事实/回执 | `computer_use_store.rs`、`fact_log_sqlite.rs`及executor生产事务接线；零投递/已投递与释放分开报告。 | 不能将所有来源、丢回执和迟到路径都视为完整覆盖。 |
 | 1.3 broker/lease | 产品输入所有权、隔离与进程身份核验已存在，历史未知记录保留。 | 两实例/崩溃旧helper完整正式矩阵仍缺。 |
@@ -123,13 +169,13 @@ ACP统计遗漏已在正式101修补及独立复验：HTTP与权威ACP台账在�
 | 2.5 共享异步TurnRunner | CLI `shared_chat.rs`已走共享HTTP/SSE入口，不是仅本地Vec模拟；Web仍有普通与流式独立循环。 | Web/CLI/Goal/接力统一异步运行器未完成；Devin Goal/接力/子Agent入口仍明确拒绝。 |
 | 3.1 Frame/DPI | 原生帧身份、目标映射和浏览器轴缩放已有正式实操。 | 混合DPI、负坐标与真实多屏矩阵缺环境证据。 |
 | 3.2 UIA/语义动作 | 正式Browser同/跨进程子控件、输入、Enter、滚动已有证据，桌面基本输入可用。 | 不外推任意Windows控件pattern能力；完整语义能力表未验。 |
-| 3.3 有界反馈/验证 | 实际图片与事实grounding、零动作/blocked不冒领，SWE基本CU通过。 | 长程子目标与失败再规划综合任务须集中补验。 |
-| 3.4 失配/settle | 正式过期引用、焦点/子文档变化、裁剪与OOP边界均已实测。 | 094正式旋转/斜切跨来源9步长程及透视/父覆盖层零投递负例通过，095按下期间正常关闭/设置替换通过；非目标误拒率及严格新原生Target/跨来源commit、在途撤销继续开放。 |
+| 3.3 有界反馈/验证 | 125正式父任务交接→DSH长程、结构/引文同请求反馈和8条实际输入通过。 | 完整纠正次数/取消迟到、分页分支正式复验与子目标重规划未全验；真实引文不等于通用目标语义，125自然导航误判保留。 |
+| 3.4 失配/settle | 正式过期引用、焦点/子文档变化、裁剪与OOP边界已实测；126真实planning期间自然导航零误点，终态原因保留候选复验通过。 | 094正式旋转/斜切跨来源9步长程及透视/父覆盖层零投递负例通过，095按下期间正常关闭/设置替换通过；非目标误拒率及严格新原生Target/跨来源commit、在途撤销继续开放。 |
 | 3.5 Paint实验 | 基本输入正式证据保留；用户明确停止完整Paint绘画验收。 | E1–E5/L1/L2整套不再作为本次阻塞；不得宣传未完成绘图优化。 |
 | 4.1 前端模块/面板 | 快捷轨、右栏、顶部下拉、内容预览、独立模块已落地；093玉石控件正式原生实拍通过。 | `app.js`仍大；903×551 Web布局正式110通过；正式111原生同尺寸首页、设置内部滚动与关闭恢复实拍通过，混合DPI/多屏仍待补。 |
 | 4.2 轨迹/统计/FTS | 搜索/索引、用量、临时过程与独立轨迹已接线，正式页面读取复核通过；097独立容量库10k/100k搜索、排序/分页/定位和11万条FTS冷重建/并发历史读取通过，已留界面实拍。 | 097正式原生UI的真实SWE/空房间统计隔离、切回恢复、异房间消息ID隔离和未知token已通过，见[统计报告](../../testing/2026-10-08-usage-scope/report.md)；重连迟到、多工作区和模型写入竞争全矩阵仍未完整；见[容量报告](../../testing/2026-10-08-search-volume/report.md)。 |
-| 4.3 文件/附件 | 文件服务与附件引用、图片校验已有接线；092两入口和重启新图正式通过。 | 101正式编辑器旧版本冲突/本地修改保留及同revision并发保存已通过，[专项](../../testing/release-0.2.101/file-conflict/report.md)；模型编辑工具、spill/GC及所有有效引用保留的完整演练未完成。 |
-| 4.4 SKILL/记忆 | 已有技能发现与记忆实现，不能再另起重复存储。 | 压缩保留图像证据、污染记忆与边界全验收仍缺。 |
+| 4.3 文件/附件 | 正式126完整1.8MB SBOM八页无损、19775行定位及正常原生首尾通过；101正式编辑冲突已通过，092两入口/重启新图保持。 | 超长单行GUI翻页、模型编辑工具、spill/GC及所有有效引用保留的完整演练未完成。 |
+| 4.4 SKILL/记忆 | JSON资料边界已纳入正式126，实际L1污染召回/L4排除、真实SWE双来源附件/Browser/DSH长程通过，不新增存储。 | 任意污染/多模态、压缩图像证据、召回/GC全矩阵仍缺；本轮分页中段缺口保留。 |
 | 4.5 Goal/调度 | Goal GL-09/10/13已有失败回退、human_ack与有限重试实现；定时任务页正常读取。 | 102正式真实SWE定时固定原结果房间投递、后台执行不切当前房间、重启五次并发扫描零重放通过；共享Runner/durable job收敛、running未知结果与失败回退全矩阵仍开放。 |
 | 5.1 凭据 | Windows受保护存储`secret_protection.rs`已存在，配置密钥不回显，新连接器不继承别平台密钥。 | 中途失败/换设备恢复与全来源迁移矩阵未完整。 |
 | 5.2 隔离/监督 | 固定来源、独立宿主、子进程监督与权限资格已实现部分；真实插件取消证据存在。 | 独立进程/固定来源不能当OS沙箱证明；完整逃逸/句柄继承矩阵未验。 |
@@ -137,9 +183,9 @@ ACP统计遗漏已在正式101修补及独立复验：HTTP与权威ACP台账在�
 | 5.4 LSP/PTY | `lsp_host.rs`、`terminal_host.rs`真实模块已接线，非只有按钮。 | 098正常release及1159安装文件SHA通过；真实Unicode、1MiB/17页、侧栏恢复/退出尾部、归属409及重建关闭已正式独立通过。受控宿主异常退出后持有Win32后代句柄确认signaled，重启后旧句柄409/terminal absent；见[098交接](../../testing/release-0.2.98/change-report-and-test-handoff.md)。098真实LSP异常退出、显式重启、旧句柄拒绝、定义/引用恢复和诊断定位、正常close持有句柄退出已补验，[专项](../../testing/release-0.2.98/lsp-lifecycle/report.md)。101正式房间ABA、启动pin拒绝工程切换/重载及完成后跨工程回收/旧句柄隔离已通过，[专项](../../testing/release-0.2.101/lsp-aba/report.md)。其它跨工作区/权限矩阵仍开放；全屏TUI全支持不是原计划5.4交付要求。 |
 | 5.5 连接器 | Browser独立Target/nonce/重启已有多版本证据；语音/桌宠领域保留。 | 微信不改不测；其它连接器共享取消身份矩阵尚未全完成。 |
 | 6.1 运维/诊断 | 运行轨迹、健康与审计页面存在，调试信息移至轨迹，未默认外发遥测。 | 文件轮转及Windows锁竞争正式110通过；全局配额/其它生产者/故障/完整脱敏导出仍缺。 |
-| 6.2 迁移/升级 | 多轮正常MSI安装、自检与原工程恢复通过，当前正式112。 | 正式109已过未checkpoint WAL进入产品备份、独立恢复、新写入保全和迁移索引冲突回滚；断电/磁盘满/全部旧版矩阵仍缺。 |
+| 6.2 迁移/升级 | 多轮正常MSI安装、自检与原工程恢复通过，当前正式126。 | 109 WAL备份/恢复及索引冲突回滚已过；断电/磁盘满/全部旧版矩阵仍缺。 |
 | 6.3 Windows矩阵 | 093正常完整安装及原生窗口通过；多版同一模型Browser实操留证，不使用headless代替。 | 正式111本机原生903×551及设置滚动通过；多屏/DPI及启动资源失败/减弱动作仍开放。 |
-| 6.4 文档/交付 | 版本、源码、发布资产哈希、改动和测试交接已归档；本轮新增两个专项报告。 | 四项总体仍未完成，SBOM/签名策略与所有feature映射须继续核实。 |
+| 6.4 文档/交付 | 正式126五资产/源码/安装字节和交接已归档，文件级CycloneDX1.6、1159实装SHA及官方Schema通过；正式大文件首尾预览通过。 | 完整库依赖/许可证/签名、发布索引自动关联及所有feature映射仍未完成。 |
 
 S7可选DSH试点不属于32工作包总体完成前提。真实DSH市场及插件已接入不等于完整PTC/自治工作流或Devin子Agent已开放。
 

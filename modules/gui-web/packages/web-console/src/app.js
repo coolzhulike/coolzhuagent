@@ -17513,7 +17513,8 @@ async function fetchIdeLineWindow(path, lineNo) {
     if (!isCurrent()) return;
     if (!meta.previewable) {
       updateProjectPreview(
-        "此文件为二进制文件或体积过大，无法在窗口中预览。",
+        meta.binary ? "此文件为二进制文件，无法作为文本预览。"
+          : `此文件超过只读预览上限 ${formatFileSize(meta.max_preview_bytes)}。`,
         "行窗口读取失败"
       );
       return;
@@ -18475,7 +18476,8 @@ async function openProjectFile(path = selectedProjectPath, { forceReload = false
     if (!isCurrent()) return null;
     const metaText = `${meta.relative_path} · ${formatFileSize(meta.file_size)}${meta.binary ? " · 二进制" : ""}`;
     if (!meta.previewable) {
-      updateProjectPreview("此文件为二进制文件或体积过大，无法在窗口中预览。", metaText);
+      updateProjectPreview(meta.binary ? "此文件为二进制文件，无法作为文本预览。"
+        : `此文件超过只读预览上限 ${formatFileSize(meta.max_preview_bytes)}。`, metaText);
       void updateLspPreviewForFile("");
       return null;
     }
@@ -18486,7 +18488,7 @@ async function openProjectFile(path = selectedProjectPath, { forceReload = false
     if (!isCurrent()) return null;
     if (findIdeTabByKind("view", path, "")?.dirty) return null;
     const suffix = !meta.editable && response.next_offset
-      ? `\n\n[预览内容已截断，下次读取位置：${response.next_offset}]`
+      ? "\n\n[仅显示文件开头，可在上方输入 :行号 跳转查看对应内容。]"
       : "";
     const content = `${response.content}${suffix}`;
     const lang = syntaxLangForPath(path);
@@ -19256,9 +19258,10 @@ function initializeWorkbenchWindows() {
   window.CoolzhuNativeBrowserPanel?.init({
     scope: () => ({workspace:activeWorkspaceKey,workspace_path:projectWorkspaceScope,room:activeChatRoomId}),
     frame: () => browserWindowElements().frame,
+    address: () => browserWindowElements().input,
     active: () => chatToolWindowId === "browser",
     status: browserWindowSetStatus,
-    url: url => { const {input,frame} = browserWindowElements(); if (input) input.value = url; if (frame) frame.dataset.currentUrl = url; window.CoolzhuWorkspacePanels?.browserLocation(url); },
+    url: (url, {preserveDraft = false} = {}) => { const {input,frame} = browserWindowElements(); if (input && !preserveDraft) input.value = url; if (frame) frame.dataset.currentUrl = url; window.CoolzhuWorkspacePanels?.browserLocation(url); },
   });
   window.CoolzhuWorkspacePanels?.init({
     scope: () => ({ workspace: activeWorkspaceKey, room: activeChatRoomId, session: activeSessionId }),
@@ -19433,13 +19436,12 @@ function safeErrorBody(text) {
 }
 
 async function requestJson(url, init) {
-  const pathname = new URL(url, window.location.href).pathname;
   let response;
   try {
     response = await fetch(url, withDefaultJsonHeaders(init));
   } catch (error) {
-    if (error?.name === "AbortError") throw new Error(`${pathname} 请求已取消或超时`);
-    throw new Error(`${pathname} 未获得 HTTP 响应：${error?.message || "本地服务连接失败"}`);
+    if (error?.name === "AbortError") throw new Error("请求已取消或超时，请稍后重试。");
+    throw new Error("无法连接本地服务，请确认控制台已启动后重试。");
   }
   const text = await response.text();
   let data = {};
@@ -19451,8 +19453,10 @@ async function requestJson(url, init) {
     }
   }
   if (!response.ok) {
-    const detail = data.error || data.message || safeErrorBody(text) || response.statusText;
-    const error = new Error(`HTTP ${response.status} ${response.statusText}: ${detail}`);
+    // 界面显示服务端可读原因，技术状态保留在结构化字段，避免错误页/路径进入消息框。
+    const detail = !data.parse_error && (typeof data.error === "string" ? data.error : data.message);
+    const error = new Error(typeof detail === "string" && detail.trim()
+      ? detail : "请求未完成，请稍后重试。");
     error.status = response.status;
     error.statusText = response.statusText;
     error.body = data;

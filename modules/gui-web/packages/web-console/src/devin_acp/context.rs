@@ -22,6 +22,8 @@ struct MessageStamp {
 pub(super) struct PreparedContext {
     pub prompt: String,
     pub images: Vec<Value>,
+    /// 已装配的本轮用户消息；CU结束后交回原任务，不重新读取可能变化的聊天室。
+    pub current_task: String,
     stamps: Vec<MessageStamp>,
     system_digest: String,
     continued: bool,
@@ -274,6 +276,7 @@ pub(super) fn prepare(
     }
     let (current, images) = super::image_input::split(
         assembly.messages.last().ok_or("Devin 当前用户消息缺失")?)?;
+    let current_task = serde_json::to_string(&current).map_err(|_| "Devin 当前任务编码失败")?;
     delta.push(json!({"host_message_ids":&source_ids, "message":current}));
     let removed = known
         .keys()
@@ -325,6 +328,7 @@ pub(super) fn prepare(
     Ok(PreparedContext {
         prompt,
         images,
+        current_task,
         stamps,
         system_digest,
         continued,

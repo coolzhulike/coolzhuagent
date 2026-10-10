@@ -1,0 +1,13 @@
+{
+  "port": 8765,
+  "web_pid": 20752,
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "shell_started": "2026-10-10T13:26:12.9805169Z",
+  "web_sha256": "8F0AA0ECCCBE3974A188C2ACE0A9DD9B7577A7595EDDFA7FA1888C8739603096",
+  "stage": "地址草稿源码候选（原唯一Devin绑定）",
+  "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-10-browser-address-draft\\candidate-bundle\\bin\\coolzhu-tauri-shell.exe",
+  "shell_pid": 31892,
+  "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-10-browser-address-draft\\candidate-bundle\\bin\\coolzhu-web-console.exe",
+  "shell_sha256": "648F259EFC601B1BBFA7A469F716DE794B096AC9E224E387AD54639063A908FB",
+  "web_started": "2026-10-10T13:26:11.0076669Z"
+}

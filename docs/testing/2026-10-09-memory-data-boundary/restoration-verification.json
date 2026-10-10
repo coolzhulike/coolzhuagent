@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "model": "swe-2-medium",
+  "configuration_revision": 57,
+  "sole_remote_session": "island-kayak",
+  "locked_attempt": null,
+  "formal_version": "0.2.125",
+  "candidate_changes_not_in_formal": true
+}

@@ -1,0 +1,10 @@
+﻿{
+    "pid":  2644,
+    "binary":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "started":  "2026-10-09T19:20:20.8591417Z",
+    "original_web_pid":  21584,
+    "port":  8765,
+    "original_web_unchanged":  true,
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "sha256":  "a898c167bec7973a3d67002e2ae9e1fbb14df9ed1b4b73139069e60b271d6690"
+}

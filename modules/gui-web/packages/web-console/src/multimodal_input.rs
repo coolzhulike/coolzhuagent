@@ -129,6 +129,8 @@ pub(super) fn encode_images_from_store(attachments: &[ChatAttachmentDto], store:
         file.take(MAX_IMAGE_BYTES + 1).read_to_end(&mut bytes).map_err(|_| api_error(StatusCode::BAD_REQUEST, "读取图片附件失败。"))?;
         total = total.saturating_add(bytes.len() as u64);
         if bytes.len() as u64 > MAX_IMAGE_BYTES || total > MAX_TOTAL_BYTES { return Err(api_error(StatusCode::BAD_REQUEST, "本轮图片总大小不得超过 32 MiB，单张不得超过 20 MiB。")); }
+        content_blob_store::verify_named_bytes(leaf, &bytes)
+            .map_err(|error| api_error(StatusCode::BAD_REQUEST, &error.to_string()))?;
         // 从实际文件签名选择 MIME，不能把任意文本按调用方声明伪装成图片。
         let mime = if bytes.starts_with(b"\x89PNG\r\n\x1a\n") { "image/png" }
             else if bytes.starts_with(b"\xff\xd8\xff") { "image/jpeg" }

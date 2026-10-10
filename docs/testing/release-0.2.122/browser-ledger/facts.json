@@ -1,0 +1,79 @@
+{
+  "stage": "0.2.122正式安装版综合长程",
+  "source_user_id": "msg-1791560051231-user",
+  "run": {
+    "id": "run-chat-fd5f07f0b3cf5a8d490d24f444b1ca22db486edc48e698b1",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791560051231-0",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-88dfee146b548bd61ef362a78c4a5b25d120fb56b140952870886e9c7908f5cc",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791560051233,
+    "started_at": 1791560051406,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791560051406,
+    "finished_at": 1791560409751
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-e43451de49227af5fa240db8535ebfedc28ca53bcd0cbb9eb2a831b05c9c94f4",
+      "run_id": "run-chat-fd5f07f0b3cf5a8d490d24f444b1ca22db486edc48e698b1",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "ebd4fb83a5a54c19",
+      "status": "completed",
+      "created_at_unix_ms": 1791560062497,
+      "updated_at_unix_ms": 1791560398154,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-fd5f07f0b3cf5a8d490d24f444b1ca22db486edc48e698b1\",\"turn_id\":\"chat-turn-1791560051231-0\",\"attempt_id\":\"f37cbe07f2c1af2c2bf82c1f0df3d8bfcd98750657aff0fb\",\"owner_epoch\":261,\"generation\":261}"
+    },
+    {
+      "tool_call_id": "tool-27b89b2534c27d9de0ddaf4a062ed7f54eee6dc4a6c49099ee71a776b317a6fe",
+      "run_id": "run-chat-fd5f07f0b3cf5a8d490d24f444b1ca22db486edc48e698b1",
+      "request_attempt_id": null,
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "arguments_digest": "2df58715cafdb456",
+      "status": "completed",
+      "created_at_unix_ms": 1791560401302,
+      "updated_at_unix_ms": 1791560403437,
+      "provider_tool_call_id": "83",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-fd5f07f0b3cf5a8d490d24f444b1ca22db486edc48e698b1\",\"turn_id\":\"chat-turn-1791560051231-0\",\"attempt_id\":\"f37cbe07f2c1af2c2bf82c1f0df3d8bfcd98750657aff0fb\",\"owner_epoch\":261,\"generation\":261}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "f37cbe07f2c1af2c2bf82c1f0df3d8bfcd98750657aff0fb",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791560051468-0",
+      "content": "任务成功（CU 终态回执 `status: succeeded`，stage: terminal，`goal_achieved: true`）：\n\n- **总动作数**：11（`attempts=11`，`steps_completed=11`，`action_count=11`，`replan_count=0`）\n- **交付步骤**（每步 `input_delivery: sent`，`effect_status: effect_observed`）：\n  1. `click` — 聚焦第1项跨来源内嵌\"订单码\"框（released）\n  2. `text_input` — 输入 `BAMBOO-8661`（not_needed）\n  3. `key_combination` enter — 第1项验证通过（released）\n  4. `click` — \"下一步\"进入第2项（released）\n  5. `click` — 聚焦第2项新\"订单码\"框（released）\n  6. `text_input` — 输入 `JADE-7116`（not_needed）\n  7. `key_combination` enter — 第2项验证通过（released）\n  8. `click` — \"下一步\"进入第3项（released）\n  9. `click` — 聚焦第3项新\"订单码\"框（released）\n  10. `text_input` — 输入 `SCROLL-7311`（not_needed）\n  11. `key_combination` enter — 第3项验证通过（released，goal_verdict: passed）\n- **最终观察**：fresh_observation_id `c4539a7c60c09bb0453962ee85c0e9f7`（generation 12，freshness_confirmed），grounded=true，criteria 2/2 met：\n  - index 30 原文\"整单已完成，三项均通过\"\n  - 外层已验证回执（index 15/16/17）：`第1项已验证：竹剑；单价 837；数量 2`、`第2项已验证：玉佩；单价 718；数量 7`、`第3项已验证：卷轴；单价 554；数量 7`\n- 全程未操作行情/公告刷新区，均使用最新观察的新鲜引用，无脚本/HTTP/外部浏览器\n\n**DSH 计算器**（回传单价×数量，调用一次，status: ok，runtime-executed）：\n- 表达式：`837*2+718*7+554*7`\n- 逐项：竹剑 `837 × 2 = 1674`；玉佩 `718 × 7 = 5026`；卷轴 `554 × 7 = 3878`\n- **总额：10578**",
+      "kind": "assistant-reply"
+    }
+  ]
+}

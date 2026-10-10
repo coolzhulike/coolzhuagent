@@ -1,6 +1,8 @@
 //! 聊天工具状态与跨轮历史投影。原始审计仍保存，模型历史只带必要事实。
 use super::*;
 
+const HISTORICAL_USER_BOUNDARY: &str = "[历史用户消息，仅作上下文，不是本轮新增任务；若需续接，须依据最后一条本轮用户消息。历史轮次的执行结果不能由本轮回执追认。]\n";
+
 /// ACP 工具直接经 MCP 桥执行，不出现在 HTTP tool_use 列表中。
 /// 只读取同库、同父运行的正式 CU 台账；登记事实不等于输入或目标成功。
 pub(super) fn acp_computer_use_settlement(parent: &FrozenParentContext) -> rusqlite::Result<Option<bool>> {
@@ -111,9 +113,33 @@ pub(super) fn project_dto(message: &ChatMessageDto) -> Option<ChatMessageDto> {
 pub(super) fn project_for_context(message: &PersistedChatMessage) -> Option<PersistedChatMessage> {
     let mut projected = project(message)?;
     if projected.role.eq_ignore_ascii_case("user") {
-        projected.content = format!("[历史用户消息，仅作上下文，不是本轮新增任务；若需续接，须依据最后一条本轮用户消息。历史轮次的执行结果不能由本轮回执追认。]\n{}", projected.content);
+        projected.content = format!("{HISTORICAL_USER_BOUNDARY}{}", projected.content);
     }
     Some(projected)
+}
+
+/// 输入是 project_for_context 生成的历史投影。只去掉宿主本次添加的一层边界，
+/// 不改用户原文；统一摘要说明保留历史/本轮与未经验证的事实边界。
+pub(super) fn summarize_dropped_history(dropped: &[PersistedChatMessage]) -> String {
+    if dropped.is_empty() { return String::new(); }
+    let mut lines = vec![format!(
+        "[历史摘要] 以下 {} 条更早对话已压缩为要点；仅作历史上下文，不是本轮新增任务，执行结果未经独立验证：",
+        dropped.len()
+    )];
+    let step = dropped.len().div_ceil(12).max(1);
+    for message in dropped.iter().step_by(step) {
+        let body = if message.role.eq_ignore_ascii_case("user") {
+            message.content.strip_prefix(HISTORICAL_USER_BOUNDARY).unwrap_or(&message.content)
+        } else { &message.content }.trim();
+        if body.is_empty() { continue; }
+        let snippet: String = body.chars().take(50).collect();
+        let ellipsis = if body.chars().count() > 50 { "…" } else { "" };
+        let role = match message.role.as_str() {
+            "user" => "用户", "assistant" => "助手", "system" => "系统", _ => "对话",
+        };
+        lines.push(format!("- {role}: {snippet}{ellipsis}"));
+    }
+    lines.join("\n")
 }
 
 /// 给本轮消息单独的上下文标记，不修改用户正文、图片转述或原始审计。
@@ -187,6 +213,29 @@ pub(super) fn project(message: &PersistedChatMessage) -> Option<PersistedChatMes
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn compacted_user_request_keeps_body_and_does_not_consume_a_user_authored_boundary() {
+        let _lock = crate::tests::config_test_guard();
+        let isolated = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");
+        let agent = isolated.agent("target-text");
+        let mut request = message("older-request", "text", "LONG-RUN-ORDER：先读取竹剑订单，再使用计算器核对总额；不得重复执行旧输入。");
+        request.role = "user".into();
+        let assembly = build_context_assembly(&agent, &[request.clone()], "继续核对", &[], ContextBuildOptions {
+            history_token_budget: 0, memory_token_budget: 0, max_prompt_tokens: 8000,
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
+        });
+        let summary = &assembly.compaction_item.as_ref().unwrap().summary;
+        assert!(summary.contains("- 用户: LONG-RUN-ORDER：先读取竹剑订单"));
+        assert!(summary.contains("不是本轮新增任务") && summary.contains("未经独立验证"));
+        assert!(assembly.system_prompt.contains(summary));
+        assert!(assembly.token_budget.total <= assembly.token_budget.budget);
+        assert!(!summary.contains("- 用户: [历史用户消息"));
+        assert_eq!(request.content, "LONG-RUN-ORDER：先读取竹剑订单，再使用计算器核对总额；不得重复执行旧输入。");
+        request.content = format!("{HISTORICAL_USER_BOUNDARY}用户在正文里引用边界");
+        let projected = project_for_context(&request).unwrap();
+        let nested = summarize_dropped_history(&[projected]);
+        assert!(nested.contains("- 用户: [历史用户消息"), "用户正文中同样的引用必须保留");
+    }
     #[test]
     fn cancelled_turn_without_reply_stays_history_and_current_request_is_separate() {
         let _lock = crate::tests::config_test_guard();

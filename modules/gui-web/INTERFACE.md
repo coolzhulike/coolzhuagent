@@ -112,3 +112,7 @@ cargo check -p coolzhu-web-console --offline
 cargo test -p coolzhu-web-console --offline
 cargo run -p coolzhu-web-console -- --open
 ```
+
+### 工程大文本只读预览（2026-10-10候选）
+
+工程`/api/project/file-meta`及`/api/project/file`复用`project_file_snapshot`的同句柄有界读取，最多64MiB UTF-8文本可预览；单字节页和编辑仍各限256KiB。`:行号`模式最多801行，累计正文超过256KiB返回413，不截断一行后伪称完整。超限不生成完整revision或已知编码声明；允许预览不等于允许写入。原路径权限、只读及旧版本409保持。原子锁住所有外部改写、超长单行GUI字节翻页不在本次范围；候选实操证据见`docs/testing/2026-10-09-large-text-preview/`。

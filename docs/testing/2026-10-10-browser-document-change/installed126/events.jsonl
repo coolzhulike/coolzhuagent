@@ -1,0 +1,9 @@
+{"kind": "http-get", "role": "OLD", "path": "/old.html", "server_ns": 925982869401300, "received_unix_ns": 1791637273067245700}
+{"kind": "document-script-start", "role": "OLD", "page_ms": 1791637273147.6, "server_ns": 925982959379800, "received_unix_ns": 1791637273157225300}
+{"kind": "loaded", "role": "OLD", "page_ms": 1791637273151.7, "trusted": true, "server_ns": 925982959657200, "received_unix_ns": 1791637273157502400}
+{"kind": "planning-detected", "facts": {"parent_run": "run-chat-e351c14e22e2847014116a8a71c4a532a316bb8ec9a8c29c", "parent_state": "running", "cu_call_id": "cu-session-1791131217833-chat-turn-1791637287007-1-tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1", "state": "planning", "action_count": 0, "observation_generation": 0, "captured_ms": 1791637297372.8682}, "server_ns": 926007174449300, "received_unix_ns": 1791637297372877400}
+{"kind": "navigation-requested", "role": "OLD", "page_ms": 1791637297375.4, "server_ns": 926007179850400, "received_unix_ns": 1791637297378279100}
+{"kind": "http-get", "role": "NEW", "path": "/new.html", "server_ns": 926007182843100, "received_unix_ns": 1791637297381271800}
+{"kind": "pagehide", "role": "OLD", "page_ms": 1791637297383.9, "trusted": true, "server_ns": 926007187861300, "received_unix_ns": 1791637297386290200}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791637297387.8, "server_ns": 926007196957900, "received_unix_ns": 1791637297395387100}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791637297392.1, "trusted": true, "server_ns": 926007204644100, "received_unix_ns": 1791637297403073200}

@@ -202,3 +202,46 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/release-0.2.120/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 
 /docs/testing/2026-10-09-tool-diagnostic-redaction/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.121/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-multiline/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.122/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-action-progress/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-document-scroll/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.123/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-history-summary/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-attachment-integrity/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-ui-error/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.124/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 长程原始输入、回执与摘要索引保持原字节，不改写证据换行。
+/docs/testing/2026-10-09-acp-cu-task-scope/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-terminal-task-handoff/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-terminal-task-paging/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-browser-visible-point/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-format-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-verdict-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-grounding-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.125/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-memory-data-boundary/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-package-file-sbom/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-large-text-preview/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 文档切换的真实页面事件、回执和截图摘要保留原始字节。
+/docs/testing/2026-10-10-browser-document-change/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-10-browser-address-draft/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-10-upload-layout/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.127/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol

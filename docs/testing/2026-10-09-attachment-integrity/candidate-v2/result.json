@@ -1,0 +1,78 @@
+{
+  "kind": "candidate-v2",
+  "binary_sha256": "2db074d75ce5983ba9d2f089f82ae7da0be54868ce8d15d4569a6c82be2c3158",
+  "cases": [
+    {
+      "name": "order.txt",
+      "expected_sha256": "50bc578628efce6a5e098e8a8f5601e4839e7c3e6451cd3b14f46660f89b1ca2",
+      "changed_sha256": "d15ce9b5805a1c015b150e10949593abc676c49f1023e0a20668b2bbbfa5c60e",
+      "checks": [
+        {
+          "state": "valid",
+          "http_status": 403,
+          "error": {
+            "error": "当前聊天室的真实模型调用已关闭。"
+          },
+          "new_runtime_runs": 0,
+          "new_acp_attempts": 0
+        },
+        {
+          "state": "corrupted",
+          "http_status": 400,
+          "error": {
+            "error": "附件内容对象摘要不匹配，请重新上传；未覆盖损坏文件"
+          },
+          "new_runtime_runs": 0,
+          "new_acp_attempts": 0
+        },
+        {
+          "state": "restored",
+          "http_status": 403,
+          "error": {
+            "error": "当前聊天室的真实模型调用已关闭。"
+          },
+          "new_runtime_runs": 0,
+          "new_acp_attempts": 0
+        }
+      ]
+    },
+    {
+      "name": "agent.png",
+      "expected_sha256": "a54fc0e9013c2eb7fd20733472db69a2edd2ade8fdaa1da3c87afa43db07a056",
+      "changed_sha256": "028ad02ceed6e4b16e15e9f387f9ea7bb48b1b11ec1008b62e7753a80247152c",
+      "checks": [
+        {
+          "state": "valid",
+          "http_status": 403,
+          "error": {
+            "error": "当前聊天室的真实模型调用已关闭。"
+          },
+          "new_runtime_runs": 0,
+          "new_acp_attempts": 0
+        },
+        {
+          "state": "corrupted",
+          "http_status": 400,
+          "error": {
+            "error": "附件内容对象摘要不匹配，请重新上传；未覆盖损坏文件"
+          },
+          "new_runtime_runs": 0,
+          "new_acp_attempts": 0
+        },
+        {
+          "state": "restored",
+          "http_status": 403,
+          "error": {
+            "error": "当前聊天室的真实模型调用已关闭。"
+          },
+          "new_runtime_runs": 0,
+          "new_acp_attempts": 0
+        }
+      ]
+    }
+  ],
+  "new_model_calls": 0,
+  "new_cloud_sessions": 0,
+  "original_database_writes": 0,
+  "own_process_reaped": true
+}

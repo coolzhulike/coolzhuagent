@@ -1,0 +1,1 @@
+0.2.125预发布：修复CU子阶段限制覆盖父任务、子框可见点提示、预览网页标签随实际地址更新；增加同请求有界结构与引文反馈，保持严格grounding、freshness、原预算和取消。正式SWE-2/唯一island会话读取真实长UTF-8/UTF-16BE附件，跨来源滚动填写并续接DSH计算器，8真实动作、总额1656、两工具各一次completed、单终态解锁。正常构建/安装0、六门通过、1159安装文件逐SHA、冻结源码两路CI成功。严格Browser时序和其它工作包仍开放。未签名，不标latest。详见docs/testing/release-0.2.125/change-report-and-test-handoff.md。
