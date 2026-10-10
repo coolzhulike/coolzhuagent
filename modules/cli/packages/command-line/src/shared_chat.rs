@@ -363,7 +363,7 @@ async fn interrupt(client: &Client, options: &Options, receipt: &Receipt) -> io:
 }
 
 async fn confirm_after_disconnect(client: &Client, options: &Options, workspace_id: &str, output: &mut Output<'_>) -> io::Result<()> {
-    if output.receipt.run.is_empty() { return Err(problem("连接结束且未收到接纳标识，提交结果未知；请查看聊天室，勿自动重试")); }
+    if output.receipt.run.is_empty() || output.receipt.turn.is_empty() { return Err(problem("连接结束且未收到完整接纳标识，提交结果未知；请查看聊天室，勿自动重试")); }
     let deadline = tokio::time::Instant::now() + CLEANUP_TIMEOUT;
     let mut url = options.base.clone();
     url.path_segments_mut().map_err(|()| problem("服务路径不可用"))?.extend(["api", "runs", &output.receipt.run]);
@@ -375,8 +375,8 @@ async fn confirm_after_disconnect(client: &Client, options: &Options, workspace_
             || status["workspace_id"] != workspace_id
         { return Err(problem("查询返回的运行身份不匹配，结果待确认")); }
         if let Some(state) = status["state"].as_str().filter(|state| matches!(*state, "completed" | "failed" | "interrupted" | "orphaned")) {
-            let state = if state == "orphaned" { "failed" } else { state };
-            output.event("done", json!({"run_id":output.receipt.run,"turn_id":output.receipt.turn,"status":state,"source":"run_status_after_disconnect"}), &options.room)?;
+            let displayed_state = if state == "orphaned" { "failed" } else { state };
+            output.event("done", json!({"run_id":output.receipt.run,"turn_id":output.receipt.turn,"status":displayed_state,"runtime_state":state,"source":"run_status_after_disconnect"}), &options.room)?;
             return Ok(());
         }
         if tokio::time::Instant::now() >= deadline { return Err(problem("原轮次仍未收尾，结果待确认；不要自动重试")); }
@@ -521,6 +521,43 @@ mod tests {
             assert!(output.receipt.run.is_empty());
             assert!(output.receipt.turn.is_empty());
             assert!(out.is_empty());
+        }
+    }
+
+    #[tokio::test]
+    async fn disconnected_confirmation_rejects_foreign_scope_and_preserves_runtime_state() {
+        for (changed, state) in [(None, "completed"), (None, "orphaned"),
+            (Some("run_id"), "completed"), (Some("turn_id"), "completed"),
+            (Some("session_id"), "completed"), (Some("chat_room_id"), "completed"),
+            (Some("workspace_id"), "completed")] {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+            let server = tokio::spawn(async move {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let (request, _) = read_request(&mut socket).await;
+                assert_eq!(request, "GET /api/runs/run HTTP/1.1");
+                let mut value = json!({"run_id":"run","turn_id":"turn","session_id":"session",
+                    "chat_room_id":"room","workspace_id":"workspace","state":state});
+                if let Some(field) = changed { value[field] = json!("foreign"); }
+                send_json(&mut socket, value).await;
+            });
+            let options = Options { base, workspace:std::env::current_dir().unwrap(), session:"session".into(),
+                room:"room".into(), prompt:"unused".into(), json:true, expected_workspace_id:None };
+            let (mut out, mut err) = (Vec::new(), Vec::new());
+            let mut output = Output { json:true, stdout:&mut out, stderr:&mut err,
+                receipt:Receipt { run:"run".into(), turn:"turn".into(), terminal:None },
+                message_id:String::new(), displayed:String::new() };
+            let result = confirm_after_disconnect(&local_client().unwrap(), &options, "workspace", &mut output).await;
+            assert_eq!(result.is_ok(), changed.is_none());
+            if changed.is_some() {
+                assert!(output.receipt.terminal.is_none());
+                assert!(out.is_empty(), "外来身份不得产生完成事件");
+            } else {
+                let event:Value = serde_json::from_slice(&out).unwrap();
+                assert_eq!(event["data"]["runtime_state"], state);
+                assert_eq!(event["data"]["status"], if state == "orphaned" { "failed" } else { state });
+            }
+            server.await.unwrap();
         }
     }
 
