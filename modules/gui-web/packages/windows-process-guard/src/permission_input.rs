@@ -362,5 +362,28 @@ mod windows {
             assert_eq!(fresh.unwrap(),"no\n");
             assert!(!reader.incomplete);
         }
+        #[test]
+        fn command_reader_recovers_rejected_approval_before_long_prompt() {
+            let(read,write)=pipe();
+            let mut reader=unsafe {Reader::duplicate(read.0)}.unwrap();
+            let writer=std::thread::spawn(move || {
+                write.write(&vec![b'x';8193]);
+                std::thread::sleep(Duration::from_millis(100));
+                write.write(b"yes\n");
+                let mut prompt=vec![b'p';69632];prompt.extend_from_slice(b"\nno\n");
+                write.write(&prompt);
+            });
+            let rejected=reader.read(Arc::new(||false));
+            let command=reader.read_with_budget(Arc::new(||false),None);
+            let approval=reader.read(Arc::new(||false));
+            writer.join().unwrap();
+            assert!(rejected.is_err());
+            let command=command.unwrap();
+            assert_eq!(command.len(),69633);
+            assert!(command[..69632].bytes().all(|b|b==b'p'));
+            assert_eq!(command.as_bytes()[69632],b'\n');
+            assert_eq!(approval.unwrap(),"no\n");
+            assert!(!reader.incomplete);
+        }
     }
 }

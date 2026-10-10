@@ -75,3 +75,7 @@ Windows重定向输入交接修补：先在独立真实测试进程调用实际L
 真实CLI build0，完整CLI串行113通过0失败1忽略；新增忽略为子进程探针入口，父测试实际以--ignored执行，不能将其直接计通过。之后扩展长提示及命令/EOF测试单项实际exit0，guard完整65通过0失败4忽略实际exit0；最后正常CLI构建亦exit0。全CLI回归为短提示版探针时点，扩展版专项另验，生产逻辑未变。原始失败/成功日志及源码SHA归档docs/testing/cli-repl-input-handoff，immutable_snapshot_verified=false。
 
 仍开放：真实终端crossterm事件缓存与ReadConsoleW审批交接、Ctrl+C清行后的新输入语义、空闲重定向输入取消、回合错误后是否继续REPL、输入来源epoch全链、普通长提示预算、非Windows，以及正式模型/安装交付。本轮仅闭合Windows重定向行缓冲混用这一可复现缺口，不计整个32WBS工作包完成。
+
+提示/审批跨模式恢复永久复验：真实管道写8193单位超长审批，迟到yes换行，接69632字节普通提示及独立no审批。审批拒绝后用生产Reader.read_with_budget(None)读取普通提示，确认先丢弃旧yes、提示完整69633含换行，随后审批读取返回no；同一持久状态跨短审批/普通长提示模式保持。真实CLI build exit0（8.80秒），guard完整66通过0失败4忽略exit0，日志tmp/analysis-permission-command-recovery-build.txt、tests.txt。此轮不改生产逻辑，不把Reader局部测试提升为完整REPL模型运行。
+
+下一WBS入口源码审查：4.5并非完全没有失败回退代码。当前main.rs约39550行implementer报阻分支已在Immediate事务内记录goal-phase-blocked-needs-replan、调用apply_phase_fail_retry_connection、累计retry_count并超限blocked，提交后才广播。但未超限分支参数为pending,true（暂停Goal），summary写Routed back to planner；仍需核实planner真实重新派发/后续恢复入口与正式失败矩阵，不能以文案替代自动闭环。源码约68994已有goal_phase_token_finalizer_blocked_replans_then_blocks_at_retry_limit测试，后续应先读现有契约再补实际不足，避免照旧AGENTS问题描述重复造实现。此轮只完成源码证据定位，没有声称该测试或外部Goal正式验收通过；32WBS原范围不变。
