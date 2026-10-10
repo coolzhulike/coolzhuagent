@@ -14,3 +14,11 @@
 
 验证进行中：工具会话92856串行执行正常build及blocked专项。正常构建已记录Finished dev 1m48s；专项仍未取得终态。日志tmp/analysis-goal-planner-route-gap-build.txt与test.txt。未结束前不计通过，也不重启同任务。本轮尚未修改生产路由，仅补反例断言和源事实定位。
 会话92856已实际终态exit0：正常web-console build1m48s、blocked专项1通过0失败0忽略1463过滤。新断言实际证明resume后phase.assigned_role仍implementer、assigned_session_id仍原agent、第二次prepare.agent仍原implementer；planner会话同时存在，因此不是缺少角色配置。绿色仅证明失败记账/claim重试和已知路由反例，不能记为真实planner重规划通过。原字节日志与源SHA归档docs/testing/goal-planner-route-gap，未宣称不可变构建或全web-console测试通过。本轮仅补反例与注释，生产缺口仍待修补。
+
+规划结果独立提交审查：finalize_goal_phase_result_sqlite约47239的普通pass分支只检查无blocked文本、无缺失artifact、无command failure，直接将当前phase写completed/pass并清claim；未判断route_hint=planner或独立规划结果提交状态。goal_phase_run_prompt_with_progress仍使用原assigned_role及原执行产物/验证要求。因此仅修改目标会话不足：planner回答可能走原阶段完成分支，或者因原执行产物尚未生成被反复判失败。
+
+新增known_gap_planner_route_reply_can_complete_original_execution_phase专项使用实际SQLite blocked→resume→claim→prepare→token finalizer，提交仅含steps的计划回复，期待记录现算法把原阶段completed这一反例。夹具无文件/command门，测试若通过只证明阶段提交缺少规划状态，不证明真实planner模型或整个Goal完成；角色选择仍为上一轮已证实的原implementer。尚未运行完前该期待不作为实际结论。
+
+本轮真实build web-console及新专项已串行启动于会话92762，未取得终态；日志tmp/analysis-goal-plan-only-gap-build.txt、test.txt。不重启、不计通过。本轮生产行为未改；完整修补仍需独立规划提交→实现重跑→验证闭环、累计重试和权限/claim冻结联动。
+
+会话92762已实际exit0：正常build29秒，新专项1通过0失败1464过滤。反例实际确认报阻后的planner提示状态里，只有steps计划文本也会使原阶段completed/pass；这不是整Goal完成或真实planner模型验收。原始日志docs/testing/goal-plan-only-gap，本轮生产未改。

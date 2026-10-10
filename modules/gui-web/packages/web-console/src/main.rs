@@ -69124,6 +69124,37 @@ attach: last_assistant
     }
 
     #[test]
+    fn known_gap_planner_route_reply_can_complete_original_execution_phase() {
+        // 反例：路由提示不是独立规划提交状态；绿色不表示重规划验收通过。
+        let temp=tempfile::tempdir().expect("tempdir");
+        let (mut store,context)=token_finalizer_fixture_with_role(&temp,"ws-route-plan-only","implementer");
+        store.record_goal_phase_model_result_at_path_with_claim(
+            &context.db_path,"ws-route-plan-only",&context.goal_id,&context.phase_id,
+            &context.run_id,&context.claim_token,&context.agent,
+            token_finalizer_response("BLOCKED: execution requires a revised plan"),Vec::new(),Vec::new()
+        ).expect("blocked result");
+        super::resume_goal_sqlite(&context.db_path,"ws-route-plan-only",&context.goal_id).expect("resume");
+        let goal=super::get_goal_sqlite(&context.db_path,"ws-route-plan-only",&context.goal_id).expect("goal");
+        let phase=goal.phases.iter().find(|p|p.id==context.phase_id).unwrap();
+        assert_eq!(phase.route_hint.as_deref(),Some("planner"));
+        let claim=super::claim_goal_phase_for_dispatch(
+            &context.db_path,"ws-route-plan-only",&context.goal_id,"room-dispatch",phase,
+            &context.agent.id,"base","plan-only-counterexample",false
+        ).expect("claim query").expect("claim");
+        let next=store.prepare_goal_phase_run_context("ws-route-plan-only",&context.goal_id,&context.phase_id).expect("prepare");
+        let result=store.record_goal_phase_model_result_at_path_with_claim(
+            &context.db_path,"ws-route-plan-only",&context.goal_id,&context.phase_id,
+            &claim.run_id,&next.claim_token,&next.agent,
+            token_finalizer_response(r#"{"steps":["inspect available artifact","implement revised changes","verify output"]}"#),
+            Vec::new(),Vec::new()
+        ).expect("plan-only response");
+        let phase=result.status.goal.phases.iter().find(|p|p.id==context.phase_id).unwrap();
+        assert_eq!(phase.status,"completed","已知缺口：仅规划回答进入原阶段完成分支");
+        assert_eq!(phase.last_verdict.as_deref(),Some("pass"));
+        assert_eq!(phase.retry_count,1);
+    }
+
+    #[test]
     fn goal_phase_token_finalizer_stale_token_has_zero_result_side_effects() {
         let temp = tempfile::tempdir().expect("tempdir");
         let (mut store, context) = token_finalizer_fixture(&temp, "ws-token-stale");
