@@ -47,6 +47,7 @@ mod agent_session_backend;
 mod session_model_config;
 mod session_config_service;
 mod session_writer;
+mod session_config_journal;
 use session_model_config::{SessionModelLimitOverride, model_settings_protocol, model_settings_base_url, constrain_session_model_limit};
 mod devin_acp;
 mod content_delivery;
@@ -1300,6 +1301,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let runtime_run_db_path = session_sqlite_path_override()
         .unwrap_or_else(|| workspace_scope_paths_for(&startup_workspace, &startup_config).session_db);
     let startup_writer = session_writer::acquire(&runtime_run_db_path)?;
+    session_config_journal::recover(&runtime_run_db_path, &config_file_path_for(&startup_workspace))
+        .map_err(std::io::Error::other)?;
     #[cfg(windows)]
     if let Err(error)=native_recovery::start_control_plane() { warn!("原生恢复控制面暂不可用：{error}"); }
 
@@ -3394,6 +3397,8 @@ fn reload_workspace_scope(workspace: PathBuf) -> ApiResult<WorkspaceResponse> {
     let next_path = workspace_scope_paths_for(&workspace, &initial_config).session_db;
     let next_writer = session_writer::acquire(&next_path)
         .map_err(|error| api_error(StatusCode::CONFLICT, &error.to_string()))?;
+    session_config_journal::recover(&next_path, &config_file_path_for(&workspace))
+        .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
     let config = load_workspace_config_at(&workspace);
     let next_store = SessionStore::load_for_workspace(&workspace, &config)?;
     drop(next_writer);
@@ -8542,6 +8547,8 @@ fn load_workspace_config_at(workspace: &Path) -> WorkspaceConfig {
 
 fn save_workspace_config_at(workspace: &Path, config: &WorkspaceConfig) -> Result<(), String> {
     let path = config_file_path_for(workspace);
+    let db = session_sqlite_path_override().unwrap_or_else(|| workspace_scope_paths_for(workspace, config).session_db);
+    session_config_journal::ensure_resolved(&db)?;
     // 已存在但无法读取/解析时不得用默认值覆盖，错误不包含配置原文或密钥。
     match std::fs::read_to_string(&path) {
         Ok(existing) => {
@@ -8605,6 +8612,9 @@ fn mutate_workspace_config(
         )
     })?;
     let workspace = active_workspace_path();
+    let db = session_sqlite_path_override().unwrap_or_else(|| workspace_scope_paths_for(&workspace, &guard).session_db);
+    session_config_journal::ensure_resolved(&db)
+        .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
     let mut config = guard.clone();
     mutate(&mut config)?;
     config.configuration_revision = guard.configuration_revision.checked_add(1)
@@ -38032,6 +38042,10 @@ impl SessionStore {
     }
 
     fn save(&mut self) -> ApiResult<()> {
+        self.save_with_config_operation(None)
+    }
+
+    fn save_with_config_operation(&mut self, config_operation: Option<&str>) -> ApiResult<()> {
         // 先持久化新消息，再缩小运行时缓存；容量上限从不删除数据库历史。
         let result = (|| {
             if self.writer.is_none() {
@@ -38041,9 +38055,13 @@ impl SessionStore {
                 writer.claim_epoch(&mut connection).map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
                 self.writer = Some(writer);
             }
+            if config_operation.is_none() {
+                session_config_journal::ensure_resolved(&self.path)
+                    .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+            }
             let epoch = self.writer.as_ref().unwrap().epoch()
                 .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
-            save_session_state_to_sqlite_with_epoch(&self.path, &self.state, self.capacity, &self.history_edits, Some(epoch))
+            save_session_state_to_sqlite_with_epoch(&self.path, &self.state, self.capacity, &self.history_edits, Some(epoch), config_operation)
         })();
         if let Err(error) = result {
             // 所有可见读写都持有同一存储锁；失败时撤销缓存暂存，禁止幽灵消息流入下一次提交。
@@ -40759,6 +40777,15 @@ impl SessionStore {
         session_id: &str,
         payload: UpsertSessionRequest,
     ) -> ApiResult<SessionSummaryDto> {
+        self.update_session_with_config_operation(session_id, payload, None)?;
+        let session = self.find_session(session_id)
+            .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
+        Ok(session.summary(self.is_active(session_id)))
+    }
+
+    fn update_session_with_config_operation(
+        &mut self, session_id: &str, payload: UpsertSessionRequest, config_operation: Option<&str>,
+    ) -> ApiResult<()> {
         // 所有可能返回 400 的会话级字段先验证，再借用并修改持久化对象，
         // 确保非法 reasoning 不会与其它字段一起产生部分写入。
         validate_reasoning_effort(payload.reasoning_effort.as_deref())?;
@@ -40768,7 +40795,6 @@ impl SessionStore {
         let existing = self.find_session(session_id).ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?;
         let provider = payload.provider.as_deref().unwrap_or(&existing.provider);
         agent_session_backend::validate_session_input(&payload, provider)?;
-        let is_active = self.is_active(session_id);
         let Some(session) = self
             .state
             .sessions
@@ -40819,9 +40845,8 @@ impl SessionStore {
             session.api_key_ref = api_key_ref.trim().chars().take(4096).collect();
         }
         session.updated_at = unix_timestamp_millis();
-        let summary = session.summary(is_active);
-        self.save()?;
-        Ok(summary)
+        self.save_with_config_operation(config_operation)?;
+        Ok(())
     }
 
     fn delete_session(&mut self, session_id: &str) -> ApiResult<()> {
@@ -41501,6 +41526,7 @@ impl SessionStore {
         session_id: &str,
         query: MemoryBeadQuery,
     ) -> ApiResult<Json<SessionBeadsResponse>> {
+        let is_active = self.is_active(session_id);
         let Some(session) = self
             .state
             .sessions
@@ -49861,12 +49887,12 @@ fn save_session_state_to_sqlite_with_edits(
     path: &Path, state: &PersistedSessionState, capacity: SessionStoreCapacity,
     edits: &[history_persistence::HistoryEdit],
 ) -> ApiResult<()> {
-    save_session_state_to_sqlite_with_epoch(path, state, capacity, edits, None)
+    save_session_state_to_sqlite_with_epoch(path, state, capacity, edits, None, None)
 }
 
 fn save_session_state_to_sqlite_with_epoch(
     path: &Path, state: &PersistedSessionState, capacity: SessionStoreCapacity,
-    edits: &[history_persistence::HistoryEdit], expected_epoch: Option<u64>,
+    edits: &[history_persistence::HistoryEdit], expected_epoch: Option<u64>, config_operation: Option<&str>,
 ) -> ApiResult<()> {
     let started = Instant::now();
     diag!(
@@ -49912,7 +49938,7 @@ fn save_session_state_to_sqlite_with_epoch(
         .map_err(sqlite_api_error)?;
     tx.execute("DELETE FROM sessions", [])
         .map_err(sqlite_api_error)?;
-    tx.execute("DELETE FROM metadata WHERE key NOT IN ('schema_contract_version','session_writer_epoch')", [])
+    tx.execute("DELETE FROM metadata WHERE key NOT IN ('schema_contract_version','session_writer_epoch','session_config_journal')", [])
         .map_err(sqlite_api_error)?;
     diag!(
         "[SESSION-SQLITE] save cleared tables: handoffs_preserved={}, elapsed_ms={}",
@@ -50211,6 +50237,10 @@ fn save_session_state_to_sqlite_with_epoch(
 
     history_persistence::apply(&tx, edits).map_err(sqlite_api_error)?;
     history_persistence::remove_orphans(&tx).map_err(sqlite_api_error)?;
+    if let Some(operation) = config_operation {
+        session_config_journal::commit(&tx, operation)
+            .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+    }
     tx.commit().map_err(sqlite_api_error)?;
     diag!(
         "[SESSION-SQLITE] save commit done: elapsed_ms={}",

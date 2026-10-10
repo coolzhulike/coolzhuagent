@@ -1,4 +1,4 @@
-//! Web会话配置服务：组织同进程快照、参数发布和会话更新；不格式化HTTP响应。
+//! Web会话配置服务：组织快照、受保护恢复日志、参数发布和会话更新；不格式化HTTP响应。
 //! 复用既有存储与配置发布，不拥有第二份状态，不持std锁跨await。
 use super::{
     agent_session_backend, api_error, local_chat_runtime_config_from_config,
@@ -204,53 +204,46 @@ impl<'a> SessionConfigService<'a> {
                 }
             }
             validate_session_model_settings(&payload.parameters, &agent)?;
-            let mut previous = None;
-            let published = mutate_workspace_config(|config| {
-                if payload
-                    .expected_revision
-                    .is_some_and(|revision| revision != config.configuration_revision)
-                {
-                    return Err(api_error(
-                        StatusCode::CONFLICT,
-                        "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入",
-                    ));
-                }
-                previous = config
-                    .session_model_limits
-                    .insert(session_id.clone(), payload.parameters.clone());
-                Ok(())
-            })?;
-            if let Some(session) = payload.session {
-                let result = store.update_session(&session_id, session);
-                if let Err(error) = result {
-                    let rollback = mutate_workspace_config(|config| {
-                        if config.configuration_revision != published.configuration_revision {
-                            return Err(api_error(
-                                StatusCode::CONFLICT,
-                                "配置已变化，未覆盖其他修改",
-                            ));
-                        }
-                        match previous {
-                            Some(parameters) => {
-                                config
-                                    .session_model_limits
-                                    .insert(session_id.clone(), parameters);
-                            }
-                            None => {
-                                config.session_model_limits.remove(&session_id);
-                            }
-                        }
-                        Ok(())
-                    });
-                    if rollback.is_err() {
-                        return Err(api_error(
-                            StatusCode::CONFLICT,
-                            "会话更新失败，参数回退未完成；请重新载入核对已保存状态",
-                        ));
-                    }
-                    return Err(error);
-                }
+            // 两种资源的发布全过程持有既有配置锁，其他配置操作不能插入。
+            let mut guard = super::workspace_config().lock()
+                .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "配置锁已损坏"))?;
+            if payload.expected_revision.is_some_and(|revision| revision != guard.configuration_revision) {
+                return Err(api_error(StatusCode::CONFLICT, "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入"));
             }
+            let workspace = super::active_workspace_path();
+            let path = super::config_file_path_for(&workspace);
+            let before = std::fs::read_to_string(&path).map_err(super::io_api_error)?;
+            // 不把不可解析的现有配置覆盖成默认内容。
+            toml::from_str::<toml::Value>(&before)
+                .map_err(|_| api_error(StatusCode::CONFLICT, "已有配置格式无效，未发布"))?;
+            let mut published = guard.clone();
+            published.configuration_revision = guard.configuration_revision.checked_add(1)
+                .ok_or_else(|| api_error(StatusCode::CONFLICT, "配置版本已耗尽，未保存"))?;
+            published.session_model_limits.insert(session_id.clone(), payload.parameters);
+            let serialized = toml::to_string_pretty(&published)
+                .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "配置无法序列化"))?;
+            let after = super::render_config_with_preserved_sections(&path, &serialized);
+            let operation = super::session_config_journal::begin(&store.path, &path, &before, &after)
+                .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+            if let Err(message) = super::config_publication::publish(&path, &after) {
+                super::session_config_journal::recover(&store.path, &path)
+                    .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+                return Err(api_error(StatusCode::INTERNAL_SERVER_ERROR, &message));
+            }
+            let result = match payload.session {
+                Some(session) => store.update_session_with_config_operation(&session_id, session, Some(&operation)),
+                None => store.save_with_config_operation(Some(&operation)),
+            };
+            if let Err(error) = result {
+                super::session_config_journal::verify_rollback_allowed(&store.path)
+                    .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+                super::session_config_journal::recover(&store.path, &path)
+                    .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
+                return Err(error);
+            }
+            *guard = published;
+            super::session_config_journal::recover(&store.path, &path)
+                .map_err(|_| api_error(StatusCode::CONFLICT, "配置与会话已提交，但恢复日志清理未完成；请重新载入核对状态"))?;
         }
         Ok(())
     }
