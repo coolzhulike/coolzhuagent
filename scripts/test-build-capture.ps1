@@ -1,16 +1,28 @@
-#requires -Version 7.0
+#requires -Version 5.1
 param([string]$HelperPath = 'tmp/cargo-target-integration/debug/build-capture.exe')
 $ErrorActionPreference='Stop'
+function Set-CaptureTestArguments($Info, [string[]]$Arguments) {
+  if ($Info.PSObject.Properties['ArgumentList']) {
+    foreach($arg in $Arguments){[void]$Info.ArgumentList.Add($arg)}
+  } else {
+    # Windows CRT 参数规则：引号前与尾部反斜杠须成对保留，不能只按空格加引号。
+    $quoted=foreach($arg in $Arguments) {
+      if($arg.Length -gt 0 -and $arg -notmatch '[\s"]'){$arg;continue}
+      '"'+[regex]::Replace([regex]::Replace($arg,'(\\*)"','$1$1\"'),'(\\+)$','$1$1')+'"'
+    }
+    $Info.Arguments=$quoted -join ' '
+  }
+}
 $helper=(Resolve-Path -LiteralPath $HelperPath).Path
 $root=Join-Path (Split-Path $PSScriptRoot -Parent) ('tmp/capture evidence '+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($root)
 $child=Join-Path $root 'child worker.ps1'
 [IO.File]::WriteAllText($child, @'
-param([string]$Ready,[string]$Release)
+param([string]$Ready,[string]$Release,[string]$Value,[Parameter(Mandatory=$true)][AllowEmptyString()][string]$Empty)
 $bytes=[Text.UTF8Encoding]::new($false).GetBytes("中文增量输出`n")
 $out=[Console]::OpenStandardOutput(); $err=[Console]::OpenStandardError()
 $out.Write($bytes,0,$bytes.Length); $err.Write($bytes,0,$bytes.Length)
-[IO.File]::WriteAllText($Ready,'ready')
+[IO.File]::WriteAllText($Ready,($Value+'|'+$Empty))
 $deadline=[DateTime]::UtcNow.AddSeconds(30)
 while(-not [IO.File]::Exists($Release)) {
   if([DateTime]::UtcNow -gt $deadline){exit 97}
@@ -21,7 +33,7 @@ exit 0
 function Start-Capture([string]$OutPath,[string]$ErrPath,[string]$Ready,[string]$Release) {
   $info=[Diagnostics.ProcessStartInfo]::new($helper)
   $info.UseShellExecute=$false; $info.CreateNoWindow=$true
-  foreach($arg in @($OutPath,$ErrPath,$root,'--','powershell','-NoProfile','-File',$child,$Ready,$Release)){[void]$info.ArgumentList.Add($arg)}
+  Set-CaptureTestArguments $info @($OutPath,$ErrPath,$root,'--','powershell','-NoProfile','-File',$child,$Ready,$Release,'中文 "引号" 反斜杠\','')
   return [Diagnostics.Process]::Start($info)
 }
 $out=Join-Path $root 'stdout.log'; $err=Join-Path $root 'stderr.log'
@@ -34,6 +46,7 @@ try {
     Start-Sleep -Milliseconds 20
   }
   if($process.HasExited){throw '未证明构建仍在运行'}
+  if([IO.File]::ReadAllText($ready) -cne '中文 "引号" 反斜杠\|'){throw '中文、引号、反斜杠或空参数被改写'}
   Write-Output 'PASS 构建等待屏障期间双管道已落盘，空格参数保持完整'
 } finally {
   [IO.File]::WriteAllText($release,'release')
@@ -64,7 +77,7 @@ exit 0
 '@, [Text.UTF8Encoding]::new($false))
 $info=[Diagnostics.ProcessStartInfo]::new($helper)
 $info.UseShellExecute=$false; $info.CreateNoWindow=$true
-foreach($arg in @((Join-Path $root 'orphan-out.log'),(Join-Path $root 'orphan-err.log'),$root,'--','powershell','-NoProfile','-File',$orphanScript,$pidFile)){[void]$info.ArgumentList.Add($arg)}
+Set-CaptureTestArguments $info @((Join-Path $root 'orphan-out.log'),(Join-Path $root 'orphan-err.log'),$root,'--','powershell','-NoProfile','-File',$orphanScript,$pidFile)
 $process=[Diagnostics.Process]::Start($info)
 try {
   if(-not $process.WaitForExit(15000)){$process.Kill($true);throw '后代回收超时'}
