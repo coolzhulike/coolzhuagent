@@ -2,7 +2,7 @@
   "schema": 1,
   "capture_timing": "构建后观察，不是构建时收据",
   "build_source_commit": "270b69b01c93301c9d5f52e9dbe01813df6b3aaf",
-  "metadata_observation_commit": "e2afd9a",
+  "metadata_observation_commit": "9bcc198409be7358e69c4a7995db68ffa5fdd712",
   "scope_limitation": "不证明分发组件或许可证义务；manifest_path仅用于本机定位",
   "records": [
     {
