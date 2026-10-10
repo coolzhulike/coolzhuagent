@@ -1,4 +1,5 @@
 mod init;
+mod controlled_future;
 mod input;
 mod render;
 mod shared_chat;
@@ -3310,11 +3311,10 @@ impl ApiClient for DefaultRuntimeClient {
             stream: true,
         };
 
+        let control = runtime::managed_process::current_execution_control();
         self.runtime.block_on(async {
-            let mut stream = self
-                .client
-                .stream_message(&message_request)
-                .await
+            let mut stream = controlled_future::wait(&control, self.client.stream_message(&message_request))
+                .await.map_err(|reason| RuntimeError::new(format!("根执行已中断：{reason:?}；模型请求未确认完成，用量未知，不自动重放")))?
                 .map_err(|error| RuntimeError::new(error.to_string()))?;
             let mut stdout = io::stdout();
             let mut sink = io::sink();
@@ -3331,8 +3331,9 @@ impl ApiClient for DefaultRuntimeClient {
             let mut facts = stream_facts::StreamFacts::default();
 
             loop {
-                let received = stream.next_event().await;
+                let received = controlled_future::wait(&control, stream.next_event()).await;
                 facts.merge(stream.usage_evidence());
+                let received = received.map_err(|reason| facts.incomplete(&format!("根执行已中断：{reason:?}")))?;
                 let event = match received {
                     Ok(Some(event)) => event,
                     Ok(None) => break,
