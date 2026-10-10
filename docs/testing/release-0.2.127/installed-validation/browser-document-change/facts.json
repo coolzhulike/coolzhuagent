@@ -1,0 +1,67 @@
+{
+  "stage": "0.2.127正式规划期间文档切换验收",
+  "source_user_id": "msg-1791640104020-user",
+  "run": {
+    "id": "run-chat-58108b3231660b59471674f888d494fd93a9891f10732a25",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791640104020-0",
+    "provider_turn_id": null,
+    "state": "failed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-3121b92abbad97aaf48116dea743ae6ebac3757a9610077fa533a38bf1d4ae85",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791640104021,
+    "started_at": 1791640104249,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791640104249,
+    "finished_at": 1791640142892
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-f1a8800c4b2c783e6a0ce4b204accf8b0bbe54ca319eab1d77edb0eb6b2fc54e",
+      "run_id": "run-chat-58108b3231660b59471674f888d494fd93a9891f10732a25",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "0608997c990a3a72",
+      "status": "failed",
+      "created_at_unix_ms": 1791640115987,
+      "updated_at_unix_ms": 1791640132757,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-58108b3231660b59471674f888d494fd93a9891f10732a25\",\"turn_id\":\"chat-turn-1791640104020-0\",\"attempt_id\":\"a97077d832af487ac91fcfe701d1f16bc9a1f3f589948340\",\"owner_epoch\":288,\"generation\":288}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "a97077d832af487ac91fcfe701d1f16bc9a1f3f589948340",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791640104347-0",
+      "content": "任务终态：**blocked**（`stale_observation` + `budget_exhausted`），未达成目标。\n\n## 实际发生\n\n- 仅调用了一次 `computer_use_perform`（`max_actions=1`，surface=browser，省略 target）。\n- 规划快照确认当时为初始旧文档：`http://127.0.0.1:59327/old.html`，标题 `文档切换127-OLD`，唯一按钮\"文档引用验收\"在视口内（`dom-4dd8d0deac1236e08330cf313220cace`），我提交了针对该旧文档按钮的 click 规划。\n- 宿主终态回执：`status: blocked`，错误 `stale_observation` —— \"**browser identity changed before input**\"：网页在规划期间自然导航到新文档，旧文档引用失效，恢复动作因 `max_actions=1` 预算耗尽而停止。\n- click 回执：`input_delivery: not_sent`，`effect: not_observed`，`steps_completed: 0` —— **点击实际未发送**，也未对新文档同名按钮产生任何操作。\n\n## 结论\n\n- 旧文档目标**未被点击**，成功标准未达成；本轮结果与上一轮 0.2.126 候选一致（规划期文档切换导致旧引用失效）。\n- 按约束不重试、不补发、不另选目标，任务如实停止。",
+      "kind": "assistant-reply"
+    }
+  ]
+}
