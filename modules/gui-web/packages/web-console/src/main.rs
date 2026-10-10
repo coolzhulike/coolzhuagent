@@ -37595,13 +37595,8 @@ fn session_lock_log_path() -> PathBuf {
 }
 
 fn log_session_lock_line(line: &str) {
-    if let Ok(mut file) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(session_lock_log_path())
-    {
-        let _ = std::io::Write::write_all(&mut file, format!("{line}\n").as_bytes());
-    }
+    // 锁诊断不是权威审计；共用脱敏、记录上限、文件轮转和非阻塞进程锁。
+    let _ = diagnostics::append_diagnostic_line(&session_lock_log_path(), line);
 }
 
 fn log_session_lock_wait(
