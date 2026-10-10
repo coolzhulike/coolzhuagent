@@ -1134,6 +1134,52 @@ mod tests {
     }
 
     #[test]
+    fn cancelled_batch_preserves_each_tool_identity_without_further_approval() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        struct BatchClient;
+        impl ApiClient for BatchClient {
+            fn stream(&mut self, request: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                assert!(!request.messages.iter().any(|message| message.role == MessageRole::Tool), "取消后不得请求下一轮模型");
+                Ok(vec![
+                    AssistantEvent::ToolUse { id: "first".into(), name: "blocked".into(), input: "{}".into() },
+                    AssistantEvent::ToolUse { id: "second".into(), name: "blocked".into(), input: "{}".into() },
+                    AssistantEvent::MessageStop,
+                ])
+            }
+        }
+        struct CancellingPrompter { control: ExecutionControl, calls: usize }
+        impl PermissionPrompter for CancellingPrompter {
+            fn decide(&mut self, _: &PermissionRequest) -> PermissionPromptDecision {
+                self.calls += 1;
+                self.control.cancel();
+                PermissionPromptDecision::Allow
+            }
+        }
+        let control = ExecutionControl::new(None, None);
+        let mut prompter = CancellingPrompter { control: control.clone(), calls: 0 };
+        let counter = CallCounter::new();
+        let mut runtime = ConversationRuntime::new(Session::new(), BatchClient,
+            StaticToolExecutor::new().register("blocked", counter.handler("unexpected")),
+            PermissionPolicy::new(PermissionMode::WorkspaceWrite)
+                .with_tool_requirement("blocked", PermissionMode::DangerFullAccess), Vec::new());
+        let error = with_execution_control(control, || runtime.run_turn("batch", Some(&mut prompter))).unwrap_err();
+        assert!(error.to_string().contains("Cancelled"));
+        assert_eq!(prompter.calls, 1, "取消后第二个工具不得再审批");
+        assert_eq!(counter.count(), 0);
+        let results = runtime.session().messages.iter().flat_map(|message| &message.blocks)
+            .filter_map(|block| match block {
+                ContentBlock::ToolResult { tool_use_id, tool_name, output, is_error } => {
+                    assert_eq!(tool_name, "blocked");
+                    assert!(*is_error);
+                    assert!(output.contains("取消"));
+                    Some(tool_use_id.as_str())
+                }
+                _ => None,
+            }).collect::<Vec<_>>();
+        assert_eq!(results, vec!["first", "second"], "同批每个未执行结果必须保持来源身份");
+    }
+
+    #[test]
     fn model_returning_after_cancellation_cannot_complete_turn() {
         use crate::managed_process::{ExecutionControl, with_execution_control};
         struct LateClient(ExecutionControl);
