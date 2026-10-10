@@ -18,6 +18,8 @@
 
 后续CLI DefaultRuntimeClient在模型请求建立和next_event等待接入已有根控制，预先取消不轮询请求，等待期间取消/截止丢弃Future，迟到结果再次拒绝，未完成流保留用量事实。真实CLI构建及串行完整101项回归通过；首轮并发99通过2失败保留，既有允许工具测试并发失败原因未闭环。真实本地TCP关闭测试不能替代外部Provider正式验收，详见[在途取消记录](../work-logs/2026-10-10-cli-inflight-model-cancel.md)。
 
+实际Provider本地HTTP/SSE补验已通过：完整请求到达后的握手等待取消、有效SSE前缀读取后取消后续事件等待，服务器均观察连接关闭，远端结果未知仍保留且禁止自动切换。CLI完整串行回归102通过0失败，实际构建通过；外部模型、CLI完整终态/工具派发及其它入口仍缺正式验收。
+
 当前实装是 0.2.130，包源码 35cbcf238d194d7fbaac648359d8bddc9858f811；1193 个载荷文件逐长度/SHA 一致，正常整包/MSI 构建、安装及注册版本证据见 [130 验收状态](../testing/release-0.2.130/acceptance-status.md)。本轮再次直接运行 Program Files 下 CLI --version，实际返回上述版本与完整源码身份。未签名、未发布，不能把安装与文件核验提升为正式运行验收。后续 Conversation/CLI 修补不在该安装包中。
 
 CLI历史专项复核点为 918f99c。CLI 历史已补单写者锁、累计字节/条数预算、重复轮次和 Windows junction 拒绝；该范围完整回归 99 通过（tmp/analysis-cli-history-link-final-tests.txt）。core-runtime 375 通过及 3 项忽略的证据保持对应历史源码范围，不能外推后续全部修改。2dacc83 时点的真实 debug CLI 合成恢复 9 项仍是历史进程证据，后续修改不自动继承该进程验收。
