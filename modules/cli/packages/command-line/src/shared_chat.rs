@@ -452,6 +452,7 @@ async fn run_async(options: Options, signal: impl Future<Output = io::Result<()>
     if !options.json { writeln!(output.stdout)?; }
     match output.receipt.terminal.as_deref() {
         Some("completed") => Ok(()),
+        Some("commit_pending") => Err(problem("原轮次终态提交待确认；不能宣布完成，未自动重试")),
         Some(state) => Err(problem(format!("原轮次终态：{state}；未自动重试"))),
         None => Err(problem("未收到确认终态；未自动重试")),
     }
@@ -592,7 +593,7 @@ mod tests {
     /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
     #[tokio::test]
     async fn shared_http_stream_and_cancel_use_one_real_admission_and_original_turn() {
-        for cancel in [false, true] {
+        for (cancel, terminal) in [(false, "completed"), (true, "interrupted"), (false, "commit_pending")] {
             let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
             let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
             let workspace = std::env::current_dir().unwrap().canonicalize().unwrap();
@@ -620,7 +621,9 @@ mod tests {
                             if cancel {
                                 notify.take().unwrap().send(()).unwrap(); held_stream = Some(socket);
                             } else {
-                                let events = "event: message_delta\ndata: {\"id\":\"answer\",\"kind\":\"assistant-reply\",\"delta\":\"鹈鹕骑车\"}\n\nevent: done\ndata: {\"run_id\":\"run\",\"turn_id\":\"turn\",\"status\":\"completed\"}\n\n";
+                                let events = format!("event: message_delta\ndata: {}\n\nevent: done\ndata: {}\n\n",
+                                    json!({"id":"answer","kind":"assistant-reply","delta":"鹈鹕骑车"}),
+                                    json!({"run_id":"run","turn_id":"turn","status":terminal}));
                                 for bytes in events.as_bytes().chunks(2) { chunk(&mut socket,bytes).await; }
                                 socket.write_all(b"0\r\n\r\n").await.unwrap();
                             }
@@ -644,11 +647,14 @@ mod tests {
             let options = Options {base,workspace,session:"session".into(),room:"room".into(),prompt:"测试".into(),json:true,expected_workspace_id:None};
             let (mut out,mut err)=(Vec::new(),Vec::new());
             let result = tokio::time::timeout(Duration::from_secs(10),run_async(options,signal,&mut out,&mut err)).await.unwrap();
-            assert_eq!(result.is_err(),cancel);
+            assert_eq!(result.is_err(), terminal != "completed");
+            if terminal == "commit_pending" {
+                assert!(result.as_ref().unwrap_err().to_string().contains("提交待确认"));
+            }
             server.await.unwrap();
             let events = String::from_utf8(out).unwrap();
             let last:Value=serde_json::from_str(events.lines().last().unwrap()).unwrap();
-            assert_eq!(last["event"],"done"); assert_eq!(last["data"]["status"],if cancel {"interrupted"} else {"completed"});
+            assert_eq!(last["event"],"done"); assert_eq!(last["data"]["status"],terminal);
             if !cancel { assert!(events.contains("鹈鹕骑车")); }
         }
     }
