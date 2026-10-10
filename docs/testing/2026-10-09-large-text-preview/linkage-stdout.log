@@ -1,0 +1,13 @@
+
+running 8 tests
+test computer_use_anchor_matrix_is_available_from_root_workspace ... ok
+test runtime_session_message_type_is_available_from_root_workspace ... ok
+test vision_grounding_parser_is_available_from_root_workspace ... ok
+test server_app_can_be_constructed_from_root_workspace ... ok
+test frame_binding_is_wired_at_the_mapping_point_and_does_not_replace_window_identity ... ok
+test web_console_test_code_writes_process_env_only_through_the_shared_guard ... ok
+test test_environment_writes_are_paired_with_a_restoring_guard ... ok
+test only_the_controlled_input_entry_is_reachable_from_automation ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.81s
+

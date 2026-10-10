@@ -17513,7 +17513,8 @@ async function fetchIdeLineWindow(path, lineNo) {
     if (!isCurrent()) return;
     if (!meta.previewable) {
       updateProjectPreview(
-        "此文件为二进制文件或体积过大，无法在窗口中预览。",
+        meta.binary ? "此文件为二进制文件，无法作为文本预览。"
+          : `此文件超过只读预览上限 ${formatFileSize(meta.max_preview_bytes)}。`,
         "行窗口读取失败"
       );
       return;
@@ -18475,7 +18476,8 @@ async function openProjectFile(path = selectedProjectPath, { forceReload = false
     if (!isCurrent()) return null;
     const metaText = `${meta.relative_path} · ${formatFileSize(meta.file_size)}${meta.binary ? " · 二进制" : ""}`;
     if (!meta.previewable) {
-      updateProjectPreview("此文件为二进制文件或体积过大，无法在窗口中预览。", metaText);
+      updateProjectPreview(meta.binary ? "此文件为二进制文件，无法作为文本预览。"
+        : `此文件超过只读预览上限 ${formatFileSize(meta.max_preview_bytes)}。`, metaText);
       void updateLspPreviewForFile("");
       return null;
     }
@@ -18486,7 +18488,7 @@ async function openProjectFile(path = selectedProjectPath, { forceReload = false
     if (!isCurrent()) return null;
     if (findIdeTabByKind("view", path, "")?.dirty) return null;
     const suffix = !meta.editable && response.next_offset
-      ? `\n\n[预览内容已截断，下次读取位置：${response.next_offset}]`
+      ? "\n\n[仅显示文件开头，可在上方输入 :行号 跳转查看对应内容。]"
       : "";
     const content = `${response.content}${suffix}`;
     const lang = syntaxLangForPath(path);
