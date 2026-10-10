@@ -7,3 +7,5 @@
 验证：cargo build -p coolzhu-app-launcher --offline -j1 实际 exit 0；cargo test -p coolzhu-app-launcher --offline -j1 实际 exit 0，库 64、二进制 8 项均通过。新增真实文件回归先写旧成功记录，再写工作区/会话库冲突，确认失败覆盖成功、时间更新、错误保存且无虚构进程 PID。日志保留在 tmp/analysis-launcher-preflight-selfcheck-build.txt 和 tmp/analysis-launcher-preflight-selfcheck-tests.txt。既有 windows-process-guard 未用导入警告保留。
 
 本修复是 0.2.128 之后的源码候选，不在已经安装的 0.2.128 MSI 中。现场正式启动及完整 32WBS 验收尚未通过；后台启动此前被自动审批策略拒绝，不绕过该拒绝。
+
+后续复查发现，预检允许复用后 forward_existing_console 的错误同样直接返回。已补写该分支失败自检，仍不修改或回收既有后台。cargo build 与完整 launcher 测试均实际 exit 0，库 64、二进制 9 项通过；日志为 tmp/analysis-launcher-forward-failure-build.txt、tmp/analysis-launcher-forward-failure-tests.txt。该检查覆盖共享保存函数及接线；本轮未实际制造正式 Tauri 转发失败，不宣称实机负例通过。

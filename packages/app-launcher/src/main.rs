@@ -439,7 +439,10 @@ fn run(
         error
     })?;
     if reuse_existing {
-        let tauri_pid = forward_existing_console(&config, &decision.resolved)?;
+        let tauri_pid = forward_existing_console(&config, &decision.resolved).map_err(|error| {
+            write_failed_selfcheck(&config, &error, Some(&decision.resolved), &notes);
+            error
+        })?;
         return Ok(RunOutcome::ForwardedExisting { tauri_pid });
     }
 
