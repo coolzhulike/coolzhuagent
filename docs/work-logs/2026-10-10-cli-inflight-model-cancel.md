@@ -13,3 +13,9 @@
 后续真实Provider协议复验：直接使用ProviderClient::from_custom_openai_compatible和生产controlled_future::wait，本地服务器完整读取真实POST /v1/chat/completions请求后触发同一根取消。两阶段分别为不发响应头、先发有效OpenAI兼容SSE前缀且正文保持未完；后者确认至少一条协议事件实际读取，再取消后续next_event等待。两阶段均观察取消及服务器EOF/RST，Provider local_endpoint_drain仍remote_result_unknown>0且禁止自动切换。该测试证明实际请求/流对象释放及未知账务保留，未冒充远端计算停止、外部模型终态、CLI渲染/工具派发全链验收。
 
 完整CLI串行回归实际exit0：102通过0失败0忽略；最终真实cargo build亦实际exit0。日志 tmp/analysis-cli-provider-cancel-tests.txt、build.txt。测试在新的本地随机端口执行，未使用外部账号或替换正式运行环境；本轮只增加测试，生产接线保持此前修补。
+
+后续终态接线修补：发现此前适配器取消仅返回普通RuntimeError，ConversationRuntime依据结构化interruption区分TurnInterrupted/TurnFailed，文字取消不能代替该字段。RuntimeError新增with_interruption，保留原错误消息/轨迹；CLI两处取消映射写入实际Cancelled/TimedOut原因，不在普通Provider错误上擅自添加取消。
+
+新增实际DefaultRuntimeClient + ConversationRuntime + ProviderClient本地HTTP/SSE测试：服务器发送部分write_file工具参数和输入7/输出2用量快照后触发根取消。断言真实连接关闭、工具执行器调用0、错误保留输入7及不完整事实、会话仅用户消息、终态TurnInterrupted/Cancelled。进一步使用生产persist_result保存错误及load_event_history恢复，确认仍返回错误且恢复唯一中断轨迹，未冒充完成。最新完整CLI串行103通过0失败0忽略，实际exit0；正常CLI实际构建exit0（12.05秒）。日志 tmp/analysis-cli-cancel-terminal-build.txt、terminal-tests.txt、persist-tests.txt。
+
+共享RuntimeError接口的完整core-runtime串行回归已启动，同一会话4133尚待真实终态，日志tmp/analysis-cli-cancel-reason-core-tests.txt，当前不能计通过。实际外部Provider、完整权限/截止/迟到矩阵与候选正式交付仍开放。

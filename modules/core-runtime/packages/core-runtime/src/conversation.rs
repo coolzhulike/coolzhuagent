@@ -86,6 +86,13 @@ impl RuntimeError {
     #[must_use]
     pub fn events(&self) -> &[AgentEvent] { &self.events }
 
+    /// 协议适配器保留原错误/轨迹，同时标记已观察到的根取消或截止。
+    #[must_use]
+    pub fn with_interruption(mut self, reason: crate::managed_process::Interruption) -> Self {
+        self.interruption = Some(reason);
+        self
+    }
+
     fn interrupted(message: String, reason: crate::managed_process::Interruption) -> Self {
         Self { message, events: Vec::new(), interruption: Some(reason) }
     }
