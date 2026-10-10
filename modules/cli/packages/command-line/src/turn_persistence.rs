@@ -15,23 +15,37 @@ impl PersistedTurn for () {
     fn events(&self) -> &[AgentEvent] { &[] }
 }
 
+fn event_namespace(path: &Path) -> std::io::Result<std::path::PathBuf> {
+    let mut name = path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?.to_os_string();
+    name.push(".events.json");
+    Ok(path.with_file_name(name))
+}
+
 /// 恢复持久轨迹；旧会话没有轨迹目录时兼容为空，不忽略已存在的损坏记录。
 pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEvent>>> {
     use std::io::Read;
-    let event_path = path.with_extension("events.json");
-    let directory = path.parent().unwrap_or_else(|| Path::new("."))
-        .join("internal-turns").join(event_path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?);
-    let entries = match std::fs::read_dir(directory) {
-        Ok(entries) => entries,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
-        Err(error) => return Err(error),
-    };
+    let root = path.parent().unwrap_or_else(|| Path::new(".")).join("internal-turns");
+    let current = event_namespace(path)?;
+    let legacy = path.with_extension("events.json");
+    let mut entries = Vec::new();
+    for (index, namespace) in [&current, &legacy].into_iter().enumerate() {
+        if index == 1 && current == legacy { continue; }
+        let directory = root.join(namespace.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?);
+        let found = match std::fs::read_dir(directory) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error),
+        };
+        for entry in found {
+            if entries.len() >= 10_000 { return Err(std::io::Error::other("回合历史超过恢复数量上限")); }
+            entries.push(entry?);
+        }
+    }
     let mut history = Vec::new();
     let mut total_bytes = 0_usize;
     let mut identities = std::collections::BTreeSet::new();
     for entry in entries {
         if history.len() >= 10_000 { return Err(std::io::Error::other("回合历史超过恢复数量上限")); }
-        let entry = entry?;
         if entry.path().extension().is_some_and(|extension| extension == "pending") {
             return Err(std::io::Error::other("发现未提交回合轨迹，执行结果未知，需恢复处置"));
         }
@@ -120,7 +134,7 @@ fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
     use std::io::Write;
     if events.is_empty() { return Ok(()); }
     let bytes = serde_json::to_vec_pretty(events).map_err(std::io::Error::other)?;
-    let (event_path, mut file) = reserve_internal_file_with_extension(&path.with_extension("events.json"), "pending")?;
+    let (event_path, mut file) = reserve_internal_file_with_extension(&event_namespace(path)?, "pending")?;
     let saved = file.write_all(&bytes).and_then(|()| file.sync_all());
     drop(file);
     if let Err(error) = saved {
@@ -144,6 +158,35 @@ mod tests {
     use super::*;
     use runtime::{ApiClient, ApiRequest, AssistantEvent, ConversationRuntime, PermissionMode,
         PermissionPolicy, ToolExecutor, ToolError};
+
+    #[test]
+    fn full_session_filename_isolates_event_history() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-event-namespace-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let first = directory.join("main.json");
+        let second = directory.join("main.txt");
+        assert_ne!(event_namespace(&first).unwrap(), event_namespace(&second).unwrap());
+        let events = vec![
+            AgentEvent::new(1, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        save_events(&events, &first).unwrap();
+        assert_eq!(load_event_history(&first).unwrap(), vec![events]);
+        assert!(load_event_history(&second).unwrap().is_empty());
+        let bare = directory.join("bare");
+        let bare_events = load_event_history(&first).unwrap().remove(0);
+        save_events(&bare_events, &bare).unwrap();
+        assert_eq!(load_event_history(&bare).unwrap(), vec![bare_events]);
+        let bare_dir = directory.join("internal-turns/bare.events.json");
+        for entry in std::fs::read_dir(&bare_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
+        std::fs::remove_dir(bare_dir).unwrap();
+        let event_dir = directory.join("internal-turns/main.json.events.json");
+        for entry in std::fs::read_dir(&event_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("internal-turns")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
 
     #[test]
     fn pending_publication_never_overwrites_existing_history() {
@@ -185,7 +228,7 @@ mod tests {
         let mut runtime = ConversationRuntime::new(Session::new(), Client, Executor,
             PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
         let summary = persist_result(runtime.run_turn("完成", None), runtime.session(), &path).unwrap();
-        let event_directory = directory.join("internal-turns/main.events.json");
+        let event_directory = directory.join("internal-turns/main.json.events.json");
         let files = std::fs::read_dir(&event_directory).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
         assert_eq!(files.len(), 1);
         let actual: serde_json::Value = serde_json::from_slice(&std::fs::read(files[0].path()).unwrap()).unwrap();
@@ -244,7 +287,7 @@ mod tests {
         let saved = Session::load_from_path(&path).unwrap();
         assert_eq!(saved, *runtime.session());
         let event_directory = path.parent().unwrap().join("internal-turns")
-            .join(path.with_extension("events.json").file_name().unwrap());
+            .join(event_namespace(&path).unwrap().file_name().unwrap());
         let event_files = std::fs::read_dir(&event_directory).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
         assert_eq!(event_files.len(), 1);
         let persisted: serde_json::Value = serde_json::from_slice(&std::fs::read(event_files[0].path()).unwrap()).unwrap();
