@@ -41,4 +41,6 @@ $call.ExpectedHelperSha256=$sha; $call.StdoutPath=$out
 $before=(Get-FileHash -LiteralPath $out).Hash
 $result=Invoke-ManagedBuildCapture @call
 if($result.exit_code -ne 125 -or (Get-FileHash -LiteralPath $out).Hash -ne $before -or (Test-Path (Join-Path $root 'wrong-marker'))){throw '旧日志保护失败'}
+if([IO.File]::ReadAllText($result.helper_diagnostic_path,[Text.UTF8Encoding]::new($false,$true)) -notmatch 'BUILD-CAPTURE-FAILED:'){throw '辅助程序失败诊断没有归档'}
 Write-Output 'PASS 旧日志拒绝返回125，旧内容保留且命令未启动'
+Write-Output 'PASS 辅助程序自身125诊断独立落盘'

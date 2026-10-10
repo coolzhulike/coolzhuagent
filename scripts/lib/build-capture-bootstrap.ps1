@@ -65,7 +65,7 @@ function New-BuildCaptureBootstrap {
     $sha=(Get-FileHash -LiteralPath $helper -Algorithm SHA256).Hash.ToLowerInvariant()
     $stdout=Join-Path $evidence 'cargo.jsonl'; $stderr=Join-Path $evidence 'cargo.stderr.log'
     $receipt=Invoke-ManagedBuildCapture -HelperPath $helper -ExpectedHelperSha256 $sha -Command 'cargo' -Arguments ($arguments+@('--message-format=json-render-diagnostics')) -WorkingDirectory $repo -StdoutPath $stdout -StderrPath $stderr
-    if($receipt.exit_code -ne 0){throw ('辅助程序证据构建失败：'+$receipt.exit_code)}
+    if($receipt.exit_code -ne 0){throw ('辅助程序证据构建失败：'+$receipt.exit_code+'；辅助程序诊断：'+$receipt.helper_diagnostic_path)}
     Assert-BuildCaptureCargoRecord -RecordPath $stdout -RepoPath $repo -ExecutablePath $built
     if((Get-FileHash -LiteralPath $built -Algorithm SHA256).Hash -ine $sha){throw '引导副本与证据构建产物字节不一致'}
     [pscustomobject]@{helper_path=$helper;helper_sha256=$sha;raw_record_path=$stdout;stderr_path=$stderr;command='cargo';args=($arguments+@('--message-format=json-render-diagnostics'));working_dir=$repo;exit_code=$receipt.exit_code;source_snapshot_verified=$false;cargo_record_validated=$true}

@@ -27,19 +27,28 @@ function Invoke-ManagedBuildCapture {
   # Windows 共享方式拒绝协作写入/删除；前后摘要也不能代替原始构建来源证明。
   $lease=[IO.FileStream]::new($helper,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
   $process=$null
+  $diagnostic=$null
   try {
     if ((Get-FileHash -LiteralPath $helper -Algorithm SHA256).Hash -ine $ExpectedHelperSha256) { throw 'BUILD-CAPTURE-IDENTITY: 辅助程序与冻结摘要不一致，未启动命令' }
     $info=[Diagnostics.ProcessStartInfo]::new($helper)
     $info.UseShellExecute=$false; $info.CreateNoWindow=$true
+    $info.RedirectStandardError=$true
+    $diagnosticPath=$StdoutPath+'.helper-'+[guid]::NewGuid().ToString('N')+'.stderr.log'
+    $diagnostic=[IO.FileStream]::new($diagnosticPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
     Set-ManagedCaptureArguments -Info $info -Arguments (@($StdoutPath,$StderrPath,$WorkingDirectory,'--',$Command)+$Arguments)
     $started=(Get-Date).ToUniversalTime().ToString('o')
     $process=[Diagnostics.Process]::Start($info)
+    # 仅辅助程序自身诊断进入此管道；固定缓冲异步落盘，避免等待退出时堵住诊断管道。
+    $diagnosticCopy=$process.StandardError.BaseStream.CopyToAsync($diagnostic,81920)
     $process.WaitForExit()
+    $diagnosticCopy.GetAwaiter().GetResult()
+    $diagnostic.Flush($true)
     $code=$process.ExitCode
     if ((Get-FileHash -LiteralPath $helper -Algorithm SHA256).Hash -ine $ExpectedHelperSha256) { throw 'BUILD-CAPTURE-IDENTITY: 采集期间辅助程序身份变化，回执无效' }
-    [pscustomobject]@{ exit_code=$code; helper_path=$helper; helper_sha256=$ExpectedHelperSha256.ToLowerInvariant(); started_utc=$started; stdout_path=$StdoutPath; stderr_path=$StderrPath }
+    [pscustomobject]@{ exit_code=$code; helper_path=$helper; helper_sha256=$ExpectedHelperSha256.ToLowerInvariant(); started_utc=$started; stdout_path=$StdoutPath; stderr_path=$StderrPath; helper_diagnostic_path=$diagnosticPath }
   } finally {
     if ($process) { $process.Dispose() }
+    if ($diagnostic) { $diagnostic.Dispose() }
     $lease.Dispose()
   }
 }
