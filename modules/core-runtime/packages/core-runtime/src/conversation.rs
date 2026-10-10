@@ -630,6 +630,45 @@ mod tests {
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
 
+    #[test]
+    fn failure_matrix_preserves_identity_sequence_and_one_terminal() {
+        use crate::agent_event::AgentEventKind;
+        struct Client(Result<Vec<AssistantEvent>, RuntimeError>);
+        impl ApiClient for Client {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                self.0.clone()
+            }
+        }
+        let cases = [
+            (Err(RuntimeError::new("模型请求失败")), usize::MAX, "模型请求失败"),
+            (Ok(vec![AssistantEvent::TextDelta("未结束".into())]), usize::MAX, "without a message stop"),
+            (Ok(vec![AssistantEvent::MessageStop]), usize::MAX, "no content"),
+            (Ok(vec![AssistantEvent::TextDelta("不应请求".into()), AssistantEvent::MessageStop]), 0, "maximum number"),
+        ];
+        for (response, limit, expected_error) in cases {
+            let mut runtime = ConversationRuntime::new(Session::new(), Client(response),
+                StaticToolExecutor::new(), PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new())
+                .with_thread_id("failure-matrix-thread").with_max_iterations(limit);
+            let mut previous_turn = None;
+            for _ in 0..2 {
+                let error = runtime.run_turn("请求", None).unwrap_err();
+                assert!(error.to_string().contains(expected_error));
+                let events = error.events();
+                assert_eq!(events.first().unwrap().kind, AgentEventKind::TurnStarted);
+                assert_eq!(events.last().unwrap().kind, AgentEventKind::TurnFailed);
+                assert_eq!(events.iter().filter(|event| matches!(event.kind,
+                    AgentEventKind::TurnFailed | AgentEventKind::TurnInterrupted | AgentEventKind::TurnCompleted)).count(), 1);
+                for (index, event) in events.iter().enumerate() {
+                    assert_eq!(event.sequence, (index + 1) as u64);
+                    assert_eq!(event.thread_id.as_str(), "failure-matrix-thread");
+                    assert_eq!(event.turn_id, events[0].turn_id);
+                }
+                assert_ne!(previous_turn.as_ref(), Some(&events[0].turn_id));
+                previous_turn = Some(events[0].turn_id.clone());
+            }
+        }
+    }
+
     /// hook 自身的独立执行授权（§7.3）。
     ///
     /// hook 是任意 shell，最低权限按 `DangerFullAccess` 声明；两个能力分开声明，
