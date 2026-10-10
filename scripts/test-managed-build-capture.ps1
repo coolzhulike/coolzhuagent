@@ -106,3 +106,13 @@ try {
   $process.Dispose()
 }
 Write-Output 'PASS 宿主创建时间不匹配在日志和命令启动前拒绝'
+$info=[Diagnostics.ProcessStartInfo]::new($helper)
+$info.UseShellExecute=$false; $info.CreateNoWindow=$true; $info.RedirectStandardError=$true
+Set-ManagedCaptureArguments -Info $info -Arguments @($badOut,$badErr,$root,'--','powershell','-NoProfile','-File',$child,(Join-Path $root 'bad-owner-marker'))
+$process=[Diagnostics.Process]::Start($info)
+try {
+  $diagnosticText=$process.StandardError.ReadToEnd()
+  if(-not $process.WaitForExit(10000) -or $process.ExitCode -ne 125 -or $diagnosticText -notmatch '缺少 --owner'){throw '无宿主旧语法未拒绝'}
+  foreach($path in @($badOut,$badErr,(Join-Path $root 'bad-owner-marker'))){if(Test-Path -LiteralPath $path){throw '无宿主旧语法产生执行副作用'}}
+} finally {if(-not $process.HasExited){$process.Kill();$process.WaitForExit()};$process.Dispose()}
+Write-Output 'PASS 无宿主旧语法在日志和命令启动前拒绝'

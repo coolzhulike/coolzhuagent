@@ -15,7 +15,7 @@ Start-Sleep -Seconds 60
 '@,[Text.UTF8Encoding]::new($false))
 $info=[Diagnostics.ProcessStartInfo]::new($helper)
 $info.UseShellExecute=$false; $info.CreateNoWindow=$true; $info.RedirectStandardError=$true
-Set-ManagedCaptureArguments -Info $info -Arguments @((Join-Path $root 'stdout'),(Join-Path $root 'stderr'),$root,'--','powershell','-NoProfile','-File',$worker,$ready)
+Set-ManagedCaptureArguments -Info $info -Arguments @('--owner',[string]$PID,[string]([Diagnostics.Process]::GetCurrentProcess().StartTime.ToFileTimeUtc()),(Join-Path $root 'stdout'),(Join-Path $root 'stderr'),$root,'--','powershell','-NoProfile','-File',$worker,$ready)
 if($HostExit) {
   $hostScript=Join-Path $root 'host.ps1'
   [IO.File]::WriteAllText($hostScript,@'

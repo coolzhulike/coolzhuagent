@@ -3,6 +3,7 @@ param([string]$HelperPath = 'tmp/cargo-target-integration/debug/build-capture.ex
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'lib/managed-build-capture.ps1')
 $helper=(Resolve-Path -LiteralPath $HelperPath).Path
+$ownerArgs=@('--owner',[string]$PID,[string]([Diagnostics.Process]::GetCurrentProcess().StartTime.ToFileTimeUtc()))
 $root=Join-Path (Split-Path $PSScriptRoot -Parent) ('tmp/capture evidence '+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($root)
 $child=Join-Path $root 'child worker.ps1'
@@ -22,7 +23,7 @@ exit 0
 function Start-Capture([string]$OutPath,[string]$ErrPath,[string]$Ready,[string]$Release) {
   $info=[Diagnostics.ProcessStartInfo]::new($helper)
   $info.UseShellExecute=$false; $info.CreateNoWindow=$true
-  Set-ManagedCaptureArguments $info @($OutPath,$ErrPath,$root,'--','powershell','-NoProfile','-File',$child,$Ready,$Release,'中文 "引号" 反斜杠\','')
+  Set-ManagedCaptureArguments $info ($ownerArgs+@($OutPath,$ErrPath,$root,'--','powershell','-NoProfile','-File',$child,$Ready,$Release,'中文 "引号" 反斜杠\',''))
   return [Diagnostics.Process]::Start($info)
 }
 $out=Join-Path $root 'stdout.log'; $err=Join-Path $root 'stderr.log'
@@ -66,7 +67,7 @@ exit 0
 '@, [Text.UTF8Encoding]::new($false))
 $info=[Diagnostics.ProcessStartInfo]::new($helper)
 $info.UseShellExecute=$false; $info.CreateNoWindow=$true
-Set-ManagedCaptureArguments $info @((Join-Path $root 'orphan-out.log'),(Join-Path $root 'orphan-err.log'),$root,'--','powershell','-NoProfile','-File',$orphanScript,$pidFile)
+Set-ManagedCaptureArguments $info ($ownerArgs+@((Join-Path $root 'orphan-out.log'),(Join-Path $root 'orphan-err.log'),$root,'--','powershell','-NoProfile','-File',$orphanScript,$pidFile))
 $process=[Diagnostics.Process]::Start($info)
 try {
   if(-not $process.WaitForExit(15000)){$process.Kill($true);throw '后代回收超时'}

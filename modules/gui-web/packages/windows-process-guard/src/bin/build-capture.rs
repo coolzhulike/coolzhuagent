@@ -29,7 +29,7 @@ fn run() -> io::Result<i32> {
         let lease = ProcessLifetimeLease::open(pid, created)?;
         args.drain(..3);
         Some(lease)
-    } else { None };
+    } else { return Err(io::Error::other("缺少 --owner 宿主身份，拒绝启动构建")); };
     if args.len() < 5 || args[3] != "--" {
         return Err(io::Error::other("用法：build-capture stdout文件 stderr文件 工作目录 -- 命令 参数…"));
     }

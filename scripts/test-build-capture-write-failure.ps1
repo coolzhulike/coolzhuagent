@@ -18,7 +18,7 @@ foreach($pipe in @('stdout','stderr')) {
   $info=[Diagnostics.ProcessStartInfo]::new($helper)
   $info.UseShellExecute=$false; $info.CreateNoWindow=$true
   $info.Environment['COOLZHU_CAPTURE_TEST_FAIL_PIPE']=$pipe
-  foreach($arg in @((Join-Path $root ($pipe+'-out.log')),(Join-Path $root ($pipe+'-err.log')),$root,'--','powershell','-NoProfile','-File',$script,$pidFile)){[void]$info.ArgumentList.Add($arg)}
+  foreach($arg in @('--owner',[string]$PID,[string]([Diagnostics.Process]::GetCurrentProcess().StartTime.ToFileTimeUtc()),(Join-Path $root ($pipe+'-out.log')),(Join-Path $root ($pipe+'-err.log')),$root,'--','powershell','-NoProfile','-File',$script,$pidFile)){[void]$info.ArgumentList.Add($arg)}
   $process=[Diagnostics.Process]::Start($info)
   try {
     if(-not $process.WaitForExit(15000)){$process.Kill($true);throw '写入故障收尾超时'}

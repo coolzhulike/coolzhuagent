@@ -19,3 +19,5 @@ PS5.1和PS7最新各六项实际exit0，新增已关闭读取流触发任务故�
 后续生产修补：包装器传入宿主PID及StartTime的FILETIME；Rust采集器在日志创建和构建启动前打开查询/同步权限的同一宿主句柄，核对GetProcessTimes创建时间，持续持有到收尾。启动前、采集循环每轮及返回成功前检查宿主退出，失败进入既有Job终止与有界排空路径；PID复用不能替代原宿主。已实际cargo build --locked --offline -j1成功，日志 tmp/analysis-capture-owner-build.txt。完整guard回归54通过、0失败、3忽略，实际exit0，日志 tmp/analysis-capture-owner-guard-tests.txt。
 
 原HostExit反例复验实际exit0，辅助程序、根及后代全部在最终清理前退出，未生成成功回执；新摘要/PID观察归档host-exit-owner-bound-result.json，原失败保留。PS5.1/PS7包装器原六项实际通过；PS5.1另补宿主创建时间不匹配125且日志/命令均未启动，第七项通过，日志 tmp/analysis-capture-owner-identity.txt。新增所有者参数目前仅生产包装器强制提供，旧直接CLI语法仍允许不绑定宿主；其迁移、启动前后竞态矩阵、权限查询失败、全部入口和正式新候选出包仍需完成，不宣称完整生命周期门禁关闭。
+
+后续入口收敛：辅助程序不再接受缺少--owner的旧语法，身份校验在日志创建前完成。直接增量/旧日志/孤儿后代测试、读取故障树测试及feature写入故障驱动均迁移参数。正常Rust实际构建exit0；直接四项、包装器八项（含无宿主旧语法125且零副作用）、HostExit复验均实际exit0，日志 tmp/analysis-capture-mandatory-owner-build.txt、direct.txt、wrapper.txt、host.txt。本轮未执行feature写入故障构建/测试，不能称迁移脚本已通过。宿主死亡与启动间的竞态矩阵仍开放；现有安装包不含修补。
