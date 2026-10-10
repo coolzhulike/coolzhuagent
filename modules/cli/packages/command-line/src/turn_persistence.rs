@@ -46,6 +46,22 @@ fn event_directory(path: &Path) -> std::io::Result<std::path::PathBuf> {
         .join(path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?))
 }
 
+fn reject_linked_history_directory(directory: &Path) -> std::io::Result<()> {
+    // 工作区父目录已经规范化；事件根和会话子目录不得再重定向到另一个锁身份。
+    for path in [directory.parent(), Some(directory)].into_iter().flatten() {
+        let metadata = match std::fs::symlink_metadata(path) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error),
+        };
+        let mut linked = metadata.file_type().is_symlink();
+        #[cfg(windows)]
+        { use std::os::windows::fs::MetadataExt; linked |= metadata.file_attributes() & 0x400 != 0; }
+        if linked || !metadata.is_dir() { return Err(std::io::Error::other("历史目录不是普通目录，拒绝路径重定向")); }
+    }
+    Ok(())
+}
+
 /// 恢复持久轨迹；旧会话没有轨迹目录时兼容为空，不忽略已存在的损坏记录。
 pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEvent>>> {
     load_event_history_with_usage(path).map(|(history, _)| history)
@@ -60,6 +76,7 @@ fn load_event_history_with_usage(path: &Path) -> std::io::Result<(Vec<Vec<AgentE
     let mut visited = std::collections::BTreeSet::new();
     for directory in [event_directory(path)?, root.join(current.file_name().unwrap()), root.join(legacy.file_name().unwrap())] {
         if !visited.insert(directory.clone()) { continue; }
+        reject_linked_history_directory(&directory)?;
         let found = match std::fs::read_dir(directory) {
             Ok(entries) => entries,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
@@ -180,6 +197,7 @@ fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
     // 规范父目录，锁覆盖旧目录读取、预算检查及新记录发布；保留锁文件避免 inode 分裂。
     let parent = std::fs::canonicalize(path.parent().filter(|parent| !parent.as_os_str().is_empty()).unwrap_or_else(|| Path::new(".")))?;
     let canonical_path = parent.join(path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?);
+    reject_linked_history_directory(&event_directory(&canonical_path)?)?;
     let _lock = runtime::lock_file_mutation(&event_directory(&canonical_path)?)?;
     let (history, total_bytes) = load_event_history_with_usage(&canonical_path)?;
     if history.len() >= 10_000 || total_bytes + bytes.len() > 64 * 1024 * 1024 {
@@ -262,6 +280,36 @@ mod tests {
         assert!(encode_event_record(&value, expected.len() - 1).unwrap_err().to_string().contains("未发布"));
         let large = "x".repeat(MAX_EVENT_RECORD_BYTES);
         assert!(encode_event_record(&large, MAX_EVENT_RECORD_BYTES).is_err());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn junction_history_root_is_rejected_without_touching_target() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-history-junction-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let target = directory.join("target");
+        std::fs::create_dir(&target).unwrap();
+        let sentinel = target.join("keep.txt");
+        std::fs::write(&sentinel, b"original").unwrap();
+        let link = directory.join("turn-events-v2");
+        let output = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", "$ErrorActionPreference='Stop'; $null=New-Item -ItemType Junction -Path $env:COOLZHU_TEST_LINK -Target $env:COOLZHU_TEST_TARGET"])
+            .env("COOLZHU_TEST_LINK", &link).env("COOLZHU_TEST_TARGET", &target).output().unwrap();
+        assert!(output.status.success(), "junction 创建失败：{}", String::from_utf8_lossy(&output.stderr));
+        let path = directory.join("main.json");
+        let events = vec![
+            AgentEvent::new(1, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        assert!(save_events(&events, &path).unwrap_err().to_string().contains("重定向"));
+        assert!(load_event_history(&path).unwrap_err().to_string().contains("重定向"));
+        assert_eq!(std::fs::read(&sentinel).unwrap(), b"original");
+        assert_eq!(std::fs::read_dir(&target).unwrap().count(), 1);
+        std::fs::remove_dir(link).unwrap();
+        std::fs::remove_file(sentinel).unwrap();
+        std::fs::remove_dir(target).unwrap();
+        std::fs::remove_dir(directory).unwrap();
     }
 
     #[test]
