@@ -25,5 +25,8 @@ syntect = "5"
 tokio = { version = "1", features = ["rt-multi-thread", "time", "signal", "macros", "net", "io-util"] }
 tools.workspace = true
 
+[target.'cfg(windows)'.dependencies]
+coolzhu-windows-process-guard = { path = "../../../gui-web/packages/windows-process-guard" }
+
 [lints]
 workspace = true

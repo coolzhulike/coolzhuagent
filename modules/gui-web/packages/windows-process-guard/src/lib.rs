@@ -34,6 +34,7 @@ use windows_sys::Win32::System::Threading::{
 };
 
 mod pipe;
+pub mod permission_input;
 mod local_control;
 mod async_process;
 mod conpty;

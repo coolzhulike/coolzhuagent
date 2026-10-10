@@ -31,3 +31,9 @@
 后续监听线程异常保护：在自有线程内捕获注册/轮询 panic，撤销同一个根控制，以非阻塞 try_send 通知注册错误，避免注册已确认时阻塞错误上报。注册前 panic 不派发；注册后 panic 能结束本回合受控等待，退出范围仍 join 自有线程。新增两个永久回归，等待断言有2秒观察上限。此路径依赖 unwind，未覆盖进程 abort、阻塞权限输入和信号/完成竞态的完整监督。
 
 真实CLI构建exit0；完整串行CLI测试109通过0失败0忽略，实际exit0。日志 tmp/analysis-cli-listener-panic-build.txt、tmp/analysis-cli-listener-panic-tests.txt。仅证明本地异常保护，真实独立进程组Ctrl+C、外部正式模型、安装包和32WBS全量门禁仍开放。
+
+Windows权限输入取消接线：审查确认原CliPermissionPrompter直接stdin.read_line会阻塞，根令牌不保证唤醒。现经windows-process-guard安全接口，在原调用线程使用ReadConsoleW/ReadFile，独占重复的线程句柄用于CancelSynchronousIo；自有监听线程每20毫秒检查根状态，重复取消覆盖检查到读取间隙，返回/异常时停止并join，不遗留占用下一回合输入的读取线程。CLI再次检查原根原因，取消不会成为允许；输入预算8192个字节/UTF-16单位，管道UTF-8严格解码，控制台UTF-16严格解码，保留无换行末行EOF语义。
+
+首版把Win32放CLI触犯workspace unsafe_code=forbid，真实build exit101，日志tmp/analysis-cli-permission-input-build.txt保留；已移至既有guard安全边界，未放宽workspace禁用unsafe约束。最终真实CLI build exit0（10.56秒），完整CLI串行109通过0失败0忽略；最终guard库完整59通过0失败3忽略，实际exit0。新永久真实匿名管道测试覆盖阻塞读取在写端关闭前取消、下一行不吞读、预先取消零读取、无换行EOF。日志tmp/analysis-cli-permission-input-final-build.txt、cli-tests.txt、final-guard-tests.txt；先前guard58项为EOF补验前历史。
+
+边界：未注入共享控制台Ctrl+C，控制台ReadConsoleW路径尚无真实独立控制台实拍；取消后已排队/部分输入的跨回合归属、预算拒绝后残留行、信号与审批完成同时发生、空闲REPL和非Windows输入仍需独立验证或补实现。取消回调要求非阻塞及状态单调；不能将管道测试当成全部宿主输入证明。当前源码未进入131候选或安装版，正式模型、32WBS全量、签名发布及管理员升级仍未闭环。

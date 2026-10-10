@@ -1,6 +1,7 @@
 mod init;
 mod controlled_future;
 mod cli_control;
+mod permission_input;
 #[cfg(test)]
 mod cli_cancel_tests;
 mod input;
@@ -3229,9 +3230,8 @@ impl runtime::PermissionPrompter for CliPermissionPrompter {
         print!("Approve this tool call? [y/N]: ");
         let _ = io::stdout().flush();
 
-        let mut response = String::new();
-        match io::stdin().read_line(&mut response) {
-            Ok(_) => {
+        match permission_input::read_line() {
+            Ok(response) => {
                 let normalized = response.trim().to_ascii_lowercase();
                 if matches!(normalized.as_str(), "y" | "yes") {
                     runtime::PermissionPromptDecision::Allow
