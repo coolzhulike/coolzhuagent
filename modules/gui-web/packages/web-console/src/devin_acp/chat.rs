@@ -538,10 +538,6 @@ async fn execute(
         if bridge.as_ref().is_some_and(|bridge|bridge.has_pending()) {
             return Err("Devin 在 CU 任务尚未返回最终回执时结束本轮；已撤销待执行动作，不能记为完成。".into());
         }
-        if let Some(bridge) = &bridge {
-            bridge.require_results_drained().map_err(|reason|
-                format!("Devin已结束生成但大回执尚未连续读齐，不能记为任务完成：{reason}"))?;
-        }
         Ok(())
     }
     .await;

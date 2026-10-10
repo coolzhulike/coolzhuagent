@@ -381,7 +381,7 @@ impl ToolBridge {
                     json!({"name":tool.name,"description":tool.description,"inputSchema":tool.input_schema})).collect::<Vec<_>>();
                 if !self.definitions.is_empty() {
                     tools.push(json!({"name":"tool_result_read",
-                        "description":"只读本轮已执行工具的大回执。使用result_id与UTF-8字节offset，必须按next_offset连续读齐后再执行后续业务工具；可重读，不能跳过中段。原工具撤销或本轮结束后不可用。",
+                        "description":"只读本轮已执行工具的大回执。使用result_id与UTF-8字节offset，可定位所需范围；全文任务按resume_offset补齐缺口，complete表示累计覆盖齐全，尾页本身不证明完整读取。原工具撤销或本轮结束后不可用。",
                         "inputSchema":{"type":"object","properties":{"result_id":{"type":"string"},"offset":{"type":"integer","minimum":0}},"required":["result_id","offset"],"additionalProperties":false}}));
                 }
                 if self.policy.grants.contains_key("computer_use_perform") {
@@ -421,7 +421,9 @@ impl ToolBridge {
                         append_runtime_run_event(self.policy.journal.path(),&self.policy.scope.run_id,
                             "tool.result_page_read",json!({"result_id":result_id,"offset":offset,
                                 "next_offset":page["next_offset"],"source_tool":source_tool,
-                                "total_bytes":page["total_bytes"],"sha256":page["sha256"],"complete":page["complete"]}))
+                                "total_bytes":page["total_bytes"],"sha256":page["sha256"],"complete":page["complete"],
+                                "contiguous_bytes":page["contiguous_bytes"],"covered_bytes":page["covered_bytes"],
+                                "missing_ranges":page["missing_ranges"],"missing_range_count":page["missing_range_count"],"page_at_end":page["page_at_end"]}))
                             .map_err(|_|"回执读取来源记录保存失败")?;
                         json!({"content":[{"type":"text","text":page.to_string()}],"isError":false})
                     },
@@ -513,7 +515,6 @@ impl ToolBridge {
                 } else { None }
             } else { None };
             if let Some(job_id)=existing { job_id } else {
-                self.policy.results.require_drained()?;
                 let job_id=random_hex_identifier(48,"CU 等待")?;
                 let policy=self.policy.clone(); let calls=self.calls.clone();
                 let request_id=id.clone(); let arguments=input.clone();
@@ -569,9 +570,6 @@ async fn dispatch(policy:Arc<FrozenPolicy>,calls:Arc<tokio::sync::Mutex<()>>,
         }
         if let Err(reason) = policy.tool_live(name) {
             return Err(policy.rejected_before_dispatch(id,name,"tool_not_live",reason));
-        }
-        if let Err(reason) = policy.results.require_drained() {
-            return Err(policy.rejected_before_dispatch(id,name,"result_pages_pending",reason));
         }
         if !policy.grants.contains_key(name) {
             return Err("工具未在父接纳时开放。".into());
@@ -735,9 +733,6 @@ pub(super) struct BridgeServer {
     bridge: Arc<ToolBridge>,
 }
 impl BridgeServer {
-    pub(super) fn require_results_drained(&self) -> Result<(), String> {
-        self.bridge.policy.results.require_drained()
-    }
     pub(super) fn image_handoff_signal(&self) -> Arc<AtomicBool> {
         self.bridge.policy.planning.image_handoff_signal()
     }

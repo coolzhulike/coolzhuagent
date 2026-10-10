@@ -26,8 +26,13 @@ def verify(pages):
             raise ValueError("重读正文不一致")
         restored.extend(raw[overlap:])
         cursor = max(cursor, end)
-        if page["complete"] != (end == identity[2]):
-            raise ValueError("complete与尾页位置不符")
+        if page["complete"] != (cursor == identity[2]):
+            raise ValueError("complete与累计完整覆盖不符")
+        if "page_at_end" in page and page["page_at_end"] != (end == identity[2]):
+            raise ValueError("page_at_end与尾页位置不符")
+        for field in ("contiguous_bytes", "covered_bytes"):
+            if field in page and page[field] != cursor:
+                raise ValueError(f"{field}与实际连续页不符")
     if cursor != identity[2]:
         raise ValueError(f"尚未读齐：{cursor}/{identity[2]}")
     digest = hashlib.sha256(restored).hexdigest()

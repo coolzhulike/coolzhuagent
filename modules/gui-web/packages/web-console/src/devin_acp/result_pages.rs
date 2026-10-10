@@ -5,7 +5,32 @@ use std::{collections::BTreeMap, path::{Path, PathBuf}, sync::Mutex};
 const PAGE_JSON_BYTES: usize = 6000;
 
 #[derive(Clone)]
-struct Receipt { tool: String, path: PathBuf, sha256: String, total_bytes: usize, contiguous_bytes: usize }
+struct Receipt { tool: String, path: PathBuf, sha256: String, total_bytes: usize, covered: Vec<(usize, usize)> }
+
+impl Receipt {
+    fn cover(&mut self, start: usize, end: usize) {
+        if start < end { self.covered.push((start, end)); }
+        self.covered.sort_unstable();
+        let mut merged: Vec<(usize, usize)> = Vec::new();
+        for (start, end) in self.covered.drain(..) {
+            if let Some(last) = merged.last_mut().filter(|last| start <= last.1) { last.1 = last.1.max(end); }
+            else { merged.push((start, end)); }
+        }
+        self.covered = merged;
+    }
+    fn contiguous_bytes(&self) -> usize {
+        self.covered.first().filter(|range| range.0 == 0).map_or(0, |range| range.1)
+    }
+    fn gaps(&self) -> Vec<(usize, usize)> {
+        let mut gaps = Vec::new(); let mut cursor = 0;
+        for &(start, end) in &self.covered {
+            if cursor < start { gaps.push((cursor, start)); }
+            cursor = end;
+        }
+        if cursor < self.total_bytes { gaps.push((cursor, self.total_bytes)); }
+        gaps
+    }
+}
 
 #[derive(Default)]
 pub(super) struct ResultPages { receipts: Mutex<BTreeMap<String, Receipt>> }
@@ -17,10 +42,11 @@ impl ResultPages {
             let root = db.and_then(Path::parent).ok_or("缺少冻结存储位置")?.join("tool-results");
             let blob = crate::content_blob_store::put(&root, text.as_bytes(), "txt").map_err(|e|e.to_string())?;
             let id = super::chat::digest(format!("{tool}:{}", blob.sha256).as_bytes());
-            let mut receipt = Receipt { tool:tool.into(), path:blob.path, sha256:blob.sha256,
-                total_bytes: text.len(), contiguous_bytes: 0 };
+            let mut receipt = self.receipts.lock().map_err(|_|"回执分页状态不可用")?.get(&id).cloned()
+                .unwrap_or(Receipt { tool:tool.into(), path:blob.path, sha256:blob.sha256,
+                    total_bytes: text.len(), covered: Vec::new() });
             let page = encode_page(&id, &receipt, &text, 0)?;
-            receipt.contiguous_bytes = page["next_offset"].as_u64().unwrap_or(0) as usize;
+            receipt.cover(0, page["next_offset"].as_u64().ok_or("回执页缺少偏移")? as usize);
             // 同一工具的同一原文重发第一页不会撤销已返回的连续前缀。
             self.receipts.lock().map_err(|_|"回执分页状态不可用")?.entry(id).or_insert(receipt);
             Ok(page.to_string())
@@ -32,15 +58,6 @@ impl ResultPages {
         Ok(self.receipt(id)?.tool)
     }
 
-    /// 后续业务工具必须等待所有已交回的大回执连续读齐；不把尾页当完整阅读。
-    pub(super) fn require_drained(&self) -> Result<(), String> {
-        let receipts = self.receipts.lock().map_err(|_|"回执分页状态不可用")?;
-        if let Some((id, receipt)) = receipts.iter().find(|(_, r)| r.contiguous_bytes < r.total_bytes) {
-            return Err(format!("工具回执尚未连续读齐；先调用tool_result_read，result_id={id}，offset={}，total_bytes={}；未派发后续业务工具。", receipt.contiguous_bytes, receipt.total_bytes));
-        }
-        Ok(())
-    }
-
     fn receipt(&self, id: &str) -> Result<Receipt,String> {
         self.receipts.lock().map_err(|_|"回执分页状态不可用")?.get(id).cloned()
             .ok_or_else(||"回执不属于本轮已执行工具，不能读取。".into())
@@ -48,9 +65,6 @@ impl ResultPages {
 
     pub(super) fn read(&self, id: &str, offset: usize) -> Result<Value,String> {
         let receipt = self.receipt(id)?;
-        if offset > receipt.contiguous_bytes {
-            return Err(format!("回执续读存在中段缺口；请从offset={}继续，不能跳至{offset}。", receipt.contiguous_bytes));
-        }
         if !std::fs::symlink_metadata(&receipt.path).map_err(|_|"回执原文不可用")?.file_type().is_file() {
             return Err("回执原文不能是链接或目录。".into());
         }
@@ -62,7 +76,7 @@ impl ResultPages {
         let end = page["next_offset"].as_u64().ok_or("回执页缺少偏移")? as usize;
         let mut receipts = self.receipts.lock().map_err(|_|"回执分页状态不可用")?;
         let current = receipts.get_mut(id).ok_or("回执已不可用")?;
-        current.contiguous_bytes = current.contiguous_bytes.max(end);
+        current.cover(offset, end);
         Ok(page)
     }
 }
@@ -72,10 +86,15 @@ fn encode_page(id: &str, receipt: &Receipt, text: &str, offset: usize) -> Result
     let mut end = offset.saturating_add(4096).min(text.len());
     loop {
         while !text.is_char_boundary(end) { end -= 1; }
+        let mut coverage = receipt.clone(); coverage.cover(offset, end);
+        let gaps = coverage.gaps(); let complete = gaps.is_empty();
         let page = json!({"result_id":id,"source_tool":receipt.tool,"sha256":receipt.sha256,
-            "offset":offset,"next_offset":end,"total_bytes":text.len(),"complete":end==text.len(),
-            "next_tool":if end==text.len(){Value::Null}else{json!("tool_result_read")},
-            "message":"这是原工具回执的只读分页，不是新执行。必须按next_offset连续续读至complete=true后再执行后续业务工具；可重读已显示部分，不能跳过中段，不读取溢出文件，不重提原工具。",
+            "offset":offset,"next_offset":end,"total_bytes":text.len(),"complete":complete,"page_at_end":end==text.len(),
+            "contiguous_bytes":coverage.contiguous_bytes(),"covered_bytes":coverage.covered.iter().map(|range|range.1-range.0).sum::<usize>(),
+            "missing_ranges":gaps.iter().take(8).collect::<Vec<_>>(),"missing_range_count":gaps.len(),
+            "resume_offset":if complete {Value::Null}else{json!(coverage.contiguous_bytes())},
+            "next_tool":if complete{Value::Null}else{json!("tool_result_read")},
+            "message":"这是原工具回执的只读分页，不是新执行。可定位所需范围；page_at_end仅表示此页到达尾部。若任务要求全文，按resume_offset补齐缺口至complete=true；未返回正文不能猜测，不重提原工具。",
             "result_text":&text[offset..end]});
         // 以编码后的页大小限额，控制字符/反斜线不会令包装再次超限。
         if page.to_string().len() <= PAGE_JSON_BYTES { return Ok(page); }
@@ -111,27 +130,33 @@ mod tests {
     }
 
     #[test]
-    fn 跳读尾部不能越过中段且重读不倒退连续进度() {
+    fn 定位尾部保留中段缺口且重读不倒退覆盖进度() {
         let dir = tempfile::tempdir().unwrap();
         let db = dir.path().join("sessions.sqlite3");
         let text = "a".repeat(80_000);
         let pages = ResultPages::default();
         let first: Value = serde_json::from_str(&pages.present(text.clone(), Some(&db), "net_fetch")).unwrap();
         let id = first["result_id"].as_str().unwrap();
-        assert!(pages.require_drained().is_err());
+        assert_eq!(first["complete"], false);
         let second = pages.read(id, 4096).unwrap();
         assert_eq!(second["next_offset"], 8192);
-        assert!(pages.read(id, 69632).unwrap_err().contains("offset=8192"));
+        let positioned = pages.read(id, 69632).unwrap();
+        assert_eq!(positioned["complete"], false);
+        assert_eq!(positioned["resume_offset"], 8192);
+        let tail = pages.read(id, text.len()-100).unwrap();
+        assert_eq!(tail["page_at_end"], true);
+        assert_eq!(tail["complete"], false);
         pages.read(id, 0).unwrap();
-        assert_eq!(pages.receipt(id).unwrap().contiguous_bytes, 8192);
+        assert_eq!(pages.receipt(id).unwrap().contiguous_bytes(), 8192);
         pages.present(text.clone(), Some(&db), "net_fetch");
-        assert_eq!(pages.receipt(id).unwrap().contiguous_bytes, 8192);
+        assert_eq!(pages.receipt(id).unwrap().contiguous_bytes(), 8192);
         let mut offset = 8192;
         while offset < text.len() {
             let page = pages.read(id, offset).unwrap();
             offset = page["next_offset"].as_u64().unwrap() as usize;
         }
-        assert!(pages.require_drained().is_ok());
+        assert_eq!(pages.receipt(id).unwrap().contiguous_bytes(), text.len());
+        assert_eq!(pages.read(id, 0).unwrap()["complete"], true);
     }
 
     #[test]
