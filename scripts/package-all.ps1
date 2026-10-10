@@ -420,7 +420,7 @@ function Invoke-ArtifactBuild {
       if ($null -eq $exitCode) {
         throw "[BUILD-FAILED] artifact=$($Artifact.id) target=$($Artifact.target) profile=$Configuration`ndetail: 无法获取构建进程退出码，构建结果不可信`nnext: 检查构建命令与日志 $stdoutPath"
       }
-      $script:artifactBuildMessages[[string]$Artifact.id] = @($stdoutText -split "`r?`n" | Where-Object { $_ })
+      # Loader 从原始回执逐条提取，不再驻留完整行数组。
       $script:artifactBuildInputs[[string]$Artifact.id] = [pscustomobject]@{
         command = $command
         args = $args
@@ -746,7 +746,7 @@ function Invoke-ArtifactExport {
     return
   }
 
-  if ($context.BuildMessages.Count -eq 0) {
+  if (-not $context.RawRecordPath -and $context.BuildMessages.Count -eq 0) {
     throw (New-LoaderFailureException `
       -Category 'NOT-BUILT' `
       -ArtifactId $artifactId `

@@ -1,5 +1,7 @@
 # 整包构建记录采集与消费仍无界
 
+后续状态：提交 41d8202、fc31bd7 已将原始 Cargo JSONL 归档及其消费验证改为逐条解析、流式摘要和复制，不再按第 3 项驻留完整回执。归档 manifest / package report JSON 仍整份读取。Loader 逐条消费与移除消息行数组正在验证，完整契约测试尚未通过，不能把第 2 项判为闭环。下列清单保留为发现缺口时的原始状态。
+
 当前源码直接核查确认以下消费链，不把已成功的 130 构建外推为内存边界通过。
 
 1. scripts/package-all.ps1 的 Invoke-ArtifactBuild 用 stdout ReadToEndAsync、stderr ReadToEnd；进程结束后才 WriteAllText。长构建在此期间缺少已落盘原始输出，进程异常或宿主退出可能丢失已产生日志。
