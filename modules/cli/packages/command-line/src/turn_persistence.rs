@@ -295,6 +295,36 @@ mod tests {
     }
 
     #[test]
+    fn history_count_boundary_accepts_last_slot_and_rejects_next() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-history-count-budget-{}", std::process::id()));
+        let path = directory.join("main.json");
+        let event_dir = event_directory(&path).unwrap();
+        std::fs::create_dir_all(&event_dir).unwrap();
+        let mut events = vec![
+            AgentEvent::new(1, "thread".into(), "seed".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "seed".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        for index in 0..9999 {
+            for event in &mut events { event.turn_id = format!("old-{index}").into(); }
+            std::fs::write(event_dir.join(format!("{index}.json")), encode_event_record(&events, MAX_EVENT_RECORD_BYTES).unwrap()).unwrap();
+        }
+        for event in &mut events { event.turn_id = "last-slot".into(); }
+        save_events(&events, &path).unwrap();
+        assert_eq!(load_event_history(&path).unwrap().len(), 10_000);
+        for event in &mut events { event.turn_id = "over-budget".into(); }
+        assert!(save_events(&events, &path).unwrap_err().to_string().contains("历史预算"));
+        let entries = std::fs::read_dir(&event_dir).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(entries.len(), 10_000);
+        assert!(entries.iter().all(|entry| entry.path().extension().unwrap() == "json"));
+        assert_eq!(load_event_history(&path).unwrap().len(), 10_000);
+        for entry in entries { std::fs::remove_file(entry.path()).unwrap(); }
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
     fn oversized_event_save_preserves_existing_recoverable_history() {
         let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
             .join(format!("cli-event-size-{}", std::process::id()));
