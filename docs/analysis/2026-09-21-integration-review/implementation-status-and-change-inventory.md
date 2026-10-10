@@ -1,5 +1,7 @@
 # 实施计划完成情况与改动清单（当前正式0.2.124；续接候选验收中）
 
+2026-10-10上传布局纠正：用户所指偏移在正式126仍存在；上次SVG对称不能代表控件已居中。实际隐藏“附件”span/font-size0仍占6px flex间隙，源码删除隐藏span并标记纯图标，title/aria-label保持；正常HTTP结构确认及原生前后实拍通过，offline Web build实际0。只计候选，等待与两项Browser修复批次交付；其它图标不变、模型0/新云端0，32WBS/严格Browser继续。[原始截图及纠正说明](../../testing/2026-10-10-upload-layout/report.md)。
+
 2026-10-10地址草稿增量：正式126原生实操复现网页同文档URL更新覆盖地址框输入；候选按视图scope保留草稿、显式导航/关闭/浏览器动作清除。真实键入后8974ms/18次网页更新仍保持，Enter目标GET一次及目标标题实拍通过，后退地址同步；Web offline build实际0、verify0，模型0/新云会话0。候选按身份停止、正式126恢复，原服务正常退出；新正式包复验、严格Browser时序及32WBS继续。上一e4b2a78两路CI success。[原失败和候选实拍](../../testing/2026-10-10-browser-address-draft/report.md)。Goal active。
 
 2026-10-10文档切换增量：正式126原SWE-2/唯一island-kayak/revision57真实planning中自然导航，同名新按钮未误点，旧click以stale_observation/not_sent拦截；原终态预算覆盖缺陷保留。controller候选保留执行失败和receipt、无预算不再额外观察，独立真实复验正确回复，两个文档输入0，父failed为预期负例/end_turn/drained/解锁。core/Web offline build0、原core143/0。候选与正式实拍独立归档，已恢复正式126；新正式包交付、原生commit/down-up/关闭/HRESULT竞态及32WBS继续。[报告与原图](../../testing/2026-10-10-browser-document-change/report.md)。Goal active。
