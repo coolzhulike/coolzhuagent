@@ -179,27 +179,43 @@ pub fn output_with_input(command: &mut Command, timeout: Option<Duration>, input
     let stderr = owned.child.stderr.take().expect("stderr 配置为管道");
     let stdout_reader = std::thread::spawn(move || read_pipe(stdout));
     let stderr_reader = std::thread::spawn(move || read_pipe(stderr));
-    let (status, interruption) = loop {
+    let wait_result: io::Result<_> = (|| { loop {
         if let Some(status) = owned.child.try_wait()? {
             // 主进程结束后仍关闭所属子树，使继承了 pipe 的子进程不能拖住读线程。
             let _ = owned.stop()?;
-            break (status, None);
+            break Ok((status, None));
         }
         if let Some(reason) = control.interruption() {
-            break (owned.stop()?, Some(reason));
+            break Ok((owned.stop()?, Some(reason)));
         }
         std::thread::sleep(Duration::from_millis(10));
-    };
-    let stdout = stdout_reader.join().map_err(|_| io::Error::other("stdout 读取线程异常"))??;
-    let stderr = stderr_reader.join().map_err(|_| io::Error::other("stderr 读取线程异常"))??;
-    if let Some(writer) = stdin_writer {
-        let write_result = writer.join().map_err(|_| io::Error::other("stdin 写入线程异常"))?;
+    } })();
+    if wait_result.is_err() {
+        // 等待失败也要先关闭所属子树，再回收所有管道线程。
+        let _ = owned.stop();
+    }
+    let read_result = join_output_readers(stdout_reader, stderr_reader);
+    let write_result = stdin_writer.map(|writer| writer.join()
+        .map_err(|_| io::Error::other("stdin 写入线程异常")).and_then(|result| result));
+    // 全部 join 完成后才传播错误，不能让另一根管道的采集线程脱离本次执行。
+    let (status, interruption) = wait_result?;
+    let (stdout, stderr) = read_result?;
+    if let Some(write_result) = write_result {
         // 受控中止会关闭 pipe；预期 BrokenPipe 不得抹掉已确认的取消/超时事实。
         if interruption.is_none() { write_result?; }
     }
     Ok(ManagedOutput { output: Output { status, stdout, stderr }, interruption })
     })();
     result.map_err(|error: io::Error| io::Error::new(error.kind(), StartedProcessError(error)))
+}
+
+fn join_output_readers(
+    stdout: std::thread::JoinHandle<io::Result<Vec<u8>>>,
+    stderr: std::thread::JoinHandle<io::Result<Vec<u8>>>,
+) -> io::Result<(Vec<u8>, Vec<u8>)> {
+    let stdout = stdout.join().map_err(|_| io::Error::other("stdout 读取线程异常"));
+    let stderr = stderr.join().map_err(|_| io::Error::other("stderr 读取线程异常"));
+    Ok((stdout??, stderr??))
 }
 
 /// 工具模块不能把中文控制台输出直接按 UTF-8 有损解码。
@@ -263,6 +279,25 @@ mod tests {
         assert!(actual.output.status.success());
         assert_eq!(actual.output.stdout.len(), 200_000);
         assert_eq!(actual.output.stderr.len(), 200_000);
+    }
+
+    #[test]
+    fn reader_failure_still_joins_the_other_pipe() {
+        for panic_reader in [false, true] {
+            let completed = Arc::new(AtomicBool::new(false));
+            let observed = completed.clone();
+            let stdout = std::thread::spawn(move || {
+                if panic_reader { panic!("模拟采集线程异常"); }
+                Err(io::Error::other("模拟 stdout 读取失败"))
+            });
+            let stderr = std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_millis(50));
+                observed.store(true, Ordering::Release);
+                Ok(vec![b'b'])
+            });
+            assert!(join_output_readers(stdout, stderr).is_err());
+            assert!(completed.load(Ordering::Acquire), "返回错误前必须收完另一根管道线程");
+        }
     }
 
     #[test]
