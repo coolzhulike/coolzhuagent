@@ -10,4 +10,6 @@
 
 归档报告与九入口回执实际核验通过，证据见 evidence/build-identity/pkg-report-release-20261010-125305944-75bdd999/。日志 tmp/analysis-integration-130-package-build.txt、tmp/analysis-integration-130-msi-build.txt 和 tmp/analysis-integration-130-archived-verification.json。构建观察包含缓存与构建期组件，不证明全部实际分发组件、来源签名或许可证义务。
 
-本版本未安装、未签名、未发布。已安装版仍是此前核验的 0.2.128。恢复原验收后台的命令此前被自动审批策略拒绝，正式运行验收未恢复；外部许可证原文缺项、完整 NOTICE、组件映射、CI/发布关联及其余 32WBS 门禁继续开放。0.2.129 历史原文缺项清单保留，不用本次补丁改写旧包事实。
+后续正常 MSI 升级实际 exit 0，未自动重启或启动后台。安装目录 1193 个载荷文件逐长度及 SHA 全部一致，唯一清单外文件为清单自身载体 payload-inventory.json。安装根 LICENSE 摘要与候选及仓库根一致；实装 CLI 实际返回 0.2.130 及上述完整源码 SHA。安装结果、逐文件核对及注册版本证据见 evidence/install/。
+
+本版本已安装，未签名、未发布。恢复原验收后台的命令此前被自动审批策略拒绝，正式运行验收未恢复；安装与文件核验不能代替真实运行。外部许可证原文缺项、完整 NOTICE、组件映射、CI/发布关联及其余 32WBS 门禁继续开放。0.2.129 历史原文缺项清单保留，不用本次补丁改写旧包事实。

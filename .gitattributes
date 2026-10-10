@@ -253,3 +253,4 @@ docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-sp
 /docs/testing/release-0.2.129/evidence/build-identity/**/*.jsonl -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.129/evidence/licenses/*.json -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
 /docs/testing/release-0.2.130/evidence/build-identity/**/*.jsonl -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.130/evidence/install/*.json -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol

@@ -1,0 +1,10 @@
+{
+  "version": "0.2.130",
+  "file_count": 1193,
+  "mismatches": [],
+  "extra_files": [
+    "payload-inventory.json"
+  ],
+  "payload_digest": "ee32fa0d560978d4be19485b618d7d0c993e00cc629846aa8ef6a94c37a83e46",
+  "license_sha256": "ae27c00cdb7ce9ebd247a94a07319624d24ed29093c7d70b11a1368b581c65aa"
+}
