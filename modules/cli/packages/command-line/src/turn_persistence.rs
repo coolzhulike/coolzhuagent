@@ -15,6 +15,47 @@ impl PersistedTurn for () {
     fn events(&self) -> &[AgentEvent] { &[] }
 }
 
+/// 恢复持久轨迹；旧会话没有轨迹目录时兼容为空，不忽略已存在的损坏记录。
+pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEvent>>> {
+    use std::io::Read;
+    let event_path = path.with_extension("events.json");
+    let directory = path.parent().unwrap_or_else(|| Path::new("."))
+        .join("internal-turns").join(event_path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?);
+    let entries = match std::fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(error) => return Err(error),
+    };
+    let mut history = Vec::new();
+    let mut total_bytes = 0_usize;
+    let mut identities = std::collections::BTreeSet::new();
+    for entry in entries {
+        if history.len() >= 10_000 { return Err(std::io::Error::other("回合历史超过恢复数量上限")); }
+        let entry = entry?;
+        if !entry.file_type()?.is_file() { return Err(std::io::Error::other("回合历史包含非普通文件")); }
+        let mut bytes = Vec::new();
+        std::fs::File::open(entry.path())?.take(8 * 1024 * 1024 + 1).read_to_end(&mut bytes)?;
+        if bytes.len() > 8 * 1024 * 1024 { return Err(std::io::Error::other("回合轨迹超过恢复大小上限")); }
+        total_bytes += bytes.len();
+        if total_bytes > 64 * 1024 * 1024 { return Err(std::io::Error::other("回合历史超过恢复总大小上限")); }
+        let events: Vec<AgentEvent> = serde_json::from_slice(&bytes).map_err(std::io::Error::other)?;
+        let first = events.first().ok_or_else(|| std::io::Error::other("回合轨迹为空"))?;
+        use runtime::AgentEventKind::{TurnStarted, TurnCompleted, TurnFailed, TurnInterrupted};
+        if first.kind != TurnStarted || !identities.insert((first.thread_id.clone(), first.turn_id.clone())) {
+            return Err(std::io::Error::other("回合起点或历史身份重复"));
+        }
+        for (index, event) in events.iter().enumerate() {
+            let terminal = matches!(event.kind, TurnCompleted | TurnFailed | TurnInterrupted);
+            if event.sequence != (index + 1) as u64 || event.thread_id != first.thread_id || event.turn_id != first.turn_id
+                || (index > 0 && event.kind == TurnStarted) || terminal != (index + 1 == events.len()) {
+                return Err(std::io::Error::other("回合轨迹序号、身份或唯一终态不一致"));
+            }
+        }
+        history.push(events);
+    }
+    Ok(history)
+}
+
 /// 内部回合保留独立快照，先独占预留文件；不会覆盖主会话或已有内部回合。
 pub(super) fn reserve_internal_path(parent_session: &Path) -> std::io::Result<std::path::PathBuf> {
     reserve_internal_file(parent_session).map(|(path, _file)| path)
@@ -106,6 +147,7 @@ mod tests {
             .join(format!("cli-completed-events-{}", std::process::id()));
         std::fs::create_dir_all(&directory).unwrap();
         let path = directory.join("main.json");
+        assert!(load_event_history(&path).unwrap().is_empty());
         let mut runtime = ConversationRuntime::new(Session::new(), Client, Executor,
             PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
         let summary = persist_result(runtime.run_turn("完成", None), runtime.session(), &path).unwrap();
@@ -115,6 +157,13 @@ mod tests {
         let actual: serde_json::Value = serde_json::from_slice(&std::fs::read(files[0].path()).unwrap()).unwrap();
         assert_eq!(actual, serde_json::to_value(&summary.events).unwrap());
         assert_eq!(actual.as_array().unwrap().last().unwrap()["kind"], "turn_completed");
+        assert_eq!(load_event_history(&path).unwrap(), vec![summary.events.clone()]);
+        let mut malformed = actual.clone();
+        malformed.as_array_mut().unwrap().pop();
+        std::fs::write(files[0].path(), serde_json::to_vec(&malformed).unwrap()).unwrap();
+        assert!(load_event_history(&path).is_err());
+        std::fs::write(files[0].path(), b"{").unwrap();
+        assert!(load_event_history(&path).is_err());
         std::fs::remove_file(files[0].path()).unwrap();
         std::fs::remove_dir(event_directory).unwrap();
         std::fs::remove_dir(directory.join("internal-turns")).unwrap();
@@ -161,6 +210,7 @@ mod tests {
         assert_eq!(event_files.len(), 1);
         let persisted: serde_json::Value = serde_json::from_slice(&std::fs::read(event_files[0].path()).unwrap()).unwrap();
         assert_eq!(persisted, expected_events);
+        assert_eq!(serde_json::to_value(load_event_history(&path).unwrap()[0].clone()).unwrap(), expected_events);
         let events = persisted.as_array().unwrap();
         assert_eq!(events.last().unwrap()["kind"], "turn_failed");
         assert!(!events.iter().any(|event| event["kind"] == "turn_completed"));

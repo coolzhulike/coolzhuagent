@@ -729,6 +729,10 @@ fn print_version() {
 }
 
 fn resume_session(session_path: &Path, commands: &[String]) {
+    if let Err(error) = turn_persistence::load_event_history(session_path) {
+        eprintln!("无法恢复回合轨迹：{error}");
+        std::process::exit(1);
+    }
     let session = match Session::load_from_path(session_path) {
         Ok(session) => session,
         Err(error) => {
@@ -1699,6 +1703,7 @@ impl LiveCli {
 
         let handle = resolve_session_reference(&session_ref)?;
         let session = Session::load_from_path(&handle.path)?;
+        let _history = turn_persistence::load_event_history(&handle.path)?;
         let message_count = session.messages.len();
         self.runtime = build_runtime(
             session,
@@ -1784,6 +1789,7 @@ impl LiveCli {
                 };
                 let handle = resolve_session_reference(target)?;
                 let session = Session::load_from_path(&handle.path)?;
+                let _history = turn_persistence::load_event_history(&handle.path)?;
                 let message_count = session.messages.len();
                 self.runtime = build_runtime(
                     session,
