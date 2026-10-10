@@ -32,6 +32,9 @@ pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEv
     for entry in entries {
         if history.len() >= 10_000 { return Err(std::io::Error::other("回合历史超过恢复数量上限")); }
         let entry = entry?;
+        if entry.path().extension().is_some_and(|extension| extension == "pending") {
+            return Err(std::io::Error::other("发现未提交回合轨迹，执行结果未知，需恢复处置"));
+        }
         if !entry.file_type()?.is_file() { return Err(std::io::Error::other("回合历史包含非普通文件")); }
         let mut bytes = Vec::new();
         std::fs::File::open(entry.path())?.take(8 * 1024 * 1024 + 1).read_to_end(&mut bytes)?;
@@ -63,6 +66,10 @@ pub(super) fn reserve_internal_path(parent_session: &Path) -> std::io::Result<st
 }
 
 fn reserve_internal_file(parent_session: &Path) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
+    reserve_internal_file_with_extension(parent_session, "json")
+}
+
+fn reserve_internal_file_with_extension(parent_session: &Path, extension: &str) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
     use std::sync::atomic::{AtomicU64, Ordering};
     static SEQUENCE: AtomicU64 = AtomicU64::new(0);
     let name = parent_session.file_name().ok_or_else(|| std::io::Error::other("主会话路径缺少文件名"))?;
@@ -72,7 +79,7 @@ fn reserve_internal_file(parent_session: &Path) -> std::io::Result<(std::path::P
     let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
         .map_err(std::io::Error::other)?.as_nanos();
     for _ in 0..32 {
-        let path = directory.join(format!("{now}-{}-{}.json", std::process::id(), SEQUENCE.fetch_add(1, Ordering::Relaxed)));
+        let path = directory.join(format!("{now}-{}-{}.{extension}", std::process::id(), SEQUENCE.fetch_add(1, Ordering::Relaxed)));
         match std::fs::OpenOptions::new().write(true).create_new(true).open(&path) {
             Ok(file) => return Ok((path, file)),
             Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
@@ -113,7 +120,7 @@ fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
     use std::io::Write;
     if events.is_empty() { return Ok(()); }
     let bytes = serde_json::to_vec_pretty(events).map_err(std::io::Error::other)?;
-    let (event_path, mut file) = reserve_internal_file(&path.with_extension("events.json"))?;
+    let (event_path, mut file) = reserve_internal_file_with_extension(&path.with_extension("events.json"), "pending")?;
     let saved = file.write_all(&bytes).and_then(|()| file.sync_all());
     drop(file);
     if let Err(error) = saved {
@@ -123,7 +130,13 @@ fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
             Err(cleanup) => Err(std::io::Error::other(format!("{error}；未完成轨迹清理失败：{cleanup}"))),
         };
     }
-    Ok(())
+    // 同目录硬链接以不覆盖方式发布完整记录；失败保留 pending，恢复时明确报未知。
+    publish_pending_events(&event_path)
+}
+
+fn publish_pending_events(path: &Path) -> std::io::Result<()> {
+    std::fs::hard_link(path, path.with_extension("json"))?;
+    std::fs::remove_file(path)
 }
 
 #[cfg(test)]
@@ -131,6 +144,26 @@ mod tests {
     use super::*;
     use runtime::{ApiClient, ApiRequest, AssistantEvent, ConversationRuntime, PermissionMode,
         PermissionPolicy, ToolExecutor, ToolError};
+
+    #[test]
+    fn pending_publication_never_overwrites_existing_history() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-pending-collision-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let pending = directory.join("turn.pending");
+        let committed = directory.join("turn.json");
+        std::fs::write(&pending, b"new-complete-record").unwrap();
+        std::fs::write(&committed, b"old-record").unwrap();
+        assert!(publish_pending_events(&pending).is_err());
+        assert_eq!(std::fs::read(&committed).unwrap(), b"old-record");
+        assert_eq!(std::fs::read(&pending).unwrap(), b"new-complete-record");
+        std::fs::remove_file(&committed).unwrap();
+        publish_pending_events(&pending).unwrap();
+        assert!(!pending.exists());
+        assert_eq!(std::fs::read(&committed).unwrap(), b"new-complete-record");
+        std::fs::remove_file(committed).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
 
     #[test]
     fn completed_turn_is_saved_and_storage_failure_is_not_success() {
@@ -159,6 +192,11 @@ mod tests {
         assert_eq!(actual, serde_json::to_value(&summary.events).unwrap());
         assert_eq!(actual.as_array().unwrap().last().unwrap()["kind"], "turn_completed");
         assert_eq!(load_event_history(&path).unwrap(), vec![summary.events.clone()]);
+        let pending = event_directory.join("unfinished.pending");
+        std::fs::write(&pending, b"{").unwrap();
+        let pending_error = load_event_history(&path).unwrap_err();
+        assert!(pending_error.to_string().contains("未提交回合轨迹"));
+        std::fs::remove_file(pending).unwrap();
         let mut malformed = actual.clone();
         malformed.as_array_mut().unwrap().pop();
         std::fs::write(files[0].path(), serde_json::to_vec(&malformed).unwrap()).unwrap();
