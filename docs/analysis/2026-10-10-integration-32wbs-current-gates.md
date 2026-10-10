@@ -14,9 +14,11 @@
 
 最新入口已强制--owner，旧无宿主语法125且零启动副作用；迁移后直接四项、包装器八项及HostExit通过。独立feature产物stdout/stderr写入故障两项通过，正常辅助程序摘要不变；正常引导及Cargo回执五项复验通过。启动竞态、完整入口故障矩阵和最终正常整包/正式安装仍开放。
 
+最新源码c18dc5a已补恢复前资格检查，受控挂起子进程测试通过，guard55通过3忽略，PS5.1/PS7包装器九项通过。该源码整workspace正常debug离线构建实际exit0，耗时2分01秒，见[构建范围](../testing/managed-capture-diagnostic-failure/workspace-build.md)。最终检查到恢复之间的竞态、全部入口和release整包/正式验收仍未闭环。
+
 当前实装是 0.2.130，包源码 35cbcf238d194d7fbaac648359d8bddc9858f811；1193 个载荷文件逐长度/SHA 一致，正常整包/MSI 构建、安装及注册版本证据见 [130 验收状态](../testing/release-0.2.130/acceptance-status.md)。本轮再次直接运行 Program Files 下 CLI --version，实际返回上述版本与完整源码身份。未签名、未发布，不能把安装与文件核验提升为正式运行验收。后续 Conversation/CLI 修补不在该安装包中。
 
-当前源码复核点为 918f99c。CLI 历史已补单写者锁、累计字节/条数预算、重复轮次和 Windows junction 拒绝；该范围完整回归 99 通过（tmp/analysis-cli-history-link-final-tests.txt）。core-runtime 375 通过及 3 项忽略的证据保持对应历史源码范围，不能外推后续全部修改。2dacc83 时点的真实 debug CLI 合成恢复 9 项仍是历史进程证据，后续修改不自动继承该进程验收。
+CLI历史专项复核点为 918f99c。CLI 历史已补单写者锁、累计字节/条数预算、重复轮次和 Windows junction 拒绝；该范围完整回归 99 通过（tmp/analysis-cli-history-link-final-tests.txt）。core-runtime 375 通过及 3 项忽略的证据保持对应历史源码范围，不能外推后续全部修改。2dacc83 时点的真实 debug CLI 合成恢复 9 项仍是历史进程证据，后续修改不自动继承该进程验收。
 
 整包采集已在 69d0482 接入受管双管道增量原始字节落盘及引导回执归档，移除 ReadToEnd 整份驻留；完整 Loader 契约复验 39 通过、0 失败、4 跳过，前一次 2 项125失败保留且已复验。辅助程序有界自然收尾修正后30次真实Cargo采集成功，长驻后代仍拒绝并回收。Cargo 用户/祖先及实际工作目录配置身份已进入冻结描述符，最新构建身份契约81通过0失败。上述均为独立集成源码/契约证据，尚未进入已安装0.2.130。
 
