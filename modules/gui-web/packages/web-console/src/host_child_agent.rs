@@ -66,6 +66,11 @@ pub(super) struct HostModelSnapshot {
 
 impl HostModelSnapshot {
     pub(super) fn agent_session_id(&self) -> &str { &self.parent_model.agent.id }
+    /// 冻结授权是执行上限，后续会话设置不能扩大本次运行的工具集合。
+    pub(super) fn permits_tool(&self, name: &str) -> bool {
+        let required = required_permission_for_tool(name);
+        self.parent_tools.contains(name) && !required.is_unspecified() && required <= self.permission
+    }
     pub(super) fn permits_parent_agent(&self) -> bool {
         self.parent_tools.contains("Agent")
             && required_permission_for_tool("Agent") <= self.permission
@@ -104,10 +109,27 @@ impl HostModelSnapshot {
         let mut parent_definitions = llm_tool_definitions_for_session(&agent.id, room_id)
             .unwrap_or_default();
         retain_admitted_plugin_definitions(&mut parent_definitions, Some(parent));
+        // 与定义生成使用同一显式授权范围；真正执行仍复核授权存活及当前策略。
+        let mut permission = if scheduled_execution::current().is_some_and(|grant|
+            grant.authorizes(parent.workspace_id.as_str(), Some(&agent.id), room_id)) {
+            PermissionMode::DangerFullAccess
+        } else {
+            llm_tool_permission_for_room(room_id)
+        };
+        // 重规划仅检查事实和生成修订步骤，不能继承执行房间或调度授权的写能力。
+        if let Some(goal) = parent.goal_phase.as_ref() {
+            if goal.is_replanning()? {
+                permission = permission.min(PermissionMode::ReadOnly);
+                parent_definitions.retain(|definition| {
+                    let required = required_permission_for_tool(&definition.name);
+                    !required.is_unspecified() && required <= permission
+                });
+            }
+        }
         let parent_tools = parent_definitions.iter().map(|definition| definition.name.clone()).collect();
         Ok(Self {
             parent_model, override_models, parent_tools, parent_definitions,
-            permission: llm_tool_permission_for_room(room_id), workspace_root,
+            permission, workspace_root,
             usage_db_path: parent.runtime_db_path.clone().unwrap_or_else(default_session_sqlite_path),
             context_history,
         })
@@ -409,6 +431,12 @@ mod tests {
              VALUES ('host-goal-run','goal_phase',?1,?2,?3,'host-goal','host-phase','running','host-owner','host-claim',?4,?4)",
             rusqlite::params![workspace_id, session_id, room_id, now],
         ).unwrap();
+        let pin = crate::goal_stage_pin::StagePin { original_role: "implementer".into(),
+            route_hint: None, retry_count: 0, last_verdict: None, target_session_id: session_id.into() };
+        connection.execute(
+            "INSERT INTO runtime_run_events(run_id,event_type,payload_json,created_at) VALUES ('host-goal-run','run.accepted',?1,?2)",
+            rusqlite::params![serde_json::json!({"goal_phase_pin":pin}).to_string(), now],
+        ).unwrap();
         goal_execution_parent::FrozenGoalPhaseParent::capture(db, workspace_id,
             "host-goal", "host-phase", "host-goal-run", "host-claim", session_id, room_id).unwrap()
     }
@@ -519,6 +547,63 @@ mod tests {
             )).await;
         assert!(denied.is_err(), "失去原 claim 后实际工具派发必须拒绝");
         assert!(!denied_path.exists());
+        // 独立有效运行只改变路由，避免旧 claim 或已取消子作用域造成假阴性。
+        let drift_db = temp.path().join("goal-stage-drift.sqlite3");
+        let drift_goal = seed_goal_parent(&drift_db, &workspace_id, &agent.id, "host-goal-room");
+        assert!(drift_goal.validate_live().is_ok());
+        let mut drift_parent = parent.clone();
+        drift_parent.root_budget = Some(drift_goal.root_budget());
+        drift_parent.goal_phase = Some(drift_goal);
+        drift_parent.runtime_db_path = Some(drift_db.clone());
+        assert!(drift_parent.host_model_snapshots.get(&agent.id).unwrap().permits_tool("write_file"));
+        crate::open_session_connection(&drift_db).unwrap().execute(
+            "UPDATE goal_phases SET route_hint='planner' WHERE goal_id='host-goal' AND id='host-phase'", [],
+        ).unwrap();
+        let drift_path = temp.path().join("goal-stage-drift-must-not-write.txt");
+        let drift_denied = crate::tool_invocation_identity::scope(String::from("goal-turn/stage-drift"),
+            crate::run_model_tool_dispatch_for_session_with_identity(
+                "write_file", &serde_json::json!({"path":drift_path,"content":"forbidden"}),
+                Some(&agent.id), Some("goal-stage-drift-use"), Some("goal-turn"), Some("host-goal-room"),
+                Some(&drift_parent), None,
+            )).await;
+        assert!(drift_denied.is_err(), "同一会话阶段路由漂移后实际写工具必须拒绝");
+        assert!(!drift_path.exists());
+        // 新接纳的规划阶段即使房间允许写，也只能看到并执行只读工具。
+        let planning_db = temp.path().join("goal-planning-permissions.sqlite3");
+        let _initial = seed_goal_parent(&planning_db, &workspace_id, &agent.id, "host-goal-room");
+        let connection = crate::open_session_connection(&planning_db).unwrap();
+        connection.execute("UPDATE goal_phases SET route_hint='planner',retry_count=1,last_verdict='fail'",[]).unwrap();
+        let planning_pin = crate::goal_stage_pin::StagePin { original_role:"implementer".into(),
+            route_hint:Some("planner".into()), retry_count:1, last_verdict:Some("fail".into()),
+            target_session_id:agent.id.clone() };
+        connection.execute("UPDATE runtime_run_events SET payload_json=?1 WHERE event_type='run.accepted'",
+            rusqlite::params![serde_json::json!({"goal_phase_pin":planning_pin}).to_string()]).unwrap();
+        let planning_goal = goal_execution_parent::FrozenGoalPhaseParent::capture(&planning_db,
+            &workspace_id,"host-goal","host-phase","host-goal-run","host-claim",&agent.id,"host-goal-room").unwrap();
+        assert!(planning_goal.is_replanning().unwrap());
+        let mut planning_parent = parent.clone();
+        planning_parent.root_budget = Some(planning_goal.root_budget());
+        planning_parent.goal_phase = Some(planning_goal);
+        planning_parent.runtime_db_path = Some(planning_db);
+        let planning_snapshot = HostModelSnapshot::capture(&agent,Some("host-goal-room"),&planning_parent).unwrap();
+        assert!(planning_snapshot.permits_tool("read_file"),"规划阶段应能检查事实");
+        assert!(!planning_snapshot.permits_tool("write_file"));
+        assert!(!planning_snapshot.permits_parent_agent());
+        assert!(planning_snapshot.parent_definitions.iter().all(|definition| {
+            let required = required_permission_for_tool(&definition.name);
+            !required.is_unspecified() && required <= PermissionMode::ReadOnly
+        }));
+        planning_parent.host_model_snapshots = Arc::new(std::collections::HashMap::from([
+            (agent.id.clone(),Arc::new(planning_snapshot))]));
+        let planning_path = temp.path().join("planning-must-not-write.txt");
+        let planning_denied = crate::tool_invocation_identity::scope(String::from("goal-turn/planning-write"),
+            crate::run_model_tool_dispatch_for_session_with_identity(
+                "write_file", &serde_json::json!({"path":planning_path,"content":"forbidden"}),
+                Some(&agent.id),Some("planning-write-use"),Some("goal-turn"),Some("host-goal-room"),
+                Some(&planning_parent),None,
+            )).await;
+        assert!(planning_denied.is_err());
+        assert!(!planning_path.exists());
         server.abort();
     }
 
@@ -710,6 +795,29 @@ mod tests {
             )).await;
         assert!(denied_parent.is_err(), "接纳时的只读权限不得被后续设置或调度授权放大");
         let denied_path = temp.path().join("must-not-write.txt");
+        let frozen_parent_scope = HostToolScope::Parent(Arc::new(limited.clone()));
+        let denied_frozen_write = crate::tool_invocation_identity::scope(format!("{turn_id}/frozen-parent-write"),
+            crate::run_model_tool_dispatch_for_session_with_identity(
+                "write_file", &serde_json::json!({"path":denied_path,"content":"forbidden"}),
+                Some(&target_id), Some("toolu-frozen-parent-write"), Some(turn_id), Some(room_id),
+                Some(&parent), Some(&frozen_parent_scope),
+            )).await;
+        assert!(denied_frozen_write.is_err(), "普通父工具也必须受冻结只读权限约束");
+        assert!(!denied_path.exists(), "拒绝必须发生在文件副作用之前");
+
+        let mut meta_only = (**snapshot).clone();
+        meta_only.parent_tools.remove("write_file");
+        assert!(meta_only.permits_tool("tools_semantic_dispatch"), "夹具须真实授予元工具");
+        let meta_scope = HostToolScope::Parent(Arc::new(meta_only));
+        let semantic_input = serde_json::json!({"path":denied_path,"content":"forbidden"});
+        assert!(crate::file_write_runtime_input_from_semantic_dispatch_input(&semantic_input).is_some());
+        let denied_expanded_write = crate::tool_invocation_identity::scope(format!("{turn_id}/expanded-write"),
+            crate::run_model_tool_dispatch_for_session_with_identity(
+                "tools_semantic_dispatch", &semantic_input, Some(&target_id), Some("toolu-expanded-write"),
+                Some(turn_id), Some(room_id), Some(&parent), Some(&meta_scope),
+            )).await;
+        assert!(denied_expanded_write.is_err(), "元工具授权不得替代展开写工具授权");
+        assert!(!denied_path.exists());
         let limited_scope = Arc::new(HostChildScope {
             parent: parent.clone(), parent_call_id: String::from("tool-child-denied"),
             parent_turn_id: turn_id.to_string(), tool_session_id: target_id.clone(),

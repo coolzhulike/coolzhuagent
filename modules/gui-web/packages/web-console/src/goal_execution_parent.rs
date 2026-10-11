@@ -34,6 +34,14 @@ impl FrozenGoalPhaseParent {
     pub(crate) fn db_path(&self) -> &Path { &self.db_path }
     pub(crate) fn root_budget(&self) -> RootExecutionBudget { self.root_budget.clone() }
 
+    pub(crate) fn is_replanning(&self) -> Result<bool, String> {
+        self.validate_live()?;
+        let connection = read_connection(&self.db_path)?;
+        let pin = crate::goal_stage_pin::StagePin::load(&connection, &self.phase_run_id)
+            .map_err(|error| format!("Goal 规划阶段身份读取失败：{error}"))?;
+        Ok(pin.stage() == crate::goal_phase_stage::PhaseStage::Replanning)
+    }
+
     pub(crate) fn action_context(&self, cu_run_id: &str) -> runtime::GoalPhaseActionContext {
         runtime::GoalPhaseActionContext { hierarchy: runtime::RunIdentityScope::StepAction,
             workspace_id: self.workspace_id.clone(), goal_id: self.goal_id.clone(), phase_id: self.phase_id.clone(),
@@ -84,6 +92,12 @@ fn read_phase(connection: &Connection, workspace: &str, goal: &str, phase: &str,
         .optional().map_err(|error| format!("Goal 阶段父关系查询失败：{error}"))?;
     let (started, timeout) = row.ok_or("Goal 阶段父关系已失效或与真实运行/claim 不符，未获得输入资格")?;
     if started <= 0 || !(60_000..=86_400_000).contains(&timeout) { return Err("Goal 阶段开始时间或任务时限无效".into()); }
+    let pin = crate::goal_stage_pin::StagePin::load(connection, run)
+        .map_err(|error| format!("Goal 接纳阶段身份无法核验：{error}"))?;
+    if !pin.matches_stored(connection, goal, phase, session)
+        .map_err(|error| format!("Goal 当前阶段身份无法核验：{error}"))? {
+        return Err("Goal 阶段身份已变化，旧运行未获得工具执行资格".into());
+    }
     Ok((started as u64, timeout as u64))
 }
 

@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "note": "日志来自未提交工作区：57955解析器2通过；13459宿主4通过和阶段2通过。后续StagePin生产接线未被这些日志验证，80480仍待终态；不代表真实模型或32WBS正式验收。",
+  "immutable_source_snapshot_verified": false,
+  "completed_sessions": [
+    57955,
+    13459
+  ],
+  "files": [
+    {
+      "bytes": 52559,
+      "sha256": "12D70DA1026EA309E2A0F513D5840946F24256C650964FB634FE58E7084B6E91",
+      "file": "parser-build.txt"
+    },
+    {
+      "bytes": 23083,
+      "sha256": "A67B6B270EED5A4F54940AA7199EAEC1DC273942D6D65FA66FD8ECADBC7EE371",
+      "file": "stage-test.txt"
+    },
+    {
+      "bytes": 23478,
+      "sha256": "7D03F0A21E90B944EC27BFFF2759368726AA4567CAD34DD1EBAF3869D6B365C2",
+      "file": "host-test.txt"
+    },
+    {
+      "bytes": 23186,
+      "sha256": "19D43151D94B64EA1407FC915E43D72906F164A343CDB7F8F2C1D2C24B7C70FA",
+      "file": "parser-test.txt"
+    },
+    {
+      "bytes": 53396,
+      "sha256": "AD15D434968789ADAA4DF90CAA092376257295A67C5CFF00653BDC1222201410",
+      "file": "stage-build.txt"
+    }
+  ],
+  "baseline_commit": "a055358"
+}

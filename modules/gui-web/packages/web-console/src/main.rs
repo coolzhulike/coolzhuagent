@@ -20,6 +20,9 @@ mod terminal_host {
     pub(super) fn invalidate_scope() {}
 }
 mod host_child_agent;
+mod goal_replan;
+mod goal_phase_stage;
+mod goal_stage_pin;
 mod audio;
 mod browser_bridge;
 mod browser_bridge_protocol;
@@ -3635,6 +3638,15 @@ fn required_permission_for_tool(tool_name: &str) -> PermissionMode {
     // CU 是控制台的异步工具，不在同步 registry 中；须明确登记其权限元数据。
     // 只接纳正式入口与历史别名，不能给任意 computer_* 名称隐式授权。
     if matches!(tool_name, COMPUTER_USE_TOOL_NAME | "computer_use.perform") {
+        return PermissionMode::DangerFullAccess;
+    }
+    // 语义入口可能进入系统执行分支；展开写入还须独立核对真实工具授权。
+    if matches!(tool_name, "tools_semantic_dispatch" | "tools.semantic_dispatch") {
+        return PermissionMode::DangerFullAccess;
+    }
+    // DSH有专用冻结授权/审批；交接可派发真实任务，不能按只读授权。
+    if tool_name.starts_with(dsh_execution::PREFIX)
+        || matches!(tool_name, "chat_handoff" | "chat.handoff") {
         return PermissionMode::DangerFullAccess;
     }
     if plugin_runtime::is_plugin_name(tool_name) {
@@ -17953,6 +17965,8 @@ async fn run_goal_phase_once(
         }
         Ok(goal_parent) => {
     let root_budget = goal_parent.root_budget();
+    let planning_stage = goal_parent.is_replanning();
+    let replanning = matches!(&planning_stage, Ok(true));
     let mut parent = frozen_parent_context_at(
         "goal-phase",
         workspace_id,
@@ -17963,7 +17977,7 @@ async fn run_goal_phase_once(
         // 因此这里不是补哨兵值，而是把真实第一方标识交给 CU 做关系核对。
         Some(&run_context.run_id),
     );
-    let mut snapshot_error = None;
+    let mut snapshot_error = planning_stage.err();
     if let Some(parent) = parent.as_mut() {
         parent.root_budget = Some(root_budget.clone());
         parent.goal_phase = Some(goal_parent);
@@ -18021,13 +18035,14 @@ async fn run_goal_phase_once(
     }
     // 确定性命令门控：在不持 session_store 锁时异步执行（cargo build/test 等可能耗时数十秒），
     // 失败证据作为参数传入 record，由其决定回退到 implementer 还是推进完成。
-    let command_failures = run_goal_phase_command_gate(
+    // 规划不执行原任务的构建/验证命令；仍受原根时限和token finalizer约束。
+    let command_failures = if replanning { Vec::new() } else { run_goal_phase_command_gate(
         &run_context.db_path,
         &workspace_id,
         &run_context.goal_id,
         &run_context.phase_id,
     )
-    .await;
+    .await };
     let mut command_failures = command_failures;
     if root_budget.is_expired() { command_failures.push(root_execution_budget::EXPIRED_REASON.to_string()); }
     (model_response, tool_messages, command_failures)
@@ -34930,7 +34945,32 @@ async fn run_model_tool_dispatch_within_root(
             _ if plugin_runtime::is_plugin_name(name) => name,
             other => other,
         };
+        // 子执行已有独立冻结范围；普通父执行还必须满足接纳时的授权上限。
+        let frozen_snapshot = match host_scope {
+            Some(host_child_agent::HostToolScope::Parent(snapshot)) => Some(snapshot.as_ref()),
+            Some(host_child_agent::HostToolScope::Child(_)) => None,
+            None => parent.and_then(|parent| parent.host_model_snapshots.get(session_id))
+                .map(|snapshot| snapshot.as_ref()),
+        };
+        if frozen_snapshot.is_some_and(|snapshot| !snapshot.permits_tool(canonical)
+            || (is_computer_use_tool_request(name, input) && !snapshot.permits_tool(COMPUTER_USE_TOOL_NAME))) {
+            return Err(api_error(StatusCode::FORBIDDEN,
+                &format!("接纳时未授权工具 `{canonical}` 或所需权限，调用未执行")));
+        }
+        let expanded_write = canonical == "tools_semantic_dispatch"
+            && file_write_runtime_input_from_semantic_dispatch_input(input).is_some();
+        if expanded_write && (frozen_snapshot.is_some_and(|snapshot| !snapshot.permits_tool("write_file"))
+            || matches!(host_scope, Some(host_child_agent::HostToolScope::Child(child)) if !child.permits("write_file"))) {
+            return Err(api_error(StatusCode::FORBIDDEN,
+                "语义调度展开的 write_file 未获冻结授权，调用未执行"));
+        }
         let definitions = llm_tool_definitions_for_session(session_id, chat_room_id);
+        if expanded_write && !definitions.as_ref().is_some_and(|definitions| definitions.iter()
+            .any(|definition| definition.name == "write_file")) {
+            return Err(api_error(StatusCode::FORBIDDEN,
+                "当前会话未开放语义调度展开的 write_file，调用未执行"));
+        }
+
         if !definitions.as_ref().is_some_and(|definitions| definitions.iter()
             .any(|definition| definition.name == canonical)) {
             return Err(api_error(StatusCode::FORBIDDEN,
@@ -38347,7 +38387,8 @@ impl SessionStore {
                 continue;
             };
 
-            let required_skills = if phase.skills_required.is_empty() {
+            let stage = goal_phase_stage::PhaseStage::for_phase(phase);
+            let required_skills = if stage == goal_phase_stage::PhaseStage::Replanning || phase.skills_required.is_empty() {
                 "none".to_string()
             } else {
                 phase.skills_required.join(", ")
@@ -38363,7 +38404,9 @@ impl SessionStore {
                 .map(JsonValue::to_string)
                 .unwrap_or_else(|| "none".to_string());
             let retry_context = goal_phase_retry_intent_context(phase);
-            let intent = format!(
+            let intent = if stage != goal_phase_stage::PhaseStage::Execution {
+                goal_phase_run_prompt_with_progress(&goal,phase,"")
+            } else { format!(
                 "Goal: {}\nPhase: {} ({})\nAssigned role: {}\nRequired skills: {}\nOutput artifacts: {}\nVerification: {}{}\nTask-scoped skill overlay: install/use the required skills for this phase only; remove task-scoped role skills and temporary task memory after reporting completion.\nCommander request: execute this phase and report completion evidence for review.",
                 goal.title,
                 phase.title,
@@ -38373,7 +38416,7 @@ impl SessionStore {
                 output_artifacts,
                 verification,
                 retry_context
-            );
+            ) };
             if target_session_id == commander_session_id {
                 // 先在 durable DB 中占用 phase，再执行 overlay 等内存/持久化副作用。
                 // CAS 失败只跳过本 phase，绝不创建重复 handoff。
@@ -38468,7 +38511,8 @@ impl SessionStore {
                     "goal_id": goal.id,
                     "phase_id": phase.id,
                     "from_role": "commander",
-                    "to_role": phase.assigned_role,
+                    "to_role": stage.routed_role(&phase.assigned_role),
+                    "original_role": phase.assigned_role,
                     "verdict": phase.last_verdict.clone().unwrap_or_else(|| "fail".to_string()),
                     "reason": phase.last_reason,
                     "evidence_digest": evidence_digest,
@@ -38614,7 +38658,7 @@ impl SessionStore {
             goal.title,
             phase.title,
             phase.id,
-            phase.assigned_role,
+            goal_phase_stage::PhaseStage::for_phase(phase).routed_role(&phase.assigned_role),
             required_skills,
             output_artifacts,
             verification
@@ -39054,6 +39098,11 @@ impl SessionStore {
                         "goal phase active run claim is stale or mismatched",
                     ));
                 }
+                let stage_pin = goal_stage_pin::StagePin::load(&transaction, &active_run_id)
+                    .map_err(|_| stale_goal_phase_result_error())?;
+                if !stage_pin.matches(&phase, &assigned_session_id) {
+                    return Err(stale_goal_phase_result_error());
+                }
                 let claim_owner = run
                     .owner_id
                     .or(stored_claim_owner)
@@ -39144,6 +39193,7 @@ impl SessionStore {
                             "goal_id": goal_id,
                             "phase_id": phase_id,
                             "assigned_session_id": assigned_session_id,
+                            "goal_phase_pin": goal_stage_pin::StagePin::capture(&phase, &assigned_session_id),
                         }),
                     )
                     .map_err(sqlite_api_error)?,
@@ -43180,6 +43230,14 @@ fn claim_goal_phase_for_dispatch(
         .map_err(sqlite_api_error)?;
     // run 先落在同一事务中；已有 active goal-phase 唯一索引时，把约束冲突视为
     // 另一 dispatcher 已抢到 claim，回滚本事务并按 skipped 返回，不制造 500。
+    let fresh_phase = query_goal_phases_connection(&transaction,goal_id).map_err(sqlite_api_error)?
+        .into_iter().find(|current| current.id==phase.id);
+    let Some(fresh_phase) = fresh_phase else { return Ok(None); };
+    if fresh_phase.assigned_session_id.as_deref()!=Some(target_session_id)
+        || !goal_stage_pin::StagePin::capture(phase,target_session_id).matches(&fresh_phase,target_session_id) {
+        // 角色配置或回退路由已变化，旧派发快照不能创建错误目标的accepted run。
+        return Ok(None);
+    }
     if let Err(error) = insert_runtime_run_connection(&transaction, &run) {
         if error.sqlite_error_code() == Some(rusqlite::ErrorCode::ConstraintViolation) {
             return Ok(None);
@@ -43246,6 +43304,7 @@ fn claim_goal_phase_for_dispatch(
             "goal_id": goal_id,
             "phase_id": phase.id,
             "assigned_session_id": target_session_id,
+            "goal_phase_pin": goal_stage_pin::StagePin::capture(phase, target_session_id),
         }),
     )
     .map_err(sqlite_api_error)?;
@@ -45810,6 +45869,13 @@ fn goal_phase_assigned_session_id(assigned_role: &str) -> Option<String> {
 fn query_goal_role_session_targets(
     connection: &Connection,
 ) -> rusqlite::Result<BTreeMap<String, GoalRoleSessionTarget>> {
+    query_goal_role_session_targets_with_templates(connection,true)
+}
+
+fn query_goal_role_session_targets_with_templates(
+    connection: &Connection,
+    include_templates: bool,
+) -> rusqlite::Result<BTreeMap<String, GoalRoleSessionTarget>> {
     let mut targets = BTreeMap::new();
     let mut configured = connection.prepare(
         r#"
@@ -45839,6 +45905,8 @@ fn query_goal_role_session_targets(
         }
     }
 
+    // 恢复角色必须有显式配置；不能凭goal-*会话名补出planner/implementer。
+    if !include_templates { return Ok(targets); }
     let mut template = connection.prepare(
         r#"
         SELECT id, name, model
@@ -45874,6 +45942,7 @@ fn query_goal_phases_connection(
     goal_id: &str,
 ) -> rusqlite::Result<Vec<GoalPhaseDto>> {
     let role_targets = query_goal_role_session_targets(connection)?;
+    let recovery_targets = query_goal_role_session_targets_with_templates(connection,false)?;
     let mut stmt = connection.prepare(
         r#"
         SELECT id, goal_id, title, assigned_role, status, depends_on_json,
@@ -45891,11 +45960,20 @@ fn query_goal_phases_connection(
         let output_artifacts_json: String = row.get(7)?;
         let verification_json: Option<String> = row.get(8)?;
         let assigned_role: String = row.get(3)?;
-        let assigned_role_key = assigned_role.trim().to_ascii_lowercase();
-        let assigned_session_target = role_targets.get(&assigned_role_key);
+        let retry_count: u32 = row.get(11)?;
+        let last_verdict: Option<String> = row.get(13)?;
+        let route_hint: Option<String> = row.get(16)?;
+        let stage = goal_phase_stage::PhaseStage::resolve(&assigned_role,route_hint.as_deref(),
+            retry_count,last_verdict.as_deref()==Some("fail"));
+        let assigned_role_key = stage.routed_role(&assigned_role).trim().to_ascii_lowercase();
+        let assigned_session_target = if stage == goal_phase_stage::PhaseStage::Execution {
+            role_targets.get(&assigned_role_key)
+        } else { recovery_targets.get(&assigned_role_key) };
         let assigned_session_id = assigned_session_target
             .map(|target| target.session_id.clone())
-            .or_else(|| goal_phase_assigned_session_id(&assigned_role));
+            .or_else(|| if stage == goal_phase_stage::PhaseStage::Execution {
+                goal_phase_assigned_session_id(&assigned_role)
+            } else { None });
         // 回退路由列（v13）。retry/max 用 NOT NULL DEFAULT 建列，读回不会是 NULL；
         // last_evidence_json 落库是 JSON 字符串，这里解析回 JsonValue 交给前端。
         let last_evidence_json: Option<String> = row.get(15)?;
@@ -45914,12 +45992,12 @@ fn query_goal_phases_connection(
             skills_required: serde_json::from_str(&skills_json).unwrap_or_default(),
             output_artifacts: serde_json::from_str(&output_artifacts_json).unwrap_or_default(),
             verification: verification_json.and_then(|value| serde_json::from_str(&value).ok()),
-            retry_count: i64_to_u64(row.get::<_, i64>(11)?) as u32,
+            retry_count,
             max_retries: i64_to_u64(row.get::<_, i64>(12)?) as u32,
-            last_verdict: row.get(13)?,
+            last_verdict,
             last_reason: row.get(14)?,
             last_evidence: last_evidence_json.and_then(|value| serde_json::from_str(&value).ok()),
-            route_hint: row.get(16)?,
+            route_hint,
             requires_human_ack: row.get::<_, i64>(17)? != 0,
             human_ack: row.get(18)?,
             active_run_id,
@@ -46438,6 +46516,22 @@ fn goal_phase_run_prompt_with_progress(
 ) -> String {
     // 直接执行入口也使用持久失败反馈，不能只在handoff入口注入。
     let progress=format!("{progress}{}",goal_phase_retry_intent_context(phase));
+    if goal_phase_stage::PhaseStage::resolve(&phase.assigned_role,phase.route_hint.as_deref(),
+        phase.retry_count,phase.last_verdict.as_deref()==Some("fail")) == goal_phase_stage::PhaseStage::Replanning {
+        return format!(
+            "你正在为Goal的失败阶段重规划。Goal：{}；原阶段：{} ({})；原角色：{}。\n持久失败反馈：{}\n原产物要求：{}\n原验证要求：{}\n只使用宿主提供的只读工具检查事实，修订执行步骤。返回严格JSON对象 {{\"steps\":[\"步骤\"]}}，包含1至16个非空步骤，每步不超过2048字符，总输出不超过32KiB。不得增加其它字段或Markdown围栏。原角色、产物、验证要求、权限和失败预算由宿主保留；规划提交后由执行角色实施并继续原验证。",
+            goal.title,phase.title,phase.id,phase.assigned_role,progress,
+            serde_json::to_string(&phase.output_artifacts).unwrap_or_default(),
+            phase.verification.as_ref().map(JsonValue::to_string).unwrap_or_else(||"none".into()),
+        );
+    }
+    let revised_steps = phase.last_evidence.as_ref().and_then(|e|e.get("revised_plan"))
+        .and_then(|plan|plan.get("steps"))
+        .map(|steps|steps.to_string().chars().take(32*1024).collect::<String>())
+        .unwrap_or_default();
+    let progress = if revised_steps.is_empty() { progress } else {
+        format!("{progress}\n持久修订步骤（仍须满足原产物与验证要求）：{revised_steps}")
+    };
     let skill_names = goal_skill_names(&phase.skills_required);
     let skills = if skill_names.is_empty() {
         "none".to_string()
@@ -46466,7 +46560,7 @@ fn goal_phase_run_prompt_with_progress(
         goal.title,
         phase.title,
         phase.id,
-        phase.assigned_role,
+        goal_phase_stage::PhaseStage::for_phase(phase).routed_role(&phase.assigned_role),
         dependencies,
         skills,
         outputs,
@@ -47218,6 +47312,13 @@ fn finalize_goal_phase_result_sqlite(
         });
     }
 
+    // 停止请求已优先收敛；正常结果必须匹配接纳时的阶段，不能重解释旧输出。
+    let stage_pin = goal_stage_pin::StagePin::load(&transaction, run_id)
+        .map_err(|_| stale_goal_phase_result_error())?;
+    if !stage_pin.matches(&phase, &session_id) {
+        return Err(stale_goal_phase_result_error());
+    }
+
     // 这是所有正常结果的第一条写操作；它同时 CAS phase active pointer 与 runtime
     // scope/token/state。任何不匹配都会让外层事务 rollback，且下面没有任何副作用。
     goal_phase_result_ownership_cas(
@@ -47235,7 +47336,59 @@ fn finalize_goal_phase_result_sqlite(
     let evidence = goal_phase_result_evidence(&response.answer_text, &tool_messages);
     let base_messages = build_goal_phase_result_messages(phase_id, agent, &response, tool_messages);
     let missing_artifacts = goal_phase_missing_files(&phase);
-    let blocked_reason = goal_phase_implementer_blocked_reason(&response.answer_text);
+    let mut blocked_reason = goal_phase_implementer_blocked_reason(&response.answer_text);
+    let recovery_stage = stage_pin.stage();
+    if recovery_stage == goal_phase_stage::PhaseStage::Replanning
+        || (recovery_stage == goal_phase_stage::PhaseStage::Repair && !response.execution_failed
+            && blocked_reason.is_none() && missing_artifacts.is_empty() && command_failures.is_empty()) {
+        let plan = if recovery_stage == goal_phase_stage::PhaseStage::Repair {
+            Ok(None)
+        } else if response.execution_failed || !command_failures.is_empty() {
+            Err("重规划运行失败，不能提交修订步骤".to_string())
+        } else {
+            goal_replan::parse(&response.answer_text).map(Some)
+        };
+        match plan {
+            Ok(plan) => {
+                // 原失败原因、证据和预算保留；规划成功只交接执行，不完成原阶段。
+                let mut durable_evidence = phase.last_evidence.clone().unwrap_or_else(|| json!({}));
+                if !durable_evidence.is_object() {
+                    durable_evidence = json!({"prior_evidence":durable_evidence});
+                }
+                if let Some(plan) = plan {
+                    durable_evidence["revised_plan"] = json!({"steps":plan.steps,"run_id":run_id});
+                } else {
+                    durable_evidence["repair_result"] = json!({"text":evidence,"run_id":run_id});
+                }
+                let next_role = recovery_stage.continuation_role().ok_or_else(stale_goal_phase_result_error)?;
+                let now = unix_timestamp_millis();
+                let changed = transaction.execute(
+                    "UPDATE goal_phases SET status='pending',route_hint=?7,last_evidence_json=?1,
+                     active_run_id=NULL,claim_token=NULL,claim_owner=NULL,claimed_at=NULL,lease_until=NULL,updated_at=?2
+                     WHERE goal_id=?3 AND id=?4 AND status='running' AND active_run_id=?5 AND claim_token=?6",
+                    params![durable_evidence.to_string(),u64_to_i64(now),goal_id,phase_id,run_id,claim_token,next_role],
+                ).map_err(sqlite_api_error)?;
+                if changed != 1 { return Err(stale_goal_phase_result_error()); }
+                insert_goal_phase_messages_transaction(&transaction,&session_id,&room_id,&base_messages)
+                    .map_err(sqlite_api_error)?;
+                let runtime_event = finalize_goal_phase_runtime_terminal_transaction(
+                    &transaction,workspace_id,goal_id,phase_id,run_id,claim_token,"completed",None,
+                ).map_err(|_| stale_goal_phase_result_error())?;
+                let event = insert_goal_event_connection_deferred(&transaction,goal_id,
+                    if recovery_stage == goal_phase_stage::PhaseStage::Replanning { "goal-phase-replanned" } else { "goal-phase-repaired" },
+                    "恢复阶段结果已保存，原阶段等待后续执行或验证；失败预算保持不变。",
+                    json!({"phase_id":phase_id,"run_id":run_id,"route_hint":next_role,"retry_count":phase.retry_count}),
+                ).map_err(sqlite_api_error)?;
+                let status = goal_status_response_from_goal(query_goal_for_finalizer(&transaction,workspace_id,goal_id)?);
+                transaction.commit().map_err(sqlite_api_error)?;
+                broadcast_runtime_run_event(runtime_event);
+                broadcast_goal_event(event);
+                return Ok(GoalPhaseFinalizedResult { assigned_session_id:session_id,chat_room_id:room_id,
+                    messages:base_messages,status,memory_eligible:false });
+            }
+            Err(reason) => blocked_reason = Some(reason),
+        }
+    }
 
     // pass：消息、pass verdict/evidence、phase 完成及 claim 清理、Goal 完成判定、
     // runtime terminal 和事件全部共用这笔事务。
@@ -47358,7 +47511,7 @@ fn finalize_goal_phase_result_sqlite(
             )
         } else {
             format!(
-                "Goal phase reported blocked by implementer (cumulative failures {attempt}/{}): {blocked_reason}. Routed back to planner to revise the plan; goal paused.",
+                "Goal phase reported blocked by implementer (cumulative failures {attempt}/{}): {blocked_reason}. Routed back to planner to revise the plan; goal continues within the retry budget.",
                 phase.max_retries
             )
         };
@@ -47366,7 +47519,7 @@ fn finalize_goal_phase_result_sqlite(
             reason,
             evidence_json,
             "pending",
-            true,
+            false,
             "planner",
             "goal-phase-blocked-needs-replan",
             format!("Goal phase reported blocked by implementer: {blocked_reason}."),
@@ -69022,7 +69175,7 @@ attach: last_assistant
             )
             .expect("first blocked finalizer");
         assert!(!first.memory_eligible);
-        assert_eq!(first.status.goal.status, "paused");
+        assert_eq!(first.status.goal.status, "running");
         let first_run = super::query_runtime_run_sqlite(&context.db_path, &context.run_id)
             .expect("first run query")
             .expect("first run");
@@ -69048,10 +69201,8 @@ attach: last_assistant
             .any(|event| event.event_type == "goal-phase-blocked-needs-replan"));
 
         // 恢复后仍走 token-aware finalizer，覆盖重试上限收敛。
-        // 已知缺口：route_hint=planner未参与会话选择，实际重新claim的仍是implementer。
-        // 以下断言是反例证据，不能将本测试绿色当成planner真实重规划验收通过。
-        super::resume_goal_sqlite(&context.db_path, "ws-token-blocked", &context.goal_id)
-            .expect("resume for replan");
+        // 实际选择配置中的planner；原阶段角色及累计预算保持不变。
+        // 预算内不需要人工resume，直接读取下一阶段并claim。
         let resumed_goal =
             super::get_goal_sqlite(&context.db_path, "ws-token-blocked", &context.goal_id)
                 .expect("resumed goal");
@@ -69062,14 +69213,14 @@ attach: last_assistant
             .expect("resumed phase")
             .clone();
         assert_eq!(resumed_phase.assigned_role,"implementer");
-        assert_eq!(resumed_phase.assigned_session_id.as_deref(),Some(context.agent.id.as_str()));
+        assert_eq!(resumed_phase.assigned_session_id.as_deref(),Some("goal-planner"));
         let second_claim = super::claim_goal_phase_for_dispatch(
             &context.db_path,
             "ws-token-blocked",
             &context.goal_id,
             "room-dispatch",
             &resumed_phase,
-            &context.agent.id,
+            "goal-planner",
             "base",
             "token-blocked-retry-test",
             false,
@@ -69080,7 +69231,7 @@ attach: last_assistant
             .prepare_goal_phase_run_context("ws-token-blocked", &context.goal_id, &context.phase_id)
             .expect("second run starts");
         assert_eq!(second_context.run_id, second_claim.run_id);
-        assert_eq!(second_context.agent.id,context.agent.id,"当前实际重新进入原implementer，不是planner");
+        assert_eq!(second_context.agent.id,"goal-planner");
         let second = store
             .record_goal_phase_model_result_at_path_with_claim(
                 &second_context.db_path,
@@ -69127,8 +69278,209 @@ attach: last_assistant
     }
 
     #[test]
-    fn known_gap_planner_route_reply_can_complete_original_execution_phase() {
-        // 反例：路由提示不是独立规划提交状态；绿色不表示重规划验收通过。
+    fn goal_phase_token_finalizer_repair_returns_to_verifier_without_resetting_budget() {
+        let temp=tempfile::tempdir().unwrap();
+        let workspace="ws-repair-return";
+        let (mut store,original)=token_finalizer_fixture_with_role(&temp,workspace,"verifier");
+        let mut implementer=store.state.sessions.iter().find(|session|session.id==original.agent.id).unwrap().clone();
+        implementer.id="goal-implementer".into();
+        implementer.name="implementer".into();
+        implementer.messages.clear();
+        store.state.sessions.push(implementer);
+        store.save().unwrap();
+        super::upsert_goal_role_config_sqlite(&original.db_path,"goal-implementer",
+            super::GoalRoleConfigUpdateRequest {role:Some("implementer".into()),responsibility:None,
+                commander:Some(false),heartbeat_timeout_ms:Some(60_000),task_timeout_ms:Some(600_000)}).unwrap();
+        super::record_goal_role_heartbeat_sqlite(&original.db_path,"goal-implementer",
+            super::GoalRoleHeartbeatRequest{task_active:Some(true)}).unwrap();
+        let failed=store.record_goal_phase_model_result_at_path_with_claim(&original.db_path,workspace,
+            &original.goal_id,&original.phase_id,&original.run_id,&original.claim_token,&original.agent,
+            token_finalizer_response("验证发现实现缺陷"),Vec::new(),vec!["真实门控失败证据".into()]).unwrap();
+        let phase=failed.status.goal.phases.iter().find(|phase|phase.id==original.phase_id).unwrap();
+        assert_eq!(phase.assigned_role,"verifier");
+        assert_eq!(phase.assigned_session_id.as_deref(),Some("goal-implementer"));
+        let repair=store.prepare_goal_phase_run_context(workspace,&original.goal_id,&original.phase_id).unwrap();
+        assert_eq!(repair.agent.id,"goal-implementer");
+        let repaired=store.record_goal_phase_model_result_at_path_with_claim(&repair.db_path,workspace,
+            &repair.goal_id,&repair.phase_id,&repair.run_id,&repair.claim_token,&repair.agent,
+            token_finalizer_response("已修复实现，等待独立验证"),Vec::new(),Vec::new()).unwrap();
+        let phase=repaired.status.goal.phases.iter().find(|phase|phase.id==original.phase_id).unwrap();
+        assert_eq!(phase.status,"pending");
+        assert_eq!(phase.route_hint.as_deref(),Some("verifier"));
+        assert_eq!(phase.assigned_session_id.as_deref(),Some("goal-verifier"));
+        assert_eq!(phase.retry_count,1);
+        assert_eq!(phase.last_verdict.as_deref(),Some("fail"));
+        assert!(phase.last_evidence.as_ref().unwrap().get("command_failures").is_some());
+        assert!(phase.last_evidence.as_ref().unwrap().get("repair_result").is_some());
+        assert!(!repaired.memory_eligible);
+        assert!(!repaired.status.goal.recent_events.iter().any(|event|event.event_type=="phase-completed"));
+        super::claim_goal_phase_for_dispatch(&repair.db_path,workspace,&repair.goal_id,"room-dispatch",
+            phase,"goal-verifier","base","repair-verification",false).unwrap().unwrap();
+        let verifier=store.prepare_goal_phase_run_context(workspace,&repair.goal_id,&repair.phase_id).unwrap();
+        assert_eq!(verifier.agent.id,"goal-verifier");
+        let verified=store.record_goal_phase_model_result_at_path_with_claim(&verifier.db_path,workspace,
+            &verifier.goal_id,&verifier.phase_id,&verifier.run_id,&verifier.claim_token,&verifier.agent,
+            token_finalizer_response("独立复验通过"),Vec::new(),Vec::new()).unwrap();
+        let phase=verified.status.goal.phases.iter().find(|phase|phase.id==original.phase_id).unwrap();
+        assert_eq!(phase.status,"completed");
+        assert_eq!(phase.retry_count,1);
+        assert_eq!(verified.status.goal.current_iteration,3);
+    }
+
+    #[test]
+    fn goal_dispatch_replanning_handoff_uses_actual_role_and_planning_contract() {
+        let temp=tempfile::tempdir().unwrap();
+        let workspace="ws-recovery-handoff";
+        let (mut store,context)=token_finalizer_fixture_with_role(&temp,workspace,"implementer");
+        store.record_goal_phase_model_result_at_path_with_claim(&context.db_path,workspace,
+            &context.goal_id,&context.phase_id,&context.run_id,&context.claim_token,&context.agent,
+            token_finalizer_response("BLOCKED: execution needs another plan"),Vec::new(),Vec::new()).unwrap();
+        let dispatch=store.dispatch_ready_goal_phases(workspace,&context.goal_id).unwrap();
+        assert_eq!(dispatch.dispatched.len(),1);
+        assert_eq!(dispatch.dispatched[0].assigned_session_id.as_deref(),Some("goal-planner"));
+        let handoffs=super::query_chat_handoffs_sqlite(&context.db_path,"room-dispatch",10,None).unwrap();
+        let handoff=handoffs.iter().find(|handoff|Some(&handoff.id)==dispatch.dispatched[0].handoff_id.as_ref()).unwrap();
+        assert_eq!(handoff.to_agent_id,"goal-planner");
+        assert!(handoff.intent.contains("返回严格JSON对象"));
+        assert!(!handoff.intent.contains("execute this phase and report completion"));
+        let contract=handoff.contract.as_ref().unwrap();
+        assert_eq!(contract["to_role"],"planner");
+        assert_eq!(contract["original_role"],"implementer");
+        assert_eq!(contract["retry_count"],1);
+        let planner=store.state.sessions.iter().find(|session|session.id=="goal-planner").unwrap();
+        let overlay=planner.memory_beads.iter().find(|bead|bead.kind=="goal-task-skill").unwrap();
+        assert!(overlay.summary.contains("Assigned role: planner"));
+        assert!(overlay.summary.contains("Required skills: none"));
+        let prepared=store.prepare_goal_phase_run_context(workspace,&context.goal_id,&context.phase_id).unwrap();
+        assert_eq!(prepared.agent.id,"goal-planner");
+        assert!(prepared.prompt.contains("返回严格JSON对象"));
+    }
+
+    #[tokio::test]
+    async fn goal_worker_http_replanning_skips_command_and_execution_runs_it() {
+        let _serial=config_test_guard();
+        let _dev_open=DevOpenPermissionsTestGuard::enable();
+        let temp=tempfile::tempdir().unwrap();
+        let _workspace=WorkspaceScopeTestGuard::install(temp.path());
+        {
+            let mut config=super::workspace_config().lock().unwrap();
+            config.model.enable_real_llm=true;
+            config.model.enable_llm_tools=true;
+            config.model.llm_tool_exposure=Some("all".into());
+            config.model.enable_semantic_memory=false;
+            config.tool.execution.command_gate_enabled=true;
+        }
+        let bodies=std::sync::Arc::new(std::sync::Mutex::new(Vec::<serde_json::Value>::new()));
+        let captured=std::sync::Arc::clone(&bodies);
+        let router=axum::Router::new().route("/v1/chat/completions",axum::routing::post(
+            move |axum::Json(body):axum::Json<serde_json::Value>| {
+                let captured=std::sync::Arc::clone(&captured);
+                async move {
+                    let planning=body["model"]=="local-goal-planner";
+                    captured.lock().unwrap().push(body);
+                    let answer=if planning { r#"{"steps":["按原验证要求修复实现","执行独立验证"]}"# } else { "已按修订步骤实现，等待命令门核验" };
+                    axum::Json(serde_json::json!({"id":"actual-goal-worker","object":"chat.completion",
+                        "model":if planning {"local-goal-planner"} else {"local-goal-implementer"},
+                        "choices":[{"index":0,"message":{"role":"assistant","content":answer},"finish_reason":"stop"}],
+                        "usage":{"prompt_tokens":7,"completion_tokens":4,"total_tokens":11}}))
+                }
+            }));
+        let listener=tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address=listener.local_addr().unwrap();
+        let server=tokio::spawn(async move {axum::serve(listener,router).await.unwrap();});
+        let workspace=super::workspace_identity(temp.path());
+        let (mut store,context)=token_finalizer_fixture_with_role(&temp,&workspace,"implementer");
+        store.record_goal_phase_model_result_at_path_with_claim(&context.db_path,&workspace,
+            &context.goal_id,&context.phase_id,&context.run_id,&context.claim_token,&context.agent,
+            token_finalizer_response("BLOCKED: revise execution steps"),Vec::new(),Vec::new()).unwrap();
+        for session in &mut store.state.sessions {
+            if matches!(session.id.as_str(),"goal-planner"|"goal-implementer") {
+                session.provider="Custom".into();
+                session.model=if session.id=="goal-planner" {"local-goal-planner"} else {"local-goal-implementer"}.into();
+                session.base_url=Some(format!("http://{address}/v1"));
+                session.endpoint=None;
+                session.api_key_ref=String::new();
+            }
+        }
+        store.save().unwrap();
+        let marker=temp.path().join("actual-verification-command.txt");
+        let verification=serde_json::json!({"type":"Command","cwd":temp.path(),"timeout_ms":30_000,
+            "commands":[format!("Set-Content -LiteralPath '{}' -Value 'executed'",marker.display().to_string().replace('\'',"''"))]});
+        super::open_session_connection(&context.db_path).unwrap().execute(
+            "UPDATE goal_phases SET verification_json=?1 WHERE goal_id=?2 AND id=?3",
+            super::params![verification.to_string(),&context.goal_id,&context.phase_id]).unwrap();
+        let goal=super::get_goal_sqlite(&context.db_path,&workspace,&context.goal_id).unwrap();
+        let phase=goal.phases.iter().find(|phase|phase.id==context.phase_id).unwrap();
+        super::claim_goal_phase_for_dispatch(&context.db_path,&workspace,&context.goal_id,"room-dispatch",
+            phase,"goal-planner","base","actual-worker-planning",false).unwrap().unwrap();
+        let previous=std::mem::replace(&mut *super::session_store().lock().unwrap(),store);
+        let _store=SessionStoreTestGuard {previous:Some(previous),_temp:temp};
+        let planned=tokio::time::timeout(std::time::Duration::from_secs(30),
+            super::run_goal_phase_once(&workspace,&context.goal_id,&context.phase_id,&context.db_path)).await.unwrap().unwrap();
+        assert!(!marker.exists(),"实际规划worker不得执行原验证命令");
+        let phase=planned.status.goal.phases.iter().find(|phase|phase.id==context.phase_id).unwrap();
+        assert_eq!(phase.status,"pending");
+        assert_eq!(phase.retry_count,1);
+        {
+            let requests=bodies.lock().unwrap();
+            assert_eq!(requests.len(),1,"实际规划模型应恰好调用一次");
+            let tools=requests[0]["tools"].as_array().unwrap();
+            assert!(tools.iter().any(|tool|tool["function"]["name"]=="read_file"));
+            assert!(!tools.iter().any(|tool|matches!(tool["function"]["name"].as_str(),Some("write_file"|"Agent"))));
+        }
+        super::claim_goal_phase_for_dispatch(&context.db_path,&workspace,&context.goal_id,"room-dispatch",
+            phase,"goal-implementer","base","actual-worker-execution",false).unwrap().unwrap();
+        let executed=tokio::time::timeout(std::time::Duration::from_secs(30),
+            super::run_goal_phase_once(&workspace,&context.goal_id,&context.phase_id,&context.db_path)).await.unwrap().unwrap();
+        assert!(marker.exists(),"原执行worker仍须实际执行同一验证命令");
+        assert_eq!(executed.status.goal.phases.iter().find(|phase|phase.id==context.phase_id).unwrap().status,"completed");
+        assert_eq!(bodies.lock().unwrap().len(),2);
+        server.abort();
+    }
+
+    #[test]
+    fn goal_phase_token_finalizer_user_pause_is_not_resumed_by_late_blocked_reply() {
+        let temp=tempfile::tempdir().unwrap();
+        let workspace="ws-user-paused-recovery";
+        let (mut store,context)=token_finalizer_fixture_with_role(&temp,workspace,"implementer");
+        super::pause_goal_sqlite(&context.db_path,workspace,&context.goal_id).unwrap();
+        let result=store.record_goal_phase_model_result_at_path_with_claim(&context.db_path,workspace,
+            &context.goal_id,&context.phase_id,&context.run_id,&context.claim_token,&context.agent,
+            token_finalizer_response("BLOCKED: late reply must not restart the goal"),Vec::new(),Vec::new()).unwrap();
+        assert_eq!(result.status.goal.status,"paused");
+        assert!(result.messages.is_empty());
+        assert!(!result.memory_eligible);
+        let phase=result.status.goal.phases.iter().find(|phase|phase.id==context.phase_id).unwrap();
+        assert_eq!(phase.retry_count,0,"暂停先赢不能把迟到回答记为新失败");
+        assert!(super::claim_goal_phase_for_dispatch(&context.db_path,workspace,&context.goal_id,
+            "room-dispatch",phase,&context.agent.id,"base","user-paused",false).unwrap().is_none());
+        assert_eq!(super::query_runtime_run_sqlite(&context.db_path,&context.run_id).unwrap().unwrap().state,"interrupted");
+    }
+
+    #[test]
+    fn goal_phase_token_finalizer_missing_planner_cannot_claim_original_session() {
+        let temp=tempfile::tempdir().unwrap();
+        let workspace="ws-missing-recovery-role";
+        let (mut store,context)=token_finalizer_fixture_with_role(&temp,workspace,"implementer");
+        store.record_goal_phase_model_result_at_path_with_claim(&context.db_path,workspace,
+            &context.goal_id,&context.phase_id,&context.run_id,&context.claim_token,&context.agent,
+            token_finalizer_response("BLOCKED: needs replanning"),Vec::new(),Vec::new()).unwrap();
+        let connection=super::open_session_connection(&context.db_path).unwrap();
+        connection.execute("DELETE FROM goal_role_configs WHERE session_id='goal-planner'",[]).unwrap();
+        let before:i64=connection.query_row("SELECT COUNT(*) FROM runtime_runs",[],|row|row.get(0)).unwrap();
+        let goal=super::get_goal_sqlite(&context.db_path,workspace,&context.goal_id).unwrap();
+        let phase=goal.phases.iter().find(|phase|phase.id==context.phase_id).unwrap();
+        assert!(phase.assigned_session_id.is_none());
+        assert!(!phase.assigned_session_available);
+        assert!(super::claim_goal_phase_for_dispatch(&context.db_path,workspace,&context.goal_id,
+            "room-dispatch",phase,&context.agent.id,"base","missing-planner",false).unwrap().is_none());
+        let after:i64=connection.query_row("SELECT COUNT(*) FROM runtime_runs",[],|row|row.get(0)).unwrap();
+        assert_eq!(before,after,"缺目标不能创建错误会话的accepted run");
+    }
+
+    #[test]
+    fn goal_phase_token_finalizer_replanning_preserves_original_failure_and_budget() {
+        // 仅验证规划提交事务；真实planner会话选择与模型执行另行验收。
         let temp=tempfile::tempdir().expect("tempdir");
         let (mut store,context)=token_finalizer_fixture_with_role(&temp,"ws-route-plan-only","implementer");
         store.record_goal_phase_model_result_at_path_with_claim(
@@ -69136,15 +69488,16 @@ attach: last_assistant
             &context.run_id,&context.claim_token,&context.agent,
             token_finalizer_response("BLOCKED: execution requires a revised plan"),Vec::new(),Vec::new()
         ).expect("blocked result");
-        super::resume_goal_sqlite(&context.db_path,"ws-route-plan-only",&context.goal_id).expect("resume");
         let goal=super::get_goal_sqlite(&context.db_path,"ws-route-plan-only",&context.goal_id).expect("goal");
         let phase=goal.phases.iter().find(|p|p.id==context.phase_id).unwrap();
         assert_eq!(phase.route_hint.as_deref(),Some("planner"));
         let claim=super::claim_goal_phase_for_dispatch(
             &context.db_path,"ws-route-plan-only",&context.goal_id,"room-dispatch",phase,
-            &context.agent.id,"base","plan-only-counterexample",false
+            "goal-planner","base","plan-only-counterexample",false
         ).expect("claim query").expect("claim");
         let next=store.prepare_goal_phase_run_context("ws-route-plan-only",&context.goal_id,&context.phase_id).expect("prepare");
+        assert!(next.prompt.contains("返回严格JSON对象"));
+        assert!(!next.prompt.contains("call write_file/edit_file/PowerShell/bash"));
         let result=store.record_goal_phase_model_result_at_path_with_claim(
             &context.db_path,"ws-route-plan-only",&context.goal_id,&context.phase_id,
             &claim.run_id,&next.claim_token,&next.agent,
@@ -69152,9 +69505,21 @@ attach: last_assistant
             Vec::new(),Vec::new()
         ).expect("plan-only response");
         let phase=result.status.goal.phases.iter().find(|p|p.id==context.phase_id).unwrap();
-        assert_eq!(phase.status,"completed","已知缺口：仅规划回答进入原阶段完成分支");
-        assert_eq!(phase.last_verdict.as_deref(),Some("pass"));
+        assert_eq!(phase.status,"pending","规划不能完成原执行阶段");
+        assert_eq!(phase.last_verdict.as_deref(),Some("fail"));
         assert_eq!(phase.retry_count,1);
+        assert_eq!(phase.route_hint.as_deref(),Some("implementer"));
+        assert!(phase.last_reason.as_deref().unwrap().contains("execution requires a revised plan"));
+        let evidence=phase.last_evidence.as_ref().unwrap();
+        assert!(evidence.get("blocked_reason").is_some());
+        assert_eq!(evidence["revised_plan"]["steps"].as_array().unwrap().len(),3);
+        assert!(!result.memory_eligible);
+        assert!(phase.active_run_id.is_none());
+        assert_eq!(super::query_runtime_run_sqlite(&context.db_path,&claim.run_id).unwrap().unwrap().state,"completed");
+        assert!(!result.status.goal.recent_events.iter().any(|event|event.event_type=="phase-completed"));
+        let execution_prompt=super::goal_phase_run_prompt(&result.status.goal,phase);
+        assert!(execution_prompt.contains("implement revised changes"),"执行prompt应读取持久修订步骤");
+        assert!(execution_prompt.contains("Execute only this phase"));
     }
 
     #[test]
@@ -69176,6 +69541,25 @@ attach: last_assistant
         assert!(prompt.contains("retry 2/4"));
         assert!(prompt.contains("durable evidence"));
         assert!(!prompt.contains("first attempt"));
+    }
+
+    #[test]
+    fn goal_phase_token_finalizer_rejects_changed_stage_in_same_session() {
+        let temp = tempfile::tempdir().unwrap();
+        let (mut store, context) = token_finalizer_fixture_with_role(&temp, "ws-stage-drift", "implementer");
+        let connection = super::open_session_connection(&context.db_path).unwrap();
+        let before: i64 = connection.query_row("SELECT COUNT(*) FROM chat_room_messages WHERE room_id='room-dispatch'", [], |row| row.get(0)).unwrap();
+        connection.execute("UPDATE goal_phases SET route_hint='planner' WHERE goal_id=?1 AND id=?2",
+            super::params![&context.goal_id, &context.phase_id]).unwrap();
+        let error = store.record_goal_phase_model_result_at_path_with_claim(
+            &context.db_path, "ws-stage-drift", &context.goal_id, &context.phase_id,
+            &context.run_id, &context.claim_token, &context.agent,
+            token_finalizer_response("must not commit after stage drift"), Vec::new(), Vec::new(),
+        ).expect_err("相同session不能掩盖阶段身份变化");
+        assert_eq!(error.0, super::StatusCode::CONFLICT);
+        let after: i64 = connection.query_row("SELECT COUNT(*) FROM chat_room_messages WHERE room_id='room-dispatch'", [], |row| row.get(0)).unwrap();
+        assert_eq!(before, after);
+        assert_eq!(super::query_runtime_run_sqlite(&context.db_path, &context.run_id).unwrap().unwrap().state, "running");
     }
 
     #[test]
