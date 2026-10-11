@@ -151,3 +151,6 @@ StagePin未接入模块补capture/matches：原角色、route、retry、verdict�
 
 
 0.1声明根junction边界：真实临时junction专项先exit1复现根目录会追随外部目标。Get-SourceSnapshotEntries现对声明根自身重解析点登记而不追随，并写missing_roots使现有roots完整性门禁拒绝；allow_reparse_points不能放行根。修后专项PS5.1/PS7各通过，26628完整身份回归81通过0失败。原字节证据docs/testing/source-snapshot-root-junction，反例保留。只改脚本无需Rust重新编译；中间层路径链接、子链接显式放行、并发替换及不可变快照仍开放，不代替正式模型/安装/32WBS交付。
+
+
+0.1声明根中间层与越界修补：真实linked/nested反例先exit1；现在逐层检查仓库内祖先junction，登记并标范围不完整；规范化根路径要求位于仓库内且拒绝绝对根/../outside。缺失嵌套根保持missing_roots报告，普通本地嵌套根可枚举。77873期间调整检查顺序，虽exit0只留中间证据；最终源码2019整包身份回归81通过0失败，5项边界专项PS5.1/PS7均通过。原字节证据docs/testing/source-snapshot-root-ancestor。仅脚本修改；显式子链接放行、并发链接替换、仓库祖先链接及完整不可变快照仍开放，不证明正式模型、安装/CI/32WBS交付。

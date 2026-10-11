@@ -403,7 +403,24 @@ function Get-SourceSnapshotEntries {
   $stack = [System.Collections.Generic.Stack[object]]::new()
   foreach ($root in @($Scope.roots)) {
     $full = [System.IO.Path]::GetFullPath((Join-Path $repoFull $root))
+    $comparison = $(if ([IO.Path]::DirectorySeparatorChar -eq '\') { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal })
+    if ([IO.Path]::IsPathRooted($root) -or (-not $full.Equals($repoFull, $comparison) -and -not $full.StartsWith($repoFull + [IO.Path]::DirectorySeparatorChar, $comparison))) {
+      throw (New-IdentityFailureException -Category 'SOURCE-SNAPSHOT-SCOPE-INVALID' -Detail '声明源码根必须位于仓库路径内' -Remediation '外部依赖须独立登记，不得冒充本地源码根')
+    }
     if (-not (Test-Path -LiteralPath $full)) {
+      $missingRoots.Add($root)
+      continue
+    }
+    # 根自身的检查不足以识别 linked/subdir；逐层检查仓库内的祖先，禁止跳入链接目标。
+    $ancestor = [IO.Directory]::GetParent($full)
+    $linkedAncestor = $null
+    while ($ancestor -and $ancestor.FullName.StartsWith($repoFull + [IO.Path]::DirectorySeparatorChar, $comparison)) {
+      $ancestorItem = Get-Item -LiteralPath $ancestor.FullName -Force -ErrorAction Stop
+      if (($ancestorItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { $linkedAncestor = $ancestorItem; break }
+      $ancestor = $ancestor.Parent
+    }
+    if ($linkedAncestor) {
+      $reparse.Add([pscustomobject]@{path=$root;kind='directory';handling='not-followed-registered-only'})
       $missingRoots.Add($root)
       continue
     }

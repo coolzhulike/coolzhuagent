@@ -1,0 +1,3 @@
+PASS：声明根junction登记而不追随，即使allow_reparse_points放行仍不得进入外部文件
+PASS：声明根中间层junction不得追随
+PASS：声明根路径越界被拒绝

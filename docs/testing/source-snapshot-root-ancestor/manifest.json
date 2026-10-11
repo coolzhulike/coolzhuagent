@@ -1,0 +1,45 @@
+{
+  "baseline_commit": "237c5bf83b12410486c4be1df7d8525161917704",
+  "source_modified": true,
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "before_probe_exit": 1,
+  "interim_session": 77873,
+  "interim_not_final_evidence": "期间调整缺失根检查顺序；终态0但仅中间证据",
+  "final_session": 2019,
+  "final_exit": 0,
+  "package_cases": 81,
+  "failed": 0,
+  "boundary_cases_per_shell": 5,
+  "files": [
+    {
+      "name": "analysis-source-root-ancestor-before.txt",
+      "sha256": "ba31062f83ea61affdf60e7ab2638b6141ee22285c2e7af3eeada864c03c2bb5"
+    },
+    {
+      "name": "analysis-source-root-ancestor-final-ps51.txt",
+      "sha256": "559921b73df9fb6cb908ef233c553558ead7110ff9e611ea61ff6ff6318da5a6"
+    },
+    {
+      "name": "analysis-source-root-ancestor-final-ps7.txt",
+      "sha256": "559921b73df9fb6cb908ef233c553558ead7110ff9e611ea61ff6ff6318da5a6"
+    },
+    {
+      "name": "analysis-source-root-ancestor-final-regression.txt",
+      "sha256": "5205dd4c3a70b501048568825ae975498a3525dd101a4649a5c5439ff60c9175"
+    },
+    {
+      "name": "analysis-source-root-ancestor-ps51.txt",
+      "sha256": "48321673a9219ae11eb31b12c2864e2c98e14bba79a100fab4a2e0fff28fe8a3"
+    },
+    {
+      "name": "analysis-source-root-ancestor-ps7.txt",
+      "sha256": "48321673a9219ae11eb31b12c2864e2c98e14bba79a100fab4a2e0fff28fe8a3"
+    },
+    {
+      "name": "analysis-source-root-ancestor-regression.txt",
+      "sha256": "7a1f08c014dc97ecd465365c348a182fd52d8bccd46d1bef93338ec1e69df7ca"
+    }
+  ],
+  "limitations": "显式子链接放行、并发替换及完整不可变构建快照仍未闭环"
+}

@@ -1,0 +1,9 @@
+PASS：声明根junction登记而不追随，即使allow_reparse_points放行仍不得进入外部文件
+声明根中间层junction被追随
+At C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\scripts\test-source-snapshot-root-junction.p
+s1:22 char:3
++   throw '声明根中间层junction被追随'
++   ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (声明根中间层junction被追随:String) [], RuntimeException
+    + FullyQualifiedErrorId : 声明根中间层junction被追随
+ 
