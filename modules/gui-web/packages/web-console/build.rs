@@ -23,7 +23,13 @@ fn main() {
     }
     for path in paths {
         if let Some(resolved) = git(&root, &["rev-parse", "--path-format=absolute", "--git-path", &path]) {
-            println!("cargo:rerun-if-changed={resolved}");
+            // 不存在的文件会让 Cargo 永久判为过期；追踪现有父目录也能发现其创建。
+            let mut watched = std::path::Path::new(&resolved);
+            while !watched.exists() {
+                let Some(parent) = watched.parent() else { break };
+                watched = parent;
+            }
+            println!("cargo:rerun-if-changed={}", watched.display());
         }
     }
     let revision = git(&root, &["rev-parse", "--verify", "HEAD"])

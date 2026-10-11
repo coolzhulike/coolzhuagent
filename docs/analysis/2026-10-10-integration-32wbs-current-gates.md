@@ -108,3 +108,6 @@ Windows重定向REPL提示/审批缓冲混用已用独立生产入口测试先10
 
 
 0.1构建版本身份修复：普通构建原先在运行时查询Git HEAD，旧二进制可能随checkout提交变化而报告新版本。新增std-only build.rs编译时固定SHA，追踪工作树HEAD/实际分支引用/packed-refs与源码和显式环境；main移除运行时Git fallback，保留MSI显式SHA优先。23581正常build实际exit0；独立临时Git仓库的buildscript与实际生产函数探针通过，提交变化后旧二进制身份不变、下次构建读取新SHA、显式打包SHA优先。探针首两次脚本解析/边界错误已修正，不冒称首次通过。证据docs/testing/build-identity-compile-time。SHA仍仅来源参考，dirty源码、依赖/载荷/签名/完整不可变快照未闭环；本轮未重跑全crate测试或正式模型。
+
+
+0.1真实Cargo worktree补验：共享Git引用变化会重编译并固定新SHA，但51e1ea5首版追踪不存在packed-refs使无变更构建持续过期。已改为追踪最近存在父目录，缺失文件创建仍能触发；实际worktree无变更Fresh，创建packed-refs并变更提交后读取新SHA，再构建Fresh。首个fixture未声明独立workspace导致构建失败及缓存反例原日志均保留。50141正常web-console build实际exit0，原字节证据docs/testing/build-identity-cargo-worktree。上述不证明完整不可变源码快照/正式模型/正式安装或32WBS交付完成。
