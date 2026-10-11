@@ -47392,7 +47392,7 @@ fn finalize_goal_phase_result_sqlite(
 
     // pass：消息、pass verdict/evidence、phase 完成及 claim 清理、Goal 完成判定、
     // runtime terminal 和事件全部共用这笔事务。
-    if blocked_reason.is_none() && missing_artifacts.is_empty() && command_failures.is_empty() {
+    if !response.execution_failed && blocked_reason.is_none() && missing_artifacts.is_empty() && command_failures.is_empty() {
         let evidence_json = json!({ "text": evidence });
         insert_goal_phase_messages_transaction(&transaction, &session_id, &room_id, &base_messages)
             .map_err(sqlite_api_error)?;
@@ -47496,7 +47496,19 @@ fn finalize_goal_phase_result_sqlite(
         specific_event_type,
         specific_note,
         summary,
-    ) = if let Some(blocked_reason) = blocked_reason {
+    ) = if response.execution_failed {
+        // 模型/宿主运行失败不是验证通过，也不代表实现有缺陷；原接管角色重试。
+        let detail=response.diagnostic_note.as_deref().unwrap_or(&response.answer_text)
+            .chars().take(512).collect::<String>();
+        let reason=format!("model execution failed: {detail}");
+        let role=recovery_stage.routed_role(&phase.assigned_role);
+        let attempt=phase.retry_count.saturating_add(1);
+        (
+            reason.clone(),json!({"model_execution_failed":true,"detail":detail,"text":evidence.clone()}),
+            "running",false,role,"goal-phase-model-execution-failed",reason,
+            format!("阶段模型运行失败，累计失败{attempt}/{}，由当前角色{role}重试；超限仍交人工处理。",phase.max_retries),
+        )
+    } else if let Some(blocked_reason) = blocked_reason {
         let attempt = phase.retry_count.saturating_add(1);
         let will_block = attempt > phase.max_retries;
         let reason = format!("implementer blocked: {blocked_reason}");
@@ -69376,13 +69388,19 @@ attach: last_assistant
             move |axum::Json(body):axum::Json<serde_json::Value>| {
                 let captured=std::sync::Arc::clone(&captured);
                 async move {
+                    use axum::response::IntoResponse;
                     let planning=body["model"]=="local-goal-planner";
+                    let failing=body["model"]=="local-goal-http-error";
                     captured.lock().unwrap().push(body);
+                    if failing {
+                        return (axum::http::StatusCode::BAD_GATEWAY,
+                            axum::Json(serde_json::json!({"error":{"message":"本地验收模型明确失败"}}))).into_response();
+                    }
                     let answer=if planning { r#"{"steps":["按原验证要求修复实现","执行独立验证"]}"# } else { "已按修订步骤实现，等待命令门核验" };
                     axum::Json(serde_json::json!({"id":"actual-goal-worker","object":"chat.completion",
                         "model":if planning {"local-goal-planner"} else {"local-goal-implementer"},
                         "choices":[{"index":0,"message":{"role":"assistant","content":answer},"finish_reason":"stop"}],
-                        "usage":{"prompt_tokens":7,"completion_tokens":4,"total_tokens":11}}))
+                        "usage":{"prompt_tokens":7,"completion_tokens":4,"total_tokens":11}})).into_response()
                 }
             }));
         let listener=tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -69435,7 +69453,63 @@ attach: last_assistant
         assert!(marker.exists(),"原执行worker仍须实际执行同一验证命令");
         assert_eq!(executed.status.goal.phases.iter().find(|phase|phase.id==context.phase_id).unwrap().status,"completed");
         assert_eq!(bodies.lock().unwrap().len(),2);
+        // 独立新阶段无产物/命令要求，实际HTTP错误仍不得成为完成。
+        {
+            let mut store=super::session_store().lock().unwrap();
+            store.state.sessions.iter_mut().find(|session|session.id=="goal-implementer").unwrap()
+                .model="local-goal-http-error".into();
+            store.save().unwrap();
+        }
+        let error_goal=super::create_goal_sqlite(&context.db_path,&workspace,"room-dispatch",
+            super::CreateGoalRequest{title:"HTTP错误不能完成空阶段".into(),chat_room_id:Some("room-dispatch".into()),
+                max_iterations:Some(3),background:Some(false),originating_user_msg_id:None,completion_condition:None}).unwrap();
+        super::set_goal_plan_sqlite(&context.db_path,&workspace,&error_goal.id,super::GoalPlanRequest{
+            phases:vec![super::GoalPlanPhaseRequest{id:"http-error".into(),title:"调用失败模型".into(),
+                assigned_role:Some("implementer".into()),depends_on:Vec::new(),skills_required:Vec::new(),
+                output_artifacts:Vec::new(),verification:None,requires_human_ack:false}],
+        }).unwrap();
+        let fresh=super::get_goal_sqlite(&context.db_path,&workspace,&error_goal.id).unwrap();
+        let claim=super::claim_goal_phase_for_dispatch(&context.db_path,&workspace,&error_goal.id,"room-dispatch",
+            &fresh.phases[0],"goal-implementer","base","actual-http-error",false).unwrap().unwrap();
+        let failed=tokio::time::timeout(std::time::Duration::from_secs(30),
+            super::run_goal_phase_once(&workspace,&error_goal.id,"http-error",&context.db_path)).await.unwrap().unwrap();
+        let phase=&failed.status.goal.phases[0];
+        assert_ne!(phase.status,"completed");
+        assert_eq!(phase.last_verdict.as_deref(),Some("fail"));
+        assert_eq!(phase.retry_count,1);
+        assert_eq!(phase.last_evidence.as_ref().unwrap()["model_execution_failed"],true);
+        assert_eq!(super::query_runtime_run_sqlite(&context.db_path,&claim.run_id).unwrap().unwrap().state,"failed");
+        assert!(!failed.status.goal.recent_events.iter().any(|event|event.event_type=="phase-completed"));
+        assert!(bodies.lock().unwrap().iter().any(|body|body["model"]=="local-goal-http-error"),
+            "须证实失败模型请求确实到达HTTP端点");
         server.abort();
+    }
+
+    #[test]
+    fn goal_phase_token_finalizer_failed_model_cannot_complete_empty_requirements() {
+        for role in ["planner","implementer","verifier"] {
+            let temp=tempfile::tempdir().unwrap();
+            let workspace=format!("ws-failed-model-{role}");
+            let (mut store,context)=token_finalizer_fixture_with_role(&temp,&workspace,role);
+            let mut response=token_finalizer_response("完成");
+            response.execution_failed=true;
+            response.diagnostic_note=Some("真实模型请求失败".into());
+            let failed=store.record_goal_phase_model_result_at_path_with_claim(&context.db_path,&workspace,
+                &context.goal_id,&context.phase_id,&context.run_id,&context.claim_token,&context.agent,
+                response,Vec::new(),Vec::new()).unwrap();
+            let phase=failed.status.goal.phases.iter().find(|phase|phase.id==context.phase_id).unwrap();
+            assert_eq!(phase.status,"running","{role}模型失败不能完成空验证阶段");
+            assert_eq!(phase.last_verdict.as_deref(),Some("fail"));
+            assert_eq!(phase.retry_count,1);
+            assert_eq!(phase.route_hint.as_deref(),Some(role));
+            assert_eq!(phase.last_evidence.as_ref().unwrap()["model_execution_failed"],true);
+            assert!(!failed.memory_eligible);
+            assert_eq!(super::query_runtime_run_sqlite(&context.db_path,&context.run_id).unwrap().unwrap().state,"failed");
+            assert!(!failed.status.goal.recent_events.iter().any(|event|event.event_type=="phase-completed"));
+            let retry=store.prepare_goal_phase_run_context(&workspace,&context.goal_id,&context.phase_id).unwrap();
+            assert_eq!(retry.agent.id,context.agent.id);
+            assert_ne!(retry.run_id,context.run_id);
+        }
     }
 
     #[test]

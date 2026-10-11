@@ -126,3 +126,13 @@ StagePin未接入模块补capture/matches：原角色、route、retry、verdict�
 87447实际exit0：正常build28.53s；实际worker HTTP专项1通过0失败1477过滤1.36s。planner实际HTTP工具目录包含read_file且无write_file/Agent，1次规划请求，原Command标记不存在；后续impl实际HTTP执行同一验证Command，标记存在且原phase completed，总2模型请求。真实worker/适配器/命令效果通过，仍不等于正式SWE模型、所有handoff交付或完整32WBS验收。
 
 56574实际exit0：Goal范围扩大回归157通过0失败1321过滤16.28s，包含现有角色映射、claim/恢复、停止预算、手工legacy入口、前端连接静态断言及新实际worker HTTP专项。该范围是当前源码的Goal回归，不替代真实正式模型、其他WBS或完整全crate测试；后续需要源码快照/交付与全量门禁。
+
+5934e64之后新缺口复核：token finalizer普通pass未检查response.execution_failed，因此无产物/命令要求时模型失败可完成阶段。生产pass新增!execution_failed；明确模型失败分支记录model_execution_failed/detail及当前实际角色重试，不把verifier模型失败误路由impl修复，累计预算/上限仍由原事务处理。新增实际SQLite三角色夹具，回答文本完成但authority execution_failed=true，要求phase running/fail/retry1、run failed、no phase-completed/no memoryeligible，下一prepare同角色新run。71193正常build与扩大Goal范围执行中，未计通过。实际HTTP错误端点及正式模型仍待专项/验收。
+
+71193实际exit0：正常build55.76s，扩大Goal158通过0失败1321过滤16.15s。三角色execution_failed即使回答完成也不得提交pass；phase fail预算1、同角色新prepare/run与零完成事件通过。现有实际worker HTTP成功规划/执行与157范围保留通过。实际HTTP错误响应、unknown副作用处理、正式SWE模型与全32WBS门禁仍未完成。
+
+实际HTTP错误专项扩展：既有worker规划/执行对照后，新建独立无产物/验证阶段，模型会话指向local-goal-http-error，本地端点真实返回502；调用原run_goal_phase_once，要求phase非completed、fail/retry1、model_execution_failed证据、runtime failed、无phase-completed并实际HTTP请求到达。保留成功规划命令跳过/执行命令实际运行断言。31004正常build+goal_worker_http执行中，未计通过，不替代正式模型验收。
+
+31004实际exit0：正常build28.47s；实际HTTP worker专项1通过0失败1478过滤2.53s，包含真实502端点请求到达、独立空要求阶段不完成/失败证据预算1/run failed，以及原成功规划/执行验证命令对照。真实错误从适配器到worker/finalizer传播通过；正式SWE模型与全32WBS门禁仍未完成。
+
+36999实际exit0：最新HTTP错误扩展后扩大Goal158通过0失败1321过滤17.25s，原三角色失败、规划修复链、暂停/预算、worker对照与现有Goal回归保留通过。准备保存独立源码/原始证据集成提交，未声明source immutable snapshot或正式模型通过。

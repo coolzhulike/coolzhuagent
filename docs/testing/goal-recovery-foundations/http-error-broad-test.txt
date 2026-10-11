@@ -1,0 +1,701 @@
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+warning: duplicated attribute
+    --> modules\gui-web\packages\web-console\src\computer_use_planner.rs:2169:5
+     |
+2169 |     #[test]
+     |     ^^^^^^^
+     |
+     = note: `#[warn(duplicate_macro_attributes)]` on by default
+
+warning: unused import: `RelativeAnchor`
+   --> modules\gui-web\packages\web-console\src\main.rs:195:43
+    |
+195 |     InteractionScenario, MouseActionKind, RelativeAnchor, ResolutionCase, UiTargetKind,
+    |                                           ^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> modules\gui-web\packages\web-console\src\lsp_host.rs:480:9
+    |
+480 |     let mut stdout = child
+    |         ----^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable pattern
+     --> modules\gui-web\packages\web-console\src\main.rs:16309:9
+      |
+16309 |         _ => Err(ClawbotRuntimeCommandError::new(
+      |         ^ no value can reach this
+      |
+note: multiple earlier patterns match some of the same values
+     --> modules\gui-web\packages\web-console\src\main.rs:16309:9
+      |
+15986 |         clawbot_channel::ClawbotCommand::Help { .. } => {
+      |         -------------------------------------------- matches some of the same values
+...
+15997 |         clawbot_channel::ClawbotCommand::Unknown { input } => Err(ClawbotRuntimeCommandError::new(
+      |         -------------------------------------------------- matches some of the same values
+...
+16001 |         clawbot_channel::ClawbotCommand::Status => Ok(clawbot_runtime_command_ok(
+      |         --------------------------------------- matches some of the same values
+...
+16004 |         clawbot_channel::ClawbotCommand::ListRooms => {
+      |         ------------------------------------------ matches some of the same values
+...
+16309 |         _ => Err(ClawbotRuntimeCommandError::new(
+      |         ^ ...and 8 other patterns collectively make this unreachable
+      = note: `#[warn(unreachable_patterns)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `diagnostic_note` is never read
+     --> modules\gui-web\packages\web-console\src\main.rs:19482:25
+      |
+19482 |                         diagnostic_note = Some(error.to_string());
+      |                         ^^^^^^^^^^^^^^^
+      |
+      = help: maybe it is overwritten before being read?
+      = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `diagnostic_note` is never read
+     --> modules\gui-web\packages\web-console\src\main.rs:19430:21
+      |
+19430 |                     diagnostic_note = Some("流式上下文缺失，工具请求未执行".to_string());
+      |                     ^^^^^^^^^^^^^^^
+      |
+      = help: maybe it is overwritten before being read?
+
+warning: unused variable: `coordination_scope`
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2112:9
+     |
+2112 |         coordination_scope: &str,
+     |         ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_coordination_scope`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `scope`
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2909:13
+     |
+2909 |         let scope = scope();
+     |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_scope`
+
+warning: unused variable: `timeout`
+     --> modules\gui-web\packages\web-console\src\main.rs:36405:17
+      |
+36405 |             let timeout = Duration::from_secs(8);
+      |                 ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_timeout`
+
+warning: unused variable: `room`
+     --> modules\gui-web\packages\web-console\src\main.rs:40169:18
+      |
+40169 |         let Some(room) = self.state.chat_rooms.iter().find(|room| room.id == room_id) else {
+      |                  ^^^^ help: if this is intentional, prefix it with an underscore: `_room`
+
+warning: unused variable: `is_active`
+     --> modules\gui-web\packages\web-console\src\main.rs:41286:13
+      |
+41286 |         let is_active = self.is_active(session_id);
+      |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_is_active`
+
+warning: variable does not need to be mutable
+     --> modules\gui-web\packages\web-console\src\main.rs:62093:17
+      |
+62093 |             let mut create = |call_id: &str, created_at: u64| {
+      |                 ----^^^^^^
+      |                 |
+      |                 help: remove this `mut`
+
+warning: associated function `new` is never used
+   --> modules\gui-web\packages\web-console\src\main.rs:877:8
+    |
+876 | impl ChatTurnGuard {
+    | ------------------ associated function in this implementation
+877 |     fn new(turn_id: String) -> Self {
+    |        ^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `operator_authorization_available` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:2913:4
+     |
+2913 | fn operator_authorization_available() -> bool {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `RELEASE_REQUIRES_VERIFIED_OPERATOR` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:2918:7
+     |
+2918 | const RELEASE_REQUIRES_VERIFIED_OPERATOR: &str = "需要已登记的桌面控制台完成原生确认；普通浏览器不得凭署名放行，本次未记录放行决定...
+     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `configured_default_workspace_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:3510:4
+     |
+3510 | fn configured_default_workspace_path() -> PathBuf {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `env_truthy` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:3664:4
+     |
+3664 | fn env_truthy(name: &str) -> bool {
+     |    ^^^^^^^^^^
+
+warning: function `reload_workspace_config` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8659:4
+     |
+8659 | fn reload_workspace_config() {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_session_db_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8682:4
+     |
+8682 | fn config_session_db_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_session_json_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8686:4
+     |
+8686 | fn config_session_json_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_attachment_store_dir` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8690:4
+     |
+8690 | fn config_attachment_store_dir() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_pet_exe_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8736:4
+     |
+8736 | fn config_pet_exe_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `default_reasoning_model` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:27325:4
+      |
+27325 | fn default_reasoning_model() -> String {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `opencode_master_project_path` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:27382:4
+      |
+27382 | fn opencode_master_project_path() -> Option<String> {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `dispatch_model_tool_calls_parallel_with_cancel` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:27753:10
+      |
+27753 | async fn dispatch_model_tool_calls_parallel_with_cancel(
+      |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `effective_model_limit_for` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:29146:4
+      |
+29146 | fn effective_model_limit_for(session_id: &str, model: &str) -> (u32, u32) {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `context_build_options_for_agent_with_floor` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:29204:4
+      |
+29204 | fn context_build_options_for_agent_with_floor(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:32739:4
+      |
+32739 | fn agent_message_request(agent: &AgentSessionDto, prompt: &str, stream: bool) -> MessageRequest {
+      |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_with_images` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:32743:4
+      |
+32743 | fn agent_message_request_with_images(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_with_context_messages` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:32797:4
+      |
+32797 | fn agent_message_request_with_context_messages(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `llm_tool_definitions_for_room` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:34018:4
+      |
+34018 | fn llm_tool_definitions_for_room(chat_room_id: Option<&str>) -> Option<Vec<ToolDefinition>> {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `run_chat_handoff_tool_dispatch` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:35168:10
+      |
+35168 | async fn run_chat_handoff_tool_dispatch(input: &JsonValue) -> ApiResult<ToolDispatchResponse> {
+      |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `invoke_through_runtime` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:35556:10
+      |
+35556 | async fn invoke_through_runtime(name: &str, input: &JsonValue) -> ToolOutcome {
+      |          ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `normalize` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:37512:8
+      |
+37511 | impl SessionStoreCapacity {
+      | ------------------------- method in this implementation
+37512 |     fn normalize(&mut self) {
+      |        ^^^^^^^^^
+
+warning: function `mark_goal_loop_progress` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:45639:4
+      |
+45639 | fn mark_goal_loop_progress(goal_id: &str, completed_steps: usize) {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `objects` is never read
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:112:9
+    |
+108 | pub struct PreparedPackage {
+    |            --------------- field in this struct
+...
+112 |     pub objects: Vec<SourceObject>,
+    |         ^^^^^^^
+
+warning: function `enable_installed` is never used
+ --> modules\gui-web\packages\web-console\src\dsh_activation_host.rs:9:8
+  |
+9 | pub fn enable_installed(
+  |        ^^^^^^^^^^^^^^^^
+
+warning: function `enable_verified` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_activation_host.rs:20:8
+   |
+20 | pub fn enable_verified(
+   |        ^^^^^^^^^^^^^^^
+
+warning: field `server_info` is never read
+   --> modules\gui-web\packages\web-console\src\mcp_host.rs:121:5
+    |
+118 | struct McpConnection {
+    |        ------------- field in this struct
+...
+121 |     server_info: JsonValue,
+    |     ^^^^^^^^^^^
+
+warning: constant `BROWSER_BRIDGE_HOST_NAME` is never used
+ --> modules\gui-web\packages\web-console\src\browser_bridge_protocol.rs:4:11
+  |
+4 | pub const BROWSER_BRIDGE_HOST_NAME: &str = "com.coolzhu.agent.browser_bridge";
+  |           ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `BROWSER_EXTENSION_ID` is never used
+ --> modules\gui-web\packages\web-console\src\browser_bridge_protocol.rs:5:11
+  |
+5 | pub const BROWSER_EXTENSION_ID: &str = "akpgmkdkaofanikngahmfbhddpppicfi";
+  |           ^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `mark_inbox_awaiting_approval` and `mark_inbox_cancelled` are never used
+   --> modules\gui-web\packages\web-console\src\clawbot_gateway.rs:763:12
+    |
+376 | impl ClawbotGatewayStore {
+    | ------------------------ methods in this implementation
+...
+763 |     pub fn mark_inbox_awaiting_approval(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+828 |     pub fn mark_inbox_cancelled(
+    |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: method `is_applicable` is never used
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:65:18
+   |
+58 | impl MetricVerdict {
+   | ------------------ method in this implementation
+...
+65 |     pub const fn is_applicable(&self) -> bool {
+   |                  ^^^^^^^^^^^^^
+
+warning: function `input_dispatch_refusal_error` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_executor.rs:1885:4
+     |
+1885 | fn input_dispatch_refusal_error(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `parent_context` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_executor.rs:2847:8
+     |
+2847 |     fn parent_context(workspace_id: &str) -> Option<crate::FrozenParentContext> {
+     |        ^^^^^^^^^^^^^^
+
+warning: field `summary` is never read
+   --> modules\gui-web\packages\web-console\src\computer_use_planner.rs:158:16
+    |
+156 | pub(crate) struct ParsedPlannerResponse {
+    |                   --------------------- field in this struct
+157 |     pub(crate) action: Option<ComputerUseAction>,
+158 |     pub(crate) summary: Option<String>,
+    |                ^^^^^^^
+    |
+    = note: `ParsedPlannerResponse` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: function `plan_request_attempt_is_a_real_composite_key_and_never_fabricated` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_planner.rs:2361:8
+     |
+2361 |     fn plan_request_attempt_is_a_real_composite_key_and_never_fabricated() {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `continuation_allowed` and `as_str` are never used
+   --> modules\gui-web\packages\web-console\src\computer_use_store.rs:609:25
+    |
+604 | impl StoredLegacyRunControlState {
+    | -------------------------------- methods in this implementation
+...
+609 |     pub(crate) const fn continuation_allowed(self) -> bool {
+    |                         ^^^^^^^^^^^^^^^^^^^^
+...
+613 |     pub(crate) const fn as_str(self) -> &'static str {
+    |                         ^^^^^^
+
+warning: method `code` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_store.rs:689:25
+    |
+688 | impl LegacyRunConvergencePrecondition {
+    | ------------------------------------- method in this implementation
+689 |     pub(crate) const fn code(&self) -> &'static str {
+    |                         ^^^^
+
+warning: variants `Cli` and `Test` are never constructed
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1363:5
+     |
+1359 | pub(crate) enum ReleaseResolutionOperator {
+     |                 ------------------------- variants in this enum
+...
+1363 |     Cli,
+     |     ^^^
+1364 |     /// 测试。
+1365 |     Test,
+     |     ^^^^
+     |
+     = note: `ReleaseResolutionOperator` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `root` is never read
+   --> modules\gui-web\packages\web-console\src\input_safety_store.rs:214:5
+    |
+212 | pub(crate) struct InputSafetyStore {
+    |                   ---------------- field in this struct
+213 |     connection: Connection,
+214 |     root: PathBuf,
+    |     ^^^^
+
+warning: associated items `open_from_injection` and `root` are never used
+   --> modules\gui-web\packages\web-console\src\input_safety_store.rs:222:19
+    |
+220 | impl InputSafetyStore {
+    | --------------------- associated items in this implementation
+221 |     /// 按注入的根打开（未注入即 [`InputSafetyStoreError::RootNotInjected`]）。
+222 |     pub(crate) fn open_from_injection() -> Result<Self, InputSafetyStoreError> {
+    |                   ^^^^^^^^^^^^^^^^^^^
+...
+545 |     pub(crate) fn root(&self) -> &Path {
+    |                   ^^^^
+
+warning: methods `allowed_actions` and `allows_action` are never used
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:1991:19
+     |
+1969 | impl RecoveryControlGuard {
+     | ------------------------- methods in this implementation
+...
+1991 |     pub(crate) fn allowed_actions(&self) -> &[String] {
+     |                   ^^^^^^^^^^^^^^^
+...
+1997 |     pub(crate) fn allows_action(&self, action: &str) -> bool {
+     |                   ^^^^^^^^^^^^^
+
+warning: field `abandoned` is never read
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2013:5
+     |
+2007 | pub(crate) struct InputSafetyCoordinator {
+     |                   ---------------------- field in this struct
+...
+2013 |     abandoned: bool,
+     |     ^^^^^^^^^
+
+warning: method `observed_abandoned_lock` is never used
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2180:25
+     |
+2016 | impl InputSafetyCoordinator {
+     | --------------------------- method in this implementation
+...
+2180 |     pub(crate) const fn observed_abandoned_lock(&self) -> bool {
+     |                         ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `ScopeUnavailable` is never constructed
+  --> modules\gui-web\packages\web-console\src\input_permit_gate.rs:39:5
+   |
+35 | pub(crate) enum PermitGateRefusal {
+   |                 ----------------- variant in this enum
+...
+39 |     ScopeUnavailable { reason: String },
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: `PermitGateRefusal` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `observe_in_workspace` is never used
+  --> modules\gui-web\packages\web-console\src\request_usage.rs:25:15
+   |
+25 | pub(super) fn observe_in_workspace(
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: field `established_at_unix_ms` is never read
+  --> modules\gui-web\packages\web-console\src\root_execution_budget.rs:12:5
+   |
+11 | pub(crate) struct RootExecutionBudget {
+   |                   ------------------- field in this struct
+12 |     established_at_unix_ms: u64,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `RootExecutionBudget` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `established_at_unix_ms` is never used
+  --> modules\gui-web\packages\web-console\src\root_execution_budget.rs:59:19
+   |
+29 | impl RootExecutionBudget {
+   | ------------------------ method in this implementation
+...
+59 |     pub(crate) fn established_at_unix_ms(&self) -> u64 { self.established_at_unix_ms }
+   |                   ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `write_native_message` is never used
+  --> modules\gui-web\packages\web-console\src\native_message.rs:38:8
+   |
+38 | pub fn write_native_message<T: Serialize>(
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `ToolsWrite` is never constructed
+  --> modules\gui-web\packages\web-console\src\wechat_command.rs:56:5
+   |
+48 | pub enum WechatCapability {
+   |          ---------------- variant in this enum
+...
+56 |     ToolsWrite,
+   |     ^^^^^^^^^^
+   |
+   = note: `WechatCapability` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variant `Workspaces` is never constructed
+  --> modules\gui-web\packages\web-console\src\wechat_command_runtime.rs:13:5
+   |
+ 7 | pub enum WechatCatalogKind {
+   |          ----------------- variant in this enum
+...
+13 |     Workspaces,
+   |     ^^^^^^^^^^
+   |
+   = note: `WechatCatalogKind` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: `coolzhu-web-console` (bin "coolzhu-web-console" test) generated 62 warnings (run `cargo fix --bin "coolzhu-web-console" -p coolzhu-web-console --tests` to apply 8 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.44s
+     Running unittests src\lib.rs (tmp/cargo-target-integration\debug\deps\coolzhu_web_console-5dea7c0d5547cc80.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running unittests src\bin\browser_native_host.rs (tmp/cargo-target-integration\debug\deps\coolzhu_browser_native_host-c82f5f6cecc0d91f.exe)
+
+running 0 tests
+     Running unittests src\main.rs (tmp/cargo-target-integration\debug\deps\coolzhu_web_console-70a74eac7b15b5c6.exe)
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+
+running 158 tests
+test computer_use_desktop_bridge::tests::desktop_verifier_ignores_capture_metadata_and_requires_goal_evidence ... ok
+test computer_use_eval_corpus::tests::corpus_does_not_claim_goal_achievement ... ok
+test computer_use_turn_scope::tests::explicit_current_request_rejects_old_goal_even_on_the_same_browser ... ok
+test execution_service::tests::goal_binding_requires_claim_and_persisted_terminal_state ... ok
+test execution_service::tests::goal_cancel_persists_stop_and_ends_inflight_wait_without_completion ... ok
+test execution_service::tests::goal_wait_observes_durable_stop_and_claim_replacement_without_index_cancel ... ok
+test goal_command::tests::gate_exit_and_expired_root_use_the_same_managed_path ... ok
+test goal_command::tests::output_overflow_cannot_be_reported_as_successful_goal_verification ... ok
+test goal_phase_stage::tests::failure_routes_preserve_original_role_and_require_durable_failure ... ok
+test goal_phase_stage::tests::successful_recovery_stages_do_not_complete_original_verification ... ok
+test goal_replan::tests::revised_plan_preserves_only_bounded_steps ... ok
+test goal_replan::tests::revised_plan_rejects_ambiguous_or_wrapped_output ... ok
+test goal_stage_pin::tests::missing_duplicate_or_corrupted_stage_identity_is_rejected ... ok
+test goal_stage_pin::tests::stored_stage_requires_every_frozen_field_and_valid_retry_budget ... ok
+test host_child_agent::tests::goal_child_stops_on_phase_stop_and_rejects_lost_claim_before_tool_dispatch ... ok
+test host_child_agent::tests::goal_phase_pin_blocks_workspace_change_and_rejects_stale_workspace ... ok
+test native_browser_verification::tests::child_scroll_counts_as_progress_without_text_change_or_goal_success ... ok
+test tests::auto_memory_evaluator_skips_temporary_goal_messages ... ok
+test tests::blocked_phase_keeps_goal_unfinished ... ok
+test tests::chat_dispatch_prepares_goal_trigger_commander_and_non_vision_candidates ... ok
+test tests::clawbot_continue_and_stop_control_goal_in_bound_room ... ok
+test tests::clawbot_task_commands_list_and_resolve_goal_snapshot ... ok
+test tests::context_builder_skips_goal_scratch_messages_even_before_cleanup ... ok
+test tests::context_lifecycle_auto_compact_adds_memory_floor_and_removes_goal_scratch ... ok
+test tests::default_goal_trigger_plan_requests_html_artifact_for_html_goal ... ok
+test tests::delete_session_clears_memory_and_goal_role_config ... ok
+test tests::direct_goal_run_interrupt_wakes_only_matching_loop_and_chat_path_survives ... ok
+test tests::goal_cancel_running_requests_stop_atomically_and_late_result_is_interrupted ... ok
+test tests::goal_command_gate_detects_exit_code ... ok
+test tests::goal_commander_review_recommends_pause_for_missing_or_risky_phase_targets ... ok
+test tests::goal_commander_summary_is_temporary_persisted_chat_content ... ok
+test tests::goal_condition_validation_accepts_goal_command_gate_shape ... ok
+test tests::goal_condition_validation_marks_command_runtime_and_blocks_path_escape ... ok
+test tests::goal_dispatch_allows_same_session_to_hold_commander_and_phase_role ... ok
+test tests::goal_dispatch_ready_phase_creates_handoff_and_goal_event ... ok
+test tests::goal_dispatch_replanning_handoff_uses_actual_role_and_planning_contract ... ok
+test tests::goal_event_bus_broadcasts_goal_events_on_insert ... ok
+test tests::goal_g1_sqlite_crud_is_workspace_scoped_and_cancelable ... ok
+test tests::goal_iteration_budget_blocks_further_dispatch ... ok
+test tests::goal_loop_backend_records_start_stop_events_for_frontend_flow ... ok
+test tests::goal_loop_registry_records_running_and_stop_request ... ok
+test tests::goal_loop_stop_is_durable_idempotent_and_workspace_scoped ... ok
+test tests::goal_pause_running_requests_stop_and_late_result_needs_manual_reconcile ... ok
+test tests::goal_phase_active_claim_is_publicly_additive_and_blocks_mutations ... ok
+test tests::goal_phase_claim_rechecks_goal_and_phase_versions_inside_transaction ... ok
+test tests::goal_phase_completion_report_closes_loop_and_cleans_in_memory_overlay ... ok
+test tests::goal_phase_dispatch_claim_cas_creates_one_run_claim_and_event ... ok
+test tests::goal_phase_dispatch_failure_rolls_back_matching_claim_only ... ok
+test tests::goal_phase_dto_reads_and_serializes_routing_fields ... ok
+test tests::goal_phase_execution_accepted_budget_failure_terminalizes_matching_run ... ok
+test tests::goal_phase_execution_claim_starts_existing_accepted_run_once ... ok
+test tests::goal_phase_execution_entrypoints_use_captured_db_path_and_result_guard ... ok
+test tests::goal_phase_execution_legacy_budget_rolls_back_run_and_pauses_goal ... ok
+test tests::goal_phase_execution_legacy_running_claim_is_unique_and_reserves_once ... ok
+test tests::goal_phase_execution_rejects_missing_chat_room_before_persisting_claim ... ok
+test tests::goal_phase_execution_result_guard_rejects_workspace_db_path_drift ... ok
+test tests::goal_phase_files_exist_verification_keeps_phase_running_when_artifact_is_missing ... ok
+test tests::goal_phase_files_exist_verification_rejects_placeholder_html_artifact ... ok
+test tests::goal_phase_handoff_insert_error_keeps_inbound_claim_in_doubt ... ok
+test tests::goal_phase_legacy_result_entrypoint_rejects_active_claim ... ok
+test tests::goal_phase_prompt_instructs_roles_to_use_tools_for_artifacts_and_research ... ok
+test tests::goal_phase_rejected_handoff_removes_only_exact_overlay_before_failing_claim ... ok
+test tests::goal_phase_repeated_missing_artifact_pauses_without_creating_file ... ok
+test tests::goal_phase_result_uses_tool_summary_when_answer_is_empty ... ok
+test tests::goal_phase_retry_context_save_failure_keeps_claim_in_doubt_without_re_dispatch ... ok
+test tests::goal_phase_run_prompt_keeps_durable_retry_after_event_history_is_removed ... ok
+test tests::goal_phase_run_result_appends_assistant_message_and_completes_phase ... ok
+test tests::goal_phase_token_finalizer_blocked_replans_then_blocks_at_retry_limit ... ok
+test tests::goal_phase_token_finalizer_failed_model_cannot_complete_empty_requirements ... ok
+test tests::goal_phase_token_finalizer_missing_planner_cannot_claim_original_session ... ok
+test tests::goal_phase_token_finalizer_pass_is_one_transaction_and_clears_claim ... ok
+test tests::goal_phase_token_finalizer_path_drift_cleans_only_captured_db ... ok
+test tests::goal_phase_token_finalizer_path_drift_wrong_token_has_zero_side_effects ... ok
+test tests::goal_phase_token_finalizer_rejects_changed_stage_in_same_session ... ok
+test tests::goal_phase_token_finalizer_repair_returns_to_verifier_without_resetting_budget ... ok
+test tests::goal_phase_token_finalizer_replanning_preserves_original_failure_and_budget ... ok
+test tests::goal_phase_token_finalizer_result_first_then_interrupt_is_already_finished ... ok
+test tests::goal_phase_token_finalizer_retry_fails_run_clears_claim_for_new_run ... ok
+test tests::goal_phase_token_finalizer_stale_token_has_zero_result_side_effects ... ok
+test tests::goal_phase_token_finalizer_stop_first_completed_goal_reconciles_phase ... ok
+test tests::goal_phase_token_finalizer_stop_wins_without_result_message_or_verdict ... ok
+test tests::goal_phase_token_finalizer_transaction_failure_rolls_back_all_result_rows ... ok
+test tests::goal_phase_token_finalizer_user_pause_is_not_resumed_by_late_blocked_reply ... ok
+test tests::goal_plan_persists_phase_dag_and_rejects_cycles ... ok
+test tests::goal_plan_phase_ids_are_scoped_per_goal ... ok
+test tests::goal_plan_phases_prefer_user_configured_role_session_targets ... ok
+test tests::goal_plan_phases_resolve_assigned_role_to_bootstrapped_session ... ok
+test tests::goal_prepare_converges_accepted_stop_before_model_and_clears_claim ... ok
+test tests::goal_prepare_wrong_session_stop_keeps_accepted_claim_for_reconcile ... ok
+test tests::goal_role_bootstrap_creates_missing_role_sessions_with_template_memory ... ok
+test tests::goal_role_bulk_assignment_allows_one_session_to_hold_multiple_roles ... ok
+test tests::goal_role_bulk_assignment_keeps_one_session_per_core_role ... ok
+test tests::goal_role_bulk_assignment_rejects_vision_sessions ... ok
+test tests::goal_role_config_round_trips_and_reports_commander_health ... ok
+test tests::goal_role_heartbeat_refreshes_active_task_progress ... ok
+test tests::goal_role_response_excludes_unassigned_and_vision_sessions ... ok
+test tests::goal_role_risk_assessment_ignores_unassigned_stale_configs ... ok
+test tests::goal_role_risk_assessment_writes_deduped_goal_event ... ok
+test tests::goal_run_all_step_limit_clamps_request_value ... ok
+test tests::goal_runtime_has_no_debug_dispatch_gate ... ok
+test tests::goal_runtime_refresh_extends_role_heartbeat_lease ... ok
+test tests::goal_runtime_refreshes_configured_role_heartbeats_before_execution ... ok
+test tests::goal_skill_loader_merges_baseline_and_phase_skills_with_body_content ... ok
+test tests::goal_status_pause_resume_round_trips_and_writes_events ... ok
+test tests::goal_stop_events_and_responses_do_not_expose_claim_internals ... ok
+test tests::goal_stop_transaction_rolls_back_goal_and_run_when_event_append_fails ... ok
+test tests::goal_trigger_consultation_creates_goal_message_and_task ... ok
+test tests::goal_trigger_detects_chinese_goal_mode_html_request ... ok
+test tests::goal_trigger_detects_long_range_artifact_requests ... ok
+test tests::goal_trigger_overrides_commander_to_current_sender ... ok
+test tests::goal_trigger_with_configured_roles_seeds_serial_plan ... ok
+test tests::goal_worker_http_replanning_skips_command_and_execution_runs_it ... ok
+test tests::migration_v13_adds_goal_phase_routing_columns ... ok
+test tests::migration_v20_adds_goal_phase_claim_columns_idempotently_without_losing_rows ... ok
+test tests::next_runnable_goal_phase_selects_first_running_phase_in_plan_order ... ok
+test tests::resume_paused_goal_with_active_claim_returns_conflict ... ok
+test tests::resume_paused_goal_without_claim_updates_status_and_event ... ok
+test tests::resume_running_goal_with_active_claim_returns_conflict_without_mutation ... ok
+test tests::resume_running_goal_without_claim_remains_idempotent ... ok
+test tests::runtime_run_recovery_converges_matching_goal_phase_claims_and_is_idempotent ... ok
+test tests::runtime_run_recovery_keeps_mismatched_goal_claims_for_manual_reconcile ... ok
+test tests::runtime_run_recovery_preserves_goal_terminal_status_differences ... ok
+test tests::runtime_run_recovery_rolls_back_runtime_and_goal_rows_when_goal_event_fails ... ok
+test tests::runtime_run_recovery_rolls_back_runtime_and_goal_rows_when_runtime_event_fails ... ok
+test tests::scheduled_task_system_room_mirrors_goal_messages_preserving_ids_without_duplicates ... ok
+test tests::session_store_scrubs_stale_goal_temporary_memory ... ok
+test tests::set_goal_plan_normalizes_whitespace_phase_id_and_keeps_routing ... ok
+test tests::set_goal_plan_preserves_routing_state_across_replan ... ok
+test tests::web_frontend_auto_starts_chat_triggered_ready_goal_loop ... ok
+test tests::web_frontend_chat_send_refreshes_goals_after_goal_trigger ... ok
+test tests::web_frontend_goal_event_stream_covers_all_routing_events ... ok
+test tests::web_frontend_goal_event_stream_prefers_latest_active_goals ... ok
+test tests::web_frontend_goal_event_streams_are_limited_to_active_goals ... ok
+test tests::web_frontend_goal_event_streams_update_task_chain_and_finalize_chat ... ok
+test tests::web_frontend_goal_refresh_polling_keeps_task_card_synced ... ok
+test tests::web_frontend_goal_role_consultation_maps_sessions_before_goal_dispatch ... ok
+test tests::web_frontend_goal_row_can_confirm_roles_and_seed_plan ... ok
+test tests::web_frontend_overview_card_shows_active_goal_roles ... ok
+test tests::web_frontend_p6d_keeps_real_icons_empty_goal_state_and_seal_states ... ok
+test tests::web_frontend_scheduled_loop_supports_poll_and_goal_kinds ... ok
+test tests::web_frontend_settings_keeps_goal_roles_in_task_authorization_window ... ok
+test tests::web_frontend_settings_window_can_bootstrap_goal_role_sessions ... ok
+test tests::web_frontend_settings_window_connects_goal_role_config_api ... ok
+test tests::web_frontend_task_card_connects_goal_progress_api ... ok
+test tests::web_frontend_task_card_prefers_latest_goal_over_stale_pending ... ok
+test tests::web_frontend_task_card_uses_current_goal_scope_and_readable_elapsed_labels ... ok
+test tests::web_frontend_task_center_exposes_goal_creation_and_role_config ... ok
+test tests::web_frontend_task_todo_list_combines_goal_phases_and_runtime_lifecycle_tasks ... ok
+test tests::web_frontend_task_window_can_dispatch_ready_goal_phases ... ok
+test tests::web_frontend_task_window_can_pause_resume_and_query_goal_status ... ok
+test tests::web_frontend_task_window_can_request_goal_commander_review ... ok
+test tests::web_frontend_task_window_can_run_all_goal_phases ... ok
+test tests::web_frontend_task_window_can_run_goal_phase ... ok
+test tests::web_frontend_task_window_can_run_next_goal_phase ... ok
+test tests::web_frontend_task_window_can_start_stop_and_query_goal_loop ... ok
+test tests::web_frontend_task_window_has_goal_task_chain_popup ... ok
+test tests::web_frontend_task_window_shows_goal_phase_role_targets ... ok
+test tests::web_frontend_task_window_subscribes_to_goal_event_streams ... ok
+
+test result: ok. 158 passed; 0 failed; 0 ignored; 0 measured; 1321 filtered out; finished in 17.25s
+
