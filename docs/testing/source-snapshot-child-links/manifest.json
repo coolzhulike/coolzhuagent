@@ -1,0 +1,47 @@
+{
+  "baseline_commit": "314dfaa5b26ab5abb02b610911f2fd4809a79502",
+  "source_modified": true,
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "regression_session": 27603,
+  "regression_exit": 0,
+  "package_cases": 81,
+  "failed": 0,
+  "valid_boundary_cases_per_shell": 8,
+  "prior_invalid_fixture": "首个反例allow_reparse_points使用无效正则*而抛错，不算追随证明；valid-before以HEAD旧源码和有效^linked$证明外部文件被纳入",
+  "files": [
+    {
+      "name": "analysis-source-child-link-before.txt",
+      "sha256": "3bfd67c6614d1e5f80b80cbbf53afd1b023f33ed9c7decf3276b74b5bbdb3586"
+    },
+    {
+      "name": "analysis-source-child-link-final-ps51.txt",
+      "sha256": "a6a4b34399536327bd17a2b1c46e2b325d60a8c6b7cca444f83abb4b4ee3a0b1"
+    },
+    {
+      "name": "analysis-source-child-link-final-ps7.txt",
+      "sha256": "a6a4b34399536327bd17a2b1c46e2b325d60a8c6b7cca444f83abb4b4ee3a0b1"
+    },
+    {
+      "name": "analysis-source-child-link-final-regression.txt",
+      "sha256": "5296474d632fd1b5f9242db9b1865b42e6ec7fbdb2f142d8123e334e6b5a5bcc"
+    },
+    {
+      "name": "analysis-source-child-link-ps51.txt",
+      "sha256": "16791de627134be6efa7793ba9705994fe17493feb40dba1dad2a365b1784fe7"
+    },
+    {
+      "name": "analysis-source-child-link-valid-before.txt",
+      "sha256": "bebce23cc3c7d2e63ab45ed2a4f67907aae5e4ebaae1b513d3c42a2da0ac1d8f"
+    },
+    {
+      "name": "analysis-source-child-link-valid-ps51.txt",
+      "sha256": "a6a4b34399536327bd17a2b1c46e2b325d60a8c6b7cca444f83abb4b4ee3a0b1"
+    },
+    {
+      "name": "analysis-source-child-link-valid-ps7.txt",
+      "sha256": "a6a4b34399536327bd17a2b1c46e2b325d60a8c6b7cca444f83abb4b4ee3a0b1"
+    }
+  ],
+  "limitations": "受控链接追随尚未实现；目标锁定、并发替换、仓库祖先链接与完整不可变快照仍开放"
+}

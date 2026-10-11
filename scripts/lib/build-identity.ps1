@@ -383,7 +383,7 @@ function Get-SourceSnapshotScopeDescriptorLines {
     条目里记录的仍然是仓库相对路径，便于与清单/差异核对。
   * roots 本身受信（roots 是显式声明的边界）；排除规则只作用于其内部条目。
   * **不追随**重解析点（junction / symlink）：按裁决要求显式登记而不是无边界追随；
-    需要追随时必须在 manifest 的 allow_reparse_points 显式声明。
+    allow_reparse_points 仅保留在范围身份中；未实现目标锁定与循环检测前不得据其追随。
   * 纳入判定 = 声明 roots 下"除排除项外的一切"（可审计边界），不是扩展名白名单。
   * 已知扩展名之外的文件进入 unclassified_files（可见性报告，不改变纳入结果）。
 #>
@@ -463,13 +463,19 @@ function Get-SourceSnapshotEntries {
         # 排除/放行匹配用 root 相对路径（match_base=root-relative，已进入 scope 摘要）。
         $childMatchPath = $(if ($isDeclaredRoot) { [string]$child.Name } else { "$matchPath/$($child.Name)" })
         $isReparse = (($child.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)
-        if ($isReparse -and -not (Test-IdentityPatternMatch -RelativePath $childMatchPath -Patterns @($Scope.allow_reparse_points))) {
+        if ($isReparse) {
           # 显式登记，不追随：junction 可能指到 target 或工作区外，无边界追随会污染身份。
           $reparse.Add([pscustomobject]@{
             path = $childRelative
             kind = $(if ($child.PSIsContainer) { 'directory' } else { 'file' })
             handling = 'not-followed-registered-only'
           })
+          $linkExcluded = Test-IdentityPatternMatch -RelativePath $childMatchPath -Patterns @($Scope.exclude_path_patterns)
+          $linkAllowed = Test-IdentityPatternMatch -RelativePath $childMatchPath -Patterns @($Scope.allow_path_patterns)
+          if (-not $linkExcluded -or $linkAllowed) {
+            # 未核验的源码链接是缺失输入，不得仅登记后宣称快照完整。
+            $missingRoots.Add($childRelative)
+          }
           continue
         }
         if ($child.PSIsContainer) {

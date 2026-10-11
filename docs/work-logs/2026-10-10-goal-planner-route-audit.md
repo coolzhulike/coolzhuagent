@@ -154,3 +154,6 @@ StagePin未接入模块补capture/matches：原角色、route、retry、verdict�
 
 
 0.1声明根中间层与越界修补：真实linked/nested反例先exit1；现在逐层检查仓库内祖先junction，登记并标范围不完整；规范化根路径要求位于仓库内且拒绝绝对根/../outside。缺失嵌套根保持missing_roots报告，普通本地嵌套根可枚举。77873期间调整检查顺序，虽exit0只留中间证据；最终源码2019整包身份回归81通过0失败，5项边界专项PS5.1/PS7均通过。原字节证据docs/testing/source-snapshot-root-ancestor。仅脚本修改；显式子链接放行、并发链接替换、仓库祖先链接及完整不可变快照仍开放，不证明正式模型、安装/CI/32WBS交付。
+
+
+0.1子链接边界：首反例无效正则*只导致解析错误，未算追随证据；以HEAD旧源码+有效^linked/linked/outside.rs和nested/outside.rs。现所有子重解析点登记不追随，allow_reparse_points仅保留身份声明；非排除源码链接记missing_roots拒绝完整性，明确排除链接不误算缺失。真实循环junction有限返回；有效正则最终8项边界PS5.1/PS7均通过，27603生产脚本最终整包回归81通过0失败。证据docs/testing/source-snapshot-child-links。受控链接追随未实现，目标锁定/并发替换/仓库祖先链接/完整不可变快照仍开放；不宣称32WBS正式交付完成。
