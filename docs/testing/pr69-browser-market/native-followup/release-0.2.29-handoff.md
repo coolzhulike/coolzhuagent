@@ -27,7 +27,8 @@
 - 载荷摘要：`605b9805aeaf6130106daa70a934dc8a040c6083d7e0bdd03c8191d1cba31161`。
 - web-console SHA-256：`0CDAA81CAA9E4C3F5BD09BC3095E57A4F1A24445C0614DF955F090BAE4EA33AA`。
 - tauri-shell SHA-256：`A00A3F1A3E9E800E6C6A115161EA546FE068B76FBC5BF63F86F47EE30E8EBD7A`。
-- 尚未安装；不以 0.2.28 的图片冒充 0.2.29 结果。
+- 用户已安装；安装文件摘要匹配。2026-09-30 00:39 的唯一正式启动记录了 `daily`、`first_frame`、`finished(completed)`、185 帧及 `reported-finish` 主界面交接。主会话独立读取同次日志核对通过。B26–B33 仅捕获交接后的主界面，动画视觉验收仍未完成，详见 [安装版原生启动验收](release-0.2.29-native-startup-acceptance.md)。
+- PR #71 两项 Web console baseline 远端检查均通过（8m53s / 8m44s）。
 
 ## 下轮测试依据
 

@@ -1,0 +1,17 @@
+{
+  "pointerdown_event": {
+    "kind": "pointerdown",
+    "page_ms": 1791102963488,
+    "server_ms": 1791102963490
+  },
+  "run_id": "run-chat-4d166ad92fb2ec10c97d533849c5dd486360802a6cd1121e",
+  "cancel_requested_ms": 1791102963507,
+  "interface": "POST /api/runs/{run_id}/interrupt",
+  "response": {
+    "run_id": "run-chat-4d166ad92fb2ec10c97d533849c5dd486360802a6cd1121e",
+    "state": "stop_requested",
+    "outcome": "interrupt_requested",
+    "idempotent": false
+  },
+  "cancel_returned_ms": 1791102963518
+}

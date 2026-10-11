@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "kind": "package-report-archive",
+  "archived_at_utc": "2026-09-29T06:36:09.7827947Z",
+  "report_id": "pkg-report-release-20260929-143536352-33856bab",
+  "report_content_sha256": "84c23d147e735e23a541ddf90ff60c9e5df90002a4f3e1a23ea8e0e5e2e8faac",
+  "report_content_hash_scope": "canonical sorted leaf paths; report_identity.content_sha256 excluded",
+  "report_file_sha256": "18fde832b2ae8eb61a12141718464aabdaa012e2ee891b451c4db5d88e44cca4",
+  "original_report_path": "tmp/package-reports/package-report-release-20260929-143536352.json",
+  "archived_report_path": "docs/testing/release-0.2.28/evidence/build-identity/pkg-report-release-20260929-143536352-33856bab/package-report.json",
+  "payload_inventory_original_path": "package/payload-inventory.json",
+  "payload_inventory_file_sha256": "d8050766994356d3ff0ae8e5e6bd51c17617f0571da2708e8a56f5adc2b9b8b7",
+  "archived_payload_inventory_path": "docs/testing/release-0.2.28/evidence/build-identity/pkg-report-release-20260929-143536352-33856bab/payload-inventory.json",
+  "archived_payload_inventory_file_sha256": "d8050766994356d3ff0ae8e5e6bd51c17617f0571da2708e8a56f5adc2b9b8b7",
+  "release_version": "0.2.28",
+  "release_artifact": "dist/CoolzhuAgent-0.2.28.msi",
+  "reason": "referenced by released MSI dist/CoolzhuAgent-0.2.28.msi",
+  "extra_evidence": [
+    {
+      "source_path": "dist/CoolzhuAgent-0.2.28-installer-report.json",
+      "archived_path": "docs/testing/release-0.2.28/evidence/build-identity/pkg-report-release-20260929-143536352-33856bab/CoolzhuAgent-0.2.28-installer-report.json",
+      "file_sha256": "4f84ec3e22b02f394b468b85284a44909d8830e7ed7e81aaa7fd1dcbe1499391"
+    }
+  ],
+  "rule": "该归档是发布证据：普通临时清理不得删除；tmp/ 下的原报告即使被清理，报本身份仍可从本归档核对"
+}

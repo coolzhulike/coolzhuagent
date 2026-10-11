@@ -1,0 +1,55 @@
+- main "COOLZHU CODE 控制台" [ref=e2]:
+  - region "顶部状态区" [ref=e3]:
+    - article "发送对象与工作区" [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - generic [ref=e8]: 发送对象
+          - button "选择发送对象" [ref=e9] [cursor=pointer]:
+            - generic "当前发送对象未配置" [ref=e10]: 未配置
+        - generic [ref=e12]:
+          - generic [ref=e13]: 工程目录
+          - button "切换工程目录" [ref=e15] [cursor=pointer]:
+            - generic [ref=e17]: 当前工作区
+    - region "当前聊天室与状态" [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]: 当前聊天室
+        - button "切换当前聊天室" [ref=e21] [cursor=pointer]:
+          - strong [ref=e22]: 主聊天室
+  - region "多窗口工作台" [ref=e24]:
+    - complementary "快捷功能栏" [ref=e25]:
+      - navigation "快捷功能" [ref=e26]:
+        - button "首页" [pressed] [ref=e27]
+        - button "定时任务" [ref=e29]
+        - button "设置" [ref=e31]
+        - button "统计信息" [ref=e33]
+        - button "微信连接" [ref=e35]
+        - group [ref=e37]:
+          - generic "更多快捷功能" [ref=e38] [cursor=pointer]
+      - button "升级更新" [ref=e40]
+    - generic [ref=e42]:
+      - text: 发送给：
+      - article "聊天室窗口" [ref=e43]:
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - button "搜索 / 消息索引" [ref=e48] [cursor=pointer]
+              - button "运行轨迹" [ref=e49] [cursor=pointer]
+            - status [ref=e51]:
+              - generic [ref=e53]:
+                - strong [ref=e54]: 竹简待书
+                - paragraph [ref=e55]: 选择会话或发送消息，协作记录将在这里展开。
+          - generic [ref=e56]:
+            - button "选择附件" [ref=e57]:
+              - generic: 附件
+            - textbox "输入消息，按 Enter 发送..." [ref=e58]
+            - button "发送" [ref=e59]
+            - button "语音输入" [ref=e60]
+      - text: ›
+  - generic "全局系统状态栏" [ref=e61]:
+    - generic [ref=e62]: —
+    - generic [ref=e64]:
+      - img "正在连接本地后端" [ref=e65]
+      - generic "正在连接本地后端" [ref=e66]: 连接中
+    - generic [ref=e67]: —
+    - generic [ref=e69]: —
+    - button "CU 运行…" [ref=e71]

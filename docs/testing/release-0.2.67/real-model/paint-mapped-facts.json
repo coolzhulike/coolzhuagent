@@ -1,0 +1,232 @@
+{
+  "label": "paint-mapped",
+  "runtime": {
+    "id": "run-chat-e883d92a205ff11034a128da67c7b765b1adc9be250cbd56",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791103418831,
+    "finished_at": 1791103753362,
+    "legacy_turn_id": "chat-turn-1791103418821-9"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "state": "blocked",
+      "action_count": 3,
+      "replan_count": 0,
+      "created_at_ms": 1791103430833,
+      "updated_at_ms": 1791103730851,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+        "provider_tool_call_id": "tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "computer_use_verification model request exceeded its 22639 ms stage wait limit; the request was sent, and any late response cannot produce an action",
+        "error": {
+          "code": "stage_timeout",
+          "message": "computer_use_verification model request exceeded its 22639 ms stage wait limit; the request was sent, and any late response cannot produce an action",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 3,
+        "steps_completed": 3,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79.png:sha256=1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79.png:sha256=1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=174",
+          "frame_binding:sha256=1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/6",
+          "native_stroke:uia-c049f188516a304d:points=5:duration_ms=1200:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79.png:sha256=1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79:2560x1152",
+          "mapping:frame_binding:sha256=1214a92dffb8d293abe3207aeea2fbadd8fabd76629992124f2802ef8ea52f79:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=511,364,1536,779:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98.png:sha256=50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98.png:sha256=50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98.png:sha256=50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=50968c0ac14922f7485f69df4d8fdd996df1b6cd61f935f0c4f6a5f48b96cc98:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=2:image_changed=true:criteria_met=2/6",
+          "native_stroke:uia-c049f188516a304d:points=5:duration_ms=1200:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-3dcfd3f9952759a9204a6a4abf0518a2ff6299d655a960b4a249e17a4fece1dc.png:sha256=3dcfd3f9952759a9204a6a4abf0518a2ff6299d655a960b4a249e17a4fece1dc:2560x1152",
+          "mapping:frame_binding:sha256=3dcfd3f9952759a9204a6a4abf0518a2ff6299d655a960b4a249e17a4fece1dc:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=511,364,1536,779:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a.png:sha256=bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a.png:sha256=bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a.png:sha256=bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input",
+          "visual_verification:generation=3:image_changed=true:criteria_met=3/6",
+          "native_stroke:uia-c049f188516a304d:points=5:duration_ms=1200:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a.png:sha256=bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a:2560x1152",
+          "mapping:frame_binding:sha256=bd2e5797f73b07b4c9eda8459a02f75cdd4d3c4f6d0d1086b27e13154b2b414a:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=511,364,1536,779:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-37b334aada1bada3179944e74d6f7a327592efa383c807efd0f32bda82b6f998.png:sha256=37b334aada1bada3179944e74d6f7a327592efa383c807efd0f32bda82b6f998:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-17600-37b334aada1bada3179944e74d6f7a327592efa383c807efd0f32bda82b6f998.png:sha256=37b334aada1bada3179944e74d6f7a327592efa383c807efd0f32bda82b6f998:2560x1152",
+          "uia_snapshot:hwnd-8890a54:elements=175",
+          "frame_binding:sha256=37b334aada1bada3179944e74d6f7a327592efa383c807efd0f32bda82b6f998:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(143198804):uia_win32_no_synthetic_input"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 3,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791104318821
+            }
+          },
+          "cu_deadline_ms": 1791103730833,
+          "cu_deadline_established_at_ms": 1791103430833,
+          "cu_budget_ms": 300000
+        }
+      },
+      "request": {
+        "constraints": [
+          "必须依本轮原始分辨率新截图辨认留白，不使用历史坐标",
+          "必须从本轮新鲜UIA观察找到实际绘画画布reference（名称包含在画布上使用铅笔工具），所有点相对这个真实画布rect；不使用window-canvas含工具栏的client区域作为目标",
+          "只用已选黑色铅笔鼠标连续拖动，可依序用6笔（5点闭合身体、5点左眼、5点右眼、3点嘴、2点左腿、2点右腿），每笔约1200ms",
+          "不用形状工具、代码、导入或其它工具，不擦除、不保存、不改画布",
+          "不能把旧图当本次成果，不把输入释放或图像hash变化直接当验收",
+          "任一输入或验收不确定、失败或预算耗尽立即停止，不重试、不补发、不再调用CU"
+        ],
+        "max_actions": 6,
+        "objective": "在当前Windows画图真实白色画布的右侧未画线留白内，手动画一个新的简化海绵宝宝",
+        "success_criteria": [
+          "本轮真实发生新绘制",
+          "原图可见新增闭合矩形身体",
+          "身体内部两只分开的闭合菱形眼睛",
+          "两眼下方一条折线笑嘴",
+          "身体下方两条分开的短腿",
+          "全部新线条在白色画布内且不跨旧线"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe"
+        }
+      }
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "step_index": 0,
+      "action_type": "drag",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "input_release_status": "released",
+      "effect_status": "effect_observed",
+      "goal_verdict": "failed",
+      "started_at_ms": 1791103531128,
+      "completed_at_ms": 1791103536403,
+      "native_dispatch_state": null
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "step_index": 1,
+      "action_type": "drag",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "input_release_status": "released",
+      "effect_status": "effect_observed",
+      "goal_verdict": "failed",
+      "started_at_ms": 1791103627216,
+      "completed_at_ms": 1791103631569,
+      "native_dispatch_state": null
+    },
+    {
+      "run_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "step_index": 2,
+      "action_type": "drag",
+      "status": "input_sent_observed",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "input_release_status": "released",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1791103701001,
+      "completed_at_ms": 1791103706649,
+      "native_dispatch_state": null
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791103434286,
+      "completed_at_ms": 1791103467209
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791103467237,
+      "completed_at_ms": 1791103531124
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791103538363,
+      "completed_at_ms": 1791103557681
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791103557718,
+      "completed_at_ms": 1791103627209
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791103633467,
+      "completed_at_ms": 1791103649526
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000002f18db4711e7b22ea4-tool-b1b6529659368ecedbbd119e604b424a96cf7fa595f18f26cfb3ce0138bb56b4",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791103649564,
+      "completed_at_ms": 1791103700993
+    }
+  ],
+  "usage": []
+}

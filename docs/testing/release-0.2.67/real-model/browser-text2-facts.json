@@ -1,0 +1,120 @@
+{
+  "label": "browser-text2",
+  "runtime": {
+    "id": "run-chat-dd32e238cfe7729c789d70fee7186331d67db8034f84cec8",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791102544344,
+    "finished_at": 1791102588208,
+    "legacy_turn_id": "chat-turn-1791102544335-2"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18db46464c46ae34-tool-c15e91419d507a37713e23753dd5bae8797d2217e43f597be58382e061610d3d",
+      "state": "succeeded",
+      "action_count": 1,
+      "replan_count": 0,
+      "created_at_ms": 1791102560647,
+      "updated_at_ms": 1791102578975,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000000c18db46464c46ae34-tool-c15e91419d507a37713e23753dd5bae8797d2217e43f597be58382e061610d3d",
+        "provider_tool_call_id": "tool-c15e91419d507a37713e23753dd5bae8797d2217e43f597be58382e061610d3d",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"48380df8104f36f7d4e0ce8856fb5337\",\"freshness_confirmed\":true,\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"61246802ac2605f2bcf67c60cd5c5be2\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":33,\"nodes\":[{\"index\":17,\"name\":\"已输入：B67-真实输入\",\"role\":\"StaticText\"}],\"title\":\"真实浏览器操作验收\",\"truncated\":false,\"url\":\"http://127.0.0.1:63657/click.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:97ba58a3c230b8bc8926aeab36e09c5a",
+          "native-ax:1:0",
+          "native-observation:97ba58a3c230b8bc8926aeab36e09c5a",
+          "native-input:98cf3495f6b5e53879789ae0e60b63a1",
+          "native-ax:1:0",
+          "native-observation:61246802ac2605f2bcf67c60cd5c5be2",
+          "native-ax:1:0",
+          "native-observation:61246802ac2605f2bcf67c60cd5c5be2",
+          "native-ax:1:0",
+          "native-observation:48380df8104f36f7d4e0ce8856fb5337"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791103444335
+            }
+          },
+          "cu_deadline_ms": 1791102680647,
+          "cu_deadline_established_at_ms": 1791102560647,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只允许为文本框聚焦的一次click及一次type_text",
+          "不点击次数按钮、不滚动、不导航",
+          "不使用其它工具或桌面UIA",
+          "不使用历史坐标",
+          "任何失败立即停止不重试",
+          "必须将正确文字投递到真实网页，不能仅聚焦就称成功"
+        ],
+        "max_actions": 2,
+        "objective": "在当前右栏网页的输入验收文本框输入B67-真实输入",
+        "success_criteria": [
+          "本轮最新页面实际显示已输入：B67-真实输入"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63657/click.html"
+        }
+      }
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000000c18db46464c46ae34-tool-c15e91419d507a37713e23753dd5bae8797d2217e43f597be58382e061610d3d",
+      "step_index": 0,
+      "action_type": "text_input",
+      "status": "verified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "not_needed",
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "started_at_ms": 1791102566776,
+      "completed_at_ms": 1791102569106,
+      "native_dispatch_state": "acknowledged_no_held_input"
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18db46464c46ae34-tool-c15e91419d507a37713e23753dd5bae8797d2217e43f597be58382e061610d3d",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791102560752,
+      "completed_at_ms": 1791102566771
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000000c18db46464c46ae34-tool-c15e91419d507a37713e23753dd5bae8797d2217e43f597be58382e061610d3d",
+      "request_kind": "computer_use_browser_readonly_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791102569881,
+      "completed_at_ms": 1791102578973
+    }
+  ],
+  "usage": []
+}

@@ -1,0 +1,78 @@
+{
+  "label": "browser-ui-cancel2",
+  "runtime": {
+    "id": "run-chat-c92a7fdd1479b9f719a10969d63923223aa2dea076cdb3cf",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "interrupted",
+    "created_at": 1791107215644,
+    "finished_at": 1791107226524,
+    "legacy_turn_id": "chat-turn-1791107215635-12"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000004218db4a85ee21f608-tool-cd6c4a56909d696f72f446609095344b6ddce6332e8bed2712f0b3d80a23dbd7",
+      "state": "cancelled",
+      "action_count": 0,
+      "replan_count": 0,
+      "created_at_ms": 1791107221698,
+      "updated_at_ms": 1791107226558,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000004218db4a85ee21f608-tool-cd6c4a56909d696f72f446609095344b6ddce6332e8bed2712f0b3d80a23dbd7",
+        "provider_tool_call_id": "tool-cd6c4a56909d696f72f446609095344b6ddce6332e8bed2712f0b3d80a23dbd7",
+        "status": "cancelled",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "originating chat turn was interrupted; no further input is allowed",
+        "error": {
+          "code": "cancelled",
+          "message": "originating chat turn was interrupted; no further input is allowed",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791108115635
+            }
+          },
+          "cu_deadline_ms": 1791107341698,
+          "cu_deadline_established_at_ms": 1791107221698,
+          "cu_budget_ms": 120000
+        }
+      },
+      "request": {
+        "constraints": [
+          "仅允许单击一次",
+          "不导航、不输入、不滚动、不使用其它工具",
+          "不重试",
+          "用户取消立即停止、不补发、不以迟到结果覆写取消",
+          "使用本轮新鲜网页节点，不用历史坐标"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏原生浏览器单击增加次数，使次数由1变为2",
+        "success_criteria": [
+          "本轮新鲜页面可见次数：2"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63657/boundary.html"
+        }
+      }
+    }
+  ],
+  "steps": [],
+  "diagnostics": [],
+  "usage": []
+}

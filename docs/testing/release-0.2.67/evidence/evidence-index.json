@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "scope": "统一候选工程与静态核验，不代表正式GUI通过",
+  "files": [
+    {
+      "path": "installer-report.json",
+      "bytes": 4861,
+      "sha256": "b04a18a8312f05a3c93c656312e92845df5543056c02bf71a408735812480568"
+    },
+    {
+      "path": "offline-msi-verification.json",
+      "bytes": 392604,
+      "sha256": "bd92402e8821c15f3af8b883ab6f72fe983d688b6d064f9ed957a8563fc066e8"
+    },
+    {
+      "path": "package-safety.json",
+      "bytes": 251,
+      "sha256": "bc73eb9d864328fb9fae80f94bb5baed42f37b4f60e78d9ad47d41470adc5937"
+    },
+    {
+      "path": "source-pr-comparison.json",
+      "bytes": 4317,
+      "sha256": "453cacd1cab718e20ad5b08e0182142351d6129c338563708aefa1a388c72d06"
+    },
+    {
+      "path": "build-identity/pkg-report-release-20261004-155831902-0500d5f8/CoolzhuAgent-0.2.67-installer-report.json",
+      "bytes": 4861,
+      "sha256": "b04a18a8312f05a3c93c656312e92845df5543056c02bf71a408735812480568"
+    },
+    {
+      "path": "build-identity/pkg-report-release-20261004-155831902-0500d5f8/package-report-files.json",
+      "bytes": 2060,
+      "sha256": "106af3f40e4736ac4c41da7d5f0003a1ee6029392dec2faac70e284890e88c5d"
+    },
+    {
+      "path": "build-identity/pkg-report-release-20261004-155831902-0500d5f8/package-report.json",
+      "bytes": 103387,
+      "sha256": "b88af88a0d9daff0edcd68657ce625a6dc22bb19b6600eac0cff2b07d49b1a9a"
+    },
+    {
+      "path": "build-identity/pkg-report-release-20261004-155831902-0500d5f8/payload-inventory.json",
+      "bytes": 344599,
+      "sha256": "cd23709fc249f30aef420fd8c66b3316baeaa53a1685bbab4c06298324f9ccbf"
+    },
+    {
+      "path": "engineering/animation.log",
+      "bytes": 341,
+      "sha256": "c64a75b4e5666aa9619a9ffaa1911a2ead13638322f56b93964ca0491d9a1c9c"
+    },
+    {
+      "path": "engineering/browser.log",
+      "bytes": 23419,
+      "sha256": "40d5d14eeef018fc5c1553bbd269a78e660705a7ed113b452b77d5628dca6901"
+    },
+    {
+      "path": "engineering/build.log",
+      "bytes": 47876,
+      "sha256": "de8b22dd06dc879beb811e27418eb865eb13ab0d4f167a3e5b284d207ce49229"
+    }
+  ]
+}

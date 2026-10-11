@@ -1,0 +1,55 @@
+- main "COOLZHU CODE 控制台" [ref=f2e2]:
+  - region "顶部状态区" [ref=f2e3]:
+    - article "发送对象与工作区" [ref=f2e4]:
+      - generic [ref=f2e6]:
+        - generic [ref=f2e7]:
+          - generic [ref=f2e8]: 发送对象
+          - button "选择发送对象" [ref=f2e9] [cursor=pointer]:
+            - generic "当前发送对象未配置" [ref=f2e10]: 未配置
+        - generic [ref=f2e12]:
+          - generic [ref=f2e13]: 工程目录
+          - button "切换工程目录" [ref=f2e15] [cursor=pointer]:
+            - generic [ref=f2e17]: 当前工作区
+    - region "当前聊天室与状态" [ref=f2e18]:
+      - generic [ref=f2e19]:
+        - generic [ref=f2e20]: 当前聊天室
+        - button "切换当前聊天室" [ref=f2e21] [cursor=pointer]:
+          - strong [ref=f2e22]: 主聊天室
+  - region "多窗口工作台" [ref=f2e24]:
+    - complementary "快捷功能栏" [ref=f2e25]:
+      - navigation "快捷功能" [ref=f2e26]:
+        - button "首页" [pressed] [ref=f2e27]
+        - button "定时任务" [ref=f2e29]
+        - button "设置" [ref=f2e31]
+        - button "统计信息" [ref=f2e33]
+        - button "微信连接" [ref=f2e35]
+        - group [ref=f2e37]:
+          - generic "更多快捷功能" [ref=f2e38] [cursor=pointer]
+      - button "升级更新" [ref=f2e40]
+    - generic [ref=f2e42]:
+      - text: 发送给：
+      - article "聊天室窗口" [ref=f2e43]:
+        - generic [ref=f2e45]:
+          - generic [ref=f2e46]:
+            - generic [ref=f2e47]:
+              - button "搜索 / 消息索引" [ref=f2e48] [cursor=pointer]
+              - button "运行轨迹" [ref=f2e49] [cursor=pointer]
+            - status [ref=f2e51]:
+              - generic [ref=f2e53]:
+                - strong [ref=f2e54]: 竹简待书
+                - paragraph [ref=f2e55]: 选择会话或发送消息，协作记录将在这里展开。
+          - generic [ref=f2e56]:
+            - button "选择附件" [ref=f2e57]:
+              - generic: 附件
+            - textbox "输入消息，按 Enter 发送..." [ref=f2e58]
+            - button "发送" [ref=f2e59]
+            - button "语音输入" [ref=f2e60]
+      - text: ›
+  - generic "全局系统状态栏" [ref=f2e61]:
+    - generic [ref=f2e62]: —
+    - generic [ref=f2e64]:
+      - img "正在连接本地后端" [ref=f2e65]
+      - generic "正在连接本地后端" [ref=f2e66]: 连接中
+    - generic [ref=f2e67]: —
+    - generic [ref=f2e69]: —
+    - button "CU 运行…" [ref=f2e71]

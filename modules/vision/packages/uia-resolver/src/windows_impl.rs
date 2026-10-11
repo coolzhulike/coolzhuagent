@@ -21,7 +21,7 @@ use windows::Win32::UI::HiDpi::{
 };
 use windows::Win32::UI::WindowsAndMessaging::{
     BringWindowToTop, EnumWindows, GetClassNameW, GetForegroundWindow, GetWindowRect,
-    GetWindowTextW, GetWindowThreadProcessId, IsWindowVisible, SetForegroundWindow, ShowWindow,
+    GetWindowTextW, GetWindowThreadProcessId, IsIconic, IsWindowVisible, SetForegroundWindow, ShowWindow,
     SW_RESTORE,
 };
 
@@ -275,7 +275,10 @@ fn focus_hwnd(hwnd: HWND) -> bool {
         return false;
     }
     unsafe {
-        let _ = ShowWindow(hwnd, SW_RESTORE);
+        // 只恢复最小化窗口；聚焦不能把用户的最大化窗口还原，改变画布和提示的布局。
+        if IsIconic(hwnd).as_bool() {
+            let _ = ShowWindow(hwnd, SW_RESTORE);
+        }
         let _ = BringWindowToTop(hwnd);
         if SetForegroundWindow(hwnd).as_bool() || GetForegroundWindow().0 == hwnd.0 {
             return true;
@@ -297,7 +300,9 @@ fn focus_hwnd(hwnd: HWND) -> bool {
             && foreground_thread != target_thread
             && AttachThreadInput(current_thread, foreground_thread, true).as_bool();
 
-        let _ = ShowWindow(hwnd, SW_RESTORE);
+        if IsIconic(hwnd).as_bool() {
+            let _ = ShowWindow(hwnd, SW_RESTORE);
+        }
         let _ = BringWindowToTop(hwnd);
         let focused = SetForegroundWindow(hwnd).as_bool() || GetForegroundWindow().0 == hwnd.0;
 

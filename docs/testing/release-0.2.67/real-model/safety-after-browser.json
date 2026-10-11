@@ -1,0 +1,7 @@
+{
+  "resource_state": "safe",
+  "accepts_new_input": true,
+  "pending_recovery_operations": 0,
+  "unacknowledged_open_blocks": 0,
+  "unacknowledged_legacy_runs": 0
+}

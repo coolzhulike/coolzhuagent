@@ -1,0 +1,138 @@
+- main "COOLZHU CODE 控制台" [ref=e2]:
+  - region "顶部状态区" [ref=e3]:
+    - region "COOLZHU CODE" [ref=e4]
+    - article "发送对象与工作区" [ref=e6]:
+      - generic [ref=e7]:
+        - figure "当前 Agent 头像" [ref=e8]:
+          - img "当前发送对象：主 Agent (glm-4.6)" [ref=e82]
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - generic [ref=e12]: 发送对象
+            - button "选择发送对象。将发送给：主 Agent (glm-4.6)" [ref=e83] [cursor=pointer]:
+              - generic "当前发送对象：主 Agent (glm-4.6)" [ref=e84]: 主 Agent (glm-4.6)
+          - generic [ref=e16]:
+            - generic [ref=e17]: 工程目录
+            - button "切换工程目录" [ref=e19] [cursor=pointer]:
+              - generic [ref=e21]: scope-b
+    - region "当前聊天室与状态" [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]: 当前聊天室
+        - button "切换当前聊天室" [ref=e25] [cursor=pointer]:
+          - strong [ref=e26]: 主聊天室
+      - generic "聊天室状态" [ref=e28]:
+        - img "系统健康：异常" [ref=e85]
+        - img "系统警示：任务异常" [ref=e86]
+  - region "多窗口工作台" [ref=e30]:
+    - complementary "快捷功能栏" [ref=e31]:
+      - navigation "快捷功能" [ref=e32]:
+        - button "首页" [ref=e33]
+        - button "定时任务" [ref=e35]
+        - button "设置" [ref=e37]
+        - button "统计信息" [ref=e39]
+        - button "微信连接" [ref=e41]
+        - group [ref=e43]:
+          - generic "更多快捷功能" [ref=e44] [cursor=pointer]
+      - button "升级更新" [ref=e46]
+    - generic [ref=e48]:
+      - text: 发送给：
+      - article "聊天室窗口" [ref=e49]:
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53]:
+                - button "搜索 / 消息索引" [ref=e54] [cursor=pointer]
+                - button "运行轨迹" [ref=e55] [cursor=pointer]
+              - status [ref=e87]:
+                - generic [ref=e90]:
+                  - strong [ref=e91]: 竹简待书
+                  - paragraph [ref=e92]: 选择会话或发送消息，协作记录将在这里展开。
+            - generic [ref=e62]:
+              - button "选择附件" [ref=e63]:
+                - generic: 附件
+              - textbox "输入消息，按 Enter 发送..." [ref=e64]
+              - button "发送消息。将发送给：主 Agent (glm-4.6)" [ref=e93]: 发送
+              - button "语音输入" [ref=e66]
+          - separator "调整扩展栏宽度" [ref=e94]
+          - complementary "工程目录" [ref=e95]:
+            - tabpanel "工具" [ref=e97]:
+              - generic "工程目录工具面板" [ref=e98]:
+                - generic [ref=e99]:
+                  - strong [ref=e102]: 工程目录
+                  - generic [ref=e103]:
+                    - button "返回右栏协作视图" [ref=e104] [cursor=pointer]:
+                      - generic [ref=e105]: 返回
+                    - button "关闭当前工具" [ref=e106] [cursor=pointer]:
+                      - generic [ref=e107]: 关闭
+                - article "工程目录窗口" [ref=e109]:
+                  - generic [ref=e110]:
+                    - complementary [ref=e111]:
+                      - generic [ref=e112]:
+                        - button "对比" [ref=e113]
+                        - button "保存" [ref=e116]
+                        - button "文件" [ref=e118]
+                        - button "目录" [ref=e120]
+                        - button "重命名" [ref=e122]
+                        - button "删除" [ref=e124]
+                        - button "刷新" [ref=e126]
+                        - button "索引" [ref=e128]
+                        - searchbox "搜文件 @函数 :行号" [ref=e130]
+                      - paragraph [ref=e131]: 符号索引尚未手动刷新。
+                      - paragraph [ref=e132]: 工程目录已变化，请刷新工程文件后重试
+                      - paragraph [ref=e133]: C:\Users\zhupu\Desktop\coolzhuagent\tmp\s54-terminal-ui-1baa6aa2fe\scope-b
+                      - list [ref=e134]:
+                        - listitem [ref=e176]:
+                          - button "▸ scope-b" [ref=e177]:
+                            - generic [ref=e178]: ▸
+                            - generic [ref=e179]: scope-b
+                          - list [ref=e180]:
+                            - listitem [ref=e181]:
+                              - button "▸ .coolzhu" [ref=e182]:
+                                - generic [ref=e183]: ▸
+                                - generic [ref=e184]: .coolzhu
+                            - listitem [ref=e185]:
+                              - button "scope-c" [ref=e186]
+                            - listitem [ref=e188]:
+                              - button "conflict-bound.txt 0 B" [ref=e189]:
+                                - generic [ref=e190]: conflict-bound.txt
+                                - generic [ref=e191]: 0 B
+                            - listitem [ref=e192]:
+                              - button "coolzhu.toml 3.5 KB" [ref=e193]:
+                                - generic [ref=e194]: coolzhu.toml
+                                - generic [ref=e195]: 3.5 KB
+                            - listitem [ref=e196]:
+                              - button "err.log 2.8 KB" [ref=e197]:
+                                - generic [ref=e198]: err.log
+                                - generic [ref=e199]: 2.8 KB
+                    - generic "拖动调节目录树/文件栏宽度" [ref=e152]
+                    - generic [ref=e153]:
+                      - generic "文件标签条" [ref=e168]:
+                        - button "目录" [expanded] [active] [ref=e169] [cursor=pointer]
+                        - button [ref=e170] [cursor=pointer]:
+                          - generic: conflict-bound.txt
+                          - generic "关闭标签" [ref=e171]
+                      - generic [ref=e154]: conflict-bound.txt · 0 B · 可编辑 · UTF-8 · LF
+                      - generic [ref=e155]:
+                        - generic [ref=e172]:
+                          - generic [ref=e173] [cursor=pointer]: "1"
+                          - textbox "编辑 conflict-bound.txt" [ref=e174]: 草稿仍在旧工程，未保存
+                        - complementary "符号大纲" [ref=e157]:
+                          - generic [ref=e158]:
+                            - strong [ref=e159]: 大纲
+                            - generic [ref=e160]: "0"
+                          - generic [ref=e161]: 符号索引未构建，先在搜索框构建索引。
+      - text: ›
+  - generic "全局系统状态栏" [ref=e67]:
+    - generic [ref=e68]:
+      - generic [ref=e69]: 工作区
+      - generic "\\\\?\\C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tmp\\s54-terminal-ui-1baa6aa2fe\\scope-b" [ref=e163]: scope-b
+    - generic [ref=e71]:
+      - img "本地后端已连接" [ref=e164]
+      - generic [ref=e73]: 连接
+      - generic "本地后端已连接" [ref=e165]: 已连接
+    - generic [ref=e75]:
+      - generic [ref=e76]: 会话
+      - generic "1 个" [ref=e166]
+    - generic [ref=e78]:
+      - generic [ref=e79]: 归属/恢复
+      - generic "非终态运行行包含正在执行的轮次；“执行已结束但终态提交失败”时该轮会残留在这里，不会被报成已完成。历史归属未记录是迁移前的真实缺口，不会被补值。输入安全恢复分三态：待对账（还在办）／待人工复核（等人）／未获放行的阻断（真的挡路，可由人工放行解除）。人工决定由桌面原生确认记录可信身份与理由，不删除事故记录、不重置安全库；是否开放输入仍由机器重新评估。 尚无人工放行记录。 非终态运行行的恢复走既有 orphan 收敛（进程启动时执行）； 遗留 CU 运行的收敛需先满足恢复前置条件，未满足前不写终态。" [ref=e167]: 历史归属未记录待收敛 0 · 收敛待对账 0 · 非终态运行行 0
+    - button "CU 运行…" [ref=e81]

@@ -1,0 +1,134 @@
+{
+  "label": "paint-continuous",
+  "runtime": {
+    "id": "run-chat-e33cc32794357b6f9205bf3dc60e033e5c71baf77a2964a4",
+    "session_id": "session-1779459149988",
+    "chat_room_id": "room-1790567510595",
+    "state": "completed",
+    "created_at": 1791107445702,
+    "finished_at": 1791107526523,
+    "legacy_turn_id": "chat-turn-1791107445692-13"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000004518db4abb7cc37b04-tool-c68b7d0f68e2e71d579393ab9ce8c62a97807e712410b081c10e06b1630a22c4",
+      "state": "blocked",
+      "action_count": 0,
+      "replan_count": 0,
+      "created_at_ms": 1791107457701,
+      "updated_at_ms": 1791107516268,
+      "result": {
+        "call_id": "cu-session-1779459149988-000000000000004518db4abb7cc37b04-tool-c68b7d0f68e2e71d579393ab9ce8c62a97807e712410b081c10e06b1630a22c4",
+        "provider_tool_call_id": "tool-c68b7d0f68e2e71d579393ab9ce8c62a97807e712410b081c10e06b1630a22c4",
+        "status": "blocked",
+        "stage": "supervisor",
+        "goal_achieved": false,
+        "surface": "desktop",
+        "summary": "computer-use action budget exhausted",
+        "error": {
+          "code": "budget_exhausted",
+          "message": "computer-use action budget exhausted",
+          "retryable": false,
+          "retry_owner": "none"
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-19940-a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c.png:sha256=a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c:2560x1152",
+          "uia_snapshot:hwnd-bb707ac:elements=175",
+          "frame_binding:sha256=a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(196544428):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-19940-a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c.png:sha256=a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c:2560x1152",
+          "uia_snapshot:hwnd-bb707ac:elements=175",
+          "frame_binding:sha256=a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(196544428):uia_win32_no_synthetic_input",
+          "visual_verification:generation=1:image_changed=false:criteria_met=0/5",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-19940-a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c.png:sha256=a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c:2560x1152",
+          "uia_snapshot:hwnd-bb707ac:elements=175",
+          "frame_binding:sha256=a4e6244cfbc11012655f687ebbfab54ffd01626fd797c220bdb04f31d20f914c:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(196544428):uia_win32_no_synthetic_input"
+        ],
+        "supervisor": {
+          "circuit_open": true,
+          "reason": "budget_exhausted",
+          "action_count": 1,
+          "replan_count": 1,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791108345692
+            }
+          },
+          "cu_deadline_ms": 1791107757701,
+          "cu_deadline_established_at_ms": 1791107457701,
+          "cu_budget_ms": 300000
+        }
+      },
+      "request": {
+        "constraints": [
+          "只用已选黑色铅笔一次连续多点drag，总时长约4000ms",
+          "允许部件之间连接线和原路折返，不要求美术质量，但必须可辨认全部部件",
+          "从本轮最新原图和UIA中选择实际绘画画布reference，路径所有点必须相对该reference的矩形换算，不用包含工具栏的window-canvas，不用整图归一化或历史坐标",
+          "自主规划路径，不得输出或运行代码、形状工具、导入、擦除、保存，不使用其他工具",
+          "任何失败或释放未知立即结束，不重试、不补发",
+          "仅输入投递、path_completed、released或hash改变不能算绘画验收"
+        ],
+        "max_actions": 1,
+        "objective": "在指定新画布中央自行手画一个小的简化海绵宝宝。",
+        "success_criteria": [
+          "本轮从空白新增闭合方形身体",
+          "身体内两只分开的闭合眼睛",
+          "两眼下方折线笑嘴",
+          "身体下方两条分开的腿",
+          "整幅新增线条都在白色画布内"
+        ],
+        "surface": "desktop",
+        "target": {
+          "application": "mspaint.exe",
+          "window": "CU067-fresh-canvas.png"
+        }
+      }
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1779459149988-000000000000004518db4abb7cc37b04-tool-c68b7d0f68e2e71d579393ab9ce8c62a97807e712410b081c10e06b1630a22c4",
+      "step_index": 0,
+      "action_type": "drag",
+      "status": "failed",
+      "error_code": "stale_observation",
+      "input_delivery": "not_sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "input_release_status": "not_needed",
+      "effect_status": null,
+      "goal_verdict": null,
+      "started_at_ms": 1791107512890,
+      "completed_at_ms": 1791107514791,
+      "native_dispatch_state": null
+    }
+  ],
+  "diagnostics": [
+    {
+      "call_id": "cu-session-1779459149988-000000000000004518db4abb7cc37b04-tool-c68b7d0f68e2e71d579393ab9ce8c62a97807e712410b081c10e06b1630a22c4",
+      "request_kind": "computer_use_verification",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791107460545,
+      "completed_at_ms": 1791107470341
+    },
+    {
+      "call_id": "cu-session-1779459149988-000000000000004518db4abb7cc37b04-tool-c68b7d0f68e2e71d579393ab9ce8c62a97807e712410b081c10e06b1630a22c4",
+      "request_kind": "computer_use_planning",
+      "model": "qwen3.8-flash",
+      "error_code": null,
+      "started_at_ms": 1791107470380,
+      "completed_at_ms": 1791107512884
+    }
+  ],
+  "usage": []
+}

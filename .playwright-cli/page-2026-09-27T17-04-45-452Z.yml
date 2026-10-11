@@ -1,0 +1,54 @@
+- main "COOLZHU CODE 控制台" [ref=f4e2]:
+  - region "顶部状态区" [ref=f4e3]:
+    - region "COOLZHU" [ref=f4e4]
+    - article "发送对象与工作区" [ref=f4e6]:
+      - generic [ref=f4e8]:
+        - button "选择发送对象。将发送给：主 Agent (glm-4.6)" [ref=f4e63] [cursor=pointer]:
+          - generic "当前发送对象：主 Agent (glm-4.6)" [ref=f4e64]: 主 Agent (glm-4.6)
+        - button "切换工程目录" [ref=f4e15] [cursor=pointer]:
+          - generic [ref=f4e17]: workspace
+    - region "当前聊天室与状态" [ref=f4e18]:
+      - button "切换当前聊天室" [ref=f4e20] [cursor=pointer]:
+        - strong [ref=f4e21]: 主聊天室
+      - group "当前聊天室权限" [ref=f4e23]:
+        - strong [ref=f4e25] [cursor=pointer]: 完全访问
+        - dialog "选择当前聊天室权限" [ref=f4e75]:
+          - generic [ref=f4e76]: 当前聊天室权限
+          - generic [ref=f4e77]:
+            - combobox "选择当前聊天室权限" [ref=f4e78]:
+              - option "目录权限（默认）" [selected]
+              - option "完全访问（双重确认）"
+            - button "应用" [ref=f4e79]
+          - generic "工程已开启调试完全访问；房间选项将在关闭调试开放权限后生效。模型工具开关仍单独生效。" [ref=f4e80]
+  - region "多窗口工作台" [ref=f4e26]:
+    - complementary "快捷功能栏" [ref=f4e27]:
+      - navigation "快捷功能" [ref=f4e28]:
+        - button "首页" [pressed] [ref=f4e29]
+        - button "定时任务" [ref=f4e31]
+        - button "设置" [ref=f4e33]
+        - button "统计信息" [ref=f4e35]
+        - button "微信连接" [ref=f4e37]
+        - group [ref=f4e39]:
+          - generic "更多快捷功能" [ref=f4e40] [cursor=pointer]
+      - button "升级更新" [ref=f4e42]
+    - generic [ref=f4e44]:
+      - text: ▸ ▸ 发送给：
+      - article "聊天室窗口" [ref=f4e45]:
+        - generic [ref=f4e47]:
+          - generic [ref=f4e48]:
+            - generic [ref=f4e49]:
+              - button "搜索 / 消息索引" [ref=f4e50] [cursor=pointer]
+              - button "运行轨迹 / 安全详情 状态未知" [ref=f4e66] [cursor=pointer]:
+                - text: 运行轨迹 / 安全详情
+                - generic [ref=f4e67]: 状态未知
+            - status [ref=f4e68]:
+              - generic [ref=f4e71]:
+                - strong [ref=f4e72]: 竹简待书
+                - paragraph [ref=f4e73]: 选择会话或发送消息，协作记录将在这里展开。
+          - generic [ref=f4e58]:
+            - button "选择附件" [ref=f4e59]:
+              - generic: 附件
+            - textbox "输入消息，按 Enter 发送..." [ref=f4e60]
+            - button "发送消息。将发送给：主 Agent (glm-4.6)" [ref=f4e74]: 发送
+            - button "语音输入" [ref=f4e62]
+      - text: ›
