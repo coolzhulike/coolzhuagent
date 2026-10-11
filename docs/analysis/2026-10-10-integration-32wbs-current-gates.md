@@ -111,3 +111,6 @@ Windows重定向REPL提示/审批缓冲混用已用独立生产入口测试先10
 
 
 0.1真实Cargo worktree补验：共享Git引用变化会重编译并固定新SHA，但51e1ea5首版追踪不存在packed-refs使无变更构建持续过期。已改为追踪最近存在父目录，缺失文件创建仍能触发；实际worktree无变更Fresh，创建packed-refs并变更提交后读取新SHA，再构建Fresh。首个fixture未声明独立workspace导致构建失败及缓存反例原日志均保留。50141正常web-console build实际exit0，原字节证据docs/testing/build-identity-cargo-worktree。上述不证明完整不可变源码快照/正式模型/正式安装或32WBS交付完成。
+
+
+0.1源码门禁失败关闭修复：New-PackageReleaseEligibility原以不存在的name字段过滤生产gate字段，因此source_snapshot_verified可能漏检失败项，空Gates也能验证/发布。现要求三项源码门禁各恰好一次且pass，否则源码已验证及release_eligible=false。首版同样误用name导致整包回归失败（50554 exit1），已改真实gate并以生产New-PackageReleaseGate生成测试夹具；错误字段专项拒绝。最终新8项在PS5.1/PS7均通过，48427完整package-build-identity回归81通过0失败。证据docs/testing/source-snapshot-required-gates，失败原日志保留。本轮只改PowerShell报告判据，无Rust源码改动；不能据此称真实整包构建、不可变源码快照、正式SWE模型/安装/CI/32WBS通过。符号链接根和完整输入锁定仍待检查。

@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 # 构建身份分离与报告治理（RD4-06 / 第五轮裁决 B-1、B-2）
 #
 # 本文件是"三个分开的身份"的唯一实现点（package-all.ps1 与 build-msi.ps1
@@ -1673,9 +1673,17 @@ function New-PackageReleaseEligibility {
   )
 
   $notPassed = @($Gates | Where-Object { [string]$_.result -ne 'pass' })
+  # 缺失或重复的门禁不是通过；空集合不能凭“没有失败项”获得已验证身份。
+  $sourceSnapshotVerified = $true
+  foreach ($requiredName in @('declared_source_snapshot_scope','source_input_stability','declared_roots_present')) {
+    $matching = @($Gates | Where-Object { [string]$_.gate -eq $requiredName })
+    if ($matching.Count -ne 1 -or [string]$matching[0].result -ne 'pass') {
+      $sourceSnapshotVerified = $false
+    }
+  }
   return [ordered]@{
     schema = [int]$script:BuildIdentitySchema
-    release_eligible = ($notPassed.Count -eq 0)
+    release_eligible = ($sourceSnapshotVerified -and $notPassed.Count -eq 0)
     configuration = $Configuration
     live_worktree_changed = (ConvertTo-IdentityBoolOrUnknown -Value $LiveWorktreeChanged)
     live_worktree_changed_note = 'true/false = 构建前后两次独立采样之间是否观察到活动树变化；未声明源码快照范围时为 not-confirmed（未确认），绝不写成 false。'
@@ -1697,7 +1705,7 @@ function New-PackageReleaseEligibility {
     external_inputs = @($ExternalInputs)
     external_inputs_verified = $(if (@($ExternalInputs).Count -gt 0) { $true } else { 'not-applicable' })
     external_inputs_note = 'external_inputs_verified=true 表示本次出现的第三方 registry 构建产物均已按 manifest 登记的 crate/version/checksum 与 Cargo.lock 逐字比对通过；not-applicable 表示本次没有出现需要登记的外部输入。'
-    source_snapshot_verified = (@($Gates | Where-Object { @('declared_source_snapshot_scope','source_input_stability','declared_roots_present') -contains [string]$_.name -and [string]$_.result -ne 'pass' }).Count -eq 0)
+    source_snapshot_verified = $sourceSnapshotVerified
     source_snapshot_verified_note = 'source_snapshot_verified=true 只表示**源码快照侧**的范围、稳定性与 roots 检查通过；它**不**等于"源码快照包含全部二进制来源"。'
     cleared_artifact_revocations = @($ClearedRevocations)
     reasons = @($Reasons)
