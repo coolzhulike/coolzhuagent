@@ -102,3 +102,6 @@ Windows重定向REPL提示/审批缓冲混用已用独立生产入口测试先10
 输入跨模式恢复补验：拒绝超长审批后，普通提示模式丢弃迟到yes并完整读69632字节提示，后续审批no仍独立；正常CLI构建0，guard66通过4忽略。4.5源码复核已定位implementer报阻的事务/重试上限及暂停分支，不能再按完全无回退代码描述；实际planner派发、暂停后的恢复和正式失败矩阵仍需独立检查，文案不证明闭环。
 
 4.5已有真实SQLite反例：同时存在planner与implementer时，报阻写planner路由提示后恢复，第二次claim/prepare仍指向原implementer。正常web-console构建0（1m48s），专项1项通过1463过滤；绿色证明缺陷存在，不证明自动重规划通过。原字节日志docs/testing/goal-planner-route-gap，完整路由、规划结果归属与冻结权限要求见docs/work-logs/2026-10-10-goal-planner-route-audit.md。生产路由尚未修补。
+
+
+4.5最新源码状态更正（历史反例保留）：5934e64已接入持久阶段身份、显式planner路由、只读规划、steps落库及独立implementer修复→verifier验证链；8a48429拒绝模型execution_failed伪完成，实际HTTP502传播回归通过。扩大Goal158项通过；当前提交全web-console main1473项通过0失败6忽略，lib8及browser binary1通过。上述本地证据见../testing/web-console-full-8a48429/manifest.json及Goal work-log。不能再将当前生产路由描述为尚未修补；4.5完整正式模型失败矩阵、unknown副作用恢复及全部32WBS交付仍未闭环。缓存构建不证明不可变源码快照，0.1保持开放。

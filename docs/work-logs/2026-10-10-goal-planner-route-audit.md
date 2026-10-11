@@ -136,3 +136,6 @@ StagePin未接入模块补capture/matches：原角色、route、retry、verdict�
 31004实际exit0：正常build28.47s；实际HTTP worker专项1通过0失败1478过滤2.53s，包含真实502端点请求到达、独立空要求阶段不完成/失败证据预算1/run failed，以及原成功规划/执行验证命令对照。真实错误从适配器到worker/finalizer传播通过；正式SWE模型与全32WBS门禁仍未完成。
 
 36999实际exit0：最新HTTP错误扩展后扩大Goal158通过0失败1321过滤17.25s，原三角色失败、规划修复链、暂停/预算、worker对照与现有Goal回归保留通过。准备保存独立源码/原始证据集成提交，未声明source immutable snapshot或正式模型通过。
+
+
+当前提交8a48429319812431341a97a8112c7e7b511484fe全crate回归：22678实际exit0，正常build0.46s；main1473通过0失败6忽略75.45s，lib8通过、browser binary1通过，另3个子探针结果不重复累计。6项忽略涉及真实模型、浏览器登录、DSH固定运行时及官方MCP SDK；未开展微信正式服务运行验收。原字节日志与SHA256见docs/testing/web-console-full-8a48429/manifest.json；源码前后干净，但未锁定不可变快照，正式模型/安装/CI/32WBS保持开放。
