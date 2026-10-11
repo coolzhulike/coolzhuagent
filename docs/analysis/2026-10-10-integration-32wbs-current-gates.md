@@ -105,3 +105,6 @@ Windows重定向REPL提示/审批缓冲混用已用独立生产入口测试先10
 
 
 4.5最新源码状态更正（历史反例保留）：5934e64已接入持久阶段身份、显式planner路由、只读规划、steps落库及独立implementer修复→verifier验证链；8a48429拒绝模型execution_failed伪完成，实际HTTP502传播回归通过。扩大Goal158项通过；当前提交全web-console main1473项通过0失败6忽略，lib8及browser binary1通过。上述本地证据见../testing/web-console-full-8a48429/manifest.json及Goal work-log。不能再将当前生产路由描述为尚未修补；4.5完整正式模型失败矩阵、unknown副作用恢复及全部32WBS交付仍未闭环。缓存构建不证明不可变源码快照，0.1保持开放。
+
+
+0.1构建版本身份修复：普通构建原先在运行时查询Git HEAD，旧二进制可能随checkout提交变化而报告新版本。新增std-only build.rs编译时固定SHA，追踪工作树HEAD/实际分支引用/packed-refs与源码和显式环境；main移除运行时Git fallback，保留MSI显式SHA优先。23581正常build实际exit0；独立临时Git仓库的buildscript与实际生产函数探针通过，提交变化后旧二进制身份不变、下次构建读取新SHA、显式打包SHA优先。探针首两次脚本解析/边界错误已修正，不冒称首次通过。证据docs/testing/build-identity-compile-time。SHA仍仅来源参考，dirty源码、依赖/载荷/签名/完整不可变快照未闭环；本轮未重跑全crate测试或正式模型。

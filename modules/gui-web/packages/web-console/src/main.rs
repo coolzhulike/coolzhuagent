@@ -3173,6 +3173,7 @@ fn web_console_git_short_hash() -> String {
         option_env!("VERGEN_GIT_SHA"),
         option_env!("GIT_COMMIT"),
         option_env!("GIT_HASH"),
+        option_env!("COOLZHU_COMPILED_GIT_SHA"),
     ]
     .into_iter()
     .flatten()
@@ -3182,16 +3183,7 @@ fn web_console_git_short_hash() -> String {
             return trimmed.chars().take(12).collect();
         }
     }
-    std::process::Command::new("git")
-        .arg("-C")
-        .arg(env!("CARGO_MANIFEST_DIR"))
-        .args(["rev-parse", "--short=12", "HEAD"])
-        .output()
-        .ok()
-        .filter(|output| output.status.success())
-        .map(|output| decode_console_output(&output.stdout).trim().to_string())
-        .filter(|hash| !hash.is_empty())
-        .unwrap_or_else(|| "unknown".to_string())
+    "unknown".to_string()
 }
 
 fn build_web_card_api_audit() -> WebCardApiAuditResponse {

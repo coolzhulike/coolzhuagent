@@ -1,0 +1,22 @@
+{
+  "baseline_commit": "cbe3a5db8565da2c60b70fd1129c8c4e12b35e08",
+  "source_modified": true,
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "build_session": 23581,
+  "build_exit_code": 0,
+  "command": "cargo build -p coolzhu-web-console --locked --offline -j1",
+  "probe": "独立临时Git仓库：编译build.rs和实际生产版本函数，变更提交后旧二进制身份固定；显式打包SHA优先",
+  "probe_initial_script_failures": "首次PowerShell字符串解析失败，第二次函数截取边界拒绝；修正后探针通过，未计为构建失败",
+  "files": [
+    {
+      "name": "build.txt",
+      "sha256": "b28a80f1bc7ad628f8af32e23b01cc18f57f260472d1f9d03b440ddf76945a58"
+    },
+    {
+      "name": "probe.txt",
+      "sha256": "73c1f4e161e1c0345f693cf9063a3510eb829d55028bb8b2a51f44ae718a913b"
+    }
+  ],
+  "limitations": "提交号仅编译来源参考，未提交源码、依赖、载荷和签名完整身份仍需不可变快照；未运行正式后台或正式模型。"
+}

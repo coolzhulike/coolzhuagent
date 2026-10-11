@@ -139,3 +139,6 @@ StagePin未接入模块补capture/matches：原角色、route、retry、verdict�
 
 
 当前提交8a48429319812431341a97a8112c7e7b511484fe全crate回归：22678实际exit0，正常build0.46s；main1473通过0失败6忽略75.45s，lib8通过、browser binary1通过，另3个子探针结果不重复累计。6项忽略涉及真实模型、浏览器登录、DSH固定运行时及官方MCP SDK；未开展微信正式服务运行验收。原字节日志与SHA256见docs/testing/web-console-full-8a48429/manifest.json；源码前后干净，但未锁定不可变快照，正式模型/安装/CI/32WBS保持开放。
+
+
+0.1构建版本身份修复：普通构建原先在运行时查询Git HEAD，旧二进制可能随checkout提交变化而报告新版本。新增std-only build.rs编译时固定SHA，追踪工作树HEAD/实际分支引用/packed-refs与源码和显式环境；main移除运行时Git fallback，保留MSI显式SHA优先。23581正常build实际exit0；独立临时Git仓库的buildscript与实际生产函数探针通过，提交变化后旧二进制身份不变、下次构建读取新SHA、显式打包SHA优先。探针首两次脚本解析/边界错误已修正，不冒称首次通过。证据docs/testing/build-identity-compile-time。SHA仍仅来源参考，dirty源码、依赖/载荷/签名/完整不可变快照未闭环；本轮未重跑全crate测试或正式模型。
