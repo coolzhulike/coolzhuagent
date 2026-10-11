@@ -1,0 +1,10 @@
+{
+  "candidate/a": 0,
+  "candidate/b": 0,
+  "candidate-interleaved-single/a": 0,
+  "candidate-interleaved-single/b": 0,
+  "save-scope/a": 0,
+  "save-scope/b": 0,
+  "save-scope2/a": 0,
+  "save-scope2/b": 0
+}

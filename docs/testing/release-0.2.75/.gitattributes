@@ -1,0 +1,2 @@
+# 原始安装及运行证据保留 CRLF 和原字节摘要。
+installed-context/** -text whitespace=blank-at-eol,space-before-tab,cr-at-eol,-blank-at-eof

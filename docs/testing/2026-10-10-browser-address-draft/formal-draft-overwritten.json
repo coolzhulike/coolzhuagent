@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-10T13:24:30.412Z",
+  "intended": "http://127.0.0.1:51880/target.html?source=draft",
+  "operation": "sky.type_text after address focus and Ctrl+A",
+  "observed": [
+    "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t2082 编辑 (settable, string) 搜索或输入 URL Description: 搜索或输入 URL Value: http://127.0.0.1:51880/pulse.html?tick=614"
+  ],
+  "note": "真实网页每500毫秒同文档更新地址；未提交输入，非模型调用"
+}

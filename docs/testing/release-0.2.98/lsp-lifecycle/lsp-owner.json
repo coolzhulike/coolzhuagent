@@ -1,0 +1,16 @@
+{
+  "request": {
+    "path": "tmp/lsp-098/src/lib.rs",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "expected_workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace"
+  },
+  "started": {
+    "configured": true,
+    "running": true,
+    "preset": "rust-analyzer",
+    "handle": "b991b9985b32f58f8704b572fa2d093c",
+    "message": "Rust 语言服务已启动"
+  },
+  "web_pid": 24620
+}

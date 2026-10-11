@@ -1,0 +1,61 @@
+{
+  "source_commit": "82f769611a9b35cc947e8615575868e5cc34d8b9",
+  "stage": "原工作区与原安全库正常日常入口恢复",
+  "files": [
+    {
+      "file": "stopped-candidate-processes.json",
+      "length": 691,
+      "sha256": "9436f893baf2e1f8fbcc89a0b0d5a61f25c54fc2af913a3e7d72ef9a73fcc11c"
+    },
+    {
+      "file": "stopped-installed-084-standard-processes.json",
+      "length": 537,
+      "sha256": "2d942fa7c50a820c83d5c5f4562ed69961d86540957de3bf6d3df3e7fd243faf"
+    },
+    {
+      "file": "server-stopped084.json",
+      "length": 615,
+      "sha256": "48f09827dad2c4badf6119cb3b31e9eca425c9aade77c065bb6a17177917fe9d"
+    },
+    {
+      "file": "restored-daily-084-process.json",
+      "length": 255,
+      "sha256": "dd9298927bbc50c61ddbe693217ffe73398156c889731e916c7a89af10d38901"
+    },
+    {
+      "file": "restored-daily-084-selfcheck.json",
+      "length": 1777,
+      "sha256": "b90279ecee63fa3f385e6827fef76185fe5b237994b9cf0a88f33223a4ebecce"
+    },
+    {
+      "file": "restored-daily-084-verification.json",
+      "length": 857,
+      "sha256": "8d8a20b33d82e22624fb343314ddf2b7ffb5d1c54476420b2f11b0cf0b3869eb"
+    },
+    {
+      "file": "safety-before084.json",
+      "length": 780,
+      "sha256": "9a3a3de381a63ee89bddd12b39587ddf8d85756cb03d6e0b78410cff8d89507d"
+    },
+    {
+      "file": "safety-formal-completed084.json",
+      "length": 781,
+      "sha256": "17e59e372c969218fa5a7f5eb8b93f778669c0d573aa6c23fa53b442a5a0b45b"
+    },
+    {
+      "file": "safety-after084.json",
+      "length": 781,
+      "sha256": "695a1ae7658d7fc228c1b51a3cbac5fb6bdd0e83ba8853f25bd39b36a3b3536c"
+    },
+    {
+      "file": "restored-daily084.jpg",
+      "length": 195748,
+      "sha256": "6f4b883b2f2b219adfa42f6ce269735c995a110d8a5144732e06cfda448ae54a"
+    },
+    {
+      "file": "restored-daily084-ax.txt",
+      "length": 121827,
+      "sha256": "05f8eeaad2bd60e8d2bfe34585d8e2617d9aebd34cb63b78650d74459d5715d6"
+    }
+  ]
+}

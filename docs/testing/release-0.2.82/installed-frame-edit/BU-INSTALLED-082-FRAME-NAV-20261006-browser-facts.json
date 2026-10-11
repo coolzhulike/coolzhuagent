@@ -1,0 +1,1345 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791257494479-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-082-FRAME-NAV-20261006：继续原SWE-2远端上下文，仅执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{\"objective\":\"在当前已经聚焦的子Frame输入框仅输入导航-82一次，不点击不聚焦\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:52137/edit.html\"},\"success_criteria\":[\"最新页面子输入包含导航-82\"],\"constraints\":[\"只操作当前右栏原生浏览器；仅一次text输入导航-82；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若子文档身份已变化必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务\"],\"max_actions\":1}。running只wait同一job_id至终态。如实报告宿主回执与最新网页，不推断成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791257494810
+  },
+  "context_and_tools": {
+    "prefix": "BU-INSTALLED-082-FRAME-NAV-20261006",
+    "run_id": "run-chat-6a72c11ff02c5f2c0a87365438f64de26747459278d2a6ac",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791257494479-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 150,
+        "prompt_bytes": 3380
+      }
+    ],
+    "outputs": [],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+        "run_id": "run-chat-6a72c11ff02c5f2c0a87365438f64de26747459278d2a6ac",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "2fdcc048bc9d218f",
+        "status": "failed",
+        "created_at_unix_ms": 1791257515540,
+        "updated_at_unix_ms": 1791257522530,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-6a72c11ff02c5f2c0a87365438f64de26747459278d2a6ac\",\"turn_id\":\"chat-turn-1791257494479-5\",\"attempt_id\":\"2e548f681182fc8eb1dc798c2ec43a8c90926c068c5dcb5b\",\"owner_epoch\":76,\"generation\":76}"
+      }
+    ],
+    "reply": "",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-6a72c11ff02c5f2c0a87365438f64de26747459278d2a6ac",
+      "state": "failed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791257494479-5-tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+      "provider_tool_call_id": "tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+      "turn_id": "chat-turn-1791257494479-5",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791257494479-5\u001fbrowser\u001f在当前已经聚焦的子frame输入框仅输入导航-82一次，不点击不聚焦\u001f||http://127.0.0.1:52137/edit.html|\u001f最新页面子输入包含导航-82\u001f只操作当前右栏原生浏览器；仅一次text输入导航-82；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若子文档身份已变化必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏原生浏览器；仅一次text输入导航-82；仅使用本轮新鲜子文档引用；禁止任何click或自动focus、其它控件、按键、提交、切换页面；若子文档身份已变化必须立即停止并如实报告零投递；不导航、不滚动、不用桌面、其它工具或Devin原生工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"
+        ],
+        "max_actions": 1,
+        "objective": "在当前已经聚焦的子Frame输入框仅输入导航-82一次，不点击不聚焦",
+        "success_criteria": [
+          "最新页面子输入包含导航-82"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:52137/edit.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791258115788,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791257494479-5-tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+        "provider_tool_call_id": "tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_document_changed",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-a326d95c249ff117ce0c00b4b5c4316c:14a984179c9bc248",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:7e8f765296d768aed9d6611ca18302a4",
+          "native-ax:1:0",
+          "native-observation:7e8f765296d768aed9d6611ca18302a4"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791258394479
+            }
+          },
+          "cu_deadline_ms": 1791258115788,
+          "cu_deadline_established_at_ms": 1791257515788,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791257515788,
+      "updated_at_ms": 1791257522509,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791257494479-5-tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "text_input",
+          "normalized_target": "dom-a326d95c249ff117ce0c00b4b5c4316c",
+          "action_fingerprint": "3acb3f9f6d586016",
+          "status": "failed",
+          "error_code": "native_browser_document_changed",
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:7e8f765296d768aed9d6611ca18302a4\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791257520941,
+          "completed_at_ms": 1791257522490,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791257494479-5-tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{\"redacted_fields\":true},\"kind\":\"text_input\",\"redacted_fields\":true,\"target\":\"dom-a326d95c249ff117ce0c00b4b5c4316c\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 489,
+          "call_id": "cu-session-1791131217833-chat-turn-1791257494479-5-tool-a613990708372faa2a3960999626957970b66a2935014266d7d454181443d407",
+          "turn_id": "chat-turn-1791257494479-5",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{\"redacted_fields\":true},\"kind\":\"text_input\",\"target\":\"dom-a326d95c249ff117ce0c00b4b5c4316c\"},\"done\":false,\"observation_facts\":{\"candidate_count\":6,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":5,\"input_supported\":true,\"node_count\":39,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":2,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791257516433,
+          "completed_at_ms": 1791257520937
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:52137/events",
+  "web_events": [
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791254875856.2998,
+      "received_ms": 1791254875860.4333
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791254875898.7,
+      "received_ms": 1791254875910.5652
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791255234005,
+      "received_ms": 1791255234011.7734
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791255234062.0999,
+      "received_ms": 1791255234067.6843
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791255285679.2998,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255285682.367
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791255285680,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255285684.5017
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791255285682,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255285686.1826
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791255285682.2998,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255285689.2065
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791255477329.9,
+      "received_ms": 1791255477337.3066
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791255477364.7,
+      "received_ms": 1791255477370.3975
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791255652842.3,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255652844.997
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791255652843,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255652846.9402
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791255652844.2,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255652848.2878
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791255652844.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255652850.3008
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791255806417.5,
+      "received_ms": 1791255806422.5127
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791255806452.9,
+      "received_ms": 1791255806459.1047
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791255852156.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255852161.0588
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791255852158.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255852163.3906
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791255852158.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255852162.7307
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791255852157.4,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791255852162.1843
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "input",
+      "at_ms": 1791255874309.9,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": "竹林-82",
+      "received_ms": 1791255874312.5955
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keydown",
+      "at_ms": 1791255896458.0999,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791255896460.9243
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keyup",
+      "at_ms": 1791255896458.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791255896461.572
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791256017802.5,
+      "received_ms": 1791256017807.759
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791256017836.4001,
+      "received_ms": 1791256017839.1086
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791256206746.9001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256206750.156
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791256206747.7002,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256206755.0938
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791256206749.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256206756.7473
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791256206749.9001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256206757.5579
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "input",
+      "at_ms": 1791256227375.6,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": "竹林-82",
+      "received_ms": 1791256227378.782
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keydown",
+      "at_ms": 1791256248740.2002,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791256248742.054
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791256248740.7002,
+      "target": "submit",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256248744.793
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "child-submit",
+      "at_ms": 1791256248741.2002,
+      "value": "竹林-82",
+      "count": 1,
+      "isTrusted": true,
+      "received_ms": 1791256248746.9045
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keyup",
+      "at_ms": 1791256248741.6,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791256248748.4868
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791256330354,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256330358.2446
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791256330355.4,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256330359.5674
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791256330357.2,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256330362.6953
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791256330357,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256330362.4075
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "input",
+      "at_ms": 1791256351761.6,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": "主页面-82",
+      "received_ms": 1791256351763.5613
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791256429541.6,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256429554.5781
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791256429542.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256429555.6655
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791256429560.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256429564.5247
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791256429561.1,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256429564.975
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791256442499,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256442501.777
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791256442499.7,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256442503.1868
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791256442515.6,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256442518.3225
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791256442516.3,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256442520.118
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791256442515.9,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256442519.3066
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "parent-focused",
+      "at_ms": 1791256442516.6,
+      "received_ms": 1791256442523.167
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791256491680.8,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256491690.5442
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791256491681.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256491692.9265
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791256491682.4001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256491693.3428
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791256491700.9001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256491707.7627
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791256491701.2002,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256491709.5115
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791256505609.9,
+      "target": "replace",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256505613.4626
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791256505610.4,
+      "target": "replace",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256505615.3804
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791256505626.9,
+      "target": "replace",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256505629.7346
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791256505627.2,
+      "target": "replace",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791256505634.7957
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "child-navigation",
+      "at_ms": 1791256505627.6,
+      "received_ms": 1791256505636.5369
+    },
+    {
+      "case": "EDIT-REPLACED",
+      "type": "ready",
+      "at_ms": 1791256505644.7,
+      "received_ms": 1791256505648.3757
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791257007738.7,
+      "received_ms": 1791257007746.6035
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791257007785.3,
+      "received_ms": 1791257007797.7117
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791257061471.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257061474.7292
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791257061472.9001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257061477.156
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791257061472,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257061476.075
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791257061473.1,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257061478.757
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "input",
+      "at_ms": 1791257075177.2,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": "竹林-82",
+      "received_ms": 1791257075180.1006
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keydown",
+      "at_ms": 1791257090420,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791257090422.8367
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791257090420.6,
+      "target": "submit",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257090427.617
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "child-submit",
+      "at_ms": 1791257090421.2,
+      "value": "竹林-82",
+      "count": 1,
+      "isTrusted": true,
+      "received_ms": 1791257090429.7964
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "keyup",
+      "at_ms": 1791257090421.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": "Enter",
+      "value": null,
+      "received_ms": 1791257090431.4255
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791257165973,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257165976.6648
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791257165974.4,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257165978.5142
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791257165974.0999,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257165977.8564
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257165973.5,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257165977.5203
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "input",
+      "at_ms": 1791257181961.3,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": "主页面-82",
+      "received_ms": 1791257181964.3613
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791257313855.7,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257313883.441
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791257313856.7,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257313884.741
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791257313883.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257313887.8743
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791257313884.3,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257313889.4731
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "input",
+      "at_ms": 1791257333195.9001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": "竹林-82焦点-82",
+      "received_ms": 1791257333199.5474
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791257333523.4,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257333525.8167
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257333524.0999,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257333527.9329
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791257333540.5,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257333542.9658
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791257333540.9,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257333544.787
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257333541.3,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257333547.6636
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "parent-focused",
+      "at_ms": 1791257333541.5999,
+      "received_ms": 1791257333548.2664
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257370880.9,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257370917.99
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791257370882.1,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257370919.6694
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791257370882.6,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257370920.349
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791257370918.2,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257370922.767
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791257370918.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257370925.061
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791257386989.0999,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257386993.787
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257386989.9,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257386995.0415
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791257387006,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257387008.7175
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257387006.5999,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257387011.505
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791257387006.4,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257387010.1716
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "parent-focused",
+      "at_ms": 1791257387007,
+      "received_ms": 1791257387014.7705
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257439203.4,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257439213.932
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791257439204.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257439217.222
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791257439205.2,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257439217.877
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791257439224.5,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257439227.9795
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791257439225,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257439229.6
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791257456865.4,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257456868.1682
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257456866.2,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257456870.033
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791257456881.8,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257456885.0134
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791257456882.4,
+      "target": "move-focus",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257456887.6455
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257456882.9,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257456889.349
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "parent-focused",
+      "at_ms": 1791257456883.5,
+      "received_ms": 1791257456891.1274
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257498224.5999,
+      "target": "parent-input",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257498237.9934
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791257498226,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257498239.5864
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "focusin",
+      "at_ms": 1791257498226.7,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257498242.2874
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791257498245.8,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257498250.7947
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "click",
+      "at_ms": 1791257498246.4001,
+      "target": "frame-text",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257498252.1826
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791257517329.5,
+      "target": "replace",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257517332.7537
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "focusin",
+      "at_ms": 1791257517329.9,
+      "target": "replace",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257517334.1562
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791257517347.2,
+      "target": "replace",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257517350.5432
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "click",
+      "at_ms": 1791257517347.8,
+      "target": "replace",
+      "isTrusted": true,
+      "key": null,
+      "value": null,
+      "received_ms": 1791257517356.6355
+    },
+    {
+      "case": "EDIT-PARENT",
+      "type": "child-navigation",
+      "at_ms": 1791257517348.5999,
+      "received_ms": 1791257517359.5251
+    },
+    {
+      "case": "EDIT-REPLACED",
+      "type": "ready",
+      "at_ms": 1791257517368.7998,
+      "received_ms": 1791257517372.0544
+    }
+  ]
+}

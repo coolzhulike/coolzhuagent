@@ -93,6 +93,55 @@ fn dsh_write_failures_restore_enabled_snapshot_and_exact_metadata() {
 }
 
 #[test]
+fn dsh_dot_relative_entry_keeps_source_bytes_and_rejects_escape() {
+    let case = new_case();
+    let root = case.path().canonicalize().unwrap();
+    let source = root.join("source");
+    let mut package = fixture(&source, "1.0.0");
+    let metadata = serde_json::to_vec(&serde_json::json!({
+        "name":package.receipt.name,"version":"1.0.0","main":"./index.js"
+    })).unwrap();
+    fs::write(source.join("package.json"), &metadata).unwrap();
+    package.receipt.files.iter_mut().find(|file| file.path == "package.json").unwrap().sha256
+        = format!("{:x}", Sha256::digest(&metadata));
+    package.verify(&source).unwrap();
+    let mut manager = PluginManager::new(PluginManagerConfig::new(root.join("home")));
+    let installed = manager.install_dsh(&source, &package, "相对入口回归").unwrap();
+    package.verify(&installed.install_path).unwrap();
+    assert_eq!(fs::read(installed.install_path.join("package.json")).unwrap(), metadata);
+    assert_eq!(package.receipt.entry, "index.js");
+    for entry in ["../index.js", "./../index.js", "./C:/index.js", "./index.js:alias", "./node_modules/index.js", "././index.js"] {
+        assert!(DshPackage::normalize_source_entry(entry).is_err(), "越界或歧义入口必须拒绝：{entry}");
+    }
+    package.receipt.entry = "other.js".into();
+    assert!(package.verify(&source).is_err(), "不得将入口规范化当作放宽回执身份");
+}
+
+#[test]
+fn dsh_read_lock_contention_does_not_revoke_unchanged_lifecycle() {
+    let case = new_case();
+    let root = case.path().canonicalize().unwrap();
+    let mut manager = PluginManager::new(PluginManagerConfig::new(root.join("home")));
+    let package = fixture(&root.join("source"), "1.0.0");
+    let installed = manager.install_dsh(&root.join("source"), &package, "生命周期锁竞争回归").unwrap();
+    let snapshot = enable(&mut manager, &installed.plugin_id);
+    let ticket = manager.dsh_activation_ticket(&installed.plugin_id, WORKSPACE).unwrap();
+    // 模拟目录读取持有同一把管理锁；持久身份没有变化，轮询不得将读竞争当成撤销。
+    let (_root, held) = manager.lock_and_recover().unwrap();
+    assert!(manager.dsh_ticket_lifecycle_current(&ticket).unwrap());
+    assert!(manager.dsh_snapshot_lifecycle_current(&snapshot, &installed.install_path).unwrap());
+    // 新接纳与配置发布仍必须持锁，不能借轮询获得写入或启动资格。
+    assert!(matches!(manager.dsh_activation_ticket(&installed.plugin_id, WORKSPACE), Err(PluginError::Busy(_))));
+    drop(held);
+    let replacement = enable(&mut manager, &installed.plugin_id);
+    assert_ne!(snapshot.activation_id, replacement.activation_id);
+    assert!(!manager.dsh_ticket_lifecycle_current(&ticket).unwrap());
+    assert!(!manager.dsh_snapshot_lifecycle_current(&snapshot, &installed.install_path).unwrap());
+    manager.disable(&installed.plugin_id).unwrap();
+    assert!(!manager.dsh_snapshot_lifecycle_current(&replacement, &installed.install_path).unwrap());
+}
+
+#[test]
 fn dsh_uncommitted_process_exit_restores_old_snapshot_or_removes_new_install() {
     for existing in [false,true] { for fault in ["directory","registry","settings"] {
         let case=new_case();let root=case.path().canonicalize().unwrap();

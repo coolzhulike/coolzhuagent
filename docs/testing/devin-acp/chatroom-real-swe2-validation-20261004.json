@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-04",
+  "entry": "聊天室输入框 → /api/chat/send/stream → Devin ACP → 标准聊天消息持久化",
+  "model": "swe-2-medium",
+  "cost_tier": "Free",
+  "cost_source": "每轮发送前核对真实已登录 CLI 账号目录",
+  "cli_version": "devin 3000.10.48 (fcf7ba39)",
+  "chat_room_id": "room-1791104247230",
+  "agent_id": "session-1791104247169",
+  "preview_url": "http://127.0.0.1:59130",
+  "installed_package_replaced": false,
+  "turns": [
+    {
+      "turn": 1,
+      "prompt": "你好！记住暗号：青竹739516。只回复：你好，已记住。",
+      "reply": "你好，已记住。",
+      "user_message_id": "msg-1791104317129-user",
+      "assistant_message_id": "msg-1791104317269-0"
+    },
+    {
+      "turn": 2,
+      "prompt": "刚才的暗号是什么？只回复暗号。",
+      "reply": "青竹739516",
+      "user_message_id": "msg-1791104368149-user",
+      "assistant_message_id": "msg-1791104368267-0"
+    },
+    {
+      "turn": 3,
+      "prompt": "17 + 25 等于多少？只回复数字。",
+      "reply": "42",
+      "user_message_id": "msg-1791104677200-user",
+      "assistant_message_id": "msg-1791104677342-0"
+    }
+  ],
+  "attempts": [
+    {
+      "scope": {
+        "workspace_id": "ws-0a732c2eb98f9d9e",
+        "room_id": "room-1791104247230",
+        "agent_id": "session-1791104247169",
+        "run_id": "run-chat-c66d41b98da638ae4cba9454f0419e6a4ccb20230474db9e",
+        "turn_id": "chat-turn-1791104317132-0",
+        "attempt_id": "bf097c8b9e857efcf58aa3678f6f286935cb0d14022e2f95",
+        "owner_epoch": 1,
+        "generation": 1
+      },
+      "state": "terminal",
+      "stop_reason": "end_turn",
+      "process_drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    },
+    {
+      "scope": {
+        "workspace_id": "ws-0a732c2eb98f9d9e",
+        "room_id": "room-1791104247230",
+        "agent_id": "session-1791104247169",
+        "run_id": "run-chat-c226a85ff6578b872d9af4ce803cf76f64a66e7910e82906",
+        "turn_id": "chat-turn-1791104368149-1",
+        "attempt_id": "fa676b64eca0f4347ab3fa2f18b51505f4e8f430836819f4",
+        "owner_epoch": 2,
+        "generation": 2
+      },
+      "state": "terminal",
+      "stop_reason": "end_turn",
+      "process_drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    },
+    {
+      "scope": {
+        "workspace_id": "ws-0a732c2eb98f9d9e",
+        "room_id": "room-1791104247230",
+        "agent_id": "session-1791104247169",
+        "run_id": "run-chat-f66ee4d2d24acf0540cbd253fa6f5bfab9aa2c52ceee1de2",
+        "turn_id": "chat-turn-1791104677200-0",
+        "attempt_id": "2d09980ee55162e4043944d62aaee2b52ce0f62ca6883f77",
+        "owner_epoch": 3,
+        "generation": 3
+      },
+      "state": "terminal",
+      "stop_reason": "end_turn",
+      "process_drained": true,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    }
+  ],
+  "remote_session_restored_between_turns": true,
+  "remote_binding_replaced": false,
+  "page_reload_after_turn2": true,
+  "preview_process_restart_after_turn2": true,
+  "persisted_user_messages": 3,
+  "persisted_assistant_replies": 3,
+  "preview_binary_sha256": "f9dd170641418d0ea0f2b7d64fd839f6ac0258c82a194f95d181947141a75294",
+  "limits": [
+    "只验证聊天室纯文本；附件、工具、Goal、群发、子 Agent 未开放",
+    "Free 来自账号目录，不声明实测账单为零",
+    "未知 token 容量、思考参数和底模身份未推测"
+  ]
+}

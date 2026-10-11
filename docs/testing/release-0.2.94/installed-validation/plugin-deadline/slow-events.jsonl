@@ -1,0 +1,5 @@
+{"event": "server_started", "utc": "2026-10-08T16:31:27.972173+00:00", "monotonic": 765801.8849087, "host": "127.0.0.1", "port": 63464, "delay_seconds": 45, "tool_timeout_ms": 60000, "host_timeout_seconds": 30, "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983", "plugin_id": "dsh-aa909f79795799f288de8a67@external"}
+{"event": "function_network_entered", "utc": "2026-10-08T16:33:01.229803+00:00", "monotonic": 765895.1400848, "path": "/timeout-20261008"}
+{"event": "connection_closed_before_response", "utc": "2026-10-08T16:33:02.735425+00:00", "monotonic": 765896.6456648, "path": "/timeout-20261008"}
+{"event": "function_network_entered", "utc": "2026-10-08T16:34:10.193150+00:00", "monotonic": 765964.1016218, "path": "/cancel-20261008"}
+{"event": "connection_closed_before_response", "utc": "2026-10-08T16:34:40.141450+00:00", "monotonic": 765994.0491272, "path": "/cancel-20261008"}

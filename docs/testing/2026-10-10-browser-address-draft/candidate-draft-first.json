@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-10T13:27:45.283Z",
+  "intended": "http://127.0.0.1:51880/target.html?source=draft",
+  "observed": [
+    "\t\t\t\t\t\t\t\t\t\t\t\t\t2398 文本 实际地址变化 73",
+    "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t2108 编辑 (settable, string) 搜索或输入 URL Description: 搜索或输入 URL Value: http://127.0.0.1:51880/pulse.html?tick=41"
+  ]
+}

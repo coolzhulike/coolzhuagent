@@ -1,0 +1,481 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791254023718-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-081-IFRAME-CHILD-20261006：继续原SWE-2远端上下文，仅执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数为{\"objective\":\"单击当前页面独立iframe子文档内名为Frame子操作按钮的button一次\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:63360/frame.html\"},\"success_criteria\":[\"最新页面父操作次数0，Frame子操作次数1\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click；必须选择当前实际iframe子文档内名为Frame子操作按钮的button新鲜引用；不选父操作按钮，不选切换子页面，不替代节点或点击位置，不用桌面、导航、其它工具或Devin原生工具；失败、不支持、取消或输入未知立即停止，不重试、不补发、不执行历史任务\"],\"max_actions\":1}。若running只wait同一job_id至终态，按真实宿主输入释放回执和新页面如实报告，不得代执行或推断成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791254024062
+  },
+  "context_and_tools": {
+    "prefix": "BU-INSTALLED-081-IFRAME-CHILD-20261006",
+    "run_id": "run-chat-35b504c103385093fe80999d0e0674b4197875dd6c876f44",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791254023718-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 116,
+        "prompt_bytes": 3401
+      }
+    ],
+    "outputs": [
+      {
+        "agent_id": "session-1791131217833",
+        "messages": [
+          {
+            "deleted": false,
+            "digest": "55d610cf0beed74a31ffca7f1a599ac1971d65af2f413c0af46796486841e030",
+            "id": "msg-1791254024133-0",
+            "source": false
+          }
+        ]
+      }
+    ],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+        "run_id": "run-chat-35b504c103385093fe80999d0e0674b4197875dd6c876f44",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "1e144518bed860c5",
+        "status": "completed",
+        "created_at_unix_ms": 1791254030871,
+        "updated_at_unix_ms": 1791254046548,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-35b504c103385093fe80999d0e0674b4197875dd6c876f44\",\"turn_id\":\"chat-turn-1791254023719-0\",\"attempt_id\":\"9a3c8245b581f7881a7d1e5589143111cab9d994d1ba6279\",\"owner_epoch\":59,\"generation\":59}"
+      }
+    ],
+    "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`）：\n\n- **动作**：1 次 click 已投递（attempts=1，steps_completed=1，含 native-input 回执）\n- **验收**：最新页面观察（freshness_confirmed=true）在 `http://127.0.0.1:63360/frame.html`（标题\"081 iframe子文档点击\"）确认 StaticText 节点显示 **\"父操作次数：0；Frame子操作次数：1\"**，success_criteria 1/1 满足——正确命中 iframe 子文档内按钮，未触发父按钮\n\n按宿主回执如实报告：目标达成。",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-35b504c103385093fe80999d0e0674b4197875dd6c876f44",
+      "state": "completed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791254023719-0-tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+      "provider_tool_call_id": "tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+      "turn_id": "chat-turn-1791254023719-0",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791254023719-0\u001fbrowser\u001f单击当前页面独立iframe子文档内名为frame子操作按钮的button一次\u001f||http://127.0.0.1:63360/frame.html|\u001f最新页面父操作次数0，frame子操作次数1\u001f只操作当前右栏原生浏览器，只允许一次click；必须选择当前实际iframe子文档内名为frame子操作按钮的button新鲜引用；不选父操作按钮，不选切换子页面，不替代节点或点击位置，不用桌面、导航、其它工具或devin原生工具；失败、不支持、取消或输入未知立即停止，不重试、不补发、不执行历史任务",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏原生浏览器，只允许一次click；必须选择当前实际iframe子文档内名为Frame子操作按钮的button新鲜引用；不选父操作按钮，不选切换子页面，不替代节点或点击位置，不用桌面、导航、其它工具或Devin原生工具；失败、不支持、取消或输入未知立即停止，不重试、不补发、不执行历史任务"
+        ],
+        "max_actions": 1,
+        "objective": "单击当前页面独立iframe子文档内名为Frame子操作按钮的button一次",
+        "success_criteria": [
+          "最新页面父操作次数0，Frame子操作次数1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63360/frame.html"
+        }
+      },
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791254631089,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791254023719-0-tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+        "provider_tool_call_id": "tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"2dace6690325465a4195584fc56a06dc\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":20,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":20,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"29014793c433d6f7d8f4f6b07be4eaed\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":27,\"nodes\":[{\"index\":7,\"name\":\"父操作次数：0；Frame子操作次数：1\",\"role\":\"StaticText\"}],\"title\":\"081 iframe子文档点击\",\"truncated\":false,\"url\":\"http://127.0.0.1:63360/frame.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:63360/frame.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:d27fdca9ec97fda90f0e212d31e5d23a",
+          "native-ax:1:0",
+          "native-observation:d27fdca9ec97fda90f0e212d31e5d23a",
+          "native-input:cacefa04f39056884ac8a207b74bb9e7",
+          "native-ax:1:0",
+          "native-observation:29014793c433d6f7d8f4f6b07be4eaed",
+          "native-ax:1:0",
+          "native-observation:29014793c433d6f7d8f4f6b07be4eaed",
+          "native-ax:1:0",
+          "native-observation:2dace6690325465a4195584fc56a06dc"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791254923719
+            }
+          },
+          "cu_deadline_ms": 1791254631089,
+          "cu_deadline_established_at_ms": 1791254031089,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791254031089,
+      "updated_at_ms": 1791254046534,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791254023719-0-tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-dd1e5cf96d78c71dc6c08b5487696b50",
+          "action_fingerprint": "67a852cc8e62606c",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:d27fdca9ec97fda90f0e212d31e5d23a\"]",
+          "after_evidence_ref": "[\"native-ax:1:0\",\"native-observation:29014793c433d6f7d8f4f6b07be4eaed\",\"native-ax:1:0\",\"native-observation:2dace6690325465a4195584fc56a06dc\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "started_at_ms": 1791254035168,
+          "completed_at_ms": 1791254037389,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "3a769b54a0d7a29eb871bce534a9ede9",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"93ee84465996660b5d0cdb175072f026\",\"host_id\":\"native-58397f03d0fc7ff0633f3d23dad60844\",\"process\":{\"instance_id\":\"fb34a4a9e48814ea106cc51dc137afcf\",\"boot_id\":\"58397f03d0fc7ff0633f3d23dad60844\",\"pid\":8508,\"creation_time_filetime\":134357275635527235,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-dd1e5cf96d78c71dc6c08b5487696b50:bb010947d126e502#gen1#cu-session-1791131217833-chat-turn-1791254023719-0-tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6:step-0#attempt1\",\"ticket_id\":\"3a769b54a0d7a29eb871bce534a9ede9\",\"observation_id\":\"d27fdca9ec97fda90f0e212d31e5d23a\",\"document_token\":\"04f20559bbb301c80351f5c19922df03\",\"node_id\":\"dd1e5cf96d78c71dc6c08b5487696b50\",\"input_kind\":\"click\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791254023719-0-tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-dd1e5cf96d78c71dc6c08b5487696b50\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 446,
+          "call_id": "cu-session-1791131217833-chat-turn-1791254023719-0-tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+          "turn_id": "chat-turn-1791254023719-0",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"dom-dd1e5cf96d78c71dc6c08b5487696b50\"},\"done\":false,\"observation_facts\":{\"candidate_count\":4,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":3,\"input_supported\":true,\"node_count\":27,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791254031459,
+          "completed_at_ms": 1791254035162
+        },
+        {
+          "id": 447,
+          "call_id": "cu-session-1791131217833-chat-turn-1791254023719-0-tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+          "turn_id": "chat-turn-1791254023719-0",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_browser_readonly_verification",
+          "observation_generation": 2,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"bytes\":116,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":46,\"evidence_chars\":20,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":1,\"criteria_type\":\"array\",\"host_verification\":{\"criteria_count\":1,\"criteria_met\":1,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":20,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":20,\"role\":\"StaticText\"}]}],\"ungrounded_positive_count\":0},\"observation_facts\":{\"candidate_count\":4,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":3,\"input_supported\":true,\"node_count\":27,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false},\"progress\":null,\"progress_type\":\"missing\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+          "error_code": null,
+          "started_at_ms": 1791254038153,
+          "completed_at_ms": 1791254046526
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:63360/events",
+  "web_events": [
+    {
+      "case": "IFRAME-PARENT",
+      "type": "ready",
+      "at_ms": 1791252918377.5,
+      "received_ms": 1791252918381.5552
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "ready",
+      "at_ms": 1791252918388.3,
+      "received_ms": 1791252918391.928
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791252969054.3,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791252969056.1475
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791252969054.9,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791252969059.5198
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "click",
+      "at_ms": 1791252969055.2,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791252969059.723
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "child-count",
+      "at_ms": 1791252969055.4,
+      "count": 1,
+      "received_ms": 1791252969059.896
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "ready",
+      "at_ms": 1791253022963.2,
+      "received_ms": 1791253022972.676
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "ready",
+      "at_ms": 1791253022977.4,
+      "received_ms": 1791253022979.2021
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791253363326.2,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253363329.4585
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791253363326.9,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253363330.5994
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "click",
+      "at_ms": 1791253363327.0999,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253363331.9434
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "child-count",
+      "at_ms": 1791253363327.3,
+      "count": 1,
+      "received_ms": 1791253363332.7852
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791253364974.7998,
+      "target": "replace",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253364985.126
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791253365010.9,
+      "target": "replace",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253365014.0066
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "click",
+      "at_ms": 1791253365011.4,
+      "target": "replace",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253365015.5537
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "child-navigation",
+      "at_ms": 1791253365012.0999,
+      "received_ms": 1791253365026.1125
+    },
+    {
+      "case": "IFRAME-REPLACED",
+      "type": "ready",
+      "at_ms": 1791253365034.2,
+      "received_ms": 1791253365037.059
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "ready",
+      "at_ms": 1791253393246.4,
+      "received_ms": 1791253393256.7092
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "ready",
+      "at_ms": 1791253393264.7998,
+      "received_ms": 1791253393267.3027
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791253439712.2998,
+      "target": "replace",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253439734.8442
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791253439733.5999,
+      "target": "replace",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253439736.4429
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "click",
+      "at_ms": 1791253439734.2998,
+      "target": "replace",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791253439742.6921
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "child-navigation",
+      "at_ms": 1791253439735,
+      "received_ms": 1791253439746.4402
+    },
+    {
+      "case": "IFRAME-REPLACED",
+      "type": "ready",
+      "at_ms": 1791253439755.1,
+      "received_ms": 1791253439757.6418
+    },
+    {
+      "case": "IFRAME-PARENT",
+      "type": "ready",
+      "at_ms": 1791254011262.2002,
+      "received_ms": 1791254011268.9338
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "ready",
+      "at_ms": 1791254011277.2,
+      "received_ms": 1791254011280.2656
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791254037376.7998,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791254037379.0327
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791254037377.4,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791254037380.9526
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "click",
+      "at_ms": 1791254037377.7,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791254037381.3235
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "child-count",
+      "at_ms": 1791254037377.9,
+      "count": 1,
+      "received_ms": 1791254037382.26
+    }
+  ]
+}

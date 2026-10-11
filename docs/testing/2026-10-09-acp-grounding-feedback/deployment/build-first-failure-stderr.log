@@ -1,0 +1,121 @@
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+   Compiling coolzhu-web-console v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\gui-web\packages\web-console)
+warning: unused import: `RelativeAnchor`
+   --> modules\gui-web\packages\web-console\src\main.rs:188:43
+    |
+188 |     InteractionScenario, MouseActionKind, RelativeAnchor, ResolutionCase, UiTargetKind,
+    |                                           ^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> modules\gui-web\packages\web-console\src\lsp_host.rs:480:9
+    |
+480 |     let mut stdout = child
+    |         ----^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable pattern
+     --> modules\gui-web\packages\web-console\src\main.rs:16242:9
+      |
+16242 |         _ => Err(ClawbotRuntimeCommandError::new(
+      |         ^ no value can reach this
+      |
+note: multiple earlier patterns match some of the same values
+     --> modules\gui-web\packages\web-console\src\main.rs:16242:9
+      |
+15919 |         clawbot_channel::ClawbotCommand::Help { .. } => {
+      |         -------------------------------------------- matches some of the same values
+...
+15930 |         clawbot_channel::ClawbotCommand::Unknown { input } => Err(ClawbotRuntimeCommandError::new(
+      |         -------------------------------------------------- matches some of the same values
+...
+15934 |         clawbot_channel::ClawbotCommand::Status => Ok(clawbot_runtime_command_ok(
+      |         --------------------------------------- matches some of the same values
+...
+15937 |         clawbot_channel::ClawbotCommand::ListRooms => {
+      |         ------------------------------------------ matches some of the same values
+...
+16242 |         _ => Err(ClawbotRuntimeCommandError::new(
+      |         ^ ...and 8 other patterns collectively make this unreachable
+      = note: `#[warn(unreachable_patterns)]` (part of `#[warn(unused)]`) on by default
+
+error[E0599]: `ComputerUseError` doesn't implement `std::fmt::Display`
+   --> modules\gui-web\packages\web-console\src\native_browser_verification.rs:265:85
+    |
+265 |     let verdict = parse_verdict(raw, count, page.nodes.len()).map_err(|error| error.to_string())?;
+    |                                                                                     ^^^^^^^^^ method cannot be called on `ComputerUseError` due to unsatisfied trait bounds
+    |
+   ::: modules\computer-use\packages\computer-use-core\src\contracts.rs:157:1
+    |
+157 | pub struct ComputerUseError {
+    | --------------------------- doesn't satisfy `ComputerUseError: ToString` or `ComputerUseError: std::fmt::Display`
+    |
+    = note: the following trait bounds were not satisfied:
+            `ComputerUseError: std::fmt::Display`
+            which is required by `ComputerUseError: ToString`
+
+warning: unused variable: `coordination_scope`
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2112:9
+     |
+2112 |         coordination_scope: &str,
+     |         ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_coordination_scope`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `timeout`
+     --> modules\gui-web\packages\web-console\src\main.rs:36603:17
+      |
+36603 |             let timeout = Duration::from_secs(8);
+      |                 ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_timeout`
+
+warning: value assigned to `used_real_model` is never read
+     --> modules\gui-web\packages\web-console\src\main.rs:19592:21
+      |
+19592 |                     used_real_model = true;
+      |                     ^^^^^^^^^^^^^^^^^^^^^^
+      |
+      = help: maybe it is overwritten before being read?
+      = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `room`
+     --> modules\gui-web\packages\web-console\src\main.rs:40324:18
+      |
+40324 |         let Some(room) = self.state.chat_rooms.iter().find(|room| room.id == room_id) else {
+      |                  ^^^^ help: if this is intentional, prefix it with an underscore: `_room`
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `coolzhu-web-console` (bin "coolzhu-web-console") generated 7 warnings
+error: could not compile `coolzhu-web-console` (bin "coolzhu-web-console") due to 1 previous error; 7 warnings emitted

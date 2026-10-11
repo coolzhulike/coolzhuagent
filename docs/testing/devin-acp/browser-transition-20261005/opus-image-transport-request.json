@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读审查，不执行桌面、不改代码。刚完成真实SWE-2两笔Paint T回归：两笔released但首笔与旧图相连，第二笔独立菱形，goal=false，最终报planner request task ended without a response。已核源码dispatch_internal返回oneshot Receiver<Result<MessageResponse,ApiError>>，外层timeout；request_model分支Ok(Ok(Err(_dropped)))被错当接收任务丢失，实际上是ApiError，Ok(Err(error))才是真接收通道关闭。拟纠正错误分类并保存安全错误，不外发原始服务端payload。T第五个ACP内部attempt为not_sent且drained，与前三个内层end_turn不同。另核session.rs的prompt_content和SessionTransport.write都共用1MiB MAX_FRAME_BYTES；三张原PNG很可能超限，入站限制不该用作原图出站限制。\n拟最小改动：入站read_frame/握手/工具消息继续1MiB；仅合法session/prompt且含标准image block，明确出站总上限8MiB（图片仍PNG/JPEG/WebP、image能力协商），文本仍1MiB。prompt_content在claim提交前检查准确完整JSON-RPC序列化长度、与write同一函数规则，超限返回明确本地不可重试错误；不截图不丢图片不缩图不重发、不取消根预算。验证一轮新独立两步小图形检查实际2→3张图传递，不把动作释放或仅工程检查当验收。请审职责边界/大小限是否合理；最多400中文，不建议把所有出入站阈值统一增大。没有读源码则明确基于上述事实。",
+  "selected_message_ids": [],
+  "attachments": []
+}

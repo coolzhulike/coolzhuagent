@@ -1,0 +1,2 @@
+# 安装、构建回执与载荷索引保留原始字节，以便核对报告引用的摘要。
+* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol

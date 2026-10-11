@@ -5,11 +5,11 @@
   const option = (value, label) => `<option value="${esc(value)}">${esc(label)}</option>`;
   const triOptions = `${option("", "沿用工程设置")}${option("true", "开启")}${option("false", "关闭")}`;
   const efforts = [["auto", "自动"], ["none", "关闭"], ["minimal", "极简"], ["low", "低"], ["medium", "中"], ["high", "高"], ["xhigh", "超高"], ["max", "最大"]];
-  async function request(path, body, method, signal) {
+  async function httpRequest(path, body, method, signal, headers) {
     let response;
     try {
-      response = await fetch(path, body === undefined ? { signal } : {
-        method: method || "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal,
+      response = await fetch(path, body === undefined ? { signal, ...(headers ? { headers } : {}) } : {
+        method: method || "POST", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body), signal,
       });
     } catch (error) {
       const pathname = new URL(path, window.location.href).pathname;
@@ -26,8 +26,29 @@
     if (!container) return null;
     container.__modelSettings?.destroy();
     let sessions = [], selectedId = options.sessionId || null, snapshot = null, loadSequence = 0, refreshSequence = 0, editSequence = 0, disposed = false;
-    let busy = false, dirty = false;
-    let discovery = null, discoverySequence = 0, discoveryController = null, discovering = false;
+    let busy = false, dirty = false, initialDraftApplied = false;
+    let discovery = null, devinCatalog = null, discoverySequence = 0, discoveryController = null, discovering = false;
+    let scopePromise = null;
+    async function request(path, body, method, signal) {
+      if (disposed) throw new Error("配置页已关闭，请重新打开");
+      let headers;
+      if (options.workspacePath !== undefined) {
+        // 只绑定一次；迟到请求不能通过自动刷新标识转而写入新工程。
+        scopePromise ||= httpRequest("/api/workspace").then(workspace => {
+          if (workspace.workspace !== options.workspacePath || !workspace.workspace_id || !workspace.configuration_scope)
+            throw new Error("工程已改变，草稿未提交；请刷新页面后重新打开配置页");
+          return { id: workspace.workspace_id, value: workspace.configuration_scope };
+        });
+        const scope = await scopePromise;
+        if (disposed) throw new Error("配置页已关闭，请重新打开");
+        if (path === "/api/sessions" || /^\/api\/sessions\/[^/]+\/model-(settings|limit)$/.test(path))
+          headers = { "X-Coolzhu-Workspace-Id": scope.id, "X-Coolzhu-Configuration-Scope": scope.value };
+      }
+      return httpRequest(path, body, method, signal, headers);
+    }
+    const httpProtocols = [["openai_chat_completions", "OpenAI Chat Completions"], ["anthropic_messages", "Anthropic Messages"]];
+    const protocols = options.backendFilter === "devin_acp" ? [["devin_acp", "Devin · 账号登录"]]
+      : options.backendFilter === "llm_http" ? httpProtocols : [...httpProtocols, ["devin_acp", "Devin · 账号登录"]];
     container.classList.add("model-settings");
     container.innerHTML = `
       <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2><p>为当前聊天室选择模型，配置连接、上下文与思考参数。</p></div><button type="button" data-ms-action="new" class="ms-secondary">新建会话</button></div>
@@ -38,7 +59,13 @@
           <section class="ms-section"><div class="ms-section-title"><span>01</span><h3>连接</h3></div>
             <div class="ms-grid">
               <label>会话名称<input data-ms="name" required maxlength="32" placeholder="例如：日常助手"></label>
-              <label>通信协议<select data-ms="protocol"><option value="openai_chat_completions">OpenAI Chat Completions</option><option value="anthropic_messages">Anthropic Messages</option></select></label>
+              <label>通信协议<select data-ms="protocol">${protocols.map(item => option(...item)).join("")}</select></label>
+              <div class="ms-wide" data-ms="devin-auth" hidden></div>
+              <small class="ms-wide" data-ms="devin-context" hidden>同一聊天室与模型配置继续发送时，会沿用远端会话，应用重启后也可恢复。重置上下文或切换模型后，会开始新的远端会话。</small>
+              <div class="ms-wide" data-ms="devin-rebind-row" hidden><button type="button" data-ms-action="rebind-devin" class="ms-secondary" aria-label="重新绑定 Devin 远端会话" title="重新绑定 Devin 远端会话">↻</button><small>如果已经清除了 Devin 远端会话，可重新绑定。保留本地聊天记录；下一轮发送时建立新连接。</small></div>
+              <label class="ms-wide" data-ms="devin-review-label" hidden><span><input type="checkbox" data-ms="devin-review">允许读取当前工程用于仓库审查</span><small>仅文件读取、查找与内容搜索；不开放写入、命令、电脑操作或原生 Devin 工具。</small></label>
+              <label class="ms-wide" data-ms="devin-computer-label" hidden><span><input type="checkbox" data-ms="devin-computer">允许 Computer Use</span><small>通过宿主操作浏览器与桌面；规划和验收使用所选模型，图片需由 ACP 声明支持。</small></label>
+              <fieldset class="ms-wide" data-ms="devin-plugins-label" hidden><legend>允许的插件工具</legend><button type="button" data-ms="refresh-plugins" data-ms-action="refresh-plugins" class="ms-secondary" aria-label="刷新可选插件工具" title="刷新可选插件工具">↻</button><div data-ms="devin-plugin-tools"></div><small data-ms="devin-plugin-hint">仅勾选需要的已启用工具。插件执行需要当前聊天室完全访问；缺少授权时本轮不会延期执行。</small></fieldset>
               <label class="ms-wide">接口地址 · Base URL<input data-ms="base-url" type="url" required spellcheck="false" placeholder="https://api.example.com/v1"></label>
               <div class="ms-wide ms-discovery" aria-label="远程模型发现">
                 <div class="ms-discovery-actions"><button type="button" data-ms-action="discover" class="ms-secondary">获取模型</button><label class="ms-checkbox"><input type="checkbox" data-ms="discovery-no-key">此次查询不使用密钥</label></div>
@@ -88,6 +115,7 @@
     const controls = {
       new: ["plus", "新建模型会话"], discover: ["search", "获取远程模型"],
       "adopt-model": ["check", "使用所选模型"], "adopt-capability": ["vision", "采用所选模型的图片能力"],
+      "rebind-devin": ["refresh", "重新绑定 Devin 远端会话"],
     };
     for (const [action, [icon, label]] of Object.entries(controls)) {
       setWuxiaIconOnly(container.querySelector(`[data-ms-action="${action}"]`), icon, label);
@@ -99,8 +127,24 @@
     const tri = key => value(key) === "" ? null : value(key) === "true";
     const number = key => value(key) === "" ? null : Number(value(key));
     const status = (message, error = false) => { el("status").textContent = message; el("status").classList.toggle("ms-error", error); };
+    const devinAuth = window.CoolzhuDevinAuth?.mount(el("devin-auth"), {visible:false});
+    let authVisible = false;
+    let loadedReviewTools = [];
+    const extensionTool = name => /^(?:plugin__(?!devin_)[A-Za-z0-9_-]+|dsh__[A-Za-z0-9_-]+)$/.test(name) && name.length <= 64;
+    function renderPluginTools(data, parameters) {
+      const selected = new Set(parameters?.enable_llm_tools === true ? (parameters.tool_allowlist || []).filter(extensionTool) : []);
+      const tools = new Map((data?.available_plugin_tools || []).map(tool => [tool.name, tool]));
+      for (const name of selected) if (!tools.has(name)) tools.set(name, { name, description: "当前未启用；保留已保存的选择，启用后才可调用。" });
+      el("devin-plugin-tools").innerHTML = tools.size ? [...tools.values()].map(tool =>
+        `<label class="ms-checkbox"><input type="checkbox" data-ms="devin-plugin" value="${esc(tool.name)}" ${selected.has(tool.name) ? "checked" : ""}><span>${esc(tool.description || tool.name)}<small>${esc(tool.name)}</small></span></label>`).join("")
+        : "<p class=\"ms-hint\">暂无已启用的插件工具。请先在插件市场安装并启用，再刷新可选工具。</p>";
+      el("devin-plugin-hint").textContent = data?.plugin_tools_error ? `插件工具读取失败：${data.plugin_tools_error}`
+        : "仅勾选需要的已启用工具。插件执行需要当前聊天室完全访问；缺少授权时本轮不会延期执行。";
+    }
 
+    const devinConnection = () => value("protocol") === "devin_acp";
     function remoteCandidate() {
+      if (devinConnection()) return true;
       try {
         const url = new URL(value("base-url")), host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
         if (!["https:", "http:"].includes(url.protocol)) return false;
@@ -123,7 +167,7 @@
       container.querySelector('[data-ms-action="discover"]').disabled = !canDiscover;
       el("discovery-status").classList.remove("ms-error");
       el("discovery-status").textContent = canDiscover
-        ? "点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。"
+        ? (devinConnection() ? "登录后获取账号的完整模型目录，选择模型及思考档位。" : "点击获取远程模型。仅查询目录，不进行对话或图片测试；未保存的更改保持在表单内。")
         : "本地和内网模型保持手动填写；远程发现需要完整的 HTTP(S) 地址。";
     }
 
@@ -136,6 +180,9 @@
         ? `来源：官方资料（核对于 ${model.capability_checked_at}），查询未实测`
         : "来源：服务端目录，未实测";
       const detail = model ? [imageLabel(model), model.image_input == null ? "需手动确认" : source,
+        model.cost_summary || model.cost_tier || "",
+        model.tool_calling === true ? "目录声明支持工具调用" : model.tool_calling === false ? "目录声明不支持工具调用" : "",
+        model.reasoning_effort ? `思考档位 ${model.reasoning_effort}` : "",
         model.context_window ? `上下文 ${model.context_window.toLocaleString()} tokens` : "",
         model.max_output_tokens ? `输出上限 ${model.max_output_tokens.toLocaleString()} tokens` : ""].filter(Boolean).join(" · ") : "没有匹配的模型，可继续手动填写。";
       el("discovery-detail").textContent = detail;
@@ -152,7 +199,8 @@
 
     function renderCandidates() {
       const query = value("discovery-filter").toLowerCase(), previous = value("discovery-model");
-      const models = (discovery?.models || []).filter(model => `${model.id} ${model.name}`.toLowerCase().includes(query));
+      const filteredConnector = options.modelFilter && value("base-url").replace(/\/$/, "") === options.initialDraft?.baseUrl;
+      const models = (discovery?.models || []).filter(model => (!filteredConnector || options.modelFilter(model)) && `${model.id} ${model.name}`.toLowerCase().includes(query));
       el("discovery-model").innerHTML = models.map(model => option(model.id, `${model.name === model.id ? model.id : `${model.name} · ${model.id}`} — ${imageLabel(model)}`)).join("");
       if (models.some(model => model.id === previous)) set("discovery-model", previous);
       else if (models.some(model => model.id === value("model"))) set("discovery-model", value("model"));
@@ -165,15 +213,16 @@
       const sequence = discoverySequence, controller = new AbortController();
       discoveryController = controller; discovering = true;
       container.querySelector('[data-ms-action="discover"]').disabled = true;
-      el("discovery-status").textContent = "正在查询远程模型目录…";
+      el("discovery-status").textContent = devinConnection() ? "正在读取 Devin CLI 的账号模型目录…" : "正在查询远程模型目录…";
       const noKey = el("discovery-no-key").checked;
       const body = { session_id: selectedId, base_url: value("base-url"), endpoint: value("endpoint"), protocol: value("protocol"), use_saved_key: !noKey && !el("clear-key").checked };
       if (noKey || el("clear-key").checked) body.api_key = "";
       else if (value("api-key")) body.api_key = value("api-key");
       try {
-        const result = await request("/api/models/discover", body, "POST", controller.signal);
+        const result = await request(devinConnection() ? "/api/backends/devin/models" : "/api/models/discover", devinConnection() ? {} : body, "POST", controller.signal);
         if (disposed || sequence !== discoverySequence) return;
         discovery = result;
+        if (devinConnection()) { devinCatalog = result.models || []; updateDynamicFields(); }
         el("discovery-results").hidden = !result.models?.length;
         el("discovery-status").textContent = `${result.provider_hint || "远程服务"} · 已获取 ${result.models?.length || 0} 个模型${result.complete === false ? "（部分目录）" : ""}。 ${(result.warnings || []).join(" ")}`;
         renderCandidates();
@@ -190,6 +239,40 @@
     }
 
     function updateDynamicFields() {
+      const devin = devinConnection();
+      el("devin-review-label").hidden = !devin;
+      el("devin-context").hidden = !devin;
+      el("devin-rebind-row").hidden = !devin || !selectedId;
+      el("devin-computer-label").hidden = !devin;
+      el("devin-plugins-label").hidden = !devin;
+      if (authVisible !== devin) { authVisible = devin; devinAuth?.setVisible(devin); }
+      for (const key of ["base-url", "endpoint", "api-key", "clear-key", "discovery-no-key"]) {
+        el(key).disabled = devin || (key === "clear-key" && !selectedId);
+        el(key).closest("label").hidden = devin;
+      }
+      el("base-url").required = !devin;
+      for (const key of ["context", "output", "temperature", "top-p", "thinking-budget", "model-type"]) {
+        el(key).disabled = devin;
+      }
+      if (devin) {
+        el("reasoning-mode").innerHTML = option("auto", "模型变体");
+        const model = devinCatalog?.find(item => item.id === value("model"));
+        const variants = model ? devinCatalog.filter(item => item.family === model.family && item.reasoning_effort) : [];
+        const selectedEffort = value("reasoning-effort");
+        const savedEffort = snapshot?.session?.model === value("model") ? snapshot.session.reasoning_effort : "auto";
+        el("reasoning-effort").innerHTML = option("auto", "所选模型默认") + efforts.filter(([id]) => variants.some(item => item.reasoning_effort === id) || !model && id === savedEffort && id !== "auto").map(item => option(...item)).join("");
+        set("reasoning-effort", variants.some(item => item.reasoning_effort === selectedEffort) || !model && selectedEffort === savedEffort ? selectedEffort : "auto");
+        el("reasoning-mode").disabled = true; el("reasoning-effort").disabled = !variants.length;
+        el("budget-label").hidden = true; el("thinking-budget").required = false;
+        el("reasoning-hint").textContent = "思考档位会选择账号目录中对应的精确模型变体；发送前核对 ACP 生效模型。温度等参数使用模型默认值。";
+        el("effective-limit").textContent = "上下文与输出容量使用 Devin 模型默认值。";
+        el("multimodal-hint").textContent = tri("supports-multimodal") === true
+          ? "图片通过 ACP 直传；发送时核对连接声明的图片能力，不支持则明确报错。"
+          : "未启用图片直传时，由系统默认视觉 Agent 描述图片；模型目录不代表图片能力已验证。";
+        el("key-hint").textContent = "使用本机 Devin CLI 登录，不使用 HTTP 密钥。";
+        return;
+      }
+      el("reasoning-mode").disabled = false; el("reasoning-effort").disabled = false;
       const anthropic = value("protocol") === "anthropic_messages";
       // 与适配器的已核验模型清单一致；未知后缀、Omni 和 Anthropic 不套用此映射。
       const qwen38 = !anthropic && ["qwen3.8-flash", "qwen3.8-max", "qwen3.8-max-0902", "qwen3.8-2.4t-a95b", "qwen3.8-27b"].includes(value("model").toLowerCase());
@@ -238,13 +321,13 @@
       snapshot = data;
       const s = data?.session || {}, p = data?.parameters || {};
       set("name", s.name); set("model", s.model); set("model-type", s.model_type || "text");
-      set("protocol", data?.protocol || "openai_chat_completions");
+      set("protocol", data?.protocol || options.defaultProtocol || "openai_chat_completions");
       set("base-url", data?.base_url || "http://127.0.0.1:11434/v1"); set("endpoint", data?.endpoint);
       set("api-key", ""); el("clear-key").checked = false; el("discovery-no-key").checked = false;
       set("supports-multimodal", p.supports_multimodal == null ? "" : String(p.supports_multimodal));
       el("clear-key").disabled = !selectedId;
-      el("api-key").placeholder = selectedId ? "留空保留已有密钥" : "本地服务可留空";
-      el("key-hint").textContent = selectedId ? `密钥状态：${s.api_key_status || "未配置"}。留空不会覆盖已有密钥。` : "密钥不会回显；本地服务可留空。";
+      el("api-key").placeholder = selectedId ? "留空保留已有密钥" : options.initialDraft ? "填写该平台 API Key / Token" : "本地服务可留空";
+      el("key-hint").textContent = selectedId ? `密钥状态：${s.api_key_status || "未配置"}。留空不会覆盖已有密钥。` : options.initialDraft ? "使用该平台自己的凭据；不会继承其它会话的密钥。密钥不会回显。" : "密钥不会回显；本地服务可留空。";
       set("context", p.context_window || ""); set("output", p.max_output_tokens || "");
       el("context").placeholder = data?.default_context_window ? `默认 ${data.default_context_window.toLocaleString()}` : "沿用模型默认值";
       el("output").placeholder = data?.default_max_output_tokens ? `默认 ${data.default_max_output_tokens.toLocaleString()}` : "沿用模型默认值";
@@ -254,11 +337,20 @@
       set("reasoning-effort", s.reasoning_effort || "auto");
       set("thinking-budget", p.thinking_budget); set("temperature", p.temperature); set("top-p", p.top_p);
       set("enable-tools", p.enable_llm_tools == null ? "" : String(p.enable_llm_tools));
+      const reviewTools = (p.tool_allowlist || []).filter(name => ["read_file", "glob_search", "grep_search"].includes(name));
+      el("devin-review").checked = p.enable_llm_tools === true
+        && p.llm_tool_exposure === "whitelist" && Array.isArray(p.tool_allowlist)
+        && reviewTools.length > 0;
+      el("devin-computer").checked = p.enable_llm_tools === true && p.computer_use_enabled === true
+        && p.llm_tool_exposure === "whitelist" && (p.tool_allowlist || []).includes("computer_use_perform");
+      // 保存其它参数时保持既有只读子集，不悄悄扩大工具范围。
+      loadedReviewTools = el("devin-review").checked ? reviewTools : [];
+      renderPluginTools(data, p);
       set("computer-use", p.computer_use_enabled == null ? "" : String(p.computer_use_enabled));
       set("turn-timeout", p.turn_timeout_ms == null ? "" : p.turn_timeout_ms / 60000);
       set("tool-exposure", p.llm_tool_exposure); set("tool-allowlist", (p.tool_allowlist || []).join("\n"));
       updateDynamicFields(); resetDiscovery(); dirty = false;
-      status(selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
+      status(devinConnection() ? "Devin 配置已载入；可选择图片直传、工程只读、Computer Use 和已启用插件工具。其它附件及子 Agent 尚未开放。" : selectedId ? "配置已载入。修改后对下一轮会话生效。" : "填写连接信息后保存为新会话。");
       options.onSelected?.(selectedId);
     }
 
@@ -275,7 +367,17 @@
       renderSessionOptions();
       options.onSelected?.(selectedId);
       const sequence = ++loadSequence;
-      if (!selectedId) { fill(null); el("fields").disabled = false; el("save").disabled = false; return; }
+      if (!selectedId) {
+        fill(null);
+        if (options.initialDraft) {
+          initialDraftApplied = true;
+          set("name", options.initialDraft.name); set("protocol", "openai_chat_completions");
+          set("base-url", options.initialDraft.baseUrl); set("model", ""); set("api-key", "");
+          updateDynamicFields(); resetDiscovery(); dirty = true;
+          status("新连接草稿尚未保存。填写该平台凭据并获取模型，再保存；已有会话和密钥保持独立。");
+        }
+        el("fields").disabled = false; el("save").disabled = false; return;
+      }
       el("fields").disabled = true; el("save").disabled = true;
       status("正在读取配置…");
       let loaded = false;
@@ -297,20 +399,44 @@
       try {
         const registry = await request("/api/sessions");
         if (disposed || sequence !== refreshSequence || editAtStart !== editSequence || dirty) return;
-        sessions = registry.sessions || [];
-        await select(sessionId || registry.active_session_id || sessions[0]?.id || null);
+        sessions = (registry.sessions || []).filter(s => !options.backendFilter || s.backend_kind === options.backendFilter || (options.backendFilter === "devin_acp" && ["devin", "devin_acp", "devin-acp"].includes(s.provider)));
+        if (options.initialDraft && !initialDraftApplied) {
+          await select(null);
+        } else await select(sessions.some(s => s.id === sessionId) ? sessionId : sessions.some(s => s.id === registry.active_session_id) ? registry.active_session_id : sessions[0]?.id || null);
       } catch (error) {
         if (!disposed && sequence === refreshSequence && editAtStart === editSequence && !dirty)
           status(`读取会话失败：${error.message}`, true);
       }
     }
 
+    async function refreshPluginTools() {
+      if (disposed || busy || !selectedId || !devinConnection()) return;
+      const sessionId = selectedId, sequence = loadSequence, button = el("refresh-plugins");
+      button.disabled = true;
+      try {
+        const data = await request(`/api/sessions/${encodeURIComponent(sessionId)}/model-settings`);
+        if (disposed || selectedId !== sessionId || loadSequence !== sequence) return;
+        // 仅刷新工具目录，保留包括未保存勾选在内的其它模型参数。
+        const names = [...container.querySelectorAll('[data-ms="devin-plugin"]:checked')].map(input => input.value);
+        renderPluginTools(data, { enable_llm_tools: true, tool_allowlist: names });
+      } catch (error) {
+        if (!disposed && selectedId === sessionId && loadSequence === sequence)
+          el("devin-plugin-hint").textContent = `插件工具读取失败：${error.message}`;
+      } finally { if (!disposed) button.disabled = false; }
+    }
+
     async function save(event) {
       event.preventDefault();
       if (busy || !el("form").reportValidity()) return;
+      if (!selectedId && options.initialDraft && !value("api-key")) {
+        status("请填写该平台自己的 API Key / Token，再保存新连接。", true); return;
+      }
       resetDiscovery();
-      const session = { name: value("name"), model: value("model"), model_type: value("model-type"), reasoning_effort: value("reasoning-effort") };
-      if (value("api-key") || el("clear-key").checked) session.api_key_ref = el("clear-key").checked ? "" : value("api-key");
+      const devin = devinConnection();
+      const session = { name: value("name"), model: value("model"), model_type: devin ? "text" : value("model-type"), reasoning_effort: value("reasoning-effort") };
+      if (devin) session.provider = "devin";
+      else if (snapshot?.backend_kind === "devin_acp") session.provider = "custom";
+      if (!devin && (value("api-key") || el("clear-key").checked)) session.api_key_ref = el("clear-key").checked ? "" : value("api-key");
       const parameters = {
         ...(snapshot?.parameters || {}),
         protocol: value("protocol"), base_url: value("base-url"), endpoint: value("endpoint") || "",
@@ -319,11 +445,24 @@
         supports_multimodal: tri("supports-multimodal"),
         reasoning_mode: value("reasoning-mode"), thinking_budget: value("reasoning-mode") === "budget" ? number("thinking-budget") : null,
       };
+      parameters.backend_kind = devin ? "devin_acp" : "llm_http";
+      const pluginTools = [...container.querySelectorAll('[data-ms="devin-plugin"]:checked')].map(input => input.value);
+      if (devin) Object.assign(parameters, {
+        base_url: null, endpoint: null, context_window: 0, max_output_tokens: 0,
+        temperature: null, top_p: null, thinking_budget: null, reasoning_mode: "auto",
+        enable_llm_tools: el("devin-review").checked || el("devin-computer").checked || pluginTools.length > 0,
+        computer_use_enabled: el("devin-computer").checked,
+        llm_tool_exposure: "whitelist", tool_allowlist: [
+          ...(el("devin-review").checked ? (loadedReviewTools.length ? [...loadedReviewTools] : ["read_file", "glob_search", "grep_search"]) : []),
+          ...(el("devin-computer").checked ? ["computer_use_perform"] : []),
+          ...pluginTools,
+        ],
+      });
       busy = true; el("save").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
       status("正在保存…");
       try {
         if (!selectedId) {
-          const created = await request("/api/sessions", { ...session, provider: "custom", base_url: parameters.base_url, endpoint: parameters.endpoint });
+          const created = await request("/api/sessions", { ...session, provider: devin ? "devin" : "custom", base_url: parameters.base_url, endpoint: parameters.endpoint });
           selectedId = created.session.id;
           sessions.push(created.session); renderSessionOptions();
           snapshot = await request(`/api/sessions/${encodeURIComponent(selectedId)}/model-settings`);
@@ -333,7 +472,7 @@
         fill(result);
         const index = sessions.findIndex(s => s.id === selectedId);
         if (index >= 0) sessions[index] = result.session;
-        renderSessionOptions(); status("已保存，对下一轮会话生效。");
+        renderSessionOptions(); status(devin ? "已保存 Devin 配置；所选宿主工具对下一轮会话生效。" : "已保存，对下一轮会话生效。");
         try { await options.onSaved?.(result.session, result); }
         catch (error) { if (!disposed) status(`配置已保存，但界面刷新失败：${error.message}`, true); }
         if (!disposed) container.dispatchEvent(new CustomEvent("model-settings-saved", { bubbles: true, detail: result }));
@@ -342,6 +481,25 @@
         busy = false;
         if (!disposed) { el("save").disabled = false; el("fields").disabled = false; el("session-select").disabled = false; }
       }
+    }
+
+    async function rebindDevin() {
+      if (disposed || busy || !selectedId || !devinConnection()) return;
+      if (dirty) { status("请先保存配置，再重新绑定远端会话。", true); return; }
+      const sessionId = selectedId, sequence = loadSequence;
+      busy = true; el("fields").disabled = true; el("save").disabled = true;
+      status("正在核对当前聊天室的远端绑定…");
+      try {
+        const current = await request(`/api/backends/devin/binding?session_id=${encodeURIComponent(sessionId)}`);
+        if (disposed || selectedId !== sessionId || loadSequence !== sequence) return;
+        if (!current.bindings?.some(item => item.remote_session_id)) {
+          status("尚未绑定远端会话；下一轮发送时创建，此处不会提前创建。"); return;
+        }
+        await request("/api/backends/devin/binding", {session_id:sessionId,room_id:current.room_id,expected_bindings:current.bindings});
+        if (!disposed && selectedId === sessionId && loadSequence === sequence)
+          status("已解除旧远端绑定，聊天记录已保留。下一轮发送时建立并复用新会话。");
+      } catch (error) { if (!disposed) status(`重新绑定失败：${error.message}`, true); }
+      finally { busy = false; if (!disposed) { el("fields").disabled = false; el("save").disabled = false; } }
     }
 
     const markDirty = () => {
@@ -354,7 +512,7 @@
       if (key === "discovery-filter") { renderCandidates(); return; }
       if (key === "discovery-model" || key === "discovery-no-key") return;
       if (discoveryInputs.has(key)) resetDiscovery();
-      if (key === "model") renderCandidateDetail();
+      if (key === "model") { renderCandidateDetail(); if (devinConnection()) { set("reasoning-effort", "auto"); updateDynamicFields(); } }
       if (el("form")?.contains(event.target)) markDirty();
     };
     const onChange = event => {
@@ -364,15 +522,22 @@
       if (key === "discovery-model") { renderCandidateDetail(); return; }
       if (discoveryInputs.has(key)) resetDiscovery();
       if (key === "discovery-no-key") return;
+      if (devinConnection() && key === "reasoning-effort" && value("reasoning-effort") !== "auto") {
+        const current = devinCatalog?.find(item => item.id === value("model"));
+        const variant = current && devinCatalog.find(item => item.family === current.family && item.reasoning_effort === value("reasoning-effort"));
+        if (variant) { set("model", variant.id); set("discovery-model", variant.id); renderCandidateDetail(); }
+      }
       updateDynamicFields(); markDirty();
     };
     const onClick = event => {
       const action = event.target.closest("[data-ms-action]")?.dataset.msAction;
       if (action === "new") void select(null);
       if (action === "discover") void discoverModels();
+      if (action === "refresh-plugins") void refreshPluginTools();
+      if (action === "rebind-devin") void rebindDevin();
       if (action === "adopt-model") {
         const model = selectedCandidate();
-        if (model) { set("model", model.id); updateDynamicFields(); renderCandidateDetail(); markDirty(); }
+        if (model) { set("model", model.id); if (devinConnection()) set("reasoning-effort", "auto"); updateDynamicFields(); if (devinConnection() && model.reasoning_effort) set("reasoning-effort", model.reasoning_effort); renderCandidateDetail(); markDirty(); }
       }
       if (action === "adopt-capability") {
         const model = selectedCandidate();
@@ -382,10 +547,12 @@
       }
     };
     el("form").addEventListener("submit", save);
+    const accountChanged = () => { devinCatalog = null; if (devinConnection()) { resetDiscovery(); updateDynamicFields(); } };
+    window.addEventListener?.("devin-account-changed", accountChanged);
     container.addEventListener("input", onInput); container.addEventListener("change", onChange); container.addEventListener("click", onClick);
     const api = {
       refresh, select, newSession: () => select(null), get sessionId() { return selectedId; }, get dirty() { return dirty; },
-      destroy() { disposed = true; loadSequence++; refreshSequence++; discoverySequence++; discoveryController?.abort(); container.removeEventListener("input", onInput); container.removeEventListener("change", onChange); container.removeEventListener("click", onClick); el("form")?.removeEventListener("submit", save); },
+      destroy() { disposed = true; loadSequence++; refreshSequence++; discoverySequence++; discoveryController?.abort(); devinAuth?.destroy(); window.removeEventListener?.("devin-account-changed", accountChanged); container.removeEventListener("input", onInput); container.removeEventListener("change", onChange); container.removeEventListener("click", onClick); el("form")?.removeEventListener("submit", save); },
     };
     container.__modelSettings = api;
     void refresh(selectedId);

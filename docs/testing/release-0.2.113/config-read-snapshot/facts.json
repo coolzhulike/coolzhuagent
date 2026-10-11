@@ -1,0 +1,949 @@
+{
+  "case": "formal113",
+  "binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "binary_sha256": "d44c2eb3831fd701397d0c6a18f68192b6da71945dff3797e711911d260690f1",
+  "pid": 8332,
+  "port": 8768,
+  "model_requests": 0,
+  "new_cloud_sessions": 0,
+  "original_runtime_writes": 0,
+  "session_id": "session-1791525105068",
+  "writes": [
+    {
+      "sequence": 0,
+      "revision": 2,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 1,
+      "revision": 3,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 2,
+      "revision": 4,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 3,
+      "revision": 5,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 4,
+      "revision": 6,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 5,
+      "revision": 7,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 6,
+      "revision": 8,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 7,
+      "revision": 9,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 8,
+      "revision": 10,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 9,
+      "revision": 11,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 10,
+      "revision": 12,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 11,
+      "revision": 13,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 12,
+      "revision": 14,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 13,
+      "revision": 15,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 14,
+      "revision": 16,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 15,
+      "revision": 17,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 16,
+      "revision": 18,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 17,
+      "revision": 19,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 18,
+      "revision": 20,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 19,
+      "revision": 21,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 20,
+      "revision": 22,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 21,
+      "revision": 23,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 22,
+      "revision": 24,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 23,
+      "revision": 25,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 24,
+      "revision": 26,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 25,
+      "revision": 27,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 26,
+      "revision": 28,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 27,
+      "revision": 29,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 28,
+      "revision": 30,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 29,
+      "revision": 31,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 30,
+      "revision": 32,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 31,
+      "revision": 33,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 32,
+      "revision": 34,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 33,
+      "revision": 35,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 34,
+      "revision": 36,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 35,
+      "revision": 37,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 36,
+      "revision": 38,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 37,
+      "revision": 39,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 38,
+      "revision": 40,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 39,
+      "revision": 41,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 40,
+      "revision": 42,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 41,
+      "revision": 43,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 42,
+      "revision": 44,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 43,
+      "revision": 45,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 44,
+      "revision": 46,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 45,
+      "revision": 47,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 46,
+      "revision": 48,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 47,
+      "revision": 49,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 48,
+      "revision": 50,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 49,
+      "revision": 51,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 50,
+      "revision": 52,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 51,
+      "revision": 53,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 52,
+      "revision": 54,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 53,
+      "revision": 55,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 54,
+      "revision": 56,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 55,
+      "revision": 57,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 56,
+      "revision": 58,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 57,
+      "revision": 59,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 58,
+      "revision": 60,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 59,
+      "revision": 61,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 60,
+      "revision": 62,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 61,
+      "revision": 63,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 62,
+      "revision": 64,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 63,
+      "revision": 65,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 64,
+      "revision": 66,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 65,
+      "revision": 67,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 66,
+      "revision": 68,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 67,
+      "revision": 69,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 68,
+      "revision": 70,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 69,
+      "revision": 71,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 70,
+      "revision": 72,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 71,
+      "revision": 73,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 72,
+      "revision": 74,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 73,
+      "revision": 75,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 74,
+      "revision": 76,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 75,
+      "revision": 77,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 76,
+      "revision": 78,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 77,
+      "revision": 79,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 78,
+      "revision": 80,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 79,
+      "revision": 81,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 80,
+      "revision": 82,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 81,
+      "revision": 83,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 82,
+      "revision": 84,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 83,
+      "revision": 85,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 84,
+      "revision": 86,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 85,
+      "revision": 87,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 86,
+      "revision": 88,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 87,
+      "revision": 89,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 88,
+      "revision": 90,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 89,
+      "revision": 91,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 90,
+      "revision": 92,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 91,
+      "revision": 93,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 92,
+      "revision": 94,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 93,
+      "revision": 95,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 94,
+      "revision": 96,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 95,
+      "revision": 97,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 96,
+      "revision": 98,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 97,
+      "revision": 99,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 98,
+      "revision": 100,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 99,
+      "revision": 101,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 100,
+      "revision": 102,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 101,
+      "revision": 103,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 102,
+      "revision": 104,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 103,
+      "revision": 105,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 104,
+      "revision": 106,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 105,
+      "revision": 107,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 106,
+      "revision": 108,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 107,
+      "revision": 109,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 108,
+      "revision": 110,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 109,
+      "revision": 111,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 110,
+      "revision": 112,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 111,
+      "revision": 113,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 112,
+      "revision": 114,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 113,
+      "revision": 115,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 114,
+      "revision": 116,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 115,
+      "revision": 117,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 116,
+      "revision": 118,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 117,
+      "revision": 119,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 118,
+      "revision": 120,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 119,
+      "revision": 121,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 120,
+      "revision": 122,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 121,
+      "revision": 123,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 122,
+      "revision": 124,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 123,
+      "revision": 125,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 124,
+      "revision": 126,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 125,
+      "revision": 127,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 126,
+      "revision": 128,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 127,
+      "revision": 129,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 128,
+      "revision": 130,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 129,
+      "revision": 131,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 130,
+      "revision": 132,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 131,
+      "revision": 133,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 132,
+      "revision": 134,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 133,
+      "revision": 135,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 134,
+      "revision": 136,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 135,
+      "revision": 137,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 136,
+      "revision": 138,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 137,
+      "revision": 139,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 138,
+      "revision": 140,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 139,
+      "revision": 141,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 140,
+      "revision": 142,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 141,
+      "revision": 143,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 142,
+      "revision": 144,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 143,
+      "revision": 145,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 144,
+      "revision": 146,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 145,
+      "revision": 147,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 146,
+      "revision": 148,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 147,
+      "revision": 149,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 148,
+      "revision": 150,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 149,
+      "revision": 151,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 150,
+      "revision": 152,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 151,
+      "revision": 153,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 152,
+      "revision": 154,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 153,
+      "revision": 155,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 154,
+      "revision": 156,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 155,
+      "revision": 157,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 156,
+      "revision": 158,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 157,
+      "revision": 159,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 158,
+      "revision": 160,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 159,
+      "revision": 161,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 160,
+      "revision": 162,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 161,
+      "revision": 163,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 162,
+      "revision": 164,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 163,
+      "revision": 165,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 164,
+      "revision": 166,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 165,
+      "revision": 167,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 166,
+      "revision": 168,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 167,
+      "revision": 169,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 168,
+      "revision": 170,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 169,
+      "revision": 171,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 170,
+      "revision": 172,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 171,
+      "revision": 173,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 172,
+      "revision": 174,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 173,
+      "revision": 175,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 174,
+      "revision": 176,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 175,
+      "revision": 177,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 176,
+      "revision": 178,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 177,
+      "revision": 179,
+      "name": "快照-a"
+    },
+    {
+      "sequence": 178,
+      "revision": 180,
+      "name": "快照-b"
+    },
+    {
+      "sequence": 179,
+      "revision": 181,
+      "name": "快照-a"
+    }
+  ],
+  "readers": [
+    {
+      "reads": 193,
+      "mismatches": [],
+      "failures": []
+    },
+    {
+      "reads": 196,
+      "mismatches": [],
+      "failures": []
+    },
+    {
+      "reads": 191,
+      "mismatches": [],
+      "failures": []
+    },
+    {
+      "reads": 189,
+      "mismatches": [],
+      "failures": []
+    },
+    {
+      "reads": 190,
+      "mismatches": [],
+      "failures": []
+    },
+    {
+      "reads": 190,
+      "mismatches": [],
+      "failures": []
+    }
+  ],
+  "total_reads": 1149,
+  "mismatch_samples": 0,
+  "race_passed": true,
+  "local_cap_passed": true
+}

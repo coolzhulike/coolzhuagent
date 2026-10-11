@@ -228,9 +228,33 @@ pub struct ManagedConPty {
 }
 
 impl ManagedConPty {
+    /// 官方登录固定入口，直接启动原生 CLI，不经过 shell，也不接受页面参数。
+    pub fn spawn_devin_browser_login(binary: &Path, workspace: &Path) -> io::Result<Self> {
+        if !binary.is_absolute() || !binary.is_file()
+            || !binary.extension().is_some_and(|e| e.eq_ignore_ascii_case("exe"))
+            || binary.as_os_str().to_string_lossy().contains(['"', '\r', '\n']) {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, "登录组件路径无效"));
+        }
+        let command = format!("\"{}\" auth login", binary.display());
+        Self::spawn_shell(workspace, 120, 40, binary, OsStr::new(&command))
+    }
+
+    /// 登录必须确认整个 Job 已排空，不能只以主进程退出或句柄释放为证据。
+    pub fn close_verified(&mut self) -> io::Result<()> {
+        let drained = self.job.as_ref().map(|job| job.terminate_and_wait(std::time::Duration::from_secs(3))).transpose();
+        let closed = self.close();
+        drained?;
+        closed
+    }
+
     pub fn spawn_powershell(workspace: &Path, cols: u16, rows: u16) -> io::Result<Self> {
         let shell = system_powershell()?;
-        Self::spawn_shell(workspace, cols, rows, &shell, OsStr::new("powershell.exe -NoLogo -NoProfile"))
+        // 右栏文本框提交完整命令，不依赖系统行编辑器。Windows PowerShell 的
+        // PSReadLine 会吞掉 ConPTY 输入中的补充平面字符，并投影全局历史建议；
+        // 只在本终端进程停用它，保留真正的交互 shell、Ctrl+C 与子程序控制台。
+        Self::spawn_shell(workspace, cols, rows, &shell, OsStr::new(
+            r#"powershell.exe -NoLogo -NoProfile -NoExit -Command "Remove-Module PSReadLine -ErrorAction SilentlyContinue""#,
+        ))
     }
 
     fn spawn_shell(workspace: &Path, cols: u16, rows: u16,
@@ -461,6 +485,11 @@ mod tests {
         };
         // PowerShell 的提示符不保证按行刷新；启动后直接以文件副作用确认可交互。
         std::thread::sleep(std::time::Duration::from_millis(600));
+        terminal.write("Set-Content -LiteralPath .\\unicode.txt -Encoding UTF8 -Value '竹林𠮷😀'\r\n".as_bytes()).unwrap();
+        wait_file(&workspace.path().join("unicode.txt"), &terminal, &mut cursor);
+        assert_eq!(std::fs::read_to_string(workspace.path().join("unicode.txt")).unwrap()
+            .trim_start_matches('\u{feff}').trim(), "竹林𠮷😀",
+            "补充平面输入必须经真实 PowerShell 解析后完整写入，不能只检查命令回显");
         terminal.write(b"Set-Content -LiteralPath .\\first.txt -Value done\r\n").unwrap();
         wait_file(&workspace.path().join("first.txt"), &terminal, &mut cursor);
         terminal.write(b"Set-Content -LiteralPath .\\started.txt -Value started; Start-Sleep -Seconds 15; Set-Content -LiteralPath .\\should-not.txt -Value late\r\n").unwrap();

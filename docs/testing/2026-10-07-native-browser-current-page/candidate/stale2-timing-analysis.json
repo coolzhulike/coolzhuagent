@@ -1,0 +1,24 @@
+{
+  "case": "stale2",
+  "request_ms": 1791363100273,
+  "change": {
+    "before_ms": 1791363106816,
+    "action": "右栏普通刷新，规划期间替换文档",
+    "after_ms": 1791363106914
+  },
+  "response_ms": 1791363106577,
+  "strict_planning_window": false,
+  "all_planning_events": [
+    {
+      "id": 2062,
+      "event_type": "devin.planning_requested",
+      "created_at": 1791363100273
+    },
+    {
+      "id": 2063,
+      "event_type": "devin.planning_response",
+      "created_at": 1791363106577
+    }
+  ],
+  "new_trusted_events": 0
+}

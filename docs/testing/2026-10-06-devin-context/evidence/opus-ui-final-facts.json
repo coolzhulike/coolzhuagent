@@ -1,0 +1,51 @@
+{
+  "case": "opus-ui-final",
+  "run_id": "run-chat-cf3f0a2f322b76fe594c7eb4672ff0294eb20b081b9dd7bc",
+  "source_message_id": "msg-1791217829839-user",
+  "primary_session_id": "session-1791131217833",
+  "agent_id": "session-1791122188340",
+  "remote_session_id": "fair-amaryllis",
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 76,
+      "prompt_bytes": 1753
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791122188340",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "800e33279003d01315b0485f945bbd83787427e69d4f82104417474bcc32675c",
+          "id": "msg-1791217829976-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "admitted_targets": [
+    {
+      "agent_ids": [
+        "session-1791122188340"
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      }
+    }
+  ],
+  "tools": [],
+  "reply": "108d9d63c77f3907",
+  "passed": true
+}

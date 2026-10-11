@@ -1,0 +1,17 @@
+{
+  "model": "swe-2-medium",
+  "configuration_revision": 51,
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "active_runs": 0
+}

@@ -1,0 +1,94 @@
+{
+  "stage": "0.2.94 Program Files正式安装版",
+  "version": "0.2.94",
+  "source_commit": "54fe2d317d1c0022e88a95533f538b172ae30593",
+  "marker": "BU-INSTALLED094-COVER-20261008",
+  "run": {
+    "id": "run-chat-fa9ff5db81c9086eb22b17c6f3de2c8b25563edc4ee2162c",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "model": "swe-2-medium",
+  "remote_session_id": "island-kayak",
+  "calls": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791476202377-2-tool-e532b37cf31543d0631ee3f29313393061ef77400389dd7f929b54b0babf2810",
+      "result": {
+        "status": "blocked",
+        "goal_achieved": false,
+        "attempts": 1,
+        "steps_completed": 0,
+        "error": {
+          "code": "native_browser_target_hit_mismatch",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-3e85a997286df66a14119f0a2300abfb:2c6410a5907285f8",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791477102377
+            }
+          },
+          "cu_deadline_ms": 1791477102377,
+          "cu_deadline_established_at_ms": 1791476214395,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "failed",
+          "error_code": "native_browser_target_hit_mismatch",
+          "input_delivery": "not_sent",
+          "input_release_status": "not_needed",
+          "effect_status": null,
+          "visible_progress": 0
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [],
+  "remote_attempts": [
+    {
+      "attempt_id": "98dfd4838a9fbb07cf7e3d1e3d2b2605f42930e51ad46f59",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "screenshot": "10-installed-cover-rejected.jpg"
+}

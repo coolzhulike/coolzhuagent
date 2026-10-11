@@ -1,0 +1,13 @@
+﻿{
+    "web_sha256":  "cede51b509e024b758a1bfcf17f0579b08fb5246ad307b4e6b7b51e1c3d15d2d",
+    "web_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-07-jade-connectors\\bin\\coolzhu-web-console.exe",
+    "shell_started":  "2026-10-07T13:18:01.1685540Z",
+    "web_started":  "2026-10-07T13:18:00.0827849Z",
+    "web_pid":  25988,
+    "shell_binary":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "shell_pid":  17884,
+    "port":  8765,
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage":  "092后玉石控件和免费模型连接器源码候选＋正式092 Shell",
+    "shell_sha256":  "026b6dc5bd3e2f98ff1d953f1f0554ed10465a1ac5dd3bff85807166596613cd"
+}

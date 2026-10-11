@@ -1,0 +1,38 @@
+    Blocking waiting for file lock on artifact directory
+   Compiling coolzhu-diagnostics v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\diagnostics\packages\diagnostics)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 33.28s
+     Running unittests src\lib.rs (target\debug\deps\diagnostics-4e91b8bfbbb4c6ee.exe)
+
+running 23 tests
+test output::tests::console_output_formats_level ... ok
+test output::tests::format_log_entry_with_trace_id ... ok
+test span::tests::current_context_tracking ... ok
+test span::tests::dropping_child_span_restores_parent_context ... ok
+test span::tests::span_context_propagation ... ok
+test span::tests::span_guard_records_attributes ... ok
+test span::tests::span_guard_records_events ... ok
+test tests::error_event_fields_preserve_context_and_append_error ... ok
+test tests::escapes_json_strings ... ok
+test tests::level_ordering ... ok
+test tests::parses_log_levels ... ok
+test tests::sanitize_file_stem_removes_special_chars ... ok
+test trace_id::tests::trace_id_generates_unique ... ok
+test trace_id::tests::trace_id_display_format ... ok
+test span::tests::span_context_is_thread_local ... ok
+test trace_id::tests::span_id_generates_unique ... ok
+test trace_id::tests::span_id_hex_roundtrip ... ok
+test trace_id::tests::trace_id_hex_roundtrip ... ok
+test rolling_file::tests::独立锁句柄竞争立即失败且不改日志随后可继续写入 ... ok
+test span::tests::span_duration_measured ... ok
+test output::tests::file_output_writes_jsonl ... ok
+test rolling_file::tests::轮转保留整条记录且按新旧顺序淘汰最早代 ... ok
+test output::tests::超长诊断用固定记录替换且保留后续完整中文事件 ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests diagnostics
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

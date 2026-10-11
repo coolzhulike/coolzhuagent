@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>文档输入归因 NEW</title>
+<body data-role="NEW"><h1>新文档：禁止旧动作</h1><button id="target">文档引用验收</button>
+<p id="status">新文档已载入；这里不是原目标</p><script src="event-probe.js"></script>
+<script>
+document.getElementById('target').addEventListener('click', event => {
+  if (event.isTrusted) document.getElementById('status').textContent = '错误：新文档收到旧动作';
+});
+</script></body></html>

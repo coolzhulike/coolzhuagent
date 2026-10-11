@@ -1,0 +1,71 @@
+{
+  "installed_version": "0.2.97",
+  "verified_ms": 1791486444788.8574,
+  "expected_from_read_only_real_ledger": {
+    "requests": 539,
+    "attempts": 538,
+    "failed_attempts": 4,
+    "pending_attempts": 0
+  },
+  "swe_insights": {
+    "indices": {
+      "msg-1791485372654-0": 668
+    },
+    "message_count": 668,
+    "note": "新请求按真实网络尝试记录，失败与重试均保留；只合计供应商已返回的用量，未知字段显示未知，部分用量不代表完整账单。旧版记录独立列出，旧零值无法证明已知用量；缓存是明细，不重复相加，不推算费用。",
+    "room_id": "room-1791131523339",
+    "source": "provider_reported",
+    "timings": {
+      "msg-1791485372654-0": 67250
+    },
+    "usage": [
+      {
+        "attempts": 538,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "failed_attempts": 4,
+        "input_tokens": null,
+        "legacy_records": 0,
+        "output_tokens": null,
+        "partial_usage_attempts": 539,
+        "pending_attempts": 0,
+        "requests": 539,
+        "session_id": "session-1791131217833"
+      }
+    ]
+  },
+  "other_room_with_foreign_message_id": {
+    "indices": {},
+    "message_count": 0,
+    "note": "新请求按真实网络尝试记录，失败与重试均保留；只合计供应商已返回的用量，未知字段显示未知，部分用量不代表完整账单。旧版记录独立列出，旧零值无法证明已知用量；缓存是明细，不重复相加，不推算费用。",
+    "room_id": "main-room",
+    "source": "provider_reported",
+    "timings": {},
+    "usage": []
+  },
+  "counts_before": {
+    "chat_usage_events": 539,
+    "devin_acp_attempts": 928,
+    "chat_room_messages": 1139
+  },
+  "counts_after": {
+    "chat_usage_events": 539,
+    "devin_acp_attempts": 928,
+    "chat_room_messages": 1139
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "generated_model_requests": 0,
+  "cross_room_usage_and_foreign_message_projection": "passed",
+  "late_response_race": "not_tested"
+}

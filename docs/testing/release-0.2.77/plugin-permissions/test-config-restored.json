@@ -1,0 +1,7 @@
+{
+  "path": "tmp/2026-10-04-devin-models/workspace/coolzhu.toml",
+  "sha256": "952a54f3fd933f1201e63bfef2c6cc44bb453f169b2e657a9aa4305c0921d216",
+  "dev_open_permissions_on_disk": true,
+  "runtime_during_permission_test": false,
+  "note": "启动脚本在finally恢复原文件字节；本归档只核验当前落盘配置，不公开配置内容/密钥"
+}

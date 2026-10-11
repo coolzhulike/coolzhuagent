@@ -1,0 +1,9 @@
+{
+  "events": [
+    {
+      "event_type": "devin.planning_format_rejected",
+      "payload_json": "{\"input_dispatched\":false,\"request_id\":\"e1395b347b6e5ccc0032a12d77ae92ce73b464529e3278284daf2ab243596bb30c00338e6d5a610b02acd304d2a6dd33\",\"source_attempt\":\"44d25f7f40ad5006c8f2f3595a07405909d55cfdb1bd1302\"}"
+    }
+  ],
+  "redacted_error_diagnostics": []
+}

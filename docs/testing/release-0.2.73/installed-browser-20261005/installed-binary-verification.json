@@ -1,0 +1,25 @@
+{
+  "hashes": {
+    "coolzhu-tauri-shell.exe": "370e178276c9e8c211c5dc8b28d7abcae8d035440e3644d9f7f636a742d01c0f",
+    "coolzhu-web-console.exe": "a58646cdea40041b053afdbf2806457902ab1bdf252684013201e07d6330da55",
+    "coolzhu-cli.exe": "193e357bdb47c262815ab48041b412031556d59f877928d0915a692cde652883"
+  },
+  "installed": {
+    "DisplayName": "COOLZHU CODE Agent",
+    "DisplayVersion": "0.2.73",
+    "InstallLocation": ""
+  },
+  "checked_at": "2026-10-05T20:11:21.9510342+08:00",
+  "source_commit": "99adfc616ee441045289572031ac0407c0ae90e9",
+  "cli": [
+    "COOLZHU CODE Agent",
+    "  Version          0.2.73",
+    "  Git SHA          99adfc616ee441045289572031ac0407c0ae90e9",
+    "  Target           x86_64-pc-windows-msvc",
+    "  Build date       2026-10-05",
+    "",
+    "Support",
+    "  Help             coolzhu-cli --help",
+    "  REPL             /help"
+  ]
+}

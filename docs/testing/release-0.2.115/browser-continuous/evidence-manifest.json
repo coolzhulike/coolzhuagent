@@ -1,0 +1,92 @@
+[
+  {
+    "path": "address.json",
+    "bytes": 56,
+    "sha256": "8d50bb840f32df186355c515726e7e7cf1683cb6ecac9f81d7f6309e33b9b604"
+  },
+  {
+    "path": "before.json",
+    "bytes": 186,
+    "sha256": "da272289809d6e764d5c70d8575b7cbdd5363376fa6bec183cbbbd6519f850f8"
+  },
+  {
+    "path": "closed.jpg",
+    "bytes": 204461,
+    "sha256": "f8b56f8bd3d52d1a525f32876735f53992003a961c3b52e1825b2cd66a5b1275"
+  },
+  {
+    "path": "events.jsonl",
+    "bytes": 1683,
+    "sha256": "765aaf2401461187f8808c9b6db4c4c8ea8f3de212ae1a6f97181f59183ddd1e"
+  },
+  {
+    "path": "facts.json",
+    "bytes": 7389,
+    "sha256": "d6b755d7126ee3bef165cafdeca6c88494007be2e70f78cfa8180d52405c28a7"
+  },
+  {
+    "path": "finalize.py",
+    "bytes": 1242,
+    "sha256": "4dc095725e3bce2640bb390489ba8b8dee6d00e0146c0ce3b285bacf9a57d226"
+  },
+  {
+    "path": "latest-status.json",
+    "bytes": 4427,
+    "sha256": "232c0e8a246c592517e95457e03c1ce3a4c493af74ac68d8fe020273b2d2181a"
+  },
+  {
+    "path": "ready.jpg",
+    "bytes": 237079,
+    "sha256": "c14f3c642eb7456cbb40b855d5cbb85d0ecee4addb37554779987d83fbcc2fed"
+  },
+  {
+    "path": "report.md",
+    "bytes": 1499,
+    "sha256": "d9a585bf7c800a6d847be4e222b353ebab95c7770950536f24d9db3c71728153"
+  },
+  {
+    "path": "send.py",
+    "bytes": 3686,
+    "sha256": "f409a1b4e745776d7d5dfcd4e432c074bdd6535e84b2655d219b5ad2500958c3"
+  },
+  {
+    "path": "server.py",
+    "bytes": 5836,
+    "sha256": "da1c05e4c099c3dca2d2e2bf0aea44af7a3e7c0cef2ee79977987ad7b67ad80c"
+  },
+  {
+    "path": "status.py",
+    "bytes": 2024,
+    "sha256": "95e681288bd0e13edc19efe34304fdd8daa0015d1c07786d7662b7330280127c"
+  },
+  {
+    "path": "stream-finished.json",
+    "bytes": 190,
+    "sha256": "dc9828ee9ab8ea12fe6e3d5fee90a4fc327c314c68d27c75bd9dc0dfb75c3c49"
+  },
+  {
+    "path": "submitted-request.json",
+    "bytes": 917,
+    "sha256": "85626cc23f98b6ed544b752842353187b29500563e67052dfbd1fe6ba6b746db"
+  },
+  {
+    "path": "ui-times.json",
+    "bytes": 687,
+    "sha256": "f82b329f5c4e80d111f37181078a28b03fbac9bf719508be8924e2c229eca026"
+  },
+  {
+    "path": "verdict.json",
+    "bytes": 402,
+    "sha256": "c4bb10732f9d4689ae422742052f198694a8ec18576ec1bc475eb4e0ebed0a8d"
+  },
+  {
+    "path": "watch-result.json",
+    "bytes": 543,
+    "sha256": "2ad9ed0ef205bd5118ecb38a0b23e86bd9c47cd47103bf4a0f94b942e7b19edd"
+  },
+  {
+    "path": "watch.py",
+    "bytes": 2974,
+    "sha256": "53c3607470125b38101981e1fa8006052c1fccaaa9545c4584382b3cf8ffc94f"
+  }
+]

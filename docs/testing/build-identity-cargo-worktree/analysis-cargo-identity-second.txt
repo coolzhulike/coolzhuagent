@@ -1,0 +1,2 @@
+   Compiling identity-probe v0.1.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\cargo-identity-worktree-probe\worktree)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.34s

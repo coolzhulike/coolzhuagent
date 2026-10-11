@@ -1,0 +1,37 @@
+{
+  "scope": "正式接口工程复现，不是模型验收",
+  "start_ms": 1791365164824.6687,
+  "finish_ms": 1791365164924.6433,
+  "response": {
+    "enabled": false,
+    "outcome": {
+      "call_id": "dsh-enable-fa679df4a67a7e5e604ddd94c56ab7ca",
+      "elapsed_ms": 63,
+      "output": {
+        "cleanup_confirmed": null,
+        "code": "execution_failed",
+        "error": "dsh_runtime_interrupted：父运行已取消或到期，未启动插件宿主"
+      },
+      "permission_gate": {
+        "affected_paths": [
+          "<opaque-command>"
+        ],
+        "decision": "allow-auto",
+        "reason": "full-access-profile",
+        "required": "danger-full-access",
+        "workspace_relative": false
+      },
+      "status": "failed",
+      "summary_text": "dsh_runtime_interrupted：父运行已取消或到期，未启动插件宿主",
+      "tool_name": "dsh__enable_d8fa5ad326a19949045904e4fea63c73"
+    },
+    "pending_call_id": null
+  },
+  "reads": [
+    {
+      "start_ms": 1791365164704.2122,
+      "finish_ms": 1791365165097.8252,
+      "loaded": true
+    }
+  ]
+}

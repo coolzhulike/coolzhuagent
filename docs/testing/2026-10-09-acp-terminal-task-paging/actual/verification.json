@@ -1,0 +1,109 @@
+{
+  "passed": false,
+  "reason": "真实正常订单在滚动后点击的原生命中预检拒绝；不是预期负例，也不移除检查。整轮未通过。",
+  "run_id": "run-chat-2cfecdddc11f3753ffe2de24b4d0236cd06d908941569b46",
+  "cu_run": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791578720568-0-tool-206384b4664e064dcbfce300c2cd458b7ab7d7402a384e8d924f74fdc71eb717",
+    "provider_tool_call_id": "tool-206384b4664e064dcbfce300c2cd458b7ab7d7402a384e8d924f74fdc71eb717",
+    "turn_id": "chat-turn-1791578720568-0",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "idempotency_key": "session-1791131217833\u001fchat-turn-1791578720568-0\u001fbrowser\u001f使用本轮附件订单码完成两个跨来源内嵌订单的滚动、填写和enter提交\u001f\u001f外层显示双文档订单已完成，两项均通过|外层两项回执分别包含本轮竹剑和玉佩的单价与数量\u001f",
+    "objective_json": "{\"max_actions\":14,\"objective\":\"使用本轮附件订单码完成两个跨来源内嵌订单的滚动、填写和Enter提交\",\"success_criteria\":[\"外层显示双文档订单已完成，两项均通过\",\"外层两项回执分别包含本轮竹剑和玉佩的单价与数量\"],\"surface\":\"browser\"}",
+    "surface": "browser",
+    "state": "blocked",
+    "state_version": 14,
+    "risk_class": "observe",
+    "approval_state": "not_required",
+    "approval_deadline_ms": null,
+    "action_count": 1,
+    "replan_count": 0,
+    "no_progress_count": 0,
+    "current_observation_generation": 0,
+    "deadline_ms": 1791579620568,
+    "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791578720568-0-tool-206384b4664e064dcbfce300c2cd458b7ab7d7402a384e8d924f74fdc71eb717\",\"provider_tool_call_id\":\"tool-206384b4664e064dcbfce300c2cd458b7ab7d7402a384e8d924f74fdc71eb717\",\"status\":\"blocked\",\"stage\":\"execution\",\"goal_achieved\":false,\"surface\":\"browser\",\"summary\":\"节点预检拒绝，未发送输入\",\"error\":{\"code\":\"native_browser_target_hit_mismatch\",\"message\":\"节点预检拒绝，未发送输入\",\"retryable\":false,\"retry_owner\":\"none\",\"receipt\":{\"action_id\":\"browser:dom-c7a854e37886709aa67139a3ca02786d:de59cdc10950c73b\",\"input_delivery\":\"not_sent\",\"partial\":false,\"effect\":\"not_observed\",\"goal_verdict\":\"not_checked\",\"input_release\":\"not_needed\"}},\"attempts\":2,\"steps_completed\":1,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"scroll\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":1,\"action_kind\":\"click\",\"input_delivery\":\"not_sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":null,\"goal_verdict\":null}],\"evidence\":[\"native-ax:1:0\",\"native-observation:5163795b795c672d54bca96057f7bbe5\",\"native-ax:1:0\",\"native-observation:5163795b795c672d54bca96057f7bbe5\",\"native-input:1a8de0f762f75795241cd980346a736f\",\"native-ax:1:0\",\"native-observation:3325847e768e2e758241102d19b645c1\",\"native-ax:1:0\",\"native-observation:3325847e768e2e758241102d19b645c1\",\"native-ax:1:0\",\"native-observation:82bb12ff8d3a18a18359318d272af245\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":2,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791579620568}},\"cu_deadline_ms\":1791579620568,\"cu_deadline_established_at_ms\":1791578755528,\"cu_budget_ms\":900000}}",
+    "created_at_ms": 1791578755528,
+    "updated_at_ms": 1791578866820,
+    "workspace_id": "ws-23f646a969206cb4",
+    "workspace_context_version": 1,
+    "legacy_convergence_id": null,
+    "legacy_convergence_state": null,
+    "legacy_convergence_reconciled_at_ms": null
+  },
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791578720568-0-tool-206384b4664e064dcbfce300c2cd458b7ab7d7402a384e8d924f74fdc71eb717",
+    "provider_tool_call_id": "tool-206384b4664e064dcbfce300c2cd458b7ab7d7402a384e8d924f74fdc71eb717",
+    "status": "blocked",
+    "stage": "execution",
+    "goal_achieved": false,
+    "surface": "browser",
+    "summary": "节点预检拒绝，未发送输入",
+    "error": {
+      "code": "native_browser_target_hit_mismatch",
+      "message": "节点预检拒绝，未发送输入",
+      "retryable": false,
+      "retry_owner": "none",
+      "receipt": {
+        "action_id": "browser:dom-c7a854e37886709aa67139a3ca02786d:de59cdc10950c73b",
+        "input_delivery": "not_sent",
+        "partial": false,
+        "effect": "not_observed",
+        "goal_verdict": "not_checked",
+        "input_release": "not_needed"
+      }
+    },
+    "attempts": 2,
+    "steps_completed": 1,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "scroll",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 1,
+        "action_kind": "click",
+        "input_delivery": "not_sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": null,
+        "goal_verdict": null
+      }
+    ],
+    "evidence": [
+      "native-ax:1:0",
+      "native-observation:5163795b795c672d54bca96057f7bbe5",
+      "native-ax:1:0",
+      "native-observation:5163795b795c672d54bca96057f7bbe5",
+      "native-input:1a8de0f762f75795241cd980346a736f",
+      "native-ax:1:0",
+      "native-observation:3325847e768e2e758241102d19b645c1",
+      "native-ax:1:0",
+      "native-observation:3325847e768e2e758241102d19b645c1",
+      "native-ax:1:0",
+      "native-observation:82bb12ff8d3a18a18359318d272af245"
+    ],
+    "supervisor": {
+      "circuit_open": false,
+      "action_count": 2,
+      "replan_count": 0,
+      "no_progress_count": 0
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791579620568
+        }
+      },
+      "cu_deadline_ms": 1791579620568,
+      "cu_deadline_established_at_ms": 1791578755528,
+      "cu_budget_ms": 900000
+    }
+  },
+  "page_reads": []
+}

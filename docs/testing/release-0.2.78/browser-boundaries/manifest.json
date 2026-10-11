@@ -1,0 +1,1252 @@
+{
+  "version": "0.2.78",
+  "product_source_commit": "0b97366c7fde8d284c122ab7ec9754c742092bb5",
+  "room": "room-1791131523339",
+  "agent": "session-1791131217833",
+  "remote": "veiled-anise",
+  "final_product_changes": "0.2.78地址同步无需产品修改，误判候选已撤回；开放Shadow Root能力缺口由后续0.2.79候选单独承接，不能追认本版通过",
+  "case_results": [
+    {
+      "prefix": "BU-CANDIDATE-079-CROSS-URL-20261006",
+      "source_message_id": "msg-1791248356923-user",
+      "run_id": "run-chat-58247bea6e611d52a2123c5c1edcd0bfad2f15dfc488d388",
+      "state": "failed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791248356923-0-tool-76f55ba9a23f98f25823e181be42331dc323b2ee99922deeab482ef04bebb221",
+          "provider_tool_call_id": "tool-76f55ba9a23f98f25823e181be42331dc323b2ee99922deeab482ef04bebb221",
+          "status": "blocked",
+          "stage": "observation",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "内置浏览器桌面宿主尚未连接",
+          "error": {
+            "code": "native_browser_host_unavailable",
+            "message": "内置浏览器桌面宿主尚未连接",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "attempts": 0,
+          "steps_completed": 0,
+          "evidence": [],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 0,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791249256923
+              }
+            },
+            "cu_deadline_ms": 1791248969339,
+            "cu_deadline_established_at_ms": 1791248369339,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "混用后台与桌面壳目录，被实际进程路径校验拒绝；候选未通过"
+    },
+    {
+      "prefix": "BU-CANDIDATE-079-PAIRED-CROSS-URL-20261006",
+      "source_message_id": "msg-1791248692390-user",
+      "run_id": "run-chat-8f8106eb623e94aedb3777f24bc9d61ef6b57c9d18df2a7a",
+      "state": "completed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791248692391-0-tool-89fb7c3a9bc444a0d8327af5e3e8739e2ef273577046574b3a3ae21aed38f60b",
+          "provider_tool_call_id": "tool-89fb7c3a9bc444a0d8327af5e3e8739e2ef273577046574b3a3ae21aed38f60b",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"a9921044eb01eacd38e264d80bfb7602\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":16,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":16,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"bc137187a0d51357c1f0325549d2cdec\",\"observation_origin\":\"after_settled_input\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":13,\"nodes\":[{\"index\":7,\"name\":\"当前文档：LANDING-078\",\"role\":\"StaticText\"}],\"title\":\"078 LANDING边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/landing.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:58081/navigation.html\",\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:5cf017d1dfdada0b0e1c704223988939",
+            "native-ax:1:0",
+            "native-observation:5cf017d1dfdada0b0e1c704223988939",
+            "native-input:72123838cdd4bed9ec0872f94b39cde3",
+            "native-ax:1:0",
+            "native-observation:bc137187a0d51357c1f0325549d2cdec",
+            "native-ax:1:0",
+            "native-observation:bc137187a0d51357c1f0325549d2cdec",
+            "native-ax:1:0",
+            "native-observation:a9921044eb01eacd38e264d80bfb7602"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791249592391
+              }
+            },
+            "cu_deadline_ms": 1791249317301,
+            "cu_deadline_established_at_ms": 1791248717301,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "真实点击导航成功，8767事件权限不适用导致地址显示异常；候选已撤回"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-CROSS-URL-20261006",
+      "source_message_id": "msg-1791247866787-user",
+      "run_id": "run-chat-69fe93ddfbe5a5a543dd9be71d23f3347d27e5fe86a07798",
+      "state": "completed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791247866787-3-tool-7c645de0347e27e45de7aaf744d0b74c13db08968005a0a047a9e8acdf1fdc56",
+          "provider_tool_call_id": "tool-7c645de0347e27e45de7aaf744d0b74c13db08968005a0a047a9e8acdf1fdc56",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"803749e46925fccc369a08b4f21cb01d\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":16,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":16,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"2ea9f64f6b6be3b9b27b8815a12ea17e\",\"observation_origin\":\"after_settled_input\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":13,\"nodes\":[{\"index\":7,\"name\":\"当前文档：LANDING-078\",\"role\":\"StaticText\"}],\"title\":\"078 LANDING边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/landing.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:58081/navigation.html\",\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:3",
+            "native-observation:f92436cdc14a4f2d8afd9ac93063e8d0",
+            "native-ax:1:3",
+            "native-observation:f92436cdc14a4f2d8afd9ac93063e8d0",
+            "native-input:f385badf4c860fce6c2c529b54c9e334",
+            "native-ax:1:3",
+            "native-observation:2ea9f64f6b6be3b9b27b8815a12ea17e",
+            "native-ax:1:3",
+            "native-observation:2ea9f64f6b6be3b9b27b8815a12ea17e",
+            "native-ax:1:3",
+            "native-observation:803749e46925fccc369a08b4f21cb01d"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791248766787
+              }
+            },
+            "cu_deadline_ms": 1791248477577,
+            "cu_deadline_established_at_ms": 1791247877577,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "以真实输入、释放、最新页面和原图逐项判断；跨URL严格按下与释放之间提交新文档仍未命中"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-IFRAME-CONTROL-20261006",
+      "source_message_id": "msg-1791247803011-user",
+      "run_id": "run-chat-ed3db6c63d6eceba91e67d4460baba1db31b1856a33e4eca",
+      "state": "failed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791247803012-2-tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+          "provider_tool_call_id": "tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+          "status": "blocked",
+          "stage": "execution",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "节点预检拒绝，未发送输入",
+          "error": {
+            "code": "native_browser_target_hit_mismatch",
+            "message": "节点预检拒绝，未发送输入",
+            "retryable": false,
+            "retry_owner": "none",
+            "receipt": {
+              "action_id": "browser:dom-0abb17e3ee6ca0d35e9846af7ce7fab4:38ab838e93a8b796",
+              "input_delivery": "not_sent",
+              "partial": false,
+              "effect": "not_observed",
+              "goal_verdict": "not_checked",
+              "input_release": "not_needed"
+            }
+          },
+          "attempts": 1,
+          "steps_completed": 0,
+          "evidence": [
+            "native-ax:1:2",
+            "native-observation:5f21b7d61c66495baa94b11d592da574",
+            "native-ax:1:2",
+            "native-observation:5f21b7d61c66495baa94b11d592da574"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791248703012
+              }
+            },
+            "cu_deadline_ms": 1791248413876,
+            "cu_deadline_established_at_ms": 1791247813876,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "预期拒绝负例；以not_sent或attempts0及当轮网页事件0为依据，不能计模型目标成功"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-NESTED-CONTROL-20261006",
+      "source_message_id": "msg-1791247662710-user",
+      "run_id": "run-chat-904ae464d6fa9623a98390a48bc4780d1c57e1c1edeeac2f",
+      "state": "failed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791247662710-0-tool-873b820b596a453b1d121c603111f9cc8b56d0e10c87824582e20956ad2f287b",
+          "provider_tool_call_id": "tool-873b820b596a453b1d121c603111f9cc8b56d0e10c87824582e20956ad2f287b",
+          "status": "blocked",
+          "stage": "execution",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "节点预检拒绝，未发送输入",
+          "error": {
+            "code": "native_browser_target_hit_mismatch",
+            "message": "节点预检拒绝，未发送输入",
+            "retryable": false,
+            "retry_owner": "none",
+            "receipt": {
+              "action_id": "browser:dom-61019e36ce7021daed18af36b4dac931:73c65514748a0148",
+              "input_delivery": "not_sent",
+              "partial": false,
+              "effect": "not_observed",
+              "goal_verdict": "not_checked",
+              "input_release": "not_needed"
+            }
+          },
+          "attempts": 1,
+          "steps_completed": 0,
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:725d6d7e6dc2aa71ed01416c49d591f2",
+            "native-ax:1:0",
+            "native-observation:725d6d7e6dc2aa71ed01416c49d591f2"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791248562710
+              }
+            },
+            "cu_deadline_ms": 1791248273085,
+            "cu_deadline_established_at_ms": 1791247673085,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "预期拒绝负例；以not_sent或attempts0及当轮网页事件0为依据，不能计模型目标成功"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-PANEL-CLOSE-20261006",
+      "source_message_id": "msg-1791247988281-user",
+      "run_id": "run-chat-294efe17336bfb2f2a0864c27e766cd8b646c7c95797aa9e",
+      "state": "completed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791247988281-4-tool-ec671726b831c34ac7fbbb03f1d3870530e3a161426ec3df9e42818d235e997e",
+          "provider_tool_call_id": "tool-ec671726b831c34ac7fbbb03f1d3870530e3a161426ec3df9e42818d235e997e",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"81bb86363e9799b2ce3aae106f602d09\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[9],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":9,\"name_chars\":4,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":4,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"9e10f1bb35d0fc71f2771075c9b3e4fa\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":20,\"nodes\":[{\"index\":9,\"name\":\"次数：1\",\"role\":\"StaticText\"}],\"title\":\"078 PANEL-CLOSE边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/close.html\",\"viewport\":{\"height\":562.6666870117188,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:58081/close.html\",\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:4",
+            "native-observation:52f27801e4171ab81e724c0f7c718587",
+            "native-ax:1:4",
+            "native-observation:52f27801e4171ab81e724c0f7c718587",
+            "native-input:19e8a07424344116189d7ea22e9f3349",
+            "native-ax:1:4",
+            "native-observation:9e10f1bb35d0fc71f2771075c9b3e4fa",
+            "native-ax:1:4",
+            "native-observation:9e10f1bb35d0fc71f2771075c9b3e4fa",
+            "native-ax:1:4",
+            "native-observation:81bb86363e9799b2ce3aae106f602d09"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791248888281
+              }
+            },
+            "cu_deadline_ms": 1791248599931,
+            "cu_deadline_established_at_ms": 1791247999931,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "竞争窗口未命中；动作先完成，关闭操作较晚，不能记关闭前零输入通过"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-PANEL-CLOSE2-20261006",
+      "source_message_id": "msg-1791248210159-user",
+      "run_id": "run-chat-3438413558d37c51e44b1bd350b83b702d088cc5835d5cf6",
+      "state": "completed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791248210159-5-tool-b45988c09e0204f73cc5ecf3d05e4d6b317e4dd946e4a6106e48762030eddcce",
+          "provider_tool_call_id": "tool-b45988c09e0204f73cc5ecf3d05e4d6b317e4dd946e4a6106e48762030eddcce",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"57ba6cbdabfdf57b6ea333165391f70d\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[9],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":9,\"name_chars\":4,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":4,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"00bd7dc66e7e1f7daefd7597d4150fa9\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":20,\"nodes\":[{\"index\":9,\"name\":\"次数：1\",\"role\":\"StaticText\"}],\"title\":\"078 PANEL-CLOSE边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/close.html\",\"viewport\":{\"height\":516.6666870117188,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:58081/close.html\",\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:3:4",
+            "native-observation:e6efa1a6a97ecbe9fc1f8ea44f6278b2",
+            "native-ax:3:4",
+            "native-observation:e6efa1a6a97ecbe9fc1f8ea44f6278b2",
+            "native-input:9dc2c9cb7c2ff4c10b42b09634fa2eb7",
+            "native-ax:3:4",
+            "native-observation:00bd7dc66e7e1f7daefd7597d4150fa9",
+            "native-ax:3:4",
+            "native-observation:00bd7dc66e7e1f7daefd7597d4150fa9",
+            "native-ax:3:4",
+            "native-observation:57ba6cbdabfdf57b6ea333165391f70d"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791249110159
+              }
+            },
+            "cu_deadline_ms": 1791248822472,
+            "cu_deadline_established_at_ms": 1791248222472,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "竞争窗口未命中；动作先完成，关闭操作较晚，不能记关闭前零输入通过"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-SHADOW-CONTROL-20261006",
+      "source_message_id": "msg-1791247732153-user",
+      "run_id": "run-chat-6e0e3791835c11c8e3a2c6c683b8ba692200bb639a3dd62d",
+      "state": "failed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791247732153-1-tool-2b3c2eb64cc1f22a8b4f728d7d0d04e00bbda966f77faa7601394befd50bc63c",
+          "provider_tool_call_id": "tool-2b3c2eb64cc1f22a8b4f728d7d0d04e00bbda966f77faa7601394befd50bc63c",
+          "status": "blocked",
+          "stage": "execution",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "节点预检拒绝，未发送输入",
+          "error": {
+            "code": "native_browser_target_hit_mismatch",
+            "message": "节点预检拒绝，未发送输入",
+            "retryable": false,
+            "retry_owner": "none",
+            "receipt": {
+              "action_id": "browser:dom-d8e7e95d7e4369127cfabf4a1cccc87c:1ea2dc7ccf6fe40c",
+              "input_delivery": "not_sent",
+              "partial": false,
+              "effect": "not_observed",
+              "goal_verdict": "not_checked",
+              "input_release": "not_needed"
+            }
+          },
+          "attempts": 1,
+          "steps_completed": 0,
+          "evidence": [
+            "native-ax:1:1",
+            "native-observation:f8f4149147eff3c1b945322f07d7d969",
+            "native-ax:1:1",
+            "native-observation:f8f4149147eff3c1b945322f07d7d969"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791248632153
+              }
+            },
+            "cu_deadline_ms": 1791248342165,
+            "cu_deadline_established_at_ms": 1791247742165,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "预期拒绝负例；以not_sent或attempts0及当轮网页事件0为依据，不能计模型目标成功"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-STANDARD-CLOSED-20261006",
+      "source_message_id": "msg-1791249015900-user",
+      "run_id": "run-chat-f7497bb08ca55e60bbae89f788f0ac43714ed91691d72ed0",
+      "state": "failed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791249015900-1-tool-23bce3ad4aa85e2bde2d2d044f1931070612c3baee332f540d698b740e2591d6",
+          "provider_tool_call_id": "tool-23bce3ad4aa85e2bde2d2d044f1931070612c3baee332f540d698b740e2591d6",
+          "status": "blocked",
+          "stage": "observation",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "error": {
+            "code": "native_browser_panel_unavailable",
+            "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "attempts": 0,
+          "steps_completed": 0,
+          "evidence": [],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 0,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791249915900
+              }
+            },
+            "cu_deadline_ms": 1791249625635,
+            "cu_deadline_established_at_ms": 1791249025635,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "预期拒绝负例；以not_sent或attempts0及当轮网页事件0为依据，不能计模型目标成功"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-STANDARD-CROSS-URL-20261006",
+      "source_message_id": "msg-1791248903235-user",
+      "run_id": "run-chat-59756d10bcb38c44efbb44e4b02937579820e89f2097d102",
+      "state": "completed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791248903235-0-tool-fc2ec45632e58ee1f917dd8e22d543a6b334d845838e30dc9d1fc180626e1e59",
+          "provider_tool_call_id": "tool-fc2ec45632e58ee1f917dd8e22d543a6b334d845838e30dc9d1fc180626e1e59",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"470bb4a57c71c49a978f0ecf75e22133\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":16,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":16,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"ecef43aded9c6055260b9a48500de682\",\"observation_origin\":\"after_settled_input\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":13,\"nodes\":[{\"index\":7,\"name\":\"当前文档：LANDING-078\",\"role\":\"StaticText\"}],\"title\":\"078 LANDING边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/landing.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:58081/navigation.html\",\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:ce55eefa3a1270908adb82f14126ef84",
+            "native-ax:1:0",
+            "native-observation:ce55eefa3a1270908adb82f14126ef84",
+            "native-input:dfad9c298e170a4c5edd0c4f926e5830",
+            "native-ax:1:0",
+            "native-observation:ecef43aded9c6055260b9a48500de682",
+            "native-ax:1:0",
+            "native-observation:ecef43aded9c6055260b9a48500de682",
+            "native-ax:1:0",
+            "native-observation:470bb4a57c71c49a978f0ecf75e22133"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791249803235
+              }
+            },
+            "cu_deadline_ms": 1791249515061,
+            "cu_deadline_established_at_ms": 1791248915061,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "以真实输入、释放、最新页面和原图逐项判断；跨URL严格按下与释放之间提交新文档仍未命中"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-STANDARD-NESTED-CHILD-20261006",
+      "source_message_id": "msg-1791249145007-user",
+      "run_id": "run-chat-c3bc86acd8e7d30e8605ad1e5fcb5545516d1534b7bc09e2",
+      "state": "completed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791249145007-2-tool-d752d4fbde99566df2592d9c5b25421a1516d55d159de4f8582fa30da81db99f",
+          "provider_tool_call_id": "tool-d752d4fbde99566df2592d9c5b25421a1516d55d159de4f8582fa30da81db99f",
+          "status": "succeeded",
+          "stage": "terminal",
+          "goal_achieved": true,
+          "surface": "browser",
+          "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"d001eccabb44815b3994bf4075a3be50\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[9],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":9,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"5d9d3f62be78eaebbc6fcf336844bba3\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":24,\"nodes\":[{\"index\":9,\"name\":\"父操作次数：0；子操作次数：1\",\"role\":\"StaticText\"}],\"title\":\"078 NESTED边界\",\"truncated\":false,\"url\":\"http://127.0.0.1:58081/nested.html\",\"viewport\":{\"height\":578.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:58081/nested.html\",\"ungrounded_positive_count\":0}",
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:3:2",
+            "native-observation:be507f44590fb5c466d68b327fed1b22",
+            "native-ax:3:2",
+            "native-observation:be507f44590fb5c466d68b327fed1b22",
+            "native-input:337b6afd0bd68fd211551c9c601c92de",
+            "native-ax:3:2",
+            "native-observation:5d9d3f62be78eaebbc6fcf336844bba3",
+            "native-ax:3:2",
+            "native-observation:5d9d3f62be78eaebbc6fcf336844bba3",
+            "native-ax:3:2",
+            "native-observation:d001eccabb44815b3994bf4075a3be50"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791250045007
+              }
+            },
+            "cu_deadline_ms": 1791249756171,
+            "cu_deadline_established_at_ms": 1791249156171,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "以真实输入、释放、最新页面和原图逐项判断；跨URL严格按下与释放之间提交新文档仍未命中"
+    },
+    {
+      "prefix": "BU-INSTALLED-078-STANDARD-SHADOW-CHILD-20261006",
+      "source_message_id": "msg-1791249240655-user",
+      "run_id": "run-chat-9b6f68110c1f103a4b564d5c38ecb6b38d29a966efa56003",
+      "state": "failed",
+      "actual_model": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "remote_bindings": [
+        {
+          "agent_id": "session-1791131217833",
+          "remote_session_id": "veiled-anise"
+        }
+      ],
+      "calls": 1,
+      "results": [
+        {
+          "call_id": "cu-session-1791131217833-chat-turn-1791249240655-3-tool-e52db9a7673f3b7ab3a14a6d9db88f1bef5eedff1e6380194f92c9d26b4e04c5",
+          "provider_tool_call_id": "tool-e52db9a7673f3b7ab3a14a6d9db88f1bef5eedff1e6380194f92c9d26b4e04c5",
+          "status": "blocked",
+          "stage": "verification",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "planner stopped before all success criteria were verified",
+          "error": {
+            "code": "verification_failed",
+            "message": "planner stopped before all success criteria were verified",
+            "retryable": false,
+            "retry_owner": "model"
+          },
+          "attempts": 0,
+          "steps_completed": 0,
+          "evidence": [
+            "native-ax:3:3",
+            "native-observation:1d3e9c58fd023b5cfdf6a134ce2ca94e",
+            "native-ax:3:3",
+            "native-observation:1d3e9c58fd023b5cfdf6a134ce2ca94e"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 0,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791250140655
+              }
+            },
+            "cu_deadline_ms": 1791249847830,
+            "cu_deadline_established_at_ms": 1791249247830,
+            "cu_budget_ms": 600000
+          }
+        }
+      ],
+      "acceptance": "独立子控件正例失败：开放Shadow Root没有操作引用，attempts0；实际能力缺口另在0.2.79候选修复验证"
+    }
+  ],
+  "files": [
+    {
+      "file": "acceptance-stopped.json",
+      "length": 637,
+      "sha256": "9c091155c3f192832a1cb474286481f059d21b3e3b7b81e4e55cc09a2744a023"
+    },
+    {
+      "file": "BU-CANDIDATE-079-CROSS-URL-20261006-browser-facts.json",
+      "length": 10863,
+      "sha256": "d2b1aebcf887d691a1919f394be10ab2adbba3c7390fc84666a42ca3d88ef60f"
+    },
+    {
+      "file": "BU-CANDIDATE-079-PAIRED-CROSS-URL-20261006-browser-facts.json",
+      "length": 21157,
+      "sha256": "774ed9826b938d6015ebb107e0c1cd6266ec1a666c8af5058fce40514cbdd7d0"
+    },
+    {
+      "file": "BU-INSTALLED-078-CROSS-URL-20261006-browser-facts.json",
+      "length": 18133,
+      "sha256": "ce4030064caf2fdb891ba76e1e9ac39e76c52ac5529f89e7f73c6ea6ab6fb8cd"
+    },
+    {
+      "file": "BU-INSTALLED-078-IFRAME-CONTROL-20261006-browser-facts.json",
+      "length": 11590,
+      "sha256": "b24dcc1854d968f0a1c1d75d22f200e3d18a2407ae41004b00d93c57396afa8b"
+    },
+    {
+      "file": "BU-INSTALLED-078-NESTED-CONTROL-20261006-browser-facts.json",
+      "length": 11059,
+      "sha256": "0fab93690a65789306576afc54b8385208b23630baeb3d80fae655032e5c583a"
+    },
+    {
+      "file": "BU-INSTALLED-078-PANEL-CLOSE-20261006-browser-facts.json",
+      "length": 18740,
+      "sha256": "f1ad59df30c6822fd5f9ba25ee6a36f904df55e1985cfb188ac7369328db5379"
+    },
+    {
+      "file": "BU-INSTALLED-078-PANEL-CLOSE2-20261006-browser-facts.json",
+      "length": 19544,
+      "sha256": "e6ae345e06be12bd5b2c7c748bf81d8d718c252829edaa07f169fe43d0564961"
+    },
+    {
+      "file": "BU-INSTALLED-078-SHADOW-CONTROL-20261006-browser-facts.json",
+      "length": 11251,
+      "sha256": "bf9f19a27ccfde601f79db8194690a46da4a656f545cc3a89f2c56e4ef34e256"
+    },
+    {
+      "file": "BU-INSTALLED-078-STANDARD-CLOSED-20261006-browser-facts.json",
+      "length": 13173,
+      "sha256": "6d37786a21f9cba61ffc305b44a09b2373d14ddcb81a95f17d5b21f9d953c5c1"
+    },
+    {
+      "file": "BU-INSTALLED-078-STANDARD-CROSS-URL-20261006-browser-facts.json",
+      "length": 22171,
+      "sha256": "b7f911d132acf4b8a9c47be0408ed811f7ff8eaff9d1364cfdf348f70baf675a"
+    },
+    {
+      "file": "BU-INSTALLED-078-STANDARD-NESTED-CHILD-20261006-browser-facts.json",
+      "length": 23173,
+      "sha256": "646b83070ecedbe3489b6526150642c91ea3dd24f4ee1c05a17c0648f7826924"
+    },
+    {
+      "file": "BU-INSTALLED-078-STANDARD-SHADOW-CHILD-20261006-browser-facts.json",
+      "length": 16080,
+      "sha256": "ad7309e3fde669b66e484eef71e90112b0b5c088e4c318a54d8f8ce31179a73a"
+    },
+    {
+      "file": "candidate-mixed-processes.json",
+      "length": 846,
+      "sha256": "ef0db8878ee1fc8642460e51670a3d5cc54de38e8654c55fbb01fa46880ef37f"
+    },
+    {
+      "file": "candidate-navigation-after.jpg",
+      "length": 191368,
+      "sha256": "77cd8063af911e41bbec6d626dcf643235c658a50daa8782e731e96ccf4fe917"
+    },
+    {
+      "file": "candidate-navigation-before.jpg",
+      "length": 204713,
+      "sha256": "1b27bb8d5058e9e7a909a877ca4821ea1daf9d476c840cfe6f5de103c3702cb7"
+    },
+    {
+      "file": "candidate-navigation-request.txt",
+      "length": 958,
+      "sha256": "03437a8f6142c1aa4a94c6ceb91ba4e0f2e512aa712d97454c762cfaecb8ef97"
+    },
+    {
+      "file": "candidate-pair-navigation-after.jpg",
+      "length": 225631,
+      "sha256": "c2ea3e3265cd288ef1dba5046a2a82678cc8ac3f670c0b2f3d2ae23f35a6becc"
+    },
+    {
+      "file": "candidate-pair-navigation-before.jpg",
+      "length": 204299,
+      "sha256": "5848a8f6de68441f8f0880abf426e6d1c7a295b0e77538a4e9b97e2f13174300"
+    },
+    {
+      "file": "candidate-pair-navigation-request.txt",
+      "length": 965,
+      "sha256": "d7009cde671f934ad83fbbeaac75946b91fc37dfb0696275280e9a6e591d8265"
+    },
+    {
+      "file": "candidate-paired-stopped.json",
+      "length": 613,
+      "sha256": "117f76a38078c9c913402fa9bc273652c076c286a0c57be63802ee1544050e37"
+    },
+    {
+      "file": "candidate-processes.json",
+      "length": 889,
+      "sha256": "34e91367603fdc17324192279e3a3836837819bdb8733909d92e7099a4110ae3"
+    },
+    {
+      "file": "daily-stopped.json",
+      "length": 632,
+      "sha256": "c9ce0248539946432c114900580e18cf987f0373b8574e1c4c6035e66f83c410"
+    },
+    {
+      "file": "frame-after.jpg",
+      "length": 189238,
+      "sha256": "6ea7c2e569e50a3825951963be77968567a3c33ab6a4d7fde5258a777ab8f52a"
+    },
+    {
+      "file": "frame-before.jpg",
+      "length": 189351,
+      "sha256": "977fcb6f2380ca1756c07b233bba8549e1dcdd65f9bd10667269aeb817318ad9"
+    },
+    {
+      "file": "frame-request.txt",
+      "length": 945,
+      "sha256": "1442afe353982e61e194cf8bd5415b0b5f01c70f1db175ff6854b8c24c11c6e4"
+    },
+    {
+      "file": "installed-078-processes.json",
+      "length": 728,
+      "sha256": "960626bde78b86816f7049ddfebe11a9c045a831cdc60518c5282f4d9f2e5319"
+    },
+    {
+      "file": "installed-078-standard-processes.json",
+      "length": 692,
+      "sha256": "8d2dc1deb5ffacb9e3747dc7b0c1a2e4731ca72ea83e55954f46f83c4a09ea0d"
+    },
+    {
+      "file": "installed-078-verification.json",
+      "length": 1825,
+      "sha256": "dc1b346ab0d3c40b72cfec1d7b67e1c93013a046bd176017e2231b4f800ba99a"
+    },
+    {
+      "file": "installed-standard-closed-action-time.json",
+      "length": 207,
+      "sha256": "bab09331aa3946136cf74227115f08df0adc2cfc58eb6446f870779df624e009"
+    },
+    {
+      "file": "installed-standard-closed-after.jpg",
+      "length": 182140,
+      "sha256": "60fe3e40c76667d33924547fdbfacd6cdc28ee7be2f71cf6bb6cba2006cafaac"
+    },
+    {
+      "file": "installed-standard-closed-at-send.jpg",
+      "length": 229683,
+      "sha256": "8cd46b4594e2ccfbd461a559d3849f5be2c66d34338423f4a950626381758b6c"
+    },
+    {
+      "file": "installed-standard-closed-before.jpg",
+      "length": 195335,
+      "sha256": "85212d23c7e41053cae0d0a95d5e44cd9b92a0ceb73b62fe24da92c1ab7c8092"
+    },
+    {
+      "file": "installed-standard-closed-request.txt",
+      "length": 961,
+      "sha256": "41fccc5144c9573c969679342ae22ba72fa0b6ce313204ad22e5938401998d20"
+    },
+    {
+      "file": "installed-standard-navigation-after.jpg",
+      "length": 196063,
+      "sha256": "d6c4727636e674a94a9867fde43d075982e9634b358ffbf9f205f04ac4986c2c"
+    },
+    {
+      "file": "installed-standard-navigation-before.jpg",
+      "length": 197559,
+      "sha256": "cddf8c29a0fb7836b90cd76c06637599b33367e328d2968d148b935238529270"
+    },
+    {
+      "file": "installed-standard-navigation-request.txt",
+      "length": 986,
+      "sha256": "e91855c58124f61901872c3f0bb164fe43b028b299a03a7c15365d0ed8a26f37"
+    },
+    {
+      "file": "installed-standard-navigation-ui.json",
+      "length": 81932,
+      "sha256": "fdb4a506e4c45f073c7c16bc7ddfa6f3d78f8725fbf778fadccd5f20b40ff3dd"
+    },
+    {
+      "file": "installed-standard-nested-child-after.jpg",
+      "length": 218139,
+      "sha256": "631b0d79796a28ff8f922c1be8e120b055c64f6aa2435128e9fb4334a03b1cae"
+    },
+    {
+      "file": "installed-standard-nested-child-before.jpg",
+      "length": 192141,
+      "sha256": "e4bdcb52fcf7171885e4df39393e69d458ff0c22c7bfb16c4754fe65453b686a"
+    },
+    {
+      "file": "installed-standard-nested-child-request.txt",
+      "length": 941,
+      "sha256": "a756692dc40090883f8104f08e24e76d687163f732e744ce9caacbea15c5235a"
+    },
+    {
+      "file": "installed-standard-shadow-child-after.jpg",
+      "length": 186306,
+      "sha256": "29ba9e8f60778eb86e8968d1160caaa90cd07625a245e64bb2e0d47711dab039"
+    },
+    {
+      "file": "installed-standard-shadow-child-before.jpg",
+      "length": 201610,
+      "sha256": "ab4d048b84abe3883a4c16fd4c0743970846fd6c2a7acaa2df1cda2a2ea1adae"
+    },
+    {
+      "file": "installed-standard-shadow-child-request.txt",
+      "length": 973,
+      "sha256": "78bad7160b8a0a09933b6ff9124d747e6dafb1fd2f42f57837ba29798545b01a"
+    },
+    {
+      "file": "navigation-after.jpg",
+      "length": 194679,
+      "sha256": "809c643d440e71f2ec5ac6aebe2bd2230f68f080aef09f8e5eba476dcdac9bfb"
+    },
+    {
+      "file": "navigation-before.jpg",
+      "length": 185715,
+      "sha256": "0eb4baca37d6e09d2044d17da7829150168e58e06008a2965d507f233e366591"
+    },
+    {
+      "file": "navigation-request.txt",
+      "length": 910,
+      "sha256": "8a82b22232368998954503cc5fdc49a4d605d63534cf906df33176e852f055f3"
+    },
+    {
+      "file": "nested-after.jpg",
+      "length": 188910,
+      "sha256": "5d32eae149d2c3e0ab0a3a3c5e865e10133f6656fa138c6b99bdf9bfbd8ee0b7"
+    },
+    {
+      "file": "nested-before.jpg",
+      "length": 206247,
+      "sha256": "9637987a8df8d93b261f6c7c913cb57e8fff01154d330df1e8c941013472344c"
+    },
+    {
+      "file": "nested-request.txt",
+      "length": 908,
+      "sha256": "4977b98cdc77c5ae182651b26d8dd0b0de8846f6c4463444d08413ca4ae9d0fa"
+    },
+    {
+      "file": "panel-close-action-time.json",
+      "length": 172,
+      "sha256": "103f78905927fd3a40fd13a08efc13bf8e0f27e75687d4212e29d2cdbc5c6d49"
+    },
+    {
+      "file": "panel-close-at-action-after.jpg",
+      "length": 174254,
+      "sha256": "ec0989651c130dc123628111a14f385d5b8e3fe02d241fef52a1df0bb49dd461"
+    },
+    {
+      "file": "panel-close-at-action-before.jpg",
+      "length": 217677,
+      "sha256": "1c477429497ecc880d5dfbae0f9b44ee79f604760534eca77e9d583601616d76"
+    },
+    {
+      "file": "panel-close-before.jpg",
+      "length": 196181,
+      "sha256": "a205056d684e9bb9c64470f34cd5317beaced52674cff968f4cab50ce3e812b0"
+    },
+    {
+      "file": "panel-close-planning-window.json",
+      "length": 1172,
+      "sha256": "51aeec6fcf0d148a6994b670c086b061ba0db2255f2759e73839925450739430"
+    },
+    {
+      "file": "panel-close-request.txt",
+      "length": 863,
+      "sha256": "f830ee155eb0045a8107744359fb73cd29f268f5c33d88b9c8d7d2796074dee0"
+    },
+    {
+      "file": "panel-close2-action-after.jpg",
+      "length": 220396,
+      "sha256": "de4a7af12a710330845eccc2fdfaea8ef815ac59d14c19d3a1cf934974d2342e"
+    },
+    {
+      "file": "panel-close2-action-before.jpg",
+      "length": 217497,
+      "sha256": "e251221d03696a0a55132df583c1e7b7825921ffe39df13bed7330f2b054f301"
+    },
+    {
+      "file": "panel-close2-action-time.json",
+      "length": 166,
+      "sha256": "281ed2b8cd15c4975b61eadaaa551367723e3f2cb23e1771c289a2cec20e13d0"
+    },
+    {
+      "file": "panel-close2-before.jpg",
+      "length": 201894,
+      "sha256": "c5a465824eedf778d59fcdedf41713200354555844929b41ceac8f684a1cf26e"
+    },
+    {
+      "file": "panel-close2-request.txt",
+      "length": 864,
+      "sha256": "046650634284e1a169f8c148702eeb012e6ddf89efaae5c88534251111f4db51"
+    },
+    {
+      "file": "safety-final.json",
+      "length": 779,
+      "sha256": "62f26af11e56ba88805b6f17dfa6882626ca6d39e33ed6fffa6340737e5a5eeb"
+    },
+    {
+      "file": "server-address.json",
+      "length": 72,
+      "sha256": "51ec61082cbd900ea3b092476ce41e25921e72da0eca56db741250d5cb4f581d"
+    },
+    {
+      "file": "server-process.json",
+      "length": 119,
+      "sha256": "aeec1dae426265f8a617ada050e46e9e4db0fc4ac0b971c46f677553cd76d23a"
+    },
+    {
+      "file": "server.py",
+      "length": 5152,
+      "sha256": "4e05cc5dbfc3a54956ba0396c5838a123928e8b697a7b1f48e7f1d40d0d5bccd"
+    },
+    {
+      "file": "shadow-after.jpg",
+      "length": 190792,
+      "sha256": "dfd11a21fab07ebde37663a446c7ef8b72b5e93998120458ce18355002f16294"
+    },
+    {
+      "file": "shadow-before.jpg",
+      "length": 188064,
+      "sha256": "c2b45f6f79097b5ef0162c45423e06b7b02943a3060f20f9521b0b3735efdd39"
+    },
+    {
+      "file": "shadow-request.txt",
+      "length": 926,
+      "sha256": "0d3a0d5c2a45f04fa6c8cbb23e22e2a04c8b3909dcfef68c65aef523a3d0d940"
+    },
+    {
+      "file": "standard-stopped.json",
+      "length": 431,
+      "sha256": "789b99b6d77f9d1a4e9c38908b187e0465e96a788315e0b2462934952d5d58a1"
+    },
+    {
+      "file": "web-events.json",
+      "length": 7163,
+      "sha256": "9c583c1feae7931073510b56988533845edb8d2a8831c3ce1073da1f521a07e3"
+    }
+  ],
+  "limits": [
+    "8767测试不用于证明前端原生事件更新正常；正式默认端口8765独立验收",
+    "两轮关闭竞态未命中；watch固定同名文件第二次覆盖第一份，原件只归档当前一份",
+    "早期正式阶段stdout/stderr临时日志被候选覆盖；未列作完整原始证据",
+    "不把渲染iframe、shadow或拒绝父控件误点击当作全部内部自动化通过"
+  ]
+}

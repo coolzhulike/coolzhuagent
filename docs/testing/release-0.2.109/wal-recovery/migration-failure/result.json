@@ -1,0 +1,49 @@
+{
+  "version": "0.2.109",
+  "binary_sha256": "e8285a8d066b4ff0b1ac398012f8b8efe5357635526b3f52ecfba2b36904d026",
+  "failed_start_exit_code": 1,
+  "failed_start_elapsed_ms": 1498,
+  "before": {
+    "schema_version": 27,
+    "contract_version": "27",
+    "quick_check": "ok",
+    "messages": 1224,
+    "new_columns": [],
+    "logical_dump_sha256": "29890f166ee46e0d748f83f45f2e16332eb44c81c363f376ff7192095935c00c"
+  },
+  "after_failure": {
+    "schema_version": 27,
+    "contract_version": "27",
+    "quick_check": "ok",
+    "messages": 1224,
+    "new_columns": [],
+    "logical_dump_sha256": "29890f166ee46e0d748f83f45f2e16332eb44c81c363f376ff7192095935c00c"
+  },
+  "backup": {
+    "schema_version": 27,
+    "contract_version": "27",
+    "quick_check": "ok",
+    "messages": 1224,
+    "new_columns": [],
+    "logical_dump_sha256": "29890f166ee46e0d748f83f45f2e16332eb44c81c363f376ff7192095935c00c"
+  },
+  "rollback_logical_dump_unchanged": true,
+  "new_columns_rolled_back": true,
+  "source_writes": 0,
+  "model_requests": 0,
+  "cloud_sessions_created": 0,
+  "recovered": {
+    "schema_version": 28,
+    "contract_version": "28",
+    "quick_check": "ok",
+    "messages": 1224,
+    "new_columns": [
+      "native_dispatch_state",
+      "native_ticket_id",
+      "native_binding_json"
+    ],
+    "logical_dump_sha256": "29d530e7d4babbcd2c0a9576c768237885b4c5a406d3ab699b6c320d556fb4c8"
+  },
+  "recovered_pid": 29956,
+  "status": "独立事实通过，待正常UI实拍"
+}

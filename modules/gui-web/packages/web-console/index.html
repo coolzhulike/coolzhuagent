@@ -10,19 +10,28 @@
     <link rel="stylesheet" href="./src/model_settings.css" />
     <link rel="stylesheet" href="./src/wuxia_layout.css" />
     <link rel="stylesheet" href="./src/workspace_panels.css" />
+    <link rel="stylesheet" href="./src/execution_panel.css" />
     <link rel="stylesheet" href="./src/scroll_theme.css" />
+    <link rel="stylesheet" href="./src/jade_controls.css" />
     <script src="./src/run_activity.js" defer></script>
     <script src="./src/video_wait.js" defer></script>
     <script src="./src/content_preview.js" defer></script>
     <script src="./src/workspace_panels.js" defer></script>
+    <script src="./src/execution_panel.js" defer></script>
     <script src="./src/native_browser_panel.js" defer></script>
     <script src="./src/chat_experience.js" defer></script>
+    <script src="./src/chat_history_sync.js" defer></script>
+    <script src="./src/devin_auth.js" defer></script>
     <script src="./src/model_settings.js" defer></script>
     <script src="./src/realtime_voice_capture.js" defer></script>
     <script src="./src/realtime_audio_output.js" defer></script>
     <script src="./src/stt_tail_capture.js" defer></script>
+    <link rel="stylesheet" href="./src/brand_avatars.css" />
+    <script src="./src/brand_avatars.js" defer></script>
     <script src="./src/app.js" defer></script>
     <script src="./src/dsh_market.js" defer></script>
+    <script src="./src/devin_plugin.js" defer></script>
+    <script src="./src/provider_connectors.js" defer></script>
   </head>
   <body class="ui-3d">
     <main class="shell ui-redesign" aria-label="COOLZHU CODE 控制台">
@@ -35,7 +44,7 @@
         <article class="top-status-card overview-card" aria-label="发送对象与工作区">
           <div class="overview-identity">
             <figure class="overview-mascot" aria-label="当前 Agent 头像">
-              <img data-role="overview-mascot-avatar" src="./assets/avatars/wuxia-v3/bamboo-swordsman.png" alt="" />
+              <img data-role="overview-mascot-avatar" src="./assets/avatars/brand-v1/generic.png" alt="" />
             </figure>
             <div class="overview-identity-copy">
               <div class="overview-field overview-agent-field">
@@ -81,15 +90,15 @@
           </details>
           <div class="chat-top-statuses" data-role="chat-top-statuses" aria-label="聊天室状态">
             <span class="chat-top-status-indicator chat-top-status-ready is-dim" data-role="chat-top-status-ready" data-state="idle" role="img" aria-label="系统健康：等待自检" title="系统健康：等待自检">
-              <img src="./assets/ui-redesign/p6/status-jade-ready-v1.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v3/status-jade.png" alt="" aria-hidden="true" />
               <span>就绪</span>
             </span>
             <span class="chat-top-status-indicator chat-top-status-lantern is-dim" data-role="chat-top-status-lantern" data-state="idle" role="img" aria-label="系统状态灯：等待自检" title="系统状态灯：等待自检">
-              <img src="./assets/ui-redesign/three-column/rail-lantern-gold-v1.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v3/status-lantern.png" alt="" aria-hidden="true" />
               <span>灯笼</span>
             </span>
             <span class="chat-top-status-indicator chat-top-status-alert is-dim" data-role="chat-top-status-alert" data-state="idle" role="img" aria-label="系统警示：无异常" title="系统警示：无异常">
-              <img src="./assets/ui-redesign/p6/status-vermilion-alert-v1.png" alt="" aria-hidden="true" />
+              <img src="./assets/ui-redesign/jade-controls-v3/status-lantern.png" alt="" aria-hidden="true" />
               <span>警示</span>
             </span>
           </div>
@@ -187,7 +196,7 @@
                   <div class="config-field avatar-config-field">
                     <span>头像</span>
                     <button class="avatar-select-trigger" data-action="session-avatar-toggle" type="button">
-                      <img data-role="session-avatar-preview" src="./assets/avatars/wuxia-v3/bamboo-swordsman.png" alt="" />
+                      <img data-role="session-avatar-preview" src="./assets/avatars/brand-v1/generic.png" alt="" />
                       <b data-role="session-avatar-label">默认图标</b>
                     </button>
                     <div class="avatar-picker" data-role="avatar-picker" hidden></div>
@@ -611,7 +620,7 @@
             <div class="window-panel chat-window-panel" data-left-collapsed="true" data-right-collapsed="false" data-focus-mode="false">
               <aside id="chat-left-rail" class="chat-left-rail" data-role="chat-left-rail" aria-label="聊天导航与上下文侧栏">
                 <button class="chat-rail-overlay-close chat-left-overlay-close" data-action="chat-left-rail-toggle" type="button" aria-controls="chat-left-rail" aria-expanded="true" aria-label="隐藏聊天导航侧栏" title="收起聊天导航侧栏">
-                  <img src="./assets/ui-redesign/three-column/control-icons/panel-left-close-v1.png" alt="" aria-hidden="true" />
+                  <img src="./assets/icons-wuxia/split-pane.svg" alt="" aria-hidden="true" />
                 </button>
                 <section class="chat-workspace-summary" data-sidebar-group="workspace-summary" aria-label="当前工作区与聊天室摘要">
                   <div class="chat-workspace-summary-mark" aria-hidden="true">
@@ -742,15 +751,14 @@
                   </div>
                 </section>
                 <section class="chat-activity chat-run-activity" data-role="chat-run-activity" aria-label="当前运行过程" hidden>
-                  <div class="chat-activity-summary"><span data-role="chat-activity-label" role="status">正在思考…</span><time data-role="chat-turn-time"></time><button type="button" class="run-activity-follow" data-role="chat-activity-follow" hidden>暂停跟随</button></div>
+                  <div class="chat-activity-summary"><span data-role="chat-activity-label" role="status">正在思考…</span><time data-role="chat-turn-time"></time><button type="button" class="run-activity-follow" data-role="chat-activity-follow" data-icon-only="true" aria-label="暂停跟随" title="暂停跟随" aria-pressed="false" hidden><img class="wuxia-icon-only run-follow-pause" src="./assets/icons-wuxia/pause.svg" alt="" aria-hidden="true" /><img class="wuxia-icon-only run-follow-resume" src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" /></button></div>
                   <pre class="chat-activity-stream" data-role="chat-activity-stream" aria-live="off" aria-label="当前过程摘要，可暂停跟随和选择复制" tabindex="0"></pre>
                 </section>
                 <footer class="composer">
                   <div class="composer-attachments" data-role="composer-attachments" aria-live="polite"></div>
                   <div class="composer-references" data-role="composer-references" aria-live="polite"></div>
-                  <button class="composer-attach" data-action="composer-attach" type="button" aria-label="选择附件" title="选择附件">
+                  <button class="composer-attach" data-action="composer-attach" data-icon-only="true" type="button" aria-label="选择附件" title="选择附件">
                     <img src="./assets/icons-wuxia/upload.svg" alt="" />
-                    <span>附件</span>
                   </button>
                   <input data-role="composer-file-input" type="file" hidden multiple />
                   <input value="" placeholder="输入消息，按 Enter 发送..." data-role="message-input" />
@@ -761,13 +769,13 @@
               <div class="chat-rail-resizer chat-rail-resizer-right" data-role="chat-right-rail-resizer" role="separator" aria-label="调整扩展栏宽度" aria-controls="chat-right-rail" aria-orientation="vertical" aria-valuemin="240" aria-valuemax="760" aria-valuenow="480" tabindex="0"></div>
               <aside id="chat-right-rail" class="chat-right-rail" data-role="chat-right-rail" aria-labelledby="chat-right-rail-title">
                 <header class="chat-right-rail-heading">
-                  <img class="chat-right-agent-avatar" src="./assets/avatars/wuxia-v3/bamboo-swordsman.png" alt="" />
+                  <img class="chat-right-agent-avatar" src="./assets/avatars/brand-v1/generic.png" alt="" />
                   <div class="chat-right-rail-heading-copy" data-role="chat-right-rail-heading-copy">
                     <span data-role="chat-right-rail-kicker">协作阵列</span>
                     <strong id="chat-right-rail-title" data-role="chat-right-rail-title">Agent 与任务链</strong>
                   </div>
                   <button class="chat-rail-overlay-close chat-right-overlay-close" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="true" aria-label="隐藏扩展栏" title="收起扩展栏">
-                    <img src="./assets/ui-redesign/three-column/control-icons/panel-right-close-v1.png" alt="" aria-hidden="true" />
+                    <img src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" />
                   </button>
                 </header>
                 <div class="chat-right-tabs" data-role="chat-right-tabs" role="tablist" aria-label="协作侧栏视图">
@@ -777,6 +785,7 @@
                   <button id="chat-right-tab-tasks" class="chat-right-tab" type="button" role="tab" data-right-tab="tasks" aria-selected="false" aria-controls="chat-right-panel-tasks" tabindex="-1">
                     <img src="./assets/icons-wuxia/tasks.svg" alt="" aria-hidden="true" /><span>任务</span><b class="chat-right-tab-badge" data-role="chat-right-handoff-count" hidden></b>
                   </button>
+                  <button id="chat-right-tab-executions" class="chat-right-tab" type="button" role="tab" data-right-tab="executions" aria-selected="false" aria-controls="chat-right-panel-executions" tabindex="-1"><img src="./assets/icons-wuxia/tasks.svg" alt="" aria-hidden="true" /><span>执行</span></button>
                   <button id="chat-right-tab-status" class="chat-right-tab" type="button" role="tab" data-right-tab="status" aria-selected="false" aria-controls="chat-right-panel-status" tabindex="-1">
                     <img src="./assets/icons-wuxia/shield.svg" alt="" aria-hidden="true" /><span>状态</span>
                   </button>
@@ -791,6 +800,7 @@
                       <div class="chat-roster-strip" data-role="chat-roster" aria-live="polite"></div>
                     </section>
                   </section>
+                  <section id="chat-right-panel-executions" class="chat-right-panel execution-panel" data-right-panel="executions" role="tabpanel" aria-labelledby="chat-right-tab-executions" tabindex="0" hidden></section>
                   <section id="chat-right-panel-tasks" class="chat-right-panel chat-right-task-panel" data-right-panel="tasks" role="tabpanel" aria-labelledby="chat-right-tab-tasks" tabindex="0" hidden>
                     <div class="chat-right-task-content">
                       <article class="top-status-card chat-right-task-summary" data-role="chat-right-task-summary" aria-label="当前任务摘要">
@@ -867,7 +877,7 @@
                             <span>返回</span>
                           </button>
                           <button class="chat-tool-host-action" data-action="chat-tool-close" type="button" aria-label="关闭当前工具" title="关闭当前工具并回到聊天室">
-                            <img src="./assets/ui-redesign/three-column/control-icons/panel-right-close-v1.png" alt="" aria-hidden="true" />
+                            <img src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" />
                             <span>关闭</span>
                           </button>
                         </div>
@@ -879,10 +889,10 @@
                 </div>
                 <footer class="chat-right-rail-footer" data-role="chat-right-rail-footer">
                   <button class="chat-right-footer-action is-primary-control" data-action="chat-task-chain" type="button" aria-label="打开任务链" title="打开任务链">
-                    <img src="./assets/ui-redesign/three-column/control-icons/queue-v1.png" alt="" aria-hidden="true" /><span>任务链</span><b class="chat-right-footer-badge" data-role="chat-right-task-count" hidden></b>
+                    <img src="./assets/icons-wuxia/queue.svg" alt="" aria-hidden="true" /><span>任务链</span><b class="chat-right-footer-badge" data-role="chat-right-task-count" hidden></b>
                   </button>
                   <button class="chat-right-footer-action" data-action="chat-handoff-manual" type="button" aria-label="转交当前任务" title="将当前任务转交给协作 Agent">
-                    <img src="./assets/ui-redesign/three-column/control-icons/steer-now-v1.png" alt="" aria-hidden="true" /><span>转交</span>
+                    <img src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" /><span>转交</span>
                   </button>
                   <button class="chat-right-footer-action" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="true" aria-label="收起侧栏" title="收起侧栏">
                     <img src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" /><span>收起侧栏</span>
@@ -968,8 +978,29 @@
           <article class="workbench-window catalog-workbench-window" data-window-id="plugin-market" aria-label="插件市场">
             <div class="window-panel workspace-content-panel quick-catalog-panel">
               <div class="workspace-panel-toolbar"><strong>插件市场</strong><button data-action="plugin-market-refresh" type="button">刷新目录</button></div>
-              <p class="quick-panel-intro">浏览 DSH 社区插件，并管理当前工程已安装插件。远程插件尚未支持直接安装，可查看详情和兼容性。</p>
-              <section class="dsh-market" aria-label="DSH 社区目录">
+              <section class="ms-section" aria-label="Devin 账号">
+                <h3>Devin 账号</h3>
+                <p class="ms-hint">登录后可在 Agent 的模型设置中获取账号模型。</p>
+                <div data-role="devin-account-panel"></div>
+              </section>
+              <details class="dsh-market" data-role="devin-model-panel">
+                <summary>Devin 聊天室 · 模型与会话设置</summary>
+                <div data-role="devin-model-settings"></div>
+              </details>
+              <details class="dsh-market" data-provider-connector="opencode-zen@native">
+                <summary>OpenCode Zen · 免费模型连接器</summary>
+                <p class="ms-hint" data-role="provider-note"></p>
+                <button type="button" data-action="provider-docs" aria-label="查看 OpenCode 官方条款" title="查看 OpenCode 官方条款"><img src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /></button>
+                <div data-role="provider-editor"></div>
+              </details>
+              <details class="dsh-market" data-provider-connector="huggingface-inference@native">
+                <summary>Hugging Face · 推理模型连接器</summary>
+                <p class="ms-hint" data-role="provider-note"></p>
+                <button type="button" data-action="provider-docs" aria-label="查看 Hugging Face 官方额度" title="查看 Hugging Face 官方额度"><img src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /></button>
+                <div data-role="provider-editor"></div>
+              </details>
+              <p class="quick-panel-intro">浏览、安装和管理 DSH 社区插件。安装后先启用，再在模型配置中选择需要的工具。</p>
+              <section class="dsh-market" data-role="dsh-market-root" aria-label="DSH 社区目录">
                 <header class="dsh-market-heading"><strong>DSH 社区目录</strong><small>来源：awesome-dsh-plugin.com</small></header>
                 <div class="dsh-market-controls">
                   <label><span>搜索插件</span><input data-role="dsh-market-search" type="search" maxlength="160" placeholder="名称、作者或描述" /></label>
@@ -981,6 +1012,24 @@
                 <div class="dsh-market-pagination"><button data-action="dsh-market-prev" type="button">上一页</button><span data-role="dsh-market-page">—</span><button data-action="dsh-market-next" type="button">下一页</button></div>
               </section>
               <h3 class="dsh-market-local-heading">当前工程原生插件</h3>
+              <details class="devin-plugin-panel dsh-market" data-role="devin-plugin-panel">
+                <summary>Devin 云会话 · 配置与手动测试</summary>
+                <p>通过官方 API 连接独立的云端 Agent 会话。模型选择与思考程度以 Devin 官方界面的实际能力为准；公开 API 未提供对应参数。其它参数沿用官方默认。</p>
+                <form data-role="devin-config-form" class="dsh-market-controls">
+                  <label><span>启用云会话插件</span><input data-role="devin-enabled" type="checkbox" /></label>
+                  <label><span>组织 ID</span><input data-role="devin-org" placeholder="org-…" maxlength="180" autocomplete="off" /></label>
+                  <label><span>Agent 模式（不是模型 ID）</span><select data-role="devin-mode"><option value="">官方默认</option><option value="normal">Normal</option><option value="fast">Fast</option><option value="lite">Lite</option><option value="ultra">Ultra</option><option value="fusion">Fusion</option></select></label>
+                  <label><span>API Key · 留空保留已存值</span><input data-role="devin-key" type="password" maxlength="4096" autocomplete="new-password" placeholder="随机占位值等待本人替换" /></label>
+                  <button data-action="devin-save" type="submit">保存配置</button><button data-action="devin-refresh" type="button">刷新</button>
+                </form>
+                <p data-role="devin-status" role="status">展开后读取当前工程配置；占位密钥不会发送到网络。</p>
+                <label>当前工程已绑定的云会话<select data-role="devin-session"><option value="">尚未选择</option></select></label>
+                <label>消息或新任务<textarea data-role="devin-text" rows="3" maxlength="65536" placeholder="填写发送到 Devin 的内容；新建会话可能消耗 ACU"></textarea></label>
+                <div class="dsh-market-controls"><button data-action="devin-create" type="button">创建云会话</button><button data-action="devin-send" type="button">发送消息</button><button data-action="devin-get" type="button">读取状态</button><button data-action="devin-messages" type="button">读取消息</button><button data-action="devin-next" type="button" disabled>下一页消息</button><button data-action="devin-open" type="button">打开官方会话</button></div>
+                <details><summary>关联官网已有会话（用于恢复结果未知的创建）</summary><input data-role="devin-bind-id" placeholder="devin-…" maxlength="180" /><button data-action="devin-bind" type="button">验证并关联</button></details>
+                <p data-role="devin-result" role="status"></p>
+                <div data-role="devin-output" class="devin-plugin-output"></div>
+              </details>
               <div class="quick-catalog-facts"><span>目录状态：<b data-role="plugin-market-directory-state">尚未读取</b></span><span>已安装状态：<b data-role="plugin-market-installed-state">暂无可核验清单</b></span></div>
               <p data-role="plugin-market-status" role="status">尚未读取目录。</p>
               <div class="quick-catalog-list" data-role="plugin-market-list"></div>
@@ -1105,6 +1154,7 @@
                             <option value="goal">目标推进型</option>
                           </select>
                           <select data-role="task-schedule-goal" title="绑定目标（目标推进型）" hidden></select>
+                          <select data-role="task-schedule-room" aria-label="定时任务结果聊天室" title="结果固定发送到此聊天室，复用该聊天室的会话上下文"></select>
                           <select data-role="task-schedule-kind" title="计划类型">
                             <option value="daily">每天</option>
                             <option value="weekly">每周</option>
@@ -1491,9 +1541,9 @@
           <dd data-bind="approval.affectedPaths">-</dd>
         </dl>
         <div class="approval-actions">
-          <button data-action="approval-reject" type="button"><img src="./assets/ui-redesign/three-column/control-icons/reject-feedback-v1.png" alt="" aria-hidden="true" /><span>拒绝</span></button>
-          <button data-action="approval-approve-once" type="button"><img src="./assets/ui-redesign/three-column/control-icons/approve-once-v1.png" alt="" aria-hidden="true" /><span>授权本次</span></button>
-          <button data-action="approval-approve-session" type="button"><img src="./assets/ui-redesign/three-column/control-icons/approve-rule-v1.png" alt="" aria-hidden="true" /><span>授权本会话</span></button>
+          <button data-action="approval-reject" type="button"><img src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" /><span>拒绝</span></button>
+          <button data-action="approval-approve-once" type="button"><img src="./assets/icons-wuxia/check.svg" alt="" aria-hidden="true" /><span>授权本次</span></button>
+          <button data-action="approval-approve-session" type="button"><img src="./assets/icons-wuxia/shield.svg" alt="" aria-hidden="true" /><span>授权本会话</span></button>
         </div>
       </aside>
     </main>

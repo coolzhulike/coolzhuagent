@@ -1,0 +1,13 @@
+{"kind": "http-get", "role": "OLD", "path": "/old.html", "host": "127.0.0.1:64527", "server_ns": 874779017524900, "received_unix_ns": 1791586067920017800}
+{"kind": "document-script-start", "role": "OLD", "page_ms": 1791586067933.8, "server_ns": 874779037185300, "received_unix_ns": 1791586067939636300}
+{"kind": "loaded", "role": "OLD", "page_ms": 1791586067935.1, "trusted": true, "server_ns": 874779037407700, "received_unix_ns": 1791586067939858200}
+{"kind": "pointerdown", "role": "OLD", "page_ms": 1791586137261.2002, "trusted": true, "target": "target", "server_ns": 874848363186500, "received_unix_ns": 1791586137267273300}
+{"kind": "click", "role": "OLD", "page_ms": 1791586137262.3, "trusted": true, "target": "target", "server_ns": 874848365034800, "received_unix_ns": 1791586137269114500}
+{"kind": "pointerup", "role": "OLD", "page_ms": 1791586137261.9001, "trusted": true, "target": "target", "server_ns": 874848365050000, "received_unix_ns": 1791586137269128900}
+{"kind": "observing-phase-found", "facts": {"run_id": "run-chat-7b4a9e6fe3b680d5fb72eac7ec3fa7ae255d4c995d7f08b3", "cu_call_id": "cu-session-1791131217833-chat-turn-1791586101446-1-tool-cdadc46e62c583623c97f7cdf44b3724a4dd70d81038f6315180a1da19f63687", "cu_state": "observing", "steps": [[0, "sent", "released", 1791586137275]], "observation_requested": {"event_id": 6020, "created_at": 1791586137309, "payload": {"request_id": "2112ab92bcc8565f75e859d87b2fa7c3", "stage": "registered"}}}, "server_ns": 874848410761300, "received_unix_ns": 1791586137314842200}
+{"kind": "phase-ready", "role": "OLD", "page_ms": 1791586137315.6, "server_ns": 874848414940800, "received_unix_ns": 1791586137319021700}
+{"kind": "popup-request", "role": "OLD", "page_ms": 1791586137315.9001, "server_ns": 874848416239100, "received_unix_ns": 1791586137320320200}
+{"kind": "http-get", "role": "NEW", "path": "/new.html", "host": "127.0.0.1:64528", "server_ns": 874848420783500, "received_unix_ns": 1791586137324865000}
+{"kind": "pagehide", "role": "OLD", "page_ms": 1791586137326.9001, "trusted": true, "server_ns": 874848426791700, "received_unix_ns": 1791586137330873100}
+{"kind": "document-script-start", "role": "NEW", "page_ms": 1791586137332.8, "server_ns": 874848434301600, "received_unix_ns": 1791586137338383500}
+{"kind": "loaded", "role": "NEW", "page_ms": 1791586137333.5, "trusted": true, "server_ns": 874848438559600, "received_unix_ns": 1791586137342641600}

@@ -1,0 +1,46 @@
+{
+  "stage": "正常桌面入口恢复与逐一核对的自有测试进程结束",
+  "source_commit": "cc6c43183acd6340f42230dab0f86d22fce6ee8c",
+  "version": "0.2.80",
+  "files": [
+    {
+      "file": "restored-daily-080-after.jpg",
+      "length": 196294,
+      "sha256": "88442f6c9eae242eb2258b7084a4fd3f080088117e9db052781cae6f0281c32f"
+    },
+    {
+      "file": "restored-daily-080-selfcheck.json",
+      "length": 1779,
+      "sha256": "65c401f3acf3d64e8aeba395d43da2c63b5d6d013e42105871138f1992be3f41"
+    },
+    {
+      "file": "restored-daily-080-verification.json",
+      "length": 1139,
+      "sha256": "8826a1a98be8a3550aee005264a80b0a8ee4c79d94b206995510df310b49a3a7"
+    },
+    {
+      "file": "restored-daily-080-process.json",
+      "length": 360,
+      "sha256": "4a6a322a700b6d9901ebf000f35d93dbdff157e5ae9699196aeda745bfb10612"
+    },
+    {
+      "file": "formal-080-stopped.json",
+      "length": 632,
+      "sha256": "51a1cf0976326b983467bc3c26bdb797c3608c7040e5be1e6e26b37653c5cfc6"
+    },
+    {
+      "file": "server-stopped080.json",
+      "length": 259,
+      "sha256": "fb1fb0c4ec46958bca4158082592ef736d7ab1942d76bc78bc5454632827c6d3"
+    },
+    {
+      "file": "safety-after080.json",
+      "length": 551,
+      "sha256": "c11da6c0e05d1c64ab2a0f5fea3d82fc0075ca097a2b418af3adffc0be389224"
+    }
+  ],
+  "limits": [
+    "日常工程保留用户原Qwen选择与历史消息，未向Qwen发送新请求；所有本轮实操仍是原SWE-2远端",
+    "历史输入unknown记录保留，不改权限和输入安全库"
+  ]
+}

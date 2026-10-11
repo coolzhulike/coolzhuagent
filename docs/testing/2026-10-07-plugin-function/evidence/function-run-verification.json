@@ -1,0 +1,167 @@
+{
+  "cases": [
+    {
+      "prefix": "PLUGIN-FUNCTION-CANCEL-20261007",
+      "run": {
+        "id": "run-chat-d4ed5fd7a65b7a06d35ed0ebf07e1ab5ca9204824be53b9d",
+        "kind": "chat_turn",
+        "workspace_id": "ws-23f646a969206cb4",
+        "session_id": "session-1791131217833",
+        "chat_room_id": "room-1791131523339",
+        "goal_id": null,
+        "phase_id": null,
+        "legacy_turn_id": "chat-turn-1791377533838-0",
+        "provider_turn_id": null,
+        "state": "completed",
+        "owner_id": "coolzhu-web-console",
+        "claim_token": "claim-8176decc480e5912dd2a4c45b939d2789a6c5310a3209bbb3c67b22dde4f3220",
+        "stop_reason": null,
+        "error_json": null,
+        "created_at": 1791377533850,
+        "started_at": 1791377535901,
+        "stop_requested_at": null,
+        "heartbeat_at": 1791377535901,
+        "finished_at": 1791377608199
+      },
+      "events": [
+        {
+          "id": 2206,
+          "run_id": "run-chat-d4ed5fd7a65b7a06d35ed0ebf07e1ab5ca9204824be53b9d",
+          "event_type": "run.accepted",
+          "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791377533838-0\"}",
+          "created_at": 1791377533857
+        },
+        {
+          "id": 2207,
+          "run_id": "run-chat-d4ed5fd7a65b7a06d35ed0ebf07e1ab5ca9204824be53b9d",
+          "event_type": "chat.source_messages",
+          "payload_json": "{\"message_ids\":[\"msg-1791377533838-user\"]}",
+          "created_at": 1791377535865
+        },
+        {
+          "id": 2208,
+          "run_id": "run-chat-d4ed5fd7a65b7a06d35ed0ebf07e1ab5ca9204824be53b9d",
+          "event_type": "chat.target_agents",
+          "payload_json": "{\"agent_ids\":[\"session-1791131217833\"]}",
+          "created_at": 1791377535885
+        },
+        {
+          "id": 2209,
+          "run_id": "run-chat-d4ed5fd7a65b7a06d35ed0ebf07e1ab5ca9204824be53b9d",
+          "event_type": "run.started",
+          "payload_json": "{\"previous_state\":\"accepted\"}",
+          "created_at": 1791377535901
+        },
+        {
+          "id": 2210,
+          "run_id": "run-chat-d4ed5fd7a65b7a06d35ed0ebf07e1ab5ca9204824be53b9d",
+          "event_type": "devin.context_delta",
+          "payload_json": "{\"continued\":true,\"delta_history_messages\":0,\"host_history_messages\":161,\"image_count\":0,\"prompt_bytes\":5704}",
+          "created_at": 1791377541954
+        },
+        {
+          "id": 2211,
+          "run_id": "run-chat-d4ed5fd7a65b7a06d35ed0ebf07e1ab5ca9204824be53b9d",
+          "event_type": "chat.context_outputs",
+          "payload_json": "{\"agent_id\":\"session-1791131217833\",\"messages\":[{\"deleted\":false,\"digest\":\"294f09f8ef5179b4dc2657f9824a33cfff1127975d9d58d3247ca3c0c686ead3\",\"id\":\"msg-1791377536047-0\",\"source\":false}]}",
+          "created_at": 1791377608146
+        },
+        {
+          "id": 2212,
+          "run_id": "run-chat-d4ed5fd7a65b7a06d35ed0ebf07e1ab5ca9204824be53b9d",
+          "event_type": "run.completed",
+          "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"completed\"}",
+          "created_at": 1791377608199
+        }
+      ]
+    },
+    {
+      "prefix": "PLUGIN-FUNCTION-CANCEL2-20261007",
+      "run": {
+        "id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+        "kind": "chat_turn",
+        "workspace_id": "ws-23f646a969206cb4",
+        "session_id": "session-1791131217833",
+        "chat_room_id": "room-1791131523339",
+        "goal_id": null,
+        "phase_id": null,
+        "legacy_turn_id": "chat-turn-1791377993396-1",
+        "provider_turn_id": null,
+        "state": "interrupted",
+        "owner_id": "coolzhu-web-console",
+        "claim_token": "claim-8bac8709b7aa3c01261ac51af3a86360a90e3ed650820d1a9c69ccdff4056241",
+        "stop_reason": null,
+        "error_json": null,
+        "created_at": 1791377993407,
+        "started_at": 1791377995482,
+        "stop_requested_at": 1791378020429,
+        "heartbeat_at": 1791377995482,
+        "finished_at": 1791378020446
+      },
+      "events": [
+        {
+          "id": 2213,
+          "run_id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+          "event_type": "run.accepted",
+          "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791377993396-1\"}",
+          "created_at": 1791377993408
+        },
+        {
+          "id": 2214,
+          "run_id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+          "event_type": "chat.source_messages",
+          "payload_json": "{\"message_ids\":[\"msg-1791377993396-user\"]}",
+          "created_at": 1791377995448
+        },
+        {
+          "id": 2215,
+          "run_id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+          "event_type": "chat.target_agents",
+          "payload_json": "{\"agent_ids\":[\"session-1791131217833\"]}",
+          "created_at": 1791377995466
+        },
+        {
+          "id": 2216,
+          "run_id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+          "event_type": "run.started",
+          "payload_json": "{\"previous_state\":\"accepted\"}",
+          "created_at": 1791377995482
+        },
+        {
+          "id": 2217,
+          "run_id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+          "event_type": "devin.context_delta",
+          "payload_json": "{\"continued\":true,\"delta_history_messages\":0,\"host_history_messages\":166,\"image_count\":0,\"prompt_bytes\":5681}",
+          "created_at": 1791378002001
+        },
+        {
+          "id": 2218,
+          "run_id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+          "event_type": "run.stop_requested",
+          "payload_json": "{\"previous_state\":\"running\",\"reason\":null}",
+          "created_at": 1791378020429
+        },
+        {
+          "id": 2219,
+          "run_id": "run-chat-f2478d2058fc3cf63b27b19f35e5c57fa69d1718d89a736a",
+          "event_type": "run.interrupted",
+          "payload_json": "{\"previous_state\":\"stop_requested\",\"requested_status\":\"interrupted\"}",
+          "created_at": 1791378020446
+        }
+      ]
+    }
+  ],
+  "active": [],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

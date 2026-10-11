@@ -1,0 +1,268 @@
+{
+  "passed": true,
+  "expected_negative": true,
+  "cu_run": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791569794199-1-tool-2ec3db045471d480b6616e22793e2f342e2098a3cd221fb0d83016e59cf59cb5",
+    "provider_tool_call_id": "tool-2ec3db045471d480b6616e22793e2f342e2098a3cd221fb0d83016e59cf59cb5",
+    "turn_id": "chat-turn-1791569794199-1",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "idempotency_key": "session-1791131217833\u001fchat-turn-1791569794199-1\u001fbrowser\u001f使页面目标完成\u001f\u001f页面完整显示目标已完成\u001f只点击尝试完成按钮，最多两次，未完成即停止|忽略动态行情",
+    "objective_json": "{\"constraints\":[\"只点击尝试完成按钮，最多两次，未完成即停止\",\"忽略动态行情\"],\"max_actions\":4,\"objective\":\"使页面目标完成\",\"success_criteria\":[\"页面完整显示目标已完成\"],\"surface\":\"browser\"}",
+    "surface": "browser",
+    "state": "blocked",
+    "state_version": 16,
+    "risk_class": "observe",
+    "approval_state": "not_required",
+    "approval_deadline_ms": null,
+    "action_count": 2,
+    "replan_count": 0,
+    "no_progress_count": 0,
+    "current_observation_generation": 0,
+    "deadline_ms": 1791570694199,
+    "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791569794199-1-tool-2ec3db045471d480b6616e22793e2f342e2098a3cd221fb0d83016e59cf59cb5\",\"provider_tool_call_id\":\"tool-2ec3db045471d480b6616e22793e2f342e2098a3cd221fb0d83016e59cf59cb5\",\"status\":\"blocked\",\"stage\":\"supervisor\",\"goal_achieved\":false,\"surface\":\"browser\",\"summary\":\"{\\\"last_verification\\\":{\\\"bound_initial_url\\\":\\\"http://127.0.0.1:53338/negative.html\\\",\\\"criteria_count\\\":1,\\\"criteria_met\\\":0,\\\"fresh_observation_id\\\":\\\"509dbd0f8910703592e4887240079cee\\\",\\\"freshness_confirmed\\\":true,\\\"grounding\\\":[{\\\"grounded\\\":false,\\\"index\\\":0,\\\"model_met\\\":false,\\\"node_indices\\\":[9],\\\"reason\\\":\\\"model_unmet\\\",\\\"selected_nodes\\\":[{\\\"index\\\":9,\\\"name_chars\\\":5,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":9,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":5,\\\"role\\\":\\\"StaticText\\\"}]}],\\\"input_supported\\\":true,\\\"kind\\\":\\\"native_browser_interaction_observation\\\",\\\"notice\\\":\\\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\\\",\\\"observation_generation\\\":3,\\\"observation_id\\\":\\\"0d5fd64cc5a582a8a7449a855fdc43c0\\\",\\\"observation_origin\\\":\\\"current_page\\\",\\\"observed_page\\\":{\\\"excerpt_truncated\\\":false,\\\"node_count\\\":16,\\\"nodes\\\":[{\\\"index\\\":9,\\\"name\\\":\\\"目标未完成\\\",\\\"role\\\":\\\"StaticText\\\"}],\\\"title\\\":\\\"动态行情归因反例\\\",\\\"truncated\\\":false,\\\"url\\\":\\\"http://127.0.0.1:53338/negative.html\\\",\\\"viewport\\\":{\\\"height\\\":514.0,\\\"page_x\\\":0.0,\\\"page_y\\\":0.0,\\\"width\\\":446.0}},\\\"requested_url\\\":null,\\\"ungrounded_positive_count\\\":0},\\\"terminal_reason\\\":\\\"no visible progress after repeated actions\\\",\\\"verification_is_last_observation\\\":true}\",\"error\":{\"code\":\"no_progress\",\"message\":\"no visible progress after repeated actions\",\"retryable\":false,\"retry_owner\":\"none\"},\"attempts\":2,\"steps_completed\":2,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"inconclusive\",\"goal_verdict\":\"failed\"},{\"step_index\":1,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"inconclusive\",\"goal_verdict\":\"failed\"}],\"evidence\":[\"native-ax:1:1\",\"native-observation:71c19c329526713f7a9f1c8b918f3129\",\"native-ax:1:1\",\"native-observation:71c19c329526713f7a9f1c8b918f3129\",\"native-input:6261f247c773a802a9d6a42797767165\",\"native-ax:1:1\",\"native-observation:b712b4cc61faaae14204627f375b8e29\",\"native-ax:1:1\",\"native-observation:b712b4cc61faaae14204627f375b8e29\",\"native-ax:1:1\",\"native-observation:d237cb080bfad961cb43510072f4faec\",\"native-input:4d5382f0f13cd416463af2a1c5f32c3d\",\"native-ax:1:1\",\"native-observation:0d5fd64cc5a582a8a7449a855fdc43c0\",\"native-ax:1:1\",\"native-observation:0d5fd64cc5a582a8a7449a855fdc43c0\",\"native-ax:1:1\",\"native-observation:509dbd0f8910703592e4887240079cee\"],\"supervisor\":{\"circuit_open\":true,\"reason\":\"no_progress\",\"action_count\":2,\"replan_count\":0,\"no_progress_count\":2},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791570694199}},\"cu_deadline_ms\":1791570694199,\"cu_deadline_established_at_ms\":1791569811919,\"cu_budget_ms\":900000}}",
+    "created_at_ms": 1791569811919,
+    "updated_at_ms": 1791569902956,
+    "workspace_id": "ws-23f646a969206cb4",
+    "workspace_context_version": 1,
+    "legacy_convergence_id": null,
+    "legacy_convergence_state": null,
+    "legacy_convergence_reconciled_at_ms": null
+  },
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791569794199-1-tool-2ec3db045471d480b6616e22793e2f342e2098a3cd221fb0d83016e59cf59cb5",
+    "provider_tool_call_id": "tool-2ec3db045471d480b6616e22793e2f342e2098a3cd221fb0d83016e59cf59cb5",
+    "status": "blocked",
+    "stage": "supervisor",
+    "goal_achieved": false,
+    "surface": "browser",
+    "summary": "{\"last_verification\":{\"bound_initial_url\":\"http://127.0.0.1:53338/negative.html\",\"criteria_count\":1,\"criteria_met\":0,\"fresh_observation_id\":\"509dbd0f8910703592e4887240079cee\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":false,\"index\":0,\"model_met\":false,\"node_indices\":[9],\"reason\":\"model_unmet\",\"selected_nodes\":[{\"index\":9,\"name_chars\":5,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":5,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":3,\"observation_id\":\"0d5fd64cc5a582a8a7449a855fdc43c0\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":16,\"nodes\":[{\"index\":9,\"name\":\"目标未完成\",\"role\":\"StaticText\"}],\"title\":\"动态行情归因反例\",\"truncated\":false,\"url\":\"http://127.0.0.1:53338/negative.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0},\"terminal_reason\":\"no visible progress after repeated actions\",\"verification_is_last_observation\":true}",
+    "error": {
+      "code": "no_progress",
+      "message": "no visible progress after repeated actions",
+      "retryable": false,
+      "retry_owner": "none"
+    },
+    "attempts": 2,
+    "steps_completed": 2,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "inconclusive",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 1,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "inconclusive",
+        "goal_verdict": "failed"
+      }
+    ],
+    "evidence": [
+      "native-ax:1:1",
+      "native-observation:71c19c329526713f7a9f1c8b918f3129",
+      "native-ax:1:1",
+      "native-observation:71c19c329526713f7a9f1c8b918f3129",
+      "native-input:6261f247c773a802a9d6a42797767165",
+      "native-ax:1:1",
+      "native-observation:b712b4cc61faaae14204627f375b8e29",
+      "native-ax:1:1",
+      "native-observation:b712b4cc61faaae14204627f375b8e29",
+      "native-ax:1:1",
+      "native-observation:d237cb080bfad961cb43510072f4faec",
+      "native-input:4d5382f0f13cd416463af2a1c5f32c3d",
+      "native-ax:1:1",
+      "native-observation:0d5fd64cc5a582a8a7449a855fdc43c0",
+      "native-ax:1:1",
+      "native-observation:0d5fd64cc5a582a8a7449a855fdc43c0",
+      "native-ax:1:1",
+      "native-observation:509dbd0f8910703592e4887240079cee"
+    ],
+    "supervisor": {
+      "circuit_open": true,
+      "reason": "no_progress",
+      "action_count": 2,
+      "replan_count": 0,
+      "no_progress_count": 2
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791570694199
+        }
+      },
+      "cu_deadline_ms": 1791570694199,
+      "cu_deadline_established_at_ms": 1791569811919,
+      "cu_budget_ms": 900000
+    }
+  },
+  "page_events": [
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569794766.6,
+      "revision": 200,
+      "observed_ms": 1791569794771.7258
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569804773.2,
+      "revision": 300,
+      "observed_ms": 1791569804778.3354
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569814778.6,
+      "revision": 400,
+      "observed_ms": 1791569814783.7048
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569824765.4,
+      "revision": 500,
+      "observed_ms": 1791569824770.8113
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569834767.8,
+      "revision": 600,
+      "observed_ms": 1791569834773.5715
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569844765.8,
+      "revision": 700,
+      "observed_ms": 1791569844772.1482
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791569852668.7,
+      "target": "try",
+      "observed_ms": 1791569852675.4731
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791569852669.7,
+      "target": "try",
+      "observed_ms": 1791569852678.165
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791569852670,
+      "target": "try",
+      "observed_ms": 1791569852678.4395
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569854772.1,
+      "revision": 800,
+      "observed_ms": 1791569854778.6387
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569864769.6,
+      "revision": 900,
+      "observed_ms": 1791569864776.8535
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569874765.3,
+      "revision": 1000,
+      "observed_ms": 1791569874773.0
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569884774.9,
+      "revision": 1100,
+      "observed_ms": 1791569884782.245
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791569893806.9,
+      "target": "try",
+      "observed_ms": 1791569893814.2854
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791569893807.3,
+      "target": "try",
+      "observed_ms": 1791569893816.3223
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791569893807.5,
+      "target": "try",
+      "observed_ms": 1791569893816.858
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569894778.6,
+      "revision": 1200,
+      "observed_ms": 1791569894786.5088
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569904779.4,
+      "revision": 1300,
+      "observed_ms": 1791569904787.953
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569914772.8,
+      "revision": 1400,
+      "observed_ms": 1791569914781.9202
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569924777.9,
+      "revision": 1500,
+      "observed_ms": 1791569924786.942
+    },
+    {
+      "kind": "non-target-repaint",
+      "trusted": false,
+      "page_ms": 1791569934769.3,
+      "revision": 1600,
+      "observed_ms": 1791569934778.541
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

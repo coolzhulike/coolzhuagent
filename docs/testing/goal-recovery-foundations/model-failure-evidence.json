@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "5934e64",
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "sessions": [
+    71193,
+    31004,
+    36999
+  ],
+  "latest_goal_range": {
+    "failed": 0,
+    "passed": 158
+  },
+  "files": [
+    {
+      "file": "model-failure-build.txt",
+      "sha256": "59b68fd58b2db487e2ed3dc0bd83396c040d5c82f54d56e373017d3d3811c949",
+      "bytes": 51581
+    },
+    {
+      "file": "model-failure-test.txt",
+      "sha256": "40fa593c2ad6fb73d664e23bc03aede7f2a6e34354ccad3ba26b1010ffaa379d",
+      "bytes": 36348
+    },
+    {
+      "file": "http-error-build.txt",
+      "sha256": "837d205919f1a9935da76f7436dcb790194e852cb43c95594b223735c755bdf1",
+      "bytes": 51581
+    },
+    {
+      "file": "http-error-test.txt",
+      "sha256": "831359f40c419b692932ea81a7b08866055ff7ddc240fa1260b645ef4127a0d4",
+      "bytes": 23112
+    },
+    {
+      "file": "http-error-broad-test.txt",
+      "sha256": "7533cb798c81ca406eaf172a5ab8fa86218631c3ceb0cb4731fb2cb112bba3dd",
+      "bytes": 36195
+    }
+  ]
+}

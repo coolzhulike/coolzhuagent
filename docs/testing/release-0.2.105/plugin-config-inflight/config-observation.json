@@ -1,0 +1,20 @@
+{
+  "run_id": "run-chat-4bca9de730b90a1f15069cb3b6117e808af7d211a39e6dd7",
+  "attempt_id": "86da0f8b9b7f07bcb2687de0df8159ead9d8581c93329eb3",
+  "attempt_state_at_change": "submitted",
+  "original_activation_id": "dsh-26256-1791506361177405600-4",
+  "original_config": {},
+  "request_begin_ms": 1791506387921.6821,
+  "network_entered": {
+    "event": "function_network_entered",
+    "utc": "2026-10-09T00:39:47.883903+00:00",
+    "monotonic": 795101.0102213,
+    "path": "/revoke-20261008"
+  },
+  "request_end_ms": 1791506388651.1335,
+  "changed_activation_id": "dsh-26256-1791506388628709200-5",
+  "changed_config": {
+    "coolzhuAcceptanceTag": "config-inflight-105-20261008"
+  },
+  "source_unchanged": true
+}

@@ -1,0 +1,4 @@
+﻿{
+    "Name":  "Get-FileHash",
+    "Source":  "Microsoft.PowerShell.Utility"
+}

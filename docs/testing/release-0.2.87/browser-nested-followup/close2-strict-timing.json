@@ -1,0 +1,19 @@
+{
+  "run_id": "run-chat-87bc60ed274153f857beb3668547da73dcbd0b3148bad69e",
+  "events": [
+    {
+      "event_type": "devin.planning_requested",
+      "created_at": 1791358236628
+    },
+    {
+      "event_type": "devin.planning_response",
+      "created_at": 1791358245039
+    }
+  ],
+  "close_action": {
+    "before_ms": 1791358247492,
+    "action": "点击已观察的关闭当前工具按钮",
+    "after_ms": 1791358247577
+  },
+  "strict_planning_interval_hit": false
+}

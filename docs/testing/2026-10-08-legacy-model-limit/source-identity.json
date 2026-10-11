@@ -1,0 +1,14 @@
+{
+  "base_commit": "09fa80c1d5777687c7bac75b9aa1f0b6308b35e6",
+  "dirty_candidate": true,
+  "source_sha256": "f2601b556dc359f111ec8dcf383e34087198ea550d5c1a105f01286a9fb040cf",
+  "candidate_binary_sha256": "2984512f6d2e79043943549bcf64ad51764698309c59406bb445237dc5f45d59",
+  "runtime_run_counts": {
+    "before113": 0,
+    "candidate": 0,
+    "ui": 0
+  },
+  "original_model": "swe-2-medium",
+  "configuration_revision": 51,
+  "remote_session": "island-kayak"
+}

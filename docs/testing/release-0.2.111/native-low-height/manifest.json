@@ -1,0 +1,32 @@
+[
+  {
+    "path": "closed-903x551.jpg",
+    "bytes": 95671,
+    "sha256": "2a0875e972193006bad456a3bec7d71d59dd13489e64989f227227c6429e68ff"
+  },
+  {
+    "path": "facts.json",
+    "bytes": 763,
+    "sha256": "73738991792974fde21ec0e227f9500cad4be7559149b9ab907d739cc436b65e"
+  },
+  {
+    "path": "home-903x551.jpg",
+    "bytes": 95204,
+    "sha256": "973732084d8fbcefdd3a18d8f4daaf1471473cb4c1a0ed8a416db1b1180cb67d"
+  },
+  {
+    "path": "report.md",
+    "bytes": 1176,
+    "sha256": "cc63da8cc373df014e24bddd91d147c5a8bc52b3f0a76a70d19585f464c5cbf2"
+  },
+  {
+    "path": "settings-903x551.jpg",
+    "bytes": 84308,
+    "sha256": "dca9a4e58600eaa74f2f376bce7063c7eec6c1dfc823e486686ed1225bdc9773"
+  },
+  {
+    "path": "settings-save-903x551.jpg",
+    "bytes": 86060,
+    "sha256": "c8f0196978e88ebb2d292b5d69a2c490b4ee2d69d9af19bbffdf411112a83682"
+  }
+]

@@ -1,0 +1,8 @@
+{
+    "port":  8767,
+    "started":  "2026-10-05T19:33:38.9765883Z",
+    "stage":  "0.2.77 正式安装二进制",
+    "pid":  1744,
+    "binary":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace"
+}

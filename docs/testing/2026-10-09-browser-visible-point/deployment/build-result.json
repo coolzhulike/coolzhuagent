@@ -1,0 +1,8 @@
+{
+  "actual_exit_code": 0,
+  "binary_sha256": "51314a8c50e79b70be26e7e43b90ee67b3667d53142cee07024425ea485a5c24",
+  "shell_sha256": "29dba7278d444a2b713aca5c87f72a54806b872ff6acc928e7e6f69d7fdcf9f9",
+  "shell_build_command": "cargo build --manifest-path modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml --offline",
+  "shell_build_actual_exit_code": 0,
+  "shell_build_seconds": 55.67
+}

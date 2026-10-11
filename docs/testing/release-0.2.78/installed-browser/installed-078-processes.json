@@ -1,0 +1,14 @@
+{
+  "web_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "web_started": "2026-10-06T00:02:06.7787660Z",
+  "port": 8767,
+  "web_sha256": "9ff5b508cae6aef0ed52be177f0ccc6f1b053c644d3ca0c0f1e80f9f36f87adb",
+  "workspace": "C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent/tmp/2026-10-04-devin-models/workspace",
+  "shell_pid": 29956,
+  "shell_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+  "web_pid": 28472,
+  "shell_sha256": "f7559ea2d763c428afb88003f26a87fefa760defea2ea414c566c540d52c03e1",
+  "shell_started": "2026-10-06T00:02:07.7360220Z",
+  "parent_pid": 31784,
+  "stage": "0.2.78 Program Files正式安装版；tmp路径分隔符比较失败后重新核对实际实例"
+}

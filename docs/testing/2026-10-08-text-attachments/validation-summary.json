@@ -1,0 +1,41 @@
+{
+  "stage": "候选源码验证；真实模型证据另列candidate-result.json",
+  "checks": {
+    "tests.log": [
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 04s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s",
+      "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 1410 filtered out; finished in 0.97s"
+    ],
+    "full-regression.log": [
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.44s",
+      "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 1407 passed; 0 failed; 6 ignored; 0 measured; 0 filtered out; finished in 83.24s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ],
+    "linkage.log": [
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s",
+      "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.81s"
+    ],
+    "tool-registry.log": [
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.71s"
+    ],
+    "preview-build.log": [
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.33s"
+    ]
+  },
+  "preview_processes": {
+    "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-08-text-attachments\\bin\\coolzhu-web-console.exe",
+    "shell_sha256": "509578ada88a55168cc19eb91598734b74b463fd6cc1bc3bd11f5eee3dfc890d",
+    "web_started": "2026-10-08T18:19:39.6805879Z",
+    "shell_pid": 18676,
+    "stage": "096之后文本附件源码候选；源码静态根；非正式安装验收",
+    "web_sha256": "a41c8ec11cef85e25efec09cb73c0b9bbb148dbb58952cf1b7cca1f5a3d440d0",
+    "web_pid": 3716,
+    "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-08-text-attachments\\bin\\coolzhu-tauri-shell.exe",
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "port": 8765,
+    "shell_started": "2026-10-08T18:19:40.6510095Z"
+  }
+}

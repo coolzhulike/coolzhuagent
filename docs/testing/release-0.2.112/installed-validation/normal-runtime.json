@@ -1,0 +1,24 @@
+{
+  "version": "0.2.112",
+  "model": "swe-2-medium",
+  "session_id": "session-1791131217833",
+  "room_id": "room-1791131523339",
+  "configuration_revision": 51,
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "active_runs": 0,
+  "model_requests_this_round": 0,
+  "new_cloud_sessions": 0,
+  "settings_read_without_save": true,
+  "diagnostics_enabled": false
+}

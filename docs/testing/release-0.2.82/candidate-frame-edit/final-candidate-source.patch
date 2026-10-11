@@ -1,0 +1,149 @@
+diff --git a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs
+index 5d89058..7e1cea7 100644
+--- a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs
++++ b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs
+@@ -20,7 +20,7 @@ impl ReadMethod {
+         match self {
+             Self::FrameTree => ("Page.getFrameTree", "{}".into()),
+             // 只读展开树由document模块核归属，再由dom模块划定单文档范围；封闭根不授予引用。
+-            Self::DocumentNodes => ("DOM.getDocument", r#"{"depth":8,"pierce":true}"#.into()),
++            Self::DocumentNodes => ("DOM.getDocument", r#"{"depth":16,"pierce":true}"#.into()),
+             Self::Accessibility(frame) => ("Accessibility.getFullAXTree", serde_json::json!({"depth":6,"frameId":frame}).to_string()),
+             Self::BoxModel(node) => ("DOM.getBoxModel", serde_json::json!({"backendNodeId":node}).to_string()),
+             Self::LayoutMetrics => ("Page.getLayoutMetrics", "{}".into()),
+diff --git a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_dom.rs b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_dom.rs
+index 0a54fab..d222c79 100644
+--- a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_dom.rs
++++ b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_dom.rs
+@@ -13,6 +13,24 @@ pub(super) fn operable_document_nodes(tree: &Value) -> HashSet<i64> {
+     tree.get("root").map(operable_root_nodes).unwrap_or_default()
+ }
+ 
++/// CDP的有限深度采样不能把缺失的后代报告成完整文档；各Frame单独计算。
++pub(super) fn root_is_partial(root: &Value) -> bool {
++    let mut found = HashSet::new();
++    let mut pending = vec![root];
++    while let Some(node) = pending.pop() {
++        if found.len() >= NODE_LIMIT { return true; }
++        let Some(id) = node["backendNodeId"].as_i64().filter(|id| *id > 0) else { return true; };
++        if !found.insert(id) { return true; }
++        let children = node["children"].as_array();
++        if node["childNodeCount"].as_u64().unwrap_or(0) > children.map_or(0, |items| items.len()) as u64 {
++            return true;
++        }
++        if let Some(children) = children { pending.extend(children); }
++        pending.extend(open_shadow_roots(node));
++    }
++    false
++}
++
+ pub(super) fn operable_root_nodes(root: &Value) -> HashSet<i64> {
+     let mut found = HashSet::new();
+     let mut pending = vec![root];
+@@ -48,6 +66,10 @@ mod tests {
+     fn malformed_or_over_budget_trees_do_not_grant_partial_refs() {
+         let duplicate = serde_json::json!({"root":{"backendNodeId":1,"children":[{"backendNodeId":1}]}});
+         assert!(operable_document_nodes(&duplicate).is_empty());
++        assert!(root_is_partial(&duplicate["root"]));
++        let omitted = serde_json::json!({"backendNodeId":1,"childNodeCount":1});
++        assert!(root_is_partial(&omitted));
++        assert!(!root_is_partial(&serde_json::json!({"backendNodeId":1,"childNodeCount":0})));
+         let children: Vec<_> = (2..=NODE_LIMIT as i64+1).map(|id|serde_json::json!({"backendNodeId":id})).collect();
+         let large = serde_json::json!({"root":{"backendNodeId":1,"children":children}});
+         assert!(operable_document_nodes(&large).is_empty());
+diff --git a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs
+index 7d3bca7..4063c50 100644
+--- a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs
++++ b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs
+@@ -5,6 +5,7 @@ use super::{native_browser_devtools::{self,ReadMethod},native_browser_target::Ve
+ 
+ // 不接受请求提供的脚本；副作用保护拒绝页面自定义getter等无法证明只读的行为。
+ pub(super) const READ_EDITOR: &str = r#"function(){
++ if(!this.ownerDocument.hasFocus())return null;
+  const tag=this.tagName;const kind=tag==='INPUT'?this.type:'textarea';
+  if(!this.isConnected||this.ownerDocument.activeElement!==this||this.disabled||this.readOnly||
+     !(tag==='TEXTAREA'||(tag==='INPUT'&&(kind==='text'||kind==='search'))))return null;
+@@ -15,7 +16,12 @@ pub(super) const READ_EDITOR: &str = r#"function(){
+ }"#;
+ 
+ pub(super) fn state(raw:&Value) -> Result<Value,String> {
+-    if raw.get("exceptionDetails").is_some() {return Err("native_browser_editor_unavailable".into());}
++    if raw.get("exceptionDetails").is_some() {
++        // 只暴露固定错误类别，不记录网页异常正文、原值或选区。
++        let side_effect = raw.pointer("/exceptionDetails/exception/description").and_then(Value::as_str)
++            .is_some_and(|text| text.contains("Possible side-effect"));
++        return Err(if side_effect {"native_browser_focus_read_side_effect"} else {"native_browser_editor_unavailable"}.into());
++    }
+     let value=raw.pointer("/result/value").filter(|v|v.is_object()).ok_or("native_browser_editor_not_focused")?;
+     let text=value["value"].as_str().ok_or("native_browser_editor_unavailable")?;
+     let start=value["start"].as_u64().ok_or("native_browser_editor_unavailable")?;
+@@ -43,7 +49,6 @@ pub(super) async fn read(app:&AppHandle,target:&VerifiedTarget) -> Result<Value,
+ 
+ pub(super) async fn verify(app:&AppHandle,resource:&native_browser_protocol::PanelResource,target:&native_browser_protocol::PanelClickTarget) -> Result<VerifiedTarget,String> {
+     let mut verified=super::native_browser_target::verify(app,resource,&target.observation_id,&target.document_token,&target.node_id).await?;
+-    if !verified.node.scope.is_top() {return Err("native_browser_frame_operation_unsupported".into());}
+     if !matches!(verified.node.role.as_str(),"textbox"|"searchbox") {return Err("native_browser_editor_target_invalid".into());}
+     verified.editor=Some(read(app,&verified).await?);
+     Ok(verified)
+diff --git a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_key_input.rs b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_key_input.rs
+index 6f771f2..cbeaafa 100644
+--- a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_key_input.rs
++++ b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_key_input.rs
+@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager};
+ use super::{native_browser_devtools::{self, ReadMethod}, native_browser_target::VerifiedTarget};
+ 
+ pub(super) const READ_FOCUS: &str = r#"function(){
++ if(!this.ownerDocument.hasFocus())return null;
+  const tag=this.tagName;const kind=tag==='INPUT'?this.type:tag.toLowerCase();
+  if(!this.isConnected||this.ownerDocument.activeElement!==this||this.disabled||this.readOnly||
+     !['SELECT','INPUT','BUTTON','TEXTAREA','A'].includes(tag)||
+@@ -24,7 +25,6 @@ fn state(raw:&Value)->Result<Value,String> {
+ 
+ pub(super) async fn verify(app:&AppHandle,resource:&PanelResource,target:&PanelClickTarget)->Result<VerifiedTarget,String> {
+     let mut verified=super::native_browser_target::verify(app,resource,&target.observation_id,&target.document_token,&target.node_id).await?;
+-    if !verified.node.scope.is_top() {return Err("native_browser_frame_operation_unsupported".into());}
+     let object=super::native_browser_editor::resolve(app,&verified).await?;
+     let focus=native_browser_devtools::read(app,resource,ReadMethod::FocusedTargetState(object.clone())).await.and_then(|v|state(&v));
+     let _=native_browser_devtools::read(app,resource,ReadMethod::ReleaseEditor(object)).await;
+@@ -81,7 +81,10 @@ pub(super) async fn press(app:&AppHandle,target:VerifiedTarget,keys:Vec<String>,
+                     })).into();ack
+                 };
+                 let down=make_ack(true);let up=make_ack(false);let method=CoTaskMemPWSTR::from("Input.dispatchKeyEvent");
+-                let params=CoTaskMemPWSTR::from(serde_json::json!({"type":"rawKeyDown","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0}).to_string().as_str());
++                // Enter的默认表单行为需要字符阶段；keyDown携带回车文本，由浏览器按协议处理。
++                let mut press=serde_json::json!({"type":"rawKeyDown","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0});
++                if key=="Enter" {press["type"]="keyDown".into();press["text"]="\r".into();press["unmodifiedText"]="\r".into();}
++                let params=CoTaskMemPWSTR::from(press.to_string().as_str());
+                 let down_queued=unsafe {callback_core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*params.as_ref().as_pcwstr(),&down)}.is_ok();
+                 // 不等待按下回执；同一 UI 闭包总是尝试释放，包括按下入队失败时。
+                 let params=CoTaskMemPWSTR::from(serde_json::json!({"type":"keyUp","key":key,"code":code,"windowsVirtualKeyCode":vk,"modifiers":0}).to_string().as_str());
+diff --git a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs
+index 1d87b5a..c6d38ee 100644
+--- a/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs
++++ b/modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs
+@@ -46,6 +46,7 @@ pub(super) async fn snapshot(app:&AppHandle,resource:&PanelResource) -> Result<(
+ 
+ fn append_frame(page:&mut PageObservation,tree:&serde_json::Value,scope:&DocumentScope,root:&serde_json::Value,
+     candidates:&mut Vec<NodeCandidate>,focused:&mut Vec<usize>) -> Result<(),String> {
++    page.truncated |= super::native_browser_dom::root_is_partial(root);
+     let operable = operable_root_nodes(root);
+     for node in tree["nodes"].as_array().ok_or("native_observation_invalid")? {
+         if node["ignored"].as_bool() != Some(false) { continue; }
+@@ -55,14 +56,14 @@ fn append_frame(page:&mut PageObservation,tree:&serde_json::Value,scope:&Documen
+         if page.nodes.len() == 128 { page.truncated = true; break; }
+         if scope.is_top() && role == "RootWebArea" && page.title.is_empty() { page.title = name.clone(); }
+         let index = page.nodes.len();
+-        // 子Frame初期只提供click目标；编辑、键盘、滚动和导航仍单独验收。
++        // 子Frame可引用自身编辑控件；滚动和导航仍只允许顶层RootWebArea。
+         let supported = if scope.is_top() {
+             ["RootWebArea","button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str())
+-        } else { ["button","link","checkbox","radio"].contains(&role.as_str()) };
++        } else { ["button","link","textbox","searchbox","checkbox","radio","combobox"].contains(&role.as_str()) };
+         if supported && node["frameId"].as_str().is_none_or(|frame| frame == scope.document().frame_id) {
+             if let Some(backend_node) = node["backendDOMNodeId"].as_i64().filter(|id| operable.contains(id)) {
+                 candidates.push(NodeCandidate {index,backend_node,role:role.clone(),name:name.clone(),scope:scope.clone()});
+-                if scope.is_top() && focused_editor(node,&role) { focused.push(index); }
++                if focused_editor(node,&role) { focused.push(index); }
+             }
+         }
+         page.nodes.push(ObservedNode {role,name});

@@ -1,0 +1,41 @@
+{
+  "source_commit": "587d386da4dd4f256c5a8b4ef487b62faa958f24",
+  "stage": "0.2.82正常入口恢复，原工程及原安全库保持",
+  "files": [
+    {
+      "file": "stopped-installed-082-standard-processes.json",
+      "length": 538,
+      "sha256": "7f557aca85ca183c3635b8f3bf11e680b91484110a6d6e4ad51118e47fc3aad9"
+    },
+    {
+      "file": "server-stopped082.json",
+      "length": 402,
+      "sha256": "f404276f7b5c9c67c16ba3f978862e06f257e1d01856a6a6ac39b27fb510cfbd"
+    },
+    {
+      "file": "restored-daily-082-process.json",
+      "length": 254,
+      "sha256": "bc2fc170256e7919e8f70e7afd113972bc6e9d41a804b7e884c0b728037ce7b2"
+    },
+    {
+      "file": "restored-daily-082-selfcheck.json",
+      "length": 1778,
+      "sha256": "5e6c367511fa476c825535f2c3c35ecf666b1942926c1b0d3d9f22c0a623e800"
+    },
+    {
+      "file": "restored-daily-082-verification.json",
+      "length": 859,
+      "sha256": "361667bad0c4efb915cf6231bf529fd55984f4e3ca9c259afeff3601e764acc8"
+    },
+    {
+      "file": "safety-after082.json",
+      "length": 779,
+      "sha256": "083eef0a122f1633f6e93c6c7e6f80c49f40b0621a26e8925bec5300a5d3abba"
+    },
+    {
+      "file": "restored-daily082.jpg",
+      "length": 195779,
+      "sha256": "9c73090b39a764d13adf0b69e8f44cc6e6e2c5ecfa0473650849a2d939a41667"
+    }
+  ]
+}

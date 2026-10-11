@@ -1,0 +1,13 @@
+﻿{
+    "web_sha256":  "c616f5ddedc5ff7de28bf966c8151e34f3faa72f348cf8a2ea9e27f221c1bf2c",
+    "web_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-acp-grounding-feedback\\candidate-bundle\\bin\\coolzhu-web-console.exe",
+    "shell_started":  "2026-10-09T22:10:16.1033220Z",
+    "web_started":  "2026-10-09T22:10:14.7901059Z",
+    "web_pid":  24268,
+    "shell_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-acp-grounding-feedback\\candidate-bundle\\bin\\coolzhu-tauri-shell.exe",
+    "shell_pid":  31512,
+    "port":  8765,
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage":  "Web长交接分页 + 原生子框可见命中提示候选",
+    "shell_sha256":  "29dba7278d444a2b713aca5c87f72a54806b872ff6acc928e7e6f69d7fdcf9f9"
+}

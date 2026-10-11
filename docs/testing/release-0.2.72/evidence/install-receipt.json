@@ -1,0 +1,7 @@
+{
+  "exit_code": 1603,
+  "administrator_token": false,
+  "msi_sha256": "C0C75F28B610574906F3FE05F1CA50258428A04073B03794ACE2618B1792AA0C",
+  "attempt": "一次正常静默安装，未提权未改Windows权限",
+  "at_utc": "2026-10-05T06:20:15.8536616Z"
+}

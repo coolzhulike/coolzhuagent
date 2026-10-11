@@ -1,0 +1,8 @@
+声明根junction被追随或未标记范围不完整
+At C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\scripts\test-source-snapshot-root-junction.p
+s1:14 char:3
++   throw '声明根junction被追随或未标记范围不完整'
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (声明根junction被追随或未标记范围不完整:String) [], RuntimeException
+    + FullyQualifiedErrorId : 声明根junction被追随或未标记范围不完整
+ 

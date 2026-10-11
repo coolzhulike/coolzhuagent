@@ -6,7 +6,8 @@ function Read-ToolInput {
         return @{}
     }
 
-    $parsed = $raw | ConvertFrom-Json -Depth 16
+    # 清单使用 Windows PowerShell；5.1 的 ConvertFrom-Json 不支持 Depth 参数。
+    $parsed = $raw | ConvertFrom-Json
     if ($null -eq $parsed) {
         return @{}
     }

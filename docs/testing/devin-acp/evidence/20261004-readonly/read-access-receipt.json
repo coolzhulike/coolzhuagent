@@ -1,0 +1,116 @@
+{
+  "model": "claude-opus-5-5-high",
+  "snapshot_manifest_sha256": "b98349a9faae28b9429bc2651e419ba08ebdc91a3b8bdaa8904bf3f42125d68a",
+  "snapshot_files": 3739,
+  "probe": {
+    "status": "completed",
+    "run": "run-chat-ef92878bbe0b241777e8463f8fce33ed29f0c5fc9b4b930a"
+  },
+  "review": {
+    "status": "completed",
+    "run": "run-chat-47920848b4ad120b31cdb7de3832eb7b0ba8ee111f097e95"
+  },
+  "handshake": {
+    "authenticated": true,
+    "client_requested": "2025-11-25",
+    "negotiated": "2025-06-18"
+  },
+  "full_read_claim": false,
+  "review_rounds": [
+    {
+      "round": "round1",
+      "run": "run-chat-47920848b4ad120b31cdb7de3832eb7b0ba8ee111f097e95",
+      "attempt": "33819e28e4e2c104a62a0107dac0cd729bb7775779cc5fca",
+      "state": "terminal",
+      "stop": "end_turn",
+      "process_drained": true,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      },
+      "ledger_counts": [
+        {
+          "tool": "glob_search",
+          "status": "completed",
+          "count": 4
+        },
+        {
+          "tool": "grep_search",
+          "status": "completed",
+          "count": 37
+        },
+        {
+          "tool": "read_file",
+          "status": "completed",
+          "count": 24
+        }
+      ],
+      "audit_status_counts": {
+        "ok": 65
+      }
+    },
+    {
+      "round": "round2",
+      "run": "run-chat-fac6397a4b6d80079e364fd0618287ad902da5e6c7ade350",
+      "attempt": "9a7a6113b591d68dddf5f688c0dd5693c5180ac1c9461a6c",
+      "state": "terminal",
+      "stop": "end_turn",
+      "process_drained": true,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      },
+      "ledger_counts": [
+        {
+          "tool": "glob_search",
+          "status": "completed",
+          "count": 13
+        },
+        {
+          "tool": "grep_search",
+          "status": "completed",
+          "count": 27
+        },
+        {
+          "tool": "read_file",
+          "status": "completed",
+          "count": 20
+        }
+      ],
+      "audit_status_counts": {
+        "ok": 60
+      }
+    },
+    {
+      "round": "round3",
+      "run": "run-chat-89e66d8700304cd6813d622251dfa6f9c4445854529f82f8",
+      "attempt": "03b6d8d5b996286bf62047d042111b2fb5d1c0e2881f92ea",
+      "state": "terminal",
+      "stop": "end_turn",
+      "process_drained": true,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      },
+      "ledger_counts": [
+        {
+          "tool": "grep_search",
+          "status": "completed",
+          "count": 3
+        },
+        {
+          "tool": "read_file",
+          "status": "completed",
+          "count": 19
+        }
+      ],
+      "audit_status_counts": {
+        "ok": 22
+      }
+    }
+  ],
+  "total_completed_host_calls": 147
+}

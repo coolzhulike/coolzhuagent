@@ -1,0 +1,13 @@
+# ACP 不可续接审批的收尾修复
+
+正式117真实SWE-2-medium、原island-kayak补验中，接纳时目录权限、ACP prepared阶段正常扩大完全访问，旧net_fetch仍由冻结权限拒绝，真实HTTP请求0。但已返回end_turn且process_drained=1后，tool_calls残留awaiting_approval，attempt变unknown、原绑定锁未释放。页面报告“未保留延期执行请求”，台账却仍等待审批，阻断下一轮。这是agent收尾错误，不是模型能力问题。
+
+根因：dsh_web只改ACP DryRunOnly文案，没有改变状态；外层通用分发把runtime-dry-run+需确认投影为awaiting_approval。ACP没有跨回合审批返回协议，实际没有登记可继续的审批动作。非ACP的正常人工审批不能受本次修复影响。
+
+方案：ACP限定分支返回Rejected，保留原冻结permission gate和未执行事实，外层按已有规则写终态failed，监督者按end_turn与真实排空解锁。没有扩大本轮权限，也不重发旧调用。
+
+已有旧锁通过正常续发入口的既有rotate_idle_context事务收束：只处理精确source_request_key对应的普通聊天ACP，必须同时有旧unknown、end_turn、真实process_drained=1、相符工程/房间/Agent/轮次和已结束父run，且工具为DSH、状态仅awaiting_approval。追加tool.approval_not_resumable事实，再投影failed。保留旧attempt unknown及原远端ID；原有锁检查仍拒绝运行中、未知执行、其它工具或其它身份。正常claim才使用原远端；不新增恢复端点、队列、锁或云端会话，不直接改写验收数据库。
+
+验收：保留117原失败截图、单实际调用、权限修改时间及真实网络0；候选完整offline build和既有回归后，正常续发到同一绑定应收束旧调用、无旧网络请求，再做一次该冻结权限边界实操，要求新调用终态拒绝、台账failed、单end_turn/排空/解锁。不把父completed或模型转述当工具执行成功。候选与正式安装版独立记录；严格Browser缺口不因本修复关闭。
+
+风险：历史记录只有上述完整事实时才收束；没有排空或协议终态仍保留unknown，不能为解除锁而推断未知副作用。首次117准备时开发完全访问覆盖仍开启，未发模型即停止；随后通过正常工程重载暂时加载关闭覆盖，落盘配置仅布尔修改并恢复。权限API的工程声明是完整路径，初次误传ID收到409且无权限修改；最终prepared→权限扩大实际区间单独留证。测试后正常恢复原参数/完整权限/开发覆盖，revision按产品自然递增，不伪改回51。原配置SHA变化单独保留，不声称字节未变。

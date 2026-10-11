@@ -1,0 +1,63 @@
+{
+  "prefix": "DEVIN-INSTALLED-PLUGIN-DISABLED-20261006",
+  "run_id": "run-chat-30340c67b1c2b373108dbe36f14f31ce7a39c9a81ed43cbf",
+  "room": "room-1791131523339",
+  "message_id": "msg-1791226124594-user",
+  "targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 26,
+      "prompt_bytes": 2155
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "76d92590722de4e284360afb8fd2df6d57d8752058e498873eab6b1c15d01f8f",
+          "id": "msg-1791226124733-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [],
+  "reply": "本轮未执行：宿主回执明确返回\"宿主工具未完成：ACP 工具已被当前会话或房间撤销，未执行。\"——`dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab` 已被撤销，且当前声明目录中已无该工具。\n\n按要求不心算、不替代、不重试，本轮结束，无遗留任务。",
+  "bindings": [
+    {
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "sneaky-diascia"
+    },
+    {
+      "agent_id": "session-1791131217833",
+      "remote_session_id": "veiled-anise"
+    }
+  ],
+  "run": {
+    "id": "run-chat-30340c67b1c2b373108dbe36f14f31ce7a39c9a81ed43cbf",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "tool_events": [],
+  "audit": []
+}

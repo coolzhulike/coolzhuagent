@@ -4,30 +4,54 @@ use native_browser_protocol::{PanelClickTarget, PanelInputCommand, PanelInputOut
 use tauri::{AppHandle, Manager};
 use super::native_browser_target::{self, VerifiedTarget};
 
+#[derive(Clone)]
+enum VerifiedOperation { Document(VerifiedTarget), Navigation(super::native_browser_navigation::VerifiedNavigation) }
+impl VerifiedOperation {
+    fn resource(&self)->&native_browser_protocol::PanelResource {
+        match self {Self::Document(v)=>&v.resource,Self::Navigation(v)=>&v.0.resource}
+    }
+    fn unchanged(&self,other:&Self)->bool {
+        match (self,other) {
+            (Self::Navigation(a),Self::Navigation(b))=>a==b,
+            (Self::Document(a),Self::Document(b))=>a.document==b.document && a.snapshot==b.snapshot
+                && a.node.scope==b.node.scope && a.node.backend_node==b.node.backend_node
+                && a.x==b.x && a.y==b.y && a.viewport==b.viewport && a.editor==b.editor,
+            _=>false,
+        }
+    }
+}
+
 #[derive(Clone,PartialEq,Eq)]
-enum Operation { Click, Scroll { direction: ScrollDirection, amount: u8 }, Text(String), Navigate(String) }
+enum Operation { Click, Scroll { direction: ScrollDirection, amount: u8 }, Text(String), Navigate(String), Keys(Vec<String>) }
 impl Operation {
     fn for_command(command: &PanelInputCommand) -> Self {
         match command {
             PanelInputCommand::PrepareClick {..} | PanelInputCommand::ExecuteClick {..} => Self::Click,
             PanelInputCommand::PrepareScroll {direction,amount,..} | PanelInputCommand::ExecuteScroll {direction,amount,..} => Self::Scroll {direction:*direction,amount:*amount},
             PanelInputCommand::PrepareText {text,..} | PanelInputCommand::ExecuteText {text,..} => Self::Text(text.clone()),
+            PanelInputCommand::PrepareKeys {keys,..} | PanelInputCommand::ExecuteKeys {keys,..} => Self::Keys(keys.clone()),
             PanelInputCommand::PrepareNavigate {url,..} | PanelInputCommand::ExecuteNavigate {url,..} => Self::Navigate(url.clone()),
         }
     }
-    async fn verify(&self,app:&AppHandle,request:&PanelInputRequest,target:&PanelClickTarget) -> Result<VerifiedTarget,String> {
-        match self {
+    async fn verify(&self,app:&AppHandle,request:&PanelInputRequest,target:&PanelClickTarget) -> Result<VerifiedOperation,String> {
+        if matches!(self,Self::Navigate(_)) && super::native_browser_navigation::contains(target) {
+            if let Self::Navigate(url)=self {super::browser_panel::native_destination(url)?;}
+            return super::native_browser_navigation::verify(app,&request.resource,target).map(VerifiedOperation::Navigation);
+        }
+        let verified=match self {
+            Self::Keys(_) => super::native_browser_key_input::verify(app,&request.resource,target).await,
             Self::Click => native_browser_target::verify(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
-            Self::Scroll {..} => native_browser_target::verify_viewport(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await,
+            Self::Scroll {direction,..} => native_browser_target::verify_viewport(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id,*direction).await,
             Self::Text(_) => super::native_browser_editor::verify(app,&request.resource,target).await,
             Self::Navigate(url) => {
                 super::browser_panel::native_destination(url)?;
                 native_browser_target::verify_document(app,&request.resource,&target.observation_id,&target.document_token,&target.node_id).await
             },
-        }
+        }?;
+        Ok(VerifiedOperation::Document(verified))
     }
 }
-struct Ticket { target: PanelClickTarget, operation: Operation, verified: VerifiedTarget, expiry: Instant, expires_ms: u64 }
+struct Ticket { target: PanelClickTarget, operation: Operation, verified: VerifiedOperation, expiry: Instant, expires_ms: u64 }
 fn execution_gate() -> &'static tokio::sync::Mutex<()> {
     static VALUE:OnceLock<tokio::sync::Mutex<()>>=OnceLock::new();
     VALUE.get_or_init(||tokio::sync::Mutex::new(()))
@@ -54,11 +78,12 @@ fn random_id() -> Result<String,String> {
 pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInputRequest) -> PanelInputReply {
     let mut reply = PanelInputReply {host_id,request_id:request.request_id.clone(),resource:request.resource.clone(),
         outcome:PanelInputOutcome::NotDispatched,ticket_id:None,expires_at_unix_ms:None,
-        attempt_id:None,executor_instance_id:None,down_confirmed:false,up_confirmed:false,navigation:None,error:None};
+        attempt_id:None,executor_instance_id:None,down_confirmed:false,up_confirmed:false,navigation:None,editor_changed:None,error:None};
     if !request.valid_shape() { reply.error=Some("native_input_invalid".into()); return reply; }
     let operation=Operation::for_command(&request.command);
     match &request.command {
         PanelInputCommand::PrepareClick {target} | PanelInputCommand::PrepareScroll {target,..}
+        | PanelInputCommand::PrepareKeys {target,..}
         | PanelInputCommand::PrepareText {target,..} | PanelInputCommand::PrepareNavigate {target,..} => {
             let result = operation.verify(app,&request,target).await;
             match result {
@@ -81,6 +106,7 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
             }
         },
         PanelInputCommand::ExecuteClick {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
+        | PanelInputCommand::ExecuteKeys {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
         | PanelInputCommand::ExecuteScroll {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
         | PanelInputCommand::ExecuteText {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..}
         | PanelInputCommand::ExecuteNavigate {target,ticket_id,expires_at_unix_ms,attempt_id,executor_instance_id,..} => {
@@ -92,27 +118,32 @@ pub(super) async fn handle(app: &AppHandle, host_id: String, request: PanelInput
             let ticket = tickets().lock().ok().and_then(|mut cache| cache.remove(ticket_id));
             let Some(ticket) = ticket else { reply.error=Some("native_input_ticket_missing".into());return reply; };
             if ticket.expiry <= Instant::now() || now() >= *expires_at_unix_ms || *expires_at_unix_ms > ticket.expires_ms
-                || ticket.target != *target || ticket.operation != operation || ticket.verified.resource != request.resource {
+                || ticket.target != *target || ticket.operation != operation || ticket.verified.resource() != &request.resource {
                 reply.error=Some("native_input_ticket_stale".into());return reply;
             }
             let checked = operation.verify(app,&request,target).await;
             let verified = match checked {
-                Ok(value) if value.document == ticket.verified.document && value.node.backend_node == ticket.verified.node.backend_node
-                    && value.x == ticket.verified.x && value.y == ticket.verified.y && value.viewport == ticket.verified.viewport
-                    && value.editor == ticket.verified.editor => value,
+                Ok(value) if value.unchanged(&ticket.verified) => value,
                 Ok(_) => { reply.error=Some("native_browser_node_changed".into());return reply; },
                 Err(error) => { reply.error=Some(error);return reply; },
             };
-            let (outcome,down,up) = match operation {
-                Operation::Click => click(app,verified,*expires_at_unix_ms).await,
-                Operation::Scroll {direction,amount} => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
-                Operation::Text(text) => (super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await,false,false),
-                Operation::Navigate(url) => {
-                    let (outcome,navigation)=super::native_browser_edit_input::navigate(app,verified,url,*expires_at_unix_ms).await;
+            let (outcome,down,up) = match (operation,verified) {
+                (Operation::Keys(keys),VerifiedOperation::Document(verified)) => super::native_browser_key_input::press(app,verified,keys,*expires_at_unix_ms).await,
+                (Operation::Click,VerifiedOperation::Document(verified)) => click(app,verified,*expires_at_unix_ms,attempt_id).await,
+                (Operation::Scroll {direction,amount},VerifiedOperation::Document(verified)) => (wheel(app,verified,direction,amount,*expires_at_unix_ms).await,false,false),
+                (Operation::Text(text),VerifiedOperation::Document(verified)) => {
+                    let (outcome,changed)=super::native_browser_edit_input::insert_text(app,verified,text,*expires_at_unix_ms).await;
+                    reply.editor_changed=changed;(outcome,false,false)
+                },
+                (Operation::Navigate(url),verified) => {
+                    let control=match &verified {VerifiedOperation::Navigation(v)=>Some(v.0.clone()),_=>None};
+                    let (outcome,navigation)=super::native_browser_edit_input::navigate(app,verified.resource().clone(),control,url,*expires_at_unix_ms).await;
                     reply.navigation=navigation;(outcome,false,false)
                 },
+                _ => (PanelInputOutcome::NotDispatched,false,false),
             };
             let _ = super::native_browser_nodes::retire();
+            super::native_browser_navigation::retire();
             reply.outcome=outcome;reply.down_confirmed=down;reply.up_confirmed=up;
             if !matches!(outcome,PanelInputOutcome::Released|PanelInputOutcome::Acknowledged) { reply.error=Some("native_input_not_confirmed".into()); }
         },
@@ -133,6 +164,8 @@ async fn wheel(app:&AppHandle,target:VerifiedTarget,direction:ScrollDirection,am
         let vertical=matches!(direction,ScrollDirection::Up|ScrollDirection::Down);
         let extent=target.viewport[if vertical {"clientHeight"} else {"clientWidth"}].as_f64().unwrap_or(0.0);
         let delta=(extent/2.0).clamp(120.0,600.0)*f64::from(amount);
+        // 子文档距离由宿主只读预检限制，避免越过子滚动边缘后继续滚动父页面。
+        let delta=target.viewport["wheel_limit"].as_f64().map_or(delta,|limit|delta.min(limit));
         let delta=if matches!(direction,ScrollDirection::Up|ScrollDirection::Left) {-delta} else {delta};
         let parameters=serde_json::json!({"type":"mouseWheel","x":target.x,"y":target.y,"buttons":0,
             "deltaX":if vertical {0.0} else {delta},"deltaY":if vertical {delta} else {0.0}}).to_string();
@@ -167,8 +200,56 @@ async fn wheel(app:&AppHandle,target:VerifiedTarget,direction:ScrollDirection,am
     {let _=(direction,amount);PanelInputOutcome::NotDispatched}
 }
 
+#[cfg(windows)]
+#[derive(serde::Serialize)]
+struct ClickObservation { stage: &'static str, stamp: super::browser_panel::DiagnosticStamp, confirmed: Option<bool>, hresult: Option<i32> }
+#[cfg(windows)]
+struct ClickTimeline { events: Vec<ClickObservation>, sealed: bool }
+#[cfg(windows)]
+type OptionalClickTimeline = Option<std::sync::Arc<Mutex<ClickTimeline>>>;
+
+#[cfg(windows)]
+fn observe_click(timeline: &OptionalClickTimeline, stage: &'static str, confirmed: Option<bool>) {
+    observe_click_status(timeline, stage, confirmed, None);
+}
+
+#[cfg(windows)]
+fn observe_click_status(timeline: &OptionalClickTimeline, stage: &'static str, confirmed: Option<bool>, hresult: Option<i32>) {
+    let Some(timeline) = timeline else { return; };
+    let Some(stamp) = super::browser_panel::diagnostic_stamp() else { return; };
+    if let Ok(mut timeline) = timeline.lock() {
+        // 重复/迟到回调不扩张记录，也不改变已结算结果。
+        if !timeline.sealed && timeline.events.len() < 12 {
+            timeline.events.push(ClickObservation { stage, stamp, confirmed, hresult });
+        }
+    }
+}
+
+#[cfg(windows)]
+fn finish_click_diagnostic(timeline: &OptionalClickTimeline, attempt_id: &str, generation: u64,
+    result: &(PanelInputOutcome,bool,bool), settled_generation: Option<u64>) {
+    let Some(timeline) = timeline else { return; };
+    let events = {
+        let Ok(mut timeline) = timeline.lock() else { return; };
+        timeline.sealed = true;
+        std::mem::take(&mut timeline.events)
+    };
+    let outcome = match result.0 {
+        PanelInputOutcome::Released => "released",
+        PanelInputOutcome::NotDispatched => "not_dispatched",
+        _ => "release_unknown",
+    };
+    // 一次结算后才写日志；两条输入入队之间没有同步磁盘写入。
+    diagnostics::info("browser_panel", "click_diagnostic", "内置浏览器单次点击采样", &[
+        ("attempt_id", attempt_id.to_string()), ("generation", generation.to_string()),
+        ("outcome", outcome.to_string()), ("down_confirmed", result.1.to_string()),
+        ("settled_generation", settled_generation.map_or_else(||"unavailable".into(),|value|value.to_string())),
+        ("up_confirmed", result.2.to_string()), ("observations", serde_json::to_string(&events).unwrap_or_default()),
+    ]);
+}
+
 /// 按下/释放使用同一个原始controller。导航或取消不能截断释放；COM入队不等于回执成功。
-async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64) -> (PanelInputOutcome,bool,bool) {
+async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64, attempt_id: &str) -> (PanelInputOutcome,bool,bool) {
     if now() >= expires_ms || super::browser_panel::input_resource(app).as_ref() != Some(&target.resource) {
         return (PanelInputOutcome::NotDispatched,false,false);
     }
@@ -177,6 +258,12 @@ async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64) -> (Pan
         use webview2_com::{CoTaskMemPWSTR, Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler};
         use super::native_browser_devtools::bounded_callback;
         let Some(view) = app.get_webview(&target.resource.label) else { return (PanelInputOutcome::NotDispatched,false,false); };
+        let generation = target.resource.generation;
+        let timeline = super::browser_panel::diagnostic_stamp().map(|stamp| std::sync::Arc::new(Mutex::new(ClickTimeline {
+            events: vec![ClickObservation { stage: "begin", stamp, confirmed: None, hresult: None }], sealed: false,
+        })));
+        let diagnostic_label = timeline.as_ref().map(|_|target.resource.label.clone());
+        let timeline_ui = timeline.clone();
         let (sender,receiver) = tokio::sync::oneshot::channel();
         let sender = std::sync::Arc::new(Mutex::new(Some(sender)));
         let sender_outside = sender.clone();
@@ -184,17 +271,19 @@ async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64) -> (Pan
         let queued = view.with_webview(move |platform| {
             let finish = |value| { if let Ok(mut sender)=sender.lock() { if let Some(sender)=sender.take() { let _=sender.send(value); } } };
             if now() >= expires_ms || super::browser_panel::input_resource(&app_ui).as_ref() != Some(&target.resource) {
+                observe_click(&timeline_ui,"ui_preflight_rejected",None);
                 finish((PanelInputOutcome::NotDispatched,false,false));return;
             }
             let core = match unsafe { platform.controller().CoreWebView2() } {
-                Ok(core)=>core,Err(_)=>{finish((PanelInputOutcome::NotDispatched,false,false));return;}
+                Ok(core)=>core,Err(error)=>{observe_click_status(&timeline_ui,"controller_unavailable",None,Some(error.code().0));finish((PanelInputOutcome::NotDispatched,false,false));return;}
             };
             let phases=std::sync::Arc::new(Mutex::new((None::<bool>,None::<bool>)));
             let make_handler=|pressed:bool| {
-                let phases=phases.clone();let sender=sender.clone();
+                let phases=phases.clone();let sender=sender.clone();let timeline_ack=timeline_ui.clone();
                 let handler:ICoreWebView2CallDevToolsProtocolMethodCompletedHandler=bounded_callback::Handler(Box::new(move |status,text| {
                     let confirmed=status.is_ok() && unsafe {bounded_callback::read(text)}.is_ok_and(|raw|
                         serde_json::from_str::<serde_json::Value>(&raw).is_ok_and(|v|v.as_object().is_some_and(|v|v.is_empty())));
+                    observe_click_status(&timeline_ack,if pressed {"down_ack"} else {"up_ack"},Some(confirmed),Some(status.0));
                     if let Ok(mut phase)=phases.lock() {
                         let slot=if pressed {&mut phase.0} else {&mut phase.1};
                         if slot.is_none() { *slot=Some(confirmed); }
@@ -210,19 +299,37 @@ async fn click(app: &AppHandle, target: VerifiedTarget, expires_ms: u64) -> (Pan
             let method=CoTaskMemPWSTR::from("Input.dispatchMouseEvent");
             let press_params=serde_json::json!({"type":"mousePressed","x":target.x,"y":target.y,"button":"left","buttons":1,"clickCount":1}).to_string();
             let parameters=CoTaskMemPWSTR::from(press_params.as_str());
-            let down_queued=unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*parameters.as_ref().as_pcwstr(),&down_handler)}.is_ok();
+            observe_click(&timeline_ui,"down_enqueue_before",None);
+            let down_result=unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*parameters.as_ref().as_pcwstr(),&down_handler)};
+            let down_queued=down_result.is_ok();
+            observe_click_status(&timeline_ui,"down_enqueue_after",Some(down_queued),down_result.err().map(|error|error.code().0));
             // 同一UI闭包按顺序入队两条命令；绝不等待down回调才排队up，丢回调也必须尝试释放。
             let parameters=CoTaskMemPWSTR::from(release_params.as_str());
-            let up_queued=unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*parameters.as_ref().as_pcwstr(),&up_handler)}.is_ok();
+            observe_click(&timeline_ui,"up_enqueue_before",None);
+            let up_result=unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*parameters.as_ref().as_pcwstr(),&up_handler)};
+            let up_queued=up_result.is_ok();
+            observe_click_status(&timeline_ui,"up_enqueue_after",Some(up_queued),up_result.err().map(|error|error.code().0));
             if !down_queued || !up_queued { finish((PanelInputOutcome::ReleaseUnknown,false,false)); }
         });
-        if queued.is_err() {
+        let result = if queued.is_err() {
             // UI闭包是否已经执行无法证明，按未知处理，不能自动重放。
-            drop(sender_outside);return (PanelInputOutcome::ReleaseUnknown,false,false);
-        }
-        tokio::time::timeout(Duration::from_secs(3),receiver).await.ok().and_then(Result::ok)
-            .unwrap_or((PanelInputOutcome::ReleaseUnknown,false,false))
+            observe_click(&timeline,"ui_queue_unknown",None);
+            drop(sender_outside);(PanelInputOutcome::ReleaseUnknown,false,false)
+        } else {
+            match tokio::time::timeout(Duration::from_secs(3),receiver).await {
+                Ok(Ok(value)) => value,
+                _ => { observe_click(&timeline,"ack_wait_unknown",None); (PanelInputOutcome::ReleaseUnknown,false,false) }
+            }
+        };
+        observe_click(&timeline,"settle",None);
+        // 只在诊断开启且输入已结算后读取资源；不是down/up窗口内的变化时点。
+        let settled_generation = if timeline.is_some() {
+            super::browser_panel::input_resource(app).filter(|resource|Some(resource.label.as_str())==diagnostic_label.as_deref())
+                .map(|resource|resource.generation)
+        } else { None };
+        finish_click_diagnostic(&timeline,attempt_id,generation,&result,settled_generation);
+        result
     }
     #[cfg(not(windows))]
-    { (PanelInputOutcome::NotDispatched,false,false) }
+    { let _=attempt_id; (PanelInputOutcome::NotDispatched,false,false) }
 }

@@ -1,6 +1,6 @@
-// DSH 目录只做远程发现；所有目录字符串作为文本显示，不执行来源里的安装命令。
+// DSH目录与固定来源安装；目录字符串作为文本显示，不执行来源里的安装命令。
 (() => {
-  const host = document.querySelector('[data-window-id="plugin-market"] .dsh-market');
+  const host = document.querySelector('[data-window-id="plugin-market"] [data-role="dsh-market-root"]');
   if (!host) return;
 
   const search = host.querySelector('[data-role="dsh-market-search"]');
@@ -141,7 +141,7 @@
         confirmedSource = null;
         if (overlay.isConnected && key === workspaceKey()) {
           sourceStatus.textContent = result.installed === true
-            ? `已安装 ${result.name} ${result.version}，本次安装默认停用。${result.cleanup_confirmed ? "" : "来源暂存清理未确认，请查看诊断。"}请刷新本地插件目录核对当前状态；模型接线尚待验收。`
+            ? `已安装 ${result.name} ${result.version}，本次安装默认停用。${result.cleanup_confirmed ? "" : "来源暂存清理未确认，请查看诊断。"}请刷新插件目录，然后启用并选择需要的模型工具。`
             : "安装结果未确认，请刷新本地插件目录核对。";
         }
       } catch (error) {

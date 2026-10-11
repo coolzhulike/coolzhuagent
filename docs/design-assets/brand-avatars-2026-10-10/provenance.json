@@ -1,0 +1,370 @@
+[
+  {
+    "brand": "generic",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-700dc687-7ee8-439e-86de-c4a311159596.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/generic.png",
+    "sha256": "1df0cb6c1e433da3463a53c4d7776d077db5dbd4b464d2143dbb1dcb6829acc6",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      73,
+      51,
+      438,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      73,
+      52,
+      438,
+      461
+    ],
+    "effective_margin_ratios": [
+      0.142578125,
+      0.1015625,
+      0.14453125,
+      0.099609375
+    ],
+    "original_sha256": "5d1bdc7fec37e47ffc8bde8497e9e1ae0444d7121046e997c3b6bae8646d2af9",
+    "original_alpha_bbox": [
+      0,
+      67,
+      1230,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 681128,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "reference_revision_pending",
+    "formal_ui_acceptance": "pending",
+    "style_reference": "C:/Users/zhupu/Pictures/1644.webp",
+    "visual_revision": "参考Q版萌系、独立服装色系与头饰、轻古风"
+  },
+  {
+    "brand": "deepseek",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-4e7710af-f108-4ea6-affc-c428feba5fc7.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/deepseek.png",
+    "sha256": "b8b2fd33ac6a1056079e0ed63d6035b6e708b250c6448f7769ab9b65dfa73ee0",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      71,
+      51,
+      441,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      72,
+      52,
+      440,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.140625,
+      0.1015625,
+      0.140625,
+      0.1015625
+    ],
+    "original_sha256": "df914bc4da5ba4cecb0241a042cc7b91868e734a66b14439205127cbf4987953",
+    "original_alpha_bbox": [
+      65,
+      31,
+      1227,
+      1236
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 620156,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "reference_revision_pending",
+    "formal_ui_acceptance": "pending",
+    "style_reference": "C:/Users/zhupu/Pictures/1644.webp",
+    "visual_revision": "参考Q版萌系、独立服装色系与头饰、轻古风"
+  },
+  {
+    "brand": "chatgpt",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-2ad66ac8-50b5-4bd3-aafd-452b254dd8a3.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/chatgpt.png",
+    "sha256": "efb850793815760b6afe2e81244e8848cc2720e3c5312ebbcd31c1c2ede80b0d",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      64,
+      51,
+      447,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      65,
+      52,
+      446,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.126953125,
+      0.1015625,
+      0.12890625,
+      0.1015625
+    ],
+    "original_sha256": "224c2e44207a2e1e6ee92e5d1afd3e8b64698f30420931b3399614a7defbdd70",
+    "original_alpha_bbox": [
+      0,
+      47,
+      1160,
+      1229
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 632029,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "reference_revision_pending",
+    "formal_ui_acceptance": "pending",
+    "style_reference": "C:/Users/zhupu/Pictures/1644.webp",
+    "visual_revision": "参考Q版萌系、独立服装色系与头饰、轻古风"
+  },
+  {
+    "brand": "qwen",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-987a99aa-aef3-4b56-8ff7-f5e22bd2fb79.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/qwen.png",
+    "sha256": "f0f0363d7de193bc42cbf0b61dc4e8b4248a89a3098fea96c35d4567b34665be",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      65,
+      51,
+      447,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      66,
+      52,
+      446,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.12890625,
+      0.1015625,
+      0.12890625,
+      0.1015625
+    ],
+    "original_sha256": "2bb7fca17f618f0e75ea153d11faaef613561dd34ffee7c7945cf6738214ce56",
+    "original_alpha_bbox": [
+      41,
+      9,
+      1218,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 800663,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "reference_revision_pending",
+    "formal_ui_acceptance": "pending",
+    "style_reference": "C:/Users/zhupu/Pictures/1644.webp",
+    "visual_revision": "参考Q版萌系、独立服装色系与头饰、轻古风"
+  },
+  {
+    "brand": "claude",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-f9ce3843-be05-4a13-bcea-6afd9bbd5f2d.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/claude.png",
+    "sha256": "6f80a041467536c1fde9bd2e8a530055cf93756b723af373b05e00a57e255ad6",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      64,
+      51,
+      447,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      64,
+      51,
+      446,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.125,
+      0.099609375,
+      0.12890625,
+      0.1015625
+    ],
+    "original_sha256": "bc6bd5da4e3fb358b3c01b55c5df556994645e62b628a6ecfef968616b2523d0",
+    "original_alpha_bbox": [
+      0,
+      15,
+      1226,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 715943,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "reference_revision_pending",
+    "formal_ui_acceptance": "pending",
+    "style_reference": "C:/Users/zhupu/Pictures/1644.webp",
+    "visual_revision": "参考Q版萌系、独立服装色系与头饰、轻古风"
+  },
+  {
+    "brand": "gemini",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-3ce902a7-5685-4127-a977-493a6fe864a3.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/gemini.png",
+    "sha256": "e2f985ae1fae6ebf8e2f2b3436eb6cb5eac01a56ef3e101f65d689ae80a66f0c",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      73,
+      51,
+      439,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      73,
+      52,
+      438,
+      461
+    ],
+    "effective_margin_ratios": [
+      0.142578125,
+      0.1015625,
+      0.14453125,
+      0.099609375
+    ],
+    "original_sha256": "63d2c2510465eb88dd45df7a35da72f15af82037c2708f432cedd9f0ded90a67",
+    "original_alpha_bbox": [
+      0,
+      15,
+      1230,
+      1182
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 686339,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "reference_revision_pending",
+    "formal_ui_acceptance": "pending",
+    "style_reference": "C:/Users/zhupu/Pictures/1644.webp",
+    "visual_revision": "参考Q版萌系、独立服装色系与头饰、轻古风"
+  },
+  {
+    "brand": "grok",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-215cfa34-5733-4f7d-82ef-f9ec722a812c.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/grok.png",
+    "sha256": "9e70fa1cd8c929d13f79bfdbca186052e1e386288491e3f9d6fb1ff521234a41",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      63,
+      51,
+      449,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      64,
+      52,
+      449,
+      460
+    ],
+    "effective_margin_ratios": [
+      0.125,
+      0.1015625,
+      0.123046875,
+      0.1015625
+    ],
+    "original_sha256": "7a0c1431fd5098c3b5b55925ab456c3022402eecbe7a50f3be45f9fe012da6aa",
+    "original_alpha_bbox": [
+      0,
+      31,
+      1236,
+      1170
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 682654,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "reference_revision_pending",
+    "formal_ui_acceptance": "pending",
+    "style_reference": "C:/Users/zhupu/Pictures/1644.webp",
+    "visual_revision": "参考Q版萌系、独立服装色系与头饰、轻古风"
+  },
+  {
+    "brand": "glm",
+    "source": "C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-84fb081b-0a96-4ad7-923f-4bf7416badb5.png",
+    "target": "modules/gui-web/packages/web-console/assets/avatars/brand-v1/glm.png",
+    "sha256": "f717730b3703f01359f0ed878ddd3dd34995b68bb855b9030063ac4f4a987910",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      66,
+      51,
+      445,
+      461
+    ],
+    "effective_alpha_over_32_bbox": [
+      66,
+      52,
+      445,
+      461
+    ],
+    "effective_margin_ratios": [
+      0.12890625,
+      0.1015625,
+      0.130859375,
+      0.099609375
+    ],
+    "original_sha256": "78f31b1a3dfaa2fa888c401f60cc91d3401a5241c23db06709afe8a33c614f5b",
+    "original_alpha_bbox": [
+      0,
+      21,
+      1234,
+      1254
+    ],
+    "alpha_components": 1,
+    "largest_component_pixels": 613144,
+    "low_alpha_cleanup": "user_authorized_main_component_plus_2px_antialias",
+    "master_size": 512,
+    "content_max_dimension": 410,
+    "generator": "built-in image_gen",
+    "user_review": "reference_revision_pending",
+    "formal_ui_acceptance": "pending",
+    "style_reference": "C:/Users/zhupu/Pictures/1644.webp",
+    "visual_revision": "参考Q版萌系、独立服装色系与头饰、轻古风"
+  }
+]

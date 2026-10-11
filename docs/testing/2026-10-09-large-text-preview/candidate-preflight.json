@@ -1,0 +1,28 @@
+{
+  "original_workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "candidate_workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-large-text-preview\\workspace",
+  "session_id": "session-1791131217833",
+  "room_id": "room-1791131523339",
+  "original_counts": {
+    "runtime_runs": 463,
+    "devin_acp_attempts": 996,
+    "chat_room_messages": 1343
+  },
+  "sole_remote_session": "island-kayak",
+  "active_session_runs": 0,
+  "model_calls": 0,
+  "source_config_sha256": "f1dd0d8d0eb498cec33a68dd6c962b7e18669db846c2dc261ce4fc0449c99179",
+  "original_bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "passed": true
+}

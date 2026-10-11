@@ -1,0 +1,12 @@
+[
+  {
+    "key": "chatgpt",
+    "prompt": "Use case: precise-object-edit. Edit target is the supplied single avatar. Change ONLY clothing color below the neck to pure white monochrome: change every green clothing panel, collar edging, embroidery, chest knot clasp and hanging clothing ornament to white or very pale neutral gray only for shading. White-on-white embroidered pattern. No green anywhere on clothing. Keep green eyes and existing head ornament unchanged. Preserve exact clothing shapes, face, expression, hair, head ornaments, pose, cute chibi style, outlines and centered composition. Do not redesign, add objects or text. Genuine transparent background and 10% safe margin on all sides.",
+    "output_hint": "Generated images are saved to C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8 as C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-2ad66ac8-50b5-4bd3-aafd-452b254dd8a3.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+  },
+  {
+    "key": "deepseek",
+    "prompt": "Use case: precise-object-edit. Edit target is the supplied single avatar. Change ONLY clothing color below the neck to deep navy blue throughout: change all white or pale clothing panels, collar, wave embroidery, cords and clothing tassels to deep navy blue, using slightly different dark blue shades for visible folds and embroidered wave pattern. No white garment panels. Keep light blue hair, eyes, whale hairclip and fins unchanged. Preserve exact clothing shapes, face, expression, hair, head ornaments, pose, cute chibi style, outlines and centered composition. Do not redesign, add objects or text. Genuine transparent background and 10% safe margin on all sides.",
+    "output_hint": "Generated images are saved to C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8 as C:\\Users\\zhupu\\.codex\\generated_images\\01a12623-f155-78e2-876d-7ca13dc299e8\\exec-4e7710af-f108-4ea6-affc-c428feba5fc7.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+  }
+]

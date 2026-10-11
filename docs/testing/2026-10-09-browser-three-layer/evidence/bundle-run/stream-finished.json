@@ -1,0 +1,11 @@
+{
+  "finished_ms": 1791544804850.503,
+  "event_counts": {
+    "started": 1,
+    "message": 1,
+    "message_start": 2,
+    "message_delta": 150,
+    "message_done": 1,
+    "done": 1
+  }
+}

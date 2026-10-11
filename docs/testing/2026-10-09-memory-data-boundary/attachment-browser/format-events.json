@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":8190,\"offset\":4096,\"result_id\":\"03cb9bcf17329471eec00197f0599b4bdc377c07814bb99a7334a63f58618420\",\"source_tool\":\"computer_use_perform\"}"
+    },
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":8192,\"offset\":4096,\"result_id\":\"cbd5a9ccf81fc692db6763237ec4a6e77d2813332f0b0465e8762f043897c2d7\",\"source_tool\":\"computer_use_perform\"}"
+    },
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":9050,\"offset\":8190,\"result_id\":\"03cb9bcf17329471eec00197f0599b4bdc377c07814bb99a7334a63f58618420\",\"source_tool\":\"computer_use_perform\"}"
+    },
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":12288,\"offset\":8192,\"result_id\":\"cbd5a9ccf81fc692db6763237ec4a6e77d2813332f0b0465e8762f043897c2d7\",\"source_tool\":\"computer_use_perform\"}"
+    },
+    {
+      "event_type": "tool.result_page_read",
+      "payload_json": "{\"next_offset\":73887,\"offset\":70000,\"result_id\":\"cbd5a9ccf81fc692db6763237ec4a6e77d2813332f0b0465e8762f043897c2d7\",\"source_tool\":\"computer_use_perform\"}"
+    }
+  ],
+  "redacted_error_diagnostics": []
+}

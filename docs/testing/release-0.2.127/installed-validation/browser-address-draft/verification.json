@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "version": "0.2.127",
+  "draft_hold_ms": 16451,
+  "independent_url_updates_during_hold": 33,
+  "target_http_requests": 1,
+  "input_method": "原生UIA编辑控件set_value及打开按钮；不是脚本修改DOM",
+  "scope": "地址草稿保持、打开按钮导航及后退地址同步；本轮未复验Enter",
+  "model_calls": 0,
+  "new_cloud_sessions": 0
+}

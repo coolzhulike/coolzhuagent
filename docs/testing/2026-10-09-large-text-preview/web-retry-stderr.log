@@ -1,0 +1,560 @@
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+warning: struct `AllowHookEvents` is never constructed
+  --> modules\tooling\packages\plugin-system\src\hooks.rs:89:12
+   |
+89 | pub struct AllowHookEvents {
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `allow_pre_tool_use` and `allow_post_tool_use` are never used
+   --> modules\tooling\packages\plugin-system\src\hooks.rs:97:18
+    |
+ 94 | impl AllowHookEvents {
+    | -------------------- methods in this implementation
+...
+ 97 |     pub const fn allow_pre_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+104 |     pub const fn allow_post_tool_use(mut self) -> Self {
+    |                  ^^^^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-plugin-system` (lib) generated 2 warnings
+   Compiling coolzhu-web-console v0.2.0 (C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\modules\gui-web\packages\web-console)
+warning: function `enable_installed` is never used
+ --> modules\gui-web\packages\web-console\examples\..\src\dsh_activation_host.rs:9:8
+  |
+9 | pub fn enable_installed(
+  |        ^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: fields `tree_sha`, `objects`, `license`, and `declared_scripts` are never read
+   --> modules\gui-web\packages\web-console\examples\..\src\dsh_source_download.rs:111:9
+    |
+108 | pub struct PreparedPackage {
+    |            --------------- fields in this struct
+...
+111 |     pub tree_sha: String,
+    |         ^^^^^^^^
+112 |     pub objects: Vec<SourceObject>,
+    |         ^^^^^^^
+113 |     pub license: String,
+    |         ^^^^^^^
+114 |     pub declared_scripts: serde_json::Value,
+    |         ^^^^^^^^^^^^^^^^
+
+warning: `coolzhu-web-console` (example "dsh_install_activation_probe") generated 2 warnings
+warning: duplicated attribute
+    --> modules\gui-web\packages\web-console\src\computer_use_planner.rs:2169:5
+     |
+2169 |     #[test]
+     |     ^^^^^^^
+     |
+     = note: `#[warn(duplicate_macro_attributes)]` on by default
+
+warning: unused import: `RelativeAnchor`
+   --> modules\gui-web\packages\web-console\src\main.rs:189:43
+    |
+189 |     InteractionScenario, MouseActionKind, RelativeAnchor, ResolutionCase, UiTargetKind,
+    |                                           ^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> modules\gui-web\packages\web-console\src\lsp_host.rs:480:9
+    |
+480 |     let mut stdout = child
+    |         ----^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable pattern
+     --> modules\gui-web\packages\web-console\src\main.rs:16258:9
+      |
+16258 |         _ => Err(ClawbotRuntimeCommandError::new(
+      |         ^ no value can reach this
+      |
+note: multiple earlier patterns match some of the same values
+     --> modules\gui-web\packages\web-console\src\main.rs:16258:9
+      |
+15935 |         clawbot_channel::ClawbotCommand::Help { .. } => {
+      |         -------------------------------------------- matches some of the same values
+...
+15946 |         clawbot_channel::ClawbotCommand::Unknown { input } => Err(ClawbotRuntimeCommandError::new(
+      |         -------------------------------------------------- matches some of the same values
+...
+15950 |         clawbot_channel::ClawbotCommand::Status => Ok(clawbot_runtime_command_ok(
+      |         --------------------------------------- matches some of the same values
+...
+15953 |         clawbot_channel::ClawbotCommand::ListRooms => {
+      |         ------------------------------------------ matches some of the same values
+...
+16258 |         _ => Err(ClawbotRuntimeCommandError::new(
+      |         ^ ...and 8 other patterns collectively make this unreachable
+      = note: `#[warn(unreachable_patterns)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `used_real_model` is never read
+     --> modules\gui-web\packages\web-console\src\main.rs:19608:21
+      |
+19608 |                     used_real_model = true;
+      |                     ^^^^^^^^^^^^^^^^^^^^^^
+      |
+      = help: maybe it is overwritten before being read?
+      = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `coordination_scope`
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2112:9
+     |
+2112 |         coordination_scope: &str,
+     |         ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_coordination_scope`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `scope`
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2909:13
+     |
+2909 |         let scope = scope();
+     |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_scope`
+
+warning: unused variable: `timeout`
+     --> modules\gui-web\packages\web-console\src\main.rs:36619:17
+      |
+36619 |             let timeout = Duration::from_secs(8);
+      |                 ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_timeout`
+
+warning: unused variable: `room`
+     --> modules\gui-web\packages\web-console\src\main.rs:40340:18
+      |
+40340 |         let Some(room) = self.state.chat_rooms.iter().find(|room| room.id == room_id) else {
+      |                  ^^^^ help: if this is intentional, prefix it with an underscore: `_room`
+
+warning: variable does not need to be mutable
+     --> modules\gui-web\packages\web-console\src\main.rs:62130:17
+      |
+62130 |             let mut create = |call_id: &str, created_at: u64| {
+      |                 ----^^^^^^
+      |                 |
+      |                 help: remove this `mut`
+
+warning: associated function `new` is never used
+   --> modules\gui-web\packages\web-console\src\main.rs:871:8
+    |
+870 | impl ChatTurnGuard {
+    | ------------------ associated function in this implementation
+871 |     fn new(turn_id: String) -> Self {
+    |        ^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `operator_authorization_available` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:2893:4
+     |
+2893 | fn operator_authorization_available() -> bool {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `RELEASE_REQUIRES_VERIFIED_OPERATOR` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:2898:7
+     |
+2898 | const RELEASE_REQUIRES_VERIFIED_OPERATOR: &str = "需要已登记的桌面控制台完成原生确认；普通浏览器不得凭署名放行，本次未记录放行决定...
+     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `configured_default_workspace_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:3483:4
+     |
+3483 | fn configured_default_workspace_path() -> PathBuf {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `env_truthy` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:3628:4
+     |
+3628 | fn env_truthy(name: &str) -> bool {
+     |    ^^^^^^^^^^
+
+warning: function `reload_workspace_config` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8608:4
+     |
+8608 | fn reload_workspace_config() {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_session_db_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8631:4
+     |
+8631 | fn config_session_db_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_session_json_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8635:4
+     |
+8635 | fn config_session_json_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_attachment_store_dir` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8639:4
+     |
+8639 | fn config_attachment_store_dir() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `config_pet_exe_path` is never used
+    --> modules\gui-web\packages\web-console\src\main.rs:8685:4
+     |
+8685 | fn config_pet_exe_path() -> Option<String> {
+     |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `default_reasoning_model` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:27662:4
+      |
+27662 | fn default_reasoning_model() -> String {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `opencode_master_project_path` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:27719:4
+      |
+27719 | fn opencode_master_project_path() -> Option<String> {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `effective_model_limit_for` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:29393:4
+      |
+29393 | fn effective_model_limit_for(session_id: &str, model: &str) -> (u32, u32) {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `context_build_options_for_agent_with_floor` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:29451:4
+      |
+29451 | fn context_build_options_for_agent_with_floor(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:32980:4
+      |
+32980 | fn agent_message_request(agent: &AgentSessionDto, prompt: &str, stream: bool) -> MessageRequest {
+      |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_with_images` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:32984:4
+      |
+32984 | fn agent_message_request_with_images(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `agent_message_request_with_context_messages` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:33038:4
+      |
+33038 | fn agent_message_request_with_context_messages(
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `llm_tool_definitions_for_room` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:34259:4
+      |
+34259 | fn llm_tool_definitions_for_room(chat_room_id: Option<&str>) -> Option<Vec<ToolDefinition>> {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `run_chat_handoff_tool_dispatch` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:35384:10
+      |
+35384 | async fn run_chat_handoff_tool_dispatch(input: &JsonValue) -> ApiResult<ToolDispatchResponse> {
+      |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `invoke_through_runtime` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:35770:10
+      |
+35770 | async fn invoke_through_runtime(name: &str, input: &JsonValue) -> ToolOutcome {
+      |          ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `normalize` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:37721:8
+      |
+37720 | impl SessionStoreCapacity {
+      | ------------------------- method in this implementation
+37721 |     fn normalize(&mut self) {
+      |        ^^^^^^^^^
+
+warning: function `mark_goal_loop_progress` is never used
+     --> modules\gui-web\packages\web-console\src\main.rs:45791:4
+      |
+45791 | fn mark_goal_loop_progress(goal_id: &str, completed_steps: usize) {
+      |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `objects` is never read
+   --> modules\gui-web\packages\web-console\src\dsh_source_download.rs:112:9
+    |
+108 | pub struct PreparedPackage {
+    |            --------------- field in this struct
+...
+112 |     pub objects: Vec<SourceObject>,
+    |         ^^^^^^^
+
+warning: function `enable_installed` is never used
+ --> modules\gui-web\packages\web-console\src\dsh_activation_host.rs:9:8
+  |
+9 | pub fn enable_installed(
+  |        ^^^^^^^^^^^^^^^^
+
+warning: function `enable_verified` is never used
+  --> modules\gui-web\packages\web-console\src\dsh_activation_host.rs:20:8
+   |
+20 | pub fn enable_verified(
+   |        ^^^^^^^^^^^^^^^
+
+warning: field `server_info` is never read
+   --> modules\gui-web\packages\web-console\src\mcp_host.rs:121:5
+    |
+118 | struct McpConnection {
+    |        ------------- field in this struct
+...
+121 |     server_info: JsonValue,
+    |     ^^^^^^^^^^^
+
+warning: constant `BROWSER_BRIDGE_HOST_NAME` is never used
+ --> modules\gui-web\packages\web-console\src\browser_bridge_protocol.rs:4:11
+  |
+4 | pub const BROWSER_BRIDGE_HOST_NAME: &str = "com.coolzhu.agent.browser_bridge";
+  |           ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `BROWSER_EXTENSION_ID` is never used
+ --> modules\gui-web\packages\web-console\src\browser_bridge_protocol.rs:5:11
+  |
+5 | pub const BROWSER_EXTENSION_ID: &str = "akpgmkdkaofanikngahmfbhddpppicfi";
+  |           ^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `mark_inbox_awaiting_approval` and `mark_inbox_cancelled` are never used
+   --> modules\gui-web\packages\web-console\src\clawbot_gateway.rs:763:12
+    |
+376 | impl ClawbotGatewayStore {
+    | ------------------------ methods in this implementation
+...
+763 |     pub fn mark_inbox_awaiting_approval(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+828 |     pub fn mark_inbox_cancelled(
+    |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: method `is_applicable` is never used
+  --> modules\gui-web\packages\web-console\src\computer_use_eval_scorer.rs:65:18
+   |
+58 | impl MetricVerdict {
+   | ------------------ method in this implementation
+...
+65 |     pub const fn is_applicable(&self) -> bool {
+   |                  ^^^^^^^^^^^^^
+
+warning: function `input_dispatch_refusal_error` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_executor.rs:1885:4
+     |
+1885 | fn input_dispatch_refusal_error(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `parent_context` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_executor.rs:2847:8
+     |
+2847 |     fn parent_context(workspace_id: &str) -> Option<crate::FrozenParentContext> {
+     |        ^^^^^^^^^^^^^^
+
+warning: field `summary` is never read
+   --> modules\gui-web\packages\web-console\src\computer_use_planner.rs:158:16
+    |
+156 | pub(crate) struct ParsedPlannerResponse {
+    |                   --------------------- field in this struct
+157 |     pub(crate) action: Option<ComputerUseAction>,
+158 |     pub(crate) summary: Option<String>,
+    |                ^^^^^^^
+    |
+    = note: `ParsedPlannerResponse` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: function `plan_request_attempt_is_a_real_composite_key_and_never_fabricated` is never used
+    --> modules\gui-web\packages\web-console\src\computer_use_planner.rs:2361:8
+     |
+2361 |     fn plan_request_attempt_is_a_real_composite_key_and_never_fabricated() {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `continuation_allowed` and `as_str` are never used
+   --> modules\gui-web\packages\web-console\src\computer_use_store.rs:609:25
+    |
+604 | impl StoredLegacyRunControlState {
+    | -------------------------------- methods in this implementation
+...
+609 |     pub(crate) const fn continuation_allowed(self) -> bool {
+    |                         ^^^^^^^^^^^^^^^^^^^^
+...
+613 |     pub(crate) const fn as_str(self) -> &'static str {
+    |                         ^^^^^^
+
+warning: method `code` is never used
+   --> modules\gui-web\packages\web-console\src\computer_use_store.rs:689:25
+    |
+688 | impl LegacyRunConvergencePrecondition {
+    | ------------------------------------- method in this implementation
+689 |     pub(crate) const fn code(&self) -> &'static str {
+    |                         ^^^^
+
+warning: variants `Cli` and `Test` are never constructed
+    --> modules\gui-web\packages\web-console\src\computer_use_store.rs:1363:5
+     |
+1359 | pub(crate) enum ReleaseResolutionOperator {
+     |                 ------------------------- variants in this enum
+...
+1363 |     Cli,
+     |     ^^^
+1364 |     /// 测试。
+1365 |     Test,
+     |     ^^^^
+     |
+     = note: `ReleaseResolutionOperator` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `root` is never read
+   --> modules\gui-web\packages\web-console\src\input_safety_store.rs:214:5
+    |
+212 | pub(crate) struct InputSafetyStore {
+    |                   ---------------- field in this struct
+213 |     connection: Connection,
+214 |     root: PathBuf,
+    |     ^^^^
+
+warning: associated items `open_from_injection` and `root` are never used
+   --> modules\gui-web\packages\web-console\src\input_safety_store.rs:222:19
+    |
+220 | impl InputSafetyStore {
+    | --------------------- associated items in this implementation
+221 |     /// 按注入的根打开（未注入即 [`InputSafetyStoreError::RootNotInjected`]）。
+222 |     pub(crate) fn open_from_injection() -> Result<Self, InputSafetyStoreError> {
+    |                   ^^^^^^^^^^^^^^^^^^^
+...
+545 |     pub(crate) fn root(&self) -> &Path {
+    |                   ^^^^
+
+warning: methods `allowed_actions` and `allows_action` are never used
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:1991:19
+     |
+1969 | impl RecoveryControlGuard {
+     | ------------------------- methods in this implementation
+...
+1991 |     pub(crate) fn allowed_actions(&self) -> &[String] {
+     |                   ^^^^^^^^^^^^^^^
+...
+1997 |     pub(crate) fn allows_action(&self, action: &str) -> bool {
+     |                   ^^^^^^^^^^^^^
+
+warning: field `abandoned` is never read
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2013:5
+     |
+2007 | pub(crate) struct InputSafetyCoordinator {
+     |                   ---------------------- field in this struct
+...
+2013 |     abandoned: bool,
+     |     ^^^^^^^^^
+
+warning: method `observed_abandoned_lock` is never used
+    --> modules\gui-web\packages\web-console\src\input_safety_store.rs:2180:25
+     |
+2016 | impl InputSafetyCoordinator {
+     | --------------------------- method in this implementation
+...
+2180 |     pub(crate) const fn observed_abandoned_lock(&self) -> bool {
+     |                         ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `ScopeUnavailable` is never constructed
+  --> modules\gui-web\packages\web-console\src\input_permit_gate.rs:39:5
+   |
+35 | pub(crate) enum PermitGateRefusal {
+   |                 ----------------- variant in this enum
+...
+39 |     ScopeUnavailable { reason: String },
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: `PermitGateRefusal` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `observe_in_workspace` is never used
+  --> modules\gui-web\packages\web-console\src\request_usage.rs:25:15
+   |
+25 | pub(super) fn observe_in_workspace(
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: field `established_at_unix_ms` is never read
+  --> modules\gui-web\packages\web-console\src\root_execution_budget.rs:12:5
+   |
+11 | pub(crate) struct RootExecutionBudget {
+   |                   ------------------- field in this struct
+12 |     established_at_unix_ms: u64,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `RootExecutionBudget` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `established_at_unix_ms` is never used
+  --> modules\gui-web\packages\web-console\src\root_execution_budget.rs:59:19
+   |
+29 | impl RootExecutionBudget {
+   | ------------------------ method in this implementation
+...
+59 |     pub(crate) fn established_at_unix_ms(&self) -> u64 { self.established_at_unix_ms }
+   |                   ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `write_native_message` is never used
+  --> modules\gui-web\packages\web-console\src\native_message.rs:38:8
+   |
+38 | pub fn write_native_message<T: Serialize>(
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `ToolsWrite` is never constructed
+  --> modules\gui-web\packages\web-console\src\wechat_command.rs:56:5
+   |
+48 | pub enum WechatCapability {
+   |          ---------------- variant in this enum
+...
+56 |     ToolsWrite,
+   |     ^^^^^^^^^^
+   |
+   = note: `WechatCapability` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variant `Workspaces` is never constructed
+  --> modules\gui-web\packages\web-console\src\wechat_command_runtime.rs:13:5
+   |
+ 7 | pub enum WechatCatalogKind {
+   |          ----------------- variant in this enum
+...
+13 |     Workspaces,
+   |     ^^^^^^^^^^
+   |
+   = note: `WechatCatalogKind` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+memory allocation of 2097152 bytes failed
+stack backtrace:
+   0:     0x7ff8b5f943e2 - <unknown>
+   1:     0x7ff8b5fa96a1 - <unknown>
+   2:     0x7ff8b5f5ba54 - <unknown>
+   3:     0x7ff8b5f79bef - <unknown>
+   4:     0x7ff8b5f79cac - <unknown>
+   5:     0x7ff8b5f748cf - <unknown>
+   6:     0x7ff8b5f79c7b - <unknown>
+   7:     0x7ff8b5f56078 - <unknown>
+   8:     0x7ff8ba1c9f17 - <unknown>
+   9:     0x7ff8ba1c9f5c - <unknown>
+  10:     0x7ff8b76dc795 - <unknown>
+  11:     0x7ff8b759905f - <unknown>
+  12:     0x7ff8b6d0bbcd - <unknown>
+  13:     0x7ff8b6cd8e3d - <unknown>
+  14:     0x7ff8b6da8c06 - <unknown>
+  15:     0x7ff8b5b1418b - <unknown>
+  16:     0x7ff8b6df3092 - <unknown>
+  17:     0x7ff8b6e6bdb9 - <unknown>
+  18:     0x7ff8b60b6b71 - <unknown>
+  19:     0x7ff8b60b24ba - <unknown>
+  20:     0x7ff8b35e5b0e - <unknown>
+  21:     0x7ff8b358fe08 - <unknown>
+  22:     0x7ff8b35f103e - <unknown>
+  23:     0x7ff8b3552bcc - <unknown>
+  24:     0x7ff8b34fc2fc - <unknown>
+  25:     0x7ff8b34f48df - <unknown>
+  26:     0x7ff8b3502bc9 - <unknown>
+  27:     0x7ff8b5f6c448 - <unknown>
+  28:     0x7ff976f4cdf7 - BaseThreadInitThunk
+  29:     0x7ff97927ee4c - <unknown>

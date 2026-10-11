@@ -8,11 +8,14 @@ fn failure(message: impl Into<String>) -> rusqlite::Error {
 
 /// 调用方先检查前向版本，迁移步骤仍由既有唯一阶梯持有。
 pub(crate) fn run(connection: &Connection, target: i64, steps: impl FnOnce(&Connection) -> rusqlite::Result<()>, validate: impl Fn(&Connection) -> rusqlite::Result<()>) -> rusqlite::Result<()> {
-    let current: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    // 首次多连接打开时，一次完整迁移可能超过常规业务的五秒争锁期限。
+    // 只在迁移尚未开始前等待读版本/取得写锁，不重放迁移步骤或业务写入。
+    let admission_deadline = Instant::now() + Duration::from_secs(30);
+    let current: i64 = wait_for_admission(admission_deadline, || connection.query_row("PRAGMA user_version", [], |row| row.get(0)))?;
     if current > target { return Err(failure("会话库版本超前，未备份、未修改")); }
-    if current == target && complete(connection, target)? && validate(connection).is_ok() { return Ok(()); }
+    if current == target && wait_for_admission(admission_deadline, || complete(connection, target))? && validate(connection).is_ok() { return Ok(()); }
     if !connection.is_autocommit() { return Err(failure("会话库升级不能嵌入业务写事务")); }
-    connection.execute_batch("BEGIN IMMEDIATE")?;
+    wait_for_admission(admission_deadline, || connection.execute_batch("BEGIN IMMEDIATE"))?;
     struct Rollback<'a>(&'a Connection, bool);
     impl Drop for Rollback<'_> { fn drop(&mut self) { if !self.1 { let _ = self.0.execute_batch("ROLLBACK"); } } }
     let mut guard = Rollback(connection, false);
@@ -38,6 +41,18 @@ pub(crate) fn run(connection: &Connection, target: i64, steps: impl FnOnce(&Conn
     connection.execute_batch("COMMIT")?;
     guard.1 = true;
     Ok(())
+}
+
+fn wait_for_admission<T>(deadline: Instant, mut operation: impl FnMut() -> rusqlite::Result<T>) -> rusqlite::Result<T> {
+    loop {
+        match operation() {
+            Err(error) if matches!(&error, rusqlite::Error::SqliteFailure(code, _)
+                if code.code == rusqlite::ErrorCode::DatabaseBusy) && Instant::now() < deadline => {
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            result => return result,
+        }
+    }
 }
 
 fn complete(connection: &Connection, target: i64) -> rusqlite::Result<bool> {
@@ -87,6 +102,28 @@ fn backup_while_write_locked(path: &Path, from: i64, target: i64) -> rusqlite::R
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn 首次迁移等待写锁且只执行一次阶梯() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("first.sqlite3");
+        let writer = rusqlite::Connection::open(&path).unwrap();
+        writer.execute_batch("BEGIN IMMEDIATE").unwrap();
+        let connection = rusqlite::Connection::open(&path).unwrap();
+        connection.busy_timeout(std::time::Duration::ZERO).unwrap();
+        let release = std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            writer.execute_batch("ROLLBACK").unwrap();
+        });
+        let calls = std::cell::Cell::new(0);
+        super::run(&connection, 1, |connection| {
+            calls.set(calls.get() + 1);
+            connection.execute_batch("CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT); PRAGMA user_version=1;")
+        }, |_| Ok(())).unwrap();
+        release.join().unwrap();
+        assert_eq!(calls.get(), 1);
+        assert!(connection.is_autocommit());
+    }
+
     #[test]
     fn 未检查点的历史进入备份且迁移失败回滚() {
         let temp = tempfile::tempdir().unwrap();

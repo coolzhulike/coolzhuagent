@@ -1,0 +1,22 @@
+﻿{
+    "mode":  "host-exit",
+    "helper_sha256":  "C4DAB15447DEB342BF1DDDE88747490B1EEA1F41CD17CC7A1822C41F04562257",
+    "host_pid":  32804,
+    "processes":  [
+                      {
+                          "pid":  30696,
+                          "exited_before_cleanup":  true
+                      },
+                      {
+                          "pid":  14804,
+                          "exited_before_cleanup":  true
+                      },
+                      {
+                          "pid":  6944,
+                          "exited_before_cleanup":  true
+                      }
+                  ],
+    "all_owned_processes_exited":  true,
+    "receipt_exists":  false,
+    "observed_at_utc":  "2026-10-10T22:00:22.9280863Z"
+}

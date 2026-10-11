@@ -44,25 +44,19 @@
 //! - **已实现且可运行**：`FactStore` 端口、`AppendOnlyFactStore`（唯一的规则实现体）、
 //!   两个 `FactLogBackend`——`JsonlFactLog`（文件追加日志，真实落盘）与
 //!   `InMemoryFactLog`（内存）。全部不变量都有回归覆盖。
-//! - **未接线**：**没有任何请求入口在调用本模块**。也就是说：即使它写了日志，
-//!   也只是测试或未来调用方写进去的——现有 `main.rs` 的终态落库
-//!   （`finalize_chat_runtime_run_sqlite`）与聊天去重（`check_chat_request_duplicate`）
-//!   **都还没走这里**。不得表述为"事实已持久化到生产链路"。
-//! - **接口就绪、实现待接线**：生产用 `SQLite` 适配器**没有实现**。它只需要实现
-//!   `FactLogBackend` 两个方法（按 `seq` 追加 / 按 `seq` 读回），即可复用本模块的
-//!   全部规则与不变量；不需要另写一套。
-//!   **为什么不在这里直接做 `SQLite`**：`core-runtime` 当前**没有** `rusqlite` 依赖
-//!   （web-console 侧才有 bundled 版本）。为一个"最小、可测、additive"的存储接口
-//!   往核心 crate 引入 `SQLite`（bundled 会带 C 编译链与打包体积，与裁决对打包量的
-//!   关注冲突）代价明显高于收益；且 `docs/analysis/2026-09-21-integration-review/s2-entry-plan.md`
-//!   已把"单写者 + outbox + epoch"规划为**独立的 `session-store-sqlite` crate**（S2.4）。
-//!   结论：适配器应当实现为 `FactLogBackend` 的一个后端（放在那个 crate 或
-//!   web-console 侧），而不是把 `rusqlite` 拉进 `core-runtime`。
+//! - **已接线的生产范围**：web-console 的 `fact_log_sqlite.rs` 已实现 `SqliteFactLog`，
+//!   借用调用方连接，与步骤或聊天终态在同一事务追加事实；表由 v21 迁移创建。
+//!   `ChatTurnGuard::terminal_fact_appender`、`computer_use_executor.rs` 与
+//!   `computer_use_store.rs` 已调用本模块。不能再将这些入口标为仅测试实现。
+//! - **仍需分别核验**：上述接线不表示所有提交去重、用量、恢复或动作来源都已统一到
+//!   此端口，也不表示 S2.4 的跨进程单写者、outbox 与 epoch 已完成。
+//! - **依赖边界**：`rusqlite` 适配留在 web-console；核心端口不依赖 SQLite，
+//!   继续由 `FactLogBackend` 复用同一套规则。
 //!
 //! ## 已知范围限制（如实说明）
 //!
 //! - 每次追加都会**整体重放**日志来重建投影（`O(n)`），换取"重放规则只有一份、
-//!   增量与全量不可能分叉"。最小实现够用；`SQLite` 适配器接好后可改为增量投影。
+//!   增量与全量不可能分叉"。SQLite 后端仍复用此规则；尚未实现增量投影。
 //! - 日志**不盖到达时间戳**：事实自身的时间（例如 `LateFact::received_at_unix_ms`）
 //!   由调用方提供，存储不代它发明时间。需要"事实何时落到本存储"的诊断时，
 //!   由后端（文件 `mtime` / `SQLite` 行时间）提供，属后端职责。

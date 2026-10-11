@@ -1,0 +1,71 @@
+{
+    "schema":  1,
+    "kind":  "package-report-archive",
+    "archived_at_utc":  "2026-10-10T19:35:49.6493402Z",
+    "report_id":  "pkg-report-release-20261010-123444663-d73a995a",
+    "report_content_sha256":  "b10b5750a6287ec5560ea9d1e4a02a46b123cc8366502fa4d06907064650d028",
+    "report_content_hash_scope":  "canonical sorted leaf paths; report_identity.content_sha256 excluded",
+    "report_file_sha256":  "853f43137bac9663086cd408b6692c85cce878067083e7ffc824f4734755af79",
+    "original_report_path":  "tmp/package-integration-0.2.129-report.json",
+    "archived_report_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/package-report.json",
+    "payload_inventory_original_path":  "tmp/package-integration-0.2.129/payload-inventory.json",
+    "payload_inventory_file_sha256":  "b1fdb7a83e01a64d8fbb363933f180ccf9c8e50dc7c9c19379b7b972894e4cce",
+    "archived_payload_inventory_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/payload-inventory.json",
+    "archived_payload_inventory_file_sha256":  "b1fdb7a83e01a64d8fbb363933f180ccf9c8e50dc7c9c19379b7b972894e4cce",
+    "release_version":  "0.2.129",
+    "release_artifact":  "dist/CoolzhuAgent-0.2.129.msi",
+    "reason":  "referenced by released MSI dist/CoolzhuAgent-0.2.129.msi",
+    "extra_evidence":  [
+                           {
+                               "source_path":  "dist/CoolzhuAgent-0.2.129-installer-report.json",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/CoolzhuAgent-0.2.129-installer-report.json",
+                               "file_sha256":  "b50bc94b8aecc7a4f82ba8349c96b4c07b4b484b192fc5b7271248b758f64cae"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/cli.command-line.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/cli.command-line.jsonl",
+                               "file_sha256":  "66b29b6e7bc6b0fc56a39e6a98aa559c84d623bd05699b7c985225d4cf2007b2"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/computer-use.preflight-check.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/computer-use.preflight-check.jsonl",
+                               "file_sha256":  "230fefc27f83641b9132acb84da806e8a615ddf04c3d4e3622c4ff1e879b1e7d"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/gui-desktop.tauri-shell.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/gui-desktop.tauri-shell.jsonl",
+                               "file_sha256":  "729dd89fcb1c78dedaa82703b8b4619bdb6b3fabda7604cdf7eb2206067c6018"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/gui-web.browser-native-host.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/gui-web.browser-native-host.jsonl",
+                               "file_sha256":  "b2d300b99ee6aad4d74373796c43ccda1b141b5b7c17e39d5e86e19a82c135c8"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/gui-web.clawbot-sidecar.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/gui-web.clawbot-sidecar.jsonl",
+                               "file_sha256":  "23396ffec5d89db5998b25b9e095858f200bdc07abc4d99c971f92c9d70a7c38"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/gui-web.web-console.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/gui-web.web-console.jsonl",
+                               "file_sha256":  "9b13fd6ceda0566c2bf39485a39dced7e3c4c4a42599d27486e88cad31137c50"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/package.app-launcher.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/package.app-launcher.jsonl",
+                               "file_sha256":  "7c43357ea338528ac35aca0a8c96a5981dd4f16c74e1054a6f55362d92432ff0"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/vision.latest-desktop.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/vision.latest-desktop.jsonl",
+                               "file_sha256":  "1668f3f4ff3ca7829e4dac91484b3d903292c9ca05af3bebe876bc9139de7760"
+                           },
+                           {
+                               "source_path":  "tmp/package-reports/build-evidence/pkg-run-release-20261010-122148887-5c1b0e17/vision.smoke.jsonl",
+                               "archived_path":  "docs/testing/release-0.2.129/evidence/build-identity/pkg-report-release-20261010-123444663-d73a995a/vision.smoke.jsonl",
+                               "file_sha256":  "2e6192d78bc6f8e9c5cba6402fb16b548c35fe44c102ca8ac2ad6805601a572d"
+                           }
+                       ],
+    "rule":  "该归档是发布证据：普通临时清理不得删除；tmp/ 下的原报告即使被清理，报本身份仍可从本归档核对"
+}

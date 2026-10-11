@@ -1,0 +1,28 @@
+{
+  "stage": "0.2.77 正常安装版",
+  "source_commit": "2d040d555566340c03709b4c6f6b77f11496ebed",
+  "msi_sha256": "e2f2f938068aef587bf818a44359f43227253a09928ac8749440d2732715273b",
+  "verified_file_count": 1150,
+  "install_exit_code": 0,
+  "run_id": "run-chat-907cc9069b48db095ad7cc426eae0ff23524ed4bb5bc1835",
+  "messages": [
+    275,
+    276
+  ],
+  "elapsed_seconds_from_native_ui": 7.6,
+  "requested_model": "swe-2-medium",
+  "effective_model": "swe-2-medium",
+  "resolved_model": null,
+  "remote_context": "veiled-anise",
+  "history_delta": 0,
+  "tool_calls": 0,
+  "normal_terminal_and_drained": true,
+  "api_key_changed": false,
+  "security_state_root_changed": false,
+  "does_not_claim": [
+    "Opus最终代码审查",
+    "账号注销/缺失CLI负例",
+    "Browser严格整页释放竞争",
+    "四项任务总体完成"
+  ]
+}

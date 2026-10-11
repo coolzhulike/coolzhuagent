@@ -14,7 +14,7 @@
 
 安装回执包含 protocol=1、name/version、entry、sdk_lock_sha256 和每个来源文件的 path/sha256。路径禁止逃逸与链接；实际注册的工具才进入清单，每次执行重新核对来源修订。安装器需另完成全树文件身份、依赖包完整性、事务与默认停用；此宿主不自行下载或安装。
 
-`source_imports.mjs` 使用 Node 官方同步模块钩子，将首批支持的 SDK 导入固定到宿主自身依赖，包内相对导入必须属于核验回执，加载使用核验后的原始字节。安装目录不需要自己的 node_modules，也不使用工作区的同名依赖。未知裸包、Node内置模块与未核验文件导入暂不兼容；这是来源绑定，不是第三方代码的安全沙箱。模块钩子加载失败及 dispose 收尾时撤销。[Node官方接口](https://nodejs.org/api/module.html#moduleregisterhooksoptions)标注版本与稳定性，当前工程实测 Node24.15.0，正式分发仍需固定并核验完整运行时。
+`source_imports.mjs` 使用 Node 官方同步模块钩子，将首批支持的 SDK 导入固定到宿主自身依赖，包内相对导入必须属于核验回执，加载使用核验后的原始字节。安装目录不需要自己的 node_modules，也不使用工作区的同名依赖。由 `module.isBuiltin` 识别的 Node 原生模块统一为 `node:` 身份，由随包核验的固定 Node 提供；例如真实网络插件的 `node:net`、`node:tls` 不再误判成外部依赖。未知裸包与未核验文件导入仍不兼容。这是来源绑定，不是第三方代码的安全沙箱；原生网络、文件或进程能力也不等于只读能力，启用与执行仍使用上层原权限闸门。模块钩子加载失败及 dispose 收尾时撤销。[固定版本 Node 官方接口](https://nodejs.org/download/release/v24.15.0/docs/api/module.html#moduleisbuiltinmodulename)提供原生模块身份判定，运行时及宿主源码的完整身份继续逐次核验。
 
 ## 接口与生命周期
 

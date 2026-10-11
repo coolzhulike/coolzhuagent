@@ -1,0 +1,115 @@
+{
+  "stage": "0.2.95 Program Files正式安装版",
+  "version": "0.2.95",
+  "source_commit": "75b0b6d09df0485677682f4d66ee649d30ba96e5",
+  "marker": "BU-INSTALLED095-PANEL-DOWN-SIDEBAR-REPLACE-20261008",
+  "run": {
+    "id": "run-chat-54cfeb20b6bb664993bd05f984537d6fd35b1af896d11101",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "model": "swe-2-medium",
+  "remote_session_id": "island-kayak",
+  "calls": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791479227360-2-tool-58cd6e955f2f0cda04f5fb8a1b8ef0afa30bc06caae37cd3c4aad1a8edd2ea5e",
+      "result": {
+        "status": "blocked",
+        "goal_achieved": false,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": {
+          "code": "native_browser_panel_unavailable",
+          "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791480127360
+            }
+          },
+          "cu_deadline_ms": 1791480127360,
+          "cu_deadline_established_at_ms": 1791479244414,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "observation_failed",
+          "error_code": "native_browser_panel_unavailable",
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": null,
+          "visible_progress": 0
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "pointerdown",
+      "page_ms": 1791479274299.9001,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791479274303.8354
+    },
+    {
+      "kind": "down-handler-finished",
+      "page_ms": 1791479276100.4001,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791479276104.8914
+    },
+    {
+      "kind": "pointerup",
+      "page_ms": 1791479276102.1,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791479276107.1675
+    },
+    {
+      "kind": "click",
+      "page_ms": 1791479276102.9001,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791479276110.5964
+    }
+  ],
+  "remote_attempts": [
+    {
+      "attempt_id": "eb10fdce843e74065c1f8a964efc2244330b36cdf3667cb5",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "screenshot": "08-installed-sidebar-replace-final.jpg"
+}

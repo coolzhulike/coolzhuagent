@@ -1,0 +1,8 @@
+{
+  "normal_sha256": "91DE708F45DBC43AC1D1D3E87A6A41EF5541BE757DECFB43BDA4EE91E58F96DE",
+  "fault_sha256": "0E1B713009DB09F7632A3664CA8CC7916999817E5D72F0721E01507782DE1279",
+  "normal_unchanged": true,
+  "fault_target": "tmp/cargo-target-capture-owner-fault",
+  "source_commit": "381862d8017a5f44187a16b84154113055e3c197",
+  "observed_at_utc": "2026-10-10T22:02:55.8284029Z"
+}

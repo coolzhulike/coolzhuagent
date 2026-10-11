@@ -1,0 +1,42 @@
+[
+  {
+    "event": "http_get",
+    "url": "/tab-a.html",
+    "at_ms": 1791259909987.0645
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-a.html",
+    "at_ms": 1791260405338.0364
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-b.html",
+    "at_ms": 1791260445613.5095
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-b.html",
+    "at_ms": 1791260533361.7937
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-b.html",
+    "at_ms": 1791261193158.5637
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-a.html",
+    "at_ms": 1791261216323.5977
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-b.html",
+    "at_ms": 1791261248250.6501
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-b.html",
+    "at_ms": 1791261317878.7576
+  }
+]

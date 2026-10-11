@@ -68,6 +68,19 @@ mod tests {
     use std::time::Instant;
 
     #[tokio::test]
+    #[cfg(windows)]
+    async fn output_overflow_cannot_be_reported_as_successful_goal_verification() {
+        let cwd = Path::new(env!("CARGO_MANIFEST_DIR"));
+        for stream in ["Out", "Error"] {
+            let command = format!("[Console]::{stream}.Write(('x' * {})); exit 0",
+                managed_process::MAX_CAPTURE_BYTES_PER_PIPE + 8192);
+            let error = run(&command, cwd, 30_000).await.unwrap_err();
+            assert!(error.contains("输出超限"), "必须保留采集失败事实：{error}");
+            assert!(error.contains("进程已启动"));
+        }
+    }
+
+    #[tokio::test]
     async fn gate_exit_and_expired_root_use_the_same_managed_path() {
         let cwd = Path::new(env!("CARGO_MANIFEST_DIR"));
         let success_started = Instant::now();

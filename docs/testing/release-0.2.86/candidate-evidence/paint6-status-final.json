@@ -1,0 +1,68 @@
+{
+  "message": "msg-1791348738161-user",
+  "run": {
+    "id": "run-chat-b2586da04bbb471e84c514a191718ebaf27c64c291ec6ed5",
+    "state": "completed",
+    "stop_reason": null
+  },
+  "cu": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791348738162-0-tool-4498a2a49698be3d88b0d921dd3dc0e8aa2d600face993cee3797821a0a21b65",
+      "state": "succeeded",
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791348738162-0-tool-4498a2a49698be3d88b0d921dd3dc0e8aa2d600face993cee3797821a0a21b65",
+        "provider_tool_call_id": "tool-4498a2a49698be3d88b0d921dd3dc0e8aa2d600face993cee3797821a0a21b65",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "desktop",
+        "summary": "最新原图逐项确认目标已达成",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-29444-2fcd49ead5a5776aab84c8c6f0627e5baaa64ff4619d08c8ea28ff36d8245faf.png:sha256=2fcd49ead5a5776aab84c8c6f0627e5baaa64ff4619d08c8ea28ff36d8245faf:2560x1152",
+          "uia_snapshot:hwnd-d0994:elements=175",
+          "frame_binding:sha256=2fcd49ead5a5776aab84c8c6f0627e5baaa64ff4619d08c8ea28ff36d8245faf:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(854420):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-29444-2fcd49ead5a5776aab84c8c6f0627e5baaa64ff4619d08c8ea28ff36d8245faf.png:sha256=2fcd49ead5a5776aab84c8c6f0627e5baaa64ff4619d08c8ea28ff36d8245faf:2560x1152",
+          "uia_snapshot:hwnd-d0994:elements=175",
+          "frame_binding:sha256=2fcd49ead5a5776aab84c8c6f0627e5baaa64ff4619d08c8ea28ff36d8245faf:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(854420):uia_win32_no_synthetic_input",
+          "image_changed:false",
+          "native_stroke:uia-9f43c4a26a19e493:points=3:duration_ms=1000:released",
+          "before:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-29444-50c517cdcee45f859f4d4f6e56038b42a958b1decd062fe550b4195b4509be71.png:sha256=50c517cdcee45f859f4d4f6e56038b42a958b1decd062fe550b4195b4509be71:2560x1152",
+          "mapping:frame_binding:sha256=50c517cdcee45f859f4d4f6e56038b42a958b1decd062fe550b4195b4509be71:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=511,364,1536,779:container_inside_image=true",
+          "after:screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-29444-a01915a0221fa8d5c5318430885639941428dabef4f3d82bf9ee912a6701bad5.png:sha256=a01915a0221fa8d5c5318430885639941428dabef4f3d82bf9ee912a6701bad5:2560x1152",
+          "image_changed:true",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-29444-b3895e865e932555f731be8c8dd5567782e2ce247ead3ab459e7085413400c05.png:sha256=b3895e865e932555f731be8c8dd5567782e2ce247ead3ab459e7085413400c05:2560x1152",
+          "uia_snapshot:hwnd-d0994:elements=176",
+          "frame_binding:sha256=b3895e865e932555f731be8c8dd5567782e2ce247ead3ab459e7085413400c05:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(854420):uia_win32_no_synthetic_input",
+          "screenshot:C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\computer-use\\window-29444-b3895e865e932555f731be8c8dd5567782e2ce247ead3ab459e7085413400c05.png:sha256=b3895e865e932555f731be8c8dd5567782e2ce247ead3ab459e7085413400c05:2560x1152",
+          "uia_snapshot:hwnd-d0994:elements=176",
+          "frame_binding:sha256=b3895e865e932555f731be8c8dd5567782e2ce247ead3ab459e7085413400c05:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true",
+          "observation_window_selection:Some(854420):uia_win32_no_synthetic_input",
+          "visual_verification:generation=2:image_changed=true:criteria_met=2/2",
+          "visual_run_start:generation=1:geometry_comparable=true:image_count=2"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791349638162
+            }
+          },
+          "cu_deadline_ms": 1791349370222,
+          "cu_deadline_established_at_ms": 1791348770222,
+          "cu_budget_ms": 600000
+        }
+      }
+    }
+  ]
+}

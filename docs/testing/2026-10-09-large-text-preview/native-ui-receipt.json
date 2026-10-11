@@ -1,0 +1,30 @@
+{
+  "recorded_at": "2026-10-10T12:13:26.652609+00:00",
+  "stage": "源码候选原生Tauri窗口，正式125未含该修复",
+  "passed": true,
+  "window_id": 65210460,
+  "window_size": [
+    1443,
+    897
+  ],
+  "method": "computer-use @oai/sky；工程目录菜单→正常文件搜索→打开完整SBOM→目录搜索输入:19775→Enter→收起目录",
+  "first_screen": "native-sbom-first.png",
+  "tail_jump": "native-sbom-tail-jump.png",
+  "tail_screen": "native-sbom-tail.png",
+  "visible_tail_range": [
+    19375,
+    19775
+  ],
+  "native_display_readonly": true,
+  "screenshots_original_bytes": true,
+  "new_model_calls": 0,
+  "new_cloud_sessions": 0,
+  "candidate_stopped_by_pid_path_start_sha": true,
+  "formal125_restored": true,
+  "original_config_and_counts_preserved": true,
+  "limits": [
+    "无超长单行GUI翻页验收",
+    "无正式新MSI复验",
+    "无外部原地改写原子快照保证"
+  ]
+}

@@ -1,0 +1,1 @@
+{"passed":false,"exit_code":1,"stage":"候选第一次启动","reason":"复制脚本的全局替换错误指向前一代收据PID19680，Get-Process失败；未停止任何进程。","recovery":"核对实际最新候选收据后修正，新的重试目录独立保留，三项进程身份验证正常启动exit0。","failed_script":"start-candidate-failed.ps1"}

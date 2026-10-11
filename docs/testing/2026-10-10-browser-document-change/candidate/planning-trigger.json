@@ -1,0 +1,9 @@
+{
+  "parent_run": "run-chat-a0c865dd5c233112a6bdc68070bb69e57d9fc841d84c8c3a",
+  "parent_state": "running",
+  "cu_call_id": "cu-session-1791131217833-chat-turn-1791637748472-0-tool-13fa5c3c590ece2e6e72244e103deba42a2938ac174df6032727179e3b08e2c5",
+  "state": "planning",
+  "action_count": 0,
+  "observation_generation": 0,
+  "captured_ms": 1791637774534.0173
+}

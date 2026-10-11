@@ -1,0 +1,18 @@
+[
+  {
+    "path": "modules/gui-web/packages/web-console/src/main.rs",
+    "sha256": "d14dd19a319766d7e9bd66db2871736c1b1225918b20f05ca8c377308e639bf5"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs",
+    "sha256": "7d7876649cce919c0cda3a32a6179c6c2fd19146ff9d5915694be167c76badd6"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+    "sha256": "ffd4ec05442d5552426687c1935b0ffdac1b2f5cfb0d841f849845268362897c"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+    "sha256": "3a4c75e00e0fd6efcb21128f310cd48abb09b3537ccf8484697907618e86c6e2"
+  }
+]

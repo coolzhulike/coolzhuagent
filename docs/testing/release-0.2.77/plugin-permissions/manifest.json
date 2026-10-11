@@ -1,0 +1,239 @@
+{
+  "release": "0.2.77",
+  "source_commit": "2d040d555566340c03709b4c6f6b77f11496ebed",
+  "model": "swe-2-medium",
+  "remote_session": "veiled-anise",
+  "scope": "原生正式软件UI输入、实际Devin和固定DSH计算器；只读API/SQLite复核",
+  "pending_empty_at_all_four_points": true,
+  "rejected_old_request_still_zero_execution_after_full_restore": true,
+  "new_request_tool_executions": 1,
+  "not_covered": [
+    "冻结父许可DryRunOnly与后续授权变化的窄竞争分支",
+    "卸载/配置变化/执行中取消和超时全生命周期"
+  ],
+  "files": [
+    {
+      "file": "permission-before.json",
+      "bytes": 377,
+      "sha256": "ceb7c8429d41693971d0cfb88ce39d8296572930b374a08df9391d63a2dcd717",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/permission-before.json",
+        "original_sha256": "c5dc5e13d3c5d11dfc04c64ebb8166d310209ddaf445c58aa08614e906c0a213",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "permission-cover-disabled.json",
+      "bytes": 378,
+      "sha256": "6284205014793df829318cc019975d9e9cc42ef76ec48a16d31bce53eab6fc66",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/permission-cover-disabled.json",
+        "original_sha256": "663d84baaf6f69bb6a031fae3cba387fefcd2e28c4c372c471ed43c9261204e7",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "permission-directory.json",
+      "bytes": 388,
+      "sha256": "cd0baf40bbd7d8e186fc8ff0b6d38c8f6a2caa1c4e972c7f7f83e2cde14fcf48",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/permission-directory.json",
+        "original_sha256": "d32e42d90fa7d1736a7c4cfb0f9dcfa4c644c67475e912e18e3c8aed8caa2fb1",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "permission-restored-full.json",
+      "bytes": 378,
+      "sha256": "7ba720a06e6d30b5e52347ebb43a8fae61d6f959fcdfb425c11011a261cb5a92",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/permission-restored-full.json",
+        "original_sha256": "c1c0973518a48f4cadd7c57bede82c9ae8233453061100fa5605b95e525dd300",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "plugin-still-enabled.json",
+      "bytes": 684,
+      "sha256": "7b1b2c883e11b92788b4924b8c17353aa0c2aa4ae2311ba118b03cc8c4b496df",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/plugin-still-enabled.json",
+        "original_sha256": "7e78b0f41869703e22a7c0d9d150c0f0a28e3e4b5ee61466efd6c948574bff85",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "installed-process.json",
+      "bytes": 342,
+      "sha256": "a3396960f43ee293c8eed721b3533d476f3baaafa3469031ad0f053ddc2e714b",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/installed-process.json",
+        "original_sha256": "5590e7241cf69d571fcb9b2b16b0b978482b8ef3a22bfaeae8c8734bd9bbcbc0",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "installed-shell-process.json",
+      "bytes": 334,
+      "sha256": "c9f6218788824231a1dab268150656c23bd72df1ec495b11c7df0fd7649b278d",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/installed-shell-process.json",
+        "original_sha256": "96eecb3f8628319e8d100220bcadc85e62371e35c3f4d0c59279755da23a6f8b",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "last-stopped-owned.json",
+      "bytes": 303,
+      "sha256": "01358154f0c4df8e2c50959cde9c18dc25a11d1e871b619318c635ef2be6613d",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/last-stopped-owned.json",
+        "original_sha256": "10b90c85f2ad8ce679f741f3928d78733c65f5cd62546031a2c92100d3fcb82a",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "restored-daily-after-negative-process.json",
+      "bytes": 382,
+      "sha256": "22f22fa315918fc8da5a326c32bd2de80d260acc339e021ed36eca96e550ce9c",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/restored-daily-after-negative-process.json",
+        "original_sha256": "82fdfcb39e5b366a4f1a2878804bf6827b0d031af7650256e40b0c6e774c28c3",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "restored-daily-after-negative-identity.json",
+      "bytes": 965,
+      "sha256": "8ec56dc21e3b09b635353143f32dc7275f1494e6c2d9af37d06326871f08d1cd",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/restored-daily-after-negative-identity.json",
+        "original_sha256": "6ce425f50ba6fcf4f3bbdcc6590aa81a0df69683f89d93611dffaa9d937ed325",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "pending-before.json",
+      "bytes": 20,
+      "sha256": "42b962cf11b88e69387ddad24aea2cb96997e4e5b9b8734573d1fa5e4c08ad0d",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/pending-before.json",
+        "original_sha256": "24a0cf6c731b931d5219ad202ed985d24d86c17a9e9779a727d9879a7a16f5b8",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "pending-after-directory.json",
+      "bytes": 20,
+      "sha256": "42b962cf11b88e69387ddad24aea2cb96997e4e5b9b8734573d1fa5e4c08ad0d",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/pending-after-directory.json",
+        "original_sha256": "24a0cf6c731b931d5219ad202ed985d24d86c17a9e9779a727d9879a7a16f5b8",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "pending-after-full.json",
+      "bytes": 20,
+      "sha256": "42b962cf11b88e69387ddad24aea2cb96997e4e5b9b8734573d1fa5e4c08ad0d",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/pending-after-full.json",
+        "original_sha256": "2eefccb7f507d66b934b83000f2a55b37e731ecb92fa25896d5551252ec163ce",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "pending-after-new-completed.json",
+      "bytes": 20,
+      "sha256": "42b962cf11b88e69387ddad24aea2cb96997e4e5b9b8734573d1fa5e4c08ad0d",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/pending-after-new-completed.json",
+        "original_sha256": "2eefccb7f507d66b934b83000f2a55b37e731ecb92fa25896d5551252ec163ce",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "DEVIN-INSTALLED-077-DIRECTORY-DENIED-20261006-facts.json",
+      "bytes": 1780,
+      "sha256": "f316b522e972028e457296d0e72422ad406285cd4b76d5af4971c65879c335ac",
+      "source": {
+        "path": "tmp/2026-10-06-devin-extensions/DEVIN-INSTALLED-077-DIRECTORY-DENIED-20261006-facts.json",
+        "original_sha256": "2feb161f16996e58529069ce9a91df2e9cea40b632608f6749874a417f91cf97",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "DEVIN-INSTALLED-077-FULL-RESTORED-20261006-facts.json",
+      "bytes": 3643,
+      "sha256": "9072d6c633300f3ad21d461556a607bf3d521ed13de0ce3c5a4fb2e3a9cd3b46",
+      "source": {
+        "path": "tmp/2026-10-06-devin-extensions/DEVIN-INSTALLED-077-FULL-RESTORED-20261006-facts.json",
+        "original_sha256": "25d5317e640796e8842220267a125ab2d1c329cec3272f6e85beca3b745b2617",
+        "format": "UTF-8 LF JSON；语义未改"
+      }
+    },
+    {
+      "file": "directory-before-native.jpg",
+      "bytes": 175261,
+      "sha256": "550981d73b020592b65dd5ccb56eaffe8a58c0e0e33756f7c35533288795bc07",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/directory-before-native.png",
+        "format": "原生软件截图原始字节；按实际媒体类型命名"
+      }
+    },
+    {
+      "file": "directory-denied-native.jpg",
+      "bytes": 193391,
+      "sha256": "981a56101a857cb0aa4d1482bc30efd6f4a173eec712125c5feababeab8d6996",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/directory-denied-native.png",
+        "format": "原生软件截图原始字节；按实际媒体类型命名"
+      }
+    },
+    {
+      "file": "full-restored-before-native.jpg",
+      "bytes": 204037,
+      "sha256": "7ac99a46bacd4ddab6d4056855d17ebde3006ab6d7a45836bb9d46ad7323b22f",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/full-restored-before-native.jpg",
+        "format": "原生软件截图原始字节；按实际媒体类型命名"
+      }
+    },
+    {
+      "file": "full-restored-result-native.jpg",
+      "bytes": 205214,
+      "sha256": "def5460d6a2ed9676f6d9326041e8b5240a47c73727729e5ef48fc0b761f2970",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/full-restored-result-native.jpg",
+        "format": "原生软件截图原始字节；按实际媒体类型命名"
+      }
+    },
+    {
+      "file": "restored-daily-after-negative-native.jpg",
+      "bytes": 196955,
+      "sha256": "a18b0ba874b9fdd7620d4dcd9c9a5f2530f0e1eb3ef84d2d879960317f263a68",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/restored-daily-after-negative-native.jpg",
+        "format": "原生软件截图原始字节；按实际媒体类型命名"
+      }
+    },
+    {
+      "file": "authenticated-mcp-request-excerpt.log",
+      "bytes": 1640,
+      "sha256": "7a3b1ab86b59ba6caf581ef375e0009481c6d2e6d8a4140a531e9ce9a1043c72",
+      "source": {
+        "path": "tmp/2026-10-06-devin-unauthorized/installed-web-out.log",
+        "original_sha256": "91d16726c39ad826eca441ecf24de3138bcae9aa731a317813738cad8b2a94db",
+        "format": "仅实际MCP请求日志；保留原行号，移除ANSI色码，不含原始令牌"
+      }
+    },
+    {
+      "file": "test-config-restored.json",
+      "bytes": 357,
+      "sha256": "dda5be19f740659d4afa2dba77b8103a5c09df44bd1c9195dbe3de818f192488",
+      "source": {
+        "source": "读取实际配置并仅保留摘要/布尔状态"
+      }
+    }
+  ]
+}

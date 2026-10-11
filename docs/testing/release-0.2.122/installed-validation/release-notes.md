@@ -1,0 +1,1 @@
+0.2.122预发布：修复Browser相邻文字节点的边界空格/LF引文误拒，规划停止保留部分验收且继续失败。正式真实SWE-2/唯一island综合长程11动作/27可信输入，宿主2/2、CU后DSH计算总额10578、两工具各一次completed、父completed/end_turn/drained并解锁。正常构建/安装0、六门pass、1159文件逐SHA，源码8edfa3a两路CI success。原121失败保留；中间进展归因与严格原生竞态、32WBS仍开放。未签名、不标latest。详见docs/testing/release-0.2.122/change-report-and-test-handoff.md。

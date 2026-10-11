@@ -1,0 +1,9 @@
+2026-10-09T06:22:37.720553Z  WARN coolzhu_web_console: 原生恢复控制面暂不可用：当前后台不是由已安装产品 launcher 启动；恢复需完整重启桌面应用
+2026-10-09T06:22:37.722390Z  INFO coolzhu_web_console: 结构化诊断日志已就绪: C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\tmp\2026-10-08-release-114\ui\logs\coolzhu-web-console.jsonl
+2026-10-09T06:22:37.750102Z  INFO coolzhu_web_console: 输入安全启动路径: candidates=0, converged=0, refused=0, settled=0, opening=Opened { epoch: 1 }
+2026-10-09T06:22:37.751572Z  INFO coolzhu_web_console: COOLZHU AGENT Web 控制台已启动: http://127.0.0.1:8768/
+2026-10-09T06:22:54.332880Z  INFO coolzhu_web_console::audio: Checking audio status
+2026-10-09T06:22:54.333007Z  INFO api_audio_status: coolzhu_web_console: Checking audio status
+2026-10-09T06:22:54.333146Z  INFO api_audio_status: coolzhu_web_console::audio: Checking audio status
+2026-10-09T06:22:54.335586Z  INFO coolzhu_web_console::audio: Checking audio status
+2026-10-09T06:22:57.573679Z  INFO coolzhu_web_console::audio: Checking audio status

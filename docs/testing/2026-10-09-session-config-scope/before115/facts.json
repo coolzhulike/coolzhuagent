@@ -1,0 +1,961 @@
+{
+  "case": "before115",
+  "binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "binary_sha256": "eae2d3e9ac2efb48239bf3aa31932699fac2b009a9fcd757a1675917f4be6f87",
+  "pid": 21480,
+  "port": 58473,
+  "model_requests": 0,
+  "original_runtime_writes": 0,
+  "new_cloud_sessions": 0,
+  "readers": [
+    {
+      "reads": 0,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": [
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        }
+      ]
+    },
+    {
+      "reads": 0,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": [
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        }
+      ]
+    },
+    {
+      "reads": 0,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": [
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        }
+      ]
+    },
+    {
+      "reads": 0,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": [
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        }
+      ]
+    },
+    {
+      "reads": 0,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": [
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        }
+      ]
+    },
+    {
+      "reads": 0,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": [
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        },
+        {
+          "status": 404,
+          "data": {
+            "error": "会话不存在"
+          }
+        }
+      ]
+    }
+  ],
+  "switches": [
+    {
+      "sequence": 0,
+      "status": 200
+    },
+    {
+      "sequence": 1,
+      "status": 200
+    },
+    {
+      "sequence": 2,
+      "status": 200
+    },
+    {
+      "sequence": 3,
+      "status": 200
+    },
+    {
+      "sequence": 4,
+      "status": 200
+    },
+    {
+      "sequence": 5,
+      "status": 200
+    },
+    {
+      "sequence": 6,
+      "status": 200
+    },
+    {
+      "sequence": 7,
+      "status": 200
+    },
+    {
+      "sequence": 8,
+      "status": 200
+    },
+    {
+      "sequence": 9,
+      "status": 200
+    },
+    {
+      "sequence": 10,
+      "status": 200
+    },
+    {
+      "sequence": 11,
+      "status": 200
+    },
+    {
+      "sequence": 12,
+      "status": 200
+    },
+    {
+      "sequence": 13,
+      "status": 200
+    },
+    {
+      "sequence": 14,
+      "status": 200
+    },
+    {
+      "sequence": 15,
+      "status": 200
+    },
+    {
+      "sequence": 16,
+      "status": 200
+    },
+    {
+      "sequence": 17,
+      "status": 200
+    },
+    {
+      "sequence": 18,
+      "status": 200
+    },
+    {
+      "sequence": 19,
+      "status": 200
+    },
+    {
+      "sequence": 20,
+      "status": 200
+    },
+    {
+      "sequence": 21,
+      "status": 200
+    },
+    {
+      "sequence": 22,
+      "status": 200
+    },
+    {
+      "sequence": 23,
+      "status": 200
+    },
+    {
+      "sequence": 24,
+      "status": 200
+    },
+    {
+      "sequence": 25,
+      "status": 200
+    },
+    {
+      "sequence": 26,
+      "status": 200
+    },
+    {
+      "sequence": 27,
+      "status": 200
+    },
+    {
+      "sequence": 28,
+      "status": 200
+    },
+    {
+      "sequence": 29,
+      "status": 200
+    },
+    {
+      "sequence": 30,
+      "status": 200
+    },
+    {
+      "sequence": 31,
+      "status": 200
+    },
+    {
+      "sequence": 32,
+      "status": 200
+    },
+    {
+      "sequence": 33,
+      "status": 200
+    },
+    {
+      "sequence": 34,
+      "status": 200
+    },
+    {
+      "sequence": 35,
+      "status": 200
+    },
+    {
+      "sequence": 36,
+      "status": 200
+    },
+    {
+      "sequence": 37,
+      "status": 200
+    },
+    {
+      "sequence": 38,
+      "status": 200
+    },
+    {
+      "sequence": 39,
+      "status": 200
+    },
+    {
+      "sequence": 40,
+      "status": 200
+    },
+    {
+      "sequence": 41,
+      "status": 200
+    },
+    {
+      "sequence": 42,
+      "status": 200
+    },
+    {
+      "sequence": 43,
+      "status": 200
+    },
+    {
+      "sequence": 44,
+      "status": 200
+    },
+    {
+      "sequence": 45,
+      "status": 200
+    },
+    {
+      "sequence": 46,
+      "status": 200
+    },
+    {
+      "sequence": 47,
+      "status": 200
+    },
+    {
+      "sequence": 48,
+      "status": 200
+    },
+    {
+      "sequence": 49,
+      "status": 200
+    },
+    {
+      "sequence": 50,
+      "status": 200
+    },
+    {
+      "sequence": 51,
+      "status": 200
+    },
+    {
+      "sequence": 52,
+      "status": 200
+    },
+    {
+      "sequence": 53,
+      "status": 200
+    },
+    {
+      "sequence": 54,
+      "status": 200
+    },
+    {
+      "sequence": 55,
+      "status": 200
+    },
+    {
+      "sequence": 56,
+      "status": 200
+    },
+    {
+      "sequence": 57,
+      "status": 200
+    },
+    {
+      "sequence": 58,
+      "status": 200
+    },
+    {
+      "sequence": 59,
+      "status": 200
+    },
+    {
+      "sequence": 60,
+      "status": 200
+    },
+    {
+      "sequence": 61,
+      "status": 200
+    },
+    {
+      "sequence": 62,
+      "status": 200
+    },
+    {
+      "sequence": 63,
+      "status": 200
+    },
+    {
+      "sequence": 64,
+      "status": 200
+    },
+    {
+      "sequence": 65,
+      "status": 200
+    },
+    {
+      "sequence": 66,
+      "status": 200
+    },
+    {
+      "sequence": 67,
+      "status": 200
+    },
+    {
+      "sequence": 68,
+      "status": 200
+    },
+    {
+      "sequence": 69,
+      "status": 200
+    },
+    {
+      "sequence": 70,
+      "status": 200
+    },
+    {
+      "sequence": 71,
+      "status": 200
+    },
+    {
+      "sequence": 72,
+      "status": 200
+    },
+    {
+      "sequence": 73,
+      "status": 200
+    },
+    {
+      "sequence": 74,
+      "status": 200
+    },
+    {
+      "sequence": 75,
+      "status": 200
+    },
+    {
+      "sequence": 76,
+      "status": 200
+    },
+    {
+      "sequence": 77,
+      "status": 200
+    },
+    {
+      "sequence": 78,
+      "status": 200
+    },
+    {
+      "sequence": 79,
+      "status": 200
+    },
+    {
+      "sequence": 80,
+      "status": 200
+    },
+    {
+      "sequence": 81,
+      "status": 200
+    },
+    {
+      "sequence": 82,
+      "status": 200
+    },
+    {
+      "sequence": 83,
+      "status": 200
+    },
+    {
+      "sequence": 84,
+      "status": 200
+    },
+    {
+      "sequence": 85,
+      "status": 200
+    },
+    {
+      "sequence": 86,
+      "status": 200
+    },
+    {
+      "sequence": 87,
+      "status": 200
+    },
+    {
+      "sequence": 88,
+      "status": 200
+    },
+    {
+      "sequence": 89,
+      "status": 200
+    },
+    {
+      "sequence": 90,
+      "status": 200
+    },
+    {
+      "sequence": 91,
+      "status": 200
+    },
+    {
+      "sequence": 92,
+      "status": 200
+    },
+    {
+      "sequence": 93,
+      "status": 200
+    },
+    {
+      "sequence": 94,
+      "status": 200
+    },
+    {
+      "sequence": 95,
+      "status": 200
+    },
+    {
+      "sequence": 96,
+      "status": 200
+    },
+    {
+      "sequence": 97,
+      "status": 200
+    },
+    {
+      "sequence": 98,
+      "status": 200
+    },
+    {
+      "sequence": 99,
+      "status": 200
+    },
+    {
+      "sequence": 100,
+      "status": 200
+    },
+    {
+      "sequence": 101,
+      "status": 200
+    },
+    {
+      "sequence": 102,
+      "status": 200
+    },
+    {
+      "sequence": 103,
+      "status": 200
+    },
+    {
+      "sequence": 104,
+      "status": 200
+    },
+    {
+      "sequence": 105,
+      "status": 200
+    },
+    {
+      "sequence": 106,
+      "status": 200
+    },
+    {
+      "sequence": 107,
+      "status": 200
+    },
+    {
+      "sequence": 108,
+      "status": 200
+    },
+    {
+      "sequence": 109,
+      "status": 200
+    },
+    {
+      "sequence": 110,
+      "status": 200
+    },
+    {
+      "sequence": 111,
+      "status": 200
+    },
+    {
+      "sequence": 112,
+      "status": 200
+    },
+    {
+      "sequence": 113,
+      "status": 200
+    },
+    {
+      "sequence": 114,
+      "status": 200
+    },
+    {
+      "sequence": 115,
+      "status": 200
+    },
+    {
+      "sequence": 116,
+      "status": 200
+    },
+    {
+      "sequence": 117,
+      "status": 200
+    },
+    {
+      "sequence": 118,
+      "status": 200
+    },
+    {
+      "sequence": 119,
+      "status": 200
+    },
+    {
+      "sequence": 120,
+      "status": 200
+    },
+    {
+      "sequence": 121,
+      "status": 200
+    },
+    {
+      "sequence": 122,
+      "status": 200
+    },
+    {
+      "sequence": 123,
+      "status": 200
+    },
+    {
+      "sequence": 124,
+      "status": 200
+    },
+    {
+      "sequence": 125,
+      "status": 200
+    },
+    {
+      "sequence": 126,
+      "status": 200
+    },
+    {
+      "sequence": 127,
+      "status": 200
+    },
+    {
+      "sequence": 128,
+      "status": 200
+    },
+    {
+      "sequence": 129,
+      "status": 200
+    },
+    {
+      "sequence": 130,
+      "status": 200
+    },
+    {
+      "sequence": 131,
+      "status": 200
+    },
+    {
+      "sequence": 132,
+      "status": 200
+    },
+    {
+      "sequence": 133,
+      "status": 200
+    },
+    {
+      "sequence": 134,
+      "status": 200
+    },
+    {
+      "sequence": 135,
+      "status": 200
+    },
+    {
+      "sequence": 136,
+      "status": 200
+    },
+    {
+      "sequence": 137,
+      "status": 200
+    },
+    {
+      "sequence": 138,
+      "status": 200
+    },
+    {
+      "sequence": 139,
+      "status": 200
+    },
+    {
+      "sequence": 140,
+      "status": 200
+    },
+    {
+      "sequence": 141,
+      "status": 200
+    },
+    {
+      "sequence": 142,
+      "status": 200
+    },
+    {
+      "sequence": 143,
+      "status": 200
+    },
+    {
+      "sequence": 144,
+      "status": 200
+    },
+    {
+      "sequence": 145,
+      "status": 200
+    },
+    {
+      "sequence": 146,
+      "status": 200
+    },
+    {
+      "sequence": 147,
+      "status": 200
+    },
+    {
+      "sequence": 148,
+      "status": 200
+    },
+    {
+      "sequence": 149,
+      "status": 200
+    },
+    {
+      "sequence": 150,
+      "status": 200
+    },
+    {
+      "sequence": 151,
+      "status": 200
+    },
+    {
+      "sequence": 152,
+      "status": 200
+    },
+    {
+      "sequence": 153,
+      "status": 200
+    },
+    {
+      "sequence": 154,
+      "status": 200
+    },
+    {
+      "sequence": 155,
+      "status": 200
+    },
+    {
+      "sequence": 156,
+      "status": 200
+    },
+    {
+      "sequence": 157,
+      "status": 200
+    },
+    {
+      "sequence": 158,
+      "status": 200
+    },
+    {
+      "sequence": 159,
+      "status": 200
+    },
+    {
+      "sequence": 160,
+      "status": 200
+    },
+    {
+      "sequence": 161,
+      "status": 200
+    },
+    {
+      "sequence": 162,
+      "status": 200
+    },
+    {
+      "sequence": 163,
+      "status": 200
+    },
+    {
+      "sequence": 164,
+      "status": 200
+    },
+    {
+      "sequence": 165,
+      "status": 200
+    },
+    {
+      "sequence": 166,
+      "status": 200
+    },
+    {
+      "sequence": 167,
+      "status": 200
+    },
+    {
+      "sequence": 168,
+      "status": 200
+    },
+    {
+      "sequence": 169,
+      "status": 200
+    },
+    {
+      "sequence": 170,
+      "status": 200
+    },
+    {
+      "sequence": 171,
+      "status": 200
+    },
+    {
+      "sequence": 172,
+      "status": 200
+    },
+    {
+      "sequence": 173,
+      "status": 200
+    },
+    {
+      "sequence": 174,
+      "status": 200
+    },
+    {
+      "sequence": 175,
+      "status": 200
+    },
+    {
+      "sequence": 176,
+      "status": 200
+    },
+    {
+      "sequence": 177,
+      "status": 200
+    },
+    {
+      "sequence": 178,
+      "status": 200
+    },
+    {
+      "sequence": 179,
+      "status": 200
+    }
+  ],
+  "total_reads": 0,
+  "mismatch_samples": 0,
+  "conflicts": 0,
+  "successful_switches": 180,
+  "passed": false
+}

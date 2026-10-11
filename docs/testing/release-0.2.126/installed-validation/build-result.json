@@ -1,0 +1,10 @@
+{
+  "version": "0.2.126",
+  "source_commit": "3ca0890e072c9ea3bc55bd7fa8f8f01eba94cd31",
+  "actual_exit_code": 0,
+  "elapsed_seconds": 353.18,
+  "normal_build_msi": true,
+  "configuration": "release",
+  "stdout": "build-stdout.log",
+  "stderr": "build-stderr.log"
+}

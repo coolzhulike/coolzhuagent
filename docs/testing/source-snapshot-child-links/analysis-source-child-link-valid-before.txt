@@ -1,0 +1,5 @@
+旧源码+有效正则显式linked放行
+local/nested/local.rs
+local/linked/outside.rs
+local/linked/nested/outside.rs
+skipped=2

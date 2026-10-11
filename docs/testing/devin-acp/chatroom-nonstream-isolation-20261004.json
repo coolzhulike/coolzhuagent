@@ -1,0 +1,11 @@
+{
+  "entry": "/api/chat/send（真实非流式聊天室发送入口）",
+  "model": "swe-2-medium",
+  "cost_tier": "Free",
+  "reply": "未知",
+  "run_state": "completed",
+  "other_room_id": "room-1791104904799",
+  "remote_sessions_distinct": true,
+  "both_bindings_unlocked_after_draining": true,
+  "scope": "独立临时预览的合成文本核验"
+}

@@ -1,0 +1,251 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791247803011-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-078-IFRAME-CONTROL-20261006。继续原SWE-2远端会话，只执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数 {\"objective\":\"单击当前顶层页面名为父操作按钮的button一次\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:58081/frame.html\"},\"success_criteria\":[\"最新顶层页面父操作次数1，Frame子操作次数0\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click，只选本轮新鲜顶层名称为父操作按钮的父控件引用，不进入或操作内嵌子文档，不选子节点或替代点击位置，不用桌面、导航、其它工具或Devin原生工具；命中不一致或不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务\"],\"max_actions\":1}。若返回running只wait同一job_id到终态。按真实宿主回执和最新页面如实报告，不得代执行或推断成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791247803273
+  },
+  "context_and_tools": {
+    "prefix": "BU-INSTALLED-078-IFRAME-CONTROL-20261006",
+    "run_id": "run-chat-ed3db6c63d6eceba91e67d4460baba1db31b1856a33e4eca",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791247803011-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 68,
+        "prompt_bytes": 3299
+      }
+    ],
+    "outputs": [],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+        "run_id": "run-chat-ed3db6c63d6eceba91e67d4460baba1db31b1856a33e4eca",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "c254889bda58daf0",
+        "status": "failed",
+        "created_at_unix_ms": 1791247813602,
+        "updated_at_unix_ms": 1791247820583,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-ed3db6c63d6eceba91e67d4460baba1db31b1856a33e4eca\",\"turn_id\":\"chat-turn-1791247803012-2\",\"attempt_id\":\"004e8fc39191470ce71ceea8660eb9dabe558ff3b85148b2\",\"owner_epoch\":35,\"generation\":35}"
+      }
+    ],
+    "reply": "",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-ed3db6c63d6eceba91e67d4460baba1db31b1856a33e4eca",
+      "state": "failed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791247803012-2-tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+      "provider_tool_call_id": "tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+      "turn_id": "chat-turn-1791247803012-2",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791247803012-2\u001fbrowser\u001f单击当前顶层页面名为父操作按钮的button一次\u001f||http://127.0.0.1:58081/frame.html|\u001f最新顶层页面父操作次数1，frame子操作次数0\u001f只操作当前右栏原生浏览器，只允许一次click，只选本轮新鲜顶层名称为父操作按钮的父控件引用，不进入或操作内嵌子文档，不选子节点或替代点击位置，不用桌面、导航、其它工具或devin原生工具；命中不一致或不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏原生浏览器，只允许一次click，只选本轮新鲜顶层名称为父操作按钮的父控件引用，不进入或操作内嵌子文档，不选子节点或替代点击位置，不用桌面、导航、其它工具或Devin原生工具；命中不一致或不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"
+        ],
+        "max_actions": 1,
+        "objective": "单击当前顶层页面名为父操作按钮的button一次",
+        "success_criteria": [
+          "最新顶层页面父操作次数1，Frame子操作次数0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:58081/frame.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791248413876,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791247803012-2-tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+        "provider_tool_call_id": "tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_target_hit_mismatch",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-0abb17e3ee6ca0d35e9846af7ce7fab4:38ab838e93a8b796",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:5f21b7d61c66495baa94b11d592da574",
+          "native-ax:1:2",
+          "native-observation:5f21b7d61c66495baa94b11d592da574"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791248703012
+            }
+          },
+          "cu_deadline_ms": 1791248413876,
+          "cu_deadline_established_at_ms": 1791247813876,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791247813876,
+      "updated_at_ms": 1791247820568,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791247803012-2-tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-0abb17e3ee6ca0d35e9846af7ce7fab4",
+          "action_fingerprint": "703eea7db8e6408e",
+          "status": "failed",
+          "error_code": "native_browser_target_hit_mismatch",
+          "before_evidence_ref": "[\"native-ax:1:2\",\"native-observation:5f21b7d61c66495baa94b11d592da574\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791247819214,
+          "completed_at_ms": 1791247820550,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791247803012-2-tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-0abb17e3ee6ca0d35e9846af7ce7fab4\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 413,
+          "call_id": "cu-session-1791131217833-chat-turn-1791247803012-2-tool-85600e243c8ee0a7d36bfc4e0dd84108d83c5dcd27d94e7eca56d844fae7ed2d",
+          "turn_id": "chat-turn-1791247803012-2",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"dom-0abb17e3ee6ca0d35e9846af7ce7fab4\"},\"done\":false,\"observation_facts\":{\"candidate_count\":2,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":15,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791247814487,
+          "completed_at_ms": 1791247819210
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:58081/events",
+  "web_events": [
+    {
+      "case": "NESTED",
+      "type": "ready",
+      "at_ms": 1791247639694,
+      "received_ms": 1791247639701.0803
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791247712172.5,
+      "received_ms": 1791247712181.2656
+    },
+    {
+      "case": "IFRAME",
+      "type": "ready",
+      "at_ms": 1791247782211.9,
+      "received_ms": 1791247782221.6648
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "ready",
+      "at_ms": 1791247782226.2,
+      "received_ms": 1791247782228.2356
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+[
+  {
+    "path": "browser-ledger/address.json",
+    "bytes": 328,
+    "sha256": "e8d7ba702d0c6712131d3fd879fc8773ceac7f910ef63bc0a699819849356ba5"
+  },
+  {
+    "path": "browser-ledger/before.json",
+    "bytes": 876,
+    "sha256": "1bb049d520b7fa19be8b5dbfacf83cbacb3014baf396043acdcad6735022e7b6"
+  },
+  {
+    "path": "browser-ledger/collect-failure.py",
+    "bytes": 2013,
+    "sha256": "f677c6983d53e2cecc21eaef18ddaf4415a0d43d70c7cba5b465671741c8fa07"
+  },
+  {
+    "path": "browser-ledger/collect.py",
+    "bytes": 2382,
+    "sha256": "81bc8449ac7375e81a2cbf323d3e3ef1eebee2fee93f4c587885865e09949c12"
+  },
+  {
+    "path": "browser-ledger/diagnostic-start.json",
+    "bytes": 159,
+    "sha256": "48dd2077db129bffc16b12bc8440b2b6c0af542d24af0cbdf4567b79037e69cd"
+  },
+  {
+    "path": "browser-ledger/diagnostic-verification.json",
+    "bytes": 387,
+    "sha256": "9459146b6525b076715423d2644761a46c4a951f97e390d842b53955f2efbb34"
+  },
+  {
+    "path": "browser-ledger/events.jsonl",
+    "bytes": 18259,
+    "sha256": "66b97f9b3a2171dceac23cd2b7139c3c2ebbcbdbc9e70c7ee417fd4fa675559f"
+  },
+  {
+    "path": "browser-ledger/facts.json",
+    "bytes": 4022,
+    "sha256": "dd3de482e46210172bc09a15719f44ae75759d701811cf617a2fc4686b40ff9c"
+  },
+  {
+    "path": "browser-ledger/inspect-facts.py",
+    "bytes": 1675,
+    "sha256": "916235af2a909cedb712ae0849f96b544af8285c549f741de9ca662a11d5707c"
+  },
+  {
+    "path": "browser-ledger/last-host-verification.json",
+    "bytes": 2816,
+    "sha256": "aa84628312eb61b6827b7986b87ba403bf3b7a48c7b93f2e72ee95f72fe7cd8b"
+  },
+  {
+    "path": "browser-ledger/native-before.jpg",
+    "bytes": 231975,
+    "sha256": "200fe9a51da2d4be6007ce31346f3daaff7883d5b1810396b2cc04cca6e2a787"
+  },
+  {
+    "path": "browser-ledger/native-browser-completed.jpg",
+    "bytes": 260200,
+    "sha256": "31763f7b50b188b15cef4e45c75e414061b961d9367cf5d6fa5a56d0686917e9"
+  },
+  {
+    "path": "browser-ledger/native-stage3.jpg",
+    "bytes": 254231,
+    "sha256": "c731ec3f1bb549e06719221b1996874023d8700fe58257c26aadd1b470699beb"
+  },
+  {
+    "path": "browser-ledger/native-terminal-failed.jpg",
+    "bytes": 244166,
+    "sha256": "a2f1f18d3292ae204cc271823b1a8c42cb738e26113c64e0824fe2450052e633"
+  },
+  {
+    "path": "browser-ledger/original-failure.json",
+    "bytes": 46184,
+    "sha256": "dcc686d20e0536d9778c92f1e1e60d465ddd3a28deb363fa6dd976b0c7f22908"
+  },
+  {
+    "path": "browser-ledger/prepare-send.py",
+    "bytes": 2571,
+    "sha256": "5d1e579bc7379aaf7a0692cb24f8455b47236ad4ba52f1bd1f1209bcdab9bda5"
+  },
+  {
+    "path": "browser-ledger/prepare.py",
+    "bytes": 1819,
+    "sha256": "c40e0256861b0bde33916677fd0b8fb1e0096b6d4f7f2e8e4264e76b122284c8"
+  },
+  {
+    "path": "browser-ledger/send.py",
+    "bytes": 4020,
+    "sha256": "ac9923ae98f5da6aeb8bc3f7ccf9ab5a17746a2eb4c6cd12bed3286e964f0422"
+  },
+  {
+    "path": "browser-ledger/server.py",
+    "bytes": 5700,
+    "sha256": "f008908e07a9288bacb5c887edc63e0a5d46bf57edf98289e5e9752c5e06d377"
+  },
+  {
+    "path": "browser-ledger/stream-finished.json",
+    "bytes": 197,
+    "sha256": "eda60af587a110048637cb1f896d291856e55e897c1ce8100a8322a99f397994"
+  },
+  {
+    "path": "browser-ledger/submitted.json",
+    "bytes": 1903,
+    "sha256": "b5a6d9304be48261cef1ec2e80a1d2d355cae3036e564332eb44fa151020defe"
+  },
+  {
+    "path": "browser-ledger/update-prompt.py",
+    "bytes": 798,
+    "sha256": "d1e601baaac41dd5ec05fe5777a1b257d65f29879da532ff8d0943afd2296990"
+  },
+  {
+    "path": "browser-ledger/verify-diagnostics.py",
+    "bytes": 1662,
+    "sha256": "e6b072937947239a896f016ae21bb58896d0169bf30fc3dfd97820c54f79250e"
+  },
+  {
+    "path": "browser-ledger/verify.py",
+    "bytes": 3033,
+    "sha256": "e5e94aa1b8bc853176a9eee0d9996b423255e461c0c1b1d545a5f2bd8986b4fe"
+  },
+  {
+    "path": "browser-ledger/watch.py",
+    "bytes": 1022,
+    "sha256": "5454b3fa65132607bc22cfc460e637d38e9456c3ee56c640cf061800ee1249f8"
+  },
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 3243,
+    "sha256": "168d0c81d2f99a62ceeabf09c56869484a692e50439e40ed71bfc372a516e106"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-071815990-3fdeec14/CoolzhuAgent-0.2.121-installer-report.json",
+    "bytes": 4885,
+    "sha256": "eb33f1e91f9c09de7c8832737a91b158341dfe8d8e18ce5f024e98538d9f13e3"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-071815990-3fdeec14/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "007da0689afd07eead21689c9f93bab70e1ebbb67f37af543fb996da61d78e12"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-071815990-3fdeec14/package-report.json",
+    "bytes": 110268,
+    "sha256": "49f67847e4dca8742af33bb7bfb4336e4e2177834f43802203a25735656364bf"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-071815990-3fdeec14/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "e36649fbbf2ee08b0b2699b614d34f64f9db42f8ead47c114cf3628837c5620e"
+  },
+  {
+    "path": "installed-validation/build-direct.py",
+    "bytes": 1003,
+    "sha256": "0a73625a6b9dd3d1ee366f71a98eb30db089ec1bc666fa1b85ae49f7dd4ea524"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 193,
+    "sha256": "596b00e23ca1851a7f5975d74fafd9500809e6c4b58243d2a141f2acd00b1a2d"
+  },
+  {
+    "path": "installed-validation/build-stderr-replay.log",
+    "bytes": 56673,
+    "sha256": "2002ed29796286136bbe175dc97dac5f60089c2354fcd489d8bb0d4f1fe33b47"
+  },
+  {
+    "path": "installed-validation/build-stdout-replay.log",
+    "bytes": 14670,
+    "sha256": "f197a2738cb23f9408382b20882a19c4fe775db55d68e72298f347e92b8278ec"
+  },
+  {
+    "path": "installed-validation/check-ci.py",
+    "bytes": 695,
+    "sha256": "fad7c9cc97720821146ef09f7eca8817f2af79f2aaa84644ccc4440469d8e211"
+  },
+  {
+    "path": "installed-validation/child-build.ps1",
+    "bytes": 308,
+    "sha256": "ca2f7c6f112c57024673573f1da08d8f2d5d10b2a053564e12a567f67e014309"
+  },
+  {
+    "path": "installed-validation/install-121-result.json",
+    "bytes": 290,
+    "sha256": "499e21e18de0efe09e7c7593a70ceaf97d0cdd85d0adcf276807e866ccaabcc6"
+  },
+  {
+    "path": "installed-validation/installed-121-standard-processes.json",
+    "bytes": 729,
+    "sha256": "1aa39d064c8707e4d4f0b20bdeea1330d86977d4c5308375796121d8d9dbe145"
+  },
+  {
+    "path": "installed-validation/installed-121-verification.json",
+    "bytes": 1884,
+    "sha256": "0944574cab4373ed3a63372b0b3e364940d331488801c0180732d64a6228e67c"
+  },
+  {
+    "path": "installed-validation/package-121-verification.json",
+    "bytes": 1869,
+    "sha256": "16828f47587cb0da1d4a85b7d87b81352e4dd566b96d0e9f4ab2ecc08e6b76c2"
+  },
+  {
+    "path": "installed-validation/source-ci.json",
+    "bytes": 25427,
+    "sha256": "6d638b95b0070e7eed75bc3e87cdee45d6b0895ae44af9ebb4f6ceefc6097f67"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "e8b7c0a589ff3d6750fb52aaa6e45015a8a18af9da7af1e8b870673b0d502440"
+  },
+  {
+    "path": "installed-validation/start-standard121.ps1",
+    "bytes": 4121,
+    "sha256": "ab8844125c1b5802a75f286466a443266d12e90abf44323ef1b227d5ae4fc08c"
+  },
+  {
+    "path": "installed-validation/stop-120.ps1",
+    "bytes": 1129,
+    "sha256": "b4e8dbdb951ede09cd6ea362665e1be3eb4296ffa674029686d9e6dfd4415278"
+  },
+  {
+    "path": "installed-validation/stopped-120-receipt.json",
+    "bytes": 729,
+    "sha256": "e3a4fa62f0ce3030debac9a001aa0b657276d1d896377f632572612c041c8daf"
+  },
+  {
+    "path": "installed-validation/verify-121.py",
+    "bytes": 2862,
+    "sha256": "080ce5f769ce1f8b445ad1ec604046b6f6b2db36d17ba95c45680ab48bfa8018"
+  }
+]

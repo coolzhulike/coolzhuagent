@@ -28,6 +28,7 @@ $workspacePath = [System.IO.Path]::GetFullPath($Workspace).TrimEnd('\', '/')
 $workspacePrefix = $workspacePath + [System.IO.Path]::DirectorySeparatorChar
 
 . (Join-Path $workspacePath 'scripts/lib/build-identity.ps1')
+. (Join-Path $workspacePath 'scripts/lib/cargo-build-evidence.ps1')
 
 # 报告目录沿用既有落点（第五轮裁决 B-2）：不迁移、不改名既有证据。
 $reportRoot = if ($ReportRoot) {
@@ -179,12 +180,29 @@ function Invoke-RetentionVerify {
       continue
     }
 
+    $report = $null
     if ($entry.report_content_sha256) {
       try {
         $report = Get-Content -Raw -LiteralPath $found -Encoding UTF8 | ConvertFrom-IdentityJson
         [void](Assert-PackageReportContentHash -Report $report)
       } catch {
         $problems.Add(("report_id={0} 的内容哈希无法重算：{1}" -f $reportId, ($_.Exception.Message -split "`n")[0]))
+        continue
+      }
+    }
+    if ($null -ne $report -and $report.cargo_build_evidence.status -eq 'collected') {
+      try {
+        if ($entry.archived_report_path) {
+          $archiveDirectory = Split-Path -Parent (Join-Path $workspacePath ([string]$entry.archived_report_path))
+          $cargo = Assert-ArchivedPackageCargoBuildEvidence -RepoPath $workspacePath `
+            -ArchiveManifestPath (Join-Path $archiveDirectory 'package-report-files.json')
+          if (-not $cargo.verified -or $cargo.report_id -cne $reportId -or
+              $cargo.report_content_sha256 -cne $entry.report_content_sha256) { throw '归档回执与保留索引报告身份不一致' }
+        } else {
+          [void](Assert-PackageCargoBuildEvidence -Report $report -RepoPath $workspacePath)
+        }
+      } catch {
+        $problems.Add(("report_id={0} 的 Cargo 回执引用验证失败：{1}" -f $reportId, ($_.Exception.Message -split "`n")[0]))
         continue
       }
     }
@@ -260,6 +278,31 @@ function Invoke-RetentionProtect {
         -Remediation '使用与 MSI 一致的版本号')
     }
     $archiveDir = Join-Path $archiveRoot ("release-$ReleaseVersion\evidence\build-identity\$reportId")
+    # 全部来源与命名先校验，禁止附加证据覆盖权威报告/清单或同名历史证据。
+    $extraNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($reserved in @('package-report.json', 'payload-inventory.json', 'package-report-files.json')) {
+      [void]$extraNames.Add($reserved)
+    }
+    $validatedExtras = [Collections.Generic.List[object]]::new()
+    foreach ($extra in @($ExtraEvidencePath)) {
+      if (-not $extra) { continue }
+      $extraFull = if ([IO.Path]::IsPathRooted($extra)) { [IO.Path]::GetFullPath($extra) } else { [IO.Path]::GetFullPath((Join-Path $workspacePath $extra)) }
+      if (-not (Test-PackagePathInsideRoot -Path $extraFull -Root $workspacePath) -or
+          -not (Test-Path -LiteralPath $extraFull -PathType Leaf)) { throw '附加归档证据必须是工作区内已有文件' }
+      $node = Get-Item -LiteralPath $extraFull -Force
+      while ($node.FullName.TrimEnd('\', '/') -ne $workspacePath) {
+        if ($node.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw '附加归档证据不得经重解析点读取' }
+        $node = Get-Item -LiteralPath (Split-Path -Parent $node.FullName) -Force
+      }
+      $extraName = [IO.Path]::GetFileName($extraFull)
+      if (-not $extraNames.Add($extraName)) { throw "附加归档证据文件名冲突：$extraName" }
+      $extraBytes = [IO.File]::ReadAllBytes($extraFull)
+      $extraHash = Get-IdentityHashFromBytes -Bytes $extraBytes
+      $extraDestination = Join-Path $archiveDir $extraName
+      if ((Test-Path -LiteralPath $extraDestination) -and
+          (Get-IdentityFileHash -Path $extraDestination) -cne $extraHash) { throw "既有发布证据字节不一致，拒绝覆盖：$extraName" }
+      $validatedExtras.Add([pscustomobject]@{ source = $extraFull; destination = $extraDestination; bytes = $extraBytes; sha256 = $extraHash })
+    }
     New-Item -ItemType Directory -Force -Path $archiveDir | Out-Null
     $archivedReportFile = Join-Path $archiveDir 'package-report.json'
     Copy-Item -LiteralPath $fullReportPath -Destination $archivedReportFile -Force
@@ -275,22 +318,18 @@ function Invoke-RetentionProtect {
     }
 
     $extraEvidence = [System.Collections.Generic.List[object]]::new()
-    foreach ($extra in @($ExtraEvidencePath)) {
-      if (-not $extra) { continue }
-      $extraFull = if ([System.IO.Path]::IsPathRooted($extra)) { [System.IO.Path]::GetFullPath($extra) } else { [System.IO.Path]::GetFullPath((Join-Path $workspacePath $extra)) }
-      if (-not (Test-Path -LiteralPath $extraFull -PathType Leaf)) {
-        throw (New-IdentityFailureException -Category 'RETENTION-EVIDENCE-MISSING' `
-          -Detail "要一并归档的证据不存在：$extraFull" `
-          -Remediation '先生成该证据（例如 installer report）再归档')
+    foreach ($extra in $validatedExtras) {
+      $extraFull = $extra.source
+      $extraDestination = $extra.destination
+      if (-not (Test-Path -LiteralPath $extraDestination)) {
+        $stream = [IO.FileStream]::new($extraDestination, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::Read)
+        try { $stream.Write($extra.bytes, 0, $extra.bytes.Length); $stream.Flush($true) } finally { $stream.Dispose() }
       }
-      $extraName = [System.IO.Path]::GetFileName($extraFull)
-      $extraDestination = Join-Path $archiveDir $extraName
-      if (Test-Path -LiteralPath $extraDestination) { Remove-Item -LiteralPath $extraDestination -Force }
-      Copy-Item -LiteralPath $extraFull -Destination $extraDestination -Force
+      if ((Get-IdentityFileHash -Path $extraDestination) -cne $extra.sha256) { throw '附加归档证据写入后身份不一致' }
       $extraEvidence.Add([ordered]@{
         source_path = ConvertTo-WorkspaceRelative $extraFull
         archived_path = ConvertTo-WorkspaceRelative $extraDestination
-        file_sha256 = Get-IdentityFileHash -Path $extraDestination
+        file_sha256 = $extra.sha256
       }) | Out-Null
     }
 

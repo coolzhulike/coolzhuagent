@@ -1,0 +1,14 @@
+[
+  {
+    "file": "modules/gui-web/packages/web-console/src/computer_use_visual_baseline.rs",
+    "sha256": "8616f023fcb569fadd9b94eb4c753c23e532458f19bf1c5edd45124b6a67cad8"
+  },
+  {
+    "file": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+    "sha256": "585b1f6a598777434e55c2dc83ecf17dc23610f89ea86c6f3fb2e6408e49f1fc"
+  },
+  {
+    "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/browser_panel.rs",
+    "sha256": "85fa84b71aaddb6d42d4de2c15e377249b69fe7f6cf0c505b1546c102de4df2b"
+  }
+]

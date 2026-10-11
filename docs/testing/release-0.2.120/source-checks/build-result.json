@@ -1,0 +1,11 @@
+{
+  "command": [
+    "cargo",
+    "build",
+    "-p",
+    "coolzhu-web-console",
+    "--offline"
+  ],
+  "exit_code": 0,
+  "seconds": 75.88335037231445
+}

@@ -1,0 +1,54 @@
+event: started
+data: {"turn_id":"chat-turn-1791216338274-2","chat_room_id":"room-1791131523339","run_id":"run-chat-e0d09e8d6a760c6dbc00152711b1d65c473f45b0e7e5d7ac"}
+
+event: message
+data: {"id":"msg-1791216338274-user","author":"","role":"user","target":"Devin SWE-2 真实CU验收 (swe-2-medium)","content":"这轮通过正常聊天室流式链路验收。不调用工具，只输出已经读到的外部上下文标记。本条没有再次提供该标记。","kind":"text","attachments":[]}
+
+event: message_start
+data: {"id":"msg-1791216338404-0-thinking","author":"Devin SWE-2 真实CU验收 (swe-2-medium) 推理","role":"assistant","target":"推理卡片","content":"","kind":"reasoning","attachments":[]}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0-thinking","kind":"reasoning","delta":"The cache key doesn't include the branch name, which means the first lookup after a checkout will always miss. It seems more efficient to fix the key itself rather than altering the lookup order."}
+
+event: message_start
+data: {"id":"msg-1791216338404-0","author":"Devin SWE-2 真实CU验收 (swe-2-medium)","role":"assistant","target":"聊天","content":"","kind":"assistant-reply","attachments":[]}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"f"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"673"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"d"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"925"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"e"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"87"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"f"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"1"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"f"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"3"}
+
+event: message_delta
+data: {"id":"msg-1791216338404-0","kind":"assistant-reply","delta":"d"}
+
+event: message_done
+data: {"id":"msg-1791216338404-0","author":"Devin SWE-2 真实CU验收 (swe-2-medium)","role":"assistant","target":"聊天","content":"f673d925e87f1f3d","kind":"assistant-reply","attachments":[]}
+
+event: done
+data: {"turn_id":"chat-turn-1791216338274-2","run_id":"run-chat-e0d09e8d6a760c6dbc00152711b1d65c473f45b0e7e5d7ac","status":"completed","accepted_agent_ids":["session-1791131217833"],"tasks":[{"id":"task-1791216338404-0","owner_agent":"Devin SWE-2 真实CU验收 (swe-2-medium)","executor_agent":"Devin SWE-2 真实CU验收 (swe-2-medium)","status":"模型已回","visible_in_chat":true,"timeout_ms":20000,"summary":"会话 Agent 已按当前 Provider/Model 配置完成真实模型调用"}]}
+

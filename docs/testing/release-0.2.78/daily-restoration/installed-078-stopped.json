@@ -1,0 +1,16 @@
+{
+  "stage": "installed-078",
+  "time": "2026-10-06T00:11:00.9705455Z",
+  "stopped_claims": [
+    {
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "pid": 29956,
+      "created": "2026-10-06T00:02:07.736022Z"
+    },
+    {
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "pid": 28472,
+      "created": "2026-10-06T00:02:06.778766Z"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "stage": "CI既有用例时限修补；本地实操另见正式截图",
+  "package_source_commit": "587d386da4dd4f256c5a8b4ef487b62faa958f24",
+  "failures": [
+    {
+      "head": "cac6542ca1284e451e2c778699f0fb845a407f13",
+      "run": 37405435387,
+      "reason": "ACP消息分类测试共享3秒预算，任务提交前到期"
+    },
+    {
+      "head": "084dd5415cb5ddddf794e9402e272644987a1ae7",
+      "run": 37407240528,
+      "reason": "600ms根期限用例错误要求请求先到达端点；生产在派发前超时是允许的"
+    }
+  ],
+  "fixes": [
+    "ACP既有测试分离连接与任务各30秒预算",
+    "根期限测试保留600ms期限、3秒终止与记账断言，取消用例单独覆盖执行中网络请求；只去掉必达端点断言"
+  ],
+  "verification": {
+    "web_build": "offline通过",
+    "target_test": "1通过",
+    "full_regression": "1390通过/0失败/6忽略"
+  },
+  "limits": [
+    "第二处修补在082包完成之后，只修改cfg(test)；不改安装包源码身份，不改生产期限或取消机制",
+    "最终HEAD远端两条检查须另取原始服务端记录，不能由本地回归推定"
+  ],
+  "files": [
+    {
+      "file": "ci-cac-failed.log",
+      "length": 322608,
+      "sha256": "fce3e2c51502d25d9680fbf02efba171b849c783f165d24206b38682f50905f1"
+    },
+    {
+      "file": "ci-084-failed.log",
+      "length": 322565,
+      "sha256": "b2fb97a276d6315993ee0730bf43f67900b555c6e43c1987d3a0d2e2e3d6fa6d"
+    },
+    {
+      "file": "checks-084-full.json",
+      "length": 7194,
+      "sha256": "dc0dfdc2435183a42bd9626fe2c1b8160b8e1b8f682b4622f33f2cf44781bfbb"
+    },
+    {
+      "file": "ci-timeout-build.log",
+      "length": 49512,
+      "sha256": "9dc8344058ef19455b202a377d26da4c7545731a4eadf4c7ea2e6414e9f54d03"
+    },
+    {
+      "file": "ci-timeout-target.log",
+      "length": 21848,
+      "sha256": "a89cc7b2785ab4f39c20643bf32c03c92b66f605ae28d6ba7791fe9916978d3f"
+    },
+    {
+      "file": "ci-timeout-full.log",
+      "length": 146205,
+      "sha256": "9c9caafd892e17d3d672735dd4ee6a04b9326f5eb23982eede7f768195467e32"
+    }
+  ]
+}

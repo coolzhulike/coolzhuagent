@@ -1,0 +1,12 @@
+[
+  {
+    "stage": "before",
+    "pid": 20804,
+    "exit_code": 1
+  },
+  {
+    "stage": "after",
+    "pid": 30056,
+    "exit_code": 1
+  }
+]

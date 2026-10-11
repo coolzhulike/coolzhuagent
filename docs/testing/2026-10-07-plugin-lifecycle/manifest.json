@@ -1,0 +1,140 @@
+{
+  "stage": "089原失败与源码候选，不能追认正式安装版通过",
+  "files": [
+    {
+      "path": "config-before.json",
+      "bytes": 5019,
+      "sha256": "a16d56286af36267859d9b0d04a7ff7a9d7ba81c2df3cc9a30ee566407b66c1f"
+    },
+    {
+      "path": "config-response.json",
+      "bytes": 816,
+      "sha256": "aa0639de5afe230d7985be852017c492f185a1848ee3a2fe7e9ddd94a89dab09"
+    },
+    {
+      "path": "config-after.json",
+      "bytes": 5019,
+      "sha256": "a16d56286af36267859d9b0d04a7ff7a9d7ba81c2df3cc9a30ee566407b66c1f"
+    },
+    {
+      "path": "config-facts-read.json",
+      "bytes": 2870,
+      "sha256": "690d3d53b2cc8aba3c2fd7b5ae25cc95f035ada19509830ae915284060badb3b"
+    },
+    {
+      "path": "installed089-initial-result.jpg",
+      "bytes": 183910,
+      "sha256": "d8e6f4ebb19bd8e890c6597aabe44710146b8843f80a2089b153080bbc8ac726"
+    },
+    {
+      "path": "catalog-config-contention-before.json",
+      "bytes": 1127,
+      "sha256": "e21a1ef0bbf977672d861c8a18abfc15a13abe677dd288f3b353abd5fe04a309"
+    },
+    {
+      "path": "stopped-contention-probe.json",
+      "bytes": 189,
+      "sha256": "e110edf4f31f56088cabe8540c55bebb54d896736488fa02418a0a4b56b35425"
+    },
+    {
+      "path": "candidate-processes.json",
+      "bytes": 760,
+      "sha256": "a2d8e7d70b05e19c094918e8df06623f7e93287c883087bd349bb2c7fdb0e866"
+    },
+    {
+      "path": "candidate-first-processes.json",
+      "bytes": 760,
+      "sha256": "ad4c1d158dcbd9a4aaf139ef08bdac52251384661a2b24d980046a60e46c5b38"
+    },
+    {
+      "path": "web-build.log",
+      "bytes": 50877,
+      "sha256": "1bbf682d031b4390a36efae683ffae978990c808121f6eda083eaaba9cc1b3a0"
+    },
+    {
+      "path": "plugin-tests.log",
+      "bytes": 5812,
+      "sha256": "1b12c8fea510830ef2f4082e9895811822c60149e81261008756f8f44c9ed3c9"
+    },
+    {
+      "path": "lock-regression-before.log",
+      "bytes": 2083,
+      "sha256": "54cd114fedd248f157d4f22077dc946bcbab5c63abf3fa796bc3430aa4ac96f0"
+    },
+    {
+      "path": "web-tests.log",
+      "bytes": 148366,
+      "sha256": "edb43e9b456b8457760439828d65c722eec6b05a5e6efc64b59f20a317dd3f3c"
+    },
+    {
+      "path": "candidate/config-before.json",
+      "bytes": 5019,
+      "sha256": "c6f2c79447439a223ee448b807caad49513ca92e5689d7f4c08e0d6f65b7045c"
+    },
+    {
+      "path": "candidate/config-response.json",
+      "bytes": 720,
+      "sha256": "08107caaa5d229b78d22f3f66b8c87ebc622db91ce575a91e0611999b1a67537"
+    },
+    {
+      "path": "candidate/config-after.json",
+      "bytes": 5082,
+      "sha256": "7e56463a9d79a238b10f866d5f4cb3a59376364fe2889eb5d1980d9876f7aab9"
+    },
+    {
+      "path": "candidate/config-change-timing.json",
+      "bytes": 489,
+      "sha256": "96fe2ae3363ea48ac7defae642f9ddfab780e5e2befdbe8eeae25b3a56168f98"
+    },
+    {
+      "path": "candidate/facts-read.json",
+      "bytes": 2236,
+      "sha256": "7162cd345715340cdee903ae9ea8324b4a0febc3a4b6ab944bf8e8ec6e3f969a"
+    },
+    {
+      "path": "candidate/config-stale-result.jpg",
+      "bytes": 174592,
+      "sha256": "3b5c68315268d6887ee8660754de6a5e96760b1e8cedf8c5f7f820e7a864994f"
+    },
+    {
+      "path": "candidate/fresh-facts.json",
+      "bytes": 2867,
+      "sha256": "639f180ca8f283a9f248f2d3fff7cca80a15e939d0c8b3e95fee5930453583d4"
+    },
+    {
+      "path": "candidate/config-fresh-result.jpg",
+      "bytes": 175391,
+      "sha256": "faa9a6d8bfe1de173f5fe06eaff612a9cda10318fc66a35f939379dd0069aec4"
+    },
+    {
+      "path": "candidate/config-restored-response.json",
+      "bytes": 720,
+      "sha256": "50c9bdaf686d32505a9016da57a924fdaaaebde032b88fab684ebea643999334"
+    },
+    {
+      "path": "candidate/config-restored.json",
+      "bytes": 5019,
+      "sha256": "21ef4e8a920a30f8c77df6429abc9ffb589d2316f2d7e8122787612f168a5882"
+    },
+    {
+      "path": "candidate/cancel-observation.json",
+      "bytes": 1217,
+      "sha256": "c2eb679eb9f6aff283b7d848e1dc4db64639639655a294154589fb08267ee247"
+    },
+    {
+      "path": "candidate/cancel-not-observed.json",
+      "bytes": 78,
+      "sha256": "be6fd454b2f9120c3c51cc8157121054e96027b290eaf8765a6922727f872c7b"
+    },
+    {
+      "path": "candidate/cancel-facts.json",
+      "bytes": 2632,
+      "sha256": "30981f7ddbb84763da66151af80f6f78d7d26b06b9426756841d30841d98b24c"
+    },
+    {
+      "path": "candidate/cancel-result.jpg",
+      "bytes": 183198,
+      "sha256": "fae321512b2589a8dc02ec832b74b1a644d6a7b510640ec353f43bc49eb666d0"
+    }
+  ]
+}

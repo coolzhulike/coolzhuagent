@@ -1,0 +1,98 @@
+{
+  "computer_use_runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791201359160-8-tool-4b3a6dabfc55abdc5f4c2db96f934d26fe1e05e9245c6d3604ec42af8dc05928",
+      "provider_tool_call_id": "tool-4b3a6dabfc55abdc5f4c2db96f934d26fe1e05e9245c6d3604ec42af8dc05928",
+      "turn_id": "chat-turn-1791201359160-8",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791201359160-8\u001fdesktop\u001f依本轮新鲜原图，在当前真实白色画布一块与现有图形分离的空白内，用已选黑色笔刷手画一条短w形五点连续折线，不碰旧图\u001fmspaint.exe|||\u001f本轮确实新增一笔短w折线而非旧图|最新原图同时可见新增折线完全在白色画布内且与旧图分离\u001f仅鼠标drag一笔五个点约1200ms|依本轮新鲜原图和uia画布rect定位，优先真实绘画uia容器，visible_rect不是坐标容器|不用旧坐标或主会话落点|不用形状代码导入粘贴其它工具|不擦除不保存不改画布工具设置|不换模型|失败取消未知立即停止不重试不补发|released和image_changed不等于目标达成",
+      "objective_json": "{\"constraints\":[\"仅鼠标drag一笔五个点约1200ms\",\"依本轮新鲜原图和UIA画布rect定位，优先真实绘画UIA容器，visible_rect不是坐标容器\",\"不用旧坐标或主会话落点\",\"不用形状代码导入粘贴其它工具\",\"不擦除不保存不改画布工具设置\",\"不换模型\",\"失败取消未知立即停止不重试不补发\",\"released和image_changed不等于目标达成\"],\"max_actions\":1,\"objective\":\"依本轮新鲜原图，在当前真实白色画布一块与现有图形分离的空白内，用已选黑色笔刷手画一条短W形五点连续折线，不碰旧图\",\"success_criteria\":[\"本轮确实新增一笔短W折线而非旧图\",\"最新原图同时可见新增折线完全在白色画布内且与旧图分离\"],\"surface\":\"desktop\",\"target\":{\"application\":\"mspaint.exe\"}}",
+      "surface": "desktop",
+      "state": "succeeded",
+      "state_version": 13,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791201967796,
+      "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791201359160-8-tool-4b3a6dabfc55abdc5f4c2db96f934d26fe1e05e9245c6d3604ec42af8dc05928\",\"provider_tool_call_id\":\"tool-4b3a6dabfc55abdc5f4c2db96f934d26fe1e05e9245c6d3604ec42af8dc05928\",\"status\":\"succeeded\",\"stage\":\"terminal\",\"goal_achieved\":true,\"surface\":\"desktop\",\"summary\":\"最新原图逐项确认目标已达成\",\"attempts\":1,\"steps_completed\":1,\"evidence\":[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30416-58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da.png:sha256=58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da:2560x1152\",\"uia_snapshot:hwnd-64307c8:elements=175\",\"frame_binding:sha256=58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(105056200):uia_win32_no_synthetic_input\",\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30416-58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da.png:sha256=58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da:2560x1152\",\"uia_snapshot:hwnd-64307c8:elements=175\",\"frame_binding:sha256=58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(105056200):uia_win32_no_synthetic_input\",\"image_changed:false\",\"native_stroke:uia-eee5940e25c5adae:points=5:duration_ms=1200:released\",\"before:screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30416-10f3d4585a467d7c1b9fdfe4ee6d8c2931e4c1f74964b018e3ec09511698625b.png:sha256=10f3d4585a467d7c1b9fdfe4ee6d8c2931e4c1f74964b018e3ec09511698625b:2560x1152\",\"mapping:frame_binding:sha256=10f3d4585a467d7c1b9fdfe4ee6d8c2931e4c1f74964b018e3ec09511698625b:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=511,364,1536,779:container_inside_image=true\",\"after:screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30416-e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c.png:sha256=e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c:2560x1152\",\"image_changed:true\",\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30416-e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c.png:sha256=e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c:2560x1152\",\"uia_snapshot:hwnd-64307c8:elements=176\",\"frame_binding:sha256=e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(105056200):uia_win32_no_synthetic_input\",\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30416-e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c.png:sha256=e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c:2560x1152\",\"uia_snapshot:hwnd-64307c8:elements=176\",\"frame_binding:sha256=e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(105056200):uia_win32_no_synthetic_input\",\"visual_verification:generation=2:image_changed=true:criteria_met=2/2\",\"visual_run_start:generation=1:geometry_comparable=true:image_count=2\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":1,\"replan_count\":0,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791202259160}},\"cu_deadline_ms\":1791201967796,\"cu_deadline_established_at_ms\":1791201367796,\"cu_budget_ms\":600000}}",
+      "created_at_ms": 1791201367796,
+      "updated_at_ms": 1791201405057,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null
+    }
+  ],
+  "computer_use_steps": [
+    {
+      "run_id": "cu-session-1791131217833-chat-turn-1791201359160-8-tool-4b3a6dabfc55abdc5f4c2db96f934d26fe1e05e9245c6d3604ec42af8dc05928",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "drag",
+      "normalized_target": "uia-eee5940e25c5adae",
+      "action_fingerprint": "0064f3d841ed30cf",
+      "status": "verified",
+      "error_code": null,
+      "before_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30416-58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da.png:sha256=58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da:2560x1152\",\"uia_snapshot:hwnd-64307c8:elements=175\",\"frame_binding:sha256=58cc410952a096b19fcb412df6768083573ed184fcbd8c767cc57c4c7e6411da:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(105056200):uia_win32_no_synthetic_input\"]",
+      "after_evidence_ref": "[\"screenshot:C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\computer-use\\\\window-30416-e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c.png:sha256=e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c:2560x1152\",\"uia_snapshot:hwnd-64307c8:elements=176\",\"frame_binding:sha256=e6e9e6f15ee3195a85a8bc1f9cdc5d72f7e430e11b9bef8f53da47bf2699b08c:2560x1152:screen_rect=0,61,2560,1152:canvas_rect=11,106,2538,1096:container_inside_image=true\",\"observation_window_selection:Some(105056200):uia_win32_no_synthetic_input\",\"visual_verification:generation=2:image_changed=true:criteria_met=2/2\",\"visual_run_start:generation=1:geometry_comparable=true:image_count=2\"]",
+      "visible_progress": 1,
+      "input_delivery": "sent",
+      "partial": 0,
+      "path_completed": 1,
+      "confirmed_point_count": 5,
+      "effect_status": "effect_observed",
+      "goal_verdict": "passed",
+      "input_release_status": "released",
+      "started_at_ms": 1791201385856,
+      "completed_at_ms": 1791201391894,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ],
+  "computer_use_step_details": [
+    {
+      "run_id": "cu-session-1791131217833-chat-turn-1791201359160-8-tool-4b3a6dabfc55abdc5f4c2db96f934d26fe1e05e9245c6d3604ec42af8dc05928",
+      "step_index": 0,
+      "action_json": "{\"arguments\":{\"duration_ms\":1200,\"points\":[[0.16,0.55],[0.19,0.65],[0.22,0.55],[0.25,0.65],[0.28,0.55]]},\"kind\":\"drag\",\"redacted_fields\":true,\"target\":\"uia-eee5940e25c5adae\"}"
+    }
+  ],
+  "computer_use_planner_diagnostics": [
+    {
+      "id": 301,
+      "call_id": "cu-session-1791131217833-chat-turn-1791201359160-8-tool-4b3a6dabfc55abdc5f4c2db96f934d26fe1e05e9245c6d3604ec42af8dc05928",
+      "turn_id": "chat-turn-1791201359160-8",
+      "room_id": "room-1791131523339",
+      "session_id": "session-1791131217833",
+      "request_kind": "computer_use_planning",
+      "observation_generation": 1,
+      "model": "swe-2-medium",
+      "provider_response_id": null,
+      "response_json": "{\"action\":{\"arguments\":{\"duration_ms\":1200,\"points\":[[0.16,0.55],[0.19,0.65],[0.22,0.55],[0.25,0.65],[0.28,0.55]]},\"kind\":\"drag\",\"target\":\"uia-eee5940e25c5adae\"},\"done\":false}",
+      "error_code": null,
+      "started_at_ms": 1791201373059,
+      "completed_at_ms": 1791201385850
+    },
+    {
+      "id": 302,
+      "call_id": "cu-session-1791131217833-chat-turn-1791201359160-8-tool-4b3a6dabfc55abdc5f4c2db96f934d26fe1e05e9245c6d3604ec42af8dc05928",
+      "turn_id": "chat-turn-1791201359160-8",
+      "room_id": "room-1791131523339",
+      "session_id": "session-1791131217833",
+      "request_kind": "computer_use_verification",
+      "observation_generation": 2,
+      "model": "swe-2-medium",
+      "provider_response_id": null,
+      "response_json": "{\"bytes\":445,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":195,\"evidence_chars\":87,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":null,\"node_indices_type\":\"missing\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0},{\"evidence_blank\":false,\"evidence_bytes\":146,\"evidence_chars\":54,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":1,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":null,\"node_indices_type\":\"missing\",\"position\":1,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":2,\"criteria_type\":\"array\",\"progress\":true,\"progress_type\":\"boolean\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+      "error_code": null,
+      "started_at_ms": 1791201394587,
+      "completed_at_ms": 1791201405055
+    }
+  ]
+}

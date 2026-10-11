@@ -1,0 +1,9 @@
+{
+  "host_body_exact": true,
+  "host_http_truncated": false,
+  "body_bytes": 44498,
+  "one_spill_blob": true,
+  "model_tail_visible": false,
+  "calculator_calls": 0,
+  "overall_acceptance": "failed；完整宿主回执不等于下游模型可见完整内容"
+}

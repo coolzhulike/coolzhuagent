@@ -1,0 +1,194 @@
+{
+  "observed_at_utc": "2026-10-07T14:38:29.200294+00:00",
+  "stage": "installed",
+  "version": "0.2.93",
+  "source_commit": "4150fb8c3565e008ce257eb8cecc75f26c89ba3a",
+  "cases": [
+    {
+      "id": "jade-ui",
+      "result": "pass",
+      "scope": "1443x897正式原生窗口；仅证明控件布局，不将历史聊天文本计为本轮执行",
+      "screenshots": [
+        "native/01-installed-jade.jpg"
+      ]
+    },
+    {
+      "id": "connector-catalogs",
+      "result": "pass",
+      "opencode_models": 86,
+      "opencode_free_chat_intersection": 10,
+      "hf_models": 448,
+      "generated_requests": 0,
+      "saved_drafts": 0,
+      "screenshots": [
+        "native/03-installed-opencode-directory.jpg",
+        "native/04-installed-hf-directory.jpg",
+        "native/05-installed-hf-route-capabilities.jpg"
+      ]
+    },
+    {
+      "id": "function-cancel",
+      "result": "pass",
+      "effective_model": "swe-2-medium",
+      "remote_session_id": "island-kayak",
+      "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+      "tool_calls": 1,
+      "run_state": "interrupted",
+      "tool_state": "failed",
+      "socket_closed_before_response": true,
+      "retry": false,
+      "screenshots": [
+        "native/02-installed-function-cancel.jpg"
+      ]
+    }
+  ],
+  "not_verified": [
+    "新连接器凭据/生成/图片/长程工具调用",
+    "093函数内层deadline及许可冻结窄竞争",
+    "Browser复杂变换和严格按下期间生命周期",
+    "多屏/DPI矩阵",
+    "四项任务总体"
+  ],
+  "files": [
+    {
+      "path": "installed-093-verification.json",
+      "bytes": 1825,
+      "sha256": "167cccdb28fc85a19fc26e80644264d6cdab0466bb220137aca4bc47900c3af7"
+    },
+    {
+      "path": "package-093-verification.json",
+      "bytes": 1810,
+      "sha256": "083d111e01e67b533412a05718b0eb13ae5aed56f76bae1da6f832d0c7faaee7"
+    },
+    {
+      "path": "install-093-result.json",
+      "bytes": 277,
+      "sha256": "00ce08c6819f014759ebbcdfb6cd1e5692a204b32e17caf1c7536d1a038377b8"
+    },
+    {
+      "path": "installed-093-standard-processes.json",
+      "bytes": 692,
+      "sha256": "33405d5a90719e31466b517d2a4aeee87c69b91ad2e6bc90e42346ff9fb7dfd8"
+    },
+    {
+      "path": "stopped-installed-093-standard-processes.json",
+      "bytes": 538,
+      "sha256": "e472c0f302dca90aad62332d9acc89d518ee2c5f2a78e04d9ef164f14dbc99e6"
+    },
+    {
+      "path": "restored-daily-093-verification.json",
+      "bytes": 858,
+      "sha256": "707c0afe8ed1984971b2c643e0900e5f79ef103bc500d5722abe2631d9c6e081"
+    },
+    {
+      "path": "restored-daily-093-selfcheck.json",
+      "bytes": 1780,
+      "sha256": "fae625d2add82da5b7356bf271bc35cd5cdd43ce41373cde7be15a0d5f3342c2"
+    },
+    {
+      "path": "installed-safety-summary.json",
+      "bytes": 546,
+      "sha256": "854d584224128b26c395a879c8613ae0098dfb2764d3ff74ce959c6f856bd2ae"
+    },
+    {
+      "path": "opencode-product-directory.json",
+      "bytes": 37229,
+      "sha256": "a7ea3b04848a249e09916658da8994a3b7ae59421f5821437d9fa75b0654162b"
+    },
+    {
+      "path": "hf-product-directory.json",
+      "bytes": 242029,
+      "sha256": "6065c50740b97968641fd574dae1a181ed439c211f73aa8f879c7a366ff988a3"
+    },
+    {
+      "path": "opencode-free-selection.json",
+      "bytes": 728,
+      "sha256": "c346549dfe0e2737b23ce9306fd24c841b1f172429fa32941037cefd37c17e24"
+    },
+    {
+      "path": "prepare-dsh-runtime.log",
+      "bytes": 172,
+      "sha256": "7f168c42a5e33a9788ba9fc084598344efe9d62cfdac8f368a8fe2135af67b88"
+    },
+    {
+      "path": "source-checks.jsonl",
+      "bytes": 154,
+      "sha256": "baf07a0a424509080a505adaaa1a9b065a02247c3bd125b36baf4341971da335"
+    },
+    {
+      "path": "native/01-installed-jade.jpg",
+      "bytes": 198404,
+      "sha256": "17ac09996e8930cf89365e04abb2c20b0b7c3ebfaceca0272e7c0457f21360a8"
+    },
+    {
+      "path": "native/02-installed-function-cancel.jpg",
+      "bytes": 206285,
+      "sha256": "66e5af7884c2188fa9eb59c520e9a20334ba7687cfbde64ef0dd607a31950fce"
+    },
+    {
+      "path": "native/03-installed-opencode-directory.jpg",
+      "bytes": 215849,
+      "sha256": "aabec182f594ae5e9f023d60eba859076bc5f13d0e60e1a81d37c1b23af81210"
+    },
+    {
+      "path": "native/04-installed-hf-directory.jpg",
+      "bytes": 214634,
+      "sha256": "54508ccdbef9e8dda68afdda0d0556da9c56bc4d0ae43c57d12ed04bed61451c"
+    },
+    {
+      "path": "native/05-installed-hf-route-capabilities.jpg",
+      "bytes": 218293,
+      "sha256": "b3c1c95bee47481d72d4865d863c70da741287a429887b0faa599a004bebe424"
+    },
+    {
+      "path": "function/source.json",
+      "bytes": 908,
+      "sha256": "944c4ccc4ad518752f66555ddcb18fe08962c1787582624b2644f813d2244790"
+    },
+    {
+      "path": "function/install.json",
+      "bytes": 452,
+      "sha256": "a9a3128e3f3cc2ccb18be8a35ce30052f4ca18ee3dbed4fa91001272f39f80f0"
+    },
+    {
+      "path": "function/enable.json",
+      "bytes": 720,
+      "sha256": "9e12fb4516bde6b157d544c67e8b1cf0ac4f8e1cbe71406c483c8c0fa7800007"
+    },
+    {
+      "path": "function/model-tool-added.json",
+      "bytes": 716,
+      "sha256": "1578fa8834b9f8165771370dfe7d2616b7d1b9d84ed338f2be9aa23e8d54e58e"
+    },
+    {
+      "path": "function/model-tool-restored.json",
+      "bytes": 668,
+      "sha256": "94a9112794e5e9aced0324be462eb2ef81f6d578a88fcd0c5030f3ac3efd0505"
+    },
+    {
+      "path": "function/disabled-after-test.json",
+      "bytes": 789,
+      "sha256": "e23d45414445bf37c832eed91a9d896cb9c51f8aa96bf620985e19b1ca6f97c7"
+    },
+    {
+      "path": "function/function-cancel-observation.json",
+      "bytes": 633,
+      "sha256": "8e8b79c2055ffa9d04d889ff00babfa8c673e1d028097bc05d77b06061892d84"
+    },
+    {
+      "path": "function/function-run-verification.json",
+      "bytes": 3369,
+      "sha256": "f6ce674457dc3fffb74482d3c62c787f978c8a2aa29b58457cae2a476400eab7"
+    },
+    {
+      "path": "function/function-tool-ledger.json",
+      "bytes": 835,
+      "sha256": "1e9b5a055676d68d1e281ef0b6fc465f67a0fb7b8294e7c3dc649ec7091afbf7"
+    },
+    {
+      "path": "function/slow-events.jsonl",
+      "bytes": 706,
+      "sha256": "9d9987493fb4cdeeeab7ddc9f65557a8a68eece9fb36590df7784bf1966d6eda"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+# 原始证据保留 CRLF 与 SSE 结尾空行，不以文本规范化改变摘要。
+evidence/** -text whitespace=blank-at-eol,space-before-tab,cr-at-eol,-blank-at-eof

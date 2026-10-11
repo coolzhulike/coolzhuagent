@@ -1,0 +1,1 @@
+Error: SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some("there is already a table named idx_cu_native_ticket"))

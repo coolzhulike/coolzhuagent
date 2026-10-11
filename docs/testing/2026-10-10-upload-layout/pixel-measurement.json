@@ -1,0 +1,31 @@
+{
+  "formal-before.jpg": {
+    "image_size": [
+      1443,
+      897
+    ],
+    "glyph_bright_bounds": [
+      128,
+      828,
+      141,
+      842
+    ],
+    "glyph_center_x": 134.5,
+    "note": "金色主笔画像素近似测量，JPEG抗锯齿会带来亚像素误差"
+  },
+  "candidate-after-settled.jpg": {
+    "image_size": [
+      1443,
+      897
+    ],
+    "glyph_bright_bounds": [
+      131,
+      828,
+      143,
+      842
+    ],
+    "glyph_center_x": 137.0,
+    "note": "金色主笔画像素近似测量，JPEG抗锯齿会带来亚像素误差"
+  },
+  "shift_right_px": 2.5
+}

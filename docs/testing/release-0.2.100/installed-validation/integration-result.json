@@ -1,0 +1,110 @@
+{
+  "stage": "0.2.100正式安装实机",
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "records": [
+    {
+      "marker": "INSTALLED100-ACP-USAGE-DESIGN-20261008",
+      "source": {
+        "id": "msg-1791494770634-user",
+        "created_at": 1791494770812
+      },
+      "run": {
+        "id": "run-chat-ed942bf6df91c15c5d380c4a23c90598f2a765d5823247e4",
+        "kind": "chat_turn",
+        "workspace_id": "ws-23f646a969206cb4",
+        "session_id": "session-1791131217833",
+        "chat_room_id": "room-1791131523339",
+        "goal_id": null,
+        "phase_id": null,
+        "legacy_turn_id": "chat-turn-1791494770634-0",
+        "provider_turn_id": null,
+        "state": "completed",
+        "owner_id": "coolzhu-web-console",
+        "claim_token": "claim-a8c0807a4404433ccef7915989681c3554bfa9623c94a201d45e0174d7c4cd0f",
+        "stop_reason": null,
+        "error_json": null,
+        "created_at": 1791494770635,
+        "started_at": 1791494770811,
+        "stop_requested_at": null,
+        "heartbeat_at": 1791494770811,
+        "finished_at": 1791494870056
+      },
+      "attempts": [
+        {
+          "attempt_id": "341ea2c8077a01f75f7f72efe54ae49abd5d3e1288fdc074",
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "calls": [
+        {
+          "tool_call_id": "tool-52a876a29586db93b64609043bdb778c4c2c4d9bf7d5d978dfc81b637f5028db",
+          "run_id": "run-chat-ed942bf6df91c15c5d380c4a23c90598f2a765d5823247e4",
+          "request_attempt_id": null,
+          "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+          "arguments_digest": "e4191898878ee64a",
+          "status": "completed",
+          "created_at_unix_ms": 1791494783842,
+          "updated_at_unix_ms": 1791494785633,
+          "provider_tool_call_id": "1",
+          "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-ed942bf6df91c15c5d380c4a23c90598f2a765d5823247e4\",\"turn_id\":\"chat-turn-1791494770634-0\",\"attempt_id\":\"341ea2c8077a01f75f7f72efe54ae49abd5d3e1288fdc074\",\"owner_epoch\":221,\"generation\":221}"
+        }
+      ],
+      "tool_audits": [
+        {
+          "ts": "1791494785.632",
+          "call_id": "tool-52a876a29586db93b64609043bdb778c4c2c4d9bf7d5d978dfc81b637f5028db",
+          "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+          "caller": "llm",
+          "workspace_id": "ws-23f646a969206cb4",
+          "session_id": "session-1791131217833",
+          "input_summary": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab: expression=len11",
+          "status": "ok",
+          "elapsed_ms": 1340,
+          "permission": {
+            "required": "danger-full-access",
+            "decision": "allow-auto",
+            "reason": "full-access-profile",
+            "workspace_relative": false,
+            "affected_paths": [
+              "<opaque-command>"
+            ]
+          },
+          "summary_text": "DSH实际宿主操作已收尾",
+          "evidence": {
+            "frozen_parent_permission": {
+              "affected_paths": [
+                "<opaque-command>"
+              ],
+              "decision": "allow-auto",
+              "reason": "full-access-profile",
+              "required": "danger-full-access",
+              "workspace_relative": false
+            }
+          }
+        }
+      ],
+      "visible_messages": [
+        {
+          "id": "msg-1791494770866-0",
+          "content": "**calculator 回执**：`dsh__3596dc2e…` 调用一次 `{\"expression\":\"539+881-539\"}`，宿主 `status: ok`（runtime-executed，audit `executed: true`，elapsed_ms 1340），**result value = 881**。即本轮开始前去重总量核对：539 条 usage_rows + 881 条 scoped_acp_attempts − 539 条重复投影 = **881 条唯一 ACP attempt**（与附件 `scoped_acp_attempts: 881` 一致，`duplicate_attempts: 539` 恰等于全部旧 HTTP 行）。\n\n先更正：前轮\"流式延后脏标志搁置\"判断有误——附件未含 sendMessage finally，且 app.js 已注册 `visibilitychange → chatHistorySync?.resume()` 并导出 `resume: invalidate`，不再据此重复修改主张。\n\n---\n\n## ACP 统计读取层合并方案审查（仅依据附件代码可证明的事实）\n\n**前提事实**：`record_acp_attempt` 在所附 `request_usage.rs` 中只有定义、附件内未见调用点（与方案自述一致）；`LedgerObserver`（HTTP 观察者）是现有唯一写入路径。本轮附件**未附合并读取 SQL 本身**，下述区分可证明缺陷与待实测项。\n\n### 六项风险结论\n\n1. **去重历史投影** ⚠️ 设计方向正确（同 `acp:` attempt_id 优先权威 scope、合并 HTTP 行 tokens、每 attempt 计一次），但**连接键未在附件中定义**：HTTP 观察者写的 `attempt_id` 为 `{logical_id}:{attempt_no}`（`request-ts-pid-seq:n` 格式），ACP 台账写 `acp:{attempt}`——两套键不同，\"同作用域已有 HTTP 行\"需按 `call_id`/`run_id`/`turn_id` 猜配还是方案另有键，无法从所附代码证明。**可证明风险点**：若按 `call_id` 关联，同一 call 的重试 HTTP attempt 会全部并入，违反\"每 attempt 只计一次\"。\n\n2. **unknown 由 prepared 迁移** ⚠️ 设计允许 `prepared → unknown` 直通（不冒充已派发）——语义正确。但**可证明的缺口**：`LedgerObserver::drop` 只处理 HTTP 观察者的 `prepared/dispatched → abandoned/remote_unknown` 收尾；ACP 台账行（`record_acp_attempt` 所写 `status='prepared'`）在进程死亡或流中断后无 Drop 兜底，读取层必须把陈旧 `prepared` 归为 unknown 而非 pending——设计文字有此意图，但所附代码未含该读取逻辑，**待实现验证**。另：`record_acp_attempt` 的 `finished_at` 以 `status != \"prepared\"` 为条件写入，submitted→unknown 的迁移会漏写 `finished_at`（COALESCE 只在首次非 prepared 时填充——实际会写，因 excluded.finished_at 非空；此处 OK）。\n\n3. **异 scope 同 id 投影污染** ✅ 写入侧可证明已防：`ExecutionScope.accepts` 要求 workspace/room/agent/run/turn/attempt 全等 + `owner_epoch>0` + `generation>0` + lane∈{\"\",\"internal\"} + 各字段非空无控制字符；测试 `stale_owner_attempt_and_cross_room_updates_are_rejected` 覆盖跨 room/attempt/epoch/generation。读取层 `summary()` 按 `room_id AND workspace_id` 过滤。**待实测**：合并 SQL 的 HTTP↔ACP 关联必须在 scope 过滤内做，附件未含该 SQL，不能完全确认。\n\n4. **缺时间排序** ⚠️ 设计声明\"台账没有创建时间，缺时间返回 NULL\"——但 `record_acp_attempt` 实际向 `chat_usage_events.created_at` 写入 `unix_timestamp_millis()`，与设计自述矛盾（若 ACP 台账另存别处则无此矛盾）。**可证明隐患**：若合并后同一逻辑请求 HTTP 行有 `created_at`、ACP 行按设计为 NULL，排序/归属的 NULL 处理规则附件未定义。\n\n5. **读模型一致性** ⚠️ 所附 `summary()` 是现有版本——不含方案新增的 `not_sent_attempts`/`unknown_outcome_attempts`/`unknown_dispatch_attempts` 字段；`attempts` 现定义为 `SUM(dispatched=1)`，与\"attempts 仅计明确 dispatched\"一致，但新字段和 unknown 计数逻辑**未附代码，不可证明**。现有 SQL 中 `status NOT IN ('legacy','prepared','dispatched','completed')` 计入 failed——`unknown`/`not_sent`/`remote_unknown` 均会落入 failed_attempts，需确认新读取层把三者拆出，否则 unknown 被误计为失败。\n\n6. **旧 HTTP 兼容** ✅ 可证明：`migrate` 逐列 ALTER + 存在性复查，幂等；`status` 缺省 `'legacy'`；`attempt_id IS NULL` 归入 `legacy_records`；测试断言旧行 run_id 为 None 且\"不猜测补齐\"。唯一索引 `idx_chat_usage_attempt` 注意：`attempt_id` 为 NULL 的旧行不冲突（SQLite 唯一索引允许多 NULL），旧库兼容成立。\n\n### 结论与建议\n\n- **可证明缺陷**：① HTTP↔ACP 同 attempt 的关联键未定义，若按 call/run 猜配会破坏每-attempt-一次；② 现有 `failed_attempts` 口径会把 `unknown`/`not_sent` 吞并，新字段必须显式拆出。两者都需在合并 SQL 中固定，建议最小实现：以 `acp:` 前缀行权威 scope 为锚，HTTP 行仅在 `call_id AND turn_id AND workspace AND room` 全等时并入 tokens。\n- **待实测**：prepared 迁移 unknown 的陈旧行兜底、NULL created_at 排序、缺台账旧库回退（方案已声明照读 HTTP，合理）。\n- 不扩展为第二账本的边界保持得当；`record_acp_attempt` 删除不影响既有 HTTP 路径（无调用点）。\n\nACP统计合并方案审查完成",
+          "kind": "assistant-reply"
+        }
+      ]
+    }
+  ],
+  "facts": "正式100无需刷新显示外部消息与回复；单次真实计算器审查统计设计。模型建议需主会话核源码，不能当验收事实。"
+}

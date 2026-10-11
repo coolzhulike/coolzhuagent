@@ -1,0 +1,10 @@
+[
+  {
+    "file": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+    "sha256": "9c70c4bf617f828764effea0df19c382c13a5d298d26bc30718c143b714b0170"
+  },
+  {
+    "file": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+    "sha256": "c5310ab54baf526beffbed372859a1ada63ff339874de8dbec64b720127379e0"
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "version": "0.2.116",
+  "source_commit": "aa72c2545d3178ec993a01bc8281c7bba1c0d847",
+  "exit_code": 0,
+  "stdout": "build-stdout-replay.log",
+  "stderr": "build-stderr-replay.log",
+  "first_outer_wait": "未捕获真实子退出，不计成功；仅停止精确身份的自有协调进程，不停止编译器助手"
+}

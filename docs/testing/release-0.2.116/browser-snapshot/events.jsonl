@@ -1,0 +1,8 @@
+{"kind": "http-get", "role": "OLD", "path": "/old.html", "host": "127.0.0.1:52279", "server_ns": 823492301025100, "received_unix_ns": 1791534779861121000}
+{"kind": "loaded", "role": "OLD", "page_ms": 1791534779923, "trusted": true, "server_ns": 823492370362600, "received_unix_ns": 1791534779930461800}
+{"kind": "document-script-start", "role": "OLD", "page_ms": 1791534779919.3, "server_ns": 823492370535000, "received_unix_ns": 1791534779930633700}
+{"kind": "pointerdown", "role": "OLD", "page_ms": 1791534853713.9, "trusted": true, "target": "target", "server_ns": 823566156669700, "received_unix_ns": 1791534853720811700}
+{"kind": "pointerup", "role": "OLD", "page_ms": 1791534853715.3, "trusted": true, "target": "target", "server_ns": 823566158341000, "received_unix_ns": 1791534853722483500}
+{"kind": "click", "role": "OLD", "page_ms": 1791534853715.5999, "trusted": true, "target": "target", "server_ns": 823566158817500, "received_unix_ns": 1791534853722959400}
+{"kind": "observing-phase-found", "facts": {"run_id": "run-chat-02f7bc4831aa13fb505b3b026d18b6337d2044a03c83ea5c", "cu_call_id": "cu-session-1791131217833-chat-turn-1791534823884-0-tool-8d3cee4051a495ff81ee528c1f9fd42beacea15de76adeb8c638fafd955be01a", "cu_state": "observing", "steps": [[0, "sent", "released", 1791534853732]], "observation_requested": {"event_id": 3402, "created_at": 1791534853799, "payload": {"request_id": "3ea642ab75bc930b80b107dc3ad63e11", "stage": "registered"}}}, "server_ns": 823566240796200, "received_unix_ns": 1791534853804943200}
+{"kind": "phase-ready", "role": "OLD", "page_ms": 1791534853803.7, "server_ns": 823566245699300, "received_unix_ns": 1791534853809846100}

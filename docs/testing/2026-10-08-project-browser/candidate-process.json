@@ -1,0 +1,41 @@
+{
+  "stage": "098之后源码候选，非正式安装版",
+  "process": {
+    "pid": 6488,
+    "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-08-release-098\\project-browser-candidate\\bin\\coolzhu-web-console.exe",
+    "created_100ns": 134359633906630433,
+    "sha256": "7dc2be088f9848985e75104b271ad10c91ba8bb8adfcbb365655498d503dd62b"
+  },
+  "original": {
+    "shell_sha256": "bde882cd1992495e86d93b24f141e48b43a8cf15deccc9fe90d23d18fa4843c2",
+    "web_pid": 24620,
+    "shell_pid": 26532,
+    "web_sha256": "bdc4925e363c0b83b23419956f67702bca9a94dc1e8b42cbf108ef0de7c44c39",
+    "port": 8765,
+    "web_started": "2026-10-08T19:41:43.0476888Z",
+    "stage": "0.2.98 Program Files正式安装版",
+    "web_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "shell_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "shell_started": "2026-10-08T19:39:56.0278369Z"
+  },
+  "before": {
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ],
+    "counts": {
+      "devin_acp_attempts": 929,
+      "chat_room_messages": 1142,
+      "chat_usage_events": 539
+    }
+  }
+}

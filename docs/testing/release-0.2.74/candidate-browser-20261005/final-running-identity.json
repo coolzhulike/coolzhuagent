@@ -1,0 +1,20 @@
+{
+  "stage": "源码候选实操终态",
+  "captured_at": "2026-10-05T22:02:22.0449293+08:00",
+  "input_safety_root": "C:/Users/zhupu/AppData/Local/CoolzhuAgent/input-safety",
+  "workspace": "C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent/tmp/2026-10-04-devin-models/workspace",
+  "binaries": [
+    {
+      "pid": 28936,
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-web-console.exe",
+      "sha256": "B1E9458D74ED247E55045D9E410B4647AC1374F932FC2E7645EE48E052AA92C7",
+      "command_line": "\"C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-web-console.exe\""
+    },
+    {
+      "pid": 27332,
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-tauri-shell.exe",
+      "sha256": "12237C7232FFF24003E48F9D620B1350A96C86BE3D160569978A629A90D60FE5",
+      "command_line": "\"C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-tauri-shell.exe\" "
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "run_id": "run-chat-87e0fca5ee235ca6c16138308bd78f26e8934b7783817a69",
+  "turn_id": "chat-turn-1791167352935-1",
+  "status": "completed",
+  "attempts": [
+    {
+      "attempt_id": "c26c7fce75e65c575f140e176609806cbbb7df29046a4b52",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": true,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      }
+    }
+  ],
+  "tools": [
+    {
+      "name": "grep_search",
+      "status": "completed",
+      "count": 7
+    },
+    {
+      "name": "read_file",
+      "status": "completed",
+      "count": 5
+    }
+  ]
+}

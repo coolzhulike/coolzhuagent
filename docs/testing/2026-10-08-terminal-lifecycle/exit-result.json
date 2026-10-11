@@ -1,0 +1,14 @@
+{
+  "stage": "097之后源码候选",
+  "old_handle": "4ce1b1cb1749516f8cda04f79d1c93cb",
+  "exit_requested": 23,
+  "closed_response": {
+    "active": true,
+    "handle": "4ce1b1cb1749516f8cda04f79d1c93cb",
+    "next_cursor": 1713,
+    "truncated": true,
+    "closed": true,
+    "message": "终端已退出"
+  },
+  "generated_model_requests": 0
+}

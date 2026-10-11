@@ -1,0 +1,86 @@
+{
+  "prefix": "BU-INSTALLED-083-FRAME-SCROLL-PARENT-20261006",
+  "run": {
+    "id": "run-chat-6556c6bff5ba1f3a8940782d62c56f0f063d64e90fbee134",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    },
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    },
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "events_during_cu": [
+    {
+      "case": "SCROLL-PARENT",
+      "type": "wheel",
+      "at_ms": 1791259399386.5,
+      "target": "DIV",
+      "isTrusted": true,
+      "deltaY": 266,
+      "received_ms": 1791259399390.3452
+    },
+    {
+      "case": "SCROLL-PARENT",
+      "type": "scroll",
+      "at_ms": 1791259399387.0999,
+      "y": 266,
+      "isTrusted": true,
+      "received_ms": 1791259399392.3667
+    }
+  ],
+  "calls": [
+    {
+      "state": "succeeded",
+      "result": {
+        "status": "succeeded",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "started_at_ms": 1791259397278,
+          "completed_at_ms": 1791259399396
+        }
+      ],
+      "planner": [
+        {
+          "request_kind": "computer_use_planning",
+          "model": "swe-2-medium",
+          "started_at_ms": 1791259390245,
+          "completed_at_ms": 1791259397273
+        },
+        {
+          "request_kind": "computer_use_browser_readonly_verification",
+          "model": "swe-2-medium",
+          "started_at_ms": 1791259400163,
+          "completed_at_ms": 1791259404692
+        }
+      ]
+    }
+  ],
+  "raw_browser_facts": "tmp/2026-10-06-browser-boundaries/BU-INSTALLED-083-FRAME-SCROLL-PARENT-20261006-browser-facts.json"
+}

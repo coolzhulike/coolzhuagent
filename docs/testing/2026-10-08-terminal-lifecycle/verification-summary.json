@@ -1,0 +1,31 @@
+{
+  "stage": "0.2.97之后源码候选；非正式安装验收",
+  "offline_web_build_exit": 0,
+  "windows_process_guard": {
+    "passed": 54,
+    "failed": 0,
+    "ignored": 3
+  },
+  "targeted_real_conpty": {
+    "test": "conpty::tests::real_powershell_survives_interrupt_and_job_close",
+    "passed": 1,
+    "failed": 0,
+    "proof": [
+      "真实PowerShell落盘Unicode内容完全一致",
+      "Ctrl+C恢复提示符且后续命令可运行",
+      "关闭Job后持有的后代Win32进程句柄变为signaled"
+    ]
+  },
+  "notes": [
+    "首次--exact短名匹配0项，不计通过",
+    "启动诊断首个CHILDREADY因参数引号剥落未通过；后续真实Unicode与PSReadLine=0通过",
+    "显示探针首轮没有推进分页cursor而超时；修正采证脚本后成功，保留UI的两次显示行",
+    "JS侧栏修补已经offline build；静态root提供新JS，后台仍是同一Unicode修补候选"
+  ],
+  "web_console": {
+    "passed": 1407,
+    "failed": 0,
+    "ignored": 6
+  },
+  "js_syntax_exit": 0
+}

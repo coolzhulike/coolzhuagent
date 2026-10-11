@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "BU-TRANSITION-20261005-K2：新的独立真实浏览器任务，忽略旧轮。只提交一次computer_use_perform，完整正式六项：objective=在当前右栏浏览器先单击进入目标页自然跳转，再用类型化navigate导航到http://127.0.0.1:52616/final.html；surface=browser；target只含url=http://127.0.0.1:52616/source.html；success_criteria=[\"最新实际页面URL为http://127.0.0.1:52616/final.html\", \"最新页面显示FINAL-NAV-20261005\"]；constraints=[只操作当前右栏原生浏览器，不用其他MCP或桌面工具，不换模型，一次click后一次navigate，不滚动不输入，不点击目标页，每步使用本轮新观察节点，任一失败或取消立即停止，不重试不补发，释放不等于目标完成]；max_actions=2。running仅wait原job_id到终态，不重复perform。依据真实页面事实和宿主回执报告，结论必须显示在当前聊天室。",
+  "selected_message_ids": [],
+  "attachments": []
+}

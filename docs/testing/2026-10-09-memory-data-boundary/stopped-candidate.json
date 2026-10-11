@@ -1,0 +1,17 @@
+{
+  "previous": {
+    "port": 8765,
+    "shell_pid": 28952,
+    "shell_started": "2026-10-09T23:11:14.3709226Z",
+    "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-memory-data-boundary\\candidate-bundle\\bin\\coolzhu-tauri-shell.exe",
+    "shell_sha256": "648f259efc601b1bbfa7a469f716de794b096ac9e224e387ad54639063a908fb",
+    "web_sha256": "0ee0a4721ec4e36c9df6795d329e0eb9781c8fd29ca7920e8deab109df5c4fe2",
+    "web_started": "2026-10-09T23:11:12.7917855Z",
+    "web_pid": 3924,
+    "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-memory-data-boundary\\candidate-bundle\\bin\\coolzhu-web-console.exe",
+    "stage": "记忆资料信任边界源码候选",
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace"
+  },
+  "identity_verified": true,
+  "purpose": "候选真实任务已终态，恢复Program Files正式125"
+}

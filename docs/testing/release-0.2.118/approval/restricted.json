@@ -1,0 +1,11 @@
+{
+  "room_id": "room-1791131523339",
+  "room_name": "SWE-2 Browser与Paint真实验收",
+  "permission_profile": "workspace-write",
+  "full_access": false,
+  "dev_open_permissions": false,
+  "effective_permission_profile": "workspace-write",
+  "effective_full_access": false,
+  "warning": "该权限完全允许操作用户电脑文件，有一定风险",
+  "updated_at": 1791542285153
+}

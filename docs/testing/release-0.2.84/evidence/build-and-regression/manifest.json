@@ -1,0 +1,26 @@
+{
+  "source_commit": "82f769611a9b35cc947e8615575868e5cc34d8b9",
+  "stage": "正常发布链及候选既有回归；日志保留实际来源",
+  "files": [
+    {
+      "file": "build-msi-084.log",
+      "length": 72195,
+      "sha256": "289956259f606d5ea2ee64ceaccaebaec99570f30ea53997684dd430cc0c9b65"
+    },
+    {
+      "file": "build-web-navigation-final.log",
+      "length": 49512,
+      "sha256": "11c3fc7c9ece27d2c962df65f506ca6ce43391133a311fbe7622a4886aba244d"
+    },
+    {
+      "file": "navigation-regression-final.log",
+      "length": 22660,
+      "sha256": "021e2e1a0eeb723aecf68ef025493f4773c9f8777c970fe2226fd79e0d436904"
+    },
+    {
+      "file": "web-regression-final.log",
+      "length": 146205,
+      "sha256": "5ac3f2cef0bc3fdc81ea56927d12fedcbf56b1ff6bf4e65a2eb5e3d8b58b9d24"
+    }
+  ]
+}

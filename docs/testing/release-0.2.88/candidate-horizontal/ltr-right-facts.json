@@ -1,0 +1,130 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791359206133-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-HORIZONTAL-LTR-RIGHT-20261007：仅调用一次computer_use_perform，max_actions=1。操作当前右栏内置原生浏览器，不要调用外部浏览器或其它工具。使用当前HORIZONTAL-LTR-CHILD独立子文档的RootWebArea新鲜dom_ref，只向right滚动一次，amount=1。不要选父页面、不要点击控件、不要导航或用脚本设置位置，失败或边界阻止后立即停止且不补发。目标是只在子页面发生该方向横向滚动，父横向位置和父滚轮次数必须保持0；如果当前已到该方向边界，应not_sent、零滚轮，不能把blocked说成成功。通过当前页面原文子横向位置、子滚轮次数与父位置报告实际结果。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791359206232
+  },
+  "run": {
+    "id": "run-chat-75b53a961552ba59fb8c3519110cd5a37ac48c61f3abeefa",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791359206133-0-tool-d419756865c334ddbeb0b358c326326481be8760026fbf179f11eab0a84e1b23",
+      "provider_tool_call_id": "tool-d419756865c334ddbeb0b358c326326481be8760026fbf179f11eab0a84e1b23",
+      "turn_id": "chat-turn-1791359206133-0",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791359206133-0\u001fbrowser\u001f在当前右栏内置原生浏览器的horizontal-ltr-child子文档中，仅向其rootwebarea横向向右滚动一次（amount=1）；父页面横向位置与父滚轮次数保持0\u001f\u001f子横向位置向右滚动一次生效|子滚轮次数：1|父横向位置：0|父滚轮次数：0\u001f只操作当前右栏内置原生浏览器，不调用外部浏览器或其它工具|使用当前horizontal-ltr-child独立子文档的rootwebarea新鲜dom_ref，只向right滚动一次，amount=1；不选父页面、不点击控件、不导航、不用脚本设置位置|失败或边界阻止后立即停止且不补发；若已到边界则not_sent、零滚轮，不把blocked说成成功|以当前页面原文的子横向位置、子滚轮次数与父位置报告实际结果",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏内置原生浏览器，不调用外部浏览器或其它工具",
+          "使用当前HORIZONTAL-LTR-CHILD独立子文档的RootWebArea新鲜dom_ref，只向right滚动一次，amount=1；不选父页面、不点击控件、不导航、不用脚本设置位置",
+          "失败或边界阻止后立即停止且不补发；若已到边界则not_sent、零滚轮，不把blocked说成成功",
+          "以当前页面原文的子横向位置、子滚轮次数与父位置报告实际结果"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏内置原生浏览器的HORIZONTAL-LTR-CHILD子文档中，仅向其RootWebArea横向向右滚动一次（amount=1）；父页面横向位置与父滚轮次数保持0",
+        "success_criteria": [
+          "子横向位置向右滚动一次生效",
+          "子滚轮次数：1",
+          "父横向位置：0",
+          "父滚轮次数：0"
+        ],
+        "surface": "browser"
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 6,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791359831917,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791359206133-0-tool-d419756865c334ddbeb0b358c326326481be8760026fbf179f11eab0a84e1b23",
+        "provider_tool_call_id": "tool-d419756865c334ddbeb0b358c326326481be8760026fbf179f11eab0a84e1b23",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "observed page does not match the requested URL or has no facts",
+        "error": {
+          "code": "native_browser_observation_unavailable",
+          "message": "observed page does not match the requested URL or has no facts",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:39dc5573f671d315c374b7e96cdd110a"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791360106133
+            }
+          },
+          "cu_deadline_ms": 1791359831917,
+          "cu_deadline_established_at_ms": 1791359231917,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791359231917,
+      "updated_at_ms": 1791359232502,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [],
+      "actions": []
+    }
+  ],
+  "trusted_page_events": [],
+  "attempts": [
+    {
+      "attempt_id": "84ed12b2960f0c58e6896818db01ebf1135f818bf8557b00",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

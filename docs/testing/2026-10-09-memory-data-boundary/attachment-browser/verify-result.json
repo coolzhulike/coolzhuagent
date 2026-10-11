@@ -1,0 +1,9 @@
+{
+  "command": [
+    "python",
+    "tmp\\2026-10-09-memory-data-boundary\\attachment-browser\\verify.py"
+  ],
+  "actual_exit_code": 0,
+  "tool_chunk": "30e9a5",
+  "passed": true
+}

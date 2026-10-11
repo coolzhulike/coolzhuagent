@@ -1,0 +1,1983 @@
+[
+  {
+    "doc": "81570d92-e4f7-437c-96b8-36115b4ab602",
+    "url": "http://127.0.0.1:49944/source.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "popup",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "81570d92-e4f7-437c-96b8-36115b4ab602",
+        "url": "http://127.0.0.1:49944/source.html",
+        "time": 1791205628760.5999,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205628763
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "popup",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "81570d92-e4f7-437c-96b8-36115b4ab602",
+        "url": "http://127.0.0.1:49944/source.html",
+        "time": 1791205628761.4,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205628764
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "81570d92-e4f7-437c-96b8-36115b4ab602",
+        "url": "http://127.0.0.1:49944/source.html",
+        "time": 1791205641724.8,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205641726
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "a2f7c32e-ae39-4d4b-b674-10112e293256",
+    "url": "http://127.0.0.1:49944/explicit.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "a2f7c32e-ae39-4d4b-b674-10112e293256",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791205660029.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205660032
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "a2f7c32e-ae39-4d4b-b674-10112e293256",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791205660030,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205660035
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "a2f7c32e-ae39-4d4b-b674-10112e293256",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791205797420.7998,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205797423
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "76a66854-5a40-43c2-bb88-5be23ba7e826",
+    "url": "http://127.0.0.1:49944/slow.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [],
+    "pointerup": [],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "76a66854-5a40-43c2-bb88-5be23ba7e826",
+        "url": "http://127.0.0.1:49944/slow.html",
+        "time": 1791205821912,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205821914
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "1eefa2b5-1949-4b4d-85d9-c46037b0dbb0",
+    "url": "http://127.0.0.1:49944/explicit.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "1eefa2b5-1949-4b4d-85d9-c46037b0dbb0",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791205844056,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205844059
+      },
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "",
+        "x": 350.66668701171875,
+        "y": 464.66668701171875,
+        "rect": [
+          0,
+          0,
+          446,
+          389.9583435058594
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "1eefa2b5-1949-4b4d-85d9-c46037b0dbb0",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791205877000.9001,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205877009
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "1eefa2b5-1949-4b4d-85d9-c46037b0dbb0",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791205844056.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205844061
+      },
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 350.66668701171875,
+        "y": 464.66668701171875,
+        "rect": [
+          0,
+          0,
+          446,
+          389.9583435058594
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "1eefa2b5-1949-4b4d-85d9-c46037b0dbb0",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791205877017.2002,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205877020
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [],
+    "first_move": [
+      {
+        "kind": "pointermove",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 350.66668701171875,
+        "y": 464.66668701171875,
+        "rect": [
+          0,
+          0,
+          446,
+          389.9583435058594
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "1eefa2b5-1949-4b4d-85d9-c46037b0dbb0",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791205876979.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791205876983
+      }
+    ],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "563c919c-6d4b-4d81-a794-694b9a785ffc",
+    "url": "http://127.0.0.1:49944/form.html",
+    "dpr_values": [
+      1.5,
+      1.6500000953674316,
+      1.875
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "",
+        "x": 340.66668701171875,
+        "y": 442,
+        "rect": [
+          32,
+          313.9583435058594,
+          366.66668701171875,
+          700
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "563c919c-6d4b-4d81-a794-694b9a785ffc",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791206223262.4001,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791206223264
+      },
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "name",
+        "x": 210.00001525878906,
+        "y": 267,
+        "rect": [
+          44.000003814697266,
+          234.61668395996094,
+          332.4000244140625,
+          65.20000457763672
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "563c919c-6d4b-4d81-a794-694b9a785ffc",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791206277975.2,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791206277978
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 340.66668701171875,
+        "y": 442,
+        "rect": [
+          32,
+          313.9583435058594,
+          366.66668701171875,
+          700
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "563c919c-6d4b-4d81-a794-694b9a785ffc",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791206223279,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791206223282
+      },
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "name",
+        "x": 210.00001525878906,
+        "y": 267,
+        "rect": [
+          44.000003814697266,
+          234.61668395996094,
+          332.4000244140625,
+          65.20000457763672
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "563c919c-6d4b-4d81-a794-694b9a785ffc",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791206277976.5,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791206277986
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [],
+    "first_move": [
+      {
+        "kind": "pointermove",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 340.66668701171875,
+        "y": 442,
+        "rect": [
+          32,
+          313.9583435058594,
+          366.66668701171875,
+          700
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "563c919c-6d4b-4d81-a794-694b9a785ffc",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791206223240.1,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791206223242
+      }
+    ],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "8eba8d58-3d71-45ac-b015-77fb7b12c83b",
+    "url": "http://127.0.0.1:49944/form.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [],
+    "pointerup": [],
+    "node_replaced": [],
+    "pagehide": [],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+    "url": "http://127.0.0.1:49944/form.html",
+    "dpr_values": [
+      1.5,
+      1.6500000953674316,
+      1.875
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "",
+        "x": 290.66668701171875,
+        "y": 392,
+        "rect": [
+          32,
+          313.9583435058594,
+          366.66668701171875,
+          700
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207037193.2,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207037195
+      },
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "name",
+        "x": 210.00001525878906,
+        "y": 267,
+        "rect": [
+          44.000003814697266,
+          234.61668395996094,
+          332.4000244140625,
+          65.20000457763672
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207065024.1,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207065026
+      },
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "agree",
+        "x": 51.000003814697266,
+        "y": 235.00001525878906,
+        "rect": [
+          44.000003814697266,
+          228.15000915527344,
+          13.000000953674316,
+          13.000000953674316
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207148878.2,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 796.2666625976562,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207148881
+      },
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "submit",
+        "x": 127.00000762939453,
+        "y": 298.0000305175781,
+        "rect": [
+          44.000003814697266,
+          265.1500244140625,
+          165.20001220703125,
+          65.20000457763672
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207170227.8,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 796.2666625976562,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207170230
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 290.66668701171875,
+        "y": 392,
+        "rect": [
+          32,
+          313.9583435058594,
+          366.66668701171875,
+          700
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207037210,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207037212
+      },
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "name",
+        "x": 210.00001525878906,
+        "y": 267,
+        "rect": [
+          44.000003814697266,
+          234.61668395996094,
+          332.4000244140625,
+          65.20000457763672
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207065025.2,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207065032
+      },
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "agree",
+        "x": 51.000003814697266,
+        "y": 235.00001525878906,
+        "rect": [
+          44.000003814697266,
+          228.15000915527344,
+          13.000000953674316,
+          13.000000953674316
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207148879.3,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 796.2666625976562,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207148888
+      },
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "submit",
+        "x": 127.00000762939453,
+        "y": 298.0000305175781,
+        "rect": [
+          44.000003814697266,
+          265.1500244140625,
+          165.20001220703125,
+          65.20000457763672
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207170228.6,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 796.2666625976562,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207170231
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207241925.6,
+        "dpr": 1.875,
+        "scale": 1,
+        "pageY": 796.2666625976562,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207241927
+      }
+    ],
+    "first_move": [
+      {
+        "kind": "pointermove",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 290.66668701171875,
+        "y": 392,
+        "rect": [
+          32,
+          313.9583435058594,
+          366.66668701171875,
+          700
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "af3458b8-6c88-4f9d-ba28-1f5be79b3592",
+        "url": "http://127.0.0.1:49944/form.html",
+        "time": 1791207037173,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207037175
+      }
+    ],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "ce3aceaa-5f00-434a-9b1e-75f9bec17680",
+    "url": "http://127.0.0.1:49944/replace.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "replace",
+        "x": 138,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          188,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "ce3aceaa-5f00-434a-9b1e-75f9bec17680",
+        "url": "http://127.0.0.1:49944/replace.html",
+        "time": 1791207324812.7,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207324815
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 138,
+        "y": 237,
+        "rect": [
+          8,
+          8,
+          430,
+          320.9583435058594
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "ce3aceaa-5f00-434a-9b1e-75f9bec17680",
+        "url": "http://127.0.0.1:49944/replace.html",
+        "time": 1791207324814.6,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207324817
+      }
+    ],
+    "node_replaced": [
+      {
+        "kind": "node_replaced",
+        "held": true,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "ce3aceaa-5f00-434a-9b1e-75f9bec17680",
+        "url": "http://127.0.0.1:49944/replace.html",
+        "time": 1791207324813.2,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207324815
+      }
+    ],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "ce3aceaa-5f00-434a-9b1e-75f9bec17680",
+        "url": "http://127.0.0.1:49944/replace.html",
+        "time": 1791207388745.1,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207388747
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "ac07dbde-9ec1-4d6b-9555-906f59521ad3",
+    "url": "http://127.0.0.1:49944/micro.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "navigate",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "ac07dbde-9ec1-4d6b-9555-906f59521ad3",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207425201.9,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207425206
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "navigate",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "ac07dbde-9ec1-4d6b-9555-906f59521ad3",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207425202.7998,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207425209
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "ac07dbde-9ec1-4d6b-9555-906f59521ad3",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207425211.5999,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207425215
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "6bde61f9-2e4b-437d-95ec-325eaf8138d1",
+    "url": "http://127.0.0.1:49944/micro-target.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "",
+        "x": 300.66668701171875,
+        "y": 462,
+        "rect": [
+          0,
+          0,
+          446,
+          282.9583435058594
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "6bde61f9-2e4b-437d-95ec-325eaf8138d1",
+        "url": "http://127.0.0.1:49944/micro-target.html",
+        "time": 1791207500627.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207500633
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 300.66668701171875,
+        "y": 462,
+        "rect": [
+          0,
+          0,
+          446,
+          282.9583435058594
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "6bde61f9-2e4b-437d-95ec-325eaf8138d1",
+        "url": "http://127.0.0.1:49944/micro-target.html",
+        "time": 1791207500644.7,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207500647
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "6bde61f9-2e4b-437d-95ec-325eaf8138d1",
+        "url": "http://127.0.0.1:49944/micro-target.html",
+        "time": 1791207521990.1,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207521991
+      }
+    ],
+    "first_move": [
+      {
+        "kind": "pointermove",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 300.66668701171875,
+        "y": 462,
+        "rect": [
+          0,
+          0,
+          446,
+          282.9583435058594
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "6bde61f9-2e4b-437d-95ec-325eaf8138d1",
+        "url": "http://127.0.0.1:49944/micro-target.html",
+        "time": 1791207500607,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207500609
+      }
+    ],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "4525f73f-4a50-4d34-91a3-b5a4376178c6",
+    "url": "http://127.0.0.1:49944/micro.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "navigate",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "4525f73f-4a50-4d34-91a3-b5a4376178c6",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207548663.3,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207548666
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "navigate",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "4525f73f-4a50-4d34-91a3-b5a4376178c6",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207548664.0999,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207548669
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "4525f73f-4a50-4d34-91a3-b5a4376178c6",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207548673.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207548675
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "d66ceba6-ca83-4bed-9f89-306d5683a641",
+    "url": "http://127.0.0.1:49944/micro-target.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [],
+    "pointerup": [],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "d66ceba6-ca83-4bed-9f89-306d5683a641",
+        "url": "http://127.0.0.1:49944/micro-target.html",
+        "time": 1791207615772.8,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207615774
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "a3ae85ed-eb35-4065-b031-b328fbc303d8",
+    "url": "http://127.0.0.1:49944/micro.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "navigate",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "a3ae85ed-eb35-4065-b031-b328fbc303d8",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207643807.1,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207643811
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "navigate",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "a3ae85ed-eb35-4065-b031-b328fbc303d8",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207643807.7,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207643814
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "a3ae85ed-eb35-4065-b031-b328fbc303d8",
+        "url": "http://127.0.0.1:49944/micro.html",
+        "time": 1791207643815.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207643822
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "8fbafd1d-6a91-472c-afdb-aa255222f2de",
+    "url": "http://127.0.0.1:49944/micro-target.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [],
+    "pointerup": [],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "8fbafd1d-6a91-472c-afdb-aa255222f2de",
+        "url": "http://127.0.0.1:49944/micro-target.html",
+        "time": 1791207712113,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207712115
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "1a966724-bb4c-4441-b0cb-210f947d7640",
+    "url": "http://127.0.0.1:49944/source.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "popup",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "1a966724-bb4c-4441-b0cb-210f947d7640",
+        "url": "http://127.0.0.1:49944/source.html",
+        "time": 1791207744247.5999,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207744250
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "popup",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "1a966724-bb4c-4441-b0cb-210f947d7640",
+        "url": "http://127.0.0.1:49944/source.html",
+        "time": 1791207744248.5999,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207744252
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "1a966724-bb4c-4441-b0cb-210f947d7640",
+        "url": "http://127.0.0.1:49944/source.html",
+        "time": 1791207755646.2,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207755648
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "eacde3a7-0372-428c-8f08-356172abc28d",
+    "url": "http://127.0.0.1:49944/explicit.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "eacde3a7-0372-428c-8f08-356172abc28d",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791207779276.6,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207779279
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "eacde3a7-0372-428c-8f08-356172abc28d",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791207779277.3,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207779284
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "eacde3a7-0372-428c-8f08-356172abc28d",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791207929907.1,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207929909
+      }
+    ],
+    "first_move": [
+      {
+        "kind": "pointermove",
+        "trusted": true,
+        "buttons": 0,
+        "id": "",
+        "x": 420.66668701171875,
+        "y": 0,
+        "rect": [
+          0,
+          0,
+          446,
+          389.9583435058594
+        ],
+        "firstMove": 0,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "eacde3a7-0372-428c-8f08-356172abc28d",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791207906146.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207906151
+      }
+    ],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "98c3cee9-c0a6-4dc2-91b0-5829b5a507d3",
+    "url": "http://127.0.0.1:49944/slow.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [],
+    "pointerup": [],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "98c3cee9-c0a6-4dc2-91b0-5829b5a507d3",
+        "url": "http://127.0.0.1:49944/slow.html",
+        "time": 1791207967108.7998,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207967111
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "b960188e-4839-4766-be66-ba3209d9a6b0",
+    "url": "http://127.0.0.1:49944/explicit.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "b960188e-4839-4766-be66-ba3209d9a6b0",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791207989272.7002,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207989276
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "b960188e-4839-4766-be66-ba3209d9a6b0",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791207989273.3,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791207989277
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "b960188e-4839-4766-be66-ba3209d9a6b0",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791208093906.7002,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791208093908
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "034aab27-c529-47ad-9a44-8bf2caac67b2",
+    "url": "http://127.0.0.1:49944/source.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [],
+    "pointerup": [],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "034aab27-c529-47ad-9a44-8bf2caac67b2",
+        "url": "http://127.0.0.1:49944/source.html",
+        "time": 1791208126127.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791208126129
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "dd82da4d-f39e-45ca-b24c-fa5fc8aef159",
+    "url": "http://127.0.0.1:49944/slow.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [],
+    "pointerup": [],
+    "node_replaced": [],
+    "pagehide": [
+      {
+        "kind": "pagehide",
+        "held": false,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "dd82da4d-f39e-45ca-b24c-fa5fc8aef159",
+        "url": "http://127.0.0.1:49944/slow.html",
+        "time": 1791208137606.2,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791208137609
+      }
+    ],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  },
+  {
+    "doc": "d85949d6-ace3-466b-8fbe-3ae0f1584794",
+    "url": "http://127.0.0.1:49944/explicit.html",
+    "dpr_values": [
+      1.5
+    ],
+    "pointerdown": [
+      {
+        "kind": "pointerdown",
+        "trusted": true,
+        "buttons": 1,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "d85949d6-ace3-466b-8fbe-3ae0f1584794",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791208159775.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791208159778
+      }
+    ],
+    "pointerup": [
+      {
+        "kind": "pointerup",
+        "trusted": true,
+        "buttons": 0,
+        "id": "confirm",
+        "x": 116,
+        "y": 237,
+        "rect": [
+          44,
+          203.95834350585938,
+          144,
+          66
+        ],
+        "firstMove": null,
+        "orphanDown": 0,
+        "orphanUp": 0,
+        "doc": "d85949d6-ace3-466b-8fbe-3ae0f1584794",
+        "url": "http://127.0.0.1:49944/explicit.html",
+        "time": 1791208159776.5,
+        "dpr": 1.5,
+        "scale": 1,
+        "pageY": 0,
+        "screen": [
+          1707,
+          960,
+          0,
+          0
+        ],
+        "server_ms": 1791208159782
+      }
+    ],
+    "node_replaced": [],
+    "pagehide": [],
+    "first_move": [],
+    "orphan_down_max": 0,
+    "orphan_up_max": 0
+  }
+]

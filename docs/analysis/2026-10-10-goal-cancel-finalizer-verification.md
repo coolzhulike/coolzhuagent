@@ -1,0 +1,9 @@
+# 执行中心取消与原Goal提交器联合验证
+
+基线427d162。将原goal_phase_token_finalizer_stop_wins_without_result_message_or_verdict升级为执行中心GoalExecution绑定和ExecutionService::cancel真实调用，不再直接调用底层interrupt。真实fixture含Goal/phase/run/claim；取消后索引拒绝提前finish，原record_goal_phase_model_result_at_path_with_claim接收迟到结果并提交interrupted，然后索引同步。
+
+保留原断言：结果消息为空、memory_eligible=false、goal paused、phase pending、active_run与verdict为空、run interrupted、只有一个run.interrupted事件，Goal有run-interrupted-needs-review。新增索引状态interrupted断言。最终终态不是手工SQL模拟。
+
+生产offline build actual exit0，24.62秒，tmp/analysis-goal-cancel-finalizer-build.txt；联合专项actual exit0，1通过0失败，0.26秒，tmp/analysis-goal-cancel-finalizer-tests.txt。生产代码未改，前一轮完整1455通过0失败6忽略；本轮未重复全量，也不把旧回归当作本轮新增断言结果。
+
+仍未覆盖真实run_goal_phase_once的在途HTTP模型等待、正在执行工具的副作用、原生执行页取消、正式provider或跨进程恢复。32WBS与正式验收保持未闭环。

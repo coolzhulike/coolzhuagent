@@ -1,0 +1,221 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791350747471-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-086-FOCUS4-20261006：继续当前唯一SWE-2-medium云端会话，只执行本条新的单动作任务。当前子输入已经人工聚焦，模型不得再click或重新聚焦。只调用一次computer_use_perform，参数为{\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:53530/parent.html\"},\"objective\":\"在当前右栏原生浏览器的OOP-INPUT-CHILD中，对已聚焦的子输入只输入FOCUS4；本轮文字规划期间若焦点被人工切到父输入，宿主应拒绝旧焦点的文字动作\",\"success_criteria\":[\"最新子输入内容：FOCUS4\",\"最新子输入次数：1；子提交次数：0\",\"最新父输入次数：0；父提交次数：0\"],\"constraints\":[\"仅操作当前右栏原生浏览器，不使用外部浏览器扩展；仅允许一次type FOCUS4，使用原本已聚焦子输入的本轮新鲜引用；不允许click、重新聚焦、按键、导航、滚动或其它工具；按当前response_schema交回原目标的文字计划\",\"人工可能在当前文字规划等待期间把焦点切到父输入；必须由宿主校验当前焦点；拒绝后立即停止，不重新观察补发、不重试、不另开perform，不执行任何旧任务\",\"各条验收分别引用最新对应StaticText的明确index和原文；如not_sent或失败如实报告\"],\"max_actions\":1}。next_tool为computer_use_respond时按本次schema交回同job_id/request_id完整JSON，其它running只computer_use_wait同一job至终态。不新建云端会话。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791350747706
+  },
+  "status": {
+    "message": "msg-1791350747471-user",
+    "run": {
+      "id": "run-chat-e0fbba2f10b9208b70506b556bc4e8a1f31fdfcabcd9df4a",
+      "state": "failed",
+      "stop_reason": null
+    },
+    "cu": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350747471-7-tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791350747471-7-tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+          "provider_tool_call_id": "tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+          "status": "blocked",
+          "stage": "execution",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "节点预检拒绝，未发送输入",
+          "error": {
+            "code": "native_browser_editor_not_focused",
+            "message": "节点预检拒绝，未发送输入",
+            "retryable": false,
+            "retry_owner": "none",
+            "receipt": {
+              "action_id": "browser:dom-d88824c4971701122ba8fd13d081a28b:1809fb773c076272",
+              "input_delivery": "not_sent",
+              "partial": false,
+              "effect": "not_observed",
+              "goal_verdict": "not_checked",
+              "input_release": "not_needed"
+            }
+          },
+          "attempts": 1,
+          "steps_completed": 0,
+          "evidence": [
+            "native-ax:1:2",
+            "native-observation:f38526fe493b7e44065a98fb23511f1e",
+            "native-ax:1:2",
+            "native-observation:f38526fe493b7e44065a98fb23511f1e"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791351647471
+              }
+            },
+            "cu_deadline_ms": 1791351371695,
+            "cu_deadline_established_at_ms": 1791350771695,
+            "cu_budget_ms": 600000
+          }
+        }
+      }
+    ]
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791350747471-7-tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+      "provider_tool_call_id": "tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+      "turn_id": "chat-turn-1791350747471-7",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791350747471-7\u001fbrowser\u001f在当前右栏原生浏览器的oop-input-child中，对已聚焦的子输入只输入focus4；本轮文字规划期间若焦点被人工切到父输入，宿主应拒绝旧焦点的文字动作\u001f||http://127.0.0.1:53530/parent.html|\u001f最新子输入内容：focus4|最新子输入次数：1；子提交次数：0|最新父输入次数：0；父提交次数：0\u001f仅操作当前右栏原生浏览器，不使用外部浏览器扩展；仅允许一次type focus4，使用原本已聚焦子输入的本轮新鲜引用；不允许click、重新聚焦、按键、导航、滚动或其它工具；按当前response_schema交回原目标的文字计划|人工可能在当前文字规划等待期间把焦点切到父输入；必须由宿主校验当前焦点；拒绝后立即停止，不重新观察补发、不重试、不另开perform，不执行任何旧任务|各条验收分别引用最新对应statictext的明确index和原文；如not_sent或失败如实报告",
+      "objective_json": {
+        "constraints": [
+          "仅操作当前右栏原生浏览器，不使用外部浏览器扩展；仅允许一次type FOCUS4，使用原本已聚焦子输入的本轮新鲜引用；不允许click、重新聚焦、按键、导航、滚动或其它工具；按当前response_schema交回原目标的文字计划",
+          "人工可能在当前文字规划等待期间把焦点切到父输入；必须由宿主校验当前焦点；拒绝后立即停止，不重新观察补发、不重试、不另开perform，不执行任何旧任务",
+          "各条验收分别引用最新对应StaticText的明确index和原文；如not_sent或失败如实报告"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏原生浏览器的OOP-INPUT-CHILD中，对已聚焦的子输入只输入FOCUS4；本轮文字规划期间若焦点被人工切到父输入，宿主应拒绝旧焦点的文字动作",
+        "success_criteria": [
+          "最新子输入内容：FOCUS4",
+          "最新子输入次数：1；子提交次数：0",
+          "最新父输入次数：0；父提交次数：0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:53530/parent.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791351371695,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350747471-7-tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+        "provider_tool_call_id": "tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_editor_not_focused",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-d88824c4971701122ba8fd13d081a28b:1809fb773c076272",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:f38526fe493b7e44065a98fb23511f1e",
+          "native-ax:1:2",
+          "native-observation:f38526fe493b7e44065a98fb23511f1e"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791351647471
+            }
+          },
+          "cu_deadline_ms": 1791351371695,
+          "cu_deadline_established_at_ms": 1791350771695,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791350771695,
+      "updated_at_ms": 1791350781667,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791350747471-7-tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "text_input",
+          "normalized_target": "dom-d88824c4971701122ba8fd13d081a28b",
+          "action_fingerprint": "913a49a995032f98",
+          "status": "failed",
+          "error_code": "native_browser_editor_not_focused",
+          "before_evidence_ref": "[\"native-ax:1:2\",\"native-observation:f38526fe493b7e44065a98fb23511f1e\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791350780839,
+          "completed_at_ms": 1791350781653,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791350747471-7-tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{\"redacted_fields\":true},\"kind\":\"text_input\",\"redacted_fields\":true,\"target\":\"dom-d88824c4971701122ba8fd13d081a28b\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 581,
+          "call_id": "cu-session-1791131217833-chat-turn-1791350747471-7-tool-db16d9d56eac586292d08450425d44eda19a42c72f253779f1667f9d34327536",
+          "turn_id": "chat-turn-1791350747471-7",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{\"redacted_fields\":true},\"kind\":\"text_input\",\"target\":\"dom-d88824c4971701122ba8fd13d081a28b\"},\"done\":false,\"observation_facts\":{\"candidate_count\":6,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":3,\"input_supported\":true,\"node_count\":36,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":2,\"textbox_candidate_count\":2,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791350771799,
+          "completed_at_ms": 1791350780833
+        }
+      ]
+    }
+  ],
+  "events": []
+}

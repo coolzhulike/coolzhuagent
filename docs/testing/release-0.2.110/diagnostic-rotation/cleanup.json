@@ -1,0 +1,14 @@
+[
+  {
+    "name": "contended",
+    "pid": 30204,
+    "exit_code": 1,
+    "termination": "自有候选测试服务，非业务取消证明"
+  },
+  {
+    "name": "normal",
+    "pid": 12604,
+    "exit_code": 1,
+    "termination": "自有候选测试服务，非业务取消证明"
+  }
+]

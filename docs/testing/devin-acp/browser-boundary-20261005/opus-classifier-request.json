@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读讨论，不改代码、不操作桌面、不运行测试、不使用子代理。新的真实SWE-2测试G在0输入时被approval_required阻断，分类external_communication。不是按钮名触发：模型最终CU objective是「在来源页单击进入目标页，仅观察网页自然跳转的结果，不向目标页发送任何输入」。目标页面真实普通localhost导航按钮，name=进入目标页。controller.rs的host_sensitive_semantic_category只拼objective、目标、参数和目标节点；classify_sensitive_semantics遇“发送”就分类外发，连否定的机械输入表述也误拦。已有normalize_objective_input_delivery只豁免发送一次普通点击/一次鼠标点击/一次点击/鼠标输入/键盘输入且宾语句尾边界完整，目标节点/参数不规整。\n拟做最小修复：在objective机械输入宾语清单增加“任何输入”，同样仅允许后接句尾或现有分隔符，不做泛化删除否定句。这样「不向目标页发送任何输入」是输入投递描述，不是外发消息；「发送任何输入记录给他人」「发送任何输入结果」「发送任何输入，发布消息」仍触发真正风险，目标name=发送消息、参数post/share等仍原样检查。\n请审查这项职责边界是否合理，有没有更小可行方案。不能建议读取所有页面文字作风险硬拦，不能为了这次测试放宽敏感发送按钮/安装/凭据检查，也不能声称完全访问能绕过未知释放。没有否定词完整解析时不要设计全语言语义parser。再讨论原生navigation：CDPmouseReleased成功是鼠标释放确认，不等于目标实现；不要求必须有旧页pointerup才能认释放，而是同时记录新文档变化和网页孤立事件。如果新文档up未产生、宿主released且无后续输入，可以算该场景释放通过；若没有实际命中pagehide到up之间，仍记未覆盖。最多1000中文。",
+  "selected_message_ids": [],
+  "attachments": []
+}

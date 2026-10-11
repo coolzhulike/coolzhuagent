@@ -1,0 +1,190 @@
+{
+  "run": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791579602892-0-tool-62bb729ed68ceb38488bd470b68a50c046702aaeea0faecfb7729370e4bf70de",
+    "state": "blocked",
+    "action_count": 9,
+    "replan_count": 0,
+    "no_progress_count": 0
+  },
+  "steps": [
+    {
+      "step_index": 0,
+      "action_type": "scroll",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "effect_observed",
+      "input_release_status": "not_needed"
+    },
+    {
+      "step_index": 1,
+      "action_type": "scroll",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "effect_observed",
+      "input_release_status": "not_needed"
+    },
+    {
+      "step_index": 2,
+      "action_type": "scroll",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "effect_observed",
+      "input_release_status": "not_needed"
+    },
+    {
+      "step_index": 3,
+      "action_type": "click",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "effect_observed",
+      "input_release_status": "released"
+    },
+    {
+      "step_index": 4,
+      "action_type": "text_input",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "effect_observed",
+      "input_release_status": "not_needed"
+    },
+    {
+      "step_index": 5,
+      "action_type": "key_combination",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "inconclusive",
+      "input_release_status": "released"
+    },
+    {
+      "step_index": 6,
+      "action_type": "scroll",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "effect_observed",
+      "input_release_status": "not_needed"
+    },
+    {
+      "step_index": 7,
+      "action_type": "click",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "inconclusive",
+      "input_release_status": "released"
+    },
+    {
+      "step_index": 8,
+      "action_type": "text_input",
+      "status": "completed_unverified",
+      "error_code": null,
+      "input_delivery": "sent",
+      "effect_status": "effect_observed",
+      "input_release_status": "not_needed"
+    }
+  ],
+  "observation_counts": [
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 1,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":66,\"outside_viewport_candidate_count\":2,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 2,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":69,\"outside_viewport_candidate_count\":2,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 2,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":69,\"outside_viewport_candidate_count\":2,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 3,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":69,\"outside_viewport_candidate_count\":2,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 3,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":0,\"input_supported\":true,\"node_count\":69,\"outside_viewport_candidate_count\":2,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 4,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":69,\"outside_viewport_candidate_count\":1,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 4,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":69,\"outside_viewport_candidate_count\":1,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 5,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":69,\"outside_viewport_candidate_count\":1,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 5,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":69,\"outside_viewport_candidate_count\":1,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 6,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":71,\"outside_viewport_candidate_count\":1,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 6,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":71,\"outside_viewport_candidate_count\":1,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 7,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":72,\"outside_viewport_candidate_count\":1,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 7,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":1,\"input_supported\":true,\"node_count\":72,\"outside_viewport_candidate_count\":1,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 8,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":75,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 8,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":75,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 9,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":75,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 9,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":75,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_browser_readonly_verification",
+      "observation_generation": 10,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":77,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    },
+    {
+      "request_kind": "computer_use_planning",
+      "observation_generation": 10,
+      "facts": "{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":77,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":3,\"textbox_candidate_count\":2,\"truncated\":false}"
+    }
+  ],
+  "page_reads": []
+}

@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "identity": "Coolzhu Agent",
+  "inference_requests": 1,
+  "token_exchange_http_status": 200,
+  "identity_verified": true,
+  "plan_permission_granted": true,
+  "credentials_persisted": false,
+  "catalog_http_status": 200,
+  "model_ids": [
+    "gpt-6.1-sol",
+    "gpt-6-astra",
+    "gpt-6-sol",
+    "gpt-6-luna",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna"
+  ],
+  "model": "gpt-6.1-sol",
+  "inference_http_status": 200,
+  "terminal_event": "response.completed",
+  "reply": "COOLZHU-CONNECTED-ba33bf6c",
+  "expected_reply": "COOLZHU-CONNECTED-ba33bf6c",
+  "usage": {
+    "input_tokens": 27,
+    "output_tokens": 16,
+    "total_tokens": 43
+  }
+}

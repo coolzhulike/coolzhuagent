@@ -1,0 +1,18 @@
+first=aaae54c354c67363ee40e173cdead2fa3bc94d32
+second=990f55a098222838e86eecc5c10ca64519d36b1d
+old_binary_after_commit=aaae54c354c67363ee40e173cdead2fa3bc94d32
+next_build_revision=990f55a098222838e86eecc5c10ca64519d36b1d
+PASS：提交改变后旧二进制版本不变，下次构建读取新提交
+cargo:rerun-if-changed=.
+cargo:rerun-if-env-changed=COOLZHU_GIT_SHA
+cargo:rerun-if-env-changed=VERGEN_GIT_SHA
+cargo:rerun-if-env-changed=GIT_COMMIT
+cargo:rerun-if-env-changed=GIT_HASH
+cargo:rerun-if-changed=C:/Users/zhupu/.codex/worktrees/integration-32wbs-20261010/coolzhuagent/tmp/build-identity-probe/.git/HEAD
+cargo:rerun-if-changed=C:/Users/zhupu/.codex/worktrees/integration-32wbs-20261010/coolzhuagent/tmp/build-identity-probe/.git/packed-refs
+cargo:rerun-if-changed=C:/Users/zhupu/.codex/worktrees/integration-32wbs-20261010/coolzhuagent/tmp/build-identity-probe/.git/refs/heads/master
+cargo:rustc-env=COOLZHU_COMPILED_GIT_SHA=aaae54c354c67363ee40e173cdead2fa3bc94d32
+production_function_expected=990f55a09822
+production_function_after_commit=990f55a09822
+PASS：实际生产函数无运行时Git查询，提交变化不改已编译版本
+PASS：显式打包SHA保持优先，2021 edition生产函数编译通过

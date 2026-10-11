@@ -1,0 +1,108 @@
+{
+  "events": [
+    {
+      "ts_ms": 1791202863596,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_window_created",
+      "message": "Startup performance window was created",
+      "fields": {
+        "pid": "28324"
+      }
+    },
+    {
+      "ts_ms": 1791202863808,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "started",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "0",
+        "host_elapsed_ms": "596",
+        "frame_count": "0",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1791202863816,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "assets_ready",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "182",
+        "host_elapsed_ms": "604",
+        "frame_count": "0",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1791202864107,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "first_frame",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "477",
+        "host_elapsed_ms": "895",
+        "frame_count": "1",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1791202870602,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "finished",
+        "mode": "daily",
+        "reason": "completed",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "6972",
+        "host_elapsed_ms": "7390",
+        "frame_count": "1476",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1791202870646,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_handoff",
+      "message": "Startup performance handed off to console",
+      "fields": {
+        "route": "reported-finish",
+        "console_visible": "true"
+      }
+    }
+  ],
+  "screenshot_sampling": "5帧原始窗口截图；帧3和帧4人物姿态明显不同；不是逐帧完整录像",
+  "daily_basic_verdict": "卷轴展开、Q版舞剑姿态变化、正常停留及交接通过",
+  "remaining": [
+    "首次模式",
+    "减少动态",
+    "素材失败",
+    "多屏及DPI"
+  ],
+  "previous_capture_failed_receipt_preserved": "startup-capture-receipt.json"
+}

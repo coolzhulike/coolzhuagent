@@ -1,0 +1,18 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--test",
+    "module_linkage_smoke",
+    "--offline"
+  ],
+  "actual_exit_code": 0,
+  "elapsed_seconds": 14.64,
+  "own_formal_preview_processes_stopped": true,
+  "source_sha256": {
+    "modules/gui-web/packages/web-console/src/main.rs": "9be9eeffe270a0724288cf8cdd22a3d34638bd19b5606ed4b4564e17a0b51e73",
+    "modules/gui-web/packages/web-console/src/app.js": "707c1638c350682a40660316567d16ac2d1285c2aa96daf6fe0a1e212f9dcd0d",
+    "modules/gui-web/packages/web-console/src/project_file_snapshot.rs": "ea210f70ec20b1f6056f3d49387411d9957ea165c616b5bc4213fb841ecfd3bd"
+  },
+  "source_unchanged": true
+}

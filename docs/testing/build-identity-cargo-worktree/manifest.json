@@ -1,0 +1,56 @@
+{
+  "baseline_commit": "51e1ea5d2ad3ca801990ebe1e22ad77398e9090e",
+  "source_modified": true,
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "build_session": 50141,
+  "build_exit_code": 0,
+  "probe": "真实Cargo独立Git worktree：旧二进制固定、共享引用变更重新编译、不存在packed-refs缓存复用、创建packed-refs后的身份更新和缓存复用",
+  "prior_failures": "首次fixture缺workspace隔离构建失败；修正后原build.rs重复构建反例成立，未算通过。",
+  "files": [
+    {
+      "name": "analysis-cargo-identity-cache-fixed-build.txt",
+      "sha256": "b3f08b3b110c582ed6de1d24e42cca190b88602822e74d8b057fcfbc2e7ba7e5"
+    },
+    {
+      "name": "analysis-cargo-identity-cache-fixed-repeat.txt",
+      "sha256": "0ed29b4351993ee7a050030d331082cca059fcc8a3a5a9fe87f1b2d1c1896d1e"
+    },
+    {
+      "name": "analysis-cargo-identity-first-fixed.txt",
+      "sha256": "b2542d16bd3a36131ad31b4e76916d5681d620aabc31b676574e4c88811c3029"
+    },
+    {
+      "name": "analysis-cargo-identity-first.txt",
+      "sha256": "d775d07e12731c531694f1aa214aa60f1042cefe27e0ca8455f6d46fe00ed2a0"
+    },
+    {
+      "name": "analysis-cargo-identity-packed-repeat.txt",
+      "sha256": "ee75f9b7966d347d824519199421e4b0200acf679d22720ca8de43af6f481606"
+    },
+    {
+      "name": "analysis-cargo-identity-packed-result.txt",
+      "sha256": "b8b3441f41a6960d9cfed49bed278209998f449fb41c19c5c802625ac7272901"
+    },
+    {
+      "name": "analysis-cargo-identity-packed.txt",
+      "sha256": "96215897f9700a097f37857383fa7e515912b8419271c6a8c493e002593cfdc8"
+    },
+    {
+      "name": "analysis-cargo-identity-repeat.txt",
+      "sha256": "4bc78390912b367e47643607cd5c0700caf63a300a8436c99f870eddd568c106"
+    },
+    {
+      "name": "analysis-cargo-identity-result.txt",
+      "sha256": "bef8325e89c4b364982a19add47790259bb316fb27eb717f70f0f77408b434b3"
+    },
+    {
+      "name": "analysis-cargo-identity-second.txt",
+      "sha256": "6ed43c4680516e3a10c6669dd7be72c76431dd15a1017cc4732ef1b99929ab36"
+    },
+    {
+      "name": "web-build.txt",
+      "sha256": "5dc2d054b077d20d7d011b7687bca6e0ae0a9f468c23ee2b0fa344dd77c2fbe8"
+    }
+  ]
+}

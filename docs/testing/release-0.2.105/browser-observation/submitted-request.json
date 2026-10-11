@@ -1,0 +1,11 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "native_browser_panel": true,
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "BU-OBSERVATION-105-20261008：正式0.2.105观察终态文案回归。当前右栏旧网页已载入，只调用一次computer_use_perform(surface=\"browser\",省略target,max_actions=1)，按新鲜节点点击“投递事实验收”一次。验收端只在收到真实点击事件后通过正常地址栏打开另一网页。目标是检查已投递输入之后资源变化时，观察错误不会覆盖步骤sent/released事实；不是严格按下期间替换验收。不要自行导航、关闭、重试、补发、调用其它工具或创建云端会话。read_request完整分页后respond，wait取得真实终态。最终准确区分动作投递/释放与效果观察；未确认的项保持未知。",
+  "attachments": []
+}

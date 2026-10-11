@@ -1,0 +1,76 @@
+{
+  "stage": "0.2.76 安装版，Windows 150% DPI / 网页 150% 缩放",
+  "source_commit": "34928536beeb00ac1153a99b5b1bfc4977de7d5d",
+  "files": [
+    {
+      "file": ".gitattributes",
+      "bytes": 75,
+      "sha256": "6eabf2e06fe9a1051649e6d3ac14c4be612addacbbaa26d4b04ffcb59c57f566"
+    },
+    {
+      "file": "context-and-tool-facts.json",
+      "bytes": 6087,
+      "sha256": "b0cd84a8c2ad3f3d2788ddbfa5859de95e514c206d5be23a96004b5464d001ce"
+    },
+    {
+      "file": "page-event-summary.json",
+      "bytes": 13709,
+      "sha256": "ac06c6a3f6a35bd06a0e4a12bb29f50c8f08a93950007db277535d4cfabf6ccc"
+    },
+    {
+      "file": "page-events.jsonl",
+      "bytes": 8721,
+      "sha256": "8c89d96abaf5c4d344f517106ceaed66c4cd98e732393f3720489783d6a0c926"
+    },
+    {
+      "file": "pages.py",
+      "bytes": 5287,
+      "sha256": "3fc1c485d4b1bb0c9ae896a347eea9f343dab6dce38ab4f993ce88ea5fba7bda"
+    },
+    {
+      "file": "regression-summary.json",
+      "bytes": 4764,
+      "sha256": "e51cf30615f6faa4638f02dc777e1986a8546a2cd5dc95209a225c799ad91509"
+    },
+    {
+      "file": "server.json",
+      "bytes": 49,
+      "sha256": "cf1430adc86dfd089094cdffc389a7b8f4cdbc9668cfb021a13fa7a7e5e90f30"
+    },
+    {
+      "file": "zoom-150-active-native.png",
+      "bytes": 187130,
+      "sha256": "b1580cae27cc0ea28abfa5e48c94addea9793d2a449c519f3d68edfabc9362a4"
+    },
+    {
+      "file": "zoom-150-before-native.png",
+      "bytes": 191453,
+      "sha256": "34b01eefe745009dfb4bb10642bdf2f2c29fb177fc7704121f987f2d4ae1a4ca"
+    },
+    {
+      "file": "zoom-150-passed-native.png",
+      "bytes": 185975,
+      "sha256": "3d88a9b90ac5e1dee7fcc66b19b40369bfe44461fb238ac36f978095e9a7558a"
+    },
+    {
+      "file": "zoom-baseline-native.png",
+      "bytes": 183013,
+      "sha256": "9f53ce026c6cf850e9d643f9b90506cd1c02c635d89651460b514a03f140c793"
+    },
+    {
+      "file": "zoom150-facts.json",
+      "bytes": 55818,
+      "sha256": "7a3ccdad2b49b30db45049703e889327e8898583b6fc8987474c5114dd4a6271"
+    },
+    {
+      "file": "zoom150-reply.md",
+      "bytes": 622,
+      "sha256": "49598c7064a265752c3b2caf274dccb68fa95f95a20923e0e572511bbf19d76a"
+    },
+    {
+      "file": "zoom150-request.txt",
+      "bytes": 1229,
+      "sha256": "6b1562613d82c43c20f98c7560d8ac738a19143e33e331b9b01763b3276ffa86"
+    }
+  ]
+}

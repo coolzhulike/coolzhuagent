@@ -1,0 +1,20 @@
+{
+  "passed": false,
+  "formal_version": "0.2.127",
+  "guard_receipt": "旧click/not_sent；stale_observation原因保留；两次观察",
+  "failure": "严格零可信输入断言失败：新文档BODY出现一次来源不明keydown，页面未记录键值，不能归因或删除",
+  "unattributed_event": {
+    "kind": "keydown",
+    "role": "NEW",
+    "page_ms": 1791640136919.7,
+    "trusted": true,
+    "target": "BODY",
+    "server_ns": 928846655818200,
+    "received_unix_ns": 1791640136922679800
+  },
+  "target_pointer_or_click_events": 0,
+  "model": "swe-2-medium",
+  "binding": "island-kayak",
+  "configuration_revision": 57,
+  "limits": "不是原生commit/down-up/UI关闭/HRESULT竞争验收；不得将本轮整体负例计为通过"
+}

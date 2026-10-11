@@ -1,0 +1,241 @@
+{
+  "version": "0.2.95",
+  "source_commit": "75b0b6d09df0485677682f4d66ee649d30ba96e5",
+  "marker": "PLUGIN-INSTALLED095-OLD-ACTIVATION-20261008",
+  "run": {
+    "id": "run-chat-a85fd0015146119cb69253c9ae6bc0b4faeb5cff0f0a8680",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791480806663-4",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-d1a6680bb1c9d0785571e37364866b5ae65a3662285c1e7dfa54e6e0aded68fc",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791480806667,
+    "started_at": 1791480807044,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791480807044,
+    "finished_at": 1791480820185
+  },
+  "calls": [],
+  "attempts": [
+    {
+      "attempt_id": "38d07f9941d3f9b4557e8129d406e965673049e261968345",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "qualification_change": {
+    "marker": "PLUGIN-INSTALLED095-OLD-ACTIVATION-20261008",
+    "run_id": "run-chat-a85fd0015146119cb69253c9ae6bc0b4faeb5cff0f0a8680",
+    "run_state": "running",
+    "attempt_id": "38d07f9941d3f9b4557e8129d406e965673049e261968345",
+    "attempt_state": "prepared",
+    "mutation_started_ms": 1791480807789.2722,
+    "disabled": {
+      "workspace_id": "ws-23f646a969206cb4",
+      "plugins": [
+        {
+          "id": "cli-anything-bridge@bundled",
+          "name": "cli-anything-bridge",
+          "version": "0.1.1",
+          "description": "Bridge CLI-Anything generated CLIs into the Claw tool layer.",
+          "source": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\tooling\\packages\\plugin-system\\bundled\\cli-anything-bridge",
+          "enabled": true,
+          "installed": true,
+          "kind": "bundled",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": true,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "dsh-6f1c04677b06992030e52a28@external",
+          "name": "@deepseek-ai/dsh-tool-calculator",
+          "version": "0.0.1",
+          "description": "安全的数学表达式求值器，零依赖递归下降解析器。",
+          "source": "https://github.com/omdsh-dev/dsh-tool-calculator/tree/b2007a13f06bcf75bf07b9d277ee8d434a316490",
+          "enabled": true,
+          "installed": true,
+          "kind": "external",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": true,
+          "dsh": true,
+          "dsh_source_sha256": "d8fa5ad326a19949045904e4fea63c7318254745bf809f8877c811c7cb083b56"
+        },
+        {
+          "id": "dsh-aa909f79795799f288de8a67@external",
+          "name": "dsh-net-tools",
+          "version": "0.1.0",
+          "description": "让沙箱里的 agent 通过你的本地代理联网：net_fetch 抓取网页，net_proxy_status 查看代理状态。",
+          "source": "https://github.com/izwarm195/dsh-net-tools/tree/7392ec55ca6db884821311d739859ddea72211de",
+          "enabled": false,
+          "installed": true,
+          "kind": "external",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": false,
+          "dsh": true,
+          "dsh_source_sha256": "3b6ee0ea714c22e115d3ce786b876bc1f34b81116d21de79fbd398c0c69c7c8b"
+        },
+        {
+          "id": "example-builtin@builtin",
+          "name": "example-builtin",
+          "version": "0.1.0",
+          "description": "Example built-in plugin scaffold for the Rust plugin system",
+          "source": "builtin",
+          "enabled": false,
+          "installed": false,
+          "kind": "builtin",
+          "installable": false,
+          "manageable": false,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "example-bundled@bundled",
+          "name": "example-bundled",
+          "version": "0.1.0",
+          "description": "Example bundled plugin scaffold for the Rust plugin system",
+          "source": "C:\\Users\\zhupu\\Desktop\\rust-claw\\claw\\rust\\crates\\plugins\\bundled\\example-bundled",
+          "enabled": false,
+          "installed": true,
+          "kind": "bundled",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "sample-hooks@bundled",
+          "name": "sample-hooks",
+          "version": "0.1.0",
+          "description": "Bundled sample plugin scaffold for hook integration tests.",
+          "source": "C:\\Users\\zhupu\\Desktop\\rust-claw\\claw\\rust\\crates\\plugins\\bundled\\sample-hooks",
+          "enabled": false,
+          "installed": true,
+          "kind": "bundled",
+          "installable": false,
+          "manageable": true,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "devin-cloud@native",
+          "name": "Devin 云会话",
+          "version": "0.1.0",
+          "description": "官方 v3 异步云端 Agent 会话；在本页独立配置。",
+          "source": "内置会话插件",
+          "enabled": false,
+          "installed": true,
+          "kind": "builtin",
+          "installable": false,
+          "manageable": false,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "opencode-zen@native",
+          "name": "OpenCode Zen",
+          "version": "0.2.0",
+          "description": "免费聊天模型连接器；由本人填写平台密钥，复用统一会话与宿主工具链路。",
+          "source": "opencode.ai",
+          "enabled": true,
+          "installed": true,
+          "kind": "builtin",
+          "installable": false,
+          "manageable": false,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        },
+        {
+          "id": "huggingface-inference@native",
+          "name": "Hugging Face Inference",
+          "version": "0.2.0",
+          "description": "推理模型连接器；使用平台 Token 与账户额度，支持选择模型及推理提供方。",
+          "source": "huggingface.co",
+          "enabled": true,
+          "installed": true,
+          "kind": "builtin",
+          "installable": false,
+          "manageable": false,
+          "loaded_in_chat": false,
+          "dsh": false,
+          "dsh_source_sha256": null
+        }
+      ],
+      "candidates": [],
+      "runtime_error": null
+    },
+    "disabled_ms": 1791480808966.7349,
+    "reenabled": {
+      "enabled": true,
+      "outcome": {
+        "call_id": "dsh-enable-4f9918dd5caad0432addc5389be1191c",
+        "elapsed_ms": 682,
+        "output": {
+          "activation_id": "dsh-6368-1791480809690440700-4",
+          "enabled": true,
+          "plugin_id": "dsh-aa909f79795799f288de8a67@external"
+        },
+        "permission_gate": {
+          "affected_paths": [
+            "<opaque-command>"
+          ],
+          "decision": "allow-auto",
+          "reason": "full-access-profile",
+          "required": "danger-full-access",
+          "workspace_relative": false
+        },
+        "status": "ok",
+        "summary_text": "DSH实际宿主操作已收尾",
+        "tool_name": "dsh__enable_3b6ee0ea714c22e115d3ce786b876bc1"
+      },
+      "pending_call_id": null
+    },
+    "reenabled_ms": 1791480809694.1418
+  },
+  "network_events": [
+    {
+      "event": "server_started",
+      "utc": "2026-10-08T17:32:37.711699+00:00",
+      "monotonic": 769471.5407252,
+      "host": "127.0.0.1",
+      "port": 60039,
+      "delay_seconds": 1,
+      "tool_timeout_ms": 60000,
+      "host_timeout_seconds": 30,
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "plugin_id": "dsh-aa909f79795799f288de8a67@external"
+    }
+  ],
+  "actual_visible_reply": "竹简回执\n表达式：net_fetch http://127.0.0.1:60039/reactivation-20261008（timeoutMs=60000，maxBytes=1024，allowPrivate=true）\n宿主结果：`宿主工具未完成：ACP 工具已被当前会话或房间撤销，未执行。`\n\n如实报告：\n\n- 本轮调用被拒绝执行——该插件（`dsh__1ef9be67...` net_fetch）已被当前会话/房间撤销，且不再出现在本轮宿主声明的可用工具列表中（声明列表仅剩 CU 桥工具、`plugin__cli_anything_status` 与 calculator）\n- 旧工具描述符对应的上一个启用世代不再有效；宿主明确回执\"未执行\"，无响应体、无抓取结果\n- 未重试、未补发、未刷新授权、未调用其它工具。拒绝如实报告，不写成抓取成功",
+  "boundary": "完整瞬时桥拒绝响应未单独持久化，模型回复为转述；台账0与真实网络0交叉证明没有进入DSH执行器。prepared与submitted竞争按各轮实测阶段区分，不外推全部权限竞争。"
+}

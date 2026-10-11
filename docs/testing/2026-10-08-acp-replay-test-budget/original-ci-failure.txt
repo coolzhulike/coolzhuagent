@@ -1,0 +1,15 @@
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8912587Z failures:
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8913353Z 
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8914443Z ---- devin_acp::session::tests::load_replays_history_separately_and_keeps_remote_binding stdout ----
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8916194Z 
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8917914Z thread 'devin_acp::session::tests::load_replays_history_separately_and_keeps_remote_binding' (9592) panicked at modules\gui-web\packages\web-console\src\devin_acp\session.rs:1176:14:
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8919838Z called `Result::unwrap()` on an `Err` value: Custom { kind: Interrupted, error: "ACP 提交前已取消或超时。" }
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8920407Z 
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8920419Z 
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8920538Z failures:
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8921078Z     devin_acp::session::tests::load_replays_history_separately_and_keeps_remote_binding
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8922196Z 
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8922689Z test result: FAILED. 1422 passed; 1 failed; 6 ignored; 0 measured; 0 filtered out; finished in 151.41s
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.8923298Z 
+Web console baseline	Run web console regression tests	2026-10-09T03:51:57.9029390Z ^[[1m^[[91merror^[[0m: test failed, to rerun pass `-p coolzhu-web-console --bin coolzhu-web-console`
+Web console baseline	Run web console regression tests	2026-10-09T03:51:58.0389312Z ##[error]Process completed with exit code 1.

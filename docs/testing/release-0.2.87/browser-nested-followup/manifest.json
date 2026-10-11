@@ -1,0 +1,206 @@
+{
+  "kind": "0.2.87正式浏览器嵌套/裁剪/关闭补验原字节索引",
+  "product_source": "a74ed09e8bc8e88944550fe2e3fadc67b6060022",
+  "accepted_cases": [
+    "right",
+    "left",
+    "clip",
+    "close3"
+  ],
+  "timing_misses": [
+    "close",
+    "close2"
+  ],
+  "files": [
+    {
+      "path": "clip-after.jpg",
+      "bytes": 198296,
+      "sha256": "9a220f923c1c617b4ec7b00ed378de0f013da6d3dab73271b0e06411d89287e1"
+    },
+    {
+      "path": "clip-before.jpg",
+      "bytes": 206322,
+      "sha256": "4c304d515e0d1e763e73a8f977b0322a9404754d221ae36ac90815da2ce30d78"
+    },
+    {
+      "path": "clip-facts.json",
+      "bytes": 9061,
+      "sha256": "b1809835a47f7f481bee750522c07eee412692cd0f7d86d5205f4bd8fa8bb239"
+    },
+    {
+      "path": "clip-server.py",
+      "bytes": 2785,
+      "sha256": "899de0773e0e7276583560ccfd7ee21711abcc7ea6a64c4dd9b285418192cff4"
+    },
+    {
+      "path": "close-after.jpg",
+      "bytes": 195355,
+      "sha256": "e965f11a87ff1cb865fd44391834b9ecc37e99ed078b91caa9fa82e556cbd263"
+    },
+    {
+      "path": "close-before.jpg",
+      "bytes": 209572,
+      "sha256": "0d656eaae019bd40bda112f62bb8484357dccdddfbdd0b84b99f70b7b945b11f"
+    },
+    {
+      "path": "close-click-timing.json",
+      "bytes": 119,
+      "sha256": "6b6bc6d57e9a6bbe95f393156dd5592a01e8443c6642ca9ec80264c967be1105"
+    },
+    {
+      "path": "close-during.jpg",
+      "bytes": 241952,
+      "sha256": "1ca8abc422daffa79f07d150d97033736ba34fa040280ed14e4fd76e3e3ae14b"
+    },
+    {
+      "path": "close-facts.json",
+      "bytes": 11282,
+      "sha256": "a7da13f486145cfa3b9c0c2d0321834676c5965f349d080adbbdf055f1e30755"
+    },
+    {
+      "path": "close-strict-timing.json",
+      "bytes": 488,
+      "sha256": "ef2076845d8de4c364b1c258a2bf87e62ef725a6a789690e802f66d8d11633c8"
+    },
+    {
+      "path": "close2-after.jpg",
+      "bytes": 190659,
+      "sha256": "607343c657aecb8b3ad427d92da3fe861ee96e041ede55bc1cdd59eb019d79b5"
+    },
+    {
+      "path": "close2-before.jpg",
+      "bytes": 211956,
+      "sha256": "d88378dfa72178214d3eef5dfb0b3160671e4e0e6d5586fba5bc2297a48df969"
+    },
+    {
+      "path": "close2-click-timing.json",
+      "bytes": 119,
+      "sha256": "a5d10a8de7b5ab8d539bb0fe79027390d9827c55903212bf07a9917b7300142d"
+    },
+    {
+      "path": "close2-during.jpg",
+      "bytes": 233813,
+      "sha256": "b033f7e97e4ab87fc6a2d3df3ecb3d74b8a68229cde1e60867dcd4dfab2bb83c"
+    },
+    {
+      "path": "close2-facts.json",
+      "bytes": 11289,
+      "sha256": "b90f2db10fff4b24f341d3e4bfd700b3947a329f9096b52dd68d6160e622b599"
+    },
+    {
+      "path": "close2-strict-timing.json",
+      "bytes": 488,
+      "sha256": "aece02c5e05a68012beec0423479d722fae2f864c74c3461b3c7522025a051c9"
+    },
+    {
+      "path": "close3-after.jpg",
+      "bytes": 188516,
+      "sha256": "1b9b89f547876c2ce2449ece577d9ebc7b0ae6e5a562230b8a0c1fe91123a1ef"
+    },
+    {
+      "path": "close3-before.jpg",
+      "bytes": 209246,
+      "sha256": "312079b1b246bb63b0551542a2f06dcd27de5fd416b35a38bb3aed7b677ddb4f"
+    },
+    {
+      "path": "close3-click-timing.json",
+      "bytes": 119,
+      "sha256": "4119f3367a2ce83d5a154b0c614c0acba7f289931dd3ceddfb07e54731fcfc58"
+    },
+    {
+      "path": "close3-during.jpg",
+      "bytes": 235577,
+      "sha256": "a730cc280da724eddf35bb4c57678212dc6ede2a9ec6f43e53ab74d879cf2225"
+    },
+    {
+      "path": "close3-facts.json",
+      "bytes": 9545,
+      "sha256": "e652ab251ced29dfe5f9def930f9eda93dc091f386f93d750de682df4cc47d49"
+    },
+    {
+      "path": "close3-strict-timing.json",
+      "bytes": 487,
+      "sha256": "66e0b1efa19559d468969a9704cf70c2ccc931985a6bc9d86fe68944a3eb2356"
+    },
+    {
+      "path": "installed-087-standard-processes.json",
+      "bytes": 692,
+      "sha256": "8369c6f1d6e59a4ddbe80d2010d6b4b4564e06d9e655a49b224f05fbede3c654"
+    },
+    {
+      "path": "installed-087-verification.json",
+      "bytes": 1825,
+      "sha256": "71a4fa3d4acd4366f40a3b34c85fc0b96dd9b0883f1b9ae31a12df41a90fd879"
+    },
+    {
+      "path": "left-after.jpg",
+      "bytes": 219035,
+      "sha256": "d14a3fe13b4346386681155025d428c1f5a8e5bb7bf7bf06f3b7644fa2990850"
+    },
+    {
+      "path": "left-facts.json",
+      "bytes": 14149,
+      "sha256": "fce274d5af6e3550a1f5e2f1a8f6172f3eb40c63ad943179d49ce6c25baa2f18"
+    },
+    {
+      "path": "pr84-checks-before-docs.json",
+      "bytes": 292,
+      "sha256": "20bd1f38b478605d8e562264faf1c5abbee6bd2ee97a24f89d349410d1627ae9"
+    },
+    {
+      "path": "report.md",
+      "bytes": 6774,
+      "sha256": "ca188738937b96bc8b72623b7dcf4fecc2ab789903dae418affc19e2602232f7"
+    },
+    {
+      "path": "restored-daily-087-process.json",
+      "bytes": 255,
+      "sha256": "7be68d90f14917f131edcdaf6e4b445ed6282de645ebe7477f1827263eb077e9"
+    },
+    {
+      "path": "restored-daily-087-selfcheck.json",
+      "bytes": 1779,
+      "sha256": "35ec06804a95f867bce1388a9fca3adf09a682a2445215fe9d1e6fb9e881a6a3"
+    },
+    {
+      "path": "restored-daily-087-verification.json",
+      "bytes": 859,
+      "sha256": "734152878110cb8281b6e6cc422af5bbed7a37ce5ed6be9adc1be7e1be87dcb2"
+    },
+    {
+      "path": "restored-daily.jpg",
+      "bytes": 196482,
+      "sha256": "dee36a7a681744c7fb425d98e638b2bda35c28a29a458b794d3606092cbaff21"
+    },
+    {
+      "path": "right-after.jpg",
+      "bytes": 220970,
+      "sha256": "4c952cea5bb10f0529db9de9273b3afd8953cfdfd5a7e707cd567bdb6f424f80"
+    },
+    {
+      "path": "right-before.jpg",
+      "bytes": 216612,
+      "sha256": "7d4e2b7eec92c3f058ec88e02dcb3c7e0d7ef22914b67079cd7a351ea09bcd01"
+    },
+    {
+      "path": "right-facts.json",
+      "bytes": 14144,
+      "sha256": "a5fd58822e47a1f4cf98aa301e80ffd92e93a41dfd97e1c818680850c638934d"
+    },
+    {
+      "path": "safety-after.json",
+      "bytes": 782,
+      "sha256": "45ab07c1ecb5c39e720a7b7c5fac54b505a1d6851dfc7f0a64283848aa06da26"
+    },
+    {
+      "path": "server.py",
+      "bytes": 3847,
+      "sha256": "a79a4f2592735a2e4bede095cd396a9e28f54cf87fe07ce277b5e219cac7c5b5"
+    },
+    {
+      "path": "stopped-installed-087-standard-processes.json",
+      "bytes": 538,
+      "sha256": "e1419b8d67fee3f5740c7b2b06feea3fdda20e701b546250ee8c45fe639063bf"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "native_browser_panel": true,
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "BU-CONTINUOUS-CLOSE-115-20261009：同版正式观察等待期间面板资源撤销验收。右栏稳定旧页已载入，只调用一次computer_use_perform(surface=\"browser\",省略target,max_actions=1)，按新鲜节点点击“交接观察验收”一次。网页本身不导航，测试者会在输入释放、下一底层观察请求登记后正常关闭右栏浏览器。不要自行导航、关闭、重试、补发、调用其它工具或创建云端会话。完整read_request分页后respond，wait取得终态。最终读取input_steps分别如实报告投递、释放、效果，观察停止不能说成未投递；未知保持未知。",
+  "attachments": []
+}

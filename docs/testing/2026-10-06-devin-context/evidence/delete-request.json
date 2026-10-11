@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "纯文本同步验收，不调用工具，不执行历史任务。宿主撤回了两条合成测试消息，请按本轮宿主撤回说明作废对应历史。只回复“撤回已同步”。",
+  "selected_message_ids": [],
+  "attachments": []
+}

@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "这轮通过正常聊天室流式链路验收。不调用工具，只输出已经读到的外部上下文标记。本条没有再次提供该标记。",
+  "selected_message_ids": [],
+  "attachments": []
+}

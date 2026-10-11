@@ -1,0 +1,222 @@
+[
+  {
+    "path": "attachment-browser/address.json",
+    "bytes": 345,
+    "sha256": "9867e6b3897d99248acfbf41fab86b1b1fe60cb40a0535828d9228990d7e45d3"
+  },
+  {
+    "path": "attachment-browser/bamboo-order-utf8.txt",
+    "bytes": 33938,
+    "sha256": "ef3b0cfe14150e2fe5367ff923fcc47be154b48813bc37789489808cf1c0e339"
+  },
+  {
+    "path": "attachment-browser/collect.py",
+    "bytes": 2374,
+    "sha256": "dbf4af6eeec5f2be7e74a9754d456310021794e9dd063be6c53ef22d81b0c10d"
+  },
+  {
+    "path": "attachment-browser/events.jsonl",
+    "bytes": 8551,
+    "sha256": "21add9ee9f68effdccc6c0e491611571565f6478bd1fcae23fa40d60bc392551"
+  },
+  {
+    "path": "attachment-browser/facts.json",
+    "bytes": 4701,
+    "sha256": "d812260587e9e1e5f8f4f9b575dc8bd6e6689a6736cdb56113d324a20ca14ba6"
+  },
+  {
+    "path": "attachment-browser/jade-order-utf16be.txt",
+    "bytes": 67718,
+    "sha256": "e87e76028e42416caf16a7024c087ff057a1b6c59452cabe85ab14fae74478f1"
+  },
+  {
+    "path": "attachment-browser/native-initial.png",
+    "bytes": 229382,
+    "sha256": "c0006e4cca679278ffbefe32ad40dabb1a4ac91f37509f23ef153d461f9a7cc7"
+  },
+  {
+    "path": "attachment-browser/native-running.png",
+    "bytes": 247439,
+    "sha256": "ebda882091fc29c9e436cfb9807ef9c79581023a4ce2e8f617a2bccfdc27ce3a"
+  },
+  {
+    "path": "attachment-browser/native-terminal.png",
+    "bytes": 246531,
+    "sha256": "d58e5f9a515449ede21ea644f9896c2b4a4e41fa319b1eede0e4f89d5f3e92be"
+  },
+  {
+    "path": "attachment-browser/record-incomplete.py",
+    "bytes": 3357,
+    "sha256": "2a4c42b5ff1bec86ae12efc53d7eda1c26af6df330d670fc1c95b35cd7a31ba2"
+  },
+  {
+    "path": "attachment-browser/send.py",
+    "bytes": 5631,
+    "sha256": "2c6b8edfe5b0cfcabdbcb7a8a973e943ee18a2ad6d27e033818b26e301b4117b"
+  },
+  {
+    "path": "attachment-browser/server.py",
+    "bytes": 6740,
+    "sha256": "1ab14177e4ff4c504d9f59c2a98531f84e2b24567eec8815fc079026e09ebcf8"
+  },
+  {
+    "path": "attachment-browser/snapshot-metadata.json",
+    "bytes": 399,
+    "sha256": "359dcf7581e05bcf9fed5f7f5dda0c8fe37c7ce2b4daba726db7fa8e1d1b7800"
+  },
+  {
+    "path": "attachment-browser/snapshot-metadata.py",
+    "bytes": 709,
+    "sha256": "3579e2da9fdc2da13d1a74983a83314d8602e360300d962f8c14d8f5f17bfb00"
+  },
+  {
+    "path": "attachment-browser/stream-finished.json",
+    "bytes": 196,
+    "sha256": "987ef6dd44fa70d09d0d34125c0e0e18f999e0582ae06f081fce4b7f9341b1a0"
+  },
+  {
+    "path": "attachment-browser/summary-preflight.json",
+    "bytes": 318,
+    "sha256": "080279b21f8c87a3e9929f766461b3ddc3fae780658a0bf769a32193624deb4c"
+  },
+  {
+    "path": "attachment-browser/verification.json",
+    "bytes": 28766,
+    "sha256": "d59d9a8fc0bec949f888b9ad5faab077ab14b78072438840498824b0ec694179"
+  },
+  {
+    "path": "attachment-browser/verify.py",
+    "bytes": 4350,
+    "sha256": "3bfa03075991111feb49a70cbfcb0d476f230a40682e568733a591cfd22a0eab"
+  },
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 5945,
+    "sha256": "62be101bad52b7e766470417e7ba685e6ba6832cf9c992793a07b1c0ab6d8e4d"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-123650424-11c326b7/CoolzhuAgent-0.2.124-installer-report.json",
+    "bytes": 4885,
+    "sha256": "230248a9043ebc87cdc4b027e84c9422ed3a516ebd33d4981f235dca44466f36"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-123650424-11c326b7/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "191ee29f17a35bf9f2e8c1cf44c461ef8e9833c0a645d605a1fa8b3b6c55f9cb"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-123650424-11c326b7/package-report.json",
+    "bytes": 110268,
+    "sha256": "da056ab559f669f60ce916f50f2ed484441096885a38c102d61ab8e9fd6668d8"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-123650424-11c326b7/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "dc13bdcd10f1be27d4e16aa4670cb7fd182f7f7da34be90aa137039a56492feb"
+  },
+  {
+    "path": "installed-validation/build-direct.py",
+    "bytes": 1003,
+    "sha256": "4588a7dffcbd5382ae3e13e5a034068483f4e707dee6cbb728e7c6b5bf9863ce"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 193,
+    "sha256": "1b38e0a54e6f6ba5d44cac71b5964967136fedb33d5a95b8d6bc6708c38b3ca4"
+  },
+  {
+    "path": "installed-validation/build-stderr-replay.log",
+    "bytes": 56673,
+    "sha256": "2bea7d42c66ba9d22d33579f57fdd3af41dfe52af1d13fc8ab4c5992821f5fce"
+  },
+  {
+    "path": "installed-validation/build-stdout-replay.log",
+    "bytes": 14671,
+    "sha256": "0d925d72c20998c3e694fef0ab01b96fc8ef21eb2fd81fa3485eec3fd5359ecc"
+  },
+  {
+    "path": "installed-validation/check-ci.py",
+    "bytes": 695,
+    "sha256": "fad7c9cc97720821146ef09f7eca8817f2af79f2aaa84644ccc4440469d8e211"
+  },
+  {
+    "path": "installed-validation/child-build.ps1",
+    "bytes": 308,
+    "sha256": "ad970fb64c2517344e95766cc804ea0cef21cf0c6b803c983e55df4094323d52"
+  },
+  {
+    "path": "installed-validation/github-published-metadata.json",
+    "bytes": 10298,
+    "sha256": "f22b95fd546cb25dff1211ed4cb03d6e3b4c239841e0b39706157f0e8a05f2cf"
+  },
+  {
+    "path": "installed-validation/github-tag.json",
+    "bytes": 405,
+    "sha256": "dbab2047375ebeb6b9f2399cbec39170e5c0dc42b0bf994b57ddb0da2673c5c2"
+  },
+  {
+    "path": "installed-validation/install-124-result.json",
+    "bytes": 290,
+    "sha256": "3e2da78abcd176e6db76f17360309534de6a432462e7a452e2d1b383e1e3fc8b"
+  },
+  {
+    "path": "installed-validation/installed-124-standard-processes.json",
+    "bytes": 729,
+    "sha256": "13e911ea88f34d393e0f56815527be37661813bcb0cd406b8e0b656dbba483b4"
+  },
+  {
+    "path": "installed-validation/installed-124-verification.json",
+    "bytes": 1884,
+    "sha256": "39d85f899f7db37850d620c110c961e24a8b42ed098e5f837bfec569d61ad087"
+  },
+  {
+    "path": "installed-validation/package-124-verification.json",
+    "bytes": 1869,
+    "sha256": "70b90ba7f79111887d79e5e6b5f2d6812e687d9ef4fafa22777a27ce53b2f4a4"
+  },
+  {
+    "path": "installed-validation/release-assets-local.json",
+    "bytes": 660,
+    "sha256": "d2df7cdffc4e326389e0f0b238d0d4ea345b7ae764fa389687d6fcf575124feb"
+  },
+  {
+    "path": "installed-validation/release-notes.md",
+    "bytes": 576,
+    "sha256": "b2d8bb7fda207182f28b7287879752f6b965bf347fcf6107f1da9f46a113dc85"
+  },
+  {
+    "path": "installed-validation/source-ci.json",
+    "bytes": 26347,
+    "sha256": "ecd7efdbf9e227fdba15e754d45aac5484599c8f13f09166d2443020b21026d2"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "fd7342e785ef7a6b166011de9f3747e620b9c27c2a62747caa67f53fbff7eee5"
+  },
+  {
+    "path": "installed-validation/start-standard124.ps1",
+    "bytes": 4121,
+    "sha256": "193bb0639162962aadb4a399dec6bf09e6457f76d170a133916c4876746c68a3"
+  },
+  {
+    "path": "installed-validation/stop-formal123.ps1",
+    "bytes": 1464,
+    "sha256": "7da42b8880e0dc3621ced769e7625f3f71c7fb96722bfefc900fa8c67eb82a5f"
+  },
+  {
+    "path": "installed-validation/stopped-formal123.json",
+    "bytes": 732,
+    "sha256": "86888049b97e938095f35f6f193bd315ea2b2f2f5da7e271fe73a8b01fa9a5fd"
+  },
+  {
+    "path": "installed-validation/verify-124.py",
+    "bytes": 2862,
+    "sha256": "2adc033fa791055df07110bb4d5a63394a50733f0685e6feffce37d4421254dc"
+  },
+  {
+    "path": "installed-validation/verify-release.py",
+    "bytes": 1710,
+    "sha256": "18a97eff9c63bc5c9ec8aac594a80ad6f1499e4bbe6680362d54694c18743c46"
+  }
+]

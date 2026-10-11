@@ -1,0 +1,17 @@
+[
+  {
+    "event": "http_get",
+    "url": "/tab-a.html",
+    "at_ms": 1791259909987.0645
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-a.html",
+    "at_ms": 1791260405338.0364
+  },
+  {
+    "event": "http_get",
+    "url": "/tab-b.html",
+    "at_ms": 1791260445613.5095
+  }
+]

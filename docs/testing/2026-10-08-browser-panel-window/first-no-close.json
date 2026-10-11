@@ -1,0 +1,177 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791478210417-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-PANEL-DOWN-CLOSE-20261008：在当前右栏只调用一次computer_use_perform，surface=\"browser\"，省略target，max_actions=1，只根据新鲜节点点击“一次点击时序目标”。这是面板关闭时序验收，页面按下处理1800毫秒期间我会正常关闭右栏；不得重开、导航、重试、补发、其它工具或新建云端会话。按computer_use_read_request分页协议完整读取再computer_use_respond；用computer_use_wait取最终回执，如实报告投递、释放及实际结果，未知立即停止不补发。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791478211149
+  },
+  "run": {
+    "id": "run-chat-8fa881baab2368f98460d64530ef8ba4e827d91813386fd3",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`，criteria_met 1/1，freshness_confirmed）。\n\n- **动作**：点击\"一次点击时序目标\"按钮一次（`dom-b95b651d142b812843e9543298b3c86a`），input sent，attempts=1，steps_completed=1\n- **时序**：页面按下处理约 1800ms 期间右栏被正常关闭；宿主在原 controller 上完成按下/释放并采集到最终观察，未中断\n- **最终宿主观察**：PANEL-INPUT-WINDOW 页面显示原文\"真实点击完成\"（node index 8，StaticText 逐字匹配）\n- 无重开、无导航、无重试、无补发\n\n如实报告：本轮 succeeded，面板关闭时序边界下点击完整投递并释放。",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791478210418-1-tool-6195633c8d5c35e98bcd6284062bdc11df9eb5a0efe55cfece991da192c10060",
+      "provider_tool_call_id": "tool-6195633c8d5c35e98bcd6284062bdc11df9eb5a0efe55cfece991da192c10060",
+      "turn_id": "chat-turn-1791478210418-1",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791479110418,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791478210418-1-tool-6195633c8d5c35e98bcd6284062bdc11df9eb5a0efe55cfece991da192c10060",
+        "provider_tool_call_id": "tool-6195633c8d5c35e98bcd6284062bdc11df9eb5a0efe55cfece991da192c10060",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"bound_initial_url\":\"http://127.0.0.1:60610/window.html\",\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"79a300eee468c002f9c5bd18662eb101\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[8],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":8,\"name_chars\":6,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":8,\"inline_has_static_text\":false,\"name_chars\":6,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"f93e9b792cd3995a5b42bda6439c1fdb\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":14,\"nodes\":[{\"index\":8,\"name\":\"真实点击完成\",\"role\":\"StaticText\"}],\"title\":\"PANEL-INPUT-WINDOW\",\"truncated\":false,\"url\":\"http://127.0.0.1:60610/window.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:65bba878029c9e24afb66113435fb174",
+          "native-ax:1:1",
+          "native-observation:65bba878029c9e24afb66113435fb174",
+          "native-input:5122272589cb04a239b098ab3b31a6e7",
+          "native-ax:1:1",
+          "native-observation:f93e9b792cd3995a5b42bda6439c1fdb",
+          "native-ax:1:1",
+          "native-observation:f93e9b792cd3995a5b42bda6439c1fdb",
+          "native-ax:1:1",
+          "native-observation:79a300eee468c002f9c5bd18662eb101"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791479110418
+            }
+          },
+          "cu_deadline_ms": 1791479110418,
+          "cu_deadline_established_at_ms": 1791478239880,
+          "cu_budget_ms": 900000
+        }
+      },
+      "created_at_ms": 1791478239880,
+      "updated_at_ms": 1791478288967,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791478210418-1-tool-6195633c8d5c35e98bcd6284062bdc11df9eb5a0efe55cfece991da192c10060",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-b95b651d142b812843e9543298b3c86a",
+          "action_fingerprint": "bad1d45bc6140700",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:65bba878029c9e24afb66113435fb174\"]",
+          "after_evidence_ref": "[\"native-ax:1:1\",\"native-observation:f93e9b792cd3995a5b42bda6439c1fdb\",\"native-ax:1:1\",\"native-observation:79a300eee468c002f9c5bd18662eb101\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "started_at_ms": 1791478273602,
+          "completed_at_ms": 1791478277715,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "86152a305ff0fbba452a56ae0c026527",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"b07a313e08a2879c24078ef183d0aca2\",\"host_id\":\"native-08fae5f92db843fe7cc4e046faf63515\",\"process\":{\"instance_id\":\"f00bd4c1cddaa479bb672f9ad5e37a3d\",\"boot_id\":\"08fae5f92db843fe7cc4e046faf63515\",\"pid\":9504,\"creation_time_filetime\":134359511813276622,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-08-browser-sameprocess\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":1}},\"attempt_key\":\"browser:dom-b95b651d142b812843e9543298b3c86a:8ef77bb184271d02#gen1#cu-session-1791131217833-chat-turn-1791478210418-1-tool-6195633c8d5c35e98bcd6284062bdc11df9eb5a0efe55cfece991da192c10060:step-0#attempt1\",\"ticket_id\":\"86152a305ff0fbba452a56ae0c026527\",\"observation_id\":\"65bba878029c9e24afb66113435fb174\",\"document_token\":\"98dde9145a5fedd5de8a71d7147e6a2f\",\"node_id\":\"b95b651d142b812843e9543298b3c86a\",\"input_kind\":\"click\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791478210418-1-tool-6195633c8d5c35e98bcd6284062bdc11df9eb5a0efe55cfece991da192c10060",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-b95b651d142b812843e9543298b3c86a\"}"
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "pointerdown",
+      "page_ms": 1791478275885.4001,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478275894.7393
+    },
+    {
+      "kind": "down-handler-finished",
+      "page_ms": 1791478277686.6,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478277700.514
+    },
+    {
+      "kind": "pointerup",
+      "page_ms": 1791478277689.4001,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478277707.514
+    },
+    {
+      "kind": "click",
+      "page_ms": 1791478277690.3,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478277716.859
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "713bd03e8958b44767219e8fe5ca1d8663da17eec8323e83",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "stage": "源码候选；严格按下期间关闭未命中，不计通过"
+}

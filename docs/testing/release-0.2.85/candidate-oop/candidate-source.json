@@ -1,0 +1,46 @@
+{
+  "reference_head": "7b919fd821e1b7fca99c799b5f3c50124bfebb93",
+  "uncommitted_product_changes": true,
+  "files": [
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+      "sha256": "61f5a29a536dcffef27e58c57ee10f70b452350eefdab08af57454ed51b5544a"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs",
+      "sha256": "644856ba02a0077e443c2137f4b5001ca0993ece24ea993475a3977a1cfbdb2c"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_document.rs",
+      "sha256": "f87c27b6207b80f17059ec345693a075795a1bf639deb699fcf6a00519afe334"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs",
+      "sha256": "a5a38a42fad1cf83ebdfed3793b4b272283093f0946a3e8e3e57163d137969ce"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+      "sha256": "3ee3166b369008aa41d47cecfdebe37e3867cd023cc0a35a7cd5ccbf8ac813a3"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_scroll.rs",
+      "sha256": "6c0771ebe6444f0e201cc4c96cfdebf959b64925b0f041226c7c3f3376355bd6"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+      "sha256": "54a128d6ed9b1c605142aa63bcaf0b27001c7cbcc01fcef3fa936786a55aa4ad"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+      "sha256": "711cde69c03bf860f85d64d1360370532466d9e58b99da0f5550ae2160f07b16"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_sessions.rs",
+      "sha256": "4260c6cf8117b3c903388da1c6eea7ae3959262870da83a4b0058896d13b348b"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_frame_geometry.rs",
+      "sha256": "87fbd64a9cd12b09fdb25f5bc60cd227303b350b7c618b29c6143f976f31228e"
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "cases": [
+    {
+      "prefix": "INSTALLED093-FUNCTION-CANCEL-20261007",
+      "run": {
+        "id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+        "kind": "chat_turn",
+        "workspace_id": "ws-23f646a969206cb4",
+        "session_id": "session-1791131217833",
+        "chat_room_id": "room-1791131523339",
+        "goal_id": null,
+        "phase_id": null,
+        "legacy_turn_id": "chat-turn-1791383136040-0",
+        "provider_turn_id": null,
+        "state": "interrupted",
+        "owner_id": "coolzhu-web-console",
+        "claim_token": "claim-5d56a89ac944aeba91d279b60adee5db782464755e9b43e6cd57c1180c0df59b",
+        "stop_reason": null,
+        "error_json": null,
+        "created_at": 1791383136049,
+        "started_at": 1791383136323,
+        "stop_requested_at": 1791383146555,
+        "heartbeat_at": 1791383136323,
+        "finished_at": 1791383146567
+      },
+      "events": [
+        {
+          "id": 2220,
+          "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+          "event_type": "run.accepted",
+          "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791383136040-0\"}",
+          "created_at": 1791383136050
+        },
+        {
+          "id": 2221,
+          "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+          "event_type": "chat.source_messages",
+          "payload_json": "{\"message_ids\":[\"msg-1791383136040-user\"]}",
+          "created_at": 1791383136293
+        },
+        {
+          "id": 2222,
+          "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+          "event_type": "chat.target_agents",
+          "payload_json": "{\"agent_ids\":[\"session-1791131217833\"]}",
+          "created_at": 1791383136311
+        },
+        {
+          "id": 2223,
+          "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+          "event_type": "run.started",
+          "payload_json": "{\"previous_state\":\"accepted\"}",
+          "created_at": 1791383136323
+        },
+        {
+          "id": 2224,
+          "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+          "event_type": "devin.context_delta",
+          "payload_json": "{\"continued\":true,\"delta_history_messages\":0,\"host_history_messages\":165,\"image_count\":0,\"prompt_bytes\":5752}",
+          "created_at": 1791383137838
+        },
+        {
+          "id": 2225,
+          "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+          "event_type": "run.stop_requested",
+          "payload_json": "{\"previous_state\":\"running\",\"reason\":null}",
+          "created_at": 1791383146555
+        },
+        {
+          "id": 2226,
+          "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+          "event_type": "run.interrupted",
+          "payload_json": "{\"previous_state\":\"stop_requested\",\"requested_status\":\"interrupted\"}",
+          "created_at": 1791383146567
+        }
+      ]
+    }
+  ],
+  "active": [],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

@@ -1,0 +1,287 @@
+[
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 4456,
+    "sha256": "bbd3579c772a559f86f8f946ef44a05db7ce363ecdcf00b88a8f9664df675bed"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-022814548-b97f7652/CoolzhuAgent-0.2.117-installer-report.json",
+    "bytes": 4885,
+    "sha256": "f34f24170f3a6aeb7b688aa3fc9b34162ec1e462be2d4fd9867e29aa9c6991cc"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-022814548-b97f7652/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "9eb08d600b79433defe9e9956eb6bfb9cbfe0d8ad258bfa3364465785a249604"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-022814548-b97f7652/package-report.json",
+    "bytes": 110268,
+    "sha256": "e5daaa6476e2c22d70ed7c3698f63a850cf5869aea2852809f8c671ce10a5abd"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261009-022814548-b97f7652/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "0cfae52ce6e552acf166bc0d4dcd218cdf962473e7d9bab1a05a2f5be11a3522"
+  },
+  {
+    "path": "installed-validation/archive.py",
+    "bytes": 9220,
+    "sha256": "ee5bc5b6c098be28f6705461f761c562726e70de01182e7b668f03b2ffca343a"
+  },
+  {
+    "path": "installed-validation/build-direct.py",
+    "bytes": 1003,
+    "sha256": "4ebe60361dfdda616fa26ef5bcd0fa11cf8c742575b148e3776adda3a8ffa074"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 193,
+    "sha256": "06bab8d6eee0416aa21524485ddee440d23063bf3468386c0e0868f585854105"
+  },
+  {
+    "path": "installed-validation/build-stderr-replay.log",
+    "bytes": 56673,
+    "sha256": "adc8af323b379101b820ebd16895f1f298c07eef5db2157d78439b156a059928"
+  },
+  {
+    "path": "installed-validation/build-stdout-replay.log",
+    "bytes": 14670,
+    "sha256": "d3115bdec82e0d67a00f22223c6ce6b0cb0863de8f3e1697d4cf72a68ead891d"
+  },
+  {
+    "path": "installed-validation/child-build.ps1",
+    "bytes": 308,
+    "sha256": "2c1b1b269e8518d780e90a407034216d910bab59dc7ab251d2e1ea5164c0f48b"
+  },
+  {
+    "path": "installed-validation/github-published-metadata.json",
+    "bytes": 10291,
+    "sha256": "9220ef1870156a5a80b455dba0abc815c232a4dfa5471ecfbb403f4c70110b0b"
+  },
+  {
+    "path": "installed-validation/github-tag.json",
+    "bytes": 405,
+    "sha256": "10f5fbad29f5b6d515355a66b85df64c0688d149b5966d4e1c2aff58215c7394"
+  },
+  {
+    "path": "installed-validation/install-117-result.json",
+    "bytes": 290,
+    "sha256": "8bd9ac35431859fe0dad5638339774d3c606055f846c233e178a7abb3b71cf36"
+  },
+  {
+    "path": "installed-validation/installed-117-standard-processes.json",
+    "bytes": 729,
+    "sha256": "68e1933fcefb714d062bf3f0f9545eac52300fd242b92cef3a4575d935a9bcdb"
+  },
+  {
+    "path": "installed-validation/installed-117-verification.json",
+    "bytes": 1884,
+    "sha256": "58d6ae1e1b9e767363ca4fedd2f4e3dae7339db41e04d3a09dacaecaa78c0e2f"
+  },
+  {
+    "path": "installed-validation/installed-native-main.jpg",
+    "bytes": 203682,
+    "sha256": "2dce94180042169231230b913e41b11555d8a57523231776807e416eb804724c"
+  },
+  {
+    "path": "installed-validation/original-idle.json",
+    "bytes": 229,
+    "sha256": "418115afababf1b74b76e78a27305af5804b383e6932ee4f50b630f41c129a93"
+  },
+  {
+    "path": "installed-validation/package-117-verification.json",
+    "bytes": 1869,
+    "sha256": "0225234fc4ae8cbb6f49d085e8aaaf2e5395a4d91edf057219b4c3d3606c3fc5"
+  },
+  {
+    "path": "installed-validation/prepare-restart.py",
+    "bytes": 1214,
+    "sha256": "94d9b1148a1325a905b18b15fae11fdce14a6692515832a808fe2c31a4e9478e"
+  },
+  {
+    "path": "installed-validation/prepare-validation.py",
+    "bytes": 1171,
+    "sha256": "95561efb735c5ce35b765e83207e0d7f3a86276970f8be5a4b5db8e285813578"
+  },
+  {
+    "path": "installed-validation/release-assets-local.json",
+    "bytes": 660,
+    "sha256": "0a0ceb0e25f4a580a12ca54895ae90e89052f8a013321e020b85767ff8844c8f"
+  },
+  {
+    "path": "installed-validation/release-notes.md",
+    "bytes": 569,
+    "sha256": "28130038f8163e918bcaec82bbe27883f78e692f8d39624c72220090a9e5ced5"
+  },
+  {
+    "path": "installed-validation/restart.py",
+    "bytes": 2678,
+    "sha256": "65b55606aa21762b4c5ed2ae47b0c4e62975f330446a5acb06ef8a2d8bf15729"
+  },
+  {
+    "path": "installed-validation/runtime-counts.json",
+    "bytes": 27,
+    "sha256": "0e722fd1b006d656f0b98b0d0452027412dab491f94e27655b625af67cc4d7cc"
+  },
+  {
+    "path": "installed-validation/source-ci.json",
+    "bytes": 26359,
+    "sha256": "b8d5d370cc7a339b78f9a9db5d50f37bcb84565fc755b7c32e0a60a8d89669aa"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "73fd75b8d24c645096a3c2cdabfdb8e5b89e666a940b32f4ad936a4b346f75a0"
+  },
+  {
+    "path": "installed-validation/start-isolated-shell.ps1",
+    "bytes": 1674,
+    "sha256": "4eafad583303be3703a27d8c56988ee1ff6ea7f8147ca2c9adc5b941b7d8ccb3"
+  },
+  {
+    "path": "installed-validation/start-standard117.ps1",
+    "bytes": 4121,
+    "sha256": "1583ac24103742cdd5c33d8c58c2f762f57eb1a2c32c3391b8c482e6f0f1cc4c"
+  },
+  {
+    "path": "installed-validation/stop-isolated-shell.ps1",
+    "bytes": 813,
+    "sha256": "75f070a0897a99a55a235e261fe7cb55bea0e02c528c06cb102f1fbdd3704c20"
+  },
+  {
+    "path": "installed-validation/stop-standard116.ps1",
+    "bytes": 1081,
+    "sha256": "40ee375d3c985dad1ec2695cd126701d9af527b1351c43d8ab1a5512e7ee06e3"
+  },
+  {
+    "path": "installed-validation/verify-117.py",
+    "bytes": 2862,
+    "sha256": "0a50c74dda4ceceb41325a5e357868f806ef5f4157e2267ce74185859b3c40cb"
+  },
+  {
+    "path": "installed-validation/verify-late.py",
+    "bytes": 9112,
+    "sha256": "498abbd9f8fb4418019ebbf0c036d9491d0bb61c4e692097dc316b4dbc4a8bb9"
+  },
+  {
+    "path": "installed-validation/verify-release.py",
+    "bytes": 1710,
+    "sha256": "aafc79d215de553a0becdf01cc501d07cd427e393c045c0c3c10454d816adafa"
+  },
+  {
+    "path": "scope/cleanup.json",
+    "bytes": 58,
+    "sha256": "f040c1d132d3b5e66c7579e6aea7af41adcf0812baaae93f1ae0e0f26a2b20e4"
+  },
+  {
+    "path": "scope/driver.py",
+    "bytes": 9112,
+    "sha256": "498abbd9f8fb4418019ebbf0c036d9491d0bb61c4e692097dc316b4dbc4a8bb9"
+  },
+  {
+    "path": "scope/facts.json",
+    "bytes": 15138,
+    "sha256": "207b315a74c3f034e97480b844b4323a78fe97bcae511fa9cadce87545790590"
+  },
+  {
+    "path": "scope/native-a-ax.txt",
+    "bytes": 9210,
+    "sha256": "592e85cd5a0dfc15b4987e5e2c7d65db141826667e8ee821835cf6a85660809e"
+  },
+  {
+    "path": "scope/native-a.jpg",
+    "bytes": 143032,
+    "sha256": "41c9ebe122b4704c1aecca5b3ffac0d61b100cf625e1194252a632fd419dbd96"
+  },
+  {
+    "path": "scope/native-b-ax.txt",
+    "bytes": 10976,
+    "sha256": "a523d8ee6d3d0d6c458726ea051df0d8b5efffe03e90673cc1692bd38184494e"
+  },
+  {
+    "path": "scope/native-b.jpg",
+    "bytes": 144180,
+    "sha256": "1cc2aa8d2eac2726421f29f8728532e700bb259ab23444d07e9b9e9b64a67054"
+  },
+  {
+    "path": "scope/native-restarted-ax.txt",
+    "bytes": 11183,
+    "sha256": "5925c9849915d1e9c6c3b6177a457a8d82c6d0f035685e2deac6090896268e6e"
+  },
+  {
+    "path": "scope/native-restarted.jpg",
+    "bytes": 143167,
+    "sha256": "105cc6adad3866529459f77322f08b2ef3d346ece3d3e2fe20437a9034a354ee"
+  },
+  {
+    "path": "scope/native-saved-ax.txt",
+    "bytes": 9196,
+    "sha256": "5184a76eb985e62f80a349c4cad0f76985737454d389fe52707fbb23c537d330"
+  },
+  {
+    "path": "scope/native-saved-settings.json",
+    "bytes": 2264,
+    "sha256": "8c367dcf8ec2f6bf254027db7d794109ae28dd436e223c227d4b4536d46c737b"
+  },
+  {
+    "path": "scope/native-saved.jpg",
+    "bytes": 143304,
+    "sha256": "850244a5bb8be3a7403f453a8c02bb4488d1daa8c75bd94573e62370349f83c1"
+  },
+  {
+    "path": "scope/native-shell-before-restart.json",
+    "bytes": 410,
+    "sha256": "fa0d852f8761f8523714fd42f4a24162212cd0b70a178b2cc5bbf1d303982256"
+  },
+  {
+    "path": "scope/native-shell-receipt.json",
+    "bytes": 410,
+    "sha256": "cc72767b93733cfdbc1a1c0bebe1fbd695d7f903e0587f7717b25a10fbd3a872"
+  },
+  {
+    "path": "scope/ready-before-restart.json",
+    "bytes": 331,
+    "sha256": "7f448746e585cc0631326e3d162b96dc57d29d3a272a3d7eec06de4b061b1061"
+  },
+  {
+    "path": "scope/ready.json",
+    "bytes": 332,
+    "sha256": "8b2aea902d991a4312e875dcc8fd763edbdf94a001d9e6a4843768d22a1b87cc"
+  },
+  {
+    "path": "scope/restart-cleanup.json",
+    "bytes": 59,
+    "sha256": "272eb87a66525c99dd59e0fcac682cb6a21701d44eb04b34d5a2929a03b9b707"
+  },
+  {
+    "path": "scope/restart-err.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "scope/restart-out.txt",
+    "bytes": 1125,
+    "sha256": "d8870a5b84b1c69805418933129c4ea332a45030ab99f15141fa489387da565e"
+  },
+  {
+    "path": "scope/restart-result.json",
+    "bytes": 161,
+    "sha256": "6dd1e88b8646e063ec9dc7943f0717085f3d4e4e2257b76ccf15ab708773afdb"
+  },
+  {
+    "path": "scope/restart-settings.json",
+    "bytes": 2264,
+    "sha256": "29cd99127f18ff4fda7f72fa45b4a0b124fd186df2f267019bafe08373b52fff"
+  },
+  {
+    "path": "scope/stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "scope/stdout.txt",
+    "bytes": 1801,
+    "sha256": "386c6de6f4a8b29bf719a008066d7b0417393dedb1834b074a7ae674d0195c8c"
+  }
+]

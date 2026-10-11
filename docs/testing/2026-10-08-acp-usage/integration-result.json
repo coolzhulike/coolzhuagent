@@ -1,0 +1,110 @@
+{
+  "stage": "100之后ACP统计源码候选；非正式安装包验收",
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "records": [
+    {
+      "marker": "ACP-USAGE-CANDIDATE-CODE-REVIEW-20261008",
+      "source": {
+        "id": "msg-1791495351046-user",
+        "created_at": 1791495353048
+      },
+      "run": {
+        "id": "run-chat-3f354c4a156b0bd19dd802ab60d637ac2b6b10b6715d362d",
+        "kind": "chat_turn",
+        "workspace_id": "ws-23f646a969206cb4",
+        "session_id": "session-1791131217833",
+        "chat_room_id": "room-1791131523339",
+        "goal_id": null,
+        "phase_id": null,
+        "legacy_turn_id": "chat-turn-1791495351052-0",
+        "provider_turn_id": null,
+        "state": "completed",
+        "owner_id": "coolzhu-web-console",
+        "claim_token": "claim-3e80bac7d6eb1862de15cefae2dba0ba976995eb041397329424534b51b4a0eb",
+        "stop_reason": null,
+        "error_json": null,
+        "created_at": 1791495351056,
+        "started_at": 1791495353047,
+        "stop_requested_at": null,
+        "heartbeat_at": 1791495353047,
+        "finished_at": 1791495444151
+      },
+      "attempts": [
+        {
+          "attempt_id": "65fc09abb695b2c3976b07cfb99473ffb967a29bd2a1f135",
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "calls": [
+        {
+          "tool_call_id": "tool-b51dc3cf9a1ae0d139489c7cbb6b217a4b28867e0f4c96b5bcaf359519c8595f",
+          "run_id": "run-chat-3f354c4a156b0bd19dd802ab60d637ac2b6b10b6715d362d",
+          "request_attempt_id": null,
+          "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+          "arguments_digest": "84b49444e6da814b",
+          "status": "completed",
+          "created_at_unix_ms": 1791495372644,
+          "updated_at_unix_ms": 1791495386976,
+          "provider_tool_call_id": "1",
+          "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-3f354c4a156b0bd19dd802ab60d637ac2b6b10b6715d362d\",\"turn_id\":\"chat-turn-1791495351052-0\",\"attempt_id\":\"65fc09abb695b2c3976b07cfb99473ffb967a29bd2a1f135\",\"owner_epoch\":222,\"generation\":222}"
+        }
+      ],
+      "tool_audits": [
+        {
+          "ts": "1791495386.973",
+          "call_id": "tool-b51dc3cf9a1ae0d139489c7cbb6b217a4b28867e0f4c96b5bcaf359519c8595f",
+          "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+          "caller": "llm",
+          "workspace_id": "ws-23f646a969206cb4",
+          "session_id": "session-1791131217833",
+          "input_summary": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab: expression=len5",
+          "status": "ok",
+          "elapsed_ms": 9298,
+          "permission": {
+            "required": "danger-full-access",
+            "decision": "allow-auto",
+            "reason": "full-access-profile",
+            "workspace_relative": false,
+            "affected_paths": [
+              "<opaque-command>"
+            ]
+          },
+          "summary_text": "DSH实际宿主操作已收尾",
+          "evidence": {
+            "frozen_parent_permission": {
+              "affected_paths": [
+                "<opaque-command>"
+              ],
+              "decision": "allow-auto",
+              "reason": "full-access-profile",
+              "required": "danger-full-access",
+              "workspace_relative": false
+            }
+          }
+        }
+      ],
+      "visible_messages": [
+        {
+          "id": "msg-1791495353227-0",
+          "content": "**calculator 回执**：`dsh__3596dc2e…` 调用一次 `{\"expression\":\"881+1\"}`，宿主 `status: ok`（runtime-executed，audit `executed: true`，elapsed_ms 9298），**result = 882**。本次开始前本会话累计 ACP 请求数 +1 核对一致（881 → 882，含本轮本次调用）。\n\n前轮更正已采纳：539 条旧投影 attempt_id 均带 `acp:` 前缀并与 journal 精确对应，连接键就是 attempt_id 本身，无需 call/turn 猜配——以下按实际 `facts_sql` 代码审查。\n\n---\n\n## ACP 统计合并代码审查（仅依附件源码可证明的内容；附件中\"1416通过/0失败\"等自述不采信为测试证据）\n\n### 逐项结论\n\n1. **去重** ✅ 可证明正确。HTTP 侧 `WHERE NOT EXISTS(... a.attempt_id = substr(u.attempt_id,5))` 精确按 `acp:` 前缀 + journal attempt_id 去重；ACP 侧 `LEFT JOIN ... ON u.attempt_id='acp:'||a.attempt_id` 同一键。每 attempt 只出一条 fact（attempt_id 有唯一索引），无 call/turn 猜配。\n   - 残留边界：`NOT EXISTS` 未关联 scope——若 journal attempt_id 全局唯一则无实害；理论上异 scope 同 id 会把本 scope HTTP 行误压制而 ACP fact 归入他处（仅可证明为理论边界，非实际缺陷）。\n\n2. **跨 scope tokens 合并** ✅ JOIN 条件含 `workspace_id/room_id/session_id=agent_id` 三重 scope 等值 + `(u.run_id IS NULL OR u.run_id=scope)` + `(u.turn_id IS NULL OR u.turn_id=scope)` 宽容匹配；attempt_id 唯一索引保证最多命中一行，不会跨 scope 污染 tokens。✓\n\n3. **unknown/pending/failed 计数** ✅ 语义正确、可证明：\n   - `unknown` state → `remote_unknown`，`dispatched` 经 CASE 得 `NULL` → 落入 `unknown_dispatch_attempts`（`dispatched IS NULL`）兼 `unknown_outcome_attempts`；prepared→unknown 直迁同样覆盖，不冒充已派发/失败。\n   - `not_sent` → dispatched=0、独立 `not_sent_attempts`，不计入 failed（NOT IN 白名单含 `not_sent`/`remote_unknown`）。\n   - terminal + `protocol_stop` 白名单（end_turn→completed、cancelled/refusal/max_tokens/max_turn_requests）外一律 remote_unknown——NULL/未知 stop 不猜配。✓\n   - **可证明口径瑕疵（小）**：`abandoned_before_dispatch`（HTTP Drop 收尾状态）落入 `failed_attempts` 而非 `not_sent`——语义上更像未送达，属计数归类选择，非数据错误。\n\n4. **缺时间** ✅ ACP fact `created_at` 只取 `u.created_at`（无 HTTP 投影行则为 NULL），不以 rowid/当前时间冒充；`requests_for_run` 以 `ORDER BY created_at IS NULL, created_at, attempt_id` 确定性排序，NULL 排尾。✓\n\n5. **读模型一致性（partial 计数缺陷）** ⚠️ **可证明缺陷**：`partial_usage_attempts` 条件为 `attempt_id IS NOT NULL AND COALESCE(mask,0)!=15`——mask=0 的 ACP fact（无 HTTP 行、用量完全未知）被计入 \"partial\"。完全未知 ≠ 部分已知，该字段名义语义被稀释；建议改为 `mask!=15 AND mask!=0` 或单列 unknown-usage 计数。\n\n6. **旧 HTTP 重试与 trace 归属** ✅ `requests_for_run`：`run_id=?3` 精确关联；`fact_source='http' AND run_id IS NULL` 的回退仅限 `turn_id=?4 OR tool_calls EXISTS`，ACP fact 不享受回退猜配（scope 必有 run_id，accepts 已校验非空）；`turn_id=NULL` 参数绑定时比较自动为假，落到 tool_calls 回退——行为一致。ACP-only fact 的 `call_id` 为 NULL（无 HTTP 调用），如实留空不伪造。✓\n\n### 补充观察\n\n- `summary` 的 token 合计按 `mask&位!=0` 门槛、unknown-mask 行不计入——已知合计与未知请求数并列呈现，符合\"不从 context_percentage 推 token\"。\n- `requests = COUNT(DISTINCT logical_request_id)`：HTTP 行与 ACP 行键空间不重叠（`request-…` vs `acp:…`），去重后同一 attempt 不会双计。\n- `submitted→dispatched`、`prepared→prepared`、`terminal→dispatched=1` 均只影响读取投影，不改 journal 状态机与安全锁——符合边界。\n\n### 结论\n\n六项中仅第 5 项存在可由源码证明的口径缺陷（mask=0 计入 partial_usage_attempts），其余五项实现与设计一致且可证明；第 1 项的 NOT EXISTS 未关联 scope 为理论边界。本页流式后同步与统计增量属待实测项，未在附件源码中给出验证证据，不宣称已通过。\n\nACP统计代码审查完成",
+          "kind": "assistant-reply"
+        }
+      ]
+    }
+  ],
+  "facts": "本页真实SWE流式提交、单次计算器及完整回复，统计与轨迹另有独立HTTP核对，不将模型建议当测试通过证据。"
+}

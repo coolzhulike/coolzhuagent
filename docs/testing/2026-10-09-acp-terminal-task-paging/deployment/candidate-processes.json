@@ -1,0 +1,13 @@
+﻿{
+    "web_sha256":  "51314a8c50e79b70be26e7e43b90ee67b3667d53142cee07024425ea485a5c24",
+    "web_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-acp-terminal-task-paging\\candidate-bundle\\bin\\coolzhu-web-console.exe",
+    "shell_started":  "2026-10-09T20:42:21.0231746Z",
+    "web_started":  "2026-10-09T20:42:19.4841423Z",
+    "web_pid":  23044,
+    "shell_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-acp-terminal-task-paging\\candidate-bundle\\bin\\coolzhu-tauri-shell.exe",
+    "shell_pid":  9952,
+    "port":  8765,
+    "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage":  "CU子任务边界候选后台 + 未修改的正式124原生壳",
+    "shell_sha256":  "a898c167bec7973a3d67002e2ae9e1fbb14df9ed1b4b73139069e60b271d6690"
+}

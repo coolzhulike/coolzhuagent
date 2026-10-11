@@ -1,4 +1,6 @@
 mod output;
+mod redaction;
+mod rolling_file;
 mod span;
 mod trace_id;
 
@@ -20,6 +22,17 @@ pub use span::{
 pub use trace_id::{SpanId as SpanIdType, TraceId as TraceIdType};
 
 static LOGGER: OnceLock<Logger> = OnceLock::new();
+
+/// 人读诊断面包屑复用文件轮转边界；调用方保留既有错误处理，禁止用于权威审计。
+pub fn append_diagnostic_line(path: &Path, message: &str) -> io::Result<()> {
+    let message = redaction::text(message);
+    let record = if message.len() >= rolling_file::RECORD_BYTES {
+        format!("diagnostic_record_omitted original_bytes={}\n", message.len())
+    } else {
+        format!("{message}\n")
+    };
+    rolling_file::append(path, record.as_bytes())
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LogLevel {
@@ -65,6 +78,17 @@ pub struct LogEntry {
     pub trace_id: Option<TraceId>,
     pub span_id: Option<SpanId>,
     pub fields: Vec<(String, String)>,
+}
+
+impl LogEntry {
+    fn redacted(&self) -> Self {
+        Self {
+            app: redaction::text(&self.app), module: redaction::text(&self.module),
+            event: redaction::text(&self.event), message: redaction::text(&self.message),
+            fields: self.fields.iter().map(|(key,value)| (redaction::text(key),redaction::field(key,value))).collect(),
+            ..self.clone()
+        }
+    }
 }
 
 struct Logger {
@@ -117,6 +141,7 @@ pub fn init(app: &str) -> io::Result<PathBuf> {
     };
 
     let _ = LOGGER.set(logger);
+    info("diagnostics", "diagnostics.ready", "结构化诊断文件已就绪", &[]);
     Ok(path)
 }
 
@@ -206,6 +231,7 @@ pub fn emit(level: LogLevel, module: &str, event: &str, message: &str, fields: &
             .collect(),
     };
 
+    let entry = entry.redacted();
     logger.file_output.write_event(&entry);
 
     if let Some(console) = &logger.console {
@@ -227,16 +253,17 @@ pub fn emit_span_closed(span: &SpanClosed) {
         return;
     }
 
-    logger.file_output.write_span(span);
+    let span = span.redacted();
+    logger.file_output.write_span(&span);
 
     if let Some(console) = &logger.console {
-        console.write_span(span);
+        console.write_span(&span);
     }
 
     if let Ok(guard) = logger.gui_callback.read() {
         if let Some(cb) = guard.as_ref() {
             let gui_output = GuiOutput::new(cb.clone());
-            gui_output.write_span(span);
+            gui_output.write_span(&span);
         }
     }
 }

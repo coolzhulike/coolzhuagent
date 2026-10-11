@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "build-output.txt",
+      "bytes": 1372,
+      "sha256": "c30c9111cae88bf0199934c70a4cdf3478246f9f4a1d185dd30373ae9bdc2838"
+    },
+    {
+      "path": "facts.json",
+      "bytes": 406,
+      "sha256": "77afe291243556314d16285b2e11c2aa204804dbd19ad326ca140b4134f9cd80"
+    },
+    {
+      "path": "report.md",
+      "bytes": 1299,
+      "sha256": "f71ae374e522d518cabae68d10cb9eecebcc9d5f20246a986b1508653c5d252a"
+    },
+    {
+      "path": "test-output.txt",
+      "bytes": 8208,
+      "sha256": "41e1c7bac9385c38e1b615039d786590bc108e872055b033d040aba1a653db0c"
+    }
+  ]
+}

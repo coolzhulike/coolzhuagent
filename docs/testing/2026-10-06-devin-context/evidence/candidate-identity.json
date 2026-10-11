@@ -1,0 +1,16 @@
+{
+  "stage": "源码候选，非正式安装版",
+  "baseline_commit": "1244cb6359aed3ff61552c05adda1724d8037721",
+  "web_binary_sha256": "43dc6685b0427f4b1ab686fe4f67c00cfe032cb87083e56f1eb8570067c2ed25",
+  "source_hashes": {
+    "modules/gui-web/packages/web-console/src/devin_acp/context.rs": "1e58fe4d51c8ff7b8901558582360cbf98a8ca7fbb1a199bd87747a51b0f4eed",
+    "modules/gui-web/packages/web-console/src/devin_acp/chat.rs": "c37b170ba803c75b5585f4839744119da956ee1695e43256872afa15457a4025",
+    "modules/gui-web/packages/web-console/src/devin_acp/journal.rs": "1b09cfb0f210949f8d0e0af60a1cc4402de9e85a42b4d2bcb4b8aa6477741ca2",
+    "modules/gui-web/packages/web-console/src/devin_acp/session.rs": "e830dd83bf6f70d322294be58313d0632c93876825dfd957926accb7d32dc7b0",
+    "modules/gui-web/packages/web-console/src/devin_acp/mod.rs": "cb84012e9c2722640872273765239c658a80b0fbf15e475433ac8a4015127344",
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "628719e28e1f51b9d84f5ff89a4ba9e424f2d042d3df273a513fce05e9088b45",
+    "modules/gui-web/packages/web-console/src/main.rs": "c5527a88ebb951d61c984d21afb45a2db874cd9255b6c5304981d631ca77ec66",
+    "modules/gui-web/packages/web-console/src/model_settings.js": "755ddcd29d3aa3c591df9ce1655270b9932fca2929a1fc3a9fabd2c698fe5acf",
+    "modules/gui-web/packages/web-console/src/chat_run_admission.rs": "0daa7eeee7084a330ac92f921a885976aab52b0ff419815dc67129e971b6cdbb"
+  }
+}

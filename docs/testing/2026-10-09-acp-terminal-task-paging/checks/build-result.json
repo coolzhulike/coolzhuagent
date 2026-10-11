@@ -1,0 +1,17 @@
+{
+  "command": [
+    "cargo",
+    "build",
+    "-p",
+    "coolzhu-web-console",
+    "--offline"
+  ],
+  "actual_exit_code": 0,
+  "elapsed_seconds": 19.32,
+  "environment_overrides": {
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_BUILD_JOBS": "1"
+  },
+  "binary_sha256": "51314a8c50e79b70be26e7e43b90ee67b3667d53142cee07024425ea485a5c24"
+}

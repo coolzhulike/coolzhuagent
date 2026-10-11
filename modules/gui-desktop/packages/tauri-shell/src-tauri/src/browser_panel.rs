@@ -2,6 +2,7 @@
 //! 网页的 URL、加载状态由原生回调提供，不维护猜测出来的浏览历史。
 use serde::{Deserialize, Serialize};
 use std::sync::{atomic::{AtomicU64, Ordering}, Mutex, OnceLock};
+use std::time::Instant;
 use tauri::{
     webview::{NewWindowResponse, PageLoadEvent, WebviewBuilder},
     AppHandle, Emitter, EventTarget, LogicalPosition, LogicalSize, Manager, Url, Webview,
@@ -62,6 +63,8 @@ struct PanelState {
     label: Option<String>,
     reply: PanelReply,
     pending_navigation: Option<PendingNavigation>,
+    source_changed_token: Option<i64>,
+    popup_sequence: u64,
 }
 
 struct PendingNavigation {
@@ -70,6 +73,7 @@ struct PendingNavigation {
     requested_observed: bool,
     redirect_url: Option<String>,
     from_popup: bool,
+    popup_sequence: Option<u64>,
 }
 
 #[derive(Default)]
@@ -185,13 +189,13 @@ pub(super) fn native_destination(value:&str) -> Result<Url,String> {
 /// 仅供已取得单次输入许可的宿主UI闭包使用；不导出新的网页IPC命令。
 pub(super) fn begin_native_navigation(app:&AppHandle,source:&native_browser_protocol::PanelResource,url:&Url)
     -> Result<native_browser_protocol::PanelNavigationReceipt,String> {
-    if input_resource(app).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
+    if control_snapshot(app).as_ref().map(|(control,_)|&control.resource)!=Some(source) {return Err("native_browser_resource_changed".into());}
     let store=app.state::<PanelStore>();
     let mut state=store.state.lock().map_err(|_|"native_browser_unavailable")?;
-    if visible_panel_resource(&state,true,false).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
+    if visible_control_resource(&state,true,false).as_ref()!=Some(source) {return Err("native_browser_resource_changed".into());}
     let revision=source.navigation_revision.checked_add(1).ok_or("native_browser_navigation_invalid")?;
     state.navigation_revision=revision;
-    state.pending_navigation=Some(PendingNavigation {revision,requested_url:url.to_string(),requested_observed:false,redirect_url:None,from_popup:false});
+    state.pending_navigation=Some(PendingNavigation {revision,requested_url:url.to_string(),requested_observed:false,redirect_url:None,from_popup:false,popup_sequence:None});
     state.reply.url=Some(url.to_string());state.reply.loading=true;state.reply.error=None;
     let mut destination=source.clone();destination.navigation_revision=revision;
     Ok(native_browser_protocol::PanelNavigationReceipt {destination,url:url.to_string()})
@@ -253,6 +257,37 @@ fn emit(app: &AppHandle, reply: &PanelReply) {
     );
 }
 
+#[derive(Clone, Copy, Serialize)]
+pub(super) struct DiagnosticStamp { sequence: u64, elapsed_us: u64 }
+
+/// 进程内共享采样时钟；序号不推导跨线程事件因果，默认关闭时不采时。
+pub(super) fn diagnostic_stamp() -> Option<DiagnosticStamp> {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    if !*ENABLED.get_or_init(|| std::env::var("COOLZHU_BROWSER_NAV_DIAGNOSTICS")
+        .is_ok_and(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true"))) {
+        return None;
+    }
+    static START: OnceLock<Instant> = OnceLock::new();
+    static SEQUENCE: AtomicU64 = AtomicU64::new(0);
+    let elapsed_us = START.get_or_init(Instant::now).elapsed().as_micros().min(u128::from(u64::MAX)) as u64;
+    Some(DiagnosticStamp { sequence: SEQUENCE.fetch_add(1, Ordering::Relaxed), elapsed_us })
+}
+
+fn log_generation_diagnostic(stage: &str, previous: u64, current: u64,
+    before: Option<DiagnosticStamp>, after: Option<DiagnosticStamp>) {
+    let (Some(before), Some(after)) = (before, after) else { return; };
+    diagnostics::info("browser_panel", "generation_diagnostic", "内置浏览器世代变化采样区间", &[
+        ("stage", stage.to_string()), ("previous_generation", previous.to_string()),
+        ("generation", current.to_string()), ("before", serde_json::to_string(&before).unwrap_or_default()),
+        ("after", serde_json::to_string(&after).unwrap_or_default()),
+    ]);
+}
+
+pub(super) fn log_source_changed_diagnostic(app: &AppHandle, generation: u64, new_document: bool) {
+    log_navigation_diagnostic(app, generation, "source_changed_observed",
+        if new_document { "new_document" } else { "same_document" }, None);
+}
+
 // 仅显式开启时写入桌面壳的诊断文件；不记录 URL、查询参数或聊天室 scope。
 fn log_navigation_diagnostic(
     app: &AppHandle,
@@ -261,19 +296,13 @@ fn log_navigation_diagnostic(
     outcome: &str,
     url: Option<&Url>,
 ) {
-    static ENABLED: OnceLock<bool> = OnceLock::new();
-    if !*ENABLED.get_or_init(|| {
-        std::env::var("COOLZHU_BROWSER_NAV_DIAGNOSTICS")
-            .is_ok_and(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true"))
-    }) {
-        return;
-    }
-    static SEQUENCE: AtomicU64 = AtomicU64::new(0);
+    let Some(stamp) = diagnostic_stamp() else { return; };
     let store = app.state::<PanelStore>();
     let Ok(state) = store.state.lock() else { return; };
     let pending = state.pending_navigation.as_ref();
     let fields = [
-        ("sequence", SEQUENCE.fetch_add(1, Ordering::Relaxed).to_string()),
+        ("sequence", stamp.sequence.to_string()),
+        ("elapsed_us", stamp.elapsed_us.to_string()),
         ("stage", stage.to_string()),
         ("outcome", outcome.to_string()),
         ("generation", generation.to_string()),
@@ -281,6 +310,7 @@ fn log_navigation_diagnostic(
         ("revision", state.navigation_revision.to_string()),
         ("pending_revision", pending.map_or("none".into(), |value| value.revision.to_string())),
         ("pending_popup", pending.is_some_and(|value| value.from_popup).to_string()),
+        ("popup_sequence", state.popup_sequence.to_string()),
         ("requested_match", url.zip(pending).is_some_and(|(url, pending)| pending.requested_url == url.as_str()).to_string()),
         ("panel_url_match", url.is_some_and(|url| state.reply.url.as_deref() == Some(url.as_str())).to_string()),
         ("active", state.reply.active.to_string()),
@@ -368,20 +398,44 @@ fn observe_navigation(app: &AppHandle, generation: u64, url: &Url) {
     }
 }
 
+pub(super) fn update_same_document_source(app: &AppHandle, generation: u64, label: &str, url: &Url) {
+    if validate_url(url.as_str(), console_origin()).is_err() { return; }
+    let store = app.state::<PanelStore>();
+    let reply = {
+        let Ok(mut state) = store.state.lock() else { return; };
+        if state.generation != generation || !state.reply.active || state.label.as_deref() != Some(label) { return; }
+        let completes_pending = if let Some(pending) = state.pending_navigation.as_ref() {
+            // 显式同文档导航没有 ContentLoading；只有当前请求的精确目标才能收尾。
+            if pending.revision != state.navigation_revision || pending.requested_url != url.as_str() { return; }
+            true
+        } else { false };
+        state.reply.url = Some(url.to_string());
+        if completes_pending {
+            state.pending_navigation = None;
+            state.reply.loading = false;
+            state.reply.error = None;
+            state.reply.reason = None;
+        }
+        state.reply.clone()
+    };
+    emit(app, &reply);
+}
+
 fn popup_navigation_current(
     state: &PanelState,
     generation: u64,
     scope: &str,
     label: &str,
-    revision: Option<u64>,
+    sequence: Option<u64>,
 ) -> bool {
     state.generation == generation
         && state.reply.active
         && state.reply.scope == scope
         && state.label.as_deref() == Some(label)
-        && revision.is_none_or(|revision| {
-            state.pending_navigation.as_ref().is_some_and(|pending| pending.revision == revision && pending.from_popup)
-                && state.navigation_revision == revision
+        && sequence.is_none_or(|sequence| {
+            state.pending_navigation.as_ref().is_some_and(|pending| pending.popup_sequence == Some(sequence)
+                && pending.from_popup && pending.revision == state.navigation_revision)
+                && state.popup_sequence == sequence
         })
 }
 
@@ -403,14 +457,14 @@ fn popup_navigation_error(
     generation: u64,
     scope: &str,
     label: &str,
-    revision: Option<u64>,
+    sequence: Option<u64>,
     message: &str,
 ) {
     let store = app.state::<PanelStore>();
     let reply = {
         let Ok(mut state) = store.state.lock() else { return; };
-        if !popup_navigation_current(&state, generation, scope, label, revision) { return; }
-        if revision.is_some() {
+        if !popup_navigation_current(&state, generation, scope, label, sequence) { return; }
+        if sequence.is_some() {
             state.pending_navigation = None;
             state.reply.loading = false;
         }
@@ -428,11 +482,17 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
         popup_navigation_error(app, generation, scope, label, None, "已阻止不支持的网页跳转");
         return;
     }
-    let revision = {
+    let sequence = {
         let store = app.state::<PanelStore>();
         let Ok(mut state) = store.state.lock() else { return; };
         if !popup_navigation_current(&state, generation, scope, label, None) { None } else {
-            state.navigation_revision = state.navigation_revision.wrapping_add(1);
+            // 网页自身的新窗口跳转与普通链接同属自然导航；队列撤销使用独立序号，
+            // 不能为了队列排序把已结算输入所属资源误判成手动替换。
+            if state.pending_navigation.as_ref().is_some_and(|pending| !pending.from_popup) {
+                state.navigation_revision = state.navigation_revision.wrapping_add(1);
+            }
+            let Some(sequence) = state.popup_sequence.checked_add(1) else { return; };
+            state.popup_sequence = sequence;
             let revision = state.navigation_revision;
             state.pending_navigation = Some(PendingNavigation {
                 revision,
@@ -440,11 +500,12 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
                 requested_observed: false,
                 redirect_url: None,
                 from_popup: true,
+                popup_sequence: Some(sequence),
             });
-            Some(revision)
+            Some(sequence)
         }
     };
-    let Some(revision) = revision else {
+    let Some(sequence) = sequence else {
         log_navigation_diagnostic(app, generation, "popup_request", "stale_view", Some(&url));
         return;
     };
@@ -458,7 +519,7 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
         let store = queued_app.state::<PanelStore>();
         log_navigation_diagnostic(&queued_app, generation, "popup_task", "entered", Some(&url));
         let current = store.state.lock().is_ok_and(|state| {
-            popup_navigation_current(&state, generation, &queued_scope, &queued_label, Some(revision))
+            popup_navigation_current(&state, generation, &queued_scope, &queued_label, Some(sequence))
         });
         if !current {
             log_navigation_diagnostic(&queued_app, generation, "popup_task", "stale", Some(&url));
@@ -466,19 +527,19 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
         }
         let Some(view) = queued_app.get_webview(&queued_label) else {
             log_navigation_diagnostic(&queued_app, generation, "popup_task", "view_missing", Some(&url));
-            popup_navigation_error(&queued_app, generation, &queued_scope, &queued_label, Some(revision), "网页窗口尚未就绪");
+            popup_navigation_error(&queued_app, generation, &queued_scope, &queued_label, Some(sequence), "网页窗口尚未就绪");
             return;
         };
         if view.navigate(url.clone()).is_err() {
             log_navigation_diagnostic(&queued_app, generation, "popup_dispatch", "dispatch_failed", Some(&url));
-            popup_navigation_error(&queued_app, generation, &queued_scope, &queued_label, Some(revision), "无法打开新窗口目标网页");
+            popup_navigation_error(&queued_app, generation, &queued_scope, &queued_label, Some(sequence), "无法打开新窗口目标网页");
             return;
         }
         // Tauri 返回 Ok 只确认派发，底层 WebView2 load_url 错误不经该返回值传递。
         log_navigation_diagnostic(&queued_app, generation, "popup_dispatch", "dispatched", Some(&url));
         let reply = {
             let Ok(mut state) = store.state.lock() else { return; };
-            if !popup_navigation_current(&state, generation, &queued_scope, &queued_label, Some(revision)) { return; }
+            if !popup_navigation_current(&state, generation, &queued_scope, &queued_label, Some(sequence)) { return; }
             state.reply.url = Some(url.to_string());
             state.reply.loading = true;
             state.reply.error = None;
@@ -487,7 +548,7 @@ fn handle_new_window(app: &AppHandle, generation: u64, scope: &str, label: &str,
         emit(&queued_app, &reply);
     }).is_err() {
         log_navigation_diagnostic(app, generation, "popup_task", "schedule_failed", None);
-        popup_navigation_error(app, generation, scope, label, Some(revision), "无法调度新窗口目标网页");
+        popup_navigation_error(app, generation, scope, label, Some(sequence), "无法调度新窗口目标网页");
     }
 }
 
@@ -510,23 +571,29 @@ pub fn suspend(app: &AppHandle, reason: &str) {
 /// 真正关闭或切换所属聊天室时销毁隔离视图。
 pub fn invalidate(app: &AppHandle, reason: &str) {
     let store = app.state::<PanelStore>();
-    let (label, reply) = {
+    let (label, token, reply, generation_sample) = {
         let Ok(mut state) = store.state.lock() else {
             return;
         };
         if !state.reply.active {
             return;
         }
+        let previous = state.generation;
+        let before = diagnostic_stamp();
         state.generation = state.generation.wrapping_add(1);
+        let after = diagnostic_stamp();
         state.reply.active = false;
         state.reply.destroyed = true;
         state.reply.hidden = false;
         state.reply.loading = false;
         state.reply.reason = Some(reason.into());
         state.pending_navigation = None;
-        (state.label.take(), state.reply.clone())
+        (state.label.take(), state.source_changed_token.take(), state.reply.clone(),
+            (previous, state.generation, before, after))
     };
+    log_generation_diagnostic("revoke", generation_sample.0, generation_sample.1, generation_sample.2, generation_sample.3);
     if let Some(view) = label.and_then(|label| app.get_webview(&label)) {
+        super::native_browser_source::remove(&view, token);
         super::native_browser_input::retire_view(view);
     }
     emit(app, &reply);
@@ -551,12 +618,30 @@ pub(super) fn input_resource(app: &AppHandle) -> Option<native_browser_protocol:
     visible_panel_resource(&state, visible, minimized)
 }
 
+/// 宿主控制与文档输入分开；加载期间仍能观察状态和导航，网页输入资格保持撤销。
+pub(super) fn control_snapshot(app:&AppHandle) -> Option<(super::native_browser_navigation::ControlResource,bool)> {
+    let console=app.get_window(super::CONSOLE_LABEL)?;
+    let visible=console.is_visible().ok()?;
+    let minimized=console.is_minimized().ok()?;
+    let store=app.state::<PanelStore>();
+    let state=store.state.lock().ok()?;
+    let resource=visible_control_resource(&state,visible,minimized)?;
+    let url=state.reply.url.clone()?;
+    if !native_browser_protocol::valid_navigation_url(&url) {return None;}
+    Some((super::native_browser_navigation::ControlResource {resource,url,popup_sequence:state.popup_sequence},state.reply.loading))
+}
+
 fn visible_panel_resource(state: &PanelState, console_visible: bool, console_minimized: bool) -> Option<native_browser_protocol::PanelResource> {
+    if state.reply.loading {return None;}
+    visible_control_resource(state,console_visible,console_minimized)
+}
+
+fn visible_control_resource(state: &PanelState, console_visible: bool, console_minimized: bool) -> Option<native_browser_protocol::PanelResource> {
     #[derive(Deserialize)]
     struct Scope { context: ScopeContext }
     #[derive(Deserialize)]
     struct ScopeContext { workspace_path: String, room: String }
-    if !console_visible || console_minimized || !state.reply.active || state.reply.hidden || state.reply.loading || state.reply.destroyed {
+    if !console_visible || console_minimized || !state.reply.active || state.reply.hidden || state.reply.destroyed {
         return None;
     }
     let scope: Scope = serde_json::from_str(&state.reply.scope).ok()?;
@@ -701,7 +786,7 @@ pub async fn browser_panel_command(
                     state.pending_navigation = Some(PendingNavigation {
                         revision: state.navigation_revision,
                         requested_url: url.to_string(),
-                        requested_observed: false, redirect_url: None, from_popup: false,
+                        requested_observed: false, redirect_url: None, from_popup: false, popup_sequence: None,
                     });
                     Some(state.navigation_revision)
                 }
@@ -730,9 +815,12 @@ pub async fn browser_panel_command(
         invalidate(&app, "scope-changed");
         let bounds = bounds.unwrap();
         let popup_scope = command.scope.clone();
-        let (generation, label) = {
+        let (generation, label, generation_sample) = {
             let mut state = store.state.lock().map_err(|_| "网页状态不可用")?;
+            let previous = state.generation;
+            let before = diagnostic_stamp();
             state.generation = state.generation.wrapping_add(1);
+            let after = diagnostic_stamp();
             state.pending_navigation = None;
             let label = format!("browser-panel-{}", state.generation);
             state.label = Some(label.clone());
@@ -743,8 +831,9 @@ pub async fn browser_panel_command(
                 bounds: Some(bounds),
                 ..Default::default()
             };
-            (state.generation, label)
+            (state.generation, label, (previous, before, after))
         };
+        log_generation_diagnostic("create_state", generation_sample.0, generation, generation_sample.1, generation_sample.2);
         let navigation_app = app.clone();
         let load_app = app.clone();
         let title_app = app.clone();
@@ -758,6 +847,7 @@ pub async fn browser_panel_command(
         let builder = WebviewBuilder::new(&label, tauri::WebviewUrl::External(url))
             .data_directory(data)
             .disable_drag_drop_handler()
+            .zoom_hotkeys_enabled(true)
             .devtools(false)
             .on_navigation(move |url| {
                 let validation = validate_url(url.as_str(), console_origin());
@@ -791,9 +881,23 @@ pub async fn browser_panel_command(
             LogicalSize::new(bounds.width, bounds.height),
         ) {
             Ok(view) => {
-                let alive =
-                    store.state.lock().map_err(|_| "网页状态不可用")?.generation == generation;
+                log_navigation_diagnostic(&app, generation, "view_created_observed", "created", None);
+                let token = match super::native_browser_source::install(&app, &view, generation).await {
+                    Ok(token) => token,
+                    Err(error) => {
+                        // 地址显示监听不属于输入授权；失败不能使原有网页功能整体失效。
+                        eprintln!("browser-panel source listener: {error}");
+                        None
+                    }
+                };
+                let alive = {
+                    let mut state = store.state.lock().map_err(|_| "网页状态不可用")?;
+                    let alive = state.generation == generation && state.reply.active;
+                    if alive { state.source_changed_token = token; }
+                    alive
+                };
                 if !alive {
+                    super::native_browser_source::remove(&view, token);
                     let _ = view.close();
                     return Err("网页创建期间窗口或聊天室已变化".into());
                 }
@@ -853,8 +957,31 @@ mod tests {
     use super::*;
 
     #[test]
+    fn popup_queue_sequence_cannot_survive_replacement_or_manual_navigation() {
+        let mut state = PanelState {
+            generation: 3, navigation_revision: 7, popup_sequence: 2,
+            label: Some("browser-panel-3".into()),
+            reply: PanelReply { active: true, scope: "room-scope".into(), ..Default::default() },
+            pending_navigation: Some(PendingNavigation { revision: 7, requested_url: "https://example.com/".into(),
+                requested_observed: false, redirect_url: None, from_popup: true, popup_sequence: Some(2) }),
+            ..Default::default()
+        };
+        let current = |state: &PanelState, sequence| popup_navigation_current(state, 3, "room-scope", "browser-panel-3", Some(sequence));
+        assert!(current(&state, 2));
+        assert!(!current(&state, 1));
+        state.popup_sequence = 3;
+        assert!(!current(&state, 2));
+        state.pending_navigation.as_mut().unwrap().popup_sequence = Some(3);
+        assert!(current(&state, 3));
+        state.navigation_revision += 1;
+        assert!(!current(&state, 3));
+        state.pending_navigation = None;
+        assert!(!current(&state, 3));
+    }
+
+    #[test]
     fn hidden_or_minimized_console_cannot_register_a_resident_page() {
-        let state = PanelState {
+        let mut state = PanelState {
             generation: 7,
             navigation_revision: 1,
             label: Some("browser-panel-7".into()),
@@ -868,6 +995,11 @@ mod tests {
         assert!(visible_panel_resource(&state, true, false).is_some());
         assert!(visible_panel_resource(&state, false, false).is_none());
         assert!(visible_panel_resource(&state, true, true).is_none());
+        state.reply.loading=true;
+        assert!(visible_panel_resource(&state,true,false).is_none(),"加载不得提供文档输入资格");
+        assert!(visible_control_resource(&state,true,false).is_some(),"加载可提供独立导航控制资格");
+        state.reply.hidden=true;
+        assert!(visible_control_resource(&state,true,false).is_none());
     }
 
     #[test]

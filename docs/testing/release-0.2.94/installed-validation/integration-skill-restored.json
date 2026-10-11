@@ -1,0 +1,13 @@
+{
+  "workspace_id": "ws-23f646a969206cb4",
+  "skills": [
+    {
+      "id": "local:plugin-receipt",
+      "name": "插件回执核验",
+      "description": "使用已声明的计算器插件并报告真实执行证据",
+      "source": "当前工程 .coolzhu/skills",
+      "selected": false
+    }
+  ],
+  "selected_id": null
+}

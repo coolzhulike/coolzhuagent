@@ -1,0 +1,29 @@
+{
+  "config": {},
+  "activation_id": "dsh-12264-1791505299092754800-4",
+  "normal_enable_response": {
+    "enabled": true,
+    "outcome": {
+      "call_id": "dsh-enable-3398c535032a236b697a4d5156cee4be",
+      "elapsed_ms": 619,
+      "output": {
+        "activation_id": "dsh-12264-1791505299092754800-4",
+        "enabled": true,
+        "plugin_id": "dsh-aa909f79795799f288de8a67@external"
+      },
+      "permission_gate": {
+        "affected_paths": [
+          "<opaque-command>"
+        ],
+        "decision": "allow-auto",
+        "reason": "full-access-profile",
+        "required": "danger-full-access",
+        "workspace_relative": false
+      },
+      "status": "ok",
+      "summary_text": "DSH实际宿主操作已收尾",
+      "tool_name": "dsh__enable_3b6ee0ea714c22e115d3ce786b876bc1"
+    },
+    "pending_call_id": null
+  }
+}

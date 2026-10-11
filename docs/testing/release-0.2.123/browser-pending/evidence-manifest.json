@@ -1,0 +1,119 @@
+{
+  "files": [
+    {
+      "path": "first/address.json",
+      "bytes": 56,
+      "sha256": "356f0be82dc6e704d0d7fe4374f9e68398a413f7da94a8f083f050c6c1a80c87"
+    },
+    {
+      "path": "first/collect.py",
+      "bytes": 2085,
+      "sha256": "f737e421c3b116d0a68722f6729e917c4a22730a9f3b1c452fe8887e168f6fcb"
+    },
+    {
+      "path": "first/events.jsonl",
+      "bytes": 2240,
+      "sha256": "49590d274da1cb6ef10ac9ead3e9a28d652325ced94778e1ded20ebe0775051a"
+    },
+    {
+      "path": "first/latest-status.json",
+      "bytes": 5404,
+      "sha256": "158cc3668cbe8b4c7d2a548c61b04a65a3cebb4ab5c9bf8f9ae4646308e807a8"
+    },
+    {
+      "path": "first/native-initial.png",
+      "bytes": 236720,
+      "sha256": "732e59b101ea877e944229e8ff79b4a33e57adb8a42a4bf98369851a5edd0a72"
+    },
+    {
+      "path": "first/native-terminal.png",
+      "bytes": 228138,
+      "sha256": "d44608bc2ea3dc7d30cda05a271eec452bcac205af599728a1700e0a71d98d87"
+    },
+    {
+      "path": "first/send.py",
+      "bytes": 3638,
+      "sha256": "9bfacb2439f8db086a4d4373670171a9063f052f89066488632253e89fed6584"
+    },
+    {
+      "path": "first/server.py",
+      "bytes": 5872,
+      "sha256": "f02422209fed3e66fcb62eb0fecba5ab8481cf784595b0951ad49aa2cf1a7c4d"
+    },
+    {
+      "path": "first/stream-finished.json",
+      "bytes": 197,
+      "sha256": "0c4674f4ebcb2f40d3aafa572588d936d184eb988f8325ce7f392df7c6aa5ae3"
+    },
+    {
+      "path": "first/submitted.json",
+      "bytes": 1515,
+      "sha256": "255e8079968b6d8aafaa196f7886a067a34f40dfb9cd7229e4da5dc337153041"
+    },
+    {
+      "path": "first/watcher-outcome.json",
+      "bytes": 811,
+      "sha256": "098f5ec5287e870e36a81e25df92f392d3c4d20a0e06fb1602f66801f5f0e963"
+    },
+    {
+      "path": "second/address.json",
+      "bytes": 55,
+      "sha256": "47f54489ce3d8dacb09f34a202a06a257f63282ce1a143357797f2adc8c800e1"
+    },
+    {
+      "path": "second/collect.py",
+      "bytes": 2106,
+      "sha256": "f276b6b36e45a16d488fa2158c3849323150d13e2751539cd3443c627e043473"
+    },
+    {
+      "path": "second/events.jsonl",
+      "bytes": 2517,
+      "sha256": "4658b4b16527c9d3252d61639b37da8f9781b445306aec596664f0f4ddfbf30e"
+    },
+    {
+      "path": "second/latest-status.json",
+      "bytes": 4071,
+      "sha256": "85a0dc41a145fa1aa7af9f191926c6f7f01cf35be5b9fe5e353ead33bca30c69"
+    },
+    {
+      "path": "second/native-close.png",
+      "bytes": 229958,
+      "sha256": "5a1d092c4cff3c6a5fbf40ea156cb3394ece8764453c02557e03ce378b13502e"
+    },
+    {
+      "path": "second/native-initial.png",
+      "bytes": 225776,
+      "sha256": "9410c3e539e0ecc4be7133cd1e8259a02337cb355310920b077ecb9247014234"
+    },
+    {
+      "path": "second/native-terminal.png",
+      "bytes": 212328,
+      "sha256": "78d11d8f1dead3c337355b788b2360bebe2515dcfdcab4addc5f3ca024fb45d3"
+    },
+    {
+      "path": "second/normal-close-timing.json",
+      "bytes": 825,
+      "sha256": "ea92c4dc6a6071de0128de650d9e4760dcc09df0c2cfdc9f70d8ffe898587114"
+    },
+    {
+      "path": "second/send.py",
+      "bytes": 3639,
+      "sha256": "99f3e65912828f35e5fb48913345bfb2415e4ce014c3d61f4ce97861cebe7cd7"
+    },
+    {
+      "path": "second/server.py",
+      "bytes": 5874,
+      "sha256": "9012e01333a96624ff4da034917a3fd818faf4a67d1c622f49f682f78a828e72"
+    },
+    {
+      "path": "second/stream-finished.json",
+      "bytes": 196,
+      "sha256": "f7fefa943339b05632ec8d153d317dbd142f2aa23db1713d447432dc62632078"
+    },
+    {
+      "path": "second/submitted.json",
+      "bytes": 1516,
+      "sha256": "fe6743362a87a9f385d17590b67a33101beed665badb1e4bc913baf8c38fd03c"
+    }
+  ]
+}

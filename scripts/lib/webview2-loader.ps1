@@ -1048,10 +1048,24 @@ function Clear-LoaderStaleStaging {
 function Get-LoaderBuildMessageRecords {
   param(
     [string[]]$BuildMessages,
+    [string]$RawRecordPath,
     [Parameter(Mandatory = $true)][string]$ProducerPackage
   )
 
   $records = @()
+  if ($RawRecordPath) {
+    if (-not ('CoolzhuBoundedJsonLine' -as [type])) { . (Join-Path $PSScriptRoot 'cargo-build-evidence.ps1') }
+    $source = [IO.FileStream]::new($RawRecordPath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+    $reader = [IO.StreamReader]::new($source, [Text.UTF8Encoding]::new($false, $true), $false, 4096, $false)
+    try {
+      $firstLine = $true
+      while ($null -ne ($line = [CoolzhuBoundedJsonLine]::Read($reader))) {
+        if ($firstLine) { $line = $line.TrimStart([char]0xFEFF); $firstLine = $false }
+        $records += @(Get-LoaderBuildMessageRecords -BuildMessages @($line) -ProducerPackage $ProducerPackage)
+      }
+    } finally { $reader.Dispose() }
+    return $records
+  }
   if (-not $BuildMessages) { return $records }
   $needle = '#' + $ProducerPackage + '@'
   foreach ($line in $BuildMessages) {
@@ -1479,7 +1493,7 @@ function Export-LoaderArtifact {
   $stablePath = [string]$Context.StablePath
   $receiptPath = [string]$Context.ReceiptPath
 
-  $records = @(Get-LoaderBuildMessageRecords -BuildMessages $Context.BuildMessages -ProducerPackage ([string]$export.producer_package))
+  $records = @(Get-LoaderBuildMessageRecords -BuildMessages $Context.BuildMessages -RawRecordPath $Context.RawRecordPath -ProducerPackage ([string]$export.producer_package))
   $producer = Resolve-LoaderProducerRecord `
     -Records $records `
     -ArtifactId $artifactId `

@@ -1,0 +1,24 @@
+﻿{
+    "stopped":  [
+                    {
+                        "sha256":  "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+                        "script_sha256":  "d07e229da8711c46d310b481d80613094ea2ae1ff23946df574bf3704b36af67",
+                        "script":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-oop\\server.py",
+                        "pid":  12204,
+                        "path":  "C:\\Python314\\python.exe",
+                        "created":  "2026-10-06T04:47:33.4534600Z",
+                        "command":  "\"C:\\Python314\\python.exe\" C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-oop\\server.py"
+                    },
+                    {
+                        "sha256":  "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+                        "script_sha256":  "128a7044a13b64d52b1376054d1c959f572bd0f8f3310e6837b65289cb26690c",
+                        "script":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-oop\\server-boundaries.py",
+                        "pid":  33556,
+                        "path":  "C:\\Python314\\python.exe",
+                        "created":  "2026-10-06T05:08:35.6817229Z",
+                        "command":  "\"C:\\Python314\\python.exe\" C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-oop\\server-boundaries.py "
+                    }
+                ],
+    "observed_utc":  "2026-10-06T05:39:35.9408123Z",
+    "stage":  "完成正式验收后按完整身份停止自有测试服务器"
+}

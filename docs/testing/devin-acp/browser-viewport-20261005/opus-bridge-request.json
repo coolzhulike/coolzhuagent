@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读讨论。请读取 review-browser-text/native_browser_verification.rs，禁止修改或桌面输入。最新真实 SWE-2 两轮：natural-span完整9字引文选[7,8]，ITB标签+ST数字，旧相邻规则3/3；natural-static明确仅选ST后[4,8]再次2/3/non_adjacent。宿主新增中间节点事实：4 ST8字，5空generic，6 ITB10字，7 ITB8字，8 ST1字；6/7的inline_has_static_text均true，含义是名字为某个前序ST名字的子串（不是父子关系）。6是前面标题的重复ITB而不是紧邻ST4副本，所以“最近一个ST匹配”会继续误拒。保留真实失败，不追认旧任务。\n计划只在nonadjacent新增有界桥接：两端ST、span<=12、range所有ST均选中；空generic/paragraph/none可略；ITB仅当空或名字是某个认证快照ST名字的子串时略，不声称父关系、不引入任何ITB文字；其它角色、有名结构、未选中ST拒；全部选中ST按原顺序原样拼接匹配完整引文。保留旧adjacent入口，不新AX投影。另把节点匹配置于title/url/viewport之前，只改变reason，接受集合不收紧。该方案相比忽略全部ITB只是更窄的“不引入新文本”检查。请审核风险与最小调整，区分事实和推断，不超过500中文字。",
+  "selected_message_ids": [],
+  "attachments": []
+}

@@ -1,0 +1,16 @@
+{
+  "shell": {
+    "pid": 28628,
+    "created": "2026-10-05T20:01:38.3256400Z",
+    "parent_pid": 29280,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+  },
+  "system_info": {
+    "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+    "port": 8765,
+    "build_version": "2d040d555566 · 2026-10-05",
+    "active_sessions": 6
+  },
+  "input_safety_state_root": "C:/Users/zhupu/AppData/Local/CoolzhuAgent/input-safety",
+  "selfcheck_note": "同一后台正常转发控制台分支不刷新自检，按新实例和真实后台API核验"
+}

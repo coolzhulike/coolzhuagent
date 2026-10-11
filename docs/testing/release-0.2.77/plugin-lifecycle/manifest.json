@@ -1,0 +1,107 @@
+{
+  "stage": "0.2.77 Program Files 正式安装版；原 SWE-2 veiled-anise；原输入安全库",
+  "source_commit": "2d040d555566340c03709b4c6f6b77f11496ebed",
+  "runtime_dev_open_permissions": true,
+  "files": [
+    {
+      "file": ".gitattributes",
+      "bytes": 75,
+      "sha256": "6eabf2e06fe9a1051649e6d3ac14c4be612addacbbaa26d4b04ffcb59c57f566"
+    },
+    {
+      "file": "backup-inventory.json",
+      "bytes": 3736,
+      "sha256": "b419af664737a1a4105333322f2e7b5dc35cf9f3320d95bfaf7569549482bee6"
+    },
+    {
+      "file": "catalog-reenabled.json",
+      "bytes": 3307,
+      "sha256": "2212d3f8df4242f8d40c823a544f1f93f3796befce3d67fe5bf501595ad399e0"
+    },
+    {
+      "file": "catalog-reinstalled-disabled.json",
+      "bytes": 3309,
+      "sha256": "2fd0ac0898f4be4b3d94f0b256af907be0d32239e16c903692428bee01d3301e"
+    },
+    {
+      "file": "catalog-uninstalled.json",
+      "bytes": 2671,
+      "sha256": "8226f4a5519bc58dc99b76d4121cf98f2b67c4f82679d887e83a203cdbecaf8b"
+    },
+    {
+      "file": "DEVIN-INSTALLED-077-REINSTALL-ENABLED-20261006-facts.json",
+      "bytes": 3671,
+      "sha256": "da16f848d5edf9426956f9c511a778584125e5583f47e0033b177e13bfd4b520"
+    },
+    {
+      "file": "DEVIN-INSTALLED-077-REINSTALLED-DISABLED-20261006-facts.json",
+      "bytes": 1866,
+      "sha256": "a8dace6811e532c132bb8fc68decdedfcb5a8057e86bf1e65490ee98ac9874bc"
+    },
+    {
+      "file": "DEVIN-INSTALLED-077-UNINSTALLED-20261006-facts.json",
+      "bytes": 1864,
+      "sha256": "1a546f0c76a5c840f2933e1ec893b8616bc7e83eda084b28cd579a45e18d1dc2"
+    },
+    {
+      "file": "disabled-after-restore-check.txt",
+      "bytes": 1500,
+      "sha256": "52eec6fb85c572ab71ffae8408896c19d24cb5657b640765735e474af62514c8"
+    },
+    {
+      "file": "fixed-source-before-uninstall.json",
+      "bytes": 1128,
+      "sha256": "e563f94c0ee4173a9b16d7b3c91f352a80714e05764ef221865e3d265d370634"
+    },
+    {
+      "file": "installed-process.json",
+      "bytes": 350,
+      "sha256": "6ba23f8083a4539c1a51aa7e2e7ed5dbfdd9db0d86bdb7752614de59d28a702e"
+    },
+    {
+      "file": "installed-shell-process.json",
+      "bytes": 342,
+      "sha256": "8c52ef3b6d4cdeeccd174bfedf6591df91a4eee0184dbe3fddc2aee9409aeccc"
+    },
+    {
+      "file": "market-loaded-native.jpg",
+      "bytes": 217126,
+      "sha256": "a6f01899eac3b606fd075eca891a3cdd1f90051cdbbfd627422473cddfeaeb34"
+    },
+    {
+      "file": "reenable-response.json",
+      "bytes": 720,
+      "sha256": "2a027eba60a6b2c84009168b288b37cc2aeb39de6b4fb3a18b2ed8e38fc1a5b6"
+    },
+    {
+      "file": "reinstall-enabled-result-native.jpg",
+      "bytes": 219028,
+      "sha256": "44c3c00e05cdf4059e7ce23ec3806b89710ad8397a36ce4c625d3fdab73d2096"
+    },
+    {
+      "file": "reinstall-response.json",
+      "bytes": 471,
+      "sha256": "8fd5f7cd9bbc079c32c400c4e389921514a915fa728d061df78f028653276b58"
+    },
+    {
+      "file": "reinstalled-disabled-native.jpg",
+      "bytes": 214817,
+      "sha256": "5a6f0a38644bb37329bc53b75fe98a844429761f507a8340809f1590d8c46868"
+    },
+    {
+      "file": "uninstall-response.json",
+      "bytes": 2671,
+      "sha256": "8226f4a5519bc58dc99b76d4121cf98f2b67c4f82679d887e83a203cdbecaf8b"
+    },
+    {
+      "file": "uninstalled-after-restore-check.txt",
+      "bytes": 1498,
+      "sha256": "0aa15b8d2cc4e35615b176938fd2213eafc3e1407b06a30073e5947146c2e8a1"
+    },
+    {
+      "file": "uninstalled-refused-native.jpg",
+      "bytes": 215359,
+      "sha256": "d799f15e32dece0f677824a437e4a8a38f84a07cd50f6d79a4a924887b738a09"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "binary_sha256": "9bd41bea066e678d330bb0771c4260b4c8a4a776bb7e3325ca0925b65cb16f71",
+  "pid": 28536,
+  "port": 8768,
+  "model_requests": 0,
+  "new_cloud_sessions": 0,
+  "original_runtime_writes": 0,
+  "parameters_published_ms": 1791531774426.1624,
+  "switch_during_sqlite_wait": {
+    "status": 409,
+    "response": {
+      "error": "当前工程仍有聊天、视频或定时任务在执行或收尾，请完成或停止后再切换/重载工程"
+    },
+    "returned_ms": 1791531774428.5146
+  },
+  "saved_after_release": {
+    "agent_execution_ready": true,
+    "available_plugin_tools": [],
+    "backend_kind": "llm_http",
+    "base_url": "http://127.0.0.1:8082/v1",
+    "configuration_revision": 11,
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "effective_context_window": 8192,
+    "effective_max_output_tokens": 1024,
+    "effective_supports_multimodal": false,
+    "endpoint": null,
+    "image_input_strategy": "vision-description",
+    "model_selection": {
+      "effective": null,
+      "requested": "scope-local-config",
+      "resolved_model": null
+    },
+    "parameters": {
+      "backend_kind": null,
+      "base_url": null,
+      "computer_use_enabled": null,
+      "context_window": 32768,
+      "enable_llm_tools": null,
+      "endpoint": null,
+      "llm_tool_exposure": null,
+      "max_output_tokens": 1024,
+      "protocol": null,
+      "reasoning_mode": null,
+      "supports_multimodal": null,
+      "temperature": 0.35,
+      "thinking_budget": null,
+      "tool_allowlist": null,
+      "top_p": null,
+      "turn_timeout_ms": null
+    },
+    "plugin_tools_error": null,
+    "protocol": "openai_chat_completions",
+    "session": {
+      "active": true,
+      "api_key_status": "未配置（能力已启用；凭据引用 api-key.txt 不可用）",
+      "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+      "backend_kind": "llm_http",
+      "base_url": "http://127.0.0.1:8082/v1",
+      "display_name": "工程-a-作用域保存(coolzhu-model)",
+      "endpoint": null,
+      "id": "scope-shared-session",
+      "memory_mode": "enabled",
+      "model": "scope-local-config",
+      "model_type": "text",
+      "name": "工程-a-作用域保存",
+      "provider": "custom",
+      "reasoning_effort": "auto",
+      "reasoning_resolution": {
+        "effective": "auto",
+        "protocol": "openai_chat_completions",
+        "reason": "requested=auto：不主动覆盖供应商默认",
+        "requested": "auto",
+        "status": "default",
+        "strategy": "provider_default",
+        "supported_options": [
+          {
+            "label": "自动",
+            "value": "auto"
+          }
+        ]
+      },
+      "updated_at": 1791531774417
+    }
+  },
+  "other_workspace_untouched": true,
+  "pins_released_after_400_and_409": true,
+  "all_passed": true
+}

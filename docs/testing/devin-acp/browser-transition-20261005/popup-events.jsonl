@@ -1,0 +1,16 @@
+{"kind": "load", "doc": "ed86c1e5-9641-4965-9232-ff2c2f3c5cc4", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791175093192, "server_ms": 1791175093204}
+{"kind": "load", "doc": "34e8ce5a-4976-4597-a3fc-3304eec27850", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791175758501, "server_ms": 1791175758506}
+{"kind": "popup_requested", "doc": "34e8ce5a-4976-4597-a3fc-3304eec27850", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791175803323, "trusted": true, "server_ms": 1791175803326}
+{"kind": "pointerdown", "doc": "34e8ce5a-4976-4597-a3fc-3304eec27850", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791175803329, "trusted": true, "server_ms": 1791175803333}
+{"kind": "pointerup", "doc": "34e8ce5a-4976-4597-a3fc-3304eec27850", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791175803330, "trusted": true, "server_ms": 1791175803335}
+{"kind": "click", "doc": "34e8ce5a-4976-4597-a3fc-3304eec27850", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791175803330, "trusted": true, "server_ms": 1791175803337}
+{"kind": "pagehide", "doc": "34e8ce5a-4976-4597-a3fc-3304eec27850", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791175803335, "trusted": true, "server_ms": 1791175803340}
+{"kind": "load", "doc": "7671b456-b9ae-4267-8c1e-4a88979ef38f", "url": "http://127.0.0.1:52930/popup-target.html", "page_ms": 1791175803340, "server_ms": 1791175803352}
+{"kind": "pagehide", "doc": "7671b456-b9ae-4267-8c1e-4a88979ef38f", "url": "http://127.0.0.1:52930/popup-target.html", "page_ms": 1791175965661, "trusted": true, "server_ms": 1791175965665}
+{"kind": "load", "doc": "5d0ca2a5-1402-406b-84f5-18cd6358369e", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791176579808, "server_ms": 1791176579815}
+{"kind": "popup_requested", "doc": "5d0ca2a5-1402-406b-84f5-18cd6358369e", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791176618440, "trusted": true, "server_ms": 1791176618443}
+{"kind": "pointerdown", "doc": "5d0ca2a5-1402-406b-84f5-18cd6358369e", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791176618444, "trusted": true, "server_ms": 1791176618451}
+{"kind": "pointerup", "doc": "5d0ca2a5-1402-406b-84f5-18cd6358369e", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791176618445, "trusted": true, "server_ms": 1791176618451}
+{"kind": "click", "doc": "5d0ca2a5-1402-406b-84f5-18cd6358369e", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791176618446, "trusted": true, "server_ms": 1791176618451}
+{"kind": "pagehide", "doc": "5d0ca2a5-1402-406b-84f5-18cd6358369e", "url": "http://127.0.0.1:52930/popup-source.html", "page_ms": 1791176618453, "trusted": true, "server_ms": 1791176618457}
+{"kind": "load", "doc": "8115f293-20e8-4d27-8ec0-d099a57e1ccf", "url": "http://127.0.0.1:52930/popup-target.html", "page_ms": 1791176618458, "server_ms": 1791176618469}

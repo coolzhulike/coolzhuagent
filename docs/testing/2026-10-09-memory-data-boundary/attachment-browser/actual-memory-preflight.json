@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "required_polluted_id": "bead-1791587488506",
+  "excluded_l4_id": "bead-1791587489177",
+  "system_prompt_sha256": "58168ce52ba7663177e398cd5675a4ef865849219593d8c5bc5b3b1c346f0c93",
+  "memory_selection": {
+    "strategy": "keyword",
+    "candidate_ids": [
+      "bead-1791587488506",
+      "bead-1791587488854"
+    ],
+    "selected_ids": [
+      "bead-1791587488506",
+      "bead-1791587488854"
+    ],
+    "expired_or_invalid_ids": [],
+    "superseded_ids": [],
+    "budget_skipped_ids": [],
+    "used_tokens": 95,
+    "token_budget": 2478
+  },
+  "no_raw_private_system_saved": true
+}

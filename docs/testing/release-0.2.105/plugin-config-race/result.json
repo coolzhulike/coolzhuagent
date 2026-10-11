@@ -1,0 +1,82 @@
+{
+  "version": "0.2.105",
+  "run": {
+    "id": "run-chat-c76fe3e7dbd0649c4c8f54b49c2bec05c0a2cd5cf932713f",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791506078202-0"
+  },
+  "attempts": [
+    {
+      "attempt_id": "70c0914c331dd6bb7a6be669b32c6bfbbfa6321fca4fb5a2",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "status": "failed",
+      "tool_call_id": "tool-191b3d84889ad05241a353aafc025a14e6235409b544ebaae51181eadd3ee2ce"
+    }
+  ],
+  "runtime_events": [
+    {
+      "event_type": "run.accepted",
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791506078202-0\"}",
+      "created_at": 1791506078204
+    },
+    {
+      "event_type": "run.started",
+      "payload_json": "{\"previous_state\":\"accepted\"}",
+      "created_at": 1791506078418
+    },
+    {
+      "event_type": "tool.dispatch_rejected",
+      "payload_json": "{\"executed\":false,\"reason_code\":\"dsh_action_not_live\",\"stage\":\"after_admission_before_executor\",\"tool_call_id\":\"tool-191b3d84889ad05241a353aafc025a14e6235409b544ebaae51181eadd3ee2ce\",\"tool_name\":\"dsh__1ef9be67fd4ddb42d93d68c084b38983\"}",
+      "created_at": 1791506098828
+    },
+    {
+      "event_type": "run.completed",
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"completed\"}",
+      "created_at": 1791506108353
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791506078471-0",
+    "kind": "assistant-reply",
+    "content": "竹简回执\n表达式：net_fetch http://127.0.0.1:52540/config-race-20261008（allowPrivate=true，timeoutMs=60000，maxBytes=1024）\n宿主结果：`宿主工具未完成：宿主工具派发失败：409 Conflict；DSH原工具快照已失效（停用、配置更新、卸载或重装），未执行`\n\n如实报告：\n\n- 本轮调用被派发层明确拒绝——**409 Conflict**，回执直接说明\"DSH原工具快照已失效（停用、配置更新、卸载或重装），未执行\"；无派发、无响应体\n- 验收端受理后通过正常配置接口重配插件（加无操作效应标签），旧启用世代快照资格被隔离——拒绝即预期；工具描述符虽在列表可见，实际派发被拒\n- 不假报抓取成功；未重试、未补发、未调用其它工具、未修改文件、未新建云会话。收到拒绝后立即结束本轮。",
+    "created_at": 1791506108285
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "after": {
+    "attempts": 945,
+    "messages": 1190
+  },
+  "observation": {
+    "run_id": "run-chat-c76fe3e7dbd0649c4c8f54b49c2bec05c0a2cd5cf932713f",
+    "attempt_id": "70c0914c331dd6bb7a6be669b32c6bfbbfa6321fca4fb5a2",
+    "attempt_state_at_change": "submitted",
+    "original_activation_id": "dsh-26256-1791506059785651100-0",
+    "original_config": {},
+    "request_begin_ms": 1791506080086.0098,
+    "request_end_ms": 1791506080711.9082,
+    "changed_activation_id": "dsh-26256-1791506080691587600-1",
+    "changed_config": {
+      "coolzhuAcceptanceTag": "config-race-105-20261008"
+    },
+    "source_unchanged": true
+  }
+}

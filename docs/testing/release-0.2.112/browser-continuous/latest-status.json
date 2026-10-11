@@ -1,0 +1,99 @@
+{
+  "run": {
+    "id": "run-chat-c90c5e3c785770d08e2501aec3c4a43579c0ba16af1d08ec",
+    "state": "failed",
+    "legacy_turn_id": "chat-turn-1791522753996-1"
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791522753996-1-tool-acb6d952153318e6ca9afda40a61a6aa0cface3763587960f8a408201066c2df",
+      "state": "blocked",
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791522753996-1-tool-acb6d952153318e6ca9afda40a61a6aa0cface3763587960f8a408201066c2df",
+        "provider_tool_call_id": "tool-acb6d952153318e6ca9afda40a61a6aa0cface3763587960f8a408201066c2df",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+        "error": {
+          "code": "native_browser_panel_unavailable",
+          "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "input_steps": [
+          {
+            "step_index": 0,
+            "action_kind": "click",
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "partial": false,
+            "effect_status": null,
+            "goal_verdict": null
+          }
+        ],
+        "evidence": [
+          "native-ax:3:1",
+          "native-observation:71057b632b87b7365a711832de8d804c",
+          "native-ax:3:1",
+          "native-observation:71057b632b87b7365a711832de8d804c",
+          "native-input:6ce2544aba2e56564083974ceb54ece8",
+          "native-ax:3:1",
+          "native-observation:33e46de1d2c3ba84850a99bed25103bc"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791523653996
+            }
+          },
+          "cu_deadline_ms": 1791523653996,
+          "cu_deadline_established_at_ms": 1791522780241,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "input_sent_observed",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": null
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "546adf2a841e9aad13d7b09e54caf1000dc722a9309a1b14",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ]
+}

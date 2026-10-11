@@ -1,0 +1,12 @@
+{
+  "command": [
+    "cargo",
+    "build",
+    "-p",
+    "coolzhu-web-console",
+    "--offline"
+  ],
+  "actual_exit_code": 0,
+  "elapsed_seconds": 44.06,
+  "binary_sha256": "ef7e461b7041aa1ad4bd3a165ce7a84f8e903cf8ce1d3ba0c08dde5de9537088"
+}

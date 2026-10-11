@@ -1,0 +1,31 @@
+{
+  "observed_at_utc": "2026-10-07T08:26:59.001045+00:00",
+  "resource": [
+    {
+      "scope": "windows-session-1",
+      "state": "safe",
+      "accepts_new_input": 1
+    },
+    {
+      "scope": "windows-session-2",
+      "state": "safe",
+      "accepts_new_input": 1
+    }
+  ],
+  "permits_by_state": [
+    {
+      "state": "finished",
+      "count": 365
+    },
+    {
+      "state": "outcome_unknown",
+      "count": 2
+    }
+  ],
+  "blocks_by_state": [
+    {
+      "state": "closed",
+      "count": 9
+    }
+  ]
+}

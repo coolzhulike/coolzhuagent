@@ -1,0 +1,7 @@
+PASS：空门禁
+PASS：缺失门禁
+PASS：重复通过门禁
+PASS：未确认门禁
+PASS：失败门禁
+PASS：完整源码门禁
+PASS：载荷失败仍拒绝发布

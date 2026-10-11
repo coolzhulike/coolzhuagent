@@ -207,7 +207,7 @@ pub(super) async fn insights(AxumPath(room_id): AxumPath<String>, Query(query): 
         let mut timing_statement=connection.prepare("SELECT message_id,elapsed_ms FROM chat_message_timing WHERE room_id=?1 AND message_id IN (SELECT value FROM json_each(?2))").map_err(sqlite_api_error)?;
         let timings=timing_statement.query_map(params![room_id,ids_json],|row| Ok((row.get::<_,String>(0)?,row.get::<_,u64>(1)?))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<BTreeMap<_,_>>>().map_err(sqlite_api_error)?;
         Ok(json!({"room_id":room_id,"usage":usage,"timings":timings,"indices":indices,"message_count":total,
-            "source":"provider_reported","note":"新请求按真实网络尝试记录，失败与重试均保留；只合计供应商已返回的用量，未知字段显示未知，部分用量不代表完整账单。旧版记录独立列出，旧零值无法证明已知用量；缓存是明细，不重复相加，不推算费用。"}))
+            "source":"provider_reported/acp_journal","note":"HTTP请求与Devin请求台账按唯一请求去重；网络尝试只计明确已派发，未发送、结果未知和派发未知单独显示。只合计供应商已返回的用量，未知字段显示未知，部分用量不代表完整账单。旧版记录独立列出，旧零值无法证明已知用量；缓存是明细，不重复相加，不推算费用。"}))
     }).await.map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,&error.to_string()))??;
     Ok(Json(result))
 }
@@ -220,7 +220,15 @@ pub(super) fn record_source_messages(path: &Path, run_id: &str, messages: &[Chat
 }
 
 #[derive(Debug, Default, Deserialize)]
-pub(super) struct TraceQuery { before: Option<String>, limit: Option<usize> }
+pub(super) struct TraceQuery { before: Option<String>, limit: Option<usize>, run_id: Option<String> }
+
+impl TraceQuery {
+    pub(super) fn for_run(mut self, run: &str) -> Self {
+        self.run_id = Some(run.to_owned());
+        self.before = None;
+        self
+    }
+}
 
 pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Query<TraceQuery>) -> ApiResult<Json<JsonValue>> {
     let path = history_path(&room_id)?; let workspace = workspace_identity(&active_workspace_path());
@@ -228,11 +236,16 @@ pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Que
         let connection = open_session_connection(&path).map_err(sqlite_api_error)?;
         ensure_tables(&connection).map_err(sqlite_api_error)?;
         let limit = query.limit.unwrap_or(30).clamp(1,100);
+        if let Some(run) = query.run_id.as_deref() {
+            let exists: bool = connection.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND workspace_id=?2 AND chat_room_id=?3)",
+                params![run,workspace,room_id], |row| row.get(0)).map_err(sqlite_api_error)?;
+            if !exists { return Err(api_error(StatusCode::NOT_FOUND,"运行轨迹不存在或不属于本工程房间")); }
+        }
         let before = if let Some(id) = query.before {
             Some(connection.query_row("SELECT created_at,id FROM runtime_runs WHERE id=?1 AND workspace_id=?2 AND chat_room_id=?3",params![id,workspace,room_id],|row| Ok((row.get::<_,i64>(0)?,row.get::<_,String>(1)?))).optional().map_err(sqlite_api_error)?.ok_or_else(|| api_error(StatusCode::NOT_FOUND,"轨迹游标已失效"))?)
         } else { None };
-        let mut statement = connection.prepare("SELECT id,session_id,legacy_turn_id,state,created_at,started_at,finished_at,stop_reason FROM runtime_runs WHERE workspace_id=?1 AND chat_room_id=?2 AND (?3 IS NULL OR created_at<?3 OR (created_at=?3 AND id<?4)) ORDER BY created_at DESC,id DESC LIMIT ?5").map_err(sqlite_api_error)?;
-        let mut runs = statement.query_map(params![workspace,room_id,before.as_ref().map(|v|v.0),before.as_ref().map(|v|v.1.as_str()),(limit+1) as i64], |row| Ok(json!({"run_id":row.get::<_,String>(0)?,"session_id":row.get::<_,Option<String>>(1)?,"turn_id":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,"created_at":row.get::<_,i64>(4)?,"started_at":row.get::<_,Option<i64>>(5)?,"finished_at":row.get::<_,Option<i64>>(6)?,"stop_reason":row.get::<_,Option<String>>(7)?}))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
+        let mut statement = connection.prepare("SELECT id,session_id,legacy_turn_id,state,created_at,started_at,finished_at,stop_reason FROM runtime_runs WHERE workspace_id=?1 AND chat_room_id=?2 AND (?6 IS NULL OR id=?6) AND (?3 IS NULL OR created_at<?3 OR (created_at=?3 AND id<?4)) ORDER BY created_at DESC,id DESC LIMIT ?5").map_err(sqlite_api_error)?;
+        let mut runs = statement.query_map(params![workspace,room_id,before.as_ref().map(|v|v.0),before.as_ref().map(|v|v.1.as_str()),(limit+1) as i64,query.run_id], |row| Ok(json!({"run_id":row.get::<_,String>(0)?,"session_id":row.get::<_,Option<String>>(1)?,"turn_id":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,"created_at":row.get::<_,i64>(4)?,"started_at":row.get::<_,Option<i64>>(5)?,"finished_at":row.get::<_,Option<i64>>(6)?,"stop_reason":row.get::<_,Option<String>>(7)?}))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
         let has_more = runs.len()>limit; if has_more { runs.pop(); }
         for run in &mut runs {
             let run_id = run["run_id"].as_str().unwrap_or_default().to_string();
@@ -241,28 +254,11 @@ pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Que
             let mut tools_statement = connection.prepare("SELECT tool_call_id,tool_name,status,created_at_unix_ms,updated_at_unix_ms FROM tool_calls WHERE run_id=?1 ORDER BY created_at_unix_ms,tool_call_id").map_err(sqlite_api_error)?;
             let calls = tools_statement.query_map(params![run_id], |row| Ok(json!({"call_id":row.get::<_,String>(0)?,"tool_name":row.get::<_,String>(1)?,"status":row.get::<_,String>(2)?,"started_at":row.get::<_,i64>(3)?,"updated_at":row.get::<_,i64>(4)?}))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
             run["calls"] = json!(calls);
-            let mut usage_statement = connection.prepare("SELECT u.attempt_id,u.call_id,u.request_kind,u.status,
-                    u.input_tokens,u.output_tokens,u.usage_known_mask,u.turn_id
-                FROM chat_usage_events u
-                WHERE u.workspace_id=?1 AND u.room_id=?2 AND u.attempt_id IS NOT NULL
-                  AND (u.run_id=?3 OR (u.run_id IS NULL AND (
-                    u.turn_id=?4 OR EXISTS (
-                      SELECT 1 FROM tool_calls c WHERE c.tool_call_id=u.call_id AND c.run_id=?3
-                    )
-                  )))
-                ORDER BY u.created_at,u.id").map_err(sqlite_api_error)?;
-            let usage = usage_statement.query_map(params![workspace,room_id,run_id,run["turn_id"].as_str()], |row| {
-                let mask: i64 = row.get::<_,Option<i64>>(6)?.unwrap_or(0);
-                Ok(json!({"attempt_id":row.get::<_,String>(0)?,"call_id":row.get::<_,Option<String>>(1)?,
-                    "purpose":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,
-                    "source_turn_id":row.get::<_,Option<String>>(7)?,
-                    "input_tokens":if mask&1!=0 {Some(row.get::<_,i64>(4)?)} else {None},
-                    "output_tokens":if mask&2!=0 {Some(row.get::<_,i64>(5)?)} else {None}}))
-            }).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
+            let usage = request_usage::requests_for_run(&connection,&workspace,&room_id,&run_id,run["turn_id"].as_str()).map_err(sqlite_api_error)?;
             run["requests"] = json!(usage);
         }
         let next_before = if has_more { runs.last().and_then(|run| run["run_id"].as_str()).map(str::to_string) } else { None };
-        Ok(json!({"runs":runs,"has_more":has_more,"next_before":next_before,"source":"runtime_runs/tool_calls/chat_usage_events"}))
+        Ok(json!({"runs":runs,"has_more":has_more,"next_before":next_before,"source":"runtime_runs/tool_calls/chat_usage_events/devin_acp_attempts"}))
     }).await.map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,&error.to_string()))??;
     Ok(Json(result))
 }
@@ -270,6 +266,39 @@ pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Que
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn exact_run_trace_finds_old_run_and_rejects_foreign_scope() {
+        let _lock = crate::tests::config_test_guard();
+        let _state = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1/v1");
+        {
+            let mut store = session_store().lock().unwrap();
+            store.state.chat_rooms.push(PersistedChatRoom { id: "exact-trace-room".into(),
+                name: "轨迹测试".into(), created_at: 1, updated_at: 1, messages: Vec::new() });
+            store.save().unwrap();
+        }
+        let path = default_session_sqlite_path();
+        let workspace = workspace_identity(&active_workspace_path());
+        let connection = open_session_connection(&path).unwrap();
+        for index in 0..=120 {
+            connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,state,claim_token,created_at) VALUES(?1,'chat_turn',?2,'target-text','exact-trace-room','completed','trace-claim',?3)",
+                params![format!("trace-{index}"),workspace,index]).unwrap();
+        }
+        for (id, ws, room) in [("foreign-workspace", "other-workspace", "exact-trace-room"),
+            ("foreign-room", workspace.as_str(), "other-room")] {
+            connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,chat_room_id,state,claim_token,created_at) VALUES(?1,'chat_turn',?2,?3,'completed','trace-claim',999)", params![id,ws,room]).unwrap();
+        }
+        let query = TraceQuery { before: Some("invalid-cursor".into()), limit: Some(1), run_id: Some("foreign-room".into()) }.for_run("trace-0");
+        let Json(result) = trace(AxumPath("exact-trace-room".into()), Query(query)).await.unwrap();
+        assert_eq!(result["runs"].as_array().unwrap().len(), 1);
+        assert_eq!(result["runs"][0]["run_id"], "trace-0");
+        assert_eq!(result["has_more"], false);
+        assert!(result["next_before"].is_null());
+        for run in ["foreign-workspace", "foreign-room", "missing-run"] {
+            let error = trace(AxumPath("exact-trace-room".into()), Query(TraceQuery::default().for_run(run))).await.unwrap_err();
+            assert_eq!(error.0, StatusCode::NOT_FOUND);
+        }
+    }
 
     fn search_messages(messages: &[PersistedChatMessage], query: &SearchQuery) -> JsonValue {
         let connection = Connection::open_in_memory().unwrap();

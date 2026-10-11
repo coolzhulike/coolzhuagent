@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "version": "0.2.104",
+  "run_id": "run-chat-dba317fc61513df2bceb7e00b697ecd706b384ba8cc542b9",
+  "attempt_id": "aa952b6fe30a372d5c1d6b71d6aef101474bdcfd0bf0c6e2",
+  "source_response_bytes": 44498,
+  "receipt_bytes": 111227,
+  "receipt_sha256": "3b5e5ad706d74d34ba72c51c47bc6ffcd833577a105c8dc4cfdfaf22cace1d50",
+  "http_get_count": 1,
+  "successful_page_reads": 1,
+  "executed_tools": [
+    {
+      "tool_call_id": "tool-5a44385c772224869c211c81d4453412d2aaf084f2fe40c10b7ddcabc0554b50",
+      "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+      "status": "completed"
+    },
+    {
+      "tool_call_id": "tool-0167b67e47f78246229b196ca947867002c30b7c60873fb4edd9a3b6ec019c66",
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "status": "completed"
+    }
+  ],
+  "final_tail": {
+    "sentinel": "竹林𠮷😀-aedf59f45e6e719e51c028a4",
+    "left": 11450,
+    "right": 13061,
+    "operation": "multiply"
+  },
+  "calculator_result": 149548450,
+  "visible_reply_id": "msg-1791504634292-0",
+  "duration_ms": 60318,
+  "binding": "island-kayak",
+  "new_cloud_sessions": 0,
+  "read_file_calls": 0,
+  "model_wording_correction": "模型将111227字节工具回执误称HTTP响应体；实际HTTP响应体44498字节。非法UTF-8偏移拒绝仅由最终回复转述，不追认独立事件证明。"
+}

@@ -65,6 +65,7 @@ pub(super) async fn execute_with_executor(
     let control = ExecutionControl::new(Some(Duration::from_millis(timeout_ms)), external_cancel);
     let mut guard = CallerGuard { id, control: control.clone(), finished: false };
     let scheduled_grant = scheduled_execution::current();
+    let backend_policy = devin_acp::bridge::current();
     let invoke_for_worker = invoke.clone();
     let invoke_for_report = invoke.clone();
     let (sender, mut receiver) = tokio::sync::oneshot::channel();
@@ -74,13 +75,13 @@ pub(super) async fn execute_with_executor(
             return runtime_tool_failed_outcome(&invoke_for_worker,
                 "工具在开始前已取消或截止，未执行".into());
         }
-        with_execution_control(worker_control, || match executor {
+        devin_acp::bridge::with_worker(backend_policy, || with_execution_control(worker_control, || match executor {
             Some(executor) => execute_runtime_tool_blocking_with_executor(
                 invoke_for_worker, workspace_root, chat_room_id, scheduled_grant,
                 executor.as_ref()),
             None => execute_runtime_tool_blocking(
                 invoke_for_worker, workspace_root, chat_room_id, scheduled_grant),
-        })
+        }))
     });
     tokio::spawn(async move {
         let outcome = worker.await.unwrap_or_else(|error| runtime_tool_failed_outcome(

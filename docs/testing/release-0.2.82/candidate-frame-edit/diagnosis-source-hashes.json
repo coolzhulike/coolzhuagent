@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\gui-desktop\\packages\\tauri-shell\\src-tauri\\src\\native_browser_devtools.rs",
+      "length": 7799,
+      "sha256": "95f04dac9c36a0ae015b54613cf26e31592e3849b113e132a6ee8748650fd5db"
+    },
+    {
+      "file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\gui-desktop\\packages\\tauri-shell\\src-tauri\\src\\native_browser_dom.rs",
+      "length": 3761,
+      "sha256": "4c682a97c9438f467c58bee4a8c0b5e304854ab40955d0bcce78467e17d77e3c"
+    },
+    {
+      "file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\gui-desktop\\packages\\tauri-shell\\src-tauri\\src\\native_browser_edit_input.rs",
+      "length": 7404,
+      "sha256": "18f2e0e6b932d91ad69b9c87e6c76644e86d01a684b8163366561e432aee222e"
+    },
+    {
+      "file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\gui-desktop\\packages\\tauri-shell\\src-tauri\\src\\native_browser_editor.rs",
+      "length": 3902,
+      "sha256": "0abd3182d512c963d1fe959757e2a1ba5351beb4bdd83555eec769bde532921c"
+    },
+    {
+      "file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\gui-desktop\\packages\\tauri-shell\\src-tauri\\src\\native_browser_key_input.rs",
+      "length": 8249,
+      "sha256": "839c1cec1a7d7a091d529903388a38e8fd61838eeefb341171fb13e3fe6d5cb9"
+    },
+    {
+      "file": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\gui-desktop\\packages\\tauri-shell\\src-tauri\\src\\native_browser_observation.rs",
+      "length": 12701,
+      "sha256": "13c3e76eab1b994487e877b81e9e84911b42b69134eeae9322cbb7fa15fd4d68"
+    }
+  ],
+  "reference_head": "cac6542ca1284e451e2c778699f0fb845a407f13",
+  "stage": "诊断候选实际源码"
+}

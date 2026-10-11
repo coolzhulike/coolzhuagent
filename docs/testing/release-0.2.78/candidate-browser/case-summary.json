@@ -1,0 +1,107 @@
+[
+  {
+    "case": "SPAN",
+    "run_id": "run-chat-78c84651003a770df92f6e243ffedc07b6d01b92420ce8d0",
+    "model": "requested/effective=swe-2-medium；resolved_model=null原样保留",
+    "remote_session": "veiled-anise",
+    "status": "succeeded",
+    "acceptance": "真实一次点击、释放、网页目标达成",
+    "events_this_case": [
+      {
+        "type": "pointerdown",
+        "target": "label",
+        "count": 0,
+        "time": 1791243954538,
+        "received_at_ns": 1791243954542238100
+      },
+      {
+        "type": "pointerup",
+        "target": "label",
+        "count": 0,
+        "time": 1791243954540,
+        "received_at_ns": 1791243954543751300
+      },
+      {
+        "type": "click",
+        "target": "label",
+        "count": 1,
+        "time": 1791243954540,
+        "received_at_ns": 1791243954545541100
+      }
+    ]
+  },
+  {
+    "case": "SVG",
+    "run_id": "run-chat-e4c4d4d3de0ab022e50e47a67925440ea670d5b36bc4f43f",
+    "model": "requested/effective=swe-2-medium；resolved_model=null原样保留",
+    "remote_session": "veiled-anise",
+    "status": "succeeded",
+    "acceptance": "真实一次点击、释放、网页目标达成",
+    "events_this_case": [
+      {
+        "case": "/svg.html",
+        "type": "pointerdown",
+        "target": "glyph",
+        "count": 0,
+        "time": 1791244052144,
+        "received_at_ns": 1791244052147415200
+      },
+      {
+        "case": "/svg.html",
+        "type": "pointerup",
+        "target": "glyph",
+        "count": 0,
+        "time": 1791244052145,
+        "received_at_ns": 1791244052148404900
+      },
+      {
+        "case": "/svg.html",
+        "type": "click",
+        "target": "glyph",
+        "count": 1,
+        "time": 1791244052145,
+        "received_at_ns": 1791244052150639100
+      }
+    ]
+  },
+  {
+    "case": "COVERED",
+    "run_id": "run-chat-9869bd8079adcb24df255146924d1dd18b22f59ed83e4caa",
+    "model": "requested/effective=swe-2-medium；resolved_model=null原样保留",
+    "remote_session": "veiled-anise",
+    "status": "blocked",
+    "acceptance": "预期拒绝遮挡且零输入",
+    "events_this_case": []
+  },
+  {
+    "case": "REPLACEMENT",
+    "run_id": "run-chat-8733fc32261f9ffd4cd85d57be1f636571682135be6d6184",
+    "model": "requested/effective=swe-2-medium；resolved_model=null原样保留",
+    "remote_session": "veiled-anise",
+    "status": "succeeded",
+    "acceptance": "真实一次点击、释放、网页目标达成",
+    "events_this_case": [
+      {
+        "type": "original-pointerdown",
+        "page": "before",
+        "time": 1791244566274,
+        "absolute_ms": 1791244566274.3,
+        "received_at_ns": 1791244566278164200
+      },
+      {
+        "type": "replacement-ready",
+        "page": "after",
+        "time": 1791244566281,
+        "absolute_ms": 1791244566281.8,
+        "received_at_ns": 1791244566284686000
+      },
+      {
+        "type": "replacement-pointerup",
+        "page": "after",
+        "time": 1791244566284,
+        "absolute_ms": 1791244566284.3,
+        "received_at_ns": 1791244566286738900
+      }
+    ]
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "source_commit": "8a48429319812431341a97a8112c7e7b511484fe",
+  "source_clean_before_and_after": true,
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "build_command": "cargo build -p coolzhu-web-console --locked --offline -j1",
+  "test_command": "cargo test -p coolzhu-web-console --locked --offline -j1 -- --test-threads=1",
+  "process_session": 22678,
+  "exit_code": 0,
+  "main_tests_passed": 1473,
+  "main_tests_failed": 0,
+  "main_tests_ignored": 6,
+  "library_tests_passed": 8,
+  "browser_binary_tests_passed": 1,
+  "child_probe_runs_passed": 3,
+  "files": [
+    {
+      "name": "build.txt",
+      "sha256": "52573ba540ef340e1f14db4e83fbb2d3b6d3e2b625ffb30b3299ecc8b70823ac"
+    },
+    {
+      "name": "test.txt",
+      "sha256": "ee26ee2557e06891c4676b15da98477a6d80883e2c29f30bdb485048f1cc2df3"
+    }
+  ],
+  "limitations": "本地静态单元和确定性HTTP回归；未验证正式SWE模型、正式安装、发布CI或完整32WBS。子探针结果不与主测试重复累计。"
+}

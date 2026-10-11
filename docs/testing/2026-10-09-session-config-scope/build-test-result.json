@@ -1,0 +1,24 @@
+[
+  {
+    "stage": "build",
+    "command": [
+      "cargo",
+      "build",
+      "-p",
+      "coolzhu-web-console",
+      "--offline"
+    ],
+    "actual_exit_code": 0
+  },
+  {
+    "stage": "test",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "coolzhu-web-console",
+      "--offline"
+    ],
+    "actual_exit_code": 0
+  }
+]

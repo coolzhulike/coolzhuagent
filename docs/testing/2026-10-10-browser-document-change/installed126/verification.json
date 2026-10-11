@@ -1,0 +1,362 @@
+{
+  "passed": true,
+  "candidate": false,
+  "facts": {
+    "stage": "0.2.126正式规划期间文档切换验收",
+    "source_user_id": "msg-1791637287007-user",
+    "run": {
+      "id": "run-chat-e351c14e22e2847014116a8a71c4a532a316bb8ec9a8c29c",
+      "kind": "chat_turn",
+      "workspace_id": "ws-23f646a969206cb4",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "goal_id": null,
+      "phase_id": null,
+      "legacy_turn_id": "chat-turn-1791637287007-1",
+      "provider_turn_id": null,
+      "state": "failed",
+      "owner_id": "coolzhu-web-console",
+      "claim_token": "claim-e515c9f015e8acae5c27980f9c4d31652bfdd1c9f948fee1370281d796a15a3d",
+      "stop_reason": null,
+      "error_json": null,
+      "created_at": 1791637287009,
+      "started_at": 1791637287187,
+      "stop_requested_at": null,
+      "heartbeat_at": 1791637287187,
+      "finished_at": 1791637318707
+    },
+    "calls": [
+      {
+        "tool_call_id": "tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1",
+        "run_id": "run-chat-e351c14e22e2847014116a8a71c4a532a316bb8ec9a8c29c",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "0608997c990a3a72",
+        "status": "failed",
+        "created_at_unix_ms": 1791637296798,
+        "updated_at_unix_ms": 1791637312608,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-e351c14e22e2847014116a8a71c4a532a316bb8ec9a8c29c\",\"turn_id\":\"chat-turn-1791637287007-1\",\"attempt_id\":\"7461ce79c3c531e10211fd460c71cf91e177b5ab01905e90\",\"owner_epoch\":286,\"generation\":286}"
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "7461ce79c3c531e10211fd460c71cf91e177b5ab01905e90",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "visible_reply": [
+      {
+        "id": "msg-1791637287268-0",
+        "content": "任务终态：**blocked**（`budget_exhausted`），未宣称成功。\n\n## 实际发生\n\n- 仅调用了一次 `computer_use_perform`（`max_actions=1`，surface=browser，省略 target）。\n- 规划观察确认当时仍是初始旧文档：`http://127.0.0.1:55712/old.html`，标题 `文档切换126-OLD`，唯一按钮\"文档引用验收\"可见（`dom-11f632eb03584d27b2030304ca228c05`），随后按格式提交了针对该旧文档按钮的 click 规划。\n- 宿主终态回执：`status: blocked`，`terminal_reason: computer-use action budget exhausted`，`steps_completed: 0`，该 click 步骤 `input_delivery: not_sent` —— **点击实际未发送**，动作预算在规划阶段即被耗尽（supervisor `circuit_open: true`）。\n\n## 结论\n\n- 旧文档目标**未被点击**，成功标准未达成；也无任何新文档误点发生。\n- 按约束不重试、不补发、不另选目标、不调用其它工具，任务如实停止。",
+        "kind": "assistant-reply"
+      }
+    ]
+  },
+  "cu_runs": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791637287007-1-tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1",
+      "provider_tool_call_id": "tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1",
+      "turn_id": "chat-turn-1791637287007-1",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791637287007-1\u001fbrowser\u001f只在初始旧文档点击唯一的“文档引用验收”按钮\u001f\u001f旧文档目标已点击\u001f只允许初始旧文档的按钮；网页自然导航或文档失配后停止；新文档同名按钮不是原目标；不重新选目标、不重试、不补发",
+      "objective_json": "{\"constraints\":[\"只允许初始旧文档的按钮；网页自然导航或文档失配后停止；新文档同名按钮不是原目标；不重新选目标、不重试、不补发\"],\"max_actions\":1,\"objective\":\"只在初始旧文档点击唯一的“文档引用验收”按钮\",\"success_criteria\":[\"旧文档目标已点击\"],\"surface\":\"browser\"}",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 10,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791638187007,
+      "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791637287007-1-tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1\",\"provider_tool_call_id\":\"tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1\",\"status\":\"blocked\",\"stage\":\"supervisor\",\"goal_achieved\":false,\"surface\":\"browser\",\"summary\":\"{\\\"last_verification\\\":{\\\"interaction_pending\\\":true,\\\"kind\\\":\\\"native_browser_interaction_pending\\\",\\\"notice\\\":\\\"尚未执行交互；初始页面观察不能证明本轮点击、输入、滚动或导航已完成。\\\"},\\\"terminal_reason\\\":\\\"computer-use action budget exhausted\\\",\\\"verification_is_last_observation\\\":true}\",\"error\":{\"code\":\"budget_exhausted\",\"message\":\"computer-use action budget exhausted\",\"retryable\":false,\"retry_owner\":\"none\"},\"attempts\":1,\"steps_completed\":0,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"click\",\"input_delivery\":\"not_sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":null,\"goal_verdict\":null}],\"evidence\":[\"native-ax:3:1\",\"native-observation:497987c2c2e4651fe56ef8e766b5b58d\",\"native-ax:3:1\",\"native-observation:497987c2c2e4651fe56ef8e766b5b58d\",\"native-ax:3:1\",\"native-observation:c953854f5d4c959179d4e5e86820a230\"],\"supervisor\":{\"circuit_open\":true,\"reason\":\"budget_exhausted\",\"action_count\":1,\"replan_count\":1,\"no_progress_count\":0},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791638187007}},\"cu_deadline_ms\":1791638187007,\"cu_deadline_established_at_ms\":1791637297007,\"cu_budget_ms\":900000}}",
+      "created_at_ms": 1791637297007,
+      "updated_at_ms": 1791637312599,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null
+    }
+  ],
+  "steps": [
+    {
+      "run_id": "cu-session-1791131217833-chat-turn-1791637287007-1-tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1",
+      "step_index": 0,
+      "observation_generation": 1,
+      "action_type": "click",
+      "normalized_target": "dom-11f632eb03584d27b2030304ca228c05",
+      "action_fingerprint": "8d0ecd2df211a207",
+      "status": "failed",
+      "error_code": "stale_observation",
+      "before_evidence_ref": "[\"native-ax:3:1\",\"native-observation:497987c2c2e4651fe56ef8e766b5b58d\"]",
+      "after_evidence_ref": null,
+      "visible_progress": 0,
+      "input_delivery": "not_sent",
+      "partial": 0,
+      "path_completed": null,
+      "confirmed_point_count": null,
+      "effect_status": null,
+      "goal_verdict": null,
+      "input_release_status": "not_needed",
+      "started_at_ms": 1791637311386,
+      "completed_at_ms": 1791637311830,
+      "native_dispatch_state": null,
+      "native_ticket_id": null,
+      "native_binding_json": null
+    }
+  ],
+  "events": [
+    {
+      "id": 6294,
+      "event_type": "run.accepted",
+      "created_at": 1791637287009,
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791637287007-1\"}"
+    },
+    {
+      "id": 6295,
+      "event_type": "chat.source_messages",
+      "created_at": 1791637287170,
+      "payload_json": "{\"message_ids\":[\"msg-1791637287007-user\"]}"
+    },
+    {
+      "id": 6296,
+      "event_type": "chat.target_agents",
+      "created_at": 1791637287180,
+      "payload_json": "{\"agent_ids\":[\"session-1791131217833\"]}"
+    },
+    {
+      "id": 6297,
+      "event_type": "run.started",
+      "created_at": 1791637287187,
+      "payload_json": "{\"previous_state\":\"accepted\"}"
+    },
+    {
+      "id": 6298,
+      "event_type": "devin.context_delta",
+      "created_at": 1791637288630,
+      "payload_json": "{\"continued\":true,\"delta_history_messages\":0,\"host_history_messages\":31,\"image_count\":0,\"prompt_bytes\":6403}"
+    },
+    {
+      "id": 6299,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791637297021,
+      "payload_json": "{\"request_id\":\"497987c2c2e4651fe56ef8e766b5b58d\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 6300,
+      "event_type": "devin.planning_requested",
+      "created_at": 1791637297580,
+      "payload_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791637287007-1-tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1\",\"kind\":\"computer_use_planning\",\"model\":\"swe-2-medium\",\"request_id\":\"d2b84c1cd33d49dec8235f57f14724a60ae215157a822d63237197d932879ce0419002a98d6598c9723980a033c8d24f\",\"transport\":\"current_chat_tool_bridge\"}"
+    },
+    {
+      "id": 6301,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791637300349,
+      "payload_json": "{\"offset\":0,\"request_id\":\"d2b84c1cd33d49dec8235f57f14724a60ae215157a822d63237197d932879ce0419002a98d6598c9723980a033c8d24f\"}"
+    },
+    {
+      "id": 6302,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791637303641,
+      "payload_json": "{\"offset\":6000,\"request_id\":\"d2b84c1cd33d49dec8235f57f14724a60ae215157a822d63237197d932879ce0419002a98d6598c9723980a033c8d24f\"}"
+    },
+    {
+      "id": 6303,
+      "event_type": "devin.planning_page_read",
+      "created_at": 1791637307616,
+      "payload_json": "{\"offset\":12000,\"request_id\":\"d2b84c1cd33d49dec8235f57f14724a60ae215157a822d63237197d932879ce0419002a98d6598c9723980a033c8d24f\"}"
+    },
+    {
+      "id": 6304,
+      "event_type": "devin.planning_response",
+      "created_at": 1791637311377,
+      "payload_json": "{\"request_id\":\"d2b84c1cd33d49dec8235f57f14724a60ae215157a822d63237197d932879ce0419002a98d6598c9723980a033c8d24f\",\"response_digest\":\"fa0e437ef6bc7b9f9699f748102911f2a5a2ab6cbe7e87c6deead64801472f46\",\"source_attempt\":\"7461ce79c3c531e10211fd460c71cf91e177b5ab01905e90\"}"
+    },
+    {
+      "id": 6305,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791637311398,
+      "payload_json": "{\"request_id\":\"e39862d744d19e06cda0cc781047bf22\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 6306,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791637311858,
+      "payload_json": "{\"request_id\":\"c953854f5d4c959179d4e5e86820a230\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 6307,
+      "event_type": "run.failed",
+      "created_at": 1791637318707,
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"failed\"}"
+    }
+  ],
+  "page_events": [
+    {
+      "kind": "http-get",
+      "role": "OLD",
+      "path": "/old.html",
+      "server_ns": 925982869401300,
+      "received_unix_ns": 1791637273067245700
+    },
+    {
+      "kind": "document-script-start",
+      "role": "OLD",
+      "page_ms": 1791637273147.6,
+      "server_ns": 925982959379800,
+      "received_unix_ns": 1791637273157225300
+    },
+    {
+      "kind": "loaded",
+      "role": "OLD",
+      "page_ms": 1791637273151.7,
+      "trusted": true,
+      "server_ns": 925982959657200,
+      "received_unix_ns": 1791637273157502400
+    },
+    {
+      "kind": "planning-detected",
+      "facts": {
+        "parent_run": "run-chat-e351c14e22e2847014116a8a71c4a532a316bb8ec9a8c29c",
+        "parent_state": "running",
+        "cu_call_id": "cu-session-1791131217833-chat-turn-1791637287007-1-tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1",
+        "state": "planning",
+        "action_count": 0,
+        "observation_generation": 0,
+        "captured_ms": 1791637297372.8682
+      },
+      "server_ns": 926007174449300,
+      "received_unix_ns": 1791637297372877400
+    },
+    {
+      "kind": "navigation-requested",
+      "role": "OLD",
+      "page_ms": 1791637297375.4,
+      "server_ns": 926007179850400,
+      "received_unix_ns": 1791637297378279100
+    },
+    {
+      "kind": "http-get",
+      "role": "NEW",
+      "path": "/new.html",
+      "server_ns": 926007182843100,
+      "received_unix_ns": 1791637297381271800
+    },
+    {
+      "kind": "pagehide",
+      "role": "OLD",
+      "page_ms": 1791637297383.9,
+      "trusted": true,
+      "server_ns": 926007187861300,
+      "received_unix_ns": 1791637297386290200
+    },
+    {
+      "kind": "document-script-start",
+      "role": "NEW",
+      "page_ms": 1791637297387.8,
+      "server_ns": 926007196957900,
+      "received_unix_ns": 1791637297395387100
+    },
+    {
+      "kind": "loaded",
+      "role": "NEW",
+      "page_ms": 1791637297392.1,
+      "trusted": true,
+      "server_ns": 926007204644100,
+      "received_unix_ns": 1791637297403073200
+    }
+  ],
+  "trigger": {
+    "parent_run": "run-chat-e351c14e22e2847014116a8a71c4a532a316bb8ec9a8c29c",
+    "parent_state": "running",
+    "cu_call_id": "cu-session-1791131217833-chat-turn-1791637287007-1-tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1",
+    "state": "planning",
+    "action_count": 0,
+    "observation_generation": 0,
+    "captured_ms": 1791637297372.8682
+  },
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791637287007-1-tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1",
+    "provider_tool_call_id": "tool-14b2d7ffe82689e966bc79d638df83f4e2a35ab8c622bc4817eb83171f12e2e1",
+    "status": "blocked",
+    "stage": "supervisor",
+    "goal_achieved": false,
+    "surface": "browser",
+    "summary": "{\"last_verification\":{\"interaction_pending\":true,\"kind\":\"native_browser_interaction_pending\",\"notice\":\"尚未执行交互；初始页面观察不能证明本轮点击、输入、滚动或导航已完成。\"},\"terminal_reason\":\"computer-use action budget exhausted\",\"verification_is_last_observation\":true}",
+    "error": {
+      "code": "budget_exhausted",
+      "message": "computer-use action budget exhausted",
+      "retryable": false,
+      "retry_owner": "none"
+    },
+    "attempts": 1,
+    "steps_completed": 0,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "click",
+        "input_delivery": "not_sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": null,
+        "goal_verdict": null
+      }
+    ],
+    "evidence": [
+      "native-ax:3:1",
+      "native-observation:497987c2c2e4651fe56ef8e766b5b58d",
+      "native-ax:3:1",
+      "native-observation:497987c2c2e4651fe56ef8e766b5b58d",
+      "native-ax:3:1",
+      "native-observation:c953854f5d4c959179d4e5e86820a230"
+    ],
+    "supervisor": {
+      "circuit_open": true,
+      "reason": "budget_exhausted",
+      "action_count": 1,
+      "replan_count": 1,
+      "no_progress_count": 0
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791638187007
+        }
+      },
+      "cu_deadline_ms": 1791638187007,
+      "cu_deadline_established_at_ms": 1791637297007,
+      "cu_budget_ms": 900000
+    }
+  },
+  "guard_passed": true,
+  "terminal_reason_preserved": false,
+  "planning_to_loaded_ms": 19.232,
+  "loaded_to_input_preflight_ms": 13993.9,
+  "no_real_input": true,
+  "extra_recovery_observation_skipped": false,
+  "limits": [
+    "仅规划期间文档切换后的旧引用预检，未命中原生派发commit、按下/抬起期间撤销、UI关闭或HRESULT竞争",
+    "正式126终态原因丢失是已确认缺陷，不能计报告语义通过"
+  ]
+}

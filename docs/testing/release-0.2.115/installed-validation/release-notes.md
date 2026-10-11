@@ -1,0 +1,1 @@
+0.2.115预发布：收敛Web会话配置服务职责，复用已验证存储/发布/失败恢复。正式build/安装0、六门pass、1159安装文件逐SHA一致；旧容量与统一读取并发、SQLite失败恢复及200/409、正常原生设置与同EXE重启实拍通过。原SWE/唯一island保持，模型0。完整架构及严格Browser时序仍开放。交接：docs/testing/release-0.2.115/change-report-and-test-handoff.md。源码 f6f8729953a1ddb6351a4d5a9c73daa9076e10f1，MSI SHA256 c81207e5e90be2a285ec6bbd4e7d88d522012f7bc1accbda9a24f8769c625250。未签名，不标latest。

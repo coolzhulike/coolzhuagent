@@ -1,0 +1,41 @@
+{
+  "reference_head": "0419fa9fc41e4bb0eea18d36ee1f3d001fd0c940",
+  "uncommitted_product_changes": true,
+  "files": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/main.rs",
+      "sha256": "da1e0e23e942fa45d3bbabe7ace7e1051c6cfa6de1a3d86e299a3db0613e4f61",
+      "bytes": 139886
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs",
+      "sha256": "43926ec968fc586e1359f9a2f142c6c80a5c5fca521ff85cfd70cce497090e3e",
+      "bytes": 8001
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_input.rs",
+      "sha256": "f2c4ee70164da54d200718baf0d473114efc8ce1e4aeef0c602a54ca9debac45",
+      "bytes": 18457
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+      "sha256": "f66abe62200ef7e54e51d107fa80d91f60d09a1a4b2aa4b072140560160ea661",
+      "bytes": 12553
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_scroll.rs",
+      "sha256": "621e0de39847dbb8748d9658ce58aa67a42c7a8c0c4cbe9468aa42c57f165bed",
+      "bytes": 5419
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+      "sha256": "0948f8f668124a8504a5ef8351cc46690c3dc7330542db80cbf4067b8735d907",
+      "bytes": 18848
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_browser_adapter.rs",
+      "sha256": "ce3366d9de20e2487373c961b4bc638af5cddbda4e52fa82e8e06936f8208ece",
+      "bytes": 30369
+    }
+  ]
+}

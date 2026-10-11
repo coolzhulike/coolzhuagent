@@ -1,0 +1,9 @@
+{
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "web_sha256": "A0C618106330C84DE260BC4A588AFCFD09EBE1ED1721BA78E82453CE7EEF7C52",
+  "web_pid": 24740,
+  "shell_sha256": "0AD4773B9B47CB31FF79EAC78CF21DED468A52D6F68DBFD9287AAAD3F6BE065A",
+  "port": 8765,
+  "input_safety_state_root": "C:/Users/zhupu/AppData/Local/CoolzhuAgent/input-safety",
+  "executable": "C:/Program Files/CoolzhuAgent/bin/coolzhu-web-console.exe"
+}

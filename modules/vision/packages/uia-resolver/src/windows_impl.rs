@@ -19,10 +19,12 @@ use windows::Win32::UI::HiDpi::{
     GetDpiForWindow, SetThreadDpiAwarenessContext, DPI_AWARENESS_CONTEXT,
     DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
 };
+use windows::Win32::UI::Input::KeyboardAndMouse::IsWindowEnabled;
 use windows::Win32::UI::WindowsAndMessaging::{
     BringWindowToTop, EnumWindows, GetClassNameW, GetForegroundWindow, GetWindowRect,
-    GetWindowTextW, GetWindowThreadProcessId, IsIconic, IsWindowVisible, SetForegroundWindow, ShowWindow,
-    SW_RESTORE,
+    GetWindowTextW, GetWindowThreadProcessId, GetWindowLongPtrW, GetWindow,
+    IsIconic, IsWindowVisible, SetForegroundWindow, ShowWindow,
+    GWL_EXSTYLE, GW_OWNER, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT, WS_EX_TOPMOST, SW_RESTORE,
 };
 
 use super::{BBoxPx, UiaElementSnapshot, UiaError, UiaWindowSnapshot};
@@ -334,6 +336,12 @@ pub(crate) fn focus_window_by_hint_impl(
         )
     }
     .map_err(|error| UiaError::QueryError(format!("EnumWindows: {error}")))?;
+    if search.matches.len() > 1 {
+        // 后端取证只记录最多8个枚举/布尔/面积档位，无标题、路径、HWND或正文；不改变目标选择。
+        let facts = search.matches.iter().take(8).map(|handle| window_candidate_facts(*handle)).collect::<Vec<_>>();
+        eprintln!("[uia-window-target] ambiguous_matches={} application_hint_present={} window_hint_present={} candidate_facts={facts:?}",
+            search.matches.len(), application.is_some_and(|s| !s.trim().is_empty()), window.is_some_and(|s| !s.trim().is_empty()));
+    }
     let handle = unique_window(&search.matches)?;
     let hwnd = HWND(handle as *mut core::ffi::c_void);
     if let Ok(uia) = init_uia() {
@@ -348,6 +356,45 @@ pub(crate) fn focus_window_by_hint_impl(
 struct WindowHintSearch {
     target: WindowTarget,
     matches: Vec<isize>,
+}
+
+#[derive(Debug)]
+#[allow(dead_code)] // 字段经 Debug 写入后端诊断，不进入模型观察或正式页面。
+struct WindowCandidateFacts {
+    class_kind: &'static str,
+    owned: bool,
+    no_activate: bool,
+    tool_window: bool,
+    transparent: bool,
+    topmost: bool,
+    enabled: bool,
+    foreground: bool,
+    area_band: &'static str,
+}
+
+fn window_candidate_facts(handle: isize) -> WindowCandidateFacts {
+    let hwnd = HWND(handle as *mut core::ffi::c_void);
+    let class = window_class(hwnd);
+    let ex_style = unsafe { GetWindowLongPtrW(hwnd, GWL_EXSTYLE) } as u32;
+    let mut rect = RECT::default();
+    let area_band = if unsafe { GetWindowRect(hwnd, &mut rect) }.is_err() { "unknown" }
+        else {
+            let area = i64::from(rect.right).saturating_sub(i64::from(rect.left)).max(0)
+                .saturating_mul(i64::from(rect.bottom).saturating_sub(i64::from(rect.top)).max(0));
+            if area == 0 { "zero" } else if area < 100_000 { "small" } else { "large" }
+        };
+    WindowCandidateFacts {
+        class_kind: if class.eq_ignore_ascii_case("tooltips_class32") { "tooltip" }
+            else if class == "#32770" { "dialog" } else { "other" },
+        owned: unsafe { GetWindow(hwnd, GW_OWNER) }.is_ok_and(|owner| !owner.0.is_null()),
+        no_activate: ex_style & WS_EX_NOACTIVATE.0 != 0,
+        tool_window: ex_style & WS_EX_TOOLWINDOW.0 != 0,
+        transparent: ex_style & WS_EX_TRANSPARENT.0 != 0,
+        topmost: ex_style & WS_EX_TOPMOST.0 != 0,
+        enabled: unsafe { IsWindowEnabled(hwnd) }.as_bool(),
+        foreground: unsafe { GetForegroundWindow() }.0 == hwnd.0,
+        area_band,
+    }
 }
 
 unsafe extern "system" fn enum_window_for_hint(hwnd: HWND, lparam: LPARAM) -> BOOL {

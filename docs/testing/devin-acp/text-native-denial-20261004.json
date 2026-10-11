@@ -1,0 +1,12 @@
+{
+  "cli_version": "devin 3000.10.48 (fcf7ba39)",
+  "cost_tier": "Free",
+  "failed_notifications": 3,
+  "model": "swe-2-medium",
+  "native_exec_created": false,
+  "native_write_created": false,
+  "process_drained": true,
+  "read_content_disclosed": false,
+  "reply": "",
+  "tool_notifications": 4
+}

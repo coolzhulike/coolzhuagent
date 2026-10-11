@@ -1,0 +1,38 @@
+{
+  "web_first": {
+    "summary_lines": [
+      "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: FAILED. 1421 passed; 2 failed; 6 ignored; 0 measured; 0 filtered out; finished in 48.35s"
+    ],
+    "failed_tests": [
+      "computer_use_executor::tests::legacy_open_run_without_workspace_blocks_new_input_without_backfilling",
+      "computer_use_executor::tests::unconfirmed_release_interlocks_a_new_run_before_the_input_lease"
+    ]
+  },
+  "web_repaired": {
+    "summary_lines": [
+      "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 1423 passed; 0 failed; 6 ignored; 0 measured; 0 filtered out; finished in 40.45s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ],
+    "failed_tests": []
+  },
+  "core": {
+    "summary_lines": [
+      "test result: ok. 143 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 74.97s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ],
+    "failed_tests": []
+  },
+  "targeted": {
+    "summary_lines": [
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1428 filtered out; finished in 0.02s"
+    ],
+    "failed_tests": []
+  }
+}

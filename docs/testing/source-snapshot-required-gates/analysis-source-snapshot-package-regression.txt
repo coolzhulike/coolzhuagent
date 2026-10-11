@@ -1,0 +1,173 @@
+[PASS] I00-date-text-roundtrip: 报告写入回读后内容摘要相同，不同 ISO 字面量保持不同身份
+[PASS] I00-date-object-rejected: 日期对象明确拒绝进入报告摘要，避免静默改写
+[PASS] I01a-snapshot-covers-first-party-source: 源码快照覆盖 15 个文件（含独立 Tauri 项目的 Cargo.toml/Cargo.lock/build.rs/tauri.conf.json）；缺失：(none)
+[PASS] I02a-snapshot-excludes-forbidden-categories: 用户配置/凭据/运行数据库/模型权重/target/gen 均未进入快照；意外进入：(none)
+[PASS] I05a-quiescent-two-pass-reproducible: 同一棵不变树上两遍静默枚举得到同一摘要：f6068b278314a324a23c60375f4a261f86d3aafbe44bf8d77a186e79410b5a00
+[PASS] I05b-single-pass-refused: Passes < 2 被 fail-closed 拒绝，避免"只看一次"的假一致
+[PASS] I05c-freeze-record-write-once: 冻结记录按摘要寻址且不覆盖：tmp/source-snapshots/source-snapshot-f6068b278314a324a23c60375f4a261f86d3aafbe44bf8d77a186e79410b5a00.json
+[PASS] I01b-added-file-changes-digest: 新增文件进入快照差异：digest f6068b278314 → c66a7adaab90；added=tmp/package-build-identity-contract/basic/source/crate/src/added_later.rs
+[PASS] I01c-deleted-file-changes-digest: 删除文件进入快照差异：removed=tmp/package-build-identity-contract/basic/source/web/app.js
+[PASS] I01d-modified-file-changes-digest: 内容修改进入快照差异：modified=tmp/package-build-identity-contract/basic/source/crate/src/lib.rs
+[PASS] I03a-allow-pattern-reincludes-excluded-name: 被排除命名（tmp）经 allow_path_patterns 显式放行后进入快照：tmp/package-build-identity-contract/basic/source/allow-case/tmp/keepme.txt
+[PASS] I04a-real-scope-covers-build-inputs: 真实 scope 覆盖第一方 Rust/C#/JS、build.rs、编译期嵌入资源、安装器定义与**独立 Tauri 项目的真实构建入口与锁文件**；缺失：(none)
+[PASS] I04b-real-scope-free-of-forbidden-categories: 真实 scope（1457 个文件）不含用户配置/凭据/运行数据库/模型权重/无关 target/gen；命中：(none)
+[PASS] I04c-runtime-state-excluded: web-console 下的 .coolzhu 运行态（会话/音频分片）没有进入快照
+[PASS] I06a-three-identities-are-distinct: 三身份取值互不相同：source_snapshot_digest=62cbf02610a5 build_input_digest=0b2fed10a2aa（file_set_digest 另计：74d3c6ce07fd）
+[PASS] I06b-build-input-independent-of-source-snapshot: 只改构建输入（源码快照范围之外的工具链声明）时：build_input_digest 变化而 source_snapshot_digest 不变（0b2fed10a2aa → 51245e567895）
+[PASS] I06c-standalone-tauri-lockfile-declared: 真实 build_input_digest 同时登记顶层 workspace 锁文件与**独立 Tauri 项目自己的** Cargo.lock / Cargo.toml（登记项 17 条）
+[PASS] I07a-vcs-state-shape: vcs_state=tracked_worktree source_commit=set dirty_against_commit=True（未跟踪快照不能伪装成干净提交）vcs_reference_commit=4d376781b09d
+source snapshot: 0d10801207a2c63a519ef1f5586f9fe1b37562bda572621594d9695de5df5ee1 files=16 bytes=515
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-0d10801207a2c63a519ef1f5586f9fe1b37562bda572621594d9695de5df5ee1.json
+build fixture.payload: powershell -NoProfile -File C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-cargo-capture\source\crate\capture.ps1 --message-format=json-render-diagnostics
+capture build messages: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\logs\fixture.payload-build-messages-20261010-173046440.jsonl
+   Compiling coolzhu-windows-process-guard v0.2.0 (C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\modules\gui-web\packages\windows-process-guard)
+warning: unused import: `OpenProcess`
+  --> modules\gui-web\packages\windows-process-guard\src\conpty.rs:20:72
+   |
+20 |     CreateProcessW, DeleteProcThreadAttributeList, GetExitCodeProcess, OpenProcess,
+   |                                                                        ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coolzhu-windows-process-guard` (lib) generated 1 warning (run `cargo fix --lib -p coolzhu-windows-process-guard` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.31s
+publish fixture.payload: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-cargo-capture\source\payload\artifact-payload.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-cargo-capture\package\bin\payload.txt
+resource fixture.installer: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-cargo-capture\source\installer -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-cargo-capture\package\docs\installer
+source snapshot verified unchanged: 0d10801207a2c63a519ef1f5586f9fe1b37562bda572621594d9695de5df5ee1
+release eligibility: release_eligible=False live_worktree_changed=False build_snapshot_integrity=verified-unchanged-live-tree
+payload identity: files=2 bytes=37 digest=73510957feb851c5c6ee609a662ad31d9206215d1dcbef2d17f1af7240215d86
+payload inventory: payload-inventory.json (sha256=AFD8355B751B31B20777843ED7FFE24AD0B41B09AA99BBC0958532BCB35D6EF0)
+package report: tmp/package-build-identity-contract/pipeline-cargo-capture/report.json (report_id=pkg-report-debug-20261010-173051171-6133cdf2 content_sha256=10b582139342b46bc07a63a1f802aa6ff67693780b3b1f82489eeadd5554f575)
+artifact-snapshot associations recorded: 1 entries
+package report pointer: tmp/package-build-identity-contract/pipeline-cargo-capture/latest-debug.json
+[PASS] I08e-cargo-evidence-bound: 模拟成功构建回执的运行/产物/原始字节哈希绑定进入实际成功报告；不代表正式 Cargo 交付
+source snapshot: 659c205c6d32f3557e2354eba5a4f32edac59fbe0f0e2ee2261552cb19a107fc files=15 bytes=335
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-659c205c6d32f3557e2354eba5a4f32edac59fbe0f0e2ee2261552cb19a107fc.json
+no build command: fixture.payload
+publish fixture.payload: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-ok\source\payload\artifact-payload.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-ok\package\bin\payload.txt
+resource fixture.installer: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-ok\source\installer -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-ok\package\docs\installer
+source snapshot verified unchanged: 659c205c6d32f3557e2354eba5a4f32edac59fbe0f0e2ee2261552cb19a107fc
+release eligibility: release_eligible=False live_worktree_changed=False build_snapshot_integrity=verified-unchanged-live-tree
+payload identity: files=2 bytes=26 digest=5f4041c286ff2d060a6afc1e17aafc06d5b1953dabb2430925fe9da5e66311e2
+payload inventory: payload-inventory.json (sha256=2D20BDB2A684094C2EBF07EB29CD61C2C8A1EA7E77CD2A51DECB5110740A8912)
+package report: tmp/package-build-identity-contract/pipeline-ok/report.json (report_id=pkg-report-debug-20261010-173052359-107a750b content_sha256=4c3bb2f3f3e2e1de1e51550bd7e019b115cd3fc42c0669d1935aa07249d8a099)
+artifact-snapshot associations recorded: 1 entries
+package report pointer: tmp/package-build-identity-contract/pipeline-ok/latest-debug.json
+[PASS] I08a-report-written: 报告落点沿用既有命名：tmp/package-build-identity-contract/pipeline-ok/report.json
+[PASS] I08b-report-unique-id: 报告唯一 ID：pkg-report-debug-20261010-173052359-107a750b
+[PASS] I09a-report-content-hash-verifiable: 报告内容哈希可从落盘文档重算：4c3bb2f3f3e2e1de1e51550bd7e019b115cd3fc42c0669d1935aa07249d8a099
+[PASS] I09b-tampered-report-rejected: 被改写的报告必须被拒：[REPORT-CONTENT-MISMATCH]
+[PASS] I10a-payload-inventory-inside-payload: 载荷清单写在暂存包内（分发的载荷自身携带可核对的载荷身份与报告引用）
+[PASS] I10b-inventory-references-report: 产物清单引用报告的唯一 ID + 内容哈希：pkg-report-debug-20261010-173052359-107a750b / 4c3bb2f3f3e2e1de1e51550bd7e019b115cd3fc42c0669d1935aa07249d8a099
+[PASS] I10c-identities-coexist-in-artifacts: 报告与清单里三身份并存且一致：source=659c205c6d32 build_input=d9417b870911 payload=5f4041c286ff
+[PASS] I10d-payload-inventory-covers-staged-files: 载荷清单覆盖暂存包全部文件（2 个，排除清单载体自身以免自引用）：bin/payload.txt, docs/installer/Product.wxs
+[PASS] I08c-report-pointer-and-post-build-verification: latest 指针与构建后复核同时成立：post_build_verification.identical=True method=two-pass-quiescent-enumeration-before-and-after-build
+[PASS] I08d-report-vcs-fields: 报告里的 VCS 口径：vcs_state=tracked_worktree source_commit=set dirty_against_commit=True
+source snapshot: 3d2e45bf2867e664ac59ad0f4554130743a7f665e1a17b765cd3ef0b6fb3039e files=15 bytes=347
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-3d2e45bf2867e664ac59ad0f4554130743a7f665e1a17b765cd3ef0b6fb3039e.json
+build fixture.payload: powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-source-changed\mutate-source.ps1 C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-source-changed\source\crate\src\lib.rs
+publish fixture.payload: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-source-changed\source\payload\artifact-payload.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-source-changed\package\bin\payload.txt
+resource fixture.installer: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-source-changed\source\installer -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\pipeline-source-changed\package\docs\installer
+failure diagnostic: tmp/package-build-identity-contract/pipeline-source-changed/failures/package-report-failure-debug-20261010-173053592.json (report_id=pkg-report-failure-debug-20261010-173053592-7a726d44 release_eligible=false)
+failure quarantine: tmp/package-failures (moved=True files=2)
+[PASS] I11a-build-time-source-change-fails-closed: 构建命令改写了快照范围内的源码 ⇒ fail-closed：detail: 构建期间源码快照发生变化：added=0; removed=0; modified=1; modified_paths=tmp/package-build-identity-contract/pipeline-source-changed/source/crate/src/lib.rs
+[PASS] I11b-no-report-on-source-change: 被 fail-closed 拦下的运行不得留下报告（否则会留下"看似有效"的构建身份）
+[PASS] I11c-source-change-lists-changed-path: 失败信息必须给出发生变化的具体路径（mod/added/removed），而不是笼统的"哈希不一致"
+[PASS] I13a-failure-diagnostic-written: 失败也必须产出诊断（落在 <report>/failures/ 分区，不是成功报告落点）：pkg-report-failure-debug-20261010-173053592-7a726d44
+[PASS] I13b-diagnostic-minimum-fields: kind=package-report-failure stage=post-build-source-verification category=SOURCE-SNAPSHOT-CHANGED run_id=pkg-run-debug-20261010-173052879-ecf9d68e stage_records=8 declared_roots=8
+[PASS] I13c-observed-changes-not-write-history: evidence_kind=observed-between-two-samples is_complete_write_history=False modified=tmp/package-build-identity-contract/pipeline-source-changed/source/crate/src/lib.rs
+[PASS] I13d-change-classified-in-declared-scope: 逐路径分类可审查：tmp/package-build-identity-contract/pipeline-source-changed/source/crate/src/lib.rs -> in-declared-source-snapshot-scope（root=tmp/package-build-identity-contract/pipeline-source-changed/source/crate）
+[PASS] I13e-temporary-products-partitioned: 暂存产物移入失败隔离区（与可发布产物分区、不自动晋升）：tmp/package-failures/pkg-run-debug-20261010-173052879-ecf9d68e/payload（files=2）
+[PASS] I13f-diagnostic-says-signing-not-attempted: 失败运行不进入签名/安装/分发
+[PASS] I13g-diagnostic-declares-no-overwrite-no-pointer-update: 失败诊断显式声明：未覆盖上一份成功报告（overwritten=False）、未更新 latest 指针（pointer_updated=False）
+[PASS] I13h-diagnostic-content-hash-verifiable: 失败诊断同样受报告身份治理（内容哈希可重算）：f420fae172ebef55c22b0a85d61237c6fd7567c794e7573f735053c543462c82
+[PASS] I13i-failure-diagnostic-not-a-release-receipt: 失败诊断必须被发布侧门禁拒绝（不得当成发布收据/发布来源）
+source snapshot: 071b3deb93727530da11f2dc04e1fe2101f2ceea427847f2d3f6312794a3937e files=4 bytes=100
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-071b3deb93727530da11f2dc04e1fe2101f2ceea427847f2d3f6312794a3937e.json
+no build command: rd406.payload
+publish rd406.payload: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\source\payload\payload.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\package\bin\payload.txt
+no build command: rd406.payload-two
+publish rd406.payload-two: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\source\payload\second.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\package\bin\second.txt
+source snapshot verified unchanged: 071b3deb93727530da11f2dc04e1fe2101f2ceea427847f2d3f6312794a3937e
+release eligibility: release_eligible=False live_worktree_changed=False build_snapshot_integrity=verified-unchanged-live-tree
+payload identity: files=2 bytes=45 digest=c03faf919866bcad9cd960a1d1f248865b450fab4eba9cc13d721493d9ff7085
+payload inventory: payload-inventory.json (sha256=58E9D7AF5EA1A129A714365DC1BAE583C90F2F778CB1EE9AFD674DEB4686790B)
+package report: tmp/package-build-identity-contract/release-stable/report.json (report_id=pkg-report-debug-20261010-173054251-7135eb71 content_sha256=728c4072dd9b8297bb67499000061d08723db7dde6c113b32fec95acfd1620ba)
+artifact-snapshot associations recorded: 2 entries
+package report pointer: tmp/package-build-identity-contract/release-stable/latest-debug.json
+[FAIL] I13j-stable-run-is-release-eligible: 稳定输入 ⇒ 可发布收据：release_eligible=False（gates: declared_source_snapshot_scope=pass,source_input_stability=pass,declared_roots_present=pass,build_input_stability=pass,artifact_provenance=pass,frozen_inputs=pass）
+[PASS] I13k-state-fields-are-separate: 状态分开表达：live_worktree_changed=False build_snapshot_integrity=verified-unchanged-live-tree validation_snapshot_digest 与 post_build_digest 一致
+[PASS] I13l-immutable-snapshot-claim-is-honest: 不冒充"从不可变快照构建"：本实现的稳定证据是前后两次采样逐文件一致
+[PASS] I13m-stable-run-writes-pointer-and-status: 成功运行才更新 latest 指针
+source snapshot: 071b3deb93727530da11f2dc04e1fe2101f2ceea427847f2d3f6312794a3937e files=4 bytes=100
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-071b3deb93727530da11f2dc04e1fe2101f2ceea427847f2d3f6312794a3937e.json
+skip build: rd406.payload
+publish rd406.payload: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\source\payload\payload.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\package\bin\payload.txt
+skip build: rd406.payload-two
+publish rd406.payload-two: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\source\payload\second.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\package\bin\second.txt
+source snapshot verified unchanged: 071b3deb93727530da11f2dc04e1fe2101f2ceea427847f2d3f6312794a3937e
+release eligibility: release_eligible=False live_worktree_changed=False build_snapshot_integrity=verified-unchanged-live-tree
+payload identity: files=2 bytes=45 digest=c03faf919866bcad9cd960a1d1f248865b450fab4eba9cc13d721493d9ff7085
+payload inventory: payload-inventory.json (sha256=B2B5F40B2053F7C6EB859A647E74D67266E3AC06EFCAB059B36A908EF57C38B6)
+package report: tmp/package-build-identity-contract/release-stable/report.json (report_id=pkg-report-debug-20261010-173055218-c0364126 content_sha256=88c531a78060680a1cccdd1e49328a279dfa530ae0028ec7581f4b4d1dc9df24)
+artifact-snapshot associations recorded: 2 entries
+package report pointer: tmp/package-build-identity-contract/release-stable/latest-debug.json
+[FAIL] I13n-no-build-requires-snapshot-association: --no-build 消费绑定到本次快照摘要的关联记录：artifact=rd406.payload confirmation=confirmed-by-association release_eligible=False
+source snapshot: fd363bbe4bc7ad51b63869072b05c1069c1184cfc52b9dc591df271c51b9ef77 files=4 bytes=124
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-fd363bbe4bc7ad51b63869072b05c1069c1184cfc52b9dc591df271c51b9ef77.json
+build rd406.payload: powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-build-input-change\mutate-build-input.ps1 C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-build-input-change\build-inputs\toolchain.json
+publish rd406.payload: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-build-input-change\source\payload\payload.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-build-input-change\package\bin\payload.txt
+no build command: rd406.payload-two
+publish rd406.payload-two: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-build-input-change\source\payload\second.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-build-input-change\package\bin\second.txt
+source snapshot verified unchanged: fd363bbe4bc7ad51b63869072b05c1069c1184cfc52b9dc591df271c51b9ef77
+failure diagnostic: tmp/package-build-identity-contract/release-build-input-change/failures/package-report-failure-debug-20261010-173056277.json (report_id=pkg-report-failure-debug-20261010-173056277-dffebc1f release_eligible=false)
+failure quarantine: tmp/package-failures (moved=True files=2)
+[PASS] I13o-declared-build-input-change-refused: 构建期间声明的构建输入变化 ⇒ 拒绝发布：[BUILD-INPUT-CHANGED] profile=debug
+[PASS] I13p-diagnostic-records-build-input-change: 失败诊断记录已观察到的构建输入变化：1 条描述符差异；build_input_stability=fail
+[PASS] I13q-mixed-input-artifact-is-revoked: 观察到的输入变化 ⇒ 产物内容身份登记为不可发布来源（revoked=2）
+source snapshot: fd363bbe4bc7ad51b63869072b05c1069c1184cfc52b9dc591df271c51b9ef77 files=4 bytes=124
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-fd363bbe4bc7ad51b63869072b05c1069c1184cfc52b9dc591df271c51b9ef77.json
+skip build: rd406.payload
+failure diagnostic: tmp/package-build-identity-contract/release-build-input-change/failures/package-report-failure-debug-20261010-173056738.json (report_id=pkg-report-failure-debug-20261010-173056738-1061e378 release_eligible=false)
+failure quarantine: tmp/package-failures (moved=True files=0)
+[PASS] I13r-no-build-refuses-revoked-artifact: --no-build 不得把混合输入产物当来源：[ARTIFACT-REVOKED]
+[PASS] I13s-no-success-report-on-refused-run: 被拒绝的运行不得在成功报告落点留下文件（诊断在 failures/ 分区，收据不发）
+source snapshot: 4ac837a6555a726a6dcfe81b27351948ed0da6f2f4aa5ff6e0dc53b7ee9d1184 files=3 bytes=78
+source snapshot freeze record: tmp/source-snapshots/source-snapshot-4ac837a6555a726a6dcfe81b27351948ed0da6f2f4aa5ff6e0dc53b7ee9d1184.json
+no build command: rd406.payload
+publish rd406.payload: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\source\payload\payload.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-stable\package\bin\payload.txt
+no build command: rd406.payload-two
+failure diagnostic: tmp/package-build-identity-contract/release-stable/failures/package-report-failure-debug-20261010-173057210.json (report_id=pkg-report-failure-debug-20261010-173057210-8bf52e34 release_eligible=false)
+failure quarantine: tmp/package-failures (moved=True files=1)
+[PASS] I13t-failed-run-does-not-overwrite-previous-success-report: 失败运行没有改写上一份成功报告、也没有改写 latest 指针引用的报告字节
+[PASS] I13u-failed-run-diagnostic-and-empty-package-root: 失败运行的暂存产物已移入隔离区，包根不再残留"看起来像可发布包"的内容
+source snapshot: manifest 未声明 source_snapshot，跳过（不冒充源码身份）
+no build command: rd406.payload
+publish rd406.payload: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-no-declared-scope\source\payload\payload.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-no-declared-scope\package\bin\payload.txt
+no build command: rd406.payload-two
+publish rd406.payload-two: C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-no-declared-scope\source\payload\second.txt -> C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\package-build-identity-contract\release-no-declared-scope\package\bin\second.txt
+release eligibility: release_eligible=False live_worktree_changed=not-confirmed build_snapshot_integrity=not-confirmed:no-declared-source-snapshot-scope
+payload identity: files=2 bytes=67 digest=b85475151452aeb26584b24764733f7c4dbd70f95d40965da1a9190e4a0bc670
+payload inventory: payload-inventory.json (sha256=7227AE006AD1B4E8D57F3B7CDE084166260CDB07347A0C7A9BEBBE861F1B5903)
+package report: tmp/package-build-identity-contract/release-no-declared-scope/report.json (report_id=pkg-report-debug-20261010-173057700-911f8e5a content_sha256=5d4008b4082762abff5fd2d6ff8fd9b24025d1079349c926f344791622d9a2bf)
+package report pointer: tmp/package-build-identity-contract/release-no-declared-scope/latest-debug.json
+[PASS] I13v-undeclared-scope-is-not-optimistically-eligible: 未声明源码快照范围：release_eligible=False live_worktree_changed=not-confirmed（未确认不得写成 false）
+[PASS] I13w-in-scope-path-classified-correctly: 声明 root 内的文件判为 in-declared-source-snapshot-scope（root 相对匹配，不因工作区位于 tmp/ 之下而整体失效）：root=tmp/package-build-identity-contract/release-stable/source
+[PASS] I13x-declared-build-input-classified-correctly: 显式声明的构建输入（即使位于 tmp/ 之下）判为 declared-build-input：manifest.build_inputs / artifact.export
+[PASS] I13y-non-build-input-classified-correctly: 已声明不属于构建输入的日志路径判为 declared-non-build-input（不误判为源码变化）：release_policy.non_build_input_paths
+[PASS] I13z-outside-scope-classified-correctly: 不在声明 roots 下的路径判为 outside-declared-scope：not-under-declared-roots
+[REPORT-NOT-RELEASE-ELIGIBLE]
+detail: purpose=retention-protect report=C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\tmp\pa
+ckage-build-identity-contract\pipeline-ok\retention\package-report-debug-20990101-000000000-00000000.json
+- release_eligibility.release_eligible=false
+next: 不要用失败诊断或"未确认输入"的报告作为发布收据。重新执行一次正常构建打包（不要用 --no-build/--skip 复用既有产物），或先修复报告里列出的未确认项
+At C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\scripts\lib\build-identity.ps1:1623 char:5
++     throw (New-IdentityFailureException -Category 'REPORT-NOT-RELEASE ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], InvalidOperationException
+    + FullyQualifiedErrorId : [REPORT-NOT-RELEASE-ELIGIBLE]
+    detail: purpose=retention-protect report=C:\Users\zhupu\.codex\worktrees\integration-32wbs-20261010\coolzhuagent\t 
+   mp\package-build-identity-contract\pipeline-ok\retention\package-report-debug-20990101-000000000-00000000.json
+- release_eligibility.release_eligible=false
+next: 不要用失败诊断或"未确认输入"的报告作为发布收据。重新执行一次正常构建打包（不要用 --no-build/--skip 复用既有产物），或先修复报告里列出的未确认项
+ 

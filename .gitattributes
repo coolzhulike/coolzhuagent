@@ -57,3 +57,202 @@
 
 # 正式实操原始JSON与截图索引保持原字节。
 /docs/testing/release-0.2.67/real-model/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# 068候选及本轮工程输出保存原始证据字节。
+/docs/testing/release-0.2.68/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/docs/testing/release-0.2.68/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/docs/testing/release-0.2.68/*.txt -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
+
+# 10月6日复杂控件和Shadow实操清单按原字节核验，提交时不转换日志/JSON换行。
+/docs/testing/release-0.2.78/browser-boundaries/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.79/candidate-shadow/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.79/installed-shadow/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.79/boundary-gaps/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.80/ci-lock-fix/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.80/installed-shadow/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.80/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.81/candidate-iframe/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.81/installed-iframe/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.81/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.81/evidence/remote-checks/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.82/candidate-frame-edit/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.82/installed-frame-edit/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.82/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.82/evidence/remote-checks/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.83/candidate-frame-scroll/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.83/installed-frame-scroll/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.83/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.83/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.84/candidate-tab-sync/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.84/installed-tab-sync/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.84/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.84/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.85/candidate-oop/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.85/installed-oop/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.85/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.85/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 086安装实操索引使用原始JSON/截图摘要，只对本版证据保持字节。
+/docs/testing/release-0.2.86/installed-evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.86/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-native-browser-alias/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.87/installed-evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.87/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.87/sidebar-followup/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.87/browser-nested-followup/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.88/candidate-horizontal/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.88/installed-horizontal/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.88/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.88/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-native-browser-current-page/candidate/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.89/installed-current-page/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.89/startup-recovery/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.89/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 本轮候选与安装版原始证据按清单保留字节，避免Git换行改写使摘要失配。
+/docs/testing/2026-10-07-plugin-lifecycle/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.90/installed-plugin-lifecycle/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.90/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.91/installed-plugin-lifecycle/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.91/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.91/startup-restore/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-devin-attachments/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.92/installed-attachments/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.92/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 本轮连接器目录、函数取消时间与原始构建日志保持清单中的字节。
+/docs/testing/2026-10-07-jade-connectors/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-jade-connectors/manifest.json -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-plugin-function/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-07-plugin-function/manifest.json -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 093正式安装证据保留原始长度与SHA，不做换行转换。
+/docs/testing/release-0.2.93/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.93/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+# 104完整HTTP资料、工具原文与安装证据按原字节归档，保持独立摘要可复核。
+/docs/testing/release-0.2.104/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.104/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.104/large-result-pagination/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.104/plugin-config-race/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.105/installed-validation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.105/plugin-config-race/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.105/plugin-config-inflight/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.105/evidence/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.105/browser-observation/** -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/testing/release-0.2.106/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab
+/docs/testing/release-0.2.107/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.108/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.109/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-08-diagnostic-rotation/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.110/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-session-config-boundary/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-low-height-ui/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-browser-read-attribution/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.111/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-acp-replay-test-budget/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-session-config-save-order/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.112/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-config-read-snapshot/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.113/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-legacy-model-limit/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.114/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-08-session-config-service/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.115/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-session-config-scope/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.116/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-session-config-late/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.117/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-acp-plugin-approval/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.118/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-read-settlement/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-three-layer/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.119/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-live-repaint/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.120/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-tool-diagnostic-redaction/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.121/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-multiline/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.122/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-action-progress/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-browser-document-scroll/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.123/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-history-summary/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-attachment-integrity/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-ui-error/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.124/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 长程原始输入、回执与摘要索引保持原字节，不改写证据换行。
+/docs/testing/2026-10-09-acp-cu-task-scope/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-terminal-task-handoff/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-terminal-task-paging/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-browser-visible-point/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-format-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-verdict-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-acp-grounding-feedback/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.125/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-memory-data-boundary/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/2026-10-09-package-file-sbom/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-09-large-text-preview/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 文档切换的真实页面事件、回执和截图摘要保留原始字节。
+/docs/testing/2026-10-10-browser-document-change/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-10-browser-address-draft/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/2026-10-10-upload-layout/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+/docs/testing/release-0.2.127/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 0.2.128 安装及 SBOM 证据保持原始字节，以便核对交付文件摘要。
+/docs/testing/release-0.2.128/evidence/install/*.json -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+
+# 0.2.129 Cargo 回执按原始字节绑定报告，不转换 JSONL 换行。
+/docs/testing/release-0.2.129/evidence/build-identity/**/*.jsonl -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.129/evidence/licenses/*.json -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.130/evidence/build-identity/**/*.jsonl -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.130/evidence/install/*.json -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.130/evidence/licenses/*.json -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol
+/docs/testing/release-0.2.131/evidence/** -text whitespace=-blank-at-eof,-blank-at-eol,-space-before-tab,cr-at-eol

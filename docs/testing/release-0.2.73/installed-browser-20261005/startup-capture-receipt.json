@@ -1,0 +1,7 @@
+{
+  "capture": "daily-startup-frame1.jpg",
+  "source": "正式0.2.73正常launcher启动后的实际窗口截图",
+  "no_animation_timing_override": true,
+  "verdict": "未捕获舞剑帧，不算动画验收通过",
+  "sword_dance_frames_captured": 0
+}

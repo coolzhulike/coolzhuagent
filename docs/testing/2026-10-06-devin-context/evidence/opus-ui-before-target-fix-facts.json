@@ -1,0 +1,22 @@
+{
+  "case": "opus-ui-before-target-fix",
+  "run_id": "run-chat-a33ffba54bf5a83bf7ac8b0ba0ae91499de31a14c93e9e83",
+  "source_message_id": "msg-1791217293055-user",
+  "primary_session_id": "session-1791131217833",
+  "agent_id": "session-1791122188340",
+  "remote_session_id": "fair-amaryllis",
+  "context_delta": [],
+  "outputs": [],
+  "admitted_targets": [],
+  "acp": [
+    {
+      "state": "not_sent",
+      "stop": null,
+      "drained": 1,
+      "model": null
+    }
+  ],
+  "tools": [],
+  "reply": "模型流式响应中断: unsupported provider capability: ACP 桥身份必须来自同库的真实父接纳，不能由调用参数补造。",
+  "passed": false
+}

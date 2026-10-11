@@ -1,0 +1,15 @@
+{
+  "request": {
+    "path": "lsp-098.rs",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "expected_workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace"
+  },
+  "started": {
+    "configured": true,
+    "running": true,
+    "preset": "rust-analyzer",
+    "handle": "047231da371edec5dfd5e9056cb2c8eb",
+    "message": "Rust \u8bed\u8a00\u670d\u52a1\u5df2\u542f\u52a8"
+  }
+}

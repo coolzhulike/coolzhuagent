@@ -1,0 +1,863 @@
+{
+  "stage": "installed",
+  "scope": "OOP编辑、单Enter、上下滚动及顶部/规划中焦点/子文档变化拒绝；不外推全部Browser",
+  "installed": {
+    "stage": "正式安装文件摘要通过，模型功能另验",
+    "version": "0.2.86",
+    "source_commit": "84634500ef085d3937497bae31ddd70ca7f9d419",
+    "source_snapshot_digest": "1962312661aeb834b54e2dc94bc56aafc030f6db94507cce6aafbf678d34de03",
+    "verified_file_count": 1150,
+    "msi_sha256": "dc854adc28bf88374f756d93381f0d0c0272f3d831bdc308a7884145c656b679",
+    "msi_bytes": 276310658,
+    "web_sha256": "6a183f8498620cd5ada79e45a1e7334215301e5773944c742fd4375e840ff770",
+    "shell_sha256": "8c54e077183ef9120ae56591759d764a45b3bf463c1989f5a64db94d8462353d",
+    "cli_output": "COOLZHU CODE Agent\n  Version          0.2.86\n  Git SHA          84634500ef085d3937497bae31ddd70ca7f9d419\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-07\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help\n",
+    "package_safe": true,
+    "release_gates": [
+      {
+        "gate": "declared_source_snapshot_scope",
+        "result": "pass"
+      },
+      {
+        "gate": "source_input_stability",
+        "result": "pass"
+      },
+      {
+        "gate": "declared_roots_present",
+        "result": "pass"
+      },
+      {
+        "gate": "build_input_stability",
+        "result": "pass"
+      },
+      {
+        "gate": "artifact_provenance",
+        "result": "pass"
+      },
+      {
+        "gate": "frozen_inputs",
+        "result": "pass"
+      }
+    ],
+    "producer_report_ref": {
+      "report_id": "pkg-report-release-20261006-220803001-71d6ec16",
+      "report_path": "tmp/package-reports/package-report-release-20261006-220803001.json",
+      "content_sha256": "53759fe41688984d55bd20f34d3de715e552094dc3745180c1fbe979bb30bac6",
+      "content_hash_algorithm": "sha256",
+      "content_hash_scope": "报告的全部叶子节点规范排序后取 SHA256；排除 report_identity.content_sha256"
+    }
+  },
+  "process": {
+    "web_sha256": "6a183f8498620cd5ada79e45a1e7334215301e5773944c742fd4375e840ff770",
+    "web_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "shell_started": "2026-10-07T05:12:47.9462389Z",
+    "web_started": "2026-10-07T05:12:47.1222996Z",
+    "web_pid": 15004,
+    "shell_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "shell_pid": 11304,
+    "port": 8765,
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "stage": "0.2.86 Program Files正式安装版",
+    "shell_sha256": "8c54e077183ef9120ae56591759d764a45b3bf463c1989f5a64db94d8462353d"
+  },
+  "remote_session_id": "island-kayak",
+  "model": "swe-2-medium",
+  "cases": [
+    {
+      "prefix": "BU-INSTALLED-086-INPUT-20261006",
+      "classification": "positive_pass",
+      "source_message_id": "msg-1791350070337-user",
+      "run_id": "run-chat-378c2000639697ddfbab12f11b052b81354e0c78ec1db54e",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350070337-0-tool-475a6d5a58be2090c54f8d00184b063170ab9d93add4b1c455d695901cbff09b",
+        "provider_tool_call_id": "tool-475a6d5a58be2090c54f8d00184b063170ab9d93add4b1c455d695901cbff09b",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":3,\"criteria_met\":3,\"fresh_observation_id\":\"af7e0f546f3820e39c5d9d433016f01b\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[27],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":27,\"name_chars\":16,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":27,\"inline_has_static_text\":false,\"name_chars\":16,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[28],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":28,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":28,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[9],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":9,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":9,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":4,\"observation_id\":\"a64a341ecc3bbad9ac5c5863e6304d2b\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":38,\"nodes\":[{\"index\":9,\"name\":\"父输入次数：0；父提交次数：0\",\"role\":\"StaticText\"},{\"index\":27,\"name\":\"子输入内容：RELEASE086\",\"role\":\"StaticText\"},{\"index\":28,\"name\":\"子输入次数：1；子提交次数：1\",\"role\":\"StaticText\"}],\"title\":\"OOP-INPUT-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:53530/parent.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:53530/parent.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 3,
+        "steps_completed": 3,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:46f14c66c6b4dae6c9dbe8f4cecab236",
+          "native-ax:1:0",
+          "native-observation:46f14c66c6b4dae6c9dbe8f4cecab236",
+          "native-input:a4f487b7bff39fe4f28eb0469a677e91",
+          "native-ax:1:0",
+          "native-observation:3a737974bb43b5c1b41cb16d92ef57c7",
+          "native-ax:1:0",
+          "native-observation:3a737974bb43b5c1b41cb16d92ef57c7",
+          "native-ax:1:0",
+          "native-observation:7a9cabadf6df1a087a291af60cf95a9d",
+          "native-input:61d34b2c0e3bcaff6b6d847d5b0434f2",
+          "native-ax:1:0",
+          "native-observation:c0c99c9f33aa840494e81012cd0b2bb8",
+          "native-ax:1:0",
+          "native-observation:c0c99c9f33aa840494e81012cd0b2bb8",
+          "native-ax:1:0",
+          "native-observation:c756ae6d256ac95a8680c0dc808ed05d",
+          "native-input:e3aa285e64ff7330cba828672b00c356",
+          "native-ax:1:0",
+          "native-observation:a64a341ecc3bbad9ac5c5863e6304d2b",
+          "native-ax:1:0",
+          "native-observation:a64a341ecc3bbad9ac5c5863e6304d2b",
+          "native-ax:1:0",
+          "native-observation:af7e0f546f3820e39c5d9d433016f01b"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 3,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791350970337
+            }
+          },
+          "cu_deadline_ms": 1791350683748,
+          "cu_deadline_established_at_ms": 1791350083748,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events": [
+        {
+          "kind": "child-input",
+          "trusted": true,
+          "value": "RELEASE086",
+          "inputs": 1,
+          "submits": 0,
+          "page_ms": 1791350106903.7,
+          "observed_ms": 1791350106909.6157,
+          "host": "localhost:53530"
+        },
+        {
+          "kind": "child-enter-down",
+          "trusted": true,
+          "value": "RELEASE086",
+          "inputs": 1,
+          "submits": 0,
+          "page_ms": 1791350119846,
+          "observed_ms": 1791350119849.5745,
+          "host": "localhost:53530"
+        },
+        {
+          "kind": "child-submit",
+          "trusted": true,
+          "value": "RELEASE086",
+          "inputs": 1,
+          "submits": 1,
+          "page_ms": 1791350119846.7,
+          "observed_ms": 1791350119852.0764,
+          "host": "localhost:53530"
+        },
+        {
+          "kind": "child-enter-up",
+          "trusted": true,
+          "value": "RELEASE086",
+          "inputs": 1,
+          "submits": 1,
+          "page_ms": 1791350119846.9001,
+          "observed_ms": 1791350119852.4126,
+          "host": "localhost:53530"
+        }
+      ],
+      "timing_proof": null
+    },
+    {
+      "prefix": "BU-INSTALLED-086-SCROLL-DOWN-20261006",
+      "classification": "positive_pass",
+      "source_message_id": "msg-1791350184352-user",
+      "run_id": "run-chat-49a3a8822cd2c67c51a3c65530ae720f8a48a10f2cd34f64",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350184352-1-tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+        "provider_tool_call_id": "tool-3395928385ca050a906a67130772c6caf650cc6b8f6a1ff42472c1b03dea2f7b",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":2,\"criteria_met\":2,\"fresh_observation_id\":\"f2976de8926472d6e7688a7e5d362840\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[21],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":21,\"name_chars\":17,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":21,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[6],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":6,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":6,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"5c1a51e910d92523307f47b8bb3dbc99\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":26,\"nodes\":[{\"index\":6,\"name\":\"父滚动位置：0；父滚轮次数：0\",\"role\":\"StaticText\"},{\"index\":21,\"name\":\"子滚动位置：150；子滚轮次数：1\",\"role\":\"StaticText\"}],\"title\":\"OOP-SCROLL-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:53530/scroll.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:53530/scroll.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:c83036d65b28ddc95f66ecfa6a1668b7",
+          "native-ax:1:1",
+          "native-observation:c83036d65b28ddc95f66ecfa6a1668b7",
+          "native-input:f0139f4c86c27c75774f25cb7c1d0488",
+          "native-ax:1:1",
+          "native-observation:5c1a51e910d92523307f47b8bb3dbc99",
+          "native-ax:1:1",
+          "native-observation:5c1a51e910d92523307f47b8bb3dbc99",
+          "native-ax:1:1",
+          "native-observation:f2976de8926472d6e7688a7e5d362840"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791351084352
+            }
+          },
+          "cu_deadline_ms": 1791350793219,
+          "cu_deadline_established_at_ms": 1791350193219,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events": [
+        {
+          "kind": "child-wheel",
+          "trusted": true,
+          "delta": 150,
+          "top": 0,
+          "wheels": 1,
+          "page_ms": 1791350201755.8,
+          "observed_ms": 1791350201760.3857,
+          "host": "localhost:53530"
+        },
+        {
+          "kind": "child-scroll",
+          "trusted": true,
+          "top": 150,
+          "wheels": 1,
+          "page_ms": 1791350201758.7002,
+          "observed_ms": 1791350201761.379,
+          "host": "localhost:53530"
+        }
+      ],
+      "timing_proof": null
+    },
+    {
+      "prefix": "BU-INSTALLED-086-SCROLL-UP-20261006",
+      "classification": "positive_pass",
+      "source_message_id": "msg-1791350243968-user",
+      "run_id": "run-chat-ec2657460405a67e0bc3247841cfd73d5fc207f8f22361f8",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350243969-2-tool-46798b3bcd0247eedafcf8f71278bce6de0728a8bd16d472313da754e56b89c7",
+        "provider_tool_call_id": "tool-46798b3bcd0247eedafcf8f71278bce6de0728a8bd16d472313da754e56b89c7",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":2,\"criteria_met\":2,\"fresh_observation_id\":\"a87427f4ce889a051631b0afc046fb65\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[21],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":21,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":21,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[6],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":6,\"name_chars\":15,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":6,\"inline_has_static_text\":false,\"name_chars\":15,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"fca25c51532c9f9e5b0b9a08d1f10312\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":26,\"nodes\":[{\"index\":6,\"name\":\"父滚动位置：0；父滚轮次数：0\",\"role\":\"StaticText\"},{\"index\":21,\"name\":\"子滚动位置：0；子滚轮次数：2\",\"role\":\"StaticText\"}],\"title\":\"OOP-SCROLL-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:53530/scroll.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:53530/scroll.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:2e843e81b258e3d526cdad64f20a79e7",
+          "native-ax:1:1",
+          "native-observation:2e843e81b258e3d526cdad64f20a79e7",
+          "native-input:9045b8962a20f4c8f7ec04b904a6521c",
+          "native-ax:1:1",
+          "native-observation:fca25c51532c9f9e5b0b9a08d1f10312",
+          "native-ax:1:1",
+          "native-observation:fca25c51532c9f9e5b0b9a08d1f10312",
+          "native-ax:1:1",
+          "native-observation:a87427f4ce889a051631b0afc046fb65"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791351143969
+            }
+          },
+          "cu_deadline_ms": 1791350868435,
+          "cu_deadline_established_at_ms": 1791350268435,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events": [
+        {
+          "kind": "child-wheel",
+          "trusted": true,
+          "delta": -150,
+          "top": 150,
+          "wheels": 2,
+          "page_ms": 1791350281308.3,
+          "observed_ms": 1791350281312.0796,
+          "host": "localhost:53530"
+        },
+        {
+          "kind": "child-scroll",
+          "trusted": true,
+          "top": 0,
+          "wheels": 2,
+          "page_ms": 1791350281311.5,
+          "observed_ms": 1791350281315.2236,
+          "host": "localhost:53530"
+        }
+      ],
+      "timing_proof": null
+    },
+    {
+      "prefix": "BU-INSTALLED-086-SCROLL-BOUNDARY-20261006",
+      "classification": "expected_rejection_pass",
+      "source_message_id": "msg-1791350343945-user",
+      "run_id": "run-chat-3284bae0816c38de466aaa5d15efa2bdb58c0ab97cfb42ba",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791350343945-3-tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+        "provider_tool_call_id": "tool-8e450bb9019660b7a377e17e569988871be6b261b0d29bf411dc9952cfa3797e",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_scroll_boundary",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-c52cbc3e80b8af6cda621fbeab84d9e5:6fa28d0c41c55638",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:b933bd0d66279d956c70997aeeb19683",
+          "native-ax:1:1",
+          "native-observation:b933bd0d66279d956c70997aeeb19683"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791351243945
+            }
+          },
+          "cu_deadline_ms": 1791350952528,
+          "cu_deadline_established_at_ms": 1791350352528,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events": [],
+      "timing_proof": null
+    },
+    {
+      "prefix": "BU-INSTALLED-086-FOCUS6-20261006",
+      "classification": "expected_rejection_pass",
+      "source_message_id": "msg-1791351001466-user",
+      "run_id": "run-chat-74321bef58e8f159d191ab80b484ebfed6109e1676a26e65",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791351001466-9-tool-50ccb2cc2265bb3d61a1a664dfc29b8db8eb38f2eff43090f32e293fa15b0fe5",
+        "provider_tool_call_id": "tool-50ccb2cc2265bb3d61a1a664dfc29b8db8eb38f2eff43090f32e293fa15b0fe5",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_editor_not_focused",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-78c5e30fdaca8fe1498cdf17a409ec20:1d7b69af75262e2a",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 2,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:08a49ba92444df893e502b1f5380de77",
+          "native-ax:1:2",
+          "native-observation:08a49ba92444df893e502b1f5380de77",
+          "native-input:460f647dfb17afa8d4b7f3f6ec8bec2d",
+          "native-ax:1:2",
+          "native-observation:1e0ca0add2b20c253d8f04b4ea630012",
+          "native-ax:1:2",
+          "native-observation:1e0ca0add2b20c253d8f04b4ea630012",
+          "native-ax:1:2",
+          "native-observation:f99c232b01cca7f74c0d92da22431ab7"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 2,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791351901466
+            }
+          },
+          "cu_deadline_ms": 1791351627679,
+          "cu_deadline_established_at_ms": 1791351027679,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events": [
+        {
+          "kind": "setup-focus-parent",
+          "trusted": true,
+          "value": "",
+          "inputs": 0,
+          "submits": 0,
+          "page_ms": 1791351058022.7,
+          "observed_ms": 1791351058032.2195,
+          "host": "127.0.0.1:53530"
+        }
+      ],
+      "timing_proof": {
+        "prefix": "BU-INSTALLED-086-FOCUS6-20261006",
+        "run_id": "run-chat-74321bef58e8f159d191ab80b484ebfed6109e1676a26e65",
+        "planning_requested_at_ms": 1791351057550,
+        "trusted_change": {
+          "kind": "setup-focus-parent",
+          "trusted": true,
+          "value": "",
+          "inputs": 0,
+          "submits": 0,
+          "page_ms": 1791351058022.7,
+          "observed_ms": 1791351058032.2195,
+          "host": "127.0.0.1:53530"
+        },
+        "planning_response_at_ms": 1791351064041,
+        "error": "native_browser_editor_not_focused",
+        "text_delivery": "not_sent",
+        "completed_steps": 1,
+        "clicked_step_released": true,
+        "observed_text_input_events": 0,
+        "timing_confirmed": true
+      }
+    },
+    {
+      "prefix": "BU-INSTALLED-086-REPLACE4-20261006",
+      "classification": "expected_rejection_pass",
+      "source_message_id": "msg-1791351417216-user",
+      "run_id": "run-chat-b862663a9a78c9613c5a1c373edfe4699ae64f67573f77d4",
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791351417217-11-tool-fa2b9197ce50feb678dbe1f2f5e3acb80073521fbce9e9bda200b20adf0aa83b",
+        "provider_tool_call_id": "tool-fa2b9197ce50feb678dbe1f2f5e3acb80073521fbce9e9bda200b20adf0aa83b",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "页面与上一已结算动作的观察来源不符",
+        "error": {
+          "code": "native_browser_navigation_changed",
+          "message": "页面与上一已结算动作的观察来源不符",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-e2ef5e88894956ad9ae6d28d21a716a3:286b9100ea1b0f33",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 2,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:2",
+          "native-observation:cb1600ed480e5f86bf523c46877ea401",
+          "native-ax:1:2",
+          "native-observation:cb1600ed480e5f86bf523c46877ea401",
+          "native-input:0487be3858db221999553c6bb1369f76",
+          "native-ax:1:2",
+          "native-observation:f22fe9eed2ca1ffdcd356129000a68bb",
+          "native-ax:1:2",
+          "native-observation:f22fe9eed2ca1ffdcd356129000a68bb",
+          "native-ax:1:2",
+          "native-observation:f78466aef9e692aa53749ecfac5c3e63"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 2,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791352317217
+            }
+          },
+          "cu_deadline_ms": 1791352035543,
+          "cu_deadline_established_at_ms": 1791351435543,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events": [
+        {
+          "kind": "setup-child-replace",
+          "trusted": true,
+          "value": "",
+          "inputs": 0,
+          "submits": 0,
+          "page_ms": 1791351456554.2,
+          "observed_ms": 1791351456565.3738,
+          "host": "127.0.0.1:53530"
+        }
+      ],
+      "timing_proof": {
+        "prefix": "BU-INSTALLED-086-REPLACE4-20261006",
+        "run_id": "run-chat-b862663a9a78c9613c5a1c373edfe4699ae64f67573f77d4",
+        "planning_requested_at_ms": 1791351456321,
+        "trusted_change": {
+          "kind": "setup-child-replace",
+          "trusted": true,
+          "value": "",
+          "inputs": 0,
+          "submits": 0,
+          "page_ms": 1791351456554.2,
+          "observed_ms": 1791351456565.3738,
+          "host": "127.0.0.1:53530"
+        },
+        "planning_response_at_ms": 1791351463160,
+        "error": "native_browser_navigation_changed",
+        "text_delivery": "not_sent",
+        "completed_steps": 1,
+        "clicked_step_released": true,
+        "observed_text_input_events": 0,
+        "timing_confirmed": true
+      }
+    }
+  ],
+  "diagnostics_not_counted_as_timing_pass": [
+    "BU-INSTALLED-086-FOCUS-20261006-facts.json",
+    "BU-INSTALLED-086-FOCUS2-20261006-facts.json",
+    "BU-INSTALLED-086-FOCUS3-20261006-facts.json",
+    "BU-INSTALLED-086-FOCUS4-20261006-facts.json",
+    "BU-INSTALLED-086-FOCUS5-20261006-facts.json",
+    "BU-INSTALLED-086-REPLACE3-20261006-facts.json"
+  ],
+  "paint": "用户2026-10-06明确停止复测，保留已有基本功能证据",
+  "daily_restored": {
+    "safety_root": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\input-safety",
+    "observed_utc": "2026-10-07T05:38:36.1138705Z",
+    "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+    "stage": "正常桌面启动0.2.86核验通过",
+    "selfcheck_ok": true,
+    "processes": [
+      {
+        "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+        "pid": 22812,
+        "created": "2026-10-07T05:38:28.9623115Z",
+        "sha256": "6a183f8498620cd5ada79e45a1e7334215301e5773944c742fd4375e840ff770"
+      },
+      {
+        "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+        "pid": 19040,
+        "created": "2026-10-07T05:38:29.6889153Z",
+        "sha256": "8c54e077183ef9120ae56591759d764a45b3bf463c1989f5a64db94d8462353d"
+      }
+    ],
+    "source_commit": "84634500ef085d3937497bae31ddd70ca7f9d419"
+  },
+  "files": [
+    {
+      "path": "BU-INSTALLED-086-FOCUS-20261006-facts.json",
+      "bytes": 24102,
+      "sha256": "9b1d72249b86dfcf0a3ad69c6c525007f8e44e8afb7af602c0d6ba0b7b99d7fd"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS-20261006-single-facts.json",
+      "bytes": 4555,
+      "sha256": "70a755a59b81a260a5f23c68bbd7fbd34f92ae599741722aeb89d21b5d1994f6"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS2-20261006-facts.json",
+      "bytes": 7689,
+      "sha256": "72d5a07b4504b1f4ec0c2aee7ff33447bff38705566cc8a34c4bf423f9548281"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS2-20261006-single-facts.json",
+      "bytes": 1058,
+      "sha256": "32db245416ca4334a2a082c357e50ba7e0e0dc235e9eb0cbd39c35273c69eb57"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS3-20261006-facts.json",
+      "bytes": 8040,
+      "sha256": "fc0700c374a1ca60ab0bf5554dfb3e241b80edeebeeaeb68e4bc4a9be69cae85"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS3-20261006-single-facts.json",
+      "bytes": 1058,
+      "sha256": "57600ceac0fdff046535deb3bc1c36e6bd1e5d4951320621acadcb2b7e90b6a6"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS4-20261006-facts.json",
+      "bytes": 12316,
+      "sha256": "5b94eb56b03bab5b91f19cdf2e2137c50d47a0e93a2d33e5a354a8957a565896"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS4-20261006-single-facts.json",
+      "bytes": 1922,
+      "sha256": "ffa63ffe4b4184ea84a9f3e531e7a53afdc509d5f0d780979ef04852cd5da482"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS5-20261006-facts.json",
+      "bytes": 24088,
+      "sha256": "b2eac27367b3078737fd067a5685caf10fdcab035a2ef62a7558a6dad16c49db"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS5-20261006-single-facts.json",
+      "bytes": 4556,
+      "sha256": "0c4af1f351eb79267aa676bf3b6ae803e45bd1dc12f461a23deec48ea45a7ce0"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS6-20261006-facts.json",
+      "bytes": 20428,
+      "sha256": "9cfd71eb480f796cbd77155b68f7fe45385231abe4e7c77f8fe92adee17f8a24"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS6-20261006-single-facts.json",
+      "bytes": 3671,
+      "sha256": "668fc4f339050c1fc35b5564d0364c582a6787e80eca4842ea0f6678a4e87d53"
+    },
+    {
+      "path": "BU-INSTALLED-086-FOCUS6-20261006-timing-proof.json",
+      "bytes": 667,
+      "sha256": "4778639ecf070cfea13db383f651532a2f588e5bf4fafe67220ae4a8792df334"
+    },
+    {
+      "path": "BU-INSTALLED-086-INPUT-20261006-facts.json",
+      "bytes": 37614,
+      "sha256": "dce590c2f9738b01d057ba76b398fbe622d87d917ab6bcab22ac0db928007fd7"
+    },
+    {
+      "path": "BU-INSTALLED-086-INPUT-20261006-single-facts.json",
+      "bytes": 6304,
+      "sha256": "854b9bd5addfc5191bf04002d6a8c57a4f1ebefcf1a32b061ec022f11d976eaf"
+    },
+    {
+      "path": "BU-INSTALLED-086-REPLACE3-20261006-facts.json",
+      "bytes": 28859,
+      "sha256": "3bfa8f3d87c18e355a4ffcbafeedb5d55fb712ee0e71821df455412365663181"
+    },
+    {
+      "path": "BU-INSTALLED-086-REPLACE3-20261006-single-facts.json",
+      "bytes": 4562,
+      "sha256": "abd9c7dd62300884c7112927972ae2d82444180d3d09ab36dc0ef0893fed9357"
+    },
+    {
+      "path": "BU-INSTALLED-086-REPLACE4-20261006-facts.json",
+      "bytes": 20598,
+      "sha256": "318d74fb0c39186496e200e3972003b5f5ed280493e7b5a4958dc3f570719a31"
+    },
+    {
+      "path": "BU-INSTALLED-086-REPLACE4-20261006-single-facts.json",
+      "bytes": 3676,
+      "sha256": "b288765b5ff35ded0a22077419a2eff7e3794ac9e52188dffacfa053d2358697"
+    },
+    {
+      "path": "BU-INSTALLED-086-REPLACE4-20261006-timing-proof.json",
+      "bytes": 670,
+      "sha256": "0d3da07ec35959c286b41b2f2ff3efff242031eef5493abccd4078bca396072e"
+    },
+    {
+      "path": "BU-INSTALLED-086-SCROLL-BOUNDARY-20261006-facts.json",
+      "bytes": 10871,
+      "sha256": "bbb96f9ebbb445bf0fa5dd8d48a3c09597393c7ed2e7beb8bb595e4aec3f6e3e"
+    },
+    {
+      "path": "BU-INSTALLED-086-SCROLL-BOUNDARY-20261006-single-facts.json",
+      "bytes": 1931,
+      "sha256": "80e75251fa7ff2f2c8cd66807e214132237fa55457cfbbd30a95719c3344abbe"
+    },
+    {
+      "path": "BU-INSTALLED-086-SCROLL-DOWN-20261006-facts.json",
+      "bytes": 18557,
+      "sha256": "2321d110adf6082d36e057419794f6f319e2b49fb9eb71f7da36285b20fde513"
+    },
+    {
+      "path": "BU-INSTALLED-086-SCROLL-DOWN-20261006-single-facts.json",
+      "bytes": 2812,
+      "sha256": "be42d7bc860a79203af93d51dbf0568d8640193575528182b5fa1d576bab6882"
+    },
+    {
+      "path": "BU-INSTALLED-086-SCROLL-UP-20261006-facts.json",
+      "bytes": 18534,
+      "sha256": "5ed5001d90ae37802a50fb14877235aa51e42f1f26e2632606abd613f9b9d9a4"
+    },
+    {
+      "path": "BU-INSTALLED-086-SCROLL-UP-20261006-single-facts.json",
+      "bytes": 2810,
+      "sha256": "a7487247593f1bf506f8303ee6fed4a03aa9c5db554ee0118c47a654b5cbc7dc"
+    },
+    {
+      "path": "frozen-source-ci.json",
+      "bytes": 10536,
+      "sha256": "da2e171206546200f93e42b0c6b450f9372d5e31d5e99dcf4a23e172b6a3cec4"
+    },
+    {
+      "path": "install-086-result.json",
+      "bytes": 294,
+      "sha256": "c930ab85f18b73c572b1d3443d49b40c9cc3b927715290b2f5a88d7ac120a3d1"
+    },
+    {
+      "path": "installed-086-standard-processes.json",
+      "bytes": 728,
+      "sha256": "05f23cf22084f17aae10616b881f0ecc82ac8ba3d198881235d9cb904bfa2dee"
+    },
+    {
+      "path": "installed-086-verification.json",
+      "bytes": 1825,
+      "sha256": "2a7ea06e17018016a0fa523ddb41bef71d94b87d96dc9651ff374c9e80012b3e"
+    },
+    {
+      "path": "installed-focus-before.jpg",
+      "bytes": 211352,
+      "sha256": "009f2d0b1bf9d436890b96a5cef4685bb4cc60f14cdee8a697709c8ec24dae86"
+    },
+    {
+      "path": "installed-focus-diagnostic-after.jpg",
+      "bytes": 220844,
+      "sha256": "02e89e80ab5c57856a497d607da2e992ecb9083a98bb64f0b483624e71e2e678"
+    },
+    {
+      "path": "installed-focus-switched.jpg",
+      "bytes": 262426,
+      "sha256": "fc52709c021f35f51529939ad2508008b3133bc349e9ead5eb434dd4e7150d2e"
+    },
+    {
+      "path": "installed-focus2-diagnostic-after.jpg",
+      "bytes": 208934,
+      "sha256": "ae0d45c0a514187ed701bcc4666cad3040e1c97b8f61cec4c529b0feb907dca4"
+    },
+    {
+      "path": "installed-focus3-diagnostic-after.jpg",
+      "bytes": 208107,
+      "sha256": "1ba8ef7836f49670b0a6c2683aa4bfdff6fd51664c8d8dbbcf2ae5a76f329ac0"
+    },
+    {
+      "path": "installed-focus4-diagnostic-after.jpg",
+      "bytes": 214753,
+      "sha256": "d961f004380c395717276862f7d8364fb933343b1c13df5be9c59feba5d64366"
+    },
+    {
+      "path": "installed-focus4-switched.jpg",
+      "bytes": 250986,
+      "sha256": "e5e24c88d1de20c7cef169d04c31dbd6030b1c8cc342e7af5dd477fd3d3e76a2"
+    },
+    {
+      "path": "installed-focus5-diagnostic-after.jpg",
+      "bytes": 216070,
+      "sha256": "f6f3ca987e8de279a99b8d70770e288e39c5ad9b31d321964bde7ede250022b9"
+    },
+    {
+      "path": "installed-focus5-switched.jpg",
+      "bytes": 257385,
+      "sha256": "aea56a015780bc3a28e9c6da552345da90378df643b6a8fe9e3ac75a7f5ec453"
+    },
+    {
+      "path": "installed-focus6-after.jpg",
+      "bytes": 212875,
+      "sha256": "f363391fc227194f2ee94ab3d536ea915c041ce87710cb39ebd899f4f22c628a"
+    },
+    {
+      "path": "installed-focus6-switched.jpg",
+      "bytes": 259226,
+      "sha256": "1d8813be1f08215811f04038299dd7b9285b220da1bc552db0021b5c8795cf8e"
+    },
+    {
+      "path": "installed-input-after.jpg",
+      "bytes": 230274,
+      "sha256": "95506c7d8eede90329263ff3aab054035cf6b8b701be5bf300cba7348ed703c8"
+    },
+    {
+      "path": "installed-input-before.jpg",
+      "bytes": 224117,
+      "sha256": "1c7ee1aae27dcab123e26cb177a69d083d11993d69310584a2adb816842fca55"
+    },
+    {
+      "path": "installed-replace3-control-after.jpg",
+      "bytes": 219581,
+      "sha256": "15b43894309af5bad1eec621827664b86caf18d55a057a9e11abb00d05e7806d"
+    },
+    {
+      "path": "installed-replace4-after.jpg",
+      "bytes": 211703,
+      "sha256": "a91c8ed5f72d3f0e223461a34c0d7e8cb64a5278cb3dab2c1eb519d865ba058c"
+    },
+    {
+      "path": "installed-replace4-switched.jpg",
+      "bytes": 246941,
+      "sha256": "407cecf545af99e7a0962e8f94f8d82759091f1744da0f55475d7f36810e98b4"
+    },
+    {
+      "path": "installed-safety-final.json",
+      "bytes": 782,
+      "sha256": "3ad312badb1fe45f3fd4da06ebe6d4b226a59c5a38fe81f4f453ff59e49a62ba"
+    },
+    {
+      "path": "installed-scroll-before.jpg",
+      "bytes": 220643,
+      "sha256": "c4a2588db8d79b915f6ca74882f33a2c77203d349a68f1f95243adcad8636cf9"
+    },
+    {
+      "path": "installed-scroll-boundary-after.jpg",
+      "bytes": 209017,
+      "sha256": "33a4c022f9222fa47507e62955d6ac6c23e7d500552a797afec65073edda3ca1"
+    },
+    {
+      "path": "installed-scroll-down-after.jpg",
+      "bytes": 221417,
+      "sha256": "45299ac0fe51361a526015ff1ddabce94c74bf158e0fe9b41238140bbd86a54d"
+    },
+    {
+      "path": "installed-scroll-up-after.jpg",
+      "bytes": 222091,
+      "sha256": "3402a7cb7e83f8ccbfdd2ab52d9301e282e471498f7d4860c77eb3a799415168"
+    },
+    {
+      "path": "restored-daily-086-process.json",
+      "bytes": 359,
+      "sha256": "eb86eeba72ba4410215a04c836c83144b34a7278c06c8495e74915fb8ea0d324"
+    },
+    {
+      "path": "restored-daily-086-selfcheck.json",
+      "bytes": 1778,
+      "sha256": "41c3c682c3eadd15a4cc7b5315ee0ab2f69f9694d3edf4f848fc57d9789cdd25"
+    },
+    {
+      "path": "restored-daily-086-verification.json",
+      "bytes": 1139,
+      "sha256": "8b8268a704757772db8e8f35f9e438b6e2df252d43c1631068d0b469b53fa155"
+    },
+    {
+      "path": "restored-daily086.jpg",
+      "bytes": 196179,
+      "sha256": "d62de3aec43bd65172c16668e58fda271a56535449f9033fb4e204c26506d03a"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "session_id": "session-1791131217833",
+  "model": "swe-2-medium",
+  "backend": "devin_acp",
+  "previous_supports_multimodal": null,
+  "supports_multimodal": true,
+  "image_input_strategy": "native-acp",
+  "other_parameters_unchanged": true
+}

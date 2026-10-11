@@ -1,0 +1,15 @@
+{
+  "strict_observation_cancel_passed": false,
+  "normal_input_passed": true,
+  "snapshot_after_registered_ms": 149,
+  "close_after_registered_ms": 9502,
+  "run_completed_at": 1791534865353,
+  "stopped_events": 0,
+  "single_attempt_end_turn_drained_unlocked": true,
+  "finite_drivers_exit": {
+    "watch": 0,
+    "send": 0,
+    "server": 0,
+    "finalize": 0
+  }
+}

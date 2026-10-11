@@ -1,0 +1,126 @@
+{
+  "stage": "0.2.94 Program Files正式安装版",
+  "version": "0.2.94",
+  "source_commit": "54fe2d317d1c0022e88a95533f538b172ae30593",
+  "marker": "BU-INSTALLED094-DOWN-REPLACE-20261008",
+  "run": {
+    "id": "run-chat-564afac931e2f19fd34c45d3fa843090305d931ba73b9103",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "model": "swe-2-medium",
+  "remote_session_id": "island-kayak",
+  "calls": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791476311135-3-tool-48de5091cc6d30ecb560bb0cdcced2c269a403e679a6b8be23e613611bcd2125",
+      "result": {
+        "status": "succeeded",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791477211135
+            }
+          },
+          "cu_deadline_ms": 1791477211135,
+          "cu_deadline_established_at_ms": 1791476325317,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "pointerdown",
+      "role": "BEFORE",
+      "trusted": true,
+      "url": "http://127.0.0.1:62469/before.html",
+      "page_ms": 1791476355063.2,
+      "target": "replace-button",
+      "observed_ms": 1791476355068.308
+    },
+    {
+      "kind": "replacement-started",
+      "role": "BEFORE",
+      "trusted": true,
+      "url": "http://127.0.0.1:62469/before.html",
+      "page_ms": 1791476355063.8,
+      "target": "replace-button",
+      "observed_ms": 1791476355074.7183
+    },
+    {
+      "kind": "replacement-finished",
+      "role": "AFTER",
+      "trusted": true,
+      "url": "http://127.0.0.1:62469/after.html?source=pointerdown",
+      "page_ms": 1791476355065.2,
+      "target": "replace-button",
+      "replacement": "synchronous-document-open",
+      "observed_ms": 1791476355076.2217
+    },
+    {
+      "kind": "pointerup",
+      "role": "AFTER",
+      "trusted": true,
+      "url": "http://127.0.0.1:62469/after.html?source=pointerdown",
+      "page_ms": 1791476355073.7,
+      "target": "HTML",
+      "observed_ms": 1791476355079.0134
+    },
+    {
+      "kind": "loaded",
+      "role": "AFTER",
+      "trusted": true,
+      "url": "http://127.0.0.1:62469/after.html?source=pointerdown",
+      "page_ms": 1791476355075.5,
+      "observed_ms": 1791476355082.2175
+    }
+  ],
+  "remote_attempts": [
+    {
+      "attempt_id": "de6dcf6deb2798fc0b8f6fe12871d832ac17e617b1dbcdca",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "screenshot": "11-installed-document-replaced.jpg"
+}

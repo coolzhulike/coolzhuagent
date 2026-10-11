@@ -1,0 +1,627 @@
+{
+  "candidate": {
+    "stage": "源码候选，非正式安装版",
+    "baseline_commit": "1244cb6359aed3ff61552c05adda1724d8037721",
+    "web_binary_sha256": "43dc6685b0427f4b1ab686fe4f67c00cfe032cb87083e56f1eb8570067c2ed25",
+    "source_hashes": {
+      "modules/gui-web/packages/web-console/src/devin_acp/context.rs": "1e58fe4d51c8ff7b8901558582360cbf98a8ca7fbb1a199bd87747a51b0f4eed",
+      "modules/gui-web/packages/web-console/src/devin_acp/chat.rs": "c37b170ba803c75b5585f4839744119da956ee1695e43256872afa15457a4025",
+      "modules/gui-web/packages/web-console/src/devin_acp/journal.rs": "1b09cfb0f210949f8d0e0af60a1cc4402de9e85a42b4d2bcb4b8aa6477741ca2",
+      "modules/gui-web/packages/web-console/src/devin_acp/session.rs": "e830dd83bf6f70d322294be58313d0632c93876825dfd957926accb7d32dc7b0",
+      "modules/gui-web/packages/web-console/src/devin_acp/mod.rs": "cb84012e9c2722640872273765239c658a80b0fbf15e475433ac8a4015127344",
+      "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "628719e28e1f51b9d84f5ff89a4ba9e424f2d042d3df273a513fce05e9088b45",
+      "modules/gui-web/packages/web-console/src/main.rs": "c5527a88ebb951d61c984d21afb45a2db874cd9255b6c5304981d631ca77ec66",
+      "modules/gui-web/packages/web-console/src/model_settings.js": "755ddcd29d3aa3c591df9ce1655270b9932fca2929a1fc3a9fabd2c698fe5acf",
+      "modules/gui-web/packages/web-console/src/chat_run_admission.rs": "0daa7eeee7084a330ac92f921a885976aab52b0ff419815dc67129e971b6cdbb"
+    }
+  },
+  "cases": {
+    "first": {
+      "case": "first",
+      "run_id": "run-chat-c0da98c55cc65c861cfe561416a7fe14806bab6195b0876c",
+      "elapsed": 11.2,
+      "reply": "已记住",
+      "remote_session_id": "fifth-motorist",
+      "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+      "failed": null,
+      "notes": [
+        "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+        "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+      ],
+      "context_delta": [
+        {
+          "continued": false,
+          "delta_history_messages": 77,
+          "host_history_messages": 77,
+          "prompt_bytes": 118882
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "second": {
+      "case": "second",
+      "run_id": "run-chat-1af9ac756bbc4898f9267506d2bdca55a2fc3668e78f9c2b",
+      "elapsed": 12.7,
+      "reply": "口令：fff346189bd5963a\n暗号：青玉竹叶",
+      "remote_session_id": "fifth-motorist",
+      "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+      "failed": null,
+      "notes": [
+        "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+        "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 5,
+          "host_history_messages": 84,
+          "prompt_bytes": 5452
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "restart": {
+      "case": "restart",
+      "run_id": "run-chat-4671e05ea7b5ce9372398a7b3a4d6736f0455f85abefd968",
+      "elapsed": 12.7,
+      "reply": "口令：fff346189bd5963a\n暗号：青玉竹叶",
+      "remote_session_id": "fifth-motorist",
+      "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+      "failed": null,
+      "notes": [
+        "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+        "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 85,
+          "prompt_bytes": 1701
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "external": {
+      "case": "external",
+      "run_id": "run-chat-fc4c3bf801705a1b235d38fe57dcb2d3530cde2458233e1a",
+      "elapsed": 13.4,
+      "reply": "f673d925e87f1f3d",
+      "remote_session_id": "fifth-motorist",
+      "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+      "failed": null,
+      "notes": [
+        "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+        "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 4,
+          "host_history_messages": 81,
+          "prompt_bytes": 7126
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "external-repeat": {
+      "case": "external-repeat",
+      "run_id": "run-chat-7e8e14b248fc7831ba01a35a3d64092f00d40bba774af44e",
+      "elapsed": 12.1,
+      "reply": "f673d925e87f1f3d",
+      "remote_session_id": "fifth-motorist",
+      "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+      "failed": null,
+      "notes": [
+        "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+        "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 3,
+          "host_history_messages": 91,
+          "prompt_bytes": 5492
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "external-repeat2": {
+      "case": "external-repeat2",
+      "run_id": "run-chat-089ae1d2f9a902bd8c060a2e483b8f3311a7952afc4cf428",
+      "elapsed": 9.0,
+      "reply": "f673d925e87f1f3d",
+      "remote_session_id": "fifth-motorist",
+      "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+      "failed": null,
+      "notes": [
+        "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+        "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 89,
+          "prompt_bytes": 4798
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "stream-repeat": {
+      "case": "stream-repeat",
+      "run_id": "run-chat-e0d09e8d6a760c6dbc00152711b1d65c473f45b0e7e5d7ac",
+      "elapsed": 10.2,
+      "reply": "f673d925e87f1f3d",
+      "remote_session_id": "fifth-motorist",
+      "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+      "failed": false,
+      "notes": {
+        "turn_id": "chat-turn-1791216338274-2",
+        "run_id": "run-chat-e0d09e8d6a760c6dbc00152711b1d65c473f45b0e7e5d7ac",
+        "status": "completed",
+        "accepted_agent_ids": [
+          "session-1791131217833"
+        ],
+        "tasks": [
+          {
+            "id": "task-1791216338404-0",
+            "owner_agent": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+            "executor_agent": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+            "status": "模型已回",
+            "visible_in_chat": true,
+            "timeout_ms": 20000,
+            "summary": "会话 Agent 已按当前 Provider/Model 配置完成真实模型调用"
+          }
+        ]
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 93,
+          "prompt_bytes": 4857
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true,
+      "analysis_parser_corrected": true
+    },
+    "ui-send": {
+      "case": "ui-send",
+      "run_id": "run-chat-41633eefb2a3f8a3db71ae8f56106a0344e51d6e17a98b49",
+      "remote_session_id": "fifth-motorist",
+      "source_message_id": "msg-1791216393352-user",
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 92,
+          "prompt_bytes": 4835
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791131217833",
+          "messages": [
+            {
+              "digest": "d148427c6e0a6c12cf8ed505ed50fec72cf52f48598138df0a2bcb04d2bbbce2",
+              "id": "msg-1791216393500-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "reply": "f673d925e87f1f3d",
+      "passed": true
+    },
+    "delete": {
+      "case": "delete",
+      "run_id": "run-chat-566d7c7b6e20f87b46a1e96d90cb3bd5aba9ef67b5458c1f",
+      "elapsed": 12.8,
+      "reply": "撤回已同步",
+      "removed_message_ids": [
+        "msg-1791216393352-user",
+        "msg-1791216393500-0"
+      ],
+      "tombstones": [
+        "msg-1791216393352-user",
+        "msg-1791216393500-0"
+      ],
+      "remote_session_id": "fifth-motorist",
+      "deleted_rows_remaining": 0,
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 88,
+          "prompt_bytes": 5040
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "delete-repeat": {
+      "case": "delete-repeat",
+      "run_id": "run-chat-519e874703b259cf1798c128ce31c926bf6893cc99989f5a",
+      "elapsed": 9.7,
+      "reply": "继续对话正常",
+      "removed_message_ids": [
+        "msg-1791216393352-user",
+        "msg-1791216393500-0"
+      ],
+      "tombstones": [],
+      "remote_session_id": "fifth-motorist",
+      "deleted_rows_remaining": 0,
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 92,
+          "prompt_bytes": 4762
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "reset": {
+      "case": "reset",
+      "run_id": "run-chat-5b63021f34b608b14a93261ad9afd1efec4ea5e0677453a5",
+      "elapsed": 12.3,
+      "reply": "不知道",
+      "remote_session_id": "veiled-anise",
+      "context_digest": "host-incremental-v3:Some(1791216949316):swe-2-medium",
+      "failed": null,
+      "notes": [
+        "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+        "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+      ],
+      "context_delta": [
+        {
+          "continued": false,
+          "delta_history_messages": 0,
+          "host_history_messages": 0,
+          "prompt_bytes": 3363
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "opus-remember": {
+      "case": "remember",
+      "run_id": "run-chat-b74a5f5c87884ce8652ff7ab0636610b01fbd35fbdf03739",
+      "elapsed": 8.0,
+      "reply": "已记住",
+      "remote_session_id": "fair-amaryllis",
+      "baseline_remote_session_id": "fair-amaryllis",
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 65,
+          "prompt_bytes": 1776
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "claude-opus-5-5-high",
+            "effective": "claude-opus-5-5-high",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "opus-recall": {
+      "case": "recall",
+      "run_id": "run-chat-8502d5e5e1787f47d31ed0a7ae1dde4ba6821dc1a96f7996",
+      "elapsed": 7.5,
+      "reply": "108d9d63c77f3907",
+      "remote_session_id": "fair-amaryllis",
+      "baseline_remote_session_id": "fair-amaryllis",
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 68,
+          "prompt_bytes": 1756
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "claude-opus-5-5-high",
+            "effective": "claude-opus-5-5-high",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "opus-recall-restart": {
+      "case": "recall-restart",
+      "run_id": "run-chat-b78f8a69296763851501356cf0eda065e05edfeca11c827b",
+      "elapsed": 7.7,
+      "reply": "108d9d63c77f3907",
+      "remote_session_id": "fair-amaryllis",
+      "baseline_remote_session_id": "fair-amaryllis",
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 68,
+          "prompt_bytes": 1774
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "claude-opus-5-5-high",
+            "effective": "claude-opus-5-5-high",
+            "resolved_model": null
+          }
+        }
+      ],
+      "passed": true
+    },
+    "opus-ui-final": {
+      "case": "opus-ui-final",
+      "run_id": "run-chat-cf3f0a2f322b76fe594c7eb4672ff0294eb20b081b9dd7bc",
+      "source_message_id": "msg-1791217829839-user",
+      "primary_session_id": "session-1791131217833",
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "fair-amaryllis",
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 76,
+          "prompt_bytes": 1753
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791122188340",
+          "messages": [
+            {
+              "deleted": false,
+              "digest": "800e33279003d01315b0485f945bbd83787427e69d4f82104417474bcc32675c",
+              "id": "msg-1791217829976-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "admitted_targets": [
+        {
+          "agent_ids": [
+            "session-1791122188340"
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "claude-opus-5-5-high",
+            "effective": "claude-opus-5-5-high",
+            "resolved_model": null
+          }
+        }
+      ],
+      "tools": [],
+      "reply": "108d9d63c77f3907",
+      "passed": true
+    },
+    "opus-ui-read": {
+      "case": "opus-ui-read",
+      "run_id": "run-chat-569726bf43fe2d3db5ee851ad8dd25c8ff736a09d33a2da2",
+      "source_message_id": "msg-1791217867387-user",
+      "primary_session_id": "session-1791131217833",
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "fair-amaryllis",
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 78,
+          "prompt_bytes": 1826
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791122188340",
+          "messages": [
+            {
+              "deleted": false,
+              "digest": "257184fb12da38cbac5f0a975bcbd6dd6178ac13cf6935223d5541a96781883c",
+              "id": "msg-1791217867532-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "admitted_targets": [
+        {
+          "agent_ids": [
+            "session-1791122188340"
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "claude-opus-5-5-high",
+            "effective": "claude-opus-5-5-high",
+            "resolved_model": null
+          }
+        }
+      ],
+      "tools": [
+        {
+          "name": "read_file",
+          "status": "completed"
+        }
+      ],
+      "reply": "第一行是：`# coolzhu agent`\n\n本轮调用了 1 次宿主 `read_file`（读取前 3 行），返回状态为 ok。",
+      "passed": true
+    }
+  },
+  "active_bindings": [
+    {
+      "room_id": "room-1791125819661",
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "fair-amaryllis",
+      "locked_attempt": null
+    },
+    {
+      "room_id": "room-1791131523339",
+      "agent_id": "session-1791131217833",
+      "remote_session_id": "veiled-anise",
+      "locked_attempt": null
+    }
+  ]
+}

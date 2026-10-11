@@ -1,0 +1,24 @@
+{"role": "LEAF", "kind": "pointerdown", "trusted": true, "page_ms": 1791545696361.0999, "target": "verification", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545696405.0518, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "pointerup", "trusted": true, "page_ms": 1791545696363.5999, "target": "verification", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545696405.3164, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "click", "trusted": true, "page_ms": 1791545696364.4, "target": "verification", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545696405.4346, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "input", "trusted": true, "page_ms": 1791545733033.5999, "target": "verification", "value": "JADE-8255", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545733062.0583, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "keydown", "trusted": true, "page_ms": 1791545772629.4, "target": "verification", "key": "Enter", "value": "JADE-8255", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545772655.7646, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "verified", "trusted": true, "page_ms": 1791545772634.7, "accepted": true, "observed_ms": 1791545772663.1663, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "wheel", "trusted": true, "page_ms": 1791545804627.9, "target": "status", "value": "验证成功，请向下滚动获取回执", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545804655.6086, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "scroll", "trusted": true, "page_ms": 1791545804633.3, "scrollX": 0, "scrollY": 130, "observed_ms": 1791545804661.4473, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "wheel", "trusted": true, "page_ms": 1791545843498.0999, "target": "DIV", "scrollX": 0, "scrollY": 130, "observed_ms": 1791545843526.2207, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "scroll", "trusted": true, "page_ms": 1791545843501.0999, "scrollX": 0, "scrollY": 390, "observed_ms": 1791545843530.388, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "wheel", "trusted": true, "page_ms": 1791545875437.5999, "target": "DIV", "scrollX": 0, "scrollY": 390, "observed_ms": 1791545875466.2026, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "scroll", "trusted": true, "page_ms": 1791545875443.0999, "scrollX": 0, "scrollY": 649.3333129882812, "observed_ms": 1791545875471.4673, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "pointerdown", "trusted": true, "page_ms": 1791545906620.3, "target": "continue", "value": "", "scrollX": 0, "scrollY": 649.3333129882812, "observed_ms": 1791545906650.0432, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "pointerup", "trusted": true, "page_ms": 1791545906626.8, "target": "continue", "value": "", "scrollX": 0, "scrollY": 649.3333129882812, "observed_ms": 1791545906657.885, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "navigate-requested", "trusted": true, "page_ms": 1791545906627.3, "observed_ms": 1791545906658.8662, "host": "localhost:62008"}
+{"role": "LEAF", "kind": "click", "trusted": true, "page_ms": 1791545906628.7, "target": "continue", "value": "", "scrollX": 0, "scrollY": 649.3333129882812, "observed_ms": 1791545906664.791, "host": "localhost:62008"}
+{"role": "PARENT", "kind": "pointerdown", "trusted": true, "page_ms": 1791545946220.5999, "target": "final", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545946252.1128, "host": "127.0.0.1:62008"}
+{"role": "PARENT", "kind": "pointerup", "trusted": true, "page_ms": 1791545946222, "target": "final", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545946256.9756, "host": "127.0.0.1:62008"}
+{"role": "PARENT", "kind": "click", "trusted": true, "page_ms": 1791545946222.7, "target": "final", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545946261.584, "host": "127.0.0.1:62008"}
+{"role": "PARENT", "kind": "input", "trusted": true, "page_ms": 1791545973648.0999, "target": "final", "value": "SCROLL-7835", "scrollX": 0, "scrollY": 0, "observed_ms": 1791545973680.6897, "host": "127.0.0.1:62008"}
+{"role": "PARENT", "kind": "pointerdown", "trusted": true, "page_ms": 1791546001031.0999, "target": "finish", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791546001063.9236, "host": "127.0.0.1:62008"}
+{"role": "PARENT", "kind": "pointerup", "trusted": true, "page_ms": 1791546001031.7, "target": "finish", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791546001065.3303, "host": "127.0.0.1:62008"}
+{"role": "PARENT", "kind": "click", "trusted": true, "page_ms": 1791546001032, "target": "finish", "value": "", "scrollX": 0, "scrollY": 0, "observed_ms": 1791546001065.6992, "host": "127.0.0.1:62008"}
+{"role": "PARENT", "kind": "final-submitted", "trusted": true, "page_ms": 1791546001032.5, "accepted": true, "observed_ms": 1791546001069.2236, "host": "127.0.0.1:62008"}

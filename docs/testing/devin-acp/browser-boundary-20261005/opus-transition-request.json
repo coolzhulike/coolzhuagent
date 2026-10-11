@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读技术审查，不改文件、不操作桌面、不运行测试或子代理。源快照repository/仍438f6ec；分类器改动仅在主工作树，“任何输入”规则已编译及纯规则检查通过。\n真实H已消除approval误拦：目标html已显示TARGET-NAV-20261005、目标输入事件0；1click sent/released。SOURCE pointerdown=1791170789097，up=1791170789099，pagehide=1791170789106，新页load=1791170789111，因此只是自然导航普通执行，未命中替换竞争。但CU最终verification blocked/native_browser_observation_unavailable。定位native_browser_verification.rs observed_page：requested URL必须等observed.url或有已授权Navigate回执；这次click触发location跳转，没有Navigate动作回执，所以目标URL不同被拒，目标实际可見也不能验收。\n拟最小修复，不删除requested URL防错页检查，不将页面URL变化当目标成功：NativePanelReadBridge在Execute成功且completed_panel结算后记录“已结算输入来源”（仅click/key，host_id/source PanelResource/source URL/document_token/input request ID）；snapshot重新认证宿主后，如果同host/workspace/room/label/generation以及navigation_revision与执行来源完全一致，source document_token不同且URL不同，挂ObservedInputTransition证明，只给目标验证器读取。用户同scope手工导航递增navigation_revision，不能借此证明放行；room/面板/host变都拒；初始只读/0input没这个证明；unknown/notdispatched不产生。仅快照证明变化，不证明目标达成，仍必须真实模型引用新页事实+fresh第二观察验证。已有AuthorizedNavigation保持原协议。\n验证器对真实interactive snapshot可接受已结算InputTransition.original_url等requesttarget且matches_page；本轮连续普通点击后自然跳转可保留原始source request URL，但新的每一步仍走现有Node/document token/permission检查。这里仅改最终观察的URL约束；当前execute_authorized/input_process本就没有限制页面URL必须等requesttarget，不能误称这项在扩权限。评审这一设计有没有更小可行方案，是否有遗漏的真风险。最多1000中文。",
+  "selected_message_ids": [],
+  "attachments": []
+}

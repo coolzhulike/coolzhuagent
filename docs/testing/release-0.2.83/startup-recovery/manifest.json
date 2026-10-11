@@ -1,0 +1,51 @@
+{
+  "source_commit": "0b6c1c714c1302929bfcccc63f5b9123535e31cb",
+  "stage": "原工作区与原安全库正常日常入口恢复",
+  "files": [
+    {
+      "file": "stopped-candidate-processes.json",
+      "length": 698,
+      "sha256": "1419276bfd62872fab13d5660f762ab2efdebe05513090bdfbcff0aeccef25f2"
+    },
+    {
+      "file": "stopped-installed-083-standard-processes.json",
+      "length": 537,
+      "sha256": "877d018a9bbaeabb74fb60372ed38c6e8d99ceef9d854ffa5696b99ae568393f"
+    },
+    {
+      "file": "server-stopped083.json",
+      "length": 625,
+      "sha256": "8f99777c5d59586f98009a7deb7fe34b661f6187b130cc181e5e8b4ac8323b23"
+    },
+    {
+      "file": "restored-daily-083-process.json",
+      "length": 255,
+      "sha256": "51d517128dd062f78afc6dce423e6c246b53693f389a4860ac10b048e10d8658"
+    },
+    {
+      "file": "restored-daily-083-selfcheck.json",
+      "length": 1778,
+      "sha256": "1f0043f50720b20653ab75094ab3ad1a2d3cbdfdb62d394c922b96283d6eb5a7"
+    },
+    {
+      "file": "restored-daily-083-verification.json",
+      "length": 858,
+      "sha256": "b382dfbcbe783f7918dbea3a4520eb5b0b4cece935a88b7d6d5c37a5e3cd2adc"
+    },
+    {
+      "file": "safety-before083.json",
+      "length": 781,
+      "sha256": "72ca1d2f20807d7e671268955a25afaaedd4bcd8f4e15877484681421e02888e"
+    },
+    {
+      "file": "safety-after083.json",
+      "length": 781,
+      "sha256": "c50e31814d7a6b6ddf93d52f2e32b9ba3fc636505f7dacc21cfd59a4994d2b14"
+    },
+    {
+      "file": "restored-daily083.jpg",
+      "length": 196263,
+      "sha256": "b21c3c6523e4338b172938e0d6df37e872474bf861c09478d146fc6d3d8c0b98"
+    }
+  ]
+}

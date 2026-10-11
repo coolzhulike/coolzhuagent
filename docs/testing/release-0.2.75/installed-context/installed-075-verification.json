@@ -1,0 +1,12 @@
+{
+  "version": "0.2.75",
+  "install_exit_code": 0,
+  "web_sha256": "ce87f33517afedbde0757ca12cc38c4e24e2c531aeb6671d73fb6f4ae688e5e4",
+  "shell_sha256": "533b4b551915f9076c24c26f33cbd029ba618acb1dd92542af541e2e262b7566",
+  "cli_output": "COOLZHU CODE Agent\n  Version          0.2.75\n  Git SHA          665f6a3fa029fa06f245ceecf5f2b2d75913976d\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-05\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help\n",
+  "launch_ok": true,
+  "source_commit": "665f6a3fa029fa06f245ceecf5f2b2d75913976d",
+  "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+  "input_safety_state_root": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\input-safety",
+  "install_log_sha256": "2904e4ec742a2e5193082aeb2035943953936f51f7ba3655bb9a83b3345fb496"
+}

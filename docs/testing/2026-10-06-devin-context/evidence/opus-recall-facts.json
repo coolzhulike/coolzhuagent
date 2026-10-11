@@ -1,0 +1,29 @@
+{
+  "case": "recall",
+  "run_id": "run-chat-8502d5e5e1787f47d31ed0a7ae1dde4ba6821dc1a96f7996",
+  "elapsed": 7.5,
+  "reply": "108d9d63c77f3907",
+  "remote_session_id": "fair-amaryllis",
+  "baseline_remote_session_id": "fair-amaryllis",
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 68,
+      "prompt_bytes": 1756
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "claude-opus-5-5-high",
+        "effective": "claude-opus-5-5-high",
+        "resolved_model": null
+      }
+    }
+  ],
+  "passed": true
+}

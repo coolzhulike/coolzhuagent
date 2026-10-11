@@ -1,4 +1,4 @@
-﻿param(
+param(
   [string]$Manifest = 'config/package-manifest.json',
   [ValidateSet('debug', 'release')]
   [string]$Configuration = 'debug',
@@ -38,6 +38,9 @@ $repoPrefix = $repoPath + [System.IO.Path]::DirectorySeparatorChar
 # 构建身份与报告治理（三身份分离 / 报告 ID+内容哈希 / 保留规则 / 失败诊断与发布资格）。
 . (Join-Path $repo 'scripts/lib/build-identity.ps1')
 . (Join-Path $repo 'scripts/lib/dsh-runtime.ps1')
+. (Join-Path $repo 'scripts/lib/cargo-build-evidence.ps1')
+. (Join-Path $repo 'scripts/lib/managed-build-capture.ps1')
+. (Join-Path $repo 'scripts/lib/build-capture-bootstrap.ps1')
 
 # ---------------------------------------------------------------------------
 # 本次运行 ID 与阶段追踪。
@@ -262,6 +265,7 @@ if (-not $Prepare) {
 # 本次运行的构建证据：cargo 消息流与调用信息，供 Loader 导出阶段核对来源。
 $script:artifactBuildMessages = @{}
 $script:artifactBuildInputs = @{}
+$script:buildCaptureBootstrap = $null
 $script:exportReceipts = @{}
 $script:exportSummaries = [System.Collections.Generic.List[object]]::new()
 # PKG-L07c 固定代次语义：本次运行**自己的**消费 staging（派生输出位置）。
@@ -388,7 +392,7 @@ function Invoke-ArtifactBuild {
     $ErrorActionPreference = 'Continue'
     if ($capture -eq 'cargo-json-messages') {
       # 需要机器可读的构建消息（build-script-executed）来定位实际依赖生产者。
-      # 用 .NET Process 直接接管 stdio：stdout 落盘成可核对的原始记录，stderr 构建结束后回显。
+      # 受管辅助程序双管道增量落盘，保留原始字节，不驻留完整输出。
       if (-not ($args | Where-Object { $_ -like '--message-format=*' })) {
         throw "artifact $($Artifact.id) declares capture=$capture but its build args do not set --message-format"
       }
@@ -396,36 +400,40 @@ function Invoke-ArtifactBuild {
       $stdoutPath = Join-Path $logRoot "$($Artifact.id)-build-messages-$stamp.jsonl"
       $stderrPath = Join-Path $logRoot "$($Artifact.id)-build-stderr-$stamp.log"
       Write-Host "capture build messages: $stdoutPath"
-      $argumentText = (@($args) | ForEach-Object { if ([string]$_ -match '\s') { '"' + [string]$_ + '"' } else { [string]$_ } }) -join ' '
-      $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-      $startInfo.FileName = $command
-      $startInfo.Arguments = $argumentText
-      $startInfo.WorkingDirectory = $workingDir
-      $startInfo.UseShellExecute = $false
-      $startInfo.RedirectStandardOutput = $true
-      $startInfo.RedirectStandardError = $true
-      $process = [System.Diagnostics.Process]::Start($startInfo)
-      $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-      $stderrText = $process.StandardError.ReadToEnd()
-      $process.WaitForExit()
-      $stdoutText = [string]$stdoutTask.Result
-      $exitCode = $process.ExitCode
-      $process.Dispose()
-      [System.IO.File]::WriteAllText($stdoutPath, $stdoutText, [System.Text.UTF8Encoding]::new($false))
-      [System.IO.File]::WriteAllText($stderrPath, $stderrText, [System.Text.UTF8Encoding]::new($false))
-      foreach ($line in @($stderrText -split "`r?`n")) {
-        if ($line) { Write-Host $line }
+      if (-not $script:buildCaptureBootstrap) {
+        $script:buildCaptureBootstrap = New-BuildCaptureBootstrap -RepoPath $repoPath `
+          -TargetDirectory (Join-Path $repoPath 'tmp/cargo-target-build-capture') `
+          -EvidenceDirectory (Join-Path $logRoot ('capture-bootstrap-' + $script:packageRunId))
+        $bootstrap = $script:buildCaptureBootstrap
+        $script:artifactBuildInputs['package.build-capture'] = [pscustomobject]@{
+          command = $bootstrap.command; args = $bootstrap.args; working_dir = $bootstrap.working_dir
+          raw_record_path = $bootstrap.raw_record_path
+          raw_record_sha256 = Get-IdentityFileHash -Path $bootstrap.raw_record_path
+          stderr_path = $bootstrap.stderr_path; exit_code = $bootstrap.exit_code
+        }
       }
+      $captureResult = Invoke-ManagedBuildCapture -HelperPath $script:buildCaptureBootstrap.helper_path `
+        -ExpectedHelperSha256 $script:buildCaptureBootstrap.helper_sha256 -Command $command `
+        -Arguments $args -WorkingDirectory $workingDir -StdoutPath $stdoutPath -StderrPath $stderrPath
+      $exitCode = $captureResult.exit_code
+      # stderr 已增量落盘；终端仅逐行回显，不重新驻留整份输出。
+      $stderrReader = [IO.StreamReader]::new($stderrPath, [Text.UTF8Encoding]::new($false,$true))
+      try {
+        while ($null -ne ($line = [CoolzhuBoundedJsonLine]::Read($stderrReader))) {
+          if ($line) { Write-Host $line }
+        }
+      } finally { $stderrReader.Dispose() }
       if ($null -eq $exitCode) {
         throw "[BUILD-FAILED] artifact=$($Artifact.id) target=$($Artifact.target) profile=$Configuration`ndetail: 无法获取构建进程退出码，构建结果不可信`nnext: 检查构建命令与日志 $stdoutPath"
       }
-      $script:artifactBuildMessages[[string]$Artifact.id] = @($stdoutText -split "`r?`n" | Where-Object { $_ })
+      # Loader 从原始回执逐条提取，不再驻留完整行数组。
       $script:artifactBuildInputs[[string]$Artifact.id] = [pscustomobject]@{
         command = $command
         args = $args
         working_dir = $workingDir
         started_utc = $startedUtc
         raw_record_path = $stdoutPath
+        raw_record_sha256 = Get-IdentityFileHash -Path $stdoutPath
         stderr_path = $stderrPath
         exit_code = $exitCode
       }
@@ -438,8 +446,7 @@ function Invoke-ArtifactBuild {
       $category = 'BUILD-FAILED'
       $remediation = '使用独立、受控的构建目录重建后再打包；不要把全局 cargo clean 或删除共享 target 当作常规修复前置'
       if ($stderrPath -and (Test-Path -LiteralPath $stderrPath)) {
-        $stderrText = [string](Get-Content -Raw -LiteralPath $stderrPath -ErrorAction SilentlyContinue)
-        if ($stderrText -match 'no matching package|failed to download|attempting to make an HTTP request but --offline|not found in the registry|registry index was not found|no such file or directory.*registry') {
+        if (Test-CargoDependencyUnavailableLog -Path $stderrPath) {
           $category = 'BUILD-DEPENDENCY-UNAVAILABLE'
           $remediation = '这是缺失离线依赖缓存导致的失败，不是 Loader 选源失败。先准备与锁文件一致的离线依赖缓存（vendored / registry cache）再重试；不要改成手工复制 DLL'
         }
@@ -744,7 +751,7 @@ function Invoke-ArtifactExport {
     return
   }
 
-  if ($context.BuildMessages.Count -eq 0) {
+  if (-not $context.RawRecordPath -and $context.BuildMessages.Count -eq 0) {
     throw (New-LoaderFailureException `
       -Category 'NOT-BUILT' `
       -ArtifactId $artifactId `
@@ -1779,6 +1786,16 @@ New-Item -ItemType Directory -Force -Path $reportParent | Out-Null
 $reportId = Get-PackageReportId -Configuration $Configuration -Stamp $reportStamp
 
 $repoHead = Get-LoaderRepoHead -RepoPath $repoPath
+$cargoBuildEvidence = @(
+  foreach ($artifactId in @($script:artifactBuildInputs.Keys | Sort-Object)) {
+    $buildInput = $script:artifactBuildInputs[$artifactId]
+    if ($buildInput.exit_code -ne 0) { throw '失败构建回执不得进入成功包报告' }
+    Save-PackageCargoBuildEvidence -RepoPath $repoPath `
+      -ArchiveRoot (Join-Path (Get-PackageReportRootPath -RepoPath $repoPath) 'build-evidence') `
+      -RunId $script:packageRunId -ArtifactId $artifactId `
+      -RecordPath $buildInput.raw_record_path -ExpectedSha256 $buildInput.raw_record_sha256
+  }
+)
 $report = [ordered]@{
   generated_at = (Get-Date).ToUniversalTime().ToString('o')
   # 本次运行 ID：失败诊断与成功报告共用同一概念，便于把"同一次运行的成功/失败"对上。
@@ -1900,6 +1917,13 @@ $report = [ordered]@{
   # 导出物登记：谁产出、产出到哪、内容身份、复用性质 + 固定代次语义 + 精确消费关联
   # （PKG-L07c 补强授权项；字段见 scripts/package-all.ps1 的 New-LoaderExportSummary）。
   exported_artifacts = @($script:exportSummaries)
+  cargo_build_evidence = [ordered]@{
+    status = $(if ($SkipBuild) { 'not-collected-no-build' } elseif ($cargoBuildEvidence.Count -eq 0) { 'not-collected' } else { 'collected' })
+    entries = $cargoBuildEvidence
+    capture_bootstrap = $script:buildCaptureBootstrap
+    completeness = 'incomplete'
+    note = '原始消息独占归档并绑定字节哈希；不替代完整分发组件与许可证证据'
+  }
   # RD4-06 准备/冻结分离：正式构建阶段消费的冻结输入 + 实际改变的路径（前后摘要 + 发生阶段）。
   preparation_and_freeze = [ordered]@{
     phase = $script:packagePhase

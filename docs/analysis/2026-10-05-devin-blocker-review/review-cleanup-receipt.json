@@ -1,0 +1,20 @@
+{
+  "daily_health_non_ok": [
+    {
+      "id": "workspace.root",
+      "status": "warn",
+      "detail": "Workspace root C:\\Users\\zhupu\\coolzhuagent is missing modules/ or Cargo.toml."
+    }
+  ],
+  "daily_shell_pid": 27272,
+  "daily_process_count": 2,
+  "daily_health_summary": {
+    "status": "warn",
+    "ok": 10,
+    "warn": 1,
+    "error": 0
+  },
+  "review_process_closed": true,
+  "daily_web_pid": 26188,
+  "review_config_original_bytes_restored": true
+}

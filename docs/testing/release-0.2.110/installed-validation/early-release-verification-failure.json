@@ -1,0 +1,6 @@
+{
+  "stage": "上传子进程尚未结束时提前核验",
+  "error": "assets count != 4",
+  "product_failure": false,
+  "final": "先消费上传实际退出0，再核草稿四资产长度/SHA一致，正常公开后再核tag源码一致"
+}

@@ -124,8 +124,9 @@ impl DshActivationSnapshot {
 }
 
 impl PluginManager {
-    // 轮询只核持久安装身份，不把源码重新散列放进每个进程取消检查；启动/提交仍走完整核验。
-    fn dsh_lifecycle_record_locked(
+    // 轮询只读持久安装身份。设置采用原子替换，登记读取异常仍撤销，不取得管理写锁或执行恢复；
+    // 否则正常目录读取的短暂锁竞争会被上层当成撤销。这里只能撤销，启动/提交仍持锁完整核验。
+    fn dsh_lifecycle_record(
         &self,
         id: &str,
         installation: &str,
@@ -155,9 +156,8 @@ impl PluginManager {
         &self,
         ticket: &DshActivationTicket,
     ) -> Result<bool, PluginError> {
-        let (_root, _lock) = self.lock_and_recover()?;
         let value = settings(self)?;
-        Ok(self.dsh_lifecycle_record_locked(
+        Ok(self.dsh_lifecycle_record(
             &ticket.plugin_id,
             &ticket.installation_id,
             &ticket.package,
@@ -173,12 +173,11 @@ impl PluginManager {
         snapshot: &DshActivationSnapshot,
         root: &Path,
     ) -> Result<bool, PluginError> {
-        let (_root, _lock) = self.lock_and_recover()?;
         let value = settings(self)?;
         if value["enabledPlugins"][&snapshot.plugin_id] != true
             || value["dshLifecycleEpochs"][&snapshot.plugin_id].as_str()
                 != Some(snapshot.activation_id.as_str())
-            || !self.dsh_lifecycle_record_locked(
+            || !self.dsh_lifecycle_record(
                 &snapshot.plugin_id,
                 &snapshot.installation_id,
                 &snapshot.package,

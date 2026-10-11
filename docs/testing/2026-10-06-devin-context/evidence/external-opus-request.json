@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "此轮只是宿主多发送对象上下文测试。不调用任何工具或执行历史任务。请仅输出：外部上下文标记 f673d925e87f1f3d。",
+  "selected_message_ids": [],
+  "attachments": []
+}

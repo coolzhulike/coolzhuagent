@@ -1,0 +1,258 @@
+{
+  "release": "0.2.77",
+  "source_commit": "2d040d555566340c03709b4c6f6b77f11496ebed",
+  "scope": "正式Program Files二进制、原生图标点击和Esc输入；日常模式，未改变Windows动画设置或资源",
+  "cases": [
+    {
+      "case": "skip-icon",
+      "reason": "completed",
+      "page_elapsed_ms": 7165,
+      "frame_count": 1421,
+      "finish_reports": 1,
+      "handoffs": 1,
+      "console_visible": true,
+      "automated_input_acceptance": false
+    },
+    {
+      "case": "skip-icon-2",
+      "reason": "completed",
+      "page_elapsed_ms": 6852,
+      "frame_count": 1410,
+      "finish_reports": 1,
+      "handoffs": 1,
+      "console_visible": true,
+      "automated_input_acceptance": false
+    },
+    {
+      "case": "skip-icon-3",
+      "reason": "completed",
+      "page_elapsed_ms": 7089,
+      "frame_count": 1454,
+      "finish_reports": 1,
+      "handoffs": 1,
+      "console_visible": true,
+      "automated_input_acceptance": false
+    },
+    {
+      "case": "escape",
+      "reason": "skipped",
+      "page_elapsed_ms": 5626,
+      "frame_count": 1150,
+      "finish_reports": 1,
+      "handoffs": 1,
+      "console_visible": true,
+      "automated_input_acceptance": true
+    },
+    {
+      "case": "skip-icon-4",
+      "reason": "skipped",
+      "page_elapsed_ms": 6139,
+      "frame_count": 1259,
+      "finish_reports": 1,
+      "handoffs": 1,
+      "console_visible": true,
+      "automated_input_acceptance": true
+    }
+  ],
+  "earlier_attempts_note": "skip-icon/skip-icon-2未及时取得可用演出窗口；skip-icon-3输入被CU几何检查拒绝。三轮仅自然播放完成，不计跳过验收。进程Path即时为空时按原UTC创建时刻核对实际实例补记。",
+  "not_covered": [
+    "减弱动作",
+    "资源失败",
+    "首次模式",
+    "恢复模式"
+  ],
+  "files": [
+    {
+      "file": "skip-icon/coolzhu-tauri-shell.jsonl",
+      "bytes": 1882,
+      "sha256": "891ad98509c8c64a819a611a1d1775e56c86031a00f204ee68c62031c5b8b7f6",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon/coolzhu-tauri-shell.jsonl",
+        "original_sha256": "891ad98509c8c64a819a611a1d1775e56c86031a00f204ee68c62031c5b8b7f6",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon/process.json",
+      "bytes": 861,
+      "sha256": "eaa11eb4d2ae64f6b91ce7966e97151a812c31cfefbb084607d84e7bb932ef34",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon/process.json",
+        "original_sha256": "ee6140254611bcafc57b68c339593320b226d4b854e46c04412030fbc6962a9e",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-2/before-skip-native.jpg",
+      "bytes": 28394,
+      "sha256": "413ccee1fdff6e92bcde96030d1a90bd9b4a7f0b9e1e0d784044d02c5d4b95cd",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-2/before-skip-native.jpg",
+        "original_sha256": "413ccee1fdff6e92bcde96030d1a90bd9b4a7f0b9e1e0d784044d02c5d4b95cd",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-2/coolzhu-tauri-shell.jsonl",
+      "bytes": 1881,
+      "sha256": "2f4f2b4348b68540bfe66fa855da1862a312a99070fad54150f85576bea82bc2",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-2/coolzhu-tauri-shell.jsonl",
+        "original_sha256": "2f4f2b4348b68540bfe66fa855da1862a312a99070fad54150f85576bea82bc2",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-2/process.json",
+      "bytes": 708,
+      "sha256": "f8d7bb0850e2029e714416b55e81be4316c772258c86ff385166865e0ee62174",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-2/process.json",
+        "original_sha256": "d8bddf6396d4b6d5d0e58bfa93276020a47ada59d1ff72cd293a8d08199dbb5c",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-2/ready-native.jpg",
+      "bytes": 200489,
+      "sha256": "b267500cacde657cb14eed39967b30365cec8cfa40f469fcf1473ab3e007e3c4",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-2/ready-native.jpg",
+        "original_sha256": "b267500cacde657cb14eed39967b30365cec8cfa40f469fcf1473ab3e007e3c4",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-3/coolzhu-tauri-shell.jsonl",
+      "bytes": 1882,
+      "sha256": "d3187b1ae6174884bd67f23958e9bf61b8ed3ceb749189417314d9910cc73724",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-3/coolzhu-tauri-shell.jsonl",
+        "original_sha256": "d3187b1ae6174884bd67f23958e9bf61b8ed3ceb749189417314d9910cc73724",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-3/process.json",
+      "bytes": 709,
+      "sha256": "8837093d09bd389fb2fdf8b2240d8dd24e469337fd5528392174d13f96d50e20",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-3/process.json",
+        "original_sha256": "42d95026da5965bdd3ce073abc367b0ea668d49d03c645c7db0424d150aca8c9",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "escape/after-escape-native.jpg",
+      "bytes": 195588,
+      "sha256": "25e5cfafce83c51d6ffbcee29f57d48e62bb94c130814ed932e9441fd9d2e8d0",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/escape/after-escape-native.jpg",
+        "original_sha256": "25e5cfafce83c51d6ffbcee29f57d48e62bb94c130814ed932e9441fd9d2e8d0",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "escape/before-escape-accessibility.txt",
+      "bytes": 898,
+      "sha256": "e8f5ad953d95c451b678e8d7caf2aa4aa8cf3ac842df16188f48220670e9a366",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/escape/before-escape-accessibility.txt",
+        "original_sha256": "e8f5ad953d95c451b678e8d7caf2aa4aa8cf3ac842df16188f48220670e9a366",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "escape/coolzhu-tauri-shell.jsonl",
+      "bytes": 1878,
+      "sha256": "c6466aa8678707948657ce772fbdd880b3808a7d92804a297bc2ba210178f768",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/escape/coolzhu-tauri-shell.jsonl",
+        "original_sha256": "c6466aa8678707948657ce772fbdd880b3808a7d92804a297bc2ba210178f768",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "escape/process.json",
+      "bytes": 698,
+      "sha256": "5cd61fdbd6c84f2fde11a5d53f3c4b4ada51c969a832e076c0019f67ba119f16",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/escape/process.json",
+        "original_sha256": "f82f3f32eefef5096f5cbea59a43fdc3d29ab2f394e8261b1b5fb9b68cc71fc8",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-4/after-skip-native.jpg",
+      "bytes": 195390,
+      "sha256": "f6ac9fd8849900b2e47d3d73bce85fdb15160367f727f4038d89a77f61db3164",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-4/after-skip-native.jpg",
+        "original_sha256": "f6ac9fd8849900b2e47d3d73bce85fdb15160367f727f4038d89a77f61db3164",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-4/before-skip-native.jpg",
+      "bytes": 61789,
+      "sha256": "48896a8cc9dd476be490ca45d71d7a667085085b29e2be1bb91415c3023a26b1",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-4/before-skip-native.jpg",
+        "original_sha256": "48896a8cc9dd476be490ca45d71d7a667085085b29e2be1bb91415c3023a26b1",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-4/coolzhu-tauri-shell.jsonl",
+      "bytes": 1879,
+      "sha256": "17a14aec7a58917c7c1b97488062bfdde49d3850a12b7b4aa4d0ee8934babe10",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-4/coolzhu-tauri-shell.jsonl",
+        "original_sha256": "17a14aec7a58917c7c1b97488062bfdde49d3850a12b7b4aa4d0ee8934babe10",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "skip-icon-4/process.json",
+      "bytes": 708,
+      "sha256": "b821e943523696f29e7a0f59776162642c0df4653da6dc510eba58b3c14a2f65",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/skip-icon-4/process.json",
+        "original_sha256": "b7a9c3cf79ba8eb62921081de26230e31d68f99ef3e6f955050b03413a030143",
+        "format": "日志/JSON/文本归一UTF-8 LF；截图保留原始字节"
+      }
+    },
+    {
+      "file": "restored-daily-process.json",
+      "bytes": 507,
+      "sha256": "644bae1d2e458b9598e6a16d069e717717bbc837da002ddeaae4de8bdc912ca0",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/restored-daily-process.json"
+      }
+    },
+    {
+      "file": "restored-daily-identity.json",
+      "bytes": 567,
+      "sha256": "77d823373c8b745d1ecd3bc6e449842e435512258a9ffc01d8d1601b01df76c1",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/restored-daily-identity.json"
+      }
+    },
+    {
+      "file": "restored-daily-native.jpg",
+      "bytes": 195419,
+      "sha256": "aa1d84cee5ccd4847c3fba3dd6640b0a47d3096d35dd635ce91429dc5de7d0f0",
+      "source": {
+        "path": "tmp/2026-10-06-startup-077/restored-daily-native.jpg"
+      }
+    },
+    {
+      "file": "github-ci-observation.json",
+      "bytes": 18169,
+      "sha256": "821f011ec5a0a808d9916a4f91b6b922c5cfc8555f842cb9f7bf8b2b7dc1cf73",
+      "source": {
+        "source": "GitHub实际REST查询；不将执行器分配失败当成测试通过"
+      }
+    }
+  ]
+}

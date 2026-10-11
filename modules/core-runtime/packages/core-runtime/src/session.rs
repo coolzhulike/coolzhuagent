@@ -90,7 +90,25 @@ impl Session {
     }
 
     pub fn save_to_path(&self, path: impl AsRef<Path>) -> Result<(), SessionError> {
-        fs::write(path, self.to_json().render())?;
+        use std::io::Write;
+        let path = path.as_ref();
+        let parent = path.parent().filter(|parent| !parent.as_os_str().is_empty())
+            .unwrap_or_else(|| Path::new("."));
+        let existing = match fs::symlink_metadata(path) {
+            Ok(metadata) if metadata.file_type().is_file() && !metadata.permissions().readonly() => Some(metadata),
+            Ok(_) => return Err(std::io::Error::new(std::io::ErrorKind::PermissionDenied,
+                "会话目标必须为可写普通文件").into()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+            Err(error) => return Err(error.into()),
+        };
+        // 同目录暂存并同步后替换，避免直接截断上一份可恢复会话。
+        let mut staged = tempfile::NamedTempFile::new_in(parent)?;
+        staged.write_all(self.to_json().render().as_bytes())?;
+        if let Some(metadata) = existing { staged.as_file().set_permissions(metadata.permissions())?; }
+        staged.as_file().sync_all()?;
+        staged.persist(path).map_err(|error| SessionError::Io(error.error))?;
+        #[cfg(unix)]
+        fs::File::open(parent)?.sync_all()?;
         Ok(())
     }
 
@@ -386,6 +404,31 @@ mod tests {
     use crate::usage::TokenUsage;
     use std::fs;
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[cfg(windows)]
+    #[test]
+    fn failed_session_replacement_preserves_previous_bytes_and_cleans_staging() {
+        use std::os::windows::fs::OpenOptionsExt;
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp");
+        fs::create_dir_all(&root).unwrap();
+        let directory = tempfile::tempdir_in(root).unwrap();
+        let path = directory.path().join("session.json");
+        let original = Session::new();
+        original.save_to_path(&path).unwrap();
+        let bytes = fs::read(&path).unwrap();
+        // 允许读取但禁止目标替换，真实触发发布阶段失败。
+        let held = fs::OpenOptions::new().read(true).share_mode(1).open(&path).unwrap();
+        let mut changed = original.clone();
+        changed.messages.push(ConversationMessage::user_text("新增事实"));
+        assert!(changed.save_to_path(&path).is_err());
+        assert_eq!(fs::read(&path).unwrap(), bytes);
+        assert_eq!(Session::load_from_path(&path).unwrap(), original);
+        assert_eq!(fs::read_dir(directory.path()).unwrap().count(), 1);
+        drop(held);
+        changed.save_to_path(&path).unwrap();
+        assert_eq!(Session::load_from_path(&path).unwrap(), changed);
+        assert_eq!(fs::read_dir(directory.path()).unwrap().count(), 1);
+    }
 
     #[test]
     fn persists_and_restores_session_json() {

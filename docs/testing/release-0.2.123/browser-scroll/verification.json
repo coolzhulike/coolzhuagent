@@ -1,0 +1,598 @@
+{
+  "stage": "0.2.123 Program Files正式安装版独立长程验收",
+  "run_id": "run-chat-fe00afa055eab7219125cc9a8ddcb5dd3fa63e8bb361d441",
+  "cu_run": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791569329092-0-tool-df7f50c8fe4e3de8e750b25b4982d369e92fbab2f42a8afe748aafb0be3f9ef2",
+    "provider_tool_call_id": "tool-df7f50c8fe4e3de8e750b25b4982d369e92fbab2f42a8afe748aafb0be3f9ef2",
+    "turn_id": "chat-turn-1791569329092-0",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "idempotency_key": "session-1791131217833\u001fchat-turn-1791569329092-0\u001fbrowser\u001f完成竹剑与玉佩两个子文档的滚动、真实订单码填写和提交\u001f\u001f外层完整显示双文档订单已完成，两项均通过|外层两项回执明确列出各自物品、单价及数量\u001f只操作两个订单子文档，各先滚动至真实输入框后填写随机订单码按enter|忽略动态行情；每步使用最新观察引用；禁止脚本或http操作网页",
+    "objective_json": "{\"constraints\":[\"只操作两个订单子文档，各先滚动至真实输入框后填写随机订单码按enter\",\"忽略动态行情；每步使用最新观察引用；禁止脚本或HTTP操作网页\"],\"max_actions\":14,\"objective\":\"完成竹剑与玉佩两个子文档的滚动、真实订单码填写和提交\",\"success_criteria\":[\"外层完整显示双文档订单已完成，两项均通过\",\"外层两项回执明确列出各自物品、单价及数量\"],\"surface\":\"browser\"}",
+    "surface": "browser",
+    "state": "succeeded",
+    "state_version": 46,
+    "risk_class": "observe",
+    "approval_state": "not_required",
+    "approval_deadline_ms": null,
+    "action_count": 8,
+    "replan_count": 0,
+    "no_progress_count": 0,
+    "current_observation_generation": 0,
+    "deadline_ms": 1791570229092,
+    "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791569329092-0-tool-df7f50c8fe4e3de8e750b25b4982d369e92fbab2f42a8afe748aafb0be3f9ef2\",\"provider_tool_call_id\":\"tool-df7f50c8fe4e3de8e750b25b4982d369e92fbab2f42a8afe748aafb0be3f9ef2\",\"status\":\"succeeded\",\"stage\":\"terminal\",\"goal_achieved\":true,\"surface\":\"browser\",\"summary\":\"{\\\"bound_initial_url\\\":\\\"http://127.0.0.1:51812/scroll.html\\\",\\\"criteria_count\\\":2,\\\"criteria_met\\\":2,\\\"fresh_observation_id\\\":\\\"eb57f70b2ad34e0de334b2540f7391b3\\\",\\\"freshness_confirmed\\\":true,\\\"grounding\\\":[{\\\"grounded\\\":true,\\\"index\\\":0,\\\"model_met\\\":true,\\\"node_indices\\\":[14],\\\"reason\\\":\\\"node_text\\\",\\\"selected_nodes\\\":[{\\\"index\\\":14,\\\"name_chars\\\":14,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":14,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":14,\\\"role\\\":\\\"StaticText\\\"}]},{\\\"grounded\\\":true,\\\"index\\\":1,\\\"model_met\\\":true,\\\"node_indices\\\":[19,20],\\\"reason\\\":\\\"adjacent_text\\\",\\\"selected_nodes\\\":[{\\\"index\\\":19,\\\"name_chars\\\":17,\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":20,\\\"name_chars\\\":17,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":19,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":17,\\\"role\\\":\\\"StaticText\\\"},{\\\"blank\\\":false,\\\"index\\\":20,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":17,\\\"role\\\":\\\"StaticText\\\"}]}],\\\"input_supported\\\":true,\\\"kind\\\":\\\"native_browser_interaction_observation\\\",\\\"notice\\\":\\\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\\\",\\\"observation_generation\\\":9,\\\"observation_id\\\":\\\"a0670b712f973c602568e3958096c99b\\\",\\\"observation_origin\\\":\\\"current_page\\\",\\\"observed_page\\\":{\\\"excerpt_truncated\\\":false,\\\"node_count\\\":84,\\\"nodes\\\":[{\\\"index\\\":14,\\\"name\\\":\\\"双文档订单已完成，两项均通过\\\",\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":19,\\\"name\\\":\\\"竹剑已验证：单价 381；数量 4\\\",\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":20,\\\"name\\\":\\\"玉佩已验证：单价 398；数量 5\\\",\\\"role\\\":\\\"StaticText\\\"}],\\\"title\\\":\\\"竹林双文档验收\\\",\\\"truncated\\\":false,\\\"url\\\":\\\"http://127.0.0.1:51812/scroll.html\\\",\\\"viewport\\\":{\\\"height\\\":514.0,\\\"page_x\\\":0.0,\\\"page_y\\\":0.0,\\\"width\\\":446.0}},\\\"requested_url\\\":null,\\\"ungrounded_positive_count\\\":0}\",\"attempts\":8,\"steps_completed\":8,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"scroll\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":1,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":2,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":3,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"inconclusive\",\"goal_verdict\":\"failed\"},{\"step_index\":4,\"action_kind\":\"scroll\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":5,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"inconclusive\",\"goal_verdict\":\"failed\"},{\"step_index\":6,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":7,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"inconclusive\",\"goal_verdict\":\"passed\"}],\"evidence\":[\"native-ax:1:0\",\"native-observation:8f564ee9a66eb1e0a8e2ad8c7cc7d51a\",\"native-ax:1:0\",\"native-observation:8f564ee9a66eb1e0a8e2ad8c7cc7d51a\",\"native-input:7487df67baf883c4c243fb7aed7a8bb0\",\"native-ax:1:0\",\"native-observation:a41727bf135a1c73aef6291dc4fb923b\",\"native-ax:1:0\",\"native-observation:a41727bf135a1c73aef6291dc4fb923b\",\"native-ax:1:0\",\"native-observation:aaf9e136fa04c1f310b55f507fc06a5d\",\"native-input:5120178ab0eaa2bab96b293ab7787bda\",\"native-ax:1:0\",\"native-observation:32d3a647c503058ce8d211469919a494\",\"native-ax:1:0\",\"native-observation:32d3a647c503058ce8d211469919a494\",\"native-ax:1:0\",\"native-observation:792f3b3446f975adc64f54d7f97e1897\",\"native-input:1b7dac2ff753470ee19bd7ac6b807e79\",\"native-ax:1:0\",\"native-observation:d563057eca10f0a5ca3524cd552db4e7\",\"native-ax:1:0\",\"native-observation:d563057eca10f0a5ca3524cd552db4e7\",\"native-ax:1:0\",\"native-observation:2285b98b14cf8fa84c4f473dc67e5524\",\"native-input:385617189281a83e1c637abe46124e62\",\"native-ax:1:0\",\"native-observation:85ce90c49b44446cd6ff536843546dcb\",\"native-ax:1:0\",\"native-observation:85ce90c49b44446cd6ff536843546dcb\",\"native-ax:1:0\",\"native-observation:fa685f52a7d092d4f274ca9bc548a145\",\"native-input:e142e09cc3afcae02ed985d37c644277\",\"native-ax:1:0\",\"native-observation:a17355adeaebdfe5d746a2f8dc2d448d\",\"native-ax:1:0\",\"native-observation:a17355adeaebdfe5d746a2f8dc2d448d\",\"native-ax:1:0\",\"native-observation:795a40519432cb802c266fdaa34c29f7\",\"native-input:fdf6194455021509ef90eadfb0f99264\",\"native-ax:1:0\",\"native-observation:af484364939b3ff6dea5d0a82e2f831c\",\"native-ax:1:0\",\"native-observation:af484364939b3ff6dea5d0a82e2f831c\",\"native-ax:1:0\",\"native-observation:198cf34166e0c1ed16bcddadf6f15999\",\"native-input:58ccb3b94a6e908d2ccab2f157c2f500\",\"native-ax:1:0\",\"native-observation:95a0e5c4a3f46cdbe77c1c6b638122f8\",\"native-ax:1:0\",\"native-observation:95a0e5c4a3f46cdbe77c1c6b638122f8\",\"native-ax:1:0\",\"native-observation:3287de156d0a18645fc67234507d3a4f\",\"native-input:0ea11f0decaaa44a6b692fdecf17c319\",\"native-ax:1:0\",\"native-observation:a0670b712f973c602568e3958096c99b\",\"native-ax:1:0\",\"native-observation:a0670b712f973c602568e3958096c99b\",\"native-ax:1:0\",\"native-observation:eb57f70b2ad34e0de334b2540f7391b3\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":8,\"replan_count\":0,\"no_progress_count\":1},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791570229092}},\"cu_deadline_ms\":1791570229092,\"cu_deadline_established_at_ms\":1791569341712,\"cu_budget_ms\":900000}}",
+    "created_at_ms": 1791569341712,
+    "updated_at_ms": 1791569649392,
+    "workspace_id": "ws-23f646a969206cb4",
+    "workspace_context_version": 1,
+    "legacy_convergence_id": null,
+    "legacy_convergence_state": null,
+    "legacy_convergence_reconciled_at_ms": null
+  },
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791569329092-0-tool-df7f50c8fe4e3de8e750b25b4982d369e92fbab2f42a8afe748aafb0be3f9ef2",
+    "provider_tool_call_id": "tool-df7f50c8fe4e3de8e750b25b4982d369e92fbab2f42a8afe748aafb0be3f9ef2",
+    "status": "succeeded",
+    "stage": "terminal",
+    "goal_achieved": true,
+    "surface": "browser",
+    "summary": "{\"bound_initial_url\":\"http://127.0.0.1:51812/scroll.html\",\"criteria_count\":2,\"criteria_met\":2,\"fresh_observation_id\":\"eb57f70b2ad34e0de334b2540f7391b3\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[14],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":14,\"name_chars\":14,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":14,\"inline_has_static_text\":false,\"name_chars\":14,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[19,20],\"reason\":\"adjacent_text\",\"selected_nodes\":[{\"index\":19,\"name_chars\":17,\"role\":\"StaticText\"},{\"index\":20,\"name_chars\":17,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":19,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"},{\"blank\":false,\"index\":20,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":9,\"observation_id\":\"a0670b712f973c602568e3958096c99b\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":84,\"nodes\":[{\"index\":14,\"name\":\"双文档订单已完成，两项均通过\",\"role\":\"StaticText\"},{\"index\":19,\"name\":\"竹剑已验证：单价 381；数量 4\",\"role\":\"StaticText\"},{\"index\":20,\"name\":\"玉佩已验证：单价 398；数量 5\",\"role\":\"StaticText\"}],\"title\":\"竹林双文档验收\",\"truncated\":false,\"url\":\"http://127.0.0.1:51812/scroll.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+    "attempts": 8,
+    "steps_completed": 8,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "scroll",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 1,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 2,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 3,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "inconclusive",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 4,
+        "action_kind": "scroll",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 5,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "inconclusive",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 6,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 7,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "inconclusive",
+        "goal_verdict": "passed"
+      }
+    ],
+    "evidence": [
+      "native-ax:1:0",
+      "native-observation:8f564ee9a66eb1e0a8e2ad8c7cc7d51a",
+      "native-ax:1:0",
+      "native-observation:8f564ee9a66eb1e0a8e2ad8c7cc7d51a",
+      "native-input:7487df67baf883c4c243fb7aed7a8bb0",
+      "native-ax:1:0",
+      "native-observation:a41727bf135a1c73aef6291dc4fb923b",
+      "native-ax:1:0",
+      "native-observation:a41727bf135a1c73aef6291dc4fb923b",
+      "native-ax:1:0",
+      "native-observation:aaf9e136fa04c1f310b55f507fc06a5d",
+      "native-input:5120178ab0eaa2bab96b293ab7787bda",
+      "native-ax:1:0",
+      "native-observation:32d3a647c503058ce8d211469919a494",
+      "native-ax:1:0",
+      "native-observation:32d3a647c503058ce8d211469919a494",
+      "native-ax:1:0",
+      "native-observation:792f3b3446f975adc64f54d7f97e1897",
+      "native-input:1b7dac2ff753470ee19bd7ac6b807e79",
+      "native-ax:1:0",
+      "native-observation:d563057eca10f0a5ca3524cd552db4e7",
+      "native-ax:1:0",
+      "native-observation:d563057eca10f0a5ca3524cd552db4e7",
+      "native-ax:1:0",
+      "native-observation:2285b98b14cf8fa84c4f473dc67e5524",
+      "native-input:385617189281a83e1c637abe46124e62",
+      "native-ax:1:0",
+      "native-observation:85ce90c49b44446cd6ff536843546dcb",
+      "native-ax:1:0",
+      "native-observation:85ce90c49b44446cd6ff536843546dcb",
+      "native-ax:1:0",
+      "native-observation:fa685f52a7d092d4f274ca9bc548a145",
+      "native-input:e142e09cc3afcae02ed985d37c644277",
+      "native-ax:1:0",
+      "native-observation:a17355adeaebdfe5d746a2f8dc2d448d",
+      "native-ax:1:0",
+      "native-observation:a17355adeaebdfe5d746a2f8dc2d448d",
+      "native-ax:1:0",
+      "native-observation:795a40519432cb802c266fdaa34c29f7",
+      "native-input:fdf6194455021509ef90eadfb0f99264",
+      "native-ax:1:0",
+      "native-observation:af484364939b3ff6dea5d0a82e2f831c",
+      "native-ax:1:0",
+      "native-observation:af484364939b3ff6dea5d0a82e2f831c",
+      "native-ax:1:0",
+      "native-observation:198cf34166e0c1ed16bcddadf6f15999",
+      "native-input:58ccb3b94a6e908d2ccab2f157c2f500",
+      "native-ax:1:0",
+      "native-observation:95a0e5c4a3f46cdbe77c1c6b638122f8",
+      "native-ax:1:0",
+      "native-observation:95a0e5c4a3f46cdbe77c1c6b638122f8",
+      "native-ax:1:0",
+      "native-observation:3287de156d0a18645fc67234507d3a4f",
+      "native-input:0ea11f0decaaa44a6b692fdecf17c319",
+      "native-ax:1:0",
+      "native-observation:a0670b712f973c602568e3958096c99b",
+      "native-ax:1:0",
+      "native-observation:a0670b712f973c602568e3958096c99b",
+      "native-ax:1:0",
+      "native-observation:eb57f70b2ad34e0de334b2540f7391b3"
+    ],
+    "supervisor": {
+      "circuit_open": false,
+      "action_count": 8,
+      "replan_count": 0,
+      "no_progress_count": 1
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791570229092
+        }
+      },
+      "cu_deadline_ms": 1791570229092,
+      "cu_deadline_established_at_ms": 1791569341712,
+      "cu_budget_ms": 900000
+    }
+  },
+  "page_events": [
+    {
+      "kind": "non-target-repaint",
+      "revision": 200,
+      "observed_ms": 1791569332928.0854,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 300,
+      "observed_ms": 1791569342929.2124,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 400,
+      "observed_ms": 1791569352928.9722,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 500,
+      "observed_ms": 1791569362943.3064,
+      "origin_port": 51812
+    },
+    {
+      "kind": "wheel",
+      "trusted": true,
+      "page_ms": 1791569367735.5,
+      "target": "space",
+      "item": "竹剑",
+      "observed_ms": 1791569367741.686,
+      "origin_port": 51813
+    },
+    {
+      "kind": "document-scroll",
+      "trusted": true,
+      "page_ms": 1791569367739,
+      "item": "竹剑",
+      "page_y": 303.3333435058594,
+      "observed_ms": 1791569367746.598,
+      "origin_port": 51813
+    },
+    {
+      "kind": "ax-prefix-inserted",
+      "item": "竹剑",
+      "observed_ms": 1791569367749.676,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 600,
+      "observed_ms": 1791569372937.9507,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 700,
+      "observed_ms": 1791569382934.164,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 800,
+      "observed_ms": 1791569392931.0679,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 900,
+      "observed_ms": 1791569402934.052,
+      "origin_port": 51812
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791569407275.3,
+      "target": "code",
+      "item": "竹剑",
+      "value": "",
+      "observed_ms": 1791569407280.811,
+      "origin_port": 51813
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791569407281.6,
+      "target": "code",
+      "item": "竹剑",
+      "value": "",
+      "observed_ms": 1791569407300.5854,
+      "origin_port": 51813
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791569407282,
+      "target": "code",
+      "item": "竹剑",
+      "value": "",
+      "observed_ms": 1791569407300.7861,
+      "origin_port": 51813
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1000,
+      "observed_ms": 1791569412930.647,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1100,
+      "observed_ms": 1791569422937.8757,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1200,
+      "observed_ms": 1791569432932.508,
+      "origin_port": 51812
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791569440012,
+      "target": "code",
+      "item": "竹剑",
+      "value": "BAMBOO-7866",
+      "observed_ms": 1791569440025.7246,
+      "origin_port": 51813
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1300,
+      "observed_ms": 1791569442935.7546,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1400,
+      "observed_ms": 1791569452946.6428,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1500,
+      "observed_ms": 1791569462933.4155,
+      "origin_port": 51812
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791569469692.2002,
+      "target": "code",
+      "item": "竹剑",
+      "key": "Enter",
+      "value": "BAMBOO-7866",
+      "observed_ms": 1791569469700.5588,
+      "origin_port": 51813
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791569469693.1,
+      "target": "verify",
+      "item": "竹剑",
+      "accepted": true,
+      "observed_ms": 1791569469702.7903,
+      "origin_port": 51813
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1600,
+      "observed_ms": 1791569472934.0774,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1700,
+      "observed_ms": 1791569482937.9136,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1800,
+      "observed_ms": 1791569492934.9517,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1900,
+      "observed_ms": 1791569502948.7312,
+      "origin_port": 51812
+    },
+    {
+      "kind": "wheel",
+      "trusted": true,
+      "page_ms": 1791569503942.1,
+      "target": "verify",
+      "item": "玉佩",
+      "observed_ms": 1791569503951.2822,
+      "origin_port": 51813
+    },
+    {
+      "kind": "document-scroll",
+      "trusted": true,
+      "page_ms": 1791569503943,
+      "item": "玉佩",
+      "page_y": 303.3333435058594,
+      "observed_ms": 1791569503953.786,
+      "origin_port": 51813
+    },
+    {
+      "kind": "ax-prefix-inserted",
+      "item": "玉佩",
+      "observed_ms": 1791569503954.1265,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2000,
+      "observed_ms": 1791569512940.758,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2100,
+      "observed_ms": 1791569522937.3313,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2200,
+      "observed_ms": 1791569532937.9453,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2300,
+      "observed_ms": 1791569542945.9514,
+      "origin_port": 51812
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791569551904.3,
+      "target": "code",
+      "item": "玉佩",
+      "value": "",
+      "observed_ms": 1791569551915.5408,
+      "origin_port": 51813
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791569551905.4001,
+      "target": "code",
+      "item": "玉佩",
+      "value": "",
+      "observed_ms": 1791569551925.0002,
+      "origin_port": 51813
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791569551905.7002,
+      "target": "code",
+      "item": "玉佩",
+      "value": "",
+      "observed_ms": 1791569551925.6262,
+      "origin_port": 51813
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2400,
+      "observed_ms": 1791569552938.373,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2500,
+      "observed_ms": 1791569562942.5315,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2600,
+      "observed_ms": 1791569572936.1125,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2700,
+      "observed_ms": 1791569582947.0793,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2800,
+      "observed_ms": 1791569592938.0522,
+      "origin_port": 51812
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791569593038,
+      "target": "code",
+      "item": "玉佩",
+      "value": "JADE-4277",
+      "observed_ms": 1791569593050.7412,
+      "origin_port": 51813
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2900,
+      "observed_ms": 1791569602941.1228,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3000,
+      "observed_ms": 1791569612952.3418,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3100,
+      "observed_ms": 1791569622941.187,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3200,
+      "observed_ms": 1791569632940.4385,
+      "origin_port": 51812
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791569635660.9001,
+      "target": "code",
+      "item": "玉佩",
+      "key": "Enter",
+      "value": "JADE-4277",
+      "observed_ms": 1791569635674.982,
+      "origin_port": 51813
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791569635661.6,
+      "target": "verify",
+      "item": "玉佩",
+      "accepted": true,
+      "observed_ms": 1791569635676.1611,
+      "origin_port": 51813
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3300,
+      "observed_ms": 1791569642950.2524,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3400,
+      "observed_ms": 1791569652948.8228,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3500,
+      "observed_ms": 1791569662953.2407,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3600,
+      "observed_ms": 1791569672942.543,
+      "origin_port": 51812
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3700,
+      "observed_ms": 1791569682941.9292,
+      "origin_port": 51812
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "independent_total": 3514,
+  "passed": true
+}

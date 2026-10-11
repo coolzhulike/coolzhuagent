@@ -1,0 +1,28 @@
+{
+  "version": "0.2.91",
+  "source_commit": "a366fbb2ec35bf75163ed643b79adfae176d8943",
+  "stage": "installed",
+  "scope": "已运行原生桌面再次启动恢复已有控制台，不重播；不是首次/减弱动作/资源失败验收",
+  "files": [
+    {
+      "path": "before.jpg",
+      "bytes": 196572,
+      "sha256": "586f47f4baac83ea5a0b6a0f6e3978422bdc43b275ac028a72742288e870f35d"
+    },
+    {
+      "path": "after.jpg",
+      "bytes": 196419,
+      "sha256": "20a35bd34118bc89861c50ad54bb545a1e12fe0af91d8130c79a973693366fbd"
+    },
+    {
+      "path": "restore-process.json",
+      "bytes": 1087,
+      "sha256": "3cb0dd75d3396427bdfd4e7e4e8987e865c1d0a156a77a0ffb79573be66968a6"
+    },
+    {
+      "path": "console-window.json",
+      "bytes": 162,
+      "sha256": "90d42a6b7248594bb55e1710159451836d6bb636039080ce9af4b83664f627c9"
+    }
+  ]
+}

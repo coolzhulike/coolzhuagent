@@ -1,0 +1,40 @@
+{
+  "prefix": "CU-SINGLE-086-PAINT3-20261006",
+  "message_id": "msg-1791347945642-user",
+  "room_id": "room-1791131523339",
+  "run_id": "run-chat-5dda6e17e01a84ffd12d6909e8f6c87b47812367e12ec039",
+  "attempts": [
+    {
+      "attempt_id": "f9acb8de3bb1f14e0def6d34590b6afb6d1c3d1c748bfb1b",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "events": [
+    {
+      "event": "devin.context_delta",
+      "payload": {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 142,
+        "prompt_bytes": 7586
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

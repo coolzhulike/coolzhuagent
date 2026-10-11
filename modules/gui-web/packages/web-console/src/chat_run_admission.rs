@@ -53,21 +53,57 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
         if parent.computer_use_turn_scope.native_browser() {
             parent.native_browser_binding = Some(crate::native_browser_host::capture_panel_binding(parent));
         }
-        let snapshots = result.targets.iter().filter_map(|agent| {
+        let require_http_snapshot = crate::real_llm_enabled()
+            && crate::chat_room_capabilities_sqlite(&db_path, &result.chat_room_id)
+                .map_err(crate::sqlite_api_error)?.0;
+        let mut snapshots = std::collections::HashMap::new();
+        for agent in &result.targets {
+            // 会话型后端有独立生命周期，不能用HTTP快照捕获失败阻断其已授权聊天。
+            let http = crate::agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+                == crate::agent_session_backend::AgentSessionBackend::LlmHttp;
             match crate::host_child_agent::HostModelSnapshot::capture(
                 agent, Some(&result.chat_room_id), parent,
             ) {
-                Ok(snapshot) => Some((agent.id.clone(), Arc::new(snapshot))),
+                Ok(snapshot) => { snapshots.insert(agent.id.clone(), Arc::new(snapshot)); }
                 Err(error) => {
+                    if require_http_snapshot && http {
+                        return Err(crate::api_error(crate::StatusCode::CONFLICT,
+                            &format!("无法冻结本轮会话 {} 的模型配置，未执行模型或工具：{error}", agent.id)));
+                    }
                     crate::diag_log(&format!("[HOST-AGENT] 接纳时无法解析会话 {} 的子执行配置：{error}", agent.id));
-                    None
                 }
             }
-        }).collect();
+        }
         parent.host_model_snapshots = Arc::new(snapshots);
+        crate::dsh_web::capture_target_permissions(&mut parent.dsh_permission, &parent.dsh_bindings,
+            &workspace_id, &result.targets, &result.chat_room_id, &db_path);
     }
     crate::chat_insights::record_source_messages(&db_path, &run_id, &result.messages).map_err(crate::sqlite_api_error)?;
+    crate::append_runtime_run_event(&db_path, &run_id, "chat.target_agents",
+        serde_json::json!({"agent_ids":result.targets.iter().map(|agent| &agent.id).collect::<Vec<_>>()}))
+        .map_err(crate::sqlite_api_error)?;
+    crate::execution_service::ExecutionService::bind_chat(&db_path, &workspace_id, &run_id,
+        Arc::clone(&cancellation)).map_err(|error|crate::api_error(crate::StatusCode::CONFLICT,&error))?;
     Ok(AcceptedChatRun { turn_id, run_id, claim_token, db_path, cancellation, root_budget, parent, guard })
+}
+
+/// 主会话与发送目标是不同职责；目标只能来自本轮接纳记录，不在工具调用时补造。
+pub(crate) fn target_is_admitted_on(connection: &rusqlite::Connection, run_id: &str, agent_id: &str)
+    -> rusqlite::Result<bool> {
+    let (count, encoded): (i64, Option<String>) = connection.query_row(
+        "SELECT count(*),max(payload_json) FROM runtime_run_events WHERE run_id=?1 AND event_type='chat.target_agents'",
+        [run_id], |row| Ok((row.get(0)?, row.get(1)?)))?;
+    let selected = match (count, encoded) {
+        // 兼容旧接纳：没有发送目标记录时只承认真实主会话，不能扩到其它 Agent。
+        (0, _) => connection.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND session_id=?2)",
+            rusqlite::params![run_id,agent_id], |row| row.get::<_, bool>(0))?,
+        (1, Some(encoded)) => serde_json::from_str::<serde_json::Value>(&encoded).ok()
+            .and_then(|value| value["agent_ids"].as_array().cloned())
+            .is_some_and(|ids| ids.iter().any(|id| id.as_str() == Some(agent_id))),
+        _ => false,
+    };
+    Ok(selected && connection.query_row("SELECT EXISTS(SELECT 1 FROM sessions WHERE id=?1)",
+        [agent_id], |row| row.get::<_, bool>(0))?)
 }
 
 pub(crate) async fn run_nonstream(result: PreparedChatDispatch, force_relay: bool)

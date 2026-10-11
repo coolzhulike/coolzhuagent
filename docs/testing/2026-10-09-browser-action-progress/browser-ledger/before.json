@@ -1,0 +1,38 @@
+{
+  "parameters": {
+    "backend_kind": "devin_acp",
+    "base_url": null,
+    "computer_use_enabled": true,
+    "context_window": 0,
+    "enable_llm_tools": true,
+    "endpoint": null,
+    "llm_tool_exposure": "whitelist",
+    "max_output_tokens": 0,
+    "protocol": "devin_acp",
+    "reasoning_mode": "auto",
+    "supports_multimodal": true,
+    "temperature": null,
+    "thinking_budget": null,
+    "tool_allowlist": [
+      "computer_use_perform",
+      "plugin__cli_anything_status",
+      "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab"
+    ],
+    "top_p": null,
+    "turn_timeout_ms": 900000
+  },
+  "configuration_revision": 57,
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "configuration_scope": "ws-23f646a969206cb4:74e78ea0c8c81d4e82b2e04192ab920e"
+}

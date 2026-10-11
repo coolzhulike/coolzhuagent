@@ -1,0 +1,182 @@
+{
+  "configuration_revision": 43,
+  "parameters": {
+    "backend_kind": "devin_acp",
+    "base_url": null,
+    "computer_use_enabled": true,
+    "context_window": 0,
+    "enable_llm_tools": true,
+    "endpoint": null,
+    "llm_tool_exposure": "whitelist",
+    "max_output_tokens": 0,
+    "protocol": "devin_acp",
+    "reasoning_mode": "auto",
+    "supports_multimodal": true,
+    "temperature": null,
+    "thinking_budget": null,
+    "tool_allowlist": [
+      "computer_use_perform",
+      "plugin__cli_anything_status",
+      "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab"
+    ],
+    "top_p": null,
+    "turn_timeout_ms": 900000
+  },
+  "model": "swe-2-medium",
+  "plugin_disabled": true,
+  "disable_response": {
+    "workspace_id": "ws-23f646a969206cb4",
+    "plugins": [
+      {
+        "id": "cli-anything-bridge@bundled",
+        "name": "cli-anything-bridge",
+        "version": "0.1.1",
+        "description": "Bridge CLI-Anything generated CLIs into the Claw tool layer.",
+        "source": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\modules\\tooling\\packages\\plugin-system\\bundled\\cli-anything-bridge",
+        "enabled": true,
+        "installed": true,
+        "kind": "bundled",
+        "installable": false,
+        "manageable": true,
+        "loaded_in_chat": true,
+        "dsh": false,
+        "dsh_source_sha256": null
+      },
+      {
+        "id": "dsh-6f1c04677b06992030e52a28@external",
+        "name": "@deepseek-ai/dsh-tool-calculator",
+        "version": "0.0.1",
+        "description": "安全的数学表达式求值器，零依赖递归下降解析器。",
+        "source": "https://github.com/omdsh-dev/dsh-tool-calculator/tree/b2007a13f06bcf75bf07b9d277ee8d434a316490",
+        "enabled": true,
+        "installed": true,
+        "kind": "external",
+        "installable": false,
+        "manageable": true,
+        "loaded_in_chat": true,
+        "dsh": true,
+        "dsh_source_sha256": "d8fa5ad326a19949045904e4fea63c7318254745bf809f8877c811c7cb083b56"
+      },
+      {
+        "id": "dsh-aa909f79795799f288de8a67@external",
+        "name": "dsh-net-tools",
+        "version": "0.1.0",
+        "description": "让沙箱里的 agent 通过你的本地代理联网：net_fetch 抓取网页，net_proxy_status 查看代理状态。",
+        "source": "https://github.com/izwarm195/dsh-net-tools/tree/7392ec55ca6db884821311d739859ddea72211de",
+        "enabled": false,
+        "installed": true,
+        "kind": "external",
+        "installable": false,
+        "manageable": true,
+        "loaded_in_chat": false,
+        "dsh": true,
+        "dsh_source_sha256": "3b6ee0ea714c22e115d3ce786b876bc1f34b81116d21de79fbd398c0c69c7c8b"
+      },
+      {
+        "id": "example-builtin@builtin",
+        "name": "example-builtin",
+        "version": "0.1.0",
+        "description": "Example built-in plugin scaffold for the Rust plugin system",
+        "source": "builtin",
+        "enabled": false,
+        "installed": false,
+        "kind": "builtin",
+        "installable": false,
+        "manageable": false,
+        "loaded_in_chat": false,
+        "dsh": false,
+        "dsh_source_sha256": null
+      },
+      {
+        "id": "example-bundled@bundled",
+        "name": "example-bundled",
+        "version": "0.1.0",
+        "description": "Example bundled plugin scaffold for the Rust plugin system",
+        "source": "C:\\Users\\zhupu\\Desktop\\rust-claw\\claw\\rust\\crates\\plugins\\bundled\\example-bundled",
+        "enabled": false,
+        "installed": true,
+        "kind": "bundled",
+        "installable": false,
+        "manageable": true,
+        "loaded_in_chat": false,
+        "dsh": false,
+        "dsh_source_sha256": null
+      },
+      {
+        "id": "sample-hooks@bundled",
+        "name": "sample-hooks",
+        "version": "0.1.0",
+        "description": "Bundled sample plugin scaffold for hook integration tests.",
+        "source": "C:\\Users\\zhupu\\Desktop\\rust-claw\\claw\\rust\\crates\\plugins\\bundled\\sample-hooks",
+        "enabled": false,
+        "installed": true,
+        "kind": "bundled",
+        "installable": false,
+        "manageable": true,
+        "loaded_in_chat": false,
+        "dsh": false,
+        "dsh_source_sha256": null
+      },
+      {
+        "id": "devin-cloud@native",
+        "name": "Devin 云会话",
+        "version": "0.1.0",
+        "description": "官方 v3 异步云端 Agent 会话；在本页独立配置。",
+        "source": "内置会话插件",
+        "enabled": false,
+        "installed": true,
+        "kind": "builtin",
+        "installable": false,
+        "manageable": false,
+        "loaded_in_chat": false,
+        "dsh": false,
+        "dsh_source_sha256": null
+      },
+      {
+        "id": "opencode-zen@native",
+        "name": "OpenCode Zen",
+        "version": "0.2.0",
+        "description": "免费聊天模型连接器；由本人填写平台密钥，复用统一会话与宿主工具链路。",
+        "source": "opencode.ai",
+        "enabled": true,
+        "installed": true,
+        "kind": "builtin",
+        "installable": false,
+        "manageable": false,
+        "loaded_in_chat": false,
+        "dsh": false,
+        "dsh_source_sha256": null
+      },
+      {
+        "id": "huggingface-inference@native",
+        "name": "Hugging Face Inference",
+        "version": "0.2.0",
+        "description": "推理模型连接器；使用平台 Token 与账户额度，支持选择模型及推理提供方。",
+        "source": "huggingface.co",
+        "enabled": true,
+        "installed": true,
+        "kind": "builtin",
+        "installable": false,
+        "manageable": false,
+        "loaded_in_chat": false,
+        "dsh": false,
+        "dsh_source_sha256": null
+      }
+    ],
+    "candidates": [],
+    "runtime_error": null
+  },
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "restored_entry_sha256": "6fea33400d3e1c1b3f2d2e38a16e784872022862fa6cd025af3ca04aaee83bdd"
+}

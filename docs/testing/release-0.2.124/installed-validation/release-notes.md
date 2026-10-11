@@ -1,0 +1,1 @@
+0.2.124预发布：恢复历史用户摘要、统一文本/图片发送前SHA校验、移除HTTP/fetch调试式用户提示。真实SWE-2同一island会话长UTF-8/UTF-16BE附件与双跨来源Browser订单8动作通过；DSH续接被模型遗漏，整体综合验收失败，原失败完整保留。单终态解锁。构建/安装0、6门pass、1159文件逐SHA、源码两路CI成功。需继续修补CU子阶段/父任务边界，严格Browser和其它工作包仍开放。未签名，不标latest。详见docs/testing/release-0.2.124/change-report-and-test-handoff.md。

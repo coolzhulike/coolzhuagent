@@ -4,18 +4,20 @@ use tauri::{AppHandle,Manager};
 use super::native_browser_target::VerifiedTarget;
 fn now()->u64 {std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis().min(u128::from(u64::MAX)) as u64}
 
-pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String,expires_ms:u64)->PanelInputOutcome {
+pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String,expires_ms:u64)->(PanelInputOutcome,Option<bool>) {
     #[cfg(windows)]
     {
         use std::sync::{Arc,Mutex};
         use webview2_com::{CoTaskMemPWSTR,Microsoft::Web::WebView2::Win32::ICoreWebView2CallDevToolsProtocolMethodCompletedHandler};
         use super::native_browser_devtools::{self,ReadMethod,bounded_callback};
-        if target.editor.is_none() || now()>=expires_ms {return PanelInputOutcome::NotDispatched;}
-        let object=match super::native_browser_editor::resolve(app,&target).await {Ok(value)=>value,Err(_)=>return PanelInputOutcome::NotDispatched};
-        let Some(view)=app.get_webview(&target.resource.label) else {return PanelInputOutcome::NotDispatched;};
+        if target.editor.is_none() || now()>=expires_ms {return (PanelInputOutcome::NotDispatched,None);}
+        let object=match super::native_browser_editor::resolve(app,&target).await {Ok(value)=>value,Err(_)=>return (PanelInputOutcome::NotDispatched,None)};
+        let Some(view)=app.get_webview(&target.resource.label) else {return (PanelInputOutcome::NotDispatched,None);};
         let (sender,receiver)=tokio::sync::oneshot::channel();let sender=Arc::new(Mutex::new(Some(sender)));
         let app_ui=app.clone();let resource=target.resource.clone();
-        let (method,params)=ReadMethod::EditorState(object.clone()).request();
+        let session=target.node.scope.session().map(str::to_owned);let session_ui=session.clone();
+        let before=target.editor.clone();let inserted=text.clone();
+        let method=ReadMethod::EditorState(object.clone());
         let queued=view.with_webview(move |platform| {
             let finish=|result| {if let Ok(mut slot)=sender.lock() {if let Some(sender)=slot.take() {let _=sender.send(result);}}};
             if now()>=expires_ms || super::browser_panel::input_resource(&app_ui).as_ref()!=Some(&target.resource) {
@@ -44,31 +46,47 @@ pub(super) async fn insert_text(app:&AppHandle,target:VerifiedTarget,text:String
                 }
                 Ok(())
             })).into();
-            let method=CoTaskMemPWSTR::from(method);let params=CoTaskMemPWSTR::from(params.as_str());
-            if unsafe {core.CallDevToolsProtocolMethod(*method.as_ref().as_pcwstr(),*params.as_ref().as_pcwstr(),&handler)}.is_err() {finish(PanelInputOutcome::NotDispatched);}
+            if native_browser_devtools::dispatch_read(&core,session_ui.as_deref(),&method,&handler).is_err() {finish(PanelInputOutcome::NotDispatched);}
         });
         let outcome=if queued.is_err() {PanelInputOutcome::DispatchUnknown} else {
             tokio::time::timeout(std::time::Duration::from_secs(3),receiver).await.ok().and_then(Result::ok).unwrap_or(PanelInputOutcome::DispatchUnknown)
         };
-        let _=native_browser_devtools::read(app,&resource,ReadMethod::ReleaseEditor(object)).await;
-        outcome
+        // ACK仍只证明投递；原许可剩余时间内读同一对象，不可读时不补发或改写投递事实。
+        let editor_changed=if outcome==PanelInputOutcome::Acknowledged && now()<expires_ms
+            && super::browser_panel::input_resource(app).as_ref()==Some(&resource) {
+            let remaining=std::time::Duration::from_millis(expires_ms.saturating_sub(now()).min(2000));
+            let actual=tokio::time::timeout(remaining,native_browser_devtools::read_session(app,&resource,session.as_deref(),ReadMethod::EditorState(object.clone())))
+                .await.ok().and_then(Result::ok).and_then(|raw|super::native_browser_editor::state(&raw).ok());
+            if now()<expires_ms && super::browser_panel::input_resource(app).as_ref()==Some(&resource) {
+                before.as_ref().zip(actual.as_ref()).and_then(|(before,after)|super::native_browser_editor::inserted_changed(before,after,&inserted))
+            } else {None}
+        } else {None};
+        let _=native_browser_devtools::read_session(app,&resource,session.as_deref(),ReadMethod::ReleaseEditor(object)).await;
+        (outcome,editor_changed)
     }
     #[cfg(not(windows))]
-    {let _=(app,target,text,expires_ms);PanelInputOutcome::NotDispatched}
+    {let _=(app,target,text,expires_ms);(PanelInputOutcome::NotDispatched,None)}
 }
 
-pub(super) async fn navigate(app:&AppHandle,target:VerifiedTarget,url:String,expires_ms:u64)->(PanelInputOutcome,Option<PanelNavigationReceipt>) {
+pub(super) async fn navigate(app:&AppHandle,resource:native_browser_protocol::PanelResource,control:Option<super::native_browser_navigation::ControlResource>,url:String,expires_ms:u64)->(PanelInputOutcome,Option<PanelNavigationReceipt>) {
     #[cfg(windows)]
     {
         use webview2_com::CoTaskMemPWSTR;
         let url=match super::browser_panel::native_destination(&url) {Ok(url)=>url,Err(_)=>return (PanelInputOutcome::NotDispatched,None)};
-        let Some(view)=app.get_webview(&target.resource.label) else {return (PanelInputOutcome::NotDispatched,None);};
+        let Some(view)=app.get_webview(&resource.label) else {return (PanelInputOutcome::NotDispatched,None);};
         let (sender,receiver)=tokio::sync::oneshot::channel();let app_ui=app.clone();
         let queued=view.with_webview(move |platform| {
             let result=(|| {
                 if now()>=expires_ms {return (PanelInputOutcome::NotDispatched,None);}
+                // 在同一UI闭包里核导航序号；另一自然弹窗不能借旧控制引用获得覆盖许可。
+                if control.as_ref().is_some_and(|expected|super::browser_panel::control_snapshot(&app_ui)
+                    .as_ref().map(|(current,_)|current)!=Some(expected)) {return (PanelInputOutcome::NotDispatched,None);}
+                // 文档引用保持原输入资格；只有独立控制引用可接管加载中的导航。
+                if control.is_none() && super::browser_panel::input_resource(&app_ui).as_ref()!=Some(&resource) {
+                    return (PanelInputOutcome::NotDispatched,None);
+                }
                 let core=match unsafe {platform.controller().CoreWebView2()} {Ok(core)=>core,Err(_)=>return (PanelInputOutcome::NotDispatched,None)};
-                let navigation=match super::browser_panel::begin_native_navigation(&app_ui,&target.resource,&url) {
+                let navigation=match super::browser_panel::begin_native_navigation(&app_ui,&resource,&url) {
                     Ok(value)=>value,Err(_)=>return (PanelInputOutcome::NotDispatched,None)
                 };
                 let destination=CoTaskMemPWSTR::from(url.as_str());
@@ -81,5 +99,5 @@ pub(super) async fn navigate(app:&AppHandle,target:VerifiedTarget,url:String,exp
             .unwrap_or((PanelInputOutcome::DispatchUnknown,None))
     }
     #[cfg(not(windows))]
-    {let _=(app,target,url,expires_ms);(PanelInputOutcome::NotDispatched,None)}
+    {let _=(app,resource,control,url,expires_ms);(PanelInputOutcome::NotDispatched,None)}
 }

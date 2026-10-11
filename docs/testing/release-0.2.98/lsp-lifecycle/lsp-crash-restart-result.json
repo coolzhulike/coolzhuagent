@@ -1,0 +1,65 @@
+{
+  "stage": "0.2.98正式安装版",
+  "before": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": true,
+      "preset": "rust-analyzer",
+      "handle": "b991b9985b32f58f8704b572fa2d093c",
+      "message": "Rust 语言服务已启动"
+    }
+  },
+  "terminated_owned_process": {
+    "ProcessId": 26416,
+    "ParentProcessId": 24620,
+    "ExecutablePath": "C:\\Users\\zhupu\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rust-analyzer.exe",
+    "created_100ns": 134359626629771471,
+    "sha256": "8780a0a408169100c7b4df49ba2c9dcc4b40b48dd375e3985bd585f1a4fe0a57"
+  },
+  "held_handle_before": 258,
+  "held_handle_after": 0,
+  "dead_status": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已停止，可手动重新启动"
+    }
+  },
+  "dead_old_request": {
+    "http": 502,
+    "body": {
+      "error": "语言服务请求失败：LSP protocol error: language server `rust-analyzer` stopped; close and reopen the workspace to retry"
+    }
+  },
+  "no_implicit_restart": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已停止，可手动重新启动"
+    }
+  },
+  "explicit_restart": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": true,
+      "preset": "rust-analyzer",
+      "handle": "047231da371edec5dfd5e9056cb2c8eb",
+      "message": "Rust 语言服务已启动"
+    }
+  },
+  "old_handle_after_restart": {
+    "http": 409,
+    "body": {
+      "error": "语言服务已停止，请重新启动"
+    }
+  },
+  "generated_model_requests": 0
+}

@@ -1,0 +1,29 @@
+{
+  "first_attempt": "INITIAL-PTY097-6BB658F7 / 竹林；补充平面两个字符未出现，首轮失败",
+  "cases": [
+    {
+      "label": "ascii_constructed_output",
+      "expected": "OUTPUT-PTY097-6BB658F7 / 竹林𠮷😀",
+      "matched": true,
+      "observed_output_lines": [
+        "OUTPUT-PTY097-6BB658F7 / 竹林𠮷😀"
+      ]
+    },
+    {
+      "label": "unload_session_line_editor",
+      "expected": "REMOVED-PTY097-6BB658F7",
+      "matched": true,
+      "observed_output_lines": [
+        "REMOVED-PTY097-6BB658F7"
+      ]
+    },
+    {
+      "label": "literal_input_without_line_editor",
+      "expected": "LITERAL-PTY097-6BB658F7 / 竹林𠮷😀",
+      "matched": true,
+      "observed_output_lines": [
+        "LITERAL-PTY097-6BB658F7 / 竹林𠮷😀"
+      ]
+    }
+  ]
+}

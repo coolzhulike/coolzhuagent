@@ -1,0 +1,67 @@
+{
+  "stage": "子框可见点与CU交接真实长程验收",
+  "source_user_id": "msg-1791579602891-user",
+  "run": {
+    "id": "run-chat-cf8f9d0d336756b795803cd882284003a11d5f43877e515f",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791579602892-0",
+    "provider_turn_id": null,
+    "state": "failed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-2f933554cfabbd49b95a13dc6d4b98e2bf4ec983099ac648e3935bd4f30d1a1f",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791579602893,
+    "started_at": 1791579604457,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791579604457,
+    "finished_at": 1791580452265
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-62bb729ed68ceb38488bd470b68a50c046702aaeea0faecfb7729370e4bf70de",
+      "run_id": "run-chat-cf8f9d0d336756b795803cd882284003a11d5f43877e515f",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "47c64af0788ebed9",
+      "status": "failed",
+      "created_at_unix_ms": 1791579634489,
+      "updated_at_unix_ms": 1791580437248,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-cf8f9d0d336756b795803cd882284003a11d5f43877e515f\",\"turn_id\":\"chat-turn-1791579602892-0\",\"attempt_id\":\"1175178f7e38b9c646c66b1cd1234944b38523a8af48d236\",\"owner_epoch\":276,\"generation\":276}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "1175178f7e38b9c646c66b1cd1234944b38523a8af48d236",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791579604684-0",
+      "content": "本轮新任务。附件尾部有效订单：竹剑 `BAMBOO-4924`（单价 338，数量 5,UTF-8)；玉佩 `JADE-8753`（单价 574，数量 5,UTF-16BE 带 BOM)。调用一次 `computer_use_perform`。CU 任务已终止，无法继续。终态回执如下：\n\n**终态：`blocked`（不可重试）**\n- 错误：`invalid_plan` — 我在最后一次 `computer_use_respond` 中把 `summary` 误放进了 `action` 对象内，规划 JSON 校验失败，`retryable: false`，控制器直接终结任务（attempts 9, steps_completed 9）。\n- `goal_achieved: false`\n\n**输入投递事实（共 9 步，全部 `sent`）**\n- 竹剑：3 次子文档滚动 `effect_observed` → click `effect_observed` → text_input `BAMBOO-4924` `effect_observed` → Enter `inconclusive`（但后续观察确认 `竹剑订单验证通过`，外层回执 `竹剑已验证：单价 338；数量 5`）\n- 玉佩：1 次滚动 `effect_observed` → click `inconclusive`（后续观察确认 textbox `focused=true`）→ text_input `JADE-8753` `effect_observed`（观察中可见 `JADE-8753` 已写入文本框）\n- 玉佩的 Enter 提交动作**未送达**——它在规划阶段就被校验拒绝，没有产生输入步骤。\n\n**最终宿主可见状态**：竹剑已验证；玉佩订单码已填入但仍显示 `订单尚未验证`；外层仍为 `双文档订单尚未完成`。\n\n**附件核对（本轮有效尾部记录）**\n- 竹剑 `bamboo-order-utf8.txt`（UTF-8）：`BAMBOO-4924`，单价 338 × 数量 5 = 1690\n- 玉佩 `jade-order-utf16be.txt`（UTF-16BE 带 BOM）：`JADE-8753`，单价 574 × 数量 5 = 2870\n\n按规则：CU 未达真实成功终态，**不调用 DSH 计算器**，不重试、不补发、不新建会话。本轮因我方规划响应格式错误而失败。",
+      "kind": "assistant-reply"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+[
+  {
+    "phase": "fresh_home",
+    "started_ms": 1791530098168,
+    "returned_ms": 1791530098289
+  },
+  {
+    "stage": "open_more",
+    "started_ms": 1791530364167,
+    "returned_ms": 1791530365062
+  },
+  {
+    "stage": "open_browser",
+    "started_ms": 1791530393910,
+    "returned_ms": 1791530394750
+  },
+  {
+    "stage": "navigate_test_page",
+    "started_ms": 1791530456314,
+    "returned_ms": 1791530456822
+  },
+  {
+    "stage": "pending_close_fresh_observation",
+    "started_ms": 1791530527939,
+    "returned_ms": 1791530528005
+  },
+  {
+    "stage": "normal_close",
+    "started_ms": 1791530538829,
+    "action_returned_ms": 1791530538920,
+    "returned_ms": 1791530540455
+  }
+]

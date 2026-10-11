@@ -1,0 +1,22 @@
+{
+  "prefix": "BU-INSTALLED-086-REPLACE4-20261006",
+  "run_id": "run-chat-b862663a9a78c9613c5a1c373edfe4699ae64f67573f77d4",
+  "planning_requested_at_ms": 1791351456321,
+  "trusted_change": {
+    "kind": "setup-child-replace",
+    "trusted": true,
+    "value": "",
+    "inputs": 0,
+    "submits": 0,
+    "page_ms": 1791351456554.2,
+    "observed_ms": 1791351456565.3738,
+    "host": "127.0.0.1:53530"
+  },
+  "planning_response_at_ms": 1791351463160,
+  "error": "native_browser_navigation_changed",
+  "text_delivery": "not_sent",
+  "completed_steps": 1,
+  "clicked_step_released": true,
+  "observed_text_input_events": 0,
+  "timing_confirmed": true
+}

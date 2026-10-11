@@ -1,0 +1,17 @@
+{
+  "observed_ms": 1791250842239.6218,
+  "run_id": "run-chat-bb3cdbbf96e0bc51f4b0bb9ce32634fec021831b4e3fe4ee",
+  "message_id": "msg-1791250835133-user",
+  "cu_call_id": "cu-session-1791131217833-chat-turn-1791250835133-3-tool-86b41c59da763f09a22fc80ccab8e41aa2e28b34ab09b657b6ee529b5759af0e",
+  "internal_attempt": {
+    "attempt_id": "001b2ea7640b2193b21dc5a027ffb491e431313b1d1dfbc6",
+    "scope_json": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"lane\":\"internal\",\"run_id\":\"run-chat-bb3cdbbf96e0bc51f4b0bb9ce32634fec021831b4e3fe4ee\",\"turn_id\":\"chat-turn-1791250835133-3\",\"attempt_id\":\"001b2ea7640b2193b21dc5a027ffb491e431313b1d1dfbc6\",\"owner_epoch\":1,\"generation\":1}",
+    "state": "submitted",
+    "cancel_requested": 0,
+    "protocol_stop": null,
+    "process_drained": 0,
+    "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+  },
+  "steps_started": 0,
+  "note": "真实内层规划在新鲜观察之后提交，尚无输入步骤。是否关闭及时，以后续UI操作时间及完整台账核实。"
+}

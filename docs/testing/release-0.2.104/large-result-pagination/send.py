@@ -1,0 +1,17 @@
+"""真实大结果尾文→计算器，唯一既有SWE远端；不导出reasoning。"""
+from pathlib import Path
+import json,urllib.request,time,collections
+folder=Path(__file__).resolve().parent
+assert not (folder/'submitted-request.json').exists()
+address=json.loads((folder/'address.json').read_text(encoding='utf-8'))
+text=f'''INSTALLED104-LARGE-RESULT-NO-READER-20261008：真实插件大资料尾文续接验收。仅调用一次 {address['tool_name']}，参数 {{"url":"{address['url']}","allowPrivate":true,"timeoutMs":60000,"maxBytes":120000}}。从实际结果最后的 final_record 读取 sentinel、left、right，再仅调用一次当前calculator工具 dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab 计算 left*right。回复原样的sentinel、两个数字、实际calculator结果与HTTP截断状态。本轮没有read_file声明，不得尝试文件工具。大回执是宿主按页返回；如首个页不足，可使用桥声明的 tool_result_read，只读本轮已执行工具回执，用返回的result_id和UTF-8字节offset续读，或根据total_bytes定位尾部约4096字节；遇字节边界错误只调整读取偏移，不重提net_fetch。获取final_record后即可计算，不必无意义读取所有records。若尾文不可见或抓取失败，如实报告，禁止猜测。不重试、不补发、除了必要的 tool_result_read 分页，不调用其它工具，不操作桌面或浏览器，不修改配置文件，不创建新的云端会话。'''
+payload={'expected_workspace_id':'ws-23f646a969206cb4','native_browser_panel':True,'session_id':'session-1791131217833','target_agent_ids':['session-1791131217833'],'chat_room_id':'room-1791131523339','text':text,'attachments':[]}
+(folder/'submitted-request.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf-8')
+request=urllib.request.Request('http://127.0.0.1:8765/api/chat/send/stream',json.dumps(payload).encode(),{'Content-Type':'application/json'})
+counts=collections.Counter()
+with urllib.request.urlopen(request,timeout=1000) as response:
+ for raw in response:
+  if raw.startswith(b'event:'):
+   event=raw.decode().strip()[6:].strip();counts[event]+=1
+   if event in ('started','done','error'):print(event,flush=True)
+(folder/'stream-finished.json').write_text(json.dumps({'finished_ms':time.time()*1000,'events':dict(counts)},indent=2),encoding='utf-8');print(json.dumps({'EOF':True,'events':dict(counts)}),flush=True)

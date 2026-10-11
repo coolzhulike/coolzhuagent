@@ -1,0 +1,7 @@
+{
+  "stage": "首次脚本准备，尚未启动EXE",
+  "error": "9列消息表误写10个占位符",
+  "product_failure": false,
+  "corrected": "显式9列列表与9个占位符",
+  "original_database_writes": 0
+}

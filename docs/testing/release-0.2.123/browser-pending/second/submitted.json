@@ -1,0 +1,17 @@
+{
+  "submitted_ms": 1791570965835.2712,
+  "payload": {
+    "expected_workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "target_agent_ids": [
+      "session-1791131217833"
+    ],
+    "chat_room_id": "room-1791131523339",
+    "text": "BU-PENDING-CLOSE-123B-20261009：这是正式0.2.123 Browser观察仍在途时撤销面板的严格时序验收。右栏已正常打开http://127.0.0.1:54187/old.html。只调用一次computer_use_perform，surface=browser、省略target、max_actions=1，objective=点击交接观察验收按钮一次并读取新观察，success_criteria=[真实点击后看到真实点击已完成，等待观察交接]，constraints=[只输入一次，资源变化或撤销后立即如实结束，不补发、不重试]。测试者会在这一点击已经sent/released，且下一观察请求真正登记后，通过正常UI关闭右栏；这不是让你操控关闭按钮。如收到resource_changed或cancelled，请报告原错误和未知效果，不能为了达成目标创建新工具请求；正常完成也如实报告。完整读取宿主分页并wait到真实终态。不要调用其它工具、脚本或HTTP操控网页，不修改配置/文件/权限，不创建云端会话，不读取或输出历史思考。仅一次工具调用，参数错误也立即结束，不重试、不补发。",
+    "attachments": [],
+    "native_browser_panel": true
+  },
+  "model": "swe-2-medium",
+  "config_revision": 57,
+  "binding": "island-kayak"
+}

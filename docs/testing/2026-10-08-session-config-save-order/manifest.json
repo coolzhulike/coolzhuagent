@@ -1,0 +1,87 @@
+[
+  {
+    "path": "cleanup.json",
+    "bytes": 59,
+    "sha256": "7662db1aef66df7fb008a79bc35673c569ba3f5f38c2a5369600c69d27acf00d"
+  },
+  {
+    "path": "config-save-build.txt",
+    "bytes": 49858,
+    "sha256": "381b18f659a942374b65e95cda98c3bfe888d1ea9bb456b3eb07451aaaacb000"
+  },
+  {
+    "path": "config-save-live.py",
+    "bytes": 6401,
+    "sha256": "aac8a17060028eb282c39997cb2e179a22a52e0a8e993b95c6d8f20cb7bb7f1f"
+  },
+  {
+    "path": "config-save-restart.py",
+    "bytes": 2278,
+    "sha256": "f753d9fdef38267796cbb5177a6b17e6c7fa0eab717c9299eda1da34363e281e"
+  },
+  {
+    "path": "config-save-tests.txt",
+    "bytes": 149851,
+    "sha256": "4bbabdad1ce4ed150e6d588d2bce8c035ee466fc5922552f128ad2295969cd60"
+  },
+  {
+    "path": "config-save-ui-fault.py",
+    "bytes": 1562,
+    "sha256": "4206bae29e4083b68c5c579b05b123bbfadc65484bee5540bc768000087f11e0"
+  },
+  {
+    "path": "facts.json",
+    "bytes": 1036,
+    "sha256": "d8bb692d0bbb4aeb4275b1e2dcba031e2a35c13689a06e9f22f3482a04a026b8"
+  },
+  {
+    "path": "report.md",
+    "bytes": 2061,
+    "sha256": "c9e5d21a961fcc13ee90d2a45e1286d170d6fa742bbbdde05a136f8989998f08"
+  },
+  {
+    "path": "restart-cleanup.json",
+    "bytes": 58,
+    "sha256": "b70d278c8bcd10b380fb26f32507dc6f3c0779459a8a9b1dccde2d12551090d6"
+  },
+  {
+    "path": "restart-settings.json",
+    "bytes": 2163,
+    "sha256": "40fca260691b22aa0c0ee560a99d3c6dcf49af5465708ed30d79f9c005db4201"
+  },
+  {
+    "path": "saved-settings.json",
+    "bytes": 2109,
+    "sha256": "7ddca082608c24f95059fc0faa87fc575045001525b8d02e8e82959147243b71"
+  },
+  {
+    "path": "ui-failure.png",
+    "bytes": 103492,
+    "sha256": "150435414258361e1264c7694ee8638ef2c5b80a5413466a24b72a57ac0c2057"
+  },
+  {
+    "path": "ui-fault-result.json",
+    "bytes": 107,
+    "sha256": "690e4d8d48e556e2750002e414f5a00e1ea2887d6a9de7dc159c5d0d6e289cf9"
+  },
+  {
+    "path": "ui-reloaded.png",
+    "bytes": 103094,
+    "sha256": "bf962d793a04a6edee55c665f4bb62723fb6feaa7c7f953a0f1a1ca9175c40b0"
+  },
+  {
+    "path": "ui-restarted.png",
+    "bytes": 103848,
+    "sha256": "35cf5aabdf411ecf9bb6b67b8df305c9c4590fae40e9792d4728084743922167"
+  },
+  {
+    "path": "ui-saved.png",
+    "bytes": 103135,
+    "sha256": "28cd1652e8e83279899f28c583b9a681da9703326d0065d2573c9ba39c0f91e1"
+  },
+  {
+    "path": "verification.json",
+    "bytes": 219,
+    "sha256": "f8ff4335e4d77a99397be893fdaba94d294fb359cb2f313f045944404adcdab3"
+  }
+]

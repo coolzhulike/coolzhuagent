@@ -1,0 +1,324 @@
+[
+  {
+    "case": "NESTED",
+    "type": "ready",
+    "at_ms": 1791247639694,
+    "received_ms": 1791247639701.0803
+  },
+  {
+    "case": "SHADOW",
+    "type": "ready",
+    "at_ms": 1791247712172.5,
+    "received_ms": 1791247712181.2656
+  },
+  {
+    "case": "IFRAME",
+    "type": "ready",
+    "at_ms": 1791247782211.9,
+    "received_ms": 1791247782221.6648
+  },
+  {
+    "case": "IFRAME-CHILD",
+    "type": "ready",
+    "at_ms": 1791247782226.2,
+    "received_ms": 1791247782228.2356
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "ready",
+    "at_ms": 1791247843547.4,
+    "received_ms": 1791247843556.3208
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "pointerdown",
+    "at_ms": 1791247883366.7,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791247883368.612
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "navigation-request",
+    "at_ms": 1791247883367.0999,
+    "received_ms": 1791247883371.955
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "pointerup",
+    "at_ms": 1791247883369.3,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791247883375.5618
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "click",
+    "at_ms": 1791247883369.8,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791247883377.1536
+  },
+  {
+    "case": "LANDING",
+    "type": "ready",
+    "at_ms": 1791247883381.5999,
+    "received_ms": 1791247883391.3528
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "ready",
+    "at_ms": 1791247964750.4001,
+    "received_ms": 1791247964759.8098
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "pointerdown",
+    "at_ms": 1791248006192.3,
+    "target": "increment",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248006195.5557
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "pointerup",
+    "at_ms": 1791248006193,
+    "target": "increment",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248006196.898
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "click",
+    "at_ms": 1791248006193.2,
+    "target": "increment",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248006197.993
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "ready",
+    "at_ms": 1791248174942.4,
+    "received_ms": 1791248174945.3323
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "pointerdown",
+    "at_ms": 1791248228962.2998,
+    "target": "increment",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248228964.644
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "pointerup",
+    "at_ms": 1791248228965.0999,
+    "target": "increment",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248228968.1943
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "click",
+    "at_ms": 1791248228965.4,
+    "target": "increment",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248228969.3477
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "ready",
+    "at_ms": 1791248335049.8,
+    "received_ms": 1791248335052.1104
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "ready",
+    "at_ms": 1791248669030.5,
+    "received_ms": 1791248669032.833
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "pointerdown",
+    "at_ms": 1791248726620.1,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248726623.0388
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "navigation-request",
+    "at_ms": 1791248726620.4,
+    "received_ms": 1791248726625.226
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "pointerup",
+    "at_ms": 1791248726623.6,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248726628.075
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "click",
+    "at_ms": 1791248726623.9,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248726630.3965
+  },
+  {
+    "case": "LANDING",
+    "type": "ready",
+    "at_ms": 1791248726635.2,
+    "received_ms": 1791248726644.0103
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "ready",
+    "at_ms": 1791248880124.5,
+    "received_ms": 1791248880130.125
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "pointerdown",
+    "at_ms": 1791248921487.8,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248921491.0378
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "navigation-request",
+    "at_ms": 1791248921488,
+    "received_ms": 1791248921494.3796
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "pointerup",
+    "at_ms": 1791248921491.2,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248921498.8765
+  },
+  {
+    "case": "NAVIGATION",
+    "type": "click",
+    "at_ms": 1791248921491.7,
+    "target": "navigate",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791248921499.392
+  },
+  {
+    "case": "LANDING",
+    "type": "ready",
+    "at_ms": 1791248921506.4,
+    "received_ms": 1791248921515.6025
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "ready",
+    "at_ms": 1791248969018.8,
+    "received_ms": 1791248969027.2769
+  },
+  {
+    "case": "PANEL-CLOSE",
+    "type": "ready",
+    "at_ms": 1791249101853,
+    "received_ms": 1791249101855.4497
+  },
+  {
+    "case": "NESTED",
+    "type": "ready",
+    "at_ms": 1791249118580.3,
+    "received_ms": 1791249118590.2039
+  },
+  {
+    "case": "NESTED",
+    "type": "pointerdown",
+    "at_ms": 1791249162199,
+    "target": "nested-control",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791249162200.7695
+  },
+  {
+    "case": "NESTED",
+    "type": "pointerup",
+    "at_ms": 1791249162201,
+    "target": "nested-control",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791249162204.8694
+  },
+  {
+    "case": "NESTED",
+    "type": "click",
+    "at_ms": 1791249162201.3,
+    "target": "nested-control",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791249162207.8103
+  },
+  {
+    "case": "SHADOW",
+    "type": "ready",
+    "at_ms": 1791249211512,
+    "received_ms": 1791249211517.0762
+  },
+  {
+    "case": "SHADOW",
+    "type": "ready",
+    "at_ms": 1791249624110.2002,
+    "received_ms": 1791249624116.2573
+  },
+  {
+    "case": "SHADOW",
+    "type": "pointerdown",
+    "at_ms": 1791249677222.9001,
+    "target": "shadow-host",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791249677224.71
+  },
+  {
+    "case": "SHADOW",
+    "type": "pointerup",
+    "at_ms": 1791249677224.9001,
+    "target": "shadow-host",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791249677227.5205
+  },
+  {
+    "case": "SHADOW",
+    "type": "click",
+    "at_ms": 1791249677225.2002,
+    "target": "shadow-host",
+    "button": 0,
+    "isTrusted": true,
+    "received_ms": 1791249677229.1545
+  },
+  {
+    "case": "SHADOW",
+    "type": "shadow-click",
+    "at_ms": 1791249677225.4001,
+    "count": 1,
+    "received_ms": 1791249677230.6606
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "observed_utc": "2026-10-06T01:06:55.4385342Z",
+  "stage": "candidate",
+  "stopped": [
+    {
+      "created": "2026-10-06T01:03:35.1597545Z",
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-tauri-shell.exe",
+      "pid": 8568
+    },
+    {
+      "created": "2026-10-06T01:03:34.2030659Z",
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-web-console.exe",
+      "pid": 20036
+    }
+  ]
+}

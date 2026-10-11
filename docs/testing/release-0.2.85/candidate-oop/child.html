@@ -1,0 +1,2 @@
+<!doctype html><meta charset="utf-8"><title>OOP-CHILD</title><style>body{font:18px system-ui;background:#e4ecff;color:#172d58;margin:16px}button{padding:14px;background:#bcd;color:#123;border:2px solid #247}</style>
+<h2>OOP-CHILD</h2><p id="count">子点击计数：0</p><button id="target">跨站点按钮</button><script>let n=0;target.onclick=e=>{document.getElementById('count').textContent='子点击计数：'+(++n);fetch('/event',{method:'POST',body:JSON.stringify({kind:'child-click',title:'OOP-CHILD',count:n,trusted:e.isTrusted})})};</script>

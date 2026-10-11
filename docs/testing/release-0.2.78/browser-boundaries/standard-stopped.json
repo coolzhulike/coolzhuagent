@@ -1,0 +1,16 @@
+{
+  "stage": "standard",
+  "stopped": [
+    {
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "pid": 32696,
+      "created": "2026-10-06T01:07:07.1627460Z"
+    },
+    {
+      "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "pid": 19308,
+      "created": "2026-10-06T01:07:06.4882674Z"
+    }
+  ],
+  "observed_utc": "2026-10-06T01:19:37.2353440Z"
+}

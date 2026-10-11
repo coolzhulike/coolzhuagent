@@ -1,0 +1,10 @@
+{
+  "process": {
+    "pid": 23308,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "created_100ns": 134359635056944489,
+    "sha256": "bdc4925e363c0b83b23419956f67702bca9a94dc1e8b42cbf108ef0de7c44c39"
+  },
+  "same_model_counts_and_binding": true,
+  "generated_model_requests": 0
+}

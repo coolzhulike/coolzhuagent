@@ -1,0 +1,12 @@
+{
+  "observed_utc": "2026-10-06T04:03:58.6085916Z",
+  "stopped": {
+    "script_sha256": "4bc0ef00232ea628cd1a0369f259a30d3142dd68a714fad6f6f117221ecafce2",
+    "path": "C:\\Python314\\python.exe",
+    "pid": 15924,
+    "started_utc": "2026-10-06T03:41:27.8315522Z",
+    "exe_sha256": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+    "command_line": "\"C:\\Python314\\python.exe\" C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-frame-scroll\\server.py"
+  },
+  "stage": "正式五项结束后按完整身份结束本轮真实HTML服务"
+}

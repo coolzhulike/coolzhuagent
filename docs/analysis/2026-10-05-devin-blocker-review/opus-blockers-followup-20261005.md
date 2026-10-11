@@ -1,0 +1,8 @@
+收到方案。主会话已经复核客户区rect、关键词与逐步before事实，继续讨论以下决策修正。仍只读新快照repository-20261005-438f6ec/，不改代码不操作电脑；追加最多12次宿主只读调用，最终1800中文字符内。
+
+1. 顺序必须Browser优先、Paint其次，符合用户现有指令，不采纳你的E中先B/C再A顺序。慢HTML真实页面已有，可复用记录真实事件，不改生产延迟，也不需要再向用户确认普通可逆测试。ReleaseUnknown必须作为未通过或故障分支确认，不算正常释放通过；晚于up关闭只能证明本次顺序，不能仅凭没命中宣称结构上不可能。请先读真实外壳：modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_input.rs、native_browser_key_input.rs及native_browser_host.rs中的关闭/替换路径，以精确源码证据决定哪些竞争实际可插入；没读全仍标未核实。
+2. 坐标变换现有算术正确，双坐标本身是设计可改善不是换算bug。不能整体替换旧points解释，不能 silently rename canvas_rect令旧FrameRef失配。倾向保留原契约并加明确client_region标签/可选draw_region/新版本显式coordinate_space，再有实际识别依据才选用。canvas_element目前Document或Image就匹配，不等于已认证语义绘图区，不能凡source=uia就硬拒绝画布外输入；UIA可信边界必须依真实Paint元素身份确认。近白矩形可以误命中网页/工具栏、暗色画布无白底，不作为生产确定性几何权威。请对这个兼容、分层、少耦合方案给风险意见。
+3. requires_new_effect可选结构化通用字段+现有词汇兼容可采纳；本轮baseline用于新增结果证据，上一帧继续用于每步进展，勿把任务累计进展当新步骤no_progress依据。不能改普通只读/存在性任务零动作通过，不把模型声明当新授权。前端工具结束后不增加聊天调试卡片，按用户要求只在轨迹页保留结构化宿主结果；聊天最终文案提示任务未完成即可。外层goal=false却称有新笔迹，可完善工具结果证据提示，但不替模型重写回复，不加文本NLP拦截。
+4. window歧义先采真实候选，枚举过滤不要泛化排除owner窗口导致真实模态对话不可观察；stale恢复未造成真实阻塞，低优先。Devin宿主SKILL/插件/普通附件/Goal仍未开放，如开放必须独立能力接线，不能为DSH验收偷偷换模型。DSH当前可保留用户之前已授权的真实Qwen验收作为独立能力；不声称SWE2已能调用插件。
+
+请返回：确认/修正这些决策；最小Browser验收范围与真正不可插入的源码依据；Paint方案最小实现和验收；只列会阻碍收尾的确定问题与未确认项。不再复述全量报告，实际调用数量以宿主台账为准（前轮实际36项：read17/grep17/glob2，不是你自估32）。

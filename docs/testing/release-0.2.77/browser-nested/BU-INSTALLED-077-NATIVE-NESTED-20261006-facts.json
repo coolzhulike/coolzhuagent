@@ -1,0 +1,70 @@
+{
+  "prefix": "BU-INSTALLED-077-NATIVE-NESTED-20261006",
+  "run_id": "run-chat-a4a9560291eec2f7f1ae43b8c4a0481c456606d18a1851f5",
+  "room": "room-1791131523339",
+  "message_id": "msg-1791243359838-user",
+  "targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 1,
+      "host_history_messages": 46,
+      "prompt_bytes": 2872
+    }
+  ],
+  "outputs": [],
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    },
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_call_id": "tool-186d54885a119ebaf0b598a8db578be6e21fdd42e04c9ee012d23c3a71f594e3",
+      "run_id": "run-chat-a4a9560291eec2f7f1ae43b8c4a0481c456606d18a1851f5",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "f45f2a21073bc932",
+      "status": "failed",
+      "created_at_unix_ms": 1791243368136,
+      "updated_at_unix_ms": 1791243375535,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-a4a9560291eec2f7f1ae43b8c4a0481c456606d18a1851f5\",\"turn_id\":\"chat-turn-1791243359838-4\",\"attempt_id\":\"f27b58e2cdb8ebb2cf5b73ae1fcfdef21ab9232f7e3c9623\",\"owner_epoch\":24,\"generation\":24}"
+    }
+  ],
+  "reply": "",
+  "bindings": [
+    {
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "sneaky-diascia"
+    },
+    {
+      "agent_id": "session-1791131217833",
+      "remote_session_id": "veiled-anise"
+    }
+  ],
+  "run": {
+    "id": "run-chat-a4a9560291eec2f7f1ae43b8c4a0481c456606d18a1851f5",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "tool_events": [],
+  "audit": []
+}

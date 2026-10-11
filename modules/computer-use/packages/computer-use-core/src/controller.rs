@@ -9,6 +9,16 @@ use serde_json::Value as JsonValue;
 
 pub type PlannerFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
 
+/// 保留过去一次宿主验证，不能把部分满足或旧观察改为终态成功。
+fn retain_last_verification(mut result: ComputerUseResult, summary: Option<String>) -> ComputerUseResult {
+    if let Some(summary) = summary {
+        result.summary = serde_json::json!({"terminal_reason":result.summary,
+            "last_verification":serde_json::from_str::<JsonValue>(&summary).unwrap_or(JsonValue::String(summary)),
+            "verification_is_last_observation":true}).to_string();
+    }
+    result
+}
+
 /// 规划者：所有可能直接或间接发起模型调用的方法都**必须**接收剩余预算。
 ///
 /// `remaining` 与本 crate 的 [`ComputerUseAdapter`] 使用同一个类型与单位
@@ -180,7 +190,7 @@ fn normalize_objective_input_delivery(text: &str) -> String {
     while let Some(offset) = rest.find("发送") {
         normalized.push_str(&rest[..offset]);
         let following = &rest[offset + "发送".len()..];
-        let mechanical = ["一次普通点击", "一次鼠标点击", "一次点击", "鼠标输入", "键盘输入"]
+        let mechanical = ["一次普通点击", "一次鼠标点击", "一次点击", "鼠标输入", "键盘输入", "任何输入", "输入"]
             .iter().any(|object| following.strip_prefix(object).is_some_and(|tail|
                 tail.trim_start().chars().next().is_none_or(|c| "，。；：,.;:!?！？)）".contains(c))));
         normalized.push_str(if mechanical { "执行" } else { "发送" });
@@ -480,6 +490,7 @@ where
         let mut steps_completed = 0usize;
         let mut evidence = Vec::new();
         let mut stale_recovered = false;
+        let mut last_verification;
 
         self.events.state_changed(ComputerUseRunState::Observing);
         let remaining = std::time::Duration::from_millis(guard.remaining_ms(self.clock.now_ms()));
@@ -588,6 +599,7 @@ where
                         &run_facts,
                     );
                 }
+                last_verification = Some(verification.summary);
             }
             Err(error) => {
                 return self.terminal(
@@ -606,7 +618,7 @@ where
 
         loop {
             if let Err(error) = guard.before_planning(self.clock.now_ms()) {
-                return self.terminal(
+                let result = self.terminal(
                     &context,
                     surface,
                     ComputerUseStage::Supervisor,
@@ -617,6 +629,9 @@ where
                     guard.snapshot(),
                     &run_facts,
                 );
+                // 保留最后已取得的验收事实，不能因动作预算耗尽把“部分满足”变成未知的零满足。
+                // 这是过去一次观察的报告，不是新的成功证明，也不触发额外模型或输入请求。
+                return retain_last_verification(result, last_verification);
             }
             self.events.state_changed(ComputerUseRunState::Planning);
             let remaining =
@@ -628,7 +643,7 @@ where
             {
                 Ok(Some(action)) => action,
                 Ok(None) => {
-                    return self.terminal(
+                    let result = self.terminal(
                         &context,
                         surface,
                         ComputerUseStage::Verification,
@@ -643,6 +658,7 @@ where
                         guard.snapshot(),
                         &run_facts,
                     );
+                    return retain_last_verification(result, last_verification);
                 }
                 Err(error) => {
                     return self.terminal(
@@ -758,12 +774,20 @@ where
                         && !stale_recovered
                         && !error.receipt_shows_input_may_have_been_sent(&crate::contracts::action_attempt_id(surface, &action)) =>
                 {
-                    if let Err(budget_error) = guard.record_replan() {
+                    // 原执行失败是文档/观察失效。恢复已无预算时保留这个原因，
+                    // 不再额外观察，也不把未投递的动作误报成单纯规划预算耗尽。
+                    let recovery = guard.before_planning(self.clock.now_ms())
+                        .and_then(|()| guard.record_replan());
+                    if let Err(budget_error) = recovery {
+                        let mut failure = error;
+                        failure.retryable = false;
+                        failure.retry_owner = ComputerUseRetryOwner::None;
+                        failure.message.push_str(&format!("; recovery stopped: {}", budget_error.message));
                         return self.terminal(
                             &context,
                             surface,
-                            ComputerUseStage::Supervisor,
-                            budget_error,
+                            ComputerUseStage::Execution,
+                            failure,
                             attempts,
                             steps_completed,
                             evidence,
@@ -891,6 +915,7 @@ where
                 );
             }
             observation = next_observation;
+            last_verification = Some(verification.summary);
         }
     }
 
@@ -936,6 +961,7 @@ where
             error: Some(error),
             attempts,
             steps_completed,
+            input_steps: None,
             evidence,
             supervisor,
             cu_budget: Some(run_facts.cu_budget),
@@ -1015,6 +1041,7 @@ where
             error: None,
             attempts,
             steps_completed,
+            input_steps: None,
             evidence,
             supervisor,
             cu_budget: Some(run_facts.cu_budget),
@@ -1304,6 +1331,9 @@ mod tests {
         assert!(!result.goal_achieved);
         assert_eq!(result.error.as_ref().unwrap().code, "verification_failed");
         assert_eq!(controller.adapter().action_count.load(Ordering::SeqCst), 1);
+        let summary: JsonValue = serde_json::from_str(&result.summary).unwrap();
+        assert_eq!(summary["last_verification"], "changed but not complete");
+        assert_eq!(summary["verification_is_last_observation"], true);
     }
 
     #[tokio::test]
@@ -1376,6 +1406,9 @@ mod tests {
             assert_eq!(controller.adapter().action_count.load(Ordering::SeqCst), 1);
             assert!(controller.adapter().verifications.lock().unwrap().is_empty());
             assert_eq!(controller.planner().actions.lock().unwrap().len(), 1);
+            let summary: JsonValue = serde_json::from_str(&result.summary).unwrap();
+            assert_eq!(summary["last_verification"], "changed but incomplete");
+            assert_eq!(summary["verification_is_last_observation"], true);
         }
     }
 
@@ -1678,6 +1711,33 @@ mod tests {
             ),
             Some("authorization_or_installation")
         );
+    }
+
+    #[test]
+    fn mechanical_input_description_keeps_outbound_action_checks() {
+        let observation = observation_with_state(1, json!({"page":{"nodes":[]}}));
+        let action = click_target("dom-9");
+        for objective in [
+            "在来源页单击进入目标页，仅观察网页自然跳转的结果，不向目标页发送任何输入",
+            "在当前右栏浏览器单击打开目标链接一次，观察网页通过window.open产生的链接在内置浏览器中的显示结果，不向目标页发送输入",
+        ] {
+            assert_eq!(host_sensitive_semantic_category(&request_with_objective(objective), &action, &observation), None);
+        }
+        for objective in ["发送任何输入记录给他人", "发送任何输入结果", "发送输入记录给他人", "发送输入结果", "发送任何输入，发布消息", "发送任何输入、分享记录"] {
+            assert_eq!(host_sensitive_semantic_category(
+                &request_with_objective(objective), &action, &observation,
+            ), Some("external_communication"), "{objective}");
+        }
+        let request = request_with_objective("不向目标页发送任何输入");
+        let sensitive_node = observation_with_state(1, json!({"page":{"nodes":[
+            {"reference":"dom-9", "name":"发送消息"}
+        ]}}));
+        assert_eq!(host_sensitive_semantic_category(&request, &action, &sensitive_node), Some("external_communication"));
+        for value in ["post", "share"] {
+            let mut parameter_action = action.clone();
+            parameter_action.arguments = json!({"operation":value});
+            assert_eq!(host_sensitive_semantic_category(&request, &parameter_action, &observation), Some("external_communication"));
+        }
     }
 
     #[test]

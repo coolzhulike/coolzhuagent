@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "纯文本同步下一轮验收，不调用工具，不执行历史任务。继续同一远端会话，只回复“继续对话正常”。",
+  "selected_message_ids": [],
+  "attachments": []
+}

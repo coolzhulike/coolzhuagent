@@ -1,0 +1,10 @@
+{
+  "files": [
+    {
+      "file": "checks-61a-closed.json",
+      "length": 7194,
+      "sha256": "62f95dea330b4ab2e7d26634e667d46120155e168521cf1f8c8f2e859541497b"
+    }
+  ],
+  "note": "出包后仅cfg(test)修正61a两路均success；不重写包来源或旧in_progress采集"
+}

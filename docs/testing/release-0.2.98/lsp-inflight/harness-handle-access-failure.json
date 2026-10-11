@@ -1,0 +1,44 @@
+{
+  "stage": "正式0.2.98",
+  "before": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已配置，需手动启动"
+    },
+    "start_seconds": 3.5999109968543053e-06,
+    "end_seconds": 0.044112499919719994
+  },
+  "ledger_before": {
+    "counts": {
+      "devin_acp_attempts": 929,
+      "chat_room_messages": 1142,
+      "chat_usage_events": 539
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "owned_files_removed": [
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\Cargo.toml",
+      "sha256": "4905630423d9f7f3297c63da0d25685407803d80042fc465768dad81ef8d021e"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\lsp-inflight.rs",
+      "sha256": "1e349ce38d77fc285ac815cdc0c703e40fe0f5a1f368d93650a2585034ee1236"
+    }
+  ]
+}

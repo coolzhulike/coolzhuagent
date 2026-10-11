@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "BU-INSTALLED-072-popup：新的独立真实Browser Use任务，仅用当前Devin SWE-2，忽略旧任务。只提交一次computer_use_perform，正式六项：objective=在当前右栏原生浏览器单击打开新页面，观察window.open页面在内置浏览器的显示，目标页不再操作；surface=browser；target={url:http://127.0.0.1:51866/popup.html}；success_criteria=[\"最新实际URL为http://127.0.0.1:51866/popup-target.html\", \"最新页面显示POPUP-TARGET-072\", \"目标页输入事件为0\"]；constraints=[只操作当前右栏原生浏览器，不用其它工具或桌面UIA，不换模型，仅click一次，不navigate不输入不滚动，使用本轮新鲜节点，失败或取消立即停止，不重试不补发，输入释放不等于目标完成]；max_actions=1。running仅wait同一个job_id到终态，不重复perform。依据真实页面与宿主回执如实报告，回复显示在当前聊天室。",
+  "selected_message_ids": [],
+  "attachments": []
+}

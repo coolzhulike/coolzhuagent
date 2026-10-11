@@ -1,0 +1,34 @@
+{
+  "case": "external",
+  "run_id": "run-chat-fc4c3bf801705a1b235d38fe57dcb2d3530cde2458233e1a",
+  "elapsed": 13.4,
+  "reply": "f673d925e87f1f3d",
+  "remote_session_id": "fifth-motorist",
+  "context_digest": "host-incremental-v3:Some(1791131217833):swe-2-medium",
+  "failed": null,
+  "notes": [
+    "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+    "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 4,
+      "host_history_messages": 81,
+      "prompt_bytes": 7126
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    }
+  ],
+  "passed": true
+}

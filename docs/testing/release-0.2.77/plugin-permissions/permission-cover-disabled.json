@@ -1,0 +1,11 @@
+{
+  "room_id": "room-1791131523339",
+  "room_name": "SWE-2 Browser与Paint真实验收",
+  "permission_profile": "full-access",
+  "full_access": true,
+  "dev_open_permissions": false,
+  "effective_permission_profile": "full-access",
+  "effective_full_access": true,
+  "warning": "该权限完全允许操作用户电脑文件，有一定风险",
+  "updated_at": 1791132051190
+}

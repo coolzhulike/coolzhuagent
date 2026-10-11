@@ -1,0 +1,8 @@
+{
+  "pid": 19760,
+  "started": "2026-10-09T06:52:17.7259537Z",
+  "path": "C:\\Users\\zhupu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+  "sha256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+  "stage": "外层Start-Process -Wait仍等待；实际powershell构建子进程已消失；未捕获退出码",
+  "identity_checks": "前两次路径或UTC转换校验拒绝，未停止进程；本次规范路径和UTC ticks完全匹配"
+}

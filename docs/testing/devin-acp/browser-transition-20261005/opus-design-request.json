@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读架构复审，不改文件、不操作桌面、不运行测试。当前主工作树已fd8315e，repository/快照仍438f6ec；native_browser_adapter除停止分类没有变化。上轮你误称没有keys，其实execute_authorized含KeyCombination，支持home/end/tab/enter/escape，Enter也可能自然导航。请纠正。\nH真实click派发/释放成功，源页location.assign跳转实际到TARGET-NAV，目标输入0，但observed_page仍按requested源URL拒绝。这是最终目标观察范围问题，execute_authorized本就不按requestURL约束，只按独立权限、真实fresh节点、冻结host/room/resource/document验证。用户完全访问允许正常跨源网页导航，同时要求减少过度防护。\n拟用一个内部enum PageProvenance替换单个Option<AuthorizedNavigation>，三个变体Explicit(沿用旧AuthorizedNavigation)、SettledInputPending(原始URL/host/精确PanelResource/源URL+document_token/真实request_id)、ObservedInputTransition(固定目标URL+document_token，加上述来源)。只在completed_panel结算成功且实际Sent/Released或NotNeeded后，Click、Keys、Text生成pending；unknown/notdispatched不生成。由旧provenance匹配执行前页或pending匹配原页派生original_url，防止Click→Navigate和Navigate→Click丢链。snapshot真宿主观察同host同resource且revision未变，目标document改变且HTTP(S) URL改变，再固定Observed变体；第二fresh观察必须目标doc/url等所有冻结身份一致。manual地址更改、popup递增revision，不能借此范围。只是输入之后观察到变页，不声称因果、不当作目标达成，仍由真实模型引用节点+fresh验证。\n我认为“必须同源”是把最终只读验收范围当输入授权，正常跨源link也不能用，且并不能解决用户在页内手点或计时器跳转的因果问题（同源也会如此）。因此候选方向支持同面板HTTP(S)跨源自然跳转，准确记录after-settled-input来源，不伪称authorized Navigate因果。初始0输入仍要requestedURL或官方Navigate来源；wrongstart只能派生wrongoriginal，不能匹配requested。同源/跨源页面一律不可信，当前输入授权继续不变。审查这是否有实际越权/错验收风险，需要修正哪里？不要把终态goaltrue当接口释放。最多900中文。",
+  "selected_message_ids": [],
+  "attachments": []
+}

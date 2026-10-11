@@ -1,5 +1,5 @@
 // 固定插件导入来源，避免安装目录向上查找时误用工程中的同名 SDK。不是 OS 沙箱。
-import { registerHooks } from 'node:module';
+import { isBuiltin, registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
@@ -21,6 +21,12 @@ export function bindSourceImports(root, receipt) {
   return registerHooks({
     resolve(specifier, context, nextResolve) {
       if (!source.has(context.parentURL)) return nextResolve(specifier, context);
+      // 原生模块由已经核验的固定 Node 提供；统一 node: 身份，不向工程查找同名包。
+      // 这是来源解析规则，不是权限或沙箱；第三方代码仍由启用/执行闸门管理。
+      if (isBuiltin(specifier)) {
+        const builtin = specifier.startsWith('node:') ? specifier : `node:${specifier}`;
+        return nextResolve(builtin, context);
+      }
       if (SDK_IMPORTS.has(specifier)) {
         // ESM 按宿主自己的固定 node_modules 解析，不走插件或工作区的搜索路径。
         return nextResolve(specifier, { ...context, parentURL: HOST_PARENT });

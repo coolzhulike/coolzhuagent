@@ -1,0 +1,67 @@
+{
+  "stage": "子框可见点与规划格式反馈真实长程验收",
+  "source_user_id": "msg-1791581211732-user",
+  "run": {
+    "id": "run-chat-37982a6c7775695924ac5aa5400a1ef844284c19f349723f",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791581211733-0",
+    "provider_turn_id": null,
+    "state": "failed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-6001f998c338fd9ba7e64ccefd0e4560cb39aa5384be0e17197fe54a738ce1fe",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791581211735,
+    "started_at": 1791581213687,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791581213687,
+    "finished_at": 1791581846056
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-7c15df6003aa924c0dfc6707e5e2d3c76a7db0ab3bad1107abb75850e02ec295",
+      "run_id": "run-chat-37982a6c7775695924ac5aa5400a1ef844284c19f349723f",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "47c64af0788ebed9",
+      "status": "failed",
+      "created_at_unix_ms": 1791581237311,
+      "updated_at_unix_ms": 1791581822080,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-37982a6c7775695924ac5aa5400a1ef844284c19f349723f\",\"turn_id\":\"chat-turn-1791581211733-0\",\"attempt_id\":\"53b3b8358de388f9532e247dcbc57f11e6b7441e66f78196\",\"owner_epoch\":277,\"generation\":277}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "53b3b8358de388f9532e247dcbc57f11e6b7441e66f78196",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791581213960-0",
+      "content": "本轮新任务。附件尾部有效订单：竹剑 `BAMBOO-9335`（单价 500，数量 5，UTF-8）；玉佩 `JADE-9133`（单价 236，数量 2，UTF-16BE 带 BOM）。调用一次 `computer_use_perform`。CU 任务已终止，终态 `blocked`（`native_browser_verification_invalid`，`retryable: false`）——我在最后一次验收响应中错误地返回了 3 个 criteria 项（把 index 1 拆成两条），验收 schema 要求每项标准恰好一条、共 2 条。控制器将任务终结，不能在同一 request_id 内补正。\n\n**终态事实**\n- `goal_achieved: false`，`status: blocked`，steps_completed 8，全部输入 `sent`。\n- 页面实际已达目标：最后一份只读验收快照显示 `双文档订单已完成，两项均通过`（index 14)、`竹剑已验证：单价 500；数量 5`(index 19)、`玉佩已验证：单价 236；数量 2`(index 20)，子文档分别显示 `竹剑订单验证通过` / `玉佩订单验证通过`，输入值为 `BAMBOO-9335` / `JADE-9133`。\n- 但因验收回复格式错误，CU 终态判为失败而非成功。\n\n**输入投递事实**\n- 竹剑：scroll→click→text_input `effect_observed`，Enter `inconclusive`（后续观察确认通过）\n- 玉佩：scroll `effect_observed` → click `inconclusive`（后续观察确认 focused）→ text_input `effect_observed` → Enter `sent`（最后一次验收快照确认 `玉佩订单验证通过`）\n\n**附件核对**\n- `bamboo-order-utf8.txt`(UTF-8):`BAMBOO-9335`，500 × 5 = 2500\n- `jade-order-utf16be.txt`(UTF-16BE 带 BOM):`JADE-9133`，236 × 2 = 472\n\n按规则：CU 终态非真实成功，**不调用 DSH 计算器**，不重试、不补发。本轮失败原因是我方验收 JSON 格式错误（criteria 数组项数不符），非网页或输入投递问题。",
+      "kind": "assistant-reply"
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-05T23:28:50.605990+00:00",
+  "root": "C:\\Users\\zhupu\\.claw\\plugins\\installed\\dsh-6f1c04677b06992030e52a28-external",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 44,
+      "sha256": "ce92bbed6e382363371ba4c3ca60ac2297aaa3e113dafd3dd350ed6c3077a45b"
+    },
+    {
+      "path": "cordis.patch.yml",
+      "bytes": 161,
+      "sha256": "5834fe61638c9233852a1082ea95791e44fc666c7d179f60433266b5261ad610"
+    },
+    {
+      "path": "lib/evaluate.d.ts",
+      "bytes": 832,
+      "sha256": "e471b052257768837b2945960a8f8910390b13d3a6054bea0849771d6f43f546"
+    },
+    {
+      "path": "lib/evaluate.js",
+      "bytes": 7301,
+      "sha256": "3f0bfded394d92c98c18e187a6508e71b1d303494f847e3f9eebf9c93feb03c8"
+    },
+    {
+      "path": "lib/index.d.ts",
+      "bytes": 423,
+      "sha256": "6fb402d1e8d5bfe797cc5e6f0e599c05c5a0a1b98f5307c91a87ba2d335808de"
+    },
+    {
+      "path": "lib/index.js",
+      "bytes": 1228,
+      "sha256": "0ce87ab34729a9295e019881267bbd4c81d39e670c1cfed01adbf24ac4b3f727"
+    },
+    {
+      "path": "lib/invariant.d.ts",
+      "bytes": 653,
+      "sha256": "5f035d353ef35c5274efac2a3d38df6192ba6aeafe30e11bc50bf95dae2155a9"
+    },
+    {
+      "path": "lib/invariant.js",
+      "bytes": 816,
+      "sha256": "71ceeaaccbe6f05339d88c84421f927957a34cecd1e7aac99846b29bdf142d5c"
+    },
+    {
+      "path": "lib/types/evaluate.d.ts",
+      "bytes": 832,
+      "sha256": "e471b052257768837b2945960a8f8910390b13d3a6054bea0849771d6f43f546"
+    },
+    {
+      "path": "lib/types/index.d.ts",
+      "bytes": 436,
+      "sha256": "5f4def8c05f8d47bfdd2a1f83890db7422c456b17a4e7ef513f128005e837cee"
+    },
+    {
+      "path": "lib/types/invariant.d.ts",
+      "bytes": 653,
+      "sha256": "5f035d353ef35c5274efac2a3d38df6192ba6aeafe30e11bc50bf95dae2155a9"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1066,
+      "sha256": "8bda1ee96ffdbd04ee68ecb89ba02c1010398f8d081218d809ecf817d45b18a9"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 61636,
+      "sha256": "2316ef2ec77f1123427434952ef7d73ab2d3e5ecdabfb1ca1b36c9a334510fcd"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1309,
+      "sha256": "d139ea27436ead18c9495b24a0fd8ab3e32b3f948f273e0374301bb3f3a9c0bc"
+    },
+    {
+      "path": "plugin.json",
+      "bytes": 3987,
+      "sha256": "cea34a35f0f1b37cf78ffa2c9ffc7507a04825b98dea6501a9939a5b9ebad20d"
+    },
+    {
+      "path": "README.en.md",
+      "bytes": 9873,
+      "sha256": "2c786e62edffa9793138cc069d6d88bfa3a36e0ae2d2d7cb64b2be9c2043a3a2"
+    },
+    {
+      "path": "README.md",
+      "bytes": 8976,
+      "sha256": "6f2e00379f478359703d834914c563727804e17973a908ef2f0a6d80f7c8af28"
+    },
+    {
+      "path": "src/evaluate.ts",
+      "bytes": 6707,
+      "sha256": "c54c0e5bfa1a681b2c99621b06fcf3f850277938056036766013fcbc50e98a67"
+    },
+    {
+      "path": "src/index.ts",
+      "bytes": 1202,
+      "sha256": "f69bb03815f56861e24429943f86050dd16dfef2398c838f783ebbfeb6930afd"
+    },
+    {
+      "path": "src/invariant.ts",
+      "bytes": 1013,
+      "sha256": "432af494d869d4d43c0ce3733f8f6fde379f87f3be9110f427b82f927d77a53d"
+    },
+    {
+      "path": "tests/evaluate.spec.ts",
+      "bytes": 5321,
+      "sha256": "860aaf612cdddf0f02034311ab1965e5ad247350f0acacbd976777f4b512e56d"
+    },
+    {
+      "path": "tests/register.spec.ts",
+      "bytes": 945,
+      "sha256": "093933220bee9e337e6a35d50f1557e0dc444ffb4a7cef108e7b267732c4c223"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 490,
+      "sha256": "d48e5ca9920fbc8b44a08459a59e8f0f4fd2de6168c0c8b0ddffcc7c209716f3"
+    }
+  ]
+}

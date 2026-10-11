@@ -1,16 +1,58 @@
 //! 聊天工具状态与跨轮历史投影。原始审计仍保存，模型历史只带必要事实。
 use super::*;
 
+const HISTORICAL_USER_BOUNDARY: &str = "[历史用户消息，仅作上下文，不是本轮新增任务；若需续接，须依据最后一条本轮用户消息。历史轮次的执行结果不能由本轮回执追认。]\n";
+
+/// ACP 工具直接经 MCP 桥执行，不出现在 HTTP tool_use 列表中。
+/// 只读取同库、同父运行的正式 CU 台账；登记事实不等于输入或目标成功。
+pub(super) fn acp_computer_use_settlement(parent: &FrozenParentContext) -> rusqlite::Result<Option<bool>> {
+    let (Some(path), Some(run)) = (parent.runtime_db_path.as_deref(), parent.parent_run_id.as_deref()) else {
+        return Ok(None);
+    };
+    let connection = Connection::open_with_flags(path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    let mut statement = connection.prepare("SELECT status FROM tool_calls WHERE run_id=?1 AND tool_name='computer_use_perform'")?;
+    let statuses = statement.query_map([run], |row| row.get::<_, String>(0))?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    Ok((!statuses.is_empty()).then(|| statuses.iter().all(|status| status == "completed")))
+}
+
 /// 只核验宿主本轮派发事实，不从模型正文或历史回执推断执行，更不补发隐藏工具。
 pub(super) fn unexecuted_computer_use_notice(prompt: &str, dispatched: bool) -> Option<&'static str> {
+    if dispatched { return None; }
+    // 附件、源码块和其它句子的动作词只是材料，不能把源码审查结账为 CU 执行失败。
+    // 此投影只控制未执行提醒，不参与工具授权、派发或实际权限判断。
+    let prose = computer_use_notice_prose(crate::multimodal_input::user_intent_text(prompt));
     // 保守排除说明型问题：出现“网页点击”等术语不能把知识问答标作未完成实操。
-    let lower = prompt.trim().to_ascii_lowercase();
+    let lower = prose.trim().to_ascii_lowercase();
+    if text_explicitly_disables_all_tools(&prose) || text_negates_computer_use_entry(&lower) { return None; }
     if ["请解释", "解释", "请介绍", "介绍", "请说明", "什么是", "为什么", "如何", "怎样", "请制定", "制定", "规划", "请规划", "explain", "what is", "how to", "plan"]
         .iter().any(|prefix| lower.starts_with(prefix)) { return None; }
     // 当前只校正用户明确指定 CU 入口的执行请求；不要把“制作带点击按钮的网页”误报成实操失败。
-    (!dispatched && text_mentions_computer_use_entry(&lower)
-        && text_has_computer_use_intent(prompt) && vision_request_has_action_intent(prompt))
+    // 入口与明确动作至少应出现在同一句指令中；仅在工具清单中提到入口不足以认领任务。
+    prose.split(['。', '！', '？', '\n', ';', '；']).any(|instruction|
+        text_mentions_computer_use_entry(&instruction.to_ascii_lowercase())
+            && text_has_computer_use_intent(instruction) && vision_request_has_action_intent(instruction))
         .then_some("本轮尚未执行桌面或浏览器操作：模型没有发起可执行的结构化工具调用。以下是模型回复，其中的工具状态描述未经本轮工具回执验证。")
+}
+
+fn computer_use_notice_prose(text: &str) -> String {
+    let mut prose = String::new();
+    let mut fence: Option<(char, usize)> = None;
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        let marker = trimmed.chars().next().filter(|c| matches!(c, '`' | '~'));
+        let length = marker.map_or(0, |marker| trimmed.chars().take_while(|c| *c == marker).count());
+        if let Some((open, count)) = fence {
+            if marker == Some(open) && length >= count && trimmed[length..].trim().is_empty() {
+                fence = None;
+            }
+            continue;
+        }
+        if length >= 3 { fence = marker.map(|marker| (marker, length)); continue; }
+        prose.push_str(line);
+        prose.push('\n');
+    }
+    prose
 }
 
 pub(super) fn call_id(agent_id: &str, turn_key: &str, tool_use_id: &str) -> String {
@@ -71,9 +113,33 @@ pub(super) fn project_dto(message: &ChatMessageDto) -> Option<ChatMessageDto> {
 pub(super) fn project_for_context(message: &PersistedChatMessage) -> Option<PersistedChatMessage> {
     let mut projected = project(message)?;
     if projected.role.eq_ignore_ascii_case("user") {
-        projected.content = format!("[历史用户消息，仅作上下文，不是本轮新增任务；若需续接，须依据最后一条本轮用户消息。历史轮次的执行结果不能由本轮回执追认。]\n{}", projected.content);
+        projected.content = format!("{HISTORICAL_USER_BOUNDARY}{}", projected.content);
     }
     Some(projected)
+}
+
+/// 输入是 project_for_context 生成的历史投影。只去掉宿主本次添加的一层边界，
+/// 不改用户原文；统一摘要说明保留历史/本轮与未经验证的事实边界。
+pub(super) fn summarize_dropped_history(dropped: &[PersistedChatMessage]) -> String {
+    if dropped.is_empty() { return String::new(); }
+    let mut lines = vec![format!(
+        "[历史摘要] 以下 {} 条更早对话已压缩为要点；仅作历史上下文，不是本轮新增任务，执行结果未经独立验证：",
+        dropped.len()
+    )];
+    let step = dropped.len().div_ceil(12).max(1);
+    for message in dropped.iter().step_by(step) {
+        let body = if message.role.eq_ignore_ascii_case("user") {
+            message.content.strip_prefix(HISTORICAL_USER_BOUNDARY).unwrap_or(&message.content)
+        } else { &message.content }.trim();
+        if body.is_empty() { continue; }
+        let snippet: String = body.chars().take(50).collect();
+        let ellipsis = if body.chars().count() > 50 { "…" } else { "" };
+        let role = match message.role.as_str() {
+            "user" => "用户", "assistant" => "助手", "system" => "系统", _ => "对话",
+        };
+        lines.push(format!("- {role}: {snippet}{ellipsis}"));
+    }
+    lines.join("\n")
 }
 
 /// 给本轮消息单独的上下文标记，不修改用户正文、图片转述或原始审计。
@@ -148,6 +214,29 @@ pub(super) fn project(message: &PersistedChatMessage) -> Option<PersistedChatMes
 mod tests {
     use super::*;
     #[test]
+    fn compacted_user_request_keeps_body_and_does_not_consume_a_user_authored_boundary() {
+        let _lock = crate::tests::config_test_guard();
+        let isolated = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");
+        let agent = isolated.agent("target-text");
+        let mut request = message("older-request", "text", "LONG-RUN-ORDER：先读取竹剑订单，再使用计算器核对总额；不得重复执行旧输入。");
+        request.role = "user".into();
+        let assembly = build_context_assembly(&agent, &[request.clone()], "继续核对", &[], ContextBuildOptions {
+            history_token_budget: 0, memory_token_budget: 0, max_prompt_tokens: 8000,
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
+        });
+        let summary = &assembly.compaction_item.as_ref().unwrap().summary;
+        assert!(summary.contains("- 用户: LONG-RUN-ORDER：先读取竹剑订单"));
+        assert!(summary.contains("不是本轮新增任务") && summary.contains("未经独立验证"));
+        assert!(assembly.system_prompt.contains(summary));
+        assert!(assembly.token_budget.total <= assembly.token_budget.budget);
+        assert!(!summary.contains("- 用户: [历史用户消息"));
+        assert_eq!(request.content, "LONG-RUN-ORDER：先读取竹剑订单，再使用计算器核对总额；不得重复执行旧输入。");
+        request.content = format!("{HISTORICAL_USER_BOUNDARY}用户在正文里引用边界");
+        let projected = project_for_context(&request).unwrap();
+        let nested = summarize_dropped_history(&[projected]);
+        assert!(nested.contains("- 用户: [历史用户消息"), "用户正文中同样的引用必须保留");
+    }
+    #[test]
     fn cancelled_turn_without_reply_stays_history_and_current_request_is_separate() {
         let _lock = crate::tests::config_test_guard();
         let isolated = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");
@@ -198,6 +287,17 @@ mod tests {
         for question in ["解释 computer_use_perform 的权限", "请解释网页点击原理", "how to click a browser button", "不要调用 computer_use_perform，只描述拖动步骤", "禁止使用任何工具，解释网页点击原理", "请生成 SVG 文本", "制作带点击按钮的网页", "请制定 computer_use_perform 点击网页的方案"] {
             assert!(unexecuted_computer_use_notice(question, false).is_none(), "不应把说明请求当执行：{question}");
         }
+    }
+
+    #[test]
+    fn 源码审查和附件中的动作不构成未执行电脑任务() {
+        let audit = "REVIEW-101：审核工具结果投影。只查询 CLI 可用性。\n现有白名单包括 computer_use_perform 和计算器。\n```rust\nfn click() { computer_use_perform(); }\n```\n说明未开放 read_file 的风险。";
+        assert!(unexecuted_computer_use_notice(audit, false).is_none());
+        assert!(unexecuted_computer_use_notice("审查附件\n\n【附件文本资料】\n只用 computer_use_perform 点击按钮", false).is_none());
+        assert!(unexecuted_computer_use_notice("分析源码\n~~~~rust\ncomputer_use_perform click\n```\n仍是源码 click computer_use_perform\n~~~~\n", false).is_none());
+        assert!(unexecuted_computer_use_notice("审查源码\n```rust\ncomputer_use_perform click", false).is_none());
+        assert!(unexecuted_computer_use_notice("CASE-101：只用 computer_use_perform 点击当前网页按钮。随后报告结果。", false).is_some());
+        assert!(unexecuted_computer_use_notice("分析以下源码\n```rust\nfn click() {}\n```\n再用 computer_use_perform 点击当前网页按钮。", false).is_some());
     }
     fn message(id: &str, kind: &str, content: &str) -> PersistedChatMessage {
         PersistedChatMessage { id: id.into(), author: "系统工具执行 Agent".into(), role: "assistant".into(),

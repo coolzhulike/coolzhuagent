@@ -1,0 +1,17 @@
+{
+  "observed_ms": 1791257328525.2031,
+  "run_id": "run-chat-f67b3b00e33779af7bcf5c93b84217642decfc2386000724",
+  "message_id": "msg-1791257308362-user",
+  "cu_call_id": "cu-session-1791131217833-chat-turn-1791257308362-2-tool-a80ef65d03f68629c044c23f717f0a3bdd87edd83a1dab9fc61927e48a2bfb7e",
+  "internal_attempt": {
+    "attempt_id": "e0a11c25402a62cb88217b26b0984d5a0155391bc30173ca",
+    "scope_json": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"lane\":\"internal\",\"run_id\":\"run-chat-f67b3b00e33779af7bcf5c93b84217642decfc2386000724\",\"turn_id\":\"chat-turn-1791257308362-2\",\"attempt_id\":\"e0a11c25402a62cb88217b26b0984d5a0155391bc30173ca\",\"owner_epoch\":1,\"generation\":1}",
+    "state": "submitted",
+    "cancel_requested": 0,
+    "protocol_stop": null,
+    "process_drained": 0,
+    "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+  },
+  "steps_started": 0,
+  "note": "真实新鲜观察后的内层规划请求已提交；最终以页面切换事件和输入回执确认先后。"
+}

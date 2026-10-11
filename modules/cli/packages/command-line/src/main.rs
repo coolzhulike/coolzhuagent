@@ -1,9 +1,15 @@
 mod init;
+mod controlled_future;
+mod cli_control;
+mod permission_input;
+#[cfg(test)]
+mod cli_cancel_tests;
 mod input;
 mod render;
 mod shared_chat;
 mod shared_chat_binding;
 mod stream_facts;
+mod turn_persistence;
 
 use std::collections::BTreeSet;
 use std::env;
@@ -728,6 +734,10 @@ fn print_version() {
 }
 
 fn resume_session(session_path: &Path, commands: &[String]) {
+    if let Err(error) = turn_persistence::load_event_history(session_path) {
+        eprintln!("无法恢复回合轨迹：{error}");
+        std::process::exit(1);
+    }
     let session = match Session::load_from_path(session_path) {
         Ok(session) => session,
         Err(error) => {
@@ -1346,7 +1356,9 @@ impl LiveCli {
             &mut stdout,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
-        let result = self.runtime.run_turn(input, Some(&mut permission_prompter));
+        self.runtime.set_thread_id(runtime::ThreadId::from_session_path(&self.session.path)?);
+        let result = cli_control::run(||self.runtime.run_turn(input, Some(&mut permission_prompter)))?;
+        let result = turn_persistence::persist_result(result, self.runtime.session(), &self.session.path);
         match result {
             Ok(_) => {
                 spinner.finish(
@@ -1355,7 +1367,6 @@ impl LiveCli {
                     &mut stdout,
                 )?;
                 println!();
-                self.persist_session()?;
                 Ok(())
             }
             Err(error) => {
@@ -1364,7 +1375,7 @@ impl LiveCli {
                     TerminalRenderer::new().color_theme(),
                     &mut stdout,
                 )?;
-                Err(Box::new(error))
+                Err(error)
             }
         }
     }
@@ -1393,9 +1404,10 @@ impl LiveCli {
             None,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
-        let summary = runtime.run_turn(input, Some(&mut permission_prompter))?;
+        runtime.set_thread_id(runtime::ThreadId::from_session_path(&self.session.path)?);
+        let result = cli_control::run(||runtime.run_turn(input, Some(&mut permission_prompter)))?;
         self.runtime = runtime;
-        self.persist_session()?;
+        let summary = turn_persistence::persist_result(result, self.runtime.session(), &self.session.path)?;
         println!(
             "{}",
             json!({
@@ -1696,6 +1708,7 @@ impl LiveCli {
 
         let handle = resolve_session_reference(&session_ref)?;
         let session = Session::load_from_path(&handle.path)?;
+        let _history = turn_persistence::load_event_history(&handle.path)?;
         let message_count = session.messages.len();
         self.runtime = build_runtime(
             session,
@@ -1781,6 +1794,7 @@ impl LiveCli {
                 };
                 let handle = resolve_session_reference(target)?;
                 let session = Session::load_from_path(&handle.path)?;
+                let _history = turn_persistence::load_event_history(&handle.path)?;
                 let message_count = session.messages.len();
                 self.runtime = build_runtime(
                     session,
@@ -1878,7 +1892,11 @@ impl LiveCli {
             progress,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
-        let summary = runtime.run_turn(prompt, Some(&mut permission_prompter))?;
+        let internal_path = turn_persistence::reserve_internal_path(&self.session.path)?;
+        runtime.set_thread_id(runtime::ThreadId::from_session_path(&internal_path)?);
+        let result = cli_control::run(||runtime.run_turn(prompt, Some(&mut permission_prompter)))?;
+        eprintln!("内部回合记录：{}", internal_path.display());
+        let summary = turn_persistence::persist_result(result, runtime.session(), &internal_path)?;
         Ok(final_assistant_text(&summary).trim().to_string())
     }
 
@@ -3212,9 +3230,8 @@ impl runtime::PermissionPrompter for CliPermissionPrompter {
         print!("Approve this tool call? [y/N]: ");
         let _ = io::stdout().flush();
 
-        let mut response = String::new();
-        match io::stdin().read_line(&mut response) {
-            Ok(_) => {
+        match permission_input::read_line() {
+            Ok(response) => {
                 let normalized = response.trim().to_ascii_lowercase();
                 if matches!(normalized.as_str(), "y" | "yes") {
                     runtime::PermissionPromptDecision::Allow
@@ -3297,11 +3314,10 @@ impl ApiClient for DefaultRuntimeClient {
             stream: true,
         };
 
+        let control = runtime::managed_process::current_execution_control();
         self.runtime.block_on(async {
-            let mut stream = self
-                .client
-                .stream_message(&message_request)
-                .await
+            let mut stream = controlled_future::wait(&control, self.client.stream_message(&message_request))
+                .await.map_err(|reason| RuntimeError::new(format!("根执行已中断：{reason:?}；模型请求未确认完成，用量未知，不自动重放")).with_interruption(reason))?
                 .map_err(|error| RuntimeError::new(error.to_string()))?;
             let mut stdout = io::stdout();
             let mut sink = io::sink();
@@ -3318,8 +3334,9 @@ impl ApiClient for DefaultRuntimeClient {
             let mut facts = stream_facts::StreamFacts::default();
 
             loop {
-                let received = stream.next_event().await;
+                let received = controlled_future::wait(&control, stream.next_event()).await;
                 facts.merge(stream.usage_evidence());
+                let received = received.map_err(|reason| facts.incomplete(&format!("根执行已中断：{reason:?}")).with_interruption(reason))?;
                 let event = match received {
                     Ok(Some(event)) => event,
                     Ok(None) => break,

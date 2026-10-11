@@ -1,0 +1,173 @@
+{
+  "stage": "0.2.97正式安装版；严格按下期间新Target替换未命中，仍开放",
+  "model": "swe-2-medium",
+  "remote_session": "island-kayak",
+  "status": {
+    "run": {
+      "id": "run-chat-fd2fbabbac8b5ac06177b422b60545ff4578ce3055c568e0",
+      "state": "failed",
+      "legacy_turn_id": "chat-turn-1791485372285-1"
+    },
+    "computer_use": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791485372285-1-tool-941bf2854f5e4217d6c1c9130facb7e9722316b3bfcdd72fbbf7b71cdabca3d3",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791485372285-1-tool-941bf2854f5e4217d6c1c9130facb7e9722316b3bfcdd72fbbf7b71cdabca3d3",
+          "provider_tool_call_id": "tool-941bf2854f5e4217d6c1c9130facb7e9722316b3bfcdd72fbbf7b71cdabca3d3",
+          "status": "blocked",
+          "stage": "verification",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "error": {
+            "code": "native_browser_panel_unavailable",
+            "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:3",
+            "native-observation:cc18e49a345ad89b1d694d55d59c6f50",
+            "native-ax:1:3",
+            "native-observation:cc18e49a345ad89b1d694d55d59c6f50",
+            "native-input:d83182e8878781e7b740c7b476ba473f",
+            "native-ax:1:3",
+            "native-observation:57752067561d6937443f89eeeb7c1714"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791486272285
+              }
+            },
+            "cu_deadline_ms": 1791486272285,
+            "cu_deadline_established_at_ms": 1791485386479,
+            "cu_budget_ms": 900000
+          }
+        },
+        "steps": [
+          {
+            "step_index": 0,
+            "action_type": "click",
+            "status": "input_sent_observed",
+            "error_code": null,
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "effect_status": null
+          }
+        ]
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "de2f79aa0bd4234177ac34f4990440b98a56d0a3668f1e33",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  "trusted_events": [
+    {
+      "kind": "loaded",
+      "pageId": "4bec38ae-2cb0-4ae1-8f00-fc2410a9aecd",
+      "path": "/new.html",
+      "page_ms": 1791485281949,
+      "observed_ms": 1791485281957.0725
+    },
+    {
+      "kind": "loaded",
+      "pageId": "0f1f0998-7cfa-4d99-bdb8-d5a969faffe8",
+      "path": "/window.html",
+      "page_ms": 1791485341776.7002,
+      "observed_ms": 1791485341781.6826
+    },
+    {
+      "kind": "pointerdown",
+      "pageId": "0f1f0998-7cfa-4d99-bdb8-d5a969faffe8",
+      "path": "/window.html",
+      "page_ms": 1791485414068.9001,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791485414074.0085
+    },
+    {
+      "kind": "down-handler-finished",
+      "pageId": "0f1f0998-7cfa-4d99-bdb8-d5a969faffe8",
+      "path": "/window.html",
+      "page_ms": 1791485416469.5,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791485416474.5383
+    },
+    {
+      "kind": "pointerup",
+      "pageId": "0f1f0998-7cfa-4d99-bdb8-d5a969faffe8",
+      "path": "/window.html",
+      "page_ms": 1791485416470.5,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791485416476.047
+    },
+    {
+      "kind": "click",
+      "pageId": "0f1f0998-7cfa-4d99-bdb8-d5a969faffe8",
+      "path": "/window.html",
+      "page_ms": 1791485416470.8,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791485416476.6877
+    },
+    {
+      "kind": "pagehide",
+      "pageId": "0f1f0998-7cfa-4d99-bdb8-d5a969faffe8",
+      "path": "/window.html",
+      "page_ms": 1791485423008.4001,
+      "trusted": true,
+      "observed_ms": 1791485423031.4019
+    },
+    {
+      "kind": "loaded",
+      "pageId": "5f1faaf2-f9db-46a9-8639-df88d0b7b8a4",
+      "path": "/new.html",
+      "page_ms": 1791485433080.9,
+      "observed_ms": 1791485433092.7603
+    }
+  ],
+  "close_ui": {
+    "begin_ms": 1791485422884,
+    "end_ms": 1791485422966
+  },
+  "open_ui": {
+    "begin_ms": 1791485432258,
+    "end_ms": 1791485432336
+  },
+  "pointer_hold_ms": 2401.6,
+  "close_after_release_ms": 6413.5,
+  "new_target_no_old_input": true,
+  "strict_during_press_pass": false,
+  "model_timing_claim": "模型转述称替换发生于按下期间，与网页/正常UI时间不符，不采纳为证据"
+}

@@ -1,0 +1,13 @@
+{
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "web_sha256": "a69202fd43ce2c107c881eb44487c14c5054d02a23a0190277a4b0a50beb8153",
+  "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-tauri-shell.exe",
+  "port": 8765,
+  "web_pid": 7580,
+  "web_started": "2026-10-06T01:19:41.0491838Z",
+  "stage": "开放Shadow Root点击修复候选；同目录配套新构建",
+  "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-web-console.exe",
+  "shell_pid": 2020,
+  "shell_sha256": "6a173f56f994ae3e4fcd6d3d091b1095bed0f88e924ce818e33bd5b8ed9ef74b",
+  "shell_started": "2026-10-06T01:19:42.5644419Z"
+}

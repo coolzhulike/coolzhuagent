@@ -1,0 +1,162 @@
+[
+  {
+    "path": "change-report-and-test-handoff.md",
+    "bytes": 2365,
+    "sha256": "3ffaba7ac7ffa07c7aa07a729f7900a372a7a1bb6a785e6d67b0d51a8a62d3f6"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-190834597-d73db0cc/CoolzhuAgent-0.2.108-installer-report.json",
+    "bytes": 4885,
+    "sha256": "c12e6510b81801138e256c75b576ed11e3c30b5ec8749471af88f1b6c3f3b69a"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-190834597-d73db0cc/package-report-files.json",
+    "bytes": 2054,
+    "sha256": "edc7c7010300d670546e755dc0c31ff69ecb103316206c26ddf7d08a90aea7aa"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-190834597-d73db0cc/package-report.json",
+    "bytes": 110267,
+    "sha256": "f32fd309845ac129a56e359821f5fbea208a25e9169abc19394dc04798cf3a5d"
+  },
+  {
+    "path": "evidence/build-identity/pkg-report-release-20261008-190834597-d73db0cc/payload-inventory.json",
+    "bytes": 347602,
+    "sha256": "601b0faf661bde143c9dabfd575fadb43656805de3e3c6828235d1900c0869b3"
+  },
+  {
+    "path": "installed-validation/build-result.json",
+    "bytes": 179,
+    "sha256": "a74a7fe31348407b37e90b190c18c1b9916b55b85a7ed5256c7a0fa0ed3e56f9"
+  },
+  {
+    "path": "installed-validation/build-stderr.log.txt",
+    "bytes": 56417,
+    "sha256": "957f560f41a18beac7306739b7d4035d4f89bc5eca2f966540b523fa3c40567c"
+  },
+  {
+    "path": "installed-validation/build-stdout.log.txt",
+    "bytes": 14670,
+    "sha256": "7f76a8b168d889f4b73109087536230448e027dfbc4ac4fbaf2ba70cb4689374"
+  },
+  {
+    "path": "installed-validation/idle-before-install.json",
+    "bytes": 260,
+    "sha256": "2b1a70eb5ac80233faf51655942c572d674b0b22258ce8d5998536617c1a9810"
+  },
+  {
+    "path": "installed-validation/install-108-result.json",
+    "bytes": 278,
+    "sha256": "d16f125ff77e2c9d518ee94ebb5ad922e44eef83b36d31fcc442f2aea6e442ea"
+  },
+  {
+    "path": "installed-validation/installed-108-standard-processes.json",
+    "bytes": 693,
+    "sha256": "a91917f5dbc30a673b227598550e982638bcb2192581a3c46a35d869e39f534a"
+  },
+  {
+    "path": "installed-validation/installed-108-verification.json",
+    "bytes": 1884,
+    "sha256": "6593fe874c1524682b2298cdb536cbaed1e2743a81e36f5744dc7b50b35173fe"
+  },
+  {
+    "path": "installed-validation/offline-build.log.txt",
+    "bytes": 48637,
+    "sha256": "29f518cbf3676b6eb20c3f06e080934b2d69a4197998b687dd2c8a728761d160"
+  },
+  {
+    "path": "installed-validation/package-108-verification.json",
+    "bytes": 1869,
+    "sha256": "9f0fa175fce40adbd237bd4c6b5846d1371b96d8e4d722d35d6f09c4cf81107a"
+  },
+  {
+    "path": "installed-validation/source-ci.json",
+    "bytes": 251,
+    "sha256": "ab0ce0ece4e0bba30cd4e44b56948b999ee193eacc33394aae178f7cfb4b9bb3"
+  },
+  {
+    "path": "installed-validation/source-commit.txt",
+    "bytes": 42,
+    "sha256": "4f0bd8b462f1b9e1413f7db90b2a8b6fa8b3d2fc8694a17db934b2914b2a8775"
+  },
+  {
+    "path": "installed-validation/validation.json",
+    "bytes": 488,
+    "sha256": "a284047e82082bd23c0629c41b3b693c1506c962ed9830547572e7fac0b28089"
+  },
+  {
+    "path": "installed-validation/verify-108.py",
+    "bytes": 2842,
+    "sha256": "0a6560295d285a1415197a44e8cc6b1aabfc5bf9b47592ee1ce5efcfad8f78a7"
+  },
+  {
+    "path": "installed-validation/web-tests.log.txt",
+    "bytes": 147853,
+    "sha256": "1cc96d7425c5ca3817fb8590461a890e9f5fb25760032074f5ca934fbe497f88"
+  },
+  {
+    "path": "observation-phase-unhit/address.json",
+    "bytes": 55,
+    "sha256": "f08a5585b0aac89d7eb5c6bf1384369b3d23a47b8048a906c5142d6819519cb4"
+  },
+  {
+    "path": "observation-phase-unhit/before.jpg",
+    "bytes": 232868,
+    "sha256": "4f322b904b29f3f9270d0640e29584d28701254e43580e1ad69c9c56bfca4e84"
+  },
+  {
+    "path": "observation-phase-unhit/before.json",
+    "bytes": 186,
+    "sha256": "7d3ea0d1518e188fccdb6a50afd94ad8a110019add6797b1571d68e9d89f502f"
+  },
+  {
+    "path": "observation-phase-unhit/collect.py",
+    "bytes": 3963,
+    "sha256": "04eff28adc4777bd47f14ba2256e8fa386fdfd43690573ba6bf733500538be94"
+  },
+  {
+    "path": "observation-phase-unhit/events.jsonl",
+    "bytes": 2110,
+    "sha256": "e093b2229dfe3f1ba435ce43cd81db04b2769bef119a35430ce464c1cb4d7e48"
+  },
+  {
+    "path": "observation-phase-unhit/final-reply.jpg",
+    "bytes": 223328,
+    "sha256": "d9841388dddae56295092f4700581c84276211705429471f4df51f54aeb4775e"
+  },
+  {
+    "path": "observation-phase-unhit/latest-status.json",
+    "bytes": 4536,
+    "sha256": "da1e4b3eb8c3dd3e4d38a8c1ae85db855e583f08958fd4eaeeff755a65c81779"
+  },
+  {
+    "path": "observation-phase-unhit/result.json",
+    "bytes": 7712,
+    "sha256": "3a0fd510d6b0bf7ea016d5c99e464a64aa6265683f3226e08742f48f8cbcf6a8"
+  },
+  {
+    "path": "observation-phase-unhit/send.py",
+    "bytes": 3315,
+    "sha256": "1ae887d3435a6154dd17c8f58ee69d6e121d216fc23950441524f816faa201a8"
+  },
+  {
+    "path": "observation-phase-unhit/server.py",
+    "bytes": 5307,
+    "sha256": "bc6167eab549c2d46b14adf59609a1ab21c51b4591c25b1ef4f29e2aa43faf2f"
+  },
+  {
+    "path": "observation-phase-unhit/status.py",
+    "bytes": 1947,
+    "sha256": "cf51aac8f5120ec13cab713d31ab5e9498133c3876456bf5a10db183c401e160"
+  },
+  {
+    "path": "observation-phase-unhit/stream-finished.json",
+    "bytes": 189,
+    "sha256": "a198f813cb9b7fbb6cb6dbb64c197c7eb1431328031a3cbf27c2da6e99890376"
+  },
+  {
+    "path": "observation-phase-unhit/submitted-request.json",
+    "bytes": 1038,
+    "sha256": "32ca928f4a46150d29ec5cac74c0629ac9227f7a88e2455712728d83dcc6431b"
+  }
+]

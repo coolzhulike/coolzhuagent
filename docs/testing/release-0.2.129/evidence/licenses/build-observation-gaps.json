@@ -1,0 +1,687 @@
+{
+  "schema": 1,
+  "kind": "candidate-build-license-gaps",
+  "release": "0.2.129",
+  "scope": "实际构建观察去重，不等于运行时分发组件",
+  "unique_observed_components": 433,
+  "with_local_text": 391,
+  "missing_local_text": 42,
+  "missing_first_party_candidates": 18,
+  "missing_external_candidates": 24,
+  "completeness": "incomplete",
+  "missing": [
+    {
+      "component": {
+        "identity_sha256": "f79ac71dad263829f5735df5c387d7a59861b7d5a086c3deb8bfa6667e7c6a0f",
+        "name": "clipboard-win",
+        "version": "5.4.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "BSL-1.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "795795803fed3ff14dc99ded7780b0e86b98e75f8c3ebc4548fc9269fca83b21",
+        "name": "coolzhu-command-line",
+        "version": "0.2.17",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "7a11926dd17bfe55f28735227d6a00d3858d8a3d29298e43e381281647e70a9a",
+        "name": "coolzhu-command-router",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "9e48f2a3f6f4838b3b4ed53393f50fb03258e53613ccace7d270a3bb1c63b905",
+        "name": "coolzhu-compatibility-harness",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "b0e471f99480110433329726d73e0530e39983284fcd5c9186e6c7452596ad02",
+        "name": "coolzhu-core-runtime",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line",
+        "computer-use.preflight-check",
+        "gui-web.browser-native-host",
+        "gui-web.web-console",
+        "vision.latest-desktop",
+        "vision.smoke"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "63fb7be7e45948ffe4c1b5065605e6b638d99b0e88f7cdc2388ee3d3d3fc771e",
+        "name": "coolzhu-diagnostics",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line",
+        "gui-desktop.tauri-shell",
+        "gui-web.browser-native-host",
+        "gui-web.web-console",
+        "vision.latest-desktop",
+        "vision.smoke"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "1419d46273c6edcceb50a9c9119d4e491a0b7f6918e3b5d5daf9ad867ed1a51f",
+        "name": "coolzhu-language-service",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line",
+        "computer-use.preflight-check",
+        "gui-web.browser-native-host",
+        "gui-web.web-console",
+        "vision.latest-desktop",
+        "vision.smoke"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "a6bcd19505664e3936d9a4488bce584247f76b913af3b76d390fd6cbcb47370b",
+        "name": "coolzhu-llm-adapter",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line",
+        "gui-web.browser-native-host",
+        "gui-web.web-console",
+        "vision.latest-desktop",
+        "vision.smoke"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "e5e80b58de1efb6a1e46c4d19d21e8c2ef221dcb54b9619bf557416c81c8d723",
+        "name": "coolzhu-plugin-system",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line",
+        "computer-use.preflight-check",
+        "gui-web.browser-native-host",
+        "gui-web.web-console",
+        "vision.latest-desktop",
+        "vision.smoke"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "97ea62d03ec5e4cb743847f07806174cddccfaaec139edae24cfbe17768a78fb",
+        "name": "coolzhu-tool-registry",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line",
+        "gui-web.browser-native-host",
+        "gui-web.web-console"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "f2cee937931db9bc79edeb3d78ddf577b42dc2ff05b890631b2861d233ae2d18",
+        "name": "coolzhu-windows-process-guard",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "cli.command-line",
+        "computer-use.preflight-check",
+        "gui-desktop.tauri-shell",
+        "gui-web.browser-native-host",
+        "gui-web.web-console",
+        "package.app-launcher",
+        "vision.latest-desktop",
+        "vision.smoke"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "56d5551a47de0276d2f534f74d735b4103e4e6bb1e0cc858eca2a749cd470fb4",
+        "name": "coolzhu-computer-use-core",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "computer-use.preflight-check",
+        "gui-web.browser-native-host",
+        "gui-web.web-console"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "bf170c49f787802744e0ca9399a6fbafd00d9d2c29255eda0944b69c3b8f0e25",
+        "name": "coolzhu-native-browser-protocol",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "computer-use.preflight-check",
+        "gui-desktop.tauri-shell",
+        "gui-web.browser-native-host",
+        "gui-web.web-console"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "704c6d02ee7d64bde4e177a3add78d707bc40430b735f447ee2080218800400c",
+        "name": "alloc-stdlib",
+        "version": "0.2.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "BSD-3-Clause",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "0f754fa9c8eb68388eddc81b0c6bb6bfbcee21b1ceb4a4d3abe12921aed0426a",
+        "name": "convert_case",
+        "version": "0.4.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "f47966f9d22bdc31186796ecac1267ee876ba3028606f5b19cc06d21769364c5",
+        "name": "coolzhu-tauri-shell",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "95d41b702ddb707c095a210c7e08869767c3ae1f460139edf739a6e8cf9f80c0",
+        "name": "fxhash",
+        "version": "0.2.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "Apache-2.0/MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "685de5e73d511bbed01c366452ea5aea10d46cc271294857ea34af4504262a10",
+        "name": "mac",
+        "version": "0.1.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "6f106bf3adaa23912ec42559ba061b41d1456816d478dd31607032d8c36128d9",
+        "name": "match_token",
+        "version": "0.1.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT OR Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "d98bf2bb1ac8ae1969f235b86d3525fd4227f32f8716259599cd3be9d96d7ba6",
+        "name": "phf",
+        "version": "0.8.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "05420b6c7e2d332bd583c9a6cf9869528a1a18f4e9d17e5f250e8a723899f29c",
+        "name": "phf",
+        "version": "0.10.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "2f3b93f8191baa7408864cb04a688233506bbeb3cb586b922099517638be8c0a",
+        "name": "phf_codegen",
+        "version": "0.8.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "5d5c2758c31990c92d4e37f07a944ddac8b57c020d3928466dec976a90de13cc",
+        "name": "phf_generator",
+        "version": "0.8.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "42809b3f037f7dca966a5153e64ac04fcd5aa5e4058b496650e1891fba8812b3",
+        "name": "phf_generator",
+        "version": "0.10.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "cab884148d10e9080e31fbdd7de7261467256bcf0fc14e86db11ae50074699b2",
+        "name": "phf_macros",
+        "version": "0.10.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "0e5927aca6f17330d8d999b14e7a6d7919105abf6717fea8d36eca10e1ad08c0",
+        "name": "phf_shared",
+        "version": "0.8.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "b91fb59a572ee858cd7d9b0fad97d1b1b9daa5cf4b91a06ff6e7eda3e2de9e5e",
+        "name": "phf_shared",
+        "version": "0.10.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "e250a12e3c0858f90311e8df7734b0c104e3939c1768deacef61c54279cb6405",
+        "name": "selectors",
+        "version": "0.24.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MPL-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "3644e311a83fcf0337dc00499d921f95b760ecf72b85ffdbaf5ef32fd099212a",
+        "name": "tauri-plugin",
+        "version": "2.5.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "Apache-2.0 OR MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "3d81926912d036a2b97a819dfa4acfea37c7db18c0c2d48940024daf1c107b94",
+        "name": "unic-char-property",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "a8c0170c4c6a10ae5c7fbb0900fbf363fbd8a6b54a470cee1052b19588010561",
+        "name": "unic-char-range",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "0f5648cc2b767fffea4f2765107f73f833031a8d0af83015fba72cd180efaf09",
+        "name": "unic-common",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "d0338d2fbe2191bf0cb1cd5d5b793da56bcb741e1fbf3759c8fcab36a5f2e4eb",
+        "name": "unic-ucd-ident",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "9f58a0226ca4b502970c0211bf0d0ac01a74f74b2f31cb1fe0797a5f3f36d774",
+        "name": "unic-ucd-version",
+        "version": "0.9.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT/Apache-2.0",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "76cb3d926ae5a65222197b18fdda7fb303ff8bf32ce04a944f25f3d0f8e64da4",
+        "name": "webview2-com",
+        "version": "0.38.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "3a08568c3b32bc0c08b3e52eda7eb87ea3eeffefe360bf830d6cb9d76339f9ed",
+        "name": "webview2-com-macros",
+        "version": "0.8.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "598638c67d9b7c762ea2201755c937556424af663cfb217e51a5e4819eabc767",
+        "name": "webview2-com-sys",
+        "version": "0.38.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "4757b3e0047173b4e94168e9a07756868b289b3649dd2700fb896e96f9cabcf5",
+        "name": "coolzhu-uia-resolver",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-web.browser-native-host",
+        "gui-web.web-console"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "dfc819da1a1374f380a615f90ff47e828bdd2ec71928f7930f8d709d42cdc949",
+        "name": "coolzhu-vision-service",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-web.browser-native-host",
+        "gui-web.web-console",
+        "vision.latest-desktop",
+        "vision.smoke"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "59cd5c90a4ec01ea659e33d71163e36279e897fbd67be44207d0246284a7b2ce",
+        "name": "coolzhu-web-console",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-web.browser-native-host",
+        "gui-web.web-console"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "09f9fa34e8ccf2e768fc5f6a817979a9cb7ad23e7e48127c3a4717d99abf841f",
+        "name": "coolzhu-clawbot-sidecar",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "gui-web.clawbot-sidecar"
+      ]
+    },
+    {
+      "component": {
+        "identity_sha256": "f57448235e5780dc906bc2a923b21d02468a0cc05697ff9d46f4e8ce34eed719",
+        "name": "coolzhu-app-launcher",
+        "version": "0.2.0",
+        "source": null,
+        "declared_license": "MIT",
+        "files": [],
+        "unresolved": [],
+        "license_body_found": false
+      },
+      "artifacts": [
+        "package.app-launcher"
+      ]
+    }
+  ]
+}

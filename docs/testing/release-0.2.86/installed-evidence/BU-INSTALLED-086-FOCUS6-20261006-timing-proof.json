@@ -1,0 +1,22 @@
+{
+  "prefix": "BU-INSTALLED-086-FOCUS6-20261006",
+  "run_id": "run-chat-74321bef58e8f159d191ab80b484ebfed6109e1676a26e65",
+  "planning_requested_at_ms": 1791351057550,
+  "trusted_change": {
+    "kind": "setup-focus-parent",
+    "trusted": true,
+    "value": "",
+    "inputs": 0,
+    "submits": 0,
+    "page_ms": 1791351058022.7,
+    "observed_ms": 1791351058032.2195,
+    "host": "127.0.0.1:53530"
+  },
+  "planning_response_at_ms": 1791351064041,
+  "error": "native_browser_editor_not_focused",
+  "text_delivery": "not_sent",
+  "completed_steps": 1,
+  "clicked_step_released": true,
+  "observed_text_input_events": 0,
+  "timing_confirmed": true
+}

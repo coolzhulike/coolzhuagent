@@ -1,0 +1,15 @@
+{
+  "version": "0.2.73",
+  "cli_output": "COOLZHU CODE Agent\n  Version          0.2.73\n  Git SHA          99adfc616ee441045289572031ac0407c0ae90e9\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-05\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help",
+  "source_commit": "99adfc616ee441045289572031ac0407c0ae90e9",
+  "source_snapshot_digest": "db06909cd19c0028cea3b5f9943b2de3b4a84b6c4ebe7e3aceec7cec9a613452",
+  "verified_file_count": 1150,
+  "payload_digest": "f8a06a0bf01839c0d6f250794dab7fdb7e28f8b19f834f6660563c0124ccc0d4",
+  "msi_sha256": "58F0F114D2C2DFE542016D30CFD94CFC8FF016300C048712D24829D64610F009",
+  "web_sha256": "a58646cdea40041b053afdbf2806457902ab1bdf252684013201e07d6330da55",
+  "shell_sha256": "370e178276c9e8c211c5dc8b28d7abcae8d035440e3644d9f7f636a742d01c0f",
+  "build_log_sha256": "b06020bb36c7e767ca65c56d5d94b98ca3bc66dd04f7c3610f3b52575fc96a14",
+  "installed_regression": "pending",
+  "is_administrator": false,
+  "old_version_installer_history": "Windows1730，当前没有重复必败的静默安装尝试"
+}

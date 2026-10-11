@@ -1,0 +1,1303 @@
+{
+  "svg_count": 49,
+  "literal_asset_count": 85,
+  "missing_literal_assets": {},
+  "dynamic_icon_aliases": {
+    "project-tree": "project",
+    "settings": "settings",
+    "chat": "chat",
+    "screen-cast": "browser",
+    "play-test": "media",
+    "image-preview": "media",
+    "cli": "terminal",
+    "task-list": "tasks",
+    "wheel": "tasks",
+    "skill": "memory",
+    "inner-vision": "vision",
+    "vision": "vision",
+    "warn-log": "logs",
+    "info-log": "logs",
+    "ok-log": "logs",
+    "error-log": "alert-triangle",
+    "fail": "alert-triangle",
+    "file-type": "file",
+    "loading": "refresh",
+    "media-audio-wave": "speaker",
+    "media-video-film": "media",
+    "monitor-on": "vision",
+    "result": "check",
+    "session-new": "plus",
+    "success": "check",
+    "system-message": "logs",
+    "thinking": "context-ring",
+    "robot-message": "chat",
+    "bot vision": "vision",
+    "refresh": "refresh",
+    "search": "search",
+    "save": "save",
+    "delete": "delete",
+    "link": "link",
+    "send": "send",
+    "microphone": "microphone",
+    "upload": "upload",
+    "lock": "lock",
+    "unlock": "unlock",
+    "camera": "camera",
+    "code": "diff",
+    "diff": "diff",
+    "folder": "folder",
+    "file": "file",
+    "collapse": "chevron",
+    "route-plan": "route-plan"
+  },
+  "dynamic_icon_allow_list": [
+    "alert-triangle",
+    "chat",
+    "chevron",
+    "delete",
+    "stop",
+    "send",
+    "refresh",
+    "search",
+    "browser",
+    "terminal",
+    "check",
+    "file",
+    "settings",
+    "save",
+    "plus",
+    "upload",
+    "package-crate",
+    "crosshair",
+    "shield",
+    "tasks",
+    "context-ring",
+    "maximize",
+    "media",
+    "vision",
+    "diff",
+    "link",
+    "folder",
+    "rename"
+  ],
+  "missing_dynamic_icons": [],
+  "icons": [
+    {
+      "asset": "assets\\icons-wuxia\\alert-triangle.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:1255",
+        "index.html:1256",
+        "index.html:1257",
+        "index.html:1258",
+        "index.html:1259",
+        "index.html:1260",
+        "index.html:1261",
+        "index.html:1263",
+        "src\\app.js:2079",
+        "src\\app.js:4967",
+        "src\\app.js:4978",
+        "src\\styles.css:163",
+        "src\\styles.css:3134",
+        "src\\styles.css:10445"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\archive.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": []
+    },
+    {
+      "asset": "assets\\icons-wuxia\\branch.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:779",
+        "index.html:854",
+        "index.html:1396",
+        "src\\app.js:12132",
+        "src\\styles.css:4075"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\browser.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:113",
+        "index.html:987",
+        "index.html:993",
+        "src\\app.js:210",
+        "src\\styles.css:9071"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\camera.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:1424",
+        "index.html:1426",
+        "src\\styles.css:11441"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\chat.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:105",
+        "index.html:258",
+        "index.html:628",
+        "index.html:740",
+        "index.html:852",
+        "src\\app.js:15532",
+        "src\\styles.css:3114",
+        "src\\styles.css:3118",
+        "src\\styles.css:3181",
+        "src\\styles.css:8749",
+        "src\\styles.css:9070",
+        "src\\styles.css:11149"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\check.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:81",
+        "index.html:1431",
+        "index.html:1538",
+        "src\\app.js:160"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\chevron.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:49",
+        "index.html:69",
+        "index.html:749",
+        "index.html:870",
+        "index.html:892",
+        "index.html:928",
+        "index.html:929"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\compute-use.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:308",
+        "index.html:1455",
+        "src\\styles.css:10430"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\context-ring.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:391",
+        "index.html:1383",
+        "index.html:1444",
+        "index.html:1445",
+        "index.html:1447"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\crosshair.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:1434",
+        "index.html:1437",
+        "index.html:1438",
+        "index.html:1446",
+        "index.html:1448",
+        "src\\styles.css:11443",
+        "src\\styles.css:11535"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\delete.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:132",
+        "index.html:263",
+        "index.html:639",
+        "index.html:958",
+        "src\\styles.css:4077"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\diff.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:127"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\file.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:129",
+        "src\\app.js:77",
+        "src\\app.js:203",
+        "src\\styles.css:4078",
+        "src\\styles.css:11533"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\folder.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:57",
+        "index.html:130",
+        "index.html:622",
+        "index.html:690",
+        "index.html:853"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\link.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:109",
+        "index.html:1441",
+        "src\\app.js:215",
+        "src\\devin_auth.js:11",
+        "src\\styles.css:11444"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\lock.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:685",
+        "index.html:706",
+        "index.html:1471",
+        "src\\styles.css:3130",
+        "src\\styles.css:3155"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\logs.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": []
+    },
+    {
+      "asset": "assets\\icons-wuxia\\maximize.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "src\\app.js:157"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\mcp-tools.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:290",
+        "index.html:788",
+        "index.html:863"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\media.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": []
+    },
+    {
+      "asset": "assets\\icons-wuxia\\memory.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "src\\app.js:216",
+        "src\\styles.css:9074"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\microphone.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:396",
+        "index.html:762",
+        "src\\styles.css:11157"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\model-scroll.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:108",
+        "index.html:272",
+        "index.html:855",
+        "index.html:1284",
+        "src\\app.js:206"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\more-vertical.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:111"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\package-crate.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:116",
+        "index.html:1262",
+        "src\\app.js:212",
+        "src\\app.js:2077"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\pause.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:749",
+        "src\\app.js:6759"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\pin.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:1373"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\plus.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:637",
+        "index.html:1061",
+        "index.html:1130",
+        "src\\styles.css:4076"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\project.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:7",
+        "src\\app.js:207",
+        "src\\styles.css:9065",
+        "src\\styles.css:9068"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\queue.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:886"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\refresh.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:120",
+        "index.html:133",
+        "index.html:260",
+        "index.html:262",
+        "index.html:426",
+        "index.html:685",
+        "index.html:932",
+        "index.html:1131",
+        "index.html:1242",
+        "index.html:1277",
+        "index.html:1333",
+        "index.html:1462",
+        "src\\app.js:213",
+        "src\\app.js:4972",
+        "src\\app.js:9580",
+        "src\\devin_auth.js:13"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\rename.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:131",
+        "index.html:638"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\route-plan.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:261",
+        "index.html:317",
+        "src\\app.js:204"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\save.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:128",
+        "index.html:259",
+        "index.html:531",
+        "index.html:1073"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\search.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:134",
+        "index.html:646",
+        "index.html:931",
+        "src\\app.js:205"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\send.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:602",
+        "index.html:761",
+        "index.html:889",
+        "src\\app.js:6760",
+        "src\\app.js:12306",
+        "src\\app.js:12325",
+        "src\\app.js:19426"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\settings.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:107",
+        "index.html:654",
+        "index.html:670",
+        "src\\app.js:214",
+        "src\\styles.css:9069",
+        "src\\styles.css:11153",
+        "src\\styles.css:11534"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\shield.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:702",
+        "index.html:785",
+        "index.html:856",
+        "index.html:1194",
+        "index.html:1452",
+        "index.html:1454",
+        "index.html:1539",
+        "src\\app.js:161",
+        "src\\app.js:2074",
+        "src\\styles.css:5055",
+        "src\\styles.css:9267",
+        "src\\styles.css:11445",
+        "src\\styles.css:11526"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\skill-star.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:115",
+        "index.html:299",
+        "src\\app.js:211",
+        "src\\styles.css:3122"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\speaker.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:390",
+        "index.html:1285"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\split-pane.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:618",
+        "src\\app.js:150",
+        "src\\app.js:151",
+        "src\\app.js:154"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\stop.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:392",
+        "index.html:397",
+        "index.html:774",
+        "index.html:874",
+        "index.html:933",
+        "index.html:1537",
+        "src\\app.js:155",
+        "src\\app.js:162",
+        "src\\app.js:6837",
+        "src\\app.js:6946",
+        "src\\app.js:12312",
+        "src\\app.js:19426",
+        "src\\devin_auth.js:12"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\tasks.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:106",
+        "index.html:782",
+        "index.html:857",
+        "index.html:1084",
+        "index.html:1136",
+        "src\\app.js:202",
+        "src\\app.js:208",
+        "src\\app.js:4971",
+        "src\\app.js:12196",
+        "src\\styles.css:3126",
+        "src\\styles.css:9073",
+        "src\\styles.css:11532"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\terminal.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:114",
+        "index.html:281",
+        "index.html:957",
+        "src\\app.js:209",
+        "src\\styles.css:9072"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\unlock.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:694",
+        "index.html:705",
+        "src\\styles.css:5061",
+        "src\\styles.css:9273"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\upload.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:756"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\vision.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": [
+        "index.html:1429",
+        "src\\app.js:217",
+        "src\\styles.css:9075",
+        "src\\styles.css:11442"
+      ]
+    },
+    {
+      "asset": "assets\\icons-wuxia\\worktree.svg",
+      "viewBox": "0 0 24 24",
+      "colors": [
+        "#c7aa70",
+        "#d8b86e",
+        "#f2dfab"
+      ],
+      "references": []
+    }
+  ],
+  "new_images": [
+    {
+      "name": "button-skin.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha_bounds": [
+        78,
+        89,
+        1176,
+        1158
+      ],
+      "visible_ratio": [
+        0.8755980861244019,
+        0.8524720893141946
+      ]
+    },
+    {
+      "name": "status-jade.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha_bounds": [
+        41,
+        24,
+        1212,
+        1204
+      ],
+      "visible_ratio": [
+        0.9338118022328549,
+        0.9409888357256778
+      ]
+    },
+    {
+      "name": "status-lantern.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha_bounds": [
+        201,
+        33,
+        1053,
+        1218
+      ],
+      "visible_ratio": [
+        0.6794258373205742,
+        0.9449760765550239
+      ]
+    }
+  ],
+  "http_resources": [
+    {
+      "asset": "assets/avatars/ai-core.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/alien-jelly.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/astronaut-pixel.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/cat-black.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/mushroom-butler.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/robot-cyan.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/robot-gold.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/robot-green.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/robot-purple.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/robot-red.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/shiba-captain.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/star-sprite.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/turtle-mechanic.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-swordsman.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-v3/bamboo-swordsman.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-v3/feather-guard.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-v3/gold-commander.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-v3/ink-shadow.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-v3/jade-strategist.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-v3/mechanist.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-v3/scripture-monk.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/avatars/wuxia-v3/wandering-physician.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/alert-triangle.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/archive.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/branch.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/browser.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/camera.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/chat.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/check.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/chevron.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/compute-use.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/context-ring.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/crosshair.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/delete.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/diff.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/file.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/folder.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/link.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/lock.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/logs.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/maximize.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/mcp-tools.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/media.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/memory.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/microphone.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/model-scroll.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/more-vertical.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/package-crate.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/pause.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/pin.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/plus.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/project.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/queue.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/refresh.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/rename.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/route-plan.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/save.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/search.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/send.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/settings.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/shield.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/skill-star.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/speaker.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/split-pane.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/stop.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/tasks.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/terminal.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/unlock.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/upload.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/vision.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/icons-wuxia/worktree.svg",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/bamboo-wuxia-stage-bg-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/bridge/bridge-scene-baked-crew.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/bridge/crew-astronaut-pilot.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/bridge/hologram-earth-texture.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/bridge/starfield-flight-texture.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/chat-backgrounds/wuxia-bamboo-moonlit-chat-stage-v2.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/jade-controls-v3/button-skin.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/jade-controls-v3/status-jade.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/jade-controls-v3/status-lantern.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/p5/chat-watermark-jade-sword-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/p5/topbar-three-plate-scroll-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/p6/brand-banner-wuxia-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/scroll-frame/coolzhu-jade-wordmark-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/scroll-frame/original-bamboo-background-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/scroll-frame/scroll-frame-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/three-column/jade-success-sweep-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/three-column/rail-lantern-gold-v1.png",
+      "status": 200,
+      "matches_source": true
+    },
+    {
+      "asset": "assets/ui-redesign/three-column/vermilion-seal-blank-v1.png",
+      "status": 200,
+      "matches_source": true
+    }
+  ]
+}

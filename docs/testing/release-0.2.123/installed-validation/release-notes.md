@@ -1,0 +1,1 @@
+0.2.123预发布：修复Browser文本效果归因及同文档滚动身份；独立正式SWE-2长程8动作、宿主2/2，后续DSH总额3514，两工具各一次完成、单end_turn/drained/唯一island解锁。无关行情负例一次CU两次无效click均inconclusive、no_progress2停止、零第三次。正常构建/安装0、6门pass、1159文件逐SHA，源码407126d两路CI成功。严格原生竞态和32WBS仍开放。未签名，不标latest。详见docs/testing/release-0.2.123/change-report-and-test-handoff.md。

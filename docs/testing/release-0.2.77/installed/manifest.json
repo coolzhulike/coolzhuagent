@@ -1,0 +1,97 @@
+[
+  {
+    "file": "github-release-verification.json",
+    "bytes": 1704,
+    "sha256": "3c8a50176a409437c9c043c72ebc09be7014984d83db156f75915ee7fac420d6"
+  },
+  {
+    "file": "install-077-result.json",
+    "bytes": 282,
+    "sha256": "7640d4d0ca487a72523f763c6bc195072b02f855bd47eee7f6f8cc3ff365bea0"
+  },
+  {
+    "file": "installed-077-verification.json",
+    "bytes": 863,
+    "sha256": "3f3be68791b3e3578d2a39c5d838bb7bce5d3de6a8993ffb86b9c2f72a28d5bf"
+  },
+  {
+    "file": "installed-auth-refresh-diagnostics.json",
+    "bytes": 280,
+    "sha256": "7e35928e165b7c56cb4a0f4aa77b222ea4647de3bedb1997db0edd96f89735c8"
+  },
+  {
+    "file": "installed-cold-diagnostics.json",
+    "bytes": 4543,
+    "sha256": "903f82f40b77ac6266fcf0d36772583b57ee835a7581e523b63058333b8d5f97"
+  },
+  {
+    "file": "installed-context-facts.json",
+    "bytes": 1512,
+    "sha256": "0d129545c33c684c591ed7c4d4d11de39f7096d6078d9a4e2e70f389463f67ef"
+  },
+  {
+    "file": "installed-context-native.png",
+    "bytes": 201192,
+    "sha256": "48420bd3e6e9254bb5fd0bb87f7013a68cfbdddf67e08156c296d22afd9b6454"
+  },
+  {
+    "file": "installed-expired-diagnostics.json",
+    "bytes": 4546,
+    "sha256": "cbbedd565082ac8f074a346fa7bf4da84afd464de7109a95c81ad7977f3e5998"
+  },
+  {
+    "file": "installed-login-native.png",
+    "bytes": 217614,
+    "sha256": "2bfd49cfdb0b62f0bd64dc74361979ed5bbb7e3a097635602c3fc8ffa9c090b9"
+  },
+  {
+    "file": "installed-process.json",
+    "bytes": 359,
+    "sha256": "5c6f64890c5a0ad5da3fcc9a85816c5c8dc60ac6f955a5d6e1ca02af14a0e402"
+  },
+  {
+    "file": "installed-shell-process.json",
+    "bytes": 351,
+    "sha256": "dbd0869ea199896fc23761184d5808b126d58cd434e69805060846ab1dcf9e91"
+  },
+  {
+    "file": "installed-version-native.png",
+    "bytes": 178083,
+    "sha256": "7c59d8cc34d489b16b58d2ce15459eaacf23a8105a88876697c2432274c4e8bc"
+  },
+  {
+    "file": "installed-warm-diagnostics.json",
+    "bytes": 3778,
+    "sha256": "4bd392a01b2aea478cf5f175c83707822d61a8d2b6779be84c1739edf9ff4a54"
+  },
+  {
+    "file": "package-077-verification.json",
+    "bytes": 848,
+    "sha256": "ac1b724dfc20708a05638995efb78427b72b9167a63cae6deb088df33661afc4"
+  },
+  {
+    "file": "restored-daily-native.png",
+    "bytes": 199827,
+    "sha256": "562bf5f0251e5174bfb816c1ba211ee761afd4a8b60474b175726494ee54f3fc"
+  },
+  {
+    "file": "restored-daily-process.json",
+    "bytes": 1091,
+    "sha256": "2f84598c4fdc6f277a5ef808442a02aec0cc4fa960f5eaa0e12c2695c1d9d3b4"
+  },
+  {
+    "file": "restored-daily-selfcheck.json",
+    "bytes": 1779,
+    "sha256": "1cfe8228200e9cae8bda56d65a763f3c3e40cc38828356a783d3f1e277808271"
+  },
+  {
+    "file": "source-ci-status.json",
+    "bytes": 1198,
+    "sha256": "52a05fabc50fad75be69881023d888d75149e38876576887e82536caf07dfe59"
+  },
+  {
+    "file": "verification.json",
+    "bytes": 842,
+    "sha256": "09902f25e51e9a5ff551e69d148600065f0f16ca2a5e4bccf26404161d4c38f8"
+  }
+]

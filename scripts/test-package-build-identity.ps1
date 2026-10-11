@@ -514,6 +514,30 @@ try {
     -Detail ("vcs_state={0} source_commit={1} dirty_against_commit={2}（未跟踪快照不能伪装成干净提交）vcs_reference_commit={3}" -f $vcs.vcs_state, $(if ($null -eq $vcs.source_commit) { 'null' } else { 'set' }), $vcs.dirty_against_commit, $(if ($vcs.vcs_reference_commit) { $vcs.vcs_reference_commit.Substring(0, 12) } else { '(none)' }))
 
   # ==================================== I08/I09/I10 package-all 全流程（成功） ==
+  # 模拟 Cargo 消息采集，验证原始回执归档字段实际进入成功报告及内容哈希。
+  $captured = New-IdentityCase -Name 'pipeline-cargo-capture'
+  $captureScript = Join-Path $captured.sourceRoot 'crate/capture.ps1'
+  Write-FixtureText -Path $captureScript -Text @'
+Write-Output '{"reason":"compiler-artifact","package_id":"fixture","target":{"name":"fixture","kind":["bin"]}}'
+Write-Output '{"reason":"build-finished","success":true}'
+'@
+  $captureManifest = Get-Content -Raw -LiteralPath $captured.manifestPath | ConvertFrom-Json
+  $captureManifest.artifacts[0] | Add-Member -NotePropertyName build -NotePropertyValue ([ordered]@{
+    command = 'powershell'; args = @('-NoProfile', '-File', $captureScript, '--message-format=json-render-diagnostics')
+    working_dir = '.'; capture = 'cargo-json-messages'
+  })
+  Write-FixtureText -Path $captured.manifestPath -Text ($captureManifest | ConvertTo-Json -Depth 12)
+  & $packageScript -Manifest $captured.manifestPath -Configuration debug -ReportPath $captured.reportPath -PackageRoot $captured.packagePath | Out-Null
+  $captureReport = Get-Content -Raw -LiteralPath $captured.reportPath | ConvertFrom-IdentityJson
+  $captureEntry = @($captureReport.cargo_build_evidence.entries)[0]
+  $captureArchive = Join-Path $workspaceFull $captureEntry.path
+  Assert-PackageReportContentHash -Report $captureReport | Out-Null
+  Assert-Case -Id 'I08e-cargo-evidence-bound' -Condition (
+    $captureReport.cargo_build_evidence.status -eq 'collected' -and
+    $captureEntry.run_id -eq $captureReport.run_id -and $captureEntry.artifact_id -eq 'fixture.payload' -and
+    $captureEntry.sha256 -eq (Get-IdentityFileHash -Path $captureArchive) -and
+    $captureEntry.length -eq (Get-Item -LiteralPath $captureArchive).Length
+  ) -Detail '模拟成功构建回执的运行/产物/原始字节哈希绑定进入实际成功报告；不代表正式 Cargo 交付'
   $success = New-IdentityCase -Name 'pipeline-ok'
   & $packageScript -Manifest $success.manifestPath -Configuration debug -ReportPath $success.reportPath -PackageRoot $success.packagePath | Out-Null
 

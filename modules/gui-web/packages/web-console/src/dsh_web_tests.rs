@@ -55,6 +55,7 @@ impl IsolatedScope {
             active_chat_room_id: Some(ROOM.into()),
         };
         let store = SessionStore {
+            writer: None,
             history_edits: Vec::new(),
             committed_state: None,
             path: db,
@@ -194,7 +195,7 @@ async fn pending_model(
         "{}",
         response.notes.join("; ")
     );
-    assert!(!response.dispatch_plan.unwrap().audit.executed);
+    assert_eq!(response.dispatch_plan.unwrap().audit.executed, Some(false));
     let (execution, status, run, scope) =
         ledger(parent.runtime_db_path.as_ref().unwrap(), provider_id);
     assert_ne!(

@@ -1,0 +1,97 @@
+[
+  {
+    "name": "address.json",
+    "bytes": 193,
+    "sha256": "d3f98d6945706cb5f7997b7247aacb53479b78381411108ba791d10ed58ff0a1"
+  },
+  {
+    "name": "before.json",
+    "bytes": 1172,
+    "sha256": "cd8cd31bcb9a373e4070de2b44f8d0ee51de8d102bcd3562e01d5b94e571c012"
+  },
+  {
+    "name": "body.json",
+    "bytes": 44498,
+    "sha256": "23996c6fc1d8880827952113b3521bb0c62b08df1755478d41129f12a3633505"
+  },
+  {
+    "name": "calculator-evidence.json",
+    "bytes": 332,
+    "sha256": "9c0eea7dcaf71a8a4d3b7a0a5f0e378c8c4fff339fe156dbbcdf1575c320680c"
+  },
+  {
+    "name": "collect.py",
+    "bytes": 2847,
+    "sha256": "2201d20b992bf5ae28f5eaef26dc137a97d4e86c111b5ccc3041f7741b571e09"
+  },
+  {
+    "name": "expected.json",
+    "bytes": 232,
+    "sha256": "18310ea6530f1dfabf39b98f6706e7b671cda460885fe50de3cd71273245787d"
+  },
+  {
+    "name": "network-events.jsonl",
+    "bytes": 485,
+    "sha256": "ccb39d8ecab37e7149715965db8454820af3a381cebcfab24da92c74c9fd6941"
+  },
+  {
+    "name": "original-tool-result.json",
+    "bytes": 111227,
+    "sha256": "3b5e5ad706d74d34ba72c51c47bc6ffcd833577a105c8dc4cfdfaf22cace1d50"
+  },
+  {
+    "name": "prepare.py",
+    "bytes": 4485,
+    "sha256": "c7d798e51345737a44411f34bb1ca9bbdd9de61bc46b9bfb4868fe0bcc77ef22"
+  },
+  {
+    "name": "restore.py",
+    "bytes": 2840,
+    "sha256": "6a16934ba1fe02ac3ceb2c6c3262b2daa6ef3bea51e8033e22fe3152b92bee3b"
+  },
+  {
+    "name": "restored.json",
+    "bytes": 6218,
+    "sha256": "a985f63d0edd73aed6118fea0ccd3d432dc1868923c586b41f82326a9825f80c"
+  },
+  {
+    "name": "result.json",
+    "bytes": 4156,
+    "sha256": "6bb1a6fd9c6bd8f61f444a3082641559adae359e0ea7280bf11c0c5c25ee528c"
+  },
+  {
+    "name": "send.py",
+    "bytes": 2453,
+    "sha256": "de3fb30493c9ff1c56758ac6bad4c148516b130319f6a25d6c690dccc597df0b"
+  },
+  {
+    "name": "server.py",
+    "bytes": 2379,
+    "sha256": "3d89b62810cdd5fb0cb7717ec4685e8dfed5c1e7d862fa3951d150410ba323f8"
+  },
+  {
+    "name": "stream-finished.json",
+    "bytes": 190,
+    "sha256": "7b748a7755e48426a5d14941ab1d81bc06b904c5023d2d6f98fe7ae353e59a32"
+  },
+  {
+    "name": "submitted-request.json",
+    "bytes": 1462,
+    "sha256": "58c653e09eed710565570b1acff06060cbfd35fdcff3880b8dc29a6ad7223ad7"
+  },
+  {
+    "name": "temporary-tool.json",
+    "bytes": 700,
+    "sha256": "b64bf4e33638d9fcba0085c80e4e723ecf18109e5f83fed176fe4490d06be8a4"
+  },
+  {
+    "name": "verification.json",
+    "bytes": 1376,
+    "sha256": "a750b8ef53fc5225e7e2309bcfce24a15f66b0474c9c8f415aff953f7e0f1f27"
+  },
+  {
+    "name": "verify.py",
+    "bytes": 3972,
+    "sha256": "ae8c59073f1051416dab8d7878b3c1a0581d2b519bf3574f3d35761c8a0b45aa"
+  }
+]

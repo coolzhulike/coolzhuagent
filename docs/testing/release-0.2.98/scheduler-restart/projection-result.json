@@ -1,0 +1,244 @@
+{
+  "marker": "SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008",
+  "stage": "正式0.2.98",
+  "model_requests_expected": 0,
+  "before_ledger": {
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ],
+    "attempts": 930,
+    "usage": 539
+  },
+  "created_goal": {
+    "id": "goal-1791491165835-6f41f194",
+    "workspace_id": "ws-23f646a969206cb4",
+    "chat_room_id": "room-1791131523339",
+    "title": "SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008",
+    "status": "planning",
+    "max_iterations": 1,
+    "current_iteration": 0,
+    "background": false,
+    "originating_user_msg_id": null,
+    "completion_condition": {
+      "type": "UserConfirm"
+    },
+    "plan": null,
+    "phases": [],
+    "recent_events": [
+      {
+        "id": "goal-event-1791491165849-588b82c4",
+        "goal_id": "goal-1791491165835-6f41f194",
+        "event_type": "goal-created",
+        "message": "Goal contract created; loop execution is not started in G1.",
+        "payload": {
+          "chat_room_id": "room-1791131523339",
+          "title": "SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008"
+        },
+        "created_at": 1791491165849
+      }
+    ],
+    "created_at": 1791491165835,
+    "updated_at": 1791491165835,
+    "cancelled_at": null
+  },
+  "cancelled_goal": {
+    "id": "goal-1791491165835-6f41f194",
+    "workspace_id": "ws-23f646a969206cb4",
+    "chat_room_id": "room-1791131523339",
+    "title": "SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008",
+    "status": "cancelled",
+    "max_iterations": 1,
+    "current_iteration": 0,
+    "background": false,
+    "originating_user_msg_id": null,
+    "completion_condition": {
+      "type": "UserConfirm"
+    },
+    "plan": null,
+    "phases": [],
+    "recent_events": [
+      {
+        "id": "goal-event-1791491165864-11e618ad",
+        "goal_id": "goal-1791491165835-6f41f194",
+        "event_type": "goal-cancelled",
+        "message": "Goal cancelled by user.",
+        "payload": {
+          "cancelled_at": 1791491165862,
+          "previous_status": "planning"
+        },
+        "created_at": 1791491165864
+      },
+      {
+        "id": "goal-event-1791491165849-588b82c4",
+        "goal_id": "goal-1791491165835-6f41f194",
+        "event_type": "goal-created",
+        "message": "Goal contract created; loop execution is not started in G1.",
+        "payload": {
+          "chat_room_id": "room-1791131523339",
+          "title": "SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008"
+        },
+        "created_at": 1791491165849
+      }
+    ],
+    "created_at": 1791491165835,
+    "updated_at": 1791491165862,
+    "cancelled_at": 1791491165862
+  },
+  "scheduled_task": {
+    "id": "schedule-1791491165890-8254774b6f41f194",
+    "target_session_id": "session-1791131217833",
+    "content": "SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008",
+    "run_at_ms": 1791491170875,
+    "interval_ms": null,
+    "permissions": [],
+    "status": "scheduled",
+    "created_at_ms": 1791491165890,
+    "last_run_at_ms": null,
+    "last_error": null,
+    "schedule_kind": "once",
+    "wall_hour": 0,
+    "wall_minute": 0,
+    "weekdays": [],
+    "tz_offset_minutes": 0,
+    "task_kind": "goal",
+    "goal_id": "goal-1791491165835-6f41f194"
+  },
+  "locked_run_due": {
+    "ran": [
+      {
+        "id": "schedule-1791491165890-8254774b6f41f194",
+        "status": "projection_pending",
+        "message": "执行结果已持久化，但计划状态回写失败；下次只修复投影，不重放：配置未发布：拒绝访问。 (os error 5)"
+      }
+    ]
+  },
+  "while_locked_list": {
+    "generated_at": 1791491171068,
+    "dev_open_permissions": true,
+    "due_count": 1,
+    "tasks": [
+      {
+        "id": "schedule-1791491165890-8254774b6f41f194",
+        "target_session_id": "session-1791131217833",
+        "content": "SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008",
+        "run_at_ms": 1791491170875,
+        "interval_ms": null,
+        "permissions": [],
+        "status": "scheduled",
+        "created_at_ms": 1791491165890,
+        "last_run_at_ms": null,
+        "last_error": null,
+        "schedule_kind": "once",
+        "wall_hour": 0,
+        "wall_minute": 0,
+        "weekdays": [],
+        "tz_offset_minutes": 0,
+        "task_kind": "goal",
+        "goal_id": "goal-1791491165835-6f41f194"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "schedule-1791491165890-8254774b6f41f194",
+        "scheduled_for_ms": 1791491170875,
+        "state": "recorded",
+        "message": "本次触发结果已记录，计划尚未回写；未重复执行"
+      }
+    ]
+  },
+  "claims_before_restart": [
+    {
+      "workspace_id": "ws-23f646a969206cb4",
+      "task_id": "schedule-1791491165890-8254774b6f41f194",
+      "scheduled_for_ms": 1791491170875,
+      "fingerprint": "57a93a64a70ad7e96833257f764e0abbc0c7372c05932db1b57b081776f1e8f2",
+      "state": "settled",
+      "started_at_ms": 1791491170999,
+      "outcome_json": "{\"id\":\"schedule-1791491165890-8254774b6f41f194\",\"executed\":true,\"message\":\"\",\"goal_completed\":true,\"content_update\":\"Goal「SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008」已取消，停止推进\"}"
+    }
+  ],
+  "harness_failure": "no such column: chat_room_id",
+  "recovery_observations": [
+    {
+      "generated_at": 1791491211619,
+      "status": "completed"
+    }
+  ],
+  "recovered_list": {
+    "generated_at": 1791491211619,
+    "dev_open_permissions": true,
+    "due_count": 0,
+    "tasks": [
+      {
+        "id": "schedule-1791491165890-8254774b6f41f194",
+        "target_session_id": "session-1791131217833",
+        "content": "Goal「SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008」已取消，停止推进",
+        "run_at_ms": 1791491170875,
+        "interval_ms": null,
+        "permissions": [],
+        "status": "completed",
+        "created_at_ms": 1791491165890,
+        "last_run_at_ms": 1791491170999,
+        "last_error": null,
+        "schedule_kind": "once",
+        "wall_hour": 0,
+        "wall_minute": 0,
+        "weekdays": [],
+        "tz_offset_minutes": 0,
+        "task_kind": "goal",
+        "goal_id": "goal-1791491165835-6f41f194"
+      }
+    ],
+    "occurrences": []
+  },
+  "claims_after_live_recovery": [
+    {
+      "workspace_id": "ws-23f646a969206cb4",
+      "task_id": "schedule-1791491165890-8254774b6f41f194",
+      "scheduled_for_ms": 1791491170875,
+      "fingerprint": "57a93a64a70ad7e96833257f764e0abbc0c7372c05932db1b57b081776f1e8f2",
+      "state": "settled",
+      "started_at_ms": 1791491170999,
+      "outcome_json": "{\"id\":\"schedule-1791491165890-8254774b6f41f194\",\"executed\":true,\"message\":\"\",\"goal_completed\":true,\"content_update\":\"Goal「SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008」已取消，停止推进\"}"
+    }
+  ],
+  "status_messages_after_live_recovery": [
+    [
+      "sched-status-1791491171013-1",
+      "[跳过] Goal「SCHEDULER-PROJECTION-RECOVERY-INSTALLED098-20261008」已取消，停止推进"
+    ]
+  ],
+  "after_ledger": {
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ],
+    "attempts": 930,
+    "usage": 539
+  },
+  "passed_scope": "正式真实文件占用导致计划回写失败；后续真实定时器仅修复投影，领取事实不变，状态消息1次、模型0次。未执行重启回写恢复。",
+  "owned_schedule_removed": {
+    "generated_at": 1791491258172,
+    "dev_open_permissions": true,
+    "due_count": 0,
+    "tasks": [],
+    "occurrences": []
+  }
+}

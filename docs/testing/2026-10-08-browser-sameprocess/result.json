@@ -1,0 +1,148 @@
+{
+  "stage": "源码候选桌面壳＋源码配套后台，非正式安装版",
+  "marker": "BU-CANDIDATE-SAMEPROCESS-VIEWPORT-20261008",
+  "base_commit": "715f5e469f69d4d1b19e62c1da1b537586e81f3a",
+  "candidate_processes": {
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "shell_sha256": "89021497c029d8cf43af56ddbc7aeb8fe8f911240e5b5c472489df2e9f8b5dea",
+    "port": 8765,
+    "shell_pid": 9504,
+    "stage": "094源码后台+同进程viewport候选桌面壳；源码静态根；非正式安装验收",
+    "web_started": "2026-10-08T16:39:39.6240249Z",
+    "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-08-browser-sameprocess\\bin\\coolzhu-tauri-shell.exe",
+    "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-08-browser-sameprocess\\bin\\coolzhu-web-console.exe",
+    "web_sha256": "d680b7b466cfeeed93c64abfe0243771445ca406052f3178cd76100e65e947cf",
+    "shell_started": "2026-10-08T16:39:41.3276622Z",
+    "web_pid": 296
+  },
+  "run": {
+    "id": "run-chat-e8abb031f690062a3348831d981b68d9161136c550a51213",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "calls": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791477669600-0-tool-2232aa2be518ae2146ffc382fd29486eea45bd69daad67016530ae251a4aff33",
+      "result": {
+        "status": "succeeded",
+        "goal_achieved": true,
+        "attempts": 2,
+        "steps_completed": 2,
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 2,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791478569600
+            }
+          },
+          "cu_deadline_ms": 1791478569600,
+          "cu_deadline_established_at_ms": 1791477686929,
+          "cu_budget_ms": 900000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "scroll",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 1,
+          "action_type": "scroll",
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "child-scroll",
+      "page_ms": 1791477702556.1,
+      "left": 0,
+      "top": 600,
+      "height": 230,
+      "trusted": true,
+      "observed_ms": 1791477702561.3398
+    },
+    {
+      "kind": "child-wheel",
+      "page_ms": 1791477702555.3,
+      "left": 0,
+      "top": 600,
+      "height": 230,
+      "trusted": true,
+      "observed_ms": 1791477702561.436
+    },
+    {
+      "kind": "child-wheel",
+      "page_ms": 1791477722435.8,
+      "left": 0,
+      "top": 898.6666870117188,
+      "height": 230,
+      "trusted": true,
+      "observed_ms": 1791477722441.1328
+    },
+    {
+      "kind": "child-scroll",
+      "page_ms": 1791477722436.3,
+      "left": 0,
+      "top": 898.6666870117188,
+      "height": 230,
+      "trusted": true,
+      "observed_ms": 1791477722441.6743
+    },
+    {
+      "kind": "child-completed",
+      "page_ms": 1791477722436.8,
+      "left": 0,
+      "top": 898.6666870117188,
+      "height": 230,
+      "trusted": true,
+      "observed_ms": 1791477722442.5188
+    }
+  ],
+  "remote_attempts": [
+    {
+      "attempt_id": "c9cddb1009e4962ea992535c1fb11dd1cee511d43201bab5",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`，criteria_met 1/1，freshness_confirmed）。\n\n- **实际步数**：2 步，均为 SAMEPROCESS-CHILD RootWebArea 上 down×5 滚动（input sent，effect_observed）\n- **子视口真实进展**：page_y 0 → 600 → 滚动至末端\n- **父文档**：page_y 始终 0.0，保持原位\n- **最终宿主观察**：子文档 StaticText（index 14）原文\"子滚动验收完成\"\n\n无点击/输入/导航，无重试补发。如实报告：本轮 succeeded。",
+  "screenshot": "01-candidate-completed.jpg",
+  "evidence_limit": "完整逐轮观察原文未单独持久化；父page_y=0来自最终宿主观察，子位置来自真实网页可信事件；第一步visible_progress来自宿主步骤台账。"
+}

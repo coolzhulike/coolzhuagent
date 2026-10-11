@@ -1,0 +1,46 @@
+Browser tab: 3, Title: "COOLZHU CODE 控制台", URL: "http://127.0.0.1:8767/".
+1 AXWebArea COOLZHU CODE 控制台, URL: 127.0.0.1:8767/
+	2 container COOLZHU CODE 控制台
+		3 container 顶部状态区
+			4 container COOLZHU
+				5 text COOLZHU
+			6 container 发送对象与工作区
+				7 container
+					8 pop up button (collapsed) Description: 选择发送对象。将发送给：Devin SWE-2 真实CU验收 (swe-2-medium), Help: 将发送给：Devin SWE-2 真实CU验收 (swe-2-medium), Secondary Actions: Expand
+						2310 text Devin SWE-2 真实CU验收 (swe-2-medium)
+					10 pop up button (collapsed) Description: 切换工程目录, Secondary Actions: Expand, Help: 切换工程目录：C:\Users\zhupu\.codex\worktrees\input-recovery-20261004\coolzhuagent\tmp\2026-10-08-release-109\wal-drill3\upgrade
+			11 container 当前聊天室与状态
+				12 pop up button (collapsed) Description: 切换当前聊天室, Secondary Actions: Expand
+					2311 text WAL迁移恢复验收
+				14 container 当前聊天室权限
+					15 button (collapsed) 目录权限, Secondary Actions: Expand
+						2312 text 目录权限
+		17 container 多窗口工作台
+			18 container 快捷功能栏
+				19 container 快捷功能
+					20 checkbox Description: 首页, Value: 1
+					21 checkbox Description: 定时任务, Value: 0
+					22 checkbox Description: 设置, Value: 0
+					23 checkbox Description: 统计信息, Value: 0
+					24 checkbox Description: 微信连接, Value: 0
+					25 button (collapsed) Description: 更多快捷功能, Help: 更多, Secondary Actions: Expand
+				26 checkbox Description: 升级更新, Value: 0
+			27 container 聊天室窗口
+				28 container
+					29 button 搜索聊天记录与消息索引
+					30 button 查看运行轨迹与安全详情
+					2313 container
+						2314 container
+							2315 text 用户 WAL迁移前消息：这条记录必须进入迁移备份。
+						2316 container
+							2317 text 19:41:08 #1
+						2318 container
+							2319 text 用户 升级后新写入：恢复到独立目录时，这条新记录不得被覆盖。
+						2320 container
+							2321 text 19:41:09 #2
+					33 button 选择附件
+					2322 text field (settable)
+					35 button Description: 发送消息。将发送给：Devin SWE-2 真实CU验收 (swe-2-medium), Help: 将发送给：Devin SWE-2 真实CU验收 (swe-2-medium)
+					36 button (disabled) 语音输入, Help: STT 不可用
+
+The focused UI element is 1 AXWebArea COOLZHU CODE 控制台, URL: 127.0.0.1:8767/

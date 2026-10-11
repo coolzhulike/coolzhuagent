@@ -1,0 +1,10 @@
+{
+  "ui_verified": true,
+  "artifacts": {
+    "wal_restore_ui": "restored-ax.txt",
+    "upgraded_ui": "upgraded-ax.txt",
+    "migration_recovered_ui": "migration-failure/recovered-ax.txt"
+  },
+  "restored_ax": "增量快照，不用于完整正文断言；以已显示截图与独立数据库结果为准",
+  "scope": "正式安装EXE的隔离数据副本，正常页面操作实拍；模型请求0"
+}

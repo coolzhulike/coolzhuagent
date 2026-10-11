@@ -1,0 +1,3 @@
+{"event": "server_started", "unix_ms": 1791504358962.501, "port": 64858, "url": "http://127.0.0.1:64858/actual-large-document", "plugin_id": "dsh-aa909f79795799f288de8a67@external", "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983"}
+{"event": "real_plugin_get", "unix_ms": 1791504656906.483, "path": "/actual-large-document", "bytes": 44498, "sha256": "23996c6fc1d8880827952113b3521bb0c62b08df1755478d41129f12a3633505"}
+{"event": "server_stopped", "unix_ms": 1791504775696.3933}

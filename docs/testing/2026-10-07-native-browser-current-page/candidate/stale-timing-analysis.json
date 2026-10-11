@@ -1,0 +1,34 @@
+{
+  "case": "stale",
+  "request_ms": 1791363001101,
+  "change": {
+    "before_ms": 1791363012644,
+    "action": "普通右栏刷新，替换当前文档；不改变权限",
+    "after_ms": 1791363012747
+  },
+  "response_ms": 1791363005699,
+  "strict_planning_window": false,
+  "all_planning_events": [
+    {
+      "id": 2051,
+      "event_type": "devin.planning_requested",
+      "created_at": 1791363001101
+    },
+    {
+      "id": 2052,
+      "event_type": "devin.planning_response",
+      "created_at": 1791363005699
+    },
+    {
+      "id": 2053,
+      "event_type": "devin.planning_requested",
+      "created_at": 1791363008696
+    },
+    {
+      "id": 2054,
+      "event_type": "devin.planning_response",
+      "created_at": 1791363012133
+    }
+  ],
+  "new_trusted_events": 3
+}

@@ -1,0 +1,23 @@
+{
+  "source_parent": "5ce49a8ea421c336cd0c910f1d9f36fd47996b13",
+  "candidate_sources": {
+    "modules/gui-web/packages/web-console/src/main.rs": {
+      "bytes": 3658002,
+      "sha256": "e497718c0de56d19ce62c74c30b3fafcb141785f36270c68a0e9d01a3a9439c4"
+    },
+    "modules/gui-web/packages/web-console/src/session_config_service.rs": {
+      "bytes": 10442,
+      "sha256": "b4ec69f35a32e0eafee56b023ca78cccc0af2852afb046c4af37e89a2a3cc532"
+    }
+  },
+  "binary_sha256": "45b1f4b5b0b01551fc4d600a12945bc841130078b75c7b992df49a800b831efe",
+  "isolated_runtime_run_counts": {
+    "legacy": 0,
+    "snapshot": 0,
+    "config-save-live3": 0,
+    "ui": 0
+  },
+  "model_requests": 0,
+  "new_cloud_sessions": 0,
+  "formal_release_includes_change": false
+}

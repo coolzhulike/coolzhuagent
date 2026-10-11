@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读架构审查，不修改文件不操作桌面。正式0.2.72真实SWE-2 Browser Use表单：先click姓名再text_input成功，截图显示SWE2-072；第三步直接click视口外checkbox，native_browser_target_outside_viewport/not_sent，未执行scroll，goal=false。新普通HTML表单下方控件需滚动。native_browser_observation当前AX包括视口外节点，candidate只带reference/role/name/focused，没有bounds/visibility；模型没截图；宿主输入预检才查询BoxModel并拒绝视口外中心。本次未放松预检。\n请读取review-browser-viewport目录四份源码，重点observation全文、adapter约245-280行、target坐标与预检逻辑、protocol PageObservation/NodeHandle字段。评估是否确属agent观察接口缺口及最小改进：观察阶段复用固定只读DOM.getBoxModel，提供各候选相对于当前cssVisualViewport的in_viewport布尔或unknown，供模型先scroll；不用Runtime自定义JS、不自动scroll后继续click、不修改预检/权限，不让可见性授予输入资格。需要控制节点数/查询时间且不要过滤离屏节点导致无法发现目标。可选bool属性或PageObservation单独列表哪个职责最合理？判定不可获得应unknown；首次观察/执行必须原文档身份。另history第三click重复push而非forward，暂不足证明adapter映射问题，不应放松验收。请给可行性、性能/竞态风险和简单执行计划，不超过700中文字。",
+  "selected_message_ids": [],
+  "attachments": []
+}

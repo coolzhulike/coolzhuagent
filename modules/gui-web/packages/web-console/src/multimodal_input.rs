@@ -3,6 +3,7 @@ use super::*;
 
 /// 视觉转述是附件资料，不能成为工具权限或桌面操作意图的来源。
 pub(super) fn user_intent_text(text: &str) -> &str {
+    let text = text.split_once(attachment_text::MARKER).map_or(text, |(user, _)| user);
     text.split_once("\n\n【附件图片的视觉转述】").map_or(text, |(user, _)| user)
 }
 
@@ -35,10 +36,10 @@ impl PreparedImages {
         if urls != self.image_urls.iter().map(String::as_str).collect::<Vec<_>>() {
             return Err(input_error("本轮上下文预算无法完整保留图片；请减少图片数量或提高会话上下文预算后重试。"));
         }
-        if self.described && !current.into_iter().flat_map(|m| &m.content).any(|b| {
+        if (self.described || self.prompt.contains(attachment_text::MARKER)) && !current.into_iter().flat_map(|m| &m.content).any(|b| {
             matches!(b, InputContentBlock::Text { text } if text == &self.prompt)
         }) {
-            return Err(input_error("本轮上下文预算无法完整保留视觉描述；请提高会话上下文预算后重试。"));
+            return Err(input_error("本轮上下文预算无法完整保留附件文本或视觉描述；请减少附件或提高会话上下文预算后重试。"));
         }
         Ok(())
     }
@@ -128,6 +129,8 @@ pub(super) fn encode_images_from_store(attachments: &[ChatAttachmentDto], store:
         file.take(MAX_IMAGE_BYTES + 1).read_to_end(&mut bytes).map_err(|_| api_error(StatusCode::BAD_REQUEST, "读取图片附件失败。"))?;
         total = total.saturating_add(bytes.len() as u64);
         if bytes.len() as u64 > MAX_IMAGE_BYTES || total > MAX_TOTAL_BYTES { return Err(api_error(StatusCode::BAD_REQUEST, "本轮图片总大小不得超过 32 MiB，单张不得超过 20 MiB。")); }
+        content_blob_store::verify_named_bytes(leaf, &bytes)
+            .map_err(|error| api_error(StatusCode::BAD_REQUEST, &error.to_string()))?;
         // 从实际文件签名选择 MIME，不能把任意文本按调用方声明伪装成图片。
         let mime = if bytes.starts_with(b"\x89PNG\r\n\x1a\n") { "image/png" }
             else if bytes.starts_with(b"\xff\xd8\xff") { "image/jpeg" }
@@ -166,6 +169,7 @@ pub(crate) mod tests {
             };
             let db_path = temp.path().join("sessions.sqlite3");
             let store = SessionStore {
+                writer: None,
                 history_edits: Vec::new(),
                 committed_state: None,
                 path: db_path.clone(), legacy_json_path: temp.path().join("sessions.json"),
@@ -368,7 +372,7 @@ pub(crate) mod tests {
     #[test]
     fn multimodal_attachment_paths_bytes_and_missing_images_fail_explicitly() {
         let temp = tempfile::tempdir().unwrap();
-        let mut attachment = ChatAttachmentDto { name: "image.png".into(), kind: "image".into(),
+        let mut attachment = ChatAttachmentDto { text_snapshot: None, name: "image.png".into(), kind: "image".into(),
             url: "/api/attachments/files/image.png".into(), mime_type: Some("image/jpeg".into()) };
         assert!(encode_images_from_store(&[attachment.clone()], temp.path()).is_err());
         std::fs::write(temp.path().join("image.png"), b"\x89PNG\r\n\x1a\nsynthetic").unwrap();

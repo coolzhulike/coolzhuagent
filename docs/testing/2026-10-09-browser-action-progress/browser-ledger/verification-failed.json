@@ -1,0 +1,8 @@
+{
+  "passed": false,
+  "check_exit_code": 1,
+  "reason": "业务文字变化不应冒领本步效果",
+  "run_id": "run-chat-fb50740f365fd207b9924c3bab7efff0c93fdd565f467b1b",
+  "business_completed": true,
+  "progress_acceptance_passed": false
+}

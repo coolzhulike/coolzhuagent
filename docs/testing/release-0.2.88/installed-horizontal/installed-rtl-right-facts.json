@@ -1,0 +1,192 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791361509998-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-088-HORIZONTAL-RTL-RIGHT-20261007：仅调用一次computer_use_perform，surface=\"browser\"，target.url=\"http://127.0.0.1:56185/rtl.html\"，max_actions=1。操作当前右栏内置原生浏览器，不要调用外部浏览器或其它工具。使用当前HORIZONTAL-RTL-CHILD独立子文档的RootWebArea新鲜dom_ref，只向right滚动一次，amount=2。不要选父页面、不要点击控件、不要导航或用脚本设置位置，失败或边界阻止后立即停止且不补发。目标是只在子页面发生该方向横向滚动，父横向位置和父滚轮次数必须保持0；如果当前已到该方向边界，应not_sent、零滚轮，不能把blocked说成成功。通过当前页面原文子横向位置、子滚轮次数与父位置报告实际结果。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791361510254
+  },
+  "run": {
+    "id": "run-chat-8105941cc7eae6d4e1b70d092b71c62051b887e3bd266518",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`，`criteria_met: 3/3`，`freshness_confirmed: true`）：\n\n- **投递**：`steps_completed=1`——子文档 RootWebArea 一次 direction=right、amount=2 滚动\n- **验收事实**（新鲜观察 `122aaed8…`，节点原文逐项落地）：\n  1. 节点20 `子横向位置：0；子滚轮：2`——由 -390.67 右滚回到 0，子滚轮累计 2 ✓\n  2. 节点5 `父横向位置：0` ✓\n  3. 节点5 `父滚轮：0` ✓",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791361509998-4-tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb",
+      "provider_tool_call_id": "tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb",
+      "turn_id": "chat-turn-1791361509998-4",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791361509998-4\u001fbrowser\u001f在当前右栏内置原生浏览器的horizontal-rtl-child独立子文档中，仅向其rootwebarea横向向右滚动一次（direction=right，amount=2）；父横向位置与父滚轮次数保持0\u001f||http://127.0.0.1:56185/rtl.html|\u001f子横向位置向该方向滚动生效（或已到边界如实not_sent）|父横向位置：0|父滚轮次数：0\u001f只操作当前右栏内置原生浏览器，不调用外部浏览器或其它工具|使用当前horizontal-rtl-child独立子文档的rootwebarea新鲜dom_ref，只向right滚动一次，amount=2；不选父页面、不点击控件、不导航或用脚本设置位置|失败或边界阻止后立即停止且不补发；若已到边界则not_sent、零滚轮，不把blocked说成成功|以当前页面原文的子横向位置、子滚轮次数与父位置报告实际结果",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏内置原生浏览器，不调用外部浏览器或其它工具",
+          "使用当前HORIZONTAL-RTL-CHILD独立子文档的RootWebArea新鲜dom_ref，只向right滚动一次，amount=2；不选父页面、不点击控件、不导航或用脚本设置位置",
+          "失败或边界阻止后立即停止且不补发；若已到边界则not_sent、零滚轮，不把blocked说成成功",
+          "以当前页面原文的子横向位置、子滚轮次数与父位置报告实际结果"
+        ],
+        "max_actions": 1,
+        "objective": "在当前右栏内置原生浏览器的HORIZONTAL-RTL-CHILD独立子文档中，仅向其RootWebArea横向向右滚动一次（direction=right，amount=2）；父横向位置与父滚轮次数保持0",
+        "success_criteria": [
+          "子横向位置向该方向滚动生效（或已到边界如实not_sent）",
+          "父横向位置：0",
+          "父滚轮次数：0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:56185/rtl.html"
+        }
+      },
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791362129957,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791361509998-4-tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb",
+        "provider_tool_call_id": "tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":3,\"criteria_met\":3,\"fresh_observation_id\":\"122aaed869eb2d3f68794d9605fdfcfd\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[20],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":20,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":20,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":2,\"model_met\":true,\"node_indices\":[5],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":5,\"name_chars\":13,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":5,\"inline_has_static_text\":false,\"name_chars\":13,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"b65e38a99eaef6f0c7a6560961d6fcf0\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":35,\"nodes\":[{\"index\":5,\"name\":\"父横向位置：0；父滚轮：0\",\"role\":\"StaticText\"},{\"index\":20,\"name\":\"子横向位置：0；子滚轮：2\",\"role\":\"StaticText\"}],\"title\":\"HORIZONTAL-RTL-PARENT\",\"truncated\":false,\"url\":\"http://127.0.0.1:56185/rtl.html\",\"viewport\":{\"height\":506.6666870117187,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:56185/rtl.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:ac3af0343e3f60034caa7e9c9c5c9efe",
+          "native-ax:1:1",
+          "native-observation:ac3af0343e3f60034caa7e9c9c5c9efe",
+          "native-input:e8c26ecf39d98dc8dfb5948adbcf2144",
+          "native-ax:1:1",
+          "native-observation:b65e38a99eaef6f0c7a6560961d6fcf0",
+          "native-ax:1:1",
+          "native-observation:b65e38a99eaef6f0c7a6560961d6fcf0",
+          "native-ax:1:1",
+          "native-observation:122aaed869eb2d3f68794d9605fdfcfd"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791362409998
+            }
+          },
+          "cu_deadline_ms": 1791362129957,
+          "cu_deadline_established_at_ms": 1791361529957,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791361529957,
+      "updated_at_ms": 1791361548581,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791361509998-4-tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "scroll",
+          "normalized_target": "dom-beb1ae7ebe4aa6dd223b4ebd9bb914f4",
+          "action_fingerprint": "52952ebf809e30af",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:ac3af0343e3f60034caa7e9c9c5c9efe\"]",
+          "after_evidence_ref": "[\"native-ax:1:1\",\"native-observation:b65e38a99eaef6f0c7a6560961d6fcf0\",\"native-ax:1:1\",\"native-observation:122aaed869eb2d3f68794d9605fdfcfd\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791361537682,
+          "completed_at_ms": 1791361539463,
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "native_ticket_id": "f67a4dfeaef29ccf8b4a9fe7cf5873f6",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"0e496112b8dc5c07558a715bad058657\",\"host_id\":\"native-fa12297f059b169af6ef52f02d46c203\",\"process\":{\"instance_id\":\"9e0be38b188e1d9227f8c1034dd5be8e\",\"boot_id\":\"fa12297f059b169af6ef52f02d46c203\",\"pid\":17260,\"creation_time_filetime\":134358347462023864,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":1}},\"attempt_key\":\"browser:dom-beb1ae7ebe4aa6dd223b4ebd9bb914f4:4a9cb08704ccacdb#gen1#cu-session-1791131217833-chat-turn-1791361509998-4-tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb:step-0#attempt1\",\"ticket_id\":\"f67a4dfeaef29ccf8b4a9fe7cf5873f6\",\"observation_id\":\"ac3af0343e3f60034caa7e9c9c5c9efe\",\"document_token\":\"073962b4f80a0e9aa583eb7a0cd5ba66\",\"node_id\":\"beb1ae7ebe4aa6dd223b4ebd9bb914f4\",\"input_kind\":\"scroll\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791361509998-4-tool-5012727412cf0e5b2e69c8c2304c941a1d422e117bf636b2f2a0d8a9c1cf50bb",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{\"amount\":2,\"direction\":\"right\"},\"kind\":\"scroll\",\"redacted_fields\":true,\"target\":\"dom-beb1ae7ebe4aa6dd223b4ebd9bb914f4\"}"
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "child-wheel",
+      "mode": "rtl",
+      "trusted": true,
+      "deltaX": 390.6666666666667,
+      "deltaY": 0,
+      "left": -390.6666564941406,
+      "top": 0,
+      "wheels": 2,
+      "page_ms": 1791361539449.7,
+      "observed_ms": 1791361539454.4973,
+      "host": "localhost:56185"
+    },
+    {
+      "kind": "child-scroll",
+      "mode": "rtl",
+      "trusted": true,
+      "left": 0,
+      "top": 0,
+      "wheels": 2,
+      "page_ms": 1791361539452.7,
+      "observed_ms": 1791361539455.875,
+      "host": "localhost:56185"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "11e53b9d3793c653d7ee67fd55a22ee6c13da59c4e068616",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

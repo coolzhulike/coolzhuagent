@@ -1,0 +1,5 @@
+采证错误记录（均未改动产品数据或冒充通过）
+1. terminal-times.py 初次将相对路径转URI失败；改为resolve后继续。
+2. 随后使用created_at/updated_at错误列名；只读PRAGMA确认实际列created_at_ms/updated_at_ms后修正。
+3. 关闭轮收集晚于下一独立轮提交，全库attempt增量断言失败；改用既有精确run_id的attempt数组数量为1，原全库计数仍作背景，未删除真实模型失败。
+4. 原collect.py保存预设native_browser_resource_changed期待；实际不同结果由独立collect-observed.py核验，未改原脚本冒充预设通过。

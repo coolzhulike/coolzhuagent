@@ -1,0 +1,11 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "native_browser_panel": true,
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "PLUGIN-SOURCE-RACE-101-20261008：正式0.2.101插件固定源码变化的旧资格隔离验收。仅尝试调用一次工具 dsh__1ef9be67fd4ddb42d93d68c084b38983，参数 {\"url\": \"http://127.0.0.1:60949/source-race-20261008\", \"allowPrivate\": true, \"timeoutMs\": 60000, \"maxBytes\": 1024}。验收端会在本轮已受理后改变既有测试插件的一处无语义注释；旧快照应明确拒绝。拒绝是实验预期，只报告实际拒绝和真实结果，不能假报抓取成功，不重试、不补发、不调用其它工具、不修改任何文件、不创建新云端会话。收到拒绝后立即完成回复。",
+  "attachments": []
+}

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "root_run_id": "run-chat-e1e488ef93c5902cc1d6aa7b9afcb3d1700f687d1db55eb8",
+  "web_sha256": "c616f5ddedc5ff7de28bf966c8151e34f3faa72f348cf8a2ea9e27f221c1bf2c",
+  "shell_sha256": "29dba7278d444a2b713aca5c87f72a54806b872ff6acc928e7e6f69d7fdcf9f9",
+  "format_or_quote_rejected_count": 0,
+  "result_page_read_count": 2,
+  "source_head": "b378fb02758bda47f613f126d524b9142f2af2ff"
+}

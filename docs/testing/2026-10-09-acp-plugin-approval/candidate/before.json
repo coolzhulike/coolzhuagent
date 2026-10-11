@@ -1,0 +1,39 @@
+{
+  "model": "swe-2-medium",
+  "parameters": {
+    "backend_kind": "devin_acp",
+    "base_url": null,
+    "computer_use_enabled": true,
+    "context_window": 0,
+    "enable_llm_tools": true,
+    "endpoint": null,
+    "llm_tool_exposure": "whitelist",
+    "max_output_tokens": 0,
+    "protocol": "devin_acp",
+    "reasoning_mode": "auto",
+    "supports_multimodal": true,
+    "temperature": null,
+    "thinking_budget": null,
+    "tool_allowlist": [
+      "computer_use_perform",
+      "plugin__cli_anything_status",
+      "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab"
+    ],
+    "top_p": null,
+    "turn_timeout_ms": 900000
+  },
+  "revision": 53,
+  "permission": {
+    "room_id": "room-1791131523339",
+    "room_name": "SWE-2 Browser与Paint真实验收",
+    "permission_profile": "full-access",
+    "full_access": true,
+    "dev_open_permissions": false,
+    "effective_permission_profile": "full-access",
+    "effective_full_access": true,
+    "warning": "该权限完全允许操作用户电脑文件，有一定风险",
+    "updated_at": 1791540608866
+  },
+  "source_commit": "d094c7a + ACP不可续接审批收尾候选",
+  "plugin_source_sha256": "3b6ee0ea714c22e115d3ce786b876bc1f34b81116d21de79fbd398c0c69c7c8b"
+}

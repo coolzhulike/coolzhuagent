@@ -1,0 +1,382 @@
+{
+  "stage": "installed",
+  "source": {
+    "stage": "正式安装文件摘要通过，模型功能另验",
+    "version": "0.2.84",
+    "source_commit": "82f769611a9b35cc947e8615575868e5cc34d8b9",
+    "source_snapshot_digest": "b2aa2200dbdc48e4852de32bcaa7e724dd752fa7e9e357e67064d3afc434b9ea",
+    "verified_file_count": 1150,
+    "msi_sha256": "224478dbae9d1bc0ff2b6f82ec2352c6fe35220f1ac3fa54a50e99e370fdac21",
+    "msi_bytes": 276339330,
+    "web_sha256": "bc72bb8aa4c3858115b803deb80b65c3eb39aa400846cdbdc00fd784e5709bb9",
+    "shell_sha256": "2b5944d8f90a374edc1eaf905a0ca68a44355b8785046c14f43c8f98a6447a40",
+    "cli_output": "COOLZHU CODE Agent\n  Version          0.2.84\n  Git SHA          82f769611a9b35cc947e8615575868e5cc34d8b9\n  Target           x86_64-pc-windows-msvc\n  Build date       2026-10-06\n\nSupport\n  Help             coolzhu-cli --help\n  REPL             /help\n",
+    "package_safe": true,
+    "release_gates": [
+      {
+        "gate": "declared_source_snapshot_scope",
+        "result": "pass"
+      },
+      {
+        "gate": "source_input_stability",
+        "result": "pass"
+      },
+      {
+        "gate": "declared_roots_present",
+        "result": "pass"
+      },
+      {
+        "gate": "build_input_stability",
+        "result": "pass"
+      },
+      {
+        "gate": "artifact_provenance",
+        "result": "pass"
+      },
+      {
+        "gate": "frozen_inputs",
+        "result": "pass"
+      }
+    ],
+    "producer_report_ref": {
+      "report_id": "pkg-report-release-20261006-122759095-11052028",
+      "report_path": "tmp/package-reports/package-report-release-20261006-122759095.json",
+      "content_sha256": "a54aad97fe5f54a04895ea93a40a55f7f2ec233ead231477954f2e3c0cf28c77",
+      "content_hash_algorithm": "sha256",
+      "content_hash_scope": "报告的全部叶子节点规范排序后取 SHA256；排除 report_identity.content_sha256"
+    }
+  },
+  "process": {
+    "shell_pid": 31996,
+    "stage": "0.2.84 Program Files正式安装版",
+    "shell_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "shell_sha256": "2b5944d8f90a374edc1eaf905a0ca68a44355b8785046c14f43c8f98a6447a40",
+    "web_binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+    "port": 8765,
+    "web_started": "2026-10-06T04:29:55.6086309Z",
+    "web_sha256": "bc72bb8aa4c3858115b803deb80b65c3eb39aa400846cdbdc00fd784e5709bb9",
+    "web_pid": 8868,
+    "shell_started": "2026-10-06T04:29:56.4710692Z"
+  },
+  "real_model": "SWE-2-medium",
+  "remote_session": "veiled-anise",
+  "cases": [
+    {
+      "prefix": "BU-INSTALLED-084-TAB-NAVIGATE-20261006",
+      "context": {
+        "prefix": "BU-INSTALLED-084-TAB-NAVIGATE-20261006",
+        "run_id": "run-chat-68fb8be159a20bae1e730503d5b38923224d2f2d4a02d2a4",
+        "room": "room-1791131523339",
+        "message_id": "msg-1791261231700-user",
+        "targets": [
+          {
+            "agent_ids": [
+              "session-1791131217833"
+            ]
+          }
+        ],
+        "context_delta": [
+          {
+            "continued": true,
+            "delta_history_messages": 0,
+            "host_history_messages": 155,
+            "prompt_bytes": 5744
+          }
+        ],
+        "outputs": [
+          {
+            "agent_id": "session-1791131217833",
+            "messages": [
+              {
+                "deleted": false,
+                "digest": "fcc946947182f97f818e638105441e2651c4c74ff9a11c8d824c1a1ef539e239",
+                "id": "msg-1791261232129-0",
+                "source": false
+              }
+            ]
+          }
+        ],
+        "acp": [
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          },
+          {
+            "state": "terminal",
+            "protocol_stop": "end_turn",
+            "process_drained": 1,
+            "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+          }
+        ],
+        "tool_calls": [
+          {
+            "tool_call_id": "tool-4ecb299a6d86f02bfa902023592981e6578dbabb3437203df00423a75e2cf5a1",
+            "run_id": "run-chat-68fb8be159a20bae1e730503d5b38923224d2f2d4a02d2a4",
+            "request_attempt_id": null,
+            "tool_name": "computer_use_perform",
+            "arguments_digest": "e5364e7ea138796e",
+            "status": "completed",
+            "created_at_unix_ms": 1791261240869,
+            "updated_at_unix_ms": 1791261255912,
+            "provider_tool_call_id": "1",
+            "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-68fb8be159a20bae1e730503d5b38923224d2f2d4a02d2a4\",\"turn_id\":\"chat-turn-1791261231701-0\",\"attempt_id\":\"8fe5a032b40fefe137dc61c03f646e8d7d2eafbaf06d0ae2\",\"owner_epoch\":89,\"generation\":89}"
+          }
+        ],
+        "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`）：\n\n- **动作**：1 次 navigate 已投递（attempts=1，steps_completed=1，含 native-input 回执，observation_origin=`authorized_navigation`）\n- **验收**：最新页面观察（freshness_confirmed=true）确认 URL 为 `http://127.0.0.1:60103/tab-b.html`，标题 \"TAB-B 当前地址验证\"，页面 heading 与 StaticText 均显示 **\"TAB-B\"**——success_criteria 1/1 满足\n\n按宿主回执如实报告：目标达成。",
+        "bindings": [
+          {
+            "agent_id": "session-1791122188340",
+            "remote_session_id": "sneaky-diascia"
+          },
+          {
+            "agent_id": "session-1791131217833",
+            "remote_session_id": "veiled-anise"
+          }
+        ],
+        "run": {
+          "id": "run-chat-68fb8be159a20bae1e730503d5b38923224d2f2d4a02d2a4",
+          "state": "completed",
+          "session_id": "session-1791131217833",
+          "chat_room_id": "room-1791131523339",
+          "stop_reason": null
+        },
+        "tool_events": [],
+        "audit": []
+      },
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791261231701-0-tool-4ecb299a6d86f02bfa902023592981e6578dbabb3437203df00423a75e2cf5a1",
+        "provider_tool_call_id": "tool-4ecb299a6d86f02bfa902023592981e6578dbabb3437203df00423a75e2cf5a1",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"6e9a294744d7f31d001f93f4b69f43e0\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[1,4],\"reason\":\"url\",\"selected_nodes\":[{\"index\":1,\"name_chars\":5,\"role\":\"other\"},{\"index\":4,\"name_chars\":5,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":1,\"inline_has_static_text\":false,\"name_chars\":5,\"role\":\"other\"},{\"blank\":true,\"index\":2,\"inline_has_static_text\":false,\"name_chars\":0,\"role\":\"paragraph\"},{\"blank\":false,\"index\":3,\"inline_has_static_text\":false,\"name_chars\":7,\"role\":\"other\"},{\"blank\":false,\"index\":4,\"inline_has_static_text\":false,\"name_chars\":5,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"16fa126b06b28bc80712079f33965d6a\",\"observation_origin\":\"authorized_navigation\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":11,\"nodes\":[{\"index\":1,\"name\":\"TAB-B\",\"role\":\"heading\"},{\"index\":4,\"name\":\"TAB-B\",\"role\":\"StaticText\"}],\"title\":\"TAB-B 当前地址验证\",\"truncated\":false,\"url\":\"http://127.0.0.1:60103/tab-b.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:60103/tab-a.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:ed2d58bbb71da512fe4723ff041d0ddb",
+          "native-ax:1:1",
+          "native-observation:ed2d58bbb71da512fe4723ff041d0ddb",
+          "native-input:8cf5408e27fd9e15c2fe13e37f4af7bb",
+          "native-ax:1:2",
+          "native-observation:16fa126b06b28bc80712079f33965d6a",
+          "native-ax:1:2",
+          "native-observation:16fa126b06b28bc80712079f33965d6a",
+          "native-ax:1:2",
+          "native-observation:6e9a294744d7f31d001f93f4b69f43e0"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791262131701
+            }
+          },
+          "cu_deadline_ms": 1791261841095,
+          "cu_deadline_established_at_ms": 1791261241095,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791261231701-0-tool-4ecb299a6d86f02bfa902023592981e6578dbabb3437203df00423a75e2cf5a1",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "navigate",
+          "normalized_target": "dom-315e7a53eddeeaaf309ebeb948eac026",
+          "action_fingerprint": "4eb1ef1d9fb18b0a",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:ed2d58bbb71da512fe4723ff041d0ddb\"]",
+          "after_evidence_ref": "[\"native-ax:1:2\",\"native-observation:16fa126b06b28bc80712079f33965d6a\",\"native-ax:1:2\",\"native-observation:6e9a294744d7f31d001f93f4b69f43e0\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791261246296,
+          "completed_at_ms": 1791261248253,
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "native_ticket_id": "d755acc4289b899460526b8b405e3f80",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"e1f9eb3628a945c2d49b565fb67800a6\",\"host_id\":\"native-0466f0c005dbe27de1c85160d892407c\",\"process\":{\"instance_id\":\"dad2482529841e6033e899e41b9848be\",\"boot_id\":\"0466f0c005dbe27de1c85160d892407c\",\"pid\":31996,\"creation_time_filetime\":134357345964710692,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":1}},\"attempt_key\":\"browser:dom-315e7a53eddeeaaf309ebeb948eac026:5a8cdf5569ae46e2#gen1#cu-session-1791131217833-chat-turn-1791261231701-0-tool-4ecb299a6d86f02bfa902023592981e6578dbabb3437203df00423a75e2cf5a1:step-0#attempt1\",\"ticket_id\":\"d755acc4289b899460526b8b405e3f80\",\"observation_id\":\"ed2d58bbb71da512fe4723ff041d0ddb\",\"document_token\":\"877e194bf007ea6481c196b034235e87\",\"node_id\":\"315e7a53eddeeaaf309ebeb948eac026\",\"input_kind\":\"navigate\"}"
+        }
+      ]
+    }
+  ],
+  "ui_checks": [
+    "A→B真实SWE单次导航",
+    "普通后退A、前进B",
+    "关闭后保存B且不自动载入",
+    "显式重开B后页面、地址、标签一致"
+  ],
+  "files": [
+    {
+      "file": "BU-INSTALLED-084-TAB-NAVIGATE-20261006-browser-facts.json",
+      "length": 18143,
+      "sha256": "7f3fd332bdf39f0bf8a67f4fa284e8b42409a2ce73bbc551e0b3581683bf5489"
+    },
+    {
+      "file": "install-084-result.json",
+      "length": 282,
+      "sha256": "d7a1602c5173a199c7e30355c377170da69828565787f5bcdeabc795841679fb"
+    },
+    {
+      "file": "installed-084-standard-processes.json",
+      "length": 691,
+      "sha256": "b016e8adae6d18ccfcee5813ff086e25712a4aec885ae9a1dacbd848f3c68e41"
+    },
+    {
+      "file": "installed-084-verification.json",
+      "length": 1825,
+      "sha256": "8a29473955a225c48920b0dddd693a3d6914287ec894f4e06180aef1e65c0ba1"
+    },
+    {
+      "file": "installed-after-ax.txt",
+      "length": 80251,
+      "sha256": "1f921638e900b78eae3d4b4006a5cc8429839d96772b050527d7e6c5eee514c0"
+    },
+    {
+      "file": "installed-after.jpg",
+      "length": 213627,
+      "sha256": "f11bf7b7a9e9d0bfa3df475c113cd6228a6bf0848cde591b7385565ce7256cf9"
+    },
+    {
+      "file": "installed-back-ax.txt",
+      "length": 80086,
+      "sha256": "a5f7476b7cb97971541b08e69e6bbc6e777859b294d1c94cc669513509567b0d"
+    },
+    {
+      "file": "installed-back.jpg",
+      "length": 210170,
+      "sha256": "3a6c7d55df1300a12f571ea7226e67c21bbfa7d7783097ab08792021f03c8b52"
+    },
+    {
+      "file": "installed-before-ax.txt",
+      "length": 77295,
+      "sha256": "0c4dd9892cde4ac1da02b805749194ae751a2db6d5e0197a27153c763f14133b"
+    },
+    {
+      "file": "installed-before.jpg",
+      "length": 209138,
+      "sha256": "f52ecfa323e9e198c90cd16079fc226bcdbe5116806eb8c1ef4aab35221d7ff9"
+    },
+    {
+      "file": "installed-forward-ax.txt",
+      "length": 80086,
+      "sha256": "a3b053723ee765f04f5a7f60b1e39926de6509b331f0a8e0163cb46c8ea2c19f"
+    },
+    {
+      "file": "installed-forward.jpg",
+      "length": 210291,
+      "sha256": "9312eeb64b770f108949d19a1954c7de5dcac0ab64141d81ece4384407c6a4ce"
+    },
+    {
+      "file": "installed-navigate-request.txt",
+      "length": 886,
+      "sha256": "de0239cec8f52ff3e9c63d4907403b441f2cd206fff7867b513c2e7b67ff656b"
+    },
+    {
+      "file": "installed-navigation-browser.log",
+      "length": 3441,
+      "sha256": "fe5f75b9e415d866010d26a1f1aa69800743fbc60b5ddf835b2266c297121761"
+    },
+    {
+      "file": "installed-navigation-context.log",
+      "length": 2826,
+      "sha256": "0ef15071e3e9892c9cece0355ee954d3c0e60fa45fbbefa6193932849abcc4d6"
+    },
+    {
+      "file": "installed-navigation-events.json",
+      "length": 779,
+      "sha256": "a59169147fe77876de3198e1cb2419d518856fa06a690b5dd91d3691947116f1"
+    },
+    {
+      "file": "installed-navigation-progress.json",
+      "length": 4278,
+      "sha256": "cf087805ab89b92f960aabebdc48c18d814d61037873bdef6f8f38b9a92d2efa"
+    },
+    {
+      "file": "installed-navigation-summary.json",
+      "length": 8336,
+      "sha256": "0347dda6e8d062ec52baacfdcb3b86e9c4ca0804e77e6be8c77fccceeb2a9afc"
+    },
+    {
+      "file": "installed-preparation-link-quote-ax.txt",
+      "length": 74887,
+      "sha256": "52edbb6c65a5ca5872e337b700b28f1707873c54fb07731200b169ade9c510ce"
+    },
+    {
+      "file": "installed-preparation-link-quote.jpg",
+      "length": 219045,
+      "sha256": "a5149c530672e3a1c08c34565c32bbc4aae8b6958806c26c98ba8be13b61a113"
+    },
+    {
+      "file": "installed-reopen-loaded-ax.txt",
+      "length": 80086,
+      "sha256": "4832772bc2cd8bdf4775d20f6ea4a070d0021e24f2bdb7591a0cd1b933573bb7"
+    },
+    {
+      "file": "installed-reopen-loaded.jpg",
+      "length": 210281,
+      "sha256": "8b8d1a860962c6a7852fc00ac1359adce15712d799382a690c79aed30a400079"
+    },
+    {
+      "file": "installed-reopen-retained-ax.txt",
+      "length": 78969,
+      "sha256": "80bf5b9548ac7e11c1d354f591931e524ac371dd050021581f35c7ac0aef691f"
+    },
+    {
+      "file": "installed-reopen-retained.jpg",
+      "length": 192044,
+      "sha256": "8d901ae22b2701e595ef0e19b94f5327d276043fc4a4a4caefc486f31134bec4"
+    },
+    {
+      "file": "package-084-verification.json",
+      "length": 1810,
+      "sha256": "e82367825a118cf34ace1758456d64fe19dd256d2679575f8a514b798649362d"
+    },
+    {
+      "file": "page-events.jsonl",
+      "length": 472,
+      "sha256": "e6f8c54a6ad348a5550de3d26264a392a91a1bfb3233c49fe7ca1013980b4164"
+    },
+    {
+      "file": "server-address.json",
+      "length": 38,
+      "sha256": "bd2b57ebf806055315c93c3c3818c999069f9042513684a82a332e5c2f936eaf"
+    },
+    {
+      "file": "server-identity.json",
+      "length": 448,
+      "sha256": "a5d57c79a1ca0059c249f6ff2f9549218f8d7f1b0a154e4c132ff1edb48675e3"
+    },
+    {
+      "file": "server.py",
+      "length": 1608,
+      "sha256": "e43256471e75928e4f44a525dab210cce520a711ec314a6e79bd9de8dfdcd813"
+    }
+  ],
+  "limits": [
+    "普通UI回归独立于模型动作",
+    "仅本轮导航和标签同步正式闭环，不外推跨来源/OOP或其它总队列"
+  ]
+}

@@ -1,0 +1,89 @@
+# CLI 在途模型等待取消
+
+当前实际同步入口为command-line的DefaultRuntimeClient::stream，并非名为SyncApiClient的类型。原实现block_on等待ProviderClient::stream_message及每次next_event，没有在这些异步等待处观察根执行控制。
+
+本轮进入block_on前读取并克隆current_execution_control；独立controlled_future模块在预先取消时不轮询请求，每20毫秒观察已有根取消/截止，正常就绪结果交付前再次检查。请求建立中断返回未确认完成/用量未知；流读取中断先合并当前usage_evidence，再以StreamFacts::incomplete保留已知/未知用量、不执行未完成工具请求且不自动重放的事实。未增加业务预算或替换父取消令牌。取消丢弃等待Future，退出流函数释放流对象；不宣称远端请求未执行或账单为零。
+
+真实CLI构建先实际exit0（31.77秒），完成后再真实cargo build --locked --offline -j1实际exit0（6.14秒）。最终完整CLI回归串行101通过、0失败、0忽略，实际exit0。日志 tmp/analysis-cli-controlled-future-build.txt、final-build.txt、tests-serial.txt。新增预先取消零Future轮询及真实本地TCP截止测试，服务端观察EOF或Windows ConnectionReset证明拥有连接的Future被丢弃；该测试不证明真实Provider协议、连接池或远端取消确认。
+
+首轮并行回归99通过2失败，实际exit101，日志tmp/analysis-cli-controlled-future-tests.txt保留。新增测试误只接受EOF，Windows实际连接重置，修正为EOF/RST；另一个既有rejects_unknown_allowed_tools并发失败在串行复验通过，其并发失效根因尚未定位，不声称已修复或首轮通过。
+
+本轮仅接CLI生产适配器，ApiClient trait本身及其它入口的同步实现不自动获得取消能力。正式外部Provider在途取消、终态归属、usage迟到、权限撤销、请求建立/流读取分阶段真实协议矩阵仍开放。最新修补尚未进入release候选或安装包，32WBS与1.5/2.5不计完成。
+
+后续真实Provider协议复验：直接使用ProviderClient::from_custom_openai_compatible和生产controlled_future::wait，本地服务器完整读取真实POST /v1/chat/completions请求后触发同一根取消。两阶段分别为不发响应头、先发有效OpenAI兼容SSE前缀且正文保持未完；后者确认至少一条协议事件实际读取，再取消后续next_event等待。两阶段均观察取消及服务器EOF/RST，Provider local_endpoint_drain仍remote_result_unknown>0且禁止自动切换。该测试证明实际请求/流对象释放及未知账务保留，未冒充远端计算停止、外部模型终态、CLI渲染/工具派发全链验收。
+
+完整CLI串行回归实际exit0：102通过0失败0忽略；最终真实cargo build亦实际exit0。日志 tmp/analysis-cli-provider-cancel-tests.txt、build.txt。测试在新的本地随机端口执行，未使用外部账号或替换正式运行环境；本轮只增加测试，生产接线保持此前修补。
+
+后续终态接线修补：发现此前适配器取消仅返回普通RuntimeError，ConversationRuntime依据结构化interruption区分TurnInterrupted/TurnFailed，文字取消不能代替该字段。RuntimeError新增with_interruption，保留原错误消息/轨迹；CLI两处取消映射写入实际Cancelled/TimedOut原因，不在普通Provider错误上擅自添加取消。
+
+新增实际DefaultRuntimeClient + ConversationRuntime + ProviderClient本地HTTP/SSE测试：服务器发送部分write_file工具参数和输入7/输出2用量快照后触发根取消。断言真实连接关闭、工具执行器调用0、错误保留输入7及不完整事实、会话仅用户消息、终态TurnInterrupted/Cancelled。进一步使用生产persist_result保存错误及load_event_history恢复，确认仍返回错误且恢复唯一中断轨迹，未冒充完成。最新完整CLI串行103通过0失败0忽略，实际exit0；正常CLI实际构建exit0（12.05秒）。日志 tmp/analysis-cli-cancel-terminal-build.txt、terminal-tests.txt、persist-tests.txt。
+
+共享RuntimeError接口的完整core-runtime串行回归同一会话4133已实际exit0：库375通过0失败1忽略，两项DSH集成各1忽略，总3忽略不计通过。日志tmp/analysis-cli-cancel-reason-core-tests.txt。实际外部Provider、完整权限/截止/迟到矩阵与候选正式交付仍开放。
+
+后续入口审查：CLI生产源码中直接Provider请求仅DefaultRuntimeClient的上述两处等待，shared_chat另有tokio::signal::ctrl_c及远端停止确认路径；main.rs的legacy LiveCli/run_prompt/internal_prompt直接run_turn调用点未安装with_execution_control，生产当前控制可能为None。因此适配器局部能力不等于legacy prompt/REPL取消闭环，需要绑定实际宿主取消/预算并证明正常结束、连续回合和权限提示不泄漏信号；不得仅在测试注入根控制后宣称这些入口完成。
+
+新增截止完整终态复验：同一生产适配器部分工具流测试分别使用显式取消及800毫秒根截止，两者工具零调用、输入7快照保留、不完整助手未提交；生产保存/恢复分别得到Cancelled与TimedOut的TurnInterrupted。CLI完整串行104通过0失败0忽略，真实build实际exit0，日志tmp/analysis-cli-cancel-deadline-tests.txt、build.txt。本轮仅扩展测试和核验，未补上述legacy入口真实信号来源，仍明确未闭环。
+
+后续legacy入口接线：新增cli_control每回合范围，文本/JSON/internal_prompt三处真实run_turn先完成自有监听线程的Ctrl+C首次轮询注册，再以with_execution_control进入同步回合；沿用已有父控制及截止，无父时建立本回合令牌。正常/错误/panic离开范围均停止并join自身线程，每20毫秒观察停止；不生成新的业务截止。注册失败在执行前返回错误。后续监听错误会取消根并打印诊断，线程panic/收尾错误的完整结构化监督仍需补，不宣称完备。
+
+真实cargo build实际exit0（8.76秒），最后再次构建exit0。完整CLI串行107通过0失败0忽略；新增真实Ctrl+C注册和上下文恢复、模拟注册失败零派发、模拟信号取消仅本回合及连续回合隔离、父截止保留。日志tmp/analysis-cli-root-control-build.txt、final-build.txt、tests.txt。模拟信号不等于真实按键触发；没有向当前共享控制台注入Ctrl+C，也没有终止其它实例。真实独立CLI进程组按键、权限提示阻塞读、退出/信号同时发生、线程监督失败和安装版仍未正式验收。Tokio底层信号注册是进程级的，停止本轮Future不证明系统处理器已注销；REPL空闲输入语义须实测。
+
+后续监听线程异常保护：在自有线程内捕获注册/轮询 panic，撤销同一个根控制，以非阻塞 try_send 通知注册错误，避免注册已确认时阻塞错误上报。注册前 panic 不派发；注册后 panic 能结束本回合受控等待，退出范围仍 join 自有线程。新增两个永久回归，等待断言有2秒观察上限。此路径依赖 unwind，未覆盖进程 abort、阻塞权限输入和信号/完成竞态的完整监督。
+
+真实CLI构建exit0；完整串行CLI测试109通过0失败0忽略，实际exit0。日志 tmp/analysis-cli-listener-panic-build.txt、tmp/analysis-cli-listener-panic-tests.txt。仅证明本地异常保护，真实独立进程组Ctrl+C、外部正式模型、安装包和32WBS全量门禁仍开放。
+
+Windows权限输入取消接线：审查确认原CliPermissionPrompter直接stdin.read_line会阻塞，根令牌不保证唤醒。现经windows-process-guard安全接口，在原调用线程使用ReadConsoleW/ReadFile，独占重复的线程句柄用于CancelSynchronousIo；自有监听线程每20毫秒检查根状态，重复取消覆盖检查到读取间隙，返回/异常时停止并join，不遗留占用下一回合输入的读取线程。CLI再次检查原根原因，取消不会成为允许；输入预算8192个字节/UTF-16单位，管道UTF-8严格解码，控制台UTF-16严格解码，保留无换行末行EOF语义。
+
+首版把Win32放CLI触犯workspace unsafe_code=forbid，真实build exit101，日志tmp/analysis-cli-permission-input-build.txt保留；已移至既有guard安全边界，未放宽workspace禁用unsafe约束。最终真实CLI build exit0（10.56秒），完整CLI串行109通过0失败0忽略；最终guard库完整59通过0失败3忽略，实际exit0。新永久真实匿名管道测试覆盖阻塞读取在写端关闭前取消、下一行不吞读、预先取消零读取、无换行EOF。日志tmp/analysis-cli-permission-input-final-build.txt、cli-tests.txt、final-guard-tests.txt；先前guard58项为EOF补验前历史。
+
+边界：未注入共享控制台Ctrl+C，控制台ReadConsoleW路径尚无真实独立控制台实拍；取消后已排队/部分输入的跨回合归属、预算拒绝后残留行、信号与审批完成同时发生、空闲REPL和非Windows输入仍需独立验证或补实现。取消回调要求非阻塞及状态单调；不能将管道测试当成全部宿主输入证明。当前源码未进入131候选或安装版，正式模型、32WBS全量、签名发布及管理员升级仍未闭环。
+
+权限输入边界复核：真实管道反例确认总长8193且末尾换行会绕过8192预算，原因是先break后判预算。永久测试先实际exit101（tmp/analysis-permission-budget-before.txt），修补后先检查预算再识别换行，8192接受、8193拒绝。CLI读取基础设施失败现在取消同一根，保留原始读取错误，防止同回合继续审批并消费失败行后缀；已有截止仍优先于迟到yes，普通no不取消。三个CLI永久测试通过。该处理不证明下一回合残留输入归属已解决，仍需独立控制台/流同步设计和验证。
+
+首次编辑测试函数名缺fn，真实build101（tmp/analysis-permission-budget-build.txt），已修正。最终真实CLI build0（4.63秒），完整CLI串行112通过0失败0忽略，guard库60通过0失败3忽略，均实际exit0。日志tmp/analysis-permission-budget-final-build.txt、cli-tests.txt、guard-tests.txt。未将忽略项或管道局部成功提升为正式模型、真实控制台、全部32WBS和交付完成。
+
+独立控制台实际Ctrl+C复验：新增父测试只启动自己的测试子进程，有10秒上限；超时仅kill/wait该子进程。子进程先FreeConsole解除自身附着，再AllocConsole创建专属控制台并隐藏自己的窗口，显式打开CONIN$且GetConsoleMode证明真实控制台；Tokio ctrl_c首次轮询完成注册后，本子进程向其独占控制台发送CTRL_C_EVENT。真实信号被观察，原线程ReadConsoleW读取返回错误，监听线程join，整个观察小于2秒。未向共享控制台发送信号、未终止既有后台。
+
+探针首次实际exit101：AllocConsole分配失败；解除自身附着后继续发现重定向标准句柄不是真控制台。两项失败均保留；最终显式CONIN$路径专项exit0。诊断子进程panic通过专用文件保存，避免分配控制台后stderr重定向失效造成证据丢失。正式源码未为此放开unsafe；窗口隐藏及Tokio信号功能新增仅dev依赖。
+
+最终真实CLI build exit0（11.55秒）；guard完整串行61通过0失败4忽略，实际exit0，耗时18.31秒。新增第4忽略是独立子进程探针入口，在父测试中实际以--ignored启动并验证成功，不冒充直接通过项；既有3忽略保持。原日志及子进程回执按原字节归档docs/testing/cli-permission-console，evidence.json记录基线dca7801及测试源码/manifest SHA，immutable_snapshot_verified=false，未宣称不可变构建。CLI业务未变，上一轮112通过保持该历史范围，不重复冒称本轮全部CLI回归。
+
+本测试证明guard读取+真实Tokio信号，不等于安装版CLI完整审批/模型/持久化终态全链。真实CLI入口进程、部分和排队输入跨回合归属、控制台多轮恢复与正式模型/安装仍未闭环；32WBS目标保持原范围。
+
+跨回合输入归属实际反例：新增known_gap_rejected_line_suffix_reaches_next_reader真实匿名管道，以8193个x紧接yes换行、no换行写入同一输入。第一次因预算返回错误，第二次实际返回yes换行，第三次no换行；这证明被拒绝的原行后缀可以成为下一次审批输入。同回合根取消不覆盖后续回合。该反例测试exit0仅表示成功复现缺陷，不计输入归属验收通过，更不能借绿色测试关闭门禁。
+
+真实guard build exit0及反例专项exit0，日志tmp/analysis-permission-suffix-gap-build.txt、gap-test.txt。此轮只增加永久可复现证据，没有修改生产读取行为。下一实现须引入随标准输入生命周期保留的读取器行边界状态及独占输入句柄，在拒绝/取消后恢复至原行结束前不消费新审批；同时覆盖晚到后缀、连续回合、管道/控制台、预先取消零读取及有界内存。不得用一次全局清空输入缓冲代替迟到输入归属，也不得只永久禁用审批来缩小目标。真实外部模型、安装及32WBS保持未闭环。
+
+跨回合行边界实现：生产read_permission_line现首次读取时DuplicateHandle持有非继承输入句柄，进程生命周期内保留Reader与incomplete状态；try_lock拒绝竞争或损坏状态，不阻塞等待其它读取者。每次内核读取前标记可能未完成，换行/EOF确认后清除；拒绝或取消后下一次读取先丢弃原行至边界，再收集新的审批。恢复只逐单位读取、不缓存旧行，等待仍受当前根取消。预先取消在创建句柄/读取前返回；已完整读取的换行不因随后取消误标未完成。
+
+真实匿名管道永久回归：8193个x预算拒绝后，延迟到达yes换行被丢弃，下一完整no换行返回；原借用句柄关闭后独占重复句柄继续有效。另一个部分old读取中取消、后缀yes延迟到达，再回合返回no，未成为允许。历史无状态底层反例保持为对照，现只走测试私有入口，不再代表生产入口行为；其绿色仅复现旧算法。
+
+真实CLI build exit0；完整CLI串行112通过0失败0忽略、guard库64通过0失败4忽略，实际exit0。最后修改独立控制台探针绑定专属CONIN$为自身STD_INPUT_HANDLE，通过生产read_stdin（持久Reader）实际Ctrl+C复验exit0，最终CLI build0（8.48秒）；新探针回执增加owned-reader，区别旧无状态验证。全库64项是探针接线修改前，最后探针专项另行复验，不冒称再次全库；生产读取逻辑在这两次验证之间未变。原字节日志、回执与源SHA归档docs/testing/cli-permission-owned-reader，immutable_snapshot_verified=false。
+
+仍开放：REPL rustyline普通输入也消费同一内核流，本实现只协调审批消费者，普通输入和审批之间必须统一交接，不能据此关闭全部跨回合归属。控制台原生Ctrl+C清行后的再次输入语义、空输入等待取消后的保守丢弃、恢复中再次取消/截止、非Windows及完整CLI模型/持久化全链仍需验证。取消前是否已有输入无法仅靠未标记stdin流证明；本轮未声称完整输入epoch来源证明。32WBS、管理员升级、签名发布与正式验收保持未闭环。
+
+恢复期间再次取消真实复验：新增永久管道测试先写8193单位触发拒绝，第二回合在丢弃旧行、等待换行时50毫秒后取消；旧后缀yes换行要到1秒后才到达。断言恢复取消在500毫秒内返回、incomplete仍保留，第三回合继续恢复后只返回no换行，旧yes未成为审批。写端随后提供数据并关闭确保即使取消退化测试也能结束，数据自然到达不充当及时取消通过。
+
+真实CLI build exit0（11.06秒），完整guard串行65通过0失败4忽略，实际exit0（19.61秒），日志tmp/analysis-permission-recovery-recancel-build.txt、tests.txt。此轮仅扩展验证，生产读取逻辑保持403bc61范围；不重复声称本轮CLI全库或正式模型验收。
+
+重要入口审查更正：此前工作日志称REPL rustyline读取不准确。实际main.rs run_repl调用本地input::LineEditor；input.rs read_line在真实终端使用crossterm原始模式event::read，非终端read_line_fallback使用std::io::stdin().read_line，其内部缓冲可能预读后续审批数据。新guard原线程ReadFile无法读取std内部已预读的字节，因此需要真实独立进程重定向输入证明并统一缓冲/所有者交接；不得直接替换为8192审批预算而截短普通长提示。另main.rs run_repl的cli.run_turn使用?，回合错误直接退出REPL，取消后继续交互还需明确产品行为及恢复实现，不可把三次Reader调用当成当前CLI已有三回合继续功能。先前局部证据仍有效，全部入口和正式交付继续开放。
+
+Windows重定向输入交接修补：先在独立真实测试进程调用实际LineEditor.read_line与权限read_line，连续提供prompt换行/yes换行，旧生产代码实际探针101（tmp/analysis-repl-buffer-handoff-before.txt），父测试只回收自己子进程，不借其它环境。现在read_line_fallback在Windows使用guard新增read_command_line，与read_permission_line共享持久输入对象、互斥所有者和incomplete行边界，避免std::stdin预读数据与底层ReadFile分别消费。非Windows保留原路径，真实终端crossterm路径未改。
+
+普通提示保留原来无独立行预算的语义（budget=None），审批仍Some(8192)，丢弃旧行不缓存内容。此处不将普通提示缩短为短审批预算；普通提示总量/时间预算仍需按全WBS补，不宣称有界完整输入内存。新永久子进程复验69,632字节完整x提示→yes审批→/quit命令→EOF，实际生产LineEditor与审批入口接线均执行，内容与次序不丢失。输入写入在自有线程，父进程5秒超时只kill/wait本子进程并join写线程，失败/成功子进程stdout/stderr落根tmp供审查。正式外部Provider及REPL业务回合未运行。
+
+真实CLI build0，完整CLI串行113通过0失败1忽略；新增忽略为子进程探针入口，父测试实际以--ignored执行，不能将其直接计通过。之后扩展长提示及命令/EOF测试单项实际exit0，guard完整65通过0失败4忽略实际exit0；最后正常CLI构建亦exit0。全CLI回归为短提示版探针时点，扩展版专项另验，生产逻辑未变。原始失败/成功日志及源码SHA归档docs/testing/cli-repl-input-handoff，immutable_snapshot_verified=false。
+
+仍开放：真实终端crossterm事件缓存与ReadConsoleW审批交接、Ctrl+C清行后的新输入语义、空闲重定向输入取消、回合错误后是否继续REPL、输入来源epoch全链、普通长提示预算、非Windows，以及正式模型/安装交付。本轮仅闭合Windows重定向行缓冲混用这一可复现缺口，不计整个32WBS工作包完成。
+
+提示/审批跨模式恢复永久复验：真实管道写8193单位超长审批，迟到yes换行，接69632字节普通提示及独立no审批。审批拒绝后用生产Reader.read_with_budget(None)读取普通提示，确认先丢弃旧yes、提示完整69633含换行，随后审批读取返回no；同一持久状态跨短审批/普通长提示模式保持。真实CLI build exit0（8.80秒），guard完整66通过0失败4忽略exit0，日志tmp/analysis-permission-command-recovery-build.txt、tests.txt。此轮不改生产逻辑，不把Reader局部测试提升为完整REPL模型运行。
+
+下一WBS入口源码审查：4.5并非完全没有失败回退代码。当前main.rs约39550行implementer报阻分支已在Immediate事务内记录goal-phase-blocked-needs-replan、调用apply_phase_fail_retry_connection、累计retry_count并超限blocked，提交后才广播。但未超限分支参数为pending,true（暂停Goal），summary写Routed back to planner；仍需核实planner真实重新派发/后续恢复入口与正式失败矩阵，不能以文案替代自动闭环。源码约68994已有goal_phase_token_finalizer_blocked_replans_then_blocks_at_retry_limit测试，后续应先读现有契约再补实际不足，避免照旧AGENTS问题描述重复造实现。此轮只完成源码证据定位，没有声称该测试或外部Goal正式验收通过；32WBS原范围不变。
+
+WBS 4.5 planner路由源码复核：query_goal_phases_connection只按assigned_role解析goal_role_configs目标，route_hint仅返回DTO/持久化/前端，没有用于实际会话选择。token-aware implementer报阻路径写route_hint=planner、pending并暂停Goal；resume后phase仍assigned_role=implementer。现有goal_phase_token_finalizer_blocked_replans_then_blocks_at_retry_limit测试第二次claim显式传原context.agent.id，并prepare同一agent，不能证明planner接管。已补明确反例断言与注释，避免原“模拟planner route”注释造成误判。
+
+同时claim_goal_phase_for_dispatch在同一Immediate事务以原assigned_role、updated_at、pending/无active_run及Goal非暂停状态CAS；不能只在DTO覆盖角色，否则与claim校验不一致。完整补实现需统一planner接管状态、claim/session身份、原阶段回到implementer的后续计划语义、冻结最低权限及累计重试/证据；planner生成计划不得被当成原执行阶段完成。当前并非已自动重规划，仅具备失败记录/重试收敛。
+
+本轮真实cargo build web-console及专项test在同一工具会话92856执行，尚在运行；观察超时不计终态、不重启。日志tmp/analysis-goal-planner-route-gap-build.txt、test.txt。未取得实际退出码前不计构建或专项通过，不将源码审查提升为正式外部模型验收。
+
+会话92856已实际终态exit0：正常web-console build1m48s、blocked专项1通过0失败0忽略1463过滤。新断言实际证明resume后phase.assigned_role仍implementer、assigned_session_id仍原agent、第二次prepare.agent仍原implementer；planner会话同时存在，因此不是缺少角色配置。绿色仅证明失败记账/claim重试和已知路由反例，不能记为真实planner重规划通过。原字节日志与源SHA归档docs/testing/goal-planner-route-gap，未宣称不可变构建或全web-console测试通过。本轮仅补反例与注释，生产缺口仍待修补。

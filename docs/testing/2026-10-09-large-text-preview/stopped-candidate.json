@@ -1,0 +1,17 @@
+﻿{
+    "candidate_stopped":  true,
+    "identity_verified":  true,
+    "previous":  {
+                     "web_sha256":  "ef7e461b7041aa1ad4bd3a165ce7a84f8e903cf8ce1d3ba0c08dde5de9537088",
+                     "web_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-large-text-preview\\candidate-bundle\\bin\\coolzhu-web-console.exe",
+                     "shell_started":  "2026-10-10T12:07:30.1843429Z",
+                     "web_started":  "2026-10-10T12:07:28.7279772Z",
+                     "web_pid":  3564,
+                     "shell_binary":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-large-text-preview\\candidate-bundle\\bin\\coolzhu-tauri-shell.exe",
+                     "shell_pid":  5048,
+                     "port":  8767,
+                     "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-09-large-text-preview\\workspace",
+                     "stage":  "大文本只读预览源码候选（真实SQLite独立副本，无模型调用）",
+                     "shell_sha256":  "648f259efc601b1bbfa7a469f716de794b096ac9e224e387ad54639063a908fb"
+                 }
+}

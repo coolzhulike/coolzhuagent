@@ -1,0 +1,520 @@
+{
+  "stage": "0.2.81 Program Files正式安装版，默认8765",
+  "reference_head": "d9ca3e2d56c43647aa90875b2e895b86507b0989",
+  "product_sources": [
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs",
+      "file": "native_browser_devtools.rs",
+      "length": 7680,
+      "sha256": "bcf69e4cac142a2c226a4f240f4a49c25026f9d6246688be666b67bde57d6dbe"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_document.rs",
+      "file": "native_browser_document.rs",
+      "length": 8231,
+      "sha256": "d9449313196bc39e46efe7a53d1e31033b56ba80b934c48448f804e510ada1e5"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_dom.rs",
+      "file": "native_browser_dom.rs",
+      "length": 2689,
+      "sha256": "b2ce2930a6b7ba6b0f6217c63ddb883215fb6fcd7bf7d14e879967b333253e93"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_edit_input.rs",
+      "file": "native_browser_edit_input.rs",
+      "length": 7372,
+      "sha256": "f291e7bb1877273de9c3be2cb5bc54cb00fb9aeee4346b24e4547c0ecc3eb636"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs",
+      "file": "native_browser_editor.rs",
+      "length": 3267,
+      "sha256": "5dacdaeaec089e3746efc7bc77cd143c82cc51e2f726f24006c0996eb6e7b352"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_host.rs",
+      "file": "native_browser_host.rs",
+      "length": 8157,
+      "sha256": "c9c4dd796f1b1a4fc16b18375a29de047f1f17ebd88ed6b3c9037562d2149f7d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_input.rs",
+      "file": "native_browser_input.rs",
+      "length": 18226,
+      "sha256": "696712f2f4e19f67580e279027a8e289818f8b63619e067e20a6a5b46fb4205d"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_key_input.rs",
+      "file": "native_browser_key_input.rs",
+      "length": 7925,
+      "sha256": "894faaa5b3b0f71ffe138b40af31f37d4fb80398b36815aa6dcdf4899db2dd93"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_navigation.rs",
+      "file": "native_browser_navigation.rs",
+      "length": 2551,
+      "sha256": "3a16c0153d66080245054d85c54e5ec3dc309a76218a8d5be1a79fb0f631e514"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_nodes.rs",
+      "file": "native_browser_nodes.rs",
+      "length": 7029,
+      "sha256": "59fda93bd4a6588eecd0007587692d63a9588be4a04aff5a602e573b56feb2d0"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+      "file": "native_browser_observation.rs",
+      "length": 12617,
+      "sha256": "893ca37b818a5922ada4a54141c5f1725639fb70ce43ddbf4e9c6c1143e8e09f"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_source.rs",
+      "file": "native_browser_source.rs",
+      "length": 3257,
+      "sha256": "3beec60137121bd5cb4e3d41b11a1de6cd190aee5f81c25ba4323090ab4d6a2a"
+    },
+    {
+      "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+      "file": "native_browser_target.rs",
+      "length": 18658,
+      "sha256": "e47b42f8e4b31ed1ec7b21a086a7d199e7f530899cbd14f5897ff6ec9c33b305"
+    }
+  ],
+  "real_model": "SWE-2-medium",
+  "remote_session": "veiled-anise",
+  "room": "room-1791131523339",
+  "cases": [
+    {
+      "prefix": "BU-INSTALLED-081-IFRAME-CHILD-20261006",
+      "message_id": "msg-1791254023718-user",
+      "run_id": "run-chat-35b504c103385093fe80999d0e0674b4197875dd6c876f44",
+      "run_state": "completed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 1,
+          "host_history_messages": 116,
+          "prompt_bytes": 3401
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791254023719-0-tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+        "provider_tool_call_id": "tool-00a855a34dd8378d7334182b384d98bee78f1777d7070ba048fab304ae53a5e6",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"2dace6690325465a4195584fc56a06dc\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":20,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":20,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"29014793c433d6f7d8f4f6b07be4eaed\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":27,\"nodes\":[{\"index\":7,\"name\":\"父操作次数：0；Frame子操作次数：1\",\"role\":\"StaticText\"}],\"title\":\"081 iframe子文档点击\",\"truncated\":false,\"url\":\"http://127.0.0.1:63360/frame.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:63360/frame.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:d27fdca9ec97fda90f0e212d31e5d23a",
+          "native-ax:1:0",
+          "native-observation:d27fdca9ec97fda90f0e212d31e5d23a",
+          "native-input:cacefa04f39056884ac8a207b74bb9e7",
+          "native-ax:1:0",
+          "native-observation:29014793c433d6f7d8f4f6b07be4eaed",
+          "native-ax:1:0",
+          "native-observation:29014793c433d6f7d8f4f6b07be4eaed",
+          "native-ax:1:0",
+          "native-observation:2dace6690325465a4195584fc56a06dc"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791254923719
+            }
+          },
+          "cu_deadline_ms": 1791254631089,
+          "cu_deadline_established_at_ms": 1791254031089,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events_this_run": [
+        {
+          "case": "IFRAME-CHILD",
+          "type": "pointerdown",
+          "at_ms": 1791254037376.7998,
+          "target": "frame-child",
+          "isTrusted": true,
+          "button": 0,
+          "received_ms": 1791254037379.0327
+        },
+        {
+          "case": "IFRAME-CHILD",
+          "type": "pointerup",
+          "at_ms": 1791254037377.4,
+          "target": "frame-child",
+          "isTrusted": true,
+          "button": 0,
+          "received_ms": 1791254037380.9526
+        },
+        {
+          "case": "IFRAME-CHILD",
+          "type": "click",
+          "at_ms": 1791254037377.7,
+          "target": "frame-child",
+          "isTrusted": true,
+          "button": 0,
+          "received_ms": 1791254037381.3235
+        },
+        {
+          "case": "IFRAME-CHILD",
+          "type": "child-count",
+          "at_ms": 1791254037377.9,
+          "count": 1,
+          "received_ms": 1791254037382.26
+        }
+      ],
+      "acceptance": "正例通过：一次真实子按钮输入与释放，父0子1"
+    },
+    {
+      "prefix": "BU-INSTALLED-081-IFRAME-CONTROL-20261006",
+      "message_id": "msg-1791254078155-user",
+      "run_id": "run-chat-354ffdb8d8ea020a6c031d1c86a08c2c13798b68b94a0a13",
+      "run_state": "failed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 118,
+          "prompt_bytes": 2728
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791254078155-1-tool-97da6310e0659cdd270f90ced03e4ada1487a63c0e911f07398eebbf3623b0d3",
+        "provider_tool_call_id": "tool-97da6310e0659cdd270f90ced03e4ada1487a63c0e911f07398eebbf3623b0d3",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_target_hit_mismatch",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-f7def4e1cab5c132c44f3eb1d92f1688:49906c3c3e57f731",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:66471327ced3c026408cf50ea730744a",
+          "native-ax:1:0",
+          "native-observation:66471327ced3c026408cf50ea730744a"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791254978155
+            }
+          },
+          "cu_deadline_ms": 1791254696430,
+          "cu_deadline_established_at_ms": 1791254096430,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events_this_run": [],
+      "acceptance": "预期拒绝通过：父控件被独立Frame覆盖，零输入"
+    },
+    {
+      "prefix": "BU-INSTALLED-081-IFRAME-NAV-20261006",
+      "message_id": "msg-1791254158948-user",
+      "run_id": "run-chat-15bc76565357ea5f5e4d00a10b6a8ec267599b411dbad7d7",
+      "run_state": "failed",
+      "binding": {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      },
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 1,
+          "host_history_messages": 120,
+          "prompt_bytes": 3239
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        },
+        {
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "outcome": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791254158948-2-tool-cd5912a078b5f30e717da78fefa2ad392b200e97ef5551717c73ac0976336518",
+        "provider_tool_call_id": "tool-cd5912a078b5f30e717da78fefa2ad392b200e97ef5551717c73ac0976336518",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_document_changed",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-84e07c01af71de1a46d308243d0018e6:414f6ce33e7c28f7",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:024c75067313ca6008f6df1ddaf49cf4",
+          "native-ax:1:0",
+          "native-observation:024c75067313ca6008f6df1ddaf49cf4"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791255058948
+            }
+          },
+          "cu_deadline_ms": 1791254776071,
+          "cu_deadline_established_at_ms": 1791254176071,
+          "cu_budget_ms": 600000
+        }
+      },
+      "events_this_run": [
+        {
+          "case": "IFRAME-PARENT",
+          "type": "pointerdown",
+          "at_ms": 1791254177530.3,
+          "target": "replace",
+          "isTrusted": true,
+          "button": 0,
+          "received_ms": 1791254177540.092
+        },
+        {
+          "case": "IFRAME-PARENT",
+          "type": "pointerup",
+          "at_ms": 1791254177552,
+          "target": "replace",
+          "isTrusted": true,
+          "button": 0,
+          "received_ms": 1791254177559.9907
+        },
+        {
+          "case": "IFRAME-PARENT",
+          "type": "click",
+          "at_ms": 1791254177552.4,
+          "target": "replace",
+          "isTrusted": true,
+          "button": 0,
+          "received_ms": 1791254177561.2686
+        },
+        {
+          "case": "IFRAME-PARENT",
+          "type": "child-navigation",
+          "at_ms": 1791254177552.8,
+          "received_ms": 1791254177565.2651
+        },
+        {
+          "case": "IFRAME-REPLACED",
+          "type": "ready",
+          "at_ms": 1791254177573.5,
+          "received_ms": 1791254177576.7317
+        }
+      ],
+      "acceptance": "预期拒绝通过：规划期间仅子Frame导航，旧子引用失效，零模型输入"
+    }
+  ],
+  "files": [
+    {
+      "file": "BU-INSTALLED-081-IFRAME-CHILD-20261006-browser-facts.json",
+      "length": 22367,
+      "sha256": "88395c7e74addb6265684eb3d2909a6a0aaa0d28530292df8342f2300aaf8046"
+    },
+    {
+      "file": "BU-INSTALLED-081-IFRAME-CONTROL-20261006-browser-facts.json",
+      "length": 16994,
+      "sha256": "554912f4a494f538334367e8664ad620c51275388b379dea815f4b94c6f76715"
+    },
+    {
+      "file": "BU-INSTALLED-081-IFRAME-NAV-20261006-browser-facts.json",
+      "length": 17764,
+      "sha256": "f9849244cd5a4e80a0216411efc29a5d480dde56cb21fedaaec6473ed4741ac6"
+    },
+    {
+      "file": "BU-INSTALLED-081-IFRAME-NAV-20261006-planning-window.json",
+      "length": 1149,
+      "sha256": "50a8035bb270e6c32c7a2b1bf4a0af98e48ded522b2414e9d04d0343c756086f"
+    },
+    {
+      "file": "install-081-result.json",
+      "length": 280,
+      "sha256": "8663bfc298cd79b9ec8b8262ed7a0209ea13bb454edf574623bcf00762271003"
+    },
+    {
+      "file": "installed-081-standard-processes.json",
+      "length": 691,
+      "sha256": "eb7ddb0faae93017ceb0653f93e09a39abfb21f9cb29a799a17c526780fb7369"
+    },
+    {
+      "file": "installed-081-verification.json",
+      "length": 1825,
+      "sha256": "3db093e0e44c8266f08a559bf15a88302be0c13d9e959baf459cd1906c3bb6bb"
+    },
+    {
+      "file": "installed-child-after.jpg",
+      "length": 215771,
+      "sha256": "30c101bcde08d914a71b544a7cbf763c391d373cd18770bd3f8805419c4d9278"
+    },
+    {
+      "file": "installed-child-before.jpg",
+      "length": 223111,
+      "sha256": "46bce1a2df76cb9251c4d8244f7885ff0d0c549e69298316bc38962196b90807"
+    },
+    {
+      "file": "installed-child-request.txt",
+      "length": 980,
+      "sha256": "374d2078c9ceb316a56a4013467b4dee75efe04681df297406c84f1c3c0c0731"
+    },
+    {
+      "file": "installed-control-after.jpg",
+      "length": 206390,
+      "sha256": "ecdfa265ab9bd418d4e6a86083fade8edc74f83971d7c1c59b896091f52b3d48"
+    },
+    {
+      "file": "installed-control-before.jpg",
+      "length": 212652,
+      "sha256": "48aa239b4a19e1dc20d389895246dfd3ad620950f402d6d4ba391cbdfbe792b3"
+    },
+    {
+      "file": "installed-control-request.txt",
+      "length": 976,
+      "sha256": "1c57ed382683d476e2ac9f6636edb1b0ccd26b174688d5d92b19a3ab2ca04351"
+    },
+    {
+      "file": "installed-nav-after.jpg",
+      "length": 209667,
+      "sha256": "9c9a85d35b324ed5aa7b8ac568634bc44026bccde0715ad0f22d5a0d3211e4a5"
+    },
+    {
+      "file": "installed-nav-before.jpg",
+      "length": 206390,
+      "sha256": "ecdfa265ab9bd418d4e6a86083fade8edc74f83971d7c1c59b896091f52b3d48"
+    },
+    {
+      "file": "installed-nav-request.txt",
+      "length": 887,
+      "sha256": "116095a59323f2289b19c5257b298eb5ef509e794133c5850785958164079f1d"
+    },
+    {
+      "file": "installed-nav-switched.jpg",
+      "length": 226728,
+      "sha256": "1a1560589d84a41c67d8d35746262b324423fa2d085f453d2c035576df6122f4"
+    },
+    {
+      "file": "package-081-verification.json",
+      "length": 1810,
+      "sha256": "88b651f78b4503958a8cc635902712fe7c5bab13cf5a168bd9f2d4db0f25847f"
+    },
+    {
+      "file": "server-address.json",
+      "length": 72,
+      "sha256": "acda8350858c35669f7a552b7aea737f8c195d40f8b0f89a4c4723bb3ca870e9"
+    },
+    {
+      "file": "server-process.json",
+      "length": 120,
+      "sha256": "4d1c11ffcd38547cef4584627232301a9a104d43893222ab704ffd5059683a11"
+    },
+    {
+      "file": "server.py",
+      "length": 4206,
+      "sha256": "d11d5443a080f9658c9dc48a781a456897951b52530e789bf71b771e2b275877"
+    }
+  ],
+  "limits": [
+    "仅同进程子Frame click，跨进程/子编辑/子键盘另验；不外推全部iframe",
+    "严格新URL按住导航、多屏及其它总体队列仍开放"
+  ]
+}

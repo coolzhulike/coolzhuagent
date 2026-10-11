@@ -1,0 +1,9 @@
+{
+  "stage": "前轮已终态并释放绑定后，正常验收工程配置调整，未续期任何运行",
+  "before_cu_timeout_seconds": 600,
+  "after_cu_timeout_seconds": 900,
+  "chat_turn_timeout_ms": 900000,
+  "product_binary_changed": false,
+  "authorization_changed": false,
+  "reason": "前轮9步计划，8步完成；最后预检开始仅余394ms，模型规划与逐页读快照占用实际墙钟，需使用既有可配置CU预算匹配15分钟会话预算。"
+}

@@ -1,0 +1,23 @@
+{
+  "captured_at": "2026-10-05T22:36:52.7582009+08:00",
+  "validation_web_pid": 11972,
+  "validation_web_exited": true,
+  "stopped_owned_test_services": [
+    {
+      "suffix": "tmp/2026-10-05-browser-loading/pages.py",
+      "pid": 28424
+    },
+    {
+      "suffix": "tmp/2026-10-05-installed-browser-074/pages.py",
+      "pid": 24400
+    },
+    {
+      "suffix": "tmp/2026-10-04-devin-models/browser-form-server.py",
+      "pid": 29228
+    }
+  ],
+  "gui_url_restored_by_original_bytes": true,
+  "original_input_safety_root_preserved": true,
+  "latest_unsettled_acp_count": 0,
+  "daily_restore": "0.2.74正式launcher自检通过，原日常工作区C:/Users/zhupu/coolzhuagent"
+}

@@ -1,0 +1,1 @@
+0.2.114预发布：旧会话容量GET/POST复用同次捕获的本地容量约束，保留采样参数。正式build/安装0、六门pass、1159文件逐摘要一致；六路1313次读取/180次保存零混合，原生设置与同EXE重启实拍通过，同源两路CI成功。原SWE/唯一island保持，本轮模型0；Browser严格时序和总体矩阵仍开放。交接报告：docs/testing/release-0.2.114/change-report-and-test-handoff.md。源码95c2704140f54db375fd1743c9fbdb1987ffda3c，MSI SHA256 754d96f4f2ffa070b349b0f1855da599cb2db9fd7c7e1643b45f1ca1d4906483。未签名、不标latest、不发布自动升级清单。

@@ -1,0 +1,27 @@
+{
+  "commit": "b2007a13f06bcf75bf07b9d277ee8d434a316490",
+  "compatibility": "unverified",
+  "declared_scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "npm run typecheck && npm test && npm run build",
+    "prepack": "npm run build",
+    "test": "vitest run tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "entry": "lib/index.js",
+  "id": "omdsh-dev/dsh-tool-calculator",
+  "installable": false,
+  "license": "MIT",
+  "name": "@deepseek-ai/dsh-tool-calculator",
+  "npm_identity_origin": "fixed_package_json",
+  "reason": "固定源码已核验，可安装为停用状态。启用时将检查宿主运行兼容性。",
+  "repository": "https://github.com/omdsh-dev/dsh-tool-calculator",
+  "sdk_lock_sha256": "af9313e4938c2c94596b702e13f48dfe430b47ec52eab98855d6707a5bdb1307",
+  "source_file_count": 22,
+  "source_sha256": "d8fa5ad326a19949045904e4fea63c7318254745bf809f8877c811c7cb083b56",
+  "static_installable": true,
+  "status": "source_verified",
+  "tree_sha": "75f02eb602088262dda014b8cdbcfea70aededfa",
+  "version": "0.0.1",
+  "workspace_id": "ws-23f646a969206cb4"
+}

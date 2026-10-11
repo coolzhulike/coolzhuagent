@@ -111,7 +111,7 @@ pub use file_ops::{
     GrepSearchInput, GrepSearchOutput, ReadFileOutput, StructuredPatchHunk, TextFilePayload,
     WriteFileOutput,
 };
-pub use conditional_file::{file_content_version, replace_file_if_version, FileContentVersion};
+pub use conditional_file::{file_content_version, lock_file_mutation, replace_file_if_version, FileContentVersion};
 pub use hooks::{
     HookEvent, HookRunResult, HookRunner, HOOK_CAPABILITY_POST_TOOL_USE,
     HOOK_CAPABILITY_PRE_TOOL_USE,

@@ -1,0 +1,23 @@
+{
+  "version": "0.2.111",
+  "session_id": "session-1791131217833",
+  "model": "swe-2-medium",
+  "configuration_revision": 51,
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "active_runs": 0,
+  "model_requests_this_round": 0,
+  "new_cloud_sessions_this_round": 0,
+  "settings_opened_without_save": true,
+  "timing_cases_closed": false
+}

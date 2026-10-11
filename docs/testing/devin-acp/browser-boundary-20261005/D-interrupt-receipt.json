@@ -1,0 +1,23 @@
+{
+  "requested_at_ms": 1791169112972,
+  "turn_id": "chat-turn-1791169091679-4",
+  "run_id": "run-chat-88f0f9884daf6cf52a57adbcd1d74d097ffa14ed7e9ed451",
+  "pointerdown": {
+    "kind": "pointerdown",
+    "value": {
+      "trusted": true
+    },
+    "document_id": "847dae7c-1df2-4c87-a320-67a29e6d9087",
+    "path": "/boundary.html",
+    "page_ms": 1791169112945,
+    "visibility": "visible",
+    "server_ms": 1791169112949
+  },
+  "response": {
+    "turn_id": "chat-turn-1791169091679-4",
+    "status": "interrupt_requested",
+    "outcome": "interrupt_requested",
+    "idempotent": false
+  },
+  "returned_at_ms": 1791169112979
+}

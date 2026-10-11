@@ -1,0 +1,47 @@
+[
+  {
+    "path": "modules/computer-use/packages/native-browser-protocol/src/lib.rs",
+    "bytes": 19941,
+    "sha256": "cb777031f7d7aa5073b98c74cee2efdff8451e52ea405536bd867d42db592d33"
+  },
+  {
+    "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_edit_input.rs",
+    "bytes": 8467,
+    "sha256": "9590205a4d1d110b7b9124fe3f868ce2d560a5e3ee466797cbb5f7a15e7d3b6a"
+  },
+  {
+    "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_editor.rs",
+    "bytes": 5243,
+    "sha256": "235f78b71fb2c724dc68a57c4cfd1ce7e3039413786e84ed285cb479de4ab492"
+  },
+  {
+    "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_input.rs",
+    "bytes": 21849,
+    "sha256": "858d31b6e11e479c621fa519840bc40b1285f57391476fac4cd5fd8fc431222c"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/native_browser_adapter.rs",
+    "bytes": 35561,
+    "sha256": "013d8fade9ef6dd3bfd20eb4bc76d9636c438b48e6fac83f7046a37ae18fa563"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+    "bytes": 20218,
+    "sha256": "369e26b4107e5c3fda3bd54dbd4ba08059b38448269dfd822a501fee72ac95de"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+    "bytes": 53009,
+    "sha256": "625f7ba74ea76f1dc56d758e8dd9908759ffe92c5ff7902f8e18d757d139e055"
+  },
+  {
+    "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_nodes.rs",
+    "bytes": 9514,
+    "sha256": "dfccf43172045e6c944aaf89d028271546373dace66f1b7a33781ae9be791b55"
+  },
+  {
+    "path": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+    "bytes": 16152,
+    "sha256": "1849882e4796d54d2f737c8c3bda93988030272305aa2280bdfcfaebd72f4c33"
+  }
+]

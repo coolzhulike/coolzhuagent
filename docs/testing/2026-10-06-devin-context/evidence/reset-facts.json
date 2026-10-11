@@ -1,0 +1,34 @@
+{
+  "case": "reset",
+  "run_id": "run-chat-5b63021f34b608b14a93261ad9afd1efec4ea5e0677453a5",
+  "elapsed": 12.3,
+  "reply": "不知道",
+  "remote_session_id": "veiled-anise",
+  "context_digest": "host-incremental-v3:Some(1791216949316):swe-2-medium",
+  "failed": null,
+  "notes": [
+    "后端已按会话 Provider/Model/API Key 引用完成目标 Agent 分发",
+    "真实模型已启用 (coolzhu.toml model.enable_real_llm=true)。"
+  ],
+  "context_delta": [
+    {
+      "continued": false,
+      "delta_history_messages": 0,
+      "host_history_messages": 0,
+      "prompt_bytes": 3363
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    }
+  ],
+  "passed": true
+}

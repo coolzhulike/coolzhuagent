@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>文档输入归因 OLD</title>
+<body data-role="OLD"><h1>初始旧文档</h1><button id="target">文档引用验收</button>
+<p id="status">旧文档目标待点击</p><script src="event-probe.js"></script>
+<script>
+document.getElementById('target').addEventListener('click', event => {
+  if (event.isTrusted) document.getElementById('status').textContent = '旧文档目标已点击';
+});
+let pending = false;
+setInterval(async () => {
+  if (pending) return;
+  pending = true;
+  try {
+    const response = await fetch('/phase', { cache: 'no-store' });
+    if ((await response.json()).ready) location.replace('new.html');
+  } finally { pending = false; }
+}, 100);
+</script></body></html>

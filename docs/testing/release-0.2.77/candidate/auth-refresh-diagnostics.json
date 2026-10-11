@@ -1,0 +1,12 @@
+{
+  "stage": "auth-refresh",
+  "base": "http://127.0.0.1:8767",
+  "observed_at_ms": 1791227696264,
+  "authentication": {
+    "cli_available": true,
+    "authentication": "authenticated",
+    "checked_at": 1791227700445,
+    "login": null,
+    "message": "Devin 已登录。"
+  }
+}

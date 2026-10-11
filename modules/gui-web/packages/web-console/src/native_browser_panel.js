@@ -1,6 +1,7 @@
 /* 桌面右栏浏览器：网页驻留于无宿主权限的独立 WebView，DOM 只负责位置与导航。 */
 window.CoolzhuNativeBrowserPanel = (() => {
   let adapter, current = null, closedTarget = null, serial = Promise.resolve(), generation = 0, frameRequested = false;
+  let addressDraftScope = null;
   const invoke = () => window.__TAURI__?.core?.invoke;
   const enqueue = operation => { const next = serial.then(operation); serial = next.catch(() => {}); return next; };
   const send = command => invoke()("browser_panel_command", {command});
@@ -37,7 +38,10 @@ window.CoolzhuNativeBrowserPanel = (() => {
     if (!current || state.scope !== current.scope) return;
     current.mounted = state.active;
     current.hidden = state.hidden === true;
-    if (state.url && !current.needsNavigation) { current.url = state.url; adapter.url(state.url); }
+    if (state.url && !current.needsNavigation) {
+      current.url = state.url;
+      adapter.url(state.url, {preserveDraft:addressDraftScope === current.scope});
+    }
     if (state.error) adapter.status(`网页载入失败：${state.error}`);
     else if (state.reason === "window-resized") scheduleLayout();
     else if (state.active) adapter.status(state.loading ? `正在载入 ${state.url}` : state.title || state.url);
@@ -74,6 +78,11 @@ window.CoolzhuNativeBrowserPanel = (() => {
   function init(api) {
     if (adapter) return; adapter = api;
     if (!invoke()) return;
+    // 地址编辑属于当前视图；网页自身导航仍更新实际地址，不覆盖尚未提交的草稿与选区。
+    const address = adapter.address?.();
+    const beginAddressDraft = () => { addressDraftScope = current?.scope ?? null; };
+    address?.addEventListener("focus", beginAddressDraft);
+    address?.addEventListener("input", beginAddressDraft);
     // 桌面壳仅向主 WebView 发送状态；全局 listen 的 Any 目标收不到该定向事件。
     const nativeView = window.__TAURI__?.webview?.getCurrentWebview?.();
     if (nativeView) nativeView.listen("browser-panel-state", event => display(event.payload)).catch(error => adapter.status(`浏览器状态监听不可用：${error.message}`));
@@ -84,7 +93,7 @@ window.CoolzhuNativeBrowserPanel = (() => {
     window.addEventListener("beforeunload", () => { if (current) void send({action:"close",scope:current.scope}); });
   }
   async function close({forgetTarget = false} = {}) {
-    const previous = current; current = null; generation++;
+    const previous = current; current = null; addressDraftScope = null; generation++;
     // 显式关闭销毁原生资源；仅保留同工程、同聊天室再次打开时的地址。
     if (forgetTarget) closedTarget = null;
     else if (previous) closedTarget = {contextKey:previous.contextKey,url:previous.url};
@@ -111,6 +120,7 @@ window.CoolzhuNativeBrowserPanel = (() => {
   }
   async function navigate(url) {
     if (!invoke()) throw new Error("当前窗口不支持桌面浏览器");
+    addressDraftScope = null;
     closedTarget = null;
     const contextKey = JSON.stringify(adapter.scope());
     if (current?.contextKey === contextKey) {
@@ -134,6 +144,7 @@ window.CoolzhuNativeBrowserPanel = (() => {
   }
   async function action(action) {
     const target = current; if (!target) return;
+    addressDraftScope = null;
     return enqueue(async () => {
       if (current !== target || !target.mounted) return;
       display(await send({action,scope:target.scope}));

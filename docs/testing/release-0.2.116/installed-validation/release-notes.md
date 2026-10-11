@@ -1,0 +1,1 @@
+0.2.116预发布：修复配置读取/保存与工程切换并发混读，复用WorkspacePin保持完整操作作用域。正常构建/安装0、六门pass、1159文件逐SHA及两路CI通过；正式EXE交错切换/保存窗口/错误释放、原生A/B参数和同EXE重启实拍通过。原SWE与唯一绑定保持，模型0。严格Browser和总体矩阵仍开放。源码 aa72c2545d3178ec993a01bc8281c7bba1c0d847，MSI SHA256 83b106cc9b46d3c587d3d3bf9d8b0c8d1e82a8a9fb50b0af9e7d10eb4df05a74。未签名、不标latest；交接：docs/testing/release-0.2.116/change-report-and-test-handoff.md。

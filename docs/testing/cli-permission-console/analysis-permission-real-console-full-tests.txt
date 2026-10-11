@@ -1,0 +1,72 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running unittests src\lib.rs (tmp/cargo-target-integration\debug\deps\coolzhu_windows_process_guard-39f2c96f0726e515.exe)
+
+running 65 tests
+test conpty::tests::diagnostic_cmd_input_creates_file ... ignored, 仅诊断 ConPTY 底层输入，产品入口仍固定 PowerShell
+test conpty::tests::output_ring_reports_truncation_and_cursor ... ok
+test conpty::tests::real_powershell_survives_interrupt_and_job_close ... ignored, 需真实 Windows ConPTY；定向运行以核对 PowerShell、Ctrl+C 与 Job 回收
+test conpty::tests::utf8_stream_preserves_split_chinese_characters ... ok
+test local_control::tests::local_pipe_uses_actual_peer_and_rejects_wrong_server_generation ... ok
+test permission_input::windows::tests::approval_does_not_consume_next_line ... ok
+test permission_input::windows::tests::blocked_pipe_is_cancelled_before_writer_closes ... ok
+test permission_input::windows::tests::cancelled_input_is_not_read ... ok
+test permission_input::windows::tests::final_line_without_newline_is_preserved_at_pipe_eof ... ok
+test permission_input::windows::tests::isolated_console_ctrl_c_ends_permission_read ... ok
+test permission_input::windows::tests::isolated_console_ctrl_c_probe ... ignored, 只由父测试在无共享控制台的独立子进程中运行
+test permission_input::windows::tests::newline_counts_toward_input_budget ... ok
+test pipe::tests::a_pre_reserved_cleanup_quota_still_serves_cleanup_when_the_ledger_is_saturated ... ok
+test pipe::tests::abandoned_reservations_return_every_unit_without_leaking_or_double_counting ... ok
+test pipe::tests::b07_peek_call_site_and_bounded_wait_anchors_are_pinned ... ok
+test pipe::tests::capacity_arithmetic_keeps_unreclaimed_owned_and_unowned_counts_separate ... ok
+test pipe::tests::capacity_child_process_body ... ok
+test pipe::tests::capacity_fault_outcome_reports_a_held_reader_and_a_real_excess_count ... ok
+test pipe::tests::capacity_is_reserved_before_any_reader_thread_exists_and_only_verified_readers_are_reclaimed ... ok
+test pipe::tests::capacity_isolation_parent_runs_a_dedicated_child_process_with_a_bounded_watchdog ... ok
+test pipe::tests::dropping_a_supervisor_parks_an_unverified_reader_instead_of_losing_it ... ok
+test pipe::tests::grandchild_holding_the_pipe_is_what_defers_eof ... ok
+test pipe::tests::peek_named_pipe_handle_mode_and_concurrent_blocking_read_are_measured_not_assumed ... ok
+test pipe::tests::reader_polling_is_a_controlled_wait_not_a_busy_loop ... ok
+test pipe::tests::retention_decision_is_a_pure_state_transition_and_faults_only_on_contract_breach ... ok
+test pipe::tests::t11_bounded_cleanup_never_waits_for_a_grandchild_keeping_the_pipes ... ok
+test pipe::tests::t12_cancel_is_not_completion_and_repeated_cancels_never_refresh_the_window ... ok
+test pipe::tests::truncated_output_keeps_what_arrived_and_reports_the_gap ... ok
+test secret_protection::tests::real_dpapi_roundtrip_and_corruption_rejection ... ok
+test tests::child_identity_is_stable_and_reports_image_path ... ok
+test tests::composed_ownership_holds_both_layers_and_fences_old_epoch ... ok
+test tests::cross_process_guard_blocks_competitor_and_releases_on_drop ... ok
+test tests::dispatch_boundary::boundary_dispatches_once_while_the_owner_epoch_is_current ... ok
+test tests::dispatch_boundary::caller_guards_are_evaluated_inside_the_boundary ... ok
+test tests::dispatch_boundary::legacy_check_then_commit_window_admits_input_after_an_accepted_revocation ... ok
+test tests::dispatch_boundary::panicking_dispatch_does_not_poison_the_broker_and_still_applies_deferred_removals ... ok
+test tests::dispatch_boundary::reentrant_broker_calls_are_refused_instead_of_self_deadlocking ... ok
+test tests::dispatch_boundary::refusal_reasons_distinguish_owner_epoch_and_revocation ... ok
+test tests::dispatch_boundary::revocation_before_the_boundary_yields_zero_input_on_every_path ... ok
+test tests::dispatch_boundary::revocation_requested_inside_the_boundary_cannot_slip_between_guard_and_dispatch ... ok
+test tests::dispatch_boundary::revoke_requested_while_dispatching_blocks_until_dispatch_returns ... ok
+test tests::dispatch_boundary::scoped_ownership_boundary_refuses_after_lease_revocation_with_zero_input ... ok
+test tests::dispatch_boundary::stress_concurrent_revoke_and_dispatch_never_dispatch_after_an_accepted_revocation ... ok
+test tests::exited_process_kept_alive_by_a_handle_is_reported_as_already_exited ... ok
+test tests::explicit_release_has_the_same_effect_as_drop ... ok
+test tests::finished_child_is_reported_as_already_gone ... ok
+test tests::guard_release_works_from_another_thread ... ok
+test tests::identity_mismatch_is_refused_and_never_falls_back_to_pid_kill ... ok
+test tests::input_lease_blocks_competing_owner_and_fences_released_epoch ... ok
+test tests::kernel_object_name_is_session_local_and_injective ... ok
+test tests::nonexistent_pid_is_reported_as_not_found ... ok
+test tests::own_identity_capture_reports_this_process ... ok
+test tests::owner_exit_while_child_suspended_rejects_before_business_code ... ok
+test tests::registered_identity_for_another_pid_is_refused ... ok
+test tests::revoke_touches_only_the_named_scope ... ok
+test tests::revoke_with_mismatched_epoch_is_ignored ... ok
+test tests::revoked_owner_token_is_no_longer_current_and_pre_input_check_rejects ... ok
+test tests::revoked_scope_admits_new_owner_with_higher_epoch ... ok
+test tests::scope_recovers_after_holder_process_dies_without_releasing ... ok
+test tests::second_process_cannot_acquire_scope_held_here ... ok
+test tests::stale_lease_drop_does_not_clear_the_new_owner ... ok
+test tests::verify_process_identity_agrees_with_capture_and_flags_reuse ... ok
+test tests::xproc_child_probe ... ignored, 由跨进程排他测试作为真实第二进程拉起（需要 COOLZHU_GUARD_XPROC_MODE）
+test tests::xproc_probe_fails_when_the_scope_is_actually_free ... ok
+test tests::zero_timeout_probe_returns_busy_without_blocking ... ok
+
+test result: ok. 61 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 18.31s
+

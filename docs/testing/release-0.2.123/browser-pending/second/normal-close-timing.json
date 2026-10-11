@@ -1,0 +1,30 @@
+{
+  "facts": {
+    "ready": true,
+    "facts": {
+      "run_id": "run-chat-a3800894b6c0e0365e68c11eb5eab82777cb0237a66d2283",
+      "cu_call_id": "cu-session-1791131217833-chat-turn-1791570965845-3-tool-09b00b8cfa4e16bccc66fff8379420076d5403f53c593ed88972966a05462d85",
+      "cu_state": "observing",
+      "steps": [
+        [
+          0,
+          "sent",
+          "released",
+          1791571032467
+        ]
+      ],
+      "observation_requested": {
+        "event_id": 5055,
+        "created_at": 1791571032501,
+        "payload": {
+          "request_id": "a1a7f119fd190af4af040598cf7088a3",
+          "stage": "registered"
+        }
+      }
+    },
+    "returned_ms": 1791571032508.2283
+  },
+  "ax_observed_ms": 1791571032569,
+  "close_action_started_ms": 1791571046717,
+  "close_action_returned_ms": 1791571046805
+}

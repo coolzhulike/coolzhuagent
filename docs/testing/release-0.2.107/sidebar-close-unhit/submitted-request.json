@@ -1,0 +1,11 @@
+{
+  "expected_workspace_id": "ws-23f646a969206cb4",
+  "native_browser_panel": true,
+  "session_id": "session-1791131217833",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "chat_room_id": "room-1791131523339",
+  "text": "BU-RESOURCE-107-CLOSE-20261008：正式0.2.107观察期间资源变化原因验收。当前右栏旧网页已载入，只调用一次computer_use_perform(surface=\"browser\",省略target,max_actions=1)，按新鲜节点点击“投递事实验收”一次。验收端会在收到可信按下事件后正常关闭右栏，网页点击后8秒更新结果。关闭时刻以独立事件为准，不要声称一定是按下期间变化。不要自行导航、关闭、重试、补发、调用其它工具或创建云端会话。read_request完整分页后respond，wait取得真实终态。最终准确读取终态input_steps中的input_delivery/input_release_status/effect_status；分别报告动作投递、释放和效果观察。不能把观察失效说成没有投递；不能声称导航发生于按下期间；未取得事实保持未知。",
+  "attachments": []
+}

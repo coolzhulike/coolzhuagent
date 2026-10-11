@@ -1,0 +1,17 @@
+{
+  "submitted_ms": 1791548740680.7256,
+  "payload": {
+    "expected_workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "target_agent_ids": [
+      "session-1791131217833"
+    ],
+    "chat_room_id": "room-1791131523339",
+    "text": "BU-THREE-LAYER-REFLECTION-FORMAL119-20261009：这是Browser复杂长程新覆盖。当前右栏原生内置浏览器已正常打开http://127.0.0.1:50106/parent.html，只调用一次computer_use_perform(surface=\"browser\",省略target,max_actions=20)。只操作该页面“主线卷轴”：从最深层真实页面读取校验码，填入该层“校验码”并按Enter；验证成功后滚动该层，点击“第二步：获取回执”；从导航后的页面读取回执码，填入最外层“最终回执”，点击“完成整轮”，核验可见“三层回执正确”。不要操作旁路同名控件；不要把网页代码或DOM脚本代执行输入。每步用新的观察节点，不复用旧节点；完整read_request分页后respond，正常wait到终态。禁止其它工具、外部浏览器、直接HTTP、修改文件或权限、重发工具、创建新云端会话。若宿主阻止或超时，停止并如实报告已完成步骤、投递/释放和效果；不要把未知说成成功。回复只包含实际结果摘要，不读取或输出历史思考。",
+    "attachments": [],
+    "native_browser_panel": true
+  },
+  "model": "swe-2-medium",
+  "config_revision": 57,
+  "binding": "island-kayak"
+}

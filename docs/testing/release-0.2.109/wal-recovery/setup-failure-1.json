@@ -1,0 +1,1 @@
+{"stage":"演练脚本准备WAL时失败，正式EXE尚未启动","error":"sqlite3.OperationalError: database table is locked","product_pass":false,"source_database_access":"read-only","preserved":"首次隔离副本保留；修正PRAGMA游标消费及连接关闭后另建第二个副本，不覆盖首次失败"}

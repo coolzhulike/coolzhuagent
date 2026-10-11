@@ -1,0 +1,719 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791251824357-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-INSTALLED-080-SHADOW-CONTROL-20261006。继续原SWE-2远端会话，只执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数 {\"objective\":\"单击当前页面名为父操作按钮的button一次\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:58081/shadow.html\"},\"success_criteria\":[\"最新页面父操作次数1，Shadow子操作次数0\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click，只选本轮新鲜名称为父操作按钮的父button引用，不操作Shadow子操作按钮，不选子节点或替代点击位置，不用桌面、导航、其它工具或Devin原生工具；命中不一致或不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务\"],\"max_actions\":1}。若返回running只wait同一job_id到终态。按真实宿主回执和最新页面如实报告，不得代执行或推断成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791251824631
+  },
+  "context_and_tools": {
+    "prefix": "BU-INSTALLED-080-SHADOW-CONTROL-20261006",
+    "run_id": "run-chat-f16c413718a33c40f5bc8d090e547fed512be17adf1e414b",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791251824357-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 0,
+        "host_history_messages": 104,
+        "prompt_bytes": 2679
+      }
+    ],
+    "outputs": [],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-be85031084ab31c6287a51d05f91bd61492e8cb9beabe7e74f117199a48da20d",
+        "run_id": "run-chat-f16c413718a33c40f5bc8d090e547fed512be17adf1e414b",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "3987b3b7c1362ee6",
+        "status": "failed",
+        "created_at_unix_ms": 1791251836079,
+        "updated_at_unix_ms": 1791251843135,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-f16c413718a33c40f5bc8d090e547fed512be17adf1e414b\",\"turn_id\":\"chat-turn-1791251824357-1\",\"attempt_id\":\"33cc8c0c6595de1aacf730ada6961d2972cf55c2ff03f6e0\",\"owner_epoch\":53,\"generation\":53}"
+      }
+    ],
+    "reply": "",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-f16c413718a33c40f5bc8d090e547fed512be17adf1e414b",
+      "state": "failed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791251824357-1-tool-be85031084ab31c6287a51d05f91bd61492e8cb9beabe7e74f117199a48da20d",
+      "provider_tool_call_id": "tool-be85031084ab31c6287a51d05f91bd61492e8cb9beabe7e74f117199a48da20d",
+      "turn_id": "chat-turn-1791251824357-1",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791251824357-1\u001fbrowser\u001f单击当前页面名为父操作按钮的button一次\u001f||http://127.0.0.1:58081/shadow.html|\u001f最新页面父操作次数1，shadow子操作次数0\u001f只操作当前右栏原生浏览器，只允许一次click，只选本轮新鲜名称为父操作按钮的父button引用，不操作shadow子操作按钮，不选子节点或替代点击位置，不用桌面、导航、其它工具或devin原生工具；命中不一致或不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏原生浏览器，只允许一次click，只选本轮新鲜名称为父操作按钮的父button引用，不操作Shadow子操作按钮，不选子节点或替代点击位置，不用桌面、导航、其它工具或Devin原生工具；命中不一致或不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"
+        ],
+        "max_actions": 1,
+        "objective": "单击当前页面名为父操作按钮的button一次",
+        "success_criteria": [
+          "最新页面父操作次数1，Shadow子操作次数0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:58081/shadow.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791252436401,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791251824357-1-tool-be85031084ab31c6287a51d05f91bd61492e8cb9beabe7e74f117199a48da20d",
+        "provider_tool_call_id": "tool-be85031084ab31c6287a51d05f91bd61492e8cb9beabe7e74f117199a48da20d",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_target_hit_mismatch",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-7ecadd8d2f42fd21ff338ef3c89885e7:627ed81279b86a8b",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:22a2fbaa76285d70ca2789e800a1c9a4",
+          "native-ax:1:0",
+          "native-observation:22a2fbaa76285d70ca2789e800a1c9a4"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791252724357
+            }
+          },
+          "cu_deadline_ms": 1791252436401,
+          "cu_deadline_established_at_ms": 1791251836401,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791251836401,
+      "updated_at_ms": 1791251843118,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791251824357-1-tool-be85031084ab31c6287a51d05f91bd61492e8cb9beabe7e74f117199a48da20d",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-7ecadd8d2f42fd21ff338ef3c89885e7",
+          "action_fingerprint": "899e131741b9bd9f",
+          "status": "failed",
+          "error_code": "native_browser_target_hit_mismatch",
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:22a2fbaa76285d70ca2789e800a1c9a4\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791251842059,
+          "completed_at_ms": 1791251843102,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791251824357-1-tool-be85031084ab31c6287a51d05f91bd61492e8cb9beabe7e74f117199a48da20d",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-7ecadd8d2f42fd21ff338ef3c89885e7\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 439,
+          "call_id": "cu-session-1791131217833-chat-turn-1791251824357-1-tool-be85031084ab31c6287a51d05f91bd61492e8cb9beabe7e74f117199a48da20d",
+          "turn_id": "chat-turn-1791251824357-1",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"dom-7ecadd8d2f42fd21ff338ef3c89885e7\"},\"done\":false,\"observation_facts\":{\"candidate_count\":3,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":18,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791251837043,
+          "completed_at_ms": 1791251842055
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:58081/events",
+  "web_events": [
+    {
+      "case": "NESTED",
+      "type": "ready",
+      "at_ms": 1791247639694,
+      "received_ms": 1791247639701.0803
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791247712172.5,
+      "received_ms": 1791247712181.2656
+    },
+    {
+      "case": "IFRAME",
+      "type": "ready",
+      "at_ms": 1791247782211.9,
+      "received_ms": 1791247782221.6648
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "ready",
+      "at_ms": 1791247782226.2,
+      "received_ms": 1791247782228.2356
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "ready",
+      "at_ms": 1791247843547.4,
+      "received_ms": 1791247843556.3208
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "pointerdown",
+      "at_ms": 1791247883366.7,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791247883368.612
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "navigation-request",
+      "at_ms": 1791247883367.0999,
+      "received_ms": 1791247883371.955
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "pointerup",
+      "at_ms": 1791247883369.3,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791247883375.5618
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "click",
+      "at_ms": 1791247883369.8,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791247883377.1536
+    },
+    {
+      "case": "LANDING",
+      "type": "ready",
+      "at_ms": 1791247883381.5999,
+      "received_ms": 1791247883391.3528
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "ready",
+      "at_ms": 1791247964750.4001,
+      "received_ms": 1791247964759.8098
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "pointerdown",
+      "at_ms": 1791248006192.3,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248006195.5557
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "pointerup",
+      "at_ms": 1791248006193,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248006196.898
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "click",
+      "at_ms": 1791248006193.2,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248006197.993
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "ready",
+      "at_ms": 1791248174942.4,
+      "received_ms": 1791248174945.3323
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "pointerdown",
+      "at_ms": 1791248228962.2998,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248228964.644
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "pointerup",
+      "at_ms": 1791248228965.0999,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248228968.1943
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "click",
+      "at_ms": 1791248228965.4,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248228969.3477
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "ready",
+      "at_ms": 1791248335049.8,
+      "received_ms": 1791248335052.1104
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "ready",
+      "at_ms": 1791248669030.5,
+      "received_ms": 1791248669032.833
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "pointerdown",
+      "at_ms": 1791248726620.1,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248726623.0388
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "navigation-request",
+      "at_ms": 1791248726620.4,
+      "received_ms": 1791248726625.226
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "pointerup",
+      "at_ms": 1791248726623.6,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248726628.075
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "click",
+      "at_ms": 1791248726623.9,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248726630.3965
+    },
+    {
+      "case": "LANDING",
+      "type": "ready",
+      "at_ms": 1791248726635.2,
+      "received_ms": 1791248726644.0103
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "ready",
+      "at_ms": 1791248880124.5,
+      "received_ms": 1791248880130.125
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "pointerdown",
+      "at_ms": 1791248921487.8,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248921491.0378
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "navigation-request",
+      "at_ms": 1791248921488,
+      "received_ms": 1791248921494.3796
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "pointerup",
+      "at_ms": 1791248921491.2,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248921498.8765
+    },
+    {
+      "case": "NAVIGATION",
+      "type": "click",
+      "at_ms": 1791248921491.7,
+      "target": "navigate",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791248921499.392
+    },
+    {
+      "case": "LANDING",
+      "type": "ready",
+      "at_ms": 1791248921506.4,
+      "received_ms": 1791248921515.6025
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "ready",
+      "at_ms": 1791248969018.8,
+      "received_ms": 1791248969027.2769
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "ready",
+      "at_ms": 1791249101853,
+      "received_ms": 1791249101855.4497
+    },
+    {
+      "case": "NESTED",
+      "type": "ready",
+      "at_ms": 1791249118580.3,
+      "received_ms": 1791249118590.2039
+    },
+    {
+      "case": "NESTED",
+      "type": "pointerdown",
+      "at_ms": 1791249162199,
+      "target": "nested-control",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791249162200.7695
+    },
+    {
+      "case": "NESTED",
+      "type": "pointerup",
+      "at_ms": 1791249162201,
+      "target": "nested-control",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791249162204.8694
+    },
+    {
+      "case": "NESTED",
+      "type": "click",
+      "at_ms": 1791249162201.3,
+      "target": "nested-control",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791249162207.8103
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791249211512,
+      "received_ms": 1791249211517.0762
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791249624110.2002,
+      "received_ms": 1791249624116.2573
+    },
+    {
+      "case": "SHADOW",
+      "type": "pointerdown",
+      "at_ms": 1791249677222.9001,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791249677224.71
+    },
+    {
+      "case": "SHADOW",
+      "type": "pointerup",
+      "at_ms": 1791249677224.9001,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791249677227.5205
+    },
+    {
+      "case": "SHADOW",
+      "type": "click",
+      "at_ms": 1791249677225.2002,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791249677229.1545
+    },
+    {
+      "case": "SHADOW",
+      "type": "shadow-click",
+      "at_ms": 1791249677225.4001,
+      "count": 1,
+      "received_ms": 1791249677230.6606
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791249729202.5999,
+      "received_ms": 1791249729211.0037
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "ready",
+      "at_ms": 1791249975283.6,
+      "received_ms": 1791249975295.7808
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791250401325.7,
+      "received_ms": 1791250401331.9963
+    },
+    {
+      "case": "SHADOW",
+      "type": "pointerdown",
+      "at_ms": 1791250444232.5,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250444236.3777
+    },
+    {
+      "case": "SHADOW",
+      "type": "pointerup",
+      "at_ms": 1791250444235.2,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250444238.3298
+    },
+    {
+      "case": "SHADOW",
+      "type": "click",
+      "at_ms": 1791250444235.5999,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250444240.1018
+    },
+    {
+      "case": "SHADOW",
+      "type": "shadow-click",
+      "at_ms": 1791250444235.8,
+      "count": 1,
+      "received_ms": 1791250444242.6675
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791250468084.3,
+      "received_ms": 1791250468092.5803
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "ready",
+      "at_ms": 1791250538198.0999,
+      "received_ms": 1791250538208.1895
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "pointerdown",
+      "at_ms": 1791250600590.5,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250600593.2056
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "pointerup",
+      "at_ms": 1791250600591.9,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250600594.1387
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "click",
+      "at_ms": 1791250600592.2,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250600595.0957
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "ready",
+      "at_ms": 1791250793960.2002,
+      "received_ms": 1791250793964.7798
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "pointerdown",
+      "at_ms": 1791250847689.2002,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250847691.6694
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "pointerup",
+      "at_ms": 1791250847692.4001,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250847696.1833
+    },
+    {
+      "case": "PANEL-CLOSE",
+      "type": "click",
+      "at_ms": 1791250847692.8,
+      "target": "increment",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791250847697.3792
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791251720635.5999,
+      "received_ms": 1791251720638.1353
+    },
+    {
+      "case": "SHADOW",
+      "type": "pointerdown",
+      "at_ms": 1791251767051.0999,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791251767053.4133
+    },
+    {
+      "case": "SHADOW",
+      "type": "pointerup",
+      "at_ms": 1791251767053.2998,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791251767054.9773
+    },
+    {
+      "case": "SHADOW",
+      "type": "click",
+      "at_ms": 1791251767053.5999,
+      "target": "shadow-host",
+      "button": 0,
+      "isTrusted": true,
+      "received_ms": 1791251767057.1267
+    },
+    {
+      "case": "SHADOW",
+      "type": "shadow-click",
+      "at_ms": 1791251767053.7998,
+      "count": 1,
+      "received_ms": 1791251767058.076
+    },
+    {
+      "case": "SHADOW",
+      "type": "ready",
+      "at_ms": 1791251808936.2,
+      "received_ms": 1791251808942.9424
+    }
+  ]
+}

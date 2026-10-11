@@ -1,0 +1,17 @@
+{
+  "submitted_ms": 1791567860166.0935,
+  "payload": {
+    "expected_workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "target_agent_ids": [
+      "session-1791131217833"
+    ],
+    "chat_room_id": "room-1791131523339",
+    "text": "BU-SCROLL-DOCUMENT-IDENTITY-CANDIDATE-20261009：这是双子文档滚动、AX序号漂移、订单提交和DSH工具链长程验收。当前右栏原生内置浏览器已打开http://127.0.0.1:53546/scroll.html。沿用当前唯一Devin云端会话，只调用一次computer_use_perform。网页包含竹剑订单与玉佩订单两个独立内嵌文档，每个表单在自己的文档底部：先按当前新观察中本订单的RootWebArea引用向下滚动（amount=3），使订单码输入框实际可见；从该订单当前真实页面读取随机码，click该输入框，text_input填入对应订单码，然后key_combination按enter提交。再处理另一个文档，不能滚动外层或借另一个文档的引用。滚动后外层会插入回执文字造成AX序号漂移，引用必须每步重新观察；无需操作行情。目标是外层可见“双文档订单已完成，两项均通过”以及两项单价与数量回执，不要从投递ACK推导成功。工具正式参数为{\"objective\": \"完成竹剑与玉佩两个子文档的滚动、真实订单码填写和提交\", \"surface\": \"browser\", \"success_criteria\": [\"外层完整显示双文档订单已完成，两项均通过\", \"外层两项回执明确列出各自物品、单价及数量\"], \"constraints\": [\"只操作两个订单子文档，各先滚动至真实输入框后填写随机订单码按enter\", \"忽略动态行情；每步使用最新观察引用；禁止脚本或HTTP操作网页\"], \"max_actions\": 14}。省略target，使用objective字段，不使用task或instruction。CU只能调用一次；成功后仅根据本轮工具证据调用一次DSH计算器 dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab，计算两项单价乘数量的总和，并在最终可见回复列出逐项算式和总额。CU失败、阻止、参数错误或超时则如实收尾，不重试、不补发、不猜数字，不调用计算器。完整read_request分页后respond，wait到真实终态。禁止其它工具、外部浏览器、修改文件/配置/权限、新建云端会话，不读取或输出历史思考。",
+    "attachments": [],
+    "native_browser_panel": true
+  },
+  "model": "swe-2-medium",
+  "config_revision": 57,
+  "binding": "island-kayak"
+}

@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "继续同一个会话，纯文本验收，不调用工具。上一轮要求你记住的口令和暗号分别是什么？只回复这两项。本条消息没有重复给出它们。",
+  "selected_message_ids": [],
+  "attachments": []
+}

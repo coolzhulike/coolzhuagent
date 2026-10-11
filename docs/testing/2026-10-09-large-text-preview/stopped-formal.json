@@ -1,0 +1,17 @@
+﻿{
+    "purpose":  "释放本任务自有正式预览进程，候选使用独立SQLite副本且不调用模型",
+    "identity_verified":  true,
+    "previous":  {
+                     "shell_started":  "2026-10-09T23:31:23.1568261Z",
+                     "web_started":  "2026-10-09T23:31:22.4070487Z",
+                     "shell_pid":  30968,
+                     "web_sha256":  "9b6c9798eb18fe322a539feb0461ac68ccbff9aaa263c426f2409ece295caa1f",
+                     "stage":  "0.2.125 Program Files正式安装版",
+                     "workspace":  "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+                     "shell_binary":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+                     "web_pid":  31620,
+                     "shell_sha256":  "648f259efc601b1bbfa7a469f716de794b096ac9e224e387ad54639063a908fb",
+                     "port":  8765,
+                     "web_binary":  "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe"
+                 }
+}

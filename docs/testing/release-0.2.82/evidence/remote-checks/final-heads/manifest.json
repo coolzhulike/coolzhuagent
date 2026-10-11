@@ -1,0 +1,15 @@
+{
+  "observed_note": "包冻结来源587两路success；出包后纯测试修正61a本次采集仍in_progress，不能外推成功",
+  "files": [
+    {
+      "file": "checks-587-final.json",
+      "length": 7194,
+      "sha256": "d85e46e9eac08fdfb100c179f23b599bd460c7bd5807cce93662b5c85e5e155c"
+    },
+    {
+      "file": "checks-61a-final.json",
+      "length": 7152,
+      "sha256": "a79a0dd71de9806b38719a2a7eb9aab048aa600b04768fb6243cb947cd32a85c"
+    }
+  ]
+}

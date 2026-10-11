@@ -1,0 +1,9 @@
+{
+  "host": "127.0.0.1",
+  "port": 63464,
+  "delay_seconds": 45,
+  "tool_timeout_ms": 60000,
+  "host_timeout_seconds": 30,
+  "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+  "plugin_id": "dsh-aa909f79795799f288de8a67@external"
+}

@@ -1,0 +1,133 @@
+{
+  "formal_version": "0.2.101",
+  "runtime": {
+    "run": {
+      "id": "run-chat-f5cd120cb522766b81a391cf6b5b2de430dd57b953c9c556",
+      "state": "failed",
+      "legacy_turn_id": "chat-turn-1791499509565-2"
+    },
+    "computer_use": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791499509565-2-tool-b8420e0a87bc979716cb149c6e6b7eefc121209a61f243d47d27332d1424aa42",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791499509565-2-tool-b8420e0a87bc979716cb149c6e6b7eefc121209a61f243d47d27332d1424aa42",
+          "provider_tool_call_id": "tool-b8420e0a87bc979716cb149c6e6b7eefc121209a61f243d47d27332d1424aa42",
+          "status": "blocked",
+          "stage": "verification",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "内置网页的聊天室、工程、可见状态或连接已变化；本次没有发送输入",
+          "error": {
+            "code": "native_browser_resource_changed",
+            "message": "内置网页的聊天室、工程、可见状态或连接已变化；本次没有发送输入",
+            "retryable": false,
+            "retry_owner": "user"
+          },
+          "attempts": 1,
+          "steps_completed": 1,
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:16aa8882a7e8576807250080f8c605f2",
+            "native-ax:1:0",
+            "native-observation:16aa8882a7e8576807250080f8c605f2",
+            "native-input:4a0015c7af124a8cbc93538d5530fc39",
+            "native-ax:1:0",
+            "native-observation:6a4d68e774c17b206661be4ab7b79d4e"
+          ],
+          "supervisor": {
+            "circuit_open": false,
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791500409565
+              }
+            },
+            "cu_deadline_ms": 1791500409565,
+            "cu_deadline_established_at_ms": 1791499528293,
+            "cu_budget_ms": 900000
+          }
+        },
+        "steps": [
+          {
+            "step_index": 0,
+            "action_type": "click",
+            "status": "input_sent_observed",
+            "error_code": null,
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "effect_status": null
+          }
+        ]
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "246e20e5146c318dab61c0eb669ec8008fed609245165841",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  "before": {
+    "counts": {
+      "attempts": 937,
+      "messages": 1169
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ],
+    "configuration_revision": 35
+  },
+  "after": {
+    "attempts": 938,
+    "messages": 1172
+  },
+  "tool_calls": [
+    {
+      "tool_name": "computer_use_perform",
+      "status": "failed",
+      "tool_call_id": "tool-b8420e0a87bc979716cb149c6e6b7eefc121209a61f243d47d27332d1424aa42"
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791499509899-0",
+    "role": "assistant",
+    "kind": "assistant-reply",
+    "content": "任务终态：**blocked**（宿主终态回执 `status: blocked`，stage: verification，`goal_achieved: false`，`native_browser_resource_changed`，retryable=false，retry_owner=user）。\n\n如实报告：\n\n- 单次 `computer_use_perform`（surface=browser，省略 target，max_actions=1），attempts=1，steps_completed=1\n- 规划阶段用本次快照新鲜引用 `dom-27c2bd38…` 提交了一次\"替换窗口验收\"点击\n- 宿主终态错误：**`native_browser_resource_changed`——\"内置网页的聊天室、工程、可见状态或连接已变化；本次没有发送输入\"**。按下期间验收端正常关闭旧视图/切换原生视图，宿主判定资源已变、**本次输入未发送**（`input_delivery` 等效 not_sent；证据链中 `native-input:4a0015c7…` 为派发记录但终态明确\"没有发送输入\"，以终态为准）\n- 验收阶段快照虽显示旧页 node 8 `旧视图真实点击完成`，但该观察来自已变更的旧资源，宿主未采纳为成功，我的验收应答被拒绝并以 blocked 终态关闭\n- **未命中替换窗口场景的结果如实为 blocked/未验证**：不把旧视图确认文本当作通过；未重试、未补发、未导航、未操作新视图、未调用其它工具、未新建云会话",
+    "created_at": 1791499584520
+  },
+  "strict_replacement_window": "not_hit; new document loaded after old pointerup",
+  "old_down_to_up_server_ms": 2402.4605,
+  "old_up_to_new_loaded_server_ms": 10236.3466,
+  "new_document_input_events": [],
+  "bug": "Final observation error text incorrectly says no input despite sent/released step and trusted old DOM click. Candidate changes observation wording only; not installed."
+}

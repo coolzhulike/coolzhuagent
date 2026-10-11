@@ -1,0 +1,45 @@
+{
+  "source": "readonly_database_after_real_ui_send",
+  "run_id": "run-chat-8088a3888130a10b07cadbb79bbf708e5e835c2a0507d8cb",
+  "runtime": {
+    "id": "run-chat-8088a3888130a10b07cadbb79bbf708e5e835c2a0507d8cb",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791188959402-6",
+    "provider_turn_id": null,
+    "state": "failed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-350c0893ee4a881a3a80f49b56c98d0e8990196fb4adfc5dc21aac74af87dae0",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791188959412,
+    "started_at": 1791188959454,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791188959454,
+    "finished_at": 1791189018485
+  },
+  "messages": [
+    {
+      "id": "msg-1791188959402-user",
+      "kind": "text",
+      "content": "BU-INSTALLED-072-form：新的独立真实Browser Use任务，仅用当前Devin SWE-2，忽略旧任务。只提交一次computer_use_perform，正式六项：objective=在当前右栏原生浏览器填写验收姓名SWE2-072，滚动找到并勾选确认验收，点击提交本地表单；surface=browser；target={url:http://127.0.0.1:51866/form.html}；success_criteria=[\"最新页面显示FORM-PASSED-072\"]；constraints=[只操作当前右栏原生浏览器，不用其它工具或桌面UIA，不换模型，只允许当前本地表单的点击、text、scroll，不navigate不按Enter，不发送其它文本，使用本轮新鲜节点，失败或取消立即停止，不重试不补发，输入释放不等于目标完成]；max_actions=6。running仅wait同一个job_id到终态，不重复perform。依据真实页面与宿主回执如实报告，回复显示在当前聊天室。",
+      "created_at": 1791188959459
+    },
+    {
+      "id": "msg-1791188959551-0-thinking",
+      "kind": "reasoning",
+      "content": "I'm submitting the perform function with all six fields.Wait, I'm blocked. It looks like the target node is outside the viewport, so the input wasn't sent. I tried 3 times, completing 2 steps and delivering 2 inputs, but it seems like this is the reason for the failure.",
+      "created_at": 1791189018402
+    },
+    {
+      "id": "msg-1791188959551-0",
+      "kind": "assistant-reply",
+      "content": "我先确认 coolzhu-agent 当前声明的工具，然后按正式六项提交一次 `computer_use_perform`。回执为 running，等待同一 job_id。BU-INSTALLED-072-form 结果：**未通过**，依据本轮宿主真实终态回执报告。\n\n**调用**\n- `computer_use_perform`（coolzhu-agent），1 次，`surface=browser`，`target={url: http://127.0.0.1:51866/form.html}`，`max_actions=6`\n- 首轮回执 `running`，对同一 job_id 调用 `computer_use_wait` 1 次到达终态；未重复调用 perform\n\n**终态回执**\n- `status: blocked`，`stage: execution`，`goal_achieved: false`\n- 错误：`native_browser_target_outside_viewport` — \"节点预检拒绝，未发送输入\"，`retryable: false`\n- `attempts: 3`，`steps_completed: 2`，supervisor `action_count: 3`，`no_progress_count: 0`，`replan_count: 0`，`circuit_open: false`\n\n**证据链（回执原文）**\n- 两次输入动作真实投递：`native-input:3227cf5e5e9b1d27fc1a511d9a03ed21`、`native-input:fb68a74565847d231bb616e099b10bd6`（页面观察在各步间有变化，`476d115b…` → `ff2471d3…` → `a4820a4d…`）\n- 第 3 个动作被节点预检拒绝：目标节点在视口外，`input_delivery: not_sent`，`effect: not_observed`，`goal_verdict: not_checked`——规划器未先滚动到该节点而是直接尝试交互，预检拦截\n- 最终页面观察 `native-observation:d5525e59…` 存在，但回执未包含页面文本，「FORM-PASSED-072」未获确认\n\n**结论**\n- 前两步（可能为填写姓名、勾选或滚动尝试）有部分进展，第 3 步因目标在视口外被预检拒绝且不可重试，任务阻塞\n- 验收标准 `criteria_met: 0/1`——页面是否显示 FORM-PASSED-072 未经核验\n- 按约束\"失败立即停止，不重试不补发\"，本轮不再发起第二次调用；不凭输入投递报完成",
+      "created_at": 1791189018402
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "case": "delete-repeat",
+  "run_id": "run-chat-519e874703b259cf1798c128ce31c926bf6893cc99989f5a",
+  "elapsed": 9.7,
+  "reply": "继续对话正常",
+  "removed_message_ids": [
+    "msg-1791216393352-user",
+    "msg-1791216393500-0"
+  ],
+  "tombstones": [],
+  "remote_session_id": "fifth-motorist",
+  "deleted_rows_remaining": 0,
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 92,
+      "prompt_bytes": 4762
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "stop": "end_turn",
+      "drained": 1,
+      "model": {
+        "requested": "swe-2-medium",
+        "effective": "swe-2-medium",
+        "resolved_model": null
+      }
+    }
+  ],
+  "passed": true
+}

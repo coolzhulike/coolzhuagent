@@ -1,0 +1,34 @@
+[
+  {
+    "ts": "1791506389.736",
+    "call_id": "tool-d39e9ff21ca6fe4338285497dd53cbba2a6e7274eb17213da11c2a380c819494",
+    "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+    "caller": "llm",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "input_summary": "dsh__1ef9be67fd4ddb42d93d68c084b38983: allowPrivate=true, maxBytes=1024, timeoutMs=60000, url=len38, …",
+    "status": "failed",
+    "elapsed_ms": 2446,
+    "permission": {
+      "required": "danger-full-access",
+      "decision": "allow-auto",
+      "reason": "full-access-profile",
+      "workspace_relative": false,
+      "affected_paths": [
+        "<opaque-command>"
+      ]
+    },
+    "summary_text": "host_interrupted：父调用已结束，插件迟到结果不再采纳；未自动重放",
+    "evidence": {
+      "frozen_parent_permission": {
+        "affected_paths": [
+          "<opaque-command>"
+        ],
+        "decision": "allow-auto",
+        "reason": "full-access-profile",
+        "required": "danger-full-access",
+        "workspace_relative": false
+      }
+    }
+  }
+]

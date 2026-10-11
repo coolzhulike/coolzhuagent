@@ -1,0 +1,318 @@
+{
+  "stage": "0.2.75 已安装二进制实测",
+  "cases": {
+    "opus-1": {
+      "case": "opus-1",
+      "stage": "0.2.75 已安装二进制，页面实际发送",
+      "run_id": "run-chat-e47409fcb0918eb71857f64eefbf5dee45dcd25158284fe2",
+      "source_message_id": "msg-1791218489314-user",
+      "source_text": "安装版Opus续接第1轮：正式安装已升级。不调用工具、不执行历史任务。请返回先前记住的 Opus 专属口令；同时记住新的安装验收口令 774a5ebd36248ad4。仅回复先前的口令，不复述新的口令。",
+      "room": "room-1791125819661",
+      "agent": "session-1791122188340",
+      "remote_session_id": "fair-amaryllis",
+      "admitted_targets": [
+        {
+          "agent_ids": [
+            "session-1791122188340"
+          ]
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 80,
+          "prompt_bytes": 1844
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791122188340",
+          "messages": [
+            {
+              "deleted": false,
+              "digest": "800e33279003d01315b0485f945bbd83787427e69d4f82104417474bcc32675c",
+              "id": "msg-1791218489407-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "claude-opus-5-5-high",
+            "effective": "claude-opus-5-5-high",
+            "resolved_model": null
+          }
+        }
+      ],
+      "reply": "108d9d63c77f3907",
+      "passed": true
+    },
+    "opus-2": {
+      "case": "opus-2",
+      "stage": "0.2.75 已安装二进制，页面实际发送",
+      "run_id": "run-chat-3adb179c852507946bc04b6bb477a00d496d25214aff1dc1",
+      "source_message_id": "msg-1791218513109-user",
+      "source_text": "安装版Opus续接第2轮：不调用工具，只返回上一轮记住的新安装验收口令。本条没有再次提供它。",
+      "room": "room-1791125819661",
+      "agent": "session-1791122188340",
+      "remote_session_id": "fair-amaryllis",
+      "admitted_targets": [
+        {
+          "agent_ids": [
+            "session-1791122188340"
+          ]
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 82,
+          "prompt_bytes": 1725
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791122188340",
+          "messages": [
+            {
+              "deleted": false,
+              "digest": "8eafe078d27c6e0ea4cb83f9fa27fe2f26ec2ca704f89a9cfadaac721f6fc61c",
+              "id": "msg-1791218513241-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "claude-opus-5-5-high",
+            "effective": "claude-opus-5-5-high",
+            "resolved_model": null
+          }
+        }
+      ],
+      "reply": "774a5ebd36248ad4",
+      "passed": true
+    },
+    "opus-3": {
+      "case": "opus-3",
+      "stage": "0.2.75 已安装二进制，页面实际发送",
+      "run_id": "run-chat-ace9ea433aea6d55fb0070b53cdeb4ce94eb6b084eb6165d",
+      "source_message_id": "msg-1791218682151-user",
+      "source_text": "安装版Opus续接第3轮：后台已重启。请只返回本次安装验收的新口令，不调用工具、不执行历史任务。本条未再次提供口令。",
+      "room": "room-1791125819661",
+      "agent": "session-1791122188340",
+      "remote_session_id": "fair-amaryllis",
+      "admitted_targets": [
+        {
+          "agent_ids": [
+            "session-1791122188340"
+          ]
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 84,
+          "prompt_bytes": 1761
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791122188340",
+          "messages": [
+            {
+              "deleted": false,
+              "digest": "8eafe078d27c6e0ea4cb83f9fa27fe2f26ec2ca704f89a9cfadaac721f6fc61c",
+              "id": "msg-1791218682261-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "claude-opus-5-5-high",
+            "effective": "claude-opus-5-5-high",
+            "resolved_model": null
+          }
+        }
+      ],
+      "reply": "774a5ebd36248ad4",
+      "passed": true
+    },
+    "swe-1": {
+      "case": "swe-1",
+      "stage": "0.2.75 已安装二进制，页面实际发送",
+      "run_id": "run-chat-bab0ca69d9abf4c9fc6a330c06aed47615b35873731897d0",
+      "source_message_id": "msg-1791218559858-user",
+      "source_text": "安装版SWE续接第1轮：只进行新的纯文本验收，不调用工具、不执行历史任务。请记住本轮安装验收口令 5136184e6566d421。只回复“已记住”，不要复述口令。",
+      "room": "room-1791131523339",
+      "agent": "session-1791131217833",
+      "remote_session_id": "veiled-anise",
+      "admitted_targets": [
+        {
+          "agent_ids": [
+            "session-1791131217833"
+          ]
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 2,
+          "prompt_bytes": 3196
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791131217833",
+          "messages": [
+            {
+              "deleted": false,
+              "digest": "7ff99a9c1c131b5d19d07ebd14aefbf9e8e6f44ad663c95eb47e83c3a2c7eb3f",
+              "id": "msg-1791218559965-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "reply": "已记住",
+      "passed": true
+    },
+    "swe-2": {
+      "case": "swe-2",
+      "stage": "0.2.75 已安装二进制，页面实际发送",
+      "run_id": "run-chat-1a3f1a7b62797389b182f52749f7109e2b3655b7d696194b",
+      "source_message_id": "msg-1791218581525-user",
+      "source_text": "安装版SWE续接第2轮：只返回上一轮新的安装验收口令，不调用工具，不执行历史任务。本条没有再次提供口令。",
+      "room": "room-1791131523339",
+      "agent": "session-1791131217833",
+      "remote_session_id": "veiled-anise",
+      "admitted_targets": [
+        {
+          "agent_ids": [
+            "session-1791131217833"
+          ]
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 4,
+          "prompt_bytes": 1745
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791131217833",
+          "messages": [
+            {
+              "deleted": false,
+              "digest": "d7e8a648e8ea3b49426d65fcc82af584cc4f95048fd6816936ecf3bf7ea6c159",
+              "id": "msg-1791218581649-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "reply": "5136184e6566d421",
+      "passed": true
+    },
+    "swe-3": {
+      "case": "swe-3",
+      "stage": "0.2.75 已安装二进制，页面实际发送",
+      "run_id": "run-chat-43788c59a4037cd857d2167754397d5a94faa83373f61124",
+      "source_message_id": "msg-1791218652145-user",
+      "source_text": "安装版SWE续接第3轮：后台刚刚重启。请只返回本次安装验收的新口令，不调用工具，不执行历史任务。本条没有再次提供口令。",
+      "room": "room-1791131523339",
+      "agent": "session-1791131217833",
+      "remote_session_id": "veiled-anise",
+      "admitted_targets": [
+        {
+          "agent_ids": [
+            "session-1791131217833"
+          ]
+        }
+      ],
+      "context_delta": [
+        {
+          "continued": true,
+          "delta_history_messages": 0,
+          "host_history_messages": 6,
+          "prompt_bytes": 1766
+        }
+      ],
+      "outputs": [
+        {
+          "agent_id": "session-1791131217833",
+          "messages": [
+            {
+              "deleted": false,
+              "digest": "d7e8a648e8ea3b49426d65fcc82af584cc4f95048fd6816936ecf3bf7ea6c159",
+              "id": "msg-1791218652250-0",
+              "source": false
+            }
+          ]
+        }
+      ],
+      "acp": [
+        {
+          "state": "terminal",
+          "stop": "end_turn",
+          "drained": 1,
+          "model": {
+            "requested": "swe-2-medium",
+            "effective": "swe-2-medium",
+            "resolved_model": null
+          }
+        }
+      ],
+      "reply": "5136184e6566d421",
+      "passed": true
+    }
+  },
+  "all_passed": true
+}

@@ -1,0 +1,380 @@
+{
+  "stage": "0.2.94 Program Files正式安装版",
+  "version": "0.2.94",
+  "source_commit": "54fe2d317d1c0022e88a95533f538b172ae30593",
+  "marker": "BU-INSTALLED094-AFFINE-LONGRUN-20261008",
+  "run": {
+    "id": "run-chat-9aed3fd8a15a6445014f7b5feb7e701f2aa626db8e215deb",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "model": "swe-2-medium",
+  "remote_session_id": "island-kayak",
+  "calls": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791474289335-0-tool-5e68280516dff934bff8bd7438ac0b709731734197f416d42f1424f780c03ed8",
+      "result": {
+        "status": "blocked",
+        "goal_achieved": false,
+        "attempts": 9,
+        "steps_completed": 8,
+        "error": {
+          "code": "native_input_receipt_timeout",
+          "message": "节点预检未完成，本次未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-1b041ab2ed83d34aa47858bf81ba05de:e8cc1c9d07b72133",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 9,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791475189335
+            }
+          },
+          "cu_deadline_ms": 1791474914562,
+          "cu_deadline_established_at_ms": 1791474314562,
+          "cu_budget_ms": 600000
+        }
+      },
+      "steps": [
+        {
+          "step_index": 0,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 1,
+          "action_type": "text_input",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 2,
+          "action_type": "key_combination",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 3,
+          "action_type": "scroll",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 4,
+          "action_type": "scroll",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 5,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 6,
+          "action_type": "click",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "released",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 7,
+          "action_type": "text_input",
+          "status": "completed_unverified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "input_release_status": "not_needed",
+          "effect_status": "effect_observed",
+          "visible_progress": 1
+        },
+        {
+          "step_index": 8,
+          "action_type": "click",
+          "status": "failed",
+          "error_code": "native_input_receipt_timeout",
+          "input_delivery": "not_sent",
+          "input_release_status": "not_needed",
+          "effect_status": null,
+          "visible_progress": 0
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "role": "LEAF",
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791474360943.8,
+      "target": "verification",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474360951.9233,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791474360945.7002,
+      "target": "verification",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474360954.2288,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791474360946.2002,
+      "target": "verification",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474360954.507,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791474454631.8,
+      "target": "verification",
+      "value": "JADE-2334",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474454643.099,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791474535236.7002,
+      "target": "verification",
+      "key": "Enter",
+      "value": "JADE-2334",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474535250.1775,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791474535237.8,
+      "accepted": true,
+      "observed_ms": 1791474535254.0386,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "wheel",
+      "trusted": true,
+      "page_ms": 1791474611342.3,
+      "target": "verification",
+      "value": "JADE-2334",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474611357.9946,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "scroll",
+      "trusted": true,
+      "page_ms": 1791474611344.5,
+      "scrollX": 0,
+      "scrollY": 598,
+      "observed_ms": 1791474611361.3071,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "wheel",
+      "trusted": true,
+      "page_ms": 1791474684467.9001,
+      "target": "DIV",
+      "scrollX": 0,
+      "scrollY": 598,
+      "observed_ms": 1791474684485.651,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "scroll",
+      "trusted": true,
+      "page_ms": 1791474684471.3,
+      "scrollX": 0,
+      "scrollY": 686,
+      "observed_ms": 1791474684489.465,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791474734757.9001,
+      "target": "continue",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 686,
+      "observed_ms": 1791474734779.264,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "navigate-requested",
+      "trusted": true,
+      "page_ms": 1791474734759.2002,
+      "observed_ms": 1791474734780.8782,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791474734758.8,
+      "target": "continue",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 686,
+      "observed_ms": 1791474734779.6934,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "LEAF",
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791474734760,
+      "target": "continue",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 686,
+      "observed_ms": 1791474734787.4214,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "PARENT",
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791474791104.9,
+      "target": "final",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474791127.2268,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "PARENT",
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791474791106,
+      "target": "final",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474791129.1465,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "PARENT",
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791474791106.4,
+      "target": "final",
+      "value": "",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474791130.2678,
+      "host": "127.0.0.1:62368"
+    },
+    {
+      "role": "PARENT",
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791474848284.9,
+      "target": "final",
+      "value": "BAMBOO-1676",
+      "scrollX": 0,
+      "scrollY": 0,
+      "observed_ms": 1791474848309.298,
+      "host": "127.0.0.1:62368"
+    }
+  ],
+  "remote_attempts": [
+    {
+      "attempt_id": "91000b8eb9a3137a43f2f354bb9703955371cd6cc7d999f2",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "screenshot": "05-installed-affine-timeout.jpg"
+}

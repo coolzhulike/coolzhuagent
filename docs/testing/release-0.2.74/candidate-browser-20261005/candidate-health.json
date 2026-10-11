@@ -1,0 +1,240 @@
+{
+  "generated_at": 1791207575815,
+  "summary": {
+    "status": "error",
+    "ok": 9,
+    "warn": 1,
+    "error": 1
+  },
+  "checks": [
+    {
+      "id": "web.state",
+      "label": "Web Console",
+      "status": "ok",
+      "detail": "Axum router is available; health check is read-only.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "web.bind",
+      "label": "Web Bind Address",
+      "status": "ok",
+      "detail": "Web GUI bind address is valid: 127.0.0.1:8765.",
+      "fix_hint": "If startup reports a port conflict, set [web].bind_addr in coolzhu.toml to 127.0.0.1:8766 or another free local port before launching."
+    },
+    {
+      "id": "workspace.root",
+      "label": "Workspace",
+      "status": "ok",
+      "detail": "Workspace root resolved to C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "config.coolzhu_toml",
+      "label": "Workspace Config",
+      "status": "ok",
+      "detail": "coolzhu.toml parsed at \\\\?\\C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\coolzhu.toml; protected_mode=defaults, rules=0, append_defaults=false, extra_rules=0.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "session.sqlite",
+      "label": "SQLite Session Store",
+      "status": "ok",
+      "detail": "SQLite session store is readable at \\\\?\\C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\.coolzhu\\web-sessions.sqlite3; sessions=3.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "llm.providers",
+      "label": "LLM Providers",
+      "status": "error",
+      "detail": "0/3 selectable agents are ready; 0 warn; 3 error.",
+      "fix_hint": "Configure missing API keys first, then verify provider/model/base_url warnings."
+    },
+    {
+      "id": "vision.capture",
+      "label": "Inner Vision",
+      "status": "ok",
+      "detail": "Latest desktop capture exists (692818 bytes); local VLM base_url=http://127.0.0.1:8000/v1.",
+      "fix_hint": "If local VLM grounding is unavailable, run `modules/vision/resources/local-vlm/start-local-vlm.ps1` from the repo root."
+    },
+    {
+      "id": "audio.voice_monitor",
+      "label": "Audio Voice Monitor",
+      "status": "ok",
+      "detail": "Voice monitor bridge is available; running=false, mode=dry-run.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "tools.catalog",
+      "label": "Tools Catalog",
+      "status": "ok",
+      "detail": "Catalog has 5 categories, 39 items, 19 executable dry-run entries.",
+      "fix_hint": "No action required."
+    },
+    {
+      "id": "desktop.pet",
+      "label": "Desktop Pet",
+      "status": "warn",
+      "detail": "Desktop pet auto-launch is disabled by coolzhu.toml [pet].enabled=false.",
+      "fix_hint": "Set [pet].enabled=true to enable auto-launch from Web GUI."
+    },
+    {
+      "id": "desktop.webview2",
+      "label": "WebView2 Runtime",
+      "status": "ok",
+      "detail": "WebView2 Runtime candidate found at C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe.",
+      "fix_hint": "No action required."
+    }
+  ],
+  "suggestions": [
+    {
+      "check_id": "llm.providers",
+      "priority": "high",
+      "message": "Configure missing API keys first, then verify provider/model/base_url warnings."
+    },
+    {
+      "check_id": "desktop.pet",
+      "priority": "medium",
+      "message": "Set [pet].enabled=true to enable auto-launch from Web GUI."
+    },
+    {
+      "check_id": "llm.providers.mario-demo.api_key",
+      "priority": "high",
+      "message": "Configure API key for 主 Agent via ZAI_API_KEY / BIGMODEL_API_KEY or the session Key reference before enabling real chat."
+    },
+    {
+      "check_id": "llm.providers.session-1791122188340.api_key",
+      "priority": "high",
+      "message": "Configure API key for Devin Opus 5.5 审查 via ANTHROPIC_API_KEY or the session Key reference before enabling real chat."
+    },
+    {
+      "check_id": "llm.providers.session-1791131217833.api_key",
+      "priority": "high",
+      "message": "Configure API key for Devin SWE-2 真实CU验收 via ANTHROPIC_API_KEY or the session Key reference before enabling real chat."
+    }
+  ],
+  "flags": {
+    "real_llm_enabled": true,
+    "llm_tools_enabled": true,
+    "desktop_pet_disabled": true
+  },
+  "paths": {
+    "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent",
+    "session_db": "\\\\?\\C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\.coolzhu\\web-sessions.sqlite3",
+    "legacy_session_json": "\\\\?\\C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\.coolzhu\\web-sessions.json",
+    "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+    "desktop_pet_exe": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\native-validation-bin\\coolzhu-tauri-shell.exe"
+  },
+  "agents": [
+    {
+      "agent_id": "mario-demo",
+      "name": "主 Agent",
+      "provider_label": "智谱 AI",
+      "provider_kind": "zhipuai",
+      "selected_provider_kind": "zhipuai",
+      "detected_provider_kind": "zhipuai",
+      "provider_match": true,
+      "provider_slug": "zhipu",
+      "model": "glm-4.6",
+      "canonical_model": "glm-4.6",
+      "api_model_id": "glm-4.6",
+      "base_url": "https://open.bigmodel.cn/api/paas/v4",
+      "base_url_default": "https://open.bigmodel.cn/api/paas/v4",
+      "base_url_env": "ZAI_BASE_URL",
+      "base_url_env_present": false,
+      "base_url_source": "default",
+      "base_url_matches_default": true,
+      "api_key_present": false,
+      "api_key_source": null,
+      "api_key_status": "missing; checked env: ZAI_API_KEY or BIGMODEL_API_KEY",
+      "env_keys": [
+        "ZAI_API_KEY",
+        "BIGMODEL_API_KEY"
+      ],
+      "recommended_models": [
+        "glm-free",
+        "glm-4.7-flash",
+        "glm-4.7",
+        "glm-5"
+      ],
+      "provider_status": "error",
+      "provider_issue": "No session API key or provider environment key is available."
+    },
+    {
+      "agent_id": "session-1791122188340",
+      "name": "Devin Opus 5.5 审查",
+      "provider_label": "devin",
+      "provider_kind": "clawapi",
+      "selected_provider_kind": null,
+      "detected_provider_kind": "clawapi",
+      "provider_match": true,
+      "provider_slug": "clawapi",
+      "model": "claude-opus-5-5-high",
+      "canonical_model": "claude-opus-5-5-high",
+      "api_model_id": "claude-opus-5-5-high",
+      "base_url": "https://api.anthropic.com/v1",
+      "base_url_default": null,
+      "base_url_env": null,
+      "base_url_env_present": false,
+      "base_url_source": "config-or-model",
+      "base_url_matches_default": false,
+      "api_key_present": false,
+      "api_key_source": null,
+      "api_key_status": "missing; checked env: ANTHROPIC_API_KEY",
+      "env_keys": [
+        "ANTHROPIC_API_KEY"
+      ],
+      "recommended_models": [],
+      "provider_status": "error",
+      "provider_issue": "No session API key or provider environment key is available."
+    },
+    {
+      "agent_id": "session-1791131217833",
+      "name": "Devin SWE-2 真实CU验收",
+      "provider_label": "devin",
+      "provider_kind": "clawapi",
+      "selected_provider_kind": null,
+      "detected_provider_kind": "clawapi",
+      "provider_match": true,
+      "provider_slug": "clawapi",
+      "model": "swe-2-medium",
+      "canonical_model": "swe-2-medium",
+      "api_model_id": "swe-2-medium",
+      "base_url": "https://api.anthropic.com/v1",
+      "base_url_default": null,
+      "base_url_env": null,
+      "base_url_env_present": false,
+      "base_url_source": "config-or-model",
+      "base_url_matches_default": false,
+      "api_key_present": false,
+      "api_key_source": null,
+      "api_key_status": "missing; checked env: ANTHROPIC_API_KEY",
+      "env_keys": [
+        "ANTHROPIC_API_KEY"
+      ],
+      "recommended_models": [],
+      "provider_status": "error",
+      "provider_issue": "No session API key or provider environment key is available."
+    }
+  ],
+  "latest_capture": {
+    "path": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+    "exists": true,
+    "bytes": 692818,
+    "modified_at": 1790853897862,
+    "preview_url": "/api/capture/latest/image"
+  },
+  "tools": {
+    "categories": 5,
+    "items": 39,
+    "executable_now": 19,
+    "migration_candidates": 0
+  },
+  "voice_monitor": {
+    "available": true,
+    "running": false,
+    "mode": "dry-run",
+    "message": "待开启；当前仅支持状态桥",
+    "backend": "none",
+    "requires_interactive_test": true
+  }
+}

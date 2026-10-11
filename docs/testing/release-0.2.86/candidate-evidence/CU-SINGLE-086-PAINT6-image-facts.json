@@ -1,0 +1,26 @@
+[
+  {
+    "attempt_id": "b4d8e1e0330a74af2e57d7e30895c68ff7e1992298ef068e",
+    "remote_session_id": "island-kayak",
+    "payloads": [
+      {
+        "stage": "image_payload_1",
+        "image_count": 1,
+        "outgoing_limit_bytes": 8388608,
+        "serialized_bytes": 458773
+      },
+      {
+        "stage": "image_payload_2",
+        "image_count": 2,
+        "outgoing_limit_bytes": 8388608,
+        "serialized_bytes": 859365
+      },
+      {
+        "stage": "prompt_payload",
+        "image_count": 0,
+        "outgoing_limit_bytes": 1048576,
+        "serialized_bytes": 9205
+      }
+    ]
+  }
+]

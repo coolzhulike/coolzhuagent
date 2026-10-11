@@ -1,0 +1,332 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791258311240-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-083-FRAME-SCROLL-DOWN-20261006：继续原SWE-2远端上下文，只执行本条独立新任务。仅调用一次coolzhu-agent的computer_use_perform，参数为{\"objective\":\"在子文档SCROLL-CHILD向下滚动一次，父页面不滚动\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:51911/scroll.html\"},\"success_criteria\":[\"最新页面子滚动位置大于0，父滚动位置为0\"],\"constraints\":[\"只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选SCROLL-CHILD的子RootWebArea，不选父文档\"],\"max_actions\":1}。running只wait同一job_id至终态，按真实宿主投递回执和独立网页位置如实报告，不代执行、不推断成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791258311353
+  },
+  "context_and_tools": {
+    "prefix": "BU-CANDIDATE-083-FRAME-SCROLL-DOWN-20261006",
+    "run_id": "run-chat-3a0d07d2371c5001289ebd92ca63b27dc03cc467aa98c820",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791258311240-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 152,
+        "prompt_bytes": 3348
+      }
+    ],
+    "outputs": [
+      {
+        "agent_id": "session-1791131217833",
+        "messages": [
+          {
+            "deleted": false,
+            "digest": "452c61135c47df8f13f69ffe2f1320795c148213dc4906d57227cd1fe798b8e0",
+            "id": "msg-1791258311546-0",
+            "source": false
+          }
+        ]
+      }
+    ],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+        "run_id": "run-chat-3a0d07d2371c5001289ebd92ca63b27dc03cc467aa98c820",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "c3989bf7e02852b5",
+        "status": "completed",
+        "created_at_unix_ms": 1791258334575,
+        "updated_at_unix_ms": 1791258355393,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-3a0d07d2371c5001289ebd92ca63b27dc03cc467aa98c820\",\"turn_id\":\"chat-turn-1791258311246-0\",\"attempt_id\":\"741a27e2c4a67428f58c6537e6b4e358e778bb179f7bf26f\",\"owner_epoch\":77,\"generation\":77}"
+      }
+    ],
+    "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`）：\n\n- **动作**：1 次 scroll down 已投递（attempts=1，steps_completed=1，含 native-input 回执）\n- **验收**：最新页面观察（freshness_confirmed=true）在 `http://127.0.0.1:51911/scroll.html`（标题\"083 Frame滚动父页面\"）确认 StaticText 显示 **\"子滚动位置：120；父滚动位置：0\"**——子文档已滚动、父页面未动，success_criteria 1/1 满足\n\n按宿主回执如实报告：目标达成。",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-3a0d07d2371c5001289ebd92ca63b27dc03cc467aa98c820",
+      "state": "completed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791258311246-0-tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+      "provider_tool_call_id": "tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+      "turn_id": "chat-turn-1791258311246-0",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791258311246-0\u001fbrowser\u001f在子文档scroll-child向下滚动一次，父页面不滚动\u001f||http://127.0.0.1:51911/scroll.html|\u001f最新页面子滚动位置大于0，父滚动位置为0\u001f只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档rootwebarea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选scroll-child的子rootwebarea，不选父文档",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏原生浏览器；只允许一次scroll down amount=1；必须使用本轮新鲜文档RootWebArea引用，不点击、不输入、不按键、不导航，不用桌面、其它工具或Devin工具；失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务；只选SCROLL-CHILD的子RootWebArea，不选父文档"
+        ],
+        "max_actions": 1,
+        "objective": "在子文档SCROLL-CHILD向下滚动一次，父页面不滚动",
+        "success_criteria": [
+          "最新页面子滚动位置大于0，父滚动位置为0"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:51911/scroll.html"
+        }
+      },
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791258934752,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791258311246-0-tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+        "provider_tool_call_id": "tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"a8cda8f189fd07a21c15742c7ceaacc5\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[13],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":13,\"name_chars\":17,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":13,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"99c42878afa1b5e2f7ad82fa2d38c013\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":35,\"nodes\":[{\"index\":13,\"name\":\"子滚动位置：120；父滚动位置：0\",\"role\":\"StaticText\"}],\"title\":\"083 Frame滚动父页面\",\"truncated\":false,\"url\":\"http://127.0.0.1:51911/scroll.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":\"http://127.0.0.1:51911/scroll.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:b6452c93ddbe3fb016701bed432a6c90",
+          "native-ax:1:0",
+          "native-observation:b6452c93ddbe3fb016701bed432a6c90",
+          "native-input:669b65fa5639892a0a96a4e7bc7c9653",
+          "native-ax:1:0",
+          "native-observation:99c42878afa1b5e2f7ad82fa2d38c013",
+          "native-ax:1:0",
+          "native-observation:99c42878afa1b5e2f7ad82fa2d38c013",
+          "native-ax:1:0",
+          "native-observation:a8cda8f189fd07a21c15742c7ceaacc5"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791259211246
+            }
+          },
+          "cu_deadline_ms": 1791258934752,
+          "cu_deadline_established_at_ms": 1791258334752,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791258334752,
+      "updated_at_ms": 1791258355379,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791258311246-0-tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "scroll",
+          "normalized_target": "dom-0bb1c6b30a88f977f2a49b0ee2bc4a6e",
+          "action_fingerprint": "d1a1a0021173f79f",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:b6452c93ddbe3fb016701bed432a6c90\"]",
+          "after_evidence_ref": "[\"native-ax:1:0\",\"native-observation:99c42878afa1b5e2f7ad82fa2d38c013\",\"native-ax:1:0\",\"native-observation:a8cda8f189fd07a21c15742c7ceaacc5\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791258343456,
+          "completed_at_ms": 1791258345458,
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "native_ticket_id": "0a33c458369690aa7a6cd6b785f52269",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"cceb7bc1858c179c30ddd714c0553669\",\"host_id\":\"native-9704ed5e12ae40c0f3864f38b9bcbf22\",\"process\":{\"instance_id\":\"bfd80c58a516d0ed70c7c2c954fce304\",\"boot_id\":\"9704ed5e12ae40c0f3864f38b9bcbf22\",\"pid\":9552,\"creation_time_filetime\":134357316874624895,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-06-browser-frame-scroll\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-0bb1c6b30a88f977f2a49b0ee2bc4a6e:f152d34d546d2820#gen1#cu-session-1791131217833-chat-turn-1791258311246-0-tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e:step-0#attempt1\",\"ticket_id\":\"0a33c458369690aa7a6cd6b785f52269\",\"observation_id\":\"b6452c93ddbe3fb016701bed432a6c90\",\"document_token\":\"d09a5c507ecb08c8eb66b550fc3847b3\",\"node_id\":\"0bb1c6b30a88f977f2a49b0ee2bc4a6e\",\"input_kind\":\"scroll\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791258311246-0-tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{\"amount\":1,\"direction\":\"down\"},\"kind\":\"scroll\",\"redacted_fields\":true,\"target\":\"dom-0bb1c6b30a88f977f2a49b0ee2bc4a6e\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 490,
+          "call_id": "cu-session-1791131217833-chat-turn-1791258311246-0-tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+          "turn_id": "chat-turn-1791258311246-0",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{\"amount\":1,\"direction\":\"down\"},\"kind\":\"scroll\",\"target\":\"dom-0bb1c6b30a88f977f2a49b0ee2bc4a6e\"},\"done\":false,\"observation_facts\":{\"candidate_count\":4,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":35,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":2,\"textbox_candidate_count\":0,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791258335707,
+          "completed_at_ms": 1791258343447
+        },
+        {
+          "id": 491,
+          "call_id": "cu-session-1791131217833-chat-turn-1791258311246-0-tool-ca22e9f96932678e0fd72e470ec31c6b85f689cc37729b0ff81fefe0273a8f1e",
+          "turn_id": "chat-turn-1791258311246-0",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_browser_readonly_verification",
+          "observation_generation": 2,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"bytes\":114,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":43,\"evidence_chars\":17,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":1,\"criteria_type\":\"array\",\"host_verification\":{\"criteria_count\":1,\"criteria_met\":1,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[13],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":13,\"name_chars\":17,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":13,\"inline_has_static_text\":false,\"name_chars\":17,\"role\":\"StaticText\"}]}],\"ungrounded_positive_count\":0},\"observation_facts\":{\"candidate_count\":4,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":2,\"input_supported\":true,\"node_count\":35,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":2,\"textbox_candidate_count\":0,\"truncated\":false},\"progress\":null,\"progress_type\":\"missing\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+          "error_code": null,
+          "started_at_ms": 1791258346224,
+          "completed_at_ms": 1791258355375
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:51911/events",
+  "web_events": [
+    {
+      "case": "SCROLL-PARENT",
+      "type": "ready",
+      "at_ms": 1791258187496.2998,
+      "y": 0,
+      "received_ms": 1791258187506.2524
+    },
+    {
+      "case": "SCROLL-CHILD",
+      "type": "ready",
+      "at_ms": 1791258187504.7002,
+      "y": 0,
+      "received_ms": 1791258187507.7441
+    },
+    {
+      "case": "SCROLL-CHILD",
+      "type": "wheel",
+      "at_ms": 1791258345447.2002,
+      "target": "DIV",
+      "isTrusted": true,
+      "deltaY": 120,
+      "received_ms": 1791258345449.881
+    },
+    {
+      "case": "SCROLL-CHILD",
+      "type": "scroll",
+      "at_ms": 1791258345447.6,
+      "y": 120,
+      "isTrusted": true,
+      "received_ms": 1791258345450.6335
+    },
+    {
+      "case": "SCROLL-PARENT",
+      "type": "pointerdown",
+      "at_ms": 1791258373035.0999,
+      "target": "bottom",
+      "isTrusted": true,
+      "deltaY": 0,
+      "received_ms": 1791258373044.557
+    },
+    {
+      "case": "SCROLL-PARENT",
+      "type": "pointerup",
+      "at_ms": 1791258373055.5999,
+      "target": "bottom",
+      "isTrusted": true,
+      "deltaY": 0,
+      "received_ms": 1791258373059.135
+    },
+    {
+      "case": "SCROLL-PARENT",
+      "type": "click",
+      "at_ms": 1791258373056,
+      "target": "bottom",
+      "isTrusted": true,
+      "deltaY": 0,
+      "received_ms": 1791258373060.5789
+    },
+    {
+      "case": "SCROLL-PARENT",
+      "type": "prepare-bottom",
+      "at_ms": 1791258373056.5,
+      "received_ms": 1791258373062.7385
+    },
+    {
+      "case": "SCROLL-CHILD",
+      "type": "prepared-bottom",
+      "at_ms": 1791258373059.4001,
+      "y": 1084,
+      "received_ms": 1791258373064.2903
+    },
+    {
+      "case": "SCROLL-CHILD",
+      "type": "scroll",
+      "at_ms": 1791258373062.9001,
+      "y": 1084,
+      "isTrusted": true,
+      "received_ms": 1791258373065.808
+    }
+  ]
+}

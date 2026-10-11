@@ -9,23 +9,7 @@ let agentRegistry = { agents: [], active_agent_ids: [] };
 let sessionRegistry = { sessions: [], active_session_id: null, max_sessions: 10 };
 let avatarManifest = [];
 let avatarManifestByFile = new Map();
-const DEFAULT_WUXIA_AVATAR_PATH = "assets/avatars/wuxia-v3/bamboo-swordsman.png";
-const LEGACY_AVATAR_MIGRATIONS = new Map([
-  ["assets/avatars/wuxia-swordsman.png", DEFAULT_WUXIA_AVATAR_PATH],
-  ["assets/avatars/robot-gold.png", "assets/avatars/wuxia-v3/gold-commander.png"],
-  ["assets/avatars/robot-cyan.png", "assets/avatars/wuxia-v3/jade-strategist.png"],
-  ["assets/avatars/robot-green.png", "assets/avatars/wuxia-v3/mechanist.png"],
-  ["assets/avatars/robot-purple.png", "assets/avatars/wuxia-v3/scripture-monk.png"],
-  ["assets/avatars/robot-red.png", "assets/avatars/wuxia-v3/ink-shadow.png"],
-  ["assets/avatars/mushroom-butler.png", "assets/avatars/wuxia-v3/wandering-physician.png"],
-  ["assets/avatars/star-sprite.png", "assets/avatars/wuxia-v3/feather-guard.png"],
-  ["assets/avatars/turtle-mechanic.png", "assets/avatars/wuxia-v3/mechanist.png"],
-  ["assets/avatars/cat-black.png", "assets/avatars/wuxia-v3/ink-shadow.png"],
-  ["assets/avatars/shiba-captain.png", "assets/avatars/wuxia-v3/gold-commander.png"],
-  ["assets/avatars/astronaut-pixel.png", "assets/avatars/wuxia-v3/feather-guard.png"],
-  ["assets/avatars/alien-jelly.png", "assets/avatars/wuxia-v3/jade-strategist.png"],
-  ["assets/avatars/ai-core.png", "assets/avatars/wuxia-v3/scripture-monk.png"],
-]);
+const DEFAULT_BRAND_AVATAR_PATH = CoolzhuBrandAvatars.fallback;
 const WUXIA_ICON_ALIASES = new Map([
   ["project-tree", "project"],
   ["settings", "settings"],
@@ -111,6 +95,8 @@ let visionRealtimeSelectedElementKey = "";
 let goalRoleRegistry = { roles: [], commander_session_id: null, generated_at: null };
 let activeSessionId = null;
 let activeChatRoomId = null;
+let chatHistorySync = null;
+let chatHistoryLoadVersion = 0;
 const terminalWindowState = {
   handle: null, cursor: 0, scopeKey: "", pollTimer: 0, resizeTimer: 0,
   busy: false, closed: false, epoch: 0, vtMode: "text", vtCsi: "",
@@ -147,19 +133,19 @@ const CHAT_LAYOUT_DEFAULT_WIDTHS = Object.freeze({ left: 285, right: 480 });
 const CHAT_LAYOUT_KEYBOARD_STEP = 16;
 const CHAT_LAYOUT_CONTROL_ICON_PATHS = Object.freeze({
   left: Object.freeze({
-    open: "./assets/ui-redesign/three-column/control-icons/panel-left-open-v1.png",
-    close: "./assets/ui-redesign/three-column/control-icons/panel-left-close-v1.png",
+    open: "./assets/icons-wuxia/split-pane.svg",
+    close: "./assets/icons-wuxia/split-pane.svg",
   }),
   right: Object.freeze({
-    open: "./assets/ui-redesign/three-column/control-icons/panel-right-open-v1.png",
-    close: "./assets/ui-redesign/three-column/control-icons/panel-right-close-v1.png",
+    open: "./assets/icons-wuxia/split-pane.svg",
+    close: "./assets/icons-wuxia/stop.svg",
   }),
-  focus: "./assets/ui-redesign/three-column/control-icons/focus-layout-v1.png",
+  focus: "./assets/icons-wuxia/maximize.svg",
 });
 const CHAT_APPROVAL_CONTROL_ICON_PATHS = Object.freeze({
-  once: "./assets/ui-redesign/three-column/control-icons/approve-once-v1.png",
-  rule: "./assets/ui-redesign/three-column/control-icons/approve-rule-v1.png",
-  reject: "./assets/ui-redesign/three-column/control-icons/reject-feedback-v1.png",
+  once: "./assets/icons-wuxia/check.svg",
+  rule: "./assets/icons-wuxia/shield.svg",
+  reject: "./assets/icons-wuxia/stop.svg",
 });
 let chatLayoutState = {
   workspaceKey: "default",
@@ -217,7 +203,7 @@ const CHAT_TOOL_WINDOW_META = Object.freeze({
   vision: Object.freeze({ label: "视觉实验", kicker: "视觉工具", asset: "./assets/icons-wuxia/vision.svg" }),
 });
 const CHAT_TOOL_WINDOW_IDS = new Set(Object.keys(CHAT_TOOL_WINDOW_META));
-const CHAT_RIGHT_RAIL_TABS = Object.freeze(["collaboration", "tasks", "status", "tools"]);
+const CHAT_RIGHT_RAIL_TABS = Object.freeze(["collaboration", "tasks", "executions", "status", "tools"]);
 let chatRightRailTab = "collaboration";
 let chatToolWindowId = null;
 let chatToolWindowOrigin = null;
@@ -246,6 +232,8 @@ function projectRequestScopeCurrent(scope) {
   return scope.generation === projectWorkspaceGeneration && scope.workspace === projectWorkspaceScope;
 }
 function projectInvalidateWorkspaceRequests(workspace) {
+  chatHistoryLoadVersion++;
+  chatHistorySync?.stop();
   projectWorkspaceScope = String(workspace || "");
   projectWorkspaceGeneration += 1;
   projectTreeRequestSerial += 1;
@@ -253,6 +241,7 @@ function projectInvalidateWorkspaceRequests(workspace) {
   projectLineWindowSerial += 1;
   projectFileSaveSerial += 1;
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
 }
 // IDE 工程窗口 · 阶段D：View/Diff 合并按钮状态机（plan §4.6）
 let ideViewDiffMode = "view"; // "view" | "diff"
@@ -646,16 +635,19 @@ document.addEventListener("DOMContentLoaded", () => {
   providerSelect?.addEventListener("change", () => {
     updateModelOptions();
     updateCustomProviderFields();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
 
   const modelSelect = document.querySelector('[data-role="session-model"]');
   modelSelect?.addEventListener("change", () => {
     renderModelTypeSelect();
     updateReasoningEffortOptions();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
   document.querySelector('[data-role="session-custom-model"]')?.addEventListener("input", () => {
     renderModelTypeSelect();
     updateReasoningEffortOptions();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
   document.querySelector('[data-role="session-reasoning-effort"]')?.addEventListener("change", () => {
     renderSessionReasoningHint();
@@ -3781,6 +3773,11 @@ function updateActiveWorkspaceKey(nextKey, options = {}) {
   const normalized = String(nextKey || "default").trim() || "default";
   const previous = activeWorkspaceKey;
   activeWorkspaceKey = normalized;
+  if (previous !== normalized) {
+    chatHistoryLoadVersion++;
+    chatHistorySync?.stop();
+    window.dispatchEvent(new CustomEvent("coolzhu-workspace-changed", { detail: { workspaceId: normalized } }));
+  }
   if (!chatLayoutInitialized) {
     return;
   }
@@ -4851,6 +4848,28 @@ function renderTaskScheduleSessionOptions() {
   }
 }
 
+function renderTaskScheduleRoomOptions() {
+  const select = document.querySelector('[data-role="task-schedule-room"]');
+  if (!select) return;
+  const rooms = chatRoomRegistry.rooms || [];
+  const current = select.dataset.roomOptionsInitialized === "true"
+    ? select.value : (select.value || activeChatRoomId || "");
+  select.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "请选择结果聊天室";
+  select.append(placeholder);
+  rooms.forEach((room) => {
+    const option = document.createElement("option");
+    option.value = room.id;
+    option.textContent = `结果聊天室：${room.name || room.id}`;
+    select.append(option);
+  });
+  // 已删除目标保持空选项，不能无提示改投其它房间。
+  select.value = current;
+  if (rooms.length) select.dataset.roomOptionsInitialized = "true";
+}
+
 // 目标推进型：把可绑定目标填入选择器（数据来自 refreshTaskSchedules 拉取的 /api/goals）。
 function renderTaskScheduleGoalOptions() {
   const select = document.querySelector('[data-role="task-schedule-goal"]');
@@ -4883,10 +4902,12 @@ function renderTaskScheduleGoalOptions() {
 function taskScheduleSyncTaskKindVisibility() {
   const kind = document.querySelector('[data-role="task-schedule-task-kind"]')?.value || "poll";
   const goalSelect = document.querySelector('[data-role="task-schedule-goal"]');
+  const roomSelect = document.querySelector('[data-role="task-schedule-room"]');
   const content = document.querySelector('[data-role="task-schedule-content"]');
   if (goalSelect) {
     goalSelect.hidden = kind !== "goal";
   }
+  if (roomSelect) roomSelect.hidden = kind === "goal";
   if (content) {
     content.placeholder =
       kind === "goal"
@@ -4897,6 +4918,7 @@ function taskScheduleSyncTaskKindVisibility() {
 
 function taskRenderSchedules(registry = {}, error = null) {
   renderTaskScheduleSessionOptions();
+  renderTaskScheduleRoomOptions();
   renderTaskScheduleGoalOptions();
   taskScheduleSyncTaskKindVisibility();
   const list = document.querySelector('[data-role="task-schedule-list"]');
@@ -4946,13 +4968,13 @@ function taskRenderSchedules(registry = {}, error = null) {
   };
   function taskScheduleMetaLine(task, describeSchedule) {
     const parts = [describeSchedule(task)];
+    const status = String(task.status || "").trim().toLowerCase();
     const runAt = Number(task.run_at_ms || 0);
     if (Number.isFinite(runAt) && runAt > 0) {
-      parts.push(`下次 ${new Date(runAt).toLocaleString()}`);
+      parts.push(`${["scheduled", "pending"].includes(status) ? "下次" : "计划"} ${new Date(runAt).toLocaleString()}`);
     }
-    const status = String(task.status || "").trim();
-    if (status && !["scheduled", "pending"].includes(status.toLowerCase())) {
-      parts.push(goalStatusDisplay(status));
+    if (status) {
+      parts.push(({ scheduled: "待执行", executed: "已执行" })[status] || goalStatusDisplay(status));
     }
     return parts.join(" · ");
   }
@@ -4971,20 +4993,31 @@ function taskRenderSchedules(registry = {}, error = null) {
       isGoal && task.goal_id
         ? `<small class="task-schedule-goal-line">目标：${escapeHtml(goalTitleOf(task.goal_id))}</small>`
         : "";
+    const resultRoom = (chatRoomRegistry.rooms || []).find((room) => room.id === task.chat_room_id);
+    const roomLine = isGoal ? "" : `<small>结果聊天室：${escapeHtml(task.chat_room_id
+      ? (resultRoom?.name || "已删除或不可用")
+      : "定时任务（系统聊天室）")}</small>`;
     const errLine = task.last_error
       ? `<small class="task-schedule-error"><img class="wuxia-inline-icon" src="./assets/icons-wuxia/alert-triangle.svg" alt="" /> ${escapeHtml(task.last_error)}</small>`
       : "";
+    const targetSession = (sessionRegistry.sessions || []).find((session) => session.id === task.target_session_id);
+    const targetName = task.target_session_name || targetSession?.display_name || targetSession?.name || "会话已不可用";
+    const content = String(task.content || "");
+    const characters = Array.from(content);
+    const preview = characters.slice(0, 240).join("") + (characters.length > 240 ? "…" : "");
+    const fullContent = characters.length > 240 ? `<details class="task-schedule-full-content"><summary title="展开任务全文" aria-label="展开任务全文"><img class="wuxia-inline-icon" src="./assets/icons-wuxia/chevron.svg" alt="" /></summary><pre>${escapeHtml(content)}</pre></details>` : "";
     item.innerHTML = `
       <div>
-        <strong>${escapeHtml(task.target_session_name || task.target_session_id || "-")}</strong>
-        <span class="task-schedule-badge ${isGoal ? "is-goal" : "is-poll"}">${kindBadge}</span>
-        <p>${escapeHtml(task.content || "")}</p>
+        <header class="task-schedule-heading"><strong title="${escapeHtml(targetName)}">${escapeHtml(targetName)}</strong><span class="task-schedule-badge ${isGoal ? "is-goal" : "is-poll"}">${kindBadge}</span></header>
         ${goalLine}
-        <small>${escapeHtml(taskScheduleMetaLine(task, describeSchedule))}</small>
+        ${roomLine}
+        <small class="task-schedule-status">${escapeHtml(taskScheduleMetaLine(task, describeSchedule))}</small>
         ${occurrenceLine}
         ${errLine}
+        <p class="task-schedule-preview">${escapeHtml(preview)}</p>
+        ${fullContent}
       </div>
-      <button type="button" class="task-schedule-delete" data-schedule-delete="${escapeHtml(task.id || "")}">删除</button>
+      <button type="button" class="task-schedule-delete" data-schedule-delete="${escapeHtml(task.id || "")}" title="删除定时任务" aria-label="删除定时任务"><img class="wuxia-inline-icon" src="./assets/icons-wuxia/delete.svg" alt="" /></button>
     `;
     list.append(item);
   });
@@ -5022,6 +5055,7 @@ function taskSchedulePayloadFromForm() {
     tz_offset_minutes: tzOffset,
     task_kind: taskKind,
     goal_id: taskKind === "goal" ? goalId : null,
+    chat_room_id: taskKind === "poll" ? (document.querySelector('[data-role="task-schedule-room"]')?.value || "") : null,
   };
   if (kind === "daily" || kind === "weekly") {
     const wall = document.querySelector('[data-role="task-schedule-wall-time"]')?.value || "10:00";
@@ -5054,6 +5088,10 @@ async function taskScheduleCreate(event) {
   }
   if (payload.task_kind === "goal" && !payload.goal_id) {
     addMessage({ author: "定时任务", text: "目标推进型任务需要绑定目标（请先在目标模式中创建）。", kind: "thought", icon: "warn-log" });
+    return;
+  }
+  if (payload.task_kind === "poll" && !payload.chat_room_id) {
+    addMessage({ author: "定时任务", text: "请选择结果聊天室；任务将固定投递到所选聊天室。", kind: "thought", icon: "warn-log" });
     return;
   }
   setBusy(button, true, "添加中");
@@ -6753,8 +6791,8 @@ function taskRenderGoals(goals = [], error = null) {
         <small>${escapeHtml(taskChainPhaseStatusMeta(goal.status).label)} · ${goal.current_iteration || 0}/${goal.max_iterations || 0}</small>
         <button type="button" data-goal-action="task-chain">任务链</button>
         <button type="button" data-goal-action="goal-status">状态</button>
-        <button type="button" data-goal-action="goal-pause" title="暂停当前目标" ${terminal || paused ? "disabled" : ""}><img src="./assets/ui-redesign/three-column/control-icons/pause-v1.png" alt="" aria-hidden="true" />暂停</button>
-        <button type="button" data-goal-action="goal-resume" title="继续当前目标" ${paused ? "" : "disabled"}><img src="./assets/ui-redesign/three-column/control-icons/resume-v1.png" alt="" aria-hidden="true" />继续</button>
+        <button type="button" data-goal-action="goal-pause" title="暂停当前目标" ${terminal || paused ? "disabled" : ""}><img src="./assets/icons-wuxia/pause.svg" alt="" aria-hidden="true" />暂停</button>
+        <button type="button" data-goal-action="goal-resume" title="继续当前目标" ${paused ? "" : "disabled"}><img src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" />继续</button>
         <button type="button" data-goal-action="seed-plan" ${terminal || hasPhases ? "disabled" : ""}>生成计划</button>
         <button type="button" data-goal-action="confirm-roles-plan" ${terminal || paused ? "disabled" : ""}>确认角色</button>
         <button type="button" data-goal-action="commander-review" ${terminal || paused ? "disabled" : ""}>审查</button>
@@ -7423,7 +7461,7 @@ function agentHealthSnapshot(registry = agentRegistry) {
   const agents = (Array.isArray(registry?.agents) ? registry.agents : [])
     .filter((agent) => agent?.selectable && !agent?.system);
   const activeIds = new Set(Array.isArray(registry?.active_agent_ids) ? registry.active_agent_ids : []);
-  const unavailablePattern = /(missing|invalid|error|failed|未配置|无效|失败|错误)/i;
+  const unavailablePattern = /(missing|invalid|error|failed|未配置|未检查|未确认|尚未登录|未登录|不可用|无效|失败|错误)/i;
   const ready = agents.filter((agent) => {
     const keyStatus = String(agent.api_key_status || "").trim();
     return agent.enabled !== false && !unavailablePattern.test(keyStatus);
@@ -7547,8 +7585,11 @@ function renderOverviewMascot() {
   const configuredAvatar = avatarForSession(agent);
   const fallbackAvatar = avatarManifest.length
     ? avatarPathFromFile(avatarManifest[0].file)
-    : DEFAULT_WUXIA_AVATAR_PATH;
+    : DEFAULT_BRAND_AVATAR_PATH;
   const avatar = configuredAvatar || fallbackAvatar;
+  document.querySelectorAll(".chat-right-agent-avatar").forEach((portrait) => {
+    portrait.src = avatarUrl(avatarForSession(sessionById(activeSessionId) || agent));
+  });
   const label = document.querySelector('[data-role="overview-agent-label"]');
   image.src = avatarUrl(avatar);
   const selectedNames = selectedAgents
@@ -8577,8 +8618,11 @@ function setOverviewWorkspaceName(workspace) {
     label.textContent = baseName || "当前工作区";
   }
   if (button) {
+    const changed = button.dataset.workspacePath !== full;
     button.dataset.workspacePath = full;
     button.title = full ? `切换工程目录：${full}` : "工作区路径未就绪";
+    // 完整路径就绪后才挂载配置页，不把截断的草稿存储键当作工程ID。
+    if (changed && full) window.CoolzhuChatExperience?.syncModelSession(activeSessionId);
   }
 }
 
@@ -8917,6 +8961,8 @@ async function loadAvatarManifest() {
     const manifest = await response.json();
     avatarManifest = Array.isArray(manifest) ? manifest.filter((item) => avatarPathAllowed(item?.file)) : [];
     avatarManifestByFile = new Map(avatarManifest.map((item) => [avatarPathFromFile(item.file), item]));
+    renderSessionList(sessionRegistry.sessions || [], activeSessionId);
+    renderAgentOptions(agentRegistry.agents || [], agentRegistry.active_agent_ids || []);
     renderAvatarPicker();
     renderOverviewMascot();
   } catch (error) {
@@ -8929,20 +8975,19 @@ async function loadAvatarManifest() {
 
 function avatarPathAllowed(file) {
   const value = String(file || "").trim().replace(/\\/g, "/");
-  return /^(?:wuxia-v3\/)?[a-z0-9][a-z0-9._-]*\.(png|webp)$/i.test(value);
+  return /^(?:brand-v1\/)?[a-z0-9][a-z0-9._-]*\.(png|webp)$/i.test(value);
 }
 
 function avatarPathFromFile(file) {
   return `assets/avatars/${String(file || "").trim().replace(/\\/g, "/")}`;
 }
 
-function migrateLegacyAvatarPath(path) {
-  const normalized = String(path || "").trim().replace(/\\/g, "/").replace(/^\.\//, "");
-  return LEGACY_AVATAR_MIGRATIONS.get(normalized) || normalized;
+function migrateLegacyAvatarPath(path, session) {
+  return CoolzhuBrandAvatars.migrate(path, session);
 }
 
 function avatarUrl(path) {
-  return path ? `./${path}` : "";
+  return CoolzhuBrandAvatars.url(path);
 }
 
 function iconUrl(icon) {
@@ -9067,12 +9112,13 @@ function sessionById(sessionId) {
 }
 
 function avatarForSession(session) {
-  const path = migrateLegacyAvatarPath(session?.avatar || "");
-  return avatarManifestByFile.has(path) ? path : null;
+  return CoolzhuBrandAvatars.resolve(session);
 }
 
-function avatarForAuthor(author) {
-  return avatarForSession(sessionByAuthor(author));
+function avatarForAuthor(author, sessionId, role, kind) {
+  if (role === "user" || role === "tool" || kind === "user" || String(kind || "").startsWith("tool-") || kind === "computer-use") return null;
+  const session = sessionById(sessionId) || sessionByAuthor(author);
+  return session ? avatarForSession(session) : null;
 }
 
 function avatarThemeForPath(path) {
@@ -9081,7 +9127,7 @@ function avatarThemeForPath(path) {
 
 function defaultIconUrlForIcon(icon) {
   if (icon === "mario" || icon === "robot-message") {
-    return `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+    return `./${DEFAULT_BRAND_AVATAR_PATH}`;
   }
   return iconUrl(icon);
 }
@@ -9091,17 +9137,7 @@ function defaultIconUrlForMessage(message) {
 }
 
 function defaultIconUrlForSession(session) {
-  const modelType = String(session?.model_type || MODEL_TYPE_MAP[session?.model] || "text").toLowerCase();
-  if (modelType === "vision" || modelType === "multimodal") {
-    return iconUrl("inner-vision");
-  }
-  if (modelType === "video") {
-    return iconUrl("image-preview");
-  }
-  if (modelType === "audio") {
-    return iconUrl("microphone");
-  }
-  return `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+  return avatarUrl(avatarForSession(session));
 }
 
 function currentAvatarPathFromForm() {
@@ -9109,8 +9145,9 @@ function currentAvatarPathFromForm() {
 }
 
 function setSessionAvatarForm(path) {
-  const migrated = migrateLegacyAvatarPath(path);
-  const normalized = migrated && avatarManifestByFile.has(migrated) ? migrated : "";
+  const raw = String(path || "").trim();
+  const normalized = CoolzhuBrandAvatars.isLegacy(raw) ? "" : raw;
+  const automatic = avatarForSession({ provider: sessionProviderValue(), model: sessionModelValueFromForm() });
   const trigger = document.querySelector('[data-action="session-avatar-toggle"]');
   const preview = document.querySelector('[data-role="session-avatar-preview"]');
   const label = document.querySelector('[data-role="session-avatar-label"]');
@@ -9119,10 +9156,10 @@ function setSessionAvatarForm(path) {
     trigger.style.setProperty("--avatar-theme", normalized ? avatarThemeForPath(normalized) : "#ffd552");
   }
   if (preview) {
-    preview.src = normalized ? avatarUrl(normalized) : `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+    preview.src = avatarUrl(normalized || automatic);
   }
   if (label) {
-    label.textContent = normalized ? (avatarManifestByFile.get(normalized)?.name || "自定义头像") : "默认图标";
+    label.textContent = normalized ? (avatarManifestByFile.get(normalized)?.name || "自定义头像") : "随模型自动选择";
   }
   document.querySelectorAll("[data-avatar-choice]").forEach((node) => {
     node.classList.toggle("is-selected", node.dataset.avatarChoice === normalized);
@@ -9137,7 +9174,7 @@ function renderAvatarPicker() {
   defaultButton.type = "button";
   defaultButton.className = "avatar-choice is-default";
   defaultButton.dataset.avatarChoice = "";
-  defaultButton.innerHTML = `<span class="avatar-choice-fallback">默认</span><b>默认图标</b>`;
+  defaultButton.innerHTML = `<span class="avatar-choice-fallback">默认</span><b>随模型自动选择</b>`;
   picker.append(defaultButton);
 
   avatarManifest.forEach((item) => {
@@ -9335,6 +9372,7 @@ async function loadChatRooms() {
   taskRenderFullAccessStatus(activeChatRoomId ? { room_id: activeChatRoomId, loading: true } : {});
   clearStaleApprovalForActiveScope();
   renderChatRoomList(registry.rooms, activeChatRoomId);
+  renderTaskScheduleRoomOptions();
 
   const active = registry.rooms.find((room) => room.id === activeChatRoomId) ?? registry.rooms[0];
   if (active) {
@@ -9358,6 +9396,8 @@ async function loadChatRooms() {
 }
 
 function clearChatMessagesUi(label = "暂无聊天记录") {
+  chatHistoryLoadVersion++;
+  chatHistorySync?.stop();
   const list = chatMessageList();
   list?.replaceChildren();
   renderChatMessageEmptyState(list, label, "选择聊天室后即可继续对话。");
@@ -9574,7 +9614,7 @@ function memoryWindowRenderHistory() {
         rollback.dataset.historyCursor = turn.id;
         rollback.append(
           Object.assign(document.createElement("img"), {
-            src: "./assets/ui-redesign/three-column/control-icons/restore-chat-v1.png",
+            src: "./assets/icons-wuxia/refresh.svg",
             alt: "",
           }),
           document.createTextNode("回滚"),
@@ -11112,12 +11152,15 @@ async function terminalWindowPoll() {
     return;
   }
   const handle = terminalWindowState.handle;
-  const params = new URLSearchParams({ ...scope, cursor: String(terminalWindowState.cursor) });
+  const cursor = terminalWindowState.cursor;
+  const params = new URLSearchParams({ ...scope, cursor: String(cursor) });
   try {
     const response = await requestJson(`/api/terminal/${encodeURIComponent(handle)}/output?${params}`);
-    if (handle !== terminalWindowState.handle || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey) return;
+    if (handle !== terminalWindowState.handle || cursor !== terminalWindowState.cursor
+        || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey) return;
     terminalWindowApply(response);
-    if (!response.closed) terminalWindowSchedulePoll();
+    // 退出只表示进程结束；已缓存的多页尾部仍需读至空页。
+    if (!response.closed || response.text) terminalWindowSchedulePoll(response.closed ? 0 : 450);
   } catch (error) {
     if (handle !== terminalWindowState.handle) return;
     terminalWindowStatus(error.message || "终端连接中断");
@@ -11131,16 +11174,25 @@ async function terminalWindowRestore() {
   const scopeKey = terminalWindowScopeKey(scope);
   if (scopeKey !== terminalWindowState.scopeKey) terminalWindowReset(scopeKey);
   if (!scope) return;
+  // 已连接时继续读取增量；重新打开侧栏不重置正在投影的输出。
+  if (terminalWindowState.handle) {
+    if (!terminalWindowState.closed) terminalWindowSchedulePoll();
+    return;
+  }
+  if (terminalWindowState.busy) return;
   const epoch = terminalWindowState.epoch;
   try {
     const params = new URLSearchParams(scope);
     const response = await requestJson(`/api/terminal?${params}`);
-    if (epoch !== terminalWindowState.epoch) return;
+    // 初始化恢复、侧栏打开和用户启动可能重叠，迟到恢复不得覆盖新句柄。
+    if (epoch !== terminalWindowState.epoch || terminalWindowState.handle || terminalWindowState.busy) return;
     if (!response.active || !response.handle) return;
     terminalWindowApply(response, { replace: true });
-    if (!response.closed) terminalWindowSchedulePoll();
+    if (!response.closed || response.text) terminalWindowSchedulePoll(response.closed ? 0 : 450);
   } catch (error) {
-    if (epoch === terminalWindowState.epoch) terminalWindowStatus(error.message || "终端状态不可用");
+    if (epoch === terminalWindowState.epoch && !terminalWindowState.handle && !terminalWindowState.busy) {
+      terminalWindowStatus(error.message || "终端状态不可用");
+    }
   }
 }
 
@@ -11219,16 +11271,99 @@ function terminalWindowClear() {
   if (output) output.textContent = "";
 }
 
+function activateChatHistorySync() {
+  if (!activeChatRoomId || !projectWorkspaceScope || !window.CoolzhuChatHistorySync || typeof EventSource === "undefined") return;
+  if (!chatHistorySync) {
+    chatHistorySync = window.CoolzhuChatHistorySync.create({
+      sourceFactory: scope => new EventSource(`/api/chat/rooms/${encodeURIComponent(scope.room)}/history-events?workspace=${encodeURIComponent(scope.workspacePath)}`),
+      busy: () => Boolean(activeChatAbortController || activeServerTurnId || document.hidden || document.querySelector('[data-role="chat-return-latest"]')?.hidden === false),
+      read: async (scope, signal) => {
+        const first = chatMessageList()?.querySelector('.message[data-history-committed="true"]');
+        const boundary = first ? {id: first.dataset.messageId, created_at: Number(first.dataset.createdAt)} : null;
+        return window.CoolzhuChatHistorySync.readWindow(async (before, limit, pageSignal) => {
+          const url = new URL(`/api/chat/rooms/${encodeURIComponent(scope.room)}/history-messages`, location.origin);
+          url.searchParams.set("workspace", scope.workspacePath);
+          url.searchParams.set("limit", String(limit));
+          if (before) url.searchParams.set("before", before);
+          return requestJson(url.pathname + url.search, {signal: pageSignal});
+        }, boundary, signal);
+      },
+      apply: (response, scope) => {
+        if (scope.room !== activeChatRoomId || scope.workspace !== activeWorkspaceKey || scope.projectGeneration !== projectWorkspaceGeneration) return;
+        reconcileChatHistory(response);
+      },
+      missing: () => { void loadChatRooms(); },
+      permissionChanged: scope => {
+        if (scope.room !== activeChatRoomId || scope.workspace !== activeWorkspaceKey || scope.projectGeneration !== projectWorkspaceGeneration) return;
+        void refreshFullAccessStatus();
+      },
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) chatHistorySync?.resume();
+    });
+    window.addEventListener("pagehide", () => chatHistorySync?.stop());
+    window.addEventListener("pageshow", event => {
+      if (event.persisted) activateChatHistorySync();
+    });
+  }
+  chatHistorySync.activate({room: activeChatRoomId, workspace: activeWorkspaceKey,
+    workspacePath: projectWorkspaceScope, projectGeneration: projectWorkspaceGeneration});
+}
+
+function reconcileChatHistory(response) {
+  const list = chatMessageList();
+  if (!list) return;
+  const anchor = captureChatMessageScrollAnchor();
+  const visible = (response.messages || []).filter(shouldRenderCompletedMessage);
+  const ids = new Set(visible.map(message => message.id));
+  for (const node of list.querySelectorAll('.message[data-history-committed="true"]')) {
+    if (!ids.has(node.dataset.messageId)) {
+      selectedMessageIds.delete(node.dataset.messageId);
+      node.remove();
+    }
+  }
+  let cursor = list.querySelector(".message");
+  for (const message of visible) {
+    const signature = JSON.stringify(message);
+    let article = list.querySelector(`[data-message-id="${CSS.escape(message.id)}"]`);
+    if (!article || article.dataset.historySignature !== signature) {
+      article = upsertMessage(message);
+    }
+    if (!article) continue;
+    article.dataset.historySignature = signature;
+    article.dataset.historyCommitted = "true";
+    article.dataset.createdAt = String(message.created_at);
+    if (article === cursor) cursor = cursor.nextElementSibling;
+    else list.insertBefore(article, cursor);
+  }
+  if (!visible.length) renderChatMessageEmptyState(list);
+  messagePaging = {roomId: activeChatRoomId, hasMore: response.has_more, nextBefore: response.next_before};
+  updateLoadOlderButton(); updateReferenceSelection();
+  updateChatRoomTrigger(response.room.name);
+  setText("chat.current", response.room.name);
+  restoreChatMessageScrollAnchor(anchor);
+  scheduleChatMessageScrollRestore(anchor);
+  void window.CoolzhuChatExperience?.refreshInsights();
+}
+
 async function loadChatRoomMessages(roomId, { before = null, appendOlder = false } = {}) {
+  const loadVersion = ++chatHistoryLoadVersion;
+  chatHistorySync?.stop();
   const requestedWorkspace = activeWorkspaceKey;
+  const requestedProject = projectRequestScope();
   window.CoolzhuChatExperience?.roomChanged(roomId);
   const url = new URL(`/api/chat/rooms/${encodeURIComponent(roomId)}/messages`, location.origin);
   url.searchParams.set("limit", "80");
   if (before) {
     url.searchParams.set("before", before);
   }
-  const response = await requestJson(url.pathname + url.search);
-  if (roomId !== activeChatRoomId || requestedWorkspace !== activeWorkspaceKey) return;
+  let response;
+  try { response = await requestJson(url.pathname + url.search); }
+  catch (error) {
+    if (loadVersion === chatHistoryLoadVersion && roomId === activeChatRoomId && projectRequestScopeCurrent(requestedProject)) activateChatHistorySync();
+    throw error;
+  }
+  if (loadVersion !== chatHistoryLoadVersion || roomId !== activeChatRoomId || requestedWorkspace !== activeWorkspaceKey || !projectRequestScopeCurrent(requestedProject)) return;
   const list = chatMessageList();
   if (!list) {
     return;
@@ -11244,7 +11379,7 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
   ));
   const messages = appendOlder ? [...visibleMessages].reverse() : visibleMessages;
   messages.forEach((message) => {
-    addMessage({
+    const article = addMessage({
       id: message.id,
       author: message.author,
       text: message.content,
@@ -11255,6 +11390,10 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
       prepend: appendOlder,
       role: message.role,
     });
+    if (article) {
+      article.dataset.historyCommitted = "true";
+      article.dataset.historySignature = JSON.stringify(message);
+    }
     // 历史里仍是 pending 的视频消息（job 还在生成、未持久化前）：继续轮询，完成后替换为视频。
     if (message.kind === "assistant-video-pending") {
       scheduleVideoPolling(message.id);
@@ -11281,6 +11420,9 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
     await refreshChatCollaboration(roomId);
   }
   void window.CoolzhuChatExperience?.refreshInsights();
+  if (loadVersion === chatHistoryLoadVersion && roomId === activeChatRoomId && requestedWorkspace === activeWorkspaceKey && projectRequestScopeCurrent(requestedProject)) {
+    activateChatHistorySync();
+  }
 }
 
 async function refreshChatCollaboration(roomId = activeChatRoomId) {
@@ -11325,6 +11467,7 @@ function chatRightRailTabNodes() {
 const CHAT_RIGHT_RAIL_HEADING_META = Object.freeze({
   collaboration: Object.freeze({ kicker: "协作阵列", title: "Agent 与任务链" }),
   tasks: Object.freeze({ kicker: "任务链", title: "当前任务" }),
+  executions: Object.freeze({ kicker: "执行卷轴", title: "子 Agent 与定时执行" }),
   status: Object.freeze({ kicker: "状态总览", title: "Agent 状态" }),
 });
 
@@ -11366,6 +11509,8 @@ function refreshQuickWorkbenchWindow(windowId) {
     void refreshQuickCatalogWindow(windowId);
   } else if (windowId === "app-update") {
     void refreshAppUpdateStatus();
+  } else if (windowId === "terminal") {
+    void terminalWindowRestore();
   }
 }
 
@@ -11655,6 +11800,13 @@ function initializeChatRightRailTabs() {
     return;
   }
   tablist.dataset.bound = "1";
+  window.CoolzhuExecutionPanel?.mount(document.querySelector("#chat-right-panel-executions"), {
+    getScope: () => projectRequestScope(),
+    getAvatar: (spec) => avatarUrl(avatarForSession({
+      id: spec.session_id, avatar: sessionById(spec.session_id)?.avatar,
+      provider: spec.provider, model: spec.model,
+    })),
+  });
   tabs.forEach((button) => {
     button.addEventListener("click", () => setChatRightRailTab(button.dataset.rightTab, { fromUser: true }));
     button.addEventListener("keydown", (event) => {
@@ -12300,7 +12452,7 @@ function openManualHandoffModal(members) {
     <div class="task-chain-dialog handoff-dialog" role="dialog" aria-modal="true" aria-label="转交当前任务" aria-describedby="handoff-selected-count">
       <header>
         <div class="handoff-dialog-title">
-          <img class="handoff-dialog-icon" src="./assets/ui-redesign/three-column/control-icons/steer-now-v1.png" alt="" aria-hidden="true" />
+          <img class="handoff-dialog-icon" src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" />
           <div>
             <strong>转交任务</strong>
             <span>选择协作 Agent 并说明接手意图</span>
@@ -12319,7 +12471,7 @@ function openManualHandoffModal(members) {
         <p class="handoff-form-status" data-role="handoff-form-status" role="status" aria-live="polite"></p>
         <div class="handoff-form-actions">
           <button type="button" data-handoff-cancel>取消</button>
-          <button type="submit" data-handoff-confirm><img src="./assets/ui-redesign/three-column/control-icons/steer-now-v1.png" alt="" aria-hidden="true" />确认转交</button>
+          <button type="submit" data-handoff-confirm><img src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" />确认转交</button>
         </div>
       </form>
     </div>
@@ -12858,7 +13010,13 @@ function renderSessionList(sessions, activeId) {
     option.type = "button";
     option.className = "session-option";
     option.dataset.sessionId = session.id;
-    option.textContent = session.display_name;
+    const portrait = document.createElement("img");
+    portrait.className = "brand-session-avatar";
+    portrait.src = avatarUrl(avatarForSession(session));
+    portrait.alt = "";
+    const text = document.createElement("span");
+    text.textContent = session.display_name;
+    option.append(portrait, text);
     option.setAttribute("role", "option");
     option.tabIndex = 0;
     option.setAttribute("aria-selected", String(session.id === activeId));
@@ -12916,6 +13074,7 @@ const PROVIDER_DISPLAY_LABELS = Object.freeze({
   bytedance: "火山方舟",
   baidu: "百度千帆",
   deepseek: "DeepSeek",
+  devin: "Devin（配置预览）",
   custom: "自定义 / OpenAI-compatible",
 });
 
@@ -12928,6 +13087,8 @@ function canonicalProviderId(provider) {
   const compact = raw.toLowerCase().replace(/[\s_.()\-]/g, "");
   const compactMap = {
     deepseek: "deepseek",
+    devin: "devin",
+    devinacp: "devin",
     zhipuai: "zhipuai",
     zhipu: "zhipuai",
     zai: "zhipuai",
@@ -13081,6 +13242,7 @@ function renderProviderOptions(preferredProvider) {
       }
     });
   }
+  if (!providers.includes("devin")) providers.push("devin");
   if (!providers.length || !providers.includes(current)) providers.unshift(current);
   select.replaceChildren();
   providers.forEach((providerId) => {
@@ -13145,6 +13307,7 @@ function sessionProviderValue() {
 
 function sessionModelValueFromForm() {
   const provider = sessionProviderValue();
+  if (provider === "devin") return document.querySelector('[data-role="session-custom-model"]')?.value?.trim() || "";
   if (isCustomProvider(provider)) {
     const customModel = document.querySelector('[data-role="session-custom-model"]')?.value?.trim();
     return customModel || CUSTOM_PROVIDER_MODEL_FALLBACK;
@@ -13153,12 +13316,19 @@ function sessionModelValueFromForm() {
 }
 
 function updateCustomProviderFields() {
+  const devin = sessionProviderValue() === "devin";
   const custom = isCustomProvider(sessionProviderValue());
   document.querySelectorAll(".custom-provider-field").forEach((field) => {
-    field.hidden = !custom;
+    field.hidden = !(custom || (devin && field.querySelector('[data-role="session-custom-model"]')));
   });
+  const secret = document.querySelector('[data-role="session-api-secret"]');
+  if (secret) { secret.disabled = devin; secret.closest("label").hidden = devin; }
+  for (const role of ["session-context-window", "session-max-output"]) {
+    const input = document.querySelector(`[data-role="${role}"]`);
+    if (input) { input.disabled = devin; if (devin) { input.value = ""; input.placeholder = "待连接确认"; delete input.dataset.sessionId; } }
+  }
   const modelSelectField = document.querySelector('[data-role="session-model-select-field"]');
-  if (modelSelectField) modelSelectField.hidden = custom;
+  if (modelSelectField) modelSelectField.hidden = custom || devin;
   const customModel = document.querySelector('[data-role="session-custom-model"]');
   const modelSelect = document.querySelector('[data-role="session-model"]');
   if (custom && customModel && !customModel.value.trim()) {
@@ -13228,6 +13398,13 @@ function renderModelTypeSelect() {
   const model = sessionModelValueFromForm();
   const select = document.querySelector('[data-role="session-model-type"]');
   if (!select) return;
+  select.disabled = sessionProviderValue() === "devin";
+  if (select.disabled) {
+    const option = document.createElement("option");
+    option.value = "text"; option.textContent = "对话 / 代码（其他能力待确认）";
+    select.replaceChildren(option); select.value = "text";
+    return;
+  }
   const capability = modelCapabilityFor(sessionProviderValue(), model);
   const type = String(capability?.model_type || MODEL_TYPE_MAP[model] || mediaModelTypeFallback(model) || "text").toLowerCase();
   const current = select.value || (type === "vision" ? "vision" : type);
@@ -13267,6 +13444,7 @@ function renderSessionReasoningHint(resolution = null) {
   const hint = document.querySelector('[data-role="session-reasoning-hint"]');
   if (!hint) return;
   const selected = document.querySelector('[data-role="session-reasoning-effort"]')?.value || "auto";
+  if (sessionProviderValue() === "devin") { hint.textContent = "Devin 使用 CLI 登录与所选模型计费；聊天室支持宿主工具、图片及文本文件，思考档位随精确模型变体选择。"; return; }
   const detail = reasoningOptionDetailsForForm().find((item) => item.value === selected);
   const configured = reasoningLabel(resolution?.requested || detail?.value || selected);
   const expected = reasoningLabel(resolution?.effective || detail?.effective || detail?.value || selected);
@@ -13283,6 +13461,14 @@ function renderSessionReasoningHint(resolution = null) {
 function updateReasoningEffortOptions(preferredRequested = null, resolution = null) {
   const select = document.querySelector('[data-role="session-reasoning-effort"]');
   if (!select) return;
+  select.disabled = sessionProviderValue() === "devin";
+  if (select.disabled) {
+    const option = document.createElement("option");
+    option.value = "auto"; option.textContent = "供应商默认（待连接确认）";
+    select.replaceChildren(option); select.value = "auto";
+    renderSessionReasoningHint();
+    return;
+  }
   const details = reasoningOptionDetailsForForm();
   const current = String(preferredRequested || select.value || "auto").trim().toLowerCase();
   const visibleDetails = details.filter((item) => item.selectable !== false || item.value === current);
@@ -13310,9 +13496,9 @@ function sessionPayloadFromForm() {
     name: document.querySelector('[data-role="session-name"]')?.value ?? "",
     provider,
     model: sessionModelValueFromForm(),
-    model_type: document.querySelector('[data-role="session-model-type"]')?.value ?? "text",
+    model_type: provider === "devin" ? "text" : document.querySelector('[data-role="session-model-type"]')?.value ?? "text",
     avatar: currentAvatarPathFromForm(),
-    reasoning_effort: document.querySelector('[data-role="session-reasoning-effort"]')?.value ?? "auto",
+    reasoning_effort: provider === "devin" ? "auto" : document.querySelector('[data-role="session-reasoning-effort"]')?.value ?? "auto",
   };
   payload.base_url = customProvider
     ? (document.querySelector('[data-role="session-base-url"]')?.value?.trim() ?? "")
@@ -13320,7 +13506,7 @@ function sessionPayloadFromForm() {
   payload.endpoint = customProvider
     ? (document.querySelector('[data-role="session-endpoint"]')?.value?.trim() ?? "")
     : "";
-  if (apiInput?.dataset.saved !== "1" || apiSecret) payload.api_key_ref = apiSecret;
+  if (provider !== "devin" && (apiInput?.dataset.saved !== "1" || apiSecret)) payload.api_key_ref = apiSecret;
   return payload;
 }
 
@@ -13376,11 +13562,14 @@ function setSessionForm(session) {
   renderProviderOptions(providerId);
   if (provider) provider.value = providerId;
   if (model) model.value = session.model;
-  if (customModel) customModel.value = isCustomProvider(providerId) ? session.model : "";
+  if (customModel) customModel.value = isCustomProvider(providerId) || providerId === "devin" ? session.model : "";
   if (baseUrl) baseUrl.value = session.base_url || "";
   if (endpoint) endpoint.value = session.endpoint || "";
-  setSessionAvatarForm(session.avatar || "");
+  document.querySelectorAll(".chat-right-agent-avatar").forEach((portrait) => {
+    portrait.src = avatarUrl(avatarForSession(session));
+  });
   updateModelOptions(session.model, { allowCurrent: true });
+  setSessionAvatarForm(session.avatar || "");
   if (session.model_type) {
     const mt = document.querySelector('[data-role="session-model-type"]');
     if (mt) mt.value = session.model_type;
@@ -13408,6 +13597,12 @@ function loadSessionModelLimit(sessionId) {
   const ctxEl = document.querySelector('[data-role="session-context-window"]');
   const outEl = document.querySelector('[data-role="session-max-output"]');
   if (!ctxEl || !outEl || !sessionId) {
+    return;
+  }
+  if (sessionProviderValue() === "devin") {
+    ctxEl.value = ""; outEl.value = "";
+    ctxEl.placeholder = "待连接确认"; outEl.placeholder = "待连接确认";
+    delete ctxEl.dataset.sessionId; delete outEl.dataset.sessionId;
     return;
   }
   ctxEl.dataset.sessionId = sessionId;
@@ -13440,6 +13635,7 @@ function loadSessionModelLimit(sessionId) {
 }
 
 async function persistSessionModelLimit(sessionId) {
+  if (sessionProviderValue() === "devin") return;
   const ctx = Number.parseInt(document.querySelector('[data-role="session-context-window"]')?.value, 10) || 0;
   const out = Number.parseInt(document.querySelector('[data-role="session-max-output"]')?.value, 10) || 0;
   return requestJson(`/api/sessions/${encodeURIComponent(sessionId)}/model-limit`, {
@@ -13817,11 +14013,24 @@ async function saveSelectedSession() {
   setBusy(button, true, "保存中");
   setWorkbenchMotionState("settings", WORKBENCH_MOTION_STATES.settings, true);
   try {
-    await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(sessionPayloadFromForm()),
-    });
+    const session = sessionPayloadFromForm();
+    const previous = sessionRegistry.sessions?.find(item => item.id === sessionId);
+    if (session.provider === "devin" || previous?.backend_kind === "devin_acp") {
+      const snapshot = await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}/model-settings`);
+      const devin = session.provider === "devin";
+      const parameters = { ...snapshot.parameters, backend_kind: devin ? "devin_acp" : "llm_http",
+        protocol: devin ? "devin_acp" : null, base_url: session.base_url || null, endpoint: session.endpoint || null,
+        temperature: null, top_p: null, reasoning_mode: "auto", thinking_budget: null,
+        context_window: 0, max_output_tokens: 0, supports_multimodal: null };
+      await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}/model-settings`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({session, parameters, expected_revision: snapshot.configuration_revision}),
+      });
+    } else {
+      await requestJson(`/api/sessions/${encodeURIComponent(sessionId)}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(session),
+      });
+    }
     await persistSessionModelLimit(sessionId);
     await saveGoalRoleConfig(sessionId);
     await loadSessions();
@@ -14057,7 +14266,17 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
     : `${item.source} · ${item.version || "版本未知"} · ${item.kind === "builtin" ? "内置" : item.installed ? "已安装" : "本地候选"} · ${item.loaded_in_chat ? "工具已接入" : "聊天未加载"}`;
   const summary = document.createElement("p");
   summary.textContent = item.description || "暂无说明。";
-  card.append(title, source, summary);
+  const actions = document.createElement("div");
+  actions.className = "quick-catalog-actions";
+  card.append(title, source, summary, actions);
+  if (kind === "plugin-market" && ["opencode-zen@native", "huggingface-inference@native"].includes(item.id)) {
+    source.textContent = `${item.source} · 内置模型连接器`;
+    const configure = document.createElement("button");
+    configure.type = "button";
+    setWuxiaIconOnly(configure, "settings", "配置模型会话");
+    configure.addEventListener("click", () => window.dispatchEvent(new CustomEvent("coolzhu-provider-configure", {detail:{id:item.id}})));
+    actions.append(configure);
+  }
   if (kind === "skills") {
     const detail = document.createElement("button");
     detail.type = "button";
@@ -14072,21 +14291,21 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
         if (workspaceKey === activeWorkspaceKey) document.querySelector('[data-role="skills-catalog-status"]').textContent = `内容读取失败：${error.message}`;
       } finally { setBusy(detail, false); }
     });
-    card.append(detail);
+    actions.append(detail);
     const select = document.createElement("button");
     select.type = "button";
     setWuxiaIconOnly(select, item.selected ? "stop" : "check", item.selected ? "停用 SKILL" : "选用 SKILL");
     select.setAttribute("aria-pressed", String(item.selected));
     select.addEventListener("click", () => quickCatalogMutation("skills", "/api/extension-market/skills/select",
       {expected_workspace:workspaceId, selected_id:item.selected ? null : item.id}, select));
-    card.append(select);
+    actions.append(select);
   } else if (item.installable) {
     const install = document.createElement("button");
     install.type = "button";
     setWuxiaIconOnly(install, "package-crate", "安装本地插件候选");
     install.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/install",
       {expected_workspace:workspaceId,id:item.id}, install));
-    card.append(install);
+    actions.append(install);
   } else if (item.manageable) {
     const toggle = document.createElement("button");
     toggle.type = "button";
@@ -14113,8 +14332,8 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
     setWuxiaIconOnly(remove, "delete", "卸载插件");
     remove.addEventListener("click", () => quickCatalogMutation("plugin-market", "/api/extension-market/plugins/action",
       {expected_workspace:workspaceId,id:item.id,action:"uninstall"}, remove));
-    card.append(toggle);
-    if (item.kind === "external") { if (!item.dsh) card.append(update); card.append(remove); }
+    actions.append(toggle);
+    if (item.kind === "external") { if (!item.dsh) actions.append(update); actions.append(remove); }
   }
   return card;
 }
@@ -14759,6 +14978,9 @@ async function sendMessage({ replaceActive = false } = {}) {
       session_id: sendSessionId,
       chat_room_id: sendChatRoomId,
       target_agent_ids: sendTargetIds,
+      // 冻结当前可见页面的后端选择，实际宿主身份及权限仍由服务端核验。
+      native_browser_panel: chatToolWindowId === "browser" && chatRightRailTab === "tools"
+        && chatLayoutRailOpen("right") && activeBrowserHostName === "nativePanel",
       text,
       selected_message_ids: Array.from(selectedMessageIds),
       attachments: [...attachmentsFromText(text), ...pendingAttachments],
@@ -14841,6 +15063,7 @@ async function sendMessage({ replaceActive = false } = {}) {
       activeChatInterruptPending = false;
       activeChatLocalAbortReason = null;
       setSendButtonRunning(false);
+      chatHistorySync?.resume();
     }
   }
 }
@@ -15078,7 +15301,7 @@ function handleChatStreamEvent({ event, data }) {
     } else if (data?.status === "failed") {
       addMessage({
         author: "消息分发",
-        text: "本次回复未完成，服务端已结束该 turn。",
+        text: "本轮任务未完成，详情见回复与运行轨迹。",
         kind: "thought",
         icon: "error-log",
       });
@@ -17291,7 +17514,8 @@ async function fetchIdeLineWindow(path, lineNo) {
     if (!isCurrent()) return;
     if (!meta.previewable) {
       updateProjectPreview(
-        "此文件为二进制文件或体积过大，无法在窗口中预览。",
+        meta.binary ? "此文件为二进制文件，无法作为文本预览。"
+          : `此文件超过只读预览上限 ${formatFileSize(meta.max_preview_bytes)}。`,
         "行窗口读取失败"
       );
       return;
@@ -18253,7 +18477,8 @@ async function openProjectFile(path = selectedProjectPath, { forceReload = false
     if (!isCurrent()) return null;
     const metaText = `${meta.relative_path} · ${formatFileSize(meta.file_size)}${meta.binary ? " · 二进制" : ""}`;
     if (!meta.previewable) {
-      updateProjectPreview("此文件为二进制文件或体积过大，无法在窗口中预览。", metaText);
+      updateProjectPreview(meta.binary ? "此文件为二进制文件，无法作为文本预览。"
+        : `此文件超过只读预览上限 ${formatFileSize(meta.max_preview_bytes)}。`, metaText);
       void updateLspPreviewForFile("");
       return null;
     }
@@ -18264,7 +18489,7 @@ async function openProjectFile(path = selectedProjectPath, { forceReload = false
     if (!isCurrent()) return null;
     if (findIdeTabByKind("view", path, "")?.dirty) return null;
     const suffix = !meta.editable && response.next_offset
-      ? `\n\n[预览内容已截断，下次读取位置：${response.next_offset}]`
+      ? "\n\n[仅显示文件开头，可在上方输入 :行号 跳转查看对应内容。]"
       : "";
     const content = `${response.content}${suffix}`;
     const lang = syntaxLangForPath(path);
@@ -18539,6 +18764,7 @@ async function enterIdeDiffMode() {
 
 async function exitIdeDiffMode() {
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
   ideViewDiffMode = "view";
   updateIdeModeToggleButton();
   // 回 view：重新打开左侧文件的普通视图。
@@ -18892,6 +19118,7 @@ function activateIdeTab(id) {
   projectFileOpenSerial += 1;
   projectLineWindowSerial += 1;
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
   setIdeActiveTab(id);
   // 按 tab.kind 切 mode 并同步关联状态，再渲染对应视图。
   if (tab.kind === "diff") {
@@ -19034,9 +19261,10 @@ function initializeWorkbenchWindows() {
   window.CoolzhuNativeBrowserPanel?.init({
     scope: () => ({workspace:activeWorkspaceKey,workspace_path:projectWorkspaceScope,room:activeChatRoomId}),
     frame: () => browserWindowElements().frame,
+    address: () => browserWindowElements().input,
     active: () => chatToolWindowId === "browser",
     status: browserWindowSetStatus,
-    url: url => { const {input,frame} = browserWindowElements(); if (input) input.value = url; if (frame) frame.dataset.currentUrl = url; window.CoolzhuWorkspacePanels?.browserLocation(url); },
+    url: (url, {preserveDraft = false} = {}) => { const {input,frame} = browserWindowElements(); if (input && !preserveDraft) input.value = url; if (frame) frame.dataset.currentUrl = url; window.CoolzhuWorkspacePanels?.browserLocation(url); },
   });
   window.CoolzhuWorkspacePanels?.init({
     scope: () => ({ workspace: activeWorkspaceKey, room: activeChatRoomId, session: activeSessionId }),
@@ -19211,13 +19439,12 @@ function safeErrorBody(text) {
 }
 
 async function requestJson(url, init) {
-  const pathname = new URL(url, window.location.href).pathname;
   let response;
   try {
     response = await fetch(url, withDefaultJsonHeaders(init));
   } catch (error) {
-    if (error?.name === "AbortError") throw new Error(`${pathname} 请求已取消或超时`);
-    throw new Error(`${pathname} 未获得 HTTP 响应：${error?.message || "本地服务连接失败"}`);
+    if (error?.name === "AbortError") throw new Error("请求已取消或超时，请稍后重试。");
+    throw new Error("无法连接本地服务，请确认控制台已启动后重试。");
   }
   const text = await response.text();
   let data = {};
@@ -19229,8 +19456,10 @@ async function requestJson(url, init) {
     }
   }
   if (!response.ok) {
-    const detail = data.error || data.message || safeErrorBody(text) || response.statusText;
-    const error = new Error(`HTTP ${response.status} ${response.statusText}: ${detail}`);
+    // 界面显示服务端可读原因，技术状态保留在结构化字段，避免错误页/路径进入消息框。
+    const detail = !data.parse_error && (typeof data.error === "string" ? data.error : data.message);
+    const error = new Error(typeof detail === "string" && detail.trim()
+      ? detail : "请求未完成，请稍后重试。");
     error.status = response.status;
     error.statusText = response.statusText;
     error.body = data;
@@ -19427,7 +19656,7 @@ function upsertMessage(message, { streaming = false, sessionId = activeSessionId
     }
     const portrait = existing.querySelector(".portrait");
     if (portrait) {
-      const avatarPath = avatarForAuthor(message.author);
+      const avatarPath = avatarForAuthor(message.author, message.session_id || existing.dataset.sessionId || sessionId, messageRole, messageKind);
       portrait.src = avatarPath ? avatarUrl(avatarPath) : defaultIconUrlForMessage(message);
       existing.classList.toggle("has-session-avatar", Boolean(avatarPath));
       if (avatarPath) {
@@ -19495,12 +19724,13 @@ function addMessage({ id, author, text, kind, icon, attachments = [], createdAt 
   const article = document.createElement("article");
   article.className = `message ${kind}`;
   article.dataset.messageId = messageId;
+  article.dataset.createdAt = String(createdAt ?? Date.now());
   article.dataset.messageKind = kind;
   if (role) {
     article.dataset.messageRole = role;
   }
   article.classList.toggle("is-streaming", streaming);
-  const avatarPath = avatarForAuthor(author);
+  const avatarPath = avatarForAuthor(author, sessionId, role, kind);
   article.classList.toggle("has-session-avatar", Boolean(avatarPath));
   if (avatarPath) {
     article.style.setProperty("--message-theme", avatarThemeForPath(avatarPath));

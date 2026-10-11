@@ -33,10 +33,11 @@ fn stage_delivery(value:&mut Option<Pending>,host_id:&str,resource:Option<&Panel
         let mut reply=PanelInputReply {host_id:request.host_id,request_id:request.request.request_id,
             resource:request.request.resource,outcome:native_browser_protocol::PanelInputOutcome::NotDispatched,
             ticket_id:None,expires_at_unix_ms:None,attempt_id:None,executor_instance_id:None,
-            down_confirmed:false,up_confirmed:false,navigation:None,error:Some("native_browser_resource_changed".into())};
+            down_confirmed:false,up_confirmed:false,navigation:None,editor_changed:None,error:Some("native_browser_resource_changed".into())};
         use native_browser_protocol::PanelInputCommand;
         match request.request.command {
             PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..}
+            | PanelInputCommand::ExecuteKeys {ticket_id,attempt_id,executor_instance_id,..}
             | PanelInputCommand::ExecuteScroll {ticket_id,attempt_id,executor_instance_id,..}
             | PanelInputCommand::ExecuteText {ticket_id,attempt_id,executor_instance_id,..}
             | PanelInputCommand::ExecuteNavigate {ticket_id,attempt_id,executor_instance_id,..} => {
@@ -71,12 +72,16 @@ fn settle_reply(value:&mut Option<Pending>,reply:PanelInputReply) -> Result<Stat
 }
 
 fn phase_matches(command:&native_browser_protocol::PanelInputCommand,reply:&PanelInputReply) -> bool {
+    if reply.editor_changed.is_some() && (!matches!(command,native_browser_protocol::PanelInputCommand::ExecuteText {..})
+        || reply.outcome!=native_browser_protocol::PanelInputOutcome::Acknowledged) {return false;}
     match command {
         native_browser_protocol::PanelInputCommand::PrepareClick {..} | native_browser_protocol::PanelInputCommand::PrepareScroll {..}
+        | native_browser_protocol::PanelInputCommand::PrepareKeys {..}
         | native_browser_protocol::PanelInputCommand::PrepareText {..} | native_browser_protocol::PanelInputCommand::PrepareNavigate {..} =>
             matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Prepared|native_browser_protocol::PanelInputOutcome::NotDispatched)
                 && reply.attempt_id.is_none() && reply.executor_instance_id.is_none(),
-        native_browser_protocol::PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..} =>
+        native_browser_protocol::PanelInputCommand::ExecuteClick {ticket_id,attempt_id,executor_instance_id,..}
+        | native_browser_protocol::PanelInputCommand::ExecuteKeys {ticket_id,attempt_id,executor_instance_id,..} =>
             matches!(reply.outcome,native_browser_protocol::PanelInputOutcome::Released|native_browser_protocol::PanelInputOutcome::ReleaseUnknown|native_browser_protocol::PanelInputOutcome::NotDispatched)
                 && reply.ticket_id.as_deref()==Some(ticket_id.as_str())
                 && reply.attempt_id.as_deref()==Some(attempt_id.as_str())
@@ -130,6 +135,23 @@ mod tests {
     use native_browser_protocol::*;
 
     #[test]
+    fn keys_require_actual_release_instead_of_no_held_ack() {
+        let (_,_,mut reply)=pending_click(Instant::now()+Duration::from_secs(8));
+        let command=PanelInputCommand::ExecuteKeys {
+            target:PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)},
+            keys:vec!["end".into()],ticket_id:"4".repeat(32),permit_id:"permit-1".into(),attempt_id:"attempt-1".into(),
+            executor_instance_id:"5".repeat(32),expires_at_unix_ms:100,
+        };
+        assert!(phase_matches(&command,&reply));
+        reply.outcome=PanelInputOutcome::Acknowledged;reply.down_confirmed=false;reply.up_confirmed=false;
+        assert!(reply.valid_shape());
+        assert!(!phase_matches(&command,&reply),"无按住输入的ACK不能冒充按键释放");
+        assert!(valid_input_keys(&["end".into()]));
+        assert!(!valid_input_keys(&["ctrl".into(),"a".into()]));
+        assert!(!valid_input_keys(&["meta".into()]));
+    }
+
+    #[test]
     fn resource_withdrawal_proves_zero_delivery_only_before_host_receives_request() {
         let resource=PanelResource {workspace_path:"workspace".into(),room_id:"room-1".into(),label:"browser-panel-1".into(),generation:1,navigation_revision:1};
         let command=PanelInputCommand::ExecuteClick {target:PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)},
@@ -164,7 +186,7 @@ mod tests {
         let reply=PanelInputReply {host_id:"native-host-0123456789".into(),request_id:request.request_id.clone(),resource,
             outcome:PanelInputOutcome::Released,ticket_id:Some("4".repeat(32)),expires_at_unix_ms:None,
             attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),
-            down_confirmed:true,up_confirmed:true,navigation:None,error:None};
+            down_confirmed:true,up_confirmed:true,navigation:None,editor_changed:None,error:None};
         assert!(request.valid_shape() && reply.valid_shape());
         let (sender,receiver)=std::sync::mpsc::channel();
         (Some(Pending {host_id:reply.host_id.clone(),request,delivered:false,deadline,sender}),receiver,reply)
@@ -231,8 +253,11 @@ mod tests {
             attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};
         let mut reply=PanelInputReply {host_id:"native-host-0123456789".into(),request_id:"6".repeat(32),resource,
             outcome:PanelInputOutcome::Acknowledged,ticket_id:Some("4".repeat(32)),expires_at_unix_ms:None,
-            attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),down_confirmed:false,up_confirmed:false,navigation:None,error:None};
+            attempt_id:Some("attempt-1".into()),executor_instance_id:Some("5".repeat(32)),down_confirmed:false,up_confirmed:false,navigation:None,editor_changed:None,error:None};
         assert!(reply.valid_shape() && phase_matches(&scroll,&reply));
+        reply.editor_changed=Some(true);
+        assert!(!phase_matches(&scroll,&reply),"滚动ACK不能借用文本效果");
+        reply.editor_changed=None;
         assert!(!phase_matches(&click,&reply));
         let nav=PanelInputCommand::ExecuteNavigate {target:PanelClickTarget {observation_id:"1".repeat(32),document_token:"2".repeat(32),node_id:"3".repeat(32)},
             url:"https://example.invalid/next".into(),ticket_id:"4".repeat(32),permit_id:"permit-1".into(),attempt_id:"attempt-1".into(),executor_instance_id:"5".repeat(32),expires_at_unix_ms:100};

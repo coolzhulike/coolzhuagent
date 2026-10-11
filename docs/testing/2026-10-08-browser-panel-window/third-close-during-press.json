@@ -1,0 +1,183 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791478526470-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-PANEL-DOWN-CLOSE3-20261008：独立第三轮窄时序，上一轮关闭晚于释放，不能据此证明按下期间关闭。现在只调用一次computer_use_perform(surface=\"browser\",省略target,max_actions=1)，用新鲜节点点击“一次点击时序目标”一次；测试端可能正常关闭右栏。只报告宿主投递、释放、终态，不推测关闭时间；不得重开、导航、重试、补发、其它工具或新云端会话。按read_request完整分页后respond，wait取最终真实结果，未知立即停止不补发。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791478526653
+  },
+  "run": {
+    "id": "run-chat-4369050435cafa02dd5134963297180ca4ef1bb7f4c08149",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791478526471-3-tool-f3d88759779e6dff293e888581c6e1f5e2bdb9437c1081cc1e083c984f474cbf",
+      "provider_tool_call_id": "tool-f3d88759779e6dff293e888581c6e1f5e2bdb9437c1081cc1e083c984f474cbf",
+      "turn_id": "chat-turn-1791478526471-3",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 10,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791479426471,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791478526471-3-tool-f3d88759779e6dff293e888581c6e1f5e2bdb9437c1081cc1e083c984f474cbf",
+        "provider_tool_call_id": "tool-f3d88759779e6dff293e888581c6e1f5e2bdb9437c1081cc1e083c984f474cbf",
+        "status": "blocked",
+        "stage": "observation",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+        "error": {
+          "code": "native_browser_panel_unavailable",
+          "message": "当前聊天室没有可用的内置网页；请显示控制台并打开右栏浏览器，等待页面载入",
+          "retryable": false,
+          "retry_owner": "user"
+        },
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:3:1",
+          "native-observation:550e3ae7d1303245932bf68a7974f4f5",
+          "native-ax:3:1",
+          "native-observation:550e3ae7d1303245932bf68a7974f4f5",
+          "native-input:fe6074ed62f179f3ca136796b08772c0"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791479426471
+            }
+          },
+          "cu_deadline_ms": 1791479426471,
+          "cu_deadline_established_at_ms": 1791478552530,
+          "cu_budget_ms": 900000
+        }
+      },
+      "created_at_ms": 1791478552530,
+      "updated_at_ms": 1791478591982,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791478526471-3-tool-f3d88759779e6dff293e888581c6e1f5e2bdb9437c1081cc1e083c984f474cbf",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-59000b7109a086300a83a4cb5704dd51",
+          "action_fingerprint": "9fafeab1e21ae4da",
+          "status": "observation_failed",
+          "error_code": "native_browser_panel_unavailable",
+          "before_evidence_ref": "[\"native-ax:3:1\",\"native-observation:550e3ae7d1303245932bf68a7974f4f5\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "released",
+          "started_at_ms": 1791478587922,
+          "completed_at_ms": 1791478591862,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "cb9c15fd677fe82dd0b225ad2175a4c8",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"c9661528925a1c1ecc9de033feb84a1e\",\"host_id\":\"native-08fae5f92db843fe7cc4e046faf63515\",\"process\":{\"instance_id\":\"f00bd4c1cddaa479bb672f9ad5e37a3d\",\"boot_id\":\"08fae5f92db843fe7cc4e046faf63515\",\"pid\":9504,\"creation_time_filetime\":134359511813276622,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-08-browser-sameprocess\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-3\",\"generation\":3,\"navigation_revision\":1}},\"attempt_key\":\"browser:dom-59000b7109a086300a83a4cb5704dd51:15382d34a6eb3924#gen1#cu-session-1791131217833-chat-turn-1791478526471-3-tool-f3d88759779e6dff293e888581c6e1f5e2bdb9437c1081cc1e083c984f474cbf:step-0#attempt1\",\"ticket_id\":\"cb9c15fd677fe82dd0b225ad2175a4c8\",\"observation_id\":\"550e3ae7d1303245932bf68a7974f4f5\",\"document_token\":\"a8d49440d5e8be3a346ada2a347f59b7\",\"node_id\":\"59000b7109a086300a83a4cb5704dd51\",\"input_kind\":\"click\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791478526471-3-tool-f3d88759779e6dff293e888581c6e1f5e2bdb9437c1081cc1e083c984f474cbf",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-59000b7109a086300a83a4cb5704dd51\"}"
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [
+    {
+      "kind": "pointerdown",
+      "page_ms": 1791478590035.2,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478590039.7944
+    },
+    {
+      "kind": "down-handler-finished",
+      "page_ms": 1791478591835.8,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478591840.886
+    },
+    {
+      "kind": "pointerup",
+      "page_ms": 1791478591837.6,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478591842.7378
+    },
+    {
+      "kind": "click",
+      "page_ms": 1791478591838.3,
+      "trusted": true,
+      "target": "target",
+      "observed_ms": 1791478591845.8252
+    },
+    {
+      "kind": "pagehide",
+      "page_ms": 1791478591844.8,
+      "trusted": true,
+      "observed_ms": 1791478591862.005
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "47d41d3a2dfc993c10f667354c2afaaa70b7959c53611d2a",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "stage": "源码候选；严格按下期间关闭命中，释放后原资源结束且不补发"
+}

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "removed_owned_ids": [
+    "bead-1791635716954",
+    "bead-1791635717021",
+    "bead-1791635717087"
+  ],
+  "original_ids_preserved": true,
+  "remaining_count": 103
+}

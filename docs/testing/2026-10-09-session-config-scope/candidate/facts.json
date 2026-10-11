@@ -1,0 +1,776 @@
+{
+  "case": "candidate",
+  "binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\target\\debug\\coolzhu-web-console.exe",
+  "binary_sha256": "9bd41bea066e678d330bb0771c4260b4c8a4a776bb7e3325ca0925b65cb16f71",
+  "pid": 27248,
+  "port": 61797,
+  "model_requests": 0,
+  "original_runtime_writes": 0,
+  "new_cloud_sessions": 0,
+  "readers": [
+    {
+      "reads": 22,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": []
+    },
+    {
+      "reads": 23,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": []
+    },
+    {
+      "reads": 24,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": []
+    },
+    {
+      "reads": 23,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": []
+    },
+    {
+      "reads": 23,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": []
+    },
+    {
+      "reads": 22,
+      "conflicts": 0,
+      "mismatches": [],
+      "errors": []
+    }
+  ],
+  "switches": [
+    {
+      "sequence": 0,
+      "status": 409
+    },
+    {
+      "sequence": 1,
+      "status": 409
+    },
+    {
+      "sequence": 2,
+      "status": 409
+    },
+    {
+      "sequence": 3,
+      "status": 409
+    },
+    {
+      "sequence": 4,
+      "status": 409
+    },
+    {
+      "sequence": 5,
+      "status": 409
+    },
+    {
+      "sequence": 6,
+      "status": 409
+    },
+    {
+      "sequence": 7,
+      "status": 409
+    },
+    {
+      "sequence": 8,
+      "status": 409
+    },
+    {
+      "sequence": 9,
+      "status": 409
+    },
+    {
+      "sequence": 10,
+      "status": 409
+    },
+    {
+      "sequence": 11,
+      "status": 409
+    },
+    {
+      "sequence": 12,
+      "status": 409
+    },
+    {
+      "sequence": 13,
+      "status": 409
+    },
+    {
+      "sequence": 14,
+      "status": 409
+    },
+    {
+      "sequence": 15,
+      "status": 409
+    },
+    {
+      "sequence": 16,
+      "status": 409
+    },
+    {
+      "sequence": 17,
+      "status": 409
+    },
+    {
+      "sequence": 18,
+      "status": 409
+    },
+    {
+      "sequence": 19,
+      "status": 409
+    },
+    {
+      "sequence": 20,
+      "status": 409
+    },
+    {
+      "sequence": 21,
+      "status": 409
+    },
+    {
+      "sequence": 22,
+      "status": 409
+    },
+    {
+      "sequence": 23,
+      "status": 409
+    },
+    {
+      "sequence": 24,
+      "status": 409
+    },
+    {
+      "sequence": 25,
+      "status": 409
+    },
+    {
+      "sequence": 26,
+      "status": 409
+    },
+    {
+      "sequence": 27,
+      "status": 409
+    },
+    {
+      "sequence": 28,
+      "status": 409
+    },
+    {
+      "sequence": 29,
+      "status": 409
+    },
+    {
+      "sequence": 30,
+      "status": 409
+    },
+    {
+      "sequence": 31,
+      "status": 409
+    },
+    {
+      "sequence": 32,
+      "status": 409
+    },
+    {
+      "sequence": 33,
+      "status": 409
+    },
+    {
+      "sequence": 34,
+      "status": 409
+    },
+    {
+      "sequence": 35,
+      "status": 409
+    },
+    {
+      "sequence": 36,
+      "status": 409
+    },
+    {
+      "sequence": 37,
+      "status": 409
+    },
+    {
+      "sequence": 38,
+      "status": 409
+    },
+    {
+      "sequence": 39,
+      "status": 409
+    },
+    {
+      "sequence": 40,
+      "status": 409
+    },
+    {
+      "sequence": 41,
+      "status": 409
+    },
+    {
+      "sequence": 42,
+      "status": 409
+    },
+    {
+      "sequence": 43,
+      "status": 409
+    },
+    {
+      "sequence": 44,
+      "status": 409
+    },
+    {
+      "sequence": 45,
+      "status": 409
+    },
+    {
+      "sequence": 46,
+      "status": 409
+    },
+    {
+      "sequence": 47,
+      "status": 409
+    },
+    {
+      "sequence": 48,
+      "status": 409
+    },
+    {
+      "sequence": 49,
+      "status": 409
+    },
+    {
+      "sequence": 50,
+      "status": 409
+    },
+    {
+      "sequence": 51,
+      "status": 409
+    },
+    {
+      "sequence": 52,
+      "status": 409
+    },
+    {
+      "sequence": 53,
+      "status": 409
+    },
+    {
+      "sequence": 54,
+      "status": 409
+    },
+    {
+      "sequence": 55,
+      "status": 409
+    },
+    {
+      "sequence": 56,
+      "status": 409
+    },
+    {
+      "sequence": 57,
+      "status": 409
+    },
+    {
+      "sequence": 58,
+      "status": 409
+    },
+    {
+      "sequence": 59,
+      "status": 409
+    },
+    {
+      "sequence": 60,
+      "status": 409
+    },
+    {
+      "sequence": 61,
+      "status": 409
+    },
+    {
+      "sequence": 62,
+      "status": 409
+    },
+    {
+      "sequence": 63,
+      "status": 409
+    },
+    {
+      "sequence": 64,
+      "status": 409
+    },
+    {
+      "sequence": 65,
+      "status": 409
+    },
+    {
+      "sequence": 66,
+      "status": 409
+    },
+    {
+      "sequence": 67,
+      "status": 409
+    },
+    {
+      "sequence": 68,
+      "status": 409
+    },
+    {
+      "sequence": 69,
+      "status": 409
+    },
+    {
+      "sequence": 70,
+      "status": 409
+    },
+    {
+      "sequence": 71,
+      "status": 409
+    },
+    {
+      "sequence": 72,
+      "status": 409
+    },
+    {
+      "sequence": 73,
+      "status": 409
+    },
+    {
+      "sequence": 74,
+      "status": 409
+    },
+    {
+      "sequence": 75,
+      "status": 409
+    },
+    {
+      "sequence": 76,
+      "status": 409
+    },
+    {
+      "sequence": 77,
+      "status": 409
+    },
+    {
+      "sequence": 78,
+      "status": 409
+    },
+    {
+      "sequence": 79,
+      "status": 409
+    },
+    {
+      "sequence": 80,
+      "status": 409
+    },
+    {
+      "sequence": 81,
+      "status": 409
+    },
+    {
+      "sequence": 82,
+      "status": 409
+    },
+    {
+      "sequence": 83,
+      "status": 409
+    },
+    {
+      "sequence": 84,
+      "status": 409
+    },
+    {
+      "sequence": 85,
+      "status": 409
+    },
+    {
+      "sequence": 86,
+      "status": 409
+    },
+    {
+      "sequence": 87,
+      "status": 409
+    },
+    {
+      "sequence": 88,
+      "status": 409
+    },
+    {
+      "sequence": 89,
+      "status": 409
+    },
+    {
+      "sequence": 90,
+      "status": 409
+    },
+    {
+      "sequence": 91,
+      "status": 409
+    },
+    {
+      "sequence": 92,
+      "status": 409
+    },
+    {
+      "sequence": 93,
+      "status": 409
+    },
+    {
+      "sequence": 94,
+      "status": 409
+    },
+    {
+      "sequence": 95,
+      "status": 409
+    },
+    {
+      "sequence": 96,
+      "status": 409
+    },
+    {
+      "sequence": 97,
+      "status": 409
+    },
+    {
+      "sequence": 98,
+      "status": 409
+    },
+    {
+      "sequence": 99,
+      "status": 409
+    },
+    {
+      "sequence": 100,
+      "status": 409
+    },
+    {
+      "sequence": 101,
+      "status": 409
+    },
+    {
+      "sequence": 102,
+      "status": 409
+    },
+    {
+      "sequence": 103,
+      "status": 409
+    },
+    {
+      "sequence": 104,
+      "status": 409
+    },
+    {
+      "sequence": 105,
+      "status": 409
+    },
+    {
+      "sequence": 106,
+      "status": 409
+    },
+    {
+      "sequence": 107,
+      "status": 409
+    },
+    {
+      "sequence": 108,
+      "status": 409
+    },
+    {
+      "sequence": 109,
+      "status": 409
+    },
+    {
+      "sequence": 110,
+      "status": 409
+    },
+    {
+      "sequence": 111,
+      "status": 409
+    },
+    {
+      "sequence": 112,
+      "status": 409
+    },
+    {
+      "sequence": 113,
+      "status": 409
+    },
+    {
+      "sequence": 114,
+      "status": 409
+    },
+    {
+      "sequence": 115,
+      "status": 409
+    },
+    {
+      "sequence": 116,
+      "status": 409
+    },
+    {
+      "sequence": 117,
+      "status": 409
+    },
+    {
+      "sequence": 118,
+      "status": 409
+    },
+    {
+      "sequence": 119,
+      "status": 409
+    },
+    {
+      "sequence": 120,
+      "status": 409
+    },
+    {
+      "sequence": 121,
+      "status": 409
+    },
+    {
+      "sequence": 122,
+      "status": 409
+    },
+    {
+      "sequence": 123,
+      "status": 409
+    },
+    {
+      "sequence": 124,
+      "status": 409
+    },
+    {
+      "sequence": 125,
+      "status": 409
+    },
+    {
+      "sequence": 126,
+      "status": 409
+    },
+    {
+      "sequence": 127,
+      "status": 409
+    },
+    {
+      "sequence": 128,
+      "status": 409
+    },
+    {
+      "sequence": 129,
+      "status": 409
+    },
+    {
+      "sequence": 130,
+      "status": 409
+    },
+    {
+      "sequence": 131,
+      "status": 409
+    },
+    {
+      "sequence": 132,
+      "status": 409
+    },
+    {
+      "sequence": 133,
+      "status": 409
+    },
+    {
+      "sequence": 134,
+      "status": 409
+    },
+    {
+      "sequence": 135,
+      "status": 409
+    },
+    {
+      "sequence": 136,
+      "status": 409
+    },
+    {
+      "sequence": 137,
+      "status": 409
+    },
+    {
+      "sequence": 138,
+      "status": 409
+    },
+    {
+      "sequence": 139,
+      "status": 409
+    },
+    {
+      "sequence": 140,
+      "status": 409
+    },
+    {
+      "sequence": 141,
+      "status": 409
+    },
+    {
+      "sequence": 142,
+      "status": 409
+    },
+    {
+      "sequence": 143,
+      "status": 409
+    },
+    {
+      "sequence": 144,
+      "status": 409
+    },
+    {
+      "sequence": 145,
+      "status": 409
+    },
+    {
+      "sequence": 146,
+      "status": 409
+    },
+    {
+      "sequence": 147,
+      "status": 409
+    },
+    {
+      "sequence": 148,
+      "status": 409
+    },
+    {
+      "sequence": 149,
+      "status": 409
+    },
+    {
+      "sequence": 150,
+      "status": 409
+    },
+    {
+      "sequence": 151,
+      "status": 409
+    },
+    {
+      "sequence": 152,
+      "status": 409
+    },
+    {
+      "sequence": 153,
+      "status": 409
+    },
+    {
+      "sequence": 154,
+      "status": 409
+    },
+    {
+      "sequence": 155,
+      "status": 409
+    },
+    {
+      "sequence": 156,
+      "status": 409
+    },
+    {
+      "sequence": 157,
+      "status": 409
+    },
+    {
+      "sequence": 158,
+      "status": 409
+    },
+    {
+      "sequence": 159,
+      "status": 409
+    },
+    {
+      "sequence": 160,
+      "status": 409
+    },
+    {
+      "sequence": 161,
+      "status": 409
+    },
+    {
+      "sequence": 162,
+      "status": 409
+    },
+    {
+      "sequence": 163,
+      "status": 409
+    },
+    {
+      "sequence": 164,
+      "status": 409
+    },
+    {
+      "sequence": 165,
+      "status": 409
+    },
+    {
+      "sequence": 166,
+      "status": 409
+    },
+    {
+      "sequence": 167,
+      "status": 409
+    },
+    {
+      "sequence": 168,
+      "status": 409
+    },
+    {
+      "sequence": 169,
+      "status": 409
+    },
+    {
+      "sequence": 170,
+      "status": 409
+    },
+    {
+      "sequence": 171,
+      "status": 409
+    },
+    {
+      "sequence": 172,
+      "status": 409
+    },
+    {
+      "sequence": 173,
+      "status": 409
+    },
+    {
+      "sequence": 174,
+      "status": 409
+    },
+    {
+      "sequence": 175,
+      "status": 409
+    },
+    {
+      "sequence": 176,
+      "status": 409
+    },
+    {
+      "sequence": 177,
+      "status": 409
+    },
+    {
+      "sequence": 178,
+      "status": 409
+    },
+    {
+      "sequence": 179,
+      "status": 409
+    }
+  ],
+  "total_reads": 137,
+  "mismatch_samples": 0,
+  "conflicts": 0,
+  "successful_switches": 0,
+  "sequential_switch_after_readers_stopped": 200,
+  "passed": true
+}

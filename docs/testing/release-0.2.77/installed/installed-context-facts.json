@@ -1,0 +1,63 @@
+{
+  "prefix": "DEVIN-HEALTH-INSTALLED-077-20261006",
+  "run_id": "run-chat-907cc9069b48db095ad7cc426eae0ff23524ed4bb5bc1835",
+  "room": "room-1791131523339",
+  "message_id": "msg-1791228984510-user",
+  "targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 32,
+      "prompt_bytes": 1985
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "d7e8a648e8ea3b49426d65fcc82af584cc4f95048fd6816936ecf3bf7ea6c159",
+          "id": "msg-1791228984966-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [],
+  "reply": "5136184e6566d421",
+  "bindings": [
+    {
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "sneaky-diascia"
+    },
+    {
+      "agent_id": "session-1791131217833",
+      "remote_session_id": "veiled-anise"
+    }
+  ],
+  "run": {
+    "id": "run-chat-907cc9069b48db095ad7cc426eae0ff23524ed4bb5bc1835",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "tool_events": [],
+  "audit": []
+}

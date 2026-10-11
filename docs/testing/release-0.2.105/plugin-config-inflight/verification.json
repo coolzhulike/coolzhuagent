@@ -1,0 +1,37 @@
+{
+  "version": "0.2.105",
+  "result": "pass",
+  "stage": "执行已经进入，配置更新取消旧执行并回收宿主",
+  "network_gets": 1,
+  "response_bodies": 0,
+  "connection_closed_after_seconds": 1.8450347000034526,
+  "held_process": {
+    "pid": 29888,
+    "path": "C:\\Program Files\\CoolzhuAgent\\bin\\dsh-runtime\\node\\node.exe",
+    "created_100ns": 134359799876214981,
+    "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5",
+    "held_ms": 1791506387717.0803,
+    "wait_before": 258
+  },
+  "wait_after": 0,
+  "run": {
+    "id": "run-chat-4bca9de730b90a1f15069cb3b6117e808af7d211a39e6dd7",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791506372832-1"
+  },
+  "attempt": {
+    "attempt_id": "86da0f8b9b7f07bcb2687de0df8159ead9d8581c93329eb3",
+    "state": "terminal",
+    "protocol_stop": "end_turn",
+    "process_drained": 1,
+    "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+  },
+  "tool": {
+    "tool_name": "dsh__1ef9be67fd4ddb42d93d68c084b38983",
+    "status": "failed",
+    "tool_call_id": "tool-d39e9ff21ca6fe4338285497dd53cbba2a6e7274eb17213da11c2a380c819494"
+  },
+  "binding": "island-kayak",
+  "restored_revision": 51,
+  "boundary": "完整瞬时工具响应未另存；宿主审计、独立网络断开、原进程持有句柄退出与最终回复分开归档；已执行不冒称executed=false或登记前拒绝。"
+}

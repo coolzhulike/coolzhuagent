@@ -1,0 +1,61 @@
+{
+  "stage": "34f2075候选桌面壳+118正式后台",
+  "source_user_id": "msg-1791544362531-user",
+  "run": {
+    "id": "run-chat-a53c79278ab336ec7bfca0d79e0446a9eb4a82198e5aca7a",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791544362531-1",
+    "provider_turn_id": null,
+    "state": "failed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-774928d6837bdb6a5d1d3243e1b5c85c19cd01f557c0b1205c4e60a54279079b",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791544362532,
+    "started_at": 1791544362717,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791544362717,
+    "finished_at": 1791544376306
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-ddf4470895467817c9472b7325bb5160deb35c078a0658903c0dc0befcb21359",
+      "run_id": "run-chat-a53c79278ab336ec7bfca0d79e0446a9eb4a82198e5aca7a",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "4cd100a828094bec",
+      "status": "failed",
+      "created_at_unix_ms": 1791544372794,
+      "updated_at_unix_ms": 1791544372998,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-a53c79278ab336ec7bfca0d79e0446a9eb4a82198e5aca7a\",\"turn_id\":\"chat-turn-1791544362531-1\",\"attempt_id\":\"00e17dd8a652a3f417c0fcea5832438e2f4feb46ea0b5932\",\"owner_epoch\":252,\"generation\":252}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "00e17dd8a652a3f417c0fcea5832438e2f4feb46ea0b5932",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": []
+}

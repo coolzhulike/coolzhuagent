@@ -1,0 +1,109 @@
+{
+  "prefix": "DEVIN-INSTALLED-077-REINSTALL-ENABLED-20261006",
+  "run_id": "run-chat-06a2d96396425ddb72b0f0a8b5845ecd623ccd2b2f7a8bc6",
+  "room": "room-1791131523339",
+  "message_id": "msg-1791243075355-user",
+  "targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 42,
+      "prompt_bytes": 2248
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "9b428ad0758c50f6d7360054d76de3b202ec614dd21571e54646a08294d96a7a",
+          "id": "msg-1791243075684-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_call_id": "tool-867c2660ceb5f6bbfbb16aa42bbc80bdf9795821a3ce4a2eaeafb4d8afbd76a2",
+      "run_id": "run-chat-06a2d96396425ddb72b0f0a8b5845ecd623ccd2b2f7a8bc6",
+      "request_attempt_id": null,
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "arguments_digest": "357ffecfb3c2de16",
+      "status": "completed",
+      "created_at_unix_ms": 1791243082995,
+      "updated_at_unix_ms": 1791243084356,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-06a2d96396425ddb72b0f0a8b5845ecd623ccd2b2f7a8bc6\",\"turn_id\":\"chat-turn-1791243075355-2\",\"attempt_id\":\"52c65d43d579ce76709ae111025ca0e8456c9420d06c8a11\",\"owner_epoch\":22,\"generation\":22}"
+    }
+  ],
+  "reply": "DSH calculator（`dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab`）实际执行 `(93-14)*2`，宿主回执 `status: ok`、`isError: false`，返回结果 **158**。",
+  "bindings": [
+    {
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "sneaky-diascia"
+    },
+    {
+      "agent_id": "session-1791131217833",
+      "remote_session_id": "veiled-anise"
+    }
+  ],
+  "run": {
+    "id": "run-chat-06a2d96396425ddb72b0f0a8b5845ecd623ccd2b2f7a8bc6",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "tool_events": [],
+  "audit": [
+    {
+      "ts": "1791243084.346",
+      "call_id": "tool-867c2660ceb5f6bbfbb16aa42bbc80bdf9795821a3ce4a2eaeafb4d8afbd76a2",
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "caller": "llm",
+      "workspace_id": "ws-23f646a969206cb4",
+      "session_id": "session-1791131217833",
+      "input_summary": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab: expression=len9",
+      "status": "ok",
+      "elapsed_ms": 740,
+      "permission": {
+        "required": "danger-full-access",
+        "decision": "allow-auto",
+        "reason": "full-access-profile",
+        "workspace_relative": false,
+        "affected_paths": [
+          "<opaque-command>"
+        ]
+      },
+      "summary_text": "DSH实际宿主操作已收尾",
+      "evidence": {
+        "frozen_parent_permission": {
+          "affected_paths": [
+            "<opaque-command>"
+          ],
+          "decision": "allow-auto",
+          "reason": "full-access-profile",
+          "required": "danger-full-access",
+          "workspace_relative": false
+        }
+      }
+    }
+  ]
+}

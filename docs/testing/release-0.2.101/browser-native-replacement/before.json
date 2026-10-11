@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "attempts": 937,
+    "messages": 1169
+  },
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "configuration_revision": 35
+}

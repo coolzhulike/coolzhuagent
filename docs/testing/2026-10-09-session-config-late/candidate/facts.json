@@ -1,0 +1,442 @@
+{
+  "case": "candidate",
+  "binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\target\\debug\\coolzhu-web-console.exe",
+  "binary_sha256": "7ea94d7319bcfbc4dc6b0a1a58961b0d3aa6af688496570534e3a1bab8432495",
+  "pid": 31876,
+  "port": 58836,
+  "model_requests": 0,
+  "original_runtime_writes": 0,
+  "new_cloud_sessions": 0,
+  "checks": [
+    {
+      "label": "旧A配置保存迟到B",
+      "status": 409,
+      "response": {
+        "error": "配置页所属工程已切换、重载或重启；草稿未提交，请重新打开配置页"
+      }
+    },
+    {
+      "label": "旧A配置读取迟到B",
+      "status": 409,
+      "response": {
+        "error": "配置页所属工程已切换、重载或重启；草稿未提交，请重新打开配置页"
+      }
+    },
+    {
+      "label": "只有旧工程ID的首次读取",
+      "status": 409,
+      "response": {
+        "error": "配置页所属工程已切换、重载或重启；草稿未提交，请重新打开配置页"
+      }
+    },
+    {
+      "label": "旧A容量保存迟到B",
+      "status": 409,
+      "response": {
+        "error": "配置页所属工程已切换、重载或重启；草稿未提交，请重新打开配置页"
+      }
+    },
+    {
+      "label": "旧A新建请求迟到B",
+      "status": 409,
+      "response": {
+        "error": "配置页所属工程已切换、重载或重启；草稿未提交，请重新打开配置页"
+      }
+    },
+    {
+      "label": "A→B→A旧标识",
+      "status": 409,
+      "response": {
+        "error": "配置页所属工程已切换、重载或重启；草稿未提交，请重新打开配置页"
+      }
+    },
+    {
+      "label": "同工程重载后旧标识",
+      "status": 409,
+      "response": {
+        "error": "配置页所属工程已切换、重载或重启；草稿未提交，请重新打开配置页"
+      }
+    },
+    {
+      "label": "不存在的工程目录",
+      "status": 400,
+      "response": {
+        "error": "workspace 路径不存在或不可访问"
+      }
+    },
+    {
+      "label": "参数非法且不泄漏pin",
+      "status": 400,
+      "response": {
+        "error": "温度必须在协议允许的范围内：OpenAI 0–2，Anthropic 0–1"
+      }
+    },
+    {
+      "label": "同工程旧配置版本",
+      "status": 409,
+      "response": {
+        "error": "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入"
+      }
+    },
+    {
+      "label": "无头旧容量读取兼容",
+      "status": 200,
+      "response": {
+        "session_id": "scope-shared-session",
+        "model": "scope-local-config",
+        "context_window": 8192,
+        "max_output_tokens": 1024,
+        "default_context_window": 64000,
+        "default_max_output_tokens": 64000,
+        "overridden": true
+      }
+    },
+    {
+      "label": "当前工程正常配置保存",
+      "status": 200,
+      "response": {
+        "agent_execution_ready": true,
+        "available_plugin_tools": [],
+        "backend_kind": "llm_http",
+        "base_url": "http://127.0.0.1:8082/v1",
+        "configuration_revision": 11,
+        "configuration_scope": "ws-7d67fd6a09b49ff8:2f8dc8e0b723032c592a995c85b6d055",
+        "default_context_window": 64000,
+        "default_max_output_tokens": 64000,
+        "effective_context_window": 8192,
+        "effective_max_output_tokens": 1024,
+        "effective_supports_multimodal": false,
+        "endpoint": null,
+        "image_input_strategy": "vision-description",
+        "model_selection": {
+          "effective": null,
+          "requested": "scope-local-config",
+          "resolved_model": null
+        },
+        "parameters": {
+          "backend_kind": null,
+          "base_url": null,
+          "computer_use_enabled": null,
+          "context_window": 32768,
+          "enable_llm_tools": null,
+          "endpoint": null,
+          "llm_tool_exposure": null,
+          "max_output_tokens": 1024,
+          "protocol": null,
+          "reasoning_mode": null,
+          "supports_multimodal": null,
+          "temperature": 0.35,
+          "thinking_budget": null,
+          "tool_allowlist": null,
+          "top_p": null,
+          "turn_timeout_ms": null
+        },
+        "plugin_tools_error": null,
+        "protocol": "openai_chat_completions",
+        "session": {
+          "active": true,
+          "api_key_status": "未配置（能力已启用；凭据引用 api-key.txt 不可用）",
+          "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+          "backend_kind": "llm_http",
+          "base_url": "http://127.0.0.1:8082/v1",
+          "display_name": "工程-a-作用域保存(coolzhu-model)",
+          "endpoint": null,
+          "id": "scope-shared-session",
+          "memory_mode": "enabled",
+          "model": "scope-local-config",
+          "model_type": "text",
+          "name": "工程-a-作用域保存",
+          "provider": "custom",
+          "reasoning_effort": "auto",
+          "reasoning_resolution": {
+            "effective": "auto",
+            "protocol": "openai_chat_completions",
+            "reason": "requested=auto：不主动覆盖供应商默认",
+            "requested": "auto",
+            "status": "default",
+            "strategy": "provider_default",
+            "supported_options": [
+              {
+                "label": "自动",
+                "value": "auto"
+              }
+            ]
+          },
+          "updated_at": 1791536095352
+        }
+      }
+    },
+    {
+      "label": "保存后旧revision冲突",
+      "status": 409,
+      "response": {
+        "error": "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入"
+      }
+    },
+    {
+      "label": "当前工程新建会话",
+      "status": 200,
+      "response": {
+        "session": {
+          "backend_kind": "llm_http",
+          "id": "session-1791536095407",
+          "name": "同工程新建",
+          "display_name": "同工程新建(scope-local-config)",
+          "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+          "provider": "custom",
+          "model": "scope-local-config",
+          "model_type": "text",
+          "base_url": null,
+          "endpoint": null,
+          "reasoning_effort": "auto",
+          "reasoning_resolution": {
+            "requested": "auto",
+            "effective": "auto",
+            "status": "default",
+            "strategy": "provider_default",
+            "protocol": "openai_chat_completions",
+            "reason": "requested=auto：不主动覆盖供应商默认",
+            "supported_options": [
+              {
+                "value": "auto",
+                "label": "自动"
+              }
+            ]
+          },
+          "api_key_status": "未配置（能力已启用）",
+          "memory_mode": "enabled",
+          "active": true,
+          "updated_at": 1791536095407
+        }
+      }
+    },
+    {
+      "label": "无头既有统一配置读取兼容",
+      "status": 200,
+      "response": {
+        "agent_execution_ready": true,
+        "available_plugin_tools": [],
+        "backend_kind": "llm_http",
+        "base_url": "http://127.0.0.1:8082/v1",
+        "configuration_revision": 11,
+        "configuration_scope": "ws-7d67fd6a09b49ff8:2f8dc8e0b723032c592a995c85b6d055",
+        "default_context_window": 64000,
+        "default_max_output_tokens": 64000,
+        "effective_context_window": 8192,
+        "effective_max_output_tokens": 1024,
+        "effective_supports_multimodal": false,
+        "endpoint": null,
+        "image_input_strategy": "vision-description",
+        "model_selection": {
+          "effective": null,
+          "requested": "scope-local-config",
+          "resolved_model": null
+        },
+        "parameters": {
+          "backend_kind": null,
+          "base_url": null,
+          "computer_use_enabled": null,
+          "context_window": 32768,
+          "enable_llm_tools": null,
+          "endpoint": null,
+          "llm_tool_exposure": null,
+          "max_output_tokens": 1024,
+          "protocol": null,
+          "reasoning_mode": null,
+          "supports_multimodal": null,
+          "temperature": 0.35,
+          "thinking_budget": null,
+          "tool_allowlist": null,
+          "top_p": null,
+          "turn_timeout_ms": null
+        },
+        "plugin_tools_error": null,
+        "protocol": "openai_chat_completions",
+        "session": {
+          "active": false,
+          "api_key_status": "未配置（能力已启用；凭据引用 api-key.txt 不可用）",
+          "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+          "backend_kind": "llm_http",
+          "base_url": "http://127.0.0.1:8082/v1",
+          "display_name": "工程-a-作用域保存(coolzhu-model)",
+          "endpoint": null,
+          "id": "scope-shared-session",
+          "memory_mode": "enabled",
+          "model": "scope-local-config",
+          "model_type": "text",
+          "name": "工程-a-作用域保存",
+          "provider": "custom",
+          "reasoning_effort": "auto",
+          "reasoning_resolution": {
+            "effective": "auto",
+            "protocol": "openai_chat_completions",
+            "reason": "requested=auto：不主动覆盖供应商默认",
+            "requested": "auto",
+            "status": "default",
+            "strategy": "provider_default",
+            "supported_options": [
+              {
+                "label": "自动",
+                "value": "auto"
+              }
+            ]
+          },
+          "updated_at": 1791536095352
+        }
+      }
+    },
+    {
+      "label": "程序重启后旧标识",
+      "status": 409,
+      "response": {
+        "error": "配置页所属工程已切换、重载或重启；草稿未提交，请重新打开配置页"
+      }
+    }
+  ],
+  "other_workspace_bytes_and_rows_unchanged": true,
+  "before_restart": {
+    "agent_execution_ready": true,
+    "available_plugin_tools": [],
+    "backend_kind": "llm_http",
+    "base_url": "http://127.0.0.1:8082/v1",
+    "configuration_revision": 11,
+    "configuration_scope": "ws-7d67fd6a09b49ff8:2f8dc8e0b723032c592a995c85b6d055",
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "effective_context_window": 8192,
+    "effective_max_output_tokens": 1024,
+    "effective_supports_multimodal": false,
+    "endpoint": null,
+    "image_input_strategy": "vision-description",
+    "model_selection": {
+      "effective": null,
+      "requested": "scope-local-config",
+      "resolved_model": null
+    },
+    "parameters": {
+      "backend_kind": null,
+      "base_url": null,
+      "computer_use_enabled": null,
+      "context_window": 32768,
+      "enable_llm_tools": null,
+      "endpoint": null,
+      "llm_tool_exposure": null,
+      "max_output_tokens": 1024,
+      "protocol": null,
+      "reasoning_mode": null,
+      "supports_multimodal": null,
+      "temperature": 0.35,
+      "thinking_budget": null,
+      "tool_allowlist": null,
+      "top_p": null,
+      "turn_timeout_ms": null
+    },
+    "plugin_tools_error": null,
+    "protocol": "openai_chat_completions",
+    "session": {
+      "active": true,
+      "api_key_status": "未配置（能力已启用；凭据引用 api-key.txt 不可用）",
+      "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+      "backend_kind": "llm_http",
+      "base_url": "http://127.0.0.1:8082/v1",
+      "display_name": "工程-a-作用域保存(coolzhu-model)",
+      "endpoint": null,
+      "id": "scope-shared-session",
+      "memory_mode": "enabled",
+      "model": "scope-local-config",
+      "model_type": "text",
+      "name": "工程-a-作用域保存",
+      "provider": "custom",
+      "reasoning_effort": "auto",
+      "reasoning_resolution": {
+        "effective": "auto",
+        "protocol": "openai_chat_completions",
+        "reason": "requested=auto：不主动覆盖供应商默认",
+        "requested": "auto",
+        "status": "default",
+        "strategy": "provider_default",
+        "supported_options": [
+          {
+            "label": "自动",
+            "value": "auto"
+          }
+        ]
+      },
+      "updated_at": 1791536095352
+    }
+  },
+  "first_process_exit_code": 1,
+  "after_restart": {
+    "agent_execution_ready": true,
+    "available_plugin_tools": [],
+    "backend_kind": "llm_http",
+    "base_url": "http://127.0.0.1:8082/v1",
+    "configuration_revision": 11,
+    "configuration_scope": "ws-7d67fd6a09b49ff8:fa26276db20d9fd65b8f56bb46590b00",
+    "default_context_window": 64000,
+    "default_max_output_tokens": 64000,
+    "effective_context_window": 8192,
+    "effective_max_output_tokens": 1024,
+    "effective_supports_multimodal": false,
+    "endpoint": null,
+    "image_input_strategy": "vision-description",
+    "model_selection": {
+      "effective": null,
+      "requested": "scope-local-config",
+      "resolved_model": null
+    },
+    "parameters": {
+      "backend_kind": null,
+      "base_url": null,
+      "computer_use_enabled": null,
+      "context_window": 32768,
+      "enable_llm_tools": null,
+      "endpoint": null,
+      "llm_tool_exposure": null,
+      "max_output_tokens": 1024,
+      "protocol": null,
+      "reasoning_mode": null,
+      "supports_multimodal": null,
+      "temperature": 0.35,
+      "thinking_budget": null,
+      "tool_allowlist": null,
+      "top_p": null,
+      "turn_timeout_ms": null
+    },
+    "plugin_tools_error": null,
+    "protocol": "openai_chat_completions",
+    "session": {
+      "active": false,
+      "api_key_status": "未配置（能力已启用；凭据引用 api-key.txt 不可用）",
+      "avatar": "assets/avatars/wuxia-v3/feather-guard.png",
+      "backend_kind": "llm_http",
+      "base_url": "http://127.0.0.1:8082/v1",
+      "display_name": "工程-a-作用域保存(coolzhu-model)",
+      "endpoint": null,
+      "id": "scope-shared-session",
+      "memory_mode": "enabled",
+      "model": "scope-local-config",
+      "model_type": "text",
+      "name": "工程-a-作用域保存",
+      "provider": "custom",
+      "reasoning_effort": "auto",
+      "reasoning_resolution": {
+        "effective": "auto",
+        "protocol": "openai_chat_completions",
+        "reason": "requested=auto：不主动覆盖供应商默认",
+        "requested": "auto",
+        "status": "default",
+        "strategy": "provider_default",
+        "supported_options": [
+          {
+            "label": "自动",
+            "value": "auto"
+          }
+        ]
+      },
+      "updated_at": 1791536095352
+    }
+  },
+  "restart_preserved_parameters_revision_name": true,
+  "all_api_checks_passed": true
+}

@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "CU-PAINT-20261005-S：新的独立真实Paint完整粗略人物任务，不是旧调用重试。旧任务R已终态，旧线条不得借用。只调用一次computer_use_perform，完整正式六项：objective=根据本轮实际原图，在白色画布右侧尚无笔迹的留白内，本轮手绘一个新的极简海绵宝宝：闭合方形身体，身体内部左右分开的两个闭合菱形眼睛，眼睛下方一条笑嘴折线，身体最底边以下左右分开的两条短腿脚；surface=desktop；target={application:mspaint.exe}；success_criteria=[本轮新画的独立闭合方形身体清楚可见且不借任何旧线条,本轮身体内部可见两个分开的闭合菱形眼睛和眼睛下方笑嘴折线,本轮身体底边下方可见两条分开的腿脚且所有新笔迹在真实白画布内]；constraints=[只操作Paint，用六次连续drag分别画身体左眼右眼嘴左腿右腿，不用代码形状工具导入粘贴其它MCP，不擦除不保存不改画布，不换模型，不借历史坐标，失败取消或未知立即停止不补发不重试，释放和image_changed不能代替完整图形完成]；max_actions=6。\n使用最新真实原图和UIA rect自主规划。重要：全窗口截图中读出的像素位置不是UIA画布的归一化坐标；先用image.screen_rect换成桌面物理坐标，减去所选目标rect的left/top，再除目标width/height得到points；不得把整张截图的比例直接用于较小UIA rect。如果选择window-canvas，则按其canvas_rect同样换算。drawing_region_candidates仅是候选，不是证明；若确为画布，可使用新鲜reference。主会话不提供任何落点或笔画坐标。\nrunning只wait同一个job_id至终态，不再perform。逐项依据当前实际原图和宿主真实回执报告。若只画部分或宿主goal=false，必须保留未通过结论；不得把旧图当本轮绘图。",
+  "selected_message_ids": [],
+  "attachments": []
+}

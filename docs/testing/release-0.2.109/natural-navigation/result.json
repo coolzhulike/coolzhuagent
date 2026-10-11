@@ -1,0 +1,161 @@
+{
+  "formal_version": "0.2.109",
+  "facts": {
+    "run": {
+      "id": "run-chat-fdf1b81e01889a2ff2cd6128731b2867afcd28ad5841b03f",
+      "state": "failed",
+      "legacy_turn_id": "chat-turn-1791512810685-0"
+    },
+    "computer_use": [
+      {
+        "call_id": "cu-session-1791131217833-chat-turn-1791512810685-0-tool-b959e14eb50bcddb0cdec37450e5af97a1fbe94ec2868c366b02c0d6adb55d97",
+        "state": "blocked",
+        "terminal_result_json": {
+          "call_id": "cu-session-1791131217833-chat-turn-1791512810685-0-tool-b959e14eb50bcddb0cdec37450e5af97a1fbe94ec2868c366b02c0d6adb55d97",
+          "provider_tool_call_id": "tool-b959e14eb50bcddb0cdec37450e5af97a1fbe94ec2868c366b02c0d6adb55d97",
+          "status": "blocked",
+          "stage": "supervisor",
+          "goal_achieved": false,
+          "surface": "browser",
+          "summary": "{\"last_verification\":{\"bound_initial_url\":\"http://127.0.0.1:57243/old.html\",\"criteria_count\":1,\"criteria_met\":0,\"fresh_observation_id\":\"e6a14f5b7fe40d330ed7f99ac4596280\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":false,\"index\":0,\"model_met\":false,\"node_indices\":[],\"reason\":\"model_unmet\",\"selected_nodes\":[],\"span_nodes\":[]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"94b04dd01a40ca8c616aacbcbd77a2a9\",\"observation_origin\":\"after_settled_input\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":8,\"nodes\":[],\"title\":\"OBSERVE109-NEW\",\"truncated\":false,\"url\":\"http://localhost:57243/new.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":null,\"ungrounded_positive_count\":0},\"terminal_reason\":\"computer-use action budget exhausted\",\"verification_is_last_observation\":true}",
+          "error": {
+            "code": "budget_exhausted",
+            "message": "computer-use action budget exhausted",
+            "retryable": false,
+            "retry_owner": "none"
+          },
+          "attempts": 1,
+          "steps_completed": 1,
+          "input_steps": [
+            {
+              "step_index": 0,
+              "action_kind": "click",
+              "input_delivery": "sent",
+              "input_release_status": "released",
+              "partial": false,
+              "effect_status": "effect_observed",
+              "goal_verdict": "failed"
+            }
+          ],
+          "evidence": [
+            "native-ax:1:0",
+            "native-observation:8e36735fee7a9a512565bbf9e6164a25",
+            "native-ax:1:0",
+            "native-observation:8e36735fee7a9a512565bbf9e6164a25",
+            "native-input:602ff6ed7725dc41eeb5914f43c7b07f",
+            "native-ax:1:0",
+            "native-observation:94b04dd01a40ca8c616aacbcbd77a2a9",
+            "native-ax:1:0",
+            "native-observation:94b04dd01a40ca8c616aacbcbd77a2a9",
+            "native-ax:1:0",
+            "native-observation:e6a14f5b7fe40d330ed7f99ac4596280"
+          ],
+          "supervisor": {
+            "circuit_open": true,
+            "reason": "budget_exhausted",
+            "action_count": 1,
+            "replan_count": 0,
+            "no_progress_count": 0
+          },
+          "cu_budget": {
+            "root_deadline_state": "wired",
+            "root_deadline": {
+              "at": {
+                "unix_ms": 1791513710685
+              }
+            },
+            "cu_deadline_ms": 1791513710685,
+            "cu_deadline_established_at_ms": 1791512818230,
+            "cu_budget_ms": 900000
+          }
+        },
+        "steps": [
+          {
+            "step_index": 0,
+            "action_type": "click",
+            "status": "completed_unverified",
+            "error_code": null,
+            "input_delivery": "sent",
+            "input_release_status": "released",
+            "effect_status": "effect_observed"
+          }
+        ]
+      }
+    ],
+    "bindings": [
+      {
+        "lane": "",
+        "remote_session_id": "island-kayak",
+        "locked_attempt": null
+      },
+      {
+        "lane": "internal",
+        "remote_session_id": null,
+        "locked_attempt": null
+      }
+    ],
+    "attempts": [
+      {
+        "attempt_id": "b43952324986f8dc07de23cd327cafc1c72edbadffc92320",
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ]
+  },
+  "calls": [
+    {
+      "tool_name": "computer_use_perform",
+      "status": "failed",
+      "tool_call_id": "tool-b959e14eb50bcddb0cdec37450e5af97a1fbe94ec2868c366b02c0d6adb55d97"
+    }
+  ],
+  "source_message_id": "msg-1791512810685-user",
+  "visible_reply": {
+    "id": "msg-1791512810955-0",
+    "kind": "assistant-reply",
+    "content": "任务未达成（终态回执 `status: blocked`，stage: supervisor，`goal_achieved: false`）：\n\n- **错误**：`budget_exhausted` —— \"computer-use action budget exhausted\"（max_actions=1 用尽；circuit_open，retryable=false）\n- **终态 input_steps[0] 原样事实**（action_kind: click，目标本轮 dom-38284ae5… “交接观察验收”按钮，`http://127.0.0.1:57243/old.html`）：\n  - **input_delivery**：`sent` —— 点击已真实投递（native-input:602ff6ed…）\n  - **input_release_status**：`released` —— 完整释放，`partial: false`\n  - **effect_status**：`effect_observed` —— 宿主确认产生了效果观察；`goal_verdict: failed`\n- **观察等待阶段资源变化**：网页在真实输入释放、底层观察请求登记后正常导航至 `http://localhost:57243/new.html`（跨源，observation_origin: after_settled_input，freshness_confirmed=true）——非按下期间变化；新页 OBSERVE109-NEW 仅显示\"新页面已载入；仅观察\"，无确认文本，criteria_met=0 如实判未满足\n- 投递与释放事实未被导航覆盖；验收观察有效但目标标准在新页不可满足，预算耗尽终止\n- attempts=1、steps_completed=1、action_count=1、replan_count=0；未重试、未补发、未操作新页面、未调用其它工具、未新建云会话",
+    "created_at": 1791512852760
+  },
+  "observation_stop_events": [],
+  "observing_phase_event": {
+    "kind": "observing-phase-found",
+    "facts": {
+      "run_id": "run-chat-fdf1b81e01889a2ff2cd6128731b2867afcd28ad5841b03f",
+      "cu_call_id": "cu-session-1791131217833-chat-turn-1791512810685-0-tool-b959e14eb50bcddb0cdec37450e5af97a1fbe94ec2868c366b02c0d6adb55d97",
+      "cu_state": "observing",
+      "steps": [
+        [
+          0,
+          "sent",
+          "released",
+          1791512837656
+        ]
+      ],
+      "observation_requested": {
+        "event_id": 3285,
+        "created_at": 1791512837742,
+        "payload": {
+          "request_id": "94b04dd01a40ca8c616aacbcbd77a2a9",
+          "stage": "registered"
+        }
+      }
+    },
+    "server_ns": 801550705959600,
+    "received_unix_ns": 1791512837746856900
+  },
+  "invariants": {
+    "single_tool_call": true,
+    "single_model_attempt": true,
+    "end_turn_drained": true,
+    "unique_binding_unlocked": true,
+    "single_input_sent_released": true,
+    "new_page_zero_old_input": true,
+    "actual_post_release_registered_observation": true
+  },
+  "up_to_new_loaded_page_ms": 278.300048828125,
+  "waiting_resource_changed_branch_passed": false,
+  "strict_down_up_window": "not_tested; normal navigation deliberately after input release",
+  "remaining": "严格newTarget/跨来源commit按下窗口及其它总体矩阵继续开放；若本轮未命中waiting_resource_changed，该子项也继续开放"
+}

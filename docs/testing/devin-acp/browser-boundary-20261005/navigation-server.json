@@ -1,0 +1,5 @@
+{
+  "port": 53532,
+  "source_url": "http://127.0.0.1:53532/source.html",
+  "target_url": "http://127.0.0.1:53532/target.html"
+}

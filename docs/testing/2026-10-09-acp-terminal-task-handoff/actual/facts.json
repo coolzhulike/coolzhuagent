@@ -1,0 +1,79 @@
+{
+  "stage": "CU子任务边界候选版真实附件与Browser综合验收",
+  "source_user_id": "msg-1791577803358-user",
+  "run": {
+    "id": "run-chat-418cef719ad94c7fe60e3b58ae3dd37e770d55d9a2f37d10",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791577803359-0",
+    "provider_turn_id": null,
+    "state": "completed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-7b8d68573936efd4fc1f9782ba8ae1eb32b4afee359f1542094fcff9527ed566",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791577803361,
+    "started_at": 1791577805174,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791577805174,
+    "finished_at": 1791578302152
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-5d98dd95a2bb16300f08f36b7478906821183ec53093e4d4236a8876fd1d1c7a",
+      "run_id": "run-chat-418cef719ad94c7fe60e3b58ae3dd37e770d55d9a2f37d10",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "47c64af0788ebed9",
+      "status": "completed",
+      "created_at_unix_ms": 1791577828092,
+      "updated_at_unix_ms": 1791578275792,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-418cef719ad94c7fe60e3b58ae3dd37e770d55d9a2f37d10\",\"turn_id\":\"chat-turn-1791577803359-0\",\"attempt_id\":\"fa10d84419403cae73bde5d17b4879a61fbda4d578d7e077\",\"owner_epoch\":274,\"generation\":274}"
+    },
+    {
+      "tool_call_id": "tool-d8fa2e080b247754f120ff88fd2b9958dc904174c1af09e1c6a96bbb182c5dc4",
+      "run_id": "run-chat-418cef719ad94c7fe60e3b58ae3dd37e770d55d9a2f37d10",
+      "request_attempt_id": null,
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "arguments_digest": "832d9221877e9366",
+      "status": "completed",
+      "created_at_unix_ms": 1791578284463,
+      "updated_at_unix_ms": 1791578294625,
+      "provider_tool_call_id": "65",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-418cef719ad94c7fe60e3b58ae3dd37e770d55d9a2f37d10\",\"turn_id\":\"chat-turn-1791577803359-0\",\"attempt_id\":\"fa10d84419403cae73bde5d17b4879a61fbda4d578d7e077\",\"owner_epoch\":274,\"generation\":274}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "fa10d84419403cae73bde5d17b4879a61fbda4d578d7e077",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791577805454-0",
+      "content": "本轮新任务。附件尾部有效订单：竹剑 `BAMBOO-9636`（单价 472，数量 5,UTF-8)；玉佩 `JADE-5997`（单价 427，数量 5,UTF-16BE 带 BOM)。调用一次 `computer_use_perform`。CU 终态 `goal_achieved: true`,2/2 标准通过。按原任务要求调用一次 DSH 计算器核算总额。任务完成。CU 终态 `goal_achieved: true`,8 步动作、2/2 标准验收通过（freshness_confirmed,ungrounded_positive_count=0);DSH 计算器已调用一次，返回 4495。\n\n**附件与订单**\n- `bamboo-order-utf8.txt` — 编码 UTF-8，订单码 `BAMBOO-9636`，单价 472，数量 5\n- `jade-order-utf16be.txt` — 编码 UTF-16BE（带 BOM)，订单码 `JADE-5997`，单价 427，数量 5\n\n**外层可见回执**\n- `双文档订单已完成，两项均通过`\n- `竹剑已验证：单价 472；数量 5`\n- `玉佩已验证：单价 427；数量 5`\n\n**逐项算式**\n- 竹剑：472 × 5 = 2360\n- 玉佩：427 × 5 = 2135\n- 总额：**2360 + 2135 = 4495**",
+      "kind": "assistant-reply"
+    }
+  ]
+}

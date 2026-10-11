@@ -1,0 +1,67 @@
+{
+  "stage": "CU子任务边界候选版真实附件与Browser综合验收",
+  "source_user_id": "msg-1791576350006-user",
+  "run": {
+    "id": "run-chat-f0bac584e28d601382968ddaba7325dd6ed137f632bfa137",
+    "kind": "chat_turn",
+    "workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "goal_id": null,
+    "phase_id": null,
+    "legacy_turn_id": "chat-turn-1791576350007-0",
+    "provider_turn_id": null,
+    "state": "failed",
+    "owner_id": "coolzhu-web-console",
+    "claim_token": "claim-4cbd2ae5820fbb5791ea40c1db3084306ca941246cae52181d7a571ef7938a1b",
+    "stop_reason": null,
+    "error_json": null,
+    "created_at": 1791576350010,
+    "started_at": 1791576350172,
+    "stop_requested_at": null,
+    "heartbeat_at": 1791576350172,
+    "finished_at": 1791576368330
+  },
+  "calls": [
+    {
+      "tool_call_id": "tool-ca876c4f122ac188e41f1a89f52861b44268d579303264ca0ce886431775cf6a",
+      "run_id": "run-chat-f0bac584e28d601382968ddaba7325dd6ed137f632bfa137",
+      "request_attempt_id": null,
+      "tool_name": "computer_use_perform",
+      "arguments_digest": "cb242594cda3bcd7",
+      "status": "failed",
+      "created_at_unix_ms": 1791576363453,
+      "updated_at_unix_ms": 1791576363679,
+      "provider_tool_call_id": "1",
+      "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-f0bac584e28d601382968ddaba7325dd6ed137f632bfa137\",\"turn_id\":\"chat-turn-1791576350007-0\",\"attempt_id\":\"3a4da6f863b133b62d6eac90641a1134f9559a7deec35d41\",\"owner_epoch\":272,\"generation\":272}"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "3a4da6f863b133b62d6eac90641a1134f9559a7deec35d41",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "visible_reply": [
+    {
+      "id": "msg-1791576350435-0",
+      "content": "本轮新任务。附件尾部有效订单：竹剑 `BAMBOO-7263`（单价 264，数量 3）；玉佩 `JADE-5937`（单价 255，数量 4）。调用一次 `computer_use_perform`。本轮任务**未执行**，如实报告：\n\n**终止原因**：`computer_use_perform` 返回终态 `blocked`，错误码 `native_browser_host_unavailable`——\"内置浏览器桌面宿主尚未连接\"。错误标记为 `retryable: false`，`retry_owner: user`（需用户侧恢复宿主连接，不属于我方可重试范围）。\n\n**执行事实**：\n- `attempts: 0`，`steps_completed: 0`——没有任何浏览器动作被提交或投递。\n- 阶段停在 `observation`，未获得任何页面观察。\n\n**附件解析已完成**（仅作记录，未用于填写）：\n- `bamboo-order-utf8.txt`（UTF-8）：竹剑，订单码 `BAMBOO-7263`，单价 264，数量 3。\n- `jade-order-utf16be.txt`（UTF-16BE 带 BOM）：玉佩，订单码 `JADE-5937`，单价 255，数量 4。\n\n**未做的事**：未调用 DSH 计算器（CU 未成功，不猜数字）；未重试 `perform`；未使用任何其它工具。需要恢复内置浏览器桌面宿主连接后再重新发起任务。",
+      "kind": "assistant-reply"
+    }
+  ]
+}

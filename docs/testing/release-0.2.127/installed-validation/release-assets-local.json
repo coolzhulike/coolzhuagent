@@ -1,0 +1,32 @@
+[
+  {
+    "name": "CoolzhuAgent-0.2.127.msi",
+    "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\dist\\CoolzhuAgent-0.2.127.msi",
+    "size": 285781512,
+    "sha256": "ca50f465394f568ad548d63e957142a330448ffe250f1b7916ba8d49954a58a0"
+  },
+  {
+    "name": "CoolzhuAgent-0.2.127-installer-report.json",
+    "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\dist\\CoolzhuAgent-0.2.127-installer-report.json",
+    "size": 4885,
+    "sha256": "5278062df267a724fafd2a9f98050a0d97c18bf5ed6eb8412572185d2716e5ac"
+  },
+  {
+    "name": "CoolzhuAgent-0.2.127-package-safety.json",
+    "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\dist\\CoolzhuAgent-0.2.127-package-safety.json",
+    "size": 250,
+    "sha256": "92f5572aca4e445cc3885bbce8fd9331a4d982f95cb753a5caf09d71cf6ab5f1"
+  },
+  {
+    "name": "coolzhuagent-0.2.127.files.cdx.json",
+    "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-10-release-127\\coolzhuagent-0.2.127.files.cdx.json",
+    "size": 1919770,
+    "sha256": "13da745056b9cc42cd04a08ba2fe43bb6214ebda48a0ec6d2a9cb0701817b8fd"
+  },
+  {
+    "name": "CoolzhuAgent-0.2.127.sha256",
+    "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-10-release-127\\CoolzhuAgent-0.2.127.sha256",
+    "size": 413,
+    "sha256": "47a9e4f8cccd7a18a9991c87520214ac58fe53736b0a43a09cba78975a972f1f"
+  }
+]

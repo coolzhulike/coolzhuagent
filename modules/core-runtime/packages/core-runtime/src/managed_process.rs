@@ -74,6 +74,25 @@ pub struct ManagedOutput {
     pub interruption: Option<Interruption>,
 }
 
+/// 子进程已经启动，但未能完整回收结果；不能解释为未执行或正常协议结果。
+#[derive(Debug)]
+struct StartedProcessError(io::Error);
+
+impl std::fmt::Display for StartedProcessError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "进程已启动，执行或输出回收失败：{}", self.0)
+    }
+}
+
+impl std::error::Error for StartedProcessError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> { Some(&self.0) }
+}
+
+#[must_use]
+pub fn process_started_before_error(error: &io::Error) -> bool {
+    error.get_ref().is_some_and(|inner| inner.is::<StartedProcessError>())
+}
+
 struct OwnedChild {
     child: Child,
     #[cfg(windows)]
@@ -124,10 +143,28 @@ impl ProtocolChild {
     pub fn stop(&mut self) -> io::Result<std::process::ExitStatus> { self.owned.stop() }
 }
 
-fn read_pipe(mut pipe: impl Read) -> io::Result<Vec<u8>> {
+/// 单根同步结果管道的硬上限；超限是执行失败，不返回可被当作完整结果的前缀。
+pub const MAX_CAPTURE_BYTES_PER_PIPE: usize = 8 * 1024 * 1024;
+
+fn read_pipe(mut pipe: impl Read, failed: Arc<AtomicBool>) -> io::Result<Vec<u8>> {
     let mut bytes = Vec::new();
-    pipe.read_to_end(&mut bytes)?;
-    Ok(bytes)
+    let result = (|| {
+        let mut chunk = [0_u8; 8192];
+        loop {
+            let count = match pipe.read(&mut chunk) {
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                result => result?,
+            };
+            if count == 0 { return Ok(bytes); }
+            if count > MAX_CAPTURE_BYTES_PER_PIPE - bytes.len() {
+                return Err(io::Error::new(io::ErrorKind::InvalidData,
+                    format!("同步进程输出超限：单管道上限 {MAX_CAPTURE_BYTES_PER_PIPE} 字节，未取得完整结果")));
+            }
+            bytes.extend_from_slice(&chunk[..count]);
+        }
+    })();
+    if result.is_err() { failed.store(true, Ordering::Release); }
+    result
 }
 
 /// Windows 命令在执行首条指令前进入 Job；超时、取消或宿主退出均关闭整个子树。
@@ -150,6 +187,7 @@ pub fn output_with_input(command: &mut Command, timeout: Option<Duration>, input
     #[cfg(not(windows))]
     let child = command.spawn()?;
     let mut owned = OwnedChild { child, #[cfg(windows)] job: Some(job) };
+    let result = (|| {
     let stdin_writer = input.map(|bytes| {
         let mut stdin = owned.child.stdin.take().expect("stdin 配置为管道");
         std::thread::spawn(move || stdin.write_all(&bytes))
@@ -157,27 +195,51 @@ pub fn output_with_input(command: &mut Command, timeout: Option<Duration>, input
     // 必须在等待进程退出前同时读取两个 pipe，否则较大输出会阻塞子进程。
     let stdout = owned.child.stdout.take().expect("stdout 配置为管道");
     let stderr = owned.child.stderr.take().expect("stderr 配置为管道");
-    let stdout_reader = std::thread::spawn(move || read_pipe(stdout));
-    let stderr_reader = std::thread::spawn(move || read_pipe(stderr));
-    let (status, interruption) = loop {
+    let capture_failed = Arc::new(AtomicBool::new(false));
+    let stdout_failed = capture_failed.clone();
+    let stderr_failed = capture_failed.clone();
+    let stdout_reader = std::thread::spawn(move || read_pipe(stdout, stdout_failed));
+    let stderr_reader = std::thread::spawn(move || read_pipe(stderr, stderr_failed));
+    let wait_result: io::Result<_> = (|| { loop {
+        if capture_failed.load(Ordering::Acquire) {
+            break Ok((owned.stop()?, None));
+        }
         if let Some(status) = owned.child.try_wait()? {
             // 主进程结束后仍关闭所属子树，使继承了 pipe 的子进程不能拖住读线程。
             let _ = owned.stop()?;
-            break (status, None);
+            break Ok((status, None));
         }
         if let Some(reason) = control.interruption() {
-            break (owned.stop()?, Some(reason));
+            break Ok((owned.stop()?, Some(reason)));
         }
         std::thread::sleep(Duration::from_millis(10));
-    };
-    let stdout = stdout_reader.join().map_err(|_| io::Error::other("stdout 读取线程异常"))??;
-    let stderr = stderr_reader.join().map_err(|_| io::Error::other("stderr 读取线程异常"))??;
-    if let Some(writer) = stdin_writer {
-        let write_result = writer.join().map_err(|_| io::Error::other("stdin 写入线程异常"))?;
+    } })();
+    if wait_result.is_err() {
+        // 等待失败也要先关闭所属子树，再回收所有管道线程。
+        let _ = owned.stop();
+    }
+    let read_result = join_output_readers(stdout_reader, stderr_reader);
+    let write_result = stdin_writer.map(|writer| writer.join()
+        .map_err(|_| io::Error::other("stdin 写入线程异常")).and_then(|result| result));
+    // 全部 join 完成后才传播错误，不能让另一根管道的采集线程脱离本次执行。
+    let (status, interruption) = wait_result?;
+    let (stdout, stderr) = read_result?;
+    if let Some(write_result) = write_result {
         // 受控中止会关闭 pipe；预期 BrokenPipe 不得抹掉已确认的取消/超时事实。
         if interruption.is_none() { write_result?; }
     }
     Ok(ManagedOutput { output: Output { status, stdout, stderr }, interruption })
+    })();
+    result.map_err(|error: io::Error| io::Error::new(error.kind(), StartedProcessError(error)))
+}
+
+fn join_output_readers(
+    stdout: std::thread::JoinHandle<io::Result<Vec<u8>>>,
+    stderr: std::thread::JoinHandle<io::Result<Vec<u8>>>,
+) -> io::Result<(Vec<u8>, Vec<u8>)> {
+    let stdout = stdout.join().map_err(|_| io::Error::other("stdout 读取线程异常"));
+    let stderr = stderr.join().map_err(|_| io::Error::other("stderr 读取线程异常"));
+    Ok((stdout??, stderr??))
 }
 
 /// 工具模块不能把中文控制台输出直接按 UTF-8 有损解码。
@@ -241,6 +303,68 @@ mod tests {
         assert!(actual.output.status.success());
         assert_eq!(actual.output.stdout.len(), 200_000);
         assert_eq!(actual.output.stderr.len(), 200_000);
+    }
+
+    #[test]
+    fn capture_limit_preserves_exact_boundary_and_rejects_excess() {
+        let flag = Arc::new(AtomicBool::new(false));
+        let bytes = vec![b'a'; MAX_CAPTURE_BYTES_PER_PIPE];
+        assert_eq!(read_pipe(std::io::Cursor::new(bytes.clone()), flag.clone()).unwrap(), bytes);
+        assert!(!flag.load(Ordering::Acquire));
+        let error = read_pipe(std::io::Cursor::new(vec![b'b'; MAX_CAPTURE_BYTES_PER_PIPE + 1]), flag.clone()).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+        assert!(flag.load(Ordering::Acquire));
+    }
+
+    #[test]
+    fn excessive_output_stops_both_stdout_and_stderr_producers() {
+        for stream in ["Out", "Error"] {
+            let directory = fixture("output-limit");
+            let late = directory.join("late.txt");
+            let script = format!("[Console]::{stream}.Write(('x' * {})); Start-Sleep -Seconds 4; Set-Content -LiteralPath {} late",
+                MAX_CAPTURE_BYTES_PER_PIPE + 8192, quoted(&late));
+            let started = Instant::now();
+            let error = output(&mut powershell(&script), Some(Duration::from_secs(15))).err().unwrap();
+            assert!(process_started_before_error(&error));
+            assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+            assert!(error.to_string().contains("输出超限"));
+            assert!(started.elapsed() < Duration::from_secs(4), "不能等整个命令自然结束才发现超限");
+            std::thread::sleep(Duration::from_secs(4));
+            assert!(!late.exists(), "超限后命令仍继续产生副作用");
+        }
+    }
+
+    #[test]
+    fn reader_failure_still_joins_the_other_pipe() {
+        for panic_reader in [false, true] {
+            let completed = Arc::new(AtomicBool::new(false));
+            let observed = completed.clone();
+            let stdout = std::thread::spawn(move || {
+                if panic_reader { panic!("模拟采集线程异常"); }
+                Err(io::Error::other("模拟 stdout 读取失败"))
+            });
+            let stderr = std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_millis(50));
+                observed.store(true, Ordering::Release);
+                Ok(vec![b'b'])
+            });
+            assert!(join_output_readers(stdout, stderr).is_err());
+            assert!(completed.load(Ordering::Acquire), "返回错误前必须收完另一根管道线程");
+        }
+    }
+
+    #[test]
+    fn failed_stdin_delivery_distinguishes_started_process_from_spawn_failure() {
+        let mut command = Command::new("cmd.exe");
+        command.args(["/C", "exit 0"]);
+        let error = output_with_input(&mut command, Some(Duration::from_secs(10)),
+            Some(vec![b'x'; 8 * 1024 * 1024])).err().expect("子进程未读入完整请求就退出，必须返回错误");
+        assert!(process_started_before_error(&error));
+        assert!(error.to_string().contains("进程已启动"));
+        let directory = fixture("missing-executable");
+        let mut missing = Command::new(directory.join("absent.exe"));
+        let not_started = output(&mut missing, Some(Duration::from_secs(10))).err().unwrap();
+        assert!(!process_started_before_error(&not_started));
     }
 
     #[test]

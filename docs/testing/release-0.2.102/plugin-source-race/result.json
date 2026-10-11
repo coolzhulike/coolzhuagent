@@ -1,0 +1,77 @@
+{
+  "version": "0.2.102",
+  "run": {
+    "id": "run-chat-c493afd87fbf7b8cccdf4b488a723ddc0e89744e4b9be58d",
+    "state": "completed",
+    "legacy_turn_id": "chat-turn-1791503481775-0"
+  },
+  "attempts": [
+    {
+      "attempt_id": "666e7d5e98ff9dbeb7a1a48cbd491a5d33b2df0e2fd120b4",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [],
+  "runtime_events": [
+    {
+      "event_type": "run.accepted",
+      "payload_json": "{\"kind\":\"chat_turn\",\"legacy_turn_id\":\"chat-turn-1791503481775-0\"}",
+      "created_at": 1791503481777
+    },
+    {
+      "event_type": "run.started",
+      "payload_json": "{\"previous_state\":\"accepted\"}",
+      "created_at": 1791503481987
+    },
+    {
+      "event_type": "tool.dispatch_rejected",
+      "payload_json": "{\"attempt_id\":\"666e7d5e98ff9dbeb7a1a48cbd491a5d33b2df0e2fd120b4\",\"executed\":false,\"reason_code\":\"tool_not_live\",\"request_digest\":\"6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b\",\"stage\":\"before_dispatch\",\"tool_name\":\"dsh__1ef9be67fd4ddb42d93d68c084b38983\"}",
+      "created_at": 1791503497511
+    },
+    {
+      "event_type": "run.completed",
+      "payload_json": "{\"previous_state\":\"running\",\"requested_status\":\"completed\"}",
+      "created_at": 1791503508504
+    }
+  ],
+  "visible_reply": {
+    "id": "msg-1791503482091-0",
+    "kind": "assistant-reply",
+    "content": "竹简回执\n表达式：net_fetch http://127.0.0.1:54607/source-race-20261008（allowPrivate=true，timeoutMs=60000，maxBytes=1024）\n宿主结果：`宿主工具未完成：ACP 工具已被当前会话或房间撤销，未执行。`\n\n如实报告：\n\n- 本轮 net_fetch 调用被**明确拒绝、未执行**——验收端在本轮受理后改动了插件固定源码（无语义注释），旧启用世代资格按预期被隔离撤销；无派发、无响应体\n- 工具描述符虽在本轮回执列表中可见，但实际调用被拒绝——旧快照资格不追溯有效\n- 拒绝即实验预期；不假报抓取成功。未重试、未补发、未调用其它工具、未修改文件、未新建云会话。收到拒绝后立即结束本轮。",
+    "created_at": 1791503508417
+  },
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "after": {
+    "attempts": 941,
+    "messages": 1180
+  },
+  "observation": {
+    "run_id": "run-chat-c493afd87fbf7b8cccdf4b488a723ddc0e89744e4b9be58d",
+    "run_state_at_change": "running",
+    "attempt_id": "666e7d5e98ff9dbeb7a1a48cbd491a5d33b2df0e2fd120b4",
+    "attempt_state_at_change": "submitted",
+    "mutation_begin_ms": 1791503483571.3247,
+    "original_sha256": "6fea33400d3e1c1b3f2d2e38a16e784872022862fa6cd025af3ca04aaee83bdd",
+    "changed_sha256": "2d4ad1e40f140ffadaa2adeb2bf2fd5d821f2981f92dade5fe4930721d75adca",
+    "mutation_end_ms": 1791503483571.6875,
+    "terminal_run_state": "completed",
+    "terminal_attempt_state": "terminal",
+    "process_drained": 1,
+    "restore_ms": 1791503508672.8896,
+    "restored_sha256": "6fea33400d3e1c1b3f2d2e38a16e784872022862fa6cd025af3ca04aaee83bdd"
+  }
+}

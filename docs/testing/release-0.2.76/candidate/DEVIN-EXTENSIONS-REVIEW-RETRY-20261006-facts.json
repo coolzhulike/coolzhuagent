@@ -1,0 +1,47 @@
+{
+  "prefix": "DEVIN-EXTENSIONS-REVIEW-RETRY-20261006",
+  "run_id": "run-chat-5c841f14b914fba4614839edfe0929a8c60cbc4e871b18d8",
+  "room": "room-1791125819661",
+  "message_id": "msg-1791223970229-user",
+  "targets": [
+    {
+      "agent_ids": [
+        "session-1791122188340"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 90,
+      "prompt_bytes": 2851
+    }
+  ],
+  "outputs": [],
+  "acp": [
+    {
+      "state": "unknown",
+      "protocol_stop": null,
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"claude-opus-5-5-high\",\"effective\":\"claude-opus-5-5-high\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [],
+  "reply": "",
+  "bindings": [
+    {
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "fair-amaryllis"
+    }
+  ],
+  "run": {
+    "id": "run-chat-5c841f14b914fba4614839edfe0929a8c60cbc4e871b18d8",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791125819661",
+    "stop_reason": null
+  },
+  "tool_events": [],
+  "audit": []
+}

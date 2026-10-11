@@ -61,8 +61,8 @@ window.CoolzhuWorkspacePanels = (() => {
       const select = element("button", tab.ref.label || tab.ref.locator); select.type = "button"; select.className = "workspace-preview-tab-select";
       select.title = tab.ref.locator; select.setAttribute("role", "tab"); select.setAttribute("aria-selected", String(tab.id === selectedTab));
       select.addEventListener("click", () => void activateTab(tab.id));
-      const close = element("button", "×"); close.type = "button"; close.className = "workspace-preview-tab-close"; close.setAttribute("aria-label", `关闭 ${tab.ref.label}`);
-      close.title = `关闭 ${tab.ref.label}`;
+      const close = element("button"); close.type = "button"; close.className = "workspace-preview-tab-close";
+      setWuxiaIconOnly(close, "stop", `关闭 ${tab.ref.label}`);
       close.addEventListener("click", () => closeTab(tab.id)); item.append(select, close); bar.append(item);
     }
   }
@@ -103,9 +103,16 @@ window.CoolzhuWorkspacePanels = (() => {
   }
   function browserLocation(url) {
     if (api.active() !== "browser" || !/^https?:/i.test(url)) return;
-    const tab = tabs.find(item => item.id === selectedTab); if (!tab || tab.ref.kind !== "web") return;
-    const ref = window.CoolzhuContentPreview?.reference(url, tab.ref.label); if (!ref || ref.file) return;
-    tab.ref = {...tab.ref,locator:ref.locator,kind:"web"};
+    const ref = window.CoolzhuContentPreview?.reference(url, url); if (!ref || ref.file) return;
+    let tab = tabs.find(item => item.id === selectedTab);
+    // 地址栏导航也要拥有网页标签；保留先前文件标签及其消息来源。
+    if (!tab || tab.ref.kind !== "web") {
+      const id = tabKey(ref);
+      tab = tabs.find(item => item.id === id);
+      if (!tab) { tab = {id,ref,authorized:true}; tabs.push(tab); }
+    }
+    // 网页标签跟随已接纳的实际地址；最初引用的聊天消息仍由来源索引保留。
+    tab.ref = {...tab.ref,locator:ref.locator,label:ref.locator,kind:"web"};
     const next = tabKey(tab.ref); tabs = tabs.filter(item => item === tab || item.id !== next); tab.id = next; selectedTab = next;
     saveTabs(); renderTabs();
   }
@@ -210,7 +217,7 @@ window.CoolzhuWorkspacePanels = (() => {
     if (target.tagName === "VIDEO") target.pause();
     event.preventDefault(); event.stopPropagation(); void showReference(ref);
   }
-  const traceStatus = value => ({completed:"已完成",succeeded:"已完成",running:"运行中",accepted:"已接纳",failed:"失败",interrupted:"已中止",cancelled:"已取消",requested:"待执行","not-executed":"未执行",unknown:"状态未知",remote_unknown:"远端状态未知",http_error:"请求失败"})[value] || value || "未知";
+  const traceStatus = value => ({completed:"已完成",succeeded:"已完成",running:"运行中",accepted:"已接纳",failed:"失败",interrupted:"已中止",cancelled:"已取消",requested:"待执行",prepared:"待派发",dispatched:"已派发",not_sent:"未发送",refusal:"模型拒绝",max_tokens:"达到输出上限",max_turn_requests:"达到请求上限","not-executed":"未执行",unknown:"状态未知",remote_unknown:"远端状态未知",http_error:"请求失败"})[value] || value || "未知";
   async function loadArchive(append, signal, key) {
     const host = qs("chat-trace-archive"); if (!host) return;
     const scope = api.scope(); const query = new URLSearchParams({limit:"100"}); if (append && archiveBefore) query.set("before",archiveBefore);

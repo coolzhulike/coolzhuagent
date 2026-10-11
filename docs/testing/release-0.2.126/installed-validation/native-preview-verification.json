@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "stage": "Program Files正式126原生GUI",
+  "method": "computer-use @oai/sky",
+  "original_screenshots": true,
+  "file": "sbom-0.2.126-files.cdx.json",
+  "visible_size": "1.8 MB",
+  "readonly_first_screen": true,
+  "normal_project_file_entry": true,
+  "normal_search_and_enter": true,
+  "query": ":19775",
+  "visible_tail_range": [
+    19375,
+    19775
+  ],
+  "total_lines": 19775,
+  "screenshot_size": [
+    1443,
+    897
+  ],
+  "long_single_line_gui_claimed": false
+}

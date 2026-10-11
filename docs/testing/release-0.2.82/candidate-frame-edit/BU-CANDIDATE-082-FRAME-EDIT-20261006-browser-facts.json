@@ -1,0 +1,199 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791254904588-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-082-FRAME-EDIT-20261006：继续原SWE-2远端上下文，仅执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数为{\"objective\":\"在当前同源iframe子文档内单击Frame输入框，输入竹林-82，再按Enter提交子表单一次\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:52137/edit.html\"},\"success_criteria\":[\"最新来源页面子输入为竹林-82，子提交次数1，父输入为空\"],\"constraints\":[\"只操作当前右栏原生浏览器；最多一次点击Frame输入框、一次text输入竹林-82、一次enter键；必须使用每一步本轮新鲜的子文档控件引用，禁止父页面输入框、禁止单击提交子表单按钮、禁止切换子页面、禁止移走子页面焦点；不导航、不滚动、不用桌面、其它工具或Devin原生工具；不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务\"],\"max_actions\":3}。若running只wait同一job_id到终态，按真实宿主文本投递、按键释放回执和最新页面如实报告，不得代执行或推断成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791254904710
+  },
+  "context_and_tools": {
+    "prefix": "BU-CANDIDATE-082-FRAME-EDIT-20261006",
+    "run_id": "run-chat-2328950300caa6a3307ef6499e1f2ebdcc41fad4a4ed6b36",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791254904588-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 122,
+        "prompt_bytes": 3539
+      }
+    ],
+    "outputs": [],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-0c77499066d7a244ca5de7c33998f18ee864e312ab3077f0606f8671b4592af5",
+        "run_id": "run-chat-2328950300caa6a3307ef6499e1f2ebdcc41fad4a4ed6b36",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "dec328cbdc57c6cb",
+        "status": "failed",
+        "created_at_unix_ms": 1791254923494,
+        "updated_at_unix_ms": 1791254936875,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-2328950300caa6a3307ef6499e1f2ebdcc41fad4a4ed6b36\",\"turn_id\":\"chat-turn-1791254904589-0\",\"attempt_id\":\"b77a38394989cf76ef868126ddc739b15a8ff550d129a206\",\"owner_epoch\":62,\"generation\":62}"
+      }
+    ],
+    "reply": "",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-2328950300caa6a3307ef6499e1f2ebdcc41fad4a4ed6b36",
+      "state": "failed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791254904589-0-tool-0c77499066d7a244ca5de7c33998f18ee864e312ab3077f0606f8671b4592af5",
+      "provider_tool_call_id": "tool-0c77499066d7a244ca5de7c33998f18ee864e312ab3077f0606f8671b4592af5",
+      "turn_id": "chat-turn-1791254904589-0",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791254904589-0\u001fbrowser\u001f在当前同源iframe子文档内单击frame输入框，输入竹林-82，再按enter提交子表单一次\u001f||http://127.0.0.1:52137/edit.html|\u001f最新来源页面子输入为竹林-82，子提交次数1，父输入为空\u001f只操作当前右栏原生浏览器；最多一次点击frame输入框、一次text输入竹林-82、一次enter键；必须使用每一步本轮新鲜的子文档控件引用，禁止父页面输入框、禁止单击提交子表单按钮、禁止切换子页面、禁止移走子页面焦点；不导航、不滚动、不用桌面、其它工具或devin原生工具；不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏原生浏览器；最多一次点击Frame输入框、一次text输入竹林-82、一次enter键；必须使用每一步本轮新鲜的子文档控件引用，禁止父页面输入框、禁止单击提交子表单按钮、禁止切换子页面、禁止移走子页面焦点；不导航、不滚动、不用桌面、其它工具或Devin原生工具；不支持、失败、取消或输入未知立即停止，不重试、不补发、不执行历史任务"
+        ],
+        "max_actions": 3,
+        "objective": "在当前同源iframe子文档内单击Frame输入框，输入竹林-82，再按Enter提交子表单一次",
+        "success_criteria": [
+          "最新来源页面子输入为竹林-82，子提交次数1，父输入为空"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:52137/edit.html"
+        }
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 7,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791255523651,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791254904589-0-tool-0c77499066d7a244ca5de7c33998f18ee864e312ab3077f0606f8671b4592af5",
+        "provider_tool_call_id": "tool-0c77499066d7a244ca5de7c33998f18ee864e312ab3077f0606f8671b4592af5",
+        "status": "blocked",
+        "stage": "verification",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "planner stopped before all success criteria were verified",
+        "error": {
+          "code": "verification_failed",
+          "message": "planner stopped before all success criteria were verified",
+          "retryable": false,
+          "retry_owner": "model"
+        },
+        "attempts": 0,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:46b9bdc5880d7555f2d7c83791ea6a37",
+          "native-ax:1:0",
+          "native-observation:46b9bdc5880d7555f2d7c83791ea6a37"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 0,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791255804589
+            }
+          },
+          "cu_deadline_ms": 1791255523651,
+          "cu_deadline_established_at_ms": 1791254923651,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791254923651,
+      "updated_at_ms": 1791254936859,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [],
+      "actions": [],
+      "planner": [
+        {
+          "id": 450,
+          "call_id": "cu-session-1791131217833-chat-turn-1791254904589-0-tool-0c77499066d7a244ca5de7c33998f18ee864e312ab3077f0606f8671b4592af5",
+          "turn_id": "chat-turn-1791254904589-0",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"done\":true,\"observation_facts\":{\"candidate_count\":5,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":4,\"input_supported\":true,\"node_count\":35,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":1,\"truncated\":false},\"planner_stop_code\":\"target_not_found\",\"redacted_fields\":true}",
+          "error_code": null,
+          "started_at_ms": 1791254924514,
+          "completed_at_ms": 1791254936856
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:52137/events",
+  "web_events": [
+    {
+      "case": "EDIT-PARENT",
+      "type": "ready",
+      "at_ms": 1791254875856.2998,
+      "received_ms": 1791254875860.4333
+    },
+    {
+      "case": "EDIT-CHILD",
+      "type": "ready",
+      "at_ms": 1791254875898.7,
+      "received_ms": 1791254875910.5652
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "observed_ms": 1791503176629.5837,
+  "active_room_id": "room-1791131523339",
+  "marker": "INSTALLED102-BOUND-SCHEDULER-MATERIAL-20261008",
+  "task_id": "schedule-1791502908555-6b214e5c8c271753",
+  "task_status": "executed",
+  "last_error": null,
+  "source": {
+    "id": "msg-1791503027901-user",
+    "room_id": "room-1791131523339",
+    "created_at": 1791503072125
+  },
+  "source_count": 1,
+  "run": {
+    "id": "run-chat-0c599740cfb1780a42b803dc371c63308227b749cfc4ffeb",
+    "state": "completed"
+  },
+  "attempts": [
+    {
+      "attempt_id": "87a753709c1595ab61639765c049570a4e6a2c6fe2f60cd2",
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "calls": [
+    {
+      "tool_call_id": "tool-355257a67309ecaaf6a09f38ad92195eb484bb1a6adfa44e8a716af6f2e3e280",
+      "tool_name": "plugin__cli_anything_status",
+      "status": "completed"
+    },
+    {
+      "tool_call_id": "tool-50017c4e317d711076871b4c1ea2a161ef0a8cc2437bee444c4eeebd7d55ea7d",
+      "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+      "status": "completed"
+    }
+  ],
+  "visible_replies": [
+    {
+      "id": "msg-1791503072125-0",
+      "room_id": "room-1791131523339",
+      "kind": "assistant-reply",
+      "content": "**工具回执（各一次，未重试）**\n\n1. `plugin__cli_anything_status` `{\"command\":\"rust-analyzer\"}`：`status: ok`，`detectedCommand: \"rust-analyzer\"`，`available: true`（elapsed_ms 484，allow-auto）。\n2. `dsh__3596dc2e…` calculator `{\"expression\":\"2047*2027\"}`：`status: ok`（runtime-executed，audit executed=true，elapsed_ms 1244），**result = 4149269**。\n\n---\n\n## 源码审查（仅可证明事实；两份材料自述\"已正式安装\"，不据此宣称端到端验收）\n\n### 1. 显式结果房间删除后是否误投系统房间 —— **可证明不会**\n\n`validate_room` 对显式 `chat_room_id`：空串→BAD_REQUEST、不在 `state.chat_rooms`→NOT_FOUND、`task_kind==\"goal\"`→BAD_REQUEST；`prepare` 中 `Some(room_id)` 分支直接使用，**只在 `chat_room_id` 为 None（旧任务无绑定字段）时才 `ensure_scheduled_task_system_room()` 回退**。测试 `bound_delivery_uses_exact_scope_and_deleted_room_never_creates_fallback` 实证：清空 rooms 后 `prepare` 返回 NOT_FOUND，grant 不授权系统房间，不重建、不切换 `active_chat_room_id`。✓ 无误投路径。\n\n### 2. HTTP 200 + failed/interrupted/commit_pending 是否错误推进 —— **可证明不会**\n\n`require_completed`：`execution_failed` 或 `runtime.status != Completed`（含 None=缺终态）一律 `Err(409 CONFLICT)`，错误信息明确\"未按成功推进计划…不自动重试\"。测试逐态断言 Running/InterruptRequested/Interrupted/Failed/CommitPending/runtime=None/execution_failed=true 均拒绝。✓ 唯一注意点： Completed+`execution_failed=true` 也拒（测试覆盖），语义一致。\n\n### 3. 无 read_file 声明时大结果是否被节选丢失 —— **可证明已修复**\n\n`for_context` 的 `!can_read_original` 分支返回**完整 text + 说明头**（不含 `read_file(` 指针），测试断言 ends_with(原文) 且不含指针；`can_read_original=true` 才节选 6000 字符并附 `character_offset=6000` 续读指针，测试验证 `skip(5999)` 分段还原与 sha256 一致、损坏 blob 不被覆盖。✓\n\n### 4. 材料中函数名 —— 确认仅为源码文本\n\n材料中的 `computer_use_perform`、`click`、`read_file` 均为源码标识符/字符串，非动作请求；本轮未发起任何桌面/浏览器/文件操作。\n\n### 待实测边界（区分声明）\n\n- `deliver` 中 `scheduled_execution::run` + `api_chat_send` 的真实链路、grant 300s 生命周期、锁内复核后跨 await 的行为——源码可证明结构正确，实机投递未在本材料中证明。\n- blob 存储仍无 GC/引用图（沿用前轮边界）；非 ACP Provider 的 `can_read_spill` 默认分支上轮已标。\n- 定时器本轮实际投递到本房间是宿主事实（本消息即证据），但\"房间删除竞态恰好在锁内复核与发送之间\"窗口未实测。\n\n**结论**：四项审查点中 1/2/3 由源码+测试可证明正确，无阻断缺陷；第 4 项确认为纯文本。本次仅为定时房间绑定与材料审查，不外推 Browser 竞态或大结果端到端已通过。\n\n定时房间绑定与材料审查完成"
+    }
+  ],
+  "claims": [
+    {
+      "workspace_id": "ws-23f646a969206cb4",
+      "task_id": "schedule-1791502908555-6b214e5c8c271753",
+      "scheduled_for_ms": 1791502998534,
+      "fingerprint": "f1a4ed6c00ef4ebf6c2556d5ffede47af755a54bc0a97ed1f2a4953202f98ee5",
+      "state": "settled",
+      "started_at_ms": 1791503027886,
+      "outcome_json": "{\"id\":\"schedule-1791502908555-6b214e5c8c271753\",\"executed\":true,\"message\":\"\",\"goal_completed\":false,\"content_update\":null}"
+    }
+  ],
+  "counts": {
+    "attempts": 940,
+    "messages": 1178,
+    "active_runs": 0,
+    "bindings": [
+      [
+        "room-1791131523339",
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "room-1791131523339",
+        "internal",
+        null,
+        null
+      ]
+    ]
+  }
+}

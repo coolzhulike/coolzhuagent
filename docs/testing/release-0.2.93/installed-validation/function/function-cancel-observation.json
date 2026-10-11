@@ -1,0 +1,20 @@
+{
+  "prefix": "INSTALLED093-FUNCTION-CANCEL-20261007",
+  "run_id": "run-chat-06d129991f92357c155dca188a6a7c6123f00c0e0d7079a3",
+  "turn_id": "chat-turn-1791383136040-0",
+  "state_before": "running",
+  "entered": {
+    "event": "function_network_entered",
+    "utc": "2026-10-07T14:25:46.474771+00:00",
+    "monotonic": 671862.9518568,
+    "path": "/cancel-20261007"
+  },
+  "cancel_started_ms": 1791383146505,
+  "response": {
+    "turn_id": "chat-turn-1791383136040-0",
+    "status": "interrupt_requested",
+    "outcome": "interrupt_requested",
+    "idempotent": false
+  },
+  "cancel_returned_ms": 1791383146558
+}

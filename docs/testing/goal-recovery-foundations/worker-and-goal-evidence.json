@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "a055358",
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "sessions": [
+    87447,
+    56574
+  ],
+  "worker_http": {
+    "passed": 1,
+    "failed": 0
+  },
+  "goal_range": {
+    "passed": 157,
+    "failed": 0
+  },
+  "files": [
+    {
+      "file": "worker-http-build.txt",
+      "sha256": "510c86e98a7d3b556ce043cc11035aa12fde6bb1fecf4b6d84f8d264aa172848",
+      "bytes": 51581
+    },
+    {
+      "file": "worker-http-test.txt",
+      "sha256": "7e287661b6641fe9c51565ada0232b86a2c45898d652998bb9d44f98096490b5",
+      "bytes": 23112
+    },
+    {
+      "file": "goal-broad-test.txt",
+      "sha256": "997be243a4e269b5356aca50596082f45a0749491101607f6f7953b34f518bb2",
+      "bytes": 36100
+    }
+  ]
+}

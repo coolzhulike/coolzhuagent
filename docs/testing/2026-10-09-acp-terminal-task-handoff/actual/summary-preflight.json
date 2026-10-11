@@ -1,0 +1,14 @@
+{
+  "message_count": 516,
+  "summary_sha256": "78757590338537deb6f24d6368f1dc326e5ee2ef1dde5af8d01f9e81ee1fedd3",
+  "user_samples": 7,
+  "empty_boundary_samples": 0,
+  "token_budget": {
+    "system": 476,
+    "memory": 0,
+    "history": 21683,
+    "user": 56,
+    "total": 22215,
+    "budget": 30976
+  }
+}

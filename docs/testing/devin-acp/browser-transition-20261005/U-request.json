@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "CU-PAINT-20261005-U：新独立两步Paint基线回归，不是重试旧人物。仅调用一次computer_use_perform，正式六项：objective=根据本轮新鲜原图，在白色画布底部尚无笔迹的留白里本轮新增两个小闭合菱形，两个图形分开，各用一笔五点闭合鼠标拖动，不能借任何旧线条；surface=desktop；target={application:mspaint.exe}；success_criteria=[本轮新增第一个小闭合菱形清楚可见并完全在白画布留白内,本轮最新原图同时可见两个新增且分离的小闭合菱形不能借任何旧图]；constraints=[只用当前Paint两次drag，不用代码形状工具导入粘贴其它MCP，不擦除不保存不改画布，不换模型，新鲜原图自主定位不借历史坐标，失败取消或未知立即停止不补发不重试，释放image_changed不是图形完成]；max_actions=2。全图像素先通过image.screen_rect转换成桌面物理坐标，再减所选目标rect原点除目标宽高得相对points；不得把全图比例直接用于UIA较小画布。宿主验收图像按标签run_start/previous_step/current比较；本轮新增要跟任务起始图对比，第一步新增在第二步仍属于本轮新增，progress则仅比较上一步。主会话不提供落点、坐标或模型结果。running只wait原job_id至终态，不重复perform，回复在聊天室说明每笔真实回执和每项实际原图事实。这是两步基线回归，不称完整海绵宝宝通过。",
+  "selected_message_ids": [],
+  "attachments": []
+}

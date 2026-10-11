@@ -1,0 +1,45 @@
+{
+  "source_preparation": {
+    "tool_chunk": "a8eae5",
+    "actual_exit_code": null,
+    "note": "服务继续运行，未当作编译或退出成功"
+  },
+  "model_send": {
+    "tool_chunk": "394def",
+    "actual_exit_code": 0,
+    "model": "swe-2-medium",
+    "remote_session": "island-kayak",
+    "new_remote_sessions": 0
+  },
+  "cancel_watcher": {
+    "tool_chunk": "0fb672",
+    "actual_exit_code": 0,
+    "normal_stop_http": 200
+  },
+  "initial_validator": {
+    "tool_chunk": "b54919",
+    "actual_exit_code": 1,
+    "reason": "只允许waiting_cancelled/reply_cancelled，遗漏父停止CAS后reply_parent_changed；原脚本保留，没有完整原stderr文件"
+  },
+  "corrected_validator": {
+    "tool_chunk": "03c24c",
+    "actual_exit_code": 0,
+    "reason": "依据生产路径接受同请求真实取消码的reply_parent_changed；仍要求停止发生在请求后、无补发、非成功终态及完整清理"
+  },
+  "own_test_server": {
+    "tool_chunk": "f8a6b8",
+    "actual_exit_code": 0,
+    "graceful_shutdown": true
+  },
+  "native_screenshots": {
+    "method": "computer-use @oai/sky",
+    "original_bytes": true,
+    "size": [
+      1443,
+      897
+    ],
+    "terminal": "已中止 · 30.9秒；模型请求已取消"
+  },
+  "code_changes": 0,
+  "subagents": 0
+}

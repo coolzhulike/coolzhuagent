@@ -1,0 +1,18 @@
+[
+  {
+    "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+    "sha256": "aeddea1614763aac91c703aaff53b78f716852b16686b3d1c37436577d393b4e"
+  },
+  {
+    "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+    "sha256": "6a2e0f706ca54ee7f48312b6ab5c0b442874afcd559d50e9bdacc85b6121bb2a"
+  },
+  {
+    "file": "modules/gui-web/packages/web-console/src/native_browser_adapter.rs",
+    "sha256": "1f34c6970ffae886afa38000175db8e9d261fb091270dad911be5d42b1d06d70"
+  },
+  {
+    "file": "modules/computer-use/packages/native-browser-protocol/src/lib.rs",
+    "sha256": "777c457747a92a2f89ca21ec495afdda012261333940230594353fcfaf44170f"
+  }
+]

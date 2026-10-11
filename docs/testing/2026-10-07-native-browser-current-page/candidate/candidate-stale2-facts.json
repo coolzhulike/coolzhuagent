@@ -1,0 +1,168 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791363089108-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-CURRENT-PAGE-STALE2-20261007：只在当前右栏内置原生浏览器调用一次computer_use_perform，surface=\"browser\"，max_actions=1，整个target字段省略，不填URL。使用本次观察的“增加次数”按钮新鲜dom_ref点击一次，成功条件为当前页面“可信点击次数：1”。不能导航、刷新、滚动、输入或调用其它工具；若面板或文档在规划后已变化，必须停止，不补发、不换新引用继续执行。按实际投递及当前页面节点报告结果。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791363089206
+  },
+  "run": {
+    "id": "run-chat-a24723642c03799eba54ab2c796d945b1b5c9ca8cfb5eef4",
+    "state": "failed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "reply": "",
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791363089109-4-tool-280ec42d9624ea3613a001fe25881cef1686f219ef2656fa22ac1ce0b467983c",
+      "provider_tool_call_id": "tool-280ec42d9624ea3613a001fe25881cef1686f219ef2656fa22ac1ce0b467983c",
+      "turn_id": "chat-turn-1791363089109-4",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791363089109-4\u001fbrowser\u001f点击当前右栏已加载原生网页中的“增加次数”按钮一次\u001f\u001f当前页面显示“可信点击次数：1”\u001f只在当前右栏内置原生浏览器执行，不调用其它工具|省略target字段；使用本次观察的“增加次数”按钮新鲜dom_ref点击一次，不导航、不刷新、不滚动、不输入|若面板或文档在规划后已变化，必须停止，不补发、不换新引用继续执行；按实际投递及当前页面节点报告结果",
+      "objective_json": {
+        "constraints": [
+          "只在当前右栏内置原生浏览器执行，不调用其它工具",
+          "省略target字段；使用本次观察的“增加次数”按钮新鲜dom_ref点击一次，不导航、不刷新、不滚动、不输入",
+          "若面板或文档在规划后已变化，必须停止，不补发、不换新引用继续执行；按实际投递及当前页面节点报告结果"
+        ],
+        "max_actions": 1,
+        "objective": "点击当前右栏已加载原生网页中的“增加次数”按钮一次",
+        "success_criteria": [
+          "当前页面显示“可信点击次数：1”"
+        ],
+        "surface": "browser"
+      },
+      "surface": "browser",
+      "state": "blocked",
+      "state_version": 9,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 0,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791363700099,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791363089109-4-tool-280ec42d9624ea3613a001fe25881cef1686f219ef2656fa22ac1ce0b467983c",
+        "provider_tool_call_id": "tool-280ec42d9624ea3613a001fe25881cef1686f219ef2656fa22ac1ce0b467983c",
+        "status": "blocked",
+        "stage": "execution",
+        "goal_achieved": false,
+        "surface": "browser",
+        "summary": "节点预检拒绝，未发送输入",
+        "error": {
+          "code": "native_browser_document_changed",
+          "message": "节点预检拒绝，未发送输入",
+          "retryable": false,
+          "retry_owner": "none",
+          "receipt": {
+            "action_id": "browser:dom-3a103f659801f8f722419f2c98efaf14:535d3337ec6e5bba",
+            "input_delivery": "not_sent",
+            "partial": false,
+            "effect": "not_observed",
+            "goal_verdict": "not_checked",
+            "input_release": "not_needed"
+          }
+        },
+        "attempts": 1,
+        "steps_completed": 0,
+        "evidence": [
+          "native-ax:1:1",
+          "native-observation:3ec27b8694c65c6350ce3d18b6bd1520",
+          "native-ax:1:1",
+          "native-observation:3ec27b8694c65c6350ce3d18b6bd1520"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791363989109
+            }
+          },
+          "cu_deadline_ms": 1791363700099,
+          "cu_deadline_established_at_ms": 1791363100099,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791363100099,
+      "updated_at_ms": 1791363107858,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791363089109-4-tool-280ec42d9624ea3613a001fe25881cef1686f219ef2656fa22ac1ce0b467983c",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-3a103f659801f8f722419f2c98efaf14",
+          "action_fingerprint": "380f1c1bc25f677f",
+          "status": "failed",
+          "error_code": "native_browser_document_changed",
+          "before_evidence_ref": "[\"native-ax:1:1\",\"native-observation:3ec27b8694c65c6350ce3d18b6bd1520\"]",
+          "after_evidence_ref": null,
+          "visible_progress": 0,
+          "input_delivery": "not_sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": null,
+          "goal_verdict": null,
+          "input_release_status": "not_needed",
+          "started_at_ms": 1791363106589,
+          "completed_at_ms": 1791363107779,
+          "native_dispatch_state": null,
+          "native_ticket_id": null,
+          "native_binding_json": null
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791363089109-4-tool-280ec42d9624ea3613a001fe25881cef1686f219ef2656fa22ac1ce0b467983c",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-3a103f659801f8f722419f2c98efaf14\"}"
+        }
+      ]
+    }
+  ],
+  "trusted_page_events": [],
+  "attempts": [
+    {
+      "attempt_id": "6516b8683e5b848bce25cf50f3ee27c288fbc38a276fe656",
+      "lane": null,
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}",
+      "remote_session_id": "island-kayak"
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ]
+}

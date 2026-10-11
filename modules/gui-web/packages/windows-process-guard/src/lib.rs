@@ -34,6 +34,7 @@ use windows_sys::Win32::System::Threading::{
 };
 
 mod pipe;
+pub mod permission_input;
 mod local_control;
 mod async_process;
 mod conpty;
@@ -791,12 +792,22 @@ impl ChildProcessJob {
     /// 先以挂起状态创建，再纳入 Job，最后恢复初始线程；业务代码没有逃出 Job 的窗口。
     /// 本入口专供无窗口的受管命令，不能用于用户主动请求保持运行的后台程序。
     pub fn spawn_managed(command: &mut std::process::Command) -> io::Result<(Child, Self)> {
+        Self::spawn_managed_checked(command, |_| Ok(()))
+    }
+
+    /// 子进程仍挂起且已纳入Job时检查调用方资格；拒绝则回收，不恢复业务线程。
+    pub fn spawn_managed_checked(
+        command: &mut std::process::Command,
+        before_resume: impl FnOnce(&Child) -> io::Result<()>,
+    ) -> io::Result<(Child, Self)> {
         use std::os::windows::process::CommandExt;
         use windows_sys::Win32::System::Threading::{CREATE_NO_WINDOW, CREATE_SUSPENDED};
         let job = Self::new_kill_on_close()?;
         command.creation_flags(CREATE_NO_WINDOW | CREATE_SUSPENDED);
         let mut child = command.spawn()?;
-        if let Err(error) = job.assign(&child).and_then(|()| resume_initial_thread(child.id())) {
+        if let Err(error) = job.assign(&child)
+            .and_then(|()| before_resume(&child))
+            .and_then(|()| resume_initial_thread(child.id())) {
             let _ = child.kill();
             let _ = child.wait();
             return Err(error);
@@ -846,6 +857,44 @@ impl ChildProcessJob {
             Err(io::Error::last_os_error())
         } else {
             Ok(())
+        }
+    }
+
+    /// 查询受管子树的活跃进程数；根进程退出不等于所有后代已退出。
+    pub fn active_process_count(&self) -> io::Result<u32> {
+        use windows_sys::Win32::System::JobObjects::{JobObjectBasicAccountingInformation, QueryInformationJobObject, JOBOBJECT_BASIC_ACCOUNTING_INFORMATION};
+        let mut info = JOBOBJECT_BASIC_ACCOUNTING_INFORMATION::default();
+        let ok = unsafe { QueryInformationJobObject(self.handle as HANDLE, JobObjectBasicAccountingInformation,
+            std::ptr::addr_of_mut!(info).cast(), std::mem::size_of::<JOBOBJECT_BASIC_ACCOUNTING_INFORMATION>() as u32, std::ptr::null_mut()) };
+        if ok == 0 { return Err(io::Error::last_os_error()); }
+        Ok(info.ActiveProcesses)
+    }
+
+    /// 终止受管进程树并查询 Job 的活跃进程数。关闭句柄的意图不能当作排空回执。
+    /// 这是有界阻塞操作；异步宿主应放到 blocking worker 中执行。
+    pub fn terminate_and_wait(&self, timeout: Duration) -> io::Result<()> {
+        use windows_sys::Win32::System::JobObjects::{
+            JobObjectBasicAccountingInformation, QueryInformationJobObject, TerminateJobObject,
+            JOBOBJECT_BASIC_ACCOUNTING_INFORMATION,
+        };
+        if unsafe { TerminateJobObject(self.handle as HANDLE, 1) } == 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let deadline = std::time::Instant::now() + timeout;
+        loop {
+            let mut info = JOBOBJECT_BASIC_ACCOUNTING_INFORMATION::default();
+            let ok = unsafe { QueryInformationJobObject(
+                self.handle as HANDLE, JobObjectBasicAccountingInformation,
+                std::ptr::addr_of_mut!(info).cast(),
+                std::mem::size_of::<JOBOBJECT_BASIC_ACCOUNTING_INFORMATION>() as u32,
+                std::ptr::null_mut(),
+            ) };
+            if ok == 0 { return Err(io::Error::last_os_error()); }
+            if info.ActiveProcesses == 0 { return Ok(()); }
+            if std::time::Instant::now() >= deadline {
+                return Err(io::Error::new(io::ErrorKind::TimedOut, "受管进程树尚未确认排空"));
+            }
+            thread::sleep(Duration::from_millis(10));
         }
     }
 }
@@ -1766,6 +1815,33 @@ pub fn capture_live_process_identity(pid: u32) -> Result<ProcessIdentity, Proces
     }
 }
 
+/// 构建调用宿主租约：在同一句柄上核对创建时间并持续观察退出。
+pub struct ProcessLifetimeLease {
+    handle: KernelHandle,
+}
+
+impl ProcessLifetimeLease {
+    pub fn open(pid: u32, creation_time: u64) -> io::Result<Self> {
+        let handle = open_process_handle(pid, PROCESS_QUERY_LIMITED_INFORMATION | windows_sys::Win32::System::Threading::PROCESS_SYNCHRONIZE)
+            .map_err(io::Error::other)?;
+        let identity = identity_from_handle(handle.raw(), pid).map_err(io::Error::other)?;
+        if identity.creation_time_filetime() != creation_time {
+            return Err(io::Error::other("调用宿主创建时间不一致，拒绝启动构建"));
+        }
+        let lease = Self { handle };
+        lease.require_alive()?;
+        Ok(lease)
+    }
+
+    pub fn require_alive(&self) -> io::Result<()> {
+        match unsafe { WaitForSingleObject(self.handle.raw(), 0) } {
+            WAIT_TIMEOUT => Ok(()),
+            WAIT_OBJECT_0 => Err(io::Error::other("调用宿主已退出，拒绝构建成功")),
+            _ => Err(io::Error::last_os_error()),
+        }
+    }
+}
+
 /// 直接从 `Child` 的进程句柄取身份标记（推荐路径：没有 PID 复用窗口）。
 pub fn capture_child_process_identity(child: &Child) -> Result<ProcessIdentity, ProcessIdentityError> {
     // std 的 `Child` 在 spawn 之后即持有进程句柄，这里不复制也不关闭它。
@@ -1893,6 +1969,28 @@ pub fn terminate_owned_process(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn owner_exit_while_child_suspended_rejects_before_business_code() {
+        let directory = tempfile::tempdir().expect("创建测试目录");
+        let marker = directory.path().join("must-not-start");
+        let mut owner = spawn_sleeper("20");
+        let identity = capture_child_process_identity(&owner).expect("宿主身份");
+        let lease = ProcessLifetimeLease::open(owner.id(), identity.creation_time_filetime()).expect("存活宿主绑定");
+        let mut command = std::process::Command::new("powershell");
+        command.args(["-NoProfile", "-Command", &format!("[IO.File]::WriteAllText('{}','started')", marker.display().to_string().replace('\'', "''"))]);
+        let mut suspended_pid = 0;
+        let result = ChildProcessJob::spawn_managed_checked(&mut command, |child| {
+            suspended_pid = child.id();
+            owner.kill()?;
+            owner.wait()?;
+            lease.require_alive()
+        });
+        assert!(result.is_err(), "宿主退出必须拒绝恢复子进程");
+        assert!(suspended_pid > 0);
+        assert!(!marker.exists(), "拒绝之前子进程业务代码不得执行");
+        assert!(capture_live_process_identity(suspended_pid).is_err(), "拒绝后挂起子进程必须回收");
+    }
 
     #[test]
     fn input_lease_blocks_competing_owner_and_fences_released_epoch() {

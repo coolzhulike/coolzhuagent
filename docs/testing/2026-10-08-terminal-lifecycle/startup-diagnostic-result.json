@@ -1,0 +1,23 @@
+{
+  "cases": [
+    {
+      "label": "fresh_child_start",
+      "matched": false,
+      "output_lines": []
+    },
+    {
+      "label": "fresh_child_literal_unicode",
+      "matched": true,
+      "output_lines": [
+        "CHILDLITERAL-PTY097-6BB658F7 / 竹林𠮷😀"
+      ]
+    },
+    {
+      "label": "fresh_child_editor_absent",
+      "matched": true,
+      "output_lines": [
+        "PSREADLINE-COUNT-0"
+      ]
+    }
+  ]
+}

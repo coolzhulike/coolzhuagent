@@ -1,0 +1,20 @@
+{
+  "base_commit": "3172c5a815c9545ac15b3e2a1f3a0e738e0d649c",
+  "working_tree_candidate": true,
+  "final_binary_sha256": "b8fd5743fc914585855a2155fcc0999077ee84be4fd614c957b5d40df8d629a2",
+  "source_files": [
+    {
+      "path": "modules/gui-web/packages/web-console/src/main.rs",
+      "sha256": "a353c01638d5e92dee60a52a6c33dd31fdd578e9e0f4edcbe320b494a8c8a1d5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/session_model_config.rs",
+      "sha256": "049569977dc1edaeecdd8dd32b0336949a6532b2107c71cbb7a3393dc88a3512"
+    }
+  ],
+  "isolated_runtime_run_counts": {
+    "before112": 0,
+    "candidate": 0,
+    "candidate2": 0
+  }
+}

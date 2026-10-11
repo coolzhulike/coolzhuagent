@@ -1,0 +1,44 @@
+[
+  {
+    "event": "started",
+    "data": {
+      "turn_id": "chat-turn-1791490592088-0",
+      "chat_room_id": "room-1791131523339",
+      "run_id": "run-chat-8b5fe9afc07d12a65fd5a1f2e20ce149bbba05276bd13802"
+    }
+  },
+  {
+    "event": "message_done",
+    "data": {
+      "id": "msg-1791490592325-0",
+      "author": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+      "role": "assistant",
+      "target": "聊天",
+      "content": "竹简回执\n表达式：`read_file` path=`C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-08-frozen-expansion\\outside-owned.txt`，offset=0，limit=1\n\n宿主结果：`status: dry-run-only` —— `executed: false`，`reason: read-only-outside-workspace`；permission_gate 裁决 `require-approval`（required=read-only，workspace_relative=false），elapsed_ms 0。summary_text：\"接纳时的权限未允许该工具，未执行。\"\n\n如实报告：\n\n- 本轮 `read_file` 工具已被声明，但调用被权限门拒绝——目标路径在工作区之外，**接纳时仅有目录权限，本轮冻结授权不覆盖该工程外路径**\n- **未实际执行读取**，无文件内容、无 sha256；不猜内容\n- 测试端接纳后恢复的完全访问不追溯扩大本轮资格——如实按宿主回执记录为拒绝执行\n- 未重试、未读其它路径、未调用其它工具、未用 shell/CU、未新建云会话。工具拒绝后正常结束本轮。",
+      "kind": "assistant-reply",
+      "attachments": []
+    }
+  },
+  {
+    "event": "done",
+    "data": {
+      "turn_id": "chat-turn-1791490592088-0",
+      "run_id": "run-chat-8b5fe9afc07d12a65fd5a1f2e20ce149bbba05276bd13802",
+      "status": "completed",
+      "accepted_agent_ids": [
+        "session-1791131217833"
+      ],
+      "tasks": [
+        {
+          "id": "task-1791490592325-0",
+          "owner_agent": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+          "executor_agent": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+          "status": "模型已回",
+          "visible_in_chat": true,
+          "timeout_ms": 20000,
+          "summary": "会话 Agent 已按当前 Provider/Model 配置完成真实模型调用"
+        }
+      ]
+    }
+  }
+]

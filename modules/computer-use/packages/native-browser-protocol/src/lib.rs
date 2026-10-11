@@ -65,7 +65,7 @@ pub struct HostState {
     /// 独立认证通道的来源声明；服务端仍须按OS进程实例和实际shell路径重新核验。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub identity: Option<HostIdentity>,
-    // 隐藏、关闭、切换环境或加载时为 None，不能沿用旧资源。
+    // 隐藏、关闭或切换环境时为 None；加载时只提供宿主控制观察，不能沿用旧文档输入。
     pub resource: Option<PanelResource>,
 }
 
@@ -133,13 +133,20 @@ pub enum PanelInputCommand {
     ExecuteScroll { target: PanelClickTarget, direction: ScrollDirection, amount: u8, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
     PrepareText { target: PanelClickTarget, text: String },
     ExecuteText { target: PanelClickTarget, text: String, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
+    PrepareKeys { target: PanelClickTarget, keys: Vec<String> },
+    ExecuteKeys { target: PanelClickTarget, keys: Vec<String>, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
     PrepareNavigate { target: PanelClickTarget, url: String },
     ExecuteNavigate { target: PanelClickTarget, url: String, ticket_id: String, permit_id: String, attempt_id: String, executor_instance_id: String, expires_at_unix_ms: u64 },
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all="snake_case")]
-pub enum PanelInputKind { #[default] Click, Scroll, Text, Navigate }
+pub enum PanelInputKind { #[default] Click, Scroll, Text, Navigate, Keys }
+
+/// 原生网页只接受单个页面导航键，不开放全局快捷键或修饰键。
+pub fn valid_input_keys(keys: &[String]) -> bool {
+    keys.len() == 1 && matches!(keys[0].as_str(), "home" | "end" | "tab" | "enter" | "escape")
+}
 
 pub fn valid_input_text(text: &str) -> bool {
     !text.is_empty() && text.len() <= 2048 && !text.chars().any(|c| c.is_control() && c != '\n' && c != '\t')
@@ -175,6 +182,8 @@ pub struct PanelInputRequest {
 impl PanelInputRequest {
     pub fn valid_shape(&self) -> bool {
         opaque_id(&self.request_id) && self.resource.valid_shape() && match &self.command {
+            PanelInputCommand::PrepareKeys {target,keys} => target.valid_shape() && valid_input_keys(keys),
+            PanelInputCommand::ExecuteKeys {keys,..} if !valid_input_keys(keys) => false,
             PanelInputCommand::PrepareClick {target} => target.valid_shape(),
             PanelInputCommand::PrepareScroll {target,amount,..} => target.valid_shape() && (1..=5).contains(amount),
             PanelInputCommand::PrepareText {target,text} => target.valid_shape() && valid_input_text(text),
@@ -185,6 +194,7 @@ impl PanelInputRequest {
             PanelInputCommand::ExecuteClick {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms}
             | PanelInputCommand::ExecuteScroll {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..}
             | PanelInputCommand::ExecuteText {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..}
+            | PanelInputCommand::ExecuteKeys {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..}
             | PanelInputCommand::ExecuteNavigate {target,ticket_id,permit_id,attempt_id,executor_instance_id,expires_at_unix_ms,..} =>
                 target.valid_shape() && opaque_id(ticket_id) && opaque_id(executor_instance_id) && *expires_at_unix_ms > 0
                     && [permit_id,attempt_id].into_iter().all(|s| !s.is_empty() && s.len() <= 2048 && !s.chars().any(char::is_control)),
@@ -212,11 +222,15 @@ pub struct PanelInputReply {
     pub up_confirmed: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub navigation: Option<PanelNavigationReceipt>,
+    /// 原编辑对象在本次文本投递后是否按预期改变；缺失表示未知，不等于未投递。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub editor_changed: Option<bool>,
     pub error: Option<String>,
 }
 impl PanelInputReply {
     pub fn valid_shape(&self) -> bool {
         opaque_id(&self.request_id) && self.resource.valid_shape()
+            && self.editor_changed.is_none_or(|_| self.outcome == PanelInputOutcome::Acknowledged && self.navigation.is_none())
             && self.navigation.as_ref().is_none_or(|nav| self.outcome == PanelInputOutcome::Acknowledged && nav.matches_source(&self.resource))
             && (16..=96).contains(&self.host_id.len())
             && self.host_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
@@ -274,6 +288,23 @@ pub struct PageObservation {
     /// 仅投影宿主AX确认聚焦的普通编辑节点索引，不携带原值、选区或其它属性。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub focused_node_index: Option<usize>,
+    /// 加载状态来自宿主；此时URL是导航状态，不是目标文档已加载的证据。
+    #[serde(default)]
+    pub loading: bool,
+    /// 独立宿主导航引用，不是AX/DOM节点。只读任务不向模型提供它。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub navigation_target: Option<PanelNavigationTarget>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct PanelNavigationTarget { pub observation_id:String, pub token:String, pub id:String }
+impl PanelNavigationTarget {
+    pub fn valid_shape(&self)->bool { [&self.observation_id,&self.token,&self.id].into_iter().all(|s|opaque_id(s)) }
+    /// 复用既有一次性许可的三段不透明绑定格式；不会登记成文档或节点。
+    pub fn binding(&self)->PanelClickTarget {
+        PanelClickTarget {observation_id:self.observation_id.clone(),document_token:self.token.clone(),node_id:self.id.clone()}
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -294,7 +325,19 @@ impl PageViewport {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct NodeHandle { pub index: usize, pub node_id: String }
+pub struct NodeHandle {
+    pub index: usize,
+    pub node_id: String,
+    /// 当前观察中控件中心是否位于视口内；未知不推断为可见，更不授予输入资格。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub in_viewport: Option<bool>,
+    /// 仅文档根的已采集视口；用于区分子文档滚动与任务最终达成。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_viewport: Option<PageViewport>,
+    /// 文档根的宿主随机身份；同一文档的 AX 序号漂移不改变它，文档替换即撤销。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_scope_id: Option<String>,
+}
 
 pub fn opaque_id(value: &str) -> bool {
     value.len() == 32 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
@@ -303,17 +346,24 @@ pub fn opaque_id(value: &str) -> bool {
 impl PageObservation {
     pub fn valid_shape(&self) -> bool {
         self.url.len() <= 4096 && (self.url.starts_with("http://") || self.url.starts_with("https://"))
+            && self.navigation_target.as_ref().is_none_or(PanelNavigationTarget::valid_shape)
+            && (!self.loading || (self.nodes.is_empty() && self.node_handles.is_empty()
+                && self.document_token.is_none() && self.viewport.is_none() && self.focused_node_index.is_none()))
             && self.viewport.as_ref().is_none_or(PageViewport::valid_shape)
             && !self.url.chars().any(char::is_control) && self.title.chars().count() <= 256
             && !self.title.chars().any(char::is_control)
             && self.document_token.as_deref().is_none_or(opaque_id)
             && self.node_handles.len() <= self.nodes.len()
             && (self.node_handles.is_empty() || self.document_token.is_some())
-            && self.node_handles.iter().all(|handle| handle.index < self.nodes.len() && opaque_id(&handle.node_id))
+            && self.node_handles.iter().all(|handle| handle.index < self.nodes.len() && opaque_id(&handle.node_id)
+                && handle.document_scope_id.as_deref().is_none_or(|id|
+                    self.nodes[handle.index].role == "RootWebArea" && opaque_id(id))
+                && handle.document_viewport.as_ref().is_none_or(|viewport|
+                    self.nodes[handle.index].role == "RootWebArea" && viewport.valid_shape()))
             && self.node_handles.iter().map(|handle| handle.index).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()
             && self.node_handles.iter().map(|handle| &handle.node_id).collect::<std::collections::HashSet<_>>().len() == self.node_handles.len()
             && self.focused_node_index.is_none_or(|index| self.nodes.get(index)
-                .is_some_and(|node| matches!(node.role.as_str(), "textbox" | "searchbox"))
+                .is_some_and(|node| matches!(node.role.as_str(), "textbox" | "searchbox" | "combobox" | "button" | "link" | "checkbox" | "radio"))
                 && self.node_handles.iter().any(|handle| handle.index == index))
             && self.nodes.len() <= 128 && self.nodes.iter().all(|node|
             node.role.chars().count() <= 64 && node.name.chars().count() <= 256

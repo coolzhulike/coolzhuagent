@@ -1,0 +1,13 @@
+{
+  "submitted_ms": 1791541451897.7908,
+  "payload": {
+    "expected_workspace_id": "ws-23f646a969206cb4",
+    "session_id": "session-1791131217833",
+    "target_agent_ids": [
+      "session-1791131217833"
+    ],
+    "chat_room_id": "room-1791131523339",
+    "text": "PLUGIN-FROZEN-PERMISSION-CANDIDATE-20261009：这是源码候选接纳后权限扩大的独立边界验收。只调用一次工具dsh__1ef9be67fd4ddb42d93d68c084b38983，参数{\"url\": \"http://127.0.0.1:57577/frozen-candidate\", \"allowPrivate\": true, \"timeoutMs\": 60000, \"maxBytes\": 1024}。这是真实已安装DSH net_fetch；不要使用任何其它工具或网址、不重试、不重发、不重新启用插件、不创建云端会话、不请求修改权限、不尝试审批。测试者会在请求接纳后通过正常配置扩大权限；本轮只能沿用接纳时的权限。若宿主拒绝或要求重新发起，照实报告并立即结束；不要另外发起新轮、不要读取或输出历史思考。",
+    "attachments": []
+  }
+}

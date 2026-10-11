@@ -1,0 +1,63 @@
+{
+  "prefix": "DEVIN-INSTALLED-077-REINSTALLED-DISABLED-20261006",
+  "run_id": "run-chat-06d27123ce30b82a43aac5f02a075d0f57cfd6f6150cf34a",
+  "room": "room-1791131523339",
+  "message_id": "msg-1791243041506-user",
+  "targets": [
+    {
+      "agent_ids": [
+        "session-1791131217833"
+      ]
+    }
+  ],
+  "context_delta": [
+    {
+      "continued": true,
+      "delta_history_messages": 0,
+      "host_history_messages": 40,
+      "prompt_bytes": 2218
+    }
+  ],
+  "outputs": [
+    {
+      "agent_id": "session-1791131217833",
+      "messages": [
+        {
+          "deleted": false,
+          "digest": "e74c13af56af9cb441dd82655f630516333afda229425346c184bf5067bfc588",
+          "id": "msg-1791243041617-0",
+          "source": false
+        }
+      ]
+    }
+  ],
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "tool_calls": [],
+  "reply": "本轮未执行：宿主回执\"宿主工具未完成：ACP 工具已被当前会话或房间撤销，未执行。\"——重装的计算器新世代默认停用，未在声明目录中开放。\n\n按要求不心算、不替代、不请求审批、不重试，本轮结束，无遗留任务。",
+  "bindings": [
+    {
+      "agent_id": "session-1791122188340",
+      "remote_session_id": "sneaky-diascia"
+    },
+    {
+      "agent_id": "session-1791131217833",
+      "remote_session_id": "veiled-anise"
+    }
+  ],
+  "run": {
+    "id": "run-chat-06d27123ce30b82a43aac5f02a075d0f57cfd6f6150cf34a",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "tool_events": [],
+  "audit": []
+}

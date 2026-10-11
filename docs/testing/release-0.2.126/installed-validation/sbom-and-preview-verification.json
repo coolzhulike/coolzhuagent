@@ -1,0 +1,64 @@
+{
+  "recorded_at": "2026-10-10T12:37:21.412087+00:00",
+  "passed": true,
+  "stage": "正式126安装字节与API验证；原生GUI另验",
+  "version": "0.2.126",
+  "source_commit": "3ca0890e072c9ea3bc55bd7fa8f8f01eba94cd31",
+  "schema_sha256": "1ebcb88a2c845ecb6ff7bee7aeabdff9422cb0347f3d6875b241bd444b7e098f",
+  "sbom_sha256": "92e42d0a40e1e1d188ae6b4f5340e6998b835be63f60eb5f200410eb21ee8192",
+  "sbom_bytes": 1919770,
+  "installed_files_matched": 1159,
+  "total_bytes": 432190904,
+  "file_sbom_completeness": "incomplete",
+  "compiled_dependency_graph_claimed": false,
+  "preview_file": "sbom-0.2.126-files.cdx.json",
+  "total_lines": 19775,
+  "byte_pages": [
+    {
+      "offset": 0,
+      "bytes": 262144,
+      "next_offset": 262144
+    },
+    {
+      "offset": 262144,
+      "bytes": 262144,
+      "next_offset": 524288
+    },
+    {
+      "offset": 524288,
+      "bytes": 262144,
+      "next_offset": 786432
+    },
+    {
+      "offset": 786432,
+      "bytes": 262144,
+      "next_offset": 1048576
+    },
+    {
+      "offset": 1048576,
+      "bytes": 262144,
+      "next_offset": 1310720
+    },
+    {
+      "offset": 1310720,
+      "bytes": 262144,
+      "next_offset": 1572864
+    },
+    {
+      "offset": 1572864,
+      "bytes": 262144,
+      "next_offset": 1835008
+    },
+    {
+      "offset": 1835008,
+      "bytes": 84762,
+      "next_offset": null
+    }
+  ],
+  "bytes_reconstructed": true,
+  "tail_range": [
+    19375,
+    19775
+  ],
+  "gui_passed": false
+}

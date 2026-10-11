@@ -22,7 +22,13 @@ window.CoolzhuRunActivity = (() => {
       text.hidden = !value;
       if (following && !selecting) text.scrollTop = text.scrollHeight;
     }
-    if (toggle) { toggle.hidden = !value; toggle.textContent = following ? "暂停跟随" : "跟随最新"; toggle.setAttribute("aria-pressed", String(!following)); }
+    if (toggle) {
+      toggle.hidden = !value;
+      const label = following ? "暂停跟随" : "跟随最新";
+      toggle.title = label;
+      toggle.setAttribute("aria-label", label);
+      toggle.setAttribute("aria-pressed", String(!following));
+    }
   }
   return {
     start() { running = true; thinking = ""; tools = []; following = true; render(); },

@@ -1,0 +1,52 @@
+[
+  {
+    "path": "cleanup.json",
+    "bytes": 297,
+    "sha256": "535bb256e94161353403028016c95bbdae1227d64198fe51cb6184bd85dea2d8"
+  },
+  {
+    "path": "health-summary.json",
+    "bytes": 866,
+    "sha256": "8dc5b718180eda40022b7b2c4344ae5811b2bbd4daa9ceacd2d41c2feff39397"
+  },
+  {
+    "path": "report.md",
+    "bytes": 2077,
+    "sha256": "036482bbd222bb13906ab8315e3cc383f5a6ce27b612090814cd29a129acb38d"
+  },
+  {
+    "path": "result.json",
+    "bytes": 805,
+    "sha256": "66077746dc79babf907b79e705155e3dce3d76dc359e13fcaaaa0d0eefc7a04e"
+  },
+  {
+    "path": "rotation-diagnostics-tests.log.txt",
+    "bytes": 2000,
+    "sha256": "69f4b69bd0295cd7074ac87e08f9d9334b71e5ae88d785826d2c18f245245122"
+  },
+  {
+    "path": "rotation-live.py",
+    "bytes": 5431,
+    "sha256": "c2f0fd492d6783db4fd9ba0b9835a76b3bbc90ea34dcbb395e538699f0295704"
+  },
+  {
+    "path": "rotation-web-build.log.txt",
+    "bytes": 50621,
+    "sha256": "001a4a71904e29b399e8a6cab8e599f0a5bca79817f56e601f67691c6ffc925a"
+  },
+  {
+    "path": "rotation-web-tests.log.txt",
+    "bytes": 150461,
+    "sha256": "8287175d04f0e6db2f34455e5d756bd2302257dcb1eb77922b606f4bce60d862"
+  },
+  {
+    "path": "ui-ax.txt",
+    "bytes": 2597,
+    "sha256": "feb7138797f6fba1ddc400e329d878715b2b7255be97f4e21ea885f71258b54b"
+  },
+  {
+    "path": "ui.png",
+    "bytes": 89714,
+    "sha256": "6dd7ba7900f078e4c9cfb609206da1e325fde842c972549c53df48d340626dac"
+  }
+]

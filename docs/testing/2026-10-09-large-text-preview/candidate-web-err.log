@@ -1,0 +1,1 @@
+[input-safety] 启动路径自身操作结账失败（不影响已表达的 opening 结果）：未持有 scope windows-session-1 的当前恢复资格（持有 epoch Some(156)，当前 None）：不得修改安全状态

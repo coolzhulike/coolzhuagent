@@ -1,0 +1,8 @@
+{"kind": "request", "path": "/source.html", "server_ms": 1791201645803}
+{"kind": "response_sent", "path": "/source.html", "server_ms": 1791201645804}
+{"kind": "request", "path": "/favicon.ico", "server_ms": 1791201645823}
+{"kind": "request", "path": "/popup.html", "server_ms": 1791201670701}
+{"kind": "request", "path": "/explicit.html", "server_ms": 1791201701465}
+{"kind": "response_sent", "path": "/explicit.html", "server_ms": 1791201701466}
+{"kind": "response_ready", "path": "/popup.html", "server_ms": 1791201715702}
+{"kind": "disconnected", "path": "/popup.html", "server_ms": 1791201715709}

@@ -1,0 +1,641 @@
+{
+  "baseline_dpr": 1.5,
+  "requested_browser_zoom": 1.5,
+  "observed_dpr_values": [
+    1.5,
+    1.6500000953674316,
+    1.875,
+    2.25
+  ],
+  "auxiliary_events_before_run": [
+    {
+      "kind": "request",
+      "path": "/form.html",
+      "server_ms": 1791225854840
+    },
+    {
+      "kind": "response_sent",
+      "path": "/form.html",
+      "server_ms": 1791225854842
+    },
+    {
+      "kind": "load",
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225854862.5,
+      "dpr": 1.5,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225854897
+    },
+    {
+      "kind": "report",
+      "dpr": 1.5,
+      "scale": 1,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225854895.5999,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225854899
+    },
+    {
+      "kind": "request",
+      "path": "/favicon.ico",
+      "server_ms": 1791225854910
+    },
+    {
+      "kind": "report",
+      "dpr": 1.5,
+      "scale": 1,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225854938.5,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225854960
+    },
+    {
+      "kind": "pointermove",
+      "trusted": true,
+      "buttons": 0,
+      "id": "",
+      "x": 260.66668701171875,
+      "y": 362,
+      "rect": [
+        32,
+        313.9583435058594,
+        366.66668701171875,
+        700
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225861863.5999,
+      "dpr": 1.5,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225861866
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "buttons": 1,
+      "id": "",
+      "x": 260.66668701171875,
+      "y": 362,
+      "rect": [
+        32,
+        313.9583435058594,
+        366.66668701171875,
+        700
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225861886.7998,
+      "dpr": 1.5,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225861889
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "buttons": 0,
+      "id": "",
+      "x": 260.66668701171875,
+      "y": 362,
+      "rect": [
+        32,
+        313.9583435058594,
+        366.66668701171875,
+        700
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225861908.7,
+      "dpr": 1.5,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225861912
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "buttons": 0,
+      "id": "",
+      "x": 260,
+      "y": 362,
+      "rect": [
+        32,
+        313.9583435058594,
+        366.66668701171875,
+        700
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225861909.2,
+      "dpr": 1.5,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225861913
+    },
+    {
+      "kind": "report",
+      "dpr": 1.6500000953674316,
+      "scale": 1,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225866879.5,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225866883
+    },
+    {
+      "kind": "report",
+      "dpr": 1.875,
+      "scale": 1,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225872128.0999,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225872131
+    },
+    {
+      "kind": "report",
+      "dpr": 2.25,
+      "scale": 1,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225878921.5,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225878925
+    }
+  ],
+  "run_events": [
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "buttons": 1,
+      "id": "name",
+      "x": 209,
+      "y": 331,
+      "rect": [
+        44,
+        298.625,
+        330.8888854980469,
+        65.11111450195312
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225915998.2,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225916002
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "buttons": 0,
+      "id": "name",
+      "x": 209,
+      "y": 331,
+      "rect": [
+        44,
+        298.625,
+        330.8888854980469,
+        65.11111450195312
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225916000.7,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225916017
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "buttons": 0,
+      "id": "name",
+      "x": 209,
+      "y": 331,
+      "rect": [
+        44,
+        298.625,
+        330.8888854980469,
+        65.11111450195312
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225916001.5,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225916018
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "id": "name",
+      "rect": [
+        44,
+        298.625,
+        330.8888854980469,
+        65.11111450195312
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225929732,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 0,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225929737
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "buttons": 1,
+      "id": "agree",
+      "x": 51,
+      "y": 160,
+      "rect": [
+        44,
+        153.4027862548828,
+        13,
+        13
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225990787.9,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225990792
+    },
+    {
+      "kind": "change",
+      "trusted": true,
+      "id": "name",
+      "rect": [
+        44,
+        -636.0416870117188,
+        330.8888854980469,
+        65.11111450195312
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225990788.5,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225990799
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "buttons": 0,
+      "id": "agree",
+      "x": 51,
+      "y": 160,
+      "rect": [
+        44,
+        153.4027862548828,
+        13,
+        13
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225990789.0999,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225990799
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "buttons": 0,
+      "id": "agree",
+      "x": 51,
+      "y": 160,
+      "rect": [
+        44,
+        153.4027862548828,
+        13,
+        13
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225990789.5999,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225990799
+    },
+    {
+      "kind": "change",
+      "trusted": true,
+      "id": "agree",
+      "rect": [
+        44,
+        153.4027862548828,
+        13,
+        13
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225990790.4,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225990799
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "id": "agree",
+      "rect": [
+        44,
+        153.4027862548828,
+        13,
+        13
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791225990790,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791225990800
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "buttons": 1,
+      "id": "submit",
+      "x": 127,
+      "y": 223,
+      "rect": [
+        44,
+        190.4027862548828,
+        165.55555725097656,
+        65.11111450195312
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791226009135.9,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791226009138
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "buttons": 0,
+      "id": "submit",
+      "x": 127,
+      "y": 223,
+      "rect": [
+        44,
+        190.4027862548828,
+        165.55555725097656,
+        65.11111450195312
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791226009137.0999,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791226009142
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "buttons": 0,
+      "id": "submit",
+      "x": 127,
+      "y": 223,
+      "rect": [
+        44,
+        190.4027862548828,
+        165.55555725097656,
+        65.11111450195312
+      ],
+      "firstMove": 0,
+      "orphanDown": 0,
+      "orphanUp": 0,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791226009136.7,
+      "dpr": 2.25,
+      "scale": 1,
+      "pageY": 934.6666870117188,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791226009143
+    }
+  ],
+  "auxiliary_events_after_run": [
+    {
+      "kind": "report",
+      "dpr": 1.5,
+      "scale": 1,
+      "doc": "4e41747a-4d11-4d8b-9768-4b256bece8ad",
+      "url": "http://127.0.0.1:65392/form.html",
+      "time": 1791226083065.7,
+      "pageY": 671.3333129882812,
+      "screen": [
+        1707,
+        960,
+        0,
+        0
+      ],
+      "server_ms": 1791226083069
+    }
+  ]
+}

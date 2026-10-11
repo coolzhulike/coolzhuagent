@@ -1,0 +1,45 @@
+{
+  "counts": {
+    "attempts": 938,
+    "messages": 1172
+  },
+  "bindings": [
+    [
+      "",
+      "island-kayak",
+      null
+    ],
+    [
+      "internal",
+      null,
+      null
+    ]
+  ],
+  "parameters": {
+    "backend_kind": "devin_acp",
+    "base_url": null,
+    "computer_use_enabled": true,
+    "context_window": 0,
+    "enable_llm_tools": true,
+    "endpoint": null,
+    "llm_tool_exposure": "whitelist",
+    "max_output_tokens": 0,
+    "protocol": "devin_acp",
+    "reasoning_mode": "auto",
+    "supports_multimodal": true,
+    "temperature": null,
+    "thinking_budget": null,
+    "tool_allowlist": [
+      "computer_use_perform",
+      "plugin__cli_anything_status",
+      "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab"
+    ],
+    "top_p": null,
+    "turn_timeout_ms": 900000
+  },
+  "configuration_revision": 35,
+  "plugin_id": "dsh-aa909f79795799f288de8a67@external",
+  "entry_path": "C:\\Users\\zhupu\\.claw\\plugins\\installed\\dsh-aa909f79795799f288de8a67-external\\index.js",
+  "entry_sha256": "6fea33400d3e1c1b3f2d2e38a16e784872022862fa6cd025af3ca04aaee83bdd",
+  "installation_id": "op-1791376516656215500-10856-0"
+}

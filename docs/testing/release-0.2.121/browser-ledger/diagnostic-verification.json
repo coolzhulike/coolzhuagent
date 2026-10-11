@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "source_log_offset": 4420502,
+  "source_log_end": 4459864,
+  "dispatches": [
+    {
+      "tool": "computer_use_perform",
+      "input_shape": "[object fields=5；参数内容已隐藏]"
+    }
+  ],
+  "raw_segment_not_saved": true,
+  "scope": "仅本轮实际root派发日志；未调用的计算器、其它生产者、历史和导出未据此验收"
+}

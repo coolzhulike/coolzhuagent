@@ -1,0 +1,49 @@
+{
+  "status": {
+    "configured": true,
+    "running": true,
+    "preset": "rust-analyzer",
+    "handle": "b991b9985b32f58f8704b572fa2d093c",
+    "message": "Rust 语言服务已启动"
+  },
+  "diagnostics": {
+    "diagnostics": [
+      {
+        "character": 8,
+        "line": 5,
+        "message": "Syntax Error: expected pattern",
+        "severity": "Error"
+      },
+      {
+        "character": 11,
+        "line": 5,
+        "message": "Syntax Error: expected expression",
+        "severity": "Error"
+      },
+      {
+        "character": 12,
+        "line": 5,
+        "message": "Syntax Error: expected SEMICOLON",
+        "severity": "Error"
+      },
+      {
+        "character": 9,
+        "line": 5,
+        "message": "expected pattern, found `=`\nexpected pattern",
+        "severity": "Error"
+      }
+    ],
+    "handle": "b991b9985b32f58f8704b572fa2d093c",
+    "path": "tmp/lsp-098/src/lib.rs"
+  },
+  "definition": {
+    "handle": "b991b9985b32f58f8704b572fa2d093c",
+    "locations": [
+      {
+        "character": 8,
+        "line": 1,
+        "path": "tmp/lsp-098/src/lib.rs"
+      }
+    ]
+  }
+}

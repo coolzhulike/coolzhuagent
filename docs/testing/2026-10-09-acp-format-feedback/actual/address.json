@@ -1,0 +1,1 @@
+{"url": "http://127.0.0.1:57062/scroll.html", "child_origin": "http://127.0.0.1:57063", "orders": [{"item": "竹剑", "code": "BAMBOO-9335", "price": 500, "quantity": 5, "attachment_name": "bamboo-order-utf8.txt"}, {"item": "玉佩", "code": "JADE-9133", "price": 236, "quantity": 2, "attachment_name": "jade-order-utf16be.txt"}], "total": 2972}

@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "home-final-903x551.png",
+      "bytes": 91594,
+      "sha256": "7cd72cb41d644a056ea789b7139515f6da4910fb76712a1d86f88764ea322bc6"
+    },
+    {
+      "path": "report.md",
+      "bytes": 1848,
+      "sha256": "20beac49ebddd128748115dc195d4116d8af57e10be4d839a37804e721a80037"
+    },
+    {
+      "path": "settings-save-903x551.png",
+      "bytes": 86686,
+      "sha256": "2bb84319b4df0d1a937b528b37e755a19df8364f682f30140c49989c48062bac"
+    },
+    {
+      "path": "settings-viewport-903x551.png",
+      "bytes": 85238,
+      "sha256": "87866911e76492a9b87b28f2ac3bea7fa5c87657ae687a2fe2c7a95899d55a08"
+    },
+    {
+      "path": "viewport-and-images.json",
+      "bytes": 193,
+      "sha256": "f92d47143ebf5a879dc4bdfa8c5b3e4ae019983c1002502f7fa6bed5875e3dc9"
+    }
+  ]
+}

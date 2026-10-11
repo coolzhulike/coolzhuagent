@@ -1,0 +1,38 @@
+{
+  "status": "blocked",
+  "error": {
+    "code": "native_browser_target_hit_mismatch",
+    "message": "节点预检拒绝，未发送输入",
+    "retryable": false,
+    "retry_owner": "none",
+    "receipt": {
+      "action_id": "browser:dom-c7a854e37886709aa67139a3ca02786d:de59cdc10950c73b",
+      "input_delivery": "not_sent",
+      "partial": false,
+      "effect": "not_observed",
+      "goal_verdict": "not_checked",
+      "input_release": "not_needed"
+    }
+  },
+  "steps": [
+    {
+      "step_index": 0,
+      "action_kind": "scroll",
+      "input_delivery": "sent",
+      "input_release_status": "not_needed",
+      "partial": false,
+      "effect_status": "effect_observed",
+      "goal_verdict": "failed"
+    },
+    {
+      "step_index": 1,
+      "action_kind": "click",
+      "input_delivery": "not_sent",
+      "input_release_status": "not_needed",
+      "partial": false,
+      "effect_status": null,
+      "goal_verdict": null
+    }
+  ],
+  "page_reads": []
+}

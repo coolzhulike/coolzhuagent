@@ -1,0 +1,18 @@
+{
+  "stage": "按完整身份停止本轮已结束任务的自有测试配套进程",
+  "observed_utc": "2026-10-06T05:15:32.1484826Z",
+  "stopped": [
+    {
+      "created": "2026-10-06T05:10:23.1090799Z",
+      "kind": "web",
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-oop\\bin\\coolzhu-web-console.exe",
+      "pid": 20052
+    },
+    {
+      "created": "2026-10-06T05:10:24.6213904Z",
+      "kind": "shell",
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-oop\\bin\\coolzhu-tauri-shell.exe",
+      "pid": 26096
+    }
+  ]
+}

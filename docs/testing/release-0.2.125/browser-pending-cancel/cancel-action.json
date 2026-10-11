@@ -1,0 +1,35 @@
+{
+  "attempted": true,
+  "normal_stop_interface": true,
+  "run_id": "run-chat-060ea336edfc5768ec3f64811ebe28e0078e40100a1706aa",
+  "cu_call_id": "cu-session-1791131217833-chat-turn-1791634806161-0-tool-d1aaa8e62b81789dc328c933d6791b5de6d41a458a2d5d96ed3d22f80fb3b7f8",
+  "step": [
+    0,
+    "sent",
+    "released",
+    1791634837115
+  ],
+  "request": {
+    "event_id": 6176,
+    "created_at": 1791634837210,
+    "payload": {
+      "request_id": "d32add1950ccd942b97fb0f8409378f9",
+      "stage": "registered"
+    }
+  },
+  "observed_ms": 1791634837232.4631,
+  "submitted_ms": 1791634837232.466,
+  "response_ms": 1791634837283.1377,
+  "http_status": 200,
+  "payload": {
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "turn_id": "chat-turn-1791634806161-0"
+  },
+  "response": {
+    "turn_id": "chat-turn-1791634806161-0",
+    "status": "interrupt_requested",
+    "outcome": "interrupt_requested",
+    "idempotent": false
+  }
+}

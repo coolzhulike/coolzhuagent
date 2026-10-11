@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791131217833",
+  "chat_room_id": "room-1791131523339",
+  "target_agent_ids": [
+    "session-1791131217833"
+  ],
+  "text": "BU-LOAD-20261005-pending：新的独立真实 Browser Use 任务，只用当前 SWE-2，不借旧观察。仅提交一次 computer_use_perform，正式六项：objective=在当前右栏原生浏览器点击进入完成页，依据本轮实际页面结果判断，不用其它工具；surface=browser；target={url:http://127.0.0.1:53600/slow.html}；success_criteria=[最新实际页面URL为http://127.0.0.1:53600/done.html,最新页面显示DONE-20261005]；constraints=[只操作当前右栏原生浏览器，仅click一次，不navigate不输入不滚动，当前页面尚未加载完成或目标不新鲜时不得强行输入，失败取消或结果未知立即停止不重试不补发，动作释放不等于达成目标，不换模型]；max_actions=1。running仅wait原job_id到终态，不重复perform。如实报告当前页面资格、是否实际投递、最终回执，结论显示在当前聊天室。主会话未点击网页目标。",
+  "selected_message_ids": [],
+  "attachments": []
+}

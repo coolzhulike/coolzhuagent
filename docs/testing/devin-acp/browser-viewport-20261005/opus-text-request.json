@@ -1,0 +1,10 @@
+{
+  "session_id": "session-1791122188340",
+  "chat_room_id": "room-1791125819661",
+  "target_agent_ids": [
+    "session-1791122188340"
+  ],
+  "text": "继续只读审查，不修改文件、不操作目标。请读review-browser-text两份源码。真实SWE-2候选 natural-full 已明确要求引用完整“目标页输入事件：0”，一次click后实际target.html/TARGET-072/计数0，三项model_met=true，但宿主2/3；第3indices=[4,8]，两者分别StaticText“目标页输入事件：”8字、StaticText“0”1字，reason=non_adjacent_nodes。旧失败根因现在已真实复现，budget终态新代码保留last_verification与freshness_confirmed=true，旧0/3问题改善。还没有中间节点原文或角色数据，下一轮单独常规任务要求完整引用+中间节点全部索引，不能从索引差直接认定中间全是空容器/副本。\n建议最小方案仅验收层拼接：原宿主索引范围内允许跨过name为空的generic/paragraph等结构节点，InlineTextBox仅在与已选StaticText原文完全相同且属于副本时跳过；遇到其它有意义文字/控件节点即拒，不补字不跳过其它StaticText，不修改AX投影/输入引用，不跨资源，不把数字0撞title作为完整引文通过。按现在扁平PageObservation没有父子ID，能否可靠认定InlineTextBox副本？若不可靠，哪个更简单的有界精确全文匹配方案可用、需要哪些真实取证？请先评估上述方案与风险，不要求新文本投影引擎、不加自动重试；返回可实行计划，不超过600中文字。",
+  "selected_message_ids": [],
+  "attachments": []
+}

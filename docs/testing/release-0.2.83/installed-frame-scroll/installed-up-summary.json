@@ -1,0 +1,86 @@
+{
+  "prefix": "BU-INSTALLED-083-FRAME-SCROLL-UP-20261006",
+  "run": {
+    "id": "run-chat-d00018ee0a74a3b0fd46a9571c86bdf8c3d7848b7b0110ff",
+    "state": "completed",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "stop_reason": null
+  },
+  "acp": [
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    },
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    },
+    {
+      "state": "terminal",
+      "protocol_stop": "end_turn",
+      "process_drained": 1,
+      "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+    }
+  ],
+  "events_during_cu": [
+    {
+      "case": "SCROLL-CHILD",
+      "type": "wheel",
+      "at_ms": 1791259226655.7,
+      "target": "position",
+      "isTrusted": true,
+      "deltaY": -120,
+      "received_ms": 1791259226657.9658
+    },
+    {
+      "case": "SCROLL-CHILD",
+      "type": "scroll",
+      "at_ms": 1791259226656.1,
+      "y": 0,
+      "isTrusted": true,
+      "received_ms": 1791259226658.7693
+    }
+  ],
+  "calls": [
+    {
+      "state": "succeeded",
+      "result": {
+        "status": "succeeded",
+        "goal_achieved": true,
+        "attempts": 1,
+        "steps_completed": 1,
+        "error": null
+      },
+      "steps": [
+        {
+          "status": "verified",
+          "error_code": null,
+          "input_delivery": "sent",
+          "native_dispatch_state": "acknowledged_no_held_input",
+          "started_at_ms": 1791259224734,
+          "completed_at_ms": 1791259226662
+        }
+      ],
+      "planner": [
+        {
+          "request_kind": "computer_use_planning",
+          "model": "swe-2-medium",
+          "started_at_ms": 1791259221349,
+          "completed_at_ms": 1791259224731
+        },
+        {
+          "request_kind": "computer_use_browser_readonly_verification",
+          "model": "swe-2-medium",
+          "started_at_ms": 1791259227427,
+          "completed_at_ms": 1791259237290
+        }
+      ]
+    }
+  ],
+  "raw_browser_facts": "tmp/2026-10-06-browser-boundaries/BU-INSTALLED-083-FRAME-SCROLL-UP-20261006-browser-facts.json"
+}

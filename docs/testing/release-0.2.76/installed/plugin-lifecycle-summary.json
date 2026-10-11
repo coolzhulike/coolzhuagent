@@ -1,0 +1,18 @@
+{
+  "observed_at_utc": "2026-10-05T18:57:49.353853+00:00",
+  "disabled_run": "run-chat-30340c67b1c2b373108dbe36f14f31ce7a39c9a81ed43cbf",
+  "new_reenabled_run": "run-chat-9094f7a57765e2c0c9ec4942d9425aa205ef107b546dfaef",
+  "disabled_old_request_still_zero_execution_after_reenable": true,
+  "new_request_tool_call_count": 1,
+  "new_request_completed": true,
+  "remote_context": "veiled-anise",
+  "actual_agent": "session-1791131217833",
+  "audit_elapsed_ms": 849,
+  "does_not_claim": [
+    "未授权延期审批分支",
+    "卸载",
+    "配置变化",
+    "执行中撤销",
+    "取消和超时全生命周期"
+  ]
+}

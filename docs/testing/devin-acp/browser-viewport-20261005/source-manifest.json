@@ -1,0 +1,157 @@
+{
+  "head": "bb5ccb07fe8cac2bd626a3062828189da47019b9",
+  "dirty_source": true,
+  "installed_payload": false,
+  "files": [
+    {
+      "file": "modules/computer-use/packages/computer-use-core/src/controller.rs",
+      "bytes": 97911,
+      "sha256": "acbc86574e8e2891814938ded874b80a343b871ee085843e1cf4667e9e12fef5"
+    },
+    {
+      "file": "modules/computer-use/packages/native-browser-protocol/src/lib.rs",
+      "bytes": 17502,
+      "sha256": "ad0131b64839717e56a7c203a049b93dea9123f142ea6ae9876f66d13f426dad"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_devtools.rs",
+      "bytes": 7793,
+      "sha256": "2af300cab54f6fba2248ba81ae09cf2539abe57a3de52c4dfd97d04fe8086bea"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_nodes.rs",
+      "bytes": 7383,
+      "sha256": "e490e63ec6ffff257b101cdb44bd33bf18abbf5b64569bc4133075b8b50a74fe"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_observation.rs",
+      "bytes": 9748,
+      "sha256": "afab44901ccd5558fffba6a73bbea1b6aa54bd9b137fc97b79e6b1bc6c8e4e71"
+    },
+    {
+      "file": "modules/gui-desktop/packages/tauri-shell/src-tauri/src/native_browser_target.rs",
+      "bytes": 12990,
+      "sha256": "71a2d6d84e73144a537fe21ca369ae26841d0f5d91de0042304cb006347da5f3"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+      "bytes": 174524,
+      "sha256": "c34139af995b15ae36ef26d33143ca2424997a4dca5234ec7fd2e37d4e4dad53"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/native_browser_adapter.rs",
+      "bytes": 27444,
+      "sha256": "4c95ac9d96733cc8ff4789759f6ad05022e76df49a53269b29cd7aeb65010de6"
+    },
+    {
+      "file": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+      "bytes": 28962,
+      "sha256": "689455dd57f9db7bd80cdfa9dce56cf4d34fa5c7f42b2f9255b33ad269f7c720"
+    },
+    {
+      "file": "modules/vision/packages/uia-resolver/Cargo.toml",
+      "bytes": 607,
+      "sha256": "aa50aeb10974aecf5357ee3239df8983333e62683be60f3e572022efdd5dc274"
+    },
+    {
+      "file": "modules/vision/packages/uia-resolver/src/windows_impl.rs",
+      "bytes": 20242,
+      "sha256": "9931f41b1467222b9a520d4171c299a7f3a1ae0e6d684466f7d6e33b9c594114"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-bridge5.log",
+      "bytes": 49512,
+      "sha256": "c6ddac8863a80ca325d00e6c1fac0dab5e9786146f2489206a534866c66c7e75"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-coordinate-shell2.log",
+      "bytes": 1219,
+      "sha256": "85106f90ff37b14a1c1ae116d5af514818724d8990c74e0a7e267e859341dca6"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-hitpoint-shell3.log",
+      "bytes": 1219,
+      "sha256": "8c3cb3e3f8c85de09ba64fc75a2e170108a35310a1f09350b19576ee40e90658"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-hitpoint-shell4.log",
+      "bytes": 1219,
+      "sha256": "3962d0e44e053ded10d0c0144f6c8e77315f19536f28121b3b1bb103f264b236"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-paint-progress6.log",
+      "bytes": 49512,
+      "sha256": "6fd677d9d5ed1b11ef574bd4f611cf1439b10befebf76a51af56efbe1b8b540c"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-progress-web2.log",
+      "bytes": 49512,
+      "sha256": "0ef97e9118faf80ed5f6b45a300090704e5f07cddf249bad0ea74c081e262636"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-progress-web3.log",
+      "bytes": 49512,
+      "sha256": "c15a38e343dab72278229f0d5d5cc2b5af925e196af9f70477585eedcdd62c91"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-text-diagnostic4.log",
+      "bytes": 49512,
+      "sha256": "58420295dd9c0db692706305184ed0310b56a0b99cd0d21669f5e066f68ea2ef"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/build-window-facts7.log",
+      "bytes": 49692,
+      "sha256": "b1ac98af503c088a20e8cf864f48c8ce348b60efa98813978413ddf8db9cf9a4"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-bridge5.log",
+      "bytes": 22573,
+      "sha256": "2eb0df4518815d68149d412e3b0c5c1d20bcdf0d095fa99e89427b84f67a79d4"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-budget.log",
+      "bytes": 2302,
+      "sha256": "e3c774f4b62f6c07ca2e2759f43754496eeb10b7d5e9b2f4b420594164b48d7d"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-coordinate2.log",
+      "bytes": 2035,
+      "sha256": "4d47ab3db531641c2c565fb2178b650bdbeaf6ff4d773371d324d4377ede5a3b"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-hitpoint3.log",
+      "bytes": 2035,
+      "sha256": "518da8a95e7bdf5c345cc8b558c7a04d60b659c3134a17cb1c4414759af86168"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-module-linkage-final.log",
+      "bytes": 2524,
+      "sha256": "3e841f87563947f3640c09421f416a3364bec754d8251bf3c44f24e255dbeded"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-observation.log",
+      "bytes": 1918,
+      "sha256": "31c5f5e52d58118f5fe6e02a19f8996c8293846b83bf8d7caa078e9a84afae82"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-paint-progress6.log",
+      "bytes": 21843,
+      "sha256": "253b1496c1d9ee483e9aec9fd92980f55d9822be7b167612570596bca70b8699"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-text-contract6.log",
+      "bytes": 22257,
+      "sha256": "1a28ab4ae060b51c07f1cee63cc2189013da4cdef41556cc4375a2064b946505"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-tool-registry-final.log",
+      "bytes": 1413,
+      "sha256": "e89e4ccea4eb6af8e5c63e52469d7d32882b9d5c7478c1937d74d8f6890fca80"
+    },
+    {
+      "file": "tmp/2026-10-05-browser-viewport/test-window-facts7.log",
+      "bytes": 3796,
+      "sha256": "822e96b73967ff0b14e7ee2fd23afd618acfc6c1cf493b94716f4036b18647a0"
+    }
+  ]
+}

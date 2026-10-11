@@ -1,0 +1,115 @@
+{
+  "passed": false,
+  "reason": "正常关闭驱动未命中严格在途窗口；期限后未执行过期UI点击，不计资源撤销通过。",
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791586587436-2-tool-e68ea1f23ed7e7ce9514c033e49feca755f50c91d861b24642cc92b7f5873d79",
+    "provider_tool_call_id": "tool-e68ea1f23ed7e7ce9514c033e49feca755f50c91d861b24642cc92b7f5873d79",
+    "status": "succeeded",
+    "stage": "terminal",
+    "goal_achieved": true,
+    "surface": "browser",
+    "summary": "{\"bound_initial_url\":\"http://127.0.0.1:65063/old.html\",\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"1e17838b393ae93bafd8cff92e1b2925\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[108],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":108,\"name_chars\":14,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":108,\"inline_has_static_text\":false,\"name_chars\":14,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"8ecb412e91c0f11a04b0ec37e3129c0b\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":128,\"nodes\":[{\"index\":108,\"name\":\"真实点击已完成，等待观察交接\",\"role\":\"StaticText\"}],\"title\":\"OBSERVE125C-OLD\",\"truncated\":true,\"url\":\"http://127.0.0.1:65063/old.html\",\"viewport\":{\"height\":522.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+    "attempts": 1,
+    "steps_completed": 1,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "passed"
+      }
+    ],
+    "evidence": [
+      "native-ax:1:2",
+      "native-observation:2f7b3e895b797e32ccf1cbe8cde72fa8",
+      "native-ax:1:2",
+      "native-observation:2f7b3e895b797e32ccf1cbe8cde72fa8",
+      "native-input:2804192f9dfaf20694c14f02b2f6dd93",
+      "native-ax:1:2",
+      "native-observation:8ecb412e91c0f11a04b0ec37e3129c0b",
+      "native-ax:1:2",
+      "native-observation:8ecb412e91c0f11a04b0ec37e3129c0b",
+      "native-ax:1:2",
+      "native-observation:1e17838b393ae93bafd8cff92e1b2925"
+    ],
+    "supervisor": {
+      "circuit_open": false,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791587487436
+        }
+      },
+      "cu_deadline_ms": 1791587487436,
+      "cu_deadline_established_at_ms": 1791586602496,
+      "cu_budget_ms": 900000
+    }
+  },
+  "events": [
+    {
+      "id": 6031,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791586602516,
+      "payload_json": "{\"request_id\":\"2f7b3e895b797e32ccf1cbe8cde72fa8\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 6038,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791586638520,
+      "payload_json": "{\"request_id\":\"453d8e667fcb18d3fca1a0e43a922091\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 6039,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791586640328,
+      "payload_json": "{\"request_id\":\"8ecb412e91c0f11a04b0ec37e3129c0b\",\"stage\":\"registered\"}"
+    },
+    {
+      "id": 6044,
+      "event_type": "browser.observation_requested",
+      "created_at": 1791586659548,
+      "payload_json": "{\"request_id\":\"1e17838b393ae93bafd8cff92e1b2925\",\"stage\":\"registered\"}"
+    }
+  ],
+  "action": {
+    "started_ms": 1791586658005,
+    "attempted": false,
+    "reason": "观察期限已过，不使用过期索引或补发关闭"
+  },
+  "watcher": {
+    "phase": {
+      "ready": true,
+      "facts": {
+        "run_id": "run-chat-c4f358f4c4bd269d20a3187ea7478c57c52a82af67adb24b",
+        "cu_call_id": "cu-session-1791131217833-chat-turn-1791586587436-2-tool-e68ea1f23ed7e7ce9514c033e49feca755f50c91d861b24642cc92b7f5873d79",
+        "cu_state": "observing",
+        "steps": [
+          [
+            0,
+            "sent",
+            "released",
+            1791586640287
+          ]
+        ],
+        "observation_requested": {
+          "event_id": 6039,
+          "created_at": 1791586640328,
+          "payload": {
+            "request_id": "8ecb412e91c0f11a04b0ec37e3129c0b",
+            "stage": "registered"
+          }
+        }
+      },
+      "returned_ms": 1791586640332.883
+    },
+    "observed_ms": 1791586640399
+  }
+}

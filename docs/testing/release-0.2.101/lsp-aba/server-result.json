@@ -1,0 +1,152 @@
+{
+  "stage": "0.2.101正式后台/正式壳；真实语言服务已spawn未发布的自然窗口，无产品修改",
+  "before": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已配置，需手动启动"
+    },
+    "start_ms": 0.0139,
+    "headers_ms": 12.4266,
+    "end_ms": 12.4388
+  },
+  "ledger_before": {
+    "counts": {
+      "devin_acp_attempts": 936,
+      "chat_room_messages": 1166,
+      "chat_usage_events": 539
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "original_room": "room-1791131523339",
+  "other_room": "main-room",
+  "observed_ms": 459.2303,
+  "observed_during_start": [
+    {
+      "pid": 31592,
+      "name": "rust-analyzer.exe",
+      "parent": 17652,
+      "image": "C:\\Users\\zhupu\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rust-analyzer.exe",
+      "created_100ns": 134359708623941777,
+      "wait_before": 258,
+      "wait_after": 0,
+      "sha256": "8780a0a408169100c7b4df49ba2c9dcc4b40b48dd375e3985bd585f1a4fe0a57"
+    }
+  ],
+  "pending_before_b": true,
+  "room_b": {
+    "http": 200,
+    "body": {
+      "room": {
+        "id": "main-room",
+        "name": "主聊天室",
+        "active": true,
+        "updated_at": 1791120926490,
+        "message_count": 0
+      }
+    },
+    "start_ms": 459.2358,
+    "headers_ms": 500.3414,
+    "end_ms": 500.3536
+  },
+  "room_a": {
+    "http": 200,
+    "body": {
+      "room": {
+        "id": "room-1791131523339",
+        "name": "SWE-2 Browser与Paint真实验收",
+        "active": true,
+        "updated_at": 1791496278114,
+        "message_count": 1011
+      }
+    },
+    "start_ms": 500.3748,
+    "headers_ms": 547.6443,
+    "end_ms": 547.657
+  },
+  "pending_after_a": true,
+  "held_wait_after_a": [
+    258
+  ],
+  "start_response": {
+    "http": 409,
+    "body": {
+      "error": "启动期间工作区已改变"
+    },
+    "start_ms": 24.699,
+    "headers_ms": 573.7884,
+    "end_ms": 573.8006
+  },
+  "status_after": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已配置，需手动启动"
+    },
+    "start_ms": 573.9379,
+    "headers_ms": 574.6516,
+    "end_ms": 574.6592
+  },
+  "final_status": {
+    "http": 200,
+    "body": {
+      "configured": true,
+      "running": false,
+      "preset": "rust-analyzer",
+      "handle": null,
+      "message": "Rust 语言服务已配置，需手动启动"
+    },
+    "start_ms": 611.1332,
+    "headers_ms": 611.9192,
+    "end_ms": 611.9284
+  },
+  "rooms_after": "room-1791131523339",
+  "ledger_after": {
+    "counts": {
+      "devin_acp_attempts": 936,
+      "chat_room_messages": 1166,
+      "chat_usage_events": 539
+    },
+    "bindings": [
+      [
+        "",
+        "island-kayak",
+        null
+      ],
+      [
+        "internal",
+        null,
+        null
+      ]
+    ]
+  },
+  "aba_window_observed": true,
+  "aba_old_start_rejected": true,
+  "owned_files_removed": [
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\Cargo.toml",
+      "sha256": "4bda1759572cf31373e525e530c3e30edb660da863e350c0c6eab005508a3a36"
+    },
+    {
+      "path": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace\\lsp-aba.rs",
+      "sha256": "ee571ce4362c8d2c16b1d24734c5524747df0aa0d1127dbbf9b01dd960244e65"
+    }
+  ]
+}

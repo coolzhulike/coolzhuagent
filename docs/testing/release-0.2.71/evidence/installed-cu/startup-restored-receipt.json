@@ -1,0 +1,16 @@
+{
+  "version": "0.2.71",
+  "ok": true,
+  "error": null,
+  "launch_id": "launch-1791159582444-33052",
+  "build_version": "49d0a1b6d5e5 · 2026-10-04",
+  "workspace": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent",
+  "session_db": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.sqlite3",
+  "resolution_source": "persisted_user_selection",
+  "web_pid": 26188,
+  "shell_pid": 27272,
+  "selfcheck_timestamp_ms": 1791159582444,
+  "acceptance_workspace_instances_remaining": 0,
+  "repeat_launch_created_second_backend": false,
+  "startup_restored": true
+}

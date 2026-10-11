@@ -1,0 +1,299 @@
+{
+  "source_message": {
+    "room_id": "room-1791131523339",
+    "id": "msg-1791252942288-user",
+    "author": "",
+    "role": "user",
+    "target": "Devin SWE-2 真实CU验收 (swe-2-medium)",
+    "content": "BU-CANDIDATE-081-IFRAME-CHILD-20261006：继续原SWE-2远端上下文，仅执行本条新任务。只调用一次coolzhu-agent的computer_use_perform，参数{\"objective\":\"单击当前页面独立iframe子文档内名为Frame子操作按钮的button一次\",\"surface\":\"browser\",\"target\":{\"url\":\"http://127.0.0.1:63360/frame.html\"},\"success_criteria\":[\"最新页面父操作次数0，Frame子操作次数1\"],\"constraints\":[\"只操作当前右栏原生浏览器，只允许一次click；必须选择当前实际iframe子文档内名为Frame子操作按钮的button新鲜引用；不选父操作按钮，不选切换子页面，不替代节点或点击位置，不用桌面、导航、其它工具或Devin原生工具；失败、不支持、取消或输入未知立即停止，不重试、不补发、不执行历史任务\"],\"max_actions\":1}。若running只wait同一job_id至终态，按真实宿主输入释放回执和新页面如实报告，不得代执行或推断成功。",
+    "kind": "text",
+    "attachments_json": "[]",
+    "created_at": 1791252942405
+  },
+  "context_and_tools": {
+    "prefix": "BU-CANDIDATE-081-IFRAME-CHILD-20261006",
+    "run_id": "run-chat-8358983b8aa871a0aa87de05bd5fba96bdc9e7c8e3ccab39",
+    "room": "room-1791131523339",
+    "message_id": "msg-1791252942288-user",
+    "targets": [
+      {
+        "agent_ids": [
+          "session-1791131217833"
+        ]
+      }
+    ],
+    "context_delta": [
+      {
+        "continued": true,
+        "delta_history_messages": 1,
+        "host_history_messages": 106,
+        "prompt_bytes": 3330
+      }
+    ],
+    "outputs": [
+      {
+        "agent_id": "session-1791131217833",
+        "messages": [
+          {
+            "deleted": false,
+            "digest": "55d610cf0beed74a31ffca7f1a599ac1971d65af2f413c0af46796486841e030",
+            "id": "msg-1791252942521-0",
+            "source": false
+          }
+        ]
+      }
+    ],
+    "acp": [
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      },
+      {
+        "state": "terminal",
+        "protocol_stop": "end_turn",
+        "process_drained": 1,
+        "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool_call_id": "tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+        "run_id": "run-chat-8358983b8aa871a0aa87de05bd5fba96bdc9e7c8e3ccab39",
+        "request_attempt_id": null,
+        "tool_name": "computer_use_perform",
+        "arguments_digest": "1e144518bed860c5",
+        "status": "completed",
+        "created_at_unix_ms": 1791252956795,
+        "updated_at_unix_ms": 1791252976698,
+        "provider_tool_call_id": "1",
+        "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-8358983b8aa871a0aa87de05bd5fba96bdc9e7c8e3ccab39\",\"turn_id\":\"chat-turn-1791252942289-0\",\"attempt_id\":\"8d23276e1109a93c9efc988888380668470363f7a82082b4\",\"owner_epoch\":54,\"generation\":54}"
+      }
+    ],
+    "reply": "任务成功（终态回执 `status: succeeded`，`goal_achieved: true`）：\n\n- **动作**：1 次 click 已投递（attempts=1，steps_completed=1，含 native-input 回执）\n- **验收**：最新页面观察（freshness_confirmed=true）在 `http://127.0.0.1:63360/frame.html`（标题\"081 iframe子文档点击\"）确认 StaticText 节点显示 **\"父操作次数：0；Frame子操作次数：1\"**，success_criteria 1/1 满足——正确命中 iframe 子文档内按钮，未触发父按钮\n\n按宿主回执如实报告：目标达成。",
+    "bindings": [
+      {
+        "agent_id": "session-1791122188340",
+        "remote_session_id": "sneaky-diascia"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "remote_session_id": "veiled-anise"
+      }
+    ],
+    "run": {
+      "id": "run-chat-8358983b8aa871a0aa87de05bd5fba96bdc9e7c8e3ccab39",
+      "state": "completed",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "stop_reason": null
+    },
+    "tool_events": [],
+    "audit": []
+  },
+  "computer_use": [
+    {
+      "call_id": "cu-session-1791131217833-chat-turn-1791252942289-0-tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+      "provider_tool_call_id": "tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+      "turn_id": "chat-turn-1791252942289-0",
+      "session_id": "session-1791131217833",
+      "chat_room_id": "room-1791131523339",
+      "idempotency_key": "session-1791131217833\u001fchat-turn-1791252942289-0\u001fbrowser\u001f单击当前页面独立iframe子文档内名为frame子操作按钮的button一次\u001f||http://127.0.0.1:63360/frame.html|\u001f最新页面父操作次数0，frame子操作次数1\u001f只操作当前右栏原生浏览器，只允许一次click；必须选择当前实际iframe子文档内名为frame子操作按钮的button新鲜引用；不选父操作按钮，不选切换子页面，不替代节点或点击位置，不用桌面、导航、其它工具或devin原生工具；失败、不支持、取消或输入未知立即停止，不重试、不补发、不执行历史任务",
+      "objective_json": {
+        "constraints": [
+          "只操作当前右栏原生浏览器，只允许一次click；必须选择当前实际iframe子文档内名为Frame子操作按钮的button新鲜引用；不选父操作按钮，不选切换子页面，不替代节点或点击位置，不用桌面、导航、其它工具或Devin原生工具；失败、不支持、取消或输入未知立即停止，不重试、不补发、不执行历史任务"
+        ],
+        "max_actions": 1,
+        "objective": "单击当前页面独立iframe子文档内名为Frame子操作按钮的button一次",
+        "success_criteria": [
+          "最新页面父操作次数0，Frame子操作次数1"
+        ],
+        "surface": "browser",
+        "target": {
+          "url": "http://127.0.0.1:63360/frame.html"
+        }
+      },
+      "surface": "browser",
+      "state": "succeeded",
+      "state_version": 11,
+      "risk_class": "observe",
+      "approval_state": "not_required",
+      "approval_deadline_ms": null,
+      "action_count": 1,
+      "replan_count": 0,
+      "no_progress_count": 0,
+      "current_observation_generation": 0,
+      "deadline_ms": 1791253556937,
+      "terminal_result_json": {
+        "call_id": "cu-session-1791131217833-chat-turn-1791252942289-0-tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+        "provider_tool_call_id": "tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+        "status": "succeeded",
+        "stage": "terminal",
+        "goal_achieved": true,
+        "surface": "browser",
+        "summary": "{\"criteria_count\":1,\"criteria_met\":1,\"fresh_observation_id\":\"aa8ca0b73e7c77f4872079b18ad122ad\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":20,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":20,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":2,\"observation_id\":\"d7456645459daa1bcf373c9e3ee55be4\",\"observation_origin\":\"requested_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":27,\"nodes\":[{\"index\":7,\"name\":\"父操作次数：0；Frame子操作次数：1\",\"role\":\"StaticText\"}],\"title\":\"081 iframe子文档点击\",\"truncated\":false,\"url\":\"http://127.0.0.1:63360/frame.html\",\"viewport\":{\"height\":532.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":446.0}},\"requested_url\":\"http://127.0.0.1:63360/frame.html\",\"ungrounded_positive_count\":0}",
+        "attempts": 1,
+        "steps_completed": 1,
+        "evidence": [
+          "native-ax:1:0",
+          "native-observation:8ece74fdd70b7da291bf6308e3b26d2f",
+          "native-ax:1:0",
+          "native-observation:8ece74fdd70b7da291bf6308e3b26d2f",
+          "native-input:2b4aadb98555fe0d5a7fbdfbccee629e",
+          "native-ax:1:0",
+          "native-observation:d7456645459daa1bcf373c9e3ee55be4",
+          "native-ax:1:0",
+          "native-observation:d7456645459daa1bcf373c9e3ee55be4",
+          "native-ax:1:0",
+          "native-observation:aa8ca0b73e7c77f4872079b18ad122ad"
+        ],
+        "supervisor": {
+          "circuit_open": false,
+          "action_count": 1,
+          "replan_count": 0,
+          "no_progress_count": 0
+        },
+        "cu_budget": {
+          "root_deadline_state": "wired",
+          "root_deadline": {
+            "at": {
+              "unix_ms": 1791253842289
+            }
+          },
+          "cu_deadline_ms": 1791253556937,
+          "cu_deadline_established_at_ms": 1791252956937,
+          "cu_budget_ms": 600000
+        }
+      },
+      "created_at_ms": 1791252956937,
+      "updated_at_ms": 1791252976682,
+      "workspace_id": "ws-23f646a969206cb4",
+      "workspace_context_version": 1,
+      "legacy_convergence_id": null,
+      "legacy_convergence_state": null,
+      "legacy_convergence_reconciled_at_ms": null,
+      "steps": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791252942289-0-tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+          "step_index": 0,
+          "observation_generation": 1,
+          "action_type": "click",
+          "normalized_target": "dom-a4b73e475cfe418dce75f95d3cecec3f",
+          "action_fingerprint": "3ecb8ffbbe48405d",
+          "status": "verified",
+          "error_code": null,
+          "before_evidence_ref": "[\"native-ax:1:0\",\"native-observation:8ece74fdd70b7da291bf6308e3b26d2f\"]",
+          "after_evidence_ref": "[\"native-ax:1:0\",\"native-observation:d7456645459daa1bcf373c9e3ee55be4\",\"native-ax:1:0\",\"native-observation:aa8ca0b73e7c77f4872079b18ad122ad\"]",
+          "visible_progress": 1,
+          "input_delivery": "sent",
+          "partial": 0,
+          "path_completed": null,
+          "confirmed_point_count": null,
+          "effect_status": "effect_observed",
+          "goal_verdict": "passed",
+          "input_release_status": "released",
+          "started_at_ms": 1791252967319,
+          "completed_at_ms": 1791252969067,
+          "native_dispatch_state": "released",
+          "native_ticket_id": "de205b48658c4356efb52df7a3963536",
+          "native_binding_json": "{\"executor\":{\"kind\":\"persistent_native_panel\",\"executor_instance_id\":\"5cce0b19271542540e6b0af8b1808ed1\",\"host_id\":\"native-3e519e4e6d60ff8f57c31d1a24db5a56\",\"process\":{\"instance_id\":\"840d6092b7b2f29222cc7f7e023eeeb2\",\"boot_id\":\"3e519e4e6d60ff8f57c31d1a24db5a56\",\"pid\":30416,\"creation_time_filetime\":134357264651683565,\"canonical_executable\":\"\\\\\\\\?\\\\C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-06-browser-iframe\\\\bin\\\\coolzhu-tauri-shell.exe\"},\"resource\":{\"workspace_path\":\"C:\\\\Users\\\\zhupu\\\\.codex\\\\worktrees\\\\input-recovery-20261004\\\\coolzhuagent\\\\tmp\\\\2026-10-04-devin-models\\\\workspace\",\"room_id\":\"room-1791131523339\",\"label\":\"browser-panel-1\",\"generation\":1,\"navigation_revision\":0}},\"attempt_key\":\"browser:dom-a4b73e475cfe418dce75f95d3cecec3f:4aea26571602d2d3#gen1#cu-session-1791131217833-chat-turn-1791252942289-0-tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d:step-0#attempt1\",\"ticket_id\":\"de205b48658c4356efb52df7a3963536\",\"observation_id\":\"8ece74fdd70b7da291bf6308e3b26d2f\",\"document_token\":\"723c9a9d5d6fa6e2cd38b6254fae6037\",\"node_id\":\"a4b73e475cfe418dce75f95d3cecec3f\",\"input_kind\":\"click\"}"
+        }
+      ],
+      "actions": [
+        {
+          "run_id": "cu-session-1791131217833-chat-turn-1791252942289-0-tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+          "step_index": 0,
+          "action_json": "{\"arguments\":{},\"kind\":\"click\",\"redacted_fields\":true,\"target\":\"dom-a4b73e475cfe418dce75f95d3cecec3f\"}"
+        }
+      ],
+      "planner": [
+        {
+          "id": 440,
+          "call_id": "cu-session-1791131217833-chat-turn-1791252942289-0-tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+          "turn_id": "chat-turn-1791252942289-0",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_planning",
+          "observation_generation": 1,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"action\":{\"arguments\":{},\"kind\":\"click\",\"target\":\"dom-a4b73e475cfe418dce75f95d3cecec3f\"},\"done\":false,\"observation_facts\":{\"candidate_count\":4,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":3,\"input_supported\":true,\"node_count\":27,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false}}",
+          "error_code": null,
+          "started_at_ms": 1791252957774,
+          "completed_at_ms": 1791252967313
+        },
+        {
+          "id": 441,
+          "call_id": "cu-session-1791131217833-chat-turn-1791252942289-0-tool-e9021ddc1fcc74c8a6a4860a8be171ee8aed74bb16cd8c636030cdd308928f2d",
+          "turn_id": "chat-turn-1791252942289-0",
+          "room_id": "room-1791131523339",
+          "session_id": "session-1791131217833",
+          "request_kind": "computer_use_browser_readonly_verification",
+          "observation_generation": 2,
+          "model": "swe-2-medium",
+          "provider_response_id": null,
+          "response_json": "{\"bytes\":116,\"criteria\":[{\"evidence_blank\":false,\"evidence_bytes\":46,\"evidence_chars\":20,\"evidence_exceeds_limit\":false,\"evidence_type\":\"string\",\"index\":0,\"index_type\":\"number\",\"met\":true,\"met_type\":\"boolean\",\"node_indices_count\":1,\"node_indices_type\":\"array\",\"position\":0,\"type\":\"object\",\"unknown_field_count\":0}],\"criteria_count\":1,\"criteria_type\":\"array\",\"host_verification\":{\"criteria_count\":1,\"criteria_met\":1,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[7],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":7,\"name_chars\":20,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":7,\"inline_has_static_text\":false,\"name_chars\":20,\"role\":\"StaticText\"}]}],\"ungrounded_positive_count\":0},\"observation_facts\":{\"candidate_count\":4,\"capabilities\":{\"check\":false,\"click\":true,\"double_click\":false,\"drag\":false,\"history\":false,\"key_combinations\":true,\"multiple_tabs\":false,\"navigate\":true,\"scroll\":true,\"select\":false,\"slider_drag\":false,\"submit\":false,\"text_input\":true},\"in_viewport_candidate_count\":3,\"input_supported\":true,\"node_count\":27,\"outside_viewport_candidate_count\":0,\"root_candidate_count\":1,\"textbox_candidate_count\":0,\"truncated\":false},\"progress\":null,\"progress_type\":\"missing\",\"root_type\":\"object\",\"unknown_field_count\":0}",
+          "error_code": null,
+          "started_at_ms": 1791252969847,
+          "completed_at_ms": 1791252976673
+        }
+      ]
+    }
+  ],
+  "events_url": "http://127.0.0.1:63360/events",
+  "web_events": [
+    {
+      "case": "IFRAME-PARENT",
+      "type": "ready",
+      "at_ms": 1791252918377.5,
+      "received_ms": 1791252918381.5552
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "ready",
+      "at_ms": 1791252918388.3,
+      "received_ms": 1791252918391.928
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "pointerdown",
+      "at_ms": 1791252969054.3,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791252969056.1475
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "pointerup",
+      "at_ms": 1791252969054.9,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791252969059.5198
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "click",
+      "at_ms": 1791252969055.2,
+      "target": "frame-child",
+      "isTrusted": true,
+      "button": 0,
+      "received_ms": 1791252969059.723
+    },
+    {
+      "case": "IFRAME-CHILD",
+      "type": "child-count",
+      "at_ms": 1791252969055.4,
+      "count": 1,
+      "received_ms": 1791252969059.896
+    }
+  ]
+}

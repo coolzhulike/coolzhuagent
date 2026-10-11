@@ -1,0 +1,7 @@
+{
+  "previous_restored_revision": 37,
+  "current_revision": 39,
+  "parameters_exact_equal": true,
+  "model": "swe-2-medium",
+  "mutation_before_preflight_failure": false
+}

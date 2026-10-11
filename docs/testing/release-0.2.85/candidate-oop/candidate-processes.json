@@ -1,0 +1,13 @@
+{
+  "web_pid": 29716,
+  "shell_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-oop\\bin\\coolzhu-tauri-shell.exe",
+  "web_binary": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-06-browser-oop\\bin\\coolzhu-web-console.exe",
+  "shell_sha256": "e6d0fef1e447850e08bc9bf1c33ed4a3eb4be9f12eb04529b53f8a9b96112e7e",
+  "web_sha256": "9bc0a1b20e4496be988d19137064df4a18e2022b23852a940d1d7a87b0e20cec",
+  "port": 8765,
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "shell_started": "2026-10-06T05:16:42.6503827Z",
+  "web_started": "2026-10-06T05:16:41.0237404Z",
+  "stage": "跨进程子文档候选配套，无调试端口；候选测试",
+  "shell_pid": 28436
+}

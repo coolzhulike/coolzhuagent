@@ -1,0 +1,1077 @@
+{
+  "stage": "AX索引漂移修正第二候选Web与壳，非正式安装验收",
+  "run_id": "run-chat-5c58289c1b77c4f2e872daed1fc7591eeda3b2d60754a3f1",
+  "cu_run": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791565005510-0-tool-9f2b9edd078274f4d1642bee1614b449067ed49347907913ece9623678e1180f",
+    "provider_tool_call_id": "tool-9f2b9edd078274f4d1642bee1614b449067ed49347907913ece9623678e1180f",
+    "turn_id": "chat-turn-1791565005510-0",
+    "session_id": "session-1791131217833",
+    "chat_room_id": "room-1791131523339",
+    "idempotency_key": "session-1791131217833\u001fchat-turn-1791565005510-0\u001fbrowser\u001f在当前右栏原生浏览器页面（http://127.0.0.1:60736/ledger.html）完成“竹林订单与账本”的三项订单流程：每步从当前真实跨来源内嵌订单页读取本步订单码，填入“订单码”输入框并按enter验证；前两步验证通过后点击“下一步”；第三步按enter完成。忽略持续刷新的非目标行情区；必要时按真实文档引用滚动以显示控件或最终结果；每步使用最新观察的新鲜引用，不复用被替换的表单引用；不执行网页脚本、不代跑dom、不直接http。\u001f\u001f页面可见“整单已完成，三项均通过”文本|页面可见三项物品的单价与数量（外层已验证回执明细）\u001f每步从当前真实页面读取新订单码，不复用被替换的表单引用|enter提交用key_combination(enter)于已聚焦输入框|不执行网页脚本、不代跑dom、不操作行情/公告刷新区|每步用最新观察的新鲜引用|未知即停止，如实报告终态",
+    "objective_json": "{\"constraints\":[\"每步从当前真实页面读取新订单码，不复用被替换的表单引用\",\"Enter提交用key_combination(enter)于已聚焦输入框\",\"不执行网页脚本、不代跑DOM、不操作行情/公告刷新区\",\"每步用最新观察的新鲜引用\",\"未知即停止，如实报告终态\"],\"max_actions\":16,\"objective\":\"在当前右栏原生浏览器页面（http://127.0.0.1:60736/ledger.html）完成“竹林订单与账本”的三项订单流程：每步从当前真实跨来源内嵌订单页读取本步订单码，填入“订单码”输入框并按Enter验证；前两步验证通过后点击“下一步”；第三步按Enter完成。忽略持续刷新的非目标行情区；必要时按真实文档引用滚动以显示控件或最终结果；每步使用最新观察的新鲜引用，不复用被替换的表单引用；不执行网页脚本、不代跑DOM、不直接HTTP。\",\"success_criteria\":[\"页面可见“整单已完成，三项均通过”文本\",\"页面可见三项物品的单价与数量（外层已验证回执明细）\"],\"surface\":\"browser\"}",
+    "surface": "browser",
+    "state": "succeeded",
+    "state_version": 61,
+    "risk_class": "observe",
+    "approval_state": "not_required",
+    "approval_deadline_ms": null,
+    "action_count": 11,
+    "replan_count": 0,
+    "no_progress_count": 0,
+    "current_observation_generation": 0,
+    "deadline_ms": 1791565905510,
+    "terminal_result_json": "{\"call_id\":\"cu-session-1791131217833-chat-turn-1791565005510-0-tool-9f2b9edd078274f4d1642bee1614b449067ed49347907913ece9623678e1180f\",\"provider_tool_call_id\":\"tool-9f2b9edd078274f4d1642bee1614b449067ed49347907913ece9623678e1180f\",\"status\":\"succeeded\",\"stage\":\"terminal\",\"goal_achieved\":true,\"surface\":\"browser\",\"summary\":\"{\\\"bound_initial_url\\\":\\\"http://127.0.0.1:60736/ledger.html\\\",\\\"criteria_count\\\":2,\\\"criteria_met\\\":2,\\\"fresh_observation_id\\\":\\\"eb3172edb8f76a1538f2a9ae4d7c6512\\\",\\\"freshness_confirmed\\\":true,\\\"grounding\\\":[{\\\"grounded\\\":true,\\\"index\\\":0,\\\"model_met\\\":true,\\\"node_indices\\\":[30],\\\"reason\\\":\\\"node_text\\\",\\\"selected_nodes\\\":[{\\\"index\\\":30,\\\"name_chars\\\":11,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":30,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":11,\\\"role\\\":\\\"StaticText\\\"}]},{\\\"grounded\\\":true,\\\"index\\\":1,\\\"model_met\\\":true,\\\"node_indices\\\":[15,16,17],\\\"reason\\\":\\\"adjacent_text\\\",\\\"selected_nodes\\\":[{\\\"index\\\":15,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":16,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":17,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"}],\\\"span_nodes\\\":[{\\\"blank\\\":false,\\\"index\\\":15,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"},{\\\"blank\\\":false,\\\"index\\\":16,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"},{\\\"blank\\\":false,\\\"index\\\":17,\\\"inline_has_static_text\\\":false,\\\"name_chars\\\":21,\\\"role\\\":\\\"StaticText\\\"}]}],\\\"input_supported\\\":true,\\\"kind\\\":\\\"native_browser_interaction_observation\\\",\\\"notice\\\":\\\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\\\",\\\"observation_generation\\\":12,\\\"observation_id\\\":\\\"1157304669652b80bc338ef90f712db1\\\",\\\"observation_origin\\\":\\\"current_page\\\",\\\"observed_page\\\":{\\\"excerpt_truncated\\\":false,\\\"node_count\\\":51,\\\"nodes\\\":[{\\\"index\\\":15,\\\"name\\\":\\\"第1项已验证：竹剑；单价 197；数量 5\\\",\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":16,\\\"name\\\":\\\"第2项已验证：玉佩；单价 365；数量 5\\\",\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":17,\\\"name\\\":\\\"第3项已验证：卷轴；单价 887；数量 7\\\",\\\"role\\\":\\\"StaticText\\\"},{\\\"index\\\":30,\\\"name\\\":\\\"整单已完成，三项均通过\\\",\\\"role\\\":\\\"StaticText\\\"}],\\\"title\\\":\\\"竹林订单与账本\\\",\\\"truncated\\\":false,\\\"url\\\":\\\"http://127.0.0.1:60736/ledger.html\\\",\\\"viewport\\\":{\\\"height\\\":514.0,\\\"page_x\\\":0.0,\\\"page_y\\\":0.0,\\\"width\\\":430.6666870117187}},\\\"requested_url\\\":null,\\\"ungrounded_positive_count\\\":0}\",\"attempts\":11,\"steps_completed\":11,\"input_steps\":[{\"step_index\":0,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":1,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":2,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"inconclusive\",\"goal_verdict\":\"failed\"},{\"step_index\":3,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":4,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":5,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":6,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"inconclusive\",\"goal_verdict\":\"failed\"},{\"step_index\":7,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":8,\"action_kind\":\"click\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":9,\"action_kind\":\"text_input\",\"input_delivery\":\"sent\",\"input_release_status\":\"not_needed\",\"partial\":false,\"effect_status\":\"effect_observed\",\"goal_verdict\":\"failed\"},{\"step_index\":10,\"action_kind\":\"key_combination\",\"input_delivery\":\"sent\",\"input_release_status\":\"released\",\"partial\":false,\"effect_status\":\"inconclusive\",\"goal_verdict\":\"passed\"}],\"evidence\":[\"native-ax:1:0\",\"native-observation:e464f0859ae983657d8f862e086aa940\",\"native-ax:1:0\",\"native-observation:e464f0859ae983657d8f862e086aa940\",\"native-input:f1ed947a8399b3ab720ea46c8492438e\",\"native-ax:1:0\",\"native-observation:6de6a8ef3c78b3177dc5313eca95afbe\",\"native-ax:1:0\",\"native-observation:6de6a8ef3c78b3177dc5313eca95afbe\",\"native-ax:1:0\",\"native-observation:deae633f6da894ecb5c673267fcfb5d9\",\"native-input:e96950d175c2e900d475440c6b8401b6\",\"native-ax:1:0\",\"native-observation:f1026fbc01ff817123874363f6f2b429\",\"native-ax:1:0\",\"native-observation:f1026fbc01ff817123874363f6f2b429\",\"native-ax:1:0\",\"native-observation:0a1a4faa317745f36c25763e3db56fed\",\"native-input:b537b1720c17356865b0242b1eac2d96\",\"native-ax:1:0\",\"native-observation:072aa577c26ccd11efff2c73f57d40f7\",\"native-ax:1:0\",\"native-observation:072aa577c26ccd11efff2c73f57d40f7\",\"native-ax:1:0\",\"native-observation:f4f019a20be7d45e75514cb4b78a4962\",\"native-input:a34f4414f8c070336118125c8c110ae5\",\"native-ax:1:0\",\"native-observation:aa53e95bfae1ff2514997e449a7a74f9\",\"native-ax:1:0\",\"native-observation:aa53e95bfae1ff2514997e449a7a74f9\",\"native-ax:1:0\",\"native-observation:a00765f02a82dc131ff61b8a30120f39\",\"native-input:0a6bcee98a98a555bc62c05619f8a96b\",\"native-ax:1:0\",\"native-observation:0289db46a4ab7e763c0fcdf8681e1a3d\",\"native-ax:1:0\",\"native-observation:0289db46a4ab7e763c0fcdf8681e1a3d\",\"native-ax:1:0\",\"native-observation:5167f6a93c0eaa0a1add43f975300053\",\"native-input:82ffdfbcb142764252b08f6f3c2f79c6\",\"native-ax:1:0\",\"native-observation:a97b273605b9583af50be659f03a3999\",\"native-ax:1:0\",\"native-observation:a97b273605b9583af50be659f03a3999\",\"native-ax:1:0\",\"native-observation:f17f9d796942e40b55ac202aead9dfe1\",\"native-input:ab00f726c2a74b3beb3dc17136b04f82\",\"native-ax:1:0\",\"native-observation:aaa7ee42aa0232da0f7ae5aad57363f3\",\"native-ax:1:0\",\"native-observation:aaa7ee42aa0232da0f7ae5aad57363f3\",\"native-ax:1:0\",\"native-observation:01972e4262f1291e12bf22873b910313\",\"native-input:92c355e9b1d85537bc5d747d3b969f6c\",\"native-ax:1:0\",\"native-observation:ab05610af567cb4c054e195d029f9830\",\"native-ax:1:0\",\"native-observation:ab05610af567cb4c054e195d029f9830\",\"native-ax:1:0\",\"native-observation:5567bd530f6463af15c6fadb9e052603\",\"native-input:4ce029da25031259a010744875677bac\",\"native-ax:1:0\",\"native-observation:59ec467d4bd3594b59d33fd4a5a484b5\",\"native-ax:1:0\",\"native-observation:59ec467d4bd3594b59d33fd4a5a484b5\",\"native-ax:1:0\",\"native-observation:c8762b3293bcbe428f4ef138491d7a57\",\"native-input:f7a8593c510e7dc7f28d78373ef2b773\",\"native-ax:1:0\",\"native-observation:0b32b1a33b78ebbfca9177ae57158bbb\",\"native-ax:1:0\",\"native-observation:0b32b1a33b78ebbfca9177ae57158bbb\",\"native-ax:1:0\",\"native-observation:423a673b6926c2508fdf5eab6609fd4d\",\"native-input:e5738426ccca0f0c17e829082bf364ce\",\"native-ax:1:0\",\"native-observation:1157304669652b80bc338ef90f712db1\",\"native-ax:1:0\",\"native-observation:1157304669652b80bc338ef90f712db1\",\"native-ax:1:0\",\"native-observation:eb3172edb8f76a1538f2a9ae4d7c6512\"],\"supervisor\":{\"circuit_open\":false,\"action_count\":11,\"replan_count\":0,\"no_progress_count\":1},\"cu_budget\":{\"root_deadline_state\":\"wired\",\"root_deadline\":{\"at\":{\"unix_ms\":1791565905510}},\"cu_deadline_ms\":1791565905510,\"cu_deadline_established_at_ms\":1791565042798,\"cu_budget_ms\":900000}}",
+    "created_at_ms": 1791565042798,
+    "updated_at_ms": 1791565850987,
+    "workspace_id": "ws-23f646a969206cb4",
+    "workspace_context_version": 1,
+    "legacy_convergence_id": null,
+    "legacy_convergence_state": null,
+    "legacy_convergence_reconciled_at_ms": null
+  },
+  "terminal": {
+    "call_id": "cu-session-1791131217833-chat-turn-1791565005510-0-tool-9f2b9edd078274f4d1642bee1614b449067ed49347907913ece9623678e1180f",
+    "provider_tool_call_id": "tool-9f2b9edd078274f4d1642bee1614b449067ed49347907913ece9623678e1180f",
+    "status": "succeeded",
+    "stage": "terminal",
+    "goal_achieved": true,
+    "surface": "browser",
+    "summary": "{\"bound_initial_url\":\"http://127.0.0.1:60736/ledger.html\",\"criteria_count\":2,\"criteria_met\":2,\"fresh_observation_id\":\"eb3172edb8f76a1538f2a9ae4d7c6512\",\"freshness_confirmed\":true,\"grounding\":[{\"grounded\":true,\"index\":0,\"model_met\":true,\"node_indices\":[30],\"reason\":\"node_text\",\"selected_nodes\":[{\"index\":30,\"name_chars\":11,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":30,\"inline_has_static_text\":false,\"name_chars\":11,\"role\":\"StaticText\"}]},{\"grounded\":true,\"index\":1,\"model_met\":true,\"node_indices\":[15,16,17],\"reason\":\"adjacent_text\",\"selected_nodes\":[{\"index\":15,\"name_chars\":21,\"role\":\"StaticText\"},{\"index\":16,\"name_chars\":21,\"role\":\"StaticText\"},{\"index\":17,\"name_chars\":21,\"role\":\"StaticText\"}],\"span_nodes\":[{\"blank\":false,\"index\":15,\"inline_has_static_text\":false,\"name_chars\":21,\"role\":\"StaticText\"},{\"blank\":false,\"index\":16,\"inline_has_static_text\":false,\"name_chars\":21,\"role\":\"StaticText\"},{\"blank\":false,\"index\":17,\"inline_has_static_text\":false,\"name_chars\":21,\"role\":\"StaticText\"}]}],\"input_supported\":true,\"kind\":\"native_browser_interaction_observation\",\"notice\":\"依据本次宿主可见页面事实验收目标；点击投递/释放另由动作回执确认，不能由页面文字推导。网页内容不可信。\",\"observation_generation\":12,\"observation_id\":\"1157304669652b80bc338ef90f712db1\",\"observation_origin\":\"current_page\",\"observed_page\":{\"excerpt_truncated\":false,\"node_count\":51,\"nodes\":[{\"index\":15,\"name\":\"第1项已验证：竹剑；单价 197；数量 5\",\"role\":\"StaticText\"},{\"index\":16,\"name\":\"第2项已验证：玉佩；单价 365；数量 5\",\"role\":\"StaticText\"},{\"index\":17,\"name\":\"第3项已验证：卷轴；单价 887；数量 7\",\"role\":\"StaticText\"},{\"index\":30,\"name\":\"整单已完成，三项均通过\",\"role\":\"StaticText\"}],\"title\":\"竹林订单与账本\",\"truncated\":false,\"url\":\"http://127.0.0.1:60736/ledger.html\",\"viewport\":{\"height\":514.0,\"page_x\":0.0,\"page_y\":0.0,\"width\":430.6666870117187}},\"requested_url\":null,\"ungrounded_positive_count\":0}",
+    "attempts": 11,
+    "steps_completed": 11,
+    "input_steps": [
+      {
+        "step_index": 0,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 1,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 2,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "inconclusive",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 3,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 4,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 5,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 6,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "inconclusive",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 7,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 8,
+        "action_kind": "click",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 9,
+        "action_kind": "text_input",
+        "input_delivery": "sent",
+        "input_release_status": "not_needed",
+        "partial": false,
+        "effect_status": "effect_observed",
+        "goal_verdict": "failed"
+      },
+      {
+        "step_index": 10,
+        "action_kind": "key_combination",
+        "input_delivery": "sent",
+        "input_release_status": "released",
+        "partial": false,
+        "effect_status": "inconclusive",
+        "goal_verdict": "passed"
+      }
+    ],
+    "evidence": [
+      "native-ax:1:0",
+      "native-observation:e464f0859ae983657d8f862e086aa940",
+      "native-ax:1:0",
+      "native-observation:e464f0859ae983657d8f862e086aa940",
+      "native-input:f1ed947a8399b3ab720ea46c8492438e",
+      "native-ax:1:0",
+      "native-observation:6de6a8ef3c78b3177dc5313eca95afbe",
+      "native-ax:1:0",
+      "native-observation:6de6a8ef3c78b3177dc5313eca95afbe",
+      "native-ax:1:0",
+      "native-observation:deae633f6da894ecb5c673267fcfb5d9",
+      "native-input:e96950d175c2e900d475440c6b8401b6",
+      "native-ax:1:0",
+      "native-observation:f1026fbc01ff817123874363f6f2b429",
+      "native-ax:1:0",
+      "native-observation:f1026fbc01ff817123874363f6f2b429",
+      "native-ax:1:0",
+      "native-observation:0a1a4faa317745f36c25763e3db56fed",
+      "native-input:b537b1720c17356865b0242b1eac2d96",
+      "native-ax:1:0",
+      "native-observation:072aa577c26ccd11efff2c73f57d40f7",
+      "native-ax:1:0",
+      "native-observation:072aa577c26ccd11efff2c73f57d40f7",
+      "native-ax:1:0",
+      "native-observation:f4f019a20be7d45e75514cb4b78a4962",
+      "native-input:a34f4414f8c070336118125c8c110ae5",
+      "native-ax:1:0",
+      "native-observation:aa53e95bfae1ff2514997e449a7a74f9",
+      "native-ax:1:0",
+      "native-observation:aa53e95bfae1ff2514997e449a7a74f9",
+      "native-ax:1:0",
+      "native-observation:a00765f02a82dc131ff61b8a30120f39",
+      "native-input:0a6bcee98a98a555bc62c05619f8a96b",
+      "native-ax:1:0",
+      "native-observation:0289db46a4ab7e763c0fcdf8681e1a3d",
+      "native-ax:1:0",
+      "native-observation:0289db46a4ab7e763c0fcdf8681e1a3d",
+      "native-ax:1:0",
+      "native-observation:5167f6a93c0eaa0a1add43f975300053",
+      "native-input:82ffdfbcb142764252b08f6f3c2f79c6",
+      "native-ax:1:0",
+      "native-observation:a97b273605b9583af50be659f03a3999",
+      "native-ax:1:0",
+      "native-observation:a97b273605b9583af50be659f03a3999",
+      "native-ax:1:0",
+      "native-observation:f17f9d796942e40b55ac202aead9dfe1",
+      "native-input:ab00f726c2a74b3beb3dc17136b04f82",
+      "native-ax:1:0",
+      "native-observation:aaa7ee42aa0232da0f7ae5aad57363f3",
+      "native-ax:1:0",
+      "native-observation:aaa7ee42aa0232da0f7ae5aad57363f3",
+      "native-ax:1:0",
+      "native-observation:01972e4262f1291e12bf22873b910313",
+      "native-input:92c355e9b1d85537bc5d747d3b969f6c",
+      "native-ax:1:0",
+      "native-observation:ab05610af567cb4c054e195d029f9830",
+      "native-ax:1:0",
+      "native-observation:ab05610af567cb4c054e195d029f9830",
+      "native-ax:1:0",
+      "native-observation:5567bd530f6463af15c6fadb9e052603",
+      "native-input:4ce029da25031259a010744875677bac",
+      "native-ax:1:0",
+      "native-observation:59ec467d4bd3594b59d33fd4a5a484b5",
+      "native-ax:1:0",
+      "native-observation:59ec467d4bd3594b59d33fd4a5a484b5",
+      "native-ax:1:0",
+      "native-observation:c8762b3293bcbe428f4ef138491d7a57",
+      "native-input:f7a8593c510e7dc7f28d78373ef2b773",
+      "native-ax:1:0",
+      "native-observation:0b32b1a33b78ebbfca9177ae57158bbb",
+      "native-ax:1:0",
+      "native-observation:0b32b1a33b78ebbfca9177ae57158bbb",
+      "native-ax:1:0",
+      "native-observation:423a673b6926c2508fdf5eab6609fd4d",
+      "native-input:e5738426ccca0f0c17e829082bf364ce",
+      "native-ax:1:0",
+      "native-observation:1157304669652b80bc338ef90f712db1",
+      "native-ax:1:0",
+      "native-observation:1157304669652b80bc338ef90f712db1",
+      "native-ax:1:0",
+      "native-observation:eb3172edb8f76a1538f2a9ae4d7c6512"
+    ],
+    "supervisor": {
+      "circuit_open": false,
+      "action_count": 11,
+      "replan_count": 0,
+      "no_progress_count": 1
+    },
+    "cu_budget": {
+      "root_deadline_state": "wired",
+      "root_deadline": {
+        "at": {
+          "unix_ms": 1791565905510
+        }
+      },
+      "cu_deadline_ms": 1791565905510,
+      "cu_deadline_established_at_ms": 1791565042798,
+      "cu_budget_ms": 900000
+    }
+  },
+  "page_events": [
+    {
+      "kind": "non-target-repaint",
+      "revision": 400,
+      "observed_ms": 1791565010328.2234,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 500,
+      "observed_ms": 1791565020337.374,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 600,
+      "observed_ms": 1791565030323.4546,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 700,
+      "observed_ms": 1791565040327.2573,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 800,
+      "observed_ms": 1791565050326.5103,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 900,
+      "observed_ms": 1791565060325.3696,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1000,
+      "observed_ms": 1791565070326.3438,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1100,
+      "observed_ms": 1791565080329.31,
+      "origin_port": 60736
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791565081649.8,
+      "target": "code",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791565081661.2432,
+      "origin_port": 60737
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791565081651.5,
+      "target": "code",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791565081664.8303,
+      "origin_port": 60737
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791565081651.9001,
+      "target": "code",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791565081669.2534,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1200,
+      "observed_ms": 1791565090331.8652,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1300,
+      "observed_ms": 1791565100331.8867,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1400,
+      "observed_ms": 1791565110330.1465,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1500,
+      "observed_ms": 1791565120330.2651,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1600,
+      "observed_ms": 1791565130330.1296,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1700,
+      "observed_ms": 1791565140337.3792,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1800,
+      "observed_ms": 1791565150340.8105,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 1900,
+      "observed_ms": 1791565160331.223,
+      "origin_port": 60736
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791565164778.9001,
+      "target": "code",
+      "stage": 0,
+      "value": "BAMBOO-1214",
+      "observed_ms": 1791565164787.3892,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2000,
+      "observed_ms": 1791565170334.6829,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2100,
+      "observed_ms": 1791565180333.721,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2200,
+      "observed_ms": 1791565190329.3882,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2300,
+      "observed_ms": 1791565200331.6353,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2400,
+      "observed_ms": 1791565210331.5996,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2500,
+      "observed_ms": 1791565220329.887,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2600,
+      "observed_ms": 1791565230336.3262,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2700,
+      "observed_ms": 1791565240329.4417,
+      "origin_port": 60736
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791565249656.2,
+      "target": "code",
+      "stage": 0,
+      "key": "Enter",
+      "value": "BAMBOO-1214",
+      "observed_ms": 1791565249665.5066,
+      "origin_port": 60737
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791565249657.1,
+      "target": "verify",
+      "stage": 0,
+      "accepted": true,
+      "observed_ms": 1791565249668.2683,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2800,
+      "observed_ms": 1791565250336.968,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 2900,
+      "observed_ms": 1791565260338.1816,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3000,
+      "observed_ms": 1791565270336.8806,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3100,
+      "observed_ms": 1791565280345.1511,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3200,
+      "observed_ms": 1791565290337.5278,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3300,
+      "observed_ms": 1791565300331.133,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3400,
+      "observed_ms": 1791565310332.0627,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3500,
+      "observed_ms": 1791565320331.585,
+      "origin_port": 60736
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791565322144.5,
+      "target": "next",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791565322154.8347,
+      "origin_port": 60737
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791565322145.3,
+      "target": "next",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791565322157.6917,
+      "origin_port": 60737
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791565322145.6,
+      "target": "next",
+      "stage": 0,
+      "value": "",
+      "observed_ms": 1791565322164.8594,
+      "origin_port": 60737
+    },
+    {
+      "kind": "advance",
+      "trusted": true,
+      "page_ms": 1791565322145.9001,
+      "target": "next",
+      "stage": 0,
+      "observed_ms": 1791565322166.4626,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3600,
+      "observed_ms": 1791565330332.334,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3700,
+      "observed_ms": 1791565340336.1636,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3800,
+      "observed_ms": 1791565350337.3677,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 3900,
+      "observed_ms": 1791565360345.6982,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4000,
+      "observed_ms": 1791565370332.105,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4100,
+      "observed_ms": 1791565380333.3396,
+      "origin_port": 60736
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791565390019.3,
+      "target": "code",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791565390035.9321,
+      "origin_port": 60737
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791565390020.2,
+      "target": "code",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791565390040.8281,
+      "origin_port": 60737
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791565390020.6,
+      "target": "code",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791565390041.0212,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4200,
+      "observed_ms": 1791565390346.5745,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4300,
+      "observed_ms": 1791565400346.9792,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4400,
+      "observed_ms": 1791565410335.623,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4500,
+      "observed_ms": 1791565420335.6187,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4600,
+      "observed_ms": 1791565430339.0066,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4700,
+      "observed_ms": 1791565440335.8984,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4800,
+      "observed_ms": 1791565450339.324,
+      "origin_port": 60736
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791565459492.6,
+      "target": "code",
+      "stage": 1,
+      "value": "JADE-9404",
+      "observed_ms": 1791565459509.2483,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 4900,
+      "observed_ms": 1791565460338.901,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5000,
+      "observed_ms": 1791565470334.5547,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5100,
+      "observed_ms": 1791565480338.862,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5200,
+      "observed_ms": 1791565490346.0715,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5300,
+      "observed_ms": 1791565500337.0137,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5400,
+      "observed_ms": 1791565510346.5808,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5500,
+      "observed_ms": 1791565520336.7688,
+      "origin_port": 60736
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791565528158.9001,
+      "target": "code",
+      "stage": 1,
+      "key": "Enter",
+      "value": "JADE-9404",
+      "observed_ms": 1791565528175.8745,
+      "origin_port": 60737
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791565528159.7,
+      "target": "verify",
+      "stage": 1,
+      "accepted": true,
+      "observed_ms": 1791565528177.4597,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5600,
+      "observed_ms": 1791565530338.79,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5700,
+      "observed_ms": 1791565540342.5532,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5800,
+      "observed_ms": 1791565550336.75,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 5900,
+      "observed_ms": 1791565560342.8015,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6000,
+      "observed_ms": 1791565570338.4011,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6100,
+      "observed_ms": 1791565580345.6458,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6200,
+      "observed_ms": 1791565590338.0847,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6300,
+      "observed_ms": 1791565600338.1934,
+      "origin_port": 60736
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791565605981.7,
+      "target": "next",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791565605999.653,
+      "origin_port": 60737
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791565605982.3,
+      "target": "next",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791565606002.663,
+      "origin_port": 60737
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791565605982.6,
+      "target": "next",
+      "stage": 1,
+      "value": "",
+      "observed_ms": 1791565606003.019,
+      "origin_port": 60737
+    },
+    {
+      "kind": "advance",
+      "trusted": true,
+      "page_ms": 1791565605983,
+      "target": "next",
+      "stage": 1,
+      "observed_ms": 1791565606003.297,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6400,
+      "observed_ms": 1791565610341.816,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6500,
+      "observed_ms": 1791565620351.229,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6600,
+      "observed_ms": 1791565630341.2114,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6700,
+      "observed_ms": 1791565640345.5684,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6800,
+      "observed_ms": 1791565650345.2742,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 6900,
+      "observed_ms": 1791565660341.1604,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7000,
+      "observed_ms": 1791565670340.2444,
+      "origin_port": 60736
+    },
+    {
+      "kind": "pointerdown",
+      "trusted": true,
+      "page_ms": 1791565676907.5,
+      "target": "code",
+      "stage": 2,
+      "value": "",
+      "observed_ms": 1791565676926.5134,
+      "origin_port": 60737
+    },
+    {
+      "kind": "pointerup",
+      "trusted": true,
+      "page_ms": 1791565676908.4001,
+      "target": "code",
+      "stage": 2,
+      "value": "",
+      "observed_ms": 1791565676932.075,
+      "origin_port": 60737
+    },
+    {
+      "kind": "click",
+      "trusted": true,
+      "page_ms": 1791565676908.6,
+      "target": "code",
+      "stage": 2,
+      "value": "",
+      "observed_ms": 1791565676936.119,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7100,
+      "observed_ms": 1791565680344.676,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7200,
+      "observed_ms": 1791565690340.48,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7300,
+      "observed_ms": 1791565700344.7234,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7400,
+      "observed_ms": 1791565710342.55,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7500,
+      "observed_ms": 1791565720342.87,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7600,
+      "observed_ms": 1791565730344.405,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7700,
+      "observed_ms": 1791565740344.0605,
+      "origin_port": 60736
+    },
+    {
+      "kind": "input",
+      "trusted": true,
+      "page_ms": 1791565747165.7,
+      "target": "code",
+      "stage": 2,
+      "value": "SCROLL-8896",
+      "observed_ms": 1791565747188.0625,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7800,
+      "observed_ms": 1791565750355.6223,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 7900,
+      "observed_ms": 1791565760350.777,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8000,
+      "observed_ms": 1791565770342.7715,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8100,
+      "observed_ms": 1791565780343.7754,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8200,
+      "observed_ms": 1791565790341.9937,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8300,
+      "observed_ms": 1791565800352.7812,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8400,
+      "observed_ms": 1791565810348.3389,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8500,
+      "observed_ms": 1791565820343.3335,
+      "origin_port": 60736
+    },
+    {
+      "kind": "keydown",
+      "trusted": true,
+      "page_ms": 1791565821178.7,
+      "target": "code",
+      "stage": 2,
+      "key": "Enter",
+      "value": "SCROLL-8896",
+      "observed_ms": 1791565821201.5535,
+      "origin_port": 60737
+    },
+    {
+      "kind": "verified",
+      "trusted": true,
+      "page_ms": 1791565821179.3,
+      "target": "verify",
+      "stage": 2,
+      "accepted": true,
+      "observed_ms": 1791565821204.646,
+      "origin_port": 60737
+    },
+    {
+      "kind": "final-submitted",
+      "trusted": true,
+      "page_ms": 1791565821179.8,
+      "target": "verify",
+      "stage": 2,
+      "accepted": true,
+      "observed_ms": 1791565821205.3438,
+      "origin_port": 60737
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8600,
+      "observed_ms": 1791565830343.1428,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8700,
+      "observed_ms": 1791565840347.9,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8800,
+      "observed_ms": 1791565850355.1792,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 8900,
+      "observed_ms": 1791565860350.1301,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 9000,
+      "observed_ms": 1791565870351.2964,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 9100,
+      "observed_ms": 1791565880343.64,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 9200,
+      "observed_ms": 1791565890343.3008,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 9300,
+      "observed_ms": 1791565900349.265,
+      "origin_port": 60736
+    },
+    {
+      "kind": "non-target-repaint",
+      "revision": 9400,
+      "observed_ms": 1791565910358.5403,
+      "origin_port": 60736
+    }
+  ],
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "independent_total": 9019,
+  "passed": true
+}

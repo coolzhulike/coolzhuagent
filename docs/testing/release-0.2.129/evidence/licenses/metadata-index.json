@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "capture_timing": "构建后观察，不是构建时收据",
+  "build_source_commit": "270b69b01c93301c9d5f52e9dbe01813df6b3aaf",
+  "metadata_observation_commit": "9bcc198409be7358e69c4a7995db68ffa5fdd712",
+  "scope_limitation": "不证明分发组件或许可证义务；manifest_path仅用于本机定位",
+  "records": [
+    {
+      "scope": "root",
+      "path": "root-metadata.json",
+      "sha256": "e53bcc6c7abaf91108f94be2a79008765a23fb4d02f5af06a157b0b2c1d75f9b",
+      "bytes": 2865347,
+      "artifacts": [
+        "cli.command-line",
+        "computer-use.preflight-check",
+        "gui-web.browser-native-host",
+        "gui-web.clawbot-sidecar",
+        "gui-web.web-console",
+        "package.app-launcher",
+        "vision.latest-desktop",
+        "vision.smoke"
+      ],
+      "command": "cargo metadata --locked --offline --format-version 1",
+      "exit_code": 0
+    },
+    {
+      "scope": "tauri",
+      "path": "tauri-metadata.json",
+      "sha256": "7f97be63798d853d546cc5e780ffac17d3efb4095c09ec798c57c3be9aa3ba44",
+      "bytes": 2846973,
+      "artifacts": [
+        "gui-desktop.tauri-shell"
+      ],
+      "command": "cargo metadata --locked --offline --format-version 1 --manifest-path modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml",
+      "exit_code": 0
+    }
+  ]
+}

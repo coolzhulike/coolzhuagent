@@ -1,0 +1,76 @@
+{
+  "recorded_at": "2026-10-10T12:07:46.740937+00:00",
+  "passed": true,
+  "stage": "源码候选真实SQLite独立副本API专项；非原生GUI验收",
+  "full_sbom_bytes": 1919770,
+  "full_sbom_sha256": "96ca3ba211b7a1b2afa4cfdddc2c3430f0fc8a22bf434aeba283f13d6413de3e",
+  "byte_pages": [
+    {
+      "offset": 0,
+      "bytes": 262144,
+      "next_offset": 262144,
+      "sha256": "a0ab8a150edd133f887a3267287632651540ccd3ac78ffcca821b845e0f59dd4"
+    },
+    {
+      "offset": 262144,
+      "bytes": 262144,
+      "next_offset": 524288,
+      "sha256": "16d585a0fc454b2a9d56c6f097a2337013309188babd89e9f7d0360f82902265"
+    },
+    {
+      "offset": 524288,
+      "bytes": 262144,
+      "next_offset": 786432,
+      "sha256": "eb1f830fd29832146f84d293fc9e20873a622ab919ba222de31bf085a7a96454"
+    },
+    {
+      "offset": 786432,
+      "bytes": 262144,
+      "next_offset": 1048576,
+      "sha256": "49f30a0ad529573e7ac664bff36da2bc93a5f54db88efa6ae3cf6aba6461af44"
+    },
+    {
+      "offset": 1048576,
+      "bytes": 262144,
+      "next_offset": 1310720,
+      "sha256": "ac39674d822c58ed36337cff4d58b07f2e0f2ffb694bddd37e1cfa0a1df33681"
+    },
+    {
+      "offset": 1310720,
+      "bytes": 262144,
+      "next_offset": 1572864,
+      "sha256": "4eb69ff0bd88f3bc0c86590b9d8cd27a44ceeec3d17c4cdd4be845557ad1d375"
+    },
+    {
+      "offset": 1572864,
+      "bytes": 262144,
+      "next_offset": 1835008,
+      "sha256": "8d29f2ac65c55cd742216de3c1c4f28e80c5be4a46449912f6fa7a0b03b0e0ea"
+    },
+    {
+      "offset": 1835008,
+      "bytes": 84762,
+      "next_offset": null,
+      "sha256": "7cf5fb5e99fe2f89e6d7cd85c468a0561fc24d9aaca7a00939d86afe5dac42f8"
+    }
+  ],
+  "full_bytes_reconstructed": true,
+  "total_lines": 19775,
+  "tail_range": [
+    19375,
+    19775
+  ],
+  "row_window_cap": 801,
+  "row_response_max_bytes": 262144,
+  "preview_total_max_bytes": 67108864,
+  "large_file_editable": false,
+  "bom_and_blank_lines_preserved": true,
+  "oversize_read_status": 413,
+  "long_line_window_status": 413,
+  "large_write_status": 413,
+  "small_write_conflict_status": 409,
+  "source_config_and_runtime_counts_unchanged": true,
+  "new_model_calls": 0,
+  "new_cloud_sessions": 0,
+  "native_gui_passed": false
+}

@@ -1,0 +1,110 @@
+{
+  "stage": "0.2.101正式安装版",
+  "bindings": [
+    {
+      "lane": "",
+      "remote_session_id": "island-kayak",
+      "locked_attempt": null
+    },
+    {
+      "lane": "internal",
+      "remote_session_id": null,
+      "locked_attempt": null
+    }
+  ],
+  "records": [
+    {
+      "marker": "INSTALLED101-BROWSER-TIMING-REVIEW-20261008",
+      "source": {
+        "id": "msg-1791496204409-user",
+        "created_at": 1791496204699
+      },
+      "run": {
+        "id": "run-chat-151fcfb147d87f10adb1fd60e2f2ebffd7641b1df7ada9c3",
+        "kind": "chat_turn",
+        "workspace_id": "ws-23f646a969206cb4",
+        "session_id": "session-1791131217833",
+        "chat_room_id": "room-1791131523339",
+        "goal_id": null,
+        "phase_id": null,
+        "legacy_turn_id": "chat-turn-1791496204409-0",
+        "provider_turn_id": null,
+        "state": "completed",
+        "owner_id": "coolzhu-web-console",
+        "claim_token": "claim-39993a98b56b0ef1415e05ebdeb2d8662fd2303d9e03438e1568bb7d7dc0d654",
+        "stop_reason": null,
+        "error_json": null,
+        "created_at": 1791496204412,
+        "started_at": 1791496204697,
+        "stop_requested_at": null,
+        "heartbeat_at": 1791496204697,
+        "finished_at": 1791496278196
+      },
+      "attempts": [
+        {
+          "attempt_id": "cdebca890d7586c10c596da1e4eea9da019a5c5f8465f323",
+          "state": "terminal",
+          "protocol_stop": "end_turn",
+          "process_drained": 1,
+          "model_json": "{\"requested\":\"swe-2-medium\",\"effective\":\"swe-2-medium\",\"resolved_model\":null}"
+        }
+      ],
+      "calls": [
+        {
+          "tool_call_id": "tool-e31ba2f58cfff6cd7f9152a31c9177dc0cbc57d0a27b57e096d5bdf94180a768",
+          "run_id": "run-chat-151fcfb147d87f10adb1fd60e2f2ebffd7641b1df7ada9c3",
+          "request_attempt_id": null,
+          "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+          "arguments_digest": "8be802293c9143d0",
+          "status": "completed",
+          "created_at_unix_ms": 1791496221977,
+          "updated_at_unix_ms": 1791496224472,
+          "provider_tool_call_id": "1",
+          "source_request_key": "{\"workspace_id\":\"ws-23f646a969206cb4\",\"room_id\":\"room-1791131523339\",\"agent_id\":\"session-1791131217833\",\"run_id\":\"run-chat-151fcfb147d87f10adb1fd60e2f2ebffd7641b1df7ada9c3\",\"turn_id\":\"chat-turn-1791496204409-0\",\"attempt_id\":\"cdebca890d7586c10c596da1e4eea9da019a5c5f8465f323\",\"owner_epoch\":223,\"generation\":223}"
+        }
+      ],
+      "tool_audits": [
+        {
+          "ts": "1791496224.470",
+          "call_id": "tool-e31ba2f58cfff6cd7f9152a31c9177dc0cbc57d0a27b57e096d5bdf94180a768",
+          "tool_name": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab",
+          "caller": "llm",
+          "workspace_id": "ws-23f646a969206cb4",
+          "session_id": "session-1791131217833",
+          "input_summary": "dsh__3596dc2eaf5d6f03a00cbaa53d42a8ab: expression=len5",
+          "status": "ok",
+          "elapsed_ms": 1841,
+          "permission": {
+            "required": "danger-full-access",
+            "decision": "allow-auto",
+            "reason": "full-access-profile",
+            "workspace_relative": false,
+            "affected_paths": [
+              "<opaque-command>"
+            ]
+          },
+          "summary_text": "DSH实际宿主操作已收尾",
+          "evidence": {
+            "frozen_parent_permission": {
+              "affected_paths": [
+                "<opaque-command>"
+              ],
+              "decision": "allow-auto",
+              "reason": "full-access-profile",
+              "required": "danger-full-access",
+              "workspace_relative": false
+            }
+          }
+        }
+      ],
+      "visible_messages": [
+        {
+          "id": "msg-1791496204812-0",
+          "content": "**calculator 回执**：`dsh__3596dc2e…` 调用一次 `{\"expression\":\"882+1\"}`，宿主 `status: ok`（runtime-executed，audit `executed: true`，elapsed_ms 1841），**result = 883**。与前轮 882 加本轮 1 一致。\n\n以下区分**源代码已保证的事实**与**尚无实操证据的竞态**；诊断方案标注\"尚未实施\"，不视为已实现。\n\n---\n\n## A–F 逐项审查\n\n### A. 新模块 vs 复用既有 logger —— **可行，复用更小**\n\n代码依据：`log_navigation_diagnostic` 已是 opt-in（`COOLZHU_BROWSER_NAV_DIAGNOSTICS` 环境变量经 `OnceLock` 初始化，`\"1\"|\"true\"` 才启用）、带单调 `SEQUENCE` 序号、复用 `diagnostics::info` 通道、且已刻意不记正文（只记 scheme/generation/revision/布尔匹配项）。新增 input 诊断只需在同一函数旁加 `stage=\"input_dispatch\"` 记录 attempt_id、press/release 的入队返回、ACK 真假、超时结算——**无需新模块**。风险：无。\n\n### B. 何种记录才能证明 \"down < generation 变化 / 新文档 commit < up\" —— **部分可行，需保守上下界**\n\n- 可证明下界：`press_params` 的 COM `CallDevToolsProtocolMethod` 入队返回时刻（T_enqueue_down）与 `up` 入队返回（T_enqueue_up）之间有确定序号；若面板 `generation` 递增事件（invalidate 里 `state.generation.wrapping_add(1)`）的日志序号落在两者之间，即可证 \"down 入队 < generation 变化 < up 入队\"。\n- **不可证明精确 commit**：`SourceChanged.IsNewDocument` 在 `native_browser_source.rs` 中被显式早退（`if new_document.as_bool() { return Ok(()); }`），且按官方语义 SourceChanged 可为 fragment、ContentLoading 才是内容开始加载——两者都不是网络 commit 时刻。方案要求\"保守上下界\"是对的：能证明的是\"commit ∈ [NavigationStarting, ContentLoading] 与 down/up 的重叠区间\"，不能强称精确时刻。\n- 缺口：渲染线程 pointerdown 的 2400ms 处理与 DOM 事件时刻无法从 COM ACK 推导——ACK 只证明 CDP 命令被接收，不证明 handler 开始/结束。诊断应如实记 ACK true/false/缺失，不将 ACK 当 commit。\n\n### C. 回调顺序 ≠ DOM 处理顺序，ACK 晚到不误判 —— **代码已保证不阻塞释放，诊断须保持单向事实**\n\n代码依据：`make_handler` 的 `phases` 槽位 `if slot.is_none()` 只写一次、双槽齐才 send——down/up ACK 乱序到达不产生误判（先到不占位错槽）；`queued.is_err()` 与超时统一 `ReleaseUnknown` 不自动重放。诊断记录 ACK 真假与到达序号即可，**不需要也不应**用 ACK 推断 DOM 处理时刻。风险：若两个 handler 实例共享 `sender`，up 先到 down 后到仍报 Released——这是既有行为（两槽齐才发），顺序乱但双确认，语义上\"up 已释放\"成立，不误判。\n\n### D. 正常 UI 关闭重开 + 2400ms pointerdown 命中窗口 —— **可行但不保证，须诚实保留缺口**\n\n代码依据：`retire_view` 先 `hide()` 再等 `execution_gate().lock().await` 后 `close()`——gate 由在途 click 持有至结果或 3s 超时。按下期间测试端正常关闭标签→invalidate→hide 立即可见但 close 等 gate；此时 up 已按旧 controller 入队（同一 UI 闭包双入队），新 Target 不接旧 up。**命中窗口存在**（2400ms 处理 ≫ 关闭操作），但 `with_webview` 闭包排队时机、测试端关闭延迟均为真实物理时序，**不修改宿主等待则无法保证每次命中**——应如实标注\"可遇非必现\"，一次未命中不算失败也不算通过。\n\n### E. 只读诊断的泄漏/扰动 —— **可行，已最小化**\n\n依据：现有 diagnostic 只记枚举字段（scheme、generation、revision、布尔、序号），不记 URL 全串/query/token/scope/文本——方案延续此约束且默认关闭、无前端控件、无新 API，泄漏面可控。扰动：日志在 `Invoke`/`on_navigation` 回调内热路径 `state.lock()` + 原子序号，微秒级开销对 2400ms 窗口可忽略；`drop(state)` 在 emit 前，不持锁阻塞。**残余**：诊断打开本身改变宿主侧时间线（理论扰动），但属 opt-in 验收工具，可接受。\n\n### F. up 用原 controller 是否足以验收基本能力 —— **足以验收\"释放不截断\"，不足以验收\"严格时序命中\"**\n\n代码保证（F 的基本能力证据）：\n- down/up 在同一 `with_webview` UI 闭包顺序入队，`up_queued` 不依赖 down ACK——**up 一定尝试投递给原 controller**，导航/取消不截断。\n- `expire` 与 `input_resource != target.resource` 检查发生在闭包**开始前**；闭包执行后即使资源已撤销，up 仍发给旧 controller（新资源不接旧动作）——符合\"原 up 仍发旧 controller\"设计。\n- `retire_view` 的 gate 保证 close 不早于在途 click 结算。\n\n**不可由源码推出、须实机证明的严格竞态**：down 后新 Target 建立且 commit 恰好落在 down/up 物理间隔内。097/098 已证明窗口存在但严格时刻未证——本轮应如实分开列：基本能力（源码+既有回归）✅，严格时序（诊断记录 + 正常 UI 操作）待实测，不追认。\n\n---\n\n**最小建议**：复用 `log_navigation_diagnostic` 加 `stage` ∈ {input_enqueue, input_ack, input_settle} 与 generation_revoke/panel_create 记录；缺 ACK 记 unknown；SourceChanged(IsNewDocument) 与 ContentLoading 分别记为 commit 下界与上界，不宣称精确时刻。\n\nBrowser严格时序方案审查完成",
+          "kind": "assistant-reply"
+        }
+      ]
+    }
+  ],
+  "facts": "正式101本页真实流式、单工具、完整回复及用量增量/轨迹查询分别独立核验；模型审查仅作方案建议，不等同Browser竞态验收。"
+}

@@ -1,0 +1,13 @@
+{
+  "executable": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-05-browser-viewport\\candidate-bin\\coolzhu-web-console.exe",
+  "installed_payload": false,
+  "input_safety_state_root": "C:/Users/zhupu/AppData/Local/CoolzhuAgent/input-safety",
+  "web_pid": 31028,
+  "web_sha256": "132307497EB63F417BAA5D34CEB8A84EA9B5F433A279F3710242F2345BB60D51",
+  "phase": 4,
+  "workspace": "C:\\Users\\zhupu\\.codex\\worktrees\\input-recovery-20261004\\coolzhuagent\\tmp\\2026-10-04-devin-models\\workspace",
+  "port": 8765,
+  "source_base": "f3bb374c8e9be93fbe0837b86a730080cd87a679",
+  "dirty_source": true,
+  "shell_sha256": "742C366F60FCF42F33320804B66890F59109E7C75A482910DF15B53070D4AA8F"
+}

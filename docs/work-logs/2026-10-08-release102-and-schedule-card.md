@@ -1,0 +1,99 @@
+# 正式102与长任务卡片修补
+
+正式102冻结95e0140，正常安装与1159文件逐摘要核验通过。真实SWE单次定时投递原绑定聊天室，两次工具completed，材料函数名不再触发误CU失败；正常重启五次并发扫描零重放。插件源码变化复验取得独立tool.dispatch_rejected/tool_not_live/executed=false，零执行登记/零GET、排空后精确恢复。原唯一island-kayak保持。完整交接与实拍见[102报告](../testing/release-0.2.102/change-report-and-test-handoff.md)。包装子ExitCode=null如实保留，不改写为0。
+
+正式实拍发现定时任务卡片将长源码全文平铺，状态和删除操作被挤出。前端候选先呈现会话显示名、结果房间、计划和执行状态；正文按Unicode字符截240并限制三行，长文本用原生details按需展开，全文独立滚动；删除沿用原行为，改现有图标并保留title/aria。去掉不可用会话的裸内部ID。不修改模型、权限、调度与云端绑定。
+
+node --check通过；cargo build -p coolzhu-web-console --offline通过（21.70秒，原warning保留）。低影响布局不新增镜像单元测试，不重复已通过1420项。此候选尚未包含102，下一正式包正常UI实拍后才验收。Browser严格时序及其它台账保持开放，Goal继续。
+
+
+## 正式104：真实大回执分页通过
+
+104正式补记：冻结6fad837，正常发布链真实子退出0、六门pass、MSI安装0、1159文件逐长度/SHA匹配。真实SWE-2-medium/唯一island-kayak，一次HTTP GET完整44498字节资料，完整工具回执111227字节；独立tool.result_page_read记录107200→111227，模型读到随机尾文、calculator一次完成正确149548450，两个工具completed、父completed/end_turn/drained、无read_file/无新云端会话，约60.3秒。正常原生实拍与原事实见[104交接](../testing/release-0.2.104/change-report-and-test-handoff.md)。临时白名单/插件已恢复revision45，服务器正常停止。仅关闭本轮ACP无read_file大结果尾文→工具续接；其它Provider、GC/压缩及完整资格矩阵不外推。102原失败、模型字节数误称及首次采证列名错误保留并纠正。Browser严格时序与其它总体矩阵继续开放，Goal保持进行中。下方“分页候选未实机”属于历史阶段，不覆盖本段正式事实。
+
+
+## 2026-10-08 正式104插件重新配置竞争补记（部分通过）
+
+配置提交明确早于旧工具登记，真实SWE-2/唯一island-kayak网络GET为0，工具1条failed、父轮completed/end_turn/drained。104仅传回409，独立拒绝诊断缺失；候选补具体原因及after_admission_before_executor事件，offline build与DSH专项8通过/1既有跳过，尚未出包复验。正常恢复配置、白名单及停用状态，revision47、源码摘要保持。102的before_dispatch/零登记证据不能代替此场景。[正式104事实与实拍](../testing/release-0.2.104/plugin-config-race/report.md)。整体Goal继续。
+
+
+105正式补记：插件重新配置旧轮拒绝的具体原因传回与独立阶段事件已正式复验通过。真实SWE-2/唯一island-kayak，配置先提交，工具1条failed、GET0，tool.dispatch_rejected准确标after_admission_before_executor/dsh_action_not_live/executed=false；父completed/end_turn/drained，正常恢复revision49。正常release六门、构建/安装0、1159文件逐SHA一致，冻结aaf39cd。见[105交接与实拍](../testing/release-0.2.105/change-report-and-test-handoff.md)。104缺诊断是历史阶段；其它矩阵仍开放，Goal继续。
+
+
+
+105执行中配置更换补记：真实网络GET1后正常更换配置，原连接在约1.845秒内关闭，无响应体/补发；独立持有旧宿主进程句柄Wait258→0，脚本未终止宿主。工具failed、父completed/end_turn/drained、唯一远端解锁，正常恢复revision51。执行已进入，不写成零执行；完整瞬时工具回执未另存，清理以独立句柄证据为准。[105实拍与交接](../testing/release-0.2.105/change-report-and-test-handoff.md)。105已公开，四资产及tag摘要一致，构建源码两路CI success。其它总体矩阵继续开放。
+
+
+106正式增量：c9c61fe冻结，完整1423Web/143核心、六门、正常MSI安装0及1159文件逐SHA通过。真实SWE原island-kayak两轮保留成功与失败的sent/released；第一轮正常导航晚4818ms，负例未命中保留；第二轮观察timeout且效果未知/无补发，实拍归档。两次构建包装与旧MSI路径核验失败原样记录，采用报告确切带时间戳产物；无伪造报告。两路源码CI已success。后续资源等待原因识别候选已offline build及完整1423/0/6通过，尚待107实机。见[106交接](../testing/release-0.2.106/change-report-and-test-handoff.md)。
+
+
+## 0.2.107正式安装与浏览器观察边界
+
+107正式补记：正常release构建/安装0、六门pass、1159文件逐摘要一致，冻结314671b，两路远端CI success。四轮真实SWE/唯一island-kayak均单调用/end_turn/drained且无补发；三轮预设窗口未命中，有限网页跳转触发native_browser_observation_stale并完整保留sent/released、效果未知，新页零输入。精确native_browser_resource_changed等待分支和严格按下窗口仍开放，不冒称本版实机闭环。见[107原事实、截图与交接](../../testing/release-0.2.107/change-report-and-test-handoff.md)。其它矩阵和整体Goal继续。
+
+
+## 0.2.108正式观察阶段复验
+
+108正式增量：观察失败阶段最小轨迹已实施，离线build0/完整1423通过/0失败/6既有忽略，正常构建六门pass、安装0、1159文件逐摘要一致。原SWE/唯一island-kayak一次真实工具sent/released、新页零输入、单end_turn/drained并解锁；释放后230.1ms正常导航得到合法新观察，最终budget_exhausted，未命中底层等待分支。CU observing不能证明底层请求已登记，后续增加请求关联标记作精准复验；原事实与[108实拍交接](../../testing/release-0.2.108/change-report-and-test-handoff.md)保留。总体Goal继续，严格时序及其它矩阵仍开放。
+
+
+## 0.2.109正式观察资源复核
+
+109正式增量：请求登记关联轨迹已实施，正常构建/安装0、六门pass、1159文件逐摘要一致、1423/0/6既有忽略、构建源码两路CI success。原SWE/唯一island两轮均sent/released、单end_turn/drained且无补发。自然导航取得合法新观察（新页零输入）；正常关闭后panel_unavailable、效果未知。两轮均未命中精确等待资源撤销，原事实与[109实拍交接](../../testing/release-0.2.109/change-report-and-test-handoff.md)保留。已纠正“自然导航等同面板资源变化”的测试前提；窄时序与其它总体矩阵仍开放，Goal继续。
+
+
+## 正式109 WAL恢复与迁移失败回滚
+
+109存储增量：正式安装EXE的隔离副本实操通过未checkpoint WAL进入产品迁移前备份、独立目录恢复及升级后新写入保全，正常聊天室实拍与独立库核对一致；真实索引名冲突使EXE退出1，版本/数据/结构全逻辑摘要原状回滚，撤销副本冲突后同EXE正常恢复。原运行库只读、模型0、新云端0。首次两次脚本准备失败保留；仅关闭6.2这些子项，未外推断电/磁盘满/全部升级矩阵。见[WAL与恢复原事实、实拍](../../testing/release-0.2.109/wal-recovery/report.md)。109已公开预发布，四资产服务器长度/SHA、实际tag09608d5一致；构建源码两路CI success。Goal继续。
+
+
+## 0.2.110正式诊断文件轮转
+
+110正式增量：独立diagnostics文件轮转正常发布/安装0、六门pass、1159文件逐摘要一致，构建源码两路CI成功。正式EXE的Windows进程间占锁启动684ms不阻塞、解除锁后622ms就绪并轮转两类诊断文件，旧代SHA完整保留、正常页面及原生窗口实拍通过；原SWE/唯一island保持，模型0/新云端0。23项诊断、完整1423/0/6既有忽略及联动8通过。只关闭该轮转子项，全局配额/其它生产者/故障/脱敏导出与Browser窄时序等仍开放。[110交接与实拍](../../testing/release-0.2.110/change-report-and-test-handoff.md)。Goal继续。
+
+
+## 0.2.110跨页重连与发布
+
+110重连补验：正式EXE自有后台真实断线，副本新增450条/删除已加载3条/修改1条，原页面无需刷新或重选，自动跨页恢复527条，内容/顺序逐项匹配SQLite且重复0，包含首边界删除。驱动实际退出0，原库不写/模型0/新云端0；[实拍与原事实](../../testing/release-0.2.110/history-reconnect/report.md)。只关闭此组，流式/跨工作区竞争等仍开放。110已公开预发布，四资产服务器长度/SHA和实际tag733d5f3一致，未签名、不标latest，Goal继续。
+
+
+## 会话参数职责拆分候选
+
+会话参数拆分候选：DTO/默认值、协议/地址、HTTP参数校验和预算约束移至独立session_model_config模块；五组提取前后独立比对一致。实际offline build0、完整Web1423/0/6既有忽略（另lib8/native-host1）通过；隔离真实服务正常GUI非法值拦截、后端400不改revision、有效保存与同EXE重启逐参数恢复实拍通过，模型0/新云端0/原库不写。正式110不含此候选，未追认SessionConfigService/Runner/outbox总体完成；Browser窄时序仍开放。[候选事实与实拍](../../testing/2026-10-08-session-config-boundary/report.md)。Goal继续。
+
+
+## 110低高度页面补验
+
+110低高度页面补验：正式服务903×551真实视口的首页、设置及内部滚动到保存实拍通过，79个已布局图片均加载；仅关闭网页布局子项，不替代原生壳/混合DPI/多屏。模型0/新云端0、SWE原绑定不变、临时视口已恢复。[实拍与边界](../../testing/2026-10-08-low-height-ui/report.md)。883e71e两路远端CI均success；参数拆分仍为未出包候选，整体Goal继续。
+
+
+## Browser读取回调归因候选
+
+Browser回调归因候选：已知资源/URL变化优先于失败HRESULT，避免通用观察错误覆盖确定原因；仅调整既有判断顺序，不改输入/权限/预算/重试。独立桌面offline build0、完整76/0/0回归通过，模型0/新云端0；正式110不含，严格down/up与在途资源撤销仍未实机闭环。[事实与边界](../../testing/2026-10-08-browser-read-attribution/report.md)。会话参数拆分将一并出包，Goal继续。
+
+
+## 0.2.111正式安装与ACP回归预算
+
+111正式增量：会话参数职责拆分与Browser失败回调归因已正常release构建/安装0、六门pass、1159文件逐SHA一致，原生主界面和设置读取实拍通过；原SWE/唯一island保持、模型0/新云端0。严格时序未因此关闭。前一1f59远端历史重放测试失败已保留，仅测试阶段预算修补后本地实际build0/完整1423/0/6通过，新提交远端另核；该测试修补不追认包含111。[交接与实拍](../../testing/release-0.2.111/change-report-and-test-handoff.md)。整体Goal继续。
+
+## 111原生低高度与严格Browser复验增量
+
+111追加实操：正式原生窗口经正常系统菜单缩到903×551，首页、设置内部滚动至保存入口、关闭恢复四张实拍通过；已正常最大化恢复，未保存原配置。本布局测试模型0，仅关闭本机窄低原生布局，不外推DPI/多屏。[原生证据](../testing/release-0.2.111/native-low-height/report.md)。另一次真实SWE-2/唯一island-kayak Browser点击sent/released，正常关闭距观察登记5792ms，父failed/CU blocked、效果未知、单end_turn/drained并解锁；没有observation_stopped，严格在途撤销继续未通过。[原事实](../testing/release-0.2.111/browser-pending-close/report.md)。最新测试修补提交3681bd6两路CI均success，独立[原始CI](../testing/2026-10-08-acp-replay-test-budget/remote-ci/report.md)已归档；未追认111含该修补。整体Goal继续。
+
+保存流程复核：SessionStore::save已有committed_state回滚且SQLite提交后JSON镜像失败仅warn，不再错误添加重复缓存回滚。待修实点为参数发布与会话更新之间释放存储锁、回退旧值在配置锁外读取；跨资源崩溃原子性仍单独开放。
+
+## 会话参数保存顺序与故障恢复候选
+
+模型配置保存候选：同一会话锁覆盖校验/参数发布/SQLite更新/失败回退；配置锁内捕获旧Option并恢复原缺项。真实SQLite失败两组恢复、同revision并发200/409、正常GUI失败草稿/重读/保存/同EXE重启实拍通过，offline build0/完整1423/0/6（lib8/native-host1）。无模型请求、原SWE不动；正式111不含，待统一出包。跨资源崩溃/Service/outbox仍开放。[原事实与四张实拍](../testing/2026-10-08-session-config-save-order/report.md)。
+
+
+## 0.2.112正式配置保存恢复
+
+112正式增量：配置保存同一会话锁覆盖校验/参数发布/SQLite更新/失败回退，配置锁内捕获旧Option并恢复原缺项。正常release构建/安装0、六门pass、1159文件逐SHA一致，冻结72be2b5两路CI均success；正式Program Files EXE真实SQLite两组失败恢复、同revision并发200/409、正常原生GUI错误/重读/保存/同EXE重启四实拍通过。原SWE-2-medium/revision51/唯一island-kayak已恢复，模型0/新云端0。仅cfg(test)阶段期限修补已包含，产品预算不变；跨资源崩溃/完整Service/outbox及Browser严格时序仍开放。[112交接与实拍](../../testing/release-0.2.112/change-report-and-test-handoff.md)。整体Goal继续。
+
+采证驱动初次停止隔离壳时，PowerShell ConvertFrom-Json把启动时间转为DateTime，使字符串相等核验拒绝；原始时刻、PID、路径与SHA相符，改按UTC ticks精确比对后正常停止。没有改变产品策略或清空安全库。两隔离服务已正常退出，恢复原8765正式控制台。
+
+
+## 112 Browser连续等待前提核验
+
+112 Browser专项：一次真实SWE点击sent/released/effect_observed，父completed/单end_turn/drained并解锁；网页内部捕获登记后4.24ms的观察阶段，外部分段等待因调用间隙漏过，未做在途关闭。正常收尾关闭不计撤销通过。定位为验收驱动盲区，后续连续只读等待后正常GUI复验；不改产品期限或注入暂停。[原事实与实拍](../../testing/release-0.2.112/browser-pending/report.md)。严格项和整体Goal继续。

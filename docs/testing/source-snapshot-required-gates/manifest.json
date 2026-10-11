@@ -1,0 +1,50 @@
+{
+  "baseline_commit": "4d376781b09d2b5c2f6cbd73853744a9d07c0900",
+  "source_modified": true,
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "full_regression_session": 48427,
+  "full_regression_exit_code": 0,
+  "package_identity_cases": 81,
+  "package_identity_failed": 0,
+  "new_cases_per_shell": 8,
+  "shells": [
+    "Windows PowerShell 5.1",
+    "PowerShell 7"
+  ],
+  "prior_failure": "50554实际exit1：首版与测试夹具使用name字段，生产字段是gate；修正后完整重跑通过，历史日志保留。",
+  "files": [
+    {
+      "name": "analysis-source-snapshot-gates-final-ps51.txt",
+      "sha256": "4cf637c1476591fa91646994c1df83b5d7f54833eab3a015ed9bd9174bd4f402"
+    },
+    {
+      "name": "analysis-source-snapshot-gates-final-ps7.txt",
+      "sha256": "4cf637c1476591fa91646994c1df83b5d7f54833eab3a015ed9bd9174bd4f402"
+    },
+    {
+      "name": "analysis-source-snapshot-gates-fixed-ps51.txt",
+      "sha256": "3696beac01984c8270e4a5d7d670f41ea38309f358b5ed7b96632885087b418d"
+    },
+    {
+      "name": "analysis-source-snapshot-gates-fixed-ps7.txt",
+      "sha256": "3696beac01984c8270e4a5d7d670f41ea38309f358b5ed7b96632885087b418d"
+    },
+    {
+      "name": "analysis-source-snapshot-gates-ps51.txt",
+      "sha256": "3696beac01984c8270e4a5d7d670f41ea38309f358b5ed7b96632885087b418d"
+    },
+    {
+      "name": "analysis-source-snapshot-gates-ps7.txt",
+      "sha256": "3696beac01984c8270e4a5d7d670f41ea38309f358b5ed7b96632885087b418d"
+    },
+    {
+      "name": "analysis-source-snapshot-package-regression-fixed.txt",
+      "sha256": "9ed10ef0519d93516e3b9b044bf5443a060c9871c0c7b6eb30ac5e7131629002"
+    },
+    {
+      "name": "analysis-source-snapshot-package-regression.txt",
+      "sha256": "cf13fc863dae3cde833cc765254a1544d268d41011600f1f802e4b515088a207"
+    }
+  ]
+}
