@@ -420,6 +420,17 @@ function Get-SourceSnapshotEntries {
     $item = Get-Item -LiteralPath $full -Force -ErrorAction SilentlyContinue
     if (-not $item) { continue }
 
+    if ($isDeclaredRoot -and (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)) {
+      # 声明根也不得把链接目标冒充为本地完整根；登记并让 roots 完整性门禁拒绝。
+      $reparse.Add([pscustomobject]@{
+        path = $relative
+        kind = $(if ($item.PSIsContainer) { 'directory' } else { 'file' })
+        handling = 'not-followed-registered-only'
+      })
+      $missingRoots.Add($relative)
+      continue
+    }
+
     if ($item.PSIsContainer) {
       # 声明 roots 本身受信（roots 是显式声明的边界）；排除规则只作用于其内部条目。
       if ($matchPath -and -not $isDeclaredRoot) {

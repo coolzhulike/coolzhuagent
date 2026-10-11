@@ -148,3 +148,6 @@ StagePin未接入模块补capture/matches：原角色、route、retry、verdict�
 
 
 0.1源码门禁失败关闭修复：New-PackageReleaseEligibility原以不存在的name字段过滤生产gate字段，因此source_snapshot_verified可能漏检失败项，空Gates也能验证/发布。现要求三项源码门禁各恰好一次且pass，否则源码已验证及release_eligible=false。首版同样误用name导致整包回归失败（50554 exit1），已改真实gate并以生产New-PackageReleaseGate生成测试夹具；错误字段专项拒绝。最终新8项在PS5.1/PS7均通过，48427完整package-build-identity回归81通过0失败。证据docs/testing/source-snapshot-required-gates，失败原日志保留。本轮只改PowerShell报告判据，无Rust源码改动；不能据此称真实整包构建、不可变源码快照、正式SWE模型/安装/CI/32WBS通过。符号链接根和完整输入锁定仍待检查。
+
+
+0.1声明根junction边界：真实临时junction专项先exit1复现根目录会追随外部目标。Get-SourceSnapshotEntries现对声明根自身重解析点登记而不追随，并写missing_roots使现有roots完整性门禁拒绝；allow_reparse_points不能放行根。修后专项PS5.1/PS7各通过，26628完整身份回归81通过0失败。原字节证据docs/testing/source-snapshot-root-junction，反例保留。只改脚本无需Rust重新编译；中间层路径链接、子链接显式放行、并发替换及不可变快照仍开放，不代替正式模型/安装/32WBS交付。

@@ -1,0 +1,34 @@
+{
+  "baseline_commit": "586fb4b09b4739dc5ed1b0d5b3247588705c099e",
+  "source_modified": true,
+  "immutable_source_snapshot_verified": false,
+  "formal_model_verified": false,
+  "before_probe_exit": 1,
+  "regression_session": 26628,
+  "regression_exit": 0,
+  "package_identity_passed": 81,
+  "package_identity_failed": 0,
+  "shells": [
+    "Windows PowerShell 5.1",
+    "PowerShell 7"
+  ],
+  "limitations": "只验证声明根自身junction边界；中间路径链接、显式子链接放行、并发替换和完整不可变快照仍未闭环",
+  "files": [
+    {
+      "name": "analysis-source-root-junction-before.txt",
+      "sha256": "76fb14858dfaf65b63333c2c30e66f085b52c1abbbd509cfca8e2cb449da914a"
+    },
+    {
+      "name": "analysis-source-root-junction-ps51.txt",
+      "sha256": "0da1a6b249dc784382111ebafc448c49a68c5597ca656069623384a4e831dfcf"
+    },
+    {
+      "name": "analysis-source-root-junction-ps7.txt",
+      "sha256": "0da1a6b249dc784382111ebafc448c49a68c5597ca656069623384a4e831dfcf"
+    },
+    {
+      "name": "analysis-source-root-junction-regression.txt",
+      "sha256": "3c28ef029948cf9557cff3ab1d65c933039c9ae10bd719b79adad77fd5ef3769"
+    }
+  ]
+}
