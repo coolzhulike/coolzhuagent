@@ -44,17 +44,15 @@ mod hook_startup_acceptance {
         assert!(crate::tool_dispatch_service::DISPATCH_HOOK_RUNNER_OVERRIDE.lock().unwrap().is_none());
         let fixture=hook_dispatch_fixture();
         let root=PathBuf::from(std::env::var_os("HOOK_CONFIG_PROBE_ROOT").unwrap());
-        std::env::set_var("HOOK_CONFIG_PROBE_TARGET",&fixture.file_path);
+        let _target_env=crate::test_env::set("HOOK_CONFIG_PROBE_TARGET",Some(&fixture.file_path));
         let command=format!("\"{}\" --exact tests::hook_startup_acceptance::hook_command_probe --nocapture",std::env::current_exe().unwrap().display());
         let bytes=serde_json::to_vec(&serde_json::json!({"version":1,"workspace_root":fixture.tmp.path(),"hooks":{"PreToolUse":[command],"PostToolUse":[command]}})).unwrap();
         let config=root.join("hooks.json");std::fs::write(&config,&bytes).unwrap();
-        std::env::set_var("COOLZHU_TOOL_HOOKS_CONFIG",&config);
-        std::env::remove_var("COOLZHU_TOOL_HOOKS_PRE_SHA256");std::env::remove_var("COOLZHU_TOOL_HOOKS_POST_SHA256");
         let digest=format!("{:x}",Sha256::digest(&bytes));
-        if mode=="granted" {
-            std::env::set_var("COOLZHU_TOOL_HOOKS_PRE_SHA256",&digest);
-            std::env::set_var("COOLZHU_TOOL_HOOKS_POST_SHA256",&digest);
-        }
+        let _config_env=crate::test_env::set("COOLZHU_TOOL_HOOKS_CONFIG",Some(&config));
+        let grant=(mode=="granted").then_some(digest.as_str());
+        let _pre_env=crate::test_env::set("COOLZHU_TOOL_HOOKS_PRE_SHA256",grant);
+        let _post_env=crate::test_env::set("COOLZHU_TOOL_HOOKS_POST_SHA256",grant);
         crate::dispatch_hooks::initialize(fixture.tmp.path()).unwrap();
         // 初始化后文件改变不能把新命令带入本进程的既有授权。
         std::fs::write(&config,b"changed after startup").unwrap();

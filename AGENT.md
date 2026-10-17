@@ -1,5 +1,8 @@
 # Agent Tool Calling Guide
 
+> 共同工程约定（项目概览、编码/验证纪律、Goal 结构、文档位置）以 `AGENTS.md` 为准；
+> 本文件只保留工具调用格式说明。
+
 This file is the local reference sheet for model sessions before they call tools.
 Before any tool call, check the matching demo and pass parameters exactly as the
 tool schema requires.

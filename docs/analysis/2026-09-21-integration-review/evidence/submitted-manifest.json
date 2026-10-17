@@ -24,7 +24,9 @@
     {
       "name": "release-0.2.14-agent-fixes-report.md",
       "bytes": 14841,
-      "sha256": "ac4c5545c3a11582334647d85786646846d58b2437d4658711d1ae4365bc4848"
+      "sha256": "ac4c5545c3a11582334647d85786646846d58b2437d4658711d1ae4365bc4848",
+      "canonical_path": "docs/testing/release-0.2.14-agent-fixes-report.md",
+      "note": "2026-10-17 去重：evidence/submitted/ 下的本地副本已删除，同一 SHA256 内容以 canonical_path 为准；提交记录不变。"
     },
     {
       "name": "review-request.md",

@@ -1,5 +1,7 @@
 # CLAUDE.md — coolzhu code agent 协作约定
 
+> 共同工程约定以 `AGENTS.md` 为准；本文件与之保持一致，内容分歧时以 `AGENTS.md` 为准。
+
 本文件供 Claude Code 在本仓库工作时参考。**始终用中文思考与回复。**
 
 ## 项目概览
@@ -21,7 +23,7 @@
 - `index.html`（≈833 行，UI 骨架，UTF-8 无 BOM）
 - `src/app.js`（≈266 KB，前端逻辑，**单文件**）
 - `src/styles.css`（≈105 KB）
-- `src/main.rs`（≈1.36 MB，本地 HTTP 服务 + 全部业务后端，**巨型单文件**）
+- `src/main.rs`（≈3.6 MB，本地 HTTP 服务 + 全部业务后端，**巨型单文件**）
 
 `main.rs` 通过 `include_str!` 内联 `index.html / app.js / styles.css`，以 `charset=utf-8` 返回。
 **改前端后必须重新 `cargo build -p coolzhu-web-console` 才能在浏览器看到效果**（资源是编译期内联，不是运行时读盘）。
@@ -41,7 +43,7 @@ cargo run -p coolzhu-web-console -- --open   # 顺便打开浏览器
 
 1. **中文优先**：思考、回复、代码注释、work-log 一律中文。
 2. **临时脚本与日志放 `tmp/`**（已被 .gitignore 忽略）。分析中间产物落盘到 `tmp/analysis-*.txt` 再读，避免被工具结果摘要截断。
-3. **大文件编辑要谨慎**：`main.rs` 1.36 MB、`app.js` 266 KB。仓库有 `tmp/backups/main-rs-corrupted-*` 损坏-恢复前科。
+3. **大文件编辑要谨慎**：`main.rs` ≈3.6 MB、`app.js` 数百 KB。仓库有 `tmp/backups/main-rs-corrupted-*` 损坏-恢复前科。
    - 单文件超 256 KB 必须用 Read 的 offset/limit 分段读。
    - 改前先 Read 确认确切上下文，**不要凭记忆/假设函数名**（曾误以为 web-console 里有 `decode_text_lossy` 导致编译失败）。
 4. **改完必编译**：`cargo build -p <crate> --offline`。注意增量缓存可能让 `cargo check` 误报 exit 0；涉及新符号/依赖时用 `cargo build` 验证。
@@ -80,8 +82,9 @@ cargo test  --test module_linkage_smoke --offline
 - 前端任务链 / 任务卡片：`src/app.js`
   - `refreshOpenGoalTaskChain`、`openGoalTaskChain`、`syncTaskCardFromGoals`、`taskRenderHandoffSummary`
   - 阶段角色：commander / planner / implementer / verifier
-- 现状：plan→execute→verify 基本单向，缺失败回退（`CUR-GOAL-LOOP-001`）。
-  目标增强：implementer 受阻 → 回 planner 重规划；verifier 不通过 → 回 implementer 重改（均带原因/证据 + 重试上限）。
+- 现状：已实现失败回退链——implementer 受阻回 planner 重规划、verifier 确定性门（FilesExist/Command）不通过回
+  implementer 重改（带原因/证据 + `retry_count` 重试上限，预算不重置）；普通 handoff 防环不误拒合法
+  Goal 恢复交接。回归：`goal_phase_token_finalizer_repair_returns_to_verifier_without_resetting_budget`。
 
 ## 文档与日志
 

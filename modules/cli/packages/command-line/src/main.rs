@@ -4712,22 +4712,36 @@ mod tests {
 
     #[test]
     fn export_bundle_command_writes_redacted_local_bundle() {
+        // TEMP/TMP 是整个进程的状态：只在隔离子进程里改，避免并行用例读到哨兵目录。
+        const CHILD_ROOT: &str = "COOLZHU_CLI_BUNDLE_TEST_CHILD_ROOT";
+        let case_root = if let Some(root) = std::env::var_os(CHILD_ROOT) {
+            PathBuf::from(root)
+        } else {
+            let root = std::env::temp_dir()
+                .join(format!("coolzhu-cli-bundle-test-{}", super::generate_session_id()));
+            let fake_temp = root.join("system-temp");
+            fs::create_dir_all(&fake_temp).expect("create isolated temp root");
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "tests::export_bundle_command_writes_redacted_local_bundle", "--nocapture", "--test-threads=1"])
+                .env(CHILD_ROOT, &root)
+                .env("TEMP", &fake_temp)
+                .env("TMP", &fake_temp)
+                .output()
+                .expect("run isolated bundle test");
+            assert!(output.status.success(), "隔离导出验收失败：{} {}",
+                String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+            assert!(fs::read_dir(&fake_temp).unwrap().next().is_none(), "系统 TEMP 不得被使用");
+            fs::remove_dir_all(&root).expect("remove isolated test root");
+            return;
+        };
         // 只纳入显式安全附件（脱敏转录 + 诊断日志），不含密钥库/DB/原始附件。
         let session = runtime::Session { version: 1, messages: vec![
             ConversationMessage { role: MessageRole::User, usage: None, blocks: vec![
                 ContentBlock::Text { text: "密钥 sk-cli265SECRETvalue 见 D:/proj/app.log".to_string() }]},
         ]};
-        let dir = std::env::temp_dir()
-            .join(format!("coolzhu-cli-bundle-265-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
+        let dir = case_root.join("bundle");
         // TEMP/TMP 指到哨兵目录：导出临时转录必须走包目录同盘父目录，这里必须保持为空。
-        let fake_temp = std::env::temp_dir()
-            .join(format!("coolzhu-cli-faketemp-265-{}", std::process::id()));
-        fs::create_dir_all(&fake_temp).unwrap();
-        let old_temp = std::env::var("TEMP").ok();
-        let old_tmp = std::env::var("TMP").ok();
-        std::env::set_var("TEMP", &fake_temp);
-        std::env::set_var("TMP", &fake_temp);
+        let fake_temp = case_root.join("system-temp");
         let message = super::export_diagnostics_bundle(Some(dir.to_str().unwrap()), &session)
             .expect("export bundle");
         assert!(message.contains("not uploaded"));
@@ -4753,10 +4767,6 @@ mod tests {
             .filter(|e| e.file_name().to_string_lossy().contains("coolzhu-transcript-src"))
             .collect();
         assert!(leftovers.is_empty(), "暂存转录必须已删除");
-        match old_temp { Some(v) => std::env::set_var("TEMP", v), None => std::env::remove_var("TEMP") }
-        match old_tmp { Some(v) => std::env::set_var("TMP", v), None => std::env::remove_var("TMP") }
-        let _ = fs::remove_dir_all(&dir);
-        let _ = fs::remove_dir_all(&fake_temp);
     }
 
     #[test]
