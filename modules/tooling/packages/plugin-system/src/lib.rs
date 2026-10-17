@@ -1,4 +1,16 @@
 mod hooks;
+// 子进程控制台输出优先 UTF-8，兼容中文 Windows 默认代码页。
+fn decode_console_output(bytes: &[u8]) -> String {
+    if let Ok(text) = std::str::from_utf8(bytes) {
+        return text.to_owned();
+    }
+    let (text, _, errors) = encoding_rs::GB18030.decode(bytes);
+    if errors {
+        String::from_utf8_lossy(bytes).into_owned()
+    } else {
+        text.into_owned()
+    }
+}
 mod install_transaction;
 mod dsh_package;
 mod dsh_activation;

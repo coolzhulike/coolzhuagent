@@ -9,11 +9,12 @@ use windows::Win32::System::Threading::{
     AttachThreadInput, GetCurrentThreadId, OpenProcess, QueryFullProcessImageNameW,
     PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
 };
+use windows::Win32::System::Ole::{SafeArrayDestroy, SafeArrayGetDim, SafeArrayGetElement, SafeArrayGetLBound, SafeArrayGetUBound};
 use windows::Win32::UI::Accessibility::{
-    CUIAutomation, IUIAutomation, IUIAutomationElement, IUIAutomationSelectionItemPattern,
+    CUIAutomation, IUIAutomation, IUIAutomationElement, IUIAutomationSelectionItemPattern, IUIAutomationInvokePattern,
     IUIAutomationTextPattern, IUIAutomationTogglePattern, IUIAutomationValuePattern,
     TreeScope_Subtree, UIA_SelectionItemPatternId, UIA_TextPatternId, UIA_TogglePatternId,
-    UIA_ValuePatternId,
+    UIA_ValuePatternId, UIA_InvokePatternId,
 };
 use windows::Win32::UI::HiDpi::{
     GetDpiForWindow, SetThreadDpiAwarenessContext, DPI_AWARENESS_CONTEXT,
@@ -113,6 +114,25 @@ fn control_type_name(id: i32) -> String {
         _ => return format!("ControlType-{id}"),
     }
     .to_string()
+}
+
+fn runtime_id(element: &IUIAutomationElement) -> Option<Vec<i32>> {
+    let array=unsafe {element.GetRuntimeId()}.ok()?;
+    if array.is_null() {return None;}
+    // GetRuntimeId的所有权归调用方；所有提前返回也必须销毁SAFEARRAY。
+    struct OwnedArray(*mut windows::Win32::System::Com::SAFEARRAY);
+    impl Drop for OwnedArray {fn drop(&mut self){let _=unsafe {SafeArrayDestroy(self.0)};}}
+    let _owned=OwnedArray(array);
+    if unsafe {SafeArrayGetDim(array)}!=1 {return None;}
+    let lo=unsafe {SafeArrayGetLBound(array,1)}.ok()?;
+    let hi=unsafe {SafeArrayGetUBound(array,1)}.ok()?;
+    let length=hi.checked_sub(lo)?.checked_add(1)?;
+    if !(1..=128).contains(&length) {return None;}
+    (lo..=hi).map(|index|{
+        let mut value=0i32;
+        unsafe {SafeArrayGetElement(array,&index,std::ptr::addr_of_mut!(value).cast())}.ok()?;
+        Some(value)
+    }).collect()
 }
 
 fn reference_for(
@@ -221,6 +241,7 @@ fn element_snapshot(
     // toggle），**不臆测**未探测的模式。要拿全量需升级 windows crate（另开工单）。
     let mut patterns = Vec::new();
     for (supported, name) in [
+        (unsafe {element.GetCurrentPatternAs::<IUIAutomationInvokePattern>(UIA_InvokePatternId)}.is_ok(), "invoke"),
         (
             unsafe {
                 element.GetCurrentPatternAs::<IUIAutomationValuePattern>(UIA_ValuePatternId)
@@ -245,6 +266,7 @@ fn element_snapshot(
     patterns.sort();
     Some(UiaElementSnapshot {
         reference,
+        runtime_id: runtime_id(element),
         process_id,
         native_window_handle: foreground_handle,
         name,

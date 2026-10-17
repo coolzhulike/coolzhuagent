@@ -315,9 +315,10 @@ window.CoolzhuChatExperience = (() => {
           upsertMessage(message);
         }
         messagePaging = {roomId:room, hasMore:response.has_older, nextBefore:response.messages[0]?.id};
-        updateLoadOlderButton(); qs("chat-return-latest").hidden = false;
+        updateLoadOlderButton();
         article = list.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
       }
+      if (article) qs("chat-return-latest").hidden = false;
       annotate(); article?.scrollIntoView({block:"center",behavior:"smooth"}); article?.classList.add("is-located-message");
       setTimeout(() => article?.classList.remove("is-located-message"), 2200);
     } catch (error) { if (scopeMatches(scope) && version === state.locateVersion) report(error); }

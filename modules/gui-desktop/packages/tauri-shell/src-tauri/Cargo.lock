@@ -500,6 +500,10 @@ dependencies = [
 [[package]]
 name = "coolzhu-diagnostics"
 version = "0.2.0"
+dependencies = [
+ "sha2",
+ "winapi-util",
+]
 
 [[package]]
 name = "coolzhu-native-browser-protocol"

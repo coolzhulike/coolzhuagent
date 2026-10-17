@@ -62,6 +62,7 @@ impl Output for FileOutput {
 }
 
 pub(crate) fn format_log_entry(entry: &LogEntry) -> String {
+    let entry = entry.redacted();
     let mut line = format!(
         "{{\"ts_ms\":{},\"level\":\"{}\",\"app\":\"{}\",\"module\":\"{}\",\"event\":\"{}\",\"message\":\"{}\"",
         entry.timestamp_ms,
@@ -99,6 +100,7 @@ pub(crate) fn format_log_entry(entry: &LogEntry) -> String {
 }
 
 fn format_span_closed(span: &SpanClosed) -> String {
+    let span = span.redacted();
     let mut line = format!(
         "{{\"ts_ms\":{},\"type\":\"span\",\"trace_id\":\"{}\",\"span_id\":\"{}\",\"name\":\"{}\",\"module\":\"{}\",\"duration_ms\":{}",
         unix_millis(),
@@ -142,6 +144,7 @@ impl ConsoleOutput {
 
 impl Output for ConsoleOutput {
     fn write_event(&self, entry: &LogEntry) {
+        let entry = entry.redacted();
         let level_color = if self.ansi {
             match entry.level {
                 LogLevel::Error => "\x1b[31m",
@@ -178,6 +181,7 @@ impl Output for ConsoleOutput {
     }
 
     fn write_span(&self, span: &SpanClosed) {
+        let span = span.redacted();
         let color = if self.ansi { "\x1b[35m" } else { "" };
         let reset = if self.ansi { "\x1b[0m" } else { "" };
 
@@ -207,7 +211,7 @@ impl GuiOutput {
 
 impl Output for GuiOutput {
     fn write_event(&self, entry: &LogEntry) {
-        (self.callback)(entry);
+        (self.callback)(&entry.redacted());
     }
 
     fn write_span(&self, span: &SpanClosed) {
@@ -226,7 +230,7 @@ impl Output for GuiOutput {
                 .map(|(k, v)| (k.clone(), v.to_string()))
                 .collect(),
         };
-        (self.callback)(&entry);
+        (self.callback)(&entry.redacted());
     }
 }
 
@@ -235,6 +239,51 @@ mod tests {
     use crate::trace_id::TraceId;
 
     use super::*;
+
+    #[test]
+    fn direct_span_output_redacts_file_gui_and_nested_event_attributes() {
+        let root = std::env::current_dir().unwrap().join("tmp").join(format!(
+            "diagnostic-output-boundary-{}-{}", std::process::id(), crate::unix_millis()
+        ));
+        let path = root.join("events.jsonl");
+        let output = FileOutput::new(path.clone()).unwrap();
+        let secret = "synthetic-output-boundary-secret";
+        let now = std::time::SystemTime::now();
+        let span = SpanClosed {
+            trace_id: TraceId::generate(),
+            span_id: crate::trace_id::SpanId::generate(),
+            parent_id: None,
+            name: format!("Authorization: Bearer {secret}"),
+            module: "诊断输出".to_string(),
+            start_time: now,
+            end_time: now,
+            duration_ms: 7,
+            attributes: [("api_key".to_string(), secret.to_string())].into_iter().collect(),
+            events: vec![crate::span::SpanEvent {
+                name: "嵌套事件".to_string(),
+                timestamp: now,
+                attributes: [("password".to_string(), secret.to_string())].into_iter().collect(),
+            }],
+        };
+        output.write_span(&span);
+        let content = fs::read_to_string(path).unwrap();
+        assert!(!content.contains(secret));
+        assert!(content.contains("诊断输出"));
+        assert!(content.contains("\"duration_ms\":7"));
+        let captured = Arc::new(Mutex::new(Vec::<LogEntry>::new()));
+        let sink = captured.clone();
+        let gui = GuiOutput::new(Arc::new(move |entry| sink.lock().unwrap().push(entry.clone())));
+        gui.write_span(&span);
+        let entries = captured.lock().unwrap();
+        assert_eq!(entries.len(), 1);
+        assert!(!format!("{:?}", entries[0]).contains(secret));
+        assert_eq!(entries[0].trace_id, Some(span.trace_id));
+        let redacted = span.redacted();
+        assert!(!format!("{:?}", redacted.events).contains(secret));
+        assert_eq!(redacted.attributes, redacted.redacted().attributes);
+        assert_eq!(span.attributes["api_key"], secret);
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn file_output_writes_jsonl() {

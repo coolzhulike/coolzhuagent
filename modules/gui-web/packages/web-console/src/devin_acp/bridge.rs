@@ -381,7 +381,7 @@ impl ToolBridge {
                     json!({"name":tool.name,"description":tool.description,"inputSchema":tool.input_schema})).collect::<Vec<_>>();
                 if !self.definitions.is_empty() {
                     tools.push(json!({"name":"tool_result_read",
-                        "description":"只读本轮已执行工具的大回执。使用回执提供的result_id与UTF-8字节offset，按next_offset续读；不访问任意文件，不重新执行工具。原工具撤销或本轮结束后不可用。",
+                        "description":"只读本轮已执行工具的大回执。使用result_id与UTF-8字节offset，可定位所需范围；全文任务按resume_offset补齐缺口，complete表示累计覆盖齐全，尾页本身不证明完整读取。原工具撤销或本轮结束后不可用。",
                         "inputSchema":{"type":"object","properties":{"result_id":{"type":"string"},"offset":{"type":"integer","minimum":0}},"required":["result_id","offset"],"additionalProperties":false}}));
                 }
                 if self.policy.grants.contains_key("computer_use_perform") {
@@ -420,7 +420,10 @@ impl ToolBridge {
                         self.policy.tool_live(&source_tool)?;
                         append_runtime_run_event(self.policy.journal.path(),&self.policy.scope.run_id,
                             "tool.result_page_read",json!({"result_id":result_id,"offset":offset,
-                                "next_offset":page["next_offset"],"source_tool":source_tool}))
+                                "next_offset":page["next_offset"],"source_tool":source_tool,
+                                "total_bytes":page["total_bytes"],"sha256":page["sha256"],"complete":page["complete"],
+                                "contiguous_bytes":page["contiguous_bytes"],"covered_bytes":page["covered_bytes"],
+                                "missing_ranges":page["missing_ranges"],"missing_range_count":page["missing_range_count"],"page_at_end":page["page_at_end"]}))
                             .map_err(|_|"回执读取来源记录保存失败")?;
                         json!({"content":[{"type":"text","text":page.to_string()}],"isError":false})
                     },
@@ -849,6 +852,7 @@ fn rpc_failure(id: &JsonValue, method: &str, reason: &str) -> JsonValue {
 
 #[cfg(test)]
 mod tests {
+    include!("bridge_paging_acceptance_tests.rs");
     use super::super::journal::Binding;
     use super::*;
     struct Environment {
@@ -928,7 +932,9 @@ mod tests {
             Some(&scope.run_id),
         )
         .unwrap();
-        parent.root_budget = Some(root_execution_budget::RootExecutionBudget::establish(30000));
+        // 夹具预算必须覆盖「夹具装配+ACP握手+HTTP初始化+工具执行」全段；全量套件负载下仅 30s 会在执行器启动前耗尽。
+        // 这是测试时限基线，不改变生产截止语义：生产时限来自 session turn_timeout，本预算仍对真实挂起的执行器施加硬截止。
+        parent.root_budget = Some(root_execution_budget::RootExecutionBudget::establish(120_000));
         parent.runtime_db_path = Some(db.to_owned());
         let cancellation = Arc::new(ChatTurnCancellation::new());
         // fixture 提供固定目录以独立验收真实 executor；不声称真实 CLI 发现已完成。
@@ -1194,7 +1200,7 @@ mod tests {
             assert_eq!(initialize.status(), StatusCode::OK);
             let result:JsonValue=client.post(url).header("Authorization",token).header("MCP-Protocol-Version",MCP_VERSION)
                 .json(&json!({"jsonrpc":"2.0","id":"tool-producer-1","method":"tools/call","params":{"name":"write_file","arguments":{"path":peer_file,"content":"ACP → MCP → 本地真实执行"}}})).send().await.unwrap().json().await.unwrap();
-            assert_eq!(result["result"]["isError"], false);
+            assert_eq!(result["result"]["isError"], false, "MCP tools/call 结构化错误: {result}");
             for update in [
                 json!({"sessionUpdate":"tool_call_update","toolCallId":"remote-only-observation","status":"completed"}),
                 json!({"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"已写入"}}),
@@ -1217,7 +1223,9 @@ mod tests {
             scope.clone(),
             "fixture-model",
             vec![config],
-            tokio::time::Instant::now() + Duration::from_secs(5),
+            // 会话级绝对截止须覆盖全量负载下的握手+session/new+initialize+工具派发；
+            // 原为5秒，全量套件中在工具执行器启动前过期。仅测试基线，不改生产截止语义。
+            tokio::time::Instant::now() + Duration::from_secs(60),
             |_| Ok(()),
         )
         .await

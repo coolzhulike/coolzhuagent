@@ -64,11 +64,29 @@ pub(super) async fn events(AxumPath(room_id): AxumPath<String>, Query(query): Qu
         }
         (store.path.clone(),workspace_id)
     };
+    // 订阅建立允许等待并发写者：沿用 open_session_connection 的 5s busy_timeout，
+    // 不再降级为 100ms。锁升级 BUSY 不经过 busy handler，对 setup 整体做有限的
+    // 仅 SQLITE_BUSY 退避重试；其他错误原样上报，不能提前返回空流假装成功。
     let setup = tokio::task::spawn_blocking(move || -> rusqlite::Result<Connection> {
-        let connection = open_session_connection(&path)?;
-        connection.busy_timeout(Duration::from_millis(100))?;
-        ensure_projection(&connection)?;
-        Ok(connection)
+        let mut attempts = 0u32;
+        loop {
+            match open_session_connection(&path).and_then(|connection| {
+                ensure_projection(&connection).map(|_| connection)
+            }) {
+                Ok(connection) => return Ok(connection),
+                Err(error) => {
+                    let busy = matches!(error,
+                        rusqlite::Error::SqliteFailure(ref failure, _)
+                            if failure.code == rusqlite::ErrorCode::DatabaseBusy);
+                    if busy && attempts < 3 {
+                        attempts += 1;
+                        std::thread::sleep(Duration::from_millis(200 * attempts as u64));
+                        continue;
+                    }
+                    return Err(error);
+                }
+            }
+        }
     }).await.map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,&error.to_string()))?
         .map_err(sqlite_api_error)?;
     let stream = async_stream::stream! {

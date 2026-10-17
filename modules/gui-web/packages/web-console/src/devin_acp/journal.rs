@@ -208,8 +208,30 @@ impl Journal {
             |row|Ok((row.get::<_,String>(0)?,row.get::<_,String>(1)?,row.get::<_,String>(2)?,row.get::<_,Option<String>>(3)?,row.get::<_,Option<String>>(4)?)))
             .optional().map_err(|_|fail("ACP 重置绑定读取失败。"))?;
         if let Some((cwd,cli,context,remote,locked))=old {
-            if cli!=binding.cli_identity {return Err(fail("CLI 版本变化需要重新验收。"));}
-            if context==binding.context_digest && cwd!=binding.cwd {
+            // 模型配置变化不等于清空对话；只允许当前上下文版本、同一显式重置域。
+            let same_domain = context == binding.context_digest || context.rsplit_once(':')
+                .zip(binding.context_digest.rsplit_once(':'))
+                .is_some_and(|((old_domain,old_model),(new_domain,new_model))|
+                    old_domain.starts_with("host-incremental-v3:") && old_domain==new_domain
+                    && !old_model.is_empty() && !new_model.is_empty());
+            if cli!=binding.cli_identity {
+                if cli!="devin 3000.10.48 (fcf7ba39)" || binding.cli_identity!=super::chat::CLI_VERSION
+                    || locked.is_some() || cwd!=binding.cwd || !same_domain {
+                    return Err(fail("CLI 版本变化未通过闲置绑定兼容条件，未修改原绑定。"));
+                }
+                tx.execute_batch("CREATE TABLE IF NOT EXISTS devin_acp_binding_upgrades(
+                    workspace_id TEXT NOT NULL,room_id TEXT NOT NULL,agent_id TEXT NOT NULL,lane TEXT NOT NULL,
+                    remote_session_id TEXT,old_cli TEXT NOT NULL,new_cli TEXT NOT NULL,
+                    upgraded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);")
+                    .map_err(|_|fail("ACP 兼容升级证据表不可用。"))?;
+                tx.execute("INSERT INTO devin_acp_binding_upgrades(workspace_id,room_id,agent_id,lane,remote_session_id,old_cli,new_cli)
+                    VALUES(?1,?2,?3,?4,?5,?6,?7)",params![scope.workspace_id,scope.room_id,scope.agent_id,scope.lane,remote,cli,binding.cli_identity])
+                    .map_err(|_|fail("ACP 兼容升级证据保存失败。"))?;
+                tx.execute("UPDATE devin_acp_bindings SET cli_identity=?5 WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4",
+                    params![scope.workspace_id,scope.room_id,scope.agent_id,scope.lane,binding.cli_identity])
+                    .map_err(|_|fail("ACP 兼容升级保存失败。"))?;
+            }
+            if same_domain && cwd!=binding.cwd {
                 return Err(fail("ACP 工作目录变化，请明确重置上下文。"));
             }
             if let Some(attempt)=locked.as_deref() {
@@ -246,14 +268,37 @@ impl Journal {
                     }
                     let has_tools:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='tool_calls')",[],|row|row.get(0))
                         .map_err(|_|fail("ACP 工具台账结构核对失败。"))?;
-                    if has_tools && tx.query_row("SELECT EXISTS(SELECT 1 FROM tool_calls WHERE run_id=?1 AND source_request_key=?2 AND status NOT IN ('completed','failed'))",
-                        params![old_scope_value.run_id,old_scope],|row|row.get::<_,bool>(0)).map_err(|_|fail("ACP 旧工具收尾核对失败。"))? {
-                        return Err(fail("ACP 旧宿主工具尚未结账，不能建立新会话。"));
+                    if has_tools {
+                        let has_events:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='runtime_run_events')",[],|row|row.get(0))
+                            .map_err(|_|fail("ACP 工具归档记录结构核对失败。"))?;
+                        let mut query=tx.prepare("SELECT tool_call_id,status FROM tool_calls WHERE run_id=?1 AND source_request_key=?2 AND status NOT IN ('completed','failed')")
+                            .map_err(|_|fail("ACP 旧工具收尾核对失败。"))?;
+                        let pending=query.query_map(params![old_scope_value.run_id,old_scope],|row|Ok((row.get::<_,String>(0)?,row.get::<_,String>(1)?)))
+                            .map_err(|_|fail("ACP 旧工具收尾核对失败。"))?.collect::<Result<Vec<_>,_>>()
+                            .map_err(|_|fail("ACP 旧工具收尾核对失败。"))?;
+                        for (tool_id,tool_status) in pending {
+                            // 宿主超时或断连的工具仍保留 unknown；只有精确来源、排空和证据哈希的主控归档可解除发送锁。
+                            let archived=if matches!(tool_status.as_str(),"timed_out_outcome_unknown" | "cancelled_outcome_unknown") && has_events {
+                                tx.query_row("SELECT EXISTS(SELECT 1 FROM runtime_run_events WHERE run_id=?1 AND event_type='tool.unknown_archived'
+                                    AND json_extract(payload_json,'$.tool_call_id')=?2
+                                    AND json_extract(payload_json,'$.source_request_key')=?3
+                                    AND json_extract(payload_json,'$.previous_status')=?4
+                                    AND json_extract(payload_json,'$.process_drained')=1
+                                    AND length(json_extract(payload_json,'$.evidence_sha256'))=64)",
+                                    params![old_scope_value.run_id,tool_id,old_scope,tool_status],|row|row.get::<_,bool>(0))
+                                    .map_err(|_|fail("ACP 旧工具归档核对失败。"))?
+                            } else {false};
+                            if !archived {return Err(fail("ACP 旧宿主工具尚未结账，不能建立新会话。"));}
+                        }
                     }
                 tx.execute("UPDATE devin_acp_bindings SET locked_attempt=NULL WHERE locked_attempt=?1",
                     [attempt]).map_err(|_|fail("ACP 已收尾发送锁释放失败。"))?;
             }
-            if context!=binding.context_digest {
+            if same_domain && context!=binding.context_digest {
+                tx.execute("UPDATE devin_acp_bindings SET context_digest=?5 WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4",
+                    params![scope.workspace_id,scope.room_id,scope.agent_id,scope.lane,binding.context_digest])
+                    .map_err(|_|fail("ACP 模型上下文保存失败。"))?;
+            } else if !same_domain {
                 if let Some(remote)=remote {
                     let archive=serde_json::json!({"workspace_id":scope.workspace_id,"room_id":scope.room_id,
                         "agent_id":scope.agent_id,"lane":scope.lane,"cwd":cwd,"cli_identity":cli,"context_digest":context,
@@ -679,6 +724,36 @@ pub(super) mod tests {
     }
 
     #[test]
+    fn qualified_cli_upgrade_and_model_change_preserve_idle_remote_only() {
+        let (_dir,journal,mut old)=setup();
+        old.cli_identity="devin 3000.10.48 (fcf7ba39)".into();
+        old.context_digest="host-incremental-v3:Some(123):gpt-6-luna-max".into();
+        let first=journal.claim(scope("before-upgrade"),&old).unwrap();
+        journal.save_remote(&first,"same-existing-remote").unwrap();
+        let mut next=old.clone();next.cli_identity=super::super::chat::CLI_VERSION.into();
+        next.context_digest="host-incremental-v3:Some(123):swe-2-max".into();
+        assert!(journal.rotate_idle_context(&scope("upgrade"),&next).is_err());
+        assert_eq!(journal.binding(&first).unwrap().cli_identity,old.cli_identity);
+        journal.transition(&first,&["prepared"],"not_sent",None,false).unwrap();
+        journal.record_drained(&first).unwrap();
+        let mut wrong=next.clone();wrong.cwd.push_str("-other");
+        assert!(journal.rotate_idle_context(&scope("wrong-path"),&wrong).is_err());
+        wrong=next.clone();wrong.cli_identity="unqualified-cli".into();
+        assert!(journal.rotate_idle_context(&scope("wrong-cli"),&wrong).is_err());
+        wrong=next.clone();wrong.context_digest="host-incremental-v3:Some(124):swe-2-max".into();
+        assert!(journal.rotate_idle_context(&scope("wrong-reset"),&wrong).is_err());
+        journal.rotate_idle_context(&scope("upgrade"),&next).unwrap();
+        let upgraded=journal.claim(scope("after-upgrade"),&next).unwrap();
+        let actual=journal.binding(&upgraded).unwrap();
+        assert_eq!(actual.remote_session_id.as_deref(),Some("same-existing-remote"));
+        assert_eq!(actual.cli_identity,next.cli_identity);
+        assert_eq!(actual.context_digest,next.context_digest);
+        assert_eq!(journal.status(&first).unwrap().state,"not_sent");
+        let count:i64=journal.connection().unwrap().query_row("SELECT COUNT(*) FROM devin_acp_binding_upgrades",[],|r|r.get(0)).unwrap();
+        assert_eq!(count,1);
+    }
+
+    #[test]
     fn explicit_rebind_does_not_release_an_active_or_unknown_attempt() {
         let (_dir,journal,binding) = setup();
         let first = journal.claim(scope("active"),&binding).unwrap();
@@ -719,12 +794,12 @@ pub(super) mod tests {
         journal.record_drained(&old).unwrap();
         let c=journal.connection().unwrap();
         c.execute_batch("CREATE TABLE runtime_runs(id TEXT,workspace_id TEXT,chat_room_id TEXT,session_id TEXT,legacy_turn_id TEXT,stop_requested_at INTEGER);
-            CREATE TABLE tool_calls(run_id TEXT,source_request_key TEXT,status TEXT);").unwrap();
+            CREATE TABLE tool_calls(tool_call_id TEXT,run_id TEXT,source_request_key TEXT,status TEXT);").unwrap();
         c.execute("INSERT INTO runtime_runs VALUES(?1,?2,'wrong-room',?3,?4,1)",
             params![old.run_id,old.workspace_id,old.agent_id,old.turn_id]).unwrap();
         assert!(journal.rotate_idle_context(&scope("fresh-consumer"),&binding).is_err());
         c.execute("UPDATE runtime_runs SET chat_room_id=?1",[&old.room_id]).unwrap();
-        c.execute("INSERT INTO tool_calls VALUES(?1,?2,'dispatched')",
+        c.execute("INSERT INTO tool_calls VALUES('tool-old',?1,?2,'dispatched')",
             params![old.run_id,serde_json::to_string(&old).unwrap()]).unwrap();
         assert!(journal.rotate_idle_context(&scope("fresh-consumer"),&binding).is_err());
         c.execute("UPDATE tool_calls SET status='completed'",[]).unwrap();
@@ -744,6 +819,65 @@ pub(super) mod tests {
     }
 
     #[test]
+    fn archived_timeout_releases_old_lock_without_erasing_unknown_tool() {
+        let (_dir,journal,binding)=setup();
+        let old=journal.claim(scope("old-timeout"),&binding).unwrap();
+        journal.transition(&old,&["prepared"],"unknown",None,false).unwrap();
+        journal.record_drained(&old).unwrap();
+        journal.request_cancel(&old).unwrap();
+        let c=journal.connection().unwrap();
+        c.execute_batch("CREATE TABLE tool_calls(tool_call_id TEXT,run_id TEXT,source_request_key TEXT,status TEXT);
+            CREATE TABLE runtime_run_events(run_id TEXT,event_type TEXT,payload_json TEXT);").unwrap();
+        let source=serde_json::to_string(&old).unwrap();
+        c.execute("INSERT INTO tool_calls VALUES('tool-timeout',?1,?2,'timed_out_outcome_unknown')",
+            params![old.run_id,source]).unwrap();
+        assert!(journal.rotate_idle_context(&scope("after-timeout"),&binding).is_err());
+        let wrong=serde_json::json!({"tool_call_id":"other","source_request_key":source,
+            "previous_status":"timed_out_outcome_unknown","process_drained":1,
+            "evidence_sha256":"a".repeat(64)});
+        c.execute("INSERT INTO runtime_run_events VALUES(?1,'tool.unknown_archived',?2)",
+            params![old.run_id,wrong.to_string()]).unwrap();
+        assert!(journal.rotate_idle_context(&scope("after-timeout"),&binding).is_err());
+        let exact=serde_json::json!({"tool_call_id":"tool-timeout","source_request_key":source,
+            "previous_status":"timed_out_outcome_unknown","process_drained":1,
+            "evidence_sha256":"b".repeat(64)});
+        c.execute("INSERT INTO runtime_run_events VALUES(?1,'tool.unknown_archived',?2)",
+            params![old.run_id,exact.to_string()]).unwrap();
+        journal.rotate_idle_context(&scope("after-timeout"),&binding).unwrap();
+        assert_eq!(c.query_row("SELECT status FROM tool_calls WHERE tool_call_id='tool-timeout'",[],
+            |row|row.get::<_,String>(0)).unwrap(),"timed_out_outcome_unknown");
+        assert_eq!(journal.status(&old).unwrap().state,"unknown");
+        assert!(journal.claim(scope("after-timeout"),&binding).is_ok());
+    }
+    #[test]
+    fn archived_host_disconnect_keeps_original_remote_binding() {
+        let (_dir,journal,binding)=setup();
+        let old=journal.claim(scope("old-disconnect"),&binding).unwrap();
+        journal.save_remote(&old,"island-kayak").unwrap();
+        journal.transition(&old,&["prepared"],"submitted",None,true).unwrap();
+        journal.transition(&old,&["submitted"],"unknown",None,false).unwrap();
+        journal.record_drained(&old).unwrap();
+        journal.request_cancel(&old).unwrap();
+        let c=journal.connection().unwrap();
+        c.execute_batch("CREATE TABLE tool_calls(tool_call_id TEXT,run_id TEXT,source_request_key TEXT,status TEXT);
+            CREATE TABLE runtime_run_events(run_id TEXT,event_type TEXT,payload_json TEXT);").unwrap();
+        let source=serde_json::to_string(&old).unwrap();
+        c.execute("INSERT INTO tool_calls VALUES('tool-disconnect',?1,?2,'cancelled_outcome_unknown')",
+            params![old.run_id,source]).unwrap();
+        assert!(journal.rotate_idle_context(&scope("after-disconnect"),&binding).is_err());
+        let exact=serde_json::json!({"tool_call_id":"tool-disconnect","source_request_key":source,
+            "previous_status":"cancelled_outcome_unknown","process_drained":1,
+            "evidence_sha256":"c".repeat(64)});
+        c.execute("INSERT INTO runtime_run_events VALUES(?1,'tool.unknown_archived',?2)",
+            params![old.run_id,exact.to_string()]).unwrap();
+        journal.rotate_idle_context(&scope("after-disconnect"),&binding).unwrap();
+        assert_eq!(journal.status(&old).unwrap().state,"unknown");
+        assert_eq!(c.query_row("SELECT status FROM tool_calls WHERE tool_call_id='tool-disconnect'",[],
+            |row|row.get::<_,String>(0)).unwrap(),"cancelled_outcome_unknown");
+        let next=journal.claim(scope("after-disconnect"),&binding).unwrap();
+        assert_eq!(journal.binding(&next).unwrap().remote_session_id.as_deref(),Some("island-kayak"));
+    }
+    #[test]
     fn unknown_survives_reopen_and_draining_and_blocks_new_attempts() {
         let (_dir, journal, binding) = setup();
         let a = journal.claim(scope("a1"), &binding).unwrap();
@@ -759,8 +893,8 @@ pub(super) mod tests {
         assert!(reopened.claim(scope("a2"), &binding).is_err());
         assert!(reopened.claim(scope("a1"), &binding).is_err());
         let c = reopened.connection().unwrap();
-        c.execute_batch("CREATE TABLE tool_calls(run_id TEXT,source_request_key TEXT,status TEXT);").unwrap();
-        c.execute("INSERT INTO tool_calls VALUES(?1,?2,'running')",
+        c.execute_batch("CREATE TABLE tool_calls(tool_call_id TEXT,run_id TEXT,source_request_key TEXT,status TEXT);").unwrap();
+        c.execute("INSERT INTO tool_calls VALUES('tool-running',?1,?2,'running')",
             params![a.run_id, serde_json::to_string(&a).unwrap()]).unwrap();
         assert!(reopened.stop_drained_run(&a.run_id).is_err());
         assert!(!reopened.status(&a).unwrap().cancel_requested);
@@ -878,13 +1012,13 @@ pub(super) mod tests {
         let connection = journal.connection().unwrap();
         connection
             .execute_batch(
-                "CREATE TABLE tool_calls(run_id TEXT,source_request_key TEXT,status TEXT);",
+                "CREATE TABLE tool_calls(tool_call_id TEXT,run_id TEXT,source_request_key TEXT,status TEXT);",
             )
             .unwrap();
         let source = serde_json::to_string(&a).unwrap();
         connection
             .execute(
-                "INSERT INTO tool_calls VALUES(?1,?2,'dispatched')",
+                "INSERT INTO tool_calls VALUES('tool-dispatched',?1,?2,'dispatched')",
                 params![a.run_id, source],
             )
             .unwrap();

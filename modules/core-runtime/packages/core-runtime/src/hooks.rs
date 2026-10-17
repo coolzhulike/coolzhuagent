@@ -278,9 +278,15 @@ impl HookRunner {
         }
 
         match child.output_with_stdin(request.payload.as_bytes()) {
-            Ok(output) => {
-                let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            Ok(managed) => {
+                if let Some(reason) = managed.interruption() {
+                    return HookCommandOutcome::Deny {
+                        message: Some(format!("钩子执行已中止（{reason:?}），停止工具派发")),
+                    };
+                }
+                let output = managed.output();
+                let stdout = crate::managed_process::decode_console_output(&output.stdout).trim().to_string();
+                let stderr = crate::managed_process::decode_console_output(&output.stderr).trim().to_string();
                 let message = (!stdout.is_empty()).then_some(stdout);
                 match output.status.code() {
                     Some(0) => HookCommandOutcome::Allow { message },
@@ -302,6 +308,10 @@ impl HookRunner {
                     },
                 }
             }
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted
+                || crate::managed_process::process_started_before_error(&error) => HookCommandOutcome::Deny {
+                message: Some(format!("钩子执行未取得完整结果，停止工具派发：{error}")),
+            },
             Err(error) => HookCommandOutcome::Warn {
                 message: format!(
                     "{} hook `{command}` failed to start for `{}`: {error}",
@@ -339,8 +349,12 @@ fn format_hook_warning(command: &str, code: i32, stdout: Option<&str>, stderr: &
 fn shell_command(command: &str) -> CommandWithStdin {
     #[cfg(windows)]
     let command_builder = {
+        use std::os::windows::process::CommandExt;
         let mut command_builder = Command::new("cmd");
-        command_builder.arg("/C").arg(command);
+        // hook 是已独立授权的完整 shell 命令，不能再套 CRT 参数转义；否则
+        // 带引号的路径会被改写成反斜线+引号，cmd 执行失败后仅留下警告。
+        // /S 只剥离这层完整外引号，保留命令开头可执行路径和参数自身的引号。
+        command_builder.arg("/D").arg("/S").arg("/C").raw_arg(format!("\"{command}\""));
         CommandWithStdin::new(command_builder)
     };
 
@@ -387,13 +401,8 @@ impl CommandWithStdin {
         self
     }
 
-    fn output_with_stdin(&mut self, stdin: &[u8]) -> std::io::Result<std::process::Output> {
-        let mut child = self.command.spawn()?;
-        if let Some(mut child_stdin) = child.stdin.take() {
-            use std::io::Write;
-            child_stdin.write_all(stdin)?;
-        }
-        child.wait_with_output()
+    fn output_with_stdin(&mut self, stdin: &[u8]) -> std::io::Result<crate::managed_process::ManagedOutput> {
+        crate::managed_process::output_with_input(&mut self.command, None, Some(stdin.to_vec()))
     }
 }
 
@@ -494,6 +503,176 @@ mod tests {
                 .with_tool_requirement(HOOK_CAPABILITY_POST_TOOL_USE, PermissionMode::ReadOnly);
         }
         policy
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn quoted_hook_path_with_spaces_keeps_shell_semantics() {
+        let directory = tempfile::tempdir().unwrap();
+        let marker = directory.path().join("含 空格 & 符号.txt");
+        let authorization = PermissionPolicy::new(PermissionMode::DangerFullAccess)
+            .with_tool_requirement(HOOK_CAPABILITY_PRE_TOOL_USE, PermissionMode::DangerFullAccess);
+        for exit_code in [0, 2] {
+            let command = format!("echo quoted-{exit_code}>\"{}\" & echo hook-quoted & exit /b {exit_code}", marker.display());
+            let result = HookRunner::new(RuntimeHookConfig::new(vec![command], Vec::new()))
+                .with_authorization(authorization.clone()).run_pre_tool_use("Read", "{}");
+            assert_eq!(std::fs::read_to_string(&marker).unwrap().trim(), format!("quoted-{exit_code}"));
+            assert_eq!(result.executed_commands(), 1);
+            assert_eq!(result.is_denied(), exit_code == 2);
+            assert_eq!(result.messages(), &["hook-quoted".to_string()], "不得把命令引用失败当作警告放行");
+        }
+        // 命令本身也可从带引号的可执行路径开始；多个引用参数不能使 cmd 拆开路径。
+        let system_root = std::path::PathBuf::from(std::env::var_os("SystemRoot").unwrap());
+        let executable = directory.path().join("匹配 工具 & 1.exe");
+        std::fs::copy(system_root.join("System32/where.exe"), &executable).unwrap();
+        let command = format!("\"{}\" \"cmd.exe\"", executable.display());
+        let result = HookRunner::new(RuntimeHookConfig::new(vec![command], Vec::new()))
+            .with_authorization(authorization).run_pre_tool_use("Read", "{}");
+        assert!(!result.is_denied());
+        assert_eq!(result.executed_commands(), 1);
+        let expected = system_root.join("System32/cmd.exe").to_string_lossy().to_ascii_lowercase().replace('/', "\\");
+        assert!(result.messages().iter().flat_map(|message| message.lines())
+            .any(|line| line.trim().to_ascii_lowercase().replace('/', "\\") == expected),
+            "必须取到程序实际输出，不能把带引号的可执行路径失败当作放行：{:?}", result.messages());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn successful_exit_hook_with_excessive_output_cannot_allow_dispatch() {
+        for stream in ["Out", "Error"] {
+            use std::io::Write;
+            let mut script = tempfile::Builder::new().prefix("hook-overflow-").suffix(".ps1").tempfile_in("tmp").unwrap();
+            write!(script, "[Console]::{stream}.Write(('x' * {})); exit 0",
+                crate::managed_process::MAX_CAPTURE_BYTES_PER_PIPE + 8192).unwrap();
+            script.flush().unwrap();
+            let script_path = script.into_temp_path();
+            let command = format!("powershell.exe -NoProfile -NonInteractive -File {}", script_path.display());
+            let actual = HookRunner::run_command(&command, super::HookCommandRequest {
+                event: super::HookEvent::PreToolUse, tool_name: "Read", tool_input: "{}",
+                tool_output: None, is_error: false, payload: "{}",
+            });
+            match actual {
+                super::HookCommandOutcome::Deny { message } => {
+                    assert!(message.unwrap().contains("输出超限"));
+                }
+                super::HookCommandOutcome::Warn { message } => panic!("超限 Hook 被警告放行：{message}"),
+                super::HookCommandOutcome::Allow { message } => panic!("超限 Hook 被允许：输出长度 {}，前缀 {}",
+                    message.as_ref().map_or(0, String::len), message.unwrap_or_default().chars().take(200).collect::<String>()),
+            }
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn started_hook_with_incomplete_request_denies_instead_of_warning_allow() {
+        let payload = "x".repeat(8 * 1024 * 1024);
+        let actual = HookRunner::run_command("exit /b 0", super::HookCommandRequest {
+            event: super::HookEvent::PreToolUse, tool_name: "Read", tool_input: "{}",
+            tool_output: None, is_error: false, payload: &payload,
+        });
+        match actual {
+            super::HookCommandOutcome::Deny { message } => {
+                assert!(message.unwrap().contains("进程已启动"));
+            }
+            _ => panic!("请求交付不完整的已启动 Hook 不得允许工具派发"),
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn hook_gb18030_stdout_denial_and_stderr_warning_preserve_chinese() {
+        let expected = "中文钩子拒绝与警告";
+        let (bytes, _, errors) = encoding_rs::GB18030.encode(expected);
+        assert!(!errors);
+        let literal = bytes.iter().map(u8::to_string).collect::<Vec<_>>().join(",");
+        std::fs::create_dir_all("tmp").unwrap();
+        for (channel, exit_code) in [("Output", 2), ("Error", 1)] {
+            use std::io::Write;
+            let mut script = tempfile::Builder::new().prefix("hook-encoding-").suffix(".ps1").tempfile_in("tmp").unwrap();
+            write!(script, "$hookBytes=[byte[]]({literal});$hookStream=[Console]::OpenStandard{channel}();$hookStream.Write($hookBytes,0,$hookBytes.Length);exit {exit_code}").unwrap();
+            script.flush().unwrap();
+            let script_path = script.into_temp_path();
+            let command = format!(
+                "powershell.exe -NoProfile -NonInteractive -File {}", script_path.display()
+            );
+            let runner = HookRunner::new(RuntimeHookConfig::new(vec![command], Vec::new()))
+                .with_authorization(hook_authorization(true, false));
+            let result = runner.run_pre_tool_use("Read", "{}");
+            assert_eq!(result.executed_commands(), 1);
+            assert_eq!(result.is_denied(), exit_code == 2, "子进程退出语义异常：{:?}", result.messages());
+            assert!(result.messages().iter().any(|message| message.contains(expected)), "中文输出丢失：{:?}", result.messages());
+            assert!(result.messages().iter().all(|message| !message.contains('\u{fffd}')));
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn root_deadline_stops_hook_and_skips_following_command() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        use std::time::{Duration, Instant};
+        let marker = CountingHook::new("after-timeout");
+        let runner = HookRunner::new(RuntimeHookConfig::new(
+            vec!["powershell.exe -NoProfile -NonInteractive -Command Start-Sleep -Seconds 20".into(), marker.allow_command()], Vec::new(),
+        )).with_authorization(hook_authorization(true, false));
+        let start = Instant::now();
+        let result = with_execution_control(ExecutionControl::new(Some(Duration::from_millis(200)), None), || runner.run_pre_tool_use("Read", "{}"));
+        assert!(result.is_denied(), "截止不能作为警告放行");
+        assert_eq!(result.executed_commands(), 1);
+        assert!(result.messages().iter().any(|message| message.contains("TimedOut")));
+        assert!(start.elapsed() < Duration::from_secs(5));
+        assert!(!marker.ran(), "截止后不得继续运行下一钩子");
+        marker.cleanup();
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn root_cancellation_stops_an_already_started_hook() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        use std::time::{Duration, Instant};
+        use std::io::Write;
+        std::fs::create_dir_all("tmp").unwrap();
+        let directory = tempfile::Builder::new().prefix("hook-cancel-").tempdir_in("tmp").unwrap();
+        let started = std::fs::canonicalize(directory.path()).unwrap().join("started.txt");
+        let late = started.with_file_name("late.txt");
+        let mut script = tempfile::Builder::new().suffix(".ps1").tempfile_in("tmp").unwrap();
+        write!(script, "Set-Content -LiteralPath '{}' ready; Start-Sleep -Seconds 3; Set-Content -LiteralPath '{}' late", started.display(), late.display()).unwrap();
+        script.flush().unwrap();
+        let script_path = script.into_temp_path();
+        let following = CountingHook::new("after-cancel");
+        let runner = HookRunner::new(RuntimeHookConfig::new(vec![
+            format!("powershell.exe -NoProfile -NonInteractive -File {}", script_path.display()), following.allow_command()
+        ], Vec::new())).with_authorization(hook_authorization(true, false));
+        let control = ExecutionControl::new(Some(Duration::from_secs(12)), None);
+        let captured = control.clone();
+        let worker = std::thread::spawn(move || with_execution_control(captured, || runner.run_pre_tool_use("Read", "{}")));
+        let wait_until = Instant::now() + Duration::from_secs(5);
+        while !started.exists() && Instant::now() < wait_until {
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        control.cancel();
+        let result = worker.join().unwrap();
+        assert!(started.exists(), "必须有真实入场证据");
+        assert!(result.is_denied());
+        assert_eq!(result.executed_commands(), 1);
+        assert!(result.messages().iter().any(|message| message.contains("Cancelled")));
+        assert!(!following.ran());
+        std::thread::sleep(Duration::from_secs(4));
+        assert!(!late.exists(), "取消后不得执行延迟写入");
+        following.cleanup();
+    }
+
+    #[test]
+    fn root_cancellation_prevents_hook_spawn() {
+        use crate::managed_process::{ExecutionControl, with_execution_control};
+        let marker = CountingHook::new("cancelled-hook");
+        let runner = HookRunner::new(RuntimeHookConfig::new(vec![marker.allow_command()], Vec::new()))
+            .with_authorization(hook_authorization(true, false));
+        let control = ExecutionControl::new(None, None);
+        control.cancel();
+        let result = with_execution_control(control, || runner.run_pre_tool_use("Read", "{}"));
+        assert!(result.is_denied());
+        assert!(!marker.ran(), "根取消后不得启动钩子");
+        marker.cleanup();
     }
 
     /// 正对照：授权之后同一个 hook 确实会运行。

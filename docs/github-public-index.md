@@ -4,6 +4,10 @@
 
 ## 工程基础
 
+- [0.2.136 发布说明](releases/0.2.136.md)
+- [2026-10-17 目录清理审核清单](repository-cleanup-review-2026-10-17.md)
+- [工具 Hook 配置](tool-hooks.md)
+
 - [0.2.0 离线使用说明与基本交互验收表](user-guide/index.html)
 - [仓库结构](repository-structure.md)
 - [开发规范](development-standard.md)

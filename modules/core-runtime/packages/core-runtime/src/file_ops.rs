@@ -9,6 +9,7 @@ use regex::RegexBuilder;
 use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 use crate::conditional_file::{file_content_version, lock_file_mutation, publish_locked, read_expected, FileContentVersion};
+use crate::managed_process::current_execution_control;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TextFilePayload {
@@ -276,18 +277,26 @@ pub fn glob_search(pattern: &str, path: Option<&str>) -> io::Result<GlobSearchOu
         .map(normalize_path)
         .transpose()?
         .unwrap_or(std::env::current_dir()?);
-    let search_pattern = if Path::new(pattern).is_absolute() {
-        pattern.to_owned()
-    } else {
-        base_dir.join(pattern).to_string_lossy().into_owned()
-    };
-
     let mut matches = Vec::new();
-    let entries = glob::glob(&search_pattern)
-        .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error.to_string()))?;
-    for entry in entries.flatten() {
-        if entry.is_file() {
-            matches.push(entry);
+    if Path::new(pattern).is_absolute() {
+        let entries = glob::glob(pattern)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error.to_string()))?;
+        for entry in entries {
+            check_search_interruption()?;
+            if let Ok(entry) = entry {
+                if entry.is_file() { matches.push(entry); }
+            }
+        }
+    } else {
+        let filter = Pattern::new(pattern)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error.to_string()))?;
+        for entry in search_entries(&base_dir) {
+            check_search_interruption()?;
+            let entry = entry.map_err(|error| io::Error::other(error.to_string()))?;
+            if entry.file_type().is_file() && entry.path().strip_prefix(&base_dir)
+                .is_ok_and(|relative| filter.matches_path(relative)) {
+                matches.push(entry.into_path());
+            }
         }
     }
 
@@ -345,7 +354,11 @@ pub fn grep_search(input: &GrepSearchInput) -> io::Result<GrepSearchOutput> {
     let mut total_matches = 0usize;
 
     for file_path in collect_search_files(&base_path)? {
+        check_search_interruption()?;
         if !matches_optional_filters(&file_path, glob_filter.as_ref(), file_type) {
+            continue;
+        }
+        if base_path.is_dir() && fs::metadata(&file_path).is_ok_and(|meta| meta.len() > 8 * 1024 * 1024) {
             continue;
         }
 
@@ -428,13 +441,31 @@ fn collect_search_files(base_path: &Path) -> io::Result<Vec<PathBuf>> {
     }
 
     let mut files = Vec::new();
-    for entry in WalkDir::new(base_path) {
+    for entry in search_entries(base_path) {
+        check_search_interruption()?;
         let entry = entry.map_err(|error| io::Error::other(error.to_string()))?;
         if entry.file_type().is_file() {
             files.push(entry.path().to_path_buf());
         }
     }
     Ok(files)
+}
+
+fn search_entries(base_path: &Path) -> impl Iterator<Item = Result<walkdir::DirEntry, walkdir::Error>> + '_ {
+    WalkDir::new(base_path).into_iter().filter_entry(|entry| {
+        entry.depth() == 0 || !entry.file_type().is_dir() || !matches!(
+            entry.file_name().to_str(),
+            Some(".git" | ".coolzhu" | "target" | "deploy" | "tmp" | "node_modules" | "dist")
+        )
+    })
+}
+
+fn check_search_interruption() -> io::Result<()> {
+    if let Some(reason) = current_execution_control().and_then(|control| control.interruption()) {
+        Err(io::Error::new(io::ErrorKind::Interrupted, format!("搜索已停止：{reason:?}")))
+    } else {
+        Ok(())
+    }
 }
 
 fn matches_optional_filters(
@@ -532,9 +563,11 @@ fn normalize_path_allow_missing(path: &str) -> io::Result<PathBuf> {
 
 #[cfg(test)]
 mod tests {
+    use std::io;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use super::{edit_file, glob_search, grep_search, read_file, write_file, GrepSearchInput};
+    use crate::managed_process::{with_execution_control, ExecutionControl};
 
     fn temp_path(name: &str) -> std::path::PathBuf {
         let unique = SystemTime::now()
@@ -635,5 +668,30 @@ mod tests {
         })
         .expect("grep should succeed");
         assert!(grep_output.content.unwrap_or_default().contains("hello"));
+    }
+
+    #[test]
+    fn searches_skip_generated_directories_but_allow_explicit_paths_and_cancel() {
+        let dir = tempfile::tempdir().unwrap();
+        let source = dir.path().join("installer");
+        let generated = dir.path().join("target");
+        std::fs::create_dir_all(&source).unwrap();
+        std::fs::create_dir_all(&generated).unwrap();
+        std::fs::write(source.join("Product.wxs"), "UpgradeCode stable").unwrap();
+        std::fs::write(generated.join("cached.wxs"), "UpgradeCode old").unwrap();
+        let input = |path: &std::path::Path| GrepSearchInput {
+            pattern: "UpgradeCode".into(), path: Some(path.to_string_lossy().into_owned()),
+            glob: None, output_mode: None, before: None, after: None,
+            context_short: None, context: None, line_numbers: None,
+            case_insensitive: None, file_type: None, head_limit: None,
+            offset: None, multiline: None,
+        };
+        assert_eq!(grep_search(&input(dir.path())).unwrap().num_files, 1);
+        assert_eq!(glob_search("**/*.wxs", Some(dir.path().to_str().unwrap())).unwrap().num_files, 1);
+        assert_eq!(grep_search(&input(&generated)).unwrap().num_files, 1);
+        let control = ExecutionControl::new(None, None);
+        control.cancel();
+        let error = with_execution_control(control, || grep_search(&input(dir.path())).unwrap_err());
+        assert_eq!(error.kind(), io::ErrorKind::Interrupted);
     }
 }

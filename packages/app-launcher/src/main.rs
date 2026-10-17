@@ -401,9 +401,25 @@ fn run(
     }
 
     let previous_state = load_user_state(&user_state_root).ok();
-    let expected_build_version = previous_state
-        .as_ref()
-        .and_then(|state| state.observations.last_background_build_version.clone());
+    let expected_build_version = expected_background_build_version(
+        [
+            option_env!("COOLZHU_GIT_SHA"),
+            option_env!("VERGEN_GIT_SHA"),
+            option_env!("GIT_COMMIT"),
+            option_env!("GIT_HASH"),
+        ]
+        .into_iter()
+        .flatten()
+        .find(|sha| !sha.trim().is_empty()),
+        option_env!("COOLZHU_BUILD_DATE")
+            .or(option_env!("VERGEN_BUILD_DATE"))
+            .or(option_env!("VERGEN_BUILD_TIMESTAMP"))
+            .or(option_env!("BUILD_DATE"))
+            .unwrap_or("local"),
+        previous_state.as_ref().and_then(|state| {
+            state.observations.last_background_build_version.as_deref()
+        }),
+    );
     // 只有"同一工作区"的上次观测值才可作为数据绑定期望（否则会误报冲突）。
     let expected_session_db = previous_state.as_ref().and_then(|state| {
         let last_workspace = state.observations.last_workspace_root.as_ref()?;
@@ -412,13 +428,24 @@ fn run(
             .then(|| last_db.clone())
     });
 
-    if preflight_web_console_port(
+    let reuse_existing = preflight_web_console_port(
         &config,
         &decision.resolved,
         expected_build_version.as_deref(),
         expected_session_db.as_deref(),
-    )? {
-        let tauri_pid = forward_existing_console(&config, &decision.resolved)?;
+    )
+    .map_err(|error| {
+        write_failed_selfcheck(&config, &error, Some(&decision.resolved), &notes);
+        error
+    })?;
+    if let Some(reused) = reuse_existing {
+        let resolved = decision.resolved.with_observations(&reused.observed);
+        let tauri_pid = forward_existing_console(&config, &resolved).map_err(|error| {
+            write_failed_selfcheck(&config, &error, Some(&resolved), &notes);
+            error
+        })?;
+        write_reused_selfcheck(&config, &resolved, tauri_pid, reused.web_pid, reused.verification, &notes);
+        record_successful_observations(&user_state_root, &resolved);
         return Ok(RunOutcome::ForwardedExisting { tauri_pid });
     }
 
@@ -455,21 +482,75 @@ fn run(
     .map(RunOutcome::Started);
 
     if let Ok(RunOutcome::Started(outcome)) = &open {
-        // 记录观测值：构建身份/数据绑定用于下次复用判定；冲突只是告警。
-        if let Some(observed) = &outcome.resolved.observed_build_version {
-            let _ = record_observations(&user_state_root, |observations| {
-                observations.last_background_build_version = Some(observed.clone());
-                observations.last_launch_id = Some(outcome.resolved.launch_id.clone());
-                observations.last_workspace_root = Some(outcome.resolved.workspace_root.clone());
-                observations.last_observed_session_db =
-                    outcome.resolved.observed_session_db.clone();
-            });
-        }
+        record_successful_observations(&user_state_root, &outcome.resolved);
     }
     open
 }
 
+/// 首次启动与复用共享记录路径；仅保存实际且匹配的后台观测。
+fn record_successful_observations(user_state_root: &Path, resolved: &ResolvedLaunchPaths) {
+    let (Some(workspace), Some(build)) = (&resolved.observed_workspace, &resolved.observed_build_version) else {
+        eprintln!("package-launcher: 后台观测不完整，未更新复用历史");
+        return;
+    };
+    if !launch_paths::same_canonical(workspace, &resolved.workspace_root) {
+        eprintln!("package-launcher: 后台实际工作区与请求不一致，未更新复用历史");
+        return;
+    }
+    if let Err(error) = record_observations(user_state_root, |observations| {
+        observations.last_background_build_version = Some(build.clone());
+        observations.last_launch_id = Some(resolved.launch_id.clone());
+        observations.last_workspace_root = Some(workspace.clone());
+        observations.last_observed_session_db = resolved.observed_session_db.clone();
+    }) {
+        eprintln!("package-launcher: 本次后台观测保存失败，历史未确认更新：{error}");
+    }
+}
+
+/// 升级后的复用期望属于当前包，历史观测不能覆盖新包身份。
+/// 与后台显示规则保持一致：源码 SHA 前 12 字符及编译日期。
+fn expected_background_build_version(
+    compiled_sha: Option<&str>,
+    compiled_date: &str,
+    previous_observation: Option<&str>,
+) -> Option<String> {
+    match compiled_sha.map(str::trim).filter(|sha| !sha.is_empty()) {
+        Some(sha) => Some(format!("{} · {compiled_date}", sha.chars().take(12).collect::<String>())),
+        None => previous_observation.map(str::to_string),
+    }
+}
+
 fn write_refusal_selfcheck(config: &LauncherConfig, error: &LaunchError) {
+    write_failed_selfcheck(
+        config,
+        error,
+        None,
+        &["[refused] 路径解析未通过：已阻断启动，未创建替代工作区".to_string()],
+    );
+}
+
+fn write_reused_selfcheck(
+    config: &LauncherConfig, resolved: &ResolvedLaunchPaths, tauri_pid: u32,
+    web_pid: Option<u32>,
+    verification: app_launcher::service_identity::ReuseVerification, notes: &[String],
+) {
+    let payload = SelfcheckPayload {
+        ok: true, web_console_pid: web_pid, tauri_pid: Some(tauri_pid),
+        health_url: config.health_url.clone(), error: None, timestamp_ms: now_ms(),
+        resolved: Some(resolved.clone()), reuse: Some(verification), notes: notes.to_vec(),
+    };
+    if let Err(error) = app_launcher::write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload) {
+        eprintln!("package-launcher: 本次复用自检保存失败，旧文件不能代表本次结果：{error}");
+    }
+}
+
+/// 预检拒绝也覆盖上次成功记录；保存失败必须明确输出，不能让旧记录冒充本次结果。
+fn write_failed_selfcheck(
+    config: &LauncherConfig,
+    error: &LaunchError,
+    resolved: Option<&ResolvedLaunchPaths>,
+    notes: &[String],
+) {
     let payload = SelfcheckPayload {
         ok: false,
         web_console_pid: None,
@@ -477,11 +558,15 @@ fn write_refusal_selfcheck(config: &LauncherConfig, error: &LaunchError) {
         health_url: config.health_url.clone(),
         error: Some(error.to_string()),
         timestamp_ms: now_ms(),
-        resolved: None,
+        resolved: resolved.cloned(),
         reuse: None,
-        notes: vec!["[refused] 路径解析未通过：已阻断启动，未创建替代工作区".to_string()],
+        notes: notes.to_vec(),
     };
-    let _ = app_launcher::write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload);
+    if let Err(persistence_error) =
+        app_launcher::write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload)
+    {
+        eprintln!("package-launcher: 本次失败自检保存失败，旧文件不能代表本次启动结果：{persistence_error}");
+    }
 }
 
 fn forward_existing_console(
@@ -508,13 +593,19 @@ fn forward_existing_console(
 /// 复用判定：**不只核对端口健康**（裁决第六节）。
 ///
 /// 返回 `true` 表示"可复用的既有实例已确认"（只转发 `--show-console`）。
+struct VerifiedReuse {
+    verification: app_launcher::service_identity::ReuseVerification,
+    observed: ObservedBackground,
+    web_pid: Option<u32>,
+}
+
 #[cfg(windows)]
 fn preflight_web_console_port(
     config: &LauncherConfig,
     resolved: &ResolvedLaunchPaths,
     expected_build_version: Option<&str>,
     expected_session_db: Option<&Path>,
-) -> Result<bool, LaunchError> {
+) -> Result<Option<VerifiedReuse>, LaunchError> {
     let port = health_endpoint_port(&config.health_url).ok_or_else(|| {
         LaunchError::ConfigInvalid(format!("invalid health_url: {}", config.health_url))
     })?;
@@ -524,14 +615,14 @@ fn preflight_web_console_port(
         app_launcher::ProbeOutcome::Ready
     );
     match classify_listener_recovery(health_ready, owner.as_ref()) {
-        ListenerRecoveryAction::Free => Ok(false),
+        ListenerRecoveryAction::Free => Ok(None),
         ListenerRecoveryAction::CleanupOrphan { parent_pid } => {
             eprintln!(
                 "package-launcher: recovering stale listener on port {port}, dead owner pid={parent_pid}"
             );
             cleanup_stale_listener_processes(parent_pid, None)?;
             wait_for_port_release(port, config.health_timeout, config.health_poll_interval)?;
-            Ok(false)
+            Ok(None)
         }
         ListenerRecoveryAction::CleanupKnownHolder { pid } => {
             eprintln!(
@@ -539,7 +630,7 @@ fn preflight_web_console_port(
             );
             cleanup_stale_listener_processes(pid, Some(pid))?;
             wait_for_port_release(port, config.health_timeout, config.health_poll_interval)?;
-            Ok(false)
+            Ok(None)
         }
         ListenerRecoveryAction::Block { pid, .. } => {
             let owner_user = query_process_owner_user(pid);
@@ -564,14 +655,25 @@ fn preflight_web_console_port(
                             check.name, check.expected, check.observed, check.verdict
                         );
                     }
-                    Ok(true)
+                    Ok(Some(VerifiedReuse {
+                        verification,
+                        web_pid: identity.listener_pid,
+                        observed: ObservedBackground {
+                            workspace: identity.reported_workspace,
+                            session_db: identity.reported_session_db,
+                            build_version: identity.reported_build_version,
+                            health_status: identity.reported_health_status,
+                            active_sessions: identity.reported_active_sessions,
+                            port: identity.reported_port,
+                        },
+                    }))
                 }
                 ReuseDecision::Conflict { reason, details } => Err(LaunchError::ServiceConflict {
                     port,
                     reason,
                     details,
                 }),
-                ReuseDecision::StartFresh => Ok(false),
+                ReuseDecision::StartFresh => Ok(None),
             }
         }
     }
@@ -583,8 +685,8 @@ fn preflight_web_console_port(
     _resolved: &ResolvedLaunchPaths,
     _expected_build_version: Option<&str>,
     _expected_session_db: Option<&Path>,
-) -> Result<bool, LaunchError> {
-    Ok(false)
+) -> Result<Option<VerifiedReuse>, LaunchError> {
+    Ok(None)
 }
 
 #[cfg(windows)]
@@ -826,6 +928,127 @@ fn apply_hidden_window(_cmd: &mut Command) {}
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn upgrade_reuse_expectation_uses_current_package_instead_of_old_observation() {
+        assert_eq!(
+            expected_background_build_version(
+                Some(" b849767302bf2d2909848add923673fb52f8a71e "),
+                "2026-10-10",
+                Some("4150fb8c3565 · 2026-10-07"),
+            ).as_deref(),
+            Some("b849767302bf · 2026-10-10"),
+        );
+        assert_eq!(
+            expected_background_build_version(None, "local", Some("previous")),
+            Some("previous".to_string()),
+        );
+        assert_eq!(expected_background_build_version(Some("  "), "local", None), None);
+
+        let workspace = PathBuf::from(r"C:\Users\me\coolzhuagent");
+        let expected = expected_background_build_version(
+            Some("b849767302bf2d2909848add923673fb52f8a71e"),
+            "2026-10-10",
+            Some("4150fb8c3565 · 2026-10-07"),
+        );
+        let mut identity = service_identity::ServiceIdentity {
+            port: 8765,
+            health_ready: true,
+            listener_pid: Some(8188),
+            listener_alive: true,
+            listener_process: Some("coolzhu-web-console.exe".to_string()),
+            listener_owner_user: Some("MACHINE\\me".to_string()),
+            reported_workspace: Some(workspace.clone()),
+            reported_build_version: expected.clone(),
+            protocol_shape_ok: true,
+            ..Default::default()
+        };
+        assert!(matches!(
+            service_identity::decide_reuse(&workspace, None, expected.as_deref(), Some("MACHINE\\me"), &identity),
+            ReuseDecision::Reuse { .. }
+        ));
+        identity.reported_build_version = Some("4150fb8c3565 · 2026-10-07".to_string());
+        assert!(matches!(
+            service_identity::decide_reuse(&workspace, None, expected.as_deref(), Some("MACHINE\\me"), &identity),
+            ReuseDecision::Conflict { .. }
+        ));
+    }
+
+    #[test]
+    fn port_conflict_replaces_previous_success_selfcheck() {
+        let root = env::current_dir().unwrap().join("tmp").join(format!(
+            "launcher-conflict-selfcheck-{}-{}",
+            std::process::id(), now_ms()
+        ));
+        let config_json = serde_json::json!({
+            "web_console": {"executable": "unused-web.exe", "args": []},
+            "tauri": {"executable": "unused-shell.exe", "args": []},
+            "health_url": "http://127.0.0.1:8765/api/diagnostics/health",
+            "health_timeout_secs": 1,
+            "health_poll_interval_ms": 1,
+            "log_dir": root,
+            "runtime_dir": root,
+        });
+        let config = LauncherConfig::from_json(&config_json.to_string(), &root).unwrap();
+        let old = SelfcheckPayload::basic(
+            true, Some(123), Some(456), config.health_url.clone(), None, 1,
+        );
+        app_launcher::write_selfcheck(&config.selfcheck_file, &config.log_dir, &old).unwrap();
+        let error = LaunchError::ServiceConflict {
+            port: 8765,
+            reason: "工作区不同".to_string(),
+            details: vec!["session_db 不匹配".to_string()],
+        };
+        write_failed_selfcheck(&config, &error, None, &["预检拒绝".to_string()]);
+        let actual: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&config.selfcheck_file).unwrap()).unwrap();
+        assert_eq!(actual["ok"], false);
+        assert!(actual["timestamp_ms"].as_u64().unwrap() > 1);
+        assert_eq!(actual["error"], error.to_string());
+        assert!(actual["web_console_pid"].is_null());
+        assert!(actual["tauri_pid"].is_null());
+        assert_eq!(actual["resolution_notes"][0], "预检拒绝");
+        let resolved = ResolvedLaunchPaths {
+            launch_id:"current-reuse".into(), package_identity:"test-package".into(),
+            config_schema_version:2, selection_revision:1, workspace_id:None,
+            workspace_root:root.clone(), data_dir_binding:launch_paths::DataPathBinding::WorkspaceConfigAuthority,
+            requested_session_db:None, observed_session_db:None, observed_workspace:None,
+            observed_build_version:None, user_state_root:root.clone(), input_safety_state_root:root.join("input-safety"),
+            per_process_log_paths:Vec::new(), resolution_source:launch_paths::ResolutionSource::PersistedUserSelection { revision:1 },
+        };
+        let verification = service_identity::ReuseVerification {
+            port:8765, decision:"reuse".into(), reason:None, checks:Vec::new(),
+        };
+        let resolved = resolved.with_observations(&ObservedBackground {
+            workspace:Some(root.clone()), session_db:Some(root.join("actual.sqlite3")),
+            build_version:Some("actual-build".into()), health_status:Some("ok".into()),
+            active_sessions:Some(0), port:Some(8765),
+        });
+        write_reused_selfcheck(&config, &resolved, 789, Some(321), verification.clone(), &["复用已核验".into()]);
+        let reused:serde_json::Value = serde_json::from_str(&fs::read_to_string(&config.selfcheck_file).unwrap()).unwrap();
+        assert_eq!(reused["ok"], true);
+        assert!(reused["error"].is_null());
+        assert_eq!(reused["web_console_pid"], 321);
+        assert_eq!(reused["resolved_launch_paths"]["observed"]["build_version"], "actual-build");
+        assert_eq!(reused["resolved_launch_paths"]["observed"]["session_db"], root.join("actual.sqlite3").to_string_lossy().as_ref());
+        assert_eq!(reused["tauri_pid"], 789);
+        assert_eq!(reused["reuse_verification"], verification.to_json());
+        assert_eq!(reused["resolved_launch_paths"]["launch_id"], "current-reuse");
+        let before = load_user_state(&root).unwrap();
+        record_successful_observations(&root, &resolved);
+        let stored = load_user_state(&root).unwrap();
+        assert_eq!(stored.observations.last_launch_id.as_deref(), Some("current-reuse"));
+        assert_eq!(stored.observations.last_background_build_version.as_deref(), Some("actual-build"));
+        assert_eq!(stored.observations.last_observed_session_db, Some(root.join("actual.sqlite3")));
+        assert_eq!(stored.observations.last_workspace_root, Some(root.clone()));
+        let mut invalid = resolved.clone();
+        invalid.observed_workspace = Some(root.join("different-workspace"));
+        record_successful_observations(&root, &invalid);
+        assert_eq!(load_user_state(&root).unwrap(), stored);
+        assert_eq!(stored.selection, before.selection);
+        assert_eq!(stored.legacy_selections, before.legacy_selections);
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn default_config_path_is_resolved_from_current_exe_directory() {

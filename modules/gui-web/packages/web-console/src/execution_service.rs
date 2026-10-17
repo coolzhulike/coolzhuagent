@@ -1,0 +1,877 @@
+//! 子 Agent 与定时投递共用执行索引。会话、权限、模型循环和 usage 仍归原运行模块。
+use crate::{root_execution_budget::RootExecutionBudget, ChatTurnCancellation};
+use rusqlite::{params, Connection, OptionalExtension};
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::HashMap,
+    future::Future,
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex, OnceLock},
+};
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum Source {
+    SessionTool,
+    Scheduled,
+    GoalPhase,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub(crate) struct ExecutionSpec {
+    pub id: String,
+    pub workspace_id: String,
+    pub room_id: String,
+    pub session_id: String,
+    pub provider: String,
+    pub model: String,
+    pub source: Source,
+    pub source_id: String,
+    pub parent_run_id: Option<String>,
+    pub parent_execution_id: Option<String>,
+    pub call_id: Option<String>,
+    pub summary: String,
+    pub deadline_ms: u64,
+}
+
+/// 契约按实际入口声明；ACP普通聊天不能推出ACP子Agent或Goal可用。
+pub(crate) fn require_capability(provider: &str, source: Source) -> Result<(), String> {
+    use crate::agent_session_backend::AgentSessionBackend as B;
+    match (B::for_provider(provider), source) {
+        (B::LlmHttp, _) | (B::DevinAcp, Source::Scheduled) => Ok(()),
+        (B::DevinAcp, Source::SessionTool) => Err("Devin ACP 尚未提供冻结模型快照的会话工具契约，子 Agent 未执行；普通聊天及定时 poll 不受此限制".into()),
+        (B::DevinAcp, Source::GoalPhase) => Err("Devin ACP Goal 阶段尚未开放，未派发请求".into()),
+        (B::DevinCloud, _) => Err("Devin Cloud 尚未接入共享执行服务，未派发请求".into()),
+    }
+}
+
+struct Live {
+    path: PathBuf,
+    workspace: String,
+    cancel: Arc<ChatTurnCancellation>,
+}
+fn live() -> &'static Mutex<HashMap<String, Live>> {
+    static LIVE: OnceLock<Mutex<HashMap<String, Live>>> = OnceLock::new();
+    LIVE.get_or_init(Default::default)
+}
+#[derive(Clone)]
+struct Current {
+    path: PathBuf,
+    id: String,
+    workspace: String,
+}
+tokio::task_local! { static CURRENT: Current; }
+
+pub(crate) fn apply_session_migration_v29(connection: &Connection) -> rusqlite::Result<()> {
+    // 同一session库内的关联索引，无第二份会话、凭据、记忆或调度计划。
+    connection.execute_batch("CREATE TABLE IF NOT EXISTS execution_index (
+      id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, spec_json TEXT NOT NULL,
+      state TEXT NOT NULL, started_ms INTEGER NOT NULL, finished_ms INTEGER,
+      run_id TEXT, result TEXT, error TEXT);
+      CREATE INDEX IF NOT EXISTS execution_workspace_started ON execution_index(workspace_id,started_ms);
+      CREATE UNIQUE INDEX IF NOT EXISTS execution_bound_run ON execution_index(run_id) WHERE run_id IS NOT NULL;")?;
+    let version: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    if version < 29 {
+        connection.execute_batch("PRAGMA user_version = 29;")?;
+    }
+    Ok(())
+}
+fn open(path: &Path) -> Result<Connection, String> {
+    let connection = crate::open_session_connection(path).map_err(|e| e.to_string())?;
+    Ok(connection)
+}
+
+pub(crate) struct ExecutionService;
+fn subtree_usage(connection: &Connection, workspace: &str, root: &ExecutionSpec) -> Result<serde_json::Value,String> {
+    let mut statement=connection.prepare("WITH RECURSIVE tree(id) AS (SELECT id FROM execution_index WHERE id=?1 AND workspace_id=?2 UNION SELECT e.id FROM execution_index e JOIN tree t ON json_extract(e.spec_json,'$.parent_execution_id')=t.id WHERE e.workspace_id=?2 AND json_extract(e.spec_json,'$.room_id')=?3) SELECT e.spec_json,e.run_id FROM execution_index e JOIN tree t ON e.id=t.id ORDER BY e.id").map_err(|e|e.to_string())?;
+    let rows=statement.query_map(params![root.id,workspace,root.room_id],|row|Ok((row.get::<_,String>(0)?,row.get::<_,Option<String>>(1)?))).map_err(|e|e.to_string())?;
+    let mut members=Vec::new(); let mut attempts=std::collections::BTreeMap::new();
+    for row in rows {
+        let (encoded,run)=row.map_err(|e|e.to_string())?;
+        let spec:ExecutionSpec=serde_json::from_str(&encoded).map_err(|e|e.to_string())?;
+        if spec.workspace_id!=workspace || spec.room_id!=root.room_id { return Err("后代执行归属与索引不一致".into()); }
+        members.push(spec.id.clone());
+        if let Some(run)=run.as_deref().or(spec.parent_run_id.as_deref()) {
+            for fact in crate::request_usage::requests_for_run(connection,workspace,&spec.room_id,run,None).map_err(|e|e.to_string())? {
+                if spec.source==Source::SessionTool && fact["call_id"].as_str()!=spec.call_id.as_deref() {continue;}
+                let key=fact["attempt_id"].as_str().ok_or("后代请求缺少真实attempt身份")?.to_owned();
+                if let Some(previous)=attempts.insert(key,fact.clone()) {
+                    if previous!=fact {return Err("同一attempt的用量事实不一致，未汇总".into());}
+                }
+            }
+        }
+    }
+    let facts=attempts.into_values().collect::<Vec<_>>();
+    let sum=|field:&str| -> Option<i64> {
+        if facts.is_empty(){return None;}
+        facts.iter().try_fold(0_i64,|total,fact|total.checked_add(fact[field].as_i64()?))
+    };
+    Ok(serde_json::json!({"execution_ids":members,"descendant_count":members.len().saturating_sub(1),
+        "usage_attempt_count":facts.len(),"input_tokens":sum("input_tokens"),"output_tokens":sum("output_tokens"),"usage_attempts":facts}))
+}
+pub(crate) struct TurnRunner;
+/// 只索引已有阶段claim，终态由原Goal提交器负责；claim不进入对外spec。
+pub(crate) struct GoalExecution {
+    guard: Guard,
+    run: String,
+    claim: String,
+    cancel: Arc<ChatTurnCancellation>,
+}
+impl GoalExecution {
+    pub(crate) fn bind(path: &Path, spec: ExecutionSpec, run: &str, claim: &str,
+        cancel: Arc<ChatTurnCancellation>) -> Result<Self, String> {
+        if spec.source != Source::GoalPhase { return Err("Goal索引来源不匹配".into()); }
+        let connection = open(path)?;
+        let valid: bool = connection.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND kind='goal_phase' AND workspace_id=?3 AND chat_room_id=?4 AND session_id=?5 AND phase_id=?6 AND state='running')",
+            params![run,claim,spec.workspace_id,spec.room_id,spec.session_id,spec.source_id], |row|row.get(0)).map_err(|e|e.to_string())?;
+        if !valid { return Err("Goal索引缺少本工程有效阶段运行与claim，未接纳".into()); }
+        let guard = ExecutionService::begin(path, spec.clone(), cancel.clone())?;
+        let changed=connection.execute("UPDATE execution_index SET run_id=?1 WHERE id=?2 AND workspace_id=?4 AND state='running' AND EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND claim_token=?3 AND kind='goal_phase' AND workspace_id=?4 AND chat_room_id=?5 AND session_id=?6 AND phase_id=?7 AND state='running')",
+            params![run,guard.current.id,claim,spec.workspace_id,spec.room_id,spec.session_id,spec.source_id]).map_err(|e|e.to_string())?;
+        if changed!=1 { return Err("Goal运行归属在索引绑定前已变化，未执行或重放".into()); }
+        Ok(Self { guard, run:run.into(), claim:claim.into(), cancel })
+    }
+    pub(crate) async fn scope<T>(&self, future: impl Future<Output=T>) -> Result<T,String> {
+        CURRENT.scope(self.guard.current.clone(), crate::CHAT_CANCELLATION.scope(self.cancel.clone(), async {
+            tokio::pin!(future);
+            tokio::select! {
+                biased;
+                reason=self.observe_stop()=>{self.cancel.request();Err(reason)},
+                result=&mut future=>Ok(result),
+            }
+        })).await
+    }
+    async fn observe_stop(&self) -> String {
+        loop {
+            if self.cancel.is_requested() { return "Goal阶段已请求停止；外部操作结果仍需核查，不自动重放".into(); }
+            let path=self.guard.current.path.clone(); let workspace=self.guard.current.workspace.clone();
+            let run=self.run.clone(); let claim=self.claim.clone();
+            let state=tokio::task::spawn_blocking(move || -> Result<Option<String>,String> {
+                let connection=open(&path)?;
+                connection.query_row("SELECT state FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND workspace_id=?3 AND kind='goal_phase'",
+                    params![run,claim,workspace],|row|row.get(0)).optional().map_err(|e|e.to_string())
+            }).await;
+            match state {
+                Ok(Ok(Some(state))) if state=="running" => (),
+                Ok(Ok(Some(_))) => return "Goal阶段已停止或结束，未继续等待；外部操作结果仍需核查".into(),
+                Ok(Ok(None)) => return "Goal阶段运行归属已失效，未继续执行或自动重放".into(),
+                _ => return "Goal阶段运行状态无法确认，已停止等待，不自动重放".into(),
+            }
+            tokio::select! {
+                _=observe_cancelled(&self.cancel)=>{},
+                _=tokio::time::sleep(std::time::Duration::from_millis(250))=>{},
+            }
+        }
+    }
+    pub(crate) fn finish_committed(&mut self, result: Option<&str>) -> Result<(), String> {
+        let connection = open(&self.guard.current.path)?;
+        // 归属检查与终态写入在同一SQL语句；不能先读state再跨连接无条件完成索引。
+        let changed=connection.execute("UPDATE execution_index SET state=(SELECT state FROM runtime_runs WHERE id=?1),finished_ms=?5,result=?6,error=NULL WHERE id=?4 AND workspace_id=?3 AND run_id=?1 AND state IN ('running','cancel_requested') AND EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND claim_token=?2 AND workspace_id=?3 AND kind='goal_phase' AND state IN ('completed','failed','interrupted'))",
+            params![self.run,self.claim,self.guard.current.workspace,self.guard.current.id,crate::unix_timestamp_millis(),result]).map_err(|e|e.to_string())?;
+        if changed!=1 { return Err("Goal阶段归属或终态未确认，索引不能提前完成或重放".into()); }
+        self.guard.finished=true;
+        Ok(())
+    }
+}
+struct Guard {
+    current: Current,
+    finished: bool,
+}
+impl Guard {
+    fn finish(
+        &mut self,
+        state: &str,
+        result: Option<&str>,
+        error: Option<&str>,
+    ) -> Result<(), String> {
+        let changed = open(&self.current.path)?.execute(
+            "UPDATE execution_index SET state=?1,finished_ms=?2,result=?3,error=?4 WHERE id=?5 AND workspace_id=?6 AND state IN ('running','cancel_requested')",
+            params![state,crate::unix_timestamp_millis(),result,error,self.current.id,self.current.workspace]).map_err(|e|e.to_string())?;
+        if changed != 1 {
+            return Err("执行索引终态未确认，不可自动重试".into());
+        }
+        self.finished = true;
+        Ok(())
+    }
+}
+impl Drop for Guard {
+    fn drop(&mut self) {
+        if let Ok(mut entries) = live().lock() {
+            entries.remove(&self.current.id);
+        }
+        if !self.finished {
+            if let Ok(connection) = open(&self.current.path) {
+                let _=connection.execute("UPDATE execution_index SET state='outcome_unknown',finished_ms=?1,error='执行等待被丢弃，未确认结果，不自动重放' WHERE id=?2 AND state IN ('running','cancel_requested')",
+                    params![crate::unix_timestamp_millis(),self.current.id]);
+            }
+        }
+    }
+}
+impl ExecutionService {
+    /// 只接纳已冻结的来源。重复ID拒绝，不重放；定时领取仍由scheduled_jobs负责。
+    fn begin(
+        path: &Path,
+        mut spec: ExecutionSpec,
+        cancel: Arc<ChatTurnCancellation>,
+    ) -> Result<Guard, String> {
+        require_capability(&spec.provider, spec.source)?;
+        if [
+            &spec.id,
+            &spec.workspace_id,
+            &spec.room_id,
+            &spec.session_id,
+            &spec.source_id,
+        ]
+        .iter()
+        .any(|v| v.trim().is_empty())
+        {
+            return Err("执行缺少来源、工程、房间或会话身份".into());
+        }
+        if spec.source == Source::SessionTool
+            && (spec.parent_run_id.is_none() || spec.call_id.is_none())
+        {
+            return Err("会话工具缺少真实父运行或调用身份".into());
+        }
+        spec.parent_execution_id = CURRENT.try_with(|c| c.id.clone()).ok();
+        let connection = open(path)?;
+        if spec.parent_execution_id.is_none() {
+            // 原并行工具派发spawn不会隐式继承task-local；按真实父run关联已接纳执行。
+            if let Some(run) = spec.parent_run_id.as_deref() {
+                spec.parent_execution_id = connection
+                    .query_row(
+                        "SELECT id FROM execution_index WHERE run_id=?1 AND workspace_id=?2",
+                        params![run, spec.workspace_id],
+                        |row| row.get(0),
+                    )
+                    .optional()
+                    .map_err(|e| e.to_string())?;
+            }
+        }
+        connection.execute("INSERT INTO execution_index(id,workspace_id,spec_json,state,started_ms) VALUES(?1,?2,?3,'running',?4)",
+            params![spec.id,spec.workspace_id,serde_json::to_string(&spec).map_err(|e|e.to_string())?,crate::unix_timestamp_millis()]).map_err(|e|format!("执行未领取（不重放）：{e}"))?;
+        let current = Current {
+            path: path.into(),
+            id: spec.id.clone(),
+            workspace: spec.workspace_id.clone(),
+        };
+        let guard = Guard {
+            current,
+            finished: false,
+        };
+        live().lock().map_err(|_| "执行控制锁不可用")?.insert(
+            spec.id,
+            Live {
+                path: path.into(),
+                workspace: spec.workspace_id,
+                cancel,
+            },
+        );
+        Ok(guard)
+    }
+
+    /// 调用原聊天接纳点时绑定真实run及取消token；不另建聊天运行行。
+    pub(crate) fn bind_chat(
+        path: &Path,
+        workspace: &str,
+        run: &str,
+        cancel: Arc<ChatTurnCancellation>,
+    ) -> Result<(), String> {
+        let Ok(current) = CURRENT.try_with(Clone::clone) else {
+            return Ok(());
+        };
+        if current.path != path || current.workspace != workspace {
+            return Err("执行服务与聊天接纳工程不一致".into());
+        }
+        let changed=open(path)?.execute("UPDATE execution_index SET run_id=?1 WHERE id=?2 AND workspace_id=?3 AND state IN ('running','cancel_requested')",
+            params![run,current.id,workspace]).map_err(|e|e.to_string())?;
+        if changed != 1 {
+            return Err("聊天接纳没有对应执行索引".into());
+        }
+        let mut entries = live().lock().map_err(|_| "执行控制锁不可用")?;
+        let entry = entries.get_mut(&current.id).ok_or("执行控制已结束")?;
+        if entry.cancel.is_requested() {
+            cancel.request();
+        }
+        entry.cancel = cancel;
+        Ok(())
+    }
+
+    pub(crate) fn cancel(path: &Path, workspace: &str, id: &str) -> Result<(), String> {
+        let entries = live().lock().map_err(|_| "执行控制锁不可用")?;
+        let entry = entries
+            .get(id)
+            .filter(|e| e.path == path && e.workspace == workspace)
+            .ok_or("本执行无存活控制句柄；结果可能未知，请检查轨迹，不自动重试")?;
+        // 先持久意图，再通知实际worker；不把请求取消声称为已取消。
+        open(path)?.execute("UPDATE execution_index SET state='cancel_requested' WHERE id=?1 AND workspace_id=?2 AND state='running'",params![id,workspace]).map_err(|e|e.to_string())?;
+        let run: Option<String> = open(path)?
+            .query_row(
+                "SELECT run_id FROM execution_index WHERE id=?1 AND workspace_id=?2",
+                params![id, workspace],
+                |row| row.get(0),
+            )
+            .map_err(|e| e.to_string())?;
+        if let Some(run) = run {
+            let response = crate::interrupt_runtime_run_sqlite(path, &run, Some("执行页请求停止"))
+                .map_err(|e| e.to_string())?;
+            crate::signal_runtime_run_after_interrupt(path, &response);
+        }
+        entry.cancel.request();
+        Ok(())
+    }
+
+    pub(crate) fn list(
+        path: &Path,
+        workspace: &str,
+        id: Option<&str>,
+    ) -> Result<Vec<serde_json::Value>, String> {
+        let connection = open(path)?;
+        // 索引和后代用量必须来自同一读取快照，避免并发回执更新导致重复事实不一致。
+        let _snapshot = connection.unchecked_transaction().map_err(|e|e.to_string())?;
+        let mut statement=connection.prepare("SELECT spec_json,state,started_ms,finished_ms,run_id,result,error FROM execution_index WHERE workspace_id=?1 AND (?2 IS NULL OR id=?2) ORDER BY started_ms DESC,id DESC LIMIT 200").map_err(|e|e.to_string())?;
+        let rows = statement
+            .query_map(params![workspace, id], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, u64>(2)?,
+                    row.get::<_, Option<u64>>(3)?,
+                    row.get::<_, Option<String>>(4)?,
+                    row.get::<_, Option<String>>(5)?,
+                    row.get::<_, Option<String>>(6)?,
+                ))
+            })
+            .map_err(|e| e.to_string())?;
+        let entries = live().lock().map_err(|_| "执行控制锁不可用")?;
+        let mut items = Vec::new();
+        for row in rows {
+            let (encoded, state, started, finished, run, result, error) =
+                row.map_err(|e| e.to_string())?;
+            let spec: ExecutionSpec = serde_json::from_str(&encoded).map_err(|e| e.to_string())?;
+            let active = entries
+                .get(&spec.id)
+                .is_some_and(|e| e.path == path && e.workspace == workspace);
+            let visible_state =
+                if !active && matches!(state.as_str(), "running" | "cancel_requested") {
+                    "outcome_unknown"
+                } else {
+                    &state
+                };
+            let usage_run = run.as_deref().or(spec.parent_run_id.as_deref());
+            let usage = usage_run
+                .map(|run| {
+                    crate::request_usage::requests_for_run(
+                        &connection,
+                        workspace,
+                        &spec.room_id,
+                        run,
+                        None,
+                    )
+                })
+                .transpose()
+                .map_err(|e| e.to_string())?
+                .unwrap_or_default()
+                .into_iter()
+                .filter(|fact| {
+                    spec.source != Source::SessionTool
+                        || fact["call_id"].as_str() == spec.call_id.as_deref()
+                })
+                .collect::<Vec<_>>();
+            // 逐attempt真实分账；未知值保留null，禁止用本地估算伪装token。
+            let sum = |field: &str| -> Option<i64> {
+                if usage.is_empty() || usage.iter().any(|v| v[field].as_i64().is_none()) {
+                    None
+                } else {
+                    Some(usage.iter().filter_map(|v| v[field].as_i64()).sum())
+                }
+            };
+            let input_tokens = sum("input_tokens");
+            let output_tokens = sum("output_tokens");
+            let usage_count = usage.len();
+            let usage = if id.is_some() {
+                usage
+            } else {
+                usage
+                    .into_iter()
+                    .rev()
+                    .take(8)
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .rev()
+                    .collect()
+            };
+            let preview = |value: Option<String>| {
+                value.map(|text| {
+                    if id.is_some() {
+                        text
+                    } else {
+                        text.chars().take(320).collect()
+                    }
+                })
+            };
+            let subtree = if id.is_some() { Some(subtree_usage(&connection,workspace,&spec)?) } else {None};
+            items.push(serde_json::json!({"spec":spec,"subtree":subtree,"status":visible_state,"started_ms":started,"finished_ms":finished,
+                "elapsed_ms":finished.or_else(||active.then(crate::unix_timestamp_millis)).map(|end|end.saturating_sub(started)),
+                "run_id":run,"result":preview(result),"error":preview(error),"can_cancel":active && matches!(state.as_str(),"running"|"cancel_requested"),
+                "input_tokens":input_tokens,"output_tokens":output_tokens,"usage_attempt_count":usage_count,"usage_attempts":usage}));
+        }
+        Ok(items)
+    }
+}
+
+impl TurnRunner {
+    /// 共享生命周期，不spawn、不复制模型循环；保持原task-local权限和原终态提交。
+    pub(crate) async fn run<T, F: Future<Output = Result<T, String>>>(
+        path: &Path,
+        spec: ExecutionSpec,
+        cancel: Arc<ChatTurnCancellation>,
+        future: F,
+        result_text: impl FnOnce(&T) -> String,
+    ) -> Result<T, String> {
+        let mut guard = ExecutionService::begin(path, spec, cancel.clone())?;
+        let result = CURRENT.scope(guard.current.clone(), future).await;
+        match &result {
+            Ok(value) => guard.finish("completed", Some(&result_text(value)), None)?,
+            Err(error) => {
+                let cancelled = cancel.is_requested()
+                    || live()
+                        .lock()
+                        .ok()
+                        .and_then(|entries| {
+                            entries
+                                .get(&guard.current.id)
+                                .map(|entry| entry.cancel.is_requested())
+                        })
+                        .unwrap_or(false);
+                guard.finish(
+                    if cancelled { "interrupted" } else { "failed" },
+                    None,
+                    Some(error),
+                )?;
+            }
+        }
+        result
+    }
+
+    /// 子执行有自己的取消token，父取消/预算到期向下传播，取消子执行不取消父聊天室。
+    pub(crate) async fn child<T, F: Future<Output = Result<T, String>>>(
+        parent: Arc<ChatTurnCancellation>,
+        child: Arc<ChatTurnCancellation>,
+        budget: RootExecutionBudget,
+        future: F,
+    ) -> Result<T, String> {
+        tokio::pin!(future);
+        tokio::select! {
+            biased;
+            _=observe_cancelled(&parent)=>{child.request();Err("父运行已取消，子执行已停止等待".into())},
+            _=budget.expired()=>{child.request_timeout();Err("父运行已超时，子执行已停止等待".into())},
+            _=observe_cancelled(&child)=>Err("子执行已请求取消；已发生的效果须查看轨迹".into()),
+            result=&mut future=>result,
+        }
+    }
+}
+
+/// 原Notify只保留一个permit，附加观察者不能抢走聊天主等待器的通知。
+async fn observe_cancelled(cancel: &ChatTurnCancellation) {
+    while !cancel.is_requested() {
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+}
+
+fn request_pin(
+    headers: &crate::HeaderMap,
+) -> crate::ApiResult<crate::workspace_activity::WorkspacePin> {
+    // 执行控制必须携带冻结工程和配置加载身份；不能隐式作用于当前工程。
+    for name in ["x-coolzhu-workspace-id", "x-coolzhu-configuration-scope"] {
+        if headers
+            .get(name)
+            .is_none_or(|value| value.as_bytes().is_empty())
+        {
+            return Err(crate::api_error(
+                crate::StatusCode::BAD_REQUEST,
+                "执行请求缺少冻结工程及配置身份",
+            ));
+        }
+    }
+    crate::session_config_service::configuration_request_pin(headers)
+}
+
+pub(crate) async fn api_trace(
+    crate::AxumPath(id): crate::AxumPath<String>,
+    headers: crate::HeaderMap,
+    query: crate::Query<crate::chat_insights::TraceQuery>,
+) -> crate::ApiResult<crate::Json<serde_json::Value>> {
+    let _pin = request_pin(&headers)?;
+    let item = ExecutionService::list(
+        &crate::default_session_sqlite_path(),
+        &crate::workspace_identity(&crate::active_workspace_path()),
+        Some(&id),
+    )
+    .map_err(|e| crate::api_error(crate::StatusCode::CONFLICT, &e))?
+    .pop()
+    .ok_or_else(|| {
+        crate::api_error(
+            crate::StatusCode::NOT_FOUND,
+            "执行记录不存在或不属于当前工程",
+        )
+    })?;
+    let room = item["spec"]["room_id"]
+        .as_str()
+        .ok_or_else(|| crate::api_error(crate::StatusCode::CONFLICT, "执行房间身份无效"))?;
+    let run = item["run_id"].as_str().or_else(|| item["spec"]["parent_run_id"].as_str())
+        .ok_or_else(|| crate::api_error(crate::StatusCode::CONFLICT, "执行尚未绑定真实运行，不能按房间猜测轨迹"))?;
+    crate::chat_insights::trace(crate::AxumPath(room.to_owned()), crate::Query(query.0.for_run(run))).await
+}
+
+pub(crate) async fn api_list(
+    headers: crate::HeaderMap,
+) -> crate::ApiResult<crate::Json<serde_json::Value>> {
+    let _pin = request_pin(&headers)?;
+    let items = ExecutionService::list(
+        &crate::default_session_sqlite_path(),
+        &crate::workspace_identity(&crate::active_workspace_path()),
+        None,
+    )
+    .map_err(|e| crate::api_error(crate::StatusCode::CONFLICT, &e))?;
+    Ok(crate::Json(serde_json::json!({"executions":items})))
+}
+pub(crate) async fn api_cancel(
+    crate::AxumPath(id): crate::AxumPath<String>,
+    headers: crate::HeaderMap,
+) -> crate::ApiResult<crate::Json<serde_json::Value>> {
+    let _pin = request_pin(&headers)?;
+    ExecutionService::cancel(
+        &crate::default_session_sqlite_path(),
+        &crate::workspace_identity(&crate::active_workspace_path()),
+        &id,
+    )
+    .map_err(|e| crate::api_error(crate::StatusCode::CONFLICT, &e))?;
+    Ok(crate::Json(
+        serde_json::json!({"id":id,"status":"cancel_requested"}),
+    ))
+}
+
+pub(crate) async fn api_detail(
+    crate::AxumPath(id): crate::AxumPath<String>,
+    headers: crate::HeaderMap,
+) -> crate::ApiResult<crate::Json<serde_json::Value>> {
+    let _pin = request_pin(&headers)?;
+    let mut items = ExecutionService::list(
+        &crate::default_session_sqlite_path(),
+        &crate::workspace_identity(&crate::active_workspace_path()),
+        Some(&id),
+    )
+    .map_err(|e| crate::api_error(crate::StatusCode::CONFLICT, &e))?;
+    let item = items.pop().ok_or_else(|| {
+        crate::api_error(
+            crate::StatusCode::NOT_FOUND,
+            "执行记录不存在或不属于当前工程",
+        )
+    })?;
+    Ok(crate::Json(item))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn opening_does_not_migrate_and_explicit_step_preserves_newer_version() {
+        let temp = tempfile::tempdir().unwrap();
+        let connection = open(&temp.path().join("uninitialized.sqlite3")).unwrap();
+        let count: i64 = connection
+            .query_row(
+                "SELECT count(*) FROM sqlite_master WHERE name='execution_index'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 0);
+        apply_session_migration_v29(&connection).unwrap();
+        assert_eq!(
+            connection
+                .query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0))
+                .unwrap(),
+            29
+        );
+        connection
+            .execute_batch("PRAGMA user_version = 30;")
+            .unwrap();
+        apply_session_migration_v29(&connection).unwrap();
+        assert_eq!(
+            connection
+                .query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0))
+                .unwrap(),
+            30
+        );
+    }
+
+    #[test]
+    fn execution_requests_require_both_scope_headers_and_reject_stale_workspace() {
+        let mut headers = crate::HeaderMap::new();
+        assert!(request_pin(&headers).is_err());
+        headers.insert("x-coolzhu-workspace-id", "stale-workspace".parse().unwrap());
+        assert!(request_pin(&headers).is_err());
+        headers.insert(
+            "x-coolzhu-configuration-scope",
+            "stale-configuration".parse().unwrap(),
+        );
+        assert!(request_pin(&headers).is_err());
+    }
+
+    fn spec() -> ExecutionSpec {
+        ExecutionSpec {
+            id: "execution-one".into(),
+            workspace_id: "workspace".into(),
+            room_id: "room".into(),
+            session_id: "session".into(),
+            provider: "OpenAI".into(),
+            model: "test".into(),
+            source: Source::Scheduled,
+            source_id: "task:100".into(),
+            parent_run_id: None,
+            parent_execution_id: None,
+            call_id: None,
+            summary: "任务".into(),
+            deadline_ms: 100,
+        }
+    }
+    #[test]
+    fn subtree_usage_deduplicates_shared_runs_and_preserves_unknown_with_scope_isolation() {
+        let connection = Connection::open_in_memory().unwrap();
+        crate::initialize_session_schema(&connection).unwrap();
+        crate::chat_insights::ensure_tables(&connection).unwrap();
+        let root = spec();
+        for (id,parent,workspace,room,run,call) in [
+            ("execution-one",Some("grand"),"workspace","room",Some("root-run"),None),
+            ("child",Some("execution-one"),"workspace","room",None,Some("child-call")),
+            ("grand",Some("child"),"workspace","room",Some("grand-run"),None),
+            ("foreign-workspace",Some("execution-one"),"other","room",Some("foreign-run"),None),
+            ("foreign-room",Some("execution-one"),"workspace","other",Some("foreign-room-run"),None),
+            ("orphan",Some("missing"),"workspace","room",Some("orphan-run"),None),
+        ] {
+            let mut member=spec(); member.id=id.into(); member.parent_execution_id=parent.map(str::to_owned);
+            member.workspace_id=workspace.into(); member.room_id=room.into();
+            member.call_id=call.map(str::to_owned);
+            if call.is_some() {member.source=Source::SessionTool;member.parent_run_id=Some("root-run".into());}
+            connection.execute("INSERT INTO execution_index(id,workspace_id,spec_json,state,started_ms,run_id) VALUES(?1,?2,?3,'completed',1,?4)",
+                params![id,workspace,serde_json::to_string(&member).unwrap(),run]).unwrap();
+        }
+        for (attempt,run,call,input,output,mask) in [
+            ("first","root-run",None,10,2,3),
+            ("second","root-run",Some("child-call"),20,3,3),
+            ("third","grand-run",None,30,999,1),
+            ("unrelated","orphan-run",None,900,900,3),
+        ] {
+            connection.execute("INSERT INTO chat_usage_events(workspace_id,room_id,session_id,created_at,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,attempt_id,logical_request_id,status,dispatched,usage_known_mask,run_id,call_id) VALUES('workspace','room','session',1,?1,?2,0,0,?3,?3,'completed',1,?4,?5,?6)",
+                params![input,output,attempt,mask,run,call]).unwrap();
+        }
+        let tree=subtree_usage(&connection,"workspace",&root).unwrap();
+        assert_eq!(tree["execution_ids"],serde_json::json!(["child","execution-one","grand"]));
+        assert_eq!(tree["descendant_count"],2);
+        assert_eq!(tree["usage_attempt_count"],3,"共享run中的子请求只能汇总一次");
+        assert_eq!(tree["input_tokens"],60);
+        assert!(tree["output_tokens"].is_null(),"未知用量不得拿存储占位值或零补齐");
+        connection.execute("UPDATE chat_usage_events SET usage_known_mask=3,output_tokens=4 WHERE attempt_id='third'",[]).unwrap();
+        assert_eq!(subtree_usage(&connection,"workspace",&root).unwrap()["output_tokens"],9);
+    }
+    #[tokio::test]
+    async fn goal_binding_requires_claim_and_persisted_terminal_state() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("goal.sqlite3");
+        let connection = open(&path).unwrap();
+        crate::initialize_session_schema(&connection).unwrap();
+        connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,phase_id,state,claim_token,created_at) VALUES('goal-run','goal_phase','workspace','session','room','phase','running','private-claim',1)", []).unwrap();
+        let mut goal = spec(); goal.source=Source::GoalPhase; goal.source_id="phase".into();
+        assert!(GoalExecution::bind(&path,goal.clone(),"goal-run","wrong",Arc::new(ChatTurnCancellation::new())).is_err());
+        let mut guard = GoalExecution::bind(&path,goal.clone(),"goal-run","private-claim",Arc::new(ChatTurnCancellation::new())).unwrap();
+        assert!(GoalExecution::bind(&path,goal,"goal-run","private-claim",Arc::new(ChatTurnCancellation::new())).is_err());
+        assert!(guard.finish_committed(None).is_err());
+        let current = guard.scope(async { CURRENT.with(|c|c.id.clone()) }).await.unwrap();
+        assert_eq!(current,"execution-one");
+        connection.execute("UPDATE runtime_runs SET state='completed',claim_token='new-owner' WHERE id='goal-run'", []).unwrap();
+        assert!(guard.finish_committed(Some("旧claim不得借新终态完成")).is_err());
+        let indexed:String=connection.query_row("SELECT state FROM execution_index",[],|row|row.get(0)).unwrap();
+        assert_eq!(indexed,"running");
+        connection.execute("UPDATE runtime_runs SET claim_token='private-claim' WHERE id='goal-run'", []).unwrap();
+        connection.execute("UPDATE runtime_runs SET state='failed' WHERE id='goal-run'", []).unwrap();
+        guard.finish_committed(Some("阶段失败证据")).unwrap();
+        let (state, encoded): (String,String)=connection.query_row("SELECT state,spec_json FROM execution_index",[],|row|Ok((row.get(0)?,row.get(1)?))).unwrap();
+        assert_eq!(state,"failed"); assert!(!encoded.contains("private-claim"));
+        assert!(require_capability("devin",Source::GoalPhase).is_err());
+    }
+    #[tokio::test]
+    async fn durable_id_rejects_replay_and_drop_keeps_unknown_outcome() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("session.sqlite3");
+        crate::initialize_session_schema(&open(&path).unwrap()).unwrap();
+        let guard =
+            ExecutionService::begin(&path, spec(), Arc::new(ChatTurnCancellation::new())).unwrap();
+        assert!(
+            ExecutionService::begin(&path, spec(), Arc::new(ChatTurnCancellation::new())).is_err()
+        );
+        assert!(ExecutionService::cancel(&path, "other", "execution-one").is_err());
+        drop(guard);
+        let connection = open(&path).unwrap();
+        let state: String = connection
+            .query_row("SELECT state FROM execution_index", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(state, "outcome_unknown");
+        assert!(
+            ExecutionService::begin(&path, spec(), Arc::new(ChatTurnCancellation::new())).is_err()
+        );
+    }
+    #[tokio::test]
+    async fn goal_cancel_persists_stop_and_ends_inflight_wait_without_completion() {
+        let temp = tempfile::tempdir().unwrap(); let path=temp.path().join("goal-cancel.sqlite3");
+        let connection=open(&path).unwrap(); crate::initialize_session_schema(&connection).unwrap();
+        connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,phase_id,state,claim_token,created_at) VALUES('goal-cancel-run','goal_phase','workspace','session','room','phase','running','private-claim',1)",[]).unwrap();
+        let mut goal=spec(); goal.id="goal-cancel-index".into(); goal.source=Source::GoalPhase; goal.source_id="phase".into();
+        let mut guard=GoalExecution::bind(&path,goal,"goal-cancel-run","private-claim",Arc::new(ChatTurnCancellation::new())).unwrap();
+        let wait=guard.scope(std::future::pending::<()>());
+        let cancel=async { tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+            ExecutionService::cancel(&path,"workspace","goal-cancel-index").unwrap(); };
+        let (result,())=tokio::time::timeout(std::time::Duration::from_secs(2),async {tokio::join!(wait,cancel)}).await.unwrap();
+        assert!(result.is_err());
+        let state:String=connection.query_row("SELECT state FROM runtime_runs WHERE id='goal-cancel-run'",[],|row|row.get(0)).unwrap();
+        assert_eq!(state,"stop_requested"); assert!(guard.finish_committed(None).is_err());
+        connection.execute("UPDATE runtime_runs SET state='interrupted' WHERE id='goal-cancel-run'",[]).unwrap();
+        guard.finish_committed(None).unwrap();
+        let state:String=connection.query_row("SELECT state FROM execution_index WHERE id='goal-cancel-index'",[],|row|row.get(0)).unwrap();
+        assert_eq!(state,"interrupted");
+    }
+    #[tokio::test]
+    async fn cancelling_child_does_not_cancel_parent() {
+        let parent = Arc::new(ChatTurnCancellation::new());
+        let child = Arc::new(ChatTurnCancellation::new());
+        child.request();
+        assert!(TurnRunner::child(
+            parent.clone(),
+            child,
+            RootExecutionBudget::establish(60000),
+            std::future::pending::<Result<(), String>>()
+        )
+        .await
+        .is_err());
+        assert!(!parent.is_requested());
+        assert!(require_capability("devin", Source::SessionTool).is_err());
+        assert!(require_capability("devin", Source::Scheduled).is_ok());
+        assert!(require_capability("devin_cloud", Source::Scheduled).is_err());
+    }
+    #[tokio::test]
+    async fn goal_wait_observes_durable_stop_and_claim_replacement_without_index_cancel() {
+        for replace_claim in [false,true] {
+            let temp=tempfile::tempdir().unwrap(); let path=temp.path().join("durable-goal.sqlite3");
+            let connection=open(&path).unwrap(); crate::initialize_session_schema(&connection).unwrap();
+            connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,phase_id,state,claim_token,created_at) VALUES('durable-goal-run','goal_phase','workspace','session','room','phase','running','private-claim',1)",[]).unwrap();
+            let mut goal=spec(); goal.id=format!("durable-goal-{replace_claim}"); goal.source=Source::GoalPhase; goal.source_id="phase".into();
+            let cancel=Arc::new(ChatTurnCancellation::new());
+            let guard=GoalExecution::bind(&path,goal,"durable-goal-run","private-claim",cancel.clone()).unwrap();
+            let stop=async { tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+                if replace_claim { connection.execute("UPDATE runtime_runs SET claim_token='new-owner' WHERE id='durable-goal-run'",[]).unwrap(); }
+                else { crate::interrupt_runtime_run_sqlite(&path,"durable-goal-run",Some("外部停止入口")).unwrap(); }
+            };
+            let (result,())=tokio::time::timeout(std::time::Duration::from_secs(3),async {
+                tokio::join!(guard.scope(std::future::pending::<()>()),stop)
+            }).await.unwrap();
+            assert!(result.is_err()); assert!(cancel.is_requested(),"数据库停止需传播给工具上下文");
+        }
+    }
+
+    #[tokio::test]
+    async fn spawned_child_finds_durable_parent_without_inherited_task_local() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("session.sqlite3");
+        crate::initialize_session_schema(&open(&path).unwrap()).unwrap();
+        let workspace = crate::workspace_identity(temp.path());
+        crate::create_chat_runtime_run_sqlite(
+            &path,
+            "real-run",
+            "claim",
+            &workspace,
+            Some("session"),
+            "room",
+            "turn",
+        )
+        .unwrap();
+        let mut root = spec();
+        root.workspace_id = workspace.clone();
+        let guard =
+            ExecutionService::begin(&path, root, Arc::new(ChatTurnCancellation::new())).unwrap();
+        CURRENT
+            .scope(guard.current.clone(), async {
+                ExecutionService::bind_chat(
+                    &path,
+                    &workspace,
+                    "real-run",
+                    Arc::new(ChatTurnCancellation::new()),
+                )
+                .unwrap();
+                let path = path.clone();
+                let workspace = workspace.clone();
+                tokio::spawn(async move {
+                    assert!(CURRENT.try_with(|_| ()).is_err());
+                    let mut child = spec();
+                    child.id = "child".into();
+                    child.workspace_id = workspace;
+                    child.source = Source::SessionTool;
+                    child.parent_run_id = Some("real-run".into());
+                    child.call_id = Some("call".into());
+                    let _child = ExecutionService::begin(
+                        &path,
+                        child,
+                        Arc::new(ChatTurnCancellation::new()),
+                    )
+                    .unwrap();
+                    let encoded: String = open(&path)
+                        .unwrap()
+                        .query_row(
+                            "SELECT spec_json FROM execution_index WHERE id='child'",
+                            [],
+                            |r| r.get(0),
+                        )
+                        .unwrap();
+                    let saved: ExecutionSpec = serde_json::from_str(&encoded).unwrap();
+                    assert_eq!(saved.parent_execution_id.as_deref(), Some("execution-one"));
+                })
+                .await
+                .unwrap();
+            })
+            .await;
+        drop(guard);
+    }
+
+    #[tokio::test]
+    async fn parent_cancel_wakes_children_without_consuming_main_waiter_notification() {
+        let parent = Arc::new(ChatTurnCancellation::new());
+        let first = Arc::new(ChatTurnCancellation::new());
+        let second = Arc::new(ChatTurnCancellation::new());
+        let budget = RootExecutionBudget::establish(60000);
+        let a = TurnRunner::child(
+            parent.clone(),
+            first.clone(),
+            budget.clone(),
+            std::future::pending::<Result<(), String>>(),
+        );
+        let b = TurnRunner::child(
+            parent.clone(),
+            second.clone(),
+            budget,
+            std::future::pending::<Result<(), String>>(),
+        );
+        let stop = async {
+            tokio::task::yield_now().await;
+            parent.request();
+        };
+        let (a, b, ()) = tokio::time::timeout(std::time::Duration::from_secs(1), async {
+            tokio::join!(a, b, stop)
+        })
+        .await
+        .unwrap();
+        assert!(a.is_err() && b.is_err());
+        assert!(first.is_requested() && second.is_requested());
+        // 原聊天室等待器在请求前未被轮询，保留通知也必须可用。
+        tokio::time::timeout(std::time::Duration::from_secs(1), parent.cancelled())
+            .await
+            .unwrap();
+    }
+}

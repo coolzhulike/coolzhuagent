@@ -2994,4 +2994,49 @@ mod tests {
         assert!(updated.capabilities.tools_write);
         assert!(!updated.capabilities.tasks_control);
     }
+
+
+    #[test]
+    fn formal_copy_outbox_and_epoch_survive_reopen_and_fence_stale_writer() {
+        // 2.4：正式库副本（COOLZHU_246_COPY_DIR 指向 web-sessions/clawbot-gateway 的复制目录）上的
+        // 重启持久化、单次认领与旧 epoch 写栅栏；未设置则跳过。只写副本，不触正式库。
+        let Some(dir) = std::env::var_os("COOLZHU_246_COPY_DIR") else { return };
+        let dir = std::path::PathBuf::from(dir);
+        let gateway_db = dir.join("clawbot-gateway.sqlite3");
+        let session_db = dir.join("web-sessions.sqlite3");
+        let now = crate::unix_timestamp_millis();
+
+        // A) outbox：生产入口入队待投递行 -> 关闭 -> 重开（重启）-> 行仍在、被认领且仅一次。
+        let pending_id = {
+            let store = ClawbotGatewayStore::open(&gateway_db).expect("open gateway copy");
+            store.enqueue_outbox(&outbound("formal-copy-pending-246"), now).expect("enqueue")
+        };
+        {
+            let reopened = ClawbotGatewayStore::open(&gateway_db).expect("reopen gateway copy");
+            let claimed = reopened.claim_due_outbox(now + 1000, 100).expect("claim due");
+            assert!(claimed.iter().any(|item| item.id == pending_id),
+                "重启后待投递行必须仍在并可被认领");
+            let again = reopened.claim_due_outbox(now + 1000, 100).expect("second claim");
+            assert!(again.iter().all(|item| item.id != pending_id), "同一行不得被二次消费");
+            let sent = reopened.mark_outbox_sent(pending_id, now + 2000).expect("ack");
+            assert_eq!(sent.state, OutboxState::Sent);
+        }
+
+        // B) 会话库副本：新写者取得锁、epoch 递增；旧 epoch 的保存栅栏拒绝。
+        let writer = crate::session_writer::acquire(&session_db).expect("acquire copy writer");
+        let mut connection = rusqlite::Connection::open(&session_db).expect("open session copy");
+        let previous: u64 = connection
+            .query_row("SELECT value FROM metadata WHERE key='session_writer_epoch'", [], |row| row.get::<_, String>(0))
+            .expect("epoch row")
+            .parse()
+            .expect("epoch int");
+        let epoch = writer.claim_epoch(&mut connection).expect("claim epoch");
+        assert_eq!(epoch, previous + 1, "新写者必须在副本 epoch 上递增");
+        assert!(crate::session_writer::check_epoch(&connection, previous).is_err(), "旧 epoch 写必须被拒");
+        assert!(crate::session_writer::check_epoch(&connection, epoch).is_ok());
+        drop(writer);
+        let restarted = crate::session_writer::acquire(&session_db).expect("reacquire after drop");
+        let epoch2 = restarted.claim_epoch(&mut connection).expect("claim after restart");
+        assert_eq!(epoch2, epoch + 1, "重启后 epoch 必须继续递增而非重复");
+    }
 }

@@ -9,6 +9,10 @@ publish.workspace = true
 [lib]
 name = "diagnostics"
 [dependencies]
+sha2 = "0.10"
+
+[target.'cfg(windows)'.dependencies]
+winapi-util = "0.1"
 
 [lints]
 workspace = true

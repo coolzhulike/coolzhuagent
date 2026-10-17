@@ -5,6 +5,7 @@ window.CoolzhuWorkspacePanels = (() => {
   let traceController = null;
   let traceBefore = null;
   let archiveBefore = null;
+  let traceMessageId = null;
   let tabs = [];
   let selectedTab = "";
   let scopedWidth = null;
@@ -54,7 +55,7 @@ window.CoolzhuWorkspacePanels = (() => {
     if (selected?.ref.sourceMessageId) {
       const source = element("button", "来源"); source.type = "button"; source.className = "workspace-preview-source";
       setWuxiaIconOnly(source, "chat", "回到引用此内容的聊天消息");
-      source.addEventListener("click", () => { home(); void window.CoolzhuChatExperience?.locate(selected.ref.sourceMessageId); }); bar.append(source);
+      source.addEventListener("click", () => locateAfterHome(selected.ref.sourceMessageId)); bar.append(source);
     }
     for (const tab of tabs) {
       const item = element("div"); item.className = "workspace-preview-tab";
@@ -117,8 +118,27 @@ window.CoolzhuWorkspacePanels = (() => {
     saveTabs(); renderTabs();
   }
   function home(options = {}) {
-    activationVersion++; api.close({disposeBrowser:options.disposeBrowser === true}); api.collapse(); renderTabs();
+    activationVersion++; api.close({disposeBrowser:options.disposeBrowser === true}); api.collapse(options.preserveScroll !== false); renderTabs();
     qs("message-input")?.focus({preventScroll:true});
+  }
+  function locateAfterHome(id) {
+    const scope = scopeKey();
+    home({preserveScroll:false});
+    const panel = document.querySelector(".chat-workbench-window .chat-window-panel, .chat-window-panel");
+    let finished = false;
+    let fallback;
+    const settle = () => {
+      if (finished) return;
+      finished = true;
+      panel?.removeEventListener("transitionend", onTransitionEnd);
+      clearTimeout(fallback);
+      if (scopeKey() === scope) void window.CoolzhuChatExperience?.locate(id);
+    };
+    const onTransitionEnd = event => {
+      if (event.target === panel && event.propertyName === "grid-template-columns") settle();
+    };
+    panel?.addEventListener("transitionend", onTransitionEnd);
+    fallback = setTimeout(settle, 250);
   }
   function initMoreDock() {
     const more = qs("window-dock-more");
@@ -167,7 +187,19 @@ window.CoolzhuWorkspacePanels = (() => {
     api.open(id);
     if (id === "schedules") void api.refreshSchedules();
     if (id === "clawbot") void api.refreshWechat();
-    if (id === "trace") void loadTrace();
+    if (id === "trace") { traceMessageId = null; void loadTrace(); }
+  }
+  async function openTraceArchive(messageId = null) {
+    if (!api) return;
+    traceMessageId = typeof messageId === "string" && messageId.trim() ? messageId : null;
+    api.open("trace");
+    await loadTrace();
+    if (traceMessageId) return;
+    const archive = qs("chat-trace-items")?.querySelector(".chat-trace-archive");
+    if (archive) {
+      archive.open = true;
+      archive.scrollIntoView({block:"start"});
+    }
   }
   function beforeClose(id, options = {}) {
     if (id === "browser") {
@@ -191,7 +223,7 @@ window.CoolzhuWorkspacePanels = (() => {
     if (browserContextChanged) api.resetBrowser?.();
     const browserFrame = document.querySelector('[data-role="browser-window-frame"]');
     if (browserFrame) { browserFrame.src = "about:blank"; delete browserFrame.dataset.currentUrl; }
-    window.CoolzhuContentPreview?.dispose(); traceController?.abort(); traceBefore = null;
+    window.CoolzhuContentPreview?.dispose(); traceController?.abort(); traceBefore = null; traceMessageId = null;
     qs("chat-trace-items")?.replaceChildren();
     if (["preview", "trace", "browser"].includes(api.active())) home();
     restoreTabs();
@@ -237,6 +269,7 @@ window.CoolzhuWorkspacePanels = (() => {
   async function loadTrace(append = false) {
     traceController?.abort(); traceController = new AbortController();
     const signal = traceController.signal; const scope = api.scope(); const key = scopeKey();
+    const requestedMessage = traceMessageId;
     const items = qs("chat-trace-items"), status = qs("chat-trace-status"); if (!items || !scope.room) return;
     if (!append) {
       traceBefore = null; archiveBefore = null; items.replaceChildren();
@@ -248,14 +281,19 @@ window.CoolzhuWorkspacePanels = (() => {
       setWuxiaIconOnly(more, "chevron", "查看更早原始记录");
       more.addEventListener("click", () => void loadArchive(true,traceController.signal,key).catch(error => { if (error.name !== "AbortError" && scopeKey() === key) status.textContent = error.message; }));
       archive.append(archiveItems,more); items.append(runs,archive);
-      void loadArchive(false,signal,key).catch(error => { if (error.name !== "AbortError" && scopeKey() === key) archiveItems.textContent = error.message; });
+      if (requestedMessage) archive.hidden = true;
+      else void loadArchive(false,signal,key).catch(error => { if (error.name !== "AbortError" && scopeKey() === key) archiveItems.textContent = error.message; });
     }
     status.textContent = "正在读取真实运行轨迹…";
     const query = new URLSearchParams({limit:"30"}); if (traceBefore) query.set("before",traceBefore);
+    if (requestedMessage) { query.delete("before"); query.set("message_id",requestedMessage); }
     try {
       const response = await fetch(`/api/chat/rooms/${encodeURIComponent(scope.room)}/trace?${query}`, {signal});
       const data = await response.json(); if (!response.ok) throw new Error(data.error || "运行轨迹读取失败");
-      if (scopeKey() !== key || signal.aborted) return;
+      if (scopeKey() !== key || signal.aborted || requestedMessage !== traceMessageId) return;
+      if (requestedMessage && (data.requested_message_id !== requestedMessage || data.runs?.length !== 1)) {
+        throw new Error("未收到这条回复的唯一运行记录，请刷新后重试");
+      }
       const runHost = qs("chat-trace-runs"); if (!runHost) return;
       for (const run of data.runs || []) {
         const row = element("details"); row.className = "chat-trace-entry"; row.dataset.runId = run.run_id;
@@ -266,7 +304,7 @@ window.CoolzhuWorkspacePanels = (() => {
         if (run.source_message_id) {
           const locate=element("button","定位本轮提问"); locate.type="button";
           setWuxiaIconOnly(locate, "crosshair", "定位本轮提问");
-          locate.addEventListener("click",()=>{ home(); void window.CoolzhuChatExperience?.locate(run.source_message_id); }); row.append(locate);
+          locate.addEventListener("click",()=>locateAfterHome(run.source_message_id)); row.append(locate);
         }
         if (run.stop_reason) row.append(element("p",run.stop_reason));
         for (const call of calls) {
@@ -275,11 +313,13 @@ window.CoolzhuWorkspacePanels = (() => {
         }
         const tokens = value => value == null ? "未知" : Number(value).toLocaleString();
         for (const request of run.requests || []) row.append(element("p",`模型请求 · ${traceStatus(request.status)} · 输入 ${tokens(request.input_tokens)} / 输出 ${tokens(request.output_tokens)} token`));
+        if (requestedMessage) row.open = true;
         runHost.append(row);
+        if (requestedMessage) row.scrollIntoView({block:"start"});
       }
       traceBefore = data.next_before; qs("chat-trace-more").hidden = !data.has_more;
       setWuxiaIconOnly(qs("chat-trace-more"), "chevron", "查看更早轮次");
-      status.textContent = runHost.childElementCount ? `已显示 ${runHost.childElementCount} 个运行轮次 · 工具调用按真实调用 ID 去重` : "暂无结构化运行轮次；历史思考与原始记录仍可在下方查看。";
+      status.textContent = requestedMessage ? "已定位这条回复的运行记录" : runHost.childElementCount ? `已显示 ${runHost.childElementCount} 个运行轮次 · 工具调用按真实调用 ID 去重` : "暂无结构化运行轮次；历史思考与原始记录仍可在下方查看。";
     } catch (error) { if (error.name !== "AbortError" && scopeKey() === key) status.textContent = `运行轨迹加载失败：${error.message}`; }
   }
 
@@ -295,5 +335,5 @@ window.CoolzhuWorkspacePanels = (() => {
     qs("chat-trace-refresh")?.addEventListener("click", () => void loadTrace());
     qs("chat-trace-more")?.addEventListener("click", () => void loadTrace(true));
   }
-  return {init,navigate,home,beforeClose,scopeChanged,showReference,loadTrace,panelOpened,widthChanged,currentWidth,browserLocation};
+  return {init,navigate,home,beforeClose,scopeChanged,showReference,loadTrace,openTraceArchive,panelOpened,widthChanged,currentWidth,browserLocation};
 })();

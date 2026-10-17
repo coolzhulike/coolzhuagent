@@ -1,4 +1,4 @@
-﻿param(
+param(
   # L04 需要一次"全新 target + 已准备离线依赖"的真实构建（数百 crate，预计数十分钟），
   # 因此默认跳过；有构建预算时加该开关执行。
   [switch]$RunCleanTargetBuild,
@@ -200,7 +200,8 @@ function New-LoaderFixture {
   $messageFile = Join-Path $caseRoot 'messages.jsonl'
   Write-FixtureText -Path $messageFile -Text (($messages -join "`n") + $(if ($messages.Count -gt 0) { "`n" } else { '' }))
   # 其它 reason 的噪声行，确保解析只挑 build-script-executed
-  Add-Content -LiteralPath $messageFile -Value '{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#webview2-com-sys@0.38.2","filenames":[]}' -Encoding UTF8
+  Add-Content -LiteralPath $messageFile -Value '{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#webview2-com-sys@0.38.2","target":{"name":"webview2_com_sys","kind":["lib"]},"filenames":[]}' -Encoding UTF8
+  Add-Content -LiteralPath $messageFile -Value '{"reason":"build-finished","success":true}' -Encoding UTF8
 
   $emitScript = Join-Path $caseRoot 'emit-messages.ps1'
   Write-FixtureText -Path $emitScript -Text "param([string]`$MessageFile)`nGet-Content -LiteralPath `$MessageFile`n"
@@ -265,10 +266,21 @@ function New-LoaderFixture {
         }
       }
     )
-    resources = @()
+    resources = @(
+      [ordered]@{
+        id = 'gui-web.console-pages'
+        source = "$caseRelative/console-pages-src"
+        target = 'web-console-static'
+      }
+    )
   }
 
+  $consolePagesSource = Join-Path $caseRoot 'console-pages-src'
+  Write-FixtureText -Path (Join-Path $consolePagesSource 'src/static_resource_contract.rs') -Text "pub static PAGES: &[(&str, &[u8])] = &[`n    (`"index.html`", include_bytes!(`"index.html`")),`n    (`"app.js`", include_bytes!(`"app.js`")),`n];"
+  Write-FixtureText -Path (Join-Path $consolePagesSource 'index.html') -Text '<!doctype html><meta charset="utf-8"><title>fixture-console</title>'
+  Write-FixtureText -Path (Join-Path $consolePagesSource 'app.js') -Text '"use strict"; // fixture console app'
   $manifestPath = Join-Path $caseRoot 'manifest.json'
+
   Write-FixtureText -Path $manifestPath -Text ($manifest | ConvertTo-Json -Depth 12)
 
   return [pscustomobject]@{
@@ -2512,6 +2524,10 @@ try {
       Write-FixtureText -Path $l08.messageFile -Text (@(
           '{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#webview2-com-sys@0.38.2","out_dir":' + $outDirJson + ',"linked_paths":[' + (ConvertTo-Json $linkedPath -Compress) + '],"linked_libs":["advapi32"],"cfgs":[],"env":[],"filenames":[]}'
         ) -join "`n")
+      # junction 只改变生产者路径拼写；仍保留完整构建回执的组件和成功终态。
+      Add-Content -LiteralPath $l08.messageFile -Value '' -Encoding UTF8
+      Add-Content -LiteralPath $l08.messageFile -Value '{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#webview2-com-sys@0.38.2","target":{"name":"webview2_com_sys","kind":["lib"]},"filenames":[]}' -Encoding UTF8
+      Add-Content -LiteralPath $l08.messageFile -Value '{"reason":"build-finished","success":true}' -Encoding UTF8
       $l08Result = Invoke-PackageFixture -Fixture $l08
       if ($l08Result.Error) {
         Add-CaseResult -Id 'L08a-junction-producer' -Status 'FAIL' -Detail $l08Result.Error

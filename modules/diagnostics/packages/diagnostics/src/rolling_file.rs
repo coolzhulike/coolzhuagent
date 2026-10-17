@@ -1,5 +1,5 @@
 //! 有界文件诊断输出；不用于会话、用量或输入安全等权威审计数据。
-use std::{fs::{self, File, OpenOptions}, io::{self, Write}, path::{Path, PathBuf}};
+use std::{fs::{self, OpenOptions}, io, path::{Path, PathBuf}};
 
 pub(crate) const FILE_BYTES: u64 = 8 * 1024 * 1024;
 pub(crate) const RECORD_BYTES: usize = 64 * 1024;
@@ -51,8 +51,8 @@ fn append_with_limit(path: &Path, record: &[u8], limit: u64) -> io::Result<()> {
         }
         rename_if_exists(path, &sibling(path, ".1"))?;
     }
-    let mut file: File = OpenOptions::new().create(true).append(true).open(path)?;
-    file.write_all(record)
+    // 全局配额共享：同目录所有诊断写者共用预算，按本次写入预留空间后原子追加。
+    crate::quota::append_shared(path, record, BACKUPS)
 }
 
 #[cfg(test)]
@@ -71,6 +71,38 @@ mod tests {
         for generation in 1..=3 {
             assert_eq!(fs::read_to_string(sibling(&path, &format!(".{generation}"))).unwrap(), format!("{{\"序号\":{}}}\n", 6-generation));
         }
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn 同目录多路写者共享配额_淘汰最旧族且不越总额() {
+        let root = std::env::temp_dir().join(format!("coolzhu-qshare-{}-{}", std::process::id(), crate::unix_millis()));
+        fs::create_dir_all(&root).unwrap();
+        let a = root.join("a.log"); let b = root.join("b.log"); let keep = root.join("keep.log");
+        fs::write(&keep, b"K").unwrap();
+        crate::quota::append_shared_with_budget(&a, &[b'A'; 60], BACKUPS, 100).unwrap();
+        // 老化 a.log 使其出活跃宽限窗，模拟较早代
+        fs::File::options().write(true).open(&a).unwrap()
+            .set_modified(std::time::SystemTime::now() - std::time::Duration::from_secs(120)).unwrap();
+        crate::quota::append_shared_with_budget(&b, &[b'B'; 60], BACKUPS, 100).unwrap();
+        assert!(!a.exists(), "旧族应为新写入腾额被淘汰");
+        assert_eq!(fs::read(&b).unwrap(), vec![b'B'; 60]);
+        assert_eq!(fs::read(&keep).unwrap(), b"K", "未登记文件绝不可被动");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn 配额锁忙时写入整体拒绝不留半截() {
+        let root = std::env::temp_dir().join(format!("coolzhu-qlock-{}-{}", std::process::id(), crate::unix_millis()));
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("busy.log");
+        let guard = OpenOptions::new().create(true).write(true).open(root.join(".diag-quota.lock")).unwrap();
+        guard.try_lock().unwrap();
+        assert!(crate::quota::append_shared_with_budget(&path, b"X", BACKUPS, 4096).is_err());
+        assert!(!path.exists(), "锁忙拒写不得留下部分文件");
+        drop(guard);
+        crate::quota::append_shared_with_budget(&path, b"X", BACKUPS, 4096).unwrap();
+        assert_eq!(fs::read(&path).unwrap(), b"X");
         fs::remove_dir_all(root).unwrap();
     }
 

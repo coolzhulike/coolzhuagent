@@ -297,6 +297,17 @@ impl DesktopNativeBridge {
         };
         match action.kind {
             ComputerUseActionKind::Click => {
+                if element["control_type"].as_str()==Some("Button")
+                    && element["patterns"].as_array().is_some_and(|ps|ps.iter().any(|p|p.as_str()==Some("invoke"))) {
+                    let runtime_id=element["runtime_id"].as_array().and_then(|values|values.iter()
+                        .map(|v|v.as_i64().and_then(|n|i32::try_from(n).ok())).collect::<Option<Vec<_>>>())
+                        .filter(|v|!v.is_empty() && v.len()<=128)
+                        .ok_or_else(||pre_input(stale("UIA控件缺少运行时身份，必须重新观察")))?;
+                    let name=element["name"].as_str().unwrap_or("");
+                    let outcome=controlled_input(&action_id,computer_use::input::controlled_uia_invoke(
+                        &runtime_id,name,&attempt,clamp_stage_timeout(remaining,INPUT_TIMEOUT)))?;
+                    return Ok(native_input_execution(&action_id,&action.target,"uia_invoke",&outcome,Vec::new()));
+                }
                 let outcome = controlled_input(
                     &action_id,
                     computer_use::input::controlled_click(
@@ -991,6 +1002,7 @@ fn intersect_rect(a: [i32; 4], b: [i32; 4]) -> Result<[i32; 4], ComputerUseError
 fn element_json(element: &UiaElementSnapshot) -> JsonValue {
     json!({
         "reference": element.reference,
+        "runtime_id": element.runtime_id,
         "name": element.name,
         "automation_id": element.automation_id,
         "class_name": element.class_name,
@@ -1185,11 +1197,14 @@ fn backend_error(message: impl Into<String>) -> ComputerUseError {
 #[cfg(test)]
 mod tests {
 
+    include!("desktop_uia_acceptance_tests.rs");
+
     /// **CU-05**：元素状态进入观测 `state.elements`，且"不支持"保持 `null`（不是 `false`）。
     #[test]
     fn element_json_carries_uia_state_without_inventing_false_values() {
         let element = uia_resolver::UiaElementSnapshot {
             reference: "uia-1".to_string(),
+            runtime_id: None,
             process_id: 42,
             native_window_handle: 7,
             name: Some("启用".to_string()),

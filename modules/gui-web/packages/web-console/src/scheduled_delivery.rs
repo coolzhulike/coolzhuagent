@@ -103,9 +103,31 @@ pub(super) async fn deliver(task: &ConfigScheduledTask) -> ApiResult<()> {
             &mut store,
         )?
     };
-    let crate::Json(response) =
-        scheduled_execution::run(grant, crate::api_chat_send(crate::Json(request))).await?;
-    require_completed(&response)
+    let agent = crate::default_agent_sessions().into_iter()
+        .find(|agent| agent.id == task.target_session_id)
+        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "定时任务会话不可用"))?;
+    let path = crate::default_session_sqlite_path();
+    let budget = crate::root_execution_budget::RootExecutionBudget::for_session(Some(&agent.id));
+    let spec = crate::execution_service::ExecutionSpec {
+        id: format!("scheduled:{}:{}", task.id, task.run_at_ms),
+        workspace_id: request.expected_workspace_id.clone().unwrap_or_default(),
+        room_id: request.chat_room_id.clone().unwrap_or_default(), session_id: agent.id.clone(),
+        provider: agent.provider.clone(), model: agent.model.clone(),
+        source: crate::execution_service::Source::Scheduled,
+        source_id: format!("{}:{}",task.id,task.run_at_ms), parent_run_id: None,
+        parent_execution_id: None, call_id: None,
+        summary: task.content.chars().take(160).collect(), deadline_ms: budget.deadline_unix_ms(),
+    };
+    crate::execution_service::TurnRunner::run(&path, spec,
+        Arc::new(crate::ChatTurnCancellation::new()), async {
+            let crate::Json(response) = crate::root_execution_budget::scope(budget,
+                scheduled_execution::run(grant, crate::api_chat_send(crate::Json(request))))
+                .await.map_err(crate::api_error_message)?;
+            require_completed(&response).map_err(crate::api_error_message)?;
+            Ok(response)
+        }, |response| response.messages.iter().filter(|message|message.role=="assistant")
+            .map(|message|message.content.as_str()).collect::<Vec<_>>().join("\n\n"))
+        .await.map(|_|()).map_err(|error|api_error(StatusCode::CONFLICT,&error))
 }
 
 fn require_completed(response: &crate::SendMessageResponse) -> ApiResult<()> {
@@ -198,6 +220,7 @@ mod tests {
     fn bound_delivery_uses_exact_scope_and_deleted_room_never_creates_fallback() {
         let temp = tempfile::tempdir().unwrap();
         let mut store = SessionStore {
+            writer: None,
             history_edits: Vec::new(),
             committed_state: None,
             path: temp.path().join("sessions.sqlite3"),

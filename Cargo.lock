@@ -809,13 +809,16 @@ dependencies = [
  "coolzhu-command-router",
  "coolzhu-compatibility-harness",
  "coolzhu-core-runtime",
+ "coolzhu-diagnostics",
  "coolzhu-llm-adapter",
  "coolzhu-plugin-system",
  "coolzhu-tool-registry",
+ "coolzhu-windows-process-guard",
  "crossterm",
  "pulldown-cmark",
  "reqwest",
  "rustyline",
+ "serde",
  "serde_json",
  "syntect",
  "tokio",
@@ -901,6 +904,10 @@ dependencies = [
 [[package]]
 name = "coolzhu-diagnostics"
 version = "0.2.0"
+dependencies = [
+ "sha2",
+ "winapi-util",
+]
 
 [[package]]
 name = "coolzhu-docgen"
@@ -961,6 +968,7 @@ version = "0.2.0"
 name = "coolzhu-plugin-system"
 version = "0.2.0"
 dependencies = [
+ "encoding_rs",
  "serde",
  "serde_json",
  "sha2",

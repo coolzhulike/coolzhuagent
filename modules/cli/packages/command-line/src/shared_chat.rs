@@ -298,8 +298,10 @@ impl Output<'_> {
         match event {
             "started" => {
                 if !self.receipt.run.is_empty() || value["chat_room_id"] != room { return Err(problem("服务返回了重复或不匹配的轮次")); }
-                self.receipt.run = required_string(&value, "run_id")?.to_string();
-                self.receipt.turn = required_string(&value, "turn_id")?.to_string();
+                let run = required_string(&value, "run_id")?.to_string();
+                let turn = required_string(&value, "turn_id")?.to_string();
+                self.receipt.run = run;
+                self.receipt.turn = turn;
             },
             "done" => {
                 if self.receipt.run.is_empty() || value["run_id"] != self.receipt.run || value["turn_id"] != self.receipt.turn {
@@ -347,13 +349,21 @@ impl Output<'_> {
 }
 
 async fn interrupt(client: &Client, options: &Options, receipt: &Receipt) -> io::Result<Value> {
-    json_response(client.post(options.base.join("api/chat/turn/interrupt").map_err(problem)?)
+    if receipt.run.trim().is_empty() || receipt.turn.trim().is_empty()
+        || options.session.trim().is_empty() || options.room.trim().is_empty() {
+        return Err(problem("原轮次身份不完整，未发送停止请求；提交结果待确认"));
+    }
+    let confirmation = json_response(client.post(options.base.join("api/chat/turn/interrupt").map_err(problem)?)
         .timeout(CONTROL_TIMEOUT).json(&json!({"session_id":options.session,"chat_room_id":options.room,"turn_id":receipt.turn}))
-        .send().await.map_err(problem)?).await
+        .send().await.map_err(problem)?).await?;
+    if receipt.turn.is_empty() || confirmation["turn_id"] != receipt.turn {
+        return Err(problem("停止响应不属于原轮次，停止结果待确认"));
+    }
+    Ok(confirmation)
 }
 
 async fn confirm_after_disconnect(client: &Client, options: &Options, workspace_id: &str, output: &mut Output<'_>) -> io::Result<()> {
-    if output.receipt.run.is_empty() { return Err(problem("连接结束且未收到接纳标识，提交结果未知；请查看聊天室，勿自动重试")); }
+    if output.receipt.run.is_empty() || output.receipt.turn.is_empty() { return Err(problem("连接结束且未收到完整接纳标识，提交结果未知；请查看聊天室，勿自动重试")); }
     let deadline = tokio::time::Instant::now() + CLEANUP_TIMEOUT;
     let mut url = options.base.clone();
     url.path_segments_mut().map_err(|()| problem("服务路径不可用"))?.extend(["api", "runs", &output.receipt.run]);
@@ -365,8 +375,8 @@ async fn confirm_after_disconnect(client: &Client, options: &Options, workspace_
             || status["workspace_id"] != workspace_id
         { return Err(problem("查询返回的运行身份不匹配，结果待确认")); }
         if let Some(state) = status["state"].as_str().filter(|state| matches!(*state, "completed" | "failed" | "interrupted" | "orphaned")) {
-            let state = if state == "orphaned" { "failed" } else { state };
-            output.event("done", json!({"run_id":output.receipt.run,"turn_id":output.receipt.turn,"status":state,"source":"run_status_after_disconnect"}), &options.room)?;
+            let displayed_state = if state == "orphaned" { "failed" } else { state };
+            output.event("done", json!({"run_id":output.receipt.run,"turn_id":output.receipt.turn,"status":displayed_state,"runtime_state":state,"source":"run_status_after_disconnect"}), &options.room)?;
             return Ok(());
         }
         if tokio::time::Instant::now() >= deadline { return Err(problem("原轮次仍未收尾，结果待确认；不要自动重试")); }
@@ -378,9 +388,16 @@ async fn run_async(options: Options, signal: impl Future<Output = io::Result<()>
     // 与本地 GUI HTTP API 相同的认证边界：现有服务无另一个客户端 token。
     // 不接受远程地址、不继承系统代理、不跟随重定向，也不发送模型密钥。
     let client = local_client()?;
-    let workspace_id = validate_context(&client, &options).await?;
-    let mut output = Output { json: options.json, stdout, stderr, receipt: Receipt::default(), message_id: String::new(), displayed: String::new() };
     tokio::pin!(signal);
+    let workspace_id = tokio::select! {
+        biased;
+        result = &mut signal => {
+            result?;
+            return Err(problem("工作区校验期间已取消，聊天请求尚未提交"));
+        }
+        result = validate_context(&client, &options) => result?,
+    };
+    let mut output = Output { json: options.json, stdout, stderr, receipt: Receipt::default(), message_id: String::new(), displayed: String::new() };
     let mut cancel_requested = false;
     let send = client.post(options.base.join("api/chat/send/stream").map_err(problem)?)
         .header("Accept", "text/event-stream")
@@ -407,7 +424,6 @@ async fn run_async(options: Options, signal: impl Future<Output = io::Result<()>
         if cancel_requested && !cancel_sent && !output.receipt.run.is_empty() {
             // 原会话+聊天室+turn 做停止 CAS；不能仅凭客户端拼一个 run_id 请求停止。
             let confirmation = interrupt(&client, &options, &output.receipt).await?;
-            if confirmation["turn_id"] != output.receipt.turn { return Err(problem("停止响应不属于原轮次")); }
             cancel_sent = true; stop_deadline = Some(tokio::time::Instant::now() + CLEANUP_TIMEOUT);
             if options.json {
                 serde_json::to_writer(&mut output.stdout, &json!({"event":"interrupt_requested","data":confirmation})).map_err(problem)?;
@@ -436,6 +452,7 @@ async fn run_async(options: Options, signal: impl Future<Output = io::Result<()>
     if !options.json { writeln!(output.stdout)?; }
     match output.receipt.terminal.as_deref() {
         Some("completed") => Ok(()),
+        Some("commit_pending") => Err(problem("原轮次终态提交待确认；不能宣布完成，未自动重试")),
         Some(state) => Err(problem(format!("原轮次终态：{state}；未自动重试"))),
         None => Err(problem("未收到确认终态；未自动重试")),
     }
@@ -492,9 +509,129 @@ mod tests {
     }
 
     /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
+    #[test]
+    fn incomplete_admission_does_not_partially_update_receipt() {
+        for value in [json!({"run_id":"run","chat_room_id":"room"}),
+            json!({"run_id":"run","turn_id":"","chat_room_id":"room"}),
+            json!({"turn_id":"turn","chat_room_id":"room"})] {
+            let (mut out, mut err) = (Vec::new(), Vec::new());
+            let mut output = Output { json:true, stdout:&mut out, stderr:&mut err,
+                receipt:Receipt::default(), message_id:String::new(), displayed:String::new() };
+            assert!(output.event("started", value, "room").is_err());
+            assert!(output.receipt.run.is_empty());
+            assert!(output.receipt.turn.is_empty());
+            assert!(out.is_empty());
+        }
+    }
+
+    #[tokio::test]
+    async fn disconnected_confirmation_rejects_foreign_scope_and_preserves_runtime_state() {
+        for (changed, state) in [(None, "completed"), (None, "orphaned"),
+            (Some("run_id"), "completed"), (Some("turn_id"), "completed"),
+            (Some("session_id"), "completed"), (Some("chat_room_id"), "completed"),
+            (Some("workspace_id"), "completed")] {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+            let server = tokio::spawn(async move {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let (request, _) = read_request(&mut socket).await;
+                assert_eq!(request, "GET /api/runs/run HTTP/1.1");
+                let mut value = json!({"run_id":"run","turn_id":"turn","session_id":"session",
+                    "chat_room_id":"room","workspace_id":"workspace","state":state});
+                if let Some(field) = changed { value[field] = json!("foreign"); }
+                send_json(&mut socket, value).await;
+            });
+            let options = Options { base, workspace:std::env::current_dir().unwrap(), session:"session".into(),
+                room:"room".into(), prompt:"unused".into(), json:true, expected_workspace_id:None };
+            let (mut out, mut err) = (Vec::new(), Vec::new());
+            let mut output = Output { json:true, stdout:&mut out, stderr:&mut err,
+                receipt:Receipt { run:"run".into(), turn:"turn".into(), terminal:None },
+                message_id:String::new(), displayed:String::new() };
+            let result = confirm_after_disconnect(&local_client().unwrap(), &options, "workspace", &mut output).await;
+            assert_eq!(result.is_ok(), changed.is_none());
+            if changed.is_some() {
+                assert!(output.receipt.terminal.is_none());
+                assert!(out.is_empty(), "外来身份不得产生完成事件");
+            } else {
+                let event:Value = serde_json::from_slice(&out).unwrap();
+                assert_eq!(event["data"]["runtime_state"], state);
+                assert_eq!(event["data"]["status"], if state == "orphaned" { "failed" } else { state });
+            }
+            server.await.unwrap();
+        }
+    }
+
+    #[tokio::test]
+    async fn incomplete_receipt_never_sends_interrupt() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+        let options = Options { base, workspace:std::env::current_dir().unwrap(), session:"session".into(),
+            room:"room".into(), prompt:"unused".into(), json:true, expected_workspace_id:None };
+        let receipt = Receipt { run:"run".into(), ..Receipt::default() };
+        let error = interrupt(&local_client().unwrap(), &options, &receipt).await.unwrap_err();
+        assert!(error.to_string().contains("未发送"));
+        assert!(tokio::time::timeout(Duration::from_millis(100), listener.accept()).await.is_err());
+    }
+
+    /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
+    #[tokio::test]
+    async fn interrupt_checks_original_turn_for_every_caller() {
+        for returned_turn in [Some("original-turn"), Some("foreign-turn"), None] {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+            let server = tokio::spawn(async move {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let (request, body) = read_request(&mut socket).await;
+                assert_eq!(request, "POST /api/chat/turn/interrupt HTTP/1.1");
+                assert_eq!(body, json!({"session_id":"session","chat_room_id":"room","turn_id":"original-turn"}));
+                let response = match returned_turn {
+                    Some(turn) => json!({"turn_id":turn,"status":"interrupt_requested"}),
+                    None => json!({"status":"interrupt_requested"}),
+                };
+                send_json(&mut socket, response).await;
+            });
+            let options = Options { base, workspace: std::env::current_dir().unwrap(),
+                session:"session".into(), room:"room".into(), prompt:"unused".into(),
+                json:true, expected_workspace_id:None };
+            let receipt = Receipt { run:"original-run".into(), turn:"original-turn".into(), ..Receipt::default() };
+            let result = interrupt(&local_client().unwrap(), &options, &receipt).await;
+            assert_eq!(result.is_ok(), returned_turn == Some("original-turn"));
+            if let Err(error) = result { assert!(error.to_string().contains("待确认")); }
+            server.await.unwrap();
+        }
+    }
+
+    /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
+    #[tokio::test]
+    async fn cancellation_during_context_validation_never_submits_chat() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+        let (notify, notified) = tokio::sync::oneshot::channel();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let (request, _) = read_request(&mut socket).await;
+            assert_eq!(request, "GET /api/state HTTP/1.1");
+            notify.send(()).unwrap();
+            // 持有未响应的校验连接；取消必须结束等待且不产生后续请求。
+            assert!(tokio::time::timeout(Duration::from_millis(200), listener.accept()).await.is_err());
+        });
+        let signal = async move { notified.await.map_err(problem)?; Ok(()) };
+        let options = Options { base, workspace: std::env::current_dir().unwrap(),
+            session: "session".into(), room: "room".into(), prompt: "不得提交".into(),
+            json: true, expected_workspace_id: None };
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let error = tokio::time::timeout(Duration::from_secs(3), run_async(options, signal, &mut out, &mut err))
+            .await.unwrap().unwrap_err();
+        assert!(error.to_string().contains("尚未提交"));
+        assert!(out.is_empty());
+        server.await.unwrap();
+    }
+
+    /// 使用真实本机 HTTP 连接核验 adapter 发的接口/身份和终态；不运行模型或工具。
     #[tokio::test]
     async fn shared_http_stream_and_cancel_use_one_real_admission_and_original_turn() {
-        for cancel in [false, true] {
+        for (cancel, terminal, disconnected) in [(false, "completed", false), (true, "interrupted", false),
+            (false, "commit_pending", false), (false, "completed", true), (false, "interrupted", true)] {
             let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
             let base = local_base(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
             let workspace = std::env::current_dir().unwrap().canonicalize().unwrap();
@@ -504,7 +641,9 @@ mod tests {
                 let mut held_stream = None;
                 let mut notify = Some(notify);
                 let mut submissions = 0;
-                for _ in 0..if cancel {5} else {4} {
+                let mut stops = 0;
+                let mut queries = 0;
+                for _ in 0..if disconnected {6} else if cancel {5} else {4} {
                     let (mut socket,_) = listener.accept().await.unwrap();
                     let (request, body) = read_request(&mut socket).await;
                     match request.as_str() {
@@ -519,25 +658,41 @@ mod tests {
                             assert!(body.get("permission_mode").is_none());
                             socket.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n").await.unwrap();
                             chunk(&mut socket,b"event: started\ndata: {\"run_id\":\"run\",\"turn_id\":\"turn\",\"chat_room_id\":\"room\"}\n\n").await;
-                            if cancel {
+                            if disconnected {
+                                // 已接纳但未发送 done；真实关闭 SSE 触发客户端恢复。
+                                socket.write_all(b"0\r\n\r\n").await.unwrap();
+                            } else if cancel {
                                 notify.take().unwrap().send(()).unwrap(); held_stream = Some(socket);
                             } else {
-                                let events = "event: message_delta\ndata: {\"id\":\"answer\",\"kind\":\"assistant-reply\",\"delta\":\"鹈鹕骑车\"}\n\nevent: done\ndata: {\"run_id\":\"run\",\"turn_id\":\"turn\",\"status\":\"completed\"}\n\n";
+                                let events = format!("event: message_delta\ndata: {}\n\nevent: done\ndata: {}\n\n",
+                                    json!({"id":"answer","kind":"assistant-reply","delta":"鹈鹕骑车"}),
+                                    json!({"run_id":"run","turn_id":"turn","status":terminal}));
                                 for bytes in events.as_bytes().chunks(2) { chunk(&mut socket,bytes).await; }
                                 socket.write_all(b"0\r\n\r\n").await.unwrap();
                             }
                         },
                         "POST /api/chat/turn/interrupt HTTP/1.1" => {
+                            stops += 1;
                             assert_eq!(body,json!({"session_id":"session","chat_room_id":"room","turn_id":"turn"}));
                             send_json(&mut socket,json!({"turn_id":"turn","status":"interrupt_requested","outcome":"stop_requested"})).await;
-                            let mut stream = held_stream.take().unwrap();
-                            chunk(&mut stream,b"event: done\ndata: {\"run_id\":\"run\",\"turn_id\":\"turn\",\"status\":\"interrupted\"}\n\n").await;
-                            stream.write_all(b"0\r\n\r\n").await.unwrap();
+                            if !disconnected {
+                                let mut stream = held_stream.take().unwrap();
+                                chunk(&mut stream,b"event: done\ndata: {\"run_id\":\"run\",\"turn_id\":\"turn\",\"status\":\"interrupted\"}\n\n").await;
+                                stream.write_all(b"0\r\n\r\n").await.unwrap();
+                            }
+                        },
+                        "GET /api/runs/run HTTP/1.1" => {
+                            assert!(disconnected);
+                            queries += 1;
+                            send_json(&mut socket,json!({"run_id":"run","turn_id":"turn","session_id":"session",
+                                "chat_room_id":"room","workspace_id":"workspace","state":terminal})).await;
                         },
                         _ => panic!("意外或重复请求：{request}"),
                     }
                 }
                 assert_eq!(submissions,1);
+                assert_eq!(stops, usize::from(cancel || disconnected));
+                assert_eq!(queries, usize::from(disconnected));
             });
             let signal = async move {
                 if cancel { notified.await.map_err(problem)?; } else { std::future::pending::<()>().await; }
@@ -546,12 +701,18 @@ mod tests {
             let options = Options {base,workspace,session:"session".into(),room:"room".into(),prompt:"测试".into(),json:true,expected_workspace_id:None};
             let (mut out,mut err)=(Vec::new(),Vec::new());
             let result = tokio::time::timeout(Duration::from_secs(10),run_async(options,signal,&mut out,&mut err)).await.unwrap();
-            assert_eq!(result.is_err(),cancel);
+            assert_eq!(result.is_err(), terminal != "completed");
+            if terminal == "commit_pending" {
+                assert!(result.as_ref().unwrap_err().to_string().contains("提交待确认"));
+            }
             server.await.unwrap();
             let events = String::from_utf8(out).unwrap();
             let last:Value=serde_json::from_str(events.lines().last().unwrap()).unwrap();
-            assert_eq!(last["event"],"done"); assert_eq!(last["data"]["status"],if cancel {"interrupted"} else {"completed"});
-            if !cancel { assert!(events.contains("鹈鹕骑车")); }
+            assert_eq!(last["event"],"done"); assert_eq!(last["data"]["status"],terminal);
+            if disconnected {
+                assert_eq!(last["data"]["source"], "run_status_after_disconnect");
+                assert_eq!(last["data"]["runtime_state"], terminal);
+            } else if !cancel { assert!(events.contains("鹈鹕骑车")); }
         }
     }
 }

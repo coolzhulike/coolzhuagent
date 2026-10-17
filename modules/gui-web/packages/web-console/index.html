@@ -10,12 +10,14 @@
     <link rel="stylesheet" href="./src/model_settings.css" />
     <link rel="stylesheet" href="./src/wuxia_layout.css" />
     <link rel="stylesheet" href="./src/workspace_panels.css" />
+    <link rel="stylesheet" href="./src/execution_panel.css" />
     <link rel="stylesheet" href="./src/scroll_theme.css" />
     <link rel="stylesheet" href="./src/jade_controls.css" />
     <script src="./src/run_activity.js" defer></script>
     <script src="./src/video_wait.js" defer></script>
     <script src="./src/content_preview.js" defer></script>
     <script src="./src/workspace_panels.js" defer></script>
+    <script src="./src/execution_panel.js" defer></script>
     <script src="./src/native_browser_panel.js" defer></script>
     <script src="./src/chat_experience.js" defer></script>
     <script src="./src/chat_history_sync.js" defer></script>
@@ -24,6 +26,8 @@
     <script src="./src/realtime_voice_capture.js" defer></script>
     <script src="./src/realtime_audio_output.js" defer></script>
     <script src="./src/stt_tail_capture.js" defer></script>
+    <link rel="stylesheet" href="./src/brand_avatars.css" />
+    <script src="./src/brand_avatars.js" defer></script>
     <script src="./src/app.js" defer></script>
     <script src="./src/dsh_market.js" defer></script>
     <script src="./src/devin_plugin.js" defer></script>
@@ -40,7 +44,7 @@
         <article class="top-status-card overview-card" aria-label="发送对象与工作区">
           <div class="overview-identity">
             <figure class="overview-mascot" aria-label="当前 Agent 头像">
-              <img data-role="overview-mascot-avatar" src="./assets/avatars/wuxia-v3/bamboo-swordsman.png" alt="" />
+              <img data-role="overview-mascot-avatar" src="./assets/avatars/brand-v1/generic.png" alt="" />
             </figure>
             <div class="overview-identity-copy">
               <div class="overview-field overview-agent-field">
@@ -85,7 +89,7 @@
             </div>
           </details>
           <div class="chat-top-statuses" data-role="chat-top-statuses" aria-label="聊天室状态">
-            <span class="chat-top-status-indicator chat-top-status-ready is-dim" data-role="chat-top-status-ready" data-state="idle" role="img" aria-label="系统健康：等待自检" title="系统健康：等待自检">
+            <span class="chat-top-status-indicator chat-top-status-ready is-dim" data-role="chat-top-status-ready" data-state="idle" role="img" aria-label="Agent 就绪：等待自检" title="Agent 就绪：等待自检">
               <img src="./assets/ui-redesign/jade-controls-v3/status-jade.png" alt="" aria-hidden="true" />
               <span>就绪</span>
             </span>
@@ -192,7 +196,7 @@
                   <div class="config-field avatar-config-field">
                     <span>头像</span>
                     <button class="avatar-select-trigger" data-action="session-avatar-toggle" type="button">
-                      <img data-role="session-avatar-preview" src="./assets/avatars/wuxia-v3/bamboo-swordsman.png" alt="" />
+                      <img data-role="session-avatar-preview" src="./assets/avatars/brand-v1/generic.png" alt="" />
                       <b data-role="session-avatar-label">默认图标</b>
                     </button>
                     <div class="avatar-picker" data-role="avatar-picker" hidden></div>
@@ -735,7 +739,7 @@
                   </div>
                 </div>
                 <section class="chat-panel">
-                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-action="chat-trace-open" type="button">运行轨迹 / 安全详情<span class="chat-trace-safety-badge" data-role="chat-trace-safety-badge" hidden></span></button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button></div>
+                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-action="chat-trace-open" type="button">思考与运行记录<span class="chat-trace-safety-badge" data-role="chat-trace-safety-badge" hidden></span></button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button></div>
                   <div class="message-list" data-role="chat-message-list" data-chat-window-lines="50">
                     <div class="chat-message-empty-state" data-role="chat-message-empty-state" role="status">
                       <span aria-hidden="true"><img src="./assets/icons-wuxia/chat.svg" alt="" /></span>
@@ -765,7 +769,7 @@
               <div class="chat-rail-resizer chat-rail-resizer-right" data-role="chat-right-rail-resizer" role="separator" aria-label="调整扩展栏宽度" aria-controls="chat-right-rail" aria-orientation="vertical" aria-valuemin="240" aria-valuemax="760" aria-valuenow="480" tabindex="0"></div>
               <aside id="chat-right-rail" class="chat-right-rail" data-role="chat-right-rail" aria-labelledby="chat-right-rail-title">
                 <header class="chat-right-rail-heading">
-                  <img class="chat-right-agent-avatar" src="./assets/avatars/wuxia-v3/bamboo-swordsman.png" alt="" />
+                  <img class="chat-right-agent-avatar" src="./assets/avatars/brand-v1/generic.png" alt="" />
                   <div class="chat-right-rail-heading-copy" data-role="chat-right-rail-heading-copy">
                     <span data-role="chat-right-rail-kicker">协作阵列</span>
                     <strong id="chat-right-rail-title" data-role="chat-right-rail-title">Agent 与任务链</strong>
@@ -781,6 +785,7 @@
                   <button id="chat-right-tab-tasks" class="chat-right-tab" type="button" role="tab" data-right-tab="tasks" aria-selected="false" aria-controls="chat-right-panel-tasks" tabindex="-1">
                     <img src="./assets/icons-wuxia/tasks.svg" alt="" aria-hidden="true" /><span>任务</span><b class="chat-right-tab-badge" data-role="chat-right-handoff-count" hidden></b>
                   </button>
+                  <button id="chat-right-tab-executions" class="chat-right-tab" type="button" role="tab" data-right-tab="executions" aria-selected="false" aria-controls="chat-right-panel-executions" tabindex="-1"><img src="./assets/icons-wuxia/tasks.svg" alt="" aria-hidden="true" /><span>执行</span></button>
                   <button id="chat-right-tab-status" class="chat-right-tab" type="button" role="tab" data-right-tab="status" aria-selected="false" aria-controls="chat-right-panel-status" tabindex="-1">
                     <img src="./assets/icons-wuxia/shield.svg" alt="" aria-hidden="true" /><span>状态</span>
                   </button>
@@ -795,6 +800,7 @@
                       <div class="chat-roster-strip" data-role="chat-roster" aria-live="polite"></div>
                     </section>
                   </section>
+                  <section id="chat-right-panel-executions" class="chat-right-panel execution-panel" data-right-panel="executions" role="tabpanel" aria-labelledby="chat-right-tab-executions" tabindex="0" hidden></section>
                   <section id="chat-right-panel-tasks" class="chat-right-panel chat-right-task-panel" data-right-panel="tasks" role="tabpanel" aria-labelledby="chat-right-tab-tasks" tabindex="0" hidden>
                     <div class="chat-right-task-content">
                       <article class="top-status-card chat-right-task-summary" data-role="chat-right-task-summary" aria-label="当前任务摘要">
